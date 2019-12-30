@@ -182,13 +182,11 @@ class pos_Reports extends core_Master
     {
         $row->title = $mvc->getLink($rec->id, 0);
         $row->pointId = pos_Points::getHyperLink($rec->pointId, true);
-        
         $row->from = dt::mysql2verbal($rec->details['receipts'][0]->createdOn, 'd.m.Y H:i');
         $row->to = dt::mysql2verbal($rec->details['receipts'][count($rec->details['receipts']) - 1]->createdOn, 'd.m.Y H:i');
         
         if ($fields['-single']) {
             $pointRec = pos_Points::fetch($rec->pointId);
-            $row->storeId = store_Stores::getHyperLink($pointRec->storeId, true);
             $row->caseId = cash_Cases::getHyperLink($pointRec->caseId, true);
             $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
             setIfNot($row->dealerId, $row->createdBy);
@@ -286,7 +284,7 @@ class pos_Reports extends core_Master
         arr::sortObjects($detail->receiptDetails, 'action');
         
         // Табличната информация и пейджъра на плащанията
-        $detail->listFields = "value=Действие,pack=Мярка, quantity=Количество, amount=Сума ({$data->row->baseCurrency})";
+        $detail->listFields = "value=Действие, pack=Мярка, quantity=Количество, amount=Сума ({$data->row->baseCurrency}), storeId=Склад,contragentId=Клиент";
         $detail->rows = $detail->receiptDetails;
         $mvc->prepareDetail($detail);
         $data->rec->details = $detail;
@@ -407,7 +405,7 @@ class pos_Reports extends core_Master
             
             // Ако детайла е продажба
             $row->ROW_ATTR['class'] = 'report-sale';
-            
+            $row->storeId = store_Stores::getHyperlink($obj->storeId, true);
             $row->pack = cat_UoM::getShortName($obj->pack);
             deals_Helper::getPackInfo($row->pack, $obj->value, $obj->pack, $obj->quantityInPack);
             
@@ -441,6 +439,7 @@ class pos_Reports extends core_Master
         
         $row->value = "<span style='white-space:nowrap;'>{$row->value}</span>";
         $row->amount = "<span style='float:right'>" . $double->toVerbal($obj->amount) . '</span>';
+        $row->contragentId = cls::get($obj->contragentClassId)->getHyperlink($obj->contragentId, true);
         
         return $row;
     }
