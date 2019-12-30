@@ -5279,7 +5279,7 @@ function startUrlFromDataAttr(obj, stopOnClick)
 {    
 	if (this.event) {
         
-        this.event.preventDefault();
+        stopBtnDefault(this.event);
 	}
  
 	resObj = new Object();
