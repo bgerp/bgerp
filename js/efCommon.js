@@ -5278,7 +5278,6 @@ function mailServerSettings() {
 function startUrlFromDataAttr(obj, stopOnClick)
 {    
 	if (this.event) {
-        
         stopBtnDefault(this.event);
 	}
  
@@ -5288,9 +5287,10 @@ function startUrlFromDataAttr(obj, stopOnClick)
 	if (stopOnClick) {
 		$(obj).css('pointer-events', 'none');
 	}
-	getEfae().waitPeriodicAjaxCall = 0;
 
 	getEfae().process(resObj);
+	
+	getEfae().waitPeriodicAjaxCall = 0;
 	
     render_closeContextMenu();
 	
