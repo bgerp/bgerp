@@ -3934,7 +3934,7 @@ function render_setFocus(data){
 /**
  * Затваря отвореното контекстно меню
  */
-function render_closeContextMenu(data)
+function render_closeContextMenu()
 {
     if ($('.iw-mTrigger').contextMenu) {
     	$('.iw-mTrigger').contextMenu('close');
@@ -5292,7 +5292,7 @@ function startUrlFromDataAttr(obj, stopOnClick)
 
 	getEfae().process(resObj);
 	
-    render_closeContextMenu(1);
+    render_closeContextMenu();
 	
 	return false;
 }
