@@ -105,7 +105,7 @@ class core_Backup extends core_Mvc
         }
         
         // Създаваме празна текуща директория
-        core_Os::forceDir($curDir, 0645);
+        core_Os::forceDir($curDir, 0777);
         
         // Масив за всички генерирани файлове
         $files = array();
@@ -337,7 +337,7 @@ class core_Backup extends core_Mvc
         
         $dir = core_Os::normalizeDir($base) . '/' . $subDir;
         
-        if (core_Os::forceDir($dir, 0747)) {
+        if (core_Os::forceDir($dir, 0777)) {
             
             return $dir;
         }
