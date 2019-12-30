@@ -35,6 +35,10 @@
 								<td class='dt'>|Политика|*:</td>
 								<td>[#policyId#]</td>
 							</tr>
+							<tr>
+								<td class='dt'>|Тема|*:</td>
+								<td>[#theme#]</td>
+							</tr>
 						</table>
 				</div>
 			</fieldset>

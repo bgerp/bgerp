@@ -1031,12 +1031,20 @@ class pos_Terminal extends peripheral_Terminal
         if (!Mode::is('printing')) {
             $tpl->push('pos/js/scripts.js', 'JS');
             $tpl->push('pos/js/jquery.keynav.js', 'JS');
-            //$tpl->push('pos/js/shortcutkeys.js', 'JS');
+            $tpl->push('pos/js/shortcutkeys.js', 'JS');
             jquery_Jquery::run($tpl, 'posActions();');
             jquery_Jquery::run($tpl, 'disableOrEnableBatch();');
+            jqueryui_Ui::enable($tpl);
         }
         
-        jqueryui_Ui::enable($tpl);
+        // Добавяне на стилове за темата на терминала на ПОС-а, ако е различна от стандартната
+        $pointTheme = pos_Points::fetchField($rec->pointId, 'theme');
+        if($pointTheme != 'default'){
+            if(getFullPath("pos/tpl/themes/{$pointTheme}.css")){
+                $tpl->push("pos/tpl/themes/{$pointTheme}.css", 'CSS');
+            }
+        }
+        
         cls::get('pos_Receipts')->invoke('AfterPushTerminalFiles', array(&$tpl, $rec));
     }
     
