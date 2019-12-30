@@ -3937,6 +3937,7 @@ function render_setFocus(data){
 function render_closeContextMenu(data)
 {
     if ($('.iw-mTrigger').contextMenu) {
+        console.log(data);
     	$('.iw-mTrigger').contextMenu('close');
     }
 }
@@ -5276,21 +5277,23 @@ function mailServerSettings() {
  * @return boolean
  */
 function startUrlFromDataAttr(obj, stopOnClick)
-{
+{    
 	if (this.event) {
-		stopBtnDefault(this.event);
+        
+        this.event.preventDefault();
 	}
-
+ 
 	resObj = new Object();
 	resObj['url'] = obj.getAttribute('data-url');
 
 	if (stopOnClick) {
 		$(obj).css('pointer-events', 'none');
 	}
+	getEfae().waitPeriodicAjaxCall = 0;
 
 	getEfae().process(resObj);
 	
-	getEfae().waitPeriodicAjaxCall = 0;
+    render_closeContextMenu(1);
 	
 	return false;
 }
