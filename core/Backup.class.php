@@ -236,7 +236,7 @@ class core_Backup extends core_Mvc
                     core_App::setTimeLimit(120);
                     $query = $inst->getQuery();
                     $query->XPR('crc32backup', 'int', $crc);
-                    $query->where($where = ('id BETWEEN ' . ($i + 1) . ' AND ' . ($i + $inst->backupMaxRows)));
+                    $query->where($where = ("`{$table}`.`id` BETWEEN " . ($i + 1) . ' AND ' . ($i + $inst->backupMaxRows)));
                     $query->show('crc32backup');
                     $rec = $query->fetch();
                     if ($rec->crc32backup > 0) {
