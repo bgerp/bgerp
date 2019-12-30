@@ -338,7 +338,6 @@ abstract class deals_InvoiceMaster extends core_Master
             $form->setField('selectedContragentId', 'input=none');
         }
         
-        $caption = ($form->rec->type == 'debit_note') ? 'Увеличение' : 'Намаление';
         $invArr = (array) $origin->fetch();
         
         // Трябва фактурата основание да не е ДИ или КИ
