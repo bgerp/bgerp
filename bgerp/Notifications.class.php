@@ -950,6 +950,23 @@ class bgerp_Notifications extends core_Manager
         }
         
         if (bgerp_Setup::get('PORTAL_VIEW') == 'customized') {
+            
+            // Да не прескача страницата - при маркиране/отмаркиране или отписване
+            if ($parentUrlStr = Request::get('parentUrl')) {
+                $parentUrlArr = parseLocalUrl($parentUrlStr);
+                $rArr = array();
+                foreach ($parentUrlArr as $fName => $fVal) {
+                    $r = Request::get($fName);
+                    if (!isset($r)) {
+                        $rArr[$fName] = $fVal;
+                    }
+                }
+                
+                if (!empty($rArr)) {
+                    Request::push($rArr);
+                }
+            }
+            
             $res = cls::get('bgerp_Portal')->getPortalBlockForAJAX();
         } else {
             $res = $this->action('render');
