@@ -672,6 +672,25 @@ class pos_Receipts extends core_Master
     
     
     /**
+     * Показва краткия номер на бележката, съгласно настройките на пакета
+     * 
+     * @param int $id
+     * 
+     * @return string $num
+     */
+    public static function getReceiptShortNum($id)
+    {
+        $conf = core_Packs::getConfig('pos');
+        $num = substr($id, -1 * $conf->POS_SHOW_RECEIPT_DIGITS);
+        if(strlen($id) > strlen($num)){
+            $num = "*{$num}";
+        }
+        
+        return $num;
+    }
+    
+    
+    /**
      * Подготвя чакащите бележки в сингъла на точката на продажба
      *
      * @param stdClass $data
@@ -689,10 +708,9 @@ class pos_Receipts extends core_Master
         if ($count = $query->count()) {
             $data->count = core_Type::getByName('int')->toVerbal($count);
         }
-        $conf = core_Packs::getConfig('pos');
         
         while ($rec = $query->fetch()) {
-            $num = substr($rec->id, -1 * $conf->POS_SHOW_RECEIPT_DIGITS);
+            $num = self::getReceiptShortNum($rec->id);
             $stateClass = ($rec->state == 'draft') ? 'state-draft' : 'state-waiting';
             $num = (isset($rec->revertId)) ? "<span class='red'>{$num}</span>" : $num;
             $borderColor = (isset($rec->revertId)) ? 'red' : '#a6a8a7';
