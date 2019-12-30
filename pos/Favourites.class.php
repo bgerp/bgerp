@@ -231,7 +231,7 @@ class pos_Favourites extends core_Manager
      */
     public static function renderPosProducts($data)
     {
-        $file  = Mode::is('screenMode', 'narrow') ? 'pos/tpl/terminal/FavouritesNarrow.shtml' : 'pos/tpl/terminal/Favourites.shtml';
+        $file  = 'pos/tpl/terminal/Favourites.shtml';
         $tpl = getTplFromFile($file);
         
         $self = cls::get(get_called_class());
