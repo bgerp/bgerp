@@ -484,7 +484,8 @@ function posActions() {
 		
 		var selectedElement = $(".highlighted");
 		var selectedRecId = selectedElement.attr("data-id");
-		if(!selectedRecId) return;
+		
+		if(!selectedRecId || selectedRecId == undefined) return;
 		
 		resObj = new Object();
 		resObj['url'] = url;
@@ -775,7 +776,9 @@ function render_prepareResult() {
 	
 	// Бутона за увеличение да се дисейбва ако няма избран селектиран ред
 	if($('.enlargeProductBtn').length){
-		if($('.navigable').length){
+		var selectedElement = $(".highlighted");
+		
+		if(selectedElement.length){
 			$('.enlargeProductBtn').removeClass('disabledBtn');
 		} else {
 			$('.enlargeProductBtn').addClass('disabledBtn');
