@@ -354,9 +354,7 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         // Бутон за увеличение на избрания артикул
-        //if($currentOperation == 'add'){
-            $buttons["enlarge"] = ht::createFnBtn(' ', '', '', array('data-url' => toUrl(array('pos_Terminal', 'EnlargeProduct'), 'local'), 'class' => 'operationBtn enlargeProductBtn', 'ef_icon' => 'img/32/search.png'));
-        //}
+        $buttons["enlarge"] = ht::createFnBtn(' ', '', '', array('data-url' => toUrl(array('pos_Terminal', 'EnlargeProduct'), 'local'), 'class' => 'operationBtn enlargeProductBtn', 'ef_icon' => 'img/32/search.png'));
         
         // Бутон за увеличение на избрания артикул
         if(!empty($rec->total)){
