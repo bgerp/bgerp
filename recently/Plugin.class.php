@@ -47,12 +47,15 @@ class recently_Plugin extends core_Plugin
      * Извиква се преди вкарване на запис в таблицата на модела
      */
     public function on_AfterInput($form)
-    {
+    {   
+        $rec = $form->rec;
+        
+        if(!count(array($rec)) || !$form->isSubmitted()) return;
+
         setIfNot($prefix, $form->mvc->dbTableName, $form->name, '_');
         
         $flds = $form->selectFields("#input == 'input' || (#kind == 'FLD' && #input != 'none')");
         
-        $rec = $form->rec;
         
         if (count($flds)) {
             foreach ($flds as $name => $field) {
