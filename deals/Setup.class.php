@@ -109,17 +109,22 @@ class deals_Setup extends core_ProtoSetup
             
             // Всички платежни документи на заявка
             $dQuery = $Class->getQuery();
+            $dQuery->EXT('inCharge', 'doc_Folders', 'externalName=inCharge,externalKey=folderId');
             $dQuery->where("#state = 'pending'");
-            $dQuery->show("{$Class->termDateFld},modifiedOn,createdBy");
+            $dQuery->show("{$Class->termDateFld},modifiedOn,createdBy,inCharge");
+            
             while($dRec = $dQuery->fetch()){
                 
                 // На коя дата се очаква да има направено плащане, ако не е посочена е 1 месец от създаването
                 $expectedDate = empty($dRec->{$Class->termDateFld}) ? dt::addMonths(1, $dRec->modifiedOn, false) : $dRec->{$Class->termDateFld};
                 
-                // Ако датата е просрочена да бие нотификация
+                // Ако датата е просрочена да бие нотификация, на създателя на документа и на отговорника на папката
                 if($expectedDate < $today){
                     $msg = "Просрочено плащане по|* #{$Class->getHandle($dRec->id)}";
                     bgerp_Notifications::add($msg, array($Class, 'single', $dRec->id), $dRec->createdBy, 'alert');
+                    if($dRec->createdBy != $dRec->inCharge){
+                        bgerp_Notifications::add($msg, array($Class, 'single', $dRec->id), $dRec->inCharge, 'alert');
+                    }
                 }
             }
         }
