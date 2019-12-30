@@ -1594,25 +1594,29 @@ function setupProcess()
  */
 function setupKeyValid()
 {
+    static $res;
+
     // При празна база връща валиден setup ключ
     $DB = new core_Db();
     
-    try {
-        $DB->connect(true);
-    } catch (core_exception_Expect $e) {
+    if(!isset($res)) {
+        try {
+            $DB->connect(true);
+        } catch (core_exception_Expect $e) {
 
-        return true;
+            $res = true;
+        }
     }
     
-    if (($DB->getDBInfo('Rows') == 0) && !setupProcess()) {
+    if (!isset($res) && ($DB->getDBInfo('Rows') == 0) && !setupProcess()) {
 
-        return true;
+        $res = true;
     }
     
     // Ако има setup cookie и има пуснат сетъп процес връща валиден ключ
-    if (isset($_COOKIE['setup']) && setupProcess()) {
+    if (!isset($res) && isset($_COOKIE['setup']) && setupProcess()) {
 
-        return true;
+        $res = true;
     }
 
     // Ако сетъп-а е стартиран от локален хост или инсталатор
@@ -1620,12 +1624,16 @@ function setupKeyValid()
     $localIpArr = array('::1', '127.0.0.1');
     $isLocal = in_array($_SERVER['REMOTE_ADDR'], $localIpArr);
     $key = $_GET['SetupKey'];
-    if ($key == setupKey() && $isLocal) {
+    if (!isset($res) && $key == setupKey() && $isLocal) {
 
-        return true;
+        $res = true;
     }
     
-    return ($_GET['SetupKey'] == setupKey()) || ($_GET['SetupKey'] == setupKey(null, -1));
+    if(!isset($res)) {
+        $res = ($_GET['SetupKey'] == setupKey()) || ($_GET['SetupKey'] == setupKey(null, -1));
+    }
+
+    return $res;
 }
 
 

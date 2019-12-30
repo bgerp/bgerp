@@ -575,7 +575,15 @@ class cal_Calendar extends core_Master
         
         foreach($monthArr as $weekNum => $weekArr) {
             $html .= "<tr>";
-            $html .= "<td class='mc-week-nb'>$weekNum</td>";
+            $firstDay = reset($weekArr);
+            $fromDate = "{$firstDay}.{$month}.{$year}";
+            if (self::haveRightFor('week')) {
+                $wUrl = toUrl(array('cal_Calendar', 'week', 'from' => $fromDate));
+                $html .= "<td class='mc-week' onclick='document.location=\"{$wUrl}\"'>{$weekNum}</td>";
+            } else {
+                $html .= "<td class='mc-week-nb'>{$weekNum}</td>";
+            }
+            
             for($wd = 1; $wd <= 7; $wd++) {
                 if($d = $weekArr[$wd]) {
                     if($data[$d]->type == 'holiday') {

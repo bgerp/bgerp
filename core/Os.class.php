@@ -640,4 +640,89 @@ class core_Os
         
         return $val;
     }
+
+
+    /**
+     * Изтриване на директория
+     */
+    public static function deleteDirectory($dir, $onlyEmpty = false)
+    {
+        if (!file_exists($dir)) {
+            
+            return true;
+        }
+        
+        if (!is_dir($dir)) {
+            
+            return unlink($dir);
+        }
+        
+        foreach (scandir($dir) as $item) {
+            if ($item == '.' || $item == '..') {
+                continue;
+            }
+            
+            if (!self::deleteDirectory($dir . DIRECTORY_SEPARATOR . $item)) {
+                
+                return false;
+            }
+        }
+
+        if(!$onlyEmpty) {
+            $res = rmdir($dir);
+        } else {
+            $res = true;
+        }
+
+        return $res;
+    }
+    
+    
+    /**
+     * Проверява дали в директорията е празна
+     */
+    public static function isDirEmpty($dir)
+    {
+        if (!is_readable($dir)) {
+            
+            return false;
+        }
+        
+        return (countR(scandir($dir)) <= 2);
+    }
+    
+    
+    /**
+     * Нормализиране на път до директория
+     */
+    public static function normalizeDir($dir)
+    {
+        return rtrim(str_replace('\\', '/', $dir), ' /');
+    }
+
+
+    /**
+     * Прави проверка на даден път
+     */
+    public static function hasDirErrors($dir, $title)
+    {
+        if (empty($dir)) {
+
+            return "Директорията {$title} не е определена * ";
+        }
+
+        if (!is_dir($dir)) {
+                    
+            return "Директорията `{$dir}` не е директория * ";
+        }
+
+        if (!is_readable($dir)) {
+                    
+            return "Директорията `{$dir}` не е четима * ";
+        }
+        if (!is_writable($dir)) {
+                    
+            return "Директорията `{$dir}` не е записваема * ";
+        }
+    }
 }

@@ -223,19 +223,13 @@ define('CORE_CODE_VERSION', '19.51-Vezhen');
 /**
  * Включена ли е бекъп функционалността?
  */
-defIfNot('CORE_BACKUP_ENABLED', false);
+defIfNot('CORE_BACKUP_ENABLED', 'no');
 
 
 /**
  * Парола за архиви
  */
 defIfNot('CORE_BACKUP_PASS', '');
-
-
-/**
- * Работна директория за бекъпите
- */
-defIfNot('CORE_BACKUP_WORK_DIR', EF_UPLOADS_PATH . '/backup_work');
 
 
 /**
@@ -393,8 +387,6 @@ class core_Setup extends core_ProtoSetup
         'CORE_BACKUP_CREATE_FULL_OFFSET' => array('time', 'caption=Настройки за бекъп->Изместване'),
         
         'CORE_BACKUP_PATH' => array('varchar', 'caption=Настройки за бекъп->Път до бекъпите,readOnly'),
-        
-        'CORE_BACKUP_WORK_DIR' => array('varchar', 'caption=Настройки за бекъп->Работна директория,readOnly'),
     );
     
     
@@ -532,7 +524,7 @@ class core_Setup extends core_ProtoSetup
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
         
-        if (CORE_BACKUP_ENABLED) {
+        if (core_Setup::get('BACKUP_ENABLED') == 'yes') {
             // Нагласяване Крон да прави пълен бекъп
             $rec = new stdClass();
             $rec->systemId = 'Backup_Create';
@@ -556,9 +548,19 @@ class core_Setup extends core_ProtoSetup
             $rec->delay = 2;
             $rec->timeLimit = 20;
             $html .= core_Cron::addOnce($rec);
+            $html .= core_Os::createDirectories(
+                array(
+                    core_Backup::getDir('current'),
+                    core_Backup::getDir('past'),
+                    core_Backup::getDir('sql_log'),
+                    core_Backup::getDir('backup_work'),
+                ), 0777
+            );
+            core_SystemData::set('flagDoSqlLog');
         } else {
             core_Cron::delete("#systemId = 'Backup_Create'");
             core_Cron::delete("#systemId = 'Sql_Log_Flush'");
+            core_SystemData::set('removeDoSqlLog');
         }
         
         
