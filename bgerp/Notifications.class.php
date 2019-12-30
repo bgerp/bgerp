@@ -970,6 +970,8 @@ class bgerp_Notifications extends core_Manager
             }
             
             $res[] = $obj;
+            
+            $res[] = (object) array('func' => 'closeContextMenu');
         }
         
         bgerp_LastTouch::set('portal');
