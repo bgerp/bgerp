@@ -30,6 +30,12 @@ class core_Backup extends core_Mvc
     
 
     /**
+     * Кеширане на контролните суми
+     */
+    static $crcArr = array();
+
+
+    /**
      * Създаване на пълен бекъп
      */
     public function cron_Create()
@@ -229,7 +235,7 @@ class core_Backup extends core_Mvc
      */
     public function exportTables($instArr, &$files, $curDir, $pastDir, $workDir)
     {
-        static $crcArr = array();
+        
 
         foreach ($instArr as $table => $inst) {
             core_App::setTimeLimit(120);
@@ -252,17 +258,17 @@ class core_Backup extends core_Mvc
                 for ($i = 0; $i <= $maxId; $i += $inst->backupMaxRows) {
                     core_App::setTimeLimit(120);
                     $key = "{$table}-{$lmt}";
-                    if(!isset($crcArr[$key])) {
+                    if(!isset(self::$crcArr[$key])) {
                         $query = $inst->getQuery();
                         $query->XPR('crc32backup', 'int', $crc);
                         $query->where($where = ("`{$table}`.`id` BETWEEN " . ($i + 1) . ' AND ' . ($i + $inst->backupMaxRows)));
                         $query->show('crc32backup');
                         $rec = $query->fetch();
-                        $crcArr[$key] = $rec->crc32backup;
+                        self::$crcArr[$key] = $rec->crc32backup;
                     }
  
-                    if ($crcArr[$key] > 0) {
-                        $suffix = $n . '-' . base_convert(abs($rec->crc32backup), 10, 36);
+                    if (self::$crcArr[$key] > 0) {
+                        $suffix = $n . '-' . base_convert(abs(self::$crcArr[$key]), 10, 36);
                         $this->backupTable($inst, $table, $suffix, $workDir, $curDir, $pastDir, $where, $files);
                     }
                     $n++;
