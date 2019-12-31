@@ -70,6 +70,17 @@ class bgerp_Recently extends core_Manager
      */
     public $searchInputField = 'recentlySearch';
     
+    /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 100000;
+    
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'last';
+    
     
     /**
      * Описание на модела
