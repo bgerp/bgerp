@@ -42,7 +42,7 @@ defIfNot('BGERP_SOUND_ON_NOTIFICATION', 'scanner');
 /**
  * Колко време да се съхраняват нотификациите
  */
-defIfNot('BGERP_NOTIFICATION_KEEP_DAYS', 31104000);
+defIfNot('BGERP_NOTIFICATION_KEEP_DAYS', 31556952);
 
 
 /**
@@ -168,7 +168,7 @@ class bgerp_Setup extends core_ProtoSetup
         
         'BGERP_SOUND_ON_NOTIFICATION' => array('enum(none=Няма,snap=Щракване,scanner=Скенер,notification=Нотификация,beep=Beep)', 'caption=Звуков сигнал при нотификация->Звук, customizeBy=user'),
         
-        'BGERP_NOTIFICATION_KEEP_DAYS' => array('time(suggestions=180 дни|360 дни|540 дни,unit=days)', 'caption=Време за съхранение на нотификациите->Време'),
+        'BGERP_NOTIFICATION_KEEP_DAYS' => array('time(suggestions=3 месеца|6 месеца|1 година,unit=days)', 'caption=Време за съхранение на нотификациите->Време'),
         
         'BGERP_RECENTLY_KEEP_DAYS' => array('time(suggestions=3 месеца|6 месеца|1 година,unit=days)', 'caption=Време за съхранение на историята в "Последно"->Време'),
         
