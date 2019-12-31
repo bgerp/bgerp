@@ -128,9 +128,9 @@ class deals_Setup extends core_ProtoSetup
                     $contragentName = cls::get($dRec->contragentClassId)->getVerbal($dRec->contragentId, 'name');
                     $msg = "Просрочен вальор на|* #{$Class->getHandle($dRec->id)} |от|* {$contragentName} |за|* {$amountVerbal}";
                     
-                    bgerp_Notifications::add($msg, array($Class, 'single', $dRec->id), $dRec->createdBy, 'alert');
+                    bgerp_Notifications::add($msg, array($Class, 'single', $dRec->id), $dRec->createdBy);
                     if($dRec->createdBy != $dRec->inCharge){
-                        bgerp_Notifications::add($msg, array($Class, 'single', $dRec->id), $dRec->inCharge, 'alert');
+                        bgerp_Notifications::add($msg, array($Class, 'single', $dRec->id), $dRec->inCharge);
                     }
                 }
             }
