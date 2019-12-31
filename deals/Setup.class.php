@@ -148,7 +148,7 @@ class deals_Setup extends core_ProtoSetup
                         $amountVerbal = currency_Currencies::decorate($amountVerbal, $dRec->currencyId);
                         $amountVerbal = str_replace('&nbsp;', ' ', $amountVerbal);
                         $contragentName = cls::get($dRec->contragentClassId)->getVerbal($dRec->contragentId, 'name');
-                        $msg = "Просрочен вальор на|* #{$Class->getHandle($dRec->id)} |от|* {$contragentName} |за|* {$amountVerbal}";
+                        $msg = "|Просрочен вальор на|* #{$Class->getHandle($dRec->id)} |от|* {$contragentName} |за|* {$amountVerbal}";
                         if($i != '1'){
                             $msg .= " (|{$iVerbal} напомняне|*)";
                         }
