@@ -322,7 +322,7 @@ class archive_Adapter
             $options = str_replace('-sdel', '', $options);
         }
         
-        $cmd = archive_Setup::get_ARCHIVE_7Z_PATH() . " a {$p}-tzip -y {$options} {$destEsc} {$srcEsc}";
+        $cmd = archive_Setup::get_ARCHIVE_7Z_PATH() . " a {$p}-tzip -mx1 -y {$options} {$destEsc} {$srcEsc}";
         
         exec($cmd, $output, $return);
         
