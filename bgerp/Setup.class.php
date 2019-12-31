@@ -48,7 +48,7 @@ defIfNot('BGERP_NOTIFICATION_KEEP_DAYS', 31104000);
 /**
  * Колко време да се съхранява историята за отворени нишки и папки
  */
-defIfNot('BGERP_RECENTLY_KEEP_DAYS', 31104000);
+defIfNot('BGERP_RECENTLY_KEEP_DAYS', 31556952);
 
 
 /**
@@ -170,7 +170,7 @@ class bgerp_Setup extends core_ProtoSetup
         
         'BGERP_NOTIFICATION_KEEP_DAYS' => array('time(suggestions=180 дни|360 дни|540 дни,unit=days)', 'caption=Време за съхранение на нотификациите->Време'),
         
-        'BGERP_RECENTLY_KEEP_DAYS' => array('time(suggestions=180 дни|360 дни|540 дни,unit=days)', 'caption=Време за съхранение на историята в "Последно"->Време'),
+        'BGERP_RECENTLY_KEEP_DAYS' => array('time(suggestions=3 месеца|6 месеца|1 година,unit=days)', 'caption=Време за съхранение на историята в "Последно"->Време'),
         
         'BGERP_START_OF_WORKING_DAY' => array('enum(08:00,09:00,10:00,11:00,12:00)', 'caption=Начало на работния ден->Час'),
         

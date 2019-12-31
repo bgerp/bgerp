@@ -730,7 +730,7 @@ class bgerp_Recently extends core_Manager
     {
         $lastRecently = dt::addDays(-bgerp_Setup::get('RECENTLY_KEEP_DAYS') / (24 * 3600));
         
-        // $res = self::delete("#last < '{$lastRecently}'");
+        $res = $this->delete(array("#last < '[#1#]'", $lastRecently));
         
         if ($res) {
             
