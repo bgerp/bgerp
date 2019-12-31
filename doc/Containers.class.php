@@ -3035,9 +3035,7 @@ class doc_Containers extends core_Manager
                         $str = 'Имате създадени, но неактивирани';
                     }
                     
-                    $name = mb_strtolower($name);
-                    
-                    $msg = "|{$str}|* {$count} {$name}";
+                    $msg = "|{$str}|* {$count} |{$name}|*";
                     
                     // Създаваме нотификация към потребителя с линк към филтрирани неговите документи
                     bgerp_Notifications::add($msg, $url, $uRec->id, 'normal', $customUrl);

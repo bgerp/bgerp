@@ -93,4 +93,30 @@ class email_ServiceEmails extends core_Manager
     {
         $data->query->orderBy('#createdOn', 'DESC');
     }
+    
+    
+    /**
+     * Изтрива стари записи в bgerp_Recently
+     */
+    public function cron_DeleteOldServiceMails()
+    {
+        $lastCreated = dt::addDays(-email_Setup::get('SERVICEMAILS_KEEP_DAYS') / (24 * 3600));
+        
+        $delClsArr = array('email_Receipts', 'email_Returned', 'email_Spam', 'email_Unparsable');
+        
+        $res = '';
+        
+        foreach ($delClsArr as $clsName) {
+            $inst = cls::get($clsName);
+            $delCnt = $inst->delete(array("#createdOn < '[#1#]'", $lastCreated));
+            
+            if ($delCnt) {
+                $inst->logNotice("Бяха изтрити {$delCnt} записа");
+                
+                $res .= "<li>Бяха изтрити {$delCnt} записа от " . $inst->className;
+            }
+        }
+        
+        return $res;
+    }
 }

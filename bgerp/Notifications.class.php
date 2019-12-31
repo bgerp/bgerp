@@ -93,6 +93,18 @@ class bgerp_Notifications extends core_Manager
      * Офсет преди текущото време при липса на 'Затворено на' в нотификациите
      */
     const NOTIFICATIONS_LAST_CLOSED_BEFORE = 60;
+
+    
+/**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 100000;
+    
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'modifiedOn,lastTime';
     
     
     /**

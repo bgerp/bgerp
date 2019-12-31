@@ -267,7 +267,8 @@ class doc_Setup extends core_ProtoSetup
         'doc_LinkedTemplates',
         'doc_FolderResources',
         'doc_LinkedLast',
-        'migrate::showDocumentsAsButtons0419'
+        'migrate::showDocumentsAsButtons0419',
+        'migrate::updateHiddenDocCreated0120'
     );
     
     
@@ -300,6 +301,15 @@ class doc_Setup extends core_ProtoSetup
             'period' => 1440,
             'offset' => 111,
             'timeLimit' => 400
+        ),
+        array(
+            'systemId' => 'DocHiddenDeleteOldRecs',
+            'description' => 'Изтриване на стари записи в показване на документи в нишките',
+            'controller' => 'doc_HiddenContainers',
+            'action' => 'DeleteOldRecs',
+            'period' => 1440,
+            'offset' => 150,
+            'timeLimit' => 100
         )
     );
     
@@ -543,5 +553,20 @@ class doc_Setup extends core_ProtoSetup
             
             $Portal->save($rec);
         }
+    }
+    
+    
+    /**
+     * Миграция за добавяне на поле за дата в doc_HiddenContainers
+     */
+    public function updateHiddenDocCreated0120()
+    {
+        core_App::setTimeLimit('300');
+        
+        $cInst = cls::get('doc_HiddenContainers');
+        
+        $now = dt::now();
+        
+        $cInst->db->query("UPDATE `{$cInst->dbTableName}` SET `date` = '{$now}'");
     }
 }
