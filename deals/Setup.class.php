@@ -111,7 +111,7 @@ class deals_Setup extends core_ProtoSetup
             $dQuery = $Class->getQuery();
             $dQuery->EXT('inCharge', 'doc_Folders', 'externalName=inCharge,externalKey=folderId');
             $dQuery->where("#state = 'pending'");
-            $dQuery->show("{$Class->termDateFld},modifiedOn,createdBy,inCharge");
+            $dQuery->show("{$Class->termDateFld},modifiedOn,createdBy,inCharge,contragentId,contragentClassId,amount,currencyId");
             
             while($dRec = $dQuery->fetch()){
                 
@@ -120,7 +120,14 @@ class deals_Setup extends core_ProtoSetup
                 
                 // Ако датата е просрочена да бие нотификация, на създателя на документа и на отговорника на папката
                 if($expectedDate < $today){
-                    $msg = "Просрочено плащане по|* #{$Class->getHandle($dRec->id)}";
+                    
+                    // Подготовка на текста на нотификацията
+                    $amountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($dRec->amount);
+                    $amountVerbal = currency_Currencies::decorate($amountVerbal, $dRec->currencyId);
+                    $amountVerbal = str_replace('&nbsp;', ' ', $amountVerbal);
+                    $contragentName = cls::get($dRec->contragentClassId)->getVerbal($dRec->contragentId, 'name');
+                    $msg = "Просрочен вальор на|* #{$Class->getHandle($dRec->id)} |от|* {$contragentName} |за|* {$amountVerbal}";
+                    
                     bgerp_Notifications::add($msg, array($Class, 'single', $dRec->id), $dRec->createdBy, 'alert');
                     if($dRec->createdBy != $dRec->inCharge){
                         bgerp_Notifications::add($msg, array($Class, 'single', $dRec->id), $dRec->inCharge, 'alert');
