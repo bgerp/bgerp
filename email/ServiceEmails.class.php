@@ -111,6 +111,8 @@ class email_ServiceEmails extends core_Manager
             $delCnt = $inst->delete(array("#createdOn < '[#1#]'", $lastCreated));
             
             if ($delCnt) {
+                $inst->logNotice("Бяха изтрити {$delCnt} записа");
+                
                 $res .= "<li>Бяха изтрити {$delCnt} записа от " . $inst->className;
             }
         }

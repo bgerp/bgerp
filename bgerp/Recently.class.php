@@ -733,6 +733,7 @@ class bgerp_Recently extends core_Manager
         $res = $this->delete(array("#last < '[#1#]'", $lastRecently));
         
         if ($res) {
+            $this->logNotice("Бяха изтрити {$res} записа");
             
             return "Бяха изтрити {$res} записа от " . $this->className;
         }
