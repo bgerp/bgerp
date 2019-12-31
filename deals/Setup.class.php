@@ -107,7 +107,7 @@ class deals_Setup extends core_ProtoSetup
     public $cronSettings = array(
         array(
             'systemId' => 'Check Pending Payment Documents',
-            'description' => 'Проверка на платежни документи на заявка чакащи плащане',
+            'description' => 'Напомняне за просрочени платежни документи',
             'controller' => 'deals_Setup',
             'action' => 'CheckPendingPaymentDocuments',
             'period' => 1440,
@@ -148,7 +148,7 @@ class deals_Setup extends core_ProtoSetup
                         $amountVerbal = currency_Currencies::decorate($amountVerbal, $dRec->currencyId);
                         $amountVerbal = str_replace('&nbsp;', ' ', $amountVerbal);
                         $contragentName = cls::get($dRec->contragentClassId)->getVerbal($dRec->contragentId, 'name');
-                        $msg = "|Просрочен вальор на|* #{$Class->getHandle($dRec->id)} |от|* {$contragentName} |за|* {$amountVerbal}";
+                        $msg = "|Просрочен документ|* #{$Class->getHandle($dRec->id)} |от|* {$contragentName} |за|* {$amountVerbal}";
                         if($i != '1'){
                             $msg .= " (|{$iVerbal} напомняне|*)";
                         }
