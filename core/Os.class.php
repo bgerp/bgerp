@@ -19,6 +19,17 @@
  */
 class core_Os
 {
+
+
+    const STATUS_ERROR_CREATE = 1;
+
+    const STATUS_OK_CREATED = 2;
+
+    const STATUS_ALREADY_EXISTS = 3;
+
+    const STATUS_ERROR_CHMOD = 4;
+
+
     /**
      * Връща TRUE ако операционната система е Windows
      */
@@ -484,18 +495,29 @@ class core_Os
     /**
      * Създава директория, ако тя не съществува
      */
-    public static function forceDir($path, $permissions = 0744, $recursive = true)
+    public static function forceDir($path, $permissions = 0744, $recursive = true, &$status = null)
     {
         if (!is_dir($path)) {
             
             // Създаваме директория
             if (!@mkdir($path, $permissions, $recursive)) {
+                $status = core_Os::STATUS_ERROR_CREATE;
                 
                 return false;
             }
+            $status = self::STATUS_OK_CREATED;
+        } else {
+            if((fileperms($path) & 0777) != $permissions) {
+                if(!chmod($path, $permissions)) {
+                    $status = self::STATUS_ERROR_CHMOD;
+
+                    return false;
+                }
+            }
+            $status = self::STATUS_ALREADY_EXISTS;
         }
-        
-        return @is_writable($path);
+
+        return true;
     }
     
     
@@ -505,27 +527,30 @@ class core_Os
      * return string
      */
     public static function createDirectories($directories, $permissions = 0744, $recursive = true)
-    {
+    {   
+        // Резултат
+        $res = '';
+
         // Създава, ако е необходимо зададените папки
         foreach (arr::make($directories) as $path => $caption) {
             if (is_numeric($path)) {
                 $path = $caption;
                 $caption = '';
             }
-            $error = false;
-            if (!is_dir($path)) {
-                if (!@mkdir($path, $permissions, $recursive)) {
-                    $res .= "<li class='debug-error'>Не може да се създаде директорията <b>{$path}</b> {$caption}</li>";
-                    $error = true;
-                } else {
+            
+            $status = '';
+            if(self::forceDir($path, $permissions, $recursive, $status)) {
+                if($status == self::STATUS_OK_CREATED) {
                     $res .= "<li class='debug-new'>Създадена е директорията <b>{$path}</b> {$caption}</li>";
+                } elseif($status == self::STATUS_ALREADY_EXISTS) {
+                    $res .= "<li class='debug-info'>Съществуваща директория <b>{$path}</b> {$caption}</li>";
                 }
             } else {
-                $res .= "<li class='debug-info'>Съществуваща директория <b>{$path}</b> {$caption}</li>";
-            }
-            
-            if (!$error && !@is_writable($path)) {
-                $res .= "<li class='debug-error'>Не може да се записва в директорията <b>{$path}</b> {$caption}</li>";
+                if($status == self::STATUS_ERROR_CREATE) {
+                    $res .= "<li class='debug-error'>Не може да се създаде директорията <b>{$path}</b> {$caption}</li>";
+                } elseif($status == self::STATUS_ERROR_CHMOD) {
+                    $res .= "<li class='debug-error'>Не може да се зададат правата за директорията <b>{$path}</b> {$caption}</li>";
+                }
             }
         }
         
