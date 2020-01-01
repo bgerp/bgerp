@@ -60,15 +60,13 @@ class slick_Driver extends core_BaseClass
             return '';
         }
         
-        $images = keylist::toArray($rec->images);
-        
+        $images = keylist::toArray($rec->images, false);
+
         // Ако няма картинки - да не сработва
         if (!is_array($images) || !count($images)) {
             
             return ;
         }
-        
-        shuffle($images);
 
         $tpl = new ET("
             <div>
