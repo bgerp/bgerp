@@ -315,14 +315,15 @@ class archive_Adapter
         
         $srcEsc = escapeshellarg($src);
         $destEsc = escapeshellarg($dest);
-        
+        $tempEsc = escapeshellarg("{$dest}.tmp");
+
         $flagDelete = false;
         if(strpos($options, '-sdel') !== false) {
             $flagDelete = true;
             $options = str_replace('-sdel', '', $options);
         }
         
-        $cmd = archive_Setup::get_ARCHIVE_7Z_PATH() . " a {$p}-tzip -mx1 -y {$options} {$destEsc} {$srcEsc}";
+        $cmd = archive_Setup::get_ARCHIVE_7Z_PATH() . " a {$p}-tzip -mx1 -y {$options} {$tempEsc} {$srcEsc}";
         
         exec($cmd, $output, $return);
         
@@ -330,6 +331,8 @@ class archive_Adapter
             bp($cmd, $output, $return);
         }
         
+        rename("{$dest}.tmp", $dest);
+
         if($flagDelete) {
             unlink($src);
         }

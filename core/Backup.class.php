@@ -257,7 +257,7 @@ class core_Backup extends core_Mvc
                 $n = 1;
                 for ($i = 0; $i <= $maxId; $i += $inst->backupMaxRows) {
                     core_App::setTimeLimit(120);
-                    $key = "{$table}-{$lmt}";
+                    $key = "{$table}-{$lmt}-{$n}";
                     if(!isset(self::$crcArr[$key])) {
                         $query = $inst->getQuery();
                         $query->XPR('crc32backup', 'int', $crc);
@@ -335,8 +335,8 @@ class core_Backup extends core_Mvc
         }
         
         $dbRes = $inst->db->query("SELECT * FROM `{$table}` WHERE {$where}");
-        $out = fopen($path, 'w');
-        fwrite($out, "{$cols}");
+        $out = fopen("{$path}.tmp", 'w');
+        $first = true;
         while ($row = $inst->db->fetchArray($dbRes, MYSQLI_NUM)) {
             $vals = '';
             foreach ($row as $i => &$f) {
@@ -347,9 +347,11 @@ class core_Backup extends core_Mvc
                 }
             }
             $vals = implode(',', $row);
-            fwrite($out, "\n{$vals}");
+            fwrite($out, ($first ? '' : "\n") . $vals);
+            $first = false;
         }
         fclose($out);
+        rename("{$path}.tmp", $path);
         debug::log("Експорт в CSV на таблица `{$fileName}`");
     }
     
@@ -357,7 +359,7 @@ class core_Backup extends core_Mvc
     /**
      * Връща посочената директория за бекъп
      */
-    public static function getDir($subDir)
+    public static function getDir($subDir, $force = true)
     {
         if ($subDir == 'current' || $subDir == 'past') {
             $base = core_Setup::get('BACKUP_PATH');
@@ -367,7 +369,7 @@ class core_Backup extends core_Mvc
         
         $dir = core_Os::normalizeDir($base) . '/' . $subDir;
         
-        if (core_Os::forceDir($dir, 0777)) {
+        if (core_Os::forceDir($dir, 0744)) {
             
             return $dir;
         }
@@ -498,8 +500,9 @@ class core_Backup extends core_Mvc
                 core_App::setTimeLimit(120);
                 list($table, ) = explode('.', $file);
                 $dest = self::unzipToTemp($src, $pass, $log);
-                $log[] = self::importTable($db, $table, $cols, $dest);
+                $log[] = $res = self::importTable($db, $table, $cols, $dest);
                 unlink($dest);
+                if(substr($res, 0, 4) == 'err:') return;
             }
             
             // Наливане на наличните SQL логове
