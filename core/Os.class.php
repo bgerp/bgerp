@@ -549,7 +549,8 @@ class core_Os
                 if($status == self::STATUS_ERROR_CREATE) {
                     $res .= "<li class='debug-error'>Не може да се създаде директорията <b>{$path}</b> {$caption}</li>";
                 } elseif($status == self::STATUS_ERROR_CHMOD) {
-                    $res .= "<li class='debug-error'>Не може да се зададат правата за директорията <b>{$path}</b> {$caption}</li>";
+                    $perm = '0' . decoct(fileperms($path) & 0777) . ' => ' . '0' . decoct($permissions);
+                    $res .= "<li class='debug-error'>Не може да се зададат правата {perm} за директорията <b>{$path}</b> {$caption}</li>";
                 }
             }
         }
