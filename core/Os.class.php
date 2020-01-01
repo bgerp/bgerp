@@ -508,7 +508,7 @@ class core_Os
             $status = self::STATUS_OK_CREATED;
         } else {
             if((fileperms($path) & 0777) != $permissions) {
-                if(!chmod($path, $permissions)) {
+                if(!@chmod($path, $permissions)) {
                     $status = self::STATUS_ERROR_CHMOD;
 
                     return false;
