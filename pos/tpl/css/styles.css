@@ -9,7 +9,7 @@
 
 #single-receipt-holder {
   position: fixed;
-  top: 0;
+  top: 50px;
   left: 0;
   width: 35%;
   height: 100%;
@@ -19,7 +19,7 @@
 .wide .result-content {
   background: #cccccc;
   position: fixed;
-  top: 0;
+  top: 50px;
   right: 0;
   width: 65%;
   height: 100%;
@@ -35,6 +35,12 @@
 .scrolling-vertical {
   overflow-y: auto;
   overflow-x: hidden; }
+
+.headerContent {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%; }
 
 .receipt-header {
   padding: 10px; }
