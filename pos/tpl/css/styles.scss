@@ -229,8 +229,7 @@
 		background-color: #f7f749;
 	}
 	&.disabledBtn {
-		color: #888;
-		pointer-events: none;
+		opacity: 0.5;
 	}
 }
 

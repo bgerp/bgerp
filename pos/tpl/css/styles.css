@@ -208,8 +208,7 @@
   .printReceiptBtn.button.disabledBtn,
   .enlargeProductBtn.button.disabledBtn,
   .keyboardBtn.button.disabledBtn {
-    color: #888888;
-    pointer-events: none; }
+    opacity: 0.5; }
 
 .narrow .num-keyboard {
   min-width: 176px !important; }
