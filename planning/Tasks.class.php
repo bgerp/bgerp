@@ -1064,22 +1064,6 @@ class planning_Tasks extends core_Master
         $data->listFilter->showFields .= ',assetId';
         $data->listFilter->input('assetId');
         
-        // Филтър по всички налични департаменти
-        $folders = doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf');
-        
-        if (count($folders)) {
-            $data->listFilter->setField('folderId', 'input');
-            $data->listFilter->setOptions('folderId', array('' => '') + $folders);
-            $data->listFilter->showFields .= ',folderId';
-            $data->listFilter->input('folderId');
-        }
-        
-        // Филтър по департамент
-        if ($folderId = $data->listFilter->rec->folderId) {
-            $data->query->where("#folderId = {$folderId}");
-            unset($data->listFields['folderId']);
-        }
-        
         if ($assetId = $data->listFilter->rec->assetId) {
             $data->query->where("LOCATE('|{$assetId}|', #fixedAssets)");
         }
