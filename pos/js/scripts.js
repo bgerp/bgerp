@@ -29,10 +29,10 @@ function posActions() {
 	} 
 
 	// Използване на числата за въвеждане в пулта
-	$(document.body).on('click', "#tools-holder .numPad", function(e){
+	$(document.body).on('click', ".numPad", function(e){
 		var val = $(this).val();
 		
-		var closestSearch = $(this).closest('#tools-holder').find('.select-input-pos');
+		var closestSearch = $('.select-input-pos');
 
 		var inpVal = $(closestSearch).val();
 		if(val == '.'){
@@ -44,8 +44,11 @@ function posActions() {
 				return;
 			}
 		}
-		
-		inpVal += val;
+		if(val == '«') {
+			inpVal = inpVal.substr(0, inpVal.length - 1);
+		} else {
+			inpVal += val;
+		}
 		closestSearch.val(inpVal);
 		if($('body').hasClass('wide')){
 			closestSearch.focus();
@@ -323,7 +326,7 @@ function posActions() {
 
 
 	// Триене на символи от формата за търсене
-	$(document.body).on('click', ".keyboard-back-btn-tools", function(e){
+	$(document.body).on('click', ".keyboard-back-btn", function(e){
 		var inpValLength = $(".large-field").val().length;
 		var newVal = $(".large-field").val().substr(0, inpValLength-1);
 		$(".large-field").val(newVal);

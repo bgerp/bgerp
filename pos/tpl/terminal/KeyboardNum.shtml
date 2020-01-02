@@ -14,6 +14,6 @@
         <br>
         <input class="buttonForm numPad" type="button" value="." />
         <input class="buttonForm numPad" type="button" value="0" />
-        <input class="buttonForm numBack" type="button" value="«" />
+        <input class="buttonForm numPad numBack" type="button" value="«" />
     </div>
 </div>
