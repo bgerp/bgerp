@@ -1874,7 +1874,11 @@ class eshop_Carts extends core_Master
                 foreach ($fields as $fld) {
                     $form->setDefault($fld, $form->rec->deliveryData[$fld]);
                 }
-            }
+            } else {
+                $form->setField('deliveryPCode', 'mandatory');
+                $form->setField('deliveryPlace', 'mandatory');
+                $form->setField('deliveryAddress', 'mandatory');
+             }
         }
         
         if (!empty($form->rec->deliveryCountry)) {
