@@ -125,12 +125,10 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             }
             
             $currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
-            $pInfo = cat_Products::getProductInfo($product->value);
-            $storable = isset($pInfo->meta['canStore']);
-            $convertable = isset($pInfo->meta['canConvert']);
+            $pRec = cat_Products::fetch($product->value, 'canStore,canConvert');
             
             // Нескладируемите продукти дебит 703. Складируемите и вложими 706 останалите 701
-            $creditAccId = ($storable) ? (($convertable) ? '706' : '701') : '703';
+            $creditAccId = ($pRec->canStore) ? (($pRec->canConvert) ? '706' : '701') : '703';
             $credit = array(
                 $creditAccId,
                 array($product->contragentClassId, $product->contragentId),
