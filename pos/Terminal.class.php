@@ -82,9 +82,15 @@ class pos_Terminal extends peripheral_Terminal
     
     
     /**
-     * Шорткъти за бутоните в терминала
+     * Бутони за бърз достъп до терминала
      */
     protected static $operationShortcuts = 'operation-add=a,operation-payment=p,operation-quantity=k,operation-price=z,operation-discount=5,operation-text=t,operation-contragent=c,operation-receipts=b,operation-revert=r,enlarge=o,print=3,close=w,operation-batch=b';
+    
+    
+    /**
+     * Икони за операциите
+     */
+    protected static $operationImgs = array('enlarge' => 'img/32/search.png', 'print' => 'img/24/printer.png', 'keyboard' => 'img/16/keyboard.png', 'operation-add' => 'img/16/add.png');
     
     
     /**
@@ -360,6 +366,9 @@ class pos_Terminal extends peripheral_Terminal
                     $attr['disabled'] = 'disabled';
                 }
                 
+                if(array_key_exists("operation-{$operation}", self::$operationImgs)){
+                    $attr['ef_icon'] = self::$operationImgs["operation-{$operation}"];
+                }
                 $buttons["operation-{$operation}"] = ht::createFnBtn($operationCaption, '', '', $attr);
             }
         }
@@ -375,16 +384,16 @@ class pos_Terminal extends peripheral_Terminal
         
         // Бутон за увеличение на избрания артикул
         if(!empty($detailsCount)){
-            $buttons["enlarge"] = ht::createFnBtn(' ', '', '', array('data-url' => toUrl(array('pos_Terminal', 'EnlargeProduct'), 'local'), 'class' => "enlargeProductBtn", 'ef_icon' => 'img/32/search.png'));
+            $buttons["enlarge"] = ht::createFnBtn(' ', '', '', array('data-url' => toUrl(array('pos_Terminal', 'EnlargeProduct'), 'local'), 'class' => "enlargeProductBtn", 'ef_icon' => self::$operationImgs['enlarge']));
         }
         
         // Бутон за печат на бележката
         if(!empty($rec->total)){
-            $buttons["print"] = ht::createBtn(' ', array('pos_Terminal', 'Open', 'receiptId' => $rec->id, 'Printing' => true) , false, true, array('class' => 'operationBtn printBtn', 'ef_icon' => 'img/24/printer.png'));
+            $buttons["print"] = ht::createBtn(' ', array('pos_Terminal', 'Open', 'receiptId' => $rec->id, 'Printing' => true) , false, true, array('class' => 'operationBtn printBtn', 'ef_icon' => self::$operationImgs['print']));
         }
         
         // Бутон за увеличение на избрания артикул
-        $buttons["keyboard"] = ht::createFnBtn(' ', '', '', array('data-url' => toUrl(array('pos_Terminal', 'Keyboard'), 'local'), 'class' => "keyboardBtn", 'ef_icon' => 'img/16/keyboard.png'));
+        $buttons["keyboard"] = ht::createFnBtn(' ', '', '', array('data-url' => toUrl(array('pos_Terminal', 'Keyboard'), 'local'), 'class' => "keyboardBtn", 'ef_icon' => self::$operationImgs['keyboard']));
         
         // Бутон за приключване
         $contoUrl = (pos_Receipts::haveRightFor('close', $rec)) ? array('pos_Receipts', 'close', $rec->id, 'ret_url' => true) : null;
