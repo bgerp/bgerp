@@ -117,8 +117,6 @@ var QUOTE = 222; 		// SINGLE QUOTE
 
 			$(this).keydown(function(e){
 
-				e.preventDefault();
-
 				 // Modifier down (SHIFT, CONTROL, ALT)
 				if(e.keyCode == 16) {
 					ShiftMod = true;
@@ -126,12 +124,14 @@ var QUOTE = 222; 		// SINGLE QUOTE
 					CtrlMod = true;
 				}else if(e.keyCode == 18) {
 					AltMod = true;
+					e.preventDefault();
 				}
 
 				 // Check key
 				if (e.keyCode == key) {
 					 // Verify assignment of modifier
 					if (mod == null || mod == 0 || mod == key){
+
 							func();
 					}else{
 						 // Verify modifier
