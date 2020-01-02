@@ -62,7 +62,6 @@ function posActions() {
 		
 		var selectedElement = $(".highlighted");
 		var selectedRecId = selectedElement.attr("data-id");
-		console.log(selectedRecId);
 		
 		getEfae().process(resObj, {recId:selectedRecId});
 	});
@@ -77,7 +76,6 @@ function posActions() {
 		
 		var selectedElement = $(".highlighted");
 		var selectedRecId = selectedElement.attr("data-id");
-		console.log(selectedRecId);
 		
 		getEfae().process(resObj, {recId:selectedRecId});
 	});
@@ -272,8 +270,6 @@ function posActions() {
 	});
 
 	document.addEventListener("keydown", function(event) {
-		//console.log(event.key);
-		//console.log(event.key);
 		if(event.key == "ArrowUp"){
 			arrowUp();
 		}
@@ -479,7 +475,7 @@ function posActions() {
 	});
 	
 	// При натискане на бутона за показване на подробна информация за артикула
-	$(document.body).on('click', ".enlargeProductBtn, .keyboardBtn", function(e){
+	$(document.body).on('click', ".enlargeProductBtn", function(e){
 		
 		var url = $(this).attr("data-url");
 		var operation = getSelectedOperation();
@@ -495,7 +491,7 @@ function posActions() {
 		
 		resObj = new Object();
 		resObj['url'] = url;
-		console.log(url);
+		
 		getEfae().process(resObj, {recId:selectedRecId});
 
 		openModal();
@@ -509,7 +505,6 @@ function posActions() {
 		
 		resObj = new Object();
 		resObj['url'] = url;
-		console.log(url);
 		getEfae().process(resObj, {string:string});
 
 		openModal();
