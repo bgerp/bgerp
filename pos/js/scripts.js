@@ -327,14 +327,9 @@ function posActions() {
 
 	// Триене на символи от формата за търсене
 	$(document.body).on('click', ".keyboard-back-btn", function(e){
-		var inpValLength = $(".large-field").val().length;
-		var newVal = $(".large-field").val().substr(0, inpValLength-1);
-		$(".large-field").val(newVal);
-		if(!((pageWidth > 800 && pageWidth < 1400) && isTouchDevice())){
-			$(".large-field").focus();
-		}
-		var e = jQuery.Event("keyup");
-		$(".large-field").trigger(e);
+		var inpValLength = $(".keyboardText").text().length;
+		var newVal = $(".keyboardText").text().substr(0, inpValLength-1);
+		$(".keyboardText").text(newVal);
 	});
 
 	// Време за изчакване
