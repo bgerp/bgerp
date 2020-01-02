@@ -229,6 +229,14 @@ class doc_DocumentCache extends core_Master
      */
     public static function cacheInvalidation($containerId, $userId = null)
     {
+        $del = 0;
+        
+        // Ако не кешираме, няма какво да инвалидираме
+        if (!(doc_Setup::get('CACHE_LIFETIME') > 0)) {
+            
+            return $del;
+        }
+        
         expect($containerId);
         
         if (isset($userId)) {
