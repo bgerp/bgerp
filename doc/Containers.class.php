@@ -725,6 +725,8 @@ class doc_Containers extends core_Manager
         
         expect($threadRec = doc_Threads::fetch($threadId));
         
+        doc_DocumentCache::cacheInvalidation($threadRec->firstContainerId, core_Users::getCurrent());
+        
         $show = Request::get('show');
         $hide = Request::get('hide');
         
