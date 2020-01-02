@@ -51,11 +51,7 @@ class pos_Terminal extends peripheral_Terminal
     protected $fieldArr = array('payments', 'policyId', 'caseId', 'storeId');
     
     
-    /**
-     * Кои са разрешените операции
-     */
-    protected static $operationsArr = "add=Артикул,payment=Плащане,quantity=К-во,batch=Партида,price=Цена,discount=Отстъпка,text=Текст,contragent=Клиент,receipts=Бележки,revert=Сторно";
-    
+
     
     /**
      * Кои операции са забранени за нови бележки
@@ -85,13 +81,18 @@ class pos_Terminal extends peripheral_Terminal
      * Бутони за бърз достъп до терминала
      */
     protected static $operationShortcuts = 'operation-add=a,operation-payment=p,operation-quantity=k,operation-price=z,operation-discount=5,operation-text=t,operation-contragent=c,operation-receipts=b,operation-revert=r,enlarge=o,print=3,close=w,operation-batch=b';
-    
-    
+
+    /**
+     * Кои са разрешените операции
+     */
+    protected static $operationsArr = "add=Артикул,payment=Плащане,quantity=К-во,batch=Партида,price=Цена,discount=Отстъпка,text=Текст,contragent=Клиент,receipts=Бележки,revert=Сторно";
+
+
     /**
      * Икони за операциите
      */
-    protected static $operationImgs = array('enlarge' => 'img/32/search.png', 'print' => 'img/24/printer.png', 'keyboard' => 'img/16/keyboard.png', 'operation-add' => 'img/16/add.png');
-    
+    protected static $operationImgs = array('enlarge' => 'pos/img/search.png', 'print' => 'pos/img/printer.png', 'keyboard' => 'pos/img/keyboard.png', 'operation-add' => 'pos/img/а.png', 'operation-text' =>  'pos/img/comment.png', 'operation-discount' => 'pos/img/sale.png', 'operation-payment' => 'pos/img/dollar.png',  'operation-price' => 'pos/img/price-tag2.png', 'operation-quantity' => 'pos/img/multiply.png',  'operation-add' => 'pos/img/a.png',  'operation-batch' => 'pos/img/b.png',  'operation-receipts' => 'pos/img/receipt.png', 'operation-contragent' => 'pos/img/user.png', 'operation-revert' => 'pos/img/receipt.png',);
+
     
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -371,7 +372,7 @@ class pos_Terminal extends peripheral_Terminal
                 if(array_key_exists("operation-{$operation}", self::$operationImgs)){
                     $attr['ef_icon'] = self::$operationImgs["operation-{$operation}"];
                 }
-                $buttons["operation-{$operation}"] = ht::createFnBtn($operationCaption, '', '', $attr);
+                $buttons["operation-{$operation}"] = ht::createFnBtn(" ", '', '', $attr);
             }
         }
         
@@ -400,7 +401,7 @@ class pos_Terminal extends peripheral_Terminal
         // Бутон за приключване
         $contoUrl = (pos_Receipts::haveRightFor('close', $rec)) ? array('pos_Receipts', 'close', $rec->id, 'ret_url' => true) : null;
         $disClass = ($contoUrl) ? '' : 'disabledBtn';
-        $buttons["close"] = ht::createBtn('Приключи', $contoUrl, 'Желаете ли да приключите бележката|*?', false, "class=operationBtn button closeBtn {$disClass}");
+        $buttons["close"] = ht::createBtn(' ', $contoUrl, 'Желаете ли да приключите бележката|*?', false, "class=operationBtn button closeBtn {$disClass},ef_icon=pos/img/close.png");
         
         // Добавяне на бутон за приключване на бележката
         $Receipts->invoke('BeforeGetPaymentTabBtns', array(&$buttons, $rec));
