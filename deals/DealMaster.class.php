@@ -2142,7 +2142,9 @@ abstract class deals_DealMaster extends deals_DealBase
         $arr = array_values($arr);
         
         if ($productId = $arr[0]->productId) {
-            $productName = cat_Products::getTitleById($productId);
+            $pRec = cat_Products::fetch($productId, 'name,code');
+            $productName = cat_Products::getVerbal($pRec, 'name');
+            $productName .= " " . (($pRec->code) ? "({$pRec->code})" : "(#Art{$pRec->id})");
             
             return $productName;
         }
