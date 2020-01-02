@@ -174,7 +174,8 @@
 
 .operationBtn.button,
 .printReceiptBtn.button,
-.enlargeProductBtn.button {
+.enlargeProductBtn.button,
+.keyboardBtn.button {
   height: 48px;
   padding: 0 10px;
   margin: 0;
@@ -183,11 +184,13 @@
   font-weight: normal; }
   .operationBtn.button.active,
   .printReceiptBtn.button.active,
-  .enlargeProductBtn.button.active {
+  .enlargeProductBtn.button.active,
+  .keyboardBtn.button.active {
     background-color: #f7f749; }
   .operationBtn.button.disabledBtn,
   .printReceiptBtn.button.disabledBtn,
-  .enlargeProductBtn.button.disabledBtn {
+  .enlargeProductBtn.button.disabledBtn,
+  .keyboardBtn.button.disabledBtn {
     color: #888888;
     pointer-events: none; }
 
