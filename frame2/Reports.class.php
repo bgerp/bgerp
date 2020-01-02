@@ -576,6 +576,8 @@ class frame2_Reports extends embed_Manager
      * Метод опресняващ справката
      *
      * @param stdClass $rec - ид на справка
+     * 
+     * @return void
      */
     public static function refresh(&$rec)
     {
@@ -615,7 +617,7 @@ class frame2_Reports extends embed_Manager
             if ($lastSeen <= $seenBefore) {
                 
                 // Ако е последно видяна преди зададеното време да се затваря и да не се обновява повече
-                $rec->brState = 'active';
+                $rec->brState = $rec->state;
                 $rec->state = 'closed';
                 $rec->refreshData = false;
                 $me->invoke('BeforeChangeState', array($rec, $rec->state));
