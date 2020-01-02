@@ -243,7 +243,9 @@ class pos_Terminal extends peripheral_Terminal
      */
     public function act_Keyboard()
     {
+        $string = Request::get('string', 'varchar');
         $tpl = getTplFromFile('pos/tpl/terminal/KeyboardFull.shtml');
+        $tpl->replace($string, 'STRING');
         
         // Ще се реплейсва и пулта
         $res = array();

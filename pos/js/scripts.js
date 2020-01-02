@@ -498,16 +498,23 @@ function posActions() {
 		console.log(url);
 		getEfae().process(resObj, {recId:selectedRecId});
 
-		dialog = $("#modalContent").dialog({
-			autoOpen: false,
-			height: 700,
-			width: 1000,
-			modal: true
-		});
-
-		dialog.dialog( "open" );
+		openModal();
 	});
 
+	// При натискане на бутона за клавиатура
+	$(document.body).on('click', ".keyboardBtn", function(e){
+		
+		var url = $(this).attr("data-url");
+		var string = $("input[name=ean]").val();
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		console.log(url);
+		getEfae().process(resObj, {string:string});
+
+		openModal();
+	});
+	
 	$("body").setShortcutKey( ALT , D ,function() {
 		 deleteElement();
 	});
@@ -812,12 +819,12 @@ function disableOrEnableBatch()
 	}
 }
 
+// След презареждане
 function render_afterload()
 {
 	var element = $(".highlighted");
 	var operation = getSelectedOperation();
 	
-	console.log('load');
 	disableOrEnableBatch();
 	
 	if(operation == 'text'){
@@ -890,4 +897,18 @@ function enter() {
 
 
 	getEfae().process(resObj, {string:value,recId:selectedRecId});
+}
+
+
+// Отваря модала
+function openModal()
+{
+	dialog = $("#modalContent").dialog({
+		autoOpen: false,
+		height: 700,
+		width: 1000,
+		modal: true
+	});
+
+	dialog.dialog( "open" );
 }
