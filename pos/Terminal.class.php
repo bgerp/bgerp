@@ -223,7 +223,27 @@ class pos_Terminal extends peripheral_Terminal
         $res = array();
         $resObj = new stdClass();
         $resObj->func = 'html';
-        $resObj->arg = array('id' => 'productInfo', 'html' => $docHtml->getContent(), 'replace' => true);
+        $resObj->arg = array('id' => 'modalContent', 'html' => $docHtml->getContent(), 'replace' => true);
+        $res[] = $resObj;
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Пълна клавиатура
+     *
+     * @return array $res
+     */
+    public function act_Keyboard()
+    {
+        $tpl = getTplFromFile('pos/tpl/terminal/KeyboardFull.shtml');
+        
+        // Ще се реплейсва и пулта
+        $res = array();
+        $resObj = new stdClass();
+        $resObj->func = 'html';
+        $resObj->arg = array('id' => 'modalContent', 'html' => $tpl->getContent(), 'replace' => true);
         $res[] = $resObj;
         
         return $res;
@@ -363,6 +383,9 @@ class pos_Terminal extends peripheral_Terminal
             $buttons["print"] = ht::createBtn(' ', array('pos_Terminal', 'Open', 'receiptId' => $rec->id, 'Printing' => true) , false, true, array('class' => 'operationBtn printBtn', 'ef_icon' => 'img/24/printer.png'));
         }
         
+        // Бутон за увеличение на избрания артикул
+        $buttons["keyboard"] = ht::createFnBtn(' ', '', '', array('data-url' => toUrl(array('pos_Terminal', 'Keyboard'), 'local'), 'class' => "keyboardBtn", 'ef_icon' => 'img/16/keyboard.png'));
+        
         // Бутон за приключване
         $contoUrl = (pos_Receipts::haveRightFor('close', $rec)) ? array('pos_Receipts', 'close', $rec->id, 'ret_url' => true) : null;
         $disClass = ($contoUrl) ? '' : 'disabledBtn';
@@ -383,7 +406,10 @@ class pos_Terminal extends peripheral_Terminal
         $input = ht::createElement('input', $params);
         $holder = ht::createElement('div', array('class' => 'inputHolder'), $input, true);
         $block->append($holder, 'INPUT_FLD');
-        $block->append($this->renderKeyboard('tools'), 'KEYBOARDS');
+        
+        // Добавяне на цифрова клавиатура
+        $numKeyboard = getTplFromFile('pos/tpl/terminal/KeyboardNum.shtml');
+        $block->append($numKeyboard, 'KEYBOARDS');
         
         return $block;
     }
@@ -915,20 +941,6 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $tpl = pos_Favourites::renderPosProducts($products);
-        
-        return $tpl;
-    }
-    
-    
-    
-    /**
-     * Рендира клавиатурата
-     *
-     * @return core_ET $tpl
-     */
-    public static function renderKeyboard($tab)
-    {
-        $tpl = getTplFromFile('pos/tpl/terminal/Keyboards.shtml');
         
         return $tpl;
     }

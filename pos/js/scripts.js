@@ -232,6 +232,7 @@ function posActions() {
 	
 	// Смяна на текущата клавиатура
 	$(document.body).on('click', ".keyboard-change-btn", function(e){
+		console.log('a');
 		var currentAttrValue = $(this).attr('data-klang');
 		$('.keyboard#' + currentAttrValue).show().siblings().hide();
 	}); 
@@ -239,9 +240,10 @@ function posActions() {
 	
 	// Попълване на символи от клавиатурата
 	$(document.body).on('click', ".keyboard-btn", function(e){
+		
 		var currentAttrValue = $(this).val();
 		var isChangeBtn = $(this).attr('data-klang');
-
+		
 		// Ако е натиснат бутон за смяна на език, не правим нищо
 		if(isChangeBtn != undefined) {
 			return;
@@ -474,7 +476,8 @@ function posActions() {
 	});
 	
 	// При натискане на бутона за показване на подробна информация за артикула
-	$(document.body).on('click', ".enlargeProductBtn", function(e){
+	$(document.body).on('click', ".enlargeProductBtn, .keyboardBtn", function(e){
+		
 		var url = $(this).attr("data-url");
 		var operation = getSelectedOperation();
 		
@@ -492,7 +495,7 @@ function posActions() {
 		console.log(url);
 		getEfae().process(resObj, {recId:selectedRecId});
 
-		dialog = $("#productInfo").dialog({
+		dialog = $("#modalContent").dialog({
 			autoOpen: false,
 			height: 700,
 			width: 1000,

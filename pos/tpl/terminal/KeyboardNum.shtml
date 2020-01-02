@@ -1,0 +1,19 @@
+<div id='keyboard-num' class='keyboard'>
+    <div class='num-keyboard'>
+        <input class="buttonForm numPad" type="button" value="1" />
+        <input class="buttonForm numPad" type="button" value="2" />
+        <input class="buttonForm numPad" type="button" value="3" />
+        <br>
+        <input class="buttonForm numPad" type="button" value="4" />
+        <input class="buttonForm numPad" type="button" value="5" />
+        <input class="buttonForm numPad" type="button" value="6" />
+        <br>
+        <input class="buttonForm numPad" type="button" value="7" />
+        <input class="buttonForm numPad" type="button" value="8" />
+        <input class="buttonForm numPad" type="button" value="9" />
+        <br>
+        <input class="buttonForm numPad" type="button" value="." />
+        <input class="buttonForm numPad" type="button" value="0" />
+        <input class="buttonForm numBack" type="button" value="«" />
+    </div>
+</div>
