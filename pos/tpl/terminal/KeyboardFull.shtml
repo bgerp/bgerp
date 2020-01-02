@@ -1,4 +1,6 @@
-<div id='keyboard-lat' class='keyboard'">
+
+<div class="keyboardText"></div>
+<div id='keyboard-lat' class='keyboard'>
     <div class='keyboard-row' style='padding-left:1.5em'>
         <input class="keyboard-btn" type="button" value="1" />
         <input class="keyboard-btn" type="button" value="2" />

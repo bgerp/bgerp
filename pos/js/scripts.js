@@ -232,15 +232,14 @@ function posActions() {
 	
 	// Смяна на текущата клавиатура
 	$(document.body).on('click', ".keyboard-change-btn", function(e){
-		console.log('a');
 		var currentAttrValue = $(this).attr('data-klang');
-		$('.keyboard#' + currentAttrValue).show().siblings().hide();
+		$('.keyboard#' + currentAttrValue).show().siblings('.keyboard').hide();
 	}); 
 	
 	
 	// Попълване на символи от клавиатурата
 	$(document.body).on('click', ".keyboard-btn", function(e){
-		
+
 		var currentAttrValue = $(this).val();
 		var isChangeBtn = $(this).attr('data-klang');
 		
@@ -249,24 +248,28 @@ function posActions() {
 			return;
 		}
 		
-		var closestSearch = $(this).closest('#tools-holder').find('.select-input-pos');
+		var closestSearch = $('.keyboardText');
 		
-		var inpVal = closestSearch.val();
+		var inpVal = closestSearch.text();
 		if (currentAttrValue == "ENTER") {
-			closestSearch.val("");
+			$('.select-input-pos').val($('.keyboardText').text());
+			$('.ui-dialog-titlebar-close').click();
 		} else {
 			inpVal += currentAttrValue;
-			closestSearch.val(inpVal);
-		}
+			closestSearch.text(inpVal);
 
-		if(!((pageWidth > 800 && pageWidth < 1400) && isTouchDevice())){
-			closestSearch.focus();
 		}
 		// Задействаме евент 'keyup' в инпут полето
 		var e = jQuery.Event("keyup");
-		closestSearch.trigger(e);
+		$('.select-input-pos').trigger(e);
 	});
-
+	$(document.body).on('click', ".ui-dialog-titlebar-close", function() {
+		if($('.keyboardText').text()){
+			$('.select-input-pos').val($('.keyboardText').text());
+			var e = jQuery.Event("keyup");
+			$('.select-input-pos').trigger(e);
+		}
+	});
 
 	document.addEventListener("keydown", function(event) {
 		//console.log(event.key);
@@ -504,7 +507,6 @@ function posActions() {
 
 		dialog.dialog( "open" );
 	});
-/*
 
 	$("body").setShortcutKey( ALT , D ,function() {
 		 deleteElement();
@@ -549,7 +551,7 @@ function posActions() {
 		$('.large-field.select-input-pos').focus();
 	});
 
-*/
+
 
 }
 function showHints(){
