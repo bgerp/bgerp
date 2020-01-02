@@ -94,7 +94,6 @@ class price_Setup extends core_ProtoSetup
         'price_ProductCosts',
         'price_Updates',
         'price_Cache',
-        'migrate::updateGroupNames',
     );
     
     
@@ -129,31 +128,4 @@ class price_Setup extends core_ProtoSetup
      * Дефинирани класове, които имат интерфейси
      */
     public $defClasses = 'price_reports_PriceList';
-    
-    
-    /**
-     * Добавя шаблони на ценоразписите
-     */
-    public function updateGroupNames()
-    {
-        $Groups = cls::get('cat_Groups');
-        $Groups->setupMvc();
-        
-        $toSave = array();
-        $query = $Groups->getQuery();
-        $query->where("#nameEn = '' OR #nameEn IS NULL");
-        $query->show('name,nameEn');
-        while ($rec = $query->fetch()) {
-            if (strpos($rec->name, '||') !== false) {
-                list($nameBg, $nameEn) = explode('||', $rec->name);
-                $rec->name = $nameBg;
-                $rec->nameEn = $nameEn;
-                $toSave[$rec->id] = $rec;
-            }
-        }
-        
-        if (count($toSave)) {
-            $Groups->saveArray($toSave, 'id,name,nameEn');
-        }
-    }
 }
