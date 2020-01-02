@@ -161,7 +161,11 @@ class currency_Currencies extends core_Master
     
 
     /**
-     *
+     * Декорира сумата с показване на валутата след сумата
+     * 
+     * @param string $amount - сума
+     * @param mixed $currency - ид или код на валута
+     * @return string $amount - декорираната сума
      */
     public static function decorate($amount, $currency = null)
     {
@@ -177,7 +181,7 @@ class currency_Currencies extends core_Master
 
         switch($currency) {
             case 'BGN': 
-                $amount .= ' лв';
+                $amount .= ' ' . tr('лв');
                 break;
             case 'USD': 
                 $amount = "\${$amount}";

@@ -313,15 +313,17 @@ class type_UserList extends type_Keylist
      *
      * @return string
      */
-    public static function fromArray($value)
+    public static function fromArray($value, $order = true)
     {
         $res = '';
         
         if (is_array($value) && !empty($value)) {
             
-            // Сортираме ключовете на масива, за да има
-            // стринга винаги нормализиран вид - от по-малките към по-големите
-            ksort($value);
+            if($order) {
+                // Сортираме ключовете на масива, за да има
+                // стринга винаги нормализиран вид - от по-малките към по-големите
+                ksort($value);
+            }
             
             foreach ($value as $id => $val) {
                 if (empty($id) && empty($val)) {

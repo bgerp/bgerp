@@ -554,7 +554,7 @@ class core_Setup extends core_ProtoSetup
                     core_Backup::getDir('past'),
                     core_Backup::getDir('sql_log'),
                     core_Backup::getDir('backup_work'),
-                ), 0777
+                ), 0744
             );
             core_SystemData::set('flagDoSqlLog');
         } else {

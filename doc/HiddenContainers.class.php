@@ -76,6 +76,7 @@ class doc_HiddenContainers extends core_Manager
         $this->FLD('userId', 'user', 'caption=Потребите');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Контейнер');
         $this->FLD('state', 'enum(opened=Отворено, closed=Затворено)', 'caption=Състояние');
+        $this->FLD('date', 'datetime(format=smartTime)', 'caption=Създаване, notNull, input=none');
         
         $this->setDbIndex('containerId,userId');
     }
@@ -362,6 +363,8 @@ class doc_HiddenContainers extends core_Manager
                 $rec->containerId = $cId;
             }
             
+            $rec->date = dt::now();
+            
             if ($hide) {
                 $rec->state = 'closed';
                 self::save($rec);
@@ -414,5 +417,23 @@ class doc_HiddenContainers extends core_Manager
         }
         
         return true;
+    }
+    
+    
+    /**
+     * Изтрива стари записи
+     */
+    public function cron_DeleteOldRecs()
+    {
+        $days = 30;
+        $lastDate = dt::addDays(-1 * $days);
+        
+        $res = $this->delete(array("#date < '[#1#]'", $lastDate));
+        
+        if ($res) {
+            $this->logNotice("Бяха изтрити {$res} записа");
+            
+            return "Бяха изтрити {$res} записа от " . $this->className;
+        }
     }
 }

@@ -576,6 +576,8 @@ class frame2_Reports extends embed_Manager
      * Метод опресняващ справката
      *
      * @param stdClass $rec - ид на справка
+     * 
+     * @return void
      */
     public static function refresh(&$rec)
     {
@@ -612,14 +614,14 @@ class frame2_Reports extends embed_Manager
             $lastSeen = self::getLastSeenByUser(__CLASS__, $rec);
             $months = frame2_Setup::get('CLOSE_LAST_SEEN_BEFORE_MONTHS');
             $seenBefore = dt::addMonths(-1 * $months);
-            
             if ($lastSeen <= $seenBefore) {
                 
                 // Ако е последно видяна преди зададеното време да се затваря и да не се обновява повече
+                $rec->brState = $rec->state;
                 $rec->state = 'closed';
                 $rec->refreshData = false;
                 $me->invoke('BeforeChangeState', array($rec, $rec->state));
-                $me->save($rec, 'state');
+                $me->save($rec, 'state,brState');
                 $me->logWrite('Затваряне на остаряла справка', $rec->id);
                 unset($me->setNewUpdateTimes[$rec->id]);
             }

@@ -95,6 +95,11 @@ class fileman_Indexes extends core_Manager
      */
     protected static $ignoreExtArr = array('p7s');
     
+    /**
+     * Дали за този модел ще се прави репликация на SQL заявките
+     */
+    public $doReplication = false;
+    
     
     /**
      * Описание на модела

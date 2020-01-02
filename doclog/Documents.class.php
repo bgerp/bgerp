@@ -196,6 +196,18 @@ class doclog_Documents extends core_Manager
     
     
     /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 100000;
+    
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'dataBlob';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()

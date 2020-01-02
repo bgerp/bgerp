@@ -22,7 +22,19 @@ class core_Backup extends core_Mvc
      */
     public $lmt = array();
     
+
+    /**
+     * Информация за всички таблици
+     */
+    static $info = array();
     
+
+    /**
+     * Кеширане на контролните суми
+     */
+    static $crcArr = array();
+
+
     /**
      * Създаване на пълен бекъп
      */
@@ -60,7 +72,11 @@ class core_Backup extends core_Mvc
                 continue;
             }
             
+            // Инстанцираме класа
             $mvc = cls::get($className);
+            
+            // Пропускаме класовете, които имат модели в други бази данни
+            if(!self::hasEqualDb($this, $mvc)) continue;
             
             if ($mvc->dbTableName) {
                 list($exists, $cnt, $lmt) = $this->getTableInfo($mvc);
@@ -91,6 +107,9 @@ class core_Backup extends core_Mvc
         
         $this->db->query("LOCK TABLES {$lockTables}");
         
+        // Изтриваме статистическата информация за таблиците, за да се генерира на ново
+        self::$info = array();
+
         // Флъшваме всичко, каквото има от SQL лога
         $this->cron_FlushSqlLog();
         
@@ -182,7 +201,7 @@ class core_Backup extends core_Mvc
             unlink($appZip);
         }
         archive_Adapter::compressFile($appCfg, $appZip, $pass);
-        
+
         // всема стойностите на някои константи
         $constArr = array('EF_SALT', 'EF_USERS_PASS_SALT', 'EF_USERS_HASH_FACTOR');
         foreach ($constArr as $const) {
@@ -216,13 +235,17 @@ class core_Backup extends core_Mvc
      */
     public function exportTables($instArr, &$files, $curDir, $pastDir, $workDir)
     {
+        
+
         foreach ($instArr as $table => $inst) {
             core_App::setTimeLimit(120);
             
             if ($inst === null) {
                 continue;
             }
-            
+
+            list($exists, $cnt, $lmt) = $this->getTableInfo($inst);
+
             if (isset($inst->backupMaxRows, $inst->backupDiffFields)) {
                 $maxId = $inst->db->getNextId($table);
                 $diffFields = arr::make($inst->backupDiffFields);
@@ -234,20 +257,24 @@ class core_Backup extends core_Mvc
                 $n = 1;
                 for ($i = 0; $i <= $maxId; $i += $inst->backupMaxRows) {
                     core_App::setTimeLimit(120);
-                    $query = $inst->getQuery();
-                    $query->XPR('crc32backup', 'int', $crc);
-                    $query->where($where = ('id BETWEEN ' . ($i + 1) . ' AND ' . ($i + $inst->backupMaxRows)));
-                    $query->show('crc32backup');
-                    $rec = $query->fetch();
-                    if ($rec->crc32backup > 0) {
-                        $suffix = $n . '-' . base_convert(abs($rec->crc32backup), 10, 36);
+                    $key = "{$table}-{$lmt}-{$n}";
+                    if(!isset(self::$crcArr[$key])) {
+                        $query = $inst->getQuery();
+                        $query->XPR('crc32backup', 'int', $crc);
+                        $query->where($where = ("`{$table}`.`id` BETWEEN " . ($i + 1) . ' AND ' . ($i + $inst->backupMaxRows)));
+                        $query->show('crc32backup');
+                        $rec = $query->fetch();
+                        self::$crcArr[$key] = $rec->crc32backup;
+                    }
+ 
+                    if (self::$crcArr[$key] > 0) {
+                        $suffix = $n . '-' . base_convert(abs(self::$crcArr[$key]), 10, 36);
                         $this->backupTable($inst, $table, $suffix, $workDir, $curDir, $pastDir, $where, $files);
                     }
                     $n++;
                 }
             } else {
-                $lmtTable = $inst->db->getLMT($table);
-                $suffix = base_convert($lmtTable, 10, 36);
+                $suffix = base_convert($lmt, 10, 36);
                 $this->backupTable($inst, $table, $suffix, $workDir, $curDir, $pastDir, '', $files);
             }
         }
@@ -283,7 +310,7 @@ class core_Backup extends core_Mvc
         }
         $files[$fileName] = $cols;
         
-        if (file_exists($dest)) {
+        if (file_exists($dest) && filesize($dest)) {
             debug::log("Таблица `{$fileName}` вече съществува като zip файл");
             
             $save = dirname($path) . '/' . basename($dest);
@@ -292,13 +319,13 @@ class core_Backup extends core_Mvc
             return;
         }
         
-        if (file_exists($path)) {
+        if (file_exists($path) && filesize($path)) {
             debug::log("Таблица `{$fileName}` вече съществува като csv файл");
             
             return;
         }
         
-        if (file_exists($past)) {
+        if (file_exists($past) && filesize($past)) {
             debug::log("Таблица `{$fileName}` вече съществува като zip файл");
             
             $save = dirname($path) . '/' . basename($past);
@@ -308,8 +335,8 @@ class core_Backup extends core_Mvc
         }
         
         $dbRes = $inst->db->query("SELECT * FROM `{$table}` WHERE {$where}");
-        $out = fopen($path, 'w');
-        fwrite($out, "{$cols}");
+        $out = fopen("{$path}.tmp", 'w');
+        $first = true;
         while ($row = $inst->db->fetchArray($dbRes, MYSQLI_NUM)) {
             $vals = '';
             foreach ($row as $i => &$f) {
@@ -320,9 +347,11 @@ class core_Backup extends core_Mvc
                 }
             }
             $vals = implode(',', $row);
-            fwrite($out, "\n{$vals}");
+            fwrite($out, ($first ? '' : "\n") . $vals);
+            $first = false;
         }
         fclose($out);
+        rename("{$path}.tmp", $path);
         debug::log("Експорт в CSV на таблица `{$fileName}`");
     }
     
@@ -330,7 +359,7 @@ class core_Backup extends core_Mvc
     /**
      * Връща посочената директория за бекъп
      */
-    public static function getDir($subDir)
+    public static function getDir($subDir, $force = true)
     {
         if ($subDir == 'current' || $subDir == 'past') {
             $base = core_Setup::get('BACKUP_PATH');
@@ -340,7 +369,7 @@ class core_Backup extends core_Mvc
         
         $dir = core_Os::normalizeDir($base) . '/' . $subDir;
         
-        if (core_Os::forceDir($dir, 0777)) {
+        if (core_Os::forceDir($dir, 0744)) {
             
             return $dir;
         }
@@ -471,8 +500,9 @@ class core_Backup extends core_Mvc
                 core_App::setTimeLimit(120);
                 list($table, ) = explode('.', $file);
                 $dest = self::unzipToTemp($src, $pass, $log);
-                $log[] = self::importTable($db, $table, $cols, $dest);
+                $log[] = $res = self::importTable($db, $table, $cols, $dest);
                 unlink($dest);
+                if(substr($res, 0, 4) == 'err:') return;
             }
             
             // Наливане на наличните SQL логове
@@ -604,27 +634,40 @@ class core_Backup extends core_Mvc
      */
     public function getTableInfo($mvc)
     {
-        static $info = array();
-        
         $hash = md5($mvc->db->dbHost . '|' . $mvc->db->dbUser . '|' . $mvc->db->dbName);
         
         $selfHash = md5($this->db->dbHost . '|' . $this->db->dbUser . '|' . $this->db->dbName);
         
-        if (!isset($info[$hash]) && $hash == $selfHash) {
-            $info[$hash] = array();
+        if (!isset(self::$info[$hash]) && $hash == $selfHash) {
+            self::$info[$hash] = array();
             $dbRes = $mvc->db->query("SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA LIKE '{$mvc->db->dbName}'");
             while ($row = $mvc->db->fetchArray($dbRes)) {
                 $lmt = $row['UPDATE_TIME'] ? strtotime($row['UPDATE_TIME']) : null;
-                $info[$hash][$row['TABLE_NAME']] = array(true, $row['TABLE_ROWS'], $lmt);
+                self::$info[$hash][$row['TABLE_NAME']] = array(true, $row['TABLE_ROWS'], $lmt);
             }
         }
         
-        if (isset($info[$hash][$mvc->dbTableName])) {
-            $res = $info[$hash][$mvc->dbTableName];
+        if (isset(self::$info[$hash][$mvc->dbTableName])) {
+            $res = self::$info[$hash][$mvc->dbTableName];
         } else {
             $res = array(0, 0, null);
         }
         
         return $res;
     }
+
+
+    /**
+     * Дали са еднакви базите данни за двата модела
+     */
+    public static function hasEqualDb($mvc1, $mvc2)
+    {
+        $db1 = $mvc->db1;
+        $db2 = $mvc2->db2;
+
+        $res = $db1->dbName == $db2->dbName && $db1->dbHost == $db2->dbHost && $db1->dbUser == $db2->dbUser;
+
+        return $res;
+    }
+
 }

@@ -67,6 +67,7 @@ class frame2_Setup extends core_ProtoSetup
         'frame2_Reports',
         'frame2_ReportVersions',
         'frame2_AllReports',
+        'migrate::migrateStates',
     );
     
     
@@ -89,4 +90,19 @@ class frame2_Setup extends core_ProtoSetup
      * Дефинирани класове, които имат интерфейси
      */
     public $defClasses = 'frame2_CsvExport';
+    
+    
+    /**
+     * Миграция за състоянията
+     */
+    public function migrateStates()
+    {
+        $Frames = cls::get('frame2_Reports');
+        $query = frame2_Reports::getQuery();
+        $query->where("#brState = 'closed' AND #state = 'closed'");
+        while($rec = $query->fetch()){
+            $rec->brState = 'active';
+            $Frames->save_($rec, 'brState');
+        }
+    }
 }
