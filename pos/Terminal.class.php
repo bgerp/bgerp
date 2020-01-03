@@ -433,29 +433,16 @@ class pos_Terminal extends peripheral_Terminal
         $img = ht::createImg(array('path' => self::$operationImgs["keyboard"]));
         $buttons["keyboard"] = (object)array('body' => $img, 'attr' => array('title' => 'Отваряне на виртуална клавиатура', 'data-url' => toUrl(array('pos_Terminal', 'Keyboard'), 'local'), 'class' => "keyboardBtn"));
         
-        // Бутон за приключване
-        
-        $contoUrl = (pos_Receipts::haveRightFor('close', $rec)) ? array('pos_Receipts', 'close', $rec->id, 'ret_url' => true) : null;
-        $disClass = ($contoUrl) ? '' : 'disabledBtn';
-        
         // Слагаме бутон за оттегляне ако имаме права
         if (!Mode::is('printing')) {
             if (pos_Receipts::haveRightFor('reject', $rec)) {
-                
                 $img = ht::createImg(array('path' => self::$operationImgs["reject"]));
                 $buttons["reject"] = (object)array('body' => $img, 'attr' => array('title' => 'Оттегляне на бележката', 'class' => "rejectBtn"), 'linkUrl' => array('pos_Receipts', 'reject', $rec->id, 'ret_url' => toUrl(array('pos_Receipts', 'new'), 'local')), 'linkWarning' => 'Наистина ли желаете да оттеглите бележката|*?');
             } elseif (pos_Receipts::haveRightFor('delete', $rec)) {
-               
                 $img = ht::createImg(array('path' => self::$operationImgs["reject"]));
                 $buttons["delete"] = (object)array('body' => $img, 'attr' => array('title' => 'Изтриване на бележката', 'class' => "rejectBtn"), 'linkUrl' => array('pos_Receipts', 'delete', $rec->id, 'ret_url' => toUrl(array('pos_Receipts', 'new'), 'local')), 'linkWarning' => 'Наистина ли желаете да изтриете бележката|*?');
             }
         }
-        
-        $img = ht::createImg(array('path' => self::$operationImgs["close"]));
-        $buttons["close"] = (object)array('body' => $img, 'attr' => array('class' => "operationBtn button closeBtn {$disClass}"), 'linkUrl' => $contoUrl, 'linkWarning' => 'Желаете ли да приключите бележката|*?');
-       
-        // Добавяне на бутон за приключване на бележката
-        $Receipts->invoke('BeforeGetPaymentTabBtns', array(&$buttons, $rec));
         
         // Добавяне на бутоните за операции + шорткътите към тях
         foreach ($buttons as $key => $btnObj){
@@ -847,19 +834,32 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultPayment($rec, $string, $selectedRec)
     {
-        $tpl = new core_ET("");
+        $tpl = new core_ET("<div class='paymentBtnsHolder'>[#PAYMENTS#]</div><div class='closeBtnsHolder'>[#CLOSE_BTNS#]</div>");
         
         $payUrl = (pos_Receipts::haveRightFor('pay', $rec)) ? toUrl(array('pos_ReceiptDetails', 'makePayment', 'receiptId' => $rec->id), 'local') : null;
         $disClass = ($payUrl) ? 'navigable' : 'disabledBtn';
         
-        $element = ht::createElement("div", array('id' => "payment-1", 'class' => "{$disClass} posBtns payment", 'data-type' => '-1', 'data-url' => $payUrl), tr('В брой'), true);
-        $tpl->append($element);
+        $paymentArr = array();
+        $paymentArr["payment-1"] = (object)array('body' => ht::createElement("div", array('id' => "payment-1", 'class' => "{$disClass} posBtns payment", 'data-type' => '-1', 'data-url' => $payUrl), tr('В брой'), true), 'placeholder' => 'PAYMENTS');
         
         $payments = pos_Points::fetchSelected($rec->pointId);
         foreach ($payments as $paymentId => $paymentTitle){
-            $element = ht::createElement("div", array('id' => "payment{$paymentId}", 'class' => "{$disClass} posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl), tr($paymentTitle), true);
-            $tpl->append($element);
+            $paymentArr["payment{$paymentId}"] = (object)array('body' => ht::createElement("div", array('id' => "payment{$paymentId}", 'class' => "{$disClass} posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl), tr($paymentTitle), true), 'placeholder' => 'PAYMENTS');
         }
+        
+        $contoUrl = (pos_Receipts::haveRightFor('close', $rec)) ? array('pos_Receipts', 'close', $rec->id, 'ret_url' => true) : null;
+        $disClass = ($contoUrl) ? '' : 'disabledBtn';
+        $warning =  ($contoUrl) ? 'Наистина ли желаете да приключите продажбата|*?' : false;
+        $closeBtn = ht::createLink('Приключено', $contoUrl, $warning, array('class' => "{$disClass} posBtns payment closeBtn"));
+        $paymentArr["close"] = (object)array('body' => $closeBtn, 'placeholder' => 'CLOSE_BTNS');
+        
+        // Добавяне на бутон за приключване на бележката
+        cls::get('pos_Receipts')->invoke('BeforeGetPaymentTabBtns', array(&$paymentArr, $rec));
+        
+        foreach ($paymentArr as $btnObject){
+            $tpl->append($btnObject->body, $btnObject->placeholder);
+        }
+        
         $tpl->append("<div class='clearfix21'></div>");
         $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
         
