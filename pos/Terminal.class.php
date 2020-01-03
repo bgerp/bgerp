@@ -456,7 +456,7 @@ class pos_Terminal extends peripheral_Terminal
             $holderAttr['class'] .= " operationHolder";
             
             $btn = ht::createElement('div', $holderAttr, $btnObj->body, true);
-            $block->append($btn, 'INPUT_FLD');
+            $block->append($btn, 'BTNS');
         }
         
         // Добавяне на полето за търсене и клавиатурата

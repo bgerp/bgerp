@@ -2,7 +2,8 @@
 	<div class='buttonRow'>[#FIRST_TOOLS_ROW#]</div>
     [#INPUT_FLD#]
     [#INPUT_DATA_LIST#]
-	<div class='keyboard-holder'>[#KEYBOARDS#]</div>
+	[#KEYBOARDS#]
+[#BTNS#]
 <div class='clearfix21'></div>
 <!--ET_END TAB_TOOLS-->
 

@@ -109,10 +109,9 @@
 
 .numPad,
 .numBack {
-  min-width: 42px;
-  height: 43px;
-  margin: 0 4px 7px 3px !important;
-  padding: 0 5px !important;
+  min-width: 53px;
+  height: 53px;
+  margin: 5px !important;
   text-align: center;
   color: white !important;
   border-radius: 5px !important;
@@ -155,6 +154,9 @@
     border-bottom: #303030 2px solid !important;
     background: #505050 !important;
     box-shadow: inset 0 0 50px black; }
+
+#keyboard-num {
+  float: left; }
 
 .keyboard-row {
   clear: both;
@@ -317,11 +319,11 @@
 
 .large-field {
   clear: both;
-  width: 85%;
+  width: 100%;
   height: 2.2em !important;
   font-size: 1.2em !important;
   border: 1px solid #aaaaaa;
-  margin: 20px 0 !important;
+  margin: 0 0 10px !important;
   border-radius: 4px !important;
   box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.25), 2px 2px 2px rgba(0, 0, 0, 0.2); }
 
