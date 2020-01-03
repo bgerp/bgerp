@@ -771,6 +771,9 @@ class bgerp_Portal extends embed_Manager
         if (bgerp_Setup::get('PORTAL_VIEW') == 'customized') {
             
             return $this->act_Show2();
+        } elseif (Request::get('ajax_mode')) {
+            
+            return new Redirect(array($this, 'Show'));
         }
         
         // Ако е инсталиран пакета за партньори
