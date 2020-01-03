@@ -74,7 +74,7 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Кои операции са забранени за сторниращите бележки
      */
-    protected static $operationsForNonDraftReceipts = 'receipts=Бележки,revert=Сторно';
+    protected static $allowedOperationOnNonDraftReceipts = 'receipts=Бележки,revert=Сторно';
     
     
     /**
@@ -85,7 +85,7 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Кои са разрешените операции
      */
-    protected static $operationsArr = "add=Артикул,payment=Плащане,quantity=Количество,batch=Партида,price=Цена,discount=Отстъпка,text=Текст,contragent=Клиент,receipts=Бележки,revert=Сторно";
+    protected static $operationsArr = "add=Добавяне на артикул,payment=Плащане по бележката,quantity=Промяна на количеството/опаковката,batch=Задаване на партида на артикула,price=Задаване на цена,discount=Задаване на отстъпка,text=Текст,contragent=Избор на контрагент,receipts=Преглед на бележките,revert=Сторниране на бележка";
 
 
     /**
@@ -350,16 +350,8 @@ class pos_Terminal extends peripheral_Terminal
             $params['readonly'] = 'readonly';
         }
         
-        $operations = ($rec->state == 'draft') ? arr::make(self::$operationsArr) : arr::make(self::$operationsForNonDraftReceipts);
-        if(!core_Packs::isInstalled('batch')){
-            unset($operations['batch']);
-        }
-        
-        // Може ли да се задава отстъпка?
-        if (pos_Setup::get('SHOW_DISCOUNT_BTN') != 'yes') {
-            unset($operations['discount']);
-        }
-        
+        $operations = arr::make(self::$operationsArr);
+        $allowedOperationsForNonDraftReceipts = arr::make(self::$allowedOperationOnNonDraftReceipts);
         $detailsCount = pos_ReceiptDetails::count("#receiptId = {$rec->id}");
         
         // Ако записаната операция в сесията я няма, то се избира първата възможна автоматично
@@ -375,6 +367,16 @@ class pos_Terminal extends peripheral_Terminal
             $class = ($operation == $currentOperation) ? 'operationBtn active' : 'operationBtn';
             $attr = array('data-url' => $searchUrl, 'class' => $class, 'data-value' => $operation, 'title' => $operationCaption);
             $disabled = (empty($detailsCount) && in_array($operation, self::$forbiddenOperationOnEmptyReceipts)) || (!empty($rec->paid) && in_array($operation, self::$forbiddenOperationOnReceiptsWithPayment)) || (isset($rec->revertId) && $rec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT && in_array($operation, self::$forbiddenOperationOnRevertReceipts));
+            
+            if($rec->state != 'draft' && !array_key_exists($operation, $allowedOperationsForNonDraftReceipts)) {
+                
+                $disabled = true;
+            } elseif($operation == 'discount' && pos_Setup::get('SHOW_DISCOUNT_BTN') != 'yes'){
+                $disabled = true;
+            } elseif($operation == 'batch' && !core_Packs::isInstalled('batch')){
+                $disabled = true;
+            }
+            
             if($disabled){
                 $attr['data-url'] = null;
                 $attr['class'] .= ' disabledBtn';
