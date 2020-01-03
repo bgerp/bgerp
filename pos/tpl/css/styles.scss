@@ -201,6 +201,10 @@
 	display: inline-block;
 	position: relative;
 	margin: 5px;
+	border: 1px solid #999;
+	background: #ccc;
+	padding: 7px 10px;
+	cursor: pointer;
 	.buttonOverlay {
 		display: none;
 		position: absolute;
@@ -208,30 +212,24 @@
 		height: 100%;
 		left: 0;
 		top:0;
-		background: rgba(0,0,0,0.9);
+		background: rgba(0,0,0,0.6);
 		color: #fff;
-		text-align: center;
-		font-size: 1.5em !important;
+		font-size: 1.1em !important;
+		padding-left: 3px;
 		font-weight: bold;
-		line-height: 48px;
+
 	}
-}
-.operationBtn.button, .printReceiptBtn.button, .enlargeProductBtn.button, .keyboardBtn.button {
-	height: 48px;
-	padding: 0 10px;
-	margin:0;
-	background-size: 30px !important ;
-	background-position: center !important;
-    text-align: center;
-    font-size: 1.2em !important;
-    font-weight: normal;
+	&:hover {
+		opacity: 0.9;
+	}
 	&.active {
 		background-color: #f7f749;
 	}
-	&.disabledBtn {
+	&.disabledBtn{
 		opacity: 0.5;
 	}
 }
+
 
 .narrow .num-keyboard{
 	min-width: 176px !important

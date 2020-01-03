@@ -172,7 +172,11 @@
 .operationHolder {
   display: inline-block;
   position: relative;
-  margin: 5px; }
+  margin: 5px;
+  border: 1px solid #999999;
+  background: #cccccc;
+  padding: 7px 10px;
+  cursor: pointer; }
   .operationHolder .buttonOverlay {
     display: none;
     position: absolute;
@@ -180,34 +184,16 @@
     height: 100%;
     left: 0;
     top: 0;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(0, 0, 0, 0.6);
     color: white;
-    text-align: center;
-    font-size: 1.5em !important;
-    font-weight: bold;
-    line-height: 48px; }
-
-.operationBtn.button,
-.printReceiptBtn.button,
-.enlargeProductBtn.button,
-.keyboardBtn.button {
-  height: 48px;
-  padding: 0 10px;
-  margin: 0;
-  background-size: 30px !important;
-  background-position: center !important;
-  text-align: center;
-  font-size: 1.2em !important;
-  font-weight: normal; }
-  .operationBtn.button.active,
-  .printReceiptBtn.button.active,
-  .enlargeProductBtn.button.active,
-  .keyboardBtn.button.active {
+    font-size: 1.1em !important;
+    padding-left: 3px;
+    font-weight: bold; }
+  .operationHolder:hover {
+    opacity: 0.9; }
+  .operationHolder.active {
     background-color: #f7f749; }
-  .operationBtn.button.disabledBtn,
-  .printReceiptBtn.button.disabledBtn,
-  .enlargeProductBtn.button.disabledBtn,
-  .keyboardBtn.button.disabledBtn {
+  .operationHolder.disabledBtn {
     opacity: 0.5; }
 
 .narrow .num-keyboard {
