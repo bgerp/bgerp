@@ -116,7 +116,7 @@ function posActions() {
 
 		var inpVal = $(this).val();
 		var operation = getSelectedOperation();
-
+		
 		var selectedElement = $(".highlighted");
 		var selectedRecId = selectedElement.attr("data-id");
 		
@@ -131,8 +131,7 @@ function posActions() {
 
 	});
 	
-
-
+	
 	// Направата на плащане след натискане на бутон
 	$(document.body).on('click', ".payment", function(e){
 		if(!$(this).hasClass( "disabledBtn")){
@@ -757,7 +756,7 @@ function getSelectedOperation()
 	if($("select[name=operation]").length){
 		var operation = $("select[name=operation]").val();
 	} else {
-		var operation = $("input.operationBtn.active").attr("data-value");
+		var operation = $("div.operationBtn.active").attr("data-value");
 	}
 	
 	return operation;

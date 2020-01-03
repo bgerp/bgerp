@@ -91,7 +91,7 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Икони за операциите
      */
-    protected static $operationImgs = array('enlarge' => 'pos/img/search.png', 'print' => 'pos/img/printer.png', 'keyboard' => 'pos/img/keyboard.png', 'operation-add' => 'pos/img/а.png', 'operation-text' =>  'pos/img/comment.png', 'operation-discount' => 'pos/img/sale.png', 'operation-payment' => 'pos/img/dollar.png',  'operation-price' => 'pos/img/price-tag2.png', 'operation-quantity' => 'pos/img/multiply.png',  'operation-add' => 'pos/img/a.png',  'operation-batch' => 'pos/img/b.png',  'operation-receipts' => 'pos/img/receipt.png', 'operation-contragent' => 'pos/img/user.png', 'operation-revert' => 'pos/img/receipt.png',);
+    protected static $operationImgs = array('enlarge' => 'pos/img/search.png', 'print' => 'pos/img/printer.png', 'keyboard' => 'pos/img/keyboard.png', 'operation-add' => 'pos/img/а.png', 'operation-text' =>  'pos/img/comment.png', 'operation-discount' => 'pos/img/sale.png', 'operation-payment' => 'pos/img/dollar.png',  'operation-price' => 'pos/img/price-tag2.png', 'operation-quantity' => 'pos/img/multiply.png',  'operation-add' => 'pos/img/a.png',  'operation-batch' => 'pos/img/b.png',  'operation-receipts' => 'pos/img/receipt.png', 'operation-contragent' => 'pos/img/user.png', 'operation-revert' => 'pos/img/receipt.png', 'close' => 'pos/img/close.png', 'transfer' => 'pos/img/transfer.png');
 
     
     /**
@@ -381,6 +381,7 @@ class pos_Terminal extends peripheral_Terminal
         
         // Показване на възможните операции
         $currentOperation = Mode::get("currentOperation{$rec->id}");
+        $shortCuts = arr::make(static::$operationShortcuts);
         if(Mode::is('screenMode', 'narrow')){
             if(!empty($rec->paid)){
                 $operations = array_diff_key($operations, arr::make(self::$forbiddenOperationOnReceiptsWithPayment, true));
@@ -394,17 +395,15 @@ class pos_Terminal extends peripheral_Terminal
             foreach ($operations as $operation => $operationCaption){
                 $class = ($operation == $currentOperation) ? 'operationBtn active' : 'operationBtn';
                 
-                $attr = array('data-url' => $searchUrl, 'class' => $class, 'data-value' => $operation);
+                $attr = array('data-url' => $searchUrl, 'class' => $class, 'data-value' => $operation, 'title' => $operationCaption);
                 if((!empty($rec->paid) && in_array($operation, self::$forbiddenOperationOnReceiptsWithPayment)) || (isset($rec->revertId) && $rec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT && in_array($operation, self::$forbiddenOperationOnRevertReceipts))){
                     $attr['data-url'] = null;
                     $attr['class'] .= ' disabledBtn';
                     $attr['disabled'] = 'disabled';
                 }
                 
-                if(array_key_exists("operation-{$operation}", self::$operationImgs)){
-                    $attr['ef_icon'] = self::$operationImgs["operation-{$operation}"];
-                }
-                $buttons["operation-{$operation}"] = ht::createFnBtn(" ", '', '', $attr);
+                $img = ht::createImg(array('path' => self::$operationImgs["operation-{$operation}"]));
+                $buttons["operation-{$operation}"] = (object)array('body' => $img, 'attr' => $attr);
             }
         }
         
@@ -413,36 +412,63 @@ class pos_Terminal extends peripheral_Terminal
             $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
             if(!($defaultContragentId == $rec->contragentObjectId && $rec->contragentClass == crm_Persons::getClassId())){
                 $transferUrl = array('pos_Receipts', 'transfer', $rec->id, 'contragentClassId' => $rec->contragentClass, 'contragentId' => $rec->contragentObjectId);
-                $buttons["transfer"] = ht::createBtn(' ', $transferUrl, 'Наистина ли желаете да прехвърлите бележката към папката на контрагента|*?', false, 'class=operationBtn button,ef_icon=pos/img/transfer.png');
+                $img = ht::createImg(array('path' => self::$operationImgs["transfer"]));
+                $buttons["transfer"] = (object)array('body' => $img, 'attr' => array('title' => 'Прехвърляне на продажбата', 'class' => "operationBtn button"), 'linkUrl' => $transferUrl, 'linkWarning' => 'Наистина ли желаете да прехвърлите бележката към папката на контрагента|*?');
             }
         }
         
         // Бутон за увеличение на избрания артикул
         if(!empty($detailsCount)){
-            $buttons["enlarge"] = ht::createFnBtn(' ', '', '', array('data-url' => toUrl(array('pos_Terminal', 'EnlargeProduct'), 'local'), 'class' => "enlargeProductBtn", 'ef_icon' => self::$operationImgs['enlarge']));
+            $img = ht::createImg(array('path' => self::$operationImgs["enlarge"]));
+            $buttons["enlarge"] = (object)array('body' => $img, 'attr' => array('title' => 'Преглед на избрания артикул', 'data-url' => toUrl(array('pos_Terminal', 'EnlargeProduct'), 'local'), 'class' => "enlargeProductBtn"));
         }
         
         // Бутон за печат на бележката
         if(!empty($rec->total)){
-            $buttons["print"] = ht::createBtn(' ', array('pos_Terminal', 'Open', 'receiptId' => $rec->id, 'Printing' => true) , false, true, array('class' => 'operationBtn printBtn', 'ef_icon' => self::$operationImgs['print']));
+            $img = ht::createImg(array('path' => self::$operationImgs["print"]));
+            $buttons["print"] = (object)array('body' => $img, 'attr' => array('title' => 'Печат на бележката', 'class' => 'operationBtn printBtn'), 'linkUrl' => array('pos_Terminal', 'Open', 'receiptId' => $rec->id, 'Printing' => true));
         }
         
         // Бутон за увеличение на избрания артикул
-        $buttons["keyboard"] = ht::createFnBtn(' ', '', '', array('data-url' => toUrl(array('pos_Terminal', 'Keyboard'), 'local'), 'class' => "keyboardBtn", 'ef_icon' => self::$operationImgs['keyboard']));
+        $img = ht::createImg(array('path' => self::$operationImgs["keyboard"]));
+        $buttons["keyboard"] = (object)array('body' => $img, 'attr' => array('title' => 'Отваряне на виртуална клавиатура', 'data-url' => toUrl(array('pos_Terminal', 'Keyboard'), 'local'), 'class' => "keyboardBtn"));
         
         // Бутон за приключване
+        
         $contoUrl = (pos_Receipts::haveRightFor('close', $rec)) ? array('pos_Receipts', 'close', $rec->id, 'ret_url' => true) : null;
         $disClass = ($contoUrl) ? '' : 'disabledBtn';
-        $buttons["close"] = ht::createBtn(' ', $contoUrl, 'Желаете ли да приключите бележката|*?', false, "class=operationBtn button closeBtn {$disClass},ef_icon=pos/img/close.png");
         
+        // Слагаме бутон за оттегляне ако имаме права
+        if (!Mode::is('printing')) {
+            if (pos_Receipts::haveRightFor('reject', $rec)) {
+                
+                $img = ht::createImg(array('path' => self::$operationImgs["reject"]));
+                $buttons["reject"] = (object)array('body' => $img, 'attr' => array('title' => 'Оттегляне на бележката', 'class' => "rejectBtn"), 'linkUrl' => array('pos_Receipts', 'reject', $rec->id, 'ret_url' => toUrl(array('pos_Receipts', 'new'), 'local')), 'linkWarning' => 'Наистина ли желаете да оттеглите бележката|*?');
+            } elseif (pos_Receipts::haveRightFor('delete', $rec)) {
+               
+                $img = ht::createImg(array('path' => self::$operationImgs["reject"]));
+                $buttons["delete"] = (object)array('body' => $img, 'attr' => array('title' => 'Изтриване на бележката', 'class' => "rejectBtn"), 'linkUrl' => array('pos_Receipts', 'delete', $rec->id, 'ret_url' => toUrl(array('pos_Receipts', 'new'), 'local')), 'linkWarning' => 'Наистина ли желаете да изтриете бележката|*?');
+            }
+        }
+        
+        $img = ht::createImg(array('path' => self::$operationImgs["close"]));
+        $buttons["close"] = (object)array('body' => $img, 'attr' => array('class' => "operationBtn button closeBtn {$disClass}"), 'linkUrl' => $contoUrl, 'linkWarning' => 'Желаете ли да приключите бележката|*?');
+       
         // Добавяне на бутон за приключване на бележката
         $Receipts->invoke('BeforeGetPaymentTabBtns', array(&$buttons, $rec));
         
         // Добавяне на бутоните за операции + шорткътите към тях
-        $shortCuts = arr::make(static::$operationShortcuts);
-        foreach ($buttons as $key => $btn){
-            $btn->append("<span class='buttonOverlay'>{$shortCuts[$key]}</span>");
-            $btn = ht::createElement('div', array('class' => 'operationHolder'), $btn, true);
+        foreach ($buttons as $key => $btnObj){
+            $btnObj->body->append(ht::createElement('span', array('class' => 'buttonOverlay'), $shortCuts[$key], true));
+            if(!empty($btnObj->linkUrl)){
+                $warning = !empty($btnObj->linkWarning) ? $btnObj->linkWarning : false;
+                $btnObj->body = ht::createLink($btnObj->body, $btnObj->linkUrl, $warning);
+            }
+            
+            $holderAttr = $btnObj->attr;
+            $holderAttr['class'] .= " operationHolder";
+            
+            $btn = ht::createElement('div', $holderAttr, $btnObj->body, true);
             $block->append($btn, 'INPUT_FLD');
         }
         
