@@ -122,8 +122,6 @@ class planning_reports_InvestedItemsByJobs extends frame2_driver_TableData
         $jQuery->show('productId');
         
         
-        
-        
         while ($jRec = $jQuery->fetch()) {
             $suggestions[$jRec->id] = planning_Jobs::getTitleById($jRec->id);
         }
@@ -146,16 +144,28 @@ class planning_reports_InvestedItemsByJobs extends frame2_driver_TableData
     {
         $recs = array();
         
-       
-        $pQuery = planning_ConsumptionNoteDetails::getQuery();
+        //Масив с ID-та на нишките на избраните ЗАДАНИЯ
+        $jobsThreadArr = array();
+        foreach (keylist::toArray($rec->jobses) as $val){
+            $jobsThreadArr[$val]= planning_Jobs::fetchField($val,'threadId');
+            
+        }
         
-        bp($pQuery->fetchAll());
+   //    bp($jobsThreadArr);
+        
+        $pQuery = planning_DirectProductNoteDetails::getQuery();
+        
+        $pQuery->EXT('state', 'planning_DirectProductionNote', 'externalName=state,externalKey=noteId');
+        $pQuery->EXT('threadId', 'planning_DirectProductionNote', 'externalName=threadId,externalKey=noteId');
         
         $pQuery->where("#state != 'rejected'");
-        $pQuery->where('#quantity > 0');
+        $pQuery->in('threadId', ($jobsThreadArr));
         
-        $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
-        $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+        
+        bp($jobsThreadArr,$pQuery->fetchAll());
+        
+       
+        
         
         //Филтър по група артикули
         if (isset($rec->groups)) {
