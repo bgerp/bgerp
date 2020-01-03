@@ -11,7 +11,7 @@
   position: fixed;
   top: 50px;
   left: 0;
-  width: 35%;
+  width: 600px;
   height: 100%;
   background: #9be7ff;
   box-sizing: border-box; }
@@ -37,10 +37,19 @@
   overflow-x: hidden; }
 
 .headerContent {
+  padding: 12px;
+  background: #333333;
   position: fixed;
   top: 0;
   left: 0;
   width: 100%; }
+  .headerContent span {
+    font-size: 1.2em;
+    display: inline-block;
+    margin-right: 40px;
+    color: white; }
+    .headerContent span a {
+      color: white !important; }
 
 .receipt-header {
   padding: 10px; }
@@ -109,16 +118,16 @@
 
 .numPad,
 .numBack {
-  min-width: 53px;
-  height: 53px;
-  margin: 5px !important;
+  min-width: 60px;
+  height: 60px;
+  margin: 8px !important;
   text-align: center;
   color: white !important;
   border-radius: 5px !important;
   background: #303030 !important;
   border-bottom: black 2px solid !important;
   border-top: 2px #303030 solid !important;
-  font-size: 1.1em !important; }
+  font-size: 1.5em !important; }
   .numPad:hover,
   .numBack:hover {
     border-top: black 2px solid !important;
@@ -174,11 +183,14 @@
 .operationHolder {
   display: inline-block;
   position: relative;
-  margin: 5px;
+  margin: 8px;
   border: 1px solid #999999;
   background: #cccccc;
-  padding: 7px 10px;
-  cursor: pointer; }
+  padding: 12px;
+  cursor: pointer;
+  width: 60px;
+  height: 60px;
+  box-sizing: border-box; }
   .operationHolder .buttonOverlay {
     display: none;
     position: absolute;
