@@ -1,5 +1,5 @@
 <span class='headerAppName'>[#APP_NAME#]</span>
 <span class='headerPointId'>[#pointId#]</span>
 <span class='headerUserNick'>[#userId#]</span>
-<span class='headerPortalLink'>[#PORTAL_LINK#]</span>
-<span class='headerLogout'>[#EXIT_TERMINAL#]</span>
+<span class='headerTime'>[#TIME#]</span>
+<span class='headerReceiptIdLink'>№[#ID#]</span>

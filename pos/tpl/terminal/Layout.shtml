@@ -1,16 +1,16 @@
 <div class='single-receipt-wrapper'>
-	<div class="headerContent">
+	<div class="headerContent no-print" id='receiptTerminalHeader'>
 		[#HEADER_BAR#]
 	</div>
 	<div id='single-receipt-holder'>
 		<div id='single-receipt' class='tabs-holder'>
 			<div id = 'receipt-table' class="[#REVERT_CLASS#]">[#RECEIPT#]</div>
 		</div>
-		<div id='tools-holder' class='holder tools-content'>
+		<div id='tools-holder' class='holder tools-content no-print'>
 			[#TAB_TOOLS#]
 		</div>
 	</div>
-	<div id='result-holder' class='holder result-content'>
+	<div id='result-holder' class='holder result-content no-print'>
 	    [#SEARCH_RESULT#]
 	</div>
 	<div class='statuses' id='statuses' style='margin: 0 auto;'>
