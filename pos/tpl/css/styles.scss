@@ -231,9 +231,11 @@
 		top:0;
 		background: rgba(0,0,0,0.6);
 		color: #fff;
+		text-align: right;
 		font-size: 1.1em !important;
-		padding-left: 3px;
+		padding-right: 7px;
 		font-weight: bold;
+		box-sizing: border-box;
 
 	}
 	&:hover {
@@ -290,9 +292,15 @@
 	border: 1px solid #666;
 	border-radius: 3px;
 	box-shadow: rgba(233, 233, 233, 0.5) 1px 1px 0 0 inset, 2px 2px 3px rgba(0,0,0,0.1);
+	position: relative;
 	&.payment {
 		background: #b7e2f3;
 		color: #333 !important;
+	}
+	.endTooltip {
+		position: absolute !important;
+		top: 1px !important;
+		right: 3px !important;
 	}
 }
 
