@@ -804,7 +804,8 @@ function disableOrEnableBatch()
 			batchBtn.addClass('disabledBtn');
 		} else {
 			var addBtn = $('.operationBtn[data-value="add"]');
-			if(!addBtn.hasClass('disabledBtn')){
+			console.log(element);
+			if(!addBtn.hasClass('disabledBtn') && element.length){
 				batchBtn.removeClass('disabledBtn');
 			}
 		}

@@ -165,7 +165,7 @@ class pos_Receipts extends core_Master
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен, closed=Затворен,waiting=Чакащ,pending)', 'caption=Статус, input=none');
         $this->FLD('transferedIn', 'key(mvc=sales_Sales)', 'input=none');
         $this->FLD('revertId', 'int', 'input=none,caption=Сторнира');
-        $this->FLD('returnedTotal', 'double(decimals=2)', 'caption=Сторно, input=none');
+        $this->FLD('returnedTotal', 'double(decimals=2)', 'caption=Сторнирано, input=none');
         
         $this->setDbIndex('valior');
     }
@@ -316,13 +316,7 @@ class pos_Receipts extends core_Master
             $row->RECEIPT_CAPTION = tr('Сторно бележка');
             $row->PAID_CAPTION = tr('Върнато');
             $row->REVERT_CLASS = 'is-reverted';
-            
             $row->revertId = ($rec->revertId != self::DEFAULT_REVERT_RECEIPT) ? pos_Receipts::getHyperlink($rec->revertId, true) : ht::createHint(' ', 'Произволна сторнираща бележка', 'warning');
-            if (isset($fields['-terminal']) && !Mode::is('printing')) {
-                if(pos_ReceiptDetails::haveRightFor('load', (object)array('receiptId' => $rec->id))){
-                    $row->loadUrl = ht::createLink('', array('pos_ReceiptDetails', 'load', 'receiptId' => $rec->id, 'from' => $rec->revertId, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,title=Зареждане на всички данни от бележката, class=load-btn');
-                }
-            }
         }
         
         // показваме датата на последната модификация на документа, ако е активиран
