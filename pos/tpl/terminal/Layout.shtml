@@ -1,12 +1,6 @@
 <div class='single-receipt-wrapper'>
 	<div class="headerContent">
-			<!--ET_BEGIN EXIT_TERMINAL--> <span class="logout">[#EXIT_TERMINAL#]</span><!--ET_END EXIT_TERMINAL-->
-			<div class="receipt-title"><!--ET_BEGIN RECEIPT_CAPTION-->[#RECEIPT_CAPTION#] <br><!--ET_END RECEIPT_CAPTION--> № [#id#]/[#valior#] [#rejectBtn#]</div>
-			<div class='secondRow'><!--ET_BEGIN SUB_TITLE--><span class='terminal-receipt-subtitle'>[#SUB_TITLE#]<br></span><!--ET_END SUB_TITLE-->[#createdBy#] [#LOGO#]<!--ET_BEGIN pointId--><span class='newLine no-print'>&#124;[#pointId#]</span><!--ET_END pointId--></div>
-			<!--ET_BEGIN revertId--><span class='terminal-revert-id newLine'>|Сторнира|* № [#revertId#]</span>[#loadUrl#]<!--ET_END revertId-->
-			<!--ET_BEGIN contragentId-->
-			<div class='contragentRow'>[#contragentId#]</div>
-			<!--ET_END contragentId-->
+		[#HEADER_BAR#]
 	</div>
 	<div id='single-receipt-holder'>
 		<div id='single-receipt' class='tabs-holder'>

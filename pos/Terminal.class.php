@@ -166,6 +166,7 @@ class pos_Terminal extends peripheral_Terminal
         $tpl = getTplFromFile('pos/tpl/terminal/Layout.shtml');
         $tpl->replace(pos_Points::getTitleById($rec->pointId), 'PAGE_TITLE');
         $tpl->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf('img/16/cash-register.png', '"', true) . '>', 'HEAD');
+        $tpl->replace($this->renderHeader($rec), 'HEADER_BAR');
         
         // Добавяме бележката в изгледа
         $receiptTpl = $this->getReceipt($rec);
@@ -200,6 +201,37 @@ class pos_Terminal extends peripheral_Terminal
         // Вкарване на css и js файлове
         $this->pushTerminalFiles($tpl, $rec);
         $this->renderWrapping($tpl);
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Рендиране на горния бар
+     *
+     * @param stdClass $rec
+     *
+     * @return core_ET $tpl
+     */
+    private function renderHeader($rec)
+    {
+        $Receipts = cls::get('pos_Receipts');
+        $tpl = getTplFromFile('pos/tpl/terminal/Header.shtml');
+        
+        $logoutImg = ht::createImg(array('path' => 'img/16/logout.png'));
+        $exitLink = ht::createLink($logoutImg, array('core_Users', 'logout', 'ret_url' => true), false, 'title=Излизане от системата');
+        
+        $bgerpImg = ht::createImg(array('path' => 'img/16/bgerp.png'));
+        $bgerpImg .= ' bgERP';
+        $portalLink = ht::createLink($bgerpImg, array('bgerp_Portal', 'Show'), null, array('target' => '_blank', 'title' => 'Към портала'));
+       // bp($portalLink);
+        
+        $headerData = (object)array('APP_NAME' => EF_APP_NAME,
+                                    'pointId' => pos_Points::getHyperlink($rec->pointId, true),
+                                    'EXIT_TERMINAL' => $exitLink,
+                                    'PORTAL_LINK'   => $portalLink,
+                                    'userId' => crm_Profiles::createLink(core_Users::getCurrent()));
+        $tpl->placeObject($headerData);        
         
         return $tpl;
     }
@@ -976,11 +1008,6 @@ class pos_Terminal extends peripheral_Terminal
         $tpl = $this->renderReceipt($data);
         $Receipts->invoke('AfterGetReceipt', array(&$tpl, $rec));
         
-        if(!Mode::is('printing')){
-            $img = ht::createImg(array('path' => 'img/16/logout.png'));
-            $tpl->replace(ht::createLink($img, array('core_Users', 'logout', 'ret_url' => true), false, 'title=Излизане от системата'), 'EXIT_TERMINAL');
-        }
-        
         return $tpl;
     }
     
@@ -1014,12 +1041,6 @@ class pos_Terminal extends peripheral_Terminal
             unset($data->row->STATE_CLASS);
         }
         $tpl->placeObject($data->row);
-        
-        if(!Mode::is('printing')){
-            $img = ht::createElement('img', array('src' => sbf('pos/img/bgerp.png', '')));
-            $logo = ht::createLink($img, array('bgerp_Portal', 'Show'), null, array('target' => '_blank', 'class' => 'portalLink', 'title' => 'Към портала'));
-            $tpl->append($logo, 'LOGO');
-        }
         
         if($lastRecId = pos_ReceiptDetails::getLastRec($data->rec->id, 'sale')->id){
             $data->receiptDetails->rows[$lastRecId]->CLASS .= ' highlighted';

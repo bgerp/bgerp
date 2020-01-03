@@ -1,3 +1,7 @@
+<div class="receipt-title"><!--ET_BEGIN RECEIPT_CAPTION-->[#RECEIPT_CAPTION#]<!--ET_END RECEIPT_CAPTION--> № [#id#]/[#valior#]</div>
+<!--ET_BEGIN SUB_TITLE--><div class='secondRow'><span class='terminal-receipt-subtitle'>[#SUB_TITLE#]</span></div><!--ET_END SUB_TITLE-->
+<!--ET_BEGIN revertId--><div class='terminal-revert-id newLine'>|Сторнира|* № [#revertId#]</div><!--ET_END revertId-->
+<span class='contragentRow'>[#contragentId#]</span>
 <div class="scrolling-vertical">
 	<!--ET_BEGIN DETAILS-->
 	[#DETAILS#]
