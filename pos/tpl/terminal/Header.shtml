@@ -3,3 +3,4 @@
 <span class='headerUserNick'>[#userId#]</span>
 <span class='headerTime'>[#TIME#]</span>
 <span class='headerReceiptIdLink'>№[#ID#]</span>
+<span class='headerReceiptOtherLink'>[#OTHER_ELEMENTS#]</span>

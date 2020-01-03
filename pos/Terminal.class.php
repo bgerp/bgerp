@@ -215,7 +215,8 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderHeader($rec)
     {
-        $rec = pos_Receipts::fetchRec($rec);
+        $Receipts = cls::get('pos_Receipts');
+        $rec = $Receipts->fetchRec($rec);
         $tpl = getTplFromFile('pos/tpl/terminal/Header.shtml');
         
         $headerData = (object)array('APP_NAME' => EF_APP_NAME,
@@ -224,7 +225,10 @@ class pos_Terminal extends peripheral_Terminal
                                     'TIME' => dt::mysql2verbal(dt::now()),
                                     'userId' => core_Users::getVerbal(core_Users::getCurrent(), 'nick'));
         
+        $tpl->append(ht::createImg(array('path' => 'img/16/bgerp.png')), 'OTHER_ELEMENTS');
         $tpl->placeObject($headerData);        
+        $Receipts->invoke('AfterRenderterminalHeader', array(&$tpl));
+        $tpl->replace(' bgERP', 'OTHER_ELEMENTS');
         
         return $tpl;
     }
@@ -369,7 +373,6 @@ class pos_Terminal extends peripheral_Terminal
             $disabled = (empty($detailsCount) && in_array($operation, self::$forbiddenOperationOnEmptyReceipts)) || (!empty($rec->paid) && in_array($operation, self::$forbiddenOperationOnReceiptsWithPayment)) || (isset($rec->revertId) && $rec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT && in_array($operation, self::$forbiddenOperationOnRevertReceipts));
             
             if($rec->state != 'draft' && !array_key_exists($operation, $allowedOperationsForNonDraftReceipts)) {
-                
                 $disabled = true;
             } elseif($operation == 'discount' && pos_Setup::get('SHOW_DISCOUNT_BTN') != 'yes'){
                 $disabled = true;
