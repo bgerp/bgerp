@@ -5,7 +5,8 @@
 
 .wide #single-receipt-holder {
   float: left;
-  font-family: 'Source Sans Pro', sans-serif; }
+  font-family: 'Source Sans Pro', sans-serif;
+  font-size: 1.2em; }
 
 #single-receipt-holder {
   position: fixed;
