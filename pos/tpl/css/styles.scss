@@ -13,7 +13,7 @@
 	position: fixed;
 	top: 50px;
 	left: 0;
-	width: 600px;
+	width: 570px;
 	height: 100%;
 	background: #9be7ff;
 	box-sizing: border-box;
@@ -24,7 +24,6 @@
 	position: fixed;
 	top: 50px;
 	right: 0;
-	width: 65%;
 	height: 100%;
 	padding:15px;
 	overflow-y: auto;
@@ -32,7 +31,7 @@
 }
 
 .tools-content {
-	height: 600px;
+	height: 560px;
 	padding: 20px 15px;
 	box-sizing: border-box;
 }
@@ -215,11 +214,14 @@
 	margin: 8px;
 	border: 1px solid #999;
 	background: #ccc;
-	padding: 12px;
+	padding: 14px;
 	cursor: pointer;
 	width: 60px;
 	height: 60px;
 	box-sizing: border-box;
+	&.btnWithWarning {
+		background: rgba(189, 106, 0, 0.85);
+	}
 	.buttonOverlay {
 		display: none;
 		position: absolute;
