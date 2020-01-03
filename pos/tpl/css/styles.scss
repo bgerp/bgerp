@@ -41,7 +41,10 @@
 	overflow-y:auto;
 	overflow-x:hidden;
 }
-
+.receiptHeader {
+	padding: 10px 15px;
+	background: #eee;
+}
 .headerContent {
 	padding:12px;
 	background: #333;
@@ -52,6 +55,7 @@
 	span {
 		font-size: 1.2em;
 		display: inline-block;
+		margin-left: 10px;
 		margin-right: 40px;
 		color: #fff;
 		a {
@@ -272,12 +276,12 @@
 	cursor: pointer;
 	box-sizing: border-box;
 	padding: 0.4em 1em 0.3em;
-	width: 220px;
-	height: 56px !important;
+	width: 230px;
+	height: 64px !important;
 	margin: 10px ;
 	color:#fff;
 	font-family: Arial;
-	font-size:1.1em;
+	font-size:1.3em;
 	text-align:center;
 	display: flex;
 	float: left;
