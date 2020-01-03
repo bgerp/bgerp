@@ -1,5 +1,4 @@
 <!--ET_BEGIN TAB_TOOLS-->
-	<div class='buttonRow'>[#FIRST_TOOLS_ROW#]</div>
     [#INPUT_FLD#]
     [#INPUT_DATA_LIST#]
 	[#KEYBOARDS#]

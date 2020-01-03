@@ -608,10 +608,7 @@ function calculateWidth(){
 	var winHeight = parseInt();
 
 	//задаване на ширина на двете колони
-	if (winWidth < 1200 || $('body').hasClass('narrow')) {
-		$('#single-receipt-holder, .result-content').css('width', winWidth);
-		$('#single-receipt-holder, .result-content').css('position', 'relative');
-	}
+	$('.result-content').css('width', winWidth - $('#single-receipt-holder').width());
 
 	//височина за таблицата с резултатите
 	var receiptHeight = $(window).height() -  $('.tools-content').height() - $('.paymentBlock').height();
