@@ -22,19 +22,25 @@ class core_Backup extends core_Mvc
      */
     public $lmt = array();
     
-
+    
     /**
      * Информация за всички таблици
      */
-    static $info = array();
+    public static $info = array();
     
-
+    
     /**
      * Кеширане на контролните суми
      */
-    static $crcArr = array();
-
-
+    public static $crcArr = array();
+    
+    
+    /**
+     * Директория за временни файлове
+     */
+    public static $temp;
+    
+    
     /**
      * Създаване на пълен бекъп
      */
@@ -57,14 +63,12 @@ class core_Backup extends core_Mvc
         $pass = core_Setup::get('BACKUP_PASS');
         
         // Форсираме директориите
-        $curDir = self::getDir('current');
-        $pastDir = self::getDir('past');
+        $backDir = self::getDir();
         $workDir = self::getDir('backup_work');
         
         // Определяме всички mvc класове, на които ще правим бекъп
         $mvcArr = core_Classes::getOptionsByInterface('core_ManagerIntf');
         $instArr = array();
-        $files = array();
         $lockTables = '';
         
         foreach ($mvcArr as $className) {
@@ -76,7 +80,9 @@ class core_Backup extends core_Mvc
             $mvc = cls::get($className);
             
             // Пропускаме класовете, които имат модели в други бази данни
-            if(!self::hasEqualDb($this, $mvc)) continue;
+            if (!self::hasEqualDb($this, $mvc)) {
+                continue;
+            }
             
             if ($mvc->dbTableName) {
                 list($exists, $cnt, $lmt) = $this->getTableInfo($mvc);
@@ -95,44 +101,30 @@ class core_Backup extends core_Mvc
         uksort($instArr, array($this, 'compLmt'));
         
         // Правим пробно експортиране на всички таблици, без заключване
-        $files = array();
-        $this->exportTables($instArr, $files, $curDir, $pastDir, $workDir);
+        $tables = array();
+        $this->exportTables($instArr, $tables, crc32(EF_SALT . $pass));
         
         // Пускаме завесата
         $lockTables = trim($lockTables, ',');
         core_SystemLock::block('Процес на архивиране на данните', 600); // 10 мин.
         $description['times']['lock'] = dt::now();
         
-        $this->db->query('FLUSH TABLES');
+        @$this->db->query('FLUSH TABLES');
         
         $this->db->query("LOCK TABLES {$lockTables}");
         
         // Изтриваме статистическата информация за таблиците, за да се генерира на ново
         self::$info = array();
-
+        
         // Флъшваме всичко, каквото има от SQL лога
         $this->cron_FlushSqlLog();
         
-        // Ако в `current` има нещо - преместваме го в `past`
-        if (!core_Os::isDirEmpty($curDir)) {
-            // Изтриваме директорията past
-            core_Os::deleteDirectory($pastDir);
-            
-            // Преименуваме текущата директория на past
-            if (!@rename($curDir, $pastDir)) {
-                sleep(1);
-                rename($curDir, $pastDir);
-            }
-        }
+        // Записваме времето на бекъпа
+        $description['time'] = dt::now();
         
-        // Създаваме празна текуща директория
-        core_Os::forceDir($curDir, 0777);
-        
-        // Масив за всички генерирани файлове
-        $files = array();
-        
-        // Експортираме всички таблици
-        $this->exportTables($instArr, $files, $curDir, $pastDir, $workDir);
+        // Експортираме всички таблици, като зачистваме масива
+        $tables = array();
+        $this->exportTables($instArr, $tables, crc32(EF_SALT . $pass));
         
         // Освеобождаваме LOCK-а на таблиците
         $this->db->query('UNLOCK TABLES');
@@ -154,54 +146,60 @@ class core_Backup extends core_Mvc
         }
         
         if ($dbStructure = trim($dbStructure)) {
-            $path = $workDir . '/db_structure.sql';
-            $dest = $curDir . '/db_structure.sql.zip';
-            if (file_exists($dest)) {
-                unlink($dest);
+            $hash = base_convert(abs(crc32($dbStructure)), 10, 36);
+            $file = "dbstruct.{$hash}.sql";
+            $path = $workDir . $file;
+            $dest = $backDir . $file . '.zip';
+            if (!file_exists($dest)) {
+                file_put_contents($path, $dbStructure);
+                debug::log('Компресиране на ' . basename($dest));
+                archive_Adapter::compressFile($path, $dest, $pass, '-sdel');
             }
-            file_put_contents($path, $dbStructure);
-            debug::log('Компресиране на ' . basename($dest));
-            archive_Adapter::compressFile($path, $dest, $pass, '-sdel');
+            $description['dbStruct'] = $file . '.zip';
         }
         
         // Копираме или компресираме файловете с експортатите данни
-        foreach ($files as $file => $cols) {
-            $path = $workDir . '/' . $file . '.csv';
-            $past = $workDir . '/' . $file . '.csv.zip';
-            $dest = $curDir . '/' . $file . '.csv.zip';
+        foreach ($tables as $table) {
+            $path = $workDir . $table . '.csv';
+            $dest = $backDir . $table . '.csv.zip';
+            
             if (file_exists($dest)) {
-                unlink($dest);
-            }
-            if (file_exists($past)) {
-                debug::log('Файлът `' . basename($dest) . '` се копира без промени от прешишния бекъп');
-                copy($past, $dest);
-                unlink($past);
+                debug::log('Файлът `' . basename($dest) . '` е наличен от прешишен бекъп');
             } else {
                 debug::log('Компресиране на ' . basename($dest));
                 archive_Adapter::compressFile($path, $dest, $pass, '-sdel');
             }
             
-            $description['files'][$file] = $cols;
+            $description['files'][] = "{$table}.csv.zip";
         }
         
         // Бекъп на двата конфиг файла
-        $indCfg = EF_INDEX_PATH . '/index.cfg.php';
+        $indCfg = rtrim(EF_INDEX_PATH, '/\\') . '/index.cfg.php';
         if (file_exists($indCfg)) {
             expect(is_readable($indCfg));
-            $indZip = $curDir . '/index.cfg.php.zip';
-            if (file_exists($indZip)) {
-                unlink($indZip);
+            $hash = base_convert(md5_file($indCfg), 16, 36);
+            $file = "index.{$hash}.cfg.php";
+            $tmpFile = $workDir . $file;
+            copy($indCfg, $tmpFile);
+            $indZip = $backDir . $file . '.zip';
+            if (!file_exists($indZip)) {
+                archive_Adapter::compressFile($tmpFile, $indZip, $pass, '-sdel');
             }
-            archive_Adapter::compressFile($indCfg, $indZip, $pass);
+            $description['indexConfig'] = $file . '.zip';
         }
-        $appCfg = EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php';
+        
+        $appCfg = rtrim(EF_CONF_PATH, '/\\') . '/' . EF_APP_NAME . '.cfg.php';
         expect(file_exists($appCfg) && is_readable($appCfg));
-        $appZip = $curDir . '/app.cfg.php.zip';
-        if (file_exists($appZip)) {
-            unlink($appZip);
+        $hash = base_convert(md5_file($appCfg), 16, 36);
+        $file = "app.{$hash}.cfg.php";
+        $tmpFile = $workDir . $file;
+        copy($appCfg, $tmpFile);
+        $appZip = $backDir . $file . '.zip';
+        if (!file_exists($appZip)) {
+            archive_Adapter::compressFile($tmpFile, $appZip, $pass, '-sdel');
         }
-        archive_Adapter::compressFile($appCfg, $appZip, $pass);
-
+        $description['appConfig'] = $file . '.zip';
+        
         // всема стойностите на някои константи
         $constArr = array('EF_SALT', 'EF_USERS_PASS_SALT', 'EF_USERS_HASH_FACTOR');
         foreach ($constArr as $const) {
@@ -215,67 +213,126 @@ class core_Backup extends core_Mvc
         
         // Записване на файла с описанието на бекъпа
         if ($descriptionStr = json_encode($description)) {
-            $path = $workDir . '/description.json';
-            $dest = $curDir . '/description.json.zip';
-            if (file_exists($dest)) {
-                unlink($dest);
+            $hash = base_convert($md5 = md5($descriptionStr), 16, 36);
+            $file = "description.{$hash}.json";
+            $path = $workDir . $file;
+            $dest = $backDir . $file . '.zip';
+            if (!file_exists($dest)) {
+                file_put_contents($path, $descriptionStr);
+                debug::log('Компресиране на ' . basename($dest));
+                archive_Adapter::compressFile($path, $dest, $pass, '-sdel');
             }
-            file_put_contents($path, $descriptionStr);
-            debug::log('Компресиране на ' . basename($dest));
-            archive_Adapter::compressFile($path, $dest, $pass, '-sdel');
         }
         
         // Почистваме работната директория
         core_Os::deleteDirectory($workDir, true);
+        
+        // Почистваме всички ненужни файлове от бекъпите, които са в повече
+        $backupMaxCnt = core_Setup::get('BACKUP_MAX_CNT');
+        
+        $log = array();
+        $descrArr = self::discover($backDir, $pass, $log);
+        
+        $used = array();
+        $minTime = time();
+        foreach ($descrArr as $path => $descr) {
+            foreach ($descr->files as $file) {
+                $used[$file] = true;
+            }
+            $used[basename($path)] = true;
+            $used[$descr->appConfig] = true;
+            $used[$descr->indexConfig] = true;
+            $used[$descr->dbStruct] = true;
+            $minTime = min($minTime, $descr->time);
+            $backupMaxCnt--;
+            if (!$backupMaxCnt) {
+                break;
+            }
+        }
+        
+        // Вземаме всички файлове, кито са от вида на използваните в архива
+        $files = glob("{$backDir}*.{csv.zip,cfg.php.zip,json.zip,sql.zip}", GLOB_BRACE);
+        foreach ($files as $path) {
+            $name = basename($path);
+            if ($used[$name]) {
+                continue;
+            }
+            if (substr($name, 0, 4) == 'log.') {
+                $time = self::getTimeFromFilemane($name);
+                
+                if ($time > $minTime) {
+                    continue;
+                }
+            }
+            
+            @unlink($path);
+        }
+        
+        core_Os::deleteDirectory(self::$temp);
+    }
+    
+    
+    /**
+     * Извлича информация за времето от името на файла
+     */
+    public static function getTimeFromFilemane($name)
+    {
+        $m = array();
+        
+        preg_match('/(\\d{4})[\\-_ ](\\d{2})[\\-_ ](\\d{2})[\\-_ ](\\d{2})[\\-_ ](\\d{2})[\\-_ ](\\d{2})/', $name, $m);
+        
+        $res = $m[1] . '-' . $m[2] . '-' . $m[3] . ' ' . $m[4] . ':' . $m[5] . ':' . $m[6];
+        
+        return $res;
     }
     
     
     /**
      * Експортира всички таблици, като CSV файлове в работната директория
      */
-    public function exportTables($instArr, &$files, $curDir, $pastDir, $workDir)
+    public function exportTables($instArr, &$tables, $addCrc32)
     {
-        
-
         foreach ($instArr as $table => $inst) {
             core_App::setTimeLimit(120);
             
             if ($inst === null) {
                 continue;
             }
-
+            
             list($exists, $cnt, $lmt) = $this->getTableInfo($inst);
-
+            
             if (isset($inst->backupMaxRows, $inst->backupDiffFields)) {
                 $maxId = $inst->db->getNextId($table);
                 $diffFields = arr::make($inst->backupDiffFields);
                 $expr = '';
                 foreach ($diffFields as $fld) {
-                    $expr .= " + crc32(#${fld})";
+                    $expr .= " + ABS(CRC32(#${fld}))";
                 }
                 $crc = 'SUM(' . trim($expr, ' +') . ')';
                 $n = 1;
                 for ($i = 0; $i <= $maxId; $i += $inst->backupMaxRows) {
                     core_App::setTimeLimit(120);
                     $key = "{$table}-{$lmt}-{$n}";
-                    if(!isset(self::$crcArr[$key])) {
+                    if (!isset(self::$crcArr[$key])) {
                         $query = $inst->getQuery();
                         $query->XPR('crc32backup', 'int', $crc);
                         $query->where($where = ("`{$table}`.`id` BETWEEN " . ($i + 1) . ' AND ' . ($i + $inst->backupMaxRows)));
                         $query->show('crc32backup');
                         $rec = $query->fetch();
-                        self::$crcArr[$key] = $rec->crc32backup;
+                        self::$crcArr[$key] = $rec->crc32backup + $addCrc32;
                     }
- 
+                    
                     if (self::$crcArr[$key] > 0) {
                         $suffix = $n . '-' . base_convert(abs(self::$crcArr[$key]), 10, 36);
-                        $this->backupTable($inst, $table, $suffix, $workDir, $curDir, $pastDir, $where, $files);
+                        $this->backupTable($inst, $table, $suffix, $where);
+                        $tables[] = "{$table}.{$suffix}";
                     }
                     $n++;
                 }
             } else {
-                $suffix = base_convert($lmt, 10, 36);
-                $this->backupTable($inst, $table, $suffix, $workDir, $curDir, $pastDir, '', $files);
+                $suffix = base_convert($lmt + $addCrc32, 10, 36);
+                $this->backupTable($inst, $table, $suffix, '');
+                $tables[] = "{$table}.{$suffix}";
             }
         }
     }
@@ -284,17 +341,32 @@ class core_Backup extends core_Mvc
     /**
      * Прави бекъп файл на конкретна таблица
      */
-    public function backupTable($inst, $table, $suffix, $workDir, $curDir, $pastDir, $where, &$files)
+    public function backupTable($inst, $table, $suffix, $where)
     {
         if (!$where) {
             $where = '1=1';
         }
         
+        // Форсираме директориите
+        $backDir = self::getDir();
+        $workDir = self::getDir('backup_work');
+        
         $fileName = "{$table}.{$suffix}";
         
-        $path = $workDir . '/' . $fileName . '.csv';
-        $dest = $curDir . '/' . $fileName . '.csv.zip';
-        $past = $pastDir . '/' . $fileName . '.csv.zip';
+        $path = $workDir . $fileName . '.csv';
+        $dest = $backDir . $fileName . '.csv.zip';
+        
+        if (file_exists($dest) && filesize($dest)) {
+            debug::log("Таблица `{$fileName}` вече съществува като zip файл");
+            
+            return;
+        }
+        
+        if (file_exists($path) && filesize($path)) {
+            debug::log("Таблица `{$fileName}` вече съществува като csv файл");
+            
+            return;
+        }
         
         // Извличаме информация за колоните
         $cols = '';
@@ -308,35 +380,10 @@ class core_Backup extends core_Mvc
             $cols .= ($cols ? ',' : '') . '`' . $fRec->Field . '`';
             $i++;
         }
-        $files[$fileName] = $cols;
-        
-        if (file_exists($dest) && filesize($dest)) {
-            debug::log("Таблица `{$fileName}` вече съществува като zip файл");
-            
-            $save = dirname($path) . '/' . basename($dest);
-            copy($dest, $save);
-            
-            return;
-        }
-        
-        if (file_exists($path) && filesize($path)) {
-            debug::log("Таблица `{$fileName}` вече съществува като csv файл");
-            
-            return;
-        }
-        
-        if (file_exists($past) && filesize($past)) {
-            debug::log("Таблица `{$fileName}` вече съществува като zip файл");
-            
-            $save = dirname($path) . '/' . basename($past);
-            copy($past, $save);
-            
-            return;
-        }
         
         $dbRes = $inst->db->query("SELECT * FROM `{$table}` WHERE {$where}");
         $out = fopen("{$path}.tmp", 'w');
-        $first = true;
+        fwrite($out, $cols);
         while ($row = $inst->db->fetchArray($dbRes, MYSQLI_NUM)) {
             $vals = '';
             foreach ($row as $i => &$f) {
@@ -347,8 +394,7 @@ class core_Backup extends core_Mvc
                 }
             }
             $vals = implode(',', $row);
-            fwrite($out, ($first ? '' : "\n") . $vals);
-            $first = false;
+            fwrite($out, "\n" . $vals);
         }
         fclose($out);
         rename("{$path}.tmp", $path);
@@ -359,19 +405,17 @@ class core_Backup extends core_Mvc
     /**
      * Връща посочената директория за бекъп
      */
-    public static function getDir($subDir, $force = true)
+    public static function getDir($subDir = '')
     {
-        if ($subDir == 'current' || $subDir == 'past') {
-            $base = core_Setup::get('BACKUP_PATH');
+        if ($subDir == '') {
+            $dir = core_Os::normalizeDir(core_Setup::get('BACKUP_PATH'));
         } else {
-            $base = EF_UPLOADS_PATH;
+            $dir = core_Os::normalizeDir(EF_UPLOADS_PATH) . '/' . $subDir;
         }
-        
-        $dir = core_Os::normalizeDir($base) . '/' . $subDir;
         
         if (core_Os::forceDir($dir, 0744)) {
             
-            return $dir;
+            return $dir . '/';
         }
     }
     
@@ -385,7 +429,8 @@ class core_Backup extends core_Mvc
             if ($path = self::getSqlLogPath()) {
                 @file_put_contents($path, $sql . ";\n\r", FILE_APPEND);
             }
-        } catch(Exception $e) {}
+        } catch (Exception $e) {
+        }
     }
     
     
@@ -406,11 +451,11 @@ class core_Backup extends core_Mvc
                 return;
             }
             $file = basename($path);
-            $newFile = date('Y-m-d_H-i-s') . '.log.sql';
+            $newFile = 'log.' . date('Y-m-d_H-i-s') . '.sql';
             $newPath = str_replace("/{$file}", "/{$newFile}", $path);
             rename($path, $newPath);
-            $curDir = self::getDir('current');
-            $dest = $curDir . '/' . $newFile . '.zip';
+            $backDir = self::getDir();
+            $dest = $backDir . '/' . $newFile . '.zip';
             archive_Adapter::compressFile($newPath, $dest, core_Setup::get('BACKUP_PASS'), '-sdel');
         }
     }
@@ -460,7 +505,7 @@ class core_Backup extends core_Mvc
             $log = array();
             
             // Път от където да възстановяваме
-            $path = BGERP_BACKUP_RESTORE_PATH;
+            $dir = core_Os::normalizeDir(BGERP_BACKUP_RESTORE_PATH) . '/';
             
             // Парола за разархивиране
             $pass = defined('BGERP_BACKUP_RESTORE_PASS') ? BGERP_BACKUP_RESTORE_PASS : '';
@@ -479,37 +524,41 @@ class core_Backup extends core_Mvc
             }
             
             // Подготвяме структурата на базата данни
-            $path = core_Os::normalizeDir($path) . '/';
+            $descrArr = self::discover($dir, $pass, $log);
             
-            $descPath = self::unzipToTemp($path . 'description.json.zip', $pass, $log);
-            $description = json_decode(file_get_contents($descPath));
-            unlink($descPath);
+            $description = array_values($descrArr)[0];
             
-            // Подготвяме структурата на базата данни
-            $dbStructZip = $path . 'db_structure.sql.zip';
-            $dbStructSql = self::unzipToTemp($dbStructZip, $pass, $log);
-            $sql = file_get_contents($dbStructSql);
-            unlink($dbStructSql);
+            $path = self::unzipToTemp($dir . $description->dbStruct, $pass, $log);
+            $sql = file_get_contents($path);
+            unlink($path);
+            
             $log[] = 'msg: Създаване на структурата на таблиците';
             $db->multyQuery($sql);
             
             // Наливаме съдържанието от всички налични CSV файлове
             // Извличаме от CSV последователно всички таблици
-            foreach ($description->files as $file => $cols) {
-                $src = $path . $file . '.csv.zip';
+            foreach ($description->files as $file) {
+                $src = $dir . $file;
                 core_App::setTimeLimit(120);
                 list($table, ) = explode('.', $file);
                 $dest = self::unzipToTemp($src, $pass, $log);
-                $log[] = $res = self::importTable($db, $table, $cols, $dest);
+                $log[] = $res = self::importTable($db, $table, $dest);
                 unlink($dest);
-                if(substr($res, 0, 4) == 'err:') return;
+                if (substr($res, 0, 4) == 'err:') {
+                    
+                    return;
+                }
             }
             
             // Наливане на наличните SQL логове
-            $files = glob($path . '*.log.sql.zip');
+            $files = glob($dir . 'log.*.sql.zip');
             asort($files);
             
             foreach ($files as $src) {
+                $time = self::getTimeFromFilemane(basename($src));
+                if ($time <= $description->time) {
+                    continue;
+                }
                 $src = str_replace('\\', '/', $src);
                 core_App::setTimeLimit(120);
                 $dest = self::unzipToTemp($src, $pass, $log);
@@ -525,13 +574,15 @@ class core_Backup extends core_Mvc
         } catch (core_exception_Expect $e) {
             $log[] = 'err: ' . ht::mixedToHtml(array($e->getMessage(), $e->getTraceAsString(), $e->getDebug(), $e->getDump()), 4);
         }
+        
+        core_Os::deleteDirectory(self::$temp);
     }
     
     
     /**
      * Импортира таблица от CSV файл
      */
-    public static function importTable($db, $table, $cols, $dest)
+    public static function importTable($db, $table, $dest)
     {
         static $maxMysqlQueryLength;
         if (!isset($maxMysqlQueryLength)) {
@@ -543,6 +594,10 @@ class core_Backup extends core_Mvc
             $query = '';
             do {
                 $line = fgets($handle);
+                if (!$cols) {
+                    $cols = $line;
+                    continue;
+                }
                 if ($line === false || (strlen($query) + strlen($line) > $maxMysqlQueryLength)) {
                     try {
                         $query = "INSERT INTO `{$table}` ({$cols}) VALUES " . $query;
@@ -577,19 +632,24 @@ class core_Backup extends core_Mvc
      */
     public static function unzipToTemp($path, $pass, &$log)
     {
-        $temp = core_Os::normalizeDir(EF_TEMP_PATH) . '/backup/';
+        if (!self::$temp) {
+            self::$temp = core_Os::normalizeDir(EF_TEMP_PATH) . '/backup/' . base_convert(rand(1000000, 99999999), 10, 36) . '/';
+            core_Os::forceDir(self::$temp);
+        }
         $file = basename($path);
-        $tempPath = $temp . substr($file, 0, -4);
+        $tempPath = self::$temp . substr($file, 0, -4);
         
         expect(file_exists($path), $path);
         if (file_exists($tempPath)) {
             unlink($tempPath);
         }
         $log[] = "msg: Разкомпресиране на `{$file}`";
-        archive_Adapter::uncompress($path, $temp, $pass);
-        expect(file_exists($tempPath));
         
-        return $tempPath;
+        $res = @archive_Adapter::uncompress($path, self::$temp, $pass);
+        if ($res === 0 && file_exists($tempPath)) {
+            
+            return $tempPath;
+        }
     }
     
     
@@ -655,8 +715,8 @@ class core_Backup extends core_Mvc
         
         return $res;
     }
-
-
+    
+    
     /**
      * Дали са еднакви базите данни за двата модела
      */
@@ -664,10 +724,53 @@ class core_Backup extends core_Mvc
     {
         $db1 = $mvc1->db1;
         $db2 = $mvc2->db2;
-
+        
         $res = $db1->dbName == $db2->dbName && $db1->dbHost == $db2->dbHost && $db1->dbUser == $db2->dbUser;
-
+        
         return $res;
     }
-
+    
+    
+    /**
+     * Открива всички валидни дескриптори на бекъп
+     *
+     * @param string $dir В коя директория да търси
+     *
+     * @return stdObject Обект, съдържащ
+     *                   о name - Път до файла
+     *                   о time - Време на създаване
+     *                   о files - Масив с имена на файлове, които се съдържат в архива
+     */
+    public static function discover($dir, $pass, &$log)
+    {
+        $res = array();
+        $mask = core_Os::normalizeDir($dir) . '/description.*.json.zip';
+        $files = glob($mask);
+        foreach ($files as $path) {
+            $descPath = self::unzipToTemp($path, $pass, $log);
+            if ($descPath && filesize($descPath)) {
+                $description = json_decode(file_get_contents($descPath));
+                unlink($descPath);
+                if ($description) {
+                    $res[$path] = $description;
+                }
+            }
+        }
+        
+        uasort($res, function ($a, $b) {
+            
+            return $a->time < $b->time;
+        });
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Pomo
+     */
+    public static function sortDescr($a, $b)
+    {
+        return $a['time'] > $b['time'];
+    }
 }
