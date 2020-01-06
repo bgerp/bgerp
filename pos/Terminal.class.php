@@ -840,7 +840,7 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultPayment($rec, $string, $selectedRec)
     {
-        $tpl = new core_ET("<div class='paymentBtnsHolder'>[#PAYMENTS#]</div><div class='closeBtnsHolder'>[#CLOSE_BTNS#]</div>");
+        $tpl = new core_ET(tr("|*<div class='paymentBtnsHolder'>[#PAYMENTS#]</div><div class='divider'>|Завършване|*</div>[#CLOSE_BTNS#]"));
         
         $payUrl = (pos_Receipts::haveRightFor('pay', $rec)) ? toUrl(array('pos_ReceiptDetails', 'makePayment', 'receiptId' => $rec->id), 'local') : null;
         $disClass = ($payUrl) ? 'navigable' : 'disabledBtn';
