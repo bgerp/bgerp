@@ -325,7 +325,6 @@ function posActions() {
 	// Време за изчакване
 	var timeout;
 	
-
 	// действие на бутоните за действията
 	$(document.body).on('click', ".operationBtn", function(e){
 		clearTimeout(timeout);
@@ -335,7 +334,9 @@ function posActions() {
 		var selectedRecId = selectedElement.attr("data-id");
 		
 		var url = $(this).attr("data-url");
-		if(!url){
+		var disabled = $(this).hasClass("disabledBtn");
+		
+		if(!url || disabled){
 			return;
 		}
 		
@@ -800,11 +801,13 @@ function disableOrEnableBatch()
 	if(batchBtn.length){
 		if(element.hasClass('noBatch')){
 			batchBtn.addClass('disabledBtn');
+			batchBtn.attr('disabled', 'disabled');
 		} else {
 			var addBtn = $('.operationBtn[data-value="add"]');
 			console.log(element);
 			if(!addBtn.hasClass('disabledBtn') && element.length){
 				batchBtn.removeClass('disabledBtn');
+				batchBtn.removeAttr("disabled");
 			}
 		}
 	}
@@ -835,10 +838,17 @@ function render_afterload()
 		var selectedElement = $(".highlighted");
 		var selectedRecId = eanInput.attr("data-id");
 
-		console.log(searchVal, submitUrl);
+		var sendAjax = true;
+		if(!searchVal && operation == 'add'){
+			sendAjax = false;
+		}
+		
 		semaphor = 1;
 		
-		getEfae().process(resObj, {string:searchVal,recId:selectedRecId});
+		if(sendAjax){
+			getEfae().process(resObj, {string:searchVal,recId:selectedRecId});
+		}
+		
 		return;
 	}
 	
