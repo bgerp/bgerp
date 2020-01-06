@@ -231,16 +231,10 @@
   width: 23% !important;
   margin: 0; }
 
-  .navigable:focus,
-  .navigable.selected {
-    box-shadow: 1px 1px 5px #0b5b98 !important;
-    border: 2px solid #0b5b98;
-    outline: none; }
-
 .posBtns {
   cursor: pointer;
   box-sizing: border-box;
-  padding: 0.4em 1em 0.3em;
+  padding: 10px 20px;
   width: 230px;
   height: 64px !important;
   margin: 10px;
@@ -269,6 +263,11 @@
     position: absolute !important;
     top: 1px !important;
     right: 3px !important; }
+  .posBtns:focus,
+  .posBtns.selected {
+    box-shadow: 0px 0px 3px #0000fa !important;
+    border: 3px solid #080f56;
+    padding: 9px !important; }
 
 .newNoteBtn {
   font-size: 1.8em; }
@@ -378,8 +377,15 @@
   width: 32.3%;
   margin-right: 1%;
   margin-bottom: 1%;
-  border: 2px solid #cccccc;
-  height: 118px; }
+  border: 2px solid #999999;
+  border-radius: 5px;
+  height: 118px;
+  background: #f1f1f1; }
+  .element:focus,
+  .element.selected {
+    box-shadow: 0px 0px 3px #0000fa !important;
+    border: 3px solid #080f56;
+    padding: 9px !important; }
   .element .pos-add-res-btn {
     color: #333333;
     height: 73px; }
@@ -461,7 +467,7 @@
   .pos-product:focus,
   .pos-product.selected {
     box-shadow: 0px 0px 3px #0000fa !important;
-    outline: 3px solid #0b5b98;
+    outline: 3px solid #080f56;
     border: none; }
 
 .narrow .pos-product {

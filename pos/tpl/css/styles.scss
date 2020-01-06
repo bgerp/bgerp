@@ -268,18 +268,10 @@
 	margin: 0;
 }
 
-.navigable {
-	&:focus, &.selected {
-		box-shadow: 1px 1px 5px #0b5b98 !important;
-		border: 2px solid #0b5b98;
-		outline: none;
-	}
-}
-
 .posBtns {
 	cursor: pointer;
 	box-sizing: border-box;
-	padding: 0.4em 1em 0.3em;
+	padding: 10px 20px;
 	width: 230px;
 	height: 64px !important;
 	margin: 10px ;
@@ -309,6 +301,11 @@
 		position: absolute !important;
 		top: 1px !important;
 		right: 3px !important;
+	}
+	&:focus, &.selected {
+		box-shadow: 0px 0px 3px rgba(0,0,250,1) !important;
+		border: 3px solid  #080f56;
+		padding: 9px !important;
 	}
 }
 
@@ -444,8 +441,15 @@
 	width: 32.3%;
 	margin-right: 1%;
 	margin-bottom: 1%;
-	border: 2px solid #ccc;
+	border: 2px solid #999;
+	border-radius: 5px;
 	height: 118px;
+	background: #f1f1f1;
+	&:focus, &.selected {
+		box-shadow: 0px 0px 3px rgba(0,0,250,1) !important;
+		border: 3px solid  #080f56;
+		padding: 9px !important;
+	}
 	.pos-add-res-btn{
 		color:#333;
 		height: 73px;
@@ -532,7 +536,7 @@
 	box-shadow:0px 1px 3px rgba(0,0,0,0.8);
 	&:focus, &.selected {
 		box-shadow: 0px 0px 3px rgba(0,0,250,1) !important;
-		outline: 3px solid #0b5b98;
+		outline: 3px solid #080f56;
 		border: none;
 	}
 }
