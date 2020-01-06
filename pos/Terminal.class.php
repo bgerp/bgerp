@@ -952,13 +952,13 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
-        $tpl = new core_ET("");//[#PACK_BUTTONS#]<div class='storeButtonsHolder'></div>[#STORE_BUTTONS#]
+        $tpl = new core_ET(tr("|*[#PACK_BUTTONS#]<!--ET_BEGIN STORE_BUTTONS--><div class='divider'>|Складове|*</div>[#STORE_BUTTONS#]<!--ET_END STORE_BUTTONS-->"));
         foreach ($buttons as $btn){
-            $tpl->append($btn);
+            $tpl->append($btn, 'PACK_BUTTONS');
         }
         
         foreach ($storeBtns as $storeBtn){
-            $tpl->append($storeBtn);
+            $tpl->append($storeBtn, 'STORE_BUTTONS');
         }
         
         $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
@@ -1181,9 +1181,6 @@ class pos_Terminal extends peripheral_Terminal
         $tpl = new core_ET(" ");
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PRODUCTS_RESULT');
         foreach ($data->rows as $row){
-            if(!empty($data->rec->paid)){
-                $row->CLASS = 'disabledBtn';
-            }
             $row->elementId = "product{$row->id}";
             $bTpl = clone $block;
             $bTpl->placeObject($row);

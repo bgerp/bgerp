@@ -15,10 +15,7 @@
 </div>
 <!--ET_END PRODUCTS_RESULT-->
 
-
 <!--ET_BEGIN RECEIPT_RESULT-->
-<div class='receiptDateBlock'>
-	<h4 class='receiptDateBlockLegend'>[#groupName#]</h4>
-	[#element#]
-</div>
+<div class='divider'>[#groupName#]</div>
+[#element#]
 <!--ET_END RECEIPT_RESULT-->
