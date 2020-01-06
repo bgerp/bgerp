@@ -113,7 +113,8 @@
 .receiptRow {
   display: block;
   padding: 10px 15px;
-  cursor: pointer; }
+  cursor: pointer;
+  border-left: 6px solid rgba(0, 0, 0, 0); }
   .receiptRow .receiptProduct {
     font-weight: bold;
     font-size: 1.1em; }
@@ -124,7 +125,8 @@
   padding-left: 15px; }
 
 .highlighted {
-  background: #ffffcd !important; }
+  background: #fefead !important;
+  border-left: 6px solid #16006c; }
 
 .numPad,
 .numBack {

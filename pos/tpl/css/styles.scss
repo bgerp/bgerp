@@ -135,6 +135,7 @@
 	display: block;
 	padding: 10px 15px;
 	cursor: pointer;
+	border-left: 6px solid transparent;
 	.receiptProduct {
 		font-weight: bold;
 		font-size: 1.1em;
@@ -149,7 +150,8 @@
 }
 
 .highlighted {
-	background:#ffffcd !important;
+	background: #fefead !important;
+	border-left: 6px solid #16006c;
 }
 
 .numPad, .numBack{
