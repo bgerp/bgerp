@@ -289,21 +289,12 @@ function posActions() {
 		if(event.key == "PageDown"){
 			pageDown();
 		}
-		if(event.key == "Alt") {
-			showHints();
-		}
 		if(event.key == "PageUp"){
 			pageUp();
 		}
 
 		if(event.key == "Enter"){
 			enter();
-		}
-	});
-
-	document.addEventListener("keyup", function(event) {
-		if(event.key == "Alt") {
-			hideHints();
 		}
 	});
 
@@ -549,12 +540,18 @@ function posActions() {
 	$("body").setShortcutKey( ALT , R ,function() {
 		openRevert();
 	});
-
-	$("body").setShortcutKey( ALT , F ,function() {
-		$('.large-field.select-input-pos').focus();
+	var timePressed;
+	$("body").setShortcutKey(null,  ALT,function() {
+		showHints();
+		setTimeout(function () {
+			hideHints();
+		}, 5000);
 	});
 
-
+	// При натискане на бутона за клавиатура
+	$(document.body).on('click',  function(e){
+		hideHints();
+	})
 
 }
 function showHints(){
