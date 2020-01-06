@@ -636,12 +636,6 @@ class pos_Terminal extends peripheral_Terminal
         $texts = arr::extractValuesFromArray($query->fetchAll(), 'text');
         
         // Добавяне на търсения стринг да е първи в списъка
-        if(!empty($string)){
-            $string = str::removeWhiteSpace($string, ' ');
-            $texts = array("{$string}" => $string) + $texts;
-        }
-        
-        // Добавяне на търсения стринг да е първи в списъка
         if(!empty($selectedRec->text)){
             $string = str::removeWhiteSpace($selectedRec->text, ' ');
             $texts = array("{$string}" => $string) + $texts;

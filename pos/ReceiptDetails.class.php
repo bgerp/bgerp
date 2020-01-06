@@ -275,7 +275,7 @@ class pos_ReceiptDetails extends core_Detail
                     break;
                case 'setdiscount':
                    $discount = core_Type::getByName('percent')->fromVerbal($firstValue);
-                   expect(isset($discount), 'Не е въведен процент отстъпка');
+                   expect($discount, 'Не е въведена валидна отстъпка');
                    expect($discount >= 0 && $discount <= 1, 'Отстъпката трябва да е между 0% и 100%');
                    $rec->discountPercent = $discount;
                    $sucessMsg = 'Отстъпката на реда е променена|*!';

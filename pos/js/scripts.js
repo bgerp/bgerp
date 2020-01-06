@@ -348,10 +348,14 @@ function posActions() {
 			return;
 		}
 		
+		var string = $("input[name=ean]").val();
+		
 		resObj = new Object();
 		resObj['url'] = url;
 		
-		getEfae().process(resObj, {operation:operation,recId:selectedRecId});
+		sessionStorage.setItem('operationClicked', true);
+		
+		getEfae().process(resObj, {operation:operation,recId:selectedRecId,search:string});
 	});
 	
 	
@@ -810,29 +814,39 @@ function disableOrEnableBatch()
 }
 
 // След презареждане
+
+var semaphor;
+
 function render_afterload()
-{
+{	
 	var element = $(".highlighted");
 	var operation = getSelectedOperation();
 	
 	disableOrEnableBatch();
 	
-	if(operation == 'text'){
-		var textElement = element.find('.subText');
+	var eanInput = $("input[name=ean]");
+	
+	var searchVal = eanInput.val();
+	var submitUrl = eanInput.attr("data-url");
+	var clicked = sessionStorage.getItem('operationClicked');
+	
+	if(submitUrl && searchVal.length && !semaphor && clicked){
 		
-		if(textElement.length){
-			var text = textElement.text();
-			if(text.length){
-				$("input[name=ean]").val(text);
-			}
-		}
-	} else if(operation == 'price'){
-		var priceElement = element.find('.priceText');
-		var price = priceElement.text();
-		if(price.length){
-			$("input[name=ean]").val(price);
-		}
+		resObj = new Object();
+		resObj['url'] = submitUrl;
+		
+		var selectedElement = $(".highlighted");
+		var selectedRecId = eanInput.attr("data-id");
+
+		console.log(searchVal, submitUrl);
+		semaphor = 1;
+		
+		getEfae().process(resObj, {string:searchVal,recId:selectedRecId});
+		return;
 	}
+	
+	semaphor = 0;
+	sessionStorage.removeItem("operationClicked");
 }
 
 function enter() {
