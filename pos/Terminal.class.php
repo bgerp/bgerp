@@ -917,6 +917,7 @@ class pos_Terminal extends peripheral_Terminal
             Mode::push('text', 'plain');
             $quantity = core_Type::getByName('double(smartRound)')->toVerbal($productRec->quantity);
             Mode::pop('text', 'plain');
+            if(!$productRec->value)  continue; // Да не гърми при лоши данни
             
             $btnCaption =  "{$quantity} " . tr(cat_UoM::getSmartName($productRec->value, $productRec->quantity));
             $buttons["{$productRec->packagingId}|{$productRec->quantity}"] = ht::createElement("div", array('id' => "packaging{$packagingId}{$productRec->quantity}{$selectedRec->productId}", 'class' => "{$baseClass} packWithQuantity", 'data-quantity' => $productRec->quantity, 'data-pack' => $packagingId, 'data-url' => $dataUrl), $btnCaption, true);
