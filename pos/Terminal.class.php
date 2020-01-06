@@ -539,11 +539,8 @@ class pos_Terminal extends peripheral_Terminal
         
         switch($currOperation){
             case 'add':
-                if(isset($rec->revertId) && $rec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
-                    $res = $this->getResultProducts($rec, $string, $rec->revertId);
-                } else {
-                    $res = (empty($string)) ? $this->renderProductBtns($rec) : $this->getResultProducts($rec, $string);
-                }
+                $revertId = (isset($rec->revertId) && $rec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIP) ? $rec->revertId : null;
+                $res = $this->getResultProducts($rec, $string, $revertId);
                 break;
             case 'receipts':
                 $res = $this->renderResultReceipts($rec, $string, $selectedRec);
@@ -1018,25 +1015,6 @@ class pos_Terminal extends peripheral_Terminal
     
     
     /**
-     * Рендира бързите бутони
-     *
-     * @return core_ET $block - шаблон
-     */
-    private function renderProductBtns($rec)
-    {
-        $products = pos_Favourites::prepareProducts($rec);
-        if (!$products->arr) {
-            
-            return false;
-        }
-        
-        $tpl = pos_Favourites::renderPosProducts($products);
-        
-        return $tpl;
-    }
-    
-    
-    /**
      * Подготовка и рендиране на бележка
      *
      * @param int $id - ид на бележка
@@ -1180,12 +1158,34 @@ class pos_Terminal extends peripheral_Terminal
         
         $tpl = new core_ET(" ");
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PRODUCTS_RESULT');
-        foreach ($data->rows as $row){
-            $row->elementId = "product{$row->id}";
-            $bTpl = clone $block;
-            $bTpl->placeObject($row);
-            $bTpl->removeBlocksAndPlaces();
-            $tpl->append($bTpl);
+        
+        // Ако има категории
+        if(countR($data->categoriesArr)){
+            foreach ($data->categoriesArr as $categoryRec){
+                
+                // Под всяка категория се рендират артикулите към нея
+                $productsInCategory = array_filter($data->rows, function($a) use ($categoryRec){ return in_array($categoryRec->id, $a->favouriteCategories);});
+                if(countR($productsInCategory)){
+                    $cTpl = new core_ET("<div class='divider'>{$categoryRec->name}</div>");
+                    foreach ($productsInCategory as $row){
+                        $row->elementId = "product{$row->id}";
+                        $bTpl = clone $block;
+                        $bTpl->placeObject($row);
+                        $bTpl->removeBlocksAndPlaces();
+                        $cTpl->append($bTpl);
+                    }
+                    $cTpl->removeBlocksAndPlaces();
+                    $tpl->append($cTpl);
+                }
+            }
+        } else {
+            foreach ($data->rows as $row){
+                $row->elementId = "product{$row->id}";
+                $bTpl = clone $block;
+                $bTpl->placeObject($row);
+                $bTpl->removeBlocksAndPlaces();
+                $tpl->append($bTpl);
+            }
         }
         
         if(!count($data->rows)){
@@ -1205,6 +1205,7 @@ class pos_Terminal extends peripheral_Terminal
         $data->rows = array();
         $conf = core_Packs::getConfig('pos');
         $data->showParams = $conf->POS_RESULT_PRODUCT_PARAMS;
+        $data->categoriesArr = array();
         
         // Ако има сторнираща бележка
         if(isset($data->revertReceiptId) && $data->revertReceiptId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
@@ -1227,11 +1228,30 @@ class pos_Terminal extends peripheral_Terminal
                 $sellable[$pdRec->productId] = $pdRec;
             }
         } else {
+            
+            // Ако не се търси подробно артикул, се показват тези от любими
+            $favouriteProductsArr = array();
+            if(empty($data->searchString)){
+                $data->categoriesArr = pos_FavouritesCategories::prepareAll($data->rec->pointId);
+                $categoriesIds = arr::extractValuesFromArray($data->categoriesArr, 'id');
+                $favouriteQuery = pos_Favourites::getQuery();
+                $favouriteQuery->likeKeylist('catId', $categoriesIds);
+                $favouriteQuery->show('productId,catId');
+                
+                while($favRec = $favouriteQuery->fetch()){
+                    $favouriteProductsArr[$favRec->productId] = keylist::toArray($favRec->catId);
+                }
+            }
+            
             $folderId = cls::get($data->rec->contragentClass)->fetchField($data->rec->contragentObjectId, 'folderId');
             $pQuery = cat_Products::getQuery();
             $pQuery->where("#canSell = 'yes' AND #state = 'active'");
             $pQuery->where("#isPublic = 'yes' OR (#isPublic = 'no' AND #folderId = '{$folderId}')");
             plg_Search::applySearch($data->searchString, $pQuery);
+           
+            if(countR($favouriteProductsArr)){
+                $pQuery->in("id", array_keys($favouriteProductsArr));
+            }
             
             $pQuery->show('id,name,isPublic,nameEn,code');
             $pQuery->limit($this->maxSearchProducts);
@@ -1262,7 +1282,6 @@ class pos_Terminal extends peripheral_Terminal
                 if ($pRec->canStore == 'yes') {
                     $inStock = $obj->stock;
                 }
-                
             } else {
                 if(!isset($obj->packId)){
                     $packs = cat_Products::getPacks($id);
@@ -1288,7 +1307,6 @@ class pos_Terminal extends peripheral_Terminal
             }
             
             $obj = (object) array('productId' => $id, 'measureId' => $pRec->measureId, 'price' => $price, 'packagingId' => $packId, 'vat' => $vat);
-            
             $photo = cat_Products::getParams($id, 'preview');
             if (!empty($photo)) {
                 $obj->photo = $photo;
@@ -1303,7 +1321,10 @@ class pos_Terminal extends peripheral_Terminal
             $data->rows[$id]->CLASS = ' pos-add-res-btn navigable';
             $data->rows[$id]->DATA_URL = (pos_ReceiptDetails::haveRightFor('add', $obj)) ? toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $data->rec->id), 'local') : null;
             $data->rows[$id]->id = $pRec->id;
-
+            if(array_key_exists($id, $favouriteProductsArr)){
+                $data->rows[$id]->favouriteCategories = $favouriteProductsArr[$id];
+            }
+            
             $count++;
         }
     }

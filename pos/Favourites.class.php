@@ -9,7 +9,7 @@
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.11
@@ -108,79 +108,6 @@ class pos_Favourites extends core_Manager
     
     
     /**
-     * Метод подготвящ продуктите и формата за филтриране
-     *
-     * @return stdClass - обект съдържащ пос продуктите за текущата
-     *                  точка и формата за филтриране
-     */
-    public static function prepareProducts($rec)
-    {
-        $self = cls::get(get_called_class());
-        $productsArr = $self->preparePosProducts();
-        
-        $categoriesArr = pos_FavouritesCategories::prepareAll($rec->pointId);
-        
-        return (object) array('arr' => $productsArr, 'categories' => $categoriesArr, 'rec' => $rec);
-    }
-    
-    
-    /**
-     * Подготвя продуктите за показване в пос терминала
-     *
-     * @return array $arr - масив от всички позволени продукти
-     */
-    public function preparePosProducts()
-    {
-        $varchar = cls::get('type_Varchar');
-        $double = cls::get('type_Double');
-        $double->params['decimals'] = 2;
-        
-        // Коя е текущата точка на продажба и нейния дефолт контрагент
-        $posRec = pos_Points::fetch(pos_Points::getCurrent('id'));
-        $cache = NULL;core_Cache::get('pos_Favourites', "products{$posRec->id}");
-        if (!$cache) {
-            $query = static::getQuery();
-            $query->where('#pointId IS NULL');
-            $query->orWhere("#pointId LIKE '%{$posRec->id}%'");
-            $query->where("#state = 'active'");
-            
-            while ($rec = $query->fetch()) {
-                $obj = $this->prepareProductObject($rec);
-                $obj->name = tr($varchar->toVerbal($obj->name));
-                $obj->productId = $rec->productId;
-                $obj->packagingId = $rec->packagingId;
-                $cache[$rec->id] = $obj;
-            }
-            //core_Cache::set('pos_Favourites', "products{$posRec->id}", $cache, 10, array('cat_Products'));
-        }
-        
-        if ($cache) {
-            $date = dt::verbal2mysql();
-            foreach ($cache as &$obj) {
-                
-                // За всеки обект от кеша, изчисляваме актуалната му цена
-                $price = price_ListRules::getPrice($posRec->policyId, $obj->productId, $obj->packagingId, $date);
-                $pack = cat_products_Packagings::getPack($obj->productId, $obj->packagingId);
-                if ($pack) {
-                    $price *= $pack->quantity;
-                    $shortUom = cat_UoM::getShortName($obj->packagingId);
-                    $obj->name .= " ({$shortUom})";
-                }
-                
-                if (!is_null($price)) {
-                    $vat = cat_Products::getVat($obj->productId, $date);
-                    $obj->price = $double->toVerbal($price * (1 + $vat));
-                } else {
-                    $obj->price = '<span>N/A</span>';
-                }
-            }
-        }
-        
-        return $cache;
-    }
-    
-    
-    /**
      * След запис в модела
      */
     protected static function on_AfterSave($mvc, &$id, $rec)
@@ -188,61 +115,6 @@ class pos_Favourites extends core_Manager
         // Инвалидираме кеша
         $cPoint = pos_Points::getCurrent('id', null, false);
         core_Cache::remove('pos_Favourites', "products{$cPoint}");
-    }
-    
-    
-    /**
-     * Подготвяме единичен продукт от модела
-     *
-     * @param stdClass $rec - запис от модела
-     *
-     * @return stdClass $obj - обект с информацията за продукта
-     */
-    public function prepareProductObject($rec)
-    {
-        // Информацията за продукта с неговата опаковка
-        $info = cat_Products::getProductInfo($rec->productId);
-        $productRec = $info->productRec;
-        
-        $arr = array();
-        $arr['name'] = $productRec->name;
-        $arr['title'] = $rec->title;
-        $arr['catId'] = $rec->catId;
-        $obj = new stdClass();
-        $obj->quantity = (isset($info->packagings[$rec->packagingId])) ? $info->packagings[$rec->packagingId]->quantity : 1;
-        
-        if ($rec->image) {
-            $arr['image'] = $rec->image;
-        } else {
-            $arr['image'] = cat_Products::getParams($rec->productId, 'preview');
-        }
-        
-        return (object) $arr;
-    }
-    
-    
-    /**
-     * Рендираме Продуктите и техните категории в подходящ вид
-     *
-     * @param stdClass $data - обект съдържащ масивите с продуктите,
-     *                       категориите и темата по подразбиране
-     *
-     * @return core_ET $tpl - шаблона с продуктите
-     */
-    public static function renderPosProducts($data)
-    {
-        $file  = 'pos/tpl/terminal/Favourites.shtml';
-        $tpl = getTplFromFile($file);
-        
-        $self = cls::get(get_called_class());
-        if ($data->arr) {
-            $self->renderProducts($data, $tpl);
-        }
-        if ($data->categories) {
-            $self->renderCategories($data->categories, $tpl);
-        }
-        
-        return $tpl;
     }
     
     
@@ -269,46 +141,6 @@ class pos_Favourites extends core_Manager
                 $rowTpl->removeBlocks();
                 $rowTpl->append2master();
             }
-        }
-    }
-    
-    
-    /**
-     * Рендира продуктите във вид подходящ за пос терминала
-     *
-     * @param array $products - масив от продукти с информацията за тях
-     *
-     * @return core_ET $tpl - шаблон с продуктите
-     */
-    public function renderProducts($data, &$tpl)
-    {
-        $products = $data->arr;
-        $blockTpl = $tpl->getBlock('ITEM');
-      
-        $cnt = 0;
-        foreach ($products as $row) {
-            $row->url = toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $data->rec->id), 'local');
-            $row->name = ($row->title) ? $row->title : $row->name;
-            $row->elementId = "product{$row->productId}";
-            if ($row->image) {
-                $img = new thumb_Img(array($row->image, 80, 80, 'fileman', 'isAbsolute' => false, 'mode' => 'large-no-change'));
-                $imageURL = $img->getUrl('forced');
-                $row->image = ht::createElement('img', array('src' => $imageURL, 'width' => '120px', 'height' => '120px'));
-            }
-            
-            if(!empty($data->rec->paid)){
-                $row->CLASS = 'disabledBtn';
-            }
-            
-            if($cnt == 0){
-                $row->CLASS = 'selected';
-            }
-            
-            $rowTpl = clone($blockTpl);
-            $rowTpl->placeObject($row);
-            $rowTpl->removeBlocks();
-            $rowTpl->append2master();
-            $cnt++;
         }
     }
     
