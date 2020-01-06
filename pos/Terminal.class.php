@@ -416,7 +416,7 @@ class pos_Terminal extends peripheral_Terminal
         
         // Бутон за печат на бележката
         $img = ht::createImg(array('path' => self::$operationImgs["print"]));
-        $buttons["print"] = (object)array('body' => $img, 'attr' => array('title' => 'Печат на бележката', 'class' => 'operationBtn printBtn'), 'linkUrl' => array('pos_Terminal', 'Open', 'receiptId' => $rec->id, 'Printing' => true));
+        $buttons["print"] = (object)array('body' => $img, 'attr' => array('title' => 'Печат на бележката', 'class' => 'operationBtn printBtn'), 'linkUrl' => array('pos_Terminal', 'Open', 'receiptId' => $rec->id, 'Printing' => true), 'newWindow' => true);
         
         // Бутон за увеличение на избрания артикул
         $img = ht::createImg(array('path' => self::$operationImgs["keyboard"]));
@@ -464,7 +464,12 @@ class pos_Terminal extends peripheral_Terminal
             $btn = ht::createElement('div', $holderAttr, $btnObj->body, true);
             if(!empty($btnObj->linkUrl)){
                 $warning = !empty($btnObj->linkWarning) ? $btnObj->linkWarning : false;
-                $btn = ht::createLink($btn, $btnObj->linkUrl, $warning);
+                $attr = array();
+                if($btnObj->newWindow === true){
+                    $attr['target'] = '_blank';
+                }
+                
+                $btn = ht::createLink($btn, $btnObj->linkUrl, $warning, $attr);
             }
             
             $block->append($btn, 'BTNS');
