@@ -830,7 +830,7 @@ function render_afterload()
 	var submitUrl = eanInput.attr("data-url");
 	var clicked = sessionStorage.getItem('operationClicked');
 	
-	if(submitUrl && searchVal.length && !semaphor && clicked){
+	if(submitUrl && !semaphor && clicked){
 		
 		resObj = new Object();
 		resObj['url'] = submitUrl;
