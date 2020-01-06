@@ -116,16 +116,16 @@ var QUOTE = 222; 		// SINGLE QUOTE
 		try {
 
 			$(this).keydown(function(e){
-
+				$('.large-field.select-input-pos').focus();
 				 // Modifier down (SHIFT, CONTROL, ALT)
 				if(e.keyCode == 16) {
 					ShiftMod = true;
 				}else if(e.keyCode == 17) {
 					CtrlMod = true;
 				}else if(e.keyCode == 18) {
-					e.preventDefault();
 					AltMod = true;
 					hideHints();
+					e.preventDefault();
 				}
 
 				 // Check key
