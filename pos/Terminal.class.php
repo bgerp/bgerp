@@ -915,24 +915,37 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $stores = pos_Points::getStores($rec->pointId);
+        $storeBtns = array();
+        
         if(countR($stores) > 1 && empty($rec->revertId)){
+            $storeArr = array();
             foreach ($stores as $storeId){
+                $quantity = pos_Stocks::getQuantityByStore($selectedRec->productId, $storeId);
+                $storeArr[$storeId] = $quantity;
+            }
+            
+            arsort($storeArr);
+            foreach ($storeArr as $storeId => $quantity){
                 $btnClass = ($storeId == $selectedRec->storeId) ? 'currentStore' : 'navigable';
                 $dataUrl = ($storeId == $selectedRec->storeId) ? null : $dataChangeStoreUrl;
                 
-                $quantity = pos_Stocks::getQuantityByStore($selectedRec->productId, $storeId);
                 $quantityInStockVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
                 $quantityInStockVerbal = ht::styleNumber($quantityInStockVerbal, $quantity);
                 $storeName = store_Stores::getTitleById($storeId);
                 $storeCaption = "<span><div class='storeNameInBtn'>{$storeName}</div> <div class='storeQuantityInStock'>({$quantityInStockVerbal} " . cat_UoM::getShortName($measureId). ")</div></span>";
-                $buttons[] = ht::createElement("div", array('id' => "changeStore{$storeId}", 'class' => "{$btnClass} posBtns chooseStoreBtn", 'data-url' => $dataUrl, 'data-storeid' => $storeId), $storeCaption, true);
+                $storeBtns[] = ht::createElement("div", array('id' => "changeStore{$storeId}", 'class' => "{$btnClass} posBtns chooseStoreBtn", 'data-url' => $dataUrl, 'data-storeid' => $storeId), $storeCaption, true);
             }
         }
         
-        $tpl = new core_ET("");
+        $tpl = new core_ET("");//[#PACK_BUTTONS#]<div class='storeButtonsHolder'></div>[#STORE_BUTTONS#]
         foreach ($buttons as $btn){
             $tpl->append($btn);
         }
+        
+        foreach ($storeBtns as $storeBtn){
+            $tpl->append($storeBtn);
+        }
+        
         $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
         
         return $tpl;
