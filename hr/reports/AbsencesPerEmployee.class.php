@@ -158,21 +158,32 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
             
             $tripsQuery->where("#state != 'rejected'");
             
+            
+            
+            
+            
             if ($rec->employee) {
                 $employees = type_Keylist::toArray($rec->employee);
                 
-                foreach ($employees as $v) {
-                    $employees[$v] = crm_Profiles::getProfile($v)->id;
+                if (core_Users::haveRole('ceo') && in_array(-1, $employees)){
+                    
+                    $sickdaysQuery->where('#personId IS NOT NULL');
+                    $leavesQuery->where('#personId IS NOT NULL');
+                    $tripsQuery->where('#personId IS NOT NULL');
+                    
+                }else{
+                    foreach ($employees as $v) {
+                        $employees[$v] = crm_Profiles::getProfile($v)->id;
+                    }
+                    $sickdaysQuery->where('#personId IS NOT NULL');
+                    $sickdaysQuery->in('personId', $employees);
+                    
+                    $leavesQuery->where('#personId IS NOT NULL');
+                    $leavesQuery->in('personId', $employees);
+                    
+                    $tripsQuery->where('#personId IS NOT NULL');
+                    $tripsQuery->in('personId', $employees);
                 }
-                
-                $sickdaysQuery->where('#personId IS NOT NULL');
-                $sickdaysQuery->in('personId', $employees);
-                
-                $leavesQuery->where('#personId IS NOT NULL');
-                $leavesQuery->in('personId', $employees);
-                
-                $tripsQuery->where('#personId IS NOT NULL');
-                $tripsQuery->in('personId', $employees);
             }
             
             // Болнични
