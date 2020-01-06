@@ -8,7 +8,7 @@
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg> 
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1340,8 +1340,8 @@ class pos_Terminal extends peripheral_Terminal
         
         $row->price = currency_Currencies::decorate($Double->toVerbal($obj->price));
         $row->stock = $Double->toVerbal($obj->stock);
-        $row->packagingId = ($obj->packagingId) ? cat_UoM::getTitleById($obj->packagingId) : cat_UoM::getTitleById($obj->measureId);
-        $row->packagingId = str::getPlural($obj->stock, $row->packagingId, true);
+        $packagingId = ($obj->packagingId) ? $obj->packagingId : $obj->measureId;
+        $row->packagingId = cat_UoM::getSmartName($packagingId, $obj->stock);
         $obj->receiptId = $data->rec->id;
         
         $row->productId = cat_Products::getTitleById($obj->productId);

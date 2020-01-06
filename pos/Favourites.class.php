@@ -41,12 +41,6 @@ class pos_Favourites extends core_Manager
     
     
     /**
-     * Кой може да го прочете?
-     */
-    public $canRead = 'ceo, pos';
-    
-    
-    /**
      * Кой може да променя?
      */
     public $canAdd = 'ceo, pos';

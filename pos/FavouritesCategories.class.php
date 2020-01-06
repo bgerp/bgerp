@@ -9,7 +9,7 @@
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.11
@@ -25,20 +25,13 @@ class pos_FavouritesCategories extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, plg_Printing,
-    				 pos_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_Printing,pos_Wrapper';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id,name, points, createdOn, createdBy';
-    
-    
-    /**
-     * Кой може да го прочете?
-     */
-    public $canRead = 'ceo, pos';
     
     
     /**
