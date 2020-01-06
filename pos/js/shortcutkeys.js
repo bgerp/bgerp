@@ -123,9 +123,9 @@ var QUOTE = 222; 		// SINGLE QUOTE
 				}else if(e.keyCode == 17) {
 					CtrlMod = true;
 				}else if(e.keyCode == 18) {
+					e.preventDefault();
 					AltMod = true;
 					hideHints();
-					e.preventDefault();
 				}
 
 				 // Check key
