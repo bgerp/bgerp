@@ -185,7 +185,7 @@ class cond_Payments extends core_Manager
      */
     public static function toBaseCurrency($id, $amount, $date = null, $toCurrencyCode = null)
     {
-        $fromCurrencyCode = self::fetchField($id, currencyCode);
+        $fromCurrencyCode = self::fetchField($id, 'currencyCode');
         $fromCurrencyCode = !empty($fromCurrencyCode) ? $fromCurrencyCode : acc_Periods::getBaseCurrencyCode($date);
         
         return currency_CurrencyRates::convertAmount($amount, $date, $fromCurrencyCode, $toCurrencyCode);
