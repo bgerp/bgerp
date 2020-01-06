@@ -38,7 +38,8 @@
 
 .receiptHeader {
   padding: 10px 15px;
-  background: #eeeeee; }
+  background: #eeeeee;
+  font-size: 1.2em; }
 
 .headerContent {
   padding: 12px;
@@ -49,10 +50,10 @@
   width: 100%; }
   .headerContent span {
     font-size: 1.2em;
-    display: inline-block;
     margin-left: 10px;
     margin-right: 40px;
-    color: white; }
+    color: white;
+    display: inline-block; }
     .headerContent span a {
       color: white !important; }
 
@@ -79,6 +80,9 @@
 
 .logout {
   float: right; }
+
+.onlyPrint {
+  display: none; }
 
 .terminal-revert-id a {
   color: #cc0000; }
@@ -608,6 +612,9 @@ only screen and (max-width: 360px) {
       height: 73px !important; } }
 
 @media print {
+  .onlyPrint {
+    display: block; }
+
   .red {
     color: black !important; }
 

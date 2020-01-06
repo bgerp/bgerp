@@ -91,7 +91,7 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Икони за операциите
      */
-    protected static $operationImgs = array('enlarge' => 'pos/img/search.png', 'print' => 'pos/img/printer.png', 'keyboard' => 'pos/img/keyboard.png', 'operation-add' => 'pos/img/а.png', 'operation-text' =>  'pos/img/comment.png', 'operation-discount' => 'pos/img/sale.png', 'operation-payment' => 'pos/img/dollar.png',  'operation-price' => 'pos/img/price-tag2.png', 'operation-quantity' => 'pos/img/multiply.png',  'operation-add' => 'pos/img/a.png',  'operation-batch' => 'pos/img/b.png',  'operation-receipts' => 'pos/img/receipt.png', 'operation-contragent' => 'pos/img/user.png', 'operation-revert' => 'pos/img/receipt.png', 'close' => 'pos/img/close.png', 'transfer' => 'pos/img/transfer.png', 'reject' => 'pos/img/cancel.png', 'delete' => 'pos/img/delete.png', 'reload' => "pos/img/reload.png");
+    protected static $operationImgs = array('enlarge' => 'pos/img/search.png', 'print' => 'pos/img/printer.png', 'keyboard' => 'pos/img/keyboard.png', 'operation-add' => 'pos/img/а.png', 'operation-text' =>  'pos/img/comment.png', 'operation-discount' => 'pos/img/sale.png', 'operation-payment' => 'pos/img/dollar.png',  'operation-price' => 'pos/img/price-tag2.png', 'operation-quantity' => 'pos/img/multiply.png',  'operation-add' => 'pos/img/a.png',  'operation-batch' => 'pos/img/P_32x32.png',  'operation-receipts' => 'pos/img/receipt.png', 'operation-contragent' => 'pos/img/right-arrow.png', 'operation-revert' => 'pos/img/receipt.png', 'close' => 'pos/img/close.png', 'transfer' => 'pos/img/transfer.png', 'reject' => 'pos/img/cancel.png', 'delete' => 'pos/img/delete.png', 'reload' => "pos/img/reload.png");
 
     
     /**
@@ -223,6 +223,9 @@ class pos_Terminal extends peripheral_Terminal
                                     'pointId' => pos_Points::getVerbal($rec->pointId, 'name'),
                                     'ID' => pos_Receipts::getVerbal($rec->id, 'id'),
                                     'TIME' => dt::mysql2verbal(dt::now()),
+                                    'valior' => pos_Receipts::getVerbal($rec->id, 'valior'),
+                                    'contragentId' => "Ime na kontragent",
+                                    'SUB_TITLE' => "ZK140549-1516-0000010",
                                     'userId' => core_Users::getVerbal(core_Users::getCurrent(), 'nick'));
         
         $tpl->append(ht::createImg(array('path' => 'img/16/bgerp.png')), 'OTHER_ELEMENTS');
@@ -349,7 +352,7 @@ class pos_Terminal extends peripheral_Terminal
         $inputValue = ($operation == 'payment') ? $value : Mode::get("currentSearchString{$rec->id}");
         
         $searchUrl = toUrl(array($this, 'displayOperation', 'receiptId' => $rec->id), 'local');
-        $params = array('name' => 'ean', 'value' => $inputValue, 'type' => 'text', 'class'=> 'large-field select-input-pos', 'data-url' => $inputUrl, 'data-keyupurl' => $keyupUrl, 'title' => 'Въвеждане', 'list' => 'suggestions');
+        $params = array('name' => 'ean', 'value' => $inputValue, 'type' => 'text', 'class'=> 'large-field select-input-pos', 'data-url' => $inputUrl, 'data-keyupurl' => $keyupUrl, 'title' => 'Въвеждане', 'list' => 'suggestions', 'autocomplete' => 'off');
         if(Mode::is('screenMode', 'narrow')) {
             $params['readonly'] = 'readonly';
         }

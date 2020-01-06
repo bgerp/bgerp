@@ -44,6 +44,7 @@
 .receiptHeader {
 	padding: 10px 15px;
 	background: #eee;
+	font-size: 1.2em;
 }
 .headerContent {
 	padding:12px;
@@ -54,10 +55,10 @@
 	width: 100%;
 	span {
 		font-size: 1.2em;
-		display: inline-block;
 		margin-left: 10px;
 		margin-right: 40px;
 		color: #fff;
+		display: inline-block;
 		a {
 			color: #fff !important;
 		}
@@ -94,7 +95,9 @@
 .logout {
 	float: right;
 }
-
+.onlyPrint {
+	display: none;
+}
 .terminal-revert-id a {
 	color: #CC0000 ;
 }
@@ -704,6 +707,9 @@
 }
 
 @media print {
+	.onlyPrint {
+		display: block;
+	}
 	.red {
 		color:black !important;
 	}
