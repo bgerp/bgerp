@@ -461,6 +461,7 @@ class pos_Terminal extends peripheral_Terminal
                 $holderAttr['class'] .= " btnWithWarning";
             }
             
+            // Рендиране на бутоните с операциите
             $btn = ht::createElement('div', $holderAttr, $btnObj->body, true);
             if(!empty($btnObj->linkUrl)){
                 $warning = !empty($btnObj->linkWarning) ? $btnObj->linkWarning : false;
@@ -468,7 +469,6 @@ class pos_Terminal extends peripheral_Terminal
                 if($btnObj->newWindow === true){
                     $attr['target'] = '_blank';
                 }
-                
                 $btn = ht::createLink($btn, $btnObj->linkUrl, $warning, $attr);
             }
             
@@ -1459,8 +1459,8 @@ class pos_Terminal extends peripheral_Terminal
         
         $operation = Mode::get("currentOperation{$rec->id}");
         $string = Mode::get("currentSearchString{$rec->id}");
-        $res = array();
         
+        $res = array();
         if($success === true){
             
             if($refreshPanel === true){

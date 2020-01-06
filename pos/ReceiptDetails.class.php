@@ -334,6 +334,8 @@ class pos_ReceiptDetails extends core_Detail
             
             if($this->save($rec)){
                 $this->Master->logInAct($sucessMsg, $receiptId);
+                
+                Mode::setPermanent("currentSearchString{$receiptId}", null);
             }
             
         } catch(core_exception_Expect $e){
