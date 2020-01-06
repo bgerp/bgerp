@@ -20,10 +20,10 @@
 .wide .result-content {
   background: #cccccc;
   position: fixed;
-  top: 50px;
+  top: 5%;
   right: 0;
-  height: 100%;
-  padding: 15px;
+  height: 95%;
+  padding: 15px 15px 5px 15px;
   overflow-y: auto;
   box-sizing: border-box; }
 
@@ -329,9 +329,9 @@
 
 .divider {
   clear: both;
-  margin: 0 0 0 10px;
+  margin: 0 0.5% 0.5% 0.5%;
   border: 1px solid #999999;
-  background: #333333;
+  background: #666666;
   padding: 10px;
   color: white !important; }
   .divider a,
@@ -388,8 +388,7 @@
   padding: 9px;
   float: left;
   width: 32.333%;
-  margin-right: 1%;
-  margin-bottom: 1%;
+  margin: 0 0.5% 1% 0.5%;
   border: 2px solid #999999;
   border-radius: 5px;
   height: 113px;

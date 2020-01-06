@@ -13,7 +13,7 @@ function posActions() {
 		      }
 		})
 	});
-
+	$('.large-field.select-input-pos').focus();
 	// Забраняване на скалирането, за да избегнем забавяне
 	if(isTouchDevice()){
 		 $('meta[name=viewport]').remove();
@@ -550,7 +550,6 @@ function posActions() {
 		clearTimeout(timeoutAlt);
 
 		timeoutAlt = setTimeout(function () {
-			console.log('alt');
 			hideHints();
 		}, 5000);
 	});
@@ -563,13 +562,11 @@ function posActions() {
 }
 function showHints(){
 	if ($('.buttonOverlay').css('display') == "none") {
-		console.log('in');
 		$('.buttonOverlay').fadeIn();
 	}
 }
 
 function hideHints(){
-	console.log('out');
 	$('.buttonOverlay').fadeOut();
 }
 
