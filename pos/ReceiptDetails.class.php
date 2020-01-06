@@ -244,6 +244,7 @@ class pos_ReceiptDetails extends core_Detail
             switch($operation){
                 case 'setquantity':
                     expect($quantity = core_Type::getByName('double')->fromVerbal($firstValue), 'Не е зададено количество');
+                    expect($quantity > 0, 'Количеството трябва да е положително');
                     $rec->quantity = $quantity;
                     $rec->amount = $rec->price * $rec->quantity;
                     
@@ -275,7 +276,7 @@ class pos_ReceiptDetails extends core_Detail
                     break;
                case 'setdiscount':
                    $discount = core_Type::getByName('percent')->fromVerbal($firstValue);
-                   expect($discount, 'Не е въведена валидна отстъпка');
+                   expect(isset($discount), 'Не е въведена валидна отстъпка');
                    expect($discount >= 0 && $discount <= 1, 'Отстъпката трябва да е между 0% и 100%');
                    $rec->discountPercent = $discount;
                    $sucessMsg = 'Отстъпката на реда е променена|*!';

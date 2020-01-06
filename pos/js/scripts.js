@@ -327,6 +327,9 @@ function posActions() {
 	
 	// действие на бутоните за действията
 	$(document.body).on('click', ".operationBtn", function(e){
+		var currentlySelected = getSelectedOperation();
+		sessionStorage.setItem('lastSelectedOperation', currentlySelected);
+		
 		clearTimeout(timeout);
 		var operation = $(this).attr("data-value");
 		
@@ -709,6 +712,7 @@ function getCurrentElementFromSelectedRow(element){
 }
 
 function refreshResultByOperation(element, operation){
+	
 	sessionStorage.removeItem("focused");
 	
 	// Ако операцията е партидност и реда няма такава прехвърля се към артикул
@@ -839,7 +843,7 @@ function render_afterload()
 		var selectedRecId = eanInput.attr("data-id");
 
 		var sendAjax = true;
-		if(!searchVal && operation == 'add'){
+		if(!searchVal && (operation == 'add' || operation == 'quantity')){
 			sendAjax = false;
 		}
 		
