@@ -544,10 +544,13 @@ function posActions() {
 	$("body").setShortcutKey( ALT , R ,function() {
 		openRevert();
 	});
-	var timePressed;
+	var timeoutAlt;
 	$("body").setShortcutKey(null,  ALT,function() {
 		showHints();
-		setTimeout(function () {
+		clearTimeout(timeoutAlt);
+
+		timeoutAlt = setTimeout(function () {
+			console.log('alt');
 			hideHints();
 		}, 5000);
 	});
@@ -559,10 +562,14 @@ function posActions() {
 
 }
 function showHints(){
-	$('.buttonOverlay').fadeIn();
+	if ($('.buttonOverlay').css('display') == "none") {
+		console.log('in');
+		$('.buttonOverlay').fadeIn();
+	}
 }
 
 function hideHints(){
+	console.log('out');
 	$('.buttonOverlay').fadeOut();
 }
 

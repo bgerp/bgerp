@@ -124,7 +124,6 @@ var QUOTE = 222; 		// SINGLE QUOTE
 					CtrlMod = true;
 				}else if(e.keyCode == 18) {
 					AltMod = true;
-					hideHints();
 					e.preventDefault();
 				}
 
