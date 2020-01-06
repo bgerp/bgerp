@@ -222,18 +222,28 @@ class pos_Terminal extends peripheral_Terminal
         $headerData = (object)array('APP_NAME' => EF_APP_NAME,
                                     'pointId' => pos_Points::getVerbal($rec->pointId, 'name'),
                                     'ID' => pos_Receipts::getVerbal($rec->id, 'id'),
-                                    'TIME' => dt::mysql2verbal(dt::now()),
+                                    'TIME' => $this->renderCurrentTime(),
                                     'valior' => pos_Receipts::getVerbal($rec->id, 'valior'),
-                                    'contragentId' => "Ime na kontragent",
-                                    'SUB_TITLE' => "ZK140549-1516-0000010",
+                                    'contragentId' => cls::get($rec->contragentClass)->getTitleById($rec->contragentObjectId),
                                     'userId' => core_Users::getVerbal(core_Users::getCurrent(), 'nick'));
         
         $tpl->append(ht::createImg(array('path' => 'img/16/bgerp.png')), 'OTHER_ELEMENTS');
         $tpl->placeObject($headerData);        
-        $Receipts->invoke('AfterRenderterminalHeader', array(&$tpl));
+        $Receipts->invoke('AfterRenderterminalHeader', array(&$tpl, $rec));
         $tpl->replace(' bgERP', 'OTHER_ELEMENTS');
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Рендира текущата дата
+     * 
+     * @return core_ET 
+     */
+    private function renderCurrentTime()
+    {
+        return new core_ET(dt::mysql2verbal(dt::now()));
     }
     
     
@@ -1138,7 +1148,7 @@ class pos_Terminal extends peripheral_Terminal
         // Добавяме резултата
         $resObj = new stdClass();
         $resObj->func = 'html';
-        $resObj->arg = array('id' => 'receiptTerminalHeader', 'html' => $this->renderHeader($id)->getContent(), 'replace' => true);
+        $resObj->arg = array('id' => 'terminalTime', 'html' => $this->renderCurrentTime()->getContent(), 'replace' => true);
         
         return array($resObj);
     }
