@@ -669,12 +669,6 @@ class pos_Terminal extends peripheral_Terminal
     {
         $discountsArr = array('0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100');
         $string = trim(str_replace('%', '', $string));
-        $discountInputed = core_Type::getByName('double')->fromVerbal($string);
-        if(isset($discountInputed) && $discountInputed >= 0 && $discountInputed <= 100){
-            if(!in_array($discountInputed, $discountsArr)){
-                $discountsArr = array_merge(array($discountInputed), $discountsArr);
-            }
-        }
         
         $tpl = new core_ET("");
         foreach ($discountsArr as $discAmount){
