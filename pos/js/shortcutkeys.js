@@ -145,8 +145,8 @@ var QUOTE = 222; 		// SINGLE QUOTE
 								func();
 							}
 						}else if (mod == 18){
-							e.preventDefault();
 							if (AltMod == true){
+								e.preventDefault();
 								func();
 							}
 						}
