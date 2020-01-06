@@ -28,7 +28,7 @@
   box-sizing: border-box; }
 
 .tools-content {
-  height: 560px;
+  height: 505px;
   padding: 20px 15px;
   box-sizing: border-box; }
 
@@ -237,9 +237,9 @@
   cursor: pointer;
   box-sizing: border-box;
   padding: 10px 20px;
-  width: 230px;
+  width: 249px;
   height: 64px !important;
-  margin: 10px;
+  margin: 5px 5px 10px 10px;
   color: white;
   font-family: Arial;
   font-size: 1.3em;
@@ -327,8 +327,16 @@
   width: 100%;
   margin-bottom: 20px; }
 
-.receiptDateBlockLegend {
-  margin: 0 0 0 10px; }
+.divider {
+  clear: both;
+  margin: 0 0 0 10px;
+  border: 1px solid #999999;
+  background: #333333;
+  padding: 10px;
+  color: white !important; }
+  .divider a,
+  .divider span {
+    color: white !important; }
 
 .posResultContragent {
   display: inline-block;
@@ -377,20 +385,20 @@
 .element {
   display: block;
   box-sizing: border-box;
-  padding: 10px;
+  padding: 9px;
   float: left;
-  width: 32.3%;
+  width: 32.333%;
   margin-right: 1%;
   margin-bottom: 1%;
   border: 2px solid #999999;
   border-radius: 5px;
-  height: 118px;
+  height: 113px;
   background: #f1f1f1; }
   .element:focus,
   .element.selected {
     box-shadow: 0px 0px 3px #0000fa !important;
     border: 3px solid #080f56;
-    padding: 9px !important; }
+    padding: 8px !important; }
   .element .pos-add-res-btn {
     color: #333333;
     height: 73px; }
