@@ -47,16 +47,17 @@
 	font-size: 1.2em;
 }
 .headerContent {
-	padding:12px;
+	padding:12px 0 ;
 	background: #333;
 	position: fixed;
 	top: 0;
 	left: 0;
 	width: 100%;
+	box-sizing: border-box;
 	span {
 		font-size: 1.2em;
-		margin-left: 10px;
-		margin-right: 40px;
+		margin-left: 15px;
+		margin-right: 15px;
 		color: #fff;
 		display: inline-block;
 		a {
