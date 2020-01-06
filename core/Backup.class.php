@@ -224,9 +224,6 @@ class core_Backup extends core_Mvc
             }
         }
         
-        // Почистваме работната директория
-        core_Os::deleteDirectory($workDir, true);
-        
         // Почистваме всички ненужни файлове от бекъпите, които са в повече
         $backupMaxCnt = core_Setup::get('BACKUP_MAX_CNT');
         
@@ -267,6 +264,8 @@ class core_Backup extends core_Mvc
             
             @unlink($path);
         }
+        // Почистваме работната директория
+        core_Os::deleteDirectory($workDir, true);
         
         core_Os::deleteDirectory(self::$temp);
     }
