@@ -2,11 +2,12 @@
 <div data-id='[#id#]' class='receiptRow [#CLASS#]' title = '|Селектиране на реда|*'>
 	<div class="receiptProduct">[#productId#] [#DEL_BTN#] <div class="fright"> [#amount#]</div></div>
 	<!--ET_BEGIN storeId--><div class="subStoreId no-print">|Склад|*: [#storeId#]</div><!--ET_END storeId-->
-	<!--ET_BEGIN batch--><div class="subBatch">[#batch#]</div><!--ET_END batch-->
+
 	<!--ET_BEGIN text--><div class="subText"> [#text#]</div><!--ET_END text-->
 	<div class="indent">[#quantity#] [#value#]<span class="quiet">
 		<!--ET_BEGIN quantityInPack--><span>([#quantityInPack#])</span> <!--ET_END quantityInPack--> * <span class='priceText'>[#price#]</span>
 		<!--ET_BEGIN discountPercent--><span class="discountText"> ([#discountPercent#]) </span><!--ET_END discountPercent--></span>
+		<!--ET_BEGIN batch--><span class="subBatch">[#batch#]</span><!--ET_END batch-->
 	</div>
 </div>
 <!--ET_END sale-->

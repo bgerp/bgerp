@@ -297,10 +297,13 @@
 
 .subBatch {
   font-weight: bold;
-  font-style: italic; }
+  font-style: italic;
+  color: green !important;
+  margin-left: 10px; }
 
 .resultBatch {
-  background: green; }
+  color: green !important;
+  background: #e6e9b9; }
 
 .discountBtn {
   background: #ff9c3a;
