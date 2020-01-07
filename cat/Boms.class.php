@@ -106,6 +106,14 @@ class cat_Boms extends core_Master
      * Кой може да пише?
      */
     public $canEdit = 'cat,ceo,sales';
+
+
+    /**
+     * Кой може да променя активирани записи
+     *
+     * @see change_Plugin
+     */
+    public $canChangerec = 'cat,ceo,sales';
     
     
     /**
