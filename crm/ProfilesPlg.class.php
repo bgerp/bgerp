@@ -34,7 +34,7 @@ class crm_ProfilesPlg extends core_Plugin
         }
         
         expect(is_array($fields));
-        $fieldsCnt = count($fields);
+        $fieldsCnt = countR($fields);
         
         // Показваме никовете, като линкове, само при лист и сингъл изглед
         if ($fields['-list'] || $fields['-single'] || !$fieldsCnt) {
