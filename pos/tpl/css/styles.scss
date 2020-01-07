@@ -13,7 +13,6 @@
 
 #single-receipt-holder {
 	position: fixed;
-	top: 50px;
 	left: 0;
 	width: 570px;
 	height: 100%;
@@ -26,17 +25,17 @@
 	position: fixed;
 	top: 5%;
 	right: 0;
-	height: 95%;
 	padding:15px 15px 5px 15px;
 	overflow-y: auto;
 	box-sizing: border-box;
 }
 
 .tools-content {
-	height: 505px;
+	height: 500px;
 	padding: 20px 15px;
 	box-sizing: border-box;
 }
+
 .scrolling-vertical{
 	overflow-y:auto;
 	overflow-x:hidden;

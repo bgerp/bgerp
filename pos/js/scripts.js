@@ -675,15 +675,18 @@ function openPayment() {
 // Калкулира ширината
 function calculateWidth(){
 	var winWidth = parseInt($(window).width());
-	var winHeight = parseInt();
+	var winHeight = parseInt($(window).height());
 
 	//задаване на ширина на двете колони
 	$('.result-content').css('width', winWidth - $('#single-receipt-holder').width());
 
 	//височина за таблицата с резултатите
-	var receiptHeight = $(window).height() -  $('.tools-content').height() - $('.paymentBlock').height();
+	var receiptHeight = winHeight -  $('.tools-content').height() - $('.paymentBlock').height();
 	$('.scrolling-vertical').css('height',receiptHeight);
 
+	var headerHeight = $('.headerContent').outerHeight();
+	$('#result-holder').css('height',winHeight - headerHeight);
+	$('#result-holder, #single-receipt-holder').css('top',headerHeight);
 
 	if ( $('.highlighted').length) {
 		var offset = $('.highlighted').offset().top - $('.scrolling-vertical').height() + $('.receipt-header').height() + 10;
