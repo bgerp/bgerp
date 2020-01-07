@@ -230,7 +230,7 @@ function posActions() {
 	});
 
 	// Избор на контрагент
-	$(document.body).on('click', ".posResultContragent", function(e){
+	$(document.body).on('click', ".posResultContragent, .contragentLinkBtns", function(e){
 		var url = $(this).attr("data-url");
 		if(!url) return;
 		
