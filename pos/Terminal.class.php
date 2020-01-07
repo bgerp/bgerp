@@ -713,8 +713,20 @@ class pos_Terminal extends peripheral_Terminal
         if($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId){
             $contragents = array();
             
+            $newCompanyAttr = array('id' => 'contragentnew', 'data-url' => toUrl(array('crm_Companies', 'add')), 'class' => 'posResultContragent posBtns contragentLinkBtns');
+            if(!crm_Companies::haveRightFor('add')){
+                $newCompanyAttr['disabled'] = 'disabled';
+                $newCompanyAttr['class'] .= ' disabledBtn';
+                unset($newCompanyAttr['data-url']);
+            } else {
+                $newCompanyAttr['class'] .= ' navigable openInNewTab';
+            }
+            $holderDiv = ht::createElement('div', $newCompanyAttr, 'Нова фирма', true);
+            $tpl->append($holderDiv);
+            $tpl->append(tr("|*<div class='divider'>|Контрагенти|*</div>"));
+            
+            
             if(!empty($string)){
-                
                 $stringInput = core_Type::getByName('varchar')->fromVerbal($string);
                 if($cardRec = crm_ext_Cards::fetch("#number = '{$stringInput}'")){
                     $contragents["{$cardRec->contragentClassId}|{$cardRec->contragentId}"] = (object)array('contragentClassId' => $cardRec->contragentClassId, 'contragentId' => $cardRec->contragentId, 'title' => cls::get($cardRec)->getTitleById($cardRec->contragentId));
@@ -755,7 +767,6 @@ class pos_Terminal extends peripheral_Terminal
                 }
             }
             
-            
             $cnt = 0;
             foreach ($contragents as $obj){
                 $setContragentUrl = toUrl(array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $obj->contragentClassId, 'contragentId' => $obj->contragentId, 'ret_url' => true));
@@ -779,12 +790,12 @@ class pos_Terminal extends peripheral_Terminal
             
             $transferDivAttr['id'] = "contragent1";
             $transferDivAttr['data-url'] = toUrl(array('pos_Receipts', 'transfer', $rec->id, 'contragentClassId' => $rec->contragentClass, 'contragentId' => $rec->contragentObjectId));
-            if(!pos_Receipts::haveRightFor('transfer')){
+            if(!pos_Receipts::haveRightFor('transfer', $rec)){
                 $transferDivAttr['disabled'] = 'disabled';
                 $transferDivAttr['class'] .= ' disabledBtn';
                 unset($transferDivAttr['data-url']);
             } else {
-                $transferDivAttr['class'] .= ' navigable';
+                $transferDivAttr['class'] .= ' navigable openInNewTab';
             }
             
             // Добавя бутон за премахване на избрания контрагент
@@ -800,14 +811,8 @@ class pos_Terminal extends peripheral_Terminal
             
             $holderDiv = ht::createElement('div', $divAttr, 'Премахване', true);
             $tpl->append($holderDiv);
-            
         }
        
-        //$tpl = new core_ET(tr("|*<div class='contragentOtherBtnHolder'>[#OTHER_BTNS#]</div><div class='divider'>|Избор на контрагент|*</div><div class='contragentBtnHolder'>[#CONTRAGENT_BTNS#]</div>"));
-        
-        
-        
-        
         return $tpl;
     }
     

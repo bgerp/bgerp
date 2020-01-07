@@ -234,7 +234,12 @@ function posActions() {
 		var url = $(this).attr("data-url");
 		if(!url) return;
 		
-		document.location = url;
+		if($(this).hasClass("openInNewTab")){
+			window.open(url, '_blank');
+			location.reload();
+		} else {
+			document.location = url;
+		}
 	});
 	
 	// Смяна на текущата клавиатура
@@ -242,7 +247,6 @@ function posActions() {
 		var currentAttrValue = $(this).attr('data-klang');
 		$('.keyboard#' + currentAttrValue).show().siblings('.keyboard').hide();
 	}); 
-	
 	
 	// Попълване на символи от клавиатурата
 	$(document.body).on('click', ".keyboard-btn", function(e){
