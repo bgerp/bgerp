@@ -577,6 +577,8 @@ class pos_Receipts extends core_Master
         $cu = core_Users::getCurrent();
         $sRec = sales_Sales::fetch($sId);
         doc_ThreadUsers::addShared($sRec->threadId, $sRec->containerId, $cu);
+        Mode::setPermanent("currentOperation{$rec->id}", 'receipts');
+        Mode::setPermanent("currentSearchString{$rec->id}", null);
         
         // Редирект към новата бележка
         return new Redirect(array('sales_Sales', 'single', $sId), 'Успешно прехвърляне на бележката');
