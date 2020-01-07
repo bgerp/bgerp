@@ -625,8 +625,10 @@ function openDiscount() {
 	}
 }
 function logout() {
-	$('.logout.operationHolder').closest('a');
+	var url = $('.logout.operationHolder').closest('a').attr("href");
+	location.href = url;
 }
+
 function openReject() {
 	if ($('.rejectBtn').length) {
 		$('.rejectBtn').parent().click();
@@ -865,7 +867,7 @@ function disableOrEnableBatch()
 			batchBtn.attr('disabled', 'disabled');
 		} else {
 			var addBtn = $('.operationBtn[data-value="add"]');
-			console.log(element);
+			
 			if(!addBtn.hasClass('disabledBtn') && element.length){
 				batchBtn.removeClass('disabledBtn');
 				batchBtn.removeAttr("disabled");
