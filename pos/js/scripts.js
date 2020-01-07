@@ -895,6 +895,7 @@ function render_afterload()
 	var operation = getSelectedOperation();
 	
 	disableOrEnableBatch();
+	setInputPlaceholder();
 	
 	var eanInput = $("input[name=ean]");
 	
@@ -994,4 +995,13 @@ function openModal()
 	});
 
 	dialog.dialog( "open" );
+}
+
+// Добавя хинт
+function setInputPlaceholder()
+{
+	var activeElement = $("div.operationBtn.active");
+	var title = activeElement.attr("title");
+	
+	$("input[name=ean]").attr("placeholder", title);
 }
