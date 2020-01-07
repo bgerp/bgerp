@@ -62,7 +62,7 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Кои операции са забранени за бележки с направено плащане
      */
-    protected static $forbiddenOperationOnReceiptsWithPayment = array('discount', 'price', 'quantity', 'add', 'batch');
+    protected static $forbiddenOperationOnReceiptsWithPayment = array('discount', 'price', 'quantity', 'add', 'batch', 'text');
     
     
     /**
