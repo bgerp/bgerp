@@ -468,8 +468,11 @@ class pos_ReceiptDetails extends core_Detail
             $this->save($rec);
             $success = true;
             $this->Master->logInAct('Добавяне на артикул', $rec->receiptId);
+            Mode::setPermanent("currentOperation{$rec->receiptId}", 'quantity');
+            $selectedRecId = $rec;
             
         } catch(core_exception_Expect $e){
+            $selectedRecId = null;
             $dump = $e->dump;
             $dump1 = $dump[0];
             reportException($e);
@@ -481,7 +484,7 @@ class pos_ReceiptDetails extends core_Detail
             }
         }
        
-        return pos_Terminal::returnAjaxResponse($receiptId, null, $success, true);
+        return pos_Terminal::returnAjaxResponse($receiptId, $selectedRecId, $success, true);
     }
     
     
