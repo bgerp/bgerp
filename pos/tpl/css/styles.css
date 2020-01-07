@@ -121,6 +121,9 @@
   .receiptRow .discountText {
     color: darkgreen; }
 
+.priceText {
+  color: black; }
+
 .indent {
   padding-left: 15px; }
 
