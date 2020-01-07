@@ -336,6 +336,7 @@ function posActions() {
 	
 	// действие на бутоните за действията
 	$(document.body).on('click', ".operationBtn", function(e){
+		sessionStorage.removeItem("focused");
 		var currentlySelected = getSelectedOperation();
 		sessionStorage.setItem('lastSelectedOperation', currentlySelected);
 		
@@ -773,6 +774,7 @@ function arrowDown(){
 		$(current).next().addClass('active');
 		current.removeClass('active');
 	}
+	disableOrEnableEnlargeBtn();
 }
 
 function arrowUp(){
@@ -782,14 +784,17 @@ function arrowUp(){
 		$(current).prev().addClass('active');
 		current.removeClass('active');
 	}
+	disableOrEnableEnlargeBtn();
 }
 
 function arrowRight(){
-	console.log('arrowRight')
+	console.log('arrowRight');
+	disableOrEnableEnlargeBtn();
 }
 
 function arrowLeft(){
-	console.log('arrowLeft')
+	console.log('arrowLeft');
+	disableOrEnableEnlargeBtn();
 }
 
 // Коя е текущо селектираната операция
@@ -961,7 +966,16 @@ function openModal()
 
 function startNavigation(){
 	if($('.navigable').length) {
+		
 		var focused = sessionStorage.getItem('focused');
+		
+		// ръчно избирам първия елемент за селектед
+		if(!focused){
+			focused = $('.navigable').first();
+			focused.addClass('selected');
+			sessionStorage.setItem('focused', focused.attr('id'));
+		}
+		
 		if (focused && document.getElementById(focused)) {
 			$('.selected').removeClass('selected');
 			$('#' + focused + ".navigable").addClass('selected');
@@ -983,4 +997,12 @@ function afterload()
 {
 	disableOrEnableBatch();
 	setInputPlaceholder();
+	disableOrEnableEnlargeBtn();
+}
+
+function disableOrEnableEnlargeBtn()
+{
+	var focused = sessionStorage.getItem('focused');
+	
+	console.log("a " + focused);
 }

@@ -1563,11 +1563,11 @@ class pos_Terminal extends peripheral_Terminal
             $res[] = $resObj;
             
             $resObj = new stdClass();
-            $resObj->func = 'afterload';
+            $resObj->func = 'prepareResult';
             $res[] = $resObj;
             
             $resObj = new stdClass();
-            $resObj->func = 'prepareResult';
+            $resObj->func = 'afterload';
             $res[] = $resObj;
             
             $resObj = new stdClass();
