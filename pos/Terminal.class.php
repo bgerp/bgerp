@@ -786,7 +786,7 @@ class pos_Terminal extends peripheral_Terminal
             
             // Добавя бутон за прехвърляне към папката на контрагента
             $setDefaultContragentUrl = toUrl(array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $defaultContragentClassId, 'contragentId' => $defaultContragentId, 'ret_url' => true));
-            $transferDivAttr = $divAttr = array("id" => "contragent0", 'class' => 'posResultContragent posBtns', 'data-url' => $setDefaultContragentUrl);
+            $transferDivAttr = $divAttr = array("id" => "contragent0", 'class' => 'posResultContragent posBtns contragentLinkBtns', 'data-url' => $setDefaultContragentUrl);
             
             $transferDivAttr['id'] = "contragent1";
             $transferDivAttr['data-url'] = toUrl(array('pos_Receipts', 'transfer', $rec->id, 'contragentClassId' => $rec->contragentClass, 'contragentId' => $rec->contragentObjectId));
