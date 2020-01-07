@@ -1202,6 +1202,7 @@ class pos_Terminal extends peripheral_Terminal
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PRODUCTS_RESULT');
         
         // Ако има категории
+        $count = 0;
         if(countR($data->categoriesArr)){
             foreach ($data->categoriesArr as $categoryRec){
                 
@@ -1210,11 +1211,12 @@ class pos_Terminal extends peripheral_Terminal
                 if(countR($productsInCategory)){
                     $cTpl = new core_ET("<div class='divider'>{$categoryRec->name}</div>");
                     foreach ($productsInCategory as $row){
-                        $row->elementId = "product{$row->id}";
+                        $row->elementId = "product{$count}";
                         $bTpl = clone $block;
                         $bTpl->placeObject($row);
                         $bTpl->removeBlocksAndPlaces();
                         $cTpl->append($bTpl);
+                        $count++;
                     }
                     $cTpl->removeBlocksAndPlaces();
                     $tpl->append($cTpl);
@@ -1222,11 +1224,12 @@ class pos_Terminal extends peripheral_Terminal
             }
         } else {
             foreach ($data->rows as $row){
-                $row->elementId = "product{$row->id}";
+                $row->elementId = "product{$count}";
                 $bTpl = clone $block;
                 $bTpl->placeObject($row);
                 $bTpl->removeBlocksAndPlaces();
                 $tpl->append($bTpl);
+                $count++;
             }
         }
         
