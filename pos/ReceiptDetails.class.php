@@ -469,6 +469,7 @@ class pos_ReceiptDetails extends core_Detail
             $success = true;
             $this->Master->logInAct('Добавяне на артикул', $rec->receiptId);
             Mode::setPermanent("currentOperation{$rec->receiptId}", 'quantity');
+            Mode::setPermanent("currentSearchString{$rec->receiptId}", null);
             $selectedRecId = $rec;
             
         } catch(core_exception_Expect $e){
