@@ -264,6 +264,8 @@
     margin: 5px 5px 10px 10px;
     font-size: 1.3em;
     display: flex; }
+  .posBtns.pos-notes {
+    font-size: 1.1em; }
   .posBtns.payment {
     background: #b7e2f3 !important;
     color: #333333 !important; }
