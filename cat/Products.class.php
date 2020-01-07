@@ -1337,7 +1337,7 @@ class cat_Products extends embed_Manager
         }
         
         // Записваме промяната в групите
-        if (count($deltaGroups) < 10) {
+        if (countR($deltaGroups) < 10) {
             foreach ($deltaGroups as $groupId => $delta) {
                 $gRec = cat_Groups::fetch($groupId);
                 $gRec->productCnt += $delta;
@@ -1672,7 +1672,7 @@ class cat_Products extends embed_Manager
         $hasnotProperties = (strpos($hasnotProperties, '|') !== false)  ? explode('|', $hasnotProperties) : arr::make($hasnotProperties);
         
         // Търси се всяко свойство
-        if (count($metaArr)) {
+        if (countR($metaArr)) {
             $count = 0;
             foreach ($metaArr as $meta) {
                 if ($orHasProperties === true) {

@@ -387,7 +387,7 @@ class cat_ListingDetails extends doc_Detail
         // Ако е събмитната формата
         if ($form->isSubmitted()) {
             $products = type_Set::toArray($form->rec->selected);
-            expect(count($products));
+            expect(countR($products));
             
             $error = $toSave = array();
             
