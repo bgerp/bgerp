@@ -315,15 +315,7 @@ function posActions() {
 		}
 	});
 
-	if($('.navigable').length) {
-
-		var focused = sessionStorage.getItem('focused');
-		if (focused && $(focused).hasClass('navigable') && document.getElementById(focused)) {
-			$('.selected').removeClass('selected');
-			$('#' + focused).addClass('selected');
-		}
-		$('#result-holder .navigable').keynav();
-	}
+	startNavigation();
 
 	$(document.body).on('click', ".navigable", function(e){
 		$('.navigable').removeClass('selected');
@@ -819,14 +811,7 @@ function deleteElement() {
 	}
 }
 function render_prepareResult() {
-	if($('.navigable').length) {
-		var focused = sessionStorage.getItem('focused');
-		if (focused && $(focused).hasClass('navigable') && document.getElementById(focused)) {
-			$('.selected').removeClass('selected');
-			$('#' + focused).addClass('selected');
-		}
-		$('#result-holder .navigable').keynav();
-	}
+	startNavigation();
 	
 	// Бутона за увеличение да се дисейбва ако няма избран селектиран ред
 	if($('.enlargeProductBtn').length){
@@ -972,6 +957,17 @@ function openModal()
 	});
 
 	dialog.dialog( "open" );
+}
+
+function startNavigation(){
+	if($('.navigable').length) {
+		var focused = sessionStorage.getItem('focused');
+		if (focused && document.getElementById(focused)) {
+			$('.selected').removeClass('selected');
+			$('#' + focused + ".navigable").addClass('selected');
+		}
+		$('#result-holder .navigable').keynav();
+	}
 }
 
 // Добавя хинт
