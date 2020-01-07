@@ -148,7 +148,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
                     $dealInfo = $origin->getAggregateDealInfo();
                     $products = $dealInfo->get('products');
                     
-                    if (count($products)) {
+                    if (countR($products)) {
                         foreach ($products as $p) {
                             if ($rec->productId == $p->productId && $rec->packagingId == $p->packagingId) {
                                 $policyInfo = new stdClass();

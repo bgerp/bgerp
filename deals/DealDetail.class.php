@@ -382,7 +382,7 @@ abstract class deals_DealDetail extends doc_Detail
      */
     public static function on_AfterPrepareListRows($mvc, $data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }
@@ -446,7 +446,7 @@ abstract class deals_DealDetail extends doc_Detail
     {
         $recs = &$data->recs;
         
-        if (!count($recs)) {
+        if (!countR($recs)) {
             
             return;
         }
@@ -531,7 +531,7 @@ abstract class deals_DealDetail extends doc_Detail
         $query = $this->getQuery();
         $query->where("#{$this->masterKey} = {$saleId}");
         $recs = $query->fetchAll();
-        expect(count($listed));
+        expect(countR($listed));
         
         
         foreach ($listed as &$list) {
@@ -622,7 +622,7 @@ abstract class deals_DealDetail extends doc_Detail
                 }
             }
             
-            if (count($error2)) {
+            if (countR($error2)) {
                 if (haveRole('powerUser')) {
                     $form->setWarning(implode(',', $error2), 'Количеството е под МКП');
                 } else {
@@ -631,17 +631,17 @@ abstract class deals_DealDetail extends doc_Detail
             }
             
             // Ако има грешка сетва се ерор
-            if (count($error)) {
+            if (countR($error)) {
                 $form->setError(implode(',', $error), 'Артикулът няма цена');
             }
             
-            if (count($error3)) {
+            if (countR($error3)) {
                 foreach ($error3 as $msg => $fields) {
                     $form->setError(implode(',', $fields), $msg);
                 }
             }
             
-            if (count($multiError)) {
+            if (countR($multiError)) {
                 if (haveRole('salesMaster,ceo')) {
                     $form->setWarning(implode(',', $multiError), 'Количеството не е кратно на очакваното');
                 } else {
@@ -649,17 +649,17 @@ abstract class deals_DealDetail extends doc_Detail
                 }
             }
             
-            if (!count($error) && !count($error3) && (!count($error2) || (count($error2) && Request::get('Ignore'))) && (!count($multiError) || (count($multiError) && Request::get('Ignore')))) {
+            if (!countR($error) && !countR($error3) && (!countR($error2) || (countR($error2) && Request::get('Ignore'))) && (!countR($multiError) || (countR($multiError) && Request::get('Ignore')))) {
                 
                 // Запис на обновените записи
-                if (count($toUpdate)) {
+                if (countR($toUpdate)) {
                     foreach ($toUpdate as $uRec) {
                         $uRec->isEdited = true;
                         $this->save($uRec, 'id,quantity');
                     }
                 }
                 
-                if (count($toSave)) {
+                if (countR($toSave)) {
                     foreach ($toSave as $saveRec) {
                         $this->save($saveRec);
                     }

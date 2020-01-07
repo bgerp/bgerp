@@ -178,7 +178,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
             unset($data->toolbar->buttons['btnAdd']);
             $products = cat_Products::getByProperty($mvc->defaultMeta, null, 1);
             
-            if (!count($products)) {
+            if (!countR($products)) {
                 $error = 'error=Няма артикули, ';
             }
             
