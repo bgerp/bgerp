@@ -790,6 +790,7 @@ class pos_Terminal extends peripheral_Terminal
             
             $transferDivAttr['id'] = "contragent1";
             $transferDivAttr['data-url'] = toUrl(array('pos_Receipts', 'transfer', $rec->id, 'contragentClassId' => $rec->contragentClass, 'contragentId' => $rec->contragentObjectId));
+            $transferDivAttr['data-reloadurl'] = toUrl(array('pos_Receipts', 'new', 'pointId' => $rec->pointId));
             if(!pos_Receipts::haveRightFor('transfer', $rec)){
                 $transferDivAttr['disabled'] = 'disabled';
                 $transferDivAttr['class'] .= ' disabledBtn';

@@ -236,7 +236,13 @@ function posActions() {
 		
 		if($(this).hasClass("openInNewTab")){
 			window.open(url, '_blank');
-			location.reload();
+			var reloadUrl = $(this).attr("data-reloadurl");
+			
+			if(reloadUrl){
+				document.location = reloadUrl;
+			} else {
+				location.reload();
+			}
 		} else {
 			document.location = url;
 		}
