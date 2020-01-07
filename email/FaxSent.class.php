@@ -231,7 +231,7 @@ class email_FaxSent extends core_Manager
         $rec->attachmentsFh = type_Set::toArray($options->attachmentsSet);
         
         //Ако имамем прикачени файлове
-        if (count($rec->attachmentsFh)) {
+        if (countR($rec->attachmentsFh)) {
             
             //Вземаме id'тата на файловете вместо манупулатора име
             $attachments = fileman::fhKeylistToIds($rec->attachmentsFh);
@@ -298,7 +298,7 @@ class email_FaxSent extends core_Manager
             }
             
             // .. ако имаме прикачени документи ...
-            if (count($rec->documentsFh)) {
+            if (countR($rec->documentsFh)) {
                 //Вземаме id'тата на файловете вместо манипулаторите
                 $documents = fileman::fhKeylistToIds($rec->documentsFh);
                 
@@ -417,7 +417,7 @@ class email_FaxSent extends core_Manager
         //Обединяваме двата масива
         $docHandlesArr = array_merge((array) $currEmailPdf, (array) $possibleTypeConv);
         
-        if (count($docHandlesArr) > 0) {
+        if (countR($docHandlesArr) > 0) {
             $data->form->FNC('documentsSet', 'set', 'input,caption=Документи,columns=4');
             
             $suggestion = array();
@@ -446,7 +446,7 @@ class email_FaxSent extends core_Manager
         // Добавяне на предложения за прикачени файлове
         $filesArr = $Email->getAttachments($data->rec);
         
-        if (count($filesArr) > 0) {
+        if (countR($filesArr) > 0) {
             $data->form->FNC('attachmentsSet', 'set', 'input,caption=Файлове,columns=4');
             $data->form->setSuggestions('attachmentsSet', $filesArr);
         }
@@ -458,7 +458,7 @@ class email_FaxSent extends core_Manager
         $faxNums = $data->rec->fax;
         
         // Ако има имейли, които са факс номера
-        if (count($faxesArr['fax'])) {
+        if (countR($faxesArr['fax'])) {
             
             // Обхождаме ги
             foreach ($faxesArr['fax'] as $fax) {
@@ -487,7 +487,7 @@ class email_FaxSent extends core_Manager
         if ($form->isSubmitted()) {
             
             // Ако не може да се намеи нито един факс номер
-            if (!count(drdata_PhoneType::toArray($form->rec->faxTo))) {
+            if (!countR(drdata_PhoneType::toArray($form->rec->faxTo))) {
                 
                 // Добавяме съобщение за грешка
                 $form->setError('faxTo', 'Не сте въвели валиден факс номер.');

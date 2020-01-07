@@ -454,7 +454,7 @@ class email_Inboxes extends core_Master
         ));
         
         // Ако няма никакви имейли, към които е изпратено писмото, $toBox е имейла на сметката
-        if (!is_array($emailsArr) || !count($emailsArr)) {
+        if (!is_array($emailsArr) || !countR($emailsArr)) {
             
             return $accRec->email;
         }
@@ -554,7 +554,7 @@ class email_Inboxes extends core_Master
             }
         }
         
-        if ($replaceDomainArr && count($replaceDomainArr)) {
+        if ($replaceDomainArr && countR($replaceDomainArr)) {
             list($toNick, $toDomain) = explode('@', $toEmail);
             foreach ($replaceDomainArr as $fromReplace => $toReplace) {
                 if (strtolower($toDomain) == $fromReplace) {
@@ -954,7 +954,7 @@ class email_Inboxes extends core_Master
         
         $removeAccType = arr::make($removeAccType);
         
-        if (!is_array($emailsArr) || !count($emailsArr)) {
+        if (!is_array($emailsArr) || !countR($emailsArr)) {
             
             return array();
         }
@@ -1158,7 +1158,7 @@ class email_Inboxes extends core_Master
         
         // Вече трябва да има открита поне една кутия
         
-        expect(count($options), 'Липсват възможности за изпращане на писма. Настройте поне една сметка в Документи->Имейли->Сметки');
+        expect(countR($options), 'Липсват възможности за изпращане на писма. Настройте поне една сметка в Документи->Имейли->Сметки');
         
         return $options;
     }
