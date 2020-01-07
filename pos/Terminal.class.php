@@ -1113,13 +1113,13 @@ class pos_Terminal extends peripheral_Terminal
         }
         $tpl->placeObject($data->row);
         
-        if($lastRecId = pos_ReceiptDetails::getLastRec($data->rec->id, 'sale')->id){
+        if($lastRecId = pos_ReceiptDetails::getLastRec($data->rec->id)->id){
             $data->receiptDetails->rows[$lastRecId]->CLASS .= ' highlighted';
         }
         
         if($lastRec = pos_ReceiptDetails::getLastRec($data->rec->id)){
             if(strpos($lastRec->action, 'payment') !== false){
-                $data->receiptDetails->rows[$lastRec->id]->CLASS .= ' paymentMade';
+                $data->receiptDetails->rows[$lastRec->id]->CLASS .= ' highlighted';
             }
         }
         

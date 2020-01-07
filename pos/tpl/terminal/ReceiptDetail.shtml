@@ -1,5 +1,5 @@
 <!--ET_BEGIN sale-->
-<div data-id='[#id#]' class='receiptRow [#CLASS#]' title = '|Селектиране на реда|*'>
+<div data-id='[#id#]' class='receiptRow productRow [#CLASS#]' title = '|Селектиране на реда|*'>
 	<div class="receiptProduct">[#productId#] [#DEL_BTN#] <div class="fright"> [#amount#]</div></div>
 	<!--ET_BEGIN storeId--><div class="subStoreId no-print">|Склад|*: [#storeId#]</div><!--ET_END storeId-->
 
@@ -13,5 +13,5 @@
 <!--ET_END sale-->
 
 <!--ET_BEGIN payment-->
-<div class="receiptPayment [#CLASS#]">[#paymentCaption#] [#actionValue#]: [#DEL_BTN#]&nbsp; <div class="fright">[#amount#] </div></div>
+<div class="receiptPayment paymentRow receiptRow [#CLASS#]">[#paymentCaption#] [#actionValue#]: [#DEL_BTN#]&nbsp; <div class="fright">[#amount#] </div></div>
 <!--ET_END payment-->

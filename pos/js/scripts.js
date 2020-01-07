@@ -63,7 +63,7 @@ function posActions() {
 		resObj = new Object();
 		resObj['url'] = url;
 		
-		var selectedElement = $(".highlighted");
+		var selectedElement = $(".highlighted.productRow");
 		var selectedRecId = selectedElement.attr("data-id");
 		
 		getEfae().process(resObj, {recId:selectedRecId});
@@ -77,7 +77,7 @@ function posActions() {
 		resObj = new Object();
 		resObj['url'] = url;
 		
-		var selectedElement = $(".highlighted");
+		var selectedElement = $(".highlighted.productRow");
 		var selectedRecId = selectedElement.attr("data-id");
 		
 		getEfae().process(resObj, {recId:selectedRecId});
@@ -117,7 +117,7 @@ function posActions() {
 		var inpVal = $(this).val();
 		var operation = getSelectedOperation();
 		
-		var selectedElement = $(".highlighted");
+		var selectedElement = $(".highlighted.productRow");
 		var selectedRecId = selectedElement.attr("data-id");
 		
 		// Правим Ajax заявката като изтече време за изчакване
@@ -220,7 +220,7 @@ function posActions() {
 	$(document.body).on('click', ".discountBtn", function(e){
 		var url = $(this).attr("data-url");
 		
-		var selectedElement = $(".highlighted");
+		var selectedElement = $(".highlighted.productRow");
 		var selectedRecId = selectedElement.attr("data-id");
 		
 		resObj = new Object();
@@ -350,7 +350,7 @@ function posActions() {
 		clearTimeout(timeout);
 		var operation = $(this).attr("data-value");
 		
-		var selectedElement = $(".highlighted");
+		var selectedElement = $(".highlighted.productRow");
 		var selectedRecId = selectedElement.attr("data-id");
 		
 		var url = $(this).attr("data-url");
@@ -436,7 +436,7 @@ function posActions() {
 		resObj = new Object();
 		resObj['url'] = url;
 		
-		var selectedElement = $(".highlighted");
+		var selectedElement = $(".highlighted.productRow");
 		var selectedRecId = selectedElement.attr("data-id");
 		
 		getEfae().process(resObj, {recId:selectedRecId});
@@ -465,7 +465,7 @@ function posActions() {
 		resObj = new Object();
 		resObj['url'] = url;
 		
-		var selectedElement = $(".highlighted");
+		var selectedElement = $(".highlighted.productRow");
 		var selectedRecId = selectedElement.attr("data-id");
 		
 		getEfae().process(resObj, {string:string,recId:selectedRecId});
@@ -481,7 +481,7 @@ function posActions() {
 		resObj = new Object();
 		resObj['url'] = url;
 		
-		var selectedElement = $(".highlighted");
+		var selectedElement = $(".highlighted.productRow");
 		var selectedRecId = selectedElement.attr("data-id");
 		
 		getEfae().process(resObj, {string:storeId,recId:selectedRecId});
@@ -497,7 +497,7 @@ function posActions() {
 			return;
 		}
 		
-		var selectedElement = $(".highlighted");
+		var selectedElement = $(".highlighted.productRow");
 		var selectedRecId = selectedElement.attr("data-id");
 		
 		if(!selectedRecId || selectedRecId == undefined) return;
@@ -721,27 +721,6 @@ function doPayment(url, type){
 	scrollRecieptBottom();
 }
 
-// Показване на определени любими бутони
-function showFavouriteButtons(element, value){
-	element.addClass('active').siblings().removeClass('active');
-
-	if(value) {
-		var nValue = "|" + value + "|";
-
-		$("div.pos-product[data-cat != '"+nValue+"']").each(function() {
-			$(this).hide();
-		});
-
-		$("div.pos-product[data-cat *= '"+nValue+"']").each(function() {
-			$(this).show();
-		});
-	} else {
-		$("div.pos-product").each(function() {
-			$(this).show();
-		});
-	}
-}
-
 // При натискане на pageUp
 function pageUp(){
 	console.log('pageUp')
@@ -867,7 +846,7 @@ function render_calculateWidth(){
 
 function disableOrEnableBatch()
 {
-	var element = $(".highlighted");
+	var element = $(".highlighted.productRow");
 	
 	var batchBtn = $('.operationBtn[data-value="batch"]');
 	if(batchBtn.length){
@@ -890,8 +869,7 @@ function disableOrEnableBatch()
 var semaphor;
 
 function render_afterload()
-{	
-	var element = $(".highlighted");
+{
 	var operation = getSelectedOperation();
 	
 	disableOrEnableBatch();
@@ -908,7 +886,7 @@ function render_afterload()
 		resObj = new Object();
 		resObj['url'] = submitUrl;
 		
-		var selectedElement = $(".highlighted");
+		var selectedElement = $(".highlighted.productRow");
 		var selectedRecId = eanInput.attr("data-id");
 
 		var sendAjax = true;
@@ -976,7 +954,7 @@ function enter() {
 	resObj = new Object();
 	resObj['url'] = url;
 	
-	var selectedElement = $(".highlighted");
+	var selectedElement = $(".highlighted.productRow");
 	var selectedRecId = selectedElement.attr("data-id");
 
 
