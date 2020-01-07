@@ -404,13 +404,7 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         // Бутон за увеличение на избрания артикул
-        $enlargeAttr = array('title' => 'Преглед на избрания артикул', 'data-url' => toUrl(array('pos_Terminal', 'EnlargeProduct'), 'local'), 'class' => "enlargeProductBtn");
-        if(empty($detailsCount)){
-            unset($enlargeAttr['data-url']);
-            $enlargeAttr['class'] .= " disabledBtn";
-            $enlargeAttr['disabled'] = 'disabled';
-        }
-        
+        $enlargeAttr = array('title' => 'Преглед на избрания артикул', 'data-url' => toUrl(array('pos_Terminal', 'enlargeElement'), 'local'), 'class' => "enlargeProductBtn");
         $img = ht::createImg(array('path' => self::$operationImgs["enlarge"]));
         $buttons["enlarge"] = (object)array('body' => $img, 'attr' => $enlargeAttr);
         
@@ -770,7 +764,7 @@ class pos_Terminal extends peripheral_Terminal
             $cnt = 0;
             foreach ($contragents as $obj){
                 $setContragentUrl = toUrl(array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $obj->contragentClassId, 'contragentId' => $obj->contragentId, 'ret_url' => true));
-                $divAttr = array("id" => "contragent{$cnt}", 'class' => 'posResultContragent posBtns navigable', 'data-url' => $setContragentUrl);
+                $divAttr = array("id" => "contragent{$cnt}", 'class' => 'posResultContragent posBtns navigable enlargable', 'data-url' => $setContragentUrl, 'data-enlarge-object-id' => $obj->contragentId, 'data-enlarge-class-id' => $obj->contragentClassId);
                 if(!$canSetContragent){
                     $divAttr['disabled'] = 'disabled';
                     $divAttr['disabledBtn'] = 'disabledBtn';
@@ -1366,8 +1360,10 @@ class pos_Terminal extends peripheral_Terminal
             
             // Обръщаме реда във вербален вид
             $data->rows[$id] = $this->getVerbalSearchresult($obj, $data);
-            $data->rows[$id]->CLASS = ' pos-add-res-btn navigable';
+            $data->rows[$id]->CLASS = ' pos-add-res-btn navigable enlargable';
             $data->rows[$id]->DATA_URL = (pos_ReceiptDetails::haveRightFor('add', $obj)) ? toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $data->rec->id), 'local') : null;
+            $data->rows[$id]->DATA_ENLARGE_OBJECT_ID = $id;
+            $data->rows[$id]->DATA_ENLARGE_CLASS_ID = cat_Products::getClassId();
             $data->rows[$id]->id = $pRec->id;
             if(array_key_exists($id, $favouriteProductsArr)){
                 $data->rows[$id]->favouriteCategories = $favouriteProductsArr[$id];
@@ -1463,7 +1459,7 @@ class pos_Terminal extends peripheral_Terminal
             $class .= (count($openUrl)) ? ' navigable' : ' disabledBtn';
             $class .= ($receiptRec->id == $rec->id) ? ' currentReceipt' : '';
             
-            $row = ht::createLink(self::getReceiptTitle($receiptRec, false), $openUrl, null, array('id' => "receipt{$receiptRec->id}", 'class' => "pos-notes posBtns {$class} state-{$receiptRec->state}", 'title' => 'Отваряне на бележката'));
+            $row = ht::createLink(self::getReceiptTitle($receiptRec, false), $openUrl, null, array('id' => "receipt{$receiptRec->id}", 'class' => "pos-notes posBtns {$class} state-{$receiptRec->state} enlargable", 'title' => 'Отваряне на бележката', 'data-enlarge-object-id' => $receiptRec->id, 'data-enlarge-class-id' => pos_Receipts::getClassId()));
             $arr[$receiptRec->createdDate]->append($row, 'element');
         }
         
