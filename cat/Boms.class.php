@@ -496,8 +496,7 @@ class cat_Boms extends core_Master
         if ($action == 'activate' && empty($rec->id)) {
             $res = 'no_one';
         } elseif ($action == 'activate' && isset($rec->id)) {
-            $boms = array (cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id')); 
-            if (!countR($boms)) {
+            if (!cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id')) {
                 $res = 'no_one';
             }
         }
