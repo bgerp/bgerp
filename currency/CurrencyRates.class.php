@@ -275,7 +275,7 @@ class currency_CurrencyRates extends core_Detail
                 $dateRange[1] = $filter->to;
             }
             
-            if (count($dateRange) == 2) {
+            if (countR($dateRange) == 2) {
                 sort($dateRange);
             }
             
