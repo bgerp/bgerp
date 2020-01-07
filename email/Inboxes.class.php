@@ -15,11 +15,6 @@
  */
 class email_Inboxes extends core_Master
 {
-    /**
-     * Процент на съвпадание в имената на имейлите, които липсват
-     * На всеки 4 един трябва да съвпада
-     */
-    public static $closestEmailPercent = 75;
     
     
     /**
@@ -618,7 +613,7 @@ class email_Inboxes extends core_Master
                 
                 $closestEmail = str::getClosestWord($ourEmailsArr[$domain], $emailL, $p, true);
                 
-                if ($p >= self::$closestEmailPercent && ($p >= $bestPercentArr[$md])) {
+                if ($p >= email_Setup::get('CLOSEST_EMAIL_PERCENT') && ($p >= $bestPercentArr[$md])) {
                     $bestPercentArr[$md] = $p;
                     $bestEmailArr[$md] = $closestEmail . '@' . $domain;
                 }
