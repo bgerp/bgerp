@@ -349,6 +349,13 @@ class pos_Points extends core_Master
         }
     }
     
+    
+    /**
+     * Връща разрешените складове
+     *
+     * @param int $pointId
+     * @return array $stores
+     */
     public static function getStores($pointId)
     {
         $pointRec = static::fetch($pointId, 'otherStores,storeId');

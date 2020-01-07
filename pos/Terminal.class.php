@@ -539,7 +539,7 @@ class pos_Terminal extends peripheral_Terminal
         
         switch($currOperation){
             case 'add':
-                $revertId = (isset($rec->revertId) && $rec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIP) ? $rec->revertId : null;
+                $revertId = (isset($rec->revertId) && $rec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT) ? $rec->revertId : null;
                 $res = $this->getResultProducts($rec, $string, $revertId);
                 break;
             case 'receipts':
@@ -1486,7 +1486,7 @@ class pos_Terminal extends peripheral_Terminal
      */
     private static function getReceiptTitle($rec, $fullDate = true)
     {
-        $mask = ($fullDate) ? 'd.m. h:i' : 'h:i';
+        $mask = ($fullDate) ? 'd.m. H:i' : 'H:i';
         $date = dt::mysql2verbal($rec->createdOn, $mask);
         
         $amountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($rec->total);
@@ -1496,6 +1496,16 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $num = pos_Receipts::getReceiptShortNum($rec->id);
+        
+        // Показване на името на контрагента
+        $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
+        $defaultContragentClassId = crm_Persons::getClassId();
+        if(!($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId)){
+            $contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
+            $contragentName = str::limitLen($contragentName, 10);
+            $num .= "/{$contragentName}";
+        }
+        
         $title = "{$num}/ {$date}</br> <span class='receiptResultAmount'>{$amountVerbal}</span>";
         
         return $title;
