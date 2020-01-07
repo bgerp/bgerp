@@ -261,8 +261,13 @@
   border-radius: 3px;
   box-shadow: rgba(233, 233, 233, 0.5) 1px 1px 0 0 inset, 2px 2px 3px rgba(0, 0, 0, 0.1);
   position: relative; }
+  .posBtns.printReceiptBtn {
+    flex-direction: row;
+    margin: 5px 5px 10px 10px;
+    font-size: 1.3em;
+    display: flex; }
   .posBtns.payment {
-    background: #b7e2f3;
+    background: #b7e2f3 !important;
     color: #333333 !important; }
   .posBtns .endTooltip {
     position: absolute !important;
@@ -299,6 +304,9 @@
 
 .resultPrice {
   background: #499bc0; }
+
+.contragentLinkBtns {
+  background: #a162ca; }
 
 .subBatch {
   font-weight: bold;
@@ -350,7 +358,9 @@
   border: 2px solid #999999;
   background: #f1f1f1;
   padding: 10px;
-  box-sizing: border-box; }
+  box-sizing: border-box;
+  color: #333333 !important;
+  font-size: 1.1em; }
 
 .close-btn .button {
   font-size: 1.07em; }
