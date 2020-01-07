@@ -497,8 +497,10 @@ class pos_ReceiptDetails extends core_Detail
         
         $this->delete($rec->id);
         $this->Master->logInAct('Изтриване на ред', $rec->receiptId);
+        $paidByNow = pos_Receipts::fetchField($rec->receiptId, 'paid');
+        $defaultOperation = (empty($paidByNow)) ? 'add' : 'payment';
         
-        Mode::setPermanent("currentOperation{$rec->receiptId}", 'add');
+        Mode::setPermanent("currentOperation{$rec->receiptId}", $defaultOperation);
         Mode::setPermanent("currentSearchString{$rec->receiptId}", null);
         
         return pos_Terminal::returnAjaxResponse($rec->receiptId, null, true, true);

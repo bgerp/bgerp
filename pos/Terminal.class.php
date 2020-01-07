@@ -1149,8 +1149,7 @@ class pos_Terminal extends peripheral_Terminal
             $tpl->push('pos/js/jquery.keynav.js', 'JS');
             $tpl->push('pos/js/shortcutkeys.js', 'JS');
             jquery_Jquery::run($tpl, 'posActions();');
-            jquery_Jquery::run($tpl, 'disableOrEnableBatch();');
-            jquery_Jquery::run($tpl, 'setInputPlaceholder();');
+            jquery_Jquery::run($tpl, 'afterload();');
             
             jqueryui_Ui::enable($tpl);
         }

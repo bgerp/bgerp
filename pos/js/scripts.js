@@ -872,8 +872,7 @@ function render_afterload()
 {
 	var operation = getSelectedOperation();
 	
-	disableOrEnableBatch();
-	setInputPlaceholder();
+	afterload();
 	
 	var eanInput = $("input[name=ean]");
 	
@@ -982,4 +981,10 @@ function setInputPlaceholder()
 	var title = activeElement.attr("title");
 	
 	$("input[name=ean]").attr("placeholder", title);
+}
+
+function afterload()
+{
+	disableOrEnableBatch();
+	setInputPlaceholder();
 }
