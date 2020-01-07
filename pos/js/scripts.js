@@ -229,6 +229,13 @@ function posActions() {
 		getEfae().process(resObj, {recId:selectedRecId});
 	});
 
+	// Избор на контрагент
+	$(document.body).on('click', ".posResultContragent", function(e){
+		var url = $(this).attr("data-url");
+		if(!url) return;
+		
+		document.location = url;
+	});
 	
 	// Смяна на текущата клавиатура
 	$(document.body).on('click', ".keyboard-change-btn", function(e){

@@ -74,7 +74,7 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Кои операции са забранени за сторниращите бележки
      */
-    protected static $allowedOperationOnNonDraftReceipts = 'receipts=Бележки,revert=Сторно';
+    protected static $allowedOperationOnNonDraftReceipts = 'receipts=Бележки,revert=Сторно,payment=Плащане';
     
     
     /**
@@ -705,38 +705,43 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultContragent($rec, $string, $selectedRec)
     {
-        $tpl = new core_ET("<div class='contragentBtnHolder'>[#CONTRAGENT_BTNS#]</div><div class='contragentOtherBtnHolder'>[#OTHER_BTNS#]</div>");
-        $contragents = array();
+        $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
+        $defaultContragentClassId = crm_Persons::getClassId();
+        $canSetContragent = pos_Receipts::haveRightFor('setcontragent', $rec);
         
-        if(!empty($string)){
+        $tpl = new core_ET("");
+        if($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId){
+            $contragents = array();
             
-            $stringInput = core_Type::getByName('varchar')->fromVerbal($string);
-            if($cardRec = crm_ext_Cards::fetch("#number = '{$stringInput}'")){
-                $contragents["{$cardRec->contragentClassId}|{$cardRec->contragentId}"] = (object)array('contragentClassId' => $cardRec->contragentClassId, 'contragentId' => $cardRec->contragentId, 'title' => cls::get($cardRec)->getTitleById($cardRec->contragentId));
-            }
-            
-            $personClassId = crm_Persons::getClassId();
-            $companyClassId = crm_Companies::getClassId();
-            
-            $cQuery = crm_Companies::getQuery();
-            $cQuery->fetch("#vatId = '{$stringInput}' OR #uicId = '{$stringInput}'");
-            $cQuery->show('id,folderId');
-            while($cRec = $cQuery->fetch()){
-                $contragents["{$companyClassId}|{$cRec->id}"] = (object)array('contragentClassId' => crm_Companies::getClassId(), 'contragentId' => $cRec->id, 'title' => crm_Companies::getTitleById($cRec->id));
-            }
-            
-            $pQuery = crm_Persons::getQuery();
-            $pQuery->fetch("#egn = '{$stringInput}' OR #vatId = '{$stringInput}'");
-            $pQuery->show('id,folderId');
-            while($pRec = $pQuery->fetch()){
-                $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => crm_Persons::getTitleById($cRec->id));
+            if(!empty($string)){
+                
+                $stringInput = core_Type::getByName('varchar')->fromVerbal($string);
+                if($cardRec = crm_ext_Cards::fetch("#number = '{$stringInput}'")){
+                    $contragents["{$cardRec->contragentClassId}|{$cardRec->contragentId}"] = (object)array('contragentClassId' => $cardRec->contragentClassId, 'contragentId' => $cardRec->contragentId, 'title' => cls::get($cardRec)->getTitleById($cardRec->contragentId));
+                }
+                
+                $personClassId = crm_Persons::getClassId();
+                $companyClassId = crm_Companies::getClassId();
+                
+                $cQuery = crm_Companies::getQuery();
+                $cQuery->fetch("#vatId = '{$stringInput}' OR #uicId = '{$stringInput}'");
+                $cQuery->show('id,folderId');
+                while($cRec = $cQuery->fetch()){
+                    $contragents["{$companyClassId}|{$cRec->id}"] = (object)array('contragentClassId' => crm_Companies::getClassId(), 'contragentId' => $cRec->id, 'title' => crm_Companies::getTitleById($cRec->id));
+                }
+                
+                $pQuery = crm_Persons::getQuery();
+                $pQuery->fetch("#egn = '{$stringInput}' OR #vatId = '{$stringInput}'");
+                $pQuery->show('id,folderId');
+                while($pRec = $pQuery->fetch()){
+                    $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => crm_Persons::getTitleById($cRec->id));
+                }
             }
             
             foreach (array('crm_Companies', 'crm_Persons') as $ContragentClass){
                 $cQuery = $ContragentClass::getQuery();
                 $stringInput = plg_Search::normalizeText($stringInput);
                 plg_Search::applySearch($stringInput, $cQuery);
-                
                 $cQuery->where("#state != 'rejected' AND #state != 'closed'");
                 $cQuery->show('id,folderId');
                 
@@ -750,22 +755,58 @@ class pos_Terminal extends peripheral_Terminal
                 }
             }
             
-            $canSetContragent = pos_Receipts::haveRightFor('setcontragent', $rec);
+            
             $cnt = 0;
             foreach ($contragents as $obj){
-                $setContragentUrl = ($canSetContragent === true) ? array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $obj->contragentClassId, 'contragentId' => $obj->contragentId, 'ret_url' => true) : array();
-                $holderDiv = ht::createElement('div', array("id" => "contragent{$cnt}", 'class' => 'posResultContragent navigable'), $obj->title, true);
-                $holderDiv = ht::createLink($holderDiv, $setContragentUrl);
+                $setContragentUrl = toUrl(array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $obj->contragentClassId, 'contragentId' => $obj->contragentId, 'ret_url' => true));
+                $divAttr = array("id" => "contragent{$cnt}", 'class' => 'posResultContragent posBtns navigable', 'data-url' => $setContragentUrl);
+                if(!$canSetContragent){
+                    $divAttr['disabled'] = 'disabled';
+                    $divAttr['disabledBtn'] = 'disabledBtn';
+                    unset($divAttr['data-url']);
+                }
                 
-                $tpl->append($holderDiv, 'CONTRAGENT_BTNS');
+                $holderDiv = ht::createElement('div', $divAttr, $obj->title, true);
+                $tpl->append($holderDiv);
                 $cnt++;
             }
+        } else {
+            $tpl = new core_ET("");
+            
+            // Добавя бутон за прехвърляне към папката на контрагента
+            $setDefaultContragentUrl = toUrl(array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $defaultContragentClassId, 'contragentId' => $defaultContragentId, 'ret_url' => true));
+            $transferDivAttr = $divAttr = array("id" => "contragent0", 'class' => 'posResultContragent posBtns', 'data-url' => $setDefaultContragentUrl);
+            
+            $transferDivAttr['id'] = "contragent1";
+            $transferDivAttr['data-url'] = toUrl(array('pos_Receipts', 'transfer', $rec->id, 'contragentClassId' => $rec->contragentClass, 'contragentId' => $rec->contragentObjectId));
+            if(!pos_Receipts::haveRightFor('transfer')){
+                $transferDivAttr['disabled'] = 'disabled';
+                $transferDivAttr['class'] .= ' disabledBtn';
+                unset($transferDivAttr['data-url']);
+            } else {
+                $transferDivAttr['class'] .= ' navigable';
+            }
+            
+            // Добавя бутон за премахване на избрания контрагент
+            $holderDiv = ht::createElement('div', $transferDivAttr, 'Прехвърляне', true);
+            $tpl->append($holderDiv);
+            if(!$canSetContragent){
+                $divAttr['disabled'] = 'disabled';
+                $divAttr['class'] .= ' disabledBtn';
+                unset($divAttr['data-url']);
+            } else {
+                $divAttr['class'] .= ' navigable';
+            }
+            
+            $holderDiv = ht::createElement('div', $divAttr, 'Премахване', true);
+            $tpl->append($holderDiv);
+            
         }
+       
+        //$tpl = new core_ET(tr("|*<div class='contragentOtherBtnHolder'>[#OTHER_BTNS#]</div><div class='divider'>|Избор на контрагент|*</div><div class='contragentBtnHolder'>[#CONTRAGENT_BTNS#]</div>"));
         
-        if(pos_Receipts::haveRightFor('transfer')){
-            $btn = ht::createBtn('Прехвърляне', array('pos_Receipts', 'transfer', $rec->id, 'contragentClassId' => $rec->contragentClass, 'contragentId' => $rec->contragentObjectId), 'Наистина ли желаете да прехвърлите бележката|*?', false, array('class' => 'posBtns'));
-            $tpl->append($btn, 'OTHER_BTNS');
-        }
+        
+        
         
         return $tpl;
     }
@@ -837,7 +878,7 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultPayment($rec, $string, $selectedRec)
     {
-        $tpl = new core_ET(tr("|*<div class='paymentBtnsHolder'>[#PAYMENTS#]</div><div class='divider'>|Завършване|*</div>[#CLOSE_BTNS#]"));
+        $tpl = new core_ET(tr("|*<div class='paymentBtnsHolder'>[#PAYMENTS#]</div><div class='divider'>|Приключване|*</div>[#CLOSE_BTNS#]"));
         
         $payUrl = (pos_Receipts::haveRightFor('pay', $rec)) ? toUrl(array('pos_ReceiptDetails', 'makePayment', 'receiptId' => $rec->id), 'local') : null;
         $disClass = ($payUrl) ? 'navigable' : 'disabledBtn';
