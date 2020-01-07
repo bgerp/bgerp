@@ -1286,7 +1286,7 @@ class crm_Profiles extends core_Master
         
         
         if ($mvc->haveRightFor('add')) {
-            if (count(self::prepareUnusedUserOptions($data, 1))) {
+            if (countR(self::prepareUnusedUserOptions($data, 1))) {
                 $toolbar->addBtn(
                     'Асоцииране',
                     array(

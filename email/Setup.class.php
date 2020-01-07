@@ -236,6 +236,12 @@ defIfNot('EMAIL_SERVICEMAILS_KEEP_DAYS', 7889238);
 
 
 /**
+ * Процент на съвпадание в имената на имейлите, които липсват
+ */
+defIfNot('EMAIL_CLOSEST_EMAIL_PERCENT', 80);
+
+
+/**
  * class email_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -366,6 +372,8 @@ class email_Setup extends core_ProtoSetup
         'EMAIL_SHOW_THREAD_IN_EXTERNAL' => array('enum(yes=Да, no=Не)', 'caption=Преглед на нишката с имейлите във външната част->Показване'),
             
         'EMAIL_SERVICEMAILS_KEEP_DAYS' => array('time(suggestions=3 месеца|6 месеца|1 година,unit=days)', 'caption=Време за съхранение на сервизните имейли->Време'),
+        
+        'EMAIL_CLOSEST_EMAIL_PERCENT' => array('int(min=0,max=100)', 'caption=Съвпадание в имената на имейлите|*&comma;|ако липсват->Процент'),
     );
     
     

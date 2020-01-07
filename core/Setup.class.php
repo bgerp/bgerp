@@ -227,6 +227,12 @@ defIfNot('CORE_BACKUP_ENABLED', 'no');
 
 
 /**
+ * Включена ли е бекъп функционалността?
+ */
+defIfNot('CORE_BACKUP_MAX_CNT', 2);
+
+
+/**
  * Парола за архиви
  */
 defIfNot('CORE_BACKUP_PASS', '');
@@ -378,7 +384,9 @@ class core_Setup extends core_ProtoSetup
         
         'CORE_BACKUP_ENABLED' => array('enum(no=Не, yes=Да)', 'caption=Настройки за бекъп->Включен бекъп'),
         
-        'CORE_BACKUP_PASS' => array('password', 'caption=Настройки за бекъп->Ключ за криптиране'),
+        'CORE_BACKUP_MAX_CNT' => array('enum(1=1,2=2,3=3,4=4,5=5,6=6,7=7)', 'caption=Настройки за бекъп->Макс. брой'),
+        
+        'CORE_BACKUP_PASS' => array('password(show)', 'caption=Настройки за бекъп->Ключ за криптиране'),
         
         'CORE_BACKUP_SQL_LOG_FLUSH_PERIOD' => array('time', 'caption=Настройки за бекъп->Запис на SQL лог през'),
         
@@ -550,17 +558,16 @@ class core_Setup extends core_ProtoSetup
             $html .= core_Cron::addOnce($rec);
             $html .= core_Os::createDirectories(
                 array(
-                    core_Backup::getDir('current'),
-                    core_Backup::getDir('past'),
-                    core_Backup::getDir('sql_log'),
+                    core_Backup::getDir(),
                     core_Backup::getDir('backup_work'),
-                ), 0744
+                ),
+                0744
             );
             core_SystemData::set('flagDoSqlLog');
         } else {
             core_Cron::delete("#systemId = 'Backup_Create'");
             core_Cron::delete("#systemId = 'Sql_Log_Flush'");
-            core_SystemData::set('removeDoSqlLog');
+            core_SystemData::remove('flagDoSqlLog');
         }
         
         

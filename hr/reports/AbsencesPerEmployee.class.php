@@ -50,7 +50,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         $fieldset->FLD('days', 'int', 'caption=Период,unit=дни,after=from,single=none,mandatory');
         $fieldset->FLD('numberOfPeriods', 'int', 'caption=Периоди,after=days,single=none');
         $fieldset->FLD('type', 'set(leave=Отпуска, sick=Болничен, trips=Командировка)', 'notNull,caption=Причина за отсъствието,maxRadio=3,after=periods,single=none');
-        $fieldset->FLD('employee', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal,allowEmpty)', 'caption=Служител,after=to,single=none');
+        $fieldset->FLD('employee', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Служител,after=to,single=none');
         
         $fieldset->FNC('periods', 'date', 'caption=Периоди,input=none,single=none');
         $fieldset->FNC('to', 'date', 'caption=До,input=none,single=none');
@@ -158,21 +158,32 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
             
             $tripsQuery->where("#state != 'rejected'");
             
+            
+            
+            
+            
             if ($rec->employee) {
                 $employees = type_Keylist::toArray($rec->employee);
                 
-                foreach ($employees as $v) {
-                    $employees[$v] = crm_Profiles::getProfile($v)->id;
+                if (core_Users::haveRole('ceo') && in_array(-1, $employees)){
+                    
+                    $sickdaysQuery->where('#personId IS NOT NULL');
+                    $leavesQuery->where('#personId IS NOT NULL');
+                    $tripsQuery->where('#personId IS NOT NULL');
+                    
+                }else{
+                    foreach ($employees as $v) {
+                        $employees[$v] = crm_Profiles::getProfile($v)->id;
+                    }
+                    $sickdaysQuery->where('#personId IS NOT NULL');
+                    $sickdaysQuery->in('personId', $employees);
+                    
+                    $leavesQuery->where('#personId IS NOT NULL');
+                    $leavesQuery->in('personId', $employees);
+                    
+                    $tripsQuery->where('#personId IS NOT NULL');
+                    $tripsQuery->in('personId', $employees);
                 }
-                
-                $sickdaysQuery->where('#personId IS NOT NULL');
-                $sickdaysQuery->in('personId', $employees);
-                
-                $leavesQuery->where('#personId IS NOT NULL');
-                $leavesQuery->in('personId', $employees);
-                
-                $tripsQuery->where('#personId IS NOT NULL');
-                $tripsQuery->in('personId', $employees);
             }
             
             // Болнични

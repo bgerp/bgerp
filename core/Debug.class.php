@@ -567,7 +567,8 @@ class core_Debug
             'wp:',
             'trigger:core_error',
             'error:',
-            'expect:'
+            'expect:',
+            'expect404:'
         );
         
         $breakpointPos = $breakFile = $breakLine = null;
