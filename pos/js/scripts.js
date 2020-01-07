@@ -318,7 +318,7 @@ function posActions() {
 	if($('.navigable').length) {
 
 		var focused = sessionStorage.getItem('focused');
-		if (focused && document.getElementById(focused)) {
+		if (focused && $(focused).hasClass('navigable') && document.getElementById(focused)) {
 			$('.selected').removeClass('selected');
 			$('#' + focused).addClass('selected');
 		}
@@ -842,7 +842,7 @@ function deleteElement() {
 function render_prepareResult() {
 	if($('.navigable').length) {
 		var focused = sessionStorage.getItem('focused');
-		if (focused && document.getElementById(focused)) {
+		if (focused && $(focused).hasClass('navigable') && document.getElementById(focused)) {
 			$('.selected').removeClass('selected');
 			$('#' + focused).addClass('selected');
 		}
