@@ -289,7 +289,7 @@ class cat_Listings extends core_Master
                 $query->where("#state = 'active'");
             }
             
-            if (is_array($instock) && count($instock)) {
+            if (is_array($instock) && countR($instock)) {
                 
                 // Артикулите се подреждат така че наличните в склада да са по-напред
                 $instock = implode(',', $instock);
@@ -404,7 +404,7 @@ class cat_Listings extends core_Master
             $found[] = '<b>' . cls::get($cRec->cClass)->getTitleById($cRec->cId) . '</b>';
         }
         
-        if (count($found)) {
+        if (countR($found)) {
             $implode = implode(', ', $found);
             core_Statuses::newStatus('Документа не може да се оттегли, защото е избран като търговско условие за|* ' . $implode, 'warning');
             
@@ -443,7 +443,7 @@ class cat_Listings extends core_Master
         
         // Извличат се папките им
         $folders = arr::extractValuesFromArray($query->fetchAll(), 'folderId');
-        $count = count($folders);
+        $count = countR($folders);
         if (!$count) {
             
             return;
@@ -503,7 +503,7 @@ class cat_Listings extends core_Master
             $dQuery->orderBy('count,saleId', 'DESC');
             $all = $dQuery->fetchAll();
             
-            if (!count($all)) {
+            if (!countR($all)) {
                 continue;
             }
             $products = arr::extractSubArray($all, 'productId,packagingId');
@@ -549,17 +549,17 @@ class cat_Listings extends core_Master
             $res = arr::syncArrays($newDetails, $old, 'productId,packagingId', 'packagingId');
             
             // Инсърт на новите
-            if (count($res['insert'])) {
+            if (countR($res['insert'])) {
                 cat_ListingDetails::saveArray($res['insert']);
             }
             
             // Ъпдейт на старите
-            if (count($res['update'])) {
+            if (countR($res['update'])) {
                 cat_ListingDetails::saveArray($res['update'], 'packagingId');
             }
             
             // Изтриване на тези дето не се срещат
-            if (count($res['delete'])) {
+            if (countR($res['delete'])) {
                 $delete = implode(',', $res['delete']);
                 cat_ListingDetails::delete("#id IN ({$delete})");
             }
@@ -601,7 +601,7 @@ class cat_Listings extends core_Master
         
         $pQuery = cat_Products::getQuery();
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+            if (!countR($onlyIds)) {
                 
                 return array();
             }

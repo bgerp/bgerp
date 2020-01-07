@@ -368,7 +368,7 @@ class cat_products_SharedInFolders extends core_Manager
         
         // Избираме всички публични артикули, или частните за тази папка
         $query->where("#isPublic = 'yes'");
-        if (count($sharedProducts)) {
+        if (countR($sharedProducts)) {
             $sharedProducts = implode(',', $sharedProducts);
             $query->orWhere("#isPublic = 'no' AND (#folderId = {$folderId} OR #id IN ({$sharedProducts}))");
         } else {

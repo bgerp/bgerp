@@ -415,7 +415,7 @@ abstract class deals_DealDetail extends doc_Detail
         if (!empty($data->toolbar->buttons['btnAdd'])) {
             $masterRec = $data->masterData->rec;
             
-            if (!count(cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, null, 1))) {
+            if (!countR(cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, null, 1))) {
                 $error = 'error=Няма продаваеми артикули, ';
             }
             
