@@ -1500,7 +1500,7 @@ class pos_Terminal extends peripheral_Terminal
         $contragentName = str::limitLen($contragentName, 14);
         $num .= "/{$contragentName}";
         
-        $title = "{$num}<br><span class='spanDate'>{$date}</span> <span class='receiptResultAmount'>{$amountVerbal}</span>";
+        $title = "{$num}<div class='nowrap'><span class='spanDate'>{$date}</span> <span class='receiptResultAmount'>{$amountVerbal}</span></div>";
        
         return $title;
     }

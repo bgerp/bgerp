@@ -240,7 +240,7 @@
   padding: 10px 20px;
   width: 249px;
   height: 64px !important;
-  margin: 5px 5px 10px 10px;
+  margin: 5px 5px 10px 7px;
   color: white;
   font-family: Arial;
   font-size: 1.3em;
@@ -545,7 +545,7 @@
   color: red; }
 
 .receiptResultAmount {
-  font-size: 0.9em; }
+  margin-left: 25px; }
 
 .storeQuantityInStock {
   font-size: 0.8em; }
