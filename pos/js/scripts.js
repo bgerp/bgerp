@@ -490,7 +490,7 @@ function posActions() {
 		var url = $(this).attr("data-url");
 		var operation = getSelectedOperation();
 		
-		if(!url){
+		if(!url || $(this).hasClass('disabledBtn')){
 			return;
 		}
 		
@@ -1007,6 +1007,26 @@ function afterload()
 function disableOrEnableEnlargeBtn()
 {
 	var focused = sessionStorage.getItem('focused');
+	var focusedElement = $("#" + focused);
 	
-	console.log("a " + focused);
+	if(focusedElement.length){
+		if(focusedElement.hasClass('enlargable')){
+			$(".enlargeProductBtn").removeClass('disabledBtn');
+			$(".enlargeProductBtn").removeAttr("disabled");
+			
+			console.log(focusedElement);
+			
+			var enlargeClassId = focusedElement.attr("data-enlarge-class-id");
+			var enlargeObjectId = focusedElement.attr("data-enlarge-object-id");
+			
+			focusedElement.attr('disabled', 'disabled');
+			focusedElement.attr('disabled', 'disabled');
+			console.log(enlargeClassId, enlargeObjectId);
+			
+		} else {
+			$(".enlargeProductBtn").addClass('disabledBtn');
+			$(".enlargeProductBtn").attr('disabled', 'disabled');
+		}
+	}
+	
 }
