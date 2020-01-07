@@ -106,6 +106,10 @@ function posActions() {
 	 * @returns
 	 */
 	$(document.body).on('keyup', "input[name=ean]", function(e){
+		
+		// Хак да не се тригърва ивента при натискане на ентър на страницата за избор на селектиран елемент
+		if(e.key == "Enter") return;
+		
 		// След всяко натискане на бутон изчистваме времето на изчакване
 		clearTimeout(timeout);
 
