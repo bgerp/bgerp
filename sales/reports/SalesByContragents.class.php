@@ -322,7 +322,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $id = $contragentId;
             
             if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                if ($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos) {
+                if ($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos) 
                     if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
                         $sellValuePrevious = (- 1) * $recPrime->sellCost * $recPrime->quantity;
                         $deltaPrevious = (- 1) * $recPrime->delta;
@@ -341,7 +341,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                         
                         // Масив сделки
                         if (!is_array($salesArr[$id])) {
-                            $salesArr[$id] = array();
+                            $salesArrPrev[$id] = array();
                         }
                         
                         if ($DetClass instanceof sales_SalesDetails) {
@@ -351,9 +351,9 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                             $saleId=doc_Threads::getFirstDocument($recPrime->threadId)->that;
                             
                         }
-                        
-                        if (!in_array($saleId, $salesArr[$id])) {
-                            array_push($salesArr[$id], $saleId);
+                        {
+                        if (!in_array($saleId, $salesArrPrev[$id])) {
+                            array_push($salesArrPrev[$id], $saleId);
                         }
                     }
                 }
@@ -380,7 +380,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     
                     // Масив сделки
                     if (!is_array($salesArr[$id])) {
-                        $salesArr[$id] = array();
+                        $salesArrLast[$id] = array();
                     }
                     
                     if ($DetClass instanceof sales_SalesDetails) {
@@ -391,8 +391,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                         
                     }
                     
-                    if (!in_array($saleId, $salesArr[$id])) {
-                        array_push($salesArr[$id], $saleId);
+                    if (!in_array($saleId, $salesArrLast[$id])) {
+                        array_push($salesArrLast[$id], $saleId);
                     }
                 }
             }
@@ -536,7 +536,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         }
         
         $recs = $tempArr;
-        
+       
         foreach ($recs as $v) {
             $v->groupValues = $groupValues[$v->groupList];
             $v->groupDeltas = $groupDeltas[$v->groupList];
@@ -790,6 +790,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         }
         
         $row->articles = core_Type::getByName('int')->toVerbal($dRec->unicart);
+        
         $row->sales = core_Type::getByName('int')->toVerbal($dRec->salesArr);
         
         if ($rec->compare != 'no') {
