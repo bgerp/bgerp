@@ -449,7 +449,7 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $logoutImg = ht::createImg(array('path' => 'pos/img/exit.png'));
-        $buttons["exit"] = (object)array('body' => $logoutImg, 'attr' => array('title' => 'Излизане от системата'), 'linkUrl' => array('core_Users', 'logout', 'ret_url' => true));
+        $buttons["exit"] = (object)array('body' => $logoutImg, 'attr' => array('class' => 'logout', 'title' => 'Излизане от системата'), 'linkUrl' => array('core_Users', 'logout', 'ret_url' => true));
        
         // Добавяне на бутоните за операции + шорткътите към тях
         foreach ($buttons as $key => $btnObj){

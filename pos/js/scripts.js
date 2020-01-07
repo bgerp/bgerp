@@ -492,7 +492,6 @@ function posActions() {
 
 		openModal();
 	});
-
 	// При натискане на бутона за клавиатура
 	$(document.body).on('click', ".keyboardBtn", function(e){
 		
@@ -537,13 +536,34 @@ function posActions() {
 		openClient();
 	});
 
-	$("body").setShortcutKey( ALT , B ,function() {
+	$("body").setShortcutKey( ALT , R ,function() {
 		openReceipt();
 	});
 
-	$("body").setShortcutKey( ALT , R ,function() {
-		openRevert();
+	$("body").setShortcutKey( ALT , B ,function() {
+		openBatch();
 	});
+
+	$("body").setShortcutKey( ALT , F ,function() {
+		openInfo();
+	});
+	
+	$("body").setShortcutKey( ALT , N3 ,function() {
+		openPrint();
+	});
+
+	$("body").setShortcutKey( ALT , V ,function() {
+		openKeyboard();
+	});
+
+	$("body").setShortcutKey( ALT , N ,function() {
+		openReject();
+	});
+
+	$("body").setShortcutKey( ALT , X ,function() {
+		logout();
+	});
+
 	var timeoutAlt;
 	$("body").setShortcutKey(null,  ALT,function() {
 		showHints();
@@ -560,6 +580,10 @@ function posActions() {
 	})
 
 }
+function openInfo() {
+	$('.enlargeProductBtn').click();
+}
+
 function showHints(){
 	if ($('.buttonOverlay').css('display') == "none") {
 		$('.buttonOverlay').fadeIn();
@@ -573,8 +597,12 @@ function hideHints(){
 function openReceipt() {
 	$('.operationBtn[data-value="receipts"]').click();
 }
-function openRevert() {
-	$('.operationBtn[data-value="revert"]').click();
+function openKeyboard() {
+	$('.keyboardBtn').click();
+}
+
+function openPrint() {
+	$('.printBtn').click();
 }
 function openClient() {
 	$('.operationBtn[data-value="contragent"]').click();
@@ -585,11 +613,25 @@ function openDiscount() {
 		$('.operationBtn[data-value="discount"]').click();
 	}
 }
+function logout() {
+	$('.logout.operationHolder').closest('a');
+}
+function openReject() {
+	if ($('.rejectBtn').length) {
+		$('.rejectBtn').parent().click();
+	}
+}
 function openText() {
 	if ($('.operationBtn[data-value="text"]').length) {
 		$('.operationBtn[data-value="text"]').click();
 	}
 }
+function openBatch() {
+	if ($('.operationBtn[data-value="batch"]').length) {
+		$('.operationBtn[data-value="batch"]').click();
+	}
+}
+
 function openPrice() {
 	if ($('.operationBtn[data-value="price"]').length) {
 		$('.operationBtn[data-value="price"]').click();
