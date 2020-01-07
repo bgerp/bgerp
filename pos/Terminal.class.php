@@ -1496,18 +1496,12 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $num = pos_Receipts::getReceiptShortNum($rec->id);
+        $contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
+        $contragentName = str::limitLen($contragentName, 14);
+        $num .= "/{$contragentName}";
         
-        // Показване на името на контрагента
-        $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
-        $defaultContragentClassId = crm_Persons::getClassId();
-        if(!($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId)){
-            $contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
-            $contragentName = str::limitLen($contragentName, 10);
-            $num .= "/{$contragentName}";
-        }
-        
-        $title = "{$num}/ {$date}</br> <span class='receiptResultAmount'>{$amountVerbal}</span>";
-        
+        $title = "{$num}<br><span class='spanDate'>{$date}</span> <span class='receiptResultAmount'>{$amountVerbal}</span>";
+       
         return $title;
     }
     
