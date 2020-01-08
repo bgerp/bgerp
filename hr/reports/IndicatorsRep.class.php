@@ -370,7 +370,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
     {
         $arr = array();
         $formulaIndicators = hr_Indicators::getIndicatorsInFormula($formula);
-        if (!count($formulaIndicators)) {
+        if (!countR($formulaIndicators)) {
             
             return $arr;
         }
