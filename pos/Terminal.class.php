@@ -293,7 +293,11 @@ class pos_Terminal extends peripheral_Terminal
                 }
                 
                 $preview = cat_Products::getPreview($productRec->id, array('400', '400'), array('650', '650'));
-                $row->name = cat_Products::getTitleById($productRec->id);
+
+                $name = cat_Products::getTitleById($productRec->id);
+                if(mb_strlen($name) > 60) {
+                    $row->name = cat_Products::getTitleById($productRec->id);
+                }
                 if (!empty($preview)) {
                     $row->preview = $preview;
                 }
