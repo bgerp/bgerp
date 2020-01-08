@@ -483,7 +483,7 @@ function posActions() {
 		getEfae().process(resObj, {string:storeId,recId:selectedRecId});
 	});
 	
-	// При натискане на бутона за показване на подробна информация за артикула
+	// При натискане на бутона за показване на подробна информация избрания елемент
 	$(document.body).on('click', ".enlargeProductBtn", function(e){
 		
 		var url = $(this).attr("data-url");
@@ -493,18 +493,18 @@ function posActions() {
 			return;
 		}
 		
-		var selectedElement = $(".highlighted.productRow");
-		var selectedRecId = selectedElement.attr("data-id");
-		
-		if(!selectedRecId || selectedRecId == undefined) return;
+		var enlargeClassId = $(this).attr("data-enlarge-class-id");
+		var enlargeObjectId = $(this).attr("data-enlarge-object-id");
+		var enlargeTitle = $(this).attr("data-enlarge-title");
 		
 		resObj = new Object();
 		resObj['url'] = url;
-		
-		getEfae().process(resObj, {recId:selectedRecId});
+		console.log(url, enlargeClassId, enlargeObjectId);
+		getEfae().process(resObj, {enlargeClassId:enlargeClassId,enlargeObjectId:enlargeObjectId});
 
-		openModal();
+		openModal(enlargeTitle);
 	});
+	
 	// При натискане на бутона за клавиатура
 	$(document.body).on('click', ".keyboardBtn", function(e){
 		
@@ -515,7 +515,7 @@ function posActions() {
 		resObj['url'] = url;
 		getEfae().process(resObj, {string:string});
 
-		openModal();
+		openModal("");
 	});
 	
 	$("body").setShortcutKey( ALT , D ,function() {
@@ -943,18 +943,18 @@ function enter() {
 	var selectedElement = $(".highlighted.productRow");
 	var selectedRecId = selectedElement.attr("data-id");
 
-
 	getEfae().process(resObj, {string:value,recId:selectedRecId});
 }
 
 
 // Отваря модала
-function openModal() {
+function openModal(title) {
 	dialog = $("#modalContent").dialog({
 		autoOpen: false,
 		height: 700,
 		width: 1000,
-		modal: true
+		modal: true,
+		title: title,
 	});
 
 	dialog.dialog( "open" );
@@ -1011,6 +1011,7 @@ function afterload() {
 	disableOrEnableEnlargeBtn();
 }
 
+// Активира или закрива бутона за подробна информация на артикула
 function disableOrEnableEnlargeBtn()
 {
 	var focused = sessionStorage.getItem('focused');
@@ -1021,17 +1022,16 @@ function disableOrEnableEnlargeBtn()
 			$(".enlargeProductBtn").removeClass('disabledBtn');
 			$(".enlargeProductBtn").removeAttr("disabled");
 
-			
 			var enlargeClassId = focusedElement.attr("data-enlarge-class-id");
 			var enlargeObjectId = focusedElement.attr("data-enlarge-object-id");
+			var enlargeTitle= focusedElement.attr("data-enlarge-title");
 			
-			focusedElement.attr('disabled', 'disabled');
-			focusedElement.attr('disabled', 'disabled');
-			
+			$(".enlargeProductBtn").attr('data-enlarge-title', enlargeTitle);
+			$(".enlargeProductBtn").attr('data-enlarge-class-id', enlargeClassId);
+			$(".enlargeProductBtn").attr('data-enlarge-object-id', enlargeObjectId);
 		} else {
 			$(".enlargeProductBtn").addClass('disabledBtn');
 			$(".enlargeProductBtn").attr('disabled', 'disabled');
 		}
 	}
-	
 }

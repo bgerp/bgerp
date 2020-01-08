@@ -252,27 +252,47 @@ class pos_Terminal extends peripheral_Terminal
      * 
      * @return array $res
      */
-    public function act_EnlargeProduct()
+    public function act_EnlargeElement()
     {
-        $id = Request::get('recId', 'int');
-        $rec = pos_ReceiptDetails::fetch($id);
-        if(empty($rec->id)) {
+        $enlargeClassId = Request::get('enlargeClassId', 'int');
+        $enlargeObjectId = Request::get('enlargeObjectId', 'int');
+        
+        if(empty($enlargeClassId) || empty($enlargeObjectId)) {
             
             return array();
         }
         
-        $document = doc_Containers::getDocument(cat_Products::fetchField($rec->productId, 'containerId'));
+        
+        $modalContent = '';
+        switch ($enlargeClassId){
+            case cat_Products::getClassId():
+                $modalContent = 'ART';
+                break;
+            case crm_Persons::getClassId():
+            case crm_Companies::getClassId():
+                $modalContent = 'COMPI';
+                break;
+            case pos_Receipts::getClassId():
+                $modalContent = 'Receipt';
+                break;
+            default:
+                return array();
+                break;
+        }
+        
+        
+        //$document = doc_Containers::getDocument(cat_Products::fetchField($rec->productId, 'containerId'));
         
         // Рендиране на изгледа на артикула
-        Mode::push('noBlank', true);
-        $docHtml = $document->getInlineDocumentBody('xhtml');
-        Mode::pop('noBlank', true);
+        //Mode::push('noBlank', true);
+        //$docHtml = $document->getInlineDocumentBody('xhtml');
+       // Mode::pop('noBlank', true);
         
         // Ще се реплейсва и пулта
         $res = array();
         $resObj = new stdClass();
         $resObj->func = 'html';
-        $resObj->arg = array('id' => 'modalContent', 'html' => $docHtml->getContent(), 'replace' => true);
+        $resObj->arg = array('id' => 'modalContent', 'html' => $modalContent, 'replace' => true);
         $res[] = $resObj;
         
         return $res;
@@ -751,7 +771,7 @@ class pos_Terminal extends peripheral_Terminal
             $cnt = 0;
             foreach ($contragents as $obj){
                 $setContragentUrl = toUrl(array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $obj->contragentClassId, 'contragentId' => $obj->contragentId, 'ret_url' => true));
-                $divAttr = array("id" => "contragent{$cnt}", 'class' => 'posResultContragent posBtns navigable enlargable', 'data-url' => $setContragentUrl, 'data-enlarge-object-id' => $obj->contragentId, 'data-enlarge-class-id' => $obj->contragentClassId);
+                $divAttr = array("id" => "contragent{$cnt}", 'class' => 'posResultContragent posBtns navigable enlargable', 'data-url' => $setContragentUrl, 'data-enlarge-object-id' => $obj->contragentId, 'data-enlarge-class-id' => $obj->contragentClassId, 'data-enlarge-title' => strip_tags($obj->title));
                 if(!$canSetContragent){
                     $divAttr['disabled'] = 'disabled';
                     $divAttr['disabledBtn'] = 'disabledBtn';
@@ -1360,6 +1380,8 @@ class pos_Terminal extends peripheral_Terminal
             $data->rows[$id]->DATA_URL = (pos_ReceiptDetails::haveRightFor('add', $obj)) ? toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $data->rec->id), 'local') : null;
             $data->rows[$id]->DATA_ENLARGE_OBJECT_ID = $id;
             $data->rows[$id]->DATA_ENLARGE_CLASS_ID = cat_Products::getClassId();
+            $data->rows[$id]->DATA_ENLARGE_TITLE = cat_Products::getTitleById($id);
+            
             $data->rows[$id]->id = $pRec->id;
             if(array_key_exists($id, $favouriteProductsArr)){
                 $data->rows[$id]->favouriteCategories = $favouriteProductsArr[$id];
@@ -1455,7 +1477,7 @@ class pos_Terminal extends peripheral_Terminal
             $class .= (count($openUrl)) ? ' navigable' : ' disabledBtn';
             $class .= ($receiptRec->id == $rec->id) ? ' currentReceipt' : '';
             
-            $row = ht::createLink(self::getReceiptTitle($receiptRec, false), $openUrl, null, array('id' => "receipt{$receiptRec->id}", 'class' => "pos-notes posBtns {$class} state-{$receiptRec->state} enlargable", 'title' => 'Отваряне на бележката', 'data-enlarge-object-id' => $receiptRec->id, 'data-enlarge-class-id' => pos_Receipts::getClassId()));
+            $row = ht::createLink(self::getReceiptTitle($receiptRec, false), $openUrl, null, array('id' => "receipt{$receiptRec->id}", 'class' => "pos-notes posBtns {$class} state-{$receiptRec->state} enlargable", 'title' => 'Отваряне на бележката', 'data-enlarge-object-id' => $receiptRec->id, 'data-enlarge-class-id' => pos_Receipts::getClassId(), 'data-enlarge-title' => strip_tags(pos_Receipts::getRecTitle($receiptRec))));
             $arr[$receiptRec->createdDate]->append($row, 'element');
         }
         
