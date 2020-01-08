@@ -358,12 +358,6 @@ function posActions() {
 		
 		var string = $("input[name=ean]").val();
 		
-		// ако операцията е същата но стринга е празен да не се изпълнява заявката
-		if(!string && operation == currentlySelected){
-			console.log('prevent trigger on repeated click');
-			return;
-		}
-		
 		resObj = new Object();
 		resObj['url'] = url;
 		

@@ -214,7 +214,8 @@ class pos_ReceiptDetails extends core_Detail
         expect($receiptId = Request::get('receiptId', 'int'));
         expect($receiptRec = pos_Receipts::fetch($receiptId));
         $success = true;
-       
+        $skip = false;
+        
         try{
             $id = Request::get('recId', 'int');
             $id = isset($id) ? $id : self::getLastRec($receiptId, 'sale')->id;
@@ -277,16 +278,25 @@ class pos_ReceiptDetails extends core_Detail
                     break;
                case 'setdiscount':
                    $discount = core_Type::getByName('percent')->fromVerbal($firstValue);
-                   expect(isset($discount), 'Не е въведена валидна отстъпка');
-                   expect($discount >= 0 && $discount <= 1, 'Отстъпката трябва да е между 0% и 100%');
-                   $rec->discountPercent = $discount;
-                   $sucessMsg = 'Отстъпката на реда е променена|*!';
+                   if(isset($discount)){
+                       expect($discount >= 0 && $discount <= 1, 'Отстъпката трябва да е между 0% и 100%');
+                       $rec->discountPercent = $discount;
+                       $sucessMsg = 'Отстъпката на реда е променена|*!';
+                   } else {
+                       $skip = true;
+                   }
+                   
                    break;
                case 'setprice':
-                   expect($price = core_Type::getByName('double')->fromVerbal($firstValue), 'Не е зададена цена');
-                   $price /= 1 + $rec->param;
-                   $rec->price = $price;
-                   $sucessMsg = 'Цената на реда е променена|*!';
+                   if(!empty($firstValue)){
+                       expect($price = core_Type::getByName('double')->fromVerbal($firstValue), 'Не е зададена цена');
+                       $price /= 1 + $rec->param;
+                       $rec->price = $price;
+                       $sucessMsg = 'Цената на реда е променена|*!';
+                   } else {
+                       $skip = true;
+                   }
+                   
                    break;
                case 'settext':
                    $text = core_Type::getByName('text')->fromVerbal($firstValue);
@@ -335,7 +345,7 @@ class pos_ReceiptDetails extends core_Detail
                    break;
             }
             
-            if($this->save($rec)){
+            if($this->save($rec) && $skip !== true){
                 $this->Master->logInAct($sucessMsg, $receiptId);
                 
                 Mode::setPermanent("currentSearchString{$receiptId}", null);
