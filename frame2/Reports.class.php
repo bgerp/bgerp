@@ -620,7 +620,7 @@ class frame2_Reports extends embed_Manager
                 $rec->brState = $rec->state;
                 $rec->state = 'closed';
                 $rec->refreshData = false;
-                $me->invoke('BeforeChangeState', array($rec, $rec->state));
+                $me->invoke('BeforeChangeState', array(&$rec, &$rec->state));
                 $me->save($rec, 'state,brState');
                 $me->logWrite('Затваряне на остаряла справка', $rec->id);
                 unset($me->setNewUpdateTimes[$rec->id]);

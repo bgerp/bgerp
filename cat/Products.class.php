@@ -3819,7 +3819,7 @@ class cat_Products extends embed_Manager
      *
      * @return mixed
      */
-    protected static function on_BeforeChangeState(core_Mvc $mvc, &$rec, $newState)
+    protected static function on_BeforeChangeState(core_Mvc $mvc, &$rec, &$newState)
     {
         if ($newState == 'closed' && $mvc->isUsedInActiveDeal($rec)) {
             core_Statuses::newStatus('Артикулът не може да бъде затворен, докато се използва в активни договори и/или задания', 'error');
