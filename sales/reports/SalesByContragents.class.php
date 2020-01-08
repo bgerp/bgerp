@@ -66,7 +66,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $fieldset->FLD('firstMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 1,after=compare,single=none,input=none');
         $fieldset->FLD('secondMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 2,after=firstMonth,single=none,input=none');
         $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци,single=none,mandatory,after=to');
-        $fieldset->FLD('orderBy', 'enum(saleValue=Продажби, delta=Делта,change=Промяна на продажбите,salesArr=Брой сделки,unicart=Брой артикули)', 'caption=Подреди по,after=dealers,silent,removeAndRefreshForm=see');
+        $fieldset->FLD('orderBy', 'enum(saleValue=Продажби, delta=Делта,change=Промяна на продажбите,salesArr=Брой сделки,unicart=Брой артикули)', 'caption=Подреди по,after=dealers,silent,refreshForm');
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=orderBy');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,after=contragent,single=none');
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Група артикули,after=crmGroup,single=none');
