@@ -316,7 +316,7 @@ class fconv_Script
         $cmdArr[0] = $binPath;
         $cmdLine = implode(' ', $cmdArr);
         
-        if (count($this->cmdParams)) {
+        if (countR($this->cmdParams)) {
             foreach ($this->cmdParams as $placeHolder => $value) {
                 $cmdLine = str_replace("[#{$placeHolder}#]", $value, $cmdLine);
             }
@@ -521,7 +521,7 @@ class fconv_Script
             }
         }
         
-        if (count($this->files)) {
+        if (countR($this->files)) {
             foreach ($this->files as $placeHolder => $file) {
                 if (strstr($file, '/')) {
                     $path_parts = pathinfo($file);
