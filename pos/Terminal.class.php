@@ -919,7 +919,7 @@ class pos_Terminal extends peripheral_Terminal
         $dataUrl = (pos_ReceiptDetails::haveRightFor('edit', $selectedRec)) ? toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setquantity'), 'local') : null;
         $dataChangeStoreUrl = (pos_ReceiptDetails::haveRightFor('edit', $selectedRec)) ? toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setstore'), 'local') : null;
         
-        $buttons = array();
+        $buttons = $storeBtns = $frequentPackButtons = array();
         $buttons[$measureId] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => $baseClass, 'data-pack' => $basePackName, 'data-url' => $dataUrl), tr($basePackName), true);
        
         // Добавяне на бутони за продуктовите опаковки
@@ -931,7 +931,7 @@ class pos_Terminal extends peripheral_Terminal
             $baseMeasureId = $measureId;
             $packRec->quantity = cat_Uom::round($baseMeasureId, $packRec->quantity);
             $packaging = "|{$packagingId}|*</br> <small>" . core_Type::getByName('double(smartRound)')->toVerbal($packRec->quantity) . " " . tr(cat_UoM::getSmartName($baseMeasureId, $packRec->quantity)) . "</small>";
-            $buttons[$packRec->packagingId] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => $baseClass, 'data-pack' => $packagingId, 'data-url' => $dataUrl), tr($packaging), true);
+            $buttons[] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => $baseClass, 'data-pack' => $packagingId, 'data-url' => $dataUrl), tr($packaging), true);
         }
         
         // Основната мярка/опаковка винаги е на първа позиция
@@ -952,14 +952,12 @@ class pos_Terminal extends peripheral_Terminal
             $quantity = core_Type::getByName('double(smartRound)')->toVerbal($productRec->quantity);
             Mode::pop('text', 'plain');
             if(!$productRec->value)  continue; // Да не гърми при лоши данни
-            
+            $packagingId = cat_UoM::getSmartName($productRec->value, 1);
             $btnCaption =  "{$quantity} " . tr(cat_UoM::getSmartName($productRec->value, $productRec->quantity));
-            $buttons["{$productRec->packagingId}|{$productRec->quantity}"] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => "{$baseClass} packWithQuantity", 'data-quantity' => $productRec->quantity, 'data-pack' => $packagingId, 'data-url' => $dataUrl), $btnCaption, true);
+            $frequentPackButtons[] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => "{$baseClass} packWithQuantity", 'data-quantity' => $productRec->quantity, 'data-pack' => $packagingId, 'data-url' => $dataUrl), $btnCaption, true);
         }
         
         $stores = pos_Points::getStores($rec->pointId);
-        $storeBtns = array();
-        
         if(countR($stores) > 1 && empty($rec->revertId)){
             $storeArr = array();
             foreach ($stores as $storeId){
@@ -980,9 +978,13 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
-        $tpl = new core_ET(tr("|*[#PACK_BUTTONS#]<!--ET_BEGIN STORE_BUTTONS--><div class='divider'>|Складове|*</div>[#STORE_BUTTONS#]<!--ET_END STORE_BUTTONS-->"));
+        $tpl = new core_ET(tr("|*<div class='divider'>|Промяна на мярка|*</div>[#PACK_BUTTONS#]<!--ET_BEGIN FREQUENT_PACK_BUTTONS--><div class='divider'>|Най-продавани|*</div>[#FREQUENT_PACK_BUTTONS#]<!--ET_END FREQUENT_PACK_BUTTONS--><!--ET_BEGIN STORE_BUTTONS--><div class='divider'>|Складове|*</div>[#STORE_BUTTONS#]<!--ET_END STORE_BUTTONS-->"));
         foreach ($buttons as $btn){
             $tpl->append($btn, 'PACK_BUTTONS');
+        }
+        
+        foreach ($frequentPackButtons as $freqbtn){
+            $tpl->append($freqbtn, 'FREQUENT_PACK_BUTTONS');
         }
         
         foreach ($storeBtns as $storeBtn){
