@@ -716,9 +716,7 @@ function pageUp(){
 		var newElement = $(current).prev('.receiptRow');
 		newElement.addClass('highlighted');
 		current.removeClass('highlighted');
-		
 		getCurrentElementFromSelectedRow(newElement);
-		scrollAfterKey();
 	}
 }
 
@@ -730,9 +728,6 @@ function pageDown(){
 		newElement.addClass('highlighted');
 		current.removeClass('highlighted');
 		getCurrentElementFromSelectedRow(newElement);
-
-		scrollAfterKey();
-
 	}
 }
 
@@ -743,6 +738,10 @@ function getCurrentElementFromSelectedRow(element){
 	
 	refreshResultByOperation(element, operation);
 	disableOrEnableBatch();
+	
+	if(operation != 'quantity' && operation != 'batch'){
+		scrollAfterKey();
+	}
 }
 
 function refreshResultByOperation(element, operation){
