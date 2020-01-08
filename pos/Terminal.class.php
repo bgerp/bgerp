@@ -941,6 +941,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $query = pos_ReceiptDetails::getQuery();
         $query->where("#productId = {$selectedRec->productId} AND #action = 'sale|code' AND #quantity > 0");
+        $query->orderBy('quantity', 'ASC');
         $query->show("quantity,value");
         $query->groupBy("quantity,value");
         $query->limit(10);
@@ -978,7 +979,7 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
-        $tpl = new core_ET(tr("|*<div class='divider'>|Промяна на мярка|*</div>[#PACK_BUTTONS#]<!--ET_BEGIN FREQUENT_PACK_BUTTONS--><div class='divider'>|Най-продавани|*</div>[#FREQUENT_PACK_BUTTONS#]<!--ET_END FREQUENT_PACK_BUTTONS--><!--ET_BEGIN STORE_BUTTONS--><div class='divider'>|Складове|*</div>[#STORE_BUTTONS#]<!--ET_END STORE_BUTTONS-->"));
+        $tpl = new core_ET(tr("|*<div class='divider'>|Промяна на мярка|*</div>[#PACK_BUTTONS#]<!--ET_BEGIN FREQUENT_PACK_BUTTONS--><div class='divider'>|Най-използвани|*</div>[#FREQUENT_PACK_BUTTONS#]<!--ET_END FREQUENT_PACK_BUTTONS--><!--ET_BEGIN STORE_BUTTONS--><div class='divider'>|Складове|*</div>[#STORE_BUTTONS#]<!--ET_END STORE_BUTTONS-->"));
         foreach ($buttons as $btn){
             $tpl->append($btn, 'PACK_BUTTONS');
         }
