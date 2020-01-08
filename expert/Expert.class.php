@@ -367,7 +367,7 @@ class expert_Expert extends core_FieldSet
         }
         
         if (is_object($state)) {
-            if (count($state->vars)) {
+            if (countR($state->vars)) {
                 foreach ($state->vars as $name => $value) {
                     $this->vals[$name] = $value[0];
                     $this->setInStep[$name] = $value[1];
@@ -713,7 +713,7 @@ class expert_Expert extends core_FieldSet
         if (isDebug()) {
             $debug = "<hr style='margin-top:10px;'><small><a href='#' onclick=\"toggleDisplay('expDebug');\">" . tr('Дебъг') . "</a><div id='expDebug' style='padding-left:15px; display:none;'>";
             
-            if (count($this->reason)) {
+            if (countR($this->reason)) {
                 foreach ($this->reason as $l) {
                     $debug .= "<li> ${l}</li>";
                 }
@@ -737,7 +737,7 @@ class expert_Expert extends core_FieldSet
                 $res->title = $form->renderTitle();
                 $res->title = $res->title->getContent();
                 
-                if (count($form->toolbar->buttons)) {
+                if (countR($form->toolbar->buttons)) {
                     foreach ($form->toolbar->buttons as $btn) {
                         $v = $btn->cmd;
                         $res->btn->{$v} = 1;
@@ -1350,7 +1350,7 @@ class expert_Expert extends core_FieldSet
         
         $this->setValue($var, $res);
         
-        $logMsg = $var . '=' . $opt . ' [' . count($res) . '], TRUE = ' . $kRec->cond;
+        $logMsg = $var . '=' . $opt . ' [' . countR($res) . '], TRUE = ' . $kRec->cond;
         
         Debug::log($logMsg);
         

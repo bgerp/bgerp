@@ -106,6 +106,14 @@ class cat_Boms extends core_Master
      * Кой може да пише?
      */
     public $canEdit = 'cat,ceo,sales';
+
+
+    /**
+     * Кой може да променя активирани записи
+     *
+     * @see change_Plugin
+     */
+    public $canChangerec = 'cat,ceo,sales';
     
     
     /**
@@ -488,7 +496,7 @@ class cat_Boms extends core_Master
         if ($action == 'activate' && empty($rec->id)) {
             $res = 'no_one';
         } elseif ($action == 'activate' && isset($rec->id)) {
-            if (!countR(cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id'))) {
+            if (!cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id')) {
                 $res = 'no_one';
             }
         }

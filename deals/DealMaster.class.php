@@ -106,7 +106,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $diff = round($amountDelivered - $amountPaid, 4);
         
         // Ако имаме фактури към сделката
-        if (count($aggregateDealInfo->invoices)) {
+        if (countR($aggregateDealInfo->invoices)) {
             $today = dt::today();
             $invoices = $aggregateDealInfo->invoices;
             
@@ -454,7 +454,7 @@ abstract class deals_DealMaster extends deals_DealBase
             // Ако има филтър по клиентска група
             if(isset($filter->groupId)){
                 $foldersArr = crm_Groups::getFolderByContragentGroupId($filter->groupId);
-                if(count($foldersArr)){
+                if(countR($foldersArr)){
                     $data->query->in('folderId', $foldersArr);
                 } else {
                     $data->query->where("1=2");
@@ -513,7 +513,7 @@ abstract class deals_DealMaster extends deals_DealBase
                     case 'closedWith':
                         $closedDealsArr = $mvc->getDealsClosedWithOtherDeals();
                         $data->query->where("#state = 'closed'");
-                        if (count($closedDealsArr)) {
+                        if (countR($closedDealsArr)) {
                             $data->query->in('id', $closedDealsArr);
                         } else {
                             $data->query->where('1=2');
@@ -888,7 +888,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         // Ако има детайли за обновяване
-        if (count($saveRecs)) {
+        if (countR($saveRecs)) {
             $Detail->saveArray($saveRecs, 'id,tolerance,term');
         }
         
@@ -1187,7 +1187,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $closedDeals = $ClosedDeal::getClosedWithDeal($rec->id);
         
         $closedIds = array();
-        if (count($closedDeals)) {
+        if (countR($closedDeals)) {
             
             // За всяка от тях, включително и този документ
             foreach ($closedDeals as $doc) {
@@ -1199,7 +1199,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 $closedIds[$id] = $id;
                 
                 $products = (array) $dealInfo->get('dealProducts');
-                if (count($products)) {
+                if (countR($products)) {
                     $details[] = $products;
                 }
             }
@@ -1210,14 +1210,14 @@ abstract class deals_DealMaster extends deals_DealBase
         $Detail::delete("#{$mvc->{$Detail}->masterKey} = {$rec->id}");
         $details = deals_Helper::normalizeProducts($details);
         
-        if (count($details)) {
+        if (countR($details)) {
             foreach ($details as &$det1) {
                 $det1->{$mvc->{$Detail}->masterKey} = $rec->id;
                 $Detail::save($det1);
             }
         }
         
-        if (count($closedIds)) {
+        if (countR($closedIds)) {
             $closedIds = keylist::fromArray($closedIds);
             $rec->closedDocuments = $closedIds;
         } else {
@@ -1259,7 +1259,7 @@ abstract class deals_DealMaster extends deals_DealBase
         // Ако има опции за избор на контирането, подмяна на бутона за контиране
         if (isset($data->toolbar->buttons['btnConto'])) {
             $options = $mvc->getContoOptions($rec->id);
-            if (count($options)) {
+            if (countR($options)) {
                 $data->toolbar->removeBtn('btnConto');
                 $error = '';
                 
@@ -1361,7 +1361,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $hasSelectedBankAndCase = !empty($rec->bankAccountId) && !empty($rec->caseId);
         
         // Трябва да има избор на действие
-        expect(count($options));
+        expect(countR($options));
         
         // Подготовка на полето за избор на операция и инпут на формата
         $form->FNC('action', cls::get('type_Set', array('suggestions' => $options)), 'columns=1,input,caption=Изберете');
@@ -1468,7 +1468,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $threadIds = arr::extractValuesFromArray($cQuery->fetchAll(), 'threadId');
         
         $query->EXT('threadModifiedOn', 'doc_Threads', 'externalName=last,externalKey=threadId');
-        if (count($threadIds)) {
+        if (countR($threadIds)) {
             $query->notIn('threadId', $threadIds);
         }
         
@@ -1607,7 +1607,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $allowedFields['onlineSale'] = true;
         
         // Проверяваме подадените полета дали са позволени
-        if (count($fields)) {
+        if (countR($fields)) {
             foreach ($fields as $fld => $value) {
                 expect(array_key_exists($fld, $allowedFields), $fld);
             }
@@ -1876,7 +1876,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $retUrl = getRetUrl();
         
         // Ако няма опции, връщаме се назад
-        if (!count($options)) {
+        if (!countR($options)) {
             $retUrl['stop'] = true;
             
             return new Redirect($retUrl);
@@ -1957,7 +1957,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
         
-        if (!count($products)) {
+        if (!countR($products)) {
             
             return $details;
         }

@@ -37,7 +37,7 @@ class email_Imap extends core_BaseClass
         // Определяне на хоста и евентуално порта
         $hostArr = explode(':', $accRec->server);
         
-        if (count($hostArr) == 2) {
+        if (countR($hostArr) == 2) {
             $host = $hostArr[0];
             $port = $hostArr[1];
         } else {
@@ -68,7 +68,7 @@ class email_Imap extends core_BaseClass
         
         $portArr = explode('/', $port, 2);
         
-        if (count($portArr) == 2) {
+        if (countR($portArr) == 2) {
             $port = $portArr[0];
             $params = $portArr[1];
         }

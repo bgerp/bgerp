@@ -258,7 +258,7 @@ class email_Router extends core_Manager
             }
         }
         
-        if (count($keys) <= 1) {
+        if (countR($keys) <= 1) {
             $keys = reset($keys);
         }
         
