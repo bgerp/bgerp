@@ -1012,8 +1012,7 @@ function afterload() {
 // Активира или закрива бутона за подробна информация на артикула
 function disableOrEnableEnlargeBtn()
 {
-	var focused = sessionStorage.getItem('focused');
-	var focusedElement = $("#" + focused);
+	var focusedElement = $(".navigable.selected");
 	
 	if(focusedElement.length){
 		if(focusedElement.hasClass('enlargable')){
