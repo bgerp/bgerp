@@ -1307,7 +1307,7 @@ class pos_Terminal extends peripheral_Terminal
         $data->rows = array();
         $conf = core_Packs::getConfig('pos');
         $data->showParams = $conf->POS_RESULT_PRODUCT_PARAMS;
-        $data->categoriesArr = array();
+        $favouriteProductsArr = $data->categoriesArr = array();
         
         // Ако има сторнираща бележка
         if(isset($data->revertReceiptId) && $data->revertReceiptId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
