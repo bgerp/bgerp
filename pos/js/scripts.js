@@ -502,7 +502,7 @@ function posActions() {
 		resObj['url'] = url;
 		getEfae().process(resObj, {enlargeClassId:enlargeClassId,enlargeObjectId:enlargeObjectId});
 
-		openModal(enlargeTitle);
+		openModal(enlargeTitle, "defaultHeight");
 	});
 	
 	// При натискане на бутона за клавиатура
@@ -515,7 +515,7 @@ function posActions() {
 		resObj['url'] = url;
 		getEfae().process(resObj, {string:string});
 
-		openModal("");
+		openModal("Виртуална клавиатура", "smallHeight");
 	});
 	
 	$("body").setShortcutKey( ALT , D ,function() {
@@ -943,10 +943,12 @@ function enter() {
 
 
 // Отваря модала
-function openModal(title) {
+function openModal(title, heightModal) {
+
+	var height = (heightModal == "smallHeight" ) ?  450 : 700;
 	dialog = $("#modalContent").dialog({
 		autoOpen: false,
-		height: 700,
+		height: height,
 		width: 1000,
 		modal: true,
 		title: title,
