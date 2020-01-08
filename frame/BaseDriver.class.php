@@ -81,7 +81,7 @@ abstract class frame_BaseDriver extends core_ProtoInner
     public function getReportTitle()
     {
         $titleArr = explode(' » ', $this->title);
-        if (count($titleArr) == 2) {
+        if (countR($titleArr) == 2) {
             
             return $titleArr[1];
         }
