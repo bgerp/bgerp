@@ -1,9 +1,9 @@
+var dialog;
+var activeInput;
+
 function posActions() {
 
-	var dialog;
-	
-	var pageWidth = parseInt($(window).width());
-
+	activeInput = false;
 	$(document.body).on('input', "input[name=ean]", function(e){
 		var userText = $(this).val();
 		$("#suggestions").find("option").each(function() {
@@ -14,6 +14,7 @@ function posActions() {
 		})
 	});
 	$('.large-field.select-input-pos').focus();
+
 	// Забраняване на скалирането, за да избегнем забавяне
 	if(isTouchDevice()){
 		 $('meta[name=viewport]').remove();
@@ -53,6 +54,7 @@ function posActions() {
 		if($('body').hasClass('wide')){
 			closestSearch.focus();
 		}
+		activeInput = true;
 	});
 
 	// Добавяне на партида
@@ -105,32 +107,37 @@ function posActions() {
 	 * @param e
 	 * @returns
 	 */
-	$(document.body).on('keyup', "input[name=ean]", function(e){
+	$(document.body).on('keyup', ".large-field", function(e){
 		// Хак да не се тригърва ивента при натискане на ентър или при навигацията на страницата за избор на селектиран елемент
 		if(e.key == "Enter" || e.key == "ArrowRight" || e.key == "ArrowLeft" || e.key == "ArrowUp" || e.key == "ArrowDown"  || e.key == "PageUp" || e.key == "PageDown" || e.key == 'Alt') return;
-		
-		// След всяко натискане на бутон изчистваме времето на изчакване
-		clearTimeout(timeout);
-		console.log("E " + e.key);
-		var url = $(this).attr("data-keyupurl");
-		if(!url){
-			return;
+		activeInput = true;
+
+		if ($(e.target).attr('name') == 'ean') {
+
+			// След всяко натискане на бутон изчистваме времето на изчакване
+			clearTimeout(timeout);
+
+			var url = $(this).attr("data-keyupurl");
+			if(!url){
+				return;
+			}
+
+			var inpVal = $(this).val();
+
+			var operation = getSelectedOperation();
+
+			var selectedElement = $(".highlighted.productRow");
+			var selectedRecId = selectedElement.attr("data-id");
+
+			// Правим Ajax заявката като изтече време за изчакване
+			timeout = setTimeout(function(){
+				resObj = new Object();
+				resObj['url'] = url;
+
+				getEfae().process(resObj, {operation:operation,search:inpVal,recId:selectedRecId});
+
+			}, 700);
 		}
-
-		var inpVal = $(this).val();
-		var operation = getSelectedOperation();
-		
-		var selectedElement = $(".highlighted.productRow");
-		var selectedRecId = selectedElement.attr("data-id");
-		
-		// Правим Ajax заявката като изтече време за изчакване
-		timeout = setTimeout(function(){
-			resObj = new Object();
-			resObj['url'] = url;
-
-			getEfae().process(resObj, {operation:operation,search:inpVal,recId:selectedRecId});
-
-		}, 700);
 
 	});
 	
@@ -181,7 +188,7 @@ function posActions() {
 		resObj['url'] = url;
 		
 		getEfae().process(resObj, data);
-		scrollRecieptBottom();
+		activeInput = false;
 	});
 
 	// При клик на бутон изтрива запис от бележката
@@ -270,6 +277,7 @@ function posActions() {
 		// Задействаме евент 'keyup' в инпут полето
 		var e = jQuery.Event("keyup");
 		$('.select-input-pos').trigger(e);
+		activeInput = true;
 	});
 
 	$(document.body).on('click', ".ui-dialog-titlebar-close", function() {
@@ -278,6 +286,7 @@ function posActions() {
 			var e = jQuery.Event("keyup");
 			$('.select-input-pos').trigger(e);
 		}
+		activeInput = true;
 	});
 
 	document.addEventListener("keydown", function(event) {
@@ -321,6 +330,7 @@ function posActions() {
 		var inpValLength = $(".keyboardText").text().length;
 		var newVal = $(".keyboardText").text().substr(0, inpValLength-1);
 		$(".keyboardText").text(newVal);
+		activeInput = true;
 	});
 
 	// Време за изчакване
@@ -353,6 +363,7 @@ function posActions() {
 		sessionStorage.setItem('operationClicked', true);
 		
 		getEfae().process(resObj, {operation:operation,recId:selectedRecId,search:string});
+		activeInput = false;
 	});
 	
 	
@@ -384,6 +395,7 @@ function posActions() {
 		
 		getEfae().process(resObj, {productId:productId});
 		calculateWidth();
+		activeInput = false;
 	});
 	
 	// При прехвърляне на бележка, автоматично създаваме нова
@@ -488,7 +500,6 @@ function posActions() {
 		
 		resObj = new Object();
 		resObj['url'] = url;
-		console.log(url, enlargeClassId, enlargeObjectId);
 		getEfae().process(resObj, {enlargeClassId:enlargeClassId,enlargeObjectId:enlargeObjectId});
 
 		openModal(enlargeTitle);
@@ -699,7 +710,6 @@ function doPayment(url, type){
 
 // При натискане на pageUp
 function pageUp(){
-	console.log('pageUp')
 
 	var current = $('#receipt-table .receiptRow.highlighted');
 	if(current.length && $(current).prev('.receiptRow').length) {
@@ -724,7 +734,6 @@ function pageDown(){
 		scrollAfterKey();
 
 	}
-	console.log('pageDOwn')
 }
 
 // При селектиране на текущ елемент
@@ -752,7 +761,6 @@ function refreshResultByOperation(element, operation){
 }
 
 function arrowDown(){
-	console.log('arrowDOwn')
 
 	var current = $('#pos-search-result-table .rowBlock.active');
 	if(current.length) {
@@ -763,7 +771,6 @@ function arrowDown(){
 }
 
 function arrowUp(){
-	console.log('arrowUp')
 	var current = $('#pos-search-result-table .rowBlock.active');
 	if(current.length) {
 		$(current).prev().addClass('active');
@@ -773,12 +780,10 @@ function arrowUp(){
 }
 
 function arrowRight(){
-	console.log('arrowRight');
 	disableOrEnableEnlargeBtn();
 }
 
 function arrowLeft(){
-	console.log('arrowLeft');
 	disableOrEnableEnlargeBtn();
 }
 
@@ -802,8 +807,8 @@ function deleteElement() {
 }
 function render_prepareResult() {
 	startNavigation();
+	activeInput = false;
 
-	
 	// Бутона за увеличение да се дисейбва ако няма избран селектиран ред
 	if($('.enlargeProductBtn').length){
 		var selectedElement = $(".highlighted");
@@ -883,6 +888,7 @@ function render_afterload()
 }
 
 function enter() {
+	console.log(activeInput);
 	var value = $("input[name=ean]").val();
 	var url = $("input[name=ean]").attr("data-url");
 	var operation = getSelectedOperation();
@@ -994,6 +1000,7 @@ function setInputPlaceholder() {
 }
 
 function afterload() {
+	console.log(activeInput);
 	scrollToHighlight();
 	disableOrEnableBatch();
 	setInputPlaceholder();
