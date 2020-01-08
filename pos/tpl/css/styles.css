@@ -538,6 +538,11 @@
 .modalContent {
   display: none; }
 
+.imagePreview {
+  box-shadow: 0 0 5px #333333;
+  padding: 5px;
+  margin-right: 30px; }
+
 .ui-widget-overlay {
   background: rgba(0, 0, 0, 0.5) !important;
   opacity: 1 !important; }

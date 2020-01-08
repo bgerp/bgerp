@@ -1,23 +1,23 @@
-[#preview#]
+<div style="margin-left: 20px; line-height: 1.6em">
+    <div class="fleft imagePreview">[#preview#]</div>
 
-[#info#]
+    <div>[#name#]</div>
+    <div style="margin-bottom: 20px; font-weight: bold"> [#info#]</div>
 
-|Мярка|*: [#measureId#]
+    |Мярка|*: [#measureId#]
 
-|Цена|*: [#price#]
+    |Цена|*: [#price#]
 
+    [#PARAMETERS#]
+    <!--ET_BEGIN PARAM_BLOCK-->
+    [#PARAM_BLOCK#]
+    <div>[#paramCaption#] : [#paramValue#]</div>
+    <!--ET_END PARAM_BLOCK-->
+</div>
+
+<div class="clearfix21"></div>
 <!--ET_BEGIN inStock-->
-|Налично|*: [#inStock#]
+<div style="margin: 20px 0; font-size: 1.4em"> |Налично|*: <b>[#inStock#]</b></div>
 <!--ET_END inStock-->
-
-<fieldset class="detail-info">
-<legend class="groupTitle">|Параметри|*</legend>
-[#PARAMETERS#]
-
-<!--ET_BEGIN PARAM_BLOCK-->
-[#PARAM_BLOCK#]
-[#paramCaption#] : [#paramValue#]
-<!--ET_END PARAM_BLOCK-->
-</fieldset>
 
 [#Packagings#]

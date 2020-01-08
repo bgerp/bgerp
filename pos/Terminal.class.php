@@ -292,7 +292,8 @@ class pos_Terminal extends peripheral_Terminal
                     $row->inStock .= " " . cat_UoM::getShortName($productRec->measureId);
                 }
                 
-                $preview = cat_Products::getPreview($productRec->id, array('280', '150'), array('550', '550'));
+                $preview = cat_Products::getPreview($productRec->id, array('400', '400'), array('650', '650'));
+                $row->name = cat_Products::getTitleById($productRec->id);
                 if (!empty($preview)) {
                     $row->preview = $preview;
                 }
