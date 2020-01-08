@@ -281,12 +281,12 @@ class help_Info extends core_Master
             
             $inst = cls::get($class);
             $plugins = arr::make($inst->loadList, true);
-            if (count($plugins)) {
+            if (countR($plugins)) {
                 foreach ($plugins as $plg) {
                     $plg = cls::get($plg);
                     if ($plg instanceof plg_ProtoWrapper) {
                         $plg->description();
-                        if (count($plg->tabs)) {
+                        if (countR($plg->tabs)) {
                             foreach ($plg->tabs as $obj) {
                                 $ctr = $obj->url['Ctr'];
                                 if ($ctr && !self::fetch("#class = '{$ctr}'")) {
@@ -382,12 +382,12 @@ class help_Info extends core_Master
             $manager = cls::get($class);
             
             $plugins = arr::make($manager->loadList, true);
-            if (count($plugins)) {
+            if (countR($plugins)) {
                 foreach ($plugins as $plg) {
                     $plg = cls::get($plg);
                     if ($plg instanceof plg_ProtoWrapper) {
                         $plg->description();
-                        if (count($plg->tabs)) {
+                        if (countR($plg->tabs)) {
                             $path = $menu = $subMenu = $pack = '';
                             foreach ($plg->tabs as $caption => $obj) {
                                 $ctr = $obj->url['Ctr'];
