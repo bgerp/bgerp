@@ -369,7 +369,7 @@ function posActions() {
 		resObj['url'] = url;
 		
 		sessionStorage.setItem('operationClicked', true);
-		
+
 		getEfae().process(resObj, {operation:operation,recId:selectedRecId,search:string});
 		activeInput = false;
 		scrollToHighlight();
@@ -1010,7 +1010,7 @@ function setInputPlaceholder() {
 }
 
 function afterload() {
-	console.log(activeInput);
+	scrollToHighlight();
 	disableOrEnableBatch();
 	setInputPlaceholder();
 	disableOrEnableEnlargeBtn();
