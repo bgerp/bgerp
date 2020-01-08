@@ -279,7 +279,7 @@ class fileman_Indexes extends core_Manager
         }
 
         // Ако не може да се намери нито един драйвер
-        if (count($res) == 0) {
+        if (countR($res) == 0) {
             
             // Създаваме инстанция на прародителя на драйверите
             $res[] = cls::get('fileman_webdrv_Generic');
