@@ -256,6 +256,7 @@ class pos_Terminal extends peripheral_Terminal
     {
         $enlargeClassId = Request::get('enlargeClassId', 'int');
         $enlargeObjectId = Request::get('enlargeObjectId', 'int');
+        $receitpId = Request::get('id', 'int');
         
         if(empty($enlargeClassId) || empty($enlargeObjectId)) {
             
@@ -263,10 +264,55 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $EnlargeClass = cls::get($enlargeClassId);
+        $receiptRec = pos_Receipts::fetch($receitpId);
         
         switch ($enlargeClassId){
             case cat_Products::getClassId():
                 $modalTpl = new core_ET('ART');
+                $productRec = cat_Products::fetch($enlargeObjectId);
+                $modalTpl = getTplFromFile('pos/tpl/terminal/SingleLayoutProductModal.shtml');
+                
+                Mode::push('text', 'xhtml');
+                $packData = (object)array('masterMvc' => cls::get('cat_Products'), 'masterId' => $enlargeObjectId);
+                cls::get('cat_products_Packagings')->preparePackagings($packData);
+                $packagingTpl = cls::get('cat_products_Packagings')->renderPackagings($packData);
+                $modalTpl->append($packagingTpl, 'Packagings');
+                Mode::pop();
+                
+                $Policy = cls::get('price_ListToCustomers');
+                $price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $productRec->id, $productRec->measureId, 1, $receiptRec->createdOn, 1, 'yes');
+                $Double = core_Type::getByName('double(decimals=2)');
+                
+                $row = new stdClass();
+                $row->price = currency_Currencies::decorate($Double->toVerbal($price->price));
+                $row->measureId = cat_UoM::getTitleById($productRec->measureId);
+                $row->info = cat_Products::getVerbal($productRec, 'info');
+                if ($productRec->canStore == 'yes') {
+                    $row->inStock = $Double->toVerbal(pos_Stocks::getQuantity($productRec->id, $receiptRec->pointId));
+                    $row->inStock .= " " . cat_UoM::getShortName($productRec->measureId);
+                }
+                
+                $preview = cat_Products::getPreview($productRec->id, array('280', '150'), array('550', '550'));
+                if (!empty($preview)) {
+                    $row->preview = $preview;
+                }
+                
+                $modalTpl->placeObject($row);
+                $params = cat_Products::getParams($productRec->id, null, true);
+                $block = $modalTpl->getBlock('PARAM_BLOCK');
+                foreach ($params as $paramId => $paramValue){
+                    $suffix = cat_Params::fetchField($paramId, 'suffix');
+                    if(!empty($suffix)){
+                        $paramValue .= " {$suffix}";
+                    }
+                    
+                    $blockClone = clone $block;
+                    $blockClone->append(tr(cat_Params::getTitleById($paramId)), 'paramCaption');
+                    $blockClone->append($paramValue, 'paramValue');
+                    $blockClone->removeBlocksAndPlaces();
+                    $modalTpl->append($blockClone, 'PARAMETERS');
+                }
+                
                 break;
             case pos_Receipts::getClassId():
                 $modalTpl = $this->getReceipt($enlargeObjectId);
@@ -280,14 +326,6 @@ class pos_Terminal extends peripheral_Terminal
                 Mode::pop("singleLayout-{$EnlargeClass->className}{$enlargeObjectId}");
                 Mode::pop('noWrapper');
         }
-        
-        
-        //$document = doc_Containers::getDocument(cat_Products::fetchField($rec->productId, 'containerId'));
-        
-        // Рендиране на изгледа на артикула
-        //Mode::push('noBlank', true);
-        //$docHtml = $document->getInlineDocumentBody('xhtml');
-       // Mode::pop('noBlank', true);
         
         // Ще се реплейсва и пулта
         $res = array();
@@ -425,7 +463,7 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         // Бутон за увеличение на избрания артикул
-        $enlargeAttr = array('title' => 'Преглед на избрания артикул', 'data-url' => toUrl(array('pos_Terminal', 'enlargeElement'), 'local'), 'class' => "enlargeProductBtn");
+        $enlargeAttr = array('title' => 'Преглед на избрания артикул', 'data-url' => toUrl(array('pos_Terminal', 'enlargeElement', $rec->id), 'local'), 'class' => "enlargeProductBtn");
         $img = ht::createImg(array('path' => self::$operationImgs["enlarge"]));
         $buttons["enlarge"] = (object)array('body' => $img, 'attr' => $enlargeAttr);
         

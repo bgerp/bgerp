@@ -1,0 +1,23 @@
+[#preview#]
+
+[#info#]
+
+|Мярка|*: [#measureId#]
+
+|Цена|*: [#price#]
+
+<!--ET_BEGIN inStock-->
+|Налично|*: [#inStock#]
+<!--ET_END inStock-->
+
+<fieldset class="detail-info">
+<legend class="groupTitle">|Параметри|*</legend>
+[#PARAMETERS#]
+
+<!--ET_BEGIN PARAM_BLOCK-->
+[#PARAM_BLOCK#]
+[#paramCaption#] : [#paramValue#]
+<!--ET_END PARAM_BLOCK-->
+</fieldset>
+
+[#Packagings#]
