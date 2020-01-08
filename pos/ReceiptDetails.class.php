@@ -1002,10 +1002,13 @@ class pos_ReceiptDetails extends core_Detail
             $count = 0;
             while($rec = $query->fetch()){
                 $normalizedText = str::removeWhiteSpace(trim($rec->text), '');
-                $textArr[$normalizedText] = $normalizedText;
+                $textArr[] = $normalizedText;
                 $count++;
                 if($count >= 50) continue;
             }
+            
+            natsort($textArr);
+            $textArr = array_combine(array_values($textArr), array_values($textArr));
             
             core_Permanent::set("pos_MostUsedReceiptText{$months}", $textArr, 4320);
         }
