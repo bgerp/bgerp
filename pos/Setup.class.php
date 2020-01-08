@@ -172,6 +172,15 @@ class pos_Setup extends core_ProtoSetup
             'offset' => 0,
             'timeLimit' => 100,
         ),
+        array(
+            'systemId' => 'Update Pos statistic',
+            'description' => 'Обновява статистическите данни в POS-а',
+            'controller' => 'pos_Setup',
+            'action' => 'UpdateStatistic',
+            'period' => 1440,
+            'offset' => 1320,
+            'timeLimit' => 100,
+        ),
     );
     
     
@@ -220,5 +229,14 @@ class pos_Setup extends core_ProtoSetup
         if(countR($toSave)){
             $Details->saveArray($toSave, 'storeId,id');
         }
+    }
+    
+    
+    /**
+     * Обновява статистическите данни в POS-а
+     */
+    public function cron_UpdateStatistic()
+    {
+        pos_ReceiptDetails::getMostUsedTexts(24, true);
     }
 }

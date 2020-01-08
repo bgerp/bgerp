@@ -970,4 +970,46 @@ class pos_ReceiptDetails extends core_Detail
         // Връщане на склада с най-голямо к-во, ако може да се продават неналични артикули
         return $firstStoreId;
     }
+    
+    
+    /**
+     * Връща масив с последно използваните текстове за определен период ор време
+     * Данните се взимат от постоянния кеш
+     * 
+     * @param number $months
+     * @param boolean $clearCache - дали първо да се инвалидира кеша
+     * 
+     * @return array $textArr
+     */
+    public static function getMostUsedTexts($months = 24, $clearCache = false)
+    {
+        // Изтриване на кеша ако е нужно
+        if($clearCache === true){
+            core_Permanent::remove("pos_MostUsedReceiptText{$months}");
+        }
+    
+        // Кои са последно използваните текстове за посочените месеци
+        $textArr = core_Permanent::get("pos_MostUsedReceiptText{$months}");
+        if (!isset($textArr)) {
+            $textArr = array();
+            $valiorFrom = dt::addMonths(-1 * $months, null, false);
+            
+            $query = pos_ReceiptDetails::getQuery();
+            $query->EXT('valior', 'pos_Receipts', 'externalName=valior,externalKey=receiptId');
+            $query->where("#text IS NOT NULL AND #text != '' AND #valior >= '{$valiorFrom}'");
+            $query->show('text');
+            
+            $count = 0;
+            while($rec = $query->fetch()){
+                $normalizedText = str::removeWhiteSpace(trim($rec->text), '');
+                $textArr[$normalizedText] = $normalizedText;
+                $count++;
+                if($count >= 50) continue;
+            }
+            
+            core_Permanent::set("pos_MostUsedReceiptText{$months}", $textArr, 4320);
+        }
+        
+        return $textArr;
+    }
 }
