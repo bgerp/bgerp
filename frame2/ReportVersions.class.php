@@ -242,7 +242,7 @@ class frame2_ReportVersions extends core_Detail
     public function renderDetail_($data)
     {
         // Не се рендира детайла, ако има само една версия или режима е само за показване
-        if ($data->render === false || count($data->recs) == 1 || Mode::isReadOnly()) {
+        if ($data->render === false || countR($data->recs) == 1 || Mode::isReadOnly()) {
             
             return new core_ET('');
         }

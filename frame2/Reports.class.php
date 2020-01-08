@@ -265,14 +265,14 @@ class frame2_Reports extends embed_Manager
         
         if ($Driver = self::getDriver($rec)) {
             $dates = $Driver->getNextRefreshDates($rec);
-            if ((is_array($dates) && count($dates)) || $dates === false) {
+            if ((is_array($dates) && countR($dates)) || $dates === false) {
                 $form->setField('updateDays', 'input=none');
                 $form->setField('updateTime', 'input=none');
             }
             
             // Има ли полета, които може да се променят
             $changeAbleFields = $Driver->getChangeableFields($rec);
-            if (count($changeAbleFields)) {
+            if (countR($changeAbleFields)) {
                 $set = array();
                 foreach ($changeAbleFields as $fldName) {
                     if ($Fld = $form->getField($fldName, false)) {
@@ -281,7 +281,7 @@ class frame2_Reports extends embed_Manager
                 }
                 
                 // Задаване като опции на артикулите, които може да се променят
-                if (count($set)) {
+                if (countR($set)) {
                     $form->setField('changeFields', 'input');
                     $form->setSuggestions('changeFields', $set);
                 }
@@ -395,7 +395,7 @@ class frame2_Reports extends embed_Manager
     {
         // Ако няма избрани потребители за нотифициране, не се прави нищо
         $userArr = keylist::toArray($rec->sharedUsers);
-        if (!count($userArr)) {
+        if (!countR($userArr)) {
             
             return;
         }
@@ -735,7 +735,7 @@ class frame2_Reports extends embed_Manager
         // Документа може да бъде създаван ако потребителя може да избере поне един драйвер
         if ($action == 'add') {
             $options = self::getAvailableDriverOptions($userId);
-            if (!count($options)) {
+            if (!countR($options)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -764,7 +764,7 @@ class frame2_Reports extends embed_Manager
                 
                 // Може да се клонира/редактира ако може да се избере драйвера и има посочени полета за промяна
                 if (!haveRole('ceo', $userId)) {
-                    if (!($userId == $createdBy || (keylist::isIn($userId, $sharedUsers) && count($changeAbleFields)) || (core_Users::compareRangs($userId, $createdBy) > 0 && $mvc->haveRightFor('single', $rec)))) {
+                    if (!($userId == $createdBy || (keylist::isIn($userId, $sharedUsers) && countR($changeAbleFields)) || (core_Users::compareRangs($userId, $createdBy) > 0 && $mvc->haveRightFor('single', $rec)))) {
                         $requiredRoles = 'no_one';
                     }
                 }
@@ -797,7 +797,7 @@ class frame2_Reports extends embed_Manager
         
         if ($rec->state == 'closed') {
             $nextUpdates = self::getNextRefreshDates($rec);
-            if (count($nextUpdates)) {
+            if (countR($nextUpdates)) {
                 $updateHeaderName = ht::createHint($updateHeaderName, 'Справката няма да се актуализира докато е затворена', 'warning', true, 'height=12px;width=12px');
             }
         }
@@ -870,7 +870,7 @@ class frame2_Reports extends embed_Manager
                     // Показва се информация
                     if (frame2_ReportVersions::haveRightFor('checkout', $latestVersionId)) {
                         $retUrl = $mvc->getSingleUrlArray($rec->id);
-                        if(count($retUrl)){
+                        if(countR($retUrl)){
                             $retUrl['vId'] = $rec->id;
                         }
                         
@@ -940,7 +940,7 @@ class frame2_Reports extends embed_Manager
             core_CallOnTime::setOnce(get_called_class(), 'refreshOnTime', $data, $dates[$i]);
         }
         
-        if (haveRole('debug') && count($dates)) {
+        if (haveRole('debug') && countR($dates)) {
             status_Messages::newStatus('Зададени времена за обновяване');
         }
     }
@@ -990,7 +990,7 @@ class frame2_Reports extends embed_Manager
         $daysArr = array();
         
         // Ако има зададени дати
-        if (count($days)) {
+        if (countR($days)) {
             $orderArr = $after = $before = array();
             
             // Подреждат се дните, които са след текущия ден
@@ -1008,10 +1008,10 @@ class frame2_Reports extends embed_Manager
             
             // Връща се масив с подредените относително дни
             $orderArr = array_merge($after, $before);
-            $count = count($orderArr);
+            $count = countR($orderArr);
             
             // Подсигуряване, че масива има три дена (ако е зададен само един, се повтарят)
-            if (count($orderArr) == 1) {
+            if (countR($orderArr) == 1) {
                 $orderArr = array_merge($orderArr, $orderArr, $orderArr);
             } elseif ($count == 2) {
                 $orderArr = array_merge($orderArr, array($orderArr[key($orderArr)]));
@@ -1037,7 +1037,7 @@ class frame2_Reports extends embed_Manager
         
         // Намират се зададените времена, ако няма това е началото на работния ден
         $timesArr = type_Set::toArray($rec->updateTime);
-        if (!count($timesArr)) {
+        if (!countR($timesArr)) {
             $startTime = bgerp_Setup::get('START_OF_WORKING_DAY');
             $timesArr[$startTime] = $startTime;
         }
