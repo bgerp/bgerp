@@ -108,10 +108,19 @@ function posActions() {
 	 * @returns
 	 */
 	$(document.body).on('keyup', ".large-field", function(e){
+		
+		// @todo да се намери по красиво решение
+		if($(".buttonOverlay").css('display') != 'none'){
+			return;
+		}
+		
 		// Хак да не се тригърва ивента при натискане на ентър или при навигацията на страницата за избор на селектиран елемент
 		if(e.key == "Enter" || e.key == "ArrowRight" || e.key == "ArrowLeft" || e.key == "ArrowUp" || e.key == "ArrowDown"  || e.key == "PageUp" || e.key == "PageDown" || e.key == 'Alt') return;
 		activeInput = true;
 
+		
+		
+		
 		if ($(e.target).attr('name') == 'ean') {
 
 			// След всяко натискане на бутон изчистваме времето на изчакване
