@@ -263,17 +263,28 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         
-        $modalContent = '';
+        $EnlargeClass = cls::get($enlargeClassId);
+        
         switch ($enlargeClassId){
             case cat_Products::getClassId():
-                $modalContent = 'ART';
+                $modalTpl = new core_ET('ART');
                 break;
             case crm_Persons::getClassId():
             case crm_Companies::getClassId():
-                $modalContent = 'COMPI';
+                
+                //Mode::push('dataType', 'php');
+                Mode::push('text', 'plain');
+                
+               
+                Mode::push('noWrapper', true);
+                Mode::push("singleLayout-{$EnlargeClass->className}{$enlargeObjectId}", getTplFromFile('pos/tpl/terminal/modalCompany.shtml'));
+                $modalTpl = Request::forward(array('Ctr' => $EnlargeClass->className, 'Act' => 'single', 'id' => $enlargeObjectId));
+                Mode::pop("singleLayout-{$EnlargeClass->className}{$enlargeObjectId}");
+                Mode::pop('noWrapper');
+                
                 break;
             case pos_Receipts::getClassId():
-                $modalContent = 'Receipt';
+                $modalTpl = new core_ET('Receipt');
                 break;
             default:
                 return array();
@@ -292,7 +303,7 @@ class pos_Terminal extends peripheral_Terminal
         $res = array();
         $resObj = new stdClass();
         $resObj->func = 'html';
-        $resObj->arg = array('id' => 'modalContent', 'html' => $modalContent, 'replace' => true);
+        $resObj->arg = array('id' => 'modalContent', 'html' => $modalTpl->getContent(), 'replace' => true);
         $res[] = $resObj;
         
         return $res;
