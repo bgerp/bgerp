@@ -631,7 +631,7 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultText($rec, $string, $selectedRec)
     {
-        $tpl = new core_ET("");
+        $tpl = new core_ET(tr("|*<div class='divider'>|Най-използвани текстове|*</div>"));
         $texts = pos_ReceiptDetails::getMostUsedTexts();
         
         $count = 0;
