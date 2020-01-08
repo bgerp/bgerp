@@ -376,7 +376,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                         
                         
                         // Масив сделки
-                        if (!is_array($salesArr[$id])) {
+                        if (!is_array($salesArrPrev[$id])) {
                             $salesArrPrev[$id] = array();
                         }
                         
@@ -414,7 +414,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     
                     
                     // Масив сделки
-                    if (!is_array($salesArr[$id])) {
+                    if (!is_array($salesArrLast[$id])) {
                         $salesArrLast[$id] = array();
                     }
                     
