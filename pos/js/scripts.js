@@ -107,10 +107,11 @@ function posActions() {
 	 */
 	$(document.body).on('keyup', "input[name=ean]", function(e){
 		// Хак да не се тригърва ивента при натискане на ентър или при навигацията на страницата за избор на селектиран елемент
-		if(e.key == "Enter" || e.key == "ArrowRight" || e.key == "ArrowLeft" || e.key == "ArrowUp" || e.key == "ArrowDown"  || e.key == "PageUp" || e.key == "PageDown") return;
+		if(e.key == "Enter" || e.key == "ArrowRight" || e.key == "ArrowLeft" || e.key == "ArrowUp" || e.key == "ArrowDown"  || e.key == "PageUp" || e.key == "PageDown" || e.key == 'Alt') return;
+		
 		// След всяко натискане на бутон изчистваме времето на изчакване
 		clearTimeout(timeout);
-
+		console.log("E " + e.key);
 		var url = $(this).attr("data-keyupurl");
 		if(!url){
 			return;
