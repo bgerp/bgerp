@@ -3,7 +3,7 @@ function posActions() {
 	var dialog;
 	
 	var pageWidth = parseInt($(window).width());
-	
+
 	$(document.body).on('input', "input[name=ean]", function(e){
 		var userText = $(this).val();
 		$("#suggestions").find("option").each(function() {
@@ -684,15 +684,6 @@ function calculateWidth(){
 	var headerHeight = $('.headerContent').outerHeight();
 	$('#result-holder').css('height',winHeight - headerHeight);
 	$('#result-holder, #single-receipt-holder').css('top',headerHeight);
-
-	if ( $('.highlighted').length) {
-		var offset = $('.highlighted').offset().top - $('.scrolling-vertical').height() + $('.receipt-header').height() + 10;
-		$('.scrolling-vertical').animate({
-			scrollTop:  offset
-		}, 0);
-	}
-
-
 }
 
 // Скролиране на бележката до долу
@@ -729,7 +720,7 @@ function pageUp(){
 		current.removeClass('highlighted');
 		
 		getCurrentElementFromSelectedRow(newElement);
-		
+		scrollAfterKey();
 	}
 }
 
@@ -740,8 +731,10 @@ function pageDown(){
 		var newElement = $(current).next('.receiptRow');
 		newElement.addClass('highlighted');
 		current.removeClass('highlighted');
-		
 		getCurrentElementFromSelectedRow(newElement);
+
+		scrollAfterKey();
+
 	}
 	console.log('pageDOwn')
 }
@@ -821,6 +814,7 @@ function deleteElement() {
 }
 function render_prepareResult() {
 	startNavigation();
+
 	
 	// Бутона за увеличение да се дисейбва ако няма избран селектиран ред
 	if($('.enlargeProductBtn').length){
@@ -956,8 +950,7 @@ function enter() {
 
 
 // Отваря модала
-function openModal()
-{
+function openModal() {
 	dialog = $("#modalContent").dialog({
 		autoOpen: false,
 		height: 700,
@@ -968,7 +961,7 @@ function openModal()
 	dialog.dialog( "open" );
 }
 
-function startNavigation(){
+function startNavigation() {
 	if($('.navigable').length) {
 		
 		var focused = sessionStorage.getItem('focused');
@@ -982,23 +975,38 @@ function startNavigation(){
 		
 		if (focused && document.getElementById(focused)) {
 			$('.selected').removeClass('selected');
-			$('#' + focused + ".navigable").addClass('selected');
+			$('#' + focused ).addClass('selected');
 		}
 		$('#result-holder .navigable').keynav();
 	}
 }
+function scrollToHighlight(){
+	if ( $('.highlighted').length) {
+		var offset = $('.highlighted').offset().top - $('.scrolling-vertical').height()  + $('.highlighted').height();
+
+		$('.scrolling-vertical').animate({
+			scrollTop:  offset
+		}, 0);
+	}
+}
+
+function scrollAfterKey(){
+	var scroll = $('.highlighted').offset().top - $('.highlighted').height();
+	$('.scrolling-vertical').animate({
+		scrollTop:  scroll
+	}, 0);
+}
 
 // Добавя хинт
-function setInputPlaceholder()
-{
+function setInputPlaceholder() {
 	var activeElement = $("div.operationBtn.active");
 	var title = activeElement.attr("title");
 	
 	$("input[name=ean]").attr("placeholder", title);
 }
 
-function afterload()
-{
+function afterload() {
+	scrollToHighlight();
 	disableOrEnableBatch();
 	setInputPlaceholder();
 	disableOrEnableEnlargeBtn();
