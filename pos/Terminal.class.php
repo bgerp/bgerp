@@ -262,32 +262,23 @@ class pos_Terminal extends peripheral_Terminal
             return array();
         }
         
-        
         $EnlargeClass = cls::get($enlargeClassId);
         
         switch ($enlargeClassId){
             case cat_Products::getClassId():
                 $modalTpl = new core_ET('ART');
                 break;
-            case crm_Persons::getClassId():
-            case crm_Companies::getClassId():
+            case pos_Receipts::getClassId():
+                $modalTpl = $this->getReceipt($enlargeObjectId);
+                break;
+            default:
+                $singleLayoutFile = ($enlargeClassId == 'crm_Companies') ? 'pos/tpl/terminal/SingleLayoutCompanyModal.shtml' : (($enlargeClassId == 'pos_Receipts') ? 'pos/tpl/terminal/modalCompany.shtml' : 'pos/tpl/terminal/SingleLayoutPersonModal.shtml');
                 
-                //Mode::push('dataType', 'php');
-                
-               
                 Mode::push('noWrapper', true);
-                Mode::push("singleLayout-{$EnlargeClass->className}{$enlargeObjectId}", getTplFromFile('pos/tpl/terminal/modalCompany.shtml'));
+                Mode::push("singleLayout-{$EnlargeClass->className}{$enlargeObjectId}", getTplFromFile($singleLayoutFile));
                 $modalTpl = Request::forward(array('Ctr' => $EnlargeClass->className, 'Act' => 'single', 'id' => $enlargeObjectId));
                 Mode::pop("singleLayout-{$EnlargeClass->className}{$enlargeObjectId}");
                 Mode::pop('noWrapper');
-                
-                break;
-            case pos_Receipts::getClassId():
-                $modalTpl = new core_ET('Receipt');
-                break;
-            default:
-                return array();
-                break;
         }
         
         
@@ -307,7 +298,6 @@ class pos_Terminal extends peripheral_Terminal
         
         return $res;
     }
-    
     
     /**
      * Пълна клавиатура
@@ -1472,7 +1462,7 @@ class pos_Terminal extends peripheral_Terminal
         $dateBlock = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('RECEIPT_RESULT');
         $arr = array("{$today}" => clone $dateBlock);
         $arr[$today]->replace(dt::mysql2verbal($today, 'smartDate'), 'groupName');
-        $addBtn = ht::createLink("+", $addUrl, null, "class=pos-notes posBtns newNoteBtn {$disabledClass},title=Създаване на нова бележка");
+        $addBtn = ht::createLink("+", $addUrl, null, "id=receiptnew,class=pos-notes posBtns newNoteBtn {$disabledClass},title=Създаване на нова бележка");
         $arr[$today]->append($addBtn, 'element');
         
         // Групиране на записите по дата
