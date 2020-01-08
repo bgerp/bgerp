@@ -618,8 +618,9 @@ class frame2_Reports extends embed_Manager
                 // Ако е последно видяна преди зададеното време да се затваря и да не се обновява повече
                 $rec->state = 'closed';
                 $rec->refreshData = false;
-                $me->invoke('BeforeChangeState', array($rec, $rec->state));
-                $me->save($rec, 'state');
+
+                $me->invoke('BeforeChangeState', array(&$rec, &$rec->state));
+                $me->save($rec, 'state,brState');
                 $me->logWrite('Затваряне на остаряла справка', $rec->id);
                 unset($me->setNewUpdateTimes[$rec->id]);
             }
