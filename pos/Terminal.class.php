@@ -273,7 +273,6 @@ class pos_Terminal extends peripheral_Terminal
             case crm_Companies::getClassId():
                 
                 //Mode::push('dataType', 'php');
-                Mode::push('text', 'plain');
                 
                
                 Mode::push('noWrapper', true);
