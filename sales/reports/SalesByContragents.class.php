@@ -66,13 +66,13 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $fieldset->FLD('firstMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 1,after=compare,single=none,input=none');
         $fieldset->FLD('secondMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 2,after=firstMonth,single=none,input=none');
         $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци,single=none,mandatory,after=to');
-        $fieldset->FLD('orderBy', 'enum(saleValue=Продажби, delta=Делта,change=Промяна на продажбите,salesArr=Брой сделки,unicart=Брой артикули)', 'caption=Подреди по,after=dealers');
+        $fieldset->FLD('orderBy', 'enum(saleValue=Продажби, delta=Делта,change=Промяна на продажбите,salesArr=Брой сделки,unicart=Брой артикули)', 'caption=Подреди по,after=dealers,silent,removeAndRefreshForm=see');
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=orderBy');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,after=contragent,single=none');
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Група артикули,after=crmGroup,single=none');
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,maxRadio=3,columns=3,after=group,single=none');
         $fieldset->FLD('seeDelta', 'set(yes = )', 'caption=Делти,after=articleType,single=none');
-        $fieldset->FLD('see', 'set(sales=Сделки, articles=Артикули)', 'notNull,caption=Покажи,maxRadio=2,after=articleType,single=none');
+        $fieldset->FLD('see', 'set(sales=Сделки, articles=Артикули)', 'caption=Покажи,maxRadio=2,after=articleType,single=none,silent');
     }
     
     
@@ -86,6 +86,14 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
+        if ($form->rec->orderBy == 'salesArr') {
+            $form->rec->see = 'sales';
+        } elseif ($form->rec->orderBy == 'unicart') {
+            $form->rec->see = 'articles';
+        } else {
+            $form->rec->see = null;
+        }
+        
         if ($form->isSubmitted()) {
             
             // Проверка на периоди
@@ -256,7 +264,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $unicart = $salesArr = array();
         $unicartPrev = $salesArrPrev = array();
         $unicartLast = $salesArrLast = array();
-       
+        
         while ($recPrime = $query->fetch()) {
             $sellValuePrevious = $sellValueLastYear = $sellValue = $delta = $deltaPrevious = $deltaLastYear = 0;
             $contragentId = $contragentClassId = $contragentClassName = 0;
@@ -322,7 +330,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $id = $contragentId;
             
             if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                if ($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos) 
+                if ($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos) {
                     if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
                         $sellValuePrevious = (- 1) * $recPrime->sellCost * $recPrime->quantity;
                         $deltaPrevious = (- 1) * $recPrime->delta;
@@ -345,16 +353,15 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                         }
                         
                         if ($DetClass instanceof sales_SalesDetails) {
-                            
                             $saleId = $detClassName::fetch($recPrime->detailRecId)->saleId;
-                        }else{
-                            $saleId=doc_Threads::getFirstDocument($recPrime->threadId)->that;
-                            
+                        } else {
+                            $saleId = doc_Threads::getFirstDocument($recPrime->threadId)->that;
                         }
                         {
                         if (!in_array($saleId, $salesArrPrev[$id])) {
                             array_push($salesArrPrev[$id], $saleId);
                         }
+                    }
                     }
                 }
             }
@@ -384,11 +391,9 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     }
                     
                     if ($DetClass instanceof sales_SalesDetails) {
-                        
                         $saleId = $detClassName::fetch($recPrime->detailRecId)->saleId;
-                    }else{
-                        $saleId=doc_Threads::getFirstDocument($recPrime->threadId)->that;
-                        
+                    } else {
+                        $saleId = doc_Threads::getFirstDocument($recPrime->threadId)->that;
                     }
                     
                     if (!in_array($saleId, $salesArrLast[$id])) {
@@ -420,13 +425,11 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     if (!is_array($salesArr[$id])) {
                         $salesArr[$id] = array();
                     }
-                   
+                    
                     if ($DetClass instanceof sales_SalesDetails) {
-                       
                         $saleId = $detClassName::fetch($recPrime->detailRecId)->saleId;
-                    }else{
-                        $saleId=doc_Threads::getFirstDocument($recPrime->threadId)->that;
-                        
+                    } else {
+                        $saleId = doc_Threads::getFirstDocument($recPrime->threadId)->that;
                     }
                     
                     if (!in_array($saleId, $salesArr[$id])) {
@@ -447,10 +450,10 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     
                     'sellValuePrevious' => $sellValuePrevious,
                     'deltaPrevious' => $deltaPrevious,
-                   
+                    
                     'sellValueLastYear' => $sellValueLastYear,
                     'deltaLastYear' => $deltaLastYear,
-                   
+                    
                     'group' => cat_Products::fetchField($recPrime->productId, 'groups'),
                     'groupList' => $contragentGroupsList,
                     
@@ -488,7 +491,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             
             $totalValueLastYear += $sellValueLastYear;
         }
-      
+        
         $tempArr = array();
         
         foreach ($recs as $v) {
@@ -536,7 +539,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         }
         
         $recs = $tempArr;
-       
+        
         foreach ($recs as $v) {
             $v->groupValues = $groupValues[$v->groupList];
             $v->groupDeltas = $groupDeltas[$v->groupList];
@@ -565,7 +568,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         );
         
         array_unshift($recs, $totalArr['total']);
-      
+        
         return $recs;
     }
     
