@@ -1001,7 +1001,7 @@ class pos_ReceiptDetails extends core_Detail
             
             $count = 0;
             while($rec = $query->fetch()){
-                $normalizedText = str::removeWhiteSpace(trim($rec->text), '');
+                $normalizedText = str::removeWhiteSpace(trim($rec->text), ' ');
                 $textArr[] = $normalizedText;
                 $count++;
                 if($count >= 50) continue;
