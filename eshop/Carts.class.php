@@ -675,7 +675,7 @@ class eshop_Carts extends core_Master
             $msg .= ' |Изпратихме Ви имейл с инструкции за плащането|*.';
         }
         
-        if (is_array($colabUrl) && count($colabUrl)) {
+        if (is_array($colabUrl) && countR($colabUrl)) {
             
             return new Redirect($colabUrl, $msg);
         }
@@ -1095,7 +1095,7 @@ class eshop_Carts extends core_Master
         
         // Прикачване на прикачените файлове
         $files = cls::get('email_Outgoings')->getAttachments($emailRec);
-        if (is_array($files) && count($files)) {
+        if (is_array($files) && countR($files)) {
             $options->attachmentsSet = implode(',', array_keys($files));
         }
         
@@ -1270,7 +1270,7 @@ class eshop_Carts extends core_Master
                 }
                 
                 // Така потребителя вече има достъп до количката
-                if (count($updateFields)) {
+                if (countR($updateFields)) {
                     $this->save($rec, $updateFields);
                     log_System::add('eshop_Carts', "Присвоена количка:BRID {$oldBrid} -> {$rec->brid}/ #userId = '{$rec->userId}'", $rec->id);
                 }
@@ -1494,7 +1494,7 @@ class eshop_Carts extends core_Master
         }
         
         $checkoutUrl = (eshop_Carts::haveRightFor('checkout', $rec)) ? array('eshop_Carts', 'order', $rec->id, 'ret_url' => true) : array();
-        if (empty($rec->personNames) && count($checkoutUrl)) {
+        if (empty($rec->personNames) && countR($checkoutUrl)) {
             $btn = ht::createBtn(tr('Направете поръчка') . ' »', $checkoutUrl, null, null, 'title=Поръчване на артикулите,class=order-btn eshop-btn,rel=nofollow');
             $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
         }
@@ -1845,7 +1845,7 @@ class eshop_Carts extends core_Master
         self::setDefaultsFromFolder($form, $form->rec->saleFolderId);
         
         $form->setOptions('country', drdata_Countries::getOptionsArr($form->countries));
-        if (count($form->countries) == 1) {
+        if (countR($form->countries) == 1) {
             $form->setDefault('country', key($form->countries));
             $form->setField('country', 'input=hidden');
         } else {
@@ -1890,7 +1890,7 @@ class eshop_Carts extends core_Master
             $form->setOptions('deliveryCountry', drdata_Countries::getOptionsArr($form->countries));
         }
         
-        if (count($form->countries) == 1) {
+        if (countR($form->countries) == 1) {
             $form->setDefault('deliveryCountry', key($form->countries));
             $form->setReadOnly('deliveryCountry');
         }
@@ -1922,7 +1922,7 @@ class eshop_Carts extends core_Master
                 $form->countries[$form->rec->invoiceCountry] = $form->rec->invoiceCountry;
             }
             $form->setOptions('invoiceCountry', drdata_Countries::getOptionsArr($form->countries));
-            if (count($form->countries) == 1) {
+            if (countR($form->countries) == 1) {
                 $form->setDefault('invoiceCountry', key($form->countries));
                 $form->setReadOnly('invoiceCountry');
             }
@@ -1988,7 +1988,7 @@ class eshop_Carts extends core_Master
                 $rec->invoiceCountry = $rec->invoicePCode = $rec->invoicePlace = $rec->invoiceAddress = $rec->invoiceUicNo = $rec->invoiceNames = $rec->invoiceVatNo = null;
             }
             
-            if (count($emptyFields)) {
+            if (countR($emptyFields)) {
                 $form->setError($emptyFields, 'Липсват данните за фактуриране');
             }
             
@@ -2101,7 +2101,7 @@ class eshop_Carts extends core_Master
             $form->setDefault('tel', $profileRec->tel);
             
             // Задаване като опции
-            if (count($options)) {
+            if (countR($options)) {
                 $form->setDefault('makeInvoice', 'company');
                 $form->setField('makeInvoice', 'input=hidden');
                 $form->setField('saleFolderId', 'input');
@@ -2128,14 +2128,14 @@ class eshop_Carts extends core_Master
             }
         }
         
-        if (count($deliveryTerms) == 1) {
+        if (countR($deliveryTerms) == 1) {
             $form->setDefault('termId', key($deliveryTerms));
         } else {
             $deliveryTerms = array('' => '') + $deliveryTerms;
         }
         $form->setOptions('termId', $deliveryTerms);
         
-        if (count($paymentMethods) == 1) {
+        if (countR($paymentMethods) == 1) {
             $form->setDefault('paymentId', key($paymentMethods));
         } else {
             $paymentMethods = array('' => '') + $paymentMethods;
@@ -2184,7 +2184,7 @@ class eshop_Carts extends core_Master
         }
         
         // Ако има локации задават се
-        if (count($locations)) {
+        if (countR($locations)) {
             $form->setOptions('locationId', array('' => '') + $locations);
             $form->setField('locationId', 'input');
             $form->input('locationId', 'silent');
