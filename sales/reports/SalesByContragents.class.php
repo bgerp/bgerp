@@ -87,11 +87,39 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
         if ($form->rec->orderBy == 'salesArr') {
+            
+            if (!$form->rec->see){
             $form->rec->see = 'sales';
-        } elseif ($form->rec->orderBy == 'unicart') {
-            $form->rec->see = 'articles';
+            }else{
+                if (strpos($form->rec->see, 'articles') !== false){
+                    
+                    $form->rec->see = 'sales,articles';
+                }else{
+                    $form->rec->see = 'sales';
+                }
+          
+            }
+        } 
+        
+        elseif ($form->rec->orderBy == 'unicart') {
+            if (!$form->rec->see){
+                $form->rec->see = 'articles';
+            }else{
+                if (strpos($form->rec->see, 'sales') !== false){
+                    
+                    $form->rec->see = 'sales,articles';
+                }else{
+                    $form->rec->see = 'articles';
+                }
+            }
         } else {
+          //  $form->rec->see = null;
+        }
+        
+        if ($form->rec->orderBy == 'delta') {
             $form->rec->see = null;
+            $form->rec->seeDelta = 'yes';
+            
         }
         
         if ($form->isSubmitted()) {
@@ -181,7 +209,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         if (is_null($rec->crmGroup) && is_null($rec->contragent)) {
             $this->groupByField = '';
         }
-        
+       
         $recs = array();
         $salesWithShipArr = array();
         
