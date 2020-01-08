@@ -364,6 +364,7 @@ function posActions() {
 		
 		getEfae().process(resObj, {operation:operation,recId:selectedRecId,search:string});
 		activeInput = false;
+		scrollToHighlight();
 	});
 	
 	
