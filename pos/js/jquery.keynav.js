@@ -86,6 +86,7 @@
 			current.addClass('selected');
 
 			sessionStorage.setItem('focused', $(current).attr('id'));
+			disableOrEnableEnlargeBtn();
 			x=i;
 			y=j;
 		}
