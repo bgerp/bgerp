@@ -1274,7 +1274,7 @@ class pos_Terminal extends peripheral_Terminal
                     $favouriteProductsArr[$favRec->productId] = keylist::toArray($favRec->catId);
                 }
             }
-            
+           
             $folderId = cls::get($data->rec->contragentClass)->fetchField($data->rec->contragentObjectId, 'folderId');
             $pQuery = cat_Products::getQuery();
             $pQuery->where("#canSell = 'yes' AND #state = 'active'");
@@ -1288,11 +1288,6 @@ class pos_Terminal extends peripheral_Terminal
             $pQuery->show('id,name,isPublic,nameEn,code');
             $pQuery->limit($this->maxSearchProducts);
             $sellable = $pQuery->fetchAll();
-            
-            if (!count($sellable)) {
-                
-                return;
-            }
         }
         
         // Ако има стринг и по него отговаря артикул той ще е на първо място
@@ -1303,6 +1298,11 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
        
+        if (!count($sellable)) {
+            
+            return;
+        }
+        
         $Policy = cls::get('price_ListToCustomers');
         foreach ($sellable as $id => $obj) {
             $pRec = cat_Products::fetch($id, 'canStore,measureId');
