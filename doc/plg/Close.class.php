@@ -124,7 +124,7 @@ class doc_plg_Close extends core_Plugin
         $state = ($rec->state == 'closed') ? (($rec->brState) ? $rec->brState : (($rec->exState) ? $rec->exState : 'active')) : 'closed';
         $action = ($state == 'closed') ? 'Приключване' : 'Откриване';
         
-        if ($mvc->invoke('BeforeChangeState', array(&$rec, $state))) {
+        if ($mvc->invoke('BeforeChangeState', array(&$rec, &$state))) {
             $rec->brState = $rec->state;
             $rec->exState = $rec->state;
             $rec->state = $state;
@@ -145,5 +145,24 @@ class doc_plg_Close extends core_Plugin
         }
         
         redirect($retUrl);
+    }
+    
+    
+    /**
+     * Преди затваряне/отваряне на записа
+     *
+     * @param core_Mvc $mvc      - мениджър
+     * @param stdClass $rec      - запис
+     * @param string   $newState - ново състояние
+     *
+     * @return mixed
+     */
+    protected static function on_BeforeChangeState(core_Mvc $mvc, &$rec, &$newState)
+    {
+        $castArr = array('stopped' => 'active', 'closed' => 'active', 'rejected' => 'active');
+        
+        if ($castArr[$rec->state] && $castArr[$newState]) {
+            $newState = $castArr[$newState];
+        }
     }
 }
