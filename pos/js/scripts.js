@@ -755,7 +755,7 @@ function refreshResultByOperation(element, operation){
 		click = 'add';
 	}
 	
-	if(operation == 'price' || operation == 'discount' || operation == 'quantity' || operation == 'text' || operation == 'batch'){
+	if(operation == 'price' || operation == 'discount' || operation == 'quantity' || operation == 'batch'){
 		$('.operationBtn[data-value="' + click+ '"]').click();
 	}
 }
@@ -888,7 +888,7 @@ function render_afterload()
 }
 
 function enter() {
-	console.log(activeInput);
+	
 	var value = $("input[name=ean]").val();
 	var url = $("input[name=ean]").attr("data-url");
 	var operation = getSelectedOperation();
@@ -1003,7 +1003,6 @@ function setInputPlaceholder() {
 
 function afterload() {
 	console.log(activeInput);
-	scrollToHighlight();
 	disableOrEnableBatch();
 	setInputPlaceholder();
 	disableOrEnableEnlargeBtn();
