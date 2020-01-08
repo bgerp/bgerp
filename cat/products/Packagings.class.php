@@ -158,7 +158,8 @@ class cat_products_Packagings extends core_Detail
                 $check = $mvc->Master->getByCode($rec->eanCode);
                 if (($check && ($check->productId != $rec->productId)) ||
                     ($check && $check->packagingId && $check->productId == $rec->productId && $check->packagingId != $rec->packagingId)) {
-                    $form->setError('eanCode', 'Има вече продукт с такъв код!');
+                        $checkProductLink = cat_Products::getHyperlink($check->productId, true);
+                        $form->setError('eanCode', 'Има вече артикул с такъв код|*: ' . $checkProductLink);
                 }
             }
             

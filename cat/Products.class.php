@@ -581,7 +581,9 @@ class cat_Products extends embed_Manager
                 $check = $mvc->getByCode($rec->code);
                 if ($check && ($check->productId != $rec->id)
                     || ($check->productId == $rec->id && $check->packagingId != $rec->packagingId)) {
-                    $form->setError('code', 'Има вече артикул с такъв код!');
+                        $checkProductLink = cat_Products::getHyperlink($check->productId, true);
+                        
+                        $form->setError('code', 'Има вече артикул с такъв код|*: ' . $checkProductLink);
                 }
             }
             
