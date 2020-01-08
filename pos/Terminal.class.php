@@ -912,6 +912,7 @@ class pos_Terminal extends peripheral_Terminal
         $measureId = cat_Products::fetchField($selectedRec->productId, 'measureId');
         $packs = cat_Products::getPacks($selectedRec->productId);
         $basePackagingId = key($packs);
+        $count = 0;
         
         $baseClass = "resultPack navigable posBtns";
         $basePackName = cat_UoM::getVerbal($measureId, 'name');
@@ -919,17 +920,18 @@ class pos_Terminal extends peripheral_Terminal
         $dataChangeStoreUrl = (pos_ReceiptDetails::haveRightFor('edit', $selectedRec)) ? toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setstore'), 'local') : null;
         
         $buttons = array();
-        $buttons[$measureId] = ht::createElement("div", array('id' => "packaging{$basePackName}", 'class' => $baseClass, 'data-pack' => $basePackName, 'data-url' => $dataUrl), tr($basePackName), true);
+        $buttons[$measureId] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => $baseClass, 'data-pack' => $basePackName, 'data-url' => $dataUrl), tr($basePackName), true);
        
         // Добавяне на бутони за продуктовите опаковки
         $packQuery = cat_products_Packagings::getQuery();
         $packQuery->where("#productId = {$selectedRec->productId}");
         while ($packRec = $packQuery->fetch()) {
+            $count++;
             $packagingId = cat_UoM::getVerbal($packRec->packagingId, 'name');
             $baseMeasureId = $measureId;
             $packRec->quantity = cat_Uom::round($baseMeasureId, $packRec->quantity);
             $packaging = "|{$packagingId}|*</br> <small>" . core_Type::getByName('double(smartRound)')->toVerbal($packRec->quantity) . " " . tr(cat_UoM::getSmartName($baseMeasureId, $packRec->quantity)) . "</small>";
-            $buttons[$packRec->packagingId] = ht::createElement("div", array('id' => "packaging{$packagingId}{$selectedRec->productId}", 'class' => $baseClass, 'data-pack' => $packagingId, 'data-url' => $dataUrl), tr($packaging), true);
+            $buttons[$packRec->packagingId] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => $baseClass, 'data-pack' => $packagingId, 'data-url' => $dataUrl), tr($packaging), true);
         }
         
         // Основната мярка/опаковка винаги е на първа позиция
@@ -945,13 +947,14 @@ class pos_Terminal extends peripheral_Terminal
         
         // Добавяне на бутони за последните количества, в които е продаван
         while ($productRec = $query->fetch()) {
+            $count++;
             Mode::push('text', 'plain');
             $quantity = core_Type::getByName('double(smartRound)')->toVerbal($productRec->quantity);
             Mode::pop('text', 'plain');
             if(!$productRec->value)  continue; // Да не гърми при лоши данни
             
             $btnCaption =  "{$quantity} " . tr(cat_UoM::getSmartName($productRec->value, $productRec->quantity));
-            $buttons["{$productRec->packagingId}|{$productRec->quantity}"] = ht::createElement("div", array('id' => "packaging{$packagingId}{$productRec->quantity}{$selectedRec->productId}", 'class' => "{$baseClass} packWithQuantity", 'data-quantity' => $productRec->quantity, 'data-pack' => $packagingId, 'data-url' => $dataUrl), $btnCaption, true);
+            $buttons["{$productRec->packagingId}|{$productRec->quantity}"] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => "{$baseClass} packWithQuantity", 'data-quantity' => $productRec->quantity, 'data-pack' => $packagingId, 'data-url' => $dataUrl), $btnCaption, true);
         }
         
         $stores = pos_Points::getStores($rec->pointId);
