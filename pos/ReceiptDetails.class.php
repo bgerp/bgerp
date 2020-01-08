@@ -289,7 +289,8 @@ class pos_ReceiptDetails extends core_Detail
                    break;
                case 'settext':
                    $text = core_Type::getByName('text')->fromVerbal($firstValue);
-                   expect(isset($text), 'Не е зададено пояснение');
+                   $text = str::removeWhiteSpace(trim($text), ' ');
+                   
                    $rec->text = (!empty($text)) ? $text : null;
                    $sucessMsg = 'Променено пояснение на реда|*!';
                    break;
