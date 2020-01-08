@@ -117,7 +117,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         }
         
         if ($form->rec->orderBy == 'delta') {
-            $form->rec->see = null;
+            
             $form->rec->seeDelta = 'yes';
             
         }
