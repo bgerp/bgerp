@@ -385,6 +385,7 @@ class pos_Terminal extends peripheral_Terminal
                 break;
             case 'discount':
                 $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setdiscount');
+                $keyupUrl = null;
                 break;
             case 'price':
                 $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice');
