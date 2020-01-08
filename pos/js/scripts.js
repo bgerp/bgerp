@@ -36,17 +36,17 @@ function posActions() {
 
 		var inpVal = $(closestSearch).val();
 		if(val == '.'){
-			if(inpVal.length == 0){
-				inpVal = 0;
-			}
-			
 			if(inpVal.indexOf(".")  != -1){
 				return;
 			}
-		}
-		if(val == '«') {
+			if(inpVal == ""){
+				inpVal = "0.0";
+			} else {
+				inpVal += val;
+			}
+		} else if(val == '«') {
 			inpVal = inpVal.substr(0, inpVal.length - 1);
-		} else {
+		} else{
 			inpVal += val;
 		}
 		closestSearch.val(inpVal);
@@ -184,21 +184,6 @@ function posActions() {
 		scrollRecieptBottom();
 	});
 
-	
-	// Скриване на бързите бутони спрямо избраната категория
-	$(".pos-product-category[data-id='']").addClass('active');
-	
-	$(document.body).on('change', "select.pos-product-category", function(e){
-		var value = $(this).val();
-		showFavouriteButtons($(this), value);
-	});
-	
-	// Скриване на бързите бутони спрямо избраната категория
-	$(document.body).on('click', "div.pos-product-category", function(e){
-		var value = $(this).attr("data-id");
-		showFavouriteButtons($(this), value);
-	});
-	
 	// При клик на бутон изтрива запис от бележката
 	$(document.body).on('click', ".pos-del-btn", function(e){
 		var warning = $(this).attr("data-warning");
@@ -274,6 +259,9 @@ function posActions() {
 		if (currentAttrValue == "ENTER") {
 			$('.select-input-pos').val($('.keyboardText').text());
 			$('.ui-dialog-titlebar-close').click();
+		} else if (currentAttrValue == "." && !inpVal) {
+			$('.select-input-pos').val("0.0");
+			$('.ui-dialog-titlebar-close').click();
 		} else {
 			inpVal += currentAttrValue;
 			closestSearch.text(inpVal);
@@ -283,6 +271,7 @@ function posActions() {
 		var e = jQuery.Event("keyup");
 		$('.select-input-pos').trigger(e);
 	});
+
 	$(document.body).on('click', ".ui-dialog-titlebar-close", function() {
 		if($('.keyboardText').text()){
 			$('.select-input-pos').val($('.keyboardText').text());
