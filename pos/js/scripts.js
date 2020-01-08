@@ -1020,7 +1020,7 @@ function afterload() {
 function disableOrEnableEnlargeBtn()
 {
 	var focusedElement = $(".navigable.selected");
-	
+
 	if(focusedElement.length){
 		if(focusedElement.hasClass('enlargable')){
 			$(".enlargeProductBtn").removeClass('disabledBtn');
@@ -1037,5 +1037,8 @@ function disableOrEnableEnlargeBtn()
 			$(".enlargeProductBtn").addClass('disabledBtn');
 			$(".enlargeProductBtn").attr('disabled', 'disabled');
 		}
+	} else {
+		$(".enlargeProductBtn").addClass('disabledBtn');
+		$(".enlargeProductBtn").attr('disabled', 'disabled');
 	}
 }
