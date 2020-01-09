@@ -426,8 +426,6 @@ class pos_Terminal extends peripheral_Terminal
                 break;
             case 'contragent':
                 break;
-            case 'revert';
-                break;
             case 'receipts':
                 break;
         }
@@ -642,9 +640,6 @@ class pos_Terminal extends peripheral_Terminal
                 break;
             case 'payment':
                 $res = $this->renderResultPayment($rec, $string, $selectedRec);
-                break;
-            case 'revert':
-                $res = $this->renderResultRevertReceipts($rec, $string, $selectedRec);
                 break;
             case 'contragent':
                 $res = $this->renderResultContragent($rec, $string, $selectedRec);
@@ -883,61 +878,6 @@ class pos_Terminal extends peripheral_Terminal
             $tpl->append($holderDiv);
         }
        
-        return $tpl;
-    }
-    
-    
-    /**
-     * Рендиране на таблицата с бележките за сторниране
-     *
-     * @param stdClass $rec - записа на бележката
-     * @param string $string - въведения стринг за търсене
-     * @param stdClass|null $selectedRec - селектирания ред (ако има)
-     *
-     * @return core_ET
-     */
-    private function renderResultRevertReceipts($rec, $string, $selectedRec)
-    {
-        $Receipts = cls::get('pos_Receipts');
-        $string = plg_Search::normalizeText($string);
-        
-        $query = $Receipts->getQuery();
-        $query->XPR('toReturn', 'double', 'ROUND(#total - COALESCE(#returnedTotal, 0), 2)');
-        $query->where("#revertId IS NULL AND (#state = 'waiting' || #state = 'closed') AND #toReturn > 0");
-        $query->XPR('orderField', 'int', "(CASE WHEN #pointId = {$rec->pointId} THEN 1 ELSE 2 END)");
-        $query->orderBy('#orderField=ASC,#pointId=ASC,#id=DESC');
-        $query->limit(self::$maxSearchReceipts);
-        
-        if(!empty($string)){
-            $foundArr = $Receipts->findReceiptByNumber($string, true);
-            if (is_object($foundArr['rec'])) {
-                $query->where(array("#id = {$foundArr['rec']->id}"));
-            }
-        }
-        
-        $cnt = 0;
-        $tpl = new core_ET("");
-        
-        $linkUrl = (pos_Receipts::haveRightFor('revert', pos_Receipts::DEFAULT_REVERT_RECEIPT)) ? array('pos_Receipts', 'revert', pos_Receipts::DEFAULT_REVERT_RECEIPT, 'ret_url' => true) : array();
-        $disClass = ($linkUrl) ? 'navigable' : 'disabledBtn';
-        $warning = ($linkUrl) ? 'Наистина ли желаете да създадете нова сторнираща бележка|*?' : null;
-        $addBtn = ht::createLink("+", $linkUrl, $warning, "class=pos-notes posBtns newNoteBtn {$disClass}, title=Създаване на нова сторно бележка");
-        $tpl->append($addBtn);
-        
-        while($receiptRec = $query->fetch()){
-            $linkUrl = (pos_Receipts::haveRightFor('revert', $receiptRec->id)) ? array('pos_Receipts', 'revert', $receiptRec->id, 'ret_url' => true) : array();
-            $class = ($rec->pointId != $receiptRec->pointId) ? 'differentPosBtn' : '';
-            $btnTitle = ($rec->pointId != $receiptRec->pointId) ? ht::createHint(self::getReceiptTitle($receiptRec), "Бележката е от друг POS") : self::getReceiptTitle($receiptRec);
-            $class .= ($linkUrl) ? ' navigable' : ' disabledBtn';
-            $warning = ($linkUrl) ? 'Наистина ли желаете да сторнирате бележката|*?' : false;
-            
-            $btn = ht::createLink($btnTitle, $linkUrl, $warning, "title=Сторниране на бележката,class=posBtns pos-notes {$class} state-{$receiptRec->state},id=revert{$cnt}");
-            $tpl->append($btn);
-            $cnt++;
-        }
-        
-        $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
-        
         return $tpl;
     }
     
@@ -1248,7 +1188,7 @@ class pos_Terminal extends peripheral_Terminal
         // Добавяме резултата
         $resObj = new stdClass();
         $resObj->func = 'html';
-        $resObj->arg = array('id' => 'terminalTime', 'html' => $cu, 'replace' => true);
+        $resObj->arg = array('id' => 'terminalTime', 'html' => $this->renderCurrentTime()->getContent(), 'replace' => true);
         
         return array($resObj);
     }
@@ -1511,18 +1451,22 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultReceipts($rec, $string, $selectedRec)
     {
-        $rec = $this->fetchRec($rec );
+        $rec = $this->fetchRec($rec);
         $tpl = new core_ET("");
         $today = dt::today();
         
         $string = plg_Search::normalizeText($string);
         $addUrl = (pos_Receipts::haveRightFor('add')) ? array('pos_Receipts', 'new', 'forced' => true) : array();
+        $revertDefaultUrl = (pos_Receipts::haveRightFor('revert', pos_Receipts::DEFAULT_REVERT_RECEIPT)) ? array('pos_Receipts', 'revert', pos_Receipts::DEFAULT_REVERT_RECEIPT, 'ret_url' => true) : array();
+        $revertUrl = (pos_Receipts::haveRightFor('revert', $rec->id)) ? array('pos_Receipts', 'revert', $rec->id, 'ret_url' => true) : array();
+        
         $disabledClass = (pos_Receipts::haveRightFor('add')) ? 'navigable' : 'disabledBtn';
+        $disabledRevertClass = countR($revertDefaultUrl) ? 'navigable' : 'disabledBtn';
         
         // Намираме всички чернови бележки и ги добавяме като линк
         $query = pos_Receipts::getQuery();
         $query->XPR('createdDate', 'date', 'DATE(#createdOn)');
-        $query->where("#state != 'rejected' AND #pointId = {$rec->pointId}");
+        $query->where("#state != 'rejected'");
         $query->orderBy("#createdDate,#id", 'DESC');
         $query->limit(self::$maxSearchReceipts);
         if(!empty($string)){
@@ -1533,8 +1477,17 @@ class pos_Terminal extends peripheral_Terminal
         $dateBlock = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('RECEIPT_RESULT');
         $arr = array("{$today}" => clone $dateBlock);
         $arr[$today]->replace(dt::mysql2verbal($today, 'smartDate'), 'groupName');
+        
+        if(countR($revertUrl)){
+            $revertBtn = ht::createLink("Сторниране", $revertUrl, 'Наистина ли искате да сторнирате бележката|*?', "id=revertthis,class=pos-notes posBtns newNoteBtn red {$disabledClass},title=Сторниране на текущата бележка");
+            $arr[$today]->append($revertBtn, 'element');
+        }
+        
         $addBtn = ht::createLink("+", $addUrl, null, "id=receiptnew,class=pos-notes posBtns newNoteBtn {$disabledClass},title=Създаване на нова бележка");
         $arr[$today]->append($addBtn, 'element');
+        
+        $revertDefaultBtn = ht::createLink("+", $revertDefaultUrl, 'Наистина ли искате да създадете нова сторно бележка|*?', "id=receiptrevertdefault,class=pos-notes posBtns newNoteBtn red {$disabledRevertClass},title=Създаване на нова сторно бележка");
+        $arr[$today]->append($revertDefaultBtn, 'element');
         
         // Групиране на записите по дата
         while ($receiptRec = $query->fetch()) {
@@ -1548,7 +1501,9 @@ class pos_Terminal extends peripheral_Terminal
             $class .= (count($openUrl)) ? ' navigable' : ' disabledBtn';
             $class .= ($receiptRec->id == $rec->id) ? ' currentReceipt' : '';
             
-            $row = ht::createLink(self::getReceiptTitle($receiptRec, false), $openUrl, null, array('id' => "receipt{$receiptRec->id}", 'class' => "pos-notes posBtns {$class} state-{$receiptRec->state} enlargable", 'title' => 'Отваряне на бележката', 'data-enlarge-object-id' => $receiptRec->id, 'data-enlarge-class-id' => pos_Receipts::getClassId(), 'data-enlarge-title' => strip_tags(pos_Receipts::getRecTitle($receiptRec))));
+            $btnTitle = self::getReceiptTitle($receiptRec);
+            $btnTitle = ($rec->pointId != $receiptRec->pointId) ? ht::createHint($btnTitle, "Бележката е от друг POS") : $btnTitle;
+            $row = ht::createLink($btnTitle, $openUrl, null, array('id' => "receipt{$receiptRec->id}", 'class' => "pos-notes posBtns {$class} state-{$receiptRec->state} enlargable", 'title' => 'Отваряне на бележката', 'data-enlarge-object-id' => $receiptRec->id, 'data-enlarge-class-id' => pos_Receipts::getClassId(), 'data-enlarge-title' => strip_tags(pos_Receipts::getRecTitle($receiptRec))));
             $arr[$receiptRec->createdDate]->append($row, 'element');
         }
         
