@@ -933,7 +933,7 @@ function enter() {
 	// Ако има селектиран ред в резултатите
 	var element = $(".navigable.selected");
 
-	if(element.length){
+	if(element.length && activeInput !== true){
 		
 		// Намира първия елемент с data-url
 		var elementDataUrl = element.attr("data-url");
