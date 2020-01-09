@@ -978,15 +978,15 @@ function startNavigation() {
 	if($('.navigable').length) {
 		
 		var focused = sessionStorage.getItem('focused');
-		
+
 		// ръчно избирам първия елемент за селектед
-		if(!focused){
+		if(!focused && $('.navigable.selected').length == 0){
 			focused = $('.navigable').first();
 			focused.addClass('selected');
 			sessionStorage.setItem('focused', focused.attr('id'));
 		}
-		
-		if (focused && document.getElementById(focused)) {
+
+		if (focused && document.getElementById(focused) && $('.navigable.selected').length == 0) {
 			$('.selected').removeClass('selected');
 			$('#' + focused ).addClass('selected');
 		}
