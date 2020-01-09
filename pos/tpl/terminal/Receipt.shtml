@@ -1,14 +1,15 @@
-<!--ET_BEGIN RECEIPT_CAPTION-->[#RECEIPT_CAPTION#]<!--ET_END RECEIPT_CAPTION-->
-<div class="receiptHeader onlyPrint">
-<!--ET_BEGIN RECEIPT_HEADER-->[#RECEIPT_HEADER#]
-	<div class="receipt-title">
-		<div>№ [#id#]/[#valior#]</div></div>
-	<!--ET_BEGIN SUB_TITLE--><div class='onlyPrint'>[#SUB_TITLE#]</div><!--ET_END SUB_TITLE-->
-	<!--ET_BEGIN revertId--><div class='terminal-revert-id newLine'>|Сторнира|* № [#revertId#]</div><!--ET_END revertId-->
-	<span >[#contragentId#]</span>
-	<!--ET_END RECEIPT_HEADER-->
-</div>
+
 <div class="scrolling-vertical">
+	<!--ET_BEGIN RECEIPT_CAPTION--><div style="padding: 5px 20px; background-color: #ccc;">[#RECEIPT_CAPTION#]</div><!--ET_END RECEIPT_CAPTION-->
+	<div class="receiptHeader onlyPrint">
+		<!--ET_BEGIN RECEIPT_HEADER-->[#RECEIPT_HEADER#]
+		<div class="receipt-title">
+			<div>№ [#id#]/[#valior#]</div></div>
+		<!--ET_BEGIN SUB_TITLE--><div class='onlyPrint'>[#SUB_TITLE#]</div><!--ET_END SUB_TITLE-->
+		<!--ET_BEGIN revertId--><div class='terminal-revert-id newLine'>|Сторнира|* № [#revertId#]</div><!--ET_END revertId-->
+		<span >[#contragentId#]</span>
+		<!--ET_END RECEIPT_HEADER-->
+	</div>
 	<!--ET_BEGIN DETAILS-->
 	[#DETAILS#]
 	<!--ET_END DETAILS-->
