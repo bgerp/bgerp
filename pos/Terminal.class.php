@@ -1486,7 +1486,7 @@ class pos_Terminal extends peripheral_Terminal
         $addBtn = ht::createLink("+", $addUrl, null, "id=receiptnew,class=pos-notes posBtns newNoteBtn {$disabledClass},title=Създаване на нова бележка");
         $arr[$today]->append($addBtn, 'element');
         
-        $revertDefaultBtn = ht::createLink("+", $revertDefaultUrl, 'Наистина ли искате да създадете нова сторно бележка|*?', "id=receiptrevertdefault,class=pos-notes posBtns revertReceiptBtn {$disabledRevertClass},title=Създаване на нова сторно бележка");
+        $revertDefaultBtn = ht::createLink("+", $revertDefaultUrl, 'Наистина ли искате да създадете нова сторно бележка|*?', "id=receiptrevertdefault,class=pos-notes posBtns newNoteBtn revertReceiptBtn {$disabledRevertClass},title=Създаване на нова сторно бележка");
         $arr[$today]->append($revertDefaultBtn, 'element');
         
         // Групиране на записите по дата
