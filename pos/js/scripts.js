@@ -425,7 +425,7 @@ function posActions() {
 	});
 
 	// Сменяне на селектирания ред от бележките при клик
-	$(document.body).on('click', ".receiptRow", function(e){
+	$(document.body).on('click', "#receipt-table .receiptRow", function(e){
 		$('.highlighted').removeClass('highlighted');
 		$(this).closest('.receiptRow').addClass('highlighted');
 		
@@ -835,8 +835,8 @@ function getSelectedOperation()
 
 // Изтриване на елемент
 function deleteElement() {
-	if($('.receiptRow.highlighted').length) {
-		$('.receiptRow.highlighted').find('.pos-del-btn').click();
+	if($('#receipt-table .receiptRow.highlighted').length) {
+		$('#receipt-table .receiptRow.highlighted').find('.pos-del-btn').click();
 	}
 }
 function render_prepareResult() {

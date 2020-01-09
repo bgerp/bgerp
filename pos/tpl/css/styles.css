@@ -125,7 +125,7 @@
 .indent {
   padding-left: 15px; }
 
-.highlighted {
+#receipt-table .highlighted {
   background: #fefead !important;
   border-left: 6px solid #16006c; }
 
@@ -543,6 +543,12 @@
 
 .modalContent {
   display: none; }
+
+.modalReceipt {
+  width: 560px;
+  margin: 0 auto; }
+  .modalReceipt .pos-del-btn {
+    display: none; }
 
 .imagePreview {
   box-shadow: 0 0 5px #333333;

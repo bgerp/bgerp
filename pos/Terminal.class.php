@@ -318,7 +318,9 @@ class pos_Terminal extends peripheral_Terminal
                 
                 break;
             case pos_Receipts::getClassId():
-                $modalTpl = $this->getReceipt($enlargeObjectId);
+                $modalTpl =  $this->getReceipt($enlargeObjectId);
+                $modalTpl->prepend('<div class="modalReceipt">');
+                $modalTpl->append('</div>');
                 break;
             default:
                 $singleLayoutFile = ($enlargeClassId == 'crm_Companies') ? 'pos/tpl/terminal/SingleLayoutCompanyModal.shtml' : (($enlargeClassId == 'pos_Receipts') ? 'pos/tpl/terminal/modalCompany.shtml' : 'pos/tpl/terminal/SingleLayoutPersonModal.shtml');
