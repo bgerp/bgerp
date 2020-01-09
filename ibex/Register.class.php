@@ -109,7 +109,7 @@ class ibex_Register extends core_Manager
             
             $date = dt::addDays(-1 * $i, null, false);
 
-            if($this->count("#date = '{$date}'") < 25) {
+            if($this->countR("#date = '{$date}'") < 25) {
 
                 $rows = $this->retrieve($date);
  
@@ -166,7 +166,7 @@ class ibex_Register extends core_Manager
             }
         }
         
-        if(!count($res)) {
+        if(!countR($res)) {
             self::logWarning("Не извличам нищо от " . $url);
         }
 
