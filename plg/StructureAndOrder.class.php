@@ -123,7 +123,7 @@ class plg_StructureAndOrder extends core_Plugin
         $items = self::orderItems($items);
         if (is_array($items)) {
             foreach ($items as $iRec) {
-                if (count($removeIds)) {
+                if (countR($removeIds)) {
                     if ($removeIds[$iRec->saoParentId]) {
                         $removeIds[$iRec->id] = $iRec->id;
                         continue;
@@ -420,7 +420,7 @@ class plg_StructureAndOrder extends core_Plugin
             }
         }
         
-        if (!count($selArr)) {
+        if (!countR($selArr)) {
             
             return array();
         }

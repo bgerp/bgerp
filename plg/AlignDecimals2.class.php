@@ -35,7 +35,7 @@ class plg_AlignDecimals2 extends core_Plugin
             }
         }
         
-        if (!arr::count($decFields) || !arr::count($recs)) {
+        if (!arr::countR($decFields) || !arr::countR($recs)) {
             
             return;
         }
@@ -80,7 +80,7 @@ class plg_AlignDecimals2 extends core_Plugin
         $recs = &$data->recs;
         $rows = &$data->rows;
         
-        if (!count($recs)) {
+        if (!countR($recs)) {
             
             return;
         }

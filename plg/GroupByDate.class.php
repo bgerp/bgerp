@@ -29,9 +29,9 @@ class plg_GroupByDate extends core_Plugin
             return;
         }
         
-        $columns = count(arr::make($data->listFields));
+        $columns = countR(arr::make($data->listFields));
         
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }

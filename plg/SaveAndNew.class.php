@@ -31,7 +31,7 @@ class plg_SaveAndNew extends core_Plugin
             // Добавяме стойностите на връщане към "тихите" полета
             $fields = $data->form->selectFields("#silent == 'silent'");
             
-            if (count($fields)) {
+            if (countR($fields)) {
                 foreach ($fields as $name => $fld) {
                     if ($fld->input == 'hidden' || $fld->remember == 'remember' || $fld->type->params['remember'] == 'remember') {
                         $data->retUrl[$name] = Request::get($name);
@@ -54,7 +54,7 @@ class plg_SaveAndNew extends core_Plugin
             
             // status_Messages::newStatus($action . ($mvc->singleTitle ? tr(mb_strtolower($mvc->singleTitle)) : $obj));
             
-            if (count($fields)) {
+            if (countR($fields)) {
                 foreach ($fields as $name => $fld) {
                     $permanentName = cls::getClassName($mvc) . '_' . $name;
                     Mode::setPermanent($permanentName, $data->form->rec->{$name});
@@ -67,11 +67,11 @@ class plg_SaveAndNew extends core_Plugin
                 $info = '';
                 
                 // Изваждаме от сесията и поставяме като дефолти, полетата със запомняне
-                if (count($fields)) {
+                if (countR($fields)) {
                     foreach ($fields as $name => $fld) {
                         $permanentName = cls::getClassName($mvc) . '_' . $name;
                         $captionArr = explode('->', $fld->caption);
-                        if (count($captionArr) == 2) {
+                        if (countR($captionArr) == 2) {
                             $caption = tr($captionArr[0]) . '->' . tr($captionArr[1]);
                         } else {
                             $caption = tr($fld->caption);
@@ -104,7 +104,7 @@ class plg_SaveAndNew extends core_Plugin
             // Изтриваме от сесията, полетата със запомняне
             $fields = $data->form->selectFields('#remember');
             
-            if (count($fields)) {
+            if (countR($fields)) {
                 foreach ($fields as $name => $fld) {
                     $permanentName = cls::getClassName($mvc) . '_' . $name;
                     Mode::setPermanent($permanentName, null);
@@ -148,7 +148,7 @@ class plg_SaveAndNew extends core_Plugin
         $fields = $data->form->selectFields("#remember == 'remember'");
         
         // Изваждаме от сесията и поставяме като дефолти, полетата със запомняне
-        if (count($fields)) {
+        if (countR($fields)) {
             foreach ($fields as $name => $fld) {
                 $permanentName = cls::getClassName($mvc) . '_' . $name;
                 
