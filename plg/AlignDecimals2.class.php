@@ -35,7 +35,7 @@ class plg_AlignDecimals2 extends core_Plugin
             }
         }
         
-        if (!arr::countR($decFields) || !arr::countR($recs)) {
+        if (!arr::count($decFields) || !arr::count($recs)) {
             
             return;
         }
