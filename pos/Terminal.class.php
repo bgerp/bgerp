@@ -362,6 +362,54 @@ class pos_Terminal extends peripheral_Terminal
         return $res;
     }
     
+    
+    /**
+     * Създава нова форма фирма и прехвърля с нея
+     */
+    public function act_TransferInNewCompany()
+    {
+        pos_Receipts::requireRightFor('terminal');
+        pos_Receipts::requireRightFor('transfer');
+        $receiptId = core_Request::get('receiptId', 'int');
+        $rec = pos_Receipts::fetch($receiptId);
+        pos_Receipts::requireRightFor('terminal', $rec);
+        pos_Receipts::requireRightFor('transfer', $rec);
+        crm_Companies::requireRightFor('add');
+        
+        $Companies = cls::get('crm_Companies');
+        $data = (object)array('action' => 'manage', 'cmd' => 'add');
+        $Companies->prepareEditForm($data);
+        $data->form->setAction(array($this, 'TransferInNewCompany', 'receiptId' => $rec->id));
+        
+        $data->form->input();
+        $Companies->invoke('AfterInputEditForm', array($data->form));
+        
+        if ($data->form->isSubmitted()) {
+            $companyRec = $data->form->rec;
+            $Companies->save($companyRec);
+            
+            $rec->contragentClass = $Companies->getClassId();
+            $rec->contragentObjectId = $companyRec->id;
+            $rec->contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
+            pos_Receipts::save($rec, 'contragentObjectId,contragentClass,contragentName');
+            
+            redirect(array('pos_Terminal', 'open', 'receiptId' => $rec->id));
+        }
+        
+        $data->form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис на нова фирма');
+        $content = $data->form->renderHtml();
+        
+        // Ще се реплейсва и пулта
+        $res = array();
+        $resObj = new stdClass();
+        $resObj->func = 'html';
+        $resObj->arg = array('id' => 'modalContent', 'html' => $content->getContent(), 'replace' => true);
+        $res[] = $resObj;
+        
+        return $res;
+    }
+    
+    
     /**
      * Пълна клавиатура
      *
@@ -779,18 +827,17 @@ class pos_Terminal extends peripheral_Terminal
         if($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId){
             $contragents = array();
             
-            $newCompanyAttr = array('id' => 'contragentnew', 'data-url' => toUrl(array('crm_Companies', 'add')), 'class' => 'posBtns contragentLinkBtns');
+            $newCompanyAttr = array('id' => 'contragentnew', 'data-url' => toUrl(array('pos_Terminal', 'transferInNewCompany', 'receiptId' => $rec->id), 'local'), 'class' => 'posBtns');
             if(!crm_Companies::haveRightFor('add')){
                 $newCompanyAttr['disabled'] = 'disabled';
                 $newCompanyAttr['class'] .= ' disabledBtn';
                 unset($newCompanyAttr['data-url']);
             } else {
-                $newCompanyAttr['class'] .= ' navigable openInNewTab';
+                $newCompanyAttr['class'] .= ' navigable newCompanyBtn';
             }
             $holderDiv = ht::createElement('div', $newCompanyAttr, 'Нова фирма', true);
             $tpl->append($holderDiv);
             $tpl->append(tr("|*<div class='divider'>|Контрагенти|*</div>"));
-            
             
             if(!empty($string)){
                 $stringInput = core_Type::getByName('varchar')->fromVerbal($string);
