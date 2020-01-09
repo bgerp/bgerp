@@ -80,12 +80,12 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Бутони за бърз достъп до терминала
      */
-    protected static $operationShortcuts = 'operation-add=A,operation-payment=P,operation-quantity=K,operation-price=Z,operation-discount=5,operation-text=T,operation-contragent=C,operation-receipts=R,enlarge=F,print=3,operation-batch=B,keyboard=V,exit=X,reject=N';
+    protected static $operationShortcuts = 'operation-add=A,operation-payment=P,operation-quantity=K,operation-price=Z,operation-discount=5,operation-text=T,operation-contragent=C,operation-receipts=R,enlarge=F,print=3,operation-batch=B,keyboard=V,exit=X,reject=N,help=H';
 
     /**
      * Кои са разрешените операции
      */
-    protected static $operationsArr = "add=Добавяне на артикул,payment=Плащане по бележката,quantity=Промяна на количеството/опаковката,batch=Задаване на партида на артикула,price=Задаване на цена,discount=Задаване на отстъпка,text=Текст,contragent=Избор на контрагент,receipts=Преглед на бележките,revert=Сторниране на бележка";
+    protected static $operationsArr = "add=Добавяне на артикул,payment=Плащане по бележката,quantity=Промяна на количеството/опаковката,batch=Задаване на партида на артикула,price=Задаване на цена,discount=Задаване на отстъпка,text=Текст,contragent=Избор на контрагент,receipts=Преглед на бележките";
 
 
     /**
@@ -340,6 +340,26 @@ class pos_Terminal extends peripheral_Terminal
         return $res;
     }
     
+    
+    /**
+     * Пълна клавиатура
+     *
+     * @return array $res
+     */
+    public function act_Help()
+    {
+        $tpl = getTplFromFile('pos/tpl/terminal/Help.shtml');
+        
+        // Ще се реплейсва и пулта
+        $res = array();
+        $resObj = new stdClass();
+        $resObj->func = 'html';
+        $resObj->arg = array('id' => 'modalContent', 'html' => $tpl->getContent(), 'replace' => true);
+        $res[] = $resObj;
+        
+        return $res;
+    }
+    
     /**
      * Пълна клавиатура
      *
@@ -504,6 +524,10 @@ class pos_Terminal extends peripheral_Terminal
         } else {
             $buttons["delete"] = (object)array('body' => $img, 'attr' => array('class' => "rejectBtn disabledBtn", 'disabled' => 'disabled'));
         }
+        
+        // Бутон за увеличение на избрания артикул
+        $img = ht::createImg(array('path' => self::$operationImgs["help"]));
+        $buttons["help"] = (object)array('body' => $img, 'attr' => array('title' => 'Отваряне на хелп прозорец', 'data-url' => toUrl(array('pos_Terminal', 'Help'), 'local'), 'class' => "helpBtn"));
         
         $logoutImg = ht::createImg(array('path' => 'pos/img/exit.png'));
         $buttons["exit"] = (object)array('body' => $logoutImg, 'attr' => array('class' => 'logout', 'title' => 'Излизане от системата'), 'linkUrl' => array('core_Users', 'logout', 'ret_url' => true));
