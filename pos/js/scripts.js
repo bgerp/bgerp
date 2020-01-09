@@ -914,11 +914,16 @@ function enter() {
 	var element = $(".navigable.selected");
 
 	if(element.length){
+		
 		// Намира първия елемент с data-url
 		var elementDataUrl = element.attr("data-url");
 		var hrefUrl = element.attr("href");
-		elementDataUrl = (elementDataUrl) ? elementDataUrl : ((hrefUrl) ? hrefUrl : elementDataUrl);
-
+		
+		if(hrefUrl){
+			location.href = hrefUrl;
+			return;
+		}
+		
 		if(elementDataUrl == undefined){
 			var child = element.find('[data-url]');
 
