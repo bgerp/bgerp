@@ -1183,7 +1183,7 @@ class pos_Terminal extends peripheral_Terminal
      */
     function act_autoRefreshHeader()
     {
-        $cu = core_Users::getCurrent();
+        core_Users::getCurrent();
         
         // Добавяме резултата
         $resObj = new stdClass();
