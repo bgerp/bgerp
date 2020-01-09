@@ -55,6 +55,8 @@ function posActions() {
 		if($('body').hasClass('wide')){
 			closestSearch.focus();
 		}
+		var e = jQuery.Event("keyup");
+		$('.select-input-pos').trigger(e);
 		activeInput = true;
 	});
 
