@@ -557,6 +557,8 @@ class pos_Terminal extends peripheral_Terminal
         expect($operation = Request::get('operation', "enum(" . self::$operationsArr . ")"));
         $refreshPanel = Request::get('refreshPanel', 'varchar');
         $refreshPanel = ($refreshPanel == 'no') ? false : true;
+        pos_Receipts::requireRightFor('terminal', $rec);
+        
         if($selectedRecId = Request::get('recId', 'int')){
             $selectedRec = pos_ReceiptDetails::fetch($selectedRecId, '*', false);
         }
@@ -1217,12 +1219,12 @@ class pos_Terminal extends peripheral_Terminal
      */
     function act_autoRefreshHeader()
     {
-        $id = Request::get('id', 'int');
+        $cu = core_Users::getCurrent();
         
         // Добавяме резултата
         $resObj = new stdClass();
         $resObj->func = 'html';
-        $resObj->arg = array('id' => 'terminalTime', 'html' => $this->renderCurrentTime()->getContent(), 'replace' => true);
+        $resObj->arg = array('id' => 'terminalTime', 'html' => $cu, 'replace' => true);
         
         return array($resObj);
     }
