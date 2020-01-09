@@ -288,7 +288,9 @@ class pos_Terminal extends peripheral_Terminal
                 $row->measureId = cat_UoM::getTitleById($productRec->measureId);
                 $row->info = cat_Products::getVerbal($productRec, 'info');
                 if ($productRec->canStore == 'yes') {
-                    $row->inStock = $Double->toVerbal(pos_Stocks::getQuantity($productRec->id, $receiptRec->pointId));
+                    $inStock = pos_Stocks::getQuantity($productRec->id, $receiptRec->pointId);
+                    $row->inStock = $Double->toVerbal($inStock);
+                    $row->inStock = ht::styleIfNegative($row->inStock, $inStock);
                     $row->inStock .= " " . cat_UoM::getShortName($productRec->measureId);
                 }
                 
