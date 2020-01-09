@@ -1,5 +1,6 @@
 var dialog;
 var activeInput;
+var timeout;
 
 function posActions() {
 
@@ -118,36 +119,29 @@ function posActions() {
 		if(e.key == "Enter" || e.key == "ArrowRight" || e.key == "ArrowLeft" || e.key == "ArrowUp" || e.key == "ArrowDown"  || e.key == "PageUp" || e.key == "PageDown" || e.key == 'Alt') return;
 		activeInput = true;
 
-		
-		
-		
-		if ($(e.target).attr('name') == 'ean') {
+		// След всяко натискане на бутон изчистваме времето на изчакване
+		clearTimeout(timeout);
 
-			// След всяко натискане на бутон изчистваме времето на изчакване
-			clearTimeout(timeout);
-
-			var url = $(this).attr("data-keyupurl");
-			if(!url){
-				return;
-			}
-
-			var inpVal = $(this).val();
-
-			var operation = getSelectedOperation();
-
-			var selectedElement = $(".highlighted.productRow");
-			var selectedRecId = selectedElement.attr("data-id");
-
-			// Правим Ajax заявката като изтече време за изчакване
-			timeout = setTimeout(function(){
-				resObj = new Object();
-				resObj['url'] = url;
-
-				getEfae().process(resObj, {operation:operation,search:inpVal,recId:selectedRecId});
-
-			}, 700);
+		var url = $(this).attr("data-keyupurl");
+		if(!url){
+			return;
 		}
 
+		var inpVal = $(this).val();
+
+		var operation = getSelectedOperation();
+
+		var selectedElement = $(".highlighted.productRow");
+		var selectedRecId = selectedElement.attr("data-id");
+
+		// Правим Ajax заявката като изтече време за изчакване
+		timeout = setTimeout(function(){
+			resObj = new Object();
+			resObj['url'] = url;
+
+			getEfae().process(resObj, {operation:operation,search:inpVal,recId:selectedRecId});
+
+		}, 700);
 	});
 	
 	
@@ -342,9 +336,6 @@ function posActions() {
 		activeInput = true;
 	});
 
-	// Време за изчакване
-	var timeout;
-	
 	// действие на бутоните за действията
 	$(document.body).on('click', ".operationBtn", function(e){
 		sessionStorage.removeItem("focused");
@@ -925,7 +916,7 @@ function render_afterload()
 }
 
 function enter() {
-	
+	clearTimeout(timeout);
 	var value = $("input[name=ean]").val();
 	var url = $("input[name=ean]").attr("data-url");
 	var operation = getSelectedOperation();
