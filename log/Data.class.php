@@ -688,7 +688,7 @@ class log_Data extends core_Manager
                 $dateRange[1] = $rec->to;
             }
             
-            if (count($dateRange) == 2) {
+            if (countR($dateRange) == 2) {
                 sort($dateRange);
             }
             
