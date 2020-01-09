@@ -310,7 +310,7 @@ class hr_Leaves extends core_Master
         $employees = crm_Persons::getEmployeesOptions();
         unset($employees[$rec->personId]);
         
-        if (count($employees)) {
+        if (countR($employees)) {
             $form->setOptions('personId', $employees);
             $form->setOptions('alternatePerson', $employees);
         } else {
@@ -515,7 +515,7 @@ class hr_Leaves extends core_Master
             $subscribedArr[$alternatePersonId] = $alternatePersonId;
         }
         
-        if (count($subscribedArr)) {
+        if (countR($subscribedArr)) {
             foreach ($subscribedArr as $userId) {
                 if ($userId > 0 && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
                     $rec->message = '|Активирана е |* "' . self::getRecTitle($rec) . '"';
@@ -818,7 +818,7 @@ class hr_Leaves extends core_Master
             $subscribedArr[$alternatePersonId] = $alternatePersonId;
         }
         
-        if (count($subscribedArr)) {
+        if (countR($subscribedArr)) {
             foreach ($subscribedArr as $userId) {
                 if ($userId > 0 && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
                     $rec->message = '|Отказана е |* "' . self::getRecTitle($rec) . '"';

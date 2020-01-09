@@ -256,7 +256,7 @@ class hr_Trips extends core_Master
         $employees = crm_Persons::getEmployeesOptions();
         unset($employees[$rec->personId]);
         
-        if (count($employees)) {
+        if (countR($employees)) {
             $form->setOptions('personId', $employees);
             $form->setOptions('alternatePerson', $employees);
         } else {

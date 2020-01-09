@@ -132,7 +132,7 @@ abstract class frame2_driver_Proto extends core_BaseClass
         foreach ($fields as $name => $fld) {
             if (isset($rec->{$name}) && $fld->single !== 'none') {
                 $captionArr = explode('->', $fld->caption);
-                $caption = (count($captionArr) == 1) ? $captionArr[0] : $captionArr[1];
+                $caption = (countR($captionArr) == 1) ? $captionArr[0] : $captionArr[1];
                 $resArr[$name] = array('name' => tr($caption), 'val' => $row->{$name});
             }
         }
