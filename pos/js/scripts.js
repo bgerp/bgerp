@@ -919,6 +919,7 @@ function enter() {
 	clearTimeout(timeout);
 	var value = $("input[name=ean]").val();
 	var url = $("input[name=ean]").attr("data-url");
+	
 	var operation = getSelectedOperation();
 
 	// Ако има селектиран ред в резултатите
@@ -929,6 +930,15 @@ function enter() {
 		// Намира първия елемент с data-url
 		var elementDataUrl = element.attr("data-url");
 		var hrefUrl = element.attr("href");
+		var onclick = element.attr("onclick");
+		
+		if(onclick){
+			// Вика се клик
+			var event = jQuery.Event("click");
+			element.trigger(event);
+			
+			return;
+		}
 		
 		if(hrefUrl){
 			location.href = hrefUrl;
