@@ -646,7 +646,7 @@ class pos_ReceiptDetails extends core_Detail
             unset($row->discountPercent);
         }
         
-        $row->productId = ($fields['-list']) ? cat_Products::getHyperLink($rec->productId, true) : cat_Products::getTitleById($rec->productId, true);
+        $row->productId = ($fields['-list']) ? cat_Products::getHyperLink($rec->productId, true) :  mb_subStr(cat_Products::getTitleById($rec->productId), 0, 95);
     
         // Показване на склада, само ако е различен от дефолтния
         $defaultStoreId = pos_Points::fetchField(pos_Receipts::fetchField($rec->receiptId, 'pointId'), 'storeId');

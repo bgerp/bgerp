@@ -1405,7 +1405,7 @@ class pos_Terminal extends peripheral_Terminal
         $row->packagingId = cat_UoM::getSmartName($packagingId, $obj->stock);
         $obj->receiptId = $data->rec->id;
         
-        $row->productId = cat_Products::getTitleById($obj->productId);
+        $row->productId = mb_subStr(cat_Products::getTitleById($obj->productId), 0, 95);
         if ($data->showParams) {
             $params = keylist::toArray($data->showParams);
             foreach ($params as $pId) {
