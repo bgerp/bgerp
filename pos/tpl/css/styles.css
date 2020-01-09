@@ -264,6 +264,8 @@
     margin: 5px 5px 10px 10px;
     font-size: 1.3em;
     display: flex; }
+    .posBtns.printReceiptBtn.largeBtn {
+      width: 32.1% !important; }
   .posBtns.pos-notes {
     font-size: 1.1em; }
   .posBtns.payment {
@@ -278,9 +280,13 @@
     box-shadow: 0px 0px 3px #0000fa !important;
     border: 3px solid #080f56;
     padding: 9px !important; }
-
-.newNoteBtn {
-  font-size: 1.8em; }
+  .posBtns.revertReceiptBtn {
+    background: #811717 !important;
+    color: white !important; }
+  .posBtns.newNoteBtn {
+    font-size: 2em; }
+  .posBtns .nowrap {
+    font-size: 0.9em; }
 
 .differentPosBtn {
   text-decoration: underline !important; }
@@ -501,7 +507,7 @@
   color: red; }
 
 .receiptResultAmount {
-  margin-left: 25px; }
+  margin-left: 15px; }
 
 .storeQuantityInStock {
   font-size: 0.8em; }
