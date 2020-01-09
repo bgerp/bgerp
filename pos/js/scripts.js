@@ -229,6 +229,8 @@ function posActions() {
 
 	// Избор на контрагент
 	$(document.body).on('click', ".posResultContragent, .contragentLinkBtns", function(e){
+		clearTimeout(timeout);
+		
 		var url = $(this).attr("data-url");
 		if(!url) return;
 		
@@ -338,6 +340,8 @@ function posActions() {
 
 	// действие на бутоните за действията
 	$(document.body).on('click', ".operationBtn", function(e){
+		clearTimeout(timeout);
+		
 		sessionStorage.removeItem("focused");
 		var currentlySelected = getSelectedOperation();
 		sessionStorage.setItem('lastSelectedOperation', currentlySelected);
@@ -394,6 +398,8 @@ function posActions() {
 
 	// Добавяне на продукт от резултатите за търсене
 	$(document.body).on('click', ".pos-add-res-btn", function(e){
+		clearTimeout(timeout);
+		
 		var elemRow = $(this).closest('.receiptRow ');
 		$(elemRow).addClass('highlighted');
 		var url = $(this).attr("data-url");

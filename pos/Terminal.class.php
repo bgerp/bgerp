@@ -42,7 +42,7 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * При търсене на бележки до колко да се показват
      */
-    protected static $maxSearchReceipts = 100;
+    protected static $maxSearchReceipts = 50;
     
     
     /**
