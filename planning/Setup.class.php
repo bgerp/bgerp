@@ -254,7 +254,7 @@ class planning_Setup extends core_ProtoSetup
         $TaskDetails = cls::get('planning_ProductionTaskDetails');
         $TaskDetails->setupMvc();
         
-        if (!count($Tasks)) {
+        if (!countR($Tasks)) {
             
             return;
         }
@@ -268,7 +268,7 @@ class planning_Setup extends core_ProtoSetup
             $updateArr[$rec->id] = $rec;
         }
         
-        if (count($updateArr)) {
+        if (countR($updateArr)) {
             $Tasks->saveArray($updateArr, 'id,indPackagingId');
         }
     }
@@ -285,7 +285,7 @@ class planning_Setup extends core_ProtoSetup
         $TaskDetails = cls::get('planning_ProductionTaskDetails');
         $TaskDetails->setupMvc();
         
-        if (!count($Tasks)) {
+        if (!countR($Tasks)) {
             
             return;
         }
@@ -302,7 +302,7 @@ class planning_Setup extends core_ProtoSetup
             $updateArr[] = $rec;
         }
         
-        if (count($updateArr)) {
+        if (countR($updateArr)) {
             $Tasks->saveArray($updateArr, 'id,measureId,quantityInPack');
         }
     }

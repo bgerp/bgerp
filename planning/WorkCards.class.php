@@ -441,7 +441,7 @@ class planning_WorkCards extends core_Master
                         }
                         
                         $urlArr = explode('/', $barcode);
-                        $len = count($urlArr);
+                        $len = countR($urlArr);
                         
                         $id = $urlArr[$len-1];
                         $cls = $urlArr[$len-3];

@@ -39,7 +39,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         
         // Ако има ид, добавяме записите
         $entries = $this->getEntries($rec, $result->totalAmount);
-        if (count($entries)) {
+        if (countR($entries)) {
             $result->entries = $entries;
         }
         
@@ -162,7 +162,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         }
         
         if (is_array($details)) {
-            if (!count($details)) {
+            if (!countR($details)) {
                 $debitAmount = ($debitAmount) ? $debitAmount : 0;
                 
                 $amount = $debitAmount;

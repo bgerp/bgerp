@@ -117,7 +117,7 @@ class planning_ObjectResources extends core_Manager
         $products = $mvc->getAvailableSimilarProducts($measureId, $rec->objectId);
         
         // Добавяме възможностите за избор на заместващи артикули за влагане
-        if (count($products)) {
+        if (countR($products)) {
             $products = array('' => '') + $products;
             
             $form->setOptions('likeProductId', $products);
@@ -447,7 +447,7 @@ class planning_ObjectResources extends core_Manager
         
         // Ако няма заместващи артикули, не търсим средна цена
         $equivalentProducts = static::getEquivalentProducts($productId);
-        if (!count($equivalentProducts)) {
+        if (!countR($equivalentProducts)) {
             
             return $avgPrice;
         }
