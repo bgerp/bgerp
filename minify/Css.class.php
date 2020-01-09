@@ -102,7 +102,7 @@ class minify_Css
             }
             $comment_found = $this->str_slice($css, $start_index + 2, $end_index);
             $this->comments[] = $comment_found;
-            $comment_preserve_string = self::COMMENT . (count($this->comments) - 1) . '___';
+            $comment_preserve_string = self::COMMENT . (countR($this->comments) - 1) . '___';
             $css = $this->str_slice($css, 0, $start_index + 2) . $comment_preserve_string . $this->str_slice($css, $end_index);
             
             // Set correct start_index: Fixes issue #2528130
@@ -153,7 +153,7 @@ class minify_Css
         }
         
         // Minify each chunk
-        for ($i = 0, $n = count($css_chunks); $i < $n; $i++) {
+        for ($i = 0, $n = countR($css_chunks); $i < $n; $i++) {
             $css_chunks[$i] = $this->minify($css_chunks[$i], $linebreak_pos);
             
             // Keep the first @charset at-rule found
@@ -251,7 +251,7 @@ class minify_Css
     private function minify($css, $linebreak_pos)
     {
         // strings are safe, now wrestle the comments
-        for ($i = 0, $max = count($this->comments); $i < $max; $i++) {
+        for ($i = 0, $max = countR($this->comments); $i < $max; $i++) {
             $token = $this->comments[$i];
             $placeholder = '/' . self::COMMENT . $i . '___/';
             
@@ -259,7 +259,7 @@ class minify_Css
             // so push to the preserved tokens keeping the !
             if (substr($token, 0, 1) === '!') {
                 $this->preserved_tokens[] = $token;
-                $token_tring = self::TOKEN . (count($this->preserved_tokens) - 1) . '___';
+                $token_tring = self::TOKEN . (countR($this->preserved_tokens) - 1) . '___';
                 $css = preg_replace($placeholder, $token_tring, $css, 1);
                 
                 // Preserve new lines for /*! important comments
@@ -272,10 +272,10 @@ class minify_Css
             // shorten that to /*\*/ and the next one to /**/
             if (substr($token, (strlen($token) - 1), 1) === '\\') {
                 $this->preserved_tokens[] = '\\';
-                $css = preg_replace($placeholder, self::TOKEN . (count($this->preserved_tokens) - 1) . '___', $css, 1);
+                $css = preg_replace($placeholder, self::TOKEN . (countR($this->preserved_tokens) - 1) . '___', $css, 1);
                 $i = $i + 1; // attn: advancing the loop
                 $this->preserved_tokens[] = '';
-                $css = preg_replace('/' . self::COMMENT . $i . '___/', self::TOKEN . (count($this->preserved_tokens) - 1) . '___', $css, 1);
+                $css = preg_replace('/' . self::COMMENT . $i . '___/', self::TOKEN . (countR($this->preserved_tokens) - 1) . '___', $css, 1);
                 continue;
             }
             
@@ -286,7 +286,7 @@ class minify_Css
                 if ($start_index > 2) {
                     if (substr($css, $start_index - 3, 1) === '>') {
                         $this->preserved_tokens[] = '';
-                        $css = preg_replace($placeholder, self::TOKEN . (count($this->preserved_tokens) - 1) . '___', $css, 1);
+                        $css = preg_replace($placeholder, self::TOKEN . (countR($this->preserved_tokens) - 1) . '___', $css, 1);
                     }
                 }
             }
@@ -440,7 +440,7 @@ class minify_Css
         }
         
         // restore preserved comments and strings in reverse order
-        for ($i = count($this->preserved_tokens) - 1; $i >= 0; $i--) {
+        for ($i = countR($this->preserved_tokens) - 1; $i >= 0; $i--) {
             $css = preg_replace('/' . self::TOKEN . $i . '___/', $this->preserved_tokens[$i], $css, 1);
         }
         
@@ -503,7 +503,7 @@ class minify_Css
                 $token = preg_replace('/\s+/', '', $token);
                 $this->preserved_tokens[] = $token;
                 
-                $preserver = 'url(' . self::TOKEN . (count($this->preserved_tokens) - 1) . '___)';
+                $preserver = 'url(' . self::TOKEN . (countR($this->preserved_tokens) - 1) . '___)';
                 $sb[] = $preserver;
                 
                 $append_index = $end_index + 1;
@@ -607,7 +607,7 @@ class minify_Css
         // maybe the string contains a comment-like substring?
         // one, maybe more? put'em back then
         if (($pos = $this->index_of($match, self::COMMENT)) >= 0) {
-            for ($i = 0, $max = count($this->comments); $i < $max; $i++) {
+            for ($i = 0, $max = countR($this->comments); $i < $max; $i++) {
                 $match = preg_replace('/' . self::COMMENT . $i . '___/', $this->comments[$i], $match, 1);
             }
         }
@@ -617,7 +617,7 @@ class minify_Css
         
         $this->preserved_tokens[] = $match;
         
-        return $quote . self::TOKEN . (count($this->preserved_tokens) - 1) . '___' . $quote;
+        return $quote . self::TOKEN . (countR($this->preserved_tokens) - 1) . '___' . $quote;
     }
     
     private function replace_colon($matches)
@@ -629,14 +629,14 @@ class minify_Css
     {
         $this->preserved_tokens[] = trim(preg_replace('/\s*([\*\/\(\),])\s*/', '$1', $matches[2]));
         
-        return 'calc('. self::TOKEN . (count($this->preserved_tokens) - 1) . '___' . ')';
+        return 'calc('. self::TOKEN . (countR($this->preserved_tokens) - 1) . '___' . ')';
     }
     
     private function preserve_old_IE_specific_matrix_definition($matches)
     {
         $this->preserved_tokens[] = $matches[1];
         
-        return 'filter:progid:DXImageTransform.Microsoft.Matrix(' . self::TOKEN . (count($this->preserved_tokens) - 1) . '___' . ')';
+        return 'filter:progid:DXImageTransform.Microsoft.Matrix(' . self::TOKEN . (countR($this->preserved_tokens) - 1) . '___' . ')';
     }
     
     private function replace_keyframe_zero($matches)
@@ -649,7 +649,7 @@ class minify_Css
         // Support for percentage values rgb(100%, 0%, 45%);
         if ($this->index_of($matches[1], '%') >= 0) {
             $rgbcolors = explode(',', str_replace('%', '', $matches[1]));
-            for ($i = 0; $i < count($rgbcolors); $i++) {
+            for ($i = 0; $i < countR($rgbcolors); $i++) {
                 $rgbcolors[$i] = $this->round_number(floatval($rgbcolors[$i]) * 2.55);
             }
         } else {
@@ -657,7 +657,7 @@ class minify_Css
         }
         
         // Values outside the sRGB color space should be clipped (0-255)
-        for ($i = 0; $i < count($rgbcolors); $i++) {
+        for ($i = 0; $i < countR($rgbcolors); $i++) {
             $rgbcolors[$i] = $this->clamp_number(intval($rgbcolors[$i], 10), 0, 255);
             $rgbcolors[$i] = sprintf('%02x', $rgbcolors[$i]);
         }
