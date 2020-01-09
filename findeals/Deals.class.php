@@ -382,7 +382,7 @@ class findeals_Deals extends deals_DealBase
         $options = $mvc->getDefaultAccountOptions();
         $form->setOptions('accountId', $options);
         
-        if (count($options) == 2) {
+        if (countR($options) == 2) {
             $form->setField('accountId', 'input=hidden');
             foreach ($options as $key => $opt) {
                 if (!is_object($opt)) {
@@ -614,9 +614,9 @@ class findeals_Deals extends deals_DealBase
         $entries = acc_Journal::getEntries(array(get_called_class(), $rec->id), $item);
         $data->history = array();
         
-        if (count($entries)) {
+        if (countR($entries)) {
             $Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listDetailsPerPage));
-            $Pager->itemsCount = count($entries);
+            $Pager->itemsCount = countR($entries);
             $Pager->calc();
             $data->pager = $Pager;
             
@@ -641,7 +641,7 @@ class findeals_Deals extends deals_DealBase
             }
             
             // За всеки резултат, ако е в границите на пейджъра, го показваме
-            if (count($recs)) {
+            if (countR($recs)) {
                 $count = 0;
                 foreach ($recs as $rec) {
                     $start = $data->pager->rangeStart;
@@ -849,8 +849,8 @@ class findeals_Deals extends deals_DealBase
      */
     private function getAllowedOperations($rec, &$paymentOperations, &$shipmentOperations)
     {
-        expect(count($this->allowedPaymentOperations));
-        expect(count($this->allowedShipmentOperations));
+        expect(countR($this->allowedPaymentOperations));
+        expect(countR($this->allowedShipmentOperations));
         $sysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
         
         $paymentOperations = $this->allowedPaymentOperations;
@@ -1028,7 +1028,7 @@ class findeals_Deals extends deals_DealBase
      */
     public static function on_AfterGetDealsToCloseWith($mvc, &$res, $rec)
     {
-        if (!count($res)) {
+        if (!countR($res)) {
             
             return;
         }
@@ -1075,11 +1075,11 @@ class findeals_Deals extends deals_DealBase
         
         // Ако са намерени документи в нишката контирани в приключен счетоводен период,
         // спираме оттеглянето и показваме съобщение за грешка
-        if (count($documentsInClosedPeriod)) {
+        if (countR($documentsInClosedPeriod)) {
             $msg = 'Финансовата сделка не може да бъде оттеглена, защото ';
-            $msg .= (count($documentsInClosedPeriod) == 1) ? 'документа' : 'следните документи';
+            $msg .= (countR($documentsInClosedPeriod) == 1) ? 'документа' : 'следните документи';
             $msg .= '|* ' . implode(', ', $documentsInClosedPeriod);
-            $are = (count($documentsInClosedPeriod) == 1) ? 'е контиран' : 'са контирани';
+            $are = (countR($documentsInClosedPeriod) == 1) ? 'е контиран' : 'са контирани';
             $msg .= " |в нишката {$are} в затворен счетоводен период|*";
             $msg = tr($msg);
             

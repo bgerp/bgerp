@@ -211,7 +211,7 @@ class hr_Indicators extends core_Manager
         $docArr = core_Classes::getOptionsByInterface('hr_IndicatorsSourceIntf');
         
         // Ако нямаме източници - нищо не правим
-        if (!is_array($docArr) || !count($docArr)) {
+        if (!is_array($docArr) || !countR($docArr)) {
             
             return $periods;
         }
@@ -223,10 +223,10 @@ class hr_Indicators extends core_Manager
             // Взимаме връщания масив от интерфейсния метод
             $data = $sMvc->getIndicatorValues($timeline);
             
-            if (is_array($data) && count($data)) {
+            if (is_array($data) && countR($data)) {
                 
                 // Даваме време
-                core_App::setTimeLimit(count($data) + 10);
+                core_App::setTimeLimit(countR($data) + 10);
                 
                 // По id-то на служителя, намираме от договора му
                 // в кой отдел и на каква позиция работи
@@ -279,7 +279,7 @@ class hr_Indicators extends core_Manager
             list($docClass, $docId) = explode('::', $doc);
             $query = self::getQuery();
             $query->where("#docClass = {$docClass} AND #docId = {$docId}");
-            if (count($ids)) {
+            if (countR($ids)) {
                 $query->where('#id NOT IN (' . implode(',', $ids) . ')');
             }
             $query->delete();
@@ -463,7 +463,7 @@ class hr_Indicators extends core_Manager
                 // Ще се показват само индикаторите участващи във формулата
                 $indicators = self::getIndicatorsInFormula($formula);
                 $indicators = array_keys($indicators);
-                if (count($indicators)) {
+                if (countR($indicators)) {
                     $data->IData->query->in('indicatorId', $indicators);
                     $data->IData->render = true;
                 }

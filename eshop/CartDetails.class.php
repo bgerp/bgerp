@@ -160,7 +160,7 @@ class eshop_CartDetails extends core_Detail
         $form->setOptions('productId', array('' => '') + $productOptions);
         $form->setField('eshopProductId', 'input=none');
         
-        if (count($productOptions) == 1) {
+        if (countR($productOptions) == 1) {
             $form->setDefault('productId', key($productOptions));
         }
         
@@ -723,7 +723,7 @@ class eshop_CartDetails extends core_Detail
             $arr[] = tr(cat_Params::getVerbal($paramRec, 'name')) . ': ' . $value;
         }
         
-        $str = (count($arr)) ? implode(', ', $arr) : '';
+        $str = (countR($arr)) ? implode(', ', $arr) : '';
         
         return $str;
     }

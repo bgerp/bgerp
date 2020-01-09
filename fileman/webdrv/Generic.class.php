@@ -259,7 +259,7 @@ class fileman_webdrv_Generic extends core_Manager
         // Сменяма wrapper'а да е празна страница
         Mode::set('wrapper', 'page_Empty');
         
-        if (($jpgArr) && (count($jpgArr))) {
+        if (($jpgArr) && (countR($jpgArr))) {
             
             // Вземаме височината и широчината
             $thumbWidthAndHeightArr = static::getPreviewWidthAndHeight();
@@ -683,7 +683,7 @@ class fileman_webdrv_Generic extends core_Manager
             $barcodes = zbar_Reader::getBarcodesFromFile($fh);
             
             // Ако няма открит баркод прескачаме
-            if (!count($barcodes)) {
+            if (!countR($barcodes)) {
                 continue;
             }
             
@@ -1097,7 +1097,7 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Намираме дълбочината на директорията
             $pathArr = explode('/', $path);
-            $depth = count($pathArr);
+            $depth = countR($pathArr);
         }
         
         // Обхождаме всики директории и файлове
