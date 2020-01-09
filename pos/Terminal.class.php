@@ -975,33 +975,27 @@ class pos_Terminal extends peripheral_Terminal
     {
         $measureId = cat_Products::fetchField($selectedRec->productId, 'measureId');
         $packs = cat_Products::getPacks($selectedRec->productId);
-        $basePackagingId = key($packs);
-        $count = 0;
         
+        $buttons = $storeBtns = $frequentPackButtons = array();
         $baseClass = "resultPack navigable posBtns";
-        $basePackName = cat_UoM::getVerbal($measureId, 'name');
         $dataUrl = (pos_ReceiptDetails::haveRightFor('edit', $selectedRec)) ? toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setquantity'), 'local') : null;
         $dataChangeStoreUrl = (pos_ReceiptDetails::haveRightFor('edit', $selectedRec)) ? toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setstore'), 'local') : null;
         
-        $buttons = $storeBtns = $frequentPackButtons = array();
-        $buttons[$measureId] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => $baseClass, 'data-pack' => $basePackName, 'data-url' => $dataUrl), tr($basePackName), true);
-       
-        // Добавяне на бутони за продуктовите опаковки
-        $packQuery = cat_products_Packagings::getQuery();
-        $packQuery->where("#productId = {$selectedRec->productId}");
-        while ($packRec = $packQuery->fetch()) {
+        $count = 0;
+        foreach ($packs as $packagingId => $packName){
+            $packRec = cat_products_Packagings::getPack($selectedRec->productId, $packagingId);
+            $packName = cat_UoM::getVerbal($packagingId, 'name');
+            $btnCaption = $packName;
+            if(is_object($packRec)){
+                $baseMeasureId = $measureId;
+                $packRec->quantity = cat_Uom::round($baseMeasureId, $packRec->quantity);
+                $btnCaption = "|{$packName}|*</br> <small>" . core_Type::getByName('double(smartRound)')->toVerbal($packRec->quantity) . " " . tr(cat_UoM::getSmartName($baseMeasureId, $packRec->quantity)) . "</small>";
+            }
+            
+            $selected = ($selectedRec->value == $packagingId) ? 'selected' : '';
+            $buttons[$packRec->packagingId] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => "{$baseClass} {$selected}", 'data-pack' => $packName, 'data-url' => $dataUrl), tr($btnCaption), true);
             $count++;
-            $packagingId = cat_UoM::getVerbal($packRec->packagingId, 'name');
-            $baseMeasureId = $measureId;
-            $packRec->quantity = cat_Uom::round($baseMeasureId, $packRec->quantity);
-            $packaging = "|{$packagingId}|*</br> <small>" . core_Type::getByName('double(smartRound)')->toVerbal($packRec->quantity) . " " . tr(cat_UoM::getSmartName($baseMeasureId, $packRec->quantity)) . "</small>";
-            $buttons[] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => $baseClass, 'data-pack' => $packagingId, 'data-url' => $dataUrl), tr($packaging), true);
         }
-        
-        // Основната мярка/опаковка винаги е на първа позиция
-        $firstBtn = $buttons[$basePackagingId];
-        unset($buttons[$basePackagingId]);
-        $buttons = array($basePackagingId => $firstBtn) + $buttons;
         
         $query = pos_ReceiptDetails::getQuery();
         $query->where("#productId = {$selectedRec->productId} AND #action = 'sale|code' AND #quantity > 0");
@@ -1043,7 +1037,7 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
-        $tpl = new core_ET(tr("|*<div class='divider'>|Промяна на мярка|*</div>[#PACK_BUTTONS#]<!--ET_BEGIN FREQUENT_PACK_BUTTONS--><div class='divider'>|Най-използвани|*</div>[#FREQUENT_PACK_BUTTONS#]<!--ET_END FREQUENT_PACK_BUTTONS--><!--ET_BEGIN STORE_BUTTONS--><div class='divider'>|Складове|*</div>[#STORE_BUTTONS#]<!--ET_END STORE_BUTTONS-->"));
+        $tpl = new core_ET(tr("|*<div class='divider'>|Промяна на мярка|*</div>[#PACK_BUTTONS#]<!--ET_BEGIN FREQUENT_PACK_BUTTONS--><div class='divider'>|Най-използвани количества|*</div>[#FREQUENT_PACK_BUTTONS#]<!--ET_END FREQUENT_PACK_BUTTONS--><!--ET_BEGIN STORE_BUTTONS--><div class='divider'>|Складове|*</div>[#STORE_BUTTONS#]<!--ET_END STORE_BUTTONS-->"));
         foreach ($buttons as $btn){
             $tpl->append($btn, 'PACK_BUTTONS');
         }
