@@ -503,7 +503,7 @@ class label_Templates extends core_Master
                 $replacePlaceholders[$oldPlaceholder] = $newPlaceholder;
             }
             
-            if (count($replacePlaceholders)) {
+            if (countR($replacePlaceholders)) {
                 $string = strtr($string, $replacePlaceholders);
             }
         }
@@ -587,7 +587,7 @@ class label_Templates extends core_Master
     {
         // Проверки на данните
         expect(in_array($lang, array('bg', 'en')), $lang);
-        expect(is_array($sizes) && count($sizes) == 2, $sizes);
+        expect(is_array($sizes) && countR($sizes) == 2, $sizes);
         $sizes = array_values($sizes);
         $sizes = implode('x', $sizes) . ' mm';
         expect($path = getFullPath($filePath), $path);
