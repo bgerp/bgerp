@@ -1479,14 +1479,14 @@ class pos_Terminal extends peripheral_Terminal
         $arr[$today]->replace(dt::mysql2verbal($today, 'smartDate'), 'groupName');
         
         if(countR($revertUrl)){
-            $revertBtn = ht::createLink("Сторниране", $revertUrl, 'Наистина ли искате да сторнирате бележката|*?', "id=revertthis,class=pos-notes posBtns newNoteBtn red {$disabledClass},title=Сторниране на текущата бележка");
+            $revertBtn = ht::createLink("Сторниране", $revertUrl, 'Наистина ли искате да сторнирате бележката|*?', "id=revertthis,class=pos-notes posBtns revertReceiptBtn {$disabledClass},title=Сторниране на текущата бележка");
             $arr[$today]->append($revertBtn, 'element');
         }
         
         $addBtn = ht::createLink("+", $addUrl, null, "id=receiptnew,class=pos-notes posBtns newNoteBtn {$disabledClass},title=Създаване на нова бележка");
         $arr[$today]->append($addBtn, 'element');
         
-        $revertDefaultBtn = ht::createLink("+", $revertDefaultUrl, 'Наистина ли искате да създадете нова сторно бележка|*?', "id=receiptrevertdefault,class=pos-notes posBtns newNoteBtn red {$disabledRevertClass},title=Създаване на нова сторно бележка");
+        $revertDefaultBtn = ht::createLink("+", $revertDefaultUrl, 'Наистина ли искате да създадете нова сторно бележка|*?', "id=receiptrevertdefault,class=pos-notes posBtns revertReceiptBtn {$disabledRevertClass},title=Създаване на нова сторно бележка");
         $arr[$today]->append($revertDefaultBtn, 'element');
         
         // Групиране на записите по дата
