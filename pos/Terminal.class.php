@@ -749,12 +749,12 @@ class pos_Terminal extends peripheral_Terminal
     private function renderResultDiscount($rec, $string, $selectedRec)
     {
         $discountsArr = array('0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100');
-        $string = trim(str_replace('%', '', $string));
         
         $tpl = new core_ET("");
         foreach ($discountsArr as $discAmount){
+            $selected = ($selectedRec->discountPercent == ($discAmount / 100)) ? 'selected' : '';
             $url = toUrl(array('pos_ReceiptDetails', 'updateRec', 'receiptId' => $rec->id, 'action' => 'setdiscount', 'string' => "{$discAmount}"), 'local');
-            $element = ht::createElement("div", array('id' => "discount{$discAmount}", 'class' => 'navigable posBtns discountBtn', 'data-url' => $url), "{$discAmount} %", true);
+            $element = ht::createElement("div", array('id' => "discount{$discAmount}", 'class' => "navigable posBtns discountBtn {$selected}", 'data-url' => $url), "{$discAmount} %", true);
             $tpl->append($element);
         }
         $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
