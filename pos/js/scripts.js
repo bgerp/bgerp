@@ -607,6 +607,10 @@ function posActions() {
 		logout();
 	});
 
+	$("body").setShortcutKey( ALT , H ,function() {
+		openHelp();
+	});
+
 	var timeoutAlt;
 	$("body").setShortcutKey(null,  ALT,function() {
 		showHints();
@@ -625,6 +629,10 @@ function posActions() {
 }
 function openInfo() {
 	$('.enlargeProductBtn').click();
+}
+
+function openHelp() {
+	$('.helpBtn').click();
 }
 
 function showHints(){
