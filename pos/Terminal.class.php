@@ -91,7 +91,7 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Икони за операциите
      */
-    protected static $operationImgs = array('enlarge' => 'pos/img/search.png', 'print' => 'pos/img/printer.png', 'keyboard' => 'pos/img/keyboard.png', 'operation-add' => 'pos/img/а.png', 'operation-text' =>  'pos/img/comment.png', 'operation-discount' => 'pos/img/sale.png', 'operation-payment' => 'pos/img/dollar.png',  'operation-price' => 'pos/img/price-tag2.png', 'operation-quantity' => 'pos/img/multiply.png',  'operation-add' => 'pos/img/a.png',  'operation-batch' => 'pos/img/P_32x32.png',  'operation-receipts' => 'pos/img/receipt.png', 'operation-contragent' => 'pos/img/right-arrow.png', 'operation-revert' => 'pos/img/receipt.png', 'close' => 'pos/img/close.png', 'transfer' => 'pos/img/transfer.png', 'reject' => 'pos/img/cancel.png', 'delete' => 'pos/img/delete.png', 'reload' => "pos/img/reload.png");
+    protected static $operationImgs = array('enlarge' => 'pos/img/search.png', 'print' => 'pos/img/printer.png', 'keyboard' => 'pos/img/keyboard.png', 'operation-add' => 'pos/img/а.png', 'operation-text' =>  'pos/img/comment.png', 'operation-discount' => 'pos/img/sale.png', 'operation-payment' => 'pos/img/dollar.png',  'operation-price' => 'pos/img/price-tag2.png', 'operation-quantity' => 'pos/img/multiply.png',  'operation-add' => 'pos/img/a.png',  'operation-batch' => 'pos/img/P_32x32.png',  'operation-receipts' => 'pos/img/receipt.png', 'operation-contragent' => 'pos/img/right-arrow.png', 'close' => 'pos/img/close.png', 'transfer' => 'pos/img/transfer.png', 'reject' => 'pos/img/cancel.png', 'delete' => 'pos/img/delete.png', 'reload' => "pos/img/reload.png", 'help' => "pos/img/info.png");
 
     
     /**
@@ -527,7 +527,7 @@ class pos_Terminal extends peripheral_Terminal
         
         // Бутон за увеличение на избрания артикул
         $img = ht::createImg(array('path' => self::$operationImgs["help"]));
-        $buttons["help"] = (object)array('body' => $img, 'attr' => array('title' => 'Отваряне на хелп прозорец', 'data-url' => toUrl(array('pos_Terminal', 'Help'), 'local'), 'class' => "helpBtn"));
+        $buttons["help"] = (object)array('body' => $img, 'attr' => array('title' => 'Отваряне на прозорец с информация', 'data-url' => toUrl(array('pos_Terminal', 'Help'), 'local'), 'class' => "helpBtn"));
         
         $logoutImg = ht::createImg(array('path' => 'pos/img/exit.png'));
         $buttons["exit"] = (object)array('body' => $logoutImg, 'attr' => array('class' => 'logout', 'title' => 'Излизане от системата'), 'linkUrl' => array('core_Users', 'logout', 'ret_url' => true));
