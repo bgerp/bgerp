@@ -292,14 +292,10 @@ class pos_Terminal extends peripheral_Terminal
                     $row->inStock .= " " . cat_UoM::getShortName($productRec->measureId);
                 }
                 
-                $preview = cat_Products::getPreview($productRec->id, array('400', '400'), array('650', '650'));
-
+                $row->preview = $this->getPosProductPreview($productRec->id, 400, 400);
                 $name = cat_Products::getTitleById($productRec->id);
                 if(mb_strlen($name) > 60) {
                     $row->name = cat_Products::getTitleById($productRec->id);
-                }
-                if (!empty($preview)) {
-                    $row->preview = $preview;
                 }
                 
                 $modalTpl->placeObject($row);
@@ -1403,11 +1399,6 @@ class pos_Terminal extends peripheral_Terminal
             }
             
             $obj = (object) array('productId' => $id, 'measureId' => $pRec->measureId, 'price' => $price, 'packagingId' => $packId, 'vat' => $vat);
-            $photo = cat_Products::getParams($id, 'preview');
-            if (!empty($photo)) {
-                $obj->photo = $photo;
-            }
-            
             if (isset($inStock)) {
                 $obj->stock = $inStock;
             }
@@ -1456,14 +1447,28 @@ class pos_Terminal extends peripheral_Terminal
         
         $row->stock = ht::styleNumber($row->stock, $obj->stock, 'green');
         $row->stock = "{$row->stock} <span class='pos-search-row-packagingid'>{$row->packagingId}</span>";
-       
-        if (!Mode::is('screenMode', 'narrow')) {
-            $thumb = (!empty($obj->photo)) ? new thumb_Img(array($obj->photo, 64, 64, 'fileman')) : new thumb_Img(getFullPath('pos/img/default-image.jpg'), 64, 64, 'path');
-            $arr = array();
-            $row->photo = $thumb->createImg($arr);
-        }
+        $row->photo = $this->getPosProductPreview($obj->productId, 64, 64);
         
         return $row;
+    }
+    
+    
+    /**
+     * Превю на артикула в ПОС-а
+     * 
+     * @param int $productId
+     * @param int $width
+     * @param int $height
+     * 
+     * @return core_ET|NULL
+     */
+    private function getPosProductPreview($productId, $width, $height)
+    {
+        $photo = cat_Products::getParams($productId, 'preview');
+        $arr = array();
+        $thumb = (!empty($photo)) ? new thumb_Img(array($photo, $height, $width, 'fileman')) : new thumb_Img(getFullPath('pos/img/default-image.jpg'), $width, $height, 'path');
+        
+        return $thumb->createImg($arr);
     }
     
     
