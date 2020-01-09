@@ -511,8 +511,8 @@ class pos_Receipts extends core_Master
             $res = 'no_one';
         }
         
-        if ($action == 'revert' && isset($rec)) {
-            if(isset($rec->revertId) || (!empty($rec->returnedTotal) && round($rec->total - $rec->returnedTotal, 2) <= 0)){
+        if ($action == 'revert' && isset($rec) && ($rec != pos_Receipts::DEFAULT_REVERT_RECEIPT)) {
+            if(isset($rec->revertId) || (!in_array($rec->state, array('waiting', 'closed'))) || (!empty($rec->returnedTotal) && round($rec->total - $rec->returnedTotal, 2) <= 0)){
                 $res = 'no_one';
             }
         }
