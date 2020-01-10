@@ -78,7 +78,7 @@ class thumb_M extends core_Mvc
             $this->thumb->getUrl('forced');
         }
         
-        if (count($this->forOptimization)) {
+        if (countR($this->forOptimization)) {
             $optmizators = arr::make(thumb_Setup::get('OPTIMIZATORS'), true);
             
             foreach ($this->forOptimization as $path => $type) {
