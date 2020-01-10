@@ -15,17 +15,17 @@
 	<!--ET_END DETAILS-->
 </div>
 <div class='paymentBlock' >
-	<div class="paymentRow "> <span class="totalLabel">|Общо|*: [#total#] [#currency#]</span></div>
+	<div class="paymentRow "> <span class="totalLabel">|Общо|*: [#total#]</span></div>
 	
 	<!--ET_BEGIN PAYMENT_NOT_REQUIRED-->
 	<div class="paymentRow "><div class="paymentNotRequiredLabel">[#PAYMENT_NOT_REQUIRED#]</div></div>
 	<!--ET_END PAYMENT_NOT_REQUIRED-->
 	
 	<!--ET_BEGIN PAYMENT_TAB-->
-	<div class="paymentRow">[#PAID_CAPTION#]: <b>[#paid#]</b> <small>[#currency#]</small></div>
+	<div class="paymentRow">[#PAID_CAPTION#]: <b>[#paid#]</b> <small></small></div>
 	<!--ET_BEGIN CHANGE_TAB-->
 	[#CHANGE_TAB#]
-	<div class="paymentRow">[#CHANGE_CAPTION#]: [#change#] <small>[#changeCurrency#]</small></div>
+	<div class="paymentRow">[#CHANGE_CAPTION#]: [#change#] <small></small></div>
 	<!--ET_END CHANGE_TAB-->
 	<!--ET_END PAYMENT_TAB-->
 </div>
