@@ -56,7 +56,7 @@ class toast_Toast extends core_Plugin
         $notifArr = status_Messages::getStatuses($hitTime, $idleTime, 4, true, $hitId);
         
         // Броя на намерените статуси
-        $countArr = count($notifArr);
+        $countArr = countR($notifArr);
         
         $resStatus = array();
         
