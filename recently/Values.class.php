@@ -82,7 +82,7 @@ class recently_Values extends core_Manager
             }
         }
         
-        return count($opt) > 1 ? $opt : array();
+        return countR($opt) > 1 ? $opt : array();
     }
     
     
