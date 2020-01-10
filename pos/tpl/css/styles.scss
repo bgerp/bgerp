@@ -272,12 +272,17 @@
 }
 .textShortcut {
 	line-height: 150%;
+	padding-left: 5px;
 }
-.shotcuts {
-
-	padding: 5px;
-	border: 1px solid #ccc;
-	background: #ddd;
+.shortcuts {
+	span {
+		text-align: center;
+		padding: 5px;
+		border: 1px solid #ccc;
+		background: #ddd;
+		margin: 2px 0px 2px 10px;
+		display: block;
+	}
 }
 .posBtns {
 	cursor: pointer;

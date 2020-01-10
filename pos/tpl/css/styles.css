@@ -235,12 +235,16 @@
   margin: 0; }
 
 .textShortcut {
-  line-height: 150%; }
+  line-height: 150%;
+  padding-left: 5px; }
 
-.shotcuts {
-  padding: 5px;
-  border: 1px solid #cccccc;
-  background: #dddddd; }
+  .shortcuts span {
+    text-align: center;
+    padding: 5px;
+    border: 1px solid #cccccc;
+    background: #dddddd;
+    margin: 2px 0px 2px 10px;
+    display: block; }
 
 .posBtns {
   cursor: pointer;
