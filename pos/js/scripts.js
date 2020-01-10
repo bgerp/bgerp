@@ -1032,10 +1032,13 @@ function startNavigation() {
 			sessionStorage.setItem('focused', focused.attr('id'));
 		}
 
-		if (focused && document.getElementById(focused) && $('.navigable.selected').length == 0) {
-			$('.selected').removeClass('selected');
-			$('#' + focused ).addClass('selected');
-		}
+		setTimeout(function(){
+			if (focused && document.getElementById(focused) && $('.navigable.selected').length == 0) {
+				$('.selected').removeClass('selected');
+				$('#' + focused ).addClass('selected');
+			}
+		});
+
 		$('#result-holder .navigable').keynav();
 	}
 }
