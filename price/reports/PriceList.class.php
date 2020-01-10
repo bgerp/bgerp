@@ -168,7 +168,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         unset($sellableProducts[0]);
         
         // Вдигане на времето за изпълнение, според броя записи
-        $timeLimit = count($sellableProducts) * 0.7;
+        $timeLimit = countR($sellableProducts) * 0.7;
         core_App::setTimeLimit($timeLimit, false, 600);
         
         $recs = array();
@@ -234,7 +234,7 @@ class price_reports_PriceList extends frame2_driver_TableData
                 $obj->price *= $quantity;
                 
                 // Ако има цена, показват се и избраните опаковки с техните цени
-                if (!empty($priceByPolicy) && count($packArr)) {
+                if (!empty($priceByPolicy) && countR($packArr)) {
                     $packQuery = cat_products_Packagings::getQuery();
                     $packQuery->where("#productId = {$productRec->id}");
                     $packQuery->in('packagingId', $packArr);
@@ -246,7 +246,7 @@ class price_reports_PriceList extends frame2_driver_TableData
                     }
                     
                     // Ако ще се скрива мярката и няма опаковки, няма какво да се показва, освен ако артикула не е бил премахнат
-                    if ($rec->showMeasureId != 'yes' && !count($obj->packs)) {
+                    if ($rec->showMeasureId != 'yes' && !countR($obj->packs)) {
                         continue;
                     }
                 }
@@ -266,7 +266,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         }
         
         // Ако има подговени записи
-        if (count($recs)) {
+        if (countR($recs)) {
            
            // Ако няма избрани групи, търсят се всички
             $productGroups = $rec->productGroups;
@@ -314,7 +314,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         $row->price = core_Type::getByName("double(decimals={$decimals})")->toVerbal($dRec->price);
         
         // Рендиране на опаковките в таблица
-        if (count($dRec->packs)) {
+        if (countR($dRec->packs)) {
             $row->packs = $this->getPackTable($rec, $dRec);
         }
         
@@ -576,7 +576,7 @@ class price_reports_PriceList extends frame2_driver_TableData
             $clone->currencyId = $rec->currencyId;
             
             $exportRecs[] = $clone;
-            if (count($dRec->packs)) {
+            if (countR($dRec->packs)) {
                 foreach ($dRec->packs as $packRec) {
                     $clone1 = clone $clone;
                     $clone1->packs = array();

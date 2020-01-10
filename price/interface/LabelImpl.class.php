@@ -121,7 +121,7 @@ class price_interface_LabelImpl
                 if($rec->showMeasureId == 'yes' && !empty($dRec->price)){
                     $count++;
                 }
-                $count += count($dRec->packs);
+                $count += countR($dRec->packs);
             }
         }
         

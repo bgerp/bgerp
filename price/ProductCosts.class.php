@@ -540,7 +540,7 @@ class price_ProductCosts extends core_Manager
         // Обновяваме записите със промени
         $this->saveArray($synced['update']);
         
-        if (count($synced['delete'])) {
+        if (countR($synced['delete'])) {
             $query = self::getQuery();
             $query->in('id', $synced['delete']);
             $query->show('type');
@@ -656,7 +656,7 @@ class price_ProductCosts extends core_Manager
             }
             
             // Ако има НЕ положителна наличност, но има покупки, взима се цената от първата
-            if($useFirstPurchase === true && count($foundIn)){
+            if($useFirstPurchase === true && countR($foundIn)){
                 $foundIn = $foundIn[key($foundIn)];
                 $averageAmount = $foundIn->price;
             }
