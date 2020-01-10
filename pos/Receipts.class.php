@@ -207,7 +207,9 @@ class pos_Receipts extends core_Master
         }
         
         // Записваме, че потребителя е разглеждал този списък
-        Mode::setPermanent("currentOperation{$id}", 'add');
+        $foundRec = self::fetch($id);
+        $operation = (empty($foundRec->paid)) ? 'add' : 'payment';
+        Mode::setPermanent("currentOperation{$id}", $operation);
         Mode::setPermanent("currentSearchString{$id}", null);
         
         return new Redirect(array('pos_Terminal', 'open', 'receiptId' => $id));
