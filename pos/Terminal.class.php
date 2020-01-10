@@ -380,6 +380,10 @@ class pos_Terminal extends peripheral_Terminal
         $data = (object)array('action' => 'manage', 'cmd' => 'add');
         $Companies->prepareEditForm($data);
         $data->form->setAction(array($this, 'TransferInNewCompany', 'receiptId' => $rec->id));
+        $data->form->setField('inCharge', 'autohide=any');
+        $data->form->setField('access', 'autohide=any');
+        $data->form->setField('shared', 'autohide=any');
+        //$data->form->setField('shared', 'autohide');
         
         $data->form->input();
         $Companies->invoke('AfterInputEditForm', array($data->form));
@@ -398,6 +402,8 @@ class pos_Terminal extends peripheral_Terminal
         
         $data->form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис на нова фирма');
         $content = $data->form->renderHtml();
+        $content->prepend("<div class='modalNewCompanyHolder'>");
+        $content->append("<div>");
         
         // Ще се реплейсва и пулта
         $res = array();
@@ -837,7 +843,7 @@ class pos_Terminal extends peripheral_Terminal
             }
             $holderDiv = ht::createElement('div', $newCompanyAttr, 'Нова фирма', true);
             $tpl->append($holderDiv);
-            $tpl->append(tr("|*<div class='divider'>|Контрагенти|*</div>"));
+            $tpl->append(tr("|*<div class='divider'>|Намерени контрагенти|*</div>"));
             
             if(!empty($string)){
                 $stringInput = core_Type::getByName('varchar')->fromVerbal($string);

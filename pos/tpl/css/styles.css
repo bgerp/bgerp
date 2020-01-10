@@ -311,7 +311,8 @@
 .resultPrice {
   background: #499bc0; }
 
-.contragentLinkBtns {
+.contragentLinkBtns,
+.newCompanyBtn {
   background: #a162ca; }
 
 .subBatch {
