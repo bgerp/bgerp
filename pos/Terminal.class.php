@@ -1437,7 +1437,7 @@ class pos_Terminal extends peripheral_Terminal
             $data->rows[$id]->DATA_ENLARGE_OBJECT_ID = $id;
             $data->rows[$id]->DATA_ENLARGE_CLASS_ID = cat_Products::getClassId();
             $data->rows[$id]->DATA_ENLARGE_TITLE = cat_Products::getTitleById($id);
-            
+            $data->rows[$id]->favouriteCategories = array();
             $data->rows[$id]->id = $pRec->id;
             if(array_key_exists($id, $favouriteProductsArr)){
                 $data->rows[$id]->favouriteCategories = $favouriteProductsArr[$id];
