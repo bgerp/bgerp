@@ -107,7 +107,7 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
             }
             
             $productCheck = deals_Helper::checkProductForErrors($productArr, 'canBuy');
-            if(count($productCheck['notActive'])){
+            if(countR($productCheck['notActive'])){
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
             } elseif($productCheck['metasError']){
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са купуваеми|*!");
