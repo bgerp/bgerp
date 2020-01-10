@@ -274,7 +274,9 @@
     flex-direction: row;
     margin: 5px 5px 10px 10px;
     font-size: 1.3em;
-    display: flex; }
+    display: flex;
+    background: #b7e2f3 !important;
+    color: #333333 !important; }
     .posBtns.printReceiptBtn.largeBtn {
       width: 32.1% !important; }
   .posBtns.pos-notes {
