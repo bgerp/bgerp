@@ -1,0 +1,5 @@
+@import url('https://fonts.googleapis.com/css?family=Fira+Mono&display=swap');
+.wide #receipt-table,
+.headerContent {
+  font-family: 'Fira Mono', monospace !important; }
+
