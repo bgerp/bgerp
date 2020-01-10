@@ -68,5 +68,9 @@
         <td class="shortcuts"><span>Alt + X </span></td>
         <td class="textShortcut"> - Изход терминала</td>
     </tr>
+    <tr>
+        <td class="shortcuts"><span>Alt + D </span></td>
+        <td class="textShortcut"> - Изтриване на селектирания ред от бележката</td>
+    </tr>
 </table>
 </body>
