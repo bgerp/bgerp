@@ -1025,7 +1025,10 @@ function enter() {
 
 // Отваря модала
 function openModal(title, heightModal) {
-
+	
+	// Изчистване на предишното съдържание на модала, да не се визуализира, докато се зареди новото
+	$("#modalContent").html("");
+	
 	var height = (heightModal == "smallHeight" ) ?  450 : 700;
 	dialog = $("#modalContent").dialog({
 		autoOpen: false,
