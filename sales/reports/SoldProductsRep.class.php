@@ -1106,7 +1106,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     
                     $groupVerb .= (crm_Groups::getTitleById($group));
                     
-                    if ((count((type_Keylist::toArray($data->rec->crmGroup))) - $marker) != 0) {
+                    if ((countR((type_Keylist::toArray($data->rec->crmGroup))) - $marker) != 0) {
                         $groupVerb .= ', ';
                     }
                 }
@@ -1122,7 +1122,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     
                     $contragentVerb .= (doc_Folders::getTitleById($contragent));
                     
-                    if ((count(type_Keylist::toArray($data->rec->contragent))) - $marker != 0) {
+                    if ((countR(type_Keylist::toArray($data->rec->contragent))) - $marker != 0) {
                         $contragentVerb .= ', ';
                     }
                 }

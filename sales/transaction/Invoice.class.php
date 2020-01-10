@@ -73,7 +73,7 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
             }
             
             // Ако има такива контирането се спира
-            if (count($productsWithoutExportParam)) {
+            if (countR($productsWithoutExportParam)) {
                 $param = cat_Params::getTitleById($exportParamId);
                 $productsWithoutExportParam = implode(',', $productsWithoutExportParam);
                 $error = "Следните артикули нямат задължителен параметър|* <b>{$param}</b>: {$productsWithoutExportParam}";
@@ -128,7 +128,7 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
         // Проверка на артикулите
         $productCheck = deals_Helper::checkProductForErrors($productArr, 'canSell');
             
-        if(count($productCheck['notActive'])){
+        if(countR($productCheck['notActive'])){
              acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
         } elseif($productCheck['metasError']){
              acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!");

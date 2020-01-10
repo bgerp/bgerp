@@ -219,7 +219,7 @@ class sales_QuotationsDetails extends doc_Detail
         $data->optionalHaveOneQuantity = true;
         $pcsUom = cat_UoM::fetchBySinonim('pcs')->id;
         
-        if (count($recs)) {
+        if (countR($recs)) {
             foreach ($recs as $id => $rec) {
                 if (!isset($rec->price)) {
                     self::calcLivePrice($rec, $masterRec);
@@ -249,8 +249,8 @@ class sales_QuotationsDetails extends doc_Detail
             }
         }
         
-        $data->countNotOptional = count($notOptional);
-        $data->countOptional = count($optional);
+        $data->countNotOptional = countR($notOptional);
+        $data->countOptional = countR($optional);
         
         // Подготовка за показване на задължителнтие продукти
         deals_Helper::fillRecs($mvc, $notOptional, $masterRec);
@@ -271,7 +271,7 @@ class sales_QuotationsDetails extends doc_Detail
             $data->noTotal = true;
         }
        
-        if (empty($data->noTotal) && count($notOptional)) {
+        if (empty($data->noTotal) && countR($notOptional)) {
             
             // Запомня се стойноста и ддс-то само на опционалните продукти
             $data->summary = deals_Helper::prepareSummary($mvc->_total, $masterRec->date, $masterRec->currencyRate, $masterRec->currencyId, $masterRec->chargeVat, false, $masterRec->tplLang);
@@ -354,7 +354,7 @@ class sales_QuotationsDetails extends doc_Detail
             }
         }));
         
-        return count($other);
+        return countR($other);
     }
     
     
@@ -622,7 +622,7 @@ class sales_QuotationsDetails extends doc_Detail
         // Подготвяме бутоните за добавяне на нов артикул
         if ($this->haveRightFor('add', (object) array('quotationId' => $data->masterId))) {
             $products = cat_Products::getProducts($data->masterData->rec->contragentClassId, $data->masterData->rec->contragentId, $data->masterData->rec->date, 'canSell', null, 1);
-            if (!count($products)) {
+            if (!countR($products)) {
                 $error = 'error=Няма продаваеми артикули,';
             }
             
@@ -693,7 +693,7 @@ class sales_QuotationsDetails extends doc_Detail
             });
             
             $group = array_values($group);
-            $group[0]->rowspan = count($group);
+            $group[0]->rowspan = countR($group);
             
             foreach ($group as $index => $row) {
                 if ($index != 0) {
@@ -724,7 +724,7 @@ class sales_QuotationsDetails extends doc_Detail
         
         // Ако всички продукти са с еднаква отстъпка и може да се изчисли обобщената информация, няма да показваме отстъпката
         $unsetDiscount = false;
-        if ($data->summary && count($data->discounts) == 1) {
+        if ($data->summary && countR($data->discounts) == 1) {
             if (key($data->discounts)) {
                 $unsetDiscount = true;
             }
@@ -830,7 +830,7 @@ class sales_QuotationsDetails extends doc_Detail
             $dTpl->replace($summary->sayWords, 'sayWords');
             
             // Ако всички артикули имат валидна отстъпка показваме я в обобщената информация
-            if (isset($summary) && count($data->discounts) == 1) {
+            if (isset($summary) && countR($data->discounts) == 1) {
                 if (key($data->discounts)) {
                     $dTpl->replace($data->discounts[key($data->discounts)], 'discountPercent');
                 }
@@ -901,7 +901,7 @@ class sales_QuotationsDetails extends doc_Detail
      */
     protected static function on_AfterPrepareListRows($mvc, $data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }
