@@ -83,6 +83,12 @@
 			if (j>=matrix[i].length) j=0;
 			current.removeClass('selected');
 			current = $(matrix[i][j]);
+
+				$('#result-holder').animate({
+					scrollTop:  current.offset().top - $('#result-holder').height() + 10
+				}, 0);
+
+
 			current.addClass('selected');
 
 			sessionStorage.setItem('focused', $(current).attr('id'));
