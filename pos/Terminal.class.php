@@ -283,7 +283,7 @@ class pos_Terminal extends peripheral_Terminal
                 
                 $row = new stdClass();
                 $row->price = currency_Currencies::decorate($Double->toVerbal($price->price));
-                $row->measureId = cat_UoM::getTitleById($productRec->measureId);
+                $row->measureId = cat_UoM::getVerbal($productRec->measureId, 'name');
                 $row->info = cat_Products::getVerbal($productRec, 'info');
                 if ($productRec->canStore == 'yes') {
                     $inStock = pos_Stocks::getQuantity($productRec->id, $receiptRec->pointId);
