@@ -51,8 +51,6 @@ class pos_Terminal extends peripheral_Terminal
     protected $fieldArr = array('payments', 'policyId', 'caseId', 'storeId');
     
     
-
-    
     /**
      * Кои операции са забранени за нови бележки
      */
@@ -383,11 +381,11 @@ class pos_Terminal extends peripheral_Terminal
         $data->form->setField('inCharge', 'autohide=any');
         $data->form->setField('access', 'autohide=any');
         $data->form->setField('shared', 'autohide=any');
-        //$data->form->setField('shared', 'autohide');
+        $data->form->class = 'simpleForm';
         
+        // Събмитване на формата
         $data->form->input();
         $Companies->invoke('AfterInputEditForm', array($data->form));
-        
         if ($data->form->isSubmitted()) {
             $companyRec = $data->form->rec;
             $Companies->save($companyRec);
