@@ -47,7 +47,7 @@ class sens2_script_ActionAssign
             $opt[$i] = $i;
         }
         
-        if (!count($opt)) {
+        if (!countR($opt)) {
             redirect(array('sens2_Scripts', 'single', $vars), false, '|Моля, дефинирайте поне една променлива');
         }
         $form->setOptions('varId', $opt);
