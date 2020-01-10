@@ -622,6 +622,15 @@ function posActions() {
 		openHelp();
 	});
 
+
+	$("body").setShortcutKey( ALT , S ,function() {
+		loadProducts();
+	});
+
+	$("body").setShortcutKey( ALT , E ,function() {
+		deteleElements();
+	});
+
 	var timeoutAlt;
 	$("body").setShortcutKey(null,  ALT,function() {
 		showHints();
@@ -638,6 +647,15 @@ function posActions() {
 	})
 
 }
+
+function deteleElements(){
+	$('.rejectBtn').parent().trigger("click");
+}
+
+function loadProducts(){
+	$('.reloadBtn').click();
+}
+
 function openInfo() {
 	$('.enlargeProductBtn').click();
 }

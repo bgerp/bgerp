@@ -78,12 +78,12 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Бутони за бърз достъп до терминала
      */
-    protected static $operationShortcuts = 'operation-add=A,operation-payment=P,operation-quantity=K,operation-price=Z,operation-discount=5,operation-text=T,operation-contragent=C,operation-receipts=R,enlarge=F,print=3,operation-batch=B,keyboard=V,exit=X,reject=N,help=H';
+    protected static $operationShortcuts = 'operation-add=A,operation-payment=P,operation-quantity=K,operation-price=Z,operation-discount=5,operation-text=T,operation-contragent=C,operation-receipts=R,enlarge=F,print=3,operation-batch=B,keyboard=V,exit=X,reject=N,help=H,reload=S,delete=E';
 
     /**
      * Кои са разрешените операции
      */
-    protected static $operationsArr = "add=Добавяне на артикул,payment=Плащане по бележката,quantity=Промяна на количеството/опаковката,batch=Задаване на партида на артикула,price=Задаване на цена,discount=Задаване на отстъпка,text=Текст,contragent=Избор на контрагент,receipts=Преглед на бележките";
+    protected static $operationsArr = "add=Добавяне на артикул,quantity=Промяна на количеството/опаковката,payment=Плащане по бележката,contragent=Избор на контрагент,batch=Задаване на партида на артикула,discount=Задаване на отстъпка,price=Задаване на цена,text=Текст,receipts=Преглед на бележките";
 
 
     /**
