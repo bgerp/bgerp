@@ -836,7 +836,7 @@ class pos_Terminal extends peripheral_Terminal
             $contragents = array();
             
             $newCompanyAttr = array('id' => 'contragentnew', 'data-url' => toUrl(array('pos_Terminal', 'transferInNewCompany', 'receiptId' => $rec->id), 'local'), 'class' => 'posBtns');
-            if(!crm_Companies::haveRightFor('add')){
+            if(!crm_Companies::haveRightFor('add') || !pos_Receipts::haveRightFor('transfer', $rec)){
                 $newCompanyAttr['disabled'] = 'disabled';
                 $newCompanyAttr['class'] .= ' disabledBtn';
                 unset($newCompanyAttr['data-url']);
