@@ -164,7 +164,7 @@ class trans_Setup extends core_ProtoSetup
             if (!empty($transId)) {
                 $dRec->transUnitId = $transId;
                 $luArr = self::getLUs($dRec->info);
-                $count = !is_array($luArr) ? 1 : count($luArr);
+                $count = !is_array($luArr) ? 1 : countR($luArr);
                 $count = (empty($count)) ? 1 : $count;
                 $dRec->transUnitQuantity = $count;
                 $save[$dRec->id] = $dRec;
@@ -173,7 +173,7 @@ class trans_Setup extends core_ProtoSetup
         
         $sod->saveArray($save, 'id,transUnitId,transUnitQuantity');
         
-        wp('UPDATE LU COUNT' . count($save));
+        wp('UPDATE LU COUNT' . countR($save));
     }
     
     
@@ -209,7 +209,7 @@ class trans_Setup extends core_ProtoSetup
             $Document->saveArray($save, 'id,transUnits,transUnitsInput');
         }
         
-        wp('UPDATE SO COUNT' . count($save));
+        wp('UPDATE SO COUNT' . countR($save));
     }
     
     
@@ -244,7 +244,7 @@ class trans_Setup extends core_ProtoSetup
             cls::get('trans_LineDetails')->saveArray($save);
         }
         
-        wp('UPDATE ADDED LINE DETAILS' . count($save));
+        wp('UPDATE ADDED LINE DETAILS' . countR($save));
     }
     
     
@@ -294,7 +294,7 @@ class trans_Setup extends core_ProtoSetup
             }
         }
         
-        if (trim($infoLU) && !count($res)) {
+        if (trim($infoLU) && !countR($res)) {
             
             return 'Грешка при парсиране на номерата на колетите';
         }
