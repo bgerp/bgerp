@@ -1,7 +1,7 @@
 <?php
 
 
-defIfNot('EMAIL_SENT_DOMAIN_HASH', md5(EF_SALT . '_DOMAIN_' . BGERP_DEFAULT_EMAIL_DOMAIN));
+defIfNot('EMAIL_SENT_DOMAIN_HASH', md5(EF_SALT . '_DOMAIN'));
 
 
 /**
