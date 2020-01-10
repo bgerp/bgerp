@@ -340,7 +340,7 @@ class support_Issues extends core_Master
         }
         
         $form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/ticket.png,title=Изпращане на сигнала');
-        if (count(getRetUrl())) {
+        if (countR(getRetUrl())) {
             $form->toolbar->addBtn('Отказ', getRetUrl(), 'id=cancel, ef_icon = img/16/close-red.png,title=Отказ');
         }
         $tpl = $form->renderHtml();
@@ -763,7 +763,7 @@ class support_Issues extends core_Master
         $componentsArr = support_Components::getSystemsArr($systemId);
         
         // Ако има компоненти
-        if (count($componentsArr)) {
+        if (countR($componentsArr)) {
             
             // Задаваме ги да се показват те
             $data->listFilter->setOptions('componentId', $componentsArr);
