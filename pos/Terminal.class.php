@@ -1058,7 +1058,7 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
-        $tpl = new core_ET(tr("|*<div class='divider'>|Промяна на мярка|*</div>[#PACK_BUTTONS#]<!--ET_BEGIN FREQUENT_PACK_BUTTONS--><div class='divider'>|Най-използвани количества|*</div>[#FREQUENT_PACK_BUTTONS#]<!--ET_END FREQUENT_PACK_BUTTONS--><!--ET_BEGIN STORE_BUTTONS--><div class='divider'>|Складове|*</div>[#STORE_BUTTONS#]<!--ET_END STORE_BUTTONS-->"));
+        $tpl = new core_ET(tr("|*<div class='divider'>|Промяна на мярка|*</div>[#PACK_BUTTONS#]<!--ET_BEGIN FREQUENT_PACK_BUTTONS--><div class='divider'>|Последни количества|*</div>[#FREQUENT_PACK_BUTTONS#]<!--ET_END FREQUENT_PACK_BUTTONS--><!--ET_BEGIN STORE_BUTTONS--><div class='divider'>|Складове|*</div>[#STORE_BUTTONS#]<!--ET_END STORE_BUTTONS-->"));
         foreach ($buttons as $btn){
             $tpl->append($btn, 'PACK_BUTTONS');
         }
