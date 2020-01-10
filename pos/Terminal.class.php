@@ -289,7 +289,7 @@ class pos_Terminal extends peripheral_Terminal
                 $row->info = cat_Products::getVerbal($productRec, 'info');
                 if ($productRec->canStore == 'yes') {
                     $inStock = pos_Stocks::getQuantity($productRec->id, $receiptRec->pointId);
-                    $row->inStock = $Double->toVerbal($inStock);
+                    $row->inStock = core_Type::getByName('double(smartRound)')->toVerbal($inStock);
                     $row->inStock = ht::styleIfNegative($row->inStock, $inStock);
                     $row->inStock .= " " . cat_UoM::getShortName($productRec->measureId);
                 }
@@ -1453,7 +1453,7 @@ class pos_Terminal extends peripheral_Terminal
         $row = new stdClass();
         
         $row->price = currency_Currencies::decorate($Double->toVerbal($obj->price));
-        $row->stock = $Double->toVerbal($obj->stock);
+        $row->stock = core_Type::getByName('double(smartRound)')->toVerbal($obj->stock);
         $packagingId = ($obj->packagingId) ? $obj->packagingId : $obj->measureId;
         $row->packagingId = cat_UoM::getSmartName($packagingId, $obj->stock);
         $obj->receiptId = $data->rec->id;
