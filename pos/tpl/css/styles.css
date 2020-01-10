@@ -13,7 +13,7 @@
   left: 0;
   width: 570px;
   height: 100%;
-  background: #16006c;
+  background: #12008a;
   box-sizing: border-box; }
 
 .wide .result-content {
@@ -127,7 +127,7 @@
 
 #receipt-table .highlighted {
   background: #fefead !important;
-  border-left: 6px solid #16006c; }
+  border-left: 6px solid #12008a; }
 
 .numPad,
 .numBack {
@@ -234,6 +234,14 @@
   width: 23% !important;
   margin: 0; }
 
+.textShortcut {
+  line-height: 150%; }
+
+.shotcuts {
+  padding: 5px;
+  border: 1px solid #cccccc;
+  background: #dddddd; }
+
 .posBtns {
   cursor: pointer;
   box-sizing: border-box;
@@ -293,13 +301,13 @@
 .pos-notes {
   color: #333333 !important; }
   .pos-notes.newNoteBtn {
-    background-color: rgba(187, 255, 255, 0.7); }
+    background-color: #bbffff; }
   .pos-notes.state-waiting {
-    background-color: rgba(210, 255, 120, 0.6); }
+    background-color: #d2ff78; }
   .pos-notes.state-closed {
-    background-color: rgba(230, 230, 230, 0.7); }
+    background-color: #e6e6e6; }
   .pos-notes.state-draft {
-    background-color: rgba(187, 255, 255, 0.7); }
+    background-color: #bbffff; }
   .pos-notes.revertReceipt {
     color: #a00000 !important; }
 
@@ -510,14 +518,16 @@
   margin-left: 15px; }
 
 .storeQuantityInStock {
-  font-size: 0.8em; }
+  font-size: 0.9em; }
 
 .chooseStoreBtn {
-  font-size: 0.9em;
-  background: pink;
-  color: #333333 !important; }
+  font-size: 1.05em;
+  background: #374bbe;
+  color: white !important; }
+  .chooseStoreBtn .quiet {
+    color: white !important; }
   .chooseStoreBtn.currentStore {
-    background-color: cyan;
+    background-color: #53a163;
     cursor: auto; }
 
 .pos-product-price {
