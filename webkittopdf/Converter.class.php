@@ -84,7 +84,7 @@ class webkittopdf_Converter extends core_Manager
             }
             
             // Обхождаме масива с JQUERY кодовете
-            if ($jsArr['JQUERY_CODE'] && count((array) $jsArr['JQUERY_CODE'])) {
+            if ($jsArr['JQUERY_CODE'] && countR((array) $jsArr['JQUERY_CODE'])) {
                 
                 // Обхождаме JQuery кодовете
                 foreach ((array) $jsArr['JQUERY_CODE'] as $jquery) {

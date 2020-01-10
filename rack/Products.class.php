@@ -190,7 +190,7 @@ class rack_Products extends store_Products
         $pQuery = cat_Products::getQuery();
         
         if (is_array($inIds)) {
-            if (!count($inIds)) {
+            if (!countR($inIds)) {
                 
                 return array();
             }

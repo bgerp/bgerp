@@ -197,7 +197,7 @@ class store_TransfersDetails extends doc_Detail
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }
@@ -269,7 +269,7 @@ class store_TransfersDetails extends doc_Detail
         if (!empty($data->toolbar->buttons['btnAdd'])) {
             unset($data->toolbar->buttons['btnAdd']);
             $products = cat_Products::getByProperty('canStore', null, 1);
-            if (!count($products)) {
+            if (!countR($products)) {
                 $error = 'error=Няма складируеми артикули, ';
             }
             $data->toolbar->addBtn('Артикул', array($mvc, 'add', $mvc->masterKey => $data->masterId, 'ret_url' => true), "id=btnAdd,{$error} order=10,title=Добавяне на артикул",'ef_icon = img/16/shopping.png');

@@ -455,18 +455,6 @@ class cal_Reminders extends core_Master
                  )
              );
         }
-        
-        /*
-        $data->toolbar->addBtn('Сработване',array(
-                 'cal_Reminders',
-                 'start',
-                 'remId' => $data->rec->id,
-                 'ret_url' => array('cal_Reminders', 'single', $data->rec->id)
-             ),
-                 array('ef_icon'=>'img/16/run.png',
-                        'title'=>'Стартиране на напомнянето'
-             ));
-         */
     }
     
     
@@ -783,18 +771,10 @@ class cal_Reminders extends core_Master
     
     
     /**
-     * Екшън за тестване на сработване на напомнянето
-     *
-     * public function act_Start()
-     * {
-     * requireRole('debug');
-     * $id = Request::get('remId');
-     * expect($rec = $this->fetch($id));
-     *
-     * self::doUsefullyPerformance($rec);
-     *
-     * followRetUrl();
-     * } */
+     * Прилага съответния действия зададени в известието
+     * 
+     * @param stdClass $rec
+     */
     public static function doUsefullyPerformance($rec)
     {
         $rec->message = '|Напомняне|* "' . self::getVerbal($rec, 'title') . '"';
@@ -865,16 +845,48 @@ class cal_Reminders extends core_Master
         
         $fcMvc = cls::get($fcRec->docClass);
         
+        $fcMvcListArr = arr::make(strtolower($fcMvc->loadList), true);
+        $havePlgClone = $fcMvcListArr['plg_clone'] ? true : false;
+        
         // Първият документ в нишката
         $fdRec = $fcMvc->fetch($fcRec->docId);
         
+        if ($havePlgClone && $rec->createdBy) {
+            core_Users::sudo($rec->createdBy);
+        }
+        
         $newRec = clone($fdRec);
         
-        unset($newRec->id, $newRec->threadId, $newRec->containerId, $newRec->createdOn, $newRec->modifiedOn, $newRec->rejectedOn, $newRec->sharedViews);
+        if ($havePlgClone) {
+            plg_Clone::unsetFieldsNotToClone($fcMvc, $newRec, $fdRec);
+        }
         
         if ($draft) {
             $newRec->state = 'draft';
+        } else {
+            $newRec->state = $fdRec->state;
         }
+        
+        if ($havePlgClone) {
+            $data = new stdClass();
+            $data->action = 'clone';
+            $data->form = $fcMvc->getForm();
+            
+            $data->form->rec = &$newRec;
+            $data->form->rec->clonedFromId = $fdRec->id;
+            
+            if ($fcMvc instanceof embed_Manager) {
+                $dId = $data->form->rec->{$fcMvc->driverClassField};
+                if (cls::load($dId, true)) {
+                    $Driver = cls::get($dId);
+                    $Driver->addFields($data->form);
+                }
+            }
+            
+            $fcMvc->invoke('AfterPrepareEditForm', array(&$data, &$data));
+        }
+        
+        unset($newRec->id, $newRec->threadId, $newRec->containerId, $newRec->createdOn, $newRec->modifiedOn, $newRec->rejectedOn, $newRec->sharedViews);
         
         $now = dt::now();
         
@@ -933,7 +945,31 @@ class cal_Reminders extends core_Master
         
         $newRec->__isReplicate = true;
         
+        if ($havePlgClone) {
+            $fcMvc->invoke('BeforeSaveCloneRec', array($fdRec, &$newRec));
+        }
+        
+        if ($draft) {
+            $newRec->state = 'draft';
+        } else {
+            $newRec->state = $fdRec->state;
+        }
+        
+        if ($havePlgClone) {
+            // Маркираме записа като клониран
+            $newRec->_isClone = true;
+        }
+        
+        if ($havePlgClone && $rec->createdBy) {
+            core_Users::exitSudo($rec->createdBy);
+        }
+        
         $fcMvc->save($newRec);
+        
+        if ($havePlgClone) {
+            // Инвокваме фунцкцията, ако някой иска да променя нещо
+            $fcMvc->invoke('AfterSaveCloneRec', array($fdRec, &$newRec));
+        }
     }
     
     

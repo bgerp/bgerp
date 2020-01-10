@@ -295,7 +295,7 @@ class log_Ips extends core_Manager
             $hostName = $ip;
         } elseif ($hostName != $ip) {
             $domainArr = array_slice(explode('.', ($hostName)), -3, 3);
-            if (count($domainArr) == 3 && preg_match('/[0-9]{1,3}[^0-9]+[0-9]{1,3}[^0-9]+[0-9]{1,3}[^0-9]+[0-9]{1,3}/', $domainArr[0]) ||
+            if (countR($domainArr) == 3 && preg_match('/[0-9]{1,3}[^0-9]+[0-9]{1,3}[^0-9]+[0-9]{1,3}[^0-9]+[0-9]{1,3}/', $domainArr[0]) ||
                 strlen($domainArr[0]) > 12 && strlen($domainArr[1]) > 3) {
                 unset($domainArr[0]);
             }

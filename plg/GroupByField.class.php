@@ -51,7 +51,7 @@ class plg_GroupByField extends core_Plugin
         unset($data->listFields[$field]);
         
         // Колко е броя на колоните
-        $columns = count($data->listFields);
+        $columns = countR($data->listFields);
         
         $groups = array();
         

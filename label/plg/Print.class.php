@@ -157,7 +157,7 @@ class label_plg_Print extends core_Plugin
             $title = tr($mvc->title);
             $title = mb_strtolower($title);
             
-            $error = (!count($templates)) ? ",error=Няма наличен шаблон за етикети от|* \"{$title}\"" : '';
+            $error = (!countR($templates)) ? ",error=Няма наличен шаблон за етикети от|* \"{$title}\"" : '';
             $source = $mvc->getLabelSource($rec);
             
             if (label_Prints::haveRightFor('add', (object) array('classId' => $source['class']->getClassid(), 'objectId' => $source['id']))) {

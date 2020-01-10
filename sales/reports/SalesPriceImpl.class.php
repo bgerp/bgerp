@@ -309,10 +309,10 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
         
         $pager = cls::get('core_Pager', array('pageVar' => 'P_' .  $mvc->EmbedderRec->that,'itemsPerPage' => $mvc->listItemsPerPage));
         
-        $pager->itemsCount = count($data->recs, COUNT_RECURSIVE);
+        $pager->itemsCount = countR($data->recs, COUNT_RECURSIVE);
         $data->pager = $pager;
         
-        if (count($data->recs)) {
+        if (countR($data->recs)) {
             foreach ($data->recs as $rec) {
                 if (!$pager->isOnPage()) {
                     continue;
@@ -503,7 +503,7 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
         
         $conf = core_Packs::getConfig('core');
         
-        if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
+        if (countR($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
             redirect(array($this), false, '|Броят на заявените записи за експорт надвишава максимално разрешения|* - ' . $conf->EF_MAX_EXPORT_CNT, 'error');
         }
         
@@ -514,7 +514,7 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
         }
         
         
-        if (count($this->innerState->recs)) {
+        if (countR($this->innerState->recs)) {
             foreach ($this->innerState->recs as $id => $rec) {
                 $rCsv = $this->generateCsvRows($rec);
                 

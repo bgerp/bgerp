@@ -29,7 +29,7 @@ class plg_Chart extends core_Plugin
         $xFieldArr = $mvc->selectFields("#chart == 'ax'");
         
         // Очакваме да има само едно такова поле
-        expect(count($xFieldArr) == 1);
+        expect(countR($xFieldArr) == 1);
         
         // Вземаме полето
         $xField = current($xFieldArr);
@@ -55,13 +55,13 @@ class plg_Chart extends core_Plugin
         // 2. Да има няколко полета, дефинирани като chart=ay. Тези ралични
         //    полета се явяват различните серии
         
-        if (count($sFieldArr) && count($data) > 1) {
+        if (countR($sFieldArr) && countR($data) > 1) {
             $yField = current($yFieldArr);
-            expect(count($yFieldArr) == 1);
+            expect(countR($yFieldArr) == 1);
             expect(($yField->type instanceof type_Int) || ($yField->type instanceof type_Double));
             
             $sField = current($sFieldArr);
-            expect(count($sFieldArr) == 1);
+            expect(countR($sFieldArr) == 1);
             
             $sName = $data->chartSeriesField = $sField->name;
             
@@ -80,7 +80,7 @@ class plg_Chart extends core_Plugin
                 $data->chartColumns[] = $colRec;
             }
         } else {
-            expect(count($yFieldArr));
+            expect(countR($yFieldArr));
             
             foreach ($yFieldArr as $yField) {
                 $colRec = new stdClass();
@@ -180,12 +180,12 @@ class plg_Chart extends core_Plugin
                     }
                 }
                 
-                $row = count($rows) - 1;
+                $row = countR($rows) - 1;
                 
                 if ($usedCols[$col]) {
                     $colNumb = $usedCols[$col]->colNumb;
                 } else {
-                    $colNumb = count($usedCols);
+                    $colNumb = countR($usedCols);
                     $colRec->colNumb = $colNumb;
                     $usedCols[$col] = $colRec;
                 }
@@ -200,7 +200,7 @@ class plg_Chart extends core_Plugin
         }
         
         // Добавяме редовете
-        $rowsCnt = count($rows);
+        $rowsCnt = countR($rows);
         $chart->append("\n     data.addRows({$rowsCnt});", 'SCRIPTS');
         
         // Добавяме данните
@@ -223,7 +223,7 @@ class plg_Chart extends core_Plugin
         if ($chartType = Request::get('Chart')) {
             $chartId = 0;
             
-            if (count($data->charts)) {
+            if (countR($data->charts)) {
                 $table = new ET();
                 $chartField = $data->chartField;
                 
@@ -251,7 +251,7 @@ class plg_Chart extends core_Plugin
      */
     public function on_AfterRenderListTitle($mvc, &$title, $data)
     {
-        if (count($data->chartTypes)) {
+        if (countR($data->chartTypes)) {
             $title = new ET('[#1#]', $title);
             
             // $title->prepend("<div style='float:left;'>");

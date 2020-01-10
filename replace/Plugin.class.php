@@ -28,7 +28,7 @@ class replace_Plugin extends core_Plugin
                     foreach ($replace as $from => $to) {
                         $fromArr[] = $from;
                         $toArr[] = $to;
-                        $midArr[] = '{' . $rand . count($toArr) . '}';
+                        $midArr[] = '{' . $rand . countR($toArr) . '}';
                     }
                     
                     if (is_array($fromArr)) {

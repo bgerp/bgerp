@@ -571,12 +571,12 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         foreach ($recs as $v) {
             $v->groupValues = $groupValues[$v->groupList];
             $v->groupDeltas = $groupDeltas[$v->groupList];
-            $v->unicart = count($unicart[$v->contragentId]);
-            $v->unicartPrevious = count($unicartPrev[$v->contragentId]);
-            $v->unicartLast = count($unicartLast[$v->contragentId]);
-            $v->salesArr = count($salesArr[$v->contragentId]);
-            $v->salesArrPrevious = count($salesArrPrev[$v->contragentId]);
-            $v->salesArrLast = count($salesArrLast[$v->contragentId]);
+            $v->unicart = countR($unicart[$v->contragentId]);
+            $v->unicartPrevious = countR($unicartPrev[$v->contragentId]);
+            $v->unicartLast = countR($unicartLast[$v->contragentId]);
+            $v->salesArr = countR($salesArr[$v->contragentId]);
+            $v->salesArrPrevious = countR($salesArrPrev[$v->contragentId]);
+            $v->salesArrLast = countR($salesArrLast[$v->contragentId]);
         }
         
         
@@ -1015,7 +1015,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     
                     $groupVerb .= (crm_Groups::getTitleById($group));
                     
-                    if ((count((type_Keylist::toArray($data->rec->crmGroup))) - $marker) != 0) {
+                    if ((countR((type_Keylist::toArray($data->rec->crmGroup))) - $marker) != 0) {
                         $groupVerb .= ', ';
                     }
                 }
@@ -1031,7 +1031,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     
                     $contragentVerb .= (doc_Folders::getTitleById($contragent));
                     
-                    if ((count(type_Keylist::toArray($data->rec->contragent))) - $marker != 0) {
+                    if ((countR(type_Keylist::toArray($data->rec->contragent))) - $marker != 0) {
                         $contragentVerb .= ', ';
                     }
                 }

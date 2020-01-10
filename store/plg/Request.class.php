@@ -43,7 +43,7 @@ class store_plg_Request extends core_Plugin
             $Detail = cls::get($mvc->mainDetail);
             $undelivered = $Detail->getUndeliveredDetails($rec->id);
             
-            if (count($undelivered)) {
+            if (countR($undelivered)) {
                 core_Request::setProtected('showDiff');
                 $data->toolbar->addBtn('Остатък', toUrl(array($mvc, 'cloneFields', $data->rec->id, 'showDiff' => true,'ret_url' => array($mvc, 'single', $data->rec->id))), 'ef_icon=img/16/clone.png,title=Остатък от заявеното,row=1, order=19.1');
                 core_Request::removeProtected('showDiff');
@@ -80,7 +80,7 @@ class store_plg_Request extends core_Plugin
         $Detail = cls::get($mvc->mainDetail);
         $arr = $Detail->getUndeliveredDetails($rec->clonedFromId);
         
-        if (count($arr)) {
+        if (countR($arr)) {
             $res = $arr;
         }
     }

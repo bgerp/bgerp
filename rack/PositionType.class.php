@@ -63,7 +63,7 @@ class rack_PositionType extends type_Varchar
         $matches = array();
         preg_match('/^([0-9]{1,3})[\\-]{0,1}([a-z])[\\-]{0,1}([0-9]{1,3})$/i', $value, $matches);
         
-        if (!is_array($matches) || count($matches) < 4) {
+        if (!is_array($matches) || countR($matches) < 4) {
             $this->error = 'Невалиден синтаксис';
             
             return false;

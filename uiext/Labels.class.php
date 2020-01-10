@@ -237,7 +237,7 @@ class uiext_Labels extends core_Manager
     {
         $masterClass = cls::get($masterClass);
         $labels = self::getLabelOptions($classId);
-        if (count($labels) <= 1) {
+        if (countR($labels) <= 1) {
             
             return;
         }

@@ -90,14 +90,14 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
             $entry2 = $this->trasnferDownpayments($dealInfo, $docRec, $downpaymentAmounts, $firstDoc, $result);
             
             // Ако тотала не е нула добавяме ентритата
-            if (count($entry2)) {
+            if (countR($entry2)) {
                 $result->entries = array_merge($result->entries, $entry2);
             }
             
             $entry3 = $this->transferVatNotCharged($dealInfo, $docRec, $result->totalAmount, $firstDoc);
             
             // Ако тотала не е нула добавяме ентритата
-            if (count($entry3)) {
+            if (countR($entry3)) {
                 $result->entries[] = $entry3;
             }
             
@@ -142,7 +142,7 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
         if (is_array($quantities)) {
             foreach ($quantities as $index => $obj1) {
                 $entry = $this->getCloseEntry($obj1->amount, $obj1->quantity, $index, $result->totalAmount, $docRec, $firstDoc);
-                if (count($entry)) {
+                if (countR($entry)) {
                     $result->entries = array_merge($result->entries, $entry);
                 }
             }

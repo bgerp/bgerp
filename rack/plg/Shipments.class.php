@@ -71,7 +71,7 @@ class rack_plg_Shipments extends core_Plugin
         if (empty($currentStoreId)) return;
         
         $btnData = rack_Zones::getBtnToZone($data->rec->containerId);
-        if(count($btnData->url)){
+        if(countR($btnData->url)){
             $data->toolbar->addBtn($btnData->caption, $btnData->url, $btnData->attr);
         }
     }
@@ -109,7 +109,7 @@ class rack_plg_Shipments extends core_Plugin
                         $bQuery->where("#detailClassId = {$Detail->getClassId()} AND #detailRecId = {$dRec->id} AND #productId = {$dRec->{$Detail->productFld}}");
                         while($bRec = $bQuery->fetch()){
                             $batches = batch_Defs::getBatchArray($bRec->productId, $bRec->batch);
-                            $quantity = (count($batches) == 1) ? $bRec->quantity : $bRec->quantity / count($batches);
+                            $quantity = (countR($batches) == 1) ? $bRec->quantity : $bRec->quantity / countR($batches);
                             
                             foreach ($batches as $k => $b) {
                                 $key2 = "{$key}|{$k}";

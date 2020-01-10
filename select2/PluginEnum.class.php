@@ -65,7 +65,7 @@ class select2_PluginEnum extends core_Plugin
         
         $minItems = isset($invoker->params['select2MinItems']) ? $invoker->params['select2MinItems'] : self::$minItems;
         
-        $optionsCnt = count($invoker->options);
+        $optionsCnt = countR($invoker->options);
         
         // Ако опциите са под минималното - нищо не правим
         if ($optionsCnt <= $minItems) {

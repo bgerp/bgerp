@@ -153,7 +153,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             $salesInvoicesArr[] = $saleInvoice;
         }
         
-        $timeLimit = count($salesInvoicesArr) * 0.05;
+        $timeLimit = countR($salesInvoicesArr) * 0.05;
         
         if ($timeLimit >= 30) {
             core_App::setTimeLimit($timeLimit);
@@ -317,7 +317,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $rec->salesTotalPayout = $salesTotalPayout;
         $rec->salesCurrentSum = $salesTotalOverDue - $salesTotalPayout;
         
-        if (count($sRecs)) {
+        if (countR($sRecs)) {
             arr::sortObjects($sRecs, 'overdueDays', 'desc');
         }
         

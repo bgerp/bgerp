@@ -104,7 +104,7 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
             
             // Проверка на артикулите
             $productCheck = deals_Helper::checkProductForErrors($productsArr, 'canStore');
-            if(count($productCheck['notActive'])){
+            if(countR($productCheck['notActive'])){
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(',', $productCheck['notActive']) . " |не са активни|*!");
             } elseif($productCheck['metasError']){
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(',', $productCheck['metasError']) . " |трябва да са складируеми и продаваеми|*!");

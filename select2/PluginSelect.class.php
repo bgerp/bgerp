@@ -47,7 +47,7 @@ class select2_PluginSelect extends core_Plugin
         ht::setUniqId($attr);
         
         $invoker->options = $invoker->prepareOptions($value);
-        self::$optCnt = count($invoker->options);
+        self::$optCnt = countR($invoker->options);
         
         $maxSuggestions = $invoker->getMaxSuggestions();
         
@@ -116,7 +116,7 @@ class select2_PluginSelect extends core_Plugin
         
         $minItems = isset($invoker->params['select2MinItems']) ? $invoker->params['select2MinItems'] : self::$minItems;
         
-        $optionsCnt = isset(self::$optCnt) ? self::$optCnt : count($invoker->options);
+        $optionsCnt = isset(self::$optCnt) ? self::$optCnt : countR($invoker->options);
         
         // Ако опциите са под минималното - нищо не правим
         if ($optionsCnt <= $minItems) {

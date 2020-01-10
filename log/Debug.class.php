@@ -245,7 +245,7 @@ class log_Debug extends core_Manager
             list($debugFile) = explode('.', $debugFileName);
         }
         
-        $fArrCnt = count($fArr);
+        $fArrCnt = countR($fArr);
         
         $fLink = '';
         
@@ -378,7 +378,7 @@ class log_Debug extends core_Manager
         }
         
         $allFArr = $this->getDebugFilesArr();
-        $tpl->prepend(tr('Общо файлове') . ': ' . count($allFArr));
+        $tpl->prepend(tr('Общо файлове') . ': ' . countR($allFArr));
         
         // Рендираме страницата
         return  $this->renderWrapping($tpl);
@@ -1017,7 +1017,7 @@ class log_Debug extends core_Manager
                 $eTimePeriodArr[$execFiledName] = $fVal;
             }
             
-            if (count($eTimePeriodArr) == 2) {
+            if (countR($eTimePeriodArr) == 2) {
                 if ($eTimePeriodArr['execTimeFrom'] > $eTimePeriodArr['execTimeTo']) {
                     $eTimePeriodArr['tmp'] = $eTimePeriodArr['execTimeFrom'];
                     $eTimePeriodArr['execTimeFrom'] = $eTimePeriodArr['execTimeTo'];
@@ -1198,7 +1198,7 @@ class log_Debug extends core_Manager
                         $slice = false;
                         $nArr = $fArr;
                         
-                        $fArrCnt = count($fArr);
+                        $fArrCnt = countR($fArr);
                         if ($fArrCnt > ($limit)) {
                             if ($fArrCnt > ($aPos + $before)) {
                                 $bPos = $aPos - $before;
@@ -1310,7 +1310,7 @@ class log_Debug extends core_Manager
         
         $cnt = 0;
         
-        $allCnt = count($fArr);
+        $allCnt = countR($fArr);
         
         foreach ($fArr as $fName => $cDate) {
             list($v) = explode('_', $fName, 2);

@@ -66,11 +66,11 @@ class payment_ImportDriver extends import2_AbstractDriver
             $form->setError('xmlFile', 'Непознат файлов формат');
         }
         
-        if (count($res->warnings)) {
+        if (countR($res->warnings)) {
             $form->setWarning('xmlFile', '|*' . implode('<br>', $res->warnings));
         }
         
-        if (count($res->errors)) {
+        if (countR($res->errors)) {
             $form->setError('xmlFile', '|*' . implode('<br>', $res->errors));
         }
         

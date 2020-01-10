@@ -63,7 +63,7 @@ class slick_Driver extends core_BaseClass
         $images = keylist::toArray($rec->images);
 
         // Ако няма картинки - да не сработва
-        if (!is_array($images) || !count($images)) {
+        if (!is_array($images) || !countR($images)) {
             
             return ;
         }
