@@ -555,11 +555,11 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             $strArr = explode("\n", $str);
             
             $receipt = '';
-            $cnt = count($strArr);
+            $cnt = countR($strArr);
             for($i = 0; $i < $cnt - 1; $i++) {
                 
                 $line = $strArr[$i];
-                $line = mb_substr($line, 4, count($line) - 3);
+                $line = mb_substr($line, 4, countR($line) - 3);
                 
                 // Предпоследният ред съдържа QR кода
                 // Последния ред е празен
@@ -721,7 +721,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 
                 $sArr = explode('://', $serverIp);
                 
-                if (count($sArr) == 2) {
+                if (countR($sArr) == 2) {
                     $serverIp = $sArr[1];
                 }
                 
@@ -1165,9 +1165,9 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
         
         $lines = explode("\n",$str);
         $res = "";
-        for($i= 0; $i < count($lines); $i++) {
+        for($i= 0; $i < countR($lines); $i++) {
             $line = $lines[$i];
-            $res.= mb_substr($line, 4, count($line) - 3) . "\n";
+            $res.= mb_substr($line, 4, countR($line) - 3) . "\n";
         }
         
         $res = i18n_Charset::convertToUtf8($res, "windows-1251");
