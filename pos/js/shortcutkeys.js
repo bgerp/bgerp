@@ -116,7 +116,9 @@ var QUOTE = 222; 		// SINGLE QUOTE
 		try {
 
 			$(this).keydown(function(e){
-				$('.large-field.select-input-pos').focus();
+				if($('input[type=text]').length == 1 ) {
+					$('.large-field.select-input-pos').focus();
+				}
 				 // Modifier down (SHIFT, CONTROL, ALT)
 				if(e.keyCode == 16) {
 					ShiftMod = true;
