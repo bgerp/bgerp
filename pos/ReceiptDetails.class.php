@@ -1027,4 +1027,59 @@ class pos_ReceiptDetails extends core_Detail
         
         return $textArr;
     }
+    
+    
+    /**
+     * Връща предложения с отстъпки, които може да се задават на посочения артикул
+     * Дефолтните отстъпки да бъдат тези, които най-често са давани за дадения продукт 
+     * + (1%, 2%, 3%, 4%, 5%, 7.5%, 10%, 12.5%, 15%, 20%, 25%), като второто множество е ограничено до себестойността 
+     * на продукта + 3%.
+     * 
+     * @param int $productId    - ид на артикул
+     * @param double $salePrice - крайна продажна цена
+     * @return array $discounts - масив с предложения за отстъпки
+     */
+    public static function getSuggestedProductDiscounts($productId, $salePrice)
+    {
+        $discounts = array();
+        $discountCache = core_Permanent::get("pos_MostUsedDiscounts");
+        $discountCache = is_array($discountCache) ? $discountCache : array();
+        if(array_key_exists($productId, $discountCache)){
+            $discounts += $discountCache[$productId];
+        }
+        
+        $primeCost = cat_Products::getPrimeCost($productId);
+        $primeCostWithAllowedPercent += $primeCost * 1.03;
+       
+        $secondRange = array('0.01', '0.02', '0.03', '0.04', '0.05', '0.075', '0.1', '0.125', '0.15', '0.2', '0.25');
+        foreach ($secondRange as $percent){
+            $comparePrice = ($salePrice) * (1 - $percent);
+            if(round($comparePrice, 4) > round($primeCostWithAllowedPercent, 4)){
+                $discounts[$percent] = $percent;
+            }
+        }
+        
+        asort($discounts);
+        
+        return $discounts;
+    }
+    
+    
+    /**
+     * Кешира най-често използваните отстъпки в ПОС-а
+     */
+    public static function cacheMostUsedDiscounts()
+    {
+       // Кои са най-използваните отстъпки за артикулите в POS-а
+       $query = pos_ReceiptDetails::getQuery();
+       $query->where("#discountPercent IS NOT NULL AND #discountPercent != 0");
+       $query->show('discountPercent,productId');
+       $discountArr = array();
+       
+       while($rec = $query->fetch()){
+           $discountArr[$rec->productId][$rec->discountPercent] = $rec->discountPercent;
+       }
+       
+       core_Permanent::set("pos_MostUsedDiscounts", $discountArr, 4320);
+    }
 }

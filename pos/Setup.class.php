@@ -238,5 +238,6 @@ class pos_Setup extends core_ProtoSetup
     public function cron_UpdateStatistic()
     {
         pos_ReceiptDetails::getMostUsedTexts(24, true);
+        pos_ReceiptDetails::cacheMostUsedDiscounts();
     }
 }

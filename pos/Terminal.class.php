@@ -799,13 +799,17 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultDiscount($rec, $string, $selectedRec)
     {
-        $discountsArr = array('0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100');
+        $price = pos_Receipts::getDisplayPrice($selectedRec->price, $selectedRec->param, null, $rec->pointId, 1);
+        $discountsArr = pos_ReceiptDetails::getSuggestedProductDiscounts($selectedRec->productId, $price);
+        $discountsArr =  array('0' => '0') + $discountsArr;
         
         $tpl = new core_ET("");
-        foreach ($discountsArr as $discAmount){
-            $selected = ($selectedRec->discountPercent == ($discAmount / 100)) ? 'selected' : '';
+        foreach ($discountsArr as $discountPercent){
+            $selected = (trim($selectedRec->discountPercent) == trim($discountPercent)) ? 'selected' : '';
+            $discAmount = $discountPercent * 100;
             $url = toUrl(array('pos_ReceiptDetails', 'updateRec', 'receiptId' => $rec->id, 'action' => 'setdiscount', 'string' => "{$discAmount}"), 'local');
-            $element = ht::createElement("div", array('id' => "discount{$discAmount}", 'class' => "navigable posBtns discountBtn {$selected}", 'data-url' => $url), "{$discAmount} %", true);
+            $btnCaption = ($discountPercent == '0') ? tr('Без отстъпка') : "{$discAmount} %";
+            $element = ht::createElement("div", array('id' => "discount{$discountPercent}", 'class' => "navigable posBtns discountBtn {$selected}", 'data-url' => $url), $btnCaption, true);
             $tpl->append($element);
         }
         $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
