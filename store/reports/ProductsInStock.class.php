@@ -348,7 +348,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                 
                 $groupVerb .= (cat_Groups::getTitleById($group));
                 
-                if ((count((type_Keylist::toArray($data->rec->group))) - $marker) != 0) {
+                if ((countR((type_Keylist::toArray($data->rec->group))) - $marker) != 0) {
                     $groupVerb .= ', ';
                 }
             }
