@@ -87,17 +87,15 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
         if ($form->rec->orderBy == 'salesArr') {
-            
+   
             if (!$form->rec->see){
-            $form->rec->see = 'sales';
+                $form->rec->see = 'sales';
             }else{
-                if (strpos($form->rec->see, 'articles') !== false){
-                    
-                    $form->rec->see = 'sales,articles';
-                }else{
-                    $form->rec->see = 'sales';
+                
+                if (strpos($form->rec->see, 'sales') === false){
+                    $seeStr = 'sales,'.$form->rec->see;
+                    $form->rec->see = $seeStr;
                 }
-          
             }
         } 
         
@@ -105,17 +103,13 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             if (!$form->rec->see){
                 $form->rec->see = 'articles';
             }else{
-                if (strpos($form->rec->see, 'sales') !== false){
-                    
-                    $form->rec->see = 'sales,articles';
-                }else{
-                    $form->rec->see = 'articles';
+                
+                if (strpos($form->rec->see, 'articles') === false){
+                    $seeStr = 'articles,'.$form->rec->see;
+                    $form->rec->see = $seeStr;
                 }
             }
-        } else {
-          //  $form->rec->see = null;
         }
-        
         if ($form->rec->orderBy == 'delta') {
             
             $form->rec->seeDelta = 'yes';
