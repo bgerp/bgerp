@@ -264,7 +264,7 @@ abstract class store_DocumentMaster extends core_Master
                 $agreedProducts = $aggregatedDealInfo->get('products');
                 $shippedProducts = $aggregatedDealInfo->get('shippedProducts');
                 
-                if (count($shippedProducts)) {
+                if (countR($shippedProducts)) {
                     $normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
                 } else {
                     $copyBatches = true;
@@ -284,7 +284,7 @@ abstract class store_DocumentMaster extends core_Master
                 $normalizedProducts = $aggregatedDealInfo->get('dealProducts');
             }
             
-            if (count($agreedProducts)) {
+            if (countR($agreedProducts)) {
                 foreach ($agreedProducts as $index => $product) {
                     
                     // Игнориране на услуги или складируемите ако е избрано друго

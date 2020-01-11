@@ -93,7 +93,7 @@ class planning_Points extends core_Manager
                     }
                 }
                 
-                if (count($arr)) {
+                if (countR($arr)) {
                     $form->setSuggestions($field, array('' => '') + $arr);
                     $form->setField($field, 'input');
                 }
@@ -199,7 +199,7 @@ class planning_Points extends core_Manager
     {
         $tasks = keylist::toArray($rec->tasks);
         $tasks[$taskId] = $taskId;
-        if(count($tasks) > self::REMEMBER_MAX_TASKS){
+        if(countR($tasks) > self::REMEMBER_MAX_TASKS){
             unset($tasks[key($tasks)]);
         }
         

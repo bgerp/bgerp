@@ -59,7 +59,7 @@ class zbar_Reader
         }
         
         // Ако има окрит баркод
-        if ((is_array($allBarcodesArr)) && count($allBarcodesArr)) {
+        if ((is_array($allBarcodesArr)) && countR($allBarcodesArr)) {
             $fBarcodeStr = '';
             
             // Обикаляме намерените баркодове

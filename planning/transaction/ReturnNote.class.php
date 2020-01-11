@@ -40,7 +40,7 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
         if (isset($rec->id)) {
             $entries = $this->getEntries($rec, $result->totalAmount);
             
-            if (count($entries)) {
+            if (countR($entries)) {
                 $result->entries = array_merge($result->entries, $entries);
             }
         }
@@ -110,14 +110,14 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
         
         // Ако някой от артикулите не може да бдъе произведем сетваме, че ще правим редирект със съобщението
         if (Mode::get('saveTransaction')) {
-            if (count($errorArr)) {
+            if (countR($errorArr)) {
                 $errorArr = implode(', ', $errorArr);
                 acc_journal_RejectRedirect::expect(false, "Артикулите: |{$errorArr}|* не могат да бъдат върнати защото липсва себестойност");
             }
             
             // Проверка на артикулите
             $productCheck = deals_Helper::checkProductForErrors($productsArr, 'canConvert,canStore');
-            if(count($productCheck['notActive'])){
+            if(countR($productCheck['notActive'])){
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
             } elseif($productCheck['metasError']){
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са складируеми и вложими|*!");

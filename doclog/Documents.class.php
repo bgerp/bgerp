@@ -453,7 +453,7 @@ class doclog_Documents extends core_Manager
             }
         }
         
-        $cnt = count($allDataAct);
+        $cnt = countR($allDataAct);
         
         if (!$cnt) {
             
@@ -695,7 +695,7 @@ class doclog_Documents extends core_Manager
         
         foreach ($recs as $rec) {
             // Ако не виждан
-            if (!$rec->data->{$action} || !count($rec->data->{$action})) {
+            if (!$rec->data->{$action} || !countR($rec->data->{$action})) {
                 continue;
             }
             
@@ -719,7 +719,7 @@ class doclog_Documents extends core_Manager
         // URL' то където ще сочат
         $data->pager->url = toUrl(static::getLinkToSingle($cid, $action));
         
-        $openCnt = count($nRecsArr);
+        $openCnt = countR($nRecsArr);
         
         $data->pager->itemsCount = $openCnt;
         $data->pager->calc();
@@ -1165,7 +1165,7 @@ class doclog_Documents extends core_Manager
         foreach ($recs as $rec) {
             
             // Ако няма зададени действия прескачаме
-            if (count($rec->data->{$action}) == 0) {
+            if (countR($rec->data->{$action}) == 0) {
                 continue;
             }
             
@@ -2285,7 +2285,7 @@ class doclog_Documents extends core_Manager
             foreach ($data as $downloadRec) {
                 
                 // Добавяме броя на свалянията към променливата
-                $downloadCount += count($downloadRec);
+                $downloadCount += countR($downloadRec);
             }
         }
         
@@ -2552,7 +2552,7 @@ class doclog_Documents extends core_Manager
         
         if (!empty($firstOpen)) {
             $html .= ' ' . type_Ip::decorateIp($firstOpen['ip'], $firstOpen['on'], true);
-            $cnt = count($rec->data->{$openActionName});
+            $cnt = countR($rec->data->{$openActionName});
             if ($cnt) {
                 $html .= ht::createLink(
                     $cnt,
@@ -2869,7 +2869,7 @@ class doclog_Documents extends core_Manager
         $query = static::getQuery();
         $query->where("#containerId = '{$uRec->containerId}' AND #action = '{$action}'");
         $allRecs = $query->fetchAll();
-        if (!count($allRecs)) {
+        if (!countR($allRecs)) {
                 
                 // Създаваме обект с данни
             $allRecs[] = (object) array(
@@ -2914,7 +2914,7 @@ class doclog_Documents extends core_Manager
      */
     private static function removeUsed($rec, $inClass)
     {
-        if (count($rec->data->{static::ACTION_USED})) {
+        if (countR($rec->data->{static::ACTION_USED})) {
             foreach ($rec->data->{static::ACTION_USED} as $i => $lRec) {
                 $clone = clone $lRec;
                 $cloneComp = clone($inClass);

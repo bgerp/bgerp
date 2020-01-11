@@ -1866,7 +1866,7 @@ class crm_Persons extends core_Master
         if ($form->rec->buzCompanyId) {
             $locations = crm_Locations::getContragentOptions(crm_Companies::getClassId(), $form->rec->buzCompanyId);
             $form->setOptions('buzLocationId', $locations);
-            if (!count($locations)) {
+            if (!countR($locations)) {
                 $form->setField('buzLocationId', 'input=none');
             }
         }

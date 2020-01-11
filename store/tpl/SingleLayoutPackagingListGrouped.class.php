@@ -47,7 +47,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
      */
     public function modifyDetailData(core_Mvc $detail, &$data)
     {
-        if(!count($data->recs)) {
+        if(!countR($data->recs)) {
             
             return;
         }
@@ -74,11 +74,11 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
      */
     public function beforeRenderListTable(core_Mvc $detail, &$tpl, &$data)
     {
-        if(!count($data->recs)) {
+        if(!countR($data->recs)) {
             
             return;
         }
-        $columns = count($data->listFields);
+        $columns = countR($data->listFields);
         
         // Извличане на всички уникални тарифни номера и сумиране на данните им
         $tarriffCodes = array();
@@ -108,7 +108,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         foreach ($tarriffCodes as $tariffNumber => $tariffObject) {
             
             $weight = core_Type::getByName('cat_type_Weight(decimals=2)')->toVerbal($tariffObject->weight);
-            if(count($tariffObject->withoutWeightProducts) && !Mode::isReadOnly()){
+            if(countR($tariffObject->withoutWeightProducts) && !Mode::isReadOnly()){
                 $imploded = implode(',', $tariffObject->withoutWeightProducts);
                 $weight = ht::createHint($weight, "Следните артикули нямат транспортно тегло|*: {$imploded}", 'warning');
             }

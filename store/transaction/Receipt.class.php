@@ -53,7 +53,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
             $property = ($rec->isReverse == 'yes') ? 'canSell' : 'canBuy';
             $msg = ($rec->isReverse == 'yes') ? 'продаваеми' : 'купуваеми';
             $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($rec->details, 'productId'), $property);
-            if(count($productCheck['notActive'])){
+            if(countR($productCheck['notActive'])){
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(',', $productCheck['notActive']) . " |не са активни|*!");
             } elseif($productCheck['metasError']){
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(',', $productCheck['metasError']) . " |трябва да са {$msg}|*!");
@@ -64,7 +64,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         $packRecs = store_DocumentPackagingDetail::getRecs($this->class, $rec->id);
         
         // Всяка СР трябва да има поне един детайл
-        if (count($rec->details) > 0 || count($packRecs) > 0) {
+        if (countR($rec->details) > 0 || countR($packRecs) > 0) {
             if ($rec->isReverse == 'yes') {
                 
                 // Ако СР е обратна, тя прави контировка на ЕН но с отрицателни стойностти
@@ -117,7 +117,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                 }
             }
             
-            if (!count($rec->details)) {
+            if (!countR($rec->details)) {
                 $error = false;
             }
         }
@@ -184,9 +184,9 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                     );
                     
                     // Корекция на стойности при нужда
-                    if (isset($dRec1->correctProducts) && count($dRec1->correctProducts)) {
+                    if (isset($dRec1->correctProducts) && countR($dRec1->correctProducts)) {
                         $correctionEntries = acc_transaction_ValueCorrection::getCorrectionEntries($dRec1->correctProducts, $dRec1->productId, $dRec1->expenseItemId, $dRec1->quantity, $dRec1->allocationBy, $reverse);
-                        if (count($correctionEntries)) {
+                        if (countR($correctionEntries)) {
                             $entries = array_merge($entries, $correctionEntries);
                         }
                     }
@@ -238,7 +238,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         
         $class = ($reverse) ? cls::get('store_ShipmentOrders') : $this->class;
         $entries2 = store_DocumentPackagingDetail::getEntries($class, $rec, $reverse);
-        if (count($entries2)) {
+        if (countR($entries2)) {
             $entries = array_merge($entries, $entries2);
         }
         

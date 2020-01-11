@@ -221,7 +221,7 @@ class eshop_Products extends core_Master
         if ($form->rec->coDriver) {
             $protoProducts = doc_Prototypes::getPrototypes('cat_Products', $form->rec->coDriver);
             
-            if (count($protoProducts)) {
+            if (countR($protoProducts)) {
                 $form->setField('proto', 'input');
                 $form->setSuggestions('proto', $protoProducts);
             }
@@ -398,7 +398,7 @@ class eshop_Products extends core_Master
         $gQuery = eshop_Groups::getQuery();
         $data->groups = array();
         $groups = eshop_Groups::getGroupsByDomain();
-        if (count($groups)) {
+        if (countR($groups)) {
             $groupList = implode(',', array_keys($groups));
             $gQuery->where("#id IN ({$groupList})");
             while ($gRec = $gQuery->fetch("#state = 'active'")) {
@@ -447,8 +447,8 @@ class eshop_Products extends core_Master
             if ($pRec->image4) {
                 $imageArr[] = $pRec->image4;
             }
-            if (count($imageArr)) {
-                $tact = abs(crc32($pRec->id . round(time() / (24 * 60 * 60 + 537)))) % count($imageArr);
+            if (countR($imageArr)) {
+                $tact = abs(crc32($pRec->id . round(time() / (24 * 60 * 60 + 537)))) % countR($imageArr);
                 $image = $imageArr[$tact];
                 $img = new thumb_Img($image, 120, 120);
             } else {
@@ -514,7 +514,7 @@ class eshop_Products extends core_Master
             }
             
             $commonParams = self::getCommonParams($pRec->id);
-            $pRow->commonParams = (count($commonParams)) ? self::renderParams(self::getCommonParams($pRec->id)) : null;
+            $pRow->commonParams = (countR($commonParams)) ? self::renderParams(self::getCommonParams($pRec->id)) : null;
         }
         
         // URL за добавяне на продукт
@@ -533,7 +533,7 @@ class eshop_Products extends core_Master
         
         if (is_array($data->groups)) {
             foreach ($data->groups as $gData) {
-                if (!count($gData->recs)) {
+                if (!countR($gData->recs)) {
                     continue;
                 }
                 $layout->append('<h2>' . eshop_Groups::getVerbal($gData->groupRec, 'name') . '</h2>');
@@ -616,7 +616,7 @@ class eshop_Products extends core_Master
         
         if (!$data->productId) {
             $opt = cms_Content::getMenuOpt('eshop_Groups');
-            if (count($opt)) {
+            if (countR($opt)) {
                 
                 return new Redirect(array('cms_Content', 'Show', key($opt)));
             }
@@ -805,7 +805,7 @@ class eshop_Products extends core_Master
         }
         $tpl->placeObject($data->row);
         
-        if (is_array($data->detailData->rows) && count($data->detailData->rows)) {
+        if (is_array($data->detailData->rows) && countR($data->detailData->rows)) {
             $tpl->replace(eshop_ProductDetails::renderExternal($data->detailData), 'PRODUCT_OPT');
         }
         
@@ -986,7 +986,7 @@ class eshop_Products extends core_Master
             $data->query->where("#groupId = {$rec->groupId}");
         } else {
             $groups = eshop_Groups::getGroupsByDomain();
-            if (count($groups)) {
+            if (countR($groups)) {
                 $groupList = implode(',', array_keys($groups));
                 $data->query->where("#groupId IN ({$groupList})");
                 $data->listFilter->setOptions('groupId', $groups);
@@ -1193,7 +1193,7 @@ class eshop_Products extends core_Master
         $products = array();
         $domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
         $groups = eshop_Groups::getByDomain($domainId);
-        if (!count($groups)) {
+        if (!countR($groups)) {
             
             return $products;
         }
@@ -1261,7 +1261,7 @@ class eshop_Products extends core_Master
         
         // Има ли параметри за показване
         $displayParams = self::getParamsToDisplay($rec);
-        if (!count($displayParams)) {
+        if (!countR($displayParams)) {
             
             return $res;
         }
@@ -1416,7 +1416,7 @@ class eshop_Products extends core_Master
                     $pArr[] = $dRec->productId;
                     $map[$gRec->menuId][$dRec->productId] = $pRec->id;
                 }
-                if (count($pArr)) {
+                if (countR($pArr)) {
                     $res[$gRec->menuId][$pRec->id] = $pArr;
                 }
             }

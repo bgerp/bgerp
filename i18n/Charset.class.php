@@ -378,7 +378,7 @@ class i18n_Charset extends core_MVC
             expect(is_array($assumedCharsets), $assumedCharsets);
             
             // Нормализираме имената на $assumedCharsets
-            if (count($assumedCharsets)) {
+            if (countR($assumedCharsets)) {
                 foreach ($assumedCharsets as $cs => $weight) {
                     if ($cs = self::getCanonical($cs)) {
                         $newAssumedCharsets[$cs] = $weight;
@@ -417,7 +417,7 @@ class i18n_Charset extends core_MVC
         
         // Ако текста е 7-битов
         if (self::is7bit($text)) {
-            if (count($assumedCharsets)) {
+            if (countR($assumedCharsets)) {
                 $cs = array_search(max($assumedCharsets), $assumedCharsets);
             }
             
@@ -436,7 +436,7 @@ class i18n_Charset extends core_MVC
         
         // Намираме скриптовите рейтинги на препоръчаните кодировки
         // и им влагаме теглата
-        if (count($assumedCharsets)) {
+        if (countR($assumedCharsets)) {
             foreach ($assumedCharsets as $cs => $weight) {
                 $sample = $text;
                 $sample = self::iconv($sample, $cs, 'UTF-8//IGNORE');

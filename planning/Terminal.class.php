@@ -154,7 +154,7 @@ class planning_Terminal extends peripheral_Terminal
             if(isset($form->rec->asset)){
                 $assetRec = planning_AssetResources::fetch($form->rec->asset);
                 $supportFolders = keylist::toArray($assetRec->systemFolderId);
-                if(!count($supportFolders)){
+                if(!countR($supportFolders)){
                     $form->setError('assetFolderId', 'Оборудването няма избрана папка за поддръжка');
                 } else {
                     $newTask = (object)array('folderId' => key($supportFolders),
@@ -293,7 +293,7 @@ class planning_Terminal extends peripheral_Terminal
         $Tasks->prepareListFields($data);
         $Tasks->prepareListRecs($data);
         $Tasks->prepareListRows($data);
-        if(count($data->recs)){
+        if(countrR($data->recs)){
             foreach ($data->rows as $id => &$row){
                 $title = planning_Tasks::getRecTitle($data->recs[$id]);
                 $selectUrl = toUrl(array($this, 'selectTask', $rec->id, 'taskId' => $id));

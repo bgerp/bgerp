@@ -226,7 +226,7 @@ class plg_SelectPeriod extends core_Plugin
         // Друг период
         $opt['gr6'] = (object) array('title' => tr('Друг период'), 'group' => true);
         
-        $f = count($opt);
+        $f = countR($opt);
         
         // Вкарваме периодите от recently
         $values = recently_Values::fetchSuggestions(self::RECENTLY_KEY, 5);

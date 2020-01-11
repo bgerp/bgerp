@@ -36,7 +36,7 @@ class plg_Sorting extends core_Plugin
         
         $data->listFields = arr::make($data->listFields, true);
         
-        if (count($data->listFields)) {
+        if (countR($data->listFields)) {
             foreach ($data->listFields as $f => $caption) {
                 if (empty($caption)) {
                     continue;
@@ -139,7 +139,7 @@ class plg_Sorting extends core_Plugin
                 }
                 
                 $fArr = explode('->', $data->listFields[$field]);
-                $lastF = &$fArr[count($fArr) - 1];
+                $lastF = &$fArr[countR($fArr) - 1];
                 if ($lastF{0} == '@') {
                     $startChar = '@';
                     $lastF = substr($lastF, 1);
@@ -160,13 +160,13 @@ class plg_Sorting extends core_Plugin
                 
                 if (isset($mvc->fields[$field]) && $mvc->fields[$field]->type->getTdClass() == 'rightCol') {
                     $lastF = ltrim($lastF, '|*');
-                    $fArr[count($fArr) - 1] = $startChar . "|*<div class='rowtools'>" . "<a class='l' href='" .
+                    $fArr[countR($fArr) - 1] = $startChar . "|*<div class='rowtools'>" . "<a class='l' href='" .
                     ht::escapeAttr(toUrl($currUrl)) .
                     "' ><img  src=" . sbf($img) .
                     " width='16' height='16' alt='sort' class='sortBtn'></a>" . "<div class='l'>|{$lastF}|*</div></div>";
                 } else {
                     $lastF = ltrim($lastF, '|*');
-                    $fArr[count($fArr) - 1] = $startChar . "|*<div class='rowtools'><div class='l'>|" . $lastF . "|*</div><a class='r' href='" .
+                    $fArr[countR($fArr) - 1] = $startChar . "|*<div class='rowtools'><div class='l'>|" . $lastF . "|*</div><a class='r' href='" .
                     ht::escapeAttr(toUrl($currUrl)) .
                     "' ><img  src=" . sbf($img) .
                     " width='16' height='16' alt='sort' class='sortBtn'></a></div>";

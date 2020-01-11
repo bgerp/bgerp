@@ -202,7 +202,7 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
         $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
         $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
         
-        $pager->itemsCount = count($data->recs);
+        $pager->itemsCount = countR($data->recs);
         $data->pager = $pager;
         
         $recs = array();
@@ -210,7 +210,7 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
             $recs[] = $rec;
         }
         
-        if (count($recs)) {
+        if (countR($recs)) {
             foreach ($recs as $id => $r) {
                 $r->num = $id + 1;
                 

@@ -284,7 +284,7 @@ class frame2_AllReports extends core_Master
                 $optArr = explode('»', $opt);
                 
                 // Ако стринга е разделен на точно две части (име на група и име на клас)
-                if (count($optArr) == 2) {
+                if (countR($optArr) == 2) {
                     $newOptions[$optArr[0]] = (object) array(
                         'title' => trim($optArr[0]),
                         'group' => true,

@@ -227,7 +227,7 @@ class store_InventoryNotes extends core_Master
                 $requiredRoles = 'no_one';
             } else {
                 $responsible = $mvc->getSelectedResponsiblePersons($rec);
-                if (!count($responsible)) {
+                if (!countR($responsible)) {
                     $requiredRoles = 'no_one';
                 }
             }
@@ -406,7 +406,7 @@ class store_InventoryNotes extends core_Master
         $form->FLD('userId', 'key(mvc=core_Users,select=nick)', 'caption=МОЛ,mandatory');
         
         $form->setOptions('userId', array('' => '') + $options);
-        if (count($options) == 1) {
+        if (countR($options) == 1) {
             $form->setDefault('userId', key($options));
         }
         $form->input();
@@ -607,7 +607,7 @@ class store_InventoryNotes extends core_Master
                 $aRec->searchKeywords = $Summary->getSearchKeywords($aRec);
                 
                 $groups = cat_Products::fetchField($productId, 'groups');
-                if (count($groups)) {
+                if (countR($groups)) {
                     $aRec->groups = $groups;
                 }
                 
@@ -669,19 +669,19 @@ class store_InventoryNotes extends core_Master
         $Summary = cls::get('store_InventoryNoteSummary');
         
         // Ако има нови артикули, добавяме ги
-        if (count($syncedArr['insert'])) {
+        if (countR($syncedArr['insert'])) {
             $Summary->saveArray($syncedArr['insert']);
         }
         
         // На останалите им обновяваме определени полета
-        if (count($syncedArr['update'])) {
+        if (countR($syncedArr['update'])) {
             $Summary->saveArray($syncedArr['update'], 'id,noteId,productId,blQuantity,groups,modifiedOn,searchKeywords');
         }
         
         $deleted = 0;
         
         // Ако трябва да се трият артикули
-        if (count($syncedArr['delete'])) {
+        if (countR($syncedArr['delete'])) {
             foreach ($syncedArr['delete'] as $deleteId) {
                 
                 // Трием само тези, които нямат въведено количество
@@ -701,7 +701,7 @@ class store_InventoryNotes extends core_Master
                 core_Statuses::newStatus("Изтрити са {$deleted} реда");
             }
             
-            if ($added = count($syncedArr['insert'])) {
+            if ($added = countR($syncedArr['insert'])) {
                 core_Statuses::newStatus("Добавени са {$added} реда");
             }
         }

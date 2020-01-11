@@ -187,7 +187,7 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
         
         $hasBomFld = $hasJobFld = false;
         
-        if (count($recs)) {
+        if (countR($recs)) {
             foreach ($recs as $id => $rec) {
                 $hasJobFld = !empty($rec->jobId) ? true : $hasJobFld;
                 $hasBomFld = !empty($rec->bomId) ? true : $hasBomFld;

@@ -643,7 +643,7 @@ class planning_Tasks extends core_Master
         $rec->producedQuantity = $producedQuantity;
         
         // Ако няма зададено начало, тогава се записва времето на първо добавения запис
-        if(empty($rec->timeStart) && !isset($rec->timeDuration, $rec->timeEnd) && planning_ProductionTaskDetails::count("#taskId = {$rec->id}")){
+        if(empty($rec->timeStart) && !isset($rec->timeDuration, $rec->timeEnd) && planning_ProductionTaskDetails::countR("#taskId = {$rec->id}")){
             $rec->timeStart = dt::now();
             $updateFields .= ',timeStart';
         }
@@ -825,7 +825,7 @@ class planning_Tasks extends core_Master
             // Ако артикула е различен от този от заданието и има други основни мерки, само тогава се показват за избор
             if($rec->productId != $originRec->productId){
                 $measureOptions = cat_Products::getPacks($rec->productId, true);
-                $measuresCount = count($measureOptions);
+                $measuresCount = countR($measureOptions);
                 $form->setOptions('measureId', $measureOptions);
                 $form->setDefault('measureId', key($measureOptions));
                 if($measuresCount == 1){
@@ -893,7 +893,7 @@ class planning_Tasks extends core_Master
             if ($productRec->canConvert == 'yes') {
                 $tasks = self::getTasksByJob($origin->that, true);
                 unset($tasks[$rec->id]);
-                if (count($tasks)) {
+                if (countR($tasks)) {
                     $form->setField('inputInTask', 'input');
                     $form->setOptions('inputInTask', array('' => '') + $tasks);
                 }
@@ -936,7 +936,7 @@ class planning_Tasks extends core_Master
                 }
             }
             
-            if (count($arr)) {
+            if (countR($arr)) {
                 $form->setSuggestions($field, $arr);
             } else {
                 $form->setField($field, 'input=none');
@@ -986,7 +986,7 @@ class planning_Tasks extends core_Master
             if (!empty($row->employees)) {
                 $subArr[] = tr('Оператори:|* ') . $row->employees;
             }
-            if (count($subArr)) {
+            if (countR($subArr)) {
                 $row->info = '<div><small>' . implode(' &nbsp; ', $subArr) . '</small></div>';
             }
             
@@ -998,7 +998,7 @@ class planning_Tasks extends core_Master
             while($nRec = $nQuery->fetch()){
                 $notes[] = planning_DirectProductionNote::getLink($nRec->id, 0);
             }
-            if (count($notes)) {
+            if (countR($notes)) {
                 $row->info .= "<div style='padding-bottom:7px'>" . implode(' | ', $notes) . "</div>";
             }
             

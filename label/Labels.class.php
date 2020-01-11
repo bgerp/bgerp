@@ -402,7 +402,7 @@ class label_Labels extends core_Master
         
         if (!empty($labelDataArr)) {
             $templates = cls::get($classId)->getLabelTemplates($objId);
-            if (!count($templates)) {
+            if (!countR($templates)) {
                 
                 return new Redirect($retUrl, '|Няма шаблон, който да се използва');
             }
@@ -420,7 +420,7 @@ class label_Labels extends core_Master
                 
                 // Оцветяваме имената на шаблоните, в зависимост от съвпаданието на плейсхолдерите
                 $percent = 0;
-                $lCnt = count($templatePlaceArr);
+                $lCnt = countR($templatePlaceArr);
                 if ($lCnt) {
                     $percent = ($cnt / $lCnt) * 100;
                 }
@@ -446,7 +446,7 @@ class label_Labels extends core_Master
             });
             $form->setOptions('selectTemplateId', array('' => '') + $optArr);
             
-            if (count($optArr) == 1) {
+            if (countR($optArr) == 1) {
                 $redirect = true;
             }
         }

@@ -837,7 +837,7 @@ class email_Incomings extends core_Master
                     unset($vals[$rec->htmlFile]);
                 }
                 
-                if (count($vals)) {
+                if (countR($vals)) {
                     $ourImgArr = core_Permanent::get('ourImgEmailArr');
                     $row->files = '';
                     
@@ -897,7 +897,7 @@ class email_Incomings extends core_Master
                     $rEmailsStr = type_Emails::fromArray($returnPathEmailsUniq);
                     $rEmailsStr = type_Varchar::escape($rEmailsStr);
                     $w = 'тези';
-                    if (count($returnPathEmailsUniq) == 1) {
+                    if (countR($returnPathEmailsUniq) == 1) {
                         $w = 'този';
                     }
                     
@@ -1444,7 +1444,7 @@ class email_Incomings extends core_Master
     {
         $domains = static::scanForPublicDomains();
         
-        $out = '<li>Открити ' . count($domains) . ' домейн(а) ... </li>';
+        $out = '<li>Открити ' . countR($domains) . ' домейн(а) ... </li>';
         
         $stats = drdata_Domains::resetPublicDomains($domains);
         
@@ -2254,7 +2254,7 @@ class email_Incomings extends core_Master
             }
         }
         
-        if (count($missing) > 0) {
+        if (countR($missing) > 0) {
             $savedRec = static::fetch($rec->id, $missing);
             
             foreach ($missing as $f) {
@@ -2566,7 +2566,7 @@ class email_Incomings extends core_Master
             $fromDomain = type_Email::domain($rec->fromEml);
             $domains[$rec->coverClass][$fromDomain][$rec->folderId] = true;
             
-            if (count($domains[$rec->coverClass][$fromDomain]) > 1) {
+            if (countR($domains[$rec->coverClass][$fromDomain]) > 1) {
                 // От $fromDomain има поне 2 писма, които са в различни фирмени папки
                 $results[$fromDomain] = true;
             }
@@ -2897,7 +2897,7 @@ class email_Incomings extends core_Master
             unset($files[$rec->htmlFile]);
         }
         
-        if (count($files)) {
+        if (countR($files)) {
             
             return 'img/16/email-attach.png';
         }

@@ -247,7 +247,7 @@ class label_Prints extends core_Master
         // Определяме най-добрия шаблон
         if (!empty($labelDataArr)) {
             $templatesArr = cls::get($classId)->getLabelTemplates($objId);
-            if (!count($templatesArr)) {
+            if (!countR($templatesArr)) {
                 
                 return followRetUrl(null, '|Няма шаблон, който да се използва', 'error');
             }
@@ -280,7 +280,7 @@ class label_Prints extends core_Master
                 
                 // Оцветяваме имената на шаблоните, в зависимост от съвпаданието на плейсхолдерите
                 $percent = 0;
-                $lCnt = count($templatePlaceArr);
+                $lCnt = countR($templatePlaceArr);
                 if ($lCnt) {
                     $percent = ($cnt / $lCnt) * 100;
                 }
@@ -449,7 +449,7 @@ class label_Prints extends core_Master
             reset($optArr);
             $defOptKey = key($optArr);
         } else {
-            if (count($tArr) > 1) {
+            if (countR($tArr) > 1) {
                 arsort($tArr);
             }
             reset($tArr);
@@ -666,7 +666,7 @@ class label_Prints extends core_Master
         // Ако е субмитната формата и сме натиснали бутона "Запис и нов"
         if ($data->form && $data->form->isSubmitted() && ($data->form->cmd == 'save' || $data->form->cmd == 'print')) {
             if ($data->form->cmd == 'print') {
-                $data->retUrl = toUrl(array($mvc, 'print', $data->form->rec->id, 'from' => 1, 'to' => count($data->form->rec->rows)));
+                $data->retUrl = toUrl(array($mvc, 'print', $data->form->rec->id, 'from' => 1, 'to' => countR($data->form->rec->rows)));
             } else {
                 $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
             }
@@ -1255,9 +1255,9 @@ class label_Prints extends core_Master
         
         if (!isset($rec->rows)) {
             $pData = $this->getLabelDataFromRec($rec);
-            $to = count($pData->rows);
+            $to = countR($pData->rows);
         } else {
-            $to = count($rec->rows);
+            $to = countR($rec->rows);
         }
         
         $to = max($to, 1);
@@ -1349,7 +1349,7 @@ class label_Prints extends core_Master
             $pData->rows = array_slice((array) $pData->rows, $form->rec->from - 1, $form->rec->to - $form->rec->from + 1);
         }
         
-        $pData->allCnt = count($pData->rows);
+        $pData->allCnt = countR($pData->rows);
         
         // Рендираме медията
         $pageLayout = label_Media::renderMediaPageLayout($pData);

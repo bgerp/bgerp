@@ -44,7 +44,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
         $entries = array();
         
         // Всяко ЕН трябва да има поне един детайл
-        if (count($rec->details) > 0) {
+        if (countR($rec->details) > 0) {
             if ($rec->isReverse == 'yes') {
                 
                 // Ако ЕН е обратна, тя прави контировка на СР но с отрицателни стойностти
@@ -69,7 +69,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
             $msg = ($rec->isReverse == 'yes') ? 'продаваеми услуги' : 'купуваеми услуги';
             $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($rec->details, 'productId'), $property, 'canStore');
             
-            if(count($productCheck['notActive'])){
+            if(countR($productCheck['notActive'])){
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
             } elseif($productCheck['metasError']){
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са {$msg}|*!");
@@ -93,7 +93,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
         $sign = ($reverse) ? -1 : 1;
         $dClass = ($reverse) ? 'sales_ServicesDetails' : 'purchase_ServicesDetails';
         
-        if (count($rec->details)) {
+        if (countR($rec->details)) {
             deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));
             $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
             
@@ -122,9 +122,9 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
                     );
                     
                     // Корекция на стойности при нужда
-                    if (isset($dRec1->correctProducts) && count($dRec1->correctProducts)) {
+                    if (isset($dRec1->correctProducts) && countR($dRec1->correctProducts)) {
                         $correctionEntries = acc_transaction_ValueCorrection::getCorrectionEntries($dRec1->correctProducts, $dRec1->productId, $dRec1->expenseItemId, $dRec1->quantity, $dRec1->allocationBy, $reverse);
-                        if (count($correctionEntries)) {
+                        if (countR($correctionEntries)) {
                             $entries = array_merge($entries, $correctionEntries);
                         }
                     }

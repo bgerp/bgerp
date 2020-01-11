@@ -109,7 +109,7 @@ class i18n_Encoding
      */
     private static function prepareEncodingMatchs()
     {
-        if (count(self::$encodingsMatchs)) {
+        if (countR(self::$encodingsMatchs)) {
             
             return;
         }

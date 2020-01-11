@@ -61,7 +61,7 @@ class gs1_TypeEan extends type_Varchar
             expect(method_exists($mvcName, 'getEanRange'));
             $range = $mvcName::getEanRange();
             
-            if (count($range)) {
+            if (countR($range)) {
                 $this->autoRange = $range;
                 $this->suggestions = array('' => '', self::AUTO_GENERETE_STRING => tr('Автоматично'));
             }
@@ -75,7 +75,7 @@ class gs1_TypeEan extends type_Varchar
     public function fromVerbal_($value)
     {
         // Ако има рейндж за генерирания баркод
-        if (count($this->autoRange)) {
+        if (countR($this->autoRange)) {
             
             // И е въведена специалната стойност, замества се с автоматичния баркод
             if ($value == self::AUTO_GENERETE_STRING) {
@@ -97,7 +97,7 @@ class gs1_TypeEan extends type_Varchar
     protected function getAutoNumber($mvc, $field)
     {
         expect($range = $mvc::getEanRange());
-        expect(count($range));
+        expect(countR($range));
         
         $min = $range[0];
         $max = $range[1];
@@ -222,7 +222,7 @@ class gs1_TypeEan extends type_Varchar
             
             return array('value' => '');
         }
-        if (count($this->autoRange)) {
+        if (countR($this->autoRange)) {
             if ($value == self::AUTO_GENERETE_STRING) {
                 
                 return array('value' => $value);

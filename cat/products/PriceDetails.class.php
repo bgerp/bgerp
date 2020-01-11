@@ -317,7 +317,7 @@ class cat_products_PriceDetails extends core_Manager
         $fields = arr::make('price=Стойност|*,type=Вид,modifiedOn=В сила от||Valid from,buttons=Действия / Документ');
         $primeCostTpl = $table->get($data->primeCostRows, $fields);
         $primeCostTpl->prepend(tr('|*<div>|Цени без ДДС|*:</div>'));
-        $colspan = count($fields);
+        $colspan = countR($fields);
         
         // Рендираме правилото за обновяване само при нужда
         if ($data->masterData->rec->isPublic == 'yes') {

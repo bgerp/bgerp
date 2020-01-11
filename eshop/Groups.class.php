@@ -167,7 +167,7 @@ class eshop_Groups extends core_Master
             $opt[$rec->id] = cms_Content::getVerbal($rec, 'menu');
         }
         
-        if (count($opt) == 1) {
+        if (countR($opt) == 1) {
             $data->form->setReadOnly('menuId');
         }
         
@@ -199,7 +199,7 @@ class eshop_Groups extends core_Master
         
         $form->setField('menuId', 'refreshForm');
         
-        if (count($opt) == 0) {
+        if (countR($opt) == 0) {
             redirect(array('cms_Content'), false, '|Моля въведете поне една точка от менюто с източник "Онлайн магазин"');
         }
         
@@ -207,7 +207,7 @@ class eshop_Groups extends core_Master
             $form->rec->menuId = key($opt);
         }
         
-        if (count($opt) && !$form->isSubmitted()) {
+        if (countR($opt) && !$form->isSubmitted()) {
             $form->rec->menuId = key($opt);
         }
         
@@ -508,7 +508,7 @@ class eshop_Groups extends core_Master
         $groupTpl->placeArray($data->row);
         
         // Добавяне на подгрупите
-        if (is_array($data->recs) && count($data->recs)) {
+        if (is_array($data->recs) && countR($data->recs)) {
             $groupTpl->append("<div class='subgroups clearfix21'>", 'PRODUCTS');
             $groupTpl->append(self::renderAllGroups($data), 'PRODUCTS');
             $groupTpl->append('</div>', 'PRODUCTS');
@@ -747,7 +747,7 @@ class eshop_Groups extends core_Master
                 $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
             }
             
-            if (count($res) < $maxResults) {
+            if (countR($res) < $maxResults) {
                 $query = clone($queryM);
                 plg_Search::applySearch($q, $query, null, 9);
                 while ($r = $query->fetch()) {
@@ -759,7 +759,7 @@ class eshop_Groups extends core_Master
                 }
             }
             
-            if (count($res) < $maxResults) {
+            if (countR($res) < $maxResults) {
                 $query = clone($queryM);
                 plg_Search::applySearch($q, $query, null, 3);
                 while ($r = $query->fetch()) {
@@ -873,7 +873,7 @@ class eshop_Groups extends core_Master
         $contentQuery->show('id');
         $contentQuery->where("#domainId = {$domainId}");
         $contents = arr::extractValuesFromArray($contentQuery->fetchAll(), 'id');
-        if (!count($contents)) {
+        if (!countR($contents)) {
             
             return $groups;
         }

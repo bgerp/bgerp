@@ -166,7 +166,7 @@ abstract class deals_DealBase extends core_Master
         // Ако няма документи с които може да се затвори или е чернова не може да се приключи с друга сделка
         if ($action == 'closewith' && isset($rec)) {
             $options = $mvc->getDealsToCloseWith($rec);
-            if (!count($options) || ($rec->state != 'draft' && $rec->state != 'pending')) {
+            if (!countR($options) || ($rec->state != 'draft' && $rec->state != 'pending')) {
                 $res = 'no_one';
             }
         }
@@ -325,7 +325,7 @@ abstract class deals_DealBase extends core_Master
         $this->requireRightFor('conto', $rec);
         
         $options = $this->getDealsToCloseWith($rec);
-        expect(count($options));
+        expect(countR($options));
         
         // Подготовка на формата за избор на опция
         $form = cls::get('core_Form');
@@ -349,7 +349,7 @@ abstract class deals_DealBase extends core_Master
                     }
                 }
                 
-                if (count($err)) {
+                if (countR($err)) {
                     $msg = '|В следните ' . mb_strtolower($this->title) . ' има документи в заявка|*: ' . implode(',', $err);
                     $form->setError('closeWith', $msg);
                 }
@@ -451,7 +451,7 @@ abstract class deals_DealBase extends core_Master
         $tpl->append($table->get($data->DealReport, $data->reportFields), 'DEAL_REPORT');
         $tpl->append($data->reportPager->getHtml(), 'DEAL_REPORT');
         
-        if ($this->haveRightFor('export', $data->rec) && count($data->DealReport)) {
+        if ($this->haveRightFor('export', $data->rec) && countR($data->DealReport)) {
             $expUrl = getCurrentUrl();
             $expUrl['export'] = true;
             
@@ -620,7 +620,7 @@ abstract class deals_DealBase extends core_Master
         $report = $dealReportCSV = array();
         $productIds = arr::extractValuesFromArray($dealInfo->products, 'productId') + arr::extractValuesFromArray($dealInfo->shippedProducts, 'productId');
         
-        if (count($productIds)) {
+        if (countR($productIds)) {
             foreach ($productIds as $productId) {
                 $pRec = cat_Products::fetch($productId, 'measureId,isPublic,nameEn,code,name,canStore');
                 $expRec = (object) array('code' => ($pRec->code) ? $pRec->code : "Art{$productId}",
@@ -656,7 +656,7 @@ abstract class deals_DealBase extends core_Master
         // правим странициране
         $pager = cls::get('core_Pager', array('pageVar' => 'P_' .  $this->className,'itemsPerPage' => $this->reportItemsPerPage));
         
-        $cnt = count($report);
+        $cnt = countR($report);
         $pager->itemsCount = $cnt;
         $data->reportPager = $pager;
         
@@ -705,7 +705,7 @@ abstract class deals_DealBase extends core_Master
         
         $Pager = cls::get('core_Pager', array('itemsPerPage' => $this->historyItemsPerPage));
         $Pager->setPageVar($this->className, $rec->id);
-        $Pager->itemsCount = count($entries);
+        $Pager->itemsCount = countR($entries);
         $Pager->calc();
         $data->historyPager = $Pager;
         
@@ -713,7 +713,7 @@ abstract class deals_DealBase extends core_Master
         $end = $data->historyPager->rangeEnd - 1;
         
         // Ако има записи където участва перото подготвяме ги за показване
-        if (count($entries)) {
+        if (countR($entries)) {
             $count = 0;
             
             foreach ($entries as $ent) {

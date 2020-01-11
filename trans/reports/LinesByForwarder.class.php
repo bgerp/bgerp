@@ -197,10 +197,10 @@
          
          //Разпределяне по работници, когато са повече от един
          foreach ($recs as $key => $val) {
-             if (count(keylist::toArray($val->employees)) > 1) {
+             if (countR(keylist::toArray($val->employees)) > 1) {
                  $clone = clone $val;
                  
-                 $divisor = count(keylist::toArray($val->employees));
+                 $divisor = countR(keylist::toArray($val->employees));
                  
                  foreach (keylist::toArray($val->employees) as $k => $v) {
                      unset($id);
@@ -402,7 +402,7 @@
                         
                         $employeesVerb .= (core_Users::getNick(crm_Profiles::getUserByPerson($empl)));
                         
-                        if ((count(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
+                        if ((countR(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
                             $employeesVerb .= ', ';
                         }
                     }
@@ -419,7 +419,7 @@
                         
                         $employeesVerb .= (core_Users::getNick(crm_Profiles::getUserByPerson($empl)));
                         
-                        if ((count(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
+                        if ((countR(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
                             $employeesVerb .= ', ';
                         }
                     }
@@ -435,7 +435,7 @@
                 
                 $assetVerb .= planning_AssetResources::fetch($asset)->name;
                 
-                if ((count(type_Keylist::toArray($data->rec->assetResources))) - $marker != 0) {
+                if ((countR(type_Keylist::toArray($data->rec->assetResources))) - $marker != 0) {
                     $assetVerb .= ', ';
                 }
             }

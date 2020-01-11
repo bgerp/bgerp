@@ -374,7 +374,7 @@ class email_Outgoings extends core_Master
         $rec->attachmentsFh = type_Set::toArray($options->attachmentsSet);
         
         //Ако имамем прикачени файлове
-        if (count($rec->attachmentsFh)) {
+        if (countR($rec->attachmentsFh)) {
             
             //Вземаме id'тата на файловете вместо манупулатора име
             $attachments = fileman::fhKeylistToIds($rec->attachmentsFh);
@@ -511,7 +511,7 @@ class email_Outgoings extends core_Master
                 }
                 
                 // .. ако имаме прикачени документи ...
-                if (count($rec->documentsFh)) {
+                if (countR($rec->documentsFh)) {
                     
                     //Вземаме id'тата на файловете вместо манипулаторите
                     $documents = fileman::fhKeylistToIds($rec->documentsFh);
@@ -819,7 +819,7 @@ class email_Outgoings extends core_Master
         // Добавяне на предложения на свързаните документи
         $docHandlesArr = $mvc->GetPossibleTypeConvertings($data->form->rec->id);
         
-        if (count($docHandlesArr) > 0) {
+        if (countR($docHandlesArr) > 0) {
             $data->form->FNC('documentsSet', 'set', 'input,caption=Документи,columns=4,formOrder=6');
             
             $suggestion = array();
@@ -858,7 +858,7 @@ class email_Outgoings extends core_Master
         }
         
         // Ако има прикачени файлове
-        if (count($filesArr) > 0) {
+        if (countR($filesArr) > 0) {
             
             // Задаваме на формата да се покажат полетата
             $data->form->FNC('attachmentsSet', 'set', 'input,caption=Файлове,formOrder=7,maxCaptionLen=25');
@@ -902,14 +902,14 @@ class email_Outgoings extends core_Master
         $groupEmailsArr = array_diff((array) $groupEmailsArr, (array) $emailsCcArr);
         
         // Ако има имейл
-        if (count($groupEmailsArr)) {
+        if (countR($groupEmailsArr)) {
             
             // Ключовете да са равни на стойностите
             $groupEmailsArr = array_combine($groupEmailsArr, $groupEmailsArr);
         }
         
         // Добавяне на предложения за имейл адреси, до които да бъде изпратено писмото
-        if (count($groupEmailsArr)) {
+        if (countR($groupEmailsArr)) {
             $data->form->setSuggestions('emailsTo', array('' => '') + $groupEmailsArr);
             $data->form->setSuggestions('emailsCc', array('' => '') + $groupEmailsArr);
         }
@@ -1067,7 +1067,7 @@ class email_Outgoings extends core_Master
                     $noReplayEmailsArr = arr::make($noReplayEmails);
                     
                     // Ако има масив
-                    if (count($noReplayEmailsArr)) {
+                    if (countR($noReplayEmailsArr)) {
                         
                         // Вземаме имейлите ДО
                         $emailsToArr = arr::make($form->rec->emailsTo, true);
@@ -1336,7 +1336,7 @@ class email_Outgoings extends core_Master
                 }
                 
                 if (!empty($quotOtherArr)) {
-                    $docStr = count($quotOtherArr) == 1 ? 'документ' : 'документи';
+                    $docStr = countR($quotOtherArr) == 1 ? 'документ' : 'документи';
                     $form->setWarning('body', "Цитирате {$docStr} от друга нишка|*: " . implode(', ', $quotOtherArr));
                 }
             }
@@ -1369,7 +1369,7 @@ class email_Outgoings extends core_Master
             }
             
             // Ако има прикачени файлове по подаразбиране
-            if (count($docsArr)) {
+            if (countR($docsArr)) {
                 
                 // Инстанция на класа
                 $typeSet = cls::get('type_Set');
@@ -1794,7 +1794,7 @@ class email_Outgoings extends core_Master
                     $ccEmailsArr = email_Inboxes::removeOurEmails($ccEmailsArr);
                     
                     // Ако имейлите в копие са над лимита, не ги добавяме автоматично в полето
-                    if (count($ccEmailsArr) <= $autoFillCnt) {
+                    if (countR($ccEmailsArr) <= $autoFillCnt) {
                         $rec->emailCc = type_Emails::fromArray($ccEmailsArr);
                         $removeFromGroup = array_merge($removeFromGroup, $ccEmailsArr);
                     }
@@ -1828,8 +1828,8 @@ class email_Outgoings extends core_Master
                     $toEmailsArr = email_Inboxes::removeOurEmails($toEmailsArr);
                     
                     // Ако имейлите в To са над лимита, не ги добавяме автоматично в полето
-                    if (count($toEmailsArr) <= $autoFillCnt) {
-                        if (count($recEmailsArr)) {
+                    if (countR($toEmailsArr) <= $autoFillCnt) {
+                        if (countR($recEmailsArr)) {
                             $recEmailsArr += $toEmailsArr;
                         } else {
                             $recEmailsArr = $toEmailsArr;
@@ -3160,7 +3160,7 @@ class email_Outgoings extends core_Master
         }
         
         // Ако има открити стойности
-        if (count($personsArr)) {
+        if (countR($personsArr)) {
             
             // Добавяме ги в комбобокса
             $form->setOptions('personId', $personsArr);
@@ -3184,7 +3184,7 @@ class email_Outgoings extends core_Master
         }
         
         // Ако има открити стойности
-        if (count($companiesArr)) {
+        if (countR($companiesArr)) {
             
             // Добавяме ги в комбобокса
             $form->setOptions('companyId', $companiesArr);

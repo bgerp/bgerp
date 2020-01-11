@@ -224,9 +224,6 @@ class core_Backup extends core_Mvc
             }
         }
         
-        // Почистваме работната директория
-        core_Os::deleteDirectory($workDir, true);
-        
         // Почистваме всички ненужни файлове от бекъпите, които са в повече
         $backupMaxCnt = core_Setup::get('BACKUP_MAX_CNT');
         
@@ -267,6 +264,8 @@ class core_Backup extends core_Mvc
             
             @unlink($path);
         }
+        // Почистваме работната директория
+        core_Os::deleteDirectory($workDir, true);
         
         core_Os::deleteDirectory(self::$temp);
     }
@@ -309,25 +308,26 @@ class core_Backup extends core_Mvc
                     $expr .= " + ABS(CRC32(#${fld}))";
                 }
                 $crc = 'SUM(' . trim($expr, ' +') . ')';
-                $n = 1;
-                for ($i = 0; $i <= $maxId; $i += $inst->backupMaxRows) {
+                $cnt = $inst->count();
+                for ($i = 0; $i * $inst->backupMaxRows <= $cnt; $i++) {
                     core_App::setTimeLimit(120);
-                    $key = "{$table}-{$lmt}-{$n}";
+                    $key = "{$table}-{$lmt}-" .($i+1);
                     if (!isset(self::$crcArr[$key])) {
                         $query = $inst->getQuery();
                         $query->XPR('crc32backup', 'int', $crc);
-                        $query->where($where = ("`{$table}`.`id` BETWEEN " . ($i + 1) . ' AND ' . ($i + $inst->backupMaxRows)));
                         $query->show('crc32backup');
+                        $query->orderBy('#id');
+                        $query->limit($inst->backupMaxRows);
+                        $query->startFrom($i*$inst->backupMaxRow);
                         $rec = $query->fetch();
                         self::$crcArr[$key] = $rec->crc32backup + $addCrc32;
                     }
                     
                     if (self::$crcArr[$key] > 0) {
-                        $suffix = $n . '-' . base_convert(abs(self::$crcArr[$key]), 10, 36);
+                        $suffix = ($i+1) . '-' . base_convert(abs(self::$crcArr[$key]), 10, 36);
                         $this->backupTable($inst, $table, $suffix, $where);
                         $tables[] = "{$table}.{$suffix}";
                     }
-                    $n++;
                 }
             } else {
                 $suffix = base_convert($lmt + $addCrc32, 10, 36);

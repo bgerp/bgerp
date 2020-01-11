@@ -225,7 +225,7 @@ class trans_LineDetails extends doc_Detail
         }
         
         if (!empty($transportInfo['stores'])) {
-            if (count($transportInfo['stores']) == 1) {
+            if (countR($transportInfo['stores']) == 1) {
                 $row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0], true);
             } else {
                 $row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0], true) . ' » ' . store_Stores::getHyperlink($transportInfo['stores'][1], true);
@@ -290,7 +290,7 @@ class trans_LineDetails extends doc_Detail
         
         if(core_Packs::isInstalled('rack') && store_Stores::getCurrent('id', false)){
            $zoneBtn = rack_Zones::getBtnToZone($rec->containerId);
-           if(count($zoneBtn->url)){
+           if(countR($zoneBtn->url)){
               $row->_rowTools->addLink($zoneBtn->caption, $zoneBtn->url, $zoneBtn->attr);
            }
         }
@@ -364,7 +364,7 @@ class trans_LineDetails extends doc_Detail
         $quantities = $tableData['quantity'];
         $error = $errorFields = array();
         
-        if (count($units) != count(array_unique($units))) {
+        if (countR($units) != countR(array_unique($units))) {
             $error[] = 'Логистичните единици трябва да са уникални|*';
         }
         
@@ -392,12 +392,12 @@ class trans_LineDetails extends doc_Detail
             }
         }
         
-        if (count($error)) {
+        if (countR($error)) {
             $error = implode('<li>', $error);
             $res['error'] = $error;
         }
         
-        if (count($errorFields)) {
+        if (countR($errorFields)) {
             $res['errorFields'] = $errorFields;
         }
         

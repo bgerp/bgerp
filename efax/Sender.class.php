@@ -35,7 +35,7 @@ class efax_Sender
         expect(($faxSender = $conf->EFAX_SENDER_BOX), 'Не сте дефинирали факс на изпращача.');
         
         //Броя на прикачените файлове и документи
-        $attachCnt = count($rec->documentsFh) + count($rec->attachmentsFh);
+        $attachCnt = countR($rec->documentsFh) + countR($rec->attachmentsFh);
         
         expect(!($attachCnt > $conf->MAX_ALLOWED_ATTACHMENTS_IN_FAX), 'Надвишили сте максималния брой за прикачени файлове: ' . $conf->MAX_ALLOWED_ATTACHMENTS_IN_FAX);
         

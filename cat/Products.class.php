@@ -435,17 +435,17 @@ class cat_Products extends embed_Manager
             } else {
                 if ($Driver = $mvc->getDriver($rec)) {
                     $defMetas = $Driver->getDefaultMetas($rec->meta);
-                    if (count($defMetas)) {
+                    if (countR($defMetas)) {
                         $form->setField('meta', 'autohide=any');
                     }
                 }
                 
-                if (!$defMetas || !count($defMetas)) {
+                if (!$defMetas || !countR($defMetas)) {
                     $defMetas = $cover->getDefaultMeta();
                 }
             }
             
-            if (count($defMetas)) {
+            if (countR($defMetas)) {
                 // Задаваме дефолтните свойства
                 $form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
             }
@@ -471,7 +471,7 @@ class cat_Products extends embed_Manager
                     // Ако има избрани мерки, оставяме от всички само тези които са посочени в корицата +
                     // вече избраната мярка ако има + дефолтната за драйвера
                     $categoryMeasures = keylist::toArray($CategoryRec->measures);
-                    if (count($categoryMeasures)) {
+                    if (countR($categoryMeasures)) {
                         if (isset($rec->measureId)) {
                             $categoryMeasures[$rec->measureId] = $rec->measureId;
                         }
@@ -581,7 +581,9 @@ class cat_Products extends embed_Manager
                 $check = $mvc->getByCode($rec->code);
                 if ($check && ($check->productId != $rec->id)
                     || ($check->productId == $rec->id && $check->packagingId != $rec->packagingId)) {
-                    $form->setError('code', 'Има вече артикул с такъв код!');
+                        $checkProductLink = cat_Products::getHyperlink($check->productId, true);
+                        
+                        $form->setError('code', 'Има вече артикул с такъв код|*: ' . $checkProductLink);
                 }
             }
             
@@ -683,7 +685,7 @@ class cat_Products extends embed_Manager
             $defMetas = $Driver->getDefaultMetas();
         }
         
-        if (!count($defMetas)) {
+        if (!countR($defMetas)) {
             $defMetas = cls::get('cat_Categories')->getDefaultMeta($categoryId);
         }
         
@@ -987,7 +989,7 @@ class cat_Products extends embed_Manager
             case 'vat0':
                 $v = ($data->listFilter->rec->order == 'vat09') ? 0.09 : 0;
                 $products = cat_products_VatGroups::getByVatPercent($v);
-                if (count($products)) {
+                if (countR($products)) {
                     $data->query->in('id', $products);
                 } else {
                     $data->query->where('1=2');
@@ -1315,7 +1317,7 @@ class cat_Products extends embed_Manager
     {
         // Обновяваме дефиринциално групите
         $deltaGroups = array();
-        if (count($mvc->removeFromGroups)) {
+        if (countR($mvc->removeFromGroups)) {
             foreach ($mvc->removeFromGroups as $k) {
                 $kArr = keylist::toArray($k);
                 foreach ($kArr as $groupId) {
@@ -1324,7 +1326,7 @@ class cat_Products extends embed_Manager
             }
         }
         
-        if (count($mvc->addToGroups)) {
+        if (countR($mvc->addToGroups)) {
             foreach ($mvc->addToGroups as $k) {
                 $kArr = keylist::toArray($k);
                 foreach ($kArr as $i => $groupId) {
@@ -1337,7 +1339,7 @@ class cat_Products extends embed_Manager
         }
         
         // Записваме промяната в групите
-        if (count($deltaGroups) < 10) {
+        if (countR($deltaGroups) < 10) {
             foreach ($deltaGroups as $groupId => $delta) {
                 $gRec = cat_Groups::fetch($groupId);
                 $gRec->productCnt += $delta;
@@ -1348,7 +1350,7 @@ class cat_Products extends embed_Manager
         }
         
         // За всеки от създадените артикули, създаваме му дефолтната рецепта ако можем
-        if (count($mvc->createdProducts)) {
+        if (countR($mvc->createdProducts)) {
             foreach ($mvc->createdProducts as $rec) {
                 if ($rec->canManifacture == 'yes') {
                     try{
@@ -1434,7 +1436,7 @@ class cat_Products extends embed_Manager
         $query = cat_Products::getQuery();
         
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+            if (!countR($onlyIds)) {
                 
                 return array();
             }
@@ -1476,7 +1478,7 @@ class cat_Products extends embed_Manager
                 $bQuery->where("#state = 'active'");
                 $bQuery->groupBy('productId');
                 $in = arr::extractValuesFromArray($bQuery->fetchAll(), 'productId');
-                if(count($in)){
+                if(countR($in)){
                     $query->in('id', $in);
                 } else {
                     $query->where('1=2');
@@ -1590,12 +1592,12 @@ class cat_Products extends embed_Manager
             $reverseOrder = $mustReverse;
         }
         
-        if (count($products) && !isset($onlyIds)) {
+        if (countR($products) && !isset($onlyIds)) {
             $products = array('pu' => (object) array('group' => true, 'title' => tr('Стандартни'))) + $products;
         }
         
         // Частните артикули излизат преди публичните
-        if (count($private)) {
+        if (countR($private)) {
             krsort($private);
             if(!isset($onlyIds)){
                 $private = array('pr' => (object) array('group' => true, 'title' => tr('Нестандартни'))) + $private;
@@ -1672,7 +1674,7 @@ class cat_Products extends embed_Manager
         $hasnotProperties = (strpos($hasnotProperties, '|') !== false)  ? explode('|', $hasnotProperties) : arr::make($hasnotProperties);
         
         // Търси се всяко свойство
-        if (count($metaArr)) {
+        if (countR($metaArr)) {
             $count = 0;
             foreach ($metaArr as $meta) {
                 if ($orHasProperties === true) {
@@ -1686,7 +1688,7 @@ class cat_Products extends embed_Manager
             }
         }
         
-        if (count($hasnotProperties)) {
+        if (countR($hasnotProperties)) {
             foreach ($hasnotProperties as $meta1) {
                 $query->where("#{$meta1} = 'no'");
             }
@@ -1969,7 +1971,7 @@ class cat_Products extends embed_Manager
     protected static function on_AfterPrepareAccReportRecs($mvc, &$data)
     {
         $recs = &$data->recs;
-        if (empty($recs) || !count($recs)) {
+        if (empty($recs) || !countR($recs)) {
             
             return;
         }
@@ -1998,7 +2000,7 @@ class cat_Products extends embed_Manager
         $data->reportTableMvc->FLD('packId', 'varchar', 'tdClass=small-field');
         
         foreach ($rows as &$arrs) {
-            if (count($arrs['rows'])) {
+            if (countR($arrs['rows'])) {
                 foreach ($arrs['rows'] as &$row) {
                     $row['packId'] = $data->packName;
                 }
@@ -2034,7 +2036,7 @@ class cat_Products extends embed_Manager
             }
             
             $groupLinks = cat_Groups::getLinks($rec->groupsInput);
-            $row->groupsInput = (count($groupLinks)) ? implode(' ', $groupLinks) : (haveRole('partner') ? null : '<i>' . tr('Няма') . '</i>');
+            $row->groupsInput = (countR($groupLinks)) ? implode(' ', $groupLinks) : (haveRole('partner') ? null : '<i>' . tr('Няма') . '</i>');
         }
         
         if ($fields['-list']) {
@@ -2269,7 +2271,7 @@ class cat_Products extends embed_Manager
         
         // Прави опит да намери рецептата по зададения ред
         $inOrderArr = arr::make($inOrder, 'true');
-        if(count($inOrderArr)){
+        if(countR($inOrderArr)){
             foreach ($inOrderArr as $type){
                 $bRec = cat_Boms::fetch(array("#productId = '{$rec->id}' AND #state = 'active' AND #type = '[#1#]'", $type));
                 
@@ -2512,7 +2514,7 @@ class cat_Products extends embed_Manager
         foreach ($stProductsToClose as $sd1) {
             $this->logWrite('Автоматично затваряне', $sd1);
         }
-        log_System::add('cat_Products', 'ST close items:' . count($stProductsToClose), null, 'info', 17);
+        log_System::add('cat_Products', 'ST close items:' . countR($stProductsToClose), null, 'info', 17);
         
         // Намираме всички нестандартни артикули
         $before1 = dt::addMonths(-5);
@@ -2544,21 +2546,21 @@ class cat_Products extends embed_Manager
             $this->logWrite('Автоматично затваряне', $sd);
         }
         
-        log_System::add('cat_Products', 'Products Without Items Closed:' . count($diff), null, 'info', 17);
+        log_System::add('cat_Products', 'Products Without Items Closed:' . countR($diff), null, 'info', 17);
         
         $productQuery = cat_Products::getQuery();
         $productQuery->where("#isPublic != 'yes'");
         $productQuery->where("#state != 'closed' AND #state != 'rejected'");
         $productQuery->show('id');
         $products = array_keys($productQuery->fetchAll());
-        if (!count($products)) {
+        if (!countR($products)) {
             
             return;
         }
         
         // Последните изчислени периода
         $periods = acc_Periods::getCalcedPeriods(true, 3);
-        if (!count($periods)) {
+        if (!countR($periods)) {
             
             return;
         }
@@ -2579,11 +2581,11 @@ class cat_Products extends embed_Manager
         }
         
         // Ако няма отворени пера, отговарящи на условията не се прави нищо
-        if (!count($productItems)) {
+        if (!countR($productItems)) {
             
             return;
         }
-        log_System::add('cat_Products', 'Item products count:' . count($productItems), null, 'info', 17);
+        log_System::add('cat_Products', 'Item products count:' . countR($productItems), null, 'info', 17);
         
         // Оставяме само записите където участват перата на частните артикули на произволно място
         $bQuery = acc_BalanceDetails::getQuery();
@@ -2622,10 +2624,10 @@ class cat_Products extends embed_Manager
             }
         }
         
-        log_System::add('cat_Products', 'Items to Close count:' . count($productItems), null, 'info', 17);
+        log_System::add('cat_Products', 'Items to Close count:' . countR($productItems), null, 'info', 17);
         
         // Ако не са останали пера за затваряне
-        if (!count($productItems)) {
+        if (!countR($productItems)) {
             
             return;
         }
@@ -2648,7 +2650,7 @@ class cat_Products extends embed_Manager
         $this->closeItems = (is_array($this->closeItems)) ? $this->closeItems : array();
         $this->closeItems += $toSave;
         
-        log_System::add('cat_Products', 'END close items:' . count($toSave), null, 'info', 17);
+        log_System::add('cat_Products', 'END close items:' . countR($toSave), null, 'info', 17);
     }
     
     
@@ -2796,7 +2798,7 @@ class cat_Products extends embed_Manager
                     $newMaterials = self::getMaterialsForProduction($rRec->productId, $quantity1, $date, $recursive);
                     
                     // Ако има артикула се маха и се викат материалите му
-                    if (count($newMaterials)) {
+                    if (countR($newMaterials)) {
                         unset($res[$rRec->productId]);
                         
                         foreach ($newMaterials as $pId => $arr) {
@@ -2894,7 +2896,7 @@ class cat_Products extends embed_Manager
      */
     public static function renderComponents($components, $makeLinks = true)
     {
-        if (!count($components)) {
+        if (!countR($components)) {
             
             return;
         }
@@ -2960,7 +2962,7 @@ class cat_Products extends embed_Manager
      */
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        if (count($data->components)) {
+        if (countR($data->components)) {
             $componentTpl = cat_Products::renderComponents($data->components);
             $tpl->append($componentTpl, 'COMPONENTS');
         }
@@ -3038,7 +3040,7 @@ class cat_Products extends embed_Manager
                 $obj->titleClass = 'product-component-title';
                 if ($dRec->type == 'stage') {
                     $specTpl = cat_Products::getParams($dRec->resourceId, 'specTpl');
-                    if ($specTpl && count($dRec->params)) {
+                    if ($specTpl && countR($dRec->params)) {
                         $specTpl = strtr($specTpl, $dRec->params);
                         $specTpl = new core_ET($specTpl);
                         $obj->title .= ' ' . $specTpl->getContent();
@@ -3160,7 +3162,7 @@ class cat_Products extends embed_Manager
         }
         
         // Ако няма дефолтни задачи
-        if (!count($defaultTasks)) {
+        if (!countR($defaultTasks)) {
             
             // Намираме последната активна рецепта
             $bomRec = self::getLastActiveBom($rec, 'production,sales');
@@ -3346,7 +3348,7 @@ class cat_Products extends embed_Manager
             $similar = planning_ObjectResources::getEquivalentProducts($productId);
             
             // Подреждане на еквивалентните му, по к-то им във всички складове
-            if (count($similar)) {
+            if (countR($similar)) {
                 $orderArr = array();
                 foreach ($similar as $k => $pId) {
                     if ($k == $productId) {
@@ -3817,7 +3819,7 @@ class cat_Products extends embed_Manager
      *
      * @return mixed
      */
-    protected static function on_BeforeChangeState(core_Mvc $mvc, &$rec, $newState)
+    protected static function on_BeforeChangeState(core_Mvc $mvc, &$rec, &$newState)
     {
         if ($newState == 'closed' && $mvc->isUsedInActiveDeal($rec)) {
             core_Statuses::newStatus('Артикулът не може да бъде затворен, докато се използва в активни договори и/или задания', 'error');

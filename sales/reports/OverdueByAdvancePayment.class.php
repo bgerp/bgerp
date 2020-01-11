@@ -110,7 +110,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
         $canSeeOthers = core_Roles::getRolesAsKeylist('ceo,manager');
         
         if ($form->isSubmitted()) {
-            if (((count(explode('|', $form->rec->dealers))) - 2) > 1) {
+            if (((countR(explode('|', $form->rec->dealers))) - 2) > 1) {
                 if (! (core_Users::haveRole($canSeeOthers, $userId = null))) {
                     $form->setError('dealers', 'Имате достъп само до Вашите документи');
                 }
@@ -232,7 +232,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
                         'termDate' => $termDate,
                         'folder' => $firstDocument->fetch()->folderId,
                         'condition' => $condition,
-                        'cntDealers' => count($dealers)
+                        'cntDealers' => countR($dealers)
                     );
                 } else {
                     $okRecs[$id] = (object) array(
@@ -245,7 +245,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
                         'termDate' => $termDate,
                         'folder' => $firstDocument->fetch()->folderId,
                         'condition' => $condition,
-                        'cntDealers' => count($dealers)
+                        'cntDealers' => countR($dealers)
                     );
                 }
             }
@@ -288,7 +288,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
      */
     protected function getTableFieldSet($rec, $export = false)
     {
-        $cntDealers = count(explode('|', trim($rec->dealers, '|')));
+        $cntDealers = countR(explode('|', trim($rec->dealers, '|')));
         
         $fld = cls::get('core_FieldSet');
         $fld->FLD('documentId', 'varchar', 'caption=Документ');

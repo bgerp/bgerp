@@ -74,17 +74,17 @@ class rack_MovementGenerator extends core_Manager
         
         $html = $form->renderHtml();
         
-        if (count($p)) {
+        if (countR($p)) {
             $html .= '<h2>Палети</h2>';
             $html .= ht::mixedToHtml($p);
         }
         
-        if (count($q)) {
+        if (countR($q)) {
             $html .= '<h2>Зони</h2>';
             $html .= ht::mixedToHtml($q);
         }
         
-        if (count($mArr)) {
+        if (countR($mArr)) {
             $html .= '<h2>Движения</h2>';
             $html .= ht::mixedToHtml($mArr);
         }
@@ -135,7 +135,7 @@ class rack_MovementGenerator extends core_Manager
                 // Ременна защита срещу безкраен цикъл;
                 expect(false, $res);
             }
-        } while (count($res) > 0);
+        } while (countR($res) > 0);
         
         
         $res = array();
@@ -198,7 +198,7 @@ class rack_MovementGenerator extends core_Manager
     {
         $moves = array();
         
-        if (!count($p) || !count($z)) {
+        if (!countR($p) || !countR($z)) {
             
             return $moves;
         }
@@ -219,14 +219,14 @@ class rack_MovementGenerator extends core_Manager
         }
         
         $pCombi = array();
-        $cnt = count($p);
-        while ($cnt-- > 0 && count($pCombi) < 20000) {
+        $cnt = countR($p);
+        while ($cnt-- > 0 && countR($pCombi) < 20000) {
             $pCombi = self::addCombi($p, $pCombi);
         }
         
         $zCombi = array();
-        $cnt = count($z);
-        while ($cnt-- > 0 && count($zCombi) < 20000) {
+        $cnt = countR($z);
+        while ($cnt-- > 0 && countR($zCombi) < 20000) {
             $zCombi = self::addCombi($z, $zCombi);
         }
         
@@ -238,7 +238,7 @@ class rack_MovementGenerator extends core_Manager
             }
         }
         
-        if (!count($moves)) {
+        if (!countR($moves)) {
             $zR = array_reverse($z, true);
             foreach ($fullPallets as $i => $pQ) {
                 if ($pQ <= 0) {
@@ -259,7 +259,7 @@ class rack_MovementGenerator extends core_Manager
             }
         }
         
-        if (!count($moves)) {
+        if (!countR($moves)) {
             $kZ = '';
             $t = 0;
             $zR = array_reverse($z, true);
@@ -425,7 +425,7 @@ class rack_MovementGenerator extends core_Manager
                 $newRec->positionTo = $obj->pallet;
             }
             
-            expect(count($obj->zones), 'няма зони');
+            expect(countR($obj->zones), 'няма зони');
             $zoneArr = array('zone' => array(), 'quantity' => array());
             foreach ($obj->zones as $zoneId => $zoneQuantity) {
                 $zoneArr['zone'][] = $zoneId;

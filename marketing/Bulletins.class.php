@@ -851,7 +851,7 @@ class marketing_Bulletins extends core_Master
         $listFields = array();
         
         // Ако има избрани полета за export
-        if (count($exportFields)) {
+        if (countR($exportFields)) {
             foreach ($exportFields as $name => $field) {
                 $listFields[$name] = tr($field->caption);
             }

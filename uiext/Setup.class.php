@@ -93,7 +93,7 @@ class uiext_Setup extends core_ProtoSetup
                }
            }
            
-           if(count($update)){
+           if(countR($update)){
                $Class->saveArray($update, 'id,classId,objectId');
            }
        }

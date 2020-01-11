@@ -195,7 +195,7 @@ class sales_SalesDetails extends deals_DealDetail
     {
         $rows = &$data->rows;
         
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }

@@ -441,12 +441,12 @@ class deals_plg_DpInvoice extends core_Plugin
         $reason = !empty($reason) ? "</br>" . $reason : '';
         
         if ($data->dpInfo->dpOperation == 'accrued') {
-            $colspan = count($data->listFields) - 1;
+            $colspan = countR($data->listFields) - 1;
             $lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . ' <span' . $reason . "<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
         } else {
             $fields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $mvc->hideListFieldsIfEmpty);
             
-            $colspan = count($fields) - 2;
+            $colspan = countR($fields) - 2;
             $colspan1 = isset($fields['reff']) ? 2 : 1;
             $colspan = isset($fields['reff']) ? $colspan - 1 : $colspan;
             
@@ -481,7 +481,7 @@ class deals_plg_DpInvoice extends core_Plugin
             $caption = 'договори';
         }
         
-        if (!count($deals)) {
+        if (!countR($deals)) {
             $deals[] = "№{$firstDoc->that} " . tr("от|* {$valior}");
             $caption = 'договор';
         }
@@ -508,16 +508,16 @@ class deals_plg_DpInvoice extends core_Plugin
             $pArr[$pRec->id] = '№' . sales_Invoices::recToVerbal($pRec)->number;
         }
         
-        $handleArr = count($invArr) ? $invArr : $pArr;
+        $handleArr = countR($invArr) ? $invArr : $pArr;
         $handleString = implode(', ', $handleArr);
         
-        $accruedInvoices = count($handleArr);
+        $accruedInvoices = countR($handleArr);
         
         if ($accruedInvoices == 1) {
-            $docTitle = count($invArr) ? 'по фактура' : 'по проформа';
+            $docTitle = countR($invArr) ? 'по фактура' : 'по проформа';
             $misc = tr($docTitle) . " {$handleString}";
         } elseif ($accruedInvoices) {
-            $docTitle = count($invArr) ? 'по фактури' : 'по проформи';
+            $docTitle = countR($invArr) ? 'по фактури' : 'по проформи';
             $misc = tr($docTitle) . " {$handleString}";
         } else {
             $misc = tr("по {$caption}|* ") . implode(', ', $deals);

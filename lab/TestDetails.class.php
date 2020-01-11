@@ -419,7 +419,7 @@ class lab_TestDetails extends core_Detail
             $sum = 0;
             $totalResults = 0;
             
-            $resCnt = count($resultsArr);
+            $resCnt = countR($resultsArr);
             
             for ($i = 0; $i < $resCnt; $i ++) {
                 if (trim($resultsArr[$i])) {

@@ -97,7 +97,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                         $fields['batch'] = $rec->batchcol;
                     }
                     
-                    if (!count($rows)) {
+                    if (!countR($rows)) {
                         $form->setError('csvData,csvFile', 'Не са открити данни за импорт');
                     }
                     
@@ -288,7 +288,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $row = clone $obj;
         }
         
-        if (count($err)) {
+        if (countR($err)) {
             $msg = '|Има проблем със следните редове|*:';
             $msg .= '<ul>';
             foreach ($err as $j => $r) {

@@ -84,7 +84,7 @@ class plg_LastUsedKeys extends core_Plugin
                     if ($noCheckLastUsedField || isset($usedClass->fields['lastUsedOn'])) {
                         $keysArr = keylist::toArray($rec->{$field});
                         
-                        if (count($keysArr)) {
+                        if (countR($keysArr)) {
                             foreach ($keysArr as $key) {
                                 $usedRec = new stdClass();
                                 
