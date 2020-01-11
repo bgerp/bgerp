@@ -65,7 +65,7 @@ class fileman_Data extends core_Manager
     /**
      * Кои полета да определят рзличността при backup
      */
-    public $backupDiffFields = 'md5';
+    public $backupDiffFields = 'md5,archived,links,lastUse,processed';
     
     
     
@@ -90,7 +90,7 @@ class fileman_Data extends core_Manager
         
         $this->FLD('lastUse', 'datetime(format=smartTime)', 'caption=Последно, input=none');
         
-        $this->FLD('processed', 'enum(no,yes)', 'caption=Извличане на ключови думу,column=none,single=none,input=none');
+        $this->FLD('processed', 'enum(no,yes)', 'caption=Извличане на ключови думи,column=none,single=none,input=none');
         
         $this->setDbUnique('fileLen,md5', 'DNA');
     }

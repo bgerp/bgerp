@@ -82,7 +82,7 @@ class fileman_Files extends core_Master
     /**
      * Кои полета да определят рзличността при backup
      */
-    public $backupDiffFields = 'modifiedOn';
+    public $backupDiffFields = 'modifiedOn,extractedOn';
     
 
     /**
