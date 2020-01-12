@@ -59,7 +59,7 @@ class fileman_Data extends core_Manager
     /**
      * На участъци от по колко записа да се бекъпва?
      */
-    public $backupMaxRows = 20000;
+    public $backupMaxRows = 100000;
     
     
     /**
@@ -107,12 +107,10 @@ class fileman_Data extends core_Manager
     public static function updateLastUse($id, $lastUse = null)
     {
         if (!$id) {
-            
             return false;
         }
         
         if (!($rec = self::fetch($id))) {
-            
             return false;
         }
         
@@ -428,7 +426,6 @@ class fileman_Data extends core_Manager
         $rec = self::fetchRec($rec);
         
         if (!$rec) {
-            
             return false;
         }
         
