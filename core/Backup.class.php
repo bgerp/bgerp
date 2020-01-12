@@ -49,7 +49,6 @@ class core_Backup extends core_Mvc
         core_Debug::$isLogging = false;
         
         if (core_Setup::get('BACKUP_ENABLED') != 'yes') {
-            
             return;
         }
         
@@ -102,7 +101,7 @@ class core_Backup extends core_Mvc
         
         // Правим пробно експортиране на всички таблици, без заключване
         $tables = array();
-        $this->exportTables($instArr, $tables, crc32(EF_SALT . $pass));
+        $this->exportTables($instArr, $tables);
         
         // Пускаме завесата
         $lockTables = trim($lockTables, ',');
@@ -124,11 +123,11 @@ class core_Backup extends core_Mvc
         
         // Експортираме всички таблици, като зачистваме масива
         $tables = array();
-        $this->exportTables($instArr, $tables, crc32(EF_SALT . $pass));
+        $this->exportTables($instArr, $tables);
         
         // Освеобождаваме LOCK-а на таблиците
         $this->db->query('UNLOCK TABLES');
-        
+  
         // Освобождаваме системата
         core_SystemLock::remove();
         $description['times']['unlock'] = dt::now();
@@ -289,8 +288,11 @@ class core_Backup extends core_Mvc
     /**
      * Експортира всички таблици, като CSV файлове в работната директория
      */
-    public function exportTables($instArr, &$tables, $addCrc32)
+    public function exportTables($instArr, &$tables)
     {
+        $pass = core_Setup::get('BACKUP_PASS');
+        $addCrc32 = crc32(EF_SALT . $pass);
+
         foreach ($instArr as $table => $inst) {
             core_App::setTimeLimit(120);
             
@@ -303,35 +305,39 @@ class core_Backup extends core_Mvc
             if (isset($inst->backupMaxRows, $inst->backupDiffFields)) {
                 $maxId = $inst->db->getNextId($table);
                 $diffFields = arr::make($inst->backupDiffFields);
-                $expr = '';
+                $expr = "CONCAT_WS('|'";
                 foreach ($diffFields as $fld) {
-                    $expr .= " + ABS(CRC32(#${fld}))";
+                    $mySqlFld = str::phpToMysqlName($fld);
+                    $expr .= ', `' . str::phpToMysqlName($fld) . '`';
                 }
-                $crc = 'SUM(' . trim($expr, ' +') . ')';
-                $cnt = $inst->count();
-                for ($i = 0; $i * $inst->backupMaxRows <= $cnt; $i++) {
+                $expr = "crc32(${expr}))";
+ 
+                for ($i = 0; $i * $inst->backupMaxRows < $cnt; $i++) {
                     core_App::setTimeLimit(120);
-                    $key = "{$table}-{$lmt}-" .($i+1);
+                    $key = "{$table}-{$lmt}-" . ($i + 1);
                     if (!isset(self::$crcArr[$key])) {
-                        $query = $inst->getQuery();
-                        $query->XPR('crc32backup', 'int', $crc);
-                        $query->show('crc32backup');
-                        $query->orderBy('#id');
-                        $query->limit($inst->backupMaxRows);
-                        $query->startFrom($i*$inst->backupMaxRow);
-                        $rec = $query->fetch();
-                        self::$crcArr[$key] = $rec->crc32backup + $addCrc32;
+                        $len = $inst->backupMaxRows;
+                        $start = $i * $len;
+                        $limit = " LIMIT {$start},{$len}";
+                        $sql = "SELECT SUM(`_backup`) AS `_crc32backup` FROM  (SELECT  {$expr} AS `_backup` FROM `{$table}` ORDER BY `id`{$limit}) `_backup_table`";
+                        
+                        DEBUG::startTimer('Query Table:' . $table);
+                        $dbRes = $inst->db->query($sql);
+                        $rec = $inst->db->fetchObject($dbRes);
+                        DEBUG::stopTimer('Query Table:' . $table);
+                        // if($table == 'fileman_files') bp($sql, $rec);
+                        self::$crcArr[$key] = $rec->_crc32backup + $addCrc32;
                     }
                     
                     if (self::$crcArr[$key] > 0) {
-                        $suffix = ($i+1) . '-' . base_convert(abs(self::$crcArr[$key]), 10, 36);
-                        $this->backupTable($inst, $table, $suffix, $where);
+                        $suffix = ($i + 1) . '-' . base_convert(abs(self::$crcArr[$key]), 10, 36);
+                        $this->backupTable($inst, $table, $suffix, $limit);
                         $tables[] = "{$table}.{$suffix}";
                     }
                 }
             } else {
                 $suffix = base_convert($lmt + $addCrc32, 10, 36);
-                $this->backupTable($inst, $table, $suffix, '');
+                $this->backupTable($inst, $table, $suffix);
                 $tables[] = "{$table}.{$suffix}";
             }
         }
@@ -341,11 +347,8 @@ class core_Backup extends core_Mvc
     /**
      * Прави бекъп файл на конкретна таблица
      */
-    public function backupTable($inst, $table, $suffix, $where)
+    public function backupTable($inst, $table, $suffix, $limit = '')
     {
-        if (!$where) {
-            $where = '1=1';
-        }
         
         // Форсираме директориите
         $backDir = self::getDir();
@@ -380,8 +383,8 @@ class core_Backup extends core_Mvc
             $cols .= ($cols ? ',' : '') . '`' . $fRec->Field . '`';
             $i++;
         }
-        
-        $dbRes = $inst->db->query("SELECT * FROM `{$table}` WHERE {$where}");
+
+        $dbRes = $inst->db->query("SELECT * FROM `{$table}`{$limit}");
         $out = fopen("{$path}.tmp", 'w');
         fwrite($out, $cols);
         while ($row = $inst->db->fetchArray($dbRes, MYSQLI_NUM)) {
@@ -414,7 +417,6 @@ class core_Backup extends core_Mvc
         }
         
         if (core_Os::forceDir($dir, 0744)) {
-            
             return $dir . '/';
         }
     }
@@ -447,7 +449,6 @@ class core_Backup extends core_Mvc
             
             // Не може да се флъшва, а бекъпът е зададен
             if (!file_exists($path) || !is_readable($path) || !filesize($path)) {
-                
                 return;
             }
             $file = basename($path);
@@ -542,10 +543,10 @@ class core_Backup extends core_Mvc
                 core_App::setTimeLimit(120);
                 list($table, ) = explode('.', $file);
                 $dest = self::unzipToTemp($src, $pass, $log);
+                expect($dest, $src, $pass);
                 $log[] = $res = self::importTable($db, $table, $dest);
                 unlink($dest);
                 if (substr($res, 0, 4) == 'err:') {
-                    
                     return;
                 }
             }
@@ -647,7 +648,6 @@ class core_Backup extends core_Mvc
         
         $res = @archive_Adapter::uncompress($path, self::$temp, $pass);
         if ($res === 0 && file_exists($tempPath)) {
-            
             return $tempPath;
         }
     }
@@ -659,7 +659,6 @@ class core_Backup extends core_Mvc
     public static function checkConfig()
     {
         if (core_Setup::get('BACKUP_ENABLED') != 'yes') {
-            
             return;
         }
         
@@ -712,7 +711,7 @@ class core_Backup extends core_Mvc
         } else {
             $res = array(0, 0, null);
         }
-        
+       
         return $res;
     }
     
@@ -758,7 +757,6 @@ class core_Backup extends core_Mvc
         }
         
         uasort($res, function ($a, $b) {
-            
             return $a->time < $b->time;
         });
         
