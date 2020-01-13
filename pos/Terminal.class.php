@@ -1306,7 +1306,7 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         if(!count($data->rows)){
-            $tpl->prepend(tr('Не са намерени артикули|*!'));
+            $tpl->prepend("<div class='resultText'>" . tr('Не са намерени артикули|*!') . "</div>");
         }
         
         return $tpl;
