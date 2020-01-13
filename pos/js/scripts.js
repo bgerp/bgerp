@@ -1114,16 +1114,19 @@ function disableOrEnableEnlargeBtn()
 
 	if(focusedElement.length){
 		if(focusedElement.hasClass('enlargable')){
-			$(".enlargeProductBtn").removeClass('disabledBtn');
-			$(".enlargeProductBtn").removeAttr("disabled");
-
 			var enlargeClassId = focusedElement.attr("data-enlarge-class-id");
 			var enlargeObjectId = focusedElement.attr("data-enlarge-object-id");
 			var enlargeTitle= focusedElement.attr("data-enlarge-title");
-			
-			$(".enlargeProductBtn").attr('data-enlarge-title', enlargeTitle);
-			$(".enlargeProductBtn").attr('data-enlarge-class-id', enlargeClassId);
-			$(".enlargeProductBtn").attr('data-enlarge-object-id', enlargeObjectId);
+
+			if(enlargeClassId && enlargeObjectId && enlargeTitle) {
+				$(".enlargeProductBtn").removeClass('disabledBtn');
+				$(".enlargeProductBtn").removeAttr("disabled");
+
+				$(".enlargeProductBtn").attr('data-enlarge-title', enlargeTitle);
+				$(".enlargeProductBtn").attr('data-enlarge-class-id', enlargeClassId);
+				$(".enlargeProductBtn").attr('data-enlarge-object-id', enlargeObjectId);
+			}
+
 		} else {
 			$(".enlargeProductBtn").addClass('disabledBtn');
 			$(".enlargeProductBtn").attr('disabled', 'disabled');
