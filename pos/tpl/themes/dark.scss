@@ -30,10 +30,9 @@
   }
 }
 .wide .result-content {
-
   .receiptRow.navigable {
-    &.disabledBtn, &.disabledBtn .priceText {
-      color: #999 !important;
+    &.disabledBtn, &.disabledBtn .priceText, &.disabledBtn .quiet span{
+      color: #444 !important;
     }
 
     &.selected {
