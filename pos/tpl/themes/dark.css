@@ -19,6 +19,8 @@
     border: 3px solid #f70026 !important;
     border: none; }
 
-.resultText {
+.resultText,
+#result-holder .receiptRow,
+.priceText {
   color: white; }
 
