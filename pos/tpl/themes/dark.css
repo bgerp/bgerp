@@ -22,11 +22,13 @@
     border: 3px solid #f70026 !important;
     border: none; }
 
-    .wide .result-content .receiptRow.navigable.disabledBtn,
-    .wide .result-content .receiptRow.navigable.disabledBtn .priceText,
-    .wide .result-content .receiptRow.navigable.disabledBtn .quiet span {
+  .wide .result-content .receiptRow {
+    border: 3px solid rgba(0, 0, 0, 0) !important; }
+    .wide .result-content .receiptRow.disabledBtn,
+    .wide .result-content .receiptRow.disabledBtn .priceText,
+    .wide .result-content .receiptRow.disabledBtn .quiet span {
       color: #444444 !important; }
-    .wide .result-content .receiptRow.navigable.selected {
+    .wide .result-content .receiptRow.selected {
       box-shadow: 0px 0px 3px #f95353 !important;
       border: 3px solid #f70026 !important; }
 
