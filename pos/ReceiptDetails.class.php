@@ -347,6 +347,7 @@ class pos_ReceiptDetails extends core_Detail
         expect($receiptRec = pos_Receipts::fetch($receiptId));
         $this->requireRightFor('add', (object)array('receiptId' => $receiptId));
         $success = false;
+        $addedQuantityWithCode = false;
         
         try{
             expect(empty($receiptRec->paid), 'Не може да се добави артикул, ако има направено плащане|*!');
@@ -375,6 +376,7 @@ class pos_ReceiptDetails extends core_Detail
                 
                 // Ако има намерени к-во и код от регулярния израз
                 if (!empty($matches[1]) && !empty($matches[3])) {
+                    $addedQuantityWithCode = true;
                     
                     // Ако има ид на продукт
                     if (isset($rec->productId)) {
@@ -397,7 +399,6 @@ class pos_ReceiptDetails extends core_Detail
             }
             
             expect(!empty($rec->productId) || !empty($rec->ean), 'Не е избран артикул|*!');
-            
             if ($packId = Request::get('packId', 'int')) {
                 expect(cat_UoM::fetch($packId), "Невалидна опаковка|*!");
                 $rec->value = $packId;
@@ -450,7 +451,8 @@ class pos_ReceiptDetails extends core_Detail
             $this->save($rec);
             $success = true;
             $this->Master->logInAct('Добавяне на артикул', $rec->receiptId);
-            Mode::setPermanent("currentOperation{$rec->receiptId}", 'quantity');
+            $nextOperation = ($addedQuantityWithCode) ? 'add' : 'quantity';
+            Mode::setPermanent("currentOperation{$rec->receiptId}", $nextOperation);
             Mode::setPermanent("currentSearchString{$rec->receiptId}", null);
             $selectedRecId = $rec;
             
