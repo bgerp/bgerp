@@ -611,7 +611,7 @@ function posActions() {
 		openInfo();
 	});
 	
-	$("body").setShortcutKey( ALT , N ,function() {
+	$("body").setShortcutKey( ALT , L ,function() {
 		openPrint();
 	});
 

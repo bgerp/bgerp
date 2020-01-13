@@ -78,7 +78,7 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Бутони за бърз достъп до терминала
      */
-    protected static $operationShortcuts = 'operation-add=A,operation-payment=P,operation-quantity=K,operation-price=Z,operation-discount=W,operation-text=T,operation-contragent=C,operation-receipts=R,enlarge=F,print=N,operation-batch=B,keyboard=V,exit=X,reject=N,help=H,reload=S,delete=E';
+    protected static $operationShortcuts = 'operation-add=A,operation-payment=P,operation-quantity=K,operation-price=Z,operation-discount=W,operation-text=T,operation-contragent=C,operation-receipts=R,enlarge=F,print=L,operation-batch=B,keyboard=V,exit=X,reject=N,help=H,reload=S,delete=E';
 
     /**
      * Кои са разрешените операции
@@ -1005,7 +1005,7 @@ class pos_Terminal extends peripheral_Terminal
             $tpl->append($holderDiv);
             
             $contragentName = cls::get($rec->contragentClass)->getTitleById($rec->contragentObjectId);
-            $tpl->append("<div class='contragentName'>{$contragentName}</div>");
+            $tpl->prepend("<div class='contragentName clearfix21'>{$contragentName}</div>");
         }
        
         return $tpl;
