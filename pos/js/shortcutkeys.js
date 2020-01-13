@@ -116,9 +116,7 @@ var QUOTE = 222; 		// SINGLE QUOTE
 		try {
 
 			$(this).keydown(function(e){
-				if($('input[type=text]').length == 1 ) {
-					$('.large-field.select-input-pos').focus();
-				}
+
 				 // Modifier down (SHIFT, CONTROL, ALT)
 				if(e.keyCode == 16) {
 					ShiftMod = true;
@@ -127,6 +125,9 @@ var QUOTE = 222; 		// SINGLE QUOTE
 				}else if(e.keyCode == 18) {
 					AltMod = true;
 					e.preventDefault();
+				}else if($('input[type=text]').length == 1 ) {
+					var text = $('.large-field.select-input-pos').val();
+					$('.large-field.select-input-pos').focus().val('').val(text);
 				}
 
 				 // Check key
