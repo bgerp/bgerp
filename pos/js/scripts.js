@@ -1051,6 +1051,10 @@ function openModal(title, heightModal) {
 	});
 
 	dialog.dialog( "open" );
+		setTimeout(function(){
+				$('form').find('*').filter(':input:visible:first').focus();
+			},
+			500);
 }
 
 function startNavigation() {
