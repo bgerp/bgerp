@@ -14,8 +14,10 @@
 	<!--ET_END DETAILS-->
 </div>
 <div class='paymentBlock' >
-	<!--ET_BEGIN RECEIPT_CAPTION--><div style="padding: 5px 20px; background-color: #ccc;">[#RECEIPT_CAPTION#]</div><!--ET_END RECEIPT_CAPTION-->
-	<div class="paymentRow "> <span class="totalLabel">|Общо|*: [#total#]</span></div>
+
+	<div class="paymentRow ">
+		<!--ET_BEGIN RECEIPT_CAPTION--><span class="fleft" style="padding-top: 10px;">[#RECEIPT_CAPTION#]</span><!--ET_END RECEIPT_CAPTION-->
+		<span class="totalLabel">|Общо|*: [#total#]</span></div>
 	
 	<!--ET_BEGIN PAYMENT_NOT_REQUIRED-->
 	<div class="paymentRow "><div class="paymentNotRequiredLabel">[#PAYMENT_NOT_REQUIRED#]</div></div>
