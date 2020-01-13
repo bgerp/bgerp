@@ -597,7 +597,7 @@ function posActions() {
 		openText();
 	});
 
-	$("body").setShortcutKey( ALT , N5 ,function() {
+	$("body").setShortcutKey( ALT , W ,function() {
 		openDiscount();
 	});
 
