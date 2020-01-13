@@ -24,6 +24,13 @@
   padding: 15px 15px 5px 15px;
   overflow-y: auto;
   box-sizing: border-box; }
+  .wide .result-content .receiptRow.navigable {
+    border: 3px solid rgba(0, 0, 0, 0); }
+    .wide .result-content .receiptRow.navigable.disabledBtn,
+    .wide .result-content .receiptRow.navigable.disabledBtn .priceText {
+      color: #999999 !important; }
+    .wide .result-content .receiptRow.navigable.selected {
+      border: 3px solid #080f56; }
 
 .tools-content {
   height: 500px;
@@ -97,12 +104,12 @@
     font-size: 1.3em;
     font-weight: bold; }
 
-.receiptPayment {
+#single-receipt .receiptPayment {
   background-color: #d1ffda;
   font-size: 1.1em;
   display: block;
   padding: 10px 15px; }
-  .receiptPayment div {
+  #single-receipt .receiptPayment div {
     font-weight: bold; }
 
 .reject-btn {
@@ -300,6 +307,9 @@
     font-size: 2em; }
   .posBtns .nowrap {
     font-size: 0.9em; }
+
+.restore-receipt {
+  background: #ffcccb !important; }
 
 .differentPosBtn {
   text-decoration: underline !important; }

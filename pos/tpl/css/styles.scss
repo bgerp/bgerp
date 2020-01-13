@@ -28,6 +28,16 @@
 	padding:15px 15px 5px 15px;
 	overflow-y: auto;
 	box-sizing: border-box;
+	.receiptRow.navigable {
+		border: 3px solid transparent;
+		&.disabledBtn , &.disabledBtn .priceText{
+			color: #999 !important;
+
+		}
+		&.selected {
+			border: 3px solid #080f56;
+		}
+	}
 }
 
 .tools-content {
@@ -116,7 +126,7 @@
 	}
 }
 
-.receiptPayment {
+#single-receipt .receiptPayment {
 	background-color:#d1ffda;
 	font-size: 1.1em;
 	display: block;
@@ -274,6 +284,7 @@
 	line-height: 150%;
 	padding-left: 5px;
 }
+
 .shortcuts {
 	span {
 		text-align: center;
@@ -347,7 +358,9 @@
 		font-size: 0.9em;
 	}
 }
-
+.restore-receipt {
+	background: #FFCCCB !important;
+}
 .differentPosBtn {
 	text-decoration: underline !important;
 }
