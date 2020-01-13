@@ -381,7 +381,6 @@ class pos_Terminal extends peripheral_Terminal
         $data->form->setField('inCharge', 'autohide=any');
         $data->form->setField('access', 'autohide=any');
         $data->form->setField('shared', 'autohide=any');
-        //$data->form->class = 'simpleForm';
         $data->form->title = 'Създаване на нова фирма';
         
         // Събмитване на формата
@@ -396,7 +395,6 @@ class pos_Terminal extends peripheral_Terminal
             $rec->contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
             pos_Receipts::save($rec, 'contragentObjectId,contragentClass,contragentName');
             
-            //bp();
             redirect(array('pos_Terminal', 'open', 'receiptId' => $rec->id));
         }
         
@@ -404,25 +402,9 @@ class pos_Terminal extends peripheral_Terminal
         $data->form->toolbar->addBtn('Отказ', getRetUrl(), 'id=cancel, ef_icon = img/16/close-red.png', 'title=Прекратяване на действията');
         
         $content = $data->form->renderHtml();
-        $content->prepend("<div class='modalNewCompanyHolder'>");
-        $content->append("<div>");
+        $content = cls::get('crm_Companies')->renderWrapping($content);
         
-        if(Mode::is('ajax_mode')){
-            // Ще се реплейсва и пулта
-            $res = array();
-            $resObj = new stdClass();
-            $resObj->func = 'html';
-            $resObj->arg = array('id' => 'modalContent', 'html' => $content->getContent(), 'replace' => true);
-            $res[] = $resObj;
-            
-            return $res;
-        } else {
-            
-            return $content;
-        }
-        
-        
-        
+        return $content;
     }
     
     
@@ -922,7 +904,7 @@ class pos_Terminal extends peripheral_Terminal
         if($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId){
             $contragents = array();
             
-            $newCompanyAttr = array('id' => 'contragentnew', 'data-url' => array('pos_Terminal', 'transferInNewCompany', 'receiptId' => $rec->id, 'ret_url' => true), 'class' => 'posBtns');
+            $newCompanyAttr = array('id' => 'contragentnew', 'data-url' => toUrl(array('pos_Terminal', 'transferInNewCompany', 'receiptId' => $rec->id, 'ret_url' => true)), 'class' => 'posBtns');
             if(!crm_Companies::haveRightFor('add') || !pos_Receipts::haveRightFor('transfer', $rec)){
                 $newCompanyAttr['disabled'] = 'disabled';
                 $newCompanyAttr['class'] .= ' disabledBtn';
@@ -930,10 +912,8 @@ class pos_Terminal extends peripheral_Terminal
             } else {
                 $newCompanyAttr['class'] .= ' navigable newCompanyBtn';
             }
-            //$holderDiv = ht::createElement('div', $newCompanyAttr, 'Нова фирма', true);
-            $holderDiv = ht::createBtn('Нова фирма', $newCompanyAttr['data-url'], false, false, $newCompanyAttr);
             
-            
+            $holderDiv = ht::createElement('div', $newCompanyAttr, 'Нова фирма', true);
             $tpl->append($holderDiv);
             $tpl->append(tr("|*<div class='divider'>|Намерени контрагенти|*</div>"));
             

@@ -551,17 +551,8 @@ function posActions() {
 	
 	// При натискане на бутон за нова фирма
 	$(document.body).on('click', ".newCompanyBtn", function(e){
-		
-		return;
-		
-		
 		var url = $(this).attr("data-url");
-		
-		resObj = new Object();
-		resObj['url'] = url;
-		getEfae().process(resObj);
-
-		openModal("Създаване на нова фирма");
+		location.href = url;
 	});
 	
 	// При натискане на бутона за клавиатура
