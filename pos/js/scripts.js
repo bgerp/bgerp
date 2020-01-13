@@ -552,6 +552,9 @@ function posActions() {
 	// При натискане на бутон за нова фирма
 	$(document.body).on('click', ".newCompanyBtn", function(e){
 		
+		return;
+		
+		
 		var url = $(this).attr("data-url");
 		
 		resObj = new Object();
