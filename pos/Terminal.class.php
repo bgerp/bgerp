@@ -169,6 +169,9 @@ class pos_Terminal extends peripheral_Terminal
         // Добавяме бележката в изгледа
         $receiptTpl = $this->getReceipt($rec);
         $tpl->replace($receiptTpl, 'RECEIPT');
+        if (isset($rec->revertId)) {
+            $tpl->replace('restore-receipt', 'REVERT_CLASS');
+        }
         
         // Ако не сме в принтиране, сменяме обвивквата и рендираме табовете
         if (!Mode::is('printing')) {
@@ -1219,6 +1222,7 @@ class pos_Terminal extends peripheral_Terminal
         $data = new stdClass();
         $data->rec = $rec;
         $this->prepareReceipt($data);
+        
         $tpl = $this->renderReceipt($data);
         $Receipts->invoke('AfterGetReceipt', array(&$tpl, $rec));
         
@@ -1249,7 +1253,6 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderReceipt($data)
     {
-        $Receipt = cls::get('pos_Receipts');
         $tpl = getTplFromFile('pos/tpl/terminal/Receipt.shtml');
         if($data->rec->state == 'draft'){
             unset($data->row->STATE_CLASS);
