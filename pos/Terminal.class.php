@@ -1008,6 +1008,9 @@ class pos_Terminal extends peripheral_Terminal
             
             $holderDiv = ht::createElement('div', $divAttr, 'Премахване', true);
             $tpl->append($holderDiv);
+            
+            $contragentName = cls::get($rec->contragentClass)->getTitleById($rec->contragentObjectId);
+            $tpl->append("<div class='contragentName'>{$contragentName}</div>");
         }
        
         return $tpl;
@@ -1565,14 +1568,14 @@ class pos_Terminal extends peripheral_Terminal
         
         if(countR($revertUrl)){
             $revertBtn = ht::createLink("Сторниране", $revertUrl, 'Наистина ли искате да сторнирате бележката|*?', "id=revertthis,class=pos-notes posBtns revertReceiptBtn {$disabledClass},title=Сторниране на текущата бележка");
-            $arr[$today]->append($revertBtn, 'element');
+            $tpl->append($revertBtn);
         }
         
         $addBtn = ht::createLink("+", $addUrl, null, "id=receiptnew,class=pos-notes posBtns newNoteBtn {$disabledClass},title=Създаване на нова бележка");
-        $arr[$today]->append($addBtn, 'element');
+        $tpl->append($addBtn);
         
         $revertDefaultBtn = ht::createLink("+", $revertDefaultUrl, 'Наистина ли искате да създадете нова сторно бележка|*?', "id=receiptrevertdefault,class=pos-notes posBtns newNoteBtn revertReceiptBtn {$disabledRevertClass},title=Създаване на нова сторно бележка");
-        $arr[$today]->append($revertDefaultBtn, 'element');
+        $tpl->append($revertDefaultBtn);
         
         // Групиране на записите по дата
         while ($receiptRec = $query->fetch()) {
