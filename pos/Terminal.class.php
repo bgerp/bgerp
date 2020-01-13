@@ -753,8 +753,6 @@ class pos_Terminal extends peripheral_Terminal
     {
         $tpl = new ET('');
         $blocksTpl = getTplFromFile('pos/tpl/terminal/ReceiptDetail.shtml');
-        $me = cls::get(get_called_class());
-        $class = ($data->revertsReceipt === false) ? 'receiptRow' : 'receiptRow navigable';
         
         $saleTpl = $blocksTpl->getBlock('sale');
         $paymentTpl = $blocksTpl->getBlock('payment');
@@ -762,15 +760,15 @@ class pos_Terminal extends peripheral_Terminal
             foreach ($data->rows as $id => $row) {
                 $row->id = $id;
                 
+                $row->ROW_CLASS = 'receiptRow';
                 if(isset($data->revertsReceipt)){
                     if(pos_ReceiptDetails::haveRightFor('load', (object)array('receiptId' => $data->revertsReceipt->id, 'loadRecId' => $id))){
-                        $class .= ' navigable';
+                        $row->ROW_CLASS .= ' navigable';
                         $row->DATA_URL = toUrl(array('pos_ReceiptDetails', 'load', 'receiptId' => $data->revertsReceipt->id, 'loadRecId' => $id), 'local');
                     } else {
-                        $class .= ' disabledBtn';
+                        $row->ROW_CLASS .= ' disabledBtn';
                     }
                 }
-                $row->ROW_CLASS = $class;
                 
                 $action = cls::get('pos_ReceiptDetails')->getAction($data->rows[$id]->action);
                 $at = ${"{$action->type}Tpl"};

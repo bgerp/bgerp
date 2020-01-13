@@ -64,7 +64,7 @@ function posActions() {
 	// Добавяне на
 	$(document.body).on('click', "#result-holder .receiptRow", function(e){
 		var url = $(this).attr("data-url");
-		if(!url) return;
+		if(!url || $(this).hasClass( "disabledBtn")) return;
 		
 		resObj = new Object();
 		resObj['url'] = url;
