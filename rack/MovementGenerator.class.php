@@ -425,7 +425,11 @@ class rack_MovementGenerator extends core_Manager
                 $newRec->positionTo = $obj->pallet;
             }
             
-            expect(countR($obj->zones), 'няма зони');
+            if(!countR($obj->zones)){
+                wp($allocatedArr, $productId, $packagingId, $batch);
+                continue;
+            }
+            
             $zoneArr = array('zone' => array(), 'quantity' => array());
             foreach ($obj->zones as $zoneId => $zoneQuantity) {
                 $zoneArr['zone'][] = $zoneId;
