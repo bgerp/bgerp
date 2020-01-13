@@ -60,6 +60,18 @@ function posActions() {
 		activeInput = true;
 	});
 
+	
+	// Добавяне на партида
+	$(document.body).on('click', ".revertReceiptRow", function(e){
+		var url = $(this).attr("data-url");
+		if(!url) return;
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		getEfae().process(resObj);
+	});
+	
 	// Добавяне на партида
 	$(document.body).on('click', ".resultBatch", function(e){
 		var url = $(this).attr("data-url");

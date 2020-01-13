@@ -111,40 +111,10 @@ class pos_ReceiptDetails extends core_Detail
         $this->FLD('text', 'varchar', 'caption=Пояснение,input=none');
         $this->FLD('batch', 'varchar', 'caption=Партида,input=none');
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад,input=none');
+        $this->FLD('revertRecId', 'int', 'caption=Сторнира ред, input=none');
         
         $this->setDbIndex('action');
         $this->setDbIndex('productId');
-    }
-    
-    
-    /**
-     * Променяме рендирането на детайлите
-     */
-    public function renderReceiptDetail($data)
-    {
-        $tpl = new ET('');
-        $blocksTpl = getTplFromFile('pos/tpl/terminal/ReceiptDetail.shtml');
-        
-        $saleTpl = $blocksTpl->getBlock('sale');
-        $paymentTpl = $blocksTpl->getBlock('payment');
-        if ($data->rows) {
-            foreach ($data->rows as $id => $row) {
-                $row->id = $id;
-                $action = $this->getAction($data->rows[$id]->action);
-                $at = ${"{$action->type}Tpl"};
-                if (is_object($at)) {
-                    $rowTpl = clone(${"{$action->type}Tpl"});
-                    $rowTpl->placeObject($row);
-                    
-                    $rowTpl->removeBlocks();
-                    $tpl->append($rowTpl);
-                }
-            }
-        } else {
-            $tpl->append(new ET("<div class='noResult'>" . tr('Няма записи') . '</div>'));
-        }
-        
-        return $tpl;
     }
     
     
@@ -531,6 +501,7 @@ class pos_ReceiptDetails extends core_Detail
         $res = new stdClass();
         $query = $this->getQuery();
         $query->where("#receiptId = '{$receiptId}'");
+        $query->orderBy('id', 'ASC');
         
         while ($rec = $query->fetch()) {
             $res->recs[$rec->id] = $rec;
@@ -794,6 +765,12 @@ class pos_ReceiptDetails extends core_Detail
             if(empty($masterRec->revertId) || $masterRec->state != 'draft' || $masterRec->revertId == pos_Receipts::DEFAULT_REVERT_RECEIPT){
                 $res = 'no_one';
             }
+            
+            if(isset($rec->loadRecId)){
+                if($mvc->fetchField("#receiptId = {$rec->receiptId} AND #revertRecId = {$rec->loadRecId}")){
+                    $res = 'no_one';
+                }
+            }
         }
     }
     
@@ -865,23 +842,35 @@ class pos_ReceiptDetails extends core_Detail
         
         expect($receiptId = Request::get('receiptId', 'int'));
         expect($receiptRec = pos_Receipts::fetch($receiptId));
-        $this->requireRightFor('load', (object)array('receiptId' => $receiptId));
-        $this->delete("#receiptId = {$receiptId}");
+        $id = Request::get('loadRecId', 'int');
+        
+        $this->requireRightFor('load', (object)array('receiptId' => $receiptId, 'loadRecId' => $id));
         
         $query = $this->getQuery();
         $query->where("#receiptId = {$receiptRec->revertId}");
+        if(isset($id)){
+            $this->delete("#receiptId = {$receiptId} AND #revertRecId = {$id}");
+            $query->where("#id = {$id}");
+        } else {
+            $this->delete("#receiptId = {$receiptId}");
+        }
         $query->orderBy('id', 'asc');
         
-        while($rec = $query->fetch()){
-            unset($rec->id);
-            if(!empty($rec->amount)) {
-                $rec->amount *= -1;
+        while($exRec = $query->fetch()){
+            if(!empty($exRec->amount)) {
+                $exRec->amount *= -1;
             }
-            if(!empty($rec->quantity)) {
-                $rec->quantity *= -1;
+            if(!empty($exRec->quantity)) {
+                $exRec->quantity *= -1;
             }
-            $rec->receiptId = $receiptId;
-            $this->save($rec);
+            $exRec->receiptId = $receiptId;
+            if(isset($id)){
+                $exRec->revertRecId = $id;
+            } else {
+                $exRec->revertRecId = $exRec->id;
+            }
+            unset($exRec->id);
+            $this->save($exRec);
         }
         
         $this->Master->flushUpdateQueue($receiptId);
@@ -890,7 +879,11 @@ class pos_ReceiptDetails extends core_Detail
         Mode::setPermanent("currentOperation{$receiptId}", (empty($paid)) ? 'add' : 'payment');
         $this->Master->logInAct('Зареждане на всичко от сторнираната бележка', $receiptId);
         
-        followRetUrl();
+        if(Request::get('ajax_mode')){
+            return pos_Terminal::returnAjaxResponse($receiptId, $rec->id, true, true);
+        } else {
+            followRetUrl();
+        }
     }
     
     
