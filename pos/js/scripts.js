@@ -596,6 +596,7 @@ function posActions() {
 	$("body").setShortcutKey( ALT , T ,function() {
 		openText();
 	});
+
 	$("body").setShortcutKey( ALT , N5 ,function() {
 		openDiscount();
 	});
@@ -616,7 +617,7 @@ function posActions() {
 		openInfo();
 	});
 	
-	$("body").setShortcutKey( ALT , N3 ,function() {
+	$("body").setShortcutKey( ALT , N ,function() {
 		openPrint();
 	});
 
