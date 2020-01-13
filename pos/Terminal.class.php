@@ -907,24 +907,20 @@ class pos_Terminal extends peripheral_Terminal
         $canSetContragent = pos_Receipts::haveRightFor('setcontragent', $rec);
         
         $tpl = new core_ET("");
-        $tpl->append(tr("|*<div class='divider'>|Намерени контрагенти|*</div>"));
-        
         if($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId){
             $contragents = array();
             
-            $newCompanyAttr = array('id' => 'contragentnew', 'class' => 'posBtns noEnter');
+            $newCompanyAttr = array('id' => 'contragentnew', 'data-url' => toUrl(array('pos_Terminal', 'transferInNewCompany', 'receiptId' => $rec->id), 'local'), 'class' => 'posBtns');
             if(!crm_Companies::haveRightFor('add') || !pos_Receipts::haveRightFor('transfer', $rec)){
                 $newCompanyAttr['disabled'] = 'disabled';
                 $newCompanyAttr['class'] .= ' disabledBtn';
-                $function = null;
+                unset($newCompanyAttr['data-url']);
             } else {
-                $onlickUrl = toUrl(array('pos_Terminal', 'transferInNewCompany', 'receiptId' => $rec->id), 'local');
-                $function = "var resObj = new Object(); resObj['url'] = '{$onlickUrl}';getEfae().process(resObj);openModal('Създаване на нова фирма');";
                 $newCompanyAttr['class'] .= ' navigable newCompanyBtn';
             }
-            
-            $holderDiv = ht::createFnBtn('Нова фирма', $function, null, $newCompanyAttr);
+            $holderDiv = ht::createElement('div', $newCompanyAttr, 'Нова фирма', true);
             $tpl->append($holderDiv);
+            $tpl->append(tr("|*<div class='divider'>|Намерени контрагенти|*</div>"));
             
             if(!empty($string)){
                 $stringInput = core_Type::getByName('varchar')->fromVerbal($string);

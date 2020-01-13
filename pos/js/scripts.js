@@ -549,6 +549,18 @@ function posActions() {
 		openModal("Виртуална клавиатура", "smallHeight");
 	});
 	
+	// При натискане на бутон за нова фирма
+	$(document.body).on('click', ".newCompanyBtn", function(e){
+		
+		var url = $(this).attr("data-url");
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		getEfae().process(resObj);
+
+		openModal("Създаване на нова фирма");
+	});
+	
 	// При натискане на бутона за клавиатура
 	$(document.body).on('click', ".helpBtn", function(e){
 		
