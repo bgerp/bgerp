@@ -9,6 +9,10 @@
   background: #12008a;
 }
 
+.highlighted {
+  border-color: #f70026 !important;
+}
+
 .posBtns {
   &:focus, &.selected {
     box-shadow: 0px 0px 3px rgb(249, 83, 83) !important;
