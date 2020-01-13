@@ -47,6 +47,10 @@
   background: #eeeeee;
   font-size: 1.2em; }
 
+.revertCaption {
+  color: #cc0000;
+  font-weight: bold; }
+
 .headerContent {
   padding: 12px 0;
   background: #333333;
@@ -308,9 +312,6 @@
     font-size: 2em; }
   .posBtns .nowrap {
     font-size: 0.9em; }
-
-.restore-receipt {
-  background: #ffcccb !important; }
 
 .differentPosBtn {
   text-decoration: underline !important; }

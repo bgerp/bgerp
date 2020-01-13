@@ -55,6 +55,10 @@
 	background: #eee;
 	font-size: 1.2em;
 }
+.revertCaption {
+	color: #cc0000;
+	font-weight: bold;
+}
 .headerContent {
 	padding:12px 0 ;
 	background: #333;
@@ -358,9 +362,7 @@
 		font-size: 0.9em;
 	}
 }
-.restore-receipt {
-	background: #FFCCCB !important;
-}
+
 .differentPosBtn {
 	text-decoration: underline !important;
 }
