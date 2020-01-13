@@ -968,6 +968,8 @@ function render_afterload()
 }
 
 function enter() {
+	if (openedModal) return;
+
 	clearTimeout(timeout);
 	var value = $("input[name=ean]").val();
 	var url = $("input[name=ean]").attr("data-url");
@@ -1037,6 +1039,7 @@ function enter() {
 }
 
 
+var openedModal;
 // Отваря модала
 function openModal(title, heightModal) {
 	
@@ -1050,14 +1053,17 @@ function openModal(title, heightModal) {
 		width: 1000,
 		modal: true,
 		title: title,
+		beforeClose: event.preventDefault(),
+		close: openedModal = false,
 	});
 
 	dialog.dialog( "open" );
+	openedModal = true;
 
-		setTimeout(function(){
-				$('form').find('*').filter(':input:visible:first').focus();
-			},
-			500);
+	setTimeout(function(){
+			$('form').find('*').filter(':input:visible:first').focus();
+		},
+	500);
 }
 
 function startNavigation() {
