@@ -751,7 +751,7 @@ class pos_Terminal extends peripheral_Terminal
         $tpl = new ET('');
         $blocksTpl = getTplFromFile('pos/tpl/terminal/ReceiptDetail.shtml');
         $me = cls::get(get_called_class());
-        $class = ($data->revertsReceipt === false) ? 'receiptRow' : 'revertReceiptRow navigable';
+        $class = ($data->revertsReceipt === false) ? 'receiptRow' : 'receiptRow navigable';
         
         $saleTpl = $blocksTpl->getBlock('sale');
         $paymentTpl = $blocksTpl->getBlock('payment');

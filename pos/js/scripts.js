@@ -61,8 +61,8 @@ function posActions() {
 	});
 
 	
-	// Добавяне на партида
-	$(document.body).on('click', ".revertReceiptRow", function(e){
+	// Добавяне на
+	$(document.body).on('click', "#result-holder .receiptRow", function(e){
 		var url = $(this).attr("data-url");
 		if(!url) return;
 		
@@ -630,7 +630,7 @@ function posActions() {
 		logout();
 	});
 
-	$("body").setShortcutKey( ALT , H ,function() {
+	$("body").setShortcutKey( null , F1 ,function() {
 		openHelp();
 	});
 
