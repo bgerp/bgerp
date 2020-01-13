@@ -315,7 +315,7 @@ class pos_Receipts extends core_Master
         }
        
         if (isset($rec->revertId)) {
-            $row->RECEIPT_CAPTION = tr('Сторно бележка');
+            $row->RECEIPT_CAPTION = "<span class='revertCaption'>" . tr('Сторно бележка') . "</span>";
             $row->PAID_CAPTION = tr('Върнато');
             $row->revertId = ($rec->revertId != self::DEFAULT_REVERT_RECEIPT) ? pos_Receipts::getHyperlink($rec->revertId, true) : ht::createHint(' ', 'Произволна сторнираща бележка', 'warning');
         } elseif($rec->state != 'draft') {

@@ -169,9 +169,6 @@ class pos_Terminal extends peripheral_Terminal
         // Добавяме бележката в изгледа
         $receiptTpl = $this->getReceipt($rec);
         $tpl->replace($receiptTpl, 'RECEIPT');
-        if (isset($rec->revertId)) {
-            $tpl->replace('restore-receipt', 'REVERT_CLASS');
-        }
         
         // Ако не сме в принтиране, сменяме обвивквата и рендираме табовете
         if (!Mode::is('printing')) {

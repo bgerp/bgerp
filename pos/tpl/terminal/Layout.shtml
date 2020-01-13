@@ -4,7 +4,7 @@
 	</div>
 	<div id='single-receipt-holder'>
 		<div id='single-receipt' class='tabs-holder'>
-			<div id = 'receipt-table' class="[#REVERT_CLASS#]">[#RECEIPT#]</div>
+			<div id = 'receipt-table'>[#RECEIPT#]</div>
 		</div>
 		<div id='tools-holder' class='holder tools-content no-print'>
 			[#TAB_TOOLS#]
