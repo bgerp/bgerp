@@ -1431,10 +1431,11 @@ class pos_Terminal extends peripheral_Terminal
         plg_Search::applySearch($data->searchString, $pQuery);
         if(countR($favouriteProductsArr)){
             $pQuery->in("id", array_keys($favouriteProductsArr));
+        } else {
+            $pQuery->limit($this->maxSearchProducts);
         }
         
         $pQuery->show('id,name,isPublic,nameEn,code');
-        $pQuery->limit($this->maxSearchProducts);
         $sellable = $pQuery->fetchAll();
         
         // Ако има стринг и по него отговаря артикул той ще е на първо място
