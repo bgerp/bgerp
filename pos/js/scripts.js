@@ -610,6 +610,7 @@ function posActions() {
 	$("body").setShortcutKey( ALT , F ,function() {
 		openInfo();
 	});
+
 	
 	$("body").setShortcutKey( ALT , L ,function() {
 		openPrint();
@@ -628,6 +629,10 @@ function posActions() {
 	});
 
 	$("body").setShortcutKey( null , F1 ,function() {
+		openHelp();
+	});
+
+	$("body").setShortcutKey(ALT , H ,function() {
 		openHelp();
 	});
 
