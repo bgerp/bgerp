@@ -58,7 +58,7 @@ class backup_Start extends core_Manager
         self::$lockFileName = EF_TEMP_PATH . '/backupLock' . substr(md5(EF_USERS_PASS_SALT . EF_SALT), 0, 5) . '.tmp';
         self::$conf = core_Packs::getConfig('backup');
         $now = date('Y_m_d_H_i');
-        self::$backupFileName = self::$conf->BACKUP_PREFIX . '_' . EF_DB_NAME . '_' . $now . '.full.gz';
+        self::$backupFileName = self::$conf->BACKUP_PREFIX . '_' . EF_DB_NAME . '_' . $now . '.full';
         self::$metaFileName = self::$conf->BACKUP_PREFIX . '_bgERP_backup_META';
         self::$confFileName = self::$conf->BACKUP_PREFIX . '_conf.tar.gz';
         self::$storage = core_Cls::get('backup_' . self::$conf->BACKUP_STORAGE_TYPE);
@@ -88,12 +88,16 @@ class backup_Start extends core_Manager
         // Заключваме цялата система
         core_SystemLock::block('Процес на архивиране на данните', $time = 1800); // 30 мин.
         
+        
         exec('mysqldump --lock-tables --delete-master-logs -u'
             . self::$conf->BACKUP_MYSQL_USER_NAME . ' -p' . self::$conf->BACKUP_MYSQL_USER_PASS . ' ' . EF_DB_NAME
-            . ' | gzip -1 >' . EF_TEMP_PATH . '/' . self::$backupFileName, $output, $returnVar);
+            . ' >' . EF_TEMP_PATH . '/' . self::$backupFileName, $output, $returnVar);
         
         // Освобождаваме системата
         core_SystemLock::remove();
+        
+        // Архивираме файла
+        exec('gzip -1 ' . EF_TEMP_PATH . '/' . self::$backupFileName);
         
         if ($returnVar !== 0) {
             self::logErr('Грешка при FullBackup');
@@ -120,11 +124,11 @@ class backup_Start extends core_Manager
         
         // Ако има дефинирана парола криптираме файловете с данните
         if (self::$conf->BACKUP_CRYPT == 'yes') {
-            self::$backupFileName = self::crypt(self::$backupFileName);
+            self::$backupFileName = self::crypt(self::$backupFileName . ".gz");
         }
         
         // Добавяме нов запис за пълния бекъп
-        $metaArr['backup'][][0] = self::$backupFileName;
+        $metaArr['backup'][][0] = self::$backupFileName . ".gz";
         $metaArr['backupInfo']['CORE_LAST_DB_VERSION'] = core_Setup::get('LAST_DB_VERSION');
         $metaArr['backupInfo']['CORE_CODE_VERSION'] = core_Setup::get('CODE_VERSION');
         $metaArr['backupInfo']['BGERP_GIT_BRANCH'] = BGERP_GIT_BRANCH;
@@ -149,13 +153,13 @@ class backup_Start extends core_Manager
         file_put_contents(EF_TEMP_PATH . '/' . self::$metaFileName, serialize($metaArr));
         
         // Качваме бекъп-а
-        self::$storage->putFile(EF_TEMP_PATH . '/' . self::$backupFileName);
+        self::$storage->putFile(EF_TEMP_PATH . '/' . self::$backupFileName . ".gz");
         
         // Качваме и мета файла
         self::$storage->putFile(EF_TEMP_PATH . '/' . self::$metaFileName);
         
         // Изтриваме бекъп-а от temp-a и metata
-        unlink(EF_TEMP_PATH . '/' . self::$backupFileName);
+        unlink(EF_TEMP_PATH . '/' . self::$backupFileName . ".gz");
         unlink(EF_TEMP_PATH . '/' . self::$metaFileName);
         self::saveConf();
         
