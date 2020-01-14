@@ -285,6 +285,13 @@ class pos_Terminal extends peripheral_Terminal
                 $row->price = currency_Currencies::decorate($Double->toVerbal($price->price));
                 $row->measureId = cat_UoM::getVerbal($productRec->measureId, 'name');
                 $row->info = cat_Products::getVerbal($productRec, 'info');
+                
+                $pRow = cat_Products::recToVerbal($productRec);
+                $row->salePrice = $pRow->salePrice;
+                $row->maxSaleDiscount = $pRow->maxSaleDiscount;
+                $row->deliveryPrice = $pRow->deliveryPrice;
+                $row->storePlace = $pRow->storePlace;
+                
                 if ($productRec->canStore == 'yes') {
                     $stores = pos_Points::getStores($receiptRec->pointId);
                     $row->INSTOCK = '';

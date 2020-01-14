@@ -8,6 +8,11 @@
 
     |Цена|*: [#price#]
 
+	<!--ET_BEGIN salePrice-->Продажна цена: [#salePrice#]<!--ET_END salePrice-->
+	<!--ET_BEGIN maxSaleDiscount-->Максимална ТО: [#maxSaleDiscount#]<!--ET_END maxSaleDiscount-->
+	<!--ET_BEGIN deliveryPrice-->Доставна цена: [#deliveryPrice#]<!--ET_END deliveryPrice-->
+	<!--ET_BEGIN storePlace-->Участък от склада: [#storePlace#]<!--ET_END storePlace-->
+
     [#PARAMETERS#]
     <!--ET_BEGIN PARAM_BLOCK-->
     [#PARAM_BLOCK#]
