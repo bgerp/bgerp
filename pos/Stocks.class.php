@@ -347,6 +347,28 @@ class pos_Stocks extends core_Manager
     
     
     /**
+     * ф-я връщаща най-голямото налично к-во в точката
+     * 
+     * @param int $productId
+     * @param int $pointId
+     * @return double
+     */
+    public static function getBiggestQuantity($productId, $pointId)
+    {
+        $stores = pos_Points::getStores($pointId);
+        $storeArr = array();
+        foreach ($stores as $storeId){
+            $quantity = pos_Stocks::getQuantityByStore($productId, $storeId);
+            $storeArr[$storeId] = $quantity;
+        }
+        
+        arsort($storeArr);
+        
+        return $storeArr[key($storeArr)];
+    }
+    
+    
+    /**
      * Изчиства записите в наличностите в поса
      */
     public function act_Truncate()

@@ -1455,7 +1455,7 @@ class pos_Terminal extends peripheral_Terminal
             
             $price = $price->price * $perPack;
             if ($pRec->canStore == 'yes') {
-                $inStock = pos_Stocks::getQuantity($id, $data->rec->pointId);
+                $inStock = pos_Stocks::getBiggestQuantity($id, $data->rec->pointId);
                 $inStock /= $perPack;
             }
             
