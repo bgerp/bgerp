@@ -8,10 +8,10 @@
 
     <div>|Цена|*: [#price#]</div>
 
-	<!--ET_BEGIN salePrice-->Продажна цена: [#salePrice#]<!--ET_END salePrice-->
-	<!--ET_BEGIN maxSaleDiscount-->Максимална ТО: [#maxSaleDiscount#]<!--ET_END maxSaleDiscount-->
-	<!--ET_BEGIN deliveryPrice-->Доставна цена: [#deliveryPrice#]<!--ET_END deliveryPrice-->
-	<!--ET_BEGIN storePlace-->Участък от склада: [#storePlace#]<!--ET_END storePlace-->
+    <!--ET_BEGIN salePrice--><div>Продажна цена: [#salePrice#]</div><!--ET_END salePrice-->
+    <!--ET_BEGIN maxSaleDiscount--><div>Максимална ТО: [#maxSaleDiscount#]</div><!--ET_END maxSaleDiscount-->
+    <!--ET_BEGIN deliveryPrice--><div>Доставна цена: [#deliveryPrice#]</div><!--ET_END deliveryPrice-->
+    <!--ET_BEGIN storePlace--><div>Участък от склада: [#storePlace#]</div><!--ET_END storePlace-->
 
     [#PARAMETERS#]
     <!--ET_BEGIN PARAM_BLOCK-->
