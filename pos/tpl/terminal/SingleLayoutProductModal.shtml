@@ -4,9 +4,9 @@
     <div>[#name#]</div>
     <div style="margin-bottom: 20px; font-weight: bold"> [#info#]</div>
 
-    |Мярка|*: [#measureId#]
+    <div>|Мярка|*: [#measureId#]</div>
 
-    |Цена|*: [#price#]
+    <div>|Цена|*: [#price#]</div>
 
 	<!--ET_BEGIN salePrice-->Продажна цена: [#salePrice#]<!--ET_END salePrice-->
 	<!--ET_BEGIN maxSaleDiscount-->Максимална ТО: [#maxSaleDiscount#]<!--ET_END maxSaleDiscount-->
@@ -21,11 +21,11 @@
 </div>
 
 <div class="clearfix21"></div>
-<div style="margin: 20px 0;">|Налично|*:</div>
+<div style="margin: 10px 0 0;font-size: 1.1em">|Налично|*:</div>
 [#INSTOCK#]
 <!--ET_BEGIN INSTOCK_BLOCK-->
 [#INSTOCK_BLOCK#]
-<div style="margin: 20px 0; font-size: 1.4em">[#storeId#]: <b>[#inStock#]</b></div>
+<div style="margin: 0px 0 5px; font-size: 1.1em">[#storeId#]: <b>[#inStock#]</b></div>
 <!--ET_END INSTOCK_BLOCK-->
 
 [#Packagings#]
