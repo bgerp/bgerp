@@ -286,10 +286,20 @@ class pos_Terminal extends peripheral_Terminal
                 $row->measureId = cat_UoM::getVerbal($productRec->measureId, 'name');
                 $row->info = cat_Products::getVerbal($productRec, 'info');
                 if ($productRec->canStore == 'yes') {
-                    $inStock = pos_Stocks::getQuantity($productRec->id, $receiptRec->pointId);
-                    $row->inStock = core_Type::getByName('double(smartRound)')->toVerbal($inStock);
-                    $row->inStock = ht::styleIfNegative($row->inStock, $inStock);
-                    $row->inStock .= " " . cat_UoM::getShortName($productRec->measureId);
+                    $stores = pos_Points::getStores($receiptRec->pointId);
+                    $row->INSTOCK = '';
+                    foreach ($stores as $storeId){
+                        $block = clone $modalTpl->getBlock('INSTOCK_BLOCK');
+                        $storeRow = (object)array('storeId' => store_Stores::getTitleById($storeId));
+                        
+                        $inStock = pos_Stocks::getQuantityByStore($productRec->id, $storeId);
+                        $inStockVerbal = core_Type::getByName('double(smartRound)')->toVerbal($inStock);
+                        $inStockVerbal = ht::styleIfNegative($inStockVerbal, $inStock);
+                        
+                        $storeRow->inStock .= "{$inStockVerbal} " . cat_UoM::getShortName($productRec->measureId);
+                        $block->placeObject($storeRow);
+                        $row->INSTOCK .= $block->getContent();
+                    }
                 }
                 
                 $row->preview = $this->getPosProductPreview($productRec->id, 400, 400);

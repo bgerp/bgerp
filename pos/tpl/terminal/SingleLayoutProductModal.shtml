@@ -16,8 +16,11 @@
 </div>
 
 <div class="clearfix21"></div>
-<!--ET_BEGIN inStock-->
-<div style="margin: 20px 0; font-size: 1.4em"> |Налично|*: <b>[#inStock#]</b></div>
-<!--ET_END inStock-->
+<div style="margin: 20px 0;">|Налично|*:</div>
+[#INSTOCK#]
+<!--ET_BEGIN INSTOCK_BLOCK-->
+[#INSTOCK_BLOCK#]
+<div style="margin: 20px 0; font-size: 1.4em">[#storeId#]: <b>[#inStock#]</b></div>
+<!--ET_END INSTOCK_BLOCK-->
 
 [#Packagings#]
