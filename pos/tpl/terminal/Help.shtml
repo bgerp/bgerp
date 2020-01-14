@@ -57,8 +57,8 @@
         <td class="textShortcut"> - Зареждане на артикулите от сторнираната бележка</td>
     </tr>
     <tr>
-        <td class="shortcuts"><span>Alt + E </span></td>
-        <td class="textShortcut"> - Изтриване на бележка</td>
+        <td class="shortcuts"><span>Alt + N </span></td>
+        <td class="textShortcut"> - Оттегляне на бележка</td>
     </tr>
     <tr>
         <td class="shortcuts"><span>Alt + H </span></td>
