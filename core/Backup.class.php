@@ -540,7 +540,7 @@ class core_Backup extends core_Mvc
             // Извличаме от CSV последователно всички таблици
             foreach ($description->files as $file) {
                 $src = $dir . $file;
-                core_App::setTimeLimit(120);
+                core_App::setTimeLimit(1200);
                 list($table, ) = explode('.', $file);
                 $dest = self::unzipToTemp($src, $pass, $log);
                 expect($dest, $src, $pass);
