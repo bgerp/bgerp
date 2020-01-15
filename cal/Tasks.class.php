@@ -3427,17 +3427,6 @@ class cal_Tasks extends embed_Manager
             $cloneTask->folderId = $toFolderId;
             $cloneTask->state = $cloneInState;
             
-            if ($cloneInState == 'active') {
-                $sharedUsersArr = keylist::toArray($cloneTask->sharedUsers);
-                if ($cloneTask->assign) {
-                    $sharedUsersArr += type_Keylist::toArray($cloneTask->assign);
-                }
-                
-                if (empty($sharedUsersArr)) {
-                    $cloneTask->state = 'pending';
-                }
-            }
-            
             // Опит за транслиране на данните
             $startTime = isset($taskRec->timeStart) ? $taskRec->timeStart : (isset($taskRec->timeDuration, $taskRec->timeEnd) ? dt::addSecs(-1 * $taskRec->timeDuration, $taskRec->timeEnd) : null);
             $duration = isset($taskRec->timeDuration) ? $taskRec->timeDuration : (isset($taskRec->timeStart, $taskRec->timeEnd) ? (strtotime($taskRec->timeEnd) - strtotime($taskRec->timeStart)) : null);
@@ -3450,6 +3439,24 @@ class cal_Tasks extends embed_Manager
             }
             if (isset($taskRec->timeEnd)) {
                 $cloneTask->timeEnd = dt::addSecs($duration, $newStart);
+            }
+            
+            if ($cloneInState == 'active') {
+                $sharedUsersArr = keylist::toArray($cloneTask->sharedUsers);
+                if ($cloneTask->assign) {
+                    $sharedUsersArr += type_Keylist::toArray($cloneTask->assign);
+                }
+                
+                $canActivateTasks = self::canActivateTask($cloneTask);
+                $now = dt::verbal2mysql();
+                
+                if (!$canActivateTasks || ($now < $canActivateTasks)) {
+                    if (empty($sharedUsersArr)) {
+                        $cloneTask->state = 'pending';
+                    } else {
+                        $cloneTask->state = 'waiting';
+                    }
+                }
             }
             
             $Tasks->route($cloneTask);
