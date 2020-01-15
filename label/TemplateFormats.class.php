@@ -795,6 +795,18 @@ class label_TemplateFormats extends core_Detail
                             $attr['addText'] = array();
                         }
                         
+                        if ($height < 70) {
+                            $attr['addText']['fontSize'] = barcode_Generator::$fontSize - 3;
+                        }
+                        
+                        if ($height < 60) {
+                            $attr['addText']['fontSize'] = barcode_Generator::$fontSize - 2;
+                        }
+                        
+                        if ($height < 50) {
+                            $attr['addText']['fontSize'] = barcode_Generator::$fontSize - 3;
+                        }
+                        
                         // Добавяме съотношението
                         $attr['ratio'] = $rec->formatParams['Ratio'];
                         
