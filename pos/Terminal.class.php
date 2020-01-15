@@ -1649,7 +1649,6 @@ class pos_Terminal extends peripheral_Terminal
     {
         $rec = $this->fetchRec($rec);
         $tpl = new core_ET("");
-        $today = dt::today();
         
         $string = plg_Search::normalizeText($string);
         $addUrl = (pos_Receipts::haveRightFor('add')) ? array('pos_Receipts', 'new', 'forced' => true) : array();
@@ -1672,19 +1671,20 @@ class pos_Terminal extends peripheral_Terminal
         
         // Добавяне на бутона за нова бележка да е в блока 'Днес'
         $dateBlock = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('RECEIPT_RESULT');
-        $arr = array();
-        if(countR($revertUrl)){
-            $revertBtn = ht::createLink("Сторниране", $revertUrl, 'Наистина ли искате да сторнирате бележката|*?', "id=revertthis,class=pos-notes posBtns revertReceiptBtn {$disabledClass},title=Сторниране на текущата бележка");
-            $tpl->append($revertBtn);
-        }
         
-        $addBtn = ht::createLink("+", $addUrl, null, "id=receiptnew,class=pos-notes posBtns newNoteBtn {$disabledClass},title=Създаване на нова бележка");
+        $addBtn = ht::createLink("Нова бележка", $addUrl, null, "id=receiptnew,class=pos-notes posBtns newNoteBtn {$disabledClass},title=Създаване на нова бележка");
         $tpl->append($addBtn);
         
-        $revertDefaultBtn = ht::createLink("+", $revertDefaultUrl, $disabledRevertWarning, "id=receiptrevertdefault,class=pos-notes posBtns newNoteBtn revertReceiptBtn {$disabledRevertClass},title=Създаване на нова сторно бележка");
-        $tpl->append($revertDefaultBtn);
+        if(countR($revertUrl)){
+            $revertBtn = ht::createLink("Сторниране", $revertUrl, 'Наистина ли искате да сторнирате текущата бележката|*?', "id=revertthis,class=pos-notes posBtns revertReceiptBtn {$disabledClass},title=Сторниране на текущата бележка");
+            $tpl->append($revertBtn);
+        } else {
+            $revertDefaultBtn = ht::createLink("Сторно бележка", $revertDefaultUrl, $disabledRevertWarning, "id=receiptrevertdefault,class=pos-notes posBtns newNoteBtn revertReceiptBtn {$disabledRevertClass},title=Създаване на нова сторно бележка");
+            $tpl->append($revertDefaultBtn);
+        }
         
         // Групиране на записите по дата
+        $arr = array();
         while ($receiptRec = $query->fetch()) {
             if(!array_key_exists($receiptRec->createdDate, $arr)){
                 $arr[$receiptRec->createdDate] = clone $dateBlock;

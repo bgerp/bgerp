@@ -312,8 +312,6 @@
   .posBtns.revertReceiptBtn {
     background: #c00000 !important;
     color: white !important; }
-  .posBtns.newNoteBtn {
-    font-size: 2em; }
   .posBtns .nowrap {
     font-size: 0.9em; }
   .posBtns.deleteRow {
