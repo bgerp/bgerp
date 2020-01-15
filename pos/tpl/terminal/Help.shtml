@@ -12,7 +12,7 @@
     </tr>
     <tr>
         <td class="shortcuts"><span>Alt + K </span></td>
-        <td class="textShortcut"> - Количество на избрания артикул</td>
+        <td class="textShortcut"> - Подробни настройки на избрания ред на артикула</td>
     </tr>
     <tr>
         <td class="shortcuts"><span>Alt + P </span></td>
@@ -20,18 +20,6 @@
     <tr>
         <td class="shortcuts"><span>Alt + C </span></td>
         <td class="textShortcut"> - Избор на контрагент</td>
-    </tr>
-    <tr>
-        <td class="shortcuts"><span>Alt + B </span></td>
-        <td class="textShortcut"> - Избор на партида</td>
-    </tr>
-    <tr>
-        <td class="shortcuts"><span>Alt + W </span></td>
-        <td class="textShortcut"> - Задаване на отстъпка</td>
-    </tr>
-    <tr>
-        <td class="shortcuts"><span>Alt + Z </span></td>
-        <td class="textShortcut"> - Цена на артикула</td>
     </tr>
     <tr>
         <td class="shortcuts"><span>Alt + T </span></td>

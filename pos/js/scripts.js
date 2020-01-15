@@ -435,8 +435,6 @@ function posActions() {
 		
 		var operation = getSelectedOperation();
 		refreshResultByOperation($(this), operation);
-		
-		disableOrEnableBatch();
 	});
 
 
@@ -571,16 +569,8 @@ function posActions() {
 		openPayment();
 	});
 
-	$("body").setShortcutKey( ALT , Z ,function() {
-		openPrice();
-	});
-
 	$("body").setShortcutKey( ALT , T ,function() {
 		openText();
-	});
-
-	$("body").setShortcutKey( ALT , W ,function() {
-		openDiscount();
 	});
 
 	$("body").setShortcutKey( ALT , C ,function() {
@@ -589,10 +579,6 @@ function posActions() {
 
 	$("body").setShortcutKey( ALT , R ,function() {
 		openReceipt();
-	});
-
-	$("body").setShortcutKey( ALT , B ,function() {
-		openBatch();
 	});
 
 	$("body").setShortcutKey( ALT , F ,function() {
@@ -690,11 +676,6 @@ function openClient() {
 	$('.operationBtn[data-value="contragent"]').click();
 }
 
-function openDiscount() {
-	if ($('.operationBtn[data-value="discount"]').length) {
-		$('.operationBtn[data-value="discount"]').click();
-	}
-}
 function logout() {
 	var url = $('.logout.operationHolder').closest('a').attr("href");
 	location.href = url;
@@ -710,17 +691,7 @@ function openText() {
 		$('.operationBtn[data-value="text"]').click();
 	}
 }
-function openBatch() {
-	if ($('.operationBtn[data-value="batch"]').length) {
-		$('.operationBtn[data-value="batch"]').click();
-	}
-}
 
-function openPrice() {
-	if ($('.operationBtn[data-value="price"]').length) {
-		$('.operationBtn[data-value="price"]').click();
-	}
-}
 function openProducts() {
 	$('.operationBtn[data-value="add"]').click();
 }
@@ -809,9 +780,8 @@ function getCurrentElementFromSelectedRow(element){
 	sessionStorage.removeItem("focused");
 	
 	refreshResultByOperation(element, operation);
-	disableOrEnableBatch();
 	
-	if(operation != 'quantity' && operation != 'batch'){
+	if(operation != 'quantity'){
 		scrollAfterKey();
 	}
 }
@@ -822,11 +792,8 @@ function refreshResultByOperation(element, operation){
 	
 	// Ако операцията е партидност и реда няма такава прехвърля се към артикул
 	var click = operation;
-	if(operation == 'batch' && element.hasClass('noBatch')){
-		click = 'add';
-	}
 	
-	if(operation == 'price' || operation == 'discount' || operation == 'quantity' || operation == 'batch' || operation == 'payment'){
+	if(operation == 'quantity' || operation == 'payment'){
 		$('.operationBtn[data-value="' + click+ '"]').click();
 	}
 }
@@ -909,26 +876,6 @@ function render_prepareResult() {
 
 function render_calculateWidth(){
 	calculateWidth();
-}
-
-function disableOrEnableBatch()
-{
-	var element = $(".highlighted.productRow");
-	
-	var batchBtn = $('.operationBtn[data-value="batch"]');
-	if(batchBtn.length){
-		if(element.hasClass('noBatch')){
-			batchBtn.addClass('disabledBtn');
-			batchBtn.attr('disabled', 'disabled');
-		} else {
-			var addBtn = $('.operationBtn[data-value="add"]');
-			
-			if(!addBtn.hasClass('disabledBtn') && element.length){
-				batchBtn.removeClass('disabledBtn');
-				batchBtn.removeAttr("disabled");
-			}
-		}
-	}
 }
 
 // След презареждане
@@ -1121,7 +1068,6 @@ function setInputPlaceholder() {
 
 function afterload() {
 	scrollToHighlight();
-	disableOrEnableBatch();
 	setInputPlaceholder();
 	disableOrEnableEnlargeBtn();
 }

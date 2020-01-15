@@ -60,19 +60,14 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Кои операции са забранени за нови бележки
      */
-    protected static $forbiddenOperationOnEmptyReceipts = array('discount', 'price', 'text', 'quantity', 'payment', 'batch');
+    protected static $forbiddenOperationOnEmptyReceipts = array('text', 'quantity', 'payment');
     
     
     /**
      * Кои операции са забранени за бележки с направено плащане
      */
-    protected static $forbiddenOperationOnReceiptsWithPayment = array('discount', 'price', 'quantity', 'add', 'batch', 'text');
+    protected static $forbiddenOperationOnReceiptsWithPayment = array('quantity', 'add', 'text');
     
-    
-    /**
-     * Кои операции са забранени за сторниращите бележки
-     */
-    protected static $forbiddenOperationOnRevertReceipts = array('discount', 'price');
     
     
     /**
@@ -84,18 +79,18 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Бутони за бърз достъп до терминала
      */
-    protected static $operationShortcuts = 'operation-add=A,operation-payment=P,operation-quantity=K,operation-price=Z,operation-discount=W,operation-text=T,operation-contragent=C,operation-receipts=R,enlarge=F,print=L,operation-batch=B,keyboard=V,exit=X,reject=N,help=H,delete=E';
+    protected static $operationShortcuts = 'operation-add=A,operation-payment=P,operation-quantity=K,operation-text=T,operation-contragent=C,operation-receipts=R,enlarge=F,print=L,keyboard=V,exit=X,reject=N,help=H,delete=E';
 
     /**
      * Кои са разрешените операции
      */
-    protected static $operationsArr = "add=Добавяне на артикул,quantity=Промяна на количеството/опаковката,payment=Плащане по бележката,contragent=Избор на контрагент,batch=Задаване на партида на артикула,discount=Задаване на отстъпка,price=Задаване на цена,text=Текст,receipts=Преглед на бележките";
+    protected static $operationsArr = "add=Добавяне на артикул,quantity=Промяна на реда,payment=Плащане по бележката,contragent=Избор на контрагент,text=Текст,receipts=Преглед на бележките";
 
 
     /**
      * Икони за операциите
      */
-    protected static $operationImgs = array('enlarge' => 'pos/img/search.png', 'print' => 'pos/img/printer.png', 'keyboard' => 'pos/img/keyboard.png', 'operation-add' => 'pos/img/а.png', 'operation-text' =>  'pos/img/comment.png', 'operation-discount' => 'pos/img/sale.png', 'operation-payment' => 'pos/img/dollar.png',  'operation-price' => 'pos/img/price-tag2.png', 'operation-quantity' => 'pos/img/multiply.png',  'operation-add' => 'pos/img/a.png',  'operation-batch' => 'pos/img/P_32x32.png',  'operation-receipts' => 'pos/img/receipt.png', 'operation-contragent' => 'pos/img/right-arrow.png', 'close' => 'pos/img/close.png', 'transfer' => 'pos/img/transfer.png', 'reject' => 'pos/img/cancel.png', 'delete' => 'pos/img/delete.png', 'help' => "pos/img/info.png");
+    protected static $operationImgs = array('enlarge' => 'pos/img/search.png', 'print' => 'pos/img/printer.png', 'keyboard' => 'pos/img/keyboard.png', 'operation-add' => 'pos/img/а.png', 'operation-text' =>  'pos/img/comment.png', 'operation-payment' => 'pos/img/dollar.png', 'operation-quantity' => 'pos/img/multiply.png',  'operation-add' => 'pos/img/a.png',  'operation-receipts' => 'pos/img/receipt.png', 'operation-contragent' => 'pos/img/right-arrow.png', 'close' => 'pos/img/close.png', 'transfer' => 'pos/img/transfer.png', 'reject' => 'pos/img/cancel.png', 'delete' => 'pos/img/delete.png', 'help' => "pos/img/info.png");
 
     
     /**
@@ -539,13 +534,9 @@ class pos_Terminal extends peripheral_Terminal
         foreach ($operations as $operation => $operationCaption){
             $class = ($operation == $currentOperation) ? 'operationBtn active' : 'operationBtn';
             $attr = array('data-url' => $searchUrl, 'class' => $class, 'data-value' => $operation, 'title' => $operationCaption);
-            $disabled = (empty($detailsCount) && in_array($operation, self::$forbiddenOperationOnEmptyReceipts)) || (!empty($rec->paid) && in_array($operation, self::$forbiddenOperationOnReceiptsWithPayment)) || (isset($rec->revertId) && $rec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT && in_array($operation, self::$forbiddenOperationOnRevertReceipts));
+            $disabled = (empty($detailsCount) && in_array($operation, self::$forbiddenOperationOnEmptyReceipts)) || (!empty($rec->paid) && in_array($operation, self::$forbiddenOperationOnReceiptsWithPayment));
             
             if($rec->state != 'draft' && !array_key_exists($operation, $allowedOperationsForNonDraftReceipts)) {
-                $disabled = true;
-            } elseif(($operation == 'discount' || $operation == 'price') && pos_Setup::get('TERMINAL_PRICE_CHANGE') != 'yes'){
-                $disabled = true;
-            } elseif($operation == 'batch' && !core_Packs::isInstalled('batch')){
                 $disabled = true;
             }
             
@@ -694,24 +685,28 @@ class pos_Terminal extends peripheral_Terminal
                 break;
             case 'quantity':
                 $res = $this->renderResultQuantity($rec, $string, $selectedRec);
-                break;
-            case 'discount':
-                $res = $this->renderResultDiscount($rec, $string, $selectedRec);
+                
+                if(core_Packs::isInstalled('batch')){
+                    $res->append($this->renderResultBatches($rec, $string, $selectedRec));
+                }
+                
+                if(pos_Setup::get('TERMINAL_PRICE_CHANGE') == 'yes'){
+                    $res->append(tr("|*<div class='divider'>|Цени|*</div>"));
+                    $res->append($this->renderResultPrice($rec, $string, $selectedRec));
+                    
+                    $res->append(tr("|*<div class='divider'>|Отстъпки|*</div>"));
+                    $res->append($this->renderResultDiscount($rec, $string, $selectedRec));
+                }
+                
                 break;
             case 'text':
                 $res = $this->renderResultText($rec, $string, $selectedRec);
-                break;
-            case 'price':
-                $res = $this->renderResultPrice($rec, $string, $selectedRec);
                 break;
             case 'payment':
                 $res = $this->renderResultPayment($rec, $string, $selectedRec);
                 break;
             case 'contragent':
                 $res = $this->renderResultContragent($rec, $string, $selectedRec);
-                break;
-            case 'batch':
-                $res = $this->renderResultBatches($rec, $string, $selectedRec);
                 break;
             default:
                 $res = " ";
@@ -829,11 +824,14 @@ class pos_Terminal extends peripheral_Terminal
         if($Def = batch_Defs::getBatchDef($receiptRec->productId)){
             $dataUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setbatch');
             
-            $cnt = 0;
-            $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'title' => 'Артикулът да е без партида', 'data-url' => toUrl($dataUrl, 'local')), 'Без партида', true);
-            $tpl->append($btn);
-            
             $batchesInStore = batch_Items::getBatchQuantitiesInStore($receiptRec->productId, $receiptRec->storeId, $rec->valior);
+            if(countR($batchesInStore)){
+                $tpl->append(tr("|*<div class='divider'>|Партиди|*</div>"));
+                $cnt = 0;
+                $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'title' => 'Артикулът да е без партида', 'data-url' => toUrl($dataUrl, 'local')), 'Без партида', true);
+                $tpl->append($btn);
+            }
+            
             foreach ($batchesInStore as $batch => $quantity){
                 $cnt++;
                 $dataUrl['string'] = urlencode($batch);
@@ -903,11 +901,10 @@ class pos_Terminal extends peripheral_Terminal
         
         $tpl = new core_ET("");
         foreach ($discountsArr as $discountPercent){
-            $selected = (trim($selectedRec->discountPercent) == trim($discountPercent)) ? 'selected' : '';
             $discAmount = $discountPercent * 100;
             $url = toUrl(array('pos_ReceiptDetails', 'updateRec', 'receiptId' => $rec->id, 'action' => 'setdiscount', 'string' => "{$discAmount}"), 'local');
             $btnCaption = ($discountPercent == '0') ? tr('Без отстъпка') : "{$discAmount} %";
-            $element = ht::createElement("div", array('id' => "discount{$discountPercent}", 'class' => "navigable posBtns discountBtn {$selected}", 'data-url' => $url), $btnCaption, true);
+            $element = ht::createElement("div", array('id' => "discount{$discountPercent}", 'class' => "navigable posBtns discountBtn", 'data-url' => $url), $btnCaption, true);
             $tpl->append($element);
         }
         $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
