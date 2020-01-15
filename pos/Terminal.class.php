@@ -36,7 +36,13 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * При търсене до колко продукта да се показват в таба
      */
-    protected $maxSearchProducts = 20;
+    protected $maxSearchProducts = 30;
+    
+    
+    /**
+     * При търсене до колко клиента да се показват в таба
+     */
+    protected $maxSearchContragents = 20;
     
     
     /**
@@ -919,6 +925,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $tpl = new core_ET("");
         if($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId){
+            
             $contragents = array();
             
             $newCompanyAttr = array('id' => 'contragentnew', 'data-url' => toUrl(array('pos_Terminal', 'transferInNewCompany', 'receiptId' => $rec->id, 'ret_url' => true)), 'class' => 'posBtns');
@@ -934,44 +941,82 @@ class pos_Terminal extends peripheral_Terminal
             $tpl->append($holderDiv);
             $tpl->append(tr("|*<div class='divider'>|Намерени контрагенти|*</div>"));
             
-            if(!empty($string)){
-                $stringInput = core_Type::getByName('varchar')->fromVerbal($string);
+            $count = 0;
+            $stringInput = core_Type::getByName('varchar')->fromVerbal($string);
+            
+            // Ако има подаден стринг за търсене
+            if(!empty($stringInput)){
+                
+                // Ако има клиентска карта с посочения номер, намира се контрагента ѝ
                 if($cardRec = crm_ext_Cards::fetch("#number = '{$stringInput}'")){
                     $contragents["{$cardRec->contragentClassId}|{$cardRec->contragentId}"] = (object)array('contragentClassId' => $cardRec->contragentClassId, 'contragentId' => $cardRec->contragentId, 'title' => cls::get($cardRec)->getTitleById($cardRec->contragentId));
+                    $count++;
                 }
                 
                 $personClassId = crm_Persons::getClassId();
                 $companyClassId = crm_Companies::getClassId();
                 
+                // Ако има фирма с такъв данъчен или национален номер
                 $cQuery = crm_Companies::getQuery();
                 $cQuery->fetch("#vatId = '{$stringInput}' OR #uicId = '{$stringInput}'");
                 $cQuery->show('id,folderId');
                 while($cRec = $cQuery->fetch()){
                     $contragents["{$companyClassId}|{$cRec->id}"] = (object)array('contragentClassId' => crm_Companies::getClassId(), 'contragentId' => $cRec->id, 'title' => crm_Companies::getTitleById($cRec->id));
+                    $count++;
                 }
                 
+                // Ако има лице с такова егн или данъчен номер
                 $pQuery = crm_Persons::getQuery();
                 $pQuery->fetch("#egn = '{$stringInput}' OR #vatId = '{$stringInput}'");
                 $pQuery->show('id,folderId');
                 while($pRec = $pQuery->fetch()){
                     $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => crm_Persons::getTitleById($cRec->id));
+                    $count++;
                 }
             }
             
+            $searchString = plg_Search::normalizeText($stringInput);
             foreach (array('crm_Companies', 'crm_Persons') as $ContragentClass){
                 $cQuery = $ContragentClass::getQuery();
-                $stringInput = plg_Search::normalizeText($stringInput);
-                plg_Search::applySearch($stringInput, $cQuery);
                 $cQuery->where("#state != 'rejected' AND #state != 'closed'");
-                $cQuery->show('id,folderId');
+                $cQuery->show('id,folderId,name');
                 
+                // Обикалят се всички фирми/лице които съдържат търсения стринг в името си
                 $classId = ($ContragentClass == 'crm_Companies') ? $companyClassId : $personClassId;
                 while($cRec = $cQuery->fetch()){
-                    if(!array_key_exists("{$classId}|{$cRec->id}", $contragents)){
-                        $contragents["{$classId}|{$cRec->id}"] = (object)array('contragentClassId' => $ContragentClass::getClassId(), 'contragentId' => $cRec->id, 'title' => $ContragentClass::getTitleById($cRec->id));
+                    $name = plg_Search::normalizeText($cRec->name);
+                    
+                    // Ако го съдържат в името си се добавят
+                    if(empty($searchString) || strpos($name, $searchString) !== false){
+                        if(!array_key_exists("{$classId}|{$cRec->id}", $contragents)){
+                            $contragents["{$classId}|{$cRec->id}"] = (object)array('contragentClassId' => $ContragentClass::getClassId(), 'contragentId' => $cRec->id, 'title' => $ContragentClass::getTitleById($cRec->id));
+                            $count++;
+                        }
                     }
                     
-                    if(count($contragents) > 20) break;
+                    if($count > $this->maxSearchContragents) break;
+                }
+            }
+            
+            // След това резултатите се допълват с тези отговарящи по ключовите думи
+            if(!empty($searchString)){
+                foreach (array('crm_Companies', 'crm_Persons') as $ContragentClass){
+                    $cQuery = $ContragentClass::getQuery();
+                    $cQuery->where("#state != 'rejected' AND #state != 'closed'");
+                    $cQuery->show('id,folderId,name');
+                    
+                    // Обикалят се всички фирми/лице които съдържат търсения стринг в името си
+                    $classId = ($ContragentClass == 'crm_Companies') ? $companyClassId : $personClassId;
+                    
+                    plg_Search::applySearch($stringInput, $cQuery);
+                    while($cRec = $cQuery->fetch()){
+                        if(!array_key_exists("{$classId}|{$cRec->id}", $contragents)){
+                            $contragents["{$classId}|{$cRec->id}"] = (object)array('contragentClassId' => $ContragentClass::getClassId(), 'contragentId' => $cRec->id, 'title' => $ContragentClass::getTitleById($cRec->id));
+                            $count++;
+                        }
+                        
+                        if($count > $this->maxSearchContragents) break;
+                    }
                 }
             }
             
@@ -1410,10 +1455,21 @@ class pos_Terminal extends peripheral_Terminal
         $count = 0;
         $data->rows = array();
         $favouriteProductsArr = $data->categoriesArr = array();
+        $sellable = array();
+        
+        $folderId = cls::get($data->rec->contragentClass)->fetchField($data->rec->contragentObjectId, 'folderId');
+        $pQuery = cat_Products::getQuery();
+        $pQuery->where("#canSell = 'yes' AND #state = 'active'");
+        $pQuery->where("#isPublic = 'yes' OR (#isPublic = 'no' AND #folderId = '{$folderId}')");
+        $pQuery->show('id,name,isPublic,nameEn,code,canStore,measureId');
+        
+        $Policy = cls::get('price_ListToCustomers');
         
         // Ако не се търси подробно артикул, се показват тези от любими
-        $favouriteProductsArr = array();
         if(empty($data->searchString)){
+            $favouriteProductsArr = array();
+            
+            // Ако има любими категории да се извлекат артикулите към тях
             $data->categoriesArr = pos_FavouritesCategories::prepareAll($data->rec->pointId);
             $categoriesIds = arr::extractValuesFromArray($data->categoriesArr, 'id');
             $favouriteQuery = pos_Favourites::getQuery();
@@ -1422,64 +1478,77 @@ class pos_Terminal extends peripheral_Terminal
             while($favRec = $favouriteQuery->fetch()){
                 $favouriteProductsArr[$favRec->productId] = keylist::toArray($favRec->catId);
             }
-        }
-
-        $folderId = cls::get($data->rec->contragentClass)->fetchField($data->rec->contragentObjectId, 'folderId');
-        $pQuery = cat_Products::getQuery();
-        $pQuery->where("#canSell = 'yes' AND #state = 'active'");
-        $pQuery->where("#isPublic = 'yes' OR (#isPublic = 'no' AND #folderId = '{$folderId}')");
-        plg_Search::applySearch($data->searchString, $pQuery);
-        if(countR($favouriteProductsArr)){
+            
             $pQuery->in("id", array_keys($favouriteProductsArr));
+            $pQuery->orderBy('code,name', 'ASC');
+            $sellable = $pQuery->fetchAll();
+            
         } else {
-            $pQuery->limit($this->maxSearchProducts);
-        }
-        
-        $pQuery->show('id,name,isPublic,nameEn,code');
-        $sellable = $pQuery->fetchAll();
-        
-        // Ако има стринг и по него отговаря артикул той ще е на първо място
-        if(!empty($data->searchString)){
+            $count = 0;
+            $maxCount = $this->maxSearchProducts;
+            
+            // Ако има артикул, чийто код отговаря точно на стринга, той е най-отгоре
             $foundRec = cat_Products::getByCode($data->searchString);
             if(isset($foundRec->productId) && (!isset($data->revertReceiptId) || (isset($data->revertReceiptId) && pos_ReceiptDetails::fetchField("#receiptId = {$data->revertReceiptId} AND #productId = {$foundRec->productId}")))){
-                $sellable = array("{$foundRec->productId}" => (object)array('packId' => isset($foundRec->packagingId) ? $foundRec->packagingId : null)) + $sellable;
+                $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canStore' => cat_Products::fetchField($foundRec->productId, 'canStore'), 'packId' => isset($foundRec->packagingId) ? $foundRec->packagingId : null);
+                $count++;
+            }
+            
+            // След това се добавят артикулите, които съдържат стринга в името и/или кода си
+            $pQuery1 = clone $pQuery;
+            $pQuery1->orderBy('code,name', 'ASC');
+            while($pRec1 = $pQuery1->fetch()){
+                $name = plg_Search::normalizeText($pRec1->name);
+                $code = plg_Search::normalizeText($pRec1->code);
+                if(strpos($name, $data->searchString) !== false || strpos($code, $data->searchString) !== false){
+                    $sellable[$pRec1->id] = (object)array('id' => $pRec1->id, 'canStore' => $pRec1->canStore);
+                    $count++;
+                    $maxCount--;
+                    if($count == $this->maxSearchProducts) break;
+                }
+            }
+            
+            // Ако не е достигнат лимита, се добавят и артикулите с търсене в ключовите думи
+            if($count < $this->maxSearchProducts){
+                $notInKeys = array_keys($sellable);
+                $pQuery2 = clone $pQuery;
+                plg_Search::applySearch($data->searchString, $pQuery2);
+                if(countR($notInKeys)){
+                    $pQuery2->in('id', $notInKeys);
+                }
+                
+                while($pRec2 = $pQuery2->fetch()){
+                    $sellable[$pRec2->id] = (object)array('id' => $pRec2->id, 'canStore' => $pRec2->canStore);
+                    $count++;
+                    $maxCount--;
+                    if($count == $this->maxSearchProducts) break;
+                }
             }
         }
-       
-        if (!count($sellable)) {
-            
-            return;
-        }
         
-        $Policy = cls::get('price_ListToCustomers');
-        foreach ($sellable as $id => $obj) {
-            $pRec = cat_Products::fetch($id, 'canStore,measureId');
-            $inStock = null;
-            
-            if(!isset($obj->packId)){
+        foreach ($sellable as $id => $pRec) {
+            if(!isset($pRec->packId)){
                 $packs = cat_Products::getPacks($id);
                 $packId = key($packs);
             } else {
-                $packId = $obj->packId;
+                $packId = $pRec->packId;
             }
             
             $packRec = cat_products_Packagings::getPack($id, $packId);
             $perPack = (is_object($packRec)) ? $packRec->quantity : 1;
             $price = $Policy->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $packId, 1, $data->rec->createdOn, 1, 'yes');
-            $vat = cat_Products::getVat($id);
             
             // Ако няма цена също го пропускаме
             if (empty($price->price)) continue;
             
+            $vat = cat_Products::getVat($id);
             $price = $price->price * $perPack;
-            if ($pRec->canStore == 'yes') {
-                $inStock = pos_Stocks::getBiggestQuantity($id, $data->rec->pointId);
-                $inStock /= $perPack;
-            }
+            
             
             $obj = (object) array('productId' => $id, 'measureId' => $pRec->measureId, 'price' => $price, 'packagingId' => $packId, 'vat' => $vat);
-            if (isset($inStock)) {
-                $obj->stock = $inStock;
+            if ($pRec->canStore == 'yes') {
+                $obj->stock = pos_Stocks::getBiggestQuantity($id, $data->rec->pointId);
+                $obj->stock /= $perPack;
             }
             
             // Обръщаме реда във вербален вид
