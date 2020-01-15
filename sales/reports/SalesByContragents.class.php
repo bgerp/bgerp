@@ -675,7 +675,10 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 }
             }
         } else {
-            $fld->FLD('groupList', 'keylist(mvc=crm_Groups,select=name)', 'caption=Група контрагенти');
+            
+            if (!is_null($rec->crmGroup) && !is_null($rec->contragent)) {
+                $fld->FLD('groupList', 'keylist(mvc=crm_Groups,select=name)', 'caption=Група контрагенти');
+            }
             $fld->FLD('contragentId', 'varchar', 'caption=Контрагент');
             $fld->FLD('saleValue', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Продажби");
             if (!is_null($rec->seeDelta)) {

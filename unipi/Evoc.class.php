@@ -135,17 +135,18 @@ class unipi_Evoc
         $devId++;
 
         $circuit = 'UART_' . ($devId - 1) . '_' . $devId . '_';
+        $circuit2 = 'UART_' . ($devId - 1) . '_' . ($devId - 2) . '_';
 
         $res = array();
 
         foreach ($this->json_data as $field)
         {
-            if(is_array($field) && strpos($field['circuit'], $circuit) === 0) {
+            if(is_array($field) && (strpos($field['circuit'], $circuit) === 0 || strpos($field['circuit'], $circuit2))) {
                 
                 $res[(int) str_replace($circuit, '', $field['circuit'])] = $field['value'];
             }
         }
-        
+
         ksort($res);
 
         return $res;

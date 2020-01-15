@@ -498,7 +498,9 @@ class core_Backup extends core_Mvc
     public static function restore(&$log)
     {
         core_Debug::$isLogging = false;
-        
+        core_SystemLock::stopIfBlocked();
+        core_SystemLock::block('Възстановяване от бекъп', 1800);  
+
         try {
             core_App::setTimeLimit(120);
             
@@ -520,7 +522,8 @@ class core_Backup extends core_Mvc
             
             if (array_values($res)[0] > 0) {
                 $log[] = 'err: Базата не е празна. Преди възстановяване от бекъп в нея не трябва да има нито една таблица.';
-                
+                core_SystemLock::remove();
+
                 return false;
             }
             
@@ -538,10 +541,12 @@ class core_Backup extends core_Mvc
             
             // Наливаме съдържанието от всички налични CSV файлове
             // Извличаме от CSV последователно всички таблици
+            $cnt = count($description->files);
             foreach ($description->files as $file) {
                 $src = $dir . $file;
-                core_App::setTimeLimit(120);
+                core_App::setTimeLimit(1200);
                 list($table, ) = explode('.', $file);
+                core_SystemLock::block('Възстановяване на ' . basename($file), ($cnt--)*4 + 240);  
                 $dest = self::unzipToTemp($src, $pass, $log);
                 expect($dest, $src, $pass);
                 $log[] = $res = self::importTable($db, $table, $dest);
@@ -555,6 +560,7 @@ class core_Backup extends core_Mvc
             $files = glob($dir . 'log.*.sql.zip');
             asort($files);
             
+            $cnt = count($files);
             foreach ($files as $src) {
                 $time = self::getTimeFromFilemane(basename($src));
                 if ($time <= $description->time) {
@@ -565,17 +571,21 @@ class core_Backup extends core_Mvc
                 $dest = self::unzipToTemp($src, $pass, $log);
                 $sql = file_get_contents($dest);
                 $log[] = 'msg: Прилагане на ' . basename($src);
+                core_SystemLock::block('Възстановяване на ' . basename($src), ($cnt--) * 2 + 30);  
                 $db->multyQuery($sql);
                 unlink($dest);
             }
             
             $log[] = 'msg: Възстановяването завърши успешно';
-            
+            core_SystemLock::remove();
+            core_Os::deleteDirectory(self::$temp);
+
             return true;
         } catch (core_exception_Expect $e) {
             $log[] = 'err: ' . ht::mixedToHtml(array($e->getMessage(), $e->getTraceAsString(), $e->getDebug(), $e->getDump()), 4);
         }
         
+        core_SystemLock::remove();
         core_Os::deleteDirectory(self::$temp);
     }
     

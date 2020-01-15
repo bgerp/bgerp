@@ -167,7 +167,7 @@ class planning_Setup extends core_ProtoSetup
     public $defClasses = 'planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,
                           planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,
                           planning_interface_ImportFromLastBom,planning_interface_StageDriver,planning_reports_Workflows,planning_Terminal,
-                          planning_reports_ArticlesProduced';
+                          planning_reports_ArticlesProduced,planning_reports_ConsumedItemsByJob';
     
     
     /**

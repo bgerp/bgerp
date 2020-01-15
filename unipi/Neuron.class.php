@@ -341,7 +341,7 @@ class unipi_Neuron extends sens2_ProtoDriver
         }
 
         $data = $this->evoc->getJsonData();
-        $html = "<h2>Състояние на UniPI $config->model} на {$config->ip}:{$config->port}</h2>";
+        $html = "<h2>Състояние на UniPI {$config->model} на {$config->ip}:{$config->port}</h2>";
         $html .= ht::mixedToHtml($data);
 
         return $html;
