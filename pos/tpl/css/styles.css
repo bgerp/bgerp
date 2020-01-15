@@ -365,7 +365,7 @@
 .disabledBtn.posBtns {
   background: #999999 !important;
   color: #cccccc !important;
-  cursor: auto; }
+  cursor: auto !important; }
 
 .receiptDateBlock {
   display: block;
