@@ -79,8 +79,8 @@ class sync_Companies extends core_Manager
      */
     public function act_Export()
     {
-        $group = 'Dostavka.BG';
-
+        requireRole('admin');
+        
         $groupId = sync_Setup::get('COMPANY_GROUP');
    
         $res = array();
@@ -102,6 +102,8 @@ class sync_Companies extends core_Manager
      */
     public function act_Import()
     {
+        requireRole('admin');
+        
         $url = sync_Setup::get('EXPORT_URL');
 
         $res = file_get_contents($url);
