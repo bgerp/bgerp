@@ -553,6 +553,7 @@ class pos_Receipts extends core_Master
         
         // Опитваме се да създадем чернова на нова продажба породена от бележката
         if ($sId = sales_Sales::createNewDraft($contragentClassId, $contragentId, $fields)) {
+            sales_Sales::logWrite('Създаване от POS', $sId);
             
             // Намираме продуктите на бележката (трябва да има поне един)
             $products = $this->getProducts($rec->id);
