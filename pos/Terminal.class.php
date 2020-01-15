@@ -1646,9 +1646,7 @@ class pos_Terminal extends peripheral_Terminal
         
         // Добавяне на бутона за нова бележка да е в блока 'Днес'
         $dateBlock = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('RECEIPT_RESULT');
-        $arr = array("{$today}" => clone $dateBlock);
-        $arr[$today]->replace(dt::mysql2verbal($today, 'smartDate'), 'groupName');
-        
+        $arr = array();
         if(countR($revertUrl)){
             $revertBtn = ht::createLink("Сторниране", $revertUrl, 'Наистина ли искате да сторнирате бележката|*?', "id=revertthis,class=pos-notes posBtns revertReceiptBtn {$disabledClass},title=Сторниране на текущата бележка");
             $tpl->append($revertBtn);
