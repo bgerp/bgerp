@@ -1041,6 +1041,7 @@ function startNavigation() {
 		$('#result-holder .navigable').keynav();
 	}
 }
+
 function scrollToHighlight(){
 	if ( $('.highlighted').length) {
 		var offset = $('.highlighted').offset().top - $('.scrolling-vertical').height()  + $('.highlighted').height();
@@ -1049,6 +1050,12 @@ function scrollToHighlight(){
 			scrollTop:  offset
 		}, 0);
 	}
+}
+
+
+function render_scrollToHighlight()
+{
+	scrollToHighlight();
 }
 
 function scrollAfterKey(){
@@ -1067,7 +1074,6 @@ function setInputPlaceholder() {
 }
 
 function afterload() {
-	scrollToHighlight();
 	setInputPlaceholder();
 	disableOrEnableEnlargeBtn();
 }

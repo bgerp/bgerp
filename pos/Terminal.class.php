@@ -1377,6 +1377,7 @@ class pos_Terminal extends peripheral_Terminal
             $tpl->push('pos/js/shortcutkeys.js', 'JS');
             jquery_Jquery::run($tpl, 'posActions();');
             jquery_Jquery::run($tpl, 'afterload();');
+            jquery_Jquery::run($tpl, 'scrollToHighlight();');
             
             jqueryui_Ui::enable($tpl);
         }
@@ -1788,6 +1789,10 @@ class pos_Terminal extends peripheral_Terminal
 
                 $resObj = new stdClass();
                 $resObj->func = 'calculateWidth';
+                $res[] = $resObj;
+                
+                $resObj = new stdClass();
+                $resObj->func = 'scrollToHighlight';
                 $res[] = $resObj;
             }
             
