@@ -361,12 +361,15 @@ function posActions() {
 		sessionStorage.removeItem("focused");
 		var currentlySelected = getSelectedOperation();
 		sessionStorage.setItem('lastSelectedOperation', currentlySelected);
+		var lastHighlighted = sessionStorage.getItem('lastHighlighted');
 		
 		clearTimeout(timeout);
 		var operation = $(this).attr("data-value");
 		
 		var selectedElement = $(".highlighted.productRow");
 		var selectedRecId = selectedElement.attr("data-id");
+		sessionStorage.setItem('lastHighlighted', selectedRecId);
+		
 		
 		var url = $(this).attr("data-url");
 		var disabled = $(this).hasClass("disabledBtn");
@@ -379,7 +382,7 @@ function posActions() {
 		var string = $("input[name=ean]").val();
 		
 		// ако операцията е същата но стринга е празен да не се изпълнява заявката
-		if(!string && operation == currentlySelected){
+		if(!string && operation == currentlySelected && lastHighlighted == selectedRecId){
 			console.log('prevent trigger on repeated click');
 			
 			return;
@@ -791,8 +794,9 @@ function doPayment(url, type){
 
 // При натискане на pageUp
 function pageUp(){
-
 	var current = $('#receipt-table .receiptRow.highlighted');
+	sessionStorage.setItem('lastHighlighted', current.attr('data-id'));
+	
 	if(current.length && $(current).prev('.receiptRow').length) {
 		var newElement = $(current).prev('.receiptRow');
 		newElement.addClass('highlighted');
@@ -804,6 +808,8 @@ function pageUp(){
 // При натискане на pageDown
 function pageDown(){
 	var current = $('#receipt-table .receiptRow.highlighted');
+	sessionStorage.setItem('lastHighlighted', current.attr('data-id'));
+	
 	if(current.length && $(current).next('.receiptRow').length) {
 		var newElement = $(current).next('.receiptRow');
 		newElement.addClass('highlighted');
