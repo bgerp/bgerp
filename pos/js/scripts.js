@@ -15,8 +15,7 @@ function posActions() {
 		})
 	});
 
-	var text = $('.large-field.select-input-pos').val();
-	$('.large-field.select-input-pos').focus().val('').val(text);
+	$('.large-field.select-input-pos').focus();
 
 	// Забраняване на скалирането, за да избегнем забавяне
 	if(isTouchDevice()){

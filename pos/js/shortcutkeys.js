@@ -126,8 +126,7 @@ var QUOTE = 222; 		// SINGLE QUOTE
 					AltMod = true;
 					e.preventDefault();
 				}else if($('input[type=text]').length == 1 ) {
-					var text = $('.large-field.select-input-pos').val();
-					$('.large-field.select-input-pos').focus().val('').val(text);
+					$('.large-field.select-input-pos').focus();
 				}
 
 				 // Check key
