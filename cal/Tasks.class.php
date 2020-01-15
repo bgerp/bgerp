@@ -3458,6 +3458,12 @@ class cal_Tasks extends embed_Manager
                         $cloneTask->state = 'waiting';
                     }
                 }
+                
+                if ($cloneTask->state == 'active') {
+                    if ($cond = cal_TaskConditions::fetch(array("#baseId = '[#1#]'", $taskRec->id))) {
+                        $cloneTask->state = 'waiting';
+                    }
+                }
             }
             
             $Tasks->route($cloneTask);

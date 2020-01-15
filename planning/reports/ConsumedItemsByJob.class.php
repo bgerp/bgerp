@@ -28,7 +28,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $sortableListFields = 'consumedQuantity,returnedQuantity,totalAmount,totalQuantity';
+    protected $sortableListFields = 'code,name, consumedQuantity,returnedQuantity,totalAmount,totalQuantity';
     
     
     /**
@@ -64,7 +64,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields;
+    protected $changeableFields = 'jobses, from, to, groups';
     
     
     /**
@@ -75,7 +75,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         //Задания
-        $fieldset->FLD('jobses', 'keylist(mvc=planning_Jobs,allowEmpty)', 'caption=Задания,placeholder=Всички активни,after=title,single=none');
+        $fieldset->FLD('jobses', 'keylist(mvc=planning_Jobs,allowEmpty)', 'caption=Задания,placeholder=Избери задание,after=title,single=none,mandatory');
         
         //Период
         $fieldset->FLD('from', 'date', 'caption=От,after=jobses,single=none,mandatory');
@@ -89,7 +89,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         }
         
         //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(name=Артикул, code=Код,amount=Стойност,consumedQuantity=Вложено,returnedQuantity=Върнато,total=Общо)', 'caption=Подреждане по,after=groups');
+        $fieldset->FLD('orderBy', 'enum(name=Артикул, code=Код,amount=Стойност,consumedQuantity=Вложено,returnedQuantity=Върнато,total=Общо)', 'caption=Подреждане по,after=groups,single=none');
     }
     
     
@@ -121,16 +121,25 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $rec = $form->rec;
         
         $form->setDefault('orderBy', 'code');
+        $suggestions = array();
+        foreach (keylist::toArray($rec->jobses) as $val){
+            
+            $suggestions[$val]= planning_Jobs::getTitleById($val);
+        }
+       
+        $stateArr = array('active','wakeup');
         
         $jQuery = planning_Jobs::getQuery();
-        $jQuery->where("#state = 'active'");
+        $jQuery->in('state', $stateArr);
         $jQuery->show('productId');
-        
+       
         
         while ($jRec = $jQuery->fetch()) {
-            $suggestions[$jRec->id] = planning_Jobs::getTitleById($jRec->id);
+            if (!array_key_exists($jRec->id, $suggestions)) {
+                $suggestions[$jRec->id] = planning_Jobs::getTitleById($jRec->id);
+            }
         }
-        
+       
         asort($suggestions);
         
         $form->setSuggestions('jobses', $suggestions);
@@ -155,20 +164,24 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             
             //Масив с ID-та на нишките на избраните ЗАДАНИЯ - $jobsThreadArr
             $jobsThreadArr[$val] = planning_Jobs::fetchField($val, 'threadId');
-            $jobsContainersArr[$val] = planning_Jobs::fetchField($val, 'containerId');
+            $jobsContainersArr[planning_Jobs::fetchField($val, 'threadId')] = planning_Jobs::fetchField($val, 'containerId');
             
         }
-       //  bp($jobsThreadArr);
-        $tQuery = planning_Tasks::getQuery();
-        $tQuery->in('containerId', $jobsContainersArr);
+        if (!empty($jobsContainersArr)){
+            $tQuery = planning_Tasks::getQuery();
+            $tQuery->where("#state != 'rejected'");
+            $tQuery->in('originId', $jobsContainersArr);
+            
+           
+            while ($tRec = $tQuery->fetch()){
+               
+                if (in_array($tRec->threadId, $jobsThreadArr))continue;
+                $jobsThreadArr[$tRec->originId] = $tRec->threadId;
+                
+            }
         
-        while ($tRec = $tQuery->fetch()){
-            
-            if (in_array($tRec->threadId, $jobsThreadArr))continue;
-          //  $jobsThreadArr[$tRec->threadId] = $tRec->threadId;
-            
         }
-       
+        
         //Вложени и върнати артикули в нишките на заданията
         
         $mvcArr = array('planning_DirectProductionNote' => 'planning_DirectProductNoteDetails',
@@ -176,6 +189,8 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             'planning_ConsumptionNotes'=>'planning_ConsumptionNoteDetails'
         );
         foreach ($mvcArr as $master => $details) {
+            
+           
         
         //Вложени и върнати артикули по протоколи, които са в нишките на избраните задания
             $pQuery = $details::getQuery();
@@ -186,12 +201,15 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
             $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
             $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
-            
+             
             
             $pQuery->where(array("#valior >= '[#1#]' AND #valior <= '[#2#]'",$rec->from . ' 00:00:01',$rec->to . ' 23:59:59'));
+           
+            
             $pQuery->where("#state != 'rejected'");
             $pQuery->where("#canStore != 'no'");
             $pQuery->in('threadId', ($jobsThreadArr));
+            
             
             //Филтър по група артикули
             if (isset($rec->groups)) {
@@ -216,6 +234,8 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                 }
                 $code = $pRec->code ? $pRec->code : 'Art' . $pRec->productId;
                 
+                $name = cat_Products::fetch($pRec->productId)->name;
+                
                 $id = $pRec->productId;
                 
                 //Себестойност на артикула
@@ -227,7 +247,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                         
                         'productId' => $pRec->productId,                            //Id на артикула
                         'code' => $code,                                            //код на артикула
-                        'name' => cat_Products::getTitleById($pRec->productId),     //Име на артикула
+                        'name' => $name,                                            //Име на артикула
                         'selfPrice' => $selfPrice,                                  //Себестойност на артикула
                         'consumedQuantity' => $consumedQuantity,                    //Вложено количество
                         'returnedQuantity' => $returnedQuantity,                    //Върнато количество
@@ -282,7 +302,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
         
         $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered');
-        $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+        $fld->FLD('name', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
         $fld->FLD('consumedQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Количество->Вложено');
         $fld->FLD('returnedQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Количество->Върнато');
@@ -315,7 +335,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $row->code = $dRec->code;
         }
         if (isset($dRec->productId)) {
-            $row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name');
+            $row->name = cat_Products::getLinkToSingle_($dRec->productId, 'name');
         }
         
         $row->measure = cat_UoM::fetchField(cat_Products::fetch($dRec->productId)->measureId, 'shortName');
@@ -369,10 +389,8 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                 <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
                                 <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
-                                <small><div><!--ET_BEGIN storeId-->|Склад|*: [#storeId#]<!--ET_END storeId--></div></small>
+                                <small><div><!--ET_BEGIN jobses-->|Избрани задания|*: [#jobses#]<!--ET_END jobses--></div></small>
                                 <small><div><!--ET_BEGIN groups-->|Групи продукти|*: [#groups#]<!--ET_END groups--></div></small>
-                                <small><div><!--ET_BEGIN minCost-->|Мин. наличност|*: [#minCost#] ${currency}<!--ET_END minCost--></div></small>
-                                <small><div><!--ET_BEGIN reversibility-->|Мин. обращаемост|*: [#reversibility#]<!--ET_END reversibility--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
         if (isset($data->rec->from)) {
             $fieldTpl->append('<b>' .$Date->toVerbal($data->rec->from) . '</b>', 'from');
@@ -398,6 +416,33 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $groupVerb . '</b>', 'groups');
         } else {
             $fieldTpl->append('<b>' . 'Всички' . '</b>', 'groups');
+        }
+        
+        $marker = 0;
+        if (isset($data->rec->jobses)) {
+            foreach (type_Keylist::toArray($data->rec->jobses) as $job) {
+                $marker++;
+                
+                $jRec = planning_Jobs::fetch($job);
+                
+                $jContainer = $jRec->containerId;
+                
+                $Job = doc_Containers::getDocument($jContainer);
+                
+                $handle = $Job->getHandle();
+                
+                $singleUrl = $Job->getUrlWithAccess($Job->getInstance(), $job);
+                
+                $jobVerb .= ht::createLink("#{$handle}", $singleUrl);
+               
+                if ((countR((type_Keylist::toArray($data->rec->jobses))) - $marker) != 0) {
+                    $jobVerb .= ', ';
+                }
+            }
+            
+            $fieldTpl->append('<b>' . $jobVerb . '</b>', 'jobses');
+        } else {
+            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'jobses');
         }
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
