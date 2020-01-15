@@ -3487,6 +3487,9 @@ class cal_Tasks extends embed_Manager
                 if(array_key_exists($condRec->dependId, $taskMap)){
                     $condRec->dependId = $taskMap[$condRec->dependId];
                     
+                    unset($condRec->createdOn);
+                    unset($condRec->createdBy);
+                    
                     unset($condRec->id);
                     cal_TaskConditions::save($condRec);
                 }
