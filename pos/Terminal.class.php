@@ -566,7 +566,7 @@ class pos_Terminal extends peripheral_Terminal
         
         // Бутон за печат на бележката
         $img = ht::createImg(array('path' => self::$operationImgs["print"]));
-        $buttons["print"] = (object)array('body' => $img, 'attr' => array('title' => 'Печат на бележката', 'class' => 'operationBtn printBtn'), 'linkUrl' => array('pos_Terminal', 'Open', 'receiptId' => $rec->id, 'Printing' => true), 'newWindow' => true);
+        $buttons["print"] = (object)array('body' => $img, 'attr' => array('title' => 'Печат на бележката', 'class' => 'operationBtn printBtn', 'onclick' => 'location.reload();'), 'linkUrl' => array('pos_Terminal', 'Open', 'receiptId' => $rec->id, 'Printing' => true), 'newWindow' => true);
         
         // Бутон за увеличение на избрания артикул
         $img = ht::createImg(array('path' => self::$operationImgs["keyboard"]));
