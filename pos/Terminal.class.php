@@ -228,8 +228,8 @@ class pos_Terminal extends peripheral_Terminal
                                     'ID' => pos_Receipts::getVerbal($rec->id, 'id'),
                                     'TIME' => $this->renderCurrentTime(),
                                     'valior' => pos_Receipts::getVerbal($rec->id, 'valior'),
-                                    'contragentId' => cls::get($rec->contragentClass)->getTitleById($rec->contragentObjectId),
                                     'userId' => core_Users::getVerbal(core_Users::getCurrent(), 'nick'));
+        $headerData->contragentId = (!empty($rec->transferedIn)) ? sales_Sales::getRecTitle($rec->transferedIn) : cls::get($rec->contragentClass)->getTitleById($rec->contragentObjectId);
         
         $tpl->append(ht::createImg(array('path' => 'img/16/bgerp.png')), 'OTHER_ELEMENTS');
         $tpl->placeObject($headerData);        

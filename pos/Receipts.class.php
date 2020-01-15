@@ -325,7 +325,11 @@ class pos_Receipts extends core_Master
             $row->PAID_CAPTION = tr('Върнато');
             $row->revertId = ($rec->revertId != self::DEFAULT_REVERT_RECEIPT) ? pos_Receipts::getHyperlink($rec->revertId, true) : ht::createHint(' ', 'Произволна сторнираща бележка', 'warning');
         } elseif($rec->state != 'draft') {
-            $row->RECEIPT_CAPTION = $row->state;
+            if(isset($rec->transferedIn)){
+                $row->RECEIPT_CAPTION = tr('Прехвърлена');
+            } else {
+                $row->RECEIPT_CAPTION = $row->state;
+            }
         }
         
         // показваме датата на последната модификация на документа, ако е активиран
