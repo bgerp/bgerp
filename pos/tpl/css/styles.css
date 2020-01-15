@@ -32,6 +32,8 @@
     .wide .result-content .receiptRow.navigable.selected {
       border: 3px solid #080f56;
       box-shadow: 0px 0px 3px #0000fa !important; }
+  .wide .result-content .receiptRow.disabledBtn {
+    cursor: auto !important; }
 
 .tools-content {
   height: 500px;
@@ -317,6 +319,9 @@
   .posBtns.deleteRow {
     background: #c00000 !important;
     color: white !important; }
+  .posBtns.reload {
+    color: black !important;
+    background: #dddddd !important; }
 
 .differentPosBtn {
   text-decoration: underline !important; }

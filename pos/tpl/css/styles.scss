@@ -38,6 +38,10 @@
 			box-shadow: 0px 0px 3px rgba(0,0,250,1) !important;
 		}
 	}
+	
+	.receiptRow.disabledBtn {
+		cursor:auto !important;
+	}	
 }
 
 .tools-content {
@@ -365,6 +369,11 @@
 	&.deleteRow {
 		background: #c00000 !important;
 		color: #FFF !important;
+	}
+	
+	&.reload{
+		color: #000 !important;
+		background: #ddd !important;
 	}
 }
 

@@ -84,7 +84,7 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Бутони за бърз достъп до терминала
      */
-    protected static $operationShortcuts = 'operation-add=A,operation-payment=P,operation-quantity=K,operation-price=Z,operation-discount=W,operation-text=T,operation-contragent=C,operation-receipts=R,enlarge=F,print=L,operation-batch=B,keyboard=V,exit=X,reject=N,help=H,reload=S,delete=E';
+    protected static $operationShortcuts = 'operation-add=A,operation-payment=P,operation-quantity=K,operation-price=Z,operation-discount=W,operation-text=T,operation-contragent=C,operation-receipts=R,enlarge=F,print=L,operation-batch=B,keyboard=V,exit=X,reject=N,help=H,delete=E';
 
     /**
      * Кои са разрешените операции
@@ -95,7 +95,7 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Икони за операциите
      */
-    protected static $operationImgs = array('enlarge' => 'pos/img/search.png', 'print' => 'pos/img/printer.png', 'keyboard' => 'pos/img/keyboard.png', 'operation-add' => 'pos/img/а.png', 'operation-text' =>  'pos/img/comment.png', 'operation-discount' => 'pos/img/sale.png', 'operation-payment' => 'pos/img/dollar.png',  'operation-price' => 'pos/img/price-tag2.png', 'operation-quantity' => 'pos/img/multiply.png',  'operation-add' => 'pos/img/a.png',  'operation-batch' => 'pos/img/P_32x32.png',  'operation-receipts' => 'pos/img/receipt.png', 'operation-contragent' => 'pos/img/right-arrow.png', 'close' => 'pos/img/close.png', 'transfer' => 'pos/img/transfer.png', 'reject' => 'pos/img/cancel.png', 'delete' => 'pos/img/delete.png', 'reload' => "pos/img/reload.png", 'help' => "pos/img/info.png");
+    protected static $operationImgs = array('enlarge' => 'pos/img/search.png', 'print' => 'pos/img/printer.png', 'keyboard' => 'pos/img/keyboard.png', 'operation-add' => 'pos/img/а.png', 'operation-text' =>  'pos/img/comment.png', 'operation-discount' => 'pos/img/sale.png', 'operation-payment' => 'pos/img/dollar.png',  'operation-price' => 'pos/img/price-tag2.png', 'operation-quantity' => 'pos/img/multiply.png',  'operation-add' => 'pos/img/a.png',  'operation-batch' => 'pos/img/P_32x32.png',  'operation-receipts' => 'pos/img/receipt.png', 'operation-contragent' => 'pos/img/right-arrow.png', 'close' => 'pos/img/close.png', 'transfer' => 'pos/img/transfer.png', 'reject' => 'pos/img/cancel.png', 'delete' => 'pos/img/delete.png', 'help' => "pos/img/info.png");
 
     
     /**
@@ -572,18 +572,6 @@ class pos_Terminal extends peripheral_Terminal
         $img = ht::createImg(array('path' => self::$operationImgs["keyboard"]));
         $buttons["keyboard"] = (object)array('body' => $img, 'attr' => array('title' => 'Отваряне на виртуална клавиатура', 'data-url' => toUrl(array('pos_Terminal', 'Keyboard'), 'local'), 'class' => "keyboardBtn"));
         
-        $reloadAttr = array('class' => "reloadBtn", 'title' => 'Зареждане на артикулите от сторнираната бележка');
-        $reloadUrl = (pos_ReceiptDetails::haveRightFor('load', (object)array('receiptId' => $rec->id))) ? array('pos_ReceiptDetails', 'load', 'receiptId' => $rec->id, 'from' => $rec->revertId, 'ret_url' => true) : null;
-        if(empty($rec->revertId) || $rec->revertId == pos_Receipts::DEFAULT_REVERT_RECEIPT || !count($reloadUrl)){
-            $reloadAttr['class'] .= ' disabledBtn';
-            $reloadAttr['disabled'] = 'disabled';
-            unset($reloadAttr['title']);
-            $reloadUrl = null;
-        }
-        
-        $img = ht::createImg(array('path' => self::$operationImgs["reload"]));
-        $buttons["reload"] = (object)array('body' => $img, 'attr' => $reloadAttr, 'linkUrl' => $reloadUrl);
-        
         $img = ht::createImg(array('path' => self::$operationImgs["keyboard"]));
         $buttons["keyboard"] = (object)array('body' => $img, 'attr' => array('title' => 'Отваряне на виртуална клавиатура', 'data-url' => toUrl(array('pos_Terminal', 'Keyboard'), 'local'), 'class' => "keyboardBtn"));
         
@@ -755,6 +743,21 @@ class pos_Terminal extends peripheral_Terminal
         $tpl = new core_ET("<div class='divider'>[#receiptName#]</div>[#details#]");
         $tpl->append(pos_Receipts::getRecTitle($revertRec), 'receiptName');
         $tpl->append($detailsTpl, 'details');
+        
+        if($rec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
+            $reloadAttr = array('id' => "reload{$rec->id}", 'class' => 'posBtns reload', 'title' => 'Зареждане на артикулите от сторнираната бележка');
+            
+            if(pos_ReceiptDetails::haveRightFor('load', (object)array('receiptId' => $rec->id))){
+                $reloadUrl = array('pos_ReceiptDetails', 'load', 'receiptId' => $rec->id, 'from' => $rec->revertId, 'ret_url' => true);
+                $reloadAttr['class'] .= ' navigable';
+            } else {
+                $reloadAttr['class'] .= ' disabledBtn';
+                $reloadUrl = null;
+            }
+            
+            $link = ht::createLink('Всички', $reloadUrl, 'ddd', $reloadAttr);
+            $tpl->append($link, 'details');
+        }
         
         return $tpl;
     }
