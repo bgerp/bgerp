@@ -597,7 +597,7 @@ class core_Backup extends core_Mvc
     {
         static $maxMysqlQueryLength;
         if (!isset($maxMysqlQueryLength)) {
-            $maxMysqlQueryLength = $db->getVariable('max_allowed_packet') - 1000;
+            $maxMysqlQueryLength = $db->getVariable('max_allowed_packet') - 100000;
         }
         
         $handle = fopen($dest, 'r');
@@ -617,13 +617,15 @@ class core_Backup extends core_Mvc
                         $db->query($query);
                         $query = '';
                     } catch (Exception $e) {
+                        $query = substr($query, 0, 1000);
                         $res = "err: Грешка при изпълняване на `{$query}`";
+                        return $res;
                     }
                 }
                 $query .= ($query ? ",\n" : "\n") . "({$line})";
             } while ($line !== false);
             fclose($handle);
-            $рес = 'msg: Импортиране на ' . $table;
+            $res = 'msg: Импортиране на ' . $table;
         } else {
             // Не може да се отвори файла
             $res = "err: Не може да се отвори файла `{$dest}`";
