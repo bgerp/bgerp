@@ -3419,6 +3419,7 @@ class cal_Tasks extends embed_Manager
         });
         
         $dateDiff = dt::secsBetween($newStartDate, $minDate);
+        $taskMap = array();
         
         foreach ($tasks as $taskRec) {
             $cloneTask = clone $taskRec;
@@ -3464,8 +3465,26 @@ class cal_Tasks extends embed_Manager
                 self::calculateExpectationTime($cloneTask);
             }
             $Tasks->save($cloneTask);
+            $taskMap[$taskRec->id] = $cloneTask->id;
             
             $Tasks->logWrite('Създаване при клониране на проект', $cloneTask->id);
+        }
+        
+        // Ако има копирани записи
+        if(countR($taskMap)){
+            
+            // Копират се зависимостите на клонираните задачи, ако сочат към други клонирани задачи
+            $condQuery = cal_TaskConditions::getQuery();
+            $condQuery->in('baseId', array_keys($taskMap));
+            while($condRec = $condQuery->fetch()){
+                $condRec->baseId = $taskMap[$condRec->baseId];
+                if(array_key_exists($condRec->dependId, $taskMap)){
+                    $condRec->dependId = $taskMap[$condRec->dependId];
+                    
+                    unset($condRec->id);
+                    cal_TaskConditions::save($condRec);
+                }
+            }
         }
     }
 }
