@@ -544,7 +544,7 @@ class core_Backup extends core_Mvc
             $cnt = count($description->files);
             foreach ($description->files as $file) {
                 $src = $dir . $file;
-                core_App::setTimeLimit(120);
+                core_App::setTimeLimit(1200);
                 list($table, ) = explode('.', $file);
                 core_SystemLock::block('Възстановяване на ' . basename($file), ($cnt--)*4 + 240);  
                 $dest = self::unzipToTemp($src, $pass, $log);
