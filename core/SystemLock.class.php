@@ -47,7 +47,7 @@ class core_SystemLock
         if ($str = @file_get_contents($setupLockFile)) {
             list($startTimeEx, $lockTimeEx, $msgEx) = explode("\n", $str, 3);
             if ($startTimeEx > 0 && ($startTime - $startTimeEx) < $time * 1.2) {
-                $startTime = $startTimeEx;
+                // $startTime = $startTimeEx;
             }
         }
         
