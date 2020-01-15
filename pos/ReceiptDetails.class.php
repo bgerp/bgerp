@@ -247,6 +247,8 @@ class pos_ReceiptDetails extends core_Detail
                     $sucessMsg = 'Количеството на реда е променено|*!';
                     break;
                case 'setdiscount':
+                   expect(pos_Setup::get('TERMINAL_PRICE_CHANGE') == 'yes', 'Операцията не е разрешена');
+                   
                    $discount = core_Type::getByName('percent')->fromVerbal($firstValue);
                    if(isset($discount)){
                        expect($discount >= 0 && $discount <= 1, 'Отстъпката трябва да е между 0% и 100%');
@@ -258,6 +260,8 @@ class pos_ReceiptDetails extends core_Detail
                    
                    break;
                case 'setprice':
+                   expect(pos_Setup::get('TERMINAL_PRICE_CHANGE') == 'yes', 'Операцията не е разрешена');
+                   
                    if(!empty($firstValue)){
                        expect($price = core_Type::getByName('double')->fromVerbal($firstValue), 'Не е зададена цена');
                        $price /= 1 + $rec->param;

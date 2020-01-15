@@ -543,7 +543,7 @@ class pos_Terminal extends peripheral_Terminal
             
             if($rec->state != 'draft' && !array_key_exists($operation, $allowedOperationsForNonDraftReceipts)) {
                 $disabled = true;
-            } elseif($operation == 'discount' && pos_Setup::get('SHOW_DISCOUNT_BTN') != 'yes'){
+            } elseif(($operation == 'discount' || $operation == 'price') && pos_Setup::get('TERMINAL_PRICE_CHANGE') != 'yes'){
                 $disabled = true;
             } elseif($operation == 'batch' && !core_Packs::isInstalled('batch')){
                 $disabled = true;
@@ -1632,6 +1632,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $disabledClass = (pos_Receipts::haveRightFor('add')) ? 'navigable' : 'disabledBtn';
         $disabledRevertClass = countR($revertDefaultUrl) ? 'navigable' : 'disabledBtn';
+        $disabledRevertWarning = countR($revertDefaultUrl) ? 'Наистина ли искате да създадете нова сторно бележка|*?' : false;
         
         // Намираме всички чернови бележки и ги добавяме като линк
         $query = pos_Receipts::getQuery();
@@ -1656,7 +1657,7 @@ class pos_Terminal extends peripheral_Terminal
         $addBtn = ht::createLink("+", $addUrl, null, "id=receiptnew,class=pos-notes posBtns newNoteBtn {$disabledClass},title=Създаване на нова бележка");
         $tpl->append($addBtn);
         
-        $revertDefaultBtn = ht::createLink("+", $revertDefaultUrl, 'Наистина ли искате да създадете нова сторно бележка|*?', "id=receiptrevertdefault,class=pos-notes posBtns newNoteBtn revertReceiptBtn {$disabledRevertClass},title=Създаване на нова сторно бележка");
+        $revertDefaultBtn = ht::createLink("+", $revertDefaultUrl, $disabledRevertWarning, "id=receiptrevertdefault,class=pos-notes posBtns newNoteBtn revertReceiptBtn {$disabledRevertClass},title=Създаване на нова сторно бележка");
         $tpl->append($revertDefaultBtn);
         
         // Групиране на записите по дата

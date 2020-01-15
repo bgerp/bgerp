@@ -77,6 +77,12 @@ class pos_Receipts extends core_Master
     
     
     /**
+     * Кой може да сторнира?
+     */
+    public $canRevert = 'pos, ceo';
+    
+    
+    /**
      * Кой може да плати?
      */
     public $canPay = 'pos, ceo';
