@@ -3470,6 +3470,8 @@ class cal_Tasks extends embed_Manager
             if ($cloneTask->state != 'draft' &&  $cloneTask->state != 'rejected') {
                 self::calculateExpectationTime($cloneTask);
             }
+            
+            unset($cloneTask->sharedViews);
             $Tasks->save($cloneTask);
             $taskMap[$taskRec->id] = $cloneTask->id;
             
