@@ -157,7 +157,7 @@ function posActions() {
 
 			getEfae().process(resObj, {operation:operation,search:inpVal,recId:selectedRecId});
 
-		}, 700);
+		}, 2000);
 	});
 	
 	
@@ -377,8 +377,14 @@ function posActions() {
 		resObj['url'] = url;
 		
 		sessionStorage.setItem('operationClicked', true);
+		var data = {operation:operation,recId:selectedRecId};
+		if(activeInput){
+			data.search = string;
+		}
 		
-		getEfae().process(resObj, {operation:operation,recId:selectedRecId,search:string});
+		console.log(data);
+		
+		getEfae().process(resObj, data);
 		activeInput = false;
 		scrollToHighlight();
 	});
