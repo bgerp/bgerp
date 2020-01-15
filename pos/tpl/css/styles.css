@@ -316,6 +316,9 @@
     font-size: 2em; }
   .posBtns .nowrap {
     font-size: 0.9em; }
+  .posBtns.deleteRow {
+    background: #c00000 !important;
+    color: white !important; }
 
 .differentPosBtn {
   text-decoration: underline !important; }

@@ -480,7 +480,7 @@ class pos_ReceiptDetails extends core_Detail
     public function act_DeleteRec()
     {
         $this->requireRightFor('delete');
-        expect($id = Request::get('recId', 'int'));
+        expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         $this->requireRightFor('delete', $id);
         
@@ -522,7 +522,6 @@ class pos_ReceiptDetails extends core_Detail
     {
         $receiptRec = $mvc->Master->fetch($rec->receiptId, 'createdOn,revertId,paid');
         $row->currency = acc_Periods::getBaseCurrencyCode($receiptRec->createdOn);
-        $canDelete = ($mvc->haveRightFor('delete', $rec) && !Mode::is('printing'));
         
         $action = $mvc->getAction($rec->action);
         switch ($action->type) {
@@ -542,16 +541,6 @@ class pos_ReceiptDetails extends core_Detail
                     unset($row->quantity, $row->value);
                 }
                 break;
-        }
-        
-        // Ако може да изтриваме ред и не сме в режим принтиране
-        if ($canDelete) {
-            $delUrl = toUrl(array($mvc->className, 'deleteRec'), 'local');
-            $row->DEL_BTN = ht::createElement('img', array('src' => sbf('img/16/deletered.png', ''),
-                'class' => 'pos-del-btn', 'data-recId' => $rec->id,
-                'title' => 'Изтриване на реда',
-                'data-warning' => tr('|Наистина ли искате да изтриете реда|*?'),
-                'data-url' => $delUrl));
         }
     }
     

@@ -191,7 +191,7 @@ class pos_Terminal extends peripheral_Terminal
                 $tpl->replace($toolsTpl, 'TAB_TOOLS');
                 
                 // Добавяне на табовете показващи се в широк изглед отстрани
-                $lastRecId = pos_ReceiptDetails::getLastRec($rec->id, 'sale')->id;
+                $lastRecId = pos_ReceiptDetails::getLastRec($rec->id)->id;
                 $resultTabHtml = $this->renderResult($rec, $defaultOperation, $defaultSearchString, $lastRecId);
                 $tpl->append($resultTabHtml, 'SEARCH_RESULT');
             }
@@ -661,7 +661,7 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         if(!is_object($selectedRec)){
-            $selectedRecId = pos_ReceiptDetails::getLastRec($id, 'sale')->id;
+            $selectedRecId = pos_ReceiptDetails::getLastRec($id)->id;
         }
         
         $string = Request::get('search', 'varchar');
@@ -782,6 +782,11 @@ class pos_Terminal extends peripheral_Terminal
                     } else {
                         $row->ROW_CLASS .= ' disabledBtn';
                     }
+                }
+                
+                if(pos_ReceiptDetails::haveRightFor('delete', $id)){
+                    $row->DATA_DELETE_URL = toUrl(array('pos_ReceiptDetails', 'deleteRec', $id), 'local');
+                    $row->DATA_DELETE_WARNING = tr('|Наистина ли искате да изтриете реда|*?');
                 }
                 
                 $action = cls::get('pos_ReceiptDetails')->getAction($data->rows[$id]->action);
@@ -1111,6 +1116,10 @@ class pos_Terminal extends peripheral_Terminal
             $tpl->append($btnObject->body, $btnObject->placeholder);
         }
         
+        if(!empty($rec->paid)){
+            $tpl->append($this->renderDeleteRowBtn($selectedRec), 'PAYMENTS');
+        }
+        
         $tpl->append("<div class='clearfix21'></div>");
         $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
         
@@ -1152,6 +1161,8 @@ class pos_Terminal extends peripheral_Terminal
             $buttons[$packRec->packagingId] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => "{$baseClass} {$selected}", 'data-pack' => $packName, 'data-url' => $dataUrl), tr($btnCaption), true);
             $count++;
         }
+        
+        $buttons["delete{$selectedRec->id}"] = $this->renderDeleteRowBtn($selectedRec);
         
         $query = pos_ReceiptDetails::getQuery();
         $query->where("#productId = {$selectedRec->productId} AND #action = 'sale|code' AND #quantity > 0");
@@ -1209,6 +1220,21 @@ class pos_Terminal extends peripheral_Terminal
         $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Добавяне на бутон за изтриване на реда
+     * 
+     * @param stdClass $selectedRec
+     * @return core_ET
+     */
+    private function renderDeleteRowBtn($selectedRec)
+    {
+        $deleteAttr = array('id' => "delete{$selectedRec->id}", 'class' => "posBtns deleteRow", 'title' => 'Изтриване на реда');
+        $deleteAttr['class'] .= (pos_ReceiptDetails::haveRightFor('delete', $selectedRec)) ? ' navigable' : ' disabledBtn';
+       
+        return ht::createElement("div", $deleteAttr, tr('Изтриване'), true);
     }
     
     

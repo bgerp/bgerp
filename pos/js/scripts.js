@@ -209,25 +209,10 @@ function posActions() {
 		getEfae().process(resObj, data);
 		activeInput = false;
 	});
-
+	
 	// При клик на бутон изтрива запис от бележката
-	$(document.body).on('click', ".pos-del-btn", function(e){
-		var warning = $(this).attr("data-warning");
-		var url = $(this).attr("data-url");
-		var recId = $(this).attr("data-recId");
-		e.stopPropagation();
-		
-		if (!confirm(warning)){
-			
-			return false; 
-		} else {
-			
-			$(this).closest('.receiptRow').css('border', '1px solid red');
-			resObj = new Object();
-			resObj['url'] = url;
-			
-			getEfae().process(resObj, {recId:recId});
-		}
+	$(document.body).on('click', ".deleteRow", function(e){
+		deleteSelectedElement();
 	});
 	
 	// При клик на бутон добавя отстъпка
@@ -366,7 +351,7 @@ function posActions() {
 		clearTimeout(timeout);
 		var operation = $(this).attr("data-value");
 		
-		var selectedElement = $(".highlighted.productRow");
+		var selectedElement = $(".highlighted.receiptRow");
 		var selectedRecId = selectedElement.attr("data-id");
 		sessionStorage.setItem('lastHighlighted', selectedRecId);
 		
@@ -392,7 +377,7 @@ function posActions() {
 		resObj['url'] = url;
 		
 		sessionStorage.setItem('operationClicked', true);
-
+		
 		getEfae().process(resObj, {operation:operation,recId:selectedRecId,search:string});
 		activeInput = false;
 		scrollToHighlight();
@@ -571,7 +556,7 @@ function posActions() {
 	});
 	
 	$("body").setShortcutKey( ALT , D ,function() {
-		 deleteElement();
+		 deleteSelectedElement();
 	});
 
 	$("body").setShortcutKey( ALT , A ,function() {
@@ -841,7 +826,7 @@ function refreshResultByOperation(element, operation){
 		click = 'add';
 	}
 	
-	if(operation == 'price' || operation == 'discount' || operation == 'quantity' || operation == 'batch'){
+	if(operation == 'price' || operation == 'discount' || operation == 'quantity' || operation == 'batch' || operation == 'payment'){
 		$('.operationBtn[data-value="' + click+ '"]').click();
 	}
 }
@@ -885,12 +870,27 @@ function getSelectedOperation()
 	return operation;
 }
 
-// Изтриване на елемент
-function deleteElement() {
-	if($('#receipt-table .receiptRow.highlighted').length) {
-		$('#receipt-table .receiptRow.highlighted').find('.pos-del-btn').click();
+// Изтриване на текущия селектиран елемент елемент
+function deleteSelectedElement() {
+	var selectedElement = $(".highlighted.receiptRow");
+	if(!selectedElement.length) return;
+	
+	var warning = selectedElement.attr("data-delete-warning");
+	var url = selectedElement.attr("data-delete-url");
+	if(!url) return;
+	
+	if (!confirm(warning)){
+		
+		return false; 
 	}
+	
+	selectedElement.closest('.receiptRow').css('border', '1px solid red');
+	resObj = new Object();
+	resObj['url'] = url;
+	
+	getEfae().process(resObj);
 }
+
 function render_prepareResult() {
 	startNavigation();
 	activeInput = false;

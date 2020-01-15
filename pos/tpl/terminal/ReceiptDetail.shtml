@@ -1,6 +1,6 @@
 <!--ET_BEGIN sale-->
-<div data-id='[#id#]' data-url = '[#DATA_URL#]' class='[#ROW_CLASS#] productRow [#CLASS#]' title = '|Селектиране на реда|*'>
-	<div class="receiptProduct">[#productId#] [#DEL_BTN#] <div class="fright"> [#amount#]</div></div>
+<div data-id='[#id#]' data-url = '[#DATA_URL#]' data-delete-url = '[#DATA_DELETE_URL#]' data-delete-warning = '[#DATA_DELETE_WARNING#]' class='[#ROW_CLASS#] productRow [#CLASS#]' title = '|Селектиране на реда|*'>
+	<div class="receiptProduct">[#productId#] <div class="fright"> [#amount#]</div></div>
 	<!--ET_BEGIN storeId--><div class="subStoreId no-print">|Склад|*: [#storeId#]</div><!--ET_END storeId-->
 
 	<!--ET_BEGIN text--><div class="subText indent"> [#text#]</div><!--ET_END text-->
@@ -13,5 +13,5 @@
 <!--ET_END sale-->
 
 <!--ET_BEGIN payment-->
-<div data-url = '[#DATA_URL#]' class="receiptPayment paymentRow [#ROW_CLASS#] [#CLASS#]">[#paymentCaption#] [#actionValue#]: [#DEL_BTN#]&nbsp; <div class="fright">[#amount#] </div></div>
+<div data-id='[#id#]' data-url = '[#DATA_URL#]' data-delete-url = '[#DATA_DELETE_URL#]' data-delete-warning = '[#DATA_DELETE_WARNING#]' class="receiptPayment paymentRow [#ROW_CLASS#] [#CLASS#]">[#paymentCaption#] [#actionValue#]: &nbsp; <div class="fright">[#amount#] </div></div>
 <!--ET_END payment-->

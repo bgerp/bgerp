@@ -365,6 +365,10 @@
 	.nowrap {
 		font-size: 0.9em;
 	}
+	&.deleteRow {
+		background: #c00000 !important;
+		color: #FFF !important;
+	}
 }
 
 .differentPosBtn {
