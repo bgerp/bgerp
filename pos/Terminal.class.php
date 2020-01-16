@@ -1055,10 +1055,11 @@ class pos_Terminal extends peripheral_Terminal
             }
             
             // Добавя бутон за премахване на избрания контрагент
-            $transferImg = ht::createImg(array('path' => 'pos/img/a.png'));
-            $transferBtnBody = new core_ET(tr("|*<span class='resultButtonIcon'>[#IMG#]</span><span class='resultButtonCaption'>|Прехвърляне|*</span>"));
+            $transferImg = ht::createImg(array('path' => 'pos/img/right-arrow.png'));
+            $transferBtnBody = new core_ET(tr("|*[#IMG#]|Прехвърляне|*"));
             $transferBtnBody->replace($transferImg, 'IMG');
-           
+
+            $transferDivAttr['class'] .= " imgDiv";
             $holderDiv = ht::createElement('div', $transferDivAttr, $transferBtnBody, true);
             $tpl->append($holderDiv);
             if(!$canSetContragent){
@@ -1069,9 +1070,10 @@ class pos_Terminal extends peripheral_Terminal
                 $divAttr['class'] .= ' navigable';
             }
             
-            $removeImg = ht::createImg(array('path' => 'pos/img/a.png'));
-            $removeBtnBody = new core_ET(tr("|*<span class='resultButtonIcon'>[#IMG#]</span><span class='resultButtonCaption'>|Премахване|*</span>"));
+            $removeImg = ht::createImg(array('path' => 'pos/img/stop.png'));
+            $removeBtnBody = new core_ET(tr("|*[#IMG#]|Премахване|*"));
             $removeBtnBody->replace($removeImg, 'IMG');
+            $divAttr['class'] .= " imgDiv";
             $holderDiv = ht::createElement('div', $divAttr, $removeBtnBody, true);
             $tpl->append($holderDiv);
             

@@ -288,6 +288,20 @@
   border-radius: 3px;
   box-shadow: rgba(233, 233, 233, 0.5) 1px 1px 0 0 inset, 2px 2px 3px rgba(0, 0, 0, 0.1);
   position: relative; }
+  .posBtns.imgDiv {
+    padding-left: 50px !important;
+    text-align: left; }
+    .posBtns.imgDiv img {
+      position: absolute;
+      left: 10px;
+      top: 15px; }
+    .posBtns.imgDiv:focus,
+    .posBtns.imgDiv.selected {
+      padding-left: 48px !important; }
+      .posBtns.imgDiv:focus img,
+      .posBtns.imgDiv.selected img {
+        left: 8px;
+        top: 13px; }
   .posBtns.printReceiptBtn {
     flex-direction: row;
     margin: 5px 5px 10px 10px;
