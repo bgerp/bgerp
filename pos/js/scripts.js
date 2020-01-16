@@ -4,6 +4,7 @@ var timeout;
 
 function posActions() {
 
+	console.log("POS ACTIONS: false");
 	activeInput = false;
 	$(document.body).on('input', "input[name=ean]", function(e){
 		var userText = $(this).val();
@@ -58,6 +59,8 @@ function posActions() {
 		}
 		var e = jQuery.Event("keyup");
 		$('.select-input-pos').trigger(e);
+		
+		console.log("NUM PAD: true");
 		activeInput = true;
 	});
 
@@ -132,6 +135,8 @@ function posActions() {
 		
 		// Хак да не се тригърва ивента при натискане на ентър или при навигацията на страницата за избор на селектиран елемент
 		if(e.key == "Enter" || e.key == "ArrowRight" || e.key == "ArrowLeft" || e.key == "ArrowUp" || e.key == "ArrowDown"  || e.key == "PageUp" || e.key == "PageDown" || e.key == 'Alt') return;
+		
+		console.log("KEYUP: " + e.key + " - true");
 		activeInput = true;
 
 		// След всяко натискане на бутон изчистваме времето на изчакване
@@ -206,6 +211,8 @@ function posActions() {
 		resObj['url'] = url;
 		
 		getEfae().process(resObj, data);
+		
+		console.log("ADD ITEM: false");
 		activeInput = false;
 	});
 	
@@ -282,6 +289,8 @@ function posActions() {
 		// Задействаме евент 'keyup' в инпут полето
 		var e = jQuery.Event("keyup");
 		$('.select-input-pos').trigger(e);
+		
+		console.log("KEYBOARD TRUE: false");
 		activeInput = true;
 	});
 
@@ -291,10 +300,13 @@ function posActions() {
 			var e = jQuery.Event("keyup");
 			$('.select-input-pos').trigger(e);
 		}
+		
+		console.log("MODAL: true");
 		activeInput = true;
 	});
 
 	document.addEventListener("keydown", function(event) {
+		
 		if(event.key == "ArrowUp"){
 			arrowUp();
 		}
@@ -309,6 +321,7 @@ function posActions() {
 		if(event.key == "ArrowRight") {
 			arrowRight();
 		}
+		
 		if(event.key == "PageDown"){
 			pageDown();
 		}
@@ -319,6 +332,8 @@ function posActions() {
 		if(event.key == "Enter"){
 			enter();
 		}
+		
+		console.log("KEYDOWN " + event.key + " - " + activeInput);
 	});
 
 	startNavigation();
@@ -335,6 +350,8 @@ function posActions() {
 		var inpValLength = $(".keyboardText").text().length;
 		var newVal = $(".keyboardText").text().substr(0, inpValLength-1);
 		$(".keyboardText").text(newVal);
+		
+		console.log("BACK: true");
 		activeInput = true;
 	});
 
@@ -381,9 +398,9 @@ function posActions() {
 			data.search = string;
 		}
 		
-		console.log(data);
-		
 		getEfae().process(resObj, data);
+		
+		console.log("OPERATION CLICK: false");
 		activeInput = false;
 		scrollToHighlight();
 	});
@@ -419,6 +436,8 @@ function posActions() {
 		
 		getEfae().process(resObj, {productId:productId});
 		calculateWidth();
+		
+		console.log("ADD ITEM: false");
 		activeInput = false;
 	});
 	
@@ -769,6 +788,7 @@ function doPayment(url, type){
 
 // При натискане на pageUp
 function pageUp(){
+	activeInput = false;
 	var current = $('#receipt-table .receiptRow.highlighted');
 	sessionStorage.setItem('lastHighlighted', current.attr('data-id'));
 	
@@ -782,6 +802,7 @@ function pageUp(){
 
 // При натискане на pageDown
 function pageDown(){
+	activeInput = false;
 	var current = $('#receipt-table .receiptRow.highlighted');
 	sessionStorage.setItem('lastHighlighted', current.attr('data-id'));
 	
@@ -818,7 +839,7 @@ function refreshResultByOperation(element, operation){
 }
 
 function arrowDown(){
-
+	activeInput = false;
 	var current = $('#pos-search-result-table .rowBlock.active');
 	if(current.length) {
 		$(current).next().addClass('active');
@@ -828,6 +849,7 @@ function arrowDown(){
 }
 
 function arrowUp(){
+	activeInput = false;
 	var current = $('#pos-search-result-table .rowBlock.active');
 	if(current.length) {
 		$(current).prev().addClass('active');
@@ -837,10 +859,12 @@ function arrowUp(){
 }
 
 function arrowRight(){
+	activeInput = false;
 	disableOrEnableEnlargeBtn();
 }
 
 function arrowLeft(){
+	activeInput = false;
 	disableOrEnableEnlargeBtn();
 }
 
@@ -879,7 +903,9 @@ function deleteSelectedElement() {
 
 function render_prepareResult() {
 	startNavigation();
-	activeInput = false;
+	
+	//console.log("RENDER: false");
+	//activeInput = false;
 
 	// Бутона за увеличение да се дисейбва ако няма избран селектиран ред
 	if($('.enlargeProductBtn').length){
