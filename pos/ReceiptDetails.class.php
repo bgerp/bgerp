@@ -185,6 +185,7 @@ class pos_ReceiptDetails extends core_Detail
         expect($receiptRec = pos_Receipts::fetch($receiptId));
         $success = true;
         $skip = false;
+        $refreshResult = true;
         
         try{
             $id = Request::get('recId', 'int');
@@ -278,6 +279,7 @@ class pos_ReceiptDetails extends core_Detail
                    
                    $rec->text = (!empty($text)) ? $text : null;
                    $sucessMsg = 'Променено пояснение на реда|*!';
+                   $refreshResult = false;
                    break;
                case 'setbatch':
                    expect(core_Packs::isInstalled('batch'), 'Пакета за партидности не е инсталиран');
@@ -337,7 +339,7 @@ class pos_ReceiptDetails extends core_Detail
             }
         }
         
-        return pos_Terminal::returnAjaxResponse($receiptId, $id, $success, true);
+        return pos_Terminal::returnAjaxResponse($receiptId, $id, $success, true, true, $refreshResult);
     }
     
     
