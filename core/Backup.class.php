@@ -499,7 +499,7 @@ class core_Backup extends core_Mvc
     {
         core_Debug::$isLogging = false;
         core_SystemLock::stopIfBlocked();
-        core_SystemLock::block('Възстановяване от бекъп', 1800);  
+        core_SystemLock::block('Възстановяване от бекъп', 1800);
 
         try {
             core_App::setTimeLimit(120);
@@ -546,7 +546,7 @@ class core_Backup extends core_Mvc
                 $src = $dir . $file;
                 core_App::setTimeLimit(1200);
                 list($table, ) = explode('.', $file);
-                core_SystemLock::block('Възстановяване на ' . basename($file), ($cnt--)*4 + 240);  
+                core_SystemLock::block('Възстановяване на ' . basename($file), ($cnt--) * 4 + 240);
                 $dest = self::unzipToTemp($src, $pass, $log);
                 expect($dest, $src, $pass);
                 $log[] = $res = self::importTable($db, $table, $dest);
@@ -571,7 +571,7 @@ class core_Backup extends core_Mvc
                 $dest = self::unzipToTemp($src, $pass, $log);
                 $sql = file_get_contents($dest);
                 $log[] = 'msg: Прилагане на ' . basename($src);
-                core_SystemLock::block('Възстановяване на ' . basename($src), ($cnt--) * 2 + 30);  
+                core_SystemLock::block('Възстановяване на ' . basename($src), ($cnt--) * 2 + 30);
                 $db->multyQuery($sql);
                 unlink($dest);
             }
@@ -597,7 +597,7 @@ class core_Backup extends core_Mvc
     {
         static $maxMysqlQueryLength;
         if (!isset($maxMysqlQueryLength)) {
-            $maxMysqlQueryLength = $db->getVariable('max_allowed_packet') - 1000;
+            $maxMysqlQueryLength = $db->getVariable('max_allowed_packet')/2;
         }
         
         $handle = fopen($dest, 'r');
@@ -611,19 +611,26 @@ class core_Backup extends core_Mvc
                 }
                 if ($line === false || (strlen($query) + strlen($line) > $maxMysqlQueryLength)) {
                     try {
+                        if(!strlen($query) && strlen($line)) {
+                            $query = $line;
+                        }
                         $query = "INSERT INTO `{$table}` ({$cols}) VALUES " . $query;
                         
                         //@file_put_contents("C:\\xampp\\htdocs\\ef_root\\uploads\\bgerp\\backup_work\query.log", $query);
-                        $db->query($query);
+                        $link = $db->connect();
+                        $link->query($query);
                         $query = '';
                     } catch (Exception $e) {
+                        $query = substr($query, 0, 1000);
                         $res = "err: Грешка при изпълняване на `{$query}`";
+
+                        return $res;
                     }
                 }
                 $query .= ($query ? ",\n" : "\n") . "({$line})";
             } while ($line !== false);
             fclose($handle);
-            $рес = 'msg: Импортиране на ' . $table;
+            $res = 'msg: Импортиране на ' . $table;
         } else {
             // Не може да се отвори файла
             $res = "err: Не може да се отвори файла `{$dest}`";
