@@ -400,7 +400,7 @@ function posActions() {
 		
 		getEfae().process(resObj, data);
 		
-		console.log("OPERATION CLICK: false");
+		console.log("OPERATION " + operation + " : string: " + data.search);
 		activeInput = false;
 		scrollToHighlight();
 	});
