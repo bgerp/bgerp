@@ -600,20 +600,27 @@ class price_ProductCosts extends core_Manager
         $productArr = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
         
         // Извличане на данните за покупки за тези артикули
+        $valiorFrom = dt::verbal2mysql(dt::addMonths(-12), false);
+        
         $res = array();
         $purQuery = purchase_PurchasesData::getQuery();
         $purQuery->in('productId', $productArr);
-        $purQuery->where("#state != 'rejected'");
+        $purQuery->where("#state != 'rejected' AND #valior >= '{$valiorFrom}'");
         $purQuery->show('quantity,price,productId,expenses');
         $purQuery->orderBy('valior,id', "DESC");
         $all = $purQuery->fetchAll();
+        
+        $groupedArr = array();
+        foreach($all as $purRec) {
+            $groupedArr[$purRec->productId][] = $purRec;
+        }
         
         // Нормализираме записите
         foreach ($productKeys as $productId) {
             
             // Всички покупки на търсения артикул
             $accObject = $accCosts[$productId];
-            $foundIn = array_filter($all, function ($a) use ($productId){return $a->productId == $productId;});
+            $foundIn = array_key_exists($productId, $groupedArr) ? $groupedArr[$productId] : array();
             
             $useFirstPurchase = true;
             $averageAmount = 0;
@@ -656,7 +663,7 @@ class price_ProductCosts extends core_Manager
             }
             
             // Ако има НЕ положителна наличност, но има покупки, взима се цената от първата
-            if($useFirstPurchase === true && countR($foundIn)){
+            if($useFirstPurchase === true && !empty($foundIn)){
                 $foundIn = $foundIn[key($foundIn)];
                 $averageAmount = $foundIn->price;
             }
