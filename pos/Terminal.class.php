@@ -510,10 +510,10 @@ class pos_Terminal extends peripheral_Terminal
         
         $value = round(abs($rec->total) - abs($rec->paid), 2);
         $value = ($value > 0) ? $value : null;
-        $inputValue = ($operation == 'payment') ? $value : Mode::get("currentSearchString{$rec->id}");
+        $inputValue = ($operation != 'payment') ? Mode::get("currentSearchString{$rec->id}") : null;
         
         $searchUrl = toUrl(array($this, 'displayOperation', 'receiptId' => $rec->id), 'local');
-        $params = array('name' => 'ean', 'value' => $inputValue, 'type' => 'text', 'class'=> 'large-field select-input-pos', 'data-url' => $inputUrl, 'data-keyupurl' => $keyupUrl, 'title' => 'Въвеждане', 'list' => 'suggestions', 'autocomplete' => 'off');
+        $params = array('name' => 'ean', 'value' => $inputValue, 'type' => 'text', 'class'=> 'large-field select-input-pos', 'data-url' => $inputUrl, 'data-keyupurl' => $keyupUrl, 'data-defaultpayment' => $value, 'title' => 'Въвеждане', 'list' => 'suggestions', 'autocomplete' => 'off');
         if(Mode::is('screenMode', 'narrow')) {
             $params['readonly'] = 'readonly';
         }
@@ -560,9 +560,6 @@ class pos_Terminal extends peripheral_Terminal
         $buttons["print"] = (object)array('body' => $img, 'attr' => array('title' => 'Печат на бележката', 'class' => 'operationBtn printBtn', 'onclick' => 'location.reload();'), 'linkUrl' => array('pos_Terminal', 'Open', 'receiptId' => $rec->id, 'Printing' => true), 'newWindow' => true);
         
         // Бутон за увеличение на избрания артикул
-        $img = ht::createImg(array('path' => self::$operationImgs["keyboard"]));
-        $buttons["keyboard"] = (object)array('body' => $img, 'attr' => array('title' => 'Отваряне на виртуална клавиатура', 'data-url' => toUrl(array('pos_Terminal', 'Keyboard'), 'local'), 'class' => "keyboardBtn"));
-        
         $img = ht::createImg(array('path' => self::$operationImgs["keyboard"]));
         $buttons["keyboard"] = (object)array('body' => $img, 'attr' => array('title' => 'Отваряне на виртуална клавиатура', 'data-url' => toUrl(array('pos_Terminal', 'Keyboard'), 'local'), 'class' => "keyboardBtn"));
         

@@ -742,6 +742,9 @@ function scrollRecieptBottom(){
 function doPayment(url, type){
 	if(!url || !type) return;
 	var amount = $("input[name=ean]").val();
+	if(!amount){
+		amount = $("input[name=ean]").attr('data-defaultpayment');
+	}
 	
 	var data = {amount:amount, type:type};
 	
@@ -1073,9 +1076,17 @@ function scrollAfterKey(){
 // Добавя хинт
 function setInputPlaceholder() {
 	var activeElement = $("div.operationBtn.active");
-	var title = activeElement.attr("title");
+	var operation = getSelectedOperation();
+	var placeholder = activeElement.attr("title");
 	
-	$("input[name=ean]").attr("placeholder", title);
+	if(operation == 'payment'){
+		var defaultPayment = $("input[name=ean]").attr("data-defaultpayment");
+		if(defaultPayment){
+			placeholder = defaultPayment;
+		}
+	}
+	
+	$("input[name=ean]").attr("placeholder", placeholder);	
 }
 
 function afterload() {
