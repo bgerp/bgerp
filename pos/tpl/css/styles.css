@@ -324,6 +324,7 @@
     background: #dddddd !important; }
   .posBtns.locationBtn {
     color: white !important;
+    font-size: 1em;
     background: #374bbe !important; }
     .posBtns.locationBtn.currentLocation {
       background: #53a163 !important; }
