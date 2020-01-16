@@ -1055,7 +1055,11 @@ class pos_Terminal extends peripheral_Terminal
             }
             
             // Добавя бутон за премахване на избрания контрагент
-            $holderDiv = ht::createElement('div', $transferDivAttr, 'Прехвърляне', true);
+            $transferImg = ht::createImg(array('path' => 'pos/img/a.png'));
+            $transferBtnBody = new core_ET(tr("|*<span class='resultButtonIcon'>[#IMG#]</span><span class='resultButtonCaption'>|Прехвърляне|*</span>"));
+            $transferBtnBody->replace($transferImg, 'IMG');
+           
+            $holderDiv = ht::createElement('div', $transferDivAttr, $transferBtnBody, true);
             $tpl->append($holderDiv);
             if(!$canSetContragent){
                 $divAttr['disabled'] = 'disabled';
@@ -1065,7 +1069,10 @@ class pos_Terminal extends peripheral_Terminal
                 $divAttr['class'] .= ' navigable';
             }
             
-            $holderDiv = ht::createElement('div', $divAttr, 'Премахване', true);
+            $removeImg = ht::createImg(array('path' => 'pos/img/a.png'));
+            $removeBtnBody = new core_ET(tr("|*<span class='resultButtonIcon'>[#IMG#]</span><span class='resultButtonCaption'>|Премахване|*</span>"));
+            $removeBtnBody->replace($removeImg, 'IMG');
+            $holderDiv = ht::createElement('div', $divAttr, $removeBtnBody, true);
             $tpl->append($holderDiv);
             
             $contragentName = cls::get($rec->contragentClass)->getTitleById($rec->contragentObjectId);
