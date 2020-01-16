@@ -310,7 +310,7 @@
   .posBtns.selected {
     box-shadow: 0px 0px 3px #0000fa !important;
     border: 3px solid #080f56;
-    padding: 9px !important; }
+    padding: 8px 18px !important; }
   .posBtns.revertReceiptBtn {
     background: #c00000 !important;
     color: white !important; }

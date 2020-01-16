@@ -13,8 +13,7 @@
   .posBtns:focus,
   .posBtns.selected {
     box-shadow: 0px 0px 3px #f95353 !important;
-    border: 3px solid #f70026;
-    padding: 9px !important; }
+    border: 3px solid #f70026; }
 
   .element:focus,
   .element.selected {
