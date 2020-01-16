@@ -39,6 +39,18 @@
 			</tr>
 			<!--ET_END revertId-->
 			
+			<tr>
+				<td>|Контрагент|*</td>
+				<td>[#contragentId#]</td>
+			</tr>
+			
+			<!--ET_BEGIN contragentLocationId-->
+			<tr>
+				<td>|Локация|*:</td>
+				<td><b>[#contragentLocationId#]</b></td>
+			</tr>
+			<!--ET_END contragentLocationId-->
+			
 			<!--ET_BEGIN transferedIn-->
 			<tr>
 				<td>|Прехвълено към|*:</td>

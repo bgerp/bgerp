@@ -506,6 +506,17 @@ function posActions() {
 		getEfae().process(resObj, {string:storeId,recId:selectedRecId});
 	});
 	
+	// При натискане на бутона за задаване на количество/опаковка
+	$(document.body).on('click', "div.locationBtn", function(e){
+		var url = $(this).attr("data-url");
+		if(!url) return;
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		document.location = url;
+	});
+	
 	// При натискане на бутона за показване на подробна информация избрания елемент
 	$(document.body).on('click', ".enlargeProductBtn", function(e){
 		

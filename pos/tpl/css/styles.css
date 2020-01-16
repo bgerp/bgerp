@@ -322,6 +322,11 @@
   .posBtns.reload {
     color: black !important;
     background: #dddddd !important; }
+  .posBtns.locationBtn {
+    color: white !important;
+    background: #374bbe !important; }
+    .posBtns.locationBtn.currentLocation {
+      background: #53a163 !important; }
 
 .differentPosBtn {
   text-decoration: underline !important; }

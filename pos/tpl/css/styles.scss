@@ -375,6 +375,15 @@
 		color: #000 !important;
 		background: #ddd !important;
 	}
+	
+	&.locationBtn{
+		color: #fff !important;
+		background: #374bbe !important;
+		
+		&.currentLocation {
+			background: #53a163 !important;
+		}
+	}
 }
 
 .differentPosBtn {

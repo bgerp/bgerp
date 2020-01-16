@@ -1070,6 +1070,28 @@ class pos_Terminal extends peripheral_Terminal
             
             $contragentName = cls::get($rec->contragentClass)->getTitleById($rec->contragentObjectId);
             $tpl->prepend("<div class='contragentName clearfix21'>{$contragentName}</div>");
+            
+            $locationArr = crm_Locations::getContragentOptions($rec->contragentClass, $rec->contragentObjectId);
+            if(countR($locationArr)){
+                $tpl->append(tr("|*<div class='divider'>|Локации|*</div>"));
+                foreach ($locationArr as $locationId => $locationName){
+                    $locationAttr = array("id" => "location{$locationId}", 'class' => 'posBtns locationBtn');
+                    if(pos_Receipts::haveRightFor('setcontragent', $rec)){
+                        $locationAttr['class'] .= ' navigable';
+                        $locationAttr['data-url'] = toUrl(array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $rec->contragentClass, 'contragentId' => $rec->contragentObjectId, 'locationId' => $locationId, 'ret_url' => true));
+                    } else {
+                        $locationAttr['disabled'] = 'disabled';
+                        $locationAttr['class'] .= ' disabledBtn';
+                    }
+                    
+                    if($locationId == $rec->contragentLocationId){
+                        $locationAttr['class'] .= ' currentLocation';
+                    }
+                    
+                    $holderDiv = ht::createElement('div', $locationAttr, $locationName, true);
+                    $tpl->append($holderDiv);
+                }
+            }
         }
        
         return $tpl;

@@ -163,6 +163,7 @@ class pos_Receipts extends core_Master
         $this->FLD('pointId', 'key(mvc=pos_Points, select=name)', 'caption=Точка на продажба');
         $this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент,input=none');
         $this->FLD('contragentObjectId', 'int', 'input=none');
+        $this->FLD('contragentLocationId', 'key(mvc=crm_Locations)', 'caption=Локация,input=none');
         $this->FLD('contragentClass', 'key(mvc=core_Classes,select=name)', 'input=none');
         $this->FLD('total', 'double(decimals=2)', 'caption=Общо, input=none, value=0, summary=amount');
         $this->FLD('paid', 'double(decimals=2)', 'caption=Платено, input=none, value=0, summary=amount');
@@ -250,7 +251,6 @@ class pos_Receipts extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
         $row->currency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
         if(!empty($rec->returnedTotal) && empty($rec->revertId)){
             $row->returnedTotal = ht::styleIfNegative("-{$row->returnedTotal}", -1 * $rec->returnedTotal);
@@ -259,10 +259,7 @@ class pos_Receipts extends core_Master
         
         $Contragent = new core_ObjectReference($rec->contragentClass, $rec->contragentObjectId);
         $contragentFolderId = $Contragent->fetchField('folderId');
-        $row->contragentObjectId = (isset($contragentFolderId)) ? doc_Folders::recToVerbal($contragentFolderId)->title : $Contragent->getHyperlink(true);
-        if(!($defaultContragentId == $rec->contragentObjectId && crm_Persons::getClassId() == $rec->contragentClass)){
-            $row->contragentId = $row->contragentObjectId;
-        }
+        $row->contragentId = (isset($contragentFolderId)) ? doc_Folders::recToVerbal($contragentFolderId)->title : $Contragent->getHyperlink(true);
         
         if ($fields['-list']) {
             $row->title = $mvc->getHyperlink($rec->id, true);
@@ -341,6 +338,10 @@ class pos_Receipts extends core_Master
         $row->createdBy = ht::createLink(core_Users::recToVerbal($cu)->nick, crm_Profiles::getUrl($rec->createdBy));
         $row->pointId = pos_Points::getHyperLink($rec->pointId, true);
         $row->time = dt::mysql2verbal(dt::now(), 'H:i');
+        
+        if(isset($rec->contragentLocationId)){
+            $row->contragentLocationId = crm_Locations::getHyperlink($rec->contragentLocationId);
+        }
     }
     
     
@@ -548,7 +549,7 @@ class pos_Receipts extends core_Master
         
         // Подготвяме масива с данните на новата продажба, подаваме склада и касата на точката
         $posRec = pos_Points::fetch($rec->pointId);
-        $fields = array('shipmentStoreId' => $posRec->storeId, 'caseId' => $posRec->caseId, 'receiptId' => $rec->id);
+        $fields = array('shipmentStoreId' => $posRec->storeId, 'caseId' => $posRec->caseId, 'receiptId' => $rec->id, 'deliveryLocationId' => $rec->contragentLocationId);
         $products = $this->getProducts($rec->id);
         
         // Опитваме се да създадем чернова на нова продажба породена от бележката
@@ -859,9 +860,12 @@ class pos_Receipts extends core_Master
         $this->requireRightFor('setcontragent', $rec);
         expect($rec->contragentClass = Request::get('contragentClassId', 'int'));
         expect($rec->contragentObjectId = Request::get('contragentId', 'int'));
+        $locationId = Request::get('locationId', 'int');
         
         $rec->contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
-        $this->save($rec, 'contragentObjectId,contragentClass,contragentName');
+        $rec->contragentLocationId = $locationId;
+        
+        $this->save($rec, 'contragentObjectId,contragentClass,contragentName,contragentLocationId');
         $this->logWrite('Задаване на контрагент', $id);
         
         followRetUrl();
