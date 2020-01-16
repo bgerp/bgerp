@@ -1,8 +1,9 @@
 <?php
 
 
+
 /**
- * Мениджър на отчети за вложени артикули по задания
+ * Мениджър на предложение за заявки
  *
  *
  * @category  bgerp
@@ -13,14 +14,14 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Производство » Вложени артикули по задания
+ * @title     Покупки » Предложение за заявка
  */
-class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
+class planning_reports_ProposalRequest extends frame2_driver_TableData
 {
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo, debug, acc, planning';
+    public $canSelectDriver = 'ceo, debug';
     
     
     /**
@@ -28,7 +29,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $sortableListFields = 'code,name, consumedQuantity,returnedQuantity,totalAmount,totalQuantity';
+    protected $sortableListFields;
     
     
     /**
@@ -36,7 +37,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $summaryListFields = 'consumedQuantity,returnedQuantity,totalAmount,totalQuantity';
+    protected $summaryListFields;
     
     
     /**
@@ -64,7 +65,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'jobses, from, to, groups';
+    protected $changeableFields;
     
     
     /**
@@ -74,8 +75,8 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        //Задания
-        $fieldset->FLD('jobses', 'keylist(mvc=planning_Jobs,allowEmpty)', 'caption=Задания,placeholder=Избери задание,after=title,single=none,mandatory');
+        //Доставчици
+        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=orderBy');
         
         //Период
         $fieldset->FLD('from', 'date', 'caption=От,after=jobses,single=none,mandatory');
@@ -120,29 +121,25 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
         
-        $form->setDefault('orderBy', 'code');
-        $suggestions = array();
-        foreach (keylist::toArray($rec->jobses) as $val){
-            
-            $suggestions[$val]= planning_Jobs::getTitleById($val);
-        }
-       
-        $stateArr = array('active','wakeup');
+        $purQuery = purchase_Purchases::getQuery();
         
-        $jQuery = planning_Jobs::getQuery();
-        $jQuery->in('state', $stateArr);
-        $jQuery->show('productId');
-       
+        bp($purQuery->fetchAll());
         
-        while ($jRec = $jQuery->fetch()) {
-            if (!array_key_exists($jRec->id, $suggestions)) {
-                $suggestions[$jRec->id] = planning_Jobs::getTitleById($jRec->id);
+        $purQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
+        
+        $purQuery->groupBy('folderId');
+        
+        $purQuery->show('folderId, contragentId, folderTitle');
+        
+        while ($contragent = $salesQuery->fetch()) {
+            if (! is_null($contragent->contragentId)) {
+                $suggestions[$contragent->folderId] = $contragent->folderTitle;
             }
         }
-       
+        
         asort($suggestions);
         
-        $form->setSuggestions('jobses', $suggestions);
+        $form->setSuggestions('contragent', $suggestions);
     }
     
     
@@ -172,14 +169,14 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $tQuery->where("#state != 'rejected'");
             $tQuery->in('originId', $jobsContainersArr);
             
-           
+            
             while ($tRec = $tQuery->fetch()){
-               
+                
                 if (in_array($tRec->threadId, $jobsThreadArr))continue;
                 $jobsThreadArr[$tRec->originId] = $tRec->threadId;
                 
             }
-        
+            
         }
         
         //Вложени и върнати артикули в нишките на заданията
@@ -190,9 +187,9 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         );
         foreach ($mvcArr as $master => $details) {
             
-           
-        
-        //Вложени и върнати артикули по протоколи, които са в нишките на избраните задания
+            
+            
+            //Вложени и върнати артикули по протоколи, които са в нишките на избраните задания
             $pQuery = $details::getQuery();
             
             $pQuery->EXT('valior', "${master}", 'externalName=valior,externalKey=noteId');
@@ -201,10 +198,10 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
             $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
             $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
-             
+            
             
             $pQuery->where(array("#valior >= '[#1#]' AND #valior <= '[#2#]'",$rec->from . ' 00:00:01',$rec->to . ' 23:59:59'));
-           
+            
             
             $pQuery->where("#state != 'rejected'");
             $pQuery->where("#canStore != 'no'");
@@ -224,7 +221,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             }
             
             while ($pRec = $pQuery->fetch()) {
-               
+                
                 $consumedQuantity = $returnedQuantity = $pRec->quantity;
                 
                 if ($master == 'planning_ReturnNotes') {
@@ -253,7 +250,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                         'returnedQuantity' => $returnedQuantity,                    //Върнато количество
                         'totalQuantity' => '',
                         'totalAmount' => '',
-                    
+                        
                     );
                 } else {
                     $obj = &$recs[$id];
@@ -434,7 +431,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                 $singleUrl = $Job->getUrlWithAccess($Job->getInstance(), $job);
                 
                 $jobVerb .= ht::createLink("#{$handle}", $singleUrl);
-               
+                
                 if ((countR((type_Keylist::toArray($data->rec->jobses))) - $marker) != 0) {
                     $jobVerb .= ', ';
                 }
@@ -461,4 +458,66 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
     {
     }
     
+    
+    /**
+     * Кои артикули са произвеждани или доставени през периода soonPeriod в количество повече от soonQuantity
+     *
+     *
+     * @param $prodArr - артикули на склад
+     *
+     * @return array
+     */
+    private static function removeSoonDeliveredProds($rec, $prodArr)
+    {
+        $query = purchase_PurchasesData::getQuery();
+        
+        $from = dt::addSecs(-($rec->soonPeriod), dt::now());
+        $query->where(array("#valior>= '[#1#]' AND #valior <= '[#2#]'",$from,dt::now()));
+        $query->where("#isFromInventory = 'no'");
+        
+        $extractProdArr = arr::extractValuesFromArray($prodArr, 'productId');
+        $query->in('productId', $extractProdArr);
+        
+        foreach (array('purchase_PurchasesDetails','store_ReceiptDetails','acc_ArticleDetails') as $val) {
+            $detClassesId[] = core_Classes::getId($val);
+        }
+        
+        $query->in('detailClassId', $detClassesId);
+        
+        $deliveredProdInPeriod = array();
+        while ($prod = $query->fetch()) {
+            
+            //Артикули които имат доставка през част от периода на стойност заложената част от скл. наличност
+            $deliveredProdInPeriod[$prod->productId] += $prod->quantity * $prodArr[$prod->productId]->selfPrice;
+        }
+        
+        foreach ($deliveredProdInPeriod as $key => $val) {
+            if ($val > $prodArr[$key]->amount * $rec->soonQuantity) {
+                unset($prodArr[$key]) ;
+                unset($extractProdArr[$key]) ;
+            }
+        }
+        
+        //Произведени артикули
+        $planningQuery = planning_DirectProductionNote::getQuery();
+        
+        $planningQuery->where("#state = 'active'");
+        
+        $planningQuery->where(array("#valior>= '[#1#]' AND #valior <= '[#2#]'",$from,dt::now()));
+        
+        $planningQuery->in('productId', $extractProdArr);
+        
+        $planningProdsInPeriod = array();
+        while ($planningProd = $planningQuery->fetch()) {
+            $planningProdsInPeriod[$planningProd->productId] += $planningProd->quantity * $prodArr[$planningProd->productId]->selfPrice;
+        }
+        
+        foreach ($planningProdsInPeriod as $key => $val) {
+            if ($val > $prodArr[$key]->amount * $rec->soonQuantity) {
+                unset($prodArr[$key]) ;
+            }
+        }
+        
+        return $prodArr;
+    }
 }
