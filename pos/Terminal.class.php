@@ -1751,7 +1751,7 @@ class pos_Terminal extends peripheral_Terminal
      * 
      * @return array $res
      */
-    public static function returnAjaxResponse($receiptId, $selectedRecId, $success, $refreshTable = false, $refreshPanel = true)
+    public static function returnAjaxResponse($receiptId, $selectedRecId, $success, $refreshTable = false, $refreshPanel = true, $refreshResult = true)
     {
         $me = cls::get(get_called_class());
         $Receipts = cls::get('pos_Receipts');
@@ -1793,12 +1793,15 @@ class pos_Terminal extends peripheral_Terminal
                 $res[] = $resObj;
             }
             
-            // Ще се реплейсват резултатите
-            $resultTpl = $me->renderResult($rec, $operation, $string, $selectedRecId);
-            $resObj = new stdClass();
-            $resObj->func = 'html';
-            $resObj->arg = array('id' => 'result-holder', 'html' => $resultTpl->getContent(), 'replace' => true);
-            $res[] = $resObj;
+            if($refreshResult === true){
+                
+                // Ще се реплейсват резултатите
+                $resultTpl = $me->renderResult($rec, $operation, $string, $selectedRecId);
+                $resObj = new stdClass();
+                $resObj->func = 'html';
+                $resObj->arg = array('id' => 'result-holder', 'html' => $resultTpl->getContent(), 'replace' => true);
+                $res[] = $resObj;
+            }            
             
             $resObj = new stdClass();
             $resObj->func = 'prepareResult';
