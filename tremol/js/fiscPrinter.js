@@ -348,15 +348,20 @@ function getPrintVat(isPrintVat)
  * @param qty
  * @param discAddP
  * @param discAddV
+ * @param depNum
  */
-function fpSalePLU(name, vatClass, price, qty, discAddP, discAddV)
+function fpSalePLU(name, vatClass, price, qty, discAddP, discAddV, depNum)
 {
 	if ((vatClass < 0) || (vatClass > 3)) {
 		throw new Error("Непозволен клас за VAT");
 	}
 	
     try {
-        fp.SellPLUwithSpecifiedVAT(name, Tremol.Enums.OptionVATClass['VAT_Class_' + vatClass], price, qty, discAddP, discAddV);
+    	if (depNum === false) {
+    		fp.SellPLUwithSpecifiedVAT(name, Tremol.Enums.OptionVATClass['VAT_Class_' + vatClass], price, qty, discAddP, discAddV);
+    	} else {
+    		fp.SellPLUwithSpecifiedVATfromDep(name, Tremol.Enums.OptionVATClass['VAT_Class_' + vatClass], price, qty, discAddP, discAddV, depNum);
+    	}
     } catch(ex) {
         handleException(ex);
     }

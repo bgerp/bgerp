@@ -69,7 +69,8 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
      * DISC_ADD_V - надбавка/отстъпка в стойнонст - може и с -
      * BEFORE_PLU_TEXT - стринг или масив от стрингове с текст, който ще се добавя преди продукта
      * AFTER_PLU_TEXT - стринг или масив от стрингове с текст, който ще се добавя след продукта
-     *
+     * DEP_NUM - номер на департамнет. Ако е зададен (от 0-99), се добавя от този департамент
+     * 
      * DATE_TIME - времето за синхронизира във формат 'd-m-Y H:i:s'. Ако е false - няма да се синхронизира
      *
      * SERIAL_NUMBER - серийния номер на принтера за проверка. Ако е false - няма да се проверява. Ако има разминаване - спира процеса.
@@ -276,6 +277,14 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
             if (isset($pArr['AFTER_PLU_TEXT'])) {
                 $this->replaceTextArr($pArr['AFTER_PLU_TEXT'], $fpSalePLU, 'AFTER_PLU_TEXT', true, $maxTextLen);
             }
+            
+            if (isset($pArr['DEP_NUM'])) {
+                expect(is_numeric($pArr['DEP_NUM']) && ($pArr['DEP_NUM'] >= 0) && ($pArr['DEP_NUM'] <= 99));
+            } else {
+                $pArr['DEP_NUM'] = 'false';
+            }
+            
+            $fpSalePLU->replace($pArr['DEP_NUM'], 'DEP_NUM');
             
             $fpSalePLU->removeBlocks();
             $fpSalePLU->append2master();
