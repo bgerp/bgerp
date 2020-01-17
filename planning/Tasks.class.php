@@ -643,7 +643,7 @@ class planning_Tasks extends core_Master
         $rec->producedQuantity = $producedQuantity;
         
         // Ако няма зададено начало, тогава се записва времето на първо добавения запис
-        if(empty($rec->timeStart) && !isset($rec->timeDuration, $rec->timeEnd) && planning_ProductionTaskDetails::countR("#taskId = {$rec->id}")){
+        if(empty($rec->timeStart) && !isset($rec->timeDuration, $rec->timeEnd) && planning_ProductionTaskDetails::count("#taskId = {$rec->id}")){
             $rec->timeStart = dt::now();
             $updateFields .= ',timeStart';
         }
