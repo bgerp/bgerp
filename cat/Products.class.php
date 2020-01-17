@@ -235,6 +235,14 @@ class cat_Products extends embed_Manager
     
     
     /**
+     * Шаблон (ET) за заглавие на продукт
+     *
+     * @var string
+     */
+    public $recTitleNonPublicTpl = '[#name#] [[#code#]]';
+    
+    
+    /**
      * Групиране на документите
      */
     public $newBtnGroup = '9.8|Производство';
@@ -2130,6 +2138,20 @@ class cat_Products extends embed_Manager
     
     
     /**
+     * Връща шаблона на заглавието
+     *
+     * @param stdClass $rec
+     * @return mixed
+     */
+    public function getRecTitleTpl($rec)
+    {
+        $tpl = ($rec->isPublic == 'yes') ? $this->recTitleTpl : $this->recTitleNonPublicTpl;
+        
+        return new core_ET($tpl);
+    }
+    
+    
+    /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
     public static function getRecTitle($rec, $escaped = true)
@@ -2178,9 +2200,14 @@ class cat_Products extends embed_Manager
         $subTitle = (is_array($fullTitle)) ? $fullTitle['subTitle'] : null;
         
         if ($showCode === true) {
-            $titleTpl = new core_ET('<!--ET_BEGIN code-->[[#code#]] <!--ET_END code-->[#name#]');
-            $titleTpl->replace($title, 'name');
+            if($rec->isPublic == 'yes'){
+                $titleTpl = new core_ET('<!--ET_BEGIN code-->[[#code#]] <!--ET_END code-->[#name#]');
+            } else {
+                $titleTpl = new core_ET('[#name#]<!--ET_BEGIN code--> [[#code#]]<!--ET_END code-->');
+            }
             
+            
+            $titleTpl->replace($title, 'name');
             
             if (!empty($rec->code)) {
                 $code = core_Type::getByName('varchar')->toVerbal($rec->code);
@@ -2188,11 +2215,12 @@ class cat_Products extends embed_Manager
                     $titleTpl->replace($code, 'code');
                 }
             }
+            
             $title = $titleTpl->getContent();
             
             if ($rec->isPublic == 'no' && empty($rec->code)) {
                 $count = cat_ProductTplCache::count("#productId = {$rec->id} AND #type = 'description' AND #documentType = '{$documentType}'", 2);
-                $title = "[Art{$rec->id}] {$title}";
+                $title = "{$title} [Art{$rec->id}]";
                 
                 if ($count > 1) {
                     $vNumber = "/<small class='versionNumber'>v{$count}</small>";
