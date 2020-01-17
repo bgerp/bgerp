@@ -2023,6 +2023,8 @@ class cat_Products extends embed_Manager
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if ($fields['-single']) {
+            $row->title = $mvc->getRecTitle($rec);
+            
             if (isset($rec->originId)) {
                 $row->originId = doc_Containers::getDocument($rec->originId)->getLink(0);
             }
