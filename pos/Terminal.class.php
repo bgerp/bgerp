@@ -1232,7 +1232,7 @@ class pos_Terminal extends peripheral_Terminal
                 $quantityInStockVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
                 $quantityInStockVerbal = ht::styleNumber($quantityInStockVerbal, $quantity);
                 $storeName = store_Stores::getTitleById($storeId);
-                $storeCaption = "<span><div class='storeNameInBtn'>{$storeName}</div> <div class='storeQuantityInStock'>({$quantityInStockVerbal} " . cat_UoM::getShortName($measureId). ")</div></span>";
+                $storeCaption = "<span><div class='storeNameInBtn'>{$storeName}</div> <div class='storeQuantityInStock'>({$quantityInStockVerbal} " . tr(cat_UoM::getShortName($measureId)) . ")</div></span>";
                 $storeBtns[] = ht::createElement("div", array('id' => "changeStore{$storeId}", 'class' => "{$btnClass} posBtns chooseStoreBtn", 'data-url' => $dataUrl, 'data-storeid' => $storeId), $storeCaption, true);
             }
         }
@@ -1282,7 +1282,6 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultPrice($rec, $string, $selectedRec)
     {
-        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
         $buttons = array();
         
         $dQuery = pos_ReceiptDetails::getQuery();
@@ -1310,7 +1309,9 @@ class pos_Terminal extends peripheral_Terminal
             Mode::push('text', 'plain');
             $price = core_Type::getByName('double(smartRound)')->toVerbal($dRec->price);
             Mode::pop('text', 'plain');
-            $btnName = "|*{$price} {$baseCurrencyCode}</br> |" . tr($packName);
+            
+            $priceVerbal = currency_Currencies::decorate($price);
+            $btnName = "|*{$priceVerbal}</br> |" . tr($packName);
             $dataUrl = toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice', 'string' => $price), 'local');
             
             $cnt++;
