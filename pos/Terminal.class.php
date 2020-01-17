@@ -780,7 +780,7 @@ class pos_Terminal extends peripheral_Terminal
                 
                 if(pos_ReceiptDetails::haveRightFor('delete', $id)){
                     $row->DATA_DELETE_URL = toUrl(array('pos_ReceiptDetails', 'deleteRec', $id), 'local');
-                    $row->DATA_DELETE_WARNING = tr('|Наистина ли искате да изтриете реда|*?');
+                    $row->DATA_DELETE_WARNING = tr('|Наистина ли искате да изтриете избрания ред|*?');
                 }
                 
                 $action = cls::get('pos_ReceiptDetails')->getAction($data->rows[$id]->action);
@@ -1186,8 +1186,9 @@ class pos_Terminal extends peripheral_Terminal
         $count = 0;
         foreach ($packs as $packagingId => $packName){
             $packRec = cat_products_Packagings::getPack($selectedRec->productId, $packagingId);
-            $packName = cat_UoM::getVerbal($packagingId, 'name');
-            $btnCaption = $packName;
+            $packName = cat_UoM::getTitleById($packagingId);
+            
+            $btnCaption = tr($packName);
             if(is_object($packRec)){
                 $baseMeasureId = $measureId;
                 $packRec->quantity = cat_Uom::round($baseMeasureId, $packRec->quantity);
@@ -1217,7 +1218,8 @@ class pos_Terminal extends peripheral_Terminal
             if(!$productRec->value)  continue; // Да не гърми при лоши данни
             $packagingId = cat_UoM::getSmartName($productRec->value, 1);
             $btnCaption =  "{$quantity} " . tr(cat_UoM::getSmartName($productRec->value, $productRec->quantity));
-            $frequentPackButtons[] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => "{$baseClass} packWithQuantity", 'data-quantity' => $productRec->quantity, 'data-pack' => $packagingId, 'data-url' => $dataUrl), $btnCaption, true);
+            $packDataName = cat_UoM::getTitleById($productRec->value);
+            $frequentPackButtons[] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => "{$baseClass} packWithQuantity", 'data-quantity' => $productRec->quantity, 'data-pack' => $packDataName, 'data-url' => $dataUrl), $btnCaption, true);
         }
         
         $stores = pos_Points::getStores($rec->pointId);
