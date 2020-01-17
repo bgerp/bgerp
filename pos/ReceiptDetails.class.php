@@ -435,6 +435,7 @@ class pos_ReceiptDetails extends core_Detail
                 // не добавяме нов запис а ъпдейтваме стария
                 $newQuantity = $rec->quantity + $sameProduct->quantity;
                 $rec->quantity = $newQuantity;
+                $rec->price = $sameProduct->price;
                 $rec->storeId = $sameProduct->storeId;
                 $rec->amount += $sameProduct->amount;
                 $rec->id = $sameProduct->id;
