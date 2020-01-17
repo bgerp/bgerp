@@ -99,4 +99,18 @@ class peripheral_FiscPrinterIntf extends peripheral_DeviceIntf
     {
         return $this->class->getVatGroupCode($groupId, $rec);
     }
+    
+    
+    /**
+     * Връща програмираните департаменти
+     *
+     * @param stdClass $rec
+     * 
+     * @return array
+     */
+    public function getDepartmentArr($rec)
+    {
+        
+        return $this->class->getDepartmentArr($rec);
+    }
 }

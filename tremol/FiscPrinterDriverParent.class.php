@@ -486,6 +486,21 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     
     
     /**
+     * Връща програмираните департаменти
+     *
+     * @param stdClass $rec
+     *
+     * @return array
+     */
+    public function getDepartmentArr($rec)
+    {
+        $res = $rec->otherData['depArr'] ? $rec->otherData['depArr'] : array();
+        
+        return $res;
+    }
+    
+    
+    /**
      * Връща цената с ддс и приспадната отстъпка, подходяща за касовия апарат
      *
      * @param float      $priceWithoutVat
