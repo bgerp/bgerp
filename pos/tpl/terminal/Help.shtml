@@ -41,10 +41,6 @@
         <td class="textShortcut"> - Отваряне на виртуална клавиатура</td>
     </tr>
     <tr>
-        <td class="shortcuts"><span>Alt + S </span></td>
-        <td class="textShortcut"> - Зареждане на артикулите от сторнираната бележка</td>
-    </tr>
-    <tr>
         <td class="shortcuts"><span>Alt + N </span></td>
         <td class="textShortcut"> - Оттегляне на бележка</td>
     </tr>
