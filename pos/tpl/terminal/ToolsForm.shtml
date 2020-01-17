@@ -2,7 +2,7 @@
     [#INPUT_FLD#]
     [#INPUT_DATA_LIST#]
 	[#KEYBOARDS#]
-[#BTNS#]
+<div class="buttons">[#BTNS#]</div>
 <div class='clearfix21'></div>
 <!--ET_END TAB_TOOLS-->
 
