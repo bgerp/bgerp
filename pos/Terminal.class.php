@@ -747,7 +747,7 @@ class pos_Terminal extends peripheral_Terminal
                 $reloadUrl = null;
             }
             
-            $link = ht::createLink('Всички', $reloadUrl, 'ddd', $reloadAttr);
+            $link = ht::createLink('Всички', $reloadUrl, 'Наистина ли желаете да заредите всички редове от оригиналната бележка|*?', $reloadAttr);
             $tpl->append($link, 'details');
         }
         

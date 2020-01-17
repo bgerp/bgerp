@@ -326,12 +326,12 @@
     border: 3px solid #080f56;
     padding: 8px 18px !important; }
   .posBtns.revertReceiptBtn {
-    background: #c00000 !important;
+    background: #8c1919 !important;
     color: white !important; }
   .posBtns .nowrap {
     font-size: 0.9em; }
   .posBtns.deleteRow {
-    background: #c00000 !important;
+    background: #8c1919 !important;
     color: white !important; }
   .posBtns.reload {
     color: black !important;
