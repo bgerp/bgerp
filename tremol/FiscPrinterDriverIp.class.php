@@ -659,6 +659,17 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 }
                 
                 try {
+                    $depArr = $Driver->getDepArr($data->rec);
+                } catch (Exception $e) {
+                    $Driver->handleAndShowException($e);
+                }
+                
+                if (!empty($depArr)) {
+                    $data->rec->otherData['depArr'] = $depArr;
+                    $Embedder->save($data->rec, 'otherData');
+                }
+                
+                try {
                     self::setDateTime($data->rec);
                 } catch (Exception $e) {
                     $Driver->handleAndShowException($e);
@@ -888,6 +899,43 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             
             $resArr['defPaymArr'] = $dPaymArr;
             $resArr['exRate'] = $exchangeRate;
+        } catch (\Tremol\SException $e) {
+            self::handleTremolException($e);
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща зададените департаменти
+     *
+     * @param stdClass $rec
+     *
+     * @return false|string
+     */
+    protected static function getDepArr($rec)
+    {
+        $resArr = array();
+        
+        try {
+            $fp = self::connectToPrinter($rec);
+            if ($fp) {
+                for($depNum=0;$depNum<100;$depNum++) {
+                    $dep = $fp->ReadDepartment($depNum);
+                    
+                    $depNumPad = str_pad($depNum, 2, 0, STR_PAD_LEFT);
+                    
+                    $depName = trim($dep->DepName);
+                    
+                    // Да избегнем дефолтно зададените
+                    if ($depName == 'Деп ' . $depNumPad) {
+                        continue;
+                    }
+                    
+                    $resArr[$dep->DepNum] = $depName;
+                }
+            }
         } catch (\Tremol\SException $e) {
             self::handleTremolException($e);
         }

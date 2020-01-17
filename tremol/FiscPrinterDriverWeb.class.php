@@ -517,7 +517,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
     {
         // Задаваме настройките за връзка със сървъра
         $tpl->replace(json_encode($pRec->serverIp), 'SERVER_IP');
-        $tpl->replace(json_encode($pRec->serverTcpPort), SERVER_TCP_PORT);
+        $tpl->replace(json_encode($pRec->serverTcpPort), 'SERVER_TCP_PORT');
         
         if ($setDeviceSettings) {
             // Свързваме се с ФП
@@ -673,6 +673,19 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
                                      var defPaym = fpGetDefPayments();
                                      defPaym = JSON.stringify(defPaym);
                                      getEfae().process({url: '{$setDefaultPaymenst}'}, {defPaym: defPaym});
+                                 } catch(ex) {
+                                     render_showToast({timeOut: 800, text: '" . tr('Грешка при добавяне на плащания') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
+                                 }";
+                    
+                    $jsTpl->prepend($updateSn, 'OTHER');
+                    
+                    // Вземаме начините на плащане от ФУ
+                    $setDepartments = toUrl(array($Driver, 'SetDepartments', $data->rec->id), 'local');
+                    $setDepartments = urlencode($setDepartments);
+                    $updateSn = "try {
+                                     var depArr = fpGetDepArr();
+                                     depArr = JSON.stringify(depArr);
+                                     getEfae().process({url: '{$setDepartments}'}, {depArr: depArr});
                                  } catch(ex) {
                                      render_showToast({timeOut: 800, text: '" . tr('Грешка при добавяне на плащания') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
                                  }";
@@ -863,6 +876,43 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
         if ($dPaymArr['defPaymArr']) {
             $pRec->otherData['defPaymArr'] = $dPaymArr['defPaymArr'];
             $pRec->otherData['exRate'] = $dPaymArr['exRate'];
+            
+            peripheral_Devices::save($pRec, 'otherData');
+        }
+        
+        return array();
+    }
+    
+    
+    /**
+     * Екшън за добавяне на департаменти
+     *
+     * @return array
+     */
+    public function act_SetDepartments()
+    {
+        expect(Request::get('ajax_mode'));
+        
+        peripheral_Devices::requireRightFor('single');
+        
+        $operPass = Request::get('operPass');
+        $id = Request::get('id', 'int');
+        
+        expect($id);
+        
+        $pRec = peripheral_Devices::fetch($id);
+        
+        expect($pRec);
+        
+        peripheral_Devices::requireRightFor('single', $id);
+        peripheral_Devices::requireRightFor('edit', $id);
+        
+        $depArr = Request::get('depArr');
+        
+        $depArr = json_decode($depArr, true);
+        
+        if ($depArr) {
+            $pRec->otherData['depArr'] = $depArr;
             
             peripheral_Devices::save($pRec, 'otherData');
         }

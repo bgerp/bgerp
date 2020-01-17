@@ -554,6 +554,39 @@ function fpGetDefPayments()
 
 
 /**
+ * Връща департаментите от ФУ
+ * 
+ * @return array
+ */
+function fpGetDepArr()
+{
+	res = {};
+	
+    try {
+    	
+    	for(depNum=0;depNum<100;depNum++) {
+            dep = fp.ReadDepartment(depNum);
+            
+            depNumPad = dep.DepNum.toString().padStart(2, '0');
+            
+            depName = dep.DepName.trim();
+            
+            // Да избегнем дефолтно зададените
+            if (depName == 'Деп ' + depNumPad) {
+                continue;
+            }
+            
+            res[dep.DepNum] = depName;
+        }
+    } catch(ex) {
+        handleException(ex);
+    }
+    
+    return res;
+};
+
+
+/**
  * Проверява дали принтера е нов или е обновена версия на стар
  * 
  * @return boolean
