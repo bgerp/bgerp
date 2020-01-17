@@ -474,7 +474,6 @@ class pos_Terminal extends peripheral_Terminal
                 break;
             case 'quantity':
                 $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setquantity');
-                $keyupUrl = null;
                 break;
             case 'discount':
                 $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setdiscount');
@@ -894,6 +893,12 @@ class pos_Terminal extends peripheral_Terminal
     {
         $price = pos_Receipts::getDisplayPrice($selectedRec->price, $selectedRec->param, null, $rec->pointId, 1);
         $discountsArr = pos_ReceiptDetails::getSuggestedProductDiscounts($selectedRec->productId, $price);
+        if($stringPrice = core_Type::getByName('percent')->fromVerbal($string)){
+            if($stringPrice < 1 && $stringPrice > 0){
+                $discountsArr["{$stringPrice}"] = $stringPrice;
+            }
+        }
+        
         $discountsArr =  array('0' => '0') + $discountsArr;
         
         $tpl = new core_ET("");
@@ -1294,7 +1299,13 @@ class pos_Terminal extends peripheral_Terminal
         $cnt = 0;
         $packName = cat_UoM::getVerbal($value, 'name');
         $dQuery->show('price,param');
-        while($dRec = $dQuery->fetch()){
+        $allPrices = $dQuery->fetchAll();
+        
+        if($stringPrice = core_Type::getByName('double')->fromVerbal($string)){
+            $allPrices = array((object)array('price' => $stringPrice, 'param' => 0)) + $allPrices;
+        }
+        
+        foreach($allPrices as $dRec){
             $dRec->price *= 1 + $dRec->param;
             Mode::push('text', 'plain');
             $price = core_Type::getByName('double(smartRound)')->toVerbal($dRec->price);
