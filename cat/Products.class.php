@@ -2133,7 +2133,7 @@ class cat_Products extends embed_Manager
     {
         // Предефиниране на метода, за да е подсигурено само фечването на нужните полета
         // За да се намали натоварването, при многократни извиквания
-        $rec = self::fetch($id, 'name,code,isPublic,nameEn');
+        $rec = self::fetch($id, 'name,code,isPublic,nameEn,state');
         
         return parent::getTitleById($rec, $escaped);
     }
@@ -2147,7 +2147,7 @@ class cat_Products extends embed_Manager
      */
     public function getRecTitleTpl($rec)
     {
-        $tpl = ($rec->isPublic == 'yes') ? $this->recTitleTpl : $this->recTitleNonPublicTpl;
+        $tpl = ($rec->isPublic != 'yes' || $rec->state == 'template') ? $this->recTitleNonPublicTpl : $this->recTitleTpl;
         
         return new core_ET($tpl);
     }
