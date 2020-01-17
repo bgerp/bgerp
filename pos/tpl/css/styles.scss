@@ -176,11 +176,13 @@
 	background: #fefead !important;
 	border-left: 6px solid #12008a;;
 }
-
+.num-keyboard {
+	margin-left: -8px;
+}
 .numPad, .numBack{
 	min-width: 60px;
 	height: 60px;
-	margin: 8px !important;
+	margin: 8px 8px 8px 8px !important;
 	text-align: center;
 	color:white !important;
 	border-radius: 3px !important;
@@ -225,6 +227,7 @@
 }
 #keyboard-num {
 	float: left;
+	margin-right: -5px;
 }
 .keyboard-row{
 	clear:both;
@@ -241,10 +244,18 @@
 		box-shadow: inset 0 0 50px #444 !important;
 	}
 }
+#tools-holder .buttons {
+	float: left;
+	width: 236px;
+	 a, div {
+		display: inline-block;
+		float: left;
+	}
+}
 .operationHolder {
 	display: inline-block;
 	position: relative;
-	margin: 8px;
+	margin: 8px 0 8px 18px;
 	border: 1px solid #999;
 	background: #ccc;
 	padding: 14px;
@@ -280,6 +291,7 @@
 	&.disabledBtn{
 		opacity: 0.5;
 	}
+
 }
 
 
