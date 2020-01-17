@@ -244,7 +244,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $query->where("#{$Detail->masterKey} = '{$rec->id}'");
         $recs = $query->fetchAll();
         
-        if (count($recs)) {
+        if (countR($recs)) {
             foreach ($recs as &$dRec) {
                 $dRec->price = $dRec->price * $dRec->quantityInPack;
             }
@@ -338,7 +338,6 @@ abstract class deals_InvoiceMaster extends core_Master
             $form->setField('selectedContragentId', 'input=none');
         }
         
-        $caption = ($form->rec->type == 'debit_note') ? 'Увеличение' : 'Намаление';
         $invArr = (array) $origin->fetch();
         
         // Трябва фактурата основание да не е ДИ или КИ
@@ -359,7 +358,7 @@ abstract class deals_InvoiceMaster extends core_Master
             if ($show === true) {
                 $cache = $this->getInvoiceDetailedInfo($form->rec->originId);
                 
-                if (count($cache->vats) == 1) {
+                if (countR($cache->vats) == 1) {
                     $form->setField('changeAmount', "unit={$invArr['currencyId']} без ДДС");
                     $form->setField('changeAmount', 'input,caption=Задаване на увеличение/намаление на фактура->Промяна');
                     $form->setField('dcReason', 'input,caption=Задаване на увеличение/намаление на фактура->Пояснение');
@@ -1265,7 +1264,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 $vats[$v] = $v;
             }
             
-            if (!count($cache)) {
+            if (!countR($cache)) {
                 if (isset($dpAmount)) {
                     $v = ($vatRate == 'yes' || $vatRate == 'separate') ? 0.2 : 0;
                     $vats["{$v}"] = $v;

@@ -393,7 +393,7 @@ class core_Url
             return true;
         }
         
-        return type_IP::isPrivate($url);
+        return type_Ip::isPrivate($url);
     }
     
     

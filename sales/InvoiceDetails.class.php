@@ -115,7 +115,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
             $cQuery->where("#threadId = {$containerId} AND #state != 'draft' AND #state != 'rejected'");
             $cQuery->show('id');
             $ids = arr::extractValuesFromArray($cQuery->fetchAll(), 'id');
-            if (!count($ids)) {
+            if (!countR($ids)) {
                 return;
             }
             
@@ -131,7 +131,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
             $batches = arr::extractValuesFromArray($bQuery->fetchAll(), 'batch');
             
             // И се попълват
-            if (count($batches)) {
+            if (countR($batches)) {
                 $rec->batches = implode(', ', $batches);
                 $mvc->save_($rec, 'batches');
             }

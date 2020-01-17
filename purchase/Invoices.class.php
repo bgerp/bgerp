@@ -343,7 +343,7 @@ class purchase_Invoices extends deals_InvoiceMaster
                     $arr['contragentId'] = null;
                 }
                 
-                if (count($arr)) {
+                if (countR($arr)) {
                     foreach (array('contragentName', 'contragentClassId', 'contragentId', 'contragentCountryId', 'contragentVatNo', 'uicNo', 'contragentPCode', 'contragentPlace', 'contragentAddress')  as $fld) {
                         $form->rec->{$fld} = $arr[$fld];
                     }
@@ -791,7 +791,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         }
         
         // Ако има само една опция - тя да е избрана по подразбиране
-        if ((count($purArr) == 1) && !isset($purArr[''])) {
+        if ((countR($purArr) == 1) && !isset($purArr[''])) {
             $form->setDefault('purId', key($purArr));
         }
         

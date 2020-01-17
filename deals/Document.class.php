@@ -107,7 +107,7 @@ abstract class deals_Document extends deals_PaymentDocument
         $form->rec->originId = $origin->fetchField('containerId');
         
         $dealInfo = $origin->getAggregateDealInfo();
-        expect(count($dealInfo->get('allowedPaymentOperations')));
+        expect(countR($dealInfo->get('allowedPaymentOperations')));
         
         // Използваме помощната функция за намиране името на контрагента
         if (empty($form->rec->id)) {
@@ -166,7 +166,7 @@ abstract class deals_Document extends deals_PaymentDocument
         }
         
         // Ако има се добавят в техен раздел
-        if (count($dealOptions)) {
+        if (countR($dealOptions)) {
             $options['deals'] = (object) array('title' => tr('Активни фин. сделки в папката'), 'group' => true);
             $options += $dealOptions;
         }
@@ -181,12 +181,12 @@ abstract class deals_Document extends deals_PaymentDocument
         }
         
         // Ако има такива, те се добавят като отделна група
-        if (count($accOptionsFiltered)) {
+        if (countR($accOptionsFiltered)) {
             $options['accs'] = (object) array('title' => tr('Нова фин. сделка по сметка'), 'group' => true);
             $options += $accOptionsFiltered;
         }
         
-        if (count($options)) {
+        if (countR($options)) {
             $options = array('' => '') + $options;
         }
         

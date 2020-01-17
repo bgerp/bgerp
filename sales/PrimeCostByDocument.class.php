@@ -104,6 +104,7 @@ class sales_PrimeCostByDocument extends core_Manager
         $this->setDbIndex('productId');
         $this->setDbIndex('containerId');
         $this->setDbIndex('folderId');
+        $this->setDbIndex('valior');
         $this->setDbIndex('detailClassId,detailRecId,productId');
     }
     
@@ -140,7 +141,7 @@ class sales_PrimeCostByDocument extends core_Manager
         $query->where("#{$Detail->masterKey} = {$id}");
         $query->show('id');
         $ids = arr::extractValuesFromArray($query->fetchAll(), 'id');
-        if (!count($ids)) {
+        if (!countR($ids)) {
             
             return;
         }
@@ -287,7 +288,7 @@ class sales_PrimeCostByDocument extends core_Manager
             }
             
             // Ако има детайли от модела ще търсим точно записите от детайли на документи променяни след timeline
-            if (count($ids)) {
+            if (countR($ids)) {
                 $ids = implode(',', $ids);
                 $iQuery->where("#detailClassId = {$Detail->getClassId()} AND #detailRecId IN (${ids})", $or);
                 $or = true;
@@ -308,7 +309,7 @@ class sales_PrimeCostByDocument extends core_Manager
             }
         }
         
-        if (count($posIds)) {
+        if (countR($posIds)) {
             $posIds = implode(',', $posIds);
             $iQuery->where("#detailClassId = " . pos_Reports::getClassId() . " AND #detailRecId IN ($posIds)", $or);
         }
@@ -330,7 +331,7 @@ class sales_PrimeCostByDocument extends core_Manager
     private static function getDeltaIndicators($indicatorRecs, $masters, &$personIds)
     {
         $result = $personIds = array();
-        if (!count($indicatorRecs)) {
+        if (!countR($indicatorRecs)) {
             
             return $result;
         }
@@ -440,7 +441,7 @@ class sales_PrimeCostByDocument extends core_Manager
         
         // Всички записи
         $indicatorRecs = $iQuery->fetchAll();
-        core_App::setTimeLimit(count($indicatorRecs) * 0.8);
+        core_App::setTimeLimit(countR($indicatorRecs) * 0.8);
         
         
         // Ако няма делта се пропуска
@@ -460,13 +461,13 @@ class sales_PrimeCostByDocument extends core_Manager
         
         // Връщане на индикаторите за делта на търговеца и инициатора
         $result1 = self::getDeltaIndicators($indicatorRecs, $masters, $personIds);
-        if (count($result1)) {
+        if (countR($result1)) {
             $result = array_merge($result1, $result);
         }
         
         // Връщане на индикаторите за сумата на продадените артикули по групи
         $result2 = self::getProductGroupIndicators($indicatorRecs, $masters, $personIds);
-        if (count($result2)) {
+        if (countR($result2)) {
             $result = array_merge($result2, $result);
         }
         
@@ -487,13 +488,13 @@ class sales_PrimeCostByDocument extends core_Manager
     private static function getProductGroupIndicators($indicatorRecs, $masters, $personIds)
     {
         $result = array();
-        if (!count($indicatorRecs)) {
+        if (!countR($indicatorRecs)) {
             
             return $result;
         }
         
         $selectedGroups = self::cacheGroupNames();
-        if (!count($selectedGroups)) {
+        if (!countR($selectedGroups)) {
             
             return $result;
         }
@@ -512,7 +513,7 @@ class sales_PrimeCostByDocument extends core_Manager
             // Намира се в колко от търсените групи участва
             $groups = $productGroups[$rec->productId];
             $diff = array_intersect_key($selectedGroups, $groups);
-            $delimiter = count($diff);
+            $delimiter = countR($diff);
             
             $Document = $masters[$rec->containerId][0];
             $personFldValue = $personIds[$rec->dealerId];
@@ -569,7 +570,7 @@ class sales_PrimeCostByDocument extends core_Manager
         
         // Индикатори за избраните артикулни групи
         $groupNames = self::cacheGroupNames();
-        if (count($groupNames)) {
+        if (countR($groupNames)) {
             foreach ($groupNames as $indRec) {
                 $result[$indRec->groupRec->id] = $indRec->groupRec->name;
                 $result[$indRec->deltaRec->id] = $indRec->deltaRec->name;
@@ -594,12 +595,12 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     private static function cacheGroupNames()
     {
-        if (!count(self::$groupNames)) {
+        if (!countR(self::$groupNames)) {
             
             // Ако има селектирани групи
             $selectedGroups = sales_Setup::get('DELTA_CAT_GROUPS');
             $selectedGroups = keylist::toArray($selectedGroups);
-            if (count($selectedGroups)) {
+            if (countR($selectedGroups)) {
                 
                 // Форсират им се индикатори
                 foreach ($selectedGroups as $groupId) {
@@ -628,7 +629,7 @@ class sales_PrimeCostByDocument extends core_Manager
     private static function getAllProductGroups($indicatorRecs)
     {
         $groups = array();
-        if (!count($indicatorRecs)) {
+        if (!countR($indicatorRecs)) {
             
             return $groups;
         }
@@ -693,7 +694,7 @@ class sales_PrimeCostByDocument extends core_Manager
     public static function updatePersons($containerIds)
     {
         $containerIds = arr::make($containerIds);
-        if (!count($containerIds)) {
+        if (!countR($containerIds)) {
             
             return;
         }
@@ -857,7 +858,7 @@ class sales_PrimeCostByDocument extends core_Manager
         }
         
         // Сортира се по най-голямо количество
-        if(!count($quantities)) return null;
+        if(!countR($quantities)) return null;
         arsort($quantities);
         $quantities = array_keys($quantities);
         

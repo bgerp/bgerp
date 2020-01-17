@@ -86,7 +86,7 @@ class embed_Manager extends core_Master
         }
         
         // Ако няма достъпни драйвери редирект със съобщение
-        if (!count($interfaces)) {
+        if (!countR($interfaces)) {
             if ($this->mandatoryDriverField === true) {
                 $intf = cls::get($this->driverInterface);
                 $msg = '|Липсват опции за|* |' . ($intf->driversCommonName ? $intf->driversCommonName : $this->title);
@@ -102,7 +102,7 @@ class embed_Manager extends core_Master
             $form->setOptions($this->driverClassField, $interfaces);
             
             // Ако е наличен само един драйвер избираме него
-            if (count($interfaces) == 1) {
+            if (countR($interfaces) == 1) {
                 if ($this->mandatoryDriverField === true) {
                     $form->setDefault($this->driverClassField, key($interfaces));
                     $form->setReadOnly($this->driverClassField);
@@ -157,7 +157,7 @@ class embed_Manager extends core_Master
         // Зареждаме опциите за интерфейса
         $me = cls::get(get_called_class());
         $interfaces = core_Classes::getOptionsByInterface($me->driverInterface, 'title');
-        if (count($interfaces)) {
+        if (countR($interfaces)) {
             foreach ($interfaces as $id => $int) {
                 if (!cls::load($id, true)) {
                     continue;

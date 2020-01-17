@@ -207,7 +207,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     {
         $rows = &$data->rows;
         
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }

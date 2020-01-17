@@ -40,7 +40,7 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
         if (isset($rec->id)) {
             $entries = $this->getEntries($rec, $result->totalAmount);
             
-            if (count($entries)) {
+            if (countR($entries)) {
                 $result->entries = array_merge($result->entries, $entries);
             }
         }
@@ -90,7 +90,7 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
             
             // Проверка на артикулите
             $productCheck = deals_Helper::checkProductForErrors($productsArr, 'canConvert,canStore');
-            if(count($productCheck['notActive'])){
+            if(countR($productCheck['notActive'])){
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
             } elseif($productCheck['metasError']){
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са складируеми и вложими|*!");

@@ -99,7 +99,8 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
             $value = $date;
             
             // Ако има срок на годност
-            if (isset($time)) {
+            if (!empty($time)) {
+               
                 $startDate = dt::addSecs(-1 * $time, $mysqlValue);
                 $startDate = dt::verbal2mysql($startDate, false);
                 $startTime = strtotime($startDate);

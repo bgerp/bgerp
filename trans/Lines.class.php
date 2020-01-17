@@ -215,7 +215,7 @@ class trans_Lines extends core_Master
         $start = dt::mysql2verbal($rec->start, 'd.m.Y H:i');
         $start = str_replace(' 00:00', '', $start);
         
-        $title = (count($titleArr) == 2) ? $titleArr[1] : $rec->title;
+        $title = (countR($titleArr) == 2) ? $titleArr[1] : $rec->title;
         $title = str::limitLen($title, 32);
         $recTitle = "{$start}/{$title} ({$rec->countReady}/{$rec->countTotal})";
         
@@ -277,7 +277,7 @@ class trans_Lines extends core_Master
         $form = &$data->form;
         
         $vehicleOptions = trans_Vehicles::makeArray4Select();
-        if (count($vehicleOptions) && is_array($vehicleOptions)) {
+        if (countR($vehicleOptions) && is_array($vehicleOptions)) {
             $form->setSuggestions('vehicle', array('' => '') + arr::make($vehicleOptions, true));
         }
         

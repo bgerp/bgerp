@@ -82,32 +82,11 @@ class doc_Search extends core_Manager
     public static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->listFilter->title = 'Търсене на документи';
-        $data->listFilter->FNC('scopeFolderId', 'enum(0=Всички папки)', 'input=none,silent,width=100%,caption=Обхват');
+        $data->listFilter->FNC('scopeFolderId', 'key2(mvc=doc_Folders, allowEmpty, , maxSuggestions=5)', ' silent,width=100%,caption=Обхват');
         $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=140px, placeholder=Дата');
         $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');
         $data->listFilter->FNC('author', 'type_Users(rolesForAll=user)', 'caption=Автор');
         $data->listFilter->FNC('withMe', 'enum(,shared_with_me=Споделени с мен, liked_from_me=Харесани от мен)', 'caption=Само, placeholder=Всички');
-        
-        $conf = core_Packs::getConfig('doc');
-        $lastFoldersArr = bgerp_Recently::getLastFolderIds($conf->DOC_SEARCH_FOLDER_CNT);
-        
-        // Търсим дали има посочена папка
-        $searchFolderId = Request::get('scopeFolderId', 'int');
-        if (($searchFolderId) && (doc_Folders::haveRightFor('single', $searchFolderId))) {
-            $lastFoldersArr[$searchFolderId] = $searchFolderId;
-        }
-        
-        $scopeField = $data->listFilter->getField('scopeFolderId');
-        
-        foreach ($lastFoldersArr as $folderId) {
-            $folderTitle = doc_Folders::fetchField($folderId, 'title');
-            if (!$folderTitle) {
-                continue;
-            }
-            $scopeField->type->options[$folderId] = '|*' . $folderTitle;
-        }
-        
-        $data->listFilter->setField('scopeFolderId', 'input');
         
         $data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
         $data->listFilter->setField('search', 'caption=Ключови думи');
@@ -247,9 +226,10 @@ class doc_Search extends core_Manager
                 $data->query->where(array($where, $filterRec->toDate));
             }
             
+            $data->query->where(array("#folderId = '[#1#]'", $filterRec->scopeFolderId));
+            
             // Ограничаване на търсенето до избрана папка
             if (!empty($filterRec->scopeFolderId) && doc_Folders::haveRightFor('single', $filterRec->scopeFolderId)) {
-                $data->query->where(array("#folderId = '[#1#]'", $filterRec->scopeFolderId));
                 $restrictAccess = false;
             } else {
                 $restrictAccess = true;

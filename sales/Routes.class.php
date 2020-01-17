@@ -475,7 +475,7 @@ class sales_Routes extends core_Manager
         }
         
         // Ако няма маршрути, връщаме
-        if (!count($arr)) {
+        if (!countR($arr)) {
             
             return $salesmanId;
         }
@@ -528,12 +528,12 @@ class sales_Routes extends core_Manager
         }
         
         // Обновяване на състоянията
-        if (count($updateState)) {
+        if (countR($updateState)) {
             $this->saveArray($updateState, 'id,state');
         }
         
         // Обновяване на следващото изпълнение
-        if (count($updateNextVisit)) {
+        if (countR($updateNextVisit)) {
             $this->saveArray($updateNextVisit, 'id,nextVisit');
         }
     }

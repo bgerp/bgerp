@@ -38,12 +38,6 @@ defIfNot('DOC_NOTIFY_FOR_INCOMPLETE_BUSINESS_DOC', 2678400);
 
 
 /**
- * Колко папки от последно отворените да се показват при търсене
- */
-defIfNot('DOC_SEARCH_FOLDER_CNT', 5);
-
-
-/**
  * Колко колко документа максимално да се показват
  */
 defIfNot('DOC_SEARCH_LIMIT', 1000);
@@ -221,7 +215,6 @@ class doc_Setup extends core_ProtoSetup
         'DOC_NOTIFY_FOR_INCOMPLETE_BUSINESS_DOC' => array('time', 'caption=Период за откриване на неконтирани бизнес документи->Край,unit=преди проверката'),
         
         'DOC_REPAIR_ALL' => array('enum(yes=Да (бавно), no=Не)', 'caption=Дали да се проверяват всички документи за поправка->Избор'),
-        'DOC_SEARCH_FOLDER_CNT' => array('int(Min=0)', 'caption=Колко папки от последно отворените да се показват при търсене->Брой'),
         'DOC_SEARCH_LIMIT' => array('int(Min=0)', 'caption=Колко документ/нишки да се показват при търсене->Брой'),
         
         'DOC_NOTIFY_FOR_NEW_DOC' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване за добавен документ в нишка->Избор, customizeBy=powerUser'),
@@ -267,7 +260,8 @@ class doc_Setup extends core_ProtoSetup
         'doc_LinkedTemplates',
         'doc_FolderResources',
         'doc_LinkedLast',
-        'migrate::showDocumentsAsButtons0419'
+        'migrate::showDocumentsAsButtons0419',
+        'migrate::updateHiddenDocCreated0120'
     );
     
     
@@ -300,6 +294,15 @@ class doc_Setup extends core_ProtoSetup
             'period' => 1440,
             'offset' => 111,
             'timeLimit' => 400
+        ),
+        array(
+            'systemId' => 'DocHiddenDeleteOldRecs',
+            'description' => 'Изтриване на стари записи в показване на документи в нишките',
+            'controller' => 'doc_HiddenContainers',
+            'action' => 'DeleteOldRecs',
+            'period' => 1440,
+            'offset' => 150,
+            'timeLimit' => 100
         )
     );
     
@@ -543,5 +546,20 @@ class doc_Setup extends core_ProtoSetup
             
             $Portal->save($rec);
         }
+    }
+    
+    
+    /**
+     * Миграция за добавяне на поле за дата в doc_HiddenContainers
+     */
+    public function updateHiddenDocCreated0120()
+    {
+        core_App::setTimeLimit('300');
+        
+        $cInst = cls::get('doc_HiddenContainers');
+        
+        $now = dt::now();
+        
+        $cInst->db->query("UPDATE `{$cInst->dbTableName}` SET `date` = '{$now}'");
     }
 }

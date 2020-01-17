@@ -334,7 +334,7 @@ class planning_Hr extends core_Master
         $query->where("#state != 'rejected' && #state != 'closed'");
         $query->show('personId,code');
         
-        if (count($objectIds)) {
+        if (countR($objectIds)) {
             $query->in('id', $objectIds);
         } else {
             $query->where('1=2');
@@ -374,7 +374,7 @@ class planning_Hr extends core_Master
         $singleUrl = array();
         if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')) {
             $singleUrl = crm_Persons::getSingleUrlArray($personId);
-            if (count($singleUrl)) {
+            if (countR($singleUrl)) {
                 $singleUrl['Tab'] = 'PersonsDetails';
             }
         }
@@ -397,7 +397,7 @@ class planning_Hr extends core_Master
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
         $syncFolders = keylist::toArray($rec->centers);
-        if(count($syncFolders)){
+        if(countR($syncFolders)){
             $AssetFolders = cls::get('planning_AssetResourceFolders');
             
             // Досегашните записи
@@ -421,7 +421,7 @@ class planning_Hr extends core_Master
             }
             
             // Тези, които не са се обновили се изтриват
-            if(count($alreadyIn)){
+            if(countR($alreadyIn)){
                 foreach ($alreadyIn as $id){
                     $AssetFolders->delete($id);
                 }

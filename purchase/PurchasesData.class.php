@@ -109,6 +109,7 @@ class purchase_PurchasesData extends core_Manager
         $this->setDbIndex('productId');
         $this->setDbIndex('containerId');
         $this->setDbIndex('folderId');
+        $this->setDbIndex('valior');
         $this->setDbUnique('detailClassId,detailRecId');
        
     }

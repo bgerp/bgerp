@@ -229,7 +229,7 @@ class rack_ZoneDetails extends core_Detail
             $document = doc_Containers::getDocument($containerId);
             $products = $document->getProductsSummary();
             
-            if (count($products)) {
+            if (countR($products)) {
                 foreach ($products as $obj) {
                     $newRec = self::fetch("#zoneId = {$zoneId} AND #productId = {$obj->productId} AND #packagingId = {$obj->packagingId} AND #batch = '{$obj->batch}'");
                     if (empty($newRec)) {
@@ -262,7 +262,7 @@ class rack_ZoneDetails extends core_Detail
         $query = self::getQuery();
         $query->where("#zoneId = {$zoneId}");
         $query->where('#documentQuantity IS NOT NULL');
-        if (count($notIn)) {
+        if (countR($notIn)) {
             $query->notIn('id', $notIn);
         }
         
@@ -332,7 +332,7 @@ class rack_ZoneDetails extends core_Detail
         $me = cls::get(get_called_class());
         $dData = (object)array('masterId' => $masterRec->id, 'masterMvc' => $masterMvc, 'masterData' => $masterRec, 'listTableHideHeaders' => true, 'inlineDetail' => true);
         $dData = $me->prepareDetail($dData);
-        if(!count($dData->recs)) return $tpl;
+        if(!countR($dData->recs)) return $tpl;
         unset($dData->listFields['id']);
         
         $tpl = $me->renderDetail($dData);
@@ -373,7 +373,7 @@ class rack_ZoneDetails extends core_Detail
         });
         
         $rec->_movements = $data->recs;
-        if(count($rec->_movements)){
+        if(countR($rec->_movements)){
             $allocated += $rec->_movements;
         }
         

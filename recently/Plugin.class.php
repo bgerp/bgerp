@@ -26,7 +26,7 @@ class recently_Plugin extends core_Plugin
         
         $inputFields = $form->selectFields("#input == 'input' || (#kind == 'FLD' && #input != 'none')");
         
-        if (count($inputFields)) {
+        if (countR($inputFields)) {
             foreach ($inputFields as $name => $field) {
                 if ($field->recently) {
                     if ($prefix == '_') {
@@ -47,14 +47,17 @@ class recently_Plugin extends core_Plugin
      * Извиква се преди вкарване на запис в таблицата на модела
      */
     public function on_AfterInput($form)
-    {
+    {   
+        $rec = $form->rec;
+        
+        if(!countR(array($rec)) || !$form->isSubmitted()) return;
+
         setIfNot($prefix, $form->mvc->dbTableName, $form->name, '_');
         
         $flds = $form->selectFields("#input == 'input' || (#kind == 'FLD' && #input != 'none')");
         
-        $rec = $form->rec;
         
-        if (count($flds)) {
+        if (countR($flds)) {
             foreach ($flds as $name => $field) {
                 if ($field->recently && isset($rec->{$name}) && !$form->gotErrors($name)) {
                     $saveName = $prefix . '.' . $name;

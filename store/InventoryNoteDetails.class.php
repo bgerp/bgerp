@@ -345,7 +345,7 @@ class store_InventoryNoteDetails extends doc_Detail
      */
     protected static function on_Shutdown($mvc)
     {
-        if (count($mvc->cache)) {
+        if (countR($mvc->cache)) {
             foreach ($mvc->cache as $noteId) {
                 store_InventoryNotes::invalidateCache($noteId);
             }
@@ -425,7 +425,7 @@ class store_InventoryNoteDetails extends doc_Detail
             
             $query = cat_Products::getQuery();
             $query->likeKeylist('groups', $rec->group);
-            if (count($inArr)) {
+            if (countR($inArr)) {
                 $query->notIn('id', $inArr);
             }
             
@@ -437,7 +437,7 @@ class store_InventoryNoteDetails extends doc_Detail
                 $products[$pRec->id] = static::getRecTitle($pRec, false);
             }
             
-            if (!count($products)) {
+            if (!countR($products)) {
                 $form->setError('group', 'Няма нови артикули за импортиране от групата');
             } else {
                 $set = cls::get('type_Set', array('suggestions' => $products));

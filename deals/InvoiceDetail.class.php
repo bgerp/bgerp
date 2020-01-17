@@ -135,7 +135,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $masterRec = $data->masterData->rec;
             
             $error = '';
-            if (!count(cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, null, 1))) {
+            if (!countR(cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, null, 1))) {
                 $text = ($mvc->metaProducts == 'canSell') ? 'продаваеми' : 'купуваеми';
                 $error = "error=Няма {$text} артикули,";
             }
@@ -188,7 +188,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $det->{$this->masterKey} = $id;
                 $det->amount = $det->price * $det->quantity;
                 $det->quantity /= $det->quantityInPack;
-                if(is_array($det->batches) && count($det->batches)){
+                if(is_array($det->batches) && countR($det->batches)){
                     $det->_batches = array_keys($det->batches);
                 }
                 unset($det->batches);
@@ -243,7 +243,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
     {
         expect($rec->type === 'dc_note');
         
-        if (count($recs)) {
+        if (countR($recs)) {
             // Намираме оригиналните к-ва и цени
             $cached = $mvc->Master->getInvoiceDetailedInfo($rec->originId);
             
@@ -535,9 +535,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 }
             }
             
-            // Проверка на к-то
+            // Проверка на к-то, само ако не е КИ или ДИ
             $warning = null;
-            if (!deals_Helper::checkQuantity($rec->packagingId, $rec->quantity, $warning)) {
+            if (!deals_Helper::checkQuantity($rec->packagingId, $rec->quantity, $warning) && $masterRec->type != 'dc_note') {
                 $form->setError('quantity', $warning);
             }
             
@@ -554,7 +554,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $dealInfo = $origin->getAggregateDealInfo();
                 $products = $dealInfo->get('products');
                 
-                if (count($products)) {
+                if (countR($products)) {
                     foreach ($products as $p) {
                         if ($rec->productId == $p->productId && $rec->packagingId == $p->packagingId) {
                             $policyInfo = new stdClass();

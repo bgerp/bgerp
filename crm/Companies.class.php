@@ -25,6 +25,12 @@ defIfNot('CRM_REMOTE_COMPANY_LOGO_CREATOR', 'https://experta.bg/api_Companies/ge
 class crm_Companies extends core_Master
 {
     /**
+     * Да се създаде папка при създаване на нов запис
+     */
+    public $autoCreateFolder = 'instant';
+    
+    
+    /**
      * Интерфейси, поддържани от този мениджър
      */
     public $interfaces = array(

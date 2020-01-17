@@ -249,7 +249,7 @@ class hr_Departments extends core_Master
         }
         
         $firstRow = array('id' => '1', 'title' => $first->name, 'parent_id' => 'NULL');
-        if (count($res)) {
+        if (countR($res)) {
             array_unshift($res, $firstRow);
         } else {
             $res[] = $firstRow;

@@ -163,11 +163,11 @@ class gen_Plugin extends core_Plugin
         $data->form->setOptions('mother', $mothers);
         $data->form->setOptions('father', $fathers);
         
-        if (!count($mothers)) {
+        if (!countR($mothers)) {
             $data->form->setField('mother', 'input=none');
         }
         
-        if (!count($fathers)) {
+        if (!countR($fathers)) {
             $data->form->setField('father', 'input=none');
         }
     }

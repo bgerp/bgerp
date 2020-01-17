@@ -209,7 +209,7 @@ class eshop_Settings extends core_Manager
                             $missing[] = $placeholder;
                         }
                     }
-                    if (count($missing)) {
+                    if (countR($missing)) {
                         $form->setWarning($name, 'Пропуснати са следните плейсхолдъри|*: <b>' . implode(', ', $missing) . '</b>');
                     }
                 }
@@ -256,7 +256,7 @@ class eshop_Settings extends core_Manager
             }
             $options = array_diff_key($domainArr, $alreadyIn);
             
-            if(count($options)){
+            if(countR($options)){
                 $form->setOptions('objectId', $options);
                 $form->setDefault('objectId', cms_Domains::getCurrent('id', false));
             } else {

@@ -53,7 +53,7 @@ class plg_TreeObject extends core_Plugin
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $options = $mvc->prepareParentOptions($data->form->rec);
-        if (count($options)) {
+        if (countR($options)) {
             $data->form->setOptions($mvc->parentFieldName, $options);
         } else {
             $data->form->setReadOnly($mvc->parentFieldName);
@@ -80,10 +80,10 @@ class plg_TreeObject extends core_Plugin
             
             // При редакция оставяме само тези опции, в чиите бащи не участва текущия обект
             $options = $mvc->makeArray4Select($mvc->nameField, $where);
-            if (count($options) && isset($rec->id)) {
+            if (countR($options) && isset($rec->id)) {
                 foreach ($options as $id => $title) {
                     self::traverseTree($mvc, $id, $rec->id, $notAllowed);
-                    if (count($notAllowed) && in_array($id, $notAllowed)) {
+                    if (countR($notAllowed) && in_array($id, $notAllowed)) {
                         unset($options[$id]);
                     }
                 }
@@ -137,7 +137,7 @@ class plg_TreeObject extends core_Plugin
      */
     private static function modifySelectOptions($mvc, &$options)
     {
-        if (count($options)) {
+        if (countR($options)) {
             foreach ($options as $id => &$title) {
                 $title = $mvc->getVerbal($id, $mvc->nameField);
             }
@@ -190,7 +190,7 @@ class plg_TreeObject extends core_Plugin
      */
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }
@@ -237,7 +237,7 @@ class plg_TreeObject extends core_Plugin
             $fieldsToSum = arr::make($mvc->fieldsToSumOnChildren);
             
             // Ако има
-            if (count($fieldsToSum)) {
+            if (countR($fieldsToSum)) {
                 
                 // Обхождаме записите
                 foreach ($data->recs as $rec1) {
@@ -253,7 +253,7 @@ class plg_TreeObject extends core_Plugin
                         if ($fieldType instanceof type_Int || $fieldType instanceof type_Double) {
                             
                             // Сумираме стойността на полето за всеки наследник
-                            if (count($descendants)) {
+                            if (countR($descendants)) {
                                 foreach ($descendants as $dRec) {
                                     if (isset($dRec->{$fld})) {
                                         $rec1->{$fld} += $dRec->{$fld};
@@ -377,7 +377,7 @@ class plg_TreeObject extends core_Plugin
      */
     public static function on_AfterPrepareListRows($mvc, &$data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }
@@ -437,7 +437,7 @@ class plg_TreeObject extends core_Plugin
             
             $features = array();
             
-            if (!count($ids)) {
+            if (!countR($ids)) {
                 
                 return $features;
             }
@@ -560,7 +560,7 @@ class plg_TreeObject extends core_Plugin
         
         $res = array_merge($res, $descendants);
         
-        if (count($descendants)) {
+        if (countR($descendants)) {
             foreach ($descendants as $dRec) {
                 self::getDescendants($mvc, $dRec->id, $allRecs, $res);
             }
@@ -584,7 +584,7 @@ class plg_TreeObject extends core_Plugin
         
         $res = array_merge($res, $descendants);
         
-        if (count($descendants)) {
+        if (countR($descendants)) {
             foreach ($descendants as $dRec) {
                 self::getDescendants($mvc, $dRec->id, $allRecs, $res);
             }

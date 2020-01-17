@@ -472,7 +472,7 @@ class pear_Vcard
             }
         }
         
-        if (count($types) == 1 && !empty($result)) {
+        if (countR($types) == 1 && !empty($result)) {
             $result = reset($result);
         }
         
@@ -538,7 +538,7 @@ class pear_Vcard
         }
         
         
-        if (count($types) == 1 && !empty($result)) {
+        if (countR($types) == 1 && !empty($result)) {
             $result = reset($result);
         }
         

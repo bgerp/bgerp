@@ -73,7 +73,7 @@ class rack_Pallets extends core_Manager
     /**
      * Колко време след като са затворени палетите да се изтриват
      */
-    const DELETE_CLOSED_PALLETS_OLDER_THAN = 60 * 60 * 24 * 60;
+    const DELETE_CLOSED_PALLETS_OLDER_THAN = 5184000;
     
     
     /**
@@ -148,7 +148,7 @@ class rack_Pallets extends core_Manager
                 $mQuery->where("#palletId = {$rec->id} AND #state = 'pending'");
                 while($mRec = $mQuery->fetch()){
                     $zones = type_Table::toArray($mRec->zones);
-                    if(count($zones)){
+                    if(countR($zones)){
                         array_filter($zones, function($a) use (&$sum){$sum += $a->quantity;});
                     }
                 }

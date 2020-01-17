@@ -455,7 +455,7 @@ class price_Updates extends core_Manager
      */
     public function cron_Updateprimecosts()
     {
-        core_App::setTimeLimit(360);
+        core_App::setTimeLimit(1200);
         
         // Обновяваме кеширането на себестойностите
         cls::get('price_ProductCosts')->cron_CachePrices();

@@ -187,7 +187,7 @@ class email_Mime extends core_BaseClass
             // Определяме датата на писмото
             $d = date_parse($this->getHeader('Date'));
             
-            if (count($d)) {
+            if (countR($d)) {
                 $time = mktime($d['hour'], $d['minute'], $d['second'], $d['month'], $d['day'], $d['year']);
                 
                 if ($d['is_localtime']) {
@@ -257,7 +257,7 @@ class email_Mime extends core_BaseClass
                 $regExp = '/Received:.*\[((?:\d+\.){3}\d+)\]/';
                 preg_match_all($regExp, $this->getHeadersStr(), $matches);
                 
-                if ($ipCnt = count($matches[1])) {
+                if ($ipCnt = countR($matches[1])) {
                     for ($i = $ipCnt - 1; $i >= 0; $i--) {
                         if (type_Ip::isPublic($matches[1][$i])) {
                             if (strpos($matches[0][$i], '.google.com')) {
@@ -274,7 +274,7 @@ class email_Mime extends core_BaseClass
                 $regExp = '/Received:.*?((?:\d+\.){3}\d+)/';
                 preg_match_all($regExp, $this->getHeadersStr(), $matches);
                 
-                if ($ipCnt = count($matches[1])) {
+                if ($ipCnt = countR($matches[1])) {
                     for ($i = $ipCnt - 1; $i >= 0; $i--) {
                         if (strpos($matches[0][$i], '.google.com')) {
                             continue;
@@ -360,7 +360,7 @@ class email_Mime extends core_BaseClass
         }
         
         // Намираме страната с най-много събрани точки
-        if (count($countries)) {
+        if (countR($countries)) {
             $firstCountry = strtoupper(arr::getMaxValueKey($countries));
             $countryId = drdata_Countries::fetchField("#letterCode2 = '{$firstCountry}'", 'id');
             
@@ -481,7 +481,7 @@ class email_Mime extends core_BaseClass
             'data' => $data,
             'type' => $type,
             'param' => $param);
-        $id = count($this->files) + 1;
+        $id = countR($this->files) + 1;
         $this->files[$id] = $rec;
         
         return $id;
@@ -508,7 +508,7 @@ class email_Mime extends core_BaseClass
      */
     public function placeInlineFiles($html)
     {
-        if (count($this->files)) {
+        if (countR($this->files)) {
             foreach ($this->files as $fRec) {
                 if ($fRec->type != 'inline') {
                     continue;
@@ -558,7 +558,7 @@ class email_Mime extends core_BaseClass
                 $index = strtolower(substr($h, 0, $pos));
                 $headersArr[$index][] = trim(substr($h, $pos + 1));
             } else {
-                $current = count($headersArr[$index]) - 1;
+                $current = countR($headersArr[$index]) - 1;
                 $headersArr[$index][$current] .= "\n" . $h;
             }
         }
@@ -670,7 +670,7 @@ class email_Mime extends core_BaseClass
             }
             $p2 = explode('=', $p, 2);
             
-            if (count($p2) == 1) {
+            if (countR($p2) == 1) {
                 $res[] = $p;
             } else {
                 $key = strtolower(trim($p2[0]));
@@ -698,7 +698,7 @@ class email_Mime extends core_BaseClass
              
             $decoded = '';
             
-            if (is_array($imapDecodeArr) && count($imapDecodeArr) > 0) {
+            if (is_array($imapDecodeArr) && countR($imapDecodeArr) > 0) {
                 foreach ($imapDecodeArr as $id => $header) {
                     if(isset($imapDecodeArr[$id-1]) && $imapDecodeArr[$id-1]->charset == $header->charset) {
                         $imapDecodeArr[$id-1]->text .= $header->text;
@@ -751,7 +751,7 @@ class email_Mime extends core_BaseClass
         if ($nl != $headerDelim) {
             $headerStrArr = explode($headerDelim, $data, 2);
             
-            if (count($headerStrArr) > 1) {
+            if (countR($headerStrArr) > 1) {
                 $headerStr = trim($headerStrArr[0]);
                 $data = trim($headerStrArr[1]);
             }
@@ -876,7 +876,7 @@ class email_Mime extends core_BaseClass
         if (($p->type == 'MULTIPART') && $p->boundary) {
             $data = explode('--' . $p->boundary, $data);
             
-            $cntParts = count($data);
+            $cntParts = countR($data);
             
             if ($cntParts == 2) {
                 $this->errors[] = "Само едно  boundary в MULTIPART частта (${cntParts})";
@@ -1170,7 +1170,7 @@ class email_Mime extends core_BaseClass
      */
     public static function emailListToVerbal($list)
     {
-        if (count($list)) {
+        if (countR($list)) {
             foreach ($list as $item) {
                 $address = $item['address'];
                 

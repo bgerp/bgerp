@@ -70,6 +70,17 @@ class bgerp_Recently extends core_Manager
      */
     public $searchInputField = 'recentlySearch';
     
+    /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 100000;
+    
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'last';
+    
     
     /**
      * Описание на модела
@@ -730,9 +741,10 @@ class bgerp_Recently extends core_Manager
     {
         $lastRecently = dt::addDays(-bgerp_Setup::get('RECENTLY_KEEP_DAYS') / (24 * 3600));
         
-        // $res = self::delete("#last < '{$lastRecently}'");
+        $res = $this->delete(array("#last < '[#1#]'", $lastRecently));
         
         if ($res) {
+            $this->logNotice("Бяха изтрити {$res} записа");
             
             return "Бяха изтрити {$res} записа от " . $this->className;
         }

@@ -371,7 +371,7 @@ class planning_ProductionTaskProducts extends core_Detail
                 $usedProducts[$tRec->productId] = $tRec->productId;
             }
             
-            if (count($taskOptions)) {
+            if (countR($taskOptions)) {
                 $options += array('t' => (object) array('group' => true, 'title' => tr('Задачи'))) + $taskOptions;
             }
             
@@ -380,7 +380,7 @@ class planning_ProductionTaskProducts extends core_Detail
                 
                 // Ако има добавят се с групата на оборудването в опциите
                 $norms = planning_AssetResourcesNorms::getNormOptions($taskRec->fixedAssets, $usedProducts);
-                if (count($norms)) {
+                if (countR($norms)) {
                     $options += $norms;
                 }
             }

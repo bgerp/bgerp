@@ -163,7 +163,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      */
     protected static function on_AfterPrepareListRows($mvc, &$data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }
@@ -256,7 +256,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         }
         
         // Рендираме таблицата с отпадъците
-        if (count($data->popArr) || $data->masterData->rec->state == 'draft') {
+        if (countR($data->popArr) || $data->masterData->rec->state == 'draft') {
             $data->listFields['productId'] = "Отпадъци|* <small style='font-weight:normal'>( |остават в незавършеното производство|* )</small>";
             unset($data->listFields['storeId']);
             
@@ -289,7 +289,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }

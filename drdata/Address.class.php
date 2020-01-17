@@ -214,10 +214,10 @@ class drdata_Address extends core_MVC
             $obj->_wordsLower = self::lineToWords($obj->_lineLower);
             
             preg_match_all("/\b([A-Z][a-z]+)\b/", $obj->_lineLat, $matches);
-            $obj->titleCaseCnt = count($matches[1]);
+            $obj->titleCaseCnt = countR($matches[1]);
             
             preg_match_all("/\b([A-Z]{2,})\b/", $obj->_lineLat, $matches);
-            $obj->upperCaseCnt = count($matches[1]);
+            $obj->upperCaseCnt = countR($matches[1]);
             
             // Проверка за фирми
             self::rateCompany($obj);
@@ -293,14 +293,14 @@ class drdata_Address extends core_MVC
         }
         
         if ($c = ($obj->upperCaseCnt + $obj->titleCaseCnt)) {
-            $cnt *= ($c / count($obj->_wordsLower) + 0.5);
+            $cnt *= ($c / countR($obj->_wordsLower) + 0.5);
         }
         
         if (strpos($obj->line, '?')) {
             $cnt -= 2;
         }
         
-        $obj->companyRate += round(min(100, 25 * ($cnt / count($obj->_wordsLower))));
+        $obj->companyRate += round(min(100, 25 * ($cnt / countR($obj->_wordsLower))));
     }
     
     
@@ -340,11 +340,11 @@ class drdata_Address extends core_MVC
         }
         
         if ($obj->titleCaseCnt) {
-            $cnt += ($obj->titleCaseCnt / count($obj->_wordsLower)) * 1.5;
-            $cnt *= ($obj->titleCaseCnt / count($obj->_wordsLower) + 0.5);
+            $cnt += ($obj->titleCaseCnt / countR($obj->_wordsLower)) * 1.5;
+            $cnt *= ($obj->titleCaseCnt / countR($obj->_wordsLower) + 0.5);
         }
         
-        $obj->personRate += round(min(100, 25 * ($cnt / count($obj->_wordsLower))));
+        $obj->personRate += round(min(100, 25 * ($cnt / countR($obj->_wordsLower))));
     }
     
     
@@ -376,7 +376,7 @@ class drdata_Address extends core_MVC
             $cnt += 10;
         }
         
-        $obj->regardsRate += round(min(100, 15 * ($cnt / count($obj->_wordsLower))));
+        $obj->regardsRate += round(min(100, 15 * ($cnt / countR($obj->_wordsLower))));
     }
     
     
@@ -477,7 +477,7 @@ class drdata_Address extends core_MVC
         
         arsort($res);
         
-        if (count($res)) {
+        if (countR($res)) {
             $countryId = key($res);
             $countryRec = drdata_Countries::fetch($countryId);
             self::$countryCode = $countryRec->telCode;
@@ -621,15 +621,15 @@ class drdata_Address extends core_MVC
             //$res[$id]->add('words', $words);
             
             preg_match_all("/\b([A-Z][a-z]+)\b/", $aL, $matches);
-            $titleCaseCnt = count($matches[1]);
+            $titleCaseCnt = countR($matches[1]);
             
             preg_match_all("/\b([A-Z]{2,})\b/", $aL, $matches);
-            $upperCaseCnt = count($matches[1]);
+            $upperCaseCnt = countR($matches[1]);
             
             preg_match_all("/\b([0-9]{1,3}[a-zA-Z]{0,3})\b/", $aL, $matches);
-            $streetAddrCnt = count($matches[1]);
+            $streetAddrCnt = countR($matches[1]);
             
-            $wordsCnt = count($words);
+            $wordsCnt = countR($words);
             
             if ($wordsCnt > 0 && $wordsCnt < 10) {
                 foreach ($words as $w) {
@@ -796,7 +796,7 @@ class drdata_Address extends core_MVC
             $data = $l->getData();
             
             if (!$data) {
-                if (count($blocks[$i])) {
+                if (countR($blocks[$i])) {
                     $empty += $l->distance;
                 }
             } else {
@@ -805,7 +805,7 @@ class drdata_Address extends core_MVC
                 }
                 $empty = 0;
                 foreach ($data as $item) {
-                    if (is_array($blocks[$i][$item[0]]) && count($blocks[$i][$item[0]])) {
+                    if (is_array($blocks[$i][$item[0]]) && countR($blocks[$i][$item[0]])) {
                         //tel, fax, mob - по-голямото е по-добре
                         if ($item[0] == 'tel' || $item[0] == 'tel' || $item[0] == 'tel') {
                             foreach ($blocks[$i][$item[0]] as $id => $exValue) {
@@ -887,38 +887,38 @@ class drdata_Address extends core_MVC
         
         $res = new stdClass();
         
-        if (is_array($maxBlock) && count($maxBlock)) {
-            if (is_array($maxBlock['company']) && count($maxBlock['company'])) {
+        if (is_array($maxBlock) && countR($maxBlock)) {
+            if (is_array($maxBlock['company']) && countR($maxBlock['company'])) {
                 $res->company = trim($maxBlock['company'][0], "*;,-#$<> \t\n\r");
             }
-            if (is_array($maxBlock['tel']) && count($maxBlock['tel'])) {
+            if (is_array($maxBlock['tel']) && countR($maxBlock['tel'])) {
                 $res->tel = implode(', ', $maxBlock['tel']);
             }
-            if (is_array($maxBlock['fax']) && count($maxBlock['fax'])) {
+            if (is_array($maxBlock['fax']) && countR($maxBlock['fax'])) {
                 $res->fax = implode(', ', $maxBlock['fax']);
             }
             if (is_array($maxBlock['email']) && count($maxBlock['email'])) {
                 $res->email = implode(', ', $maxBlock['email']);
             }
-            if (is_array($maxBlock['address']) && count($maxBlock['address'])) {
+            if (is_array($maxBlock['address']) && countR($maxBlock['address'])) {
                 $res->address = $maxBlock['address'][0];
             }
-            if (is_array($maxBlock['country']) && count($maxBlock['country'])) {
+            if (is_array($maxBlock['country']) && countR($maxBlock['country'])) {
                 $res->country = $maxBlock['country'][0];
             }
-            if (is_array($maxBlock['pCode']) && count($maxBlock['pCode'])) {
+            if (is_array($maxBlock['pCode']) && countR($maxBlock['pCode'])) {
                 $res->pCode = $maxBlock['pCode'][0];
             }
-            if (is_array($maxBlock['place']) && count($maxBlock['place'])) {
+            if (is_array($maxBlock['place']) && countR($maxBlock['place'])) {
                 $res->place = $maxBlock['place'][0];
             }
-            if (is_array($maxBlock['web']) && count($maxBlock['web'])) {
+            if (is_array($maxBlock['web']) && countR($maxBlock['web'])) {
                 $res->web = $maxBlock['web'][0];
             }
-            if (is_array($maxBlock['name']) && count($maxBlock['name'])) {
+            if (is_array($maxBlock['name']) && countR($maxBlock['name'])) {
                 $res->person = trim($maxBlock['name'][0], "*;,-#$<> \t\n\r");
             }
-            if (is_array($maxBlock['mob']) && count($maxBlock['mob'])) {
+            if (is_array($maxBlock['mob']) && countR($maxBlock['mob'])) {
                 $res->mob = implode(', ', $maxBlock['mob']);
             }
         }

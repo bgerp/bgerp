@@ -56,6 +56,18 @@ class fileman_Data extends core_Manager
      */
     public $fillSearchKeywordsOnSetup = false;
     
+    /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 100000;
+    
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'md5,archived,links,lastUse,processed';
+    
+    
     
     /**
      * Описание на модела (таблицата)
@@ -78,7 +90,7 @@ class fileman_Data extends core_Manager
         
         $this->FLD('lastUse', 'datetime(format=smartTime)', 'caption=Последно, input=none');
         
-        $this->FLD('processed', 'enum(no,yes)', 'caption=Извличане на ключови думу,column=none,single=none,input=none');
+        $this->FLD('processed', 'enum(no,yes)', 'caption=Извличане на ключови думи,column=none,single=none,input=none');
         
         $this->setDbUnique('fileLen,md5', 'DNA');
     }
@@ -95,12 +107,10 @@ class fileman_Data extends core_Manager
     public static function updateLastUse($id, $lastUse = null)
     {
         if (!$id) {
-            
             return false;
         }
         
         if (!($rec = self::fetch($id))) {
-            
             return false;
         }
         
@@ -416,7 +426,6 @@ class fileman_Data extends core_Manager
         $rec = self::fetchRec($rec);
         
         if (!$rec) {
-            
             return false;
         }
         

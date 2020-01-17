@@ -580,7 +580,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
         
         $details = $mvc->getDefaultDetails($rec);
-        if(count($details)) {
+        if(countR($details)) {
              foreach ($details as $dRec) {
                 $dRec->noteId = $rec->id;
                 
@@ -1016,7 +1016,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             }
         }
         
-        if (count($productsWithNegativeQuantity)) {
+        if (countR($productsWithNegativeQuantity)) {
             $warning = 'Контирането на документа ще доведе до отрицателни количества по|*: ';
             foreach ($productsWithNegativeQuantity as $storeId => $products) {
                 $warning .= implode(', ', $products) . ', |в склад|* ' . store_Stores::getTitleById($storeId) . ' |и|* ';

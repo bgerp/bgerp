@@ -65,6 +65,18 @@ class acc_JournalDetails extends core_Detail
     
     
     /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 100000;
+    
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'amount,debitItem1,debitItem2,debitItem3,creditItem1,creditItem2,creditItem3';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()

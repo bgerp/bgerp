@@ -10,7 +10,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -26,15 +26,7 @@ class deals_plg_SetTermDate extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if (!isset($mvc->termDateFld)) {
-            
-            return;
-        }
-        if (!isset($fields['-single'])) {
-            
-            return;
-        }
-        if (Mode::isReadOnly()) {
+        if (!isset($mvc->termDateFld) || !isset($fields['-single']) || Mode::isReadOnly()) {
             
             return;
         }
@@ -43,6 +35,10 @@ class deals_plg_SetTermDate extends core_Plugin
         if ($mvc->haveRightFor('settermdate', $rec)) {
             $row->{$mvc->termDateFld} .= (!empty($row->{$mvc->termDateFld})) ? '' : '<div class=border-field></div>';
             $row->{$mvc->termDateFld} = $row->{$mvc->termDateFld} . ht::createLink('', array($mvc, 'settermdate', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit.png,title=Задаване на нова дата');
+        }
+        
+        if(!empty($rec->{$mvc->termDateFld}) && $rec->{$mvc->termDateFld} < dt::today()){
+            $row->{$mvc->termDateFld} = ht::createHint($row->{$mvc->termDateFld}, 'Датата е минала', 'warning', false);
         }
     }
     

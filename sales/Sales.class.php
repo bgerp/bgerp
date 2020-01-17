@@ -400,7 +400,7 @@ class sales_Sales extends deals_DealMaster
         $myCompany = crm_Companies::fetchOwnCompany();
         
         $options = bank_Accounts::getContragentIbans($myCompany->companyId, 'crm_Companies', true);
-        if (count($options)) {
+        if (countR($options)) {
             foreach ($options as $id => &$name) {
                 if (is_numeric($id)) {
                     $name = bank_OwnAccounts::fetchField("#bankAccountId = {$id}", 'title');
@@ -945,7 +945,7 @@ class sales_Sales extends deals_DealMaster
             $key = md5(implode('', $ids));
         }
         
-        if (!count($ids)) {
+        if (!countR($ids)) {
             
             return array();
         }
@@ -1025,7 +1025,7 @@ class sales_Sales extends deals_DealMaster
     {
         $rec = $data->rec;
         $manifacturableProducts = static::getManifacurableProducts($data->rec);
-        if (!count($manifacturableProducts)) {
+        if (!countR($manifacturableProducts)) {
             
             return;
         }
@@ -1295,7 +1295,7 @@ class sales_Sales extends deals_DealMaster
         $entries = sales_transaction_Sale::getEntries($rec->id);
         $shipped = sales_transaction_Sale::getShippedProducts($entries);
         
-        if (count($shipped)) {
+        if (countR($shipped)) {
             foreach ($shipped as $ship) {
                 unset($ship->price);
                 $ship->name = cat_Products::getTitleById($ship->productId, false);
@@ -1585,7 +1585,7 @@ class sales_Sales extends deals_DealMaster
                 }
                 
                 $invoices = deals_Helper::getInvoicesInThread($rec->threadId);
-                if(count($invoices)){
+                if(countR($invoices)){
                     $rec->invoices = str_replace('#Inv', '', implode(', ', $invoices));
                 }
             }

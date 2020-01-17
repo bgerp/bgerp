@@ -238,11 +238,11 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                     $cover = doc_Folders::getCover($form->rec->folderId);
                     
                     $defMetas = $Driver->getDefaultMetas();
-                    if (!count($defMetas)) {
+                    if (!countR($defMetas)) {
                         $defMetas = $cover->getDefaultMeta();
                     }
                     
-                    if (count($defMetas)) {
+                    if (countR($defMetas)) {
                         $form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
                     }
                     

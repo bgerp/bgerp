@@ -86,6 +86,17 @@ class log_Data extends core_Manager
     
     protected static $toAddHash = array();
     
+    /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 200000;
+    
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'time';
+    
     
     /**
      * Полета на модела
@@ -677,7 +688,7 @@ class log_Data extends core_Manager
                 $dateRange[1] = $rec->to;
             }
             
-            if (count($dateRange) == 2) {
+            if (countR($dateRange) == 2) {
                 sort($dateRange);
             }
             

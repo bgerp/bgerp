@@ -305,6 +305,7 @@ class archive_Adapter
         expect(file_exists($src), $src);
         expect(is_readable($src), $src);
         
+        
         if ($pass) {
             $p = "-p{$pass} -mem=AES256 ";
             escapeshellarg($p);
@@ -312,15 +313,28 @@ class archive_Adapter
             $p = '';
         }
         
-        $src = escapeshellarg($src);
-        $dest = escapeshellarg($dest);
+        $srcEsc = escapeshellarg($src);
+        $destEsc = escapeshellarg($dest);
+        $tempEsc = escapeshellarg("{$dest}.tmp");
         
-        $cmd = archive_Setup::get_ARCHIVE_7Z_PATH() . " a {$p}-tzip -y {$options} {$dest} {$src}";
+        $flagDelete = false;
+        if (strpos($options, '-sdel') !== false) {
+            $flagDelete = true;
+            $options = str_replace('-sdel', '', $options);
+        }
+        
+        $cmd = archive_Setup::get_ARCHIVE_7Z_PATH() . " a {$p}-tzip -mx1 -y {$options} {$tempEsc} {$srcEsc}";
         
         exec($cmd, $output, $return);
         
         if ($return != 0) {
             bp($cmd, $output, $return);
+        }
+        
+        rename("{$dest}.tmp", $dest);
+        
+        if ($flagDelete) {
+            unlink($src);
         }
         
         return $return;
@@ -349,10 +363,6 @@ class archive_Adapter
         $cmd = archive_Setup::get_ARCHIVE_7Z_PATH() . " e {$src} -o{$dir} {$p}-tzip -y {$options}";
         
         exec($cmd, $output, $return);
-        
-        if ($return != 0) {
-            bp($cmd, $output, $return);
-        }
         
         return $return;
     }

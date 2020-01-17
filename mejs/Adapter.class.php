@@ -78,11 +78,14 @@ class mejs_Adapter
         $id = core_Os::getUniqId('mejs');
         
         // Шаблона, който ще връщаме
-        $mTpl = new ET("<[#TYPE#] <!--ET_BEGIN WIDTH-->width='[#WIDTH#]'<!--ET_END WIDTH-->
-                        	<!--ET_BEGIN HEIGHT-->height='[#HEIGHT#]'<!--ET_END HEIGHT--> 
-                			id='{$id}'>
-                			[#SOURCE#]
-            			</[#TYPE#]>
+        $mTpl = new ET("<div>
+                            <[#TYPE#] <!--ET_BEGIN WIDTH-->width='[#WIDTH#]'<!--ET_END WIDTH-->
+                        	    <!--ET_BEGIN HEIGHT-->height='[#HEIGHT#]'<!--ET_END HEIGHT--> 
+                			    id='{$id}'>
+                			    [#SOURCE#]
+            			    </[#TYPE#]>
+                            <!--ET_BEGIN MEDIA_TITLE--><div style='background-color:#eee;font-weight:bold;color:#333;padding:4px;'>[#MEDIA_TITLE#]</div><!--ET_END MEDIA_TITLE-->
+                        </div>
             			");
         
         // Обхождаме всички линкове
@@ -102,7 +105,10 @@ class mejs_Adapter
         $mTpl->replace($params['width'], 'WIDTH');
         $mTpl->replace($params['height'], 'HEIGHT');
         $mTpl->replace($type, 'TYPE');
-        
+        if($params['title']) {
+           $mTpl->replace($params['title'], 'MEDIA_TITLE');
+        }
+
         // Премахваме празните плейсхолдери
         $mTpl->removeBlocks();
         
@@ -124,8 +130,8 @@ class mejs_Adapter
         $paramsStr = static::prepareParams($params);
         
         // Добавяме скрипта за стартиране
-        $tpl->append("<script> $('{$type}').mediaelementplayer({$paramsStr}); </script>");
-        
+        jquery_Jquery::run($tpl, "$('{$type}').mediaelementplayer({$paramsStr});");
+
         // Добавяме CSS
         $tpl->push('mejs/' . mejs_Setup::get('VERSION') . '/build/mediaelementplayer.css', 'CSS');
         

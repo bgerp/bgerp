@@ -225,7 +225,7 @@ class drdata_Vats extends core_Manager
             if ((($rec->lastChecked <= $expDate) && ($rec->lastUsed >= $lastUsedExp)) || ($rec->status == self::statusUnknown && $rec->lastChecked < $expUnknown)) {
                 
                 // Ако не е достигнат максимума, добавяме и този запис за обновяване
-                if (count($this->updateOnShutdown) < self::MAX_CNT_VATS_FOR_UPDATE) {
+                if (countR($this->updateOnShutdown) < self::MAX_CNT_VATS_FOR_UPDATE) {
                     $this->updateOnShutdown[] = $rec;
                 }
             }
