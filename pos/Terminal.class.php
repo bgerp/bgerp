@@ -687,10 +687,10 @@ class pos_Terminal extends peripheral_Terminal
                 }
                 
                 if(pos_Setup::get('TERMINAL_PRICE_CHANGE') == 'yes'){
-                    $res->append(tr("|*<div class='divider'>|Цени|*</div>"));
+                    $res->append(tr("|*<div class='divider'>|Цена|*</div>"));
                     $res->append($this->renderResultPrice($rec, $string, $selectedRec));
                     
-                    $res->append(tr("|*<div class='divider'>|Отстъпки|*</div>"));
+                    $res->append(tr("|*<div class='divider'>|Отстъпка|*</div>"));
                     $res->append($this->renderResultDiscount($rec, $string, $selectedRec));
                 }
                 
@@ -899,14 +899,18 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
-        $discountsArr =  array('0' => '0') + $discountsArr;
+        if(!empty($selectedRec->discountPercent)){
+            $discountsArr =  array('0' => '0') + $discountsArr;
+        }
         
         $tpl = new core_ET("");
         foreach ($discountsArr as $discountPercent){
+            $class = ($discountPercent == $selectedRec->discountPercent) ? 'currentStore' : '';
+            
             $discAmount = $discountPercent * 100;
             $url = toUrl(array('pos_ReceiptDetails', 'updateRec', 'receiptId' => $rec->id, 'action' => 'setdiscount', 'string' => "{$discAmount}"), 'local');
             $btnCaption = ($discountPercent == '0') ? tr('Без отстъпка') : "{$discAmount} %";
-            $element = ht::createElement("div", array('id' => "discount{$discountPercent}", 'class' => "navigable posBtns discountBtn", 'data-url' => $url), $btnCaption, true);
+            $element = ht::createElement("div", array('id' => "discount{$discountPercent}", 'class' => "navigable posBtns discountBtn {$class}", 'data-url' => $url), $btnCaption, true);
             $tpl->append($element);
         }
         $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
