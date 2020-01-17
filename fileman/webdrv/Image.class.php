@@ -256,7 +256,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         
         $params = unserialize($script->params);
         
-        if (count($fileHndArr)) {
+        if (countR($fileHndArr)) {
             $params['content'] = $fileHndArr;
             
             // Обновяваме данните за запис във fileman_Indexes

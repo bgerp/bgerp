@@ -186,8 +186,8 @@ class expert_Dataset extends core_BaseClass
         
         $vars = $rule->exprVars + $rule->condVars;
         
-        $maxTrust += count($vars);
-        $div += count($vars);
+        $maxTrust += countR($vars);
+        $div += countR($vars);
         
         foreach ($vars as $n) {
             
@@ -250,7 +250,7 @@ class expert_Dataset extends core_BaseClass
      */
     public function calc($expr, $vars)
     {
-        if (count($vars)) {
+        if (countR($vars)) {
             foreach ($vars as $name) {
                 $replace['$' . $name] = "\$this->vars['{$name}']";
             }

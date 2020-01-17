@@ -25,7 +25,7 @@ class rack_plg_IncomingShipmentDetails extends core_Plugin
     public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $rows = &$data->rows;
-        if (!count($rows)) {
+        if (!countR($rows)) {
             
             return;
         }

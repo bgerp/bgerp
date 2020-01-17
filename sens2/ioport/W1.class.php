@@ -53,7 +53,7 @@ class sens2_ioport_W1 extends sens2_ioport_Abstract
      */
     public function getPortIdent($rec)
     {
-        return $rec->unitId;
+        return $rec->unitId . '/' . $rec->variable;
     }
 
 }

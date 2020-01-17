@@ -825,7 +825,7 @@ class planning_Tasks extends core_Master
             // Ако артикула е различен от този от заданието и има други основни мерки, само тогава се показват за избор
             if($rec->productId != $originRec->productId){
                 $measureOptions = cat_Products::getPacks($rec->productId, true);
-                $measuresCount = count($measureOptions);
+                $measuresCount = countR($measureOptions);
                 $form->setOptions('measureId', $measureOptions);
                 $form->setDefault('measureId', key($measureOptions));
                 if($measuresCount == 1){
@@ -893,7 +893,7 @@ class planning_Tasks extends core_Master
             if ($productRec->canConvert == 'yes') {
                 $tasks = self::getTasksByJob($origin->that, true);
                 unset($tasks[$rec->id]);
-                if (count($tasks)) {
+                if (countR($tasks)) {
                     $form->setField('inputInTask', 'input');
                     $form->setOptions('inputInTask', array('' => '') + $tasks);
                 }
@@ -936,7 +936,7 @@ class planning_Tasks extends core_Master
                 }
             }
             
-            if (count($arr)) {
+            if (countR($arr)) {
                 $form->setSuggestions($field, $arr);
             } else {
                 $form->setField($field, 'input=none');
@@ -986,7 +986,7 @@ class planning_Tasks extends core_Master
             if (!empty($row->employees)) {
                 $subArr[] = tr('Оператори:|* ') . $row->employees;
             }
-            if (count($subArr)) {
+            if (countR($subArr)) {
                 $row->info = '<div><small>' . implode(' &nbsp; ', $subArr) . '</small></div>';
             }
             
@@ -998,7 +998,7 @@ class planning_Tasks extends core_Master
             while($nRec = $nQuery->fetch()){
                 $notes[] = planning_DirectProductionNote::getLink($nRec->id, 0);
             }
-            if (count($notes)) {
+            if (countR($notes)) {
                 $row->info .= "<div style='padding-bottom:7px'>" . implode(' | ', $notes) . "</div>";
             }
             
@@ -1063,22 +1063,6 @@ class planning_Tasks extends core_Master
         $data->listFilter->FLD('assetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване');
         $data->listFilter->showFields .= ',assetId';
         $data->listFilter->input('assetId');
-        
-        // Филтър по всички налични департаменти
-        $folders = doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf');
-        
-        if (count($folders)) {
-            $data->listFilter->setField('folderId', 'input');
-            $data->listFilter->setOptions('folderId', array('' => '') + $folders);
-            $data->listFilter->showFields .= ',folderId';
-            $data->listFilter->input('folderId');
-        }
-        
-        // Филтър по департамент
-        if ($folderId = $data->listFilter->rec->folderId) {
-            $data->query->where("#folderId = {$folderId}");
-            unset($data->listFields['folderId']);
-        }
         
         if ($assetId = $data->listFilter->rec->assetId) {
             $data->query->where("LOCATE('|{$assetId}|', #fixedAssets)");

@@ -42,7 +42,7 @@ class unit_Tests extends core_Manager
         }
         
         // Правим тестове на всички открити файлове
-        if (count($tests)) {
+        if (countR($tests)) {
             Debug::startTimer('unit_Tests');
             
             foreach ($tests as $class => $testClass) {

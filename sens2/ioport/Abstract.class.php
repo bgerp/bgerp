@@ -50,7 +50,7 @@ abstract class sens2_ioport_Abstract extends core_BaseClass
         $ports = $this->discovery();
         $pOpt = '1 min|2 min|3 min|4 min|5 min|10 min|30 min|60 min';
         
-        if (count($ports) > 1) {
+        if (countR($ports) > 1) {
             $opt = '';
             foreach ($ports as $p) {
                 $opt .= '|' . $p->name . ' [' . $p->uom . ']';
@@ -81,7 +81,7 @@ abstract class sens2_ioport_Abstract extends core_BaseClass
             $slotTypesArr = arr::make(static::SLOT_TYPES, true);
             $slotsCnt = $Plc->getSlotOpt($slotTypesArr, true);
             
-            if (count($slotsCnt)) {
+            if (countR($slotsCnt)) {
                 
                 return true;
             }

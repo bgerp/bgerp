@@ -664,25 +664,73 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 $rArrNow[$orderDate][$orderH] = (object) array('title' => $cRec->event);
             } else {
                 $type = strtolower($rec->type);
-                $cUrl = parseLocalUrl($rec->url, false);
-                $cEventsTypeArr[$orderDate][$orderH] = ht::createLink(ht::createImg(array('path' => "img/16/{$type}.png")), $cUrl, false, array('title' => $rec->title));
+                
+                if (isset($cEventsTypeArr[$orderDate][$type])) {
+                    continue;
+                }
+                $cEventsTypeArr[$orderDate][$type] = $orderH;
             }
         }
         
-        if (!empty($cEventsTypeArr)) {
-            foreach ($cEventsTypeArr as $orderDate => $eArr) {
-                $iconStr = '';
-                foreach ($eArr as $icon) {
-                    $iconStr .= ' ' . $icon;
-                }
+        foreach ($cEventsTypeArr as $orderDate => $typeArr) {
+            foreach ($typeArr as $type => $orderH) {
                 
-                if (!$iconStr) {
-                    continue;
-                }
+                $uniqId = 'uniq-' . $orderDate . '-' . $type;
                 
-                $rArrNow[$orderDate]['events'] = $iconStr;
+                $url = toUrl(array('bgerp_drivers_Calendar', 'getHolidayInfo', 'date' => $orderDate, 'type' => $type, 'uniqId' => $uniqId), 'local');
+                
+                $eventImg = ht::createElement('img', array('src' => sbf("img/16/{$type}.png", '')));
+                $event = ht::createElement('span', array('class' => 'tooltip-arrow-link', 'data-url' => $url), $eventImg, true);
+                $event = "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$uniqId}'></span>{$event}</span>";
+                
+                $rArrNow[$orderDate]['events'] .= '&nbsp;' . $event;
             }
         }
+    }
+    
+    
+    /**
+     * Показва информация за перото по Айакс
+     */
+    public function act_GetHolidayInfo()
+    {
+        requireRole('powerUser');
+        
+        expect(Request::get('ajax_mode'));
+        
+        $date = Request::get('date');
+        $type = Request::get('type');
+        $uniqId = Request::get('uniqId');
+        
+        $Calendar = cls::get('cal_Calendar');
+        $query = $Calendar->getQuery();
+        
+        $query->where("#users IS NULL OR #users = ''");
+        $query->orLikeKeylist('users', core_Users::getCurrent());
+        
+        $query->where("#state != 'rejected'");
+        
+        $query->where(array("#time >= '[#1#]' AND #time <= '[#2#]'", $date . ' 00:00:00', $date . ' 23:59:59'));
+        
+        $query->where(array("LOWER(#type) = '[#1#]'", strtolower($type)));
+        
+        $query->orderBy('time', 'ASC');
+        
+        $res = '';
+        
+        while ($rec = $query->fetch()) {
+            $res .= '<tr><td>' . $Calendar->recToVerbal($rec, 'title')->event . '</td></tr>';
+        }
+        
+        if ($res) {
+            $res = '<table>' . $res . '</table>';
+        }
+        
+        $resObj = new stdClass();
+        $resObj->func = 'html';
+        $resObj->arg = array('id' => $uniqId, 'html' => $res, 'replace' => true);
+        
+        return array($resObj);
     }
     
     

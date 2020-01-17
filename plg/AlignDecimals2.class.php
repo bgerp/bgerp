@@ -80,7 +80,7 @@ class plg_AlignDecimals2 extends core_Plugin
         $recs = &$data->recs;
         $rows = &$data->rows;
         
-        if (!count($recs)) {
+        if (!countR($recs)) {
             
             return;
         }

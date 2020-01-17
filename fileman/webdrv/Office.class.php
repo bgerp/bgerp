@@ -487,7 +487,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $params = unserialize($script->params);
         
         // Ако има генерирани файлове, които са качени успешно
-        if (count($fileHndArr)) {
+        if (countR($fileHndArr)) {
             
             // Текстовата част
             $params['content'] = $fileHndArr;

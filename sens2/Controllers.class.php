@@ -440,7 +440,7 @@ class sens2_Controllers extends core_Master
             }
         }
         
-        if (is_array($inputs) && count($inputs)) {
+        if (is_array($inputs) && countR($inputs)) {
             
             // Прочитаме състоянието на входовете от драйвера
             if ($rec->persistentState) {

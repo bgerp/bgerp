@@ -91,7 +91,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
             if ($actions['ship']) {
                 
                 $entriesProduction = self::getProductionEntries($rec, $this->class);
-                if (count($entriesProduction)) {
+                if (countR($entriesProduction)) {
                     $entries = array_merge($entries, $entriesProduction);
                 }
                 
@@ -509,7 +509,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                     // Извличане на записите за производството
                     $prodArr = planning_transaction_DirectProductionNote::getProductionEntries($dRec->productId, $dRec->quantity, $rec->{$storeField}, null, $class, $rec->id, null, $rec->valior, $bomInfo['expenses'], $bomInfo['resources']);
                     
-                    if(count($prodArr)){
+                    if(countR($prodArr)){
                         $entries = array_merge($entries, $prodArr);
                     }
                 }

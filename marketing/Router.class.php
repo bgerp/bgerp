@@ -326,7 +326,7 @@ class marketing_Router
         $nameL = "#{$name}#";
         
         // Кеширане на думите, които трябва да се премахнат
-        if (!count(self::$companyTypes)) {
+        if (!countR(self::$companyTypes)) {
             $companyTypes = getFileContent('drdata/data/companyTypes.txt');
             self::$companyTypes = explode("\n", $companyTypes);
             

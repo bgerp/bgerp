@@ -175,7 +175,7 @@ class email_Filters extends core_Manager
         $emails = static::filterServiceEmails($emails, $serviceRec);
         
         // Ако нещо е останало ...
-        if (count($emails) > 0) {
+        if (countR($emails) > 0) {
             
             // Ако първия имейл не се съдържа в изпращача
             if (strpos($rec->fromEml, $emails[0]) === false) {

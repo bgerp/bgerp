@@ -657,7 +657,7 @@ class email_Accounts extends core_Master
             $rec->smtpSecure = 'tls';
         }
         
-        if (count($hostArr) == 2) {
+        if (countR($hostArr) == 2) {
             $params['Port'] = $hostArr[1];
         } else {
             if ($rec->smtpSecure == 'tls') {

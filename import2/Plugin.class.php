@@ -53,9 +53,9 @@ class import2_Plugin extends core_Plugin
         
         $opt = self::getDriverOptions($mvc, $masterId);
         
-        if (count($opt) == 1) {
+        if (countR($opt) == 1) {
             $rec->driverClass = key($opt);
-        } elseif (count($opt) > 1) {
+        } elseif (countR($opt) > 1) {
             $opt = array('' => '') + $opt;
         }
         
@@ -145,7 +145,7 @@ class import2_Plugin extends core_Plugin
             
             $opt = self::getDriverOptions($mvc, $masterId, $userId);
             
-            if (!count($opt)) {
+            if (!countR($opt)) {
                 $requiredRoles = 'no_one';
             }
         }

@@ -128,7 +128,7 @@ class fileman_RichTextPlg extends core_Plugin
         
         $files = array();
         
-        if (count($matches['fileHnd'])) {
+        if (countR($matches['fileHnd'])) {
             foreach ($matches['fileHnd'] as $id => $fh) {
                 $files[$fh] = strip_tags($matches['fileName'][$id]);
             }

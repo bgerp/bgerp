@@ -143,7 +143,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                 if (is_array($details->code)) {
                     $maxPost = ini_get('max_input_vars') - self::MAX_POST_ART;
                     
-                    $arts = count($details->code);
+                    $arts = countR($details->code);
                     $form->rec->inputArts = $arts;
                     
                     if ($arts > $maxPost) {
@@ -225,7 +225,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                 if ($form->cmd == 'refresh' && $rec->groupId) {
                     $maxPost = ini_get('max_input_vars') - self::MAX_POST_ART;
                     
-                    $arts = count($details->code);
+                    $arts = countR($details->code);
                     
                     $form->rec->inputArts = $arts;
                     
@@ -557,7 +557,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         }
         
         
-        $data->rec->ariculsData = count($data->rec->data->recs);
+        $data->rec->ariculsData = countR($data->rec->data->recs);
         
         if (isset($data->rec->inputArts)) {
             $fieldTpl->append('<b>' .$data->rec->inputArts. '</b>', 'inputArts');

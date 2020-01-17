@@ -136,7 +136,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
             $cUrlStr = null;
             
             if (!empty($entriesArr)) {
-                $eCnt = count($entriesArr);
+                $eCnt = countR($entriesArr);
                 
                 foreach ($entriesArr as $eIndex => $entry) {
                     $size = $entry->getSize();

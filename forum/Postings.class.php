@@ -197,7 +197,7 @@ class forum_Postings extends core_Detail
         $lockedIcon = $data->ForumTheme->getImage('locked.png', '32');
         
         // Ако имаме теми в дъската ние ги рендираме
-        if (count($data->themeRows)) {
+        if (countR($data->themeRows)) {
             foreach ($data->themeRows as $row) {
                 $themeTpl = $tpl->getBlock('ROW');
                 $themeTpl->placeObject($row);
@@ -357,7 +357,7 @@ class forum_Postings extends core_Detail
         $tpl->placeObject($data->row);
         
         // Ако имаме теми в нишката, ние ги рендираме
-        if (count($data->thread)) {
+        if (countR($data->thread)) {
             foreach ($data->thread as $row) {
                 $rowTpl = clone($commentTpl);
                 $rowTpl->placeObject($row);
@@ -577,7 +577,7 @@ class forum_Postings extends core_Detail
         $tpl->placeObject($data->row);
         
         // Ако има коментари ние ги рендираме
-        if (count($data->postings)) {
+        if (countR($data->postings)) {
             $cloneTpl = clone($detailsTpl);
             
             foreach ($data->postings as $row) {

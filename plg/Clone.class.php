@@ -187,7 +187,7 @@ class plg_Clone extends core_Plugin
         $dontCloneFields = $mvc->getFieldsNotToClone($oldRec);
         
         // Ако има махаме ги от $form->rec
-        if (count($dontCloneFields)) {
+        if (countR($dontCloneFields)) {
             foreach ($dontCloneFields as $unsetField) {
                 unset($newRec->{$unsetField});
             }
@@ -342,7 +342,7 @@ class plg_Clone extends core_Plugin
     {
         // Ако има изброени детайли за клониране
         $Details = arr::make($Details, true);
-        if (count($Details)) {
+        if (countR($Details)) {
             $notClones = false;
             
             // За всеки от тях
@@ -371,7 +371,7 @@ class plg_Clone extends core_Plugin
                             unset($dRec->id);
                             
                             // Ако има махаме ги от $form->rec
-                            if (count($dontCloneFields)) {
+                            if (countR($dontCloneFields)) {
                                 foreach ($dontCloneFields as $unsetField) {
                                     unset($dRec->{$unsetField});
                                 }

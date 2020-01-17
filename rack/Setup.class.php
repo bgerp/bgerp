@@ -187,7 +187,7 @@ class rack_Setup extends core_ProtoSetup
             $toSave[$zRec->id] = $zRec;
         }
         
-        if (count($toSave)) {
+        if (countR($toSave)) {
             $Zones->saveArray($toSave, 'id,batch');
         }
         

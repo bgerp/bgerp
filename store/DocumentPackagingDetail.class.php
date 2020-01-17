@@ -164,7 +164,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
      */
     public function renderDetail_($data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return new core_ET('');
         }

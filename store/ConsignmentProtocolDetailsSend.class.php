@@ -125,7 +125,7 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
      */
     public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }

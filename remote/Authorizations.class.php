@@ -100,7 +100,7 @@ class remote_Authorizations extends embed_Manager
         }
         
         $query = remote_Authorizations::getQuery();
-        if (count($classes)) {
+        if (countR($classes)) {
             $query->where('#driverClass IN (' . implode(',', array_keys($classes)) . ')');
         }
         $query->where('#state = "active"');
@@ -287,7 +287,7 @@ class remote_Authorizations extends embed_Manager
         
         // Извличаме, кои потребители имат гейтове за изпращане на съобщения
         $classes = core_Classes::getOptionsByInterface('remote_SendMessageIntf');
-        if (!count($classes)) {
+        if (!countR($classes)) {
             
             return;
         }
@@ -297,7 +297,7 @@ class remote_Authorizations extends embed_Manager
         while ($rec = $query->fetch()) {
             $userSenders[$rec->userId][] = $rec;
         }
-        if (!count($userSenders)) {
+        if (!countR($userSenders)) {
             log_System::add('remote_Authorizations', 'Няма потребители с услуги за изпращане на съобщения', null, 'info');
             
             return;
@@ -315,7 +315,7 @@ class remote_Authorizations extends embed_Manager
                 $lastPortalSeen[$userId] = bgerp_LastTouch::get('portal', $userId);
             }
         }
-        if (!count($userSenders)) {
+        if (!countR($userSenders)) {
             log_System::add('remote_Authorizations', 'Няма потребители с услуги за изпращане на съобщения, които не са били активни в последните 3 минути.', null, 'info');
             
             return;
@@ -341,7 +341,7 @@ class remote_Authorizations extends embed_Manager
             }
             $ntfsMsg[$nRec->userId][$nRec->priority] = tr("|*{$nRec->msg}");
         }
-        if (!count($ntfs)) {
+        if (!countR($ntfs)) {
             log_System::add('remote_Authorizations', 'Няма невидени нотификации', null, 'info');
             
             return;

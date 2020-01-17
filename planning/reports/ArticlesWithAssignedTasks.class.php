@@ -538,7 +538,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 $marker++;
                 $valVerb = core_Users::getTitleById($val) ;
                 
-                if ((count(type_Keylist::toArray($data->rec->assignedUsers))) - $marker != 0) {
+                if ((countR(type_Keylist::toArray($data->rec->assignedUsers))) - $marker != 0) {
                     $valVerb .= ', ';
                 }
                 
@@ -605,7 +605,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         unset($all[key($all)]);
         
         // Ако няма предпоследна, бие се нотификация
-        if (! count($all)) {
+        if (! countR($all)) {
             
             return true;
         }

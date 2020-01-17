@@ -198,7 +198,7 @@ class dec_Declarations extends core_Master
         
         $managers = $mvc->getManagers();
         
-        if (count($managers) > 0) {
+        if (countR($managers) > 0) {
             $data->form->setSuggestions('declaratorName', $managers);
         }
         

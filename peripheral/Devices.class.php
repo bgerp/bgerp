@@ -191,7 +191,7 @@ class peripheral_Devices extends embed_Manager
             }
         }
         
-        if ($limit && count($resArr) > 1) {
+        if ($limit && countR($resArr) > 1) {
             $resArr = array_slice($resArr, 0, $limit, true);
         }
         

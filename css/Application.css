@@ -2318,7 +2318,6 @@ table.mc-calendar {
     padding: 4px; }
     .portal-cal-day .subTitle small {
       padding-left: 7px; }
-    .portal-cal-day .subTitle span,
     .portal-cal-day .subTitle a {
       display: inline-block; }
   .portal-cal-day.portal-cal-today {

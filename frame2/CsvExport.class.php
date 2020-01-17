@@ -122,7 +122,7 @@ class frame2_CsvExport extends core_Mvc
         }
         
         // Ако има данни за експорт
-        if (count($csvRecs)) {
+        if (countR($csvRecs)) {
             
             // Създаване на csv-то
             $csv = csv_Lib::createCsv($csvRecs, $fields, null, $params);

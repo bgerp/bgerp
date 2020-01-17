@@ -230,6 +230,18 @@ defIfNot('EMAIL_INCOMINGS_TRANSLATE_LG', '');
 
 
 /**
+ * Време за съхранение на сервизните имейли
+ */
+defIfNot('EMAIL_SERVICEMAILS_KEEP_DAYS', 7889238);
+
+
+/**
+ * Процент на съвпадание в имената на имейлите, които липсват
+ */
+defIfNot('EMAIL_CLOSEST_EMAIL_PERCENT', 80);
+
+
+/**
  * class email_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -358,6 +370,10 @@ class email_Setup extends core_ProtoSetup
         'EMAIL_REJECT_SPAM_SCORE' => array('varchar', 'caption=Проверка на СПАМ рейтинг->Оттегляне'),
         
         'EMAIL_SHOW_THREAD_IN_EXTERNAL' => array('enum(yes=Да, no=Не)', 'caption=Преглед на нишката с имейлите във външната част->Показване'),
+            
+        'EMAIL_SERVICEMAILS_KEEP_DAYS' => array('time(suggestions=3 месеца|6 месеца|1 година,unit=days)', 'caption=Време за съхранение на сервизните имейли->Време'),
+        
+        'EMAIL_CLOSEST_EMAIL_PERCENT' => array('int(min=0,max=100)', 'caption=Съвпадание в имената на имейлите|*&comma;|ако липсват->Процент'),
     );
     
     
@@ -527,4 +543,20 @@ class email_Setup extends core_ProtoSetup
         core_CallOnTime::setCall('email_Spam', 'repairSpamScore', null, dt::addSecs(120));
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'email_Spam', dt::addSecs(180));
     }
+    
+    
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+            array(
+                    'systemId' => 'DeleteOldServiceMails',
+                    'description' => 'Изтриване на стари сервизни имейли',
+                    'controller' => 'email_ServiceEmails',
+                    'action' => 'DeleteOldServiceMails',
+                    'period' => 1440,
+                    'offset' => 60,
+                    'timeLimit' => 100
+            ),
+    );
 }

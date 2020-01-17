@@ -285,7 +285,7 @@ class price_ListRules extends core_Detail
         if ($rec = $data->listFilter->rec) {
             if (isset($rec->product)) {
                 $groups = keylist::toArray(cat_Products::fetchField($rec->product, 'groups'));
-                if (count($groups)) {
+                if (countR($groups)) {
                     $data->query->in('groupId', $groups);
                     $data->query->orWhere("#productId = {$rec->product}");
                 } else {
@@ -311,7 +311,7 @@ class price_ListRules extends core_Detail
             
             if ($listId != price_ListRules::PRICE_LIST_COST) {
                 $groups = keylist::toArray(cat_Products::fetchField($productId, 'groups'));
-                if (count($groups)) {
+                if (countR($groups)) {
                     $query->in('groupId', $groups, false, true);
                 }
             }
@@ -884,7 +884,7 @@ class price_ListRules extends core_Detail
                     }
                 }
             } else {
-                if (!count($fRows) && $priority != 1) {
+                if (!countR($fRows) && $priority != 1) {
                     $appendTable = false;
                 }
             }
@@ -895,7 +895,7 @@ class price_ListRules extends core_Detail
                 $block->append("<div style='{$style}'><b>{$title}</b></div>", 'TABLE');
                 
                 $fields = $data->listFields;
-                if (!count($fRows)) {
+                if (!countR($fRows)) {
                     unset($fields['_rowTools']);
                 }
                 
@@ -935,7 +935,7 @@ class price_ListRules extends core_Detail
         }
         
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+            if (!countR($onlyIds)) {
                 
                 return array();
             }
