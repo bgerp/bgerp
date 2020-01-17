@@ -31,7 +31,7 @@ class pos_Favourites extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, pack=Мярка/Опаковка, title, pointId, catId=Категория, createdOn, createdBy, state';
+    public $listFields = 'productId, pointId, catId=Категория, createdOn, createdBy, state';
     
     
     /**
@@ -76,28 +76,11 @@ class pos_Favourites extends core_Manager
     public function description()
     {
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canSell,maxSuggestions=100,forceAjax)', 'class=w100,caption=Продукт, mandatory, silent,refreshForm');
-        $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Опаковка,mandatory');
         $this->FLD('catId', 'keylist(mvc=pos_FavouritesCategories, select=name)', 'caption=Категория, mandatory');
-        $this->FLD('title', 'varchar(32)', 'caption=Заглавие');
         $this->FLD('pointId', 'keylist(mvc=pos_Points, select=name, makeLinks)', 'caption=Точка на продажба');
-        $this->FLD('image', 'fileman_FileType(bucket=pos_ProductsImages)', 'caption=Картинка');
         
         $this->setDbUnique('productId, packagingId');
         $this->setDbUnique('title');
-    }
-    
-    
-    /**
-     * Изпълнява се след въвеждане на данните от Request
-     */
-    protected static function on_AfterInputEditForm($mvc, $form)
-    {
-        if (isset($form->rec->productId)) {
-            $packs = cat_Products::getPacks($form->rec->productId);
-            $form->setOptions('packagingId', $packs);
-        } else {
-            $form->setReadOnly('packagingId');
-        }
     }
     
     
@@ -144,24 +127,6 @@ class pos_Favourites extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        if(!$rec->image) {
-            $rec->image =  cat_Products::getParams($rec->productId, 'preview');
-        
-        }
-        if ($rec->image) {
-            $Fancybox = cls::get('fancybox_Fancybox');
-            $row->image = $Fancybox->getImage($rec->image, array(30, 30), array(400, 400));
-        }
-        
-        // До името на продукта показваме неговата основна мярка и ако
-        // има зададена опаковка - колко броя в опаковката има.
-        $info = cat_Products::getProductInfo($rec->productId);
-        $quantity = $info->packagings[$rec->packagingId]->quantity;
-        $row->pack = $mvc->getFieldType('packagingId')->toVerbal($rec->packagingId);
-        
-        // Показваме подробната информация за опаковката при нужда
-        deals_Helper::getPackInfo($row->pack, $rec->productId, $rec->packagingId, $quantity);
-        
         if (!$rec->pointId) {
             $row->pointId = tr('Всички');
         }
@@ -202,13 +167,11 @@ class pos_Favourites extends core_Manager
             
             // За всяка точка
             if (is_array($points)) {
-                foreach ($points as $p) {
-                    
-                    // Гледа се дали артикула е наличен в нея
-                    $quantity = pos_Stocks::getQuantity($bRec->productId, $p);
+                foreach ($points as $pointId) {
+                    $quantity = pos_Stocks::getBiggestQuantity($bRec->productId, $pointId);
                     
                     // Ако е ще се добави в група 'Налични (<име_на_групата>)', иначе се маха от нея
-                    $groupId = pos_FavouritesCategories::fetchField("#name = 'Налични ({$cache[$p]})'");
+                    $groupId = pos_FavouritesCategories::fetchField("#name = 'Налични ({$cache[$pointId]})'");
                     if ($groupId) {
                         if ($quantity > 0) {
                             $bRec->catId = keylist::addKey($bRec->catId, $groupId);
