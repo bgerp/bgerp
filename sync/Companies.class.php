@@ -141,6 +141,8 @@ class sync_Companies extends core_Manager
             }
         }
         
+        crm_Groups::updateGroupsCnt('crm_Persons', 'personsCnt');
+        
         core_Users::cancelSystemUser();
     }
 }
