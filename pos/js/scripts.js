@@ -894,7 +894,9 @@ function deleteSelectedElement() {
 	getEfae().process(resObj);
 }
 
+
 function render_prepareResult() {
+	activeInput = false;
 	startNavigation();
 
 	// Бутона за увеличение да се дисейбва ако няма избран селектиран ред
