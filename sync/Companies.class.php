@@ -108,6 +108,14 @@ class sync_Companies extends core_Manager
         
         $res = array_reverse($res, true);
         
+        if ($res['core_Users'] && (countR($res) > 1)) {
+            $res2 = array();
+            $res2['core_Users'] = $res['core_Users'];
+            unset($res['core_Users']);
+            $res2 += $res;
+            $res = $res2;
+        }
+        
         $res = gzcompress(serialize($res));
         
         echo $res;
