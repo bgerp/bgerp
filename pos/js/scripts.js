@@ -146,14 +146,15 @@ function posActions() {
 
 		var inpVal = $(this).val();
 
-		if(isNumberOperation(inpVal)){
+		var operation = getSelectedOperation();
+
+		if(isNumberOperation(inpVal) && operation == 'add'){
 			
 			console.log('QUANTITY OPERATION WAITING');
 			return;
 		}
 		
-		var operation = getSelectedOperation();
-
+		
 		var selectedElement = $(".highlighted.productRow");
 		var selectedRecId = selectedElement.attr("data-id");
 
