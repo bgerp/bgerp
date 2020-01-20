@@ -206,6 +206,9 @@ class sync_Map extends core_Manager
             } elseif ($fRec->type instanceof type_Keylist) {
                 $kMvc = $fRec->type->params['mvc'];
                 if ($kArr = $res[$class][$id]->{$name}) {
+                    if (!is_array($kArr)) {
+                        $kArr = $fRec->type->toArray($kArr);
+                    }
                     if ($uf = $controller->globalUniqKeys[$kMvc]) {
                         $kMvc = cls::get($kMvc);
                         $kArrN = array();
