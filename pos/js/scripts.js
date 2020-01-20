@@ -176,6 +176,10 @@ function posActions() {
 		}
 	});
 
+	$('body').on('paste', '.large-field', function (e){
+		activeInput = true;
+	});
+	
 	// Бутоните за приключване приключват бележката
 	$(document.body).on('click', ".closeBtns", function(e){
 		var url = $(this).attr("data-url");
@@ -297,6 +301,8 @@ function posActions() {
 		
 			activeInput = true;
 		}
+		
+		openedModal = false;
 	});
 
 	document.addEventListener("keydown", function(event) {
@@ -1055,7 +1061,7 @@ function openModal(title, heightModal) {
 		modal: true,
 		title: title,
 		beforeClose: event.preventDefault(),
-		close: openedModal = false,
+		close: function () {openedModal = false;},
 	});
 
 	dialog.dialog( "open" );
