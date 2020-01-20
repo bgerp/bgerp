@@ -567,7 +567,10 @@ function posActions() {
 		resObj['url'] = url;
 		getEfae().process(resObj, {string:string});
 
-		openModal("Виртуална клавиатура", "smallHeight");
+		var string = $("input[name=ean]").val();
+		var modalTitle = $(this).attr("data-modal-title");
+		
+		openModal(modalTitle, "smallHeight");
 	});
 	
 	// При натискане на бутон за нова фирма
@@ -585,7 +588,8 @@ function posActions() {
 		resObj['url'] = url;
 		getEfae().process(resObj);
 
-		openModal("Информация");
+		var modalTitle = $(this).attr("data-modal-title");
+		openModal(modalTitle);
 	});
 	
 	$("body").setShortcutKey( ALT , D ,function() {
