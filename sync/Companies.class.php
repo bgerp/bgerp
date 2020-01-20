@@ -100,6 +100,8 @@ class sync_Companies extends core_Manager
             sync_Map::exportRec('crm_Companies', $rec->id, $res, $this);
         }
         
+        $res = array_reverse($res, true);
+        
         $res = gzcompress(serialize($res));
         
         echo $res;
