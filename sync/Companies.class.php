@@ -115,10 +115,11 @@ class sync_Companies extends core_Manager
         requireRole('admin');
         
         $url = sync_Setup::get('EXPORT_URL');
-
+        
+        ini_set('default_socket_timeout', 600);
+        
         $res = file_get_contents($url);
         $res = unserialize(gzuncompress($res));
-     
         
         foreach ($res as $class => $objArr) {
             foreach ($objArr as $id => $rec) {
