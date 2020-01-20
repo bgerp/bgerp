@@ -176,13 +176,14 @@ class pos_Terminal extends peripheral_Terminal
             
             // Задаване на празна обвивка
             Mode::set('wrapper', 'page_Empty');
-            
             $defaultOperation = Mode::get("currentOperation{$rec->id}") ? Mode::get("currentOperation{$rec->id}") : (($rec->state == 'draft') ? 'add' : 'receipts');
+            Mode::setPermanent("currentOperation{$rec->id}", $defaultOperation);
+            
             $defaultSearchString = Mode::get("currentSearchString{$rec->id}");
             if(!Mode::is('printing')){
                 
                 // Добавяне на табовете под бележката
-                $toolsTpl = $this->getCommandPanel($rec, $defaultOperation);
+                $toolsTpl = $this->getCommandPanel($rec);
                 $tpl->replace($toolsTpl, 'TAB_TOOLS');
                 
                 // Добавяне на табовете показващи се в широк изглед отстрани
@@ -1818,7 +1819,7 @@ class pos_Terminal extends peripheral_Terminal
         if($success === true){
             
             if($refreshPanel === true){
-                $toolsTpl = $me->getCommandPanel($rec, $operation, $string);
+                $toolsTpl = $me->getCommandPanel($rec);
                 
                 // Ще се реплейсва и пулта
                 $resObj = new stdClass();
