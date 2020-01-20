@@ -341,11 +341,13 @@ class pos_Terminal extends peripheral_Terminal
             default:
                 $singleLayoutFile = ($EnlargeClass instanceof crm_Companies) ? 'pos/tpl/terminal/SingleLayoutCompanyModal.shtml' : (($EnlargeClass instanceof crm_Persons) ? 'pos/tpl/terminal/SingleLayoutPersonModal.shtml' : 'pos/tpl/terminal/SingleLayoutLocationModal.shtml');
                 
+                Mode::push('text', 'xhtml');
                 Mode::push('noWrapper', true);
                 Mode::push("singleLayout-{$EnlargeClass->className}{$enlargeObjectId}", getTplFromFile($singleLayoutFile));
                 $modalTpl = Request::forward(array('Ctr' => $EnlargeClass->className, 'Act' => 'single', 'id' => $enlargeObjectId));
                 Mode::pop("singleLayout-{$EnlargeClass->className}{$enlargeObjectId}");
                 Mode::pop('noWrapper');
+                Mode::pop('text');
         }
         
         // Ще се реплейсва и пулта
