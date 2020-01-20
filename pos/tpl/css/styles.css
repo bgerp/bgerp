@@ -253,7 +253,8 @@
   .operationHolder.active {
     background-color: #f7f749; }
   .operationHolder.disabledBtn {
-    opacity: 0.5; }
+    opacity: 0.5;
+    cursor: auto; }
 
 .narrow .num-keyboard {
   min-width: 176px !important; }

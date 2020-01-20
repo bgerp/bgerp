@@ -288,10 +288,11 @@
 	&.active {
 		background-color: #f7f749;
 	}
+	
 	&.disabledBtn{
 		opacity: 0.5;
+		cursor:auto;
 	}
-
 }
 
 
