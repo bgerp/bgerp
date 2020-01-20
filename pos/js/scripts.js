@@ -1056,16 +1056,26 @@ function enter() {
 // Дали подадения стринг е операция за задаване на количество
 function isNumberOperation(string)
 {
-	// Трябва да завършва с * и останалата част да е число
 	var string = $.trim(string);
+	
+	// Ако има въведен непразен стринг
 	if(string){
+		
+		// и той завършва с *
 		if(string.endsWith("*")){
+			
+			// Премахваме * да остане чист стринг
 			var quantity = string.replace("*", "");
 			
-			return $.isNumeric(quantity);
+			// Ако останалата част от стринга е положително число
+			if($.isNumeric(quantity) && quantity > 0){
+				
+				return true;
+			}
 		}
 	}
 	
+	// Ако се стигне до тук, значи операцията не е за промяна на количеството
 	return false;
 }
 
