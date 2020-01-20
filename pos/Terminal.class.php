@@ -84,7 +84,7 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Кои са разрешените операции
      */
-    protected static $operationsArr = "add=Добавяне на артикул,quantity=Промяна на реда,payment=Плащане по бележката,contragent=Избор на контрагент,text=Текст,receipts=Преглед на бележките";
+    protected static $operationsArr = "add=Добавяне на артикул,quantity=Промяна на реда,payment=Плащане по бележката,contragent=Избор на контрагент,text=Текст,receipts=Търсене на бележка";
 
 
     /**
@@ -1322,7 +1322,7 @@ class pos_Terminal extends peripheral_Terminal
             Mode::pop('text', 'plain');
             
             $priceVerbal = currency_Currencies::decorate($price);
-            $btnName = "|*{$priceVerbal}</br> |" . tr($packName);
+            $btnName = "|*{$priceVerbal}&nbsp;/&nbsp;|" . tr($packName);
             $dataUrl = toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice', 'string' => $price), 'local');
             
             $cnt++;

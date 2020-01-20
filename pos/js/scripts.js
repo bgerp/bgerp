@@ -1085,10 +1085,11 @@ function isNumberOperation(string)
 	return false;
 }
 
-
 var openedModal;
+
 // Отваря модала
 function openModal(title, heightModal) {
+	clearTimeout(timeout);
 	
 	// Изчистване на предишното съдържание на модала, да не се визуализира, докато се зареди новото
 	$("#modalContent").html("");
