@@ -79,7 +79,17 @@ class sync_Companies extends core_Manager
      */
     public function act_Export()
     {
-        requireRole('admin');
+        if (haveRole('user')) {
+            requireRole('admin');
+        } else {
+            expect($remoteAddr = $_SERVER['REMOTE_ADDR']);
+            
+            if (defined('SYNC_EXPORT_ADDR')) {
+                expect(SYNC_EXPORT_ADDR == $remoteAddr);
+            } else {
+                expect(core_Url::isPrivate($remoteAddr));
+            }
+        }
         
         $groupId = sync_Setup::get('COMPANY_GROUP');
    
@@ -107,7 +117,6 @@ class sync_Companies extends core_Manager
         $url = sync_Setup::get('EXPORT_URL');
 
         $res = file_get_contents($url);
-
         $res = unserialize(gzuncompress($res));
      
         
