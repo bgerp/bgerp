@@ -399,6 +399,8 @@
 .textResult {
   color: white !important;
   background: #b163cc; }
+  .textResult.emptyText {
+    background: #37103a !important; }
 
 .disabledBtn.posBtns {
   background: #999999 !important;

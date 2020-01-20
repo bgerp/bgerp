@@ -471,6 +471,10 @@
 .textResult {
 	color: #FFF !important;
 	background: #b163cc;
+	
+	&.emptyText {
+		background: #37103a !important;
+	}
 }
 
 .disabledBtn.posBtns {
