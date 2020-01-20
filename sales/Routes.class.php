@@ -371,7 +371,7 @@ class sales_Routes extends core_Manager
         $title = $this->title;
         $listFields = arr::make('salesmanId=Търговец,repeat=Период,nextVisit=Следващо посещение');
         
-        if ($data->addUrl) {
+        if ($data->addUrl && !Mode::isReadOnly()) {
             $title .= ht::createLink('', $data->addUrl, null, array('ef_icon' => 'img/16/add.png', 'class' => 'addRoute', 'title' => 'Създаване на нов търговски маршрут'));
         }
         
