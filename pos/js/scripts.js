@@ -294,9 +294,9 @@ function posActions() {
 			$('.select-input-pos').val($('.keyboardText').text());
 			var e = jQuery.Event("keyup");
 			$('.select-input-pos').trigger(e);
-		}
 		
-		activeInput = true;
+			activeInput = true;
+		}
 	});
 
 	document.addEventListener("keydown", function(event) {
