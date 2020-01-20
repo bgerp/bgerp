@@ -424,7 +424,7 @@ function posActions() {
 		quantity = quantity.replace("*", "");
 		
 		// Подаване и на количеството от инпута
-		if(quantity && $.isNumeric(quantity)){
+		if(quantity && $.isNumeric(quantity) && quantity > 0){
 			data.string = quantity;
 		}
 		
