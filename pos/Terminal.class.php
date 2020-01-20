@@ -680,17 +680,20 @@ class pos_Terminal extends peripheral_Terminal
                 $res = $this->renderResultReceipts($rec, $string, $selectedRec);
                 break;
             case 'quantity':
-                $res = $this->renderResultQuantity($rec, $string, $selectedRec);
+                
+                $res = getTplFromFile('pos/tpl/terminal/ResultQuantityBlock.shtml');
+                $this->renderResultQuantity($rec, $string, $selectedRec, $res);
                 
                 if(core_Packs::isInstalled('batch')){
-                    $res->append($this->renderResultBatches($rec, $string, $selectedRec));
+                    $this->renderResultBatches($rec, $string, $selectedRec, $res);
                 }
                 
                 if(pos_Setup::get('TERMINAL_PRICE_CHANGE') == 'yes'){
-                    $res->append(tr("|*<div class='divider'>|Цена|*</div>"));
-                    $res->append($this->renderResultPrice($rec, $string, $selectedRec));
-                    $res->append($this->renderResultDiscount($rec, $string, $selectedRec));
+                    $this->renderResultPrice($rec, $string, $selectedRec, $res);
+                    $this->renderResultDiscount($rec, $string, $selectedRec, $res);
                 }
+                
+                $res = ht::createElement('div', array('class' => 'displayFlex'), $res, true);
                 
                 break;
             case 'text':
@@ -806,24 +809,23 @@ class pos_Terminal extends peripheral_Terminal
      * @param string $currOperation
      * @param string $string
      * @param int|null $selectedRecId
+     * @param core_ET $tpl
      * 
      * @return core_ET
      */
-    private function renderResultBatches($rec, $string, $selectedRec)
+    private function renderResultBatches($rec, $string, $selectedRec, &$tpl)
     {
         expect(core_Packs::isInstalled('batch'));
         $receiptRec = pos_ReceiptDetails::fetchRec($selectedRec);
         
-        $tpl = new core_ET(" ");
         if($Def = batch_Defs::getBatchDef($receiptRec->productId)){
             $dataUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setbatch');
             
             $batchesInStore = batch_Items::getBatchQuantitiesInStore($receiptRec->productId, $receiptRec->storeId, $rec->valior);
             if(countR($batchesInStore)){
-                $tpl->append(tr("|*<div class='divider'>|Партиди|*</div>"));
                 $cnt = 0;
                 $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'title' => 'Артикулът да е без партида', 'data-url' => toUrl($dataUrl, 'local')), 'Без партида', true);
-                $tpl->append($btn);
+                $tpl->append($btn, 'BATCHES');
             }
             
             foreach ($batchesInStore as $batch => $quantity){
@@ -839,10 +841,10 @@ class pos_Terminal extends peripheral_Terminal
                 $batchVerbal = $Def->toVerbal($batch) . "<span class='small'>({$quantityVerbal} {$measureName})</span>";
                 
                 $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'title' => 'Избор на партидата', 'data-url' => toUrl($dataUrl, 'local')), $batchVerbal, true);
-                $tpl->append($btn);
+                $tpl->append($btn, 'BATCHES');
             }
         } else {
-            $tpl->append(tr('Нямат партидност'));
+            $tpl->append(tr('Нямат партидност'), 'BATCHES');
         }
         
         return $tpl;
@@ -888,10 +890,11 @@ class pos_Terminal extends peripheral_Terminal
      * @param stdClass $rec - записа на бележката
      * @param string $string - въведения стринг за търсене
      * @param stdClass|null $selectedRec - селектирания ред (ако има)
+     * @param core_ET $tpl
      * 
      * @return core_ET
      */
-    private function renderResultDiscount($rec, $string, $selectedRec)
+    private function renderResultDiscount($rec, $string, $selectedRec, &$tpl)
     {
         $price = pos_Receipts::getDisplayPrice($selectedRec->price, $selectedRec->param, null, $rec->pointId, 1);
         $discountsArr = pos_ReceiptDetails::getSuggestedProductDiscounts($selectedRec->productId, $price);
@@ -905,11 +908,6 @@ class pos_Terminal extends peripheral_Terminal
             $discountsArr =  array('0' => '0') + $discountsArr;
         }
         
-        $tpl = new core_ET("");
-        if(countR($discountsArr)){
-            $tpl->append(tr("|*<div class='divider'>|Отстъпка|*</div>"));
-        }
-        
         foreach ($discountsArr as $discountPercent){
             $class = ($discountPercent == $selectedRec->discountPercent) ? 'current' : '';
             
@@ -917,10 +915,8 @@ class pos_Terminal extends peripheral_Terminal
             $url = toUrl(array('pos_ReceiptDetails', 'updateRec', 'receiptId' => $rec->id, 'action' => 'setdiscount', 'string' => "{$discAmount}"), 'local');
             $btnCaption = ($discountPercent == '0') ? tr('Без отстъпка') : "{$discAmount} %";
             $element = ht::createElement("div", array('id' => "discount{$discountPercent}", 'class' => "navigable posBtns discountBtn {$class}", 'data-url' => $url), $btnCaption, true);
-            $tpl->append($element);
+            $tpl->append($element, 'DISCOUNTS');
         }
-        
-        $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
         
         return $tpl;
     }
@@ -1177,10 +1173,11 @@ class pos_Terminal extends peripheral_Terminal
      * @param stdClass $rec - записа на бележката
      * @param string $string - въведения стринг за търсене
      * @param stdClass|null $selectedRec - селектирания ред (ако има)
+     * @param core_ET $tpl - шаблон
      *
      * @return core_ET
      */
-    private function renderResultQuantity($rec, $string, $selectedRec)
+    private function renderResultQuantity($rec, $string, $selectedRec, &$tpl)
     {
         $measureId = cat_Products::fetchField($selectedRec->productId, 'measureId');
         $packs = cat_Products::getPacks($selectedRec->productId);
@@ -1250,7 +1247,6 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
-        $tpl = new core_ET(tr("|*<div class='divider'>|Промяна на мярка|*</div>[#PACK_BUTTONS#]<!--ET_BEGIN FREQUENT_PACK_BUTTONS--><div class='divider'>|Последни количества|*</div>[#FREQUENT_PACK_BUTTONS#]<!--ET_END FREQUENT_PACK_BUTTONS--><!--ET_BEGIN STORE_BUTTONS--><div class='divider'>|Складове|*</div>[#STORE_BUTTONS#]<!--ET_END STORE_BUTTONS-->"));
         foreach ($buttons as $btn){
             $tpl->append($btn, 'PACK_BUTTONS');
         }
@@ -1262,8 +1258,6 @@ class pos_Terminal extends peripheral_Terminal
         foreach ($storeBtns as $storeBtn){
             $tpl->append($storeBtn, 'STORE_BUTTONS');
         }
-        
-        $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
         
         return $tpl;
     }
@@ -1290,10 +1284,11 @@ class pos_Terminal extends peripheral_Terminal
      * @param stdClass $rec - записа на бележката
      * @param string $string - въведения стринг за търсене
      * @param stdClass|null $selectedRec - селектирания ред (ако има)
+     * @param core_ET $tpl
      *
      * @return core_ET
      */
-    private function renderResultPrice($rec, $string, $selectedRec)
+    private function renderResultPrice($rec, $string, $selectedRec, $tpl)
     {
         $buttons = array();
         
@@ -1331,11 +1326,9 @@ class pos_Terminal extends peripheral_Terminal
             $buttons[$dRec->price] = ht::createElement("div", array('id' => "price{$cnt}",'class' => 'resultPrice posBtns navigable', 'data-url' => $dataUrl), tr($btnName), true);
         }
         
-        $tpl = new core_ET("");
         foreach ($buttons as $btn){
-            $tpl->append($btn);
+            $tpl->append($btn, 'PRICES');
         }
-        $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
         
         return $tpl;
     }
