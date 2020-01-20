@@ -352,7 +352,7 @@
     color: white !important;
     font-size: 1em;
     background: #374bbe !important; }
-    .posBtns.locationBtn.currentLocation {
+    .posBtns.locationBtn.current {
       background: #53a163 !important; }
 
 .differentPosBtn {
@@ -591,7 +591,7 @@
   color: white !important; }
   .chooseStoreBtn .quiet {
     color: white !important; }
-  .chooseStoreBtn.currentStore {
+  .chooseStoreBtn.current {
     background-color: #53a163;
     cursor: auto; }
 

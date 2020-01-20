@@ -911,7 +911,7 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         foreach ($discountsArr as $discountPercent){
-            $class = ($discountPercent == $selectedRec->discountPercent) ? 'currentStore' : '';
+            $class = ($discountPercent == $selectedRec->discountPercent) ? 'current' : '';
             
             $discAmount = $discountPercent * 100;
             $url = toUrl(array('pos_ReceiptDetails', 'updateRec', 'receiptId' => $rec->id, 'action' => 'setdiscount', 'string' => "{$discAmount}"), 'local');
@@ -1110,7 +1110,7 @@ class pos_Terminal extends peripheral_Terminal
                     }
                     
                     if($locationId == $rec->contragentLocationId){
-                        $locationAttr['class'] .= ' currentLocation';
+                        $locationAttr['class'] .= ' current';
                     }
                     
                     $holderDiv = ht::createElement('div', $locationAttr, $locationName, true);
@@ -1239,7 +1239,7 @@ class pos_Terminal extends peripheral_Terminal
             
             arsort($storeArr);
             foreach ($storeArr as $storeId => $quantity){
-                $btnClass = ($storeId == $selectedRec->storeId) ? 'currentStore' : 'navigable';
+                $btnClass = ($storeId == $selectedRec->storeId) ? 'current' : 'navigable';
                 $dataUrl = ($storeId == $selectedRec->storeId) ? null : $dataChangeStoreUrl;
                 
                 $quantityInStockVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);

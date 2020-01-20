@@ -411,7 +411,7 @@
 		font-size: 1em;
 		background: #374bbe !important;
 		
-		&.currentLocation {
+		&.current {
 			background: #53a163 !important;
 		}
 	}
@@ -694,7 +694,7 @@
 		 color: #fff !important;
 	 }
 
-	&.currentStore {
+	&.current {
 		background-color: #53a163;
 		cursor:auto;
 	}
