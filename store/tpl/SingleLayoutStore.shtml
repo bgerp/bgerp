@@ -24,6 +24,14 @@
                                 <td> [#locationId#]</td>
                             </tr>
                             <!--ET_END locationId-->
+                            
+                            <!--ET_BEGIN productGroups-->
+                            <tr>
+                                <td class='dt'>|Продуктови групи|*:</td>
+                                <td> [#productGroups#]</td>
+                            </tr>
+                            <!--ET_END productGroups-->
+                            
                             <!--ET_BEGIN creation-->
                             <tr>
                                 [#creation#]

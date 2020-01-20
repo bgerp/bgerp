@@ -306,6 +306,8 @@ class email_Mime extends core_BaseClass
         // Вземаме топ-левъл-домейна на имейл-а на изпращача
         $tld = strtolower(substr($from, strrpos($from, '.')));
         
+        $countries = array();
+        
         // Двубуквен код на държава, според домейна, на изпращача на имейл-а
         if (strlen($tld) == 2) {
             if ($ccByEmail = strtolower(drdata_Countries::fetchField("#domain = '{$tld}'", 'letterCode2'))) {
