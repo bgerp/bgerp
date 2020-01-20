@@ -689,8 +689,6 @@ class pos_Terminal extends peripheral_Terminal
                 if(pos_Setup::get('TERMINAL_PRICE_CHANGE') == 'yes'){
                     $res->append(tr("|*<div class='divider'>|Цена|*</div>"));
                     $res->append($this->renderResultPrice($rec, $string, $selectedRec));
-                    
-                    $res->append(tr("|*<div class='divider'>|Отстъпка|*</div>"));
                     $res->append($this->renderResultDiscount($rec, $string, $selectedRec));
                 }
                 
@@ -908,6 +906,10 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $tpl = new core_ET("");
+        if(countR($discountsArr)){
+            $tpl->append(tr("|*<div class='divider'>|Отстъпка|*</div>"));
+        }
+        
         foreach ($discountsArr as $discountPercent){
             $class = ($discountPercent == $selectedRec->discountPercent) ? 'currentStore' : '';
             
@@ -917,6 +919,7 @@ class pos_Terminal extends peripheral_Terminal
             $element = ht::createElement("div", array('id' => "discount{$discountPercent}", 'class' => "navigable posBtns discountBtn {$class}", 'data-url' => $url), $btnCaption, true);
             $tpl->append($element);
         }
+        
         $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
         
         return $tpl;
