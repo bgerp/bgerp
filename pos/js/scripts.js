@@ -434,6 +434,12 @@ function posActions() {
 		activeInput = false;
 	});
 	
+	// При натискане на бутон с резултати да се чисти таймаута
+	$(document.body).on('click', ".posBtns", function(e){
+		activeInput = false;
+		clearTimeout(timeout);
+	});
+	
 	// При прехвърляне на бележка, автоматично създаваме нова
 	$(document.body).on('click', ".transferBtn", function(e){
 		var url = $(this).attr("data-url");
