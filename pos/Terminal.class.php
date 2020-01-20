@@ -225,7 +225,7 @@ class pos_Terminal extends peripheral_Terminal
                                     'TIME' => $this->renderCurrentTime(),
                                     'valior' => pos_Receipts::getVerbal($rec->id, 'valior'),
                                     'userId' => core_Users::getVerbal(core_Users::getCurrent(), 'nick'));
-        $headerData->contragentId = (!empty($rec->transferedIn)) ? sales_Sales::getHyperlink($rec->transferedIn) : cls::get($rec->contragentClass)->getTitleById($rec->contragentObjectId);
+        $headerData->contragentId = (!empty($rec->transferedIn)) ? sales_Sales::getLink($rec->transferedIn, 0, array('ef_icon' => false)) : cls::get($rec->contragentClass)->getTitleById($rec->contragentObjectId);
         
         $tpl->append(ht::createImg(array('path' => 'img/16/bgerp.png')), 'OTHER_ELEMENTS');
         $tpl->placeObject($headerData);        
