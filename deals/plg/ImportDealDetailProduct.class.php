@@ -183,6 +183,32 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $meta = (array) cat_Products::fetch($pRec->productId, $mvc->metaProducts);
             unset($meta['id']);
             
+            $masterId = Request::get($mvc->masterKey, 'int');
+                
+            $masterRec = $mvc->Master->fetch($masterId);
+            
+            //Първия документ в нишката
+            $Document = doc_Containers::getDocument($masterRec->originId);
+            
+            if (!$mvc->metaProducts && ($mvc instanceof store_ShipmentOrderDetails || $mvc instanceof store_Receipts)){
+                
+                $masterId = Request::get($mvc->masterKey, 'int');
+                
+                $masterRec = $mvc->Master->fetch($masterId);
+                
+                //Първия документ в нишката
+                $Document = doc_Containers::getDocument($masterRec->originId);
+                
+                if ($Document->className == 'sales_Sales'){
+                    
+                    $meta = array('canSell'=>cat_Products::fetch($pRec->productId)->canSell);
+                }elseif ($Document->className == 'purchase_Purchases'){
+                    
+                    $meta = array('canBuy'=>cat_Products::fetch($pRec->productId)->canBuy);
+                }
+                
+            }
+            
             foreach ($meta as $metaValue) {
                 if ($metaValue != 'yes') {
                     $err[$i][] = $obj->code . ' |Артикулът няма вече нужните свойства|*';
