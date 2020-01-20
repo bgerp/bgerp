@@ -832,6 +832,7 @@ class pos_Terminal extends peripheral_Terminal
             }
             
             foreach ($batchesInStore as $batch => $quantity){
+                $class = 'resultBatch posBtns navigable';
                 $cnt++;
                 $dataUrl['string'] = urlencode($batch);
                 
@@ -842,8 +843,11 @@ class pos_Terminal extends peripheral_Terminal
                 $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
                 $quantityVerbal = ht::styleIfNegative($quantityVerbal, $quantity);
                 $batchVerbal = $Def->toVerbal($batch) . "<span class='small'>({$quantityVerbal} {$measureName})</span>";
+                if($selectedRec->batch == $batch){
+                    $class .= ' current';
+                }
                 
-                $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'title' => 'Избор на партидата', 'data-url' => toUrl($dataUrl, 'local')), $batchVerbal, true);
+                $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => $class, 'title' => 'Избор на партидата', 'data-url' => toUrl($dataUrl, 'local')), $batchVerbal, true);
                 $tpl->append($btn, 'BATCHES');
             }
         } else {

@@ -470,11 +470,19 @@
 .resultBatch {
 	color: green !important;
 	background: #e6e9b9;
+	
+	&.current {
+		background-color: #8abf95 !important;
+	}
 }
 
 .discountBtn {
 	background: #FF9C3A;
 	color: #333 !important;
+	
+	&.current {
+		background-color: #8abf95 !important;
+	}
 }
 .textResult {
 	color: #FFF !important;

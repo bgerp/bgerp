@@ -398,10 +398,14 @@
 .resultBatch {
   color: green !important;
   background: #e6e9b9; }
+  .resultBatch.current {
+    background-color: #8abf95 !important; }
 
 .discountBtn {
   background: #ff9c3a;
   color: #333333 !important; }
+  .discountBtn.current {
+    background-color: #8abf95 !important; }
 
 .textResult {
   color: white !important;
