@@ -956,7 +956,11 @@ function render_afterload()
 }
 
 function enter() {
-	if (openedModal) return;
+	if (openedModal){
+		
+		console.log("Modal open: return");
+		return;
+	}
 
 	clearTimeout(timeout);
 	var value = $("input[name=ean]").val();
@@ -978,6 +982,8 @@ function enter() {
 			// Вика се клик
 			var event = jQuery.Event("click");
 			element.trigger(event);
+			
+			console.log("ENTER SUBMIT TRIGGER " + element.attr("id"));
 			
 			return;
 		}
@@ -1009,14 +1015,19 @@ function enter() {
 			var event = jQuery.Event("click");
 			element.trigger(event);
 
+			console.log("ENTER SUBMIT DATA_ATTR  " + element.attr("id"));
 			return;
 		}
 	}
 
 	if(!url){
+		
+		console.log("ENTER NO URL RETURN");
 		return;
 	}
 
+	console.log("ENTER SUBMIT STRING:" + value);
+	
 	resObj = new Object();
 	resObj['url'] = url;
 	
