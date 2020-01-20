@@ -164,7 +164,14 @@ class sync_Map extends core_Manager
         }
         
         self::$imported[$class][$id] = 0;
-
+        
+        if (!$res[$class] || !$res[$class][$id] || !is_object($res[$class][$id])) {
+            
+            wp($res[$class][$id], $class, $id);
+            
+            return 0;
+        }
+        
         // Очакваме за посоченото id да има запис
         $rec = clone($res[$class][$id]);
 
@@ -205,7 +212,10 @@ class sync_Map extends core_Manager
                 }
             } elseif ($fRec->type instanceof type_Keylist) {
                 $kMvc = $fRec->type->params['mvc'];
-                if (is_array($kArr = $res[$class][$id]->{$name})) {
+                if ($kArr = $res[$class][$id]->{$name}) {
+                    if (!is_array($kArr)) {
+                        $kArr = $fRec->type->toArray($kArr);
+                    }
                     if ($uf = $controller->globalUniqKeys[$kMvc]) {
                         $kMvc = cls::get($kMvc);
                         $kArrN = array();

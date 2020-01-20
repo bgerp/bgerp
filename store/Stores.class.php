@@ -188,8 +188,11 @@ class store_Stores extends core_Master
         $this->FLD('name', 'varchar(128)', 'caption=Наименование,mandatory,remember=info');
         $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
         $this->FLD('chiefs', 'userList(roles=store|ceo|production)', 'caption=Контиране на документи->Потребители,mandatory');
-        $this->FLD('workersIds', 'userList(roles=storeWorker)', 'caption=Допълнително->Товарачи');
+        
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Допълнително->Локация');
+        $this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Допълнително->Продуктови групи');
+        $this->FLD('workersIds', 'userList(roles=storeWorker)', 'caption=Допълнително->Товарачи');
+        
         $this->FLD('lastUsedOn', 'datetime', 'caption=Последено използване,input=none');
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)', 'caption=Състояние,notNull,default=active,input=none');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
@@ -309,6 +312,12 @@ class store_Stores extends core_Master
             $row->name = "<b style='position:relative; top: 5px;'>" . $row->name . "</b>";
             $row->name .= "    <span class='fright'>" . $row->currentPlg . "</span>";
             unset($row->currentPlg);
+        }
+        
+       
+        if(isset($rec->productGroups)){
+            $groupLinks = cat_Groups::getLinks($rec->productGroups);
+            $row->productGroups = implode(' ', $groupLinks);
         }
     }
     
