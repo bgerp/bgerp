@@ -81,8 +81,12 @@
 		margin-right: 15px;
 		color: #fff;
 		display: inline-block;
-		a {
-			color: #fff !important;
+	}
+	.specialLink {
+		color: #ccc !important;
+		text-decoration: underline;
+		&:hover {
+			text-decoration: none;
 		}
 	}
 }
