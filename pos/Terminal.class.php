@@ -339,7 +339,7 @@ class pos_Terminal extends peripheral_Terminal
                 $modalTpl->append('</div>');
                 break;
             default:
-                $singleLayoutFile = ($enlargeClassId == 'crm_Companies') ? 'pos/tpl/terminal/SingleLayoutCompanyModal.shtml' : (($enlargeClassId == 'pos_Receipts') ? 'pos/tpl/terminal/modalCompany.shtml' : 'pos/tpl/terminal/SingleLayoutPersonModal.shtml');
+                $singleLayoutFile = ($EnlargeClass instanceof crm_Companies) ? 'pos/tpl/terminal/SingleLayoutCompanyModal.shtml' : (($EnlargeClass instanceof crm_Persons) ? 'pos/tpl/terminal/SingleLayoutPersonModal.shtml' : 'pos/tpl/terminal/SingleLayoutLocationModal.shtml');
                 
                 Mode::push('noWrapper', true);
                 Mode::push("singleLayout-{$EnlargeClass->className}{$enlargeObjectId}", getTplFromFile($singleLayoutFile));
@@ -1093,7 +1093,7 @@ class pos_Terminal extends peripheral_Terminal
             if(countR($locationArr)){
                 $tpl->append(tr("|*<div class='divider'>|Локации|*</div>"));
                 foreach ($locationArr as $locationId => $locationName){
-                    $locationAttr = array("id" => "location{$locationId}", 'class' => 'posBtns locationBtn');
+                    $locationAttr = array("id" => "location{$locationId}", 'class' => 'posBtns locationBtn enlargable', 'data-enlarge-object-id' => $locationId, 'data-enlarge-class-id' => crm_Locations::getClassId(), 'data-modal-title' => strip_tags($locationName));
                     if(pos_Receipts::haveRightFor('setcontragent', $rec)){
                         $locationAttr['class'] .= ' navigable';
                         $locationAttr['data-url'] = toUrl(array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $rec->contragentClass, 'contragentId' => $rec->contragentObjectId, 'locationId' => $locationId, 'ret_url' => true));
