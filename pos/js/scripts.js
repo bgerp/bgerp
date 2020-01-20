@@ -146,6 +146,12 @@ function posActions() {
 
 		var inpVal = $(this).val();
 
+		if(isNumberOperation(inpVal)){
+			
+			console.log('QUANTITY OPERATION WAITING');
+			return;
+		}
+		
 		var operation = getSelectedOperation();
 
 		var selectedElement = $(".highlighted.productRow");
@@ -970,52 +976,62 @@ function enter() {
 	// Ако има селектиран ред в резултатите
 	var element = $(".navigable.selected");
 
-	if(element.length && activeInput !== true || (activeInput === true && !value)){
+	var isOnlyQuantityString = isNumberOperation(value);
+	
+	console.log(isOnlyQuantityString);
+	
+	// Ако има селектиран елемент в резултатите
+	if(element.length){
 		
-		// Намира първия елемент с data-url
-		var elementDataUrl = element.attr("data-url");
-		var hrefUrl = element.attr("href");
-		var onclick = element.attr("onclick");
-		
-		if(onclick){
-			// Вика се клик
-			var event = jQuery.Event("click");
-			element.trigger(event);
+		// Ако инпута е активен но е с празен стринг, или е активен и е въведена операция за к-во или не е активен
+		// тогава се клика на селектирания елемент в резултатите
+		if((activeInput === true && !value) || (activeInput === true && isOnlyQuantityString) || activeInput !== true){
 			
-			console.log("ENTER SUBMIT TRIGGER " + element.attr("id"));
+			// Намира първия елемент с data-url
+			var elementDataUrl = element.attr("data-url");
+			var hrefUrl = element.attr("href");
+			var onclick = element.attr("onclick");
 			
-			return;
-		}
-		
-		if(hrefUrl){
-			location.href = hrefUrl;
-			return;
-		}
-		
-		if(elementDataUrl == undefined){
-			var child = element.find('[data-url]');
-
-			var elementDataUrl = child.attr("data-url");
-			if(elementDataUrl){
-				element = child;
+			if(onclick){
+				// Вика се клик
+				var event = jQuery.Event("click");
+				element.trigger(event);
+				
+				console.log("ENTER SUBMIT TRIGGER " + element.attr("id"));
+				
+				return;
 			}
-		}
-
-		if(elementDataUrl == undefined){
-			var child = element.find('[href]');
-			if(child.length){
-				element = child;
+			
+			if(hrefUrl){
+				location.href = hrefUrl;
+				return;
 			}
-		}
+			
+			if(elementDataUrl == undefined){
+				var child = element.find('[data-url]');
 
-		if(element != undefined){
+				var elementDataUrl = child.attr("data-url");
+				if(elementDataUrl){
+					element = child;
+				}
+			}
 
-			// Вика се клик
-			var event = jQuery.Event("click");
-			element.trigger(event);
+			if(elementDataUrl == undefined){
+				var child = element.find('[href]');
+				if(child.length){
+					element = child;
+				}
+			}
 
-			console.log("ENTER SUBMIT DATA_ATTR  " + element.attr("id"));
-			return;
+			if(element != undefined){
+
+				// Вика се клик
+				var event = jQuery.Event("click");
+				element.trigger(event);
+
+				console.log("ENTER SUBMIT DATA_ATTR  " + element.attr("id"));
+				return;
+			}
 		}
 	}
 
@@ -1034,6 +1050,22 @@ function enter() {
 	var selectedRecId = selectedElement.attr("data-id");
 
 	getEfae().process(resObj, {string:value,recId:selectedRecId});
+}
+
+// Дали подадения стринг е операция за задаване на количество
+function isNumberOperation(string)
+{
+	// Трябва да завършва с * и останалата част да е число
+	var string = $.trim(string);
+	if(string){
+		if(string.endsWith("*")){
+			var quantity = string.replace("*", "");
+			
+			return $.isNumeric(quantity);
+		}
+	}
+	
+	return false;
 }
 
 
