@@ -595,6 +595,9 @@
     background-color: #53a163;
     cursor: auto; }
 
+.storeQuantityInStock span.red {
+  color: #efa9a9 !important; }
+
 .pos-product-price {
   position: absolute;
   left: 0px;
