@@ -548,7 +548,7 @@ function posActions() {
 		
 		var enlargeClassId = $(this).attr("data-enlarge-class-id");
 		var enlargeObjectId = $(this).attr("data-enlarge-object-id");
-		var enlargeTitle = $(this).attr("data-enlarge-title");
+		var enlargeTitle = $(this).attr("data-modal-title");
 		
 		resObj = new Object();
 		resObj['url'] = url;
@@ -1144,13 +1144,13 @@ function disableOrEnableEnlargeBtn()
 		if(focusedElement.hasClass('enlargable')){
 			var enlargeClassId = focusedElement.attr("data-enlarge-class-id");
 			var enlargeObjectId = focusedElement.attr("data-enlarge-object-id");
-			var enlargeTitle= focusedElement.attr("data-enlarge-title");
+			var enlargeTitle= focusedElement.attr("data-modal-title");
 
 			if(enlargeClassId && enlargeObjectId && enlargeTitle) {
 				$(".enlargeProductBtn").removeClass('disabledBtn');
 				$(".enlargeProductBtn").removeAttr("disabled");
 
-				$(".enlargeProductBtn").attr('data-enlarge-title', enlargeTitle);
+				$(".enlargeProductBtn").attr('data-modal-title', enlargeTitle);
 				$(".enlargeProductBtn").attr('data-enlarge-class-id', enlargeClassId);
 				$(".enlargeProductBtn").attr('data-enlarge-object-id', enlargeObjectId);
 			}

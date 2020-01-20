@@ -7,7 +7,7 @@
 <!--ET_END TAB_TOOLS-->
 
 <!--ET_BEGIN PRODUCTS_RESULT-->
-<div id = '[#elementId#]' class='element [#CLASS#]' data-url='[#DATA_URL#]' data-productId = '[#id#]' data-enlarge-object-id = '[#DATA_ENLARGE_OBJECT_ID#]' data-enlarge-class-id = '[#DATA_ENLARGE_CLASS_ID#]' data-enlarge-title = '[#DATA_ENLARGE_TITLE#]'>
+<div id = '[#elementId#]' class='element [#CLASS#]' data-url='[#DATA_URL#]' data-productId = '[#id#]' data-enlarge-object-id = '[#DATA_ENLARGE_OBJECT_ID#]' data-enlarge-class-id = '[#DATA_ENLARGE_CLASS_ID#]' data-modal-title = '[#DATA_MODAL_TITLE#]'>
 	<div class='pos-photo-field fleft'>[#photo#]</div>
 	<div class="pos-add-res-btn">[#productId#]</div>
 	<span class='pos-price-field'>[#price#]</span>

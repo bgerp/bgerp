@@ -224,7 +224,7 @@ class pos_Terminal extends peripheral_Terminal
                                     'TIME' => $this->renderCurrentTime(),
                                     'valior' => pos_Receipts::getVerbal($rec->id, 'valior'),
                                     'userId' => core_Users::getVerbal(core_Users::getCurrent(), 'nick'));
-        $headerData->contragentId = (!empty($rec->transferedIn)) ? sales_Sales::getRecTitle($rec->transferedIn) : cls::get($rec->contragentClass)->getTitleById($rec->contragentObjectId);
+        $headerData->contragentId = (!empty($rec->transferedIn)) ? sales_Sales::getHyperlink($rec->transferedIn) : cls::get($rec->contragentClass)->getTitleById($rec->contragentObjectId);
         
         $tpl->append(ht::createImg(array('path' => 'img/16/bgerp.png')), 'OTHER_ELEMENTS');
         $tpl->placeObject($headerData);        
@@ -1034,7 +1034,7 @@ class pos_Terminal extends peripheral_Terminal
             $cnt = 0;
             foreach ($contragents as $obj){
                 $setContragentUrl = toUrl(array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $obj->contragentClassId, 'contragentId' => $obj->contragentId, 'ret_url' => true));
-                $divAttr = array("id" => "contragent{$cnt}", 'class' => 'posResultContragent posBtns navigable enlargable', 'data-url' => $setContragentUrl, 'data-enlarge-object-id' => $obj->contragentId, 'data-enlarge-class-id' => $obj->contragentClassId, 'data-enlarge-title' => strip_tags($obj->title));
+                $divAttr = array("id" => "contragent{$cnt}", 'class' => 'posResultContragent posBtns navigable enlargable', 'data-url' => $setContragentUrl, 'data-enlarge-object-id' => $obj->contragentId, 'data-enlarge-class-id' => $obj->contragentClassId, 'data-modal-title' => strip_tags($obj->title));
                 if(!$canSetContragent){
                     $divAttr['disabled'] = 'disabled';
                     $divAttr['disabledBtn'] = 'disabledBtn';
@@ -1630,7 +1630,7 @@ class pos_Terminal extends peripheral_Terminal
             $data->rows[$id]->DATA_URL = (pos_ReceiptDetails::haveRightFor('add', $obj)) ? toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $data->rec->id), 'local') : null;
             $data->rows[$id]->DATA_ENLARGE_OBJECT_ID = $id;
             $data->rows[$id]->DATA_ENLARGE_CLASS_ID = cat_Products::getClassId();
-            $data->rows[$id]->DATA_ENLARGE_TITLE = cat_Products::getTitleById($id);
+            $data->rows[$id]->DATA_MODAL_TITLE = cat_Products::getTitleById($id);
             $data->rows[$id]->favouriteCategories = array();
             $data->rows[$id]->id = $pRec->id;
             if(array_key_exists($id, $favouriteProductsArr)){
@@ -1745,7 +1745,7 @@ class pos_Terminal extends peripheral_Terminal
             
             $btnTitle = self::getReceiptTitle($receiptRec);
             $btnTitle = ($rec->pointId != $receiptRec->pointId) ? ht::createHint($btnTitle, "Бележката е от друг POS") : $btnTitle;
-            $row = ht::createLink($btnTitle, $openUrl, null, array('id' => "receipt{$receiptRec->id}", 'class' => "pos-notes posBtns {$class} state-{$receiptRec->state} enlargable", 'title' => 'Отваряне на бележката', 'data-enlarge-object-id' => $receiptRec->id, 'data-enlarge-class-id' => pos_Receipts::getClassId(), 'data-enlarge-title' => strip_tags(pos_Receipts::getRecTitle($receiptRec))));
+            $row = ht::createLink($btnTitle, $openUrl, null, array('id' => "receipt{$receiptRec->id}", 'class' => "pos-notes posBtns {$class} state-{$receiptRec->state} enlargable", 'title' => 'Отваряне на бележката', 'data-enlarge-object-id' => $receiptRec->id, 'data-enlarge-class-id' => pos_Receipts::getClassId(), 'data-modal-title' => strip_tags(pos_Receipts::getRecTitle($receiptRec))));
             $arr[$receiptRec->createdDate]->append($row, 'element');
         }
         
