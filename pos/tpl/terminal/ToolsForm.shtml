@@ -11,7 +11,6 @@
 	<div class='pos-photo-field fleft'>[#photo#]</div>
 	<div class="pos-add-res-btn">[#productId#]</div>
 	<span class='pos-price-field'>[#price#]</span>
-	<span class='pos-stock-field'>[#stock#]</span>
 </div>
 <!--ET_END PRODUCTS_RESULT-->
 
