@@ -127,10 +127,14 @@ class sync_Companies extends core_Manager
         $res = file_get_contents($url);
         $res = unserialize(gzuncompress($res));
         
+        Mode::push('preventNotifications', true);
+        
         foreach ($res as $class => $objArr) {
             foreach ($objArr as $id => $rec) {
                 sync_Map::importRec($class, $id, $res, $this);
             }
         }
+        
+        Mode::pop('preventNotifications');
     }
 }
