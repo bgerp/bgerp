@@ -91,6 +91,8 @@ class sync_Companies extends core_Manager
             }
         }
         
+        core_App::setTimeLimit(1000);
+        
         $groupId = sync_Setup::get('COMPANY_GROUP');
    
         $res = array();
@@ -119,6 +121,8 @@ class sync_Companies extends core_Manager
         $url = sync_Setup::get('EXPORT_URL');
         
         ini_set('default_socket_timeout', 600);
+        
+        core_App::setTimeLimit(1000);
         
         $res = file_get_contents($url);
         $res = unserialize(gzuncompress($res));
