@@ -57,6 +57,9 @@
   margin: 0 0 10px 5px;
   font-weight: bold; }
 
+.gray-title {
+  color: #999999; }
+
 .headerContent {
   padding: 12px 0;
   background: #333333;
