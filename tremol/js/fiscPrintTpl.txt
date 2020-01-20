@@ -111,7 +111,7 @@ function printFiscalReceipt(onSuccess, onError) {
                         fpPrintText([#BEFORE_PLU_TEXT#]);
                     <!--ET_END BEFORE_PLU_TEXT-->
                     
-                    fpSalePLU([#PLU_NAME#], [#VAT_CLASS#], [#PRICE#], [#QTY#], [#DISC_ADD_P#], [#DISC_ADD_V#]);
+                    fpSalePLU([#PLU_NAME#], [#VAT_CLASS#], [#PRICE#], [#QTY#], [#DISC_ADD_P#], [#DISC_ADD_V#], [#DEP_NUM#]);
                     
                     <!--ET_BEGIN AFTER_PLU_TEXT-->
                         fpPrintText([#AFTER_PLU_TEXT#]);

@@ -226,7 +226,9 @@ class doc_Search extends core_Manager
                 $data->query->where(array($where, $filterRec->toDate));
             }
             
-            $data->query->where(array("#folderId = '[#1#]'", $filterRec->scopeFolderId));
+            if ($filterRec->scopeFolderId) {
+                $data->query->where(array("#folderId = '[#1#]'", $filterRec->scopeFolderId));
+            }
             
             // Ограничаване на търсенето до избрана папка
             if (!empty($filterRec->scopeFolderId) && doc_Folders::haveRightFor('single', $filterRec->scopeFolderId)) {
