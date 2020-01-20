@@ -279,7 +279,6 @@ class pos_ReceiptDetails extends core_Detail
                    
                    $rec->text = (!empty($text)) ? $text : null;
                    $sucessMsg = 'Променено пояснение на реда|*!';
-                   $refreshResult = false;
                    break;
                case 'setbatch':
                    expect(core_Packs::isInstalled('batch'), 'Пакета за партидности не е инсталиран');

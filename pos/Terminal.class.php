@@ -863,14 +863,18 @@ class pos_Terminal extends peripheral_Terminal
     private function renderResultText($rec, $string, $selectedRec)
     {
         $tpl = new core_ET(tr("|*<div class='divider'>|Най-използвани текстове|*</div>"));
-        $texts = pos_ReceiptDetails::getMostUsedTexts();
+        $texts = array('' => '') + pos_ReceiptDetails::getMostUsedTexts();
         
         $count = 0;
         foreach ($texts as $text){
+            $class = "textResult navigable posBtns";
             $dataUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'settext', 'string' => $text);
             $dataUrl = toUrl($dataUrl, 'local');
             
-            $element = ht::createElement('div', array("id" => "text{$count}", "class" => "textResult navigable posBtns", 'data-url' => $dataUrl), $text, true);
+            $textCaption = (!empty($text)) ? $text : tr('Без');
+            $class .= (!empty($text)) ? '' : ' emptyText';
+            $class .= ($text == $selectedRec->text) ? ' selected' : '';
+            $element = ht::createElement('div', array("id" => "text{$count}", "class" => $class, 'data-url' => $dataUrl), $textCaption, true);
             $tpl->append($element);
             $count++;
         }
