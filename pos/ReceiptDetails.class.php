@@ -426,6 +426,12 @@ class pos_ReceiptDetails extends core_Detail
                 $rec->quantity *= -1;
             }
             
+            // Проверка дали избраната мярка приерма подаденото количество
+            $errorQuantity = null;
+            if(!deals_Helper::checkQuantity($rec->value, $rec->quantity, $errorQuantity)){
+                expect(empty($errorQuantity), $errorQuantity);
+            }
+            
             // Намираме дали този проект го има въведен
             $sameProduct = $this->findSale($rec->productId, $rec->receiptId, $rec->value, $rec->batch);
             if ($sameProduct) {
