@@ -91,14 +91,22 @@ class sync_Companies extends core_Manager
             }
         }
         
+        core_App::setTimeLimit(1000);
+        
         $groupId = sync_Setup::get('COMPANY_GROUP');
    
         $res = array();
-
+        
+        core_Users::forceSystemUser();
+        
         $cQuery = crm_Companies::getQuery();
         while ($rec = $cQuery->fetch("#groupList LIKE '%|{$groupId}|%'")) {
             sync_Map::exportRec('crm_Companies', $rec->id, $res, $this);
         }
+        
+        core_Users::cancelSystemUser();
+        
+        $res = array_reverse($res, true);
         
         $res = gzcompress(serialize($res));
         
@@ -118,13 +126,23 @@ class sync_Companies extends core_Manager
         
         ini_set('default_socket_timeout', 600);
         
+        core_App::setTimeLimit(1000);
+        
         $res = file_get_contents($url);
         $res = unserialize(gzuncompress($res));
+        
+        core_Users::forceSystemUser();
+        
+        Mode::set('preventNotifications', true);
         
         foreach ($res as $class => $objArr) {
             foreach ($objArr as $id => $rec) {
                 sync_Map::importRec($class, $id, $res, $this);
             }
         }
+        
+        crm_Groups::updateGroupsCnt('crm_Persons', 'personsCnt');
+        
+        core_Users::cancelSystemUser();
     }
 }
