@@ -553,7 +553,7 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         // Бутон за увеличение на избрания артикул
-        $enlargeAttr = array('title' => 'Преглед на избрания артикул', 'data-url' => toUrl(array('pos_Terminal', 'enlargeElement', $rec->id), 'local'), 'class' => "enlargeProductBtn");
+        $enlargeAttr = array('title' => 'Преглед на избрания елемент', 'data-url' => toUrl(array('pos_Terminal', 'enlargeElement', $rec->id), 'local'), 'class' => "enlargeProductBtn");
         $img = ht::createImg(array('path' => self::$operationImgs["enlarge"]));
         $buttons["enlarge"] = (object)array('body' => $img, 'attr' => $enlargeAttr);
         

@@ -196,26 +196,6 @@ function posActions() {
 		scrollRecieptBottom();
 	});
 	
-	
-	// Добавяне на продукти от бързите бутони
-	$(document.body).on('click', ".pos-product", function(e){
-		var url = $(this).attr("data-url");
-		if(!url) return;
-		
-		var productId = $(this).attr("data-id");
-		var packId = $(this).attr("data-pack");
-		var quant = $("input[name=ean]").val();
-		
-		var data = {productId:productId,ean:quant,packId:packId};
-		
-		resObj = new Object();
-		resObj['url'] = url;
-		
-		getEfae().process(resObj, data);
-		
-		activeInput = false;
-	});
-	
 	// При клик на бутон изтрива запис от бележката
 	$(document.body).on('click', ".deleteRow", function(e){
 		deleteSelectedElement();
@@ -422,15 +402,26 @@ function posActions() {
 	$(document.body).on('click', ".pos-add-res-btn", function(e){
 		clearTimeout(timeout);
 		
-		var elemRow = $(this).closest('.receiptRow ');
+		var elemRow = $(this).closest('.receiptRow');
 		$(elemRow).addClass('highlighted');
 		var url = $(this).attr("data-url");
 		var productId = $(this).attr("data-productId");
 		
 		resObj = new Object();
 		resObj['url'] = url;
+		var data = {productId:productId};
 		
-		getEfae().process(resObj, {productId:productId});
+		// При добавяне на артикул ако в инпута има написано число или число и * да го третира като число
+		var quantity = $("input[name=ean]").val();
+		quantity = $.trim(quantity);
+		quantity = quantity.replace("*", "");
+		
+		// Подаване и на количеството от инпута
+		if(quantity && $.isNumeric(quantity)){
+			data.string = quantity;
+		}
+		
+		getEfae().process(resObj, data);
 		calculateWidth();
 		
 		activeInput = false;
