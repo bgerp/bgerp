@@ -122,9 +122,10 @@ var QUOTE = 222; 		// SINGLE QUOTE
 					ShiftMod = true;
 				}else if(e.keyCode == 17) {
 					CtrlMod = true;
+					e.preventDefault();
+					e.stopPropagation();
 				}else if(e.keyCode == 18) {
 					AltMod = true;
-					e.preventDefault();
 				}else if($('input[type=text]').length == 1 ) {
 					$('.large-field.select-input-pos').focus();
 				}
@@ -143,11 +144,13 @@ var QUOTE = 222; 		// SINGLE QUOTE
 							}
 						}else if (mod == 17){
 							if (CtrlMod == true){
+
+								e.preventDefault();
+								e.stopPropagation();
 								func();
 							}
 						}else if (mod == 18){
 							if (AltMod == true){
-								e.preventDefault();
 								func();
 							}
 						}
@@ -158,7 +161,6 @@ var QUOTE = 222; 		// SINGLE QUOTE
 				$(this).keyup(function(e) {
 
 					e.preventDefault();
-
 					if(e.keyCode == 16) {
 						ShiftMod = false;
 					}else if(e.keyCode == 17) {

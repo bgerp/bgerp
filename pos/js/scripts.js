@@ -581,52 +581,52 @@ function posActions() {
 		openModal(modalTitle);
 	});
 	
-	$("body").setShortcutKey( ALT , D ,function() {
+	$("body").setShortcutKey( CONTROL , D ,function() {
 		 deleteSelectedElement();
 	});
 
-	$("body").setShortcutKey( ALT , A ,function() {
+	$("body").setShortcutKey( CONTROL , A ,function() {
 		openProducts();
 	});
 
-	$("body").setShortcutKey( ALT , K ,function() {
+	$("body").setShortcutKey( CONTROL , K ,function() {
 		openQuantity();
 	});
 
-	$("body").setShortcutKey( ALT , P ,function() {
+	$("body").setShortcutKey( CONTROL , P ,function() {
 		openPayment();
 	});
 
-	$("body").setShortcutKey( ALT , T ,function() {
+	$("body").setShortcutKey( CONTROL , I ,function() {
 		openText();
 	});
 
-	$("body").setShortcutKey( ALT , C ,function() {
+	$("body").setShortcutKey( CONTROL , C ,function() {
 		openClient();
 	});
 
-	$("body").setShortcutKey( ALT , R ,function() {
+	$("body").setShortcutKey( CONTROL , R ,function() {
 		openReceipt();
 	});
 
-	$("body").setShortcutKey( ALT , F ,function() {
+	$("body").setShortcutKey( CONTROL , F ,function() {
 		openInfo();
 	});
 
 	
-	$("body").setShortcutKey( ALT , L ,function() {
+	$("body").setShortcutKey( CONTROL , L ,function() {
 		openPrint();
 	});
 
-	$("body").setShortcutKey( ALT , V ,function() {
+	$("body").setShortcutKey( CONTROL , V ,function() {
 		openKeyboard();
 	});
 
-	$("body").setShortcutKey( ALT , N ,function() {
+	$("body").setShortcutKey( CONTROL , Z ,function() {
 		openReject();
 	});
 
-	$("body").setShortcutKey( ALT , X ,function() {
+	$("body").setShortcutKey( CONTROL , X ,function() {
 		logout();
 	});
 
@@ -634,21 +634,21 @@ function posActions() {
 		openHelp();
 	});
 
-	$("body").setShortcutKey(ALT , H ,function() {
+	$("body").setShortcutKey(CONTROL , H ,function() {
 		openHelp();
 	});
 
 
-	$("body").setShortcutKey( ALT , S ,function() {
+	$("body").setShortcutKey( CONTROL , S ,function() {
 		loadProducts();
 	});
 
-	$("body").setShortcutKey( ALT , E ,function() {
+	$("body").setShortcutKey( CONTROL , E ,function() {
 		deteleElements();
 	});
 
 	var timeoutAlt;
-	$("body").setShortcutKey(null,  ALT,function() {
+	$("body").setShortcutKey(null,  CONTROL,function() {
 		showHints();
 		clearTimeout(timeoutAlt);
 

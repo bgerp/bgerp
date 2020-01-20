@@ -79,7 +79,7 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Бутони за бърз достъп до терминала
      */
-    protected static $operationShortcuts = 'operation-add=A,operation-payment=P,operation-quantity=K,operation-text=T,operation-contragent=C,operation-receipts=R,enlarge=F,print=L,keyboard=V,exit=X,reject=N,help=H,delete=E';
+    protected static $operationShortcuts = 'operation-add=A,operation-payment=P,operation-quantity=K,operation-text=I,operation-contragent=C,operation-receipts=R,enlarge=F,print=L,keyboard=V,exit=X,reject=Z,help=H,delete=E';
 
     /**
      * Кои са разрешените операции
