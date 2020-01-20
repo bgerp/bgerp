@@ -164,7 +164,14 @@ class sync_Map extends core_Manager
         }
         
         self::$imported[$class][$id] = 0;
-
+        
+        if (!$res[$class] || !$res[$class][$id] || !is_object($res[$class][$id])) {
+            
+            wp($res[$class][$id], $class, $id);
+            
+            return 0;
+        }
+        
         // Очакваме за посоченото id да има запис
         $rec = clone($res[$class][$id]);
 
