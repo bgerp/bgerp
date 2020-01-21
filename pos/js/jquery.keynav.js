@@ -100,7 +100,7 @@
 		$(window).bind("click",  function(event) {
 			var element = $(event.target).closest('.navigable');
 			if (element.length) {
-				current = $(element)
+				current = $(element);
 				var currentPosition = findCurrent();
 				setCurrent(currentPosition[0], currentPosition[1]);
 			}
