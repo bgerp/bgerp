@@ -307,7 +307,7 @@ class cat_UoM extends core_Manager
         $query = static::getQuery();
         $baseId = ($rec->baseUnitId) ? $rec->baseUnitId : $rec->id;
         
-        $query->where("#baseUnitId = {$baseId}");
+        $query->where("#baseUnitId = {$baseId} AND #state = 'active'");
         $query->orWhere("#id = {$baseId} AND #state = 'active'");
         $query->show('shortName,name');
         
