@@ -1322,7 +1322,7 @@ class pos_Terminal extends peripheral_Terminal
         foreach($allPrices as $dRec){
             $dRec->price *= 1 + $dRec->param;
             Mode::push('text', 'plain');
-            $price = core_Type::getByName('double(smartRound)')->toVerbal($dRec->price);
+            $price = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->price);
             Mode::pop('text', 'plain');
             
             $priceVerbal = currency_Currencies::decorate($price);
