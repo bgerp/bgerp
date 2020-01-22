@@ -34,7 +34,7 @@ class sync_Eshop extends sync_Helper
         
         $cQuery = cat_Products::getQuery();
         while ($rec = $cQuery->fetch()) {
-            sync_Map::exportRec('cat_Products', $rec->id, $res, $this);
+            sync_Map::exportRec('eshop_Products', $rec->id, $res, $this);
         }
         
         core_Users::cancelSystemUser();
