@@ -74,13 +74,23 @@ class sync_Map extends core_Manager
             }
 
             if ($fRec->type instanceof fileman_FileType) {
-                $rec->{$name} = fileman_Download::getDownloadUrl($rec->{$name});
+                try {
+                    $rec->{$name} = fileman_Download::getDownloadUrl($rec->{$name});
+                } catch (core_exception_Expect $e) {
+                    wp($e);
+                    $rec->{$name} = null;
+                }
+                
             } elseif ($fRec->type instanceof fileman_type_Files && !empty($rec->{$name})) {
                 $kArr = keylist::toArray($rec->{$name});
                 $kArrN = array();
                 foreach ($kArr as $fId) {
                     $fn = fileman::idToFh($fId);
-                    $kArrN[] = fileman_Download::getDownloadUrl($$fn);
+                    try {
+                        $kArrN[] = fileman_Download::getDownloadUrl($$fn);
+                    } catch (core_exception_Expect $e) {
+                        wp($e);
+                    }
                 }
                 $rec->{$name} = $kArrN;
             } elseif ($fRec->type instanceof type_Key || $fRec->type instanceof type_Key2) {
@@ -119,7 +129,7 @@ class sync_Map extends core_Manager
                     $dMvc = cls::get($cls);
                     if (strpos($field, '|')) {
                         list($cField, $oField) = explode('|', $field);
-                        $cond = "#{$oField} = ${id} AND #{$cField} = " . core_Classes::getId($mvc);
+                        $cond = "#{$oField} = {$id} AND #{$cField} = " . core_Classes::getId($mvc);
                     } else {
                         $type = $dMvc->getFieldType($field);
                         expect($type->params['mvc'] == $mvc->className, $field, $type);

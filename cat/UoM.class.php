@@ -305,10 +305,9 @@ class cat_UoM extends core_Manager
         expect($rec = static::fetch($measureId, 'baseUnitId,id'), 'Няма такава мярка');
         
         $query = static::getQuery();
+        $query->where("#state = 'active'");
         $baseId = ($rec->baseUnitId) ? $rec->baseUnitId : $rec->id;
-        
-        $query->where("#baseUnitId = {$baseId} AND #state = 'active'");
-        $query->orWhere("#id = {$baseId} AND #state = 'active'");
+        $query->where("#baseUnitId = {$baseId} OR #id = {$baseId}");
         $query->show('shortName,name');
         
         $options = array();
