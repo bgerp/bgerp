@@ -37,3 +37,22 @@
 .contragentName {
   color: white; }
 
+.numPad,
+.numBack {
+  background: white !important;
+  border: #aaaaaa 1px solid !important;
+  color: #111111 !important; }
+  .numPad:hover,
+  .numBack:hover {
+    border: #999999 1px solid !important;
+    background: #999999 !important;
+    box-shadow: inset 0 0 50px white; }
+
+.operationBtn,
+.operationHolder {
+  border-radius: 3px;
+  background-color: #bbbbbb !important; }
+  .operationBtn:hover,
+  .operationHolder:hover {
+    background-color: #999999 !important; }
+
