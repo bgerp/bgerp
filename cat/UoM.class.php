@@ -538,6 +538,12 @@ class cat_UoM extends core_Manager
         // Намира се коя мярка отговаря на това сис ид
         $typeUom = cat_UoM::fetchBySysId($sysId);
         
+        // Ако стойността е 0 не се прави конверсия
+        if($val == 0){
+            
+            return (object) (array('value' => 0, 'measure' => $typeUom->id));
+        }
+        
         // Извличат се мерките от същия тип и се премахва празния елемент в масива
         $sameMeasures = cat_UoM::getSameTypeMeasures($typeUom->id);
         unset($sameMeasures['']);
