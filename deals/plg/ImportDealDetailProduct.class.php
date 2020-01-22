@@ -242,14 +242,20 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
                 $policyInfo = $Policy->getPriceInfo($Cover->getInstance()->getClassId(), $Cover->that, $pRec->productId, null, 1);
                 
+                if ($Document) {
+                    $Document = cls::get($Document->className);
+                }
+                
                 //Ако документа е в покупка не искаме ценова политика
-                if ($Document->className == 'sales_Sales') {
+                if ($Document instanceof sales_Sales ||
+                    $mvc->Master instanceof sales_Sales) {
                     if (empty($policyInfo->price)) {
                         $err[$i][] = $obj->code . ' |Артикулът няма цена|*';
                     }
                 }
                 
-                if ($Document->className == 'purchase_Purchases') {
+                if ($Document instanceof purchase_Purchases || 
+                    $mvc->Master instanceof purchase_Purchases) {
                     
                     // Себестойност
                     $selfPrice = cat_Products::getPrimeCost($pRec->productId, null, null, null);
