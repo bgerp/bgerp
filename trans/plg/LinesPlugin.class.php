@@ -199,6 +199,7 @@ class trans_plg_LinesPlugin extends core_Plugin
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $transInfo = $mvc->getTotalTransportInfo($rec->id);
+        $warningWeight = $warningVolume = false;
         
         core_Lg::push($rec->tplLang);
         
@@ -206,15 +207,36 @@ class trans_plg_LinesPlugin extends core_Plugin
         $rec->calcedWeight = $rec->{$mvc->totalWeightFieldName};
         $rec->{$mvc->totalWeightFieldName} = ($rec->weightInput) ? $rec->weightInput : $rec->{$mvc->totalWeightFieldName};
         $hintWeight = ($rec->weightInput) ? 'Транспортното тегло е въведено от потребител' : 'Транспортното тегло е сумарно от редовете';
+        
+        if($rec->calcedWeight && isset($rec->{$mvc->totalWeightFieldName})){
+            $percentChange = abs(round((1 - $rec->{$mvc->totalWeightFieldName} / $rec->calcedWeight) * 100, 2));
+            if($percentChange >= 25){
+                $warningWeight = true;
+            }
+        }
+        
         if (!isset($rec->{$mvc->totalWeightFieldName})) {
             $row->{$mvc->totalWeightFieldName} = "<span class='quiet'>N/A</span>";
         } else {
             $row->{$mvc->totalWeightFieldName} = $mvc->getFieldType($mvc->totalWeightFieldName)->toVerbal($rec->{$mvc->totalWeightFieldName});
             $row->{$mvc->totalWeightFieldName} = ht::createHint($row->{$mvc->totalWeightFieldName}, $hintWeight);
+       
+            if($warningWeight){
+                $liveValueVerbal = $mvc->getFieldType($mvc->totalWeightFieldName)->toVerbal($rec->calcedWeight);
+                $row->{$mvc->totalWeightFieldName} = ht::createHint($row->{$mvc->totalWeightFieldName}, "Има разлика от над 25% с изчисленото|* {$liveValueVerbal}", 'warning', false);
+            }
         }
         
         setIfNot($rec->{$mvc->totalVolumeFieldName}, $transInfo->volume);
         $rec->calcedVolume = $rec->{$mvc->totalVolumeFieldName};
+        
+        if($rec->calcedVolume && isset($rec->{$mvc->totalVolumeFieldName})){
+            $percentChange = abs(round((1 - $rec->{$mvc->totalVolumeFieldName} / $rec->calcedVolume) * 100, 2));
+            if($percentChange >= 25){
+                $warningVolume = true;
+            }
+        }
+        
         $rec->{$mvc->totalVolumeFieldName} = ($rec->volumeInput) ? $rec->volumeInput : $rec->{$mvc->totalVolumeFieldName};
         $hintVolume = ($rec->volumeInput) ? 'Транспортният обем е въведен от потребител' : 'Транспортният обем е сумарен от редовете';
         if (!isset($rec->{$mvc->totalVolumeFieldName})) {
@@ -222,7 +244,11 @@ class trans_plg_LinesPlugin extends core_Plugin
         } else {
             $row->{$mvc->totalVolumeFieldName} = $mvc->getFieldType($mvc->totalVolumeFieldName)->toVerbal($rec->{$mvc->totalVolumeFieldName});
             $row->{$mvc->totalVolumeFieldName} = ht::createHint($row->{$mvc->totalVolumeFieldName}, $hintVolume);
-        }
+            
+            if($warningVolume){
+                $liveVolumeVerbal = $mvc->getFieldType($mvc->totalVolumeFieldName)->toVerbal($rec->calcedVolume);
+                $row->{$mvc->totalVolumeFieldName} = ht::createHint($row->{$mvc->totalVolumeFieldName}, "Има разлика от над 25% с изчисленото|* {$liveVolumeVerbal}", 'warning', false);
+            }}
         
         if (isset($fields['-single'])) {
             $row->logisticInfo = trans_Helper::displayTransUnits($rec->transUnits, $rec->transUnitsInput);

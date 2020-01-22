@@ -1260,7 +1260,7 @@ abstract class deals_Helper
     private static function getMeasureRow($productId, $packagingId, $quantity, $type, $value = null)
     {
         expect(in_array($type, array('volume', 'weight')));
-        $hint = false;
+        $hint = $warning = false;
         
         // Ако артикула не е складируем не му се изчислява транспортно тегло
         $isStorable = cat_products::fetchField($productId, 'canStore');
@@ -1269,16 +1269,23 @@ abstract class deals_Helper
             return;
         }
         
+        if ($type == 'weight') {
+            $liveValue = cat_Products::getTransportWeight($productId, $quantity);
+        } else {
+            $liveValue = cat_Products::getTransportVolume($productId, $quantity);
+        }
+        
         // Ако няма тегло взима се 'live'
         if (!isset($value)) {
-            if ($type == 'weight') {
-                $value = cat_Products::getTransportWeight($productId, $quantity);
-            } else {
-                $value = cat_Products::getTransportVolume($productId, $quantity);
-            }
+            $value = $liveValue;
             
             if (isset($value)) {
                 $hint = true;
+            }
+        } elseif($liveValue) {
+            $percentChange = abs(round((1 - $value / $liveValue) * 100, 2));
+            if($percentChange >= 25){
+                $warning = true;
             }
         }
         
@@ -1295,12 +1302,18 @@ abstract class deals_Helper
         if(empty($value)){
             return null;
         }
-        
+       
         // Вербализиране на теглото
         $valueRow = core_Type::getByName($valueType)->toVerbal($value);
         if ($hint === true) {
             $hintType = ($type == 'weight') ? 'Транспортното тегло e прогнозно' : 'Транспортният обем е прогнозен';
             $valueRow = ht::createHint($valueRow, "{$hintType} на база количеството");
+        }
+       
+        // Показване на предупреждение
+        if ($warning === true) {
+            $liveValueVerbal = core_Type::getByName($valueType)->toVerbal($liveValue);
+            $valueRow = ht::createHint($valueRow, "Има разлика от над 25% с очакваното|* {$liveValueVerbal}", 'warning', false);
         }
         
         return $valueRow;
