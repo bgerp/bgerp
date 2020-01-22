@@ -198,16 +198,22 @@ class sync_Map extends core_Manager
 
             if ($fRec->type instanceof fileman_FileType && !empty($rec->{$name})) {
                 //log_System::add('sync_Map', "Вземаме файла от: " . $rec->{$name});
-                $file = file_get_contents($rec->{$name});
-                $rec->{$name} = fileman::absorbStr($file, $fRec->type->params['bucket'], basename($rec->{$name}));
+                if ($file = @file_get_contents($rec->{$name})) {
+                    $rec->{$name} = fileman::absorbStr($file, $fRec->type->params['bucket'], basename($rec->{$name}));
+                } else {
+                    wp($file, $rec);
+                }
             } elseif ($fRec->type instanceof fileman_type_Files && is_array($rec->{$name})) {
                 $kArr = array();
                 foreach ($rec->{$name} as $url) {
                     //log_System::add('sync_Map', "Вземаме файла от: " . $url);
-                    $file = file_get_contents($url);
-                    $fh = fileman::absorbStr($file, $fRec->type->params['bucket'], basename($url));
-                    $k = fileman::fetchByFh($fh);
-                    $kArr[$k] = $k;
+                    if ($file = @file_get_contents($url)) {
+                        $fh = fileman::absorbStr($file, $fRec->type->params['bucket'], basename($url));
+                        $k = fileman::fetchByFh($fh);
+                        $kArr[$k] = $k;
+                    } else {
+                        wp($file, $rec);
+                    }
                 }
                 $rec->{$name} = keylist::fromArray($kArr);
             } elseif ($fRec->type instanceof type_Key || $fRec->type instanceof type_Key2) {
