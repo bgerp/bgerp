@@ -226,7 +226,9 @@ class sync_Map extends core_Manager
                 $sTitle = mb_strtolower($mvc->title);
                 
                 expect($rec, "Няма запис в {$sTitle} ({$mvc->className}), който да отговаря на: {$condStr}");
-    $isMapClassRec = true;
+                
+                $isMapClassRec = true;
+                
                 break;
             }
             
