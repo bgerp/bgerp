@@ -591,7 +591,7 @@ function posActions() {
 		openModal(modalTitle);
 	});
 	
-	$("body").setShortcutKey( CONTROL , D ,function() {
+	$("body").setShortcutKey( CONTROL , DELETE ,function() {
 		 deleteSelectedElement();
 	});
 
@@ -599,32 +599,32 @@ function posActions() {
 		openProducts();
 	});
 
-	$("body").setShortcutKey( CONTROL , K ,function() {
+	$("body").setShortcutKey( CONTROL , Q ,function() {
 		openQuantity();
 	});
 
-	$("body").setShortcutKey( CONTROL , P ,function() {
+	$("body").setShortcutKey( CONTROL , Z ,function() {
 		openPayment();
 	});
 
-	$("body").setShortcutKey( CONTROL , I ,function() {
+	$("body").setShortcutKey( CONTROL , E ,function() {
 		openText();
 	});
 
-	$("body").setShortcutKey( CONTROL , C ,function() {
+	$("body").setShortcutKey( CONTROL , K ,function() {
 		openClient();
 	});
 
-	$("body").setShortcutKey( CONTROL , R ,function() {
+	$("body").setShortcutKey( CONTROL , B ,function() {
 		openReceipt();
 	});
 
-	$("body").setShortcutKey( CONTROL , F ,function() {
+	$("body").setShortcutKey( null , F2 ,function() {
 		openInfo();
 	});
 
 	
-	$("body").setShortcutKey( CONTROL , L ,function() {
+	$("body").setShortcutKey( CONTROL , P ,function() {
 		openPrint();
 	});
 
@@ -632,7 +632,7 @@ function posActions() {
 		openKeyboard();
 	});
 
-	$("body").setShortcutKey( CONTROL , Z ,function() {
+	$("body").setShortcutKey( CONTROL , O ,function() {
 		openReject();
 	});
 
@@ -644,16 +644,7 @@ function posActions() {
 		openHelp();
 	});
 
-	$("body").setShortcutKey(CONTROL , H ,function() {
-		openHelp();
-	});
-
-
-	$("body").setShortcutKey( CONTROL , S ,function() {
-		loadProducts();
-	});
-
-	$("body").setShortcutKey( CONTROL , E ,function() {
+	$("body").setShortcutKey( CONTROL , I ,function() {
 		deteleElements();
 	});
 
