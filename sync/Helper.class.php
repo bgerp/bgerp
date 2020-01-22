@@ -25,6 +25,12 @@ class sync_Helper extends core_Manager
     
     
     /**
+     * На кои класове да се търси аналог в системата
+     */
+    public $mapClass = array();
+    
+    
+    /**
      * Глобални уникални ключове
      */
     public $globalUniqKeys = array(

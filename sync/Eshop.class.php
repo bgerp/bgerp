@@ -20,6 +20,12 @@ class sync_Eshop extends sync_Helper
     
     
     /**
+     * На кои класове да се търси аналог в системата
+     */
+    public $mapClass = array('cms_Domains' => array('domain', 'lang'));
+    
+    
+    /**
      *  Връща Json-a на филтрираните обекти
      */
     public function act_Export()

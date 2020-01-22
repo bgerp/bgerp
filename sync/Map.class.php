@@ -68,6 +68,18 @@ class sync_Map extends core_Manager
             if ($rec->{$name} === null) {
                 unset($rec->{$name});
             }
+            
+            if (array_key_exists($mvc->className, $controller->mapClass)) {
+                $mapClsFieldArr = $controller->mapClass[$mvc->className];
+                $mapFieldRec = new stdClass();
+                foreach ($mapClsFieldArr as $mapFName) {
+                    $mapFieldRec->{$mapFName} = $rec->{$mapFName};
+                }
+                
+                $res[$mvc->className][$id] = $mapFieldRec;
+                
+                break;
+            }
 
             if ($fRec->type instanceof type_CustomKey) {
                 continue;
@@ -188,14 +200,36 @@ class sync_Map extends core_Manager
         if (!$rec) {
             return 0;
         }
-
+        
+        $isMapClassRec = false;
+        
         // Минаваме по всички полета и
         $fields = $mvc->selectFields("#kind == 'FLD'");
         foreach ($fields as $name => $fRec) {
             if ($fRec->type instanceof type_CustomKey) {
                 continue;
             }
-
+            
+            if (array_key_exists($mvc->className, $controller->mapClass)) {
+                $mapClsFieldArr = $controller->mapClass[$mvc->className];
+                
+                $mapFieldsClsQuery = $mvc->getQuery();
+                $condStr = ''; 
+                foreach ($mapClsFieldArr as $mapFName) {
+                    $mapFieldsClsQuery->where(array("#{$mapFName} = '[#1#]'", $rec->{$mapFName}));
+                    $condStr .= $condStr ? " && " : '';
+                    $condStr .= "{$mapFName} == '{$rec->{$mapFName}}'";
+                }
+                $mapFieldsClsQuery->count(1);
+                $rec = $mapFieldsClsQuery->fetch();
+                
+                $sTitle = mb_strtolower($mvc->title);
+                
+                expect($rec, "Няма запис в {$sTitle} ({$mvc->className}), който да отговаря на: {$condStr}");
+    $isMapClassRec = true;
+                break;
+            }
+            
             if ($fRec->type instanceof fileman_FileType && !empty($rec->{$name})) {
                 //log_System::add('sync_Map', "Вземаме файла от: " . $rec->{$name});
                 if ($file = @file_get_contents($rec->{$name})) {
@@ -267,36 +301,44 @@ class sync_Map extends core_Manager
                 }
             }
         }
-
-
+        
         // Вземаме съществуващият запис
         $classId = $mvc->getClassId();
         $exId = self::fetchField("#classId = {$classId} AND #remoteId = {$id}", 'localId');
-        if (!$exId) {
-            $exRec = null;
-            $fArr = null;
-            //log_System::add('sync_Map', "Търсим уникалност");
-            $mvc->isUnique($rec, $fArr, $exRec);
+        
+        if ($isMapClassRec) {
+            if (!$exId) {
+                $exRec = $rec;
+            } else {
+                $exRec = $mvc->fetch($exId, '*', false);
+            }
         } else {
-            //log_System::add('sync_Map', "Вадим записа");
-            $exRec = $mvc->fetch($exId, '*', false);
-        }
-
-        if (!$exRec) {
-            $exRec = $rec;
-            unset($exRec->id);
-        } else {
-            foreach ($fields as $name => $fRec) {
-                if ($fRec->type instanceof type_Keylist) {
-                    $exRec->{$name} = keylist::merge($exRec->{$name}, $rec->{$name});
-                }
-                
-                if (empty($exRec->{$name}) && (is_array($rec->{$name}) || is_object($rec->{$name}) || strlen($rec->{$name}))) {
-                    $exRec->{$name} = $rec->{$name};
+            if (!$exId) {
+                $exRec = null;
+                $fArr = null;
+                //log_System::add('sync_Map', "Търсим уникалност");
+                $mvc->isUnique($rec, $fArr, $exRec);
+            } else {
+                //log_System::add('sync_Map', "Вадим записа");
+                $exRec = $mvc->fetch($exId, '*', false);
+            }
+            
+            if (!$exRec) {
+                $exRec = $rec;
+                unset($exRec->id);
+            } else {
+                foreach ($fields as $name => $fRec) {
+                    if ($fRec->type instanceof type_Keylist) {
+                        $exRec->{$name} = keylist::merge($exRec->{$name}, $rec->{$name});
+                    }
+                    
+                    if (empty($exRec->{$name}) && (is_array($rec->{$name}) || is_object($rec->{$name}) || strlen($rec->{$name}))) {
+                        $exRec->{$name} = $rec->{$name};
+                    }
                 }
             }
         }
-
+        
         $lId = $mvc->save($exRec);
         //log_System::add('sync_Map', "Записахме {$class} {$lId}");
 
