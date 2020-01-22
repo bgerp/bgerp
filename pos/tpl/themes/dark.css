@@ -51,8 +51,8 @@
 .operationBtn,
 .operationHolder {
   border-radius: 3px;
-  background-color: #bbbbbb !important; }
+  background-color: #bbbbbb; }
   .operationBtn:hover,
   .operationHolder:hover {
-    background-color: #999999 !important; }
+    background-color: #999999; }
 
