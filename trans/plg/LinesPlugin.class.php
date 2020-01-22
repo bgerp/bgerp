@@ -209,7 +209,7 @@ class trans_plg_LinesPlugin extends core_Plugin
         $hintWeight = ($rec->weightInput) ? 'Транспортното тегло е въведено от потребител' : 'Транспортното тегло е сумарно от редовете';
         
         if($rec->calcedWeight && isset($rec->{$mvc->totalWeightFieldName})){
-            $percentChange = abs(round((1 - $rec->{$mvc->totalWeightFieldName} / $rec->calcedWeight) * 100, 2));
+            $percentChange = abs(round((1 - $rec->{$mvc->totalWeightFieldName} / $rec->calcedWeight) * 100, 3));
             if($percentChange >= 25){
                 $warningWeight = true;
             }
@@ -230,14 +230,16 @@ class trans_plg_LinesPlugin extends core_Plugin
         setIfNot($rec->{$mvc->totalVolumeFieldName}, $transInfo->volume);
         $rec->calcedVolume = $rec->{$mvc->totalVolumeFieldName};
         
+        $rec->{$mvc->totalVolumeFieldName} = ($rec->volumeInput) ? $rec->volumeInput : $rec->{$mvc->totalVolumeFieldName};
         if($rec->calcedVolume && isset($rec->{$mvc->totalVolumeFieldName})){
-            $percentChange = abs(round((1 - $rec->{$mvc->totalVolumeFieldName} / $rec->calcedVolume) * 100, 2));
+            $percentChange = abs(round((1 - $rec->{$mvc->totalVolumeFieldName} / $rec->calcedVolume) * 100, 3));
+            
             if($percentChange >= 25){
                 $warningVolume = true;
             }
         }
         
-        $rec->{$mvc->totalVolumeFieldName} = ($rec->volumeInput) ? $rec->volumeInput : $rec->{$mvc->totalVolumeFieldName};
+        
         $hintVolume = ($rec->volumeInput) ? 'Транспортният обем е въведен от потребител' : 'Транспортният обем е сумарен от редовете';
         if (!isset($rec->{$mvc->totalVolumeFieldName})) {
             $row->{$mvc->totalVolumeFieldName} = "<span class='quiet'>N/A</span>";
@@ -248,7 +250,8 @@ class trans_plg_LinesPlugin extends core_Plugin
             if($warningVolume){
                 $liveVolumeVerbal = $mvc->getFieldType($mvc->totalVolumeFieldName)->toVerbal($rec->calcedVolume);
                 $row->{$mvc->totalVolumeFieldName} = ht::createHint($row->{$mvc->totalVolumeFieldName}, "Има разлика от над 25% с изчисленото|* {$liveVolumeVerbal}", 'warning', false);
-            }}
+            }
+        }
         
         if (isset($fields['-single'])) {
             $row->logisticInfo = trans_Helper::displayTransUnits($rec->transUnits, $rec->transUnitsInput);

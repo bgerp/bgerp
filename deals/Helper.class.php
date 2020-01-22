@@ -1283,7 +1283,7 @@ abstract class deals_Helper
                 $hint = true;
             }
         } elseif($liveValue) {
-            $percentChange = abs(round((1 - $value / $liveValue) * 100, 2));
+            $percentChange = abs(round((1 - $value / $liveValue) * 100, 3));
             if($percentChange >= 25){
                 $warning = true;
             }
