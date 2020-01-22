@@ -796,7 +796,7 @@ class label_TemplateFormats extends core_Detail
                         }
                         
                         if ($height < 70) {
-                            $attr['addText']['fontSize'] = barcode_Generator::$fontSize - 3;
+                            $attr['addText']['fontSize'] = barcode_Generator::$fontSize - 1;
                         }
                         
                         if ($height < 60) {
