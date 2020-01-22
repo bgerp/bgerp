@@ -291,6 +291,10 @@ class sync_Map extends core_Manager
                     $exRec->{$name} = keylist::merge($exRec->{$name}, $rec->{$name});
                 }
                 
+                if (is_object($rec->{$name})) {
+                    bp($rec, $name, $class, $id, $res, $controller);
+                }
+                
                 if (empty($exRec->{$name}) && (is_array($rec->{$name}) || strlen($rec->{$name}))) {
                     $exRec->{$name} = $rec->{$name};
                 }
