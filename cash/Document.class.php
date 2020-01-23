@@ -379,20 +379,6 @@ abstract class cash_Document extends deals_PaymentDocument
     
     
     /**
-     * След подготовка на тулбара на единичен изглед
-     */
-    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
-    {
-        $rec = $data->rec;
-        
-        // Ако не е избрана каса, показваме бутона за контиране но с грешка
-        if (($rec->state == 'draft' || $rec->state == 'pending') && !isset($rec->peroCase) && $mvc->haveRightFor('conto')) {
-            $data->toolbar->addBtn('Контиране', array(), array('id' => 'btnConto', 'error' => 'Документът не може да бъде контиран, докато няма посочена каса|*!'), 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
-        }
-    }
-    
-    
-    /**
      * Подготовка на бутоните на формата за добавяне/редактиране
      */
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
@@ -575,5 +561,36 @@ abstract class cash_Document extends deals_PaymentDocument
         $info = array('state' => $rec->state, 'notes' => $rec->lineNotes, 'currencyId' => currency_Currencies::getCodeById($rec->currencyId), 'amount' => $rec->amount, 'baseAmount' => $baseAmount);
         
         return $info;
+    }
+    
+    
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        $rec->peroCase = (isset($rec->peroCase)) ? $rec->peroCase : cash_Cases::getCurrent('id', false);
+        if(empty($rec->peroCase)){
+            
+            redirect(array($mvc, 'single', $rec->id), false, 'За да контирате документа, трябва да е избрана каса', 'error');
+        }
+    }
+    
+    
+    /**
+     * Уорнинг на бутона за контиране/активиране
+     */
+    public static function getContoWarning_($id, $isContable)
+    {
+        $rec = static::fetchRec($id);
+        $currentCaseId = cash_Cases::getCurrent('id', false);
+        
+        if(!isset($rec->peroCase) && isset($currentCaseId)){
+            $currentCaseName = cash_Cases::getTitleById($currentCaseId);
+            return "|Наистина ли желаете документът да бъде контиран в каса|*: {$currentCaseName}?";
+        }
+        
+        return "|Наистина ли желаете документът да бъде контиран|*?";
     }
 }
