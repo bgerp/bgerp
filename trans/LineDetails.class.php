@@ -190,7 +190,13 @@ class trans_LineDetails extends doc_Detail
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec, $fields = null)
     {
         if ($rec->_forceStatus !== true) {
-            $rec->status = (trans_Helper::checkTransUnits($rec->documentLu, $rec->readyLu)) ? 'ready' : 'waiting';
+            $Document = doc_Containers::getDocument($rec->containerId);
+            if($Document->haveInterface('store_iface_DocumentIntf')){
+                $rec->status = (trans_Helper::checkTransUnits($rec->documentLu, $rec->readyLu)) ? 'ready' : 'waiting';
+            } else {
+                $documentState = $Document->fetchField('state');
+                $rec->status = ($documentState == 'active') ? 'ready' : 'waiting';
+            }
         }
     }
     
