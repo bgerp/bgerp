@@ -541,7 +541,7 @@ class cat_UoM extends core_Manager
         // Ако стойността е 0 не се прави конверсия
         if($val == 0){
             
-            return (object) (array('value' => 0, 'measure' => $typeUom->id));
+            return ($asObject) ? (object) (array('value' => 0, 'measure' => $typeUom->id)) : $val . ' ' . tr($typeUom->shortName);
         }
         
         // Извличат се мерките от същия тип и се премахва празния елемент в масива
