@@ -18,6 +18,15 @@
 class sync_Eshop extends sync_Helper
 {
     
+    /**
+     * Какво друго да експортираме?
+     */
+    public $exportAlso = array(
+            'eshop_Products' => array(
+                    array('eshop_ProductDetails' => 'eshopProductId'),
+            ),
+    );
+    
     
     /**
      * На кои класове да се търси аналог в системата
