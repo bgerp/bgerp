@@ -337,9 +337,8 @@ class trans_plg_LinesPlugin extends core_Plugin
     {
         if (isset($rec->lineId)) {
             $mvc->updateLines[$rec->lineId] = $rec->lineId;
-            
             if(!cls::haveInterface('store_iface_DocumentIntf', $mvc) && isset($rec->containerId)){
-                trans_LineDetails::sync($rec->lineId, $rec->containerId);
+                $mvc->syncLineDetails[$rec->lineId] = $rec->containerId;
             }
         }
     }
@@ -355,6 +354,12 @@ class trans_plg_LinesPlugin extends core_Plugin
             $Lines = cls::get('trans_Lines');
             foreach ($mvc->updateLines as $lineId) {
                 $Lines->updateMaster($lineId);
+            }
+        }
+        
+        if (is_array($mvc->syncLineDetails)) {
+            foreach ($mvc->syncLineDetails as $lineId => $containerId) {
+                trans_LineDetails::sync($lineId, $containerId);
             }
         }
     }

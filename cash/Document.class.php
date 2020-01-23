@@ -561,7 +561,7 @@ abstract class cash_Document extends deals_PaymentDocument
         $baseAmount = round($rec->amount * $rec->rate, 4);
         $info = array('state' => $rec->state, 'notes' => $rec->lineNotes, 'currencyId' => currency_Currencies::getCodeById($rec->currencyId), 'amount' => $rec->amount, 'baseAmount' => $baseAmount);
         
-        $sign = ($rec->classId != cash_Pko::getClassId()) ? 1 : -1;
+        $sign = ($this->getClassId() == cash_Pko::getClassId()) ? 1 : -1;
         $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($sign * $info['amount']);
         $amountVerbal = ht::styleNumber($amountVerbal, $info['amount']);
         $info['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId);
