@@ -968,7 +968,7 @@ class blast_Emails extends core_Master
      *
      * @return string $lg - Двубуквеното означение на предполагаемия език
      */
-    protected static function getLanguage($body, $lang = null)
+    public static function getLanguage($body, $lang = null)
     {
         // Масив с всички допустими езици за системата
         $langArr = arr::make(EF_LANGUAGES, true);
