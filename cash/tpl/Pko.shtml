@@ -49,9 +49,14 @@
 
                     <!--ET_BEGIN pkoRow-->
                     [#pkoRow#]
-                        <!--ET_BEGIN reason-->
-                            <span class='quiet'>|Основание|*:</span> &nbsp;&nbsp;&nbsp;[#reason#]
-                        <!--ET_END reason-->
+                        <!--ET_BEGIN lineId-->
+                            <div><span class='quiet'>|Транспортна линия|*:</span> &nbsp;&nbsp;&nbsp;[#lineId#] </div>
+                        <!--ET_END lineId-->
+                        
+                        <!--ET_BEGIN lineNotes-->
+                            <div><span class='quiet'>|Транспорт: Забележки|*:</span> &nbsp;&nbsp;&nbsp;[#lineNotes#]</div>
+                        <!--ET_END lineNotes-->
+                        
                         <!--ET_BEGIN amountDeal-->
                         <div class ='misc' style='float:right'>
                             <div style='margin-top:7px;'>
