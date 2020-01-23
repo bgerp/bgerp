@@ -59,7 +59,6 @@ class sync_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'SYNC_COMPANY_GROUP' => array('key(mvc=crm_Groups, allowEmpty)', 'caption=Експортиране на фирми->Група'),
-        'SYNC_ESHOP_GRPUPS' => array('keylist(mvc=eshop_Groups, select=name, allowEmpty)', 'caption=Експортиране на е-магазин->Групи'),
         'SYNC_EXPORT_URL' => array('url', 'caption=Импортиране->URL'),
     );
     
@@ -71,5 +70,19 @@ class sync_Setup extends core_ProtoSetup
         'sync_Map',
     );
     
-  
+    
+    /**
+     * Връща описанието на web-константите
+     *
+     * @return array
+     */
+    public function getConfigDescription()
+    {
+        $description = parent::getConfigDescription();
+        if (core_Packs::isInstalled('eshop')) {
+            $description['SYNC_ESHOP_GRPUPS'] = array('keylist(mvc=eshop_Groups, select=name, allowEmpty)', 'caption=Експортиране на е-магазин->Групи');
+        }
+        
+        return $description;
+    }
 }
