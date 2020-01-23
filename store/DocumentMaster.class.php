@@ -798,8 +798,6 @@ abstract class store_DocumentMaster extends core_Master
             $res['amount'] = $amount;
             $res['currencyId'] = $rec->currencyId;
             
-            
-            
             $sign = ($rec->classId != store_Receipts::getClassId()) ? 1 : -1;
             $amount = $sign * $res['amount'];
             $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($res['amount']);
