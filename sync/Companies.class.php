@@ -42,9 +42,9 @@ class sync_Companies extends sync_Helper
      */
     public function act_Export()
     {
-        expect(core_Packs::isInstalled('crm'));
-        
         self::requireRight();
+        
+        expect(core_Packs::isInstalled('crm'));
         
         core_App::setTimeLimit(1000);
         
@@ -72,9 +72,9 @@ class sync_Companies extends sync_Helper
      */
     public function act_Import()
     {
-        expect(core_Packs::isInstalled('crm'));
-        
         self::requireRight('import');
+        
+        expect(core_Packs::isInstalled('crm'));
         
         core_App::setTimeLimit(1000);
         
