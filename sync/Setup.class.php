@@ -2,9 +2,14 @@
 
 
 /**
- * Име на собствената компания (тази за която ще работи bgERP)
+ * Експортиране на фирми->Група
  */
 defIfNot('SYNC_COMPANY_GROUP', '');
+
+/**
+ * Име на собствената компания (тази за която ще работи bgERP)
+ */
+defIfNot('SYNC_ESHOP_GRPUPS', '');
 
 
 /**
@@ -53,7 +58,6 @@ class sync_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        
         'SYNC_COMPANY_GROUP' => array('key(mvc=crm_Groups, allowEmpty)', 'caption=Експортиране на фирми->Група'),
         'SYNC_EXPORT_URL' => array('url', 'caption=Импортиране->URL'),
     );
@@ -66,5 +70,19 @@ class sync_Setup extends core_ProtoSetup
         'sync_Map',
     );
     
-  
+    
+    /**
+     * Връща описанието на web-константите
+     *
+     * @return array
+     */
+    public function getConfigDescription()
+    {
+        $description = parent::getConfigDescription();
+        if (core_Packs::isInstalled('eshop')) {
+            $description['SYNC_ESHOP_GRPUPS'] = array('keylist(mvc=eshop_Groups, select=name, allowEmpty)', 'caption=Експортиране на е-магазин->Групи');
+        }
+        
+        return $description;
+    }
 }

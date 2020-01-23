@@ -20,7 +20,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo, debug';
+    public $canSelectDriver = 'ceo, debug, acc, planning';
     
     
     /**

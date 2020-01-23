@@ -79,15 +79,6 @@
                      <td>[#lineNotes#]</td>
                   </tr>
                   <!--ET_END lineNotes-->
-                  <!--ET_BEGIN note-->
-                  <tr>
-                     <td colspan=2>
-                        <hr>
-                        [#note#]
-                        <hr>
-                     </td>
-                     <!--ET_END note-->
-                  </tr>
                   <tr>
                      <td colspan="2">
                         <div>
@@ -102,6 +93,7 @@
                   <!--ET_END logisticInfo-->
                </table>
                <!--ET_BEGIN note-->
+               <hr>
                [#note#]
                <!--ET_END note-->
             </td>

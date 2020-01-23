@@ -89,6 +89,19 @@
 		                                	<div class='richtext-holder'><span class='quiet'>|Основание|*:</span> &nbsp;&nbsp;&nbsp;[#reason#]</div>
 		                                </td>
 		                                <!--ET_END reason-->
+		                                
+		                                <!--ET_BEGIN lineId-->
+		                                <td colspan='2'>
+		                                	<div class='richtext-holder'><span class='quiet'>|Транспортна линия|*:</span> &nbsp;&nbsp;&nbsp;[#lineId#]</div>
+		                                </td>
+		                                <!--ET_END lineId-->
+		                                
+		                                <!--ET_BEGIN lineNotes-->
+		                                <td colspan='2'>
+		                                	<div class='richtext-holder'><span class='quiet'>|Транспорт: Забележки|*:</span> &nbsp;&nbsp;&nbsp;[#lineNotes#]</div>
+		                                </td>
+		                                <!--ET_END lineNotes-->
+		                                
 		                                <!--ET_BEGIN amountDeal-->
 		                                <td style='vertical-align:middle !important'>
 		                                    <div class ='misc' style='float:right'>

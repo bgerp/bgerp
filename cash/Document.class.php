@@ -35,7 +35,7 @@ abstract class cash_Document extends deals_PaymentDocument
      */
     public $loadList = 'plg_RowTools2, cash_Wrapper, plg_Sorting,deals_plg_SaveValiorOnActivation, acc_plg_Contable,
                      plg_Clone,doc_DocumentPlg, plg_Printing,deals_plg_SelectInvoice,acc_plg_DocumentSummary,
-                     plg_Search, bgerp_plg_Blank, doc_plg_HidePrices, doc_EmailCreatePlg, cond_plg_DefaultValues, doc_SharablePlg,deals_plg_SetTermDate';
+                     plg_Search, bgerp_plg_Blank, doc_plg_HidePrices, doc_EmailCreatePlg, cond_plg_DefaultValues,trans_plg_LinesPlugin, doc_SharablePlg,deals_plg_SetTermDate';
     
     
     /**
@@ -54,6 +54,12 @@ abstract class cash_Document extends deals_PaymentDocument
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, cash';
+    
+    
+    /**
+     * Кой има право да променя?
+     */
+    public $canChangeline = 'ceo,cash,trans';
     
     
     /**
@@ -543,5 +549,31 @@ abstract class cash_Document extends deals_PaymentDocument
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'peroCase')) {
             $requiredRoles = 'no_one';
         }
+    }
+    
+    /**
+     * Информацията на документа, за показване в транспортната линия
+     *
+     * @param mixed $id
+     *
+     * @return array
+     *               ['baseAmount'] double|NULL - сумата за инкасиране във базова валута
+     *               ['amount']     double|NULL - сумата за инкасиране във валутата на документа
+     *               ['currencyId'] string|NULL - валутата на документа
+     *               ['notes']      string|NULL - забележки за транспортната линия
+     *               ['stores']     array       - склад(ове) в документа
+     *               ['weight']     double|NULL - общо тегло на стоките в документа
+     *               ['volume']     double|NULL - общ обем на стоките в документа
+     *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
+     *               [transUnitId] => quantity
+     */
+    public function getTransportLineInfo_($rec)
+    {
+        $rec = $this->fetchRec($rec);
+        
+        $baseAmount = round($rec->amount * $rec->rate, 4);
+        $info = array('state' => $rec->state, 'notes' => $rec->lineNotes, 'currencyId' => currency_Currencies::getCodeById($rec->currencyId), 'amount' => $rec->amount, 'baseAmount' => $baseAmount);
+        
+        return $info;
     }
 }

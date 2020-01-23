@@ -109,7 +109,7 @@ class ibex_Register extends core_Manager
             
             $date = dt::addDays(-1 * $i, null, false);
 
-            if($this->countR("#date = '{$date}'") < 25) {
+            if($this->count("#date = '{$date}'") < 25) {
 
                 $rows = $this->retrieve($date);
  

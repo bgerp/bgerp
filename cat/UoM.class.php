@@ -305,10 +305,9 @@ class cat_UoM extends core_Manager
         expect($rec = static::fetch($measureId, 'baseUnitId,id'), 'Няма такава мярка');
         
         $query = static::getQuery();
+        $query->where("#state = 'active'");
         $baseId = ($rec->baseUnitId) ? $rec->baseUnitId : $rec->id;
-        
-        $query->where("#baseUnitId = {$baseId}");
-        $query->orWhere("#id = {$baseId}");
+        $query->where("#baseUnitId = {$baseId} OR #id = {$baseId}");
         $query->show('shortName,name');
         
         $options = array();
@@ -538,6 +537,12 @@ class cat_UoM extends core_Manager
         
         // Намира се коя мярка отговаря на това сис ид
         $typeUom = cat_UoM::fetchBySysId($sysId);
+        
+        // Ако стойността е 0 не се прави конверсия
+        if($val == 0){
+            
+            return (object) (array('value' => 0, 'measure' => $typeUom->id));
+        }
         
         // Извличат се мерките от същия тип и се премахва празния елемент в масива
         $sameMeasures = cat_UoM::getSameTypeMeasures($typeUom->id);

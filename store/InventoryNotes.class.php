@@ -607,7 +607,7 @@ class store_InventoryNotes extends core_Master
                 $aRec->searchKeywords = $Summary->getSearchKeywords($aRec);
                 
                 $groups = cat_Products::fetchField($productId, 'groups');
-                if (countR($groups)) {
+                if (!empty($groups)) {
                     $aRec->groups = $groups;
                 }
                 

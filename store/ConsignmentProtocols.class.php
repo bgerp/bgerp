@@ -497,11 +497,12 @@ class store_ConsignmentProtocols extends core_Master
      */
     public function getTotalTransportInfo($id, $force = false)
     {
-        $res1 = cls::get('store_ConsignmentProtocolDetailsReceived')->getTransportInfo($id, $force);
-        $res2 = cls::get('store_ConsignmentProtocolDetailsSend')->getTransportInfo($id, $force);
+        $rec = $this->fetchRec($id);
+        $res1 = cls::get('store_ConsignmentProtocolDetailsReceived')->getTransportInfo($rec->id, $force);
+        $res2 = cls::get('store_ConsignmentProtocolDetailsSend')->getTransportInfo($rec->id, $force);
         
-        $count1 = store_ConsignmentProtocolDetailsReceived::count("#protocolId = {$id}");
-        $count2 = store_ConsignmentProtocolDetailsSend::count("#protocolId = {$id}");
+        $count1 = store_ConsignmentProtocolDetailsReceived::count("#protocolId = {$rec->id}");
+        $count2 = store_ConsignmentProtocolDetailsSend::count("#protocolId = {$rec->id}");
         
         $nullWeight = ($count1 && is_null($res1->weight)) || ($count2 && is_null($res2->weight)) || (!$count1 && !$count2);
         $weight = ($nullWeight) ? null : $res1->weight + $res2->weight;

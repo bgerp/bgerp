@@ -89,6 +89,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                     
                     $delimiter = $rec->delimiter == '\t' ? "\t" : $rec->delimiter;
                     
+                    
                     // Обработваме данните
                     $rows = csv_Lib::getCsvRows($data, $delimiter, $rec->enclosure, $rec->firstRow);
                     $fields = array('code' => $rec->codecol, 'quantity' => $rec->quantitycol, 'price' => $rec->pricecol, 'pack' => $rec->packcol);
@@ -183,9 +184,25 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $meta = (array) cat_Products::fetch($pRec->productId, $mvc->metaProducts);
             unset($meta['id']);
             
+            // Ако импорта е в Експедиционно или Складова разписка
+            if (!$mvc->metaProducts) {
+                $masterId = Request::get($mvc->masterKey, 'int');
+                
+                $masterRec = $mvc->Master->fetch($masterId);
+                
+                //Първия документ в нишката
+                $Document = doc_Containers::getDocument($masterRec->originId);
+                
+                if ($Document->className == 'sales_Sales') {
+                    $meta = array('canSell' => cat_Products::fetch($pRec->productId)->canSell);
+                } elseif ($Document->className == 'purchase_Purchases') {
+                    $meta = array('canBuy' => cat_Products::fetch($pRec->productId)->canBuy);
+                }
+            }
+            
             foreach ($meta as $metaValue) {
                 if ($metaValue != 'yes') {
-                    $err[$i][] = $obj->code . ' |Артикулът няма вече нужните свойства|*';
+                    //  $err[$i][] = $obj->code . ' |Артикулът няма вече нужните свойства|*';
                 }
             }
             
@@ -225,8 +242,28 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
                 $policyInfo = $Policy->getPriceInfo($Cover->getInstance()->getClassId(), $Cover->that, $pRec->productId, null, 1);
                 
-                if (empty($policyInfo->price)) {
-                    $err[$i][] = $obj->code . ' |Артикулът няма цена|*';
+                if ($Document) {
+                    $Document = cls::get($Document->className);
+                }
+                
+                //Ако документа е в покупка не искаме ценова политика
+                if ($Document instanceof sales_Sales ||
+                    $mvc->Master instanceof sales_Sales) {
+                    if (empty($policyInfo->price)) {
+                        $err[$i][] = $obj->code . ' |Артикулът няма цена|*';
+                    }
+                }
+                
+                if ($Document instanceof purchase_Purchases || 
+                    $mvc->Master instanceof purchase_Purchases) {
+                    
+                    // Себестойност
+                    $selfPrice = cat_Products::getPrimeCost($pRec->productId, null, null, null);
+                    $obj->price = $selfPrice;
+                    
+                    if (!$selfPrice) {
+                        $err[$i][] = $obj->code . ' |Артикулът няма себестойност|*';
+                    }
                 }
             }
             

@@ -923,7 +923,7 @@ class core_Debug
         
         // Ако е необходимо записваме дебъг информацията
         if (defined('EF_DEBUG_LOG_PATH')) {
-            core_Os::requireDir(EF_DEBUG_LOG_PATH);
+            core_Os::forceDir(EF_DEBUG_LOG_PATH);
             @file_put_contents(EF_DEBUG_LOG_PATH . "/{$title}.html", $debugPage);
         }
         

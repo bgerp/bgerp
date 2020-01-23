@@ -235,6 +235,14 @@ class cat_Products extends embed_Manager
     
     
     /**
+     * Шаблон (ET) за заглавие на продукт
+     *
+     * @var string
+     */
+    public $recTitleNonPublicTpl = '[#name#] [[#code#]]';
+    
+    
+    /**
      * Групиране на документите
      */
     public $newBtnGroup = '9.8|Производство';
@@ -1207,19 +1215,35 @@ class cat_Products extends embed_Manager
         }
         
         if (!$res->productId) {
-            // Проверяваме имали опаковка с този код: вътрешен или баркод
+            
+            // Проверява се имали опаковка с този код: вътрешен или баркод
             if ($catPack = cat_products_Packagings::fetch(array("#eanCode = '[#1#]'", $code), 'productId,packagingId')) {
-                // Ако има запис намираме ид-та на продукта и опаковката
+               
+                    // Ако има запис намираме ид-та на продукта и опаковката
                 $res->productId = $catPack->productId;
                 $res->packagingId = $catPack->packagingId;
             }
         }
         
         if (!$res->productId) {
-            // Търсим продукта по код, без значение на кейса
+            
+            // Търси се продукта по код, без значение на кейса
             if ($rec = self::fetch(array("LOWER(#code) = '[#1#]'", mb_strtolower($code)), 'id')) {
                 $res->productId = $rec->id;
                 $res->packagingId = null;
+            }
+        }
+        
+        // Ако не е намерен артикул с този баркод или код, търсим дали е ArtXXX, търси артикул с това ид
+        if (!$res->productId) {
+            if(stripos($code, 'art') == 0){
+                $extractId = str_ireplace('art', '', $code);
+                if(type_Int::isInt($extractId)){
+                    if($productId = cat_Products::fetchField("#id = '{$extractId}'")){
+                        $res->productId = $productId;
+                        $res->packagingId = null;
+                    }
+                }
             }
         }
         
@@ -2015,6 +2039,8 @@ class cat_Products extends embed_Manager
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if ($fields['-single']) {
+            $row->title = $mvc->getRecTitle($rec);
+            
             if (isset($rec->originId)) {
                 $row->originId = doc_Containers::getDocument($rec->originId)->getLink(0);
             }
@@ -2123,9 +2149,23 @@ class cat_Products extends embed_Manager
     {
         // Предефиниране на метода, за да е подсигурено само фечването на нужните полета
         // За да се намали натоварването, при многократни извиквания
-        $rec = self::fetch($id, 'name,code,isPublic,nameEn');
+        $rec = self::fetch($id, 'name,code,isPublic,nameEn,state');
         
         return parent::getTitleById($rec, $escaped);
+    }
+    
+    
+    /**
+     * Връща шаблона на заглавието
+     *
+     * @param stdClass $rec
+     * @return mixed
+     */
+    public function getRecTitleTpl($rec)
+    {
+        $tpl = ($rec->isPublic != 'yes' || $rec->state == 'template') ? $this->recTitleNonPublicTpl : $this->recTitleTpl;
+        
+        return new core_ET($tpl);
     }
     
     
@@ -2178,9 +2218,14 @@ class cat_Products extends embed_Manager
         $subTitle = (is_array($fullTitle)) ? $fullTitle['subTitle'] : null;
         
         if ($showCode === true) {
-            $titleTpl = new core_ET('<!--ET_BEGIN code-->[[#code#]] <!--ET_END code-->[#name#]');
-            $titleTpl->replace($title, 'name');
+            if($rec->isPublic == 'yes'){
+                $titleTpl = new core_ET('<!--ET_BEGIN code-->[[#code#]] <!--ET_END code-->[#name#]');
+            } else {
+                $titleTpl = new core_ET('[#name#]<!--ET_BEGIN code--> [[#code#]]<!--ET_END code-->');
+            }
             
+            
+            $titleTpl->replace($title, 'name');
             
             if (!empty($rec->code)) {
                 $code = core_Type::getByName('varchar')->toVerbal($rec->code);
@@ -2188,11 +2233,12 @@ class cat_Products extends embed_Manager
                     $titleTpl->replace($code, 'code');
                 }
             }
+            
             $title = $titleTpl->getContent();
             
             if ($rec->isPublic == 'no' && empty($rec->code)) {
                 $count = cat_ProductTplCache::count("#productId = {$rec->id} AND #type = 'description' AND #documentType = '{$documentType}'", 2);
-                $title = "[Art{$rec->id}] {$title}";
+                $title = "{$title} [Art{$rec->id}]";
                 
                 if ($count > 1) {
                     $vNumber = "/<small class='versionNumber'>v{$count}</small>";

@@ -69,6 +69,19 @@
                                 	<span class='quiet'>|Основание|*:</span> &nbsp;&nbsp;&nbsp;[#reason#]
                                 </td>
                                 <!--ET_END reason-->
+                                
+                                <!--ET_BEGIN lineId-->
+                                <td colspan='2' class='notes-block' style='height: auto; padding:10px;'>
+                                	<span class='quiet'>|Транспортна линия|*:</span> &nbsp;&nbsp;&nbsp;[#lineId#]
+                                </td>
+                                <!--ET_END lineId-->
+                                
+                                <!--ET_BEGIN lineNotes-->
+                                <td colspan='2' class='notes-block' style='height: auto; padding:10px;'>
+                                	<span class='quiet'>|Транспорт: Забележки|*:</span> &nbsp;&nbsp;&nbsp;[#lineNotes#]
+                                </td>
+                                <!--ET_END lineNotes-->
+                                
                                 <!--ET_BEGIN amountDeal-->
                                 <td style='vertical-align:middle !important'>
                                     <div class ='misc' style='float:right'>

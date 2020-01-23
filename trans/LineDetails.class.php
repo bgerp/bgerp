@@ -153,7 +153,6 @@ class trans_LineDetails extends doc_Detail
     public static function sync($lineId, $containerId)
     {
         $Document = doc_Containers::getDocument($containerId);
-        $transportInfo = $Document->getTransportLineInfo();
         
         // Има ли запис за тази линия
         $rec = self::fetch("#lineId = {$lineId} AND #containerId = {$containerId}");
@@ -174,6 +173,7 @@ class trans_LineDetails extends doc_Detail
         
         // Запис на ЛЕ от документа, ако позволява
         if ($Document->requireManualCheckInTransportLine()) {
+            $transportInfo = $Document->getTransportLineInfo();
             $rec->documentLu = $transportInfo['transportUnits'];
         }
         
@@ -237,19 +237,21 @@ class trans_LineDetails extends doc_Detail
             $row->address = "<span class='line-detail-address'>{$row->address}</span>";
         }
         
-        if (!empty($transportInfo['weight'])) {
-            $weight = core_Type::getByName('cat_type_Weight')->toVerbal($transportInfo['weight']);
-        } else {
-            $weight = "<span class='quiet'>N/A</span>";
+        if($Document->haveInterface('store_iface_DocumentIntf')){
+            if (!empty($transportInfo['weight'])) {
+                $weight = core_Type::getByName('cat_type_Weight')->toVerbal($transportInfo['weight']);
+            } else {
+                $weight = "<span class='quiet'>N/A</span>";
+            }
+            
+            if (!empty($transportInfo['volume'])) {
+                $volume = core_Type::getByName('cat_type_Volume')->toVerbal($transportInfo['volume']);
+            } else {
+                $volume = "<span class='quiet'>N/A</span>";
+            }
+            
+            $row->measures = "{$weight} / {$volume}";
         }
-        
-        if (!empty($transportInfo['volume'])) {
-            $volume = core_Type::getByName('cat_type_Volume')->toVerbal($transportInfo['volume']);
-        } else {
-            $volume = "<span class='quiet'>N/A</span>";
-        }
-        
-        $row->measures = "{$weight} / {$volume}";
         
         if (!empty($transportInfo['amount'])) {
             $sign = ($rec->classId != store_Receipts::getClassId()) ? 1 : -1;
