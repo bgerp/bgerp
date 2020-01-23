@@ -130,6 +130,7 @@ class sync_Helper extends core_Manager
         ini_set('default_socket_timeout', 600);
         
         $url = sync_Setup::get('EXPORT_URL');
+        expect($url);
         $url = rtrim($url, '/') . '/' . $expAdd . '/export';
         $res = file_get_contents($url);
         $resArr = unserialize(gzuncompress($res));
