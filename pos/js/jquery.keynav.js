@@ -105,16 +105,19 @@
 				setCurrent(currentPosition[0], currentPosition[1]);
 			}
 		});
-		$(window).bind("contextmenu", function(event) {
-			event.preventDefault();
-			current.removeClass('selected');
-			var element = $(event.target).closest('.navigable');
-			if (element.length) {
-				current = $(element);
-				var currentPosition = findCurrent();
-				setCurrent(currentPosition[0], currentPosition[1]);
-			}
-		});
+		if (isTouchDevice()) {
+			$(window).bind("contextmenu", function(event) {
+				event.preventDefault();
+				current.removeClass('selected');
+				var element = $(event.target).closest('.navigable');
+				if (element.length) {
+					current = $(element);
+					var currentPosition = findCurrent();
+					setCurrent(currentPosition[0], currentPosition[1]);
+				}
+			});
+		}
+
 
 		$(window).bind("resize", function(event) {
 			update();
