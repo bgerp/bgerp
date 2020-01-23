@@ -90,6 +90,10 @@
 
 
 			current.addClass('selected');
+			if (!isItVisible($(current))) {
+
+				$(current)[0].scrollIntoView();
+			}
 
 			sessionStorage.setItem('focused', $(current).attr('id'));
 			disableOrEnableEnlargeBtn();

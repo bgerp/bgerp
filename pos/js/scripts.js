@@ -760,14 +760,6 @@ function calculateWidth(){
 	$('#result-holder, #single-receipt-holder').css('top',headerHeight);
 }
 
-// Скролиране на бележката до долу
-function scrollRecieptBottom(){
-	if($('body').hasClass('wide')){
-		var el = $('.scrolling-vertical');
-		setTimeout(function(){el.scrollTop( el.get(0).scrollHeight );},500);
-	}
-}
-
 // Направа на плащане
 function doPayment(url, type){
 	if(!url || !type) return;
@@ -929,7 +921,7 @@ var semaphor;
 function render_afterload()
 {
 	var operation = getSelectedOperation();
-	
+
 	afterload();
 	
 	var eanInput = $("input[name=ean]");
@@ -1133,28 +1125,37 @@ function startNavigation() {
 		$('#result-holder .navigable').keynav();
 	}
 }
+function isItVisible(element){
+	var viewportWidth = $(window).width(),
+		viewportHeight = $(window).height(),
+		documentScrollTop = $(document).scrollTop(),
+		documentScrollLeft = $(document).scrollLeft(),
+
+
+		elementOffset = element.offset(),
+		elementHeight = element.height(),
+		elementWidth = element.width(),
+
+		minTop = documentScrollTop,
+		maxTop = documentScrollTop + viewportHeight,
+		minLeft = documentScrollLeft,
+		maxLeft = documentScrollLeft + viewportWidth;
+
+	return (elementOffset.top > minTop && elementOffset.top + elementHeight < maxTop) &&
+		(elementOffset.left > minLeft && elementOffset.left + elementWidth < maxLeft);
+}
 
 function scrollToHighlight(){
-	if ( $('.highlighted').length) {
-		var offset = $('.highlighted').offset().top - $('.scrolling-vertical').height()  + $('.highlighted').height();
-
-		$('.scrolling-vertical').animate({
-			scrollTop:  offset
-		}, 0);
-	}
+	$( ".highlighted")[0].scrollIntoView();
 }
 
 
-function render_scrollToHighlight()
-{
+function render_scrollToHighlight() {
 	scrollToHighlight();
 }
 
 function scrollAfterKey(){
-	var scroll = $('.highlighted').offset().top - $('.highlighted').height();
-	$('.scrolling-vertical').animate({
-		scrollTop:  scroll
-	}, 0);
+	$( ".highlighted")[0].scrollIntoView();
 }
 
 // Добавя хинт
