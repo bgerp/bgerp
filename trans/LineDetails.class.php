@@ -266,11 +266,8 @@ class trans_LineDetails extends doc_Detail
             }
         }
         
-        if (!empty($transportInfo['amount'])) {
-            $sign = ($rec->classId != store_Receipts::getClassId()) ? 1 : -1;
-            $amount = $sign * $transportInfo['amount'];
-            $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($amount);
-            $row->collection = "<span class='cCode'>{$transportInfo['currencyId']}</span> " . ht::styleNumber($amountVerbal, $amount);
+        if (!empty($transportInfo['amountVerbal'])) {
+            $row->collection = $transportInfo['amountVerbal'];
         }
         
         $luObject = self::colorTransUnits($rec->documentLu, $rec->readyLu);

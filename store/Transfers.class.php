@@ -570,20 +570,21 @@ class store_Transfers extends core_Master
      * @param mixed $id
      *
      * @return array
-     *               ['baseAmount'] double|NULL - сумата за инкасиране във базова валута
-     *               ['amount']     double|NULL - сумата за инкасиране във валутата на документа
-     *               ['currencyId'] string|NULL - валутата на документа
-     *               ['notes']      string|NULL - забележки за транспортната линия
-     *               ['stores']     array       - склад(ове) в документа
-     *               ['weight']     double|NULL - общо тегло на стоките в документа
-     *               ['volume']     double|NULL - общ обем на стоките в документа
+     *               ['baseAmount']     double|NULL - сумата за инкасиране във базова валута
+     *               ['amount']         double|NULL - сумата за инкасиране във валутата на документа
+     *               ['amountVerbal']   double|NULL - сумата за инкасиране във валутата на документа
+     *               ['currencyId']     string|NULL - валутата на документа
+     *               ['notes']          string|NULL - забележки за транспортната линия
+     *               ['stores']         array       - склад(ове) в документа
+     *               ['weight']         double|NULL - общо тегло на стоките в документа
+     *               ['volume']         double|NULL - общ обем на стоките в документа
      *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
      */
     public function getTransportLineInfo_($rec)
     {
         $rec = static::fetchRec($rec);
         $row = $this->recToVerbal($rec);
-        $res = array('baseAmount' => null, 'amount' => null, 'currencyId' => null, 'notes' => $rec->lineNotes);
+        $res = array('baseAmount' => null, 'amount' => null, 'amountVerbal' => null, 'currencyId' => null, 'notes' => $rec->lineNotes);
         
         $res['stores'] = array($rec->fromStore, $rec->toStore);
         $res['address'] = $row->toAdress;

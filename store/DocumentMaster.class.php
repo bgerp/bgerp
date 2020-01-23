@@ -753,13 +753,14 @@ abstract class store_DocumentMaster extends core_Master
      * @param mixed $id
      *
      * @return array
-     *               ['baseAmount'] double|NULL - сумата за инкасиране във базова валута
-     *               ['amount']     double|NULL - сумата за инкасиране във валутата на документа
-     *               ['currencyId'] string|NULL - валутата на документа
-     *               ['notes']      string|NULL - забележки за транспортната линия
-     *               ['stores']     array       - склад(ове) в документа
-     *               ['weight']     double|NULL - общо тегло на стоките в документа
-     *               ['volume']     double|NULL - общ обем на стоките в документа
+     *               ['baseAmount']     double|NULL - сумата за инкасиране във базова валута
+     *               ['amount']         double|NULL - сумата за инкасиране във валутата на документа
+     *               ['amountVerbal']   double|NULL - сумата за инкасиране във валутата на документа
+     *               ['currencyId']     string|NULL - валутата на документа
+     *               ['notes']          string|NULL - забележки за транспортната линия
+     *               ['stores']         array       - склад(ове) в документа
+     *               ['weight']         double|NULL - общо тегло на стоките в документа
+     *               ['volume']         double|NULL - общ обем на стоките в документа
      *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
      */
     public function getTransportLineInfo_($rec)
@@ -796,6 +797,14 @@ abstract class store_DocumentMaster extends core_Master
             $res['baseAmount'] = currency_Currencies::round($rec->amountDelivered, $rec->currencyId);
             $res['amount'] = $amount;
             $res['currencyId'] = $rec->currencyId;
+            
+            
+            
+            $sign = ($rec->classId != store_Receipts::getClassId()) ? 1 : -1;
+            $amount = $sign * $res['amount'];
+            $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($res['amount']);
+            $amountVerbal = ht::styleNumber($amountVerbal, $res['amount']);
+            $res['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId);
         }
         
         return $res;
