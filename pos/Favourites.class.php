@@ -79,8 +79,7 @@ class pos_Favourites extends core_Manager
         $this->FLD('catId', 'keylist(mvc=pos_FavouritesCategories, select=name)', 'caption=Категория, mandatory');
         $this->FLD('pointId', 'keylist(mvc=pos_Points, select=name, makeLinks)', 'caption=Точка на продажба');
         
-        $this->setDbUnique('productId, packagingId');
-        $this->setDbUnique('title');
+        $this->setDbUnique('productId');
     }
     
     
