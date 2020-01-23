@@ -257,6 +257,13 @@ class trans_LineDetails extends doc_Detail
             }
             
             $row->measures = "{$weight} / {$volume}";
+            
+            if(core_Packs::isInstalled('rack') && store_Stores::getCurrent('id', false)){
+                $zoneBtn = rack_Zones::getBtnToZone($rec->containerId);
+                if(countR($zoneBtn->url)){
+                    $row->_rowTools->addLink($zoneBtn->caption, $zoneBtn->url, $zoneBtn->attr);
+                }
+            }
         }
         
         if (!empty($transportInfo['amount'])) {
@@ -294,13 +301,6 @@ class trans_LineDetails extends doc_Detail
         // Бутон за изключване
         if ($mvc->haveRightFor('remove', $rec)) {
             $row->_rowTools->addLink('Изключване', array($mvc, 'remove', $rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/delete.png', 'title' => 'Изключване от транспортната линия'));
-        }
-        
-        if(core_Packs::isInstalled('rack') && store_Stores::getCurrent('id', false)){
-           $zoneBtn = rack_Zones::getBtnToZone($rec->containerId);
-           if(countR($zoneBtn->url)){
-              $row->_rowTools->addLink($zoneBtn->caption, $zoneBtn->url, $zoneBtn->attr);
-           }
         }
     }
     
