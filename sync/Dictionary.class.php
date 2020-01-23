@@ -24,7 +24,7 @@ class sync_Dictionary extends sync_Helper
      */
     public function act_Export()
     {
-//         self::requireRight();
+        self::requireRight();
 
         expect(core_Packs::isInstalled('replace'));
         
