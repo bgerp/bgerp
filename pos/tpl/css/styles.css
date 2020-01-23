@@ -494,7 +494,8 @@
   border: 2px solid #999999;
   border-radius: 5px;
   height: 113px;
-  background: #f1f1f1; }
+  background: #f1f1f1;
+  user-select: none; }
   .element:focus,
   .element.selected {
     box-shadow: 0px 0px 3px #0000fa !important;
