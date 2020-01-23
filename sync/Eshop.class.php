@@ -40,8 +40,15 @@ class sync_Eshop extends sync_Helper
         
         core_Users::forceSystemUser();
         
-        $cQuery = cat_Products::getQuery();
-        while ($rec = $cQuery->fetch()) {
+        $eQuery = eshop_Products::getQuery();
+        
+        $groups = sync_Setup::get('ESHOP_GRPUPS');
+        
+        if ($groups) {
+            $eQuery->in('groupId', type_Keylist::toArray($groups));
+        }
+        
+        while ($rec = $eQuery->fetch()) {
             sync_Map::exportRec('eshop_Products', $rec->id, $res, $this);
         }
         
