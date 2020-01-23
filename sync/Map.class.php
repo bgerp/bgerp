@@ -132,6 +132,8 @@ class sync_Map extends core_Manager
                         }
                     }
                 }
+            } elseif ($rec->{$name} > 0 && get_class($fRec->type) == 'type_Int' && in_array($name, array('saoParentId', 'saoRelative'))) {
+                self::exportRec($class, $rec->{$name}, $res, $controller);
             }
         }
 
