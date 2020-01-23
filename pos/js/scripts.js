@@ -403,10 +403,16 @@ function posActions() {
 		
 		getEfae().process(resObj, {operation:operation,recId:selectedRecId});
 	});
-	
+
+	var eventType;
+	if (isTouchDevice()) {
+		eventType = "click";
+	} else {
+		eventType = "dblclick";
+	}
 
 	// Добавяне на продукт от резултатите за търсене
-	$(document.body).on('click', ".pos-add-res-btn", function(e){
+	$(document.body).on(eventType, ".pos-add-res-btn", function(e){
 		clearTimeout(timeout);
 		
 		var elemRow = $(this).closest('.receiptRow');
