@@ -30,6 +30,8 @@ class sync_Eshop extends sync_Helper
      */
     public function act_Export()
     {
+        expect(core_Packs::isInstalled('eshop'));
+        
         self::requireRight();
         
         core_App::setTimeLimit(1000);
@@ -54,6 +56,8 @@ class sync_Eshop extends sync_Helper
      */
     public function act_Import()
     {
+        expect(core_Packs::isInstalled('eshop'));
+        
         self::requireRight('import');
         
         core_App::setTimeLimit(1000);
