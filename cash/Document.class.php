@@ -551,7 +551,8 @@ abstract class cash_Document extends deals_PaymentDocument
      *               ['weight']     double|NULL - общо тегло на стоките в документа
      *               ['volume']     double|NULL - общ обем на стоките в документа
      *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
-     *               [transUnitId] => quantity
+     *               ['transUnitId'] int|null   - quantity
+     *               ['transUnitId'] int|null   - quantity
      */
     public function getTransportLineInfo_($rec)
     {
