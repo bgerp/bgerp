@@ -91,6 +91,12 @@ class cond_Payments extends core_Manager
     
     
     /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'ceo,admin';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
@@ -103,6 +109,28 @@ class cond_Payments extends core_Manager
         $this->FLD('text', 'text(rows=2)', 'caption=Текст');
         
         $this->setDbUnique('title');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+        $rec = &$form->rec;
+        
+        // Ако плащането е системно, само текста му може да се променя от потребителя
+        if(isset($rec->id) && $rec->createdBy == core_Users::SYSTEM_USER){
+            $form->setReadOnly('title');
+            $fields = array_keys($form->selectFields("#input != 'hidden' AND #name != 'text' AND #name != 'title'"));
+            foreach ($fields as $fieldName){
+                $form->setField($fieldName, 'input=none');
+            }
+        }
     }
     
     
@@ -150,7 +178,7 @@ class cond_Payments extends core_Manager
     public function loadSetupData()
     {
         $file = 'cond/csv/Pospayments.csv';
-        $fields = array(0 => 'title', 1 => 'change', 2 => 'code', 3 => 'currencyCode', '4' => 'synonym', '5' => 'text');
+        $fields = array(0 => 'title', 1 => 'change', 2 => 'code', 3 => 'currencyCode', '4' => 'synonym');
         
         $cntObj = csv_Lib::importOnce($this, $file, $fields);
         $res = $cntObj->html;
