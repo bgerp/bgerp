@@ -68,7 +68,7 @@ class sync_Companies extends sync_Helper
         }
         
         core_Users::cancelSystemUser();
-        
+        bp($groupId, $res);
         return self::outputRes($res);
     }
 
