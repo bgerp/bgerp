@@ -658,12 +658,24 @@
 @media handheld,
 only screen and (max-width: 1600px) {
   .keyboard {
-    font-size: 1em !important; } }
+    font-size: 1em !important; }
+
+  .element {
+    width: 32.3%; }
+
+  .headerContent {
+    font-size: 0.85em !important; } }
 
 @media handheld,
 only screen and (max-width: 1400px) {
   .keyboard {
-    font-size: 0.9em !important; } }
+    font-size: 0.9em !important; }
+
+  .element {
+    width: 49%; }
+
+  .headerContent {
+    font-size: 0.8em !important; } }
 
 @media handheld,
 only screen and (max-width: 1200px) {
