@@ -311,8 +311,8 @@ class sync_Map extends core_Manager
                         $rec->{$name} = keylist::fromArray($kArrN);
                     }
                 }
-            } elseif ($rec->{$name} > 0 && get_class($fRec->type) == 'type_Int' && in_array($name, array('contragentId', 'cId'))) {
-                foreach (array('contragentCls', 'cClass', 'contragentClassId') as $cfName) {
+            } elseif ($rec->{$name} > 0 && get_class($fRec->type) == 'type_Int' && in_array($name, array('contragentId', 'cId', 'productId'))) {
+                foreach (array('contragentCls', 'cClass', 'contragentClassId', 'classId') as $cfName) {
                     if ($cfType = $fields[$cfName]->type) {
                         if ($cfType->params['mvc'] == 'core_Classes') {
                             $kMvc = cls::get($rec->{$cfName});
