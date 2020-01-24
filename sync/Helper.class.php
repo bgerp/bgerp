@@ -50,7 +50,7 @@ class sync_Helper extends core_Manager
             '*::modifiedOn' => null,
             '*::modifiedBy' => null,
             '*::searchKeywords' => null,
-            '*::folderId' => null,
+            '*::folderId' => 'sync_Helper::fixFolderId',
             '*::containerId' => null,
             '*::originId' => null,
             '*::threadId' => null,
@@ -63,6 +63,12 @@ class sync_Helper extends core_Manager
             '*::lastUsedOn' => null,
             '*::id' => null,
     );
+    
+    
+    /**
+     * Префикс за имената на променливите
+     */
+    protected static $fNewNamePref = '__';
     
     
     /**
@@ -139,4 +145,77 @@ class sync_Helper extends core_Manager
     }
     
     
+    /**
+     * Експортиране на folderId
+     * 
+     * @param stdClass $rec
+     * @param string $fName
+     * @param stdClass $field
+     * @param array $res
+     * @param string $controller
+     */
+    public static function fixFolderIdExport(&$rec, $fName, $field, &$res, $controller)
+    {
+        if (!isset($rec->{$fName})) {
+            unset($rec->{$fName});
+            
+            return ;
+        }
+        
+        $fRec = doc_Folders::fetch($rec->{$fName});
+        
+        if (!$fRec) {
+            unset($rec->{$fName});
+            
+            return ;
+        }
+        
+        $coverClassName = self::$fNewNamePref . 'coverClass';
+        $coverIdName = self::$fNewNamePref . 'coverId';
+        
+        $rec->{$coverClassName} = $fRec->coverClass;
+        $rec->{$coverIdName} = $fRec->coverId;
+        
+        $rec->{$fName} = null;
+        
+        sync_Map::exportRec($fRec->coverClass, $fRec->coverId, $res, $controller);
+    }
+    
+    
+    /**
+     * Импортиране на folderId
+     * 
+     * @param stdClass $rec
+     * @param string $fName
+     * @param stdClass $field
+     * @param array $res
+     * @param string $controller
+     */
+    public static function fixFolderIdImport(&$rec, $fName, $field, &$res, $controller)
+    {
+        $coverClassName = self::$fNewNamePref . 'coverClass';
+        $coverIdName = self::$fNewNamePref . 'coverId';
+        
+        if (!isset($rec->{$coverClassName}) || !isset($rec->{$coverIdName})) {
+            unset($coverClassName);
+            unset($coverIdName);
+            
+            return ;
+        }
+        
+        $iRecId = sync_Map::importRec($rec->{$coverClassName}, $rec->{$coverIdName}, $res, $controller);
+        if ($iRecId) {
+            if (cls::load($rec->{$coverClassName}, true)) {
+                $inst = cls::get($rec->{$coverClassName});
+                $iRecFetch = $inst->fetch($rec->{$coverIdName});
+                
+                if ($folderId = $inst::forceCoverAndFolder($iRecFetch)) {
+                    $rec->folderId = $folderId;
+                }
+            }
+        }
+        
+        unset($coverClassName);
+        unset($coverIdName);
+    }
 }

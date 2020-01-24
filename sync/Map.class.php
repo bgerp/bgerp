@@ -33,8 +33,8 @@ class sync_Map extends core_Manager
 
         $this->setDbUnique('classId,remoteId');
     }
-
-
+    
+    
     /**
      * Експортира в резултата един запис
      */
@@ -56,15 +56,17 @@ class sync_Map extends core_Manager
 
         $fields = $mvc->selectFields("#kind == 'FLD'");
         foreach ($fields as $name => $fRec) {
-            // Ако имаме фиксиран експорт - използваме го
-            $fKey = $mvc->className . '::' . $name;
-            if (array_key_exists($fKey, $controller->fixedExport)) {
-                $rec->{$name} = $controller->fixedExport[$fKey];
+            foreach (array('*::' . $name, $mvc->className . '::' . $name) as $fKey) {
+                if (array_key_exists($fKey, $controller->fixedExport)) {
+                    if (isset($controller->fixedExport[$fKey])) {
+                        $funcArr = explode('::', $controller->fixedExport[$fKey]);
+                        call_user_func_array(array(cls::get($funcArr[0]), $funcArr[1] . 'Export'), array(&$rec, $name, $fRec, &$res, $controller));
+                    } else {
+                        $rec->{$name} = $controller->fixedExport[$fKey];
+                    }
+                }
             }
-            $fKey = '*::' . $name;
-            if (array_key_exists($fKey, $controller->fixedExport)) {
-                $rec->{$name} = $controller->fixedExport[$fKey];
-            }
+            
             if ($rec->{$name} === null) {
                 unset($rec->{$name});
             }
@@ -207,7 +209,25 @@ class sync_Map extends core_Manager
         
         // Минаваме по всички полета и
         $fields = $mvc->selectFields("#kind == 'FLD'");
+        
         foreach ($fields as $name => $fRec) {
+            
+            $continue = false;
+            foreach (array('*::' . $name, $mvc->className . '::' . $name) as $fKey) {
+                if (array_key_exists($fKey, $controller->fixedExport)) {
+                    if (isset($controller->fixedExport[$fKey])) {
+                        $funcArr = explode('::', $controller->fixedExport[$fKey]);
+                        call_user_func_array(array(cls::get($funcArr[0]), $funcArr[1] . 'Import'), array(&$rec, $name, $fRec, &$res, $controller));
+                        
+                        $continue = true;
+                    }
+                }
+            }
+            
+            if ($continue) {
+                continue;
+            }
+            
             if ($fRec->type instanceof type_CustomKey) {
                 continue;
             }
