@@ -602,8 +602,10 @@ class core_Backup extends core_Mvc
         
         $handle = fopen($dest, 'r');
         if ($handle) {
-            $query = '';
             do {
+                if(!isset($query)) {
+                    $query = '';
+                }
                 $line = fgets($handle);
                 if (!$cols) {
                     $cols = $line;
@@ -614,15 +616,16 @@ class core_Backup extends core_Mvc
                         if(!strlen($query) && strlen($line)) {
                             $query = $line;
                         }
-                        $query = "INSERT INTO `{$table}` ({$cols}) VALUES " . $query;
-                        
+                       
                         //@file_put_contents("C:\\xampp\\htdocs\\ef_root\\uploads\\bgerp\\backup_work\query.log", $query);
                         $link = $db->connect();
-                        $link->query($query);
-                        $query = '';
+                        $link->query("INSERT INTO `{$table}` ({$cols}) VALUES " . $query);
+                        unset($query);
+                        gc_collect_cycles();
                     } catch (Exception $e) {
-                        $query = substr($query, 0, 1000);
-                        $res = "err: Грешка при изпълняване на `{$query}`";
+                        
+                        fclose($handle);
+                        $res = "err: Грешка при изпълняване на `" . substr($query, 0, 1000) ."`";
 
                         return $res;
                     }

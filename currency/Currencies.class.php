@@ -184,10 +184,10 @@ class currency_Currencies extends core_Master
                 $amount .= ' ' . tr('лв');
                 break;
             case 'USD': 
-                $amount = "\${$amount}";
+                $amount = "\$ {$amount}";
                 break;
             case "EUR":
-                $amount = "€{$amount}";
+                $amount = "€ {$amount}";
                 break;
             default: 
                 $amount .= ' <span class="cCode">' . $currency . '</span>';

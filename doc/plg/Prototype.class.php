@@ -104,7 +104,7 @@ class doc_plg_Prototype extends core_Plugin
         }
         
         // Ако има прототипи
-        if (count($prototypes)) {
+        if (!empty($prototypes)) {
             $form->setField($mvc->protoFieldName, 'input');
             $form->setOptions($mvc->protoFieldName, array('' => '') + $prototypes);
             

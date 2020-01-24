@@ -182,7 +182,7 @@ class incoming_Documents extends core_Master
         $this->FLD('description', 'text', 'caption=Описание,oldFiledName=keywords');
         $this->FLD('dataId', 'key(mvc=fileman_Data)', 'caption=Данни, input=none');
         $this->FLD('archTomNumber', 'int', 'column=none,caption=Архивиране->Том №,autohide');
-        $this->FLD('archTomYear', 'enum(,2016,2017,2018,2019)', 'column=none,caption=Архивиране->Година,autohide');
+        $this->FLD('archTomYear', 'enum(,2016,2017,2018,2019,2020,2021)', 'column=none,caption=Архивиране->Година,autohide');
         
         $this->setDbUnique('dataId');
     }
