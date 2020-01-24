@@ -41,7 +41,7 @@ class sync_Map extends core_Manager
     public static function exportRec($class, $id, &$res, $controller)
     {
         $mvc = cls::get($class);
-        if ($id == 42089) bp($class, $id, $res, $controller);
+        
         // Вече експортираните обекти и тези със специални id-та не се експортират
         if (isset($res[$mvc->className][$id]) || $id <= 0) {
             return;
@@ -106,7 +106,7 @@ class sync_Map extends core_Manager
                 try {
                     $rec->{$name} = fileman_Download::getDownloadUrl($rec->{$name});
                 } catch (core_exception_Expect $e) {
-                    wp($e);
+//                     wp($e);
                     $rec->{$name} = null;
                 }
                 
@@ -118,7 +118,7 @@ class sync_Map extends core_Manager
                     try {
                         $kArrN[] = fileman_Download::getDownloadUrl($$fn);
                     } catch (core_exception_Expect $e) {
-                        wp($e);
+//                         wp($e);
                     }
                 }
                 $rec->{$name} = $kArrN;
@@ -194,7 +194,7 @@ class sync_Map extends core_Manager
         //log_System::add('sync_Map', "$class::$id");
         core_App::setTimeLimit(300);
         core_Debug::$isLogging = false;
-        ini_set('memory_limit', '1024M');
+        ini_set('memory_limit', '3024M');
 
         $mvc = cls::get($class);
         $class = $mvc->className;
@@ -208,7 +208,7 @@ class sync_Map extends core_Manager
         
         if (!$res[$class] || !$res[$class][$id] || !is_object($res[$class][$id])) {
             
-            wp($res[$class][$id], $class, $id);
+//             wp($res[$class][$id], $class, $id);
             
             return 0;
         }
@@ -274,7 +274,7 @@ class sync_Map extends core_Manager
                 if ($file = @file_get_contents($rec->{$name})) {
                     $rec->{$name} = fileman::absorbStr($file, $fRec->type->params['bucket'], basename($rec->{$name}));
                 } else {
-                    wp($file, $rec);
+//                     wp($file, $rec);
                 }
             } elseif ($fRec->type instanceof fileman_type_Files && is_array($rec->{$name})) {
                 $kArr = array();
@@ -285,7 +285,7 @@ class sync_Map extends core_Manager
                         $k = fileman::fetchByFh($fh);
                         $kArr[$k] = $k;
                     } else {
-                        wp($file, $rec);
+//                         wp($file, $rec);
                     }
                 }
                 $rec->{$name} = keylist::fromArray($kArr);
