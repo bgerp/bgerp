@@ -43,7 +43,7 @@ class cond_Payments extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title, currencyCode, code, change, state, synonym, createdOn,createdBy';
+    public $listFields = 'id, title, currencyCode, code, change, state, text, synonym, createdOn,createdBy';
     
     
     /**
@@ -100,6 +100,7 @@ class cond_Payments extends core_Manager
         $this->FLD('change', 'enum(yes=Да,no=Не)', 'caption=Ресто?,value=no,tdClass=centerCol');
         $this->FLD('currencyCode', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'caption=Валута,smartCenter');
         $this->FLD('synonym', 'varchar(120)', 'caption=Имена във ФУ');
+        $this->FLD('text', 'text(rows=2)', 'caption=Текст');
         
         $this->setDbUnique('title');
     }
@@ -149,7 +150,7 @@ class cond_Payments extends core_Manager
     public function loadSetupData()
     {
         $file = 'cond/csv/Pospayments.csv';
-        $fields = array(0 => 'title', 1 => 'change', 2 => 'code', 3 => 'currencyCode', '4' => 'synonym');
+        $fields = array(0 => 'title', 1 => 'change', 2 => 'code', 3 => 'currencyCode', '4' => 'synonym', '5' => 'text');
         
         $cntObj = csv_Lib::importOnce($this, $file, $fields);
         $res = $cntObj->html;
