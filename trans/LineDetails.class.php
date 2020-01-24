@@ -217,7 +217,7 @@ class trans_LineDetails extends doc_Detail
         $transportInfo = $Document->getTransportLineInfo($rec->lineId);
         if (!core_Mode::isReadOnly()) {
             $row->containerId = $Document->getLink(0);
-            $row->containerId = "<span class='state-{$transportInfo['state']} document-handler'>{$row->containerId}</span>";
+            $row->containerId = "<span id= 'ld{$rec->id}' class='state-{$transportInfo['state']} document-handler'>{$row->containerId}</span>";
         } else {
             $row->containerId = '#' . $Document->getHandle();
         }
