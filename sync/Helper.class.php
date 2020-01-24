@@ -205,7 +205,7 @@ class sync_Helper extends core_Manager
         
         $iRecId = sync_Map::importRec($rec->{$coverClassName}, $rec->{$coverIdName}, $res, $controller);
         if ($iRecId) {
-            if (cls::load($rec->{$coverClassName}, true)) {
+            if (cls::load($rec->{$coverClassName}, true) && cls::haveInterface('doc_FolderIntf', $rec->{$coverClassName})) {
                 $inst = cls::get($rec->{$coverClassName});
                 $iRecFetch = $inst->fetch($rec->{$coverIdName});
                 
