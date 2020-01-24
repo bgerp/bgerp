@@ -35,6 +35,9 @@ class sync_Companies extends sync_Helper
             'price_Lists' => array(
                     array('price_ListRules' => 'listId'),
             ),
+            'cat_Products' => array(
+                    array('cat_products_Packagings' => 'productId'),
+            ),
     );
  
     /**

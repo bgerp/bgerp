@@ -277,7 +277,11 @@ class batch_Defs extends core_Manager
         
         // Ако горните условия не са изпълнени, питаме драйвера дали може да върне дефиниция
         $Driver = cat_Products::getDriver($productRec);
-        $templateId = $Driver->getDefaultBatchTemplate($productRec);
+        if ($Driver !== false) {
+            $templateId = $Driver->getDefaultBatchTemplate($productRec);
+        } else {
+            $templateId = null;
+        }
         
         if (isset($templateId)) {
             $nRec = (object) array('productId' => $productRec->id, 'templateId' => $templateId);

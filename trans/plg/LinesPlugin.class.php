@@ -24,6 +24,8 @@ class trans_plg_LinesPlugin extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
+        $mvc->declareInterface('trans_TransportableIntf');
+        
         setIfNot($mvc->lineFieldName, 'lineId');
         setIfNot($mvc->lineNoteFieldName, 'lineNotes');
         
@@ -337,6 +339,9 @@ class trans_plg_LinesPlugin extends core_Plugin
     {
         if (isset($rec->lineId)) {
             $mvc->updateLines[$rec->lineId] = $rec->lineId;
+            if(!cls::haveInterface('store_iface_DocumentIntf', $mvc) && isset($rec->containerId)){
+                $mvc->syncLineDetails[$rec->lineId] = $rec->containerId;
+            }
         }
     }
     
@@ -351,6 +356,12 @@ class trans_plg_LinesPlugin extends core_Plugin
             $Lines = cls::get('trans_Lines');
             foreach ($mvc->updateLines as $lineId) {
                 $Lines->updateMaster($lineId);
+            }
+        }
+        
+        if (is_array($mvc->syncLineDetails)) {
+            foreach ($mvc->syncLineDetails as $lineId => $containerId) {
+                trans_LineDetails::sync($lineId, $containerId);
             }
         }
     }
@@ -400,10 +411,11 @@ class trans_plg_LinesPlugin extends core_Plugin
      *   	['weight']     double|NULL - общо тегло на стоките в документа
      *     	['volume']     double|NULL - общ обем на стоките в документа
      *      ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
-     *      	[transUnitId] => quantity
+     *      
      * @param mixed $id
+     * @param int $lineId
      */
-    public function on_AfterGetTransportLineInfo($mvc, &$res, $id)
+    public function on_AfterGetTransportLineInfo($mvc, &$res, $id, $lineId)
     {
         if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
             $rec = $mvc->fetchRec($id);
@@ -441,6 +453,51 @@ class trans_plg_LinesPlugin extends core_Plugin
             $res = false;
         } elseif (!isset($res)) {
             $res = true;
+        }
+    }
+    
+    
+    /**
+     * Извиква се преди запис в модела
+     *
+     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
+     * @param int          $id      Тук се връща първичния ключ на записа, след като бъде направен
+     * @param stdClass     $rec     Съдържащ стойностите, които трябва да бъдат записани
+     * @param string|array $fields  Имена на полетата, които трябва да бъдат записани
+     * @param string       $mode    Режим на записа: replace, ignore
+     */
+    public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        // За нескладовите документи
+        if(!isset($rec->id) && !cls::haveInterface('store_iface_DocumentIntf', $mvc)){
+            $containerId = isset($rec->fromContainerId) ? $rec->fromContainerId : $rec->originId;
+            if(isset($containerId)){
+                try{
+                    // Дали е към някакъв друг документ
+                    $Document = doc_Containers::getDocument($containerId);
+                   
+                    // Ако е към Ф-ра се гледа към кой документ е тя
+                    if($Document->isInstanceOf('deals_InvoiceMaster')) {
+                        if($invoiceOriginId = $Document->fetchField('sourceContainerId')){
+                            $Document = doc_Containers::getDocument($invoiceOriginId);
+                        }
+                    }
+                    
+                    // Ако документа източник има този плъгин, ще се копира и транспортната му линия
+                    if($Document->getInstance()->hasPlugin('trans_plg_LinesPlugin')){
+                        
+                        // Ако транспротната му линия все още може да се избира, прехвърля се на документа
+                        if($oldLineId = $Document->fetchField($Document->lineFieldName)){
+                            $sellectableLines = trans_Lines::getSelectableLines();
+                            if(array_key_exists($oldLineId, $sellectableLines)){
+                                $rec->{$mvc->lineFieldName} = $oldLineId;
+                            }
+                        }
+                    }
+                } catch(core_exception_Expect $e){
+                    reportException($e);
+                }
+            }
         }
     }
 }

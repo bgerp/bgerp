@@ -202,7 +202,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             
             foreach ($meta as $metaValue) {
                 if ($metaValue != 'yes') {
-                    //  $err[$i][] = $obj->code . ' |Артикулът няма вече нужните свойства|*';
+                   $err[$i][] = $obj->code . ' |Артикулът няма вече нужните свойства|*';
                 }
             }
             

@@ -751,19 +751,20 @@ abstract class store_DocumentMaster extends core_Master
      * Информацията на документа, за показване в транспортната линия
      *
      * @param mixed $id
+     * @param int $lineId
      *
      * @return array
-     *               ['baseAmount'] double|NULL - сумата за инкасиране във базова валута
-     *               ['amount']     double|NULL - сумата за инкасиране във валутата на документа
-     *               ['currencyId'] string|NULL - валутата на документа
-     *               ['notes']      string|NULL - забележки за транспортната линия
-     *               ['stores']     array       - склад(ове) в документа
-     *               ['weight']     double|NULL - общо тегло на стоките в документа
-     *               ['volume']     double|NULL - общ обем на стоките в документа
+     *               ['baseAmount']     double|NULL - сумата за инкасиране във базова валута
+     *               ['amount']         double|NULL - сумата за инкасиране във валутата на документа
+     *               ['amountVerbal']   double|NULL - сумата за инкасиране във валутата на документа
+     *               ['currencyId']     string|NULL - валутата на документа
+     *               ['notes']          string|NULL - забележки за транспортната линия
+     *               ['stores']         array       - склад(ове) в документа
+     *               ['weight']         double|NULL - общо тегло на стоките в документа
+     *               ['volume']         double|NULL - общ обем на стоките в документа
      *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
-     *               [transUnitId] => quantity
      */
-    public function getTransportLineInfo_($rec)
+    public function getTransportLineInfo_($rec, $lineId)
     {
         $rec = static::fetchRec($rec);
         $res = array('baseAmount' => null, 'amount' => null, 'currencyId' => null, 'notes' => $rec->lineNotes);
@@ -792,11 +793,17 @@ abstract class store_DocumentMaster extends core_Master
                 $amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $rec->currencyId);
             }
         }
-        
+       
         if ($amount) {
             $res['baseAmount'] = currency_Currencies::round($rec->amountDelivered, $rec->currencyId);
             $res['amount'] = $amount;
             $res['currencyId'] = $rec->currencyId;
+            
+            $sign = ($rec->classId != store_Receipts::getClassId()) ? 1 : -1;
+            $amount = $sign * $res['amount'];
+            $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($res['amount']);
+            $amountVerbal = ht::styleNumber($amountVerbal, $res['amount']);
+            $res['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId);
         }
         
         return $res;
