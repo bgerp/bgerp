@@ -1409,4 +1409,19 @@ class core_String
         
         return preg_match($pattern, $value);
     }
+    
+    
+    /**
+     * Дали последния символ на стринга е търсения
+     * 
+     * @param string $haystack
+     * @param string $needle
+     * @return boolean
+     */
+    public static function endsWith($haystack, $needle)
+    {
+        $haystack = trim($haystack);
+        
+        return (substr($haystack, -1) === $needle);
+    }
 }

@@ -302,7 +302,10 @@ class acc_Journal extends core_Master
         $mvc->conto($docId);
         
         // Редирект към сингъла
-        return new Redirect($mvc->getSingleUrlArray($docId));
+        $retUrl = getRetUrl();
+        $redirectUrl = !empty($retUrl) ? $retUrl : $mvc->getSingleUrlArray($docId);
+        
+        return new Redirect($redirectUrl);
     }
     
     

@@ -239,7 +239,7 @@ class trans_Indicators extends core_BaseClass
         while ($detRec = $detQuery->fetch()) {
             
             $Document = doc_Containers::getDocument($detRec->containerId);
-            $transInfo = $Document->getTransportLineInfo();
+            $transInfo = $Document->getTransportLineInfo($detRec->lineId);
             $weights[$detRec->lineId] += $transInfo['weight'];
             
         }

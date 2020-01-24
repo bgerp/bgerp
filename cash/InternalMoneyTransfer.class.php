@@ -165,13 +165,13 @@ class cash_InternalMoneyTransfer extends core_Master
     public function description()
     {
         $this->FLD('operationSysId', 'enum(case2case=Вътрешен касов трансфер,case2bank=Захранване на банкова сметка,nonecash2bank=Инкасиране на безналични плащания (Банка),nonecash2case=Инкасиране на безналични плащания (Каса),noncash2noncash=Вътрешна касова обмяна на безналични плащания)', 'caption=Операция,mandatory,silent');
-        $this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory,summary=amount');
-        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
+        $this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory,summary=amount,silent');
+        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,silent');
         $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор');
         $this->FLD('reason', 'richtext(rows=3)', 'caption=Основание,input,mandatory');
         $this->FLD('creditAccId', 'acc_type_Account()', 'caption=Кредит,input=none');
-        $this->FLD('creditCase', 'key(mvc=cash_Cases, select=name)', 'caption=От->Каса');
-        $this->FLD('paymentId', 'key(mvc=cond_Payments, select=title)', 'caption=От->Безналично плащане,input=none');
+        $this->FLD('creditCase', 'key(mvc=cash_Cases, select=name)', 'caption=От->Каса,silent');
+        $this->FLD('paymentId', 'key(mvc=cond_Payments, select=title)', 'caption=От->Безналично плащане,input=none,silent');
         $this->FLD('debitAccId', 'acc_type_Account()', 'caption=Дебит,input=none');
         $this->FLD('debitCase', 'key(mvc=cash_Cases, select=name)', 'caption=Към->Каса,input=none');
         $this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)', 'caption=Към->Банк. сметка,input=none');
@@ -327,7 +327,7 @@ class cash_InternalMoneyTransfer extends core_Master
         $form->setReadOnly('operationSysId');
         $today = dt::verbal2mysql();
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
-        $form->setReadOnly('creditCase', cash_Cases::getCurrent());
+        $form->setDefault('creditCase', cash_Cases::getCurrent());
     }
     
     
