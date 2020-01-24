@@ -149,7 +149,7 @@ class sync_Map extends core_Manager
                     } else {
                         $type = $dMvc->getFieldType($field);
                         expect($type->params['mvc'] == $mvc->className, $field, $type);
-                        if ($type instanceof type_Key) {
+                        if (($type instanceof type_Key) || ($type instanceof type_Key2)) {
                             $cond = "#{$field} = {$id}";
                         } elseif ($type instanceof type_Keylist) {
                             $cond = "#{$field} LIKE '%|{$id}|%'";
