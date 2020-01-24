@@ -554,6 +554,7 @@ class store_ConsignmentProtocols extends core_Master
         $rec = static::fetchRec($rec);
         $row = $this->recToVerbal($rec);
         $res = array('baseAmount' => null, 'amount' => null, 'amountVerbal' => null, 'currencyId' => null, 'notes' => $rec->lineNotes);
+        $res['contragentName'] = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
         $res['stores'] = array($rec->storeId);
         $res['address'] = str_replace('<br>', '', $row->contragentAddress);
         

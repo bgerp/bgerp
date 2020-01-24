@@ -774,7 +774,7 @@ abstract class store_DocumentMaster extends core_Master
         $contragentClass = cls::get($rec->contragentClassId);
         $contragentRec = $contragentClass->fetch($rec->contragentId);
         $contragentTitle = $contragentClass->getVerbal($contragentRec, 'name');
-        
+        $res['contragentName'] = $contragentTitle;
         $oldRow = $this->recToVerbal($rec, 'contragentAddress,-list');
         
         $contragentClass = cls::get($rec->contragentClassId);
