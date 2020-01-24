@@ -41,7 +41,8 @@ class sync_Companies extends sync_Helper
                     array('cat_products_Params' => 'classId|productId'),
             ),
     );
- 
+    
+    
     /**
      *  Връща Json-a на филтрираните обекти
      */

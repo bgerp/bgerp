@@ -56,7 +56,7 @@ class sync_Map extends core_Manager
 
         $fields = $mvc->selectFields("#kind == 'FLD'");
         foreach ($fields as $name => $fRec) {
-            foreach (array('*::' . $name, $mvc->className . '::' . $name) as $fKey) {
+            foreach (array($mvc->className . '::' . $name, '*::' . $name) as $fKey) {
                 if (array_key_exists($fKey, $controller->fixedExport)) {
                     if (isset($controller->fixedExport[$fKey])) {
                         $funcArr = explode('::', $controller->fixedExport[$fKey]);
@@ -213,7 +213,7 @@ class sync_Map extends core_Manager
         foreach ($fields as $name => $fRec) {
             
             $continue = false;
-            foreach (array('*::' . $name, $mvc->className . '::' . $name) as $fKey) {
+            foreach (array($mvc->className . '::' . $name, '*::' . $name) as $fKey) {
                 if (array_key_exists($fKey, $controller->fixedExport)) {
                     if (isset($controller->fixedExport[$fKey])) {
                         $funcArr = explode('::', $controller->fixedExport[$fKey]);
