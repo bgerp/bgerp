@@ -59,7 +59,7 @@ class sync_Eshop extends sync_Helper
         
         $eQuery = eshop_Products::getQuery();
         
-        $groups = sync_Setup::get('ESHOP_GRPUPS');
+        $groups = sync_Setup::get('ESHOP_GROUPS');
         
         if ($groups) {
             $eQuery->in('groupId', type_Keylist::toArray($groups));
