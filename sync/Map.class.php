@@ -61,6 +61,8 @@ class sync_Map extends core_Manager
                 
                 if (!array_intersect($prodGroupsArr, $recProdGroupsArr)) {
                     
+                    $res[$mvc->className][$id] = false;
+                    
                     return null;
                 }
             }
