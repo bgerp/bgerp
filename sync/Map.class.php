@@ -41,7 +41,7 @@ class sync_Map extends core_Manager
     public static function exportRec($class, $id, &$res, $controller)
     {
         $mvc = cls::get($class);
-
+        if ($id == 42089) bp($class, $id, $res, $controller);
         // Вече експортираните обекти и тези със специални id-та не се експортират
         if (isset($res[$mvc->className][$id]) || $id <= 0) {
             return;
