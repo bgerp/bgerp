@@ -1396,6 +1396,7 @@ function SetWithCheckedButton() {
     $('[id^=cb_]').each(function(i) {
         if ($(this).is(":checked") == true) {
             state = true;
+            $(this).closest('tr').addClass('highlight-row');
         }
     });
 
