@@ -49,7 +49,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,storeId=Складове,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,measures=Тегло|* / |Обем|*,collection=Инкасиране,status,notes=@,address=@,documentHtml=@';
+    public $listFields = 'containerId=Документ,storeId=Складове,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,measures=Тегло|* / |Обем|*,amountSo=Суми->ЕН,amountSr=Суми->СР,amountPko=Суми->ПКО,amountRko=Суми->РКО,status,notes=@,address=@,documentHtml=@';
     
     
     /**
@@ -57,7 +57,7 @@ class trans_LineDetails extends doc_Detail
      *
      *  @var string
      */
-    public $hideListFieldsIfEmpty = 'weight,collection,volume,notes,address,documentHtml,zoneId';
+    public $hideListFieldsIfEmpty = 'weight,collection,volume,notes,address,documentHtml,zoneId,documentLu,readyLu,amountSo,amountSr,amountPko,amountRko';
     
     
     /**
@@ -267,7 +267,15 @@ class trans_LineDetails extends doc_Detail
         }
         
         if (!empty($transportInfo['amountVerbal'])) {
-            $row->collection = $transportInfo['amountVerbal'];
+            if($Document->isInstanceOf('store_ShipmentOrders')){
+                $row->amountSo = $transportInfo['amountVerbal'];
+            } elseif($Document->isInstanceOf('store_Receipts')){
+                $row->amountSr = $transportInfo['amountVerbal'];
+            } elseif($Document->isInstanceOf('cash_Pko')){
+                $row->amountPko = $transportInfo['amountVerbal'];
+            } elseif($Document->isInstanceOf('cash_Rko')){
+                $row->amountRko = $transportInfo['amountVerbal'];
+            }
         }
         
         $luObject = self::colorTransUnits($rec->documentLu, $rec->readyLu);
@@ -332,7 +340,10 @@ class trans_LineDetails extends doc_Detail
     {
         $data->listTableMvc->FNC('weight', 'cat_type_Weight');
         $data->listTableMvc->FNC('volume', 'cat_type_Volume');
-        $data->listTableMvc->FNC('collection', 'double');
+        $data->listTableMvc->FNC('amountSo', 'double');
+        $data->listTableMvc->FNC('amountSr', 'double');
+        $data->listTableMvc->FNC('amountPko', 'double');
+        $data->listTableMvc->FNC('amountRko', 'double');
         $data->listTableMvc->FNC('notes', 'varchar', 'tdClass=row-notes');
         $data->listTableMvc->FNC('zoneId', 'varchar', 'smartCenter');
     }
