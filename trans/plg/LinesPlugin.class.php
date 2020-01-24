@@ -24,6 +24,8 @@ class trans_plg_LinesPlugin extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
+        $mvc->declareInterface('trans_TransportableIntf');
+        
         setIfNot($mvc->lineFieldName, 'lineId');
         setIfNot($mvc->lineNoteFieldName, 'lineNotes');
         
