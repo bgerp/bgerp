@@ -37,7 +37,6 @@ class sync_Companies extends sync_Helper
             ),
             'cat_Products' => array(
                     array('cat_products_Packagings' => 'productId'),
-                    array('price_ListRules' => 'productId'),
                     array('cat_products_Params' => 'classId|productId'),
             ),
     );
