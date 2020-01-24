@@ -25,6 +25,9 @@ class sync_Eshop extends sync_Helper
             'eshop_Products' => array(
                     array('eshop_ProductDetails' => 'eshopProductId'),
             ),
+            'cat_Products' => array(
+                    array('cat_products_Packagings' => 'productId'),
+            ),
     );
     
     
