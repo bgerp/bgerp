@@ -9,7 +9,7 @@
  * @package   trans
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -49,7 +49,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,measures=Тегло|* / |Обем|*,amountSo=Суми->ЕН,amountSr=Суми->СР,amountPko=Суми->ПКО,amountRko=Суми->РКО,status,notes=@,address=@,documentHtml=@';
+    public $listFields = 'containerId=Документ,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,measures=Тегло|* / |Обем|*,amountSo=Суми->ЕН,amountSr=Суми->СР,amountPko=Суми->ПКО,amountRko=Суми->РКО,status,notes=@,address=@,documentHtml=@,classId';
     
     
     /**
@@ -118,9 +118,11 @@ class trans_LineDetails extends doc_Detail
      * Вербалните имена на класовете
      */
     private static $classGroups = array('store_ShipmentOrders' => 'Експедиции',
-        'store_Receipts' => 'Доставки',
-        'store_ConsignmentProtocols' => 'Отговорно пазене',
-        'store_Transfers' => 'Трансфери');
+                                        'store_Receipts' => 'Доставки',
+                                        'cash_Pko' => 'Приходни касови ордери',
+                                        'cash_Rko' => 'Разходни касови ордери',
+                                        'store_ConsignmentProtocols' => 'Отговорно пазене',
+                                        'store_Transfers' => 'Трансфери');
     
     
     /**
@@ -384,7 +386,8 @@ class trans_LineDetails extends doc_Detail
             $error[] = 'Логистичните единици трябва да са уникални|*';
         }
         
-        foreach ($units as $k => $unitId) {
+        $unitKeys = array_keys($units);
+        foreach ($unitKeys as $k) {
             if (!isset($quantities[$k])) {
                 $error[] = 'Попълнена ЛЕ без да има количество|*';
                 $errorFields['quantity'][$k] = 'Попълнена ЛЕ без да има количество|*';
@@ -582,8 +585,10 @@ class trans_LineDetails extends doc_Detail
         $receiptClassId = store_Receipts::getClassId();
         $transferClassId = store_Transfers::getClassId();
         $consClassId = store_ConsignmentProtocols::getClassId();
+        $pkoClassId = cash_Pko::getClassId();
+        $rkoClassId = cash_Rko::getClassId();
         
-        $data->query->XPR('orderByClassId', 'int', "(CASE #classId WHEN {$shipClassId} THEN 1 WHEN {$receiptClassId} THEN 2 WHEN {$transferClassId} THEN 3 WHEN {$consClassId} THEN 4 ELSE 5 END)");
+        $data->query->XPR('orderByClassId', 'int', "(CASE #classId WHEN {$shipClassId} THEN 1 WHEN {$receiptClassId} THEN 2 WHEN {$pkoClassId} THEN 3 WHEN {$rkoClassId} THEN 4 WHEN {$transferClassId} THEN 5 WHEN {$consClassId} THEN 6 ELSE 7 END)");
         $data->query->orderBy('#orderByClassId=ASC,#containerId');
     }
     
