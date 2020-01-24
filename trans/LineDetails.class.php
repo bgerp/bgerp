@@ -173,7 +173,7 @@ class trans_LineDetails extends doc_Detail
         
         // Запис на ЛЕ от документа, ако позволява
         if ($Document->requireManualCheckInTransportLine()) {
-            $transportInfo = $Document->getTransportLineInfo();
+            $transportInfo = $Document->getTransportLineInfo($lineId);
             $rec->documentLu = $transportInfo['transportUnits'];
         }
         
@@ -212,7 +212,7 @@ class trans_LineDetails extends doc_Detail
     {
         $Document = doc_Containers::getDocument($rec->containerId);
         
-        $transportInfo = $Document->getTransportLineInfo();
+        $transportInfo = $Document->getTransportLineInfo($rec->lineId);
         if (!core_Mode::isReadOnly()) {
             $row->containerId = $Document->getLink(0);
             $row->containerId = "<span class='state-{$transportInfo['state']} document-handler'>{$row->containerId}</span>";

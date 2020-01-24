@@ -411,8 +411,9 @@ class trans_plg_LinesPlugin extends core_Plugin
      *      ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
      *      
      * @param mixed $id
+     * @param int $lineId
      */
-    public function on_AfterGetTransportLineInfo($mvc, &$res, $id)
+    public function on_AfterGetTransportLineInfo($mvc, &$res, $id, $lineId)
     {
         if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
             $rec = $mvc->fetchRec($id);

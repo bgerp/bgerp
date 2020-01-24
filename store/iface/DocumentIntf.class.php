@@ -26,6 +26,7 @@ class store_iface_DocumentIntf
      * Информацията на документа, за показване в транспортната линия
      *
      * @param mixed $id
+     * @param int $lineId
      *
      * @return array
      *               ['baseAmount']     double|NULL - сумата за инкасиране във базова валута
@@ -38,9 +39,9 @@ class store_iface_DocumentIntf
      *               ['volume']         double|NULL - общ обем на стоките в документа
      *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
      */
-    public function getTransportLineInfo($id)
+    public function getTransportLineInfo($id, $lineId)
     {
-        return $this->class->getTransportLineInfo($id);
+        return $this->class->getTransportLineInfo($id, $lineId);
     }
     
     

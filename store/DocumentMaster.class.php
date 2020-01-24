@@ -751,6 +751,7 @@ abstract class store_DocumentMaster extends core_Master
      * Информацията на документа, за показване в транспортната линия
      *
      * @param mixed $id
+     * @param int $lineId
      *
      * @return array
      *               ['baseAmount']     double|NULL - сумата за инкасиране във базова валута
@@ -763,7 +764,7 @@ abstract class store_DocumentMaster extends core_Master
      *               ['volume']         double|NULL - общ обем на стоките в документа
      *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
      */
-    public function getTransportLineInfo_($rec)
+    public function getTransportLineInfo_($rec, $lineId)
     {
         $rec = static::fetchRec($rec);
         $res = array('baseAmount' => null, 'amount' => null, 'currencyId' => null, 'notes' => $rec->lineNotes);

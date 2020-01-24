@@ -370,7 +370,7 @@ class trans_Lines extends core_Master
         $returnClassId = store_Receipts::getClassId();
         while ($dRec = $dQuery->fetch()) {
             $Document = doc_Containers::getDocument($dRec->containerId);
-            $transInfo = $Document->getTransportLineInfo();
+            $transInfo = $Document->getTransportLineInfo($data->rec->id);
             
             if ($dRec->classId == $returnClassId) {
                 $amountReturned += $transInfo['baseAmount'];
