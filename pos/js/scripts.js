@@ -1146,7 +1146,9 @@ function isItVisible(element){
 }
 
 function scrollToHighlight(){
-	$( ".highlighted")[0].scrollIntoView();
+	if ($(".highlighted").length) {
+		$(".highlighted")[0].scrollIntoView();
+	}
 }
 
 
@@ -1155,7 +1157,9 @@ function render_scrollToHighlight() {
 }
 
 function scrollAfterKey(){
-	$( ".highlighted")[0].scrollIntoView();
+	if ($(".highlighted").length) {
+		$(".highlighted")[0].scrollIntoView();
+	}
 }
 
 // Добавя хинт
