@@ -173,7 +173,7 @@ class sync_Helper extends core_Manager
         $coverClassName = self::$fNewNamePref . 'coverClass';
         $coverIdName = self::$fNewNamePref . 'coverId';
         
-        $rec->{$coverClassName} = $fRec->coverClass;
+        $rec->{$coverClassName} = cls::get($fRec->coverClass)->className;
         $rec->{$coverIdName} = $fRec->coverId;
         
         $rec->{$fName} = null;
@@ -207,13 +207,13 @@ class sync_Helper extends core_Manager
         if ($iRecId) {
             if (cls::load($rec->{$coverClassName}, true) && cls::haveInterface('doc_FolderIntf', $rec->{$coverClassName})) {
                 $inst = cls::get($rec->{$coverClassName});
-                $iRecFetch = $inst->fetch($rec->{$coverIdName});
                 
-                if ($folderId = $inst::forceCoverAndFolder($iRecFetch)) {
+                if (($iRecFetch = $inst->fetch($iRecId)) && ($folderId = $inst::forceCoverAndFolder($iRecFetch))) {
                     $rec->folderId = $folderId;
                 }
             }
         }
+        
         
         unset($coverClassName);
         unset($coverIdName);
