@@ -53,6 +53,19 @@ class sync_Map extends core_Manager
         if ($rec === false) {
             return;
         }
+        
+        if ($mvc->className == 'cat_Products') {
+            if ($prodGroups = sync_Setup::get('PROD_GROUPS')) {
+                $prodGroupsArr = type_Keylist::toArray($prodGroups);
+                $recProdGroupsArr = type_Keylist::toArray($rec->groups);
+                
+                if (!array_intersect($prodGroupsArr, $recProdGroupsArr)) {
+                    
+                    return null;
+                }
+            }
+        }
+        
 
         $fields = $mvc->selectFields("#kind == 'FLD'");
         foreach ($fields as $name => $fRec) {
