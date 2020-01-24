@@ -367,15 +367,16 @@ class trans_Lines extends core_Master
         $dQuery = trans_LineDetails::getQuery();
         $dQuery->where("#lineId = {$data->rec->id} AND #containerState != 'rejected' AND #status != 'removed'");
         
-        $returnClassId = store_Receipts::getClassId();
         while ($dRec = $dQuery->fetch()) {
             $Document = doc_Containers::getDocument($dRec->containerId);
             $transInfo = $Document->getTransportLineInfo($data->rec->id);
             
-            if ($dRec->classId == $returnClassId) {
-                $amountReturned += $transInfo['baseAmount'];
-            } else {
-                $amount += $transInfo['baseAmount'];
+            if(!$Document->haveInterface('store_iface_DocumentIntf') && $dRec->containerState == 'active'){
+                if($transInfo['baseAmount'] < 0){
+                    $amountReturned = $transInfo['baseAmount'];
+                } else {
+                    $amount += $transInfo['baseAmount'];
+                }
             }
             
             // Сумиране на ЛЕ от документа и подготвените
@@ -419,7 +420,7 @@ class trans_Lines extends core_Master
         $data->row->totalAmount .= core_Type::getByName('double(decimals=2)')->toVerbal($amount);
         
         $data->row->totalAmountReturn = " <span class='cCode'>{$bCurrency}</span> ";
-        $data->row->totalAmountReturn .= core_Type::getByName('double(decimals=2)')->toVerbal($amountReturned);
+        $data->row->totalAmountReturn .= core_Type::getByName('double(decimals=2)')->toVerbal(abs($amountReturned));
     }
     
     

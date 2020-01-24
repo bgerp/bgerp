@@ -793,7 +793,7 @@ abstract class store_DocumentMaster extends core_Master
                 $amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $rec->currencyId);
             }
         }
-        
+       
         if ($amount) {
             $res['baseAmount'] = currency_Currencies::round($rec->amountDelivered, $rec->currencyId);
             $res['amount'] = $amount;

@@ -562,9 +562,7 @@ abstract class cash_Document extends deals_PaymentDocument
         $sign = ($this->getClassId() == cash_Pko::getClassId()) ? 1 : -1;
         $baseAmount = round($rec->amount * $rec->rate, 4);
         $info = array('state' => $rec->state, 'notes' => $rec->lineNotes, 'currencyId' => currency_Currencies::getCodeById($rec->currencyId), 'amount' => $sign * $rec->amount, 'baseAmount' => $sign * $baseAmount);
-        
         $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($info['amount']);
-        $amountVerbal = ht::styleNumber($amountVerbal, $info['amount']);
         $info['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId);
         
         if($this->haveRightFor('conto', $rec)){
@@ -575,6 +573,8 @@ abstract class cash_Document extends deals_PaymentDocument
             $info['amountVerbal'] = str_replace('&nbsp;', ' ', $info['amountVerbal']);
             $btn = ht::createBtn($info['amountVerbal'], $contoUrl, $warning, false, "ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа");
             $info['amountVerbal'] = $btn;
+        } else {
+            $info['amountVerbal'] = ht::styleNumber($info['amountVerbal'], $info['amount']);
         }
         
         return $info;

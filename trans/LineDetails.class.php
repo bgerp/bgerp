@@ -49,7 +49,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,storeId=Складове,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,measures=Тегло|* / |Обем|*,amountSo=Суми->ЕН,amountSr=Суми->СР,amountPko=Суми->ПКО,amountRko=Суми->РКО,status,notes=@,address=@,documentHtml=@';
+    public $listFields = 'containerId=Документ,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,measures=Тегло|* / |Обем|*,amountSo=Суми->ЕН,amountSr=Суми->СР,amountPko=Суми->ПКО,amountRko=Суми->РКО,status,notes=@,address=@,documentHtml=@';
     
     
     /**
@@ -225,7 +225,6 @@ class trans_LineDetails extends doc_Detail
         }
         
         $row->ROW_ATTR['class'] = ($rec->status == 'waiting') ? 'state-pending' : (($rec->status == 'removed') ? 'state-removed' : 'state-active');
-        
         if (!empty($transportInfo['notes'])) {
             $row->notes = core_Type::getByName('richtext')->toVerbal($transportInfo['notes']);
         }
@@ -236,6 +235,7 @@ class trans_LineDetails extends doc_Detail
             } else {
                 $row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0], true) . ' » ' . store_Stores::getHyperlink($transportInfo['stores'][1], true);
             }
+            $row->containerId .= "<br>{$row->storeId}";
         }
         
         if (!empty($transportInfo['address'])) {
