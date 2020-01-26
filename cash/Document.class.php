@@ -553,7 +553,8 @@ abstract class cash_Document extends deals_PaymentDocument
      *               ['stores']         array       - склад(ове) в документа
      *               ['weight']         double|NULL - общо тегло на стоките в документа
      *               ['volume']         double|NULL - общ обем на стоките в документа
-     *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
+     *               ['transportUnits'] array       - използваните ЛЕ в документа, в формата ле -> к-во
+     *               ['contragentName'] double|NULL - име на контрагента
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -562,6 +563,8 @@ abstract class cash_Document extends deals_PaymentDocument
         $sign = ($this->getClassId() == cash_Pko::getClassId()) ? 1 : -1;
         $baseAmount = round($rec->amount * $rec->rate, 4);
         $info = array('state' => $rec->state, 'notes' => $rec->lineNotes, 'currencyId' => currency_Currencies::getCodeById($rec->currencyId), 'amount' => $sign * $rec->amount, 'baseAmount' => $sign * $baseAmount);
+        $info['contragentName'] = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
+        
         $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($info['amount']);
         $info['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId);
         

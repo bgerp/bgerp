@@ -33,15 +33,15 @@ class sync_Map extends core_Manager
 
         $this->setDbUnique('classId,remoteId');
     }
-
-
+    
+    
     /**
      * Експортира в резултата един запис
      */
     public static function exportRec($class, $id, &$res, $controller)
     {
         $mvc = cls::get($class);
-
+        
         // Вече експортираните обекти и тези със специални id-та не се експортират
         if (isset($res[$mvc->className][$id]) || $id <= 0) {
             return;
@@ -58,18 +58,35 @@ class sync_Map extends core_Manager
         if ($rec === false) {
             return;
         }
+        
+        if ($mvc->className == 'cat_Products') {
+            if ($prodGroups = sync_Setup::get('PROD_GROUPS')) {
+                $prodGroupsArr = type_Keylist::toArray($prodGroups);
+                $recProdGroupsArr = type_Keylist::toArray($rec->groups);
+                
+                if (!array_intersect($prodGroupsArr, $recProdGroupsArr)) {
+                    
+                    $res[$mvc->className][$id] = false;
+                    
+                    return null;
+                }
+            }
+        }
+        
 
         $fields = $mvc->selectFields("#kind == 'FLD'");
         foreach ($fields as $name => $fRec) {
-            // Ако имаме фиксиран експорт - използваме го
-            $fKey = $mvc->className . '::' . $name;
-            if (array_key_exists($fKey, $controller->fixedExport)) {
-                $rec->{$name} = $controller->fixedExport[$fKey];
+            foreach (array($mvc->className . '::' . $name, '*::' . $name) as $fKey) {
+                if (array_key_exists($fKey, $controller->fixedExport)) {
+                    if (isset($controller->fixedExport[$fKey])) {
+                        $funcArr = explode('::', $controller->fixedExport[$fKey]);
+                        call_user_func_array(array(cls::get($funcArr[0]), $funcArr[1] . 'Export'), array(&$rec, $name, $fRec, &$res, $controller));
+                    } else {
+                        $rec->{$name} = $controller->fixedExport[$fKey];
+                    }
+                }
             }
-            $fKey = '*::' . $name;
-            if (array_key_exists($fKey, $controller->fixedExport)) {
-                $rec->{$name} = $controller->fixedExport[$fKey];
-            }
+            
             if ($rec->{$name} === null) {
                 unset($rec->{$name});
             }
@@ -94,7 +111,7 @@ class sync_Map extends core_Manager
                 try {
                     $rec->{$name} = fileman_Download::getDownloadUrl($rec->{$name});
                 } catch (core_exception_Expect $e) {
-                    wp($e);
+//                     wp($e);
                     $rec->{$name} = null;
                 }
                 
@@ -106,7 +123,7 @@ class sync_Map extends core_Manager
                     try {
                         $kArrN[] = fileman_Download::getDownloadUrl($$fn);
                     } catch (core_exception_Expect $e) {
-                        wp($e);
+//                         wp($e);
                     }
                 }
                 $rec->{$name} = $kArrN;
@@ -152,7 +169,7 @@ class sync_Map extends core_Manager
                     } else {
                         $type = $dMvc->getFieldType($field);
                         expect($type->params['mvc'] == $mvc->className, $field, $type);
-                        if ($type instanceof type_Key) {
+                        if (($type instanceof type_Key) || ($type instanceof type_Key2)) {
                             $cond = "#{$field} = {$id}";
                         } elseif ($type instanceof type_Keylist) {
                             $cond = "#{$field} LIKE '%|{$id}|%'";
@@ -182,7 +199,7 @@ class sync_Map extends core_Manager
         //log_System::add('sync_Map', "$class::$id");
         core_App::setTimeLimit(300);
         core_Debug::$isLogging = false;
-        ini_set('memory_limit', '1024M');
+        ini_set('memory_limit', '3024M');
 
         $mvc = cls::get($class);
         $class = $mvc->className;
@@ -196,7 +213,7 @@ class sync_Map extends core_Manager
         
         if (!$res[$class] || !$res[$class][$id] || !is_object($res[$class][$id])) {
             
-            wp($res[$class][$id], $class, $id);
+//             wp($res[$class][$id], $class, $id);
             
             return 0;
         }
@@ -214,7 +231,25 @@ class sync_Map extends core_Manager
         
         // Минаваме по всички полета и
         $fields = $mvc->selectFields("#kind == 'FLD'");
+        
         foreach ($fields as $name => $fRec) {
+            
+            $continue = false;
+            foreach (array($mvc->className . '::' . $name, '*::' . $name) as $fKey) {
+                if (array_key_exists($fKey, $controller->fixedExport)) {
+                    if (isset($controller->fixedExport[$fKey])) {
+                        $funcArr = explode('::', $controller->fixedExport[$fKey]);
+                        call_user_func_array(array(cls::get($funcArr[0]), $funcArr[1] . 'Import'), array(&$rec, $name, $fRec, &$res, $controller));
+                        
+                        $continue = true;
+                    }
+                }
+            }
+            
+            if ($continue) {
+                continue;
+            }
+            
             if ($fRec->type instanceof type_CustomKey) {
                 continue;
             }
@@ -246,7 +281,7 @@ class sync_Map extends core_Manager
                 if ($file = @file_get_contents($rec->{$name})) {
                     $rec->{$name} = fileman::absorbStr($file, $fRec->type->params['bucket'], basename($rec->{$name}));
                 } else {
-                    wp($file, $rec);
+//                     wp($file, $rec);
                 }
             } elseif ($fRec->type instanceof fileman_type_Files && is_array($rec->{$name})) {
                 $kArr = array();
@@ -257,7 +292,7 @@ class sync_Map extends core_Manager
                         $k = fileman::fetchByFh($fh);
                         $kArr[$k] = $k;
                     } else {
-                        wp($file, $rec);
+//                         wp($file, $rec);
                     }
                 }
                 $rec->{$name} = keylist::fromArray($kArr);
@@ -298,8 +333,8 @@ class sync_Map extends core_Manager
                         $rec->{$name} = keylist::fromArray($kArrN);
                     }
                 }
-            } elseif ($rec->{$name} > 0 && get_class($fRec->type) == 'type_Int' && in_array($name, array('contragentId', 'cId'))) {
-                foreach (array('contragentCls', 'cClass', 'contragentClassId') as $cfName) {
+            } elseif ($rec->{$name} > 0 && get_class($fRec->type) == 'type_Int' && in_array($name, array('contragentId', 'cId', 'productId'))) {
+                foreach (array('contragentCls', 'cClass', 'contragentClassId', 'classId') as $cfName) {
                     if ($cfType = $fields[$cfName]->type) {
                         if ($cfType->params['mvc'] == 'core_Classes') {
                             $kMvc = cls::get($rec->{$cfName});

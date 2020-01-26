@@ -39,6 +39,7 @@ class trans_TransportableIntf
      *               ['weight']         double|NULL - общо тегло на стоките в документа
      *               ['volume']         double|NULL - общ обем на стоките в документа
      *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
+     *               ['contragentName'] double|NULL - име на контрагента
      */
     public function getTransportLineInfo($id, $lineId)
     {
