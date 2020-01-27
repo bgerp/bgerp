@@ -42,12 +42,19 @@ class sync_Map extends core_Manager
     {
         $mvc = cls::get($class);
         
+        $idInt = is_object($id) ? $id->id : $id;
+
         // Вече експортираните обекти и тези със специални id-та не се експортират
-        if (isset($res[$mvc->className][$id]) || $id <= 0) {
+        if (isset($res[$mvc->className][$idInt]) || $idInt <= 0) {
             return;
         }
-
-        $rec = $res[$mvc->className][$id] = $mvc->fetch($id);
+        
+        if(is_object($id)) {
+            $rec = $res[$mvc->className][$id->id] = clone($id);
+            $id = $id->id;
+        } else {
+            $rec = $res[$mvc->className][$id] = $mvc->fetch($id);
+        }
         
         // При грешни данни не експортваме нищо
         if ($rec === false) {
@@ -214,11 +221,13 @@ class sync_Map extends core_Manager
         }
         
         // Очакваме за посоченото id да има запис
-        $rec = clone($res[$class][$id]);
+        $rec =  $res[$class][$id];
 
         if (!$rec) {
             return 0;
         }
+
+
         
         $isMapClassRec = false;
         
@@ -343,6 +352,13 @@ class sync_Map extends core_Manager
             }
         }
         
+        // Преобразуваме _companyId към folderId
+        if($rec->_companyId) {
+            $cid = self::importRec('crm_Companies', $rec->_companyId, $res, $controller);
+            $cRec = crm_Companies::fetch($cid);
+            $rec->folderId = $cRec->folderId;
+        }
+
         // Вземаме съществуващият запис
         $classId = $mvc->getClassId();
         $exId = self::fetchField("#classId = {$classId} AND #remoteId = {$id}", 'localId');
@@ -379,7 +395,8 @@ class sync_Map extends core_Manager
                 }
             }
         }
-        
+
+
         $lId = $mvc->save($exRec);
         //log_System::add('sync_Map', "Записахме {$class} {$lId}");
 

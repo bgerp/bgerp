@@ -29,6 +29,10 @@ class sync_Companies extends sync_Helper
                     array('crm_ext_Cards' => 'contragentClassId|contragentId'),
             ),
             
+            'cat_Listings' => array(
+                    array('cat_ListingDetails' => 'listId'),
+            ),
+
             'crm_Locations' => array(
                     array('sales_Routes' => 'locationId'),
             ),
@@ -64,6 +68,12 @@ class sync_Companies extends sync_Helper
         $cQuery = crm_Companies::getQuery();
         while ($rec = $cQuery->fetch("#groupList LIKE '%|{$groupId}|%'")) {
             sync_Map::exportRec('crm_Companies', $rec->id, $res, $this);
+            $folderId = $rec->folderId;
+            $lRec = cat_Listings::fetch("#state = 'active' AND #folderId = {$folderId}");
+            if($lRec) {
+                $lRec->_companyId = $rec->id;
+                sync_Map::exportRec('cat_Listings', $lRec, $res, $this);
+            }
         }
         
         core_Users::cancelSystemUser();

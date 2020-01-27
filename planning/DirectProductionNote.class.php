@@ -708,8 +708,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $this->save($rec, 'debitAmount');
             $this->logWrite('Задаване на себестойност', $rec->id);
             
+            $controUrl = $this->getContoUrl($id);
+            $controUrl['ret_url'] = $this->getSingleUrlArray($rec->id);
+            
             // Редирект към екшъна за контиране
-            redirect($this->getContoUrl($id));
+            redirect($controUrl);
         }
         
         $form->toolbar->addSbBtn('Контиране', 'save', 'ef_icon = img/16/tick-circle-frame.png, title = Контиране на документа');
