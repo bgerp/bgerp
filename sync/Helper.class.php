@@ -86,10 +86,8 @@ class sync_Helper extends core_Manager
             } else {
                 expect($remoteAddr = $_SERVER['REMOTE_ADDR']);
                 
-                if (defined('SYNC_EXPORT_ADDR')) {
-                    expect(SYNC_EXPORT_ADDR == $remoteAddr);
-                } else {
-                    expect(core_Url::isPrivate($remoteAddr));
+                if (!core_Url::isPrivate($remoteAddr)) {
+                    expect(stripos(sync_Setup::get('EXPORT_ADDR'), $remoteAddr) !== false);
                 }
             }
         } else {

@@ -373,7 +373,7 @@ class trans_Lines extends core_Master
             
             if(!$Document->haveInterface('store_iface_DocumentIntf') && $dRec->containerState == 'active'){
                 if($transInfo['baseAmount'] < 0){
-                    $amountReturned = $transInfo['baseAmount'];
+                    $amountReturned += $transInfo['baseAmount'];
                 } else {
                     $amount += $transInfo['baseAmount'];
                 }
