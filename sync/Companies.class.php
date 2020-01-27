@@ -95,6 +95,8 @@ class sync_Companies extends sync_Helper
     {
         self::requireRight('import');
         
+        ini_set('memory_limit', '6024M');
+        
         expect(core_Packs::isInstalled('crm'));
         
         core_App::setTimeLimit(1000);
