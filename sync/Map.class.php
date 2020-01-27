@@ -207,8 +207,7 @@ class sync_Map extends core_Manager
         //log_System::add('sync_Map', "$class::$id");
         core_App::setTimeLimit(300);
         core_Debug::$isLogging = false;
-        ini_set('memory_limit', '3024M');
-
+        
         $mvc = cls::get($class);
         $class = $mvc->className;
 
