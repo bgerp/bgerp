@@ -25,6 +25,12 @@ defIfNot('SYNC_PROD_GROUPS', '');
 
 
 /**
+ * Позволени IP-та за експорт
+ */
+defIfNot('SYNC_EXPORT_ADDR', '');
+
+
+/**
  * Клас 'sync_Setup'  
  *
  *
@@ -63,7 +69,8 @@ class sync_Setup extends core_ProtoSetup
     public $configDescription = array(
         'SYNC_EXPORT_URL' => array('url', 'caption=Импортиране->URL'),
         'SYNC_COMPANY_GROUP' => array('key(mvc=crm_Groups, allowEmpty)', 'caption=Експортиране на фирми->Група'),
-        'SYNC_PROD_GROUPS' => array('keylist(mvc=cat_Groups, select=name, allowEmpty)', 'caption=Експортиране на групи на артикулите->Групи')
+        'SYNC_PROD_GROUPS' => array('keylist(mvc=cat_Groups, select=name, allowEmpty)', 'caption=Експортиране на групи на артикулите->Групи'),
+        'SYNC_EXPORT_ADDR' => array('varchar', 'caption=Позволени IP-та за експорт->IP')
     );
     
    
