@@ -76,6 +76,8 @@ class sync_Companies extends sync_Helper
             }
         }
         
+        cat_ListingDetails::delete("#productId = 0");
+        
         core_Users::cancelSystemUser();
         
         if (Request::get('_bp') && haveRole('admin')) {
