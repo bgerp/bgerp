@@ -62,10 +62,17 @@ class sync_Map extends core_Manager
         }
         
         if ($mvc->className == 'cat_Products') {
-            if ($prodGroups = sync_Setup::get('PROD_GROUPS')) {
-                $prodGroupsArr = type_Keylist::toArray($prodGroups);
+            static $prodGroupsArr = false;
+            if ($prodGroupsArr === false) {
+                if ($prodGroups = sync_Setup::get('PROD_GROUPS')) {
+                    $prodGroupsArr = type_Keylist::toArray($prodGroups);
+                } else {
+                    $prodGroupsArr = array();
+                }
+            }
+            
+            if (!empty($prodGroupsArr)) {
                 $recProdGroupsArr = type_Keylist::toArray($rec->groups);
-                
                 if (!array_intersect($prodGroupsArr, $recProdGroupsArr)) {
                     
                     $res[$mvc->className][$id] = false;
