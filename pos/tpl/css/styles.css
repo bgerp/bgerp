@@ -282,21 +282,36 @@
     margin: 2px 0px 1px 10px;
     display: block; }
 
+.grid {
+  display: grid;
+  align-items: center;
+  text-align: center;
+  grid-gap: 1rem;
+  margin-bottom: 10px; }
+
+.posResultContragent {
+  justify-content: center;
+  align-content: center;
+  border-radius: 3px;
+  height: 70px;
+  display: flex;
+  vertical-align: middle;
+  flex-direction: column; }
+
 .posBtns {
+  justify-content: center;
+  align-content: center;
+  border-radius: 3px;
+  height: 70px;
+  display: flex;
+  vertical-align: middle;
+  flex-direction: column;
   cursor: pointer;
   box-sizing: border-box;
   padding: 10px 20px;
-  width: 249px;
-  height: 64px !important;
-  margin: 5px 5px 10px 7px;
   color: white;
   font-size: 1.3em;
   text-align: center;
-  display: flex;
-  float: left;
-  justify-content: center;
-  align-content: center;
-  flex-direction: column;
   -webkit-border-radius: 10px;
   -moz-border-radius: 10px;
   border-radius: 10px;
@@ -321,10 +336,15 @@
         left: 8px;
         top: 13px; }
   .posBtns.printReceiptBtn {
+    justify-content: center;
     flex-direction: row;
-    margin: 5px 5px 10px 10px;
-    font-size: 1.3em;
+    align-content: center;
+    border-radius: 3px;
+    height: 70px;
     display: flex;
+    vertical-align: middle;
+    font-size: 1.3em;
+    margin: 0 !important;
     background: #b7e2f3 !important;
     color: #333333 !important; }
     .posBtns.printReceiptBtn.largeBtn {
@@ -426,7 +446,7 @@
 
 .divider {
   clear: both;
-  margin: 0 0.5% 0.5% 0.5%;
+  margin-bottom: 10px;
   border: 1px solid #999999;
   background: #666666;
   padding: 10px;
@@ -436,17 +456,14 @@
     color: white !important; }
 
 .posResultContragent {
-  display: inline-block;
-  vertical-align: top;
-  width: 31.3%;
-  height: 60px;
-  margin: 1%;
   border: 2px solid #999999;
   background: #f1f1f1;
   padding: 10px;
   box-sizing: border-box;
   color: #333333 !important;
   font-size: 1.1em; }
+  .posResultContragent.selected {
+    padding: 9px !important; }
 
 .close-btn .button {
   font-size: 1.07em; }
@@ -485,12 +502,9 @@
   font-size: 1.05em; }
 
 .element {
-  display: block;
-  box-sizing: border-box;
+  text-align: left;
   padding: 9px;
-  float: left;
-  width: 24%;
-  margin: 0 0.5% 1% 0.5%;
+  box-sizing: border-box;
   border: 2px solid #999999;
   border-radius: 5px;
   height: 113px;
@@ -660,9 +674,6 @@ only screen and (max-width: 1600px) {
   .keyboard {
     font-size: 1em !important; }
 
-  .element {
-    width: 32.3%; }
-
   .headerContent {
     font-size: 0.85em !important; } }
 
@@ -670,9 +681,6 @@ only screen and (max-width: 1600px) {
 only screen and (max-width: 1400px) {
   .keyboard {
     font-size: 0.9em !important; }
-
-  .element {
-    width: 49%; }
 
   .headerContent {
     font-size: 0.8em !important; } }

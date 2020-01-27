@@ -696,8 +696,6 @@ class pos_Terminal extends peripheral_Terminal
                     $this->renderResultDiscount($rec, $string, $selectedRec, $res);
                 }
                 
-                $res = ht::createElement('div', array('class' => 'displayFlex'), $res, true);
-                
                 break;
             case 'text':
                 $res = $this->renderResultText($rec, $string, $selectedRec);
@@ -734,8 +732,8 @@ class pos_Terminal extends peripheral_Terminal
         $this->prepareReceipt($revertData);
         $revertData->receiptDetails->revertsReceipt = $rec;
         $detailsTpl = $this->renderReceiptDetail($revertData->receiptDetails);
-        
-        $tpl = new core_ET("<div class='divider'>[#receiptName#]</div>[#details#]");
+
+        $tpl = new core_ET("<div class='divider'>[#receiptName#]</div><div class='grid'>[#details#]</div>");
         $tpl->append(pos_Receipts::getRecTitle($revertRec), 'receiptName');
         $tpl->append($detailsTpl, 'details');
         
@@ -823,14 +821,16 @@ class pos_Terminal extends peripheral_Terminal
         
         if($Def = batch_Defs::getBatchDef($receiptRec->productId)){
             $dataUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setbatch');
-            
+            $batchTpl = new core_ET("");
+
             $batchesInStore = batch_Items::getBatchQuantitiesInStore($receiptRec->productId, $receiptRec->storeId, $rec->valior);
             if(countR($batchesInStore)){
                 $cnt = 0;
                 $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'title' => 'Артикулът да е без партида', 'data-url' => toUrl($dataUrl, 'local')), 'Без партида', true);
-                $tpl->append($btn, 'BATCHES');
+                $batchTpl->append($btn);
             }
-            
+
+
             foreach ($batchesInStore as $batch => $quantity){
                 $class = 'resultBatch posBtns navigable';
                 $cnt++;
@@ -848,8 +848,13 @@ class pos_Terminal extends peripheral_Terminal
                 }
                 
                 $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => $class, 'title' => 'Избор на партидата', 'data-url' => toUrl($dataUrl, 'local')), $batchVerbal, true);
-                $tpl->append($btn, 'BATCHES');
+                $batchTpl->append($btn);
             }
+
+            $batchTpl = ht::createElement('div', array('class' => 'grid'), $batchTpl, true);
+            $tpl->append($batchTpl, 'BATCHES');
+
+
         } else {
             $tpl->append(tr('Нямат партидност'), 'BATCHES');
         }
@@ -869,7 +874,7 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultText($rec, $string, $selectedRec)
     {
-        $tpl = new core_ET(tr("|*<div class='divider'>|Най-използвани текстове|*</div>"));
+        $tpl = new core_ET("");
         $texts = array('' => '') + pos_ReceiptDetails::getMostUsedTexts();
         
         $count = 0;
@@ -885,8 +890,8 @@ class pos_Terminal extends peripheral_Terminal
             $tpl->append($element);
             $count++;
         }
-        $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
-        
+        $tpl = ht::createElement('div', array('class' => 'grid'), $tpl, true);
+        $tpl->prepend(tr("|*<div class='divider'>|Най-използвани текстове|*</div>"));
         return $tpl;
     }
     
@@ -914,7 +919,8 @@ class pos_Terminal extends peripheral_Terminal
         if(!empty($selectedRec->discountPercent)){
             $discountsArr =  array('0' => '0') + $discountsArr;
         }
-        
+
+        $discountTpl = new core_ET("");
         foreach ($discountsArr as $discountPercent){
             $class = ($discountPercent == $selectedRec->discountPercent) ? 'current' : '';
             
@@ -922,9 +928,12 @@ class pos_Terminal extends peripheral_Terminal
             $url = toUrl(array('pos_ReceiptDetails', 'updateRec', 'receiptId' => $rec->id, 'action' => 'setdiscount', 'string' => "{$discAmount}"), 'local');
             $btnCaption = ($discountPercent == '0') ? tr('Без отстъпка') : "{$discAmount} %";
             $element = ht::createElement("div", array('id' => "discount{$discountPercent}", 'class' => "navigable posBtns discountBtn {$class}", 'data-url' => $url), $btnCaption, true);
-            $tpl->append($element, 'DISCOUNTS');
+            $discountTpl->append($element);
         }
-        
+
+        $discountTpl = ht::createElement('div', array('class' => 'grid'), $discountTpl, true);
+        $tpl->append($discountTpl, 'DISCOUNTS');
+
         return $tpl;
     }
     
@@ -959,7 +968,8 @@ class pos_Terminal extends peripheral_Terminal
             }
             
             $holderDiv = ht::createElement('div', $newCompanyAttr, 'Нова фирма', true);
-            $tpl->append($holderDiv);
+            $holderTpl = ht::createElement('div', array('class' => 'grid'), $holderDiv, true);
+            $tpl->append($holderTpl);
             $tpl->append(tr("|*<div class='divider'>|Намерени контрагенти|*</div>"));
             
             $count = 0;
@@ -1042,6 +1052,7 @@ class pos_Terminal extends peripheral_Terminal
             }
             
             $cnt = 0;
+            $temp =  new core_ET("");
             foreach ($contragents as $obj){
                 $setContragentUrl = toUrl(array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $obj->contragentClassId, 'contragentId' => $obj->contragentId, 'ret_url' => true));
                 $divAttr = array("id" => "contragent{$cnt}", 'class' => 'posResultContragent posBtns navigable enlargable', 'data-url' => $setContragentUrl, 'data-enlarge-object-id' => $obj->contragentId, 'data-enlarge-class-id' => $obj->contragentClassId, 'data-modal-title' => strip_tags($obj->title));
@@ -1052,9 +1063,10 @@ class pos_Terminal extends peripheral_Terminal
                 }
                 
                 $holderDiv = ht::createElement('div', $divAttr, $obj->title, true);
-                $tpl->append($holderDiv);
+                $temp->append($holderDiv);
                 $cnt++;
             }
+            $tpl->append(ht::createElement('div', array('class' => 'grid'), $temp, true));
         } else {
             $tpl = new core_ET("");
             
@@ -1137,7 +1149,7 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultPayment($rec, $string, $selectedRec)
     {
-        $tpl = new core_ET(tr("|*<div class='paymentBtnsHolder'>[#PAYMENTS#]</div><div class='divider'>|Приключване|*</div>[#CLOSE_BTNS#]"));
+        $tpl = new core_ET(tr("|*<div class='grid'>[#PAYMENTS#]</div><div class='divider'>|Приключване|*</div>[#CLOSE_BTNS#]"));
         
         $payUrl = (pos_Receipts::haveRightFor('pay', $rec)) ? toUrl(array('pos_ReceiptDetails', 'makePayment', 'receiptId' => $rec->id), 'local') : null;
         $disClass = ($payUrl) ? 'navigable' : 'disabledBtn';
@@ -1168,7 +1180,6 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $tpl->append("<div class='clearfix21'></div>");
-        $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
         
         return $tpl;
     }
@@ -1253,19 +1264,31 @@ class pos_Terminal extends peripheral_Terminal
                 $storeBtns[] = ht::createElement("div", array('id' => "changeStore{$storeId}", 'class' => "{$btnClass} posBtns chooseStoreBtn", 'data-url' => $dataUrl, 'data-storeid' => $storeId), $storeCaption, true);
             }
         }
-        
+
+        $btnTpl = new core_ET("");
         foreach ($buttons as $btn){
-            $tpl->append($btn, 'PACK_BUTTONS');
+            $btnTpl->append($btn);
         }
-        
+
+        $btnTpl = ht::createElement('div', array('class' => 'grid'), $btnTpl, true);
+        $tpl->append($btnTpl, 'PACK_BUTTONS');
+
+        $freqTpl = new core_ET("");
         foreach ($frequentPackButtons as $freqbtn){
-            $tpl->append($freqbtn, 'FREQUENT_PACK_BUTTONS');
+            $freqTpl->append($freqbtn);
         }
-        
+
+        $freqTpl = ht::createElement('div', array('class' => 'grid'), $freqTpl, true);
+        $tpl->append($freqTpl, 'FREQUENT_PACK_BUTTONS');
+
+        $storesTpl = new core_ET("");
         foreach ($storeBtns as $storeBtn){
-            $tpl->append($storeBtn, 'STORE_BUTTONS');
+            $storesTpl->append($storeBtn);
         }
-        
+
+        $storesTpl = ht::createElement('div', array('class' => 'grid'), $storesTpl, true);
+        $tpl->append($storesTpl, 'STORE_BUTTONS');
+
         return $tpl;
     }
     
@@ -1332,11 +1355,15 @@ class pos_Terminal extends peripheral_Terminal
             $cnt++;
             $buttons[$dRec->price] = ht::createElement("div", array('id' => "price{$cnt}",'class' => 'resultPrice posBtns navigable', 'data-url' => $dataUrl), tr($btnName), true);
         }
-        
+
+        $priceTpl = new core_ET("");
         foreach ($buttons as $btn){
-            $tpl->append($btn, 'PRICES');
+            $priceTpl->append($btn);
         }
-        
+
+        $priceTpl = ht::createElement('div', array('class' => 'grid'), $priceTpl, true);
+        $tpl->append($priceTpl, 'PRICES');
+
         return $tpl;
     }
     
@@ -1423,6 +1450,7 @@ class pos_Terminal extends peripheral_Terminal
         $tpl->push('css/Application.css', 'CSS');
         $tpl->push('css/default-theme.css', 'CSS');
         $tpl->push('pos/tpl/css/styles.css', 'CSS');
+        $tpl->push('pos/tpl/css/no-sass.css', 'CSS');
         
         if (!Mode::is('printing')) {
             $tpl->push('pos/js/scripts.js', 'JS');
@@ -1490,12 +1518,13 @@ class pos_Terminal extends peripheral_Terminal
         // Ако има категории
         $count = 0;
         if(countR($data->categoriesArr)){
+
             foreach ($data->categoriesArr as $categoryRec){
-                
+                $cTpl = new core_ET("");
                 // Под всяка категория се рендират артикулите към нея
                 $productsInCategory = array_filter($data->rows, function($a) use ($categoryRec){ return in_array($categoryRec->id, $a->favouriteCategories);});
                 if(countR($productsInCategory)){
-                    $cTpl = new core_ET("<div class='divider'>{$categoryRec->name}</div>");
+
                     foreach ($productsInCategory as $row){
                         $row->elementId = "product{$count}";
                         $bTpl = clone $block;
@@ -1505,8 +1534,10 @@ class pos_Terminal extends peripheral_Terminal
                         $count++;
                     }
                     $cTpl->removeBlocksAndPlaces();
-                    $tpl->append($cTpl);
+
                 }
+                $tpl->append("<div class='divider'>{$categoryRec->name}</div>");
+                $tpl->append(ht::createElement('div', array('class' => 'grid'), $cTpl, true));
             }
         } else {
             foreach ($data->rows as $row){
@@ -1760,7 +1791,7 @@ class pos_Terminal extends peripheral_Terminal
             $blockTpl->removeBlocksAndPlaces();
             $tpl->append($blockTpl);
         }
-        $tpl = ht::createElement('div', array('class' => 'displayFlex'), $tpl, true);
+        $tpl = ht::createElement('div', array('class' => 'grid'), $tpl, true);
         
         return $tpl;
     }
