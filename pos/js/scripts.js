@@ -321,6 +321,11 @@ function posActions() {
 		}
 	});
 
+	document.addEventListener("keyup", function(event) {
+		if(event.key == "Control"){
+			hideHints();
+		}
+	});
 	startNavigation();
 
 	$(document.body).on('click', ".navigable", function(e){
@@ -657,11 +662,6 @@ function posActions() {
 	var timeoutAlt;
 	$("body").setShortcutKey(null,  CONTROL,function() {
 		showHints();
-		clearTimeout(timeoutAlt);
-
-		timeoutAlt = setTimeout(function () {
-			hideHints();
-		}, 5000);
 	});
 
 	// При натискане на бутона за клавиатура
