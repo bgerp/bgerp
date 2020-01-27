@@ -271,7 +271,7 @@ class sync_Map extends core_Manager
                     $condStr .= $condStr ? " && " : '';
                     $condStr .= "{$mapFName} == '{$rec->{$mapFName}}'";
                 }
-                $mapFieldsClsQuery->count(1);
+                $mapFieldsClsQuery->limit(1);
                 $rec = $mapFieldsClsQuery->fetch();
                 
                 $sTitle = mb_strtolower($mvc->title);
