@@ -42,8 +42,10 @@ class sync_Map extends core_Manager
     {
         $mvc = cls::get($class);
         
+        $idInt = is_object($id) ? $id->id : $id;
+
         // Вече експортираните обекти и тези със специални id-та не се експортират
-        if (isset($res[$mvc->className][$id]) || $id <= 0) {
+        if (isset($res[$mvc->className][$idInt]) || $idInt <= 0) {
             return;
         }
         
