@@ -74,9 +74,6 @@ class sync_Map extends core_Manager
             if (!empty($prodGroupsArr)) {
                 $recProdGroupsArr = type_Keylist::toArray($rec->groups);
                 if (!array_intersect($prodGroupsArr, $recProdGroupsArr)) {
-                    if ($rec->id == 392) {
-                        bp($rec);
-                    }
                     $res[$mvc->className][$id] = false;
                     
                     return null;
