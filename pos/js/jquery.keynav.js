@@ -80,8 +80,8 @@
 			if (i<0) i=(matrix.length-1);
 			if (i>=matrix.length) i=0;
 			if (j<0) j=(matrix[i].length-1);
-			if (j>=matrix[i].length) j=0;
-			current.removeClass('selected');
+			if (j>=matrix[i].length) j=matrix[i].length-1;
+			elements.removeClass('selected');
 			current = $(matrix[i][j]);
 
 				$('#result-holder').animate({
@@ -91,7 +91,6 @@
 
 			current.addClass('selected');
 			if (!isItVisible($(current))) {
-
 				$(current)[0].scrollIntoView();
 			}
 
