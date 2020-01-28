@@ -215,11 +215,7 @@ class sync_Map extends core_Manager
         static $i;
 
         if (($i++ % 1000) == 55) {
-            if($i == 0) 
-                echo "<div style='display:table-cell; width:100%'>";
-            echo "{$class} - $id -" . round(memory_get_usage()/(1024*1024)) . 'MB;' ;
-            ob_flush ();
-            flush();
+            self::logDebug("{$class}: {$id} - " . round(memory_get_usage()/(1024*1024)) . 'MB;');
         }
         
         // В рамките на хита не импортираме повторно два пъти обекта
@@ -243,9 +239,13 @@ class sync_Map extends core_Manager
             return 0;
         }
         
+        $haveRec = false;
+        $exRec = null;
+        
         // Ако в тази (приемащата) система има вече запис съответсващ на импортирания, то го извличаме
-        $exId = self::fetchField("#classId = {$classId} AND #remoteId = {$id}", 'localId', false);
+        $exId = self::fetchField("#classId = {$classId} AND #remoteId = {$id}", 'id', false);
         if ($exId) {
+            $haveRec = true;
             $exRec = $mvc->fetch($exId, '*', false);
         }
 
@@ -417,7 +417,7 @@ class sync_Map extends core_Manager
         $lId = $mvc->save($exRec);
         //log_System::add('sync_Map', "Записахме {$class} {$lId}");
 
-        if (!$exRec) {
+        if (!$haveRec) {
             $mRec = (object) array('classId' => $mvc->getClassId(), 'remoteId' => $id, 'localId' => $lId);
             self::save($mRec);
         }
