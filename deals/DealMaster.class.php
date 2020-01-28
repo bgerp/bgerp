@@ -1773,7 +1773,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $dRec = (object) array($Detail->masterKey => $id,
             'productId' => $productId,
             'packagingId' => $packagingId,
-            'quantity' => $packQuantity,
+            'quantity' => $quantityInPack * $packQuantity,
             'discount' => $discount,
             'tolerance' => $tolerance,
             'term' => $term,
@@ -1781,7 +1781,7 @@ abstract class deals_DealMaster extends deals_DealBase
             'quantityInPack' => $quantityInPack,
             'notes' => $notes,
         );
-      
+        bp($dRec);
         // Проверяваме дали въвдения детайл е уникален
         $exRec = deals_Helper::fetchExistingDetail($Detail, $id, null, $productId, $packagingId, $price, $discount, $tolerance, $term, null, null, $notes);
         
