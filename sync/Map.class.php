@@ -210,7 +210,11 @@ class sync_Map extends core_Manager
         
         $mvc = cls::get($class);
         $class = $mvc->className;
-
+        
+        if (rand(1,20) == 10) {
+            self::logDebug($class . ': ' . $id);
+        }
+        
         // В рамките на хита не импортираме повторно два пъти обекта
         if (isset(self::$imported[$class][$id])) {
             return self::$imported[$class][$id];
@@ -271,7 +275,7 @@ class sync_Map extends core_Manager
                     $condStr .= $condStr ? " && " : '';
                     $condStr .= "{$mapFName} == '{$rec->{$mapFName}}'";
                 }
-                $mapFieldsClsQuery->count(1);
+                $mapFieldsClsQuery->limit(1);
                 $rec = $mapFieldsClsQuery->fetch();
                 
                 $sTitle = mb_strtolower($mvc->title);
@@ -308,7 +312,7 @@ class sync_Map extends core_Manager
                 if ($v = $res[$class][$id]->{$name}) {
                     if ($uf = $controller->globalUniqKeys[$kMvc]) {
                         $kMvc = cls::get($kMvc);
-                        $rec->{$name} = $kMvc->fetchField(array("#{$uf} = '[#1#]'", $rec->{$name}));
+                        $rec->{$name} = $kMvc->fetchField(array("#{$uf} = '[#1#]'", $rec->{$name}), 'id', false);
                     } else {
                         $rec->{$name} = self::importRec($kMvc, $rec->{$name}, $res, $controller);
                     }
@@ -323,7 +327,7 @@ class sync_Map extends core_Manager
                         $kMvc = cls::get($kMvc);
                         $kArrN = array();
                         foreach ($kArr as $key) {
-                            $k = $kMvc->fetchField(array("#{$uf} = '[#1#]'", $key));
+                            $k = $kMvc->fetchField(array("#{$uf} = '[#1#]'", $key), 'id', false);
                             if ($k) {
                                 $kArrN[$k] = $k;
                             }
@@ -360,13 +364,13 @@ class sync_Map extends core_Manager
         // Преобразуваме _companyId към folderId
         if($rec->_companyId) {
             $cid = self::importRec('crm_Companies', $rec->_companyId, $res, $controller);
-            $cRec = crm_Companies::fetch($cid);
+            $cRec = crm_Companies::fetch($cid, '*', false);
             $rec->folderId = $cRec->folderId;
         }
 
         // Вземаме съществуващият запис
         $classId = $mvc->getClassId();
-        $exId = self::fetchField("#classId = {$classId} AND #remoteId = {$id}", 'localId');
+        $exId = self::fetchField("#classId = {$classId} AND #remoteId = {$id}", 'localId', false);
         
         if ($isMapClassRec) {
             if (!$exId) {
