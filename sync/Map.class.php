@@ -210,7 +210,11 @@ class sync_Map extends core_Manager
         
         $mvc = cls::get($class);
         $class = $mvc->className;
-
+        
+        if (rand(1,20) == 10) {
+            self::logDebug($class . ': ' . $id);
+        }
+        
         // В рамките на хита не импортираме повторно два пъти обекта
         if (isset(self::$imported[$class][$id])) {
             return self::$imported[$class][$id];
