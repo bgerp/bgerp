@@ -1708,7 +1708,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param int    $id           - ид на сделка
      * @param int    $productId    - ид на артикул
      * @param float  $packQuantity - количество продадени опаковки (ако няма опаковки е цялото количество)
-     * @param float  $price        - цена на единична бройка (ако не е подадена, определя се от политиката)
+     * @param float  $price        - цена на единична бройка в основната мярка (ако не е подадена, определя се от политиката)
      * @param int    $packagingId  - ид на опаковка (не е задължителна)
      * @param float  $discount     - отстъпка между 0(0%) и 1(100%) (не е задължителна)
      * @param float  $tolerance    - толеранс между 0(0%) и 1(100%) (не е задължителен)
@@ -1781,7 +1781,7 @@ abstract class deals_DealMaster extends deals_DealBase
             'quantityInPack' => $quantityInPack,
             'notes' => $notes,
         );
-        bp($dRec);
+
         // Проверяваме дали въвдения детайл е уникален
         $exRec = deals_Helper::fetchExistingDetail($Detail, $id, null, $productId, $packagingId, $price, $discount, $tolerance, $term, null, null, $notes);
         
