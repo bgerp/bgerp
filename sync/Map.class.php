@@ -424,4 +424,12 @@ class sync_Map extends core_Manager
 
         return $lId;
     }
+    
+    
+    public static function getLocalId($class, $remoteId)
+    {
+        $classId = cls::get($class)->getClassId();
+        
+        return self::fetchField("#classId = {$classId} AND #remoteId = {$remoteId}", 'localId');
+    }
 }
