@@ -84,6 +84,13 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      */
     public $canAdd = 'ceo,store,sales,purchase';
     
+    /**
+     * Кой може да го импортира артикули?
+     *
+     * @var string|array
+     */
+    public $canImport = 'user';
+    
     
     /**
      * Кой може да го изтрие?

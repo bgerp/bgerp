@@ -60,6 +60,13 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      */
     public $canEdit = 'ceo, store, purchase, sales';
     
+    /**
+     * Кой може да го импортира артикули?
+     *
+     * @var string|array
+     */
+    public $canImport = 'user';
+    
     
     /**
      * Кой има право да добавя?
