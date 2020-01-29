@@ -101,6 +101,8 @@ class sync_ProductQuotes extends core_BaseClass
         $data = json_decode($data);
         $data = (object) $data;
         
+        core_Users::forceSystemUser();
+        
         $exportContragentRes = (array)$data->exportContragentRes;
         sync_Map::importRec($data->contragentClassName, $data->contragentRemoteId, $exportContragentRes, cls::get('sync_Companies'));
         
