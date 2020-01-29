@@ -117,14 +117,6 @@ class sync_ProductQuotes extends core_BaseClass
             }
         }
         
-        if(countR($data->packagings)){
-            foreach ($data->packagings as $packRec){
-                //$uomRes = array();
-                //$importedPackId = sync_Map::importRec(cat_UoM::getClassId(), $packRec->packagingId, $uomRes, 'sync_ProductQuotes');
-                //bp(cat_UoM::getClassId(), $packRec->packagingId);
-            }
-        }
-        
         $folderId = cls::get($data->contragentClassId)->forceCoverAndFolder($data->contragentId);
         $productRec = (object)array('name' => $data->name,
             'nameEn' => $data->nameEn,
@@ -137,7 +129,22 @@ class sync_ProductQuotes extends core_BaseClass
             'folderId' => $folderId,
         );
         
-        $productRec->params = $data->params;
+        $productRec->params = array();
+        foreach ($data->params as $obj){
+            $localParamId = sync_Map::getLocalId('cat_Params', $obj->remoteId);
+            if(!$localParamId){
+                $paramRec = $obj->paramRec;
+                $localParamId = cat_Params::force($paramRec->sysId, $paramRec->name, $paramRec->driverClass, null, $paramRec->suffix, $paramRec->showInTasks);
+            
+                $mRec = (object) array('classId' => cls::get('cat_Params')->getClassId(), 'remoteId' => $obj->remoteId, 'localId' => $localParamId);
+                sync_Map::save($mRec);
+            }
+            
+            if(isset($localParamId)){
+                $productRec->params[$localParamId] = $obj->value;
+            }
+        }
+        
         $productRec->quotations = $data->quotations;
         
         $Products = cls::get('cat_Products');
@@ -146,7 +153,32 @@ class sync_ProductQuotes extends core_BaseClass
         $Products->logWrite('Импортиране от друга Bgerp система', $productRec->id);
         core_Users::cancelSystemUser();
         
+        $productId = $productRec->id;
         
-        return $productRec->id;
+        if(isset($productId)){
+            
+            if(countR($data->packagings)){
+                foreach ($data->packagings as $packObject){
+                    
+                    $localPackagingId = sync_Map::getLocalId('cat_UoM', $packObject->remoteId);
+                    if(!$localPackagingId){
+                        $newUomRec = $packObject->uomRec;
+                        $localPackagingId = cat_UoM::fetchBySinonim($newUomRec->name)->id;
+                        if(!$localPackagingId){
+                            $localPackagingId = cat_UoM::save($newUomRec);
+                        }
+                        
+                        $mRec = (object) array('classId' => cls::get('cat_UoM')->getClassId(), 'remoteId' => $packObject->remoteId, 'localId' => $localPackagingId);
+                        sync_Map::save($mRec);
+                    }
+                    
+                    $packObject->rec->packagingId = $localPackagingId;
+                    $packObject->rec->productId = $productId;
+                    cat_products_Packagings::save($packObject->rec);
+                }
+            }
+        }
+        
+        return $productId;
     }
 }

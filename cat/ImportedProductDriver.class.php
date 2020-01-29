@@ -3,7 +3,7 @@
 
 
 /**
- * Импортиран артикул от друга Bgerp система
+ * Импортиран артикул
  *
  *
  * @category  bgerp
@@ -12,7 +12,7 @@
  * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Импортиран артикул от друга Bgerp система
+ * @title     Импортиран артикул
  */
 class cat_ImportedProductDriver extends cat_ProductDriver
 {
