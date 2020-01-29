@@ -84,8 +84,12 @@ class sync_ProductQuotes extends core_BaseClass
             
             
         } catch (core_exception_Expect $e){
+            $dump = $e->getDump();
+            //core_Statuses::newStatus($dump[0], 'error');
+            
+            
             $res->localId = null;
-            $res->error = $e->getMessage();
+            $res->error = $dump[0];
             $res->status = 3;
             reportException($e);
         }
