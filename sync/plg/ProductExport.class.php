@@ -150,6 +150,8 @@ class sync_plg_ProductExport extends core_Plugin
         $exportContragentRes = array();
         sync_Map::exportRec($Cover->className, $Cover->that, $exportContragentRes, cls::get('sync_Companies'));
         
+        
+        
         $data = (object)array('name' => $rec->name, 
                               'nameEn' => $rec->nameEn, 
                               'measureId' => $rec->measureId, 
@@ -158,6 +160,9 @@ class sync_plg_ProductExport extends core_Plugin
                               'contragentRemoteId' => $Cover->that,
                               'exportContragentRes' => $exportContragentRes,
                               );
+        
+        //bp($exportContragentRes);
+        
         
         $params = cat_Products::getParams($rec->id);
         $data->params = array();
@@ -233,7 +238,6 @@ class sync_plg_ProductExport extends core_Plugin
         $data = base64_encode(gzcompress(json_encode($data)));
         
         return $data;
-        
     }
     
     

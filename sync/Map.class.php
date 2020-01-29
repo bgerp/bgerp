@@ -224,6 +224,9 @@ class sync_Map extends core_Manager
         }
         
         self::$imported[$class][$id] = 0;
+        if(is_object($res[$class])){
+            $res[$class] = (array)$res[$class];
+        }
         
         if (!$res[$class] || !$res[$class][$id] || !is_object($res[$class][$id])) {
             
