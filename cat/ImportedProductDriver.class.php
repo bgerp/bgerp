@@ -47,6 +47,7 @@ class cat_ImportedProductDriver extends cat_ProductDriver
      */
     public function addFields(core_Fieldset &$form)
     {
+        $form->FLD('importedFromDomain', 'url', 'caption=Импортиран от,input=none');
         $form->FLD('html', 'html', 'caption=Изглед,before=measureId,input=none');
         $form->FLD('htmlEn', 'html', 'caption=Изглед EN,before=measureId,input=none');
         $form->FLD('quotations', 'blob', 'caption=Данни на оферта,input=none');
@@ -86,7 +87,7 @@ class cat_ImportedProductDriver extends cat_ProductDriver
             }
         }
         
-        $info = (core_Lg::getCurrent() == 'bg') ? $row->html : $row->htmlEn;
+        $info .= (core_Lg::getCurrent() == 'bg') ? $row->html : $row->htmlEn;
         if(!empty($row->info)){
             $row->info = $info . "<br>{$row->info}";
         } else {
@@ -108,6 +109,10 @@ class cat_ImportedProductDriver extends cat_ProductDriver
      */
     public function renderProductDescription($data)
     {
+        if($data->documentType == 'public' ){
+            unset($data->row->importedFromDomain);
+        }
+        
         $tpl = parent::renderProductDescription($data);
         $Embedder = cls::get($data->Embedder);
         

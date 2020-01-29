@@ -124,7 +124,11 @@ class sync_plg_ProductExport extends core_Plugin
         }
         
         if($action == 'test'){
-            bp(self::getExportData(3981));
+            $exp = self::getExportData(3985);
+            
+            //sync_ProductQuotes::import($exp);
+            
+            bp();
         }
     }
     
@@ -150,6 +154,8 @@ class sync_plg_ProductExport extends core_Plugin
         $exportContragentRes = array();
         sync_Map::exportRec($Cover->className, $Cover->that, $exportContragentRes, cls::get('sync_Companies'));
         
+        
+        
         $data = (object)array('name' => $rec->name, 
                               'nameEn' => $rec->nameEn, 
                               'measureId' => $rec->measureId, 
@@ -159,15 +165,23 @@ class sync_plg_ProductExport extends core_Plugin
                               'exportContragentRes' => $exportContragentRes,
                               );
         
+        //bp($exportContragentRes);
+        
+        
         $params = cat_Products::getParams($rec->id);
         $data->params = array();
         foreach ($params as $paramId => $value){
             $paramRec = cat_Params::fetch($paramId, 'driverClass,name,suffix,sysId,showInTasks,showInPublicDocuments,isFeature,default');
             unset($paramRec->id); 
             $paramRec->driverClass = cls::getClassName($paramRec->driverClass);
+            if(in_array($paramRec->driverClass, array('cond_type_File', 'cond_type_Image'))){
+                $value = fileman_Download::getDownloadUrl($value);
+                if(!$value) continue;
+            }
+            
             $data->params[$paramId] = (object)array('remoteId' => $paramId, 'value' => $value, 'paramRec' => $paramRec);
         }
-       
+        
         $quotationClassId = sales_Quotations::getClassId();
         
         $data->quotations = $data->packagings = array();
@@ -212,12 +226,6 @@ class sync_plg_ProductExport extends core_Plugin
         core_Lg::pop('bg');
         Mode::pop('text');
         
-        //$r = 'http://11.0.0.61/fileman_Download/Download/?fh=hGGdcK';
-        //$l = file_get_contents($r);
-        //$h = fileman::absorbStr($l, 'Notes', 'ggg');
-        //bp($l, $r, $h);
-        
-        
         Mode::push('text', 'xhtml');
         core_Lg::push('en');
         $htmlEnTpl = $Driver->renderProductDescription($descriptionData);
@@ -225,15 +233,13 @@ class sync_plg_ProductExport extends core_Plugin
         core_Lg::pop('en');
         Mode::pop('text');
         core_Users::cancelSystemUser();
-        //core_Users::exitSudo($rec->createdBy);
-        
+       
         $data->html = $htmlTpl;
         $data->htmlEn = $htmlEnTpl;
         
         $data = base64_encode(gzcompress(json_encode($data)));
         
         return $data;
-        
     }
     
     

@@ -76,8 +76,6 @@ class sync_Companies extends sync_Helper
             }
         }
         
-        cat_ListingDetails::delete("#productId = 0");
-        
         core_Users::cancelSystemUser();
         
         if (Request::get('_bp') && haveRole('admin')) {
@@ -119,6 +117,8 @@ class sync_Companies extends sync_Helper
                 sync_Map::importRec($class, $id, $resArr, $this, $update);
             }
         }
+        
+        cat_ListingDetails::delete("#productId = 0");
         
         crm_Groups::updateGroupsCnt('crm_Persons', 'personsCnt');
     }

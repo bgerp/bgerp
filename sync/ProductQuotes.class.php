@@ -56,9 +56,9 @@ class sync_ProductQuotes extends core_BaseClass
                     'method'  => 'POST'));
                 
                 $context  = stream_context_create($options);
-                $exportUrl = sync_Setup::get('EXPORT_URL');
+                $exportDomain = sync_Setup::get('EXPORT_URL');
                 
-                $exportUrl = rtrim($exportUrl, '/');
+                $exportUrl = rtrim($exportDomain, '/');
                 $exportUrl .= "/cat_Products/remoteexport/?exportId={$remoteId}";
                 
                 @$data = file_get_contents($exportUrl, false, $context);
@@ -67,13 +67,17 @@ class sync_ProductQuotes extends core_BaseClass
                     throw new core_exception_Expect('Проблем при подготовката на данните за експорт', 'Несъответствие');
                 }
                 
-                $localId = self::import($data);
+                $localId = self::import($data, $exportDomain);
                 if(!$localId){
                     throw new core_exception_Expect('Проблем при импортирането на артикул', 'Несъответствие');
                 }
                 
-                $mRec = (object) array('classId' => cls::get('cat_Products')->getClassId(), 'remoteId' => $remoteId, 'localId' => $localId);
-                sync_Map::save($mRec);
+                sync_Map::add('cat_Products', $localId, $remoteId);
+                
+                
+                
+                //$mRec = (object) array('classId' => cls::get('cat_Products')->getClassId(), 'remoteId' => $remoteId, 'localId' => $localId);
+                //sync_Map::save($mRec);
                 
                 $res->status = 1;
             } else {
@@ -94,12 +98,15 @@ class sync_ProductQuotes extends core_BaseClass
         shutdown();
     }
     
-    private static function import($data)
+    private static function import($data, $exportDomain)
     {
         $data = base64_decode($data);
         $data = gzuncompress($data);
         $data = json_decode($data);
         $data = (object) $data;
+        $data->exportUrl = $exportDomain;
+        
+        core_Users::forceSystemUser();
         
         $exportContragentRes = (array)$data->exportContragentRes;
         sync_Map::importRec($data->contragentClassName, $data->contragentRemoteId, $exportContragentRes, cls::get('sync_Companies'));
@@ -109,7 +116,7 @@ class sync_ProductQuotes extends core_BaseClass
         if (countR($matches[0])) {
             foreach ($matches[0] as $downloadFileUrl){
                 if($fileContent = @file_get_contents($downloadFileUrl)){
-                    $newFh = fileman::absorbStr($fileContent, 'Notes', 'fh');
+                    $newFh = fileman::absorbStr($fileContent, 'importedProductFiles', 'fh');
                     
                     $newDownloadUrl = fileman::generateUrl($newFh, true);
                     $data->html = str_replace($downloadFileUrl, $newDownloadUrl, $data->html);
@@ -130,20 +137,33 @@ class sync_ProductQuotes extends core_BaseClass
             'meta' => $data->meta,
             'quotations' => $data->quotations,
             'folderId' => $folderId,
+            'importedFromDomain' => $data->exportUrl,
         );
         
         $productRec->params = array();
+        $data->params = (array)$data->params;
+        
         foreach ($data->params as $obj){
             $localParamId = sync_Map::getLocalId('cat_Params', $obj->remoteId);
-            if(!$localParamId){
-                $paramRec = $obj->paramRec;
-                $localParamId = cat_Params::force($paramRec->sysId, $paramRec->name, $paramRec->driverClass, null, $paramRec->suffix, $paramRec->showInTasks);
+            $paramRec = $obj->paramRec;
             
-                $mRec = (object) array('classId' => cls::get('cat_Params')->getClassId(), 'remoteId' => $obj->remoteId, 'localId' => $localParamId);
-                sync_Map::save($mRec);
+            if(!$localParamId){
+                $localParamId = cat_Params::force($paramRec->sysId, $paramRec->name, $paramRec->driverClass, null, $paramRec->suffix, $paramRec->showInTasks);
+                sync_Map::add('cat_Params', $localParamId, $obj->remoteId);
+                
+                
+                //$mRec = (object) array('classId' => cls::get('cat_Params')->getClassId(), 'remoteId' => $obj->remoteId, 'localId' => $localParamId);
+               // sync_Map::save($mRec);
             }
             
             if(isset($localParamId)){
+                if(in_array($paramRec->driverClass, array('cond_type_File', 'cond_type_Image'))){
+                    if($fileContent = @file_get_contents($obj->value)){
+                        $fileName = basename($obj->value);
+                        $obj->value = fileman::absorbStr($fileContent, 'importedProductFiles', $fileName);
+                    }
+                }
+               
                 $productRec->params[$localParamId] = $obj->value;
             }
         }
@@ -169,8 +189,10 @@ class sync_ProductQuotes extends core_BaseClass
                             $localPackagingId = cat_UoM::save($newUomRec);
                         }
                         
-                        $mRec = (object) array('classId' => cls::get('cat_UoM')->getClassId(), 'remoteId' => $packObject->remoteId, 'localId' => $localPackagingId);
-                        sync_Map::save($mRec);
+                        sync_Map::add('cat_UoM', $localPackagingId, $packObject->remoteId);
+                        
+                        //$mRec = (object) array('classId' => cls::get('cat_UoM')->getClassId(), 'remoteId' => $packObject->remoteId, 'localId' => $localPackagingId);
+                        //sync_Map::save($mRec);
                     }
                     
                     $packObject->rec->packagingId = $localPackagingId;
