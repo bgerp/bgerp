@@ -243,10 +243,10 @@ class sync_Map extends core_Manager
         $exRec = null;
         
         // Ако в тази (приемащата) система има вече запис съответсващ на импортирания, то го извличаме
-        $exId = self::fetchField("#classId = {$classId} AND #remoteId = {$id}");
+        $exId = self::fetchField("#classId = {$classId} AND #remoteId = {$id}", 'localId');
         if ($exId) {
             $haveRec = true;
-            $exRec = $mvc->fetch($exId);
+            $exRec = $mvc->fetch($exId, '*', false);
         }
 
         $isMapClassRec = false;
