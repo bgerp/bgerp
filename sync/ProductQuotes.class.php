@@ -57,12 +57,14 @@ class sync_ProductQuotes extends core_BaseClass
                 
                 $context  = stream_context_create($options);
                 $exportUrl = sync_Setup::get('EXPORT_URL');
+                $exportUrl = '';
                 $exportUrl = rtrim($exportUrl, '/');
                 $exportUrl .= "/cat_Products/remoteexport/?exportId={$remoteId}";
                 
-                //вп($exportUrl);
+                bp($exportUrl);
+                
                 @$data = file_get_contents($exportUrl, false, $context);
-                wp($data,$exportUrl);
+                bp($exportUrl, $data);
                 if($data === 'FALSE'){
                     throw new core_exception_Expect('Проблем при подготовката на данните за експорт', 'Несъответствие');
                 }
