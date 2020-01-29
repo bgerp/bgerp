@@ -1765,9 +1765,12 @@ abstract class deals_DealMaster extends deals_DealBase
             if (!isset($discount) && isset($policyInfo->discount)) {
                 $discount = $policyInfo->discount;
             }
+            
+            $price = ($price) ? $price : cat_Products::getPrimeCost($productId, null, null, null);
+            
         }
         
-        $packQuantity = cls::get('type_Double')->fromVerbal($packQuantity);
+                $packQuantity = cls::get('type_Double')->fromVerbal($packQuantity);
         
         // Подготвяме детайла
         $dRec = (object) array($Detail->masterKey => $id,

@@ -360,51 +360,15 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         
         // Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
         if ($row->price) {
+            
+            $packRec = cat_products_Packagings::getPack($pRec->productId,  $pRec->packagingId);
+            $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+            $row->price /= $quantityInPack;
+            
             $masterRec = $Master->fetch($masterId);
             $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $masterRec->currencyRate, $masterRec->chargeVat);
+            
         }
-
-//             $Detail = cls::get(get_called_class());
-
-//             // Подготвяме детайла
-//             $dRec = (object) array($Detail->masterKey => $masterId,
-//                 'productId' => $pRec->productId,
-//                 'quantity' => $row->quantity,
-//                 'price' => $price,
-        //   'packagingId' => $pRec->packagingId,
-//             );
-
-//             // Проверяваме дали въвдения детайл е уникален
-//             $exRec = deals_Helper::fetchExistingDetail($Detail, $masterId, null, $productId, $packagingId, $price, null, null, null, null, null, null);
-
-//             if (is_object($exRec)) {
-
-//                 // Смятаме средно притеглената цена и отстъпка
-//                 $nPrice = ($exRec->quantity * $exRec->price + $dRec->quantity * $dRec->price) / ($dRec->quantity + $exRec->quantity);
-//                 $nDiscount = ($exRec->quantity * $exRec->discount + $dRec->quantity * $dRec->discount) / ($dRec->quantity + $exRec->quantity);
-//                 $nTolerance = ($exRec->quantity * $exRec->tolerance + $dRec->quantity * $dRec->tolerance) / ($dRec->quantity + $exRec->quantity);
-
-//                 // Ъпдейтваме к-то, цената и отстъпката на записа с новите
-//                 if ($term) {
-//                     $exRec->term = max($exRec->term, $dRec->term);
-//                 }
-
-//                 $exRec->quantity += $dRec->quantity;
-//                 $exRec->price = $nPrice;
-//                 $exRec->discount = (empty($nDiscount)) ? null : round($nDiscount, 2);
-//                 $exRec->tolerance = (!isset($nTolerance)) ? null : round($nTolerance, 2);
-
-//                 // Ъпдейтваме съществуващия запис
-//                 $id = $Detail->save($exRec);
-//             } else {
-
-//                 // Ако е уникален, добавяме го
-//                 $id = $this->save($dRec);
-//             }
-
-//             $id = $this->save($dRec);
-//             return $id;
-        
         
         return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId);
     }
