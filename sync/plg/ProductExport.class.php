@@ -59,7 +59,7 @@ class sync_plg_ProductExport extends core_Plugin
             $importUrl = self::getImportUrl($rec);
             $params = array('remoteId' => $rec->id);
             $httpQuery = http_build_query($params);
-            
+            //bp($importUrl, $httpQuery);
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $importUrl);
             curl_setopt($ch, CURLOPT_POST, 1);
@@ -100,6 +100,8 @@ class sync_plg_ProductExport extends core_Plugin
                 cat_Products::logErr("Грешка експорт на артикул: '{$errorCode}' OUTPUT '{$serverOutput}'", $rec->id);
                 followRetUrl(null, 'Грешка при ръчен експорт', 'error');
             }
+            
+            
         }
         
         
@@ -122,7 +124,7 @@ class sync_plg_ProductExport extends core_Plugin
         }
         
         if($action == 'test'){
-            bp(self::getExportData(3974));
+            bp(self::getExportData(3981));
         }
     }
     
@@ -145,12 +147,16 @@ class sync_plg_ProductExport extends core_Plugin
         $Driver = cat_Products::getDriver($rec);
         $Cover = doc_Folders::getCover($rec->folderId);
         
+        $exportContragentRes = array();
+        sync_Map::exportRec($Cover->className, $Cover->that, $exportContragentRes, cls::get('sync_Companies'));
+        
         $data = (object)array('name' => $rec->name, 
                               'nameEn' => $rec->nameEn, 
                               'measureId' => $rec->measureId, 
                               'meta' => $rec->meta, 
-                              'contragentClassId' =>$Cover->getClassId(),
-                              'contragentId' => $Cover->that,
+                              'contragentClassName' => $Cover->className,
+                              'contragentRemoteId' => $Cover->that,
+                              'exportContragentRes' => $exportContragentRes,
                               );
         
         $params = cat_Products::getParams($rec->id);
@@ -223,8 +229,6 @@ class sync_plg_ProductExport extends core_Plugin
         
         $data->html = $htmlTpl;
         $data->htmlEn = $htmlEnTpl;
-        
-        //bp($data);
         
         $data = base64_encode(gzcompress(json_encode($data)));
         

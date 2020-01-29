@@ -111,10 +111,12 @@ class sync_Companies extends sync_Helper
         
         Mode::set('preventNotifications', true);
         
+        $update = (Request::get('update') == 'none') ? false : true;
+        
         foreach ($resArr as $class => $objArr) {
             self::logDebug("$class");
             foreach ($objArr as $id => $rec) {
-                sync_Map::importRec($class, $id, $resArr, $this);
+                sync_Map::importRec($class, $id, $resArr, $this, $update);
             }
         }
         
