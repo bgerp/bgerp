@@ -210,9 +210,12 @@ class sync_Map extends core_Manager
         
         $mvc = cls::get($class);
         $class = $mvc->className;
+        $classId = $mvc->getClassId();
         
-        if (rand(1,20) == 10) {
-            self::logDebug($class . ': ' . $id);
+        static $i;
+
+        if (($i++ % 1000) == 55) {
+            self::logDebug("{$class}: {$id} - " . round(memory_get_usage()/(1024*1024)) . 'MB;');
         }
         
         // В рамките на хита не импортираме повторно два пъти обекта
@@ -235,9 +238,17 @@ class sync_Map extends core_Manager
         if (!$rec) {
             return 0;
         }
-
-
         
+        $haveRec = false;
+        $exRec = null;
+        
+        // Ако в тази (приемащата) система има вече запис съответсващ на импортирания, то го извличаме
+        $exId = self::fetchField("#classId = {$classId} AND #remoteId = {$id}");
+        if ($exId) {
+            $haveRec = true;
+            $exRec = $mvc->fetch($exId);
+        }
+
         $isMapClassRec = false;
         
         // Минаваме по всички полета и
@@ -245,6 +256,11 @@ class sync_Map extends core_Manager
         
         foreach ($fields as $name => $fRec) {
             
+            if($exRec && is_scalar($exRec->{$name}) && strlen($exRec->{$name})) {
+                $rec->{$name} = $exRec->{$name};
+                continue;
+            }
+
             $continue = false;
             foreach (array($mvc->className . '::' . $name, '*::' . $name) as $fKey) {
                 if (array_key_exists($fKey, $controller->fixedExport)) {
@@ -367,27 +383,19 @@ class sync_Map extends core_Manager
             $cRec = crm_Companies::fetch($cid, '*', false);
             $rec->folderId = $cRec->folderId;
         }
-
-        // Вземаме съществуващият запис
-        $classId = $mvc->getClassId();
-        $exId = self::fetchField("#classId = {$classId} AND #remoteId = {$id}", 'localId', false);
+ 
         
         if ($isMapClassRec) {
-            if (!$exId) {
+            if (!$exRec) {
                 $exRec = $rec;
-            } else {
-                $exRec = $mvc->fetch($exId, '*', false);
             }
         } else {
-            if (!$exId) {
+            if (!$exRec) {
                 $exRec = null;
                 $fArr = null;
                 //log_System::add('sync_Map', "Търсим уникалност");
                 $mvc->isUnique($rec, $fArr, $exRec);
-            } else {
-                //log_System::add('sync_Map', "Вадим записа");
-                $exRec = $mvc->fetch($exId, '*', false);
-            }
+            } 
             
             if (!$exRec) {
                 $exRec = $rec;
@@ -409,7 +417,7 @@ class sync_Map extends core_Manager
         $lId = $mvc->save($exRec);
         //log_System::add('sync_Map', "Записахме {$class} {$lId}");
 
-        if (!$exId) {
+        if (!$haveRec) {
             $mRec = (object) array('classId' => $mvc->getClassId(), 'remoteId' => $id, 'localId' => $lId);
             self::save($mRec);
         }
@@ -417,5 +425,13 @@ class sync_Map extends core_Manager
         self::$imported[$class][$id] = $lId;
 
         return $lId;
+    }
+    
+    
+    public static function getLocalId($class, $remoteId)
+    {
+        $classId = cls::get($class)->getClassId();
+        
+        return self::fetchField("#classId = {$classId} AND #remoteId = {$remoteId}", 'localId');
     }
 }
