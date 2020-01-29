@@ -56,9 +56,9 @@ class sync_ProductQuotes extends core_BaseClass
                     'method'  => 'POST'));
                 
                 $context  = stream_context_create($options);
-                $exportUrl = sync_Setup::get('EXPORT_URL');
+                $exportDomain = sync_Setup::get('EXPORT_URL');
                 
-                $exportUrl = rtrim($exportUrl, '/');
+                $exportUrl = rtrim($exportDomain, '/');
                 $exportUrl .= "/cat_Products/remoteexport/?exportId={$remoteId}";
                 
                 @$data = file_get_contents($exportUrl, false, $context);
@@ -67,6 +67,7 @@ class sync_ProductQuotes extends core_BaseClass
                     throw new core_exception_Expect('Проблем при подготовката на данните за експорт', 'Несъответствие');
                 }
                 
+                $data->exportUrl = $exportDomain;
                 $localId = self::import($data);
                 if(!$localId){
                     throw new core_exception_Expect('Проблем при импортирането на артикул', 'Несъответствие');
@@ -132,6 +133,7 @@ class sync_ProductQuotes extends core_BaseClass
             'meta' => $data->meta,
             'quotations' => $data->quotations,
             'folderId' => $folderId,
+            'importedFromDomain' => $data->exportUrl,
         );
         
         $productRec->params = array();

@@ -47,6 +47,7 @@ class cat_ImportedProductDriver extends cat_ProductDriver
      */
     public function addFields(core_Fieldset &$form)
     {
+        $form->FLD('importedFromDomain', 'url', 'caption=Импортиран от,input=none');
         $form->FLD('html', 'html', 'caption=Изглед,before=measureId,input=none');
         $form->FLD('htmlEn', 'html', 'caption=Изглед EN,before=measureId,input=none');
         $form->FLD('quotations', 'blob', 'caption=Данни на оферта,input=none');
