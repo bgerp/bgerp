@@ -96,4 +96,18 @@ class sync_Setup extends core_ProtoSetup
         
         return $description;
     }
+    
+    
+    /**
+     * Инсталиране на пакета
+     */
+    public function install()
+    {
+        $html = parent::install();
+        
+        $Bucket = cls::get('fileman_Buckets');
+        $html .= $Bucket->createBucket('importedProductFiles', 'Файлове от импортирани артикули', null, '1GB', 'user', 'user');
+        
+        return $html;
+    }
 }
