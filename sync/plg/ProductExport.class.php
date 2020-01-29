@@ -126,7 +126,7 @@ class sync_plg_ProductExport extends core_Plugin
         if($action == 'test'){
             $exp = self::getExportData(3985);
             
-            sync_ProductQuotes::import($exp);
+            //sync_ProductQuotes::import($exp);
             
             bp();
         }
@@ -226,12 +226,6 @@ class sync_plg_ProductExport extends core_Plugin
         core_Lg::pop('bg');
         Mode::pop('text');
         
-        //$r = 'http://11.0.0.61/fileman_Download/Download/?fh=hGGdcK';
-        //$l = file_get_contents($r);
-        //$h = fileman::absorbStr($l, 'Notes', 'ggg');
-        //bp($l, $r, $h);
-        
-        
         Mode::push('text', 'xhtml');
         core_Lg::push('en');
         $htmlEnTpl = $Driver->renderProductDescription($descriptionData);
@@ -239,8 +233,7 @@ class sync_plg_ProductExport extends core_Plugin
         core_Lg::pop('en');
         Mode::pop('text');
         core_Users::cancelSystemUser();
-        //core_Users::exitSudo($rec->createdBy);
-        
+       
         $data->html = $htmlTpl;
         $data->htmlEn = $htmlEnTpl;
         

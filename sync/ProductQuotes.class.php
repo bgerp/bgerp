@@ -151,7 +151,8 @@ class sync_ProductQuotes extends core_BaseClass
             if(isset($localParamId)){
                 if(in_array($paramRec->driverClass, array('cond_type_File', 'cond_type_Image'))){
                     if($fileContent = @file_get_contents($obj->value)){
-                        $obj->value = fileman::absorbStr($fileContent, 'importedProductFiles', 'fh');
+                        $fileName = basename($obj->value);
+                        $obj->value = fileman::absorbStr($fileContent, 'importedProductFiles', $fileName);
                     }
                 }
                
