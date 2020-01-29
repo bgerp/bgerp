@@ -102,7 +102,7 @@ class sync_ProductQuotes extends core_BaseClass
         $data = (object) $data;
         
         $data->exportContragentRes = (array)$data->exportContragentRes;
-        sync_Map::importRec($data->contragentClassName, $data->contragentRemoteId, (array)$data->exportContragentRes, cls::get('sync_Companies'));
+        sync_Map::importRec($data->contragentClassName, $data->contragentRemoteId, $data->exportContragentRes, cls::get('sync_Companies'));
         
         $matches = array();
         preg_match_all('/http.*?forceDownload=1/', $data->html, $matches);
