@@ -61,6 +61,7 @@ class sync_ProductQuotes extends core_BaseClass
                 $exportUrl .= "/cat_Products/remoteexport/?exportId={$remoteId}";
                 
                 @$data = file_get_contents($exportUrl, false, $context);
+                wp($data);
                 if($data === 'FALSE'){
                     throw new core_exception_Expect('Проблем при подготовката на данните за експорт', 'Несъответствие');
                 }
