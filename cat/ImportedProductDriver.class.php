@@ -109,7 +109,10 @@ class cat_ImportedProductDriver extends cat_ProductDriver
      */
     public function renderProductDescription($data)
     {
-        unset($data->row->importedFromDomain);
+        if($data->documentType == 'public' ){
+            unset($data->row->importedFromDomain);
+        }
+        
         $tpl = parent::renderProductDescription($data);
         $Embedder = cls::get($data->Embedder);
         
