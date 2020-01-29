@@ -215,7 +215,7 @@ class sync_Map extends core_Manager
         static $i;
 
         if (($i++ % 1000) == 55) {
-            self::logDebug("{$class}: {$id} - " . round(memory_get_usage()/(1024*1024)) . 'MB;');
+            self::logDebug("{$class}: {$id} - " . round(memory_get_usage()/(1024*1024)) . 'MB');
         }
         
         // В рамките на хита не импортираме повторно два пъти обекта
@@ -246,7 +246,7 @@ class sync_Map extends core_Manager
         $exId = self::fetchField("#classId = {$classId} AND #remoteId = {$id}", 'localId');
         if ($exId) {
             $haveRec = true;
-            $exRec = $mvc->fetch($exId, '*', false);
+            $exRec = $mvc->fetch($exId);
         }
 
         $isMapClassRec = false;
@@ -328,7 +328,7 @@ class sync_Map extends core_Manager
                 if ($v = $res[$class][$id]->{$name}) {
                     if ($uf = $controller->globalUniqKeys[$kMvc]) {
                         $kMvc = cls::get($kMvc);
-                        $rec->{$name} = $kMvc->fetchField(array("#{$uf} = '[#1#]'", $rec->{$name}), 'id', false);
+                        $rec->{$name} = $kMvc->fetchField(array("#{$uf} = '[#1#]'", $rec->{$name}));
                     } else {
                         $rec->{$name} = self::importRec($kMvc, $rec->{$name}, $res, $controller);
                     }
@@ -343,7 +343,7 @@ class sync_Map extends core_Manager
                         $kMvc = cls::get($kMvc);
                         $kArrN = array();
                         foreach ($kArr as $key) {
-                            $k = $kMvc->fetchField(array("#{$uf} = '[#1#]'", $key), 'id', false);
+                            $k = $kMvc->fetchField(array("#{$uf} = '[#1#]'", $key));
                             if ($k) {
                                 $kArrN[$k] = $k;
                             }
@@ -380,7 +380,7 @@ class sync_Map extends core_Manager
         // Преобразуваме _companyId към folderId
         if($rec->_companyId) {
             $cid = self::importRec('crm_Companies', $rec->_companyId, $res, $controller);
-            $cRec = crm_Companies::fetch($cid, '*', false);
+            $cRec = crm_Companies::fetch($cid);
             $rec->folderId = $cRec->folderId;
         }
  
