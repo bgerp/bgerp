@@ -123,7 +123,9 @@ class sync_ProductQuotes extends core_BaseClass
             }
         }
         
-        $folderId = cls::get($data->contragentClassId)->forceCoverAndFolder($data->contragentId);
+        $localContragentId = sync_Map::getLocalId($data->contragentClassName, $data->contragentRemoteId);
+        $folderId = cls::get($data->contragentClassName)->forceCoverAndFolder($localContragentId);
+        
         $productRec = (object)array('name' => $data->name,
             'nameEn' => $data->nameEn,
             'innerClass' => cat_ImportedProductDriver::getClassId(),
