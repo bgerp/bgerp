@@ -94,7 +94,7 @@ class sync_ProductQuotes extends core_BaseClass
         shutdown();
     }
     
-    private static function import($data)
+    public static function import($data)
     {
         $data = base64_decode($data);
         $data = gzuncompress($data);
@@ -135,10 +135,13 @@ class sync_ProductQuotes extends core_BaseClass
         );
         
         $productRec->params = array();
+        $data->params = (array)$data->params;
+        
         foreach ($data->params as $obj){
             $localParamId = sync_Map::getLocalId('cat_Params', $obj->remoteId);
+            $paramRec = $obj->paramRec;
+            
             if(!$localParamId){
-                $paramRec = $obj->paramRec;
                 $localParamId = cat_Params::force($paramRec->sysId, $paramRec->name, $paramRec->driverClass, null, $paramRec->suffix, $paramRec->showInTasks);
             
                 $mRec = (object) array('classId' => cls::get('cat_Params')->getClassId(), 'remoteId' => $obj->remoteId, 'localId' => $localParamId);
@@ -151,7 +154,7 @@ class sync_ProductQuotes extends core_BaseClass
                         $obj->value = fileman::absorbStr($fileContent, 'Notes', 'fh');
                     }
                 }
-                
+               
                 $productRec->params[$localParamId] = $obj->value;
             }
         }

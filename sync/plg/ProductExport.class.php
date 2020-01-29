@@ -124,7 +124,11 @@ class sync_plg_ProductExport extends core_Plugin
         }
         
         if($action == 'test'){
-            bp(self::getExportData(3984));
+            $exp = self::getExportData(3985);
+            
+            sync_ProductQuotes::import($exp);
+            
+            bp();
         }
     }
     
