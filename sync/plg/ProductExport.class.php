@@ -124,7 +124,7 @@ class sync_plg_ProductExport extends core_Plugin
         }
         
         if($action == 'test'){
-            bp(self::getExportData(3981));
+            bp(self::getExportData(3984));
         }
     }
     
@@ -170,9 +170,14 @@ class sync_plg_ProductExport extends core_Plugin
             $paramRec = cat_Params::fetch($paramId, 'driverClass,name,suffix,sysId,showInTasks,showInPublicDocuments,isFeature,default');
             unset($paramRec->id); 
             $paramRec->driverClass = cls::getClassName($paramRec->driverClass);
+            if(in_array($paramRec->driverClass, array('cond_type_File', 'cond_type_Image'))){
+                $value = fileman_Download::getDownloadUrl($value);
+                if(!$value) continue;
+            }
+            
             $data->params[$paramId] = (object)array('remoteId' => $paramId, 'value' => $value, 'paramRec' => $paramRec);
         }
-       
+        
         $quotationClassId = sales_Quotations::getClassId();
         
         $data->quotations = $data->packagings = array();
