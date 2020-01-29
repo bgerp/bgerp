@@ -961,7 +961,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             expect($productRec->canConvert == 'yes', 'Артикулът трябва да е вложим');
         }
         
-        expect($packagingId, 'Няма мярка/опаковка');
+        expect($packagingId, 'Няма мярка/опаковка');//bp($rec,$productRec->canStore,$packagingId,cat_UoM::fetch(2));
         expect(cat_UoM::fetch($packagingId), "Няма опаковка/мярка с ид {$packagingId}");
         
         if ($productRec->canStore != 'yes') {
@@ -979,7 +979,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         expect($quantityInPack = $Double->fromVerbal($quantityInPack), "Невалидно к-во {$quantityInPack}");
         expect($packQuantity = $Double->fromVerbal($packQuantity), "Невалидно к-во {$packQuantity}");
         $quantity = $quantityInPack * $packQuantity;
-        
+       
         // Подготовка на записа
         $rec = (object) array('noteId' => $id,
             'type' => ($isWaste) ? 'pop' : 'input',

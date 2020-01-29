@@ -200,4 +200,68 @@ abstract class deals_ManifactureDetail extends doc_Detail
         // Показваме подробната информация за опаковката при нужда
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
     }
+    
+    /**
+     * Импортиране на артикул генериран от ред на csv файл
+     *
+     * @param int   $masterId - ид на мастъра на детайла
+     * @param array $row      - Обект представляващ артикула за импортиране
+     *                        ->code - код/баркод на артикула
+     *                        ->quantity - К-во на опаковката или в основна мярка
+     *                        ->price - цената във валутата на мастъра, ако няма се изчислява директно
+     *                        ->pack - Опаковката
+     *
+     * @return mixed - резултата от експорта
+     */
+    public function import($masterId, $row)
+    {
+        $Master = $this->Master;
+        
+        $pRec = cat_Products::getByCode($row->code);
+        $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
+        $meta = cat_Products::fetch($pRec->productId, $this->metaProducts);
+       
+        if (!$meta->metaProducts) { 
+            $masterThresdId = $Master::fetchField($masterId, 'threadId');
+            
+            if (doc_Threads::getFirstDocument($masterThresdId)->className == 'sales_Sales') {
+                $meta = $meta->canSell;
+            } elseif (doc_Threads::getFirstDocument($masterThresdId)->className == 'purchase_Purchases') {
+                $meta = $meta->canBuy;
+            }elseif (doc_Threads::getFirstDocument($masterThresdId)->className == 'planning_Jobs') {
+                $meta = $meta->canConvert;;
+            }
+        }
+        
+        
+        if ($meta != 'yes') {
+            
+            return;
+        }
+        
+        $productInfo = cat_Products::getProductInfo($pRec->productId);
+        $quantityInPack = ($productInfo->packagings[$pRec->packagingId]) ? $productInfo->packagings[$pRec->packagingId]->quantity : 1;
+        
+        $packQuantity = $row->quantity;
+        
+        if ($pRec->productId) {
+                $measureId = $productInfo->productRec->measureId;
+        }
+        
+        $price = null;
+        
+        // Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
+        if ($row->price) {
+            
+            $packRec = cat_products_Packagings::getPack($pRec->productId,  $pRec->packagingId);
+            $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+            $row->price /= $quantityInPack;
+            
+            $masterRec = $Master->fetch($masterId);
+            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $masterRec->currencyRate, $masterRec->chargeVat);
+            
+        }
+        
+        return $Master::addRow($masterId, $pRec->productId,$pRec->packagingId,$packQuantity, $quantityInPack);
+    }
 }
