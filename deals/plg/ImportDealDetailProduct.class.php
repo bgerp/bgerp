@@ -33,6 +33,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
     public static function on_AfterDescription(core_Mvc $mvc)
     {
         $mvc->declareInterface('deals_DealImportProductIntf');
+        
     }
     
     
@@ -259,8 +260,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                     
                     // Себестойност
                     $selfPrice = cat_Products::getPrimeCost($pRec->productId, null, null, null);
-                    $obj->price = $selfPrice;
-                    
+                   
                     if (!$selfPrice) {
                         $err[$i][] = $obj->code . ' |Артикулът няма себестойност|*';
                     }
@@ -347,7 +347,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         $added = $failed = 0;
         
         foreach ($rows as $row) {
-            
+         
             // Опитваме се да импортираме записа
             try {
                 if ($mvc->import($masterId, $row)) {
@@ -451,7 +451,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             "id=btnAdd-import,{$error},title=Импортиране на артикули",
                 'ef_icon = img/16/import.png,order=15'
             );
-        }
+        }//bp($masterRec,$data->toolbar);
     }
     
     
