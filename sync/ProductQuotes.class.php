@@ -111,7 +111,7 @@ class sync_ProductQuotes extends core_BaseClass
         if (countR($matches[0])) {
             foreach ($matches[0] as $downloadFileUrl){
                 if($fileContent = @file_get_contents($downloadFileUrl)){
-                    $newFh = fileman::absorbStr($fileContent, 'Notes', 'fh');
+                    $newFh = fileman::absorbStr($fileContent, 'importedProductFiles', 'fh');
                     
                     $newDownloadUrl = fileman::generateUrl($newFh, true);
                     $data->html = str_replace($downloadFileUrl, $newDownloadUrl, $data->html);
@@ -151,7 +151,7 @@ class sync_ProductQuotes extends core_BaseClass
             if(isset($localParamId)){
                 if(in_array($paramRec->driverClass, array('cond_type_File', 'cond_type_Image'))){
                     if($fileContent = @file_get_contents($obj->value)){
-                        $obj->value = fileman::absorbStr($fileContent, 'Notes', 'fh');
+                        $obj->value = fileman::absorbStr($fileContent, 'importedProductFiles', 'fh');
                     }
                 }
                
