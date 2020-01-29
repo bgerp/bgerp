@@ -100,6 +100,8 @@ class sync_plg_ProductExport extends core_Plugin
                 cat_Products::logErr("Грешка експорт на артикул: '{$errorCode}' OUTPUT '{$serverOutput}'", $rec->id);
                 followRetUrl(null, 'Грешка при ръчен експорт', 'error');
             }
+            
+            
         }
         
         
@@ -122,7 +124,7 @@ class sync_plg_ProductExport extends core_Plugin
         }
         
         if($action == 'test'){
-            bp(self::getExportData(3974));
+            //bp(self::getExportData(3974));
         }
     }
     
@@ -149,8 +151,8 @@ class sync_plg_ProductExport extends core_Plugin
                               'nameEn' => $rec->nameEn, 
                               'measureId' => $rec->measureId, 
                               'meta' => $rec->meta, 
-                              'contragentClassId' =>$Cover->getClassId(),
-                              'contragentId' => $Cover->that,
+                              'contragentClassName' => $Cover->className,
+                              'contragentRemoteId' => $Cover->that,
                               );
         
         $params = cat_Products::getParams($rec->id);

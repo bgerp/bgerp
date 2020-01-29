@@ -63,7 +63,7 @@ class sync_ProductQuotes extends core_BaseClass
                 
                 @$data = file_get_contents($exportUrl, false, $context);
                 
-                if($data === 'FALSE'){
+                if($data === 'FALSE' || $data === FALSE){
                     throw new core_exception_Expect('Проблем при подготовката на данните за експорт', 'Несъответствие');
                 }
                 
@@ -84,10 +84,6 @@ class sync_ProductQuotes extends core_BaseClass
             
             
         } catch (core_exception_Expect $e){
-            $dump = $e->getDump();
-            //core_Statuses::newStatus($dump[0], 'error');
-            
-            
             $res->localId = null;
             $res->error = $e->getMessage();
             $res->status = 3;
@@ -159,8 +155,6 @@ class sync_ProductQuotes extends core_BaseClass
         $Products->route($productRec);
         $Products->save($productRec);
         $Products->logWrite('Импортиране от друга Bgerp система', $productRec->id);
-        core_Users::cancelSystemUser();
-        
         $productId = $productRec->id;
         
         if(isset($productId)){
@@ -186,6 +180,9 @@ class sync_ProductQuotes extends core_BaseClass
                 }
             }
         }
+        
+        core_Users::cancelSystemUser();
+        
         
         return $productId;
     }
