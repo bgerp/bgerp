@@ -1020,6 +1020,8 @@ abstract class store_DocumentMaster extends core_Master
             if (!isset($discount) && isset($policyInfo->discount)) {
                 $discount = $policyInfo->discount;
             }
+            
+            $price = ($price) ? $price : cat_Products::getPrimeCost($productId, null, null, null);
         }
         
         $packQuantity = cls::get('type_Double')->fromVerbal($packQuantity);
