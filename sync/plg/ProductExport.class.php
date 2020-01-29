@@ -59,7 +59,7 @@ class sync_plg_ProductExport extends core_Plugin
             $importUrl = self::getImportUrl($rec);
             $params = array('remoteId' => $rec->id);
             $httpQuery = http_build_query($params);
-           
+            
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $importUrl);
             curl_setopt($ch, CURLOPT_POST, 1);
@@ -104,11 +104,13 @@ class sync_plg_ProductExport extends core_Plugin
         
         
         if($action == 'remoteexport'){
-            sync_Helper::requireRight('export');
+            //sync_Helper::requireRight('export');
             expect($id = Request::get('exportId', 'int'));
             
             try{
                 $data = self::getExportData($id);
+                //bp($data);
+               // wp($data);
             } catch(core_exception_Expect $e){
                 reportException($e);
                 $data = 'FALSE';
@@ -120,7 +122,7 @@ class sync_plg_ProductExport extends core_Plugin
         }
         
         if($action == 'test'){
-            bp(self::getExportData(3967));
+            bp(self::getExportData(3974));
         }
     }
     
@@ -150,7 +152,16 @@ class sync_plg_ProductExport extends core_Plugin
                               'contragentClassId' =>$Cover->getClassId(),
                               'contragentId' => $Cover->that,
                               );
-        $data->params = cat_Products::getParams($rec->id);
+        
+        $params = cat_Products::getParams($rec->id);
+        $data->params = array();
+        foreach ($params as $paramId => $value){
+            $paramRec = cat_Params::fetch($paramId, 'driverClass,name,suffix,sysId,showInTasks,showInPublicDocuments,isFeature,default');
+            unset($paramRec->id); 
+            $paramRec->driverClass = cls::getClassName($paramRec->driverClass);
+            $data->params[$paramId] = (object)array('remoteId' => $paramId, 'value' => $value, 'paramRec' => $paramRec);
+        }
+       
         $quotationClassId = sales_Quotations::getClassId();
         
         $data->quotations = $data->packagings = array();
@@ -172,11 +183,12 @@ class sync_plg_ProductExport extends core_Plugin
         $packQuery = cat_products_Packagings::getQuery();
         $packQuery->show('packagingId,quantity,isBase,eanCode,sizeWidth,sizeHeight,sizeDepth,tareWeight');
         $packQuery->where("#productId = {$rec->id}");
-        while($packRec = $packQuery->fetch()){
+        while($packRec = $packQuery->fetch()){ 
+            $uomRec = cat_UoM::fetch($packRec->packagingId, 'name,shortName,type,baseUnitId,baseUnitRatio,sysId,isBasic,sinonims,showContents,defQuantity,round,state');
+            unset($uomRec->id);
             unset($packRec->id);
-            $data->packagings[] = $packRec;
+            $data->packagings[] = (object)array('remoteId' => $packRec->packagingId, 'rec' => $packRec, 'uomRec' => $uomRec);
         }
-        
         
         $row = cat_Products::recToVerbal($rec);
        
