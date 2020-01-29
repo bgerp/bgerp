@@ -57,7 +57,7 @@ class sync_ProductQuotes extends core_BaseClass
                 
                 $context  = stream_context_create($options);
                 $exportUrl = sync_Setup::get('EXPORT_URL');
-                $exportUrl = '';
+                
                 $exportUrl = rtrim($exportUrl, '/');
                 $exportUrl .= "/cat_Products/remoteexport/?exportId={$remoteId}";
                 

@@ -59,7 +59,7 @@ class sync_plg_ProductExport extends core_Plugin
             $importUrl = self::getImportUrl($rec);
             $params = array('remoteId' => $rec->id);
             $httpQuery = http_build_query($params);
-           
+            
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $importUrl);
             curl_setopt($ch, CURLOPT_POST, 1);
@@ -104,12 +104,13 @@ class sync_plg_ProductExport extends core_Plugin
         
         
         if($action == 'remoteexport'){
-            sync_Helper::requireRight('export');
+            //sync_Helper::requireRight('export');
             expect($id = Request::get('exportId', 'int'));
             
             try{
                 $data = self::getExportData($id);
-                wp($data);
+                //bp($data);
+               // wp($data);
             } catch(core_exception_Expect $e){
                 reportException($e);
                 $data = 'FALSE';
