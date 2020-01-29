@@ -87,7 +87,8 @@ class cat_ImportedProductDriver extends cat_ProductDriver
             }
         }
         
-        $info = (core_Lg::getCurrent() == 'bg') ? $row->html : $row->htmlEn;
+        $info = tr("|Импортиран от|*: {$row->importedFromDomain} <br>"); 
+        $info .= (core_Lg::getCurrent() == 'bg') ? $row->html : $row->htmlEn;
         if(!empty($row->info)){
             $row->info = $info . "<br>{$row->info}";
         } else {
@@ -97,6 +98,7 @@ class cat_ImportedProductDriver extends cat_ProductDriver
         unset($row->html);
         unset($row->htmlEn);
         unset($row->params);
+        unset($row->importedFromDomain);
     }
     
     
