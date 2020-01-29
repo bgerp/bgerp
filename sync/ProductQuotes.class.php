@@ -89,7 +89,7 @@ class sync_ProductQuotes extends core_BaseClass
             
             
             $res->localId = null;
-            $res->error = $dump[0];
+            $res->error = $e->getMessage();
             $res->status = 3;
             reportException($e);
         }
