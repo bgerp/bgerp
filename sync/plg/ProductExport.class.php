@@ -109,6 +109,7 @@ class sync_plg_ProductExport extends core_Plugin
             
             try{
                 $data = self::getExportData($id);
+                wp($data);
             } catch(core_exception_Expect $e){
                 reportException($e);
                 $data = 'FALSE';
@@ -120,7 +121,7 @@ class sync_plg_ProductExport extends core_Plugin
         }
         
         if($action == 'test'){
-            bp(self::getExportData(3967));
+            bp(self::getExportData(3974));
         }
     }
     
