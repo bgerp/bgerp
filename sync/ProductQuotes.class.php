@@ -67,8 +67,7 @@ class sync_ProductQuotes extends core_BaseClass
                     throw new core_exception_Expect('Проблем при подготовката на данните за експорт', 'Несъответствие');
                 }
                 
-                $data->exportUrl = $exportDomain;
-                $localId = self::import($data);
+                $localId = self::import($data, $exportDomain);
                 if(!$localId){
                     throw new core_exception_Expect('Проблем при импортирането на артикул', 'Несъответствие');
                 }
@@ -95,12 +94,13 @@ class sync_ProductQuotes extends core_BaseClass
         shutdown();
     }
     
-    private static function import($data)
+    private static function import($data, $exportDomain)
     {
         $data = base64_decode($data);
         $data = gzuncompress($data);
         $data = json_decode($data);
         $data = (object) $data;
+        $data->exportUrl = $exportDomain;
         
         core_Users::forceSystemUser();
         
