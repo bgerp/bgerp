@@ -94,7 +94,7 @@ class sync_ProductQuotes extends core_BaseClass
         shutdown();
     }
     
-    public static function import($data)
+    private static function import($data)
     {
         $data = base64_decode($data);
         $data = gzuncompress($data);
