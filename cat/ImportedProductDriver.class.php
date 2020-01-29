@@ -38,7 +38,7 @@ class cat_ImportedProductDriver extends cat_ProductDriver
     /**
      * Иконка за артикула
      */
-    public $icon = 'img/16/ep_old_product.png';
+    public $icon = 'img/16/import.png';
     
     
     /**
