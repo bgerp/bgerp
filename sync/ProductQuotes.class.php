@@ -63,7 +63,7 @@ class sync_ProductQuotes extends core_BaseClass
                 
                 @$data = file_get_contents($exportUrl, false, $context);
                 
-                if($data === 'FALSE'){
+                if($data === 'FALSE' || $data === FALSE){
                     throw new core_exception_Expect('Проблем при подготовката на данните за експорт', 'Несъответствие');
                 }
                 
@@ -101,9 +101,8 @@ class sync_ProductQuotes extends core_BaseClass
         $data = json_decode($data);
         $data = (object) $data;
         
-        //$contragentImportRes = array();
-        //sync_Map::importRec($data->contragentClassId, $data->contragentId, $contragentImportRes, $controller);
-        core_Users::forceSystemUser();
+        $exportContragentRes = (array)$data->exportContragentRes;
+        sync_Map::importRec($data->contragentClassName, $data->contragentRemoteId, $exportContragentRes, cls::get('sync_Companies'));
         
         $matches = array();
         preg_match_all('/http.*?forceDownload=1/', $data->html, $matches);
@@ -119,7 +118,9 @@ class sync_ProductQuotes extends core_BaseClass
             }
         }
         
-        $folderId = cls::get($data->contragentClassId)->forceCoverAndFolder($data->contragentId);
+        $localContragentId = sync_Map::getLocalId($data->contragentClassName, $data->contragentRemoteId);
+        $folderId = cls::get($data->contragentClassName)->forceCoverAndFolder($localContragentId);
+        
         $productRec = (object)array('name' => $data->name,
             'nameEn' => $data->nameEn,
             'innerClass' => cat_ImportedProductDriver::getClassId(),
@@ -153,8 +154,6 @@ class sync_ProductQuotes extends core_BaseClass
         $Products->route($productRec);
         $Products->save($productRec);
         $Products->logWrite('Импортиране от друга Bgerp система', $productRec->id);
-        core_Users::cancelSystemUser();
-        
         $productId = $productRec->id;
         
         if(isset($productId)){
@@ -180,6 +179,9 @@ class sync_ProductQuotes extends core_BaseClass
                 }
             }
         }
+        
+        core_Users::cancelSystemUser();
+        
         
         return $productId;
     }
