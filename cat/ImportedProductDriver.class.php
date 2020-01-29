@@ -87,7 +87,6 @@ class cat_ImportedProductDriver extends cat_ProductDriver
             }
         }
         
-        $info = tr("|Импортиран от|*: {$row->importedFromDomain} <br>"); 
         $info .= (core_Lg::getCurrent() == 'bg') ? $row->html : $row->htmlEn;
         if(!empty($row->info)){
             $row->info = $info . "<br>{$row->info}";
@@ -98,7 +97,6 @@ class cat_ImportedProductDriver extends cat_ProductDriver
         unset($row->html);
         unset($row->htmlEn);
         unset($row->params);
-        unset($row->importedFromDomain);
     }
     
     
@@ -111,6 +109,7 @@ class cat_ImportedProductDriver extends cat_ProductDriver
      */
     public function renderProductDescription($data)
     {
+        unset($data->row->importedFromDomain);
         $tpl = parent::renderProductDescription($data);
         $Embedder = cls::get($data->Embedder);
         
