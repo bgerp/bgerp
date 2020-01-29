@@ -437,10 +437,37 @@ class sync_Map extends core_Manager
     }
     
     
+    /**
+     * Какво локално ид съответства на съответното $remoteId
+     * 
+     * @param mixed $class
+     * @param int $remoteId
+     * @return int
+     */
     public static function getLocalId($class, $remoteId)
     {
         $classId = cls::get($class)->getClassId();
         
         return self::fetchField("#classId = {$classId} AND #remoteId = {$remoteId}", 'localId');
+    }
+    
+    
+    /**
+     * Добавя нов НЕСЪЩЕСТВУВАЩ запис
+     * 
+     * @param mixed $class
+     * @param int $localId
+     * @param int $remoteId
+     * @return int
+     */
+    public static function add($class, $localId, $remoteId)
+    {
+        $classId = cls::get($class)->getClassId();
+        
+        $exLocalId = self::getLocalId($classId, $remoteId);
+        expect(!$exLocalId);
+        
+        $mRec = (object) array('classId' => $classId, 'remoteId' => $remoteId, 'localId' => $localId);
+        sync_Map::save($mRec);
     }
 }

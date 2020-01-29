@@ -72,8 +72,12 @@ class sync_ProductQuotes extends core_BaseClass
                     throw new core_exception_Expect('Проблем при импортирането на артикул', 'Несъответствие');
                 }
                 
-                $mRec = (object) array('classId' => cls::get('cat_Products')->getClassId(), 'remoteId' => $remoteId, 'localId' => $localId);
-                sync_Map::save($mRec);
+                sync_Map::add('cat_Products', $localId, $remoteId);
+                
+                
+                
+                //$mRec = (object) array('classId' => cls::get('cat_Products')->getClassId(), 'remoteId' => $remoteId, 'localId' => $localId);
+                //sync_Map::save($mRec);
                 
                 $res->status = 1;
             } else {
@@ -145,9 +149,11 @@ class sync_ProductQuotes extends core_BaseClass
             
             if(!$localParamId){
                 $localParamId = cat_Params::force($paramRec->sysId, $paramRec->name, $paramRec->driverClass, null, $paramRec->suffix, $paramRec->showInTasks);
-            
-                $mRec = (object) array('classId' => cls::get('cat_Params')->getClassId(), 'remoteId' => $obj->remoteId, 'localId' => $localParamId);
-                sync_Map::save($mRec);
+                sync_Map::add('cat_Params', $localParamId, $obj->remoteId);
+                
+                
+                //$mRec = (object) array('classId' => cls::get('cat_Params')->getClassId(), 'remoteId' => $obj->remoteId, 'localId' => $localParamId);
+               // sync_Map::save($mRec);
             }
             
             if(isset($localParamId)){
@@ -183,8 +189,10 @@ class sync_ProductQuotes extends core_BaseClass
                             $localPackagingId = cat_UoM::save($newUomRec);
                         }
                         
-                        $mRec = (object) array('classId' => cls::get('cat_UoM')->getClassId(), 'remoteId' => $packObject->remoteId, 'localId' => $localPackagingId);
-                        sync_Map::save($mRec);
+                        sync_Map::add('cat_UoM', $localPackagingId, $packObject->remoteId);
+                        
+                        //$mRec = (object) array('classId' => cls::get('cat_UoM')->getClassId(), 'remoteId' => $packObject->remoteId, 'localId' => $localPackagingId);
+                        //sync_Map::save($mRec);
                     }
                     
                     $packObject->rec->packagingId = $localPackagingId;
