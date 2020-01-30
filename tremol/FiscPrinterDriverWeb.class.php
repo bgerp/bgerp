@@ -652,21 +652,23 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
                 
                 // След запис, обновяваме хедър и футъра
                 if ($update) {
-                    if (($update == 'department') || ($update == '1')) {
-                        // Вземаме начините на плащане от ФУ
-                        $setDepartments = toUrl(array($Driver, 'SetDepartments', $data->rec->id), 'local');
-                        $setDepartments = urlencode($setDepartments);
-                        $updateSn = "try {
-                                     var depArr = fpGetDepArr();
-                                     depArr = JSON.stringify(depArr);
-                                     getEfae().process({url: '{$setDepartments}'}, {depArr: depArr});
-                                 } catch(ex) {
-                                     render_showToast({timeOut: 800, text: '" . tr('Грешка при добавяне на плащания') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
-                                 }";
+                    
+                    // @todo - временно е спряно
+//                     if (($update == 'department') || ($update == '1')) {
+//                         // Вземаме начините на плащане от ФУ
+//                         $setDepartments = toUrl(array($Driver, 'SetDepartments', $data->rec->id), 'local');
+//                         $setDepartments = urlencode($setDepartments);
+//                         $updateSn = "try {
+//                                      var depArr = fpGetDepArr();
+//                                      depArr = JSON.stringify(depArr);
+//                                      getEfae().process({url: '{$setDepartments}'}, {depArr: depArr});
+//                                  } catch(ex) {
+//                                      render_showToast({timeOut: 800, text: '" . tr('Грешка при добавяне на плащания') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
+//                                  }";
                         
-                        $jsTpl->prepend($updateSn, 'OTHER');
+//                         $jsTpl->prepend($updateSn, 'OTHER');
                         
-                    }
+//                     }
                     
                     if (($update == 'sn') || ($update == '1')) {
                         // Вземаме серийния номер от ФУ
