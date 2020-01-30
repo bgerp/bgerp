@@ -129,7 +129,7 @@ class sync_plg_ProductExport extends core_Plugin
         //@TODO тестов екшън да се премахне
         if($action == 'test'){
             requireRole('debug');
-            $exp = self::getExportData(3985);
+            $exp = self::getExportData(3993);
             bp($exp);
         }
     }
@@ -157,6 +157,10 @@ class sync_plg_ProductExport extends core_Plugin
     private static function getExportData($rec)
     {
         $rec = cat_Products::fetchRec($rec);
+        
+       
+        
+        
         $Driver = cat_Products::getDriver($rec);
         $Cover = doc_Folders::getCover($rec->folderId);
         
@@ -243,7 +247,8 @@ class sync_plg_ProductExport extends core_Plugin
         Mode::pop('text');
         core_Users::cancelSystemUser();
        
-        $measureRec = cat_UoM::fetch($rec->measureId, 'name,shortName,type,baseUnitId,baseUnitRatio,sysId,isBasic,sinonims,showContents,defQuantity,round,state');cat_UoM::fetch($packRec->packagingId, 'name,shortName,type,baseUnitId,baseUnitRatio,sysId,isBasic,sinonims,showContents,defQuantity,round,state');
+        
+        $measureRec = cat_UoM::fetch($rec->measureId, 'name,shortName,type,baseUnitId,baseUnitRatio,sysId,isBasic,sinonims,showContents,defQuantity,round,state');
         $data->measureRec = $measureRec;
         $data->html = $htmlTpl;
         $data->htmlEn = $htmlEnTpl;
