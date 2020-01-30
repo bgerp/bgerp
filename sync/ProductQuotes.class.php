@@ -2,7 +2,7 @@
 
 
 /**
- * Импортиране на артикули
+ * Импортиране на артикули от друга Bgerp система
  *
  *
  * @category  bgerp
@@ -13,7 +13,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Импортиране на артикули
+ * @title     Импортиране на артикули от друга Bgerp система
  */
 class sync_ProductQuotes extends core_BaseClass
 {
@@ -36,7 +36,7 @@ class sync_ProductQuotes extends core_BaseClass
     
     
     /**
-     * Импортира транспортна услуга и я добавя към чернова покупка
+     * Импортира артикул от друга Bgerp система
      */
     public function act_Import()
     {
@@ -44,11 +44,13 @@ class sync_ProductQuotes extends core_BaseClass
         $res = new stdClass();
         
         try{
+            // Кое отдалечено ид ще се очаква за импорт
             $remoteId = Request::get('remoteId', 'int');
             if(!$remoteId){
                 throw new core_exception_Expect('Невалидно remoteId', 'Несъответствие');
             }
             
+            // Проверка дали вече не е импортирано
             $localId = sync_Map::getLocalId('cat_Products', $remoteId);
             if(empty($localId)){
                 $options = array('http' => array(
@@ -78,41 +80,60 @@ class sync_ProductQuotes extends core_BaseClass
             } else {
                 $res->status = 2;
             }
-            
             $res->localId = $localId;
             
-            
         } catch (core_exception_Expect $e){
+            
+            // Ако има грешка по експорта показва се
             $res->localId = null;
             $res->error = $e->getMessage();
             $res->status = 3;
             reportException($e);
         }
         
+        // Връщане на обекта с резултата на импорта
         echo json_encode($res);
         shutdown();
     }
     
+    
+    /**
+     * Импорт на артикула по подадените данни за експорт.
+     * Артикулът влиза с драйвер cat_ImportedProductDriver
+     * @see cat_ImportedProductDriver
+     * 
+     * @param stdClass $data
+     * @param string $exportDomain
+     * 
+     * @return int $productId
+     */
     private static function import($data, $exportDomain)
     {
+        // Разкриптиране на данните за импорт
         $data = base64_decode($data);
         $data = gzuncompress($data);
         $data = json_decode($data);
         $data = (object) $data;
         $data->exportUrl = $exportDomain;
         
+        // Импортираните записи, ще са направени от системния потребител
         core_Users::forceSystemUser();
         
+        // Импортиране на контрагента, ако е нужно
         $exportContragentRes = (array)$data->exportContragentRes;
         sync_Map::importRec($data->contragentClassName, $data->contragentRemoteId, $exportContragentRes, cls::get('sync_Companies'));
         
+        // Подмяна на линковете за сваляне на файловете от хтмл-а
         $matches = array();
         preg_match_all('/http.*?forceDownload=1/', $data->html, $matches);
         if (countR($matches[0])) {
             foreach ($matches[0] as $downloadFileUrl){
+                
+                // Ако е открит линк за сваляне на файл, файла се сваля и абсорбира в системата
                 if($fileContent = @file_get_contents($downloadFileUrl)){
                     $newFh = fileman::absorbStr($fileContent, 'importedProductFiles', 'fh');
                     
+                    // Урл-то за сваляне, се подменя с такова за сваляне в приемащата система
                     $newDownloadUrl = fileman::generateUrl($newFh, true);
                     $data->html = str_replace($downloadFileUrl, $newDownloadUrl, $data->html);
                     $data->htmlEn = str_replace($downloadFileUrl, $newDownloadUrl, $data->htmlEn);
@@ -120,9 +141,11 @@ class sync_ProductQuotes extends core_BaseClass
             }
         }
         
+        // Мапване на контрагента, и форсиране на папка
         $localContragentId = sync_Map::getLocalId($data->contragentClassName, $data->contragentRemoteId);
         $folderId = cls::get($data->contragentClassName)->forceCoverAndFolder($localContragentId);
         
+        // Проверка има ли я мапната основната мярка в системата, ако не се импортира при нужда и мапва
         $localBaseMeasureId = sync_Map::getLocalId('cat_UoM', $data->measureRec->id);
         if(!$localBaseMeasureId){
             $newBaseUomRec = clone $data->measureRec;
@@ -136,6 +159,7 @@ class sync_ProductQuotes extends core_BaseClass
            sync_Map::add('cat_UoM', $localBaseMeasureId, $data->measureRec->id);
         }
         
+        // Попълват се данните на драйвера за импортиран артикул
         $productRec = (object)array('name' => $data->name,
             'nameEn' => $data->nameEn,
             'innerClass' => cat_ImportedProductDriver::getClassId(),
@@ -148,44 +172,55 @@ class sync_ProductQuotes extends core_BaseClass
             'importedFromDomain' => $data->exportUrl,
         );
         
+        // Импортиране на параметри
         $productRec->params = array();
         $data->params = (array)$data->params;
-        
         foreach ($data->params as $obj){
+            
+            // Мапване на параметъра
             $localParamId = sync_Map::getLocalId('cat_Params', $obj->remoteId);
             $paramRec = $obj->paramRec;
             
+            // Ако няма такъв се създава и мапва
             if(!$localParamId){
                 $localParamId = cat_Params::force($paramRec->sysId, $paramRec->name, $paramRec->driverClass, null, $paramRec->suffix, $paramRec->showInTasks);
                 sync_Map::add('cat_Params', $localParamId, $obj->remoteId);
             }
             
+            // Ако има намерен параметър и той е с драйвер за качен файл
             if(isset($localParamId)){
                 if(in_array($paramRec->driverClass, array('cond_type_File', 'cond_type_Image'))){
+                    
+                    // Абсорбиране на файла от урл-то за сваляне и подмяна с хендлъра към новия файл
                     if($fileContent = @file_get_contents($obj->value)){
                         $fileName = basename($obj->value);
                         $obj->value = fileman::absorbStr($fileContent, 'importedProductFiles', $fileName);
                     }
                 }
                
+                // Записване на стойността на параметъра, съответстваща на локалния ключ
                 $productRec->params[$localParamId] = $obj->value;
             }
         }
         
         $productRec->quotations = $data->quotations;
         
+        // Артикулът се създава
         $Products = cls::get('cat_Products');
         $Products->route($productRec);
         $Products->save($productRec);
         $Products->logWrite('Импортиране от друга Bgerp система', $productRec->id);
         $productId = $productRec->id;
         
+        // Ако е създаден артикул и има опаковки за импорт
         if(isset($productId)){
-            
             if(countR($data->packagings)){
                 foreach ($data->packagings as $packObject){
                     
+                    // Мапване на опаковката
                     $localPackagingId = sync_Map::getLocalId('cat_UoM', $packObject->remoteId);
+                    
+                    // Ако не е мапната и не съществува се форсира нова
                     if(!$localPackagingId){
                         $newUomRec = $packObject->uomRec;
                         $localPackagingId = cat_UoM::fetchBySinonim($newUomRec->name)->id;
@@ -196,6 +231,7 @@ class sync_ProductQuotes extends core_BaseClass
                         sync_Map::add('cat_UoM', $localPackagingId, $packObject->remoteId);
                     }
                     
+                    // Импортиране на опаковките, но с подменено ид на опаковката/мярката
                     $packObject->rec->packagingId = $localPackagingId;
                     $packObject->rec->productId = $productId;
                     cat_products_Packagings::save($packObject->rec);
@@ -204,7 +240,6 @@ class sync_ProductQuotes extends core_BaseClass
         }
         
         core_Users::cancelSystemUser();
-        
         
         return $productId;
     }
