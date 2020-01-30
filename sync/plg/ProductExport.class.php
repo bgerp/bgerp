@@ -35,7 +35,9 @@ class sync_plg_ProductExport extends core_Plugin
     {
         // Добавяне на бутон за експорт на артикул
         if ($mvc->haveRightFor('syncexport', $data->rec)) {
-            $data->toolbar->addBtn('Експорт', array($mvc, 'syncexport', $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/arrow_refresh.png,title=Синхронизиране на артикула с друга Bgerp система');
+            $exportUrl = sync_Setup::get('EXPORT_URL');
+            $warning = "Наистина ли желаете да синхронизирате с|*: {$exportUrl}";
+            $data->toolbar->addBtn('Синхронизация', array($mvc, 'syncexport', $data->rec->id, 'ret_url' => true), "ef_icon = img/16/arrow_refresh.png,title=Синхронизиране на артикула с друга Bgerp система,warning={$warning}");
         }
     }
     
@@ -106,13 +108,11 @@ class sync_plg_ProductExport extends core_Plugin
                 cat_Products::logErr("Грешка експорт на артикул: '{$errorCode}' OUTPUT '{$serverOutput}'", $rec->id);
                 followRetUrl(null, 'Грешка при ръчен експорт', 'error');
             }
-            
-            
         }
         
         // Екшън който 'сервира' данните за експорт на артикула
         if($action == 'remoteexport'){
-            //sync_Helper::requireRight('export');
+            sync_Helper::requireRight('export');
             expect($id = Request::get('exportId', 'int'));
             
             try{
@@ -153,14 +153,15 @@ class sync_plg_ProductExport extends core_Plugin
     }
     
     
-    // Връща данните за експорт на артикул във формат за драйвера cat_ImportedProductDriver
+    /**
+     * Връща данните за експорт на артикул във формат за драйвера cat_ImportedProductDriver
+     * 
+     * @param stdClass $rec
+     * @return stdClass $data
+     */
     private static function getExportData($rec)
     {
         $rec = cat_Products::fetchRec($rec);
-        
-       
-        
-        
         $Driver = cat_Products::getDriver($rec);
         $Cover = doc_Folders::getCover($rec->folderId);
         
@@ -247,7 +248,6 @@ class sync_plg_ProductExport extends core_Plugin
         Mode::pop('text');
         core_Users::cancelSystemUser();
        
-        
         $measureRec = cat_UoM::fetch($rec->measureId, 'name,shortName,type,baseUnitId,baseUnitRatio,sysId,isBasic,sinonims,showContents,defQuantity,round,state');
         $data->measureRec = $measureRec;
         $data->html = $htmlTpl;
