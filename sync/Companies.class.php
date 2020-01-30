@@ -112,7 +112,7 @@ class sync_Companies extends sync_Helper
         $update = (Request::get('update') == 'none') ? false : true;
         
         foreach ($resArr as $class => $objArr) {
-            self::logDebug("$class");
+            self::logDebug($class . ': ' . countR($objArr));
             foreach ($objArr as $id => $rec) {
                 sync_Map::importRec($class, $id, $resArr, $this, $update);
             }
