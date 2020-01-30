@@ -83,12 +83,6 @@
 			if (j>=matrix[i].length) j=matrix[i].length-1;
 			elements.removeClass('selected');
 			current = $(matrix[i][j]);
-
-				$('#result-holder').animate({
-					scrollTop:  current.offset().top - $('#result-holder').height() + 10
-				}, 0);
-
-
 			current.addClass('selected');
 			if (!isItVisible($(current))) {
 				$(current)[0].scrollIntoView();
@@ -102,11 +96,15 @@
 
 		$(window).bind("click",  function(event) {
 			var element = $(event.target).closest('.navigable');
-			if (element.length) {
+			if($(element).length) {
+				$('.navigable').removeClass('selected');
+				sessionStorage.setItem('focused', $(this).attr('id'));
+
 				current = $(element);
 				var currentPosition = findCurrent();
 				setCurrent(currentPosition[0], currentPosition[1]);
 			}
+
 		});
 		if (isTouchDevice()) {
 			$(window).bind("contextmenu", function(event) {

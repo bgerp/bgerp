@@ -76,30 +76,12 @@ function posActions() {
 	
 	// Добавяне на партида
 	$(document.body).on('click', ".resultBatch", function(e){
-		var url = $(this).attr("data-url");
-		if(!url) return;
-		
-		resObj = new Object();
-		resObj['url'] = url;
-		
-		var selectedElement = $(".highlighted.productRow");
-		var selectedRecId = selectedElement.attr("data-id");
-		
-		getEfae().process(resObj, {recId:selectedRecId});
+		addResultByDataUrl(this);
 	});
 	
 	// Добавяне 
 	$(document.body).on('click', ".textResult", function(e){
-		var url = $(this).attr("data-url");
-		if(!url) return;
-		
-		resObj = new Object();
-		resObj['url'] = url;
-		
-		var selectedElement = $(".highlighted.productRow");
-		var selectedRecId = selectedElement.attr("data-id");
-		
-		getEfae().process(resObj, {recId:selectedRecId});
+		addResultByDataUrl(this);
 	});
 	
 	
@@ -210,15 +192,7 @@ function posActions() {
 	
 	// При клик на бутон добавя отстъпка
 	$(document.body).on('click', ".discountBtn", function(e){
-		var url = $(this).attr("data-url");
-		
-		var selectedElement = $(".highlighted.productRow");
-		var selectedRecId = selectedElement.attr("data-id");
-		
-		resObj = new Object();
-		resObj['url'] = url;
-		
-		getEfae().process(resObj, {recId:selectedRecId});
+		addResultByDataUrl(this);
 	});
 
 	// Избор на контрагент
@@ -328,13 +302,6 @@ function posActions() {
 	});
 	startNavigation();
 
-	$(document.body).on('click', ".navigable", function(e){
-		$('.navigable').removeClass('selected');
-		$(this).addClass('selected');
-		sessionStorage.setItem('focused', $(this).attr('id'));
-	});
-
-
 	// Триене на символи от формата за търсене
 	$(document.body).on('click', ".keyboard-back-btn", function(e){
 		var inpValLength = $(".keyboardText").text().length;
@@ -392,59 +359,20 @@ function posActions() {
 		activeInput = false;
 		scrollToHighlight();
 	});
-	
-	
-	// След въвеждане на стойност, прави заявка по Ajax
-	$(document.body).on('change', "select[name=operation]", function(e){
-		clearTimeout(timeout);
-		var operation = $(this).val();
-		
-		var selectedElement = $(".selected");
-		var selectedRecId = selectedElement.attr("data-id");
-		
-		var url = $(this).attr("data-url");
-		resObj = new Object();
-		resObj['url'] = url;
-		
-		getEfae().process(resObj, {operation:operation,recId:selectedRecId});
-	});
 
 	var eventType;
 	if (isTouchDevice()) {
 		eventType = "click";
 	} else {
-		eventType = "dblclick";
+		eventType = "click";
 	}
 
 	// Добавяне на продукт от резултатите за търсене
 	$(document.body).on(eventType, ".pos-add-res-btn", function(e){
-		clearTimeout(timeout);
-		
-		var elemRow = $(this).closest('.receiptRow');
-		$(elemRow).addClass('highlighted');
-		var url = $(this).attr("data-url");
-		var productId = $(this).attr("data-productId");
-		
-		resObj = new Object();
-		resObj['url'] = url;
-		var data = {productId:productId};
-		
-		// При добавяне на артикул ако в инпута има написано число или число и * да го третира като число
-		var quantity = $("input[name=ean]").val();
-		quantity = $.trim(quantity);
-		quantity = quantity.replace("*", "");
-		
-		// Подаване и на количеството от инпута
-		if(quantity && $.isNumeric(quantity) && quantity > 0){
-			data.string = quantity;
-		}
-		
-		getEfae().process(resObj, data);
-		calculateWidth();
-		
-		activeInput = false;
+		addProduct(this);
 	});
-	
+
+
 	// При натискане на бутон с резултати да се чисти таймаута
 	$(document.body).on('click', ".posBtns", function(e){
 		activeInput = false;
@@ -478,16 +406,7 @@ function posActions() {
 
 	// При натискане на бутона за задаване на цена
 	$(document.body).on('click', "div.resultPrice", function(e){
-		var url = $(this).attr("data-url");
-		if(!url) return;
-		
-		resObj = new Object();
-		resObj['url'] = url;
-		
-		var selectedElement = $(".highlighted.productRow");
-		var selectedRecId = selectedElement.attr("data-id");
-		
-		getEfae().process(resObj, {recId:selectedRecId});
+		addResultByDataUrl(this);
 	});
 
 	// При отваряне на нова бележка маха се фокусирания елемент
@@ -775,7 +694,6 @@ function doPayment(url, type){
 	getEfae().process(resObj, data);
 
 	$("input[name=ean]").val("");
-	scrollRecieptBottom();
 }
 
 // При натискане на pageUp
@@ -1211,4 +1129,45 @@ function disableOrEnableEnlargeBtn()
 		$(".enlargeProductBtn").addClass('disabledBtn');
 		$(".enlargeProductBtn").attr('disabled', 'disabled');
 	}
+}
+
+function addProduct(el) {
+	clearTimeout(timeout);
+
+	var elemRow = $(el).closest('.receiptRow');
+	$(elemRow).addClass('highlighted');
+	var url = $(el).attr("data-url");
+	var productId = $(el).attr("data-productId");
+
+	resObj = new Object();
+	resObj['url'] = url;
+	var data = {productId:productId};
+
+	// При добавяне на артикул ако в инпута има написано число или число и * да го третира като число
+	var quantity = $("input[name=ean]").val();
+	quantity = $.trim(quantity);
+	quantity = quantity.replace("*", "");
+
+	// Подаване и на количеството от инпута
+	if(quantity && $.isNumeric(quantity) && quantity > 0){
+		data.string = quantity;
+	}
+
+	getEfae().process(resObj, data);
+	calculateWidth();
+
+	activeInput = false;
+}
+
+function addResultByDataUrl(el) {
+	var url = $(el).attr("data-url");
+	if(!url) return;
+
+	resObj = new Object();
+	resObj['url'] = url;
+
+	var selectedElement = $(".highlighted.productRow");
+	var selectedRecId = selectedElement.attr("data-id");
+
+	getEfae().process(resObj, {recId:selectedRecId});
 }
