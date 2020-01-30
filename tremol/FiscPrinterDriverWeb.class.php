@@ -666,7 +666,9 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
                         
                         $jsTpl->prepend($updateSn, 'OTHER');
                         
-                    } elseif (($update == 'sn') || ($update == '1')) {
+                    }
+                    
+                    if (($update == 'sn') || ($update == '1')) {
                         // Вземаме серийния номер от ФУ
                         $setSerialUrl = toUrl(array($Driver, 'setSerialNumber', $data->rec->id), 'local');
                         $setSerialUrl = urlencode($setSerialUrl);
@@ -676,7 +678,9 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
                                      render_showToast({timeOut: 800, text: '" . tr('Грешка при обновяване на серийния номер') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
                                  }";
                         $jsTpl->prepend($updateSn, 'OTHER');
-                    } elseif (($update == 'opass') || ($update == '1')) {
+                    }
+                    
+                    if (($update == 'opass') || ($update == '1')) {
                         // Вземаме паролата от ФУ
                         $setOperPassUrl = toUrl(array($Driver, 'SetOperPass', $data->rec->id), 'local');
                         $setOperPassUrl = urlencode($setOperPassUrl);
@@ -688,7 +692,9 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
                                  }";
                         
                         $jsTpl->prepend($updateSn, 'OTHER');
-                    } elseif (($update == 'payments') || ($update == '1')) {
+                    }
+                    
+                    if (($update == 'payments') || ($update == '1')) {
                         // Вземаме начините на плащане от ФУ
                         $setDefaultPaymenst = toUrl(array($Driver, 'SetDefPayments', $data->rec->id), 'local');
                         $setDefaultPaymenst = urlencode($setDefaultPaymenst);
@@ -701,7 +707,9 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
                                  }";
                         
                         $jsTpl->prepend($updateSn, 'OTHER');
-                    } elseif (($update == 'date') || ($update == '1')) {
+                    }
+                    
+                    if (($update == 'date') || ($update == '1')) {
                         // Сверяваме времето
                         $now = json_encode(date('d-m-Y H:i:s'));
                         $updateTime = "try {
@@ -710,7 +718,9 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
                                     render_showToast({timeOut: 800, text: '" . tr('Не може да се синхронизира времето') . ": ' + ex.message, isSticky: false, stayTime: 12000, type: 'warning'});
                                 }";
                         $jsTpl->prepend($updateTime, 'OTHER');
-                    } elseif (($update == 'hf') || ($update == '1')) {
+                    }
+                    
+                    if (($update == 'hf') || ($update == '1')) {
                         // Нулираме другихте хедъри
                         $headersTextStr = '';
                         
