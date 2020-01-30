@@ -86,7 +86,6 @@ class sync_plg_ProductExport extends core_Plugin
                         $msg = "|Артикулът е експортиран успешно|* ";
                     }
                     
-                    $msg .= "#Art{$res->localId}";
                     followRetUrl(null, $msg, 'notice');
                 } else {
                     cat_Products::logErr("Грешка при ръчен експорт: '{$res->error}'", $rec->id);
@@ -111,8 +110,6 @@ class sync_plg_ProductExport extends core_Plugin
             
             try{
                 $data = self::getExportData($id);
-                //bp($data);
-               // wp($data);
             } catch(core_exception_Expect $e){
                 reportException($e);
                 $data = 'FALSE';
@@ -154,19 +151,13 @@ class sync_plg_ProductExport extends core_Plugin
         $exportContragentRes = array();
         sync_Map::exportRec($Cover->className, $Cover->that, $exportContragentRes, cls::get('sync_Companies'));
         
-        
-        
         $data = (object)array('name' => $rec->name, 
                               'nameEn' => $rec->nameEn, 
-                              'measureId' => $rec->measureId, 
                               'meta' => $rec->meta, 
                               'contragentClassName' => $Cover->className,
                               'contragentRemoteId' => $Cover->that,
                               'exportContragentRes' => $exportContragentRes,
                               );
-        
-        //bp($exportContragentRes);
-        
         
         $params = cat_Products::getParams($rec->id);
         $data->params = array();
@@ -234,6 +225,9 @@ class sync_plg_ProductExport extends core_Plugin
         Mode::pop('text');
         core_Users::cancelSystemUser();
        
+        $measureRec = cat_UoM::fetch($rec->measureId, 'name,shortName,type,baseUnitId,baseUnitRatio,sysId,isBasic,sinonims,showContents,defQuantity,round,state');cat_UoM::fetch($packRec->packagingId, 'name,shortName,type,baseUnitId,baseUnitRatio,sysId,isBasic,sinonims,showContents,defQuantity,round,state');
+        $data->measureRec = $measureRec;
+        
         $data->html = $htmlTpl;
         $data->htmlEn = $htmlEnTpl;
         

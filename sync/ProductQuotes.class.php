@@ -74,11 +74,6 @@ class sync_ProductQuotes extends core_BaseClass
                 
                 sync_Map::add('cat_Products', $localId, $remoteId);
                 
-                
-                
-                //$mRec = (object) array('classId' => cls::get('cat_Products')->getClassId(), 'remoteId' => $remoteId, 'localId' => $localId);
-                //sync_Map::save($mRec);
-                
                 $res->status = 1;
             } else {
                 $res->status = 2;
@@ -128,12 +123,25 @@ class sync_ProductQuotes extends core_BaseClass
         $localContragentId = sync_Map::getLocalId($data->contragentClassName, $data->contragentRemoteId);
         $folderId = cls::get($data->contragentClassName)->forceCoverAndFolder($localContragentId);
         
+        $localBaseMeasureId = sync_Map::getLocalId('cat_UoM', $data->measureRec->id);
+        if(!$localBaseMeasureId){
+            $newBaseUomRec = clone $data->measureRec;
+            unset($newBaseUomRec->id);
+            
+            $localBaseMeasureId = cat_UoM::fetchBySinonim($newBaseUomRec->name)->id;
+            if(!$localBaseMeasureId){
+                $localBaseMeasureId = cat_UoM::save($newBaseUomRec);
+           }
+           
+           sync_Map::add('cat_UoM', $localBaseMeasureId, $data->measureRec->id);
+        }
+        
         $productRec = (object)array('name' => $data->name,
             'nameEn' => $data->nameEn,
             'innerClass' => cat_ImportedProductDriver::getClassId(),
             'html' => $data->html,
             'htmlEn' => $data->htmlEn,
-            'measureId' => $data->measureId,
+            'measureId' => $localBaseMeasureId,
             'meta' => $data->meta,
             'quotations' => $data->quotations,
             'folderId' => $folderId,
@@ -150,10 +158,6 @@ class sync_ProductQuotes extends core_BaseClass
             if(!$localParamId){
                 $localParamId = cat_Params::force($paramRec->sysId, $paramRec->name, $paramRec->driverClass, null, $paramRec->suffix, $paramRec->showInTasks);
                 sync_Map::add('cat_Params', $localParamId, $obj->remoteId);
-                
-                
-                //$mRec = (object) array('classId' => cls::get('cat_Params')->getClassId(), 'remoteId' => $obj->remoteId, 'localId' => $localParamId);
-               // sync_Map::save($mRec);
             }
             
             if(isset($localParamId)){
@@ -190,9 +194,6 @@ class sync_ProductQuotes extends core_BaseClass
                         }
                         
                         sync_Map::add('cat_UoM', $localPackagingId, $packObject->remoteId);
-                        
-                        //$mRec = (object) array('classId' => cls::get('cat_UoM')->getClassId(), 'remoteId' => $packObject->remoteId, 'localId' => $localPackagingId);
-                        //sync_Map::save($mRec);
                     }
                     
                     $packObject->rec->packagingId = $localPackagingId;
