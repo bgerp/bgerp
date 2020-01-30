@@ -93,7 +93,7 @@ class sync_Companies extends sync_Helper
     {
         self::requireRight('import');
         
-        ini_set('memory_limit', '6024M');
+        ini_set('memory_limit', '2048M');
         
         expect(core_Packs::isInstalled('crm'));
         
