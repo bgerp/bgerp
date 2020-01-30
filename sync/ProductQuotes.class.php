@@ -183,7 +183,7 @@ class sync_ProductQuotes extends core_BaseClass
             
             // Ако няма такъв се създава и мапва
             if(!$localParamId){
-                $localParamId = cat_Params::force($paramRec->sysId, $paramRec->name, $paramRec->driverClass, null, $paramRec->suffix, $paramRec->showInTasks);
+                $localParamId = cat_Params::force($paramRec->sysId, $paramRec->name, $paramRec->driverClass, $paramRec->options, $paramRec->suffix, $paramRec->showInTasks);
                 sync_Map::add('cat_Params', $localParamId, $obj->remoteId);
             }
             

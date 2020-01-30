@@ -181,7 +181,7 @@ class sync_plg_ProductExport extends core_Plugin
         $data->params = array();
         $params = cat_Products::getParams($rec->id);
         foreach ($params as $paramId => $value){
-            $paramRec = cat_Params::fetch($paramId, 'driverClass,name,suffix,sysId,showInTasks,showInPublicDocuments,isFeature,default');
+            $paramRec = cat_Params::fetch($paramId);
             unset($paramRec->id); 
             $paramRec->driverClass = cls::getClassName($paramRec->driverClass);
             
