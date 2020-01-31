@@ -81,6 +81,7 @@ class sync_ProductQuotes extends core_BaseClass
                 $res->status = 2;
             }
             $res->localId = $localId;
+            $res->url = toUrl(array('cat_Products', 'single', $localId), 'absolute');
             
         } catch (core_exception_Expect $e){
             
