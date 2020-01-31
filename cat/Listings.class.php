@@ -471,7 +471,7 @@ class cat_Listings extends core_Master
             
             // Ако за тази папка има избран лист не се създава
             $condId = cond_ConditionsToCustomers::fetchByCustomer($Cover->getClassId(), $Cover->that, $paramId);
-            $autoListId = cat_Listings::fetchField("#sysId = 'auto{$folderId}'");
+            $autoListId = cat_Listings::fetchField("#sysId = 'auto{$folderId}' AND #state != 'rejected'");
             
             if (!empty($condId) && empty($autoListId)) {
                 continue;
