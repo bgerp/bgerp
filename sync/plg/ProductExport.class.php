@@ -91,7 +91,15 @@ class sync_plg_ProductExport extends core_Plugin
                         $msg = "|Артикулът е експортиран успешно|* ";
                     }
                     
-                    followRetUrl(null, $msg, 'notice');
+                    // Ако върнатото урл е оторизирано потребителя ще се редиректва към него
+                    $redirectUrl = getRetUrl();
+                    if(core_Packs::isInstalled('remote')){
+                        if($remoteUrl = remote_Authorizations::getAutoLoginUrl($res->url)){
+                            $redirectUrl = $remoteUrl;
+                        }
+                    }
+                    
+                    redirect($redirectUrl, true, $msg);
                 } else {
                     
                     // Ако е върната грешла, се показва подходящо съобщение
@@ -131,6 +139,12 @@ class sync_plg_ProductExport extends core_Plugin
         if($action == 'test'){
             requireRole('debug');
             $exp = self::getExportData(4005);
+            
+            
+            //$remoteUrl = remote_Authorizations::getAutoLoginUrl($url);
+            
+            
+            
             bp($exp);
         }
     }
