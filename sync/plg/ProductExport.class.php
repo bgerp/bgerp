@@ -118,6 +118,7 @@ class sync_plg_ProductExport extends core_Plugin
             try{
                 $data = self::getExportData($id);
             } catch(core_exception_Expect $e){
+                cat_Products::logErr("Грешка подготовка на данни за експорт");
                 reportException($e);
                 $data = 'FALSE';
             }
@@ -164,6 +165,7 @@ class sync_plg_ProductExport extends core_Plugin
         $rec = cat_Products::fetchRec($rec);
         $Driver = cat_Products::getDriver($rec);
         $Cover = doc_Folders::getCover($rec->folderId);
+        expect($Cover->isInstanceOf('crm_Companies'));
         
         // Подготовка на данните за експорт на контрагента, ако е нужно
         $exportContragentRes = array();
@@ -278,6 +280,17 @@ class sync_plg_ProductExport extends core_Plugin
                 $requiredRoles = 'no_one';
             } elseif($rec->state == 'rejected'){
                 $requiredRoles = 'no_one';
+            } else {
+                $Cover = doc_Folders::getCover($rec->folderId);
+                if(!$Cover->haveInterface('crm_CompanyAccRegIntf')){
+                    $requiredRoles = 'no_one';
+                } else {
+                    $groupId = sync_Setup::get('COMPANY_GROUP');
+                    $groupList = $Cover->fetchField($Cover->groupsField);
+                    if(empty($groupId) || !keylist::isIn($groupId, $groupList)){
+                        $requiredRoles = 'no_one';
+                    }
+                }
             }
         }
     }
