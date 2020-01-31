@@ -127,10 +127,11 @@ class unipi_Neuron extends sens2_ProtoDriver
     public function readInputs($inputs, $config, &$persistentState)
     {
         $this->evoc = new unipi_Evoc($config->ip, $config->port);
-        
+
         $ports = $this->discovery();
         
-        $slotDrvArr = array();
+        $nameArr = array();
+        $inPorts = array();
         $controllerId = $this->driverRec->id;
         $pQuery = sens2_IOPorts::getQuery();
         
@@ -146,7 +147,7 @@ class unipi_Neuron extends sens2_ProtoDriver
 
             return $err;
         }
-    
+
         while ($pRec = $pQuery->fetch("#controllerId = {$controllerId}")) {
             $nameArr = $inPorts[$pRec->slot]["{$pRec->portIdent}"];
             
@@ -155,13 +156,13 @@ class unipi_Neuron extends sens2_ProtoDriver
             }
             
             $pDrv = sens2_IOPorts::getDriver($pRec);
-            
+
             list($slotType, $slotNumber) = explode('-', $pRec->slot);
             
             
             // Продготвяне на стойността за порта
             $prepareMethod = 'prepare' . $slotType;
-            
+
             $data = $this->{$prepareMethod}($slotNumber, $pRec);
              
             // Конвертиране на стойността на порта
@@ -246,9 +247,9 @@ class unipi_Neuron extends sens2_ProtoDriver
      * Подготвя данните извлечени от дадения слот и unitId
      */
     public function prepare1WIRE($slotNo, $portConfig)
-    {        
-        $res = $this->evoc->searchValues($portConfig->portIdent, null, $portConfig->variable);
- 
+    {   
+        $res = $this->evoc->searchValues($portConfig->unitId, null, $portConfig->variable);
+        
         return $res[0];
     }
     
