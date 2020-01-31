@@ -1256,7 +1256,7 @@ class bgerp_Notifications extends core_Manager
         }
         
         $cntQuery = $Notifications->getQuery();
-        $cntQuery->where("#userId = {$userId}");
+        $cntQuery->where("#userId = {$userId} AND #hidden != 'yes'");
         $cntQuery->show('id');
         $nCnt = $cntQuery->count();
         
