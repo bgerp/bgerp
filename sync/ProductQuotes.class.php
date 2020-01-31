@@ -134,9 +134,9 @@ class sync_ProductQuotes extends core_BaseClass
                     $newFh = fileman::absorbStr($fileContent, 'importedProductFiles', 'fh');
                     
                     // Урл-то за сваляне, се подменя с такова за сваляне в приемащата система
-                    $newDownloadUrl = fileman::generateUrl($newFh, true);
-                    $data->html = str_replace($downloadFileUrl, $newDownloadUrl, $data->html);
-                    $data->htmlEn = str_replace($downloadFileUrl, $newDownloadUrl, $data->htmlEn);
+                    $singleFileUrl = toUrl(array('fileman_Files', 'single', $newFh));
+                    $data->html = str_replace($downloadFileUrl, $singleFileUrl, $data->html);
+                    $data->htmlEn = str_replace($downloadFileUrl, $singleFileUrl, $data->htmlEn);
                 }
             }
         }

@@ -130,7 +130,7 @@ class sync_plg_ProductExport extends core_Plugin
         //@TODO тестов екшън да се премахне
         if($action == 'test'){
             requireRole('debug');
-            $exp = self::getExportData(3993);
+            $exp = self::getExportData(4005);
             bp($exp);
         }
     }
@@ -232,24 +232,27 @@ class sync_plg_ProductExport extends core_Plugin
         $descriptionData->Embedder = cls::get('cat_Products');
         $descriptionData->isSingle = true;
         $descriptionData->documentType = 'internal';
-        $htmlTpl = $Driver->renderProductDescription($descriptionData);
+        $dataBg = clone $descriptionData;
+        $dataEn = clone $descriptionData;
         
-        core_Users::forceSystemUser();
+        Mode::push('forceDownload', true);
+        core_Users::sudo($rec->createdBy);
         Mode::push('text', 'xhtml');
         core_Lg::push('bg');
-        $htmlTpl = $Driver->renderProductDescription($descriptionData);
+        $htmlTpl = $Driver->renderProductDescription($dataBg);
         $htmlTpl = $htmlTpl->getContent();
         core_Lg::pop('bg');
         Mode::pop('text');
         
         Mode::push('text', 'xhtml');
         core_Lg::push('en');
-        $htmlEnTpl = $Driver->renderProductDescription($descriptionData);
+        $htmlEnTpl = $Driver->renderProductDescription($dataEn);
         $htmlEnTpl = $htmlEnTpl->getContent();
         core_Lg::pop('en');
         Mode::pop('text');
-        core_Users::cancelSystemUser();
-       
+        core_Users::exitSudo($rec->createdBy);
+        Mode::pop('forceDownload');
+        
         $measureRec = cat_UoM::fetch($rec->measureId, 'name,shortName,type,baseUnitId,baseUnitRatio,sysId,isBasic,sinonims,showContents,defQuantity,round,state');
         $data->measureRec = $measureRec;
         $data->html = $htmlTpl;
