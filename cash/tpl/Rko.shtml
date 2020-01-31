@@ -70,6 +70,13 @@
                                 </td>
                                 <!--ET_END reason-->
                                 
+                                [#OTHER_TEXT#]
+                                <!--ET_BEGIN otherText-->
+                                <td colspan='2' class='notes-block' style='height: auto; padding:10px;'>
+                                	<span class='quiet'>[#otherCaption#]:</span> &nbsp;&nbsp;&nbsp;[#otherText#]
+                                </td>
+                                <!--ET_END otherText-->
+                                
                                 <!--ET_BEGIN lineId-->
                                 <td colspan='2' class='notes-block' style='height: auto; padding:10px;'>
                                 	<span class='quiet'>|Транспортна линия|*:</span> &nbsp;&nbsp;&nbsp;[#lineId#]

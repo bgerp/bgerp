@@ -180,7 +180,7 @@ class acc_Features extends core_Manager
             return;
         }
         
-        core_Lg::push(EF_DEFAULT_LANGUAGE);
+        core_Lg::push(core_Setup::get('EF_DEFAULT_LANGUAGE', true));
         $itemRec = $ItemClass->getItemRec($itemRec->objectId);
         core_Lg::pop();
         

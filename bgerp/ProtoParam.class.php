@@ -333,7 +333,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
         }
         
         // Само за типовете enum и set, се искат опции
-        if ($type == 'enum' || $type == 'set') {
+        if (($Type instanceof cond_type_Enum) || ($Type instanceof cond_type_Set)) {
             $nRec->options = cond_type_abstract_Proto::options2text($options);
         }
         

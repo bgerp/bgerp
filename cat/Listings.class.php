@@ -471,7 +471,7 @@ class cat_Listings extends core_Master
             
             // Ако за тази папка има избран лист не се създава
             $condId = cond_ConditionsToCustomers::fetchByCustomer($Cover->getClassId(), $Cover->that, $paramId);
-            $autoListId = cat_Listings::fetchField("#sysId = 'auto{$folderId}'");
+            $autoListId = cat_Listings::fetchField("#sysId = 'auto{$folderId}' AND #state != 'rejected'");
             
             if (!empty($condId) && empty($autoListId)) {
                 continue;
@@ -579,7 +579,7 @@ class cat_Listings extends core_Master
     private static function forceAutoList($folderId, $Cover)
     {
         $title = 'Списък от предишни продажби';
-        $listId = cat_Listings::fetchField("#sysId = 'auto{$folderId}'");
+        $listId = cat_Listings::fetchField("#sysId = 'auto{$folderId}' AND #state != 'rejected'");
         if (!$listId) {
             $lRec = (object) array('title' => $title, 'type' => 'canSell', 'folderId' => $folderId, 'state' => 'active', 'isPublic' => 'no', 'sysId' => "auto{$folderId}");
             $lRec->currencyId = $Cover->getDefaultCurrencyId();

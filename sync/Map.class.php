@@ -18,6 +18,42 @@
 class sync_Map extends core_Manager
 {
     /**
+     * Кой може да добавя?
+     */
+    public $canAdd = 'no_one';
+    
+    
+    /**
+     * Кой може да редактира?
+     */
+    public $canEdit = 'debug';
+    
+    
+    /**
+     * Кой може да изтрива?
+     */
+    public $canDelete = 'debug';
+    
+    
+    /**
+     * Добавяне на плъгини
+     */
+    public $loadList = 'plg_Sorting, plg_RowTools';
+    
+    
+    /**
+     * Заглавие
+     */
+    public $title = "Съответсвия между две bgERP системи";
+    
+    
+    /**
+     * Брой записи на страница
+     */
+    public $listItemsPerPage = 50;
+    
+    
+    /**
      * Масив с информация за импортираните обекти
      */
     public static $imported = array();
@@ -27,7 +63,7 @@ class sync_Map extends core_Manager
      */
     public function description()
     {
-        $this->FLD('classId', 'class(interface=core_ManagerIntf)', 'caption=class');
+        $this->FLD('classId', 'class(interface=core_ManagerIntf)', 'caption=Клас');
         $this->FLD('remoteId', 'int', 'caption=Отдалечено id');
         $this->FLD('localId', 'int', 'caption=Локално id');
 
@@ -469,5 +505,42 @@ class sync_Map extends core_Manager
         
         $mRec = (object) array('classId' => $classId, 'remoteId' => $remoteId, 'localId' => $localId);
         sync_Map::save($mRec);
+    }
+    
+    
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return bool
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->listFilter->FNC('search', 'varchar', 'caption=Търсене');
+        
+        $data->listFilter->view = 'horizontal';
+        
+        $data->listFilter->showFields = 'search';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        $data->listFilter->input('search');
+        
+        if ($search = $data->listFilter->rec->search) {
+            $search = trim($search);
+            $searchArr = explode(' ', $search);
+            foreach ($searchArr as $search) {
+                if (!is_numeric($search) && cls::load($search, true)) {
+                    $data->query->where(array("#classId = '[#1#]'", cls::get($search)->getClassId()));
+                }
+                $data->query->orWhere(array("#remoteId = '[#1#]'", $search));
+                $data->query->orWhere(array("#localId = '[#1#]'", $search));
+            }
+        }
+        
+        $data->query->orderBy('id', 'DESC');
     }
 }

@@ -586,7 +586,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $todayF = $pArr['_todayF'];
         
-        $query->XPR('startTimeOrder', 'datetime', "IF((#nextStartTime < '{$todayF}'), #timeStart, #nextStartTime)");
+        $query->XPR('startTimeOrder', 'datetime', "IF(((#nextStartTime < '{$todayF}') OR (#nextStartTime IS NULL)), #timeStart, #nextStartTime)");
         
         $query->where(array("#startTimeOrder >= '[#1#]'", $todayF));
         $query->where(array("#startTimeOrder <= '[#1#]'", $pArr['_endWorkingDay']));

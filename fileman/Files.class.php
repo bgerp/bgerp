@@ -1567,7 +1567,7 @@ class fileman_Files extends core_Master
     {
         $rec = static::fetchByFh($fh);
         
-        if (static::haveRightFor('single', $rec)) {
+        if (static::haveRightFor('single', $rec) && !Mode::is('forceDownload')) {
             
             //Генерираме връзката
             $url = toUrl(array('fileman_Files', 'single', $fh), $isAbsolute);
