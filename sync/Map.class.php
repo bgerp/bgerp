@@ -26,19 +26,19 @@ class sync_Map extends core_Manager
     /**
      * Кой може да редактира?
      */
-    public $canEdit = 'no_one';
+    public $canEdit = 'debug';
     
     
     /**
      * Кой може да изтрива?
      */
-    public $canDelete = 'no_one';
+    public $canDelete = 'debug';
     
     
     /**
      * Добавяне на плъгини
      */
-    public $loadList = 'plg_Sorting';
+    public $loadList = 'plg_Sorting, plg_RowTools';
     
     
     /**
