@@ -196,7 +196,7 @@ class cal_Reminders extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'timeStart,timePreviously,repetitionEach,repetitionType,timeStart';
+    public $fieldsNotToClone = 'timeStart,timePreviously,repetitionEach,repetitionType,timeStart,nextStartTime';
     
     
     /**

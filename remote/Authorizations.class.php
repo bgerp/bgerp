@@ -404,4 +404,42 @@ class remote_Authorizations extends embed_Manager
             }
         }
     }
+    
+    
+    /**
+     * Връща урл за автоматично логване в оторизираната система
+     * 
+     * @param string $url  - урл, което ще се проверява за оторизация
+     * @param int|null $cu - ид на потребители, или null за текущия
+     * @return array|null  - масив с урл за оторизиране, или null ако няма оторизация за урл-то
+     */
+    public static function getAutoLoginUrl($url, $cu = null)
+    {
+        static $auths;
+        $cu = isset($cu) ? $cu : core_Users::getCurrent();
+        
+        if (!$auths) {
+            $aQuery = remote_Authorizations::getQuery();
+            $aQuery->where("#userId = {$cu}");
+            
+            while ($aRec = $aQuery->fetch()) {
+                if (is_object($aRec->data) && $aRec->data->lKeyCC) {
+                    $aUrl = rtrim(strtolower($aRec->url), '/ ');
+                    $auths[$aRec->id] = $aUrl;
+                }
+            }
+        }
+        
+        if ($auths && is_array($auths)) {
+            foreach ($auths as $id => $aUrl) {
+                if (strpos($url, $aUrl) === 0) {
+                    $url = array('remote_BgerpDriver', 'Autologin', $id, 'url' => $url);
+                    
+                    return $url;
+                }
+            }
+        }
+        
+        return null;
+    }
 }
