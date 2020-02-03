@@ -138,14 +138,9 @@ class sync_plg_ProductExport extends core_Plugin
         //@TODO тестов екшън да се премахне
         if($action == 'test'){
             requireRole('debug');
-            $exp = self::getExportData(4011);
+            $exp = self::getExportData(4015);
             
-            
-            //$remoteUrl = remote_Authorizations::getAutoLoginUrl($url);
-            
-            
-            
-            bp($exp);
+            bp($exp,$data);
         }
     }
     
@@ -266,7 +261,7 @@ class sync_plg_ProductExport extends core_Plugin
         $data->htmlEn = $htmlEnTpl;
         
         // Защита на данните за експорт
-        $data = base64_encode(gzcompress(json_encode($data)));
+        $data = base64_encode(gzcompress(serialize($data)));
         
         return $data;
     }
