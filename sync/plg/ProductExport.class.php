@@ -138,7 +138,7 @@ class sync_plg_ProductExport extends core_Plugin
         //@TODO тестов екшън да се премахне
         if($action == 'test'){
             requireRole('debug');
-            $exp = self::getExportData(4005);
+            $exp = self::getExportData(4011);
             
             
             //$remoteUrl = remote_Authorizations::getAutoLoginUrl($url);
@@ -211,20 +211,13 @@ class sync_plg_ProductExport extends core_Plugin
         }
         
         // Извличане на данните от офертите
-        $quotationClassId = sales_Quotations::getClassId();
         $data->quotations = $data->packagings = array();
         $quoteQuery = sales_QuotationsDetails::getQuery();
         $quoteQuery->EXT('state', 'sales_Quotations', 'externalName=state,externalKey=quotationId');
         $quoteQuery->EXT('folderId', 'sales_Quotations', 'externalName=folderId,externalKey=quotationId');
         $quoteQuery->where("#productId = {$rec->id} AND #state = 'active'");
-        $quoteQuery->show('quotationId,packagingId,quantityInPack,quantity,price,discount,tolerance,term,optional,folderId,price');
+        $quoteQuery->show('quotationId,packagingId,quantityInPack,quantity,price,discount,tolerance,term,optional,price');
         while($quoteRec = $quoteQuery->fetch()){
-            if($tRec = sales_TransportValues::get($quotationClassId, $quoteRec->quotationId, $quoteRec->id)){
-                $quoteRec->_fee = $tRec->fee;
-                $quoteRec->_deliveryTime = $tRec->deliveryTime;
-                $quoteRec->_explain = $tRec->explain;
-            }
-            
             $data->quotations[$quoteRec->id] = $quoteRec;
         }
         
