@@ -78,20 +78,24 @@
 
 		function setCurrent(i,j) {
 			if (i<0) i=(matrix.length-1);
-			if (i>=matrix.length) i=0;
+			if (matrix && i>=matrix.length) i=0;
 			if (j<0) j=(matrix[i].length-1);
-			if (j>=matrix[i].length) j=matrix[i].length-1;
-			elements.removeClass('selected');
-			current = $(matrix[i][j]);
-			current.addClass('selected');
-			if (!isItVisible($(current))) {
-				$(current)[0].scrollIntoView();
+			if (matrix && j>=matrix[i].length) j=matrix[i].length-1;
+
+			if (matrix && matrix[i][j]) {
+				elements.removeClass('selected');
+				current = $(matrix[i][j]);
+				current.addClass('selected');
+				if (!isItVisible($(current))) {
+					$(current)[0].scrollIntoView();
+				}
+
+				sessionStorage.setItem('focused', $(current).attr('id'));
+				disableOrEnableEnlargeBtn();
+				x=i;
+				y=j;
 			}
 
-			sessionStorage.setItem('focused', $(current).attr('id'));
-			disableOrEnableEnlargeBtn();
-			x=i;
-			y=j;
 		}
 
 		$(window).bind("click",  function(event) {
