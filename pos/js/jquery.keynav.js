@@ -80,7 +80,7 @@
 			if (i<0) i=(matrix.length-1);
 			if (matrix && i>=matrix.length) i=0;
 			if (j<0) j=(matrix[i].length-1);
-			if (matrix[i] && j>=matrix[i].length) j=matrix[i].length-1;
+			if (matrix && matrix[i] && j>=matrix[i].length) j=matrix[i].length-1;
 
 			if (matrix && matrix[i][j]) {
 				elements.removeClass('selected');
