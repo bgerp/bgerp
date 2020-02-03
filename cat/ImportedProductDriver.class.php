@@ -52,6 +52,8 @@ class cat_ImportedProductDriver extends cat_ProductDriver
         $form->FLD('htmlEn', 'html', 'caption=Изглед EN,before=measureId,input=none');
         $form->FLD('quotations', 'blob', 'caption=Данни на оферта,input=none');
         $form->FLD('params', 'blob', 'caption=Параметри,input=none');
+        $form->FLD('moq', 'double(smartRound)', 'caption=МКП,input=none');
+        $form->FLD('conditions', 'blob', 'caption=Допълнителни условия,input=none');
     }
     
     
@@ -98,6 +100,7 @@ class cat_ImportedProductDriver extends cat_ProductDriver
         unset($row->htmlEn);
         unset($row->params);
         unset($row->quotations);
+        unset($row->conditions);
     }
     
     
@@ -180,16 +183,13 @@ class cat_ImportedProductDriver extends cat_ProductDriver
         if (isset($name)) {
             if (!is_numeric($name)) {
                 $nameId = cat_Params::fetchField(array("#sysId = '[#1#]'", $name));
-                
             } else {
                $nameId = $name;
             }
             
-            foreach ($params as $k => $v){
-                if($k == $nameId){
-                    
-                    return ($verbal === true) ? cat_Params::toVerbal($k, $classId, $id, $v) : $v;
-                }
+            if(array_key_exists($nameId, $params)){
+                
+                return ($verbal === true) ? cat_Params::toVerbal($nameId, $classId, $id, $params[$nameId]) : $params[$nameId];
             }
             
             return false;
@@ -221,6 +221,7 @@ class cat_ImportedProductDriver extends cat_ProductDriver
     public function getTransportWeight($rec, $quantity)
     {
         $weight = $this->getParams(cat_Products::getClassId(), $rec->id, 'transportWeight');
+       
         if ($weight) {
             $weight *= $quantity;
             
@@ -345,6 +346,42 @@ class cat_ImportedProductDriver extends cat_ProductDriver
     
     
     /**
+     * Допълнителните условия за дадения продукт,
+     * които автоматично се добавят към условията на договора
+     *
+     * @param stdClass    $rec     - ид/запис на артикул
+     * @param string      $docType - тип на документа sale/purchase/quotation
+     * @param string|NULL $lg      - език
+     */
+    public function getConditions($rec, $docType, $lg = null)
+    {
+        $lg = isset($lg) ? $lg : core_Lg::getCurrent();
+        $conditions = (array)$rec->conditions;
+        
+        $foundArr = $conditions[$docType][$lg];
+        if(is_array($foundArr)){
+            
+            return $foundArr;
+        }
+        
+        return null;
+    }
+    
+    
+    /**
+     * Връща минималното количество за поръчка
+     *
+     * @param int|NULL $id - ид на артикул
+     *
+     * @return float|NULL - минималното количество в основна мярка, или NULL ако няма
+     */
+    public function getMoq($id = null)
+    {
+        return $this->driverRec->moq;
+    }
+    
+    
+    /**
      * Кой запис от офертата съотвества на артикула
      * 
      * @param int $productId
@@ -354,8 +391,7 @@ class cat_ImportedProductDriver extends cat_ProductDriver
     private function getQuoteRecByQuantity($productId, $quantity)
     {
         // Всички данни от оферта на артикула
-        $driverRec = cat_Products::fetchField($productId, 'driverRec');
-        $quotations = (array)$driverRec['quotations'];
+        $quotations = (array)$this->driverRec->quotations;
         if(!countR($quotations)) {
             
             return null;
