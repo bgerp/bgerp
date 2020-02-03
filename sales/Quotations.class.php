@@ -985,7 +985,10 @@ class sales_Quotations extends core_Master
         }
         
         // Ако запитването е в папка на контрагент вкарва се в група запитвания
-        $groupId = crm_Groups::force('Клиенти » Оферти');
+        $clientGroupId = crm_Groups::getIdFromSysId('customers');
+        $groupRec = (object)array('name' => 'Оферти', 'sysId' => 'quotationsClients', 'parentId' => $clientGroupId);
+        $groupId = crm_Groups::forceGroup($groupRec);
+        
         cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, $groupId, false);
     }
     

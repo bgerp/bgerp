@@ -501,7 +501,10 @@ class marketing_Inquiries2 extends embed_Manager
         // Ако запитването е в папка на контрагент вкарва се в група запитвания
         $Cover = doc_Folders::getCover($rec->folderId);
         if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
-            $groupId = crm_Groups::force('Клиенти » Запитвания');
+            $clientGroupId = crm_Groups::getIdFromSysId('customers');
+            $groupRec = (object)array('name' => 'Запитвания', 'sysId' => 'inquiryClients', 'parentId' => $clientGroupId);
+            $groupId = crm_Groups::forceGroup($groupRec);
+            
             $Cover->forceGroup($groupId, false);
         }
     }

@@ -482,6 +482,11 @@ class crm_Groups extends core_Master
             setIfNot($rec->state, 'active');
             
             self::save($rec);
+        } elseif(empty($rec->sysId) && !empty($gRec->sysId)){
+            if(!self::fetch("#sysId = '{$gRec->sysId}'", '*', false)){
+                $rec->sysId = $gRec->sysId;
+                self::save($rec, 'sysId');
+            }
         }
         
         return $rec->id;
