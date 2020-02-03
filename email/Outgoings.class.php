@@ -3030,7 +3030,7 @@ class email_Outgoings extends core_Master
      * @return string $lg - Двубуквеното означение на предполагаемия език на имейла
      */
     public static function getLanguage($originId, $threadId, $folderId, $body = null)
-    {$lg = 'en';
+    {
         // Търсим езика в контейнера
         $lg = doc_Containers::getLanguage($originId);
         
