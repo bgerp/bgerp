@@ -2103,11 +2103,7 @@ class email_Outgoings extends core_Master
         
         // Ако обръщението не съвпадата с текущия език, да се остави да се определи от системата
         if ($salutation) {
-            $isCyrillic = false;
-            
-            if (strlen($salutation) != mb_strlen($salutation)) {
-                $isCyrillic = true;
-            }
+            $isCyrillic = preg_match('/[\p{Cyrillic}]/u', $salutation) ? true : false;
             
             $currLg = core_Lg::getCurrent();
             
@@ -3034,7 +3030,7 @@ class email_Outgoings extends core_Master
      * @return string $lg - Двубуквеното означение на предполагаемия език на имейла
      */
     public static function getLanguage($originId, $threadId, $folderId, $body = null)
-    {
+    {$lg = 'en';
         // Търсим езика в контейнера
         $lg = doc_Containers::getLanguage($originId);
         
