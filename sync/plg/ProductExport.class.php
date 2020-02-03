@@ -138,7 +138,7 @@ class sync_plg_ProductExport extends core_Plugin
         //@TODO тестов екшън да се премахне
         if($action == 'test'){
             requireRole('debug');
-            $exp = self::getExportData(4015);
+            $exp = self::getExportData(4030);
             
             bp($exp,$data);
         }
@@ -180,13 +180,27 @@ class sync_plg_ProductExport extends core_Plugin
         $exportContragentRes = array();
         sync_Map::exportRec($Cover->className, $Cover->that, $exportContragentRes, cls::get('sync_Companies'));
         
+        $conditions = array();
+        foreach (array('sale', 'purchase', 'quotation') as $docType){
+            core_Lg::push('bg');
+            $conditions[$docType]['bg'] = $Driver->getConditions($rec, $docType, 'bg');
+            core_Lg::pop('bg');
+            
+            core_Lg::push('en');
+            $conditions[$docType]['en'] = $Driver->getConditions($rec, $docType, 'en');
+            core_Lg::pop('en');
+        }
+        
         $data = (object)array('name' => $rec->name, 
                               'nameEn' => $rec->nameEn, 
                               'meta' => $rec->meta, 
                               'contragentClassName' => $Cover->className,
                               'contragentRemoteId' => $Cover->that,
                               'exportContragentRes' => $exportContragentRes,
+                              'moq' => $Driver->getMoq($rec->id),
+                              'conditions' => $conditions,
                               );
+        
         
         // Подготовка на продуктовите параметри за експорт
         $data->params = array();

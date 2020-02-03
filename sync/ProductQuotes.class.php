@@ -175,6 +175,8 @@ class sync_ProductQuotes extends core_BaseClass
             'quotations' => $data->quotations,
             'folderId' => $folderId,
             'importedFromDomain' => $data->exportUrl,
+            'moq' => $data->moq,
+            'conditions' => $data->conditions,
         );
         
         // Импортиране на параметри
