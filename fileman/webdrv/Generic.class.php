@@ -993,9 +993,9 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Опитваме се да вземем манипулатора на файла
             $fileHnd = static::uploadFileFromArchive($fRec, $index);
-        } catch (fileman_Exception $e) {
+        } catch (Exception $e) {
             
-            return $e->getMessage();
+            return new Redirect(array('fileman_Files', 'single', $fileHnd), '|' . $e->getMessage());
         }
         
         // Редиреткваме към single'а на качения файл

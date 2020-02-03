@@ -227,7 +227,7 @@ class archive_Adapter
             $path = $this->extractEntry($path);
         } catch (ErrorException $e) {
             // Ако възникне грешка
-            expect(false, 'Не може да се извлече файла от архива');
+            throw new Exception('Не може да се извлече файла от архива');
         }
         
         // Ако е файл
