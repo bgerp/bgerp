@@ -197,6 +197,8 @@ class sync_ProductQuotes extends core_BaseClass
                         $fileName = basename($obj->value);
                         $obj->value = fileman::absorbStr($fileContent, 'importedProductFiles', $fileName);
                     }
+                } elseif($paramRec->driverClass == 'cond_type_Store'){
+                    continue;
                 }
                
                 // Записване на стойността на параметъра, съответстваща на локалния ключ
