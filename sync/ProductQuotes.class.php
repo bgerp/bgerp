@@ -123,6 +123,11 @@ class sync_ProductQuotes extends core_BaseClass
         // Импортиране на контрагента, ако е нужно
         $exportContragentRes = (array)$data->exportContragentRes;
         sync_Map::importRec($data->contragentClassName, $data->contragentRemoteId, $exportContragentRes, cls::get('sync_Companies'));
+        $localContragentId = sync_Map::getLocalId($data->contragentClassName, $data->contragentRemoteId);
+        
+        if(!$localContragentId){
+            throw new core_exception_Expect('Проблем при импортирането на контрагента', 'Несъответствие');
+        }
         
         // Подмяна на линковете за сваляне на файловете от хтмл-а
         $matches = array();
@@ -143,7 +148,6 @@ class sync_ProductQuotes extends core_BaseClass
         }
         
         // Мапване на контрагента, и форсиране на папка
-        $localContragentId = sync_Map::getLocalId($data->contragentClassName, $data->contragentRemoteId);
         $folderId = cls::get($data->contragentClassName)->forceCoverAndFolder($localContragentId);
         
         // Проверка има ли я мапната основната мярка в системата, ако не се импортира при нужда и мапва
