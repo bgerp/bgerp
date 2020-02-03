@@ -3419,6 +3419,7 @@ class cal_Tasks extends embed_Manager
         });
         
         $dateDiff = dt::secsBetween($newStartDate, $minDate);
+        $taskMap = array();
         
         foreach ($tasks as $taskRec) {
             $cloneTask = clone $taskRec;
@@ -3426,17 +3427,6 @@ class cal_Tasks extends embed_Manager
             unset($cloneTask->id, $cloneTask->folderId, $cloneTask->threadId, $cloneTask->containerId, $cloneTask->createdOn, $cloneTask->createdBy, $cloneTask->modifiedOn, $cloneTask->modifiedBy, $cloneTask->assignedOn, $cloneTask->assignedBy);
             $cloneTask->folderId = $toFolderId;
             $cloneTask->state = $cloneInState;
-            
-            if ($cloneInState == 'active') {
-                $sharedUsersArr = keylist::toArray($cloneTask->sharedUsers);
-                if ($cloneTask->assign) {
-                    $sharedUsersArr += type_Keylist::toArray($cloneTask->assign);
-                }
-                
-                if (empty($sharedUsersArr)) {
-                    $cloneTask->state = 'pending';
-                }
-            }
             
             // Опит за транслиране на данните
             $startTime = isset($taskRec->timeStart) ? $taskRec->timeStart : (isset($taskRec->timeDuration, $taskRec->timeEnd) ? dt::addSecs(-1 * $taskRec->timeDuration, $taskRec->timeEnd) : null);
@@ -3452,13 +3442,60 @@ class cal_Tasks extends embed_Manager
                 $cloneTask->timeEnd = dt::addSecs($duration, $newStart);
             }
             
+            if ($cloneInState == 'active') {
+                $sharedUsersArr = keylist::toArray($cloneTask->sharedUsers);
+                if ($cloneTask->assign) {
+                    $sharedUsersArr += type_Keylist::toArray($cloneTask->assign);
+                }
+                
+                $canActivateTasks = self::canActivateTask($cloneTask);
+                $now = dt::verbal2mysql();
+                
+                if (!$canActivateTasks || ($now < $canActivateTasks)) {
+                    if (empty($sharedUsersArr)) {
+                        $cloneTask->state = 'pending';
+                    } else {
+                        $cloneTask->state = 'waiting';
+                    }
+                }
+                
+                if ($cloneTask->state == 'active') {
+                    if ($cond = cal_TaskConditions::fetch(array("#baseId = '[#1#]'", $taskRec->id))) {
+                        $cloneTask->state = 'waiting';
+                    }
+                }
+            }
+            
             $Tasks->route($cloneTask);
             if ($cloneTask->state != 'draft' &&  $cloneTask->state != 'rejected') {
                 self::calculateExpectationTime($cloneTask);
             }
+            
+            unset($cloneTask->sharedViews);
             $Tasks->save($cloneTask);
+            $taskMap[$taskRec->id] = $cloneTask->id;
             
             $Tasks->logWrite('Създаване при клониране на проект', $cloneTask->id);
+        }
+        
+        // Ако има копирани записи
+        if(countR($taskMap)){
+            
+            // Копират се зависимостите на клонираните задачи, ако сочат към други клонирани задачи
+            $condQuery = cal_TaskConditions::getQuery();
+            $condQuery->in('baseId', array_keys($taskMap));
+            while($condRec = $condQuery->fetch()){
+                $condRec->baseId = $taskMap[$condRec->baseId];
+                if(array_key_exists($condRec->dependId, $taskMap)){
+                    $condRec->dependId = $taskMap[$condRec->dependId];
+                    
+                    unset($condRec->createdOn);
+                    unset($condRec->createdBy);
+                    
+                    unset($condRec->id);
+                    cal_TaskConditions::save($condRec);
+                }
+            }
         }
     }
 }

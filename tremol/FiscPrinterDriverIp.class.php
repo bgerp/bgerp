@@ -73,6 +73,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
      * DISC_ADD_V - надбавка/отстъпка в стойнонст - може и с -
      * BEFORE_PLU_TEXT - стринг или масив от стрингове с текст, който ще се добавя преди продукта
      * AFTER_PLU_TEXT - стринг или масив от стрингове с текст, който ще се добавя след продукта
+     * DEP_NUM - номер на департамнет. Ако е зададен (от 0-99), се добавя от този департамент
      *
      * DATE_TIME - времето за синхронизира във формат 'd-m-Y H:i:s'. Ако е false - няма да се синхронизира
      *
@@ -362,7 +363,12 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             }
             
             try {
-                $fp->SellPLUwithSpecifiedVAT($pArr['PLU_NAME'], $pArr['VAT_CLASS'], $pArr['PRICE'], $pArr['QTY'], $pArr['DISC_ADD_P'], $pArr['DISC_ADD_V']);
+                if (isset($pArr['DEP_NUM'])) {
+                    expect(is_numeric($pArr['DEP_NUM']) && ($pArr['DEP_NUM'] >= 0) && ($pArr['DEP_NUM'] <= 99));
+                    $fp->SellPLUwithSpecifiedVATfromDep($pArr['PLU_NAME'], $pArr['VAT_CLASS'], $pArr['PRICE'], $pArr['QTY'], $pArr['DISC_ADD_P'], $pArr['DISC_ADD_V'], $pArr['DEP_NUM']);
+                } else {
+                    $fp->SellPLUwithSpecifiedVAT($pArr['PLU_NAME'], $pArr['VAT_CLASS'], $pArr['PRICE'], $pArr['QTY'], $pArr['DISC_ADD_P'], $pArr['DISC_ADD_V']);
+                }
             } catch (\Tremol\SException $e) {
                 $this->handleTremolException($e);
             }
@@ -555,11 +561,11 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             $strArr = explode("\n", $str);
             
             $receipt = '';
-            $cnt = count($strArr);
+            $cnt = countR($strArr);
             for($i = 0; $i < $cnt - 1; $i++) {
                 
                 $line = $strArr[$i];
-                $line = mb_substr($line, 4, count($line) - 3);
+                $line = mb_substr($line, 4, countR($line) - 3);
                 
                 // Предпоследният ред съдържа QR кода
                 // Последния ред е празен
@@ -659,6 +665,17 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 }
                 
                 try {
+                    $depArr = $Driver->getDepArr($data->rec);
+                } catch (Exception $e) {
+                    $Driver->handleAndShowException($e);
+                }
+                
+                if (!empty($depArr)) {
+                    $data->rec->otherData['depArr'] = $depArr;
+                    $Embedder->save($data->rec, 'otherData');
+                }
+                
+                try {
                     self::setDateTime($data->rec);
                 } catch (Exception $e) {
                     $Driver->handleAndShowException($e);
@@ -721,7 +738,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 
                 $sArr = explode('://', $serverIp);
                 
-                if (count($sArr) == 2) {
+                if (countR($sArr) == 2) {
                     $serverIp = $sArr[1];
                 }
                 
@@ -891,6 +908,45 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
         } catch (\Tremol\SException $e) {
             self::handleTremolException($e);
         }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща зададените департаменти
+     *
+     * @param stdClass $rec
+     *
+     * @return false|string
+     */
+    protected static function getDepArr($rec)
+    {
+        $resArr = array();
+        
+        // @todo - временно е спряно
+        
+//         try {
+//             $fp = self::connectToPrinter($rec);
+//             if ($fp) {
+//                 for($depNum=0;$depNum<100;$depNum++) {
+//                     $dep = $fp->ReadDepartment($depNum);
+                    
+//                     $depNumPad = str_pad($depNum, 2, 0, STR_PAD_LEFT);
+                    
+//                     $depName = trim($dep->DepName);
+                    
+//                     // Да избегнем дефолтно зададените
+//                     if ($depName == 'Деп ' . $depNumPad) {
+//                         continue;
+//                     }
+                    
+//                     $resArr[$dep->DepNum] = $depName;
+//                 }
+//             }
+//         } catch (\Tremol\SException $e) {
+//             self::handleTremolException($e);
+//         }
         
         return $resArr;
     }
@@ -1165,9 +1221,9 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
         
         $lines = explode("\n",$str);
         $res = "";
-        for($i= 0; $i < count($lines); $i++) {
+        for($i= 0; $i < countR($lines); $i++) {
             $line = $lines[$i];
-            $res.= mb_substr($line, 4, count($line) - 3) . "\n";
+            $res.= mb_substr($line, 4, countR($line) - 3) . "\n";
         }
         
         $res = i18n_Charset::convertToUtf8($res, "windows-1251");

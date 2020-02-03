@@ -118,7 +118,7 @@ class store_Products extends core_Detail
     protected static function on_AfterPrepareListRows($mvc, $data)
     {
         // Ако няма никакви записи - нищо не правим
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }
@@ -190,7 +190,7 @@ class store_Products extends core_Detail
             $data->listFilter->setDefault('storeId', $storeId);
             $data->listFilter->setField('storeId', 'input=hidden');
         } else {
-            if (count($stores) == 1) {
+            if (countR($stores) == 1) {
                 $data->listFilter->setDefault('storeId', key($stores));
             }
             
@@ -226,7 +226,7 @@ class store_Products extends core_Detail
                     $selectedStoreName = store_Stores::getHyperlink($rec->storeId, true);
                     $data->title = "|Наличности в склад|* <b style='color:green'>{$selectedStoreName}</b>";
                     $data->query->where("#storeId = {$rec->storeId}");
-                } elseif (count($stores)) {
+                } elseif (countR($stores)) {
                     // Под всички складове се разбира само наличните за избор от потребителя
                     $data->query->in('storeId', array_keys($stores));
                 } else {
@@ -340,14 +340,14 @@ class store_Products extends core_Detail
         
         // Зануляваме к-та само на тези продукти, които още не са занулени
         $query->where("#state = 'active'");
-        if (count($array)) {
+        if (countR($array)) {
             
             // Маркираме като затворени, всички които не са дошли от баланса или имат количества 0
             $query->in('id', $array);
             $query->orWhere('#quantity = 0');
         }
         
-        if (!count($array)) {
+        if (!countR($array)) {
             
             return;
         }
@@ -491,7 +491,7 @@ class store_Products extends core_Detail
             $options[$rec->id] = cat_Products::getTitleById($rec->productId, false);
         }
         
-        if (!count($options)) {
+        if (!countR($options)) {
             $options[''] = '';
         }
     }
@@ -618,7 +618,7 @@ class store_Products extends core_Detail
                 core_Permanent::set("reserved_{$tRec->containerId}", $reserved, 4320);
             }
             
-            if(is_array($reserved) && count($reserved)){
+            if(is_array($reserved) && countR($reserved)){
                 $queue[] = $reserved;
             }
         }
@@ -671,7 +671,7 @@ class store_Products extends core_Detail
                     core_Permanent::set("reserved_{$sRec->containerId}", $reserved, 4320);
                 }
                 
-                if(is_array($reserved) && count($reserved)){
+                if(is_array($reserved) && countR($reserved)){
                     $queue[] = $reserved;
                 }
             }
@@ -766,7 +766,7 @@ class store_Products extends core_Detail
         });
         
         // Техните резервирани количества се изтриват
-        if (count($unsetArr)) {
+        if (countR($unsetArr)) {
             array_walk($unsetArr, function ($obj) {
                 if($obj->_nullifyReserved === true){
                     $obj->reservedQuantity = null;
@@ -905,7 +905,7 @@ class store_Products extends core_Detail
                 $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
                 $dRecs = $dQuery->fetchAll();
                 
-                if(count($dRecs)){
+                if(countR($dRecs)){
                     array_walk($dRecs, function($a) use (&$products, $Detail, &$totalValue, $isTransfer){
                         if(!array_key_exists($a->{$Detail->productFld}, $products)){
                             $products[$a->{$Detail->productFld}] = new stdClass();
@@ -954,7 +954,7 @@ class store_Products extends core_Detail
                 
                 $toSave[] = $rec;
                 
-                if(count($toSave)){
+                if(countR($toSave)){
                     $Master->saveArray($toSave, 'id,storeReadiness');
                 }
             }

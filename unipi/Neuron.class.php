@@ -127,10 +127,11 @@ class unipi_Neuron extends sens2_ProtoDriver
     public function readInputs($inputs, $config, &$persistentState)
     {
         $this->evoc = new unipi_Evoc($config->ip, $config->port);
-        
+
         $ports = $this->discovery();
         
-        $slotDrvArr = array();
+        $nameArr = array();
+        $inPorts = array();
         $controllerId = $this->driverRec->id;
         $pQuery = sens2_IOPorts::getQuery();
         
@@ -146,7 +147,7 @@ class unipi_Neuron extends sens2_ProtoDriver
 
             return $err;
         }
-    
+
         while ($pRec = $pQuery->fetch("#controllerId = {$controllerId}")) {
             $nameArr = $inPorts[$pRec->slot]["{$pRec->portIdent}"];
             
@@ -155,14 +156,14 @@ class unipi_Neuron extends sens2_ProtoDriver
             }
             
             $pDrv = sens2_IOPorts::getDriver($pRec);
-            
+
             list($slotType, $slotNumber) = explode('-', $pRec->slot);
             
             
             // Продготвяне на стойността за порта
             $prepareMethod = 'prepare' . $slotType;
-            
-            $data = $this->{$prepareMethod}($slotNumber, $pRec->portIdent);
+
+            $data = $this->{$prepareMethod}($slotNumber, $pRec);
              
             // Конвертиране на стойността на порта
             foreach ($nameArr as $name) {
@@ -234,9 +235,9 @@ class unipi_Neuron extends sens2_ProtoDriver
     /**
      * Подготвя данните извлечени от дадения слот и unitId
      */
-    public function prepareModBus($slotNo, $portIdent)
+    public function prepareModBus($slotNo, $portConfig)
     {
-        $data = $this->evoc->getUartData($slotNo, $portIdent);
+        $data = $this->evoc->getUartData($slotNo, $portConfig->portIdent);
         
         return $data;
     }
@@ -245,10 +246,10 @@ class unipi_Neuron extends sens2_ProtoDriver
     /**
      * Подготвя данните извлечени от дадения слот и unitId
      */
-    public function prepare1WIRE($slotNo, $portIdent)
-    {        
-        $res = $this->evoc->searchValues($portIdent);
- 
+    public function prepare1WIRE($slotNo, $portConfig)
+    {   
+        $res = $this->evoc->searchValues($portConfig->unitId, null, $portConfig->variable);
+        
         return $res[0];
     }
     
@@ -256,8 +257,10 @@ class unipi_Neuron extends sens2_ProtoDriver
     /**
      * Подготвя данните извлечени от дадения слот и unitId
      */
-    public function prepareDI($slotNo, $portIdent)
+    public function prepareDI($slotNo, $portConfig)
     {
+        $portIdent = $portConfig->portIdent;
+
         if(!strlen($portIdent))  {
             $portIdent = $slotNo;
         }
@@ -273,8 +276,10 @@ class unipi_Neuron extends sens2_ProtoDriver
     /**
      * Подготвя данните извлечени от дадения слот и unitId
      */
-    public function prepareDO($slotNo, $portIdent)
+    public function prepareDO($slotNo, $portConfig)
     {
+        $portIdent = $portConfig->portIdent;
+
         if(!strlen($portIdent))  {
             $portIdent = $slotNo;
         }
@@ -290,8 +295,10 @@ class unipi_Neuron extends sens2_ProtoDriver
     /**
      * Подготвя данните извлечени от дадения слот и unitId
      */
-    public function prepareAI($slotNo, $portIdent)
+    public function prepareAI($slotNo, $portConfig)
     {
+        $portIdent = $portConfig->portIdent;
+
         if(!strlen($portIdent))  {
             $portIdent = $slotNo;
         }
@@ -307,8 +314,10 @@ class unipi_Neuron extends sens2_ProtoDriver
     /**
      * Подготвя данните извлечени от дадения слот и unitId
      */
-    public function prepareAO($slotNo, $portIdent)
+    public function prepareAO($slotNo, $portConfig)
     {
+        $portIdent = $portConfig->portIdent;
+
         if(!strlen($portIdent))  {
             $portIdent = $slotNo;
         }
@@ -317,5 +326,25 @@ class unipi_Neuron extends sens2_ProtoDriver
         $res = $this->evoc->searchValues('1_' . $inputAddr, 'ao');
 
         return $res[0];
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на титлата в единичния изглед
+     */
+    public function showState($config)
+    {
+        $this->evoc = new unipi_Evoc($config->ip, $config->port);
+        // Прочитаме състоянието от контролера
+        if(strlen($err = $this->evoc->update())) {
+
+            return $err;
+        }
+
+        $data = $this->evoc->getJsonData();
+        $html = "<h2>Състояние на UniPI {$config->model} на {$config->ip}:{$config->port}</h2>";
+        $html .= ht::mixedToHtml($data);
+
+        return $html;
     }
 }

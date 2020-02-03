@@ -111,7 +111,7 @@ class doc_Containers extends core_Manager
     /**
      * На участъци от по колко записа да се бекъпва?
      */
-    public $backupMaxRows = 500000;
+    public $backupMaxRows = 100000;
     
     
     /**
@@ -724,6 +724,8 @@ class doc_Containers extends core_Manager
         $threadId = Request::get('threadId', 'int');
         
         expect($threadRec = doc_Threads::fetch($threadId));
+        
+        doc_DocumentCache::cacheInvalidation($threadRec->firstContainerId, core_Users::getCurrent());
         
         $show = Request::get('show');
         $hide = Request::get('hide');
@@ -3035,9 +3037,7 @@ class doc_Containers extends core_Manager
                         $str = 'Имате създадени, но неактивирани';
                     }
                     
-                    $name = mb_strtolower($name);
-                    
-                    $msg = "|{$str}|* {$count} {$name}";
+                    $msg = "|{$str}|* {$count} |{$name}|*";
                     
                     // Създаваме нотификация към потребителя с линк към филтрирани неговите документи
                     bgerp_Notifications::add($msg, $url, $uRec->id, 'normal', $customUrl);

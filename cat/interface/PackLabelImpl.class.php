@@ -190,7 +190,7 @@ class cat_interface_PackLabelImpl
             }
             
             if (is_object($Driver)) {
-                if (count($additionalFields)) {
+                if (countR($additionalFields)) {
                     $res = $additionalFields + $res;
                 }
                 

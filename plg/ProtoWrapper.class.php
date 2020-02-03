@@ -86,6 +86,9 @@ class plg_ProtoWrapper extends core_Plugin
      */
     public function on_AfterRenderWrapping($invoker, &$tpl, $blankTpl, $data = null)
     {
+        // Ако не искаме да се рендира да не се рендира
+        if(Mode::is('noWrapper')) return;
+        
         $tpl = new ET($tpl);
         
         $this->invoke('beforeDescription');

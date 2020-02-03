@@ -580,7 +580,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
         
         $details = $mvc->getDefaultDetails($rec);
-        if(count($details)) {
+        if(countR($details)) {
              foreach ($details as $dRec) {
                 $dRec->noteId = $rec->id;
                 
@@ -708,8 +708,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $this->save($rec, 'debitAmount');
             $this->logWrite('Задаване на себестойност', $rec->id);
             
+            $controUrl = $this->getContoUrl($id);
+            $controUrl['ret_url'] = $this->getSingleUrlArray($rec->id);
+            
             // Редирект към екшъна за контиране
-            redirect($this->getContoUrl($id));
+            redirect($controUrl);
         }
         
         $form->toolbar->addSbBtn('Контиране', 'save', 'ef_icon = img/16/tick-circle-frame.png, title = Контиране на документа');
@@ -958,7 +961,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             expect($productRec->canConvert == 'yes', 'Артикулът трябва да е вложим');
         }
         
-        expect($packagingId, 'Няма мярка/опаковка');
+        expect($packagingId, 'Няма мярка/опаковка');//bp($rec,$productRec->canStore,$packagingId,cat_UoM::fetch(2));
         expect(cat_UoM::fetch($packagingId), "Няма опаковка/мярка с ид {$packagingId}");
         
         if ($productRec->canStore != 'yes') {
@@ -976,7 +979,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         expect($quantityInPack = $Double->fromVerbal($quantityInPack), "Невалидно к-во {$quantityInPack}");
         expect($packQuantity = $Double->fromVerbal($packQuantity), "Невалидно к-во {$packQuantity}");
         $quantity = $quantityInPack * $packQuantity;
-        
+       
         // Подготовка на записа
         $rec = (object) array('noteId' => $id,
             'type' => ($isWaste) ? 'pop' : 'input',
@@ -1016,7 +1019,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             }
         }
         
-        if (count($productsWithNegativeQuantity)) {
+        if (countR($productsWithNegativeQuantity)) {
             $warning = 'Контирането на документа ще доведе до отрицателни количества по|*: ';
             foreach ($productsWithNegativeQuantity as $storeId => $products) {
                 $warning .= implode(', ', $products) . ', |в склад|* ' . store_Stores::getTitleById($storeId) . ' |и|* ';

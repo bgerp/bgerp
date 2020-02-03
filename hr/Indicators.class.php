@@ -99,8 +99,8 @@ class hr_Indicators extends core_Manager
             $name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
             $row->personId = ht::createLink($name, array('crm_Persons', 'single', 'id' => $rec->personId), null, 'ef_icon = img/16/vcard.png');
         }
-        
-        if (cls::load($rec->docClass, true)) {
+ 
+        if (cls::load($rec->docClass, true)) {      
             $Class = cls::get($rec->docClass);
             if (cls::existsMethod($Class, 'getLink')) {
                 $row->docId = cls::get($rec->docClass)->getLink($rec->docId, 0);
@@ -211,7 +211,7 @@ class hr_Indicators extends core_Manager
         $docArr = core_Classes::getOptionsByInterface('hr_IndicatorsSourceIntf');
         
         // Ако нямаме източници - нищо не правим
-        if (!is_array($docArr) || !count($docArr)) {
+        if (!is_array($docArr) || !countR($docArr)) {
             
             return $periods;
         }
@@ -223,10 +223,10 @@ class hr_Indicators extends core_Manager
             // Взимаме връщания масив от интерфейсния метод
             $data = $sMvc->getIndicatorValues($timeline);
             
-            if (is_array($data) && count($data)) {
+            if (is_array($data) && countR($data)) {
                 
                 // Даваме време
-                core_App::setTimeLimit(count($data) + 10);
+                core_App::setTimeLimit(countR($data) + 10);
                 
                 // По id-то на служителя, намираме от договора му
                 // в кой отдел и на каква позиция работи
@@ -279,7 +279,7 @@ class hr_Indicators extends core_Manager
             list($docClass, $docId) = explode('::', $doc);
             $query = self::getQuery();
             $query->where("#docClass = {$docClass} AND #docId = {$docId}");
-            if (count($ids)) {
+            if (countR($ids)) {
                 $query->where('#id NOT IN (' . implode(',', $ids) . ')');
             }
             $query->delete();
@@ -463,7 +463,7 @@ class hr_Indicators extends core_Manager
                 // Ще се показват само индикаторите участващи във формулата
                 $indicators = self::getIndicatorsInFormula($formula);
                 $indicators = array_keys($indicators);
-                if (count($indicators)) {
+                if (countR($indicators)) {
                     $data->IData->query->in('indicatorId', $indicators);
                     $data->IData->render = true;
                 }
@@ -529,7 +529,7 @@ class hr_Indicators extends core_Manager
             $data->IData->salary = str::calcMathExpr($expr, $success);
             $data->IData->salary = core_type::getByName('double(decimals=2)')->toVerbal($data->IData->salary);
             $data->IData->salary = ht::styleIfNegative($data->IData->salary, $data->IData->salary);
-            $data->IData->salary .=  currency_Currencies::decorate($data->IData->salary);
+            $data->IData->salary =  currency_Currencies::decorate($data->IData->salary);
             $data->IData->salary = ht::createHint($data->IData->salary, '|*' . $formula, 'notice', true, 'width=12px,height=12px');
             if ($success === false) {
                 $data->IData->salary = ht::styleIfNegative(tr('Грешка в калкулацията'), -1);
@@ -546,14 +546,14 @@ class hr_Indicators extends core_Manager
      * @return core_ET $tpl
      */
     public function renderPersonIndicators($data)
-    {
+    {        
         if ($data->IData->render === false) {
             
             return new core_ET('');
         }
         $listTableMvc = clone $this;
         $listTableMvc->setField('indicatorId', 'tdClass=leftCol');
-        
+
         $tpl = new core_ET(tr("|*<div style='margin-bottom:6px'>[#I_S_TABLE#]</div><div style='text-align:right;'><hr />|Формула|* : <b>[#salary#]</b><hr /></div><div class='inlineForm' style='margin-top:20px'>[#listFilter#][#ListToolbarTop#][#I_TABLE#][#ListToolbarBottom#]</div>"));
         $tpl->append($this->renderListFilter($data->IData), 'listFilter');
         
@@ -561,7 +561,7 @@ class hr_Indicators extends core_Manager
         unset($data->IData->listFields['personId']);
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
         $tpl->append($table->get($data->IData->rows, $data->IData->listFields), 'I_TABLE');
-        
+    
         // Добавяне на пейджера
         if ($data->IData->pager) {
             $toolbarHtml = $data->IData->pager->getHtml();
@@ -676,7 +676,7 @@ class hr_Indicators extends core_Manager
                 unset($res[$id]);
             }
         }
-        
+
         return $res;
     }
     

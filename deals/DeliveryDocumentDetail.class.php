@@ -148,7 +148,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
                     $dealInfo = $origin->getAggregateDealInfo();
                     $products = $dealInfo->get('products');
                     
-                    if (count($products)) {
+                    if (countR($products)) {
                         foreach ($products as $p) {
                             if ($rec->productId == $p->productId && $rec->packagingId == $p->packagingId) {
                                 $policyInfo = new stdClass();
@@ -225,7 +225,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
     {
         if (countR($data->rows)) {
             foreach ($data->rows as $i => &$row) {
-                if($row instanceof core_ET) continue;
+                if ($row instanceof core_ET) {
+                    continue;
+                }
                 
                 $rec = &$data->recs[$i];
                 if (empty($rec->quantity) && !Mode::isReadOnly()) {
@@ -271,7 +273,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
     {
         if (!empty($data->toolbar->buttons['btnAdd'])) {
             unset($data->toolbar->buttons['btnAdd']);
-            $data->toolbar->addBtn('Артикул', array($mvc, 'add', $mvc->masterKey => $data->masterId, 'ret_url' => true), "id=btnAdd, order=10,title=Добавяне на артикул,ef_icon = img/16/shopping.png");
+            $data->toolbar->addBtn('Артикул', array($mvc, 'add', $mvc->masterKey => $data->masterId, 'ret_url' => true), 'id=btnAdd, order=10,title=Добавяне на артикул,ef_icon = img/16/shopping.png');
         }
     }
     
@@ -315,5 +317,59 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         }
         
         $rec->amount = $rec->price * $rec->quantity;
+    }
+    
+    
+    /**
+     * Импортиране на артикул генериран от ред на csv файл
+     *
+     * @param int   $masterId - ид на мастъра на детайла
+     * @param array $row      - Обект представляващ артикула за импортиране
+     *                        ->code - код/баркод на артикула
+     *                        ->quantity - К-во на опаковката или в основна мярка
+     *                        ->price - цената във валутата на мастъра, ако няма се изчислява директно
+     *                        ->pack - Опаковката
+     *
+     * @return mixed - резултата от експорта
+     */
+    public function import($masterId, $row)
+    {
+        $Master = $this->Master;
+        
+        $pRec = cat_Products::getByCode($row->code);
+        $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
+        $meta = cat_Products::fetch($pRec->productId, $this->metaProducts);
+        
+        if (!$meta->metaProducts) {
+            $masterThresdId = $Master::fetchField($masterId, 'threadId');
+            
+            if (doc_Threads::getFirstDocument($masterThresdId)->className == 'sales_Sales') {
+                $meta = $meta->canSell;
+            } elseif (doc_Threads::getFirstDocument($masterThresdId)->className == 'purchase_Purchases') {
+                $meta = $meta->canBuy;
+            }
+        }
+        
+        
+        if ($meta != 'yes') {
+            
+            return;
+        }
+        
+        $price = null;
+        
+        // Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
+        if ($row->price) {
+            
+            $packRec = cat_products_Packagings::getPack($pRec->productId,  $pRec->packagingId);
+            $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+            $row->price /= $quantityInPack;
+            
+            $masterRec = $Master->fetch($masterId);
+            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $masterRec->currencyRate, $masterRec->chargeVat);
+            
+        }
+        
+        return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId);
     }
 }

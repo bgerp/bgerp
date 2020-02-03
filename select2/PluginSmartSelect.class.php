@@ -69,7 +69,7 @@ class select2_PluginSmartSelect extends core_Plugin
         
         $minItems = isset($type->params['select2MinItems']) ? $type->params['select2MinItems'] : self::$minItems;
         
-        $optionsCnt = count($options);
+        $optionsCnt = countR($options);
         
         // Ако опциите са под минималното - нищо не правим
         if ($optionsCnt <= $minItems) {

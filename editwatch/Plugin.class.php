@@ -85,7 +85,7 @@ class editwatch_Plugin extends core_Plugin
     {
         $info = '<span></span>';
         
-        if (isset($editedBy) && count($editedBy)) {
+        if (isset($editedBy) && countR($editedBy)) {
             $info = tr('Този запис се редактира също и от|*: ');
             $sign = '';
             

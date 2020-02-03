@@ -9,7 +9,7 @@
  * @package   trans
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -49,7 +49,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,storeId=Складове,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,measures=Тегло|* / |Обем|*,collection=Инкасиране,status,notes=@,address=@,documentHtml=@';
+    public $listFields = 'containerId=Документ,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,measures=Тегло|* / |Обем|*,amountSo=Суми->ЕН,amountSr=Суми->СР,amountPko=Суми->ПКО,amountRko=Суми->РКО,status,notes=@,address=@,documentHtml=@,classId,contragentName=@';
     
     
     /**
@@ -57,7 +57,7 @@ class trans_LineDetails extends doc_Detail
      *
      *  @var string
      */
-    public $hideListFieldsIfEmpty = 'weight,collection,volume,notes,address,documentHtml,zoneId';
+    public $hideListFieldsIfEmpty = 'weight,collection,volume,notes,address,documentHtml,zoneId,documentLu,readyLu,amountSo,amountSr,amountPko,amountRko,contragentName';
     
     
     /**
@@ -118,9 +118,11 @@ class trans_LineDetails extends doc_Detail
      * Вербалните имена на класовете
      */
     private static $classGroups = array('store_ShipmentOrders' => 'Експедиции',
-        'store_Receipts' => 'Доставки',
-        'store_ConsignmentProtocols' => 'Отговорно пазене',
-        'store_Transfers' => 'Трансфери');
+                                        'store_Receipts' => 'Доставки',
+                                        'cash_Pko' => 'Приходни касови ордери',
+                                        'cash_Rko' => 'Разходни касови ордери',
+                                        'store_ConsignmentProtocols' => 'Отговорно пазене',
+                                        'store_Transfers' => 'Трансфери');
     
     
     /**
@@ -153,7 +155,6 @@ class trans_LineDetails extends doc_Detail
     public static function sync($lineId, $containerId)
     {
         $Document = doc_Containers::getDocument($containerId);
-        $transportInfo = $Document->getTransportLineInfo();
         
         // Има ли запис за тази линия
         $rec = self::fetch("#lineId = {$lineId} AND #containerId = {$containerId}");
@@ -174,6 +175,7 @@ class trans_LineDetails extends doc_Detail
         
         // Запис на ЛЕ от документа, ако позволява
         if ($Document->requireManualCheckInTransportLine()) {
+            $transportInfo = $Document->getTransportLineInfo($lineId);
             $rec->documentLu = $transportInfo['transportUnits'];
         }
         
@@ -190,7 +192,13 @@ class trans_LineDetails extends doc_Detail
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec, $fields = null)
     {
         if ($rec->_forceStatus !== true) {
-            $rec->status = (trans_Helper::checkTransUnits($rec->documentLu, $rec->readyLu)) ? 'ready' : 'waiting';
+            $Document = doc_Containers::getDocument($rec->containerId);
+            if($Document->haveInterface('store_iface_DocumentIntf')){
+                $rec->status = (trans_Helper::checkTransUnits($rec->documentLu, $rec->readyLu)) ? 'ready' : 'waiting';
+            } else {
+                $documentState = $Document->fetchField('state');
+                $rec->status = ($documentState == 'active') ? 'ready' : 'waiting';
+            }
         }
     }
     
@@ -206,10 +214,10 @@ class trans_LineDetails extends doc_Detail
     {
         $Document = doc_Containers::getDocument($rec->containerId);
         
-        $transportInfo = $Document->getTransportLineInfo();
+        $transportInfo = $Document->getTransportLineInfo($rec->lineId);
         if (!core_Mode::isReadOnly()) {
             $row->containerId = $Document->getLink(0);
-            $row->containerId = "<span class='state-{$transportInfo['state']} document-handler'>{$row->containerId}</span>";
+            $row->containerId = "<span id= 'ld{$rec->id}' class='state-{$transportInfo['state']} document-handler'>{$row->containerId}</span>";
         } else {
             $row->containerId = '#' . $Document->getHandle();
         }
@@ -219,17 +227,17 @@ class trans_LineDetails extends doc_Detail
         }
         
         $row->ROW_ATTR['class'] = ($rec->status == 'waiting') ? 'state-pending' : (($rec->status == 'removed') ? 'state-removed' : 'state-active');
-        
         if (!empty($transportInfo['notes'])) {
             $row->notes = core_Type::getByName('richtext')->toVerbal($transportInfo['notes']);
         }
         
         if (!empty($transportInfo['stores'])) {
-            if (count($transportInfo['stores']) == 1) {
+            if (countR($transportInfo['stores']) == 1) {
                 $row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0], true);
             } else {
                 $row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0], true) . ' » ' . store_Stores::getHyperlink($transportInfo['stores'][1], true);
             }
+            $row->containerId .= "<br>{$row->storeId}";
         }
         
         if (!empty($transportInfo['address'])) {
@@ -237,25 +245,43 @@ class trans_LineDetails extends doc_Detail
             $row->address = "<span class='line-detail-address'>{$row->address}</span>";
         }
         
-        if (!empty($transportInfo['weight'])) {
-            $weight = core_Type::getByName('cat_type_Weight')->toVerbal($transportInfo['weight']);
+        if($Document->haveInterface('store_iface_DocumentIntf')){
+            if (!empty($transportInfo['weight'])) {
+                $weight = core_Type::getByName('cat_type_Weight')->toVerbal($transportInfo['weight']);
+            } else {
+                $weight = "<span class='quiet'>N/A</span>";
+            }
+            
+            if (!empty($transportInfo['volume'])) {
+                $volume = core_Type::getByName('cat_type_Volume')->toVerbal($transportInfo['volume']);
+            } else {
+                $volume = "<span class='quiet'>N/A</span>";
+            }
+            
+            $row->measures = "{$weight} / {$volume}";
+            
+            if(core_Packs::isInstalled('rack') && store_Stores::getCurrent('id', false)){
+                $zoneBtn = rack_Zones::getBtnToZone($rec->containerId);
+                if(countR($zoneBtn->url)){
+                    $row->_rowTools->addLink($zoneBtn->caption, $zoneBtn->url, $zoneBtn->attr);
+                }
+            }
         } else {
-            $weight = "<span class='quiet'>N/A</span>";
+            if(!empty($transportInfo['contragentName'])){
+                $row->contragentName = "<span class='small'>" . $transportInfo['contragentName'] . "</span>";
+            }
         }
         
-        if (!empty($transportInfo['volume'])) {
-            $volume = core_Type::getByName('cat_type_Volume')->toVerbal($transportInfo['volume']);
-        } else {
-            $volume = "<span class='quiet'>N/A</span>";
-        }
-        
-        $row->measures = "{$weight} / {$volume}";
-        
-        if (!empty($transportInfo['amount'])) {
-            $sign = ($rec->classId != store_Receipts::getClassId()) ? 1 : -1;
-            $amount = $sign * $transportInfo['amount'];
-            $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($amount);
-            $row->collection = "<span class='cCode'>{$transportInfo['currencyId']}</span> " . ht::styleNumber($amountVerbal, $amount);
+        if (!empty($transportInfo['amountVerbal'])) {
+            if($Document->isInstanceOf('store_ShipmentOrders')){
+                $row->amountSo = $transportInfo['amountVerbal'];
+            } elseif($Document->isInstanceOf('store_Receipts')){
+                $row->amountSr = $transportInfo['amountVerbal'];
+            } elseif($Document->isInstanceOf('cash_Pko')){
+                $row->amountPko = $transportInfo['amountVerbal'];
+            } elseif($Document->isInstanceOf('cash_Rko')){
+                $row->amountRko = $transportInfo['amountVerbal'];
+            }
         }
         
         $luObject = self::colorTransUnits($rec->documentLu, $rec->readyLu);
@@ -286,13 +312,6 @@ class trans_LineDetails extends doc_Detail
         // Бутон за изключване
         if ($mvc->haveRightFor('remove', $rec)) {
             $row->_rowTools->addLink('Изключване', array($mvc, 'remove', $rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/delete.png', 'title' => 'Изключване от транспортната линия'));
-        }
-        
-        if(core_Packs::isInstalled('rack') && store_Stores::getCurrent('id', false)){
-           $zoneBtn = rack_Zones::getBtnToZone($rec->containerId);
-           if(count($zoneBtn->url)){
-              $row->_rowTools->addLink($zoneBtn->caption, $zoneBtn->url, $zoneBtn->attr);
-           }
         }
     }
     
@@ -327,7 +346,10 @@ class trans_LineDetails extends doc_Detail
     {
         $data->listTableMvc->FNC('weight', 'cat_type_Weight');
         $data->listTableMvc->FNC('volume', 'cat_type_Volume');
-        $data->listTableMvc->FNC('collection', 'double');
+        $data->listTableMvc->FNC('amountSo', 'double');
+        $data->listTableMvc->FNC('amountSr', 'double');
+        $data->listTableMvc->FNC('amountPko', 'double');
+        $data->listTableMvc->FNC('amountRko', 'double');
         $data->listTableMvc->FNC('notes', 'varchar', 'tdClass=row-notes');
         $data->listTableMvc->FNC('zoneId', 'varchar', 'smartCenter');
     }
@@ -364,11 +386,12 @@ class trans_LineDetails extends doc_Detail
         $quantities = $tableData['quantity'];
         $error = $errorFields = array();
         
-        if (count($units) != count(array_unique($units))) {
+        if (countR($units) != countR(array_unique($units))) {
             $error[] = 'Логистичните единици трябва да са уникални|*';
         }
         
-        foreach ($units as $k => $unitId) {
+        $unitKeys = array_keys($units);
+        foreach ($unitKeys as $k) {
             if (!isset($quantities[$k])) {
                 $error[] = 'Попълнена ЛЕ без да има количество|*';
                 $errorFields['quantity'][$k] = 'Попълнена ЛЕ без да има количество|*';
@@ -392,12 +415,12 @@ class trans_LineDetails extends doc_Detail
             }
         }
         
-        if (count($error)) {
+        if (countR($error)) {
             $error = implode('<li>', $error);
             $res['error'] = $error;
         }
         
-        if (count($errorFields)) {
+        if (countR($errorFields)) {
             $res['errorFields'] = $errorFields;
         }
         
@@ -566,8 +589,10 @@ class trans_LineDetails extends doc_Detail
         $receiptClassId = store_Receipts::getClassId();
         $transferClassId = store_Transfers::getClassId();
         $consClassId = store_ConsignmentProtocols::getClassId();
+        $pkoClassId = cash_Pko::getClassId();
+        $rkoClassId = cash_Rko::getClassId();
         
-        $data->query->XPR('orderByClassId', 'int', "(CASE #classId WHEN {$shipClassId} THEN 1 WHEN {$receiptClassId} THEN 2 WHEN {$transferClassId} THEN 3 WHEN {$consClassId} THEN 4 ELSE 5 END)");
+        $data->query->XPR('orderByClassId', 'int', "(CASE #classId WHEN {$shipClassId} THEN 1 WHEN {$receiptClassId} THEN 2 WHEN {$pkoClassId} THEN 3 WHEN {$rkoClassId} THEN 4 WHEN {$transferClassId} THEN 5 WHEN {$consClassId} THEN 6 ELSE 7 END)");
         $data->query->orderBy('#orderByClassId=ASC,#containerId');
     }
     

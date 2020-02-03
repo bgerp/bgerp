@@ -295,7 +295,7 @@ class planning_Jobs extends core_Master
         // Ако има предишни задания зареждат се за избор
         $oldJobs = self::getOldJobs($rec->productId, $rec->id, $rec->folderId);
         
-        if (count($oldJobs)) {
+        if (countR($oldJobs)) {
             $form->setField('oldJobId', 'input');
             $form->setOptions('oldJobId', array('' => '') + $oldJobs);
         }
@@ -427,7 +427,7 @@ class planning_Jobs extends core_Master
         
         $data->listFilter->setField('selectPeriod', 'caption=Падеж');
         $contragentsWithJobs = self::getContragentsWithJobs();
-        if (count($contragentsWithJobs)) {
+        if (countR($contragentsWithJobs)) {
             $data->listFilter->FLD('contragent', 'int', 'caption=Контрагенти,input,silent');
             $data->listFilter->setOptions('contragent', array('' => '') + $contragentsWithJobs);
             $data->listFilter->input('contragent', 'silent');
@@ -493,7 +493,7 @@ class planning_Jobs extends core_Master
                         $jobIdsWithTasks = arr::extractValuesFromArray($tQuery->fetchAll(), 'docId');
                         $data->query->where("#state = 'active'");
                         
-                        if (count($jobIdsWithTasks)) {
+                        if (countR($jobIdsWithTasks)) {
                             $data->query->notIn('id', $jobIdsWithTasks);
                         }
                         
@@ -513,7 +513,7 @@ class planning_Jobs extends core_Master
     {
         $options = core_Cache::get('planning_Jobs', 'contragentsWithJobs', 120, array('planning_Jobs'));
         
-        if(!is_array($options) || !count($options)) {
+        if(!is_array($options) || !countR($options)) {
             $options = array();
             $query = self::getQuery();
             $query->EXT('sFolderId', 'sales_Sales', 'externalName=folderId,externalKey=saleId');
@@ -543,7 +543,7 @@ class planning_Jobs extends core_Master
         $tpl->push('planning/tpl/styles.css', 'CSS');
         
         // Рендираме историята на действията със заданието
-        if (count($data->row->history)) {
+        if (countR($data->row->history)) {
             foreach ($data->row->history as $hRow) {
                 $clone = clone $tpl->getBlock('HISTORY_ROW');
                 $clone->placeObject($hRow);
@@ -556,7 +556,7 @@ class planning_Jobs extends core_Master
         $packagingTpl = cls::get('cat_products_Packagings')->renderPackagings($data->packagingData);
         $tpl->replace($packagingTpl, 'PACKAGINGS');
         
-        if (count($data->components)) {
+        if (countR($data->components)) {
             $componentTpl = cat_Products::renderComponents($data->components);
             $tpl->append($componentTpl, 'JOB_COMPONENTS');
         }
@@ -1108,7 +1108,7 @@ class planning_Jobs extends core_Master
         $saleRec = sales_Sales::fetch($saleId, 'threadId,containerId');
         
         $selectable = $this->getSelectableProducts($saleId);
-        if (count($selectable) == 1) {
+        if (countR($selectable) == 1) {
             $selectable = array_keys($selectable);
             redirect(array($this, 'add', 'threadId' => $saleRec->threadId, 'productId' => $selectable[0], 'saleId' => $saleId, 'foreignId' => $saleRec->containerId, 'ret_url' => array('sales_Sales', 'single', $saleId)));
         }
@@ -1147,7 +1147,7 @@ class planning_Jobs extends core_Master
         $form->FLD('select', 'varchar', 'caption=Избор,mandatory');
         
         $options = $this->getTaskOptions($jobRec);
-        if(count($options)){
+        if(countR($options)){
             $form->setOptions('select', $options);
             $form->setDefault('select', 'new');
         } else {
@@ -1212,7 +1212,7 @@ class planning_Jobs extends core_Master
         
         // Има ли дефолтни задачи от артикула
         $defaultTasks = cat_Products::getDefaultProductionTasks($rec, $rec->quantity);
-        if (count($defaultTasks)) {
+        if (countR($defaultTasks)) {
             foreach ($defaultTasks as $k => $defRec) {
                 $options["sys|{$k}"] = $defRec->title;
             }
@@ -1224,7 +1224,7 @@ class planning_Jobs extends core_Master
         if (isset($rec->oldJobId)) {
             $oldTasks = planning_Tasks::getTasksByJob($rec->oldJobId);
             
-            if (count($oldTasks)) {
+            if (countR($oldTasks)) {
                 $options1 = array();
                 foreach ($oldTasks as $k1 => $oldTitle) {
                     $options1["c|{$k1}"] = $oldTitle;
@@ -1241,7 +1241,7 @@ class planning_Jobs extends core_Master
             $options2["new|{$depFolderId}"] = tr("В|* {$dName}");
         }
         
-        if(count($options2)){
+        if(countR($options2)){
             $options += array('new' => (object) array('group' => true, 'title' => tr('Нови операции'))) + $options2;
         }
         

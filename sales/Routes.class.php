@@ -371,7 +371,7 @@ class sales_Routes extends core_Manager
         $title = $this->title;
         $listFields = arr::make('salesmanId=Търговец,repeat=Период,nextVisit=Следващо посещение');
         
-        if ($data->addUrl) {
+        if ($data->addUrl && !Mode::isReadOnly()) {
             $title .= ht::createLink('', $data->addUrl, null, array('ef_icon' => 'img/16/add.png', 'class' => 'addRoute', 'title' => 'Създаване на нов търговски маршрут'));
         }
         
@@ -475,7 +475,7 @@ class sales_Routes extends core_Manager
         }
         
         // Ако няма маршрути, връщаме
-        if (!count($arr)) {
+        if (!countR($arr)) {
             
             return $salesmanId;
         }
@@ -528,12 +528,12 @@ class sales_Routes extends core_Manager
         }
         
         // Обновяване на състоянията
-        if (count($updateState)) {
+        if (countR($updateState)) {
             $this->saveArray($updateState, 'id,state');
         }
         
         // Обновяване на следващото изпълнение
-        if (count($updateNextVisit)) {
+        if (countR($updateNextVisit)) {
             $this->saveArray($updateNextVisit, 'id,nextVisit');
         }
     }

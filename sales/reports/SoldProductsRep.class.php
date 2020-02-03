@@ -207,7 +207,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $this->groupByField = 'group';
         }
         
-        
+       
         $recs = array();
         
         if ($rec->quantityType == 'shipped'){
@@ -762,7 +762,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
             $fld->FLD('quantity', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1} Продажби");
             $fld->FLD('primeCost', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1} Стойност");
-            $fld->FLD('delta', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1} Делта");
+            if ($rec->seeDelta == 'yes') {
+                $fld->FLD('delta', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1} Делта");
+            }
             if ($rec->compare != 'no') {
                 $fld->FLD('quantityCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2} Продажби,tdClass=newCol");
                 $fld->FLD('primeCostCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2} Стойност,tdClass=newCol");
@@ -790,8 +792,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if (is_numeric($dRec->group)) {
                 $groupVal = $dRec->groupValues;
                 $groupDeltas = $dRec->groupDeltas;
-                
-                $group = cat_Groups::getVerbal($dRec->group, 'name') . "<span class= 'fright'><span class= ''>" . 'Общо за групата ( стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($groupVal) . ', делта: ' . core_Type::getByName('double(decimals=2)')->toVerbal($groupDeltas) . ' )' . '</span>';
+                $grouping = ($rec->seeDelta == 'yes') ? ', делта: ' . core_Type::getByName('double(decimals=2)')->toVerbal($groupDeltas) : '';
+              
+                $group = cat_Groups::getVerbal($dRec->group, 'name') . "<span class= 'fright'><span class= ''>" . 'Общо за групата ( стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($groupVal) . $grouping . ' )'. '</span>';
             } else {
                 $group = $dRec->group . "<span class= 'fright'>" . 'Общо за групата ( стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupValues) . ', делта: ' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupDeltas) . ' )' . '</span>';
             }
@@ -1106,7 +1109,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     
                     $groupVerb .= (crm_Groups::getTitleById($group));
                     
-                    if ((count((type_Keylist::toArray($data->rec->crmGroup))) - $marker) != 0) {
+                    if ((countR((type_Keylist::toArray($data->rec->crmGroup))) - $marker) != 0) {
                         $groupVerb .= ', ';
                     }
                 }
@@ -1122,7 +1125,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     
                     $contragentVerb .= (doc_Folders::getTitleById($contragent));
                     
-                    if ((count(type_Keylist::toArray($data->rec->contragent))) - $marker != 0) {
+                    if ((countR(type_Keylist::toArray($data->rec->contragent))) - $marker != 0) {
                         $contragentVerb .= ', ';
                     }
                 }

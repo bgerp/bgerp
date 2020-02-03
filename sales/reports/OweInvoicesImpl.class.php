@@ -268,13 +268,13 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
             $values = $data->recs;
             $toPaid = 0;
             $flag = false;
-            for ($line = 0; $line < count($values); $line++) {
+            for ($line = 0; $line < countR($values); $line++) {
                 if ($line !== 0) {
                     continue;
                 }
                 
                 
-                for ($i = $line; $i < count($values); ++$i) {
+                for ($i = $line; $i < countR($values); ++$i) {
                     //$data->recs[$i]->amountRest = 0;
                     if ($data->recs[$i]->currencyId != $currencyNow && isset($data->recs[$i]->rate)) {
                         $p = $paid[$data->recs[$i]->saleId]['creditAmount'] / $data->recs[$i]->rate;
@@ -291,7 +291,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                         } elseif ($paid[$data->recs[$i]->saleId]['creditAmount'] == '0') {
                             $data->recs[$i]->amountRest = $data->recs[$i]->amountVat;
                             $data->recs[$i + 1]->amountRest = $data->recs[$i + 1]->amountVat;
-                            if (count($values) % 2 != 0 && $data->recs[$i + 2]) {
+                            if (countR($values) % 2 != 0 && $data->recs[$i + 2]) {
                                 $data->recs[$i + 2]->amountRest = $data->recs[$i + 2]->amountVat;
                             }
                             $flag = true;
@@ -307,19 +307,19 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                                 $data->recs[$i]->amountRest = $toPaid;
                                 $data->recs[$i + 1]->amountRest = $data->recs[$i + 1]->amountVat;
                                 
-                                if (count($values) % 2 != 0 && $data->recs[$i + 2]) {
+                                if (countR($values) % 2 != 0 && $data->recs[$i + 2]) {
                                     $data->recs[$i + 2]->amountRest = $data->recs[$i + 2]->amountVat;
                                 }
                             } elseif ($toPaid == '0' && $flag == true) {
                                 $data->recs[$i]->amountRest = $data->recs[$i]->amountVat;
                                 $data->recs[$i + 1]->amountRest = $data->recs[$i + 1]->amountVat;
-                                if (count($values) % 2 != 0 && $data->recs[$i + 2]) {
+                                if (countR($values) % 2 != 0 && $data->recs[$i + 2]) {
                                     $data->recs[$i + 2]->amountRest = $data->recs[$i + 2]->amountVat;
                                 }
                             } elseif ($toPaid == '0' && $flag == false) {
                                 $data->recs[$i]->amountRest = $toPaid;
                                 $data->recs[$i + 1]->amountRest = $data->recs[$i + 1]->amountVat;
-                                if (count($values) % 2 != 0 && $data->recs[$i + 2]) {
+                                if (countR($values) % 2 != 0 && $data->recs[$i + 2]) {
                                     $data->recs[$i + 2]->amountRest = $data->recs[$i + 2]->amountVat;
                                 }
                             } else {
@@ -328,7 +328,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                                     $data->recs[$i + 1]->amountRest = $data->recs[$i + 1]->amountVat + $toPaid;
                                 } else {
                                     $data->recs[$i + 1]->amountRest = $data->recs[$i + 1]->amountVat;
-                                    if (count($values) % 2 != 0 && $data->recs[$i + 2]) {
+                                    if (countR($values) % 2 != 0 && $data->recs[$i + 2]) {
                                         $data->recs[$i + 2]->amountRest = $data->recs[$i + 2]->amountVat + $toPaid;
                                     }
                                 }
@@ -340,7 +340,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                             if ($data->recs[$i]->amountVat <= 0) {
                                 $data->recs[$i]->amountRest = $data->recs[$i]->amountVat;
                                 $data->recs[$i + 1]->amountRest = $data->recs[$i + 1]->amountVat;
-                                if (count($values) % 2 != 0 && $data->recs[$i + 2]) {
+                                if (countR($values) % 2 != 0 && $data->recs[$i + 2]) {
                                     $data->recs[$i + 2]->amountRest = $data->recs[$i + 2]->amountVat;
                                 }
                             }
@@ -387,7 +387,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         
         $pager = cls::get('core_Pager', array('pageVar' => 'P_' .  $mvc->EmbedderRec->that,'itemsPerPage' => $mvc->listItemsPerPage));
         
-        $pager->itemsCount = count($data->recs, COUNT_RECURSIVE);
+        $pager->itemsCount = countR($data->recs, COUNT_RECURSIVE);
         $data->pager = $pager;
         
         $data->summary = new stdClass();
@@ -395,7 +395,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
         
-        if (count($data->recs)) {
+        if (countR($data->recs)) {
             foreach ($data->recs as $rec) {
                 if (!$pager->isOnPage()) {
                     continue;
@@ -526,8 +526,8 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         
         $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
         
-        if (count($data->summary)) {
-            $data->summary->colspan = count($data->listFields) - 3;
+        if (countR($data->summary)) {
+            $data->summary->colspan = countR($data->listFields) - 3;
             $afterRow = new core_ET("<tr  style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountInv#]</b></td><td style='text-align:right'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountToPaid#]</b></td><!--ET_BEGIN amountArrears--><td style='text-align:right;color:red'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountArrears#]</b><!--ET_END amountArrears--></td></tr>");
             
             $afterRow->placeObject($data->summary);
@@ -651,7 +651,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
     {
         $conf = core_Packs::getConfig('core');
         
-        if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
+        if (countR($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
             redirect(array($this), false, '|Броят на заявените записи за експорт надвишава максимално разрешения|* - ' . $conf->EF_MAX_EXPORT_CNT, 'error');
         }
         
@@ -664,7 +664,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         $fields = $this->getFields();
         $exportFields = $this->innerState->listFields;
         
-        if (count($this->innerState->recs)) {
+        if (countR($this->innerState->recs)) {
             foreach ($this->innerState->recs as $rec) {
                 $state = array('pending' => 'Чакащо', 'overdue' => 'Просрочено', 'paid' => 'Платено', 'repaid' => 'Издължено');
                 

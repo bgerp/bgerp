@@ -696,7 +696,7 @@ class distro_Files extends core_Detail
                 $data->form->setField('repos', 'input=none');
             } else {
                 $data->form->setSuggestions('repos', $reposArr);
-                if (count($reposArr) == 1) {
+                if (countR($reposArr) == 1) {
                     $data->form->setDefault('repos', '|'. key($reposArr) . '|');
                 }
             }
@@ -1125,7 +1125,7 @@ class distro_Files extends core_Detail
             $form->setField('repos', 'input=none');
         } else {
             $form->setSuggestions('repos', $reposArr);
-            if (count($reposArr) == 1) {
+            if (countR($reposArr) == 1) {
                 $form->setDefault('repos', '|'. key($reposArr) . '|');
             }
         }

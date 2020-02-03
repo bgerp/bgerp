@@ -43,7 +43,7 @@ class cond_Payments extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title, currencyCode, code, change, state, synonym, createdOn,createdBy';
+    public $listFields = 'id, title, currencyCode, code, change, state, text, synonym, createdOn,createdBy';
     
     
     /**
@@ -91,6 +91,12 @@ class cond_Payments extends core_Manager
     
     
     /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'ceo,admin';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
@@ -100,8 +106,31 @@ class cond_Payments extends core_Manager
         $this->FLD('change', 'enum(yes=Да,no=Не)', 'caption=Ресто?,value=no,tdClass=centerCol');
         $this->FLD('currencyCode', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'caption=Валута,smartCenter');
         $this->FLD('synonym', 'varchar(120)', 'caption=Имена във ФУ');
+        $this->FLD('text', 'text(rows=2)', 'caption=Текст');
         
         $this->setDbUnique('title');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+        $rec = &$form->rec;
+        
+        // Ако плащането е системно, само текста му може да се променя от потребителя
+        if(isset($rec->id) && $rec->createdBy == core_Users::SYSTEM_USER){
+            $form->setReadOnly('title');
+            $fields = array_keys($form->selectFields("#input != 'hidden' AND #name != 'text' AND #name != 'title'"));
+            foreach ($fields as $fieldName){
+                $form->setField($fieldName, 'input=none');
+            }
+        }
     }
     
     
@@ -185,7 +214,7 @@ class cond_Payments extends core_Manager
      */
     public static function toBaseCurrency($id, $amount, $date = null, $toCurrencyCode = null)
     {
-        $fromCurrencyCode = self::fetchField($id, currencyCode);
+        $fromCurrencyCode = self::fetchField($id, 'currencyCode');
         $fromCurrencyCode = !empty($fromCurrencyCode) ? $fromCurrencyCode : acc_Periods::getBaseCurrencyCode($date);
         
         return currency_CurrencyRates::convertAmount($amount, $date, $fromCurrencyCode, $toCurrencyCode);

@@ -15,8 +15,8 @@
  */
 
 // Проверка за минимално изискуемата версия на PHP
-if (version_compare(phpversion(), '5.3.0') < 0) {
-    echo('Необходимо е php 5.3+!');
+if (version_compare(phpversion(), '5.5.0') < 0) {
+    echo('Необходимо е php 5.5+!');
     die;
 }
 

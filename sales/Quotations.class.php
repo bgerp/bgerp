@@ -278,7 +278,7 @@ class sales_Quotations extends core_Master
         $form->setDefault('contragentClassId', $contragentClassId);
         $form->setDefault('contragentId', $contragentId);
         $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, false);
-        if (count($locations)) {
+        if (countR($locations)) {
             $form->setOptions('deliveryPlaceId', array('' => '') + $locations);
         }
         
@@ -416,9 +416,9 @@ class sales_Quotations extends core_Master
             }
             
             // Ако има повтарящи се полета
-            if (count($errorFields)) {
+            if (countR($errorFields)) {
                 $form->setError($errorFields, 'Количествата трябва да са различни');
-            } elseif (count($errorFields2)) {
+            } elseif (countR($errorFields2)) {
                 $moq = core_Type::getByName('double(smartRound)')->toVerbal($moq);
                 $form->setError($errorFields2, "Минимално количество за поръчка|* <b>{$moq}</b>");
             }
@@ -980,7 +980,7 @@ class sales_Quotations extends core_Master
             }
         }
         
-        if (count($updateFields)) {
+        if (countR($updateFields)) {
             $mvc->save($rec, $updateFields);
         }
         
@@ -1036,7 +1036,7 @@ class sales_Quotations extends core_Master
             $products[$index] = $detail;
         }
         
-        return (count($products)) ? array_values($products) : null;
+        return (countR($products)) ? array_values($products) : null;
     }
     
     
@@ -1272,13 +1272,13 @@ class sales_Quotations extends core_Master
             } else {
                 $product->title = "Оферирани->{$product->title}";
                 $mandatory = '';
-                if (count($product->options) > 1) {
+                if (countR($product->options) > 1) {
                     $product->options = array('' => '') + $product->options;
                     $mandatory = 'mandatory';
                 }
             }
             $form->FNC($index, 'double(decimals=2)', "input,caption={$product->title},hint={$product->hint},{$mandatory}");
-            if (count($product->options) == 1) {
+            if (countR($product->options) == 1) {
                 $default = key($product->options);
             }
             
@@ -1718,10 +1718,10 @@ class sales_Quotations extends core_Master
             $saveRecs[] = $dRec;
         }
         
-        if (count($error)) {
+        if (countR($error)) {
             $imploded = implode(', ', $error);
-            $start = (count($error) == 1) ? 'артикулът' : 'артикулите';
-            $mid = (count($error) == 1) ? 'му' : 'им';
+            $start = (countR($error) == 1) ? 'артикулът' : 'артикулите';
+            $mid = (countR($error) == 1) ? 'му' : 'им';
             $msg = "На {$start}|* <b>{$imploded}</b> |трябва да {$mid} се въведе цена|*";
             
             core_Statuses::newStatus($msg, 'error');

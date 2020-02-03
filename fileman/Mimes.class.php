@@ -156,7 +156,7 @@ class fileman_Mimes extends core_Mvc
         
         $extArr = self::getExtByMime($mime);
         
-        if (count($extArr)) {
+        if (countR($extArr)) {
             $oFileName = $fileName;
             
             $ext = fileman_Files::getExt($fileName);

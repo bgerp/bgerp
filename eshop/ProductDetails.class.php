@@ -468,7 +468,7 @@ class eshop_ProductDetails extends core_Detail
         
         $tpl->append($table->get($data->rows, $data->listFields));
         
-        $colspan = count($data->listFields);
+        $colspan = countR($data->listFields);
         $cartInfo = tr('Всички цени са в') . " {$settings->currencyId}, " . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
         $cartInfo = "<tr><td colspan='{$colspan}' class='option-table-info'>{$cartInfo}</td></tr>";
         $tpl->append($cartInfo, 'ROW_AFTER');
@@ -533,7 +533,7 @@ class eshop_ProductDetails extends core_Detail
         }
         
         // Ако се ъпдейтват всички, ще се ъпдейтнат и тези без детайли
-        if(empty($productId) && count($productsWithDetails)){
+        if(empty($productId) && countR($productsWithDetails)){
             $Products = cls::get('eshop_Products');
             $eQuery = $Products->getQuery();
             $eQuery->notIn('id', $productsWithDetails);

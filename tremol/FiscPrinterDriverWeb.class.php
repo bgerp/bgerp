@@ -69,7 +69,8 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
      * DISC_ADD_V - надбавка/отстъпка в стойнонст - може и с -
      * BEFORE_PLU_TEXT - стринг или масив от стрингове с текст, който ще се добавя преди продукта
      * AFTER_PLU_TEXT - стринг или масив от стрингове с текст, който ще се добавя след продукта
-     *
+     * DEP_NUM - номер на департамнет. Ако е зададен (от 0-99), се добавя от този департамент
+     * 
      * DATE_TIME - времето за синхронизира във формат 'd-m-Y H:i:s'. Ако е false - няма да се синхронизира
      *
      * SERIAL_NUMBER - серийния номер на принтера за проверка. Ако е false - няма да се проверява. Ако има разминаване - спира процеса.
@@ -276,6 +277,14 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
             if (isset($pArr['AFTER_PLU_TEXT'])) {
                 $this->replaceTextArr($pArr['AFTER_PLU_TEXT'], $fpSalePLU, 'AFTER_PLU_TEXT', true, $maxTextLen);
             }
+            
+            if (isset($pArr['DEP_NUM'])) {
+                expect(is_numeric($pArr['DEP_NUM']) && ($pArr['DEP_NUM'] >= 0) && ($pArr['DEP_NUM'] <= 99));
+            } else {
+                $pArr['DEP_NUM'] = 'false';
+            }
+            
+            $fpSalePLU->replace($pArr['DEP_NUM'], 'DEP_NUM');
             
             $fpSalePLU->removeBlocks();
             $fpSalePLU->append2master();
@@ -517,7 +526,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
     {
         // Задаваме настройките за връзка със сървъра
         $tpl->replace(json_encode($pRec->serverIp), 'SERVER_IP');
-        $tpl->replace(json_encode($pRec->serverTcpPort), SERVER_TCP_PORT);
+        $tpl->replace(json_encode($pRec->serverTcpPort), 'SERVER_TCP_PORT');
         
         if ($setDeviceSettings) {
             // Свързваме се с ФП
@@ -644,74 +653,100 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
                 // След запис, обновяваме хедър и футъра
                 if ($update) {
                     
-                    // Вземаме серийния номер от ФУ
-                    $setSerialUrl = toUrl(array($Driver, 'setSerialNumber', $data->rec->id), 'local');
-                    $setSerialUrl = urlencode($setSerialUrl);
-                    $updateSn = "try {
+                    // @todo - временно е спряно
+//                     if (($update == 'department') || ($update == '1')) {
+//                         // Вземаме начините на плащане от ФУ
+//                         $setDepartments = toUrl(array($Driver, 'SetDepartments', $data->rec->id), 'local');
+//                         $setDepartments = urlencode($setDepartments);
+//                         $updateSn = "try {
+//                                      var depArr = fpGetDepArr();
+//                                      depArr = JSON.stringify(depArr);
+//                                      getEfae().process({url: '{$setDepartments}'}, {depArr: depArr});
+//                                  } catch(ex) {
+//                                      render_showToast({timeOut: 800, text: '" . tr('Грешка при добавяне на плащания') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
+//                                  }";
+                        
+//                         $jsTpl->prepend($updateSn, 'OTHER');
+                        
+//                     }
+                    
+                    if (($update == 'sn') || ($update == '1')) {
+                        // Вземаме серийния номер от ФУ
+                        $setSerialUrl = toUrl(array($Driver, 'setSerialNumber', $data->rec->id), 'local');
+                        $setSerialUrl = urlencode($setSerialUrl);
+                        $updateSn = "try {
                                      getEfae().process({url: '{$setSerialUrl}'}, {serial: sn});
                                  } catch(ex) {
                                      render_showToast({timeOut: 800, text: '" . tr('Грешка при обновяване на серийния номер') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
                                  }";
-                    $jsTpl->prepend($updateSn, 'OTHER');
+                        $jsTpl->prepend($updateSn, 'OTHER');
+                    }
                     
-                    // Вземаме паролата от ФУ
-                    $setOperPassUrl = toUrl(array($Driver, 'SetOperPass', $data->rec->id), 'local');
-                    $setOperPassUrl = urlencode($setOperPassUrl);
-                    $updateSn = "try {
+                    if (($update == 'opass') || ($update == '1')) {
+                        // Вземаме паролата от ФУ
+                        $setOperPassUrl = toUrl(array($Driver, 'SetOperPass', $data->rec->id), 'local');
+                        $setOperPassUrl = urlencode($setOperPassUrl);
+                        $updateSn = "try {
                                      var operPass = fpGetOperPass();
                                      getEfae().process({url: '{$setOperPassUrl}'}, {operPass: operPass});
                                  } catch(ex) {
                                      render_showToast({timeOut: 800, text: '" . tr('Грешка при промяна на парола за връзка с ФУ') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
                                  }";
+                        
+                        $jsTpl->prepend($updateSn, 'OTHER');
+                    }
                     
-                    $jsTpl->prepend($updateSn, 'OTHER');
-                    
-                    // Вземаме начините на плащане от ФУ
-                    $setDefaultPaymenst = toUrl(array($Driver, 'SetDefPayments', $data->rec->id), 'local');
-                    $setDefaultPaymenst = urlencode($setDefaultPaymenst);
-                    $updateSn = "try {
+                    if (($update == 'payments') || ($update == '1')) {
+                        // Вземаме начините на плащане от ФУ
+                        $setDefaultPaymenst = toUrl(array($Driver, 'SetDefPayments', $data->rec->id), 'local');
+                        $setDefaultPaymenst = urlencode($setDefaultPaymenst);
+                        $updateSn = "try {
                                      var defPaym = fpGetDefPayments();
                                      defPaym = JSON.stringify(defPaym);
                                      getEfae().process({url: '{$setDefaultPaymenst}'}, {defPaym: defPaym});
                                  } catch(ex) {
                                      render_showToast({timeOut: 800, text: '" . tr('Грешка при добавяне на плащания') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
                                  }";
+                        
+                        $jsTpl->prepend($updateSn, 'OTHER');
+                    }
                     
-                    $jsTpl->prepend($updateSn, 'OTHER');
-                    
-                    // Сверяваме времето
-                    $now = json_encode(date('d-m-Y H:i:s'));
-                    $updateTime = "try {
+                    if (($update == 'date') || ($update == '1')) {
+                        // Сверяваме времето
+                        $now = json_encode(date('d-m-Y H:i:s'));
+                        $updateTime = "try {
                                     fpSetDateTime({$now});
                                 } catch(ex) {
                                     render_showToast({timeOut: 800, text: '" . tr('Не може да се синхронизира времето') . ": ' + ex.message, isSticky: false, stayTime: 12000, type: 'warning'});
                                 }";
-                    $jsTpl->prepend($updateTime, 'OTHER');
+                        $jsTpl->prepend($updateTime, 'OTHER');
+                    }
                     
-                    // Нулираме другихте хедъри
-                    $headersTextStr = '';
-                    
-                    $maxTextLen = ($data->rec->fpType == 'fiscalPrinter') ? $Driver->fpLen : $Driver->crLen;
-                    
-                    if ($data->rec->header == 'yes') {
-                        for ($i = 1; $i <= 7; $i++) {
-                            $h = headerText . $i;
-                            $ht = (string) $data->rec->{$h};
-                            $ht = self::formatText($ht, $data->rec->headerPos, $maxTextLen);
-                            $ht = json_encode($ht);
-                            $headersTextStr .= "fpProgramHeader({$ht}, {$i});";
+                    if (($update == 'hf') || ($update == '1')) {
+                        // Нулираме другихте хедъри
+                        $headersTextStr = '';
+                        
+                        $maxTextLen = ($data->rec->fpType == 'fiscalPrinter') ? $Driver->fpLen : $Driver->crLen;
+                        
+                        if ($data->rec->header == 'yes') {
+                            for ($i = 1; $i <= 7; $i++) {
+                                $h = headerText . $i;
+                                $ht = (string) $data->rec->{$h};
+                                $ht = self::formatText($ht, $data->rec->headerPos, $maxTextLen);
+                                $ht = json_encode($ht);
+                                $headersTextStr .= "fpProgramHeader({$ht}, {$i});";
+                            }
                         }
-                    }
-                    $footerTextStr = '';
-                    if ($data->rec->footer == 'yes') {
-                        $ft = (string) $data->rec->footerText;
-                        $ft = self::formatText($ft, $data->rec->footerPos, $maxTextLen);
-                        $ft = json_encode($ft);
-                        $footerTextStr = "fpProgramFooter({$ft});";
-                    }
-                    
-                    if ($headersTextStr || $footerTextStr) {
-                        $headerText = "try {
+                        $footerTextStr = '';
+                        if ($data->rec->footer == 'yes') {
+                            $ft = (string) $data->rec->footerText;
+                            $ft = self::formatText($ft, $data->rec->footerPos, $maxTextLen);
+                            $ft = json_encode($ft);
+                            $footerTextStr = "fpProgramFooter({$ft});";
+                        }
+                        
+                        if ($headersTextStr || $footerTextStr) {
+                            $headerText = "try {
                                         {$headersTextStr}
                                     } catch(ex) {
                                         render_showToast({timeOut: 800, text: '" . tr('Грешка при програмиране на хедъра на устройството') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
@@ -723,6 +758,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
                                         render_showToast({timeOut: 800, text: '" . tr('Грешка при програмиране на футъра на устройството') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
                                     }";
                                         $jsTpl->append($headerText, 'OTHER');
+                        }
                     }
                 }
                 
@@ -863,6 +899,43 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
         if ($dPaymArr['defPaymArr']) {
             $pRec->otherData['defPaymArr'] = $dPaymArr['defPaymArr'];
             $pRec->otherData['exRate'] = $dPaymArr['exRate'];
+            
+            peripheral_Devices::save($pRec, 'otherData');
+        }
+        
+        return array();
+    }
+    
+    
+    /**
+     * Екшън за добавяне на департаменти
+     *
+     * @return array
+     */
+    public function act_SetDepartments()
+    {
+        expect(Request::get('ajax_mode'));
+        
+        peripheral_Devices::requireRightFor('single');
+        
+        $operPass = Request::get('operPass');
+        $id = Request::get('id', 'int');
+        
+        expect($id);
+        
+        $pRec = peripheral_Devices::fetch($id);
+        
+        expect($pRec);
+        
+        peripheral_Devices::requireRightFor('single', $id);
+        peripheral_Devices::requireRightFor('edit', $id);
+        
+        $depArr = Request::get('depArr');
+        
+        $depArr = json_decode($depArr, true);
+        
+        if ($depArr) {
+            $pRec->otherData['depArr'] = $depArr;
             
             peripheral_Devices::save($pRec, 'otherData');
         }

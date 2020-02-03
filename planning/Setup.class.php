@@ -167,7 +167,7 @@ class planning_Setup extends core_ProtoSetup
     public $defClasses = 'planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,
                           planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,
                           planning_interface_ImportFromLastBom,planning_interface_StageDriver,planning_reports_Workflows,planning_Terminal,
-                          planning_reports_ArticlesProduced';
+                          planning_reports_ArticlesProduced,planning_reports_ConsumedItemsByJob';
     
     
     /**
@@ -254,7 +254,7 @@ class planning_Setup extends core_ProtoSetup
         $TaskDetails = cls::get('planning_ProductionTaskDetails');
         $TaskDetails->setupMvc();
         
-        if (!count($Tasks)) {
+        if (!countR($Tasks)) {
             
             return;
         }
@@ -268,7 +268,7 @@ class planning_Setup extends core_ProtoSetup
             $updateArr[$rec->id] = $rec;
         }
         
-        if (count($updateArr)) {
+        if (countR($updateArr)) {
             $Tasks->saveArray($updateArr, 'id,indPackagingId');
         }
     }
@@ -285,7 +285,7 @@ class planning_Setup extends core_ProtoSetup
         $TaskDetails = cls::get('planning_ProductionTaskDetails');
         $TaskDetails->setupMvc();
         
-        if (!count($Tasks)) {
+        if (!countR($Tasks)) {
             
             return;
         }
@@ -302,7 +302,7 @@ class planning_Setup extends core_ProtoSetup
             $updateArr[] = $rec;
         }
         
-        if (count($updateArr)) {
+        if (countR($updateArr)) {
             $Tasks->saveArray($updateArr, 'id,measureId,quantityInPack');
         }
     }

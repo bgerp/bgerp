@@ -341,12 +341,36 @@ class sens2_Controllers extends core_Master
         }
     }
     
-    
+
+    /**
+     * Изпълнява се след подготовката на единичния тулбар
+     */
     public function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
         if ($mvc->haveRightFor('update', $data->rec)) {
             $data->toolbar->addBtn('Обновяване', array($mvc, 'updateInputs', $data->rec->id), 'ef_icon=img/16/arrow_refresh.png,title=Обновяване на състоянието');
+            $drv = self::getDriver($data->rec->id);
+            if(cls::existsMethod($drv, 'showState')) {
+                $data->toolbar->addBtn('Състояние', array($mvc, 'showState', $data->rec->id), 'ef_icon=img/16/Business-Survey-icon.png,title=Показване на състоянието');
+            }
         }
+    }
+
+
+    /**
+     *
+     */
+    public function act_ShowState()
+    {
+        $this->requireRightFor('update');
+        
+        expect($id = Request::get('id', 'int'));
+        
+        expect($rec = self::fetch($id));
+        
+        $drv = self::getDriver($id);
+
+        return $drv->showState($rec->config);
     }
     
     
@@ -416,7 +440,7 @@ class sens2_Controllers extends core_Master
             }
         }
         
-        if (is_array($inputs) && count($inputs)) {
+        if (is_array($inputs) && countR($inputs)) {
             
             // Прочитаме състоянието на входовете от драйвера
             if ($rec->persistentState) {

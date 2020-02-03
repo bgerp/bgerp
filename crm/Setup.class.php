@@ -126,7 +126,6 @@ class crm_Setup extends core_ProtoSetup
         'crm_Formatter',
         'crm_ext_ContragentInfo',
         'crm_ext_Cards',
-        'migrate::repairSerchKeywords0619',
     );
     
     
@@ -183,15 +182,5 @@ class crm_Setup extends core_ProtoSetup
         $html .= core_Cron::addOnce($rec);
         
         return $html;
-    }
-    
-    
-    /**
-     * Миграция за регенериране на ключовите думи
-     */
-    public static function repairSerchKeywords0619()
-    {
-        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'crm_Companies', dt::addSecs(120));
-        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'crm_Persons', dt::addSecs(180));
     }
 }

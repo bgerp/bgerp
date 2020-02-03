@@ -101,20 +101,20 @@ class core_Debug
     public function _Singleton()
     {
     }
-
-
+    
+    
     /**
      * Път до файл в който да се записва дебъг лога
      */
-    static $filePath;
+    public static $filePath;
     
-
+    
     /**
      * Колко на брой ивенти максимално да се запишат
      */
-    static $maxEventCnt;
+    public static $maxEventCnt;
     
-
+    
     /**
      * Инициализираме таймерите
      */
@@ -176,35 +176,40 @@ class core_Debug
      */
     public static function log($name)
     {
-        if (!defined('DEBUG_FATAL_ERRORS_FILE') && (!isDebug() || !core_Debug::$isLogging)) {
+        if (!isDebug() || !core_Debug::$isLogging) {
             
             return ;
         }
-
-        if(self::$maxEventCnt === 0) return;
-
-        if(self::$maxEventCnt > 0) self::$maxEventCnt--;
-
+        
+        if (self::$maxEventCnt === 0) {
+            
+            return;
+        }
+        
+        if (self::$maxEventCnt > 0) {
+            self::$maxEventCnt--;
+        }
+        
         self::init();
         
         $rec = new stdClass();
         $rec->start = core_DateTime::getMicrotime() - self::$startMicroTime;
         $rec->name = $name;
         
-        if(self::$filePath) {
+        if (self::$filePath) {
             file_put_contents(self::$filePath, "{$rec->start}: {$name}\n", FILE_APPEND);
         } else {
             self::$debugTime[] = $rec;
         }
     }
-
-
+    
+    
     /**
      * Задава запис на дебъг информацията във файл
      */
     public static function setFile($filePath, $maxEventCnt = null)
-    {   
-        file_put_contents($filePath, "");
+    {
+        file_put_contents($filePath, '');
         self::$filePath = $filePath;
         self::$maxEventCnt = $maxEventCnt;
     }
@@ -338,7 +343,9 @@ class core_Debug
             }
             $result .= "\n<tr style='background-color:{$bgk}'>";
             foreach ($row as $cell) {
-                $cell = str_replace(array("'" . EF_DB_PASS . "'", '"' . EF_DB_PASS . '"'), array("'******'", '"******"'), $cell);
+                if (strlen(EF_DB_PASS)) {
+                    $cell = str_replace(array("'" . EF_DB_PASS . "'", '"' . EF_DB_PASS . '"'), array("'******'", '"******"'), $cell);
+                }
                 $result .= '<td>' . $cell . '</td>';
             }
             $result .= '</tr>';
@@ -560,7 +567,8 @@ class core_Debug
             'wp:',
             'trigger:core_error',
             'error:',
-            'expect:'
+            'expect:',
+            'expect404:'
         );
         
         $breakpointPos = $breakFile = $breakLine = null;
@@ -915,7 +923,7 @@ class core_Debug
         
         // Ако е необходимо записваме дебъг информацията
         if (defined('EF_DEBUG_LOG_PATH')) {
-            core_Os::requireDir(EF_DEBUG_LOG_PATH);
+            core_Os::forceDir(EF_DEBUG_LOG_PATH);
             @file_put_contents(EF_DEBUG_LOG_PATH . "/{$title}.html", $debugPage);
         }
         
@@ -1001,7 +1009,6 @@ class core_Debug
                 
                 return;
             }
-            
             
             $errType = self::getErrorLevel($error['type']);
             

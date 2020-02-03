@@ -43,7 +43,7 @@ class cat_products_Usage extends core_Manager
         
         // Промяна на таба взависимост дали артикула е стандартен или не
         if ($data->isPublic === true) {
-            if ($data->jobData->notManifacturable === true && !count($data->jobData->rows)) {
+            if ($data->jobData->notManifacturable === true && !countR($data->jobData->rows)) {
                 
                 return;
             }
@@ -131,7 +131,7 @@ class cat_products_Usage extends core_Manager
         $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2  WHEN 'pending' THEN '3' ELSE 4 END)");
         $query->orderBy('#orderByState=ASC');
         
-        if (count($ids)) {
+        if (countR($ids)) {
             $query->in('id', $ids);
         } else {
             $query->where('1=2');

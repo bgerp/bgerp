@@ -32,8 +32,8 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
     {
         // Извличаме записа
         expect($rec = $this->class->fetchRec($id));
-        
         $origin = $this->class->getOrigin($rec);
+        $rec->peroCase = (isset($rec->peroCase)) ? $rec->peroCase : cash_Cases::getCurrent('id', false);
         
         if ($rec->isReverse == 'yes') {
             

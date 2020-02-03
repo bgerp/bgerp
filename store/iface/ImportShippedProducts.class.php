@@ -50,7 +50,7 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
         
         $form->FLD('doc', 'int', 'caption=Документи,removeAndRefreshForm=products,silent,mandatory,class=w25');
         $form->setOptions('doc', array('' => '') + $docs);
-        if (count($docs) == 1) {
+        if (countR($docs) == 1) {
             $form->setDefault('doc', key($docs));
         }
     }
@@ -209,7 +209,7 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
             }
             
             $docs = $this->getShippedDocuments($mvc, $masterRec, 1);
-            if (!count($docs)) {
+            if (!countR($docs)) {
                 
                 return false;
             }

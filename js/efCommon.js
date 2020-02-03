@@ -1396,6 +1396,7 @@ function SetWithCheckedButton() {
     $('[id^=cb_]').each(function(i) {
         if ($(this).is(":checked") == true) {
             state = true;
+            $(this).closest('tr').addClass('highlight-row');
         }
     });
 
@@ -3934,7 +3935,7 @@ function render_setFocus(data){
 /**
  * Затваря отвореното контекстно меню
  */
-function render_closeContextMenu(data)
+function render_closeContextMenu()
 {
     if ($('.iw-mTrigger').contextMenu) {
     	$('.iw-mTrigger').contextMenu('close');
@@ -5276,11 +5277,11 @@ function mailServerSettings() {
  * @return boolean
  */
 function startUrlFromDataAttr(obj, stopOnClick)
-{
+{    
 	if (this.event) {
-		stopBtnDefault(this.event);
+        stopBtnDefault(this.event);
 	}
-
+ 
 	resObj = new Object();
 	resObj['url'] = obj.getAttribute('data-url');
 
@@ -5291,6 +5292,8 @@ function startUrlFromDataAttr(obj, stopOnClick)
 	getEfae().process(resObj);
 	
 	getEfae().waitPeriodicAjaxCall = 0;
+	
+    render_closeContextMenu();
 	
 	return false;
 }

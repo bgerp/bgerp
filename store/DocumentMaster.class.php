@@ -264,7 +264,7 @@ abstract class store_DocumentMaster extends core_Master
                 $agreedProducts = $aggregatedDealInfo->get('products');
                 $shippedProducts = $aggregatedDealInfo->get('shippedProducts');
                 
-                if (count($shippedProducts)) {
+                if (countR($shippedProducts)) {
                     $normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
                 } else {
                     $copyBatches = true;
@@ -284,14 +284,14 @@ abstract class store_DocumentMaster extends core_Master
                 $normalizedProducts = $aggregatedDealInfo->get('dealProducts');
             }
             
-            if (count($agreedProducts)) {
+            if (countR($agreedProducts)) {
                 foreach ($agreedProducts as $index => $product) {
                     
                     // Игнориране на услуги или складируемите ако е избрано друго
-                    if(isset($rec->importProducts) && in_array($rec->importProducts, array('notshippedstorable', 'notshippedservices', 'services'))){
+                    if (isset($rec->importProducts) && in_array($rec->importProducts, array('notshippedstorable', 'notshippedservices', 'services'))) {
                         $canStore = cat_Products::fetchField($product->productId, 'canStore');
                         $skipIfNot = ($rec->importProducts == 'notshippedstorable') ? 'yes' : 'no';
-                        if($canStore != $skipIfNot){
+                        if ($canStore != $skipIfNot) {
                             continue;
                         }
                     }
@@ -447,12 +447,12 @@ abstract class store_DocumentMaster extends core_Master
             if ($rec->isReverse == 'yes') {
                 $row->operationSysId = tr('Връщане на стока');
             }
-        } else if (isset($fields['-list'])) {
+        } elseif (isset($fields['-list'])) {
             if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
-                $row->title = "<b>" . $row->title . "</b>";
-                $row->title .= "  «  " . $row->folderId;
+                $row->title = '<b>' . $row->title . '</b>';
+                $row->title .= '  «  ' . $row->folderId;
                 $row->createdBy = crm_Profiles::createLink($rec->createdBy);
-                $row->title .= "<span class='fright'>" . $row->createdOn . " " . tr('от') . " " .   $row->createdBy . "</span>";
+                $row->title .= "<span class='fright'>" . $row->createdOn . ' ' . tr('от') . ' ' .   $row->createdBy . '</span>';
             }
         }
     }
@@ -751,19 +751,21 @@ abstract class store_DocumentMaster extends core_Master
      * Информацията на документа, за показване в транспортната линия
      *
      * @param mixed $id
+     * @param int $lineId
      *
      * @return array
-     *               ['baseAmount'] double|NULL - сумата за инкасиране във базова валута
-     *               ['amount']     double|NULL - сумата за инкасиране във валутата на документа
-     *               ['currencyId'] string|NULL - валутата на документа
-     *               ['notes']      string|NULL - забележки за транспортната линия
-     *               ['stores']     array       - склад(ове) в документа
-     *               ['weight']     double|NULL - общо тегло на стоките в документа
-     *               ['volume']     double|NULL - общ обем на стоките в документа
+     *               ['baseAmount']     double|NULL - сумата за инкасиране във базова валута
+     *               ['amount']         double|NULL - сумата за инкасиране във валутата на документа
+     *               ['amountVerbal']   double|NULL - сумата за инкасиране във валутата на документа
+     *               ['currencyId']     string|NULL - валутата на документа
+     *               ['notes']          string|NULL - забележки за транспортната линия
+     *               ['stores']         array       - склад(ове) в документа
+     *               ['weight']         double|NULL - общо тегло на стоките в документа
+     *               ['volume']         double|NULL - общ обем на стоките в документа
      *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
-     *               [transUnitId] => quantity
+     *               ['contragentName'] double|NULL - име на контрагента
      */
-    public function getTransportLineInfo_($rec)
+    public function getTransportLineInfo_($rec, $lineId)
     {
         $rec = static::fetchRec($rec);
         $res = array('baseAmount' => null, 'amount' => null, 'currencyId' => null, 'notes' => $rec->lineNotes);
@@ -772,7 +774,7 @@ abstract class store_DocumentMaster extends core_Master
         $contragentClass = cls::get($rec->contragentClassId);
         $contragentRec = $contragentClass->fetch($rec->contragentId);
         $contragentTitle = $contragentClass->getVerbal($contragentRec, 'name');
-        
+        $res['contragentName'] = $contragentTitle;
         $oldRow = $this->recToVerbal($rec, 'contragentAddress,-list');
         
         $contragentClass = cls::get($rec->contragentClassId);
@@ -792,13 +794,280 @@ abstract class store_DocumentMaster extends core_Master
                 $amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $rec->currencyId);
             }
         }
-        
+       
         if ($amount) {
             $res['baseAmount'] = currency_Currencies::round($rec->amountDelivered, $rec->currencyId);
             $res['amount'] = $amount;
             $res['currencyId'] = $rec->currencyId;
+            
+            $sign = ($rec->classId != store_Receipts::getClassId()) ? 1 : -1;
+            $amount = $sign * $res['amount'];
+            $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($res['amount']);
+            $amountVerbal = ht::styleNumber($amountVerbal, $res['amount']);
+            $res['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId);
         }
         
         return $res;
+    }
+    
+    
+    /*
+     * API за генериране на сделка
+     */
+    
+    
+    /**
+     * Метод за бързо създаване на чернова сделка към контрагент
+     *
+     * @param mixed $contragentClass - ид/инстанция/име на класа на котрагента
+     * @param int   $contragentId    - ид на контрагента
+     * @param array $fields          - стойности на полетата на сделката
+     *
+     * 		o $fields['valior']             -  вальор (ако няма е текущата дата)
+     * 		o $fields['reff']               -  вашия реф на продажбата
+     * 		o $fields['currencyId']         -  код на валута (ако няма е основната за периода)
+     * 		o $fields['currencyRate']       -  курс към валутата (ако няма е този към основната валута)
+     * 		o $fields['paymentMethodId']    -  ид на платежен метод (Ако няма е плащане в брой, @see cond_PaymentMethods)
+     * 		o $fields['chargeVat']          -  да се начислява ли ДДС - yes=Да, separate=Отделен ред за ДДС, exempt=Освободено,no=Без начисляване(ако няма, се определя според контрагента)
+     * 		o $fields['shipmentStoreId']    -  ид на склад (@see store_Stores)
+     * 		o $fields['deliveryTermId']     -  ид на метод на доставка (@see cond_DeliveryTerms)
+     * 		o $fields['deliveryLocationId'] -  ид на локация за доставка (@see crm_Locations)
+     * 		o $fields['deliveryTime']       -  дата на доставка
+     * 		o $fields['dealerId']           -  ид на потребител търговец
+     * 		o $fields['initiatorId']        -  ид на потребител инициатора (ако няма е отговорника на контрагента)
+     * 		o $fields['caseId']             -  ид на каса (@see cash_Cases)
+     * 		o $fields['note'] 				-  бележки за сделката
+     * 		o $fields['originId'] 			-  източник на документа
+     *		o $fields['makeInvoice'] 		-  изисквали се фактура или не (yes = Да, no = Не), По дефолт 'yes'
+     *		o $fields['template'] 		    -  бележки за сделката
+     *      o $fields['receiptId']          -  информативно от коя бележка е
+     *      o $fields['onlineSale']         -  дали е онлайн продажба
+     *
+     * @return mixed $id/FALSE - ид на запис или FALSE
+     */
+    public static function createNewDraft($contragentClass, $contragentId, $fields = array())
+    {
+        $contragentClass = cls::get($contragentClass);
+        expect($cRec = $contragentClass->fetch($contragentId));
+        expect($cRec->state != 'rejected');
+        
+        // Намираме всички полета, които не са скрити или не се инпутват, те са ни позволените полета
+        $me = cls::get(get_called_class());
+        $fields = arr::make($fields);
+        $allowedFields = $me->selectFields("#input != 'none' AND #input != 'hidden'");
+        $allowedFields['originId'] = true;
+        $allowedFields['currencyRate'] = true;
+        $allowedFields['deliveryTermId'] = true;
+        $allowedFields['receiptId'] = true;
+        $allowedFields['onlineSale'] = true;
+        
+        // Проверяваме подадените полета дали са позволени
+        if (countR($fields)) {
+            foreach ($fields as $fld => $value) {
+                expect(array_key_exists($fld, $allowedFields), $fld);
+            }
+        }
+        
+        // Ако има склад, съществува ли?
+        if (isset($fields['shipmentStoreId'])) {
+            expect(store_Stores::fetch($fields['shipmentStoreId']));
+        }
+        
+        // Ако има каса, съществува ли?
+        if (isset($fields['caseId'])) {
+            expect(cash_Cases::fetch($fields['caseId']));
+        }
+        
+        // Ако има условие на доставка, съществува ли?
+        if (isset($fields['deliveryTermId'])) {
+            expect(cond_DeliveryTerms::fetch($fields['deliveryTermId']));
+        }
+        
+        // Ако има платежен метод, съществува ли?
+        if (isset($fields['paymentMethodId'])) {
+            expect(cond_PaymentMethods::fetch($fields['paymentMethodId']));
+        }
+        
+        // Форсираме папката на клиента
+        $fields['folderId'] = $contragentClass::forceCoverAndFolder($contragentId);
+        
+        // Ако е зададен шаблон, съществува ли?
+        if (isset($fields['template'])) {
+            expect(doc_TplManager::fetch($fields['template']));
+        } elseif ($me instanceof sales_Sales) {
+            $fields['template'] = $me->getDefaultTemplate((object) array('folderId' => $fields['folderId']));
+        }
+        
+        // Ако не е подадена дата, това е сегашната
+        $fields['valior'] = (empty($fields['valior'])) ? dt::today() : $fields['valior'];
+        
+        // Записваме данните на контрагента
+        $fields['contragentClassId'] = $contragentClass->getClassId();
+        $fields['contragentId'] = $contragentId;
+        
+        // Ако няма валута, това е основната за периода
+        $fields['currencyId'] = (empty($fields['currencyId'])) ? acc_Periods::getBaseCurrencyCode($fields['valior']) : $fields['currencyId'];
+        
+        // Ако няма курс, това е този за основната валута
+        
+        if (empty($fields['currencyRate'])) {
+            $fields['currencyRate'] = currency_CurrencyRates::getRate($fields['currencyRate'], $fields['currencyId'], null);
+            expect($fields['currencyRate']);
+        }
+        
+        // Ако няма платежен план, това е плащане в брой
+        $paymentSysId = (get_called_class() == 'sales_Sales') ? 'paymentMethodSale' : 'paymentMethodPurchase';
+        $fields['paymentMethodId'] = (empty($fields['paymentMethodId'])) ? cond_Parameters::getParameter($contragentClass, $contragentId, $paymentSysId) : $fields['paymentMethodId'];
+        
+        $termSysId = (get_called_class() == 'sales_Sales') ? 'deliveryTermSale' : 'deliveryTermPurchase';
+        $fields['deliveryTermId'] = (empty($fields['deliveryTermId'])) ? cond_Parameters::getParameter($contragentClass, $contragentId, $termSysId) : $fields['deliveryTermId'];
+        
+        // Ако не е подадено да се начислявали ддс, определяме от контрагента
+        if (empty($fields['chargeVat'])) {
+            $fields['chargeVat'] = ($contragentClass::shouldChargeVat($contragentId)) ? 'yes' : 'no';
+        }
+        
+        // Ако не е подадено да се начислявали ддс, определяме от контрагента
+        if (empty($fields['makeInvoice'])) {
+            $fields['makeInvoice'] = 'yes';
+        }
+        
+        // Състояние на плащането, чакащо
+        $fields['paymentState'] = 'pending';
+        
+        // Опиваме се да запишем мастъра на сделката
+        $rec = (object) $fields;
+        if ($fields['onlineSale'] === true) {
+            $rec->_onlineSale = true;
+        }
+        
+        if (isset($fields['receiptId'])) {
+            $rec->_receiptId = $fields['receiptId'];
+        }
+        
+        if ($id = $me->save($rec)) {
+            doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, core_Users::getCurrent());
+            
+            return $id;
+        }
+        
+        return false;
+    }
+    
+    
+    /**
+     * Добавя нов ред в главния детайл на чернова сделка.
+     * Ако има вече такъв артикул добавен към сделката, наслагва к-то, цената и отстъпката
+     * на новия запис към съществуващия (цените и отстъпките стават по средно притеглени)
+     *
+     * @param int    $id           - ид на сделка
+     * @param int    $productId    - ид на артикул
+     * @param float  $packQuantity - количество продадени опаковки (ако няма опаковки е цялото количество)
+     * @param float  $price        - цена на единична бройка (ако не е подадена, определя се от политиката)
+     * @param int    $packagingId  - ид на опаковка (не е задължителна)
+     * @param float  $discount     - отстъпка между 0(0%) и 1(100%) (не е задължителна)
+     * @param float  $tolerance    - толеранс между 0(0%) и 1(100%) (не е задължителен)
+     * @param string $term         - срок (не е задължителен)
+     * @param string $notes        - забележки
+     *
+     * @return mixed $id/FALSE     - ид на запис или FALSE
+     */
+    public static function addRow($id, $productId, $packQuantity, $price = null, $packagingId = null, $discount = null, $tolerance = null, $term = null, $notes = null)
+    {
+        $me = cls::get(get_called_class());
+        $Detail = cls::get($me->mainDetail);
+        
+        expect($rec = $me->fetch($id));
+        expect($rec->state == 'draft');
+        
+        // Дали отстъпката е между 0 и 1
+        if (isset($discount)) {
+            expect($discount >= 0 && $discount <= 1);
+        }
+        
+        // Дали толеранса е между 0 и 1
+        if (isset($tolerance)) {
+            expect($tolerance >= 0 && $tolerance <= 1);
+        }
+        
+        if (!empty($term)) {
+            expect($term = cls::get('type_Time')->fromVerbal($term));
+        }
+        
+        // Трябва да има такъв продукт и опаковка
+        expect(cat_Products::fetchField($productId, 'id'));
+        if (isset($packagingId)) {
+            expect(cat_UoM::fetchField($packagingId, 'id'));
+        }
+        
+        if (isset($notes)) {
+            $notes = cls::get('type_Richtext')->fromVerbal($notes);
+        }
+        
+        // Броя еденици в опаковка, се определя от информацията за продукта
+        $productInfo = cat_Products::getProductInfo($productId);
+        if (empty($packagingId)) {
+            $packagingId = $productInfo->productRec->measureId;
+        }
+        
+        $quantityInPack = ($productInfo->packagings[$packagingId]) ? $productInfo->packagings[$packagingId]->quantity : 1;
+        
+        // Ако няма цена, опитваме се да я намерим от съответната ценова политика
+        if (empty($price)) {
+            $Policy = (isset($Detail->Policy)) ? $Detail->Policy : cls::get('price_ListToCustomers');
+            $policyInfo = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $productId, $packagingId, $quantityInPack * $packQuantity);
+            $price = $policyInfo->price;
+            if (!isset($discount) && isset($policyInfo->discount)) {
+                $discount = $policyInfo->discount;
+            }
+            
+            $price = ($price) ? $price : cat_Products::getPrimeCost($productId, null, null, null);
+        }
+        
+        $packQuantity = cls::get('type_Double')->fromVerbal($packQuantity);
+        
+        // Подготвяме детайла
+        $dRec = (object) array($Detail->masterKey => $id,
+            'productId' => $productId,
+            'packagingId' => $packagingId,
+            'quantity' => $quantityInPack * $packQuantity,
+            'discount' => $discount,
+            'tolerance' => $tolerance,
+            'term' => $term,
+            'price' => $price,
+            'quantityInPack' => $quantityInPack,
+            'notes' => $notes,
+        );
+        
+        // Проверяваме дали въвдения детайл е уникален
+        $exRec = deals_Helper::fetchExistingDetail($Detail, $id, null, $productId, $packagingId, $price, $discount, $tolerance, $term, null, null, $notes);
+        
+        if (is_object($exRec)) {
+            
+            // Смятаме средно притеглената цена и отстъпка
+            $nPrice = ($exRec->quantity * $exRec->price + $dRec->quantity * $dRec->price) / ($dRec->quantity + $exRec->quantity);
+            $nDiscount = ($exRec->quantity * $exRec->discount + $dRec->quantity * $dRec->discount) / ($dRec->quantity + $exRec->quantity);
+            $nTolerance = ($exRec->quantity * $exRec->tolerance + $dRec->quantity * $dRec->tolerance) / ($dRec->quantity + $exRec->quantity);
+            
+            // Ъпдейтваме к-то, цената и отстъпката на записа с новите
+            if ($term) {
+                $exRec->term = max($exRec->term, $dRec->term);
+            }
+            
+            $exRec->quantity += $dRec->quantity;
+            $exRec->price = $nPrice;
+            $exRec->discount = (empty($nDiscount)) ? null : round($nDiscount, 2);
+            $exRec->tolerance = (!isset($nTolerance)) ? null : round($nTolerance, 2);
+            
+            // Ъпдейтваме съществуващия запис
+            $id = $Detail->save($exRec);
+        } else {
+            
+            // Ако е уникален, добавяме го
+            $id = $Detail->save($dRec);
+        }
+        
+        // Връщаме резултата от записа
+        return $id;
     }
 }

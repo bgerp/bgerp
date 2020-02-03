@@ -168,6 +168,14 @@ class cms_Setup extends core_ProtoSetup
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('gallery_Pictures', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png,ico', '6MB', 'user', 'every_one');
         
+        // Кофа за видео
+        $Bucket = cls::get('fileman_Buckets');
+        $html .= $Bucket->createBucket('cms_Video', 'Видео файлове', 'mp4,ogv,webm', '600MB', 'user', 'every_one');
+        
+        // Кофа за аудио
+        $Bucket = cls::get('fileman_Buckets');
+        $html .= $Bucket->createBucket('cms_Audio', 'Аудио файлове', 'mp3,ogg,wav', '60MB', 'user', 'every_one');
+
         $disableFor = keylist::addKey('', core_Roles::fetchByName('powerUser'));
         core_Packs::setConfig('cms', array('CMS_COPY_DISABLE_FOR' => $disableFor));
         

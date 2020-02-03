@@ -53,7 +53,14 @@ class fileman_type_Files extends type_Keylist
             $rVal[$fId] = $fId;
         }
         
-        return parent::fromVerbal_($rVal);
+        try {
+            $res = self::fromArray($rVal, false);
+        } catch (core_exception_Expect $e) {
+            $this->error = $e->getMessage();
+            $res = false;
+        }
+
+        return $res;
     }
     
     
@@ -110,6 +117,9 @@ class fileman_type_Files extends type_Keylist
         $attrInp['class'] .= $attr['class'] . ' input_align_' . $align;
         
         $valueFhArr = array();
+        if(is_array($value)) {
+            $value = self::fromArray($value, false);
+        }
         if (fileman::isFileHnd($value)) {
             $value = '|' . fileman::fhToId($value) . '|';
         }

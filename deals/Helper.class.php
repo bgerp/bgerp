@@ -106,7 +106,7 @@ abstract class deals_Helper
      */
     public static function fillRecs(&$mvc, &$recs, &$masterRec, $map = array())
     {
-        if (count($recs) === 0) {
+        if (countR($recs) === 0) {
             unset($mvc->_total);
             
             return;
@@ -204,7 +204,7 @@ abstract class deals_Helper
         }
 
         // "Просто" изчисляване на ДДС-то в документа, ако има само една ставка
-        if(count($vats) == 1 && ($masterRec->type == 'invoice' || $masterRec->type == 'dc_note')) {
+        if(countR($vats) == 1 && ($masterRec->type == 'invoice' || $masterRec->type == 'dc_note')) {
             $vat = key($vats);
             $vats[$vat]->sum = round($vats[$vat]->sum, 2);
             $vats[$vat]->amount = round($vats[$vat]->sum * $vat, 2);
@@ -698,7 +698,7 @@ abstract class deals_Helper
             }
         }
         
-        if (count($combined)) {
+        if (countR($combined)) {
             foreach ($combined as &$det) {
                 $delimiter = ($det->quantity * (1 - $det->discount));
                 if (!empty($delimiter)) {
@@ -1144,7 +1144,7 @@ abstract class deals_Helper
         }
         
         foreach ($res as $key => &$val) {
-            if (is_array($productConditions[$key]) && count($productConditions[$key]) != count($allProducts)) {
+            if (is_array($productConditions[$key]) && countR($productConditions[$key]) != countR($allProducts)) {
                 $valSuffix = new core_ET(tr('За|* [#Articles#]'));
                 $valSuffix->replace(implode(',', $productConditions[$key]), 'Articles');
                 $valSuffix = ' <i>(' . $valSuffix->getContent() . ')</i>';
@@ -1260,7 +1260,7 @@ abstract class deals_Helper
     private static function getMeasureRow($productId, $packagingId, $quantity, $type, $value = null)
     {
         expect(in_array($type, array('volume', 'weight')));
-        $hint = false;
+        $hint = $warning = false;
         
         // Ако артикула не е складируем не му се изчислява транспортно тегло
         $isStorable = cat_products::fetchField($productId, 'canStore');
@@ -1269,16 +1269,23 @@ abstract class deals_Helper
             return;
         }
         
+        if ($type == 'weight') {
+            $liveValue = cat_Products::getTransportWeight($productId, $quantity);
+        } else {
+            $liveValue = cat_Products::getTransportVolume($productId, $quantity);
+        }
+        
         // Ако няма тегло взима се 'live'
         if (!isset($value)) {
-            if ($type == 'weight') {
-                $value = cat_Products::getTransportWeight($productId, $quantity);
-            } else {
-                $value = cat_Products::getTransportVolume($productId, $quantity);
-            }
+            $value = $liveValue;
             
             if (isset($value)) {
                 $hint = true;
+            }
+        } elseif($liveValue) {
+            $percentChange = abs(round((1 - $value / $liveValue) * 100, 3));
+            if($percentChange >= 25){
+                $warning = true;
             }
         }
         
@@ -1295,12 +1302,18 @@ abstract class deals_Helper
         if(empty($value)){
             return null;
         }
-        
+       
         // Вербализиране на теглото
         $valueRow = core_Type::getByName($valueType)->toVerbal($value);
         if ($hint === true) {
             $hintType = ($type == 'weight') ? 'Транспортното тегло e прогнозно' : 'Транспортният обем е прогнозен';
             $valueRow = ht::createHint($valueRow, "{$hintType} на база количеството");
+        }
+       
+        // Показване на предупреждение
+        if ($warning === true) {
+            $liveValueVerbal = core_Type::getByName($valueType)->toVerbal($liveValue);
+            $valueRow = ht::createHint($valueRow, "Има разлика от над 25% с очакваното|* {$liveValueVerbal}", 'warning', false);
         }
         
         return $valueRow;
@@ -1380,7 +1393,7 @@ abstract class deals_Helper
                 $whereArr[] = "#type = 'dc_note' && #dealValue <= 0";
             }
             
-            if (count($whereArr)) {
+            if (countR($whereArr)) {
                 $iQuery->where(implode(' || ', $whereArr));
             }
             
@@ -1428,7 +1441,7 @@ abstract class deals_Helper
         $threads = array($threadId => $threadId);
         $closedDocs = $firstDoc->fetchField('closedDocuments');
         $closedDocs = keylist::toArray($closedDocs);
-        if (is_array($closedDocs) && count($closedDocs)) {
+        if (is_array($closedDocs) && countR($closedDocs)) {
             foreach ($closedDocs as $docId) {
                 if ($dThreadId = $firstDoc->getInstance()->fetchField($docId, 'threadId')) {
                     $threads[$dThreadId] = $dThreadId;
@@ -1438,7 +1451,7 @@ abstract class deals_Helper
         
         // Всички ф-ри в посочената нишка/нишки
         $invoicesArr = self::getInvoicesInThread($threads, $valior, true, true, true);
-        if (!count($invoicesArr)) {
+        if (!countR($invoicesArr)) {
             
             return array();
         }
@@ -1506,7 +1519,7 @@ abstract class deals_Helper
         
         // Всички ф-ри в нишката
         $invoices = self::getInvoicesInThread($threadId);
-        if (!count($invoices)) {
+        if (!countR($invoices)) {
             
             return;
         }
@@ -1669,8 +1682,8 @@ abstract class deals_Helper
             if ($overPaid > 0) {
                 foreach ($cInvArr as $cInv) {
                     $underPaid = $cInv->amount - $cInv->payout;
-                    if ($underPaid > 0 && is_array($inv->used) && count($inv->used)) {
-                        $payDoc = $inv->used[count($inv->used) - 1];
+                    if ($underPaid > 0 && is_array($inv->used) && countR($inv->used)) {
+                        $payDoc = $inv->used[countR($inv->used) - 1];
                         $transfer = min($underPaid, $overPaid);
                         $inv->payout -= $transfer;
                         $cInv->payout += $transfer;
@@ -1754,7 +1767,7 @@ abstract class deals_Helper
     {
         $warning = null;
         $productsWithNegativeQuantity = array();
-        if (!is_array($arr) || !count($arr)) {
+        if (!is_array($arr) || !countR($arr)) {
             
             return;
         }
@@ -1772,7 +1785,7 @@ abstract class deals_Helper
             }
         }
         
-        if (count($productsWithNegativeQuantity)) {
+        if (countR($productsWithNegativeQuantity)) {
             $warning = 'Контирането на документа ще доведе до отрицателни количества по|*: ' . implode(', ', $productsWithNegativeQuantity) . ', |в склад|* ' . store_Stores::getTitleById($storeId);
         }
         
@@ -1836,7 +1849,7 @@ abstract class deals_Helper
         $errorNotActive = $errorMetas = array();
         $productArr = arr::make($productArr, true);
         
-        if (count($productArr)) {
+        if (countR($productArr)) {
             $haveMetas = arr::make($haveMetas, true);
             $haveNotMetas = arr::make($haveNotMetas, true);
             
@@ -1949,7 +1962,7 @@ abstract class deals_Helper
             $similarUoms[$uomId] = cat_UoM::fetchField($uomId, 'baseUnitRatio');
         }
         
-        if(count($similarUoms) == 1){
+        if(countR($similarUoms) == 1){
             
             return;
         }

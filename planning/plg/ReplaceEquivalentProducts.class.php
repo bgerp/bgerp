@@ -111,7 +111,7 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
     public static function on_AfterPrepareListRows($mvc, &$data)
     {
         $rows = &$data->rows;
-        if (!count($rows)) {
+        if (!countR($rows)) {
             
             return;
         }
@@ -150,7 +150,7 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
             // Могат да се подменят само артикулите, които имат други взаимозаменямеми
             if ($requiredRoles != 'no_one' && isset($rec->{$mvc->replaceProductFieldName})) {
                 $equivalentProducts = planning_ObjectResources::getEquivalentProducts($rec->{$mvc->replaceProductFieldName});
-                if (!count($equivalentProducts)) {
+                if (!countR($equivalentProducts)) {
                     $requiredRoles = 'no_one';
                 }
             }

@@ -30,7 +30,7 @@ class plg_ExportCsv extends core_Plugin
             $exportFields = $mvc->selectFields('#export');
             
             // Ако има избрани полета за export
-            if (count($exportFields)) {
+            if (countR($exportFields)) {
                 foreach ($exportFields as $name => $field) {
                     $data->listFields[$name] = tr($field->caption);
                 }
@@ -53,7 +53,7 @@ class plg_ExportCsv extends core_Plugin
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         // Ако има избрани полета за export
-        if (count($mvc->selectFields('#export'))) {
+        if (countR($mvc->selectFields('#export'))) {
             $url = getCurrentUrl();
             $url['Export'] = 'csv';
             
@@ -94,12 +94,12 @@ class plg_ExportCsv extends core_Plugin
             
             $conf = core_Packs::getConfig('core');
             
-            if (count($data->recs) > $conf->EF_MAX_EXPORT_CNT) {
+            if (countR($data->recs) > $conf->EF_MAX_EXPORT_CNT) {
                 redirect(array($mvc), false, '|Броят на заявените записи за експорт надвишава максимално разрешения|* - ' . $conf->EF_MAX_EXPORT_CNT, 'error');
             }
             
             /* за всеки ред */
-            if (count($data->recs)) {
+            if (countR($data->recs)) {
                 $mvc->invoke('BeforeExportCsv', array($data->recs));
                 foreach ($data->recs as $rec) {
                     

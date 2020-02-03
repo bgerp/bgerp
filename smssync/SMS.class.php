@@ -341,7 +341,7 @@ class smssync_SMS extends core_Manager
         $allowedIpArr = arr::make($conf->SMSSYNC_ALLOWED_IP_ADDRESS);
         
         // Ако е зададено
-        if (count($allowedIpArr)) {
+        if (countR($allowedIpArr)) {
             
             // Вземаме IP' то на извикщия
             $realIpAdd = core_Users::getRealIpAddr();

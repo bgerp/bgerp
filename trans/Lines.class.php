@@ -9,7 +9,7 @@
  * @package   trans
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -215,7 +215,7 @@ class trans_Lines extends core_Master
         $start = dt::mysql2verbal($rec->start, 'd.m.Y H:i');
         $start = str_replace(' 00:00', '', $start);
         
-        $title = (count($titleArr) == 2) ? $titleArr[1] : $rec->title;
+        $title = (countR($titleArr) == 2) ? $titleArr[1] : $rec->title;
         $title = str::limitLen($title, 32);
         $recTitle = "{$start}/{$title} ({$rec->countReady}/{$rec->countTotal})";
         
@@ -277,7 +277,7 @@ class trans_Lines extends core_Master
         $form = &$data->form;
         
         $vehicleOptions = trans_Vehicles::makeArray4Select();
-        if (count($vehicleOptions) && is_array($vehicleOptions)) {
+        if (countR($vehicleOptions) && is_array($vehicleOptions)) {
             $form->setSuggestions('vehicle', array('' => '') + arr::make($vehicleOptions, true));
         }
         
@@ -367,15 +367,16 @@ class trans_Lines extends core_Master
         $dQuery = trans_LineDetails::getQuery();
         $dQuery->where("#lineId = {$data->rec->id} AND #containerState != 'rejected' AND #status != 'removed'");
         
-        $returnClassId = store_Receipts::getClassId();
         while ($dRec = $dQuery->fetch()) {
             $Document = doc_Containers::getDocument($dRec->containerId);
-            $transInfo = $Document->getTransportLineInfo();
+            $transInfo = $Document->getTransportLineInfo($data->rec->id);
             
-            if ($dRec->classId == $returnClassId) {
-                $amountReturned += $transInfo['baseAmount'];
-            } else {
-                $amount += $transInfo['baseAmount'];
+            if(!$Document->haveInterface('store_iface_DocumentIntf') && $dRec->containerState == 'active'){
+                if($transInfo['baseAmount'] < 0){
+                    $amountReturned += $transInfo['baseAmount'];
+                } else {
+                    $amount += $transInfo['baseAmount'];
+                }
             }
             
             // Сумиране на ЛЕ от документа и подготвените
@@ -419,7 +420,7 @@ class trans_Lines extends core_Master
         $data->row->totalAmount .= core_Type::getByName('double(decimals=2)')->toVerbal($amount);
         
         $data->row->totalAmountReturn = " <span class='cCode'>{$bCurrency}</span> ";
-        $data->row->totalAmountReturn .= core_Type::getByName('double(decimals=2)')->toVerbal($amountReturned);
+        $data->row->totalAmountReturn .= core_Type::getByName('double(decimals=2)')->toVerbal(abs($amountReturned));
     }
     
     

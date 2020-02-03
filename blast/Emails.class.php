@@ -133,6 +133,12 @@ class blast_Emails extends core_Master
     
     
     /**
+     * Кой може да затваря имейла
+     */
+    protected $canClose = 'ceo, blast';
+    
+    
+    /**
      * Кой може да го изтрие?
      */
     protected $canDelete = 'no_one';
@@ -161,7 +167,7 @@ class blast_Emails extends core_Master
     /**
      * Плъгините и враперите, които ще се използват
      */
-    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools2, bgerp_plg_Blank, change_Plugin, plg_Search, plg_Clone, plg_Printing';
+    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools2, bgerp_plg_Blank, change_Plugin, plg_Search, plg_Clone, plg_Printing, doc_plg_Close';
     
     
     /**
@@ -215,7 +221,7 @@ class blast_Emails extends core_Master
         $this->FLD('from', 'key(mvc=email_Inboxes, select=email)', 'caption=От, mandatory, changable');
         $this->FLD('subject', 'varchar', 'caption=Относно, width=100%, mandatory, changable');
         $this->FLD('body', 'richtext(rows=15,bucket=Blast,oembed=none)', 'caption=Съобщение,mandatory, changable');
-        $this->FLD('unsubscribe', 'richtext(rows=3,bucket=Blast,oembed=none)', 'caption=Отписване, changable', array('attr' => array('id' => 'unsId')));
+        $this->FLD('unsubscribe', 'text(rows=3,oembed=none)', 'caption=Отписване, changable', array('attr' => array('id' => 'unsId')));
         $this->FLD('sendPerCall', 'int(min=1, max=100)', 'caption=Изпращания заедно, input=none, mandatory, oldFieldName=sendPerMinute, title=Максимален брой изпращания за минута, unit=на мин.');
         
         $this->FLD('sendingFrom', 'time(suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Начален час, input=none');
@@ -968,7 +974,7 @@ class blast_Emails extends core_Master
      *
      * @return string $lg - Двубуквеното означение на предполагаемия език
      */
-    protected static function getLanguage($body, $lang = null)
+    public static function getLanguage($body, $lang = null)
     {
         // Масив с всички допустими езици за системата
         $langArr = arr::make(EF_LANGUAGES, true);
@@ -1897,6 +1903,12 @@ class blast_Emails extends core_Master
                 $roles = 'no_one';
             }
         }
+        
+        if ($action == 'close' && isset($rec) && $roles != 'no_one') {
+            if (($rec->state != 'draft') && ($rec->state != 'closed')) {
+                $roles = 'no_one';
+            }
+        }
     }
     
     
@@ -1968,10 +1980,10 @@ class blast_Emails extends core_Master
             }
         }
         
-        if ($state != 'stopped') {
+        if (($state != 'stopped') && ($state != 'draft')) {
             
             // Добавяме бутона Спри, ако състоянието е активно или изчакване
-            if (($state == 'waiting') || ($state == 'active') || ($state == 'draft')) {
+            if (($state == 'waiting') || ($state == 'active')) {
                 if ($mvc->haveRightFor('stop', $rec->rec)) {
                     $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $rec->id), 'ef_icon = img/16/gray-close.png, title=Прекратяване на действието');
                 }

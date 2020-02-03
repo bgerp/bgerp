@@ -71,8 +71,20 @@ class fileman_Files extends core_Master
     
     
     public $loadList = 'plg_Sorting, plg_GroupByDate';
+
+
+    /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 100000;
     
     
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'modifiedOn,extractedOn';
+    
+
     /**
      * Описание на модела (таблицата)
      */
@@ -1555,7 +1567,7 @@ class fileman_Files extends core_Master
     {
         $rec = static::fetchByFh($fh);
         
-        if (static::haveRightFor('single', $rec)) {
+        if (static::haveRightFor('single', $rec) && !Mode::is('forceDownload')) {
             
             //Генерираме връзката
             $url = toUrl(array('fileman_Files', 'single', $fh), $isAbsolute);
@@ -2156,7 +2168,7 @@ class fileman_Files extends core_Master
         $nextUrl = $fileNavArr[$rec->fileHnd]['next'];
         
         // Показваме селект с всички файлове
-        if (!$dangerFileClass && $fileNavArr[$rec->fileHnd]['allFilesArr'] && count($fileNavArr[$rec->fileHnd]['allFilesArr']) > 1) {
+        if (!$dangerFileClass && $fileNavArr[$rec->fileHnd]['allFilesArr'] && countR($fileNavArr[$rec->fileHnd]['allFilesArr']) > 1) {
             $form = cls::get('core_Form');
             $form->fnc('selectFile', 'enum()', 'input=input');
             
@@ -2305,7 +2317,7 @@ class fileman_Files extends core_Master
                 }
                 
                 if (is_array($jpgArr) && $jpgArr['otherPagesCnt']) {
-                    $all = count($jpgArr);
+                    $all = countR($jpgArr);
                     $all--;
                     
                     $warning = "|Ще се отпечатат първите|* {$all} |страници|*. |Ще се пропуснат|* {$jpgArr['otherPagesCnt']} |страници|*.";
@@ -2545,7 +2557,7 @@ class fileman_Files extends core_Master
         $userArrImp = implode(',', $usersArr);
         
         // Ако има избран повече от един потребител, ги подреждаме по послендо използване
-        if (count($usersArr) > 1) {
+        if (countR($usersArr) > 1) {
             $groupByDateField = 'lastUse';
             $query->EXT('lastUse', 'fileman_Data', 'externalName=lastUse, externalKey=dataId');
             $query->orderBy('#lastUse', 'DESC');

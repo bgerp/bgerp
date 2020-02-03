@@ -192,6 +192,18 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 10000;
+    
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'modifiedOn,state';
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -309,7 +321,7 @@ class marketing_Inquiries2 extends embed_Manager
             $personRec = crm_Profiles::getProfile($cu);
             
             $emails = type_Emails::toArray($personRec->buzEmail);
-            $marketingEmail = count($emails) ? $emails[0] : $personRec->email;
+            $marketingEmail = countR($emails) ? $emails[0] : $personRec->email;
             $form->setDefault('personNames', $personRec->name);
             $form->setDefault('email', $marketingEmail);
             
@@ -340,7 +352,7 @@ class marketing_Inquiries2 extends embed_Manager
         
         if ($form->rec->innerClass) {
             $protoProducts = doc_Prototypes::getPrototypes('cat_Products', $form->rec->innerClass);
-            if (count($protoProducts)) {
+            if (countR($protoProducts)) {
                 $form->setField('proto', 'input');
                 $form->setOptions('proto', $protoProducts);
             }
@@ -855,7 +867,7 @@ class marketing_Inquiries2 extends embed_Manager
         $lang = cms_Domains::getPublicDomain('lang');
         core_Lg::push($lang);
         
-        if (count($proto)) {
+        if (countR($proto)) {
             foreach ($proto as $pId => &$name) {
                 
                 // Ако прототипа е оттеглен или затворен, маха се от списъка
@@ -902,9 +914,9 @@ class marketing_Inquiries2 extends embed_Manager
         
         $form->input(null, 'silent');
         
-        if (count($proto)) {
+        if (countR($proto)) {
             $form->setOptions('proto', $proto);
-            if (count($proto) === 1) {
+            if (countR($proto) === 1) {
                 $form->setDefault('proto', key($proto));
                 $form->setField('proto', 'input=hidden');
             } else {
@@ -988,7 +1000,7 @@ class marketing_Inquiries2 extends embed_Manager
                     }
                     
                     $singleUrl = self::getSingleUrlArray($id);
-                    if (count($singleUrl)) {
+                    if (countR($singleUrl)) {
                         
                         return redirect($singleUrl, false, 'Благодарим Ви за запитването|*!', 'success');
                     }
@@ -1067,15 +1079,15 @@ class marketing_Inquiries2 extends embed_Manager
                 }
             }
             
-            if (count($errorMoqs)) {
+            if (countR($errorMoqs)) {
                 $form->setError(implode(',', $errorMoqs), "Количеството не трябва да е под||Quantity can't be bellow|* <b>{$moqVerbal}</b>");
             }
             
-            if (count($errorQuantities)) {
+            if (countR($errorQuantities)) {
                 $form->setError(implode(',', $errorQuantities), 'Количествата трябва да са различни||Quantities must be different|*');
             }
             
-            if (count($errorQuantitiesDecimals)) {
+            if (countR($errorQuantitiesDecimals)) {
                 $form->setError(implode(',', $errorQuantitiesDecimals), $roundError);
             }
             

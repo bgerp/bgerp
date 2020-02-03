@@ -90,7 +90,7 @@ class distro_CopyDriver extends core_Mvc
         
         $reposArr = distro_Group::getReposArr($groupId);
         
-        if (count($dFileArr) >= count($reposArr)) {
+        if (countR($dFileArr) >= countR($reposArr)) {
             
             return false;
         }

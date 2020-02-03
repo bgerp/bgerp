@@ -86,7 +86,7 @@ class social_Sharings extends core_Master
         $query->orderBy('#order');
         $socialNetworks = $query->fetchAll("#state = 'active'");
         
-        if (!count($socialNetworks)) {
+        if (!countR($socialNetworks)) {
             
             return;
         }

@@ -113,8 +113,6 @@ class eshop_Setup extends core_ProtoSetup
         'eshop_ProductDetails',
         'eshop_Carts',
         'eshop_CartDetails',
-        'migrate::updateContactData',
-        'migrate::updateProductStates2'
     );
     
     
@@ -216,30 +214,5 @@ class eshop_Setup extends core_ProtoSetup
         }
         
         return $res;
-    }
-    
-    
-    /**
-     * Миграция на уеб константа
-     */
-    public function updateContactData()
-    {
-        $conf = core_Packs::getConfig('bgerp');
-        $value = $conf->_data['BGERP_MANDATORY_CONTACT_FIELDS'];
-        $exValue = eshop_Setup::get('MANDATORY_CONTACT_FIELDS');
-        
-        if (!empty($value) && $exValue != $value && in_array($value, array('company', 'person', 'both'))) {
-            core_Packs::setConfig('eshop', array('ESHOP_MANDATORY_CONTACT_FIELDS' => $value));
-        }
-    }
-    
-    
-    /**
-     * Миграция на уеб константа
-     */
-    public function updateProductStates2()
-    {
-        core_App::setTimeLimit(500);
-        eshop_ProductDetails::syncStatesByProductId();
     }
 }

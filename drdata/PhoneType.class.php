@@ -43,7 +43,7 @@ class drdata_PhoneType extends type_Varchar
         $numArr = drdata_PhoneType::toArray($number);
         
         // Ако не е валиден номер
-        if (!$numArr || !count($numArr)) {
+        if (!$numArr || !countR($numArr)) {
             
             return $number;
         }
@@ -288,7 +288,7 @@ class drdata_PhoneType extends type_Varchar
             
             if(!empty($value) && isset($this->params['unrecognized'])){
                 $parsedTel = static::toArray($value, $this->params);
-                if ($parsedTel == false || !count($parsedTel)) {
+                if ($parsedTel == false || !countR($parsedTel)) {
                     if($this->params['unrecognized'] == 'warning'){
                         $res['warning'] = self::UNRECOGNIZED_TEXT;
                     } else {

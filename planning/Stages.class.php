@@ -299,7 +299,7 @@ class planning_Stages extends core_Extender
         $tableHtml = $table->get($data->rows, $data->listFields);
         $tpl->append($tableHtml, 'content');
         
-        if(count($data->addUrl)){
+        if(countR($data->addUrl)){
             $addBtn = ht::createLink('', $data->addUrl, false, "title=Добавяне на нов производствен етап в центъра на дейност,ef_icon=img/16/add.png");
             $tpl->append($addBtn, 'title');
         }

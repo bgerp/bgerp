@@ -453,7 +453,7 @@ class doc_Files extends core_Manager
         $suggArr[$folderPrefix . 'allFolders'] = 'Всички папки';
         
         // Последните разгледани папки на текущия потребител
-        $lastFoldersArr = (array) bgerp_Recently::getLastFolderIds(doc_Setup::get('SEARCH_FOLDER_CNT'));
+        $lastFoldersArr = (array) bgerp_Recently::getLastFolderIds(5);
         foreach ($lastFoldersArr as $folderId) {
             $fRec = doc_Folders::fetch($folderId);
             $suggArr[$folderPrefix . $folderId] = $fRec->title;

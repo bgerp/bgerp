@@ -58,7 +58,7 @@ class csv_Lib
         $recs = array();
 
         while (($data = fgetcsv($handle, $format['length'], $format['delimiter'], $format['enclosure'], $format['escape'])) !== false) {
-            $cRowCnt = count($data);
+            $cRowCnt = countR($data);
             
             // Пропускаме празните линии
             if (!$cRowCnt || ($cRowCnt == 1 && trim($data[0]) == '')) {
@@ -84,7 +84,7 @@ class csv_Lib
             }
             
             // Ако не са указани полетата, вземаме ги от първия ред
-            if ($firstRow && !count($fields)) {
+            if ($firstRow && !countR($fields)) {
                 foreach ($data as $f) {
                     $fields[] = $f;
                 }
@@ -117,7 +117,7 @@ class csv_Lib
                 if ($fromZero && $isLarge) {
                     $recs[] = $rec;
                     $res->created++;
-                    if (count($recs) > 2000) {
+                    if (countR($recs) > 2000) {
                         $mvc->saveArray($recs, null, true);
                         $recs = array();
                     }
@@ -159,7 +159,7 @@ class csv_Lib
             }
         }
         
-        if (count($recs)) {
+        if (countR($recs)) {
             $mvc->saveArray($recs, null, true);
         }
         
@@ -287,7 +287,7 @@ class csv_Lib
         
         // Редиректваме, ако сме надвишили бройката
         setIfNot($exportCnt, $params['maxExportCnt'], core_Setup::get('EF_MAX_EXPORT_CNT', true));
-        if (count($recs) > $exportCnt) {
+        if (countR($recs) > $exportCnt) {
             $retUrl = getRetUrl();
             if (empty($retUrl)) {
                 if ($fieldSet instanceof core_Manager) {
@@ -342,7 +342,7 @@ class csv_Lib
         // Подготвяме редовете
         foreach ($recs as $rec) {
             // Ако задължително поле не е попълнено - пропускаме реда
-            if (count($mandatory)) {
+            if (countR($mandatory)) {
                 foreach ($mandatory as $part) {
                     if (strlen($rec->{$part}) == 0) {
                         continue ;
@@ -578,7 +578,7 @@ class csv_Lib
         while (($data = fgetcsv($handle, null, $params['delimiter'], $params['enclosure'], $params['escape'])) !== false) {
             
             // Пропускаме празните линии
-            if (!count($data) || (count($data) == 1 && trim($data[0]) == '')) {
+            if (!countR($data) || (countR($data) == 1 && trim($data[0]) == '')) {
                 continue;
             }
             
@@ -588,7 +588,7 @@ class csv_Lib
             }
             
             if ($params['check']) {
-                $cnt = count($data);
+                $cnt = countR($data);
                 
                 if (!$resArr['error'] && isset($oldCnt) && ($cnt != $oldCnt)) {
                     $resArr['error'] = true;
@@ -679,7 +679,7 @@ class csv_Lib
                 }
                 
                 // Имейли
-                if ($res[$i]['emails'] !== false && !count(type_Emails::getInvalidEmails($col))) {
+                if ($res[$i]['emails'] !== false && !countR(type_Emails::getInvalidEmails($col))) {
                     $res[$i]['emails'] = true;
                 } else {
                     $res[$i]['emails'] = false;
@@ -734,7 +734,7 @@ class csv_Lib
         $csv = str_replace(array("\r\n", "\n\r", "\r"), $nl, $csv);
         
         // Конвертираме към UTF-8
-        $csv = i18n_Charset::convertToUtf8($csv, array('UTF-8', 'WIN1251'));
+//         $csv = i18n_Charset::convertToUtf8($csv, array('UTF-8', 'WIN1251'));
         
         $csv = str_replace(chr(194).chr(160), '', $csv);
         
@@ -777,12 +777,12 @@ class csv_Lib
                 while ((($data = fgetcsv($fp, null, $d, $e)) !== false) && ($lCnt <= $maxLinesCheck)) {
                      
                      // Пропускаме празните линии
-                    if (!is_array($data) || !count($data) || (count($data) == 1 && trim($data[0]) == '')) {
+                    if (!is_array($data) || !countR($data) || (countR($data) == 1 && trim($data[0]) == '')) {
                         continue;
                     }
                     
                     $res[] = $data;
-                    $totalFields += count($data);
+                    $totalFields += countR($data);
                     $lCnt++;
                 }
                 
@@ -796,7 +796,7 @@ class csv_Lib
                 
                 $points = 0;
                 foreach ($res as $row) {
-                    $cnt = count($row);
+                    $cnt = countR($row);
                     if ($cnt == $cellsPerRow) {
                         ++$points;
                     } else {
@@ -808,13 +808,13 @@ class csv_Lib
                 $deCntL = substr_count($csv, $d . $e) + substr_count($csv, $nl . $e);
                 $deCntR = substr_count($csv, $e . $d) + substr_count($csv, $e . $nl);
                 if ($nlCnt) {
-                    $points += 0.4 * (($deCntL > 0) && ($deCntL == $deCntR)) * count($res) + min($deCntL, $deCntR) / $nlCnt;
+                    $points += 0.4 * (($deCntL > 0) && ($deCntL == $deCntR)) * countR($res) + min($deCntL, $deCntR) / $nlCnt;
                 }
-                $points -= ($deCntL > 0) && ($deCntL != $deCntR) * count($res) ;
+                $points -= ($deCntL > 0) && ($deCntL != $deCntR) * countR($res) ;
                 
                 // Среща ли се $е самостоятелно
                 preg_match_all("/[^\\{$d}\\{$e}]\\{$e}[^\\{$d}\\{$e}]/u", $d . str_replace($nl, $d, $csv) . $d, $matches);
-                $soloUse = count($matches[0]);
+                $soloUse = countR($matches[0]);
                 $points -= $soloUse;
                 $points += 0.6 * ($soloUse == 1);
                 

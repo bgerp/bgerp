@@ -94,7 +94,7 @@ class fileman_webdrv_Csv extends fileman_webdrv_Code
         
         foreach ($res['data'] as $i => $r) {
             if (!$cnt) {
-                $cnt = count($r);
+                $cnt = countR($r);
             }
             foreach ($r as $j => $col) {
                 if (strpos($col, '<') !== false) {

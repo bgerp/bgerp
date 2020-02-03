@@ -443,7 +443,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                 
                 $groupVerb .= (cat_Groups::getTitleById($group));
                 
-                if ((count((type_Keylist::toArray($data->rec->groups))) - $marker) != 0) {
+                if ((countR((type_Keylist::toArray($data->rec->groups))) - $marker) != 0) {
                     $groupVerb .= ', ';
                 }
             }

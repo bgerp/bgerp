@@ -272,7 +272,7 @@ class price_ListDocs extends core_Master
         
         $count = 0;
         foreach ($data->rec->products as $groupId => &$products) {
-            $count += count($products);
+            $count += countR($products);
         }
         
         if (!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')) {
@@ -284,7 +284,7 @@ class price_ListDocs extends core_Master
         } else {
             
             // Дигаме времето за изпълнение, ако показваме записите без странициране
-            $total = count($data->rec->products, COUNT_RECURSIVE);
+            $total = countR($data->rec->products, COUNT_RECURSIVE);
             $timeLimit = $total * 0.12;
             core_App::setTimeLimit($timeLimit);
         }
@@ -298,7 +298,7 @@ class price_ListDocs extends core_Master
      */
     private function prepareDetailRows(&$data)
     {
-        if (!count($data->rec->products)) {
+        if (!countR($data->rec->products)) {
             
             return;
         }
@@ -410,14 +410,14 @@ class price_ListDocs extends core_Master
         
         $rec->listRec = price_Lists::fetch($rec->policyId);
         
-        if (!count($rec->details->products)) {
+        if (!countR($rec->details->products)) {
             
             return;
         }
         $packArr = keylist::toArray($rec->packagings);
         
         // Ако няма избрани опаковки, значи сме избрали всички
-        if (!count($packArr)) {
+        if (!countR($packArr)) {
             $packs = cat_UoM::getPackagingOptions();
             $packArr = array_combine(array_keys($packs), array_keys($packs));
         }
@@ -436,7 +436,7 @@ class price_ListDocs extends core_Master
             $packagings = $packQuery->fetchAll();
             
             // Ако е пълен ценоразпис и има засичане на опаковките или е непълен и има опаковки
-            if (count($packagings)) {
+            if (countR($packagings)) {
                 $count = 0;
                 
                 // За всяка опаковка
@@ -629,7 +629,7 @@ class price_ListDocs extends core_Master
             $this->alignPrices($data);
             
             foreach ($rec->products->rows as $groupId => $products) {
-                if (count($products) != 0) {
+                if (countR($products) != 0) {
                     
                     // Слагаме името на групата
                     $groupTpl = clone $detailTpl;
@@ -687,7 +687,7 @@ class price_ListDocs extends core_Master
     private function groupProductsByGroups(&$array, $groupsArr)
     {
         $grouped = array();
-        if (count($array)) {
+        if (countR($array)) {
             foreach ($array as $id => $product) {
                 foreach ($product->groups as $group) {
                     if ($groupsArr) {

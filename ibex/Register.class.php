@@ -166,7 +166,7 @@ class ibex_Register extends core_Manager
             }
         }
         
-        if(!count($res)) {
+        if(!countR($res)) {
             self::logWarning("Не извличам нищо от " . $url);
         }
 

@@ -1,7 +1,7 @@
 <?php
 
 
-defIfNot('EMAIL_SENT_DOMAIN_HASH', md5(EF_SALT . '_DOMAIN_' . BGERP_DEFAULT_EMAIL_DOMAIN));
+defIfNot('EMAIL_SENT_DOMAIN_HASH', md5(EF_SALT . '_DOMAIN'));
 
 
 /**
@@ -183,7 +183,7 @@ class email_Sent
         }
         
         // Добавяме атачмънтите, ако има такива
-        if (count($message->attachments)) {
+        if (countR($message->attachments)) {
             foreach ($message->attachments as $fh) {
                 //Ако няма fileHandler да не го добавя
                 if (!$fh) {
@@ -203,7 +203,7 @@ class email_Sent
         }
         
         // Ако има още някакви хедъри, добавяме ги
-        if (count($message->headers)) {
+        if (countR($message->headers)) {
             foreach ($message->headers as $name => $value) {
                 $PML->AddCustomHeader("{$name}:{$value}");
             }
@@ -261,8 +261,8 @@ class email_Sent
         //Намираме всички статични изображения в background
         preg_match_all($patternBg, $PML->Body, $matchesBg);
         
-        $imgCnt = count($matchesImg[2]);
-        $bgCnt = count($matchesBg[2]);
+        $imgCnt = countR($matchesImg[2]);
+        $bgCnt = countR($matchesBg[2]);
         
         //Ако и двета масива съществуват, обединяваме ги
         if (($imgCnt) && ($bgCnt)) {
@@ -284,7 +284,7 @@ class email_Sent
         }
         
         //Ако сме открили съвпадение
-        if (count($matches[2])) {
+        if (countR($matches[2])) {
             $i = 0;
             
             //Обхождаме всички открите изображения

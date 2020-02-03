@@ -223,19 +223,19 @@ define('CORE_CODE_VERSION', '19.51-Vezhen');
 /**
  * Включена ли е бекъп функционалността?
  */
-defIfNot('CORE_BACKUP_ENABLED', false);
+defIfNot('CORE_BACKUP_ENABLED', 'no');
+
+
+/**
+ * Включена ли е бекъп функционалността?
+ */
+defIfNot('CORE_BACKUP_MAX_CNT', 2);
 
 
 /**
  * Парола за архиви
  */
 defIfNot('CORE_BACKUP_PASS', '');
-
-
-/**
- * Работна директория за бекъпите
- */
-defIfNot('CORE_BACKUP_WORK_DIR', EF_TEMP_PATH . '/backup_work');
 
 
 /**
@@ -384,7 +384,9 @@ class core_Setup extends core_ProtoSetup
         
         'CORE_BACKUP_ENABLED' => array('enum(no=Не, yes=Да)', 'caption=Настройки за бекъп->Включен бекъп'),
         
-        'CORE_BACKUP_PASS' => array('password', 'caption=Настройки за бекъп->Ключ за криптиране'),
+        'CORE_BACKUP_MAX_CNT' => array('enum(1=1,2=2,3=3,4=4,5=5,6=6,7=7)', 'caption=Настройки за бекъп->Макс. брой'),
+        
+        'CORE_BACKUP_PASS' => array('password(show)', 'caption=Настройки за бекъп->Ключ за криптиране'),
         
         'CORE_BACKUP_SQL_LOG_FLUSH_PERIOD' => array('time', 'caption=Настройки за бекъп->Запис на SQL лог през'),
         
@@ -393,8 +395,6 @@ class core_Setup extends core_ProtoSetup
         'CORE_BACKUP_CREATE_FULL_OFFSET' => array('time', 'caption=Настройки за бекъп->Изместване'),
         
         'CORE_BACKUP_PATH' => array('varchar', 'caption=Настройки за бекъп->Път до бекъпите,readOnly'),
-        
-        'CORE_BACKUP_WORK_DIR' => array('varchar', 'caption=Настройки за бекъп->Работна директория,readOnly'),
     );
     
     
@@ -532,7 +532,7 @@ class core_Setup extends core_ProtoSetup
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
         
-        if (CORE_BACKUP_ENABLED) {
+        if (core_Setup::get('BACKUP_ENABLED') == 'yes') {
             // Нагласяване Крон да прави пълен бекъп
             $rec = new stdClass();
             $rec->systemId = 'Backup_Create';
@@ -556,9 +556,18 @@ class core_Setup extends core_ProtoSetup
             $rec->delay = 2;
             $rec->timeLimit = 20;
             $html .= core_Cron::addOnce($rec);
+            $html .= core_Os::createDirectories(
+                array(
+                    core_Backup::getDir(),
+                    core_Backup::getDir('backup_work'),
+                ),
+                0744
+            );
+            core_SystemData::set('flagDoSqlLog');
         } else {
             core_Cron::delete("#systemId = 'Backup_Create'");
             core_Cron::delete("#systemId = 'Sql_Log_Flush'");
+            core_SystemData::remove('flagDoSqlLog');
         }
         
         

@@ -735,7 +735,7 @@ class purchase_Purchases extends deals_DealMaster
         $entries = purchase_transaction_Purchase::getEntries($rec->id);
         $shipped = purchase_transaction_Purchase::getShippedProducts($entries, $rec->id, '321', true);
         
-        if (count($shipped)) {
+        if (countR($shipped)) {
             foreach ($shipped as $ship) {
                 unset($ship->price);
                 $ship->name = cat_Products::getTitleById($ship->productId, false);
