@@ -891,6 +891,15 @@ class eshop_Products extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
+        
+        // Добавяне на избор само на драйверите, до които потребителя има достъп
+        $driverOptions = marketing_Inquiries2::getAvailableDriverOptions();
+        if ($form->rec->coDriver && !array_key_exists($form->rec->coDriver, $driverOptions)) {
+            $name = core_Classes::fetchField($form->rec->coDriver, 'title');
+            $driverOptions[$form->rec->coDriver] = core_Classes::translateClassName($name);
+        }
+        $form->setOptions('coDriver', $driverOptions);
+        
         $form->FNC('productId', 'int', 'caption=Артикул,silent,input=hidden');
         $form->FNC('packagings', 'keylist(mvc=cat_UoM,select=shortName)', 'caption=Опаковки,silent,after=image5');
         $form->input(null, 'hidden');
