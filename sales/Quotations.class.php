@@ -1227,12 +1227,23 @@ class sales_Quotations extends core_Master
             }
             
             if ($setError === true) {
-                $form->setError(implode(',', $errFields), 'Не може да не са зададени количества');
+                $form->setError(implode(',', $errFields), 'Не са зададени количества');
             }
             
             if (!$form->gotErrors()) {
-                $sId = $this->createSale($rec);
-               
+                try{
+                    $errorMsg = 'Проблем при създаването на оферта';
+                    $sId = $this->createSale($rec);
+                } catch(core_exception_Expect $e){
+                    $errorMsg = $e->getMessage();
+                    reportException($e);
+                    $this->logErr($errorMsg, $rec->id);
+                }
+                
+                if(empty($sId)){
+                    followRetUrl(null, $errorMsg, 'error');
+                }
+                
                 foreach ($products as $dRecId) {
                     if(empty($dRecId)) continue;
                     
