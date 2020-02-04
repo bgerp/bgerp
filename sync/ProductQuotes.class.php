@@ -113,7 +113,7 @@ class sync_ProductQuotes extends core_BaseClass
         // Разкриптиране на данните за импорт
         $data = base64_decode($data);
         $data = gzuncompress($data);
-        $data = json_decode($data);
+        $data = unserialize($data);
         $data = (object) $data;
         $data->exportUrl = $exportDomain;
         
@@ -123,6 +123,11 @@ class sync_ProductQuotes extends core_BaseClass
         // Импортиране на контрагента, ако е нужно
         $exportContragentRes = (array)$data->exportContragentRes;
         sync_Map::importRec($data->contragentClassName, $data->contragentRemoteId, $exportContragentRes, cls::get('sync_Companies'));
+        $localContragentId = sync_Map::getLocalId($data->contragentClassName, $data->contragentRemoteId);
+        
+        if(!$localContragentId){
+            throw new core_exception_Expect('Проблем при импортирането на контрагента', 'Несъответствие');
+        }
         
         // Подмяна на линковете за сваляне на файловете от хтмл-а
         $matches = array();
@@ -143,7 +148,6 @@ class sync_ProductQuotes extends core_BaseClass
         }
         
         // Мапване на контрагента, и форсиране на папка
-        $localContragentId = sync_Map::getLocalId($data->contragentClassName, $data->contragentRemoteId);
         $folderId = cls::get($data->contragentClassName)->forceCoverAndFolder($localContragentId);
         
         // Проверка има ли я мапната основната мярка в системата, ако не се импортира при нужда и мапва
@@ -171,6 +175,8 @@ class sync_ProductQuotes extends core_BaseClass
             'quotations' => $data->quotations,
             'folderId' => $folderId,
             'importedFromDomain' => $data->exportUrl,
+            'moq' => $data->moq,
+            'conditions' => $data->conditions,
         );
         
         // Импортиране на параметри
@@ -197,6 +203,8 @@ class sync_ProductQuotes extends core_BaseClass
                         $fileName = basename($obj->value);
                         $obj->value = fileman::absorbStr($fileContent, 'importedProductFiles', $fileName);
                     }
+                } elseif($paramRec->driverClass == 'cond_type_Store'){
+                    continue;
                 }
                
                 // Записване на стойността на параметъра, съответстваща на локалния ключ
