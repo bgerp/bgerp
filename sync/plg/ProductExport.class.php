@@ -185,11 +185,11 @@ class sync_plg_ProductExport extends core_Plugin
         foreach (array('sale', 'purchase', 'quotation') as $docType){
             core_Lg::push('bg');
             $conditions[$docType]['bg'] = $Driver->getConditions($rec, $docType, 'bg');
-            core_Lg::pop('bg');
+            core_Lg::pop();
             
             core_Lg::push('en');
             $conditions[$docType]['en'] = $Driver->getConditions($rec, $docType, 'en');
-            core_Lg::pop('en');
+            core_Lg::pop();
         }
         
         $data = (object)array('name' => $rec->name, 
@@ -261,14 +261,14 @@ class sync_plg_ProductExport extends core_Plugin
         core_Lg::push('bg');
         $htmlTpl = $Driver->renderProductDescription($dataBg);
         $htmlTpl = $htmlTpl->getContent();
-        core_Lg::pop('bg');
+        core_Lg::pop();
         Mode::pop('text');
         
         Mode::push('text', 'xhtml');
         core_Lg::push('en');
         $htmlEnTpl = $Driver->renderProductDescription($dataEn);
         $htmlEnTpl = $htmlEnTpl->getContent();
-        core_Lg::pop('en');
+        core_Lg::pop();
         Mode::pop('text');
         core_Users::exitSudo($rec->createdBy);
         Mode::pop('forceDownload');

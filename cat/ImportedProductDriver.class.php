@@ -115,6 +115,7 @@ class cat_ImportedProductDriver extends cat_ProductDriver
     {
         if($data->documentType == 'public' ){
             unset($data->row->importedFromDomain);
+            unset($data->row->moq);
         }
        
         $tpl = parent::renderProductDescription($data);
