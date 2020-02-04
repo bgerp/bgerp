@@ -545,6 +545,28 @@ class cat_Listings extends core_Master
             $lQuery->where("#listId = {$listId}");
             $old = $lQuery->fetchAll();
             
+            // Колко са новите записи
+            $count = countR($newDetails);
+            
+            // Ако последно продаваните артикули са под максималния лимит
+            // Идеята е ако има стари записи да не се изтрият докато, не се изместят от по нови
+            if($count < $limit){
+                
+                // и има стари записи
+                $products = array_keys($newDetails);
+                $notInProducts = array_filter($old, function($a) use ($products) { return !in_array($a->productId, $products);});
+                if(countR($notInProducts)){
+                    asort($notInProducts);
+                    
+                    // Допълване на масива, със стари записи, докато се достигне лимите
+                    foreach ($notInProducts as $oldRec){
+                        if($count > $limit) break;
+                        
+                        $newDetails[$oldRec->productId] = $oldRec;
+                    }
+                }
+            }
+            
             // Синхронизиране на новите записи
             $res = arr::syncArrays($newDetails, $old, 'productId,packagingId', 'packagingId');
             
