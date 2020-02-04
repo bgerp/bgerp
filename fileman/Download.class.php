@@ -237,12 +237,6 @@ class fileman_Download extends core_Manager
      */
     public function act_Download()
     {
-        if (!defined('BGERP_GIT_BRANCH') || (BGERP_GIT_BRANCH != 'dev')) {
-            if ($remoteAddr = $_SERVER['REMOTE_ADDR']) {
-                expect(!core_Url::isPrivate($remoteAddr));
-            }
-        }
-        
         // Ако файла се сваля от vt - за да не се подават вирусни файлове
         if (log_Browsers::checkUserAgent('virustotalcloud')) {
             
