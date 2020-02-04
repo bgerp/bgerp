@@ -850,7 +850,13 @@ class eshop_Carts extends core_Master
         }
         
         // Създаване на продажба по количката
-        $saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
+        try{
+            $saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
+        } catch(core_exception_Expect $e){
+            reportException($e);
+            eshop_Carts::logErr("Грешка при изпращане на имейл за забравена поръчка: '{$e->getMessage()}'", $rec->id);
+        }
+        
         if (empty($saleId)) {
             
             return false;

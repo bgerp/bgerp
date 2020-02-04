@@ -1113,6 +1113,7 @@ class sales_Quotations extends core_Master
             'currencyRate' => $rec->currencyRate,
             'paymentMethodId' => $rec->paymentMethodId,
             'deliveryTermId' => $rec->deliveryTermId,
+            'caseId' => cash_Cases::getCurrent('id', false),
             'chargeVat' => $rec->chargeVat,
             'note' => $rec->others,
             'originId' => $rec->containerId,
@@ -1128,9 +1129,7 @@ class sales_Quotations extends core_Master
         
         // Създаваме нова продажба от офертата
         $saleId = sales_Sales::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
-        sales_Sales::logWrite('Създаване от оферта', $saleId);
-        
-        if (isset($rec->bankAccountId)) {
+        if (isset($saleId) && isset($rec->bankAccountId)) {
             $uRec = (object) array('id' => $saleId, 'bankAccountId' => bank_OwnAccounts::fetchField($rec->bankAccountId, 'bankAccountId'));
             cls::get('sales_Sales')->save_($uRec);
         }
@@ -1161,11 +1160,23 @@ class sales_Quotations extends core_Master
             }
         }
         
-        // Ако няма създаваме нова
+        // Ако няма създава се нова продажба
         if (!$sId = Request::get('dealId', 'key(mvc=sales_Sales)')) {
+            $errorMsg = 'Проблем при създаването на оферта';
             
-            // Създаваме нова продажба от офертата
-            $sId = $this->createSale($rec);
+            try{
+                $sId = $this->createSale($rec);
+                sales_Sales::logWrite('Създаване от оферта', $sId);
+            } catch(core_exception_Expect $e){
+                $errorMsg = $e->getMessage();
+                reportException($e);
+                $this->logErr($errorMsg, $rec->id);
+                
+            }
+        }
+        
+        if(empty($sId)){
+            followRetUrl(null, $errorMsg, 'error');
         }
         
         // За всеки детайл на офертата подаваме го като детайл на продажбата
