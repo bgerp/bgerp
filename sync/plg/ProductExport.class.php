@@ -63,7 +63,7 @@ class sync_plg_ProductExport extends core_Plugin
             
             $params = array('remoteId' => $rec->id);
             $httpQuery = http_build_query($params);
-            //bp($importUrl, $httpQuery);
+            
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $importUrl);
             curl_setopt($ch, CURLOPT_POST, 1);
@@ -86,20 +86,21 @@ class sync_plg_ProductExport extends core_Plugin
                 if(empty($res->error)){
                     if($res->status == 2){
                         cat_Products::logWrite("Повторен опит за експорт");
+                        $msg = "|Артикулът е експортиран|*: #Art{$res->localId}";
+                       
                     } else {
                         cat_Products::logWrite("Експортиране към: '{$exportUrl}'", $rec->id);
                         $msg = "|Артикулът е експортиран успешно|* ";
                     }
                     
                     // Ако върнатото урл е оторизирано потребителя ще се редиректва към него
-                    $redirectUrl = getRetUrl();
                     if(core_Packs::isInstalled('remote')){
                         if($remoteUrl = remote_Authorizations::getAutoLoginUrl($res->url)){
-                            $redirectUrl = $remoteUrl;
+                            redirect($remoteUrl, true);
                         }
                     }
                     
-                    redirect($redirectUrl, true, $msg);
+                    followRetUrl(null, $msg);
                 } else {
                     
                     // Ако е върната грешла, се показва подходящо съобщение
@@ -138,7 +139,7 @@ class sync_plg_ProductExport extends core_Plugin
         //@TODO тестов екшън да се премахне
         if($action == 'test'){
             requireRole('debug');
-            $exp = self::getExportData(4030);
+            $exp = self::getExportData(4034);
             
             bp($exp,$data);
         }
@@ -224,9 +225,12 @@ class sync_plg_ProductExport extends core_Plugin
         $quoteQuery = sales_QuotationsDetails::getQuery();
         $quoteQuery->EXT('state', 'sales_Quotations', 'externalName=state,externalKey=quotationId');
         $quoteQuery->EXT('folderId', 'sales_Quotations', 'externalName=folderId,externalKey=quotationId');
+        $quoteQuery->EXT('activatedOn', 'sales_Quotations', 'externalName=activatedOn,externalKey=quotationId');
+        
         $quoteQuery->where("#productId = {$rec->id} AND #state = 'active'");
-        $quoteQuery->show('quotationId,packagingId,quantityInPack,quantity,price,discount,tolerance,term,optional,price');
+        $quoteQuery->show('quotationId,packagingId,quantityInPack,quantity,price,discount,tolerance,term,optional,price,activatedOn');
         while($quoteRec = $quoteQuery->fetch()){
+            $quoteRec->activatedOn = dt::mysql2timestamp($quoteRec->activatedOn);
             $data->quotations[$quoteRec->id] = $quoteRec;
         }
         
