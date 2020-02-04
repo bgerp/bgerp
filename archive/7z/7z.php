@@ -284,7 +284,7 @@ class Archive_7z
         exec($cmd, $out, $rv);
 
         if ($rv !== 0) {
-            throw new Archive_7z_Exception('Error! Exit code: ' . $rv);
+            throw new Archive_7z_Exception('Error! Exit code: ' . $rv, $rv);
         }
     }
 
@@ -303,9 +303,9 @@ class Archive_7z
         );
 
         exec($cmd, $out, $rv);
-
+        
         if ($rv !== 0) {
-            throw new Archive_7z_Exception('Error! Exit code: ' . $rv);
+            throw new Archive_7z_Exception('Error! Exit code: ' . $rv, $rv);
         }
     }
 
@@ -342,7 +342,7 @@ class Archive_7z
         exec($cmd, $out, $rv);
 
         if ($rv !== 0) {
-            throw new Archive_7z_Exception('Error! Exit code: ' . $rv);
+            throw new Archive_7z_Exception('Error! Exit code: ' . $rv, $rv);
         }
 
         $list = array();
