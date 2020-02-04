@@ -220,7 +220,7 @@ class sales_Quotations extends core_Master
     public function description()
     {
         $this->FLD('date', 'date', 'caption=Дата');
-        $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData');
+        $this->FLD('reff', 'varchar(255,nullIfEmpty)', 'caption=Ваш реф.,class=contactData');
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
         
         $this->FNC('row1', 'complexType(left=Количество,right=Цена)', 'caption=Детайли->Количество / Цена');
@@ -291,23 +291,18 @@ class sales_Quotations extends core_Master
         }
         
         if (isset($rec->originId) && $data->action != 'clone' && empty($form->rec->id)) {
-               
-               // Ако офертата има ориджин
-            $origin = doc_Containers::getDocument($rec->originId);
             
+            // Ако офертата има ориджин
+            $origin = doc_Containers::getDocument($rec->originId);
             if ($origin->haveInterface('cat_ProductAccRegIntf')) {
                 $form->setField('row1,row2,row3', 'input');
                 $rec->productId = $origin->that;
                 
-                // Ако продукта има ориджин който е запитване вземаме количествата от него по дефолт
-                if ($productOrigin = $origin->fetchField('originId')) {
-                    $productOrigin = doc_Containers::getDocument($productOrigin);
-                    if ($productOrigin->haveInterface('marketing_InquiryEmbedderIntf')) {
-                        $productOriginRec = $productOrigin->fetch();
-                        $form->setDefault('row1', $productOriginRec->quantity1);
-                        $form->setDefault('row2', $productOriginRec->quantity2);
-                        $form->setDefault('row3', $productOriginRec->quantity3);
-                    }
+                if($Driver = $origin->getDriver()){
+                    $quantitiesArr = $Driver->getQuantitiesForQuotation($origin->getInstance(), $origin->fetch());
+                    $form->setDefault('row1', $quantitiesArr[0]);
+                    $form->setDefault('row2', $quantitiesArr[1]);
+                    $form->setDefault('row3', $quantitiesArr[2]);
                 }
             }
         }
@@ -1392,20 +1387,6 @@ class sales_Quotations extends core_Master
         $reff = $mvc->getVerbal($id, 'reff');
         if (strlen($reff) != 0) {
             $docName .= "({$reff})";
-        }
-    }
-    
-    
-    /**
-     * Преди запис на документ, изчислява стойността на полето `isContable`
-     *
-     * @param core_Manager $mvc
-     * @param stdClass     $rec
-     */
-    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
-    {
-        if ($rec->reff === '') {
-            $rec->reff = null;
         }
     }
     

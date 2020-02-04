@@ -415,4 +415,20 @@ class cat_ImportedProductDriver extends cat_ProductDriver
         // Връщане на намерения запис
         return $quotations[$index];
     }
+    
+    
+    /**
+     * Какви са дефолтните количества на артикула за офертата
+     *
+     * @param embed_Manager $Embedder
+     * @param stdClass $rec
+     * @return array $res
+     */
+    public function getQuantitiesForQuotation($Embedder, $rec)
+    {
+        $res = arr::extractValuesFromArray((array)$rec->quotations, 'quantity');
+        $res = array_values($res);
+        
+        return $res;
+    }
 }
