@@ -545,4 +545,17 @@ class cat_ProductDriverIntf extends embed_DriverIntf
     {
         return $this->class->getDeltaSurcharge($rec);
     }
+    
+    
+    /**
+     * Какви са дефолтните количества на артикула за офертата
+     *
+     * @param embed_Manager $Embedder
+     * @param stdClass $rec
+     * @return array $res
+     */
+    public function getQuantitiesForQuotation($Embedder, $rec)
+    {
+        return $this->class->getQuantitiesForQuotation($Embedder, $rec);
+    }
 }
