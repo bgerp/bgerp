@@ -33,7 +33,7 @@ defIfNot('SYNC_EXPORT_ADDR', '');
 /**
  * Колко процента да е себестойноста на импортирания артикул спрямо оферираната му цена
  */
-defIfNot('SYNC_IMPORTED_PRODUCT_PRIMECOST_DISCOUNT', '');
+defIfNot('SYNC_IMPORTED_PRODUCT_PRIMECOST_DISCOUNT', '0.18');
 
 
 /**
