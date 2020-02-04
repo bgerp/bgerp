@@ -139,7 +139,7 @@ class sync_Helper extends core_Manager
         expect($url);
         $url = rtrim($url, '/') . '/' . $expAdd . '/export';
         $res = file_get_contents($url);
-        $resArr = unserialize(gzuncompress($res));
+        $resArr = unserialize(gzuncompress($res), array('allowed_classes' => array('stdClass')));
         
         return $resArr;
     }
