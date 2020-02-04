@@ -515,6 +515,8 @@
     box-shadow: 0px 0px 3px #0000fa !important;
     border: 3px solid #080f56;
     padding: 8px !important; }
+  .element .pos-title {
+    height: 72px; }
   .element .pos-add-res-btn {
     color: #333333;
     height: 73px; }
