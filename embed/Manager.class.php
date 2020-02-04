@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class embed_Manager extends core_Master
+abstract class embed_Manager extends core_Master
 {
     /**
      * Свойство, което указва интерфейса на вътрешните обекти

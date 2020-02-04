@@ -52,6 +52,8 @@ class cat_ImportedProductDriver extends cat_ProductDriver
         $form->FLD('htmlEn', 'html', 'caption=Изглед EN,before=measureId,input=none');
         $form->FLD('quotations', 'blob', 'caption=Данни на оферта,input=none');
         $form->FLD('params', 'blob', 'caption=Параметри,input=none');
+        $form->FLD('moq', 'double(smartRound)', 'caption=МКП,input=none');
+        $form->FLD('conditions', 'blob', 'caption=Допълнителни условия,input=none');
     }
     
     
@@ -97,6 +99,8 @@ class cat_ImportedProductDriver extends cat_ProductDriver
         unset($row->html);
         unset($row->htmlEn);
         unset($row->params);
+        unset($row->quotations);
+        unset($row->conditions);
     }
     
     
@@ -111,8 +115,9 @@ class cat_ImportedProductDriver extends cat_ProductDriver
     {
         if($data->documentType == 'public' ){
             unset($data->row->importedFromDomain);
+            unset($data->row->moq);
         }
-        
+       
         $tpl = parent::renderProductDescription($data);
         $Embedder = cls::get($data->Embedder);
         
@@ -124,6 +129,9 @@ class cat_ImportedProductDriver extends cat_ProductDriver
     }
     
     
+    /**
+     * Рендиране на параметрите
+     */
     private function renderParams($Embedder, $rec, $params)
     {
         $arr = array();
@@ -176,16 +184,13 @@ class cat_ImportedProductDriver extends cat_ProductDriver
         if (isset($name)) {
             if (!is_numeric($name)) {
                 $nameId = cat_Params::fetchField(array("#sysId = '[#1#]'", $name));
-                
             } else {
                $nameId = $name;
             }
             
-            foreach ($params as $k => $v){
-                if($k == $nameId){
-                    
-                    return ($verbal === true) ? cat_Params::toVerbal($k, $classId, $id, $v) : $v;
-                }
+            if(array_key_exists($nameId, $params)){
+                
+                return ($verbal === true) ? cat_Params::toVerbal($nameId, $classId, $id, $params[$nameId]) : $params[$nameId];
             }
             
             return false;
@@ -217,6 +222,7 @@ class cat_ImportedProductDriver extends cat_ProductDriver
     public function getTransportWeight($rec, $quantity)
     {
         $weight = $this->getParams(cat_Products::getClassId(), $rec->id, 'transportWeight');
+       
         if ($weight) {
             $weight *= $quantity;
             
@@ -254,6 +260,13 @@ class cat_ImportedProductDriver extends cat_ProductDriver
      */
     public function getTolerance($id, $quantity)
     {
+        // Ако за това к-во има запис в данните от оферта на артикула, връща се този толеранс
+        $foundRec = $this->getQuoteRecByQuantity($id, $quantity);
+        if(is_object($foundRec)){
+            
+            return $foundRec->tolerance;
+        }
+        
         return $this->getParams(cat_Products::getClassId(), $id, 'tolerance');
     }
     
@@ -268,6 +281,13 @@ class cat_ImportedProductDriver extends cat_ProductDriver
      */
     public function getDeliveryTime($id, $quantity)
     {
+        // Ако за това к-во има запис в данните от оферта на артикула, връща се този срок на доставка
+        $foundRec = $this->getQuoteRecByQuantity($id, $quantity);
+        if(is_object($foundRec)){
+            
+            return $foundRec->term;
+        }
+        
         return $this->getParams(cat_Products::getClassId(), $id, 'term');
     }
     
@@ -287,6 +307,129 @@ class cat_ImportedProductDriver extends cat_ProductDriver
      */
     public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = null, $rate = 1, $chargeVat = 'no')
     {
-        return 5;
+        // Кой запис от офертите на артикула, отговаря на това количество
+        $foundRec = $this->getQuoteRecByQuantity($productId, $quantity);
+        if(!is_object($foundRec)) {
+            
+            return null;
+        }
+        
+        // Ако се търсе себестойност, приспада се отстъпката от продажната цена
+        $price = $foundRec->price;
+        if ($minDelta === 0 && $maxDelta === 0) {
+            if(isset($foundRec->discount)){
+                $price = $foundRec->price * (1 - $foundRec->discount);
+            }
+            
+            $primeCostDiscount = sync_Setup::get('IMPORTED_PRODUCT_PRIMECOST_DISCOUNT');
+            $price = $price * (1 - $primeCostDiscount);
+        } else {
+            $discount = $foundRec->discount;
+        }
+        
+        $price = (object)array('price' => $price, 'discount' => $discount);
+        
+        return $price;
+    }
+    
+    
+    /**
+     * Може ли драйвера автоматично да си изчисли себестойността
+     *
+     * @param mixed $productId - запис или ид
+     *
+     * @return bool
+     */
+    public function canAutoCalcPrimeCost($productId)
+    {
+        return true;
+    }
+    
+    
+    /**
+     * Допълнителните условия за дадения продукт,
+     * които автоматично се добавят към условията на договора
+     *
+     * @param stdClass    $rec     - ид/запис на артикул
+     * @param string      $docType - тип на документа sale/purchase/quotation
+     * @param string|NULL $lg      - език
+     */
+    public function getConditions($rec, $docType, $lg = null)
+    {
+        $lg = isset($lg) ? $lg : core_Lg::getCurrent();
+        $conditions = (array)$rec->conditions;
+        
+        $foundArr = $conditions[$docType][$lg];
+        if(is_array($foundArr)){
+            
+            return $foundArr;
+        }
+        
+        return null;
+    }
+    
+    
+    /**
+     * Връща минималното количество за поръчка
+     *
+     * @param int|NULL $id - ид на артикул
+     *
+     * @return float|NULL - минималното количество в основна мярка, или NULL ако няма
+     */
+    public function getMoq($id = null)
+    {
+        return $this->driverRec->moq;
+    }
+    
+    
+    /**
+     * Кой запис от офертата съотвества на артикула
+     * 
+     * @param int $productId
+     * @param double $quantity
+     * @return null|stdClass
+     */
+    private function getQuoteRecByQuantity($productId, $quantity)
+    {
+        // Всички данни от оферта на артикула
+        $quotations = (array)$this->driverRec->quotations;
+        if(!countR($quotations)) {
+            
+            return null;
+        }
+       
+        // Намира се записа отговарящ на най-близкото количество
+        $oldDiff = $index =  null;
+        foreach ($quotations as $key => $quotationRec){
+            $diff = abs($quantity - $quotationRec->quantity);
+            if ($oldDiff > $diff || is_null($oldDiff)) {
+                $oldDiff = $diff;
+                $index = $key;
+            
+            // Ако има два записа за същото к-во взима се този от по-новата оферта
+            } elseif($oldDiff == $diff && $diff->activatedOn > $quotations[$index]->activatedOn){
+                $oldDiff = $diff;
+                $index = $key;
+            }
+        }
+        
+        // Връщане на намерения запис
+        return $quotations[$index];
+    }
+    
+    
+    /**
+     * Какви са дефолтните количества на артикула за офертата
+     *
+     * @param embed_Manager $Embedder
+     * @param stdClass $rec
+     * @return array $res
+     */
+    public function getQuantitiesForQuotation($Embedder, $rec)
+    {
+        $res = arr::extractValuesFromArray((array)$rec->quotations, 'quantity');
+        $res = array_values($res);
+        
+        return $res;
     }
 }

@@ -220,7 +220,7 @@ class sales_Quotations extends core_Master
     public function description()
     {
         $this->FLD('date', 'date', 'caption=Дата');
-        $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData');
+        $this->FLD('reff', 'varchar(255,nullIfEmpty)', 'caption=Ваш реф.,class=contactData');
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
         
         $this->FNC('row1', 'complexType(left=Количество,right=Цена)', 'caption=Детайли->Количество / Цена');
@@ -291,23 +291,18 @@ class sales_Quotations extends core_Master
         }
         
         if (isset($rec->originId) && $data->action != 'clone' && empty($form->rec->id)) {
-               
-               // Ако офертата има ориджин
-            $origin = doc_Containers::getDocument($rec->originId);
             
+            // Ако офертата има ориджин
+            $origin = doc_Containers::getDocument($rec->originId);
             if ($origin->haveInterface('cat_ProductAccRegIntf')) {
                 $form->setField('row1,row2,row3', 'input');
                 $rec->productId = $origin->that;
                 
-                // Ако продукта има ориджин който е запитване вземаме количествата от него по дефолт
-                if ($productOrigin = $origin->fetchField('originId')) {
-                    $productOrigin = doc_Containers::getDocument($productOrigin);
-                    if ($productOrigin->haveInterface('marketing_InquiryEmbedderIntf')) {
-                        $productOriginRec = $productOrigin->fetch();
-                        $form->setDefault('row1', $productOriginRec->quantity1);
-                        $form->setDefault('row2', $productOriginRec->quantity2);
-                        $form->setDefault('row3', $productOriginRec->quantity3);
-                    }
+                if($Driver = $origin->getDriver()){
+                    $quantitiesArr = $Driver->getQuantitiesForQuotation($origin->getInstance(), $origin->fetch());
+                    $form->setDefault('row1', $quantitiesArr[0]);
+                    $form->setDefault('row2', $quantitiesArr[1]);
+                    $form->setDefault('row3', $quantitiesArr[2]);
                 }
             }
         }
@@ -985,7 +980,10 @@ class sales_Quotations extends core_Master
         }
         
         // Ако запитването е в папка на контрагент вкарва се в група запитвания
-        $groupId = crm_Groups::force('Клиенти » Оферти');
+        $clientGroupId = crm_Groups::getIdFromSysId('customers');
+        $groupRec = (object)array('name' => 'Оферти', 'sysId' => 'quotationsClients', 'parentId' => $clientGroupId);
+        $groupId = crm_Groups::forceGroup($groupRec);
+        
         cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, $groupId, false);
     }
     
@@ -1110,6 +1108,7 @@ class sales_Quotations extends core_Master
             'currencyRate' => $rec->currencyRate,
             'paymentMethodId' => $rec->paymentMethodId,
             'deliveryTermId' => $rec->deliveryTermId,
+            'caseId' => cash_Cases::getCurrent('id', false),
             'chargeVat' => $rec->chargeVat,
             'note' => $rec->others,
             'originId' => $rec->containerId,
@@ -1125,9 +1124,7 @@ class sales_Quotations extends core_Master
         
         // Създаваме нова продажба от офертата
         $saleId = sales_Sales::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
-        sales_Sales::logWrite('Създаване от оферта', $saleId);
-        
-        if (isset($rec->bankAccountId)) {
+        if (isset($saleId) && isset($rec->bankAccountId)) {
             $uRec = (object) array('id' => $saleId, 'bankAccountId' => bank_OwnAccounts::fetchField($rec->bankAccountId, 'bankAccountId'));
             cls::get('sales_Sales')->save_($uRec);
         }
@@ -1158,11 +1155,23 @@ class sales_Quotations extends core_Master
             }
         }
         
-        // Ако няма създаваме нова
+        // Ако няма създава се нова продажба
         if (!$sId = Request::get('dealId', 'key(mvc=sales_Sales)')) {
+            $errorMsg = 'Проблем при създаването на оферта';
             
-            // Създаваме нова продажба от офертата
-            $sId = $this->createSale($rec);
+            try{
+                $sId = $this->createSale($rec);
+                sales_Sales::logWrite('Създаване от оферта', $sId);
+            } catch(core_exception_Expect $e){
+                $errorMsg = $e->getMessage();
+                reportException($e);
+                $this->logErr($errorMsg, $rec->id);
+                
+            }
+        }
+        
+        if(empty($sId)){
+            followRetUrl(null, $errorMsg, 'error');
         }
         
         // За всеки детайл на офертата подаваме го като детайл на продажбата
@@ -1213,12 +1222,23 @@ class sales_Quotations extends core_Master
             }
             
             if ($setError === true) {
-                $form->setError(implode(',', $errFields), 'Не може да не са зададени количества');
+                $form->setError(implode(',', $errFields), 'Не са зададени количества');
             }
             
             if (!$form->gotErrors()) {
-                $sId = $this->createSale($rec);
-               
+                try{
+                    $errorMsg = 'Проблем при създаването на оферта';
+                    $sId = $this->createSale($rec);
+                } catch(core_exception_Expect $e){
+                    $errorMsg = $e->getMessage();
+                    reportException($e);
+                    $this->logErr($errorMsg, $rec->id);
+                }
+                
+                if(empty($sId)){
+                    followRetUrl(null, $errorMsg, 'error');
+                }
+                
                 foreach ($products as $dRecId) {
                     if(empty($dRecId)) continue;
                     
@@ -1367,20 +1387,6 @@ class sales_Quotations extends core_Master
         $reff = $mvc->getVerbal($id, 'reff');
         if (strlen($reff) != 0) {
             $docName .= "({$reff})";
-        }
-    }
-    
-    
-    /**
-     * Преди запис на документ, изчислява стойността на полето `isContable`
-     *
-     * @param core_Manager $mvc
-     * @param stdClass     $rec
-     */
-    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
-    {
-        if ($rec->reff === '') {
-            $rec->reff = null;
         }
     }
     

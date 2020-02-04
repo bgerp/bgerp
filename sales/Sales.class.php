@@ -1562,7 +1562,10 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_AfterActivation($mvc, &$rec)
     {
-        $groupId = crm_Groups::force('Клиенти » Продажби');
+        $clientGroupId = crm_Groups::getIdFromSysId('customers');
+        $groupRec = (object)array('name' => 'Продажби', 'sysId' => 'saleClients', 'parentId' => $clientGroupId);
+        $groupId = crm_Groups::forceGroup($groupRec);
+        
         cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, $groupId, false);
     }
     

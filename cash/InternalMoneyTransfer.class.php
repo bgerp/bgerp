@@ -1,14 +1,14 @@
 <?php 
 
 /**
- * Документ за Вътрешно Паричен Трансфер
+ * Документ за Вътрешно Касов Трансфер
  *
  *
  * @category  bgerp
- * @package   bank
+ * @package   cash
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -177,6 +177,9 @@ class cash_InternalMoneyTransfer extends core_Master
         $this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)', 'caption=Към->Банк. сметка,input=none');
         $this->FLD('paymentDebitId', 'key(mvc=cond_Payments, select=title)', 'caption=Към->Безналично плащане,input=none');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Контиран,stopped=Спряно, pending=Заявка)','caption=Статус, input=none');
+        $this->FLD('sourceId', 'key(mvc=doc_Containers,select=id)', 'input=hidden,silent');
+        
+        $this->setDbIndex('sourceId');
     }
     
     
@@ -443,6 +446,11 @@ class cash_InternalMoneyTransfer extends core_Master
             
             if ($rec->debitBank) {
                 $row->creditCase .= " » " . bank_OwnAccounts::getHyperLink($rec->debitBank, true);
+            }
+            
+            if(isset($rec->sourceId)){
+                $Source = doc_Containers::getDocument($rec->sourceId);
+                $row->sourceId = $Source->getLink(0);
             }
         }
     }
