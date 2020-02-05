@@ -279,17 +279,10 @@ class core_Cls
      */
     public static function isSubclass($class, $parentClass)
     {
-        $parentClassName = strtolower(self::getClassName($parentClass));
-        $className = strtolower(self::getClassName($class));
-
-        do {
-            if ($parentClassName === $className) {
-                
-                return true;
-            }
-        } while (false != ($className = strtolower(get_parent_class($className))));
+        $parentClassName = self::getClassName($parentClass);
+        $className = self::getClassName($class);
         
-        return false;
+        return ($parentClassName === $className) || isset(class_parents($className)[$parentClassName]);
     }
     
     
