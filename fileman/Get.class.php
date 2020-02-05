@@ -332,8 +332,6 @@ class fileman_Get extends core_Manager
             if (!defined('BGERP_GIT_BRANCH') || (BGERP_GIT_BRANCH != 'dev')) {
                 $pArr = core_Url::parseUrl($form->rec->url);
                 
-                $haveError = false;
-                
                 if ($pArr['error']) {
                     $form->setError('url', $pArr['error']);
                 }
