@@ -328,6 +328,30 @@ class fileman_Get extends core_Manager
         $form->FNC('url', 'url(1200)', 'caption=URL,mandatory');
         
         $rec = $form->input('bucketId,callback,url', true);
+        if ($form->isSubmitted()) {
+            if (!defined('BGERP_GIT_BRANCH') || (BGERP_GIT_BRANCH != 'dev')) {
+                $pArr = core_Url::parseUrl($form->rec->url);
+                
+                $haveError = false;
+                
+                if ($pArr['error']) {
+                    $form->setError('url', $pArr['error']);
+                }
+                
+                if (!$pArr['tld']) {
+                    $form->setError('url', 'Не е зададено коректно разширение на домейна');
+                }
+                
+                if (!in_array($pArr['scheme'], array('http', 'https', 'ftp', 'ftps'))) {
+                    $form->setError('url', 'Неподдържан протокол:|* <b>' . $pArr['scheme'] . '</b>');
+                }
+                
+                if (core_Url::isPrivate($form->rec->url)) {
+                    $form->setError('url', 'Не може да се използва частна мрежа');
+                    $domain = $pArr['domain'] ? $pArr['domain'] : $pArr['host'];
+                }
+            }
+        }
         
         if ($form->isSubmitted()) {
             $this->getFile($rec, $add);
