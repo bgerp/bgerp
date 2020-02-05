@@ -273,23 +273,17 @@ class core_Cls
      * за разлика от вградените функции работи със стрингови параметри
      *
      * @param mixed  $class
-     * @param string $parrentClass
+     * @param string $parentClass
      *
      * @return bool
      */
-    public static function isSubclass($class, $parrentClass)
+    public static function isSubclass($class, $parentClass)
     {
-        if (is_object($class)) {
-            $className = strtolower(get_class($class));
-        } else {
-            cls::load($class);
-            $className = strtolower($class);
-        }
-        
-        $parrentClassLw = strtolower($parrentClass);
-        
+        $parentClassName = strtolower(self::getClassName($parentClass));
+        $className = strtolower(self::getClassName($class));
+
         do {
-            if ($parrentClassLw === $className) {
+            if ($parentClass === $className) {
                 
                 return true;
             }

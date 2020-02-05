@@ -91,6 +91,8 @@ class select2_Setup extends core_ProtoSetup
         
         // Плъгини за keylist и наследниците му
         $html .= $Plugins->forcePlugin('Select2 за тип Keylist', 'select2_Plugin', 'type_Keylist', 'private');
+        $html .= $Plugins->forcePlugin('Select2 за тип Classes', 'select2_Plugin', 'type_Classes', 'private');
+
         $html .= $Plugins->forcePlugin('Select2 за тип Accounts', 'select2_Plugin', 'acc_type_Accounts', 'private');
         
         $html .= $Plugins->forcePlugin('Select2 за тип Users', 'select2_PluginSelect', 'type_Users', 'private');
