@@ -283,7 +283,7 @@ class core_Cls
         $className = strtolower(self::getClassName($class));
 
         do {
-            if ($parentClass === $className) {
+            if ($parentClassName === $className) {
                 
                 return true;
             }
