@@ -346,7 +346,6 @@ class fileman_Get extends core_Manager
                 
                 if (core_Url::isPrivate($form->rec->url)) {
                     $form->setError('url', 'Не може да се използва частна мрежа');
-                    $domain = $pArr['domain'] ? $pArr['domain'] : $pArr['host'];
                 }
             }
         }
