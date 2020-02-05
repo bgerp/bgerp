@@ -173,7 +173,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         'contragentPlace' => 'clientData|lastDocUser|lastDoc',
         'contragentAddress' => 'clientData|lastDocUser|lastDoc',
         'accountId' => 'lastDocUser|lastDoc',
-        'template' => 'lastDocUser|lastDoc|LastDocSameCuntry',
+        'template' => 'lastDocUser|lastDoc|lastDocSameCountry',
     );
     
     
