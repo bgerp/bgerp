@@ -1255,7 +1255,12 @@ class bgerp_Notifications extends core_Manager
             $lastModifiedOnKey .= '|' . $cLastRec->id;
         }
         
-        $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Notifications') . '_' . Request::get('noticeSearch') . '_' . core_Lg::getCurrent());
+        $cntQuery = $Notifications->getQuery();
+        $cntQuery->where("#userId = {$userId} AND #hidden != 'yes'");
+        $cntQuery->show('id');
+        $nCnt = $cntQuery->count();
+        
+        $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Notifications') . '_' . Request::get('noticeSearch') . '_' . core_Lg::getCurrent() . '_' . $nCnt);
         
         list($tpl, $modifiedOnKey) = core_Cache::get('Notifications', $key);
         

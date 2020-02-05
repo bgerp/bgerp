@@ -452,12 +452,12 @@ abstract class deals_DealMaster extends deals_DealBase
             $data->query->XPR('deliveredRound', 'double', 'ROUND(COALESCE(#amountDelivered, 0), 2)');
             
             // Ако има филтър по клиентска група
-            if(isset($filter->groupId)){
+            if (isset($filter->groupId)) {
                 $foldersArr = crm_Groups::getFolderByContragentGroupId($filter->groupId);
-                if(countR($foldersArr)){
+                if (countR($foldersArr)) {
                     $data->query->in('folderId', $foldersArr);
                 } else {
-                    $data->query->where("1=2");
+                    $data->query->where('1=2');
                 }
             }
             
@@ -1049,7 +1049,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
             
-            if(isset($rec->deliveryTermId) && !Mode::isReadOnly()){
+            if (isset($rec->deliveryTermId) && !Mode::isReadOnly()) {
                 $row->deliveryTermId = ht::createLink($row->deliveryTermId, cond_DeliveryTerms::getSingleUrlArray($rec->deliveryTermId));
             }
             
@@ -1415,7 +1415,7 @@ abstract class deals_DealMaster extends deals_DealBase
             // Контиране на документа
             $this->logWrite('Избор на операция', $id);
             $contoRes = $this->conto($id);
-            if($contoRes !== false){
+            if ($contoRes !== false) {
                 $this->invoke('AfterContoQuickSale', array($rec));
             } else {
                 $rec->contoActions = null;
@@ -1682,11 +1682,11 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Опиваме се да запишем мастъра на сделката
         $rec = (object) $fields;
-        if($fields['onlineSale'] === true){
+        if ($fields['onlineSale'] === true) {
             $rec->_onlineSale = true;
         }
         
-        if(isset($fields['receiptId'])){
+        if (isset($fields['receiptId'])) {
             $rec->_receiptId = $fields['receiptId'];
         }
         
@@ -1708,12 +1708,12 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param int    $id           - ид на сделка
      * @param int    $productId    - ид на артикул
      * @param float  $packQuantity - количество продадени опаковки (ако няма опаковки е цялото количество)
-     * @param float  $price        - цена на единична бройка (ако не е подадена, определя се от политиката)
+     * @param float  $price        - цена на единична бройка в основната мярка (ако не е подадена, определя се от политиката)
      * @param int    $packagingId  - ид на опаковка (не е задължителна)
      * @param float  $discount     - отстъпка между 0(0%) и 1(100%) (не е задължителна)
      * @param float  $tolerance    - толеранс между 0(0%) и 1(100%) (не е задължителен)
      * @param string $term         - срок (не е задължителен)
-     * @param string   $notes        - забележки
+     * @param string $notes        - забележки
      *
      * @return mixed $id/FALSE     - ид на запис или FALSE
      */
@@ -1765,9 +1765,12 @@ abstract class deals_DealMaster extends deals_DealBase
             if (!isset($discount) && isset($policyInfo->discount)) {
                 $discount = $policyInfo->discount;
             }
+            
+            $price = ($price) ? $price : cat_Products::getPrimeCost($productId, null, null, null);
+            
         }
         
-        $packQuantity = cls::get('type_Double')->fromVerbal($packQuantity);
+                $packQuantity = cls::get('type_Double')->fromVerbal($packQuantity);
         
         // Подготвяме детайла
         $dRec = (object) array($Detail->masterKey => $id,
@@ -1781,7 +1784,7 @@ abstract class deals_DealMaster extends deals_DealBase
             'quantityInPack' => $quantityInPack,
             'notes' => $notes,
         );
-        
+
         // Проверяваме дали въвдения детайл е уникален
         $exRec = deals_Helper::fetchExistingDetail($Detail, $id, null, $productId, $packagingId, $price, $discount, $tolerance, $term, null, null, $notes);
         
@@ -2144,7 +2147,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if ($productId = $arr[0]->productId) {
             $pRec = cat_Products::fetch($productId, 'name,code');
             $productName = cat_Products::getVerbal($pRec, 'name');
-            $productName .= " " . (($pRec->code) ? "({$pRec->code})" : "(#Art{$pRec->id})");
+            $productName .= ' ' . (($pRec->code) ? "({$pRec->code})" : "(#Art{$pRec->id})");
             
             return $productName;
         }

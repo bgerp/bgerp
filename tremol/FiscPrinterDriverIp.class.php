@@ -924,27 +924,29 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
     {
         $resArr = array();
         
-        try {
-            $fp = self::connectToPrinter($rec);
-            if ($fp) {
-                for($depNum=0;$depNum<100;$depNum++) {
-                    $dep = $fp->ReadDepartment($depNum);
+        // @todo - временно е спряно
+        
+//         try {
+//             $fp = self::connectToPrinter($rec);
+//             if ($fp) {
+//                 for($depNum=0;$depNum<100;$depNum++) {
+//                     $dep = $fp->ReadDepartment($depNum);
                     
-                    $depNumPad = str_pad($depNum, 2, 0, STR_PAD_LEFT);
+//                     $depNumPad = str_pad($depNum, 2, 0, STR_PAD_LEFT);
                     
-                    $depName = trim($dep->DepName);
+//                     $depName = trim($dep->DepName);
                     
-                    // Да избегнем дефолтно зададените
-                    if ($depName == 'Деп ' . $depNumPad) {
-                        continue;
-                    }
+//                     // Да избегнем дефолтно зададените
+//                     if ($depName == 'Деп ' . $depNumPad) {
+//                         continue;
+//                     }
                     
-                    $resArr[$dep->DepNum] = $depName;
-                }
-            }
-        } catch (\Tremol\SException $e) {
-            self::handleTremolException($e);
-        }
+//                     $resArr[$dep->DepNum] = $depName;
+//                 }
+//             }
+//         } catch (\Tremol\SException $e) {
+//             self::handleTremolException($e);
+//         }
         
         return $resArr;
     }

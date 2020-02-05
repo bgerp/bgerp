@@ -18,6 +18,42 @@
 class sync_Map extends core_Manager
 {
     /**
+     * Кой може да добавя?
+     */
+    public $canAdd = 'no_one';
+    
+    
+    /**
+     * Кой може да редактира?
+     */
+    public $canEdit = 'debug';
+    
+    
+    /**
+     * Кой може да изтрива?
+     */
+    public $canDelete = 'debug';
+    
+    
+    /**
+     * Добавяне на плъгини
+     */
+    public $loadList = 'plg_Sorting, plg_RowTools';
+    
+    
+    /**
+     * Заглавие
+     */
+    public $title = "Съответсвия между две bgERP системи";
+    
+    
+    /**
+     * Брой записи на страница
+     */
+    public $listItemsPerPage = 50;
+    
+    
+    /**
      * Масив с информация за импортираните обекти
      */
     public static $imported = array();
@@ -27,7 +63,7 @@ class sync_Map extends core_Manager
      */
     public function description()
     {
-        $this->FLD('classId', 'class(interface=core_ManagerIntf)', 'caption=class');
+        $this->FLD('classId', 'class(interface=core_ManagerIntf)', 'caption=Клас');
         $this->FLD('remoteId', 'int', 'caption=Отдалечено id');
         $this->FLD('localId', 'int', 'caption=Локално id');
 
@@ -202,7 +238,7 @@ class sync_Map extends core_Manager
      *
      * @return int id на импортирания обект
      */
-    public static function importRec($class, $id, &$res, $controller)
+    public static function importRec($class, $id, &$res, $controller, $update = true)
     {
         //log_System::add('sync_Map', "$class::$id");
         core_App::setTimeLimit(300);
@@ -215,11 +251,7 @@ class sync_Map extends core_Manager
         static $i;
 
         if (($i++ % 1000) == 55) {
-            if($i == 0) 
-                echo "<div style='display:table-cell; width:100%'>";
-            echo "{$class} - $id -" . round(memory_get_usage()/(1024*1024)) . 'MB;' ;
-            ob_flush ();
-            flush();
+            self::logDebug("{$class}: {$id} - " . round(memory_get_usage()/(1024*1024)) . 'MB');
         }
         
         // В рамките на хита не импортираме повторно два пъти обекта
@@ -228,6 +260,9 @@ class sync_Map extends core_Manager
         }
         
         self::$imported[$class][$id] = 0;
+        if(is_object($res[$class])){
+            $res[$class] = (array)$res[$class];
+        }
         
         if (!$res[$class] || !$res[$class][$id] || !is_object($res[$class][$id])) {
             
@@ -243,9 +278,21 @@ class sync_Map extends core_Manager
             return 0;
         }
         
+        $haveRec = false;
+        $exRec = null;
+        
         // Ако в тази (приемащата) система има вече запис съответсващ на импортирания, то го извличаме
-        $exId = self::fetchField("#classId = {$classId} AND #remoteId = {$id}", 'localId', false);
-        $exRec = $mvc->fetch($exId, '*', false);
+        $exId = self::fetchField("#classId = {$classId} AND #remoteId = {$id}", 'localId');
+        if ($exId) {
+            if (!$update) {
+                self::$imported[$class][$id] = $exId;
+                
+                return $exId;
+            }
+            
+            $haveRec = true;
+            $exRec = $mvc->fetch($exId);
+        }
 
         $isMapClassRec = false;
         
@@ -326,9 +373,9 @@ class sync_Map extends core_Manager
                 if ($v = $res[$class][$id]->{$name}) {
                     if ($uf = $controller->globalUniqKeys[$kMvc]) {
                         $kMvc = cls::get($kMvc);
-                        $rec->{$name} = $kMvc->fetchField(array("#{$uf} = '[#1#]'", $rec->{$name}), 'id', false);
+                        $rec->{$name} = $kMvc->fetchField(array("#{$uf} = '[#1#]'", $rec->{$name}));
                     } else {
-                        $rec->{$name} = self::importRec($kMvc, $rec->{$name}, $res, $controller);
+                        $rec->{$name} = self::importRec($kMvc, $rec->{$name}, $res, $controller, $update);
                     }
                 }
             } elseif ($fRec->type instanceof type_Keylist) {
@@ -341,7 +388,7 @@ class sync_Map extends core_Manager
                         $kMvc = cls::get($kMvc);
                         $kArrN = array();
                         foreach ($kArr as $key) {
-                            $k = $kMvc->fetchField(array("#{$uf} = '[#1#]'", $key), 'id', false);
+                            $k = $kMvc->fetchField(array("#{$uf} = '[#1#]'", $key));
                             if ($k) {
                                 $kArrN[$k] = $k;
                             }
@@ -350,7 +397,7 @@ class sync_Map extends core_Manager
                     } else {
                         $kArrN = array();
                         foreach ($kArr as $key) {
-                            $k = self::importRec($kMvc, $key, $res, $controller);
+                            $k = self::importRec($kMvc, $key, $res, $controller, $update);
                             if ($k) {
                                 $kArrN[$k] = $k;
                             }
@@ -364,21 +411,21 @@ class sync_Map extends core_Manager
                         if ($cfType->params['mvc'] == 'core_Classes') {
                             $kMvc = cls::get($rec->{$cfName});
 
-                            $rec->{$name} = self::importRec($kMvc, $rec->{$name}, $res, $controller);
+                            $rec->{$name} = self::importRec($kMvc, $rec->{$name}, $res, $controller, $update);
                             
                             break;
                         }
                     }
                 }
             } elseif ($rec->{$name} > 0 && get_class($fRec->type) == 'type_Int' && in_array($name, array('saoParentId', 'saoRelative'))) {
-                $rec->{$name} = self::importRec($class, $rec->{$name}, $res, $controller);
+                $rec->{$name} = self::importRec($class, $rec->{$name}, $res, $controller, $update);
             }
         }
         
         // Преобразуваме _companyId към folderId
         if($rec->_companyId) {
-            $cid = self::importRec('crm_Companies', $rec->_companyId, $res, $controller);
-            $cRec = crm_Companies::fetch($cid, '*', false);
+            $cid = self::importRec('crm_Companies', $rec->_companyId, $res, $controller, $update);
+            $cRec = crm_Companies::fetch($cid);
             $rec->folderId = $cRec->folderId;
         }
  
@@ -415,7 +462,7 @@ class sync_Map extends core_Manager
         $lId = $mvc->save($exRec);
         //log_System::add('sync_Map', "Записахме {$class} {$lId}");
 
-        if (!$exRec) {
+        if (!$haveRec) {
             $mRec = (object) array('classId' => $mvc->getClassId(), 'remoteId' => $id, 'localId' => $lId);
             self::save($mRec);
         }
@@ -423,5 +470,77 @@ class sync_Map extends core_Manager
         self::$imported[$class][$id] = $lId;
 
         return $lId;
+    }
+    
+    
+    /**
+     * Какво локално ид съответства на съответното $remoteId
+     * 
+     * @param mixed $class
+     * @param int $remoteId
+     * @return int
+     */
+    public static function getLocalId($class, $remoteId)
+    {
+        $classId = cls::get($class)->getClassId();
+        
+        return self::fetchField("#classId = {$classId} AND #remoteId = {$remoteId}", 'localId');
+    }
+    
+    
+    /**
+     * Добавя нов НЕСЪЩЕСТВУВАЩ запис
+     * 
+     * @param mixed $class
+     * @param int $localId
+     * @param int $remoteId
+     * @return int
+     */
+    public static function add($class, $localId, $remoteId)
+    {
+        $classId = cls::get($class)->getClassId();
+        
+        $exLocalId = self::getLocalId($classId, $remoteId);
+        expect(!$exLocalId);
+        
+        $mRec = (object) array('classId' => $classId, 'remoteId' => $remoteId, 'localId' => $localId);
+        sync_Map::save($mRec);
+    }
+    
+    
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return bool
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->listFilter->FNC('search', 'varchar', 'caption=Търсене');
+        
+        $data->listFilter->view = 'horizontal';
+        
+        $data->listFilter->showFields = 'search';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        $data->listFilter->input('search');
+        
+        if ($search = $data->listFilter->rec->search) {
+            $search = trim($search);
+            $searchArr = explode(' ', $search);
+            foreach ($searchArr as $search) {
+                if (!is_numeric($search) && cls::load($search, true)) {
+                    $data->query->where(array("#classId = '[#1#]'", cls::get($search)->getClassId()));
+                }
+                $data->query->orWhere(array("#remoteId = '[#1#]'", $search));
+                $data->query->orWhere(array("#localId = '[#1#]'", $search));
+            }
+        }
+        
+        $data->query->orderBy('id', 'DESC');
     }
 }

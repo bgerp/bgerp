@@ -316,10 +316,14 @@ abstract class bgerp_ProtoParam extends embed_Manager
     protected static function makeNewRec($sysId, $name, $type, $options = array(), $suffix = null)
     {
         // Проверка дали типа е допустим
-        expect(in_array(strtolower($type), array('double', 'text', 'varchar', 'time', 'date', 'component', 'percent', 'int', 'delivery', 'paymentmethod', 'image', 'enum', 'set', 'file')));
-        
         // Подготовка на записа на параметъра
-        expect($Type = cls::get("cond_type_{$type}"));
+        $typeName = $type;
+        if(strpos($type, 'cond_type_') === false){
+            expect(in_array(strtolower($type), array('double', 'text', 'varchar', 'time', 'date', 'component', 'percent', 'int', 'delivery', 'paymentmethod', 'image', 'enum', 'set', 'file')));
+            $typeName = "cond_type_{$type}";
+        }
+        
+        expect($Type = cls::get($typeName));
         $nRec = new stdClass();
         $nRec->name = $name;
         $nRec->driverClass = $Type->getClassId();
@@ -329,7 +333,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
         }
         
         // Само за типовете enum и set, се искат опции
-        if ($type == 'enum' || $type == 'set') {
+        if (($Type instanceof cond_type_Enum) || ($Type instanceof cond_type_Set)) {
             $nRec->options = cond_type_abstract_Proto::options2text($options);
         }
         

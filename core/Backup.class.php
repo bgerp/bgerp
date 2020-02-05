@@ -108,7 +108,7 @@ class core_Backup extends core_Mvc
         core_SystemLock::block('Процес на архивиране на данните', 600); // 10 мин.
         $description['times']['lock'] = dt::now();
         
-        @$this->db->query('FLUSH TABLES');
+        // @$this->db->query('FLUSH TABLES');
         
         $this->db->query("LOCK TABLES {$lockTables}");
         

@@ -573,30 +573,23 @@ class drdata_Countries extends core_Manager
             $groupNameArr = explode('|', $rec->groupName);
             
             foreach ($groupNameArr as $name) {
-                $mustSave = false;
-                
                 $grRec = $saveArr[$name];
                 
                 if (!$grRec) {
-                    $grRec = $countryGroupsInst->fetch(array("#name = '[#1#]'", $name));
-                }
-                
-                if (!$grRec) {
+                    $grRecOld = $countryGroupsInst->fetch(array("#name = '[#1#]'", $name));
+                    
                     $grRec = new stdClass;
                     $grRec->name = $name;
-                    $grRec->createdOn = dt::verbal2mysql();
-                    $grRec->createdBy = core_Users::getCurrent();
-                }
-                
-                if (!keylist::isIn($fRec->id, $grRec->countries)) {
-                    $mustSave = true;
+                    $grRec->createdOn = $grRecOld->createdOn ? $grRecOld->createdOn : dt::verbal2mysql();
+                    $grRec->createdBy = isset($grRecOld->createdBy) ? $grRecOld->createdBy : core_Users::getCurrent();
+                    if ($grRecOld) {
+                        $grRec->id = $grRecOld->id;
+                    }
                 }
                 
                 $grRec->countries = keylist::addKey($grRec->countries, $fRec->id);
                 
-                if ($mustSave) {
-                    $saveArr[$name] = $grRec;
-                }
+                $saveArr[$name] = $grRec;
             }
         }
         

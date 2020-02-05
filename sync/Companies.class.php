@@ -76,8 +76,6 @@ class sync_Companies extends sync_Helper
             }
         }
         
-        cat_ListingDetails::delete("#productId = 0");
-        
         core_Users::cancelSystemUser();
         
         if (Request::get('_bp') && haveRole('admin')) {
@@ -95,7 +93,7 @@ class sync_Companies extends sync_Helper
     {
         self::requireRight('import');
         
-        ini_set('memory_limit', '6024M');
+        ini_set('memory_limit', '2048M');
         
         expect(core_Packs::isInstalled('crm'));
         
@@ -111,12 +109,16 @@ class sync_Companies extends sync_Helper
         
         Mode::set('preventNotifications', true);
         
+        $update = (Request::get('update') == 'none') ? false : true;
+        
         foreach ($resArr as $class => $objArr) {
-            self::logDebug("$class");
+            self::logDebug($class . ': ' . countR($objArr));
             foreach ($objArr as $id => $rec) {
-                sync_Map::importRec($class, $id, $resArr, $this);
+                sync_Map::importRec($class, $id, $resArr, $this, $update);
             }
         }
+        
+        cat_ListingDetails::delete("#productId = 0");
         
         crm_Groups::updateGroupsCnt('crm_Persons', 'personsCnt');
     }

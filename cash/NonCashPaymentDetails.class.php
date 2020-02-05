@@ -122,6 +122,7 @@ class cash_NonCashPaymentDetails extends core_Manager
         
         // Ако е избрано безналично плащане към активно ПКО
         $pkoRec = cash_Pko::fetch($rec->documentId);
+        
         if ($pkoRec->state == 'active' && $rec->paymentId != -1) {
             $cashFolderId = cash_Cases::fetchField($pkoRec->peroCase, "folderId");
            
@@ -130,7 +131,7 @@ class cash_NonCashPaymentDetails extends core_Manager
                 $currencyCode = cond_Payments::fetchField($rec->paymentId, 'currencyCode');
                 $currencyId = !empty($currencyCode) ? currency_Currencies::getIdByCode($currencyCode) : acc_Periods::getBaseCurrencyId(); 
                 
-                $url = array('cash_InternalMoneyTransfer', 'add', 'folderId' => $cashFolderId, 'operationSysId' => 'nonecash2case', 'amount' => $rec->amount, 'creditCase' => $pkoRec->peroCase, 'paymentId' => $rec->paymentId, 'currencyId' => $currencyId, 'ret_url' => true);
+                $url = array('cash_InternalMoneyTransfer', 'add', 'folderId' => $cashFolderId, 'operationSysId' => 'nonecash2case', 'amount' => $rec->amount, 'creditCase' => $pkoRec->peroCase, 'paymentId' => $rec->paymentId, 'currencyId' => $currencyId, 'sourceId' => $pkoRec->containerId, 'foreignId' => $pkoRec->containerId, 'ret_url' => true);
                 $toolbar = new core_RowToolbar();
                 $toolbar->addLink('Инкасиране(Каса)', $url, "ef_icon = img/16/safe-icon.png,title=Създаване на вътрешно касов трансфер  за инкасиране на безналично плащане по каса");
                 

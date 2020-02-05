@@ -239,10 +239,10 @@ class sales_Sales extends deals_DealMaster
         'customer2bankAdvance' => array('title' => 'Авансово плащане от Клиент', 'debit' => '503', 'credit' => '412'),
         'customer2case' => array('title' => 'Плащане от Клиент', 'debit' => '501', 'credit' => '411'),
         'customer2bank' => array('title' => 'Плащане от Клиент', 'debit' => '503', 'credit' => '411'),
-        'case2customer' => array('title' => 'Прихващане на плащане', 'debit' => '411', 'credit' => '501', 'reverse' => true),
-        'bank2customer' => array('title' => 'Прихващане на плащане', 'debit' => '411', 'credit' => '503', 'reverse' => true),
         'case2customerRet' => array('title' => 'Връщане към Клиент', 'debit' => '411', 'credit' => '501', 'reverse' => true),
         'bank2customerRet' => array('title' => 'Връщане към Клиент', 'debit' => '411', 'credit' => '503', 'reverse' => true),
+        'case2customer' => array('title' => 'Прихващане на плащане', 'debit' => '411', 'credit' => '501', 'reverse' => true),
+        'bank2customer' => array('title' => 'Прихващане на плащане', 'debit' => '411', 'credit' => '503', 'reverse' => true),
         'caseAdvance2customer' => array('title' => 'Прихванат аванс на Клиент', 'debit' => '412', 'credit' => '501', 'reverse' => true),
         'bankAdvance2customer' => array('title' => 'Прихванат аванс на Клиент', 'debit' => '412', 'credit' => '503', 'reverse' => true),
         'caseAdvance2customerRet' => array('title' => 'Върнат аванс на Клиент', 'debit' => '412', 'credit' => '501', 'reverse' => true),
@@ -1562,7 +1562,10 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_AfterActivation($mvc, &$rec)
     {
-        $groupId = crm_Groups::force('Клиенти » Продажби');
+        $clientGroupId = crm_Groups::getIdFromSysId('customers');
+        $groupRec = (object)array('name' => 'Продажби', 'sysId' => 'saleClients', 'parentId' => $clientGroupId);
+        $groupId = crm_Groups::forceGroup($groupRec);
+        
         cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, $groupId, false);
     }
     

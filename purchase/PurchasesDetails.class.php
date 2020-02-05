@@ -71,6 +71,13 @@ class purchase_PurchasesDetails extends deals_DealDetail
      */
     public $canAdd = 'user';
     
+    /**
+     * Кой може да го импортира артикули?
+     *
+     * @var string|array
+     */
+    public $canImport = 'user';
+    
     
     /**
      * Кой има право да променя?
