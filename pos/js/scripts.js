@@ -84,23 +84,6 @@ function posActions() {
 		addResultByDataUrl(this);
 	});
 	
-	
-	// Използване на числата за въвеждане на суми за плащания
-	$(document.body).on('click', ".revertBtn", function(e){
-		var url = $(this).attr("data-url");
-		if(!url) return;
-		
-		var searchVal = $("input[name=paysum]").val();
-		var data = {search:searchVal};
-		
-		resObj = new Object();
-		resObj['url'] = url;
-		
-		getEfae().process(resObj, data);
-		$("input[name=paysum]").val("");
-	});
-
-	
 	/**
 	 * При спиране на писането в полето за търсене
 	 * @param e
@@ -182,7 +165,6 @@ function posActions() {
 		resObj['url'] = url;
 		
 		getEfae().process(resObj, data);
-		scrollRecieptBottom();
 	});
 	
 	// При клик на бутон изтрива запис от бележката
@@ -529,7 +511,7 @@ function posActions() {
 		openProducts();
 	});
 
-	$("body").setShortcutKey( CONTROL , Q ,function() {
+	$("body").setShortcutKey( CONTROL , S ,function() {
 		openQuantity();
 	});
 
