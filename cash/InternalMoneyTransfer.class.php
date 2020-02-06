@@ -303,10 +303,12 @@ class cash_InternalMoneyTransfer extends core_Master
         switch ($operationSysId) {
             case 'case2case':
                 $form->setField('debitCase', 'input');
+                $form->setDefault('debitCase', cash_Cases::getCurrent());
                 break;
             case 'nonecash2case':
                 $form->setField('paymentId', 'input');
                 $form->setField('debitCase', 'input');
+                $form->setDefault('debitCase', cash_Cases::getCurrent());
                 break;
             case 'case2bank':
                 $form->setField('debitBank', 'input');
@@ -324,13 +326,13 @@ class cash_InternalMoneyTransfer extends core_Master
                 $form->setField('currencyId', 'input=hidden');
                 $form->setField('debitCase', 'input');
                 $form->setField('paymentDebitId', 'input');
+                $form->setDefault('debitCase', cash_Cases::getCurrent());
                 
                 break;
         }
         $form->setReadOnly('operationSysId');
         $today = dt::verbal2mysql();
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
-        $form->setDefault('creditCase', cash_Cases::getCurrent());
     }
     
     
