@@ -165,6 +165,12 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         //Масив с id-та на ПКО-та по които има избрани безналични методи на плащане
         $pkoWitnNonCashPaymentsArr = arr::extractValuesFromArray($nonCashQuery->fetchAll(), 'documentId');
         
+        while ($nonRec = $nonCashQuery->fetch()){
+            
+            $pkoNonCashAmount[$nonRec->documentId] = $nonRec->amount;
+        }
+        
+        
         
         //ПКО-та по които има избрани безналични методи на плащане
         $pkoQuery = cash_Pko::getQuery();
@@ -180,7 +186,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         $iQuery = cash_InternalMoneyTransfer::getQuery();
         
         $iQuery->in('sourceId',$pkoDocsArr);
-        
+       
         while  ($iRec = $iQuery->fetch()){
             
     
@@ -203,7 +209,6 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
        
         while ($pkoRec = $pkoQuery->fetch()){
             
-           
             $id = $pkoRec->id;
             
             // добавяме в масива
@@ -211,8 +216,15 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                 $recs[$id] = (object) array(
                     
                     'pkoId' => $pkoRec->id,
-                    'pkoAmount' => $pkoRec->amount,
+                    'folderId' => $pkoRec->folderId,
+                    'creditCase' => $pkoRec->peroCase,
+                    'paymentId' => $pkoRec->paymentId,
+                    'currencyId' => $pkoRec->currencyId,
+                    'containerId' => $pkoRec->containerId,
+                    
+                    'pkoAmount' => $pkoNonCashAmount[$pkoRec->id],
                     'inTransferMoney' => $intenalMoneyTrArr[$pkoRec->containerId],
+                    
                 );
             }
         }
@@ -285,7 +297,8 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                     $color = $inAmount == 0 ? 'blue': 'black' ;
                     
                     $row->amount .= "<span style='color: {$color}'>".core_Type::getByName('double(decimals=2)')->toVerbal($inAmount)."</br>";
-                    $sum += $val->amount;
+                    
+                    $sum += $inAmount;
                 
             }
             
@@ -295,13 +308,15 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         
         $color = $dRec->pkoAmount - $sum < 0 ? 'red': 'black' ;
         
-        $row->rest = "<span style='color: {$color}'>".core_Type::getByName('double(decimals=2)')->toVerbal($dRec->pkoAmount - $sum);
+        $rest = $dRec->pkoAmount - $sum;
+        
+        $row->rest = "<span style='color: {$color}'>".core_Type::getByName('double(decimals=2)')->toVerbal($rest);
         
         if (isset($dRec->pkoId)) {
             $row->pko = cash_Pko::getLinkToSingle($dRec->pkoId);
-            
-            if ($dRec->pkoAmount - $sum > 0){
-                $url = array('cash_InternalMoneyTransfer', 'add', 'folderId' => $cashFolderId, 'operationSysId' => 'nonecash2case', 'amount' => 333, 'creditCase' => $pkoRec->peroCase, 'paymentId' => $rec->paymentId, 'currencyId' => $currencyId, 'sourceId' => $pkoRec->containerId, 'foreignId' => $pkoRec->containerId, 'ret_url' => true);
+          
+            if ($rest > 0){
+                $url = array('cash_InternalMoneyTransfer', 'add', 'operationSysId' => 'nonecash2case', 'amount' => $rest, 'creditCase' => $dRec->creditCase, 'paymentId' => $dRec->paymentId, 'currencyId' => $dRec->currencyId, 'sourceId' => $dRec->containerId, 'foreignId' => $dRec->containerId, 'ret_url' => true);
                 $toolbar = new core_RowToolbar();
                 $toolbar->addLink('Инкасиране(Каса)', $url, "ef_icon = img/16/safe-icon.png,title=Създаване на вътрешно касов трансфер  за инкасиране на безналично плащане по каса");
                 
@@ -352,26 +367,5 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
     }
-    
-    
-    /**
-     * Връзка между МТК и Продпром кодове
-     */
-    public static function getProdPromCodes($mtk)
-    {
-        $csv = '../extrapack/fsd/csv/MtcToProdPromCode.csv';
-        
-        $temparr = file($csv);
-        
-        foreach ($temparr as $key => $val) {
-            if ($key > 0) {
-                list($mtk, $prodProm) = explode(',', $val);
-                $codesArr[$mtk] = $prodProm;
-            }
-        }
-        
-        $prodPromCode = $codesArr[$mtk];
-        
-        return $prodPromCode;
-    }
+
 }
