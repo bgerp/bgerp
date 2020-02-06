@@ -290,15 +290,23 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         if(is_array($dRec->inTransferMoney)){
             $sum = 0;
             foreach ($dRec->inTransferMoney as $val){
-               
-                    $row->transfer .= cash_InternalMoneyTransfer::getLinkToSingle($val->id)."</br>";
+                $state = $val->state;
+                
                     
                     $inAmount = ($val->state == 'pending') ? 0 : $val->amount;
                     $color = $inAmount == 0 ? 'blue': 'black' ;
-                    
-                    $row->amount .= "<span style='color: {$color}'>".core_Type::getByName('double(decimals=2)')->toVerbal($inAmount)."</br>";
-                    
                     $sum += $inAmount;
+                    if ($state == 'pending') {
+                        
+                    
+                    $row->transfer .= "<div ><span class= 'state-{$state} document-handler' >".cash_InternalMoneyTransfer::getLinkToSingle($val->id)."</br>";
+                    $row->amount .= "<span style='color: {$color}'>".core_Type::getByName('double(decimals=2)')->toVerbal($inAmount)."</br>";
+                    }else{
+                        $row->transfer .= cash_InternalMoneyTransfer::getLinkToSingle($val->id)."</br>";
+                        $row->amount .= core_Type::getByName('double(decimals=2)')->toVerbal($inAmount)."</br>";
+                        
+                    }
+                    
                 
             }
             
