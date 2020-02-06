@@ -107,10 +107,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         $form->setField('to', 'placeholder=' . dt::addDays(0, null, false));
         $form->setField('from', 'placeholder=' . '2020-02-01');
         
-        
-        
     }
-    
     
     
     /**
@@ -126,7 +123,6 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         $rec = $form->rec;
         if ($form->isSubmitted()) {
             
-            
             // Проверка на периоди
             $startDate = self::START_DATE;
             
@@ -137,8 +133,6 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
             if (isset($form->rec->from, $form->rec->to) && ($form->rec->from > $form->rec->to)) {
                 $form->setError('from,to', 'Началната дата на периода не може да бъде по-голяма от крайната.');
             }
-            
-            
         }
     }
     
@@ -158,19 +152,15 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         setIfNot($rec->from, self::START_DATE);
         setIfNot($rec->to, dt::addDays(0, null, false));
         
-        
-        
         $nonCashQuery = cash_NonCashPaymentDetails::getQuery();
         
         //Масив с id-та на ПКО-та по които има избрани безналични методи на плащане
         $pkoWitnNonCashPaymentsArr = arr::extractValuesFromArray($nonCashQuery->fetchAll(), 'documentId');
-        
+        $pkoNonCashAmount = array();
         while ($nonRec = $nonCashQuery->fetch()){
             
             $pkoNonCashAmount[$nonRec->documentId] = $nonRec->amount;
         }
-        
-        
         
         //ПКО-та по които има избрани безналични методи на плащане
         $pkoQuery = cash_Pko::getQuery();
@@ -186,11 +176,9 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         $iQuery = cash_InternalMoneyTransfer::getQuery();
         
         $iQuery->in('sourceId',$pkoDocsArr);
-       
+        $intenalMoneyTrArr = array();
         while  ($iRec = $iQuery->fetch()){
             
-    
-          
             $intenalMoneyTrArr[$iRec->sourceId][$iRec->id] = (object) array(
                     
                     'id' => $iRec->id,
@@ -200,10 +188,6 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                     'state' => $iRec->state,
                     
                     );
-            
-            
-            
-            
             
         }
        
