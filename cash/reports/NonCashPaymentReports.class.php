@@ -361,8 +361,26 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
+        $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
+								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
+							    <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
+                                <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
+                               
+                                </fieldset><!--ET_END BLOCK-->"));
+        
+      
+        if (isset($data->rec->from)) {
+            $fieldTpl->append('<b>' . $data->rec->from . '</b>', 'from');
+        }
+        
+        if (isset($data->rec->to)) {
+            $fieldTpl->append('<b>' . $data->rec->to . '</b>', 'to');
+        }
+        
+        
+        $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
-    
+   
     
     /**
      * След подготовка на реда за експорт
