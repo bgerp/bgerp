@@ -370,6 +370,11 @@ class pos_Terminal extends peripheral_Terminal
     public function act_Help()
     {
         $tpl = getTplFromFile('pos/tpl/terminal/Help.shtml');
+
+        for($i = 1; $i<=12; $i++) {
+            $tpl->replace( ht::createElement('img', array('src' => sbf("pos/img/btn{$i}.png", ''))), "img{$i}");
+        }
+
         
         // Ще се реплейсва и пулта
         $res = array();
