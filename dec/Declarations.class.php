@@ -122,8 +122,8 @@ class dec_Declarations extends core_Master
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-        'statements' => 'lastDocUser|lastDoc|LastDocSameCuntry',
-        'materials' => 'lastDocUser|lastDoc|LastDocSameCuntry',
+        'statements' => 'lastDocUser|lastDoc|lastDocSameCountry',
+        'materials' => 'lastDocUser|lastDoc|lastDocSameCountry',
     );
     
     

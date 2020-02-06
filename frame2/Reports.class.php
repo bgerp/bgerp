@@ -426,16 +426,47 @@ class frame2_Reports extends embed_Manager
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $title = self::getVerbal($rec, 'title');
+        $title = '???';
+        if($Driver = static::getDriver($rec)){
+            $title = $Driver->getTitle($rec);
+        }
         
         return "{$title} №{$rec->id}";
     }
     
     
     /**
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+     */
+    public function getDocumentRow($id)
+    {
+        $rec = $this->fetch($id);
+        
+        $row = new stdClass();
+        $row->title = $this->getRecTitle($rec);
+        
+        $Driver = $this->getDriver($rec);
+        if (is_object($Driver)) {
+            $driverTitle = $Driver->getTitle($rec);
+            
+            if(trim($driverTitle) != trim($rec->title)){
+                $row->title = $driverTitle . " №{$rec->id}";
+                $row->subTitle = $rec->title;
+            }
+        }
+        
+        $row->authorId = $rec->createdBy;
+        $row->author = $this->getVerbal($rec, 'createdBy');
+        $row->state = $rec->state;
+        $row->recTitle = $driverTitle;
+        
+        return $row;
+    }
+    
+    /**
      * След като е готово вербалното представяне
      */
-    protected static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
+    protected static function on_AfterGetVerbal1($mvc, &$num, $rec, $part)
     {
         // Искаме състоянието на оттеглените чернови да се казва 'Анулиран'
         if ($part == 'title') {
@@ -450,23 +481,6 @@ class frame2_Reports extends embed_Manager
         }
     }
     
-    
-    /**
-     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-     */
-    public function getDocumentRow($id)
-    {
-        $rec = $this->fetch($id);
-        
-        $row = new stdClass();
-        $row->title = $this->getRecTitle($rec);
-        $row->authorId = $rec->createdBy;
-        $row->author = $this->getVerbal($rec, 'createdBy');
-        $row->state = $rec->state;
-        $row->recTitle = $row->title;
-        
-        return $row;
-    }
     
     
     /**
@@ -792,7 +806,16 @@ class frame2_Reports extends embed_Manager
     protected static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
         $resArr = arr::make($resArr);
-        $resArr['title'] = array('name' => tr('Заглавие'), 'val' => $row->title);
+        
+        $titleObj = new core_ET("{$row->title}<!--ET_BEGIN driverTitle--><br>[#driverTitle#]<!--ET_END driverTitle-->");
+        if($Driver = $mvc->getDriver($rec)){
+            $driverTitle = $Driver->getTitle($rec);
+            if(trim($driverTitle) != trim($row->title)){
+                $titleObj->replace($driverTitle, 'driverTitle');
+            }
+        }
+        
+        $resArr['title'] = array('name' => tr('Заглавие'), 'val' => $titleObj);
         $updateHeaderName = tr('Актуализиране');
         
         if ($rec->state == 'closed') {

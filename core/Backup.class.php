@@ -603,34 +603,40 @@ class core_Backup extends core_Mvc
         $handle = fopen($dest, 'r');
         if ($handle) {
             do {
-                if(!isset($query)) {
-                    $query = '';
-                }
-                $line = fgets($handle);
+                $line = rtrim(fgets($handle), "\n\r");
                 if (!$cols) {
                     $cols = $line;
                     continue;
                 }
-                if ($line === false || (strlen($query) + strlen($line) > $maxMysqlQueryLength)) {
+                if(!isset($query)) {
+                    $query = array();
+                    $totalLen = 0;
+                }
+                $totalLen += strlen($line);
+                if ($line === false || ($totalLen > $maxMysqlQueryLength)) {
                     try {
-                        if(!strlen($query) && strlen($line)) {
-                            $query = $line;
+                        if(!count($query) && strlen($line)) {
+                            $query[] = $line;
                         }
-                       
-                        //@file_put_contents("C:\\xampp\\htdocs\\ef_root\\uploads\\bgerp\\backup_work\query.log", $query);
+
+                        //@
                         $link = $db->connect();
-                        $link->query("INSERT INTO `{$table}` ({$cols}) VALUES " . $query);
+                        $queryStr = implode("),\n(", $query);
+                        $link->query($d = "INSERT INTO `{$table}` ({$cols}) VALUES \n ({$queryStr})");
+                        file_put_contents("C:\\xampp\\htdocs\\ef_root\\uploads\\bgerp\\backup_work\query.log", $d);
                         unset($query);
-                        gc_collect_cycles();
+                        continue;
                     } catch (Exception $e) {
-                        
+
                         fclose($handle);
-                        $res = "err: Грешка при изпълняване на `" . substr($query, 0, 1000) ."`";
+                        $res = "err: Грешка при изпълняване на `INSERT INTO `{$table}` ({$cols}) VALUES  (" . implode(") (", array_slice($query, 0, 3)) .")`";
 
                         return $res;
                     }
                 }
-                $query .= ($query ? ",\n" : "\n") . "({$line})";
+               
+                $query[] = $line;
+                
             } while ($line !== false);
             fclose($handle);
             $res = 'msg: Импортиране на ' . $table;
@@ -638,7 +644,9 @@ class core_Backup extends core_Mvc
             // Не може да се отвори файла
             $res = "err: Не може да се отвори файла `{$dest}`";
         }
-        
+
+        gc_collect_cycles();
+
         return $res;
     }
     

@@ -55,7 +55,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * Стратегии за дефолт стойностти
      */
-    public static $defaultStrategies = array('template' => 'lastDocUser|lastDoc|LastDocSameCuntry');
+    public static $defaultStrategies = array('template' => 'lastDocUser|lastDoc|lastDocSameCountry');
     
     
     /**

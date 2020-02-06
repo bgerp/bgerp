@@ -113,7 +113,7 @@ class sync_ProductQuotes extends core_BaseClass
         // Разкриптиране на данните за импорт
         $data = base64_decode($data);
         $data = gzuncompress($data);
-        $data = unserialize($data);
+        $data = unserialize($data, array('allowed_classes' => array('stdClass')));
         $data = (object) $data;
         $data->exportUrl = $exportDomain;
         
