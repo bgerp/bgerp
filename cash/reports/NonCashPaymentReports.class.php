@@ -162,197 +162,59 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         
         $nonCashQuery = cash_NonCashPaymentDetails::getQuery();
         
-         
-        
-        bp($pkoWitnNonCashArr);
-        
+        //Масив с id-та на ПКО-та по които има избрани безналични методи на плащане
+        $pkoWitnNonCashPaymentsArr = arr::extractValuesFromArray($nonCashQuery->fetchAll(), 'documentId');
         
         
-        bp(cash_NonCashPaymentDetails::getQuery()->fetchAll(),$rec);
+        //ПКО-та по които има избрани безналични методи на плащане
+        $pkoQuery = cash_Pko::getQuery();
+        $pkoQuery->where("#state != 'rejected' AND #state != 'draft'"); 
+        $pkoQuery->in('id',$pkoWitnNonCashPaymentsArr);
         
-        $bgId = drdata_Countries::getIdByName('България');
+        //Филтър по период(по подразбиране началната дата е най-старата на която има запис за полето sourceId)
+        $pkoQuery->where(array("#valior>= '[#1#]' AND #valior <= '[#2#]'",$rec->from. ' 00:00:01',$rec->to . ' 23:59:59'));
         
-        if ($rec->type == 'long') {
+        //Масив с containerId-та на ПКО-та по които има избрани безналични методи на плащане
+        $pkoDocsArr = arr::extractValuesFromArray($pkoQuery->fetchAll(), 'containerId');
+       
+        $iQuery = cash_InternalMoneyTransfer::getQuery();
+        
+        $iQuery->in('sourceId',$pkoDocsArr);
+        
+        while  ($iRec = $iQuery->fetch()){
             
-            $codeKey = $rec->code == 'mtk' ? 'mtk' : 'prodPromCode';
-            $this->groupByField = $codeKey;
-        }
-        
-        //Id на параметъра accProd
-        $accProdParamId = cat_Params::force('accProd', 'accProd', 'varchar', null, '');
-        
-        $stateArr = array('active','closed');
-        
-        $query = sales_InvoiceDetails::getQuery();
-        
-        $query->EXT('state', 'sales_Invoices', 'externalName=state,externalKey=invoiceId');
-        $query->EXT('threadId', 'sales_Invoices', 'externalName=threadId,externalKey=invoiceId');
-        $query->EXT('date', 'sales_Invoices', 'externalName=date,externalKey=invoiceId');
-        $query->EXT('contragentCountryId', 'sales_Invoices', 'externalName=contragentCountryId,externalKey=invoiceId');
-        
-        $query->in('state', $stateArr);
-        
-        $query->where(array("#date >= '[#1#]'", $rec->from . ' 00:00:00'));
-        
-        $query->where(array("#date <= '[#1#]'", $rec->to . ' 23:59:59'));
-        
-        //Масив с всички фактури през периода
-        $invProds = array();
-        while ($invDetRec = $query->fetch()) {
-            $amountBg = $weightBg = $weight = 0;
-            
-            $id = $invDetRec->productId;
-            
-            $amount = $invDetRec->amount;
-            
-            $keyDebug = $invDetRec->invoiceId.'|'.$invDetRec->productId.'|'.$invDetRec->id;
-            
-            $prodTransportWeight = cat_Products::getParams($invDetRec->productId, 'transportWeight');
-            $prodTransportWeightDebug[$keyDebug] = $prodTransportWeight;
-            
-            $prodWeight = (cat_Products::getParams($invDetRec->productId, 'weight')) / 1000;
-            $prodWeightDebug[$keyDebug] = $prodWeight;
-            
-            $prodWeight = $prodWeight ? $prodWeight  : $prodTransportWeight;
-            
-            $weight = $prodWeight ? $invDetRec->quantity * $prodWeight : 0;
-            
-            $amountBg = $weightBg = 0;
-            if ($invDetRec->contragentCountryId == $bgId) {
-                $amountBg = $invDetRec->amount;
-                $weightBg = $weight;
-            }
-            
-            list($a, $accProd) = explode('.', cat_Products::getParams($id, $accProdParamId));
-            
-            $accProd = trim($accProd);
-            
-            // добавя в масива
-            if (!array_key_exists($id, $invProds)) {
-                $invProds[$id] = (object) array(
+    
+          
+            $intenalMoneyTrArr[$iRec->sourceId][$iRec->id] = (object) array(
                     
-                    'invoiceId' => $invDetRec->invoiceId,
-                    'productId' => $invDetRec->productId,
-                    'data' => $invDetRec->date,
-                    'accProd' => $accProd,
-                    'amount' => $amount,
-                    'weight' => $weight,
-                    'amountBg' => $amountBg,
-                    'weightBg' => $weightBg,
-                    'detRecWeightDebug' => $detRecWeightDebug,
-                    'prodTransportWeightDebug' => $prodTransportWeightDebug,
-                    'prodWeightDebug' => $prodWeightDebug,
-                    'prodWeightkgDebug' => $prodWeightkgDebug,
+                    'id' => $iRec->id,
+                    'pkoContainerId' => $iRec->sourceId,
                     
-                );
-            } else {
-                $obj = &$invProds[$id];
-                $obj->weight += $weight;
-                $obj->amount += $amount;
-                $obj->weightBg += $weightBg;
-                $obj->amount += $amountBg;
-            }
-        }
-        
-        
-        $fRecs = array();
-        $fQuery = fsd_InvoiceDef::getQuery();
-        
-        while ($fRec = $fQuery->fetch()) {
-            $idf = $fRec->sysId;
-            
-            $name = $fRec->name;
-            
-            $mtk = $fRec->mtk;
-            
-            // Масив записи от fsd_InvoiceDef : accProd=>MTK
-            if (!in_array($name, $fRecs)) {
-                $fRecs[$name] = $mtk;
-            }
-        }
-        
-        
-        foreach ($invProds as $val) {
-            if (in_array($val->accProd, array_keys($fRecs))) {
-                $id = $val->productId;
-                
-                
-                if (!array_key_exists($id, $recs)) {
-                    $recs[$id] = (object) array(
-                        
-                        'mtk' => $fRecs[$val->accProd],
-                        'prodPromCode' => self::getProdPromCodes($fRecs[$val->accProd]),
-                        'invoiceId' => $val->invoiceId,
-                        'productId' => $val->productId,
-                        'data' => $val->date,
-                        'accProd' => $val->accProd,
-                        
-                        
-                        'amount' => $val->amount,
-                        'weight' => $val->weight,
-                        'amountBg' => $val->amountBg,
-                        'weightBg' => $val->weightBg,
-                        
-                        
-                        'detRecWeightDebug' => $val->detRecWeightDebug,
-                        'prodTransportWeightDebug' => $val->prodTransportWeightDebug,
-                        'prodWeightDebug' => $val->prodWeightDebug,
-                        'prodWeightkgDebug' => $val->prodWeightkgDebug,
-                        
-                        'groupWeight' => '',
-                        'groupAmount' => '',
-                        
+                    'amount' => $iRec->amount,
+                    'state' => $iRec->state,
+                    
                     );
-                } else {
-                    $obj = &$recs[$id];
-                    $obj->weight += $val->weight;
-                    $obj->amount += $val->amount;
-                    $obj->weightBg += $val->weightBg;
-                    $obj->amount += $val->amountBg;
-                }
-            }
-        }
-        
-        
-        $groupWeightAndAmount = array();
-        
-        $codeKey = $rec->code == 'mtk' ? 'mtk' : 'prodprom';
-        
-        foreach ($recs as $v) {
-            $groupWeight[$v->$codeKey] += $v->weight;
-            $groupAmount[$v->$codeKey] += $v->amount;
             
-            $id = $v->$codeKey;
-            if (!in_array($id, array_keys($groupWeightAndAmount))) {
-                $groupWeightAndAmount[$id] = (object) array(
-                    'mtk' => $v->mtk,
-                    'prodPromCode' => $v->prodPromCode,
-                    'groupWeight' => $v->weight,
-                    'groupAmount' => $v->amount,
-                    'groupWeightIn' => $v->weightBg,
-                    'groupAmountIn' => $v->amountBg,
+            
+            
+            
+            
+        }
+       
+        while ($pkoRec = $pkoQuery->fetch()){
+            
+           
+            $id = $pkoRec->id;
+            
+            // добавяме в масива
+            if (! array_key_exists($id, $recs)) {
+                $recs[$id] = (object) array(
                     
+                    'pkoId' => $pkoRec->id,
+                    'pkoAmount' => $pkoRec->amount,
+                    'inTransferMoney' => $intenalMoneyTrArr[$pkoRec->containerId],
                 );
-            } else {
-                $obj = &$groupWeightAndAmount[$id];
-                $obj->groupWeight += $v->weight;
-                $obj->groupAmount += $v->amount;
-                $obj->groupWeightIn += $v->weightBg;
-                $obj->groupAmountIn += $v->amountBg;
             }
-        }
-        
-        if ($rec->type == 'short') {
-            
-            $recs = $groupWeightAndAmount;
-            
-            return $recs;
-        }
-        
-        foreach ($recs as $key => $val) {
-            $codeKey = $rec->code == 'mtk' ? 'mtk' : 'prodprom';
-            $val->groupWeight = $groupWeight[$val->$codeKey];
-            $val->groupAmount = $groupAmount[$val->$codeKey];
         }
         
         return $recs;
@@ -370,39 +232,19 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
-        
-        if ($rec->type == 'short') {
+     
+           
+            $fld->FLD('pko', 'varchar', 'caption=ПКО->Документ');
+            $fld->FLD('pkoAmount', 'double(smartRound,decimals=2)', 'caption=ПКО->Сума');
+            $fld->FLD('rest', 'double(smartRound,decimals=2)', 'caption=ПКО->Остатък');
+            $fld->FLD('transfer', 'varchar', 'caption=Трансфер->Документ');
+            $fld->FLD('amount', 'double(smartRound,decimals=2)', 'caption=Трансфер->Сума');
             
-            $codeName = $rec->code == 'mtk' ? 'МТК' : 'Продпром код';
-            if ($rec->code == 'mtk'){
-                $fld->FLD('mtk', 'int', "caption=${codeName},smartCenter");
-            }
-            
-            if ($rec->code != 'mtk'){
-                $fld->FLD('prodPromCode', 'int', "caption=${codeName},smartCenter");
-            }
-            $fld->FLD('groupWeight', 'double(smartRound,decimals=4)', 'caption=Продажби->Общо->Тегло');
-            $fld->FLD('groupAmount', 'double(smartRound,decimals=4)', 'caption=Продажби->Общо->Стойност');
-            $fld->FLD('groupPrice', 'double(smartRound,decimals=4)', 'caption=Продажби->Общо->ср.цена');
-            $fld->FLD('groupWeightIn', 'double(smartRound,decimals=4)', 'caption=Продажби->В т.ч. вътр.пазар->Тегло');
-            $fld->FLD('groupAmountIn', 'double(smartRound,decimals=4)', 'caption=Продажби->В т.ч. вътр.пазар->Стойност');
-            $fld->FLD('groupPriceIn', 'double(smartRound,decimals=4)', 'caption=Продажби->В т.ч. вътр.пазар->ср.цена');
-            
+           
             return $fld;
-        }
-        
-        $fld->FLD('weight', 'double(smartRound,decimals=4)', 'caption=Тегло,tdClass=centered');
-        $fld->FLD('amount', 'double(smartRound,decimals=4)', 'caption=Стойност');
-        $fld->FLD('accProd', 'varchar', 'caption=accProd');
         
         
-        if (haveRole('debug')) {
-            $fld->FLD('product', 'varchar', 'caption=Артикул');
-            $fld->FLD('invoice', 'varchar', 'caption=Фактура');
-            $fld->FLD('weightDebug', 'varchar', 'caption=Тегла');
-        }
-        
-        return $fld;
+       
     }
     
     
@@ -424,121 +266,51 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         $Double->params['decimals'] = 2;
         
         $row = new stdClass();
+  
         
-        if (isset($dRec->accProd)) {
-            foreach (explode('|', $dRec->accProd) as $val) {
-                $row->accProd .= $val.'</br>';
-            }
+        
+        if (isset($dRec->pkoAmount)) {
+            $row->pkoAmount = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->pkoAmount);
         }
         
-        if (isset($dRec->mtk)) {
-            if ($rec->type == 'long') {
-                $codeKey = $rec->code == 'mtk' ? 'mtk' : 'prodPromCode';
-                $codeName = $rec->code == 'mtk' ? 'МТК:' : 'Продпром код:';
-                
-                $row->mtk = $codeName.$dRec->$codeKey  .' »  '.core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupWeight).' kg'
-                    .' »  '.core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupAmount).' лв.';
+      
+        
+        if(is_array($dRec->inTransferMoney)){
+            $sum = 0;
+            foreach ($dRec->inTransferMoney as $val){
+               
+                    $row->transfer .= cash_InternalMoneyTransfer::getLinkToSingle($val->id)."</br>";
                     
-                    $row->prodPromCode = $codeName.$dRec->$codeKey  .' »  '.core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupWeight).' kg'
-                        .' »  '.core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupAmount).' лв.';
-            } else {
-                $codeKey = $rec->code == 'mtk' ? 'mtk' : 'prodPromCode';
-                $row->mtk = trim($dRec->$codeKey);
-                $row->prodPromCode = trim($dRec->$codeKey);
+                    $inAmount = ($val->state == 'pending') ? 0 : $val->amount;
+                    $color = $inAmount == 0 ? 'blue': 'black' ;
+                    
+                    $row->amount .= "<span style='color: {$color}'>".core_Type::getByName('double(decimals=2)')->toVerbal($inAmount)."</br>";
+                    $sum += $val->amount;
+                
+            }
+            
+            
+            
+        }
+        
+        $color = $dRec->pkoAmount - $sum < 0 ? 'red': 'black' ;
+        
+        $row->rest = "<span style='color: {$color}'>".core_Type::getByName('double(decimals=2)')->toVerbal($dRec->pkoAmount - $sum);
+        
+        if (isset($dRec->pkoId)) {
+            $row->pko = cash_Pko::getLinkToSingle($dRec->pkoId);
+            
+            if ($dRec->pkoAmount - $sum > 0){
+                $url = array('cash_InternalMoneyTransfer', 'add', 'folderId' => $cashFolderId, 'operationSysId' => 'nonecash2case', 'amount' => 333, 'creditCase' => $pkoRec->peroCase, 'paymentId' => $rec->paymentId, 'currencyId' => $currencyId, 'sourceId' => $pkoRec->containerId, 'foreignId' => $pkoRec->containerId, 'ret_url' => true);
+                $toolbar = new core_RowToolbar();
+                $toolbar->addLink('Инкасиране(Каса)', $url, "ef_icon = img/16/safe-icon.png,title=Създаване на вътрешно касов трансфер  за инкасиране на безналично плащане по каса");
+                
+                $url['operationSysId'] = 'nonecash2bank';
+                $toolbar->addLink('Инкасиране(Банка)', $url, "ef_icon = img/16/own-bank.png,title=Създаване на вътрешно касов трансфер  за инкасиране на безналично плащане по банка");
+                $row->pko .= $toolbar->renderHtml(2);
             }
         }
-        
-        if (isset($dRec->amount)) {
-            $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amount);
-        }
-        
-        if (isset($dRec->weight)) {
-            $row->weight = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->weight);
-        }
-        
-        if (isset($dRec->groupWeight)) {
-            $row->groupWeight = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupWeight);
-        }
-        
-        if (isset($dRec->groupAmount)) {
-            $row->groupAmount = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupAmount);
-        }
-        
-        if (!is_null($dRec->groupWeight)) {
-            $row->groupPrice = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupAmount / $dRec->groupWeight);
-        }
-        
-        if (!is_null($dRec->groupWeightIn)) {
-            $row->groupPriceIn = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupAmountIn / $dRec->groupWeightIn);
-        }
-        
-        if (isset($dRec->groupWeightIn)) {
-            $row->groupWeightIn = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupWeightIn);
-        }
-        
-        if (isset($dRec->groupAmountIn)) {
-            $row->groupAmountIn = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupAmountIn);
-        }
-        
-        
-        if (isset($dRec->productId)) {
-            $row->product = cat_Products::getTitleById($dRec->productId);
-        }
-        
-        if (isset($dRec->invoiceId)) {
-            $row->invoice = $dRec->invoiceId.' | '.sales_Invoices::fetchField($dRec->invoiceId, 'number');
-        }
-        
-        $row->weightDebug = '';
-        
-        if (is_array($dRec->detRecWeightDebug)) {
-            foreach ($dRec->detRecWeightDebug as $key => $val) {
-                list($a, $prKey, $b) = explode('|', $key);
-                
-                if ($prKey != $dRec->productId) {
-                    continue;
-                }
-                
-                $row->weightDebug .= 'detRecWeightDebug '.$key.' | '.$val.'</br>';
-            }
-        }
-        
-        if (is_array($dRec->prodTransportWeightDebug)) {
-            foreach ($dRec->prodTransportWeightDebug as $key => $val) {
-                list($a, $prKey, $b) = explode('|', $key);
-                
-                if ($prKey != $dRec->productId) {
-                    continue;
-                }
-                
-                $row->weightDebug .= 'prodTransportWeightDebug '.$key.' | '.$val.'</br>';
-            }
-        }
-        
-        if (is_array($dRec->prodWeightDebug)) {
-            foreach ($dRec->prodWeightDebug as $key => $val) {
-                list($a, $prKey, $b) = explode('|', $key);
-                
-                if ($prKey != $dRec->productId) {
-                    continue;
-                }
-                
-                $row->weightDebug .= 'prodWeightDebug '.$key.' | '.$val.'</br>';
-            }
-        }
-        
-        if (is_array($dRec->prodWeightkgDebug)) {
-            foreach ($dRec->prodWeightkgDebug as $key => $val) {
-                list($a, $prKey, $b) = explode('|', $key);
-                
-                if ($prKey != $dRec->productId) {
-                    continue;
-                }
-                
-                $row->weightDebug .= 'prodWeightkgDebug '.$key.' | '.$val.'</br>';
-            }
-        }
-        
+
         return $row;
     }
     
