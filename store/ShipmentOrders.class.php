@@ -534,7 +534,7 @@ class store_ShipmentOrders extends store_DocumentMaster
             }
         }
         
-        if ($rec->state == 'active' && $rec->isReverse == 'no') {
+        if (in_array($rec->state, array('active', 'pending')) && $rec->isReverse == 'no') {
              if(cash_Pko::haveRightFor('add', (object)array('originId' => $rec->containerId, 'threadId' => $rec->threadId))){
                  $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов документ');
              }
