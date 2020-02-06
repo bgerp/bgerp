@@ -1189,6 +1189,18 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                     }
                 }
                 
+                if ($rec->report == 'number') {
+                    $reportStorage = Tremol\OptionReportStorage::Printing;
+                    if ($rec->printType == 'save') {
+                        $reportStorage = Tremol\OptionReportStorage::USB_storage;
+                        if ($rec->saveType == 'sd') {
+                            $reportStorage = Tremol\OptionReportStorage::SD_card_storage;
+                        }
+                    }
+                    
+                    $fp->PrintOrStoreEJByRcpNum($reportStorage, $rec->fromNum, $rec->toNum);
+                }
+                
                 $msg = "|Успешно отпечатан {$rVerb} отчет";
                 if (!empty($retUrl)) {
                     

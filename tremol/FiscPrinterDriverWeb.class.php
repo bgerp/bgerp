@@ -1070,6 +1070,19 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
             }
         }
         
+        if ($rec->report == 'number') {
+            if ($rec->printType == 'save') {
+                $outType = $rec->saveType;
+            } else {
+                $outType = 'print';
+            }
+            
+            $outType = strtolower($outType);
+            $outType = json_encode($outType);
+            
+            $fnc = "fpPrintOrStoreEJByRcpNum({$outType}, {$rec->fromNum}, {$rec->toNum})";
+        }
+        
         expect($fnc);
         
         $fnc .= ';';
