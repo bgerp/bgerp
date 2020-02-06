@@ -150,6 +150,12 @@ class trans_plg_LinesPlugin extends core_Plugin
                     $rec->weightInput = $formRec->weight;
                     $rec->volumeInput = $formRec->volume;
                     $rec->transUnitsInput = trans_Helper::convertTableToNormalArr($formRec->transUnitsInput);
+                } elseif($mvc instanceof cash_Document){
+                    if(isset($rec->{$mvc->lineFieldName}) && empty($rec->peroCase)){
+                        if($lineCaseId = trans_Lines::fetchField($rec->{$mvc->lineFieldName}, 'caseId')){
+                            $rec->peroCase = $lineCaseId;
+                        }
+                    }
                 }
                 
                 $mvc->save($rec);
