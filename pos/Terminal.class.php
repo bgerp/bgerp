@@ -1698,7 +1698,11 @@ class pos_Terminal extends peripheral_Terminal
         $packagingId = ($obj->packagingId) ? $obj->packagingId : $obj->measureId;
         $row->packagingId = cat_UoM::getSmartName($packagingId, $obj->stock);
         $obj->receiptId = $data->rec->id;
-        $row->productId = mb_subStr(cat_Products::getTitleById($obj->productId), 0, 95);
+        
+        $productRec = cat_Products::fetch($obj->productId, 'code');
+        $row->productId = mb_subStr(cat_Products::getVerbal($obj->productId, 'name'), 0, 95);
+        $row->code = (!empty($productRec->code)) ? cat_Products::getVerbal($obj->productId, 'code') : "Art{$obj->productId}";
+        
         $row->stock = ht::styleNumber($row->stock, $obj->stock, 'green');
         $row->stock = "{$row->stock} <span class='pos-search-row-packagingid'>{$row->packagingId}</span>";
         $row->photo = $this->getPosProductPreview($obj->productId, 64, 64);
