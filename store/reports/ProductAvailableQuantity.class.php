@@ -474,7 +474,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         }
         $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
-        $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
+        $fld->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,smartCenter');
         
         if ($rec->limmits == 'yes') {
             $fld->FLD('minQuantity', 'double(smartRound,decimals=2)', 'caption=Минимално,smartCenter');
@@ -504,7 +504,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         $row->productId = cat_Products::getShortHyperlink($dRec->productId, true);
         
         if (isset($dRec->quantity)) {
-            $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
+            $row->quantity = core_Type::getByName('double(decimals=3)')->toVerbal($dRec->quantity);
             $row->quantity = ht::styleIfNegative($row->quantity, $dRec->quantity);
         }
         

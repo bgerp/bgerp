@@ -691,7 +691,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         
         $form = cls::get('core_Form');
         
-        $form->FLD('report', 'enum(day=Дневен,operator=Операторски (дневен),period=Период,month=Месечен,year=Годишен,klen=КЛЕН,csv=CSV)', 'caption=Отчет->Вид, mandatory, removeAndRefreshForm=zeroing,isDetailed,operNum,fromDate,toDate,flagReports,flagReceipts,csvFormat,printIn,saveType,printType');
+        $form->FLD('report', 'enum(day=Дневен,operator=Операторски (дневен),period=Период,month=Месечен,year=Годишен,klen=КЛЕН,csv=CSV,number=По номер)', 'caption=Отчет->Вид, mandatory, removeAndRefreshForm=zeroing,isDetailed,operNum,fromDate,toDate,flagReports,flagReceipts,csvFormat,printIn,saveType,printType');
         
         $form->input('report');
         
@@ -743,9 +743,11 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
                         $form->FLD('printIn', 'enum(PC=Компютър, FP=Фискално устройство)', 'caption=Отпечатване в, mandatory');
                     }
                     
+                    unset($form->rec->zeroing);
                     $form->setField('zeroing', 'input=none');
                     
                     if ($form->rec->report == 'csv') {
+                        unset($form->rec->isDetailed);
                         $form->setField('isDetailed', 'input=none');
                         $form->FLD('csvFormat', 'enum(yes=Да, no=Не)', 'caption=CSV формат, mandatory');
                         
@@ -761,6 +763,24 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
                     }
                 }
             }
+        } elseif ($form->rec->report == 'number') {
+            unset($form->rec->isDetailed);
+            unset($form->rec->zeroing);
+            $form->setField('zeroing', 'input=none');
+            $form->setField('isDetailed', 'input=none');
+            
+            $form->FLD('fromNum', 'int(min=0)', 'caption=Номер->От, mandatory');
+            $form->FLD('toNum', 'int(min=0)', 'caption=Номер->До, mandatory');
+            
+            $form->FLD('printType', 'enum(print=Отпечатване, save=Запис)', 'caption=Действие, mandatory, removeAndRefreshForm=saveType');
+            
+            $form->input('printType');
+            
+            if ($form->rec->printType == 'save') {
+                $form->FLD('saveType', 'enum(sd=SD карта, usb=USB)', 'caption=Запис в, mandatory');
+                
+                $submitTitle = 'Запис';
+            }
         }
         
         $form->input();
@@ -768,6 +788,18 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         $rec = $form->rec;
         
         $jsTpl = null;
+        
+        if ($form->isSubmitted()) {
+            if ($rec->report == 'number') {
+                if ($rec->fromNum > $rec->toNum) {
+                    $form->setError('toNum, fromNum', '"От" трябва да е по-малко или равно на "До"');
+                }
+                
+                if (($rec->printType == 'print') && (($rec->toNum - $rec->fromNum) > 20)) {
+                    $form->setWarning('toNum, fromNum', 'Избрали сте много голям диапазон за отпечатване|*: ' . ($rec->toNum - $rec->fromNum));
+                }
+            }
+        }
         
         if ($form->isSubmitted()) {
             if ($rec->zeroing == 'yes') {

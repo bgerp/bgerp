@@ -603,7 +603,10 @@ class core_Backup extends core_Mvc
         $handle = fopen($dest, 'r');
         if ($handle) {
             do {
-                $line = (bool) rtrim(fgets($handle), "\n\r");
+                $line = fgets($handle);
+                if ($line !== false) {
+                    $line = rtrim($line, "\n\r");
+                }
                 if (!$cols) {
                     $cols = $line;
                     continue;
@@ -624,7 +627,7 @@ class core_Backup extends core_Mvc
                         $queryStr = implode("),\n(", $query);
                         $link->query($d = "INSERT INTO `{$table}` ({$cols}) VALUES \n ({$queryStr})");
                         #file_put_contents("C:\\xampp\\htdocs\\ef_root\\uploads\\bgerp\\backup_work\query.log", $d);
-                        file_put_contents("/tmp/query.log", $d);
+                        file_put_contents("/tmp/query.log", $queryStr);
                         unset($query);
                         continue;
                     } catch (Exception $e) {
