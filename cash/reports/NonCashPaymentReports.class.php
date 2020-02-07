@@ -119,14 +119,17 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
+        $Date = cls::get('type_Date');
+        
         $rec = $form->rec;
         if ($form->isSubmitted()) {
             
             // Проверка на периоди
             $startDate = self::START_DATE;
+            $startDateVerb = $Date -> toVerbal($startDate);
             
             if (isset($rec->from) && ($rec->from < $startDate)) {
-                $form->setError('from', "Началната дата на периода не може да бъде по-стара от ${startDate}.");
+                $form->setError('from', "Началната дата на периода не може да бъде по-стара от {$startDateVerb} .");
             }
             
             if (isset($form->rec->from, $form->rec->to) && ($form->rec->from > $form->rec->to)) {
