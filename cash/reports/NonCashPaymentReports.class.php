@@ -126,7 +126,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
             $startDate = self::START_DATE;
             
             if (isset($rec->from) && ($rec->from < $startDate)) {
-                $form->setError('from', "Началната дата на периода не може да бъде по-голяма от ${startDate}.");
+                $form->setError('from', "Началната дата на периода не може да бъде по-стара от ${startDate}.");
             }
             
             if (isset($form->rec->from, $form->rec->to) && ($form->rec->from > $form->rec->to)) {
