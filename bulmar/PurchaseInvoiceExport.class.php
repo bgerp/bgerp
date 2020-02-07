@@ -2,19 +2,19 @@
 
 
 /**
- * Драйвър за експортиране на 'sales_Invoices' изходящи фактури към Bulmar Office
+ * Драйвър за експортиране на 'purchase_Invoices' входящи фактури към Bulmar Office
  *
  *
  * @category  bgerp
  * @package   bulmar
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
-class bulmar_InvoiceExport extends core_Manager
+class bulmar_PurchaseInvoiceExport extends core_Manager
 {
     /**
      * Интерфейси, поддържани от този мениджър
@@ -25,19 +25,19 @@ class bulmar_InvoiceExport extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Експортиране на фактури към Bulmar Office';
+    public $title = 'Експортиране на входящи фактури към Bulmar Office';
     
     
     /**
      * Към кои мениджъри да се показва драйвъра
      */
-    protected static $applyOnlyTo = 'sales_Invoices';
+    protected static $applyOnlyTo = 'purchase_Invoices';
     
     
     /**
      * Мениджъри за зареждане
      */
-    public $loadList = 'Invoices=sales_Invoices';
+    public $loadList = 'Invoices=purchase_Invoices';
     
     
     /**
@@ -67,6 +67,9 @@ class bulmar_InvoiceExport extends core_Manager
     {
         $form->FLD('from', 'date', 'caption=От,mandatory');
         $form->FLD('to', 'date', 'caption=До,mandatory');
+        
+        $form->info = tr('Ще се експортират само входящите фактури за покупка на стоки от контрагенти от "България"');
+        $form->info = "<div class='richtext-message richtext-info'>{$form->info}</div>";
     }
     
     
@@ -98,14 +101,11 @@ class bulmar_InvoiceExport extends core_Manager
         $query->orderBy('#number', 'ASC');
         
         $recs = $query->fetchAll();
-        
-        if (!countR($recs)) {
-            core_Statuses::newStatus('|Няма налични изходящи фактури за експортиране');
+        $data = $this->prepareExportData($recs);
+        if (!countR($data->recs)) {
             
             return;
         }
-        
-        $data = $this->prepareExportData($recs);
         
         $content = $this->prepareFileContent($data);
         $content = iconv('utf-8', 'CP1251', $content);
@@ -131,7 +131,10 @@ class bulmar_InvoiceExport extends core_Manager
         $count = 0;
         foreach ($recs as $rec) {
             $count++;
-            $data->recs[$rec->id] = $this->prepareRec($rec, $count);
+            $newRec = $this->prepareRec($rec, $count);
+            if($newRec->_skip !== true){
+                $data->recs[$rec->id] = $this->prepareRec($rec, $count);
+            }
         }
         
         return $data;
@@ -144,6 +147,15 @@ class bulmar_InvoiceExport extends core_Manager
     private function prepareRec($rec, $count)
     {
         $nRec = new stdClass();
+        
+        // Пропускат се фактурите за контрагенти извън 'България'
+        if(isset($rec->contragentCountryId)){
+            $bgId =   drdata_Countries::getIdByName('Bulgaria');
+            if($rec->contragentCountryId != $bgId){
+                $nRec->_skip = true;
+            }
+        }
+        
         $nRec->contragent = $rec->contragentName;
         $nRec->invNumber = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
         $nRec->date = dt::mysql2verbal($rec->date, 'd.m.Y');
@@ -162,22 +174,26 @@ class bulmar_InvoiceExport extends core_Manager
         }
         
         $byProducts = $byServices = 0;
-        $dQuery = sales_InvoiceDetails::getQuery();
+        $dQuery = purchase_InvoiceDetails::getQuery();
         $dQuery->where("#invoiceId = {$rec->id}");
         
         while ($dRec = $dQuery->fetch()) {
             if (empty($this->cache[$dRec->productId])) {
-                $this->cache[$dRec->productId] = cat_Products::getProductInfo($dRec->productId);
+                $this->cache[$dRec->productId] = cat_Products::fetch($dRec->productId, 'canStore');
             }
-            
-            $pInfo = $this->cache[$dRec->productId];
+           
             $dRec->amount = round($dRec->packPrice * $dRec->quantity, 2);
             
-            if (empty($pInfo->meta['canStore'])) {
+            if ($this->cache[$dRec->productId]->canStore == 'no') {
                 $byServices += $dRec->amount * (1 - $dRec->discount);
             } else {
                 $byProducts += $dRec->amount * (1 - $dRec->discount);
             }
+        }
+       
+        // Пропускат се фактурите в които има услуги
+        if(!empty($byServices)){
+            $nRec->_skip = true;
         }
         
         if ($rec->type != 'invoice') {
@@ -185,13 +201,17 @@ class bulmar_InvoiceExport extends core_Manager
             $oRec = $origin->rec();
             $number = $origin->getInstance()->recToVerbal($oRec)->number;
             $nRec->reason = "Ф. №{$number}";
+            
+            if($oRec->dpOperation == 'accrued'){
+                $nRec->downpaymentChanged = $rec->changeAmount;
+            }
         } else {
             if ($byServices != 0 && $byProducts == 0) {
-                $nRec->reason = 'Приход от продажба на услуги';
+                $nRec->reason = 'Покупка на услуги';
             } elseif ($byServices == 0 && $byProducts != 0) {
-                $nRec->reason = 'Приход от продажба на стоки';
+                $nRec->reason = 'Покупка на стоки';
             } else {
-                $nRec->reason = 'Приход от продажба';
+                $nRec->reason = 'Покупка';
             }
         }
         
@@ -235,42 +255,42 @@ class bulmar_InvoiceExport extends core_Manager
         
         // Добавяме информацията за фактурите
         foreach ($data->recs as $rec) {
-            $operationId = $static->saleProducts;
+            
+            $line = "{$rec->num}|{$rec->type}|{$rec->invNumber}|{$rec->date}|{$rec->contragentEik}|{$rec->date}|{$static->folder}|{$rec->contragent}|" . "\r\n";
+            
+            $creditAcc = $static->creditPurchase;
             if ($rec->dpOperation == 'accrued') {
                 unset($rec->productsAmount);
-                $operationId = $static->advancePayment;
+                
+                $line .= "{$rec->num}|1|{$static->downpaymentOperation}|{$static->downpaymentAcc}|AN|$|{$rec->baseAmount}||{$static->debitPurchaseVat}|||{$rec->vat}||{$creditAcc}|PN|$|{$rec->amount}||" . "\r\n";
+                
             } elseif ($rec->dpOperation == 'deducted') {
                 
                 // Ако ф-та има приспадане на аванс приспадаме го от общата сума и сумата на платеното
                 $rec->amount += $rec->dpAmount;
-                $operationId = $static->advancePayment;
-                $rec->baseAmount += $rec->dpAmount;
                 
                 if (isset($rec->amountPaid)) {
                     $rec->amountPaid += $rec->dpAmount;
                 }
+               
+                $line .= "{$rec->num}|1|{$static->purchaseProductsOperation}|{$static->debitPurchaseProducts}|||{$rec->baseAmount}||{$static->downpaymentAcc}|AN|$|{$rec->dpAmount}||{$static->debitPurchaseVat}|||{$rec->vat}||{$creditAcc}|PN|$|{$rec->amount}||" . "\r\n";
+                $rec->baseAmount += $rec->dpAmount;
+            } else {
+                $debitAcc =  "{$static->debitPurchaseProducts}|||";
+                if($rec->downpaymentChanged){
+                    $debitAcc =  "{$static->downpaymentAcc}|AN|$|";
+                }
+                
+                
+                $line .= "{$rec->num}|1|{$static->purchaseProductsOperation}|{$debitAcc}{$rec->baseAmount}||{$static->debitPurchaseVat}|||{$rec->vat}||{$creditAcc}|PN|$|{$rec->amount}||" . "\r\n";
             }
             
-            $line = "{$rec->num}|{$rec->type}|{$rec->invNumber}|{$rec->date}|{$rec->contragentEik}|{$rec->date}|{$static->folder}|{$rec->contragent}|". "\r\n";
-            $line .= "{$rec->num}|1|{$operationId}|{$static->debitSale}|AN|$|{$rec->amount}||";
-            if ($rec->dpAmount) {
-                $line .= "{$static->creditAdvance}|PA|$|{$rec->dpAmount}||";
-            }
-            
-            if ($rec->productsAmount) {
-                $line .= "{$static->creditSaleProducts}|||{$rec->productsAmount}||";
-            }
-            if ($rec->servicesAmount) {
-                $line .= "{$static->creditSaleServices}|||{$rec->servicesAmount}||";
-            }
-            
-            $line .= "{$static->creditSaleVat}|||{$rec->vat}||" . "\r\n";
-            
-            $line .= "{$rec->num}|1|Prod|{$rec->reason}|0|||{$rec->baseAmount}|{$rec->vat}|{$rec->baseAmount}|{$rec->vat}|||||||||||||" . "\r\n";
+            $line .= "{$rec->num}|1|POK|{$rec->reason}|1||||{$rec->baseAmount}|{$rec->vat}|||||||||||||" . "\r\n";
             
             if ($rec->amountPaid) {
-                $line .= "{$rec->num}|2|{$static->paymentOp}|{$static->debitPayment}|||{$rec->amountPaid}||{$static->creditPayment}|AN|$|{$rec->amountPaid}||" . "\r\n";
+                $line .= "{$rec->num}|2|{$static->paymentOp}|{$static->debitPayment}|PN|$|{$rec->amountPaid}||{$static->creditCase}|||{$rec->amountPaid}||" . "\r\n";
             }
+            
             
             $content .= $line;
         }
@@ -290,18 +310,21 @@ class bulmar_InvoiceExport extends core_Manager
         $staticData = new stdClass();
         
         $conf = core_Packs::getConfig('bulmar');
-        $staticData->folder = $conf->BULMAR_INV_CONTR_FOLDER;
-        $staticData->saleProducts = $conf->BULMAR_INV_TAX_OPERATION_SALE_PRODUCTS;
-        $staticData->saleServices = $conf->BULMAR_INV_TAX_OPERATION_SALE_SERVICES;
-        $staticData->paymentOp = $conf->BULMAR_INV_TAX_OPERATION_PAYMENT;
-        $staticData->debitSale = $conf->BULMAR_INV_DEBIT_SALE;
-        $staticData->creditSaleProducts = $conf->BULMAR_INV_FIRST_CREDIT_SALE_PRODUCTS;
-        $staticData->creditSaleServices = $conf->BULMAR_INV_FIRST_CREDIT_SALE_SERVICES;
-        $staticData->creditSaleVat = $conf->BULMAR_INV_SECOND_CREDIT_SALE;
-        $staticData->debitPayment = $conf->BULMAR_INV_DEBIT_PAYMENT;
-        $staticData->creditPayment = $conf->BULMAR_INV_CREDIT_PAYMENT;
-        $staticData->advancePayment = $conf->BULMAR_INV_AV_OPERATION;
-        $staticData->creditAdvance = $conf->BULMAR_INV_CREDIT_AV;
+        $staticData->folder = $conf->BULMAR_PURINV_CONTR_FOLDER;
+        $staticData->creditPurchase = $conf->BULMAR_PURINV_CREDIT_PURCHASE;
+        $staticData->debitPurchaseProducts = $conf->BULMAR_PURINV_DEBIT_PURCHASE_PRODUCTS;
+        $staticData->debitPurchaseService = $conf->BULMAR_PURINV_DEBIT_PURCHASE_SERVICES;
+        
+        $staticData->debitPurchaseVat = $conf->BULMAR_PURINV_DEBIT_PURCHASE_VAT;
+        $staticData->creditCase = $conf->BULMAR_PURINV_CREDIT_CASE;
+        $staticData->paymentOp = $conf->BULMAR_PURINV_PAYMENT_OPERATION;
+        $staticData->downpaymentAcc = $conf->BULMAR_PURINV_DEBIT_DOWNPAYMENT;
+        
+        $staticData->downpaymentOperation = $conf->BULMAR_PURINV_DOWNPAYMENT_OPERATION;
+        $staticData->purchaseProductsOperation = $conf->BULMAR_PURINV_PURCHASE_PRODUCTS_OPER;
+        $staticData->purchaseServiceOperation = $conf->BULMAR_PURINV_PURCHASE_SERVICES_OPER;
+        $staticData->paymentOperation = $conf->BULMAR_PURINV_PAYMENT_OPERATION;
+        $staticData->debitPayment = $conf->BULMAR_PURINV_DEBIT_PAYMENT;
         
         $myCompany = crm_Companies::fetchOwnCompany();
         $staticData->OWN_COMPANY_BULSTAT = str_replace('BG', '', $myCompany->vatNo);
@@ -327,7 +350,7 @@ class bulmar_InvoiceExport extends core_Manager
     public function getExportedFileName()
     {
         $timestamp = time();
-        $name = "invoices{$timestamp}.txt";
+        $name = "purinvoices{$timestamp}.txt";
         
         return $name;
     }
