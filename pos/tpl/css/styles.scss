@@ -588,14 +588,14 @@
 
 .pos-photo-field{
     width: 64px;
-	height: 88px;
+	height: 64px;
 	background: #fff;
 	border: 1px solid #000;
 	display: inline-block;
 	margin-right: 10px;
 	img {
 		width: 64px;
-		height: 88px;
+		max-height: 64px;
 	}
 }
 
@@ -618,13 +618,18 @@
 		padding: 8px !important;
 	}
 	.pos-title {
+		text-indent: -75px;
 		height: 72px;
+		line-height: 130%;
+	}
+	.pos-photo-field {
+		margin-top: 22px;
 	}
 	.pos-add-res-btn{
 		color:#333;
 		height: 73px;
 	}
-	.pos-stock-field {
+	.pos-price-field {
 		float: right;
 	}
 }

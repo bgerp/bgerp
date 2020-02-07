@@ -497,14 +497,14 @@
 
 .pos-photo-field {
   width: 64px;
-  height: 88px;
+  height: 64px;
   background: white;
   border: 1px solid black;
   display: inline-block;
   margin-right: 10px; }
   .pos-photo-field img {
     width: 64px;
-    height: 88px; }
+    max-height: 64px; }
 
 .pos-price-field {
   font-size: 1.05em; }
@@ -524,11 +524,15 @@
     border: 3px solid #080f56;
     padding: 8px !important; }
   .element .pos-title {
-    height: 72px; }
+    text-indent: -75px;
+    height: 72px;
+    line-height: 130%; }
+  .element .pos-photo-field {
+    margin-top: 22px; }
   .element .pos-add-res-btn {
     color: #333333;
     height: 73px; }
-  .element .pos-stock-field {
+  .element .pos-price-field {
     float: right; }
 
 .result-string {
