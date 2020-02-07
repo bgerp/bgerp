@@ -17,7 +17,8 @@
  */
 class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
 {
-    const START_DATE = '2020-02-01';
+    const START_DATE = '2020-02-05';
+    
     
     /**
      * Кой може да избира драйвъра
@@ -88,7 +89,6 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
     {
         $fieldset->FLD('from', 'date', 'caption=Период->От,after=title,single=none');
         $fieldset->FLD('to', 'date', 'caption=Период->До,after=from,single=none');
-       
     }
     
     
@@ -106,7 +106,6 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         
         $form->setField('to', 'placeholder=' . dt::addDays(0, null, false));
         $form->setField('from', 'placeholder=' . '2020-02-01');
-        
     }
     
     
@@ -127,7 +126,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
             $startDate = self::START_DATE;
             
             if (isset($rec->from) && ($rec->from < $startDate)) {
-                $form->setError('from', "Началната дата на периода не може да бъде по-голяма от $startDate.");
+                $form->setError('from', "Началната дата на периода не може да бъде по-голяма от ${startDate}.");
             }
             
             if (isset($form->rec->from, $form->rec->to) && ($form->rec->from > $form->rec->to)) {
@@ -157,42 +156,42 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         //Масив с id-та на ПКО-та по които има избрани безналични методи на плащане
         $pkoWitnNonCashPaymentsArr = arr::extractValuesFromArray($nonCashQuery->fetchAll(), 'documentId');
         $pkoNonCashAmount = array();
-        while ($nonRec = $nonCashQuery->fetch()){
-            
-            $pkoNonCashAmount[$nonRec->documentId] = $nonRec->amount;
+        while ($nonRec = $nonCashQuery->fetch()) {
+            $pkoNonCashAmount[$nonRec->documentId] = (object) array('nonCashPaymentAmount' => $nonRec->amount,
+                'nonCashPaymentId' => $nonRec->paymentId
+            );
         }
         
         //ПКО-та по които има избрани безналични методи на плащане
         $pkoQuery = cash_Pko::getQuery();
-        $pkoQuery->where("#state != 'rejected' AND #state != 'draft'"); 
-        $pkoQuery->in('id',$pkoWitnNonCashPaymentsArr);
+        $pkoQuery->where("#state != 'rejected' AND #state != 'draft'");
+        $pkoQuery->in('id', $pkoWitnNonCashPaymentsArr);
         
         //Филтър по период(по подразбиране началната дата е най-старата на която има запис за полето sourceId)
         $pkoQuery->where(array("#valior>= '[#1#]' AND #valior <= '[#2#]'",$rec->from. ' 00:00:01',$rec->to . ' 23:59:59'));
         
         //Масив с containerId-та на ПКО-та по които има избрани безналични методи на плащане
         $pkoDocsArr = arr::extractValuesFromArray($pkoQuery->fetchAll(), 'containerId');
-       
-        $iQuery = cash_InternalMoneyTransfer::getQuery();
         
-        $iQuery->in('sourceId',$pkoDocsArr);
+        $iQuery = cash_InternalMoneyTransfer::getQuery();
+        $iQuery->where("#sourceId IS NOT NULL");
+        $iQuery->in('sourceId', $pkoDocsArr);
+        
         $intenalMoneyTrArr = array();
-        while  ($iRec = $iQuery->fetch()){
-            
+        while ($iRec = $iQuery->fetch()) {
             $intenalMoneyTrArr[$iRec->sourceId][$iRec->id] = (object) array(
-                    
-                    'id' => $iRec->id,
-                    'pkoContainerId' => $iRec->sourceId,
-                    
-                    'amount' => $iRec->amount,
-                    'state' => $iRec->state,
-                    
-                    );
+                
+                'id' => $iRec->id,
+                'pkoContainerId' => $iRec->sourceId,
+                'paymentId' => $iRec->paymentId,
+                
+                'amount' => $iRec->amount,
+                'state' => $iRec->state,
             
+            );
         }
-       
-        while ($pkoRec = $pkoQuery->fetch()){
-            
+        
+        while ($pkoRec = $pkoQuery->fetch()) {
             $id = $pkoRec->id;
             
             // добавяме в масива
@@ -202,13 +201,13 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                     'pkoId' => $pkoRec->id,
                     'folderId' => $pkoRec->folderId,
                     'creditCase' => $pkoRec->peroCase,
-                    'paymentId' => $pkoRec->paymentId,
                     'currencyId' => $pkoRec->currencyId,
                     'containerId' => $pkoRec->containerId,
                     
-                    'pkoAmount' => $pkoNonCashAmount[$pkoRec->id],
+                    'pkoAmount' => $pkoNonCashAmount[$pkoRec->id]->nonCashPaymentAmount,
+                    'pkoNonCashPaymentId' => $pkoNonCashAmount[$pkoRec->id]->nonCashPaymentId,
                     'inTransferMoney' => $intenalMoneyTrArr[$pkoRec->containerId],
-                    
+                
                 );
             }
         }
@@ -228,19 +227,15 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
-     
-           
-            $fld->FLD('pko', 'varchar', 'caption=ПКО->Документ');
-            $fld->FLD('pkoAmount', 'double(smartRound,decimals=2)', 'caption=ПКО->Сума');
-            $fld->FLD('rest', 'double(smartRound,decimals=2)', 'caption=ПКО->Остатък');
-            $fld->FLD('transfer', 'varchar', 'caption=Трансфер->Документ');
-            $fld->FLD('amount', 'double(smartRound,decimals=2)', 'caption=Трансфер->Сума');
-            
-           
-            return $fld;
         
         
-       
+        $fld->FLD('pko', 'varchar', 'caption=ПКО->Документ');
+        $fld->FLD('pkoAmount', 'double(smartRound,decimals=2)', 'caption=ПКО->Сума');
+        $fld->FLD('rest', 'double(smartRound,decimals=2)', 'caption=ПКО->Остатък');
+        $fld->FLD('transfer', 'varchar', 'caption=Трансфер->Документ');
+        $fld->FLD('amount', 'double(smartRound,decimals=2)', 'caption=Трансфер->Сума');
+        
+        return $fld;
     }
     
     
@@ -262,40 +257,30 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         $Double->params['decimals'] = 2;
         
         $row = new stdClass();
-  
         
         
         if (isset($dRec->pkoAmount)) {
             $row->pkoAmount = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->pkoAmount);
         }
         
-      
         
-        if(is_array($dRec->inTransferMoney)){
+        if (is_array($dRec->inTransferMoney)) {
             $sum = 0;
-            foreach ($dRec->inTransferMoney as $val){
+            foreach ($dRec->inTransferMoney as $val) {
                 $state = $val->state;
                 
-                    
-                    $inAmount = ($val->state == 'pending') ? 0 : $val->amount;
-                    $color = $inAmount == 0 ? 'blue': 'black' ;
-                    $sum += $inAmount;
-                    if ($state == 'pending') {
-                        
-                    
-                    $row->transfer .= "<div ><span class= 'state-{$state} document-handler' >".cash_InternalMoneyTransfer::getLinkToSingle($val->id)."</br>";
-                    $row->amount .= "<span style='color: {$color}'>".core_Type::getByName('double(decimals=2)')->toVerbal($inAmount)."</br>";
-                    }else{
-                        $row->transfer .= cash_InternalMoneyTransfer::getLinkToSingle($val->id)."</br>";
-                        $row->amount .= core_Type::getByName('double(decimals=2)')->toVerbal($inAmount)."</br>";
-                        
-                    }
-                    
                 
+                $inAmount = ($val->state == 'pending') ? 0 : $val->amount;
+                $color = $inAmount == 0 ? 'blue': 'black' ;
+                $sum += $inAmount;
+                if ($state == 'pending') {
+                    $row->transfer .= "<div><span class= 'state-{$state} document-handler' >".cash_InternalMoneyTransfer::getLinkToSingle($val->id).'</div>';
+                    $row->amount .= "<span style='color: {$color}'>".core_Type::getByName('double(decimals=2)')->toVerbal($inAmount).'</br>';
+                } else {
+                    $row->transfer .= cash_InternalMoneyTransfer::getLinkToSingle($val->id).'</br>';
+                    $row->amount .= "<span style='color: {$color}'>".core_Type::getByName('double(decimals=2)')->toVerbal($inAmount).'</br>';
+                }
             }
-            
-            
-            
         }
         
         $color = $dRec->pkoAmount - $sum < 0 ? 'red': 'black' ;
@@ -306,18 +291,19 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         
         if (isset($dRec->pkoId)) {
             $row->pko = cash_Pko::getLinkToSingle($dRec->pkoId);
-          
-            if ($rest > 0){
-                $url = array('cash_InternalMoneyTransfer', 'add', 'operationSysId' => 'nonecash2case', 'amount' => $rest, 'creditCase' => $dRec->creditCase, 'paymentId' => $dRec->paymentId, 'currencyId' => $dRec->currencyId, 'sourceId' => $dRec->containerId, 'foreignId' => $dRec->containerId, 'ret_url' => true);
+            $cashFolderId = cash_Cases::fetchField($dRec->creditCase, 'folderId');
+            
+            if ($rest > 0) {
+                $url = array('cash_InternalMoneyTransfer', 'add', 'folderId' => $cashFolderId, 'operationSysId' => 'nonecash2case', 'amount' => $rest, 'creditCase' => $dRec->creditCase, 'paymentId' => $dRec->pkoNonCashPaymentId, 'currencyId' => $dRec->currencyId, 'sourceId' => $dRec->containerId, 'foreignId' => $dRec->containerId, 'ret_url' => true);
                 $toolbar = new core_RowToolbar();
-                $toolbar->addLink('Инкасиране(Каса)', $url, "ef_icon = img/16/safe-icon.png,title=Създаване на вътрешно касов трансфер  за инкасиране на безналично плащане по каса");
+                $toolbar->addLink('Инкасиране(Каса)', $url, 'ef_icon = img/16/safe-icon.png,title=Създаване на вътрешно касов трансфер  за инкасиране на безналично плащане по каса');
                 
                 $url['operationSysId'] = 'nonecash2bank';
-                $toolbar->addLink('Инкасиране(Банка)', $url, "ef_icon = img/16/own-bank.png,title=Създаване на вътрешно касов трансфер  за инкасиране на безналично плащане по банка");
+                $toolbar->addLink('Инкасиране(Банка)', $url, 'ef_icon = img/16/own-bank.png,title=Създаване на вътрешно касов трансфер  за инкасиране на безналично плащане по банка');
                 $row->pko .= $toolbar->renderHtml(2);
             }
         }
-
+        
         return $row;
     }
     
@@ -352,7 +338,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                                
                                 </fieldset><!--ET_END BLOCK-->"));
         
-      
+        
         if (isset($data->rec->from)) {
             $fieldTpl->append('<b>' . $data->rec->from . '</b>', 'from');
         }
@@ -364,7 +350,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
-   
+    
     
     /**
      * След подготовка на реда за експорт
@@ -377,5 +363,4 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
     }
-
 }
