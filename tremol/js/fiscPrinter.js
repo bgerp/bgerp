@@ -816,6 +816,7 @@ function fpOutputKLEN(outType, startDate, endDate, isDetailed)
     }
 };
 
+
 /**
  * Отпечатва/записва CSV отчет за съответния период - с и без нулиране
  */
@@ -841,6 +842,29 @@ function fpOutputCSV(outType, startDate, endDate, csvFormat, flagReceipts, flagR
 			printToPc();
 		}
 		
+	} catch(ex) {
+        handleException(ex);
+    }
+};
+
+
+/**
+ * Отпечатва/записва бележките по номер
+ */
+function fpPrintOrStoreEJByRcpNum(outType, startNum, endNum)
+{
+	try {
+		var reportStorage = Tremol.Enums.OptionReportStorage.Printing;
+		
+		if (outType == 'sd') {
+			reportStorage = Tremol.Enums.OptionReportStorage.SD_card_storage;
+		}
+		
+		if (outType == 'usb') {
+			reportStorage = Tremol.Enums.OptionReportStorage.USB_storage;
+		}
+		
+		fp.PrintOrStoreEJByRcpNum(reportStorage, startNum, endNum);
 	} catch(ex) {
         handleException(ex);
     }

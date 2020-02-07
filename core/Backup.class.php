@@ -108,7 +108,7 @@ class core_Backup extends core_Mvc
         core_SystemLock::block('Процес на архивиране на данните', 600); // 10 мин.
         $description['times']['lock'] = dt::now();
         
-        @$this->db->query('FLUSH TABLES');
+        // @$this->db->query('FLUSH TABLES');
         
         $this->db->query("LOCK TABLES {$lockTables}");
         
@@ -602,32 +602,45 @@ class core_Backup extends core_Mvc
         
         $handle = fopen($dest, 'r');
         if ($handle) {
-            $query = '';
             do {
                 $line = fgets($handle);
+                if ($line !== false) {
+                    $line = rtrim($line, "\n\r");
+                }
                 if (!$cols) {
                     $cols = $line;
                     continue;
                 }
-                if ($line === false || (strlen($query) + strlen($line) > $maxMysqlQueryLength)) {
+                if(!isset($query)) {
+                    $query = array();
+                    $totalLen = 0;
+                }
+                $totalLen += strlen($line);
+                if ($line === false || ($totalLen > $maxMysqlQueryLength)) {
                     try {
-                        if(!strlen($query) && strlen($line)) {
-                            $query = $line;
+                        if(!count($query) && strlen($line)) {
+                            $query[] = $line;
                         }
-                        $query = "INSERT INTO `{$table}` ({$cols}) VALUES " . $query;
-                        
-                        //@file_put_contents("C:\\xampp\\htdocs\\ef_root\\uploads\\bgerp\\backup_work\query.log", $query);
+
+                        //@
                         $link = $db->connect();
-                        $link->query($query);
-                        $query = '';
+                        $queryStr = implode("),\n(", $query);
+                        $link->query($d = "INSERT INTO `{$table}` ({$cols}) VALUES \n ({$queryStr})");
+                        #file_put_contents("C:\\xampp\\htdocs\\ef_root\\uploads\\bgerp\\backup_work\query.log", $d);
+                        file_put_contents("/tmp/query.log", $queryStr);
+                        unset($query);
+                        continue;
                     } catch (Exception $e) {
-                        $query = substr($query, 0, 1000);
-                        $res = "err: Грешка при изпълняване на `{$query}`";
+
+                        fclose($handle);
+                        $res = "err: Грешка при изпълняване на `INSERT INTO `{$table}` ({$cols}) VALUES  (" . implode(") (", array_slice($query, 0, 3)) .")`";
 
                         return $res;
                     }
                 }
-                $query .= ($query ? ",\n" : "\n") . "({$line})";
+               
+                $query[] = $line;
+                
             } while ($line !== false);
             fclose($handle);
             $res = 'msg: Импортиране на ' . $table;
@@ -635,7 +648,9 @@ class core_Backup extends core_Mvc
             // Не може да се отвори файла
             $res = "err: Не може да се отвори файла `{$dest}`";
         }
-        
+
+        gc_collect_cycles();
+
         return $res;
     }
     

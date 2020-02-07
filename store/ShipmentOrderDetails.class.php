@@ -51,7 +51,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      * var string|array
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, doc_plg_HidePrices,store_plg_RequestDetail,
-                        plg_AlignDecimals2, plg_Sorting, doc_plg_TplManagerDetail, LastPricePolicy=sales_SalesLastPricePolicy,
+                        plg_AlignDecimals2,deals_plg_ImportDealDetailProduct, plg_Sorting, doc_plg_TplManagerDetail, LastPricePolicy=sales_SalesLastPricePolicy,
                         ReversePolicy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,acc_plg_ExpenseAllocation,cat_plg_ShowCodes,store_plg_TransportDataDetail,import2_Plugin';
     
     
@@ -83,6 +83,13 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      * @var string|array
      */
     public $canAdd = 'ceo,store,sales,purchase';
+    
+    /**
+     * Кой може да го импортира артикули?
+     *
+     * @var string|array
+     */
+    public $canImport = 'user';
     
     
     /**
@@ -186,7 +193,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                 $foundQuantity = null;
                 $masterStore = $masterRec->storeId;
                 $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-                if($canStore == 'yes'){
+                if ($canStore == 'yes') {
                     $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore, $foundQuantity);
                     $form->info = $storeInfo->formInfo;
                     if (!empty($foundQuantity) && $foundQuantity > 0) {
@@ -214,14 +221,16 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
         
         $masterRec = $data->masterData->rec;
         foreach ($rows as $id => $row) {
-            if($row instanceof core_ET) continue;
+            if ($row instanceof core_ET) {
+                continue;
+            }
             
             $rec = $data->recs[$id];
             deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $masterRec->storeId, $rec->quantity, $masterRec->state);
             
             if (core_Users::haveRole('ceo,seePrice') && isset($row->packPrice)) {
                 $priceDate = ($masterRec == 'draft') ? null : $masterRec->valior;
-                if(sales_PrimeCostByDocument::isPriceBellowPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $priceDate)){
+                if (sales_PrimeCostByDocument::isPriceBellowPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $priceDate)) {
                     $row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', false);
                 }
             }

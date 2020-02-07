@@ -38,7 +38,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_Sorting, 
+    public $loadList = 'plg_RowTools2, plg_SaveAndNew,deals_plg_ImportDealDetailProduct, plg_Created, planning_Wrapper, plg_Sorting, 
                         planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext,cat_plg_ShowCodes';
     
     
@@ -58,6 +58,13 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo,planning,store,production';
+    
+    /**
+     * Кой може да го импортира артикули?
+     *
+     * @var string|array
+     */
+    public $canImport = 'user';
     
     
     /**
@@ -253,8 +260,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         // Добавяне на бутон за нов материал
         if ($this->haveRightFor('add', (object) array('noteId' => $data->masterId, 'type' => 'input'))) {
             $tpl->append(ht::createBtn('Артикул', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
+            $tpl->append(ht::createBtn('Импортиране', array($this, 'import', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
+            
         }
-        
+
         // Рендираме таблицата с отпадъците
         if (countR($data->popArr) || $data->masterData->rec->state == 'draft') {
             $data->listFields['productId'] = "Отпадъци|* <small style='font-weight:normal'>( |остават в незавършеното производство|* )</small>";

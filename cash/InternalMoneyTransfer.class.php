@@ -1,14 +1,14 @@
 <?php 
 
 /**
- * Документ за Вътрешно Паричен Трансфер
+ * Документ за Вътрешно Касов Трансфер
  *
  *
  * @category  bgerp
- * @package   bank
+ * @package   cash
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -165,18 +165,21 @@ class cash_InternalMoneyTransfer extends core_Master
     public function description()
     {
         $this->FLD('operationSysId', 'enum(case2case=Вътрешен касов трансфер,case2bank=Захранване на банкова сметка,nonecash2bank=Инкасиране на безналични плащания (Банка),nonecash2case=Инкасиране на безналични плащания (Каса),noncash2noncash=Вътрешна касова обмяна на безналични плащания)', 'caption=Операция,mandatory,silent');
-        $this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory,summary=amount');
-        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
+        $this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory,summary=amount,silent');
+        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,silent');
         $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор');
         $this->FLD('reason', 'richtext(rows=3)', 'caption=Основание,input,mandatory');
         $this->FLD('creditAccId', 'acc_type_Account()', 'caption=Кредит,input=none');
-        $this->FLD('creditCase', 'key(mvc=cash_Cases, select=name)', 'caption=От->Каса');
-        $this->FLD('paymentId', 'key(mvc=cond_Payments, select=title)', 'caption=От->Безналично плащане,input=none');
+        $this->FLD('creditCase', 'key(mvc=cash_Cases, select=name)', 'caption=От->Каса,silent');
+        $this->FLD('paymentId', 'key(mvc=cond_Payments, select=title)', 'caption=От->Безналично плащане,input=none,silent');
         $this->FLD('debitAccId', 'acc_type_Account()', 'caption=Дебит,input=none');
         $this->FLD('debitCase', 'key(mvc=cash_Cases, select=name)', 'caption=Към->Каса,input=none');
         $this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)', 'caption=Към->Банк. сметка,input=none');
         $this->FLD('paymentDebitId', 'key(mvc=cond_Payments, select=title)', 'caption=Към->Безналично плащане,input=none');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Контиран,stopped=Спряно, pending=Заявка)','caption=Статус, input=none');
+        $this->FLD('sourceId', 'key(mvc=doc_Containers,select=id)', 'input=hidden,silent');
+        
+        $this->setDbIndex('sourceId');
     }
     
     
@@ -300,10 +303,12 @@ class cash_InternalMoneyTransfer extends core_Master
         switch ($operationSysId) {
             case 'case2case':
                 $form->setField('debitCase', 'input');
+                $form->setDefault('debitCase', cash_Cases::getCurrent());
                 break;
             case 'nonecash2case':
                 $form->setField('paymentId', 'input');
                 $form->setField('debitCase', 'input');
+                $form->setDefault('debitCase', cash_Cases::getCurrent());
                 break;
             case 'case2bank':
                 $form->setField('debitBank', 'input');
@@ -321,13 +326,13 @@ class cash_InternalMoneyTransfer extends core_Master
                 $form->setField('currencyId', 'input=hidden');
                 $form->setField('debitCase', 'input');
                 $form->setField('paymentDebitId', 'input');
+                $form->setDefault('debitCase', cash_Cases::getCurrent());
                 
                 break;
         }
         $form->setReadOnly('operationSysId');
         $today = dt::verbal2mysql();
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
-        $form->setReadOnly('creditCase', cash_Cases::getCurrent());
     }
     
     
@@ -443,6 +448,11 @@ class cash_InternalMoneyTransfer extends core_Master
             
             if ($rec->debitBank) {
                 $row->creditCase .= " » " . bank_OwnAccounts::getHyperLink($rec->debitBank, true);
+            }
+            
+            if(isset($rec->sourceId)){
+                $Source = doc_Containers::getDocument($rec->sourceId);
+                $row->sourceId = $Source->getLink(0);
             }
         }
     }

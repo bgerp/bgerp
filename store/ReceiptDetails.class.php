@@ -45,7 +45,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_SaveAndNew, plg_RowNumbering,store_plg_RequestDetail,Policy=purchase_PurchaseLastPricePolicy, 
-                        plg_AlignDecimals2, plg_Sorting, doc_plg_HidePrices, ReverseLastPricePolicy=sales_SalesLastPricePolicy, 
+                        plg_AlignDecimals2,deals_plg_ImportDealDetailProduct, plg_Sorting, doc_plg_HidePrices, ReverseLastPricePolicy=sales_SalesLastPricePolicy, 
                         Policy=purchase_PurchaseLastPricePolicy,acc_plg_ExpenseAllocation, plg_PrevAndNext,cat_plg_ShowCodes,store_plg_TransportDataDetail,import2_Plugin';
     
     
@@ -59,6 +59,13 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      * Кой има право да променя?
      */
     public $canEdit = 'ceo, store, purchase, sales';
+    
+    /**
+     * Кой може да го импортира артикули?
+     *
+     * @var string|array
+     */
+    public $canImport = 'user';
     
     
     /**
@@ -77,6 +84,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount, weight=Тегло, volume=Обем,info=Инфо';
+    
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата

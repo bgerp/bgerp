@@ -857,4 +857,34 @@ abstract class cat_ProductDriver extends core_BaseClass
             }
         }
     }
+    
+    
+    /**
+     * Какви са дефолтните количества на артикула за офертата
+     * 
+     * @param embed_Manager $Embedder
+     * @param stdClass $rec
+     * @return array $res
+     */
+    public function getQuantitiesForQuotation($Embedder, $rec)
+    {
+        $res = array();
+        
+        if(cls::haveInterface('cat_ProductAccRegIntf', $Embedder)){
+            if(isset($rec->originId)){
+                $origin = doc_Containers::getDocument($rec->originId);
+                if($origin->haveInterface('marketing_InquiryEmbedderIntf')){
+                    $originRec = $origin->fetch("quantity1,quantity2,quantity3");
+                    
+                    foreach (range(1, 3) as $i){
+                        if(!empty($originRec->{"quantity{$i}"})){
+                            $res[] = $originRec->{"quantity{$i}"};
+                        }
+                    }
+                }
+            }
+        }
+        
+        return $res;
+    }
 }

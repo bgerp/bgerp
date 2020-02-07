@@ -43,15 +43,28 @@
                      <!--ET_BEGIN fromContainerId-->
                      <span class='quiet nowrap'>|Към|* [#fromContainerName#]</span>:&nbsp;&nbsp;&nbsp;[#fromContainerId#]
                      <!--ET_END fromContainerId-->
+                     <!--ET_BEGIN reason-->
+                             <div class='richtext-holder'><span class='quiet'>|Основание|*:</span>[#reason#]</div>
+                        <!--ET_END reason-->
+                     
                      <!--ET_BEGIN termDate-->
                      <div class='richtext-holder'><span class='quiet'>|Очаквано на|*:</span>&nbsp;&nbsp;&nbsp;[#termDate#]</div>
                      <!--ET_END termDate-->
 
                     <!--ET_BEGIN pkoRow-->
                     [#pkoRow#]
-                        <!--ET_BEGIN reason-->
-                            <span class='quiet'>|Основание|*:</span> &nbsp;&nbsp;&nbsp;[#reason#]
-                        <!--ET_END reason-->
+                    	[#OTHER_TEXT#]
+                        <!--ET_BEGIN otherText-->
+                            <div><span class='quiet'>[#otherCaption#]:</span>[#otherText#]</div>
+                        <!--ET_END otherText-->
+                        <!--ET_BEGIN lineId-->
+                            <div><span class='quiet'>|Транспортна линия|*:</span> &nbsp;&nbsp;&nbsp;[#lineId#] </div>
+                        <!--ET_END lineId-->
+                        
+                        <!--ET_BEGIN lineNotes-->
+                            <div><span class='quiet'>|Транспорт: Забележки|*:</span> &nbsp;&nbsp;&nbsp;[#lineNotes#]</div>
+                        <!--ET_END lineNotes-->
+                        
                         <!--ET_BEGIN amountDeal-->
                         <div class ='misc' style='float:right'>
                             <div style='margin-top:7px;'>

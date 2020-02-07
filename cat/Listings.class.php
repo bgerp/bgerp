@@ -471,7 +471,7 @@ class cat_Listings extends core_Master
             
             // Ако за тази папка има избран лист не се създава
             $condId = cond_ConditionsToCustomers::fetchByCustomer($Cover->getClassId(), $Cover->that, $paramId);
-            $autoListId = cat_Listings::fetchField("#sysId = 'auto{$folderId}'");
+            $autoListId = cat_Listings::fetchField("#sysId = 'auto{$folderId}' AND #state != 'rejected'");
             
             if (!empty($condId) && empty($autoListId)) {
                 continue;
@@ -545,6 +545,28 @@ class cat_Listings extends core_Master
             $lQuery->where("#listId = {$listId}");
             $old = $lQuery->fetchAll();
             
+            // Колко са новите записи
+            $count = countR($newDetails);
+            
+            // Ако последно продаваните артикули са под максималния лимит
+            // Идеята е ако има стари записи да не се изтрият докато, не се изместят от по нови
+            if($count < $limit){
+                
+                // и има стари записи
+                $products = array_keys($newDetails);
+                $notInProducts = array_filter($old, function($a) use ($products) { return !in_array($a->productId, $products);});
+                if(countR($notInProducts)){
+                    asort($notInProducts);
+                    
+                    // Допълване на масива, със стари записи, докато се достигне лимите
+                    foreach ($notInProducts as $oldRec){
+                        if($count > $limit) break;
+                        
+                        $newDetails[$oldRec->productId] = $oldRec;
+                    }
+                }
+            }
+            
             // Синхронизиране на новите записи
             $res = arr::syncArrays($newDetails, $old, 'productId,packagingId', 'packagingId');
             
@@ -579,7 +601,7 @@ class cat_Listings extends core_Master
     private static function forceAutoList($folderId, $Cover)
     {
         $title = 'Списък от предишни продажби';
-        $listId = cat_Listings::fetchField("#sysId = 'auto{$folderId}'");
+        $listId = cat_Listings::fetchField("#sysId = 'auto{$folderId}' AND #state != 'rejected'");
         if (!$listId) {
             $lRec = (object) array('title' => $title, 'type' => 'canSell', 'folderId' => $folderId, 'state' => 'active', 'isPublic' => 'no', 'sysId' => "auto{$folderId}");
             $lRec->currencyId = $Cover->getDefaultCurrencyId();

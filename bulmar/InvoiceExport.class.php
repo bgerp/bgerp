@@ -100,7 +100,7 @@ class bulmar_InvoiceExport extends core_Manager
         $recs = $query->fetchAll();
         
         if (!countR($recs)) {
-            core_Statuses::newStatus('|Няма налични фактури за експортиране');
+            core_Statuses::newStatus('|Няма налични изходящи фактури за експортиране');
             
             return;
         }

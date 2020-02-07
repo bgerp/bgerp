@@ -473,4 +473,13 @@ class findeals_AdvanceReports extends core_Master
             $row->amount = ht::styleNumber($row->amount, $amount);
         }
     }
+    
+    
+    /**
+     * Документа винаги може да се активира, дори и да няма детайли
+     */
+    public static function canActivate($rec)
+    {
+        return true;
+    }
 }

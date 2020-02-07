@@ -1215,19 +1215,35 @@ class cat_Products extends embed_Manager
         }
         
         if (!$res->productId) {
-            // Проверяваме имали опаковка с този код: вътрешен или баркод
+            
+            // Проверява се имали опаковка с този код: вътрешен или баркод
             if ($catPack = cat_products_Packagings::fetch(array("#eanCode = '[#1#]'", $code), 'productId,packagingId')) {
-                // Ако има запис намираме ид-та на продукта и опаковката
+               
+                    // Ако има запис намираме ид-та на продукта и опаковката
                 $res->productId = $catPack->productId;
                 $res->packagingId = $catPack->packagingId;
             }
         }
         
         if (!$res->productId) {
-            // Търсим продукта по код, без значение на кейса
+            
+            // Търси се продукта по код, без значение на кейса
             if ($rec = self::fetch(array("LOWER(#code) = '[#1#]'", mb_strtolower($code)), 'id')) {
                 $res->productId = $rec->id;
                 $res->packagingId = null;
+            }
+        }
+        
+        // Ако не е намерен артикул с този баркод или код, търсим дали е ArtXXX, търси артикул с това ид
+        if (!$res->productId) {
+            if(stripos($code, 'art') == 0){
+                $extractId = str_ireplace('art', '', $code);
+                if(type_Int::isInt($extractId)){
+                    if($productId = cat_Products::fetchField("#id = '{$extractId}'")){
+                        $res->productId = $productId;
+                        $res->packagingId = null;
+                    }
+                }
             }
         }
         
@@ -1503,7 +1519,7 @@ class cat_Products extends embed_Manager
             }
         }
         
-        $query->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id))");
+        $query->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id, ' ', #id))");
         $direction = ($reverseOrder === true) ? 'ASC' : 'DESC';
         $query->orderBy('isPublic', $direction);
         if (!trim($q)) {

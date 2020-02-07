@@ -133,6 +133,12 @@ class blast_Emails extends core_Master
     
     
     /**
+     * Кой може да затваря имейла
+     */
+    protected $canClose = 'ceo, blast';
+    
+    
+    /**
      * Кой може да го изтрие?
      */
     protected $canDelete = 'no_one';
@@ -161,7 +167,7 @@ class blast_Emails extends core_Master
     /**
      * Плъгините и враперите, които ще се използват
      */
-    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools2, bgerp_plg_Blank, change_Plugin, plg_Search, plg_Clone, plg_Printing';
+    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools2, bgerp_plg_Blank, change_Plugin, plg_Search, plg_Clone, plg_Printing, doc_plg_Close';
     
     
     /**
@@ -968,7 +974,7 @@ class blast_Emails extends core_Master
      *
      * @return string $lg - Двубуквеното означение на предполагаемия език
      */
-    protected static function getLanguage($body, $lang = null)
+    public static function getLanguage($body, $lang = null)
     {
         // Масив с всички допустими езици за системата
         $langArr = arr::make(EF_LANGUAGES, true);
@@ -1897,6 +1903,12 @@ class blast_Emails extends core_Master
                 $roles = 'no_one';
             }
         }
+        
+        if ($action == 'close' && isset($rec) && $roles != 'no_one') {
+            if (($rec->state != 'draft') && ($rec->state != 'closed')) {
+                $roles = 'no_one';
+            }
+        }
     }
     
     
@@ -1968,10 +1980,10 @@ class blast_Emails extends core_Master
             }
         }
         
-        if ($state != 'stopped') {
+        if (($state != 'stopped') && ($state != 'draft')) {
             
             // Добавяме бутона Спри, ако състоянието е активно или изчакване
-            if (($state == 'waiting') || ($state == 'active') || ($state == 'draft')) {
+            if (($state == 'waiting') || ($state == 'active')) {
                 if ($mvc->haveRightFor('stop', $rec->rec)) {
                     $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $rec->id), 'ef_icon = img/16/gray-close.png, title=Прекратяване на действието');
                 }

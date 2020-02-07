@@ -33,6 +33,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
     public static function on_AfterDescription(core_Mvc $mvc)
     {
         $mvc->declareInterface('deals_DealImportProductIntf');
+        
     }
     
     
@@ -88,6 +89,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                     $data = ($rec->csvFile) ? bgerp_plg_Import::getFileContent($rec->csvFile) : $rec->csvData;
                     
                     $delimiter = $rec->delimiter == '\t' ? "\t" : $rec->delimiter;
+                    
                     
                     // Обработваме данните
                     $rows = csv_Lib::getCsvRows($data, $delimiter, $rec->enclosure, $rec->firstRow);
@@ -183,15 +185,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $meta = (array) cat_Products::fetch($pRec->productId, $mvc->metaProducts);
             unset($meta['id']);
             
-            $masterId = Request::get($mvc->masterKey, 'int');
-                
-            $masterRec = $mvc->Master->fetch($masterId);
-            
-            //Първия документ в нишката
-            $Document = doc_Containers::getDocument($masterRec->originId);
-            
-            if (!$mvc->metaProducts && ($mvc instanceof store_ShipmentOrderDetails || $mvc instanceof store_Receipts)){
-                
+            // Ако импорта е в Експедиционно или Складова разписка
+            if (!$mvc->metaProducts) {
                 $masterId = Request::get($mvc->masterKey, 'int');
                 
                 $masterRec = $mvc->Master->fetch($masterId);
@@ -199,19 +194,16 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 //Първия документ в нишката
                 $Document = doc_Containers::getDocument($masterRec->originId);
                 
-                if ($Document->className == 'sales_Sales'){
-                    
-                    $meta = array('canSell'=>cat_Products::fetch($pRec->productId)->canSell);
-                }elseif ($Document->className == 'purchase_Purchases'){
-                    
-                    $meta = array('canBuy'=>cat_Products::fetch($pRec->productId)->canBuy);
+                if ($Document->className == 'sales_Sales') {
+                    $meta = array('canSell' => cat_Products::fetch($pRec->productId)->canSell);
+                } elseif ($Document->className == 'purchase_Purchases') {
+                    $meta = array('canBuy' => cat_Products::fetch($pRec->productId)->canBuy);
                 }
-                
             }
             
             foreach ($meta as $metaValue) {
                 if ($metaValue != 'yes') {
-                    $err[$i][] = $obj->code . ' |Артикулът няма вече нужните свойства|*';
+                   $err[$i][] = $obj->code . ' |Артикулът няма вече нужните свойства|*';
                 }
             }
             
@@ -251,8 +243,27 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
                 $policyInfo = $Policy->getPriceInfo($Cover->getInstance()->getClassId(), $Cover->that, $pRec->productId, null, 1);
                 
-                if (empty($policyInfo->price)) {
-                    $err[$i][] = $obj->code . ' |Артикулът няма цена|*';
+                if ($Document) {
+                    $Document = cls::get($Document->className);
+                }
+                
+                //Ако документа е в покупка не искаме ценова политика
+                if ($Document instanceof sales_Sales ||
+                    $mvc->Master instanceof sales_Sales) {
+                    if (empty($policyInfo->price)) {
+                        $err[$i][] = $obj->code . ' |Артикулът няма цена|*';
+                    }
+                }
+                
+                if ($Document instanceof purchase_Purchases || 
+                    $mvc->Master instanceof purchase_Purchases) {
+                    
+                    // Себестойност
+                    $selfPrice = cat_Products::getPrimeCost($pRec->productId, null, null, null);
+                   
+                    if (!$selfPrice) {
+                        $err[$i][] = $obj->code . ' |Артикулът няма себестойност|*';
+                    }
                 }
             }
             
@@ -336,7 +347,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         $added = $failed = 0;
         
         foreach ($rows as $row) {
-            
+         
             // Опитваме се да импортираме записа
             try {
                 if ($mvc->import($masterId, $row)) {
@@ -440,7 +451,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             "id=btnAdd-import,{$error},title=Импортиране на артикули",
                 'ef_icon = img/16/import.png,order=15'
             );
-        }
+        }//bp($masterRec,$data->toolbar);
     }
     
     

@@ -41,6 +41,7 @@ abstract class acc_DocumentTransactionSource
         $rec = $this->class->fetchRec($id);
         
         // Промяна на състоянието на документа
+        $rec->brState = $rec->state;
         $rec->state = $this->finalizedState;
         
         try{

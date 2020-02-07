@@ -497,11 +497,12 @@ class store_ConsignmentProtocols extends core_Master
      */
     public function getTotalTransportInfo($id, $force = false)
     {
-        $res1 = cls::get('store_ConsignmentProtocolDetailsReceived')->getTransportInfo($id, $force);
-        $res2 = cls::get('store_ConsignmentProtocolDetailsSend')->getTransportInfo($id, $force);
+        $rec = $this->fetchRec($id);
+        $res1 = cls::get('store_ConsignmentProtocolDetailsReceived')->getTransportInfo($rec->id, $force);
+        $res2 = cls::get('store_ConsignmentProtocolDetailsSend')->getTransportInfo($rec->id, $force);
         
-        $count1 = store_ConsignmentProtocolDetailsReceived::count("#protocolId = {$id}");
-        $count2 = store_ConsignmentProtocolDetailsSend::count("#protocolId = {$id}");
+        $count1 = store_ConsignmentProtocolDetailsReceived::count("#protocolId = {$rec->id}");
+        $count2 = store_ConsignmentProtocolDetailsSend::count("#protocolId = {$rec->id}");
         
         $nullWeight = ($count1 && is_null($res1->weight)) || ($count2 && is_null($res2->weight)) || (!$count1 && !$count2);
         $weight = ($nullWeight) ? null : $res1->weight + $res2->weight;
@@ -534,23 +535,26 @@ class store_ConsignmentProtocols extends core_Master
      * Информацията на документа, за показване в транспортната линия
      *
      * @param mixed $id
+     * @param int $lineId
      *
      * @return array
-     *               ['baseAmount'] double|NULL - сумата за инкасиране във базова валута
-     *               ['amount']     double|NULL - сумата за инкасиране във валутата на документа
-     *               ['currencyId'] string|NULL - валутата на документа
-     *               ['notes']      string|NULL - забележки за транспортната линия
-     *               ['stores']     array       - склад(ове) в документа
-     *               ['weight']     double|NULL - общо тегло на стоките в документа
-     *               ['volume']     double|NULL - общ обем на стоките в документа
+     *               ['baseAmount']     double|NULL - сумата за инкасиране във базова валута
+     *               ['amount']         double|NULL - сумата за инкасиране във валутата на документа
+     *               ['amountVerbal']   double|NULL - сумата за инкасиране във валутата на документа
+     *               ['currencyId']     string|NULL - валутата на документа
+     *               ['notes']          string|NULL - забележки за транспортната линия
+     *               ['stores']         array       - склад(ове) в документа
+     *               ['weight']         double|NULL - общо тегло на стоките в документа
+     *               ['volume']         double|NULL - общ обем на стоките в документа
      *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
-     *               [transUnitId] => quantity
+     *               ['contragentName'] double|NULL - име на контрагента
      */
-    public function getTransportLineInfo_($rec)
+    public function getTransportLineInfo_($rec, $lineId)
     {
         $rec = static::fetchRec($rec);
         $row = $this->recToVerbal($rec);
-        $res = array('baseAmount' => null, 'amount' => null, 'currencyId' => null, 'notes' => $rec->lineNotes);
+        $res = array('baseAmount' => null, 'amount' => null, 'amountVerbal' => null, 'currencyId' => null, 'notes' => $rec->lineNotes);
+        $res['contragentName'] = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
         $res['stores'] = array($rec->storeId);
         $res['address'] = str_replace('<br>', '', $row->contragentAddress);
         

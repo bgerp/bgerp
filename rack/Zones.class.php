@@ -958,6 +958,7 @@ class rack_Zones extends core_Master
                 $res->attr = "ef_icon=img/16/package.png,title=Към зоната";
             }
         }
+        $res->attr = arr::make($res->attr, true);
         
         return $res;
     }
