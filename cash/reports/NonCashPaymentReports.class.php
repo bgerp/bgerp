@@ -174,6 +174,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         $pkoDocsArr = arr::extractValuesFromArray($pkoQuery->fetchAll(), 'containerId');
         
         $iQuery = cash_InternalMoneyTransfer::getQuery();
+        $iQuery->where("#state != 'rejected'");
         $iQuery->where("#sourceId IS NOT NULL");
         $iQuery->in('sourceId', $pkoDocsArr);
         
@@ -270,10 +271,10 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                 $state = $val->state;
                 
                 
-                $inAmount = ($val->state == 'pending') ? 0 : $val->amount;
+                $inAmount = ($val->state == 'pending' || $val->state == 'draft') ? 0 : $val->amount;
                 $color = $inAmount == 0 ? 'blue': 'black' ;
                 $sum += $inAmount;
-                if ($state == 'pending') {
+                if ($state == 'pending' || $state == 'draft') {
                     $row->transfer .= "<div><span class= 'state-{$state} document-handler' >".cash_InternalMoneyTransfer::getLinkToSingle($val->id).'</div>';
                     $row->amount .= "<span style='color: {$color}'>".core_Type::getByName('double(decimals=2)')->toVerbal($inAmount).'</br>';
                 } else {
