@@ -11,40 +11,39 @@
     <tr>
         <td class="imageCell">[#img1#]</td>
         <td class="shortcuts"><span>Ctrl + A </span></td>
-
         <td class="textShortcut"> - Избор на артикул</td>
     </tr>
     <tr>
         <td class="imageCell">[#img2#]</td>
-        <td class="shortcuts"><span>Ctrl + K </span></td>
+        <td class="shortcuts"><span>Ctrl + S </span></td>
         <td class="textShortcut"> - Подробни настройки на избрания ред на артикула</td>
     </tr>
     <tr>
         <td class="imageCell">[#img3#]</td>
-        <td class="shortcuts"><span>Ctrl + P </span></td>
+        <td class="shortcuts"><span>Ctrl + Z </span></td>
         <td class="textShortcut"> - Плащане по бележката</td>
     <tr>
         <td class="imageCell">[#img4#]</td>
-        <td class="shortcuts"><span>Ctrl + C </span></td>
-        <td class="textShortcut"> - Избор на контрагент</td>
+        <td class="shortcuts"><span>Ctrl + K</span></td>
+        <td class="textShortcut"> - Избор на контрагент и прехвърляне</td>
     </tr>
     <tr>
         <td class="imageCell">[#img5#]</td>
-        <td class="shortcuts"><span>Ctrl + I </span></td>
-        <td class="textShortcut"> - Текст към артикула</td>
+        <td class="shortcuts"><span>Ctrl + Е </span></td>
+        <td class="textShortcut"> - Добяване на текст към артикула</td>
     </tr>
     <tr>
         <td class="imageCell">[#img6#]</td>
-        <td class="shortcuts"><span>Ctrl + R </span></td>
+        <td class="shortcuts"><span>Ctrl + B </span></td>
         <td class="textShortcut"> - Преглед на бележките</td>
     </tr>
     <tr>
         <td class="imageCell">[#img7#]</td>
-        <td class="shortcuts"><span>Ctrl + F </span></td>
-        <td class="textShortcut"> - Преглед на артикула</td>
+        <td class="shortcuts"><span>F2 </span></td>
+        <td class="textShortcut"> - Подробна информация за селектирания артикул / конктрагент / бележка / локация</td>
     <tr>
         <td class="imageCell">[#img8#]</td>
-        <td class="shortcuts"><span>Ctrl + L </span></td>
+        <td class="shortcuts"><span>Ctrl + P </span></td>
         <td class="textShortcut"> - Печат на бележката</td>
     </tr>
     <tr>
@@ -54,12 +53,12 @@
     </tr>
     <tr>
         <td class="imageCell">[#img10#]</td>
-        <td class="shortcuts"><span>Ctrl + Z </span></td>
+        <td class="shortcuts"><span>Ctrl + O </span></td>
         <td class="textShortcut"> - Оттегляне на бележка</td>
     </tr>
     <tr>
         <td class="imageCell">[#img11#]</td>
-        <td class="shortcuts"><span>Ctrl + H </span></td>
+        <td class="shortcuts"><span>F1 </span></td>
         <td class="textShortcut"> - Помощна информация</td>
     </tr>
     <tr>
@@ -69,7 +68,7 @@
     </tr>
     <tr>
         <td></td>
-        <td class="shortcuts"><span>Ctrl + D </span></td>
+        <td class="shortcuts"><span>Ctrl + DEL </span></td>
         <td class="textShortcut"> - Изтриване на селектирания ред от бележката</td>
     </tr>
 </table>
