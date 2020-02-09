@@ -498,6 +498,7 @@ class bgerp_Bookmark extends core_Manager
     {
         setIfNot($rec->user, core_Users::getCurrent());
         $query = self::getQuery();
+        $res = array();
         $query->where("#user = {$rec->user}");
         while ($rec = $query->fetch()) {
             $res[$rec->id] = $rec;
