@@ -584,31 +584,7 @@ class acc_Periods extends core_Manager
         
         return followRetUrl(null, $res);
     }
-   
-	    
-    /**
-     * Отваря затворен период
-	 *
-     * @return string $res
-     */
-    public function act_Open()
-    {
-        $this->requireRightFor('Open');
-        
-        // Отваряме период
-        $id = Request::get('id', 'int');
-        
-        $rec = $this->fetch("#id = '{$id}'");
-        
-        // Новото състояние е 'Отворен';
-        $rec->state = 'open';
-        
-        $this->save($rec);
-        
-        $res = "|Отворен е период|* <span style=\"color:red;\">{$rec->title}</span>";
-        
-    }
- 
+    
     
     /**
      * Инициализира начални счетоводни периоди при инсталиране
