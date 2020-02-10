@@ -72,6 +72,12 @@ class price_Lists extends core_Master
     
     
     /**
+     * Кой може да променя типа на политиката?
+     */
+    public $canChangepublic = 'priceMaster,ceo';
+    
+    
+    /**
      * Кой има право да добавя?
      */
     public $canAdd = 'price,sales,ceo';
@@ -555,6 +561,17 @@ class price_Lists extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
+        
+        if($action == 'changepublic' && isset($rec)){
+            if($rec->public == 'yes'){
+                $customers = price_ListToCustomers::getCustomers($rec->id);
+                
+                // Ако ценовата политика е публична и е закачена на повече от 1 контрагент, не може да стане частна
+                if(countR($customers) > 1){
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
     
     
@@ -652,5 +669,54 @@ class price_Lists extends core_Master
         
         // Връщаме закръглената цена
         return $price;
+    }
+    
+    
+    /**
+    * След подготовка на тулбара на единичен изглед.
+    *
+    * @param core_Mvc $mvc
+    * @param stdClass $data
+    *
+    * @return bool|null
+    */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $rec = $data->rec;
+        
+        if ($mvc->haveRightFor('changepublic', $rec)) {
+            $btnTitle = ($rec->public == 'yes') ? 'Частна' : 'Публична';
+            $btnWarning = ($rec->public == 'yes') ? 'Наистина ли желаете да направите политиката частна|*?' : 'Наистина ли желаете да направите политиката публична|*?';
+            
+            $data->toolbar->addBtn($btnTitle, array($mvc, 'changepublic', $rec->id, 'ret_url' => true), "ef_icon=img/16/arrow_refresh.png,title=Промяна на типа на политиката,warning={$btnWarning}");
+        }
+    }
+    
+    
+    /**
+     * Екшън за промяна на състоянието на ценовата политика
+     */
+    public function act_Changepublic()
+    {
+        $this->requireRightFor('changepublic');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('changepublic', $rec);
+        
+        if($rec->public == 'no'){
+            $rec->public = 'yes';
+            $rec->cClass = null;
+            $rec->cId = null;
+        } else {
+            $Cover = doc_Folders::getCover($rec->folderId);
+            $rec->public = 'no';
+            $rec->cClass = $Cover->getClassId();
+            $rec->cId = $Cover->that;
+        }
+        
+        $this->save_($rec, 'public,cClass,cId');
+        $currentState = ($rec->public == 'yes') ? 'публична' : 'частна';
+        
+        followRetUrl(null, "Политиката е променена на {$currentState}");
     }
 }
