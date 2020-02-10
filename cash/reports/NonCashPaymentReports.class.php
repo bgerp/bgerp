@@ -304,7 +304,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         
         if (isset($dRec->pkoId)) {
           
-            $handle = cash_Pko::getHandle($dRec->pkoId).' / '.$Date->toVerbal($dRec->pkoValior);
+            $handle = "Приходен касов ордер #$dRec->pkoId".' / '.$Date->toVerbal($dRec->pkoValior);
             
             $url = toUrl(array("cash_Pko",'single', $dRec->pkoId));
             
