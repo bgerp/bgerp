@@ -56,12 +56,6 @@ class acc_Periods extends core_Manager
      * Кой може да пише?
      */
     public $canClose = 'ceo,accMaster,admin';
-  
-	    
-    /**
-     * Кой може да пише?
-     */
-    public $canOpen = 'no_one';
     
     
     /**
