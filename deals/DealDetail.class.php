@@ -167,10 +167,10 @@ abstract class deals_DealDetail extends doc_Detail
             }
         }
         
-        if($action == 'add' && $requiredRoles != 'no_one' && haveRole('partner', $userId)){
+        if ($action == 'add' && $requiredRoles != 'no_one' && haveRole('partner', $userId)) {
             $listSysId = ($mvc instanceof sales_SalesDetails) ? 'salesList' : 'purchaseList';
             $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, 'contragentClassId,contragentId');
-            if(!cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, $listSysId)){
+            if (!cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, $listSysId)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -495,7 +495,7 @@ abstract class deals_DealDetail extends doc_Detail
         
         // Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
         if ($row->price) {
-            $packRec = cat_products_Packagings::getPack($pRec->productId,  $pRec->packagingId);
+            $packRec = cat_products_Packagings::getPack($pRec->productId, $pRec->packagingId);
             $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
             $row->price /= $quantityInPack;
             
