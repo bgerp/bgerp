@@ -214,7 +214,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
         
         $folderCover = doc_Folders::getCover($rec->folderId);
         if ($folderCover->isInstanceOf('planning_Centers')) {
-            $form->setReadOnly('departmentId', $folderCover->that);
+            $form->setDefault('departmentId', $folderCover->that);
         }
     }
     
