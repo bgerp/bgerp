@@ -3,7 +3,7 @@
 
 
 /**
- * Импортиран артикул
+ * Драйвер за импортиран артикул от друга bgerp система
  *
  *
  * @category  bgerp
@@ -39,6 +39,24 @@ class cat_ImportedProductDriver extends cat_ProductDriver
      * Иконка за артикула
      */
     public $icon = 'img/16/import.png';
+    
+    
+    /**
+     * Шаблон за данните на драйвера в сингъла
+     */
+    private $layoutSingleTpl = 'cat/tpl/SingleLayoutImportedDriverShort.shtml';
+    
+    
+    /**
+     * Шаблон за данните на драйвера в краткото описание
+     */
+    private $layoutShortTpl = 'cat/tpl/SingleLayoutImportedDriver.shtml';
+    
+    
+    /**
+     * Работен кеш
+     */
+    private $cache = array();
     
     
     /**
@@ -81,23 +99,12 @@ class cat_ImportedProductDriver extends cat_ProductDriver
      */
     public static function on_AfterRecToVerbal(cat_ProductDriver $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
-        $shortUom = cat_UoM::getShortName($rec->measureId);
-        
-        foreach (range(1, 3) as $i) {
-            if (isset($rec->{"quantity{$i}"})) {
-                $row->{"quantity{$i}"} .= " {$shortUom}";
-            }
+        $row->html = (core_Lg::getCurrent() == 'bg') ? $row->html : $row->htmlEn;
+        if(isset($rec->moq)){
+            $shortUom = cat_UoM::getShortName($rec->measureId);
+            $row->moq .= " " . tr($shortUom); 
         }
         
-        $info .= (core_Lg::getCurrent() == 'bg') ? $row->html : $row->htmlEn;
-        if(!empty($row->info)){
-            $row->info = $info . "<br>{$row->info}";
-        } else {
-            $row->info = $info;
-        }
-       
-        unset($row->html);
-        unset($row->htmlEn);
         unset($row->params);
         unset($row->quotations);
         unset($row->conditions);
@@ -116,11 +123,15 @@ class cat_ImportedProductDriver extends cat_ProductDriver
         if($data->documentType == 'public' ){
             unset($data->row->importedFromDomain);
             unset($data->row->moq);
+            unset($data->row->measureId);
         }
-       
-        $tpl = parent::renderProductDescription($data);
-        $Embedder = cls::get($data->Embedder);
+         
+        // Подготовка на шаблона
+        $layout = ($data->isSingle !== true) ? $this->layoutSingleTpl : $this->layoutShortTpl;
+        $tpl = getTplFromFile($layout);
+        $tpl->placeObject($data->row);
         
+        $Embedder = cls::get($data->Embedder);
         $params = $Embedder->getParams($data->rec);
         $paramsTpl = $this->renderParams($Embedder, $data->rec, $params);
         $tpl->append($paramsTpl, 'PARAMETERS');
@@ -391,31 +402,36 @@ class cat_ImportedProductDriver extends cat_ProductDriver
      */
     private function getQuoteRecByQuantity($productId, $quantity)
     {
-        // Всички данни от оферта на артикула
-        $quotations = (array)$this->driverRec->quotations;
-        if(!countR($quotations)) {
+        if(!isset($this->cache[$productId][$quantity])){
             
-            return null;
-        }
-       
-        // Намира се записа отговарящ на най-близкото количество
-        $oldDiff = $index =  null;
-        foreach ($quotations as $key => $quotationRec){
-            $diff = abs($quantity - $quotationRec->quantity);
-            
-            if ($oldDiff > $diff || is_null($oldDiff)) {
-                $oldDiff = $diff;
-                $index = $key;
-            
-            // Ако има два записа за същото к-во взима се този от по-новата оферта
-            } elseif($oldDiff == $diff && $quotationRec->activatedOn >= $quotations[$index]->activatedOn){
-                $oldDiff = $diff;
-                $index = $key;
+            // Всички данни от оферта на артикула
+            $quotations = (array)$this->driverRec->quotations;
+            if(!countR($quotations)) {
+                
+                return null;
             }
+            
+            // Намира се записа отговарящ на най-близкото количество
+            $oldDiff = $index =  null;
+            foreach ($quotations as $key => $quotationRec){
+                $diff = abs($quantity - $quotationRec->quantity);
+                
+                if ($oldDiff > $diff || is_null($oldDiff)) {
+                    $oldDiff = $diff;
+                    $index = $key;
+                    
+                    // Ако има два записа за същото к-во взима се този от по-новата оферта
+                } elseif($oldDiff == $diff && $quotationRec->activatedOn >= $quotations[$index]->activatedOn){
+                    $oldDiff = $diff;
+                    $index = $key;
+                }
+            }
+            
+            $this->cache[$productId][$quantity] = $quotations[$index];
         }
         
         // Връщане на намерения запис
-        return $quotations[$index];
+        return $this->cache[$productId][$quantity];
     }
     
     
