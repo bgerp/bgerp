@@ -218,6 +218,35 @@ class drdata_PhoneType extends type_Varchar
     
     
     /**
+     * Добавя, ако е необходимо, кода на държавата
+     */
+    public static function setCodeIfMissing($val, $code)
+    {
+        if (substr($val, 0, 1) != '+' && substr($val, 0, 2) != '00') {
+            $params = array('countryPhoneCode' => $code);
+            if ($code == '359') {
+                $params['areaPhoneCode'] = 2;
+            }
+            
+            // В Италия се запазва нулата
+            if ($code != '39') {
+                $val = ltrim($val, '0');
+            }
+            
+            $val1 = '00' . $code . $val;
+            
+            $parsedTel = static::toArray($val, $params);
+            
+            if (is_array($parsedTel) && count($parsedTel)) {
+                $val = $val1;
+            }
+            
+            return $val;
+        }
+    }
+    
+    
+    /**
      * Конвертира списък от телефонни номера до масив
      *
      * @param string $str
@@ -286,16 +315,16 @@ class drdata_PhoneType extends type_Varchar
         if ($value !== null) {
             $res = array();
             
-            if(!empty($value) && isset($this->params['unrecognized'])){
+            if (!empty($value) && isset($this->params['unrecognized'])) {
                 $parsedTel = static::toArray($value, $this->params);
                 if ($parsedTel == false || !countR($parsedTel)) {
-                    if($this->params['unrecognized'] == 'warning'){
+                    if ($this->params['unrecognized'] == 'warning') {
                         $res['warning'] = self::UNRECOGNIZED_TEXT;
                     } else {
                         $res['error'] = self::UNRECOGNIZED_TEXT;
                     }
                 }
-                    
+                
                 if ($res['error']) {
                     $this->error = $res['error'];
                 }

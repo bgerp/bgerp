@@ -1,0 +1,17 @@
+.floor-container {
+  position: absolute;
+  border: 3px solid #73AD21;
+  display: table; 
+  text-align: center; 
+  padding:0px;
+  color:white;
+  background:url('/sbf/bgerp/floor/img/wood2.png');
+  background-color:rgb(217, 173, 138);
+  cursor: pointer;
+}
+.floor-obj {
+  display: table-cell;
+  vertical-align: middle;
+  font-size:1.2em;
+  font-weight:bold;
+}

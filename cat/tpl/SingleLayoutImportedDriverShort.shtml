@@ -1,0 +1,16 @@
+<div class='groupList'>
+<div class='richtext' style='margin-top: 5px; font-weight:bold;'>[#TITLE#]</div>
+<!--ET_BEGIN importedFromDomain-->
+<div class="groupList"><span class='quiet'>|Импортиран от|*:</span> [#importedFromDomain#]</div>
+<!--ET_END importedFromDomain-->
+<!--ET_BEGIN measureId-->
+<div class="groupList"><span class='quiet'>|Мярка|*:</span> [#measureId#]</div>
+<!--ET_END measureId-->
+<!--ET_BEGIN moq-->
+<div class="groupList"><span class='quiet'>|МКП|*:</span> [#moq#]</div>
+<!--ET_END moq-->
+[#html#]
+<!--ET_BEGIN info-->
+<div style='margin-top:5px;'>[#info#]</div>
+<!--ET_END info-->
+</div>

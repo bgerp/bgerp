@@ -23,7 +23,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,accMaster,debug';
+    public $canSelectDriver = 'ceo,accMaster,sales,bank,cash,acc,debug';
     
     
     /**
@@ -156,13 +156,21 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         
         $nonCashQuery = cash_NonCashPaymentDetails::getQuery();
         
+        
         //Масив с id-та на ПКО-та по които има избрани безналични методи на плащане
         $pkoWitnNonCashPaymentsArr = arr::extractValuesFromArray($nonCashQuery->fetchAll(), 'documentId');
+        
+        
         $pkoNonCashAmount = array();
         while ($nonRec = $nonCashQuery->fetch()) {
-            $pkoNonCashAmount[$nonRec->documentId] = (object) array('nonCashPaymentAmount' => $nonRec->amount,
-                'nonCashPaymentId' => $nonRec->paymentId
-            );
+            if (! array_key_exists($nonRec->documentId, $pkoNonCashAmount)) {
+                $pkoNonCashAmount[$nonRec->documentId] = (object) array('nonCashPaymentAmount' => $nonRec->amount,
+                    'nonCashPaymentId' => $nonRec->paymentId
+                );
+            } else {
+                $obj = & $pkoNonCashAmount[$nonRec->documentId];
+                $obj->nonCashPaymentAmount += $nonRec->amount;
+            }
         }
         
         //ПКО-та по които има избрани безналични методи на плащане
@@ -171,14 +179,14 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         $pkoQuery->in('id', $pkoWitnNonCashPaymentsArr);
         
         //Филтър по период(по подразбиране началната дата е най-старата на която има запис за полето sourceId)
-        $pkoQuery->where(array("#valior>= '[#1#]' AND #valior <= '[#2#]'",$rec->from. ' 00:00:01',$rec->to . ' 23:59:59'));
+        $pkoQuery->where(array("#valior>= '[#1#]' AND #valior <= '[#2#]'",$rec->from. ' 00:00:00',$rec->to . ' 23:59:59'));
         
         //Масив с containerId-та на ПКО-та по които има избрани безналични методи на плащане
         $pkoDocsArr = arr::extractValuesFromArray($pkoQuery->fetchAll(), 'containerId');
         
         $iQuery = cash_InternalMoneyTransfer::getQuery();
         $iQuery->where("#state != 'rejected'");
-        $iQuery->where("#sourceId IS NOT NULL");
+        $iQuery->where('#sourceId IS NOT NULL');
         $iQuery->in('sourceId', $pkoDocsArr);
         
         $intenalMoneyTrArr = array();
@@ -203,6 +211,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                 $recs[$id] = (object) array(
                     
                     'pkoId' => $pkoRec->id,
+                    'pkoValior' => $pkoRec->valior,
                     'folderId' => $pkoRec->folderId,
                     'creditCase' => $pkoRec->peroCase,
                     'currencyId' => $pkoRec->currencyId,
@@ -291,10 +300,16 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         
         $rest = $dRec->pkoAmount - $sum;
         
-        $row->rest = "<span style='color: {$color}'>".core_Type::getByName('double(decimals=2)')->toVerbal($rest);
+        $row->rest = "<span style='color: {$color}'>"."<b>".core_Type::getByName('double(decimals=2)')->toVerbal($rest)."</b>";
         
         if (isset($dRec->pkoId)) {
-            $row->pko = cash_Pko::getLinkToSingle($dRec->pkoId);
+          
+            $handle = "Приходен касов ордер #$dRec->pkoId".' / '.$Date->toVerbal($dRec->pkoValior);
+            
+            $url = toUrl(array("cash_Pko",'single', $dRec->pkoId));
+            
+            $row->pko =ht::createLink($handle, $url, false, array());
+            
             $cashFolderId = cash_Cases::fetchField($dRec->creditCase, 'folderId');
             
             if ($rest > 0) {
@@ -304,7 +319,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                 
                 $url['operationSysId'] = 'nonecash2bank';
                 $toolbar->addLink('Инкасиране(Банка)', $url, 'ef_icon = img/16/own-bank.png,title=Създаване на вътрешно касов трансфер  за инкасиране на безналично плащане по банка');
-                $row->pko .= $toolbar->renderHtml(2);
+                $row->pko .= ' - '.$toolbar->renderHtml(2);
             }
         }
         

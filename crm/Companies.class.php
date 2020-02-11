@@ -309,16 +309,16 @@ class crm_Companies extends core_Master
         $visibleNKID = crm_Setup::get('VISIBLE_NKID');
         
         // Ако полето е обозначено за оказване
-        if($visibleNKID == 'yes'){
+        if ($visibleNKID == 'yes') {
             // Добавяме поле във формата
-            $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', "caption=НКИД,after=folderName, hint=Номер по НКИД");
+            $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=НКИД,after=folderName, hint=Номер по НКИД');
         }
         
         // Допълнителна информация
         $this->FLD('info', 'richtext(bucket=crmFiles, passage=Общи)', 'caption=Бележки,height=150px,class=contactData,export=Csv');
         $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Лого,export=Csv');
         $this->FLD('folderName', 'varchar', 'caption=Име на папка');
-
+        
         // В кои групи е?
         $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'persons\\\'AND #state !\\= \\\'rejected\\\',classLink=group-link)', 'caption=Групи->Групи,remember,silent,export=Csv');
         
@@ -501,8 +501,37 @@ class crm_Companies extends core_Master
             // Да има само 2 колони
             $data->form->setField($mvc->expandInputFieldName, array('maxColumns' => 2));
         }
-
+        
         $mvc->autoChangeFields($form);
+    }
+    
+    
+    /**
+     * Преди модифициране на edit формата
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    {
+        if ($country = Request::get('country')) {
+            if (($tel = Request::get('tel')) || ($fax = Request::get('fax'))) {
+                $code = drdata_Countries::fetchField($country, 'telCode');
+                if ($tel) {
+                    $tel1 = drdata_PhoneType::setCodeIfMissing($tel, $code);
+                    if ($tel1 != $tel) {
+                        Request::push(array('tel' => $tel1));
+                    }
+                }
+                if ($fax) {
+                    $fax1 = drdata_PhoneType::setCodeIfMissing($fax, $code);
+                    if ($fax1 != $fax) {
+                        Request::push(array('tel' => $fax1));
+                    }
+                }
+            }
+        }
     }
     
     
@@ -716,7 +745,7 @@ class crm_Companies extends core_Master
     {
         $rec = $form->rec;
         
-        if ($form->isSubmitted()) { 
+        if ($form->isSubmitted()) {
             
             // Проверяваме да няма дублиране на записи
             $resStr = static::getSimilarWarningStr($form->rec, $fields);
@@ -1090,7 +1119,7 @@ class crm_Companies extends core_Master
         } else {
             $tpl->removeBlock('email');
         }
-
+        
         $content = $tpl->getContent();
         
         $pngHnd = '';
@@ -2426,14 +2455,13 @@ class crm_Companies extends core_Master
     public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
         $res = drdata_Countries::addCountryInBothLg($rec->country, $res);
-       
+        
         // Ако полето е обозначено за оказване
-        if(isset($rec->nkid)){
+        if (isset($rec->nkid)) {
             
             // Добавяме в ключовите думи
             $res .= ' ' . plg_Search::normalizeText(bglocal_NKID::getTitleById($rec->nkid));
         }
-
     }
     
     
