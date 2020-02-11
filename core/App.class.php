@@ -856,7 +856,7 @@ class core_App
             $url .= '/' . $arr['Ctr'];
             $url .= '/' . $arr['Act'];
             
-            if (isset($arr['id'])) {
+            if (strlen($arr['id']) > 0) {
                 $url .= '/' . $arr['id'];
             }
             unset($arr['App'], $arr['Ctr'], $arr['Act'], $arr['id']);
