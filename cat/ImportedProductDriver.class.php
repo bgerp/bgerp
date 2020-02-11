@@ -402,12 +402,13 @@ class cat_ImportedProductDriver extends cat_ProductDriver
         $oldDiff = $index =  null;
         foreach ($quotations as $key => $quotationRec){
             $diff = abs($quantity - $quotationRec->quantity);
+            
             if ($oldDiff > $diff || is_null($oldDiff)) {
                 $oldDiff = $diff;
                 $index = $key;
             
             // Ако има два записа за същото к-во взима се този от по-новата оферта
-            } elseif($oldDiff == $diff && $diff->activatedOn > $quotations[$index]->activatedOn){
+            } elseif($oldDiff == $diff && $quotationRec->activatedOn >= $quotations[$index]->activatedOn){
                 $oldDiff = $diff;
                 $index = $key;
             }
