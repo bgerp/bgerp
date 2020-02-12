@@ -466,13 +466,10 @@ class acc_plg_Contable extends core_Plugin
         }
         
         if ($action == 'debugreconto' && isset($rec)) {
-            $journalRec = acc_Journal::fetchByDoc($mvc, $rec->id);
-            if(!$journalRec){
+            if(acc_Periods::isClosed($mvc->getValiorValue($rec))){
                 $requiredRoles = 'no_one';
-            } else {
-                if(acc_Periods::isClosed($journalRec->valior)){
-                    $requiredRoles = 'no_one';
-                }
+            } elseif(!in_array($rec->state, array('closed', 'active'))){
+                $requiredRoles = 'no_one';
             }
         }
     }
