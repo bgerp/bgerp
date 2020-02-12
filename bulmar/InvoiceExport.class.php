@@ -96,7 +96,6 @@ class bulmar_InvoiceExport extends core_Manager
         $query->where("#state = 'active'");
         $query->between('date', $filter->from, $filter->to);
         $query->orderBy('#number', 'ASC');
-        
         $recs = $query->fetchAll();
         
         if (!countR($recs)) {
@@ -165,13 +164,15 @@ class bulmar_InvoiceExport extends core_Manager
         $dQuery = sales_InvoiceDetails::getQuery();
         $dQuery->where("#invoiceId = {$rec->id}");
         
+        $vatDecimals = sales_Setup::get('SALE_INV_VAT_DISPLAY', true) == 'yes' ? 20 : 2;
+        
         while ($dRec = $dQuery->fetch()) {
             if (empty($this->cache[$dRec->productId])) {
                 $this->cache[$dRec->productId] = cat_Products::getProductInfo($dRec->productId);
             }
             
             $pInfo = $this->cache[$dRec->productId];
-            $dRec->amount = round($dRec->packPrice * $dRec->quantity, 2);
+            $dRec->amount = round($dRec->packPrice * $dRec->quantity, $vatDecimals);
             
             if (empty($pInfo->meta['canStore'])) {
                 $byServices += $dRec->amount * (1 - $dRec->discount);
