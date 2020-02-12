@@ -102,6 +102,7 @@ class acc_plg_Contable extends core_Plugin
             Mode::pop('recontoTransaction');
             $msg = ($success) ? 'Документът е реконтиран|*!' : 'Документът не е реконтиран|*!';
             $msgType = ($success) ? 'notice' : 'error';
+            $mvc->logWrite('Ръчно реконтиране', $rec->id);
             
             followRetUrl(null, $msg, $msgType);
         }

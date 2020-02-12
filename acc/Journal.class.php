@@ -754,6 +754,7 @@ class acc_Journal extends core_Master
                 Mode::push('recontoTransaction', true);
                 acc_Journal::saveTransaction($rec->docType, $rec->docId, false);
                 Mode::pop('recontoTransaction');
+                cls::get($rec->docType)->logWrite('Реконтиране от настройките', $rec->docId);
             }
         }
         
