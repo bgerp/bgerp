@@ -33,6 +33,7 @@ class acc_plg_Contable extends core_Plugin
             $mvc->FLD('isContable', 'enum(yes,no,activate)', 'input=none,notNull,value=no');
         }
         
+        setIfNot($mvc->canDebugreconto, 'debug');
         setIfNot($mvc->canCorrection, 'ceo, accMaster');
         setIfNot($mvc->valiorFld, 'valior');
         setIfNot($mvc->lockBalances, false);
@@ -84,6 +85,25 @@ class acc_plg_Contable extends core_Plugin
             }
             
             return false;
+        }
+        
+        if (strtolower($action) == strtolower('debugreconto')) {
+            $mvc->requireRightFor('debugreconto');
+            $id = Request::get('id', 'int');
+            $rec = $mvc->fetch($id);
+            $mvc->requireRightFor('debugreconto', $rec);
+            
+            // Изтриваме му транзакцията
+            acc_Journal::deleteTransaction($mvc, $rec->id);
+            
+            // Записване на новата транзакция на документа
+            Mode::push('recontoTransaction', true);
+            $success = acc_Journal::saveTransaction($mvc, $rec->id, false);
+            Mode::pop('recontoTransaction');
+            $msg = ($success) ? 'Документът е реконтиран|*!' : 'Документът не е реконтиран|*!';
+            $msgType = ($success) ? 'notice' : 'error';
+            
+            followRetUrl(null, $msg, $msgType);
         }
     }
     
@@ -207,6 +227,22 @@ class acc_plg_Contable extends core_Plugin
             if ($error = $mvc->getRestoreBtnErrStr($rec)) {
                 $data->toolbar->setError("btnRestore{$rec->containerId}", $error);
             }
+        }
+        
+        // Ако потребителя може да създава коригиращ документ, слагаме бутон
+        if ($mvc->haveRightFor('reconto', $rec)) {
+            $correctionUrl = array(
+                'acc_Articles',
+                'RevertArticle',
+                'docType' => $mvc->getClassId(),
+                'docId' => $rec->id,
+                'ret_url' => true
+            );
+            $data->toolbar->addBtn('Корекция||Correct', $correctionUrl, "id=btnCorrection-{$rec->id},class=btn-correction,warning=Наистина ли желаете да коригирате документа?{$error},title=Създаване на обратен мемориален ордер,ef_icon=img/16/page_red.png,row=2");
+        }
+        
+        if($mvc->haveRightFor('debugreconto', $rec)){
+            $data->toolbar->addBtn('Реконтиране', array($mvc, 'debugreconto', $rec->id, 'ret_url' => true), "id=btnDebugreconto-{$rec->id},warning=Наистина ли желаете да реконтирате документа?,title=Реконтиране на документа,ef_icon=img/16/bug.png,row=3");
         }
     }
     
@@ -427,7 +463,19 @@ class acc_plg_Contable extends core_Plugin
                 $requiredRoles = 'no_one';
             }
         }
+        
+        if ($action == 'debugreconto' && isset($rec)) {
+            $journalRec = acc_Journal::fetchByDoc($mvc, $rec->id);
+            if(!$journalRec){
+                $requiredRoles = 'no_one';
+            } else {
+                if(acc_Periods::isClosed($journalRec->valior)){
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
+    
     
     
     /**
