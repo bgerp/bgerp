@@ -242,6 +242,17 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
             $nRec->amountPaid = $nRec->amount;
         }
         
+        if(round($nRec->productsAmount + $nRec->servicesAmount, 2) != round($nRec->baseAmount, 2)){
+            if(empty($nRec->productsAmount) && !empty($nRec->servicesAmount)){
+                $nRec->servicesAmount = $nRec->baseAmount;
+            } elseif(!empty($nRec->productsAmount) && empty($nRec->servicesAmount)){
+                $nRec->productsAmount = $nRec->baseAmount;
+            } elseif(!empty($nRec->productsAmount) && !empty($nRec->servicesAmount)){
+                $nRec->servicesAmount = $nRec->baseAmount - $nRec->productsAmount;
+                $nRec->productsAmount = $nRec->baseAmount - $nRec->servicesAmount;
+            }
+        }
+        
         return $nRec;
     }
     
