@@ -177,12 +177,14 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
         $dQuery = purchase_InvoiceDetails::getQuery();
         $dQuery->where("#invoiceId = {$rec->id}");
         
+        $vatDecimals = sales_Setup::get('SALE_INV_VAT_DISPLAY', true) == 'yes' ? 20 : 2;
+        
         while ($dRec = $dQuery->fetch()) {
             if (empty($this->cache[$dRec->productId])) {
                 $this->cache[$dRec->productId] = cat_Products::fetch($dRec->productId, 'canStore');
             }
            
-            $dRec->amount = round($dRec->packPrice * $dRec->quantity, 2);
+            $dRec->amount = round($dRec->packPrice * $dRec->quantity, $vatDecimals);
             
             if ($this->cache[$dRec->productId]->canStore == 'no') {
                 $byServices += $dRec->amount * (1 - $dRec->discount);
