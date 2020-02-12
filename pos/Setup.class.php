@@ -108,7 +108,8 @@ class pos_Setup extends core_ProtoSetup
         'pos_Reports',
         'pos_Stocks',
         'migrate::migrateCronSettings',
-        'migrate::updateStoreIdInReceipts'
+        'migrate::updateStoreIdInReceipts',
+        'migrate::updateBrState',
     );
     
     
@@ -188,6 +189,29 @@ class pos_Setup extends core_ProtoSetup
      * Класове за зареждане
      */
     public $defClasses = 'pos_Terminal';
+    
+    
+    /**
+     * Обновяване на предишното състояние на грешно създадените артикули
+     */
+    public function updateBrState()
+    {
+        $Reports = cls::get('pos_Reports');
+        $Reports->setupMvc();
+        
+        $toSave = array();
+        $pQuery = $Reports->getQuery();
+        $pQuery->where("#state = 'closed' AND #brState != 'active'");
+        $pQuery->show('brState');
+        while($pRec = $pQuery->fetch()){
+            $pRec->brState = 'active';
+            $toSave[] = $pRec;
+        }
+        
+        if(countR($toSave)){
+            $Reports->saveArray($toSave, 'id,brState');
+        }
+    }
     
     
     /**
