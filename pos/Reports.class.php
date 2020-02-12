@@ -109,7 +109,7 @@ class pos_Reports extends core_Master
     /**
      * Поле за филтриране по дата
      */
-    public $valiorFld = 'date';
+    public $valiorFld = 'createdOn';
     
     
     /**
