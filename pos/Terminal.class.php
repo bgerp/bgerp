@@ -1553,6 +1553,9 @@ class pos_Terminal extends peripheral_Terminal
                 $tpl->append($bTpl);
                 $count++;
             }
+
+            $tpl->prepend("<div class='grid'>");
+            $tpl->append("</div>");
         }
         
         if(!count($data->rows)){
