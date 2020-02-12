@@ -1,13 +1,15 @@
 <div class='groupList'>
-<div class='richtext' style='margin-top: 5px; font-weight:bold;'>[#TITLE#]</div>
-<!--ET_BEGIN importedFromDomain-->
-<div class="groupList"><span class='quiet'>|Импортиран от|*:</span> [#importedFromDomain#]</div>
-<!--ET_END importedFromDomain-->
+<!--ET_BEGIN TITLE-->
+<div class='richtext' style='font-weight:bold;margin-bottom:5px'>[#TITLE#] ([#importedFromDomain#])</div>
+<!--ET_END TITLE-->
 <div class="groupList"><span class='quiet'>|Мярка|*:</span> [#measureId#]</div>
 <!--ET_BEGIN moq-->
 <div class="groupList"><span class='quiet'>|МКП|*:</span> [#moq#]</div>
 <!--ET_END moq-->
+<div style='background-color:#eee;padding:5px;margin-top:5px'>
 [#html#]
+</div>
+
 <!--ET_BEGIN info-->
 <div style='margin-top:5px;'>[#info#]</div>
 <!--ET_END info-->
