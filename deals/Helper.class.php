@@ -910,7 +910,7 @@ abstract class deals_Helper
         $res['MyCompany'] = $ownCompanyData->companyVerb;
         
         // ДДС и националния номер на 'Моята фирма'
-        $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
+        $uic = isset($ownCompanyData->uicId) ? $ownCompanyData->uicId : drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
         if ($uic != $ownCompanyData->vatNo) {
             $res['MyCompanyVatNo'] = $ownCompanyData->vatNo;
         }

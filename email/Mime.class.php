@@ -709,7 +709,7 @@ class email_Mime extends core_BaseClass
                 }
                 foreach ($imapDecodeArr as $id => $header) {
                     if(isset($header->charset) && $header->charset != '' && $header->charset != 'default') {
-                        $decoded .= iconv($header->charset, 'utf-8', $header->text);
+                        $decoded .= @iconv($header->charset, 'utf-8', $header->text);
                     } else {
                         $decoded .= i18n_Charset::convertToUtf8($header->text, $charset);
                     }

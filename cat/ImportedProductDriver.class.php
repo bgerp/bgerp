@@ -124,6 +124,8 @@ class cat_ImportedProductDriver extends cat_ProductDriver
             unset($data->row->importedFromDomain);
             unset($data->row->moq);
             unset($data->row->measureId);
+        } else {
+            $data->row->TITLE = tr('Импортиран артикул');
         }
          
         // Подготовка на шаблона

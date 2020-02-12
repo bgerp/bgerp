@@ -378,7 +378,7 @@ class drdata_Vats extends core_Manager
                 $regex = '/^HR(\d{11})$/';
                 break;
             case 'IE':
-                $regex = '/^IE[0-9][0-9A-Z\+\*][0-9]{5}[A-Z]$/i';
+                $regex = '/^IE[0-9][0-9A-Z\+\*][0-9]{5}[A-Z]{1,2}$/i';
                 break;
             case 'IT':
             case 'LV':

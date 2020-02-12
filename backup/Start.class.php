@@ -100,7 +100,7 @@ class backup_Start extends core_Manager
         exec('gzip -1 ' . EF_TEMP_PATH . '/' . self::$backupFileName);
         
         if ($returnVar !== 0) {
-            self::logErr('Грешка при FullBackup: ' . implode("|", $output));
+            self::logErr('Грешка при FullBackup: errNo: ' . $returnVar . " " . implode("|", $output));
             self::unLock();
             
             shutdown();

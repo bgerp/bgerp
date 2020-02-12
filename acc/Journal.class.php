@@ -751,7 +751,10 @@ class acc_Journal extends core_Master
                 }
                 
                 // Преконтираме документа
+                Mode::push('recontoTransaction', true);
                 acc_Journal::saveTransaction($rec->docType, $rec->docId, false);
+                Mode::pop('recontoTransaction');
+                cls::get($rec->docType)->logWrite('Реконтиране от настройките', $rec->docId);
             }
         }
         
@@ -907,7 +910,10 @@ class acc_Journal extends core_Master
         acc_Journal::deleteTransaction($origin->getClassId(), $origin->that);
         
         // Записване на новата транзакция на документа
+        Mode::push('recontoTransaction', true);
         $success = acc_Journal::saveTransaction($origin->getClassId(), $origin->that, false);
+        Mode::pop('recontoTransaction');
+        
         expect($success, $success);
         
         // Инвалидиране на кеш
