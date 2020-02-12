@@ -2708,4 +2708,34 @@ class core_Users extends core_Manager
         
         return false;
     }
+    
+
+    /**
+     * Логва потребител за определено време
+     * Ако се извика без първия параметър - релогва потребителя
+     * 
+     * @param int   $userId     ID на потребителя
+     * @param float $duration   Време в минути от последната активност, за запазване на сесията
+     */
+    public static function tempLogin($userId = null, $duration = 5)
+    {
+        if($userId) {
+            Mode::setPermanent('tempUserId', $userId);
+            Mode::setPermanent('tempUserDuration', $duration);
+            Mode::setPermanent('tempUserExpiresOn', dt::addSecs($duration * 60));
+        } else {
+            $userId = Mode::get('tempUserId');
+            if(Mode::get('tempUserExpiresOn') < dt::now()) {
+                unset($userId);
+            } else {
+                $duration = Mode::get('tempUserDuration');
+                Mode::setPermanent('tempUserExpiresOn', dt::addSecs($duration * 60));
+            }
+        }
+        if($userId) {
+            
+            return self::sudo($userId);
+        }
+    }
+
 }

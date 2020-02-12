@@ -116,8 +116,12 @@ class bgerp_drivers_Tasks extends core_BaseClass
         
         $resData->data->query->orWhere(array("(#state = 'closed' OR #state = 'stopped') AND #timeClosed <= '[#1#]' AND #timeClosed >= '[#2#]'", $after, $before));
         
+        $todayB = dt::now(false) . ' 00:00:00';
+        
         $resData->data->query->where('#timeStart IS NULL');
+        $resData->data->query->orWhere(array("#timeStart < '[#1#]'", $todayB));
         $resData->data->query->where('#timeEnd IS NULL');
+        $resData->data->query->orWhere(array("#timeEnd < '[#1#]'", $todayB));
         
         $resData->cacheKey = $this->getCacheKey($dRec, $userId);
         $resData->cacheType = $this->getCacheTypeName($userId);
