@@ -732,7 +732,7 @@ class acc_plg_Contable extends core_Plugin
     {
         if (!$res) {
             $rec = $mvc->fetchRec($rec);
-            $res = $rec->{$mvc->valiorFld};
+            $res = dt::verbal2mysql($rec->{$mvc->valiorFld}, false);
         }
     }
     
