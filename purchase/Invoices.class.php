@@ -1148,7 +1148,10 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public static function getValiorValue($rec)
     {
-        return (!empty($rec->journalDate)) ? $rec->journalDate : $rec->date;
+        $valior = (!empty($rec->journalDate)) ? $rec->journalDate : $rec->date;
+        $valior = dt::verbal2mysql($valior, false);
+        
+        return $valior;
     }
     
     
