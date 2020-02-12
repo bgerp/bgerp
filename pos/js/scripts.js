@@ -34,31 +34,40 @@ function posActions() {
 	// Използване на числата за въвеждане в пулта
 	$(document.body).on('click', ".numPad", function(e){
 		var val = $(this).val();
-		
+		var strOffset = 1;
 		var closestSearch = $('.select-input-pos');
 
 		var inpVal = $(closestSearch).val();
-		if(val == '.'){
-			if(inpVal.indexOf(".")  != -1){
-				return;
-			}
-			if(inpVal == ""){
-				inpVal = "0.0";
-			} else {
-				inpVal += val;
-			}
+
+		var start = closestSearch[0].selectionStart;
+		var end = closestSearch[0].selectionEnd;
+
+		if(val == '.' && inpVal == ""){
+			inpVal = "0.";
+			strOffset = 2;
 		} else if(val == '«') {
-			inpVal = inpVal.substr(0, inpVal.length - 1);
-		} else{
-			inpVal += val;
+			if (start == end) {
+				inpVal =inpVal.substr(0, start-1) + inpVal.substr(end);
+				strOffset = -1;
+			} else {
+				inpVal =inpVal.substr(0, start) + inpVal.substr(end);
+				strOffset = 0;
+			}
+		} else {
+			inpVal = inpVal.substr(0, start) + val + inpVal.substr(end);
 		}
+
 		closestSearch.val(inpVal);
+		closestSearch[0].selectionStart = start + strOffset;
+		closestSearch[0].selectionEnd = start + strOffset;
+
 		if($('body').hasClass('wide')){
 			closestSearch.focus();
 		}
+
 		var e = jQuery.Event("keyup");
-		$('.select-input-pos').trigger(e);
-		
+		closestSearch.trigger(e);
+
 		activeInput = true;
 	});
 
