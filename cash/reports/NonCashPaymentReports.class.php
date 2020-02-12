@@ -220,10 +220,12 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
             $id = $pkoRec->id;
             $stateArr = array('active', 'closed');
             $pkoTransferedSumm = 0;
-            foreach ($intenalMoneyTrArr[$pkoRec->containerId] as $val){
-            
-                if(in_array($val->state, $stateArr)){
-                    $pkoTransferedSumm += $val->amount;
+            if (is_array($intenalMoneyTrArr[$pkoRec->containerId])){
+                foreach ($intenalMoneyTrArr[$pkoRec->containerId] as $val){
+                
+                    if(in_array($val->state, $stateArr)){
+                        $pkoTransferedSumm += $val->amount;
+                    }
                 }
             }
           
@@ -274,13 +276,13 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         
-        
+        $fld->FLD('contragentName', 'varchar', 'caption=Контрагент');
         $fld->FLD('pko', 'varchar', 'caption=ПКО->Документ');
         $fld->FLD('pkoAmount', 'double(smartRound,decimals=2)', 'caption=ПКО->Сума');
         $fld->FLD('rest', 'double(smartRound,decimals=2)', 'caption=ПКО->Остатък');
         $fld->FLD('transfer', 'varchar', 'caption=Трансфер->Документ');
         $fld->FLD('amount', 'double(smartRound,decimals=2)', 'caption=Трансфер->Сума');
-        $fld->FLD('contragentName', 'varchar', 'caption=Контрагент');
+        
         return $fld;
     }
     
