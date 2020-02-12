@@ -220,10 +220,12 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
             $id = $pkoRec->id;
             $stateArr = array('active', 'closed');
             $pkoTransferedSumm = 0;
-            foreach ($intenalMoneyTrArr[$pkoRec->containerId] as $val){
-            
-                if(in_array($val->state, $stateArr)){
-                    $pkoTransferedSumm += $val->amount;
+            if (is_array($intenalMoneyTrArr[$pkoRec->containerId])){
+                foreach ($intenalMoneyTrArr[$pkoRec->containerId] as $val){
+                
+                    if(in_array($val->state, $stateArr)){
+                        $pkoTransferedSumm += $val->amount;
+                    }
                 }
             }
           
