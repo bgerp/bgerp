@@ -320,6 +320,22 @@ class support_TaskType extends core_Mvc
                 asort($assetResArr);
             }
         }
+        
+        // Болдваме ресурсите, до които е споделен
+        if (!empty($assetResArr)) {
+            $aUsersQuery = planning_AssetResources::getQuery();
+            $aUsersQuery->in('id', array_keys($assetResArr));
+            $aUsersQuery->likeKeylist('assetUsers', core_Users::getCurrent());
+            $aUsersQuery->show('id');
+            while ($rec = $aUsersQuery->fetch()) {
+                if (!$assetResArr[$rec->id]) continue;
+                $opt = new stdClass();
+                $opt->title = $assetResArr[$rec->id];
+                $opt->attr = array('class' => 'boldText');
+                $assetResArr[$rec->id] = $opt;
+            }
+        }
+        
         $data->form->setOptions('assetResourceId', $assetResArr);
         
         if (($data->form->cmd == 'refresh') || (!$data->form->cmd && $data->form->rec->assetResourceId)) {
