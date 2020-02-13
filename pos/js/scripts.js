@@ -34,41 +34,10 @@ function posActions() {
 	// Използване на числата за въвеждане в пулта
 	$(document.body).on('click', ".numPad", function(e){
 		var val = $(this).val();
-		var strOffset = 1;
-		var closestSearch = $('.select-input-pos');
 
-		var inpVal = $(closestSearch).val();
+		var inputElement = $('.select-input-pos');
 
-		var start = closestSearch[0].selectionStart;
-		var end = closestSearch[0].selectionEnd;
-
-		if(val == '.' && inpVal == ""){
-			inpVal = "0.";
-			strOffset = 2;
-		} else if(val == '«') {
-			if (start == end) {
-				inpVal =inpVal.substr(0, start-1) + inpVal.substr(end);
-				strOffset = -1;
-			} else {
-				inpVal =inpVal.substr(0, start) + inpVal.substr(end);
-				strOffset = 0;
-			}
-		} else {
-			inpVal = inpVal.substr(0, start) + val + inpVal.substr(end);
-		}
-
-		closestSearch.val(inpVal);
-		closestSearch[0].selectionStart = start + strOffset;
-		closestSearch[0].selectionEnd = start + strOffset;
-
-		if($('body').hasClass('wide')){
-			closestSearch.focus();
-		}
-
-		var e = jQuery.Event("keyup");
-		closestSearch.trigger(e);
-
-		activeInput = true;
+		inputChars(inputElement, val);
 	});
 
 	
@@ -207,50 +176,33 @@ function posActions() {
 		}
 	});
 	
-	// Смяна на текущата клавиатура
-	$(document.body).on('click', ".keyboard-change-btn", function(e){
-		var currentAttrValue = $(this).attr('data-klang');
-		$('.keyboard#' + currentAttrValue).show().siblings('.keyboard').hide();
-	}); 
+
 	
 	// Попълване на символи от клавиатурата
 	$(document.body).on('click', ".keyboard-btn", function(e){
 
 		var currentAttrValue = $(this).val();
-		var isChangeBtn = $(this).attr('data-klang');
 		
-		// Ако е натиснат бутон за смяна на език, не правим нищо
-		if(isChangeBtn != undefined) {
+		// Ако е натиснат бутон за смяна на език
+		if($(this).hasClass('keyboard-change-btn')) {
+			var lang = $(this).attr('data-klang');
+			$('.keyboard#' + lang).show().siblings('.keyboard').hide();
 			return;
 		}
-		
-		var closestSearch = $('.keyboardText');
-		
-		var inpVal = closestSearch.text();
-		if (currentAttrValue == "ENTER") {
-			$('.select-input-pos').val($('.keyboardText').text());
-			$('.ui-dialog-titlebar-close').click();
-		} else if (currentAttrValue == "." && !inpVal) {
-			$('.select-input-pos').val("0.0");
-			$('.ui-dialog-titlebar-close').click();
-		} else {
-			inpVal += currentAttrValue;
-			closestSearch.text(inpVal);
 
+		inputChars($('.keyboardText'), currentAttrValue);
+
+		if (currentAttrValue == "ENTER") {
+			$('.select-input-pos').val($('.keyboardText').val());
+			$('.ui-dialog-titlebar-close').click();
 		}
-		// Задействаме евент 'keyup' в инпут полето
-		var e = jQuery.Event("keyup");
-		$('.select-input-pos').trigger(e);
-		
-		activeInput = true;
 	});
 
 	$(document.body).on('click', ".ui-dialog-titlebar-close", function() {
-		if($('.keyboardText').text()){
-			$('.select-input-pos').val($('.keyboardText').text());
+		if($('.keyboardText').val()){
+			$('.select-input-pos').val($('.keyboardText').val());
 			var e = jQuery.Event("keyup");
 			$('.select-input-pos').trigger(e);
-		
 			activeInput = true;
 		}
 		
@@ -580,6 +532,42 @@ function posActions() {
 	})
 
 }
+
+function inputChars(inputElement, val) {
+	var strOffset = 1;
+	var inpVal = $(inputElement).val();
+	var start = inputElement[0].selectionStart;
+	var end = inputElement[0].selectionEnd;
+
+	if(val == '.' && inpVal == ""){
+		inpVal = "0.";
+		strOffset = 2;
+	} else if(val == '«') {
+		if (start == end) {
+			inpVal =inpVal.substr(0, start-1) + inpVal.substr(end);
+			strOffset = -1;
+		} else {
+			inpVal =inpVal.substr(0, start) + inpVal.substr(end);
+			strOffset = 0;
+		}
+	} else {
+		inpVal = inpVal.substr(0, start) + val + inpVal.substr(end);
+	}
+
+	inputElement.val(inpVal);
+	inputElement[0].selectionStart = start + strOffset;
+	inputElement[0].selectionEnd = start + strOffset;
+
+	if($('body').hasClass('wide')){
+		inputElement.focus();
+	}
+
+	var e = jQuery.Event("keyup");
+	inputElement.trigger(e);
+
+	activeInput = true;
+}
+
 
 function deteleElements(){
 	$('.rejectBtn').parent().trigger("click");
@@ -992,7 +980,7 @@ function openModal(title, heightModal) {
 	// Изчистване на предишното съдържание на модала, да не се визуализира, докато се зареди новото
 	$("#modalContent").html("");
 	
-	var height = (heightModal == "smallHeight" ) ?  450 : 700;
+	var height = (heightModal == "smallHeight" ) ?  500 : 700;
 	dialog = $("#modalContent").dialog({
 		autoOpen: false,
 		height: height,

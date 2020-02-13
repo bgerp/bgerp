@@ -1,7 +1,21 @@
 
-<div class="keyboardText">[#STRING#]</div>
+<input type="text" class="keyboardText" />
 <div id='keyboard-lat' class='keyboard'>
-    <div class='keyboard-row' style='padding-left:1.5em'>
+    <div class='keyboard-row' style='padding-left:1.2em'>
+        <input class="keyboard-btn" type="button" value="." />
+        <input class="keyboard-btn" type="button" value="+" />
+        <input class="keyboard-btn" type="button" value="-" />
+        <input class="keyboard-btn" type="button" value="*" />
+        <input class="keyboard-btn" type="button" value="/" />
+        <input class="keyboard-btn" type="button" value="%" />
+        <input class="keyboard-btn" type="button" value="@" />
+        <input class="keyboard-btn" type="button" value="#" />
+        <input class="keyboard-btn" type="button" value="(" />
+        <input class="keyboard-btn" type="button" value=")" />
+        <input class="keyboard-btn" type="button" value="«" />
+        <input class="keyboard-btn keyboard-change-btn" data-klang='keyboard-bg' type="button" value="BG" />
+    </div>
+    <div class='keyboard-row' style='padding-left:3.4em'>
         <input class="keyboard-btn" type="button" value="1" />
         <input class="keyboard-btn" type="button" value="2" />
         <input class="keyboard-btn" type="button" value="3" />
@@ -12,11 +26,9 @@
         <input class="keyboard-btn" type="button" value="8" />
         <input class="keyboard-btn" type="button" value="9" />
         <input class="keyboard-btn" type="button" value="0" />
-        <input class="keyboard-btn decimalBtn" type="button" value="." />
-        <input class="keyboard-back-btn" type="button" value="«" />
-        <input class="keyboard-btn keyboard-change-btn" data-klang='keyboard-bg' type="button" value="BG" />
+
     </div>
-    <div class='keyboard-row' style='padding-left:3em'>
+    <div class='keyboard-row' style='padding-left:5.6em'>
         <input class="keyboard-btn" type="button" value="Q" />
         <input class="keyboard-btn" type="button" value="W" />
         <input class="keyboard-btn" type="button" value="E" />
@@ -28,7 +40,7 @@
         <input class="keyboard-btn" type="button" value="O" />
         <input class="keyboard-btn" type="button" value="P" />
     </div>
-    <div class='keyboard-row' style='padding-left:4.5em'>
+    <div class='keyboard-row' style='padding-left:3.5em'>
         <input class="keyboard-btn" type="button" value="A" />
         <input class="keyboard-btn" type="button" value="S" />
         <input class="keyboard-btn" type="button" value="D" />
@@ -40,7 +52,7 @@
         <input class="keyboard-btn" type="button" value="L" />
         <input class="keyboard-btn keyboard-space-btn" type="button" value="ENTER" />
     </div>
-    <div class='keyboard-row' style='padding-left:6em'>
+    <div class='keyboard-row' style='padding-left:5.6em'>
         <input class="keyboard-btn" type="button" value="Z" />
         <input class="keyboard-btn" type="button" value="X" />
         <input class="keyboard-btn" type="button" value="C" />
@@ -52,7 +64,21 @@
     </div>
 </div>
 <div id='keyboard-bg' class='keyboard' style='display:none'>
-    <div class='keyboard-row' style='padding-left:1.5em'>
+    <div class='keyboard-row' style='padding-left:1.2em'>
+        <input class="keyboard-btn" type="button" value="." />
+        <input class="keyboard-btn" type="button" value="+" />
+        <input class="keyboard-btn" type="button" value="-" />
+        <input class="keyboard-btn" type="button" value="*" />
+        <input class="keyboard-btn" type="button" value="/" />
+        <input class="keyboard-btn" type="button" value="%" />
+        <input class="keyboard-btn" type="button" value="@" />
+        <input class="keyboard-btn" type="button" value="#" />
+        <input class="keyboard-btn" type="button" value="(" />
+        <input class="keyboard-btn" type="button" value=")" />
+        <input class="keyboard-btn" type="button" value="«" />
+        <input class="keyboard-btn keyboard-change-btn" data-klang='keyboard-ph' type="button" value="PH" title='|Смяна на езика|*' />
+    </div>
+    <div class='keyboard-row' style='padding-left:3.5em'>
         <input class="keyboard-btn" type="button" value="1" />
         <input class="keyboard-btn" type="button" value="2" />
         <input class="keyboard-btn" type="button" value="3" />
@@ -63,11 +89,9 @@
         <input class="keyboard-btn" type="button" value="8" />
         <input class="keyboard-btn" type="button" value="9" />
         <input class="keyboard-btn" type="button" value="0" />
-        <input class="keyboard-btn decimalBtn" type="button" value="." />
-        <input class="keyboard-back-btn" type="button" value="«" />
-        <input class="keyboard-btn keyboard-change-btn" data-klang='keyboard-ph' type="button" value="PH" title='|Смяна на езика|*' />
+
     </div>
-    <div class='keyboard-row' style='padding-left:3em'>
+    <div class='keyboard-row' style='padding-left:1.2em'>
         <input class="keyboard-btn" type="button" value="Ы" />
         <input class="keyboard-btn" type="button" value="У" />
         <input class="keyboard-btn" type="button" value="Е" />
@@ -80,7 +104,7 @@
         <input class="keyboard-btn" type="button" value="З" />
         <input class="keyboard-btn" type="button" value="Ц" />
     </div>
-    <div class='keyboard-row' style='padding-left:4.5em'>
+    <div class='keyboard-row' style='padding-left:3.5em'>
         <input class="keyboard-btn" type="button" value="Я" />
         <input class="keyboard-btn" type="button" value="А" />
         <input class="keyboard-btn" type="button" value="О" />
@@ -93,7 +117,7 @@
         <input class="keyboard-btn" type="button" value="Ч" />
         <input class="keyboard-btn keyboard-space-btn" type="button" value="ENTER" />
     </div>
-    <div class='keyboard-row' style='padding-left:3em'>
+    <div class='keyboard-row' style='padding-left:1.2em'>
         <input class="keyboard-btn" type="button" value="Ю" />
         <input class="keyboard-btn" type="button" value="Й" />
         <input class="keyboard-btn" type="button" value="Ъ" />
@@ -108,7 +132,21 @@
     </div>
 </div>
 <div id='keyboard-ph' class='keyboard' style='display:none'>
-    <div class='keyboard-row' style='padding-left:1.5em'>
+    <div class='keyboard-row' style='padding-left:0em'>
+        <input class="keyboard-btn" type="button" value="." />
+        <input class="keyboard-btn" type="button" value="+" />
+        <input class="keyboard-btn" type="button" value="-" />
+        <input class="keyboard-btn" type="button" value="*" />
+        <input class="keyboard-btn" type="button" value="/" />
+        <input class="keyboard-btn" type="button" value="%" />
+        <input class="keyboard-btn" type="button" value="@" />
+        <input class="keyboard-btn" type="button" value="#" />
+        <input class="keyboard-btn" type="button" value="(" />
+        <input class="keyboard-btn" type="button" value=")" />
+        <input class="keyboard-btn" type="button" value="«" />
+        <input class="keyboard-btn keyboard-change-btn" data-klang='keyboard-lat' type="button" value="EN" />
+    </div>
+    <div class='keyboard-row' style='padding-left:2.5em'>
         <input class="keyboard-btn" type="button" value="1" />
         <input class="keyboard-btn" type="button" value="2" />
         <input class="keyboard-btn" type="button" value="3" />
@@ -119,9 +157,6 @@
         <input class="keyboard-btn" type="button" value="8" />
         <input class="keyboard-btn" type="button" value="9" />
         <input class="keyboard-btn" type="button" value="0" />
-        <input class="keyboard-btn decimalBtn" type="button" value="." />
-        <input class="keyboard-back-btn" type="button" value="«" />
-        <input class="keyboard-btn keyboard-change-btn" data-klang='keyboard-lat' type="button" value="EN" />
     </div>
     <div class='keyboard-row' style='padding-left:0'>
         <input class="keyboard-btn" type="button" value="Я" />
@@ -138,7 +173,7 @@
         <input class="keyboard-btn" type="button" value="Щ" />
         <input class="keyboard-btn" type="button" value="Ю" />
     </div>
-    <div class='keyboard-row' style='padding-left:4.5em'>
+    <div class='keyboard-row' style='padding-left:2.5em'>
         <input class="keyboard-btn" type="button" value="А" />
         <input class="keyboard-btn" type="button" value="С" />
         <input class="keyboard-btn" type="button" value="Д" />
@@ -150,7 +185,7 @@
         <input class="keyboard-btn" type="button" value="Л" />
         <input class="keyboard-btn keyboard-space-btn" type="button" value="ENTER" />
     </div>
-    <div class='keyboard-row' style='padding-left:6.4em'>
+    <div class='keyboard-row' style='padding-left:5em'>
         <input class="keyboard-btn" type="button" value="З" />
         <input class="keyboard-btn" type="button" value="Ь" />
         <input class="keyboard-btn" type="button" value="Ц" />

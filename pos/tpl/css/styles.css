@@ -174,29 +174,27 @@
     box-shadow: inset 0 0 50px black; }
 
 .keyboardText {
-  height: 36px;
-  padding: 10px;
-  border: 1px solid #999999;
-  background: white;
-  font-size: 2em;
-  margin-bottom: 30px; }
+  width: 100%;
+  height: 36px !important;
+  padding: 10px !important;
+  border: 1px solid #999999 !important;
+  background: white !important;
+  font-size: 2em !important;
+  margin-bottom: 20px !important; }
 
-.keyboard-btn,
-.keyboard-back-btn {
+.keyboard-btn {
   background: #303030 !important;
   border-bottom: black 2px solid !important;
   border-top: 2px #303030 solid !important;
   color: white !important;
-  min-width: 57px;
+  min-width: 67px;
   margin: 2px !important;
   border-radius: 4px !important;
   font-size: 2em !important;
-  padding: 10px 18px !important; }
-  .keyboard-btn.keyboard-space-btn,
-  .keyboard-back-btn.keyboard-space-btn {
-    min-width: 204px; }
-  .keyboard-btn:hover,
-  .keyboard-back-btn:hover {
+  padding: 10px 13px !important; }
+  .keyboard-btn.keyboard-space-btn {
+    min-width: 140px; }
+  .keyboard-btn:hover {
     border-top: black 2px solid !important;
     border-bottom: #303030 2px solid !important;
     background: #505050 !important;
