@@ -38,7 +38,7 @@ defIfNot('DEALS_ISSUER', 'activatedBy');
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -130,7 +130,7 @@ class deals_Setup extends core_ProtoSetup
             $dQuery = $Class->getQuery();
             $dQuery->EXT('inCharge', 'doc_Folders', 'externalName=inCharge,externalKey=folderId');
             $dQuery->where("#state = 'pending'");
-            $dQuery->show("{$Class->termDateFld},modifiedOn,createdBy,inCharge,contragentId,contragentClassId,amount,currencyId");
+            $dQuery->show("{$Class->termDateFld},modifiedOn,createdBy,inCharge,contragentId,contragentClassId,amount,currencyId, threadId");
             
             while($dRec = $dQuery->fetch()){
                 
@@ -153,15 +153,22 @@ class deals_Setup extends core_ProtoSetup
                             $msg .= " (|{$iVerbal} напомняне|*)";
                         }
                        
-                        bgerp_Notifications::add($msg, array($Class, 'single', $dRec->id), $dRec->createdBy);
-                        if($dRec->createdBy != $dRec->inCharge){
-                            bgerp_Notifications::add($msg, array($Class, 'single', $dRec->id), $dRec->inCharge);
+                        // Нотифицира се създателя на документа, дилъра на сделката и отговорника на папката
+                        $usersToNotify = array($dRec->createdBy => $dRec->createdBy);
+                        $usersToNotify[$dRec->inCharge] = $dRec->inCharge;
+                        $firstDoc = doc_Threads::getFirstDocument($dRec->threadId);
+                        if($dealerId = $firstDoc->fetchField('dealerId')){
+                            $usersToNotify[$dealerId] = $dealerId;
                         }
+                        
+                        foreach ($usersToNotify as $userId){
+                            bgerp_Notifications::add($msg, array($Class, 'single', $dRec->id), $userId);
+                        }
+                        
                         break;
                     }
                 }
             }
         }
-        
     }
 }
