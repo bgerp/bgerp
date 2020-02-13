@@ -182,6 +182,9 @@
   font-size: 2em !important;
   margin-bottom: 20px !important; }
 
+.modal .keyboard {
+  display: none; }
+
 .keyboard-btn {
   background: #303030 !important;
   border-bottom: black 2px solid !important;

@@ -186,6 +186,7 @@ function posActions() {
 		// Ако е натиснат бутон за смяна на език
 		if($(this).hasClass('keyboard-change-btn')) {
 			var lang = $(this).attr('data-klang');
+			sessionStorage.setItem('activeKeyboard', lang);
 			$('.keyboard#' + lang).show().siblings('.keyboard').hide();
 			return;
 		}
@@ -245,14 +246,7 @@ function posActions() {
 	});
 	startNavigation();
 
-	// Триене на символи от формата за търсене
-	$(document.body).on('click', ".keyboard-back-btn", function(e){
-		var inpValLength = $(".keyboardText").text().length;
-		var newVal = $(".keyboardText").text().substr(0, inpValLength-1);
-		$(".keyboardText").text(newVal);
-		
-		activeInput = true;
-	});
+
 
 	// действие на бутоните за действията
 	$(document.body).on('click', ".operationBtn", function(e){
@@ -981,6 +975,7 @@ function openModal(title, heightModal) {
 	$("#modalContent").html("");
 	
 	var height = (heightModal == "smallHeight" ) ?  500 : 700;
+
 	dialog = $("#modalContent").dialog({
 		autoOpen: false,
 		height: height,
@@ -992,6 +987,18 @@ function openModal(title, heightModal) {
 	});
 
 	dialog.dialog( "open" );
+
+	setTimeout(function(){
+			if ($('.keyboard'.length)) {
+				var keyboard = sessionStorage.getItem('activeKeyboard');
+				if (!keyboard) {
+					keyboard = "keyboard-lat";
+				}
+				$('.keyboard#' + keyboard).show().siblings('.keyboard').hide();
+			}
+
+		},10);
+
 	openedModal = true;
 
 	setTimeout(function(){

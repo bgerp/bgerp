@@ -63,7 +63,7 @@
         <input class="keyboard-btn keyboard-space-btn" type="button" value=" " />
     </div>
 </div>
-<div id='keyboard-bg' class='keyboard' style='display:none'>
+<div id='keyboard-bg' class='keyboard'>
     <div class='keyboard-row' style='padding-left:1.2em'>
         <input class="keyboard-btn" type="button" value="." />
         <input class="keyboard-btn" type="button" value="+" />
@@ -131,7 +131,7 @@
         <input class="keyboard-btn keyboard-space-btn" type="button" value=" " />
     </div>
 </div>
-<div id='keyboard-ph' class='keyboard' style='display:none'>
+<div id='keyboard-ph' class='keyboard'>
     <div class='keyboard-row' style='padding-left:0em'>
         <input class="keyboard-btn" type="button" value="." />
         <input class="keyboard-btn" type="button" value="+" />
