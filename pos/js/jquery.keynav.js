@@ -81,7 +81,7 @@
 			if (matrix && i>=matrix.length) i=0;
 			if (j<0) j=(matrix[i].length-1);
             if (matrix && matrix[i] && j>=matrix[i].length) j=matrix[i].length-1;
- 
+            
             if(typeof j === 'undefined') j = 0;
 
 			if (matrix && matrix[i] && matrix[i][j]) {
