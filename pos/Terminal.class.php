@@ -849,16 +849,14 @@ class pos_Terminal extends peripheral_Terminal
                 $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => $class, 'title' => 'Избор на партидата', 'data-url' => toUrl($dataUrl, 'local')), $batchVerbal, true);
                 $batchTpl->append($btn);
             }
-
-            $batchTpl = ht::createElement('div', array('class' => 'grid'), $batchTpl, true);
-            $tpl->append($batchTpl, 'BATCHES');
-
-
+            
+            if(countR($batchesInStore)){
+                $batchTpl = ht::createElement('div', array('class' => 'grid'), $batchTpl, true);
+                $tpl->append($batchTpl, 'BATCHES');
+            }
         } else {
             $tpl->append(tr('Нямат партидност'), 'BATCHES');
         }
-        
-        return $tpl;
     }
     
     
@@ -930,10 +928,10 @@ class pos_Terminal extends peripheral_Terminal
             $discountTpl->append($element);
         }
 
-        $discountTpl = ht::createElement('div', array('class' => 'grid'), $discountTpl, true);
-        $tpl->append($discountTpl, 'DISCOUNTS');
-
-        return $tpl;
+        if(countR($discountsArr)){
+            $discountTpl = ht::createElement('div', array('class' => 'grid'), $discountTpl, true);
+            $tpl->append($discountTpl, 'DISCOUNTS');
+        }
     }
     
     
@@ -1160,8 +1158,8 @@ class pos_Terminal extends peripheral_Terminal
         
         $paymentArr = array();
         $paymentArr["payment-1"] = (object)array('body' => ht::createElement("div", array('id' => "payment-1", 'class' => "{$disClass} posBtns payment", 'data-type' => '-1', 'data-url' => $payUrl), tr('В брой'), true), 'placeholder' => 'PAYMENTS');
-        
         $payments = pos_Points::fetchSelected($rec->pointId);
+       
         foreach ($payments as $paymentId => $paymentTitle){
             $paymentArr["payment{$paymentId}"] = (object)array('body' => ht::createElement("div", array('id' => "payment{$paymentId}", 'class' => "{$disClass} posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl), tr($paymentTitle), true), 'placeholder' => 'PAYMENTS');
         }

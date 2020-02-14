@@ -136,8 +136,8 @@ class pos_Points extends core_Master
         $this->FLD('setDiscounts', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Отстъпки, mandatory,settings,default=yes');
         $this->FLD('usedDiscounts', 'table(columns=discount,captions=Отстъпки)', 'caption=Ръчно задаване->Използвани отстъпки');
         
-        $this->FLD('maxSearchContragentStart', 'int', 'caption=Максимален брой клиенти в "Избор"->Първоначално');
-        $this->FLD('maxSearchContragent', 'int', 'caption=Максимален брой клиенти в "Избор"->При търсене');
+        $this->FLD('maxSearchContragentStart', 'int(min=1)', 'caption=Максимален брой клиенти в "Избор"->Първоначално');
+        $this->FLD('maxSearchContragent', 'int(min=1)', 'caption=Максимален брой клиенти в "Избор"->При търсене');
         
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Складове->Основен, mandatory');
         $this->FLD('otherStores', 'keylist(mvc=store_Stores, select=name)', 'caption=Складове->Допълнителни');
@@ -187,9 +187,9 @@ class pos_Points extends core_Master
         $paymentQuery->where("#state = 'active'");
         
         // Ако са посочени конкретни, само те се разрешават
-        $paymentIds = keylist::toArray(pos_Points::fetchField($pointId, 'payments'));
-        if (count($paymentIds)) {
-            $paymentQuery->in('id', $paymentIds);
+        $payments = keylist::toArray(static::getSettings($pointId, 'payments'));
+        if (countR($payments)) {
+            $paymentQuery->in('id', $payments);
         }
         
         $payments = array();
