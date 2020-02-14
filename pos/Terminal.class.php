@@ -1006,8 +1006,8 @@ class pos_Terminal extends peripheral_Terminal
                     $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => crm_Persons::getTitleById($cRec->id));
                     $count++;
                 }
-            } else {//
-                $maxContragents = pos_Points::getSettings(pos_Points::fetch($rec->pointId), 'maxSearchContragentStart');
+            } else {
+                $maxContragents = pos_Points::getSettings($rec->pointId, 'maxSearchContragentStart');
             }
             
             $searchString = plg_Search::normalizeText($stringInput);

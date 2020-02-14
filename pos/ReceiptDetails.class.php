@@ -693,7 +693,7 @@ class pos_ReceiptDetails extends core_Detail
         
         $rec->productId = $product->productId;
         $receiptRec = pos_Receipts::fetch($rec->receiptId);
-        $listId = pos_Points::fetchField($receiptRec->pointId, 'policyId');
+        $listId = pos_Points::getSettings($receiptRec->pointId, 'policyId');
         
         $Policy = cls::get('price_ListToCustomers');
         $price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, $rec->value, 1, $receiptRec->createdOn, 1, 'no', $listId);
