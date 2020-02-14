@@ -450,8 +450,8 @@ class frame2_Reports extends embed_Manager
             $driverTitle = $Driver->getTitle($rec);
             
             if(trim($driverTitle) != trim($rec->title)){
-                $row->title = $driverTitle . " №{$rec->id}";
-                $row->subTitle = $rec->title;
+                $row->title = $rec->title;
+                $row->subTitle = $driverTitle . " №{$rec->id}";
             }
         }
         
