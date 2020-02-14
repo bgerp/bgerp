@@ -40,12 +40,6 @@ class pos_Terminal extends peripheral_Terminal
     
     
     /**
-     * При търсене до колко клиента да се показват в таба
-     */
-    protected $maxSearchContragents = 20;
-    
-    
-    /**
      * При търсене на бележки до колко да се показват
      */
     protected static $maxSearchReceipts = 50;
@@ -981,7 +975,10 @@ class pos_Terminal extends peripheral_Terminal
             $stringInput = core_Type::getByName('varchar')->fromVerbal($string);
             
             // Ако има подаден стринг за търсене
+            
+            
             if(!empty($stringInput)){
+                $maxContragents = pos_Points::getSettings($rec->pointId, 'maxSearchContragent');
                 
                 // Ако има клиентска карта с посочения номер, намира се контрагента ѝ
                 if($cardRec = crm_ext_Cards::fetch("#number = '{$stringInput}'")){
@@ -1009,6 +1006,8 @@ class pos_Terminal extends peripheral_Terminal
                     $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => crm_Persons::getTitleById($cRec->id));
                     $count++;
                 }
+            } else {//
+                $maxContragents = pos_Points::getSettings(pos_Points::fetch($rec->pointId), 'maxSearchContragentStart');
             }
             
             $searchString = plg_Search::normalizeText($stringInput);
@@ -1030,7 +1029,7 @@ class pos_Terminal extends peripheral_Terminal
                         }
                     }
                     
-                    if($count > $this->maxSearchContragents) break;
+                    if($count > $maxContragents) break;
                 }
             }
             
@@ -1051,7 +1050,7 @@ class pos_Terminal extends peripheral_Terminal
                             $count++;
                         }
                         
-                        if($count > $this->maxSearchContragents) break;
+                        if($count > $maxContragents) break;
                     }
                 }
             }
@@ -1469,10 +1468,10 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         // Добавяне на стилове за темата на терминала на ПОС-а, ако е различна от стандартната
-        $pointTheme = pos_Points::fetchField($rec->pointId, 'theme');
-        if($pointTheme != 'default'){
-            if(getFullPath("pos/tpl/themes/{$pointTheme}.css")){
-                $tpl->push("pos/tpl/themes/{$pointTheme}.css", 'CSS');
+        $theme = pos_Points::getSettings($rec->pointId, 'theme');
+        if($theme != 'default'){
+            if(getFullPath("pos/tpl/themes/{$theme}.css")){
+                $tpl->push("pos/tpl/themes/{$theme}.css", 'CSS');
             }
         }
         

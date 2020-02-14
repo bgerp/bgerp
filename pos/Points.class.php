@@ -25,7 +25,7 @@ class pos_Points extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, plg_Rejected, doc_FolderPlg,pos_Wrapper, plg_Printing, plg_Current, plg_State, plg_Modified';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_Rejected, doc_FolderPlg,pos_Wrapper, plg_Printing, plg_Current, plg_State, plg_Modified, plg_Settings';
     
     
     /**
@@ -113,35 +113,65 @@ class pos_Points extends core_Master
     
     
     /**
+     * Полета за настройки
+     * 
+     * @see plg_Settings
+     */
+    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,setDiscounts,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores';
+        
+        
+    /**
      * Описание на модела
      */
     public function description()
     {
         $this->FLD('name', 'varchar(16)', 'caption=Наименование, mandatory,oldFieldName=title');
         $this->FLD('caseId', 'key(mvc=cash_Cases, select=name)', 'caption=Каса, mandatory');
-        $this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Ценова политика, silent, mandatory');
+        $this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Настройки->Политика, mandatory');
+        $this->FLD('payments', 'keylist(mvc=cond_Payments, select=title)', 'caption=Настройки->Безналични плащания,placeholder=Всички');
+        $this->FLD('theme', 'enum(default=Стандартна,dark=Тъмна)', 'caption=Настройки->Тема,default=dark,mandatory');
+        $this->FLD('cashiers', 'keylist(mvc=core_Users,select=nick)', 'caption=Настройки->Оператори, mandatory,optionsFunc=pos_Points::getCashiers');
+        
+        $this->FLD('setPrices', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Цени, mandatory,default=yes');
+        $this->FLD('setDiscounts', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Отстъпки, mandatory,settings,default=yes');
+        $this->FLD('usedDiscounts', 'table(columns=discount,captions=Отстъпки)', 'caption=Ръчно задаване->Използвани отстъпки');
+        
+        $this->FLD('maxSearchContragentStart', 'int', 'caption=Максимален брой клиенти в "Избор"->Първоначално');
+        $this->FLD('maxSearchContragent', 'int', 'caption=Максимален брой клиенти в "Избор"->При търсене');
+        
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Складове->Основен, mandatory');
-        $this->FLD('otherStores', 'keylist(mvc=store_Stores, select=name)', 'caption=Складове->Други');
-        $this->FLD('payments', 'keylist(mvc=cond_Payments, select=title)', 'caption=Безналични налични на плащане->Позволени,placeholder=Всички');
-        $this->FLD('theme', 'enum(default=Стандартна,dark=Тъмна)', 'caption=Тема,notNull,value=default');
+        $this->FLD('otherStores', 'keylist(mvc=store_Stores, select=name)', 'caption=Складове->Допълнителни');
     }
     
     
-     /**
-      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-      *
-      * @param core_Mvc  $mvc
-      * @param core_Form $form
-      */
-     protected static function on_AfterInputEditForm($mvc, &$form)
-     {
-         $rec = &$form->rec;
-         if($form->isSubmitted()){
-             if(!empty($rec->otherStores) && keylist::isIn($rec->storeId, $rec->otherStores)){
-                 $form->setError('otherStores', 'Основният склад не може да е избран');
-             }
-         }
-     }
+    /**
+     * Връща списъка с операторите
+     * 
+     * @return array $users
+     */
+    public static function getCashiers()
+    {
+        $users = core_Users::getUsersByRoles('pos,ceo');
+        
+        return $users;
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        $rec = &$form->rec;
+        if($form->isSubmitted()){
+            if(!empty($rec->otherStores) && keylist::isIn($rec->storeId, $rec->otherStores)){
+                $form->setError('otherStores', 'Основният склад не може да е избран');
+            }
+        }
+    }
      
      
     /**
@@ -191,7 +221,14 @@ class pos_Points extends core_Master
      */
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-        $data->form->setDefault('policyId', cat_Setup::get('DEFAULT_PRICELIST'));
+        $form = &$data->form;
+        $form->setDefault('policyId', cat_Setup::get('DEFAULT_PRICELIST'));
+        
+        if(empty($form->rec->prototypeId)){
+            $maxContragents = pos_Setup::get('TERMINAL_MAX_SEARCH_CONTRAGENTS');
+            $form->setField('maxSearchContragentStart', "placeholder={$maxContragents}");
+            $form->setField('maxSearchContragent', "placeholder={$maxContragents}");
+        }
     }
     
     
@@ -273,6 +310,18 @@ class pos_Points extends core_Master
             if ($defaultContragent = self::defaultContragent($rec->id)) {
                 $row->contragent = crm_Persons::getHyperlink($defaultContragent, true);
             }
+            
+            if(isset($rec->prototypeId)){
+                $row->prototypeId = pos_Points::getHyperlink($rec->prototypeId, true);
+            }
+        }
+        
+        $inherited = new stdClass();
+        $mvc->getSettings($rec, null, $inherited);
+        foreach ((array)$inherited as $field){
+            if(in_array($field, array('policyId', 'payments'))){
+                $row->{$field} = ht::createHint($row->{$field}, 'Наследено е от прототипа', 'notice', false);
+            }
         }
     }
     
@@ -321,6 +370,7 @@ class pos_Points extends core_Master
         $userId = (isset($userId)) ? $userId : core_Users::getCurrent();
         
         $rec = static::fetchRec($rec);
+        
         $canActivateCase = bgerp_plg_FLB::canUse('cash_Cases', $rec->caseId, $userId);
         $res = ($canActivateCase === true);
         
@@ -358,10 +408,39 @@ class pos_Points extends core_Master
      */
     public static function getStores($pointId)
     {
-        $pointRec = static::fetch($pointId, 'otherStores,storeId');
-        $stores = array($pointRec->storeId => $pointRec->storeId);
-        $stores += keylist::toArray($pointRec->otherStores);
+        $rec = static::fetchRec($pointId);
+        $otherStores = static::getSettings($pointId, 'otherStores');
+        
+        $stores = array($rec->storeId => $rec->storeId);
+        $stores += keylist::toArray($otherStores);
         
         return $stores;
+    }
+    
+    
+    /**
+     * След извличане на настройките
+     */
+    protected static function on_AfterGetSettings($mvc, &$res, $rec, $field = null, &$inherited = null)
+    {
+        $inherited = is_object($inherited) ? $inherited : new stdClass();
+        
+        if(isset($field)){
+            if($field == 'maxSearchContragentStart'){
+                $res = pos_Setup::get('TERMINAL_MAX_SEARCH_CONTRAGENTS');
+            } elseif($field == 'maxSearchContragent'){
+                $res = pos_Setup::get('TERMINAL_MAX_SEARCH_CONTRAGENTS');
+            }
+        } else {
+            if(empty($res->maxSearchContragentStart)){
+                $res->maxSearchContragentStart = pos_Setup::get('TERMINAL_MAX_SEARCH_CONTRAGENTS');
+                $inherited->maxSearchContragentStart = 'maxSearchContragentStart';
+            }
+            
+            if(empty($res->maxSearchContragent)){
+                $res->maxSearchContragent = pos_Setup::get('TERMINAL_MAX_SEARCH_CONTRAGENTS');
+                $inherited->maxSearchContragent = 'maxSearchContragent';
+            }
+        }
     }
 }

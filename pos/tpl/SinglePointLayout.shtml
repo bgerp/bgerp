@@ -8,20 +8,28 @@
 				<legend class="groupTitle">|Информация|*</legend>
 				<div class="groupList">
 						<table>
+						
+							<!--ET_BEGIN prototypeId-->
+							<tr>
+								<td class='dt'>|Прототип|*:</td>
+								<td>[#prototypeId#]</td>
+							</tr>
+							<!--ET_END prototypeId-->
+						
 							<tr>
 								<td class='dt'>|Каса|*:</td>
 								<td>[#caseId#]</td>
 							</tr>
+							
 							<tr>
 								<td class='dt'>|Основен склад|*:</td>
 								<td>[#storeId#]</td>
 							</tr>
 							
 							<tr>
-								<td class='dt'>|Други складове|*:</td>
-								<td>[#otherStores#]</td>
+								<td class='dt'>|Политика|*:</td>
+								<td>[#policyId#]</td>
 							</tr>
-							
 							<tr>
 								<td class='dt'>|Контрагент|*:</td>
 								<td>[#contragent#]</td>
@@ -31,14 +39,42 @@
 								<td class='dt'>|Плащания|*:</td>
 								<td>[#payments#]</td>
 							</tr>
-							<tr>
-								<td class='dt'>|Политика|*:</td>
-								<td>[#policyId#]</td>
-							</tr>
+							
 							<tr>
 								<td class='dt'>|Тема|*:</td>
 								<td>[#theme#]</td>
 							</tr>
+							
+							<tr>
+								<td class='dt'>|Оператори|*:</td>
+								<td>[#cashiers#]</td>
+							</tr>
+							
+							<tr>
+								<td class='dt'>|Ръчно задаване на цени|*:</td>
+								<td>[#setPrices#]</td>
+							</tr>
+							
+							
+							<tr>
+								<td class='dt'>|Ръчно задаване на отстъпки|*:</td>
+								<td>[#setDiscounts#]</td>
+							</tr>
+							
+							<!--ET_BEGIN usedDiscounts-->
+							<tr>
+								<td class='dt'>|Използвани отстъпки|*:</td>
+								<td>[#usedDiscounts#]</td>
+							</tr>
+							<!--ET_END usedDiscounts-->
+							
+							<!--ET_BEGIN otherStores-->
+							<tr>
+								<td class='dt'>|Други складове|*:</td>
+								<td>[#otherStores#]</td>
+							</tr>
+							<!--ET_END otherStores-->
+						
 						</table>
 				</div>
 			</fieldset>

@@ -94,12 +94,9 @@ class pos_Stocks extends core_Manager
         $usedStores = array();
         $pointQuery = pos_Points::getQuery();
         $pointQuery->where("#state != 'rejected'");
-        $pointQuery->show('storeId,otherStores');
+        
         while($pointRec = $pointQuery->fetch()){
-            $usedStores[$pointRec->storeId] = $pointRec->storeId;
-            if(!empty($pointRec->otherStores)){
-                $usedStores += keylist::toArray($pointRec->otherStores);
-            }
+            $usedStores += pos_Points::getStores($pointRec);
         }
         
         $batchArr = null;

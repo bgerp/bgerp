@@ -44,6 +44,12 @@ defIfNot('POS_MIN_WIDE_WIDTH', '1200');
 
 
 /**
+ *  Максимален брой търсения на контрагенти в терминала
+ */
+defIfNot('POS_TERMINAL_MAX_SEARCH_CONTRAGENTS', '20');
+
+
+/**
  * Модул "Точки на продажба" - инсталиране/деинсталиране
  *
  *
@@ -91,6 +97,7 @@ class pos_Setup extends core_ProtoSetup
         'POS_CLOSE_REPORTS_PER_TRY' => array('int', 'caption=По колко отчета да се приключват автоматично на опит->Брой,columns=2'),
         'POS_CLOSE_REPORTS_OLDER_THAN' => array('time(uom=days,suggestions=1 ден|2 дена|3 дена)', 'caption=Автоматично приключване на отчети по стари от->Дни'),
         'POS_TERMINAL_PRICE_CHANGE' => array('enum(yes=Разрешено,no=Забранено)', 'caption=Операции в POS терминала->Промяна на цена'),
+        'POS_TERMINAL_MAX_SEARCH_CONTRAGENTS' => array('int', 'caption=Операции в POS терминала->Брой на намерени контрагенти'),
         'POS_ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK' => array('enum(yes=Включено,no=Изключено)', 'caption=Продажба на неналични артикули->Избор'),
         'POS_MIN_WIDE_WIDTH' => array('int', 'caption=Под каква ширина да се смята за тесен режим->Под,unit=px'),
     );
