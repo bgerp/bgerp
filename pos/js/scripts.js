@@ -244,49 +244,18 @@ function posActions() {
 
 	// действие на бутоните за действията
 	$(document.body).on('click', ".operationBtn", function(e){
-		clearTimeout(timeout);
-		
-		sessionStorage.removeItem("focused");
-		var currentlySelected = getSelectedOperation();
-		sessionStorage.setItem('lastSelectedOperation', currentlySelected);
-		var lastHighlighted = sessionStorage.getItem('lastHighlighted');
-		
-		clearTimeout(timeout);
 		var operation = $(this).attr("data-value");
+		var selectedRecId = getSelectedRowId();
 		
-		var selectedElement = $(".highlighted.receiptRow");
-		var selectedRecId = selectedElement.attr("data-id");
-		sessionStorage.setItem('lastHighlighted', selectedRecId);
-		
-		var url = $(this).attr("data-url");
-		var disabled = $(this).hasClass("disabledBtn");
-		
-		if(!url || disabled){
-			
-			return;
-		}
-		
-		var string = $("input[name=ean]").val();
-		
-		// ако операцията е същата но стринга е празен да не се изпълнява заявката
-		if(!string && operation == currentlySelected && lastHighlighted == selectedRecId){
-			console.log('prevent trigger on repeated click');
-			
-			return;
-		}
-		
-		sessionStorage.setItem('operationClicked', true);
-		var data = {operation:operation,recId:selectedRecId};
-		if(activeInput){
-			data.search = string;
-		}
-		
-		processUrl(url, data);
-		
-		activeInput = false;
-		scrollToHighlight();
+		doOperation(operation, selectedRecId);
 	});
 
+	
+	
+	
+	
+	
+	
 	var eventType;
 	if (isTouchDevice()) {
 		eventType = "click";
@@ -547,7 +516,8 @@ function hideHints(){
 }
 
 function openReceipt() {
-	$('.operationBtn[data-value="receipts"]').click();
+	selectedRecId = getSelectedRowId();
+	doOperation("receipts", selectedRecId)
 }
 
 // Отваря виртуалната клавиатура
@@ -566,7 +536,8 @@ function openPrint() {
 	$('.printBtn').click();
 }
 function openClient() {
-	$('.operationBtn[data-value="contragent"]').click();
+	var selectedRecId = getSelectedRowId();
+	doOperation("contragent", selectedRecId);
 }
 
 function logout() {
@@ -580,25 +551,23 @@ function openReject() {
 	}
 }
 function openText() {
-	if ($('.operationBtn[data-value="text"]').length) {
-		$('.operationBtn[data-value="text"]').click();
-	}
+	var selectedRecId = getSelectedRowId();
+	doOperation("text", selectedRecId);
 }
 
 function openProducts() {
-	$('.operationBtn[data-value="add"]').click();
+	var selectedRecId = getSelectedRowId();
+	doOperation("add", selectedRecId);
 }
 
 function openQuantity() {
-	if ($('.operationBtn[data-value="quantity"]').length) {
-		$('.operationBtn[data-value="quantity"]').click();
-	}
+	var selectedRecId = getSelectedRowId();
+	doOperation("quantity", selectedRecId);
 }
 
 function openPayment() {
-	if ($('.operationBtn[data-value="payment"]').length) {
-		$('.operationBtn[data-value="payment"]').click();
-	}
+	var selectedRecId = getSelectedRowId();
+	doOperation("payment", selectedRecId);
 }
 
 // Калкулира ширината
@@ -680,7 +649,8 @@ function refreshResultByOperation(element, operation){
 	var click = operation;
 	
 	if(operation == 'quantity' || operation == 'payment'){
-		$('.operationBtn[data-value="' + click+ '"]').click();
+		var selectedRecId = getSelectedRowId();
+		doOperation(operation, selectedRecId);
 	}
 }
 
@@ -1125,4 +1095,48 @@ function getSelectedRowId()
 	var selectedElement = $(".highlighted.productRow");
 	
 	return selectedElement.attr("data-id");
+}
+
+
+function doOperation(operation, selectedRecId)
+{
+	clearTimeout(timeout);
+	
+	sessionStorage.removeItem("focused");
+	var currentlySelected = getSelectedOperation();
+	sessionStorage.setItem('lastSelectedOperation', currentlySelected);
+	var lastHighlighted = sessionStorage.getItem('lastHighlighted');
+	
+	var operationBtn = $('.operationBtn[data-value="'+operation+'"]');
+	
+	var selectedRecId = getSelectedRowId();
+	sessionStorage.setItem('lastHighlighted', selectedRecId);
+	
+	var url = operationBtn.attr("data-url");
+	var disabled = operationBtn.hasClass("disabledBtn");
+	
+	if(!url || disabled){
+		
+		return;
+	}
+	
+	var string = $("input[name=ean]").val();
+	
+	// ако операцията е същата но стринга е празен да не се изпълнява заявката
+	if(!string && operation == currentlySelected && lastHighlighted == selectedRecId){
+		console.log('prevent trigger on repeated click');
+		
+		return;
+	}
+	
+	sessionStorage.setItem('operationClicked', true);
+	var data = {operation:operation,recId:selectedRecId};
+	if(activeInput){
+		data.search = string;
+	}
+	
+	processUrl(url, data);
+	
+	activeInput = false;
+	scrollToHighlight();
 }
