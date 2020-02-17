@@ -158,6 +158,13 @@ abstract class deals_Document extends deals_PaymentDocument
     {
         $options = $dealOptions = $accOptionsFiltered = array();
         
+        // Има ли активни служебни аванси в избраната папка
+        $aQuery = findeals_AdvanceDeals::getQuery();
+        $aQuery->where("#folderId = {$folderId} AND #state = 'active'");
+        while ($fRec = $aQuery->fetch()) {
+            $dealOptions[$fRec->id] = findeals_AdvanceDeals::getTitleById($fRec, false);
+        }
+        
         // Има ли активни ф. сделки в избраната папка
         $fQuery = findeals_Deals::getQuery();
         $fQuery->where("#folderId = {$folderId} AND #state = 'active'");
