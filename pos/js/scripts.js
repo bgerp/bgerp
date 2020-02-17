@@ -405,22 +405,8 @@ function posActions() {
 	// При натискане на бутона за показване на подробна информация избрания елемент
 	$(document.body).on('click', ".enlargeProductBtn", function(e){
 		
-		var url = $(this).attr("data-url");
-		var operation = getSelectedOperation();
-		
-		if(!url || $(this).hasClass('disabledBtn')){
-			return;
-		}
-		
-		var enlargeClassId = $(this).attr("data-enlarge-class-id");
-		var enlargeObjectId = $(this).attr("data-enlarge-object-id");
-		var enlargeTitle = $(this).attr("data-modal-title");
-		
-		resObj = new Object();
-		resObj['url'] = url;
-		getEfae().process(resObj, {enlargeClassId:enlargeClassId,enlargeObjectId:enlargeObjectId});
-
-		openModal(enlargeTitle, "defaultHeight");
+		var element = $(this);
+		openInfo(element);
 	});
 	
 	// При натискане на бутона за клавиатура
@@ -447,15 +433,7 @@ function posActions() {
 	
 	// При натискане на бутона за клавиатура
 	$(document.body).on('click', ".helpBtn", function(e){
-		
-		var url = $(this).attr("data-url");
-		
-		resObj = new Object();
-		resObj['url'] = url;
-		getEfae().process(resObj);
-
-		var modalTitle = $(this).attr("data-modal-title");
-		openModal(modalTitle);
+		openHelp();
 	});
 	
 	$("body").setShortcutKey( CONTROL , DELETE ,function() {
@@ -487,9 +465,9 @@ function posActions() {
 	});
 
 	$("body").setShortcutKey( null , F2 ,function() {
-		openInfo();
+		var element = $('.enlargeProductBtn');
+		openInfo(element);
 	});
-
 	
 	$("body").setShortcutKey( CONTROL , P ,function() {
 		openPrint();
@@ -567,16 +545,37 @@ function deteleElements(){
 	$('.rejectBtn').parent().trigger("click");
 }
 
-function loadProducts(){
-	$('.reloadBtn').click();
+// Активиране на лупата за увеличение
+function openInfo(element) {
+	
+	var url = element.attr("data-url");
+	var operation = getSelectedOperation();
+	
+	if(!url || element.hasClass('disabledBtn')){
+		return;
+	}
+	
+	var enlargeClassId = element.attr("data-enlarge-class-id");
+	var enlargeObjectId = element.attr("data-enlarge-object-id");
+	var enlargeTitle = element.attr("data-modal-title");
+	
+	resObj = new Object();
+	resObj['url'] = url;
+	getEfae().process(resObj, {enlargeClassId:enlargeClassId,enlargeObjectId:enlargeObjectId});
+
+	openModal(enlargeTitle, "defaultHeight");
 }
 
-function openInfo() {
-	$('.enlargeProductBtn').click();
-}
-
+// Отваря модал с хелпа
 function openHelp() {
-	$('.helpBtn').click();
+	var url = $('.helpBtn').attr("data-url");
+	
+	resObj = new Object();
+	resObj['url'] = url;
+	getEfae().process(resObj);
+
+	var modalTitle = $('.helpBtn').attr("data-modal-title");
+	openModal(modalTitle);
 }
 
 function showHints(){
