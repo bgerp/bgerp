@@ -43,23 +43,23 @@ function posActions() {
 	
 	// Добавяне на
 	$(document.body).on('click', "#result-holder .receiptRow", function(e){
-		var url = $(this).attr("data-url");
-		if(!url || $(this).hasClass( "disabledBtn")) return;
-		
-		resObj = new Object();
-		resObj['url'] = url;
-		
-		getEfae().process(resObj);
+		//addResultByDataUrl(this);
 	});
 	
 	// Добавяне на партида
 	$(document.body).on('click', ".resultBatch", function(e){
-		addResultByDataUrl(this);
+		var url = $(this).attr("data-url");
+		var params = {recId:getSelectedRowId()};
+		
+		processUrl(url, params);
 	});
 	
 	// Добавяне 
 	$(document.body).on('click', ".textResult", function(e){
-		addResultByDataUrl(this);
+		var url = $(this).attr("data-url");
+		var params = {recId:getSelectedRowId()};
+		
+		processUrl(url, params);
 	});
 	
 	/**
@@ -97,7 +97,6 @@ function posActions() {
 			return;
 		}
 		
-		
 		var selectedElement = $(".highlighted.productRow");
 		var selectedRecId = selectedElement.attr("data-id");
 
@@ -106,7 +105,8 @@ function posActions() {
 			resObj = new Object();
 			resObj['url'] = url;
 
-			getEfae().process(resObj, {operation:operation,search:inpVal,recId:selectedRecId});
+			var params = {operation:operation,search:inpVal,recId:selectedRecId};
+			processUrl(url, params);
 
 		}, 2000);
 	});
@@ -116,10 +116,7 @@ function posActions() {
 	$(document.body).on('click', ".payment", function(e){
 		if(!$(this).hasClass( "disabledBtn")){
 			var url = $(this).attr("data-url");
-
 			var type = $(this).attr("data-type");
-
-
 			type = (!type) ? '-1' : type;
 
 			doPayment(url, type);
@@ -134,15 +131,9 @@ function posActions() {
 	$(document.body).on('click', ".closeBtns", function(e){
 		var url = $(this).attr("data-url");
 		var receiptId = $("input[name=receiptId]").val();
-		
-		if(!url) return;
-		
 		var data = {receipt:receiptId};
 		
-		resObj = new Object();
-		resObj['url'] = url;
-		
-		getEfae().process(resObj, data);
+		processUrl(url, params);
 	});
 	
 	// При клик на бутон изтрива запис от бележката
@@ -152,7 +143,10 @@ function posActions() {
 	
 	// При клик на бутон добавя отстъпка
 	$(document.body).on('click', ".discountBtn", function(e){
-		addResultByDataUrl(this);
+		var url = $(this).attr("data-url");
+		var params = {recId:getSelectedRowId()};
+		
+		processUrl(url, params);
 	});
 
 	// Избор на контрагент
@@ -264,7 +258,6 @@ function posActions() {
 		var selectedRecId = selectedElement.attr("data-id");
 		sessionStorage.setItem('lastHighlighted', selectedRecId);
 		
-		
 		var url = $(this).attr("data-url");
 		var disabled = $(this).hasClass("disabledBtn");
 		
@@ -282,16 +275,13 @@ function posActions() {
 			return;
 		}
 		
-		resObj = new Object();
-		resObj['url'] = url;
-		
 		sessionStorage.setItem('operationClicked', true);
 		var data = {operation:operation,recId:selectedRecId};
 		if(activeInput){
 			data.search = string;
 		}
 		
-		getEfae().process(resObj, data);
+		processUrl(url, data);
 		
 		activeInput = false;
 		scrollToHighlight();
@@ -319,12 +309,7 @@ function posActions() {
 	// При прехвърляне на бележка, автоматично създаваме нова
 	$(document.body).on('click', ".transferBtn", function(e){
 		var url = $(this).attr("data-url");
-		
-		if(!url) return;
-		
-		resObj = new Object();
-		resObj['url'] = url;
-		getEfae().process(resObj);
+		processUrl(url, null);
 	});
 
 	// Сменяне на селектирания ред от бележките при клик
@@ -343,7 +328,10 @@ function posActions() {
 
 	// При натискане на бутона за задаване на цена
 	$(document.body).on('click', "div.resultPrice", function(e){
-		addResultByDataUrl(this);
+		var url = $(this).attr("data-url");
+		var params = {recId:getSelectedRowId()};
+		
+		processUrl(url, params);
 	});
 
 	// При отваряне на нова бележка маха се фокусирания елемент
@@ -354,7 +342,6 @@ function posActions() {
 	// При натискане на бутона за задаване на количество/опаковка
 	$(document.body).on('click', "div.resultPack", function(e){
 		var url = $(this).attr("data-url");
-		if(!url) return;
 		var pack = $(this).attr("data-pack");
 		
 		if($(this).hasClass("packWithQuantity")){
@@ -365,30 +352,18 @@ function posActions() {
 		
 		quantity = (quantity) ? quantity : 1;
 		var string = quantity + " " + pack;
+		var params = {string:string,recId:getSelectedRowId()};
 		
-		resObj = new Object();
-		resObj['url'] = url;
-		
-		var selectedElement = $(".highlighted.productRow");
-		var selectedRecId = selectedElement.attr("data-id");
-		
-		getEfae().process(resObj, {string:string,recId:selectedRecId});
+		processUrl(url, params);
 	});
 	
 	// При натискане на бутона за задаване на количество/опаковка
 	$(document.body).on('click', "div.chooseStoreBtn", function(e){
 		var url = $(this).attr("data-url");
-		if(!url) return;
-		
 		var storeId = $(this).attr("data-storeid");
 		
-		resObj = new Object();
-		resObj['url'] = url;
-		
-		var selectedElement = $(".highlighted.productRow");
-		var selectedRecId = selectedElement.attr("data-id");
-		
-		getEfae().process(resObj, {string:storeId,recId:selectedRecId});
+		var params = {string:string,recId:getSelectedRowId()};
+		processUrl(url, params);
 	});
 	
 	// При натискане на бутона за задаване на количество/опаковка
@@ -411,18 +386,7 @@ function posActions() {
 	
 	// При натискане на бутона за клавиатура
 	$(document.body).on('click', ".keyboardBtn", function(e){
-		
-		var url = $(this).attr("data-url");
-		var string = $("input[name=ean]").val();
-		
-		resObj = new Object();
-		resObj['url'] = url;
-		getEfae().process(resObj, {string:string});
-
-		var string = $("input[name=ean]").val();
-		var modalTitle = $(this).attr("data-modal-title");
-		
-		openModal(modalTitle, "smallHeight");
+		openKeyboard();
 	});
 	
 	// При натискане на бутон за нова фирма
@@ -549,31 +513,25 @@ function deteleElements(){
 function openInfo(element) {
 	
 	var url = element.attr("data-url");
-	var operation = getSelectedOperation();
-	
-	if(!url || element.hasClass('disabledBtn')){
-		return;
-	}
+	url = (element.hasClass('disabledBtn')) ? null : url;
 	
 	var enlargeClassId = element.attr("data-enlarge-class-id");
 	var enlargeObjectId = element.attr("data-enlarge-object-id");
 	var enlargeTitle = element.attr("data-modal-title");
 	
-	resObj = new Object();
-	resObj['url'] = url;
-	getEfae().process(resObj, {enlargeClassId:enlargeClassId,enlargeObjectId:enlargeObjectId});
-
-	openModal(enlargeTitle, "defaultHeight");
+	var params = {enlargeClassId:enlargeClassId,enlargeObjectId:enlargeObjectId};
+	processUrl(url, params);
+	
+	if(url){
+		openModal(enlargeTitle, "defaultHeight");
+	}
 }
 
 // Отваря модал с хелпа
 function openHelp() {
 	var url = $('.helpBtn').attr("data-url");
+	processUrl(url, null);
 	
-	resObj = new Object();
-	resObj['url'] = url;
-	getEfae().process(resObj);
-
 	var modalTitle = $('.helpBtn').attr("data-modal-title");
 	openModal(modalTitle);
 }
@@ -591,8 +549,17 @@ function hideHints(){
 function openReceipt() {
 	$('.operationBtn[data-value="receipts"]').click();
 }
+
+// Отваря виртуалната клавиатура
 function openKeyboard() {
-	$('.keyboardBtn').click();
+	var url = $('.keyboardBtn').attr("data-url");
+	var string = $("input[name=ean]").val();
+	
+	var params = {string:string};
+	processUrl(url, params);
+	
+	var modalTitle = $('.keyboardBtn').attr("data-modal-title");
+	openModal(modalTitle, "smallHeight");
 }
 
 function openPrint() {
@@ -660,10 +627,7 @@ function doPayment(url, type){
 	}
 	
 	var data = {amount:amount, type:type};
-	
-	resObj = new Object();
-	resObj['url'] = url;
-	getEfae().process(resObj, data);
+	processUrl(url, data);
 
 	$("input[name=ean]").val("");
 }
@@ -777,10 +741,7 @@ function deleteSelectedElement() {
 	}
 	
 	selectedElement.closest('.receiptRow').css('border', '1px solid red');
-	resObj = new Object();
-	resObj['url'] = url;
-	
-	getEfae().process(resObj);
+	processUrl(url, null);
 }
 
 
@@ -928,14 +889,11 @@ function enter() {
 	}
 
 	console.log("ENTER SUBMIT STRING:" + value);
-	
-	resObj = new Object();
-	resObj['url'] = url;
-	
 	var selectedElement = $(".highlighted.productRow");
 	var selectedRecId = selectedElement.attr("data-id");
 
-	getEfae().process(resObj, {string:value,recId:selectedRecId});
+	var params = {string:value,recId:getSelectedRowId()};
+	processUrl(url, params);
 }
 
 // Дали подадения стринг е операция за задаване на количество
@@ -1144,15 +1102,27 @@ function addProduct(el) {
 	activeInput = false;
 }
 
-function addResultByDataUrl(el) {
-	var url = $(el).attr("data-url");
+
+
+
+
+function processUrl(url, params) {
 	if(!url) return;
 
 	resObj = new Object();
 	resObj['url'] = url;
 
-	var selectedElement = $(".highlighted.productRow");
-	var selectedRecId = selectedElement.attr("data-id");
+	if(params){
+		getEfae().process(resObj, params);
+	} else {
+		getEfae().process(resObj);
+	}
+}
 
-	getEfae().process(resObj, {recId:selectedRecId});
+
+function getSelectedRowId()
+{
+	var selectedElement = $(".highlighted.productRow");
+	
+	return selectedElement.attr("data-id");
 }
