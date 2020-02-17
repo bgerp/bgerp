@@ -54,7 +54,7 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Кои операции са забранени за нови бележки
      */
-    protected static $forbiddenOperationOnEmptyReceipts = array('text', 'quantity', 'payment');
+    protected static $forbiddenOperationOnEmptyReceipts = array('text', 'quantity');
     
     
     /**
@@ -675,7 +675,7 @@ class pos_Terminal extends peripheral_Terminal
                 if(isset($rec->revertId) && $rec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
                     $res = $this->renderRevertReceiptRows($rec, $string, $selectedRec);
                 } else {
-                    $res = $this->getResultProducts($rec, $string, $selectedRec);
+                    $res = $this->renderResultProducts($rec, $string, $selectedRec);
                 }
                 break;
             case 'receipts':
@@ -1505,7 +1505,7 @@ class pos_Terminal extends peripheral_Terminal
      * 
      * @return core_ET
      */
-    private function getResultProducts($rec, $string, $selectedRec)
+    private function renderResultProducts($rec, $string, $selectedRec)
     {
         $searchString = plg_Search::normalizeText($string);
         $data = new stdClass();
@@ -1678,6 +1678,10 @@ class pos_Terminal extends peripheral_Terminal
             $data->rows[$id]->id = $pRec->id;
             if(array_key_exists($id, $favouriteProductsArr)){
                 $data->rows[$id]->favouriteCategories = $favouriteProductsArr[$id];
+            }
+            
+            if($pRec->measureId != cat_UoM::fetchBySysId('pcs')->id){
+                $data->rows[$id]->measureId = tr(cat_UoM::getVerbal($pRec->measureId, 'name'));
             }
             
             $count++;

@@ -510,6 +510,9 @@
 .pos-price-field {
   font-size: 1.05em; }
 
+.measureResult {
+  color: #888888; }
+
 .element {
   text-align: left;
   padding: 9px;
