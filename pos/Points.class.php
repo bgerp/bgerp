@@ -117,9 +117,18 @@ class pos_Points extends core_Master
      * 
      * @see plg_Settings
      */
-    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,setDiscounts,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores';
-        
-        
+    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,setDiscounts,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts';
+      
+    
+    /**
+     * Полета за съответветствие с константите
+     */
+    private static $fieldMap = array('maxSearchContragentStart' => 'TERMINAL_MAX_SEARCH_CONTRAGENTS', 
+                                     'maxSearchContragent' => 'TERMINAL_MAX_SEARCH_CONTRAGENTS', 
+                                     'maxSearchProducts' => 'TERMINAL_MAX_SEARCH_PRODUCTS', 
+                                     'maxSearchReceipts' => 'TERMINAL_MAX_SEARCH_RECEIPTS');
+    
+    
     /**
      * Описание на модела
      */
@@ -136,8 +145,10 @@ class pos_Points extends core_Master
         $this->FLD('setDiscounts', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Отстъпки, mandatory,settings,default=yes');
         $this->FLD('usedDiscounts', 'table(columns=discount,captions=Отстъпки)', 'caption=Ръчно задаване->Използвани отстъпки');
         
-        $this->FLD('maxSearchContragentStart', 'int(min=1)', 'caption=Максимален брой клиенти в "Избор"->Първоначално');
-        $this->FLD('maxSearchContragent', 'int(min=1)', 'caption=Максимален брой клиенти в "Избор"->При търсене');
+        $this->FLD('maxSearchProducts', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->Артикули');
+        $this->FLD('maxSearchReceipts', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->Бележки');
+        $this->FLD('maxSearchContragentStart', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->(Клиенти) Първоначално');
+        $this->FLD('maxSearchContragent', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->(Клиенти) При търсене');
         
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Складове->Основен, mandatory');
         $this->FLD('otherStores', 'keylist(mvc=store_Stores, select=name)', 'caption=Складове->Допълнителни');
@@ -223,11 +234,13 @@ class pos_Points extends core_Master
     {
         $form = &$data->form;
         $form->setDefault('policyId', cat_Setup::get('DEFAULT_PRICELIST'));
-        
         if(empty($form->rec->prototypeId)){
-            $maxContragents = pos_Setup::get('TERMINAL_MAX_SEARCH_CONTRAGENTS');
-            $form->setField('maxSearchContragentStart', "placeholder={$maxContragents}");
-            $form->setField('maxSearchContragent', "placeholder={$maxContragents}");
+            
+            // Задаване на плейсхолдъри
+            foreach (static::$fieldMap as $field => $const){
+                $defaultValue = pos_Setup::get($const);
+                $form->setField($field, "placeholder={$defaultValue}");
+            }
         }
     }
     
@@ -426,20 +439,15 @@ class pos_Points extends core_Master
         $inherited = is_object($inherited) ? $inherited : new stdClass();
         
         if(isset($field)){
-            if($field == 'maxSearchContragentStart'){
-                $res = pos_Setup::get('TERMINAL_MAX_SEARCH_CONTRAGENTS');
-            } elseif($field == 'maxSearchContragent'){
-                $res = pos_Setup::get('TERMINAL_MAX_SEARCH_CONTRAGENTS');
+            if(array_key_exists($field, static::$fieldMap)){
+                $res = pos_Setup::get(static::$fieldMap[$field]);
             }
         } else {
-            if(empty($res->maxSearchContragentStart)){
-                $res->maxSearchContragentStart = pos_Setup::get('TERMINAL_MAX_SEARCH_CONTRAGENTS');
-                $inherited->maxSearchContragentStart = 'maxSearchContragentStart';
-            }
-            
-            if(empty($res->maxSearchContragent)){
-                $res->maxSearchContragent = pos_Setup::get('TERMINAL_MAX_SEARCH_CONTRAGENTS');
-                $inherited->maxSearchContragent = 'maxSearchContragent';
+            foreach (static::$fieldMap as $field => $const){
+                if(empty($res->{$field})){
+                    $res->{$field} = pos_Setup::get($const);
+                    $inherited->{$field} = $field;
+                }
             }
         }
     }

@@ -34,18 +34,6 @@ class pos_Terminal extends peripheral_Terminal
     
     
     /**
-     * При търсене до колко продукта да се показват в таба
-     */
-    protected $maxSearchProducts = 30;
-    
-    
-    /**
-     * При търсене на бележки до колко да се показват
-     */
-    protected static $maxSearchReceipts = 50;
-    
-    
-    /**
      * Полета
      */
     protected $fieldArr = array('payments', 'policyId', 'caseId', 'storeId');
@@ -1580,6 +1568,7 @@ class pos_Terminal extends peripheral_Terminal
         $pQuery->show('id,name,isPublic,nameEn,code,canStore,measureId');
         
         $Policy = cls::get('price_ListToCustomers');
+        $maxSearchProducts = pos_Points::getSettings($data->rec->pointId, 'maxSearchProducts');
         
         // Ако не се търси подробно артикул, се показват тези от любими
         if(empty($data->searchString)){
@@ -1601,7 +1590,7 @@ class pos_Terminal extends peripheral_Terminal
             
         } else {
             $count = 0;
-            $maxCount = $this->maxSearchProducts;
+            $maxCount = $maxSearchProducts;
             
             // Ако има артикул, чийто код отговаря точно на стринга, той е най-отгоре
             $foundRec = cat_Products::getByCode($data->searchString);
@@ -1612,20 +1601,20 @@ class pos_Terminal extends peripheral_Terminal
             
             // След това се добавят артикулите, които съдържат стринга в името и/или кода си
             $pQuery1 = clone $pQuery;
-            $pQuery1->orderBy('code,name', 'ASC');
+            $pQuery1->orderBy('code,name,measureId', 'ASC');
             while($pRec1 = $pQuery1->fetch()){
                 $name = plg_Search::normalizeText($pRec1->name);
                 $code = plg_Search::normalizeText($pRec1->code);
                 if(strpos($name, $data->searchString) !== false || strpos($code, $data->searchString) !== false){
-                    $sellable[$pRec1->id] = (object)array('id' => $pRec1->id, 'canStore' => $pRec1->canStore);
+                    $sellable[$pRec1->id] = (object)array('id' => $pRec1->id, 'canStore' => $pRec1->canStore, 'measureId' => $pRec1->measureId);
                     $count++;
                     $maxCount--;
-                    if($count == $this->maxSearchProducts) break;
+                    if($count == $maxSearchProducts) break;
                 }
             }
             
             // Ако не е достигнат лимита, се добавят и артикулите с търсене в ключовите думи
-            if($count < $this->maxSearchProducts){
+            if($count < $maxSearchProducts){
                 $notInKeys = array_keys($sellable);
                 $pQuery2 = clone $pQuery;
                 plg_Search::applySearch($data->searchString, $pQuery2);
@@ -1637,7 +1626,7 @@ class pos_Terminal extends peripheral_Terminal
                     $sellable[$pRec2->id] = (object)array('id' => $pRec2->id, 'canStore' => $pRec2->canStore);
                     $count++;
                     $maxCount--;
-                    if($count == $this->maxSearchProducts) break;
+                    if($count == $maxSearchProducts) break;
                 }
             }
         }
@@ -1756,13 +1745,14 @@ class pos_Terminal extends peripheral_Terminal
         $disabledClass = (pos_Receipts::haveRightFor('add')) ? 'navigable' : 'disabledBtn';
         $disabledRevertClass = countR($revertDefaultUrl) ? 'navigable' : 'disabledBtn';
         $disabledRevertWarning = countR($revertDefaultUrl) ? 'Наистина ли искате да създадете нова сторно бележка|*?' : false;
-        
+        $maxSearchReceipts = pos_Points::getSettings($rec->pointId, 'maxSearchReceipts');
+       
         // Намираме всички чернови бележки и ги добавяме като линк
         $query = pos_Receipts::getQuery();
         $query->XPR('createdDate', 'date', 'DATE(#createdOn)');
         $query->where("#state != 'rejected'");
         $query->orderBy("#createdDate,#id", 'DESC');
-        $query->limit(self::$maxSearchReceipts);
+        $query->limit($maxSearchReceipts);
         if(!empty($string)){
             plg_Search::applySearch($string, $query);
         }

@@ -75,6 +75,25 @@
 							</tr>
 							<!--ET_END otherStores-->
 						
+							<tr>
+								<td class='dt'>|Брой намерени артикули|*:</td>
+								<td>[#maxSearchProducts#]</td>
+							</tr>
+						
+							<tr>
+								<td class='dt'>|Брой намерени бележки|*:</td>
+								<td>[#maxSearchReceipts#]</td>
+							</tr>
+							
+							<tr>
+								<td class='dt'>|Брой първоначално намерени контрагенти|*:</td>
+								<td>[#maxSearchContragentStart#]</td>
+							</tr>
+							
+							<tr>
+								<td class='dt'>|Брой намерени контрагенти при търсене|*:</td>
+								<td>[#maxSearchContragentStart#]</td>
+							</tr>
 						</table>
 				</div>
 			</fieldset>
