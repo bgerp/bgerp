@@ -741,9 +741,9 @@ var semaphor;
 
 function render_afterload()
 {
-	var operation = getSelectedOperation();
-
 	afterload();
+	
+	/*
 	
 	var eanInput = $("input[name=ean]");
 	
@@ -775,6 +775,7 @@ function render_afterload()
 	
 	semaphor = 0;
 	sessionStorage.removeItem("operationClicked");
+	*/
 }
 
 function enter() {
@@ -1051,9 +1052,6 @@ function addProduct(el) {
 	$(elemRow).addClass('highlighted');
 	var url = $(el).attr("data-url");
 	var productId = $(el).attr("data-productId");
-
-	resObj = new Object();
-	resObj['url'] = url;
 	var data = {productId:productId};
 
 	// При добавяне на артикул ако в инпута има написано число или число и * да го третира като число
@@ -1066,7 +1064,7 @@ function addProduct(el) {
 		data.string = quantity;
 	}
 
-	getEfae().process(resObj, data);
+	processUrl(url, data);
 	calculateWidth();
 
 	activeInput = false;
@@ -1101,6 +1099,8 @@ function getSelectedRowId()
 function doOperation(operation, selectedRecId)
 {
 	clearTimeout(timeout);
+	
+	$("input[name=ean]").val("");
 	
 	sessionStorage.removeItem("focused");
 	var currentlySelected = getSelectedOperation();

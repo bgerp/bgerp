@@ -522,7 +522,8 @@ class pos_Terminal extends peripheral_Terminal
         
         foreach ($operations as $operation => $operationCaption){
             $class = ($operation == $currentOperation) ? 'operationBtn active' : 'operationBtn';
-            $attr = array('data-url' => $searchUrl, 'class' => $class, 'data-value' => $operation, 'title' => $operationCaption);
+            $dataUrl = ($operation == $currentOperation) ? null : $searchUrl;
+            $attr = array('data-url' => $dataUrl, 'class' => $class, 'data-value' => $operation, 'title' => $operationCaption);
             $disabled = (empty($detailsCount) && in_array($operation, self::$forbiddenOperationOnEmptyReceipts)) || (!empty($rec->paid) && in_array($operation, self::$forbiddenOperationOnReceiptsWithPayment));
             
             if($rec->state != 'draft' && !array_key_exists($operation, $allowedOperationsForNonDraftReceipts)) {
@@ -1499,6 +1500,7 @@ class pos_Terminal extends peripheral_Terminal
         $data = new stdClass();
         $data->rec = $rec;
         $data->searchString = $searchString;
+        $data->searchStringPure = $string;
         $data->baseCurrency = acc_Periods::getBaseCurrencyCode();
         $this->prepareProductTable($data);
         
@@ -1593,15 +1595,19 @@ class pos_Terminal extends peripheral_Terminal
             $maxCount = $maxSearchProducts;
             
             // Ако има артикул, чийто код отговаря точно на стринга, той е най-отгоре
-            $foundRec = cat_Products::getByCode($data->searchString);
+            $foundRec = cat_Products::getByCode($data->searchStringPure);
             if(isset($foundRec->productId) && (!isset($data->revertReceiptId) || (isset($data->revertReceiptId) && pos_ReceiptDetails::fetchField("#receiptId = {$data->revertReceiptId} AND #productId = {$foundRec->productId}")))){
-                $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canStore' => cat_Products::fetchField($foundRec->productId, 'canStore'), 'packId' => isset($foundRec->packagingId) ? $foundRec->packagingId : null);
+                $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canStore' => cat_Products::fetchField($foundRec->productId, 'canStore'), 'measureId' => cat_Products::fetchField($foundRec->productId, 'measureId'), 'packId' => isset($foundRec->packagingId) ? $foundRec->packagingId : null);
                 $count++;
             }
             
             // След това се добавят артикулите, които съдържат стринга в името и/или кода си
             $pQuery1 = clone $pQuery;
-            $pQuery1->orderBy('code,name,measureId', 'ASC');
+            $pQuery1->orderBy('code,name', 'ASC');
+            if(isset($foundRec->productId)){
+                $pQuery1->where("#id != {$foundRec->productId}");
+            }
+            
             while($pRec1 = $pQuery1->fetch()){
                 $name = plg_Search::normalizeText($pRec1->name);
                 $code = plg_Search::normalizeText($pRec1->code);
@@ -1612,18 +1618,18 @@ class pos_Terminal extends peripheral_Terminal
                     if($count == $maxSearchProducts) break;
                 }
             }
-            
+           
             // Ако не е достигнат лимита, се добавят и артикулите с търсене в ключовите думи
             if($count < $maxSearchProducts){
                 $notInKeys = array_keys($sellable);
                 $pQuery2 = clone $pQuery;
                 plg_Search::applySearch($data->searchString, $pQuery2);
                 if(countR($notInKeys)){
-                    $pQuery2->in('id', $notInKeys);
+                    $pQuery2->notIn('id', $notInKeys);
                 }
-                
+               
                 while($pRec2 = $pQuery2->fetch()){
-                    $sellable[$pRec2->id] = (object)array('id' => $pRec2->id, 'canStore' => $pRec2->canStore);
+                    $sellable[$pRec2->id] = (object)array('id' => $pRec2->id, 'canStore' => $pRec2->canStore, 'measureId' =>  $pRec2->measureId);
                     $count++;
                     $maxCount--;
                     if($count == $maxSearchProducts) break;
