@@ -112,7 +112,7 @@ class findeals_CreditDocuments extends deals_Document
             $operation = $operations[$rec->operationSysId];
             
             // Да се изпълнява след другото
-            $creditAcc = findeals_Deals::fetchField($rec->dealId, 'accountId');
+            $creditAcc = doc_Containers::getDocument($rec->dealId)->fetchField('accountId');
             
             $debitAccount = empty($operation['reverse']) ? $operation['debit'] : acc_Accounts::fetchRec($creditAcc)->systemId;
             $creditAccount = empty($operation['reverse']) ? acc_Accounts::fetchRec($creditAcc)->systemId : $operation['debit'];
