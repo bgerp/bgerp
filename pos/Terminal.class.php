@@ -522,8 +522,7 @@ class pos_Terminal extends peripheral_Terminal
         
         foreach ($operations as $operation => $operationCaption){
             $class = ($operation == $currentOperation) ? 'operationBtn active' : 'operationBtn';
-            $dataUrl = ($operation == $currentOperation) ? null : $searchUrl;
-            $attr = array('data-url' => $dataUrl, 'class' => $class, 'data-value' => $operation, 'title' => $operationCaption);
+            $attr = array('data-url' => $searchUrl, 'class' => $class, 'data-value' => $operation, 'title' => $operationCaption);
             $disabled = (empty($detailsCount) && in_array($operation, self::$forbiddenOperationOnEmptyReceipts)) || (!empty($rec->paid) && in_array($operation, self::$forbiddenOperationOnReceiptsWithPayment));
             
             if($rec->state != 'draft' && !array_key_exists($operation, $allowedOperationsForNonDraftReceipts)) {

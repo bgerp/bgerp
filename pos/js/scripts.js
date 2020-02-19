@@ -48,10 +48,7 @@ function posActions() {
 	
 	// Добавяне на партида
 	$(document.body).on('click', ".resultBatch", function(e){
-		var url = $(this).attr("data-url");
-		var params = {recId:getSelectedRowId()};
-		
-		processUrl(url, params);
+		pressNavigable(this);
 	});
 	
 	// Добавяне 
@@ -114,13 +111,7 @@ function posActions() {
 	
 	// Направата на плащане след натискане на бутон
 	$(document.body).on('click', ".payment", function(e){
-		if(!$(this).hasClass( "disabledBtn")){
-			var url = $(this).attr("data-url");
-			var type = $(this).attr("data-type");
-			type = (!type) ? '-1' : type;
-
-			doPayment(url, type);
-		}
+		pressNavigable(this);
 	});
 
 	$('body').on('paste', '.large-field', function (e){
@@ -143,31 +134,12 @@ function posActions() {
 	
 	// При клик на бутон добавя отстъпка
 	$(document.body).on('click', ".discountBtn", function(e){
-		var url = $(this).attr("data-url");
-		var params = {recId:getSelectedRowId()};
-		
-		processUrl(url, params);
+		pressNavigable(this);
 	});
 
 	// Избор на контрагент
 	$(document.body).on('click', ".posResultContragent, .contragentLinkBtns", function(e){
-		clearTimeout(timeout);
-		
-		var url = $(this).attr("data-url");
-		if(!url) return;
-		
-		if($(this).hasClass("openInNewTab")){
-			window.open(url, '_blank');
-			var reloadUrl = $(this).attr("data-reloadurl");
-			
-			if(reloadUrl){
-				document.location = reloadUrl;
-			} else {
-				location.reload();
-			}
-		} else {
-			document.location = url;
-		}
+		pressNavigable(this);
 	});
 	
 
@@ -265,7 +237,7 @@ function posActions() {
 
 	// Добавяне на продукт от резултатите за търсене
 	$(document.body).on(eventType, ".pos-add-res-btn", function(e){
-		addProduct(this);
+		pressNavigable(this);
 	});
 
 
@@ -297,10 +269,7 @@ function posActions() {
 
 	// При натискане на бутона за задаване на цена
 	$(document.body).on('click', "div.resultPrice", function(e){
-		var url = $(this).attr("data-url");
-		var params = {recId:getSelectedRowId()};
-		
-		processUrl(url, params);
+		pressNavigable(this);
 	});
 
 	// При отваряне на нова бележка маха се фокусирания елемент
@@ -310,40 +279,17 @@ function posActions() {
 	
 	// При натискане на бутона за задаване на количество/опаковка
 	$(document.body).on('click', "div.resultPack", function(e){
-		var url = $(this).attr("data-url");
-		var pack = $(this).attr("data-pack");
-		
-		if($(this).hasClass("packWithQuantity")){
-			var quantity = $(this).attr("data-quantity");
-		} else {
-			var quantity = $("input[name=ean]").val();
-		}
-		
-		quantity = (quantity) ? quantity : 1;
-		var string = quantity + " " + pack;
-		var params = {string:string,recId:getSelectedRowId()};
-		
-		processUrl(url, params);
+		pressNavigable(this);
 	});
 	
 	// При натискане на бутона за задаване на количество/опаковка
 	$(document.body).on('click', "div.chooseStoreBtn", function(e){
-		var url = $(this).attr("data-url");
-		var storeId = $(this).attr("data-storeid");
-		
-		var params = {string:string,recId:getSelectedRowId()};
-		processUrl(url, params);
+		pressNavigable(this);
 	});
 	
 	// При натискане на бутона за задаване на количество/опаковка
 	$(document.body).on('click', "div.locationBtn", function(e){
-		var url = $(this).attr("data-url");
-		if(!url) return;
-		
-		resObj = new Object();
-		resObj['url'] = url;
-		
-		document.location = url;
+		pressNavigable(this);
 	});
 	
 	// При натискане на бутона за показване на подробна информация избрания елемент
@@ -360,8 +306,7 @@ function posActions() {
 	
 	// При натискане на бутон за нова фирма
 	$(document.body).on('click', ".newCompanyBtn", function(e){
-		var url = $(this).attr("data-url");
-		location.href = url;
+		presssNavigable(this);
 	});
 	
 	// При натискане на бутона за клавиатура
@@ -796,16 +741,24 @@ function enter() {
 
 	var isOnlyQuantityString = isNumberOperation(value);
 	
-	console.log(isOnlyQuantityString);
+	//console.log(isOnlyQuantityString);
 	
 	// Ако има селектиран елемент в резултатите
 	if(element.length){
 		
+		console.log(activeInput, isOnlyQuantityString, operation);
+		
 		// Ако инпута е активен но е с празен стринг, или е активен и е въведена операция за к-во или не е активен
 		// тогава се клика на селектирания елемент в резултатите
-		if((activeInput === true && !value) || (activeInput === true && isOnlyQuantityString) || activeInput !== true){
+		if((activeInput === true && !value) || (activeInput === true && operation == 'payment') || (activeInput === true && isOnlyQuantityString && operation != 'payment') || activeInput === false){
+			
+			pressNavigable(element);
+			
+			
+			return;
 			
 			// Намира първия елемент с data-url
+			/*
 			var elementDataUrl = element.attr("data-url");
 			var hrefUrl = element.attr("href");
 			var onclick = element.attr("onclick");
@@ -849,23 +802,117 @@ function enter() {
 
 				console.log("ENTER SUBMIT DATA_ATTR  " + element.attr("id"));
 				return;
-			}
+			}*/
 		}
 	}
 
-	if(!url){
+	submitInputString();
+}
+
+
+function pressNavigable(element)
+{
+	var element = $(element);
+	
+	var params = {recId:getSelectedRowId()};
+	var url = element.attr("data-url");
+	
+	if(element.hasClass("disabledBtn")){
 		
+		
+		return;
+	}
+	
+	
+	if(element.hasClass('pos-add-res-btn')){
+		
+		addProduct(element);
+		
+		return;
+	} else if(element.hasClass('chooseStoreBtn')) {
+		var storeId = element.attr("data-storeid");
+		params = {string:storeId,recId:getSelectedRowId()};
+		
+	} else if(element.hasClass('resultPack')) {
+		var pack = element.attr("data-pack");
+		if(element.hasClass("packWithQuantity")){
+			var quantity = element.attr("data-quantity");
+		} else {
+			var quantity = $("input[name=ean]").val();
+		}
+		
+		quantity = (quantity) ? quantity : 1;
+		var string = quantity + " " + pack;
+		params = {string:string,recId:getSelectedRowId()};
+	} else if(element.hasClass('payment')){
+		var type = element.attr("data-type");
+		type = (!type) ? '-1' : type;
+		doPayment(url, type);
+		return;
+		
+	} else if(element.hasClass('contragentLinkBtns') || element.hasClass('posResultContragent')){
+		
+		clearTimeout(timeout);
+		
+		if(element.hasClass("openInNewTab")){
+			window.open(url, '_blank');
+			var reloadUrl = element.attr("data-reloadurl");
+			
+			if(reloadUrl){
+				document.location = reloadUrl;
+			} else {
+				location.reload();
+			}
+		} else {
+			document.location = url;
+		}
+		return;
+		
+	} else if(element.hasClass("newCompanyBtn") || element.hasClass("locationBtn")){
+		location.href = url;
+		return;
+	} else if(element.hasClass("deleteRow")){
+		deleteSelectedElement();
+		return;
+	} else if(element.is("a")){
+		var hrefUrl = element.attr("href");
+		var onclick = element.attr("onclick");
+		
+		if(onclick){
+			var event = jQuery.Event("click");
+			element.trigger(event);
+			return;
+		}
+		
+		location.href = hrefUrl;
+		return;
+	}
+	
+	console.log(url, params);
+	processUrl(url, params);
+	
+}
+
+
+/**
+ * Събмитва въведеното от глобалния инпут, ако има какво и има урл
+ */
+function submitInputString()
+{
+	var value = $("input[name=ean]").val();
+	var url = $("input[name=ean]").attr("data-url");
+	
+	if(!url){
 		console.log("ENTER NO URL RETURN");
 		return;
 	}
 
 	console.log("ENTER SUBMIT STRING:" + value);
-	var selectedElement = $(".highlighted.productRow");
-	var selectedRecId = selectedElement.attr("data-id");
-
+	
 	var params = {string:value,recId:getSelectedRowId()};
 	processUrl(url, params);
 }
+
 
 // Дали подадения стринг е операция за задаване на количество
 function isNumberOperation(string)
@@ -1088,6 +1135,9 @@ function processUrl(url, params) {
 }
 
 
+/**
+ * Кой е селектирания ред
+ */
 function getSelectedRowId()
 {
 	var selectedElement = $(".highlighted.productRow");
@@ -1096,11 +1146,12 @@ function getSelectedRowId()
 }
 
 
+/**
+ * Извършва подадената операция
+ */
 function doOperation(operation, selectedRecId)
 {
 	clearTimeout(timeout);
-	
-	$("input[name=ean]").val("");
 	
 	sessionStorage.removeItem("focused");
 	var currentlySelected = getSelectedOperation();
@@ -1120,14 +1171,16 @@ function doOperation(operation, selectedRecId)
 		return;
 	}
 	
-	var string = $("input[name=ean]").val();
-	
 	// ако операцията е същата но стринга е празен да не се изпълнява заявката
-	if(!string && operation == currentlySelected && lastHighlighted == selectedRecId){
-		console.log('prevent trigger on repeated click');
+	if(operation == currentlySelected){
+		
+		submitInputString();
+		
 		
 		return;
 	}
+	
+	$("input[name=ean]").val("");
 	
 	sessionStorage.setItem('operationClicked', true);
 	var data = {operation:operation,recId:selectedRecId};
