@@ -1734,7 +1734,6 @@ class pos_Terminal extends peripheral_Terminal
     private function renderResultReceipts($rec, $string, $selectedRec)
     {
         $rec = $this->fetchRec($rec);
-        $tpl = new core_ET("<div class='grid'>");
         
         $string = plg_Search::normalizeText($string);
         $addUrl = (pos_Receipts::haveRightFor('add')) ? array('pos_Receipts', 'new', 'forced' => true) : array();
@@ -1756,39 +1755,13 @@ class pos_Terminal extends peripheral_Terminal
             plg_Search::applySearch($string, $query);
         }
         
-        // Добавяне на бутона за нова бележка да е в блока 'Днес'
-        $dateBlock = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('RECEIPT_RESULT');
-        
-        $addBtn = ht::createLink("Нова бележка", $addUrl, null, "id=receiptnew,class=pos-notes posBtns newNoteBtn {$disabledClass},title=Създаване на нова бележка");
-        $tpl->append($addBtn);
-        
-        if(countR($revertUrl)){
-            $attr = arr::make("id=revertthis,class=pos-notes posBtns revertReceiptBtn {$disabledClass},title=Сторниране на текущата бележка");
-            $warning = tr('Наистина ли искате да сторнирате текущата бележката|*?');
-            $revertUrl = toUrl($revertUrl);
-            $attr['onclick'] = "confirmAndRefirect('{$warning}', '{$revertUrl}')";
-            $revertBtn = ht::createElement('a', $attr, "Сторниране", false);
-            
-            $tpl->append($revertBtn);
-        } else {
-            if($disabledRevertWarning){
-                $attr = arr::make("id=receiptrevertdefault,class=pos-notes posBtns newNoteBtn revertReceiptBtn {$disabledRevertClass},title=Създаване на нова сторно бележка");
-                $revertDefaultUrl = toUrl($revertDefaultUrl);
-                $attr['onclick'] = "confirmAndRefirect('{$disabledRevertWarning}', '{$revertDefaultUrl}')";
-                $revertDefaultBtn = ht::createElement('a', $attr, "Сторно бележка", false);
-            } else {
-                $revertDefaultBtn = ht::createLink("Сторно бележка", $revertDefaultUrl, null, "id=receiptrevertdefault,class=pos-notes posBtns newNoteBtn revertReceiptBtn {$disabledRevertClass},title=Създаване на нова сторно бележка");
-            }
-            $tpl->append($revertDefaultBtn);
-        }
-        $tpl->append("</div>");
+        $tpl = new core_ET("<ul class='tabHolder'>[#TAB#]</ul><div class='contentHolder'>");
         
         // Групиране на записите по дата
         $arr = array();
         while ($receiptRec = $query->fetch()) {
             if(!array_key_exists($receiptRec->createdDate, $arr)){
-                $arr[$receiptRec->createdDate] = clone $dateBlock;
-                $arr[$receiptRec->createdDate]->replace(dt::mysql2verbal($receiptRec->createdDate, 'smartDate'), 'groupName');
+                $arr[$receiptRec->createdDate] = array('date' => dt::mysql2verbal($receiptRec->createdDate, 'smartDate'), 'receipts' => new core_ET(""));
             }
             
             $class = isset($receiptRec->revertId) ? 'revertReceipt' : '';
@@ -1799,13 +1772,61 @@ class pos_Terminal extends peripheral_Terminal
             $btnTitle = self::getReceiptTitle($receiptRec);
             $btnTitle = ($rec->pointId != $receiptRec->pointId) ? ht::createHint($btnTitle, "Бележката е от друг POS") : $btnTitle;
             $row = ht::createLink($btnTitle, $openUrl, null, array('id' => "receipt{$receiptRec->id}", 'class' => "pos-notes posBtns {$class} state-{$receiptRec->state} enlargable", 'title' => 'Отваряне на бележката', 'data-enlarge-object-id' => $receiptRec->id, 'data-enlarge-class-id' => pos_Receipts::getClassId(), 'data-modal-title' => strip_tags(pos_Receipts::getRecTitle($receiptRec))));
-            $arr[$receiptRec->createdDate]->append($row, 'element');
+            $arr[$receiptRec->createdDate]['receipts']->append($row);
         }
         
-        foreach ($arr as $blockTpl){
-            $blockTpl->removeBlocksAndPlaces();
-            $tpl->append($blockTpl);
+        foreach ($arr as $date => $dateElement){
+            $contentId = "content{$date}";
+            $tab = "<li><div data-content = '{$contentId}'>{$dateElement['date']}</div></li>";
+            $tpl->append($tab, "TAB");
+            
+            $dateElement['receipts']->prepend("<div id='{$contentId}'><div class='grid'>");
+            $dateElement['receipts']->append("</div></div>");
+            $dateElement['receipts']->removeBlocksAndPlaces();
+            $tpl->append($dateElement['receipts']);
+            
         }
+        $tpl->append('</div>');
+        
+        $addBtnTpl = ht::createLink("+", $addUrl, null, "id=receiptnew,class=pos-notes posBtns newNoteBtn {$disabledClass},title=Създаване на нова бележка");
+        $addBtnTpl->prepend("<li>");
+        $addBtnTpl->append("</li>");
+        $tpl->append($addBtnTpl, "TAB");
+        
+        if(countR($revertUrl)){
+            $attr = arr::make("id=revertthis,class=pos-notes posBtns revertReceiptBtn {$disabledClass},title=Сторниране на текущата бележка");
+            $warning = tr('Наистина ли искате да сторнирате текущата бележката|*?');
+            $revertUrl = toUrl($revertUrl);
+            $attr['onclick'] = "confirmAndRefirect('{$warning}', '{$revertUrl}')";
+            $revertBtn = ht::createElement('a', $attr, "Сторниране", false);
+            $revertBtn->prepend("<li>");
+            $revertBtn->append("</li>");
+            
+            $tpl->append($revertBtn, "TAB");
+        } else {
+            if($disabledRevertWarning){
+                $attr = arr::make("id=receiptrevertdefault,class=pos-notes posBtns newNoteBtn revertReceiptBtn {$disabledRevertClass},title=Създаване на нова сторно бележка");
+                $revertDefaultUrl = toUrl($revertDefaultUrl);
+                $attr['onclick'] = "confirmAndRefirect('{$disabledRevertWarning}', '{$revertDefaultUrl}')";
+                $revertDefaultBtn = ht::createElement('a', $attr, "Сторно бележка", false);
+            } else {
+                $revertDefaultBtn = ht::createLink("Сторно бележка", $revertDefaultUrl, null, "id=receiptrevertdefault,class=pos-notes posBtns newNoteBtn revertReceiptBtn {$disabledRevertClass},title=Създаване на нова сторно бележка");
+            }
+            
+            $revertDefaultBtn->prepend("<li>");
+            $revertDefaultBtn->append("</li>");
+            
+            $tpl->append($revertDefaultBtn, "TAB");
+        }
+        
+        
+        
+        //$tpl->append('<li>love</li>', 'TAB');
+        
+        
+        $tpl->removeBlocksAndPlaces();
+       
+        
         
         return $tpl;
     }
