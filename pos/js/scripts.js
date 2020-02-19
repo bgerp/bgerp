@@ -46,11 +46,6 @@ function posActions() {
 		//addResultByDataUrl(this);
 	});
 	
-	// Добавяне на партида
-	$(document.body).on('click', ".resultBatch", function(e){
-		pressNavigable(this);
-	});
-	
 	// Добавяне 
 	$(document.body).on('click', ".textResult", function(e){
 		var url = $(this).attr("data-url");
@@ -108,9 +103,8 @@ function posActions() {
 		}, 2000);
 	});
 	
-	
-	// Направата на плащане след натискане на бутон
-	$(document.body).on('click', ".payment", function(e){
+	// При натискане на елемент с клас за навигиране
+	$(document.body).on('click', ".navigable", function(e){
 		pressNavigable(this);
 	});
 
@@ -131,18 +125,6 @@ function posActions() {
 	$(document.body).on('click', ".deleteRow", function(e){
 		deleteSelectedElement();
 	});
-	
-	// При клик на бутон добавя отстъпка
-	$(document.body).on('click', ".discountBtn", function(e){
-		pressNavigable(this);
-	});
-
-	// Избор на контрагент
-	$(document.body).on('click', ".posResultContragent, .contragentLinkBtns", function(e){
-		pressNavigable(this);
-	});
-	
-
 	
 	// Попълване на символи от клавиатурата
 	$(document.body).on('click', ".keyboard-btn", function(e){
@@ -235,11 +217,6 @@ function posActions() {
 		eventType = "click";
 	}
 
-	// Добавяне на продукт от резултатите за търсене
-	$(document.body).on(eventType, ".pos-add-res-btn", function(e){
-		pressNavigable(this);
-	});
-
 
 	// При натискане на бутон с резултати да се чисти таймаута
 	$(document.body).on('click', ".posBtns", function(e){
@@ -267,30 +244,11 @@ function posActions() {
 	var timeout1;
 
 
-	// При натискане на бутона за задаване на цена
-	$(document.body).on('click', "div.resultPrice", function(e){
-		pressNavigable(this);
-	});
-
 	// При отваряне на нова бележка маха се фокусирания елемент
 	$(document.body).on('click', ".openNoteBtn, .revertReceipt", function(e){
 		sessionStorage.removeItem("focused");
 	});
 	
-	// При натискане на бутона за задаване на количество/опаковка
-	$(document.body).on('click', "div.resultPack", function(e){
-		pressNavigable(this);
-	});
-	
-	// При натискане на бутона за задаване на количество/опаковка
-	$(document.body).on('click', "div.chooseStoreBtn", function(e){
-		pressNavigable(this);
-	});
-	
-	// При натискане на бутона за задаване на количество/опаковка
-	$(document.body).on('click', "div.locationBtn", function(e){
-		pressNavigable(this);
-	});
 	
 	// При натискане на бутона за показване на подробна информация избрания елемент
 	$(document.body).on('click', ".enlargeProductBtn", function(e){
@@ -753,56 +711,7 @@ function enter() {
 		if((activeInput === true && !value) || (activeInput === true && operation == 'payment') || (activeInput === true && isOnlyQuantityString && operation != 'payment') || activeInput === false){
 			
 			pressNavigable(element);
-			
-			
 			return;
-			
-			// Намира първия елемент с data-url
-			/*
-			var elementDataUrl = element.attr("data-url");
-			var hrefUrl = element.attr("href");
-			var onclick = element.attr("onclick");
-			
-			if(onclick){
-				// Вика се клик
-				var event = jQuery.Event("click");
-				element.trigger(event);
-				
-				console.log("ENTER SUBMIT TRIGGER " + element.attr("id"));
-				
-				return;
-			}
-			
-			if(hrefUrl){
-				location.href = hrefUrl;
-				return;
-			}
-			
-			if(elementDataUrl == undefined){
-				var child = element.find('[data-url]');
-
-				var elementDataUrl = child.attr("data-url");
-				if(elementDataUrl){
-					element = child;
-				}
-			}
-
-			if(elementDataUrl == undefined){
-				var child = element.find('[href]');
-				if(child.length){
-					element = child;
-				}
-			}
-
-			if(element != undefined){
-
-				// Вика се клик
-				var event = jQuery.Event("click");
-				element.trigger(event);
-
-				console.log("ENTER SUBMIT DATA_ATTR  " + element.attr("id"));
-				return;
-			}*/
 		}
 	}
 
@@ -890,7 +799,6 @@ function pressNavigable(element)
 	
 	console.log(url, params);
 	processUrl(url, params);
-	
 }
 
 
