@@ -39,12 +39,6 @@ function posActions() {
 
 		inputChars(inputElement, val);
 	});
-
-	
-	// Добавяне на
-	$(document.body).on('click', "#result-holder .receiptRow", function(e){
-		//addResultByDataUrl(this);
-	});
 	
 	// Добавяне 
 	$(document.body).on('click', ".textResult", function(e){
@@ -195,29 +189,20 @@ function posActions() {
 	});
 	startNavigation();
 
-
-
 	// действие на бутоните за действията
 	$(document.body).on('click', ".operationBtn", function(e){
 		var operation = $(this).attr("data-value");
 		var selectedRecId = getSelectedRowId();
 		
-		doOperation(operation, selectedRecId);
+		doOperation(operation, selectedRecId, true);
 	});
 
-	
-	
-	
-	
-	
-	
 	var eventType;
 	if (isTouchDevice()) {
 		eventType = "click";
 	} else {
 		eventType = "click";
 	}
-
 
 	// При натискане на бутон с резултати да се чисти таймаута
 	$(document.body).on('click', ".posBtns", function(e){
@@ -421,7 +406,7 @@ function hideHints(){
 
 function openReceipt() {
 	selectedRecId = getSelectedRowId();
-	doOperation("receipts", selectedRecId)
+	doOperation("receipts", selectedRecId, false)
 }
 
 // Отваря виртуалната клавиатура
@@ -441,7 +426,7 @@ function openPrint() {
 }
 function openClient() {
 	var selectedRecId = getSelectedRowId();
-	doOperation("contragent", selectedRecId);
+	doOperation("contragent", selectedRecId, false);
 }
 
 function logout() {
@@ -456,22 +441,22 @@ function openReject() {
 }
 function openText() {
 	var selectedRecId = getSelectedRowId();
-	doOperation("text", selectedRecId);
+	doOperation("text", selectedRecId, false);
 }
 
 function openProducts() {
 	var selectedRecId = getSelectedRowId();
-	doOperation("add", selectedRecId);
+	doOperation("add", selectedRecId, false);
 }
 
 function openQuantity() {
 	var selectedRecId = getSelectedRowId();
-	doOperation("quantity", selectedRecId);
+	doOperation("quantity", selectedRecId, false);
 }
 
 function openPayment() {
 	var selectedRecId = getSelectedRowId();
-	doOperation("payment", selectedRecId);
+	doOperation("payment", selectedRecId, false);
 }
 
 // Калкулира ширината
@@ -554,7 +539,7 @@ function refreshResultByOperation(element, operation){
 	
 	if(operation == 'quantity' || operation == 'payment'){
 		var selectedRecId = getSelectedRowId();
-		doOperation(operation, selectedRecId);
+		doOperation(operation, selectedRecId, false);
 	}
 }
 
@@ -646,40 +631,6 @@ var semaphor;
 function render_afterload()
 {
 	afterload();
-	
-	/*
-	
-	var eanInput = $("input[name=ean]");
-	
-	var searchVal = eanInput.val();
-	var submitUrl = eanInput.attr("data-url");
-	var clicked = sessionStorage.getItem('operationClicked');
-	
-	if(submitUrl && !semaphor && clicked){
-		
-		resObj = new Object();
-		resObj['url'] = submitUrl;
-		
-		var selectedElement = $(".highlighted.productRow");
-		var selectedRecId = eanInput.attr("data-id");
-
-		var sendAjax = true;
-		if(!searchVal && (operation == 'add' || operation == 'quantity')){
-			sendAjax = false;
-		}
-		
-		semaphor = 1;
-		
-		if(sendAjax){
-			getEfae().process(resObj, {string:searchVal,recId:selectedRecId});
-		}
-		
-		return;
-	}
-	
-	semaphor = 0;
-	sessionStorage.removeItem("operationClicked");
-	*/
 }
 
 function enter() {
@@ -699,8 +650,6 @@ function enter() {
 	var element = $(".navigable.selected");
 
 	var isOnlyQuantityString = isNumberOperation(value);
-	
-	//console.log(isOnlyQuantityString);
 	
 	// Ако има селектиран елемент в резултатите
 	if(element.length){
@@ -730,22 +679,15 @@ function pressNavigable(element)
 	var params = {recId:getSelectedRowId()};
 	var url = element.attr("data-url");
 	
-	if(element.hasClass("disabledBtn")){
-		
-		
-		return;
-	}
-	
+	if(element.hasClass("disabledBtn")) return;
 	
 	if(element.hasClass('pos-add-res-btn')){
-		
 		addProduct(element);
 		
 		return;
 	} else if(element.hasClass('chooseStoreBtn')) {
 		var storeId = element.attr("data-storeid");
 		params = {string:storeId,recId:getSelectedRowId()};
-		
 	} else if(element.hasClass('resultPack')) {
 		var pack = element.attr("data-pack");
 		if(element.hasClass("packWithQuantity")){
@@ -766,7 +708,6 @@ function pressNavigable(element)
 	} else if(element.hasClass('contragentLinkBtns') || element.hasClass('posResultContragent')){
 		
 		clearTimeout(timeout);
-		
 		if(element.hasClass("openInNewTab")){
 			window.open(url, '_blank');
 			var reloadUrl = element.attr("data-reloadurl");
@@ -804,6 +745,10 @@ function pressNavigable(element)
 	processUrl(url, params);
 }
 
+
+/**
+ * Извикване на урл-то след потвърждение на предупреждението
+ */
 function confirmAndRefirect(warning, url)
 {
 	if (!confirm(warning)){
@@ -978,12 +923,19 @@ function setInputPlaceholder() {
 	$("input[name=ean]").attr("placeholder", placeholder);	
 }
 
+
+/**
+ * Изпълнява се след връщане на резултатите по ajax
+ */
 function afterload() {
 	setInputPlaceholder();
 	disableOrEnableEnlargeBtn();
 }
 
-// Активира или закрива бутона за подробна информация на артикула
+
+/**
+ * Активира или закрива бутона за подробна информация на артикула
+ */
 function disableOrEnableEnlargeBtn()
 {
 	var focusedElement = $(".navigable.selected");
@@ -1013,6 +965,10 @@ function disableOrEnableEnlargeBtn()
 	}
 }
 
+
+/**
+ * Добавя артикул от натиснатия елемент в резултати
+ */
 function addProduct(el) {
 	clearTimeout(timeout);
 
@@ -1039,9 +995,9 @@ function addProduct(el) {
 }
 
 
-
-
-
+/**
+ * Извиква подаденото урл с параметри
+ */
 function processUrl(url, params) {
 	if(!url) return;
 
@@ -1070,7 +1026,7 @@ function getSelectedRowId()
 /**
  * Извършва подадената операция
  */
-function doOperation(operation, selectedRecId)
+function doOperation(operation, selectedRecId, forceSubmit)
 {
 	clearTimeout(timeout);
 	
@@ -1093,10 +1049,8 @@ function doOperation(operation, selectedRecId)
 	}
 	
 	// ако операцията е същата но стринга е празен да не се изпълнява заявката
-	if(operation == currentlySelected){
-		
+	if(forceSubmit && operation == currentlySelected){
 		submitInputString();
-		
 		
 		return;
 	}
