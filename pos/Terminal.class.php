@@ -1273,13 +1273,14 @@ class pos_Terminal extends peripheral_Terminal
         $freqTpl = ht::createElement('div', array('class' => 'grid'), $freqTpl, true);
         $tpl->append($freqTpl, 'FREQUENT_PACK_BUTTONS');
 
-        $storesTpl = new core_ET("");
-        foreach ($storeBtns as $storeBtn){
-            $storesTpl->append($storeBtn);
+        if(countR($storeBtns)){
+            $storesTpl = new core_ET("");
+            foreach ($storeBtns as $storeBtn){
+                $storesTpl->append($storeBtn);
+            }
+            $storesTpl = ht::createElement('div', array('class' => 'grid'), $storesTpl, true);
+            $tpl->append($storesTpl, 'STORE_BUTTONS');
         }
-
-        $storesTpl = ht::createElement('div', array('class' => 'grid'), $storesTpl, true);
-        $tpl->append($storesTpl, 'STORE_BUTTONS');
 
         return $tpl;
     }
