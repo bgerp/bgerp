@@ -9,7 +9,7 @@
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.11
@@ -25,7 +25,7 @@ class pos_Points extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, plg_Rejected, doc_FolderPlg,pos_Wrapper, plg_Printing, plg_Current, plg_State, plg_Modified, plg_Settings';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_Rejected, doc_FolderPlg,pos_Wrapper, plg_Printing, plg_Current, plg_State, plg_Settings';
     
     
     /**
@@ -143,7 +143,7 @@ class pos_Points extends core_Master
         
         $this->FLD('setPrices', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Цени, mandatory,default=yes');
         $this->FLD('setDiscounts', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Отстъпки, mandatory,settings,default=yes');
-        $this->FLD('usedDiscounts', 'table(columns=discount,captions=Отстъпки)', 'caption=Ръчно задаване->Използвани отстъпки');
+        $this->FLD('usedDiscounts', 'table(columns=discount,captions=Отстъпки,validate=pos_Points::validateAllowedDiscounts)', 'caption=Ръчно задаване->Използвани отстъпки');
         
         $this->FLD('maxSearchProducts', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->Артикули');
         $this->FLD('maxSearchReceipts', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->Бележки');
@@ -152,6 +152,45 @@ class pos_Points extends core_Master
         
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Складове->Основен, mandatory');
         $this->FLD('otherStores', 'keylist(mvc=store_Stores, select=name)', 'caption=Складове->Допълнителни');
+    }
+    
+    
+    /**
+     * Валидиране на отстъпките
+     * 
+     * @param array     $tableData
+     * @param core_Type $Type
+     *
+     * @return array
+     */
+    public function validateAllowedDiscounts($tableData, $Type)
+    {
+        $res = array();
+        $discounts = $tableData['discount'];
+        
+        $error = $errorFields = array();
+        $Discount = core_Type::getByName('percent(min=0,max=1)');
+        foreach ($discounts as $k1 => $q1) {
+            $quantity = $Discount->fromVerbal($q1);
+            if (!$quantity) {
+                $error[] = 'Не допустими символи в число/израз|*';
+                $errorFields['discount'][$k1] = 'Не е въведено число|*';
+            } elseif($quantity < 0 || $quantity > 1) {
+                $error[] = 'Отстъпката трябва да е между 0 и 100%|*';
+                $errorFields['discount'][$k1] = 'Отстъпката трябва да е между 0 и 100%|*';
+            }
+        }
+        
+        if (countR($error)) {
+            $error = implode('<li>', $error);
+            $res['error'] = $error;
+        }
+        
+        if (countR($errorFields)) {
+            $res['errorFields'] = $errorFields;
+        }
+        
+        return $res;
     }
     
     
@@ -330,6 +369,7 @@ class pos_Points extends core_Master
         }
         
         $inherited = new stdClass();
+        
         $mvc->getSettings($rec, null, $inherited);
         foreach ((array)$inherited as $field){
             if(in_array($field, array('policyId', 'payments'))){

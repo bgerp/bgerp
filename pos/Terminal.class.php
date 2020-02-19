@@ -896,13 +896,12 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultDiscount($rec, $string, $selectedRec, &$tpl)
     {
-        $price = pos_Receipts::getDisplayPrice($selectedRec->price, $selectedRec->param, null, $rec->pointId, 1);
-        $discountsArr = pos_ReceiptDetails::getSuggestedProductDiscounts($selectedRec->productId, $price);
-        if($stringPrice = core_Type::getByName('percent')->fromVerbal($string)){
-            if($stringPrice < 1 && $stringPrice > 0){
-                $discountsArr["{$stringPrice}"] = $stringPrice;
-            }
-        }
+        $settings = pos_Points::getSettings($rec->pointId);
+        if($settings->setDiscounts != 'yes') return;
+        
+        $allowedDiscounts = arr::extractValuesFromArray(type_Table::toArray($settings->usedDiscounts), 'discount');
+        $discountsArr = array();
+        array_walk($allowedDiscounts, function($a) use (&$discountsArr){$percent = $a / 100; $discountsArr["{$percent}"] = $percent;});
         
         if(!empty($selectedRec->discountPercent)){
             $discountsArr =  array('0' => '0') + $discountsArr;
@@ -1313,6 +1312,9 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultPrice($rec, $string, $selectedRec, $tpl)
     {
+        $setPrices = pos_Points::getSettings($rec->pointId, 'setPrices');
+        if($setPrices != 'yes') return;
+        
         $buttons = array();
         
         $dQuery = pos_ReceiptDetails::getQuery();
