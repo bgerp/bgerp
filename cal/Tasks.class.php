@@ -590,7 +590,7 @@ class cal_Tasks extends embed_Manager
         $data->query->orderBy('waitingOrderTop', 'DESC');
         
         // Време за подредба на записите в портала
-        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 1 WHEN 'waiting' THEN 2 WHEN 'pending' THEN 3 ELSE 4 END)");
+        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 1 WHEN 'waiting' THEN 2 WHEN 'pending' THEN 3 WHEN 'stopped' THEN 4 ELSE 5 END)");
         $data->query->orderBy('#orderByState=ASC');
         
         // Чакащите задачи, ако имат начало първо по тях да се подреждат, после по последно
