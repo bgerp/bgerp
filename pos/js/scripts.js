@@ -783,6 +783,8 @@ function submitInputString()
 	console.log("ENTER SUBMIT STRING:" + value);
 	
 	var params = {string:value,recId:getSelectedRowId()};
+	
+	console.log(url, params);
 	processUrl(url, params);
 }
 

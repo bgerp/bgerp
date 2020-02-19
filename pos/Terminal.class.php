@@ -456,31 +456,19 @@ class pos_Terminal extends peripheral_Terminal
         
         switch($operation){
             case 'add':
-                $inputUrl = array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $rec->id);
+                $inputUrl = array('pos_ReceiptDetails', 'dispatch', 'receiptId' => $rec->id);
                 if(isset($rec->revertId) && $rec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
                     $keyupUrl = null;
                 }
-                
                 break;
             case 'quantity':
-                $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setquantity');
-                break;
-            case 'discount':
-                $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setdiscount');
-                $keyupUrl = null;
-                break;
-            case 'price':
-                $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice');
-                $keyupUrl = null;
+                $inputUrl = array('pos_ReceiptDetails', 'dispatch', 'receiptId' => $rec->id);
                 break;
             case 'text':
                 $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'settext');
                 $keyupUrl = null;
                 break;
             case 'payment':
-                $keyupUrl = null;
-                break;
-            case 'batch':
                 $keyupUrl = null;
                 break;
             case 'contragent':
