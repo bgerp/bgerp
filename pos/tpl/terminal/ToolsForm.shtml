@@ -16,5 +16,7 @@
 
 <!--ET_BEGIN RECEIPT_RESULT-->
 <div class='divider'>[#groupName#]</div>
+<div class='grid'>
 [#element#]
+</div>
 <!--ET_END RECEIPT_RESULT-->

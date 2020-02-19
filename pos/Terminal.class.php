@@ -1745,7 +1745,7 @@ class pos_Terminal extends peripheral_Terminal
     private function renderResultReceipts($rec, $string, $selectedRec)
     {
         $rec = $this->fetchRec($rec);
-        $tpl = new core_ET("");
+        $tpl = new core_ET("<div class='grid'>");
         
         $string = plg_Search::normalizeText($string);
         $addUrl = (pos_Receipts::haveRightFor('add')) ? array('pos_Receipts', 'new', 'forced' => true) : array();
@@ -1792,6 +1792,7 @@ class pos_Terminal extends peripheral_Terminal
             }
             $tpl->append($revertDefaultBtn);
         }
+        $tpl->append("</div>");
         
         // Групиране на записите по дата
         $arr = array();
@@ -1816,7 +1817,6 @@ class pos_Terminal extends peripheral_Terminal
             $blockTpl->removeBlocksAndPlaces();
             $tpl->append($blockTpl);
         }
-        $tpl = ht::createElement('div', array('class' => 'grid'), $tpl, true);
         
         return $tpl;
     }
