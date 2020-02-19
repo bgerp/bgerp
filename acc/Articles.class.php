@@ -373,11 +373,7 @@ class acc_Articles extends core_Master
         $DocClass->requireRightFor('correction', $docId);
         expect($journlRec = acc_Journal::fetchByDoc($docClassId, $docId));
         expect($result = static::createReverseArticle($journlRec));
-        
-        if (!Request::get('ajax_mode')) {
-            // Записваме, че потребителя е разглеждал този списък
-            $this->logWrite('Създаване на обратен мемориален ордер', $result[1]);
-        }
+        $this->logWrite('Създаване на обратен мемориален ордер', $result[1]);
         
         return new Redirect(array('acc_Articles', 'single', $result[1]), '|Създаден е успешно обратен мемориален ордер');
     }

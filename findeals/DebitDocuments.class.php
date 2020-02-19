@@ -110,7 +110,7 @@ class findeals_DebitDocuments extends deals_Document
         if ($form->isSubmitted()) {
             $oprtations = $form->dealInfo->get('allowedPaymentOperations');
             $operation = $oprtations[$rec->operationSysId];
-            $debitAcc = findeals_Deals::fetchField($rec->dealId, 'accountId');
+            $debitAcc = doc_Containers::getDocument($rec->dealId)->fetchField('accountId');
             
             $debitAccount = empty($operation['reverse']) ? acc_Accounts::fetchRec($debitAcc)->systemId : $operation['credit'];
             $creditAccount = empty($operation['reverse']) ? $operation['credit'] : acc_Accounts::fetchRec($debitAcc)->systemId;
