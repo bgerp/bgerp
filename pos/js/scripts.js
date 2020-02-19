@@ -96,9 +96,21 @@ function posActions() {
 
 		}, 2000);
 	});
-	
-	// При натискане на елемент с клас за навигиране
+
+
+	// При натискане на продукт, който не е селектиран и не сме на touch устройства да го добавяме
+	$(document.body).on('dblclick', ".navigable", function(e){
+		if(isTouchDevice() || !$(this).hasClass('pos-add-res-btn') || $(this).hasClass('selected')) return;
+
+		pressNavigable(this);
+		e.preventDefault();
+	});
+
+
+	// При натискане на елемент с клас за навигиране (ако сме на touch устройство или не сме на продукти или артикула е селектиран) до добавяме
 	$(document.body).on('click', ".navigable", function(e){
+		if(!isTouchDevice() && $(this).hasClass('pos-add-res-btn') && !$(this).hasClass('selected')) return;
+
 		pressNavigable(this);
 		e.preventDefault();
 	});
@@ -197,12 +209,7 @@ function posActions() {
 		doOperation(operation, selectedRecId, true);
 	});
 
-	var eventType;
-	if (isTouchDevice()) {
-		eventType = "click";
-	} else {
-		eventType = "click";
-	}
+
 
 	// При натискане на бутон с резултати да се чисти таймаута
 	$(document.body).on('click', ".posBtns", function(e){
