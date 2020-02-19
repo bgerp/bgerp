@@ -498,6 +498,13 @@ class trans_plg_LinesPlugin extends core_Plugin
                             $sellectableLines = trans_Lines::getSelectableLines();
                             if(array_key_exists($oldLineId, $sellectableLines)){
                                 $rec->{$mvc->lineFieldName} = $oldLineId;
+                                
+                                if($mvc instanceof cash_Document){
+                                    $lineCaseId = trans_Lines::fetchField($oldLineId, 'caseId');
+                                    if($lineCaseId && empty($rec->peroCase)){
+                                        $rec->peroCase = $lineCaseId;
+                                    }
+                                }
                             }
                         }
                     }
