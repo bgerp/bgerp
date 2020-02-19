@@ -106,6 +106,7 @@ function posActions() {
 	// При натискане на елемент с клас за навигиране
 	$(document.body).on('click', ".navigable", function(e){
 		pressNavigable(this);
+		e.preventDefault();
 	});
 
 	$('body').on('paste', '.large-field', function (e){
@@ -719,6 +720,9 @@ function enter() {
 }
 
 
+/**
+ * Активира елемент от резултатите с navigable клас
+ */
 function pressNavigable(element)
 {
 	var element = $(element);
@@ -788,8 +792,7 @@ function pressNavigable(element)
 		var onclick = element.attr("onclick");
 		
 		if(onclick){
-			var event = jQuery.Event("click");
-			element.trigger(event);
+			eval(onclick);
 			return;
 		}
 		
@@ -799,6 +802,16 @@ function pressNavigable(element)
 	
 	console.log(url, params);
 	processUrl(url, params);
+}
+
+function confirmAndRefirect(warning, url)
+{
+	if (!confirm(warning)){
+		
+		return false; 
+	}
+	
+	location.href = url;
 }
 
 

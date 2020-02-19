@@ -735,7 +735,10 @@ class pos_Terminal extends peripheral_Terminal
                 $reloadUrl = null;
             }
             
-            $link = ht::createLink('Всички', $reloadUrl, 'Наистина ли желаете да заредите всички редове от оригиналната бележка|*?', $reloadAttr);
+            $warning = 'Наистина ли желаете да заредите всички редове от оригиналната бележка|*?';
+            $reloadUrl = toUrl($reloadUrl);
+            $reloadAttr['onclick'] = "confirmAndRefirect('{$warning}', '{$reloadUrl}')";
+            $link = ht::createElement('a', $reloadAttr, "Всички", false);
             $tpl->append($link, 'details');
         }
         
@@ -1749,7 +1752,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $disabledClass = (pos_Receipts::haveRightFor('add')) ? 'navigable' : 'disabledBtn';
         $disabledRevertClass = countR($revertDefaultUrl) ? 'navigable' : 'disabledBtn';
-        $disabledRevertWarning = countR($revertDefaultUrl) ? 'Наистина ли искате да създадете нова сторно бележка|*?' : false;
+        $disabledRevertWarning = countR($revertDefaultUrl) ? tr('Наистина ли искате да създадете нова сторно бележка|*?') : false;
         $maxSearchReceipts = pos_Points::getSettings($rec->pointId, 'maxSearchReceipts');
        
         // Намираме всички чернови бележки и ги добавяме като линк
@@ -1769,10 +1772,22 @@ class pos_Terminal extends peripheral_Terminal
         $tpl->append($addBtn);
         
         if(countR($revertUrl)){
-            $revertBtn = ht::createLink("Сторниране", $revertUrl, 'Наистина ли искате да сторнирате текущата бележката|*?', "id=revertthis,class=pos-notes posBtns revertReceiptBtn {$disabledClass},title=Сторниране на текущата бележка");
+            $attr = arr::make("id=revertthis,class=pos-notes posBtns revertReceiptBtn {$disabledClass},title=Сторниране на текущата бележка");
+            $warning = tr('Наистина ли искате да сторнирате текущата бележката|*?');
+            $revertUrl = toUrl($revertUrl);
+            $attr['onclick'] = "confirmAndRefirect('{$warning}', '{$revertUrl}')";
+            $revertBtn = ht::createElement('a', $attr, "Сторниране", false);
+            
             $tpl->append($revertBtn);
         } else {
-            $revertDefaultBtn = ht::createLink("Сторно бележка", $revertDefaultUrl, $disabledRevertWarning, "id=receiptrevertdefault,class=pos-notes posBtns newNoteBtn revertReceiptBtn {$disabledRevertClass},title=Създаване на нова сторно бележка");
+            if($disabledRevertWarning){
+                $attr = arr::make("id=receiptrevertdefault,class=pos-notes posBtns newNoteBtn revertReceiptBtn {$disabledRevertClass},title=Създаване на нова сторно бележка");
+                $revertDefaultUrl = toUrl($revertDefaultUrl);
+                $attr['onclick'] = "confirmAndRefirect('{$disabledRevertWarning}', '{$revertDefaultUrl}')";
+                $revertDefaultBtn = ht::createElement('a', $attr, "Сторно бележка", false);
+            } else {
+                $revertDefaultBtn = ht::createLink("Сторно бележка", $revertDefaultUrl, null, "id=receiptrevertdefault,class=pos-notes posBtns newNoteBtn revertReceiptBtn {$disabledRevertClass},title=Създаване на нова сторно бележка");
+            }
             $tpl->append($revertDefaultBtn);
         }
         
