@@ -493,7 +493,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                     // Ако документа източник има този плъгин, ще се копира и транспортната му линия
                     if($Document->getInstance()->hasPlugin('trans_plg_LinesPlugin')){
                         
-                        // Ако транспротната му линия все още може да се избира, прехвърля се на документа
+                        // Ако транспортната му линия все още може да се избира, прехвърля се на документа
                         if($oldLineId = $Document->fetchField($Document->lineFieldName)){
                             $sellectableLines = trans_Lines::getSelectableLines();
                             if(array_key_exists($oldLineId, $sellectableLines)){
