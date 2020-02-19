@@ -66,7 +66,7 @@ abstract class deals_Document extends deals_PaymentDocument
         $mvc->FLD('operationSysId', 'varchar', 'caption=Операция,input=hidden');
         $mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
         $mvc->FLD('name', 'varchar(255)', 'caption=Име,mandatory');
-        $mvc->FLD('dealId', 'key(mvc=findeals_Deals,select=dealName,allowEmpty)', 'caption=Сделка,input=none');
+        $mvc->FLD('dealId', 'key(mvc=doc_Containers,select=id,allowEmpty)', 'caption=Сделка,input=none');
         $mvc->FLD('amount', 'double(decimals=2)', 'caption=Платени,mandatory,summary=amount');
         $mvc->FNC('dealFolderId', 'key2(mvc=doc_Folders, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf,allowEmpty)', 'caption=Насрещна сделка->Папка,mandatory,input,silent,removeAndRefreshForm=dealHandler|currencyId|rate|amountDeal|dealId');
         $mvc->FNC('dealHandler', 'varchar', 'caption=Насрещна сделка->Сделка,mandatory,input,silent,removeAndRefreshForm=currencyId|rate|amountDeal|dealId');
@@ -115,7 +115,7 @@ abstract class deals_Document extends deals_PaymentDocument
             $form->setDefault('dealFolderId', $origin->fetchField('folderId'));
         } elseif (isset($rec->dealId)) {
             $form->setDefault('dealHandler', $rec->dealId);
-            $form->setDefault('dealFolderId', findeals_Deals::fetchField($rec->dealId, 'folderId'));
+            $form->setDefault('dealFolderId', doc_Containers::getDocument($rec->dealId)->fetchField('folderId'));
         }
         
         if (isset($rec->dealFolderId)) {
@@ -127,16 +127,19 @@ abstract class deals_Document extends deals_PaymentDocument
         $form->setField('amount', "unit=|*{$dealInfo->get('currency')} |по сделката");
         
         if (isset($rec->dealHandler)) {
+           
             if (strpos($rec->dealHandler, 'new|') === false) {
-                $doc = new core_ObjectReference('findeals_Deals', $rec->dealHandler);
-                
-                $form->rec->currencyId = currency_Currencies::getIdByCode($doc->fetchField('currencyId'));
-                $form->setField('amountDeal', "unit=|*{$doc->fetchField('currencyId')}");
-                if ($form->rec->currencyId != currency_Currencies::getIdByCode($origin->fetchField('currencyId'))) {
-                    $form->setField('amountDeal', 'input');
+                if($doc = doc_Containers::getDocument($rec->dealHandler)){
+                    $form->rec->currencyId = currency_Currencies::getIdByCode($doc->fetchField('currencyId'));
+                    $form->setField('amountDeal', "unit=|*{$doc->fetchField('currencyId')}");
+                    if ($form->rec->currencyId != currency_Currencies::getIdByCode($origin->fetchField('currencyId'))) {
+                        $form->setField('amountDeal', 'input');
+                    }
+                    
+                    $rec->dealId = $doc->fetchField('containerId');
+                } else {
+                    $form->setError('dealHandler', 'Няма такава сделка');
                 }
-                
-                $rec->dealId = findeals_Deals::fetchField($doc->that, 'id');
             } else {
                 $rec->currencyId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
                 unset($rec->amountDeal, $rec->dealId);
@@ -158,11 +161,18 @@ abstract class deals_Document extends deals_PaymentDocument
     {
         $options = $dealOptions = $accOptionsFiltered = array();
         
+        // Има ли активни служебни аванси в избраната папка
+        $aQuery = findeals_AdvanceDeals::getQuery();
+        $aQuery->where("#folderId = {$folderId} AND #state = 'active'");
+        while ($fRec = $aQuery->fetch()) {
+            $dealOptions[$fRec->containerId] = findeals_AdvanceDeals::getTitleById($fRec, false);
+        }
+        
         // Има ли активни ф. сделки в избраната папка
         $fQuery = findeals_Deals::getQuery();
         $fQuery->where("#folderId = {$folderId} AND #state = 'active'");
         while ($fRec = $fQuery->fetch()) {
-            $dealOptions[$fRec->id] = findeals_Deals::getTitleById($fRec, false);
+            $dealOptions[$fRec->containerId] = findeals_Deals::getTitleById($fRec, false);
         }
         
         // Ако има се добавят в техен раздел
@@ -225,8 +235,9 @@ abstract class deals_Document extends deals_PaymentDocument
                 $origin = $mvc->getOrigin($rec);
                 $dealInfo = $origin->getAggregateDealInfo();
                 $params = array('valior' => $rec->valior, 'currencyCode' => $dealInfo->get('currency'));
-                if ($rec->dealId = findeals_Deals::createDraft($Cover->getClassId(), $Cover->that, $accountSysId, $params)) {
-                    findeals_Deals::conto($rec->dealId);
+                if ($dealId = findeals_Deals::createDraft($Cover->getClassId(), $Cover->that, $accountSysId, $params)) {
+                    findeals_Deals::conto($dealId);
+                    $rec->dealId = findeals_Deals::fetchField($dealId, 'containerId');
                 }
             } else {
                 $rec->dealId = $rec->dealHandler;
@@ -302,7 +313,12 @@ abstract class deals_Document extends deals_PaymentDocument
         $row->title = $mvc->getHyperlink($rec->id, true);
         
         if ($fields['-single']) {
-            $row->nextHandle = findeals_Deals::getHyperlink($rec->dealId);
+            try{
+                $row->nextHandle = doc_Containers::getDocument($rec->dealId)->getHyperlink();
+            } catch(core_exception_Expect $e){
+                $row->nextHandle = "<span class='red'>" . tr('Проблем при показването') . "</span>";
+            }
+            
             $origin = $mvc->getOrigin($rec->id);
             $row->dealHandle = $origin->getHyperlink();
             $row->dealCurrencyId = $origin->fetchField('currencyId');
