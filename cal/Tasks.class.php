@@ -1699,17 +1699,7 @@ class cal_Tasks extends embed_Manager
             $row->title .= ' (' . $this->getVerbal($rec, 'progress') . ')';
         }
         
-        if ($rec->state == 'closed' && $rec->progress != 1) {
-            $row->title = '✗ ' . trim($row->title);
-        }
-        
-        if ($rec->state == 'closed' && $rec->progress == 1) {
-            $row->title = '✓ ' . trim($row->title);
-        }
-        
-        if ($rec->state == 'stopped' && $rec->progress != 1) {
-            $row->title = '॥ ' . trim($row->title);
-        }
+        $row->title = $this->prepareTitle($row->title, $rec);
         
         $usersArr = type_Keylist::toArray($rec->assign);
         if (!empty($usersArr)) {
@@ -1760,6 +1750,31 @@ class cal_Tasks extends embed_Manager
         }
         
         return $row;
+    }
+    
+    
+    /**
+     * Помощна функция за подготвяне на заглавието
+     * 
+     * @param string $title
+     * @param stdClass $rec
+     * @return string
+     */
+    public static function prepareTitle($title, $rec)
+    {
+        if ($rec->state == 'closed' && $rec->progress != 1) {
+            $title = '✗ ' . trim($title);
+        }
+        
+        if ($rec->state == 'closed' && $rec->progress == 1) {
+            $title = '✓ ' . trim($title);
+        }
+        
+        if ($rec->state == 'stopped' && $rec->progress != 1) {
+            $title = '॥ ' . trim($title);
+        }
+        
+        return $title;
     }
     
     
