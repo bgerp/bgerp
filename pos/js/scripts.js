@@ -106,11 +106,11 @@ function posActions() {
 		e.preventDefault();
 	});
 
-
 	// При натискане на елемент с клас за навигиране (ако сме на touch устройство или не сме на продукти или артикула е селектиран) до добавяме
 	$(document.body).on('click', ".navigable", function(e){
 		if(!isTouchDevice() && $(this).hasClass('pos-add-res-btn') && !$(this).hasClass('selected')) return;
-
+		if($(this).hasClass('reload')) return;
+		
 		pressNavigable(this);
 		e.preventDefault();
 	});
