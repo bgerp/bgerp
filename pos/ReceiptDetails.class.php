@@ -410,7 +410,7 @@ class pos_ReceiptDetails extends core_Detail
     {
         $this->requireRightFor('add');
         expect($receiptId = Request::get('receiptId', 'int'));
-        expect($receiptRec = pos_Receipts::fetch($receiptId));
+        expect($receiptRec = pos_Receipts::fetch($receiptId, 'paid,pointId'));
         $this->requireRightFor('add', (object)array('receiptId' => $receiptId));
         $success = false;
         
@@ -469,7 +469,7 @@ class pos_ReceiptDetails extends core_Detail
             
             expect(!empty($rec->productId) || !empty($rec->ean), 'Не е избран артикул|*!');
             if ($packId = Request::get('packId', 'int')) {
-                expect(cat_UoM::fetch($packId), "Невалидна опаковка|*!");
+                expect(cat_UoM::fetchField($packId), "Невалидна опаковка|*!");
                 $rec->value = $packId;
             }
             
@@ -511,12 +511,7 @@ class pos_ReceiptDetails extends core_Detail
             if ($sameProduct) {
                 
                 // Ако текущо селектирания ред е избрания инкрементира се, ако не се задава ново количество
-                if($selectedRec->id == $sameProduct->id){
-                    $newQuantity = $rec->quantity + $sameProduct->quantity;
-                } else {
-                    $newQuantity = $rec->quantity;
-                }
-                
+                $newQuantity = ($selectedRec->id == $sameProduct->id) ? $rec->quantity + $sameProduct->quantity : $rec->quantity;
                 if($newQuantity <= 0){
                     core_Statuses::newStatus('Редът беше изтрит защото количеството стана отрицателно|*!');
                     
@@ -772,7 +767,7 @@ class pos_ReceiptDetails extends core_Detail
         $rec->value = ($basePackId) ? $basePackId : $info->productRec->measureId;
         
         $rec->productId = $product->productId;
-        $receiptRec = pos_Receipts::fetch($rec->receiptId);
+        $receiptRec = pos_Receipts::fetch($rec->receiptId, 'pointId,contragentClass,contragentObjectId,valior,createdOn');
         $listId = pos_Points::getSettings($receiptRec->pointId, 'policyId');
         
         $Policy = cls::get('price_ListToCustomers');
