@@ -25,7 +25,7 @@ class pos_Points extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, plg_Rejected, doc_FolderPlg,pos_Wrapper, plg_Printing, plg_Current, plg_State, plg_Settings';
+    public $loadList = 'plg_RowTools2, plg_Settings, plg_Rejected, doc_FolderPlg,pos_Wrapper, plg_Current, plg_State,plg_Created';
     
     
     /**
@@ -37,7 +37,7 @@ class pos_Points extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name, caseId, storeId';
+    public $listFields = 'name, caseId, storeId, cashiers=Оператори';
     
     
     /**
@@ -367,32 +367,6 @@ class pos_Points extends core_Master
                 $row->prototypeId = pos_Points::getHyperlink($rec->prototypeId, true);
             }
         }
-        
-        $inherited = new stdClass();
-        
-        $mvc->getSettings($rec, null, $inherited);
-        foreach ((array)$inherited as $field){
-            if(in_array($field, array('policyId', 'payments'))){
-                $row->{$field} = ht::createHint($row->{$field}, 'Наследено е от прототипа', 'notice', false);
-            }
-        }
-    }
-    
-    
-    /**
-     * След връщане на избраната точка
-     */
-    protected static function on_AfterGetCurrent($mvc, &$res, $part = 'id', $bForce = true)
-    {
-        // Ако сме се логнали в точка
-        if ($res && $part == 'id') {
-            $rec = $mvc->fetchRec($res);
-            
-            // .. и имаме право да изберем касата и, логваме се в нея
-            if (cash_Cases::haveRightFor('select', $rec->caseId)) {
-                cash_Cases::selectCurrent($rec->caseId);
-            }
-        }
     }
     
     
@@ -402,32 +376,13 @@ class pos_Points extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'select' && isset($rec)) {
-            if (!self::canSelectPos($rec, $userId)) {
-                $requiredRoles = 'no_one';
+            if(!haveRole('ceo', $userId)){
+                $cashiers = pos_Points::getSettings($rec, 'cashiers');
+                if(!keylist::isIn($userId, $cashiers)){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
-    }
-    
-    
-    /**
-     * Може ли потребителя да избере точката на продажба.
-     * Може само ако има права да избира касата и склада в точката
-     *
-     * @param mixed       $rec    - ид или запис
-     * @param string|NULL $userId - потребител, NULL за текущия
-     *
-     * @return bool $res       - може ли да избира точката на продажба
-     */
-    public static function canSelectPos($rec, $userId = null)
-    {
-        $userId = (isset($userId)) ? $userId : core_Users::getCurrent();
-        
-        $rec = static::fetchRec($rec);
-        
-        $canActivateCase = bgerp_plg_FLB::canUse('cash_Cases', $rec->caseId, $userId);
-        $res = ($canActivateCase === true);
-        
-        return $res;
     }
     
     
