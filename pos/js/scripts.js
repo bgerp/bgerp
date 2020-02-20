@@ -100,7 +100,7 @@ function posActions() {
 
 	// При натискане на продукт, който не е селектиран и не сме на touch устройства да го добавяме
 	$(document.body).on('dblclick', ".navigable", function(e){
-		if(isTouchDevice() || !$(this).hasClass('pos-add-res-btn') || $(this).hasClass('selected')) return;
+		if(isTouchDevice() || !$(this).hasClass('pos-add-res-btn') || ($(this).hasClass('pos-add-res-btn') && $(this).hasClass('selected'))) return;
 
 		pressNavigable(this);
 		e.preventDefault();
