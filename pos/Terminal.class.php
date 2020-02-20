@@ -707,7 +707,7 @@ class pos_Terminal extends peripheral_Terminal
         $revertData->receiptDetails->revertsReceipt = $rec;
         $detailsTpl = $this->renderReceiptDetail($revertData->receiptDetails);
 
-        $tpl = new core_ET("<div class='divider'>[#receiptName#]</div><div class='grid'>[#details#]</div>");
+        $tpl = new core_ET("<div class='divider'>[#receiptName#]</div><div class=''>[#details#]</div>");
         $tpl->append(pos_Receipts::getRecTitle($revertRec), 'receiptName');
         $tpl->append($detailsTpl, 'details');
         
