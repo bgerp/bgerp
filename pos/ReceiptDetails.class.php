@@ -190,11 +190,13 @@ class pos_ReceiptDetails extends core_Detail
         try{
             $id = Request::get('recId', 'int');
             $id = isset($id) ? $id : self::getLastRec($receiptId, 'sale')->id;
+            expect($id, 'Не е избран ред');
             expect($rec = self::fetch($id), 'Не е избран ред');
             $this->requireRightFor('edit', $rec);
            
             expect($operation = Request::get('action', 'enum(setquantity,setdiscount,settext,setprice,setbatch,setstore)'), 'Невалидна операция');
             $string = Request::get('string', 'varchar');
+            
             expect(isset($string), 'Проблем при разчитане на операцията');
             if(isset($receiptRec->revertId) && $receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT && in_array($operation, array('setdiscount', 'setprice'))){
                 expect(false, 'Невалидна операция');
@@ -215,48 +217,63 @@ class pos_ReceiptDetails extends core_Detail
             
             switch($operation){
                 case 'setquantity':
-                    
-                    // Ако к-то завършва с процент значи е отстъпка!
-                    if(!str::endsWith($firstValue, '%')){
-                        expect($quantity = core_Type::getByName('double')->fromVerbal($firstValue), 'Не е зададено количество');
+                    expect($quantity = core_Type::getByName('double')->fromVerbal(str_replace('*', '', $firstValue)), 'Не е зададено количество');
+                    if(str::endsWith($firstValue, '*')){
+                        if($quantity < 0){
+                            $quantity = $rec->quantity + $quantity;
+                            if($quantity == 0){
+                                core_Statuses::newStatus('Редът беше изтрит защото количеството стана отрицателно|*!');
+                                
+                                return Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'DeleteRec', 'id' => $rec->id));
+                            } elseif($quantity < 0){
+                                expect(false, 'Количеството не може да стане отрицателно|*!');
+                            }
+                        }
+                    } else {
                         expect($quantity > 0, 'Количеството трябва да е положително');
-                        $rec->quantity = $quantity;
-                        $rec->amount = $rec->price * $rec->quantity;
-                        
-                        if(!empty($secondValue)){
-                            expect($packagingId = cat_UoM::fetchBySinonim($secondValue)->id, 'Не е разпозната опаковка');
-                            $packs = cat_Products::getPacks($rec->productId);
-                            
-                            expect(array_key_exists($packagingId, $packs), 'Опаковката/мярка не е налична за въпросния артикул');
-                            $rec->value = $packagingId;
-                        }
-                        
-                        if(isset($receiptRec->revertId)){
-                            if($receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
-                                $originProductRec = $this->findSale($rec->productId, $receiptRec->revertId, $rec->value);
-                                expect(abs($rec->quantity) <= abs($originProductRec->quantity), "Количеството е по-голямо от продаденото|* " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
-                            }
-                            
-                            $rec->quantity *= -1;
-                        } else {
-                            
-                            // Проверка дали количеството е допустимо
-                            $errorQuantity = null;
-                            if (!pos_Receipts::checkQuantity($rec, $errorQuantity)) {
-                                expect(false, $errorQuantity);
-                            }
-                        }
-                        
-                        Mode::setPermanent("currentOperation{$rec->receiptId}", 'add');
-                        $sucessMsg = 'Количеството на реда е променено|*!';
-                        break;
                     }
+                    
+                    $rec->quantity = $quantity;
+                    $rec->amount = $rec->price * $rec->quantity;
+                    
+                    if(!empty($secondValue)){
+                        expect($packagingId = cat_UoM::fetchBySinonim($secondValue)->id, 'Не е разпозната опаковка');
+                        $packs = cat_Products::getPacks($rec->productId);
+                        expect(array_key_exists($packagingId, $packs), 'Опаковката/мярка не е налична за въпросния артикул');
+                        $rec->value = $packagingId;
+                    }
+                    
+                    if(isset($receiptRec->revertId)){
+                        if($receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
+                            $originProductRec = $this->findSale($rec->productId, $receiptRec->revertId, $rec->value);
+                            expect(abs($rec->quantity) <= abs($originProductRec->quantity), "Количеството е по-голямо от продаденото|* " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
+                        }
+                        
+                        $rec->quantity *= -1;
+                    } else {
+                        
+                        // Проверка дали количеството е допустимо
+                        $errorQuantity = null;
+                        if (!pos_Receipts::checkQuantity($rec, $errorQuantity)) {
+                            expect(false, $errorQuantity);
+                        }
+                    }
+                    
+                    Mode::setPermanent("currentOperation{$rec->receiptId}", 'add');
+                    $sucessMsg = 'Количеството на реда е променено|*!';
+                    break;
                case 'setdiscount':
-                   expect(pos_Setup::get('TERMINAL_PRICE_CHANGE') == 'yes', 'Операцията не е разрешена');
-                  
+                   $setDiscounts = pos_Points::getSettings($receiptRec->pointId, 'setDiscounts');
+                   expect($setDiscounts == 'yes', 'Задаването на отстъпки/надценки не е разрешено|*!');
                    $discount = core_Type::getByName('percent')->fromVerbal($firstValue);
+                   
                    if(isset($discount)){
-                       expect($discount >= 0 && $discount <= 1, 'Отстъпката трябва да е между 0% и 100%');
+                       expect($discount >= -1 && $discount <= 1, 'Отстъпката трябва да е между -100% и 100%|*!');
+                       
+                       if(strpos($string, '%')){
+                           $discount *= -1;
+                       }
+                       
                        $rec->discountPercent = $discount;
                        $sucessMsg = 'Отстъпката на реда е променена|*!';
                    } else {
@@ -265,10 +282,12 @@ class pos_ReceiptDetails extends core_Detail
                    
                    break;
                case 'setprice':
-                   expect(pos_Setup::get('TERMINAL_PRICE_CHANGE') == 'yes', 'Операцията не е разрешена');
+                   $setPrices = pos_Points::getSettings($receiptRec->pointId, 'setPrices');
+                   expect($setPrices == 'yes', 'Ръчното задаване на цена не е разрешено|*!');
                    
                    if(!empty($firstValue)){
-                       expect($price = core_Type::getByName('double')->fromVerbal($firstValue), 'Не е зададена цена');
+                       $firstValue = str_replace('*', '', $firstValue);
+                       expect($price = core_Type::getByName('double')->fromVerbal($firstValue), 'Неразпозната цена');
                        $price /= 1 + $rec->param;
                        $rec->price = $price;
                        $sucessMsg = 'Цената на реда е променена|*!';
@@ -333,7 +352,7 @@ class pos_ReceiptDetails extends core_Detail
         } catch(core_exception_Expect $e){
             $dump = $e->dump;
             $dump1 = $dump[0];
-            
+            reportException($e);
             if (!Request::get('ajax_mode')) {
                 throw new core_exception_Expect('', 'Изключение', $dump);
             } else {
@@ -345,37 +364,42 @@ class pos_ReceiptDetails extends core_Detail
         return pos_Terminal::returnAjaxResponse($receiptId, $id, $success, true, true, $refreshResult);
     }
     
+    
+    /**
+     * Диспечер на специалните символи
+     */
     public function act_Dispatch()
     {
         $this->requireRightFor('edit');
         expect($receiptId = Request::get('receiptId', 'int'));
-        expect($receiptRec = pos_Receipts::fetch($receiptId));
+        $this->requireRightFor('edit', $receiptId);
         $string = Request::get('string', 'varchar');
         $recId = Request::get('recId', 'varchar');
+       
+        if(substr($string, 0, 1) == "%" || substr($string, -1, 1) == '%'){
+            
+            // Ако се съдържа "%" значи се задава отстъпка/надценка
+            $res = Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'updaterec', 'receiptId' => $receiptId, 'action' => 'setdiscount', 'recId' => $recId));
+        } elseif(substr($string, 0, 1) == "*"){
+            
+            // Ако се започва с "*" значи се задава цена
+            $res = Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'updaterec', 'receiptId' => $receiptId, 'action' => 'setprice', 'recId' => $recId));
+        } elseif(str::endsWith($string, '*')){
+            
+            // Ако завършва с "*" значи се задава количество
+            $res = Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'updaterec', 'receiptId' => $receiptId, 'action' => 'setquantity', 'recId' => $recId));
+        } else {
+            
+            // Ако започва с "-" но няма "*" се приема че се вади едно от количеството
+            if(substr($string, 0, 1) == "-" && strpos($string, '*') === false){
+                $string = ltrim($string, "-");
+                $string = "-1*{$string}";
+            }
+            
+            $res = Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'addproduct', 'receiptId' => $receiptId, 'string' => $string, 'recId' => $recId));
+        }
         
-        /*
-         * Цена:
-*34.56 задава цена за избраният ред
-
-Количество
-20* - задава количество за избраният ред
--2* - вади две от количеството на избрания ред
--43234234 - изважда един брой от реда със съответния продуктов код
-20*43234234 - ред с продукт с код 43234234 и количество 20 бр. Ако текущият ред е от същия продукт - той се инкрементира.
--20*43234234 - вади от реда с продукт с код 43234234 20 бр.
-
-В случаите, когато има повече от един ред с даден продуктов код, например заради различни партиди, то операциите, които съдържат код не работят за промяна, ако текущия ред не е точно с този код. Ако се добавя - добавя се на нов ред.
-
-Отстъпки:
-5% - задава 5% надценка на текущия ред
-+5% - задава 5% надценка на текущия ред
--5% - задава 5% отстъпка на текущия ред
-%5 - задава 5% отстъпка на текущия ред
-         */
-        
-        
-        bp($string, $recId);
-        
+        return $res;
     }
     
     
@@ -389,6 +413,11 @@ class pos_ReceiptDetails extends core_Detail
         expect($receiptRec = pos_Receipts::fetch($receiptId));
         $this->requireRightFor('add', (object)array('receiptId' => $receiptId));
         $success = false;
+        
+        $selectedRec = null;
+        if($recId = request::get('recId', 'int')){
+            $selectedRec = $this->fetch($recId);
+        }
         
         try{
             expect(empty($receiptRec->paid), 'Не може да се добави артикул, ако има направено плащане|*!');
@@ -410,11 +439,11 @@ class pos_ReceiptDetails extends core_Detail
             // Ако е зададен код на продукта
             if ($ean = Request::get('string')) {
                 $matches = array();
-                
+               
                 // Проверяваме дали въведения "код" дали е във формата '< число > * < код >',
                 // ако да то приемаме числото преди '*' за количество а след '*' за код
-                preg_match('/([0-9+\ ?]*[\.|\,]?[0-9]*\ *)(\ ?\* ?)([0-9a-zа-я\- _]*)/iu', $ean, $matches);
-                
+                preg_match('/([\-]?[0-9+\ ?]*[\.|\,]?[0-9]*\ *)(\ ?\* ?)([0-9a-zа-я\- _]*)/iu', $ean, $matches);
+
                 // Ако има намерени к-во и код от регулярния израз
                 if (!empty($matches[1]) && !empty($matches[3])) {
                     
@@ -463,19 +492,37 @@ class pos_ReceiptDetails extends core_Detail
                 $rec->quantity *= -1;
             }
             
-            // Проверка дали избраната мярка приерма подаденото количество
+            // Проверка дали избраната мярка приема подаденото количество
             $errorQuantity = null;
             if(!deals_Helper::checkQuantity($rec->value, $rec->quantity, $errorQuantity)){
                 expect(empty($errorQuantity), $errorQuantity);
+            }
+            
+            if($selectedRec->productId == $rec->productId){
+                $rec->value = $selectedRec->value;
+                $rec->batch = $selectedRec->batch;
+            } else {
+                $count = $this->count("#receiptId = {$rec->receiptId} && #productId = {$rec->productId}");
+                expect($count <= 1, 'Не е еднозначно');
             }
             
             // Намираме дали този проект го има въведен
             $sameProduct = $this->findSale($rec->productId, $rec->receiptId, $rec->value, $rec->batch);
             if ($sameProduct) {
                 
-                // Ако цената и опаковката му е същата като на текущия продукт,
-                // не добавяме нов запис а ъпдейтваме стария
-                $newQuantity = $rec->quantity + $sameProduct->quantity;
+                // Ако текущо селектирания ред е избрания инкрементира се, ако не се задава ново количество
+                if($selectedRec->id == $sameProduct->id){
+                    $newQuantity = $rec->quantity + $sameProduct->quantity;
+                } else {
+                    $newQuantity = $rec->quantity;
+                }
+                
+                if($newQuantity <= 0){
+                    core_Statuses::newStatus('Редът беше изтрит защото количеството стана отрицателно|*!');
+                    
+                    return Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'DeleteRec', 'id' => $sameProduct->id));
+                }
+                
                 $rec->quantity = $newQuantity;
                 $rec->price = $sameProduct->price;
                 $rec->storeId = $sameProduct->storeId;
