@@ -661,7 +661,6 @@ function enter() {
 	// Ако има селектиран елемент в резултатите
 	if(element.length){
 		
-		console.log(activeInput, isOnlyQuantityString, operation);
 		
 		// Ако инпута е активен но е с празен стринг, или е активен и е въведена операция за к-во или не е активен
 		// тогава се клика на селектирания елемент в резултатите
@@ -748,7 +747,6 @@ function pressNavigable(element)
 		return;
 	}
 	
-	console.log(url, params);
 	processUrl(url, params);
 }
 
@@ -996,7 +994,9 @@ function addProduct(el) {
 	if(quantity && $.isNumeric(quantity) && quantity > 0){
 		data.string = quantity;
 	}
-
+	data.recId = getSelectedRowId();
+	
+	console.log(url, data);
 	processUrl(url, data);
 	calculateWidth();
 
