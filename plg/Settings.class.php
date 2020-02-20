@@ -94,10 +94,6 @@ class plg_Settings extends core_Plugin
                 $form->setField($field, 'placeholder=Автоматично');
             } else {
                 if($form->getFieldType($field) instanceof type_Enum){
-                    //$newOptions = $mvc->getFieldType($field)->options;
-                    //unset($newOptions['']);
-                    // $newOptions = arr::fromArray($newOptions);
-                    //$form->setFieldType($field, "enum({$newOptions})");
                     if($default = $form->getFieldParam($field, 'default')){
                         $form->setDefault($field, $default);
                     }
@@ -114,12 +110,12 @@ class plg_Settings extends core_Plugin
     {
         $inherited = new stdClass();
         $settings = $mvc->getSettings($rec, null, $inherited);
-       
+        
         foreach ($settings as $field => $value){
             $rec->{$field} = $value;
             $row->{$field} = $mvc->getVerbal($rec, $field);
             
-            if(array_key_exists($field, $inherited)){
+            if(isset($inherited->{$field})){
                 $row->{$field} = ht::createHint($row->{$field}, 'Наследено е от прототипа', 'notice', false);
             }
         }
