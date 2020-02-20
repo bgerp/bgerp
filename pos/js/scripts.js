@@ -665,7 +665,7 @@ function enter() {
 		
 		// Ако инпута е активен но е с празен стринг, или е активен и е въведена операция за к-во или не е активен
 		// тогава се клика на селектирания елемент в резултатите
-		if((activeInput === true && !value) || (activeInput === true && operation == 'payment') || (activeInput === true && isOnlyQuantityString && operation != 'payment') || activeInput === false){
+		if((activeInput === true && !value) || (activeInput === true && operation == 'payment') || activeInput === false){
 			
 			pressNavigable(element);
 			return;
