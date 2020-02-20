@@ -336,6 +336,27 @@
 		font-weight: bold;
 	}
 }
+.tabHolder {
+	padding-left: 0;
+	li {
+		display: inline-block;
+		border: 1px solid #ccc;
+		background: #f1f1f1;
+		cursor: pointer;
+		a, span {
+			display: inline-block;
+			padding: 7px 10px;
+		}
+		&.active {
+			background: #cc0;
+		}
+	}
+}
+.contentHolder {
+	.content {
+		display: none;
+	}
+}
 .grid {
 	display: grid;
 	align-items: center;

@@ -1799,10 +1799,10 @@ class pos_Terminal extends peripheral_Terminal
         foreach ($arr as $date => $dateElement){
             $class = ($count == 0) ? 'active' : null;
             $contentId = "content{$date}";
-            $tab = "<li class='{$class}'><div data-content = '{$contentId}'>{$dateElement['date']}</div></li>";
+            $tab = "<li class='{$class}' data-content = '{$contentId}'>{$dateElement['date']}</li>";
             $tpl->append($tab, "TAB");
             
-            $dateElement['receipts']->prepend("<div id='{$contentId}'><div class='grid'>");
+            $dateElement['receipts']->prepend("<div class='content' id='{$contentId}'><div class='grid'>");
             $dateElement['receipts']->append("</div></div>");
             $dateElement['receipts']->removeBlocksAndPlaces();
             $tpl->append($dateElement['receipts']);

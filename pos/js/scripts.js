@@ -154,6 +154,15 @@ function posActions() {
 		}
 	});
 
+	var currentTab = $('.tabHolder li.active').attr('data-content');
+	$("#" + currentTab).show();
+
+	$(document.body).on('click', ".tabHolder li", function() {
+		var id = $(this).attr('data-content');
+		$(this).addClass('active').siblings().removeClass('active');
+		$("#" + id).show().siblings().hide();
+	});
+
 	$(document.body).on('click', ".ui-dialog-titlebar-close", function() {
 		if($('.keyboardText').val()){
 			$('.select-input-pos').val($('.keyboardText').val());

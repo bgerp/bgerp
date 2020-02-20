@@ -291,6 +291,23 @@
     display: block;
     font-weight: bold; }
 
+.tabHolder {
+  padding-left: 0; }
+  .tabHolder li {
+    display: inline-block;
+    border: 1px solid #cccccc;
+    background: #f1f1f1;
+    cursor: pointer; }
+    .tabHolder li a,
+    .tabHolder li span {
+      display: inline-block;
+      padding: 7px 10px; }
+    .tabHolder li.active {
+      background: #cccc00; }
+
+  .contentHolder .content {
+    display: none; }
+
 .grid {
   display: grid;
   align-items: center;
