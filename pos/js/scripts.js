@@ -331,6 +331,14 @@ function posActions() {
 		deteleElements();
 	});
 
+	$("body").setShortcutKey( CONTROL , LEFT ,function() {
+		prevTab();
+	});
+
+	$("body").setShortcutKey( CONTROL , RIGHT ,function() {
+		nextTab();
+	});
+
 	var timeoutAlt;
 	$("body").setShortcutKey(null,  CONTROL,function() {
 		showHints();
@@ -341,6 +349,21 @@ function posActions() {
 		hideHints();
 	})
 
+}
+function prevTab() {
+	var currentTab = $('.tabHolder li.active');
+	if($(currentTab).prev().length) {
+		$(currentTab).prev().click();
+		activeInput = false;
+	}
+}
+
+function nextTab() {
+	var currentTab = $('.tabHolder li.active');
+	if($(currentTab).next().length) {
+		$(currentTab).next().click();
+		activeInput = false;
+	}
 }
 
 function inputChars(inputElement, val) {
