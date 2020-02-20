@@ -154,9 +154,8 @@ function posActions() {
 		}
 	});
 
-	openCurrentPosTab();
-
 	$(document.body).on('click', ".tabHolder li", function() {
+		console.log("BB");
 		var id = $(this).attr('data-content');
 		$(this).addClass('active').siblings().removeClass('active');
 		$("#" + id).show().siblings().hide();
@@ -350,6 +349,7 @@ function posActions() {
 
 }
 function prevTab() {
+	console.log("PREV TAB");
 	var currentTab = $('.tabHolder li.active');
 	if($(currentTab).prev().length) {
 		$(currentTab).prev().click();
@@ -358,6 +358,7 @@ function prevTab() {
 }
 
 function nextTab() {
+	console.log("NEXT TAB");
 	var currentTab = $('.tabHolder li.active');
 	if($(currentTab).next().length) {
 		$(currentTab).next().click();
@@ -641,6 +642,9 @@ function deleteSelectedElement() {
 	processUrl(url, null);
 }
 
+function render_openCurrentPosTab(){
+	openCurrentPosTab();
+}
 
 function render_prepareResult() {
 	activeInput = false;
@@ -1064,6 +1068,7 @@ function getSelectedRowId()
 
 function openCurrentPosTab() {
 	var currentTab = $('.tabHolder li.active').attr('data-content');
+	
 	$("#" + currentTab).show();
 }
 

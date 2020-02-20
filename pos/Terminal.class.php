@@ -1442,6 +1442,7 @@ class pos_Terminal extends peripheral_Terminal
             jquery_Jquery::run($tpl, 'posActions();');
             jquery_Jquery::run($tpl, 'afterload();');
             jquery_Jquery::run($tpl, 'scrollToHighlight();');
+            jquery_Jquery::run($tpl, 'openCurrentPosTab();');
             
             jqueryui_Ui::enable($tpl);
         }
@@ -1929,6 +1930,10 @@ class pos_Terminal extends peripheral_Terminal
             
             $resObj = new stdClass();
             $resObj->func = 'makeTooltipFromTitle';
+            $res[] = $resObj;
+            
+            $resObj = new stdClass();
+            $resObj->func = 'openCurrentPosTab';
             $res[] = $resObj;
         }
         
