@@ -722,7 +722,7 @@ class pos_Terminal extends peripheral_Terminal
                 $reloadUrl = null;
             }
             
-            $warning = 'Наистина ли желаете да заредите всички редове от оригиналната бележка|*?';
+            $warning = tr('Наистина ли желаете да заредите всички редове от оригиналната бележка|*?');
             $reloadUrl = toUrl($reloadUrl);
             $reloadAttr['onclick'] = "confirmAndRefirect('{$warning}', '{$reloadUrl}')";
             $link = ht::createElement('a', $reloadAttr, "Всички", false);

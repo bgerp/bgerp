@@ -225,7 +225,7 @@ class pos_ReceiptDetails extends core_Detail
                                 core_Statuses::newStatus('Редът беше изтрит защото количеството стана отрицателно|*!');
                                 
                                 return Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'DeleteRec', 'id' => $rec->id));
-                            } elseif($quantity < 0){
+                            } elseif($quantity < 0 && empty($receiptRec->revertId)){
                                 expect(false, 'Количеството не може да стане отрицателно|*!');
                             }
                         }
@@ -246,7 +246,7 @@ class pos_ReceiptDetails extends core_Detail
                     if(isset($receiptRec->revertId)){
                         if($receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
                             $originProductRec = $this->findSale($rec->productId, $receiptRec->revertId, $rec->value);
-                            expect(abs($rec->quantity) <= abs($originProductRec->quantity), "Количеството е по-голямо от продаденото|* " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
+                            expect(abs($rec->quantity) <= abs($originProductRec->quantity), "Количеството е по-голямо от продаденото|*: " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
                         }
                         
                         $rec->quantity *= -1;
@@ -410,7 +410,8 @@ class pos_ReceiptDetails extends core_Detail
     {
         $this->requireRightFor('add');
         expect($receiptId = Request::get('receiptId', 'int'));
-        expect($receiptRec = pos_Receipts::fetch($receiptId, 'paid,pointId'));
+        expect($receiptRec = pos_Receipts::fetch($receiptId, 'paid,pointId,revertId'));
+        
         $this->requireRightFor('add', (object)array('receiptId' => $receiptId));
         $success = false;
         
@@ -467,6 +468,9 @@ class pos_ReceiptDetails extends core_Detail
                 }
             }
             
+            $sing = isset($receiptRec->revertId) ? -1 : 1;
+            $rec->quantity *= $sing;
+            
             expect(!empty($rec->productId) || !empty($rec->ean), 'Не е избран артикул|*!');
             if ($packId = Request::get('packId', 'int')) {
                 expect(cat_UoM::fetchField($packId), "Невалидна опаковка|*!");
@@ -484,12 +488,10 @@ class pos_ReceiptDetails extends core_Detail
                 expect(false,  "Артикулът няма цена към|* <b>{$createdOn}</b>");
             }
             
-            $revertId = pos_Receipts::fetchField($receiptId, 'revertId');
-            if (!empty($revertId)) {
-                if($revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
-                    expect($originProductRec = $this->findSale($rec->productId, $revertId, $rec->value), 'Артикулът го няма в оригиналната бележка|*!');
+            if (!empty($receiptRec->revertId)) {
+                if($receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
+                    expect($originProductRec = $this->findSale($rec->productId, $receiptRec->revertId, $rec->value), 'Артикулът го няма в оригиналната бележка|*!');
                 }
-                $rec->quantity *= -1;
             }
             
             // Проверка дали избраната мярка приема подаденото количество
@@ -503,7 +505,7 @@ class pos_ReceiptDetails extends core_Detail
                 $rec->batch = $selectedRec->batch;
             } else {
                 $count = $this->count("#receiptId = {$rec->receiptId} && #productId = {$rec->productId}");
-                expect($count <= 1, 'Не е еднозначно');
+                expect($count <= 1, 'Не е избран конкретен ред|*!');
             }
             
             // Намираме дали този проект го има въведен
@@ -512,7 +514,7 @@ class pos_ReceiptDetails extends core_Detail
                 
                 // Ако текущо селектирания ред е избрания инкрементира се, ако не се задава ново количество
                 $newQuantity = ($selectedRec->id == $sameProduct->id) ? $rec->quantity + $sameProduct->quantity : $rec->quantity;
-                if($newQuantity <= 0){
+                if($newQuantity <= 0 && !isset($receiptRec->revertId)){
                     core_Statuses::newStatus('Редът беше изтрит защото количеството стана отрицателно|*!');
                     
                     return Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'DeleteRec', 'id' => $sameProduct->id));
@@ -536,7 +538,7 @@ class pos_ReceiptDetails extends core_Detail
             if (!pos_Receipts::checkQuantity($rec, $error)) {
                 expect(false, $error);
             }
-            expect(!(!empty($revertId) && ($revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT) && abs($originProductRec->quantity) < abs($rec->quantity)), "Количеството е по-голямо от продаденото|* " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
+            expect(!(!empty($receiptRec->revertId) && ($receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT) && abs($originProductRec->quantity) < abs($rec->quantity)), "Количеството е по-голямо от продаденото|* " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
             $this->save($rec);
             $success = true;
             $this->Master->logInAct('Добавяне на артикул', $rec->receiptId);
@@ -751,8 +753,8 @@ class pos_ReceiptDetails extends core_Detail
             return $rec->productid = null;
         }
         
-        $info = cat_Products::getProductInfo($product->productId);
-        if (empty($info->meta['canSell'])) {
+        $productRec = cat_Products::fetch($product->productId, 'canSell,measureId');
+        if ($productRec->canSell != 'yes') {
             
             return $rec->productid = null;
         }
@@ -763,8 +765,9 @@ class pos_ReceiptDetails extends core_Detail
             $basePackId = $product->packagingId;
         }
         
-        $perPack = ($info->packagings[$basePackId]) ? $info->packagings[$basePackId]->quantity : 1;
-        $rec->value = ($basePackId) ? $basePackId : $info->productRec->measureId;
+        $packRec = cat_products_Packagings::getPack($product->productId, $basePackId);
+        $perPack = (is_object($packRec)) ? $packRec->quantity : 1;
+        $rec->value = ($basePackId) ? $basePackId : $productRec->measureId;
         
         $rec->productId = $product->productId;
         $receiptRec = pos_Receipts::fetch($rec->receiptId, 'pointId,contragentClass,contragentObjectId,valior,createdOn');
