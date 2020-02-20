@@ -154,8 +154,7 @@ function posActions() {
 		}
 	});
 
-	var currentTab = $('.tabHolder li.active').attr('data-content');
-	$("#" + currentTab).show();
+	openCurrentPosTab();
 
 	$(document.body).on('click', ".tabHolder li", function() {
 		var id = $(this).attr('data-content');
@@ -1063,6 +1062,10 @@ function getSelectedRowId()
 	return selectedElement.attr("data-id");
 }
 
+function openCurrentPosTab() {
+	var currentTab = $('.tabHolder li.active').attr('data-content');
+	$("#" + currentTab).show();
+}
 
 /**
  * Извършва подадената операция
@@ -1105,7 +1108,7 @@ function doOperation(operation, selectedRecId, forceSubmit)
 	}
 	
 	processUrl(url, data);
-	
+
 	activeInput = false;
 	scrollToHighlight();
 }
