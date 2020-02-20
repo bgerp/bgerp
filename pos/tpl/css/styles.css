@@ -458,7 +458,8 @@
   .textResult.emptyText {
     background: #37103a !important; }
 
-.disabledBtn.posBtns {
+.disabledBtn.posBtns,
+.disabledBtn.productRow {
   background: #999999 !important;
   color: #cccccc !important;
   cursor: auto !important; }
