@@ -1340,8 +1340,17 @@ class sales_Sales extends deals_DealMaster
         $fields = array('dealerId' => sales_Sales::getDefaultDealerId($folderId));
         
         // Създаване на продажба и редирект към добавянето на артикула
-        expect($saleId = sales_Sales::createNewDraft($cover->getInstance(), $cover->that, $fields));
-        redirect(array('sales_SalesDetails', 'add', 'saleId' => $saleId, 'productId' => $productId));
+        try{
+            expect($saleId = sales_Sales::createNewDraft($cover->getInstance(), $cover->that, $fields));
+            
+            redirect(array('sales_SalesDetails', 'add', 'saleId' => $saleId, 'productId' => $productId));
+        } catch(core_exception_Expect $e){
+            $errorMsg = $e->getMessage();
+            reportException($e);
+            cat_Products::logErr($errorMsg, $productId);
+            
+            followRetUrl(null, $errorMsg, 'error');
+        }
     }
     
     
@@ -1562,7 +1571,10 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_AfterActivation($mvc, &$rec)
     {
-        $groupId = crm_Groups::force('Клиенти » Продажби');
+        $clientGroupId = crm_Groups::getIdFromSysId('customers');
+        $groupRec = (object)array('name' => 'Продажби', 'sysId' => 'saleClients', 'parentId' => $clientGroupId);
+        $groupId = crm_Groups::forceGroup($groupRec);
+        
         cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, $groupId, false);
     }
     

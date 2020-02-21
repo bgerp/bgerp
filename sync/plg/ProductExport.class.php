@@ -63,7 +63,7 @@ class sync_plg_ProductExport extends core_Plugin
             
             $params = array('remoteId' => $rec->id);
             $httpQuery = http_build_query($params);
-            //bp($importUrl, $httpQuery);
+            
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $importUrl);
             curl_setopt($ch, CURLOPT_POST, 1);
@@ -86,20 +86,21 @@ class sync_plg_ProductExport extends core_Plugin
                 if(empty($res->error)){
                     if($res->status == 2){
                         cat_Products::logWrite("Повторен опит за експорт");
+                        $msg = "|Артикулът е експортиран|*: #Art{$res->localId}";
+                       
                     } else {
                         cat_Products::logWrite("Експортиране към: '{$exportUrl}'", $rec->id);
                         $msg = "|Артикулът е експортиран успешно|* ";
                     }
                     
                     // Ако върнатото урл е оторизирано потребителя ще се редиректва към него
-                    $redirectUrl = getRetUrl();
                     if(core_Packs::isInstalled('remote')){
                         if($remoteUrl = remote_Authorizations::getAutoLoginUrl($res->url)){
-                            $redirectUrl = $remoteUrl;
+                            redirect($remoteUrl, true);
                         }
                     }
                     
-                    redirect($redirectUrl, true, $msg);
+                    followRetUrl(null, $msg);
                 } else {
                     
                     // Ако е върната грешла, се показва подходящо съобщение
@@ -138,14 +139,9 @@ class sync_plg_ProductExport extends core_Plugin
         //@TODO тестов екшън да се премахне
         if($action == 'test'){
             requireRole('debug');
-            $exp = self::getExportData(4005);
+            $exp = self::getExportData(4034);
             
-            
-            //$remoteUrl = remote_Authorizations::getAutoLoginUrl($url);
-            
-            
-            
-            bp($exp);
+            bp($exp,$data);
         }
     }
     
@@ -185,13 +181,27 @@ class sync_plg_ProductExport extends core_Plugin
         $exportContragentRes = array();
         sync_Map::exportRec($Cover->className, $Cover->that, $exportContragentRes, cls::get('sync_Companies'));
         
+        $conditions = array();
+        foreach (array('sale', 'purchase', 'quotation') as $docType){
+            core_Lg::push('bg');
+            $conditions[$docType]['bg'] = $Driver->getConditions($rec, $docType, 'bg');
+            core_Lg::pop();
+            
+            core_Lg::push('en');
+            $conditions[$docType]['en'] = $Driver->getConditions($rec, $docType, 'en');
+            core_Lg::pop();
+        }
+        
         $data = (object)array('name' => $rec->name, 
                               'nameEn' => $rec->nameEn, 
                               'meta' => $rec->meta, 
                               'contragentClassName' => $Cover->className,
                               'contragentRemoteId' => $Cover->that,
                               'exportContragentRes' => $exportContragentRes,
+                              'moq' => $Driver->getMoq($rec->id),
+                              'conditions' => $conditions,
                               );
+        
         
         // Подготовка на продуктовите параметри за експорт
         $data->params = array();
@@ -211,20 +221,16 @@ class sync_plg_ProductExport extends core_Plugin
         }
         
         // Извличане на данните от офертите
-        $quotationClassId = sales_Quotations::getClassId();
         $data->quotations = $data->packagings = array();
         $quoteQuery = sales_QuotationsDetails::getQuery();
         $quoteQuery->EXT('state', 'sales_Quotations', 'externalName=state,externalKey=quotationId');
         $quoteQuery->EXT('folderId', 'sales_Quotations', 'externalName=folderId,externalKey=quotationId');
+        $quoteQuery->EXT('activatedOn', 'sales_Quotations', 'externalName=activatedOn,externalKey=quotationId');
+        
         $quoteQuery->where("#productId = {$rec->id} AND #state = 'active'");
-        $quoteQuery->show('quotationId,packagingId,quantityInPack,quantity,price,discount,tolerance,term,optional,folderId,price');
+        $quoteQuery->show('quotationId,packagingId,quantityInPack,quantity,price,discount,tolerance,term,optional,price,activatedOn');
         while($quoteRec = $quoteQuery->fetch()){
-            if($tRec = sales_TransportValues::get($quotationClassId, $quoteRec->quotationId, $quoteRec->id)){
-                $quoteRec->_fee = $tRec->fee;
-                $quoteRec->_deliveryTime = $tRec->deliveryTime;
-                $quoteRec->_explain = $tRec->explain;
-            }
-            
+            $quoteRec->activatedOn = dt::mysql2timestamp($quoteRec->activatedOn);
             $data->quotations[$quoteRec->id] = $quoteRec;
         }
         
@@ -255,14 +261,14 @@ class sync_plg_ProductExport extends core_Plugin
         core_Lg::push('bg');
         $htmlTpl = $Driver->renderProductDescription($dataBg);
         $htmlTpl = $htmlTpl->getContent();
-        core_Lg::pop('bg');
+        core_Lg::pop();
         Mode::pop('text');
         
         Mode::push('text', 'xhtml');
         core_Lg::push('en');
         $htmlEnTpl = $Driver->renderProductDescription($dataEn);
         $htmlEnTpl = $htmlEnTpl->getContent();
-        core_Lg::pop('en');
+        core_Lg::pop();
         Mode::pop('text');
         core_Users::exitSudo($rec->createdBy);
         Mode::pop('forceDownload');
@@ -273,7 +279,7 @@ class sync_plg_ProductExport extends core_Plugin
         $data->htmlEn = $htmlEnTpl;
         
         // Защита на данните за експорт
-        $data = base64_encode(gzcompress(json_encode($data)));
+        $data = base64_encode(gzcompress(serialize($data)));
         
         return $data;
     }

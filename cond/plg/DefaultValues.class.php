@@ -16,7 +16,7 @@
  *
  * lastDocUser        - Последния активен документ в папката от потребителя
  * lastDoc 		      - Последния активен документ в папката
- * lastDocSameCuntry  - Последния активен документ в папка на клиент от същата държава
+ * lastDocSameCountry  - Последния активен документ в папка на клиент от същата държава
  * defMethod	      - Дефолт метод с име "getDefault{$name}"
  * clientData	      - От контрагент интерфейса
  * clientCondition    - От дефолт търговско условие
@@ -211,7 +211,7 @@ class cond_plg_DefaultValues extends core_Plugin
     /**
      * Определяне ст-ст по подразбиране на полето template
      */
-    public static function getFromLastDocSameCuntry(core_Mvc $mvc, $rec, $name)
+    public static function getFromLastDocSameCountry(core_Mvc $mvc, $rec, $name)
     {
         // Информацията за текущия контрагент
         $cData = doc_Folders::getContragentData($rec->folderId);

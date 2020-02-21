@@ -33,6 +33,7 @@ class acc_plg_Contable extends core_Plugin
             $mvc->FLD('isContable', 'enum(yes,no,activate)', 'input=none,notNull,value=no');
         }
         
+        setIfNot($mvc->canDebugreconto, 'debug');
         setIfNot($mvc->canCorrection, 'ceo, accMaster');
         setIfNot($mvc->valiorFld, 'valior');
         setIfNot($mvc->lockBalances, false);
@@ -84,6 +85,27 @@ class acc_plg_Contable extends core_Plugin
             }
             
             return false;
+        }
+        
+        if (strtolower($action) == strtolower('debugreconto')) {
+            $mvc->requireRightFor('debugreconto');
+            $id = Request::get('id', 'int');
+            $rec = $mvc->fetch($id);
+            $mvc->requireRightFor('debugreconto', $rec);
+            
+            // Изтриваме му транзакцията
+            acc_Journal::deleteTransaction($mvc, $rec->id);
+            
+            // Записване на новата транзакция на документа
+            Mode::push('recontoTransaction', true);
+            $success = acc_Journal::saveTransaction($mvc, $rec->id, false);
+            Mode::pop('recontoTransaction');
+            $msg = ($success) ? 'Документът е реконтиран|*!' : 'Документът не е реконтиран|*!';
+            $msgType = ($success) ? 'notice' : 'error';
+            $mvc->logWrite('Ръчно реконтиране', $rec->id);
+            doc_DocumentCache::cacheInvalidation($rec->containerId);
+            
+            followRetUrl(null, $msg, $msgType);
         }
     }
     
@@ -207,6 +229,10 @@ class acc_plg_Contable extends core_Plugin
             if ($error = $mvc->getRestoreBtnErrStr($rec)) {
                 $data->toolbar->setError("btnRestore{$rec->containerId}", $error);
             }
+        }
+        
+        if($mvc->haveRightFor('debugreconto', $rec)){
+            $data->toolbar->addBtn('Реконтиране', array($mvc, 'debugreconto', $rec->id, 'ret_url' => true), "id=btnDebugreconto-{$rec->id},warning=Наистина ли желаете да реконтирате документа?,title=Реконтиране на документа,ef_icon=img/16/bug.png,row=3");
         }
     }
     
@@ -388,6 +414,11 @@ class acc_plg_Contable extends core_Plugin
                 return;
             }
             
+            // Ако не може да създава обратен мемориален ордер
+            if (!acc_Articles::haveRightFor('add')) {
+                $requiredRoles = 'no_one';
+            }
+            
             // Черновите и оттеглените документи немогат да се коригират
             if ($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'pending' || $rec->state == 'stopped') {
                 $requiredRoles = 'no_one';
@@ -427,7 +458,16 @@ class acc_plg_Contable extends core_Plugin
                 $requiredRoles = 'no_one';
             }
         }
+        
+        if ($action == 'debugreconto' && isset($rec)) {
+            if(acc_Periods::isClosed($mvc->getValiorValue($rec))){
+                $requiredRoles = 'no_one';
+            } elseif(!in_array($rec->state, array('closed', 'active'))){
+                $requiredRoles = 'no_one';
+            }
+        }
     }
+    
     
     
     /**
@@ -686,7 +726,7 @@ class acc_plg_Contable extends core_Plugin
     {
         if (!$res) {
             $rec = $mvc->fetchRec($rec);
-            $res = $rec->{$mvc->valiorFld};
+            $res = dt::verbal2mysql($rec->{$mvc->valiorFld}, false);
         }
     }
     

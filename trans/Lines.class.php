@@ -367,11 +367,14 @@ class trans_Lines extends core_Master
         $dQuery = trans_LineDetails::getQuery();
         $dQuery->where("#lineId = {$data->rec->id} AND #containerState != 'rejected' AND #status != 'removed'");
         
+       
+        
         while ($dRec = $dQuery->fetch()) {
             $Document = doc_Containers::getDocument($dRec->containerId);
             $transInfo = $Document->getTransportLineInfo($data->rec->id);
+            $isStoreDocument = $Document->haveInterface('store_iface_DocumentIntf');
             
-            if(!$Document->haveInterface('store_iface_DocumentIntf') && $dRec->containerState == 'active'){
+            if(!$isStoreDocument && $dRec->containerState == 'active'){
                 if($transInfo['baseAmount'] < 0){
                     $amountReturned += $transInfo['baseAmount'];
                 } else {
@@ -387,7 +390,7 @@ class trans_Lines extends core_Master
             if ($sumWeight === true) {
                 if ($transInfo['weight']) {
                     $weight += $transInfo['weight'];
-                } else {
+                } elseif($isStoreDocument) {
                     unset($weight);
                     $sumWeight = false;
                 }
@@ -397,7 +400,7 @@ class trans_Lines extends core_Master
             if ($sumVolume === true) {
                 if ($transInfo['volume']) {
                     $volume += $transInfo['volume'];
-                } else {
+                } elseif($isStoreDocument) {
                     unset($volume);
                     $sumVolume = false;
                 }

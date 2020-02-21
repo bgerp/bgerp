@@ -60,6 +60,7 @@ class findeals_Setup extends core_ProtoSetup
         'findeals_ClosedDeals',
         'findeals_AdvanceReports',
         'findeals_AdvanceReportDetails',
+        'migrate::updatefindealdocuments',
     );
     
     
@@ -79,4 +80,38 @@ class findeals_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(2.3, 'Финанси', 'Сделки', 'findeals_Deals', 'default', 'findeals, ceo, acc'),
     );
+    
+    
+    /**
+     * Обновява документите за прехвърляне на взимане/задължение
+     */
+    function updatefindealdocuments()
+    {
+        $toSave1 = $toSave2 = array();
+        $query = findeals_CreditDocuments::getQuery();
+        $query->where("#dealId IS NOT NULL");
+        $query->show("dealId");
+        while($rec = $query->fetch()){
+            if($rec->dealId = findeals_Deals::fetchField($rec->dealId, 'containerId')){
+                $toSave1[] = $rec;
+            }
+        }
+        
+        if(count($toSave1)){
+            cls::get('findeals_CreditDocuments')->saveArray($toSave1, 'id,dealId');
+        }
+        
+        $query1 = findeals_DebitDocuments::getQuery();
+        $query1->where("#dealId IS NOT NULL");
+        $query1->show("dealId");
+        while($rec = $query1->fetch()){
+            if($rec->dealId = findeals_Deals::fetchField($rec->dealId, 'containerId')){
+                $toSave2[] = $rec;
+            }
+        }
+        
+        if(count($toSave2)){
+            cls::get('findeals_DebitDocuments')->saveArray($toSave2, 'id,dealId');
+        }
+    }
 }

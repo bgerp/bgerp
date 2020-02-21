@@ -2708,4 +2708,63 @@ class core_Users extends core_Manager
         
         return false;
     }
+    
+
+    /**
+     * Логва потребител за определено време
+     * Ако се извика без първия параметър - релогва потребителя
+     * 
+     * @param int   $userId     ID на потребителя
+     * @param float $duration   Време в минути от последната активност, за запазване на сесията
+     */
+    public static function tempLogin($userId = null, $duration = 5)
+    {
+        if($userId) {
+            Mode::setPermanent('tempUserId', $userId);
+            Mode::setPermanent('tempUserDuration', $duration);
+            Mode::setPermanent('tempUserExpiresOn', dt::addSecs($duration * 60));
+        } else {
+            $userId = Mode::get('tempUserId');
+            if(Mode::get('tempUserExpiresOn') < dt::now()) {
+                unset($userId);
+            } else {
+                $duration = Mode::get('tempUserDuration');
+                Mode::setPermanent('tempUserExpiresOn', dt::addSecs($duration * 60));
+            }
+        }
+        if($userId) {
+            
+            return self::sudo($userId);
+        }
+    }
+    
+    
+    /**
+     * Ф-я връщаща всички потребители с определена роля
+     * 
+     * @param mixed $roles
+     * @param null|string $keylist
+     * @return array $arr
+     */
+    public static function getUsersByRoles($roles, $keylist = null)
+    {
+        $query = static::getQuery();
+        $query->where("#state = 'active'");
+        $query->orderBy('#names', 'ASC');
+        $query->show('id,nick');
+        $roles = core_Roles::getRolesAsKeylist($roles);
+        $query->likeKeylist('roles', $roles);
+        
+        if (isset($keylist)) {
+            $keylistUsers = keylist::toArray($keylist);
+            $query->in('id', $keylistUsers, false, true);
+        }
+        
+        $arr = array();
+        while ($userRec = $query->fetch()) {
+            $arr[$userRec->id] = $userRec->nick;
+        }
+        
+        return $arr;
+    }
 }

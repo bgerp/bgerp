@@ -45,7 +45,7 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public $loadList = 'plg_RowTools2, purchase_Wrapper, doc_plg_TplManager, plg_Sorting, acc_plg_Contable,plg_Clone, doc_DocumentPlg,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,deals_plg_DpInvoice,
-                    doc_plg_HidePrices, acc_plg_DocumentSummary,cat_plg_AddSearchKeywords, plg_Search,change_Plugin';
+                    doc_plg_HidePrices, acc_plg_DocumentSummary,cat_plg_AddSearchKeywords, plg_Search,change_Plugin,bgerp_plg_Export';
     
     
     /**
@@ -173,7 +173,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         'contragentPlace' => 'clientData|lastDocUser|lastDoc',
         'contragentAddress' => 'clientData|lastDocUser|lastDoc',
         'accountId' => 'lastDocUser|lastDoc',
-        'template' => 'lastDocUser|lastDoc|LastDocSameCuntry',
+        'template' => 'lastDocUser|lastDoc|lastDocSameCountry',
     );
     
     
@@ -1148,7 +1148,10 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public static function getValiorValue($rec)
     {
-        return (!empty($rec->journalDate)) ? $rec->journalDate : $rec->date;
+        $valior = (!empty($rec->journalDate)) ? $rec->journalDate : $rec->date;
+        $valior = dt::verbal2mysql($valior, false);
+        
+        return $valior;
     }
     
     

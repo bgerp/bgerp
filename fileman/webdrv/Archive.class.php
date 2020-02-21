@@ -44,8 +44,15 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
         // Директорията, в която се намираме вътре в архива
         $path = core_Type::escape(Request::get('path'));
         
-        // Вземаме съдържанието
-        $contentStr = static::getArchiveContent($fRec, $path);
+        try {
+            // Вземаме съдържанието
+            $contentStr = static::getArchiveContent($fRec, $path);
+        } catch (ErrorException $e) {
+            $contentStr = tr('Възникна грешка при показване на съдържанието на архива');
+            if (($e->getCode() == 2) && ($archiveAddPassUrl = self::getArchiveAddPassUrl($fRec->fileHnd, false, true))) {
+                $contentStr .= ' - ' . ht::createLink(tr('добавете парола'), $archiveAddPassUrl, false, 'ef_icon=img/16/archive.png');
+            }
+        }
         
         // Таб за съдържанието
         $tabsArr['content'] = (object)
@@ -90,6 +97,12 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
             return $e->getMessage();
         }
         
+        // Добавяме паролата, ако е зададена
+        $password = fileman_Indexes::getInfoContentByFh($fRec->fileHnd, 'password');
+        if (isset($password) && ($password !== false)) {
+            $inst->setPassword($password);
+        }
+        
         // URL' то където да сочат файловете
         $url = array('fileman_webdrv_Archive', 'absorbFileInArchive', $fRec->fileHnd, 'index' => 1);
         
@@ -116,6 +129,12 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
     {
         // Инстанция на класа
         $inst = static::getArchiveInst($fRec);
+        
+        // Добавяме паролата, ако е зададена
+        $password = fileman_Indexes::getInfoContentByFh($fRec->fileHnd, 'password');
+        if (isset($password) && ($password !== false)) {
+            $inst->setPassword($password);
+        }
         
         // Качваме съответния файл
         $fh = $inst->getFile($index);

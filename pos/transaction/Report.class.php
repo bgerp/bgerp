@@ -39,7 +39,10 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         $rec = $this->class->fetchRec($id);
         $posRec = pos_Points::fetch($rec->pointId);
         $paymentsArr = $productsArr = $totalVat = $entries = array();
-        $this->class->extractData($rec);
+        
+        if(!Mode::is('recontoTransaction')){
+            $this->class->extractData($rec);
+        }
         
         if (count($rec->details['receiptDetails'])) {
             foreach ($rec->details['receiptDetails'] as $dRec) {

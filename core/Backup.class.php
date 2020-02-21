@@ -49,6 +49,7 @@ class core_Backup extends core_Mvc
         core_Debug::$isLogging = false;
         
         if (core_Setup::get('BACKUP_ENABLED') != 'yes') {
+            
             return;
         }
         
@@ -127,7 +128,7 @@ class core_Backup extends core_Mvc
         
         // Освеобождаваме LOCK-а на таблиците
         $this->db->query('UNLOCK TABLES');
-  
+        
         // Освобождаваме системата
         core_SystemLock::remove();
         $description['times']['unlock'] = dt::now();
@@ -263,6 +264,7 @@ class core_Backup extends core_Mvc
             
             @unlink($path);
         }
+        
         // Почистваме работната директория
         core_Os::deleteDirectory($workDir, true);
         
@@ -292,7 +294,7 @@ class core_Backup extends core_Mvc
     {
         $pass = core_Setup::get('BACKUP_PASS');
         $addCrc32 = crc32(EF_SALT . $pass);
-
+        
         foreach ($instArr as $table => $inst) {
             core_App::setTimeLimit(120);
             
@@ -311,7 +313,7 @@ class core_Backup extends core_Mvc
                     $expr .= ', `' . str::phpToMysqlName($fld) . '`';
                 }
                 $expr = "crc32(${expr}))";
- 
+                
                 for ($i = 0; $i * $inst->backupMaxRows < $cnt; $i++) {
                     core_App::setTimeLimit(120);
                     $key = "{$table}-{$lmt}-" . ($i + 1);
@@ -325,6 +327,7 @@ class core_Backup extends core_Mvc
                         $dbRes = $inst->db->query($sql);
                         $rec = $inst->db->fetchObject($dbRes);
                         DEBUG::stopTimer('Query Table:' . $table);
+                        
                         // if($table == 'fileman_files') bp($sql, $rec);
                         self::$crcArr[$key] = $rec->_crc32backup + $addCrc32;
                     }
@@ -349,7 +352,6 @@ class core_Backup extends core_Mvc
      */
     public function backupTable($inst, $table, $suffix, $limit = '')
     {
-        
         // Форсираме директориите
         $backDir = self::getDir();
         $workDir = self::getDir('backup_work');
@@ -383,7 +385,7 @@ class core_Backup extends core_Mvc
             $cols .= ($cols ? ',' : '') . '`' . $fRec->Field . '`';
             $i++;
         }
-
+        
         $dbRes = $inst->db->query("SELECT * FROM `{$table}`{$limit}");
         $out = fopen("{$path}.tmp", 'w');
         fwrite($out, $cols);
@@ -417,6 +419,7 @@ class core_Backup extends core_Mvc
         }
         
         if (core_Os::forceDir($dir, 0744)) {
+            
             return $dir . '/';
         }
     }
@@ -449,6 +452,7 @@ class core_Backup extends core_Mvc
             
             // Не може да се флъшва, а бекъпът е зададен
             if (!file_exists($path) || !is_readable($path) || !filesize($path)) {
+                
                 return;
             }
             $file = basename($path);
@@ -500,7 +504,7 @@ class core_Backup extends core_Mvc
         core_Debug::$isLogging = false;
         core_SystemLock::stopIfBlocked();
         core_SystemLock::block('Възстановяване от бекъп', 1800);
-
+        
         try {
             core_App::setTimeLimit(120);
             
@@ -523,7 +527,7 @@ class core_Backup extends core_Mvc
             if (array_values($res)[0] > 0) {
                 $log[] = 'err: Базата не е празна. Преди възстановяване от бекъп в нея не трябва да има нито една таблица.';
                 core_SystemLock::remove();
-
+                
                 return false;
             }
             
@@ -552,6 +556,7 @@ class core_Backup extends core_Mvc
                 $log[] = $res = self::importTable($db, $table, $dest);
                 unlink($dest);
                 if (substr($res, 0, 4) == 'err:') {
+                    
                     return;
                 }
             }
@@ -579,7 +584,7 @@ class core_Backup extends core_Mvc
             $log[] = 'msg: Възстановяването завърши успешно';
             core_SystemLock::remove();
             core_Os::deleteDirectory(self::$temp);
-
+            
             return true;
         } catch (core_exception_Expect $e) {
             $log[] = 'err: ' . ht::mixedToHtml(array($e->getMessage(), $e->getTraceAsString(), $e->getDebug(), $e->getDump()), 4);
@@ -597,40 +602,44 @@ class core_Backup extends core_Mvc
     {
         static $maxMysqlQueryLength;
         if (!isset($maxMysqlQueryLength)) {
-            $maxMysqlQueryLength = $db->getVariable('max_allowed_packet')/2;
+            $maxMysqlQueryLength = $db->getVariable('max_allowed_packet') / 2;
         }
-        
+        $link = $db->connect();
         $handle = fopen($dest, 'r');
+        $query = array();
+        $totalLen = 0;
         if ($handle) {
             do {
-                if(!isset($query)) {
-                    $query = '';
-                }
                 $line = fgets($handle);
+                if ($line !== false) {
+                    $line = rtrim($line, "\n\r");
+                    $totalLen += strlen($line);
+                }
                 if (!$cols) {
                     $cols = $line;
                     continue;
                 }
-                if ($line === false || (strlen($query) + strlen($line) > $maxMysqlQueryLength)) {
+                if ($line === false || ($totalLen > $maxMysqlQueryLength)) {
                     try {
-                        if(!strlen($query) && strlen($line)) {
-                            $query = $line;
+                        if (!count($query) && strlen($line)) {
+                            $query[] = $line;
                         }
-                       
-                        //@file_put_contents("C:\\xampp\\htdocs\\ef_root\\uploads\\bgerp\\backup_work\query.log", $query);
-                        $link = $db->connect();
-                        $link->query("INSERT INTO `{$table}` ({$cols}) VALUES " . $query);
-                        unset($query);
-                        gc_collect_cycles();
-                    } catch (Exception $e) {
+                        $link->query("INSERT INTO `{$table}` ({$cols}) VALUES \n (" . implode("),\n(", $query) . ')');
                         
+                        #file_put_contents("C:\\xampp\\htdocs\\ef_root\\uploads\\bgerp\\backup_work\query.log", $d);
+                        //file_put_contents("/tmp/query.log", $queryStr);
+                        $query = array();
+                        $totalLen = 0;
+                        continue;
+                    } catch (Exception $e) {
                         fclose($handle);
-                        $res = "err: Грешка при изпълняване на `" . substr($query, 0, 1000) ."`";
-
+                        $res = "err: Грешка при изпълняване на `INSERT INTO `{$table}` ({$cols}) VALUES  (" . implode(') (', array_slice($query, 0, 3)) .')`';
+                        
                         return $res;
                     }
                 }
-                $query .= ($query ? ",\n" : "\n") . "({$line})";
+                
+                $query[] = $line;
             } while ($line !== false);
             fclose($handle);
             $res = 'msg: Импортиране на ' . $table;
@@ -638,6 +647,8 @@ class core_Backup extends core_Mvc
             // Не може да се отвори файла
             $res = "err: Не може да се отвори файла `{$dest}`";
         }
+        
+        gc_collect_cycles();
         
         return $res;
     }
@@ -668,6 +679,7 @@ class core_Backup extends core_Mvc
         
         $res = @archive_Adapter::uncompress($path, self::$temp, $pass);
         if ($res === 0 && file_exists($tempPath)) {
+            
             return $tempPath;
         }
     }
@@ -679,6 +691,7 @@ class core_Backup extends core_Mvc
     public static function checkConfig()
     {
         if (core_Setup::get('BACKUP_ENABLED') != 'yes') {
+            
             return;
         }
         
@@ -731,7 +744,7 @@ class core_Backup extends core_Mvc
         } else {
             $res = array(0, 0, null);
         }
-       
+        
         return $res;
     }
     
@@ -777,6 +790,7 @@ class core_Backup extends core_Mvc
         }
         
         uasort($res, function ($a, $b) {
+            
             return $a->time < $b->time;
         });
         

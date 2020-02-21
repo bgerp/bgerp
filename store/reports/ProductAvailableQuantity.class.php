@@ -20,12 +20,14 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     
     const MAX_POST_ART = 50;
     
+    
     /**
      * Кои полета от листовия изглед да може да се сортират
      *
      * @var int
      */
     protected $sortableListFields = 'quantity';
+    
     
     /**
      * Кои полета от таблицата в справката да се сумират в обобщаващия ред
@@ -68,7 +70,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'typeOfQuantity,additional,storeId,groupId';
+    protected $changeableFields = 'typeOfQuantity,additional,storeId,groupId,orderBy';
     
     
     /**
@@ -88,6 +90,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         $fieldset->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,silent,single=none,removeAndRefreshForm');
         
         $fieldset->FLD('inputArts', 'varchar', 'caption=Наблюдавани артикули,input=hidden,single=none');
+        $fieldset->FLD('orderBy', 'enum(conditionQuantity=Състояние,code=Код)', 'caption=Подреди по,maxRadio=2,columns=2,after=typeOfQuantity,silent');
     }
     
     
@@ -105,6 +108,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         $rec = $form->rec;
         $rec->flag = true;
         
+        $form->setDefault('orderBy', 'conditionQuantity');
         $form->input('additional');
         $form->setDefault('typeOfQuantity', 'TRUE');
         
@@ -238,7 +242,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     $numbersOfItemsToAdd = (ini_get('max_input_vars') / 4) - (51 + $arts);
                     
                     if ((($arts + $numbersOfItemsToAdd) * 4) > $maxPost) {
-                        
                         $form->setError('droupId', "Лимита за следени продукти е достигнат.
                             За да добавите група \" ${groupName}\" трябва да премахнете ${prodForCut} артикула ");
                     } else {
@@ -448,7 +451,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         }
         
         if (!is_null($recs)) {
-            arr::sortObjects($recs, 'conditionQuantity', 'asc', 'native');
+            arr::sortObjects($recs, $rec->orderBy, 'asc');
         }
         
         return $recs;
@@ -474,7 +477,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         }
         $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
-        $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
+        $fld->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,smartCenter');
         
         if ($rec->limmits == 'yes') {
             $fld->FLD('minQuantity', 'double(smartRound,decimals=2)', 'caption=Минимално,smartCenter');
@@ -504,7 +507,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         $row->productId = cat_Products::getShortHyperlink($dRec->productId, true);
         
         if (isset($dRec->quantity)) {
-            $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
+            $row->quantity = core_Type::getByName('double(decimals=3)')->toVerbal($dRec->quantity);
             $row->quantity = ht::styleIfNegative($row->quantity, $dRec->quantity);
         }
         
