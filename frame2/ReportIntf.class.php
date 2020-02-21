@@ -9,7 +9,7 @@
  * @package   frame2
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -202,5 +202,18 @@ class frame2_ReportIntf extends embed_DriverIntf
     public function canBeSendAsEmail($rec)
     {
         return $this->class->canBeSendAsEmail($rec);
+    }
+    
+    
+    /**
+     * Изборът на потребители които да бъдат нотифицирани при обновяване дали са задължителни
+     *
+     * @param mixed $rec
+     *
+     * @return boolean
+     */
+    public function requireUserForNotification($rec)
+    {
+        return $this->class->requireUserForNotification($rec);
     }
 }
