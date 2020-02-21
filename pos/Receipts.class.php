@@ -301,31 +301,32 @@ class pos_Receipts extends core_Master
             $row->id = ht::createLink($row->id, pos_Receipts::getSingleUrlArray($rec->id));
         }
         
-        $row->PAID_CAPTION = tr('Платено');
-        $row->CHANGE_CAPTION = tr("Ресто");
-        if($rec->change < 0){
-            $row->CHANGE_CAPTION = tr("Остатък");
-            $rec->change = abs($rec->change);
-            $row->change = $mvc->getFieldType('change')->toVerbal(abs($rec->change));
-        } elseif($rec->change == 0){
-            unset($row->CHANGE_CAPTION, $row->change, $row->changeCurrency);
+        $rec->total = abs($rec->total);
+        $row->total = $mvc->getFieldType('change')->toVerbal($rec->total);
+        if(!empty($rec->paid)){
+            $row->PAID_CAPTION = (isset($rec->revertId)) ? tr('Върнато') : tr('Платено');
+            $rec->paid = abs($rec->paid);
+            $row->paid = $mvc->getFieldType('paid')->toVerbal($rec->paid);
+            if(!empty($rec->change)){
+                $row->CHANGE_CLASS = ($rec->change < 0 || isset($rec->revertId)) ? 'changeNegative' : 'changePositive';
+                $row->CHANGE_CAPTION = ($rec->change < 0 || isset($rec->revertId)) ? tr("За плащане") : tr("Ресто");
+                $row->change = $mvc->getFieldType('change')->toVerbal(abs($rec->change));
+            } else {
+                unset($row->change);
+            }
+        } else{
+            unset($row->paid);
+            unset($row->change);
         }
         
-        foreach (array('total', 'paid', 'change') as $fld) {
-            if(isset($row->{$fld})){
-                $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
-            }
-        }
-       
         if (isset($rec->revertId)) {
-            $row->RECEIPT_CAPTION = "<span class='revertCaption'>" . tr('Сторно бележка') . "</span>";
-            $row->PAID_CAPTION = tr('Върнато');
+            $row->REVERT_CAPTION = tr("Сторно");
             $row->revertId = ($rec->revertId != self::DEFAULT_REVERT_RECEIPT) ? pos_Receipts::getHyperlink($rec->revertId, true) : ht::createHint(' ', 'Произволна сторнираща бележка', 'warning');
         } elseif($rec->state != 'draft') {
             if(isset($rec->transferedIn)){
-                $row->RECEIPT_CAPTION = tr('Прехвърлена');
+                $row->revertId = tr('Прехвърлена');
             } else {
-                $row->RECEIPT_CAPTION = $row->state;
+                $row->revertId = $row->state;
             }
         }
         

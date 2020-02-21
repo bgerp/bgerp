@@ -131,20 +131,6 @@
 	color: #CC0000 ;
 }
 
-.paymentBlock{
-	padding: 0 15px 15px;
-	.paymentRow {
-		text-align:right;
-	}
-	.totalLabel{
-		display: inline-block;
-		padding-left: 10px;
-		border-top: 1px solid #000;
-		font-size:1.3em;
-		font-weight:bold;
-	}
-}
-
 #single-receipt .receiptPayment {
 	background-color:#d1ffda;
 	font-size: 1.1em;
@@ -823,6 +809,48 @@
 .enlargeProductBtn, .printBtn {
 	background-position: center;
 }
+
+table.total {
+	width:100%;
+}
+
+table.total th{
+	width:25%;
+	font-weight:normal;
+	text-align:left;
+	padding-left:60px;
+}
+
+table.total td{
+	text-align:right;
+	font-weight:bold;
+	padding-right:10px;
+}
+
+td.totalLabel {
+	font-size:1.4em;
+	font-weight:bold;
+}
+
+th.paidCaption, td.paidCaption {
+	color:blue !important;
+}
+
+th.changePositive, td.changePositive {
+	color:green;
+	white-space: nowrap;
+}
+
+th.changeNegative, td.changeNegative {
+	color:red;
+	white-space: nowrap;
+}
+
+th.revertCaption, td.revertCaption {
+	color:red;
+}
+
+
 
 /*media queries за клавиатурата*/
 @media handheld, only screen and (max-width: 1600px) {
