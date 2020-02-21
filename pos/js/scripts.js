@@ -59,7 +59,7 @@ function posActions() {
 		if($(".buttonOverlay").css('display') != 'none'){
 			return;
 		}
-		
+		console.log('KEYUP');
 		// Хак да не се тригърва ивента при натискане на ентър или при навигацията на страницата за избор на селектиран елемент
 		if(e.key == "Enter" || e.key == "ArrowRight" || e.key == "ArrowLeft" || e.key == "ArrowUp" || e.key == "ArrowDown"  || e.key == "PageUp" || e.key == "PageDown" || e.key == 'Alt' || e.key == 'Control') return;
 		
@@ -117,6 +117,14 @@ function posActions() {
 
 	$('body').on('paste', '.large-field', function (e){
 		activeInput = true;
+		var url = $(this).attr("data-keyupurl");
+		
+		if(url){
+			setTimeout(function() {
+				var e = jQuery.Event("keyup");
+				$('.large-field').trigger(e);
+	        }, 100);
+		}
 	});
 	
 	// Бутоните за приключване приключват бележката
@@ -346,24 +354,38 @@ function posActions() {
 	$(document.body).on('click',  function(e){
 		hideHints();
 	})
-
 }
+
+
+/**
+ * Отваряне на предишния таб
+ */
 function prevTab() {
-	console.log("PREV TAB");
+	
+	sessionStorage.removeItem("focused");
 	var currentTab = $('.tabHolder li.active');
 	if($(currentTab).prev().length) {
 		$(currentTab).prev().click();
 		activeInput = false;
 	}
+	
+	startNavigation();
 }
 
+
+/**
+ * Отваряне на предишния таб
+ */
 function nextTab() {
-	console.log("NEXT TAB");
+	sessionStorage.removeItem("focused");
+	
 	var currentTab = $('.tabHolder li.active');
 	if($(currentTab).next().length) {
 		$(currentTab).next().click();
 		activeInput = false;
 	}
+	
+	startNavigation();
 }
 
 function inputChars(inputElement, val) {
@@ -890,20 +912,26 @@ function openModal(title, heightModal) {
 	500);
 }
 
+function selectFirstNavigable()
+{
+	focused = $('.navigable:visible').first();
+	focused.addClass('selected');
+	sessionStorage.setItem('focused', focused.attr('id'));
+	console.log("first navigable:" + focused.attr('id'));
+}
+
 function startNavigation() {
 	if($('.navigable').length) {
 		
 		var focused = sessionStorage.getItem('focused');
 
 		// ръчно избирам първия елемент за селектед
-		if(!focused && $('.navigable.selected').length == 0){
-			focused = $('.navigable').first();
-			focused.addClass('selected');
-			sessionStorage.setItem('focused', focused.attr('id'));
+		if(!focused && $('.navigable.selected:visible').length == 0){
+			selectFirstNavigable();
 		}
 
 		setTimeout(function(){
-			if (focused && document.getElementById(focused) && $('.navigable.selected').length == 0) {
+			if (focused && document.getElementById(focused) && $('.navigable.selected:visible').length == 0) {
 				$('.selected').removeClass('selected');
 				$('#' + focused ).addClass('selected');
 			}
