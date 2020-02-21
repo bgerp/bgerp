@@ -462,6 +462,7 @@ class pos_Terminal extends peripheral_Terminal
                 break;
             case 'quantity':
                 $inputUrl = array('pos_ReceiptDetails', 'dispatch', 'receiptId' => $rec->id);
+                $keyupUrl = null;
                 break;
             case 'text':
                 $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'settext');
@@ -1047,7 +1048,8 @@ class pos_Terminal extends peripheral_Terminal
             }
             $tpl->append(ht::createElement('div', array('class' => 'grid'), $temp, true));
         } else {
-            $tpl = new core_ET("");
+            $contragentName = cls::get($rec->contragentClass)->getTitleById($rec->contragentObjectId);
+            $tpl = new core_ET("<div class='divider'>{$contragentName}</div><div class='grid'>");
             
             // Добавя бутон за прехвърляне към папката на контрагента
             $setDefaultContragentUrl = toUrl(array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $defaultContragentClassId, 'contragentId' => $defaultContragentId, 'ret_url' => true));
@@ -1086,13 +1088,11 @@ class pos_Terminal extends peripheral_Terminal
             $divAttr['class'] .= " imgDiv";
             $holderDiv = ht::createElement('div', $divAttr, $removeBtnBody, true);
             $tpl->append($holderDiv);
-            
-            $contragentName = cls::get($rec->contragentClass)->getTitleById($rec->contragentObjectId);
-            $tpl->prepend("<div class='contragentName clearfix21'>{$contragentName}</div>");
+            $tpl->append("</div>");
             
             $locationArr = crm_Locations::getContragentOptions($rec->contragentClass, $rec->contragentObjectId);
             if(countR($locationArr)){
-                $tpl->append(tr("|*<div class='divider'>|Локации|*</div>"));
+                $tpl->append(tr("|*<div class='divider'>|Локации|*</div><div class='grid'>"));
                 foreach ($locationArr as $locationId => $locationName){
                     $locationAttr = array("id" => "location{$locationId}", 'class' => 'posBtns locationBtn enlargable', 'data-enlarge-object-id' => $locationId, 'data-enlarge-class-id' => crm_Locations::getClassId(), 'data-modal-title' => strip_tags($locationName));
                     if(pos_Receipts::haveRightFor('setcontragent', $rec)){
@@ -1110,6 +1110,7 @@ class pos_Terminal extends peripheral_Terminal
                     $holderDiv = ht::createElement('div', $locationAttr, $locationName, true);
                     $tpl->append($holderDiv);
                 }
+                $tpl->append("</div>");
             }
         }
        

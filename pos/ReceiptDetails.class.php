@@ -259,7 +259,6 @@ class pos_ReceiptDetails extends core_Detail
                         }
                     }
                     
-                    Mode::setPermanent("currentOperation{$rec->receiptId}", 'add');
                     $sucessMsg = 'Количеството на реда е променено|*!';
                     break;
                case 'setdiscount':
