@@ -155,7 +155,7 @@ function posActions() {
 	});
 
 	$(document.body).on('click', ".tabHolder li", function() {
-		console.log("BB");
+		
 		var id = $(this).attr('data-content');
 		$(this).addClass('active').siblings().removeClass('active');
 		$("#" + id).show().siblings().hide();
@@ -1031,7 +1031,6 @@ function addProduct(el) {
 	}
 	data.recId = getSelectedRowId();
 	
-	console.log(url, data);
 	processUrl(url, data);
 	calculateWidth();
 
@@ -1108,10 +1107,6 @@ function doOperation(operation, selectedRecId, forceSubmit)
 	
 	sessionStorage.setItem('operationClicked', true);
 	var data = {operation:operation,recId:selectedRecId};
-	if(activeInput){
-		data.search = string;
-	}
-	
 	processUrl(url, data);
 
 	activeInput = false;
