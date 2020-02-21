@@ -1458,7 +1458,7 @@ class pos_Terminal extends peripheral_Terminal
         cls::get('pos_Receipts')->invoke('AfterPushTerminalFiles', array(&$tpl, $rec));
         
         // Абониране за рефреш на хедъра
-        core_Ajax::subscribe($tpl, array($this, 'autoRefreshHeader', $rec->id), 'refreshTime', 60);
+        core_Ajax::subscribe($tpl, array($this, 'autoRefreshHeader', $rec->id), 'refreshTime', 20);
     }
     
     
@@ -1467,7 +1467,10 @@ class pos_Terminal extends peripheral_Terminal
      */
     function act_autoRefreshHeader()
     {
-        core_Users::getCurrent();
+        // Изискване на права
+        pos_Receipts::requireRightFor('terminal');
+        expect($id = Request::get('id', 'int'));
+        pos_Receipts::requireRightFor('terminal', $id);
         
         // Добавяме резултата
         $resObj = new stdClass();
