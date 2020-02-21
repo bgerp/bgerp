@@ -103,6 +103,7 @@ class acc_plg_Contable extends core_Plugin
             $msg = ($success) ? 'Документът е реконтиран|*!' : 'Документът не е реконтиран|*!';
             $msgType = ($success) ? 'notice' : 'error';
             $mvc->logWrite('Ръчно реконтиране', $rec->id);
+            doc_DocumentCache::cacheInvalidation($rec->containerId);
             
             followRetUrl(null, $msg, $msgType);
         }
