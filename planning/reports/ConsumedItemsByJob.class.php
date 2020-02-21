@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -28,7 +28,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $sortableListFields = 'code,name, consumedQuantity,returnedQuantity,totalAmount,totalQuantity';
+    protected $sortableListFields = 'code,name, consumedQuantity,consumedAmount,returnedQuantity,returnedAmount,totalAmount,totalQuantity';
     
     
     /**
@@ -36,7 +36,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $summaryListFields = 'consumedQuantity,returnedQuantity,totalAmount,totalQuantity';
+    protected $summaryListFields = 'consumedQuantity,consumedAmount,returnedQuantity,returnedAmount,totalAmount,totalQuantity';
     
     
     /**
@@ -75,7 +75,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         //Задания
-        $fieldset->FLD('jobses', 'keylist(mvc=planning_Jobs,allowEmpty)', 'caption=Задания,placeholder=Избери задание,after=title,single=none,mandatory');
+        $fieldset->FLD('jobses', 'keylist(mvc=planning_Jobs,allowEmpty)', 'caption=Задания,placeholder=Всички активни,after=title,single=none');
         
         //Период
         $fieldset->FLD('from', 'date', 'caption=От,after=jobses,single=none,mandatory');
@@ -89,7 +89,10 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         }
         
         //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(name=Артикул, code=Код,amount=Стойност,consumedQuantity=Вложено,returnedQuantity=Върнато,total=Общо)', 'caption=Подреждане по,after=groups,single=none');
+        $fieldset->FLD('orderBy', 'enum(valior=Дата,name=Артикул, code=Код,amount=Стойност,consumedQuantity=Вложено,returnedQuantity=Върнато,total=Общо)', 'caption=Подреждане по,after=groups,single=none,silent');
+     
+        //Групиране на резултатите
+        $fieldset->FLD('groupBy', 'enum(no=Без групиране,jobId=Задание, valior=Дата,mounth=Месец,year=Година)', 'caption=Групиране по,after=groups,single=none,refreshForm,silent');
     }
     
     
@@ -121,6 +124,8 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $rec = $form->rec;
         
         $form->setDefault('orderBy', 'code');
+        $form->setDefault('groupBy', 'no');
+        
         $suggestions = array();
         foreach (keylist::toArray($rec->jobses) as $val){
             
@@ -156,32 +161,40 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+       
+        //Показването да бъде ли ГРУПИРАНО
+        if ($rec->groupBy != 'no') {
+            $this->groupByField = $rec->groupBy;
+        }
+        
         $recs = array();
         
         //Избрани задания за производство
-        $jobsThreadArr = array();
-        foreach (keylist::toArray($rec->jobses) as $val) {
-            
-            //Масив с ID-та на нишките на избраните ЗАДАНИЯ - $jobsThreadArr
-            $jobsThreadArr[$val] = planning_Jobs::fetchField($val, 'threadId');
-            $jobsContainersArr[planning_Jobs::fetchField($val, 'threadId')] = planning_Jobs::fetchField($val, 'containerId');
-            
-        }
-        if (!empty($jobsContainersArr)){
-            $tQuery = planning_Tasks::getQuery();
-            $tQuery->where("#state != 'rejected'");
-            $tQuery->in('originId', $jobsContainersArr);
-            
-           
-            while ($tRec = $tQuery->fetch()){
-               
-                if (in_array($tRec->threadId, $jobsThreadArr))continue;
-                $jobsThreadArr[$tRec->originId] = $tRec->threadId;
+        if ($rec->jobses){
+            $jobsThreadArr = array();
+            foreach (keylist::toArray($rec->jobses) as $val) {
+                
+                //Масив с ID-та на нишките на избраните ЗАДАНИЯ - $jobsThreadArr
+                $jobsThreadArr[$val] = planning_Jobs::fetchField($val, 'threadId');
+                $jobsContainersArr[planning_Jobs::fetchField($val, 'threadId')] = planning_Jobs::fetchField($val, 'containerId');
                 
             }
         
+            if (!empty($jobsContainersArr)){
+                $tQuery = planning_Tasks::getQuery();
+                $tQuery->where("#state != 'rejected'");
+                $tQuery->in('originId', $jobsContainersArr);
+                
+               
+                while ($tRec = $tQuery->fetch()){
+                   
+                    if (in_array($tRec->threadId, $jobsThreadArr))continue;
+                    $jobsThreadArr[$tRec->originId] = $tRec->threadId;
+                    
+                }
+            
+            }
         }
-        
         //Вложени и върнати артикули в нишките на заданията
         
         $mvcArr = array('planning_DirectProductionNote' => 'planning_DirectProductNoteDetails',
@@ -208,8 +221,11 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             
             $pQuery->where("#state != 'rejected'");
             $pQuery->where("#canStore != 'no'");
-            $pQuery->in('threadId', ($jobsThreadArr));
             
+            //Ако има избрани задания, вадим само от техните нишки
+            if(!empty($jobsThreadArr)){
+                $pQuery->in('threadId', ($jobsThreadArr));
+            }
             
             //Филтър по група артикули
             if (isset($rec->groups)) {
@@ -238,6 +254,8 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                 
                 $id = $pRec->productId;
                 
+                list($year, $mounth) = explode('-',$pRec->valior);
+                
                 //Себестойност на артикула
                 $selfPrice = cat_Products::getPrimeCost($pRec->productId, null, $pRec->quantity, null);
                 
@@ -245,12 +263,20 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                 if (!array_key_exists($id, $recs)) {
                     $recs[$id] = (object) array(
                         
-                        'productId' => $pRec->productId,                            //Id на артикула
-                        'code' => $code,                                            //код на артикула
-                        'name' => $name,                                            //Име на артикула
-                        'selfPrice' => $selfPrice,                                  //Себестойност на артикула
-                        'consumedQuantity' => $consumedQuantity,                    //Вложено количество
-                        'returnedQuantity' => $returnedQuantity,                    //Върнато количество
+                        'jobId' => doc_Threads::getFirstDocument($pRec->threadId)->that,           //Id на заданието
+                        'valior' => $pRec->valior,
+                        'mounth' => $mounth,
+                        'year' => $year,
+                        'productId' => $pRec->productId,                                           //Id на артикула
+                        'code' => $code,                                                           //код на артикула
+                        'name' => $name,                                                           //Име на артикула
+                        'selfPrice' => $selfPrice,                                                 //Себестойност на артикула
+                        'consumedQuantity' => $consumedQuantity,                                   //Вложено количество
+                        'consumedAmount' => $consumedQuantity*$selfPrice,                          //Стойност на вложеното количество
+                        
+                        'returnedQuantity' => $returnedQuantity,                                   //Върнато количество
+                        'returnedAmount' => $returnedQuantity*$selfPrice,                          //Стойност на върнатото количество
+                        
                         'totalQuantity' => '',
                         'totalAmount' => '',
                     
@@ -259,7 +285,10 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                     $obj = &$recs[$id];
                     
                     $obj->consumedQuantity += $consumedQuantity;
+                    $obj->consumedAmount += $consumedQuantity*$selfPrice;
+                    
                     $obj->returnedQuantity += $returnedQuantity;
+                    $obj->returnedAmount += $returnedQuantity*$selfPrice;
                 }
             }
         }
@@ -304,10 +333,15 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered');
         $fld->FLD('name', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
-        $fld->FLD('consumedQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Количество->Вложено');
-        $fld->FLD('returnedQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Количество->Върнато');
-        $fld->FLD('totalQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Количество->Общо');
-        $fld->FLD('totalAmount', 'double(smartRound,decimals=2)', 'caption=Сума');
+        
+        $fld->FLD('consumedQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Вложено->Количество');
+        $fld->FLD('consumedAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Вложено->Стойност');
+        
+        $fld->FLD('returnedQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Върнато->Количество');
+        $fld->FLD('returnedAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Върнато->Стойност');
+        
+        $fld->FLD('totalQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Резултат->Количество');
+        $fld->FLD('totalAmount', 'double(smartRound,decimals=2)', 'caption=Резултат->Стойност');
         
         return $fld;
     }
@@ -327,9 +361,27 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
     {
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
+        $Date = cls::get('type_Date');
         
         $row = new stdClass();
         
+        if ($rec->groupBy == 'valior'){
+            $row->valior = $Date->toVerbal($dRec->valior);
+        }
+        
+        if ($rec->groupBy == 'mounth'){
+            
+            $row->mounth = $dRec->mounth.'-'.$dRec->year;
+        }
+        
+        if ($rec->groupBy == 'year'){
+            
+            $row->year = $dRec->year;
+        }
+        
+        if ($rec->groupBy == 'jobId'){
+            $row->jobId = planning_Jobs::getLinkToSingle($dRec->jobId);
+        }
         
         if (isset($dRec->code)) {
             $row->code = $dRec->code;
@@ -344,14 +396,24 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         if (isset($dRec->consumedQuantity)) {
             $row->consumedQuantity = $Double->toVerbal($dRec->consumedQuantity);
         }
+        if (isset($dRec->consumedAmount)) {
+            $row->consumedAmount = $Double->toVerbal($dRec->consumedAmount);
+        }
+        
+        
         
         if (isset($dRec->returnedQuantity)) {
             $row->returnedQuantity = $Double->toVerbal($dRec->returnedQuantity);
         }
+        if (isset($dRec->returnedAmount)) {
+            $row->returnedAmount = $Double->toVerbal($dRec->returnedAmount);
+        }
+        
+        
         
         $row->totalQuantity = $Double->toVerbal($dRec->totalQuantity);
         
-        $row->totalAmount = $Double->toVerbal($dRectotalAmount);
+        $row->totalAmount = $Double->toVerbal($dRec->totalAmount);
         
         return $row;
     }

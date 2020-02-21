@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -629,5 +629,18 @@ class price_reports_PriceList extends frame2_driver_TableData
     public function canSendNotificationOnRefresh($rec)
     {
         return true;
+    }
+    
+    
+    /**
+     * Изборът на потребители които да бъдат нотифицирани при обновяване дали са задължителни
+     *
+     * @param mixed $rec
+     *
+     * @return boolean
+     */
+    public function requireUserForNotification($rec)
+    {
+        return false;
     }
 }
