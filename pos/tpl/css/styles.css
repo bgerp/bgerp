@@ -594,7 +594,8 @@
   text-transform: uppercase;
   padding-top: 5px;
   padding-bottom: 5px;
-  font-size: 2.2em; }
+  font-size: 2.2em;
+  float: right; }
 
 .pos-product-title {
   border-radius: 0 0 3px 3px;
@@ -763,5 +764,8 @@ only screen and (max-width: 360px) {
     color: black !important; }
 
   .discountText {
-    color: black !important; } }
+    color: black !important; }
+
+  #receipt-table .highlighted {
+    border-left: 0px; } }
 

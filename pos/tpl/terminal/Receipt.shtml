@@ -15,6 +15,7 @@
 </div>
 <div class='paymentBlock' >
 <hr>
+	<span class='paymentNotRequiredLabel'>[#PAYMENT_NOT_REQUIRED#]</span>
 	<table class='total'>
 		<tr>
 			<th class = 'revertCaption'>[#REVERT_CAPTION#]</th>
@@ -29,7 +30,4 @@
 			<td class='totalLabel'>[#total#]</td>
 		</tr>
 	</table>
-</div>
-<div class='footerDocInfo'>
-	<div class='aright'>|Документът е създаден чрез системата|* <b><a href='http://bgerp.com'>bgERP</a></b></div>
 </div>
