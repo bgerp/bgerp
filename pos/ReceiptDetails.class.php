@@ -579,8 +579,9 @@ class pos_ReceiptDetails extends core_Detail
         
         Mode::setPermanent("currentOperation{$rec->receiptId}", $defaultOperation);
         Mode::setPermanent("currentSearchString{$rec->receiptId}", null);
+        $lastRecId = pos_ReceiptDetails::getLastRec($rec->receiptId)->id;
         
-        return pos_Terminal::returnAjaxResponse($rec->receiptId, null, true, true);
+        return pos_Terminal::returnAjaxResponse($rec->receiptId, $lastRecId, true, true);
     }
     
     
