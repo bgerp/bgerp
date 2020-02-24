@@ -117,7 +117,7 @@ class pos_Points extends core_Master
      * 
      * @see plg_Settings
      */
-    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,setDiscounts,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,products';
+    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,setDiscounts,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,products,maxSearchProductInLastSales';
       
     
     /**
@@ -126,6 +126,8 @@ class pos_Points extends core_Master
     private static $fieldMap = array('maxSearchContragentStart' => 'TERMINAL_MAX_SEARCH_CONTRAGENTS', 
                                      'maxSearchContragent' => 'TERMINAL_MAX_SEARCH_CONTRAGENTS', 
                                      'maxSearchProducts' => 'TERMINAL_MAX_SEARCH_PRODUCTS', 
+                                     'maxSearchProductRelations' => 'TERMINAL_MAX_SEARCH_PRODUCT_RELATIONS',
+                                     'maxSearchProductInLastSales' => 'TERMINAL_MAX_SEARCH_PRODUCT_LAST_SALE',
                                      'maxSearchReceipts' => 'TERMINAL_MAX_SEARCH_RECEIPTS');
     
     
@@ -147,6 +149,8 @@ class pos_Points extends core_Master
         $this->FLD('usedDiscounts', 'table(columns=discount,captions=Отстъпки,validate=pos_Points::validateAllowedDiscounts)', 'caption=Ръчно задаване->Използвани отстъпки');
         
         $this->FLD('maxSearchProducts', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->Артикули');
+        $this->FLD('maxSearchProductRelations', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->Близки артикули');
+        $this->FLD('maxSearchProductInLastSales', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->Последни продажи');
         $this->FLD('maxSearchReceipts', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->Бележки');
         $this->FLD('maxSearchContragentStart', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->(Клиенти) Първоначално');
         $this->FLD('maxSearchContragent', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->(Клиенти) При търсене');
@@ -439,8 +443,10 @@ class pos_Points extends core_Master
         $inherited = is_object($inherited) ? $inherited : new stdClass();
         
         if(isset($field)){
-            if(array_key_exists($field, static::$fieldMap)){
-                $res = pos_Setup::get(static::$fieldMap[$field]);
+            if(empty($res)){
+                if(array_key_exists($field, static::$fieldMap)){
+                    $res = pos_Setup::get(static::$fieldMap[$field]);
+                }
             }
         } else {
             foreach (static::$fieldMap as $field => $const){

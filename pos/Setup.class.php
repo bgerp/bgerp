@@ -14,6 +14,18 @@ defIfNot('POS_SHOW_RECEIPT_DIGITS', 4);
 
 
 /**
+ *  Колко свързани артикула да се показват до избрания
+ */
+defIfNot('POS_TERMINAL_MAX_SEARCH_PRODUCT_RELATIONS', 4);
+
+
+/**
+ * Колко артикула от последните продажби да се показват
+ */
+defIfNot('POS_TERMINAL_MAX_SEARCH_PRODUCT_LAST_SALE', 10);
+
+
+/**
  *  Колко отчета да приключват автоматично на опит
  */
 defIfNot('POS_CLOSE_REPORTS_PER_TRY', 30);
@@ -112,8 +124,8 @@ class pos_Setup extends core_ProtoSetup
         'POS_TERMINAL_MAX_SEARCH_CONTRAGENTS' => array('int(min=0)', 'caption=Операции в POS терминала->Брой на намерени контрагенти'),
         'POS_TERMINAL_MAX_SEARCH_PRODUCTS' => array('int(min=0)', 'caption=Операции в POS терминала->Брой на намерени артикули'),
         'POS_TERMINAL_MAX_SEARCH_RECEIPTS' => array('int(min=0)', 'caption=Операции в POS терминала->Брой на намерени бележки'),
-        
-        
+        'POS_TERMINAL_MAX_SEARCH_PRODUCT_RELATIONS' => array('int(min=0)', 'caption=Операции в POS терминала->Брой намерени свързани артикули'),
+        'POS_TERMINAL_MAX_SEARCH_PRODUCT_LAST_SALE' => array('int(min=0)', 'caption=Операции в POS терминала->Брой намерени последни продажби'),
         'POS_ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK' => array('enum(yes=Включено,no=Изключено)', 'caption=Продажба на неналични артикули->Избор'),
         'POS_MIN_WIDE_WIDTH' => array('int', 'caption=Под каква ширина да се смята за тесен режим->Под,unit=px'),
     );

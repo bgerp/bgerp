@@ -598,7 +598,7 @@ function refreshResultByOperation(element, operation){
 	// Ако операцията е партидност и реда няма такава прехвърля се към артикул
 	var click = operation;
 	
-	if(operation == 'quantity' || operation == 'payment'){
+	if(operation == 'quantity' || operation == 'payment' || operation == 'add'){
 		var selectedRecId = getSelectedRowId();
 		doOperation(operation, selectedRecId, false);
 	}

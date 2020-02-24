@@ -86,6 +86,16 @@
 							</tr>
 						
 							<tr>
+								<td class='dt'>|Брой свързани артикули|*:</td>
+								<td>[#maxSearchProductRelations#]</td>
+							</tr>
+							
+							<tr>
+								<td class='dt'>|Брой последни продажби|*:</td>
+								<td>[#maxSearchProductInLastSales#]</td>
+							</tr>
+							
+							<tr>
 								<td class='dt'>|Брой намерени бележки|*:</td>
 								<td>[#maxSearchReceipts#]</td>
 							</tr>

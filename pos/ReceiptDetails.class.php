@@ -558,7 +558,7 @@ class pos_ReceiptDetails extends core_Detail
             }
         }
        
-        return pos_Terminal::returnAjaxResponse($receiptId, $selectedRecId, $success, true, true, false);
+        return pos_Terminal::returnAjaxResponse($receiptId, $selectedRecId, $success, true, true, true);
     }
     
     
