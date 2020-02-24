@@ -376,7 +376,9 @@ class frame2_Reports extends embed_Manager
             }
             
             if ((isset($rec->updateDays) || isset($rec->updateTime)) && empty($rec->sharedUsers)) {
-                $form->setError('sharedUsers', 'Не са посочени потребители за известяване при обновяване');
+                if($Driver->requireUserForNotification($rec)){
+                    $form->setError('sharedUsers', 'Не са посочени потребители за известяване при обновяване');
+                }
             }
             
             frame2_ReportVersions::unSelectVersion($rec->id);

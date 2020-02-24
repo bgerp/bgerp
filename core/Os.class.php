@@ -495,7 +495,7 @@ class core_Os
     /**
      * Създава директория, ако тя не съществува
      */
-    public static function forceDir($path, $permissions = 0744, $recursive = true, &$status = null)
+    public static function forceDir($path, $permissions = 0754, $recursive = true, &$status = null)
     {
         if (!is_dir($path)) {
             
@@ -526,7 +526,7 @@ class core_Os
      *
      * return string
      */
-    public static function createDirectories($directories, $permissions = 0744, $recursive = true)
+    public static function createDirectories($directories, $permissions = 0754, $recursive = true)
     {   
         // Резултат
         $res = '';
@@ -562,7 +562,7 @@ class core_Os
     /**
      * Създава директория, ако тя не съществува. Ако не успее, хвърля грешка
      */
-    public static function requireDir($path, $permissions = 0744, $recursive = true)
+    public static function requireDir($path, $permissions = 0754, $recursive = true)
     {
         expect(self::forceDir($path, $permissions, $recursive), "Не може да се създаде директорията `{$path}`");
         expect(is_writable($path), "Не може да се записва в директорията `{$path}`");
@@ -572,7 +572,7 @@ class core_Os
     /**
      *
      *
-     * @param unknown $file
+     * @param resource $file
      * @param float   $limit
      * @param string  $trim
      *
