@@ -1571,22 +1571,17 @@ class pos_Terminal extends peripheral_Terminal
         
         // Ако не се търси подробно артикул, се показват тези от любими
         if(empty($data->searchString)){
-            $favouriteProductsArr = array();
+            $productsArr = keylist::toArray(pos_Points::getSettings($data->rec->pointId, 'products'));
             
-            // Ако има любими категории да се извлекат артикулите към тях
-            $data->categoriesArr = pos_FavouritesCategories::prepareAll($data->rec->pointId);
-            $categoriesIds = arr::extractValuesFromArray($data->categoriesArr, 'id');
-            $favouriteQuery = pos_Favourites::getQuery();
-            $favouriteQuery->likeKeylist('catId', $categoriesIds);
-            $favouriteQuery->show('productId,catId');
-            while($favRec = $favouriteQuery->fetch()){
-                $favouriteProductsArr[$favRec->productId] = keylist::toArray($favRec->catId);
+            
+            if(countR($productsArr)){
+                $pQuery->in("id", array_keys($productsArr));
+                $pQuery->orderBy('code,name', 'ASC');
+                $sellable = $pQuery->fetchAll();
+                
+                
+               // bp($sellable);
             }
-            
-            $pQuery->in("id", array_keys($favouriteProductsArr));
-            $pQuery->orderBy('code,name', 'ASC');
-            $sellable = $pQuery->fetchAll();
-            
         } else {
             $count = 0;
             $maxCount = $maxSearchProducts;

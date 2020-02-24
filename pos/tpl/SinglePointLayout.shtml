@@ -76,6 +76,11 @@
 							<!--ET_END otherStores-->
 						
 							<tr>
+								<td class='dt'>|Артикули за бърз избор|*:</td>
+								<td>[#products#]</td>
+							</tr>
+						
+							<tr>
 								<td class='dt'>|Брой намерени артикули|*:</td>
 								<td>[#maxSearchProducts#]</td>
 							</tr>

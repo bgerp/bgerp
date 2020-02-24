@@ -117,7 +117,7 @@ class pos_Points extends core_Master
      * 
      * @see plg_Settings
      */
-    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,setDiscounts,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts';
+    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,setDiscounts,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,products';
       
     
     /**
@@ -140,6 +140,7 @@ class pos_Points extends core_Master
         $this->FLD('payments', 'keylist(mvc=cond_Payments, select=title)', 'caption=Настройки->Безналични плащания,placeholder=Всички');
         $this->FLD('theme', 'enum(default=Стандартна,dark=Тъмна)', 'caption=Настройки->Тема,default=dark,mandatory');
         $this->FLD('cashiers', 'keylist(mvc=core_Users,select=nick)', 'caption=Настройки->Оператори, mandatory,optionsFunc=pos_Points::getCashiers');
+        $this->FLD('products', 'keylist(mvc=cat_Products, select=name)', 'caption=Настройки->Артикули,input=none');
         
         $this->FLD('setPrices', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Цени, mandatory,default=yes');
         $this->FLD('setDiscounts', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Отстъпки, mandatory,settings,default=yes');
@@ -366,6 +367,10 @@ class pos_Points extends core_Master
             if(isset($rec->prototypeId)){
                 $row->prototypeId = pos_Points::getHyperlink($rec->prototypeId, true);
             }
+            
+            if($mvc->haveRightFor('edit', $rec)){
+                $row->products .= ht::createLink('', array($mvc, 'selectproducts', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit.png,title=Избор на артикули');
+            }
         }
     }
     
@@ -445,5 +450,38 @@ class pos_Points extends core_Master
                 }
             }
         }
+    }
+    
+    
+    public function act_SelectProducts()
+    {
+        $this->requireRightFor('edit');
+        expect($id = Request::get('id'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('edit', $rec);
+        
+        // Форма за избор на бързи артикули
+        $form = cls::get('core_Form');
+        $form->title = 'Избор на бързи артикули|* <b>' . pos_Points::getHyperlink($rec, true) . '</b>';
+        $form->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Артикули');
+        $form->setDefault('products', $rec->products);
+        $suggestions = cat_Products::getProducts(null, null, null, 'canSell', null, null, false, null, null, 'yes', null);
+        $form->setSuggestions('products', $suggestions);
+        
+        $form->input();
+        if ($form->isSubmitted()) {
+            $fRec = $form->rec;
+            $this->save((object) array('id' => $id, 'products' => $fRec->products));
+            $this->logInAct('Избор на бързи артикули', $rec);
+            
+            return followRetUrl();
+        }
+        
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        
+        return $this->renderWrapping($form->renderHtml());
+        
+        
     }
 }
