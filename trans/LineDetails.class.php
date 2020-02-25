@@ -262,7 +262,7 @@ class trans_LineDetails extends doc_Detail
             
             if(core_Packs::isInstalled('rack') && store_Stores::getCurrent('id', false)){
                 $zoneBtn = rack_Zones::getBtnToZone($rec->containerId);
-                if(countR($zoneBtn->url)){
+                if(countR($zoneBtn->url) && is_object($row->_rowTools)){
                     $row->_rowTools->addLink($zoneBtn->caption, $zoneBtn->url, $zoneBtn->attr);
                 }
             }
