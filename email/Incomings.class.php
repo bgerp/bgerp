@@ -576,7 +576,7 @@ class email_Incomings extends core_Master
     /**
      * Подготвя, записва и рутира зададеното писмо
      */
-    public function process($mime, $accId, $uid)
+    public static function process($mime, $accId, $uid)
     {
         $mime->saveFiles();
         
