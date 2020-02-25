@@ -551,7 +551,7 @@ class email_Incomings extends core_Master
                 }
                 
                 if (!isset($status)) {
-                    self::process($mime, $accId, $uid);
+                    $this->process($mime, $accId, $uid);
                     $status = 'incoming';
                 }
             }
@@ -576,7 +576,7 @@ class email_Incomings extends core_Master
     /**
      * Подготвя, записва и рутира зададеното писмо
      */
-    public static function process($mime, $accId, $uid)
+    public function process($mime, $accId, $uid)
     {
         $mime->saveFiles();
         
@@ -637,7 +637,7 @@ class email_Incomings extends core_Master
         $rec->spamScore = email_Spam::getSpamScore($rec->headers, true, $mime, $rec);
         
         // Записваме (и автоматично рутираме) писмото
-        $saved = email_Incomings::save($rec);
+        $saved = $this->save($rec);
         
         return $saved;
     }
