@@ -1566,7 +1566,8 @@ class pos_Terminal extends peripheral_Terminal
     private function prepareResultSimilarProducts($rec, $selectedRec, $string)
     {
         $products = array($selectedRec->productId => cat_Products::fetch($selectedRec->productId, 'name,isPublic,nameEn,code,canStore,measureId'));
-    
+        $products[$selectedRec->productId]->packId = $selectedRec->value;
+        
         $productRelations = array_keys(sales_ProductRelations::fetchField("#productId = {$selectedRec->productId}", 'data'));
         $maxSearchProductRelations = pos_Points::getSettings($rec->pointId)->maxSearchProductRelations;
         $productRelations = array_slice($productRelations, 0, $maxSearchProductRelations);
@@ -1679,11 +1680,11 @@ class pos_Terminal extends peripheral_Terminal
         $Policy = cls::get('price_ListToCustomers');
         
         foreach ($products as $id => $pRec) {
-            if(!isset($pRec->packId)){
+            if(isset($pRec->packId)){
+                $packId = $pRec->packId;
+            } else {
                 $packs = cat_Products::getPacks($id);
                 $packId = key($packs);
-            } else {
-                $packId = $pRec->packId;
             }
             
             $packRec = cat_products_Packagings::getPack($id, $packId);
@@ -1724,8 +1725,8 @@ class pos_Terminal extends peripheral_Terminal
             $res[$id]->id = $pRec->id;
             $res[$id]->receiptId = $rec->id;
             
-            if($pRec->measureId != cat_UoM::fetchBySysId('pcs')->id){
-                $res[$id]->measureId = tr(cat_UoM::getSmartName($pRec->measureId));
+            if($packId != cat_UoM::fetchBySysId('pcs')->id){
+                $res[$id]->measureId = tr(cat_UoM::getSmartName($packId));
             }
         }
         
