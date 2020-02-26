@@ -1615,7 +1615,7 @@ class pos_Terminal extends peripheral_Terminal
             $maxCount = $maxSearchProducts;
             
             // Ако има артикул, чийто код отговаря точно на стринга, той е най-отгоре
-            $foundRec = cat_Products::getByCode($searchStringPure);
+            $foundRec = cat_Products::getByCode($searchString);
             if(isset($foundRec->productId)){
                 $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canStore' => cat_Products::fetchField($foundRec->productId, 'canStore'), 'measureId' => cat_Products::fetchField($foundRec->productId, 'measureId'), 'packId' => isset($foundRec->packagingId) ? $foundRec->packagingId : null);
                 $count++;
@@ -1631,6 +1631,7 @@ class pos_Terminal extends peripheral_Terminal
             while($pRec1 = $pQuery1->fetch()){
                 $name = plg_Search::normalizeText($pRec1->name);
                 $code = plg_Search::normalizeText($pRec1->code);
+                
                 if(strpos($name, $searchString) !== false || strpos($code, $searchString) !== false){
                     $sellable[$pRec1->id] = (object)array('id' => $pRec1->id, 'canStore' => $pRec1->canStore, 'measureId' => $pRec1->measureId);
                     $count++;
@@ -1643,7 +1644,12 @@ class pos_Terminal extends peripheral_Terminal
             if($count < $maxSearchProducts){
                 $notInKeys = array_keys($sellable);
                 $pQuery2 = clone $pQuery;
-                plg_Search::applySearch($searchString, $pQuery2);
+                if(empty($searchStringPure)){
+                    $pQuery2->where("1=2");
+                } else {
+                    plg_Search::applySearch($searchString, $pQuery2);
+                }
+                
                 if(countR($notInKeys)){
                     $pQuery2->notIn('id', $notInKeys);
                 }
