@@ -524,6 +524,8 @@ class pos_ReceiptDetails extends core_Detail
                 $rec->storeId = $sameProduct->storeId;
                 $rec->amount += $sameProduct->amount;
                 $rec->id = $sameProduct->id;
+            } else {
+                expect($rec->quantity >= 1, 'При добавяне количеството трябва да е положително');
             }
             
             if(empty($rec->storeId)){
