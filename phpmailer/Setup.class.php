@@ -130,7 +130,7 @@ class phpmailer_Setup extends core_ProtoSetup
         'PML_PORT' => array('int', 'caption=Smtp->Порт'),
         'PML_SMTPAUTH' => array('enum(TRUE=да, FALSE=не)', 'caption=Smtp->Оторизация'),
         'PML_USERNAME' => array('varchar', 'caption=Smtp->Потребител'),
-        'PML_PASSWORD' => array('varchar', 'caption=Smtp->Парола'),
+        'PML_PASSWORD' => array('password', 'caption=Smtp->Парола'),
         'PML_SMTPSECURE' => array('enum(tls=TLS, ssl=SSL, 0=няма)', 'caption=Smtp->Криптиране'),
         'PML_VERSION' => array('enum(5.2.8, 5.2.22, 5.2.27)', 'caption=PML->Версия'),
     );
