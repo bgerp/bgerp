@@ -533,7 +533,13 @@ class plg_UserReg extends core_Plugin
         if ($corpAcc) {
             $PML = email_Accounts::getPML($corpAcc->email);
         } else {
-            $PML = cls::get('phpmailer_Instance', array('emailTo' => $rec->email));
+            // Ако е зададен имей по подразбиране, използваме него
+            $defaultSentBox = email_Setup::get('DEFAULT_SENT_INBOX');
+            if ($defaultSentBox && ($iRec = email_Inboxes::fetch($defaultSentBox))) {
+                $PML = email_Accounts::getPML($iRec->email);
+            } else {
+                $PML = cls::get('phpmailer_Instance', array('emailTo' => $rec->email));
+            }
         }
         
         $rec1 = clone ($rec);
