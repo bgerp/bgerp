@@ -829,12 +829,16 @@ table.total td{
 }
 
 td.totalLabel {
-	font-size:1.4em;
+	font-size:1.9em;
 	font-weight:bold;
 }
 
 th.paidCaption, td.paidCaption {
-	color:blue !important;
+	color:blue;
+}
+
+td.paidCaption, td.changePositive, td.changeNegative {
+	font-size:1.4em;
 }
 
 th.changePositive, td.changePositive {
@@ -903,6 +907,10 @@ th.revertCaption, td.revertCaption {
 	
 	#receipt-table .highlighted {
 		border-left: 0px;
+	}
+	
+	.paidCaption, .changePositive, .changeNegative {
+		color:black !important;
 	}
 }
 

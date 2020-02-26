@@ -704,12 +704,17 @@ table.total td {
   padding-right: 10px; }
 
 td.totalLabel {
-  font-size: 1.4em;
+  font-size: 1.9em;
   font-weight: bold; }
 
 th.paidCaption,
 td.paidCaption {
-  color: blue !important; }
+  color: blue; }
+
+td.paidCaption,
+td.changePositive,
+td.changeNegative {
+  font-size: 1.4em; }
 
 th.changePositive,
 td.changePositive {
@@ -767,5 +772,10 @@ only screen and (max-width: 360px) {
     color: black !important; }
 
   #receipt-table .highlighted {
-    border-left: 0px; } }
+    border-left: 0px; }
+
+  .paidCaption,
+  .changePositive,
+  .changeNegative {
+    color: black !important; } }
 
