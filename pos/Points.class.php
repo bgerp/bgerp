@@ -168,7 +168,7 @@ class pos_Points extends core_Master
      *
      * @return array
      */
-    public function validateAllowedDiscounts($tableData, $Type)
+    public static function validateAllowedDiscounts($tableData, $Type)
     {
         $res = array();
         $discounts = $tableData['discount'];
