@@ -1570,7 +1570,7 @@ class pos_Terminal extends peripheral_Terminal
         $products[$selectedRec->productId]->packId = $selectedRec->value;
         $similarProducts = sales_ProductRelations::fetchField("#productId = {$selectedRec->productId}", 'data');
         if(is_array($similarProducts)){
-            $productRelations = array_keys();
+            $productRelations = array_keys($similarProducts);
             $maxSearchProductRelations = pos_Points::getSettings($rec->pointId)->maxSearchProductRelations;
             $productRelations = array_slice($productRelations, 0, $maxSearchProductRelations);
         }
