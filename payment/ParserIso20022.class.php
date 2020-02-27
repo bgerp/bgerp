@@ -35,11 +35,28 @@ class payment_ParserIso20022
         // Вземаме SimpleXMLElement обект, отговарящ на файла
         $transactions = new SimpleXMLElement($xml);
         
+
+
+        if(strpos(implode('|', $transactions->getNamespaces()), 'camt.052') !== false) {
+            $array = array($transactions->BkToCstmrAcctRpt->Rpt);
+        } else {
+            $array = $transactions->BkToCstmrStmt->Stmt;
+        }
+
+
+        if(!is_countable($array)) return;
+
+
         // Циклим по частите за различните IBAN-ове
-        foreach ($transactions->BkToCstmrStmt->Stmt as $stmt) {
+        foreach ($array as $stmt) {
             $iban = (string) $stmt->Acct->Id->IBAN;
             $iban = strtoupper(preg_replace('/[^a-z0-9]/i', '', $iban));
             
+            if(empty($iban)) {
+                $res->warnings[] = "Празен IBAN";
+                continue;
+            }
+
             $bankAccRec = bank_Accounts::fetch("#iban = '{$iban}'");
             if (!$bankAccRec) {
                 $res->warnings[] = "IBAN {$iban} липсва в списъка с банкови сметки";
