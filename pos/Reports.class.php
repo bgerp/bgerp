@@ -107,6 +107,12 @@ class pos_Reports extends core_Master
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $valiorFld = 'createdOn';
+    
+    
+    /**
      * Групиране на документите
      */
     public $newBtnGroup = '3.5|Търговия';
@@ -766,9 +772,10 @@ class pos_Reports extends core_Master
         
         // Затваряме всеки отчет, след затварянето автоматично ще му се затвори и перото
         while ($rec = $query->fetch()) {
+            $rec->brState = 'active';
             $rec->state = 'closed';
             $rec->closedOn = dt::addSecs(-1 * $conf->POS_CLOSE_REPORTS_OLDER_THAN, $now);
-            $this->save($rec, 'state,closedOn');
+            $this->save($rec, 'state,brState,closedOn');
         }
     }
     

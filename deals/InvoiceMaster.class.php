@@ -87,6 +87,14 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
+     * Кои полета да могат да се експортират в CSV формат
+     *
+     * @see bgerp_plg_CsvExport
+     */
+    public $exportableCsvFields = 'date,number,contragentName,contragentVatNo,uicNo,dealValue=Сума фактура,valueNoVat=Данъчна основа,vatAmount=Сума ДДС,currencyId,accountId,state';
+    
+    
+    /**
      * След описанието на полетата
      */
     protected static function setInvoiceFields(core_Master &$mvc)
@@ -1479,5 +1487,40 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $rec = $mvc->fetchRec($id);
         doc_DocumentCache::invalidateByOriginId($rec->containerId);
+    }
+    
+    
+    /**
+     * Преди експортиране като CSV
+     */
+    public static function on_BeforeExportCsv($mvc, &$recs)
+    {
+        if (!$recs) {
+            
+            return ;
+        }
+        
+        $fields = $mvc->selectFields();
+        $fields['-list'] = true;
+        foreach ($recs as &$rec) {
+            $rec->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+            
+            $row = new stdClass();
+            self::getVerbalInvoice($mvc, $rec, $row, $fields);
+            $rec->dealValue = strip_tags(str_replace('&nbsp;', '', $row->dealValue));
+            $rec->valueNoVat = strip_tags(str_replace('&nbsp;', '', $row->valueNoVat));
+            $rec->vatAmount = strip_tags(str_replace('&nbsp;', '', $row->vatAmount));
+        }
+    }
+    
+    
+    /**
+     * След подготвяне на заявката за експорт
+     */
+    public static function on_AfterPrepareExportQuery($mvc, &$query)
+    {
+        // Искаме освен фактурите показващи се в лист изгледа да излизат и тези,
+        // които са били активни, но сега са оттеглени
+        $query->where("#state != 'draft' OR (#state = 'rejected' AND #brState = 'active')");
     }
 }

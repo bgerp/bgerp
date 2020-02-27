@@ -559,16 +559,18 @@ class store_Products extends core_Detail
                         $shQuery->XPR('sum', 'double', "SUM(#{$suMFld})");
                     }
                     
+                    $show = "{$Detail->productFieldName},{$suMFld},{$Detail->masterKey},sum,quantityInPack";
                     $shQuery->where("#{$Detail->masterKey} = {$sRec->id}");
-                    $shQuery->show("{$Detail->productFieldName},{$suMFld},{$Detail->masterKey},sum,quantityInPack");
                     $shQuery->groupBy($Detail->productFieldName);
                     
                     if($Detail instanceof planning_DirectProductNoteDetails){
                         $shQuery->where("#{$storeField} IS NOT NULL");
+                        $show .= ",storeId";
                     }
+                    $shQuery->show($show);
                     
                     while ($sd = $shQuery->fetch()) {
-                        $storeId = $sRec->{$storeField};
+                        $storeId = ($Detail instanceof planning_DirectProductNoteDetails) ? $sd->{$storeField} : $sRec->{$storeField};
                         $key = "{$storeId}|{$sd->{$Detail->productFieldName}}";
                         $reserved[$key] = array('sId' => $storeId, 'pId' => $sd->{$Detail->productFieldName}, 'reserved' => $sd->sum, 'expected' => null, 'expectedTotal' => null);
                     }
@@ -674,6 +676,32 @@ class store_Products extends core_Detail
                 if(is_array($reserved) && countR($reserved)){
                     $queue[] = $reserved;
                 }
+            }
+        }
+        
+        // Добавяне на произвеждания артикул от протокола за производство
+        $pNoteQuery = planning_DirectProductionNote::getQuery();
+        $pNoteQuery->where("#storeId IS NOT NULL AND #state = 'pending'");
+        $tQuery->show('containerId,modifiedOn,deadline,storeId,quantity,productId');
+        while ($nRec = $pNoteQuery->fetch()) {
+            $reserved = core_Permanent::get("reserved_notes_{$nRec->containerId}", $nRec->modifiedOn);
+            
+            // Ако няма кеширани к-ва
+            if (!isset($reserved)) {
+                $reserved = array();
+               
+                $key = "{$nRec->storeId}|{$nRec->productId}";
+                $reserved[$key] = array('sId' => $nRec->storeId, 'pId' => $nRec->productId, 'reserved' => null, 'expected' => null, 'expectedTotal' => $nRec->quantity);
+                $deliveryTime = isset($nRec->deadline) ? $nRec->deadline : (isset($nRec->valior) ? $nRec->valior : null);
+                if(!empty($deliveryTime) && $deliveryTime <= $now){
+                    $reserved[$key]['expected'] = $nRec->quantity;
+                }
+                
+                core_Permanent::set("reserved_notes_{$nRec->containerId}", $reserved, 4320);
+            }
+            
+            if(countR($reserved)){
+                $queue[] = $reserved;
             }
         }
         
@@ -857,6 +885,21 @@ class store_Products extends core_Detail
             $receiptQuery->show('receiptId');
             while ($receiptRec = $receiptQuery->fetch()) {
                 $docs["receipt{$receiptRec->receiptId}"] = pos_Receipts::getHyperlink($receiptRec->receiptId, true);
+            }
+        }
+        
+        // Добавяне и мастъра на протокола за производство
+        if(in_array($field, array('expectedQuantity', 'expectedQuantityTotal'))){
+            $pNoteQuery = planning_DirectProductionNote::getQuery();
+            $pNoteQuery->where("#storeId = {$rec->storeId} AND #state = 'pending' AND #productId = {$rec->productId}");
+            $pNoteQuery->show('containerId,deadline,valior');
+            while($noteRec = $pNoteQuery->fetch()){
+                $deliveryTime = isset($noteRec->deadline) ? $noteRec->deadline : (isset($noteRec->valior) ? $noteRec->valior : null);
+                if($field == 'expectedQuantityTotal'){
+                    $docs[$dRec->containerId] = doc_Containers::getDocument($noteRec->containerId)->getLink(0);
+                } if(!empty($deliveryTime) && $deliveryTime <= $now){
+                    $docs[$dRec->containerId] = doc_Containers::getDocument($noteRec->containerId)->getLink(0);
+                }
             }
         }
         

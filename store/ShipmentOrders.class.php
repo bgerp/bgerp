@@ -302,7 +302,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         }
         
         // Кой е съставителя на документа
-        $row->username = deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy);
+        $row->username = transliterate(deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy));
         
         if (isset($fields['-single'])) {
             $logisticData = $mvc->getLogisticData($rec);

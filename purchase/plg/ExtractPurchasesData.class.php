@@ -359,6 +359,8 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
     {
         $threadsArr = array();
         
+        $threadsArr[$rec->threadId] = $rec->threadId;
+        
         $detailClassName = $mvc->mainDetail;
         $Detail = cls::get($detailClassName);
         $masterKey = $Detail->masterKey;
@@ -368,6 +370,11 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         $detQuery->show('id');
         $detRecArr = arr::extractValuesFromArray($detQuery->fetchAll(), 'id');
         
+        if (empty($detRecArr)) {
+            
+            return $threadsArr;
+        }
+        
         $detClassId = core_Classes::getId($detailClassName);
         
         $costAlocQuery = acc_CostAllocations::getQuery();
@@ -375,7 +382,6 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         $costAlocQuery->in('detailRecId', $detRecArr);
         $exItems = arr::extractValuesFromArray($costAlocQuery->fetchAll(), 'expenseItemId');
         
-        $threadsArr[$rec->threadId] = $rec->threadId;
         foreach ($exItems as $expense) {
             $exItem = acc_Items::fetch($expense);
             $exItemDocClassName = core_Classes::getName($exItem->classId);

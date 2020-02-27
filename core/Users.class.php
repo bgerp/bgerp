@@ -2737,5 +2737,34 @@ class core_Users extends core_Manager
             return self::sudo($userId);
         }
     }
-
+    
+    
+    /**
+     * Ф-я връщаща всички потребители с определена роля
+     * 
+     * @param mixed $roles
+     * @param null|string $keylist
+     * @return array $arr
+     */
+    public static function getUsersByRoles($roles, $keylist = null)
+    {
+        $query = static::getQuery();
+        $query->where("#state = 'active'");
+        $query->orderBy('#names', 'ASC');
+        $query->show('id,nick');
+        $roles = core_Roles::getRolesAsKeylist($roles);
+        $query->likeKeylist('roles', $roles);
+        
+        if (isset($keylist)) {
+            $keylistUsers = keylist::toArray($keylist);
+            $query->in('id', $keylistUsers, false, true);
+        }
+        
+        $arr = array();
+        while ($userRec = $query->fetch()) {
+            $arr[$userRec->id] = $userRec->nick;
+        }
+        
+        return $arr;
+    }
 }

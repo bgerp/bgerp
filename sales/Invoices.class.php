@@ -50,8 +50,8 @@ class sales_Invoices extends deals_InvoiceMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Contable, plg_Clone, plg_Printing, doc_DocumentPlg, bgerp_plg_Export,
-					doc_EmailCreatePlg, recently_Plugin, bgerp_plg_Blank, cond_plg_DefaultValues,deals_plg_DpInvoice,
-                    doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary, change_Plugin,cat_plg_AddSearchKeywords, plg_Search';
+					doc_EmailCreatePlg, recently_Plugin, cond_plg_DefaultValues,deals_plg_DpInvoice,
+                    doc_plg_HidePrices, doc_plg_TplManager, bgerp_plg_Blank, acc_plg_DocumentSummary, change_Plugin,cat_plg_AddSearchKeywords, plg_Search';
     
     
     /**
@@ -172,14 +172,6 @@ class sales_Invoices extends deals_InvoiceMaster
         'place' => 'contragentPlace',
         'address' => 'contragentAddress',
     );
-    
-    
-    /**
-     * Кои полета да могат да се експортират в CSV формат
-     *
-     * @see bgerp_plg_CsvExport
-     */
-    public $exportableCsvFields = 'date,number,contragentName,contragentVatNo,uicNo,dealValue=Сума фактура,valueNoVat=Данъчна основа,vatAmount=Сума ДДС,currencyId,accountId,state';
     
     
     /**
@@ -641,41 +633,6 @@ class sales_Invoices extends deals_InvoiceMaster
         }
         
         $copyTpl->replace($inv_status, 'INV_STATUS');
-    }
-    
-    
-    /**
-     * Преди експортиране като CSV
-     */
-    public static function on_BeforeExportCsv($mvc, &$recs)
-    {
-        if (!$recs) {
-            
-            return ;
-        }
-        
-        $fields = $mvc->selectFields();
-        $fields['-list'] = true;
-        foreach ($recs as &$rec) {
-            $rec->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
-            
-            $row = new stdClass();
-            parent::getVerbalInvoice($mvc, $rec, $row, $fields);
-            $rec->dealValue = strip_tags(str_replace('&nbsp;', '', $row->dealValue));
-            $rec->valueNoVat = strip_tags(str_replace('&nbsp;', '', $row->valueNoVat));
-            $rec->vatAmount = strip_tags(str_replace('&nbsp;', '', $row->vatAmount));
-        }
-    }
-    
-    
-    /**
-     * След подготвяне на заявката за експорт
-     */
-    public static function on_AfterPrepareExportQuery($mvc, &$query)
-    {
-        // Искаме освен фактурите показващи се в лист изгледа да излизат и тези,
-        // които са били активни, но сега са оттеглени
-        $query->where("#state != 'draft' OR (#state = 'rejected' AND #brState = 'active')");
     }
     
     

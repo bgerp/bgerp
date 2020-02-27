@@ -371,6 +371,10 @@ class bgerp_Portal extends embed_Manager
         foreach ($recArr as $r) {
             $aMode = Request::get('ajax_mode');
             
+            if ($aMode) {
+                $r->__cUrl = toUrl(getCurrentUrl());
+            }
+            
             Request::push(array('ajax_mode' => false));
             
             $rData = new stdClass();
@@ -479,6 +483,16 @@ class bgerp_Portal extends embed_Manager
         $intf = cls::getInterface('bgerp_PortalBlockIntf', $rec->{$this->driverClassField});
         
         $data = $intf->prepare($rec, $cu);
+        
+        // Добавяме URL за страниране
+        if ($rec->__cUrl) {
+            if ($data->data->pager) {
+                $data->data->pager->url = $rec->__cUrl;
+            } elseif ($data->pager) {
+                $data->pager->url = $rec->__cUrl;
+            }
+        }
+        
         $res = $intf->render($data);
         
         return $res;

@@ -376,7 +376,9 @@ class frame2_Reports extends embed_Manager
             }
             
             if ((isset($rec->updateDays) || isset($rec->updateTime)) && empty($rec->sharedUsers)) {
-                $form->setError('sharedUsers', 'Не са посочени потребители за известяване при обновяване');
+                if($Driver->requireUserForNotification($rec)){
+                    $form->setError('sharedUsers', 'Не са посочени потребители за известяване при обновяване');
+                }
             }
             
             frame2_ReportVersions::unSelectVersion($rec->id);
@@ -450,8 +452,8 @@ class frame2_Reports extends embed_Manager
             $driverTitle = $Driver->getTitle($rec);
             
             if(trim($driverTitle) != trim($rec->title)){
-                $row->title = $driverTitle . " №{$rec->id}";
-                $row->subTitle = $rec->title;
+                $row->title = $rec->title;
+                $row->subTitle = $driverTitle . " №{$rec->id}";
             }
         }
         
@@ -1034,7 +1036,7 @@ class frame2_Reports extends embed_Manager
             $count = countR($orderArr);
             
             // Подсигуряване, че масива има три дена (ако е зададен само един, се повтарят)
-            if (countR($orderArr) == 1) {
+            if ($count == 1) {
                 $orderArr = array_merge($orderArr, $orderArr, $orderArr);
             } elseif ($count == 2) {
                 $orderArr = array_merge($orderArr, array($orderArr[key($orderArr)]));
@@ -1074,6 +1076,20 @@ class frame2_Reports extends embed_Manager
                 if ($dt < $now) {
                     continue;
                 }
+                $res[] = $dt;
+            }
+        }
+        
+        // Фикс за и на часовете от текущия ден
+        $td = strtolower(date('l'));
+        if ($days[$td]) {
+            $n = dt::now(false);
+            $nF = dt::now();
+            foreach ($timesArr as $time) {
+                $dt = "{$n} {$time}";
+                
+                if ($nF >= $dt . ':00') continue;
+                
                 $res[] = $dt;
             }
         }

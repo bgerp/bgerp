@@ -86,12 +86,12 @@ class backup_Start extends core_Manager
         }
         
         // Заключваме цялата система
-        core_SystemLock::block('Процес на архивиране на данните', $time = 1800); // 30 мин.
+        core_SystemLock::block('Процес на архивиране на данните', 1800); // 30 мин.
         
         
-        exec('mysqldump --lock-tables --delete-master-logs -u'
+        exec('mysqldump --max_allowed_packet=512M --lock-tables --delete-master-logs -u'
             . self::$conf->BACKUP_MYSQL_USER_NAME . ' -p' . self::$conf->BACKUP_MYSQL_USER_PASS . ' ' . EF_DB_NAME
-            . ' >' . EF_TEMP_PATH . '/' . self::$backupFileName, $output, $returnVar);
+            . ' >' . EF_TEMP_PATH . '/' . self::$backupFileName . ' 2>&1', $output, $returnVar);
         
         // Освобождаваме системата
         core_SystemLock::remove();
@@ -100,7 +100,7 @@ class backup_Start extends core_Manager
         exec('gzip -1 ' . EF_TEMP_PATH . '/' . self::$backupFileName);
         
         if ($returnVar !== 0) {
-            self::logErr('Грешка при FullBackup');
+            self::logErr('Грешка при FullBackup: errNo: ' . $returnVar . " " . implode("|", $output));
             self::unLock();
             
             shutdown();
