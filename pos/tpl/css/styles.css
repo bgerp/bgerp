@@ -690,18 +690,17 @@
   background-position: center; }
 
 table.total {
-  width: 100%;
-  table-layout: fixed; }
+  width: 100%; }
 
 table.total th {
   font-weight: normal;
   text-align: right;
-  padding: 2px 10px; }
+  padding: 2px 15px; }
 
 table.total td {
   text-align: right;
   font-weight: bold;
-  padding: 2px 10px; }
+  padding: 2px 15px; }
 
 td.totalLabel {
   font-size: 1.9em;

@@ -18,13 +18,13 @@
 	<span class='paymentNotRequiredLabel'>[#PAYMENT_NOT_REQUIRED#]</span>
 	<table class='total'>
 		<tr>
-			<th class = 'caption revertCaption'>[#REVERT_CAPTION#]</th>
-			<th class='caption [#CHANGE_CLASS#]'>[#CHANGE_CAPTION#]</th>
-			<th class='caption paidCaption'>[#PAID_CAPTION#]</th>
-			<th class='caption totalCaption'>|Общо|*</th>
+			<th class = 'caption revertCaption' colspan="2">[#REVERT_CAPTION#]</th>
+			<th class='caption [#CHANGE_CLASS#]' style="width: 20%">[#CHANGE_CAPTION#]</th>
+			<th class='caption paidCaption' style="width: 20%">[#PAID_CAPTION#]</th>
+			<th class='caption totalCaption' style="width: 20%">|Общо|*</th>
 		</tr>
 		<tr>
-			<td style="text-align: center">[#revertId#]</td>
+			<td style="text-align: center" colspan="2">[#revertId#]</td>
 			<td class='[#CHANGE_CLASS#]'>[#change#]</td>
 			<td class='paidCaption'>[#paid#]</td>
 			<td class='totalLabel'>[#total#]</td>
