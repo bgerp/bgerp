@@ -110,6 +110,8 @@ function posActions() {
 	$(document.body).on('click', ".navigable", function(e){
 		if(!isTouchDevice() && $(this).hasClass('pos-add-res-btn') && !$(this).hasClass('selected')) return;
 		if($(this).hasClass('reload')) return;
+		if($(this).hasClass('deleteRow')) return;
+		if($(this).hasClass('printReceiptBtn')) return;
 		
 		pressNavigable(this);
 		e.preventDefault();
