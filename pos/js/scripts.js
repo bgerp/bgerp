@@ -939,7 +939,7 @@ function startNavigation() {
 			}
 		});
 
-		$('#result-holder .navigable').keynav();
+		$('#result-holder .navigable:visible').keynav();
 	}
 }
 function isItVisible(element){
