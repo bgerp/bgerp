@@ -690,18 +690,18 @@
   background-position: center; }
 
 table.total {
-  width: 100%; }
+  width: 100%;
+  table-layout: fixed; }
 
 table.total th {
-  width: 25%;
   font-weight: normal;
-  text-align: left;
-  padding-left: 60px; }
+  text-align: right;
+  padding: 2px 10px; }
 
 table.total td {
   text-align: right;
   font-weight: bold;
-  padding-right: 10px; }
+  padding: 2px 10px; }
 
 td.totalLabel {
   font-size: 1.9em;
@@ -728,7 +728,8 @@ td.changeNegative {
 
 th.revertCaption,
 td.revertCaption {
-  color: red; }
+  color: red;
+  text-align: center !important; }
 
 /*
  * media queries за клавиатурата
