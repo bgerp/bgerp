@@ -1565,17 +1565,18 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function prepareResultSimilarProducts($rec, $selectedRec, $string)
     {
+        $productRelations = array();
         $products = array($selectedRec->productId => cat_Products::fetch($selectedRec->productId, 'name,isPublic,nameEn,code,canStore,measureId'));
         $products[$selectedRec->productId]->packId = $selectedRec->value;
+        $similarProducts = sales_ProductRelations::fetchField("#productId = {$selectedRec->productId}", 'data');
+        if(is_array($similarProducts)){
+            $productRelations = array_keys();
+            $maxSearchProductRelations = pos_Points::getSettings($rec->pointId)->maxSearchProductRelations;
+            $productRelations = array_slice($productRelations, 0, $maxSearchProductRelations);
+        }
         
-        $productRelations = array_keys(sales_ProductRelations::fetchField("#productId = {$selectedRec->productId}", 'data'));
-        $maxSearchProductRelations = pos_Points::getSettings($rec->pointId)->maxSearchProductRelations;
-        $productRelations = array_slice($productRelations, 0, $maxSearchProductRelations);
-        
-        if(is_array($productRelations)){
-            foreach ($productRelations as $productId){
-                $products[$productId] = cat_Products::fetch($productId, 'name,isPublic,nameEn,code,canStore,measureId');
-            }
+        foreach ($productRelations as $productId){
+            $products[$productId] = cat_Products::fetch($productId, 'name,isPublic,nameEn,code,canStore,measureId');
         }
         
         return $this->prepareProductResultRows($products, $rec);
