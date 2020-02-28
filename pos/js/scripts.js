@@ -586,7 +586,7 @@ function getCurrentElementFromSelectedRow(element){
 	var operation = getSelectedOperation();
 	sessionStorage.removeItem("focused");
 	
-	refreshResultByOperation(element, operation);
+	refreshResultByOperation(element, 'quantity');
 	
 	if(operation != 'quantity'){
 		scrollAfterKey();
