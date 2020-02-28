@@ -89,12 +89,6 @@ class cat_products_Packagings extends core_Detail
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'eanCode';
-    
-
-    /**
-     * По подразбиране колко резултата да показва на страница
-     */
-    public $listItemsPerPage = 200;
 
 
     /**
