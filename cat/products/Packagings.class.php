@@ -390,9 +390,11 @@ class cat_products_Packagings extends core_Detail
             }
         }
         
+        $form->setField('templateId', 'input=none');
         if (isset($rec->packagingId)) {
             $uomType = cat_UoM::fetchField($rec->packagingId, 'type');
             if ($uomType != 'uom') {
+                $form->setField('templateId', 'input');
                 
                 // Намиране на наличните шаблони
                 $packTemplateOptions = cat_PackParams::getTemplates($rec->packagingId);
@@ -408,8 +410,6 @@ class cat_products_Packagings extends core_Detail
                         $form->setDefault('tareWeight', $pRec->tareWeight);
                     }
                 }
-            } else {
-                $form->setField('templateId', 'input=none');
             }
         }
         
