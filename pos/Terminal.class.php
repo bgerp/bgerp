@@ -1588,83 +1588,88 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function prepareProductTable($rec, $searchString)
     {
-        $count = 0;
-        $sellable = array();
-        $searchStringPure = plg_Search::normalizeText($searchString);
-        
-        $folderId = cls::get($rec->contragentClass)->fetchField($rec->contragentObjectId, 'folderId');
-        $pQuery = cat_Products::getQuery();
-        $pQuery->where("#canSell = 'yes' AND #state = 'active'");
-        $pQuery->where("#isPublic = 'yes' OR (#isPublic = 'no' AND #folderId = '{$folderId}')");
-        $pQuery->show('name,isPublic,nameEn,code,canStore,measureId');
-        
-        
-        $maxSearchProducts = pos_Points::getSettings($rec->pointId, 'maxSearchProducts');
-        
-        // Ако не се търси подробно артикул, се показват тези от любими
-        if(empty($searchString)){
-            $productsArr = keylist::toArray(pos_Points::getSettings($rec->pointId, 'products'));
+        $result = core_Cache::get('planning_Terminal', "{$rec->pointId}_'{$searchString}'");
+        if(!is_array($result)){
             
-            
-            if(countR($productsArr)){
-                $pQuery->in("id", array_keys($productsArr));
-                $pQuery->orderBy('code,name', 'ASC');
-                $sellable = $pQuery->fetchAll();
-            }
-        } else {
             $count = 0;
-            $maxCount = $maxSearchProducts;
+            $sellable = array();
+            $searchStringPure = plg_Search::normalizeText($searchString);
             
-            // Ако има артикул, чийто код отговаря точно на стринга, той е най-отгоре
-            $foundRec = cat_Products::getByCode($searchString);
-            if(isset($foundRec->productId)){
-                $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canStore' => cat_Products::fetchField($foundRec->productId, 'canStore'), 'measureId' => cat_Products::fetchField($foundRec->productId, 'measureId'), 'packId' => isset($foundRec->packagingId) ? $foundRec->packagingId : null);
-                $count++;
-            }
+            $folderId = cls::get($rec->contragentClass)->fetchField($rec->contragentObjectId, 'folderId');
+            $pQuery = cat_Products::getQuery();
+            $pQuery->where("#canSell = 'yes' AND #state = 'active'");
+            $pQuery->where("#isPublic = 'yes' OR (#isPublic = 'no' AND #folderId = '{$folderId}')");
+            $pQuery->show('name,isPublic,nameEn,code,canStore,measureId');
+            $maxSearchProducts = pos_Points::getSettings($rec->pointId, 'maxSearchProducts');
             
-            // След това се добавят артикулите, които съдържат стринга в името и/или кода си
-            $pQuery1 = clone $pQuery;
-            $pQuery1->orderBy('code,name', 'ASC');
-            if(isset($foundRec->productId)){
-                $pQuery1->where("#id != {$foundRec->productId}");
-            }
-            
-            while($pRec1 = $pQuery1->fetch()){
-                $name = plg_Search::normalizeText($pRec1->name);
-                $code = plg_Search::normalizeText($pRec1->code);
+            // Ако не се търси подробно артикул, се показват тези от любими
+            if(empty($searchString)){
+                $productsArr = keylist::toArray(pos_Points::getSettings($rec->pointId, 'products'));
                 
-                if(strpos($name, $searchString) !== false || strpos($code, $searchString) !== false){
-                    $sellable[$pRec1->id] = (object)array('id' => $pRec1->id, 'canStore' => $pRec1->canStore, 'measureId' => $pRec1->measureId);
-                    $count++;
-                    $maxCount--;
-                    if($count == $maxSearchProducts) break;
+                
+                if(countR($productsArr)){
+                    $pQuery->in("id", array_keys($productsArr));
+                    $pQuery->orderBy('code,name', 'ASC');
+                    $sellable = $pQuery->fetchAll();
                 }
-            }
-           
-            // Ако не е достигнат лимита, се добавят и артикулите с търсене в ключовите думи
-            if($count < $maxSearchProducts){
-                $notInKeys = array_keys($sellable);
-                $pQuery2 = clone $pQuery;
-                if(empty($searchStringPure)){
-                    $pQuery2->where("1=2");
-                } else {
-                    plg_Search::applySearch($searchString, $pQuery2);
+            } else {
+                $count = 0;
+                $maxCount = $maxSearchProducts;
+                
+                // Ако има артикул, чийто код отговаря точно на стринга, той е най-отгоре
+                $foundRec = cat_Products::getByCode($searchString);
+                if(isset($foundRec->productId)){
+                    $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canStore' => cat_Products::fetchField($foundRec->productId, 'canStore'), 'measureId' => cat_Products::fetchField($foundRec->productId, 'measureId'), 'packId' => isset($foundRec->packagingId) ? $foundRec->packagingId : null);
+                    $count++;
                 }
                 
-                if(countR($notInKeys)){
-                    $pQuery2->notIn('id', $notInKeys);
+                // След това се добавят артикулите, които съдържат стринга в името и/или кода си
+                $pQuery1 = clone $pQuery;
+                $pQuery1->orderBy('code,name', 'ASC');
+                if(isset($foundRec->productId)){
+                    $pQuery1->where("#id != {$foundRec->productId}");
                 }
-               
-                while($pRec2 = $pQuery2->fetch()){
-                    $sellable[$pRec2->id] = (object)array('id' => $pRec2->id, 'canStore' => $pRec2->canStore, 'measureId' =>  $pRec2->measureId);
-                    $count++;
-                    $maxCount--;
-                    if($count == $maxSearchProducts) break;
+                
+                while($pRec1 = $pQuery1->fetch()){
+                    $name = plg_Search::normalizeText($pRec1->name);
+                    $code = plg_Search::normalizeText($pRec1->code);
+                    
+                    if(strpos($name, $searchString) !== false || strpos($code, $searchString) !== false){
+                        $sellable[$pRec1->id] = (object)array('id' => $pRec1->id, 'canStore' => $pRec1->canStore, 'measureId' => $pRec1->measureId);
+                        $count++;
+                        $maxCount--;
+                        if($count == $maxSearchProducts) break;
+                    }
+                }
+                
+                // Ако не е достигнат лимита, се добавят и артикулите с търсене в ключовите думи
+                if($count < $maxSearchProducts){
+                    $notInKeys = array_keys($sellable);
+                    $pQuery2 = clone $pQuery;
+                    if(empty($searchStringPure)){
+                        $pQuery2->where("1=2");
+                    } else {
+                        plg_Search::applySearch($searchString, $pQuery2);
+                    }
+                    
+                    if(countR($notInKeys)){
+                        $pQuery2->notIn('id', $notInKeys);
+                    }
+                    
+                    while($pRec2 = $pQuery2->fetch()){
+                        $sellable[$pRec2->id] = (object)array('id' => $pRec2->id, 'canStore' => $pRec2->canStore, 'measureId' =>  $pRec2->measureId);
+                        $count++;
+                        $maxCount--;
+                        if($count == $maxSearchProducts) break;
+                    }
                 }
             }
+            
+            $result = $this->prepareProductResultRows($sellable, $rec);
+            core_Cache::set('planning_Terminal', "{$rec->pointId}_'{$searchString}'", $result, 2);
         }
         
-        return $this->prepareProductResultRows($sellable, $rec);
+        return $result;
     }
     
     
