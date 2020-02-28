@@ -559,16 +559,18 @@ class store_Products extends core_Detail
                         $shQuery->XPR('sum', 'double', "SUM(#{$suMFld})");
                     }
                     
+                    $show = "{$Detail->productFieldName},{$suMFld},{$Detail->masterKey},sum,quantityInPack";
                     $shQuery->where("#{$Detail->masterKey} = {$sRec->id}");
-                    $shQuery->show("{$Detail->productFieldName},{$suMFld},{$Detail->masterKey},sum,quantityInPack");
                     $shQuery->groupBy($Detail->productFieldName);
                     
                     if($Detail instanceof planning_DirectProductNoteDetails){
                         $shQuery->where("#{$storeField} IS NOT NULL");
+                        $show .= ",storeId";
                     }
+                    $shQuery->show($show);
                     
                     while ($sd = $shQuery->fetch()) {
-                        $storeId = $sRec->{$storeField};
+                        $storeId = ($Detail instanceof planning_DirectProductNoteDetails) ? $sd->{$storeField} : $sRec->{$storeField};
                         $key = "{$storeId}|{$sd->{$Detail->productFieldName}}";
                         $reserved[$key] = array('sId' => $storeId, 'pId' => $sd->{$Detail->productFieldName}, 'reserved' => $sd->sum, 'expected' => null, 'expectedTotal' => null);
                     }

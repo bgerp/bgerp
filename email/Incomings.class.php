@@ -524,13 +524,34 @@ class email_Incomings extends core_Master
                 // Пробваме дали това не е служебно писмо
                 // Ако не е служебно, пробваме дали не е SPAM
                 // Ако не е нищо от горните, записваме писмото в този модел
-                if (email_Returned::process($mime, $accId, $uid)) {
-                    $status = 'returned';
-                } elseif (email_Receipts::process($mime, $accId, $uid)) {
-                    $status = 'receipt';
-                } elseif (email_Spam::process($mime, $accId, $uid)) {
-                    $status = 'spam';
-                } elseif (self::process($mime, $accId, $uid)) {
+                
+                $clsArr = core_Classes::getOptionsByInterface('email_AutomaticIntf');
+                
+                $clsInstArr = array();
+                foreach ($clsArr as $clsName) {
+                    $clsInstArr[$clsName] = cls::getInterface('email_AutomaticIntf', $clsName);
+                    $arrWeight[$clsName] = (int)$clsInstArr[$clsName]->class->weight;
+                }
+                
+                if (!empty($arrWeight)) {
+                    arsort($arrWeight);
+                    
+                    foreach ($arrWeight as $clsName => $dummy) {
+                        try {
+                            $status = $clsInstArr[$clsName]->process($mime, $accId, $uid);
+                        } catch (core_exception_Expect $exp) {
+                            reportException($exp);
+                            continue;
+                        }
+                        
+                        if (isset($status)) {
+                            break;
+                        }
+                    }
+                }
+                
+                if (!isset($status)) {
+                    $this->process($mime, $accId, $uid);
                     $status = 'incoming';
                 }
             }
@@ -539,6 +560,8 @@ class email_Incomings extends core_Master
             $status = 'error';
             reportException($exp);
         }
+        
+        $status = strtolower($status);
         
         // Записваме в отпечатъка на това писмо, както и статуса му на сваляне
         if (in_array($status, array('returned', 'receipt', 'spam', 'incoming', 'misformatted'))) {
@@ -614,7 +637,7 @@ class email_Incomings extends core_Master
         $rec->spamScore = email_Spam::getSpamScore($rec->headers, true, $mime, $rec);
         
         // Записваме (и автоматично рутираме) писмото
-        $saved = email_Incomings::save($rec);
+        $saved = $this->save($rec);
         
         return $saved;
     }

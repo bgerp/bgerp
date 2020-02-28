@@ -40,7 +40,7 @@ class sales_Services extends deals_ServiceMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, sales_plg_CalcPriceDelta, deals_plg_SaveValiorOnActivation, acc_plg_Contable, plg_Sorting, doc_DocumentPlg, plg_Printing,
-                    acc_plg_DocumentSummary,doc_EmailCreatePlg, bgerp_plg_Blank, cond_plg_DefaultValues, doc_plg_TplManager, doc_plg_HidePrices, doc_SharablePlg,cat_plg_AddSearchKeywords, plg_Search';
+                    acc_plg_DocumentSummary,doc_EmailCreatePlg, cond_plg_DefaultValues, doc_plg_TplManager, bgerp_plg_Blank, doc_plg_HidePrices, doc_SharablePlg,cat_plg_AddSearchKeywords, plg_Search';
     
     
     /**

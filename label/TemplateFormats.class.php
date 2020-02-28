@@ -561,6 +561,7 @@ class label_TemplateFormats extends core_Detail
         $query->where(array("#{$me->masterKey} = '[#1#]'", $masterId));
         $query->where("#type != 'counter'");
         $query->orderBy('type', 'DESC');
+        $query->orderBy('placeHolder', 'ASC');
         
         // Обхождаме резултатите
         while ($rec = $query->fetch()) {
