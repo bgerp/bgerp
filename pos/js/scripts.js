@@ -1,6 +1,7 @@
 var dialog;
 var activeInput;
 var timeout;
+var timeoutPageNavigation;
 
 function posActions() {
 
@@ -586,11 +587,15 @@ function getCurrentElementFromSelectedRow(element){
 	var operation = getSelectedOperation();
 	sessionStorage.removeItem("focused");
 	
-	refreshResultByOperation(element, 'quantity');
+	clearTimeout(timeoutPageNavigation);
 	
-	if(operation != 'quantity'){
-		scrollAfterKey();
-	}
+	timeoutPageNavigation = setTimeout(function(){
+		refreshResultByOperation(element, 'quantity');
+		if(operation != 'quantity'){
+			scrollAfterKey();
+		}
+
+	}, 1000);
 }
 
 function refreshResultByOperation(element, operation){
