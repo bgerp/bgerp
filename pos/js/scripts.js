@@ -157,11 +157,11 @@ function posActions() {
 			return;
 		}
 
-		inputChars($('.keyboardText'), currentAttrValue);
-
 		if (currentAttrValue == "ENTER") {
 			$('.select-input-pos').val($('.keyboardText').val());
 			$('.ui-dialog-titlebar-close').click();
+		} else {
+			inputChars($('.keyboardText'), currentAttrValue);
 		}
 	});
 
