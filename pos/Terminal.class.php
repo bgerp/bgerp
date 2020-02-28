@@ -1508,11 +1508,11 @@ class pos_Terminal extends peripheral_Terminal
         $firstDividerCaption = countR($res['similar']->rows == 1) ? 'Избран артикул' : 'Свързани артикули';
         $res['contragent'] = (object)array('rows' => $this->prepareContragentProducts($rec, $string, $notIn), 'placeholder' => 'BLOCK3');
         
-        $tpl = new core_ET(tr("<!--ET_BEGIN BLOCK1-->|*<div class='divider'>|{$firstDividerCaption}|*</div>
+        $tpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK1--><div class='divider'>|{$firstDividerCaption}|*</div>
                                                     <div class='grid'>[#BLOCK1#]</div><!--ET_END BLOCK1-->
-                            <!--ET_BEGIN BLOCK2-->|*<div class='divider'>|Намерени артикули|*</div>
+                            <!--ET_BEGIN BLOCK2--><div class='divider'>|Намерени артикули|*</div>
                                                     <div class='grid'>[#BLOCK2#]</div><!--ET_END BLOCK2-->
-                            <!--ET_BEGIN BLOCK3-->|*<div class='divider'>|Списък от предишни продажби|*</div>
+                            <!--ET_BEGIN BLOCK3--><div class='divider'>|Списък от предишни продажби|*</div>
                                                     <div class='grid'>[#BLOCK3#]</div><!--ET_END BLOCK3-->"));
         
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PRODUCTS_RESULT');
