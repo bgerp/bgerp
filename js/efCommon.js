@@ -1534,7 +1534,11 @@ function rgb2hex(rgb) {
         function hex(x) {
             return ("0" + parseInt(x).toString(16)).slice(-2);
         }
-        if (rgb[4] != 'undefined' && rgb[4] == 0) {
+        if (!rgb || (rgb[4] != 'undefined' && rgb[4] == 0)) {
+        	if (!rgb) {
+        		rgb = [];
+    		}
+        	
             rgb[1] = rgb[2] = rgb[3] = 255;
         }
 
