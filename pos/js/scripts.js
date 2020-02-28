@@ -588,14 +588,15 @@ function getCurrentElementFromSelectedRow(element){
 	sessionStorage.removeItem("focused");
 	
 	clearTimeout(timeoutPageNavigation);
-	
+
 	timeoutPageNavigation = setTimeout(function(){
 		refreshResultByOperation(element, 'quantity');
 		if(operation != 'quantity'){
 			scrollAfterKey();
 		}
-
 	}, 1000);
+
+	scrollAfterKey();
 }
 
 function refreshResultByOperation(element, operation){
