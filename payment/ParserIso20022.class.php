@@ -166,10 +166,7 @@ class payment_ParserIso20022 extends core_BaseClass
         
         foreach ($filesArr as $fId) {
             $fName = fileman::fetchField($fId, 'name');
-            
             $fExt = fileman::getExt($fName);
-            
-            $fName = str_replace(array(':', ' '), array('_', '_'), $fName);
             
             if ($fExt == 'xml') {
                 $fh = fileman::fetchField($fId, 'fileHnd');
