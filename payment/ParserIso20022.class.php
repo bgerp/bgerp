@@ -171,10 +171,15 @@ class payment_ParserIso20022 extends core_BaseClass
             
             $fName = str_replace(array(':', ' '), array('_', '_'), $fName);
             
-            if (($fExt == 'xml') && (strpos($fName, 'iso_20022') !== false) && (strpos($fName, 'iso_20022') < 50)) {
-                
+            if ($fExt == 'xml') {
                 $fh = fileman::fetchField($fId, 'fileHnd');
                 $xml = fileman::extractStr($fh);
+                
+                $isoPos = strpos($xml, 'iso:20022');
+                
+                if (($isoPos === false) || ($isoPos > 50)) {
+                    continue;
+                }
                 
                 $res = $this->getRecs($xml, 'EMAIL ISO20022');
                 
