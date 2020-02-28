@@ -997,7 +997,6 @@ function setInputPlaceholder() {
 			placeholder = defaultPayment;
 		}
 	}
-	
 	$("input[name=ean]").attr("placeholder", placeholder);	
 }
 
