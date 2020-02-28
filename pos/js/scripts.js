@@ -948,7 +948,29 @@ function startNavigation() {
 		$('#result-holder .navigable:visible').keynav();
 	}
 }
-function isItVisible(el){
+
+function isItVisible(element) {
+	var viewportWidth = $(window).width(),
+		viewportHeight = $(window).height(),
+		documentScrollTop = $(document).scrollTop(),
+		documentScrollLeft = $(document).scrollLeft(),
+
+
+		elementOffset = element.offset(),
+		elementHeight = element.height(),
+		elementWidth = element.width(),
+
+		minTop = documentScrollTop,
+		maxTop = documentScrollTop + viewportHeight,
+		minLeft = documentScrollLeft,
+		maxLeft = documentScrollLeft + viewportWidth;
+
+	return (elementOffset.top > minTop && elementOffset.top + elementHeight < maxTop) &&
+		(elementOffset.left > minLeft && elementOffset.left + elementWidth < maxLeft);
+}
+
+
+function isInViewport(el){
 	var rect     = el.getBoundingClientRect(),
 		vWidth   = window.innerWidth || doc.documentElement.clientWidth,
 		vHeight  = window.innerHeight || doc.documentElement.clientHeight,
@@ -968,8 +990,9 @@ function isItVisible(el){
 	);
 }
 
+
 function scrollToHighlight(){
-	if ($(".highlighted").length && !isItVisible($(".highlighted")[0])) {
+	if ($(".highlighted").length && !isInViewport($(".highlighted")[0])) {
 		$(".highlighted")[0].scrollIntoView();
 	}
 }
@@ -980,7 +1003,7 @@ function render_scrollToHighlight() {
 }
 
 function scrollAfterKey(){
-	if ($(".highlighted").length) {
+	if( !isInViewport($(".highlighted")[0])) {
 		$(".highlighted")[0].scrollIntoView();
 	}
 }
