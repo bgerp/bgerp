@@ -1140,5 +1140,4 @@ function doOperation(operation, selectedRecId, forceSubmit)
 	processUrl(url, data);
 
 	activeInput = false;
-	scrollToHighlight();
 }
