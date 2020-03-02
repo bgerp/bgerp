@@ -70,7 +70,7 @@ defIfNot('POS_TERMINAL_MAX_SEARCH_PRODUCTS', '30');
 /**
  *  Максимален брой търсения на артикули в терминала
  */
-defIfNot('POS_TERMINAL_MAX_SEARCH_RECEIPTS', '50');
+defIfNot('POS_TERMINAL_MAX_SEARCH_RECEIPTS', '20');
 
 
 /**
