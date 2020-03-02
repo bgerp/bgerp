@@ -90,11 +90,6 @@ class cond_Setup extends core_ProtoSetup
     {
         $html = parent::install();
         
-        // Ако има роля 'salecond'  тя се изтрива (остаряла е)
-        if ($roleRec = core_Roles::fetch("#role = 'salecond'")) {
-            core_Roles::delete("#role = 'salecond'");
-        }
-        
         $Plugins = cls::get('core_Plugins');
         
         // Замества handle' ите на документите с линк към документа

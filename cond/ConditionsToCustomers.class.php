@@ -480,4 +480,64 @@ class cond_ConditionsToCustomers extends core_Manager
         // създаване/обновяване на записа
         return self::save($rec);
     }
+    
+    
+    /**
+     * Ъпдейт на търговски условия
+     */
+    function act_Update()
+    {
+        requireRole('ceo,admin');
+        
+        $form = cls::get('core_Form');
+        $form->title = tr('Обновяване на търговски условия');
+        $form->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,class=contactData,mandatory,export=Csv');
+        $form->FLD('conditionId', 'key(mvc=cond_Parameters,select=name,allowEmpty)', 'mandatory,caption=Условие,silent,removeAndRefreshForm=value');
+        $form->FLD('type', 'enum(both=Фирми и лица,company=Фирми,persons=Лица)', 'mandatory,caption=Контрагент');
+        $form->FLD('value', 'key(mvc=cond_Parameters,select=name)', 'mandatory,caption=Нова стойност,input=none');
+        $form->input(null, 'silent');
+        
+        if ($form->rec->conditionId) {
+            if ($Type = cond_Parameters::getTypeInstance($form->rec->conditionId, null, null, $form->rec->value)) {
+                $form->setField('value', 'input');
+                $form->setFieldType('value', $Type);
+            }
+        }
+        
+        $form->input();
+        if ($form->isSubmitted()) {
+            $fRec = &$form->rec;
+            
+            $update = array();
+            $query = cond_ConditionsToCustomers::getQuery();
+            $query->where("#conditionId = {$fRec->conditionId}");
+            $companyClassId = crm_Companies::getClassId();
+            $personClassId = crm_Persons::getClassId();
+            
+            while($cRec = $query->fetch()){
+                $countryId = cls::get($cRec->cClass)->fetchField($cRec->cId, 'country');
+                if($fRec->type == 'both' || ($fRec->type == 'company' && $cRec->cClass == $companyClassId)  || ($fRec->type == 'persons' && $cRec->cClass == $personClassId)){
+                    $cRec->value = $fRec->value;
+                    if($countryId == $fRec->country){
+                        $update[] = $cRec;
+                    }
+                }
+            }
+            
+            $count = count($update);
+            if($count){
+                cls::get('cond_ConditionsToCustomers')->saveArray($update);
+            }
+            
+            $msg = "Обновени са|* {$count} |записа|*";
+            followRetUrl(null, $msg);
+        }
+        
+        $form->toolbar->addSbBtn('Обновяване', 'save', 'ef_icon = img/16/arrow_refresh.png, title = Обновяване на търговски условия');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        
+        $tpl = $this->renderWrapping($form->renderHtml());
+        
+        return $tpl;
+    }
 }
