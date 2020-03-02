@@ -171,7 +171,7 @@
   font-size: 2em !important;
   margin-bottom: 20px !important; }
 
-.modal .keyboard {
+#modalContent .keyboard {
   display: none; }
 
 .keyboard-btn {
