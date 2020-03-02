@@ -646,7 +646,7 @@ class pos_ReceiptDetails extends core_Detail
         $productRec = cat_Products::fetch($rec->productId, 'code,measureId');
         
         $price = $this->Master->getDisplayPrice($rec->price, $rec->param, $rec->discountPercent, pos_Receipts::fetchField($rec->receiptId, 'pointId'), $rec->quantity);
-        $row->price = $Double->toVerbal($price);
+        $row->price = $Double->toVerbal($rec->price * (1 + $rec->param));
         $row->amount = $Double->toVerbal($price * $rec->quantity);
         $row->amount = ht::styleNumber($row->amount, $price * $rec->quantity);
         
