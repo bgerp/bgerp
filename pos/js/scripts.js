@@ -880,6 +880,7 @@ function isNumberOperation(string)
 
 var openedModal;
 
+
 // Отваря модала
 function openModal(title, heightModal) {
 	clearTimeout(timeout);
@@ -1127,6 +1128,7 @@ function openCurrentPosTab() {
 	var currentTab = $('.tabHolder li.active').attr('data-content');
 	
 	$("#" + currentTab).show();
+	startNavigation();
 }
 
 /**
