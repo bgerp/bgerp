@@ -141,7 +141,7 @@ class drdata_Vats extends core_Manager
             if (!(strlen($vat = core_Type::escape(trim($form->input()->vat))))) {
                 $res = new Redirect(array($this, 'Check'), '|Не сте въвели VAT номер');
             } else {
-                list($status, ) = $this->check($vat);
+                list($status, ) = $this->check($vat, true);
                 switch ($status) {
                     case 'valid':
                         $res = new Redirect(array($this), "|VAT номера|* <i>'{$vat}'</i> |е валиден|*");
@@ -194,10 +194,11 @@ class drdata_Vats extends core_Manager
      * Пълна проверка на VAT номер - синтактична + онлайн проверка.
      *
      * @param string $vat
+     * @param boolean $force
      *
      * @return string 'syntax', 'valid', 'invalid', 'unknown'
      */
-    public function check($vat)
+    public function check($vat, $force = false)
     {
         $canonocalVat = $this->canonize($vat);
         
@@ -222,7 +223,7 @@ class drdata_Vats extends core_Manager
             $this->save($rec, 'lastUsed');
             
             // Ако информацията за данъчния номер е остаряла или той е неизвестен и не сме го проверявали последните 24 часа
-            if ((($rec->lastChecked <= $expDate) && ($rec->lastUsed >= $lastUsedExp)) || ($rec->status == self::statusUnknown && $rec->lastChecked < $expUnknown)) {
+            if ($force || ((($rec->lastChecked <= $expDate) && ($rec->lastUsed >= $lastUsedExp)) || ($rec->status == self::statusUnknown && $rec->lastChecked < $expUnknown))) {
                 
                 // Ако не е достигнат максимума, добавяме и този запис за обновяване
                 if (countR($this->updateOnShutdown) < self::MAX_CNT_VATS_FOR_UPDATE) {
