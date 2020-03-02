@@ -545,8 +545,10 @@ class pos_Terminal extends peripheral_Terminal
         if (pos_Receipts::haveRightFor('reject', $rec)) {
              $buttons["reject"] = (object)array('body' => $img, 'attr' => array('title' => 'Оттегляне на бележката', 'class' => "rejectBtn"), 'linkUrl' => array('pos_Receipts', 'reject', $rec->id, 'ret_url' => toUrl(array('pos_Receipts', 'new'), 'local')), 'linkWarning' => 'Наистина ли желаете да оттеглите бележката|*?');
         } elseif (pos_Receipts::haveRightFor('delete', $rec)) {
-            $img = ht::createImg(array('path' => self::$operationImgs["delete"]));
+             $img = ht::createImg(array('path' => self::$operationImgs["delete"]));
              $buttons["delete"] = (object)array('body' => $img, 'attr' => array('title' => 'Изтриване на бележката', 'class' => "rejectBtn"), 'linkUrl' => array('pos_Receipts', 'delete', $rec->id, 'ret_url' => toUrl(array('pos_Receipts', 'new'), 'local')), 'linkWarning' => 'Наистина ли желаете да изтриете бележката|*?');
+        } elseif(pos_Receipts::haveRightFor('revert', $rec->id)){
+            $buttons["delete"] = (object)array('body' => $img, 'attr' => array('title' => 'Сторниране на бележката', 'class' => "rejectBtn"), 'linkUrl' => array('pos_Receipts', 'revert', $rec->id), 'linkWarning' => 'Наистина ли желаете да сторнирате бележката|*?');
         } else {
             $buttons["delete"] = (object)array('body' => $img, 'attr' => array('class' => "rejectBtn disabledBtn", 'disabled' => 'disabled'));
         }
@@ -1822,8 +1824,8 @@ class pos_Terminal extends peripheral_Terminal
             }
             
             $openUrl = (pos_Receipts::haveRightFor('terminal', $receiptRec->id)) ? array('pos_Terminal', 'open', 'receiptId' => $receiptRec->id, 'opened' => true) : array();
-            $class .= (count($openUrl)) ? ' navigable' : ' disabledBtn';
-            $class .= ($receiptRec->id == $rec->id) ? ' currentReceipt' : '';
+            $class = (count($openUrl)) ? ' navigable' : ' disabledBtn';
+            $class = ($receiptRec->id == $rec->id) ? ' currentReceipt' : '';
             
             $btnTitle = self::getReceiptTitle($receiptRec);
             $btnTitle = ($rec->pointId != $receiptRec->pointId) ? ht::createHint($btnTitle, "Бележката е от друг POS") : $btnTitle;
