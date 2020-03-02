@@ -332,15 +332,24 @@
 	}
 }
 .tabHolder {
+	display: grid;
+	align-items: center;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	text-align: center;
 	padding-left: 0;
+	grid-gap: 1rem;
 	li {
-		display: inline-block;
+		list-style: none;
 		padding: 7px 10px;
 		border: 1px solid #ccc;
-		background: #f1f1f1;
 		cursor: pointer;
+		color: #707a8c;
+		font-weight: bold;
+		text-align: center !important;
+		border-bottom: 4px solid transparent !important;
 		&.active {
-			background: #cc0;
+			color: #12008a;
+			border-bottom: 4px solid #12008a !important;
 		}
 	}
 }

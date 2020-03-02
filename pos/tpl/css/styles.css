@@ -287,15 +287,24 @@
     font-weight: bold; }
 
 .tabHolder {
-  padding-left: 0; }
+  display: grid;
+  align-items: center;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1));
+  text-align: center;
+  padding-left: 0;
+  grid-gap: 1rem; }
   .tabHolder li {
-    display: inline-block;
+    list-style: none;
     padding: 7px 10px;
     border: 1px solid #cccccc;
-    background: #f1f1f1;
-    cursor: pointer; }
+    cursor: pointer;
+    color: #707a8c;
+    font-weight: bold;
+    text-align: center !important;
+    border-bottom: 4px solid rgba(0, 0, 0, 0) !important; }
     .tabHolder li.active {
-      background: #cccc00; }
+      color: #12008a;
+      border-bottom: 4px solid #12008a !important; }
 
   .contentHolder .content {
     display: none; }
