@@ -531,6 +531,35 @@ class drdata_Vats extends core_Manager
     
     
     /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return bool
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->listFilter->FNC('vatNum', 'varchar', 'caption=VAT номер, input');
+        $data->listFilter->showFields = 'vatNum';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        $data->listFilter->input('vatNum');
+        
+        if ($data->listFilter->rec->vatNum) {
+            $data->query->like('vat', $data->listFilter->rec->vatNum);
+        }
+        
+        // Сортиране на записите по num
+        $data->query->orderBy('lastChecked');
+        $data->query->orderBy('lastUsed');
+        $data->query->orderBy('vat');
+    }
+    
+    
+    /**
      * Извиква се от крона. Премахва старите статус съобщения
      */
     public function cron_checkVats()
