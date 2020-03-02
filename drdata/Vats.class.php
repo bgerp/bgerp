@@ -553,8 +553,8 @@ class drdata_Vats extends core_Manager
         }
         
         // Сортиране на записите по num
-        $data->query->orderBy('lastChecked');
-        $data->query->orderBy('lastUsed');
+        $data->query->orderBy('lastChecked', 'DESC');
+        $data->query->orderBy('lastUsed', 'DESC');
         $data->query->orderBy('vat');
     }
     
