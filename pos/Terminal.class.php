@@ -890,17 +890,15 @@ class pos_Terminal extends peripheral_Terminal
         $allowedDiscounts = arr::extractValuesFromArray(type_Table::toArray($settings->usedDiscounts), 'discount');
         $discountsArr = array();
         array_walk($allowedDiscounts, function($a) use (&$discountsArr){$percent = $a / 100; $discountsArr["{$percent}"] = $percent;});
+        $discountsArr =  array('0' => '0') + $discountsArr;
         
-        if(!empty($selectedRec->discountPercent)){
-            $discountsArr =  array('0' => '0') + $discountsArr;
-        }
-
         $discountTpl = new core_ET("");
         foreach ($discountsArr as $discountPercent){
             $class = ($discountPercent == $selectedRec->discountPercent) ? 'current' : '';
             
             $discAmount = $discountPercent * 100;
             $url = toUrl(array('pos_ReceiptDetails', 'updateRec', 'receiptId' => $rec->id, 'action' => 'setdiscount', 'string' => "{$discAmount}"), 'local');
+            
             $btnCaption = ($discountPercent == '0') ? tr('Без отстъпка') : "{$discAmount} %";
             $element = ht::createElement("div", array('id' => "discount{$discountPercent}", 'class' => "navigable posBtns discountBtn {$class}", 'data-url' => $url), $btnCaption, true);
             $discountTpl->append($element);
@@ -1508,10 +1506,11 @@ class pos_Terminal extends peripheral_Terminal
         $firstDividerCaption = countR($res['similar']->rows == 1) ? 'Избран артикул' : 'Свързани артикули';
         $res['contragent'] = (object)array('rows' => $this->prepareContragentProducts($rec, $string, $notIn), 'placeholder' => 'BLOCK3');
         
-        $tpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK1--><div class='divider'>|{$firstDividerCaption}|*</div>
-                                                    <div class='grid'>[#BLOCK1#]</div><!--ET_END BLOCK1-->
-                            <!--ET_BEGIN BLOCK2--><div class='divider'>|Намерени артикули|*</div>
+        $tpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK2--><div class='divider'>|Намерени артикули|*</div>
                                                     <div class='grid'>[#BLOCK2#]</div><!--ET_END BLOCK2-->
+                                                    <!--ET_BEGIN BLOCK1--><div class='divider'>|{$firstDividerCaption}|*</div>
+                                                    <div class='grid'>[#BLOCK1#]</div><!--ET_END BLOCK1-->
+                            
                             <!--ET_BEGIN BLOCK3--><div class='divider'>|Списък от предишни продажби|*</div>
                                                     <div class='grid'>[#BLOCK3#]</div><!--ET_END BLOCK3-->"));
         
