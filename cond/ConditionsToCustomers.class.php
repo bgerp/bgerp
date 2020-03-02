@@ -494,11 +494,15 @@ class cond_ConditionsToCustomers extends core_Manager
         $form->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,class=contactData,mandatory,export=Csv');
         $form->FLD('conditionId', 'key(mvc=cond_Parameters,select=name,allowEmpty)', 'mandatory,caption=Условие,silent,removeAndRefreshForm=value');
         $form->FLD('type', 'enum(both=Фирми и лица,company=Фирми,persons=Лица)', 'mandatory,caption=Обнови на');
-        $form->FLD('value', 'key(mvc=cond_Parameters,select=name)', 'mandatory,caption=Нова стойност,input=none');
+        $form->FLD('oldValue', 'varchar', 'mandatory,caption=Стара стойност,input=none');
+        $form->FLD('value', 'varchar', 'mandatory,caption=Нова стойност,input=none');
         $form->input(null, 'silent');
         
         if ($form->rec->conditionId) {
             if ($Type = cond_Parameters::getTypeInstance($form->rec->conditionId, null, null, $form->rec->value)) {
+                $form->setField('oldValue', 'input');
+                $form->setFieldType('oldValue', $Type);
+                
                 $form->setField('value', 'input');
                 $form->setFieldType('value', $Type);
             }
@@ -510,7 +514,7 @@ class cond_ConditionsToCustomers extends core_Manager
             
             $update = array();
             $query = cond_ConditionsToCustomers::getQuery();
-            $query->where("#conditionId = {$fRec->conditionId}");
+            $query->where("#conditionId = {$fRec->conditionId} AND #value = '{$fRec->oldValue}'");
             $companyClassId = crm_Companies::getClassId();
             $personClassId = crm_Persons::getClassId();
             
