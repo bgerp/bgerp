@@ -66,15 +66,19 @@ class payment_ImportDriver extends import2_AbstractDriver
             $form->setError('xmlFile', 'Непознат файлов формат');
         }
         
-        if (countR($res->warnings)) {
-            $form->setWarning('xmlFile', '|*' . implode('<br>', $res->warnings));
+        if ($res) {
+            if (countR($res->warnings)) {
+                $form->setWarning('xmlFile', '|*' . implode('<br>', $res->warnings));
+            }
+            
+            if (countR($res->errors)) {
+                $form->setError('xmlFile', '|*' . implode('<br>', $res->errors));
+            }
+            
+            $form->rec->recs = $res->recs;
+        } else {
+            $form->setWarning('xmlFile', 'Не може да се извлекат данни');
         }
-        
-        if (countR($res->errors)) {
-            $form->setError('xmlFile', '|*' . implode('<br>', $res->errors));
-        }
-        
-        $form->rec->recs = $res->recs;
     }
     
     
