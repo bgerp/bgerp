@@ -1825,7 +1825,7 @@ class pos_Terminal extends peripheral_Terminal
             
             $openUrl = (pos_Receipts::haveRightFor('terminal', $receiptRec->id)) ? array('pos_Terminal', 'open', 'receiptId' => $receiptRec->id, 'opened' => true) : array();
             $class = (count($openUrl)) ? ' navigable' : ' disabledBtn';
-            $class = ($receiptRec->id == $rec->id) ? ' currentReceipt' : '';
+            $class .= ($receiptRec->id == $rec->id) ? ' currentReceipt' : '';
             
             $btnTitle = self::getReceiptTitle($receiptRec);
             $btnTitle = ($rec->pointId != $receiptRec->pointId) ? ht::createHint($btnTitle, "Бележката е от друг POS") : $btnTitle;
