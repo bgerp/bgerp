@@ -44,6 +44,11 @@
 	}	
 }
 
+#receiptnew {
+	background: #9ee284;
+	font-size: 2em;
+}
+
 .tools-content {
 	height: 500px;
 	padding: 20px 15px;
@@ -330,13 +335,10 @@
 	padding-left: 0;
 	li {
 		display: inline-block;
+		padding: 7px 10px;
 		border: 1px solid #ccc;
 		background: #f1f1f1;
 		cursor: pointer;
-		a, span {
-			display: inline-block;
-			padding: 7px 10px;
-		}
 		&.active {
 			background: #cc0;
 		}
