@@ -1884,6 +1884,8 @@ class pos_Terminal extends peripheral_Terminal
     {
         $mask = ($fullDate) ? 'd.m. H:i' : 'H:i';
         $date = dt::mysql2verbal($rec->createdOn, $mask);
+        $color = dt::getColorByTime($rec->createdOn);
+        $date = "<span class='timeSpan' style=\"color:#{$color}\">{$date}</span>";
         
         $amountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($rec->total);
         if(isset($rec->returnedTotal)){
