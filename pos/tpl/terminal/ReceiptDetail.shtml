@@ -6,7 +6,7 @@
 	<!--ET_BEGIN text--><div class="subText indent"> [#text#]</div><!--ET_END text-->
 	<div class="indent">[#quantity#] [#value#]<span class="quiet">
 		<!--ET_BEGIN quantityInPack--><span>([#quantityInPack#])</span> <!--ET_END quantityInPack--> * <span class='priceText'>[#price#]</span>
-		<!--ET_BEGIN discountPercent--><span class="discountText"> ([#discountPercent#]) </span><!--ET_END discountPercent--></span>
+		<!--ET_BEGIN discountPercent-->([#discountPercent#])<!--ET_END discountPercent--></span>
 		<!--ET_BEGIN batch--><span class="subBatch">[#batch#]</span><!--ET_END batch-->
 	</div>
 </div>

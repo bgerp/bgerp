@@ -131,6 +131,8 @@
     font-size: 1.1em; }
   .receiptRow .discountText {
     color: darkgreen; }
+  .receiptRow .surchargeText {
+    color: red; }
 
 .priceText {
   color: black; }

@@ -649,8 +649,11 @@ class pos_ReceiptDetails extends core_Detail
         $row->price = $Double->toVerbal($price);
         $row->amount = $Double->toVerbal($price * $rec->quantity);
         $row->amount = ht::styleNumber($row->amount, $price * $rec->quantity);
+        
         if ($rec->discountPercent < 0) {
-            $row->discountPercent = '+' . trim($row->discountPercent, '-');
+            $row->discountPercent = "<span class='surchargeText'>+" . trim($row->discountPercent, '-') . "</span>";
+        } else {
+            $row->discountPercent = "<span class='discountText'>-" . $row->discountPercent . "</span>";
         }
         
         if(core_Packs::isInstalled('batch')){
