@@ -493,7 +493,7 @@ class cond_ConditionsToCustomers extends core_Manager
         $form->title = tr('Обновяване на търговски условия');
         $form->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,class=contactData,mandatory,export=Csv');
         $form->FLD('conditionId', 'key(mvc=cond_Parameters,select=name,allowEmpty)', 'mandatory,caption=Условие,silent,removeAndRefreshForm=value');
-        $form->FLD('type', 'enum(both=Фирми и лица,company=Фирми,persons=Лица)', 'mandatory,caption=Контрагент');
+        $form->FLD('type', 'enum(both=Фирми и лица,company=Фирми,persons=Лица)', 'mandatory,caption=Обнови на');
         $form->FLD('value', 'key(mvc=cond_Parameters,select=name)', 'mandatory,caption=Нова стойност,input=none');
         $form->input(null, 'silent');
         
