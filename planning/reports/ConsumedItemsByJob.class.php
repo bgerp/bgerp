@@ -198,9 +198,9 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         //Вложени и върнати артикули в нишките на заданията
         
         $mvcArr = array('planning_DirectProductionNote' => 'planning_DirectProductNoteDetails',
-            'planning_ReturnNotes' => 'planning_ReturnNoteDetails',
-            'planning_ConsumptionNotes'=>'planning_ConsumptionNoteDetails'
-        );
+                        'planning_ReturnNotes' => 'planning_ReturnNoteDetails',
+                        'planning_ConsumptionNotes'=>'planning_ConsumptionNoteDetails'
+                       );
         foreach ($mvcArr as $master => $details) {
             
            
@@ -216,7 +216,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
              
             
-            $pQuery->where(array("#valior >= '[#1#]' AND #valior <= '[#2#]'",$rec->from . ' 00:00:01',$rec->to . ' 23:59:59'));
+            $pQuery->where(array("#valior >= '[#1#]' AND #valior <= '[#2#]'",$rec->from . ' 00:00:00',$rec->to . ' 23:59:59'));
            
             
             $pQuery->where("#state != 'rejected'");
