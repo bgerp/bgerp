@@ -88,11 +88,16 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $fieldset->FLD('groups', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,placeholder = Всички,after=to,single=none');
         }
         
-        //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(valior=Дата,name=Артикул, code=Код,amount=Стойност,consumedQuantity=Вложено,returnedQuantity=Върнато,total=Общо)', 'caption=Подреждане по,after=groups,single=none,silent');
-     
         //Групиране на резултатите
         $fieldset->FLD('groupBy', 'enum(no=Без групиране,jobId=Задание, valior=Дата,mounth=Месец,year=Година)', 'caption=Групиране по,after=groups,single=none,refreshForm,silent');
+        
+        //По кои цени да се смятат себестойностите
+        $fieldset->FLD('pricesType', 'enum(selfPrice=Политика "Себестойност",catalog=Политика "Каталог", accPrice=Счетоводна )', 'caption=Себестойности->Стойност по,after=groupBy,single=none,silent');
+        
+        
+        //Подредба на резултатите
+        $fieldset->FLD('orderBy', 'enum(valior=Дата,name=Артикул, code=Код,totalAmount=Стойност,consumedQuantity=Вложено,returnedQuantity=Върнато,total=Общо)', 'caption=Подреждане->Показател,after=pricesType,single=none,silent');
+        $fieldset->FLD('orderType', 'enum(asc=Нарастващо,desc=Намаляващо)', 'caption=Подреждане->Подреждане,after=orderBy,single=none,silent');
     }
     
     
@@ -125,26 +130,26 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         
         $form->setDefault('orderBy', 'code');
         $form->setDefault('groupBy', 'no');
+        $form->setDefault('orderType', 'desc');
         
         $suggestions = array();
-        foreach (keylist::toArray($rec->jobses) as $val){
-            
-            $suggestions[$val]= planning_Jobs::getTitleById($val);
+        foreach (keylist::toArray($rec->jobses) as $val) {
+            $suggestions[$val] = planning_Jobs::getTitleById($val);
         }
-       
+        
         $stateArr = array('active','wakeup');
         
         $jQuery = planning_Jobs::getQuery();
         $jQuery->in('state', $stateArr);
         $jQuery->show('productId');
-       
+        
         
         while ($jRec = $jQuery->fetch()) {
             if (!array_key_exists($jRec->id, $suggestions)) {
                 $suggestions[$jRec->id] = planning_Jobs::getTitleById($jRec->id);
             }
         }
-       
+        
         asort($suggestions);
         
         $form->setSuggestions('jobses', $suggestions);
@@ -161,7 +166,6 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-       
         //Показването да бъде ли ГРУПИРАНО
         if ($rec->groupBy != 'no') {
             $this->groupByField = $rec->groupBy;
@@ -170,40 +174,38 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $recs = array();
         
         //Избрани задания за производство
-        if ($rec->jobses){
+        if ($rec->jobses) {
             $jobsThreadArr = array();
             foreach (keylist::toArray($rec->jobses) as $val) {
                 
                 //Масив с ID-та на нишките на избраните ЗАДАНИЯ - $jobsThreadArr
                 $jobsThreadArr[$val] = planning_Jobs::fetchField($val, 'threadId');
                 $jobsContainersArr[planning_Jobs::fetchField($val, 'threadId')] = planning_Jobs::fetchField($val, 'containerId');
-                
             }
-        
-            if (!empty($jobsContainersArr)){
+            
+            if (!empty($jobsContainersArr)) {
                 $tQuery = planning_Tasks::getQuery();
                 $tQuery->where("#state != 'rejected'");
                 $tQuery->in('originId', $jobsContainersArr);
                 
-               
-                while ($tRec = $tQuery->fetch()){
-                   
-                    if (in_array($tRec->threadId, $jobsThreadArr))continue;
+                
+                while ($tRec = $tQuery->fetch()) {
+                    if (in_array($tRec->threadId, $jobsThreadArr)) {
+                        continue;
+                    }
                     $jobsThreadArr[$tRec->originId] = $tRec->threadId;
-                    
                 }
-            
             }
         }
+        
         //Вложени и върнати артикули в нишките на заданията
         
         $mvcArr = array('planning_DirectProductionNote' => 'planning_DirectProductNoteDetails',
-                        'planning_ReturnNotes' => 'planning_ReturnNoteDetails',
-                        'planning_ConsumptionNotes'=>'planning_ConsumptionNoteDetails'
-                       );
+            'planning_ReturnNotes' => 'planning_ReturnNoteDetails',
+            'planning_ConsumptionNotes' => 'planning_ConsumptionNoteDetails'
+        );
         foreach ($mvcArr as $master => $details) {
-            
-           
+        
         
         //Вложени и върнати артикули по протоколи, които са в нишките на избраните задания
             $pQuery = $details::getQuery();
@@ -214,16 +216,16 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
             $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
             $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
-             
+            
             
             $pQuery->where(array("#valior >= '[#1#]' AND #valior <= '[#2#]'",$rec->from . ' 00:00:00',$rec->to . ' 23:59:59'));
-           
+            
             
             $pQuery->where("#state != 'rejected'");
             $pQuery->where("#canStore != 'no'");
             
             //Ако има избрани задания, вадим само от техните нишки
-            if(!empty($jobsThreadArr)){
+            if (!empty($jobsThreadArr)) {
                 $pQuery->in('threadId', ($jobsThreadArr));
             }
             
@@ -240,7 +242,6 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             }
             
             while ($pRec = $pQuery->fetch()) {
-               
                 $consumedQuantity = $returnedQuantity = $pRec->quantity;
                 
                 if ($master == 'planning_ReturnNotes') {
@@ -252,18 +253,39 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                 
                 $name = cat_Products::fetch($pRec->productId)->name;
                 
-                $id = $pRec->productId;
+                $jobId = doc_Threads::getFirstDocument($pRec->threadId)->that;
                 
-                list($year, $mounth) = explode('-',$pRec->valior);
+                list($year, $mounth) = explode('-', $pRec->valior);
+                
+                if ($rec->groupBy) {
+                    switch ($rec->groupBy) {
+                        
+                        case 'jobId':$secondPartKey = $jobId; break;
+                        
+                        case 'valior':$secondPartKey = $pRec->valior; break;
+                        
+                        case 'mounth':$secondPartKey = $mounth; break;
+                        
+                        case 'year':$secondPartKey = $year; break;
+                    
+                    }
+                    
+                    $id = $pRec->productId.'|'.$secondPartKey;
+                } else {
+                    $id = $pRec->productId;
+                }
                 
                 //Себестойност на артикула
-                $selfPrice = cat_Products::getPrimeCost($pRec->productId, null, $pRec->quantity, null);
+                $selfPrice = self::getProductPrice($pRec, $master, $rec->pricesType);
+                
+                
+                $aaa[] = $selfPrice.' | '.$name.' | '.$details.' | '.$pRec->valior;
                 
                 // Запис в масива
                 if (!array_key_exists($id, $recs)) {
                     $recs[$id] = (object) array(
                         
-                        'jobId' => doc_Threads::getFirstDocument($pRec->threadId)->that,           //Id на заданието
+                        'jobId' => $jobId,                                                         //Id на заданието
                         'valior' => $pRec->valior,
                         'mounth' => $mounth,
                         'year' => $year,
@@ -272,10 +294,10 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                         'name' => $name,                                                           //Име на артикула
                         'selfPrice' => $selfPrice,                                                 //Себестойност на артикула
                         'consumedQuantity' => $consumedQuantity,                                   //Вложено количество
-                        'consumedAmount' => $consumedQuantity*$selfPrice,                          //Стойност на вложеното количество
+                        'consumedAmount' => $consumedQuantity * $selfPrice,                          //Стойност на вложеното количество
                         
                         'returnedQuantity' => $returnedQuantity,                                   //Върнато количество
-                        'returnedAmount' => $returnedQuantity*$selfPrice,                          //Стойност на върнатото количество
+                        'returnedAmount' => $returnedQuantity * $selfPrice,                          //Стойност на върнатото количество
                         
                         'totalQuantity' => '',
                         'totalAmount' => '',
@@ -285,36 +307,29 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                     $obj = &$recs[$id];
                     
                     $obj->consumedQuantity += $consumedQuantity;
-                    $obj->consumedAmount += $consumedQuantity*$selfPrice;
+                    $obj->consumedAmount += $consumedQuantity * $selfPrice;
                     
                     $obj->returnedQuantity += $returnedQuantity;
-                    $obj->returnedAmount += $returnedQuantity*$selfPrice;
+                    $obj->returnedAmount += $returnedQuantity * $selfPrice;
                 }
             }
         }
         
-        
-        
-        
-        foreach ($recs as $key=> $val){
-            
+        foreach ($recs as $key => $val) {
             $val->totalQuantity = $val->consumedQuantity - $val->returnedQuantity;
-            $val->totalAmount = ($val->consumedQuantity - $val->returnedQuantity)* $val->selfPrice;
-            
+            $val->totalAmount = ($val->consumedQuantity - $val->returnedQuantity) * $val->selfPrice;
         }
         
         //Подредба на резултатите
         if (!is_null($recs)) {
-            $typeOrder = ($rec->orderBy == 'name' || $rec->orderBy == 'code') ? 'stri' : 'native';
-            
+            $order = ($rec->orderBy == 'name' || $rec->orderBy == 'code') ? 'stri' : 'native';
+            $orderType = $rec->orderType;
             $orderBy = $rec->orderBy;
             
-            arr::sortObjects($recs, $orderBy, 'DESC', $typeOrder);
+            arr::sortObjects($recs, $orderBy, $orderType, $order);
         }
         
         return $recs;
-        
-        
     }
     
     
@@ -365,21 +380,19 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         
         $row = new stdClass();
         
-        if ($rec->groupBy == 'valior'){
+        if ($rec->groupBy == 'valior') {
             $row->valior = $Date->toVerbal($dRec->valior);
         }
         
-        if ($rec->groupBy == 'mounth'){
-            
+        if ($rec->groupBy == 'mounth') {
             $row->mounth = $dRec->mounth.'-'.$dRec->year;
         }
         
-        if ($rec->groupBy == 'year'){
-            
+        if ($rec->groupBy == 'year') {
             $row->year = $dRec->year;
         }
         
-        if ($rec->groupBy == 'jobId'){
+        if ($rec->groupBy == 'jobId') {
             $row->jobId = planning_Jobs::getLinkToSingle($dRec->jobId);
         }
         
@@ -401,14 +414,12 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         }
         
         
-        
         if (isset($dRec->returnedQuantity)) {
             $row->returnedQuantity = $Double->toVerbal($dRec->returnedQuantity);
         }
         if (isset($dRec->returnedAmount)) {
             $row->returnedAmount = $Double->toVerbal($dRec->returnedAmount);
         }
-        
         
         
         $row->totalQuantity = $Double->toVerbal($dRec->totalQuantity);
@@ -496,7 +507,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                 $singleUrl = $Job->getUrlWithAccess($Job->getInstance(), $job);
                 
                 $jobVerb .= ht::createLink("#{$handle}", $singleUrl);
-               
+                
                 if ((countR((type_Keylist::toArray($data->rec->jobses))) - $marker) != 0) {
                     $jobVerb .= ', ';
                 }
@@ -523,4 +534,49 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
     {
     }
     
+    
+    /**
+     * Подава цена на артикула според избания тип цени
+     * само за нуждите на тази справка
+     *
+     */
+    private static function getProductPrice($pRec, $master, $priceType)
+    {
+        if ($priceType == 'accPrice') {
+            $docTypeId = core_Classes::getId($master);
+            $resonId = acc_Operations::getIdByTitle('Влагане на материал в производството');
+            
+            $masterJurnalId = acc_Journal::fetch("#docType = ${docTypeId} AND #docId = {$pRec->noteId}")->id;
+            $jdQuery = acc_JournalDetails::getQuery();
+            $jdQuery->where("#journalId = ${masterJurnalId} AND #reasonCode = ${resonId}");
+            while ($jdRec = $jdQuery->fetch()) {
+                $prodJournalId = acc_Items::fetch($jdRec->creditItem2)->objectId;
+                
+                if ($pRec->productId == $prodJournalId) {
+                    
+                    return $jdRec->creditPrice;
+                }
+            }
+        }
+        
+        if ($priceType == 'selfPrice') {
+            $primeCostlistId = price_ListRules::PRICE_LIST_COST;
+            
+            $date = price_ListToCustomers::canonizeTime($pRec->valior);
+            
+            $primeCost = price_ListRules::getPrice($primeCostlistId, $pRec->productId, $pRec->packagingId, $date);
+            
+            return $primeCost;
+        }
+        
+        if ($priceType == 'catalog') {
+            $primeCostlistId = price_ListRules::PRICE_LIST_CATALOG;
+            
+            $date = price_ListToCustomers::canonizeTime($pRec->valior);
+            
+            $catalogCost = price_ListRules::getPrice($primeCostlistId, $pRec->productId, $pRec->packagingId, $date);
+            
+            return $catalogCost;
+        }
+    }
 }
