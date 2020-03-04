@@ -163,12 +163,14 @@ class acc_Features extends core_Manager
      */
     public static function syncItem($itemId)
     {
-        $self = cls::get(get_called_class());
-        
         if (!$itemId) {
+            
+            wp($itemId);
             
             return ;
         }
+        
+        $self = cls::get(get_called_class());
         
         $itemRec = acc_Items::fetch($itemId);
         
@@ -450,5 +452,18 @@ class acc_Features extends core_Manager
         
         // Редирект към списъка на свойствата
         return new Redirect(array($this, 'list'), 'Всички свойства са синхронизирани успешно');
+    }
+    
+    
+    /**
+     * Екшън за изтриване на лошите записи
+     */
+    public function act_clearRec()
+    {
+        requireRole('admin');
+        
+        $delCnt = $this->delete("#itemId IS NULL");
+        
+        return "Изтрити записи: " . $delCnt;
     }
 }
