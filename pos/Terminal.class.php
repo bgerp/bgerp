@@ -1807,10 +1807,10 @@ class pos_Terminal extends peripheral_Terminal
         $disabledRevertClass = countR($revertDefaultUrl) ? 'navigable' : 'disabledBtn';
         $warning = countR($revertDefaultUrl) ? 'Наистина ли искате да създадете нова сторнираща бележка|*?' : null;
         
-        $row = ht::createLink('+', $addUrl, null, array('id' => "receiptnew", 'class' => "pos-notes posBtns {$disabledClass}", 'title' => 'Създаване на нова бележка'));
+        $row = ht::createLink('+ Нова бележка', $addUrl, null, array('id' => "receiptnew", 'class' => "pos-notes posBtns {$disabledClass}", 'title' => 'Създаване на нова бележка'));
         $arr['draft']['receipts']->append($row);
         
-        $revertBlock = ht::createLink('Сторно бележка', $revertDefaultUrl, $warning, array('id' => "revertReceiptBtn", 'class' => "pos-notes posBtns revertReceiptBtn {$disabledRevertClass}", 'title' => 'Създаване на нова сторно бележка'));
+        $revertBlock = ht::createLink('↶ Сторно бележка', $revertDefaultUrl, $warning, array('id' => "revertReceiptBtn", 'class' => "pos-notes posBtns revertReceiptBtn {$disabledRevertClass}", 'title' => 'Създаване на нова сторно бележка'));
         $arr['draft']['receipts']->append($revertBlock);
         
         while ($receiptRec = $query->fetch()) {

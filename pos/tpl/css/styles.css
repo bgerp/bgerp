@@ -35,10 +35,6 @@
   .wide .result-content .receiptRow.disabledBtn {
     cursor: auto !important; }
 
-#receiptnew {
-  background: #9ee284;
-  font-size: 2em; }
-
 .tools-content {
   height: 500px;
   padding: 20px 15px;
@@ -391,8 +387,11 @@
     border: 3px solid #080f56;
     padding: 8px 18px !important; }
   .posBtns.revertReceiptBtn {
-    background: #8c1919 !important;
-    color: white !important; }
+    color: #8c1919 !important; }
+  .posBtns#receiptnew,
+  .posBtns#revertReceiptBtn {
+    font-size: 1.3em;
+    background: #e6e6e6; }
   .posBtns .nowrap {
     font-size: 0.9em; }
   .posBtns.deleteRow {

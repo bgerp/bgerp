@@ -44,10 +44,7 @@
 	}	
 }
 
-#receiptnew {
-	background: #9ee284;
-	font-size: 2em;
-}
+
 
 .tools-content {
 	height: 500px;
@@ -450,8 +447,11 @@
 		padding: 8px 18px !important;
 	}
 	&.revertReceiptBtn {
-		background: #8c1919 !important;
-		color: #FFF !important;
+		color: #8c1919 !important;
+	}
+	&#receiptnew , &#revertReceiptBtn{
+		font-size:1.3em;
+		background: #e6e6e6;
 	}
 	.nowrap {
 		font-size: 0.9em;
