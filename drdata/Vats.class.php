@@ -141,7 +141,7 @@ class drdata_Vats extends core_Manager
             if (!(strlen($vat = core_Type::escape(trim($form->input()->vat))))) {
                 $res = new Redirect(array($this, 'Check'), '|Не сте въвели VAT номер');
             } else {
-                list($status, ) = $this->check($vat);
+                list($status, ) = $this->check($vat, true);
                 switch ($status) {
                     case 'valid':
                         $res = new Redirect(array($this), "|VAT номера|* <i>'{$vat}'</i> |е валиден|*");
@@ -194,10 +194,11 @@ class drdata_Vats extends core_Manager
      * Пълна проверка на VAT номер - синтактична + онлайн проверка.
      *
      * @param string $vat
+     * @param boolean $force
      *
      * @return string 'syntax', 'valid', 'invalid', 'unknown'
      */
-    public function check($vat)
+    public function check($vat, $force = false)
     {
         $canonocalVat = $this->canonize($vat);
         
@@ -222,7 +223,7 @@ class drdata_Vats extends core_Manager
             $this->save($rec, 'lastUsed');
             
             // Ако информацията за данъчния номер е остаряла или той е неизвестен и не сме го проверявали последните 24 часа
-            if ((($rec->lastChecked <= $expDate) && ($rec->lastUsed >= $lastUsedExp)) || ($rec->status == self::statusUnknown && $rec->lastChecked < $expUnknown)) {
+            if ($force || ((($rec->lastChecked <= $expDate) && ($rec->lastUsed >= $lastUsedExp)) || ($rec->status == self::statusUnknown && $rec->lastChecked < $expUnknown))) {
                 
                 // Ако не е достигнат максимума, добавяме и този запис за обновяване
                 if (countR($this->updateOnShutdown) < self::MAX_CNT_VATS_FOR_UPDATE) {
@@ -527,6 +528,35 @@ class drdata_Vats extends core_Manager
         }
         
         return $uic;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return bool
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->listFilter->FNC('vatNum', 'varchar', 'caption=VAT номер, input');
+        $data->listFilter->showFields = 'vatNum';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        $data->listFilter->input('vatNum');
+        
+        if ($data->listFilter->rec->vatNum) {
+            $data->query->like('vat', $data->listFilter->rec->vatNum);
+        }
+        
+        // Сортиране на записите по num
+        $data->query->orderBy('lastChecked', 'DESC');
+        $data->query->orderBy('lastUsed', 'DESC');
+        $data->query->orderBy('vat');
     }
     
     

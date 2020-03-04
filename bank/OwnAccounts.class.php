@@ -44,7 +44,7 @@ class bank_OwnAccounts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, bankAccountId, currency=Валута, type, blAmount=Сума';
+    public $listFields = 'title, bankAccountId, currency=Валута, type, blAmount=Сума, countries';
     
     
     /**
@@ -174,8 +174,39 @@ class bank_OwnAccounts extends core_Master
         $this->FLD('comment', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки');
         $this->FLD('operators', 'userList(roles=bank|ceo)', 'caption=Контиране на документи->Потребители,mandatory');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
+        $this->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg)', 'caption=Държави, title=Използване по подразбиране за фирми от съответните държави');
         
         $this->setDbUnique('title');
+    }
+    
+    
+    /**
+     * Връща дефолтната bankAccountId за съответна фирма
+     * 
+     * @param integer $countryId
+     * 
+     * @return integer|boolean
+     */
+    public static function getDefaultIdForCountry($countryId, $checkNull = true)
+    {
+        $query = self::getQuery();
+        $query->limit(1);
+        $query->likeKeylist('countries', $countryId);
+        
+        if ($checkNull) {
+            $query->orWhere('#countries IS NULL');
+            $query->orderBy('countries', 'DESC');
+        }
+        
+        $query->show('bankAccountId');
+        $query->orderBy('modifiedOn', 'DESC');
+        
+        if ($rec = $query->fetch()) {
+            
+            return $rec->bankAccountId;
+        }
+        
+        return false;
     }
     
     

@@ -165,6 +165,11 @@ class acc_Features extends core_Manager
     {
         $self = cls::get(get_called_class());
         
+        if (!$itemId) {
+            
+            return ;
+        }
+        
         $itemRec = acc_Items::fetch($itemId);
         
         if (empty($itemRec)) {

@@ -72,7 +72,7 @@ class drdata_VatType extends type_Varchar
         
         $res['value'] = $value = strtoupper(trim($value));
         
-        list($status, ) = $Vats->check($value);
+        list($status, ) = $Vats->check($value, true);
         
         $status = $this->statuses[$status];
         
