@@ -92,6 +92,7 @@ class email_ServiceEmails extends core_Manager
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#createdOn', 'DESC');
+        $data->query->orderBy('#id', 'DESC');
     }
     
     

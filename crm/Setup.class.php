@@ -91,7 +91,8 @@ class crm_Setup extends core_ProtoSetup
      * Описание на системните действия
      */
     public $systemActions = array(
-        array('title' => 'Ключови думи', 'url' => array('crm_Persons', 'repairKeywords', 'ret_url' => true), 'params' => array('title' => 'Ре-индексиране на визитките'))
+        array('title' => 'Ключови думи', 'url' => array('crm_Persons', 'repairKeywords', 'ret_url' => true), 'params' => array('title' => 'Ре-индексиране на визитките')),
+        array('title' => 'Промяна на условия', 'url' => array('cond_ConditionsToCustomers', 'update', 'ret_url' => true), 'params' => array('title' => 'Промяна на търговските условия на контрагентите', 'ef_icon' => 'img/16/arrow_refresh.png'))
     );
     
     

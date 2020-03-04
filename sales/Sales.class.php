@@ -435,6 +435,19 @@ class sales_Sales extends deals_DealMaster
         }
         
         $form->setOptions('priceListId', array('' => '') + price_Lists::getAccessibleOptions($rec->contragentClassId, $rec->contragentId));
+        
+        // Ако е първата продажба в папката, задава банковата сметка по подразбиране за съответна държава
+        if ($rec->folderId) {
+            if (!doc_Containers::fetch(array("#docClass = '[#1#]' AND #folderId = '[#2#]'", $mvc->getClassId(), $rec->folderId))) {
+                $cData = doc_Folders::getContragentData($rec->folderId);
+                if ($cData->countryId) {
+                    $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId);
+                    if ($defBankId) {
+                        $form->setDefault('bankAccountId', $defBankId);
+                    }
+                }
+            }
+        }
     }
     
     
@@ -1188,6 +1201,28 @@ class sales_Sales extends deals_DealMaster
         } else if (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $row->title = "<b>" . $row->title . "</b>";
             $row->title .= "  «  " . $row->folderId;
+        }
+        
+        // Ако не е избрана сметка, от дефолтните
+        if (($rec->state == 'draft' || $rec->state == 'pending') && $rec->bankAccountId && !Mode::isReadOnly() && haveRole('powerUser')) {
+            $cData = doc_Folders::getContragentData($rec->folderId);
+            $bRecCountries = bank_OwnAccounts::fetchField(array("#bankAccountId = '[#1#]'", $rec->bankAccountId), 'countries');
+            
+            $defBankId = null;
+            if (!isset($bRecCountries)) {
+                $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId, false);
+            } else {
+                if (!type_Keylist::isIn($cData->countryId, $bRecCountries)) {
+                    $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId);
+                }
+            }
+            
+            if ($defBankId) {
+                $bRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $defBankId));
+                $errorStr = '|Има нова банкова сметка за тази държава|*: ' . bank_OwnAccounts::getVerbal($bRec, 'title');
+            }
+            
+            $row->bankAccountId = ht::createHint($row->bankAccountId, $errorStr, 'warning');
         }
         
         core_Lg::pop();
