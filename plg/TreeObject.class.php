@@ -466,8 +466,8 @@ class plg_TreeObject extends core_Plugin
                 $features[$keyVerbal] = $nameVerbal;
                 
                 // Ако е последното листо, то да си има стойност себе си
-                if ($keyVerbal != $nameVerbal) {
-                    if (!$mvc->fetchField("#{$mvc->parentFieldName} = {$rec->id}")) {
+                if ($rec->parentId) {
+                    if ($mvc->fetchField("#{$mvc->parentFieldName} = {$rec->parentId}")) {
                         $keyVerbal .= " » {$nameVerbal}";
                         $features[$keyVerbal] = $nameVerbal;
                     }
