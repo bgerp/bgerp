@@ -235,7 +235,8 @@ class acc_Features extends core_Manager
                 
                 // Обновяване при нужда
                 if ($update) {
-                    $self->save($rec, null, 'REPLACE');
+                    $mode = $rec->id ? null : 'REPLACE';
+                    $self->save($rec, null, $mode);
                 }
                 
                 // Запомняме всички обновени свойства
