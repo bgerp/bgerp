@@ -1097,23 +1097,4 @@ class acc_Items extends core_Manager
         
         return $res;
     }
-    
-    
-    /**
-     * Екшън за синхронизиране на записите
-     */
-    function act_SyncItems()
-    {
-        requireRole('admin');
-        
-        core_App::setTimeLimit(1000);
-        
-        $query = $this->getQuery();
-        $query->show('id');
-        
-        while ($rec = $query->fetch()) {
-            // Синхронизира свойствата на перото
-            acc_Features::syncItem($rec->id);
-        }
-    }
 }
