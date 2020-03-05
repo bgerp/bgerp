@@ -91,13 +91,18 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         //Групиране на резултатите
         $fieldset->FLD('groupBy', 'enum(no=Без групиране,jobId=Задание, valior=Дата,mounth=Месец,year=Година)', 'caption=Групиране по,after=groups,single=none,refreshForm,silent');
         
+        
         //По кои цени да се смятат себестойностите
         $fieldset->FLD('pricesType', 'enum(selfPrice=Политика "Себестойност",catalog=Политика "Каталог", accPrice=Счетоводна )', 'caption=Себестойности->Стойност по,after=groupBy,single=none,silent');
         
         
         //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(valior=Дата,name=Артикул, code=Код,totalAmount=Стойност,consumedQuantity=Вложено,returnedQuantity=Върнато,total=Общо)', 'caption=Подреждане->Показател,after=pricesType,single=none,silent');
+        $fieldset->FLD('orderBy', 'enum(valior=Дата,name=Артикул, code=Код,consumedQuantity=Вложено количество,returnedQuantity=Върнато количество,totalQuantity=Резултат количество,totalAmount=Резултат стойност)', 'caption=Подреждане->Показател,after=pricesType,single=none,silent');
         $fieldset->FLD('orderType', 'enum(asc=Нарастващо,desc=Намаляващо)', 'caption=Подреждане->Подреждане,after=orderBy,single=none,silent');
+       
+        $fieldset->FLD('seeAmount', 'set(yes = )', 'caption=Покажи стойности,after=orderType,single=none');
+        
+    
     }
     
     
@@ -112,6 +117,8 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
         if ($form->isSubmitted()) {
+            
+            
         }
     }
     
@@ -131,6 +138,8 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $form->setDefault('orderBy', 'code');
         $form->setDefault('groupBy', 'no');
         $form->setDefault('orderType', 'desc');
+        $form->input('seeAmount');
+        
         
         $suggestions = array();
         foreach (keylist::toArray($rec->jobses) as $val) {
@@ -350,14 +359,18 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
         
         $fld->FLD('consumedQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Вложено->Количество');
-        $fld->FLD('consumedAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Вложено->Стойност');
-        
+        if (!is_null($rec->seeAmount)){
+            $fld->FLD('consumedAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Вложено->Стойност');
+        }
         $fld->FLD('returnedQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Върнато->Количество');
-        $fld->FLD('returnedAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Върнато->Стойност');
+        if (!is_null($rec->seeAmount)){
+            $fld->FLD('returnedAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Върнато->Стойност');
+        }
         
         $fld->FLD('totalQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Резултат->Количество');
-        $fld->FLD('totalAmount', 'double(smartRound,decimals=2)', 'caption=Резултат->Стойност');
-        
+        if (!is_null($rec->seeAmount)){
+            $fld->FLD('totalAmount', 'double(smartRound,decimals=2)', 'caption=Резултат->Стойност');
+        }
         return $fld;
     }
     
@@ -425,7 +438,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $row->totalQuantity = $Double->toVerbal($dRec->totalQuantity);
         
         $row->totalAmount = $Double->toVerbal($dRec->totalAmount);
-        
+     
         return $row;
     }
     
@@ -440,6 +453,8 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
      */
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
+       
+       
     }
     
     
@@ -465,6 +480,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN jobses-->|Избрани задания|*: [#jobses#]<!--ET_END jobses--></div></small>
                                 <small><div><!--ET_BEGIN groups-->|Групи продукти|*: [#groups#]<!--ET_END groups--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
+       
         if (isset($data->rec->from)) {
             $fieldTpl->append('<b>' .$Date->toVerbal($data->rec->from) . '</b>', 'from');
         }
