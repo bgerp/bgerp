@@ -227,7 +227,7 @@ class acc_Features extends core_Manager
                     $rec->id = $exRec->id;
                     
                     // Ако има такъв запис и той е със същата стойност не обновяваме
-                    if ($value == $exRec->value) {
+                    if (($value == $exRec->value) && ($exRec->state == $rec->state)) {
                         $update = false;
                         $self->updatedFeaturesOnItem[$itemId] = true;
                     }
