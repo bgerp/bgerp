@@ -286,10 +286,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                 
                 //Себестойност на артикула
                 $selfPrice = self::getProductPrice($pRec, $master, $rec->pricesType);
-                
-                
-                $aaa[] = $selfPrice.' | '.$name.' | '.$details.' | '.$pRec->valior;
-                
+               
                 // Запис в масива
                 if (!array_key_exists($id, $recs)) {
                     $recs[$id] = (object) array(
@@ -566,7 +563,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $docTypeId = core_Classes::getId($master);
             $resonId = acc_Operations::getIdByTitle('Влагане на материал в производството');
            
-            if (!$masterJurnalId = acc_Journal::fetch("#docType = ${docTypeId} AND #docId = {$pRec->noteId}")->id)bp($docTypeId,$pRec->noteId,$masterJurnalId);
+            if (!$masterJurnalId = acc_Journal::fetch("#docType = ${docTypeId} AND #docId = {$pRec->noteId}")->id)return;
              
             $jdQuery = acc_JournalDetails::getQuery();
             
