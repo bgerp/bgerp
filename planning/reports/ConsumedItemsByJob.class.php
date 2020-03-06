@@ -286,10 +286,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                 
                 //Себестойност на артикула
                 $selfPrice = self::getProductPrice($pRec, $master, $rec->pricesType);
-                
-                
-                $aaa[] = $selfPrice.' | '.$name.' | '.$details.' | '.$pRec->valior;
-                
+               
                 // Запис в масива
                 if (!array_key_exists($id, $recs)) {
                     $recs[$id] = (object) array(
@@ -479,6 +476,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
                                 <small><div><!--ET_BEGIN jobses-->|Избрани задания|*: [#jobses#]<!--ET_END jobses--></div></small>
                                 <small><div><!--ET_BEGIN groups-->|Групи продукти|*: [#groups#]<!--ET_END groups--></div></small>
+                                <small><div><!--ET_BEGIN pricesType-->|Стойност|*: [#pricesType#]<!--ET_END pricesType--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
        
         if (isset($data->rec->from)) {
@@ -489,6 +487,9 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $Date->toVerbal($data->rec->to) . '</b>', 'to');
         }
         
+        if (isset($data->rec->pricesType)) {
+            $fieldTpl->append('<b>' . ($data->rec->pricesType) . '</b>', 'pricesType');
+        }
         
         $marker = 0;
         if (isset($data->rec->groups)) {
@@ -561,10 +562,14 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         if ($priceType == 'accPrice') {
             $docTypeId = core_Classes::getId($master);
             $resonId = acc_Operations::getIdByTitle('Влагане на материал в производството');
-            
-            $masterJurnalId = acc_Journal::fetch("#docType = ${docTypeId} AND #docId = {$pRec->noteId}")->id;
+           
+            if (!$masterJurnalId = acc_Journal::fetch("#docType = ${docTypeId} AND #docId = {$pRec->noteId}")->id)return;
+             
             $jdQuery = acc_JournalDetails::getQuery();
+            
             $jdQuery->where("#journalId = ${masterJurnalId} AND #reasonCode = ${resonId}");
+            
+            
             while ($jdRec = $jdQuery->fetch()) {
                 $prodJournalId = acc_Items::fetch($jdRec->creditItem2)->objectId;
                 
