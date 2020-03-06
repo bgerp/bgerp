@@ -1097,4 +1097,56 @@ class acc_Items extends core_Manager
         
         return $res;
     }
+    
+    
+    /**
+     * Функция, която се вика по крон по разписание
+     * Синхронизира перата
+     */
+    public static function callback_SyncItems()
+    {
+        $clsName = get_called_class();
+        
+        $pKey = $clsName . '|callbackSyncItems';
+        
+        $clsInst = cls::get($clsName);
+        
+        $maxTime = dt::addSecs(40);
+        
+        $kVal = core_Permanent::get($pKey);
+        
+        $query = $clsInst->getQuery();
+        
+        if (isset($kVal)) {
+            $query->where(array("#id > '[#1#]'", $kVal));
+        }
+        
+        if (!$query->count()) {
+            core_Permanent::remove($pKey);
+            
+            $clsInst->logDebug('Приключи синхронизирането на перата');
+            
+            return ;
+        }
+        
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('acc_Items', 'SyncItems', null, $callOn);
+        
+        $query->orderBy('id', 'ASC');
+        
+        $query->show('id');
+        
+        while ($rec = $query->fetch()) {
+            if (dt::now() >= $maxTime) {
+                break;
+            }
+            
+            acc_Features::syncItem($rec->id);
+            
+            $maxId = $rec->id;
+        }
+        
+        $clsInst->logDebug('Синхронизиране на перата до id=' . $maxId);
+        core_Permanent::set($pKey, $maxId, 100000);
+    }
 }

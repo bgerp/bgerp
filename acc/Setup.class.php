@@ -589,12 +589,6 @@ class acc_Setup extends core_ProtoSetup
         $delCnt = acc_Features::delete("#itemId IS NULL");
         acc_Features::logDebug("Изтрити записи: " . $delCnt);
         
-        // Синхронизираме записите
-        $query = acc_Items::getQuery();
-        $query->show('id');
-        while ($rec = $query->fetch()) {
-            // Синхронизира свойствата на перото
-            acc_Features::syncItem($rec->id);
-        }
+        core_CallOnTime::setCall('acc_Items', 'SyncItems', null, dt::addSecs(120));
     }
 }
