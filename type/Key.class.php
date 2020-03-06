@@ -246,6 +246,20 @@ class type_Key extends type_Int
     
     
     /**
+     * Помощна функция, която може да извика fetchVal
+     * 
+     * @param int $value
+     *
+     * @return object
+     */
+    public function getRecForVal(&$value)
+    {
+        
+        return $this->fetchVal($value);
+    }
+    
+    
+    /**
      * Връща възможните стойности за ключа
      *
      * @param string $value
