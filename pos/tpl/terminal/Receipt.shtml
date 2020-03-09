@@ -3,6 +3,7 @@
 	<div class="receiptHeader onlyPrint">
 		<!--ET_BEGIN RECEIPT_HEADER-->[#RECEIPT_HEADER#]
 		<div class="receipt-title">
+			<!--ET_BEGIN MY_COMPANY--><div class='onlyPrint'><b>[#MY_COMPANY#]</b></div><!--ET_END MY_COMPANY-->
 			<div>№ [#id#]/[#valior#]</div></div>
 		<!--ET_BEGIN SUB_TITLE--><div class='onlyPrint'>[#SUB_TITLE#]</div><!--ET_END SUB_TITLE-->
 		<!--ET_BEGIN revertId--><div class='terminal-revert-id newLine'>|Сторнира|* № [#revertId#]</div><!--ET_END revertId-->

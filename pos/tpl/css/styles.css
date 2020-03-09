@@ -772,21 +772,20 @@ only screen and (max-width: 360px) {
       width: 73px !important;
       height: 73px !important; } }
 
-@media print {
-  .onlyPrint {
+  .printing .onlyPrint {
     display: block; }
-
-  .red {
+  .printing .red {
     color: black !important; }
-
-  .discountText {
+  .printing .discountText {
     color: black !important; }
-
-  #receipt-table .highlighted {
+  .printing #receipt-table .highlighted {
     border-left: 0px; }
-
-  .paidCaption,
-  .changePositive,
-  .changeNegative {
-    color: black !important; } }
+  .printing .paidCaption,
+  .printing .changePositive,
+  .printing .changeNegative {
+    color: black !important; }
+  .printing #single-receipt-holder {
+    background: white !important; }
+  .printing .receiptHeader {
+    text-align: center !important; }
 

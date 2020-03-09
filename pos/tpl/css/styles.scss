@@ -908,7 +908,7 @@ th.revertCaption, td.revertCaption {
 	}
 }
 
-@media print {
+.printing {
 	.onlyPrint {
 		display: block;
 	}
@@ -926,6 +926,12 @@ th.revertCaption, td.revertCaption {
 	
 	.paidCaption, .changePositive, .changeNegative {
 		color:black !important;
+	}
+	#single-receipt-holder {
+		background: #fff !important;
+	}
+	.receiptHeader {
+		text-align: center !important;
 	}
 }
 
