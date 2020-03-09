@@ -44,7 +44,7 @@ class bank_OwnAccounts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, bankAccountId, currency=Валута, type, blAmount=Сума, countries';
+    public $listFields = 'title, bankAccountId, currency=Валута, type, blAmount=Сума';
     
     
     /**
