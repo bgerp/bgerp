@@ -454,17 +454,4 @@ class acc_Features extends core_Manager
         // Редирект към списъка на свойствата
         return new Redirect(array($this, 'list'), 'Всички свойства са синхронизирани успешно');
     }
-    
-    
-    /**
-     * Екшън за изтриване на лошите записи
-     */
-    public function act_clearRec()
-    {
-        requireRole('admin');
-        
-        $delCnt = $this->delete("#itemId IS NULL");
-        
-        return "Изтрити записи: " . $delCnt;
-    }
 }

@@ -184,7 +184,8 @@ class acc_Setup extends core_ProtoSetup
         'acc_ValueCorrections',
         'acc_FeatureTitles',
         'acc_CostAllocations',
-        'migrate::updateFeatures'
+        'migrate::updateFeatures',
+        'migrate::fixFeaturesAndItems1020'
     );
     
     
@@ -576,5 +577,18 @@ class acc_Setup extends core_ProtoSetup
         if(countR($valuesToSave)){
             $Features->saveArray($valuesToSave, 'id,value');
         }
+    }
+    
+    
+    /**
+     * Миграция за изтриване на празните записи в acc_Features и синхронизиране на acc_Items
+     */
+    function fixFeaturesAndItems1020()
+    {
+        // Изтриване ненужните записи
+        $delCnt = acc_Features::delete("#itemId IS NULL");
+        acc_Features::logDebug("Изтрити записи: " . $delCnt);
+        
+        core_CallOnTime::setCall('acc_Items', 'SyncItems', null, dt::addSecs(120));
     }
 }
