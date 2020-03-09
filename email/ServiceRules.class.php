@@ -94,6 +94,7 @@ class email_ServiceRules extends core_Manager
     {
         $this->FLD('systemId', 'varchar(32)', 'caption=Ключ,input=none');
         $this->FLD('email', 'varchar', 'caption=Условие->Изпращач', array('attr' => array('style' => 'width: 350px;')));
+        $this->FLD('emailTo', 'varchar', 'caption=Условие->Получател', array('attr' => array('style' => 'width: 350px;')));
         $this->FLD('subject', 'varchar', 'caption=Условие->Относно', array('attr' => array('style' => 'width: 350px;')));
         $this->FLD('body', 'varchar', 'caption=Условие->Текст', array('attr' => array('style' => 'width: 350px;')));
         $this->FLD('classId', 'class(interface=email_ServiceRulesIntf, select=title)', 'caption=Обработвач, mandatory', array('attr' => array('style' => 'width: 350px;')));
@@ -121,6 +122,7 @@ class email_ServiceRules extends core_Manager
         $sDataArr['body'] = $mime->textPart;
         $sDataArr['email'] = $mime->getFromEmail();
         $sDataArr['subject'] = $mime->getSubject();
+        $sDataArr['emailTo'] = $mime->getToEmail();
         
         static $allFilters = null;
         

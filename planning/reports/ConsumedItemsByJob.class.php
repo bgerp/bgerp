@@ -468,6 +468,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
+        $Enum = cls::get('type_Enum', array('options' =>array('selfPrice'=>'политика"Себестойност"','catalog'=>'политика"Каталог"', 'accPrice'=>'Счетоводна' )));
         $currency = 'лв.';
         
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
@@ -488,7 +489,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         }
         
         if (isset($data->rec->pricesType)) {
-            $fieldTpl->append('<b>' . ($data->rec->pricesType) . '</b>', 'pricesType');
+            $fieldTpl->append('<b>' . $Enum->toVerbal($data->rec->pricesType) . '</b>', 'pricesType');
         }
         
         $marker = 0;
@@ -564,7 +565,8 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $resonId = acc_Operations::getIdByTitle('Влагане на материал в производството');
            
             if (!$masterJurnalId = acc_Journal::fetch("#docType = ${docTypeId} AND #docId = {$pRec->noteId}")->id)return;
-             
+            //$masterJurnalId = acc_Journal::fetch("#docType = ${docTypeId} AND #docId = {$pRec->noteId}")->id;
+            
             $jdQuery = acc_JournalDetails::getQuery();
             
             $jdQuery->where("#journalId = ${masterJurnalId} AND #reasonCode = ${resonId}");
