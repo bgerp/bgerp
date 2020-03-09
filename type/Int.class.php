@@ -49,6 +49,8 @@ class type_Int extends core_Type
         parent::init($params);
         
         $this->params['allowHex'] = 'allowHex';
+        
+        $this->params['inputmode'] = 'decimal';
     }
     
     

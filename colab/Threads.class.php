@@ -328,7 +328,7 @@ class colab_Threads extends core_Manager
     {
         parent::prepareListFilter_($data);
         
-        $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently');
+        $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently,inputmode=search');
         $data->listFilter->setField('folderId', 'input=hidden,silent');
         $data->listFilter->FNC(
             'order',

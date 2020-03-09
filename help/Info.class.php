@@ -84,7 +84,7 @@ class help_Info extends core_Master
         $this->FLD('lg', 'varchar(2)', 'caption=Език,mandatory,silent');
         $this->FLD('text', 'richtext(bucket=Notes)', 'caption=Информация, hint=Текст на информацията за помощ');
         $this->FLD('url', 'url', 'caption=URL, hint=Линк към документацията на bgerp.com');
-        $this->FLD('kWords', 'text(rows=2)', 'caption=Ключови думи');
+        $this->FLD('kWords', 'text(rows=2)', 'caption=Ключови думи,inputmode=search');
         
         $this->setDbUnique('class,lg');
     }

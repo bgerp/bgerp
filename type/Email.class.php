@@ -33,6 +33,8 @@ class type_Email extends type_Varchar
     {
         setIfNot($params['params']['ci'], 'ci');
         
+        $this->params['inputmode'] = 'email';
+        
         parent::init($params);
     }
     

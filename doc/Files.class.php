@@ -470,7 +470,7 @@ class doc_Files extends core_Manager
         }
         
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently');
+        $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently,inputmode=search');
         $data->listFilter->FNC('range', 'varchar', 'caption=Обхват,input,silent,autoFilter');
         
         $data->listFilter->setOptions('range', $suggArr);
