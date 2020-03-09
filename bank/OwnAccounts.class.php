@@ -80,6 +80,12 @@ class bank_OwnAccounts extends core_Master
     
     
     /**
+     * Кой може да редактира?
+     */
+    public $canEdit = 'ceo, admin, bankMaster';
+    
+    
+    /**
      * Кой може да го разглежда?
      */
     public $canList = 'bank,ceo';
