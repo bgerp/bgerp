@@ -44,7 +44,7 @@ class bank_OwnAccounts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, bankAccountId, currency=Валута, type, blAmount=Сума, countries';
+    public $listFields = 'title, bankAccountId, currency=Валута, type, blAmount=Сума';
     
     
     /**
@@ -77,6 +77,12 @@ class bank_OwnAccounts extends core_Master
      * Кой може да пише?
      */
     public $canWrite = 'ceo, admin';
+    
+    
+    /**
+     * Кой може да редактира?
+     */
+    public $canEdit = 'ceo, admin, bankMaster';
     
     
     /**
