@@ -23,6 +23,17 @@ class type_Url extends type_Varchar
     
     
     /**
+     * Инициализиране на типа
+     */
+    public function init($params = array())
+    {
+        parent::init($params);
+        
+        $this->params['inputmode'] = 'url';
+    }
+    
+    
+    /**
      * Преобразуване от вътрешно представяне към вербална стойност
      */
     public function toVerbal($value)
