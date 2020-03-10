@@ -30,6 +30,16 @@ class drdata_PhoneType extends type_Varchar
     
     
     /**
+     * Инициализиране на типа
+     */
+    public function init($params = array())
+    {
+        parent::init($params);
+        
+        $this->params['inputmode'] = 'tel';
+    }
+    
+    /**
      * Връща подадения номер като стринг като пълен номер
      *
      * @param string $number   - Номера

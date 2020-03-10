@@ -48,6 +48,17 @@ class type_Double extends core_Type
     
     
     /**
+     * Инициализиране на типа
+     */
+    public function init($params = array())
+    {
+        parent::init($params);
+        
+        $this->params['inputmode'] = 'numeric';
+    }
+    
+    
+    /**
      * Намира стойността на числото, от стринга, който е въвел потребителя
      * Входния стринг може да не е форматиран добре, също може да съдържа прости
      * аритметически изрази

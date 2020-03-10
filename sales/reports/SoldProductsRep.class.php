@@ -62,11 +62,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     {
         $fieldset->FLD('compare', 'enum(no=Без, previous=Предходен,month=По месеци, year=Миналогодишен)', 'caption=Сравнение,after=title,refreshForm,single=none,silent');
         
-        $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none,mandatory,silent');
-        $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory,silent');
+        $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none,refreshForm,mandatory,silent');
+        $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,refreshForm,mandatory,silent');
         
-        $fieldset->FLD('firstMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 1,after=compare,single=none,input=none,silent');
-        $fieldset->FLD('secondMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 2,after=firstMonth,single=none,input=none,silent');
+        $fieldset->FLD('firstMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 1,after=compare,refreshForm,single=none,input=none,silent');
+        $fieldset->FLD('secondMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 2,after=firstMonth,refreshForm,single=none,input=none,silent');
         
         $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци,single=none,after=to,mandatory');
         
@@ -74,7 +74,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,after=contragent,single=none');
         
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Група артикули,after=crmGroup,single=none');
-        $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Артикули->Артикули,after=group,single=none,class=w100');
+        $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Артикули->Артикули,after=group,single=none,class=w100');
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,maxRadio=3,columns=3,after=productId,single=none');
         $fieldset->FLD('quantityType', 'enum(shipped=Експедирани, ordered=Поръчани)', 'caption=Артикули->Количества,maxRadio=2,columns=2,after=articleType');
         
@@ -129,6 +129,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if (($form->rec->seeByContragent == 'yes') && (($form->rec->grouping == 'yes'))) {
                 $form->setError('grouping', 'Когато е избрана разбивка по контрагент, полето ГРУПИРАНЕ трябва да бъде ПО АРТИКУЛИ');
             }
+            
+            if (($form->rec->seeByContragent == 'yes') && (($form->rec->compare != 'no'))) {
+                $form->setError('compare', 'Когато е избрана разбивка по контрагент, трябва да бъде без сравнение');
+            }
         }
     }
     
@@ -144,7 +148,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
-        $suggestions = array();
+        $suggestions = $prodSuggestions = $prodSalesArr = array();
         
         
         if ($rec->compare == 'month') {
@@ -154,11 +158,28 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $form->setField('secondMonth', 'input');
         }
         
+        $today = dt::today();
+        $from = dt::addMonths(1, $today);
+        $form->setDefault('from', $from);
+        $form->setDefault('to', $today);
+        
+        $periodStart = $rec->from;
+        $periodEnd = $rec->to;
+        
         $monthSugg = (acc_Periods::fetchByDate(dt::today())->id);
         
         $form->setDefault('firstMonth', $monthSugg);
         
         $form->setDefault('secondMonth', $monthSugg);
+        
+        
+        if ($rec->compare == 'month') {
+            $periodStart = acc_Periods::fetch($rec->firstMonth)->start;
+            $periodEnd = acc_Periods::fetch($rec->secondMonth)->end;
+            
+            $periodStart1 = acc_Periods::fetch($rec->secondMonth)->start;
+            $periodEnd1 = acc_Periods::fetch($rec->secondMonth)->end;
+        }
         
         $form->setDefault('articleType', 'all');
         
@@ -175,6 +196,49 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $form->setDefault('order', 'desc');
         
         $form->setDefault('quantityType', 'shipped');
+        
+        $shipmentdetQuery = store_ShipmentOrderDetails::getQuery();
+        
+        $shipmentdetQuery->EXT('state', 'store_ShipmentOrders', 'externalName=state,externalKey=shipmentId');
+        
+        $shipmentdetQuery->EXT('valior', 'store_ShipmentOrders', 'externalName=valior,externalKey=shipmentId');
+        
+        $shipmentdetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
+        
+        $shipmentdetQuery->where("#state != 'rejected' AND #state != 'closed' AND #state != 'draft'");
+        $shipmentdetQuery->show('productId');
+        
+        $prodArr = arr::extractValuesFromArray($shipmentdetQuery->fetchAll(), 'productId');
+        
+        $salesDetQuery = sales_SalesDetails::getQuery();
+        
+        $salesDetQuery->EXT('state', 'store_ShipmentOrders', 'externalName=state,externalKey=saleId');
+        
+        $salesDetQuery->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
+        
+        $salesDetQuery->EXT('contoActions', 'sales_Sales', 'externalName=contoActions,externalKey=saleId');
+        
+        $salesDetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
+        
+        $salesDetQuery->where("#state != 'rejected' AND #state != 'closed' AND #state != 'draft'");
+        
+        $salesDetQuery->where("#contoActions  Like '%ship%'");
+        
+        $salesDetQuery->show('productId');
+        
+        $prodSalesArr = arr::extractValuesFromArray($salesDetQuery->fetchAll(), 'productId');
+        
+        $prodArr = array_unique(array_merge($prodArr, $prodSalesArr));
+        
+        if (!empty($prodArr)) {
+            foreach ($prodArr as $val) {
+                $prodSuggestions[$val] = cat_Products::getTitleById($val);
+            }
+        }
+        
+        asort($prodSuggestions);
+        
+        $form->setSuggestions('products', $prodSuggestions);
         
         //Масив с предложения за избор на контрагент $suggestions[]
         $salesQuery = sales_Sales::getQuery();
@@ -330,7 +394,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         if ($rec->products || $rec->group) {
             $prodsArr = array();
             
-            if (!$rec->group && $rec->products) { 
+            if (!$rec->group && $rec->products) {
                 $prodsArr = keylist::toArray($rec->products);
                 $query->in('productId', $prodsArr);
             }
@@ -345,16 +409,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $query->likeKeylist('groupMat', $rec->group);
             }
         }
-//         //Филтър по групи артикули
-//         if (isset($rec->group)) {
-//             $query->likeKeylist('groupMat', $rec->group);
-//         }
-        
-//         //Филтър по артикули
-//         if (isset($rec->products)) {
-//             $prodsArr = keylist::toArray($rec->products);
-//             $query->in('productId', $prodsArr);
-//         }
         
         //Филтър за стандартни артикули
         if ($rec->articleType != 'all') {
@@ -691,7 +745,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             
             arr::sortObjects($recs, $orderBy, $rec->order, $typeOrder);
         }
-
+        
         //Добавям ред за ОБЩИТЕ суми
         $totalArr['total'] = (object) array(
             'totalValue' => $totalValue,
@@ -732,7 +786,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         if ($export === false) {
             if ($rec->grouping == 'no') {
-                if ($rec->seeByContragent){
+                if ($rec->seeByContragent) {
                     $fld->FLD('contragent', 'keylist(mvc=doc_Folders,select=name)', 'caption=Контрагент');
                 }
                 $fld->FLD('code', 'varchar', 'caption=Код');
@@ -959,8 +1013,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         //Ако имаме избрано показване "ПО АРТИКУЛИ"
         if ($rec->grouping == 'no') {
-            
-            
             $row->contragent = doc_Folders::getTitleById($dRec->contragent);
             
             if (isset($dRec->code)) {
