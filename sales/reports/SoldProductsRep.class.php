@@ -159,7 +159,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         
         $today = dt::today();
-        $from = dt::addMonths(1, $today);
+        $from = dt::addMonths(-1, $today);
         $form->setDefault('from', $from);
         $form->setDefault('to', $today);
         
