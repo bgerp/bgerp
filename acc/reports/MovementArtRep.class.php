@@ -297,7 +297,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 $ordered += $res;
             }
         }
-        
+     
         return $ordered;
     }
     
@@ -314,7 +314,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
      */
     protected function getGroupedTr($columnsCount, $groupValue, $groupVerbal, &$data)
     {
-        $baseQuantity = $blQuantity = $delivered = $converted = $sold = '';
+        $baseQuantity = $blQuantity = $delivered = $produced = $converted = $sold = '';
         foreach (array('baseQuantity', 'blQuantity', 'delivered', 'produced', 'converted', 'sold') as $totalFld) {
             ${$totalFld} = core_Type::getByName('double(decimals=2)')->toVerbal($data->totals[$groupValue][$totalFld]);
             if ($data->totals[$groupValue][$totalFld] < 0) {
@@ -322,7 +322,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
             }
         }
         
-        $groupVerbal = "<td style='padding-top:9px;padding-left:5px;' colspan='3'><b>" . $groupVerbal . "</b></td><td style='text-align:right'><b>{$baseQuantity}</b></td><td style='text-align:right'><b>{$delivered}</b></td><td style='text-align:right'><b>{$produces}</b></td><td style='text-align:right'><b>{$converted}</b></td><td style='text-align:right'><b>{$sold}</b></td><td style='text-align:right'><b>{$blQuantity}</b></td>";
+        $groupVerbal = "<td style='padding-top:9px;padding-left:5px;' colspan='3'><b>" . $groupVerbal . "</b></td><td style='text-align:right'><b>{$baseQuantity}</b></td><td style='text-align:right'><b>{$delivered}</b></td><td style='text-align:right'><b>{$produced}</b></td><td style='text-align:right'><b>{$converted}</b></td><td style='text-align:right'><b>{$sold}</b></td><td style='text-align:right'><b>{$blQuantity}</b></td>";
         
         return $groupVerbal;
     }
