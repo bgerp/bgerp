@@ -216,8 +216,8 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 if ($convRes3 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61102', array(null, $itemId, null))) {
                     $obj->converted -= $convRes3[$itemId]->quantity;
                 }
-                
-                // Прозведено от протокол за производство (на вложеното с върнатото от производството детайлно)
+
+                // Произведено от протокол за производство (на вложеното с върнатото от производството детайлно)
                 if ($prodRes1 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61101', array(null, $itemId, null))) {
                     $obj->produced += $prodRes1[$itemId]->quantity;
                 }
@@ -240,6 +240,21 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 }
                 
                 $recs[$productRec->id] = $obj;
+            }
+            
+            // Приспадане на вложеното с производството детайлно
+            if($jRecs[$productRec->id]->docType == '323') { 
+                $itemId = $productItems[$productRec->id];
+                
+                if ($dRes1 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61101', array(null, $itemId, null))) {
+                
+                    $obj->converted -= $dRes1[$itemId]->quantity;
+                }
+
+                // Приспадане на вложеното производството бездетайлно
+                if ($dRes2 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61102', array(null, $itemId, null))) {
+                    $obj->converted -= $dRes2[$itemId]->quantity;
+                }
             }
         }
         
