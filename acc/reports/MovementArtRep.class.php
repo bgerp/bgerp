@@ -176,7 +176,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         foreach ($productArr as $productRec) {
             if ($itemId = $productItems[$productRec->id]) {
                 $baseQuantity = (isset($baseQuantities[$productRec->id])) ? $baseQuantities[$productRec->id] : 0;
-                $obj = (object) array('baseQuantity' => $baseQuantity, 'delivered' => 0, 'converted' => 0, 'produces' => 0, 'sold' => 0, 'blQuantity' => 0);
+                $obj = (object) array('baseQuantity' => $baseQuantity, 'delivered' => 0, 'converted' => 0, 'produced' => 0, 'sold' => 0, 'blQuantity' => 0);
                 $obj->code = (!empty($productRec->code)) ? $productRec->code : "Art{$productRec->id}";
                 $obj->measureId = $productRec->measureId;
                 $obj->productId = $productRec->id;
@@ -232,7 +232,6 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                     $obj->sold = $soldRes[$itemId]->quantity;
                 }
                 
-                
                 // Крайно количество
                 $obj->blQuantity = $baseQuantity;
                 if ($blRes = acc_Balances::getBlQuantities($jRecs, '321', null, null, array(null, $itemId, null))) {
@@ -241,23 +240,13 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 
                 $recs[$productRec->id] = $obj;
             }
-            
-            // Приспадане на вложеното с производството детайлно
-            if($jRecs[$productRec->id]->docType == '323') { 
-                $itemId = $productItems[$productRec->id];
-                
-                if ($dRes1 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61101', array(null, $itemId, null))) {
-                
-                    $obj->converted -= $dRes1[$itemId]->quantity;
-                }
 
-                // Приспадане на вложеното производството бездетайлно
-                if ($dRes2 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61102', array(null, $itemId, null))) {
-                    $obj->converted -= $dRes2[$itemId]->quantity;
-                }
-            }
         }
-        
+       
+        foreach ($recs as $id=>$r) {
+            $r->converted -= $r->produced;
+        }
+        //bp($recs);
         $data->groupByField = 'groupId';
         $recs = $this->groupRecs($recs, $rec->group, $data);
         
