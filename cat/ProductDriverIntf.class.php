@@ -87,6 +87,20 @@ class cat_ProductDriverIntf extends embed_DriverIntf
     
     
     /**
+     * Връща материалите, необходими за производството на посоченото количество
+     *
+     * @param int $id
+     * @param double $quantity
+     *
+     * @return array()
+     */
+    public function getMaterialsForProduction($id, $quantity)
+    {
+        return $this->class->getMaterialsForProduction($id, $quantity);
+    }
+
+
+    /**
      * Подготвя данните за показване на описанието на драйвера
      *
      * @param stdClass $data
