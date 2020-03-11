@@ -16,9 +16,10 @@
  */
 class bank_Register extends core_Manager
 {
-    public $title = 'Регистър за банковите транзакции';
+    public $title = 'Регистър за банковите трансакции';
     
-    
+    public $singleTitle = 'Банкова трансакция';
+
     /**
      * Неща, подлежащи на начално зареждане
      */
