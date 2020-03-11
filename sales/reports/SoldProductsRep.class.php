@@ -439,8 +439,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
             
             //Ключ на масива
-            $id = $recPrime->productId.' | '.$recPrime->folderId;
-            
+            $id = ($rec->seeByContragent == 'yes') ? $recPrime->productId.' | '.$recPrime->folderId : $recPrime->productId;
+             
             //Код на артикула
             $artCode = $recPrime->code ? $recPrime->code : "Art{$recPrime->productId}";
             
