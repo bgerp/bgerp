@@ -381,7 +381,7 @@ class core_Html
         setIfNot($attr['data-hiddenName'], $name);
         
         // Очакваме да има поне една опция
-        expect($optionsCnt > 0, "'Липсват опции за '{$name}'");
+        expect($optionsCnt > 0, "Липсват опции за '{$name}'");
         
         // Когато имаме само една опция, правим readOnly <input>
         if ($optionsCnt == 1) {

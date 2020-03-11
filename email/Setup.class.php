@@ -398,6 +398,8 @@ class email_Setup extends core_ProtoSetup
         'email_ThreadHandles',
         'email_SendOnTime',
         'email_SpamRules',
+        'email_ServiceRules',
+        'email_ServiceRulesData',
         'migrate::repairSpamScore1219',
     );
     

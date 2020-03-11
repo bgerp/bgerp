@@ -271,7 +271,7 @@ class bank_Register extends core_Manager
         } else {
             $query->where("#state = 'waiting' AND #createdOn > '{$timeLine}'");
         }
-        
+         
         while ($rec = $query->fetch()) {
             $cnt++;
             

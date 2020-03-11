@@ -89,12 +89,6 @@ class cat_products_Packagings extends core_Detail
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'eanCode';
-    
-
-    /**
-     * По подразбиране колко резултата да показва на страница
-     */
-    public $listItemsPerPage = 200;
 
 
     /**
@@ -103,7 +97,7 @@ class cat_products_Packagings extends core_Detail
     public function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden, silent');
-        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'tdClass=leftCol,caption=Опаковка,mandatory,smartCenter,removeAndRefreshForm=quantity|tareWeight|sizeWidth|sizeHeight|sizeDepth,silent');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'tdClass=leftCol,caption=Опаковка,mandatory,smartCenter,removeAndRefreshForm=quantity|tareWeight|sizeWidth|sizeHeight|sizeDepth|templateId,silent');
         $this->FLD('quantity', 'double(Min=0,smartRound)', 'input,caption=Количество,mandatory,smartCenter');
         $this->FLD('isBase', 'enum(yes=Да,no=Не)', 'caption=Основна,mandatory,maxRadio=2');
         $this->FLD('eanCode', 'gs1_TypeEan(mvc=cat_products_Packagings,field=eanCode)', 'caption=EAN');
@@ -390,9 +384,11 @@ class cat_products_Packagings extends core_Detail
             }
         }
         
+        $form->setField('templateId', 'input=none');
         if (isset($rec->packagingId)) {
             $uomType = cat_UoM::fetchField($rec->packagingId, 'type');
             if ($uomType != 'uom') {
+                $form->setField('templateId', 'input');
                 
                 // Намиране на наличните шаблони
                 $packTemplateOptions = cat_PackParams::getTemplates($rec->packagingId);
@@ -408,8 +404,6 @@ class cat_products_Packagings extends core_Detail
                         $form->setDefault('tareWeight', $pRec->tareWeight);
                     }
                 }
-            } else {
-                $form->setField('templateId', 'input=none');
             }
         }
         

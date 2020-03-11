@@ -163,6 +163,13 @@ class acc_Features extends core_Manager
      */
     public static function syncItem($itemId)
     {
+        if (!$itemId) {
+            
+            wp($itemId);
+            
+            return ;
+        }
+        
         $self = cls::get(get_called_class());
         
         $itemRec = acc_Items::fetch($itemId);
@@ -220,7 +227,7 @@ class acc_Features extends core_Manager
                     $rec->id = $exRec->id;
                     
                     // Ако има такъв запис и той е със същата стойност не обновяваме
-                    if ($value == $exRec->value) {
+                    if (($value == $exRec->value) && ($exRec->state == $rec->state)) {
                         $update = false;
                         $self->updatedFeaturesOnItem[$itemId] = true;
                     }
@@ -228,7 +235,8 @@ class acc_Features extends core_Manager
                 
                 // Обновяване при нужда
                 if ($update) {
-                    $self->save($rec, null, 'REPLACE');
+                    $mode = $rec->id ? null : 'REPLACE';
+                    $self->save($rec, null, $mode);
                 }
                 
                 // Запомняме всички обновени свойства
