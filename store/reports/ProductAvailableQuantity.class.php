@@ -450,7 +450,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             }
         }
         
-        if (!is_null($recs)) {
+        if (!is_null($recs) && $rec->orderBy) {
             arr::sortObjects($recs, $rec->orderBy, 'asc');
         }
         
