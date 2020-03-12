@@ -50,7 +50,7 @@ class type_Int extends core_Type
         
         $this->params['allowHex'] = 'allowHex';
         
-        $this->params['inputmode'] = 'decimal';
+        $this->params['inputmode'] = 'numeric';
     }
     
     
