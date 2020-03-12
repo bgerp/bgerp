@@ -625,7 +625,7 @@ class frame2_Reports extends embed_Manager
                     core_Statuses::newStatus('Грешка при обновяване на справката|*!', 'error');
                 }
                 
-                $this->logErr('Грешка при обновяване на справката', $rec->id);
+                self::logErr('Грешка при обновяване на справката', $rec->id);
             }
             
             $me->setNewUpdateTimes[$rec->id] = $rec;
