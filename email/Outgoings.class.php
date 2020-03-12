@@ -1966,15 +1966,26 @@ class email_Outgoings extends core_Master
                 
                 $contrData->groupEmails = mb_strtolower($contrData->groupEmails);
                 
-                $emailsArr = type_Emails::toArray($contrData->groupEmails);
-                
                 if ($rec->originId) {
                     $oDoc = doc_Containers::getDocument($rec->originId);
+                    
+                    // Ако трябва да е се използва първия имейл от списъка
+                    if ($oDoc->forceFirstEmail === true) {
+                        if ($contrData->email) {
+                            $eArr = type_Emails::toArray($contrData->email);
+                            if ($eArr[0]) {
+                                $contragentData->groupEmails = $contragentData->groupEmails ? $contragentData->email . ', ' . $contragentData->groupEmails : $contragentData->email;
+                                $contragentData->email = $eArr[0];
+                            }
+                        }
+                    }
+                    
                     $oRec = $oDoc->fetch();
                     $fromEml = $oRec->fromEml;
                     $fromEml = trim($fromEml);
                     $fromEml = mb_strtolower($fromEml);
                     
+                    $emailsArr = type_Emails::toArray($contrData->groupEmails);
                     if (!$fromEml || !in_array($fromEml, $emailsArr)) {
                         $use = false;
                     }

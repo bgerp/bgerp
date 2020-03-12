@@ -54,6 +54,12 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * При създаване на имейл, дали да се използва първият имейл от списъка
+     */
+    public $forceFirstEmail = true;
+    
+    
+    /**
      * Полетата, които могат да се променят с change_Plugin
      */
     public $changableFields = 'dealerId,initiatorId';
