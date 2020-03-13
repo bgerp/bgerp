@@ -12,7 +12,7 @@
   * @license   GPL 3
   *
   * @since     v 0.1
-  * @title     Логистика » Линии по шофьор
+  * @title     Логистика » Данни от Транспортни линии
   */
  class trans_reports_LinesByForwarder extends frame2_driver_TableData
  {
