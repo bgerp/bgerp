@@ -120,12 +120,14 @@
          
          $query->where('#forwarderPersonId IS NOT NULL');
          
+         $query->where("#status != 'removed'");
+         
          $query->where("#state = 'active' OR #state = 'closed' ");
          
          // Ако е посочена начална дата на период
          if ($rec->from) {
              $query->where(array(
-                 "#createdOn >= '[#1#]'",
+                 "#start >= '[#1#]'",
                  $rec->from . ' 00:00:00'
              ));
          }
@@ -133,7 +135,7 @@
          //Крайна дата / 'към дата'
          if ($rec->to) {
              $query->where(array(
-                 "#createdOn <= '[#1#]'",
+                 "#start <= '[#1#]'",
                  $rec->to . ' 23:59:59'
              ));
          }
@@ -176,14 +178,11 @@
              }
              
              if (in_array($tRec->classId, $paymentDocsArr)) {
-                 if ($tRec->status == 'removed') {
-                     continue;
-                 }
                  
                  $isPaymentDoc = 1;
                  
                  if (($tRec->classId == cash_Pko::getClassId())) {
-                     $cashAmount = $transInfo[amount];
+                     $cashAmount = $transInfo[baseAmount];
                  }
              }
              
@@ -279,7 +278,12 @@
          core_Users::getNick(crm_Profiles::getUserByPerson($dRec->forwarderPersonId));
          
          $numberOfLines = countR($dRec->lineId);
-         $row->numberOfLines = $Int->toVerbal($numberOfLines);
+         $row->numberOfLines = $Int->toVerbal($numberOfLines)."</br>";
+         
+         foreach ($dRec->lineId as $val){
+             
+                 $row->numberOfLines .= ht::createLink($val, toUrl(array('trans_Lines', 'single'))).',';
+         }
          
          $row->numberOfShips = $Int->toVerbal($dRec->shipmentDocs);
          $row->numberOfPko = $Int->toVerbal($dRec->paymentDocs);
