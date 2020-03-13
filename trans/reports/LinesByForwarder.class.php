@@ -114,11 +114,13 @@
          
          $query->EXT('state', 'trans_Lines', 'externalName=state,externalKey=lineId');
          
+         $query->EXT('start', 'trans_Lines', 'externalName=start,externalKey=lineId');
+         
          $query->EXT('createdOn', 'trans_Lines', 'externalName=createdOn,externalKey=lineId');
          
          $query->where('#forwarderPersonId IS NOT NULL');
          
-         $query->where("#state != 'rejected' ");
+         $query->where("#state = 'active' OR #state = 'closed' ");
          
          // Ако е посочена начална дата на период
          if ($rec->from) {
@@ -145,20 +147,17 @@
          
          //Складови документи
          $shipDocsArr = array(store_ShipmentOrders::getClassId(),
-                             store_ConsignmentProtocols::getClassId(),
-                             store_Receipts::getClassId(),
-                             store_Transfers::getClassId(),
+             store_ConsignmentProtocols::getClassId(),
+             store_Receipts::getClassId(),
+             store_Transfers::getClassId(),
          );
          
          //Платежни документи(в момента отчита само ПКО)
          $paymentDocsArr = array(cash_Pko::getClassId()
          );
-      
          while ($tRec = $query->fetch()) {
-             
-             
              $isShipmentDoc = $isPaymentDoc = 0;
-             $weight = $transportUnits = $amount =0;
+             $weight = $transportUnits = $cashAmount = 0;
              
              $id = ($tRec -> forwarderPersonId) ?$tRec -> forwarderPersonId : 'Не е избран';
              
@@ -166,26 +165,28 @@
              $transInfo = $Document->getTransportLineInfo($tRec->lineId);
              
              //Адокумента е експедиционен
-             if (in_array($tRec->classId, $shipDocsArr)){
-                 
+             if (in_array($tRec->classId, $shipDocsArr)) {
                  $isShipmentDoc = 1;
                  
                  $weight = $transInfo[weight];
                  
-                 if (is_array($transInfo[transportUnits])){
-                    $transportUnits = array_sum($transInfo[transportUnits]);
+                 if (is_array($transInfo[transportUnits])) {
+                     $transportUnits = array_sum($transInfo[transportUnits]);
                  }
              }
              
-             if (in_array($tRec->classId, $paymentDocsArr)){
+             if (in_array($tRec->classId, $paymentDocsArr)) {
+                 if ($tRec->status == 'removed') {
+                     continue;
+                 }
                  
                  $isPaymentDoc = 1;
                  
-                 if (($tRec->classId == cash_Pko::getClassId())){
-                    $cashAmount = $transInfo[amount];
+                 if (($tRec->classId == cash_Pko::getClassId())) {
+                     $cashAmount = $transInfo[amount];
                  }
              }
-            
+             
              // Запис в масива
              if (!array_key_exists($id, $recs)) {
                  $recs[$id] = (object) array(
@@ -202,13 +203,13 @@
                      'transportUnits' => $transportUnits,
                      
                      'cashAmount' => $cashAmount,
-                     
-                     
+                 
+                 
                  );
              } else {
                  $obj = &$recs[$id];
-                 if(!in_array($tRec->lineId, $obj->lineId)){
-                    array_push($obj->lineId, $tRec->lineId);
+                 if (!in_array($tRec->lineId, $obj->lineId)) {
+                     array_push($obj->lineId, $tRec->lineId);
                  }
                  array_push($obj->documents, $tRec->classId);
                  ++$obj->numberOfDocuments;
@@ -219,14 +220,9 @@
                  
                  $obj->shipmentDocs += $isShipmentDoc;
                  $obj->paymentDocs += $isPaymentDoc;
-                 
              }
-  
          }
-      
-         
-//         arr::sortObjects($recs, 'taskId', 'asc');
-         
+
          return $recs;
      }
      
@@ -234,7 +230,7 @@
      /**
       * Връща фийлдсета на таблицата, която ще се рендира
       *
-      * @param stdClass $recЗадача
+      * @param stdClass $rec
       *                         - записа
       * @param bool     $export
       *                         - таблицата за експорт ли е
@@ -245,15 +241,14 @@
      {
          $fld = cls::get('core_FieldSet');
          
-             $fld->FLD('forwarderPersonId', 'key(mvc=crm_Persons,select=name)', 'caption=Служител');
-             $fld->FLD('numberOfLines', 'varchar', 'caption=Брой->линии,tdClass=centered');
-             $fld->FLD('numberOfShips', 'varchar', 'caption=Брой->експедиции,tdClass=centered');
-             $fld->FLD('numberOfPacks', 'varchar', 'caption=Брой->товари,tdClass=centered');
-             $fld->FLD('weight', 'double', 'caption=Общо тегло');
-             
-             $fld->FLD('numberOfPko', 'varchar', 'caption=ПКО->Брой,tdClass=centered');
-             $fld->FLD('sumOfPko', 'double', 'caption=ПКО->сума');
-             
+         $fld->FLD('forwarderPersonId', 'key(mvc=crm_Persons,select=name)', 'caption=Служител');
+         $fld->FLD('numberOfLines', 'varchar', 'caption=Брой->линии,tdClass=centered');
+         $fld->FLD('numberOfShips', 'varchar', 'caption=Брой->експедиции,tdClass=centered');
+         $fld->FLD('numberOfPacks', 'varchar', 'caption=Брой->товари,tdClass=centered');
+         $fld->FLD('weight', 'double', 'caption=Общо тегло');
+         
+         $fld->FLD('numberOfPko', 'varchar', 'caption=ПКО->Брой,tdClass=centered');
+         $fld->FLD('sumOfPko', 'double', 'caption=ПКО->сума');
          
          return $fld;
      }
@@ -280,9 +275,9 @@
          $row = new stdClass();
          
          
-         $row->forwarderPersonId = crm_Persons::getHyperlink($dRec->forwarderPersonId)."</br>".
+         $row->forwarderPersonId = crm_Persons::getHyperlink($dRec->forwarderPersonId).'</br>'.
          core_Users::getNick(crm_Profiles::getUserByPerson($dRec->forwarderPersonId));
-        
+         
          $numberOfLines = countR($dRec->lineId);
          $row->numberOfLines = $Int->toVerbal($numberOfLines);
          
@@ -291,7 +286,6 @@
          $row->numberOfPacks = $Int->toVerbal($dRec->transportUnits);
          $row->weight = $Double->toVerbal($dRec->weight);
          $row->sumOfPko = $Double->toVerbal($dRec->cashAmount);
-         
          
          return $row;
      }
@@ -324,13 +318,10 @@
                 $fieldTpl->append('<b>' . $data->rec->to . '</b>', 'to');
             }
             
-           
             
             $tpl->append($fieldTpl, 'DRIVER_FIELDS');
         }
      }
-     
-
      
      
      /**
@@ -343,15 +334,8 @@
       */
      protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
      {
-         
-         
          if (isset($dRec->forwarderPersonId)) {
-            
-                 
              $res->forwarderPersonId = core_Users::getNick(crm_Profiles::getUserByPerson($dRec->forwarderPersonId));
-             }
-      
+         }
      }
-     
-
  }
