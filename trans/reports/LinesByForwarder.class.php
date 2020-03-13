@@ -281,8 +281,8 @@
          $row->numberOfLines = $Int->toVerbal($numberOfLines)."</br>";
          
          foreach ($dRec->lineId as $val){
-             
-                 $row->numberOfLines .= ht::createLink($val, toUrl(array('trans_Lines', 'single'))).',';
+          
+             $row->numberOfLines .= ht::createLink($val, toUrl(array('trans_Lines', 'single',$val))).',';
          }
          
          $row->numberOfShips = $Int->toVerbal($dRec->shipmentDocs);
