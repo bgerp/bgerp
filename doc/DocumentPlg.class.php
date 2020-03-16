@@ -138,6 +138,7 @@ class doc_DocumentPlg extends core_Plugin
         setIfNot($mvc->canPending, 'no_one');
         setIfNot($mvc->requireDetailForPending, true);
         setIfNot($mvc->mustUpdateUsed, false);
+        setIfNot($mvc->canMovelast, 'powerUser');
         
         $mvc->setDbIndex('state');
         $mvc->setDbIndex('folderId');
@@ -428,6 +429,12 @@ class doc_DocumentPlg extends core_Plugin
                     ), 'ef_icon = img/16/doc_tag.png, title=Връзка към документа');
                 }
             }
+        }
+        
+        if ($mvc->haveRightFor('movelast', $data->rec)) {
+            $data->toolbar->addBtn('Нова нишка', array($mvc, 'movelast', $data->rec->id, 'ret_url' => $retUrl),
+                                   'order=19.99,row=2,ef_icon = img/16/application_go.png,title=' . tr('Създаване на нова нишка от документа'),
+                                    array('warning' => 'Сигурни ли сте, че искате да създадете нова нишка от документа|*?'));
         }
         
         if ($mvc->haveRightFor('list') && $data->rec->state != 'rejected') {
@@ -1484,6 +1491,49 @@ class doc_DocumentPlg extends core_Plugin
             Mode::setPermanent('fileNavArr', $fileNavArr);
             
             $res = new Redirect(array('fileman_Files', 'single', $fh));
+            
+            return false;
+        }
+        
+        // Ако ще се създава нова нишка от последния документ
+        if ($action == 'movelast') {
+            $id = Request::get('id');
+            $rec = $mvc->fetch($id);
+            expect($rec);
+            
+            $mvc->requireRightFor('movelast', $rec);
+            
+            $oldThreadId = $rec->threadId;
+            
+            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy);
+            
+            $cRec = doc_Containers::fetch($rec->containerId);
+            
+            $cRec->threadId = $rec->threadId;
+            
+            doc_Containers::save($cRec, 'threadId, modifiedOn, modifiedBy');
+            
+            doc_ThreadUsers::removeContainer($rec->containerId);
+            
+            $mvc->save($rec, 'threadId, modifiedOn, modifiedBy');
+            
+            doc_Threads::updateThread($oldThreadId);
+            doc_Threads::updateThread($rec->threadId);
+            
+            doc_Threads::doUpdateThread();
+            
+            doc_Containers::logWrite("Преместен документ", $rec->containerId);
+            doc_Threads::logWrite("Преместен документ", $oldThreadId);
+            doc_Threads::logWrite("Преместен документ", $rec->threadId);
+            
+            doc_Linked::add($rec->containerId, doc_Threads::getFirstContainerId($oldThreadId));
+            
+            $retUrl = getRetUrl();
+            if (empty($retUrl)) {
+                $retUrl = array($mvc, 'single', $id);
+            }
+            
+            $res = new Redirect($retUrl);
             
             return false;
         }
@@ -2695,6 +2745,22 @@ class doc_DocumentPlg extends core_Plugin
                 if (!$Detail->fetch("#{$Detail->masterKey} = '{$rec->id}'")) {
                     $requiredRoles = 'no_one';
                 }
+            }
+        }
+        
+        if (($action == 'movelast') && ($requiredRoles != 'no_one')) {
+            if ($rec->state == 'rejected') {
+                $requiredRoles = 'no_one';
+            } elseif ($rec->folderId && !doc_Folders::haveRightFor('single', $rec->folderId)) {
+                $requiredRoles = 'no_one';
+            } elseif ($rec->folderId && !$mvc->canAddToFolder($rec->folderId)) {
+                $requiredRoles = 'no_one';
+            } elseif ($rec->threadId && (doc_Threads::fetchField($rec->threadId, firstContainerId) == $rec->containerId)) {
+                $requiredRoles = 'no_one';
+            } elseif (doc_Containers::getLastDocCid($rec->threadId) != $rec->containerId) {
+                $requiredRoles = 'no_one';
+            } elseif (!$mvc->haveRightFor('single', $rec)) {
+                $requiredRoles = 'no_one';
             }
         }
     }
