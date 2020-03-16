@@ -90,6 +90,26 @@ class cat_interface_PackLabelImpl
     
     
     /**
+     * Помощна ф-я връщаща последното задание за артикула от записа на опаковката
+     * 
+     * @param mixed $id
+     * 
+     * @return null|stdClass
+     */
+    private static function getLastJob($id)
+    {
+        $rec = cat_products_Packagings::fetchRec($id);
+        
+        $jQuery = planning_Jobs::getQuery();
+        $jQuery->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 2 WHEN 'stopped' THEN 3 END)");
+        $jQuery->where("#productId = {$rec->productId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
+        $jQuery->orderBy('#order=ASC,#id=DESC');
+        
+        return $jQuery->fetch();
+    }
+    
+    
+    /**
      * Връща масив с всички данни за етикетите
      *
      * @param int  $id
@@ -118,12 +138,8 @@ class cat_interface_PackLabelImpl
         $measureId = $pRec->measureId;
         
         // Кое е последното задание към артикула
-        $jQuery = planning_Jobs::getQuery();
-        $jQuery->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 2 WHEN 'stopped' THEN 3 END)");
-        $jQuery->where("#productId = {$rec->productId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
-        $jQuery->orderBy('#order=ASC,#id=DESC');
-        $jQuery->show('id,saleId');
-        if ($jRec = $jQuery->fetch()) {
+        $jRec = self::getLastJob($rec);
+        if (is_object($jRec)) {
             $jobCode = mb_strtoupper(planning_Jobs::getHandle($jRec->id));
             if ($lg != 'bg' && isset($jRec->saleId)) {
                 $lData = cls::get('sales_Sales')->getLogisticData($jRec->saleId);
@@ -225,6 +241,19 @@ class cat_interface_PackLabelImpl
      */
     public function getLabelEstimatedCnt($id)
     {
+        $rec = cat_products_Packagings::fetchRec($id);
+        
+        $jRec = self::getLastJob($rec);
+        if (is_object($jRec)) {
+            $count = $jRec->quantity / $rec->quantity;
+            if($reservePercent = cat_Setup::get('LABEL_RESERVE_COUNT')){
+                $count *= (1 + $reservePercent);
+            }
+            
+            return $count;
+        }
+        
+        return null;
     }
     
     

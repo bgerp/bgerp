@@ -74,6 +74,12 @@ defIfNot('CAT_PACKAGING_AUTO_BARCODE_END', '');
 
 
 /**
+ * Резерва при печат на етикети
+ */
+defIfNot('CAT_LABEL_RESERVE_COUNT', '0.1');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -190,7 +196,8 @@ class cat_Setup extends core_ProtoSetup
         'CAT_SHOW_BOM_IN_PRODUCT' => array('enum(auto=Автоматично,product=В артикула,job=В заданието,yes=Навсякъде,no=Никъде)', 'caption=Показване на рецептата в описанието на артикула->Показване'),
         'CAT_PACKAGING_AUTO_BARCODE_BEGIN' => array('gs1_TypeEan', 'caption=Автоматични баркодове на опаковките->Начало'),
         'CAT_PACKAGING_AUTO_BARCODE_END' => array('gs1_TypeEan', 'caption=Автоматични баркодове на опаковките->Край'),
-    );
+        'CAT_LABEL_RESERVE_COUNT' => array('percent(min=0,max=1)', 'caption=Печат на етикети на опаковки->Резерва'),
+     );
     
     
     /**
