@@ -134,7 +134,7 @@ class cat_ProductTplCache extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->FLD('docId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'input,caption=Артикул');
+        $data->listFilter->FLD('docId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'input,caption=Артикул,refreshForm');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'docId';
