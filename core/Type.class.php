@@ -342,6 +342,10 @@ class core_Type extends core_BaseClass
     {
         $this->setFieldWidth($attr);
         
+        if (isset($this->params['inputmode'])) {
+            $attr['inputmode'] = $this->params['inputmode'];
+        }
+        
         setIfNot($attr['type'], 'text');
         if (countR($this->suggestions)) {
             $tpl = ht::createCombo($name, $value, $attr, $this->suggestions);

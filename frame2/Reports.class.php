@@ -601,21 +601,31 @@ class frame2_Reports extends embed_Manager
         
         // Ако има драйвер
         if ($Driver = self::getDriver($rec)) {
-            $me = cls::get(get_called_class());
-            
-            // Опресняват се данните му
-            $rec->data = $Driver->prepareData($rec);
-            $rec->lastRefreshed = dt::now();
-            
-            // Запис на променените полета
-            $me->save_($rec, 'data,lastRefreshed');
-            
-            // Записване в опашката че справката е била опреснена
-            if (frame2_ReportVersions::log($rec->id, $rec)) {
-                $me->refreshReports[$rec->id] = $rec;
-                if (core_Users::getCurrent() != core_Users::SYSTEM_USER) {
-                    core_Statuses::newStatus('Справката е актуализирана|*!');
+            try {
+                $me = cls::get(get_called_class());
+                
+                // Опресняват се данните му
+                $rec->data = $Driver->prepareData($rec);
+                $rec->lastRefreshed = dt::now();
+                
+                // Запис на променените полета
+                $me->save_($rec, 'data,lastRefreshed');
+                
+                // Записване в опашката че справката е била опреснена
+                if (frame2_ReportVersions::log($rec->id, $rec)) {
+                    $me->refreshReports[$rec->id] = $rec;
+                    if (core_Users::getCurrent() != core_Users::SYSTEM_USER) {
+                        core_Statuses::newStatus('Справката е актуализирана|*!');
+                    }
                 }
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+                
+                if (core_Users::getCurrent() != core_Users::SYSTEM_USER) {
+                    core_Statuses::newStatus('Грешка при обновяване на справката|*!', 'error');
+                }
+                
+                self::logErr('Грешка при обновяване на справката', $rec->id);
             }
             
             $me->setNewUpdateTimes[$rec->id] = $rec;

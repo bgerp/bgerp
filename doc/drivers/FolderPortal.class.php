@@ -34,7 +34,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('folderId', 'key2(mvc=doc_Folders,allowEmpty, restrictViewAccess=yes)', 'caption=Папка, removeAndRefreshForm=documentClassId, mandatory, silent');
-        $fieldset->FLD('search', 'varchar', 'caption=Ключови думи');
+        $fieldset->FLD('search', 'varchar', 'caption=Ключови думи,inputmode=search');
         $fieldset->FLD('fOrder', 'enum(' . doc_Threads::filterList . ')', 'caption=Подредба');
         $fieldset->FLD('documentClassId', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Вид документ');
         $fieldset->FLD('perPage', 'int(min=1, max=20)', 'caption=Редове, mandatory');

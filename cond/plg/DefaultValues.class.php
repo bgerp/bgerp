@@ -138,6 +138,14 @@ class cond_plg_DefaultValues extends core_Plugin
                 }
                 
                 if ($value = static::$methodName($mvc, $rec, $name)) {
+                    // Ако има състояние и е спряно, го прескачаме
+                    $type = $mvc->fields[$name]->type;
+                    if ($type instanceof type_Key) {
+                        $vRec = $type->getRecForVal($value);
+                            if ($vRec->state == 'closed') {
+                                continue;
+                            }
+                    }
                     
                     // Първата стратегия върнала стойност се връща
                     return $value;

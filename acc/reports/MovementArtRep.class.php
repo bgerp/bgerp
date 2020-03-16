@@ -167,16 +167,16 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $to = acc_Periods::fetchField($rec->to, 'end');
         acc_JournalDetails::filterQuery($jQuery, $from, $to, '321,401,61101,61102,701');
         $jRecs = $jQuery->fetchAll();
-        
+
         $recs = array();
         
         log_System::add(get_called_class(), 'jRecsCnt: ' . countR($jRecs) . ', producsCnt: ' . countR($productArr), null, 'debug', 1);
         
         // за всеки един продукт, се изчисляват търсените количествата
-        foreach ($productArr as $productRec) {
+        foreach ($productArr as $productRec) {     
             if ($itemId = $productItems[$productRec->id]) {
                 $baseQuantity = (isset($baseQuantities[$productRec->id])) ? $baseQuantities[$productRec->id] : 0;
-                $obj = (object) array('baseQuantity' => $baseQuantity, 'delivered' => 0, 'converted' => 0, 'sold' => 0, 'blQuantity' => 0);
+                $obj = (object) array('baseQuantity' => $baseQuantity, 'delivered' => 0, 'converted' => 0, 'produced' => 0, 'sold' => 0, 'blQuantity' => 0);
                 $obj->code = (!empty($productRec->code)) ? $productRec->code : "Art{$productRec->id}";
                 $obj->measureId = $productRec->measureId;
                 $obj->productId = $productRec->id;
@@ -207,14 +207,28 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                     $obj->converted += $convRes2[$itemId]->quantity;
                 }
                 
-                // Приспадане на вложеното с върнатото от производството детайлно
-                if ($delRes2 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61101', array(null, $itemId, null))) {
-                    $obj->converted -= $delRes2[$itemId]->quantity;
+                if($jRecs[$productRec->id]->docType == '327') {
+                    // Приспадане на вложеното с върнатото от производството детайлно
+                    if ($delRes2 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61101', array(null, $itemId, null))) {
+                        $obj->converted -= $delRes2[$itemId]->quantity;
+                    }
+                    
+                    // Приспадане на вложеното с върнатото от производството бездетайлно
+                    if ($convRes3 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61102', array(null, $itemId, null))) {
+                        $obj->converted -= $convRes3[$itemId]->quantity;
+                    }
                 }
                 
-                // Приспадане на вложеното с върнатото от производството бездетайлно
-                if ($convRes3 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61102', array(null, $itemId, null))) {
-                    $obj->converted -= $convRes3[$itemId]->quantity;
+                if($jRecs[$productRec->id]->docType == '323') {
+                    // Произведено от протокол за производство (на вложеното с върнатото от производството детайлно)
+                    if ($prodRes1 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61101', array(null, $itemId, null))) {
+                        $obj->produced += $prodRes1[$itemId]->quantity;
+                    }
+                    
+                    // Приспадане на вложеното с върнатото от производството бездетайлно
+                    if ($prodRes2 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61102', array(null, $itemId, null))) {
+                        $obj->produced += $prodRes2[$itemId]->quantity;
+                    }
                 }
                 
                 // Продадено
@@ -227,14 +241,16 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 if ($blRes = acc_Balances::getBlQuantities($jRecs, '321', null, null, array(null, $itemId, null))) {
                     $obj->blQuantity += $blRes[$itemId]->quantity;
                 }
-                
+                //bp($jRecs[$productRec->id]->$productRec->id, $jRecs, $productRec->id);
                 $recs[$productRec->id] = $obj;
             }
+
         }
-        
+       //323 proi
+       //327 wyrnato
         $data->groupByField = 'groupId';
         $recs = $this->groupRecs($recs, $rec->group, $data);
-        
+        //bp($recs);
         return $recs;
     }
     
@@ -271,6 +287,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                     $data->totals[$e->groupId]['baseQuantity'] += $e->baseQuantity;
                     $data->totals[$e->groupId]['blQuantity'] += $e->blQuantity;
                     $data->totals[$e->groupId]['delivered'] += $e->delivered;
+                    $data->totals[$e->groupId]['produced'] += $e->produced;
                     $data->totals[$e->groupId]['converted'] += $e->converted;
                     $data->totals[$e->groupId]['sold'] += $e->sold;
                     
@@ -285,7 +302,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 $ordered += $res;
             }
         }
-        
+     
         return $ordered;
     }
     
@@ -302,15 +319,15 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
      */
     protected function getGroupedTr($columnsCount, $groupValue, $groupVerbal, &$data)
     {
-        $baseQuantity = $blQuantity = $delivered = $converted = $sold = '';
-        foreach (array('baseQuantity', 'blQuantity', 'delivered', 'converted', 'sold') as $totalFld) {
+        $baseQuantity = $blQuantity = $delivered = $produced = $converted = $sold = '';
+        foreach (array('baseQuantity', 'blQuantity', 'delivered', 'produced', 'converted', 'sold') as $totalFld) {
             ${$totalFld} = core_Type::getByName('double(decimals=2)')->toVerbal($data->totals[$groupValue][$totalFld]);
             if ($data->totals[$groupValue][$totalFld] < 0) {
                 ${$totalFld} = "<span class='red'>{${$totalFld}}</span>";
             }
         }
         
-        $groupVerbal = "<td style='padding-top:9px;padding-left:5px;' colspan='3'><b>" . $groupVerbal . "</b></td><td style='text-align:right'><b>{$baseQuantity}</b></td><td style='text-align:right'><b>{$delivered}</b></td><td style='text-align:right'><b>{$converted}</b></td><td style='text-align:right'><b>{$sold}</b></td><td style='text-align:right'><b>{$blQuantity}</b></td>";
+        $groupVerbal = "<td style='padding-top:9px;padding-left:5px;' colspan='3'><b>" . $groupVerbal . "</b></td><td style='text-align:right'><b>{$baseQuantity}</b></td><td style='text-align:right'><b>{$delivered}</b></td><td style='text-align:right'><b>{$produced}</b></td><td style='text-align:right'><b>{$converted}</b></td><td style='text-align:right'><b>{$sold}</b></td><td style='text-align:right'><b>{$blQuantity}</b></td>";
         
         return $groupVerbal;
     }
@@ -333,6 +350,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $fld->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка');
         $fld->FLD('baseQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Начално');
         $fld->FLD('delivered', 'double(smartRound,decimals=2)', 'caption=Количество->Доставено');
+        $fld->FLD('produced', 'double(smartRound,decimals=2)', 'caption=Количество->Произведено');
         $fld->FLD('converted', 'double(smartRound,decimals=2)', 'caption=Количество->Вложено');
         $fld->FLD('sold', 'double(smartRound,decimals=2)', 'caption=Количество->Продадено');
         $fld->FLD('blQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Крайно');
@@ -368,7 +386,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $row->measureId = cat_UoM::getShortName($dRec->measureId);
         $row->groupId = ($dRec->groupId !== 'total') ? cat_Groups::getVerbal($dRec->groupId, 'name') : tr('Общо');
         
-        foreach (array('baseQuantity', 'delivered', 'converted', 'sold', 'blQuantity') as $fld) {
+        foreach (array('baseQuantity', 'delivered', 'produced', 'converted', 'sold', 'blQuantity') as $fld) {
             $row->{$fld} = $Double->toVerbal($dRec->{$fld});
             if ($dRec->{$fld} < 0) {
                 $row->{$fld} = "<span class='red'>{$row->{$fld}}</span>";

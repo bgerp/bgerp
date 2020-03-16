@@ -84,7 +84,7 @@ class trans_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'trans_Indicators';
+    public $defClasses = 'trans_Indicators,trans_reports_LinesByForwarder';
     
     
     /**

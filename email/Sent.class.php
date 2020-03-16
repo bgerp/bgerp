@@ -75,6 +75,14 @@ class email_Sent
         
         $message = (object) $messageBase;
         
+        // Ако не трябва да се добавя Return-Path до някое от домейните
+        if ($sentRec->boxFrom && empty($options['no_return_path'])) {
+            $accId = email_Inboxes::fetchField($sentRec->boxFrom, 'accountId');
+            if (email_Accounts::checkEmailForRetPath($accId, $emailsTo, $emailsCc)) {
+                $options['no_return_path'] = 'no_return_path';
+            }
+        }
+        
         static::prepareMessage($message, $sentRec, $options);
         
         return static::doSend($message, $emailsTo, $emailsCc, $error);

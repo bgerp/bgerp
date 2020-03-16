@@ -105,7 +105,7 @@ class bulmar_InvoiceExport extends core_Manager
         }
         
         $data = $this->prepareExportData($recs);
-        
+       
         $content = $this->prepareFileContent($data);
         $content = iconv('utf-8', 'CP1251', $content);
         
@@ -163,10 +163,15 @@ class bulmar_InvoiceExport extends core_Manager
         $byProducts = $byServices = 0;
         $dQuery = sales_InvoiceDetails::getQuery();
         $dQuery->where("#invoiceId = {$rec->id}");
+        $details = $dQuery->fetchAll();
+        
+        if($rec->type != 'invoice'){
+            sales_InvoiceDetails::modifyDcDetails($details, $rec, cls::get('sales_InvoiceDetails'));
+        }
         
         $vatDecimals = sales_Setup::get('SALE_INV_VAT_DISPLAY', true) == 'yes' ? 20 : 2;
         
-        while ($dRec = $dQuery->fetch()) {
+        foreach ($details as $dRec) {
             if (empty($this->cache[$dRec->productId])) {
                 $this->cache[$dRec->productId] = cat_Products::getProductInfo($dRec->productId);
             }

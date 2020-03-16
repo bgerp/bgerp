@@ -843,6 +843,10 @@ class core_Form extends core_FieldSet
                     }
                 }
                 
+                if ($field->inputmode) {
+                    $attr['inputmode'] = $field->inputmode;
+                }
+                
                 // Рендиране на select или input полето
                 if ((countR($options) > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
                     unset($attr['value']);

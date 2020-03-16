@@ -2857,6 +2857,9 @@ class cat_Products extends embed_Manager
                     }
                 }
             }
+        } else {
+            $Driver = static::getDriver($id);
+            $res = $Driver->getMaterialsForProduction($id, $quantity);
         }
         
         return $res;

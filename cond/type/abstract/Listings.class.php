@@ -43,7 +43,7 @@ abstract class cond_type_abstract_Listings extends cond_type_abstract_Proto
         $lQuery->where("#state = 'active'");
         $lQuery->where("#type = '{$this->meta}'");
         
-        if (cls::haveInterface('crm_ContragentAccRegIntf', $domainClass)) {
+        if(isset($domainClass) && isset($domainId) && cls::haveInterface('crm_ContragentAccRegIntf', $domainClass)){
             $folderId = cls::get($domainClass)->forceCoverAndFolder($domainId);
             $lQuery->where("#isPublic = 'yes' OR #folderId = {$folderId}");
         } else {

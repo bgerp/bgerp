@@ -55,6 +55,12 @@ class purchase_Invoices extends deals_InvoiceMaster
     
     
     /**
+     * При създаване на имейл, дали да се използва първият имейл от списъка
+     */
+    public $forceFirstEmail = true;
+    
+    
+    /**
      * Детайла, на модела
      */
     public $details = 'purchase_InvoiceDetails';
