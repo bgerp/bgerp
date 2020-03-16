@@ -537,12 +537,12 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         }
         }else{
                 
-                $row->quantity = '';
+            $row->quantity = '<b>'.'Общо:'.($dRec->quantity).'</b>'."</br>";
                 
                 foreach ($dRec->storesQuatity as $val){
                    
                     list($storeId,$stQuantity) = explode('|', $val);
-                    $row->quantity .=store_Stores::getTitleById($storeId).'  '.($stQuantity)."</br>";
+                    $row->quantity .=store_Stores::getTitleById($storeId).': '.($stQuantity)."</br>";
                     $row->quantity = ht::styleIfNegative($row->quantity, $stQuantity);
                 }
             }
