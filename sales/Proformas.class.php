@@ -158,7 +158,6 @@ class sales_Proformas extends deals_InvoiceMaster
         'contragentPCode' => 'clientData|lastDocUser|lastDoc',
         'contragentPlace' => 'clientData|lastDocUser|lastDoc',
         'contragentAddress' => 'clientData|lastDocUser|lastDoc',
-        'accountId' => 'lastDocUser|lastDoc',
         'template' => 'lastDocUser|lastDoc|defMethod',
     );
     
