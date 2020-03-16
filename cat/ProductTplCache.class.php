@@ -148,37 +148,6 @@ class cat_ProductTplCache extends core_Master
     
     
     /**
-     * След подготовка на тулбара на списъчния изглед
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-        if (haveRole('admin,debug,ceo')) {
-            $data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искате ли да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
-        }
-    }
-    
-    
-    /**
-     * Изчиства записите в балансите
-     */
-    public function act_Truncate()
-    {
-        requireRole('admin,debug,ceo');
-        
-        // Изчистваме записите от моделите
-        self::truncate();
-        
-        // Записваме, че потребителя е разглеждал този списък
-        $this->logWrite('Изтриване на кеша на изгледите на артикула');
-        
-        return new Redirect(array($this, 'list'), '|Записите са изчистени успешно');
-    }
-    
-    
-    /**
      * Връща кешираните данни на артикула за дадено време ако има
      *
      * @param int           $productId - ид на артикул
