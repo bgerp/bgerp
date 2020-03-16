@@ -250,7 +250,7 @@ class cat_interface_PackLabelImpl
                 $count *= (1 + $reservePercent);
             }
             
-            return $count;
+            return ceil($count);
         }
         
         return null;
