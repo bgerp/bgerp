@@ -2755,7 +2755,7 @@ class doc_DocumentPlg extends core_Plugin
                 $requiredRoles = 'no_one';
             } elseif ($rec->folderId && !$mvc->canAddToFolder($rec->folderId)) {
                 $requiredRoles = 'no_one';
-            } elseif ($rec->threadId && (doc_Threads::fetchField($rec->threadId, firstContainerId) == $rec->containerId)) {
+            } elseif ($rec->threadId && (doc_Threads::fetchField($rec->threadId, 'firstContainerId') == $rec->containerId)) {
                 $requiredRoles = 'no_one';
             } elseif (doc_Containers::getLastDocCid($rec->threadId) != $rec->containerId) {
                 $requiredRoles = 'no_one';
