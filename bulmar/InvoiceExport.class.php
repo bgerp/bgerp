@@ -277,8 +277,13 @@ class bulmar_InvoiceExport extends core_Manager
             if ($rec->productsAmount) {
                 $line .= "{$static->creditSaleProducts}|||{$rec->productsAmount}||";
             }
+            
             if ($rec->servicesAmount) {
                 $line .= "{$static->creditSaleServices}|||{$rec->servicesAmount}||";
+            }
+            
+            if($rec->type != 'invoice' && empty($rec->servicesAmount) && empty($rec->productsAmount)){
+                $line .= "{$static->creditSaleProducts}|||{$rec->baseAmount}||";
             }
             
             $line .= "{$static->creditSaleVat}|||{$rec->vat}||" . "\r\n";
