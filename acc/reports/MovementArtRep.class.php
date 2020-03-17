@@ -169,8 +169,9 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $jRecs = $jQuery->fetchAll();
 
         //Връщане
-        //$id1 = planning_ReturnNotes::getClassid();
+        $id1 = planning_ReturnNotes::getClassid();
         $jRecs3 = $jQuery->orWhere("#docType = $id1");
+        $jRecs3 = $jQuery->fetchAll();
         
         //Протокол за влагане в производство
         //$id2 = planning_ConsumptionNotes::getClassid();
