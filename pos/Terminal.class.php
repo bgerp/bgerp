@@ -1920,7 +1920,7 @@ class pos_Terminal extends peripheral_Terminal
      * 
      * @return array $res
      */
-    public static function returnAjaxResponse($receiptId, $selectedRecId, $success, $refreshTable = false, $refreshPanel = true, $refreshResult = true)
+    public static function returnAjaxResponse($receiptId, $selectedRecId, $success, $refreshTable = false, $refreshPanel = true, $refreshResult = true, $sound = null)
     {
         $me = cls::get(get_called_class());
         $Receipts = cls::get('pos_Receipts');
@@ -1986,6 +1986,17 @@ class pos_Terminal extends peripheral_Terminal
             
             $resObj = new stdClass();
             $resObj->func = 'openCurrentPosTab';
+            $res[] = $resObj;
+        }
+        
+        // Добавяне на звук
+        if(isset($sound) && in_array($sound, array('add', 'edit', 'delete'))){
+            $resObj = new stdClass();
+            $resObj->func = 'Sound';
+            
+            $const = ($sound == 'delete') ? 'TERMINAL_DELETE_SOUND' : (($sound == 'edit') ? 'TERMINAL_EDIT_SOUND' : 'TERMINAL_ADD_SOUND');
+            $sound = pos_Setup::get($const);
+            $resObj->arg = array('soundMp3' => sbf("pos/sounds/{$sound}.wav", ''));
             $res[] = $resObj;
         }
         

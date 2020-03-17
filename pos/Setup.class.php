@@ -74,6 +74,24 @@ defIfNot('POS_TERMINAL_MAX_SEARCH_RECEIPTS', '20');
 
 
 /**
+ *  Звук за добавяне в терминала
+ */
+defIfNot('POS_TERMINAL_ADD_SOUND', 'click');
+
+
+/**
+ *  Звук за редакция в терминала
+ */
+defIfNot('POS_TERMINAL_EDIT_SOUND', 'click');
+
+
+/**
+ *  Звук за изтриване в терминала
+ */
+defIfNot('POS_TERMINAL_DELETE_SOUND', 'delete1');
+
+
+/**
  * Модул "Точки на продажба" - инсталиране/деинсталиране
  *
  *
@@ -128,6 +146,9 @@ class pos_Setup extends core_ProtoSetup
         'POS_TERMINAL_MAX_SEARCH_PRODUCT_LAST_SALE' => array('int(min=0)', 'caption=Операции в POS терминала->Брой намерени последни продажби'),
         'POS_ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK' => array('enum(yes=Включено,no=Изключено)', 'caption=Продажба на неналични артикули->Избор'),
         'POS_MIN_WIDE_WIDTH' => array('int', 'caption=Под каква ширина да се смята за тесен режим->Под,unit=px'),
+        'POS_TERMINAL_ADD_SOUND' => array('enum(click=Клик (1),crash=Сблъсък,delete1=Изтриване (1),filedelete=Изтриване (2),mouseclick=Клик (2),tap=,terminal=Терминал)', 'caption=Звуци в терминала->Добавяне'),
+        'POS_TERMINAL_EDIT_SOUND' => array('enum(click=Клик (1),crash=Сблъсък,delete1=Изтриване (1),filedelete=Изтриване (2),mouseclick=Клик (2),tap=,terminal=Терминал)', 'caption=Звуци в терминала->Редактиране'),
+        'POS_TERMINAL_DELETE_SOUND' => array('enum(click=Клик (1),crash=Сблъсък,delete1=Изтриване (1),filedelete=Изтриване (2),mouseclick=Клик (2),tap=,terminal=Терминал)', 'caption=Звуци в терминала->Изтриване'),
     );
     
     

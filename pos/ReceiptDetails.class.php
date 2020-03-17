@@ -170,8 +170,8 @@ class pos_ReceiptDetails extends core_Detail
                $success = false;
            }
        }
-        
-       return pos_Terminal::returnAjaxResponse($receiptId, null, $success, true);
+       
+       return pos_Terminal::returnAjaxResponse($receiptId, null, $success, true, true, true, 'add');
     }
     
     
@@ -360,7 +360,7 @@ class pos_ReceiptDetails extends core_Detail
             }
         }
         
-        return pos_Terminal::returnAjaxResponse($receiptId, $id, $success, true, true, $refreshResult);
+        return pos_Terminal::returnAjaxResponse($receiptId, $id, $success, true, true, $refreshResult, 'edit');
     }
     
     
@@ -559,7 +559,7 @@ class pos_ReceiptDetails extends core_Detail
             }
         }
        
-        return pos_Terminal::returnAjaxResponse($receiptId, $selectedRecId, $success, true, true, true);
+        return pos_Terminal::returnAjaxResponse($receiptId, $selectedRecId, $success, true, true, true, 'add');
     }
     
     
@@ -582,7 +582,7 @@ class pos_ReceiptDetails extends core_Detail
         Mode::setPermanent("currentSearchString{$rec->receiptId}", null);
         $lastRecId = pos_ReceiptDetails::getLastRec($rec->receiptId)->id;
         
-        return pos_Terminal::returnAjaxResponse($rec->receiptId, $lastRecId, true, true);
+        return pos_Terminal::returnAjaxResponse($rec->receiptId, $lastRecId, true, true, true, true, 'delete');
     }
     
     
@@ -966,7 +966,7 @@ class pos_ReceiptDetails extends core_Detail
         $this->Master->logInAct('Зареждане на всичко от сторнираната бележка', $receiptId);
         
         if(Request::get('ajax_mode')){
-            return pos_Terminal::returnAjaxResponse($receiptId, $rec->id, true, true);
+            return pos_Terminal::returnAjaxResponse($receiptId, $exRec->id, true, true, true, true, 'add');
         } else {
             followRetUrl();
         }
