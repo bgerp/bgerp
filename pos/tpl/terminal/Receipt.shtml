@@ -1,4 +1,4 @@
-
+<div class='[#TERMINAL_STATE_CLASS#]'>
 <div class="scrolling-vertical">
 	<div class="receiptHeader onlyPrint">
 		<!--ET_BEGIN RECEIPT_HEADER-->[#RECEIPT_HEADER#]
@@ -31,4 +31,5 @@
 			<td class='totalLabel'>[#total#]</td>
 		</tr>
 	</table>
+</div>
 </div>

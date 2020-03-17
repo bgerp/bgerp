@@ -330,6 +330,11 @@ class pos_Receipts extends core_Master
             }
         }
         
+        if($rec->state == 'rejected'){
+            $row->TERMINAL_STATE_CLASS = "rejected-receipt";
+            $row->revertId = $row->state;
+        }
+        
         // показваме датата на последната модификация на документа, ако е активиран
         if ($rec->state != 'draft') {
             $row->valior = dt::mysql2verbal($rec->modifiedOn, 'd.m.Y H:i:s');
@@ -471,9 +476,7 @@ class pos_Receipts extends core_Master
     {
         // Само черновите бележки могат да се редактират в терминала
         if ($action == 'terminal' && isset($rec)) {
-            if ($rec->state == 'rejected') {
-                $res = 'no_one';
-            } elseif (!pos_Points::haveRightFor('select', $rec->pointId)) {
+            if (!pos_Points::haveRightFor('select', $rec->pointId)) {
                 $res = 'no_one';
             }
         }

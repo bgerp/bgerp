@@ -3,6 +3,10 @@
 #receipt-table {
 	width:100%;
 	background: #fff;
+	
+	.rejected-receipt {
+		background-color:rgba(204,102,102,.8);
+	}
 }
 
 .wide #single-receipt-holder {
@@ -109,6 +113,7 @@
 
 .noResult {
 	padding: 10px;
+	font-size:1.1em;
 }
 .narrow #receipt-title {
     font-size: 1.1em;
