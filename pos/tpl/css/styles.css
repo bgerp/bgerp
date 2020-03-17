@@ -754,6 +754,9 @@ td.revertCaption {
   color: red;
   text-align: center !important; }
 
+.notInStock {
+  color: darkred; }
+
 /*
  * media queries за клавиатурата
  */

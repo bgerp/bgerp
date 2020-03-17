@@ -1715,10 +1715,6 @@ class pos_Terminal extends peripheral_Terminal
             $price = $price->price * $perPack;
             
             $obj = (object) array('productId' => $id, 'measureId' => $pRec->measureId, 'price' => $price, 'packagingId' => $packId, 'vat' => $vat);
-            if ($pRec->canStore == 'yes') {
-                $obj->stock = pos_Stocks::getBiggestQuantity($id, $rec->pointId);
-                $obj->stock /= $perPack;
-            }
             
             // Обръщаме реда във вербален вид
             $res[$id] = new stdClass();;
@@ -1742,8 +1738,14 @@ class pos_Terminal extends peripheral_Terminal
             $res[$id]->id = $pRec->id;
             $res[$id]->receiptId = $rec->id;
             
-            if($packId != cat_UoM::fetchBySysId('pcs')->id){
+            $stock = ($pRec->canStore == 'yes') ? pos_Stocks::getBiggestQuantity($id, $rec->pointId) : null;
+            if($packId != cat_UoM::fetchBySysId('pcs')->id || (isset($stock) && empty($stock))){
                 $res[$id]->measureId = tr(cat_UoM::getSmartName($packId));
+            }
+            
+            if ((isset($stock) && empty($stock))) {
+                $res[$id]->measureId = tr(cat_UoM::getSmartName($packId, 0));
+                $res[$id]->measureId = "<span class='notInStock'>0 {$res[$id]->measureId}</span>";
             }
         }
         

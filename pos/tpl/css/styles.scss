@@ -885,7 +885,9 @@ th.revertCaption, td.revertCaption {
 	text-align: center !important;
 }
 
-
+.notInStock {
+	color:darkred;
+}
 
 /*media queries за клавиатурата*/
 @media handheld, only screen and (max-width: 1600px) {
