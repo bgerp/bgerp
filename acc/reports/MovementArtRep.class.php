@@ -167,14 +167,12 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $to = acc_Periods::fetchField($rec->to, 'end');
         acc_JournalDetails::filterQuery($jQuery, $from, $to, '321,401,61101,61102,701');
         $jRecs = $jQuery->fetchAll();
-       
-        //325 proizwodstwo
-        //327 wry6a
-        
-  
+
         //Производство
-        $jRecs2 = $jQuery->where("#docType = '325'");
-        $jRecs2 = $jQuery->orWhere("#docType = '323'");
+        //$id1 = planning_ReturnNotes::getClassid();
+        $id2 = planning_ConsumptionNotes::getClassid();
+        $jRecs2 = $jQuery->where("#docType = $id2");
+        //$jRecs2 = $jQuery->orWhere("#docType = $id2");
 
         $jRecs2 = $jQuery->fetchAll();
 
@@ -258,6 +256,10 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $data->groupByField = 'groupId';
         $recs = $this->groupRecs($recs, $rec->group, $data);
 
+        
+        //325 proizwodstwo
+        //327 wry6a
+        
         return $recs;
     }
     
