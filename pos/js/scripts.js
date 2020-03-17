@@ -1039,26 +1039,26 @@ function afterload() {
  */
 function disableOrEnableEnlargeBtn()
 {
-	var focusedElement = $(".navigable.selected");
+	var element = $(".navigable.selected");
+	
+	var operation = getSelectedOperation();
+	if(operation == 'quantity' || operation == 'text' || operation == 'payment'){
+		var selectedRow = $(".highlighted.productRow");
+		element = selectedRow;
+	}
+	
+	if(element.hasClass('enlargable')){
+		var enlargeClassId = element.attr("data-enlarge-class-id");
+		var enlargeObjectId = element.attr("data-enlarge-object-id");
+		var enlargeTitle= element.attr("data-modal-title");
 
-	if(focusedElement.length){
-		if(focusedElement.hasClass('enlargable')){
-			var enlargeClassId = focusedElement.attr("data-enlarge-class-id");
-			var enlargeObjectId = focusedElement.attr("data-enlarge-object-id");
-			var enlargeTitle= focusedElement.attr("data-modal-title");
+		if(enlargeClassId && enlargeObjectId && enlargeTitle) {
+			$(".enlargeProductBtn").removeClass('disabledBtn');
+			$(".enlargeProductBtn").removeAttr("disabled");
 
-			if(enlargeClassId && enlargeObjectId && enlargeTitle) {
-				$(".enlargeProductBtn").removeClass('disabledBtn');
-				$(".enlargeProductBtn").removeAttr("disabled");
-
-				$(".enlargeProductBtn").attr('data-modal-title', enlargeTitle);
-				$(".enlargeProductBtn").attr('data-enlarge-class-id', enlargeClassId);
-				$(".enlargeProductBtn").attr('data-enlarge-object-id', enlargeObjectId);
-			}
-
-		} else {
-			$(".enlargeProductBtn").addClass('disabledBtn');
-			$(".enlargeProductBtn").attr('disabled', 'disabled');
+			$(".enlargeProductBtn").attr('data-modal-title', enlargeTitle);
+			$(".enlargeProductBtn").attr('data-enlarge-class-id', enlargeClassId);
+			$(".enlargeProductBtn").attr('data-enlarge-object-id', enlargeObjectId);
 		}
 	} else {
 		$(".enlargeProductBtn").addClass('disabledBtn');
