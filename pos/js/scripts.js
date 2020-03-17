@@ -915,11 +915,6 @@ function openModal(title, heightModal) {
 		},10);
 
 	openedModal = true;
-
-	setTimeout(function(){
-			$('form').find('*').filter(':input:visible:first').focus();
-		},
-	500);
 }
 
 function selectFirstNavigable()
