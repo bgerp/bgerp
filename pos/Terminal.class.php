@@ -1812,6 +1812,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $revertBlock = ht::createLink('↶ Сторно бележка', $revertDefaultUrl, $warning, array('id' => "revertReceiptBtn", 'class' => "pos-notes posBtns revertReceiptBtn {$disabledRevertClass}", 'title' => 'Създаване на нова сторно бележка'));
         $arr['draft']['receipts']->append($revertBlock);
+        $count = $query->count();
         
         while ($receiptRec = $query->fetch()) {
             $key = $receiptRec->state;
@@ -1838,9 +1839,10 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $currentSelected = false;
+        
         foreach ($arr as $key => $element){
             $class = '';
-            if($element['count'] > 0 && !$currentSelected){
+            if(!$currentSelected && (!$count || $element['count'] > 0)){
                 $currentSelected = true;
                 $class = 'active';
             }
