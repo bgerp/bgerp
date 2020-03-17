@@ -760,17 +760,17 @@ td.revertCaption {
 @media handheld,
 only screen and (max-width: 1600px) {
   .headerContent {
-    font-size: 0.85em !important; }
+    font-size: 0.85em !important; } }
+
+@media handheld,
+only screen and (max-width: 1400px) {
+  .headerContent {
+    font-size: 0.8em !important; }
 
   .half {
     width: 100%;
     display: block;
     margin-bottom: 20px; } }
-
-@media handheld,
-only screen and (max-width: 1400px) {
-  .headerContent {
-    font-size: 0.8em !important; } }
 
 @media handheld,
 only screen and (max-width: 640px) {
