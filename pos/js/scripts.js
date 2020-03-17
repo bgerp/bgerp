@@ -62,7 +62,7 @@ function posActions() {
 		}
 		console.log('KEYUP ' + e.key);
 		// Хак да не се тригърва ивента при натискане на ентър или при навигацията на страницата за избор на селектиран елемент
-		if(e.key == "Enter" || e.key == "ArrowRight" || e.key == "ArrowLeft" || e.key == "ArrowUp" || e.key == "ArrowDown"  || e.key == "PageUp" || e.key == "PageDown" || e.key == 'Alt' || e.key == 'Control' || e.key == 'Escape') return;
+		if(e.key == "Enter" || e.key == "ArrowRight" || e.key == "ArrowLeft" || e.key == "ArrowUp" || e.key == "ArrowDown"  || e.key == "PageUp" || e.key == "PageDown" || e.key == 'Alt' || e.key == 'Control' || e.key == 'Escape' || e.key == 'F2') return;
 		
 		activeInput = true;
 
@@ -677,6 +677,7 @@ function render_openCurrentPosTab(){
 }
 
 function render_prepareResult() {
+	
 	activeInput = false;
 	startNavigation();
 
