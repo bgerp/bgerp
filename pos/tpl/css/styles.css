@@ -114,10 +114,10 @@
   color: #cc0000; }
 
 #single-receipt .receiptPayment {
-  background-color: #d1ffda;
   font-size: 1.1em;
   display: block;
-  padding: 10px 15px; }
+  padding: 10px 15px;
+  color: blue; }
   #single-receipt .receiptPayment div {
     font-weight: bold; }
 
