@@ -267,23 +267,33 @@
 
 .textShortcut {
   line-height: 150%;
-  padding-left: 5px; }
+  padding-left: 5px;
+  font-size: 1em; }
 
 .imageCell img {
-  width: 40px;
-  height: 40px; }
+  width: 34px;
+  height: 34px; }
 
   .shortcuts span {
     position: relative;
     top: -2px;
     text-align: center;
-    padding: 8px 5px;
+    padding: 8px 4px;
     border: 1px solid #cccccc;
     background: #dddddd;
-    font-size: 1.2em;
+    font-size: 1em;
     margin: 2px 0px 3px 10px;
     display: block;
-    font-weight: bold; }
+    font-weight: bold;
+    white-space: nowrap; }
+
+.title {
+  font-weight: bold;
+  padding: 10px 0; }
+
+.half {
+  width: 48%;
+  display: table-cell; }
 
 .tabHolder {
   display: grid;
@@ -750,7 +760,12 @@ td.revertCaption {
 @media handheld,
 only screen and (max-width: 1600px) {
   .headerContent {
-    font-size: 0.85em !important; } }
+    font-size: 0.85em !important; }
+
+  .half {
+    width: 100%;
+    display: block;
+    margin-bottom: 20px; } }
 
 @media handheld,
 only screen and (max-width: 1400px) {
