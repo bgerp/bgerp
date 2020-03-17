@@ -173,6 +173,10 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $id2 = planning_DirectProductionNote::getClassid();
         $jRecs2 = $jQuery->where("#docType = {$id2}");
         $jRecs2 = $jQuery->fetchAll();
+        
+        $id1 = planning_ConsumptionNotes::getClassid();
+        $jRecs4 = $jQuery->where("#docType = {$id1}");
+        $jRecs4 = $jQuery->fetchAll();
        
         $jRecs3 = array_diff_key($jRecs, $jRecs2); 
         $recs = array();
@@ -223,6 +227,16 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 // Приспадане на вложеното с върнатото от производството бездетайлно
                 if ($convRes3 = acc_Balances::getBlQuantities($jRecs3, '321', 'debit', '61102', array(null, $itemId, null))) {
                     $obj->converted -= $convRes3[$itemId]->quantity;
+                }
+                
+                // Приспадане на вложеното с върнатото от производството детайлно
+                if ($delRes3 = acc_Balances::getBlQuantities($jRecs4, '321', 'debit', '61101', array(null, $itemId, null))) {
+                    $obj->converted -= $delRes3[$itemId]->quantity;
+                }
+                
+                // Приспадане на вложеното с върнатото от производството бездетайлно
+                if ($convRes4 = acc_Balances::getBlQuantities($jRecs4, '321', 'debit', '61102', array(null, $itemId, null))) {
+                    $obj->converted -= $convRes4[$itemId]->quantity;
                 }
 
                 // Произведено от протокол за производство (на вложеното с върнатото от производството детайлно)
