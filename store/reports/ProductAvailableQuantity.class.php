@@ -86,11 +86,14 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         
         $fieldset->FLD('additional', 'table(columns=code|name|minQuantity|maxQuantity,captions=Код на артикула|Мярка / Наименование|Мин к-во|Макс к-во,widths=5em|20em|5em|5em)', 'caption=Артикули||Additional,autohide,advanced,after=storeId,single=none');
         
-        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=typeOfQuantity');
+        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=typeOfQuantity');
         $fieldset->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,silent,single=none,removeAndRefreshForm');
         
         $fieldset->FLD('inputArts', 'varchar', 'caption=Наблюдавани артикули,input=hidden,single=none');
         $fieldset->FLD('orderBy', 'enum(conditionQuantity=Състояние,code=Код)', 'caption=Подреди по,maxRadio=2,columns=2,after=typeOfQuantity,silent');
+    
+        $fieldset->FLD('seeByStores', 'set(yes = )', 'caption=Детайлно,after=orderBy,single=none');
+        
     }
     
     
@@ -353,7 +356,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        $recs = array();
+        $recs = $storesQuatity = array();
         
         $codes = array();
         
@@ -390,9 +393,10 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         
         // Филтриране по склад, ако е зададено
         if (isset($rec->storeId)) {
-            $sQuery->where("#storeId = {$rec->storeId}");
+            $storArr = keylist::toArray($rec->storeId);
+            $sQuery->in('storeId', $storArr);
         }
-        
+       
         while ($recProduct = $sQuery->fetch()) {
             $productId = $recProduct->productId;
             
@@ -403,6 +407,11 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                 // Гледаме наличното количество
                 $quantity = $recProduct->quantity;
             }
+            
+            
+            $stKey = $productId.'|'.$recProduct->storeId;
+            $storesQuatity[$stKey]+=$quantity;
+            
             
             if ($obj = &$recs[$productId]) {
                 $obj->quantity += $quantity;
@@ -418,10 +427,11 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     $pos = strpos($maxQuantity[$key], ',');
                     $maxQuantity[$key][$pos] = '.';
                 }
+                
                 $recs[$productId] = (object) array(
                     'measure' => $recProduct->measureId,
                     'productId' => $productId,
-                    'storeId' => $rec->storeId,
+                    'storesQuatity' => '',
                     'quantity' => $quantity,
                     'minQuantity' => $minQuantity[$key],
                     'maxQuantity' => $maxQuantity[$key],
@@ -433,9 +443,24 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         if (!is_null($recs)) {
             arr::sortObjects($recs, 'code', 'asc');
         }
-        
+        $temp=array();
+        foreach ($storesQuatity as $key => $val){
+            
+            list($newKey,$stId)= explode('|',$key);
+            if (!in_array($newKey,array_keys($temp))) {
+                $temp[$newKey]=array($stId.'|'.$val);
+            }else{
+                array_push($temp[$newKey], $stId.'|'.$val);
+               
+            }
+            
+        } 
+       
         // Определяне на индикаторите за "свръх наличност" и "под минимум";
         foreach ($recs as $productId => $prodRec) {
+            
+            $prodRec->storesQuatity = $temp[$productId];
+            
             $prodRec->conditionQuantity = '3|ок';
             $prodRec->conditionColor = 'green';
             if ($prodRec->maxQuantity == 0 && $prodRec->minQuantity == 0) {
@@ -453,7 +478,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         if (!is_null($recs) && $rec->orderBy) {
             arr::sortObjects($recs, $rec->orderBy, 'asc');
         }
-        
+       
         return $recs;
     }
     
@@ -505,12 +530,23 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         
         $row = new stdClass();
         $row->productId = cat_Products::getShortHyperlink($dRec->productId, true);
-        
+        if ($rec->seeByStores != 'yes') {
         if (isset($dRec->quantity)) {
-            $row->quantity = core_Type::getByName('double(decimals=3)')->toVerbal($dRec->quantity);
+            $row->quantity = ($dRec->quantity);
             $row->quantity = ht::styleIfNegative($row->quantity, $dRec->quantity);
         }
-        
+        }else{
+                
+            $row->quantity = '<b>'.'Общо:'.($dRec->quantity).'</b>'."</br>";
+                
+                foreach ($dRec->storesQuatity as $val){
+                   
+                    list($storeId,$stQuantity) = explode('|', $val);
+                    $row->quantity .=store_Stores::getTitleById($storeId).': '.($stQuantity)."</br>";
+                    $row->quantity = ht::styleIfNegative($row->quantity, $stQuantity);
+                }
+            }
+      
         if (isset($dRec->measure)) {
             $row->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
         }
@@ -552,15 +588,32 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN groupsChecked-->|Наблюдавани групи|*: [#groupsChecked#]<!--ET_END groupsChecked--></div></small>
                                 <small><div><!--ET_BEGIN inputArts-->|Наблюдавани артикули|*: [#inputArts#]<!--ET_END inputArts--></div></small>
                                 <small><div><!--ET_BEGIN ariculsData-->|Артикули с данни|*: [#ariculsData#]<!--ET_END ariculsData--></div></small>
-                                </fieldset><!--ET_END BLOCK-->"));
+                                <small><div><!--ET_BEGIN storeId-->|Складове|*: [#storeId#]<!--ET_END storeId--></div></small>
+                                 </fieldset><!--ET_END BLOCK-->"));
         
         
         if (isset($data->rec->groupsChecked)) {
             $fieldTpl->append('<b>' .$data->rec->groupsChecked. '</b>', 'groupsChecked');
         }
         
+        if (isset($data->rec->storeId)) {
+            foreach (type_Keylist::toArray($data->rec->storeId) as $store) {
+                $marker++;
+                 
+                $storeIdVerb .= (store_Stores::getTitleById($store));
+                
+                if ((countR(type_Keylist::toArray($data->rec->storeId))) - $marker != 0) {
+                    $storeIdVerb .= ', ';
+                }
+            }
+            
+            $fieldTpl->append('<b>' . $storeIdVerb . '</b>', 'storeId');
+        } else {
+            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'storeId');
+        }
         
-        $data->rec->ariculsData = countR($data->rec->data->recs);
+        
+        $data->rec->ariculsData = countR($data->rec->data->recs)-1;
         
         if (isset($data->rec->inputArts)) {
             $fieldTpl->append('<b>' .$data->rec->inputArts. '</b>', 'inputArts');
