@@ -60,9 +60,9 @@ function posActions() {
 		if($(".buttonOverlay").css('display') != 'none'){
 			return;
 		}
-		console.log('KEYUP');
+		console.log('KEYUP ' + e.key);
 		// Хак да не се тригърва ивента при натискане на ентър или при навигацията на страницата за избор на селектиран елемент
-		if(e.key == "Enter" || e.key == "ArrowRight" || e.key == "ArrowLeft" || e.key == "ArrowUp" || e.key == "ArrowDown"  || e.key == "PageUp" || e.key == "PageDown" || e.key == 'Alt' || e.key == 'Control') return;
+		if(e.key == "Enter" || e.key == "ArrowRight" || e.key == "ArrowLeft" || e.key == "ArrowUp" || e.key == "ArrowDown"  || e.key == "PageUp" || e.key == "PageDown" || e.key == 'Alt' || e.key == 'Control' || e.key == 'Escape') return;
 		
 		activeInput = true;
 
@@ -86,7 +86,7 @@ function posActions() {
 		
 		var selectedElement = $(".highlighted.productRow");
 		var selectedRecId = selectedElement.attr("data-id");
-
+		console.log('KEYUP TIMEOUT ' + e.key);
 		// Правим Ajax заявката като изтече време за изчакване
 		timeout = setTimeout(function(){
 			resObj = new Object();
@@ -677,6 +677,8 @@ function render_openCurrentPosTab(){
 }
 
 function render_prepareResult() {
+	console.log('aaaaa');
+	
 	activeInput = false;
 	startNavigation();
 
