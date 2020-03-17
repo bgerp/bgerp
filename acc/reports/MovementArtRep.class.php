@@ -172,7 +172,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         //327 wry6a
         
         //Производство
-        $jRecs2 = $jQuery->where("#docType = 325 OR #docType = 323");
+        $jRecs2 = $jQuery->where("#docType = 325 AND #docType = 323");
         $jRecs2 = $jQuery->fetchAll();
 
         $recs = array();
