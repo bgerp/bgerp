@@ -677,8 +677,6 @@ function render_openCurrentPosTab(){
 }
 
 function render_prepareResult() {
-	console.log('aaaaa');
-	
 	activeInput = false;
 	startNavigation();
 
