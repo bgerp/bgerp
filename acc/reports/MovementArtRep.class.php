@@ -168,14 +168,18 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         acc_JournalDetails::filterQuery($jQuery, $from, $to, '321,401,61101,61102,701');
         $jRecs = $jQuery->fetchAll();
 
-        //Производство
+        //Връщане
         //$id1 = planning_ReturnNotes::getClassid();
-        $id2 = planning_ConsumptionNotes::getClassid();
-        $jRecs2 = $jQuery->where("#docType = $id2");
         //$jRecs2 = $jQuery->orWhere("#docType = $id2");
-
+        
+        //Протокол за влагане в производство
+        //$id2 = planning_ConsumptionNotes::getClassid();
+        
+        //Производство
+        $id2 = planning_DirectProductionNote::getClassid();
+        $jRecs2 = $jQuery->where("#docType = $id2");
         $jRecs2 = $jQuery->fetchAll();
-
+       
         $recs = array();
         
         log_System::add(get_called_class(), 'jRecsCnt: ' . countR($jRecs) . ', producsCnt: ' . countR($productArr), null, 'debug', 1);
@@ -225,8 +229,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 if ($convRes3 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61102', array(null, $itemId, null))) {
                     $obj->converted -= $convRes3[$itemId]->quantity;
                 }
-                    
-                
+
                 // Произведено от протокол за производство (на вложеното с върнатото от производството детайлно)
                 if ($prodRes1 = acc_Balances::getBlQuantities($jRecs2, '321', 'debit', '61101', array(null, $itemId, null))) { 
                     $obj->produced += $prodRes1[$itemId]->quantity;
@@ -237,7 +240,6 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                     $obj->produced += $prodRes2[$itemId]->quantity;
                 }
 
-                
                 // Продадено
                 if ($soldRes = acc_Balances::getBlQuantities($jRecs, '701', 'debit', '321', array(null, null, $itemId))) {
                     $obj->sold = $soldRes[$itemId]->quantity;
@@ -259,7 +261,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         
         //325 proizwodstwo
         //327 wry6a
-        
+       
         return $recs;
     }
     
