@@ -122,19 +122,15 @@ class frame2_Setup extends core_ProtoSetup
         
         $reportQuery->where("#driverClass = $reportClassId");
         
-        $updateArr = array();
         while ($fRec = $reportQuery->fetch()){
             
-            if (is_null($fRec->driverRec[storeId]) || keylist::isKeylist($fRec->driverRec[storeId]))continue;
+            if (is_null($fRec->driverRec['storeId']) || keylist::isKeylist($fRec->driverRec['storeId']))continue;
             
-            $fRec->driverRec[storeId] ='|'.$fRec->driverRec[storeId].'|';
+            $fRec->driverRec['storeId'] ='|'.$fRec->driverRec['storeId'].'|';
             
-            $updateArr[$fRec->id] = $fRec;
+            $Frames->save("id,driverRec");
             
         }
-        
-        if (!empty($updateArr)) {
-            $Frames->saveArray($updateArr, "id,driverRec");
-        }
+       
     }
 }
