@@ -231,12 +231,12 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 
                 // Приспадане на вложеното с върнатото от производството детайлно
                 if ($delRes3 = acc_Balances::getBlQuantities($jRecs4, '321', 'debit', '61101', array(null, $itemId, null))) {
-                    $obj->converted -= $delRes3[$itemId]->quantity;
+                    $obj->converted += $delRes3[$itemId]->quantity;
                 }
                 
                 // Приспадане на вложеното с върнатото от производството бездетайлно
                 if ($convRes4 = acc_Balances::getBlQuantities($jRecs4, '321', 'debit', '61102', array(null, $itemId, null))) {
-                    $obj->converted -= $convRes4[$itemId]->quantity;
+                    $obj->converted += $convRes4[$itemId]->quantity;
                 }
 
                 // Произведено от протокол за производство (на вложеното с върнатото от производството детайлно)
