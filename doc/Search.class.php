@@ -494,6 +494,11 @@ class doc_Search extends core_Manager
             $linkUrl['Q'] = $search;
         }
         
+        // Удебеляване на документи, променени след последното виждане
+        if ($rec->modifiedOn > bgerp_Recently::getLastDocumentSee($rec->id)) {
+            $attr['class'] .= " tUnsighted";
+        }
+        
         $row->title = ht::createLink(
             
             str::limitLen($docRow->title, doc_Threads::maxLenTitle),

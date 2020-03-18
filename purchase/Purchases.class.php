@@ -38,6 +38,12 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
+     * При създаване на имейл, дали да се използва първият имейл от списъка
+     */
+    public $forceFirstEmail = true;
+    
+    
+    /**
      * Абревиатура
      */
     public $abbr = 'Pur';

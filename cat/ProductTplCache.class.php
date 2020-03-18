@@ -134,7 +134,7 @@ class cat_ProductTplCache extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->FLD('docId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'input,caption=Артикул');
+        $data->listFilter->FLD('docId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'input,caption=Артикул,refreshForm');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'docId';
@@ -144,37 +144,6 @@ class cat_ProductTplCache extends core_Master
         if (isset($data->listFilter->rec->docId)) {
             $data->query->where("#productId = '{$data->listFilter->rec->docId}'");
         }
-    }
-    
-    
-    /**
-     * След подготовка на тулбара на списъчния изглед
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-        if (haveRole('admin,debug,ceo')) {
-            $data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искате ли да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
-        }
-    }
-    
-    
-    /**
-     * Изчиства записите в балансите
-     */
-    public function act_Truncate()
-    {
-        requireRole('admin,debug,ceo');
-        
-        // Изчистваме записите от моделите
-        self::truncate();
-        
-        // Записваме, че потребителя е разглеждал този списък
-        $this->logWrite('Изтриване на кеша на изгледите на артикула');
-        
-        return new Redirect(array($this, 'list'), '|Записите са изчистени успешно');
     }
     
     

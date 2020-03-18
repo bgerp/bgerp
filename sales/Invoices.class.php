@@ -61,6 +61,12 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
+     * При създаване на имейл, дали да се използва първият имейл от списъка
+     */
+    public $forceFirstEmail = true;
+    
+    
+    /**
      * Кои роли могат да филтрират потребителите по екип в листовия изглед
      */
     public $filterRolesForTeam = 'ceo,salesMaster,manager';

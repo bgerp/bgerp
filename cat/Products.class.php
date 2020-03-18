@@ -2333,7 +2333,7 @@ class cat_Products extends embed_Manager
         // Ако не е указан тип, се взима последната рецепта
         $query = cat_Boms::getQuery();
         $query->where("#productId = '{$rec->id}' AND #state = 'active'");
-        $query->orderBy('id', 'ASC');
+        $query->orderBy('id', 'DESC');
         
         return $query->fetch();
     }
@@ -2857,6 +2857,9 @@ class cat_Products extends embed_Manager
                     }
                 }
             }
+        } else {
+            $Driver = static::getDriver($id);
+            $res = $Driver->getMaterialsForProduction($id, $quantity);
         }
         
         return $res;
