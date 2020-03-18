@@ -391,6 +391,33 @@ class doc_Containers extends core_Manager
     
     
     /**
+     *
+     * @param integer $threadId
+     *
+     * @return integer
+     */
+    public static function getLastDocCid($threadId)
+    {
+        static $rArr = array();
+        
+        if (!isset($rArr[$threadId])) {
+            $query = self::getQuery();
+            $query->where(array("#threadId = '[#1#]'", $threadId));
+            
+            $query->orderBy('#createdOn, #id', 'DESC');
+            
+            $query->limit(1);
+            
+            $query->show('id');
+            
+            $rArr[$threadId] = $query->fetch()->id;
+        }
+        
+        return $rArr[$threadId];
+    }
+    
+    
+    /**
      * Изпълнява се след подготовката на филтъра за листовия изглед
      * Обикновено тук се въвеждат филтриращите променливи от Request
      */

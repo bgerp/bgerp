@@ -39,7 +39,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
     /**
      * Полета с възможност за промяна
      */
-    protected $changeableFields = 'periods';
+    protected $changeableFields = 'periods,indocators,formula';
     
     
     /**

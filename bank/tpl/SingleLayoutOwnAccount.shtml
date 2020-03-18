@@ -39,6 +39,12 @@
                                 <td class='dt'>|Тип|*:</td>
                                 <td><b>[#type#]</b></td>
                             </tr>
+                            <!--ET_BEGIN countries-->
+                            <tr>
+                                <td class='dt'>|Държави|*:</td>
+                                <td>[#countries#]</td>
+                            </tr>
+                            <!--ET_END countries-->
                             <!--ET_BEGIN comment-->
                             <tr>
                             	<td class='dt'>|Бележки|*:</td>

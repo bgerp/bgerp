@@ -54,7 +54,7 @@ class type_Double extends core_Type
     {
         parent::init($params);
         
-        $this->params['inputmode'] = 'numeric';
+        $this->params['inputmode'] = 'decimals';
     }
     
     

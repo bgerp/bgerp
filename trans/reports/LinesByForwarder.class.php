@@ -12,7 +12,7 @@
   * @license   GPL 3
   *
   * @since     v 0.1
-  * @title     Логистика » Линии по шофьор
+  * @title     Логистика » Данни от Транспортни линии
   */
  class trans_reports_LinesByForwarder extends frame2_driver_TableData
  {
@@ -110,22 +110,24 @@
          
          $query = trans_LineDetails::getQuery();
          
-         //  $query = trans_Lines::getQuery();
-         
          $query->EXT('forwarderPersonId', 'trans_Lines', 'externalName=forwarderPersonId,externalKey=lineId');
          
          $query->EXT('state', 'trans_Lines', 'externalName=state,externalKey=lineId');
+         
+         $query->EXT('start', 'trans_Lines', 'externalName=start,externalKey=lineId');
          
          $query->EXT('createdOn', 'trans_Lines', 'externalName=createdOn,externalKey=lineId');
          
          $query->where('#forwarderPersonId IS NOT NULL');
          
-         $query->where("#state != 'rejected' ");
+         $query->where("#status != 'removed'");
+         
+         $query->where("#state = 'active' OR #state = 'closed' ");
          
          // Ако е посочена начална дата на период
          if ($rec->from) {
              $query->where(array(
-                 "#createdOn >= '[#1#]'",
+                 "#start >= '[#1#]'",
                  $rec->from . ' 00:00:00'
              ));
          }
@@ -133,7 +135,7 @@
          //Крайна дата / 'към дата'
          if ($rec->to) {
              $query->where(array(
-                 "#createdOn <= '[#1#]'",
+                 "#start <= '[#1#]'",
                  $rec->to . ' 23:59:59'
              ));
          }
@@ -145,118 +147,81 @@
          }
          
          
+         //Складови документи
+         $shipDocsArr = array(store_ShipmentOrders::getClassId(),
+             store_ConsignmentProtocols::getClassId(),
+             store_Receipts::getClassId(),
+             store_Transfers::getClassId(),
+         );
+         
+         //Платежни документи(в момента отчита само ПКО)
+         $paymentDocsArr = array(cash_Pko::getClassId()
+         );
          while ($tRec = $query->fetch()) {
-             $arr[] = ($tRec);
-         }
-         
-         $id = self::breakdownBy($tRec, $rec);
-         
-         $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
-         
-         
-         $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,packagingId,indTime,indPackagingId,indTimeAllocation');
-         $pRec = cat_Products::fetch($tRec->productId, 'measureId,name');
-         
-         // Запис в масива
-         if (!array_key_exists($id, $recs)) {
-             $recs[$id] = (object) array(
-                 
-                 'taskId' => $tRec->taskId,
-                 'detailId' => $tRec->id,
-                 'indTime' => $iRec->indTime,
-                 'indPackagingId' => $irec->indPackagingId,
-                 'indTimeAllocation' => $iRec->indTimeAllocation,
-                 
-                 'employees' => $tRec->employees,
-                 'assetResources' => $tRec->fixedAsset,
-                 
-                 'productId' => $tRec->productId,
-                 'measureId' => $pRec->measureId,
-                 
-                 'quantity' => $tRec->quantity,
-                 'scrap' => $tRec->scrappedQuantity,
-                 
-                 'labelMeasure' => $iRec->packagingId,
-                 'labelQuantity' => 1,
-                 
-                 'weight' => $tRec->weight,
+             $isShipmentDoc = $isPaymentDoc = 0;
+             $weight = $transportUnits = $cashAmount = 0;
              
-             );
-         } else {
-             $obj = &$recs[$id];
+             $id = ($tRec -> forwarderPersonId) ?$tRec -> forwarderPersonId : 'Не е избран';
              
-             $obj->quantity += $tRec->quantity;
-             $obj->scrap += $tRec->scrappedQuantity;
-             ++$obj->labelQuantity;
+             $Document = doc_Containers::getDocument($tRec->containerId);
+             $transInfo = $Document->getTransportLineInfo($tRec->lineId);
              
-             $obj->weight += $tRec->weight;
-         }
-         
-         //    }
-         
-         
-         //Разпределяне по работници, когато са повече от един
-         foreach ($recs as $key => $val) {
-             if (countR(keylist::toArray($val->employees)) > 1) {
-                 $clone = clone $val;
+             //Адокумента е експедиционен
+             if (in_array($tRec->classId, $shipDocsArr)) {
+                 $isShipmentDoc = 1;
                  
-                 $divisor = countR(keylist::toArray($val->employees));
+                 $weight = $transInfo[weight];
                  
-                 foreach (keylist::toArray($val->employees) as $k => $v) {
-                     unset($id);
-                     
-                     if (!is_null($rec->employees) && !in_array($v, keylist::toArray($rec->employees))) {
-                         continue;
-                     }
-                     
-                     if ($rec->resultsOn == 'users') {
-                         $id = $val->taskId.'|'.$val->productId.'|'.'|'.$v.'|';
-                     }
-                     if ($rec->resultsOn == 'usersMachines') {
-                         $id = $val->taskId.'|'.$val->productId.'|'.'|'.$v.'|'.'|'.$val->assetResources;
-                     }
-                     
-                     $clone = clone $val;
-                     
-                     if (!array_key_exists($id, $recs)) {
-                         $recs[$id] = (object) array(
-                             
-                             'taskId' => $clone->taskId,
-                             'detailId' => $clone->detailId,
-                             'indTime' => $iRec->indTime,
-                             'indPackagingId' => $irec->indPackagingId,
-                             'indTimeAllocation' => $iRec->indTimeAllocation,
-                             
-                             'employees' => '|'.$v.'|',
-                             'assetResources' => $clone->assetResources,
-                             
-                             'productId' => $clone->productId,
-                             'measureId' => $clone->measureId,
-                             
-                             'quantity' => $clone->quantity / $divisor,
-                             'scrap' => $clone->scrap / $divisor,
-                             
-                             'labelMeasure' => $clone->labelMeasure,
-                             'labelQuantity' => 1,
-                             
-                             'weight' => $clone->weight / $divisor,
-                         
-                         );
-                     } else {
-                         $obj = &$recs[$id];
-                         
-                         $obj->quantity += $clone->quantity / $divisor;
-                         $obj->scrap += $clone->scrap / $divisor;
-                         ++$obj->labelQuantity;
-                         $obj->weight += $clone->weight / $divisor;
-                     }
+                 if (is_array($transInfo[transportUnits])) {
+                     $transportUnits = array_sum($transInfo[transportUnits]);
                  }
-                 unset($recs[$key]);
+             }
+             
+             if (in_array($tRec->classId, $paymentDocsArr)) {
+                 
+                 $isPaymentDoc = 1;
+                 
+                 if (($tRec->classId == cash_Pko::getClassId())) {
+                     $cashAmount = $transInfo[baseAmount];
+                 }
+             }
+             
+             // Запис в масива
+             if (!array_key_exists($id, $recs)) {
+                 $recs[$id] = (object) array(
+                     
+                     'forwarderPersonId' => $tRec->forwarderPersonId,
+                     'lineId' => array($tRec->lineId),
+                     'documents' => array($tRec->classId),
+                     'numberOfDocuments' => 1,
+                     
+                     'shipmentDocs' => $isShipmentDoc,
+                     'paymentDocs' => $isPaymentDoc,
+                     
+                     'weight' => $weight,
+                     'transportUnits' => $transportUnits,
+                     
+                     'cashAmount' => $cashAmount,
+                 
+                 
+                 );
+             } else {
+                 $obj = &$recs[$id];
+                 if (!in_array($tRec->lineId, $obj->lineId)) {
+                     array_push($obj->lineId, $tRec->lineId);
+                 }
+                 array_push($obj->documents, $tRec->classId);
+                 ++$obj->numberOfDocuments;
+                 
+                 $obj->weight += $weight;
+                 $obj->transportUnits += $transportUnits;
+                 $obj->cashAmount += $cashAmount;
+                 
+                 $obj->shipmentDocs += $isShipmentDoc;
+                 $obj->paymentDocs += $isPaymentDoc;
              }
          }
-         
-         arr::sortObjects($recs, 'taskId', 'asc');
-         
+
          return $recs;
      }
      
@@ -275,37 +240,14 @@
      {
          $fld = cls::get('core_FieldSet');
          
-         if ($export === false) {
-             $fld->FLD('taskId', 'varchar', 'caption=Задача');
-             $fld->FLD('article', 'varchar', 'caption=Артикул');
-             $fld->FLD('min', 'varchar', 'caption=Минути');
-             if ($rec->resultsOn != 'arts') {
-                 if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
-                     $fld->FLD('employees', 'varchar', 'caption=Служител');
-                 }
-                 if ($rec->resultsOn == 'usersMachines' || $rec->resultsOn == 'machines') {
-                     $fld->FLD('assetResources', 'varchar', 'caption=Оборудване');
-                 }
-             }
-             $fld->FLD('measureId', 'varchar', 'caption=Произведено->Мярка,tdClass=centered');
-             $fld->FLD('quantity', 'double', 'caption=Произведено->Кол');
-             $fld->FLD('labelMeasure', 'varchar', 'caption=Етикет->мярка,tdClass=centered');
-             $fld->FLD('labelQuantity', 'varchar', 'caption=Етикет->кол,tdClass=centered');
-             $fld->FLD('scrap', 'double', 'caption=Брак');
-             $fld->FLD('weight', 'double', 'caption=Тегло');
-         } else {
-             $fld->FLD('taskId', 'varchar', 'caption=Задача');
-             $fld->FLD('article', 'varchar', 'caption=Артикул');
-             
-             $fld->FLD('measureId', 'varchar', 'caption=Произведено->Мярка,tdClass=centered');
-             $fld->FLD('quantity', 'varchar', 'caption=Произведено->Кол');
-             $fld->FLD('labelMeasure', 'varchar', 'caption=Етикет->мярка,tdClass=centered');
-             $fld->FLD('labelQuantity', 'varchar', 'caption=Етикет->кол,tdClass=centered');
-             $fld->FLD('scrap', 'varchar', 'caption=Брак');
-             $fld->FLD('weight', 'varchar', 'caption=Тегло');
-             $fld->FLD('employees', 'varchar', 'caption=Служител');
-             $fld->FLD('assetResources', 'varchar', 'caption=Оборудване,tdClass=centered');
-         }
+         $fld->FLD('forwarderPersonId', 'key(mvc=crm_Persons,select=name)', 'caption=Служител');
+         $fld->FLD('numberOfLines', 'varchar', 'caption=Брой->линии,tdClass=centered');
+         $fld->FLD('numberOfShips', 'varchar', 'caption=Брой->експедиции,tdClass=centered');
+         $fld->FLD('numberOfPacks', 'varchar', 'caption=Брой->товари,tdClass=centered');
+         $fld->FLD('weight', 'double', 'caption=Общо тегло');
+         
+         $fld->FLD('numberOfPko', 'varchar', 'caption=ПКО->Брой,tdClass=centered');
+         $fld->FLD('sumOfPko', 'double', 'caption=ПКО->сума');
          
          return $fld;
      }
@@ -326,41 +268,28 @@
          $isPlain = Mode::is('text', 'plain');
          $Int = cls::get('type_Int');
          $Date = cls::get('type_Date');
+         $Double = cls::get('type_Double');
+         $Double->params['decimals'] = 2;
          
          $row = new stdClass();
          
          
-         $row->taskId = planning_Tasks::getHyperlink($dRec->taskId);
-         $row->article = cat_Products::getHyperlink($dRec->productId);
+         $row->forwarderPersonId = crm_Persons::getHyperlink($dRec->forwarderPersonId).'</br>'.
+         core_Users::getNick(crm_Profiles::getUserByPerson($dRec->forwarderPersonId));
          
-         $row->measureId = cat_UoM::getShortName($dRec->measureId);
-         $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
+         $numberOfLines = countR($dRec->lineId);
+         $row->numberOfLines = $Int->toVerbal($numberOfLines)."</br>";
          
-         $row->labelMeasure = isset($dRec->labelMeasure)? cat_UoM::getShortName($dRec->labelMeasure) :'';
-         
-         
-         $row->labelQuantity = $Int->toVerbal($dRec->labelQuantity);
-         
-         $row->scrap = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->scrap);
-         $row->weight = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->weight);
-         
-         if (isset($dRec->employees)) {
-             foreach (keylist::toArray($dRec->employees) as $key => $val) {
-                 $pers = (core_Users::getNick(crm_Profiles::getUserByPerson($val)));
-                 
-                 $row->employees .= $pers.'</br>';
-             }
+         foreach ($dRec->lineId as $val){
+          
+             $row->numberOfLines .= ht::createLink($val, toUrl(array('trans_Lines', 'single',$val))).',';
          }
          
-         if (isset($dRec->assetResources)) {
-             $row->assetResources = planning_AssetResources::fetch($dRec->assetResources)->name;
-         } else {
-             $row->assetResources = '';
-         }
-         
-         $indTimeSumm = ($dRec->indTime * $dRec->quantity) / 60;
-         
-         $row->min = core_Type::getByName('double(decimals=2)')->toVerbal($indTimeSumm);
+         $row->numberOfShips = $Int->toVerbal($dRec->shipmentDocs);
+         $row->numberOfPko = $Int->toVerbal($dRec->paymentDocs);
+         $row->numberOfPacks = $Int->toVerbal($dRec->transportUnits);
+         $row->weight = $Double->toVerbal($dRec->weight);
+         $row->sumOfPko = $Double->toVerbal($dRec->cashAmount);
          
          return $row;
      }
@@ -394,81 +323,8 @@
             }
             
             
-            if (($data->rec->resultsOn == 'users' || $data->rec->resultsOn == 'usersMachines')) {
-                if (isset($data->rec->employees)) {
-                    $marker = 0;
-                    foreach (type_Keylist::toArray($data->rec->employees) as $empl) {
-                        $marker++;
-                        
-                        $employeesVerb .= (core_Users::getNick(crm_Profiles::getUserByPerson($empl)));
-                        
-                        if ((countR(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
-                            $employeesVerb .= ', ';
-                        }
-                    }
-                    
-                    $fieldTpl->append('<b>' . $employeesVerb . '</b>', 'employees');
-                } else {
-                    $fieldTpl->append('<b>' . 'Всички от този център на дейност' . '</b>', 'employees');
-                }
-            } else {
-                if (isset($data->rec->employees)) {
-                    $marker = 0;
-                    foreach (type_Keylist::toArray($data->rec->employees) as $empl) {
-                        $marker++;
-                        
-                        $employeesVerb .= (core_Users::getNick(crm_Profiles::getUserByPerson($empl)));
-                        
-                        if ((countR(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
-                            $employeesVerb .= ', ';
-                        }
-                    }
-                    
-                    $fieldTpl->append('<b>' . $employeesVerb . '</b>', 'employees');
-                }
-            }
-        
-        if (isset($data->rec->assetResources)) {
-            $marker = 0;
-            foreach (type_Keylist::toArray($data->rec->assetResources) as $asset) {
-                $marker++;
-                
-                $assetVerb .= planning_AssetResources::fetch($asset)->name;
-                
-                if ((countR(type_Keylist::toArray($data->rec->assetResources))) - $marker != 0) {
-                    $assetVerb .= ', ';
-                }
-            }
-            
-            $fieldTpl->append('<b>' . $assetVerb . '</b>', 'assetResources');
-        }
-            
             $tpl->append($fieldTpl, 'DRIVER_FIELDS');
         }
-     }
-     
-     
-     /**
-      * Кой може да избере драйвера
-      * ceo, planning+officer
-      */
-     public function canSelectDriver($userId = null)
-     {
-         if (haveRole('ceo', $userId)) {
-             
-             return true;
-         }
-         
-         if (!haveRole('ceo', $userId) && haveRole('planning', $userId)) {
-             if (haveRole('officer', $userId)) {
-                 
-                 return true;
-             }
-             
-             return false;
-         }
-         
-         return false;
      }
      
      
@@ -482,48 +338,8 @@
       */
      protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
      {
-         $res->taskId = planning_Tasks::getTitleById($dRec->taskId);
-         $res->article = cat_Products::getTitleById($dRec->productId);
-         
-         if (isset($dRec->employees)) {
-             foreach (keylist::toArray($dRec->employees) as $key => $val) {
-                 $pers = (core_Users::getNick(crm_Profiles::getUserByPerson($val)));
-                 
-                 $res->employees .= $pers.', ';
-             }
+         if (isset($dRec->forwarderPersonId)) {
+             $res->forwarderPersonId = core_Users::getNick(crm_Profiles::getUserByPerson($dRec->forwarderPersonId));
          }
-         
-         if (isset($dRec->assetResources)) {
-             $res->assetResources = planning_AssetResources::fetch($dRec->assetResources)->name;
-         } else {
-             $res->assetResources = '';
-         }
-     }
-     
-     
-     /**
-      * Връща ключ по който да се направи разбивка на резултата
-      *
-      * @param stdClass $rec
-      *
-      * @return string
-      */
-     public static function breakdownBy($tRec, $rec)
-     {
-         $key = '';
-         
-         switch ($rec->resultsOn) {
-            
-            case 'arts':$key = $tRec->taskId.'|'.$tRec->productId; break;
-            
-            case 'users':$key = $tRec->taskId.'|'.$tRec->productId.'|'.$tRec->employees; break;
-            
-            case 'usersMachines':$key = $tRec->taskId.'|'.$tRec->productId.'|'.$tRec->employees.'|'.$tRec->fixedAsset; break;
-            
-            case 'machines':$key = $tRec->taskId.'|'.$tRec->productId.'|'.$tRec->fixedAsset; break;
-        
-        }
-         
-         return $key;
      }
  }
