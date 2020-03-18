@@ -718,11 +718,13 @@ function enter(){
 	// Ако има селектиран елемент в резултатите
 	if(element.length){
 		var operation = getSelectedOperation();
+		sessionStorage.setItem('focused', element.attr('id'));
 
 		// Ако инпута е активен но е с празен стринг, или е активен и е въведена операция за к-во или не е активен
 		// тогава се клика на селектирания елемент в резултатите
 		if((activeInput === true && (!value || operation == 'payment')) || activeInput === false){
 			pressNavigable(element);
+
 			return;
 		}
 	}
@@ -802,7 +804,6 @@ function pressNavigable(element)
 		location.href = hrefUrl;
 		return;
 	}
-	
 	processUrl(url, params);
 }
 
@@ -919,12 +920,11 @@ function startNavigation() {
 			selectFirstNavigable();
 		}
 
-		setTimeout(function(){
-			if (focused && document.getElementById(focused) && $('.navigable.selected:visible').length == 0) {
-				$('.selected').removeClass('selected');
-				$('#' + focused ).addClass('selected');
-			}
-		});
+		if (focused && document.getElementById(focused) && $('.navigable.selected:visible').length == 0) {
+			$('.selected').removeClass('selected');
+			$('#' + focused ).addClass('selected');
+		}
+
 		$('#result-holder .navigable:visible').keynav();
 	}
 }
