@@ -179,9 +179,11 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $jRecs4 = $jQuery->fetchAll();
        
         $jRecs3 = array_diff_key($jRecs, $jRecs2); 
-        $recs = array();
         
-        $jRecs5 = $jRecs3+$jRecs4;
+        $jRecs5 = array_merge($jRecs3,$jRecs4);
+   
+        $recs = array();
+  
         log_System::add(get_called_class(), 'jRecsCnt: ' . countR($jRecs) . ', producsCnt: ' . countR($productArr), null, 'debug', 1);
         log_System::add(get_called_class(), 'jRecsCnt: ' . countR($jRecs2) . ', producsCnt: ' . countR($productArr), null, 'debug', 1);
         
@@ -228,16 +230,6 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 // Приспадане на вложеното с върнатото от производството бездетайлно
                 if ($convRes3 = acc_Balances::getBlQuantities($jRecs5, '321', 'debit', '61102', array(null, $itemId, null))) {
                     $obj->converted -= $convRes3[$itemId]->quantity;
-                }
-                
-                // Приспадане на вложеното с върнатото от производството детайлно
-                if ($delRes3 = acc_Balances::getBlQuantities($jRecs5, '321', 'debit', '61101', array(null, $itemId, null))) {
-                    $obj->converted += $delRes3[$itemId]->quantity;
-                }
-                
-                // Приспадане на вложеното с върнатото от производството бездетайлно
-                if ($convRes4 = acc_Balances::getBlQuantities($jRecs5, '321', 'debit', '61102', array(null, $itemId, null))) {
-                    $obj->converted += $convRes4[$itemId]->quantity;
                 }
 
                 // Произведено от протокол за производство (на вложеното с върнатото от производството детайлно)

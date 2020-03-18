@@ -131,8 +131,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        //bp($rec);
-        
+       
         $recs = array();
         
         $jobsQuery = planning_Jobs::getQuery();
@@ -210,6 +209,8 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
         
         $fld->FLD('materialId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+        $fld->FLD('jobs', 'varchar', 'smartCenter,caption=@Задания');
+        
         $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
         
         $fld->FLD('materialQuantiry', 'double(smartRound,decimals=2)', 'smartCenter,caption=Необходимо Количество');
@@ -237,28 +238,29 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         $row = new stdClass();
         
         if (isset($dRec->materialId)) {
-            $row->materialId = cat_Products::getLinkToSingle_($dRec->materialId, 'name')."</br>";
-            foreach ($dRec->jobId as $job) {
-                $marker++;
-                
-                $jRec = planning_Jobs::fetch($job);
-                
-                $jContainer = $jRec->containerId;
-                
-                $Job = doc_Containers::getDocument($jContainer);
-                
-                $handle = $Job->getHandle();
-                
-                $singleUrl = $Job->getUrlWithAccess($Job->getInstance(), $job);
-                
-                $row->materialId .= ht::createLink("#{$handle}", $singleUrl);
-                
-                if ((countR(($dRec->jobId )) - $marker) != 0) {
-                    $row->materialId .= ', ';
-                }
-            }
-            
+            $row->materialId = cat_Products::getLinkToSingle_($dRec->materialId, 'name');
+ 
         } 
+        $marker=0;
+        foreach ($dRec->jobId as $job) {
+            $marker++;
+            
+            $jRec = planning_Jobs::fetch($job);
+            
+            $jContainer = $jRec->containerId;
+            
+            $Job = doc_Containers::getDocument($jContainer);
+            
+            $handle = $Job->getHandle();
+            
+            $singleUrl = $Job->getUrlWithAccess($Job->getInstance(), $job);
+            
+            $row->jobs .=  ht::createLink("#{$handle}", $singleUrl);
+            
+            if ((countR(($dRec->jobId )) - $marker) != 0) {
+                $row->jobs .= ', ';
+            }
+        }
     
         $row->measure = cat_UoM::fetchField(cat_Products::fetch($dRec->materialId)->measureId, 'shortName');
         

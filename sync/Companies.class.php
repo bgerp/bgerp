@@ -51,7 +51,7 @@ class sync_Companies extends sync_Helper
      */
     public function act_Export()
     {
-        self::requireRight();
+        $this->requireRight();
         
         expect(core_Packs::isInstalled('crm'));
         
@@ -82,16 +82,44 @@ class sync_Companies extends sync_Helper
             bp($res);
         }
         
-        return self::outputRes($res);
+        return $this->outputRes($res);
     }
-
-
+    
+    
+    /**
+     * Вика се от act_Import
+     */
+    public static function import($update = true)
+    {
+        $resArr = self::getDataFromUrl(get_called_class());
+        
+        if (Request::get('_bp')) {
+            bp($resArr);
+        }
+        
+        Mode::set('preventNotifications', true);
+        
+        $me = cls::get(get_called_class());
+        
+        foreach ($resArr as $class => $objArr) {
+            self::logDebug($class . ': ' . countR($objArr));
+            foreach ($objArr as $id => $rec) {
+                sync_Map::importRec($class, $id, $resArr, $me, $update);
+            }
+        }
+        
+        cat_ListingDetails::delete("#productId = 0");
+        
+        crm_Groups::updateGroupsCnt('crm_Persons', 'personsCnt');
+    }
+    
+    
     /**
      * Синхронизира двете системи
      */
     public function act_Import()
     {
-        self::requireRight('import');
+        $this->requireRight('import');
         
         ini_set('memory_limit', '2048M');
         
@@ -99,27 +127,10 @@ class sync_Companies extends sync_Helper
         
         core_App::setTimeLimit(1000);
         
-        $resArr = self::getDataFromUrl(get_called_class());
-        
-        if (Request::get('_bp')) {
-            bp($resArr);
-        }
+        $update = (Request::get('update') == 'none') ? false : true;
         
         core_Users::forceSystemUser();
         
-        Mode::set('preventNotifications', true);
-        
-        $update = (Request::get('update') == 'none') ? false : true;
-        
-        foreach ($resArr as $class => $objArr) {
-            self::logDebug($class . ': ' . countR($objArr));
-            foreach ($objArr as $id => $rec) {
-                sync_Map::importRec($class, $id, $resArr, $this, $update);
-            }
-        }
-        
-        cat_ListingDetails::delete("#productId = 0");
-        
-        crm_Groups::updateGroupsCnt('crm_Persons', 'personsCnt');
+        return $this->import($update);
     }
 }
