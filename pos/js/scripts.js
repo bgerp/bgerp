@@ -282,7 +282,7 @@ function posActions() {
 	$(document.body).on('click', ".helpBtn", function(e){
 		openHelp();
 	});
-	
+
 	$("body").setShortcutKey( CONTROL , DELETE ,function() {
 		 deleteSelectedElement();
 	});
@@ -464,7 +464,7 @@ function showHints(){
 	}
 }
 
-function hideHints(){
+function hideHints() {
 	$('.buttonOverlay').fadeOut();
 }
 
@@ -488,6 +488,7 @@ function openKeyboard() {
 function openPrint() {
 	$('.printBtn').click();
 }
+
 function openClient() {
 	var selectedRecId = getSelectedRowId();
 	doOperation("contragent", selectedRecId, false);
@@ -672,12 +673,11 @@ function deleteSelectedElement() {
 	processUrl(url, null);
 }
 
-function render_openCurrentPosTab(){
+function render_openCurrentPosTab() {
 	openCurrentPosTab();
 }
 
 function render_prepareResult() {
-	
 	activeInput = false;
 	startNavigation();
 
@@ -706,32 +706,22 @@ function render_afterload()
 	afterload();
 }
 
-function enter() {
-	if (openedModal){
-		
-		console.log("Modal open: return");
-		return;
-	}
+function enter(){
+	if (openedModal) return;
 
 	clearTimeout(timeout);
 	var value = $("input[name=ean]").val();
-	var url = $("input[name=ean]").attr("data-url");
-	
-	var operation = getSelectedOperation();
 
 	// Ако има селектиран ред в резултатите
 	var element = $(".navigable.selected");
 
-	var isOnlyQuantityString = isNumberOperation(value);
-	
 	// Ако има селектиран елемент в резултатите
 	if(element.length){
-		
-		
+		var operation = getSelectedOperation();
+
 		// Ако инпута е активен но е с празен стринг, или е активен и е въведена операция за к-во или не е активен
 		// тогава се клика на селектирания елемент в резултатите
-		if((activeInput === true && !value) || (activeInput === true && operation == 'payment') || activeInput === false){
-			
+		if((activeInput === true && (!value || operation == 'payment')) || activeInput === false){
 			pressNavigable(element);
 			return;
 		}
@@ -834,8 +824,7 @@ function confirmAndRefirect(warning, url)
 /**
  * Събмитва въведеното от глобалния инпут, ако има какво и има урл
  */
-function submitInputString()
-{
+function submitInputString(){
 	var value = $("input[name=ean]").val();
 	var url = $("input[name=ean]").attr("data-url");
 	
@@ -843,7 +832,6 @@ function submitInputString()
 		console.log("ENTER NO URL RETURN");
 		return;
 	}
-
 	console.log("ENTER SUBMIT STRING:" + value);
 	
 	var params = {string:value,recId:getSelectedRowId()};
@@ -854,13 +842,11 @@ function submitInputString()
 
 
 // Дали подадения стринг е операция за задаване на количество
-function isNumberOperation(string)
-{
+function isNumberOperation(string) {
 	var string = $.trim(string);
 	
 	// Ако има въведен непразен стринг
 	if(string){
-		
 		// и той завършва с *
 		if(string.endsWith("*")){
 			
@@ -913,7 +899,6 @@ function openModal(title, heightModal) {
 			}
 			$('.ui-dialog-titlebar-close').focus();
 		},10);
-
 	openedModal = true;
 }
 
@@ -927,7 +912,6 @@ function selectFirstNavigable()
 
 function startNavigation() {
 	if($('.navigable').length) {
-		
 		var focused = sessionStorage.getItem('focused');
 
 		// ръчно избирам първия елемент за селектед
@@ -941,7 +925,6 @@ function startNavigation() {
 				$('#' + focused ).addClass('selected');
 			}
 		});
-
 		$('#result-holder .navigable:visible').keynav();
 	}
 }
@@ -951,7 +934,6 @@ function isItVisible(element) {
 		viewportHeight = $(window).height(),
 		documentScrollTop = $(document).scrollTop(),
 		documentScrollLeft = $(document).scrollLeft(),
-
 
 		elementOffset = element.offset(),
 		elementHeight = element.height(),
@@ -994,7 +976,6 @@ function scrollToHighlight(){
 	}
 }
 
-
 function render_scrollToHighlight() {
 	scrollToHighlight();
 }
@@ -1028,7 +1009,6 @@ function afterload() {
 	setInputPlaceholder();
 	disableOrEnableEnlargeBtn();
 }
-
 
 /**
  * Активира или закрива бутона за подробна информация на артикула
@@ -1113,8 +1093,7 @@ function processUrl(url, params) {
 /**
  * Кой е селектирания ред
  */
-function getSelectedRowId()
-{
+function getSelectedRowId() {
 	var selectedElement = $(".highlighted.productRow");
 	
 	return selectedElement.attr("data-id");
@@ -1130,8 +1109,7 @@ function openCurrentPosTab() {
 /**
  * Извършва подадената операция
  */
-function doOperation(operation, selectedRecId, forceSubmit)
-{
+function doOperation(operation, selectedRecId, forceSubmit) {
 	clearTimeout(timeout);
 	
 	sessionStorage.removeItem("focused");
