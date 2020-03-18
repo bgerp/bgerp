@@ -138,7 +138,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         
         $productItemsFlip = array_flip($itemAll);
         $productItems = $itemAll;
-        
+
         // Начално количество
         $baseQuantities = array();
         
@@ -166,14 +166,27 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $from = acc_Periods::fetchField($rec->from, 'start');
         $to = acc_Periods::fetchField($rec->to, 'end');
         acc_JournalDetails::filterQuery($jQuery, $from, $to, '321,401,61101,61102,701');
+        
         $jRecs = $jQuery->fetchAll();
 
+        //Производство
+        $id2 = planning_DirectProductionNote::getClassid();
+        $jRecs2 = $jQuery->where("#docType = {$id2}");
+        $jRecs2 = $jQuery->fetchAll();
+        
+        $id1 = planning_ConsumptionNotes::getClassid();
+        $jRecs4 = $jQuery->where("#docType = {$id1}");
+        $jRecs4 = $jQuery->fetchAll();
+       
+        $jRecs3 = array_diff_key($jRecs, $jRecs2); 
         $recs = array();
         
+        $jRecs5 = $jRecs3+$jRecs4;
         log_System::add(get_called_class(), 'jRecsCnt: ' . countR($jRecs) . ', producsCnt: ' . countR($productArr), null, 'debug', 1);
+        log_System::add(get_called_class(), 'jRecsCnt: ' . countR($jRecs2) . ', producsCnt: ' . countR($productArr), null, 'debug', 1);
         
         // за всеки един продукт, се изчисляват търсените количествата
-        foreach ($productArr as $productRec) {     
+        foreach ($productArr as $productRec) {          
             if ($itemId = $productItems[$productRec->id]) {
                 $baseQuantity = (isset($baseQuantities[$productRec->id])) ? $baseQuantities[$productRec->id] : 0;
                 $obj = (object) array('baseQuantity' => $baseQuantity, 'delivered' => 0, 'converted' => 0, 'produced' => 0, 'sold' => 0, 'blQuantity' => 0);
@@ -193,44 +206,50 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 }
                 
                 // Вложено детайлно
-                if ($convRes = acc_Balances::getBlQuantities($jRecs, '61101', 'debit', '321', array($itemId, null, null))) {
+                if ($convRes = acc_Balances::getBlQuantities($jRecs5, '61101', 'debit', '321', array($itemId, null, null))) {
                     $obj->converted = $convRes[$itemId]->quantity;
                 }
                 
                 // Вложено бездетайлно
-                if ($convRes1 = acc_Balances::getBlQuantities($jRecs, '321', 'credit', '61102', array(null, $itemId, null))) {
+                if ($convRes1 = acc_Balances::getBlQuantities($jRecs5, '321', 'credit', '61102', array(null, $itemId, null))) {
                     $obj->converted += $convRes1[$itemId]->quantity;
                 }
                 
                 // Вложено от инвентаризация
-                if ($convRes2 = acc_Balances::getBlQuantities($jRecs, '321', 'credit', '699', array(null, $itemId, null))) {
+                if ($convRes2 = acc_Balances::getBlQuantities($jRecs5, '321', 'credit', '699', array(null, $itemId, null))) {
                     $obj->converted += $convRes2[$itemId]->quantity;
                 }
                 
-                if($jRecs[$productRec->id]->docType == '327') {
-                    // Приспадане на вложеното с върнатото от производството детайлно
-                    if ($delRes2 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61101', array(null, $itemId, null))) {
-                        $obj->converted -= $delRes2[$itemId]->quantity;
-                    }
+                // Приспадане на вложеното с върнатото от производството детайлно
+                if ($delRes2 = acc_Balances::getBlQuantities($jRecs5, '321', 'debit', '61101', array(null, $itemId, null))) {
+                    $obj->converted -= $delRes2[$itemId]->quantity;
+                }
                     
-                    // Приспадане на вложеното с върнатото от производството бездетайлно
-                    if ($convRes3 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61102', array(null, $itemId, null))) {
-                        $obj->converted -= $convRes3[$itemId]->quantity;
-                    }
+                // Приспадане на вложеното с върнатото от производството бездетайлно
+                if ($convRes3 = acc_Balances::getBlQuantities($jRecs5, '321', 'debit', '61102', array(null, $itemId, null))) {
+                    $obj->converted -= $convRes3[$itemId]->quantity;
                 }
                 
-                if($jRecs[$productRec->id]->docType == '323') {
-                    // Произведено от протокол за производство (на вложеното с върнатото от производството детайлно)
-                    if ($prodRes1 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61101', array(null, $itemId, null))) {
-                        $obj->produced += $prodRes1[$itemId]->quantity;
-                    }
-                    
-                    // Приспадане на вложеното с върнатото от производството бездетайлно
-                    if ($prodRes2 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61102', array(null, $itemId, null))) {
-                        $obj->produced += $prodRes2[$itemId]->quantity;
-                    }
+                // Приспадане на вложеното с върнатото от производството детайлно
+                if ($delRes3 = acc_Balances::getBlQuantities($jRecs5, '321', 'debit', '61101', array(null, $itemId, null))) {
+                    $obj->converted += $delRes3[$itemId]->quantity;
                 }
                 
+                // Приспадане на вложеното с върнатото от производството бездетайлно
+                if ($convRes4 = acc_Balances::getBlQuantities($jRecs5, '321', 'debit', '61102', array(null, $itemId, null))) {
+                    $obj->converted += $convRes4[$itemId]->quantity;
+                }
+
+                // Произведено от протокол за производство (на вложеното с върнатото от производството детайлно)
+                if ($prodRes1 = acc_Balances::getBlQuantities($jRecs2, '321', 'debit', '61101', array(null, $itemId, null))) { 
+                    $obj->produced += $prodRes1[$itemId]->quantity;
+                }
+                    
+                // Приспадане на вложеното с върнатото от производството бездетайлно
+                if ($prodRes2 = acc_Balances::getBlQuantities($jRecs2, '321', 'debit', '61102', array(null, $itemId, null))) {
+                    $obj->produced += $prodRes2[$itemId]->quantity;
+                }
+
                 // Продадено
                 if ($soldRes = acc_Balances::getBlQuantities($jRecs, '701', 'debit', '321', array(null, null, $itemId))) {
                     $obj->sold = $soldRes[$itemId]->quantity;
@@ -241,16 +260,18 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 if ($blRes = acc_Balances::getBlQuantities($jRecs, '321', null, null, array(null, $itemId, null))) {
                     $obj->blQuantity += $blRes[$itemId]->quantity;
                 }
-                //bp($jRecs[$productRec->id]->$productRec->id, $jRecs, $productRec->id);
+                
                 $recs[$productRec->id] = $obj;
             }
-
         }
-       //323 proi
-       //327 wyrnato
+
         $data->groupByField = 'groupId';
         $recs = $this->groupRecs($recs, $rec->group, $data);
-        //bp($recs);
+
+        
+        //325 proizwodstwo
+        //327 wry6a
+       
         return $recs;
     }
     

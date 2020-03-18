@@ -68,6 +68,7 @@ class frame2_Setup extends core_ProtoSetup
         'frame2_ReportVersions',
         'frame2_AllReports',
         'migrate::migrateStates',
+        'migrate::keyToKeylist',
     );
     
     
@@ -104,5 +105,32 @@ class frame2_Setup extends core_ProtoSetup
             $rec->brState = 'active';
             $Frames->save_($rec, 'brState');
         }
+    }
+    
+    /**
+     * Миграция: в спрвките "Артикули наличности и лимити"
+     * промяна на полето storeId от key на keylist
+     */
+    public function keyToKeylist()
+    {
+        $reportClassId =store_reports_ProductAvailableQuantity::getClassId();
+        if (!$reportClassId)return;
+        
+        $Frames = cls::get('frame2_Reports');
+        
+        $reportQuery=(frame2_Reports::getQuery());
+        
+        $reportQuery->where("#driverClass = $reportClassId");
+        
+        while ($fRec = $reportQuery->fetch()){
+            
+            if (is_null($fRec->driverRec['storeId']) || keylist::isKeylist($fRec->driverRec['storeId']))continue;
+            
+            $fRec->driverRec['storeId'] ='|'.$fRec->driverRec['storeId'].'|';
+            
+            $Frames->save("id,driverRec");
+            
+        }
+       
     }
 }
