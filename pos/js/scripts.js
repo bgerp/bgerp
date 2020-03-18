@@ -60,7 +60,6 @@ function posActions() {
 		if($(".buttonOverlay").css('display') != 'none'){
 			return;
 		}
-		console.log('KEYUP ' + e.key);
 		// Хак да не се тригърва ивента при натискане на ентър или при навигацията на страницата за избор на селектиран елемент
 		if(e.key == "Enter" || e.key == "ArrowRight" || e.key == "ArrowLeft" || e.key == "ArrowUp" || e.key == "ArrowDown"  || e.key == "PageUp" || e.key == "PageDown" || e.key == 'Alt' || e.key == 'Control' || e.key == 'Escape' || e.key == 'F2') return;
 		
@@ -79,14 +78,13 @@ function posActions() {
 		var operation = getSelectedOperation();
 
 		if(isNumberOperation(inpVal) && operation == 'add'){
-			
-			console.log('QUANTITY OPERATION WAITING');
+
 			return;
 		}
 		
 		var selectedElement = $(".highlighted.productRow");
 		var selectedRecId = selectedElement.attr("data-id");
-		console.log('KEYUP TIMEOUT ' + e.key);
+
 		// Правим Ajax заявката като изтече време за изчакване
 		timeout = setTimeout(function(){
 			resObj = new Object();
@@ -830,14 +828,11 @@ function submitInputString(){
 	var url = $("input[name=ean]").attr("data-url");
 	
 	if(!url){
-		console.log("ENTER NO URL RETURN");
 		return;
 	}
-	console.log("ENTER SUBMIT STRING:" + value);
 	
 	var params = {string:value,recId:getSelectedRowId()};
-	
-	console.log(url, params);
+
 	processUrl(url, params);
 }
 
@@ -903,12 +898,12 @@ function openModal(title, heightModal) {
 	openedModal = true;
 }
 
+
 function selectFirstNavigable()
 {
 	focused = $('.navigable:visible').first();
 	focused.addClass('selected');
 	sessionStorage.setItem('focused', focused.attr('id'));
-	console.log("first navigable:" + focused.attr('id'));
 }
 
 function startNavigation() {
