@@ -182,7 +182,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
        
         $jRecs3 = array_diff_key($jRecs, $jRecs2); 
         
-        $jRecs5 = array_merge($jRecs3,$jRecs4);
+        $jRecs5 = array_merge($jRecs2,$jRecs4);
    
         $recs = array();
        
@@ -210,7 +210,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 }
                
                 // Вложено детайлно
-                if ($convRes = acc_Balances::getBlQuantities($jRecs2, '61101', 'debit', '321', array($itemId, null, null))) {
+                if ($convRes = acc_Balances::getBlQuantities($jRecs5, '61101', 'debit', '321', array($itemId, null, null))) {
                     $obj->converted = $convRes[$itemId]->quantity;
                 }
                 
