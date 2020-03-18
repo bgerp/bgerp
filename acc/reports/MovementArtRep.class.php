@@ -171,19 +171,21 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 
         //Производство
         $id2 = planning_DirectProductionNote::getClassid();
-        $jRecs2 = $jQuery->where("#docType = {$id2}");
-        $jRecs2 = $jQuery->fetchAll();
+        $jQuery2 = clone $jQuery;
+        $jRecs2 = $jQuery2->where("#docType = {$id2}");
+        $jRecs2 = $jQuery2->fetchAll();
         
         $id1 = planning_ConsumptionNotes::getClassid();
-        $jRecs4 = $jQuery->where("#docType = {$id1}");
-        $jRecs4 = $jQuery->fetchAll();
+        $jQuery4 = clone $jQuery;
+        $jRecs4 = $jQuery4->where("#docType = {$id1}");
+        $jRecs4 = $jQuery4->fetchAll();
        
         $jRecs3 = array_diff_key($jRecs, $jRecs2); 
         
         $jRecs5 = array_merge($jRecs3,$jRecs4);
    
         $recs = array();
-  
+       
         log_System::add(get_called_class(), 'jRecsCnt: ' . countR($jRecs) . ', producsCnt: ' . countR($productArr), null, 'debug', 1);
         log_System::add(get_called_class(), 'jRecsCnt: ' . countR($jRecs2) . ', producsCnt: ' . countR($productArr), null, 'debug', 1);
         
@@ -196,7 +198,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 $obj->measureId = $productRec->measureId;
                 $obj->productId = $productRec->id;
                 $obj->groups = $productRec->groups;
-                
+               
                 // Доставено: Влязло в склада от доставчици
                 if ($delRes = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '401', array(null, $itemId, null))) {
                     $obj->delivered = $delRes[$itemId]->quantity;
@@ -206,9 +208,9 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 if ($delRes1 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '799', array(null, $itemId, null))) {
                     $obj->delivered += $delRes1[$itemId]->quantity;
                 }
-                
+               
                 // Вложено детайлно
-                if ($convRes = acc_Balances::getBlQuantities($jRecs5, '61101', 'debit', '321', array($itemId, null, null))) {
+                if ($convRes = acc_Balances::getBlQuantities($jRecs2, '61101', 'debit', '321', array($itemId, null, null))) {
                     $obj->converted = $convRes[$itemId]->quantity;
                 }
                 
