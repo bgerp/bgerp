@@ -1507,10 +1507,10 @@ class pos_Terminal extends peripheral_Terminal
         if(isset($selectedRec->productId)){
             $res['similar'] = (object)array('rows' => $this->prepareResultSimilarProducts($rec, $selectedRec, $string), 'placeholder' => 'BLOCK1');
         }
-        $notIn = is_array($res['similar']->rows) ? array_keys($res['similar']->rows) : null;
+        
         $res['result'] = (object)array('rows' => $this->prepareProductTable($rec, $string), 'placeholder' => 'BLOCK2');
         $firstDividerCaption = countR($res['similar']->rows == 1) ? 'Избран артикул' : 'Свързани артикули';
-        $res['contragent'] = (object)array('rows' => $this->prepareContragentProducts($rec, $string, $notIn), 'placeholder' => 'BLOCK3');
+        $res['contragent'] = (object)array('rows' => $this->prepareContragentProducts($rec, $string), 'placeholder' => 'BLOCK3');
         
         $tpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK2--><div class='divider'>|Намерени артикули|*</div>
                                                     <div class='grid'>[#BLOCK2#]</div><!--ET_END BLOCK2-->
@@ -1522,9 +1522,9 @@ class pos_Terminal extends peripheral_Terminal
         
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PRODUCTS_RESULT');
         $count = 0;
-        foreach ($res as $obj){
+        foreach ($res as $key => $obj){
             foreach ($obj->rows as $row){
-                $row->elementId = "product{$count}";
+                $row->elementId = "{$key}{$row->id}";
                 $bTpl = clone $block;
                 $bTpl->placeObject($row);
                 $bTpl->removeBlocksAndPlaces();
@@ -1546,7 +1546,7 @@ class pos_Terminal extends peripheral_Terminal
      *
      * @return array
      */
-    private function prepareContragentProducts($rec, $string, $notIn)
+    private function prepareContragentProducts($rec, $string)
     {
         $products = array();
         if($listId = cond_Parameters::getParameter($rec->contragentClass, $rec->contragentObjectId, 'salesList')){
