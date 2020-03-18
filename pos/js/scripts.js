@@ -77,8 +77,10 @@ function posActions() {
 
 		var operation = getSelectedOperation();
 
-		if(isNumberOperation(inpVal) && operation == 'add'){
+		if(isMicroformat(inpVal) && (operation == 'add' || operation == 'edit')){
 
+			var selectedRecId = getSelectedRowId();
+			doOperation(operation, selectedRecId, true);
 			return;
 		}
 		
@@ -838,19 +840,25 @@ function submitInputString(){
 
 
 // Дали подадения стринг е операция за задаване на количество
-function isNumberOperation(string) {
+function isMicroformat(string) {
 	var string = $.trim(string);
 	
 	// Ако има въведен непразен стринг
 	if(string){
 		// и той завършва с *
-		if(string.endsWith("*")){
+		if(string.endsWith("*") || string.startsWith("*")){
 			
 			// Премахваме * да остане чист стринг
 			var quantity = string.replace("*", "");
 			
 			// Ако останалата част от стринга е положително число
 			if($.isNumeric(quantity) && quantity > 0){
+				
+				return true;
+			}
+		} else if(string.endsWith("%") || string.startsWith("%")){
+			var quantity = string.replace("%", "");
+			if($.isNumeric(quantity)){
 				
 				return true;
 			}
