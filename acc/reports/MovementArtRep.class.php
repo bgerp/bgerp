@@ -175,6 +175,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $jRecs2 = $jQuery2->where("#docType = {$id2}");
         $jRecs2 = $jQuery2->fetchAll();
         
+        //връщане
         $id1 = planning_ConsumptionNotes::getClassid();
         $jQuery4 = clone $jQuery;
         $jRecs4 = $jQuery4->where("#docType = {$id1}");
@@ -225,12 +226,12 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 }
                 
                 // Приспадане на вложеното с върнатото от производството детайлно
-                if ($delRes2 = acc_Balances::getBlQuantities($jRecs5, '321', 'debit', '61101', array(null, $itemId, null))) {
+                if ($delRes2 = acc_Balances::getBlQuantities($jRecs3, '321', 'debit', '61101', array(null, $itemId, null))) {
                     $obj->converted -= $delRes2[$itemId]->quantity;
                 }
                     
                 // Приспадане на вложеното с върнатото от производството бездетайлно
-                if ($convRes3 = acc_Balances::getBlQuantities($jRecs5, '321', 'debit', '61102', array(null, $itemId, null))) {
+                if ($convRes3 = acc_Balances::getBlQuantities($jRecs3, '321', 'debit', '61102', array(null, $itemId, null))) {
                     $obj->converted -= $convRes3[$itemId]->quantity;
                 }
 
