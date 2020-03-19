@@ -84,9 +84,25 @@ class cat_plg_Grouping extends core_Plugin
                 $selOneKey = key($selArr);
             }
             
+            $toggle = Request::get('toggle', 'varchar');
+            
             if ($selArrCnt == 1) {
                 $id = $selArr[$selOneKey];
                 $metas = $mvc->fetchField($id, 'meta');
+                
+                if(isset($toggle)){
+                    $metas = type_Set::toArray($metas);
+                    if(array_key_exists($toggle, $metas)){
+                        unset($metas[$toggle]);
+                    } else {
+                        $metas[$toggle] = $toggle;
+                    }
+                    $metas = $mvc->getFieldType('meta')->fromVerbal($metas);
+                    $pRec = (object)array('id' => $id, 'meta' => $metas);
+                    $mvc->save($pRec, 'meta,canSell,canBuy,canStore,canConvert,fixedAsset,canManifacture');
+                 
+                    followRetUrl();
+                }
                 
                 $form->title = 'Промяна в свойствата на |*' . $mvc->getFormTitleLink($selArr[0]);
                 $form->FNC('meta', $mvc->getFieldType('meta'), 'caption=Свойства,input');
