@@ -478,7 +478,8 @@ class pos_ReceiptDetails extends core_Detail
             
             // Намираме нужната информация за продукта
             $this->getProductInfo($rec);
-            expect($rec->productId, 'Няма такъв продукт в системата, или той не е продаваем|*!');
+            expect($rec->productId, 'Няма такъв продукт в системата|*!');
+            expect($rec->notSellable !== true, 'Артикулът е спрян от продажба|*!');
             
             // Ако няма цена
             if (!$rec->price) {
@@ -655,6 +656,10 @@ class pos_ReceiptDetails extends core_Detail
             $row->discountPercent = "<span class='discountText'>-" . $row->discountPercent . "</span>";
         }
         
+        if(cat_Products::fetchField($rec->productId, 'canSell') != 'yes'){
+            $row->STOPPED_PRODUCT = tr("спрян");
+        }
+        
         if(core_Packs::isInstalled('batch')){
             if($BatchDef = batch_Defs::getBatchDef($rec->productId)){
                 if(!empty($rec->batch)){
@@ -753,14 +758,14 @@ class pos_ReceiptDetails extends core_Detail
         }
         
         if (!$product) {
-            
-            return $rec->productid = null;
+            $rec->productId = null;
+            return;
         }
         
         $productRec = cat_Products::fetch($product->productId, 'canSell,measureId');
         if ($productRec->canSell != 'yes') {
-            
-            return $rec->productid = null;
+            $rec->notSellable = true;
+            return;
         }
         
         if (!$product->packagingId) {

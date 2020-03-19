@@ -2,8 +2,9 @@
     <div class="fleft imagePreview">[#preview#]</div>
 
     <div>[#name#]</div>
-    <div style="margin-bottom: 20px; font-weight: bold"> [#info#]</div>
-
+    
+    <div style="margin-bottom: 20px; font-weight: bold">[#info#]</div>
+	<!--ET_BEGIN STOPPED_PRODUCT--><span class='option-not-in-stock'>[#STOPPED_PRODUCT#]</span><!--ET_END STOPPED_PRODUCT-->
     <div>|Мярка|*: [#measureId#]</div>
 
     <div>|Цена|*: [#price#]</div>
@@ -18,6 +19,7 @@
     [#PARAM_BLOCK#]
     <div>[#paramCaption#] : [#paramValue#]</div>
     <!--ET_END PARAM_BLOCK-->
+    [#TOOLBAR#]
 </div>
 
 <div class="clearfix21"></div>
