@@ -100,7 +100,8 @@ class cat_plg_Grouping extends core_Plugin
                     $metas = $mvc->getFieldType('meta')->fromVerbal($metas);
                     $pRec = (object)array('id' => $id, 'meta' => $metas);
                     $mvc->save($pRec, 'meta,canSell,canBuy,canStore,canConvert,fixedAsset,canManifacture');
-                 
+                    $mvc->logWrite('Промяна на свойствата на артикул', $id);
+                    
                     followRetUrl();
                 }
                 
@@ -150,6 +151,7 @@ class cat_plg_Grouping extends core_Plugin
                     $obj->meta = $rec->meta;
                     
                     $mvc->save($obj, 'meta,canSell,canBuy,canStore,canConvert,fixedAsset,canManifacture');
+                    $mvc->logWrite('Промяна на свойствата на артикул', $id);
                     $changed = 1;
                 } else {
                     foreach ($selArr as $id) {
@@ -164,6 +166,7 @@ class cat_plg_Grouping extends core_Plugin
                         
                         if ($groups != $exGroups) {
                             $mvc->save($obj, 'meta,canSell,canBuy,canStore,canConvert,fixedAsset,canManifacture');
+                            $mvc->logWrite('Промяна на свойствата на артикул', $id);
                             $changed++;
                         }
                     }
