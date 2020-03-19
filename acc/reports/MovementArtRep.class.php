@@ -171,19 +171,22 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 
         //Производство
         $id2 = planning_DirectProductionNote::getClassid();
-        $jRecs2 = $jQuery->where("#docType = {$id2}");
-        $jRecs2 = $jQuery->fetchAll();
+        $jQuery2 = clone $jQuery;
+        $jRecs2 = $jQuery2->where("#docType = {$id2}");
+        $jRecs2 = $jQuery2->fetchAll();
         
+        //връщане
         $id1 = planning_ConsumptionNotes::getClassid();
-        $jRecs4 = $jQuery->where("#docType = {$id1}");
-        $jRecs4 = $jQuery->fetchAll();
+        $jQuery4 = clone $jQuery;
+        $jRecs4 = $jQuery4->where("#docType = {$id1}");
+        $jRecs4 = $jQuery4->fetchAll();
        
         $jRecs3 = array_diff_key($jRecs, $jRecs2); 
         
-        $jRecs5 = array_merge($jRecs3,$jRecs4);
+        $jRecs5 = array_merge($jRecs2,$jRecs4);
    
         $recs = array();
-  
+       
         log_System::add(get_called_class(), 'jRecsCnt: ' . countR($jRecs) . ', producsCnt: ' . countR($productArr), null, 'debug', 1);
         log_System::add(get_called_class(), 'jRecsCnt: ' . countR($jRecs2) . ', producsCnt: ' . countR($productArr), null, 'debug', 1);
         
@@ -196,7 +199,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 $obj->measureId = $productRec->measureId;
                 $obj->productId = $productRec->id;
                 $obj->groups = $productRec->groups;
-                
+               
                 // Доставено: Влязло в склада от доставчици
                 if ($delRes = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '401', array(null, $itemId, null))) {
                     $obj->delivered = $delRes[$itemId]->quantity;
@@ -206,7 +209,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 if ($delRes1 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '799', array(null, $itemId, null))) {
                     $obj->delivered += $delRes1[$itemId]->quantity;
                 }
-                
+               
                 // Вложено детайлно
                 if ($convRes = acc_Balances::getBlQuantities($jRecs5, '61101', 'debit', '321', array($itemId, null, null))) {
                     $obj->converted = $convRes[$itemId]->quantity;
@@ -223,12 +226,12 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 }
                 
                 // Приспадане на вложеното с върнатото от производството детайлно
-                if ($delRes2 = acc_Balances::getBlQuantities($jRecs5, '321', 'debit', '61101', array(null, $itemId, null))) {
+                if ($delRes2 = acc_Balances::getBlQuantities($jRecs3, '321', 'debit', '61101', array(null, $itemId, null))) {
                     $obj->converted -= $delRes2[$itemId]->quantity;
                 }
                     
                 // Приспадане на вложеното с върнатото от производството бездетайлно
-                if ($convRes3 = acc_Balances::getBlQuantities($jRecs5, '321', 'debit', '61102', array(null, $itemId, null))) {
+                if ($convRes3 = acc_Balances::getBlQuantities($jRecs3, '321', 'debit', '61102', array(null, $itemId, null))) {
                     $obj->converted -= $convRes3[$itemId]->quantity;
                 }
 
@@ -245,6 +248,11 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 // Продадено
                 if ($soldRes = acc_Balances::getBlQuantities($jRecs, '701', 'debit', '321', array(null, null, $itemId))) {
                     $obj->sold = $soldRes[$itemId]->quantity;
+                }
+                
+                // Продадено
+                if ($soldRes2 = acc_Balances::getBlQuantities($jRecs, '706', 'debit', '321', array(null, null, $itemId))) {
+                    $obj->sold += $soldRes2[$itemId]->quantity;
                 }
                 
                 // Крайно количество
