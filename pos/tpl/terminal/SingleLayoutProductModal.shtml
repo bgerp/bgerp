@@ -4,7 +4,7 @@
     <div>[#name#]</div>
     
     <div style="margin-bottom: 20px; font-weight: bold">[#info#]</div>
-	<!--ET_BEGIN STOPPED_PRODUCT--><span class='option-not-in-stock'>[#STOPPED_PRODUCT#]</span><!--ET_END STOPPED_PRODUCT-->
+	<!--ET_BEGIN STOPPED_PRODUCT--><span class='not-in-stock'>[#STOPPED_PRODUCT#]</span><!--ET_END STOPPED_PRODUCT-->
     <div>|Мярка|*: [#measureId#]</div>
 
     <div>|Цена|*: [#price#]</div>

@@ -252,7 +252,7 @@ class pos_Terminal extends peripheral_Terminal
                 $productRec = cat_Products::fetch($enlargeObjectId);
                 $modalTpl = getTplFromFile('pos/tpl/terminal/SingleLayoutProductModal.shtml');
                 if($productRec->canSell != 'yes'){
-                    $modalTpl->replace(tr('Спрян'), 'STOPPED_PRODUCT');
+                    $modalTpl->replace(tr('спрян'), 'STOPPED_PRODUCT');
                 }
                 
                 Mode::push('text', 'xhtml');
@@ -318,11 +318,12 @@ class pos_Terminal extends peripheral_Terminal
                 
                 // Добавяне на бутон за спиране/пускане
                 $btnTitle = ($productRec->canSell == 'yes') ? 'Спиране' : 'Пускане';
+                $className = ($productRec->canSell == 'yes') ? 'offBtn' : 'onBtn';
                 Request::setProtected('Selected');
                 $changeMetaUrl = (cat_Products::haveRightFor('edit', $productRec->id)) ? array('cat_Products', 'changemeta', 'Selected' => $productRec->id, 'toggle' => 'canSell', 'ret_url' => array('pos_Terminal', 'open', 'receiptId' => $receitpId)) : array();
                 $warning = ($productRec->canSell == 'yes') ? 'Наистина ли желаете да спрете артикула от продажба|*?' : 'Наистина ли желаете да пуснете артикула в продажба|*?';
                 $warning = countR($changeMetaUrl) ? $warning : false;
-                $btn = ht::createBtn($btnTitle,  $changeMetaUrl, $warning);
+                $btn = ht::createBtn($btnTitle,  $changeMetaUrl, $warning, null, "class=actionBtn {$className}");
                 Request::removeProtected('Selected');
                 $modalTpl->append($btn, 'TOOLBAR');
                 

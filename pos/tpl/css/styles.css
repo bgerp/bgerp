@@ -757,6 +757,41 @@ td.revertCaption {
 .notInStock {
   color: darkred; }
 
+.not-in-stock {
+  padding: 1px 5px;
+  border-radius: 5px;
+  color: #840000;
+  font-size: 16px;
+  border: 1px solid #b70000;
+  background-color: #ff5b5b;
+  font-weight: bold;
+  line-height: 120%;
+  height: 20px;
+  display: inline-block;
+  position: relative;
+  top: -1px; }
+
+.actionBtn {
+  height: 40px;
+  cursor: pointer;
+  box-sizing: border-box;
+  padding: 10px 30px !important;
+  color: white;
+  font-size: 1.1em;
+  text-align: center;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+  color: white !important;
+  font-weight: bold;
+  border: 1px solid #666666;
+  border-radius: 3px;
+  box-shadow: rgba(233, 233, 233, 0.5) 1px 1px 0 0 inset, 2px 2px 3px rgba(0, 0, 0, 0.1); }
+  .actionBtn.offBtn {
+    background-color: #cc6666 !important; }
+  .actionBtn.onBtn {
+    background-color: #53a163 !important; }
+
 /*
  * media queries за клавиатурата
  */

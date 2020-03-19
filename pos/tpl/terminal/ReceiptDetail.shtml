@@ -1,6 +1,6 @@
 <!--ET_BEGIN sale-->
 <div data-id='[#id#]' data-url = '[#DATA_URL#]' data-delete-url = '[#DATA_DELETE_URL#]' data-enlarge-class-id = '[#ENLARGABLE_CLASS_ID#]'  data-enlarge-object-id = '[#ENLARGABLE_OBJECT_ID#]' data-modal-title = '[#ENLARGABLE_MODAL_TITLE#]' data-delete-warning = '[#DATA_DELETE_WARNING#]' class='[#ROW_CLASS#] productRow enlargable [#CLASS#]' title = '|Селектиране на реда|*'>
-	<div class="receiptProduct">[#productId#] <!--ET_BEGIN STOPPED_PRODUCT--><span class='option-not-in-stock no-print'>[#STOPPED_PRODUCT#]</span><!--ET_END STOPPED_PRODUCT--> <div class="fright"> [#amount#]</div></div>
+	<div class="receiptProduct">[#productId#] <!--ET_BEGIN STOPPED_PRODUCT--><span class='not-in-stock no-print'>[#STOPPED_PRODUCT#]</span><!--ET_END STOPPED_PRODUCT--> <div class="fright"> [#amount#]</div></div>
 	<!--ET_BEGIN storeId--><div class="subStoreId no-print">|Склад|*: [#storeId#]</div><!--ET_END storeId-->
 
 	<!--ET_BEGIN text--><div class="subText indent"> [#text#]</div><!--ET_END text-->
