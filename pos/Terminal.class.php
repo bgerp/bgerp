@@ -1636,8 +1636,11 @@ class pos_Terminal extends peripheral_Terminal
                 // Ако има артикул, чийто код отговаря точно на стринга, той е най-отгоре
                 $foundRec = cat_Products::getByCode($searchString);
                 if(isset($foundRec->productId)){
-                    $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canStore' => cat_Products::fetchField($foundRec->productId, 'canStore'), 'measureId' => cat_Products::fetchField($foundRec->productId, 'measureId'), 'packId' => isset($foundRec->packagingId) ? $foundRec->packagingId : null);
-                    $count++;
+                    $productRec = cat_Products::fetch($foundRec->productId, 'canSell,canStore,measureId');
+                    if($productRec->canSell == 'yes'){
+                        $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canStore' => $productRec->canStore, 'measureId' => $productRec->measureId, 'packId' => isset($foundRec->packagingId) ? $foundRec->packagingId : null);
+                        $count++;
+                    }
                 }
                 
                 // След това се добавят артикулите, които съдържат стринга в името и/или кода си
