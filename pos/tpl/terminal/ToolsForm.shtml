@@ -9,7 +9,7 @@
 <!--ET_BEGIN PRODUCTS_RESULT-->
 <div id = '[#elementId#]' class='element [#CLASS#]' data-url='[#DATA_URL#]' data-productId = '[#id#]' data-enlarge-object-id = '[#DATA_ENLARGE_OBJECT_ID#]' data-enlarge-class-id = '[#DATA_ENLARGE_CLASS_ID#]' data-modal-title = '[#DATA_MODAL_TITLE#]'>
 	<div class='pos-photo-field fleft'>[#photo#]</div>
-	<div class="pos-title">[#productId#]<br>[[#code#]]</div>
+	<div class="pos-title">[#productId#]<br>[[#code#]]<!--ET_BEGIN notSellable--><span class='option-not-in-stock'>[#notSellable#]</span><!--ET_END notSellable--></div>
 	<div class='pos-info-field'><!--ET_BEGIN measureId--><span class='measureResult'>[#measureId#]</span>&nbsp;<!--ET_END measureId--><span class="pos-price-field"> [#price#]</span></div>
 </div>
 <!--ET_END PRODUCTS_RESULT-->
