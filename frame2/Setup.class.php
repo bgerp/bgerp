@@ -130,7 +130,7 @@ class frame2_Setup extends core_ProtoSetup
             $fRec->storeId =$fRec->driverRec['storeId'];
             
             
-            $Frames->saveArray($fRec);
+            $Frames->save($fRec);
             
         }
        
