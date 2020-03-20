@@ -677,6 +677,10 @@
 	.pos-price-field {
 		float: right;
 	}
+	&.notSellable {
+		background-color: #aaa;
+		color: #444;
+	}
 }
 
 .result-string {

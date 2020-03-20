@@ -569,6 +569,9 @@
     height: 73px; }
   .element .pos-price-field {
     float: right; }
+  .element.notSellable {
+    background-color: #aaaaaa;
+    color: #444444; }
 
 .result-string {
   margin-bottom: 10px; }
