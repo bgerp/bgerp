@@ -1754,7 +1754,6 @@ class pos_Terminal extends peripheral_Terminal
             $res[$id]->id = $pRec->id;
             $res[$id]->receiptId = $rec->id;
             if($pRec->canSell != 'yes'){
-                $res[$id]->notSellable = tr('Спрян');
                 $res[$id]->CLASS .= ' notSellable';
             }
             
