@@ -47,6 +47,10 @@
          $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
          
          $fieldset->FLD('forwarderPersonId', 'keylist(mvc=crm_Persons,title=name,allowEmpty)', 'caption=Шофьор,placeholder=Всички,after=to,single=none');
+    
+         $fieldset->FLD('seeLines', 'set(yes = )', 'caption=Покажи линиите,after=forwarderPersonId,single=none');
+         
+     
      }
      
      
@@ -62,9 +66,14 @@
      {
          $form = $data->form;
          $rec = $form->rec;
-         $suggestions = '';
          
-         // $suggestions = planning_Hr::getByFolderId(planning_Centers::fetch($rec->centre)->folderId);
+         
+         $suggestions = array();
+         foreach (keylist::toArray($rec->forwarderPersonId) as $val) {
+             $suggestions[$val] = crm_Persons::fetch($val)->name;
+         }
+         
+        
          
          $fQuery = trans_Lines::getQuery();
          $fQuery->where('#forwarderPersonId IS NOT NULL');
@@ -142,8 +151,10 @@
          
          
          //Филтър по служители
-         if ($rec->employees) {
-             $query->likeKeylist('employees', $rec->employees);
+         if ($rec->forwarderPersonId) {
+         
+         $forwarderPersonIdArr = keylist::toArray($rec->forwarderPersonId);
+         $query->in('forwarderPersonId', $forwarderPersonIdArr);
          }
          
          
@@ -241,6 +252,7 @@
          $fld = cls::get('core_FieldSet');
          
          $fld->FLD('forwarderPersonId', 'key(mvc=crm_Persons,select=name)', 'caption=Служител');
+         
          $fld->FLD('numberOfLines', 'varchar', 'caption=Брой->линии,tdClass=centered');
          $fld->FLD('numberOfShips', 'varchar', 'caption=Брой->експедиции,tdClass=centered');
          $fld->FLD('numberOfPacks', 'varchar', 'caption=Брой->товари,tdClass=centered');
@@ -249,6 +261,10 @@
          $fld->FLD('numberOfPko', 'varchar', 'caption=ПКО->Брой,tdClass=centered');
          $fld->FLD('sumOfPko', 'double', 'caption=ПКО->сума');
          
+         if($rec->seeLines == 'yes'){
+            $fld->FLD('lines', 'varchar', 'caption=@Линии');
+         }
+        
          return $fld;
      }
      
@@ -279,10 +295,13 @@
          
          $numberOfLines = countR($dRec->lineId);
          $row->numberOfLines = $Int->toVerbal($numberOfLines)."</br>";
-         
+         $marker = 0;
          foreach ($dRec->lineId as $val){
-          
-             $row->numberOfLines .= ht::createLink($val, toUrl(array('trans_Lines', 'single',$val))).',';
+             $marker++;
+             $row->lines .= ht::createLink($val, toUrl(array('trans_Lines', 'single',$val)));
+             if($marker < countR($dRec->lineId)){
+                 $row->lines .=', ';
+             }
          }
          
          $row->numberOfShips = $Int->toVerbal($dRec->shipmentDocs);
