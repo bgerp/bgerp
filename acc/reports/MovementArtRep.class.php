@@ -250,6 +250,11 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                     $obj->sold = $soldRes[$itemId]->quantity;
                 }
                 
+                // Продадено
+                if ($soldRes2 = acc_Balances::getBlQuantities($jRecs, '706', 'debit', '321', array(null, null, $itemId))) {
+                    $obj->sold += $soldRes2[$itemId]->quantity;
+                }
+                
                 // Крайно количество
                 $obj->blQuantity = $baseQuantity;
                 if ($blRes = acc_Balances::getBlQuantities($jRecs, '321', null, null, array(null, $itemId, null))) {
