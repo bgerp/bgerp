@@ -1755,6 +1755,7 @@ class pos_Terminal extends peripheral_Terminal
             $res[$id]->receiptId = $rec->id;
             if($pRec->canSell != 'yes'){
                 $res[$id]->notSellable = tr('Спрян');
+                $res[$id]->CLASS .= ' notSellable';
             }
             
             $stock = ($pRec->canStore == 'yes') ? pos_Stocks::getBiggestQuantity($id, $rec->pointId) : null;
