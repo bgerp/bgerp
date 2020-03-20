@@ -296,9 +296,10 @@
          $numberOfLines = countR($dRec->lineId);
          $row->numberOfLines = $Int->toVerbal($numberOfLines)."</br>";
          $marker = 0;
+         $row->lines = 'ТЛ №: ';
          foreach ($dRec->lineId as $val){
              $marker++;
-             $row->lines .= ht::createLink($val, toUrl(array('trans_Lines', 'single',$val)));
+             $row->lines .= ht::createLink("#$val", toUrl(array('trans_Lines', 'single',$val)));
              if($marker < countR($dRec->lineId)){
                  $row->lines .=', ';
              }
