@@ -591,9 +591,12 @@ abstract class cash_Document extends deals_PaymentDocument
     {
         $rec = $mvc->fetchRec($id);
         $rec->peroCase = (isset($rec->peroCase)) ? $rec->peroCase : cash_Cases::getCurrent('id', false);
+        
         if(empty($rec->peroCase)){
-            
             redirect(array($mvc, 'single', $rec->id), false, 'За да контирате документа, трябва да е избрана каса', 'error');
+        } elseif(!bgerp_plg_FLB::canUse('cash_Cases', $rec->peroCase)){
+            $caseName = cash_Cases::getTitleById($rec->peroCase);
+            redirect(array($mvc, 'single', $rec->id), false, "Нямате права за контиране на автоматично определената каса|* \"<b>{$caseName}</b>\"!", 'error');
         }
     }
     
