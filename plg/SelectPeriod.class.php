@@ -22,8 +22,86 @@ class plg_SelectPeriod extends core_Plugin
     const RECENTLY_KEY = 'UNIQ.PERIOD';
     
     
+    /**
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
+        $fT = $mvc->filterDateTo ? $mvc->filterDateTo : 'to';
+        
+        $form = $data->form;
+        $rec = $form->rec;
+        
+        if (!$form->fields[$fF] || !$form->fields[$fT] || !$mvc->useFilterDateOnEdit) {
+            
+            return ;
+        }
+        
+        if (($form->fields[$fF]->input == 'none') || ($form->fields[$fF]->input == 'hidden')) {
+            
+            return ;
+        }
+        
+        if (($form->fields[$fT]->input == 'none') || ($form->fields[$fT]->input == 'hidden')) {
+            
+            return ;
+        }
+        
+        if (!($form->fields[$fF]->type instanceof type_Date) || !($form->fields[$fT]->type instanceof type_Date)) {
+            
+            return ;
+        }
+        
+        $mandatory = ($form->fields[$fF]->mandatory || $form->fields[$fT]->mandatory) ? ',mandatory' : '';
+        $form->FLD('selectPeriod', 'varchar', "caption=Период,input,before=from,silent,printListFilter=none,before={$fF}{$mandatory}", array('attr' => array('onchange' => 'spr(this);')));
+        
+        $keySel = null;
+        $form->setOptions('selectPeriod', self::getOptions($keySel, $rec->{$fF}, $rec->{$fT}));
+        
+        if ($rec->selectPeriod && $rec->selectPeriod != 'select') {
+            list($rec->{$fF}, $rec->{$fT}) = self::getFromTo($rec->selectPeriod);
+            Request::push(array($fF => $rec->{$fF}, $fT => $rec->{$fT}));
+        }
+        
+        if ($keySel && !$form->isSubmitted()) {
+            $form->setDefault('selectPeriod', $keySel);
+            $rec->selectPeriod = $keySel;
+            Request::push(array('selectPeriod' => $keySel));
+        }
+        
+        $form->setField($fF, array('rowStyle' => 'display:none'));
+        $form->setField($fT, array('rowStyle' => 'display:none'));
+        
+        $form->input('selectPeriod');
+        
+        if (($rec->selectPeriod) && ($rec->selectPeriod != 'select')) {
+            $selPerArr = self::getFromTo($rec->selectPeriod);
+            if ($mandatory && (!$selPerArr || ((!$selPerArr[0]) && (!$selPerArr[1])))) {
+                $form->setError('selectPeriod', 'Трябва да изберете период');
+            } else {
+                list($rec->{$fF}, $rec->{$fT}) = self::getFromTo($rec->selectPeriod);
+                Request::push(array($fF => $rec->{$fF}, $fT => $rec->{$fT}));
+            }
+        }
+    }
+    
+    
+    /**
+     * 
+     * @param core_Mvc $mvc
+     * @param null|stdClass $res
+     * @param stdClass $data
+     */
     public static function on_BeforePrepareListFilter($mvc, &$res, $data)
     {
+        if ($mvc->useFilterDateOnFilter === false) {
+            
+            return ;
+        }
+        
         $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
         $fT = $mvc->filterDateTo ? $mvc->filterDateFrom : 'to';
         
@@ -48,6 +126,11 @@ class plg_SelectPeriod extends core_Plugin
      */
     public static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
+        if ($mvc->useFilterDateOnFilter === false) {
+            
+            return ;
+        }
+        
         $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
         $fT = $mvc->filterDateTo ? $mvc->filterDateTo : 'to';
         
@@ -84,13 +167,23 @@ class plg_SelectPeriod extends core_Plugin
      */
     public static function on_BeforePrepareListSummary($mvc, &$res, $data)
     {
+        if ($mvc->useFilterDateOnFilter === false) {
+            
+            return ;
+        }
+        
         $form = $data->listFilter;
         if (empty($form)) return;
         $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
         $fT = $mvc->filterDateTo ? $mvc->filterDateFrom : 'to';
         
-        $form->setField($fF, array('rowStyle' => 'display:none'));
-        $form->setField($fT, array('rowStyle' => 'display:none'));
+        if ($form->fields[$fF]) {
+            $form->setField($fF, array('rowStyle' => 'display:none'));
+        }
+            
+        if ($form->fields[$fF]) {
+            $form->setField($fT, array('rowStyle' => 'display:none'));
+        }
         
         $form->defOrder = true;
     }

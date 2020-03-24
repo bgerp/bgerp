@@ -29,9 +29,20 @@ class frame2_Reports extends embed_Manager
     
     
     /**
+     * @see plg_SelectPeriod
+     */
+    public $useFilterDateOnEdit = true;
+    
+    
+    /**
+     * @see plg_SelectPeriod
+     */
+    public $useFilterDateOnFilter = false;
+    
+    /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools2, doc_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone, doc_plg_Close, doc_EmailCreatePlg, plg_Sorting';
+    public $loadList = 'plg_RowTools2, doc_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone, doc_plg_Close, doc_EmailCreatePlg, plg_Sorting, plg_SelectPeriod';
     
     
     /**
