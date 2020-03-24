@@ -713,6 +713,7 @@ class cat_Products extends embed_Manager
         
         $fields['code'] = array('caption' => 'Код', 'mandatory' => 'mandatory');
         $fields['name'] = array('caption' => 'Наименование');
+        $fields['nameEn'] = array('caption' => 'Международно');
         $fields['measureId'] = array('caption' => 'Мярка', 'mandatory' => 'mandatory');
         $fields['groups'] = array('caption' => 'Групи');
         $fields['meta'] = array('caption' => 'Свойства');
