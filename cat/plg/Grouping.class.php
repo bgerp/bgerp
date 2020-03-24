@@ -90,7 +90,7 @@ class cat_plg_Grouping extends core_Plugin
                 $id = $selArr[$selOneKey];
                 $metas = $mvc->fetchField($id, 'meta');
                 
-                if(isset($toggle)){
+                if(!empty($toggle)){
                     $metas = type_Set::toArray($metas);
                     if(array_key_exists($toggle, $metas)){
                         unset($metas[$toggle]);
