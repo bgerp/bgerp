@@ -299,7 +299,7 @@ class cat_Products extends embed_Manager
     /**
      * Полета, които могат да бъдат експортирани
      */
-    public $exportableCsvFields = 'code, name, measureId, groups, meta';
+    public $exportableCsvFields = 'code, name, nameEn, measureId, groups, meta';
     
     
     /**
@@ -307,7 +307,7 @@ class cat_Products extends embed_Manager
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'originId, code, name, isPublic';
+    public $fieldsNotToClone = 'originId, code, name, nameEn, isPublic';
     
     
     /**
