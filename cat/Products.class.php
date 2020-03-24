@@ -2052,12 +2052,7 @@ class cat_Products extends embed_Manager
             if ($mvc->haveRightFor('edit', $rec)) {
                 if (!Mode::isReadOnly()) {
                     $row->editGroupBtn = ht::createLink('', array($mvc, 'EditGroups', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,title=Промяна на групите на артикула');
-                    
-                    if (haveRole('catEdit,ceo,admin')) {
-                        Request::setProtected('Selected');
-                        $row->editMetaBtn = ht::createLink('', array($mvc, 'changemeta', 'Selected' => $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,title=Промяна на мета-свойствата на артикула');
-                        Request::removeProtected('Selected');
-                    }
+                    $row->editMetaBtn = ht::createLink('', array($mvc, 'changemeta', 'Selected' => $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,title=Промяна на мета-свойствата на артикула');
                 }
             }
             

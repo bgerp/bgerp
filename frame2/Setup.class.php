@@ -68,7 +68,7 @@ class frame2_Setup extends core_ProtoSetup
         'frame2_ReportVersions',
         'frame2_AllReports',
         'migrate::migrateStates',
-        'migrate::keyToKeylist',
+        'migrate::keyToKeylist1',
     );
     
     
@@ -111,7 +111,7 @@ class frame2_Setup extends core_ProtoSetup
      * Миграция: в спрвките "Артикули наличности и лимити"
      * промяна на полето storeId от key на keylist
      */
-    public function keyToKeylist()
+    public function keyToKeylist1()
     {
         $reportClassId =store_reports_ProductAvailableQuantity::getClassId();
         if (!$reportClassId)return;
@@ -127,8 +127,10 @@ class frame2_Setup extends core_ProtoSetup
             if (is_null($fRec->driverRec['storeId']) || keylist::isKeylist($fRec->driverRec['storeId']))continue;
             
             $fRec->driverRec['storeId'] ='|'.$fRec->driverRec['storeId'].'|';
+            $fRec->storeId =$fRec->driverRec['storeId'];
             
-            $Frames->save("id,driverRec");
+            
+            $Frames->save($fRec);
             
         }
        
