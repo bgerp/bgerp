@@ -749,8 +749,8 @@ class cal_Reminders extends core_Master
     {
         $now = dt::verbal2mysql();
         $query = self::getQuery();
-//         $query->where("#state = 'active' AND if(#nextStartTime, #nextStartTime, #timeStart) <= '{$now}' AND (#notifySent = 'no' OR #notifySent IS NULL)");
-        $query->where("#id = 116");
+        $query->where("#state = 'active' AND if(#nextStartTime, #nextStartTime, #timeStart) <= '{$now}' AND (#notifySent = 'no' OR #notifySent IS NULL)");
+        
         while ($rec = $query->fetch()) {
             $savedRec = clone($rec);
             
@@ -900,7 +900,7 @@ class cal_Reminders extends core_Master
         // Не правим нищо, ако за първи път сработва нотификацията
         if ($secs - $rec->timePreviously < 100) {
             
-//             return;
+            return;
         }
         
         foreach ($fcMvc->fields as $name => $field) {
