@@ -62,11 +62,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     {
         $fieldset->FLD('compare', 'enum(no=Без, previous=Предходен,month=По месеци, year=Миналогодишен)', 'caption=Сравнение,after=title,refreshForm,single=none,silent');
         
-        $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none,refreshForm,mandatory,silent');
-        $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,refreshForm,mandatory,silent');
+        $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none,removeAndRefreshForm,mandatory,silent');
+        $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,removeAndRefreshForm,mandatory,silent');
         
-        $fieldset->FLD('firstMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 1,after=compare,refreshForm,single=none,input=none,silent');
-        $fieldset->FLD('secondMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 2,after=firstMonth,refreshForm,single=none,input=none,silent');
+        $fieldset->FLD('firstMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 1,after=compare,removeAndRefreshForm,single=none,input=none,silent');
+        $fieldset->FLD('secondMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 2,after=firstMonth,removeAndRefreshForm,single=none,input=none,silent');
         
         $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци,single=none,after=to,mandatory');
         
