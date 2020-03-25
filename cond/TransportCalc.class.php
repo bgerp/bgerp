@@ -39,7 +39,6 @@ class cond_TransportCalc
      */
     const DELIMITER_ERROR = -4;
     
-    
     /**
      * Стойността, която ще се върне ако артикула няма тегло
      */
@@ -50,6 +49,11 @@ class cond_TransportCalc
      * Стойността, която ще се върне ако не е намерено общо обемно тегло
      */
     const NOT_FOUND_TOTAL_VOLUMIC_WEIGHT = -16;
+    
+    /**
+     * Стойността, която ще се върне ако в зоната няма тегла
+     */
+    const EMPTY_WEIGHT_ZONE_FEE = -32;
     
     
     /**
