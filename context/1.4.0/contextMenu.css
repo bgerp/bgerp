@@ -95,8 +95,7 @@
 
 .modal-toolbar.iw-contextMenu .button{
   width: 100% !important;
-  max-width: 160px;
-  white-space: nowrap;
+  max-width: 140px;
   float: none !important;
   margin: 2px 0 !important;
   text-align: left !important;
