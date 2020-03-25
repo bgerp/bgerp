@@ -712,6 +712,10 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Текущия потребител се премахва от споделянето
         $rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
+        
+        if (empty($rec->currencyRate)) {
+            $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+        }
     }
     
     
