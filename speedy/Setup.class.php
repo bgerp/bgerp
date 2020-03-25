@@ -23,6 +23,13 @@ class speedy_Setup extends core_ProtoSetup
     
     
     /**
+     * Необходими пакети
+     * @todo да се махне като направим да работи с API-то
+     */
+    public $depends = 'tcost=0.1';
+    
+    
+    /**
      * Мениджър - входна точка в пакета
      */
     public $startCtr = 'speedy_Offices';
@@ -59,8 +66,9 @@ class speedy_Setup extends core_ProtoSetup
         array(1.99999, 'Система', 'SPEEDY', 'speedy_Offices', 'default', 'admin'),
     );
     
+    
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    //public $defClasses = 'store_reports_Documents';
+    public $defClasses = 'speedy_interface_DeliveryToOffice';
 }

@@ -74,7 +74,6 @@
 			<!--ET_END SALE_BLOCK-->
 
             <!--ET_BEGIN DELIVERY_BLOCK-->
-            [#DELIVERY_BLOCK#]
                <tr>
                   <td colspan = 2>
                      <h4 style="margin: 10px 0 3px;">|Доставка|*</h4>
@@ -107,6 +106,7 @@
                   <td class="aright">|Инструкции|*:</td><td> <span class="richtext-holder"> [#instruction#]</span></td>
                </tr>
                <!--ET_END instruction-->
+               [#DELIVERY_BLOCK#]
                <!--ET_END DELIVERY_BLOCK-->
             
          <!--ET_BEGIN INVOICE_BLOCK-->

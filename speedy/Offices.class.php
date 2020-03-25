@@ -52,15 +52,31 @@ class speedy_Offices extends core_Manager
     
     
     /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = "id,num,extName";
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
     {
         $this->FLD('num', 'int', 'caption=Код');
+        $this->FNC('extName', 'varchar', 'caption=Наименование');
         $this->FLD('name', 'varchar', 'caption=Име');
         $this->FLD('address', 'varchar', 'caption=Адрес');
         
         $this->setDbUnique('num');
+    }
+    
+    
+    /**
+     * Изчисление на пълното наименование на офиса
+     */
+    protected static function on_CalcExtName($mvc, $rec)
+    {
+        $rec->extName = $rec->name . " ({$rec->address})";
     }
     
     
@@ -74,7 +90,7 @@ class speedy_Offices extends core_Manager
         $options = array();
         $query = self::getQuery();
         while($rec = $query->fetch()){
-            $options[$rec->id] = "{$rec->name} ({$rec->address})";
+            $options[$rec->id] = $rec->extName;
         }
         
         return $options;
