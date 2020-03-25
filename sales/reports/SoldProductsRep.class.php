@@ -150,12 +150,18 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $rec = $form->rec;
         $suggestions = $prodSuggestions = $prodSalesArr = array();
         
-        
+       
         if ($rec->compare == 'month') {
             $form->setField('from', 'input=hidden');
             $form->setField('to', 'input=hidden');
+            $form->setField('selectPeriod', 'input=hidden');
+           
             $form->setField('firstMonth', 'input');
             $form->setField('secondMonth', 'input');
+            
+            
+            
+            
         }
         
         $today = dt::today();
@@ -169,7 +175,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $monthSugg = (acc_Periods::fetchByDate(dt::today())->id);
         
         $form->setDefault('firstMonth', $monthSugg);
-        
         $form->setDefault('secondMonth', $monthSugg);
         
         
