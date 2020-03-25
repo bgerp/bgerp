@@ -50,7 +50,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'from,to,compare,firstMonth,secondMonth,group,dealers,contragent,crmGroup,articleType,seeDelta,orderBy,order,grouping,updateDays,updateTime';
+    protected $changeableFields = 'from,to,compare,firstMonth,secondMonth,group,dealers,contragent,crmGroup,articleType,seeDelta,orderBy,order,grouping,updateDays,updateTime,products';
     
     
     /**
