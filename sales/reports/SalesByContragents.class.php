@@ -154,6 +154,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         if ($rec->compare == 'month') {
             $form->setField('from', 'input=hidden');
             $form->setField('to', 'input=hidden');
+            $form->setField('selectPeriod', 'input=hidden');
             $form->setField('firstMonth', 'input');
             $form->setField('secondMonth', 'input');
         }
