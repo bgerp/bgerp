@@ -56,7 +56,7 @@ class plg_SelectPeriod extends core_Plugin
         }
         
         $mandatory = ($form->fields[$fF]->mandatory || $form->fields[$fT]->mandatory) ? ',mandatory' : '';
-        $form->FLD('selectPeriod', 'varchar', "caption=Период,input,before=from,silent,printListFilter=none,before={$fF}{$mandatory}", array('attr' => array('onchange' => 'spr(this,false);')));
+        $form->FLD('selectPeriod', 'varchar', "caption=Период,input,before=from,silent,printListFilter=none,before={$fF}{$mandatory},mustExist", array('attr' => array('onchange' => 'spr(this,false);')));
         
         $keySel = null;
         $form->setOptions('selectPeriod', self::getOptions($keySel, $rec->{$fF}, $rec->{$fT}));
