@@ -45,12 +45,10 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
      */
     public function getVolumicWeight($weight, $volume, $deliveryTermId, $params)
     {
-        $m = 1;
-        if($volume * 33 < $weight) {
-            $m = 1000;
-        }
-
-        return max($weight, $volume * $m);
+        $FeeZones = cls::getInterface('cond_TransportCalc', 'tcost_FeeZones');
+        $params['deliveryCountry'] = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+        
+        return $FeeZones->getVolumicWeight($weight, $volume, $deliveryTermId, $params);
     }
     
     
@@ -74,7 +72,7 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
         $params['deliveryCountry'] = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
         
         // Временно работи с навлата
-        $FeeZones = cls::getInterface('cond_TransportCalc', tcost_FeeZones::getClassId());
+        $FeeZones = cls::getInterface('cond_TransportCalc', 'tcost_FeeZones');
         $res = $FeeZones->getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $params);
         
         return $res;
