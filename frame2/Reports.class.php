@@ -329,26 +329,32 @@ class frame2_Reports extends embed_Manager
             }
             
             // При редакция, ако има полета за промяна
-            if (isset($rec->id) && $rec->changeFields) {
-                $changeable = type_Set::toArray($rec->changeFields);
-                $cu = core_Users::getCurrent();
+            if (isset($rec->id)) {
+                $rec->changeFields = empty($rec->changeFields) ? static::fetchField($rec->id, 'changeFields') : $rec->changeFields;
+                $rec->createdBy = empty($rec->createdBy) ? static::fetchField($rec->id, 'createdBy') : $rec->createdBy;
                 
-                // И потребителя не е създател на документа
-                if ($rec->createdBy != $cu && core_Users::compareRangs($rec->createdBy, $cu) >= 0) {
+                if($rec->changeFields) {
+                    $changeable = type_Set::toArray($rec->changeFields);
+                    $cu = core_Users::getCurrent();
                     
-                    // Скриват се всички полета, които не са упоменати като променяеми
-                    $fields = $form->selectFields("#input != 'none' AND #input != 'hidden'");
-                    $diff = array_diff_key($fields, $changeable);
-                    
-                    $mustExist = $form->selectFields("#mustExist");
-                    $diff = array_diff_key($diff, $mustExist);
-                    
-                    if ($data->action == 'clone') {
-                        unset($diff['sharedUsers'], $diff['notificationText'], $diff['updateDays'], $diff['updateTime'], $diff['maxKeepHistory']);
-                    }
-                    $diff = array_keys($diff);
-                    foreach ($diff as $name) {
-                        $form->setField($name, 'input=none');
+                    // И потребителя не е създател на документа
+                    if ($rec->createdBy != $cu && core_Users::compareRangs($rec->createdBy, $cu) >= 0) {
+                        
+                        // Скриват се всички полета, които не са упоменати като променяеми
+                        $fields = $form->selectFields("#input != 'none' AND #input != 'hidden'");
+                        $diff = array_diff_key($fields, $changeable);
+                        
+                        $mustExist = $form->selectFields("#mustExist");
+                        $diff = array_diff_key($diff, $mustExist);
+                        unset($diff[$mvc->driverClassField]);
+                        
+                        if ($data->action == 'clone') {
+                            unset($diff['sharedUsers'], $diff['notificationText'], $diff['updateDays'], $diff['updateTime'], $diff['maxKeepHistory']);
+                        }
+                        $diff = array_keys($diff);
+                        foreach ($diff as $name) {
+                            $form->setField($name, 'input=none');
+                        }
                     }
                 }
             }
