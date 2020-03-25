@@ -1310,14 +1310,10 @@ class eshop_Carts extends core_Master
     private static function renderCartOrderInfo($rec, core_ET &$tpl)
     {
         $rec = self::fetchRec($rec);
-        $cu = core_Users::getCurrent();
         
         $row = self::recToVerbal($rec, cls::get('eshop_Carts')->selectFields());
         $tpl->replace($row->termId, 'termId');
         $tpl->replace($row->paymentId, 'paymentId');
-        if ($Driver = cond_DeliveryTerms::getTransportCalculator($rec->termId)) {
-            $tpl->replace($Driver->renderDeliveryInfo($rec), 'DELIVERY_BLOCK');
-        }
         
         $countryVerbal = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)')->toVerbal($rec->deliveryCountry);
         $tpl->replace($countryVerbal, 'deliveryCountry');
@@ -1381,6 +1377,10 @@ class eshop_Carts extends core_Master
         
         if (!empty($rec->personNames)) {
             $tpl->append('borderTop', 'BORDER_CLASS');
+        }
+        
+        if ($Driver = cond_DeliveryTerms::getTransportCalculator($rec->termId)) {
+            $Driver->addToCartOrderInfo($rec->termId, $rec, $row, $tpl);
         }
         
         return $tpl;

@@ -121,15 +121,18 @@ class bglocal_interface_FreeShipping extends core_BaseClass
     
     
     /**
-     * Рендира информацията
+     * Рендира информацията за доставката в блока за поръчката
      *
-     * @param stdClass rec
+     * @param stdClass $termRec
+     * @param stdClass $cartRec
+     * @param stdClass $cartRow
+     * @param core_ET $tpl
      *
-     * @return core_ET $tpl
+     * @return void
      */
-    public function renderDeliveryInfo($rec)
+    public function addToCartOrderInfo($termRec, $cartRec, $cartRow, $tpl)
     {
-        return new core_ET('');
+        
     }
     
     

@@ -128,21 +128,29 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
     
     
     /**
-     * Рендира информацията
+     * Рендира информацията за доставката в блока за поръчката
      *
-     * @param stdClass rec
+     * @param stdClass $termRec
+     * @param stdClass $cartRec
+     * @param stdClass $cartRow
+     * @param core_ET $tpl
      *
-     * @return core_ET $tpl
+     * @return void
      */
-    public function renderDeliveryInfo($rec)
+    public function addToCartOrderInfo($termRec, $cartRec, $cartRow, $tpl)
     {
-        $officeId = $rec->deliveryData['officeId'];
-        $officeName = speedy_Offices::getVerbal($officeId, 'extName');
+        $officeRec = speedy_Offices::fetch($cartRec->deliveryData['officeId']);
+        $officeName = speedy_Offices::getVerbal($officeRec, 'extName');
         
-        $tpl = new core_ET(tr("|*<tr><td class='aright'>|Офис|*:</td><td> <span class='richtext-holder'> [#officeId#]</span></td></tr>"));
-        $tpl->append($officeName, 'officeId');
+        $officeLocationUrlTpl = new core_ET(speedy_Setup::get('OFFICE_LOCATOR_URL'));
+        $officeLocationUrlTpl->replace($officeRec->num, 'NUM');
+        $officeName = ht::createLink($officeName, $officeLocationUrlTpl->getContent());
         
-        return $tpl;
+        $block = $tpl->getBlock('DELIVERY_DATA_VALUE');
+        $block->append(tr('Офис'), 'DELIVERY_DATA_CAPTION');
+        $block->append($officeName, 'DELIVERY_DATA_VALUE');
+        
+        $tpl->append($block, 'DELIVERY_BLOCK');
     }
     
     

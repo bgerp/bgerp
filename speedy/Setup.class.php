@@ -2,6 +2,12 @@
 
 
 /**
+ * Време на бездействие на таба, преди което съобщението ще се маркира, като прочетено
+ */
+defIfNot('SPEEDY_OFFICE_LOCATOR_URL', "https://www.speedy.bg/speedy_office_locator_widget/googleMaps.php?lang=en&id=[#NUM#]&src=sws");
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с speedy
  *
@@ -50,7 +56,7 @@ class speedy_Setup extends core_ProtoSetup
     /**
      * Описание на конфигурационните константи
      */
-    public $configDescription = array();
+    public $configDescription = array('SPEEDY_OFFICE_LOCATOR_URL' => array('varchar', 'caption=Локатор на офис'),);
     
     
     /**
