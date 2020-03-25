@@ -4,7 +4,7 @@
 /**
  * Време на бездействие на таба, преди което съобщението ще се маркира, като прочетено
  */
-defIfNot('SPEEDY_OFFICE_LOCATOR_URL', "https://www.speedy.bg/speedy_office_locator_widget/googleMaps.php?lang=en&id=[#NUM#]&src=sws");
+defIfNot('SPEEDY_OFFICE_LOCATOR_URL', "https://www.speedy.bg/speedy_office_locator_widget/googleMaps.php?lang=bg&id=[#NUM#]&src=sws");
 
 
 /**
