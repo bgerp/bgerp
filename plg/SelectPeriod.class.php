@@ -55,8 +55,11 @@ class plg_SelectPeriod extends core_Plugin
             return ;
         }
         
+        $fFEsc = json_encode($fF);
+        $fTEsc = json_encode($fT);
+        
         $mandatory = ($form->fields[$fF]->mandatory || $form->fields[$fT]->mandatory) ? ',mandatory' : '';
-        $form->FLD('selectPeriod', 'varchar', "caption=Период,input,before=from,silent,printListFilter=none,before={$fF}{$mandatory},mustExist", array('attr' => array('onchange' => 'spr(this,false);')));
+        $form->FLD('selectPeriod', 'varchar', "caption=Период,input,before=from,silent,printListFilter=none,before={$fF}{$mandatory},mustExist", array('attr' => array('onchange' => "spr(this,false, {$fFEsc}, {$fTEsc});")));
         
         $keySel = null;
         $form->setOptions('selectPeriod', self::getOptions($keySel, $rec->{$fF}, $rec->{$fT}));
@@ -136,7 +139,10 @@ class plg_SelectPeriod extends core_Plugin
         
         $form = $data->listFilter;
         
-        $form->FLD('selectPeriod', 'varchar', 'caption=Период,input,before=from,silent,printListFilter=none', array('attr' => array('onchange' => 'spr(this);')));
+        $fFEsc = json_encode($fF);
+        $fTEsc = json_encode($fT);
+        
+        $form->FLD('selectPeriod', 'varchar', 'caption=Период,input,before=from,silent,printListFilter=none', array('attr' => array('onchange' => "spr(this, true, {$fFEsc}, {$fTEsc});")));
         if (strpos($form->showFields, $fF) !== false) {
             $form->showFields = trim(str_replace(",{$fF},", ",selectPeriod,{$fF},", ',' . $form->showFields . ','), ',');
         } else {
