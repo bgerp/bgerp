@@ -75,12 +75,12 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $fieldset->FLD('duration', 'time(suggestions=1 седмица| 1 месец| 2 месеца| 3 месеца| 6 месеца| 12 месеца)', 'caption=Период->Продължителност,after=from,single=none,mandatory');
         
         //Сравнение
-        $fieldset->FLD('compare', 'enum(no=Без, previous=Предходен период, year=Миналогодишен период,checked=Избран период)', 'caption=Сравнение->Сравнение,after=duration,refreshForm,single=none,silent');
+        $fieldset->FLD('compare', 'enum(no=Без, previous=Предходен период, year=Миналогодишен период,checked=Избран период)', 'caption=Сравнение->Сравнение,after=duration,removeAndRefreshForm,single=none,silent');
         $fieldset->FLD('compareStart', 'date', 'caption=Сравнение->Начало,after=compare,single=none,mandatory');
         
         //Контрагенти и групи контрагенти
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=compareStart');
-        $fieldset->FLD('seeCrmGroup', 'set(yes = )', 'caption=Контрагенти->Група контрагенти,after=contragent,refreshForm,silent,single=none');
+        $fieldset->FLD('seeCrmGroup', 'set(yes = )', 'caption=Контрагенти->Група контрагенти,after=contragent,removeAndRefreshForm,silent,single=none');
         
         if (BGERP_GIT_BRANCH == 'dev') {
             $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name, parentId=parentId)', 'caption=Контрагенти->Група контрагенти,after=seeCrmGroup,single=none');
@@ -89,7 +89,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         }
         
         //Групиране на резултата
-        $fieldset->FLD('seeGroup', 'set(yes = )', 'caption=Артикули->Група артикули,after=crmGroup,refreshForm,silent,single=none');
+        $fieldset->FLD('seeGroup', 'set(yes = )', 'caption=Артикули->Група артикули,after=crmGroup,removeAndRefreshForm,silent,single=none');
         
         if (BGERP_GIT_BRANCH == 'dev') {
             $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,after=seeGroup,single=none');
@@ -700,8 +700,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             
             foreach ($groupValues as $k => $v) {
                 $recs[$k] = (object) array(
-                    'group' => $k,                                     //Група артикули
-                    'amount' => $v,                                        //Покупки за текущия период за групата
+                    'group' => $k,                                                  //Група артикули
+                    'amount' => $v,                                                 //Покупки за текущия период за групата
                     
                     'groupAmountPrevious' => $groupAmountPrevious[$k],               //Покупки за предходен период за групата
                     'changeGroupAmountPrevious' => $v - $groupAmountPrevious[$k],             //Промяна в покупките спрямо предходен период за групата
@@ -728,24 +728,18 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         }
         
         //Подредба на резултатите
-        if (!is_null($recs)) {
+        if (!empty($recs)) {
             $typeOrder = ($rec->orderBy == 'code') ? 'stri' : 'native';
             
             $orderBy = $rec->orderBy;
             
             if ($rec->orderBy == 'changeAmount') {
-                switch ($rec->compare) {
-                    
-                    case 'previous':$orderBy = 'changeAmountPrevious'; break;
-                    
-                    case 'year':$orderBy = 'changeAmountLastYear'; break;
-                    
-                    case 'checked':$orderBy = 'changeAmountCheckedPeriod'; break;
-                
-                }
+                $orderBy = $changeAmount;
             }
-            
-            arr::sortObjects($recs, $orderBy, 'DESC', $typeOrder);
+            $key=key($recs);
+            if(property_exists($recs[$key],$orderBy)){
+                arr::sortObjects($recs, $orderBy, 'DESC', $typeOrder); 
+            }
         }
         
         //Добавям ред за ОБЩИТЕ суми
