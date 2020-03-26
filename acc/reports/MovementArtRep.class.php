@@ -363,7 +363,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         
-        $fld->FLD('code', 'varchar', 'caption=Код');
+        $fld->FLD('code', 'varchar', 'caption=Код,tdClass=nowrap');
         $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         $fld->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=nowrap');
         $fld->FLD('baseQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Начално');
