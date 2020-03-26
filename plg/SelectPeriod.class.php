@@ -55,11 +55,30 @@ class plg_SelectPeriod extends core_Plugin
             return ;
         }
         
+        $refresh = '';
+        if ($form->fields[$fF]->removeAndRefreshForm) {
+            $refresh = $form->fields[$fF]->removeAndRefreshForm;
+        }
+        
+        if ($form->fields[$fT]->removeAndRefreshForm) {
+            $refresh = trim($refresh, '|');
+            $refresh .= $refresh ? '|' : '';
+            $refresh .= $form->fields[$fT]->removeAndRefreshForm;
+        }
+        
+        if ($refresh) {
+            $refresh = ',removeAndRefreshForm=' . $refresh;
+        } else {
+            if (isset($form->fields[$fF]->removeAndRefreshForm) || isset($form->fields[$fT]->removeAndRefreshForm) || isset($form->fields[$fF]->refreshForm) || isset($form->fields[$fT]->refreshForm)) {
+                $refresh = ',removeAndRefreshForm';
+            }
+        }
+        
         $fFEsc = json_encode($fF);
         $fTEsc = json_encode($fT);
         
         $mandatory = ($form->fields[$fF]->mandatory || $form->fields[$fT]->mandatory) ? ',mandatory' : '';
-        $form->FLD('selectPeriod', 'varchar', "caption=Период,input,before=from,silent,printListFilter=none,before={$fF}{$mandatory},mustExist", array('attr' => array('onchange' => "spr(this,false, {$fFEsc}, {$fTEsc});")));
+        $form->FLD('selectPeriod', 'varchar', "caption=Период,input,before=from,silent,printListFilter=none,before={$fF}{$mandatory}{$refresh},mustExist", array('attr' => array('onchange' => "spr(this,false, {$fFEsc}, {$fTEsc});")));
         
         $keySel = null;
         $form->setOptions('selectPeriod', self::getOptions($keySel, $rec->{$fF}, $rec->{$fT}));
@@ -75,9 +94,6 @@ class plg_SelectPeriod extends core_Plugin
             Request::push(array('selectPeriod' => $keySel));
         }
         
-        $form->setField($fF, array('rowStyle' => 'display:none'));
-        $form->setField($fT, array('rowStyle' => 'display:none'));
-        
         $form->input('selectPeriod');
         
         if (($rec->selectPeriod) && ($rec->selectPeriod != 'select')) {
@@ -88,6 +104,9 @@ class plg_SelectPeriod extends core_Plugin
                 list($rec->{$fF}, $rec->{$fT}) = self::getFromTo($rec->selectPeriod);
                 Request::push(array($fF => $rec->{$fF}, $fT => $rec->{$fT}));
             }
+            
+            $form->setField($fF, array('rowStyle' => 'display:none'));
+            $form->setField($fT, array('rowStyle' => 'display:none'));
         }
     }
     
