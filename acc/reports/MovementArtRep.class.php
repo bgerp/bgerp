@@ -31,8 +31,8 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('from', 'key(mvc=acc_Periods,select=title, allowEmpty)', 'caption=От,mandatory,after=title');
-        $fieldset->FLD('to', 'key(mvc=acc_Periods,select=title, allowEmpty)', 'caption=До,after=from');
+        $fieldset->FLD('from', 'date', 'caption=От,mandatory,after=title');
+        $fieldset->FLD('to', 'date', 'caption=До,after=from');
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,after=to,single=none');
     }
     
@@ -46,13 +46,13 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
-        $form = &$data->form;
+        /*$form = &$data->form;
         $periods = acc_Periods::getCalcedPeriods(true);
         $form->setOptions('from', array('' => '') + $periods);
         $form->setOptions('to', array('' => '') + $periods);
         
         $lastPeriod = acc_Periods::fetchByDate(dt::addMonths(-1, dt::now()));
-        $form->setDefault('from', $lastPeriod->id);
+        $form->setDefault('from', $lastPeriod->id);*/
     }
     
     
@@ -75,7 +75,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
             }
             
             // Размяна, ако периодите са объркани
-            if (isset($rec->from, $rec->to)) {
+            /*if (isset($rec->from, $rec->to)) {
                 $from = acc_Periods::fetch($rec->from);
                 $to = acc_Periods::fetch($rec->to);
                 
@@ -84,11 +84,11 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                     $rec->to = $from->id;
                 }
             }
-            
+            bp($rec->from, $rec->to, $rec);
             if (empty($rec->to)) {
                 $currentPeriod = acc_Periods::fetchByDate(dt::today());
                 $rec->to = $currentPeriod->id;
-            }
+            }*/
         }
     }
     
@@ -143,9 +143,9 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $baseQuantities = array();
         
         // Намира се баланса на началния период
-        $periodRec = acc_Periods::fetch($rec->from);
+        $periodRec = acc_Periods::fetchByDate($rec->from); 
         $balanceId = acc_Balances::fetchField("#periodId = {$periodRec->id}", 'id');
-        
+     
         // Извличат се само записите за сметка 321 с участието на перата на артикулите
         $bQuery = acc_BalanceDetails::getQuery();
         $bQuery->show('ent2Id,baseQuantity');
@@ -163,8 +163,9 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         
         // Извличане на записите от журнала по желанието сметки
         $jQuery = acc_JournalDetails::getQuery();
-        $from = acc_Periods::fetchField($rec->from, 'start');
-        $to = acc_Periods::fetchField($rec->to, 'end');
+        $from = acc_Periods::fetchByDate($rec->from)->start;
+        $to = acc_Periods::fetchByDate($rec->to)->end;
+        
         acc_JournalDetails::filterQuery($jQuery, $from, $to, '321,401,61101,61102,701');
         
         $jRecs = $jQuery->fetchAll();
@@ -268,10 +269,6 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $data->groupByField = 'groupId';
         $recs = $this->groupRecs($recs, $rec->group, $data);
 
-        
-        //325 proizwodstwo
-        //327 wry6a
-       
         return $recs;
     }
     
