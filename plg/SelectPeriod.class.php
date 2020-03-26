@@ -104,7 +104,9 @@ class plg_SelectPeriod extends core_Plugin
                 list($rec->{$fF}, $rec->{$fT}) = self::getFromTo($rec->selectPeriod);
                 Request::push(array($fF => $rec->{$fF}, $fT => $rec->{$fT}));
             }
-            
+        }
+        
+        if ($rec->selectPeriod != 'select') {
             $form->setField($fF, array('rowStyle' => 'display:none'));
             $form->setField($fT, array('rowStyle' => 'display:none'));
         }
