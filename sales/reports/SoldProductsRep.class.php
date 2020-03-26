@@ -74,14 +74,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,after=contragent,single=none');
         
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Група артикули,after=crmGroup,single=none');
-        $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Артикули->Артикули,after=group,single=none,class=w100');
+        $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Артикули->Артикули,after=group,single=none,input=none,class=w100');
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,maxRadio=3,columns=3,after=productId,single=none');
         $fieldset->FLD('quantityType', 'enum(shipped=Експедирани, ordered=Поръчани)', 'caption=Артикули->Количества,maxRadio=2,columns=2,after=articleType');
         
         //Покаване на резултата
-        $fieldset->FLD('grouping', 'enum(yes=Групирано, no=По артикули)', 'caption=Показване->Вид,maxRadio=2,after=quantityType');
-        $fieldset->FLD('seeByContragent', 'set(yes = )', 'caption=Показване->Разбивка по контрагенти,after=grouping,single=none,silent');
-        $fieldset->FLD('seeDelta', 'set(yes = )', 'caption=Показване->Делти,after=seeByContragent,single=none');
+        $fieldset->FLD('grouping', 'enum(yes=Групирано, no=По артикули)', 'caption=Показване->Вид,after=quantityType');
+        $fieldset->FLD('seeByContragent', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Разбивка по контрагенти,after=grouping,removeAndRefreshForm,single=none,silent');
+        $fieldset->FLD('seeDelta', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Покажи делти,after=seeByContragent,single=none');
         
         
         //Подредба на резултатите
@@ -192,7 +192,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         $form->setDefault('grouping', 'no');
         
-        $form->setDefault('seeByContragent', false);
+        $form->setDefault('seeByContragent', 'no');
         
         $form->setDefault('seeDelta', 'no');
         
@@ -201,7 +201,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $form->setDefault('order', 'desc');
         
         $form->setDefault('quantityType', 'shipped');
-        
+       
+        if ($rec->seeByContragent == 'yes') {
+            
+        $form->setField('products', 'input');
+            
         $shipmentdetQuery = store_ShipmentOrderDetails::getQuery();
         
         $shipmentdetQuery->EXT('state', 'store_ShipmentOrders', 'externalName=state,externalKey=shipmentId');
@@ -242,6 +246,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         
         asort($prodSuggestions);
+        
+        }else{
+            $prodSuggestions = array(''=>'');
+        }
         
         $form->setSuggestions('products', $prodSuggestions);
         
