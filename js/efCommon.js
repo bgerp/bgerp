@@ -2183,7 +2183,7 @@ function refreshForm(form, removeFields) {
 		form.submit(); return;
 	}
 
-	form.submit(); return;
+//	form.submit(); return;
 	
 	$.ajax({
 		type: frm.attr('method'),
