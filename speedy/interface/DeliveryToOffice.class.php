@@ -83,31 +83,41 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
      * Добавя полета за доставка към форма
      *
      * @param core_FieldSet $form
+     * @param mixed $document
      * @param string|NULL   $userId
      *
      * @return void
      */
-    public function addFields(core_FieldSet &$form, $userId = null)
+    public function addFields(core_FieldSet &$form, $document, $userId = null)
     {
         $form->FLD('officeId', "key(mvc=speedy_Offices,select=name)", 'silent,mandatory,caption=Доставка->Офис');
-        
         $options = array('' => '') + speedy_Offices::getAvailable();
         $form->setOptions('officeId', $options);
-        unset($form->rec->deliveryCountry, $form->rec->deliveryPCode, $form->rec->deliveryPlace, $form->rec->deliveryAddress);
-       
-        $form->setField('deliveryCountry', 'input=hidden');
-        $form->setField('deliveryPCode', 'input=hidden');
-        $form->setField('deliveryPlace', 'input=hidden');
-        $form->setField('deliveryAddress', 'input=hidden');
+        
+        $Document = cls::get($document);
+        if($Document instanceof eshop_Carts){
+            unset($form->rec->deliveryCountry, $form->rec->deliveryPCode, $form->rec->deliveryPlace, $form->rec->deliveryAddress);
+            $form->setField('deliveryCountry', 'input=hidden');
+            $form->setField('deliveryPCode', 'input=hidden');
+            $form->setField('deliveryPlace', 'input=hidden');
+            $form->setField('deliveryAddress', 'input=hidden');
+        } elseif($Document instanceof sales_Sales){
+            $form->setField('deliveryLocationId', 'input=hidden');
+            $form->setField('deliveryAdress', 'input=hidden');
+        } elseif($Document instanceof sales_Quotations){
+            $form->setField('deliveryAdress', 'input=hidden');
+            $form->setField('deliveryPlaceId', 'input=hidden');
+        }
     }
     
     
     /**
      * Добавя масив с полетата за доставка
      *
+     * @param mixed $document
      * @return array
      */
-    public function getFields()
+    public function getFields($document)
     {
         return array('officeId');
     }
@@ -126,29 +136,27 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
     
     
     /**
-     * Рендира информацията за доставката в блока за поръчката
+     * Вербализира допълнителните данни за доставка
      *
-     * @param stdClass $termRec
-     * @param stdClass $cartRec
-     * @param stdClass $cartRow
-     * @param core_ET $tpl
+     * @param stdClass $termRec        - условие на доставка
+     * @param array|null $deliveryData - масив с допълнителни условия за доставка
+     * @param mixed $document          - документ
      *
-     * @return void
+     * @return array $res              - данни готови за показване
      */
-    public function addToCartOrderInfo($termRec, $cartRec, $cartRow, $tpl)
+    public function getVerbalDeliveryData($termRec, $deliveryData, $document)
     {
-        $officeRec = speedy_Offices::fetch($cartRec->deliveryData['officeId']);
+        $res = array();
+        
+        $officeRec = speedy_Offices::fetch($deliveryData['officeId']);
         $officeName = speedy_Offices::getVerbal($officeRec, 'extName');
         
         $officeLocationUrlTpl = new core_ET(speedy_Setup::get('OFFICE_LOCATOR_URL'));
         $officeLocationUrlTpl->replace($officeRec->num, 'NUM');
         $officeName = ht::createLink($officeName, $officeLocationUrlTpl->getContent());
+        $res[] = (object)array('caption' => tr('Офис'), 'value' => $officeName);
         
-        $block = $tpl->getBlock('DELIVERY_DATA_VALUE');
-        $block->append(tr('Офис'), 'DELIVERY_DATA_CAPTION');
-        $block->append($officeName, 'DELIVERY_DATA_VALUE');
-        
-        $tpl->append($block, 'DELIVERY_BLOCK');
+        return $res;
     }
     
     

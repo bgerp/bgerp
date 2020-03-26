@@ -285,11 +285,12 @@ class cond_DeliveryTerms extends core_Master
      * @param int      $contragentId      - ид на котнрагента
      * @param int      $storeId           - ид на склада
      * @param int      $locationId        - ид на локация
+     * @param int      $deliveryData      - други параметри
      * @param core_Mvc $document          - за кой документ се отнася
      *
      * @return string - условието за доставка допълнено с адреса, ако може да се определи
      */
-    public static function addDeliveryTermLocation($deliveryCode, $contragentClassId, $contragentId, $storeId, $locationId, $document)
+    public static function addDeliveryTermLocation($deliveryCode, $contragentClassId, $contragentId, $storeId, $locationId, $deliveryData, $document)
     {
         $adress = '';
         $isSale = ($document instanceof sales_Sales || $document instanceof sales_Quotations);
@@ -349,5 +350,109 @@ class cond_DeliveryTerms extends core_Master
         if($Calculator){
             $Calculator->addToCartView($rec, $cartRec, $cartRow, $tpl);
         }
+    }
+    
+    
+    /**
+     * Подготовка на формата за инпут
+     *
+     * @param mixed $id
+     * @param core_FieldSet $form
+     * @param mixed $document
+     * @param null|int $userId
+     * @return void
+     */
+    public static function prepareDocumentForm($id, core_FieldSet &$form, $document, $userId = null)
+    {
+        $rec = self::fetchRec($id);
+        $Document = cls::get($document);
+        
+        if($rec->address == 'supplier'){
+            if($Document instanceof sales_Sales){
+                $form->setReadOnly('deliveryLocationId');
+                $form->setReadOnly('deliveryAdress');
+            } elseif($Document instanceof eshop_Carts){
+                unset($form->rec->deliveryCountry, $form->rec->deliveryPCode, $form->rec->deliveryPlace, $form->rec->deliveryAddress);
+                $form->setField('deliveryCountry', 'input=hidden');
+                $form->setField('deliveryPCode', 'input=hidden');
+                $form->setField('deliveryPlace', 'input=hidden');
+                $form->setField('deliveryAddress', 'input=hidden');
+            }
+        }
+        
+        $Calculator = self::getTransportCalculator($rec);
+        if($Calculator){
+            $Calculator->addFields($form, $document, $userId);
+        } elseif($Document instanceof eshop_Carts && $rec->address != 'supplier') {
+            $form->setField('deliveryPCode', 'mandatory');
+            $form->setField('deliveryPlace', 'mandatory');
+            $form->setField('deliveryAddress', 'mandatory');
+        }
+        
+        if($Document instanceof deals_DealMaster || $Document instanceof eshop_Carts || $Document instanceof sales_Quotations){
+            $fields = self::getAdditionalFields($rec, $document);
+           
+            if(countR($fields)){
+                foreach ($fields as $fld) {
+                    $form->setDefault($fld, $form->rec->deliveryData[$fld]);
+                }
+            } else {
+                $form->rec->deliveryData = null;
+            }
+        }
+    }
+    
+    
+    /**
+     * Обработка на фомрата на документа след инпут
+     * 
+     * @param mixed $id
+     * @param core_FieldSet $form
+     * @param mixed $document
+     * @param null|int $userId
+     * @return void
+     */
+    public static function inputDocumentForm($id, core_FieldSet &$form, $document, $userId = null)
+    {
+        $Document = cls::get($document);
+        $formRec = &$form->rec;
+        
+        if ($Document instanceof sales_Sales || $Document instanceof sales_Quotations) {
+            $deliveryData = is_array($formRec->deliveryData) ? $formRec->deliveryData : array();
+            
+            if ($error = sales_TransportValues::getDeliveryTermError($id, $formRec->deliveryAdress, $formRec->contragentClassId, $formRec->contragentId, $formRec->deliveryLocationId, $deliveryData)) {
+                $form->setError('deliveryTermId,deliveryAdress,deliveryLocationId', $error);
+            }
+        }
+        
+        if ($Document instanceof deals_DealMaster || $Document instanceof eshop_Carts || $Document instanceof sales_Quotations) {
+            
+            // Компресиране на данните за доставка от драйвера
+            $formRec->deliveryData = array();
+            $fields = self::getAdditionalFields($id, $document);
+            foreach ($fields as $name) {
+                $formRec->deliveryData[$name] = $formRec->{$name};
+            }
+        }
+    }
+    
+    
+    /**
+     * Кои полета са допълнени от условието
+     * 
+     * @param mixed $id            - ид
+     * @param mixed|null $document - клас на документ
+     * @return array $fields       - полета
+     */
+    public static function getAdditionalFields($id, $document)
+    {
+        $fields = array();
+        
+        $Calculator = self::getTransportCalculator($id);
+        if($Calculator){
+            $fields += $Calculator->getFields($document);
+        }
+        
+        return $fields;
     }
 }

@@ -328,7 +328,7 @@ class sales_Sales extends deals_DealMaster
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Цени,notChangeableByContractor');
         $this->setField('shipmentStoreId', 'salecondSysId=defaultStoreSale');
-        $this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale,removeAndRefreshForm=deliveryLocationId|deliveryAdress,silent');
+        $this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
         $this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale');
     }
     
@@ -452,15 +452,6 @@ class sales_Sales extends deals_DealMaster
                         $form->setDefault('bankAccountId', $defBankId);
                     }
                 }
-            }
-        }
-        
-        // Забрана за въвеждане на адрес, ако условието на доставка е до локация на доставчика
-        if(isset($rec->deliveryTermId)) {
-            $address = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'address');
-            if($address == 'supplier'){
-                $form->setReadOnly('deliveryLocationId');
-                $form->setReadOnly('deliveryAdress');
             }
         }
     }

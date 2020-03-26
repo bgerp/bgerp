@@ -101,17 +101,16 @@
                   <td colspan="2"><span class='stamp no-transform' style='font-size:1em;'>[#deliveryError#]</span></td>
                </tr>
                <!--ET_END deliveryError-->
-               <!--ET_BEGIN instruction-->
-               <tr>
-                  <td class="aright">|Инструкции|*:</td><td> <span class="richtext-holder"> [#instruction#]</span></td>
-               </tr>
-               <!--ET_END instruction-->
-               
                <!--ET_BEGIN DELIVERY_DATA_VALUE-->
                <tr>
                   <td class="aright">[#DELIVERY_DATA_CAPTION#]:</td><td> <span class="richtext-holder"> [#DELIVERY_DATA_VALUE#]</span></td>
                </tr>
                <!--ET_END DELIVERY_DATA_VALUE-->
+               <!--ET_BEGIN instruction-->
+               <tr>
+                  <td class="aright">|Инструкции|*:</td><td> <span class="richtext-holder"> [#instruction#]</span></td>
+               </tr>
+               <!--ET_END instruction-->
                [#DELIVERY_BLOCK#]
                <!--ET_END DELIVERY_BLOCK-->
             

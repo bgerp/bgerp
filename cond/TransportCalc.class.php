@@ -95,24 +95,26 @@ class cond_TransportCalc
      * Добавя полета за доставка към форма
      *
      * @param core_FieldSet $form
+     * @param mixed $document
      * @param string|NULL   $userId
      *
      * @return void
      */
-    public function addFields(core_FieldSet &$form, $userId = null)
+    public function addFields(core_FieldSet &$form, $document, $userId = null)
     {
-        return $this->class->addFields($form, $userId);
+        return $this->class->addFields($form, $document, $userId);
     }
     
     
     /**
      * Добавя масив с полетата за доставка
      *
+     * @param mixed $document
      * @return array
      */
-    public function getFields()
+    public function getFields($document)
     {
-        return $this->class->getFields();
+        return $this->class->getFields($document);
     }
     
     
@@ -130,18 +132,17 @@ class cond_TransportCalc
     
     
     /**
-     * Рендира информацията за доставката в блока за поръчката
+     * Вербализира допълнителните данни за доставка
      *
-     * @param stdClass $termRec
-     * @param stdClass $cartRec
-     * @param stdClass $cartRow
-     * @param core_ET $tpl
+     * @param stdClass $termRec        - условие на доставка
+     * @param array|null $deliveryData - масив с допълнителни условия за доставка
+     * @param mixed $document          - документ
      *
-     * @return void
+     * @return array $res              - данни готови за показване
      */
-    public function addToCartOrderInfo($termRec, $cartRec, $cartRow, $tpl)
+    public function getVerbalDeliveryData($termRec, $deliveryData, $document)
     {
-        return $this->class->addToCartOrderInfo($termRec, $cartRec, $cartRow, $tpl);
+        return $this->class->getVerbalDeliveryData($termRec, $deliveryData, $document);
     }
     
     

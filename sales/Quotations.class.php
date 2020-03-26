@@ -234,11 +234,12 @@ class sales_Quotations extends core_Master
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate');
         $this->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
         $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Плащане->ДДС,oldFieldName=vat');
-        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale');
+        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale,silent,removeAndRefreshForm=deliveryData|deliveryPlaceId|deliveryAdress');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Обект,hint=Изберете обект');
         $this->FLD('deliveryAdress', 'varchar', 'caption=Доставка->Място');
         $this->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до');
         $this->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни');
+        $this->FLD('deliveryData', 'blob(serialize, compress)', 'input=none');
         
         $this->FLD('company', 'varchar', 'caption=Получател->Фирма, changable, class=contactData,input=hidden');
         $this->FLD('person', 'varchar', 'caption=Име, changable, class=contactData,after=reff');
@@ -313,6 +314,11 @@ class sales_Quotations extends core_Master
         
         // Срок на валидност по подразбиране
         $form->setDefault('validFor', sales_Setup::get('DEFAULT_VALIDITY_OF_QUOTATION'));
+        
+        $form->input('deliveryTermId');
+        if(isset($rec->deliveryTermId)){
+            cond_DeliveryTerms::prepareDocumentForm($rec->deliveryTermId, $form, $mvc);
+        }
     }
     
     
@@ -441,14 +447,6 @@ class sales_Quotations extends core_Master
                 }
             }
             
-            if (isset($rec->deliveryTermId)) {
-                $locationId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null; 
-                
-                if ($error = sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $locationId)) {
-                    $form->setWarning('deliveryTermId,deliveryAdress,deliveryPlaceId', $error);
-                }
-            }
-            
             // Избрания ДДС режим съответства ли на дефолтния
             $defVat = $mvc->getDefaultChargeVat($rec);
             if ($vatWarning = deals_Helper::getVatWarning($defVat, $rec->chargeVat)) {
@@ -463,6 +461,10 @@ class sales_Quotations extends core_Master
             
             if (isset($rec->deliveryTermTime, $rec->deliveryTime)) {
                 $form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
+            }
+            
+            if(isset($rec->deliveryTermId)){
+                cond_DeliveryTerms::inputDocumentForm($rec->deliveryTermId, $form, $mvc);
             }
         }
     }
@@ -605,6 +607,16 @@ class sales_Quotations extends core_Master
                 }
             }
             
+            if(isset($rec->deliveryTermId)){
+                if ($Driver = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
+                    $deliveryDataArr = $Driver->getVerbalDeliveryData($rec->deliveryTermId, $rec->deliveryData, get_called_class());
+                    foreach ($deliveryDataArr as $delObj){
+                        $row->deliveryBlock .= "<li>{$delObj->caption}: {$delObj->value}</li>";
+                    }
+                }
+            }
+            
+            
             // Показване на допълнителните условия от артикулите
             $additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $mvc, $rec->id, $rec->tplLang);
             if (is_array($additionalConditions)) {
@@ -627,7 +639,7 @@ class sales_Quotations extends core_Master
             } else {
                 if (isset($rec->deliveryTermId)) {
                     $placeId = ($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
-                    $deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, null, $placeId, $mvc);
+                    $deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, null, $placeId, $rec->deliveryData, $mvc);
                 }
             }
             
@@ -1658,7 +1670,7 @@ class sales_Quotations extends core_Master
             $clone = clone $rec;
             $clone->deliveryPlaceId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null; 
             
-            sales_TransportValues::prepareFee($newRec, $form, $clone, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId'));
+            sales_TransportValues::prepareFee($newRec, $form, $clone, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId', 'deliveryData' => 'deliveryData'));
         }
         
         // Проверки на записите

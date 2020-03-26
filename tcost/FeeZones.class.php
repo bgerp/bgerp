@@ -364,16 +364,20 @@ class tcost_FeeZones extends core_Master
      * Добавя полета за доставка към форма
      *
      * @param core_FieldSet $form
+     * @param mixed $document
      * @param string|NULL   $userId
      *
      * @return void
      */
-    public function addFields(core_FieldSet &$form, $userId = null)
+    public function addFields(core_FieldSet &$form, $document, $userId = null)
     {
-        $form->setField('deliveryCountry', 'mandatory');
-        $form->setField('deliveryPCode', 'mandatory');
-        $form->setField('deliveryPlace', 'mandatory');
-        $form->setField('deliveryAddress', 'mandatory');
+        $Document = cls::get($document);
+        if($Document instanceof eshop_Carts){
+            $form->setField('deliveryCountry', 'mandatory');
+            $form->setField('deliveryPCode', 'mandatory');
+            $form->setField('deliveryPlace', 'mandatory');
+            $form->setField('deliveryAddress', 'mandatory');
+        }
     }
     
     
@@ -392,26 +396,27 @@ class tcost_FeeZones extends core_Master
     /**
      * Добавя масив с полетата за доставка
      *
+     * @param mixed $document
      * @return array
      */
-    public function getFields()
+    public function getFields($document)
     {
         return array();
     }
     
     
     /**
-     * Рендира информацията за доставката в блока за поръчката
+     * Вербализира допълнителните данни за доставка
      *
-     * @param stdClass $termRec
-     * @param stdClass $cartRec
-     * @param stdClass $cartRow
-     * @param core_ET $tpl
+     * @param stdClass $termRec        - условие на доставка
+     * @param array|null $deliveryData - масив с допълнителни условия за доставка
+     * @param mixed $document          - документ
      *
-     * @return void
+     * @return array $res              - данни готови за показване
      */
-    public function addToCartOrderInfo($termRec, $cartRec, $cartRow, $tpl)
+    public function getVerbalDeliveryData($termRec, $deliveryData, $document)
     {
+        return array();
     }
     
     

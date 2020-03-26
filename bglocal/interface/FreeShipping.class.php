@@ -78,31 +78,35 @@ class bglocal_interface_FreeShipping extends core_BaseClass
      * Добавя полета за доставка към форма
      *
      * @param core_FieldSet $form
+     * @param mixed $document
      * @param string|NULL   $userId
      *
      * @return void
      */
-    public function addFields(core_FieldSet &$form, $userId = null)
+    public function addFields(core_FieldSet &$form, $document, $userId = null)
     {
-        $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
-        
-        $form->rec->deliveryCountry = $bgId;
-        $form->setReadOnly('deliveryCountry');
-        $form->setField('deliveryCountry', 'mandatory');
-        $form->setField('deliveryPCode', 'mandatory');
-        $form->setField('deliveryPlace', 'mandatory');
-        $form->setField('deliveryAddress', 'mandatory');
-        
-        $form->setDefault('invoiceCountry', $bgId);
+        $Document = cls::get($document);
+        if($Document instanceof eshop_Carts){
+            $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+            
+            $form->rec->deliveryCountry = $bgId;
+            $form->setReadOnly('deliveryCountry');
+            $form->setField('deliveryCountry', 'mandatory');
+            $form->setField('deliveryPCode', 'mandatory');
+            $form->setField('deliveryPlace', 'mandatory');
+            $form->setField('deliveryAddress', 'mandatory');
+            $form->setDefault('invoiceCountry', $bgId);
+        }
     }
     
     
     /**
      * Добавя масив с полетата за доставка
      *
+     * @param mixed $document
      * @return array
      */
-    public function getFields()
+    public function getFields($document)
     {
         return array();
     }
@@ -121,18 +125,17 @@ class bglocal_interface_FreeShipping extends core_BaseClass
     
     
     /**
-     * Рендира информацията за доставката в блока за поръчката
+     * Вербализира допълнителните данни за доставка
      *
-     * @param stdClass $termRec
-     * @param stdClass $cartRec
-     * @param stdClass $cartRow
-     * @param core_ET $tpl
+     * @param stdClass $termRec        - условие на доставка
+     * @param array|null $deliveryData - масив с допълнителни условия за доставка
+     * @param mixed $document          - документ
      *
-     * @return void
+     * @return array $res              - данни готови за показване
      */
-    public function addToCartOrderInfo($termRec, $cartRec, $cartRow, $tpl)
+    public function getVerbalDeliveryData($termRec, $deliveryData, $document)
     {
-        
+        return array();
     }
     
     
