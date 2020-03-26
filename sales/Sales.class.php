@@ -455,9 +455,10 @@ class sales_Sales extends deals_DealMaster
             }
         }
         
+        // Забрана за въвеждане на адрес, ако условието на доставка е до локация на доставчика
         if(isset($rec->deliveryTermId)) {
-            $deliveryCode = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'codeName');
-            if($deliveryCode == 'EXW'){
+            $address = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'address');
+            if($address == 'supplier'){
                 $form->setReadOnly('deliveryLocationId');
                 $form->setReadOnly('deliveryAdress');
             }
