@@ -185,7 +185,8 @@ class acc_Setup extends core_ProtoSetup
         'acc_FeatureTitles',
         'acc_CostAllocations',
         'migrate::updateFeatures',
-        'migrate::fixFeaturesAndItems1020'
+        'migrate::fixFeaturesAndItems1020',
+        'migrate::redeclareFromToField'
     );
     
     
@@ -590,5 +591,39 @@ class acc_Setup extends core_ProtoSetup
         acc_Features::logDebug("Изтрити записи: " . $delCnt);
         
         core_CallOnTime::setCall('acc_Items', 'SyncItems', null, dt::addSecs(120));
+    }
+    
+    /**
+     * Миграция: в спрвките "Движения на материали"
+     * промяна на полето from и to  от key(mvc=acc_Periods) на date
+     */
+    function redeclareFromToField()
+    {
+        $reportClassId =acc_reports_MovementArtRep::getClassId();
+        if (!$reportClassId)return;
+        
+        $Frames = cls::get('frame2_Reports');
+        
+        $reportQuery=(frame2_Reports::getQuery());
+        
+        $reportQuery->where("#driverClass = $reportClassId");
+        
+        while ($fRec = $reportQuery->fetch()){
+           
+            if (type_Int::isInt($fRec->driverRec['from'])) {
+                
+                $periodRec = acc_Periods::fetch($fRec->driverRec['from']);
+               
+                $fRec->driverRec['from'] = $periodRec->start;
+                $fRec->from =$fRec->driverRec['from'];
+                
+                $fRec->driverRec['to'] = $periodRec->end;
+                $fRec->to =$fRec->driverRec['to'];
+            }
+            
+            
+            $Frames->save($fRec);
+            
+        }
     }
 }
