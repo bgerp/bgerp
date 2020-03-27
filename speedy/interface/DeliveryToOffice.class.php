@@ -148,13 +148,15 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
     {
         $res = array();
         
-        $officeRec = speedy_Offices::fetch($deliveryData['officeId']);
-        $officeName = speedy_Offices::getVerbal($officeRec, 'extName');
-        
-        $officeLocationUrlTpl = new core_ET(speedy_Setup::get('OFFICE_LOCATOR_URL'));
-        $officeLocationUrlTpl->replace($officeRec->num, 'NUM');
-        $officeName = ht::createLink($officeName, $officeLocationUrlTpl->getContent());
-        $res[] = (object)array('caption' => tr('Офис'), 'value' => $officeName);
+        if($deliveryData['officeId']){
+            $officeRec = speedy_Offices::fetch($deliveryData['officeId']);
+            $officeName = speedy_Offices::getVerbal($officeRec, 'extName');
+            
+            $officeLocationUrlTpl = new core_ET(speedy_Setup::get('OFFICE_LOCATOR_URL'));
+            $officeLocationUrlTpl->replace($officeRec->num, 'NUM');
+            $officeName = ht::createLink($officeName, $officeLocationUrlTpl->getContent());
+            $res[] = (object)array('caption' => tr('Офис'), 'value' => $officeName);
+        }
         
         return $res;
     }

@@ -1128,6 +1128,7 @@ class sales_Quotations extends core_Master
             'deliveryAdress' => $rec->deliveryAdress,
             'deliveryTime' => $rec->deliveryTime,
             'deliveryTermTime' => $rec->deliveryTermTime,
+            'deliveryData' => $rec->deliveryData,
             'deliveryLocationId' => crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id'),
         );
         
@@ -1178,7 +1179,6 @@ class sales_Quotations extends core_Master
                 $errorMsg = $e->getMessage();
                 reportException($e);
                 $this->logErr($errorMsg, $rec->id);
-                
             }
         }
         
