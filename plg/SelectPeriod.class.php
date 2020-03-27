@@ -88,7 +88,7 @@ class plg_SelectPeriod extends core_Plugin
             Request::push(array($fF => $rec->{$fF}, $fT => $rec->{$fT}));
         }
         
-        if ($keySel && !$form->isSubmitted()) {
+        if ($keySel && !$form->isSubmitted() && ($form->cmd != 'refresh')) {
             $form->setDefault('selectPeriod', $keySel);
             $rec->selectPeriod = $keySel;
             Request::push(array('selectPeriod' => $keySel));
