@@ -2202,7 +2202,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
     {
-        $error
+        // Ако има избрано условие на доставка, пзоволява ли да бъде контиран документа
         $rec = $mvc->fetchRec($id);
         if(isset($rec->deliveryTermId)){
             $error = null;
