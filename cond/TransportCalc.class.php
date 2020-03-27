@@ -119,19 +119,6 @@ class cond_TransportCalc
     
     
     /**
-     * Проверява форма
-     *
-     * @param core_FieldSet $form
-     *
-     * @return void
-     */
-    public function checkForm(core_FieldSet &$form)
-    {
-        return $this->class->checkForm($form);
-    }
-    
-    
-    /**
      * Вербализира допълнителните данни за доставка
      *
      * @param stdClass $termRec        - условие на доставка

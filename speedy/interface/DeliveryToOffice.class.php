@@ -125,18 +125,6 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
     
     
     /**
-     * Проверява форма
-     *
-     * @param core_FieldSet $form
-     *
-     * @return void
-     */
-    public function checkForm(core_FieldSet &$form)
-    {
-    }
-    
-    
-    /**
      * Вербализира допълнителните данни за доставка
      *
      * @param stdClass $termRec        - условие на доставка

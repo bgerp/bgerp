@@ -382,18 +382,6 @@ class tcost_FeeZones extends core_Master
     
     
     /**
-     * Проверява форма
-     *
-     * @param core_FieldSet $form
-     *
-     * @return void
-     */
-    public function checkForm(core_FieldSet &$form)
-    {
-    }
-    
-    
-    /**
      * Добавя масив с полетата за доставка
      *
      * @param mixed $document
