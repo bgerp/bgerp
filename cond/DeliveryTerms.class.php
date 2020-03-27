@@ -377,6 +377,7 @@ class cond_DeliveryTerms extends core_Master
                 $form->setField('deliveryPCode', 'input=hidden');
                 $form->setField('deliveryPlace', 'input=hidden');
                 $form->setField('deliveryAddress', 'input=hidden');
+                $form->setField('locationId', 'input=none');
             }
         }
         
