@@ -156,8 +156,11 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
             $officeLocationUrlTpl = new core_ET(speedy_Setup::get('OFFICE_LOCATOR_URL'));
             $officeLocationUrlTpl->replace($officeRec->num, 'NUM');
             $officeName = ht::createLink($officeName, $officeLocationUrlTpl->getContent());
-            $res[] = (object)array('caption' => tr('Офис'), 'value' => $officeName);
+        } else {
+            $officeName = ht::createHint('', 'Офисът не е уточнен', 'error');
         }
+        
+        $res[] = (object)array('caption' => tr('Офис'), 'value' => $officeName);
         
         return $res;
     }
