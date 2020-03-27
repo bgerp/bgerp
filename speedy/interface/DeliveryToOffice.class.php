@@ -90,7 +90,7 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
      */
     public function addFields(core_FieldSet &$form, $document, $userId = null)
     {
-        $form->FLD('officeId', "key(mvc=speedy_Offices,select=name)", 'silent,mandatory2,caption=Доставка->Офис');
+        $form->FLD('officeId', "key(mvc=speedy_Offices,select=name)", 'silent,mandatory,caption=Доставка->Офис');
         $options = array('' => '') + speedy_Offices::getAvailable();
         $form->setOptions('officeId', $options);
         
