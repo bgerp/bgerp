@@ -90,7 +90,7 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
      */
     public function addFields(core_FieldSet &$form, $document, $userId = null)
     {
-        $form->FLD('officeId', "key(mvc=speedy_Offices,select=name)", 'silent,mandatory,caption=Доставка->Офис');
+        $form->FLD('officeId', "key(mvc=speedy_Offices,select=name)", 'silent,mandatory2,caption=Доставка->Офис');
         $options = array('' => '') + speedy_Offices::getAvailable();
         $form->setOptions('officeId', $options);
         
@@ -163,6 +163,28 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
         $res[] = (object)array('caption' => tr('Офис'), 'value' => $officeName);
         
         return $res;
+    }
+    
+    
+    /**
+     * Проверява данните на доставка преди активация
+     *
+     * @param mixed $id             - ид на търговско условие
+     * @param stdClass $documentRec - запис на документа
+     * @param array $deliveryData   - данни за доставка
+     * @param mixed $document       - документ
+     * @param string|null $error    - грешката ако има такава
+     * @return boolean
+     */
+    public function checkDeliveryDataOnActivation($id, $documentRec, $deliveryData, $document, &$error = null)
+    {
+        if(empty($deliveryData['officeId'])){
+            $error = "Не е избран офис на speedy!";
+            
+            return false;
+        }
+        
+        return true;
     }
     
     

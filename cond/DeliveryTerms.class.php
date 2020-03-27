@@ -439,6 +439,30 @@ class cond_DeliveryTerms extends core_Master
     
     
     /**
+     * Проверява данните на доставка преди активация
+     * 
+     * @param mixed $id
+     * @param stdClass $documentRec
+     * @param array $deliveryData
+     * @param mixed $document
+     * @param string|null $error
+     * @return boolean
+     */
+    public static function checkDeliveryDataOnActivation($id, $documentRec, $deliveryData, $document, &$error = null)
+    {
+        $rec = self::fetchRec($id);
+        $res = true;
+        
+        $Calculator = self::getTransportCalculator($rec);
+        if($Calculator){
+            $res = $Calculator->checkDeliveryDataOnActivation($rec, $documentRec, $deliveryData, $document, $error);
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
      * Кои полета са допълнени от условието
      * 
      * @param mixed $id            - ид

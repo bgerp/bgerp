@@ -2195,4 +2195,20 @@ abstract class deals_DealMaster extends deals_DealBase
         
         return (empty($closedDocuments)) ? $this->singleIcon : $this->singleIconFocCombinedDeals;
     }
+    
+    
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $error
+        $rec = $mvc->fetchRec($id);
+        if(isset($rec->deliveryTermId)){
+            $error = null;
+            if(!cond_DeliveryTerms::checkDeliveryDataOnActivation($rec->deliveryTermId, $rec, $rec->deliveryData, $mvc, $error)){
+                redirect(array($mvc, 'single', $rec->id), false, $error, 'error');
+            }
+        }
+    }
 }

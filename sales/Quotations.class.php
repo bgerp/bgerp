@@ -1747,6 +1747,16 @@ class sales_Quotations extends core_Master
             return false;
         }
         
+        // Ако има избрано условие на доставка, пзоволява ли да бъде контиран документа
+        if(isset($rec->deliveryTermId)){
+            $error = null;
+            if(!cond_DeliveryTerms::checkDeliveryDataOnActivation($rec->deliveryTermId, $rec, $rec->deliveryData, $mvc, $error)){
+                core_Statuses::newStatus($error, 'error');
+                
+                return false;
+            }
+        }
+        
         cls::get('sales_QuotationsDetails')->saveArray($saveRecs);
     }
     

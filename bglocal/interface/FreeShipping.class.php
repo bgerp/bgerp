@@ -161,6 +161,22 @@ class bglocal_interface_FreeShipping extends core_BaseClass
     
     
     /**
+     * Проверява данните на доставка преди активация
+     *
+     * @param mixed $id             - ид на търговско условие
+     * @param stdClass $documentRec - запис на документа
+     * @param array $deliveryData   - данни за доставка
+     * @param mixed $document       - документ
+     * @param string|null $error    - грешката ако има такава
+     * @return boolean
+     */
+    public function checkDeliveryDataOnActivation($id, $documentRec, $deliveryData, $document, &$error = null)
+    {
+        return true;
+    }
+    
+    
+    /**
      * При упдейт на количката в е-магазина, какво да се  изпълнява
      *
      * @param stdClass $cartRec
