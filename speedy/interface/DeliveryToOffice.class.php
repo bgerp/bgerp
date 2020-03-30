@@ -2,19 +2,18 @@
 
 
 /**
- * Драйвер за безплатна доставка до България
- *
+ * Драйвер за доставка до Офис на speedy
  *
  * @category  bgerp
- * @package   bglocal
+ * @package   speedy
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
-class bglocal_interface_FreeShipping extends core_BaseClass
+class speedy_interface_DeliveryToOffice extends core_BaseClass
 {
     /**
      * Поддържани интерфейси
@@ -25,7 +24,7 @@ class bglocal_interface_FreeShipping extends core_BaseClass
     /**
      * Заглавие
      */
-    public $title = 'Безплатна доставка до България';
+    public $title = 'До офис Спиди';
     
     
     /**
@@ -46,12 +45,10 @@ class bglocal_interface_FreeShipping extends core_BaseClass
      */
     public function getVolumicWeight($weight, $volume, $deliveryTermId, $params)
     {
-        $m = 1;
-        if($volume * 33 < $weight) {
-            $m = 1000;
-        }
-
-        return max($weight, $volume * $m);
+        $FeeZones = cls::getInterface('cond_TransportCalc', 'tcost_FeeZones');
+        $params['deliveryCountry'] = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+        
+        return $FeeZones->getVolumicWeight($weight, $volume, $deliveryTermId, $params);
     }
     
     
@@ -70,7 +67,15 @@ class bglocal_interface_FreeShipping extends core_BaseClass
      */
     public function getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $params)
     {
-        return array('fee' => 0);
+        //@todo Да се направи да работи с API-то
+        $officeId = $params['officeId'];
+        $params['deliveryCountry'] = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+        
+        // Временно работи с навлата
+        $FeeZones = cls::getInterface('cond_TransportCalc', 'tcost_FeeZones');
+        $res = $FeeZones->getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $params);
+        
+        return $res;
     }
     
     
@@ -85,17 +90,24 @@ class bglocal_interface_FreeShipping extends core_BaseClass
      */
     public function addFields(core_FieldSet &$form, $document, $userId = null)
     {
+        $form->FLD('officeId', "key(mvc=speedy_Offices,select=name)", 'silent,mandatory,caption=Доставка->Офис');
+        $options = array('' => '') + speedy_Offices::getAvailable();
+        $form->setOptions('officeId', $options);
+        
         $Document = cls::get($document);
         if($Document instanceof eshop_Carts){
-            $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
-            
-            $form->rec->deliveryCountry = $bgId;
-            $form->setReadOnly('deliveryCountry');
-            $form->setField('deliveryCountry', 'mandatory');
-            $form->setField('deliveryPCode', 'mandatory');
-            $form->setField('deliveryPlace', 'mandatory');
-            $form->setField('deliveryAddress', 'mandatory');
-            $form->setDefault('invoiceCountry', $bgId);
+            unset($form->rec->deliveryCountry, $form->rec->deliveryPCode, $form->rec->deliveryPlace, $form->rec->deliveryAddress);
+            $form->setField('deliveryCountry', 'input=hidden');
+            $form->setField('deliveryPCode', 'input=hidden');
+            $form->setField('deliveryPlace', 'input=hidden');
+            $form->setField('deliveryAddress', 'input=hidden');
+            $form->setField('locationId', 'input=none');
+        } elseif($Document instanceof sales_Sales){
+            $form->setField('deliveryLocationId', 'input=hidden');
+            $form->setField('deliveryAdress', 'input=hidden');
+        } elseif($Document instanceof sales_Quotations){
+            $form->setField('deliveryAdress', 'input=hidden');
+            $form->setField('deliveryPlaceId', 'input=hidden');
         }
     }
     
@@ -108,7 +120,7 @@ class bglocal_interface_FreeShipping extends core_BaseClass
      */
     public function getFields($document)
     {
-        return array();
+        return array('officeId');
     }
     
     
@@ -123,28 +135,22 @@ class bglocal_interface_FreeShipping extends core_BaseClass
      */
     public function getVerbalDeliveryData($termRec, $deliveryData, $document)
     {
-        return array();
-    }
-    
-    
-    /**
-     * Добавя промени по изгледа на количката във външната част
-     *
-     * @param stdClass $termRec
-     * @param stdClass $cartRec
-     * @param stdClass $cartRow
-     * @param core_ET $tpl
-     *
-     * @return boolean
-     */
-    public function addToCartView($termRec, $cartRec, $cartRow, &$tpl)
-    {
-        $bgName = drdata_Countries::getCountryName('BG', core_Lg::getCurrent());
+        $res = array();
         
-        $block = new core_ET(tr("|*<div>|Безплатна доставка на територията на|* <b>{$bgName}</b>|*</div>"));
-        $tpl->append($block, 'CART_FOOTER');
+        if($deliveryData['officeId']){
+            $officeRec = speedy_Offices::fetch($deliveryData['officeId']);
+            $officeName = speedy_Offices::getVerbal($officeRec, 'extName');
+            
+            $officeLocationUrlTpl = new core_ET(speedy_Setup::get('OFFICE_LOCATOR_URL'));
+            $officeLocationUrlTpl->replace($officeRec->num, 'NUM');
+            $officeName = ht::createLink($officeName, $officeLocationUrlTpl->getContent());
+        } else {
+            $officeName = ht::createHint('', 'Офисът не е уточнен', 'error');
+        }
         
-        return true;
+        $res[] = (object)array('caption' => tr('Офис'), 'value' => $officeName);
+        
+        return $res;
     }
     
     
@@ -160,7 +166,34 @@ class bglocal_interface_FreeShipping extends core_BaseClass
      */
     public function checkDeliveryDataOnActivation($id, $documentRec, $deliveryData, $document, &$error = null)
     {
+        if(empty($deliveryData['officeId'])){
+            $error = "Не е избран офис на speedy!";
+            
+            return false;
+        }
+        
         return true;
+    }
+    
+    
+    /**
+     * Добавя промени по изгледа на количката във външната част
+     *
+     * @param stdClass $termRec
+     * @param stdClass $cartRec
+     * @param stdClass $cartRow
+     * @param core_ET $tpl
+     *
+     * @return boolean
+     */
+    public function addToCartView($termRec, $cartRec, $cartRow, &$tpl)
+    {
+        //$bgName = drdata_Countries::getCountryName('BG', core_Lg::getCurrent());
+        
+        //$block = new core_ET(tr("|*<div>|Безплатна доставка на територията на|* <b>{$bgName}</b>|*</div>"));
+        //$tpl->append($block, 'CART_FOOTER');
+        
+        return false;
     }
     
     
@@ -173,6 +206,6 @@ class bglocal_interface_FreeShipping extends core_BaseClass
      */
     public function onUpdateCartMaster(&$cartRec)
     {
-        $cartRec->freeDelivery = 'yes';
+        
     }
 }

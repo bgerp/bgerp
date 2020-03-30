@@ -2749,7 +2749,9 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if (($action == 'movelast') && ($requiredRoles != 'no_one')) {
-            if ($rec->state == 'rejected') {
+            if (doc_Setup::get('MOVE_LAST_DOCUMENT') == 'no') {
+                $requiredRoles = 'no_one';
+            } elseif ($rec->state == 'rejected') {
                 $requiredRoles = 'no_one';
             } elseif ($rec->folderId && !doc_Folders::haveRightFor('single', $rec->folderId)) {
                 $requiredRoles = 'no_one';

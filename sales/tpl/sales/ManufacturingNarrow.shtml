@@ -120,9 +120,6 @@
                 <!--ET_BEGIN noVat-->
                 <li>|Цените са без ДДС|*[#noVat#]</li>
                 <!--ET_END noVat-->
-                <!--ET_BEGIN notes-->
-                [#notes#]
-                <!--ET_END notes-->
                 <!--ET_BEGIN cartId-->
                 <li>[#cartId#]</li>
                 <!--ET_END cartId-->
@@ -142,6 +139,9 @@
                 <!--ET_BEGIN commonConditionQuote-->
                 <li>|Общи условия по продажба|*: [#commonConditionQuote#]</li>
                 <!--ET_END commonConditionQuote-->
+                <!--ET_BEGIN notes-->
+                [#notes#]
+                <!--ET_END notes-->
             </ol>
             <!--ET_END conditions-->
             <hr>

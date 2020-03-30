@@ -29,9 +29,20 @@ class frame2_Reports extends embed_Manager
     
     
     /**
+     * @see plg_SelectPeriod
+     */
+    public $useFilterDateOnEdit = true;
+    
+    
+    /**
+     * @see plg_SelectPeriod
+     */
+    public $useFilterDateOnFilter = false;
+    
+    /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools2, doc_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone, doc_plg_Close, doc_EmailCreatePlg, plg_Sorting';
+    public $loadList = 'plg_RowTools2, doc_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone, doc_plg_Close, doc_EmailCreatePlg, plg_Sorting, plg_SelectPeriod';
     
     
     /**
@@ -254,6 +265,36 @@ class frame2_Reports extends embed_Manager
     
     
     /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     * 
+     * @see embed_Manager::prepareEditForm_()
+     */
+    public function prepareEditForm_($data)
+    {
+        $data = parent::prepareEditForm_($data);
+        
+        $rec = $data->form->rec;
+        if ($rec->id && $rec->changeFields) {
+            $cu = core_Users::getCurrent();
+            // И потребителя не е създател на документа
+            if ($rec->createdBy != $cu && core_Users::compareRangs($rec->createdBy, $cu) >= 0) {
+                $changeable = type_Set::toArray($rec->changeFields);
+                $fF = $this->filterDateFrom ? $this->filterDateFrom : 'from';
+                $fT = $this->filterDateTo ? $this->filterDateTo : 'to';
+                
+                if (!$changeable[$fF] || !$changeable[$fT]) {
+                    $this->useFilterDateOnEdit = false;
+                }
+            }
+        }
+        
+        return $data;
+    }
+    
+    /**
      * Извиква се след подготовката на формата
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
@@ -288,22 +329,32 @@ class frame2_Reports extends embed_Manager
             }
             
             // При редакция, ако има полета за промяна
-            if (isset($rec->id) && $rec->changeFields) {
-                $changeable = type_Set::toArray($rec->changeFields);
-                $cu = core_Users::getCurrent();
+            if (isset($rec->id)) {
+                $rec->changeFields = empty($rec->changeFields) ? static::fetchField($rec->id, 'changeFields') : $rec->changeFields;
+                $rec->createdBy = empty($rec->createdBy) ? static::fetchField($rec->id, 'createdBy') : $rec->createdBy;
                 
-                // И потребителя не е създател на документа
-                if ($rec->createdBy != $cu && core_Users::compareRangs($rec->createdBy, $cu) >= 0) {
+                if($rec->changeFields) {
+                    $changeable = type_Set::toArray($rec->changeFields);
+                    $cu = core_Users::getCurrent();
                     
-                    // Скриват се всички полета, които не са упоменати като променяеми
-                    $fields = $form->selectFields("#input != 'none' AND #input != 'hidden'");
-                    $diff = array_diff_key($fields, $changeable);
-                    if ($data->action == 'clone') {
-                        unset($diff['sharedUsers'], $diff['notificationText'], $diff['updateDays'], $diff['updateTime'], $diff['maxKeepHistory']);
-                    }
-                    $diff = array_keys($diff);
-                    foreach ($diff as $name) {
-                        $form->setField($name, 'input=none');
+                    // И потребителя не е създател на документа
+                    if ($rec->createdBy != $cu && core_Users::compareRangs($rec->createdBy, $cu) >= 0) {
+                        
+                        // Скриват се всички полета, които не са упоменати като променяеми
+                        $fields = $form->selectFields("#input != 'none' AND #input != 'hidden'");
+                        $diff = array_diff_key($fields, $changeable);
+                        
+                        $mustExist = $form->selectFields("#mustExist");
+                        $diff = array_diff_key($diff, $mustExist);
+                        unset($diff[$mvc->driverClassField]);
+                        
+                        if ($data->action == 'clone') {
+                            unset($diff['sharedUsers'], $diff['notificationText'], $diff['updateDays'], $diff['updateTime'], $diff['maxKeepHistory']);
+                        }
+                        $diff = array_keys($diff);
+                        foreach ($diff as $name) {
+                            $form->setField($name, 'input=none');
+                        }
                     }
                 }
             }
