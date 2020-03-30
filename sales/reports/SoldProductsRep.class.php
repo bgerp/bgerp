@@ -29,6 +29,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 //      * @var int
 //      */
 //     protected $summaryListFields = 'invAmount,primeCost,delta,primeCostCompare,deltaCompare,changeSales,changeDeltas,';
+       protected $summaryListFields = 'invAmount';
     
     /**
      * Как да се казва обобщаващия ред. За да се покаже трябва да е зададено $summaryListFields
@@ -259,7 +260,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         $posDetQuery->where("#productId IS NOT NULL");
         
-        $posDetQuery->where("#state = 'active' OR #state = 'waiting'");
+        $posDetStateArr = array('active','closed','waiting');
+        
+        $posDetQuery->in('state', $posDetStateArr);
         
         $posDetQuery->show('productId');
         
