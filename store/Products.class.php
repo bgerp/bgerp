@@ -176,6 +176,9 @@ class store_Products extends core_Detail
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         if($data->masterMvc instanceof cat_Products){
+            $data->query->EXT('storeName', 'store_Stores', 'externalName=name,externalKey=storeId');
+            $data->query->orderBy('storeName', 'ASC');
+            
             return;
         }
         
