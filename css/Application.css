@@ -276,7 +276,7 @@ a.menuItem:focus {
 div.folder-cover {
   background-image: url('../img/cover-bg.png');
   display: inline-block;
-  max-width: 1000px;
+  max-width: 800px;
   min-width: 540px;
   margin-top: 10px;
   line-height: 1.2em;
@@ -301,7 +301,8 @@ div.folder-cover {
     color: #333333;
     font-weight: bold; }
   div.folder-cover .groupList {
-    font-size: 0.95em; }
+    font-size: 0.95em;
+    max-width: 725px; }
     div.folder-cover .groupList .toolbar-btn {
       margin-top: 0 !important;
       margin-bottom: 0 !important;
@@ -314,6 +315,10 @@ div.folder-cover {
       width: auto;
       top: 1px;
       position: relative; }
+  div.folder-cover.large-cover {
+    max-width: 1000px !important; }
+    div.folder-cover.large-cover .groupList {
+      max-width: 975px; }
   div.folder-cover .label {
     color: #777777;
     font-size: 13px;
