@@ -24,13 +24,18 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     
     
     /**
-     * Полета за хеширане на таговете
+     * Кои полета от таблицата в справката да се сумират в обобщаващия ред
      *
-     * @see uiext_Labels
-     *
-     * @var string
+     * @var int
      */
-    protected $hashField;
+    protected $summaryListFields = 'invAmount,primeCost,delta,primeCostCompare,deltaCompare,changeSales,changeDeltas,';
+    
+    /**
+     * Как да се казва обобщаващия ред. За да се покаже трябва да е зададено $summaryListFields
+     *
+     * @var int
+     */
+    protected $summaryRowCaption = 'ОБЩО ЗА ПЕРИОДА';
     
     
     /**
@@ -205,7 +210,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         if ($rec->seeByContragent == 'yes') {
             
         $form->setField('products', 'input');
-            
+        
+        //Подготовка на масива за зареждане на полето 'артикули'
+        
+        //от експедиционни
         $shipmentdetQuery = store_ShipmentOrderDetails::getQuery();
         
         $shipmentdetQuery->EXT('state', 'store_ShipmentOrders', 'externalName=state,externalKey=shipmentId');
@@ -214,14 +222,15 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         $shipmentdetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
         
-        $shipmentdetQuery->where("#state != 'rejected' AND #state != 'closed' AND #state != 'draft'");
+        $shipmentdetQuery->where("#state != 'rejected'  AND #state != 'draft'");
         $shipmentdetQuery->show('productId');
         
         $prodArr = arr::extractValuesFromArray($shipmentdetQuery->fetchAll(), 'productId');
         
+        //от бурзи продажби
         $salesDetQuery = sales_SalesDetails::getQuery();
         
-        $salesDetQuery->EXT('state', 'store_ShipmentOrders', 'externalName=state,externalKey=saleId');
+        $salesDetQuery->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
         
         $salesDetQuery->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
         
@@ -229,7 +238,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         $salesDetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
         
-        $salesDetQuery->where("#state != 'rejected' AND #state != 'closed' AND #state != 'draft'");
+        $salesDetQuery->where("#state != 'rejected' AND #state != 'draft'");
         
         $salesDetQuery->where("#contoActions  Like '%ship%'");
         
@@ -299,7 +308,54 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         
         
-        $recs = array();
+        $recs = $invProd = array();
+        
+        
+        //Ако има избрано разбивка "Артикули по контрагент"
+        //Подготвяме масив с фактурираните артикули през избрания период
+        //разбити по контрагент
+        if($rec->seeByContragent == 'yes'){
+            
+            $invDetQuery = sales_InvoiceDetails::getQuery();
+            
+            $invDetQuery->EXT('state', 'sales_Invoices', 'externalName=state,externalKey=invoiceId');
+            
+            $invDetQuery->EXT('currencyId', 'sales_Invoices', 'externalName=currencyId,externalKey=invoiceId');
+            
+            $invDetQuery->EXT('date', 'sales_Invoices', 'externalName=date,externalKey=invoiceId');
+            
+            $invDetQuery->EXT('folderId', 'sales_Invoices', 'externalName=folderId,externalKey=invoiceId');
+            
+            $invDetQuery->where("#state = 'active'");
+            
+            $invDetQuery->where(array("#date >= '[#1#]' AND #date <= '[#2#]'",$rec->from, $rec->to));
+            
+            while ($invDetRec = $invDetQuery->fetch()) {
+                
+                //Ключ на масива
+                $id =  $invDetRec->productId.' | '.$invDetRec->folderId;
+                
+                $invQuantity = $invDetRec->quantity*$invDetRec->quantityInPack;
+                $discount = $invDetRec->price * $invQuantity * $invDetRec->discount;
+                $invAmount = ($invDetRec->price *$invQuantity)- $discount;
+                
+                // Запис в масива с фактурираните артикули $invProd
+                if (!array_key_exists($id, $invProd)) {
+                    $invProd[$id] = (object) array(
+                        'productId' => $invDetRec->productId,
+                        'invQuantity'=> $invQuantity,
+                        'invAmount'=> $invAmount,
+                        );
+                }else{
+                    $obj = &$invProd[$id];
+                    $obj->invQuantity += $invQuantity;
+                    $obj->invAmount += $invAmount;
+                    
+                }
+                
+            }
+        }
+        
         
         if ($rec->quantityType == 'shipped') {
             $query = sales_PrimeCostByDocument::getQuery();
@@ -506,7 +562,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $delta = $recPrime->delta;
                 }
             }
-            
+           
             // Запис в масива
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object) array(
@@ -532,6 +588,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     'group' => $recPrime->groupMat,                       // В кои групи е включен артикула
                     'groupList' => $recPrime->groupList,                  //В кои групи е включен контрагента
                 
+                    'invQuantity' => $invProd[$id]->invQuantity,          // Фактурирано количество от този артикул на този контрагент
+                    'invAmount' => $invProd[$id]->invAmount,              // Стойност на фактурираното количество от този артикул на този контрагент
+                    
+                    
                 );
             } else {
                 $obj = &$recs[$id];
@@ -799,12 +859,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         if ($export === false) {
             if ($rec->grouping == 'no') {
-                if ($rec->seeByContragent) {
-                    $fld->FLD('contragent', 'keylist(mvc=doc_Folders,select=name)', 'caption=Контрагент');
-                }
+                
                 $fld->FLD('code', 'varchar', 'caption=Код');
                 $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
                 $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
+               
                 if ($rec->compare != 'no') {
                     $fld->FLD('quantity', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Продажби");
                     $fld->FLD('primeCost', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Стойност");
@@ -825,8 +884,16 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         $fld->FLD('changeDeltas', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Делти');
                     }
                 } else {
-                    $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Продажби');
-                    $fld->FLD('primeCost', 'double(smartRound,decimals=2)', 'smartCenter,caption=Стойност');
+                    $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Продажби->Количество');
+                    $fld->FLD('primeCost', 'double(smartRound,decimals=2)', 'smartCenter,caption=Продажби->Стойност');
+                    
+                    
+                    if ($rec->seeByContragent == 'yes') {
+                        $fld->FLD('contragent', 'keylist(mvc=doc_Folders,select=name)', 'caption=Контрагент');
+                        $fld->FLD('invQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Фартурирано->количество');
+                        $fld->FLD('invAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Фартурирано->стойност');
+                        
+                    }
                     
                     if ($rec->seeDelta == 'yes') {
                         $fld->FLD('delta', 'double(smartRound,decimals=2)', 'smartCenter,caption=Делта');
@@ -1041,7 +1108,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             foreach (array(
                 'quantity',
                 'primeCost',
-                'delta'
+                'delta',
+                'invQuantity',
+                'invAmount'
             ) as $fld) {
                 if (!isset($dRec->{$fld})) {
                     continue;
