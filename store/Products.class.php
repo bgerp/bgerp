@@ -904,8 +904,11 @@ class store_Products extends core_Detail
         }
         
         $links = '';
-        foreach ($docs as $link) {
-            $links .= "<div style='float:left'>{$link}</div>";
+        foreach ($docs as $containerId => $link) {
+            $cRec = doc_Containers::fetch($containerId, 'createdBy,folderId');
+            $createdBy = crm_Profiles::createLink($cRec->createdBy);
+            $folderId = doc_Folders::recToVerbal(doc_Folders::fetch($cRec->folderId))->title;
+            $links .= "<div style='float:left'>{$link} | {$createdBy} | {$folderId}</div>";
         }
         $tpl = new core_ET($links);
        
