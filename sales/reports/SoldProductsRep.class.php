@@ -257,7 +257,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         $posDetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
         
-        $posDetQuery->where("#state = 'active'");
+        $posDetQuery->where("#productId IS NOT NULL");
+        
+        $posDetQuery->where("#state = 'active' OR #state = 'waiting'");
         
         $posDetQuery->show('productId');
         
