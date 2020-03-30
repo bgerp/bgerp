@@ -76,6 +76,7 @@
 	                    <!--ET_BEGIN deliveryTermId-->
 	                    <li>|Доставка|*: [#deliveryTermId#]</li>
 	                    <!--ET_END deliveryTermId-->
+	                    [#deliveryBlock#]
 	                    <!--ET_BEGIN deliveryTermTime-->
 				        <li>|Срок на доставка|*: [#deliveryTermTime#]</li>
 				        <!--ET_END deliveryTermTime-->

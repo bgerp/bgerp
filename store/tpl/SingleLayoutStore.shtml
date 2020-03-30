@@ -1,7 +1,7 @@
 <div class="singleView">
     [#SingleToolbar#]
     <div>
-        <div class="folder-cover [#STATE_CLASS#]">
+        <div class="folder-cover [#STATE_CLASS#] large-cover">
             <div class="inner-folder">
                 <div class="block_title [#STATE_CLASS#] special-title">[#SingleIcon#] |Склад|* <b style="color:green;">[#name#]</b></div>
                 <fieldset class="detail-info">
@@ -98,12 +98,10 @@
             <!--ET_END SELECT_FIELD-->
             
             <!--ET_BEGIN store_Products-->
-            <div class="overflow-scroll">
             <fieldset class="detail-info">
                 <legend class="groupTitle">|Артикули в наличност|*</legend>
             	[#store_Products#]
             </fieldset>
-            </div>
             <!--ET_END store_Products-->
             
             <!--ET_END SELECT_FIELD-->
