@@ -30,6 +30,13 @@ defIfNot('DEALS_OVERDUE_PENDING_DAYS_3', '14');
  */
 defIfNot('DEALS_ISSUER', 'activatedBy');
 
+
+/**
+ * Кой конкретен потребител да излиза като съставител на документите
+ */
+defIfNot('DEALS_ISSUER_USER', '');
+
+
 /**
  * class deals_Setup
  *
@@ -83,6 +90,7 @@ class deals_Setup extends core_ProtoSetup
     public $configDescription = array(
         'DEALS_BALANCE_TOLERANCE' => array('percent(min=0)', 'caption=Процент за допустимо разминаване в салдото според сумата->Процент'),
         'DEALS_ISSUER' => array('enum(createdBy=Създателят,activatedBy=Активиралият)', 'caption=Съставител на бизнес документи->Избор'),
+        'DEALS_ISSUER_USER' => array('user(roles=ceo|salesMaster,allowEmpty)', 'caption=Съставител на бизнес документи->Конкретен потребител'),
         'DEALS_OVERDUE_PENDING_DAYS_1' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ със стар вальор->Първо след,unit=дни'),
         'DEALS_OVERDUE_PENDING_DAYS_2' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ със стар вальор->Второ след,unit=дни'),
         'DEALS_OVERDUE_PENDING_DAYS_3' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ със стар вальор->Трето след,unit=дни'),
