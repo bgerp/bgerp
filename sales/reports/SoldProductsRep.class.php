@@ -912,8 +912,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     
                     if ($rec->seeByContragent == 'yes') {
                         $fld->FLD('contragent', 'keylist(mvc=doc_Folders,select=name)', 'caption=Контрагент');
-                        $fld->FLD('invQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Фартурирано->количество');
-                        $fld->FLD('invAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Фартурирано->стойност');
+                        $fld->FLD('invQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Фактурирано->количество');
+                        $fld->FLD('invAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Фактурирано->стойност');
                         
                     }
                     
