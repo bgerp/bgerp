@@ -175,6 +175,10 @@ class store_Products extends core_Detail
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
+        if($data->masterMvc instanceof cat_Products){
+            return;
+        }
+        
         // Подготвяме формата
         cat_Products::expandFilter($data->listFilter);
         $orderOptions = arr::make('all=Всички,active=Активни,standard=Стандартни,private=Нестандартни,last=Последно добавени,closed=Изчерпани,reserved=Запазени,free=Разполагаеми');
@@ -424,7 +428,13 @@ class store_Products extends core_Detail
     protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
         if (isset($data->masterMvc)) {
-            unset($data->listFields['storeId']);
+            if($data->masterMvc instanceof cat_Products){
+                arr::placeInAssocArray($data->listFields, array('storeId' => 'Склад|*'), null, 'code');
+                unset($data->listFields['productId']);
+            } else {
+                unset($data->listFields['storeId']);
+            }
+            
             if (acc_BalanceDetails::haveRightFor('history')) {
                 arr::placeInAssocArray($data->listFields, array('history' => ' '), 'code');
             }
@@ -1005,5 +1015,53 @@ class store_Products extends core_Detail
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Подготовка на Детайлите
+     */
+    public function prepareDetail_($data)
+    {
+        if($data->masterMvc instanceof cat_Products){
+            $data->masterKey = 'productId';
+            
+            $data->render = true;
+            $canStore = cat_Products::fetchField($data->masterId, 'canStore');
+            $tabParam = $data->masterData->tabTopParam;
+            $prepareTab = Request::get($tabParam);
+            
+            if($canStore != 'yes' || !store_Products::haveRightFor('list') || $prepareTab != 'store_Products'){
+                $data->render = false;
+            }
+            
+            if($canStore != 'yes' || !store_Products::haveRightFor('list')){
+                
+                return;
+            }
+            
+            $data->TabCaption = 'Наличности';
+            $data->Tab = 'top';
+        }
+        
+        parent::prepareDetail_($data);
+    }
+    
+    
+    /**
+    * Рендиране на детайла
+    */
+    public function renderDetail_($data)
+    {
+        // Не се рендира детайла, ако има само една версия или режима е само за показване
+        if ($data->render === false) {
+           
+            return new core_ET('');
+        }
+        
+        $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+        $tpl->append(parent::renderDetail_($data), 'content');
+       
+        return $tpl;
     }
 }
