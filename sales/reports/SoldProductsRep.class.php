@@ -23,12 +23,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     public $canSelectDriver = 'ceo, acc, repAll, repAllGlobal, sales';
     
     
-    /**
-     * Кои полета от таблицата в справката да се сумират в обобщаващия ред
-     *
-     * @var int
-     */
-    protected $summaryListFields = 'invAmount,primeCost,delta,primeCostCompare,deltaCompare,changeSales,changeDeltas,';
+//     /**
+//      * Кои полета от таблицата в справката да се сумират в обобщаващия ред
+//      *
+//      * @var int
+//      */
+//     protected $summaryListFields = 'invAmount,primeCost,delta,primeCostCompare,deltaCompare,changeSales,changeDeltas,';
     
     /**
      * Как да се казва обобщаващия ред. За да се покаже трябва да е зададено $summaryListFields
@@ -153,7 +153,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
-        $suggestions = $prodSuggestions = $prodSalesArr = array();
+        $suggestions = $prodSuggestions = $prodSalesArr = $posProdsArr = $prodArr = array();
         
        
         if ($rec->compare == 'month') {
@@ -227,7 +227,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         $prodArr = arr::extractValuesFromArray($shipmentdetQuery->fetchAll(), 'productId');
         
-        //от бурзи продажби
+        //от бързи продажби
         $salesDetQuery = sales_SalesDetails::getQuery();
         
         $salesDetQuery->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
@@ -247,6 +247,28 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $prodSalesArr = arr::extractValuesFromArray($salesDetQuery->fetchAll(), 'productId');
         
         $prodArr = array_unique(array_merge($prodArr, $prodSalesArr));
+        
+        //от POS
+        $posDetQuery = pos_ReceiptDetails::getQuery();
+        
+        $posDetQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
+        
+        $posDetQuery->EXT('valior', 'pos_Receipts', 'externalName=valior,externalKey=receiptId');
+        
+        $posDetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
+        
+        $posDetQuery->where("#state = 'active'");
+        
+        $posDetQuery->show('productId');
+        
+        $posProdsArr = arr::extractValuesFromArray($posDetQuery->fetchAll(), 'productId');
+        
+        $prodArr = array_unique(array_merge($prodArr, $posProdsArr));
+        
+        
+        
+        
+        
         
         if (!empty($prodArr)) {
             foreach ($prodArr as $val) {
