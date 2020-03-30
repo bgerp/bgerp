@@ -98,7 +98,7 @@
             <!--ET_END SELECT_FIELD-->
             
             <!--ET_BEGIN store_Products-->
-            <div class="overflow-scroll">
+            <div class="">
             <fieldset class="detail-info">
                 <legend class="groupTitle">|Артикули в наличност|*</legend>
             	[#store_Products#]

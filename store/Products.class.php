@@ -470,7 +470,7 @@ class store_Products extends core_Detail
                     $arrowImg = ht::createElement('img', array('src' => sbf('img/16/info-gray.png', '')));
                     $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => 'От кои документи е резервирано количеството'), $arrowImg, true);
                     $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$type}{$rec->id}'></span>{$arrow}</span>";
-                    $row->{$type} .= "&nbsp;{$arrow}";
+                    $row->{$type} = "<span class='fleft'>{$arrow} </span>". $row->{$type};
                 }
             }
         }
@@ -904,8 +904,11 @@ class store_Products extends core_Detail
         }
         
         $links = '';
-        foreach ($docs as $link) {
-            $links .= "<div style='float:left'>{$link}</div>";
+        foreach ($docs as $containerId => $link) {
+            $cRec = doc_Containers::fetch($containerId, 'createdBy,folderId');
+            $createdBy = crm_Profiles::createLink($cRec->createdBy);
+            $folderId = doc_Folders::recToVerbal(doc_Folders::fetch($cRec->folderId))->title;
+            $links .= "<div style='float:left'>{$link} | {$createdBy} | {$folderId}</div>";
         }
         $tpl = new core_ET($links);
        

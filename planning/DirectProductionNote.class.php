@@ -1030,4 +1030,23 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         
         return $warning;
     }
+    
+    
+    /**
+     * Връща масив от използваните нестандартни артикули в протокола
+     *
+     * @param int $id - ид на протокола
+     *
+     * @return array $res - масив с използваните документи
+     *               ['class'] - инстанция на документа
+     *               ['id'] - ид на документа
+     */
+    public function getUsedDocs_($id)
+    {
+        $usedDocs = parent::getUsedDocs_($id);
+        $rec = $this->fetchRec($id);
+        $usedDocs[$rec->productId] = cat_Products::fetchField($rec->productId, 'containerId');
+        
+        return $usedDocs;
+    }
 }

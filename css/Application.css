@@ -276,7 +276,7 @@ a.menuItem:focus {
 div.folder-cover {
   background-image: url('../img/cover-bg.png');
   display: inline-block;
-  max-width: 800px;
+  max-width: 1000px;
   min-width: 540px;
   margin-top: 10px;
   line-height: 1.2em;
@@ -301,8 +301,7 @@ div.folder-cover {
     color: #333333;
     font-weight: bold; }
   div.folder-cover .groupList {
-    font-size: 0.95em;
-    max-width: 725px; }
+    font-size: 0.95em; }
     div.folder-cover .groupList .toolbar-btn {
       margin-top: 0 !important;
       margin-bottom: 0 !important;
@@ -4415,6 +4414,16 @@ div.location.public {
   padding: 10px;
   background-color: rgba(240, 240, 255, 0.5);
   border: solid 1px #ddddff; }
+
+.popupInfo {
+  border-top: 1px solid #aaaaaa;
+  text-align: left;
+  margin: 3px 0 2px; }
+  .popupInfo:first-child {
+    border-top: none;
+    margin-top: 0; }
+  .popupInfo:last-child {
+    margin-bottom: 0; }
 
 .email-class {
   max-width: 600px; }
