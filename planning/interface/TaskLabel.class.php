@@ -93,7 +93,7 @@ class planning_interface_TaskLabel
         static $resArr = array();
         $lg = core_Lg::getCurrent();
         
-        $key = $id . '|' . $cnt . '|' . $onlyPreview . '|' . $lg;
+        //$key = $id . '|' . $cnt . '|' . $onlyPreview . '|' . $lg;
         
         if (isset($resArr[$key])) {
             
