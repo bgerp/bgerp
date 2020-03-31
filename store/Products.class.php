@@ -94,7 +94,7 @@ class store_Products extends core_Detail
         $this->FLD('reservedQuantity', 'double(maxDecimals=3)', 'caption=Запазено');
         $this->FLD('expectedQuantity', 'double(maxDecimals=3)', 'caption=Очаквано (днес)');
         $this->FLD('expectedQuantityTotal', 'double(maxDecimals=3)', 'caption=Очаквано');
-        $this->FNC('freeQuantity', 'double(maxDecimals=3)', 'caption=Разполагаемо');
+        $this->FNC('freeQuantity', 'double(maxDecimals=3)', 'caption=Разполаг.');
         $this->FLD('state', 'enum(active=Активирано,closed=Изчерпано)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('productId, storeId');
