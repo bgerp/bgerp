@@ -81,7 +81,7 @@ class label_plg_Print extends core_Plugin
             $source = $mvc->getLabelSource($rec);
             $interface = cls::getInterface('label_SequenceIntf', $source['class']);
             expect($peripheralTemplateId = $interface->getDefaultFastLabel($source['id'], $deviceRec));
-            $labelContent = $interface->getDefaultLabelWithData($rec, $peripheralTemplateId);
+            $labelContent = $interface->getDefaultLabelWithData($rec->id, $peripheralTemplateId);
             
             Request::setProtected('hash');
             $hash = str::addHash('fastlabel', 4);
