@@ -388,6 +388,10 @@ div.folder-cover {
     div.folder-cover .portal table.listTable .innerTable td {
       border: none !important; }
 
+.document .detail-info .store_Products  .listTable {
+  max-width: 100% !important;
+  width: 100%; }
+
 .dangerTitle {
   color: #cc0000;
   font-weight: bold;
@@ -422,6 +426,9 @@ div.folder-cover {
     padding: 0 !important; }
   .narrow .folder-cover .tab-page .portal.detail-info {
     margin-left: 2px; }
+
+.leftAlign {
+  text-align: left !important; }
 
 .public.folder-cover {
   margin: 0; }

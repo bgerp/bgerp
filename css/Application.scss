@@ -459,7 +459,10 @@ div.folder-cover {
 	}
 
 }
-
+.document .detail-info .store_Products  .listTable {
+	max-width: 100% !important;
+	width: 100%;
+}
 .dangerTitle {
 	color: #C00;
 	font-weight: bold;
@@ -505,7 +508,9 @@ div.folder-cover {
 		margin-left: 2px;
 	}
 }
-
+.leftAlign {
+	text-align: left !important;
+}
 .public.folder-cover {
 	margin: 0;
 }
