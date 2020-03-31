@@ -427,6 +427,9 @@ div.folder-cover {
   .narrow .folder-cover .tab-page .portal.detail-info {
     margin-left: 2px; }
 
+.leftAlign {
+  text-align: left !important; }
+
 .public.folder-cover {
   margin: 0; }
 
