@@ -99,7 +99,11 @@ class label_plg_Print extends core_Plugin
                 }
             }   
             function escPrintOnError(res) {
-                 document.location = '{$responseUrl}&type=error&res=' + res;
+                if($.isPlainObject(res)){
+                    res = res.status  + '. ' +  res.statusText;
+                }
+
+                document.location = '{$responseUrl}&type=error&res=' + res;
             }";
             
             $res->append($js, 'SCRIPTS');
