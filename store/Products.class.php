@@ -44,7 +44,7 @@ class store_Products extends core_Detail
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,storeWorker';
+    public $canList = 'ceo,sales,storeWorker';
     
     
     /**
