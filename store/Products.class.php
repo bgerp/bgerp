@@ -44,7 +44,7 @@ class store_Products extends core_Detail
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,storeWorker';
+    public $canList = 'ceo,sales,storeWorker';
     
     
     /**
@@ -88,12 +88,12 @@ class store_Products extends core_Detail
      */
     public function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Име');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Име,tdClass=leftAlign');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,tdClass=storeCol leftAlign');
         $this->FLD('quantity', 'double(maxDecimals=3)', 'caption=Налично');
         $this->FLD('reservedQuantity', 'double(maxDecimals=3)', 'caption=Запазено');
-        $this->FLD('expectedQuantity', 'double(maxDecimals=3)', 'caption=Очаквано (днес)');
-        $this->FLD('expectedQuantityTotal', 'double(maxDecimals=3)', 'caption=Очаквано');
+        $this->FLD('expectedQuantity', 'double(maxDecimals=3)', 'caption=Очаквано днес');
+        $this->FLD('expectedQuantityTotal', 'double(maxDecimals=3)', 'caption=Очаквано,tdClass=notBolded');
         $this->FNC('freeQuantity', 'double(maxDecimals=3)', 'caption=Разполагаемо');
         $this->FLD('state', 'enum(active=Активирано,closed=Изчерпано)', 'caption=Състояние,input=none');
         
@@ -176,6 +176,9 @@ class store_Products extends core_Detail
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         if($data->masterMvc instanceof cat_Products){
+            $data->query->EXT('storeName', 'store_Stores', 'externalName=name,externalKey=storeId');
+            $data->query->orderBy('storeName', 'ASC');
+            
             return;
         }
         
@@ -427,10 +430,13 @@ class store_Products extends core_Detail
      */
     protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
+        $data->listFields['expectedQuantity'] = "|Очаквано|*<span class='small notBolded'> |*днес|*</span>";
+        $data->listFields['expectedQuantityTotal'] = "<span class='notBolded'>|Очаквано|*";
         if (isset($data->masterMvc)) {
             if($data->masterMvc instanceof cat_Products){
                 arr::placeInAssocArray($data->listFields, array('storeId' => 'Склад|*'), null, 'code');
                 unset($data->listFields['productId']);
+                unset($data->listFields['code']);
             } else {
                 unset($data->listFields['storeId']);
             }
