@@ -92,9 +92,9 @@ class store_Products extends core_Detail
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,tdClass=storeCol leftAlign');
         $this->FLD('quantity', 'double(maxDecimals=3)', 'caption=Налично');
         $this->FLD('reservedQuantity', 'double(maxDecimals=3)', 'caption=Запазено');
-        $this->FLD('expectedQuantity', 'double(maxDecimals=3)', 'caption=Очаквано (днес)');
+        $this->FLD('expectedQuantity', 'double(maxDecimals=3)', 'caption=Очаквано днес');
         $this->FLD('expectedQuantityTotal', 'double(maxDecimals=3)', 'caption=Очаквано,tdClass=notBolded');
-        $this->FNC('freeQuantity', 'double(maxDecimals=3)', 'caption=Разполаг.');
+        $this->FNC('freeQuantity', 'double(maxDecimals=3)', 'caption=Разполагаемо');
         $this->FLD('state', 'enum(active=Активирано,closed=Изчерпано)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('productId, storeId');
@@ -430,7 +430,7 @@ class store_Products extends core_Detail
      */
     protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
-        $data->listFields['expectedQuantity'] = "|Очаквано|*<span class='small notBolded'> (|*днес|*)</span>";
+        $data->listFields['expectedQuantity'] = "|Очаквано|*<span class='small notBolded'> |*днес|*</span>";
         $data->listFields['expectedQuantityTotal'] = "<span class='notBolded'>|Очаквано|*";
         if (isset($data->masterMvc)) {
             if($data->masterMvc instanceof cat_Products){
