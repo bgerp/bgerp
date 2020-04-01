@@ -367,6 +367,7 @@ class cond_DeliveryTerms extends core_Master
         $rec = self::fetchRec($id);
         $Document = cls::get($document);
         
+        // Ако ще се показва адреса на доставчик
         if($rec->address == 'supplier'){
             if($Document instanceof sales_Sales){
                 $form->setReadOnly('deliveryLocationId');
@@ -374,18 +375,19 @@ class cond_DeliveryTerms extends core_Master
             } elseif($Document instanceof eshop_Carts){
                 unset($form->rec->deliveryCountry, $form->rec->deliveryPCode, $form->rec->deliveryPlace, $form->rec->deliveryAddress);
                 
+                // Имали избрана локация или склад в настройките на магазина
                 $settings = cms_Domains::getSettings();
                 $ownCompany = crm_Companies::fetchOurCompany();
                 $countryId = $ownCompany->country;
+                $locationId = isset($settings->locationId) ? $settings->locationId : (isset($settings->storeId) ? store_Stores::fetchField($settings->storeId, 'locationId') : null);
                 
-                if($settings->storeId){
-                    if($locationId = store_Stores::fetchField($settings->storeId, 'locationId')){
-                        $locationRec = crm_Locations::fetch($locationId, 'countryId,place,pCode,address');
-                        $countryId = (!empty($locationRec->country)) ? $locationRec->country : $countryId;
-                        $pCode = $locationRec->pCode;
-                        $place = $locationRec->place;
-                        $address = $locationRec->address;
-                    }
+                // Ако има взима се нейния адрес, ако не адреса на "Моята фирма"
+                if(isset($locationId)){
+                    $locationRec = crm_Locations::fetch($locationId, 'countryId,place,pCode,address');
+                    $countryId = (!empty($locationRec->country)) ? $locationRec->country : $countryId;
+                    $pCode = $locationRec->pCode;
+                    $place = $locationRec->place;
+                    $address = $locationRec->address;
                 } else {
                     $pCode = $ownCompany->pCode;
                     $place = $ownCompany->place;
