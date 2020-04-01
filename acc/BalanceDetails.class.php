@@ -1194,7 +1194,7 @@ class acc_BalanceDetails extends core_Detail
                                     
                                     // Присвояваме дефолт сумата за сума на записа, и преизчисляваме цената
                                     $rec->amount = $defCost * $rec->{$quantityField};
-                                    if (!empty($rec->{$quantityField})) {
+                                    if (!empty(round($rec->{$quantityField}, 6))) {
                                         $price = round($rec->amount / $rec->{$quantityField}, 4);
                                     } else {
                                         $price = 0;
