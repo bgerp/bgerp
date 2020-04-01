@@ -40,7 +40,7 @@ class pwa_Plugin extends core_Plugin
         foreach ($iconSizes as $size) {
             if ($imageUrl) {
                 // Създаваме thumbnail с определени размери
-                $thumb = new thumb_Img(array($imageUrl, $size, $size, 'path', 'mode' => 'small-no-change'));
+                $thumb = new thumb_Img(array($imageUrl, $size, $size, 'url', 'mode' => 'small-no-change'));
                 $tempArray = array();
                 $img = $thumb->getUrl('deferred');
                 $tempArray['src'] = $img;

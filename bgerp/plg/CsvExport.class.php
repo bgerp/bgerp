@@ -53,9 +53,11 @@ class bgerp_plg_CsvExport extends core_BaseClass
         
         $exportableFields = arr::make($mvc->exportableCsvFields, true);
         foreach ($exportableFields as $name => $caption) {
-            $fieldset->FLD($name, 'varchar', "caption={$caption}");
             if ($mvc->getField($name, false)) {
                 $fieldset->fields[$name] = $mvc->getField($name, false);
+                if($caption != $name){
+                    $fieldset->fields[$name]->caption = $caption;
+                }
             }
         }
         

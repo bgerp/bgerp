@@ -724,10 +724,6 @@ class cal_Tasks extends embed_Manager
         $rec->allDay = (strlen($rec->timeStart) == 10) ? 'yes' : 'no';
         
         if ($form->isSubmitted()) {
-            if ($form->cmd == 'active') {
-                $sharedUsersArr = type_UserList::toArray($form->rec->sharedUsers);
-            }
-            
             if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
                 $form->setError('timeEnd', 'Не може крайния срок да е преди началото на задачата');
             }
@@ -735,94 +731,39 @@ class cal_Tasks extends embed_Manager
             if ($rec->timeStart && $rec->timeEnd && $rec->timeDuration) {
                 $form->setError('timeEnd,timeStart,timeDuration', 'Не може задачата да има едновременно начало, продължителност и край. Попълнете само две от тях');
             }
-            
-            // при активиране на задачата
-            if ($rec->state == 'active') {
-                
-                // проверява дали сме и задали начало и край
-                // или сме и задали начало и продължителност
-                if (($rec->timeStart && $rec->timeEnd) || ($rec->timeStart && $rec->timeDuration)) {
-                    // ако имаме зададена продължителност
-                    if ($rec->timeDuration) {
-                        
-                        // то изчисляваме края на задачата
-                        // като към началото добавяме продължителността
-                        $taskEnd = dt::timestamp2Mysql(dt::mysql2timestamp($rec->timeStart) + $rec->timeDuration);
-                    } else {
-                        $taskEnd = $rec->timeEnd;
-                    }
-                    
-                    // правим заявка към базата
-                    $query = self::getQuery();
-                    
-                    // Търсим всички задачи, които са шернати на споделените и възложените потребители или на текущия потребител
-                    // и имат някаква стойност за начало и край
-                    // или за начало и продължителност
-                    
-                    $sharedUsersArr = keylist::toArray($rec->sharedUsers);
-                    
-                    if ($rec->assign) {
-                        $sharedUsersArr += type_Keylist::toArray($rec->assign);
-                    }
-                    
-                    if (empty($sharedUsersArr)) {
-                        $cu = core_Users::getCurrent();
-                        $sharedUsersArr[$cu] = $cu;
-                    }
-                    
-                    $query->likeKeylist('sharedUsers', $sharedUsersArr);
-                    
-                    if ($rec->id) {
-                        $query->where("#id != {$rec->id}");
-                    }
-                    
-                    $query->where("(#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$rec->timeStart}' AND #timeEnd >= '{$rec->timeStart}')
-	        		              OR
-	        		              (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL  AND #timeStart <= '{$rec->timeStart}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$rec->timeStart}')
-	        		              OR
-	        		              (#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$taskEnd}' AND #timeEnd >= '{$taskEnd}')
-	        		              OR
-	        		              (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL AND #timeStart <= '{$taskEnd}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$taskEnd}')");
-                    
-                    
-                    $query->where("#state = 'active'");
-                    
-                    doc_Threads::restrictAccess($query);
-                    
-                    $query->orderBy('modifiedOn', 'DESC');
-                    
-                    $cnt = $query->count();
-                    
-                    $limit = 10;
-                    
-                    $query->limit($limit);
-                    
-                    $link = '';
-                    
-                    // За всяка една задача отговаряща на условията проверяваме
-                    while ($recTask = $query->fetch()) {
-                        $link .= ($link) ? '<br>' : '';
-                        
-                        $link .= ht::createLink($recTask->title, $mvc->getSingleUrlArray($recTask->id), null, 'ef_icon=img/16/task-normal.png');
-                    }
-                    
-                    if ($link) {
-                        if ($cnt > 1) {
-                            $link = '<br>' . $link;
-                        }
-                        
-                        if ($cnt > $limit) {
-                            $link .= '<br>' . ' +' . tr('още') . ': ' . ($cnt - $limit);
-                        }
-                        
-                        $form->setWarning('timeStart, timeDuration, timeEnd', "|Засичане по време с|*: {$link}");
-                    }
-                }
-            }
         }
         
-        if ($form->isSubmitted() && ($rec->state != 'draft')) {
+        if ($form->isSubmitted()) {
             $mvc->calculateExpectationTime($rec);
+            
+            $query = self::getQuery();
+            $useQ = $mvc->prepareQueryForTimeIntersection($query, $rec);
+            if ($useQ !== false) {
+                $query->orderBy('modifiedOn', 'DESC');
+                
+                $cnt = $query->count();
+                $limit = 10;
+                $query->limit($limit);
+                
+                $link = '';
+                // За всяка една задача отговаряща на условията проверяваме
+                while ($recTask = $query->fetch()) {
+                    $link .= ($link) ? '<br>' : '';
+                    $link .= ht::createLink($recTask->title, $mvc->getSingleUrlArray($recTask->id), null, 'ef_icon=img/16/task-normal.png');
+                }
+                
+                if ($link) {
+                    if ($cnt > 1) {
+                        $link = '<br>' . $link;
+                    }
+                    
+                    if ($cnt > $limit) {
+                        $link .= '<br>' . ' +' . tr('още') . ': ' . ($cnt - $limit);
+                    }
+                    
+                    $form->setWarning('timeStart, timeDuration, timeEnd', "|Засичане по време с|*: {$link}");
+                }
+            }
         }
     }
     
@@ -834,24 +775,6 @@ class cal_Tasks extends embed_Manager
     {
         $pArr = array();
 
-//         if (cal_TaskProgresses::isInstalled()) {
-//             $pQuery = cal_TaskProgresses::getQuery();
-//             $pQuery->where(array('#taskId = [#1#]', $data->rec->id));
-//             $pQuery->orderBy('createdOn', 'ASC');
-
-//             while ($pRec = $pQuery->fetch()) {
-//                 $pRow = cal_TaskProgresses::recToVerbal($pRec);
-
-//                 $rowAttr = array();
-
-//                 if ($pRec->state == 'rejected') {
-//                     $rowAttr['class'] = 'state-' . $pRec->state;
-//                 }
-
-//                 $pArr[] = array('ROW_ATTR' => $rowAttr, 'progress' => $pRow->progress, 'workingTime' => $pRow->workingTime, 'createdOn' => $pRow->createdOn, 'createdBy' => $pRow->createdBy, 'message' => $pRow->message);
-//             }
-//         }
-        
         if ($pClsId = cal_Progresses::getClassId() && $data->rec->containerId) {
             $cQuery = doc_Comments::getQuery();
             $cQuery->where(array("#originId = '[#1#]'", $data->rec->containerId));
@@ -905,11 +828,7 @@ class cal_Tasks extends embed_Manager
             $table = cls::get('core_TableView');
             
             $showFieldArr = array('links', 'createdOn', 'createdBy', 'message', 'progress', 'workingTime');
-            
-            if (Mode::is('screenMode', 'narrow')) {
-//                 $showFieldArr = array('progress', 'createdOn', 'createdBy', 'message', 'workingTime');
-            }
-            
+                        
             $tTpl = $table->get($data->Progresses, $showFieldArr);
             
             $tplx = new ET('<div class="clearfix21 portal" style="margin-top:20px;background-color:transparent;">
@@ -964,51 +883,67 @@ class cal_Tasks extends embed_Manager
             $data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/task-option.png, row=2', 'title=Добавяне на зависимост между задачите');
         }
         
-        if ($data->rec->timeEnd) {
-            $taskEnd = $data->rec->timeEnd;
-        } else {
-            $taskEnd = dt::now();
-        }
-        
-        if ($data->rec->timeStart) {
-            $taskStart = $data->rec->timeStart;
-        } else {
-            $taskStart = dt::now();
-        }
-        
-        // ако имаме зададена продължителност
-        if ($data->rec->timeDuration) {
-            if (!$data->rec->timeEnd) {
-                // то изчисляваме края на задачата
-                // като към началото добавяме продължителността
-                $taskEnd = dt::timestamp2Mysql(dt::mysql2timestamp($data->rec->timeStart) + $data->rec->timeDuration);
-            }
+        // Ако имаме бутон "Активиране"
+        if (isset($data->toolbar->buttons['btnActivate'])) {
             
-            if (!$data->rec->timeStart) {
-                // то изчисляваме началото на задачата
-                // като от края на задачата вадим продължителността
-                $taskStart = dt::timestamp2Mysql(dt::mysql2timestamp($data->rec->timeEnd) - $data->rec->timeDuration);
-            }
-        }
-        
-        // ако имаме бутон "Активиране"
-        if (isset($data->toolbar->buttons['Активиране'])) {
-            
-            // заявка към базата
+            // Заявка към базата
             $query = self::getQuery();
-            
-            // при следните условия
-            $query->likeKeylist('sharedUsers', $data->rec->sharedUsers);
-            $query->where("(#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$taskStart}' AND #timeEnd >= '{$taskStart}')
-                            OR
-                           (#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$taskEnd}' AND #timeEnd >= '{$taskEnd}')");
-            
-            // и намерим такъв запис
-            if ($query->fetch()) {
-                // променяме бутона "Активиране"
-                $data->toolbar->buttons['Активиране']->warning = 'По същото време има и други задачи с някои от същите споделени потребители';
+            $useQ = $mvc->prepareQueryForTimeIntersection($query, $data->rec);
+            if ($useQ !== false) {
+                $query->limit(1);
+                
+                // и намерим такъв запис
+                if ($query->fetch()) {
+                    // Променяме бутона "Активиране"
+                    $data->toolbar->buttons['btnActivate']->warning = 'По същото време има и други задачи с някои от същите възложени потребители';
+                }
             }
         }
+    }
+    
+    
+    /**
+     * Помощна функция за подготвяне на заявката 
+     * 
+     * @param core_Query $query
+     * @param stdClass $rec
+     * 
+     * @return null|false
+     */
+    protected function prepareQueryForTimeIntersection($query, $rec)
+    {
+        if (!$rec->assign) {
+            
+            return false;
+        }
+        
+        if (!$rec->timeStart && !$rec->timeEnd && !$rec->timeDuration ) {
+            
+            return false;
+        }
+        
+        $this->calculateExpectationTime($rec);
+        
+        if (!$rec->expectationTimeStart || !$rec->expectationTimeEnd) {
+            
+            return false;
+        }
+        
+        // При следните условия
+        $query->likeKeylist('assign', $rec->assign);
+        
+        $query->where(array("(#timeStart IS NOT NULL OR #timeEnd IS NOT NULL) AND #expectationTimeStart <= '[#1#]' AND #expectationTimeEnd >= '[#1#]'", $rec->expectationTimeStart));
+        $query->orWhere(array("(#timeStart IS NOT NULL OR #timeEnd IS NOT NULL) AND #expectationTimeStart <= '[#1#]' AND #expectationTimeEnd >= '[#1#]'", $rec->expectationTimeEnd));
+        
+        if ($rec->id) {
+            $query->where(array("#id != '[#1#]'", $rec->id));
+        }
+        
+        $query->where("#state = 'active'");
+        $query->orWhere("#state = 'pending'");
+        $query->orWhere("#state = 'waiting'");
+        
+        doc_Threads::restrictAccess($query);
     }
     
     

@@ -369,6 +369,12 @@ div.folder-cover {
 		}
 
 	}
+	&.large-cover {
+		max-width: 1000px !important;
+		.groupList {
+			max-width: 975px;
+		}
+	}
 	.label {
 		color: #777777;
 		font-size: 13px;
@@ -453,7 +459,10 @@ div.folder-cover {
 	}
 
 }
-
+.document .detail-info .store_Products  .listTable {
+	max-width: 100% !important;
+	width: 100%;
+}
 .dangerTitle {
 	color: #C00;
 	font-weight: bold;
@@ -499,7 +508,9 @@ div.folder-cover {
 		margin-left: 2px;
 	}
 }
-
+.leftAlign {
+	text-align: left !important;
+}
 .public.folder-cover {
 	margin: 0;
 }
@@ -5062,7 +5073,18 @@ div.location.public {
 	background-color: rgba(240,240,255,0.5);
 	border: solid 1px #ddddff;
 }
-
+.popupInfo {
+	border-top: 1px solid #aaa;
+	text-align: left;
+	margin: 3px 0 2px;
+	&:first-child {
+		border-top: none;
+		margin-top: 0;
+	}
+	&:last-child {
+		margin-bottom: 0;
+	}
+}
 .email-class {
 	max-width: 600px;
 	h3 {

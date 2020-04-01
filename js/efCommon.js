@@ -1,23 +1,37 @@
 var shortURL;
 
 
-function spr(sel, refresh) {
+function spr(sel, refresh, from, to) {
     if(refresh === undefined) {
         refresh = true;
     }
+    
+    if (from === undefined) {
+    	from = 'from';
+    }
+    
+    if (to === undefined) {
+    	to = 'to';
+    }
+    
+    from = "input[name='" + from + "']";
+    to = "input[name='" + to + "']";
+    
     if(sel.value == 'select') {
-        $("input[name*='from']").closest('tr').fadeIn();
-        $("input[name*='to']").closest('tr').fadeIn();
-        $("input[name*='from']").prop('disabled', false);
-        $("input[name*='to']").prop('disabled', false);
-        $("input[name*='from'], input[name*='to']").addClass('flashElem');
-        $("input[name*='from'], input[name*='to']").css('transition', 'background-color linear 500ms');
+        $(from).closest('tr').fadeIn();
+        $(to).closest('tr').fadeIn();
+        $(from).prop('disabled', false);
+        $(to).prop('disabled', false);
+        $(from).addClass('flashElem');
+        $(to).addClass('flashElem');
+        $(from).css('transition', 'background-color linear 500ms');
+        $(to).css('transition', 'background-color linear 500ms');
         setTimeout(function(){ $('.flashElem').removeClass('flashElem')}, 1000);
     } else {
-        $("input[name*='from']").prop('disabled', true);
-        $("input[name*='to']").prop('disabled', true);
-        $("input[name*='from']").closest('tr').fadeOut();
-        $("input[name*='to']").closest('tr').fadeOut();
+        $(from).prop('disabled', true);
+        $(to).prop('disabled', true);
+        $(from).closest('tr').fadeOut();
+        $(to).closest('tr').fadeOut();
         if(refresh) {
             sel.form.submit();
         }
@@ -1534,7 +1548,11 @@ function rgb2hex(rgb) {
         function hex(x) {
             return ("0" + parseInt(x).toString(16)).slice(-2);
         }
-        if (rgb[4] != 'undefined' && rgb[4] == 0) {
+        if (!rgb || (rgb[4] != 'undefined' && rgb[4] == 0)) {
+        	if (!rgb) {
+        		rgb = [];
+    		}
+        	
             rgb[1] = rgb[2] = rgb[3] = 255;
         }
 

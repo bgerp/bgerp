@@ -145,7 +145,7 @@ class plg_Search extends core_Plugin
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC($mvc->searchInputField, 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
+        $data->listFilter->FNC($mvc->searchInputField, 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently,inputmode=search');
         
         $data->listFilter->input(null, 'silent');
         
@@ -166,6 +166,24 @@ class plg_Search extends core_Plugin
      */
     public static function sortLength($a, $b)
     {
+        $aT = static::normalizeText($a, array('*'));
+        if (stripos($aT, ' ' ) !== false) {
+            $aArr = explode(' ', $aT);
+            usort($aArr, 'plg_Search::sortLength');
+            if (isset($aArr[0])) {
+                $a = $aArr[0];
+            }
+        }
+        
+        $bT = static::normalizeText($b, array('*'));
+        if (stripos($bT, ' ' ) !== false) {
+            $bArr = explode(' ', $bT);
+            usort($bArr, 'plg_Search::sortLength');
+            if (isset($bArr[0])) {
+                $b = $bArr[0];
+            }
+        }
+        
         return strlen($b) - strlen($a);
     }
     

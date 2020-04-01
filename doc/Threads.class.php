@@ -770,7 +770,7 @@ class doc_Threads extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently');
+        $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently,inputmode=search');
         $data->listFilter->FNC(
             'order',
             'enum(' . self::filterList . ')',

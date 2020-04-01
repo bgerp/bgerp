@@ -43,5 +43,5 @@ class payment_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'payment_ImportDriver';
+    public $defClasses = 'payment_ImportDriver, payment_ParserIso20022';
 }

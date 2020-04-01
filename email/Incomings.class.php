@@ -564,7 +564,7 @@ class email_Incomings extends core_Master
         $status = strtolower($status);
         
         // Записваме в отпечатъка на това писмо, както и статуса му на сваляне
-        if (in_array($status, array('returned', 'receipt', 'spam', 'incoming', 'misformatted'))) {
+        if (!in_array($status, array('error'))) {
             // Записваме статуса на сваленото писмо (service, misformatted, normal);
             email_Fingerprints::setStatus($headers, $status, $accId, $uid);
         }

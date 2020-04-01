@@ -228,7 +228,22 @@ abstract class cat_ProductDriver extends core_BaseClass
     {
     }
     
-    
+    /**
+     * Връща материалите, необходими за производството на посоченото количество
+     *
+     * @param int $id
+     * @param double $quantity
+     *
+     * @return array()
+     */
+    public function getMaterialsForProduction($id, $quantity)
+    {
+        $res = array();
+
+        return $res;
+    }
+
+
     /**
      * Връща иконата на драйвера
      *

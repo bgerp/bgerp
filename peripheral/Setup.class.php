@@ -43,7 +43,7 @@ class peripheral_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(1.99999, 'Система', 'Периферия', 'peripheral_Devices', 'default', 'peripheral, admin'),
+        array(1.99990, 'Система', 'Периферия', 'peripheral_Devices', 'default', 'peripheral, admin'),
     );
     
     
