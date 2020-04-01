@@ -373,10 +373,29 @@ class cond_DeliveryTerms extends core_Master
                 $form->setReadOnly('deliveryAdress');
             } elseif($Document instanceof eshop_Carts){
                 unset($form->rec->deliveryCountry, $form->rec->deliveryPCode, $form->rec->deliveryPlace, $form->rec->deliveryAddress);
-                $form->setField('deliveryCountry', 'input=hidden');
-                $form->setField('deliveryPCode', 'input=hidden');
-                $form->setField('deliveryPlace', 'input=hidden');
-                $form->setField('deliveryAddress', 'input=hidden');
+                
+                $settings = cms_Domains::getSettings();
+                $ownCompany = crm_Companies::fetchOurCompany();
+                $countryId = $ownCompany->country;
+                
+                if($settings->storeId){
+                    if($locationId = store_Stores::fetchField($settings->storeId, 'locationId')){
+                        $locationRec = crm_Locations::fetch($locationId, 'countryId,place,pCode,address');
+                        $countryId = (!empty($locationRec->country)) ? $locationRec->country : $countryId;
+                        $pCode = $locationRec->pCode;
+                        $place = $locationRec->place;
+                        $address = $locationRec->address;
+                    }
+                } else {
+                    $pCode = $ownCompany->pCode;
+                    $place = $ownCompany->place;
+                    $address = $ownCompany->address;
+                }
+               
+                $form->setReadOnly('deliveryCountry', $countryId);
+                $form->setReadOnly('deliveryPCode', $pCode);
+                $form->setReadOnly('deliveryPlace', $place);
+                $form->setReadOnly('deliveryAddress', $address);
                 $form->setField('locationId', 'input=none');
             }
         }
