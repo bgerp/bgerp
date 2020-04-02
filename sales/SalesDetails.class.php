@@ -10,7 +10,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -123,14 +123,6 @@ class sales_SalesDetails extends deals_DealDetail
     
     
     /**
-     * Брой записи на страница
-     *
-     * @var int
-     */
-    public $listItemsPerPage;
-    
-    
-    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount';
@@ -157,6 +149,23 @@ class sales_SalesDetails extends deals_DealDetail
         parent::getDealDetailFields($this);
         $this->FLD('autoDiscount', 'percent(min=0,max=1)', 'input=none');
         $this->setField('packPrice', 'silent');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+        
+        if(isset($form->rec->autoDiscount)){
+            $placeholder = core_Type::getByName('percent')->toVerbal($form->rec->autoDiscount);
+            $form->setField('discount', "placeholder={$placeholder}");
+        }
     }
     
     
