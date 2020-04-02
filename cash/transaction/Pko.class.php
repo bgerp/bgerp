@@ -34,7 +34,7 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
         expect($rec = $this->class->fetchRec($id));
         
         $origin = $this->class->getOrigin($rec);
-        $rec->peroCase = (isset($rec->peroCase)) ? $rec->peroCase : cash_Cases::getCurrent('id', false);
+        $rec->peroCase = (isset($rec->peroCase)) ? $rec->peroCase : $this->class->getDefaultCase($rec);
         
         if ($rec->isReverse == 'yes') {
             // Ако документа е обратен, правим контировката на РКО-то но с отрицателен знак

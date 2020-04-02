@@ -74,9 +74,6 @@
 <!--ET_BEGIN noVat-->
 <p>- Цените са без ДДС[#noVat#]
 <!--ET_END noVat-->
-<!--ET_BEGIN notes-->
-<p>- [#notes#]
-<!--ET_END notes-->
 <!--ET_BEGIN closedDocuments-->
 <p>- Обединява: [#closedDocuments#]
 <!--ET_END closedDocuments-->
@@ -90,6 +87,9 @@
 <!--ET_BEGIN commonConditionQuote-->
 <p>- Общи условия по продажба: [#commonConditionQuote#]
 <!--ET_END commonConditionQuote-->
+<!--ET_BEGIN notes-->
+<p>- [#notes#]
+<!--ET_END notes-->
 <p><r32 ->
 <!--ET_END conditions-->
 <p>Получател:

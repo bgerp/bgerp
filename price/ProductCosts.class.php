@@ -665,6 +665,7 @@ class price_ProductCosts extends core_Manager
             // Ако има НЕ положителна наличност, но има покупки, взима се цената от първата + разходите към нея
             if($useFirstPurchase === true && !empty($foundIn)){
                 $foundDelRec =  $foundIn[key($foundIn)];
+                $foundDelRec->quantity = round($foundDelRec->quantity, 6);
                 $expensesPerPcs = (!empty($foundDelRec->quantity)) ? ($foundDelRec->expenses / $foundDelRec->quantity) : 0;
                 
                 $foundIn = $foundIn[key($foundIn)];

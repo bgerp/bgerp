@@ -154,6 +154,12 @@ defIfNot('DOC_LIST_FIELDS_EXTRA_LINE', 'yes');
 
 
 /**
+ * Преместване на последен документ от нишка
+ */
+defIfNot('DOC_MOVE_LAST_DOCUMENT', 'yes');
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с DOC
  *
@@ -233,6 +239,7 @@ class doc_Setup extends core_ProtoSetup
         'DOC_DELETE_REJECTED_THREADS_PERIOD' => array('time(suggestions=15 дни|1 месец|6 месеца|1 година)', 'caption=След колко време да се изтриват оттеглените нишки->Време'),
         'DOC_LINKED_LAST_SHOW_LIMIT' => array('int(min=0)', 'caption=До колко документа от последните добавени връзки да се показват при нова->Брой, customizeBy=powerUser'),
         'DOC_LIST_FIELDS_EXTRA_LINE' => array('enum(yes=Да,no=Не)', 'caption=Допълнителен ред в листовия изглед->Избор, customizeBy=powerUser'),
+        'DOC_MOVE_LAST_DOCUMENT' => array('enum(yes=Да,no=Не)', 'caption=Възможност за преместване на последния документ в нишката->Избор'),
     );
     
     

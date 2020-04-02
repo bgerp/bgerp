@@ -511,8 +511,13 @@ abstract class cash_Document extends deals_PaymentDocument
             if (isset($rec->peroCase)) {
                 $row->peroCase = cash_Cases::getHyperlink($rec->peroCase);
             } else {
-                $row->peroCase = tr('Предстои да бъде уточнена');
-                $row->peroCase = "<span class='red'><small><i>{$row->peroCase}</i></small></span>";
+                if($defaultCase = $mvc->getDefaultCase($rec)){
+                    $row->peroCase = cash_Cases::getHyperlink($defaultCase);
+                    $row->peroCase = ht::createHint($row->peroCase, 'Касата ще бъде записана при контирана, ако не е избрана конкретна', 'notice', false);
+                } else {
+                    $row->peroCase = tr('Предстои да бъде уточнена');
+                    $row->peroCase = "<span class='red'><small><i>{$row->peroCase}</i></small></span>";
+                }
             }
             
             if ($origin = $mvc->getOrigin($rec)) {
@@ -590,11 +595,45 @@ abstract class cash_Document extends deals_PaymentDocument
     public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        $rec->peroCase = (isset($rec->peroCase)) ? $rec->peroCase : cash_Cases::getCurrent('id', false);
+        $rec->peroCase = (isset($rec->peroCase)) ? $rec->peroCase : $mvc->getDefaultCase($rec);;
+        
         if(empty($rec->peroCase)){
-            
             redirect(array($mvc, 'single', $rec->id), false, 'За да контирате документа, трябва да е избрана каса', 'error');
+        } elseif(!bgerp_plg_FLB::canUse('cash_Cases', $rec->peroCase)){
+            $caseName = cash_Cases::getTitleById($rec->peroCase);
+            redirect(array($mvc, 'single', $rec->id), false, "Нямате права за контиране на автоматично определената каса|* \"<b>{$caseName}</b>\"!", 'error');
         }
+    }
+    
+    
+    /**
+     * Коя е дефолтната каса на документа
+     * 
+     * 1. Избраната в сесията, ако има
+     * 2. Първата, която може да контира
+     * 3. Първата, която може да избира
+     * 4. Не намира каса
+     * 
+     * @param stdClass $rec
+     * @param int|null $userId
+     * @return int $caseId
+     */
+    public function getDefaultCase($rec, $userId = null)
+    {
+        $userId = isset($userId) ? $userId : core_Users::getCurrent();
+        $caseId = cash_Cases::getCurrent('id', false);
+       
+        foreach (array(true, false) as $exp){
+            $query = cash_Cases::getQuery();
+            $query->show('id');
+            bgerp_plg_FLB::addUserFilterToQuery('cash_Cases', $query, $userId, $exp);
+            if($firstRec = $query->fetch()){
+                $caseId = $firstRec->id;
+                break;
+            }
+        }
+        
+        return $caseId;
     }
     
     

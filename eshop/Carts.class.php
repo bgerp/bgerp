@@ -839,6 +839,7 @@ class eshop_Carts extends core_Master
             'currencyId' => $settings->currencyId,
             'shipmentStoreId' => $settings->storeId,
             'deliveryLocationId' => $rec->locationId,
+            'deliveryData' => $rec->deliveryData,
             'onlineSale' => true,
         );
         
@@ -1310,14 +1311,10 @@ class eshop_Carts extends core_Master
     private static function renderCartOrderInfo($rec, core_ET &$tpl)
     {
         $rec = self::fetchRec($rec);
-        $cu = core_Users::getCurrent();
         
         $row = self::recToVerbal($rec, cls::get('eshop_Carts')->selectFields());
         $tpl->replace($row->termId, 'termId');
         $tpl->replace($row->paymentId, 'paymentId');
-        if ($Driver = cond_DeliveryTerms::getTransportCalculator($rec->termId)) {
-            $tpl->replace($Driver->renderDeliveryInfo($rec), 'DELIVERY_BLOCK');
-        }
         
         $countryVerbal = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)')->toVerbal($rec->deliveryCountry);
         $tpl->replace($countryVerbal, 'deliveryCountry');
@@ -1375,12 +1372,23 @@ class eshop_Carts extends core_Master
         }
         
         if (eshop_Carts::haveRightFor('checkout', $rec) && $rec->personNames) {
-            $editBtn = ht::createLink('', array(eshop_Carts, 'order', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit.png,title=Редактиране на данните за поръчка');
+            $editBtn = ht::createLink('', array('eshop_Carts', 'order', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit.png,title=Редактиране на данните за поръчка');
             $tpl->append($editBtn, 'editBtn');
         }
         
         if (!empty($rec->personNames)) {
             $tpl->append('borderTop', 'BORDER_CLASS');
+        }
+        
+        if ($Driver = cond_DeliveryTerms::getTransportCalculator($rec->termId)) {
+            $deliveryDataArr = $Driver->getVerbalDeliveryData($rec->termId, $rec->deliveryData, get_called_class());
+            foreach ($deliveryDataArr as $delObj){
+                $block = $tpl->getBlock('DELIVERY_DATA_VALUE');
+                $block->append($delObj->caption, 'DELIVERY_DATA_CAPTION');
+                $block->append($delObj->value, 'DELIVERY_DATA_VALUE');
+                $block->removeBlocksAndPlaces();
+                $tpl->append($block, 'DELIVERY_BLOCK');
+            }
         }
         
         return $tpl;
@@ -1745,7 +1753,6 @@ class eshop_Carts extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-      
         if ($rec->userId){
             
             $row->userId = core_Users::getNick($rec->userId)."</br>";
@@ -1848,6 +1855,7 @@ class eshop_Carts extends core_Master
         cms_Helper::setLoginInfoIfNeeded($form);
         
         $form->input(null, 'silent');
+        
         self::setDefaultsFromFolder($form, $form->rec->saleFolderId);
         
         $form->setOptions('country', drdata_Countries::getOptionsArr($form->countries));
@@ -1866,27 +1874,6 @@ class eshop_Carts extends core_Master
             }
         }
         
-        // Ако има условие на доставка то драйвера му може да добави допълнителни полета
-        if (isset($form->rec->termId)) {
-            
-            // Държавата за доставка да е тази от ип-то по дефолт
-            if ($countryCode2 = drdata_IpToCountry::get()) {
-                $form->setDefault('deliveryCountry', drdata_Countries::fetchField("#letterCode2 = '{$countryCode2}'", 'id'));
-            }
-            
-            if ($Driver = cond_DeliveryTerms::getTransportCalculator($form->rec->termId)) {
-                $Driver->addFields($form);
-                $fields = $Driver->getFields();
-                foreach ($fields as $fld) {
-                    $form->setDefault($fld, $form->rec->deliveryData[$fld]);
-                }
-            } else {
-                $form->setField('deliveryPCode', 'mandatory');
-                $form->setField('deliveryPlace', 'mandatory');
-                $form->setField('deliveryAddress', 'mandatory');
-             }
-        }
-        
         if (!empty($form->rec->deliveryCountry)) {
             $form->countries[$form->rec->deliveryCountry] = $form->rec->deliveryCountry;
         }
@@ -1899,6 +1886,17 @@ class eshop_Carts extends core_Master
         if (countR($form->countries) == 1) {
             $form->setDefault('deliveryCountry', key($form->countries));
             $form->setReadOnly('deliveryCountry');
+        }
+        
+        // Ако има условие на доставка то драйвера му може да добави допълнителни полета
+        if (isset($form->rec->termId)) {
+            
+            // Държавата за доставка да е тази от ип-то по дефолт
+            if ($countryCode2 = drdata_IpToCountry::get()) {
+                $form->setDefault('deliveryCountry', drdata_Countries::fetchField("#letterCode2 = '{$countryCode2}'", 'id'));
+            }
+            
+            cond_DeliveryTerms::prepareDocumentForm($form->rec->termId, $form, $this);
         }
         
         $invoiceFields = $form->selectFields('#invoiceData');
@@ -1939,9 +1937,6 @@ class eshop_Carts extends core_Master
         }
         
         $form->input();
-        if ($Driver) {
-            $Driver->checkForm($form);
-        }
         
         if ($rec->makeInvoice != 'none') {
             $form->setDefault('invoiceCountry', $rec->deliveryCountry);
@@ -1999,15 +1994,9 @@ class eshop_Carts extends core_Master
             }
             
             if (!$form->gotErrors()) {
-                // Компресиране на данните за доставка от драйвера
-                $rec->deliveryData = array();
-                if ($Driver) {
-                    if (!$form->gotErrors()) {
-                        $fields = $Driver->getFields();
-                        foreach ($fields as $name) {
-                            $rec->deliveryData[$name] = $rec->{$name};
-                        }
-                    }
+                
+                if(isset($rec->termId)){
+                    cond_DeliveryTerms::inputDocumentForm($rec->termId, $form, $this);
                 }
                 
                 // Ако има избрана папка обновява се

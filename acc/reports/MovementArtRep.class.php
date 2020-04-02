@@ -31,8 +31,8 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('from', 'key(mvc=acc_Periods,select=title, allowEmpty)', 'caption=От,mandatory,after=title');
-        $fieldset->FLD('to', 'key(mvc=acc_Periods,select=title, allowEmpty)', 'caption=До,after=from');
+        $fieldset->FLD('from', 'date', 'caption=От,mandatory,after=title');
+        $fieldset->FLD('to', 'date', 'caption=До,after=from');
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,after=to,single=none');
     }
     
@@ -46,13 +46,13 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
-        $form = &$data->form;
+        /*$form = &$data->form;
         $periods = acc_Periods::getCalcedPeriods(true);
         $form->setOptions('from', array('' => '') + $periods);
         $form->setOptions('to', array('' => '') + $periods);
         
         $lastPeriod = acc_Periods::fetchByDate(dt::addMonths(-1, dt::now()));
-        $form->setDefault('from', $lastPeriod->id);
+        $form->setDefault('from', $lastPeriod->id);*/
     }
     
     
@@ -75,7 +75,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
             }
             
             // Размяна, ако периодите са объркани
-            if (isset($rec->from, $rec->to)) {
+            /*if (isset($rec->from, $rec->to)) {
                 $from = acc_Periods::fetch($rec->from);
                 $to = acc_Periods::fetch($rec->to);
                 
@@ -84,11 +84,11 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                     $rec->to = $from->id;
                 }
             }
-            
+            bp($rec->from, $rec->to, $rec);
             if (empty($rec->to)) {
                 $currentPeriod = acc_Periods::fetchByDate(dt::today());
                 $rec->to = $currentPeriod->id;
-            }
+            }*/
         }
     }
     
@@ -138,14 +138,14 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         
         $productItemsFlip = array_flip($itemAll);
         $productItems = $itemAll;
-        
+
         // Начално количество
         $baseQuantities = array();
         
         // Намира се баланса на началния период
-        $periodRec = acc_Periods::fetch($rec->from);
+        $periodRec = acc_Periods::fetchByDate($rec->from); 
         $balanceId = acc_Balances::fetchField("#periodId = {$periodRec->id}", 'id');
-        
+     
         // Извличат се само записите за сметка 321 с участието на перата на артикулите
         $bQuery = acc_BalanceDetails::getQuery();
         $bQuery->show('ent2Id,baseQuantity');
@@ -163,25 +163,44 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         
         // Извличане на записите от журнала по желанието сметки
         $jQuery = acc_JournalDetails::getQuery();
-        $from = acc_Periods::fetchField($rec->from, 'start');
-        $to = acc_Periods::fetchField($rec->to, 'end');
-        acc_JournalDetails::filterQuery($jQuery, $from, $to, '321,401,61101,61102,701');
-        $jRecs = $jQuery->fetchAll();
-      
-        $recs = array();
+        $from = acc_Periods::fetchByDate($rec->from)->start;
+        $to = acc_Periods::fetchByDate($rec->to)->end;
         
+        acc_JournalDetails::filterQuery($jQuery, $from, $to, '321,401,61101,61102,701');
+        
+        $jRecs = $jQuery->fetchAll();
+
+        //Производство
+        $id2 = planning_DirectProductionNote::getClassid();
+        $jQuery2 = clone $jQuery;
+        $jRecs2 = $jQuery2->where("#docType = {$id2}");
+        $jRecs2 = $jQuery2->fetchAll();
+        
+        //връщане
+        $id1 = planning_ConsumptionNotes::getClassid();
+        $jQuery4 = clone $jQuery;
+        $jRecs4 = $jQuery4->where("#docType = {$id1}");
+        $jRecs4 = $jQuery4->fetchAll();
+       
+        $jRecs3 = array_diff_key($jRecs, $jRecs2); 
+        
+        $jRecs5 = array_merge($jRecs2,$jRecs4);
+   
+        $recs = array();
+       
         log_System::add(get_called_class(), 'jRecsCnt: ' . countR($jRecs) . ', producsCnt: ' . countR($productArr), null, 'debug', 1);
+        log_System::add(get_called_class(), 'jRecsCnt: ' . countR($jRecs2) . ', producsCnt: ' . countR($productArr), null, 'debug', 1);
         
         // за всеки един продукт, се изчисляват търсените количествата
-        foreach ($productArr as $productRec) {
+        foreach ($productArr as $productRec) {          
             if ($itemId = $productItems[$productRec->id]) {
                 $baseQuantity = (isset($baseQuantities[$productRec->id])) ? $baseQuantities[$productRec->id] : 0;
-                $obj = (object) array('baseQuantity' => $baseQuantity, 'delivered' => 0, 'converted' => 0, 'produces' => 0, 'sold' => 0, 'blQuantity' => 0);
+                $obj = (object) array('baseQuantity' => $baseQuantity, 'delivered' => 0, 'converted' => 0, 'produced' => 0, 'sold' => 0, 'blQuantity' => 0);
                 $obj->code = (!empty($productRec->code)) ? $productRec->code : "Art{$productRec->id}";
                 $obj->measureId = $productRec->measureId;
                 $obj->productId = $productRec->id;
                 $obj->groups = $productRec->groups;
-                
+               
                 // Доставено: Влязло в склада от доставчици
                 if ($delRes = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '401', array(null, $itemId, null))) {
                     $obj->delivered = $delRes[$itemId]->quantity;
@@ -191,47 +210,51 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 if ($delRes1 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '799', array(null, $itemId, null))) {
                     $obj->delivered += $delRes1[$itemId]->quantity;
                 }
-                
+               
                 // Вложено детайлно
-                if ($convRes = acc_Balances::getBlQuantities($jRecs, '61101', 'debit', '321', array($itemId, null, null))) {
+                if ($convRes = acc_Balances::getBlQuantities($jRecs5, '61101', 'debit', '321', array($itemId, null, null))) {
                     $obj->converted = $convRes[$itemId]->quantity;
                 }
                 
                 // Вложено бездетайлно
-                if ($convRes1 = acc_Balances::getBlQuantities($jRecs, '321', 'credit', '61102', array(null, $itemId, null))) {
+                if ($convRes1 = acc_Balances::getBlQuantities($jRecs5, '321', 'credit', '61102', array(null, $itemId, null))) {
                     $obj->converted += $convRes1[$itemId]->quantity;
                 }
                 
                 // Вложено от инвентаризация
-                if ($convRes2 = acc_Balances::getBlQuantities($jRecs, '321', 'credit', '699', array(null, $itemId, null))) {
+                if ($convRes2 = acc_Balances::getBlQuantities($jRecs5, '321', 'credit', '699', array(null, $itemId, null))) {
                     $obj->converted += $convRes2[$itemId]->quantity;
                 }
                 
                 // Приспадане на вложеното с върнатото от производството детайлно
-                if ($delRes2 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61101', array(null, $itemId, null))) {
+                if ($delRes2 = acc_Balances::getBlQuantities($jRecs3, '321', 'debit', '61101', array(null, $itemId, null))) {
                     $obj->converted -= $delRes2[$itemId]->quantity;
                 }
-                
+                    
                 // Приспадане на вложеното с върнатото от производството бездетайлно
-                if ($convRes3 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61102', array(null, $itemId, null))) {
+                if ($convRes3 = acc_Balances::getBlQuantities($jRecs3, '321', 'debit', '61102', array(null, $itemId, null))) {
                     $obj->converted -= $convRes3[$itemId]->quantity;
                 }
 
                 // Произведено от протокол за производство (на вложеното с върнатото от производството детайлно)
-                if ($prodRes1 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61101', array(null, $itemId, null))) {
+                if ($prodRes1 = acc_Balances::getBlQuantities($jRecs2, '321', 'debit', '61101', array(null, $itemId, null))) { 
                     $obj->produced += $prodRes1[$itemId]->quantity;
                 }
-                
+                    
                 // Приспадане на вложеното с върнатото от производството бездетайлно
-                if ($prodRes2 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61102', array(null, $itemId, null))) {
+                if ($prodRes2 = acc_Balances::getBlQuantities($jRecs2, '321', 'debit', '61102', array(null, $itemId, null))) {
                     $obj->produced += $prodRes2[$itemId]->quantity;
                 }
-                
+
                 // Продадено
                 if ($soldRes = acc_Balances::getBlQuantities($jRecs, '701', 'debit', '321', array(null, null, $itemId))) {
                     $obj->sold = $soldRes[$itemId]->quantity;
                 }
                 
+                // Продадено
+                if ($soldRes2 = acc_Balances::getBlQuantities($jRecs, '706', 'debit', '321', array(null, null, $itemId))) {
+                    $obj->sold += $soldRes2[$itemId]->quantity;
+                }
                 
                 // Крайно количество
                 $obj->blQuantity = $baseQuantity;
@@ -241,26 +264,11 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 
                 $recs[$productRec->id] = $obj;
             }
-            
-            // Приспадане на вложеното с производството детайлно
-            if($jRecs[$productRec->id]->docType == '323') { 
-                $itemId = $productItems[$productRec->id];
-                
-                if ($dRes1 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61101', array(null, $itemId, null))) {
-                
-                    $obj->converted -= $dRes1[$itemId]->quantity;
-                }
-
-                // Приспадане на вложеното производството бездетайлно
-                if ($dRes2 = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '61102', array(null, $itemId, null))) {
-                    $obj->converted -= $dRes2[$itemId]->quantity;
-                }
-            }
         }
-        
+
         $data->groupByField = 'groupId';
         $recs = $this->groupRecs($recs, $rec->group, $data);
-        
+
         return $recs;
     }
     
@@ -355,9 +363,9 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         
-        $fld->FLD('code', 'varchar', 'caption=Код');
+        $fld->FLD('code', 'varchar', 'caption=Код,tdClass=nowrap');
         $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-        $fld->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка');
+        $fld->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=nowrap');
         $fld->FLD('baseQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Начално');
         $fld->FLD('delivered', 'double(smartRound,decimals=2)', 'caption=Количество->Доставено');
         $fld->FLD('produced', 'double(smartRound,decimals=2)', 'caption=Количество->Произведено');

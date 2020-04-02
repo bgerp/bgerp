@@ -8,7 +8,7 @@
  * @package   acc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -24,8 +24,7 @@ class acc_Features extends core_Manager
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'acc_WrapperSettings, plg_State2, plg_Search,
-                     plg_Created, plg_Sorting';
+    public $loadList = 'acc_WrapperSettings, plg_State2, plg_Search,plg_Created, plg_Sorting';
     
     
     /**
@@ -50,12 +49,6 @@ class acc_Features extends core_Manager
      * Заглавие на единичен документ
      */
     public $singleTitle = 'Свойство';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'acc, ceo';
     
     
     /**
@@ -113,7 +106,6 @@ class acc_Features extends core_Manager
     {
         $this->FLD('itemId', 'key(mvc=acc_Items, select=titleLink)', 'caption=Перо,mandatory');
         $this->FLD('featureTitleId', 'key(mvc=acc_FeatureTitles, select=title)', 'caption=СвойствоИд,input=none,column=none,mandatory');
-        
         $this->FNC('feature', 'varchar(80, ci)', 'caption=Свойство,mandatory');
         $this->FLD('value', 'varchar(80)', 'caption=Стойност,mandatory');
         
@@ -174,14 +166,13 @@ class acc_Features extends core_Manager
         
         $itemRec = acc_Items::fetch($itemId);
         
-        if (empty($itemRec)) {
+        if (empty($itemRec) || !cls::load($itemRec->classId, true)) {
             
             return;
         }
         
-        $ItemClass = cls::get($itemRec->classId);
-        
         // Класа трябва да поддържа 'acc_RegisterIntf'
+        $ItemClass = cls::get($itemRec->classId);
         if (!cls::haveInterface('acc_RegisterIntf', $ItemClass)) {
             
             return;
@@ -223,6 +214,7 @@ class acc_Features extends core_Manager
                 $rec = (object) array('itemId' => $itemId, 'featureTitleId' => $featId, 'value' => $value, 'state' => 'active', 'lastUpdated' => $now);
                 
                 // Ако не е уникален, значи ъпдейтваме свойство
+                $exRec = null;
                 if (!$self->isUnique($rec, $fields, $exRec)) {
                     $rec->id = $exRec->id;
                     
@@ -370,7 +362,7 @@ class acc_Features extends core_Manager
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         if ($mvc->haveRightFor('sync')) {
             $data->toolbar->addBtn('Синхронизиране', array($mvc, 'sync', 'ret_url' => true), null, 'warning=Наистина ли искате да ресинхронизирате свойствата,ef_icon = img/16/arrow_refresh.png,title=Ресинхронизиране на свойствата на перата');

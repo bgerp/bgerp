@@ -84,9 +84,26 @@ class cat_plg_Grouping extends core_Plugin
                 $selOneKey = key($selArr);
             }
             
+            $toggle = Request::get('toggle', 'varchar');
+            
             if ($selArrCnt == 1) {
                 $id = $selArr[$selOneKey];
                 $metas = $mvc->fetchField($id, 'meta');
+                
+                if(!empty($toggle)){
+                    $metas = type_Set::toArray($metas);
+                    if(array_key_exists($toggle, $metas)){
+                        unset($metas[$toggle]);
+                    } else {
+                        $metas[$toggle] = $toggle;
+                    }
+                    $metas = $mvc->getFieldType('meta')->fromVerbal($metas);
+                    $pRec = (object)array('id' => $id, 'meta' => $metas);
+                    $mvc->save($pRec, 'meta,canSell,canBuy,canStore,canConvert,fixedAsset,canManifacture');
+                    $mvc->logWrite('Промяна на свойствата на артикул', $id);
+                    
+                    followRetUrl();
+                }
                 
                 $form->title = 'Промяна в свойствата на |*' . $mvc->getFormTitleLink($selArr[0]);
                 $form->FNC('meta', $mvc->getFieldType('meta'), 'caption=Свойства,input');
@@ -134,6 +151,7 @@ class cat_plg_Grouping extends core_Plugin
                     $obj->meta = $rec->meta;
                     
                     $mvc->save($obj, 'meta,canSell,canBuy,canStore,canConvert,fixedAsset,canManifacture');
+                    $mvc->logWrite('Промяна на свойствата на артикул', $id);
                     $changed = 1;
                 } else {
                     foreach ($selArr as $id) {
@@ -148,6 +166,7 @@ class cat_plg_Grouping extends core_Plugin
                         
                         if ($groups != $exGroups) {
                             $mvc->save($obj, 'meta,canSell,canBuy,canStore,canConvert,fixedAsset,canManifacture');
+                            $mvc->logWrite('Промяна на свойствата на артикул', $id);
                             $changed++;
                         }
                     }

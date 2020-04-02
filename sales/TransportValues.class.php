@@ -41,6 +41,7 @@ class sales_TransportValues extends core_Manager
         'currencyRate' => 'currencyRate',
         'currencyId' => 'currencyId',
         'countryId' => 'countryId',
+        'deliveryData' => 'deliveryData',
     );
     
     
@@ -555,10 +556,10 @@ class sales_TransportValues extends core_Manager
      * @param int      $packagingId        - ид на опаковка
      * @param float    $quantity           - количество
      * @param int|NULL $deliveryLocationId - ид на локация
-     *
+     * @param array|NULL $params - параметри
      * @return NULL|array $feeArray        - сумата на транспорта
      */
-    public static function getCostArray($deliveryTermId, $contragentClassId, $contragentId, $productId, $packagingId, $quantity, $deliveryLocationId, $countryId = null, $pCode = null)
+    public static function getCostArray($deliveryTermId, $contragentClassId, $contragentId, $productId, $packagingId, $quantity, $deliveryLocationId, $countryId = null, $pCode = null, $params = array())
     {
         // Ако може да се изчислява скрит транспорт
         if (!cond_DeliveryTerms::canCalcHiddenCost($deliveryTermId, $productId)) {
@@ -573,7 +574,7 @@ class sales_TransportValues extends core_Manager
         $totalWeight = cond_Parameters::getParameter($contragentClassId, $contragentId, 'calcShippingWeight');
         
         $ourCompany = crm_Companies::fetchOurCompany();
-        $params = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
+        $params = $params + array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
         $feeArr = self::getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $params);
         
         return $feeArr;
@@ -627,10 +628,11 @@ class sales_TransportValues extends core_Manager
      * @param int      $contragentClassId  - клас на контрагента
      * @param int      $contragentId       - ид на контрагент
      * @param int|NULL $deliveryLocationId - адрес на локация
+     * @param array|NULL $params           - допълнителни параметри
      *
      * @return FALSE|string - съобщението за грешка, което ще се показва
      */
-    public static function getDeliveryTermError($deliveryTermId, $deliveryAddress, $contragentClassId, $contragentId, $deliveryLocationId)
+    public static function getDeliveryTermError($deliveryTermId, $deliveryAddress, $contragentClassId, $contragentId, $deliveryLocationId, $params = array())
     {
         $deliveryRec = cond_DeliveryTerms::fetchRec($deliveryTermId);
         $properties = type_Set::toArray($deliveryRec->properties);
@@ -654,7 +656,7 @@ class sales_TransportValues extends core_Manager
         $ourCompany = crm_Companies::fetchOurCompany();
         
         // Опит за изчисляване на дъмми транспорт
-        $params = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
+        $params = $params + array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
         $totalFee = $Driver->getTransportFee($deliveryTermId, 1, 1000, $params);
         
         if ($totalFee['fee'] < 0) {
@@ -712,7 +714,8 @@ class sales_TransportValues extends core_Manager
         }
         
         // Колко е очаквания транспорт
-        $feeArr = self::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $masterRec->{$map['deliveryLocationId']}, $countryId, $PCode);
+        $deliveryData = is_array($masterRec->{$map['deliveryData']}) ? $masterRec->{$map['deliveryData']} : array();
+        $feeArr = self::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $masterRec->{$map['deliveryLocationId']}, $countryId, $PCode, $deliveryData);
         
         // Ако има такъв към цената се добавя
         if (is_array($feeArr)) {

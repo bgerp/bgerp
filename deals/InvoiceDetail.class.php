@@ -241,7 +241,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
      */
     public static function modifyDcDetails(&$recs, $rec, $mvc)
     {
-        expect($rec->type === 'dc_note');
+        expect($rec->type != 'invoice');
         
         if (countR($recs)) {
             // Намираме оригиналните к-ва и цени

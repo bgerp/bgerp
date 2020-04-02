@@ -103,7 +103,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
             
             $data->query->orderBy('modifiedOn=DESC');
             
-            if (Mode::is('screenMode', 'narrow') && !Request::get('noticeSearch')) {
+            if (Mode::is('screenMode', 'narrow') && !Request::get($Notifications->searchInputField)) {
                 $data->query->where("#state = 'active'");
                 
                 // Нотификациите, модифицирани в скоро време да се показват

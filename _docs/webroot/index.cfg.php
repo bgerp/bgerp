@@ -7,7 +7,7 @@ error_reporting(CORE_ERROR_REPORTING_LEVEL);
 // DEFINE('DEBUG_FATAL_ERRORS_PATH', '/tmp/bgerp/err');
 
 // Дали да са включени финкциите за дебъг и настройка
-DEFINE('EF_DEBUG', true);
+DEFINE('EF_DEBUG', "localhost,127.0.0.1,::1");
 
 // Името на папката със статичните ресурсни файлове:
 // css, js, png, gif, jpg, flv, swf, java, xml, txt, html ...

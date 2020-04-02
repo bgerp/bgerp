@@ -65,7 +65,7 @@ class cat_Products extends embed_Manager
      * Детайла, на модела
      */
     public $details = 'Packagings=cat_products_Packagings,Prices=cat_products_PriceDetails,AccReports=acc_ReportDetails,
-    Resources=planning_ObjectResources,Usage=cat_products_Usage,Boms=cat_Boms,Shared=cat_products_SharedInFolders';
+    Resources=planning_ObjectResources,Usage=cat_products_Usage,Boms=cat_Boms,Shared=cat_products_SharedInFolders,store_Products';
     
     
     /**
@@ -299,7 +299,7 @@ class cat_Products extends embed_Manager
     /**
      * Полета, които могат да бъдат експортирани
      */
-    public $exportableCsvFields = 'code, name, measureId, groups, meta';
+    public $exportableCsvFields = 'code, name, nameEn, measureId, groups, meta';
     
     
     /**
@@ -307,7 +307,7 @@ class cat_Products extends embed_Manager
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'originId, code, name, isPublic';
+    public $fieldsNotToClone = 'originId, code, name, nameEn, isPublic';
     
     
     /**
@@ -713,6 +713,7 @@ class cat_Products extends embed_Manager
         
         $fields['code'] = array('caption' => 'Код', 'mandatory' => 'mandatory');
         $fields['name'] = array('caption' => 'Наименование');
+        $fields['nameEn'] = array('caption' => 'Международно');
         $fields['measureId'] = array('caption' => 'Мярка', 'mandatory' => 'mandatory');
         $fields['groups'] = array('caption' => 'Групи');
         $fields['meta'] = array('caption' => 'Свойства');
@@ -2052,12 +2053,7 @@ class cat_Products extends embed_Manager
             if ($mvc->haveRightFor('edit', $rec)) {
                 if (!Mode::isReadOnly()) {
                     $row->editGroupBtn = ht::createLink('', array($mvc, 'EditGroups', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,title=Промяна на групите на артикула');
-                    
-                    if (haveRole('catEdit,ceo,admin')) {
-                        Request::setProtected('Selected');
-                        $row->editMetaBtn = ht::createLink('', array($mvc, 'changemeta', 'Selected' => $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,title=Промяна на мета-свойствата на артикула');
-                        Request::removeProtected('Selected');
-                    }
+                    $row->editMetaBtn = ht::createLink('', array($mvc, 'changemeta', 'Selected' => $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,title=Промяна на мета-свойствата на артикула');
                 }
             }
             
@@ -2333,7 +2329,7 @@ class cat_Products extends embed_Manager
         // Ако не е указан тип, се взима последната рецепта
         $query = cat_Boms::getQuery();
         $query->where("#productId = '{$rec->id}' AND #state = 'active'");
-        $query->orderBy('id', 'ASC');
+        $query->orderBy('id', 'DESC');
         
         return $query->fetch();
     }
