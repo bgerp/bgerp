@@ -864,7 +864,6 @@ abstract class deals_DealMaster extends deals_DealBase
         $Detail = cls::get($mvc->mainDetail);
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
-        $dQuery->where('#tolerance IS NULL');
         
         while ($dRec = $dQuery->fetch()) {
             $save = false;
@@ -888,6 +887,11 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
             
+            if(!isset($dRec->discount) && isset($dRec->autoDiscount)){
+                $dRec->discount = $dRec->autoDiscount;
+                $save = true;
+            }
+            
             if ($save === true) {
                 $saveRecs[] = $dRec;
             }
@@ -895,7 +899,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Ако има детайли за обновяване
         if (countR($saveRecs)) {
-            $Detail->saveArray($saveRecs, 'id,tolerance,term');
+            $Detail->saveArray($saveRecs, 'id,tolerance,term,discount');
         }
         
         $update = false;

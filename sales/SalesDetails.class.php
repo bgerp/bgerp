@@ -154,8 +154,8 @@ class sales_SalesDetails extends deals_DealDetail
     public function description()
     {
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
-        
         parent::getDealDetailFields($this);
+        $this->FLD('autoDiscount', 'percent(min=0,max=1)', 'input=none');
         $this->setField('packPrice', 'silent');
     }
     
@@ -204,6 +204,11 @@ class sales_SalesDetails extends deals_DealDetail
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
             $pInfo = cat_Products::getProductInfo($rec->productId);
+            
+            if(!isset($rec->discount) && isset($rec->autoDiscount)){
+                $row->discount = $mvc->getFieldType('discount')->toVerbal($rec->autoDiscount);
+                $row->discount = ht::createHint($row->discount, 'Отстъпката е сметната автоматично');
+            }
             
             if ($storeId = $masterRec->shipmentStoreId) {
                 if (isset($pInfo->meta['canStore'])) {
