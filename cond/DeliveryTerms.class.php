@@ -370,6 +370,7 @@ class cond_DeliveryTerms extends core_Master
         // Ако ще се показва адреса на доставчик
         if($rec->address == 'supplier'){
             if($Document instanceof sales_Sales){
+                unset($form->rec->deliveryLocationId, $form->rec->deliveryAdress);
                 $form->setReadOnly('deliveryLocationId');
                 $form->setReadOnly('deliveryAdress');
             } elseif($Document instanceof eshop_Carts){
