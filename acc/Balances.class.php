@@ -222,16 +222,7 @@ class acc_Balances extends core_Master
         
         // Ако показваме по сметка
         if (Request::get('accId', 'int')) {
-            $periods = array();
-            $query = $mvc->getQuery();
-            $query->where('#periodId IS NOT NULL');
-            $query->orderBy('toDate', 'DESC');
-            
-            while ($bRec = $query->fetch()) {
-                $key = toUrl(array($mvc, 'single', $bRec->id));
-                $periods[$key] = acc_Periods::fetchField($bRec->periodId, 'title');
-            }
-            
+            $periods = self::getSelectOptions('DESC', false, true);
             $value = toUrl(array($mvc, 'single', $data->rec->id));
             $periodRow = ht::createSmartSelect($periods, 'periodId', $value, array('class' => 'filterBalanceId'));
         } else {
@@ -979,14 +970,15 @@ class acc_Balances extends core_Master
     
     
     /**
-     * Кои са незатворените баланси
-     *
-     * @param string $order
-     * @param bool   $skipClosed
-     *
-     * @return array $balances
+     * Опции с балансите за избор
+     * 
+     * @param string $order       - подредба
+     * @param boolean $skipClosed - пропусни затворените
+     * @param boolean $linkKeys   - дали ключа да е линк към сингъла на баланса
+     * 
+     * @return array              - $balances
      */
-    public static function getSelectOptions($order = 'DESC', $skipClosed = true)
+    public static function getSelectOptions($order = 'DESC', $skipClosed = true, $linkKeys = false)
     {
         $balances = array();
         $query = acc_Balances::getQuery();
@@ -997,7 +989,8 @@ class acc_Balances extends core_Master
         
         $query->orderBy('id', $order);
         while ($rec = $query->fetch()) {
-            $balances[$rec->id] = acc_Periods::getTitleById($rec->periodId, false);
+            $key = ($linkKeys !== true) ? $rec->id : toUrl(array(__CLASS__, 'single', $rec->id));
+            $balances[$key] = acc_Periods::getTitleById($rec->periodId, false);
         }
         
         return $balances;
