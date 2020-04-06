@@ -625,6 +625,12 @@ class eshop_Products extends core_Master
         }
         
         $data->rec = self::fetch($data->productId);
+        if($data->rec->state == 'closed'){
+            $groupRec = eshop_Groups::fetch($data->rec->groupId);
+            
+            return new Redirect(eshop_Groups::getUrl($groupRec), 'Артикулът в момента е спрян от продажба|*!', 'warning');
+        }
+       
         $data->groups = new stdClass();
         $data->groups->groupId = $data->rec->groupId;
         if ($groupId = Request::get('groupId', 'int')) {
