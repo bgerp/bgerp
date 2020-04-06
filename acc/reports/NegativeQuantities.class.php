@@ -87,8 +87,6 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
-        $articlesForCheck = array();
-        $storesArr = array();
         
         $query = acc_BalanceDetails::getQuery();
         
@@ -104,7 +102,6 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
             $storesForCheck = keylist::toArray($rec->storeId);
         } 
         
-        $markers = array();
         while ($detail = $query->fetch()) {
            
             if (!is_null($rec->storeId)) {
@@ -136,7 +133,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         $number = 1;
          foreach ($recs as $key => $val) {
              
-             if (min($val->quantity)>0) {
+             if (min($val->quantity) > 0) {
                   unset($recs[$key]);
              }else{
             
