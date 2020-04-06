@@ -102,16 +102,17 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         
         if (!is_null($rec->storeId)) {
             $storesForCheck = keylist::toArray($rec->storeId);
-        }
+        } 
+        
         while ($detail = $query->fetch()) {
-          
-          //  $storesArr[$detail->ent1Id] = $detail->ent1Id;
-            
+           
             if (!is_null($rec->storeId)) {
                 if (in_array((acc_Items::fetch($detail->ent1Id)->objectId), $storesForCheck)) {
                     if (($detail->blQuantity < 0) && (abs($detail->blQuantity) > $rec->minval)) {
                         $articlesForCheck[$detail->ent2Id] = $detail->ent2Id;
                     }
+                }else{
+                    continue;
                 }
             }
             
@@ -150,7 +151,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
             $val->articulNo = $number;
             $number++;
         }
-        
+       
         return $recs;
     }
     
