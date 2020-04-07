@@ -77,6 +77,7 @@ class plg_Sorting extends core_Plugin
                     }
                     
                     if (!$mvc->fields[$f]->notSorting) {
+                        $data->plg_Sorting->fields = array();
                         if (!$direction || $direction == 'none' || ($f != $field)) {
                             $data->plg_Sorting->fields[$f] = 'none';
                         } elseif ($direction == 'up') {
