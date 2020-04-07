@@ -34,7 +34,8 @@ if (!empty($conf->OUT)) {
 		} else {
 			fwrite($fp, $conf->OUT);
 			fclose($fp);
-			$res = "Device: OK";
+//			$res = "Device: OK";
+			$res = "OK";
 		}
 	} elseif (!empty($conf->IP_ADDRESS) && !empty($conf->PORT)) { 	// Ако няма дефинирано DEVICE опитваме да го пратим на IP
 			$fp = fsockopen($conf->IP_ADDRESS, $conf->PORT, $errno, $errstr, 10);
@@ -43,7 +44,8 @@ if (!empty($conf->OUT)) {
 			} else {
 				fwrite($fp, $conf->OUT);
 				fclose($fp);
-				$res = "Socket: OK";
+//				$res = "Socket: OK";
+				$res = "OK";
 			}
 		} else {
 		$res = "err: Недостатъчни данни за връзване по socket /IP:PORT/";
