@@ -367,16 +367,38 @@ class cond_DeliveryTerms extends core_Master
         $rec = self::fetchRec($id);
         $Document = cls::get($document);
         
+        // Ако ще се показва адреса на доставчик
         if($rec->address == 'supplier'){
             if($Document instanceof sales_Sales){
+                unset($form->rec->deliveryLocationId, $form->rec->deliveryAdress);
                 $form->setReadOnly('deliveryLocationId');
                 $form->setReadOnly('deliveryAdress');
             } elseif($Document instanceof eshop_Carts){
                 unset($form->rec->deliveryCountry, $form->rec->deliveryPCode, $form->rec->deliveryPlace, $form->rec->deliveryAddress);
-                $form->setField('deliveryCountry', 'input=hidden');
-                $form->setField('deliveryPCode', 'input=hidden');
-                $form->setField('deliveryPlace', 'input=hidden');
-                $form->setField('deliveryAddress', 'input=hidden');
+                
+                // Имали избрана локация или склад в настройките на магазина
+                $settings = cms_Domains::getSettings();
+                $ownCompany = crm_Companies::fetchOurCompany();
+                $countryId = $ownCompany->country;
+                $locationId = isset($settings->locationId) ? $settings->locationId : (isset($settings->storeId) ? store_Stores::fetchField($settings->storeId, 'locationId') : null);
+                
+                // Ако има взима се нейния адрес, ако не адреса на "Моята фирма"
+                if(isset($locationId)){
+                    $locationRec = crm_Locations::fetch($locationId, 'countryId,place,pCode,address');
+                    $countryId = (!empty($locationRec->country)) ? $locationRec->country : $countryId;
+                    $pCode = $locationRec->pCode;
+                    $place = $locationRec->place;
+                    $address = $locationRec->address;
+                } else {
+                    $pCode = $ownCompany->pCode;
+                    $place = $ownCompany->place;
+                    $address = $ownCompany->address;
+                }
+               
+                $form->setReadOnly('deliveryCountry', $countryId);
+                $form->setReadOnly('deliveryPCode', $pCode);
+                $form->setReadOnly('deliveryPlace', $place);
+                $form->setReadOnly('deliveryAddress', $address);
                 $form->setField('locationId', 'input=none');
             }
         }

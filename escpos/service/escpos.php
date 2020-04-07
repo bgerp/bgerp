@@ -8,6 +8,7 @@ define("IP_ADDRESS", "11.0.0.77");
 define("PORT", "9100");
 define ("OUT", "\x1B\x69\x61\x00\x1B\x40\x1B\x69\x4C\x01\x1b\x28\43\x02\x00\xFC\x02\x1B\x24\xCB\x00\x1B\x28\x56\x02\x00\xCB\x00\x1B\x68\x0B\x1B\x58\x00\x64\x00\x41\x74\x20\x79\x6F\x75\x72\x20\x73\x69\x64\x65\x0C");
 
+header('Access-Control-Allow-Origin: *');
 
 // Опитва се да вземе входните данни от GET заявка. Ако няма такива използва дефинираните константи. Ако има дефинирано DEVICE - се позлва с приоритет
 if (($conf = unserialize(gzuncompress(base64_decode($_GET['DATA'])))) === FALSE || empty((array)$conf)) {
@@ -33,7 +34,8 @@ if (!empty($conf->OUT)) {
 		} else {
 			fwrite($fp, $conf->OUT);
 			fclose($fp);
-			$res = "Device: OK";
+//			$res = "Device: OK";
+			$res = "OK";
 		}
 	} elseif (!empty($conf->IP_ADDRESS) && !empty($conf->PORT)) { 	// Ако няма дефинирано DEVICE опитваме да го пратим на IP
 			$fp = fsockopen($conf->IP_ADDRESS, $conf->PORT, $errno, $errstr, 10);
@@ -42,7 +44,8 @@ if (!empty($conf->OUT)) {
 			} else {
 				fwrite($fp, $conf->OUT);
 				fclose($fp);
-				$res = "Socket: OK";
+//				$res = "Socket: OK";
+				$res = "OK";
 			}
 		} else {
 		$res = "err: Недостатъчни данни за връзване по socket /IP:PORT/";

@@ -54,7 +54,7 @@ class cams_plg_RecordState extends core_Plugin
     {
         switch ($rec->state) {
             case 'active':
-                $bgColor = EF_ACTIVE_COLOR;
+                $bgColor = '#000000';
                 break;
             case 'hidden':
                 $bgColor = '#f0f0f0';
