@@ -21,9 +21,6 @@ function escPrint(escPrintOnSuccess, escPrintOnError) {
         escPrintOnError(ex.message);
     }
 }
-function escPrintOnSuccess (res) {
-}
-function escPrintOnError (res) {
-}
+
 // Стартираме горната функция
 escPrint(escPrintOnSuccess, escPrintOnError);
