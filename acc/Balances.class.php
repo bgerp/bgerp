@@ -603,6 +603,32 @@ class acc_Balances extends core_Master
     }
     
     
+    
+    /**
+     * Ф-я връщаща последния баланс, в който има записи по аналитичната сметка
+     *
+     * @param mixed $accs     - списък от систем ид-та на сметките
+     * @param mixed $itemsAll - списък от пера, за които може да са на произволна позиция
+     * @param mixed $items1   - списък с пера, от които поне един може да е на първа позиция
+     * @param mixed $items2   - списък с пера, от които поне един може да е на втора позиция
+     * @param mixed $items3   - списък с пера, от които поне един може да е на трета позиция
+     *
+     * @return null|int       - намерения баланс, ако има такъв
+     */
+    public static function fetchLastBalanceFor($accountSysId, $itemsAll = null, $items1 = null, $items2 = null, $items3 = null)
+    {
+        // Извличане на данните от баланса в които участват зададените сметки
+        $dQuery = acc_BalanceDetails::getQuery();
+        acc_BalanceDetails::filterQuery($dQuery, null, $accountSysId, $itemsAll, $items1, $items2, $items3);
+        $dQuery->XPR('maxBalance', 'double', 'MAX(#balanceId)');
+        $dQuery->orderBy('balanceId', 'DESC');
+        $lastBalance = $dQuery->fetch()->maxBalance;
+        $res = !empty($lastBalance) ? $lastBalance : null;
+        
+        return $res;
+    }
+    
+    
     /**
      * Връща масив с количествата групирани по размерната номенклатура на сметките
      *

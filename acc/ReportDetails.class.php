@@ -69,7 +69,6 @@ class acc_ReportDetails extends core_Manager
         // Ако потребителя има достъп до репортите
         if (haveRole($data->masterMvc->canReports) && ($data->Tab == 'top' || $data->isCurrent)) {
             
-            
             // Извличане на счетоводните записи
             $this->prepareBalanceReports($data);
             $data->renderReports = true;
@@ -113,10 +112,10 @@ class acc_ReportDetails extends core_Manager
     private function prepareBalanceReports(&$data)
     {
         // Перото с което мастъра фигурира в счетоводството
-        $items = acc_Items::fetchItem($data->masterMvc->getClassId(), $data->masterId);
+        $data->itemRec = acc_Items::fetchItem($data->masterMvc->getClassId(), $data->masterId);
         
         // Ако мастъра не е перо, няма какво да се показва
-        if (empty($items)) {
+        if (empty($data->itemRec)) {
             $data->renderReports = false;
             
             return;
@@ -127,13 +126,13 @@ class acc_ReportDetails extends core_Manager
             return;
         }
         
-        $accounts = arr::make($data->masterMvc->balanceRefAccounts);
+        $accounts = arr::make($data->masterMvc->balanceRefAccounts, true);
         $data->canSeePrices = haveRole('ceo,accJournal');
         
         // Полета за таблицата
         $data->listFields = arr::make('tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,blQuantity=К-во,blPrice=Цена,blAmount=Сума');
         if ($data->canSeePrices === false) {
-            unset($data->listFields['blPrice'],$data->listFields['blAmount']);
+            unset($data->listFields['blPrice'], $data->listFields['blAmount']);
         }
         
         $data->limitFields = arr::make('item1=item1,item2=item2,item3=item3,side=Салдо,type=Вид,limitQuantity=Сума,createdBy=Създадено от');
@@ -146,7 +145,8 @@ class acc_ReportDetails extends core_Manager
         $data->reportTableMvc->FLD('limitQuantity', 'double', 'tdClass=accCell,smartCenter');
         $data->reportTableMvc->FLD('createdBy', 'double', 'tdClass=accCell,smartCenter');
         $data->reportTableMvc->FLD('blAmount', 'int', 'tdClass=accCell,smartCenter');
-        $data->reportTableMvc->FLD('blPrice', 'int', 'tdclass=accCell,smartCenter');
+        $data->reportTableMvc->FLD('blPrice', 'int', 'tdClass=accCell,smartCenter');
+        $data->reportTableMvc->FLD('emptyRow', 'varchar', 'tdClass=accCellNoRows');
         $data->total = 0;
         
         // Ако баланса е заключен не показваме нищо
@@ -161,99 +161,154 @@ class acc_ReportDetails extends core_Manager
         
         // Взимане на данните от текущия баланс в който участват посочените сметки
         // и ид-то на перото е на произволна позиция
-        $dRecs = acc_Balances::fetchCurrent($accounts, $items->id);
+        $dRecs = acc_Balances::fetchCurrent($accounts, $data->itemRec->id);
         
-        $rows = array();
-        $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
-        
+        $res = array();
         $data->recs = $dRecs;
         
         // Извикване на евент в мастъра за след извличане на записите от БД
         $data->masterMvc->invoke('AfterPrepareAccReportRecs', array($data));
         
         // Може ли потребителя да вижда хронологията на сметката
-        $attr = array('title' => 'Хронологична справка');
-        $attr = ht::addBackgroundIcon($attr, 'img/16/clock_history.png');
-        
-        if (is_array($data->recs)) {
-            foreach ($data->recs as $dRec) {
-                $dRec->blPrice = (!empty($dRec->blQuantity)) ? $dRec->blAmount / $dRec->blQuantity : 0;
+        $accounts = arr::make($accounts, true);
+        if(is_array($accounts)){
+            foreach ($accounts as $accSysId){
+                $accountId = acc_Accounts::fetchField("#systemId = '{$accSysId}'", 'id');
                 
-                // На коя позиция се намира, перото на мастъра
-                $gPos = acc_Lists::getPosition(acc_Accounts::fetchField($dRec->accountId, 'systemId'), $groupBy);
-                
-                // Обхождане на останалите пера
-                $row = array();
-                $accGroups = acc_Accounts::getAccountInfo($dRec->accountId)->groups;
-                
-                foreach (range(1, 3) as $pos) {
-                    $entry = $dRec->{"ent{$pos}Id"};
-                    
-                    // Ако има ентри и то е позволено за сметката
-                    if (isset($entry, $accGroups[$pos])) {
+                // Има ли записи в текущия период
+                $recsWithAccount = array_filter($data->recs, function ($a) use ($accountId) {return $a->accountId == $accountId;});
+                if(countR($recsWithAccount)){
+                    foreach ($recsWithAccount as $dRec){
                         
-                        // Ако перото не е групиращото, ще се показва в справката
-                        $row["ent{$pos}Id"] = acc_Items::getVerbal(acc_Items::fetch($entry), 'titleLink');
-                        $row["ent{$pos}Id"] = "<span class='feather-title'>{$row["ent{$pos}Id"]}</span>";
+                        // Ако има вербализират се
+                        if($row = $this->getVerbalBalanceRec($dRec, $groupBy, $data)){
+                            $res[$accountId]['rows'][] = $row;
+                        }
+                    }
+                    
+                    $res[$accountId]['total'] = arr::sumValuesArray($recsWithAccount, 'blAmount');
+                } else {
+                    // Ако няма в текущия период, търсим в кой последно има
+                    if($lastBalanceIn = acc_Balances::fetchLastBalanceFor($accSysId, $data->itemRec->id)){
+                        $lastBalanceRec = acc_Balances::fetch($lastBalanceIn);
+                        $lastBalanceLink = acc_Periods::getVerbal($lastBalanceRec->periodId, 'title');
+                        if (!Mode::isReadOnly()) {
+                            $lastBalanceLink = ht::createLink($lastBalanceLink, acc_Balances::getSingleUrlArray($lastBalanceIn), false, array('title' => "Оборотна ведомост за|* \"{$lastBalanceLink}\""));
+                        }
+                        
+                        $row = (object)array('emptyRow' => tr("Последни записи от|* <b>{$lastBalanceLink}</b>"));
+                        $bRec = (object)array('balanceId' => $lastBalanceIn);
+                        
+                        $gPos = acc_Lists::getPosition($accSysId, $groupBy);
+                        $bRec->{"ent{$gPos}Id"} = $data->itemRec->id;
+                        if (acc_BalanceDetails::haveRightFor('history', $bRec)) {
+                            $histUrl = array('acc_BalanceHistory', 'History', 'fromDate' => $lastBalanceRec->fromDate, 'toDate' => $lastBalanceRec->toDate, 'accNum' => $accSysId, "ent{$gPos}Id" => $data->itemRec->id);
+                            $attr = array('title' => 'Хронологична справка');
+                            $attr = ht::addBackgroundIcon($attr, 'img/16/clock_history.png');
+                            $row->tools = ht::createLink('', $histUrl, null, $attr);
+                        }
+                        
+                        // Ако има в предишен добавяме линк
+                        $res[$accountId]['empty'] = true;
+                        $res[$accountId]['total'] = null;
+                        $res[$accountId]['rows'][] = $row;
                     }
                 }
-                
-                // Ако има повече от едно перо, несе показва това на мениджъра
-                if (countR($row) > 1) {
-                    unset($row["ent{$gPos}Id"]);
-                }
-                
-                if (acc_BalanceDetails::haveRightFor('history', $dRec)) {
-                    $histUrl = array('acc_BalanceHistory', 'History', 'fromDate' => $data->balanceRec->fromDate, 'toDate' => $data->balanceRec->toDate, 'accNum' => $dRec->accountNum);
-                    $histUrl['ent1Id'] = $dRec->ent1Id;
-                    $histUrl['ent2Id'] = $dRec->ent2Id;
-                    $histUrl['ent3Id'] = $dRec->ent3Id;
-                    $row['tools'] = ht::createLink('', $histUrl, null, $attr);
-                }
-                
-                // К-то и сумата се обръщат във вербален вид
-                foreach (array('blQuantity', 'blAmount', 'blPrice') as $fld) {
-                    $style = ($dRec->{$fld} < 0) ? 'color:red' : '';
-                    $row[$fld] = "<span style='float:right;{$style}'>" . $Double->toVerbal($dRec->{$fld}) . '</span>';
-                }
-                
-                $row['amountRec'] = $dRec->blAmount;
-                $row['id'] = $dRec->id;
-                
-                $conf = core_Packs::getConfig('acc');
-                $tolerance = $conf->ACC_MONEY_TOLERANCE;
-                
-                // Ако количеството и сумата са близки до нулата в определена граница ги пропускаме, освен ако не е указано да се показват
-                if (($dRec->blQuantity > (-1 * $tolerance) && $dRec->blQuantity < $tolerance) &&
-                    ($dRec->blAmount > (-1 * $tolerance) && $dRec->blAmount < $tolerance) && $data->masterMvc->balanceRefShowZeroRows === false) {
-                    continue;
-                }
-                
-                $rows[$dRec->accountId]['rows'][] = $row;
-                $rows[$dRec->accountId]['total'] += $dRec->blAmount;
-                $data->total += $dRec->blAmount;
             }
         }
         
         if (is_array($accounts)) {
             $limitQuery = acc_Limits::getQuery();
-            $limitQuery->where("#item1 = {$items->id} || #item2 = {$items->id} || #item3 = {$items->id}");
+            $limitQuery->where("#item1 = {$data->itemRec->id} || #item2 = {$data->itemRec->id} || #item3 = {$data->itemRec->id}");
             while ($lRec = $limitQuery->fetch()) {
                 $lRow = acc_Limits::recToVerbal($lRec);
                 $lRow->state = cls::get('acc_Limits')->getFieldType('state')->toVerbal($lRec->state);
-                $rows[$lRec->accountId]['limits'][$lRec->id] = $lRow;
+                $res[$lRec->accountId]['limits'][$lRec->id] = $lRow;
             }
         }
         
-        $data->totalRow = $Double->toVerbal($data->total);
+        $data->total = arr::sumValuesArray($data->recs, 'blAmount');
+        $data->totalRow = core_Type::getByName('double(decimals=2)')->toVerbal($data->total);
         $data->totalRow = ($data->total < 0) ? "<span class='red'>{$data->totalRow}</span>" : $data->totalRow;
         
         // Връщане на извлечените данни
-        $data->balanceRows = $rows;
+        $data->balanceRows = $res;
         
         // Извикване на евент в мастъра, че записите са подготвени
         $data->masterMvc->invoke('AfterPrepareAccReportRows', array($data));
+    }
+    
+    
+    /**
+     * Вербализира записа
+     * 
+     * @param stdClass $dRec
+     * @param array $groupBy
+     * @param stdClass $data
+     * @return null|stdClass
+     */
+    private function getVerbalBalanceRec($dRec, $groupBy, $data)
+    {
+       $row = new stdClass();
+       
+       $dRec->blPrice = (!empty($dRec->blQuantity)) ? $dRec->blAmount / $dRec->blQuantity : 0;
+       
+       // На коя позиция се намира, перото на мастъра
+       $gPos = acc_Lists::getPosition(acc_Accounts::fetchField($dRec->accountId, 'systemId'), $groupBy);
+       
+       // Обхождане на останалите пера
+       $row = array();
+       $accGroups = acc_Accounts::getAccountInfo($dRec->accountId)->groups;
+       
+       foreach (range(1, 3) as $pos) {
+           $entry = $dRec->{"ent{$pos}Id"};
+           
+           // Ако има ентри и то е позволено за сметката
+           if (isset($entry, $accGroups[$pos])) {
+               
+               // Ако перото не е групиращото, ще се показва в справката
+               $row["ent{$pos}Id"] = acc_Items::getVerbal(acc_Items::fetch($entry), 'titleLink');
+               $row["ent{$pos}Id"] = "<span class='feather-title'>{$row["ent{$pos}Id"]}</span>";
+           }
+       }
+       
+       // Ако има повече от едно перо, несе показва това на мениджъра
+       if (countR($row) > 1) {
+           unset($row["ent{$gPos}Id"]);
+       }
+       
+       if (acc_BalanceDetails::haveRightFor('history', $dRec)) {
+           $histUrl = array('acc_BalanceHistory', 'History', 'fromDate' => $data->balanceRec->fromDate, 'toDate' => $data->balanceRec->toDate, 'accNum' => $dRec->accountNum);
+           $histUrl['ent1Id'] = $dRec->ent1Id;
+           $histUrl['ent2Id'] = $dRec->ent2Id;
+           $histUrl['ent3Id'] = $dRec->ent3Id;
+           
+           $attr = array('title' => 'Хронологична справка');
+           $attr = ht::addBackgroundIcon($attr, 'img/16/clock_history.png');
+           $row['tools'] = ht::createLink('', $histUrl, null, $attr);
+       }
+       
+       // К-то и сумата се обръщат във вербален вид
+       $Double = core_Type::getByName('double(decimals=2)');
+       foreach (array('blQuantity', 'blAmount', 'blPrice') as $fld) {
+           $style = ($dRec->{$fld} < 0) ? 'color:red' : '';
+           $row[$fld] = "<span style='float:right;{$style}'>" . $Double->toVerbal($dRec->{$fld}) . '</span>';
+       }
+       
+       $row['amountRec'] = $dRec->blAmount;
+       $row['id'] = $dRec->id;
+       
+       $conf = core_Packs::getConfig('acc');
+       $tolerance = $conf->ACC_MONEY_TOLERANCE;
+       
+       // Ако количеството и сумата са близки до нулата в определена граница ги пропускаме, освен ако не е указано да се показват
+       if (($dRec->blQuantity > (-1 * $tolerance) && $dRec->blQuantity < $tolerance) &&
+           ($dRec->blAmount > (-1 * $tolerance) && $dRec->blAmount < $tolerance) && $data->masterMvc->balanceRefShowZeroRows === false) {
+               
+               return null;
+       }
+           
+       return $row;
     }
     
     
@@ -267,6 +322,12 @@ class acc_ReportDetails extends core_Manager
     private function renderBalanceReports(&$data)
     {
         $tpl = getTplFromFile('acc/tpl/BalanceRefDetail.shtml');
+        if(is_object($data->itemRec)){
+            $itemLink = acc_Items::getVerbal($data->itemRec, 'titleLink');
+        } else {
+            $itemLink = tr('НЯМА');
+        }
+        $tpl->append($itemLink, 'itemId');
         
         if (isset($data->balanceRec->periodId)) {
             $link = acc_Periods::getVerbal($data->balanceRec->periodId, 'title');
@@ -287,7 +348,6 @@ class acc_ReportDetails extends core_Manager
         
         $limitTitle = tr('Лимити');
         $tpl->replace($limitTitle, 'LIMIT_LINK');
-        
         $data->listFields['tools'] = ' ';
         
         // Ако има какво да се показва
@@ -334,24 +394,33 @@ class acc_ReportDetails extends core_Manager
                     }
                 }
                 
-                // Ако има записи показваме таблицата
-                if (countR($rows)) {
+                $tableHtml = null;
+                if($arr['empty'] !== true){
+                    if(countR($rows)){
+                        $fields = core_TableView::filterEmptyColumns($rows, $fields, 'tools');
+                        $tableHtml = $table->get($rows, $fields);
+                        if ($data->canSeePrices !== false) {
+                            $colspan = countR($fields) - 1;
+                            $totalRow = $Double->toVerbal($total);
+                            $totalRow = ($total < 0) ? "<span style='color:red'>{$totalRow}</span>" : $totalRow;
+                            $totalHtml = "<tr><th colspan='{$colspan}' style='text-align:right'>" . tr('Общо') . ":</th><th style='padding-right: 4px; font-weight:bold'><span class='maxwidth totalCol accCell'>{$totalRow}</th></th></tr>";
+                            $tableHtml->replace($totalHtml, 'ROW_AFTER');
+                        }
+                    }
+                } else {
+                    unset($fields["ent2Id"], $fields["ent3Id"], $fields["blQuantity"], $fields["blAmount"], $fields['blPrice']);
+                    $fields["emptyRow"] = " ";
+                    
                     $fields = core_TableView::filterEmptyColumns($rows, $fields, 'tools');
                     $tableHtml = $table->get($rows, $fields);
-                    
-                    if ($data->canSeePrices !== false) {
-                        $colspan = countR($fields) - 1;
-                        $totalRow = $Double->toVerbal($total);
-                        $totalRow = ($total < 0) ? "<span style='color:red'>{$totalRow}</span>" : $totalRow;
-                        $totalHtml = "<tr><th colspan='{$colspan}' style='text-align:right'>" . tr('Общо') . ":</th><th style='padding-right: 4px; font-weight:bold'><span class='maxwidth totalCol accCell'>{$totalRow}</th></th></tr>";
-                        $tableHtml->replace($totalHtml, 'ROW_AFTER');
-                        $tableHtml->removeBlocks();
-                    }
-                    
-                    // Добавяне на таблицата в шаблона
+                }
+               
+                if(!is_null($tableHtml)){
+                    $tableHtml->removeBlocks();
                     $content->append($tableHtml);
-                    $tpl->append("<div class='summary-group'>" . $content . '</div>', 'CONTENT');
                     $count++;
+                    
+                    $tpl->append("<div class='summary-group'>" . $content . '</div>', 'CONTENT');
                 }
                 
                 // Ако има зададени лимити за тази сметка, показваме и тях
