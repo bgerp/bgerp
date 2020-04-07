@@ -11,20 +11,20 @@
 	</div>
 	<div class="vtop" style='padding-left:2%;float:left;width:74%'>
 		<div class='eshop-product-labels'>
-			<!--ET_BEGIN code--><span><b>|Код|*: [#code#]</b></span><!--ET_END code--> 
+			<!--ET_BEGIN code--><span><b>|Код|*: [#code#]</b></span><!--ET_END code-->
             <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--> [#coInquiry#]
 			<div class="clearfix21"></div>
 		</div>
-		
+
 		<!--ET_BEGIN STATE_EXTERNAL-->
 		[#STATE_EXTERNAL#]
 		<!--ET_END STATE_EXTERNAL-->
-		
+
 		<div style="padding: 10px 0;">
 		[#info#]
 		</div>
 		<!--ET_BEGIN PRODUCT_OPT-->
-		<div class="scrolling-holder" style="margin: 10px 0;">
+		<div class="overflow-scroll" style="margin: 10px 0;">
 			[#PRODUCT_OPT#]
 		</div>
 		<!--ET_END PRODUCT_OPT-->
