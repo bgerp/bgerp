@@ -38,7 +38,7 @@ class doc_TplManager extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_SaveAndNew, plg_Modified, doc_Wrapper, plg_RowTools, plg_State2';
+    public $loadList = 'plg_Created, plg_SaveAndNew, plg_State2, plg_Modified, doc_Wrapper, plg_RowTools';
     
     
     /**
@@ -48,9 +48,9 @@ class doc_TplManager extends core_Master
     
     
     /**
-     * Кой има право да чете?
+     * Кой може да променя състоянието на валутата
      */
-    public $canRead = 'ceo,admin';
+    public $canChangestate = 'ceo,admin';
     
     
     /**
@@ -98,7 +98,7 @@ class doc_TplManager extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, name, docClassId, createdOn, createdBy, state';
+    public $listFields = 'id, name, docClassId, createdOn, createdBy, modifiedOn, modifiedBy, state';
     
     
     /**
@@ -107,6 +107,21 @@ class doc_TplManager extends core_Master
      * @var array
      */
     protected static $cacheScripts = array();
+    
+    
+    /**
+     * Кеш за константите
+     */
+    protected static $cacheConstants = array();
+    
+    
+    /**
+     * Кои уеб константи от настройките на пакетите са за дефолтни шаблони
+     */
+    protected static $templateSetupConstants = array('dec_Setup' => array('DEC_DEF_TPL_BG', 'DEC_DEF_TPL_EN'), 
+                                                     'eshop_Setup' => array('ESHOP_SALE_DEFAULT_TPL_BG', 'ESHOP_SALE_DEFAULT_TPL_EN'),
+                                                     'sales_Setup' => array('SALE_SALE_DEF_TPL_BG', 'SALE_SALE_DEF_TPL_EN', 'SALE_INVOICE_DEF_TPL_BG', 'SALE_INVOICE_DEF_TPL_EN'),
+    );
     
     
     /**
@@ -410,6 +425,7 @@ class doc_TplManager extends core_Master
             
             if ($exRec) {
                 $object->id = $exRec->id;
+                $object->state = $exRec->state;
             }
             
             // Ако файла на шаблона не е променян, то записа не се обновява
@@ -429,8 +445,15 @@ class doc_TplManager extends core_Master
             if ($object->narrowContent) {
                 $object->narrowContent = getFileContent($object->narrowContent);
             }
-            $object->createdBy = -1;
-            $object->state = 'active';
+            
+            // Ако е съществуващ запис, затворен, не се активира повторно
+            $newState = 'active';
+            if(isset($object->id)  && $object->state == 'closed'){
+                $newState = 'closed';
+            }
+            
+            $object->createdBy = core_Users::SYSTEM_USER;
+            $object->state = $newState;
             
             static::save($object);
             
@@ -442,18 +465,6 @@ class doc_TplManager extends core_Master
         $res = "<li{$class}>Добавени са {$added} шаблона за " . mb_strtolower($mvc->title) . ", обновени са {$updated}, пропуснати са {$skipped}</li>";
         
         return $res;
-    }
-    
-    
-    /**
-     * Извиква се преди вкарване на запис в таблицата на модела
-     */
-    public static function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = null)
-    {
-        // Ако записа е вкаран от сетъпа променяме за модифициран от да е @system
-        if ($rec->_modifiedBy) {
-            $rec->modifiedBy = $rec->_modifiedBy;
-        }
     }
     
     
@@ -490,6 +501,14 @@ class doc_TplManager extends core_Master
         
         if (($action == 'edit') && isset($rec)) {
             if ($rec->createdBy == -1) {
+                $res = 'no_one';
+            }
+        }
+        
+        // Ако шаблона е избран като дефолтен в някоя уеб константа, той не може да се изключва
+        if($action == 'changestate' && isset($rec)){
+            $in = self::getIdsInSetupConstants();
+            if(in_array($rec->id, $in)){
                 $res = 'no_one';
             }
         }
@@ -546,5 +565,26 @@ class doc_TplManager extends core_Master
         
         // Ако не е открит такъв файл
         return false;
+    }
+    
+    
+    /**
+     * Намира избраните шаблони като уеб константи
+     * 
+     * @return array
+     */
+    private static function getIdsInSetupConstants()
+    {
+        if(empty(self::$cacheConstants)){
+            self::$cacheConstants = array();
+            foreach(self::$templateSetupConstants as $packSetupClass => $constants){
+                foreach ($constants as $constantName){
+                    $templateId = $packSetupClass::get($constantName, true);
+                    self::$cacheConstants[$templateId] = $templateId;
+                }
+            }
+        }
+        
+        return self::$cacheConstants;
     }
 }
