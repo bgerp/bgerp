@@ -223,7 +223,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                     if ($dRec1->type == 'input') {
                         // Ако артикула е складируем търсим средната му цена във всички складове, иначе търсим в незавършеното производство
                         if ($canStore == 'yes') {
-                            $primeCost = cat_Products::getWacAmountInStore($dRec1->quantity, $dRec1->productId, $valior);
+                            $primeCost = cat_Products::getWacAmountInStore($dRec1->quantity, $dRec1->productId, $valior, $dRec1->storeId);
                         } else {
                             $primeCost = planning_ObjectResources::getWacAmountInProduction($dRec1->quantity, $dRec1->productId, $valior);
                         }
