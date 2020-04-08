@@ -115,7 +115,9 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             $dRecs = $dQuery->fetchAll();
         }
         
-        $entries = self::getProductionEntries($rec->productId, $rec->quantity, $rec->storeId, $rec->debitAmount, $this->class, $rec->id, $rec->expenseItemId, $rec->valior, $rec->expenses, $dRecs);
+        $quantity = !empty($rec->jobQuantity) ? $rec->jobQuantity : $rec->quantity;
+        
+        $entries = self::getProductionEntries($rec->productId, $quantity, $rec->storeId, $rec->debitAmount, $this->class, $rec->id, $rec->expenseItemId, $rec->valior, $rec->expenses, $dRecs);
         
         return $entries;
     }
