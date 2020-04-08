@@ -320,6 +320,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                             'amount' => $diff,
                             'debit' => $array,
                             'credit' => array('61102'),
+                            'reason' => 'Изравняване на себестойността, спрямо очакваната'
                         );
                         
                         $entries[] = $array1;
