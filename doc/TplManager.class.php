@@ -153,6 +153,19 @@ class doc_TplManager extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, &$data)
     {
+        $data->listFilter->setOptions('docClassId', static::getClassesWithTemplates());
+        $data->listFilter->setField('docClassId', "placeholder=Всички документи");
+        $data->listFilter->showFields = 'docClassId';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input();
+        
+        if($data->listFilter->isSubmitted()){
+            if(!empty($data->listFilter->rec->docClassId)){
+                $data->query->where("#docClassId = {$data->listFilter->rec->docClassId}");
+            }
+        }
+        
         $data->query->orderBy('name');
     }
     
@@ -586,5 +599,23 @@ class doc_TplManager extends core_Master
         }
         
         return self::$cacheConstants;
+    }
+    
+    
+    /**
+     * Масив със класовете, които имат шаблони в модела
+     * 
+     * @return array $res
+     */
+    public static function getClassesWithTemplates()
+    {
+        $res = array();
+        $query = self::getQuery();
+        $classIds = arr::extractValuesFromArray($query->fetchAll(), 'docClassId');
+        foreach ($classIds as $classId){
+            $res[$classId] = tr(core_Classes::fetchField($classId, 'title'));
+        }
+        
+        return $res;
     }
 }
