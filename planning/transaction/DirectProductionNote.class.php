@@ -115,9 +115,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             $dRecs = $dQuery->fetchAll();
         }
         
-        $quantity = !empty($rec->jobQuantity) ? $rec->jobQuantity : $rec->quantity;
-        
-        $entries = self::getProductionEntries($rec->productId, $quantity, $rec->storeId, $rec->debitAmount, $this->class, $rec->id, $rec->expenseItemId, $rec->valior, $rec->expenses, $dRecs);
+        $entries = self::getProductionEntries($rec->productId, $rec->quantity, $rec->storeId, $rec->debitAmount, $this->class, $rec->id, $rec->expenseItemId, $rec->valior, $rec->expenses, $dRecs, $rec->jobQuantity);
         
         return $entries;
     }
@@ -139,7 +137,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
      * 
      * @return array $entries
      */
-    public static function getProductionEntries($productId, $quantity, $storeId, $debitAmount, $classId, $documentId, $expenseItemId, $valior, $expenses, $details)
+    public static function getProductionEntries($productId, $quantity, $storeId, $debitAmount, $classId, $documentId, $expenseItemId, $valior, $expenses, $details, $jobQuantity = null)
     {
         $entries = $array = array();
         $prodRec = cat_Products::fetch($productId, 'fixedAsset,canStore');
@@ -309,7 +307,9 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             }
             
             if ($Driver = cat_Products::getDriver($productId)) {
-                $driverCost = $Driver->getPrice($productId, $quantity, 0, 0, $valior);
+                $quantityCompare = !empty($jobQuantity) ? $jobQuantity : $quantity;
+                $driverCost = $Driver->getPrice($productId, $quantityCompare, 0, 0, $valior);
+              
                 $driverCost = is_object($driverCost) ? $driverCost->price : $driverCost;
                 
                 if (isset($driverCost)) {
