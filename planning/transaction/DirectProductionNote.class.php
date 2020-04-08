@@ -266,8 +266,15 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                         $entry2 = array();
                         $entry2['amount'] = -1 * $primeCost;
                         $entry2['debit'] = $array;
+                        
+                        if($dRec1->productId == $productId){
+                            $entry2['debit']['quantity'] = -1 * $dRec1->quantity;
+                        } else {
+                            $entry2['debit']['quantity'] = 0;
+                        }
+                        
                         $entry2['credit'] = array('484');
-                        $entry2['debit']['quantity'] = 0;
+                        
                         $entry2['reason'] = 'Приспадане себестойността на отпадък от произведен артикул';
                         $entries[] = $entry2;
                     }
