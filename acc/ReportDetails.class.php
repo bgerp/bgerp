@@ -249,15 +249,14 @@ class acc_ReportDetails extends core_Manager
      */
     private function getVerbalBalanceRec($dRec, $groupBy, $data)
     {
-       $row = new stdClass();
-       
+       $row = array();
        $dRec->blPrice = (!empty($dRec->blQuantity)) ? $dRec->blAmount / $dRec->blQuantity : 0;
        
        // На коя позиция се намира, перото на мастъра
        $gPos = acc_Lists::getPosition(acc_Accounts::fetchField($dRec->accountId, 'systemId'), $groupBy);
        
        // Обхождане на останалите пера
-       $row = array();
+       
        $accGroups = acc_Accounts::getAccountInfo($dRec->accountId)->groups;
        
        foreach (range(1, 3) as $pos) {
@@ -308,7 +307,7 @@ class acc_ReportDetails extends core_Manager
                return null;
        }
            
-       return $row;
+       return (object)$row;
     }
     
     
