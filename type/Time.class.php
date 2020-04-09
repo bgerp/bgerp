@@ -352,7 +352,7 @@ class type_Time extends type_Varchar
             if ($days == 1) {
                 $res .= '1 ' . tr('ден');
             } elseif ($days == 2) {
-                $res .= '2 '  . tr('дена');
+                $res .= '2 '  . tr('дни');
             } else {
                 $res .= "{$days} " . tr('дни');
             }
