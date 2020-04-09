@@ -133,7 +133,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         $number = 1;
          foreach ($recs as $key => $val) {
              
-             if (min($val->quantity) > 0) {
+             if (min($val->quantity) >= 0) {
                   unset($recs[$key]);
              }else{
             
