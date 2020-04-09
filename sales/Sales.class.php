@@ -1644,4 +1644,36 @@ class sales_Sales extends deals_DealMaster
             }
         }
     }
+    
+    
+    /**
+     * Обновява мастъра
+     *
+     * @param mixed $id - ид/запис на мастъра
+     */
+    public static function on_AfterUpdateMaster($mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if(!in_array($rec->state, array('draft', 'pending'))) {
+            
+            return;
+        }
+        
+        // Изчисляване на автоматичните отстъпки ако може
+        $DiscountInterface = price_ListToCustomers::getAutoDiscountClassForCustomer($rec->priceListId, $rec->contragentClassId, $rec->contragentId, $rec->valior);
+        if($DiscountInterface){
+            $update = array();
+            $dQuery = cls::get('sales_SalesDetails')->getQuery();
+            $dQuery->where("#saleId = {$rec->id}");
+            while($dRec = $dQuery->fetch()){
+                $dRec->autoDiscount = $DiscountInterface->calcAutoSaleDiscount($dRec, $rec);
+                $update[$dRec->id] = $dRec;
+            }
+            
+            cls::get('sales_SalesDetails')->saveArray($update, 'id,autoDiscount');
+            
+            // Вика се пак да се преизчислят кеш полетата наново след въведената отстъпка
+            parent::updateMaster_($id);
+        }
+    }
 }

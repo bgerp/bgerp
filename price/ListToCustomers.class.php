@@ -594,4 +594,32 @@ class price_ListToCustomers extends core_Manager
             }
         }
     }
+    
+    
+    /**
+     * Връща имплементация на интерфейса за автоматични отстъпки, специфичен за зададения контрагент
+     * 
+     * @param int $listId
+     * @param int $contragentClassId
+     * @param int $contragentId
+     * @param datetime|null $valior
+     * 
+     * @return price_SaleAutoDiscountIntf|NULL $Interface
+     */
+    public static function getAutoDiscountClassForCustomer($listId, $contragentClassId, $contragentId, $valior = null)
+    {
+        // Ако има зададен лист - гледа по него, ако няма търси листа на посочения контрагент
+        $listId = (isset($listId)) ? $listId : price_ListToCustomers::getListForCustomer($contragentClassId, $contragentId, $valior);
+        if($discountClass = price_Lists::fetchField($listId, 'discountClass')){
+            
+            // Ако има закачен клас за автоматични отстъпки връща него
+            if(cls::load($discountClass, true)){
+                $Interface = cls::getInterface('price_SaleAutoDiscountIntf', $discountClass);
+                
+                return $Interface;
+            }
+        }
+        
+        return null;
+    }
 }

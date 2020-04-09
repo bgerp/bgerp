@@ -335,10 +335,19 @@ class eshop_Products extends core_Master
         
         if (is_array($rec->nearProducts) && (isset($fields['-single']) || isset($fields['-external']))) {
             $row->nearProducts = '';
-            foreach ($rec->nearProducts as $productId => $weight) {
+            
+            $nearProducts = array_keys($rec->nearProducts);
+            
+            foreach ($nearProducts as $productId) {
+                $state = eshop_Products::fetchField($productId, 'state');
+                
+                if($state == 'closed') continue;
                 $row->nearProducts .= '<li>' . ht::createLink(eshop_Products::getTitleById($productId), self::getUrl(self::fetch($productId))) . '</li>';
             }
-            $row->nearProducts = '<p  style="margin-bottom: 5px;">' . tr('Вижте също') . ':</p><ul style="margin-top: 0px;">' . $row->nearProducts . '</ul>';
+            
+            if(!empty($row->nearProducts)){
+                $row->nearProducts = '<p  style="margin-bottom: 5px;">' . tr('Вижте също') . ':</p><ul style="margin-top: 0px;">' . $row->nearProducts . '</ul>';
+            }
         }
     }
     

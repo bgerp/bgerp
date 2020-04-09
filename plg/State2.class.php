@@ -245,7 +245,12 @@ class plg_State2 extends core_Plugin
                 $mvc->logWrite($act, $rec->id);
             }
             
-            $mvc->save($rec, 'state');
+            $updateFields = 'state';
+            if($mvc->hasPlugin('plg_Modified')){
+                $updateFields = 'state,modifiedOn,modifiedBy';
+            }
+            
+            $mvc->save($rec, $updateFields);
         }
         
         $content = new Redirect($retUrl);
