@@ -242,13 +242,13 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                     $pAmount = $sign * $primeCost;
                     $costAmount += $pAmount;
                     
-                    $quantity = ($index == 0) ? $quantity : 0;
+                    $quantityD = ($index == 0) ? $quantity : 0;
                     
                     // Ако е материал го изписваме към произведения продукт
                     if ($dRec1->type == 'input') {
                         $reason = ($index == 0) ? 'Засклаждане на произведен артикул' : (($canStore != 'yes' ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложен материал в производството на артикул'));
                         
-                        $array['quantity'] = $quantity;
+                        $array['quantity'] = $quantityD;
                         $entry['debit'] = $array;
                         
                         $entry['credit'] = array('61101', array('cat_Products', $dRec1->productId),
