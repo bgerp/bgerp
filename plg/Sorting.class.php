@@ -35,6 +35,7 @@ class plg_Sorting extends core_Plugin
         }
         
         $data->listFields = arr::make($data->listFields, true);
+        $data->plg_Sorting = (object)array('fields' => array());
         
         if (countR($data->listFields)) {
             foreach ($data->listFields as $f => $caption) {
@@ -77,8 +78,6 @@ class plg_Sorting extends core_Plugin
                     }
                     
                     if (!$mvc->fields[$f]->notSorting) {
-                        $data->plg_Sorting = new stdClass();
-                        $data->plg_Sorting->fields = array();
                         if (!$direction || $direction == 'none' || ($f != $field)) {
                             $data->plg_Sorting->fields[$f] = 'none';
                         } elseif ($direction == 'up') {
@@ -115,7 +114,7 @@ class plg_Sorting extends core_Plugin
                 
                 return;
             }
-            
+            //bp($data->plg_Sorting->fields);
             foreach ($data->plg_Sorting->fields as $field => $direction) {
                 
                 // Ако няма такова поле, в тези, които трябва да показваме - преминаваме към следващото
