@@ -547,9 +547,10 @@ class blast_ListDetails extends doc_Detail
         
         $exp->DEF('#companiesGroup=Група фирми', 'group(base=crm_Companies,keylist=groupList)', 'mandatory');
         $exp->DEF('#personsGroup=Група лица', 'group(base=crm_Persons,keylist=groupList)', 'mandatory');
+        $exp->DEF('#inChargeUsers=Отговорници', 'userList', 'notNull');
         
-        $exp->question('#companiesGroup', tr('Посочете група от фирми, от която да се импортират контактните данни') . ':', "#source == 'groupCompanies'", 'title=' . tr('Избор на група фирми'));
-        $exp->question('#personsGroup', tr('Посочете група от лица, от която да се импортират контактните данни') . ':', "#source == 'groupPersons'", 'title=' . tr('Избор на група лица'));
+        $exp->question('#companiesGroup,#inChargeUsers', tr('Посочете група от фирми, от която да се импортират контактните данни') . ':', "#source == 'groupCompanies'", 'title=' . tr('Избор на група фирми'));
+        $exp->question('#personsGroup,#inChargeUsers', tr('Посочете група от лица, от която да се импортират контактните данни') . ':', "#source == 'groupPersons'", 'title=' . tr('Избор на група лица'));
         
         $exp->DEF('#countriesInclude=Държава->Само тези', 'keylist(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'placeholder=Всички, notNull');
         $exp->SUGGESTIONS('#countriesInclude', 'getCountriesFromGroup(#companiesGroup)');
@@ -573,8 +574,8 @@ class blast_ListDetails extends doc_Detail
         $exp->rule('#enclosure', "'\"'", "#source == 'groupPersons' || #source == 'groupCompanies' || #source == 'document'");
         $exp->rule('#firstRow', "'columnNames'", "#source == 'groupPersons' || #source == 'groupCompanies' || #source == 'document'");
         
-        $exp->rule('#csvData', "importCsvFromContacts('crm_Companies', #companiesGroup, #listId, #countriesInclude, #countriesExclude)");
-        $exp->rule('#csvData', "importCsvFromContacts('crm_Persons', #personsGroup, #listId, #countriesInclude, #countriesExclude)");
+        $exp->rule('#csvData', "importCsvFromContacts('crm_Companies', #companiesGroup, #listId, #countriesInclude, #countriesExclude, #inChargeUsers)");
+        $exp->rule('#csvData', "importCsvFromContacts('crm_Persons', #personsGroup, #listId, #countriesInclude, #countriesExclude, #inChargeUsers)");
         
         $exp->rule('#csvData', 'importCsvFromDocuments(#documentType,#catGroups,#listId,#countriesInclude,#countriesExclude,#contragentType,#docFrom,#docTo)');
         
@@ -1247,7 +1248,7 @@ class blast_ListDetails extends doc_Detail
     /**
      * Импортира CSV от моделите на визитника
      */
-    public static function importCsvFromContacts($className, $groupId, $listId, $countriesInclude, $countriesExlude)
+    public static function importCsvFromContacts($className, $groupId, $listId, $countriesInclude, $countriesExlude, $inChargeUsers)
     {
         $listRec = blast_Lists::fetch($listId);
         
@@ -1258,6 +1259,10 @@ class blast_ListDetails extends doc_Detail
         $cQuery = $mvc->getQuery();
         
         $cQuery->where("#state != 'rejected' AND #groupList like '%|{$groupId}|%'");
+        
+        if ($inChargeUsers) {
+            $cQuery->in('inCharge', $inChargeUsers);
+        }
         
         // Филтрираме само по-тези държави
         if ($countriesInclude) {
