@@ -17,6 +17,16 @@
  */
 class store_Products extends core_Detail
 {
+    
+    
+    /**
+     * Каква да е максималната дължина на стринга за пълнотекстово търсене
+     *
+     * @see plg_Search
+     */
+    public $maxSearchKeywordLen = 13;
+    
+    
     /**
      * Ключ с който да се заключи ъпдейта на таблицата
      */
