@@ -35,6 +35,9 @@ class plg_Sorting extends core_Plugin
         }
         
         $data->listFields = arr::make($data->listFields, true);
+        if(!is_object($data->plg_Sorting)){
+            $data->plg_Sorting = (object)array('fields' => array());
+        }
         
         if (countR($data->listFields)) {
             foreach ($data->listFields as $f => $caption) {

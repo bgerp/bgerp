@@ -127,5 +127,5 @@ class price_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'price_reports_PriceList';
+    public $defClasses = 'price_reports_PriceList,price_AutoDiscounts';
 }

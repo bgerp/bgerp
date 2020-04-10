@@ -733,7 +733,7 @@ class cal_Tasks extends embed_Manager
             }
         }
         
-        if ($form->isSubmitted()) {
+        if ($form->isSubmitted() && (cal_Setup::get('SHOW_TASK_TIME_INTERSECTION') != 'no')) {
             $mvc->calculateExpectationTime($rec);
             
             $query = self::getQuery();

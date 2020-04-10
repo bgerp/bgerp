@@ -900,7 +900,7 @@ class store_Products extends core_Detail
             $receiptQuery->groupBy('receiptId');
             $receiptQuery->show('receiptId');
             while ($receiptRec = $receiptQuery->fetch()) {
-                $docs["receipt{$receiptRec->receiptId}"] = pos_Receipts::getHyperlink($receiptRec->receiptId, true);
+                $docs["receipt|{$receiptRec->receiptId}"] = pos_Receipts::getHyperlink($receiptRec->receiptId, true);
             }
         }
         
@@ -921,10 +921,19 @@ class store_Products extends core_Detail
         
         $links = '';
         foreach ($docs as $containerId => $link) {
-            $cRec = doc_Containers::fetch($containerId, 'createdBy,folderId');
+            if(strpos($containerId, 'receipt') === false){
+                $cRec = doc_Containers::fetch($containerId);
+            } else {
+                list(, $receiptId) = explode('|', $containerId);
+                $cRec = pos_Receipts::fetch($receiptId);
+            }
             $createdBy = crm_Profiles::createLink($cRec->createdBy);
-            $folderId = doc_Folders::recToVerbal(doc_Folders::fetch($cRec->folderId))->title;
-            $links .= "<div style='float:left'>{$link} | {$createdBy} | {$folderId}</div>";
+            if($cRec->folderId){
+                $folderId = doc_Folders::recToVerbal(doc_Folders::fetch($cRec->folderId))->title;
+                $createdBy .= " | {$folderId}";
+            }
+            
+            $links .= "<div style='float:left'>{$link} | {$createdBy}</div>";
         }
         $tpl = new core_ET($links);
        

@@ -222,16 +222,7 @@ class acc_Balances extends core_Master
         
         // Ако показваме по сметка
         if (Request::get('accId', 'int')) {
-            $periods = array();
-            $query = $mvc->getQuery();
-            $query->where('#periodId IS NOT NULL');
-            $query->orderBy('toDate', 'DESC');
-            
-            while ($bRec = $query->fetch()) {
-                $key = toUrl(array($mvc, 'single', $bRec->id));
-                $periods[$key] = acc_Periods::fetchField($bRec->periodId, 'title');
-            }
-            
+            $periods = self::getSelectOptions('DESC', false, true);
             $value = toUrl(array($mvc, 'single', $data->rec->id));
             $periodRow = ht::createSmartSelect($periods, 'periodId', $value, array('class' => 'filterBalanceId'));
         } else {
@@ -612,6 +603,32 @@ class acc_Balances extends core_Master
     }
     
     
+    
+    /**
+     * Ф-я връщаща последния баланс, в който има записи по аналитичната сметка
+     *
+     * @param mixed $accs     - списък от систем ид-та на сметките
+     * @param mixed $itemsAll - списък от пера, за които може да са на произволна позиция
+     * @param mixed $items1   - списък с пера, от които поне един може да е на първа позиция
+     * @param mixed $items2   - списък с пера, от които поне един може да е на втора позиция
+     * @param mixed $items3   - списък с пера, от които поне един може да е на трета позиция
+     *
+     * @return null|int       - намерения баланс, ако има такъв
+     */
+    public static function fetchLastBalanceFor($accountSysId, $itemsAll = null, $items1 = null, $items2 = null, $items3 = null)
+    {
+        // Извличане на данните от баланса в които участват зададените сметки
+        $dQuery = acc_BalanceDetails::getQuery();
+        acc_BalanceDetails::filterQuery($dQuery, null, $accountSysId, $itemsAll, $items1, $items2, $items3);
+        $dQuery->XPR('maxBalance', 'double', 'MAX(#balanceId)');
+        $dQuery->orderBy('balanceId', 'DESC');
+        $lastBalance = $dQuery->fetch()->maxBalance;
+        $res = !empty($lastBalance) ? $lastBalance : null;
+        
+        return $res;
+    }
+    
+    
     /**
      * Връща масив с количествата групирани по размерната номенклатура на сметките
      *
@@ -979,14 +996,15 @@ class acc_Balances extends core_Master
     
     
     /**
-     * Кои са незатворените баланси
-     *
-     * @param string $order
-     * @param bool   $skipClosed
-     *
-     * @return array $balances
+     * Опции с балансите за избор
+     * 
+     * @param string $order       - подредба
+     * @param boolean $skipClosed - пропусни затворените
+     * @param boolean $linkKeys   - дали ключа да е линк към сингъла на баланса
+     * 
+     * @return array              - $balances
      */
-    public static function getSelectOptions($order = 'DESC', $skipClosed = true)
+    public static function getSelectOptions($order = 'DESC', $skipClosed = true, $linkKeys = false)
     {
         $balances = array();
         $query = acc_Balances::getQuery();
@@ -997,7 +1015,8 @@ class acc_Balances extends core_Master
         
         $query->orderBy('id', $order);
         while ($rec = $query->fetch()) {
-            $balances[$rec->id] = acc_Periods::getTitleById($rec->periodId, false);
+            $key = ($linkKeys !== true) ? $rec->id : toUrl(array(__CLASS__, 'single', $rec->id));
+            $balances[$key] = acc_Periods::getTitleById($rec->periodId, false);
         }
         
         return $balances;

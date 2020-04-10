@@ -2027,7 +2027,7 @@ class cat_Products extends embed_Manager
         foreach ($rows as &$arrs) {
             if (countR($arrs['rows'])) {
                 foreach ($arrs['rows'] as &$row) {
-                    $row['packId'] = $data->packName;
+                    $row->packId = $data->packName;
                 }
             }
         }
