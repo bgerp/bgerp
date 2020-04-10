@@ -175,8 +175,13 @@ class acc_ReportDetails extends core_Manager
             foreach ($accounts as $accSysId){
                 $accountId = acc_Accounts::fetchField("#systemId = '{$accSysId}'", 'id');
                 
+                $recsWithAccount = array();
+                
                 // Има ли записи в текущия период
-                $recsWithAccount = array_filter($data->recs, function ($a) use ($accountId) {return $a->accountId == $accountId;});
+                if (is_array($data->recs) && !empty($data->recs)) {
+                    $recsWithAccount = array_filter($data->recs, function ($a) use ($accountId) {return $a->accountId == $accountId;});
+                }
+                
                 if(countR($recsWithAccount)){
                     foreach ($recsWithAccount as $dRec){
                         
