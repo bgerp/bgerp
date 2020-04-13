@@ -398,7 +398,7 @@ class eshop_Products extends core_Master
             
             // Ако има се показва тъмбнейл, към него
             if(isset($image)){
-                $thumb = new thumb_Img($image, 60, 60);
+                $thumb = new thumb_Img($image, 80, 80);
                 $thumbHtml = $thumb->createImg(array('class' => 'eshopNearProductThumb'))->getContent();
                 $data->images[$productId] = ht::createLink($thumbHtml, $productUrl);
             }
