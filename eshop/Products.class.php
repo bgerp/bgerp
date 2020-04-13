@@ -368,7 +368,7 @@ class eshop_Products extends core_Master
     private function getNearProductsBlock($rec)
     {
         $data = (object)array('products' => array(), 'images' => array());
-        $rec->nearProducts = null;
+        
         // Ако няма свързани артикули, се връща празен обект
         if(!is_array($rec->nearProducts)){
             
