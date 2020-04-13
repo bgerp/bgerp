@@ -252,6 +252,8 @@ class bgerp_Notifications extends core_Manager
                 $r->activatedOn > bgerp_LastTouch::get('portal', $userId)) {
                 $rec->activatedOn = $r->activatedOn;
             }
+        } else {
+            $rec->cnt = 1;
         }
         
         $rec->state = 'active';

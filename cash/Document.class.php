@@ -513,7 +513,7 @@ abstract class cash_Document extends deals_PaymentDocument
             } else {
                 if($defaultCase = $mvc->getDefaultCase($rec)){
                     $row->peroCase = cash_Cases::getHyperlink($defaultCase);
-                    $row->peroCase = ht::createHint($row->peroCase, 'Касата ще бъде записана при контирана, ако не е избрана конкретна', 'notice', false);
+                    $row->peroCase = ht::createHint($row->peroCase, 'Касата ще бъде записана при контиране, ако не е избрана конкретна', 'notice', false);
                 } else {
                     $row->peroCase = tr('Предстои да бъде уточнена');
                     $row->peroCase = "<span class='red'><small><i>{$row->peroCase}</i></small></span>";

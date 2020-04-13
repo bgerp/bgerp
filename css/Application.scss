@@ -3506,7 +3506,25 @@ fieldset.sharing-history {
 	font-weight: normal;
 	display: inline-block;
 }
-
+.eshopNearProductImageHolder {
+	list-style: none;
+	padding-left: 0;
+	li {
+		float: left;
+		width: 80px;
+		height: 80px;
+		padding: 3px;
+		margin-right: 10px;
+		text-align: center;
+		opacity: 0.9;
+		&:hover {
+			opacity: 1;
+		}
+		img {
+			border-radius: 3px;
+		}
+	}
+}
 .order-info {
 	background-color: #f1f1f1;
 	border: 1px solid #ccc ;
