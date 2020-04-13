@@ -3013,6 +3013,7 @@ span.sharing-history-title {
   padding-left: 0; }
   .eshopNearProductImageHolder li {
     float: left;
+    display: inline-block;
     width: 80px;
     height: 80px;
     padding: 3px;
