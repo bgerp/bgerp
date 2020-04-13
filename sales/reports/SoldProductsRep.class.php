@@ -347,9 +347,15 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             
             $invDetQuery->EXT('state', 'sales_Invoices', 'externalName=state,externalKey=invoiceId');
             
+            $invDetQuery->EXT('originId', 'sales_Invoices', 'externalName=originId,externalKey=invoiceId');
+           
+            $invDetQuery->EXT('changeAmount', 'sales_Invoices', 'externalName=changeAmount,externalKey=invoiceId');
+            
             $invDetQuery->EXT('currencyId', 'sales_Invoices', 'externalName=currencyId,externalKey=invoiceId');
             
             $invDetQuery->EXT('date', 'sales_Invoices', 'externalName=date,externalKey=invoiceId');
+            
+            $invDetQuery->EXT('type', 'sales_Invoices', 'externalName=type,externalKey=invoiceId');
             
             $invDetQuery->EXT('folderId', 'sales_Invoices', 'externalName=folderId,externalKey=invoiceId');
             
@@ -359,12 +365,31 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             
             while ($invDetRec = $invDetQuery->fetch()) {
                 
+                $invQuantity = $discount = $invAmount = 0;
+                $originQuantity = $changeQuatity = 0;
+                
                 //Ключ на масива
                 $id =  $invDetRec->productId.' | '.$invDetRec->folderId;
                 
                 $invQuantity = $invDetRec->quantity*$invDetRec->quantityInPack;
                 $discount = $invDetRec->price * $invQuantity * $invDetRec->discount;
                 $invAmount = ($invDetRec->price *$invQuantity)- $discount;
+                
+                //Ако фактурата е дебитно или кредитно известие с промяна в артикулите
+                if($invDetRec->type == 'dc_note'){
+                    
+                    $originId = doc_Containers::getDocument($invDetRec->originId)->that;
+                    $originDetRec = sales_InvoiceDetails::fetch("#invoiceId = $originId AND #productId = $invDetRec->productId");
+                    $originQuantity = $originDetRec->quantity*$originDetRec->quantityInPack;
+                    $changeQuatity = $invQuantity - $originQuantity;
+                    $changePrice = $invDetRec->price - $originDetRec->price;
+                    if ($changeQuatity == 0 && $changePrice == 0) {
+                        continue;
+                    }
+                    $invQuantity = $changeQuatity != 0 ? $changeQuatity :0;
+                    $invAmount =$changeQuatity == 0 ? $changePrice * $invDetRec->quantity*$invDetRec->quantityInPack : $invDetRec->price  * $invQuantity;
+                  
+                }
                 
                 // Запис в масива с фактурираните артикули $invProd
                 if (!array_key_exists($id, $invProd)) {
