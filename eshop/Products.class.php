@@ -385,7 +385,8 @@ class eshop_Products extends core_Master
             
             // Показване на линковете към артикула
             $productUrl = self::getUrl(self::fetch($productId));
-            $data->products[$productId] = ht::createLink(eshop_Products::getTitleById($productId), $productUrl)->getContent();
+            $productTitle = eshop_Products::getTitleById($productId);
+            $data->products[$productId] = ht::createLink($productTitle, $productUrl)->getContent();
          
             // Има ли изображение артикула
             $image = null;
@@ -399,7 +400,7 @@ class eshop_Products extends core_Master
             // Ако има се показва тъмбнейл, към него
             if(isset($image)){
                 $thumb = new thumb_Img($image, 80, 80);
-                $thumbHtml = $thumb->createImg(array('class' => 'eshopNearProductThumb'))->getContent();
+                $thumbHtml = $thumb->createImg(array('class' => 'eshopNearProductThumb', 'title' => $productTitle))->getContent();
                 $data->images[$productId] = ht::createLink($thumbHtml, $productUrl);
             }
         }
