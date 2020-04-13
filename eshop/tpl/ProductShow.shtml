@@ -31,6 +31,7 @@
 		<div style="padding: 10px 0;">
 		[#longInfo#]
         [#nearProducts#]
+        [#nearProductImages#]
 		</div>
 	</div>
 	<div class="clearfix21"></div>

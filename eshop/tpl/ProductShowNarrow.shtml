@@ -23,5 +23,6 @@
 		<br>
 		[#longInfo#]
         [#nearProducts#]
+        [#nearProductImages#]
 	</div>
 </div>
