@@ -3511,12 +3511,14 @@ fieldset.sharing-history {
 	padding-left: 0;
 	li {
 		float: left;
+		display: inline-block;
 		width: 80px;
 		height: 80px;
 		padding: 3px;
 		margin-right: 10px;
 		text-align: center;
 		opacity: 0.9;
+		margin-bottom: 10px;
 		&:hover {
 			opacity: 1;
 		}

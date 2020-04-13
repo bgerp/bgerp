@@ -388,18 +388,9 @@ class eshop_Products extends core_Master
             $productTitle = eshop_Products::getTitleById($productId);
             $data->products[$productId] = ht::createLink($productTitle, $productUrl)->getContent();
          
-            // Има ли изображение артикула
-            $image = null;
-            foreach (array('', '2', '3', '4', '5') as $i){
-                if(!empty($productRec->{"image{$i}"})){
-                    $image = $productRec->{"image{$i}"};
-                    break;
-                }
-            }
-            
             // Ако има се показва тъмбнейл, към него
-            if(isset($image)){
-                $thumb = new thumb_Img($image, 80, 80);
+            $thumb = static::getProductThumb($productRec, 80, 80);
+            if(isset($thumb)){
                 $thumbHtml = $thumb->createImg(array('class' => 'eshopNearProductThumb', 'title' => $productTitle))->getContent();
                 $data->images[$productId] = ht::createLink($thumbHtml, $productUrl);
             }
@@ -478,6 +469,40 @@ class eshop_Products extends core_Master
     
     
     /**
+     * Показване на тъмбнейла на е-артикула
+     * 
+     * @param stdClass $rec
+     * @param int $width
+     * @param int $height
+     * 
+     * @return thumb_Img|NULL
+     */
+    public static function getProductThumb($rec, $width = 120, $height = 120)
+    {
+        $imageArr = array();
+        foreach (array('', '2', '3', '4', '5') as $i){
+            $fh = $rec->{"image{$i}"};
+            if(!empty($fh)){
+                $path = fileman::fetchByFh($fh, 'path');
+                if(file_exists($path)){
+                    $imageArr[] = $fh;
+                }
+            }
+        }
+        
+        if (countR($imageArr)) {
+            $tact = abs(crc32($rec->id . round(time() / (24 * 60 * 60 + 537)))) % countR($imageArr);
+            $image = $imageArr[$tact];
+            $thumb = new thumb_Img($image, 120, 120);
+            
+            return $thumb;
+        }
+        
+        return null;
+    }
+    
+    
+    /**
      * Подготвя данните за продуктите от една група
      */
     public static function prepareGroupList($data)
@@ -497,33 +522,12 @@ class eshop_Products extends core_Master
             $data->recs[] = $pRec;
             $pRow = $data->rows[] = self::recToVerbal($pRec, 'name,info,image,code,coMoq');
             
-            $imageArr = array();
-            if ($pRec->image) {
-                $imageArr[] = $pRec->image;
+            // Показване на тъмбнейл на артикула
+            $thumb = static::getProductThumb($pRec);
+            if(empty($thumb)){
+                $thumb = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') .'.png'), 120, 120, 'path');
             }
-            if ($pRec->image1) {
-                $imageArr[] = $pRec->image1;
-            }
-            if ($pRec->image2) {
-                $imageArr[] = $pRec->image2;
-            }
-            if ($pRec->image3) {
-                $imageArr[] = $pRec->image3;
-            }
-            if ($pRec->image4) {
-                $imageArr[] = $pRec->image4;
-            }
-            if (countR($imageArr)) {
-                $tact = abs(crc32($pRec->id . round(time() / (24 * 60 * 60 + 537)))) % countR($imageArr);
-                $image = $imageArr[$tact];
-                $img = new thumb_Img($image, 120, 120);
-            } else {
-                $img = new thumb_Img(getFullPath('eshop/img/noimage' .
-                    (cms_Content::getLang() == 'bg' ? 'bg' : 'en') .
-                    '.png'), 120, 120, 'path');
-            }
-            
-            $pRow->image = $img->createImg(array('class' => 'eshop-product-image'));
+            $pRow->image = $thumb->createImg(array('class' => 'eshop-product-image'));
             
             if($pRec->saleState == 'single'){
                 
