@@ -334,21 +334,77 @@ class eshop_Products extends core_Master
         $row->groupId = eshop_Groups::getHyperlink($rec->groupId, true);
         
         if (is_array($rec->nearProducts) && (isset($fields['-single']) || isset($fields['-external']))) {
+            $nearProductsData = $mvc->getNearProductsBlock($rec);
             $row->nearProducts = '';
             
-            $nearProducts = array_keys($rec->nearProducts);
-            
-            foreach ($nearProducts as $productId) {
-                $state = eshop_Products::fetchField($productId, 'state');
+            // Показване на линковете към свързаните артикули
+            if(countR($nearProductsData->products)){
+                foreach ($nearProductsData->products as $productLink) {
+                    $row->nearProducts .= "<li>{$productLink}</li>";
+                }
                 
-                if($state == 'closed') continue;
-                $row->nearProducts .= '<li>' . ht::createLink(eshop_Products::getTitleById($productId), self::getUrl(self::fetch($productId))) . '</li>';
-            }
-            
-            if(!empty($row->nearProducts)){
                 $row->nearProducts = '<p  style="margin-bottom: 5px;">' . tr('Вижте също') . ':</p><ul style="margin-top: 0px;">' . $row->nearProducts . '</ul>';
             }
+            
+            // Показване на изображениятя линковете към свързаните артикули
+            if(countR($nearProductsData->images)){
+                $row->nearProductImages = '';
+                foreach ($nearProductsData->images as $productImageLink) {
+                    $row->nearProductImages .= "<li>{$productImageLink}</li>";
+                }
+                
+                $row->nearProductImages = "<ul class='eshopNearProductImageHolder'>{$row->nearProductImages}</ul>";
+            }
         }
+    }
+    
+    
+    /**
+     * Връща данните за свързаните артикули, за показване във външната час
+     * 
+     * @param stdClass $rec   - запис
+     * @return stdClass $data - върнати данни
+     */
+    private function getNearProductsBlock($rec)
+    {
+        $data = (object)array('products' => array(), 'images' => array());
+        $rec->nearProducts = null;
+        // Ако няма свързани артикули, се връща празен обект
+        if(!is_array($rec->nearProducts)){
+            
+            return $data;
+        }
+        
+        // За всеки свързан
+        $nearProducts = array_keys($rec->nearProducts);
+        foreach ($nearProducts as $productId) {
+            
+            // Ако е затворен, се пропуска
+            $productRec = eshop_Products::fetch($productId, 'image,image2,image3,image4,image5,state');
+            if($productRec->state == 'closed') continue;
+            
+            // Показване на линковете към артикула
+            $productUrl = self::getUrl(self::fetch($productId));
+            $data->products[$productId] = ht::createLink(eshop_Products::getTitleById($productId), $productUrl)->getContent();
+         
+            // Има ли изображение артикула
+            $image = null;
+            foreach (array('', '2', '3', '4', '5') as $i){
+                if(!empty($productRec->{"image{$i}"})){
+                    $image = $productRec->{"image{$i}"};
+                    break;
+                }
+            }
+            
+            // Ако има се показва тъмбнейл, към него
+            if(isset($image)){
+                $thumb = new thumb_Img($image, 60, 60);
+                $thumbHtml = $thumb->createImg(array('class' => 'eshopNearProductThumb'))->getContent();
+                $data->images[$productId] = ht::createLink($thumbHtml, $productUrl);
+            }
+        }
+        
+        return $data;
     }
     
     
