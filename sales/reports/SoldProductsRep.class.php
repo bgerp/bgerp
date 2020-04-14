@@ -941,7 +941,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     
                     
                     if ($rec->seeByContragent == 'yes') {
-                 //       $fld->FLD('contragent', 'keylist(mvc=doc_Folders,select=name)', 'caption=Контрагент');
+                        $fld->FLD('contragent', 'keylist(mvc=doc_Folders,select=name)', 'caption=Контрагент');
                         $fld->FLD('invQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Фактурирано->количество');
                         $fld->FLD('invAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Фактурирано->стойност');
                         
@@ -973,15 +973,30 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 }
             }
         } else {
+             if ($rec->seeByContragent == 'yes') {
+                $fld->FLD('contragent', 'varchar', 'caption=Контрагент');
+              
+            }
+            
             $fld->FLD('group', 'varchar', 'caption=Група');
             $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
             $fld->FLD('measure', 'key( да дам мнmvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
             $fld->FLD('quantity', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1} Продажби");
             $fld->FLD('primeCost', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1} Стойност");
+            
+            if ($rec->seeByContragent == 'yes') {
+                $fld->FLD('invQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Фактурирано->количество');
+                $fld->FLD('invAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Фактурирано->стойност');
+                
+            }
+            
             if ($rec->seeDelta == 'yes') {
                 $fld->FLD('delta', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1} Делта");
             }
+            
+           
+            
             if ($rec->compare != 'no') {
                 $fld->FLD('quantityCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2} Продажби,tdClass=newCol");
                 $fld->FLD('primeCostCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2} Стойност,tdClass=newCol");
@@ -1400,6 +1415,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $res->deltaCompare = $dRec->deltaLastYear;
                 $res->changeSales = ($dRec->primeCost - $dRec->primeCostLastYear);
                 $res->changeDeltas = ($dRec->delta - $dRec->deltaLastYear);
+            }
+        }else{
+            if ($rec->seeByContragent == 'yes') {
+                $res->contragent = doc_Folders::getTitleById($dRec->contragent);
+                
             }
         }
         
