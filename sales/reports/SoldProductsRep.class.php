@@ -330,7 +330,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $this->groupByField = 'group';
         }
         
-        if ($rec->seeByContragent) {
+        if ($rec->seeByContragent == 'yes') {
             $this->groupByField = 'contragent';
         }
         
@@ -941,7 +941,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     
                     
                     if ($rec->seeByContragent == 'yes') {
-                        $fld->FLD('contragent', 'keylist(mvc=doc_Folders,select=name)', 'caption=Контрагент');
+                 //       $fld->FLD('contragent', 'keylist(mvc=doc_Folders,select=name)', 'caption=Контрагент');
                         $fld->FLD('invQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Фактурирано->количество');
                         $fld->FLD('invAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Фактурирано->стойност');
                         
@@ -976,7 +976,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $fld->FLD('group', 'varchar', 'caption=Група');
             $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-            $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('measure', 'key( да дам мнmvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
             $fld->FLD('quantity', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1} Продажби");
             $fld->FLD('primeCost', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1} Стойност");
             if ($rec->seeDelta == 'yes') {
