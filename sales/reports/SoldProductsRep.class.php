@@ -651,7 +651,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $obj->quantity += $quantity;
                 $obj->primeCost += $primeCost;
                 $obj->delta += $delta;
-                
                 $obj->quantityPrevious += $quantityPrevious;
                 $obj->primeCostPrevious += $primeCostPrevious;
                 $obj->deltaPrevious += $deltaPrevious;
@@ -856,6 +855,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         //Подредба на резултатите
         if (!is_null($recs)) {
+            
+            
             $typeOrder = ($rec->orderBy == 'code') ? 'stri' : 'native';
             
             $orderBy = $rec->orderBy;
@@ -869,6 +870,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
             
             arr::sortObjects($recs, $orderBy, $rec->order, $typeOrder);
+            
+            if ($rec->seeByContragent == 'yes') {
+                arr::sortObjects($recs, 'contragent', 'ASC');
+            }
         }
         
         //Добавям ред за ОБЩИТЕ суми
