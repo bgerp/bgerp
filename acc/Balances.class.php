@@ -589,7 +589,7 @@ class acc_Balances extends core_Master
         // Ако няма запис на последния баланс не се връща нищо
         if (empty($balanceRec)) {
             
-            return false;
+            return array();
         }
         
         // Извличане на данните от баланса в които участват зададените сметки

@@ -161,10 +161,8 @@ class acc_ReportDetails extends core_Manager
         
         // Взимане на данните от текущия баланс в който участват посочените сметки
         // и ид-то на перото е на произволна позиция
-        $dRecs = acc_Balances::fetchCurrent($accounts, $data->itemRec->id);
-        
         $res = array();
-        $data->recs = $dRecs;
+        $data->recs = acc_Balances::fetchCurrent($accounts, $data->itemRec->id);
         
         // Извикване на евент в мастъра за след извличане на записите от БД
         $data->masterMvc->invoke('AfterPrepareAccReportRecs', array($data));
@@ -174,13 +172,7 @@ class acc_ReportDetails extends core_Manager
         if(is_array($accounts)){
             foreach ($accounts as $accSysId){
                 $accountId = acc_Accounts::fetchField("#systemId = '{$accSysId}'", 'id');
-                
-                $recsWithAccount = array();
-                
-                // Има ли записи в текущия период
-                if (is_array($data->recs) && !empty($data->recs)) {
-                    $recsWithAccount = array_filter($data->recs, function ($a) use ($accountId) {return $a->accountId == $accountId;});
-                }
+                $recsWithAccount = array_filter($data->recs, function ($a) use ($accountId) {return $a->accountId == $accountId;});
                 
                 if(countR($recsWithAccount)){
                     foreach ($recsWithAccount as $dRec){

@@ -3014,16 +3014,19 @@ span.sharing-history-title {
   .eshopNearProductImageHolder li {
     float: left;
     display: inline-block;
-    width: 80px;
-    height: 80px;
-    padding: 3px;
-    margin-right: 10px;
+    width: 90px;
+    height: 90px;
+    margin-right: 20px;
     text-align: center;
-    opacity: 0.9;
-    margin-bottom: 10px; }
-    .eshopNearProductImageHolder li:hover {
-      opacity: 1; }
+    margin-bottom: 20px;
+    border-radius: 3px; }
+    .eshopNearProductImageHolder li:hover img {
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.8); }
     .eshopNearProductImageHolder li img {
+      max-height: 90px;
+      max-width: 90px;
+      width: auto;
+      padding: 4px;
       border-radius: 3px; }
 
 .order-info {
