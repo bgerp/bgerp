@@ -122,10 +122,10 @@ class cond_DeliveryTerms extends core_Master
     public function description()
     {
         $this->FLD('codeName', 'varchar', 'caption=Код');
-        $this->FLD('term', 'text', 'caption=Обяснение');
-        $this->FLD('forSeller', 'text', 'caption=За продавача');
-        $this->FLD('forBuyer', 'text', 'caption=За купувача');
-        $this->FLD('transport', 'text', 'caption=Транспорт');
+        $this->FLD('term', 'text(rows=3)', 'caption=Обяснение');
+        $this->FLD('forSeller', 'text(rows=3)', 'caption=За продавача');
+        $this->FLD('forBuyer', 'text(rows=3)', 'caption=За купувача');
+        $this->FLD('transport', 'text(rows=3)', 'caption=Транспорт');
         $this->FLD('costCalc', 'class(interface=cond_TransportCalc,allowEmpty,select=title)', 'caption=Изчисляване на транспортна себестойност->Калкулатор');
         $this->FLD('calcCost', 'enum(yes=Включено,no=Изключено)', 'caption=Изчисляване на транспортна себестойност->Скрито,notNull,value=no');
         $this->FLD('address', 'enum(none=Без,receiver=Локацията на получателя,supplier=Локацията на доставчика)', 'caption=Показване на мястото на доставка->Избор,notNull,value=none,default=none');
