@@ -330,7 +330,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $this->groupByField = 'group';
         }
         
-        if ($rec->seeByContragent) {
+        if ($rec->seeByContragent == 'yes') {
             $this->groupByField = 'contragent';
         }
         
@@ -347,9 +347,15 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             
             $invDetQuery->EXT('state', 'sales_Invoices', 'externalName=state,externalKey=invoiceId');
             
+            $invDetQuery->EXT('originId', 'sales_Invoices', 'externalName=originId,externalKey=invoiceId');
+           
+            $invDetQuery->EXT('changeAmount', 'sales_Invoices', 'externalName=changeAmount,externalKey=invoiceId');
+            
             $invDetQuery->EXT('currencyId', 'sales_Invoices', 'externalName=currencyId,externalKey=invoiceId');
             
             $invDetQuery->EXT('date', 'sales_Invoices', 'externalName=date,externalKey=invoiceId');
+            
+            $invDetQuery->EXT('type', 'sales_Invoices', 'externalName=type,externalKey=invoiceId');
             
             $invDetQuery->EXT('folderId', 'sales_Invoices', 'externalName=folderId,externalKey=invoiceId');
             
@@ -359,12 +365,31 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             
             while ($invDetRec = $invDetQuery->fetch()) {
                 
+                $invQuantity = $discount = $invAmount = 0;
+                $originQuantity = $changeQuatity = 0;
+                
                 //Ключ на масива
                 $id =  $invDetRec->productId.' | '.$invDetRec->folderId;
                 
                 $invQuantity = $invDetRec->quantity*$invDetRec->quantityInPack;
                 $discount = $invDetRec->price * $invQuantity * $invDetRec->discount;
                 $invAmount = ($invDetRec->price *$invQuantity)- $discount;
+                
+                //Ако фактурата е дебитно или кредитно известие с промяна в артикулите
+                if($invDetRec->type == 'dc_note'){
+                    
+                    $originId = doc_Containers::getDocument($invDetRec->originId)->that;
+                    $originDetRec = sales_InvoiceDetails::fetch("#invoiceId = $originId AND #productId = $invDetRec->productId");
+                    $originQuantity = $originDetRec->quantity*$originDetRec->quantityInPack;
+                    $changeQuatity = $invQuantity - $originQuantity;
+                    $changePrice = $invDetRec->price - $originDetRec->price;
+                    if ($changeQuatity == 0 && $changePrice == 0) {
+                        continue;
+                    }
+                    $invQuantity = $changeQuatity != 0 ? $changeQuatity :0;
+                    $invAmount =$changeQuatity == 0 ? $changePrice * $invDetRec->quantity*$invDetRec->quantityInPack : $invDetRec->price  * $invQuantity;
+                  
+                }
                 
                 // Запис в масива с фактурираните артикули $invProd
                 if (!array_key_exists($id, $invProd)) {
@@ -626,7 +651,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $obj->quantity += $quantity;
                 $obj->primeCost += $primeCost;
                 $obj->delta += $delta;
-                
                 $obj->quantityPrevious += $quantityPrevious;
                 $obj->primeCostPrevious += $primeCostPrevious;
                 $obj->deltaPrevious += $deltaPrevious;
@@ -831,6 +855,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         //Подредба на резултатите
         if (!is_null($recs)) {
+            
+            
             $typeOrder = ($rec->orderBy == 'code') ? 'stri' : 'native';
             
             $orderBy = $rec->orderBy;
@@ -844,6 +870,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
             
             arr::sortObjects($recs, $orderBy, $rec->order, $typeOrder);
+            
+            if ($rec->seeByContragent == 'yes') {
+                arr::sortObjects($recs, 'contragent', 'ASC');
+            }
         }
         
         //Добавям ред за ОБЩИТЕ суми
@@ -948,15 +978,30 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 }
             }
         } else {
+             if ($rec->seeByContragent == 'yes') {
+                $fld->FLD('contragent', 'varchar', 'caption=Контрагент');
+              
+            }
+            
             $fld->FLD('group', 'varchar', 'caption=Група');
             $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-            $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('measure', 'key( да дам мнmvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
             $fld->FLD('quantity', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1} Продажби");
             $fld->FLD('primeCost', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1} Стойност");
+            
+            if ($rec->seeByContragent == 'yes') {
+                $fld->FLD('invQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Фактурирано->количество');
+                $fld->FLD('invAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Фактурирано->стойност');
+                
+            }
+            
             if ($rec->seeDelta == 'yes') {
                 $fld->FLD('delta', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1} Делта");
             }
+            
+           
+            
             if ($rec->compare != 'no') {
                 $fld->FLD('quantityCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2} Продажби,tdClass=newCol");
                 $fld->FLD('primeCostCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2} Стойност,tdClass=newCol");
@@ -1375,6 +1420,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $res->deltaCompare = $dRec->deltaLastYear;
                 $res->changeSales = ($dRec->primeCost - $dRec->primeCostLastYear);
                 $res->changeDeltas = ($dRec->delta - $dRec->deltaLastYear);
+            }
+        }else{
+            if ($rec->seeByContragent == 'yes') {
+                $res->contragent = doc_Folders::getTitleById($dRec->contragent);
+                
             }
         }
         
