@@ -2205,8 +2205,12 @@ class eshop_Carts extends core_Master
             
             if(countR($locations) == 1){
                 $form->setDefault('locationId', key($locations));
-            } else {
-                $locations = array('' => '') + $locations;
+            } elseif(countR($locations) > 1) {
+                if($settings->locationIsMandatory == 'yes'){
+                    $form->setDefault('locationId', key($locations));
+                } else {
+                    $locations = array('' => '') + $locations;
+                }
             }
             $form->setOptions('locationId', $locations);
         }
@@ -2215,8 +2219,10 @@ class eshop_Carts extends core_Master
         if (isset($rec->locationId)) {
             $locationRec = crm_Locations::fetch($rec->locationId);
             foreach (array('deliveryCountry' => 'countryId', 'deliveryPCode' => 'pCode', 'deliveryPlace' => 'place', 'deliveryAddress' => 'address') as $delField => $locField) {
+                
+                // Ако има избрана локация, твърдо подменяме адресните данни
                 if (!empty($locationRec->{$locField})) {
-                    $form->setDefault($delField, $locationRec->{$locField});
+                    $form->rec->{$delField} = $locationRec->{$locField};
                 }
             }
         }

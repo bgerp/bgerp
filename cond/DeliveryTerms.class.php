@@ -407,10 +407,10 @@ class cond_DeliveryTerms extends core_Master
                 if($cu && core_Users::isContractor($cu)){
                     $settings = cms_Domains::getSettings();
                     if($settings->locationIsMandatory == 'yes'){
-                        //$form->setReadOnly('deliveryCountry');
-                        //$form->setReadOnly('deliveryPCode');
-                        //$form->setReadOnly('deliveryPlace');
-                        //$form->setReadOnly('deliveryAddress');
+                        $form->setReadOnly('deliveryCountry');
+                        $form->setReadOnly('deliveryPCode');
+                        $form->setReadOnly('deliveryPlace');
+                        $form->setReadOnly('deliveryAddress');
                     }
                 }
             }
