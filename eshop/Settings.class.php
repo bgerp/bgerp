@@ -9,7 +9,7 @@
  * @package   eshop
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -171,6 +171,8 @@ class eshop_Settings extends core_Manager
         $this->FLD('enableCart', 'enum(yes=Винаги,no=Ако съдържа продукти)', 'caption=Показване на количката във външната част->Показване,notNull,value=no');
         $this->FLD('cartName', 'varchar(16)', 'caption=Показване на количката във външната част->Надпис');
         $this->FLD('canUseCards', 'enum(yes=Включено,no=Изключено)', 'caption=Възможност за логване с клиентска карта->Избор,notNull,value=yes');
+        $this->FLD('locationIsMandatory', 'enum(no=Опционална,yes=Задължителна)', 'caption=Настройки на партньори за онлайн магазина->Локация,notNull,value=no');
+        
         $this->FLD('addProductText', 'text(rows=3)', 'caption=Добавяне на артикул към количката->Текст');
         $this->FLD('addToCartBtn', 'varchar(16)', 'caption=Добавяне на артикул към количката->Надпис');
         $this->FLD('info', 'richtext(rows=3)', 'caption=Условия на продажбата под количката->Текст');
@@ -213,6 +215,18 @@ class eshop_Settings extends core_Manager
                     if (countR($missing)) {
                         $form->setWarning($name, 'Пропуснати са следните плейсхолдъри|*: <b>' . implode(', ', $missing) . '</b>');
                     }
+                }
+            }
+            
+            // Ако локацията е задължителна, проверява се имали избрано условие за доставка с адрес на получателя
+            if($rec->locationIsMandatory == 'yes'){
+                $selectedTerms = keylist::toArray($rec->terms);
+                $receiverTerms = cond_DeliveryTerms::getTermOptions('receiver');
+                $intersectedKeys = array_intersect_key($selectedTerms, $receiverTerms);
+               
+                if(!countR($intersectedKeys)){
+                    $receiverTerms = implode(", ", $receiverTerms);
+                    $form->setError('terms,locationIsMandatory', "При задължителна локация за партньор, в условията на доставка трябва да има поне едно условие с адрес на получаване локацията на получателя като|*: <b>{$receiverTerms}</b>");
                 }
             }
         }
@@ -416,6 +430,10 @@ class eshop_Settings extends core_Manager
             
             if (empty($settingRec->countries)) {
                 $settingRec->countries = keylist::addKey('', crm_Companies::fetchOurCompany('country')->country);
+            }
+            
+            if (empty($settingRec->partnerTerms)) {
+                $settingRec->partnerTerms = $settingRec->terms;
             }
         }
         

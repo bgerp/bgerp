@@ -2079,6 +2079,7 @@ class eshop_Carts extends core_Master
     {
         $cu = core_Users::getCurrent('id', false);
         $defaultTermId = $defaultPaymentId = null;
+        $settings = cms_Domains::getSettings();
         
         $deliveryTerms = eshop_Settings::getDeliveryTermOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
         $paymentMethods = eshop_Settings::getPaymentMethodOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
@@ -2110,9 +2111,19 @@ class eshop_Carts extends core_Master
             
             // Добавяне на партньорското условие на доставка
             $defaultTermId = cond_Parameters::getParameter('crm_Persons', $profileRec->id, 'deliveryTermSale');
-            $form->setDefault('termId', $defaultTermId);
+            
             if ($defaultTermId && !array_key_exists($defaultTermId, $deliveryTerms)) {
                 $deliveryTerms[$defaultTermId] = cond_DeliveryTerms::getVerbal($defaultTermId, 'codeName');
+            }
+            
+            // Ако локацията е задължителна, остават само условията с локация на получателя
+            if($settings->locationIsMandatory == 'yes'){
+                $receiverTerms = cond_DeliveryTerms::getTermOptions('receiver');
+                $deliveryTerms = array_intersect_key($deliveryTerms, $receiverTerms);
+            }
+            
+            if(array_key_exists($defaultTermId, $deliveryTerms)){
+                $form->setDefault('termId', $defaultTermId);
             }
             
             // Добавяне на партньорския метод за плащане
@@ -2156,6 +2167,7 @@ class eshop_Carts extends core_Master
         $rec = &$form->rec;
         $cu = core_Users::getCurrent('id', false);
         $isColab = isset($cu) && core_Users::isContractor($cu);
+        $settings = cms_Domains::getSettings();
         
         // Ако има избрана папка се записват контрагент данните
         if (isset($folderId)) {
@@ -2178,11 +2190,25 @@ class eshop_Carts extends core_Master
             }
         }
         
-        // Ако има локации задават се
-        if (countR($locations)) {
-            $form->setOptions('locationId', array('' => '') + $locations);
+        if($isColab){
             $form->setField('locationId', 'input');
             $form->input('locationId', 'silent');
+            
+            // Ако е партньор и локацията е задължителна
+            if($settings->locationIsMandatory == 'yes'){
+                $form->setField('locationId', 'input,mandatory');
+                if (!countR($locations)) {
+                    $infoText = tr('За да продължите трябва да имате регистриран обект за доставка. Моля свържете се с нас');
+                    $form->info = new core_ET("<div id='editStatus'><div class='warningMsg'>{$infoText}</div></div>");
+                }
+            }
+            
+            if(countR($locations) == 1){
+                $form->setDefault('locationId', key($locations));
+            } else {
+                $locations = array('' => '') + $locations;
+            }
+            $form->setOptions('locationId', $locations);
         }
         
         // Ако е избрана локация допълват се адресните данни за доставка
@@ -2203,11 +2229,13 @@ class eshop_Carts extends core_Master
             $cQuery2 = clone $cQuery;
             $cQuery3 = clone $cQuery;
             
-            // Адреса за доставка е този от последната количка
-            $cQuery->in('deliveryCountry', $form->countries);
-            if ($lastCart = $cQuery->fetch()) {
-                foreach (array('termId', 'deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress', 'locationId') as $field) {
-                    $form->setDefault($field, $lastCart->{$field});
+            // Адреса за доставка е този от последната количка, освен ако локацията не е задължителна
+            if($settings->locationIsMandatory != 'yes'){
+                $cQuery->in('deliveryCountry', $form->countries);
+                if ($lastCart = $cQuery->fetch()) {
+                    foreach (array('termId', 'deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress', 'locationId') as $field) {
+                        $form->setDefault($field, $lastCart->{$field});
+                    }
                 }
             }
             
@@ -2225,7 +2253,7 @@ class eshop_Carts extends core_Master
                 $form->rec->tel = $lastCart3->tel;
             }
             
-            if (isset($folderId)) {
+            if (isset($folderId) && $settings->locationIsMandatory != 'yes') {
                 if ($contragentData = doc_Folders::getContragentData($folderId)) {
                     $form->setDefault('deliveryCountry', $contragentData->countryId);
                     $form->setDefault('deliveryPCode', $contragentData->pCode);

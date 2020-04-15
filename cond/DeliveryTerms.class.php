@@ -401,15 +401,34 @@ class cond_DeliveryTerms extends core_Master
                 $form->setReadOnly('deliveryAddress', $address);
                 $form->setField('locationId', 'input=none');
             }
+        } elseif($rec->address == 'receiver'){
+            if($Document instanceof eshop_Carts){
+                $cu = core_Users::getCurrent('id', false);
+                if($cu && core_Users::isContractor($cu)){
+                    $settings = cms_Domains::getSettings();
+                    if($settings->locationIsMandatory == 'yes'){
+                        //$form->setReadOnly('deliveryCountry');
+                        //$form->setReadOnly('deliveryPCode');
+                        //$form->setReadOnly('deliveryPlace');
+                        //$form->setReadOnly('deliveryAddress');
+                    }
+                }
+            }
         }
         
         $Calculator = self::getTransportCalculator($rec);
         if($Calculator){
             $Calculator->addFields($form, $document, $userId);
         } elseif($Document instanceof eshop_Carts && $rec->address != 'supplier') {
-            $form->setField('deliveryPCode', 'mandatory');
-            $form->setField('deliveryPlace', 'mandatory');
-            $form->setField('deliveryAddress', 'mandatory');
+            if(!$form->getFieldTypeParam('deliveryPCode', 'isReadOnly')){
+                $form->setField('deliveryPCode', 'mandatory');
+            }
+            if(!$form->getFieldTypeParam('deliveryPlace', 'isReadOnly')){
+                $form->setField('deliveryPlace', 'mandatory');
+            }
+            if(!$form->getFieldTypeParam('deliveryAddress', 'isReadOnly')){
+                $form->setField('deliveryAddress', 'mandatory');
+            }
         }
         
         if($Document instanceof deals_DealMaster || $Document instanceof eshop_Carts || $Document instanceof sales_Quotations){
@@ -501,5 +520,29 @@ class cond_DeliveryTerms extends core_Master
         }
         
         return $fields;
+    }
+    
+    
+    /**
+     * Връща опции за избор на условия за доставка
+     * 
+     * @param string|null $addRessType
+     * @return array $res
+     */
+    public static function getTermOptions($addRessType = null)
+    {
+        $res = array();
+        $query = self::getQuery();
+        $query->where("#state != 'closed'");
+        if(isset($addRessType)){
+            expect(in_array($addRessType, array('none', 'receiver', 'supplier')));
+            $query->where("#address = '{$addRessType}'");
+        }
+        
+        while($rec = $query->fetch()){
+            $res[$rec->id] = self::getVerbal($rec, 'codeName');
+        }
+        
+        return $res;
     }
 }

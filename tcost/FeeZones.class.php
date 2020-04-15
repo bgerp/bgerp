@@ -373,10 +373,11 @@ class tcost_FeeZones extends core_Master
     {
         $Document = cls::get($document);
         if($Document instanceof eshop_Carts){
-            $form->setField('deliveryCountry', 'mandatory');
-            $form->setField('deliveryPCode', 'mandatory');
-            $form->setField('deliveryPlace', 'mandatory');
-            $form->setField('deliveryAddress', 'mandatory');
+            foreach (array('deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress') as $fld){
+                if(!$form->getFieldTypeParam($fld, 'isReadOnly')){
+                    $form->setField($fld, 'mandatory');
+                }
+            }
         }
     }
     
