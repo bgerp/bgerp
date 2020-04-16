@@ -488,10 +488,17 @@ class eshop_Settings extends core_Manager
     {
         $settings = self::getSettings($class, $domainId);
         $terms = keylist::toArray($settings->terms);
+        $cu = core_Users::getCurrent('id', false);
         
         $options = array();
-        array_walk($terms, function ($termId) use (&$options) {
+        array_walk($terms, function ($termId) use (&$options, $cu) {
             $options[$termId] = cond_DeliveryTerms::getVerbal($termId, 'codeName');
+            if($Calc = cond_DeliveryTerms::getTransportCalculator($termId)){
+               
+                if(!$Calc->canSelectInEshop($termId, $cu)){
+                    unset($options[$termId]);
+                }
+            }
         });
         
         return $options;

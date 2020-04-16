@@ -483,4 +483,18 @@ class tcost_FeeZones extends core_Master
             $cartRec->freeDelivery = 'yes';
         }
     }
+    
+    
+    /**
+     * Може ли да се избира условието в онлайн магазина
+     *
+     * @param int|stdClass $cartRec
+     * @param int|null $cu
+     *
+     * @return boolean
+     */
+    public function canSelectInEshop(&$rec, $cu = null)
+    {
+        return true;
+    }
 }

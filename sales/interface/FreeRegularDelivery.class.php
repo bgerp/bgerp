@@ -34,6 +34,12 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
     
     
     /**
+     * Роли, които може да го избират в ешопа;
+     */
+    public $rolesForEshopSelect = 'partner';
+    
+    
+    /**
      * Определяне на обемното тегло, на база на обема на товара
      *
      * @param float $weight         - Тегло на товара
@@ -255,5 +261,26 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
         if($cartRec->deliveryData['routeId']){
             $cartRec->freeDelivery = 'yes';
         }
+    }
+    
+    
+    /**
+     * Може ли да се избира условието в онлайн магазина
+     *
+     * @param int|stdClass $cartRec
+     * @param int|null $cu
+     *
+     * @return boolean
+     */
+    public function canSelectInEshop(&$rec, $cu = null)
+    {
+        if(isset($cu)){
+            if(core_Users::isContractor($cu)){
+                
+                return true;
+            }
+        }
+        
+        return false;
     }
 }

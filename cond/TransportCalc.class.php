@@ -182,4 +182,18 @@ class cond_TransportCalc
     {
         return $this->class->onUpdateCartMaster($cartRec);
     }
+    
+    
+    /**
+     * Може ли да се избира условието в онлайн магазина
+     *
+     * @param int|stdClass $cartRec
+     * @param int|null $cu
+     *
+     * @return boolean
+     */
+    public function canSelectInEshop(&$rec, $cu = null)
+    {
+        return $this->class->canSelectInEshop($rec, $cu);
+    }
 }
