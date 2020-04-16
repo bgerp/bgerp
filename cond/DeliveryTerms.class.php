@@ -459,14 +459,6 @@ class cond_DeliveryTerms extends core_Master
         $Document = cls::get($document);
         $formRec = &$form->rec;
         
-        if ($Document instanceof sales_Sales || $Document instanceof sales_Quotations) {
-            $deliveryData = is_array($formRec->deliveryData) ? $formRec->deliveryData : array();
-            
-            if ($error = sales_TransportValues::getDeliveryTermError($id, $formRec->deliveryAdress, $formRec->contragentClassId, $formRec->contragentId, $formRec->deliveryLocationId, $deliveryData)) {
-                $form->setError('deliveryTermId,deliveryAdress,deliveryLocationId', $error);
-            }
-        }
-        
         if ($Document instanceof deals_DealMaster || $Document instanceof eshop_Carts || $Document instanceof sales_Quotations) {
             
             // Компресиране на данните за доставка от драйвера
@@ -474,6 +466,14 @@ class cond_DeliveryTerms extends core_Master
             $fields = self::getAdditionalFields($id, $document);
             foreach ($fields as $name) {
                 $formRec->deliveryData[$name] = $formRec->{$name};
+            }
+        }
+        
+        if ($Document instanceof sales_Sales || $Document instanceof sales_Quotations) {
+            $deliveryData = is_array($formRec->deliveryData) ? $formRec->deliveryData : array();
+            
+            if ($error = sales_TransportValues::getDeliveryTermError($id, $formRec->deliveryAdress, $formRec->contragentClassId, $formRec->contragentId, $formRec->deliveryLocationId, $deliveryData)) {
+                $form->setError('deliveryTermId,deliveryAdress,deliveryLocationId', $error);
             }
         }
     }
