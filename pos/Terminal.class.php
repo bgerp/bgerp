@@ -1710,8 +1710,17 @@ class pos_Terminal extends peripheral_Terminal
             return $res;
         }
         
-        $Policy = cls::get('price_ListToCustomers');
         
+        
+        $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
+        $defaultContragentClassId = crm_Persons::getClassId();
+        
+        $Policy = cls::get('price_ListToCustomers');
+        $listId = pos_Points::fetchField($rec->pointId, 'policyId');
+        if(!($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId)){
+            $listId = price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
+        }
+       
         foreach ($products as $id => $pRec) {
             if(isset($pRec->packId)){
                 $packId = $pRec->packId;
@@ -1722,7 +1731,7 @@ class pos_Terminal extends peripheral_Terminal
             
             $packRec = cat_products_Packagings::getPack($id, $packId);
             $perPack = (is_object($packRec)) ? $packRec->quantity : 1;
-            $price = $Policy->getPriceInfo($rec->contragentClass, $rec->contragentObjectId, $id, $packId, 1, $rec->createdOn, 1, 'yes');
+            $price = $Policy->getPriceByList($listId, $id, $packId, 1, null, 1, 'yes');
             
             // Ако няма цена също го пропускаме
             if (empty($price->price)) continue;
