@@ -17,6 +17,16 @@
  */
 class store_Products extends core_Detail
 {
+    
+    
+    /**
+     * Каква да е максималната дължина на стринга за пълнотекстово търсене
+     *
+     * @see plg_Search
+     */
+    public $maxSearchKeywordLen = 13;
+    
+    
     /**
      * Ключ с който да се заключи ъпдейта на таблицата
      */
@@ -44,7 +54,7 @@ class store_Products extends core_Detail
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,storeWorker';
+    public $canList = 'ceo,sales,storeWorker';
     
     
     /**
@@ -88,12 +98,12 @@ class store_Products extends core_Detail
      */
     public function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Име');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Име,tdClass=leftAlign');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,tdClass=storeCol leftAlign');
         $this->FLD('quantity', 'double(maxDecimals=3)', 'caption=Налично');
         $this->FLD('reservedQuantity', 'double(maxDecimals=3)', 'caption=Запазено');
-        $this->FLD('expectedQuantity', 'double(maxDecimals=3)', 'caption=Очаквано (днес)');
-        $this->FLD('expectedQuantityTotal', 'double(maxDecimals=3)', 'caption=Очаквано');
+        $this->FLD('expectedQuantity', 'double(maxDecimals=3)', 'caption=Очаквано днес');
+        $this->FLD('expectedQuantityTotal', 'double(maxDecimals=3)', 'caption=Очаквано,tdClass=notBolded');
         $this->FNC('freeQuantity', 'double(maxDecimals=3)', 'caption=Разполагаемо');
         $this->FLD('state', 'enum(active=Активирано,closed=Изчерпано)', 'caption=Състояние,input=none');
         
@@ -175,6 +185,13 @@ class store_Products extends core_Detail
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
+        if($data->masterMvc instanceof cat_Products){
+            $data->query->EXT('storeName', 'store_Stores', 'externalName=name,externalKey=storeId');
+            $data->query->orderBy('storeName', 'ASC');
+            
+            return;
+        }
+        
         // Подготвяме формата
         cat_Products::expandFilter($data->listFilter);
         $orderOptions = arr::make('all=Всички,active=Активни,standard=Стандартни,private=Нестандартни,last=Последно добавени,closed=Изчерпани,reserved=Запазени,free=Разполагаеми');
@@ -423,8 +440,17 @@ class store_Products extends core_Detail
      */
     protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
+        $data->listFields['expectedQuantity'] = "|Очаквано|*<span class='small notBolded'> |*днес|*</span>";
+        $data->listFields['expectedQuantityTotal'] = "<span class='notBolded'>|Очаквано|*";
         if (isset($data->masterMvc)) {
-            unset($data->listFields['storeId']);
+            if($data->masterMvc instanceof cat_Products){
+                arr::placeInAssocArray($data->listFields, array('storeId' => 'Склад|*'), null, 'code');
+                unset($data->listFields['productId']);
+                unset($data->listFields['code']);
+            } else {
+                unset($data->listFields['storeId']);
+            }
+            
             if (acc_BalanceDetails::haveRightFor('history')) {
                 arr::placeInAssocArray($data->listFields, array('history' => ' '), 'code');
             }
@@ -470,7 +496,7 @@ class store_Products extends core_Detail
                     $arrowImg = ht::createElement('img', array('src' => sbf('img/16/info-gray.png', '')));
                     $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => 'От кои документи е резервирано количеството'), $arrowImg, true);
                     $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$type}{$rec->id}'></span>{$arrow}</span>";
-                    $row->{$type} .= "&nbsp;{$arrow}";
+                    $row->{$type} = "<span class='fleft'>{$arrow} </span>". $row->{$type};
                 }
             }
         }
@@ -884,7 +910,7 @@ class store_Products extends core_Detail
             $receiptQuery->groupBy('receiptId');
             $receiptQuery->show('receiptId');
             while ($receiptRec = $receiptQuery->fetch()) {
-                $docs["receipt{$receiptRec->receiptId}"] = pos_Receipts::getHyperlink($receiptRec->receiptId, true);
+                $docs["receipt|{$receiptRec->receiptId}"] = pos_Receipts::getHyperlink($receiptRec->receiptId, true);
             }
         }
         
@@ -904,8 +930,20 @@ class store_Products extends core_Detail
         }
         
         $links = '';
-        foreach ($docs as $link) {
-            $links .= "<div style='float:left'>{$link}</div>";
+        foreach ($docs as $containerId => $link) {
+            if(strpos($containerId, 'receipt') === false){
+                $cRec = doc_Containers::fetch($containerId);
+            } else {
+                list(, $receiptId) = explode('|', $containerId);
+                $cRec = pos_Receipts::fetch($receiptId);
+            }
+            $createdBy = crm_Profiles::createLink($cRec->createdBy);
+            if($cRec->folderId){
+                $folderId = doc_Folders::recToVerbal(doc_Folders::fetch($cRec->folderId))->title;
+                $createdBy .= " | {$folderId}";
+            }
+            
+            $links .= "<div style='float:left'>{$link} | {$createdBy}</div>";
         }
         $tpl = new core_ET($links);
        
@@ -1002,5 +1040,53 @@ class store_Products extends core_Detail
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Подготовка на Детайлите
+     */
+    public function prepareDetail_($data)
+    {
+        if($data->masterMvc instanceof cat_Products){
+            $data->masterKey = 'productId';
+            
+            $data->render = true;
+            $canStore = cat_Products::fetchField($data->masterId, 'canStore');
+            $tabParam = $data->masterData->tabTopParam;
+            $prepareTab = Request::get($tabParam);
+            
+            if($canStore != 'yes' || !store_Products::haveRightFor('list') || $prepareTab != 'store_Products'){
+                $data->render = false;
+            }
+            
+            if($canStore != 'yes' || !store_Products::haveRightFor('list')){
+                
+                return;
+            }
+            
+            $data->TabCaption = 'Наличности';
+            $data->Tab = 'top';
+        }
+        
+        parent::prepareDetail_($data);
+    }
+    
+    
+    /**
+    * Рендиране на детайла
+    */
+    public function renderDetail_($data)
+    {
+        // Не се рендира детайла, ако има само една версия или режима е само за показване
+        if ($data->render === false) {
+           
+            return new core_ET('');
+        }
+        
+        $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+        $tpl->append(parent::renderDetail_($data), 'content');
+       
+        return $tpl;
     }
 }

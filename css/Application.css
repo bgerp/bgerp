@@ -315,6 +315,10 @@ div.folder-cover {
       width: auto;
       top: 1px;
       position: relative; }
+  div.folder-cover.large-cover {
+    max-width: 1000px !important; }
+    div.folder-cover.large-cover .groupList {
+      max-width: 975px; }
   div.folder-cover .label {
     color: #777777;
     font-size: 13px;
@@ -384,6 +388,10 @@ div.folder-cover {
     div.folder-cover .portal table.listTable .innerTable td {
       border: none !important; }
 
+.document .detail-info .store_Products  .listTable {
+  max-width: 100% !important;
+  width: 100%; }
+
 .dangerTitle {
   color: #cc0000;
   font-weight: bold;
@@ -418,6 +426,9 @@ div.folder-cover {
     padding: 0 !important; }
   .narrow .folder-cover .tab-page .portal.detail-info {
     margin-left: 2px; }
+
+.leftAlign {
+  text-align: left !important; }
 
 .public.folder-cover {
   margin: 0; }
@@ -2997,6 +3008,27 @@ span.sharing-history-title {
   font-weight: normal;
   display: inline-block; }
 
+.eshopNearProductImageHolder {
+  list-style: none;
+  padding-left: 0; }
+  .eshopNearProductImageHolder li {
+    float: left;
+    display: inline-block;
+    width: 90px;
+    height: 90px;
+    margin-right: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    border-radius: 3px; }
+    .eshopNearProductImageHolder li:hover img {
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.8); }
+    .eshopNearProductImageHolder li img {
+      max-height: 90px;
+      max-width: 90px;
+      width: auto;
+      padding: 4px;
+      border-radius: 3px; }
+
 .order-info {
   background-color: #f1f1f1;
   border: 1px solid #cccccc;
@@ -4415,6 +4447,16 @@ div.location.public {
   padding: 10px;
   background-color: rgba(240, 240, 255, 0.5);
   border: solid 1px #ddddff; }
+
+.popupInfo {
+  border-top: 1px solid #aaaaaa;
+  text-align: left;
+  margin: 3px 0 2px; }
+  .popupInfo:first-child {
+    border-top: none;
+    margin-top: 0; }
+  .popupInfo:last-child {
+    margin-bottom: 0; }
 
 .email-class {
   max-width: 600px; }

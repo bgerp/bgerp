@@ -82,6 +82,7 @@
 				        <!--ET_BEGIN deliveryTermId-->
 				        <li>Delivery: [#deliveryTermId#]</li>
 				        <!--ET_END deliveryTermId-->
+				        [#deliveryBlock#]
 				        <!--ET_BEGIN deliveryTermTime-->
 				        <li>Delivery up to: [#deliveryTermTime#]</li>
 				        <!--ET_END deliveryTermTime-->

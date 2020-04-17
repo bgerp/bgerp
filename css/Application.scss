@@ -369,6 +369,12 @@ div.folder-cover {
 		}
 
 	}
+	&.large-cover {
+		max-width: 1000px !important;
+		.groupList {
+			max-width: 975px;
+		}
+	}
 	.label {
 		color: #777777;
 		font-size: 13px;
@@ -453,7 +459,10 @@ div.folder-cover {
 	}
 
 }
-
+.document .detail-info .store_Products  .listTable {
+	max-width: 100% !important;
+	width: 100%;
+}
 .dangerTitle {
 	color: #C00;
 	font-weight: bold;
@@ -499,7 +508,9 @@ div.folder-cover {
 		margin-left: 2px;
 	}
 }
-
+.leftAlign {
+	text-align: left !important;
+}
 .public.folder-cover {
 	margin: 0;
 }
@@ -3495,7 +3506,30 @@ fieldset.sharing-history {
 	font-weight: normal;
 	display: inline-block;
 }
-
+.eshopNearProductImageHolder {
+	list-style: none;
+	padding-left: 0;
+	li {
+		float: left;
+		display: inline-block;
+		width: 90px;
+		height: 90px;
+		margin-right: 20px;
+		text-align: center;
+		margin-bottom: 20px;
+		border-radius: 3px;
+		&:hover img {
+			box-shadow: 0 0 5px rgba(0,0,0,0.8);
+		}
+		img {
+			max-height: 90px;
+			max-width: 90px;
+			width: auto;
+			padding: 4px;
+			border-radius: 3px;
+		}
+	}
+}
 .order-info {
 	background-color: #f1f1f1;
 	border: 1px solid #ccc ;
@@ -5062,7 +5096,18 @@ div.location.public {
 	background-color: rgba(240,240,255,0.5);
 	border: solid 1px #ddddff;
 }
-
+.popupInfo {
+	border-top: 1px solid #aaa;
+	text-align: left;
+	margin: 3px 0 2px;
+	&:first-child {
+		border-top: none;
+		margin-top: 0;
+	}
+	&:last-child {
+		margin-bottom: 0;
+	}
+}
 .email-class {
 	max-width: 600px;
 	h3 {

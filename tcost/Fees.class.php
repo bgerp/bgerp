@@ -203,6 +203,10 @@ class tcost_Fees extends core_Detail
         // дотук имаме масив Тегло -> Сума
         //Създаваме вече индексиран масив от ключовете на по горния асоциативен маскив
         $indexedArray = array_keys($arrayOfWeightPrice);
+        if(!countR($indexedArray)){
+            
+            return cond_TransportCalc::EMPTY_WEIGHT_ZONE_FEE;
+        }
         
         // Разглеждаме 4 случая
         // Търсеното тегло е по-малко от най-малкото в масива. Тогава Общата цена е най-малката

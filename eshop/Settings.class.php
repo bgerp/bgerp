@@ -9,7 +9,7 @@
  * @package   eshop
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -163,13 +163,16 @@ class eshop_Settings extends core_Manager
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Условия на плащане->Валута,mandatory,removeAndRefreshForm=freeDelivery,silent');
         $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделно ДДС)', 'caption=Условия на плащане->ДДС режим');
         $this->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държави,silent');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Свързване със склад->Избор');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад за наличности и Адрес при избран метод на доставка до "Локация на доставчика"->Наличности от');
+        $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Склад за наличности и Адрес при избран метод на доставка до "Локация на доставчика"->Получаване от,optionsFunc=crm_Locations::getOwnLocations');
         $this->FLD('notInStockText', 'varchar(24)', 'caption=Информация при недостатъчно количество->Текст');
         $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Показване на е-артикулите във външната част->Общи параметри,optionsFunc=cat_Params::getPublic');
         
         $this->FLD('enableCart', 'enum(yes=Винаги,no=Ако съдържа продукти)', 'caption=Показване на количката във външната част->Показване,notNull,value=no');
         $this->FLD('cartName', 'varchar(16)', 'caption=Показване на количката във външната част->Надпис');
         $this->FLD('canUseCards', 'enum(yes=Включено,no=Изключено)', 'caption=Възможност за логване с клиентска карта->Избор,notNull,value=yes');
+        $this->FLD('locationIsMandatory', 'enum(no=Опционална,yes=Задължителна)', 'caption=Настройки на партньори за онлайн магазина->Локация,notNull,value=no');
+        
         $this->FLD('addProductText', 'text(rows=3)', 'caption=Добавяне на артикул към количката->Текст');
         $this->FLD('addToCartBtn', 'varchar(16)', 'caption=Добавяне на артикул към количката->Надпис');
         $this->FLD('info', 'richtext(rows=3)', 'caption=Условия на продажбата под количката->Текст');
@@ -212,6 +215,18 @@ class eshop_Settings extends core_Manager
                     if (countR($missing)) {
                         $form->setWarning($name, 'Пропуснати са следните плейсхолдъри|*: <b>' . implode(', ', $missing) . '</b>');
                     }
+                }
+            }
+            
+            // Ако локацията е задължителна, проверява се имали избрано условие за доставка с адрес на получателя
+            if($rec->locationIsMandatory == 'yes'){
+                $selectedTerms = keylist::toArray($rec->terms);
+                $receiverTerms = cond_DeliveryTerms::getTermOptions('receiver');
+                $intersectedKeys = array_intersect_key($selectedTerms, $receiverTerms);
+               
+                if(!countR($intersectedKeys)){
+                    $receiverTerms = implode(", ", $receiverTerms);
+                    $form->setError('terms,locationIsMandatory', "При задължителна локация за партньор, в условията на доставка трябва да има поне едно условие с адрес на получаване локацията на получателя като|*: <b>{$receiverTerms}</b>");
                 }
             }
         }
@@ -416,6 +431,10 @@ class eshop_Settings extends core_Manager
             if (empty($settingRec->countries)) {
                 $settingRec->countries = keylist::addKey('', crm_Companies::fetchOurCompany('country')->country);
             }
+            
+            if (empty($settingRec->partnerTerms)) {
+                $settingRec->partnerTerms = $settingRec->terms;
+            }
         }
         
         return $settingRec;
@@ -469,10 +488,17 @@ class eshop_Settings extends core_Manager
     {
         $settings = self::getSettings($class, $domainId);
         $terms = keylist::toArray($settings->terms);
+        $cu = core_Users::getCurrent('id', false);
         
         $options = array();
-        array_walk($terms, function ($termId) use (&$options) {
+        array_walk($terms, function ($termId) use (&$options, $cu) {
             $options[$termId] = cond_DeliveryTerms::getVerbal($termId, 'codeName');
+            if($Calc = cond_DeliveryTerms::getTransportCalculator($termId)){
+               
+                if(!$Calc->canSelectInEshop($termId, $cu)){
+                    unset($options[$termId]);
+                }
+            }
         });
         
         return $options;

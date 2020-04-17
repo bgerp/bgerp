@@ -970,6 +970,17 @@ class cal_Reminders extends core_Master
             // Инвокваме фунцкцията, ако някой иска да променя нещо
             $fcMvc->invoke('AfterSaveCloneRec', array($fdRec, &$newRec));
         }
+        
+        // Добавяме известие за черновите
+        if ($draft && $newRec->containerId) {
+            $subscribedArr = keylist::toArray($rec->sharedUsers);
+            if (empty($subscribedArr)) {
+                $subscribedArr[$rec->createdBy] = $rec->createdBy;
+            }
+            $cRec = doc_Containers::fetch($newRec->containerId);
+            
+            doc_Containers::addNotifications($subscribedArr, $fcMvc, $cRec, 'добави');
+        }
     }
     
     

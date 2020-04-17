@@ -39,7 +39,6 @@ class cond_TransportCalc
      */
     const DELIMITER_ERROR = -4;
     
-    
     /**
      * Стойността, която ще се върне ако артикула няма тегло
      */
@@ -50,6 +49,17 @@ class cond_TransportCalc
      * Стойността, която ще се върне ако не е намерено общо обемно тегло
      */
     const NOT_FOUND_TOTAL_VOLUMIC_WEIGHT = -16;
+    
+    /**
+     * Стойността, която ще се върне ако в зоната няма тегла
+     */
+    const EMPTY_WEIGHT_ZONE_FEE = -32;
+    
+    
+    /**
+     * Стойността, ако е възникнала друга грешка
+     */
+    const OTHER_FEE_ERROR = -64;
     
     
     /**
@@ -91,50 +101,57 @@ class cond_TransportCalc
      * Добавя полета за доставка към форма
      *
      * @param core_FieldSet $form
+     * @param mixed $document
      * @param string|NULL   $userId
      *
      * @return void
      */
-    public function addFields(core_FieldSet &$form, $userId = null)
+    public function addFields(core_FieldSet &$form, $document, $userId = null)
     {
-        return $this->class->addFields($form, $userId);
+        return $this->class->addFields($form, $document, $userId);
     }
     
     
     /**
      * Добавя масив с полетата за доставка
      *
+     * @param mixed $document
      * @return array
      */
-    public function getFields()
+    public function getFields($document)
     {
-        return $this->class->getFields();
+        return $this->class->getFields($document);
     }
     
     
     /**
-     * Проверява форма
+     * Вербализира допълнителните данни за доставка
      *
-     * @param core_FieldSet $form
+     * @param stdClass $termRec        - условие на доставка
+     * @param array|null $deliveryData - масив с допълнителни условия за доставка
+     * @param mixed $document          - документ
      *
-     * @return void
+     * @return array $res              - данни готови за показване
      */
-    public function checkForm(core_FieldSet &$form)
+    public function getVerbalDeliveryData($termRec, $deliveryData, $document)
     {
-        return $this->class->checkForm($form);
+        return $this->class->getVerbalDeliveryData($termRec, $deliveryData, $document);
     }
     
     
     /**
-     * Рендира информацията
+     * Проверява данните на доставка преди активация
      *
-     * @param stdClass rec
-     *
-     * @return core_ET $tpl
+     * @param mixed $id             - ид на търговско условие
+     * @param stdClass $documentRec - запис на документа
+     * @param array $deliveryData   - данни за доставка
+     * @param mixed $document       - документ
+     * @param string|null $error    - грешката ако има такава
+     * @return boolean
      */
-    public function renderDeliveryInfo($rec)
+    public function checkDeliveryDataOnActivation($id, $documentRec, $deliveryData, $document, &$error = null)
     {
-        return $this->class->renderDeliveryInfo($rec);
+        return $this->class->checkDeliveryDataOnActivation($id, $documentRec, $deliveryData, $document, $error);
     }
     
     
@@ -164,5 +181,19 @@ class cond_TransportCalc
     public function onUpdateCartMaster(&$cartRec)
     {
         return $this->class->onUpdateCartMaster($cartRec);
+    }
+    
+    
+    /**
+     * Може ли да се избира условието в онлайн магазина
+     *
+     * @param int|stdClass $cartRec
+     * @param int|null $cu
+     *
+     * @return boolean
+     */
+    public function canSelectInEshop(&$rec, $cu = null)
+    {
+        return $this->class->canSelectInEshop($rec, $cu);
     }
 }

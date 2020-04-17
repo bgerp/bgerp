@@ -78,58 +78,52 @@ class bglocal_interface_FreeShipping extends core_BaseClass
      * Добавя полета за доставка към форма
      *
      * @param core_FieldSet $form
+     * @param mixed $document
      * @param string|NULL   $userId
      *
      * @return void
      */
-    public function addFields(core_FieldSet &$form, $userId = null)
+    public function addFields(core_FieldSet &$form, $document, $userId = null)
     {
-        $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
-        
-        $form->rec->deliveryCountry = $bgId;
-        $form->setReadOnly('deliveryCountry');
-        $form->setField('deliveryCountry', 'mandatory');
-        $form->setField('deliveryPCode', 'mandatory');
-        $form->setField('deliveryPlace', 'mandatory');
-        $form->setField('deliveryAddress', 'mandatory');
-        
-        $form->setDefault('invoiceCountry', $bgId);
+        $Document = cls::get($document);
+        if($Document instanceof eshop_Carts){
+            $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+            
+            $form->rec->deliveryCountry = $bgId;
+            $form->setReadOnly('deliveryCountry');
+            $form->setField('deliveryCountry', 'mandatory');
+            $form->setField('deliveryPCode', 'mandatory');
+            $form->setField('deliveryPlace', 'mandatory');
+            $form->setField('deliveryAddress', 'mandatory');
+            $form->setDefault('invoiceCountry', $bgId);
+        }
     }
     
     
     /**
      * Добавя масив с полетата за доставка
      *
+     * @param mixed $document
      * @return array
      */
-    public function getFields()
+    public function getFields($document)
     {
         return array();
     }
     
     
     /**
-     * Проверява форма
+     * Вербализира допълнителните данни за доставка
      *
-     * @param core_FieldSet $form
+     * @param stdClass $termRec        - условие на доставка
+     * @param array|null $deliveryData - масив с допълнителни условия за доставка
+     * @param mixed $document          - документ
      *
-     * @return void
+     * @return array $res              - данни готови за показване
      */
-    public function checkForm(core_FieldSet &$form)
+    public function getVerbalDeliveryData($termRec, $deliveryData, $document)
     {
-    }
-    
-    
-    /**
-     * Рендира информацията
-     *
-     * @param stdClass rec
-     *
-     * @return core_ET $tpl
-     */
-    public function renderDeliveryInfo($rec)
-    {
-        return new core_ET('');
+        return array();
     }
     
     
@@ -155,6 +149,22 @@ class bglocal_interface_FreeShipping extends core_BaseClass
     
     
     /**
+     * Проверява данните на доставка преди активация
+     *
+     * @param mixed $id             - ид на търговско условие
+     * @param stdClass $documentRec - запис на документа
+     * @param array $deliveryData   - данни за доставка
+     * @param mixed $document       - документ
+     * @param string|null $error    - грешката ако има такава
+     * @return boolean
+     */
+    public function checkDeliveryDataOnActivation($id, $documentRec, $deliveryData, $document, &$error = null)
+    {
+        return true;
+    }
+    
+    
+    /**
      * При упдейт на количката в е-магазина, какво да се  изпълнява
      *
      * @param stdClass $cartRec
@@ -164,5 +174,19 @@ class bglocal_interface_FreeShipping extends core_BaseClass
     public function onUpdateCartMaster(&$cartRec)
     {
         $cartRec->freeDelivery = 'yes';
+    }
+    
+    
+    /**
+     * Може ли да се избира условието в онлайн магазина
+     *
+     * @param int|stdClass $cartRec
+     * @param int|null $cu
+     *
+     * @return boolean
+     */
+    public function canSelectInEshop(&$rec, $cu = null)
+    {
+        return true;
     }
 }

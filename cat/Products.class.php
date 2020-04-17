@@ -65,7 +65,7 @@ class cat_Products extends embed_Manager
      * Детайла, на модела
      */
     public $details = 'Packagings=cat_products_Packagings,Prices=cat_products_PriceDetails,AccReports=acc_ReportDetails,
-    Resources=planning_ObjectResources,Usage=cat_products_Usage,Boms=cat_Boms,Shared=cat_products_SharedInFolders';
+    Resources=planning_ObjectResources,Usage=cat_products_Usage,Boms=cat_Boms,Shared=cat_products_SharedInFolders,store_Products';
     
     
     /**
@@ -299,7 +299,7 @@ class cat_Products extends embed_Manager
     /**
      * Полета, които могат да бъдат експортирани
      */
-    public $exportableCsvFields = 'code, name, measureId, groups, meta';
+    public $exportableCsvFields = 'code, name, nameEn, measureId, groups, meta';
     
     
     /**
@@ -307,7 +307,7 @@ class cat_Products extends embed_Manager
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'originId, code, name, isPublic';
+    public $fieldsNotToClone = 'originId, code, name, nameEn, isPublic';
     
     
     /**
@@ -713,6 +713,7 @@ class cat_Products extends embed_Manager
         
         $fields['code'] = array('caption' => 'Код', 'mandatory' => 'mandatory');
         $fields['name'] = array('caption' => 'Наименование');
+        $fields['nameEn'] = array('caption' => 'Международно');
         $fields['measureId'] = array('caption' => 'Мярка', 'mandatory' => 'mandatory');
         $fields['groups'] = array('caption' => 'Групи');
         $fields['meta'] = array('caption' => 'Свойства');
@@ -2026,7 +2027,7 @@ class cat_Products extends embed_Manager
         foreach ($rows as &$arrs) {
             if (countR($arrs['rows'])) {
                 foreach ($arrs['rows'] as &$row) {
-                    $row['packId'] = $data->packName;
+                    $row->packId = $data->packName;
                 }
             }
         }

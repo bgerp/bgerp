@@ -1585,7 +1585,13 @@ class doc_DocumentPlg extends core_Plugin
         doc_Threads::setModification($rec->threadId);
         
         doc_Files::recalcFiles($rec->containerId);
-        bgerp_Notifications::hideNotificationsForSingle($mvc->className, $rec->id);
+        
+        if ($rec->threadId) {
+            $fCid = doc_Threads::getFirstContainerId($rec->threadId);
+            if ($fCid == $rec->containerId) {
+                bgerp_Notifications::hideNotificationsForSingle($mvc->className, $rec->id);
+            }
+        }
         
         // Ако е оттеглен контиран документ, се бият нотификации
         if($rec->brState == 'active' && cls::haveInterface('acc_TransactionSourceIntf', $mvc)){
@@ -2749,7 +2755,9 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if (($action == 'movelast') && ($requiredRoles != 'no_one')) {
-            if ($rec->state == 'rejected') {
+            if (doc_Setup::get('MOVE_LAST_DOCUMENT') == 'no') {
+                $requiredRoles = 'no_one';
+            } elseif ($rec->state == 'rejected') {
                 $requiredRoles = 'no_one';
             } elseif ($rec->folderId && !doc_Folders::haveRightFor('single', $rec->folderId)) {
                 $requiredRoles = 'no_one';

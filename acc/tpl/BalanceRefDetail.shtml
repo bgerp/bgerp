@@ -1,6 +1,7 @@
 <div class='scrolling-holder'>
 	<fieldset class='top-tab-content'>
 	    <legend class='groupTitle'>|Счетоводни справки|*</legend>
+	    <div class='small' ><span style='color:darkgreen;font-weight:bold'>|Перо|*</span>: <b>[#itemId#]</b></div>
 	    <div class='small' style='color:darkgreen; font-weight:bold; position: relative; top: -5px; margin: 5px 0 2px;'>|Салда и обороти|*: [#periodId#]</div>
 	    <div class='detail-info portal acc-summary'>
 	      [#LISTS#]

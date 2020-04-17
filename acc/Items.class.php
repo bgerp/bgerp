@@ -1141,7 +1141,11 @@ class acc_Items extends core_Manager
                 break;
             }
             
-            acc_Features::syncItem($rec->id);
+            try {
+                acc_Features::syncItem($rec->id);
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+            }
             
             $maxId = $rec->id;
         }
