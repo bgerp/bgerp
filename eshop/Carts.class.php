@@ -2179,11 +2179,11 @@ class eshop_Carts extends core_Master
                 $form->countries[$contragentData->countryId] = $contragentData->countryId;
                 
                 $contragentCover = doc_Folders::getCover($folderId);
-                $locations = crm_Locations::getContragentOptions($contragentCover->className, $contragentCover->that, true, $form->countries);
+                $locations = crm_Locations::getContragentOptions($contragentCover->className, $contragentCover->that, true, true, $form->countries);
             }
         } else {
             if ($isColab === true) {
-                $locations = crm_Locations::getContragentOptions('crm_Persons', crm_Profiles::getProfile($cu)->id, true, $form->countries);
+                $locations = crm_Locations::getContragentOptions('crm_Persons', crm_Profiles::getProfile($cu)->id, true, true, $form->countries);
             }
         }
         
