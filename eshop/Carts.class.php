@@ -2012,6 +2012,7 @@ class eshop_Carts extends core_Master
                         $Cover = doc_Folders::getCover($rec->saleFolderId);
                         $contragentClassId = $Cover->getClassId();
                         $contragentId = $Cover->that;
+                        colab_Folders::setLastActiveContragentFolder($rec->saleFolderId);
                     } else {
                         $contragentClassId = crm_Persons::getClassId();
                         $contragentId = crm_Profiles::getProfile($cu)->id;
@@ -2048,8 +2049,6 @@ class eshop_Carts extends core_Master
             
             if ($form->layout) {
                 jquery_Jquery::run($form->layout, 'copyValToPlaceholder();');
-                
-                //jquery_Jquery::run($form->layout, 'refreshInvoiceFields();');
             }
         }
         
@@ -2060,8 +2059,6 @@ class eshop_Carts extends core_Master
         // Рефрешване на формата ако потребителя се логне докато е в нея
         cms_Helper::setRefreshFormIfNeeded($tpl);
         jquery_Jquery::run($tpl, 'runOnLoad(copyValToPlaceholder);');
-        
-        //jquery_Jquery::run($tpl, 'runOnLoad(refreshInvoiceFields);');
         $tpl->prepend("\n<meta name=\"robots\" content=\"nofollow\">", 'HEAD');
         
         return $tpl;
