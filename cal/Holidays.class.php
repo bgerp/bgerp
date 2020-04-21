@@ -550,14 +550,14 @@ class cal_Holidays extends core_Master
     {
         if ((BGERP_GIT_BRANCH == 'dev') || (BGERP_GIT_BRANCH == 'test')) {
             if ($oRec = $mvc->fetch(array("#key = '[#1#]'", $rec->key))) {
-                
-                if (!$rec->info) {
+                $info = $rec->info;
+                if (!$info) {
                     if (isset($rec->csv_info) && strlen($rec->csv_info) != 0) {
-                        $rec->info = str_replace('\"', '"', $rec->csv_info);
+                        $info = str_replace('\"', '"', $rec->csv_info);
                     }
                 }
                 
-                if ($rec->info != $oRec->info) {
+                if ($info != $oRec->info) {
                     wp($rec, $oRec);
                 }
             }
