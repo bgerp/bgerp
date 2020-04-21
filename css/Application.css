@@ -1672,6 +1672,10 @@ a.tOld {
   .document-settings-left .additionalInfo {
     left: auto;
     right: -4px; }
+    .document-settings .additionalInfo.right,
+    .document-settings-left .additionalInfo.right {
+      left: -42px;
+      right: auto; }
   .document-settings .pluginCountButtonNub,
   .document-settings-left .pluginCountButtonNub {
     height: 0;

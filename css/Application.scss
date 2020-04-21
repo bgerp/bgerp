@@ -1965,6 +1965,10 @@ a.tOld {
     .additionalInfo {
     	left: auto;
     	right: -4px;
+		&.right {
+			left: -42px;
+			right: auto;
+		}
     }
   	.pluginCountButtonNub {
 		height: 0;
