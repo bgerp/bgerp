@@ -357,6 +357,7 @@ class eshop_ProductDetails extends core_Detail
         $fullCode = cat_products::getVerbal($rec->productId, 'code');
         $row->code = substr($fullCode, 0, 10);
         $row->code = "<span title={$fullCode}>{$row->code}</span>";
+        $btn = null;
         
         $row->packagingId = tr(cat_UoM::getShortName($rec->packagingId));
         $minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намаляване на количеството'), '-');
@@ -373,7 +374,7 @@ class eshop_ProductDetails extends core_Detail
             $row->catalogPrice = "<b>{$row->catalogPrice}</b>";
         } else {
             $showCartBtn = false;
-            $row->catalogPrice = "<span style='border-radius: 3px;padding: 4px;font-size: .8em;background-color: #e6e6e6;border: solid 1px #ff7070;display: inline-block;color: #c00;margin-right: 5px;'>" . tr('Свържете се с нас') . "</span>";
+            $row->catalogPrice = "<span style='border-radius: 3px;padding: 4px;font-size: .8em;background-color: #e6e6e6;border: solid 1px #ff7070;display: inline-block;color: #c00;'>" . tr('Свържете се с нас') . "</span>";
             if(eshop_Products::haveRightFor('single')){
                 $row->catalogPrice = ht::createHint($row->catalogPrice, 'Артикулът няма цена за продажба', 'error', false);
             }
@@ -410,7 +411,7 @@ class eshop_ProductDetails extends core_Detail
                 $row->catalogPrice .= '</div>';
             }
             
-            $row->btn = ht::createFnBtn($settings->addToCartBtn, null, false, array('title' => 'Добавяне в|* ' . mb_strtolower(eshop_Carts::getCartDisplayName()), 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn addToCard', 'rel' => 'nofollow'));
+            $btn = ht::createFnBtn($settings->addToCartBtn, null, false, array('title' => 'Добавяне в|* ' . mb_strtolower(eshop_Carts::getCartDisplayName()), 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn addToCard', 'rel' => 'nofollow'));
         }
         
         if($rec->_listView !== true){
@@ -422,9 +423,13 @@ class eshop_ProductDetails extends core_Detail
             $quantity = store_Products::getQuantity($rec->productId, $settings->storeId, true);
             if ($quantity < $rec->quantityInPack) {
                 $notInStock = !empty($settings->notInStockText) ? $settings->notInStockText : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
-                $row->btn = "<span class='{$class} option-not-in-stock'>" . $notInStock . ' </span>';
+                $btn = "<span class='{$class} option-not-in-stock'>" . $notInStock . ' </span>';
                 $row->quantity = 1;
             }
+        }
+        
+        if(!empty($btn)){
+            $row->catalogPrice .= " " . $btn;
         }
         
         return $row;
@@ -444,8 +449,7 @@ class eshop_ProductDetails extends core_Detail
         
         $fieldset = cls::get(get_called_class());
         $fieldset->FNC('code', 'varchar');
-        $fieldset->FNC('catalogPrice', 'double');
-        $fieldset->FNC('btn', 'varchar', 'tdClass=small-field');
+        $fieldset->FNC('catalogPrice', 'double', 'tdClass=rightCol');
         $fieldset->FNC('packagingId', 'varchar', 'tdClass=centered');
         $fieldset->FLD('quantity', 'varchar', 'tdClass=quantity-input-column small-field');
         
