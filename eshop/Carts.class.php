@@ -2236,6 +2236,9 @@ class eshop_Carts extends core_Master
             // Адреса за доставка е този от последната количка, освен ако локацията не е задължителна
             if($settings->locationIsMandatory != 'yes'){
                 $cQuery->in('deliveryCountry', $form->countries);
+                if(isset($folderId)){
+                    $cQuery->where("#saleFolderId = {$folderId}");
+                }
                 if ($lastCart = $cQuery->fetch()) {
                     foreach (array('termId', 'deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress', 'locationId') as $field) {
                         $form->setDefault($field, $lastCart->{$field});
