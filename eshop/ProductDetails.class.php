@@ -374,7 +374,7 @@ class eshop_ProductDetails extends core_Detail
             $row->catalogPrice = "<b>{$row->catalogPrice}</b>";
         } else {
             $showCartBtn = false;
-            $row->catalogPrice = "<span style='border-radius: 3px;padding: 4px;font-size: .8em;background-color: #e6e6e6;border: solid 1px #ff7070;display: inline-block;color: #c00;'>" . tr('Свържете се с нас') . "</span>";
+            $row->catalogPrice = "<span class=' option-not-in-stock ' style='background-color: #e6e6e6 !important;border: solid 1px #ff7070;color: #c00;margin-top: 5px;'>" . tr('Свържете се с нас') . "</span><br>";
             if(eshop_Products::haveRightFor('single')){
                 $row->catalogPrice = ht::createHint($row->catalogPrice, 'Артикулът няма цена за продажба', 'error', false);
             }
