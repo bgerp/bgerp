@@ -2024,11 +2024,6 @@ class eshop_Carts extends core_Master
                         $contragentClassId = crm_Persons::getClassId();
                         $contragentId = crm_Profiles::getProfile($cu)->id;
                     }
-                    
-                    // Ако има въведени адресни данни
-                    if (!empty($rec->deliveryCountry) || !empty($rec->deliveryPCode) || !empty($rec->deliveryPlace) || !empty($rec->deliveryAddress)) {
-                        $rec->locationId = crm_Locations::update($contragentClassId, $contragentId, $rec->deliveryCountry, 'За получаване на пратки', $rec->deliveryPCode, $rec->deliveryPlace, $rec->deliveryAddress, $rec->locationId);
-                    }
                 }
                 
                 if (!$cu) {
