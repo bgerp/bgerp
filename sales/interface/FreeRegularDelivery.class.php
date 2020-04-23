@@ -2,10 +2,10 @@
 
 
 /**
- * Драйвер за доставка до Офис на speedy
+ * Драйвер за Безплатна доставка с наш транспорт
  *
  * @category  bgerp
- * @package   speedy
+ * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2020 Experta OOD
@@ -13,7 +13,7 @@
  *
  * @since     v 0.1
  */
-class speedy_interface_DeliveryToOffice extends core_BaseClass
+class sales_interface_FreeRegularDelivery extends core_BaseClass
 {
     /**
      * Поддържани интерфейси
@@ -24,13 +24,19 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
     /**
      * Заглавие
      */
-    public $title = 'До офис Спиди';
+    public $title = 'Безплатна доставка с наш транспорт';
     
     
     /**
      * Инстанция на мениджъра имащ интерфейса
      */
     public $class;
+    
+    
+    /**
+     * Роли, които може да го избират в ешопа;
+     */
+    public $rolesForEshopSelect = 'partner';
     
     
     /**
@@ -45,10 +51,7 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
      */
     public function getVolumicWeight($weight, $volume, $deliveryTermId, $params)
     {
-        $FeeZones = cls::getInterface('cond_TransportCalc', 'tcost_FeeZones');
-        $params['deliveryCountry'] = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
-        
-        return $FeeZones->getVolumicWeight($weight, $volume, $deliveryTermId, $params);
+        return 1;
     }
     
     
@@ -67,15 +70,49 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
      */
     public function getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $params)
     {
-        //@todo Да се направи да работи с API-то
-        $officeId = $params['officeId'];
-        $params['deliveryCountry'] = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+        $routeRec = null;
+        if($params['routeId']){
+            $routeRec = sales_Routes::fetch($params['routeId']);
+        }
         
-        // Временно работи с навлата
-        $FeeZones = cls::getInterface('cond_TransportCalc', 'tcost_FeeZones');
-        $res = $FeeZones->getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $params);
+        $res = array('fee' => cond_TransportCalc::OTHER_FEE_ERROR, 'explain' => ' NO ROUTE FOUND');
+        if(is_object($routeRec)){
+            $diff = strtotime($routeRec->nextVisit) - strtotime(dt::today());
+            $res['fee'] = 0;
+            $res['deliveryTime'] = $diff;
+        } 
         
         return $res;
+    }
+    
+    
+    /**
+     * Кои марршрути са допустими за избор
+     * 
+     * @param int $locationId  - към коя локация
+     * @param int $inDays - в следващите колко дни? null за без ограничение
+     * @return string[] $routeOptions - опции от маршрути
+     */
+    private static function getRouteOptions($locationId, $inDays = null)
+    {
+        $today = dt::today();
+        
+        $routeOptions = array();
+        $rQuery = sales_Routes::getQuery();
+        $rQuery->where("#locationId = '{$locationId}' AND #nextVisit > '{$today}' AND #state != 'rejected'");
+        if(isset($inDays)){
+            $inDays = dt::addDays($inDays, $today, false);
+            $rQuery->where("#nextVisit <= '{$inDays}'");
+        }
+        
+        $rQuery->show('id,nextVisit');
+        $rQuery->orderBy('id', "ASC");
+        
+        while($rRec = $rQuery->fetch()){
+            $routeOptions[$rRec->id] = sales_Routes::getSmartTitle($rRec);
+        }
+        
+        return $routeOptions;
     }
     
     
@@ -90,20 +127,34 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
      */
     public function addFields(core_FieldSet &$form, $document, $userId = null)
     {
-        $form->FLD('officeId', "key(mvc=speedy_Offices,select=name)", 'silent,mandatory,caption=Доставка->Офис');
-        $options = array('' => '') + speedy_Offices::getAvailable();
-        $form->setOptions('officeId', $options);
-        
         $Document = cls::get($document);
+        $inDays = ($Document instanceof eshop_Carts) ? 7 : null;
+        $locationId = ($Document instanceof eshop_Carts) ? $form->rec->locationId : $form->rec->deliveryLocationId;
+        
+        $routeOptions = self::getRouteOptions($locationId, $inDays);
+        $countRoutes = countR($routeOptions);
+        $form->FLD('routeId', "key(mvc=sales_Routes,select=nextVisit)", 'silent,mandatory,caption=Доставка->Маршрут');
+        
+        if($countRoutes > 1){
+            $routeOptions = array('' => '') + $routeOptions;
+        } elseif($countRoutes == 1){
+            $form->setDefault('routeId', key($routeOptions));
+        }
+        
+        $form->setOptions('routeId', $routeOptions);
+        
+        
         if($Document instanceof eshop_Carts){
-            unset($form->rec->deliveryCountry, $form->rec->deliveryPCode, $form->rec->deliveryPlace, $form->rec->deliveryAddress);
             $form->setField('deliveryCountry', 'input=hidden');
             $form->setField('deliveryPCode', 'input=hidden');
             $form->setField('deliveryPlace', 'input=hidden');
             $form->setField('deliveryAddress', 'input=hidden');
-            $form->setField('locationId', 'input=none');
+            
+            if(!$countRoutes){
+                $infoText = tr('За съжаление, няма планирани маршрути до вашата локация. Ако имате въпроси, моля да се свържете с нас|*!');
+                $form->info = new core_ET("<div id='editStatus'><div class='warningMsg'>{$infoText}</div></div>");
+            }
         } elseif($Document instanceof sales_Sales){
-            $form->setField('deliveryLocationId', 'input=hidden');
             $form->setField('deliveryAdress', 'input=hidden');
         } elseif($Document instanceof sales_Quotations){
             $form->setField('deliveryAdress', 'input=hidden');
@@ -120,7 +171,7 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
      */
     public function getFields($document)
     {
-        return array('officeId');
+        return array('routeId');
     }
     
     
@@ -137,18 +188,13 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
     {
         $res = array();
         
-        if($deliveryData['officeId']){
-            $officeRec = speedy_Offices::fetch($deliveryData['officeId']);
-            $officeName = speedy_Offices::getVerbal($officeRec, 'extName');
-            
-            $officeLocationUrlTpl = new core_ET(speedy_Setup::get('OFFICE_LOCATOR_URL'));
-            $officeLocationUrlTpl->replace($officeRec->num, 'NUM');
-            $officeName = ht::createLink($officeName, $officeLocationUrlTpl->getContent());
+        if($deliveryData['routeId']){
+            $routeName = sales_Routes::getSmartTitle($deliveryData['routeId']);
         } else {
-            $officeName = ht::createHint('', 'Офисът не е уточнен', 'error');
+            $routeName = ht::createHint('', 'Маршрутът още не е уточнен', 'error');
         }
         
-        $res[] = (object)array('caption' => tr('Офис'), 'value' => $officeName);
+        $res[] = (object)array('caption' => tr('Маршрут'), 'value' => $routeName);
         
         return $res;
     }
@@ -166,10 +212,17 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
      */
     public function checkDeliveryDataOnActivation($id, $documentRec, $deliveryData, $document, &$error = null)
     {
-        if(empty($deliveryData['officeId'])){
-            $error = "Не е избран офис на speedy!";
+        if(empty($deliveryData['routeId'])){
+            $error = "Не е избран маршрут|*!";
             
             return false;
+        } else {
+            $routeState = sales_Routes::fetchField($deliveryData['routeId'], 'state');
+            if($routeState != 'active'){
+                $error = "Избраният маршрут, вече не е активен|*!";
+                
+                return false;
+            }
         }
         
         return true;
@@ -188,6 +241,9 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
      */
     public function addToCartView($termRec, $cartRec, $cartRow, &$tpl)
     {
+        $block = new core_ET(tr("|*<div>|Доставката е безплатна, защото се извършва с наш регулярен транспорт|*</div>"));
+        $tpl->append($block, 'CART_FOOTER');
+        
         return false;
     }
     
@@ -201,7 +257,9 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
      */
     public function onUpdateCartMaster(&$cartRec)
     {
-        
+        if($cartRec->deliveryData['routeId']){
+            $cartRec->freeDelivery = 'yes';
+        }
     }
     
     
@@ -215,6 +273,13 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
      */
     public function canSelectInEshop(&$rec, $cu = null)
     {
-        return true;
+        if(isset($cu)){
+            if(core_Users::isContractor($cu)){
+                
+                return true;
+            }
+        }
+        
+        return false;
     }
 }

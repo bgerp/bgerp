@@ -128,9 +128,20 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
      * UIC_TYPE_STR - типа на UIC номера - bulstat, EGN, FN, NRA
      * RELATED_TO_INV_NUM - 10 символа за фактурата, която се сторница
      * RELATED_TO_INV_DATE_TIME - дата и час на фактурата, която ще се сторнира - може да се попълни от QR_CODE_DATA, ако не е попълнено
-     * 
      * Другите параметри са: OPER_NUM, OPER_PASS, PRINT_TYPE_STR - като при издаване на ФБ
      * Другите параметри са: STORNO_REASON, RELATED_TO_RCP_NUM, FM_NUM, RELATED_TO_URN, QR_CODE_DATA - като при издаване на СТОРНО
+     * 
+     * // Параметри са издаване на фактура
+     * IS_INVOICE - дали се създава фактура
+     * RECIPIENT - 26 символа за получателя на фактурата
+     * BUYER - 16 симвла за купувача
+     * VAT_NUMBER - 13 символа за VAT номер
+     * UIC - 13 символа за UIC номер на клиента
+     * ADDRESS - 30 символа за адрес на клиента
+     * UIC_TYPE_STR - типа на UIC номера - bulstat, EGN, FN, NRA
+     * RCP_NUM - уникален номер на бележката - [a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[0-9]{7} - не е задължителен
+     * 
+     * Другите параметри са: OPER_NUM, OPER_PASS, PRINT_TYPE_STR - като при издаване на ФБ
      * 
      * @return string
      *
@@ -164,8 +175,25 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
         setIfNot($params['PRINT_TYPE_STR'], 'buffered');
         
         if (!$params['IS_STORNO'] && !$params['IS_CREDIT_NOTE']) {
-            expect($params['RCP_NUM'] && preg_match($this->rcpNumPattern, $params['RCP_NUM']));
-            $js->replace(json_encode($params['RCP_NUM']), 'RCP_NUM');
+            if ($params['IS_INVOICE']) {
+                $js->replace(json_encode($params['RECIPIENT']), 'RECIPIENT');
+                $js->replace(json_encode($params['BUYER']), 'BUYER');
+                $js->replace(json_encode($params['VAT_NUMBER']), 'VAT_NUMBER');
+                $js->replace(json_encode($params['UIC']), 'UIC');
+                $js->replace(json_encode($params['ADDRESS']), 'ADDRESS');
+                $js->replace(json_encode($params['UIC_TYPE_STR']), 'UIC_TYPE_STR');
+                $js->replace(json_encode($params['RCP_NUM']), 'RCP_NUM');
+                
+                $js->removeBlock('OPEN_FISC_RECEIPT_1');
+                $js->removeBlock('OPEN_FISC_RECEIPT_2');
+            } else {
+                
+                $js->removeBlock('OPEN_FISC_INVOICE_1');
+                $js->removeBlock('OPEN_FISC_INVOICE_2');
+                
+                expect($params['RCP_NUM'] && preg_match($this->rcpNumPattern, $params['RCP_NUM']));
+                $js->replace(json_encode($params['RCP_NUM']), 'RCP_NUM');
+            }
             
             $js->removeBlock('OPEN_STORNO_RECEIPT_1');
             $js->removeBlock('OPEN_STORNO_RECEIPT_2');
@@ -222,6 +250,8 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
             
             $js->removeBlock('OPEN_FISC_RECEIPT_1');
             $js->removeBlock('OPEN_FISC_RECEIPT_2');
+            $js->removeBlock('OPEN_FISC_INVOICE_1');
+            $js->removeBlock('OPEN_FISC_INVOICE_2');
             
             if ($params['IS_CREDIT_NOTE']) {
                 $js->replace(json_encode($params['RECIPIENT']), 'RECIPIENT');
@@ -504,7 +534,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
     protected function addTplFile(&$tpl, $driverVersion)
     {
         if (!$driverVersion) {
-            $driverVersion = '19.03.22';
+            $driverVersion = '19.10.21';
         }
         
         // Добавяме необходимите JS файлове
@@ -1114,5 +1144,71 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
         
         $this->addTplFile($jsTpl, $pRec->driverVersion);
         $this->connectToPrinter($jsTpl, $pRec, false);
+    }
+    
+    
+    /**
+     * Връща диапазона на фактурите
+     *
+     * @param stdClass $pRec
+     * @param null|core_Et $jsTpl
+     *
+     * @return array|null
+     *
+     * @see tremol_FiscPrinterDriverParent::getResForReport()
+     */
+    protected function getInvoiceRange($pRec, &$jsTpl = null)
+    {
+        $jsTpl = new ET("[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+                            try {
+                                [#/tremol/js/FiscPrinterTplConnect.txt#]
+                                var res = fp.ReadInvoiceRange();
+                                if (res) {
+                                    if (res.StartNum) {
+                                        $('.startNum').attr('placeholder', res.StartNum);
+                                    }
+                                    if (res.EndNum) {
+                                        $('.endNum').attr('placeholder', res.EndNum);
+                                    }
+                                }
+                            } catch(ex) { }
+                            [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]
+                        ");
+        
+        $this->addTplFile($jsTpl, $pRec->driverVersion);
+        $this->connectToPrinter($jsTpl, $pRec, false);
+    }
+    
+    
+    /**
+     * Задава диапазон на фактурите
+     *
+     * @param stdClass $pRec
+     * @param int $from
+     * @param int $to
+     * @param null|core_Et $jsTpl
+     * @param array $retUrl
+     *
+     * @see tremol_FiscPrinterDriverParent::getResForReport()
+     */
+    protected function setInvoiceRange($pRec, $from, $to, &$jsTpl = null, $retUrl = array())
+    {
+        $retUrlDecoded = toUrl($retUrl);
+        
+        $jsTpl = new ET("[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+                            try {
+                                [#/tremol/js/FiscPrinterTplConnect.txt#]
+                                var res = fp.SetInvoiceRange({$from}, {$to});
+                                render_redirect({url: '{$retUrlDecoded}'});
+                            } catch(ex) {
+                                render_showToast({timeOut: 800, text: '" . tr('Грешка при задаване на диапазон във ФУ') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'error'});
+                            }
+                            [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]
+                        ");
+        
+        $this->addTplFile($jsTpl, $pRec->driverVersion);
+        $this->connectToPrinter($jsTpl, $pRec, false);
+        
+        return ;
     }
 }

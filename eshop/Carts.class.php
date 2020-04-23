@@ -188,7 +188,7 @@ class eshop_Carts extends core_Master
         $this->FLD('paymentId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Начин,mandatory');
         $this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=locationId|invoiceNames|invoiceUicNo|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|invoiceNames');
         
-        $this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактуриране->Папка,input=none,silent,removeAndRefreshForm=invoiceNames|invoiceVatNo|invoiceUicNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
+        $this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактуриране->Папка,input=none,silent,removeAndRefreshForm=locationId|invoiceNames|invoiceVatNo|invoiceUicNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|makeInvoice');
         $this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактуриране->Наименование,invoiceData,hint=Име,input=none,mandatory');
         
         $this->FLD('invoiceVatNo', 'drdata_VatType', 'caption=Данни за фактуриране->ДДС №||VAT ID,input=hidden,invoiceData');
@@ -1856,14 +1856,11 @@ class eshop_Carts extends core_Master
         
         $form->input(null, 'silent');
         
-        self::setDefaultsFromFolder($form, $form->rec->saleFolderId);
-        
-        $form->setOptions('country', drdata_Countries::getOptionsArr($form->countries));
-        if (countR($form->countries) == 1) {
-            $form->setDefault('country', key($form->countries));
-            $form->setField('country', 'input=hidden');
-        } else {
-            $form->setDefault('country', cls::get('drdata_Countries')->getByIp());
+        if(empty($form->rec->termId)){
+            $form->setField('deliveryCountry', 'input=hidden');
+            $form->setField('deliveryPCode', 'input=hidden');
+            $form->setField('deliveryPlace', 'input=hidden');
+            $form->setField('deliveryAddress', 'input=hidden');
         }
         
         $cu = core_Users::getCurrent('id', false);
@@ -1872,6 +1869,16 @@ class eshop_Carts extends core_Master
             if (isset($form->rec->saleFolderId)) {
                 $form->rec->makeInvoice = ($form->rec->saleFolderId == $profileRec->folderId) ? 'person' : 'company';
             }
+        }
+        
+        self::setDefaultsFromFolder($form, $form->rec->saleFolderId);
+        
+        $form->setOptions('country', drdata_Countries::getOptionsArr($form->countries));
+        if (countR($form->countries) == 1) {
+            $form->setDefault('country', key($form->countries));
+            $form->setField('country', 'input=hidden');
+        } else {
+            $form->setDefault('country', cls::get('drdata_Countries')->getByIp());
         }
         
         if (!empty($form->rec->deliveryCountry)) {
@@ -2006,23 +2013,6 @@ class eshop_Carts extends core_Master
                 }
                 
                 $cu = core_Users::getCurrent('id', false);
-                
-                if (isset($cu) && core_Users::isContractor($cu)) {
-                    if (isset($rec->saleFolderId)) {
-                        $Cover = doc_Folders::getCover($rec->saleFolderId);
-                        $contragentClassId = $Cover->getClassId();
-                        $contragentId = $Cover->that;
-                    } else {
-                        $contragentClassId = crm_Persons::getClassId();
-                        $contragentId = crm_Profiles::getProfile($cu)->id;
-                    }
-                    
-                    // Ако има въведени адресни данни
-                    if (!empty($rec->deliveryCountry) || !empty($rec->deliveryPCode) || !empty($rec->deliveryPlace) || !empty($rec->deliveryAddress)) {
-                        $rec->locationId = crm_Locations::update($contragentClassId, $contragentId, $rec->deliveryCountry, 'За получаване на пратки', $rec->deliveryPCode, $rec->deliveryPlace, $rec->deliveryAddress, $rec->locationId);
-                    }
-                }
-                
                 if (!$cu) {
                     $userData = array('email' => $rec->email, 'personNames' => $rec->personNames, 'tel' => $rec->tel);
                     log_Browsers::setVars($userData);
@@ -2048,8 +2038,6 @@ class eshop_Carts extends core_Master
             
             if ($form->layout) {
                 jquery_Jquery::run($form->layout, 'copyValToPlaceholder();');
-                
-                //jquery_Jquery::run($form->layout, 'refreshInvoiceFields();');
             }
         }
         
@@ -2060,8 +2048,6 @@ class eshop_Carts extends core_Master
         // Рефрешване на формата ако потребителя се логне докато е в нея
         cms_Helper::setRefreshFormIfNeeded($tpl);
         jquery_Jquery::run($tpl, 'runOnLoad(copyValToPlaceholder);');
-        
-        //jquery_Jquery::run($tpl, 'runOnLoad(refreshInvoiceFields);');
         $tpl->prepend("\n<meta name=\"robots\" content=\"nofollow\">", 'HEAD');
         
         return $tpl;
@@ -2079,6 +2065,7 @@ class eshop_Carts extends core_Master
     {
         $cu = core_Users::getCurrent('id', false);
         $defaultTermId = $defaultPaymentId = null;
+        $settings = cms_Domains::getSettings();
         
         $deliveryTerms = eshop_Settings::getDeliveryTermOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
         $paymentMethods = eshop_Settings::getPaymentMethodOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
@@ -2114,9 +2101,19 @@ class eshop_Carts extends core_Master
             
             // Добавяне на партньорското условие на доставка
             $defaultTermId = cond_Parameters::getParameter('crm_Persons', $profileRec->id, 'deliveryTermSale');
-            $form->setDefault('termId', $defaultTermId);
+            
             if ($defaultTermId && !array_key_exists($defaultTermId, $deliveryTerms)) {
                 $deliveryTerms[$defaultTermId] = cond_DeliveryTerms::getVerbal($defaultTermId, 'codeName');
+            }
+            
+            // Ако локацията е задължителна, остават само условията с локация на получателя
+            if($settings->locationIsMandatory == 'yes'){
+                $receiverTerms = cond_DeliveryTerms::getTermOptions('receiver');
+                $deliveryTerms = array_intersect_key($deliveryTerms, $receiverTerms);
+            }
+            
+            if(array_key_exists($defaultTermId, $deliveryTerms)){
+                $form->setDefault('termId', $defaultTermId);
             }
             
             // Добавяне на партньорския метод за плащане
@@ -2127,9 +2124,10 @@ class eshop_Carts extends core_Master
             }
         }
         
+        $originalRec = static::fetch($form->rec->id, '*', false);
         if (countR($deliveryTerms) == 1) {
             $form->setDefault('termId', key($deliveryTerms));
-        } else {
+        } elseif(empty($originalRec->personNames)) {
             $deliveryTerms = array('' => '') + $deliveryTerms;
         }
         $form->setOptions('termId', $deliveryTerms);
@@ -2160,11 +2158,13 @@ class eshop_Carts extends core_Master
         $rec = &$form->rec;
         $cu = core_Users::getCurrent('id', false);
         $isColab = isset($cu) && core_Users::isContractor($cu);
+        $settings = cms_Domains::getSettings();
         
         // Ако има избрана папка се записват контрагент данните
         if (isset($folderId)) {
             if ($contragentData = doc_Folders::getContragentData($folderId)) {
-                $form->setDefault('invoiceNames', $contragentData->company);
+                $invName = ($rec->makeInvoice == 'person') ? $contragentData->person : $contragentData->company;
+                $form->setDefault('invoiceNames', $invName);
                 $form->setDefault('invoiceVatNo', $contragentData->vatNo);
                 $form->setDefault('invoiceUicNo', $contragentData->uicId);
                 $form->setDefault('invoiceCountry', $contragentData->countryId);
@@ -2174,27 +2174,47 @@ class eshop_Carts extends core_Master
                 $form->countries[$contragentData->countryId] = $contragentData->countryId;
                 
                 $contragentCover = doc_Folders::getCover($folderId);
-                $locations = crm_Locations::getContragentOptions($contragentCover->className, $contragentCover->that, true, $form->countries);
+                $locations = crm_Locations::getContragentOptions($contragentCover->className, $contragentCover->that, true, true, $form->countries);
             }
         } else {
             if ($isColab === true) {
-                $locations = crm_Locations::getContragentOptions('crm_Persons', crm_Profiles::getProfile($cu)->id, true, $form->countries);
+                $locations = crm_Locations::getContragentOptions('crm_Persons', crm_Profiles::getProfile($cu)->id, true, true, $form->countries);
             }
         }
         
-        // Ако има локации задават се
-        if (countR($locations)) {
-            $form->setOptions('locationId', array('' => '') + $locations);
+        if($isColab){
             $form->setField('locationId', 'input');
             $form->input('locationId', 'silent');
+            
+            // Ако е партньор и локацията е задължителна
+            if($settings->locationIsMandatory == 'yes'){
+                $form->setField('locationId', 'input,mandatory');
+                if (!countR($locations)) {
+                    $infoText = tr('За да продължите трябва да имате регистриран обект за доставка. Моля свържете се с нас');
+                    $form->info = new core_ET("<div id='editStatus'><div class='warningMsg'>{$infoText}</div></div>");
+                }
+            }
+            
+            if(countR($locations) == 1){
+                $form->setDefault('locationId', key($locations));
+            } elseif(countR($locations) > 1) {
+                if($settings->locationIsMandatory == 'yes'){
+                    $form->setDefault('locationId', key($locations));
+                } else {
+                    $locations = array('' => '') + $locations;
+                }
+            }
+            $form->setOptions('locationId', $locations);
         }
         
         // Ако е избрана локация допълват се адресните данни за доставка
         if (isset($rec->locationId)) {
             $locationRec = crm_Locations::fetch($rec->locationId);
             foreach (array('deliveryCountry' => 'countryId', 'deliveryPCode' => 'pCode', 'deliveryPlace' => 'place', 'deliveryAddress' => 'address') as $delField => $locField) {
+                
+                // Ако има избрана локация, твърдо подменяме адресните данни
                 if (!empty($locationRec->{$locField})) {
-                    $form->setDefault($delField, $locationRec->{$locField});
+                    $form->rec->{$delField} = $locationRec->{$locField};
                 }
             }
         }
@@ -2207,15 +2227,24 @@ class eshop_Carts extends core_Master
             $cQuery2 = clone $cQuery;
             $cQuery3 = clone $cQuery;
             
-            // Адреса за доставка е този от последната количка
-            $cQuery->in('deliveryCountry', $form->countries);
-            if ($lastCart = $cQuery->fetch()) {
-                foreach (array('termId', 'deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress', 'locationId') as $field) {
-                    $form->setDefault($field, $lastCart->{$field});
+            // Адреса за доставка е този от последната количка, освен ако локацията не е задължителна
+            if($settings->locationIsMandatory != 'yes'){
+                $cQuery->in('deliveryCountry', $form->countries);
+                if(isset($folderId)){
+                    $cQuery->where("#saleFolderId = {$folderId}");
+                }
+                if ($lastCart = $cQuery->fetch()) {
+                    foreach (array('termId', 'deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress', 'locationId') as $field) {
+                        $form->setDefault($field, $lastCart->{$field});
+                    }
                 }
             }
             
             $cQuery2->in('invoiceCountry', $form->countries);
+            if(isset($folderId)){
+                $cQuery2->where("#saleFolderId = {$folderId}");
+            }
+            
             if ($lastCart2 = $cQuery2->fetch()) {
                 foreach (array('invoiceNames', 'invoiceVatNo', 'invoiceUicNo', 'invoiceCountry', 'invoicePlace', 'invoiceAddress') as $field) {
                     $form->setDefault($field, $lastCart2->{$field});
@@ -2229,7 +2258,7 @@ class eshop_Carts extends core_Master
                 $form->rec->tel = $lastCart3->tel;
             }
             
-            if (isset($folderId)) {
+            if (isset($folderId) && $settings->locationIsMandatory != 'yes') {
                 if ($contragentData = doc_Folders::getContragentData($folderId)) {
                     $form->setDefault('deliveryCountry', $contragentData->countryId);
                     $form->setDefault('deliveryPCode', $contragentData->pCode);

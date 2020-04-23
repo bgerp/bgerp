@@ -1965,6 +1965,10 @@ a.tOld {
     .additionalInfo {
     	left: auto;
     	right: -4px;
+		&.right {
+			left: -42px;
+			right: auto;
+		}
     }
   	.pluginCountButtonNub {
 		height: 0;
@@ -3883,15 +3887,25 @@ table .eshop-btn {
 	position: relative;
 	top: -1px;
 
-	&:hover{
+	&:hover {
 		background-color: #eee !important;
 	}
-
 }
+
+.narrow .eshop-btn.addToCard, .narrow .productBtn.addToCard {
+	background-image: url("../img/16/cart_go.png") !important;
+	background-position: 3px center;
+	background-repeat: no-repeat;
+	margin-bottom: 5px !important;
+	padding: 4px 8px 5px 25px !important;
+	top: -1px !important;
+	position: relative;
+	border: 1px solid #bbb !important;
+}
+
 .order-btn {
 	color: #fff !important;
 	text-shadow: 1px 1px 0 #333;
-
 	padding: 10px 20px !important;
 	font-size: 1.2em !important;
 	-moz-box-shadow:inset 0px 1px 0px 0px #54a3f7;

@@ -133,6 +133,10 @@ function showTooltip() {
                 $(element).addClass('bottom');
             }
 
+            if($(element).parent().offset().left < 200){
+                $(element).addClass('right');
+            }
+
             $(element).css('display', 'block');
         } else {
             // при кликане в бодито затвавяме отворения тултип, ако има такъв

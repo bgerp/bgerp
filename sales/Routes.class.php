@@ -553,4 +553,22 @@ class sales_Routes extends core_Manager
             }
         }
     }
+    
+    
+    /**
+     * Връща подходящо заглавие на маршрута
+     * 
+     * @param stdClass $rec - маршрут
+     * @return string $smartTitle - заглавие от рода Понеделник (dd.mm.yy)
+     */
+    public static function getSmartTitle($rec)
+    {
+        $rec = self::fetchRec($rec);
+        
+        $dayName = dt::mysql2verbal($rec->nextVisit, 'l');
+        $fullDate = dt::mysql2verbal($rec->nextVisit, 'd.m.Y');
+        $smartTitle = "{$dayName} ({$fullDate})";
+        
+        return $smartTitle;
+    }
 }

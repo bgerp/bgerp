@@ -1672,6 +1672,10 @@ a.tOld {
   .document-settings-left .additionalInfo {
     left: auto;
     right: -4px; }
+    .document-settings .additionalInfo.right,
+    .document-settings-left .additionalInfo.right {
+      left: -42px;
+      right: auto; }
   .document-settings .pluginCountButtonNub,
   .document-settings-left .pluginCountButtonNub {
     height: 0;
@@ -3321,6 +3325,17 @@ table .eshop-btn {
   top: -1px; }
   .productBtn:hover {
     background-color: #eeeeee !important; }
+
+.narrow .eshop-btn.addToCard,
+.narrow .productBtn.addToCard {
+  background-image: url("../img/16/cart_go.png") !important;
+  background-position: 3px center;
+  background-repeat: no-repeat;
+  margin-bottom: 5px !important;
+  padding: 4px 8px 5px 25px !important;
+  top: -1px !important;
+  position: relative;
+  border: 1px solid #bbbbbb !important; }
 
 .order-btn {
   color: white !important;
