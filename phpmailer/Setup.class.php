@@ -146,11 +146,7 @@ class phpmailer_Setup extends core_ProtoSetup
             
             return;
         }
-        
         $pml = cls::get('phpmailer_Instance');
-
-        //bp($pml, $pml->smtp, $pml->SmtpConnect());
-        
         if (!$pml->SmtpConnect()) {
             
             return "|*<li class='debug-error'>|Грешка при свързване|*!</li>";
