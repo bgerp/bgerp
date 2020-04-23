@@ -517,6 +517,7 @@ class eshop_Products extends core_Master
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $perPage));
         $data->Pager->itemsCount = $pQuery->count();
         $data->Pager->setLimit($pQuery);
+        $settings = cms_Domains::getSettings();
         
         while ($pRec = $pQuery->fetch()) {
             $data->recs[] = $pRec;
@@ -569,7 +570,6 @@ class eshop_Products extends core_Master
                         $pRecClone->_listView = true;
                         $dRow = eshop_ProductDetails::getExternalRow($pRecClone);
                         
-                        $settings = cms_Domains::getSettings();
                         $pRow->singleCurrencyId = $settings->currencyId;
                         $pRow->chargeVat = ($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС');
                         $pRow->catalogPrice = $dRow->catalogPrice;
@@ -578,11 +578,11 @@ class eshop_Products extends core_Master
                     }
                 }
             } elseif($pRec->saleState == 'multi'){
-                $pRow->btn = ht::createBtn($settings->addToCartBtn . '...', self::getUrl($pRec->id), false, false, 'title=Избор на артикул,class=productBtn,ef_icon=img/16/cart_go.png');
+                $pRow->btn = ht::createBtn($settings->addToCartBtn . '...', self::getUrl($pRec->id), false, false, 'title=Избор на артикул,class=productBtn addToCard,ef_icon=img/16/cart_go.png');
             } elseif($pRec->saleState == 'closed'){
                 $pRow->btn = "<span class='option-not-in-stock'>" . mb_strtoupper(tr(('Спрян||Not available'))) . '</span>';
             }
-            
+
             $commonParams = self::getCommonParams($pRec->id);
             $pRow->commonParams = (countR($commonParams)) ? self::renderParams(self::getCommonParams($pRec->id)) : null;
         }

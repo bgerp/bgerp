@@ -872,7 +872,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             arr::sortObjects($recs, $orderBy, $rec->order, $typeOrder);
             
             if ($rec->seeByContragent == 'yes') {
-                arr::sortObjects($recs, 'contragent', 'ASC');
+          //      arr::sortObjects($recs, 'contragent', 'ASC');
             }
         }
         
@@ -1404,6 +1404,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
         $res->group = self::getGroups($dRec, false, $rec);
+        if (isset($dRec->measure)) {
+            $res->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
+        }
         
         if ($rec->compare != 'no') {
             if (($rec->compare == 'previous') || ($rec->compare == 'month')) {

@@ -538,4 +538,29 @@ class cal_Holidays extends core_Master
         
         return $inChargePerCountry;
     }
+    
+    
+    /**
+     * Изпълнява се преди импортирването на данните
+     *
+     * @param cal_Holidays $mvc
+     * @param stdClass $rec
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
+    {
+        if ((BGERP_GIT_BRANCH == 'dev') || (BGERP_GIT_BRANCH == 'test')) {
+            if ($oRec = $mvc->fetch(array("#key = '[#1#]'", $rec->key))) {
+                $info = $rec->info;
+                if (!$info) {
+                    if (isset($rec->csv_info) && strlen($rec->csv_info) != 0) {
+                        $info = str_replace('\"', '"', $rec->csv_info);
+                    }
+                }
+                
+                if ($info != $oRec->info) {
+                    wp($rec, $oRec);
+                }
+            }
+        }
+    }
 }

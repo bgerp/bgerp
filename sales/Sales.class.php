@@ -1261,9 +1261,11 @@ class sales_Sales extends deals_DealMaster
      */
     private function getExpectedTransportCost($rec)
     {
-        if(isset($rec->expectedTransportCost))
+        if(isset($rec->expectedTransportCost)){
+            
+            return $rec->expectedTransportCost;
+        }
  
- return $rec->expectedTransportCost;
         $expectedTransport = 0;
         
         // Ако няма калкулатор в условието на доставка, не се изчислява нищо
@@ -1283,12 +1285,14 @@ class sales_Sales extends deals_DealMaster
         $codeAndCountryArr = sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, null, null, $rec->deliveryLocationId ? $rec->deliveryLocationId : $rec->deliveryAdress);
         $ourCompany = crm_Companies::fetchOurCompany();
         $params = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
+        $params += $rec->deliveryData;
         
         // Изчисляване на общото тегло на офертата
         $total = sales_TransportValues::getTotalWeightAndVolume($TransportCalc, $products, $rec->deliveryTermId, $params);
-        if($total == cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT)
- 
- return cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT;
+        if($total == cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT){
+            
+            return cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT;
+        }
         
         // За всеки артикул се изчислява очаквания му транспорт
         foreach ($products as $p2) {
