@@ -2013,19 +2013,6 @@ class eshop_Carts extends core_Master
                 }
                 
                 $cu = core_Users::getCurrent('id', false);
-                
-                if (isset($cu) && core_Users::isContractor($cu)) {
-                    if (isset($rec->saleFolderId)) {
-                        $Cover = doc_Folders::getCover($rec->saleFolderId);
-                        $contragentClassId = $Cover->getClassId();
-                        $contragentId = $Cover->that;
-                        colab_Folders::setLastActiveContragentFolder($rec->saleFolderId);
-                    } else {
-                        $contragentClassId = crm_Persons::getClassId();
-                        $contragentId = crm_Profiles::getProfile($cu)->id;
-                    }
-                }
-                
                 if (!$cu) {
                     $userData = array('email' => $rec->email, 'personNames' => $rec->personNames, 'tel' => $rec->tel);
                     log_Browsers::setVars($userData);
