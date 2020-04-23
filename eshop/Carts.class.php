@@ -1856,6 +1856,13 @@ class eshop_Carts extends core_Master
         
         $form->input(null, 'silent');
         
+        if(empty($form->rec->termId)){
+            $form->setField('deliveryCountry', 'input=hidden');
+            $form->setField('deliveryPCode', 'input=hidden');
+            $form->setField('deliveryPlace', 'input=hidden');
+            $form->setField('deliveryAddress', 'input=hidden');
+        }
+        
         $cu = core_Users::getCurrent('id', false);
         if (isset($cu) && $form->rec->makeInvoice != 'none') {
             $profileRec = crm_Profiles::getProfile($cu);
@@ -2131,9 +2138,10 @@ class eshop_Carts extends core_Master
             }
         }
         
+        $originalRec = static::fetch($form->rec->id, '*', false);
         if (countR($deliveryTerms) == 1) {
             $form->setDefault('termId', key($deliveryTerms));
-        } else {
+        } elseif(empty($originalRec->personNames)) {
             $deliveryTerms = array('' => '') + $deliveryTerms;
         }
         $form->setOptions('termId', $deliveryTerms);

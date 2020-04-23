@@ -418,8 +418,8 @@ class cond_DeliveryTerms extends core_Master
         if($Calculator){
             $Calculator->addFields($form, $document, $userId);
         } elseif($Document instanceof eshop_Carts && $rec->address != 'supplier' && !$isColabReceiver) {
-            $form->setField('deliveryPCode', 'mandatory');
-            $form->setField('deliveryPlace', 'mandatory');
+            //$form->setField('deliveryPCode', 'mandatory');
+            //$form->setField('deliveryPlace', 'mandatory');
         }
         
         if($Document instanceof deals_DealMaster || $Document instanceof eshop_Carts || $Document instanceof sales_Quotations){
