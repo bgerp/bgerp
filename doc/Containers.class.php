@@ -1654,6 +1654,7 @@ class doc_Containers extends core_Manager
         $recAct = new stdClass();
         $recAct->id = $rec->id;
         $recAct->state = 'active';
+        $recAct->_isActivatedDoc = true;
         
         // Извикваме фунцкията
         if ($clsInst->invoke('BeforeActivation', array(&$recAct))) {

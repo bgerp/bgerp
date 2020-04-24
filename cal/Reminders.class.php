@@ -986,6 +986,18 @@ class cal_Reminders extends core_Master
     
     public static function getNextStartingTime2($rec)
     {
+        // При активиране, ако не е подаден целия rec
+        if ($rec->_isActivatedDoc && $rec->id) {
+            $oRec = self::fetch($rec->id);
+            $oRecArr = (array) $oRec;
+            $recArr = (array) $rec;
+            foreach ($oRecArr as $k => $v) {
+                if (!array_key_exists($k, $recArr)) {
+                    $rec->{$k} = $v;
+                }
+            }
+        }
+        
         $rec2 = clone($rec);
         
         if (empty($rec2->repetitionEach)) {
@@ -993,12 +1005,14 @@ class cal_Reminders extends core_Master
                 
                 return;
             }
-            $rec2->timeStart = dt::timestamp2Mysql(dt::mysql2timestamp($rec2->timeStart) - $rec2->timePreviously);
+            
+            return dt::timestamp2Mysql(dt::mysql2timestamp($rec2->timeStart) - $rec2->timePreviously);
         }
         
-        if ($rec2->timeStart > dt::now()) {
+        $nextStartTime = dt::timestamp2Mysql(dt::mysql2timestamp($rec2->timeStart) - $rec2->timePreviously);
+        if ($nextStartTime > dt::now()) {
             
-            return $rec2->timeStart;
+            return $nextStartTime;
         }
         
         do {
