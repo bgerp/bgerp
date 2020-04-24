@@ -538,7 +538,14 @@ class plg_UserReg extends core_Plugin
             if ($defaultSentBox && ($iRec = email_Inboxes::fetch($defaultSentBox))) {
                 $PML = email_Accounts::getPML($iRec->email);
             } else {
-                $PML = cls::get('phpmailer_Instance', array('emailTo' => $rec->email));
+                $PMLSetup = cls::get('phpmailer_Setup');
+                if (strlen($PMLSetup->checkConfig(true)) != 0) {
+                    // няма конфигуриран phpmailer изпращаме през SMTP direct
+                    $PML = cls::get('phpmailer_Instance', array('emailTo' => $rec->email));
+                } else {
+                    // phpmailer е конфигуриран - изпращаме през SMTP
+                    $PML = cls::get('phpmailer_Instance');
+                }
             }
         }
         
