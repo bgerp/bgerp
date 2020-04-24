@@ -135,7 +135,7 @@ class bglocal_interface_FreeShipping extends core_BaseClass
      * @param stdClass $cartRow
      * @param core_ET $tpl
      *
-     * @return boolean
+     * @return void
      */
     public function addToCartView($termRec, $cartRec, $cartRow, &$tpl)
     {
@@ -143,8 +143,6 @@ class bglocal_interface_FreeShipping extends core_BaseClass
         
         $block = new core_ET(tr("|*<div>|Безплатна доставка на територията на|* <b>{$bgName}</b>|*</div>"));
         $tpl->append($block, 'CART_FOOTER');
-        
-        return true;
     }
     
     
