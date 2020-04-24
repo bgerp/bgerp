@@ -433,7 +433,7 @@ class tcost_FeeZones extends core_Master
      * @param stdClass $cartRow
      * @param core_ET $tpl
      *
-     * @return boolean
+     * @return void
      */
     public function addToCartView($termRec, $cartRec, $cartRow, &$tpl)
     {
