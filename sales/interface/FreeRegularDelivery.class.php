@@ -51,7 +51,9 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
      */
     public function getVolumicWeight($weight, $volume, $deliveryTermId, $params)
     {
-        return 1;
+        $FeeZones = cls::getInterface('cond_TransportCalc', 'tcost_FeeZones');
+        
+        return $FeeZones->getVolumicWeight($weight, $volume, $deliveryTermId, $params);
     }
     
     
