@@ -185,8 +185,8 @@ class eshop_Settings extends core_Manager
         $this->FLD('lifetimeForUserDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->На потребители');
         $this->FLD('timeBeforeDelete', 'time', 'caption=Нотификация за незавършена поръчка->Изпращане,unit=преди изтриване');
         
-        $this->FLD('freeDelivery', 'double', 'caption=Безплатна доставка->Сума');
-        $this->FLD('freeDeliveryByBus', 'double', 'caption=Безплатна доставка->За маршрут');
+        $this->FLD('freeDelivery', 'double(min=0)', 'caption=Безплатна доставка->Сума');
+        $this->FLD('freeDeliveryByBus', 'double(min=0)', 'caption=Безплатна доставка->За маршрут');
         
         $this->FLD('dealerId', 'user(roles=sales|ceo,allowEmpty)', 'caption=Продажби създадени от онлайн магазина->Търговец');
         
