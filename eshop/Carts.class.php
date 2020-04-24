@@ -2160,15 +2160,15 @@ class eshop_Carts extends core_Master
         if (isset($folderId)) {
             if ($contragentData = doc_Folders::getContragentData($folderId)) {
                 $invName = ($rec->makeInvoice == 'person') ? $contragentData->person : $contragentData->company;
-                $form->setDefault('invoiceNames', $invName);
-                $form->setDefault('invoiceVatNo', $contragentData->vatNo);
-                $form->setDefault('invoiceUicNo', $contragentData->uicId);
-                $form->setDefault('invoiceCountry', $contragentData->countryId);
-                $form->setDefault('invoicePCode', $contragentData->pCode);
-                $form->setDefault('invoicePlace', $contragentData->place);
-                $form->setDefault('invoiceAddress', $contragentData->address);
-                $form->countries[$contragentData->countryId] = $contragentData->countryId;
+                $form->rec->invoiceNames = $invName;
+                $form->rec->invoiceVatNo = $contragentData->vatNo;
+                $form->rec->invoiceUicNo = $contragentData->uicId;
+                $form->rec->invoiceCountry = $contragentData->countryId;
+                $form->rec->invoicePCode = $contragentData->pCode;
+                $form->rec->invoicePlace = $contragentData->place;
+                $form->rec->invoiceAddress = $contragentData->address;
                 
+                $form->countries[$contragentData->countryId] = $contragentData->countryId;
                 $contragentCover = doc_Folders::getCover($folderId);
                 $locations = crm_Locations::getContragentOptions($contragentCover->className, $contragentCover->that, true, true, $form->countries);
             }
