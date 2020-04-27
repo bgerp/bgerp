@@ -1064,7 +1064,7 @@ class eshop_Carts extends core_Master
         
         $Cover = doc_Folders::getCover($saleRec->folderId);
         if ($threadCount == 1) {
-            $url = core_Forwards::getUrl('colab_FolderToPartners', 'Createnewcontractor', array('companyId' => (int) $Cover->that, 'email' => $rec->email, 'rand' => str::getRand(), 'className' => $Cover->className, 'userNames' => $rec->personNames), 604800);
+            $url = core_Forwards::getUrl('colab_FolderToPartners', 'Createnewcontractor', array('companyId' => (int) $Cover->that, 'email' => $rec->email, 'rand' => str::getRand(), 'className' => $Cover->className, 'userNames' => $rec->personNames, 'onlyPartner' => 'yes'), 604800);
             $url = "[link={$url}]" . tr('връзка||link') . '[/link]';
             $body->replace($url, 'REGISTER_LINK');
         }

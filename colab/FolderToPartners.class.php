@@ -480,15 +480,18 @@ class colab_FolderToPartners extends core_Manager
                 $ht = ht::createBtn('Покана партньор', array($me, 'sendRegisteredEmail', 'companyId' => $data->masterId, 'className' => $data->masterMvc->className, 'onlyPartner' => 'no', 'ret_url' => true), false, false, 'ef_icon=img/16/email_edit.png,title=Изпращане на имейл за регистрация на партньори към фирмата');
                 $btns->append($ht);
                 
-                $ht = ht::createBtn('Покана е-шоп', array($me, 'sendRegisteredEmail', 'companyId' => $data->masterId, 'className' => $data->masterMvc->className, 'onlyPartner' => 'yes', 'ret_url' => true), false, false, 'ef_icon=img/16/email_edit.png,title=Изпращане на имейл за регистрация на партньори към фирмата');
-                $btns->append($ht);
-                
+                if(core_Packs::isInstalled('eshop')){
+                    $ht = ht::createBtn('Покана е-шоп', array($me, 'sendRegisteredEmail', 'companyId' => $data->masterId, 'className' => $data->masterMvc->className, 'onlyPartner' => 'yes', 'ret_url' => true), false, false, 'ef_icon=img/16/email_edit.png,title=Изпращане на имейл за регистрация на партньори към фирмата');
+                    $btns->append($ht);
+                }
             } else {
                 $ht = ht::createErrBtn('Покана партньор', 'Фирмата няма имейли, или нямате имейл кутия');
                 $btns->append($ht);
                 
-                $ht = ht::createErrBtn('Покана е-шоп', 'Фирмата няма имейли, или нямате имейл кутия');
-                $btns->append($ht);
+                if(core_Packs::isInstalled('eshop')){
+                    $ht = ht::createErrBtn('Покана е-шоп', 'Фирмата няма имейли, или нямате имейл кутия');
+                    $btns->append($ht);
+                }
             }
             
             Request::removeProtected(array('companyId', 'className'));
