@@ -1886,6 +1886,8 @@ class doc_Containers extends core_Manager
     {
         $urlArr = $params;
         
+        $title = '';
+        
         try {
             // Опитваме се да вземем инстанция на класа
             $ctrInst = cls::get($params['Ctr']);
@@ -1926,19 +1928,17 @@ class doc_Containers extends core_Manager
                 
                 // Стойността на полето на текстовата част
                 $title = $ctrInst->getVerbal($params['id'], $field);
-            } else {
-                
-                // Използваме името на модула
-                $title = ($ctrInst->singleTitle) ? $ctrInst->singleTitle : $ctrInst->title;
-                
-                // Добавяме id на фирмата
-                $title .= ' #' . $rec->id;
             }
         } catch (core_exception_Expect $e) {
             reportException($e);
+        }
+        
+        if (!$title) {
+            // Използваме името на модула
+            $title = ($ctrInst->singleTitle) ? $ctrInst->singleTitle : $ctrInst->title;
             
-            // Ако възникне някаква греша
-            return false;
+            // Добавяме id на фирмата
+            $title .= ' #' . $rec->id;
         }
         
         // Ако мода е xhtml
