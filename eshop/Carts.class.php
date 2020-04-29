@@ -171,12 +171,12 @@ class eshop_Carts extends core_Master
         $this->FLD('paidOnline', 'enum(no=Не,yes=Да)', 'caption=Общи данни->Платено,input=none,notNull,value=no');
         $this->FLD('productCount', 'int', 'caption=Общи данни->Брой,input=none, summary=quantity,summaryCaption=  Брой артикули');
         
-        $this->FLD('personNames', 'varchar(255)', 'caption=Имена,class=contactData,hint=Вашето име||Your name,mandatory,silent');
+        $this->FLD('personNames', 'varchar(255,autocomplete=off)', 'caption=Имена,class=contactData,hint=Вашето име||Your name,mandatory,silent');
         $this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Имейл,hint=Вашият имейл||Your email,mandatory');
         $this->FLD('tel', 'drdata_PhoneType(type=tel,nullIfEmpty,unrecognized=warning)', 'caption=Телефон,hint=Вашият телефон,mandatory');
         $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,mandatory');
         
-        $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Начин,removeAndRefreshForm=deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|deliveryData,silent,mandatory');
+        $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Начин,autocomplete=off,removeAndRefreshForm=deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|deliveryData,silent,mandatory');
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title)', 'caption=Доставка->Локация,input=none,silent,removeAndRefreshForm=deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress,after=termId');
         $this->FLD('deliveryCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Доставка->Държава,hint=Страна за доставка');
         $this->FLD('deliveryPCode', 'varchar(16)', 'caption=Доставка->П. код,hint=Пощенски код за доставка');
