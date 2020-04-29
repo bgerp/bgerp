@@ -764,9 +764,8 @@ class colab_FolderToPartners extends core_Manager
         }
         
         // Задаваме дефолтните роли
-        $defaultRole = ($onlyPartner == 'yes') ? 'partner' : 'pawerPartner';
+        $defaultRole = ($onlyPartner == 'yes') ? 'partner' : 'powerPartner';
         $dRolesArr = array($defaultRole);
-        
         
         $defRoles = array();
         foreach ($dRolesArr as $role) {
@@ -827,7 +826,6 @@ class colab_FolderToPartners extends core_Manager
         
         // След събмит ако всичко е наред създаваме потребител, лице и профил
         if ($form->isSubmitted()) {
-            
             $force = true;
             
             // Ако регистрацията ще е към папка на лице
