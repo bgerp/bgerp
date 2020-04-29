@@ -701,7 +701,7 @@ class colab_FolderToPartners extends core_Manager
         expect(cls::haveInterface('crm_ContragentAccRegIntf', $Class));
         expect($objectId = Request::get('companyId', 'int'));
         expect($contragentRec = $Class::fetch($objectId));
-        $makePowerPartner = Request::get('onlyPartner');
+        $onlyPartner = Request::get('onlyPartner');
         
         $Users = cls::get('core_Users');
         core_Lg::push(drdata_Countries::getLang($contragentRec->country));
@@ -764,7 +764,7 @@ class colab_FolderToPartners extends core_Manager
         }
         
         // Задаваме дефолтните роли
-        $defaultRole = ($makePowerPartner == 'yes') ? 'partner' : 'pawerPartner';
+        $defaultRole = ($onlyPartner == 'yes') ? 'partner' : 'pawerPartner';
         $dRolesArr = array($defaultRole);
         
         
@@ -775,7 +775,7 @@ class colab_FolderToPartners extends core_Manager
         }
         
         // Добавяне на дефолтни роли
-        if($makePowerPartner != 'yes'){
+        if($onlyPartner != 'yes'){
             $additionalRoles = colab_Setup::get('DEFAULT_ROLES_FOR_NEW_PARTNER');
             $additionalRoles = keylist::toArray($additionalRoles);
             foreach ($additionalRoles as $roleId) {
