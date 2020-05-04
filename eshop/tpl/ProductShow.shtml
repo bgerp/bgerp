@@ -29,6 +29,7 @@
 		</div>
 		<!--ET_END PRODUCT_OPT-->
 		<div style="padding: 10px 0;">
+		[#AFTER_PRODUCTS#]
 		[#longInfo#]
         [#nearProducts#]
         [#nearProductImages#]
