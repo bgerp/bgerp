@@ -99,6 +99,10 @@ class sync_Setup extends core_ProtoSetup
         $description = parent::getConfigDescription();
         if (core_Packs::isInstalled('eshop')) {
             $description['SYNC_ESHOP_GROUPS'] = array('keylist(mvc=eshop_Groups, select=name, allowEmpty)', 'caption=Експортиране на е-магазин->Групи');
+        
+            if (core_Packs::isInstalled('cms')) {
+                $description['SYNC_CMS_DOMAINS'] = array('text(rows=3)', 'caption=Съответствие на домейни->Домейни');
+            }
         }
         
         return $description;
