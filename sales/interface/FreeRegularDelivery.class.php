@@ -134,19 +134,20 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
         $Document = cls::get($document);
         $inDays = ($Document instanceof eshop_Carts) ? 7 : null;
         $locationId = ($Document instanceof eshop_Carts) ? $form->rec->locationId : $form->rec->deliveryLocationId;
-        
-        $routeOptions = self::getRouteOptions($locationId, $inDays);
-        $countRoutes = countR($routeOptions);
-        $form->FLD('routeId', "key(mvc=sales_Routes,select=nextVisit)", 'silent,mandatory,caption=Доставка->Маршрут');
-        
-        if($countRoutes > 1){
-            $routeOptions = array('' => '') + $routeOptions;
-        } elseif($countRoutes == 1){
-            $form->setDefault('routeId', key($routeOptions));
+      
+        if(isset($locationId)){
+            $routeOptions = self::getRouteOptions($locationId, $inDays);
+            $countRoutes = countR($routeOptions);
+            $form->FLD('routeId', "key(mvc=sales_Routes,select=nextVisit)", 'silent,mandatory,caption=Доставка->Маршрут');
+            
+            if($countRoutes > 1){
+                $routeOptions = array('' => '') + $routeOptions;
+            } elseif($countRoutes == 1){
+                $form->setDefault('routeId', key($routeOptions));
+            }
+            
+            $form->setOptions('routeId', $routeOptions);
         }
-        
-        $form->setOptions('routeId', $routeOptions);
-        
         
         if($Document instanceof eshop_Carts){
             $form->setField('deliveryCountry', 'input=hidden');
