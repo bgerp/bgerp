@@ -374,15 +374,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
     {
         $rec = static::fetchRec($id);
         if ($Driver = static::getDriver($rec)){
-            
             $value = trim($value);
-            
-            // Превод на стойността
-            if($Driver instanceof cond_type_Varchar){
-                if(strpos($value, '||') != false){
-                    $value = tr($value);
-                }
-            }
             
             $res = $Driver->toVerbal($id, $domainClass, $domainId, $value);
             

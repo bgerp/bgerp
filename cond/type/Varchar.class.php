@@ -31,6 +31,7 @@ class cond_type_Varchar extends cond_type_abstract_Proto
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('lenght', 'int', 'caption=Конкретизиране->Дължина,before=default');
+        $fieldset->FLD('translate', 'enum(no=Не,yes=Да)', 'caption=Конкретизиране->Превод,after=lenght');
     }
     
     
@@ -53,5 +54,30 @@ class cond_type_Varchar extends cond_type_abstract_Proto
         }
         
         return $Type;
+    }
+    
+    
+    /**
+     * Вербално представяне на стойноста
+     *
+     * @param mixed $class
+     * @param int   $id
+     *
+     * @return mixed
+     */
+    public function toVerbal($id, $domainClass, $domainId, $value)
+    {
+        // Ако има тип, вербалното представяне според него
+        $Type = $this->getType($id, $domainClass, $domainId, $value);
+        if ($Type) {
+            $value = trim($value);
+            if($this->driverRec->translate == 'yes' || (strpos($value, '||') != false)){
+                $value = tr($value);
+            }
+            
+            return $Type->toVerbal($value);
+        }
+        
+        return false;
     }
 }
