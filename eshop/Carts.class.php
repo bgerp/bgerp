@@ -2301,6 +2301,7 @@ class eshop_Carts extends core_Master
         $now = dt::now();
         $query = self::getQuery();
         $query->where("#state = 'draft' OR #state = '' OR #state IS NULL");
+        $query->where("#productCount != 0");
         
         // За всяка
         while ($rec = $query->fetch()) {
