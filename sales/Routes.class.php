@@ -567,7 +567,7 @@ class sales_Routes extends core_Manager
         
         $dayName = dt::mysql2verbal($rec->nextVisit, 'l');
         $fullDate = dt::mysql2verbal($rec->nextVisit, 'd.m.Y');
-        $smartTitle = "{$dayName} ({$fullDate})";
+        $smartTitle = "{$fullDate} ({$dayName})";
         
         return $smartTitle;
     }

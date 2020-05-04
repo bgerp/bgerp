@@ -138,7 +138,7 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
         if(isset($locationId)){
             $routeOptions = self::getRouteOptions($locationId, $inDays);
             $countRoutes = countR($routeOptions);
-            $form->FLD('routeId', "key(mvc=sales_Routes,select=nextVisit)", 'silent,mandatory,caption=Доставка->Маршрут');
+            $form->FLD('routeId', "key(mvc=sales_Routes,select=nextVisit)", 'silent,mandatory,caption=Доставка->Доставка на');
             
             if($countRoutes > 1){
                 $routeOptions = array('' => '') + $routeOptions;
@@ -199,7 +199,7 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
             $routeName = ht::createHint('', 'Маршрутът още не е уточнен', 'error');
         }
         
-        $res[] = (object)array('caption' => tr('Маршрут'), 'value' => $routeName);
+        $res[] = (object)array('caption' => tr('Доставка на'), 'value' => $routeName);
         
         return $res;
     }
