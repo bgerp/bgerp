@@ -642,7 +642,13 @@ class eshop_Carts extends core_Master
         
         Mode::set('currentExternalTab', 'eshop_Carts');
         
-        $saleRec = self::forceSale($rec);
+        try{
+            $saleRec = self::forceSale($rec);
+        } catch(core_exception_Expect $e){
+            reportException($e);
+            $saleRec = null;
+        }
+        
         if (empty($saleRec)) {
             $this->logErr('Проблем при генериране на онлайн продажба', $rec->id);
             $errorMs = 'Опитайте пак! Имаше проблем при завършването на поръчката! Ако все още имате проблем, свържете се с нас.';
@@ -855,7 +861,7 @@ class eshop_Carts extends core_Master
             $saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
         } catch(core_exception_Expect $e){
             reportException($e);
-            eshop_Carts::logErr("Грешка при изпращане на имейл за забравена поръчка: '{$e->getMessage()}'", $rec->id);
+            eshop_Carts::logErr("Грешка при създаване на онлайн продажба: '{$e->getMessage()}'", $rec->id);
         }
         
         if (empty($saleId)) {
