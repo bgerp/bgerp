@@ -923,6 +923,11 @@ class eshop_Carts extends core_Master
             }
         }
         
+        // Форсиране на контрагента в група, онлайн клинети
+        $groupRec = (object)array('name' => 'Онлайн клиенти', 'sysId' => 'onlineClients', 'parentId' => crm_Groups::getIdFromSysId('customers'));
+        $groupId = crm_Groups::forceGroup($groupRec);
+        cls::get($saleRec->contragentClassId)->forceGroup($saleRec->contragentId, $groupId, false);
+        
         if ($cu && $cu != core_Users::SYSTEM_USER) {
             core_Users::exitSudo($cu);
         } else {
