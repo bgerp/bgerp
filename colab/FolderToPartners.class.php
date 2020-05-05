@@ -89,7 +89,7 @@ class colab_FolderToPartners extends core_Manager
     {
         // Информация за нишката
         $this->FLD('folderId', 'key2(mvc=doc_Folders, selectSourceArr=colab_FolderToPartners::getFolderOptions, exludeContractors=' . Request::get('contractorId') . ')', 'caption=Папка,silent,input=hidden,after=contractorId,mandatory');
-        $this->FLD('contractorId', 'key2(mvc=core_Users, titleFld=names, rolesArr=partner,allowEmpty,selectSourceArr=colab_FolderToPartners::getContractorOptions, excludeFolders=' . Request::get('folderId') . ')', 'caption=Потребител,notNull,silent,mandatory');
+        $this->FLD('contractorId', 'key2(mvc=core_Users, titleFld=nick, rolesArr=partner,allowEmpty,selectSourceArr=colab_FolderToPartners::getContractorOptions, excludeFolders=' . Request::get('folderId') . ')', 'caption=Потребител,notNull,silent,mandatory');
         
         // Поставяне на уникални индекси
         $this->setDbUnique('folderId,contractorId');
@@ -276,6 +276,11 @@ class colab_FolderToPartners extends core_Manager
         }
         
         $resArr = core_Users::getSelectArr($params, $limit, $q, $onlyIds, $includeHiddens);
+        if(countR($resArr) && $params['titleFld'] == 'nick'){
+            foreach ($resArr as $userId => $nick){
+                $resArr[$userId] = "{$nick} (" . core_Users::fetchField($userId, 'names'). ")";
+            }
+        }
         
         return $resArr;
     }
@@ -422,9 +427,10 @@ class colab_FolderToPartners extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $row->names = core_Users::getVerbal($rec->contractorId, 'names');
-        $row->names .= ' (' . crm_Profiles::createLink($rec->contractorId) . ') ';
-        $row->names .= core_Users::getVerbal($rec->contractorId, 'lastLoginTime');
+        $names = core_Users::getVerbal($rec->contractorId, 'names');
+        $nick = crm_Profiles::createLink($rec->contractorId);
+        $row->names = "{$nick} ({$names}) ";
+        $row->lastLogin = core_Users::getVerbal($rec->contractorId, 'lastLoginTime');
         
         if ($rec->RestoreLink) {
             if ($pId = crm_Profiles::getProfileId($rec->contractorId)) {
@@ -453,7 +459,7 @@ class colab_FolderToPartners extends core_Manager
         // Подготвяме таблицата с данните извлечени от журнала
         $table = cls::get('core_TableView');
         
-        $data->listFields = arr::make('count=№,names=Свързани');
+        $data->listFields = arr::make('count=№,names=Свързани,lastLogin');
         $me->invoke('BeforeRenderListTable', array($dTpl, &$data));
         $details = $table->get($data->rows, $data->listFields);
         $dTpl->append($details, 'TABLE_PARTNERS');
