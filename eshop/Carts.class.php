@@ -2088,8 +2088,10 @@ class eshop_Carts extends core_Master
             }
             
             $profileRec = crm_Profiles::getProfile($cu);
+            $email = !empty($profileRec->email) ? $profileRec->email : core_Users::fetchField($cu, 'email');
+            
             $form->setDefault('personNames', $profileRec->name);
-            $emails = type_Emails::toArray($profileRec->email);
+            $emails = type_Emails::toArray($email);
             $form->setDefault('email', $emails[0]);
             $form->setDefault('tel', $profileRec->tel);
             
