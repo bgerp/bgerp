@@ -49,6 +49,7 @@ class colab_Setup extends core_ProtoSetup
         'colab_DocumentLog',
         'migrate::addAgentToPartners',
         'migrate::creatableDocuments',
+        'migrate::addPowerPartnerToPartners2'
     );
     
     
@@ -218,6 +219,26 @@ class colab_Setup extends core_ProtoSetup
                 foreach ($partners as $userId){
                     if(!haveRole('agent,distributor', $userId)){
                         core_Users::addRole($userId, 'agent');
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * Миграция за добавяне на допълнителна роля на партньори
+     */
+    public function addPowerPartnerToPartners2()
+    {
+        if(core_Users::count()){
+            $partners = core_Users::getByRole('partner');
+            if(is_array($partners)){
+                core_Roles::addOnce('powerPartner', 'partner', 'rang');
+                
+                foreach ($partners as $userId){
+                    if(!haveRole('powerPartner', $userId)){
+                        core_Users::addRole($userId, 'powerPartner');
                     }
                 }
             }

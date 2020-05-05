@@ -567,8 +567,38 @@ class sales_Routes extends core_Manager
         
         $dayName = dt::mysql2verbal($rec->nextVisit, 'l');
         $fullDate = dt::mysql2verbal($rec->nextVisit, 'd.m.Y');
-        $smartTitle = "{$dayName} ({$fullDate})";
+        $smartTitle = "{$fullDate} ({$dayName})";
         
         return $smartTitle;
+    }
+    
+    
+    /**
+     * Кои марршрути са допустими за избор
+     *
+     * @param int $locationId  - към коя локация
+     * @param int $inDays - в следващите колко дни? null за без ограничение
+     * @return string[] $routeOptions - опции от маршрути
+     */
+    public static function getRouteOptions($locationId, $inDays = null)
+    {
+        $today = dt::today();
+        
+        $routeOptions = array();
+        $rQuery = static::getQuery();
+        $rQuery->where("#locationId = '{$locationId}' AND #nextVisit > '{$today}' AND #state != 'rejected'");
+        if(isset($inDays)){
+            $inDays = dt::addDays($inDays, $today, false);
+            $rQuery->where("#nextVisit <= '{$inDays}'");
+        }
+        
+        $rQuery->show('id,nextVisit');
+        $rQuery->orderBy('id', "ASC");
+        
+        while($rRec = $rQuery->fetch()){
+            $routeOptions[$rRec->id] = sales_Routes::getSmartTitle($rRec);
+        }
+        
+        return $routeOptions;
     }
 }

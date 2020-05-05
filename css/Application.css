@@ -6112,6 +6112,9 @@ only screen and (max-width: 320px) {
     color: #333333 !important;
     font-family: Verdana !important; } }
 
+.narrow .folder-cover .groupTitle {
+  white-space: normal; }
+
   .printing .specialLink {
     font-weight: bold; }
   .printing a {

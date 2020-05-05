@@ -306,7 +306,7 @@ class sync_Map extends core_Manager
                 continue;
             }
 
-            $continue = false;
+            $continue = ($rec->__continue) ? true : false;
             foreach (array($mvc->className . '::' . $name, '*::' . $name) as $fKey) {
                 if (array_key_exists($fKey, $controller->fixedExport)) {
                     if (isset($controller->fixedExport[$fKey])) {
@@ -428,7 +428,6 @@ class sync_Map extends core_Manager
             $cRec = crm_Companies::fetch($cid);
             $rec->folderId = $cRec->folderId;
         }
- 
         
         if ($isMapClassRec) {
             if (!$exRec) {
@@ -457,8 +456,12 @@ class sync_Map extends core_Manager
                 }
             }
         }
-
-
+        
+        if ($rec->__id) {
+            $rec->id = $rec->__id;
+            unset($rec->__id);
+        }
+        
         $lId = $mvc->save($exRec);
         //log_System::add('sync_Map', "Записахме {$class} {$lId}");
 

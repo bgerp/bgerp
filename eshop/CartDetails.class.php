@@ -715,7 +715,7 @@ class eshop_CartDetails extends core_Detail
         
         $productParams = array_intersect_key($productParams, $displayParams);
         $diff = array_diff_key($productParams, $commonParams);
-        
+       
         $arr = array();
         foreach ($diff as $paramId => $value) {
             $paramRec = cat_Params::fetch($paramId);

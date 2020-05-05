@@ -42,7 +42,9 @@
 #uploadBtn.only-one-file{
 	left:0px;
 }
-
+.filemanUpload ul {
+	margin: 10px 0;
+}
 .filemanUpload select {
 	max-width: 200px !important;
 	margin-right: 0 !important;
@@ -50,6 +52,20 @@
 
 .filemanUpload input.combo {
 	width: 180px !important;
+}
+.horizontal {
+	margin-bottom: 0 !important;
+	.formFields {
+		float: left;
+		margin-right: 10px;
+		margin-bottom: 0;
+		.hFormField {
+			margin-bottom: 5px !important;
+		}
+	}
+	.toolbar {
+		margin-bottom: 0 !important;
+	}
 }
 
 /*бутона за IE*/
@@ -175,9 +191,6 @@
 
 .dialog-window .fileman_Log{
 	margin-top: 15px;
-	.horizontal .formToolbar{
-	   margin-bottom: 10px !important;
-	}
 	.listTable{
 		width:99%;
 		min-width: 0;
@@ -219,7 +232,7 @@
 }
 
 .narrow.dialog-window .filemanUpload ul {
-	margin: 10px 0;
+	margin: 10px 0 5px;
 }
 
 .narrow .fileman_Log.switching-display{

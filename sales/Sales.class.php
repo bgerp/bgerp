@@ -303,7 +303,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
+    public $filterDateField = 'createdOn, valior, activatedOn, deliveryTime,modifiedOn';
     
     
     /**

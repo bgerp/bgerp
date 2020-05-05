@@ -1467,7 +1467,7 @@ class eshop_Products extends core_Master
      *
      * @return core_ET
      */
-    public static function renderParams($array)
+    public static function renderParams($array, $isTable = true)
     {
         $tpl = new core_ET('');
         if (!is_array($array)) {
@@ -1475,13 +1475,22 @@ class eshop_Products extends core_Master
             return $tpl;
         }
         
-        $tpl = new core_ET("<table class='paramsTable'>[#row#]</table>");
-        foreach ($array as $paramId => $value) {
-            $paramBlock = new core_ET('<tr><td nowrap valign="top"><b>&bull; [#caption#]:<b></td><td>[#value#]</td></tr>');
-            $paramBlock->placeArray(array('caption' => cat_Params::getTitleById($paramId), 'value' => $value));
-            $paramBlock->removeBlocks();
-            $paramBlock->removePlaces();
-            $tpl->append($paramBlock, 'row');
+        if($isTable){
+            $tpl = new core_ET("<table class='paramsTable'>[#row#]</table>");
+            foreach ($array as $paramId => $value) {
+                $paramBlock = new core_ET('<tr><td nowrap valign="top"><b>&bull; [#caption#]:<b></td><td>[#value#]</td></tr>');
+                $paramBlock->placeArray(array('caption' => str::mbUcfirst(tr(cat_Params::getTitleById($paramId))), 'value' => $value));
+                $paramBlock->removeBlocksAndPlaces();
+                $tpl->append($paramBlock, 'row');
+            }
+        } else {
+            $tpl = new core_ET("<div class='richtext'><ul>[#row#]</ul></div>");
+            foreach ($array as $paramId => $value) {
+                $paramBlock = new core_ET('<li><b>[#caption#]</b> : [#value#]</li>');
+                $paramBlock->placeArray(array('caption' => str::mbUcfirst(tr(cat_Params::getTitleById($paramId))), 'value' => $value));
+                $paramBlock->removeBlocksAndPlaces();
+                $tpl->append($paramBlock, 'row');
+            }
         }
         
         return $tpl;
