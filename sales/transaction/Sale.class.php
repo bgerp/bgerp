@@ -315,7 +315,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         $entries = array();
         
         if (empty($rec->shipmentStoreId)) {
-            
+            wp($rec);
             return;
         }
         
