@@ -499,7 +499,7 @@ class colab_Threads extends core_Manager
         $docProxy = doc_Containers::getDocument($threadRec->firstContainerId);
         $docRow = $docProxy->getDocumentRow();
         
-        return $docRow->author == $cuEmail;
+        return strtolower(trim($docRow->author)) == strtolower(trim($cuEmail));
     }
     
     
