@@ -6,10 +6,23 @@
  */
 defIfNot('SYNC_COMPANY_GROUP', '');
 
+
+/**
+ * Име на собствената компания (тази за която ще работи bgERP)
+ */
+defIfNot('SYNC_CRM_GROUPS', '');
+
+
 /**
  * Име на собствената компания (тази за която ще работи bgERP)
  */
 defIfNot('SYNC_ESHOP_GROUPS', '');
+
+
+/**
+ * Име на собствената компания (тази за която ще работи bgERP)
+ */
+defIfNot('SYNC_CMS_DOMAINS', '');
 
 
 /**
