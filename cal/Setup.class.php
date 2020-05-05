@@ -76,7 +76,7 @@ class cal_Setup extends core_ProtoSetup
         'cal_TaskConditions',
         'cal_LinkedPostponed',
         'migrate::repairSerchKeywords',
-        'migrate::calcTimeStart',
+        'migrate::calcTimeStart1920',
     );
     
     
@@ -284,7 +284,7 @@ class cal_Setup extends core_ProtoSetup
     /**
      * Миграция за регенериране на ключовите думи
      */
-    public static function calcTimeStart()
+    public static function calcTimeStart1920()
     {
         $Reminders = cls::get('cal_Reminders');
         
