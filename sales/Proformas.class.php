@@ -476,4 +476,41 @@ class sales_Proformas extends deals_InvoiceMaster
         // Връщаме очаквания аванс
         return $expectedDownpayment;
     }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+     */
+    public static function getHandle($id)
+    {
+        $self = cls::get(get_called_class());
+        $rec = $self->fetch($id);
+        
+        if (!$rec->number) {
+            $hnd = $self->abbr . $rec->id;
+        } else {
+            $number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+            $hnd = $self->abbr . $number;
+        }
+        
+        return $hnd;
+    }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+     */
+    public static function fetchByHandle($parsedHandle)
+    {
+        if ($parsedHandle['endDs'] && (strlen($parsedHandle['id']) != 10)) {
+            $rec = static::fetch($parsedHandle['id']);
+        } else {
+            $number = ltrim($parsedHandle['id'], '0');
+            if ($number) {
+                $rec = static::fetch("#number = '{$number}'");
+            }
+        }
+        
+        return $rec;
+    }
 }
