@@ -57,34 +57,35 @@ class sync_Companies extends sync_Helper
         
         core_App::setTimeLimit(1000);
         
-        $groupId = sync_Setup::get('COMPANY_GROUP');
-        
-        expect($groupId);
+        $groupKeys = sync_Setup::get('COMPANY_GROUPS');
+        expect($groupKeys);
         
         $res = array();
         
         core_Users::forceSystemUser();
         
         $cQuery = crm_Companies::getQuery();
-        while ($rec = $cQuery->fetch("#groupList LIKE '%|{$groupId}|%'")) {
+        $cQuery->likeKeylist('groupList', $groupKeys);
+        
+        while ($rec = $cQuery->fetch()) {
             sync_Map::exportRec('crm_Companies', $rec->id, $res, $this);
             
-            $folderId = $rec->folderId;
-            
-            $lQuery = cat_Listings::getQuery();
-            $lQuery->where(array("#state = 'active' AND #folderId = [#1#]", $folderId));
-            while ($lRec = $lQuery->fetch()) {
-                $lRec->_companyId = $rec->id;
-                sync_Map::exportRec('cat_Listings', $lRec, $res, $this);
-            }
-            
-            if (core_Packs::isInstalled('colab')) {
-                $pQuery = colab_FolderToPartners::getQuery();
-                $pQuery->where(array("#folderId = [#1#]", $folderId));
+            if ($rec->folderId) {
+                $lQuery = cat_Listings::getQuery();
+                $lQuery->where(array("#state = 'active' AND #folderId = [#1#]", $rec->folderId));
+                while ($lRec = $lQuery->fetch()) {
+                    $lRec->_companyId = $rec->id;
+                    sync_Map::exportRec('cat_Listings', $lRec, $res, $this);
+                }
                 
-                while ($pRec = $pQuery->fetch()) {
-                    $pRec->_companyId = $rec->id;
-                    sync_Map::exportRec('colab_FolderToPartners', $pRec, $res, $this);
+                if (core_Packs::isInstalled('colab')) {
+                    $pQuery = colab_FolderToPartners::getQuery();
+                    $pQuery->where(array("#folderId = [#1#]", $rec->folderId));
+                    
+                    while ($pRec = $pQuery->fetch()) {
+                        $pRec->_companyId = $rec->id;
+                        sync_Map::exportRec('colab_FolderToPartners', $pRec, $res, $this);
+                    }
                 }
             }
         }
