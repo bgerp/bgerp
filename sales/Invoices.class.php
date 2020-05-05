@@ -454,9 +454,8 @@ class sales_Invoices extends deals_InvoiceMaster
         if ($rec->state == 'active') {
             if (empty($rec->number)) {
                 $rec->number = self::getNextNumber($rec);
-                $numberPadded = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
-                
-                $rec->searchKeywords .= ' ' . plg_Search::normalizeText($rec->number) . ' ' . plg_Search::normalizeText($numberPadded);
+                $number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+                $rec->searchKeywords .= ' ' . plg_Search::normalizeText($number) . " " . plg_Search::normalizeText($rec->number);
             }
         }
     }

@@ -6,10 +6,23 @@
  */
 defIfNot('SYNC_COMPANY_GROUP', '');
 
+
+/**
+ * Име на собствената компания (тази за която ще работи bgERP)
+ */
+defIfNot('SYNC_CRM_GROUPS', '');
+
+
 /**
  * Име на собствената компания (тази за която ще работи bgERP)
  */
 defIfNot('SYNC_ESHOP_GROUPS', '');
+
+
+/**
+ * Име на собствената компания (тази за която ще работи bgERP)
+ */
+defIfNot('SYNC_CMS_DOMAINS', '');
 
 
 /**
@@ -78,6 +91,7 @@ class sync_Setup extends core_ProtoSetup
         'SYNC_COMPANY_GROUP' => array('key(mvc=crm_Groups, allowEmpty)', 'caption=Експортиране на фирми->Група'),
         'SYNC_PROD_GROUPS' => array('keylist(mvc=cat_Groups, select=name, allowEmpty)', 'caption=Експортиране на групи на артикулите->Групи'),
         'SYNC_IMPORTED_PRODUCT_PRIMECOST_DISCOUNT' => array('percent(min=0,max=1)', 'caption=Колко % под офертната цена да е себестойността на импортирания артикул->Процент'),
+        'SYNC_CRM_GROUPS' => array('keylist(mvc=crm_Groups, select=name, parentId=parentId)', 'caption=Група контрагенти при експортиране на лица->Група'),
     );
     
    
@@ -99,6 +113,10 @@ class sync_Setup extends core_ProtoSetup
         $description = parent::getConfigDescription();
         if (core_Packs::isInstalled('eshop')) {
             $description['SYNC_ESHOP_GROUPS'] = array('keylist(mvc=eshop_Groups, select=name, allowEmpty)', 'caption=Експортиране на е-магазин->Групи');
+        
+            if (core_Packs::isInstalled('cms')) {
+                $description['SYNC_CMS_DOMAINS'] = array('text(rows=3)', 'caption=Съответствие на домейни->Домейни');
+            }
         }
         
         return $description;

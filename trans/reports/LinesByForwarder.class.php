@@ -166,8 +166,13 @@
          );
          
          //Платежни документи(в момента отчита само ПКО)
-         $paymentDocsArr = array(cash_Pko::getClassId()
-         );
+         $paymentDocsArr = array(cash_Pko::getClassId());
+         
+         // Синхронизира таймлимита с броя записи //
+         $maxTimeLimit = $query->count() * 0.5;
+         $maxTimeLimit = max(array($maxTimeLimit, 300));
+         core_App::setTimeLimit($maxTimeLimit);
+         
          while ($tRec = $query->fetch()) {
              $isShipmentDoc = $isPaymentDoc = 0;
              $weight = $transportUnits = $cashAmount = 0;

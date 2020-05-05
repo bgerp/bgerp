@@ -2926,4 +2926,34 @@ class doclog_Documents extends core_Manager
             }
         }
     }
+    
+    
+    /**
+     * Връща записите от историята, отговарящи на подадения стринг
+     * 
+     * @param int $containerId  - ид на контейнер
+     * @param string $str       - стринг за търсене в историята
+     * @param int|null $limit   - брой записи
+     * @param string $direction - във възходящ или низходящ ред
+     * 
+     * @return array
+     */
+    public static function getActionsInHistory($containerId, $str, $limit = null, $direction = 'DESC')
+    {
+        $document = doc_Containers::getDocument($containerId);
+        $strCrc = log_Actions::getActionCrc($str);
+        $classCrc = log_Classes::getClassCrc($document->className);
+        
+        $logQuery = log_Data::getQuery();
+        $logQuery->where("#classCrc = {$classCrc}");
+        $logQuery->where("#objectId = {$document->that}");
+        $logQuery->where(array("#actionCrc = '[#1#]'", $strCrc));
+        $logQuery->orderBy("#id", $direction);
+        
+        if($limit){
+            $logQuery->limit($limit);
+        }
+        
+        return $logQuery->fetchAll();
+    }
 }

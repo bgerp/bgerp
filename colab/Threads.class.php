@@ -356,6 +356,10 @@ class colab_Threads extends core_Manager
         
         doc_Threads::applyFilter($data->listFilter->rec, $data->query);
         $data->rejQuery = clone($data->query);
+        
+        if(core_Users::isContractor() && !haveRole('powerPartner')){
+            unset($data->listFields['partnerDocCnt']);
+        }
     }
     
     
@@ -404,9 +408,15 @@ class colab_Threads extends core_Manager
             if ($rec->firstContainerId) {
                 
                 // Трябва първия документ в нишката да е видим за партньори
-                $firstDocumentIsVisible = doc_Containers::fetchField($rec->firstContainerId, 'visibleForPartners');
-                if ($firstDocumentIsVisible != 'yes') {
+                $containerRec = doc_Containers::fetch($rec->firstContainerId, 'visibleForPartners, createdBy');
+                if ($containerRec->visibleForPartners != 'yes') {
                     $requiredRoles = 'no_one';
+                }
+                
+                if(isset($userId) && !empty($containerRec->createdBy) && $containerRec->createdBy != $userId){
+                    if(!haveRole('powerPartner', $userId)){
+                        $requiredRoles = 'no_one';
+                    }
                 }
             } else {
                 $requiredRoles = 'no_one';
@@ -451,6 +461,10 @@ class colab_Threads extends core_Manager
         $res = $this->Threads->getQuery($params);
         $res->where("#visibleForPartners = 'yes'");
         $res->in('folderId', $sharedFolders);
+        
+        if(!haveRole('powerPartner', $cu)){
+            $res->where("#createdBy = '{$cu}' || #createdBy = '0'");
+        }
         
         return $res;
     }

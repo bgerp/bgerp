@@ -477,7 +477,7 @@ class eshop_ProductDetails extends core_Detail
         $cartInfo = "<tr><td colspan='{$colspan}' class='option-table-info'>{$cartInfo}</td></tr>";
         $tpl->append($cartInfo, 'ROW_AFTER');
         
-        $tpl->append(eshop_Products::renderParams($data->commonParams), 'ROW_AFTER');
+        $tpl->append(eshop_Products::renderParams($data->commonParams, false), 'AFTER_PRODUCTS');
         
         return $tpl;
     }

@@ -32,7 +32,7 @@ class email_ServiceRulesData extends email_ServiceEmails
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'id,msg=Имейл,createdOn';
+    public $listFields = 'id,msg=Имейл,files,createdOn';
     
     
     /**
@@ -42,6 +42,8 @@ class email_ServiceRulesData extends email_ServiceEmails
     {
         $this->addFields();
         $this->FLD("serviceId", 'key(mvc=email_ServiceRules, allowEmpty)', "caption=Правила");
+        
+        $this->FLD('files', 'fileman_type_Files(align=vertical)', 'caption=Файлове, input=none');
     }
     
     
@@ -65,6 +67,10 @@ class email_ServiceRulesData extends email_ServiceEmails
         $rec->uid = $uid;
         $rec->createdOn = dt::verbal2mysql();
         $rec->serviceId = $serviceId;
+        
+        // Подсигуряваме се, че сме записали файловете
+        $mime->saveFiles();
+        $rec->files = $mime->getFiles();
         
         return self::save($rec);
     }

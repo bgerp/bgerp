@@ -78,10 +78,6 @@ class sync_Companies extends sync_Helper
         
         core_Users::cancelSystemUser();
         
-        if (Request::get('_bp') && haveRole('admin')) {
-            bp($res);
-        }
-        
         return $this->outputRes($res);
     }
     
@@ -92,10 +88,6 @@ class sync_Companies extends sync_Helper
     public static function import($update = true)
     {
         $resArr = self::getDataFromUrl(get_called_class());
-        
-        if (Request::get('_bp')) {
-            bp($resArr);
-        }
         
         Mode::set('preventNotifications', true);
         

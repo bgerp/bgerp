@@ -354,6 +354,7 @@ class doc_Setup extends core_ProtoSetup
         // Роля за външен член на екип. Достъпни са му само папките,
         // които са споделени или на които е собственик
         $html .= core_Roles::addOnce('partner', null, 'rang');
+        $html .= core_Roles::addOnce('powerPartner', 'partner', 'rang');
         
         $html = parent::install();
         
