@@ -1029,8 +1029,10 @@ class cal_Reminders extends core_Master
      */
     public static function calcNextStartTime($rec)
     {
+        $timeStart = $rec->__nextStartTime ? $rec->__nextStartTime : $rec->timeStart;
+        
         // Секундите на началната дата
-        $startTs = dt::mysql2timestamp($rec->timeStart);
+        $startTs = dt::mysql2timestamp($timeStart);
         
         // Име повторение
         if ($rec->repetitionEach !== null) {
@@ -1038,17 +1040,17 @@ class cal_Reminders extends core_Master
             switch ($rec->repetitionType) {
                 // дни
                 case 'days':
-                    $nextStartTime = dt::addDays(($rec->repetitionEach), $rec->timeStart);
+                    $nextStartTime = dt::addDays(($rec->repetitionEach), $timeStart);
                 break;
                 
                 // седмици
                 case 'weeks':
-                    $nextStartTime = dt::addDays(($rec->repetitionEach * 7), $rec->timeStart);
+                    $nextStartTime = dt::addDays(($rec->repetitionEach * 7), $timeStart);
                 break;
                 
                 // месеци
                 case 'months':
-                    $nextStartTime = dt::addMonths(($rec->repetitionEach), $rec->timeStart);
+                    $nextStartTime = dt::addMonths(($rec->repetitionEach), $timeStart);
                 break;
                 
                 // месеци, като се спазва деня от седмицата
@@ -1073,20 +1075,22 @@ class cal_Reminders extends core_Master
                     }
                     
                     $wDay = $monthsWeek. '-' . $dayOfWeekName;
-                    $nextDate = dt::addMonths(($rec->repetitionEach), $rec->timeStart);
+                    $nextDate = dt::addMonths(($rec->repetitionEach), $timeStart);
                     
                     $nextStartTime = dt::timestamp2Mysql(dt::firstDayOfMonthTms(date('m', dt::mysql2timestamp($nextDate)), date('Y', dt::mysql2timestamp($nextDate)), $wDay));
                 break;
                 
                 // точния ден от месеца
                 case 'monthDay':
-                    $nextStartTime = dt::addMonths(($rec->repetitionEach), $rec->timeStart);
+                    $nextStartTime = dt::addMonths(($rec->repetitionEach), $timeStart);
                 break;
             
             }
         } else {
-            $nextStartTime = $rec->timeStart;
+            $nextStartTime = $timeStart;
         }
+        
+        $rec->__nextStartTime = $nextStartTime;
         
         // Ако имаме отбелязано време предварително
         if ($rec->timePreviously != null) {
