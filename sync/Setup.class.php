@@ -88,7 +88,7 @@ class sync_Setup extends core_ProtoSetup
     public $configDescription = array(
         'SYNC_EXPORT_URL' => array('url', 'caption=Импортиране->URL'),
         'SYNC_EXPORT_ADDR' => array('varchar', 'caption=Позволени IP-та за експорт->IP'),
-        'SYNC_COMPANY_GROUPS' => array('keylist(mvc=crm_Groups, select=name, allowEmpty)', 'caption=Експортиране на фирми->Група'),
+        'SYNC_COMPANY_GROUPS' => array('keylist(mvc=crm_Groups, select=name, allowEmpty)', 'caption=Експортиране на фирми->Групи'),
         'SYNC_PROD_GROUPS' => array('keylist(mvc=cat_Groups, select=name, allowEmpty)', 'caption=Експортиране на групи на артикулите->Групи'),
         'SYNC_IMPORTED_PRODUCT_PRIMECOST_DISCOUNT' => array('percent(min=0,max=1)', 'caption=Колко % под офертната цена да е себестойността на импортирания артикул->Процент'),
         'SYNC_CRM_GROUPS' => array('keylist(mvc=crm_Groups, select=name, parentId=parentId)', 'caption=Група контрагенти при експортиране на лица->Група'),
