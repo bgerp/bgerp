@@ -413,6 +413,9 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         //Проверка дали датата на доставка е в периода(ако е NULL осавяме записа за проверка на "срока на доставка")
         $sQuery->where(array("#deliveryTime <= '[#1#]' OR #deliveryTime IS NULL", $endDay . ' 23:59:59'));
         
+        $sQuery->show('saleId,productId,quantityInPack,quantity,deliveryTime,deliveryTermTime,valior');
+       
+        
         $salesIdArr = arr::extractValuesFromArray($sQuery->fetchAll(), 'saleId');
         
         
@@ -420,7 +423,8 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         $jobsQuery = planning_Jobs::getQuery();
         $jobsQuery->where("#state != 'rejected' AND #state != 'draft'");
         $jobsQuery->in('saleId',$salesIdArr);
-        
+        $jobsQuery->show('saleId,productId,quantityInPack,quantity');
+       
         $jobsArr = array();
         while ($jobRec = $jobsQuery->fetch()) {
             
@@ -487,6 +491,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                                         'productId'=>$sDetRec->productId,
                                         'quantity'=>$sDetRec->saleId,
                                         'saleId'=>$sDetRec->saleId,
+                                        'detCode'=>$sDetRec->id,
 
                                         'week'=>$week
                                        );
