@@ -897,12 +897,6 @@ class cal_Reminders extends core_Master
         // Променяме датите, спрямо сегашните
         $secs = dt::secsBetween($now, $rec->timeStart);
         
-        // Не правим нищо, ако за първи път сработва нотификацията
-        if ($secs - $rec->timePreviously < 100) {
-            
-            return;
-        }
-        
         foreach ($fcMvc->fields as $name => $field) {
             $type = $field->type;
             if (($type instanceof type_Date) || ($type instanceof type_DateTime)) {
