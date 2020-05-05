@@ -68,11 +68,24 @@ class sync_Companies extends sync_Helper
         $cQuery = crm_Companies::getQuery();
         while ($rec = $cQuery->fetch("#groupList LIKE '%|{$groupId}|%'")) {
             sync_Map::exportRec('crm_Companies', $rec->id, $res, $this);
+            
             $folderId = $rec->folderId;
-            $lRec = cat_Listings::fetch("#state = 'active' AND #folderId = {$folderId}");
-            if($lRec) {
+            
+            $lQuery = cat_Listings::getQuery();
+            $lQuery->where(array("#state = 'active' AND #folderId = [#1#]", $folderId));
+            while ($lRec = $lQuery->fetch()) {
                 $lRec->_companyId = $rec->id;
                 sync_Map::exportRec('cat_Listings', $lRec, $res, $this);
+            }
+            
+            if (core_Packs::isInstalled('colab')) {
+                $pQuery = colab_FolderToPartners::getQuery();
+                $pQuery->where(array("#folderId = [#1#]", $folderId));
+                
+                while ($pRec = $pQuery->fetch()) {
+                    $pRec->_companyId = $rec->id;
+                    sync_Map::exportRec('colab_FolderToPartners', $pRec, $res, $this);
+                }
             }
         }
         
