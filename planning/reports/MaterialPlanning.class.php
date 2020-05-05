@@ -177,9 +177,9 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
             $materialsArr = array();
             
             $quantityRemaining = $jobsRec->quantity - $jobsRec->quantityProduced;
-               
+           
             $materialsArr = cat_Products::getMaterialsForProduction($jobsRec->productId,$quantityRemaining);
-              
+           
                 if (!empty($materialsArr)){
                 foreach ($materialsArr as $val){
                     
@@ -197,14 +197,14 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                             continue;
                         
                     }
-                    
+                     
                     $week =($jobsRec->week)?$jobsRec->week : date("W", strtotime($jobsRec->dueDate)).'-'.date("Y", strtotime($jobsRec->dueDate));
-                   
+                    
                     //Ако падежа е изткъл, заданието се отнася към нулева седмица
                     if ($jobsRec->dueDate && $jobsRec->dueDate < $today) {
                         $week = '0-0';
                     }
-                    
+               
                     $doc = ($jobsRec->id) ? 'planning_Jobs'.'|'.$jobsRec->id : 'sales_Sales'.'|'.$jobsRec->saleId;
                     
                     $recsKey = $week .' | '.$val[productId];
@@ -232,7 +232,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                 }
             }
         }
-    
+
         return $recs;
     }
     
@@ -277,8 +277,10 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         
         $row = new stdClass();
+      
+        $week = $dRec->week != '0-0'?$dRec->week : '0-0 (изтекъл падеж)';
         
-        $row->week = $dRec->week;
+        $row->week = 'Седмица: '.$week;
         
         if (isset($dRec->materialId)) {
             $row->materialId = cat_Products::getLinkToSingle_($dRec->materialId, 'name');
