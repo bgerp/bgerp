@@ -290,13 +290,9 @@ class sales_SalesDetails extends deals_DealDetail
                 $roles = sales_Setup::get('ADD_BY_PRODUCT_BTN');
                 
                 if (!haveRole($roles, $userId)) {
-                    
-                    wp($roles, $requiredRoles, $userId);
                     $requiredRoles = 'no_one';
                 }
             }
-            
-            wp($requiredRoles);
         }
         
         if ($action == 'importlisted') {
