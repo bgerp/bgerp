@@ -99,9 +99,17 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                 // Контирането е същото като при ЕН
                 
                 // Записите от тип 1 (вземане от клиент)
-                $entries = array_merge($entries, $this->getTakingPart($rec));
+                $storable = array();
+                $entries = array_merge($entries, $this->getTakingPart($rec, $storable));
                 
-                $delPart = $this->getDeliveryPart($rec);
+                $delPart = $this->getDeliveryPart($rec, $storable);
+                
+                if (Mode::get('saveTransaction') && countR($storable)) {
+                    $productCheck = deals_Helper::checkProductForErrors($storable, 'canStore');
+                    if($productCheck['metasError']){
+                        acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |вече не са складируеми и не може да засклаждате|*!");
+                    }
+                }
                 
                 if (is_array($delPart)) {
                     
@@ -175,7 +183,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
      *
      * @return array
      */
-    protected function getTakingPart($rec)
+    protected function getTakingPart($rec, &$storable)
     {
         $entries = array();
         
@@ -183,12 +191,14 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
         
         foreach ($rec->details as $detailRec) {
-            $pInfo = cat_Products::getProductInfo($detailRec->productId);
-            
-            $storable = isset($pInfo->meta['canStore']);
-            
             // Нескладируемите продукти дебит 703. Складируемите и вложими 706 останалите 701
-            $creditAccId = ($storable) ? '701' : '703';
+            $canStore = cat_Products::fetchField($detailRec->productId, 'canStore', false);
+            if($canStore == 'yes'){
+                $storable[$detailRec->productId] = $detailRec->productId;
+                $creditAccId = '701';
+            } else {
+                $creditAccId = '703';
+            }
             
             $amount = $detailRec->amount;
             $discount = isset($detailRec->discount) ? $detailRec->discount : $detailRec->autoDiscount;
@@ -320,10 +330,8 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         }
         
         foreach ($rec->details as $detailRec) {
-            $pInfo = cat_Products::getProductInfo($detailRec->productId);
-            
-            // Само складируемите продукти се изписват от склада
-            if (isset($pInfo->meta['canStore'])) {
+            $canStore = cat_Products::fetchField($detailRec->productId, 'canStore', false);
+            if($canStore == 'yes'){
                 $creditAccId = '321';
                 $debitAccId = '701';
                 
