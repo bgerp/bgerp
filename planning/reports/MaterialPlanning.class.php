@@ -74,7 +74,6 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        
         $fieldset->FLD('weeks', 'int', 'caption=Брой седмици,after=horizon');
         
         //Групи артикули
@@ -83,7 +82,6 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         } else {
             $fieldset->FLD('groups', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,placeholder = Всички,after=to,single=none');
         }
-        
     }
     
     
@@ -115,7 +113,6 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         $rec = $form->rec;
         
         $form->setDefault('weeks', 8);
-        
     }
     
     
@@ -129,98 +126,96 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-       
         $recs = array();
         $today = dt::today();
         
-        $thisWeek = date("W", strtotime($today));
-        $year = date("Y", strtotime($today));
-       
+        $thisWeek = date('W', strtotime($today));
+        $year = date('Y', strtotime($today));
+        
         //Кои седмици влизат в отчета $weeksForCheck
         $weeksForCheck = array();
         $weekMarker = 0;
-        for ($i = $thisWeek; $i < $thisWeek+$rec->weeks; $i++) {
+        for ($i = $thisWeek; $i < $thisWeek + $rec->weeks; $i++) {
             $weekNumber = $i - $weekMarker;
             $week = $i - $weekMarker.'-'.$year;
             $endDayOfWeek = self::getStartAndEndDate($weekNumber, $year)[1];
             
-            if($endDayOfWeek > $year . '-12-31'){
+            if ($endDayOfWeek > $year . '-12-31') {
                 $weekMarker = $i;
-                $year = date("Y", strtotime($endDayOfWeek));
-                
+                $year = date('Y', strtotime($endDayOfWeek));
             }
             
-            array_push($weeksForCheck,$week);
+            array_push($weeksForCheck, $week);
             unset($week);
         }
         
         $jobsQuery = planning_Jobs::getQuery();
         $jobsQuery->where("#state != 'rejected' AND #state != 'closed' AND #state != 'draft'");
         
-        list($lastWeek,$lastYear) = explode('-', end($weeksForCheck));
+        list($lastWeek, $lastYear) = explode('-', end($weeksForCheck));
         
         $endDay = self::getStartAndEndDate($lastWeek, $lastYear)[1];
         
         $jobsQuery->where(array("#quantity > #quantityProduced AND #dueDate <= '[#1#]'", $endDay . ' 23:59:59'));
-       
+        
         $jobsQuery->show('quantity,quantityProduced,productId,dueDate');
         
         
         $jobsRecsArr = $jobsQuery->fetchAll();
-       
-       //Добавяне на виртуалните задания
-       $vJobsArr = self::createdVirtualJobs($endDay);
-       
-       $jobsRecsArr = array_merge($jobsRecsArr,$vJobsArr);
-       
-       foreach ($jobsRecsArr as $jobsRec){
+        
+        //Добавяне на виртуалните задания
+        $vJobsArr = self::createdVirtualJobs($endDay);
+        
+        $jobsRecsArr = array_merge($jobsRecsArr, $vJobsArr);
+        
+        foreach ($jobsRecsArr as $jobsRec) {
             $materialsArr = array();
             
             $quantityRemaining = $jobsRec->quantity - $jobsRec->quantityProduced;
-           
-            $materialsArr = cat_Products::getMaterialsForProduction($jobsRec->productId,$quantityRemaining);
-           
-                if (!empty($materialsArr)){
-                foreach ($materialsArr as $val){
-                    
+            
+            $materialsArr = cat_Products::getMaterialsForProduction($jobsRec->productId, $quantityRemaining);
+            
+            if (!empty($materialsArr)) {
+                foreach ($materialsArr as $val) {
                     $matRec = cat_Products::fetch($val[productId]);
                     
                     //Филтрира само складируеми материали
-                    if ($matRec->canStore == 'no'){
+                    if ($matRec->canStore == 'no') {
                         continue;
                     }
                     
                     //Ако има избрана група или групи материали
-                    if ($rec->groups){
+                    if ($rec->groups) {
                         $groupsArr = keylist::toArray($rec->groups);
-                        if (!keylist::isIn($groupsArr, $matRec->groups))
+                        if (!keylist::isIn($groupsArr, $matRec->groups)) {
                             continue;
-                        
+                        }
                     }
-                     
-                    $week =($jobsRec->week)?$jobsRec->week : date("W", strtotime($jobsRec->dueDate)).'-'.date("Y", strtotime($jobsRec->dueDate));
+                    
+                    $week = ($jobsRec->week)?$jobsRec->week : date('W', strtotime($jobsRec->dueDate)).'-'.date('Y', strtotime($jobsRec->dueDate));
                     
                     //Ако падежа е изткъл, заданието се отнася към нулева седмица
                     if ($jobsRec->dueDate && $jobsRec->dueDate < $today) {
                         $week = '0-0';
                     }
-               
+                    
                     $doc = ($jobsRec->id) ? 'planning_Jobs'.'|'.$jobsRec->id : 'sales_Sales'.'|'.$jobsRec->saleId;
                     
                     $recsKey = $week .' | '.$val[productId];
+                    
                     // Запис в масива
                     if (!array_key_exists($recsKey, $recs)) {
                         $recs[$recsKey] = (object) array(
                             
-                            'week'=> $week,
+                            'week' => $week,
                             
-                            'originDoc'=> array($doc),
+                            'originDoc' => array($doc),
                             'jobProductId' => $jobsRec->productId,                                           //Id на артикула
                             'quantityRemaining' => $quantityRemaining,                                       // Оставащо количество
                             
-                            'materialId'=> $val[productId],
-                            'materialQuantiry'=> $val[quantity],
-                            
+                            'materialId' => $val[productId],
+                            'materialQuantiry' => $val[quantity],
+                        
                         );
                     } else {
                         $obj = &$recs[$recsKey];
@@ -232,10 +227,10 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                 }
             }
         }
-
-
-        arr::sortObjects($recs,'week');
-
+        
+        
+        arr::sortObjects($recs, 'week');
+        
         return $recs;
     }
     
@@ -258,7 +253,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
         
         $fld->FLD('materialQuantiry', 'double(smartRound,decimals=2)', 'smartCenter,caption=Необходимо Количество');
-       
+        
         return $fld;
     }
     
@@ -280,43 +275,41 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         
         $row = new stdClass();
-      
+        
         $week = $dRec->week != '0-0'?$dRec->week : '0-0 (изтекъл падеж)';
         
         $row->week = 'Седмица: '.$week;
         
         if (isset($dRec->materialId)) {
             $row->materialId = cat_Products::getLinkToSingle_($dRec->materialId, 'name').'/'.$dRec->materialId;
- 
-        } 
-        $marker=0;
+        }
+        $marker = 0;
         foreach ($dRec->originDoc as $originDoc) {
             $marker++;
             
-            list($docClassName,$doc)=explode('|', $originDoc);
+            list($docClassName, $doc) = explode('|', $originDoc);
             $docRec = $docClassName::fetch($doc);
-           
+            
             $docContainer = $docRec->containerId;
-           
+            
             $Document = doc_Containers::getDocument($docContainer);
-            $handle =($docClassName != 'planning_Jobs') ? 'VJ-'.$Document->getHandle() : $Document->getHandle();
-             
-             $singleUrl = $Document->getUrlWithAccess($Document->getInstance(), $originDoc);
+            $handle = ($docClassName != 'planning_Jobs') ? 'VJ-'.$Document->getHandle() : $Document->getHandle();
             
-             $row->docs .=  ht::createLink("#{$handle}", $singleUrl);
+            $singleUrl = $Document->getUrlWithAccess($Document->getInstance(), $originDoc);
             
-             if ((countR(($dRec->originDoc )) - $marker) != 0) { 
+            $row->docs .= ht::createLink("#{$handle}", $singleUrl);
+            
+            if ((countR(($dRec->originDoc)) - $marker) != 0) {
                 $row->docs .= ', ';
             }
         }
-    
+        
         $row->measure = cat_UoM::fetchField(cat_Products::fetch($dRec->materialId)->measureId, 'shortName');
         
         
         if (isset($dRec->materialQuantiry)) {
             $row->materialQuantiry = $Double->toVerbal($dRec->materialQuantiry);
         }
-        
         
         return $row;
     }
@@ -356,7 +349,6 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN groups-->|Групи продукти|*: [#groups#]<!--ET_END groups--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
         
-    
         
         $marker = 0;
         if (isset($data->rec->groups)) {
@@ -375,7 +367,6 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
             $fieldTpl->append('<b>' . 'Всички' . '</b>', 'groups');
         }
         
-       
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
@@ -394,116 +385,110 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
     }
     
     
-    public static function getStartAndEndDate($week, $year){
-        $dates[0] = date("Y-m-d", strtotime($year.'W'.str_pad($week, 2, 0, STR_PAD_LEFT)));
-        $dates[1] = date("Y-m-d", strtotime($year.'W'.str_pad($week, 2, 0, STR_PAD_LEFT).' +6 days'));
+    public static function getStartAndEndDate($week, $year)
+    {
+        $dates[0] = date('Y-m-d', strtotime($year.'W'.str_pad($week, 2, 0, STR_PAD_LEFT)));
+        $dates[1] = date('Y-m-d', strtotime($year.'W'.str_pad($week, 2, 0, STR_PAD_LEFT).' +6 days'));
+        
         return $dates;
     }
     
-    public static function createdVirtualJobs($endDay){
-        
+    public static function createdVirtualJobs($endDay)
+    {
         //Активни договори за продажба със срок за доставка към края на избаните седници
         $sQuery = sales_SalesDetails::getQuery();
-       
-        $sQuery->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
+        
+        $sQuery->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId'); 
         
         $sQuery->where("#state = 'active'");
         
         $sQuery->EXT('deliveryTime', 'sales_Sales', 'externalName=deliveryTime,externalKey=saleId');
         $sQuery->EXT('deliveryTermTime', 'sales_Sales', 'externalName=deliveryTermTime,externalKey=saleId');
         $sQuery->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
-       
+        
         //Проверка дали датата на доставка е в периода(ако е NULL осавяме записа за проверка на "срока на доставка")
         $sQuery->where(array("#deliveryTime <= '[#1#]' OR #deliveryTime IS NULL", $endDay . ' 23:59:59'));
         
         $sQuery->show('saleId,productId,quantityInPack,quantity,deliveryTime,deliveryTermTime,valior');
-       
+        
         
         $salesIdArr = arr::extractValuesFromArray($sQuery->fetchAll(), 'saleId');
         
         //Задания за производство към договорите за този период $jobsArr
         $jobsQuery = planning_Jobs::getQuery();
         $jobsQuery->where("#state != 'rejected' AND #state != 'draft'");
-        $jobsQuery->in('saleId',$salesIdArr);
+        $jobsQuery->in('saleId', $salesIdArr);
         $jobsQuery->show('saleId,productId,quantityInPack,quantity');
-       
+        
         $jobsArr = array();
         while ($jobRec = $jobsQuery->fetch()) {
-            
             $key = $jobRec->saleId.'|'.$jobRec->productId;
             
             $quantity = $jobRec->quantity * $jobRec->quantityInPack;
             
             
             if (!array_key_exists($key, $jobsArr)) {
-                 $jobsArr[$key] = (object)array('saleId'=>$jobRec->saleId,
-                                                  'productId'=>$jobRec->productId,
-                                                  'quantity'=>$quantity
+                $jobsArr[$key] = (object) array('saleId' => $jobRec->saleId,
+                    'productId' => $jobRec->productId,
+                    'quantity' => $quantity
                 
-            );
-            
-             }else{
-                 $obj = & $jobsArr[$key];
-                 
-                 $obj->quantity += $quantity;
-                 
-             }
-            
+                );
+            } else {
+                $obj = & $jobsArr[$key];
+                
+                $obj->quantity += $quantity;
+            }
         }
         
         //Създаване на виртуални задания за производство
         //Договорените количества от активните договори минус заявените количества
         //за производство в задания към тези договори
-         $vJobsArr = array();
-        while ($sDetRec = $sQuery->fetch()){
-            
+        $vJobsArr = array();
+        while ($sDetRec = $sQuery->fetch()) {
             $deliveryDay = $sDetRec->deliveryTime;
+            
             //Ако е зададен срок за доставка проверяваме крайната дата дали е в периода
-            if(!$sDetRec->deliveryTime){
-                
-                if($sDetRec->deliveryTermTime){
-                    $newDeliveryDay = dt::addSecs($sDetRec->deliveryTermTime,$sDetRec->valior);
-                    if($newDeliveryDay > $endDay )continue;
+            if (!$sDetRec->deliveryTime) {
+                if ($sDetRec->deliveryTermTime) {
+                    $newDeliveryDay = dt::addSecs($sDetRec->deliveryTermTime, $sDetRec->valior);
+                    if ($newDeliveryDay > $endDay) {
+                        continue;
+                    }
                     $deliveryDay = $newDeliveryDay;
-                }else{
+                } else {
                     continue;
                 }
             }
             
-           
             $quantity = $sDetRec->quantity * $sDetRec->quantityInPack - $jobsArr[$vKey]->quantity;
             
-            //Ако недопроизведено количество, не се създава виртуално задание
-            if ($quantity <= 0 ) {
+            //Ако няма недопроизведено количество, не се създава виртуално задание
+            if ($quantity <= 0) {
                 continue;
             }
             
-            $week = date("W", strtotime($deliveryDay)).'-'.date("Y", strtotime($deliveryDay));
-          
+            $week = date('W', strtotime($deliveryDay)).'-'.date('Y', strtotime($deliveryDay));
+            
             //Ако срока за доставка е изткъл, заданието се отнася към нулева седмица
             if ($deliveryDay < dt::today()) {
                 $week = '0-0';
             }
-           
             
             $vKey = $sDetRec->saleId.'|'.$sDetRec->productId;
             
             if (!array_key_exists($vKey, $vJobsArr)) {
-            $vJobsArr[$vKey] = (object)array(
-                                        'productId'=>$sDetRec->productId,
-                                        'quantity'=>$quantity,
-                                        'saleId'=>$sDetRec->saleId,
-                                        'detCode'=>$sDetRec->id,
-
-                                        'week'=>$week
-                                       );
-      
-            }else{
+                $vJobsArr[$vKey] = (object) array(
+                    'productId' => $sDetRec->productId,
+                    'quantity' => $quantity,
+                    'saleId' => $sDetRec->saleId,
+                    
+                    'week' => $week
+                );
+            } else {
                 $obj = &$vJobsArr[$vKey];
                 
                 $obj->quantity += $quantity;
             }
-        
         }
         
         return $vJobsArr;
