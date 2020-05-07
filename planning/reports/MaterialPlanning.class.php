@@ -233,6 +233,9 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
             }
         }
 
+
+        arr::sortObjects($recs,'week');
+
         return $recs;
     }
     
@@ -283,7 +286,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         $row->week = 'Седмица: '.$week;
         
         if (isset($dRec->materialId)) {
-            $row->materialId = cat_Products::getLinkToSingle_($dRec->materialId, 'name');
+            $row->materialId = cat_Products::getLinkToSingle_($dRec->materialId, 'name').'/'.$dRec->materialId;
  
         } 
         $marker=0;
@@ -460,8 +463,8 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
             if(!$sDetRec->deliveryTime){
                 
                 if($sDetRec->deliveryTermTime){
-                    $newDeliveryDay = dt::addSecs($sDetRec->deliveryTime,$sDetRec->valior);
-                    if($newDeliveryDay > $endDay)continue;
+                    $newDeliveryDay = dt::addSecs($sDetRec->deliveryTermTime,$sDetRec->valior);
+                    if($newDeliveryDay > $endDay )continue;
                     $deliveryDay = $newDeliveryDay;
                 }else{
                     continue;
