@@ -421,7 +421,6 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         
         $salesIdArr = arr::extractValuesFromArray($sQuery->fetchAll(), 'saleId');
         
-        
         //Задания за производство към договорите за този период $jobsArr
         $jobsQuery = planning_Jobs::getQuery();
         $jobsQuery->where("#state != 'rejected' AND #state != 'draft'");
@@ -492,7 +491,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
             if (!array_key_exists($vKey, $vJobsArr)) {
             $vJobsArr[$vKey] = (object)array(
                                         'productId'=>$sDetRec->productId,
-                                        'quantity'=>$sDetRec->saleId,
+                                        'quantity'=>$quantity,
                                         'saleId'=>$sDetRec->saleId,
                                         'detCode'=>$sDetRec->id,
 
