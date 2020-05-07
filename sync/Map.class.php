@@ -97,6 +97,11 @@ class sync_Map extends core_Manager
             return;
         }
         
+        if ($class == 'core_Users') {
+            $pRec = crm_Profiles::fetch(array("#userId = '[#1#]'", $idInt));
+            self::exportRec('crm_Profiles', $pRec, $res, $controller);
+        }
+        
         if ($mvc->className == 'cat_Products') {
             static $prodGroupsArr = false;
             if ($prodGroupsArr === false) {
@@ -276,6 +281,15 @@ class sync_Map extends core_Manager
 
         if (!$rec) {
             return 0;
+        }
+        
+        if (($class == 'core_Users') && ($res['crm_Profiles']) && $res['crm_Persons']) {
+            foreach ($res['crm_Profiles'] as $pRec) {
+                if ($pRec->userId == $id) {
+                    $rec->personId = sync_Map::importRec('crm_Persons', $pRec->personId, $res, $controller, $update);
+                    break;
+                }
+            }
         }
         
         $haveRec = false;
