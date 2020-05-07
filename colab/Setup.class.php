@@ -235,7 +235,6 @@ class colab_Setup extends core_ProtoSetup
             $partners = core_Users::getByRole('partner');
             if(is_array($partners)){
                 core_Roles::addOnce('powerPartner', 'partner', 'rang');
-                $Users = cls::get('core_Users');
                 
                 $powerPartnerId = core_Roles::fetchByName('powerPartner');
                 $partnerId = core_Roles::fetchByName('partner');
@@ -244,7 +243,7 @@ class colab_Setup extends core_ProtoSetup
                     $userRec = core_Users::fetch($userId);
                     $userRec->rolesInput = keylist::addKey($userRec->rolesInput, $powerPartnerId);
                     $userRec->rolesInput = keylist::removeKey($userRec->rolesInput, $partnerId);
-                    $Users->save_($userRec, 'rolesInput');
+                    core_Users::save($userRec, 'rolesInput,roles');
                 }
             }
         }
