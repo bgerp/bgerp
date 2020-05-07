@@ -288,6 +288,7 @@ class sales_SalesDetails extends deals_DealDetail
         if (($action == 'add') && isset($rec)) {
             if ($requiredRoles != 'no_one') {
                 $roles = sales_Setup::get('ADD_BY_PRODUCT_BTN');
+                wp($roles, $requiredRoles, $userId);
                 if (!haveRole($roles, $userId)) {
                     $requiredRoles = 'no_one';
                 }
