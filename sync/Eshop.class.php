@@ -164,9 +164,9 @@ class sync_Eshop extends sync_Helper
         $lang = self::$fNewNamePref . 'lang';
         $domain = self::$fNewNamePref . 'domain';
         
+        $haveDomains = false;
         if (isset($rec->{$lang}) || isset($rec->{$domain})) {
             $domains = trim(sync_Setup::get('CMS_DOMAINS'));
-            $haveDomains = false;
             if ($domains) {
                 $dArr = explode("\n", $domains);
                 foreach ($dArr as $dStr) {
@@ -194,11 +194,11 @@ class sync_Eshop extends sync_Helper
                         break;
                     }
                 }
-                
-                if (!$haveDomains) {
-                    $rec->lang = $rec->{$lang};
-                    $rec->domain = $rec->{$domain};
-                }
+            }
+            
+            if (!$haveDomains) {
+                $rec->lang = $rec->{$lang};
+                $rec->domain = $rec->{$domain};
             }
             
             foreach ((array)$rec as $fName => $fVal) {
