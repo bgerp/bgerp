@@ -444,15 +444,15 @@ class sync_Map extends core_Manager
         
         // Преобразуваме _companyId към folderId
         if($rec->_companyId) {
-            if (self::importRec('crm_Companies', $rec->_companyId, $res, $controller, $update)) {
-                $rec->folderId = crm_Companies::forceCoverAndFolder($rec->_companyId);
+            if ($cId = self::importRec('crm_Companies', $rec->_companyId, $res, $controller, $update)) {
+                $rec->folderId = crm_Companies::forceCoverAndFolder($cId);
             }
         }
         
         // Преобразуваме _personId към folderId
         if($rec->_personId) {
-            if (self::importRec('crm_Persons', $rec->_personId, $res, $controller, $update)) {
-                $rec->folderId = crm_Persons::forceCoverAndFolder($rec->_personId);
+            if ($pId = self::importRec('crm_Persons', $rec->_personId, $res, $controller, $update)) {
+                $rec->folderId = crm_Persons::forceCoverAndFolder($pId);
             }
         }
         
