@@ -187,7 +187,8 @@ class sales_Proformas extends deals_InvoiceMaster
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'caption=Продажба,input=none');
         $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
-        $this->FLD('number', 'int', 'caption=Номер, export=Csv, after=place,input=none');
+        $this->FLD('number', 'int', 'caption=Номер, export=Csv,input=none');
+        $this->FLD('reff', 'varchar(255,nullIfEmpty)', 'caption=Ваш реф.,class=contactData,after=place');
         
         $this->setDbUnique('number');
     }
@@ -227,6 +228,7 @@ class sales_Proformas extends deals_InvoiceMaster
         }
         
         if ($data->aggregateInfo) {
+            $form->setDefault('reff', $data->aggregateInfo->get('reff'));
             if ($accId = $data->aggregateInfo->get('bankAccountId')) {
                 $form->setDefault('accountId', bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id'));
             }

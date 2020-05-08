@@ -16,6 +16,10 @@
                                         <div class="bigData">[#date#]</div>
                                         <div class='invInfo'>Place</div>
                                         <div class="bigData">[#place#]</div>
+                                        <!--ET_BEGIN reff-->
+                        					<div class='invInfo'>Your ref</div>
+                        					<div class="bigData"><b>[#reff#]</b></div>
+                        				<!--ET_END reff-->
                                         <div class='invInfo bigData'>
                                             <div class='original'>[#INV_STATUS#]</div>
                                         </div>
