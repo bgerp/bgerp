@@ -450,7 +450,7 @@ class sync_Map extends core_Manager
         
         // Преобразуваме _personId към folderId
         if($rec->_personId) {
-            $cid = self::importRec('crm_Companies', $rec->_companyId, $res, $controller, $update);
+            $cid = self::importRec('crm_Persons', $rec->_personId, $res, $controller, $update);
             $rec->folderId = crm_Persons::forceCoverAndFolder($rec->_personId);
         }
         
