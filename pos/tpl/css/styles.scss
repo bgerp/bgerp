@@ -15,7 +15,7 @@
 	font-size: 1.2em;
 }
 
-#single-receipt-holder {
+#single-receipt-holder.fixedHolder {
 	position: fixed;
 	left: 0;
 	width: 570px;
@@ -23,7 +23,11 @@
 	background: #12008a;
 	box-sizing: border-box;
 }
-
+.narrowHolder {
+	#receipt-table{
+		height: 300px;
+	}
+}
 .wide .result-content {
 	background: #ccc;
 	position: fixed;
@@ -51,7 +55,6 @@
 
 
 .tools-content {
-	height: 500px;
 	padding: 20px 15px;
 	box-sizing: border-box;
 }
@@ -80,11 +83,13 @@
 .headerContent {
 	padding:12px 0 ;
 	background: #333;
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
 	box-sizing: border-box;
+	&.fixed {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+	}
 	span {
 		font-size: 1.2em;
 		margin-left: 15px;
@@ -302,16 +307,6 @@
 	}
 }
 
-
-.narrow .num-keyboard{
-	min-width: 176px !important
-}
-
-.narrow .numPad, .narrow .numBack{
-	font-size: 0.9em !important;
-	width: 23% !important;
-	margin: 0;
-}
 .textShortcut {
 	line-height: 150%;
 	padding-left: 5px;
@@ -949,6 +944,14 @@ th.revertCaption, td.revertCaption {
 		 display: block;
 		 margin-bottom: 20px;
 	 }
+}
+@media handheld, only screen and (max-width: 1024px) {
+	.numPad {
+		width: 60px !important;
+		height: 60px !important;
+		margin: 8px 0 8px 18px; !important;
+	}
+
 }
 
 @media handheld, only screen and (max-width: 640px) {

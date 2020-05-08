@@ -5,6 +5,7 @@ var timeoutPageNavigation;
 
 function posActions() {
 
+	calculateWidth();
 	activeInput = false;
 	$(document.body).on('input', "input[name=ean]", function(e){
 		var userText = $(this).val();
@@ -25,12 +26,11 @@ function posActions() {
 	}
 	
 	// Извикване на функцията за преизчисления на размерите на елементите
-	if($('body').hasClass('wide')){
+
+	calculateWidth();
+	$(window).resize( function() {
 		calculateWidth();
-		$(window).resize( function() {
-			calculateWidth();
-		});
-	} 
+	});
 
 	// Използване на числата за въвеждане в пулта
 	$(document.body).on('click', ".numPad", function(e){
@@ -526,19 +526,39 @@ function openPayment() {
 
 // Калкулира ширината
 function calculateWidth(){
-	var winWidth = parseInt($(window).width());
-	var winHeight = parseInt($(window).height());
+	var winWidth = parseInt($(window).outerWidth());
+	var winHeight = parseInt($(window).outerHeight());
 
-	//задаване на ширина на двете колони
-	$('.result-content').css('width', winWidth - $('#single-receipt-holder').width());
+	if (winWidth > 1024) {
+		//задаване на ширина на двете колони
+		$('.result-content').css('width', winWidth - $('#single-receipt-holder').width());
+		$('#single-receipt-holder').addClass('fixedHolder');
+		$('.headerContent').addClass('fixed');
 
-	//височина за таблицата с резултатите
-	var receiptHeight = winHeight -  $('.tools-content').height() - $('.paymentBlock').height();
-	$('.scrolling-vertical').css('height',receiptHeight);
+		//височина за таблицата с резултатите
+		var receiptHeight = winHeight -  $('.tools-content').height() - $('.paymentBlock').height();
+		$('.scrolling-vertical').css('height',receiptHeight);
 
-	var headerHeight = $('.headerContent').outerHeight();
-	$('#result-holder').css('height',winHeight - headerHeight);
-	$('#result-holder, #single-receipt-holder').css('top',headerHeight);
+		var headerHeight = $('.headerContent').outerHeight();
+		$('#result-holder').css('height',winHeight - headerHeight);
+		$('#result-holder, #single-receipt-holder').css('top',headerHeight);
+		$('.tools-content').css('height',500);
+
+	} else {
+		$('#single-receipt-holder').removeClass('fixedHolder')
+		$('.result-content').width(winWidth);
+		$('#single-receipt-holder').width(winWidth);
+
+		$('#single-receipt-holder').addClass('narrowHolder');
+		if(winWidth > 400) {
+			$('#keyboard-num').width(winWidth - $('.buttons').width() - 30);
+		} else {
+			$('.narrowHolder #receipt-table').height(500);
+		}
+
+		$('.scrolling-vertical').css('height', $('#single-receipt').height() -  $('.paymentBlock').height() - 10);
+
+	}
 }
 
 // Направа на плащане
