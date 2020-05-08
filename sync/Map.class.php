@@ -284,11 +284,24 @@ class sync_Map extends core_Manager
         }
         
         if (($class == 'core_Users') && ($res['crm_Profiles']) && $res['crm_Persons']) {
-            foreach ($res['crm_Profiles'] as $pRec) {
-                if ($pRec->userId == $id) {
-                    $rec->personId = sync_Map::importRec('crm_Persons', $pRec->personId, $res, $controller, $update);
-                    break;
+            
+            // В старите системи да не се дублират записите в crm_Persons
+            $personId = null;
+            $exUserId = self::fetchField("#classId = {$classId} AND #remoteId = {$id}", 'localId');
+            if ($exUserId) {
+                $personId = crm_Profiles::fetchField("#userId = {$exUserId}", 'personId');
+            }
+            
+            if (!$personId) {
+                foreach ($res['crm_Profiles'] as $pRecId => $pRec) {
+                    if ($pRec->userId == $id) {
+                        $rec->personId = sync_Map::importRec('crm_Persons', $pRec->personId, $res, $controller, $update);
+                        
+                        break;
+                    }
                 }
+            } else {
+                $rec->personId = $personId;
             }
         }
         
