@@ -593,6 +593,7 @@ class sales_Sales extends deals_DealMaster
         $result->set('involvedContragents', array((object) array('classId' => $rec->contragentClassId, 'id' => $rec->contragentId)));
         
         $result->set('amount', $rec->amountDeal);
+        $result->setIfNot('reff', $rec->reff);
         $result->setIfNot('currency', $rec->currencyId);
         $result->setIfNot('rate', $rec->currencyRate);
         $result->setIfNot('vatType', $rec->chargeVat);
