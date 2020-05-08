@@ -209,7 +209,7 @@ class sync_Eshop extends sync_Helper
                 unset($rec->{$fName});
             }
             
-            expect($rec->lang && $rec->domain);
+            expect($rec->lang && $rec->domain, $rec);
             
             $oRec = cms_Domains::fetch(array("#domain = '[#1#]' AND #lang = '[#2#]'", $rec->domain, $rec->lang));
             
