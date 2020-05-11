@@ -826,13 +826,13 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $recs = array();
             foreach ($groupValues as $k => $v) {
                 $recs[$k] = (object) array(
-                    'group' => $k,                                         //Група артикули
-                    'primeCost' => $v,                                         //Продажби за текущия период за групата
-                    'delta' => $groupDeltas[$k],                           //Делта за текущия период за групата
+                    'group' => $k,                                                                    //Група артикули
+                    'primeCost' => $v,                                                                //Продажби за текущия период за групата
+                    'delta' => $groupDeltas[$k],                                                      //Делта за текущия период за групата
                     
-                    'groupPrimeCostPrevious' => $groupPrimeCostPrevious[$k],                //Продажби за предходен период за групата
-                    'changeGroupPrimeCostPrevious' => $v - $groupPrimeCostPrevious[$k],             //Промяна в продажбите спрямо предходен период за групата
-                    'groupDeltaPrevious' => $groupDeltaPrevious[$k],                    //Делта за предходен период за групата
+                    'groupPrimeCostPrevious' => $groupPrimeCostPrevious[$k],                          //Продажби за предходен период за групата
+                    'changeGroupPrimeCostPrevious' => $v - $groupPrimeCostPrevious[$k],               //Промяна в продажбите спрямо предходен период за групата
+                    'groupDeltaPrevious' => $groupDeltaPrevious[$k],                                  //Делта за предходен период за групата
                     'changeGroupDeltaPrevious' => $groupDeltas[$k] - $groupDeltaPrevious[$k],   //Промяна в делтите спрямо предходен период за групата
                     
                     'groupPrimeCostLastYear' => $groupPrimeCostLastYear[$k],                //Продажби за предходна година за групата
@@ -941,6 +941,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         $fld->FLD('changeDeltas', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Делти');
                     }
                 } else {
+                    
+//                     if ($rec->seeByContragent == 'yes' && $rec->group) {
+//                       $fld->FLD('group', 'varchar', 'caption=Група');
+//                     }
                     $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Продажби->Количество');
                     $fld->FLD('primeCost', 'double(smartRound,decimals=2)', 'smartCenter,caption=Продажби->Стойност');
                     
@@ -949,7 +953,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         $fld->FLD('contragent', 'keylist(mvc=doc_Folders,select=name)', 'caption=Контрагент');
                         $fld->FLD('invQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Фактурирано->количество');
                         $fld->FLD('invAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Фактурирано->стойност');
-                        
+                     
                     }
                     
                     if ($rec->seeDelta == 'yes') {
@@ -982,8 +986,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $fld->FLD('contragent', 'varchar', 'caption=Контрагент');
               
             }
-            
-            $fld->FLD('group', 'varchar', 'caption=Група');
+              if ($rec->group ) {
+                 $fld->FLD('group', 'varchar', 'caption=Група');
+            }
+           
             $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
             $fld->FLD('measure', 'key( да дам мнmvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
