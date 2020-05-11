@@ -148,7 +148,7 @@ class cat_Serials extends core_Manager
             static::$cache = arr::extractValuesFromArray($query1->fetchAll(), 'serial');
             
             $query2 = cat_products_Packagings::getQuery();
-            $query2->where('#eanCode IS NOT NULL OR #eanCode != ""');
+            $query2->where('#eanCode IS NOT NULL AND #eanCode != ""');
             $query2->show('eanCode');
             static::$cache += arr::extractValuesFromArray($query2->fetchAll(), 'eanCode');
             
