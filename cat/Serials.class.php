@@ -166,6 +166,7 @@ class cat_Serials extends core_Manager
     public static function getRand()
     {
         self::cacheRecs();
+        
         $serial = str::getRand('#############');
         while(array_key_exists($serial, static::$cache)){
             $serial = str::getRand('#############');
