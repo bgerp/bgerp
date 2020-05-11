@@ -19,7 +19,7 @@ html {
 .wide .narrowCenter, header {
     text-align: center;
     height: auto !important;
-    max-height: 300px;
+    max-height: 286px;
 }
 
 .wide .fadein {
@@ -28,8 +28,9 @@ html {
 }
 
 .wide  .headerImg{
-    height: 300px;
-    width: auto;
+    height: auto;
+    max-height: 286px;
+    width: 100%;
     float: none;
 
 }
@@ -38,6 +39,7 @@ html {
     bottom: 0;
     width: 100%;
 }
+
 #maincontent {
     background-color:white;
     padding-top: 0 !important;
