@@ -2,7 +2,7 @@
 
 
 /**
- * Синхронизиране на потребители между bgERP системи
+ * Синхронизиране на лица между bgERP системи
  *
  *
  * @category  bgerp
@@ -13,9 +13,9 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Синхронизиране на потребители между bgERP системи
+ * @title     Синхронизиране на лица между bgERP системи
  */
-class sync_Users extends sync_Helper
+class sync_Persons extends sync_Helper
 {
     
     
