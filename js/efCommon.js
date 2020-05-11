@@ -1656,6 +1656,9 @@ function setMinHeightExt() {
     $('.toggleLink').on('click', function(){
         $('.narrowNav').slideToggle();
     });
+    $(window).resize(function(){
+        setMinHeightExt();
+    });
 }
 function getWindowWidth() {
 	var winWidth = parseInt($(window).width());
