@@ -413,13 +413,13 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         
         
         $salesIdArr = arr::extractValuesFromArray($sQuery->fetchAll(), 'saleId');
-        
+         
         //Задания за производство към договорите за този период $jobsArr
         $jobsQuery = planning_Jobs::getQuery();
         $jobsQuery->where("#state != 'rejected' AND #state != 'draft'");
         $jobsQuery->in('saleId', $salesIdArr);
         $jobsQuery->show('saleId,productId,quantityInPack,quantity');
-        
+       
         $jobsArr = array();
         while ($jobRec = $jobsQuery->fetch()) {
             $key = $jobRec->saleId.'|'.$jobRec->productId;
@@ -439,7 +439,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                 $obj->quantity += $quantity;
             }
         }
-        
+       
         //Създаване на виртуални задания за производство
         //Договорените количества от активните договори минус заявените количества
         //за производство в задания към тези договори
@@ -459,6 +459,8 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                     continue;
                 }
             }
+           
+            $vKey = $sDetRec->saleId.'|'.$sDetRec->productId;
             
             $quantity = $sDetRec->quantity * $sDetRec->quantityInPack - $jobsArr[$vKey]->quantity;
             
@@ -474,8 +476,6 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                 $week = '0-0';
             }
             
-            $vKey = $sDetRec->saleId.'|'.$sDetRec->productId;
-            
             if (!array_key_exists($vKey, $vJobsArr)) {
                 $vJobsArr[$vKey] = (object) array(
                     'productId' => $sDetRec->productId,
@@ -490,7 +490,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                 $obj->quantity += $quantity;
             }
         }
-        
+       
         return $vJobsArr;
     }
 }
