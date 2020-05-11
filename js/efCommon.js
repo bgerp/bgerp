@@ -1650,7 +1650,9 @@ function setMinHeightExt() {
             }
         }
     } else if( $('.narrowCenter .headerImg').length){
-        $('.wide .narrowCenter').height(parseInt($('.narrowCenter .headerImg').height()));
+        var elHeight = parseInt($('.narrowCenter .headerImg').height() - 5);
+        $('.wide .narrowCenter').height(elHeight);
+        $('.wide .fadein').height(elHeight);
     }
 
     $('.toggleLink').on('click', function(){

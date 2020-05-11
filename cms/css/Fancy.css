@@ -19,20 +19,18 @@ html {
 
 .wide .narrowCenter, header {
     text-align: center;
-    height: auto;
-    max-height: 286px;
 }
 
 .wide .fadein {
-  display: inline-block;
     position: relative;
 }
 
 .wide  .headerImg{
-    height: auto;
-    max-height: 286px;
-    width: 100%;
+    height:auto;
+    width: auto;
     float: none;
+    max-width: 100%;
+    margin: -5px;
 
 }
 #cmsBottom {
