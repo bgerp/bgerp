@@ -16,9 +16,10 @@ html {
 #cmsTop, #cmsBottom, #cmsTop.a, #cmsBottom.a {
     color: white;
 }
+
 .wide .narrowCenter, header {
     text-align: center;
-    height: auto !important;
+    height: auto;
     max-height: 286px;
 }
 
