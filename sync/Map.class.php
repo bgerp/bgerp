@@ -283,6 +283,8 @@ class sync_Map extends core_Manager
             return 0;
         }
         
+        $checkIncharge = false;
+        
         if (($class == 'core_Users') && ($res['crm_Profiles']) && $res['crm_Persons']) {
             
             // В старите системи да не се дублират записите в crm_Persons
@@ -295,6 +297,7 @@ class sync_Map extends core_Manager
             if (!$personId) {
                 foreach ($res['crm_Profiles'] as $pRecId => $pRec) {
                     if ($pRec->userId == $id) {
+                        $checkIncharge = $res['crm_Persons'][$pRec->personId]->inCharge;
                         $rec->personId = sync_Map::importRec('crm_Persons', $pRec->personId, $res, $controller, $update);
                         
                         break;
@@ -411,7 +414,7 @@ class sync_Map extends core_Manager
                         $rec->{$name} = self::importRec($kMvc, $rec->{$name}, $res, $controller, $update);
                     }
                 }
-            } elseif ($fRec->type instanceof type_Keylist) {
+            } elseif (($fRec->type instanceof type_Keylist) || is_subclass_of($fRec->type, 'type_Keylist')) {
                 $kMvc = $fRec->type->params['mvc'];
                 if ($kArr = $res[$class][$id]->{$name}) {
                     if (!is_array($kArr)) {
@@ -511,7 +514,22 @@ class sync_Map extends core_Manager
         }
 
         self::$imported[$class][$id] = $lId;
-
+        
+        // Поправяме отоговорника на визитката
+        if (!$haveRec) {
+            if ($checkIncharge) {
+                if (($class == 'core_Users') && ($rec->personId)) {
+                    $pRec = crm_Persons::fetch($rec->personId);
+                    
+                    $nInCharge = self::importRec('core_Users', $checkIncharge, $res, $controller, $update);
+                    if ($nInCharge && ($pRec->inCharge != $nInCharge)) {
+                        $pRec->inCharge = $nInCharge;
+                        crm_Persons::save($pRec, 'inCharge');
+                    }
+                }
+            }
+        }
+        
         return $lId;
     }
     
