@@ -206,7 +206,7 @@ class cat_interface_PackLabelImpl
                 $res['JOB'] = $jobCode;
             }
             
-            if (isset($rec->eanCode)) {
+            if (!empty($rec->eanCode)) {
                 $res['EAN'] = $rec->eanCode;
             }
             
