@@ -165,13 +165,11 @@ class cat_Serials extends core_Manager
      */
     public static function getRand()
     {
-        //self::cacheRecs();
-        
         $serial = str::getRand('#############');
-        static::$cache[$serial] = $serial;
-        while(self::fetchField("#serial = '{$serial}'") || cat_products_Packagings::fetchField("#eanCode = '{$serial}'") || array_key_exists($serial, static::$cache)){
+        while(array_key_exists($serial, static::$cache) || self::fetchField("#serial = '{$serial}'") || cat_products_Packagings::fetchField("#eanCode = '{$serial}'")){
             $serial = str::getRand('#############');
         }
+        static::$cache[$serial] = $serial;
         
         return $serial;
     }
