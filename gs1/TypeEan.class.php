@@ -26,13 +26,6 @@ class gs1_TypeEan extends type_Varchar
      */
     public $dbFieldLen = 18;
     
-    
-    /**
-     * Празната стойност има смисъл на NULL
-     */
-    public $nullIfEmpty = true;
-    
-    
     /**
      * Колко символа е дълго полето в базата
      */
@@ -52,6 +45,10 @@ class gs1_TypeEan extends type_Varchar
     {
         parent::init($params);
         $this->params['size'] = $this->params[0] = 18;
+        
+        if(empty($this->params['stringIfEmpty'])){
+            $this->params['nullIfEmpty'] = true;
+        }
         
         // Добавяне на опция за автоматично генериране на ЕАН код
         if (isset($this->params['mvc'])) {
