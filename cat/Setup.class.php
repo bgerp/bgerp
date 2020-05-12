@@ -300,7 +300,7 @@ class cat_Setup extends core_ProtoSetup
         $pQuery->show('brState');
         while($pRec = $pQuery->fetch()){
             $pRec->brState = 'active';
-            $toSave[updateEmptyEanCode] = $pRec;
+            $toSave[] = $pRec;
         }
         
         if(countR($toSave)){
