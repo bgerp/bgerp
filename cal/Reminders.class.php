@@ -775,6 +775,16 @@ class cal_Reminders extends core_Master
             
             self::doUsefullyPerformance($savedRec);
         }
+        
+        $query = self::getQuery();
+        $query->where("#state = 'active' AND (#calcTimeStart IS NOT NULL AND #calcTimeStart < '{$now}') AND (#notifySent = 'no' OR #notifySent IS NULL)");
+        
+        while ($rec = $query->fetch()) {
+            $rec->calcTimeStart = $this->getNextStartingTime2($rec, false);
+            if ($rec->calcTimeStart) {
+                $this->save($rec, 'calcTimeStart');
+            }
+        }
     }
     
     
