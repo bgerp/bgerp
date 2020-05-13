@@ -203,7 +203,7 @@ class colab_Setup extends core_ProtoSetup
             $res = self::forceCreatableDocuments();
         }
         
-        $res .= $this->callMigrate('addPowerPartnerToPartners6', 'colab');
+        $res .= $this->callMigrate('addPowerPartnerToPartners5', 'colab');
         
         return $res;
     }
@@ -230,7 +230,7 @@ class colab_Setup extends core_ProtoSetup
     /**
      * Миграция за добавяне на допълнителна роля на партньори
      */
-    public function addPowerPartnerToPartners6()
+    public function addPowerPartnerToPartners5()
     {
         if(core_Users::count()){
             $partners = core_Users::getByRole('partner');
