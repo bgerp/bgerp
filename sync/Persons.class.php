@@ -78,6 +78,7 @@ class sync_Persons extends sync_Helper
         core_Users::forceSystemUser();
         
         Mode::set('preventNotifications', true);
+        Mode::set('syncing', true);
         
         foreach ($resArr as $class => $objArr) {
             foreach ($objArr as $id => $rec) {

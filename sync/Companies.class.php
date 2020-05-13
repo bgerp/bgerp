@@ -104,6 +104,7 @@ class sync_Companies extends sync_Helper
         $resArr = self::getDataFromUrl(get_called_class());
         
         Mode::set('preventNotifications', true);
+        Mode::set('syncing', true);
         
         $me = cls::get(get_called_class());
         
