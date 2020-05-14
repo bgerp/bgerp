@@ -308,6 +308,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         asort($prodSuggestions);
         
         }else{
+            $rec->products = null;
             $prodSuggestions = array(''=>'');
         }
         
@@ -348,6 +349,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
          if($rec->typeOfGroups == 'art'){
             $checkForGruping ='group';
          }elseif (($rec->typeOfGroups == 'category')){
+             $checkForGruping = 'category';
+         }elseif (($rec->typeOfGroups == 'no')){
              $checkForGruping = 'category';
          }
         
@@ -727,7 +730,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $typeGroup ='group';
         }elseif (($rec->typeOfGroups == 'category')){
             $typeGroup = 'category';
+        }elseif (($rec->typeOfGroups == 'no')){
+            $typeGroup = 'category';
         }
+        
         
         // Изчисляване на общите продажби и продажбите по групи
         foreach ($recs as $v) {
@@ -1340,6 +1346,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if($rec->typeOfGroups == 'art'){
                 $fieldForGroup ='group';
             }elseif (($rec->typeOfGroups == 'category')){
+                $fieldForGroup = 'category';
+            }elseif (($rec->typeOfGroups == 'no')){
                 $fieldForGroup = 'category';
             }
             if ($rec->$fieldForGroup) {
