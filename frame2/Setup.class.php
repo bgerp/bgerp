@@ -69,7 +69,7 @@ class frame2_Setup extends core_ProtoSetup
         'frame2_AllReports',
         'migrate::migrateStates',
         'migrate::keyToKeylist1',
-        'migrate::setFieldTypeOfGroups',
+        'migrate::setFieldTypeOfGroups1',
     );
     
     
@@ -141,7 +141,7 @@ class frame2_Setup extends core_ProtoSetup
      * Миграция: в спрвките "Продаде ни артикули"
      * set  на полето typeOfGroups 
      */
-    public function setFieldTypeOfGroups()
+    public function setFieldTypeOfGroups1()
     {
         $reportClassId =sales_reports_SoldProductsRep::getClassId();
         if (!$reportClassId)return;
@@ -154,7 +154,7 @@ class frame2_Setup extends core_ProtoSetup
         
         while ($fRec = $reportQuery->fetch()){
             
-            $fRec->typeOfGroups = 'category';
+            $fRec->typeOfGroups = 'art';
             
             $Frames->save($fRec);
             
