@@ -79,7 +79,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички,single=none,after=dealers');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholder=Всички,after=contragent,single=none');
         
-        $fieldset->FLD('typeOfGroups', 'enum(no=Без групи, category=Категории артикули, art=Групи артикули)', 'caption=Артикули->Групи,removeAndRefreshForm,after=crmGroup,single=none');        
+        $fieldset->FLD('typeOfGroups', 'enum(no=Без групи, category=Категории артикули, art=Групи артикули)', 'caption=Артикули->Групи,removeAndRefreshForm,after=crmGroup');        
         $fieldset->FLD('category', 'keylist(mvc=cat_Categories,select=name)', 'caption=Артикули->Категории артикули,after=typeOfGroups,removeAndRefreshForm,placeholder=Всички,silent,single=none');
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=category,removeAndRefreshForm,placeholder=Всички,silent,single=none');
         $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Артикули->Артикули,placeholder=Всички,after=group,single=none,input=none,class=w100');
@@ -839,10 +839,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $v = clone $v;
                     $v->$typeGroup = (int) $val;
                     $tempArr[] = $v; 
-                    
-                    //Ако има избрана разбивка по контрагенти и няколко групи, артикула го показва само в една група
-                    if ($rec->seeByContragent == 'yes') {
-                       break ;
+
+                    if ( !$rec->$checkForGruping) {
+                        break ;
                     }
                 }
             }
