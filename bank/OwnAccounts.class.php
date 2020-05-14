@@ -176,11 +176,11 @@ class bank_OwnAccounts extends core_Master
                                  loan=Кредитна,
                                  personal=Персонална,
                                  capital=Набирателна)', 'caption=Тип,mandatory');
+        $this->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg)', 'caption=Държави, title=Използване по подразбиране за фирми от съответните държави');
         $this->FLD('title', 'varchar(128)', 'caption=Наименование');
         $this->FLD('comment', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки');
         $this->FLD('operators', 'userList(roles=bank|ceo)', 'caption=Контиране на документи->Потребители,mandatory');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
-        $this->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg)', 'caption=Държави, title=Използване по подразбиране за фирми от съответните държави');
         
         $this->setDbUnique('title');
     }
