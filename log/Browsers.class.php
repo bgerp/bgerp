@@ -135,6 +135,14 @@ class log_Browsers extends core_Master
     
     
     /**
+     * Префикс за brid на бот
+     * 
+     * @var string
+     */
+    protected static $botBridPrefix = '_';
+    
+    
+    /**
      * Полета на модела
      */
     public function description()
@@ -256,19 +264,35 @@ class log_Browsers extends core_Master
             // Ако в кеша имаме brid, използваме него
             $brid = self::getBridFromCache();
             
-            if (!$brid) {
-                // Генерира brid
-                $brid = self::generateBrid();
-            }
-            
-            // Записваме кукито
-            self::setBridCookie($brid);
-            
-            // Добавяме в модела
-            self::add($brid);
+            $brid = self::generateAndSetBrid($brid);
             
             return $brid;
         }
+    }
+    
+    
+    /**
+     * Помощна функция за генериране и записване на brid 
+     * 
+     * @param string $brid
+     * @param boolean $checkBot
+     * 
+     * @return string
+     */
+    protected static function generateAndSetBrid($brid = '', $checkBot = true)
+    {
+        if (!$brid) {
+            // Генерира brid
+            $brid = self::generateBrid($checkBot);
+        }
+        
+        // Записваме кукито
+        self::setBridCookie($brid);
+        
+        // Добавяме в модела
+        self::add($brid);
+        
+        return $brid;
     }
     
     
@@ -592,10 +616,30 @@ class log_Browsers extends core_Master
      *
      * @return string
      */
-    public static function generateBrid()
+    public static function generateBrid($checkBot = true)
+    {
+        $brid = '';
+        
+        if ($checkBot) {
+            $brid = self::getBridForBot();
+        }
+        
+        if (!$brid) {
+            $brid = str::getRand('********');
+        }
+        
+        return $brid;
+    }
+    
+    
+    /**
+     * Помощна функция за генериране на brid за бот
+     * 
+     * @return string|boolean
+     */
+    protected static function getBridForBot()
     {
         $s = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        
         $str = '';
         
         if ($bot = self::detectBot()) {
@@ -612,13 +656,34 @@ class log_Browsers extends core_Master
         }
         
         if ($str) {
-            $brid = $s[hexdec(substr($str, 0, 2)) % 62] . $s[hexdec(substr($str, 2, 2)) % 62] . $s[hexdec(substr($str, 4, 2)) % 62] .  $s[hexdec(substr($str, 6, 2)) % 62] .
+            $str = self::$botBridPrefix . $s[hexdec(substr($str, 2, 2)) % 62] . $s[hexdec(substr($str, 4, 2)) % 62] .  $s[hexdec(substr($str, 6, 2)) % 62] .
             $s[hexdec(substr($str, 8, 2)) % 62] . $s[hexdec(substr($str, 10, 2)) % 62] . $s[hexdec(substr($str, 12, 2)) % 62] .  $s[hexdec(substr($str, 14, 2)) % 62];
-        } else {
-            $brid = str::getRand('********');
         }
         
-        return $brid;
+        return $str;
+    }
+    
+    
+    /**
+     * Помощна функция за проверка дали генерирания brid е за бот
+     * 
+     * @param string $brid
+     * @param boolean $generate
+     * 
+     * @return boolean
+     */
+    protected function isBotBrid($brid = '', $generate = true)
+    {
+        if (!$brid) {
+            $brid = self::getBrid($generate);
+        }
+        
+        if ($brid && (stripos($brid, self::$botBridPrefix) === 0)) {
+            
+            return true;
+        }
+        
+        return false;
     }
     
     
@@ -866,6 +931,11 @@ class log_Browsers extends core_Master
         if ($w > 1000 && !Mode::is('ScreenModeFromScreenSize')) {
             Mode::setPermanent('screenMode', 'wide');
             Mode::setPermanent('ScreenModeFromScreenSize');
+        }
+        
+        // Регенерираме brid, ако е бил генериран за бот
+        if ($this->isBotBrid()) {
+            $this->generateAndSetBrid('', false);
         }
         
         $this->render1x1gif();
