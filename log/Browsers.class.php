@@ -936,6 +936,8 @@ class log_Browsers extends core_Master
         // Регенерираме brid, ако е бил генериран за бот
         if ($this->isBotBrid()) {
             $this->generateAndSetBrid('', false);
+            
+            $this->logNotice('Регенериране на брит за бот');
         }
         
         $this->render1x1gif();
