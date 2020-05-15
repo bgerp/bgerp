@@ -421,6 +421,7 @@ class core_Setup extends core_ProtoSetup
         'core_Forwards',
         'core_Updates',
         'core_Permanent',
+        'migrate::repairSearchKeywords1920'
     );
     
     
@@ -698,5 +699,57 @@ class core_Setup extends core_ProtoSetup
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Форсира регенерирането на ключовите думи за всички мениджъри, които използват `plg_Search`
+     */
+    public static function repairSearchKeywords1920()
+    {
+        // Вземаме инстанция на core_Interfaces
+        $Interfaces = cls::get('core_Interfaces');
+        
+        // id' то на интерфейса
+        $interfaceId = $Interfaces->fetchByName('core_ManagerIntf');
+        
+        $query = core_Classes::getQuery();
+        $query->where("#state = 'active' AND #interfaces LIKE '%|{$interfaceId}|%'");
+        
+        $secs = 180;
+        
+        while ($rec = $query->fetch()) {
+            if (!cls::load($rec->name, true)) {
+                continue;
+            }
+            
+            $Inst = cls::get($rec->name);
+            
+            // Ако няма таблица
+            if (!$Inst || !$Inst->db) {
+                continue;
+            }
+            
+            // Ако таблицата не съществува в модела
+            if (!$Inst->db->tableExists($Inst->dbTableName)) {
+                continue ;
+            }
+            
+            // Ако полето не съществува в таблицата
+            $sk = str::phpToMysqlName('searchKeywords');
+            if (!$Inst->db->isFieldExists($Inst->dbTableName, $sk)) {
+                continue ;
+            }
+            
+            $plugins = arr::make($Inst->loadList, true);
+            
+            if (!isset($plugins['plg_Search']) && !$Inst->fields['searchKeywords']) {
+                continue;
+            }
+            
+            core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', $rec->name, dt::addSecs($secs));
+            
+            $secs += 60;
+        }
     }
 }

@@ -1,5 +1,5 @@
 <?php
-$code['Йо'] = 'Jo';
+$code['Йо'] = 'Yo';
 $code['Екс'] = 'Ex';
 $code['Бъ'] = 'BU';
 $code['Ия'] = 'Ia';
@@ -8,20 +8,24 @@ $code['ЙО'] = 'JO';
 $code['ЕКС'] = 'EX';
 $code['БЪ'] = 'BU';
 $code['ИЯ'] = 'IA';
+$code['България'] = 'Bulgaria';
+$code['българия'] = 'bulgaria';
 
 $code['бъ'] = 'bu';
 $code['ия'] = 'ia';
-$code['йо'] = 'jo';
+$code['йо'] = 'yo';
 $code['екс'] = 'ex';
 
 $code['э'] = 'e';
+$code['ы'] = 'yi';
+
 $code['а'] = 'a';
 $code['б'] = 'b';
 $code['в'] = 'v';
 $code['г'] = 'g';
 $code['д'] = 'd';
 $code['е'] = 'e';
-$code['ж'] = 'j';
+$code['ж'] = 'zh';
 $code['з'] = 'z';
 $code['и'] = 'i';
 $code['й'] = 'y';
@@ -42,8 +46,7 @@ $code['ч'] = 'ch';
 $code['ш'] = 'sh';
 $code['щ'] = 'sht';
 $code['ъ'] = 'a';
-$code['ы'] = 'yi';
-$code['ь'] = 'j';
+$code['ь'] = 'y';
 $code['ю'] = 'yu';
 $code['я'] = 'ya';
 

@@ -686,7 +686,7 @@ class plg_Search extends core_Plugin
         }
         
         if (!$query->count()) {
-            core_Permanent::remove($pKey);
+            core_Permanent::set($pKey, $kVal, 200);
             
             $clsInst->logDebug('Приключи регенерирането на ключови думи');
             
@@ -722,7 +722,7 @@ class plg_Search extends core_Plugin
         
         $clsInst->logDebug('Регенерирани ключови думи до id=' . $maxId);
         
-        core_Permanent::set($pKey, $maxId, 100000);
+        core_Permanent::set($pKey, $maxId, 1000);
     }
     
     
