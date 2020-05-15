@@ -292,7 +292,7 @@ class sales_PrimeCostByDocument extends core_Manager
                         if($Document->isInstanceOf('sales_Sales')){
                             $masters[$dRec->containerId]['total'] = $dRec->amountDeal;
                         } else {
-                            $masters[$dRec->containerId]['total'] = $dRec->amountDelivered  - $dRec->amountDiscount;
+                            $masters[$dRec->containerId]['total'] = $dRec->amountDelivered;
                         }
                     } catch (core_exception_Expect $e) {
                         reportException($e);
