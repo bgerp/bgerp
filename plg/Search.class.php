@@ -686,7 +686,11 @@ class plg_Search extends core_Plugin
         }
         
         if (!$query->count()) {
-            core_Permanent::set($pKey, $kVal, 200);
+            if (!is_null($data)) {
+                core_Permanent::set($pKey, $kVal, 200);
+            } else {
+                core_Permanent::remove($pKey);
+            }
             
             $clsInst->logDebug('Приключи регенерирането на ключови думи');
             
