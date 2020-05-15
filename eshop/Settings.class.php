@@ -188,7 +188,7 @@ class eshop_Settings extends core_Manager
         $this->FLD('freeDelivery', 'double(min=0)', 'caption=Безплатна доставка->Сума');
         $this->FLD('freeDeliveryByBus', 'double(min=0)', 'caption=Безплатна доставка->За маршрут');
         
-        $this->FLD('dealerId', 'user(roles=sales|ceo,allowEmpty)', 'caption=Продажби създадени от онлайн магазина->Търговец');
+        $this->FLD('dealerId', 'user(roles=sales|ceo,allowEmpty,rolesForAll=eshop|ceo|admin,rolesForTeam=eshop|ceo|admin)', 'caption=Продажби създадени от онлайн магазина->Търговец');
         
         $this->setDbIndex('classId, objectId');
     }
@@ -552,5 +552,19 @@ class eshop_Settings extends core_Manager
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
+    {
+        // Не може да се клонира ако потребителя няма достъп до папката
+        if ($action == 'edit' && isset($rec)) {
+            if(!cls::get($rec->classId)->haveRightFor('select', $rec->objectId)){
+                $res = 'no_one';
+            }
+        }
     }
 }

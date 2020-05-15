@@ -531,6 +531,11 @@ class acc_plg_Contable extends core_Plugin
         try {
             self::conto($mvc, $rec);
         } catch (acc_journal_RejectRedirect $e) {
+            if($mvc instanceof deals_DealMaster){
+                $rec->contoActions = null;
+                $mvc->save_($rec, 'contoActions');
+            }
+            
             $url = $mvc->getSingleUrlArray($rec->id);
             redirect($url, false, '|' . $e->getMessage(), 'error');
         }

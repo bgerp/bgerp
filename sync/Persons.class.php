@@ -2,7 +2,7 @@
 
 
 /**
- * Синхронизиране на потребители между bgERP системи
+ * Синхронизиране на лица между bgERP системи
  *
  *
  * @category  bgerp
@@ -13,9 +13,9 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Синхронизиране на потребители между bgERP системи
+ * @title     Синхронизиране на лица между bgERP системи
  */
-class sync_Users extends sync_Helper
+class sync_Persons extends sync_Helper
 {
     
     
@@ -32,18 +32,30 @@ class sync_Users extends sync_Helper
         
         core_Users::forceSystemUser();
         
-        $query = crm_Profiles::getQuery();
-        
-        $query->EXT('groupList', 'crm_Persons', 'externalName=groupList,externalKey=personId');
+        $query = crm_Persons::getQuery();
         
         $groups = sync_Setup::get('CRM_GROUPS');
-        
         if ($groups) {
             $query->likeKeylist('groupList', $groups);
         }
         
         while ($rec = $query->fetch()) {
-            sync_Map::exportRec('crm_Profiles', $rec->id, $res, $this);
+            sync_Map::exportRec('crm_Persons', $rec->id, $res, $this);
+            
+            $pRec = crm_Profiles::fetch("#personId = {$rec->id}");
+            if ($pRec) {
+                sync_Map::exportRec('crm_Profiles', $pRec->id, $res, $this);
+            }
+            
+            if ($rec->folderId && core_Packs::isInstalled('colab')) {
+                $pQuery = colab_FolderToPartners::getQuery();
+                $pQuery->where(array("#folderId = [#1#]", $rec->folderId));
+                
+                while ($cRec = $pQuery->fetch()) {
+                    $cRec->_personId = $rec->id;
+                    sync_Map::exportRec('colab_FolderToPartners', $cRec, $res, $this);
+                }
+            }
         }
         
         core_Users::cancelSystemUser();
@@ -66,6 +78,7 @@ class sync_Users extends sync_Helper
         core_Users::forceSystemUser();
         
         Mode::set('preventNotifications', true);
+        Mode::set('syncing', true);
         
         foreach ($resArr as $class => $objArr) {
             foreach ($objArr as $id => $rec) {

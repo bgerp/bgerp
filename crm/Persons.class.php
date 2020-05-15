@@ -95,7 +95,7 @@ class crm_Persons extends core_Master
     /**
      * Полета за експорт
      */
-    public $exportableCsvFields = 'name,egn,country,place,email,info,birthday,pCode,place,address,tel,fax,mobile';
+    public $exportableCsvFields = 'salutation,name,nameList,egn,vatId,birthday,country,pCode,place,address,buzCompanyId,buzLocationId,buzPosition,buzEmail,buzTel,buzFax,buzAddress,email,tel,mobile,fax,website,info,photo,groupList';
     
     
     /**

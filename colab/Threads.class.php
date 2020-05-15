@@ -10,7 +10,7 @@
  * @package   colab
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.12
@@ -280,6 +280,8 @@ class colab_Threads extends core_Manager
      */
     public function prepareListRows_(&$data)
     {
+        $data->rows = array();
+        
         if (countR($data->recs)) {
             foreach ($data->recs as $id => $rec) {
                 $row = $this->Threads->recToVerbal($rec);
@@ -297,7 +299,6 @@ class colab_Threads extends core_Manager
                 }
                 
                 $row->allDocCnt = $row->partnerDocCnt;
-                
                 $data->rows[$id] = $row;
             }
         }
@@ -405,21 +406,19 @@ class colab_Threads extends core_Manager
                 }
             }
             
-            if ($rec->firstContainerId) {
-                
-                // Трябва първия документ в нишката да е видим за партньори
-                $containerRec = doc_Containers::fetch($rec->firstContainerId, 'visibleForPartners, createdBy');
-                if ($containerRec->visibleForPartners != 'yes') {
+            if ($rec->visibleForPartners != 'yes') {
+                $requiredRoles = 'no_one';
+            }
+            
+            if(isset($userId) && !haveRole('powerPartner', $userId)){
+                if(!empty($rec->createdBy) && $rec->createdBy != $userId){
                     $requiredRoles = 'no_one';
-                }
-                
-                if(isset($userId) && !empty($containerRec->createdBy) && $containerRec->createdBy != $userId){
-                    if(!haveRole('powerPartner', $userId)){
+                } elseif(empty($rec->createdBy)) {
+                    $email = core_Users::fetchField($userId, 'email');
+                    if(!$mvc->canNonPowerPartnerSeeAnonymDocument($rec, $email)){
                         $requiredRoles = 'no_one';
                     }
                 }
-            } else {
-                $requiredRoles = 'no_one';
             }
             
             if ($rec->visibleForPartners != 'yes') {
@@ -464,9 +463,43 @@ class colab_Threads extends core_Manager
         
         if(!haveRole('powerPartner', $cu)){
             $res->where("#createdBy = '{$cu}' || #createdBy = '0'");
+            
+            // От записите създадени от анонимен потребител ще се проверява имейла му дали съвпада с този на текущия
+            $availableRecs = array();
+            $cuEmail = core_Users::fetchField($cu, 'email');
+            $dummyQuery = clone $res;
+            $dummyQuery->show('id,firstContainerId,createdBy');
+            while ($rec = $dummyQuery->fetchAndCache()) {
+                if($rec->createdBy == 0 && !$this->canNonPowerPartnerSeeAnonymDocument($rec, $cuEmail)) continue;
+                $availableRecs[$rec->id] = $rec->id;
+            }
+            
+            // Ако обикновенният партньор вижда само част от документи, ограничава се заявката
+            if(countR($availableRecs)) {
+                $res->in("id", $availableRecs);
+            } else {
+                $res->where("1 = 2");
+            }
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Може ли обикновен партньор да види документа
+     * 
+     * @param stdClass $threadRec
+     * @param string $cuEmail
+     * 
+     * @return boolean
+     */
+    private function canNonPowerPartnerSeeAnonymDocument($threadRec, $cuEmail)
+    {
+        $docProxy = doc_Containers::getDocument($threadRec->firstContainerId);
+        $docRow = $docProxy->getDocumentRow();
+        
+        return strtolower(trim($docRow->author)) == strtolower(trim($cuEmail));
     }
     
     

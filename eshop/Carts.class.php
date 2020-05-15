@@ -177,7 +177,7 @@ class eshop_Carts extends core_Master
         $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,mandatory');
         
         $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Начин,autocomplete=off,removeAndRefreshForm=deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|deliveryData|locationId,silent,mandatory');
-        $this->FLD('locationId', 'key(mvc=crm_Locations,select=title)', 'caption=Доставка->Локация,input=none,silent,removeAndRefreshForm=deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|locationId,after=termId');
+        $this->FLD('locationId', 'key(mvc=crm_Locations,select=title)', 'caption=Доставка->Локация,input=none,silent,removeAndRefreshForm=deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress,after=termId');
         $this->FLD('deliveryCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Доставка->Държава,hint=Страна за доставка');
         $this->FLD('deliveryPCode', 'varchar(16)', 'caption=Доставка->П. код,hint=Пощенски код за доставка');
         $this->FLD('deliveryPlace', 'varchar(64)', 'caption=Доставка->Град,hint=Населено място: град или село и община');
