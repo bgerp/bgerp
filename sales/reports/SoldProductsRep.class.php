@@ -358,7 +358,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         if (is_null($rec->seeDelta)) {
             $rec->seeDelta = 'no';
         }
-        
+       
         //Показването да бъде ли ГРУПИРАНО
         if (($rec->grouping == 'no') && ($rec->group || $rec->category) ) {
             
@@ -367,7 +367,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }elseif (($rec->typeOfGroups == 'category')){
                 $groupByField = 'category';
             }
-            $this->groupByField = $groupByField;
+            $this->groupByField = $groupByField; 
         }
         
         if ($rec->seeByContragent == 'yes') {
@@ -473,6 +473,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         $query->EXT('prodFolderId', 'cat_Products', 'externalName=folderId,externalKey=productId');
         
+        $query->EXT('category', 'doc_Folders', 'externalName=coverId,externalKey=prodFolderId');
+        
         $query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         
         $query->where("#state != 'rejected'");
@@ -553,22 +555,39 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         
         //Филтър за АРТИКУЛ и ГРУПИ АРТИКУЛИ
-        if ($rec->products || $rec->group) {
+        
+        if ($rec->typeOfGroups == 'art') {
+            $filterGroupsType = 'group';
+        }elseif($rec->typeOfGroups == 'category'){
+            $filterGroupsType = 'category';
+        }elseif($rec->typeOfGroups == 'no'){
+            $filterGroupsType = 'category';
+        }
+        $checkFieldName = ($filterGroupsType == 'group') ? 'groupMat' : 'category';
+      
+        if ($rec->products || $rec->$filterGroupsType) {
             $prodsArr = array();
             
-            if (!$rec->group && $rec->products) {
+            if (!$rec->$filterGroupsType && $rec->products) {
                 $prodsArr = keylist::toArray($rec->products);
                 $query->in('productId', $prodsArr);
             }
             
-            if ($rec->group && !$rec->products) {
-                $query->likeKeylist('groupMat', $rec->group);
+            if ($rec->$filterGroupsType && !$rec->products) {
+                
+                if($filterGroupsType == 'group'){
+                    $query->likeKeylist($checkFieldName, $rec->$filterGroupsType);
+                }else{
+                    
+                    $filterGroupsArr = keylist::toArray($rec->$filterGroupsType);
+                    $query->in($checkFieldName, $filterGroupsArr);
+                }
             }
             
-            if ($rec->group && $rec->products) {
+            if ($rec->$filterGroupsType && $rec->products) {
                 $prodsArr = keylist::toArray($rec->products);
                 $query->in('productId', $prodsArr);
-                $query->likeKeylist('groupMat', $rec->group);
+                $query->likeKeylist($checkFieldName, $rec->$filterGroupsType);
             }
         }
         
@@ -577,7 +596,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $query->where("#isPublic = '{$rec->articleType}'");
         }
         
-        // Синхронизира таймлимита с броя записи //
+        // Синхронизира таймлимита с броя записи 
         $rec->count = $query->count();
         
         $timeLimit = $query->count() * 0.05;
@@ -808,7 +827,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $totalDeltaPrevious += $v->deltaPrevious;
                 $totalPrimeCostLastYear += $v->primeCostLastYear;
                 $totalDeltaLastYear += $v->deltaLastYear;
-                
+               
                 //Изчислява продажбите по артикул за всички артикули във всяка избрана група
                 //Един артикул може да го има в няколко групи
                 foreach ($tempArr[$v->productId]->$typeGroup as $gro) {
