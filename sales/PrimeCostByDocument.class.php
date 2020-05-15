@@ -290,7 +290,7 @@ class sales_PrimeCostByDocument extends core_Manager
                         $masters[$dRec->containerId] = array($Document, $dRec->state, $dRec->isReverse);
                         
                         if($Document->isInstanceOf('sales_Sales')){
-                            $masters[$dRec->containerId]['total'] = $dRec->amountDeal - $dRec->amountDiscount;
+                            $masters[$dRec->containerId]['total'] = $dRec->amountDeal;
                         } else {
                             $masters[$dRec->containerId]['total'] = $dRec->amountDelivered  - $dRec->amountDiscount;
                         }
