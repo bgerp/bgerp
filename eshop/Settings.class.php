@@ -553,4 +553,18 @@ class eshop_Settings extends core_Manager
         
         return $res;
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
+    {
+        // Не може да се клонира ако потребителя няма достъп до папката
+        if ($action == 'edit' && isset($rec)) {
+            if(!cls::get($rec->classId)->haveRightFor('select', $rec->objectId)){
+                $res = 'no_one';
+            }
+        }
+    }
 }
