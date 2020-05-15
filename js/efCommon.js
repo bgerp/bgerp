@@ -1622,6 +1622,7 @@ function isTouchDevice() {
  * Задава минимална височина на контента във външната част
  */
 function setMinHeightExt() {
+
     var clientHeight = document.documentElement.clientHeight;
     if ($('#cmsTop').length) {
     	var padding = $('.background-holder').css('padding-top');
@@ -1648,9 +1649,17 @@ function setMinHeightExt() {
             	$('#maincontent').css('minHeight', h);
             }
         }
+    } else if( $('.narrowCenter .headerImg').length){
+        var elHeight = parseInt($('.narrowCenter .headerImg').height() - 5);
+        $('.wide .narrowCenter').height(elHeight);
+        $('.wide .fadein').height(elHeight);
     }
+
     $('.toggleLink').on('click', function(){
         $('.narrowNav').slideToggle();
+    });
+    $(window).resize(function(){
+        setMinHeightExt();
     });
 }
 function getWindowWidth() {

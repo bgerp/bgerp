@@ -461,7 +461,7 @@ class price_Lists extends core_Master
      */
     protected static function on_AfterCreate($mvc, $rec)
     {
-        if (isset($rec->cId, $rec->cClass)) {
+        if (isset($rec->cId, $rec->cClass) && !Mode::is('syncing')) {
             price_ListToCustomers::setPolicyToCustomer($rec->id, $rec->cClass, $rec->cId);
         }
     }

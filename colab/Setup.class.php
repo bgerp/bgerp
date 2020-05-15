@@ -49,7 +49,6 @@ class colab_Setup extends core_ProtoSetup
         'colab_DocumentLog',
         'migrate::addAgentToPartners',
         'migrate::creatableDocuments',
-        'migrate::addPowerPartnerToPartners2'
     );
     
     
@@ -204,6 +203,8 @@ class colab_Setup extends core_ProtoSetup
             $res = self::forceCreatableDocuments();
         }
         
+        $res .= $this->callMigrate('addPowerPartnerToPartners5', 'colab');
+        
         return $res;
     }
     
@@ -229,17 +230,21 @@ class colab_Setup extends core_ProtoSetup
     /**
      * Миграция за добавяне на допълнителна роля на партньори
      */
-    public function addPowerPartnerToPartners2()
+    public function addPowerPartnerToPartners5()
     {
         if(core_Users::count()){
             $partners = core_Users::getByRole('partner');
             if(is_array($partners)){
                 core_Roles::addOnce('powerPartner', 'partner', 'rang');
                 
+                $powerPartnerId = core_Roles::fetchByName('powerPartner');
+                $partnerId = core_Roles::fetchByName('partner');
                 foreach ($partners as $userId){
-                    if(!haveRole('powerPartner', $userId)){
-                        core_Users::addRole($userId, 'powerPartner');
-                    }
+                    
+                    $userRec = core_Users::fetch($userId);
+                    $userRec->rolesInput = keylist::addKey($userRec->rolesInput, $powerPartnerId);
+                    $userRec->rolesInput = keylist::removeKey($userRec->rolesInput, $partnerId);
+                    core_Users::save($userRec, 'rolesInput,roles');
                 }
             }
         }

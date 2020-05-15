@@ -584,22 +584,20 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $todayF = $pArr['_todayF'];
         
-        $query->XPR('startTimeOrder', 'datetime', "IF(((#nextStartTime < '{$todayF}') OR (#nextStartTime IS NULL)), #timeStart, #nextStartTime)");
+        $query->where(array("#calcTimeStart >= '[#1#]'", $todayF));
+        $query->where(array("#calcTimeStart <= '[#1#]'", $pArr['_endWorkingDay']));
         
-        $query->where(array("#startTimeOrder >= '[#1#]'", $todayF));
-        $query->where(array("#startTimeOrder <= '[#1#]'", $pArr['_endWorkingDay']));
+        $query->orderBy('calcTimeStart', 'ASC');
         
-        $query->orderBy('startTimeOrder', 'ASC');
-        
-        $query->show('title,state,modifiedOn,containerId');
+        $query->show('title,state,modifiedOn,containerId,calcTimeStart');
         
         $i = 1000;
         while ($rec = $query->fetch()) {
-            list($orderDate, $orderH) = explode(' ', $rec->startTimeOrder);
+            list($orderDate, $orderH) = explode(' ', $rec->calcTimeStart);
             $orderH .= ' ' . ++$i;
             $tRec = $Reminders->recToVerbal($rec, 'title');
             if ($Reminders->haveRightFor('single', $rec)) {
-                $tRec->title = ' ' . dt::mysql2verbal($rec->startTimeOrder, 'H:i', null, true) . ' ' . $tRec->title;
+                $tRec->title = ' ' . dt::mysql2verbal($rec->calcTimeStart, 'H:i', null, true) . ' ' . $tRec->title;
                 
                 $linkArr = array('ef_icon' => $Reminders->getIcon($rec->id));
                 

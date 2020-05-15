@@ -16,21 +16,21 @@ html {
 #cmsTop, #cmsBottom, #cmsTop.a, #cmsBottom.a {
     color: white;
 }
+
 .wide .narrowCenter, header {
     text-align: center;
-    height: auto !important;
-    max-height: 300px;
 }
 
 .wide .fadein {
-  display: inline-block;
     position: relative;
 }
 
 .wide  .headerImg{
-    height: 300px;
+    height:auto;
     width: auto;
     float: none;
+    max-width: 100%;
+    margin: -5px;
 
 }
 #cmsBottom {
@@ -38,6 +38,7 @@ html {
     bottom: 0;
     width: 100%;
 }
+
 #maincontent {
     background-color:white;
     padding-top: 0 !important;

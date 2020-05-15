@@ -187,7 +187,8 @@ class sales_Proformas extends deals_InvoiceMaster
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'caption=Продажба,input=none');
         $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
-        $this->FLD('number', 'int', 'caption=Номер, export=Csv, after=place');
+        $this->FLD('number', 'int', 'caption=Номер, export=Csv,input=none');
+        $this->FLD('reff', 'varchar(255,nullIfEmpty)', 'caption=Ваш реф.,class=contactData,after=place');
         
         $this->setDbUnique('number');
     }
@@ -227,6 +228,7 @@ class sales_Proformas extends deals_InvoiceMaster
         }
         
         if ($data->aggregateInfo) {
+            $form->setDefault('reff', $data->aggregateInfo->get('reff'));
             if ($accId = $data->aggregateInfo->get('bankAccountId')) {
                 $form->setDefault('accountId', bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id'));
             }
@@ -475,5 +477,42 @@ class sales_Proformas extends deals_InvoiceMaster
         
         // Връщаме очаквания аванс
         return $expectedDownpayment;
+    }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+     */
+    public static function getHandle($id)
+    {
+        $self = cls::get(get_called_class());
+        $rec = $self->fetch($id);
+        
+        if (!$rec->number) {
+            $hnd = $self->abbr . $rec->id;
+        } else {
+            $number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+            $hnd = $self->abbr . $number;
+        }
+        
+        return $hnd;
+    }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+     */
+    public static function fetchByHandle($parsedHandle)
+    {
+        if ($parsedHandle['endDs'] && (strlen($parsedHandle['id']) != 10)) {
+            $rec = static::fetch($parsedHandle['id']);
+        } else {
+            $number = ltrim($parsedHandle['id'], '0');
+            if ($number) {
+                $rec = static::fetch("#number = '{$number}'");
+            }
+        }
+        
+        return $rec;
     }
 }

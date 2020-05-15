@@ -114,6 +114,7 @@ class sync_Eshop extends sync_Helper
         core_Users::forceSystemUser();
         
         Mode::set('preventNotifications', true);
+        Mode::set('syncing', true);
         
         foreach ($resArr as $class => $objArr) {
             foreach ($objArr as $id => $rec) {
@@ -164,9 +165,9 @@ class sync_Eshop extends sync_Helper
         $lang = self::$fNewNamePref . 'lang';
         $domain = self::$fNewNamePref . 'domain';
         
+        $haveDomains = false;
         if (isset($rec->{$lang}) || isset($rec->{$domain})) {
             $domains = trim(sync_Setup::get('CMS_DOMAINS'));
-            $haveDomains = false;
             if ($domains) {
                 $dArr = explode("\n", $domains);
                 foreach ($dArr as $dStr) {
@@ -194,11 +195,11 @@ class sync_Eshop extends sync_Helper
                         break;
                     }
                 }
-                
-                if (!$haveDomains) {
-                    $rec->lang = $rec->{$lang};
-                    $rec->domain = $rec->{$domain};
-                }
+            }
+            
+            if (!$haveDomains) {
+                $rec->lang = $rec->{$lang};
+                $rec->domain = $rec->{$domain};
             }
             
             foreach ((array)$rec as $fName => $fVal) {
@@ -209,7 +210,7 @@ class sync_Eshop extends sync_Helper
                 unset($rec->{$fName});
             }
             
-            expect($rec->lang && $rec->domain);
+            expect($rec->lang && $rec->domain, $rec);
             
             $oRec = cms_Domains::fetch(array("#domain = '[#1#]' AND #lang = '[#2#]'", $rec->domain, $rec->lang));
             

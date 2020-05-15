@@ -94,6 +94,8 @@ class export_Pdf extends core_Mvc
             doclog_Documents::flushActions();
         }
         
+        core_App::setTimeLimit(200);
+        
         Mode::push('pdf', true);
         
         $html = $clsInst->getDocumentBody($cRec->id, 'xhtml', $opt);
