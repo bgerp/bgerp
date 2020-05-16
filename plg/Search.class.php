@@ -716,9 +716,6 @@ class plg_Search extends core_Plugin
         $isFirst = true;
         
         while ($rec = $query->fetch()) {
-            if (dt::now() >= $maxTime) {
-                break;
-            }
             
             if ($isFirst) {
                 $clsInst->logDebug("Регенериране на ключови думи от {$rec->id}");
@@ -739,6 +736,10 @@ class plg_Search extends core_Plugin
                 $clsInst->save_($rec, 'searchKeywords');
             } catch (Exception $e) {
                 reportException($e);
+            }
+            
+            if (dt::now() >= $maxTime) {
+                break;
             }
         }
         
