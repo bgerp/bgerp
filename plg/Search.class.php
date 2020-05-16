@@ -673,6 +673,13 @@ class plg_Search extends core_Plugin
     {
         $pKey = $clsName . '|repairSearchKeywords';
         
+        if (!cls::load($clsName, true)) {
+            
+            $clsInst->logDebug("Регенериране на ключови думи: липсващ клас {$clsName}");
+            
+            return;
+        }
+        
         $clsInst = cls::get($clsName);
         
         $maxTime = dt::addSecs(40);
@@ -685,7 +692,11 @@ class plg_Search extends core_Plugin
             $query->where(array("#id > '[#1#]'", $kVal));
         }
         
-        if (!$query->count()) {
+        $cnt = $query->count();
+        
+        $clsInst->logDebug("Начало на регенериране на ключови думи за {$clsName} с {$cnt} записа");
+        
+        if (!$cnt) {
             if (!is_null($data)) {
                 core_Permanent::set($pKey, $kVal, 200);
             } else {
