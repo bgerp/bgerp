@@ -694,7 +694,7 @@ class plg_Search extends core_Plugin
         
         $cnt = $query->count();
         
-        $clsInst->logDebug("Начало на регенериране на ключови думи за {$clsName} за {$cnt} записа от {$kVal}");
+        $clsInst->logDebug("Начало на регенериране на ключови думи за {$clsName} за {$cnt} записа след id>{$kVal}");
         
         if (!$cnt) {
             if (!is_null($kVal)) {
@@ -707,18 +707,13 @@ class plg_Search extends core_Plugin
             
             return ;
         }
-        $clsInst->logDebug("Регенериране 0");
         $callOn = dt::addSecs(120);
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', $clsName, $callOn);
         
-        $clsInst->logDebug("Регенериране 1");
         $query->orderBy('id', 'ASC');
-        $clsInst->logDebug("Регенериране 2");
         
         $isFirst = true;
-        $clsInst->logDebug("Регенериране 3");
         while ($rec = $query->fetch()) {
-            $clsInst->logDebug("Регенериране 4");
             if ($isFirst) {
                 $clsInst->logDebug("Регенериране на ключови думи от {$rec->id}");
                 $isFirst = false;
