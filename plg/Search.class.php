@@ -713,6 +713,9 @@ class plg_Search extends core_Plugin
         $query->orderBy('id', 'ASC');
         
         $isFirst = true;
+        
+        $query->limit(10000);
+        
         while ($rec = $query->fetch()) {
             if ($isFirst) {
                 $clsInst->logDebug("Регенериране на ключови думи от {$rec->id}");
