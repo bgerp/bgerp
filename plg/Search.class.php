@@ -694,7 +694,7 @@ class plg_Search extends core_Plugin
         
         $cnt = $query->count();
         
-        $clsInst->logDebug("Начало на регенериране на ключови думи за {$clsName} за {$cnt} записа");
+        $clsInst->logDebug("Начало на регенериране на ключови думи за {$clsName} за {$cnt} записа от {$kVal}");
         
         if (!$cnt) {
             if (!is_null($kVal)) {
