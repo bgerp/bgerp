@@ -697,7 +697,7 @@ class plg_Search extends core_Plugin
         $clsInst->logDebug("Начало на регенериране на ключови думи за {$clsName} за {$cnt} записа");
         
         if (!$cnt) {
-            if (!is_null($data)) {
+            if (!is_null($kVal)) {
                 core_Permanent::set($pKey, $kVal, 200);
             } else {
                 core_Permanent::remove($pKey);
