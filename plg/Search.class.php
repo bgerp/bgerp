@@ -730,7 +730,7 @@ class plg_Search extends core_Plugin
                 $rec->searchKeywords = $generatedKeywords;
                 
                 $clsInst->save_($rec, 'searchKeywords');
-            } catch (core_exception_Expect $e) {
+            } catch (Exception $e) {
                 reportException($e);
             }
         }
