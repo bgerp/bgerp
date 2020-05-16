@@ -713,9 +713,16 @@ class plg_Search extends core_Plugin
         
         $query->orderBy('id', 'ASC');
         
+        $isFirst = true;
+        
         while ($rec = $query->fetch()) {
             if (dt::now() >= $maxTime) {
                 break;
+            }
+            
+            if ($isFirst) {
+                $clsInst->logDebug("Регенериране на ключови думи за {$id}");
+                $isFirst = false;
             }
             
             $maxId = $rec->id;
