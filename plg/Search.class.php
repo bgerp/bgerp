@@ -721,7 +721,7 @@ class plg_Search extends core_Plugin
             }
             
             if ($isFirst) {
-                $clsInst->logDebug("Регенериране на ключови думи за {$rec->id}");
+                $clsInst->logDebug("Регенериране на ключови думи от {$rec->id}");
                 $isFirst = false;
             }
             
