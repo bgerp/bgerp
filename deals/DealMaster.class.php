@@ -530,6 +530,11 @@ abstract class deals_DealMaster extends deals_DealBase
                         $data->query->where("#closedDocuments IS NULL OR #closedDocuments = ''");
                         break;
                 }
+                
+                if(!in_array($filter->type, array('draft', 'pending', 'all'))){
+                    $data->query->orderBy('activatedOn', 'DESC');
+                    arr::placeInAssocArray($data->listFields, array('activatedOn' => 'Активирано->На'), null, 'createdBy');
+                }
             }
         }
     }
