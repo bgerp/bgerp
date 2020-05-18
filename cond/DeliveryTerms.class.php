@@ -403,37 +403,24 @@ class cond_DeliveryTerms extends core_Master
             }
         }
         
+        $cu = core_Users::getCurrent('id', false);
+        $isColabReceiver = ($cu && $rec->address == 'receiver' && ($Document instanceof eshop_Carts) && core_Users::isContractor($cu));
+        
+        $settings = cms_Domains::getSettings();
+        if($isColabReceiver && $settings->locationIsMandatory == 'yes'){
+            $form->setField('deliveryCountry', 'input=hidden');
+            $form->setField('deliveryPCode', 'input=hidden');
+            $form->setField('deliveryPlace', 'input=hidden');
+            $form->setField('deliveryAddress', 'input=hidden');
+        }
+        
         $Calculator = self::getTransportCalculator($rec);
         if($Calculator){
             $Calculator->addFields($form, $document, $userId);
-        } elseif($Document instanceof eshop_Carts && $rec->address != 'supplier') {
-            $form->setField('deliveryPCode', 'mandatory');
-            $form->setField('deliveryPlace', 'mandatory');
+        } elseif($Document instanceof eshop_Carts && $rec->address != 'supplier' && !$isColabReceiver) {
+            //$form->setField('deliveryPCode', 'mandatory');
+            //$form->setField('deliveryPlace', 'mandatory');
         }
-        
-        if($rec->address == 'receiver'){
-            if($Document instanceof eshop_Carts){
-                $cu = core_Users::getCurrent('id', false);
-                if($cu && core_Users::isContractor($cu)){
-                    $settings = cms_Domains::getSettings();
-                    if($settings->locationIsMandatory == 'yes'){
-                        if($form->getFieldParam('deliveryCountry', 'input') != 'hidden'){
-                            $form->setReadOnly('deliveryCountry');
-                        }
-                        if($form->getFieldParam('deliveryPCode', 'input') != 'hidden'){
-                            $form->setReadOnly('deliveryPCode');
-                        }
-                        if($form->getFieldParam('deliveryPlace', 'input') != 'hidden'){
-                            $form->setReadOnly('deliveryPlace');
-                        }
-                        if($form->getFieldParam('deliveryAddress', 'input') != 'hidden'){
-                            $form->setReadOnly('deliveryAddress');
-                        }
-                    }
-                }
-            }
-        }
-        
         
         if($Document instanceof deals_DealMaster || $Document instanceof eshop_Carts || $Document instanceof sales_Quotations){
             $fields = self::getAdditionalFields($rec, $document);

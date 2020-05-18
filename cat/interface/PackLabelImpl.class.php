@@ -185,6 +185,11 @@ class cat_interface_PackLabelImpl
             $additionalFields = $Driver->getAdditionalLabelData($rec->productId, $this->class);
         }
         
+        // Дигане на тайм-лимита
+        if($onlyPreview === false){
+            core_App::setTimeLimit(round($cnt / 8, 2), false, 100);
+        }
+        
         $arr = array();
         for ($i = 1; $i <= $cnt; $i++) {
             $res = array('CODE' => $code, 'NAME' => $name, 'DATE' => $date, 'MEASURE_ID' => $measureId, 'QUANTITY' => $quantity);
@@ -201,7 +206,7 @@ class cat_interface_PackLabelImpl
                 $res['JOB'] = $jobCode;
             }
             
-            if (isset($rec->eanCode)) {
+            if (!empty($rec->eanCode)) {
                 $res['EAN'] = $rec->eanCode;
             }
             

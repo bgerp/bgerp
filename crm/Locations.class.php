@@ -553,13 +553,14 @@ class crm_Locations extends core_Master
     /**
      * Всички локации на зададен контрагент
      *
-     * @param mixed $contragentClassId - име, ид или инстанция на клас-мениджър на контрагент
-     * @param int   $contragentId      - първичен ключ на контрагента (в мениджъра му)
-     * @param int   $countries         - държави
+     * @param mixed $contragentClassId            - име, ид или инстанция на клас-мениджър на контрагент
+     * @param int   $contragentId                 - първичен ключ на контрагента (в мениджъра му)
+     * @param int   $countries                    - държави
+     * @param int|null $onlyWithRoutesInNextNdays - само с маршрути в следващите N дена, null ако не искаме ограничение
      *
      * @return array $recs
      */
-    private static function getContragentLocations($contragentClassId, $contragentId, $countries = array())
+    private static function getContragentLocations($contragentClassId, $contragentId, $countries = array(), $onlyWithRoutesInNextNdays = null)
     {
         expect($contragentClassId = core_Classes::getId($contragentClassId));
         
@@ -572,6 +573,8 @@ class crm_Locations extends core_Master
         
         $recs = array();
         while ($rec = $query->fetch()) {
+            if(isset($onlyWithRoutesInNextNdays) && !countR(sales_Routes::getRouteOptions($rec->id, $onlyWithRoutesInNextNdays))) continue;
+            
             $recs[$rec->id] = $rec;
         }
         
@@ -582,26 +585,34 @@ class crm_Locations extends core_Master
     /**
      * Наименованията на всички локации на зададен контрагент
      *
-     * @param mixed $contragentClassId име, ид или инстанция на клас-мениджър на контрагент
-     * @param int   $contragentId      първичен ключ на контрагента (в мениджъра му)
+     * @param mixed $contragentClassId - име, ид или инстанция на клас-мениджър на контрагент
+     * @param int   $contragentId      - първичен ключ на контрагента (в мениджъра му)
      * @param bool  $intKeys           - дали ключовите да са инт или стринг
-     * @param array  $countries        - държави
+     * @param bool  $showAddress       - дали името да е дълго
+     * @param array $countries         - от кои държави да са локациите
      *
-     * @return array масив от наименования на локации, ключ - ид на локации
+     * @return array $res              - масив от наименования на локации, ключ - ид на локации
      */
-    public static function getContragentOptions($contragentClassId, $contragentId, $intKeys = true, $countries = array())
+    public static function getContragentOptions($contragentClassId, $contragentId, $intKeys = true, $showAddress = false, $countries = array(), $onlyWithRoutesInNextNdays = null)
     {
-        $locationRecs = static::getContragentLocations($contragentClassId, $contragentId, $countries);
+        $locationRecs = static::getContragentLocations($contragentClassId, $contragentId, $countries, $onlyWithRoutesInNextNdays);
         
-        foreach ($locationRecs as &$rec) {
-            $rec = static::getTitleById($rec->id, false);
+        $res = array();
+        foreach ($locationRecs as $rec) {
+            $titleFinal = $title = static::getTitleById($rec->id, false);
+            if($showAddress){
+                $countryCode = drdata_Countries::fetchField($rec->countryId, 'letterCode2');
+                $fullTitle = (!empty($rec->pCode) ? "{$rec->pCode} " : "") . (!empty($rec->place) ? "{$rec->place}, " : ", ") . $rec->address;
+                $fullTitle = rtrim($fullTitle, ", ");
+                $fullTitle .= ", {$countryCode}";
+                $titleFinal .= " [{$fullTitle}]";
+            }
+            
+            $key = ($intKeys) ? $rec->id : $title;
+            $res[$key] = $titleFinal;
         }
         
-        if (!$intKeys && countR($locationRecs)) {
-            $locationRecs = array_combine($locationRecs, $locationRecs);
-        }
-        
-        return $locationRecs;
+        return $res;
     }
     
     

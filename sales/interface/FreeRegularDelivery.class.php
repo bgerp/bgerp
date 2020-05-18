@@ -51,7 +51,9 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
      */
     public function getVolumicWeight($weight, $volume, $deliveryTermId, $params)
     {
-        return 1;
+        $FeeZones = cls::getInterface('cond_TransportCalc', 'tcost_FeeZones');
+        
+        return $FeeZones->getVolumicWeight($weight, $volume, $deliveryTermId, $params);
     }
     
     
@@ -75,10 +77,12 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
             $routeRec = sales_Routes::fetch($params['routeId']);
         }
         
+        // Цената е според навлата
         $res = array('fee' => cond_TransportCalc::OTHER_FEE_ERROR, 'explain' => ' NO ROUTE FOUND');
         if(is_object($routeRec)){
+            $FeeZones = cls::getInterface('cond_TransportCalc', 'tcost_FeeZones');
+            $res = $FeeZones->getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $params);
             $diff = strtotime($routeRec->nextVisit) - strtotime(dt::today());
-            $res['fee'] = 0;
             $res['deliveryTime'] = $diff;
         } 
         
@@ -130,19 +134,20 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
         $Document = cls::get($document);
         $inDays = ($Document instanceof eshop_Carts) ? 7 : null;
         $locationId = ($Document instanceof eshop_Carts) ? $form->rec->locationId : $form->rec->deliveryLocationId;
-        
-        $routeOptions = self::getRouteOptions($locationId, $inDays);
-        $countRoutes = countR($routeOptions);
-        $form->FLD('routeId', "key(mvc=sales_Routes,select=nextVisit)", 'silent,mandatory,caption=Доставка->Маршрут');
-        
-        if($countRoutes > 1){
-            $routeOptions = array('' => '') + $routeOptions;
-        } elseif($countRoutes == 1){
-            $form->setDefault('routeId', key($routeOptions));
+      
+        if(isset($locationId)){
+            $routeOptions = self::getRouteOptions($locationId, $inDays);
+            $countRoutes = countR($routeOptions);
+            $form->FLD('routeId', "key(mvc=sales_Routes,select=nextVisit)", 'silent,mandatory,caption=Доставка->Доставка на');
+            
+            if($countRoutes > 1){
+                $routeOptions = array('' => '') + $routeOptions;
+            } elseif($countRoutes == 1){
+                $form->setDefault('routeId', key($routeOptions));
+            }
+            
+            $form->setOptions('routeId', $routeOptions);
         }
-        
-        $form->setOptions('routeId', $routeOptions);
-        
         
         if($Document instanceof eshop_Carts){
             $form->setField('deliveryCountry', 'input=hidden');
@@ -151,7 +156,7 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
             $form->setField('deliveryAddress', 'input=hidden');
             
             if(!$countRoutes){
-                $infoText = tr('За съжаление, няма планирани маршрути до вашата локация. Ако имате въпроси, моля да се свържете с нас');
+                $infoText = tr('За съжаление, няма планирани маршрути до вашата локация. Ако имате въпроси, моля да се свържете с нас|*!');
                 $form->info = new core_ET("<div id='editStatus'><div class='warningMsg'>{$infoText}</div></div>");
             }
         } elseif($Document instanceof sales_Sales){
@@ -194,7 +199,7 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
             $routeName = ht::createHint('', 'Маршрутът още не е уточнен', 'error');
         }
         
-        $res[] = (object)array('caption' => tr('Маршрут'), 'value' => $routeName);
+        $res[] = (object)array('caption' => tr('Доставка на'), 'value' => $routeName);
         
         return $res;
     }
@@ -237,14 +242,43 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
      * @param stdClass $cartRow
      * @param core_ET $tpl
      *
-     * @return boolean
+     * @return void
      */
     public function addToCartView($termRec, $cartRec, $cartRow, &$tpl)
     {
-        $block = new core_ET(tr("|*<div>|Доставката е безплатна, защото се извършва с наш регулярен транспорт|*</div>"));
-        $tpl->append($block, 'CART_FOOTER');
+        $settings = cms_Domains::getSettings();
         
-        return false;
+        $tpl->append(tr('Доставката се извършва с наш регулярен транспорт') . "<br>", 'CART_FOOTER');
+        
+        if($cartRec->haveOnlyServices != 'yes'){
+            if(!empty($settings->freeDeliveryByBus)){
+                $cartRow->freeDeliveryCurrencyId = $settings->currencyId;
+                $deliveryAmount = $settings->freeDeliveryByBus;
+                
+                if($cartRec->freeDelivery != 'yes'){
+                    $string1 = tr('Добавете артикули на обща стойност');
+                    $string2 = tr("|за|* <b style='color:green;text-transform:uppercase'>" . tr('безплатна') . "</b> |доставка|*.");
+                    $block = new core_ET(tr("|*<!--ET_BEGIN freeDelivery--><div>{$string1} <b style='font-size:1.1em'>[#freeDelivery#]</b> <span class='cCode'>[#freeDeliveryCurrencyId#]</span>, {$string2}</div><!--ET_END freeDelivery-->"));
+                    
+                    $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
+                    $deliveryWithVat  = $cartRec->deliveryNoVat * (1 + cat_Products::getVat($transportId));
+                    $delivery = currency_CurrencyRates::convertAmount($cartRec->total - $deliveryWithVat, null, null, $settings->currencyId);
+                    
+                    $deliveryAmount = round($deliveryAmount - ($delivery), 2);
+                } else {
+                    $string = tr('Печелите безплатна доставка, защото поръчката ви надвишава');
+                    $block = new core_ET(tr("|*<!--ET_BEGIN freeDelivery--><div>{$string} <b style='font-size:1.1em'>[#freeDelivery#]</b> <span class='cCode'>[#freeDeliveryCurrencyId#]</span>.</div><!--ET_END freeDelivery-->"));
+                }
+                
+                $cartRow->freeDelivery = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
+                $block->append($cartRow->freeDelivery, 'freeDelivery');
+                $block->append($cartRow->freeDeliveryCurrencyId, 'freeDeliveryCurrencyId');
+            } else {
+                $block = new core_ET(tr("|*<div>|Доставката ви е безплатна|*</div>"));
+            }
+            
+            $tpl->append($block, 'CART_FOOTER');
+        }
     }
     
     
@@ -258,7 +292,14 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
     public function onUpdateCartMaster(&$cartRec)
     {
         if($cartRec->deliveryData['routeId']){
-            $cartRec->freeDelivery = 'yes';
+            
+            // Ако цената е над минималната доставката е безплатна
+            $settings = cms_Domains::getSettings();
+            $freeDelivery = currency_CurrencyRates::convertAmount($settings->freeDeliveryByBus, null, $settings->currencyId);
+            
+            if(empty($settings->freeDeliveryByBus) || (!empty($settings->freeDeliveryByBus) && round($cartRec->total, 2) >= round($freeDelivery, 2))){
+                $cartRec->freeDelivery = 'yes';
+            }
         }
     }
     

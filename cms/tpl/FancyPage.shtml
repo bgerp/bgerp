@@ -25,7 +25,7 @@
             </div>
         </div>
         [#BOTTOM_MENU#]
-        <div id="maincontent">
+        <div id="maincontent" class="[#MAIN_CONTENT_CLASS#]">
             <div class='statuses' id='statuses' style='margin: 0 auto;'>
                 [#STATUSES#]
             </div>

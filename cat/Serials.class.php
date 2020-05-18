@@ -7,7 +7,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -18,12 +18,6 @@ class cat_Serials extends core_Manager
      * Интерфейси, поддържани от този мениджър
      */
     public $interfaces = 'barcode_SearchIntf';
-    
-    
-    /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'label_Serials';
     
     
     /**
@@ -59,7 +53,19 @@ class cat_Serials extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'serial, sourceObjectId=Източник, createdOn, createdBy';
+    public $listFields = 'id, serial, sourceObjectId=Източник, createdOn, createdBy';
+    
+    
+    /**
+     * Работен кеш
+     */
+    protected static $cache = array();
+    
+    
+    /**
+     * Опашка от записи за добавяне
+     */
+    protected static $saveRecs = array();
     
     
     /**
@@ -121,8 +127,10 @@ class cat_Serials extends core_Manager
         }
         
         $rec = (object) array('serial' => $serial, 'sourceClassId' => $sourceClassId, 'sourceObjectId' => $sourceObjectId);
+        $rec->createdOn = dt::now();
+        $rec->createdBy = core_Users::getCurrent();
         
-        return self::save($rec);
+        static::$saveRecs[$serial] = $rec;
     }
     
     
@@ -134,11 +142,31 @@ class cat_Serials extends core_Manager
     public static function getRand()
     {
         $serial = str::getRand('#############');
-        while (self::fetchField(array('#serial = [#1#]', $serial)) || cat_products_Packagings::fetchField(array('#eanCode = [#1#]', $serial))) {
+        while(array_key_exists($serial, static::$cache) || self::fetchField("#serial = '{$serial}'") || cat_products_Packagings::fetchField("#eanCode = '{$serial}'")){
             $serial = str::getRand('#############');
         }
+        static::$cache[$serial] = $serial;
         
         return $serial;
+    }
+    
+    
+    /**
+     * Изчиства записите, заопашени за запис
+     *
+     * @param acc_Items $mvc
+     */
+    public static function on_Shutdown($mvc)
+    {
+        if(countR(static::$saveRecs)){
+            core_Debug::log('Начало запис на сер. номера');
+            core_Debug::startTimer('saveSerials');
+            
+            $mvc->saveArray(static::$saveRecs);
+            
+            core_Debug::stopTimer('saveSerials');
+            core_Debug::log('Край запис на сер. номера: ' . round(core_Debug::$timers['saveSerials']->workingTime, 2));
+        }
     }
     
     
@@ -167,6 +195,7 @@ class cat_Serials extends core_Manager
         $data->listFilter->setFieldTypeParams('sourceClassId', 'allowEmpty');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
+        $data->query->orderBy("#id", "DESC");
         
         if ($fRec = $data->listFilter->rec) {
             if (!empty($fRec->serial)) {

@@ -147,6 +147,9 @@ class email_ServiceRules extends core_Manager
             if (email_Filters::match($sDataArr, $filterRec)) {
                 
                 if (!$filterRec->classId) {
+                    
+                    $this->logDebug('Липсва classId', null, 3);
+                    
                     continue;
                 }
                 

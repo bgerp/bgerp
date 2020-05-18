@@ -338,45 +338,32 @@ class fileman_Log extends core_Manager
                 }
             }
         }
+            
+        // Вземаме формата за филтриране
+        $form = $data->listFilter;
         
-        // Ако не е отворен диалоговия прозорец
-        if (!Mode::get('dialogOpened') || Mode::is('screenMode', 'wide')) {
-            
-            // Вземаме формата за филтриране
-            $form = $data->listFilter;
-            
-            // Добавяме променливата, която се взема от URL' то
-            // Необходимо е, защото не се предава при филтриране
-            $form->FNC('Protected', 'varchar', 'input=hidden, silent');
-            
-            // В хоризонтален вид
-            $form->view = 'horizontal';
-            
-            // Добавяме бутон за филтриране
-            $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-            
-            $form->FNC('search', 'varchar', 'caption=Търсене,input,silent,recently');
-            
-            // Показваме полетата
-            $form->showFields = 'search, Protected';
-            
-            // Инпутваме стойностите
-            $form->input('search, Protected', 'silent');
-            
-            // Последно избраното търсене, да е по-подразбиране
-            if (is_null($form->rec->search)) {
-                if (Mode::get('dialogOpened')) {
-                    $form->rec->search = Mode::get('filemanLogFileLogSearch');
-                }
-            } else {
-                Mode::setPermanent('filemanLogFileLogSearch', $form->rec->search);
-            }
-            
-            // Ако има текст за търсене
-            if ($search = trim($form->rec->search)) {
-                $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
-                plg_Search::applySearch($search, $data->query, 'searchKeywords');
-            }
+        // Добавяме променливата, която се взема от URL' то
+        // Необходимо е, защото не се предава при филтриране
+        $form->FNC('Protected', 'varchar', 'input=hidden, silent');
+        
+        // В хоризонтален вид
+        $form->view = 'horizontal';
+        
+        // Добавяме бутон за филтриране
+        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        $form->FNC('search', 'varchar', 'caption=Търсене,input,silent,recently,refreshForm');
+        
+        // Показваме полетата
+        $form->showFields = 'search, Protected';
+        
+        // Инпутваме стойностите
+        $form->input('search, Protected', 'silent');
+        
+        // Ако има текст за търсене
+        if ($search = trim($form->rec->search)) {
+            $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
+            plg_Search::applySearch($search, $data->query, 'searchKeywords');
         }
     }
     
@@ -404,35 +391,6 @@ class fileman_Log extends core_Manager
     
     
     /**
-     * Изпълнява се преди подготвяне на страниците
-     *
-     * @param core_Mvc $mvc
-     * @param object   $res
-     * @param object   $data
-     */
-    public function on_AfterPrepareListPager($mvc, &$res, $data)
-    {
-        // Ако е отворен в диалоговия прозорец
-        if (Mode::get('dialogOpened')) {
-            
-            // Последно избраната страница да е отворена по-подразбиране
-            
-            $pageVar = $data->pager->getPageVar(get_called_class());
-            
-            if ($pageVar) {
-                $page = Request::get($pageVar);
-                
-                if (is_null($page)) {
-                    Request::push(array($pageVar => Mode::get('filemanLogLastOpenedPage')));
-                } else {
-                    Mode::setPermanent('filemanLogLastOpenedPage', $page);
-                }
-            }
-        }
-    }
-    
-    
-    /**
      * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Mvc $mvc
@@ -443,20 +401,10 @@ class fileman_Log extends core_Manager
         // Ако е отворен в диалоговия прозорец
         if (Mode::get('dialogOpened')) {
             
-            // Масива с дейсвията
-            $actionArr = array('upload' => 'Качен', 'preview' => 'Разгледан');
-            
             $callback = Mode::get('callback');
             
             // Обхождаме записите
             foreach ((array) $data->recs as $key => $rec) {
-                
-                // Взеамем текста на съответното действие
-                $action = tr($actionArr[$data->recs[$key]->action]);
-                
-                // Вземаме вербалната дата
-                $date = $mvc->getVerbal($data->recs[$key], 'lastOn');
-                
                 // Името на файла
                 $fileName = $rec->fileName;
                 
@@ -487,7 +435,7 @@ class fileman_Log extends core_Manager
                 $data->rows[$key]->FileIcon = ht::createLink($img, '#', null, $attr);
                 
                 // Вземаме иконата с линка към сингъла на файла
-                $nameStr = $fileNameLink . "<br /><span class='fileman-log-action-date'>" . $action . ' ' . $date . '</span>';
+                $nameStr = $fileNameLink . "<br /><span class='fileman-log-action-date'>" . fileman::getVerbal($rec->fileId, 'createdBy') . ' ' . fileman::getVerbal($rec->fileId, 'createdOn') . '</span>';
                 
                 // Вземаме иконата с линка към сингъл на файла
                 $nameLink = ht::createLinkRef($nameStr, array('fileman_Files', 'single', $fh), null, array('target' => '_blank', 'title' => 'Към изгледа на файла'));

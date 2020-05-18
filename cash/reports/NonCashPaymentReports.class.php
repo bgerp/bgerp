@@ -276,12 +276,26 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         
+        if ($export === false) {
+        
         $fld->FLD('contragentName', 'varchar', 'caption=Контрагент');
         $fld->FLD('pko', 'varchar', 'caption=ПКО->Документ');
         $fld->FLD('pkoAmount', 'double(smartRound,decimals=2)', 'caption=ПКО->Сума');
         $fld->FLD('rest', 'double(smartRound,decimals=2)', 'caption=ПКО->Остатък');
         $fld->FLD('transfer', 'varchar', 'caption=Трансфер->Документ');
         $fld->FLD('amount', 'double(smartRound,decimals=2)', 'caption=Трансфер->Сума');
+        
+        }else{
+            
+            $fld->FLD('contragentName', 'varchar', 'caption=Контрагент');
+            $fld->FLD('pko', 'varchar', 'caption=ПКО->Документ');
+            $fld->FLD('pkoAmount', 'double(smartRound,decimals=2)', 'caption=ПКО->Сума');
+            $fld->FLD('rest', 'varchar', 'caption=ПКО->Остатък');
+            $fld->FLD('transfer', 'varchar', 'caption=Трансфер->Документ');
+            $fld->FLD('amount', 'varchar', 'caption=Трансфер->Сума');
+            
+        }
+        
         
         return $fld;
     }
@@ -327,10 +341,10 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                 $sum += $inAmount;
                 if ($state == 'pending' || $state == 'draft') {
                     $row->transfer .= "<div><span class= 'state-{$state} document-handler' >".ht::createLink("Cvt#$val->id", $url, false, array()).'</div>';
-                    $row->amount .= "<span style='color: {$color}'>".core_Type::getByName('double(decimals=2)')->toVerbal($inAmount).'</br>';
+                    $row->amount .= "<span style='color: {$color}'>".$Double->toVerbal($inAmount).'</br>';
                 } else {
                     $row->transfer .= ht::createLink("Cvt#$val->id", $url, false, array()).'</br>';
-                    $row->amount .= "<span style='color: {$color}'>".core_Type::getByName('double(decimals=2)')->toVerbal($inAmount).'</br>';
+                    $row->amount .= "<span style='color: {$color}'>".$Double->toVerbal($inAmount).'</br>';
                 }
             }
         }
@@ -429,5 +443,30 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+        $Date = cls::get('type_Date');
+        $Double = cls::get('type_Double');
+        $Double->params['decimals'] = 2;
+        
+        $res->pko = "Pko #$dRec->pkoId".' / '.$Date->toVerbal($dRec->pkoValior);
+        
+       
+        
+        if (is_array($dRec->inTransferMoney)) {
+            $sum = 0;
+            foreach ($dRec->inTransferMoney as $val) {
+                
+                $inAmount = ($val->state == 'pending' || $val->state == 'draft') ? 0 : $val->amount;
+                
+                $sum += $inAmount;
+                
+                $res->transfer .= "Cvt#$val->id".'; ';
+                $res->amount .= $Double->toVerbal("$inAmount").'; ';
+                
+            }
+        }
+        
+        $rest = $dRec->pkoAmount - $sum;
+        $res->rest =$Double->toVerbal($rest);
+        
     }
 }

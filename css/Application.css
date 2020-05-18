@@ -1672,6 +1672,10 @@ a.tOld {
   .document-settings-left .additionalInfo {
     left: auto;
     right: -4px; }
+    .document-settings .additionalInfo.right,
+    .document-settings-left .additionalInfo.right {
+      left: -42px;
+      right: auto; }
   .document-settings .pluginCountButtonNub,
   .document-settings-left .pluginCountButtonNub {
     height: 0;
@@ -3322,6 +3326,17 @@ table .eshop-btn {
   .productBtn:hover {
     background-color: #eeeeee !important; }
 
+.narrow .eshop-btn.addToCard,
+.narrow .productBtn.addToCard {
+  background-image: url("../img/16/cart_go.png") !important;
+  background-position: 3px center;
+  background-repeat: no-repeat;
+  margin-bottom: 5px !important;
+  padding: 4px 8px 5px 25px !important;
+  top: -1px !important;
+  position: relative;
+  border: 1px solid #bbbbbb !important; }
+
 .order-btn {
   color: white !important;
   text-shadow: 1px 1px 0 #333333;
@@ -3496,6 +3511,9 @@ table .eshop-btn {
     text-shadow: none; }
   .contractorExtHolder .toolbar-btn {
     max-width: 16px !important; }
+
+.narrow .contractorExtHolder {
+  padding-top: 40px; }
 
 .narrow #login-form {
   max-width: 17em !important;
@@ -4902,10 +4920,18 @@ div.location.public {
     font-weight: normal; }
     .eshop-group-button .eshop-group-button-title a {
       color: #004488; }
-  .eshop-group-button .eshop-group-button-img img {
-    width: auto;
-    width: 100% \9;
-    max-height: 220px; }
+  .eshop-group-button .eshop-group-button-img a {
+    display: block; }
+    .eshop-group-button .eshop-group-button-img a img {
+      max-width: 100%;
+      max-height: 220px; }
+
+.narrow .externalPage #maincontent.hasLogoutBlock {
+  padding-top: 29px !important; }
+
+.narrow .hasLogoutBlock .logoutBlock {
+  top: -29px;
+  right: -2px; }
 
 .narrow .eshop-group-button {
   margin-bottom: 10px;
@@ -4971,7 +4997,8 @@ div.location.public {
   margin-bottom: 10px; }
 
 .eshop-group-image img {
-  width: 100% !important; }
+  width: 100% !important;
+  height: auto !important; }
 
 .eshop-group {
   margin-top: -5px; }
@@ -6102,6 +6129,9 @@ only screen and (max-width: 320px) {
     font-size: 13px !important;
     color: #333333 !important;
     font-family: Verdana !important; } }
+
+.narrow .folder-cover .groupTitle {
+  white-space: normal; }
 
   .printing .specialLink {
     font-weight: bold; }

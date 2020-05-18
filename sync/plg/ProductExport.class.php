@@ -308,9 +308,9 @@ class sync_plg_ProductExport extends core_Plugin
                 if(!$Cover->haveInterface('crm_CompanyAccRegIntf')){
                     $requiredRoles = 'no_one';
                 } else {
-                    $groupId = sync_Setup::get('COMPANY_GROUP');
-                    $groupList = $Cover->fetchField($Cover->groupsField);
-                    if(empty($groupId) || !keylist::isIn($groupId, $groupList)){
+                    $cGroups = sync_Setup::get('COMPANY_GROUPS');
+                    $diffArr = type_Keylist::getDiffArr($cGroups, $Cover->fetchField($Cover->groupsField));
+                    if(!$cGroups || !$diffArr['same']){
                         $requiredRoles = 'no_one';
                     }
                 }
