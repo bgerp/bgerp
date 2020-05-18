@@ -5571,11 +5571,13 @@ div.location.public {
 	        color: #048;
         }
     }
-    .eshop-group-button-img img{
-		width: auto;
-        width: 100% \9;
-		max-height: 220px;
-    }
+    .eshop-group-button-img a {
+		display: block;
+		img{
+			max-width: 100% ;
+			max-height: 220px;
+		}
+	}
 }
 
 .narrow .eshop-group-button{
@@ -5651,6 +5653,7 @@ div.location.public {
 
 .eshop-group-image img {
 	width: 100% !important;
+	height: auto !important;
 }
 
 .eshop-group {
