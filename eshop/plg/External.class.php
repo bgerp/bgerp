@@ -21,8 +21,12 @@ class eshop_plg_External extends core_Plugin
      */
     public static function on_AfterPrepareExternalPage($mvc, &$res)
     {
-
-        $res->replace(eshop_Carts::getStatus(), 'USERCART');
+        $cartTpl = eshop_Carts::getStatus();
+        $res->replace($cartTpl, 'USERCART');
+        
+        if($cartTpl->getContent() !== ' '){
+            $res->replace("hasCartBlock", 'MAIN_CONTENT_CLASS');
+        }
         
         $res->push(('eshop/js/Scripts.js'), 'JS');
         jquery_Jquery::run($res, 'eshopActions();');
