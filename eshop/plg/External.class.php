@@ -24,7 +24,8 @@ class eshop_plg_External extends core_Plugin
         $cartTpl = eshop_Carts::getStatus();
         $res->replace($cartTpl, 'USERCART');
         
-        if($cartTpl->getContent() !== ' '){
+        $cu = core_Users::getCurrent('id', false);
+        if($cartTpl->getContent() !== ' ' || (isset($cu) && core_Users::isContractor($cu))){
             $res->replace("hasCartBlock", 'MAIN_CONTENT_CLASS');
         }
         
