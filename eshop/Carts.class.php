@@ -375,7 +375,7 @@ class eshop_Carts extends core_Master
             
             $resObj4 = new stdClass();
             $resObj4->func = 'addClass';
-            $resObj4->arg = array('id' => 'maincontent', 'class' => 'hasCartBlock');
+            $resObj4->arg = array('id' => 'maincontent', 'class' => 'hasLogoutBlock');
             
             $hitTime = Request::get('hitTime', 'int');
             $idleTime = Request::get('idleTime', 'int');

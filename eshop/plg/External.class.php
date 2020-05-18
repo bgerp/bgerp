@@ -26,7 +26,7 @@ class eshop_plg_External extends core_Plugin
         
         $cu = core_Users::getCurrent('id', false);
         if($cartTpl->getContent() !== ' ' || (isset($cu) && core_Users::isContractor($cu))){
-            $res->replace("hasCartBlock", 'MAIN_CONTENT_CLASS');
+            $res->replace("hasLogoutBlock", 'MAIN_CONTENT_CLASS');
         }
         
         $res->push(('eshop/js/Scripts.js'), 'JS');
