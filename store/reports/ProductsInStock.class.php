@@ -342,7 +342,8 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN availability-->|Наличност|*: [#availability#]<!--ET_END availability--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
         
-        $date = (is_null($rec->date)) ? dt::today() : $rec->date;
+        $date = (is_null($data->rec->date)) ? dt::today() : $data->rec->date;
+        
         $fieldTpl->append('<b>' .$Date->toVerbal($date) . '</b>', 'date');
        
         
