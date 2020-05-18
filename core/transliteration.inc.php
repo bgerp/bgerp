@@ -1,10 +1,10 @@
 <?php
 $code['Йо'] = 'Yo';
 $code['Екс'] = 'Ex';
-$code['Бъ'] = 'BU';
+$code['Бъ'] = 'Bu';
 $code['Ия'] = 'Ia';
 
-$code['ЙО'] = 'JO';
+$code['ЙО'] = 'YO';
 $code['ЕКС'] = 'EX';
 $code['БЪ'] = 'BU';
 $code['ИЯ'] = 'IA';
@@ -51,14 +51,13 @@ $code['ю'] = 'yu';
 $code['я'] = 'ya';
 
 // Големи бъкви
-$code['Э'] = 'E';
 $code['А'] = 'A';
 $code['Б'] = 'B';
 $code['В'] = 'V';
 $code['Г'] = 'G';
 $code['Д'] = 'D';
 $code['Е'] = 'E';
-$code['Ж'] = 'J';
+$code['Ж'] = 'Zh';
 $code['З'] = 'Z';
 $code['И'] = 'I';
 $code['Й'] = 'Y';
@@ -74,16 +73,17 @@ $code['Т'] = 'T';
 $code['У'] = 'U';
 $code['Ф'] = 'F';
 $code['Х'] = 'H';
-$code['Ц'] = 'TS';
-$code['Ч'] = 'CH';
-$code['Ш'] = 'SH';
-$code['Щ'] = 'SHT';
+$code['Ц'] = 'Ts';
+$code['Ч'] = 'Ch';
+$code['Ш'] = 'Sh';
+$code['Щ'] = 'Sht';
 $code['Ъ'] = 'A';
-$code['Ь'] = 'J';
-$code['Ы'] = 'YI';
-$code['Ю'] = 'YU';
-$code['Я'] = 'YA';
+$code['Ь'] = 'Y';
+$code['Ю'] = 'Yu';
+$code['Я'] = 'Ya';
 $code['”'] = '\"';
+$code['Ы'] = 'YI';
+$code['Э'] = 'E';
 
 // Европейски букви
 $code['À'] = 'A';
