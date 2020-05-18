@@ -3512,6 +3512,9 @@ table .eshop-btn {
   .contractorExtHolder .toolbar-btn {
     max-width: 16px !important; }
 
+.narrow .contractorExtHolder {
+  padding-top: 40px; }
+
 .narrow #login-form {
   max-width: 17em !important;
   margin: 20px auto; }
@@ -4916,6 +4919,13 @@ div.location.public {
     .eshop-group-button .eshop-group-button-img a img {
       max-width: 100%;
       max-height: 220px; }
+
+.narrow .externalPage #maincontent.hasLogoutBlock {
+  padding-top: 29px !important; }
+
+.narrow .hasLogoutBlock .logoutBlock {
+  top: -29px;
+  right: -2px; }
 
 .narrow .eshop-group-button {
   margin-bottom: 10px;
