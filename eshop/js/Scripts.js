@@ -263,3 +263,16 @@ function render_disableBtns(data)
 {
 	disableBtns();
 }
+
+
+/**
+ * Добавяне на клас към елемент
+ */
+function render_addClass(data)
+{
+	var id = data.id;
+    var cls = data.class;
+	
+	var element = $("#" + id);
+	element.addClass(cls);
+}

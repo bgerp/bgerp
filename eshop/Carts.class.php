@@ -373,11 +373,15 @@ class eshop_Carts extends core_Master
             $resObj3->func = 'clearStatuses';
             $resObj3->arg = array('type' => 'notice');
             
+            $resObj4 = new stdClass();
+            $resObj4->func = 'addClass';
+            $resObj4->arg = array('id' => 'maincontent', 'class' => 'hasCartBlock');
+            
             $hitTime = Request::get('hitTime', 'int');
             $idleTime = Request::get('idleTime', 'int');
             $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
             
-            $res = array_merge(array($resObj, $resObj2, $resObjReload, $resObj3), (array) $statusData);
+            $res = array_merge(array($resObj, $resObj2, $resObjReload, $resObj3, $resObj4), (array) $statusData);
             core_Lg::pop();
             
             return $res;
