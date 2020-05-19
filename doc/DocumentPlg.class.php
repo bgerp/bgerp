@@ -4551,7 +4551,7 @@ class doc_DocumentPlg extends core_Plugin
         if ($data->rec->state == 'rejected') {
             $nTpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
             $data->row->HEADER_STATE .= $nTpl->placeArray(array('user' => crm_Profiles::createLink($data->rec->modifiedBy), 'date' => dt::mysql2Verbal($data->rec->modifiedOn)));
-        } elseif($data->rec->state == 'active'){
+        } elseif($data->rec->state == 'active' && isset($data->rec->activatedBy)){
             $nTpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
             $data->row->HEADER_STATE .= $nTpl->placeArray(array('user' => crm_Profiles::createLink($data->rec->activatedBy), 'date' => dt::mysql2Verbal($data->rec->activatedOn)));
         }
@@ -4608,6 +4608,7 @@ class doc_DocumentPlg extends core_Plugin
         if (empty($rec->activatedOn)) {
             $rec->activatedOn = dt::now();
             $rec->activatedBy = core_Users::getCurrent();
+            
             $mvc->save_($rec, 'activatedOn,activatedBy');
         }
     }
