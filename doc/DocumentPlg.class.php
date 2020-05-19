@@ -302,6 +302,8 @@ class doc_DocumentPlg extends core_Plugin
         if (!$data->row) {
             $data->row = new stdClass();
         }
+        
+        $data->row->HEADER_STATE = $data->row->state;
         $data->row->iconStyle = 'background-image:url("' . sbf($mvc->getIcon($data->rec->id), '', Mode::is('text', 'xhtml') || Mode::is('printing')) . '");';
         $data->row->LetterHead = $mvc->getLetterHead($data->rec, $data->row);
         
@@ -4548,7 +4550,10 @@ class doc_DocumentPlg extends core_Plugin
         // Ако документа е оттеглен се подсигуряваме че ще се покаже от кого е оттеглен и кога
         if ($data->rec->state == 'rejected') {
             $nTpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
-            $data->row->state .= $nTpl->placeArray(array('user' => crm_Profiles::createLink($data->rec->modifiedBy), 'date' => dt::mysql2Verbal($data->rec->modifiedOn)));
+            $data->row->HEADER_STATE .= $nTpl->placeArray(array('user' => crm_Profiles::createLink($data->rec->modifiedBy), 'date' => dt::mysql2Verbal($data->rec->modifiedOn)));
+        } elseif($data->rec->state == 'active'){
+            $nTpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
+            $data->row->HEADER_STATE .= $nTpl->placeArray(array('user' => crm_Profiles::createLink($data->rec->activatedBy), 'date' => dt::mysql2Verbal($data->rec->activatedOn)));
         }
         
         // При генерирането за външно показване, махаме състоянието, защото е вътрешна информация

@@ -135,30 +135,6 @@ class cat_Serials extends core_Manager
     
     
     /**
-     * Кешира серийните номера до момента
-     */
-    private function cacheRecs()
-    {
-        if(empty(static::$cache)){
-            core_Debug::log('Начало на кеширане на сер. номера');
-            core_Debug::startTimer('cacheSerials');
-            
-            $query1 = self::getQuery();
-            $query1->show('serial');
-            static::$cache = arr::extractValuesFromArray($query1->fetchAll(), 'serial');
-            
-            $query2 = cat_products_Packagings::getQuery();
-            $query2->where('#eanCode IS NOT NULL AND #eanCode != ""');
-            $query2->show('eanCode');
-            static::$cache += arr::extractValuesFromArray($query2->fetchAll(), 'eanCode');
-            
-            core_Debug::stopTimer('cacheSerials');
-            core_Debug::log('Край на кеширане на сер. номера: ' . round(core_Debug::$timers['cacheSerials']->workingTime, 2));
-        }
-    }
-    
-    
-    /**
      * Връща рандом НЕ-записан генериран номер
      *
      * @return int $serial
