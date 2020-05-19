@@ -3512,6 +3512,9 @@ table .eshop-btn {
   .contractorExtHolder .toolbar-btn {
     max-width: 16px !important; }
 
+.narrow .contractorExtHolder {
+  padding-top: 40px; }
+
 .narrow #login-form {
   max-width: 17em !important;
   margin: 20px auto; }
@@ -4911,10 +4914,18 @@ div.location.public {
     font-weight: normal; }
     .eshop-group-button .eshop-group-button-title a {
       color: #004488; }
-  .eshop-group-button .eshop-group-button-img img {
-    width: auto;
-    width: 100% \9;
-    max-height: 220px; }
+  .eshop-group-button .eshop-group-button-img a {
+    display: block; }
+    .eshop-group-button .eshop-group-button-img a img {
+      max-width: 100%;
+      max-height: 220px; }
+
+.narrow .externalPage #maincontent.hasLogoutBlock {
+  padding-top: 29px !important; }
+
+.narrow .hasLogoutBlock .logoutBlock {
+  top: -29px;
+  right: -2px; }
 
 .narrow .eshop-group-button {
   margin-bottom: 10px;
@@ -4980,7 +4991,8 @@ div.location.public {
   margin-bottom: 10px; }
 
 .eshop-group-image img {
-  width: 100% !important; }
+  width: 100% !important;
+  height: auto !important; }
 
 .eshop-group {
   margin-top: -5px; }

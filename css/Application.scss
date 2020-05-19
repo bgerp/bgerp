@@ -4096,7 +4096,9 @@ table .eshop-btn {
 		max-width: 16px !important;
 	}
 }
-
+.narrow .contractorExtHolder {
+	padding-top: 40px;
+}
 .narrow #login-form {
 	max-width:17em !important;
 	margin:20px auto;
@@ -5571,11 +5573,22 @@ div.location.public {
 	        color: #048;
         }
     }
-    .eshop-group-button-img img{
-		width: auto;
-        width: 100% \9;
-		max-height: 220px;
-    }
+    .eshop-group-button-img a {
+		display: block;
+		img{
+			max-width: 100% ;
+			max-height: 220px;
+		}
+	}
+}
+
+.narrow .externalPage #maincontent.hasLogoutBlock {
+	padding-top: 29px !important;
+}
+
+.narrow .hasLogoutBlock .logoutBlock {
+	top: -29px;
+	right: -2px;
 }
 
 .narrow .eshop-group-button{
@@ -5651,6 +5664,7 @@ div.location.public {
 
 .eshop-group-image img {
 	width: 100% !important;
+	height: auto !important;
 }
 
 .eshop-group {
