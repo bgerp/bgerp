@@ -803,6 +803,12 @@ class colab_FolderToPartners extends core_Manager
         }
         
         if ($form->isSubmitted()) {
+            
+            // Проверка на имената да са поне две с поне 2 букви
+            if (!core_Users::checkNames($form->rec->names)) {
+                $form->setError('names', 'Невалидни имена');
+            }
+            
             $errorMsg = null;
             if (core_Users::isForbiddenNick($form->rec->nick, $errorMsg)) {
                 $form->setError('nick', $errorMsg);
