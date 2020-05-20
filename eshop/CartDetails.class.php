@@ -643,7 +643,7 @@ class eshop_CartDetails extends core_Detail
      * @param int|NULL $domainId
      * @param bool     $save
      */
-    private static function updatePriceInfo(&$rec, $domainId = null, $save = false)
+    public static function updatePriceInfo(&$rec, $domainId = null, $save = false)
     {
         $settings = cms_Domains::getSettings($domainId);
         $rec->currencyId = isset($rec->currencyId) ? $rec->currencyId : $settings->currencyId;
