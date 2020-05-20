@@ -1304,6 +1304,13 @@ class eshop_Carts extends core_Master
         Mode::set('currentExternalTab', 'eshop_Carts');
         
         $tpl = self::renderView($rec);
+        
+        // Редирект ако количката се е ъпдейтнала
+        if($rec->_updatedPrice === true){
+            
+            return new Redirect(array($this, 'view', $rec->id));
+        }
+        
         $tpl->prepend("<div id = 'cart-view-single'>");
         $tpl->append('</div>');
         Mode::set('wrapper', 'cms_page_External');
@@ -1584,7 +1591,7 @@ class eshop_Carts extends core_Master
         $fields['-external'] = true;
         
         $row = self::recToVerbal($rec, $fields);
-        $data = (object) array('rec' => $rec, 'row' => $row);
+        $data = (object) array('rec' => &$rec, 'row' => $row);
         self::prepareExternalCart($data);
         $tpl = self::renderExternalCart($data);
         
@@ -1614,7 +1621,9 @@ class eshop_Carts extends core_Master
         while ($dRec = $dQuery->fetch()) {
             $data->recs[$dRec->id] = $dRec;
             $row = eshop_CartDetails::recToVerbal($dRec, $fields);
-            
+            if($dRec->_updatedPrice === true){
+                $data->rec->_updatedPrice = true;
+            }
             if (!empty($dRec->discount)) {
                 $discountType = type_Set::toArray($settings->discountType);
                 $row->finalPrice = "<span class='end-price'>{$row->finalPrice}</span>";

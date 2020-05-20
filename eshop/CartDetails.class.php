@@ -696,6 +696,7 @@ class eshop_CartDetails extends core_Detail
         
         if ($update === true && $save === true) {
             self::save($rec, 'oldPrice,finalPrice,discount');
+            $rec->_updatedPrice = true;
         }
     }
     
