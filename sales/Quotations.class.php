@@ -261,7 +261,13 @@ class sales_Quotations extends core_Master
      */
     public function getDefaultChargeVat($rec)
     {
-        return deals_Helper::getDefaultChargeVat($rec->folderId);
+        $defaultChargeVat = sales_Setup::get("QUOTATION_DEFAULT_CHARGE_VAT");
+        
+        if($defaultChargeVat == 'auto') {
+            $defaultChargeVat = deals_Helper::getDefaultChargeVat($rec->folderId);
+        }
+        
+        return $defaultChargeVat;
     }
     
     
