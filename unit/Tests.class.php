@@ -67,12 +67,9 @@ class unit_Tests extends core_Manager
                             
                             if ($this->errorLog) {
                                 $msg = "<span class=\"red\">{$this->errorLog}</span>";
-                                $errCnt++;
                             } else {
                                 $msg = '<span class="green">OK</span>';
                             }
-                            
-                            $testsCnt++;
                             
                             $methodName = substr($m->name, 5);
                             $methodName{0} = strtolower($methodName{0});
@@ -95,25 +92,20 @@ class unit_Tests extends core_Manager
         return false;
     }
     
-
-    /**
-     * Проверка за еквивалентнтност на двата аргумента
-     */
-    public static function expectEqual($a, $b = true)
+    
+    public static function expectEqual($a, $b)
     {
-        if ($a !== $b) {
+        if ($a == $b) {
+        } else {
             $me = cls::get('unit_Tests');
-            if(is_string($a)) $a = '"' . $a . '"';
-            if(is_string($b)) $b = '"' . $b . '"';
-            if(is_bool($a)) $a = $a ? 'true' : 'false';
-            if(is_bool($b)) $b = $b ? 'true' : 'false';
-            $me->errorLog .= "{$a} !== {$b}";
+            $me->errorLog .= "{$a} != {$b}";
         }
+        
     }
     
     
     /**
-     * Връща масив със всички поддиректории и файлове от посочената начална директория
+     * Връща масив с всички поддиректории и файлове от посочената начална директория
      *
      * array(
      * 'files' => [],
