@@ -922,7 +922,7 @@ function openModal(title, heightModal) {
 				$('.keyboard#' + keyboard).show().siblings('.keyboard').hide();
 			}
 			$('.ui-dialog-titlebar-close').focus();
-		},10);
+		},50);
 	openedModal = true;
 }
 
