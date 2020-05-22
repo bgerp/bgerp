@@ -893,7 +893,7 @@ class rack_Pallets extends core_Manager
      * 
      * @return boolean|core_ET
      */
-    public static function getFloorToPalletImgLink($storeId, $productId, $packagingId, $packQuantity, $batch = null)
+    public static function getFloorToPalletImgLink($storeId, $productId, $packagingId, $packQuantity, $batch = null, $containerId = null)
     {
         if (store_Stores::getCurrent('id', false) != $storeId || core_Mode::isReadOnly()) {
             
@@ -904,6 +904,10 @@ class rack_Pallets extends core_Manager
             $addPalletUrl = array('rack_Movements', 'add', 'productId' => $productId, 'packagingId' => $packagingId, 'packQuantity' => $packQuantity, 'fromIncomingDocument' => 'yes', 'movementType' => 'floor2rack', 'ret_url' => true);
             if(!empty($batch)){
                 $addPalletUrl['batch'] = $batch;
+            }
+            
+            if($containerId){
+                $addPalletUrl['containerId'] = $containerId;
             }
             
             return  ht::createLink('', $addPalletUrl, false, 'ef_icon=img/16/pallet1.png,class=smallIcon,title=Палетиране на артикул');
