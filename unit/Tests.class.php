@@ -41,7 +41,7 @@ class unit_Tests extends core_Manager
             }
         }
         
-        $errCnt = $exceptionCnt = $testsCnt = 0;
+        $errCnt = $exceptionCnt = 0;
         
         // Правим тестове на всички открити файлове
         if (countR($tests)) {
@@ -74,8 +74,6 @@ class unit_Tests extends core_Manager
                             } else {
                                 $msg = '<span class="green">OK</span>';
                             }
-                            
-                            $testsCnt++;
                             
                             $methodName = substr($m->name, 5);
                             $methodName{0} = strtolower($methodName{0});
