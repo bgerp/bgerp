@@ -602,11 +602,20 @@ class eshop_Products extends core_Master
         $layout = new ET();
         
         if (is_array($data->groups)) {
+            
             foreach ($data->groups as $gData) {
                 if (!countR($gData->recs)) {
                     continue;
                 }
-                $layout->append('<h2>' . eshop_Groups::getVerbal($gData->groupRec, 'name') . '</h2>');
+                
+                $groupName = eshop_Groups::getVerbal($gData->groupRec, 'name');
+                if (!empty($gData->groupRec->image)) {
+                    $image = fancybox_Fancybox::getImage($gData->groupRec->image, array(620, 620), array(1200, 1200), $groupName);
+                    $layout->append(new core_ET("<div class='eshop-group-image'>[#IMAGE#]</div>"));
+                    $layout->replace($image, 'IMAGE');
+                }
+                
+                $layout->append('<h2>' . $groupName . '</h2>');
                 $layout->append(self::renderGroupList($gData));
             }
         }

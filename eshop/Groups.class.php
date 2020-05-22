@@ -306,7 +306,7 @@ class eshop_Groups extends core_Master
         
         // Колко време страницата да се кешира в браузъра
         $conf = core_Packs::getConfig('eshop');
-        Mode::set('BrowserCacheExpires', $conf->ESHOP_BROWSER_CACHE_EXPIRES);
+        //Mode::set('BrowserCacheExpires', $conf->ESHOP_BROWSER_CACHE_EXPIRES);
         
         // Записваме в посетителския лог
         if (core_Packs::fetch("#name = 'vislog'")) {
