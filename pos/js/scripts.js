@@ -829,6 +829,8 @@ function pressNavigable(element)
 		element.trigger("onclick");
 	}
 	
+	element.addClass( "disabledBtn");
+	element.prop("disabled", true);
 	processUrl(url, params);
 }
 
