@@ -742,11 +742,8 @@ class eshop_Products extends core_Master
         cms_Content::addCanonicalUrl($url, $tpl);
         
         // Страницата да се кешира в браузъра
-        $cu = core_Users::getCurrent('id', false);
-        if(isset($cu) && haveRole('debug', $cu)){
-            $conf = core_Packs::getConfig('eshop');
-            Mode::set('BrowserCacheExpires', $conf->ESHOP_BROWSER_CACHE_EXPIRES);
-        }
+        $conf = core_Packs::getConfig('eshop');
+        Mode::set('BrowserCacheExpires', $conf->ESHOP_BROWSER_CACHE_EXPIRES);
         
         if (core_Packs::fetch("#name = 'vislog'")) {
             vislog_History::add('Продукт «' . $data->rec->name .'»');
