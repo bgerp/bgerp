@@ -69,6 +69,16 @@ class eshop_plg_Users extends core_Plugin
                 // Последната количка се присвоява на потребителя
                 $dCart->userId = $userRec->id;
                 $Carts->save($dCart);
+            }
+            
+            // На съществуваща количка се обновяват цените при нужда
+            if ($currentId = eshop_Carts::force($dRec->id, $userRec->id, false)) {
+                $query2 = eshop_CartDetails::getQuery();
+                $query2->where("#cartId = {$currentId}");
+                while($dRec2 = $query2->fetch()){
+                    eshop_CartDetails::updatePriceInfo($dRec2, $dRec->id, true);
+                }
+                
                 $Carts->updateMaster($dCart);
             }
         }

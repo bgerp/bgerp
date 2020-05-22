@@ -922,9 +922,9 @@ class store_Products extends core_Detail
             while($noteRec = $pNoteQuery->fetch()){
                 $deliveryTime = isset($noteRec->deadline) ? $noteRec->deadline : (isset($noteRec->valior) ? $noteRec->valior : null);
                 if($field == 'expectedQuantityTotal'){
-                    $docs[$dRec->containerId] = doc_Containers::getDocument($noteRec->containerId)->getLink(0);
+                    $docs[$noteRec->containerId] = doc_Containers::getDocument($noteRec->containerId)->getLink(0);
                 } if(!empty($deliveryTime) && $deliveryTime <= $now){
-                    $docs[$dRec->containerId] = doc_Containers::getDocument($noteRec->containerId)->getLink(0);
+                    $docs[$noteRec->containerId] = doc_Containers::getDocument($noteRec->containerId)->getLink(0);
                 }
             }
         }

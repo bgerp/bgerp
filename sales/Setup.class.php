@@ -164,6 +164,14 @@ defIfNot('SALES_DELTA_MIN_PERCENT_PRIME_COST', '0.2');
 
 
 /**
+ * Дефолтен режим на ДДС в офертите
+ */
+defIfNot('SALES_QUOTATION_DEFAULT_CHARGE_VAT', 'auto');
+
+
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -314,7 +322,9 @@ class sales_Setup extends core_ProtoSetup
         'SALES_TRANSPORT_PRODUCTS_ID' => array(
             'keylist(mvc=cat_Products,select=name)',
             'mandatory,caption=Транспорт->Артикули,optionsFunc=sales_Setup::getPossibleTransportProducts'
-        )
+        ),
+        
+        'SALES_QUOTATION_DEFAULT_CHARGE_VAT' => array('enum(auto=Автоматично,yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Режим на ДДС в офертите по подразбиране->Избор след'),
     );
     
     

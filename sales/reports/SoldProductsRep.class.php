@@ -605,7 +605,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             core_App::setTimeLimit($timeLimit);
         }
         
-        
         while ($recPrime = $query->fetch()) {
             $quantity = $primeCost = $delta = 0;
             $quantityPrevious = $primeCostPrevious = $deltaPrevious = 0;
@@ -815,9 +814,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 
                 unset($key,$val);
                 
-                $tempArr[$v->productId] = $v;
+                $tempArrKey  = ($rec->seeByContragent == 'yes') ? $v->productId.' | '.$v->contragent : $v->productId;
                 
-                $tempArr[$v->productId]->$typeGroup = $grArr; //Оставяме в записа за артикула само групите които са избрани
+                
+                $tempArr[$tempArrKey] = $v;
+                
+                $tempArr[$tempArrKey]->$typeGroup = $grArr; //Оставяме в записа за артикула само групите които са избрани
                 
                 //изчислява ОБЩА стойност на всички артикули продадени
                 //през текущ, предходен период и предходна година за ВСИЧКИ избрани групи
@@ -830,7 +832,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                
                 //Изчислява продажбите по артикул за всички артикули във всяка избрана група
                 //Един артикул може да го има в няколко групи
-                foreach ($tempArr[$v->productId]->$typeGroup as $gro) {
+                foreach ($tempArr[$tempArrKey]->$typeGroup as $gro) {
                     $groupValues[$gro] += $v->primeCost;
                     $groupDeltas[$gro] += $v->delta;
                     $groupPrimeCostPrevious[$gro] += $v->primeCostPrevious;
@@ -839,10 +841,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $groupDeltaLastYear[$gro] += $v->deltaLastYear;
                 }
                 unset($gro);
-                
+               
                 $recs = $tempArr;
             }
-           
+            
             if ($rec->compare && (($rec->compare == 'previous') || ($rec->compare == 'month'))) {
                 $changePrimeCost = 'changePrimeCostPrevious';
                 $changeDelta = 'changeDeltaPrevious';
@@ -1361,7 +1363,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $row->{$fld} = $Double->toVerbal($dRec->{$fld});
                 $row->{$fld} = ht::styleNumber($row->{$fld}, $dRec->{$fld});
             }
-            
+           
             if($rec->typeOfGroups == 'art'){
                 $fieldForGroup ='group';
             }elseif (($rec->typeOfGroups == 'category')){
@@ -1370,7 +1372,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $fieldForGroup = 'category';
             }
             if ($rec->$fieldForGroup) {
-                 $row->$fieldForGroup = self::getGroups($dRec, true, $rec);;
+                 $row->$fieldForGroup = self::getGroups($dRec, true, $rec);
             }
            
             

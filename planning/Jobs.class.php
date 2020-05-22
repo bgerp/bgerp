@@ -1319,7 +1319,7 @@ class planning_Jobs extends core_Master
         
         while ($rec = $query->fetch()) {
             $activatedBy = isset($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
-            if (empty($activatedBy)) {
+            if (empty($activatedBy) || $activatedBy == core_Users::SYSTEM_USER) {
                 continue;
             }
             $personId = crm_Profiles::fetchField("#userId = {$activatedBy}", 'personId');
