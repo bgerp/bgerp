@@ -41,6 +41,8 @@ class unit_Tests extends core_Manager
             }
         }
         
+        $errCnt = $exceptionCnt = $testsCnt = 0;
+        
         // Правим тестове на всички открити файлове
         if (countR($tests)) {
             Debug::startTimer('unit_Tests');
@@ -63,13 +65,17 @@ class unit_Tests extends core_Manager
                                 $dump = $expect->getDump();
                                 $this->errorLog .= ' exception: ' . $expect->getMessage() . ' ' . $dump[0];
                                 reportException($expect);
+                                $exceptionCnt++;
                             }
                             
                             if ($this->errorLog) {
                                 $msg = "<span class=\"red\">{$this->errorLog}</span>";
+                                $errCnt++;
                             } else {
                                 $msg = '<span class="green">OK</span>';
                             }
+                            
+                            $testsCnt++;
                             
                             $methodName = substr($m->name, 5);
                             $methodName{0} = strtolower($methodName{0});
@@ -88,6 +94,10 @@ class unit_Tests extends core_Manager
         }
         
         $res = implode("\n", $this->testLog);
+        
+        if ($errCnt || $exceptionCnt) {
+            wp($errCnt, $exceptionCnt);
+        }
         
         return false;
     }
