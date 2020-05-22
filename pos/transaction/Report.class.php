@@ -89,11 +89,10 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             $productCheck = deals_Helper::checkProductForErrors($productsArr, 'canSell');
             
             // Проверка на артикулите
-            $productCheck = deals_Helper::checkProductForErrors($productsArr, 'canConvert,canStore');
             if(count($productCheck['notActive'])){
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
             } elseif($productCheck['metasError']){
-                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са складируеми и вложими|*!");
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!");
             }
         }
         
