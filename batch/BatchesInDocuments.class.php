@@ -180,7 +180,7 @@ class batch_BatchesInDocuments extends core_Manager
                 $quantity .= ' ' . tr(cat_UoM::getShortName($rInfo->packagingId));
                 
                 if ($showBatchLink) {
-                    if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, $q, $rec->batch)) {
+                    if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, $q, $rec->batch, $rInfo['containerId'])) {
                         $label = $palletImgLink . $label;
                     }
                 }
@@ -190,7 +190,7 @@ class batch_BatchesInDocuments extends core_Manager
             
             if ($batchDef instanceof batch_definitions_Serial) {
                 if ($showBatchLink) {
-                    if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, 1, $rec->batch)) {
+                    if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, 1, $rec->batch, $rInfo['containerId'])) {
                         $batch = $palletImgLink . $batch;
                     }
                 }
@@ -220,7 +220,7 @@ class batch_BatchesInDocuments extends core_Manager
                 $quantity .= ' ' . tr(cat_UoM::getShortName($rInfo->packagingId));
                 
                 if ($showBatchLink) {
-                    if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, $noBatchQuantity)) {
+                    if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, $noBatchQuantity, null, $rInfo['containerId'])) {
                         $batch = $palletImgLink . $batch;
                     }
                 }
