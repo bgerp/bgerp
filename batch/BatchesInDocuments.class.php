@@ -652,7 +652,7 @@ class batch_BatchesInDocuments extends core_Manager
         }
         
         if (countR($error)) {
-            $error = implode('<li>', $error);
+            $error = implode('|*<li>|', $error);
             $res['error'] = $error;
         }
         
