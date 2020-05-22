@@ -762,6 +762,7 @@ function pressNavigable(element)
 	
 	var params = {recId:getSelectedRowId()};
 	var url = element.attr("data-url");
+	var onclick = element.attr("onclick");
 	
 	if(element.hasClass("disabledBtn")) return;
 	
@@ -814,7 +815,6 @@ function pressNavigable(element)
 		return;
 	} else if(element.is("a")){
 		var hrefUrl = element.attr("href");
-		var onclick = element.attr("onclick");
 		
 		if(onclick){
 			element.trigger("onclick");
@@ -824,6 +824,11 @@ function pressNavigable(element)
 		location.href = hrefUrl;
 		return;
 	}
+	
+	if(onclick){
+		element.trigger("onclick");
+	}
+	
 	processUrl(url, params);
 }
 
