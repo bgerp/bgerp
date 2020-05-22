@@ -778,11 +778,13 @@ class pos_Terminal extends peripheral_Terminal
                     $row->DATA_DELETE_WARNING = tr('|Наистина ли искате да изтриете избрания ред|*?');
                 }
                 
-                $row->ENLARGABLE_CLASS_ID = cat_Products::getClassId();
-                $row->ENLARGABLE_OBJECT_ID = $data->recs[$id]->productId;
-                $row->ENLARGABLE_MODAL_TITLE = cat_Products::getTitleById($data->recs[$id]->productId);
-                
                 $action = cls::get('pos_ReceiptDetails')->getAction($data->rows[$id]->action);
+                if($action->type == 'sale'){
+                    $row->ENLARGABLE_CLASS_ID = cat_Products::getClassId();
+                    $row->ENLARGABLE_OBJECT_ID = $data->recs[$id]->productId;
+                    $row->ENLARGABLE_MODAL_TITLE = cat_Products::getTitleById($data->recs[$id]->productId);
+                }
+                
                 $at = ${"{$action->type}Tpl"};
                 if (is_object($at)) {
                     $rowTpl = clone(${"{$action->type}Tpl"});
