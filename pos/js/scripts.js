@@ -371,7 +371,7 @@ function prevTab() {
 		$(currentTab).prev().click();
 		activeInput = false;
 	}
-	
+
 	startNavigation();
 }
 
@@ -387,7 +387,7 @@ function nextTab() {
 		$(currentTab).next().click();
 		activeInput = false;
 	}
-	
+
 	startNavigation();
 }
 
@@ -943,7 +943,7 @@ function startNavigation() {
 			selectFirstNavigable();
 		}
 
-		if (focused && document.getElementById(focused) && $('.navigable.selected:visible').length == 0) {
+		if (focused && !$('#' + focused ).hasClass('disabledBtn') && document.getElementById(focused) && $('.navigable.selected:visible').length == 0) {
 			$('.selected').removeClass('selected');
 			$('#' + focused ).addClass('selected');
 		}
@@ -1123,10 +1123,12 @@ function getSelectedRowId() {
 }
 
 function openCurrentPosTab() {
-	var currentTab = $('.tabHolder li.active').attr('data-content');
-	
-	$("#" + currentTab).show();
-	startNavigation();
+	if($('.tabHolder li.active').length) {
+		var currentTab = $('.tabHolder li.active').attr('data-content');
+
+		$("#" + currentTab).show();
+		startNavigation();
+	}
 }
 
 /**
