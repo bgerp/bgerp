@@ -440,6 +440,20 @@
 			width: 32.1% !important;
 		}
 	}
+	
+	&.closeBtn {
+		border-radius:3px;
+		height:70px;
+		display:flex;
+		font-size:1.3em;
+		margin: 0 !important;
+		background: #b7e2f3 !important;
+		color: #333 !important;
+		&.largeBtn {
+			width: 32.1% !important;
+		}
+	}
+	
 	&.pos-notes {
 		font-size: 1.1em;
 	}

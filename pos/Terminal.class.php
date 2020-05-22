@@ -1164,7 +1164,7 @@ class pos_Terminal extends peripheral_Terminal
         $contoUrl = (pos_Receipts::haveRightFor('close', $rec)) ? array('pos_Receipts', 'close', $rec->id, 'ret_url' => true) : null;
         $disClass = ($contoUrl) ? 'navigable' : 'disabledBtn';
         $warning =  ($contoUrl) ? 'Наистина ли желаете да приключите продажбата|*?' : false;
-        $closeBtn = ht::createLink('Приключено', $contoUrl, $warning, array('class' => "{$disClass} posBtns payment closeBtn"));
+        $closeBtn = ht::createLink('Приключено', $contoUrl, $warning, array('class' => "{$disClass} posBtns closeBtn"));
         $paymentArr["close"] = (object)array('body' => $closeBtn, 'placeholder' => 'CLOSE_BTNS');
         
         // Добавяне на бутон за приключване на бележката

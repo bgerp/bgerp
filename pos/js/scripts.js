@@ -817,7 +817,7 @@ function pressNavigable(element)
 		var onclick = element.attr("onclick");
 		
 		if(onclick){
-			eval(onclick);
+			element.trigger("onclick");
 			return;
 		}
 		

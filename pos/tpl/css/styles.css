@@ -379,6 +379,16 @@
     color: #333333 !important; }
     .posBtns.printReceiptBtn.largeBtn {
       width: 32.1% !important; }
+  .posBtns.closeBtn {
+    border-radius: 3px;
+    height: 70px;
+    display: flex;
+    font-size: 1.3em;
+    margin: 0 !important;
+    background: #b7e2f3 !important;
+    color: #333333 !important; }
+    .posBtns.closeBtn.largeBtn {
+      width: 32.1% !important; }
   .posBtns.pos-notes {
     font-size: 1.1em; }
   .posBtns.payment {
