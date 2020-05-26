@@ -9,7 +9,7 @@
  * @package   cms
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
