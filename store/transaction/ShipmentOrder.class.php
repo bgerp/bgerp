@@ -316,7 +316,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
             if(!isset($pInfo->meta['canStore'])) continue;
             
             // Вложимите кредит 706, другите 701
-            $debitAccId = (isset($pInfo->meta['materials'])) ? '706' : '701';
+            $debitAccId = '701';
             $creditAccId = '321';
             
             $entries[] = array(

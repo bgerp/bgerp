@@ -93,7 +93,6 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
      *
      *    Ct: 701  - Приходи от продажби на Стоки и Продукти  (Клиенти, Сделки, Стоки и Продукти)
      *    	  703  - Приходи от продажба на услуги 			  (Клиенти, Сделки, Услуги)
-     *        706  - Приходи от продажба на Суровини и Материали (Клиенти, Суровини и материали)
      *
      * @param stdClass $rec      - записа
      * @param array    $products - продуктите
@@ -116,8 +115,8 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             $storable = isset($pInfo->meta['canStore']);
             $convertable = isset($pInfo->meta['canConvert']);
             
-            // Нескладируемите продукти дебит 703. Складируемите и вложими 706 останалите 701
-            $creditAccId = ($storable) ? (($convertable) ? '706' : '701') : '703';
+            // Нескладируемите продукти дебит 703, складируемите 701
+            $creditAccId = ($storable) ? '701' : '703';
             $credit = array(
                 $creditAccId,
                 array($product->contragentClassId, $product->contragentId),
@@ -154,7 +153,6 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
      * Експедиране на стоката от склада (в някой случаи)
      *
      *    Dt: 701. Приходи от продажби на стоки и продукти     (Клиент, Сделки, Стоки и Продукти)
-     *    	  706. Приходи от продажба на суровини/материали   (Клиент, Сделки, Суровини и материали)
      *
      *    Ct: 321. Суровини, материали, продукция, стоки 	   (Склад, Стоки и Продукти)
      *
@@ -169,7 +167,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
     {
         $entries = array();
         $creditAccId = '321';
-        $debitAccId = ($convertable) ? '706' : '701';
+        $debitAccId = '701';
         
         // После се отчита експедиране от склада
         $entries[] = array(
