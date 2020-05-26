@@ -107,6 +107,8 @@ class sync_Eshop extends sync_Helper
         
         expect(core_Packs::isInstalled('eshop'));
         
+        $update = (Request::get('update') == 'none') ? false : true;
+        
         core_App::setTimeLimit(1000);
         
         $resArr = self::getDataFromUrl(get_called_class());
@@ -118,7 +120,7 @@ class sync_Eshop extends sync_Helper
         
         foreach ($resArr as $class => $objArr) {
             foreach ($objArr as $id => $rec) {
-                sync_Map::importRec($class, $id, $resArr, $this);
+                sync_Map::importRec($class, $id, $resArr, $this, $update);
             }
         }
     }
