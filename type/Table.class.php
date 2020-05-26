@@ -128,15 +128,19 @@ class type_Table extends type_Blob
             $used = false;
             $empty = true;
             $row = '';
+            
             foreach ($columns as $field => $fObj) {
+                $classFld = $field . '_class';
+                $tdClass = ($this->params[$classFld]) ? "class={$this->params[$classFld]}" : '';
+                
                 if (isset($opt[$field])) {
-                    $row .= '<td>' . ht::createSelect($attr[$field]['name'], $opt[$field], strip_tags($value[$field][$i]), $attr[$field]) . '</td>';
+                    $row .= "<td {$tdClass}>" . ht::createSelect($attr[$field]['name'], $opt[$field], strip_tags($value[$field][$i]), $attr[$field]) . '</td>';
                 } else {
                     $readOnlyFld = $field . '_ro';
                     if ($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][$i]) && empty($this->errorFields[$field][$i])) {
-                        $row .= '<td>' . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => strip_tags($value[$field][$i]))) . '</td>';
+                        $row .= "<td {$tdClass}>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => strip_tags($value[$field][$i]))) . '</td>';
                     } else {
-                        $row .= '<td>' . ht::createElement('input', $attr[$field] + array('value' => strip_tags($value[$field][$i])) + $this->getErrorArr($field, $i)) . '</td>';
+                        $row .= "<td {$tdClass}>" . ht::createElement('input', $attr[$field] + array('value' => strip_tags($value[$field][$i])) + $this->getErrorArr($field, $i)) . '</td>';
                     }
                 }
                 if (isset($value[$field][$i])) {
