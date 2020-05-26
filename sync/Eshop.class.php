@@ -228,4 +228,38 @@ class sync_Eshop extends sync_Helper
             $rec->__id = $rec->id;
         }
     }
+    
+    
+    /**
+     * Помощна функция за подготвяне на всички групи от електронния магазин
+     * 
+     * @param type_Keylist $type
+     * @param NULL|array $options
+     * 
+     * @return array
+     */
+    public static function getEshopGroups($type, $options)
+    {
+        $gQuery = eshop_Groups::getQuery();
+        
+        $gQuery->where("#state != 'rejected'");
+        
+        $gQuery->EXT('domainId', 'cms_Content', 'externalName=domainId,externalKey=menuId');
+        
+        $gQuery->show('name, state, domainId');
+        
+        $gQuery->orderBy('domainId', 'DESC');
+        $gQuery->orderBy('modifiedOn', 'DESC');
+        
+        $resArr = array();
+        while ($gRec = $gQuery->fetch()) {
+            $resArr[$gRec->id] = eshop_Groups::getVerbal($gRec, 'name') . ' (' . cms_Content::getVerbal($gRec->domainId, 'domainId') . ')';
+            
+            if ($gRec->state != 'active') {
+                $resArr[$gRec->id] .= ' - ' . eshop_Groups::getVerbal($gRec, 'state');
+            }
+        }
+        
+        return $resArr;
+    }
 }
