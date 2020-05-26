@@ -1257,6 +1257,10 @@ class marketing_Inquiries2 extends embed_Manager
         
         if ($rec->state != 'rejected') {
             $rec->state = 'active';
+            if(empty($rec->activatedOn)){
+                $rec->activatedOn = dt::now();
+                $rec->activatedBy = core_Users::getCurrent();
+            }
         }
         
         if (!strlen($rec->title)) {
