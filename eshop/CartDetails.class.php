@@ -246,7 +246,9 @@ class eshop_CartDetails extends core_Detail
             
             // Проверка достигнато ли е максималното количество
             $packQuantity = isset($rec->packQuantity) ? $rec->packQuantity : $rec->defaultQuantity;
-            $maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack);
+            $maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack, $rec->eshopProductId);
+            
+            
             if (isset($maxQuantity) && $maxQuantity < $packQuantity) {
                 $form->setError('packQuantity', 'Избраното количество не е налично');
             }
@@ -365,14 +367,18 @@ class eshop_CartDetails extends core_Detail
      *
      * @return NULL|float $maxQuantity - максималното к-во, NULL за без ограничение
      */
-    public static function getMaxQuantity($productId, $quantityInPack)
+    public static function getMaxQuantity($productId, $quantityInPack, $eshopProductId)
     {
         $maxQuantity = null;
         
         $canStore = cat_Products::fetchField($productId, 'canStore');
         $settings = cms_Domains::getSettings();
         if (isset($settings->storeId) && $canStore == 'yes') {
+            $deliveryTime = eshop_ProductDetails::fetchField("#eshopProductId = {$eshopProductId} AND #productId = {$productId}", 'deliveryTime');
             $quantityInStore = store_Products::getQuantity($productId, $settings->storeId, true);
+            
+            if(isset($deliveryTime) && $quantityInStore <= 0) return $maxQuantity;
+            
             $maxQuantity = round($quantityInStore / $quantityInPack, 2);
         }
         
@@ -406,8 +412,7 @@ class eshop_CartDetails extends core_Detail
             $dataUrl = toUrl(array('eshop_CartDetails', 'updateCart', $rec->id, 'cartId' => $rec->cartId), 'local');
             
             // Колко е максималното допустимо количество
-            $maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack);
-            
+            $maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack, $rec->eshopProductId);
             $maxReachedTex = '';
             if(isset($maxQuantity)){
                 $maxReachedTex = tr("Избраното количество не е налично");

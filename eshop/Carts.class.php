@@ -294,7 +294,7 @@ class eshop_Carts extends core_Master
         // Ако има избран склад, проверка дали к-то е допустимо
         $msg = '|Проблем при добавянето на артикула|*!';
         
-        $maxQuantity = eshop_CartDetails::getMaxQuantity($productId, $quantityInPack);
+        $maxQuantity = eshop_CartDetails::getMaxQuantity($productId, $quantityInPack, $eshopProductId);
         if (isset($maxQuantity) && $maxQuantity < $packQuantity) {
             $msg = '|Избраното количество не е налично|*';
             $success = false;
