@@ -1514,7 +1514,7 @@ a.tOld {
 /*край на стилове при тредове*/
 
 .typeTable {
-	 border:none !important;
+	border:none !important;
 	.formTypeTable {
 		text-align: center;
 		font-weight: bold;
@@ -1524,6 +1524,18 @@ a.tOld {
 	td  {
 		text-align: center;
         font-size: 0.8em;
+	}
+	.batchNameTd {
+		input {
+			white-space: nowrap;
+			width: 100% !important;
+		}
+		~ td {
+			width: 120px;
+			input {
+				max-width: 120px;
+			}
+		}
 	}
 
 }

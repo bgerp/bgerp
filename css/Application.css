@@ -1315,6 +1315,13 @@ a.tOld {
   .typeTable td {
     text-align: center;
     font-size: 0.8em; }
+    .typeTable .batchNameTd input {
+      white-space: nowrap;
+      width: 100% !important; }
+    .typeTable .batchNameTd ~ td {
+      width: 120px; }
+      .typeTable .batchNameTd ~ td input {
+        max-width: 120px; }
 
 /*
  * стилове за документи
