@@ -3380,6 +3380,7 @@ fieldset.sharing-history {
 
 .narrow .externalPage #maincontent {
 	padding: 2px 5px 5px;
+	position: relative;
 }
 
 .wide .externalPage .formTable{
@@ -5601,6 +5602,11 @@ div.location.public {
 .narrow .hasLogoutBlock .logoutBlock {
 	top: -29px;
 	right: -2px;
+}
+
+.narrow #all .hasLogoutBlock .logoutBlock {
+	top: 0;
+	right: 0;
 }
 
 .narrow .eshop-group-button{
