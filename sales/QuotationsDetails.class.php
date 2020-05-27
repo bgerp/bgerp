@@ -379,7 +379,7 @@ class sales_QuotationsDetails extends doc_Detail
         $rec = &$form->rec;
         $masterRec = $data->masterRec;
         
-        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts));
+        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties' => 'generic'));
         if (isset($rec->id)) {
             $data->form->setReadOnly('productId');
         }

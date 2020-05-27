@@ -268,7 +268,7 @@ class cat_products_Usage extends core_Manager
             $data->rows[$rec->id] = $data->Jobs->recToVerbal($rec, $fields);
         }
         
-        if ($masterRec->canManifacture != 'yes') {
+        if ($masterRec->canManifacture != 'yes' || $masterRec->generic == 'yes') {
             $data->notManifacturable = true;
         }
         

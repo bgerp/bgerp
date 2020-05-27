@@ -75,7 +75,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         $chargeVat = ($rec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
         
         $data->form->setField('packPrice', "unit={$masterRec->currencyId} {$chargeVat}");
-        $data->form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts));
+        $data->form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties4' => 'generic'));
     }
     
     

@@ -29,7 +29,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         // Извличане на мастър-записа
         expect($rec = $this->class->fetchRec($id));
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
-        
+       
         $result = (object) array(
             'reason' => "Протокол за производство №{$rec->id}",
             'valior' => $rec->valior,
@@ -41,6 +41,24 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         $entries = $this->getEntries($rec, $result->totalAmount);
         if (countR($entries)) {
             $result->entries = $entries;
+        }
+        
+        if (Mode::get('saveTransaction')) {
+            $productArr = arr::extractValuesFromArray($rec->_details, 'productId');
+            if($redirectError = deals_Helper::getContoRedirectError($productArr, 'canConvert', null, 'трябва да са вложими')){
+                acc_journal_RejectRedirect::expect(false, $redirectError);
+            }
+            
+            if($redirectError = deals_Helper::getContoRedirectError($productArr, null, 'generic', 'са генерични и трябва да бъдат заменени')){
+                acc_journal_RejectRedirect::expect(false, $redirectError);
+            }
+            
+            $returnProductArr = array_filter($rec->_details, function($a) { return $a->type != 'input';});
+            if(countR($returnProductArr)){
+                if($redirectError = deals_Helper::getContoRedirectError($productArr, 'canStore', null, 'трябва да са складируеми за да са отпадъци')){
+                    acc_journal_RejectRedirect::expect(false, $redirectError);
+                }
+            }
         }
         
         return $result;
@@ -113,6 +131,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             $dQuery->where("#noteId = {$rec->id}");
             $dQuery->orderBy('id,type', 'ASC');
             $dRecs = $dQuery->fetchAll();
+            $rec->_details = $dRecs;
         }
         
         $entries = self::getProductionEntries($rec->productId, $rec->quantity, $rec->storeId, $rec->debitAmount, $this->class, $rec->id, $rec->expenseItemId, $rec->valior, $rec->expenses, $dRecs, $rec->jobQuantity);

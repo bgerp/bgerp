@@ -149,7 +149,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
         $form = &$data->form;
         $masterRec = $data->masterRec;
         $property = ($masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
-        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $property));
+        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $property, 'hasnotProperties' => 'generic'));
     }
     
     

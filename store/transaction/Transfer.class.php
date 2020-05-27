@@ -69,13 +69,8 @@ class store_transaction_Transfer extends acc_DocumentTransactionSource
         }
         
         if (Mode::get('saveTransaction')) {
-            
-            // Проверка на артикулите
-            $productCheck = deals_Helper::checkProductForErrors($productArr, 'canStore');
-            if(countR($productCheck['notActive'])){
-                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(',', $productCheck['notActive']) . " |не са активни|*!");
-            } elseif($productCheck['metasError']){
-                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(',', $productCheck['metasError']) . " |трябва да са складируеми|*!");
+            if($redirectError = deals_Helper::getContoRedirectError($productArr, 'canStore', 'generic', 'трябва да са складируеми и да не са генерични')){
+                acc_journal_RejectRedirect::expect(false, $redirectError);
             } elseif ($error === true) {
                 acc_journal_RejectRedirect::expect(false, 'Трябва да има поне един ред с ненулево количество|*!');
             }
