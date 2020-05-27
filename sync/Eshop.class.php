@@ -42,6 +42,7 @@ class sync_Eshop extends sync_Helper
             '*::lastActivityTime' => null,
             '*::lastUsedOn' => null,
             '*::id' => null,
+            'eshop_Products::nearProducts' => null,
             'cms_Domains::domain' => 'sync_Eshop::fixDomain',
             'cms_Domains::lang' => 'sync_Eshop::fixDomain',
     );
