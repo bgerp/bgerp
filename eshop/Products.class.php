@@ -384,15 +384,18 @@ class eshop_Products extends core_Master
             if($productRec->state == 'closed') continue;
             
             // Показване на линковете към артикула
-            $productUrl = self::getUrl(self::fetch($productId));
-            $productTitle = eshop_Products::getTitleById($productId);
-            $data->products[$productId] = ht::createLink($productTitle, $productUrl)->getContent();
-         
-            // Ако има се показва тъмбнейл, към него
-            $thumb = static::getProductThumb($productRec, 300, 300);
-            if(isset($thumb)){
-                $thumbHtml = $thumb->createImg(array('class' => 'eshopNearProductThumb', 'title' => $productTitle))->getContent();
-                $data->images[$productId] = ht::createLink($thumbHtml, $productUrl);
+            $prodRec = self::fetch($productId);
+            if ($prodRec) {
+                $productUrl = self::getUrl($prodRec);
+                $productTitle = eshop_Products::getTitleById($productId);
+                $data->products[$productId] = ht::createLink($productTitle, $productUrl)->getContent();
+                
+                // Ако има се показва тъмбнейл, към него
+                $thumb = static::getProductThumb($productRec, 300, 300);
+                if(isset($thumb)){
+                    $thumbHtml = $thumb->createImg(array('class' => 'eshopNearProductThumb', 'title' => $productTitle))->getContent();
+                    $data->images[$productId] = ht::createLink($thumbHtml, $productUrl);
+                }
             }
         }
         
