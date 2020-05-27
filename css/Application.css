@@ -3091,7 +3091,8 @@ span.sharing-history-title {
   display: inline-block;
   position: relative;
   margin-left: 2px;
-  top: -6px; }
+  top: -6px;
+  padding: 2px 2px 1px; }
   #cart-external-status .count a {
     padding-top: 5px; }
 
