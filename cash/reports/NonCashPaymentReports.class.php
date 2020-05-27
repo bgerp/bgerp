@@ -230,7 +230,10 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
             }
           
            if ($rec->see == 'notIn' && $pkoNonCashAmount[$pkoRec->id]->nonCashPaymentAmount == $pkoTransferedSumm)continue;
-            
+           
+           $pkoInvoice = $pkoRec->fromContainerId;
+         
+           
            $contragentClassName = core_Classes::getName($pkoRec->contragentClassId);
            $contragentName = $contragentClassName::getTitleById($pkoRec->contragentId);
            
@@ -239,6 +242,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                 $recs[$id] = (object) array(
                     
                     'pkoId' => $pkoRec->id,
+                    'invoice' => $pkoInvoice,
                     'contragentName' => $contragentName,
                     'pkoValior' => $pkoRec->valior,
                     'folderId' => $pkoRec->folderId,
@@ -280,6 +284,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         
         $fld->FLD('contragentName', 'varchar', 'caption=Контрагент');
         $fld->FLD('pko', 'varchar', 'caption=ПКО->Документ');
+        $fld->FLD('invoice', 'varchar', 'caption=ПКО->Фактура');
         $fld->FLD('pkoAmount', 'double(smartRound,decimals=2)', 'caption=ПКО->Сума');
         $fld->FLD('rest', 'double(smartRound,decimals=2)', 'caption=ПКО->Остатък');
         $fld->FLD('transfer', 'varchar', 'caption=Трансфер->Документ');
@@ -289,13 +294,13 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
             
             $fld->FLD('contragentName', 'varchar', 'caption=Контрагент');
             $fld->FLD('pko', 'varchar', 'caption=ПКО->Документ');
+            $fld->FLD('invoice', 'varchar', 'caption=ПКО->Фактура');
             $fld->FLD('pkoAmount', 'double(smartRound,decimals=2)', 'caption=ПКО->Сума');
             $fld->FLD('rest', 'varchar', 'caption=ПКО->Остатък');
             $fld->FLD('transfer', 'varchar', 'caption=Трансфер->Документ');
             $fld->FLD('amount', 'varchar', 'caption=Трансфер->Сума');
             
         }
-        
         
         return $fld;
     }
@@ -375,6 +380,23 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                 $row->pko .= ' - '.$toolbar->renderHtml(2);
             }
         }
+        
+        if (isset($dRec->invoice)) {
+            
+            $Invoice = doc_Containers::getDocument($dRec->invoice);
+            
+           
+            
+            $invRec = sales_Invoices::fetch($Invoice->that);
+            
+            $handle = "Inv #$invRec->number".' / '.$Date->toVerbal($invRec->date);
+           
+            $url = toUrl(array("sales_Invoices",'single', $Invoice->that));
+            
+            $row->invoice =ht::createLink($handle, $url, false, array());
+            
+        }
+        
         
         return $row;
     }
@@ -463,6 +485,18 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                 $res->amount .= $Double->toVerbal("$inAmount").'; ';
                 
             }
+        }
+        
+        if (isset($dRec->invoice)) {
+            
+            $Invoice = doc_Containers::getDocument($dRec->invoice);
+            
+            $invRec = sales_Invoices::fetch($Invoice->that);
+            
+            $handle = "Inv #$invRec->number".' / '.$Date->toVerbal($invRec->date);
+            
+            $res->invoice =$handle;
+            
         }
         
         $rest = $dRec->pkoAmount - $sum;
