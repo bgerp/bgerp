@@ -232,6 +232,11 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
            if ($rec->see == 'notIn' && $pkoNonCashAmount[$pkoRec->id]->nonCashPaymentAmount == $pkoTransferedSumm)continue;
            
            $pkoInvoice = $pkoRec->fromContainerId;
+           
+           if(!$pkoInvoice){
+               
+               $pkoInvoice = self::determiningInvoice($pkoRec);
+           }
          
            
            $contragentClassName = core_Classes::getName($pkoRec->contragentClassId);
@@ -383,9 +388,9 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         
         if (isset($dRec->invoice)) {
             
-            $Invoice = doc_Containers::getDocument($dRec->invoice);
+            if(!is_array($dRec->invoice)){
             
-           
+            $Invoice = doc_Containers::getDocument($dRec->invoice);
             
             $invRec = sales_Invoices::fetch($Invoice->that);
             
@@ -394,7 +399,22 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
             $url = toUrl(array("sales_Invoices",'single', $Invoice->that));
             
             $row->invoice =ht::createLink($handle, $url, false, array());
-            
+            }else{
+                $row->invoice ='За избор'."</br>";
+                foreach ($dRec->invoice as $val){
+                    
+                    $Invoice = doc_Containers::getDocument($val);
+                    
+                    $invRec = sales_Invoices::fetch($Invoice->that);
+                    
+                    $handle = "Inv #$invRec->number".' / '.$Date->toVerbal($invRec->date);
+                    
+                    $url = toUrl(array("sales_Invoices",'single', $Invoice->that));
+                    
+                    $row->invoice .=ht::createLink($handle, $url, false, array())."</br>";
+                    
+                }
+            }
         }
         
         
@@ -502,5 +522,36 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         $rest = $dRec->pkoAmount - $sum;
         $res->rest =$Double->toVerbal($rest);
         
+    }
+    
+    private static function determiningInvoice($pkoRec) {
+        
+        $invArr = array();
+        
+        $iQuery = sales_Invoices::getQuery();
+        $iQuery->where("#threadId = $pkoRec->threadId AND #state = 'active'"); 
+        $iQuery->where("#paymentType = 'cash'"); 
+        
+        
+        //Условие за дата на издаване на фактурата: +/- 5 дена от вальора на ПКО
+        $from = dt::addDays(-5,$pkoRec->valior);
+        $to = dt::addDays(5,$pkoRec->valior);
+        
+        $iQuery->where(array("#date>= '[#1#]' AND #date <= '[#2#]'",$from. ' 00:00:00',$to . ' 23:59:59'));
+        
+        
+        while ($iRec = $iQuery->fetch()) {
+            $totalAmount = ($iRec->dealValue + $iRec->vatAmount)-$iRec->discountAmount ;
+            
+            if(($pkoRec->amountDeal <= ($totalAmount + 0.05)) && ($pkoRec->amountDeal >= ($totalAmount - 0.05))){
+            
+                return $iRec->containerId;
+            
+            }else{
+                array_push($invArr, $iRec->containerId);
+            }
+        }
+        
+        return $invArr  ;
     }
 }
