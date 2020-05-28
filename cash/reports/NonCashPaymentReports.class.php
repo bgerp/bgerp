@@ -289,7 +289,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         
         $fld->FLD('contragentName', 'varchar', 'caption=Контрагент');
         $fld->FLD('pko', 'varchar', 'caption=ПКО->Документ');
-        $fld->FLD('invoice', 'varchar', 'caption=ПКО->Фактура');
+        $fld->FLD('invoiceNum', 'varchar', 'caption=ПКО->Фактура');
         $fld->FLD('pkoAmount', 'double(smartRound,decimals=2)', 'caption=ПКО->Сума');
         $fld->FLD('rest', 'double(smartRound,decimals=2)', 'caption=ПКО->Остатък');
         $fld->FLD('transfer', 'varchar', 'caption=Трансфер->Документ');
@@ -299,7 +299,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
             
             $fld->FLD('contragentName', 'varchar', 'caption=Контрагент');
             $fld->FLD('pko', 'varchar', 'caption=ПКО->Документ');
-            $fld->FLD('invoice', 'varchar', 'caption=ПКО->Фактура');
+            $fld->FLD('invoiceNum', 'varchar', 'caption=ПКО->Фактура');
             $fld->FLD('pkoAmount', 'double(smartRound,decimals=2)', 'caption=ПКО->Сума');
             $fld->FLD('rest', 'varchar', 'caption=ПКО->Остатък');
             $fld->FLD('transfer', 'varchar', 'caption=Трансфер->Документ');
@@ -398,9 +398,13 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
            
             $url = toUrl(array("sales_Invoices",'single', $Invoice->that));
             
-            $row->invoice =ht::createLink($handle, $url, false, array());
+            $row->invoiceNum =ht::createLink($handle, $url, false, array());
             }else{
-                $row->invoice ='За избор'."</br>";
+                
+                if(!empty($dRec->invoice)){
+                    $row->invoiceNum ='За избор'."</br>";
+                }
+                
                 foreach ($dRec->invoice as $val){
                     
                     $Invoice = doc_Containers::getDocument($val);
@@ -411,7 +415,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                     
                     $url = toUrl(array("sales_Invoices",'single', $Invoice->that));
                     
-                    $row->invoice .=ht::createLink($handle, $url, false, array())."</br>";
+                    $row->invoiceNum .=ht::createLink($handle, $url, false, array())."</br>";
                     
                 }
             }
@@ -507,17 +511,40 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
             }
         }
         
-        if (isset($dRec->invoice)) {
+       
             
-            $Invoice = doc_Containers::getDocument($dRec->invoice);
+            if (is_array($dRec->invoice)){
+                
+                if(!empty($dRec->invoice)){
+                    $res->invoiceNum .='За избор: ';
+                }
+                foreach ($dRec->invoice as $val){ 
+                    
+                    $Invoice = doc_Containers::getDocument($val);
+                    
+                    $invRec = sales_Invoices::fetch($Invoice->that);
+                    
+                    $handle = "$invRec->number";
+                    
+                    $res->invoiceNum .=$handle.";";
+                   
+                }
+                
+                
+            }else{
             
-            $invRec = sales_Invoices::fetch($Invoice->that);
-            
-            $handle = "Inv #$invRec->number".' / '.$Date->toVerbal($invRec->date);
-            
-            $res->invoice =$handle;
-            
-        }
+                $Invoice = doc_Containers::getDocument($dRec->invoice);
+                
+                $invRec = sales_Invoices::fetch($Invoice->that);
+                
+                 $handle = "Inv #$invRec->number".' / '.$Date->toVerbal($invRec->date);
+                
+                 $res->invoiceNum =$handle;
+                 
+                 
+                 
+             }
+       
         
         $rest = $dRec->pkoAmount - $sum;
         $res->rest =$Double->toVerbal($rest);
