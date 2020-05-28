@@ -2896,7 +2896,8 @@ span.sharing-history-title {
   height: auto; }
 
 .narrow .externalPage #maincontent {
-  padding: 2px 5px 5px; }
+  padding: 2px 5px 5px;
+  position: relative; }
 
 .wide .externalPage .formTable {
   margin: 20px; }
@@ -3090,7 +3091,8 @@ span.sharing-history-title {
   display: inline-block;
   position: relative;
   margin-left: 2px;
-  top: -6px; }
+  top: -6px;
+  padding: 2px 2px 1px; }
   #cart-external-status .count a {
     padding-top: 5px; }
 
@@ -4933,6 +4935,10 @@ div.location.public {
 .narrow .hasLogoutBlock .logoutBlock {
   top: -29px;
   right: -2px; }
+
+.narrow #all .hasLogoutBlock .logoutBlock {
+  top: 0;
+  right: 0; }
 
 .narrow .eshop-group-button {
   margin-bottom: 10px;
