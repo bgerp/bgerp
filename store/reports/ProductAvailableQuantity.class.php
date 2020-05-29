@@ -537,7 +537,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         }
         }else{
                 
-            $row->quantity = '<b>'.'Общо:'.($dRec->quantity).'</b>'."</br>";
+            $row->quantity = '<b>'.'Общо: '.($dRec->quantity).'</b>'."</br>";
                 
                 foreach ($dRec->storesQuatity as $val){
                    

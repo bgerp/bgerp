@@ -49,6 +49,13 @@
             </tr>
             <!--ET_END round-->
             
+            <!--ET_BEGIN translate-->
+            <tr>
+                <td class="title-style">|Превод|*</td>
+                <td>[#translate#]</td>
+            </tr>
+            <!--ET_END translate-->
+            
             <!--ET_BEGIN min-->
             <tr>
                 <td class="title-style">|Минимум|*</td>

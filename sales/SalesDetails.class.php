@@ -10,7 +10,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -123,14 +123,6 @@ class sales_SalesDetails extends deals_DealDetail
     
     
     /**
-     * Брой записи на страница
-     *
-     * @var int
-     */
-    public $listItemsPerPage;
-    
-    
-    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount';
@@ -154,9 +146,26 @@ class sales_SalesDetails extends deals_DealDetail
     public function description()
     {
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
-        
         parent::getDealDetailFields($this);
+        $this->FLD('autoDiscount', 'percent(min=0,max=1)', 'input=none');
         $this->setField('packPrice', 'silent');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+        
+        if(isset($form->rec->autoDiscount)){
+            $placeholder = core_Type::getByName('percent')->toVerbal($form->rec->autoDiscount);
+            $form->setField('discount', "placeholder={$placeholder}");
+        }
     }
     
     
@@ -204,6 +213,11 @@ class sales_SalesDetails extends deals_DealDetail
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
             $pInfo = cat_Products::getProductInfo($rec->productId);
+            
+            if(!isset($rec->discount) && isset($rec->autoDiscount)){
+                $row->discount = $mvc->getFieldType('discount')->toVerbal($rec->autoDiscount);
+                $row->discount = ht::createHint($row->discount, 'Отстъпката е сметната автоматично');
+            }
             
             if ($storeId = $masterRec->shipmentStoreId) {
                 if (isset($pInfo->meta['canStore'])) {
@@ -274,6 +288,7 @@ class sales_SalesDetails extends deals_DealDetail
         if (($action == 'add') && isset($rec)) {
             if ($requiredRoles != 'no_one') {
                 $roles = sales_Setup::get('ADD_BY_PRODUCT_BTN');
+                
                 if (!haveRole($roles, $userId)) {
                     $requiredRoles = 'no_one';
                 }

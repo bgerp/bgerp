@@ -105,7 +105,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'number, folderId, contragentName';
+    public $searchFields = 'folderId, contragentName';
     
     
     /**
@@ -490,6 +490,11 @@ class purchase_Invoices extends deals_InvoiceMaster
                 $rec->contragentClassId = crm_Companies::getClassId();
                 core_Statuses::newStatus("Добавена е нова фирма|* '{$rec->contragentName}'");
             }
+        }
+        
+        if(!empty($rec->number)){
+            $number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+            $rec->searchKeywords .= ' ' . plg_Search::normalizeText($number) . " " . plg_Search::normalizeText($rec->number);
         }
     }
     

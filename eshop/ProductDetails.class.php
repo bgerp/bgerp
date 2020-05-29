@@ -43,7 +43,7 @@ class eshop_ProductDetails extends core_Detail
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'eshopProductId=Е-артикул,productId,title,packagings=Опаковки/Мерки,state=Състояние,modifiedOn,modifiedBy';
+    public $listFields = 'eshopProductId=Е-артикул,productId,title,packagings=Опаковки/Мерки,deliveryTime,state=Състояние,modifiedOn,modifiedBy';
     
     
     /**
@@ -97,6 +97,7 @@ class eshop_ProductDetails extends core_Detail
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=price_ListRules::getSellableProducts,titleFld=name)', 'caption=Артикул,silent,removeAndRefreshForm=packagings,mandatory');
         $this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковки/Мерки,mandatory');
         $this->FLD('title', 'varchar(nullIfEmpty)', 'caption=Заглавие');
+        $this->FLD('deliveryTime', 'time', 'caption=Доставка до');
         $this->FLD('state', 'enum(active=Активен,closed=Затворен,rejected=Оттеглен)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('eshopProductId,title');
@@ -293,7 +294,7 @@ class eshop_ProductDetails extends core_Detail
         $data->commonParams = eshop_Products::getCommonParams($data->rec->id);
         
         while ($rec = $query->fetch()) {
-            $newRec = (object) array('eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'title' => $rec->title);
+            $newRec = (object) array('eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'title' => $rec->title, 'deliveryTime' => $rec->deliveryTime);
             $packagins = keylist::toArray($rec->packagings);
             
             // Кои параметри ще се показват
@@ -357,6 +358,7 @@ class eshop_ProductDetails extends core_Detail
         $fullCode = cat_products::getVerbal($rec->productId, 'code');
         $row->code = substr($fullCode, 0, 10);
         $row->code = "<span title={$fullCode}>{$row->code}</span>";
+        $btn = null;
         
         $row->packagingId = tr(cat_UoM::getShortName($rec->packagingId));
         $minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намаляване на количеството'), '-');
@@ -373,7 +375,7 @@ class eshop_ProductDetails extends core_Detail
             $row->catalogPrice = "<b>{$row->catalogPrice}</b>";
         } else {
             $showCartBtn = false;
-            $row->catalogPrice = "<span style='border-radius: 3px;padding: 4px;font-size: .8em;background-color: #e6e6e6;border: solid 1px #ff7070;display: inline-block;color: #c00;margin-right: 5px;'>" . tr('Свържете се с нас') . "</span>";
+            $row->catalogPrice = "<span class=' option-not-in-stock ' style='background-color: #e6e6e6 !important;border: solid 1px #ff7070;color: #c00;margin-top: 5px;'>" . tr('Свържете се с нас') . "</span><br>";
             if(eshop_Products::haveRightFor('single')){
                 $row->catalogPrice = ht::createHint($row->catalogPrice, 'Артикулът няма цена за продажба', 'error', false);
             }
@@ -410,7 +412,7 @@ class eshop_ProductDetails extends core_Detail
                 $row->catalogPrice .= '</div>';
             }
             
-            $row->btn = ht::createFnBtn($settings->addToCartBtn, null, false, array('title' => 'Добавяне в|* ' . mb_strtolower(eshop_Carts::getCartDisplayName()), 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn', 'rel' => 'nofollow'));
+            $btn = ht::createFnBtn($settings->addToCartBtn, null, false, array('title' => 'Добавяне в|* ' . mb_strtolower(eshop_Carts::getCartDisplayName()), 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn addToCard', 'rel' => 'nofollow'));
         }
         
         if($rec->_listView !== true){
@@ -421,10 +423,19 @@ class eshop_ProductDetails extends core_Detail
         if (isset($settings->storeId) && $canStore == 'yes') {
             $quantity = store_Products::getQuantity($rec->productId, $settings->storeId, true);
             if ($quantity < $rec->quantityInPack) {
-                $notInStock = !empty($settings->notInStockText) ? $settings->notInStockText : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
-                $row->btn = "<span class='{$class} option-not-in-stock'>" . $notInStock . ' </span>';
-                $row->quantity = 1;
+                if(empty($rec->deliveryTime)){
+                    $notInStock = !empty($settings->notInStockText) ? $settings->notInStockText : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
+                    $btn = "<span class='{$class} option-not-in-stock'>" . $notInStock . ' </span>';
+                    $row->quantity = 1;
+                } else {
+                    $expectedBlock = "<span class='{$class} option-expected-in-stock'>" . tr('Артикулът не е наличен, но ще бъде доставен') . ' </span>';
+                    $btn = $expectedBlock . $btn;
+                }
             }
+        }
+        
+        if(!empty($btn)){
+            $row->catalogPrice .= " " . $btn;
         }
         
         return $row;
@@ -444,8 +455,7 @@ class eshop_ProductDetails extends core_Detail
         
         $fieldset = cls::get(get_called_class());
         $fieldset->FNC('code', 'varchar');
-        $fieldset->FNC('catalogPrice', 'double');
-        $fieldset->FNC('btn', 'varchar', 'tdClass=small-field');
+        $fieldset->FNC('catalogPrice', 'double', 'tdClass=rightCol');
         $fieldset->FNC('packagingId', 'varchar', 'tdClass=centered');
         $fieldset->FLD('quantity', 'varchar', 'tdClass=quantity-input-column small-field');
         
@@ -473,7 +483,7 @@ class eshop_ProductDetails extends core_Detail
         $cartInfo = "<tr><td colspan='{$colspan}' class='option-table-info'>{$cartInfo}</td></tr>";
         $tpl->append($cartInfo, 'ROW_AFTER');
         
-        $tpl->append(eshop_Products::renderParams($data->commonParams), 'ROW_AFTER');
+        $tpl->append(eshop_Products::renderParams($data->commonParams, false), 'AFTER_PRODUCTS');
         
         return $tpl;
     }

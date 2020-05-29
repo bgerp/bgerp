@@ -673,6 +673,13 @@ class plg_Search extends core_Plugin
     {
         $pKey = $clsName . '|repairSearchKeywords';
         
+        if (!cls::load($clsName, true)) {
+            
+            $clsInst->logDebug("Регенериране на ключови думи: липсващ клас {$clsName}");
+            
+            return;
+        }
+        
         $clsInst = cls::get($clsName);
         
         $maxTime = dt::addSecs(40);
@@ -685,22 +692,34 @@ class plg_Search extends core_Plugin
             $query->where(array("#id > '[#1#]'", $kVal));
         }
         
-        if (!$query->count()) {
-            core_Permanent::remove($pKey);
+        $cnt = $query->count();
+        
+        $clsInst->logDebug("Начало на регенериране на ключови думи за {$clsName} за {$cnt} записа след id>{$kVal}");
+        
+        if (!$cnt) {
+            if (!is_null($kVal)) {
+                core_Permanent::set($pKey, $kVal, 200);
+            } else {
+                core_Permanent::remove($pKey);
+            }
             
             $clsInst->logDebug('Приключи регенерирането на ключови думи');
             
             return ;
         }
-        
-        $callOn = dt::addSecs(120);
+        $callOn = dt::addSecs(55);
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', $clsName, $callOn);
         
         $query->orderBy('id', 'ASC');
         
+        $isFirst = true;
+        
+        $query->limit(10000);
+        
         while ($rec = $query->fetch()) {
-            if (dt::now() >= $maxTime) {
-                break;
+            if ($isFirst) {
+                $clsInst->logDebug("Регенериране на ключови думи от {$rec->id}");
+                $isFirst = false;
             }
             
             $maxId = $rec->id;
@@ -715,14 +734,20 @@ class plg_Search extends core_Plugin
                 $rec->searchKeywords = $generatedKeywords;
                 
                 $clsInst->save_($rec, 'searchKeywords');
-            } catch (core_exception_Expect $e) {
+            } catch (Exception $e) {
                 reportException($e);
+            } catch (Throwable  $e) {
+                reportException($e);
+            }
+            
+            if (dt::now() >= $maxTime) {
+                break;
             }
         }
         
         $clsInst->logDebug('Регенерирани ключови думи до id=' . $maxId);
         
-        core_Permanent::set($pKey, $maxId, 100000);
+        core_Permanent::set($pKey, $maxId, 1000);
     }
     
     

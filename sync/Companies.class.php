@@ -57,30 +57,40 @@ class sync_Companies extends sync_Helper
         
         core_App::setTimeLimit(1000);
         
-        $groupId = sync_Setup::get('COMPANY_GROUP');
-        
-        expect($groupId);
+        $groupKeys = sync_Setup::get('COMPANY_GROUPS');
+        expect($groupKeys);
         
         $res = array();
         
         core_Users::forceSystemUser();
         
         $cQuery = crm_Companies::getQuery();
-        while ($rec = $cQuery->fetch("#groupList LIKE '%|{$groupId}|%'")) {
+        $cQuery->likeKeylist('groupList', $groupKeys);
+        
+        while ($rec = $cQuery->fetch()) {
             sync_Map::exportRec('crm_Companies', $rec->id, $res, $this);
-            $folderId = $rec->folderId;
-            $lRec = cat_Listings::fetch("#state = 'active' AND #folderId = {$folderId}");
-            if($lRec) {
-                $lRec->_companyId = $rec->id;
-                sync_Map::exportRec('cat_Listings', $lRec, $res, $this);
+            
+            if ($rec->folderId) {
+                $lQuery = cat_Listings::getQuery();
+                $lQuery->where(array("#state = 'active' AND #folderId = [#1#]", $rec->folderId));
+                while ($lRec = $lQuery->fetch()) {
+                    $lRec->_companyId = $rec->id;
+                    sync_Map::exportRec('cat_Listings', $lRec, $res, $this);
+                }
+                
+                if (core_Packs::isInstalled('colab')) {
+                    $pQuery = colab_FolderToPartners::getQuery();
+                    $pQuery->where(array("#folderId = [#1#]", $rec->folderId));
+                    
+                    while ($pRec = $pQuery->fetch()) {
+                        $pRec->_companyId = $rec->id;
+                        sync_Map::exportRec('colab_FolderToPartners', $pRec, $res, $this);
+                    }
+                }
             }
         }
         
         core_Users::cancelSystemUser();
-        
-        if (Request::get('_bp') && haveRole('admin')) {
-            bp($res);
-        }
         
         return $this->outputRes($res);
     }
@@ -93,11 +103,8 @@ class sync_Companies extends sync_Helper
     {
         $resArr = self::getDataFromUrl(get_called_class());
         
-        if (Request::get('_bp')) {
-            bp($resArr);
-        }
-        
         Mode::set('preventNotifications', true);
+        Mode::set('syncing', true);
         
         $me = cls::get(get_called_class());
         

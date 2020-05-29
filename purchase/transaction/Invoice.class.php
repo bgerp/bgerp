@@ -90,9 +90,7 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
         if (isset($cloneRec->vatAmount)) {
             $entries[] = array(
                 'amount' => $cloneRec->vatAmount * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
-                
                 'debit' => array('4531'),
-                
                 'credit' => array('4530', array($origin->className, $origin->that)),
             );
         }
@@ -106,11 +104,12 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
                 $productArr[$dRec->productId] = $dRec->productId;
             }
             
-            $productCheck = deals_Helper::checkProductForErrors($productArr, 'canBuy');
-            if(countR($productCheck['notActive'])){
-                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
-            } elseif($productCheck['metasError']){
-                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са купуваеми|*!");
+            // Проверка дали артикулите отговарят на нужните свойства
+            if (Mode::get('saveTransaction') && countR($productArr)) {
+                if($redirectError = deals_Helper::getContoRedirectError($productArr, 'canBuy', 'generic', 'трябва да са купуваеми и да не са генерични')){
+                    
+                    acc_journal_RejectRedirect::expect(false, $redirectError);
+                }
             }
         }
         

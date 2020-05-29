@@ -17,6 +17,16 @@
  */
 class store_Products extends core_Detail
 {
+    
+    
+    /**
+     * Каква да е максималната дължина на стринга за пълнотекстово търсене
+     *
+     * @see plg_Search
+     */
+    public $maxSearchKeywordLen = 13;
+    
+    
     /**
      * Ключ с който да се заключи ъпдейта на таблицата
      */
@@ -651,13 +661,14 @@ class store_Products extends core_Detail
             $srQuery->where("#state = 'pending' AND #{$arr['storeFld']} IS NOT NULL");
             
             if($Doc instanceof purchase_Purchases){
-                $srQuery->show("id,containerId,modifiedOn,shipmentStoreId,valior");
+                $srQuery->show("id,containerId,modifiedOn,shipmentStoreId,valior,deliveryTime");
             } else {
                 $srQuery->show("id,containerId,modifiedOn,storeId,deliveryTime");
             }
             
             while ($sRec = $srQuery->fetch()) {
                 $deliveryTime = isset($sRec->deliveryTime) ? $sRec->deliveryTime : (isset($sRec->valior) ? $sRec->valior : $now);
+                
                 if($deliveryTime <= $now){
                     core_Permanent::remove("reserved_{$sRec->containerId}");
                 }
@@ -912,9 +923,9 @@ class store_Products extends core_Detail
             while($noteRec = $pNoteQuery->fetch()){
                 $deliveryTime = isset($noteRec->deadline) ? $noteRec->deadline : (isset($noteRec->valior) ? $noteRec->valior : null);
                 if($field == 'expectedQuantityTotal'){
-                    $docs[$dRec->containerId] = doc_Containers::getDocument($noteRec->containerId)->getLink(0);
+                    $docs[$noteRec->containerId] = doc_Containers::getDocument($noteRec->containerId)->getLink(0);
                 } if(!empty($deliveryTime) && $deliveryTime <= $now){
-                    $docs[$dRec->containerId] = doc_Containers::getDocument($noteRec->containerId)->getLink(0);
+                    $docs[$noteRec->containerId] = doc_Containers::getDocument($noteRec->containerId)->getLink(0);
                 }
             }
         }

@@ -369,7 +369,8 @@ class cat_Products extends embed_Manager
         $this->FLD('canConvert', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('fixedAsset', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('canManifacture', 'enum(yes=Да,no=Не)', 'input=none');
-        $this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,mandatory');
+        $this->FLD('generic', 'enum(yes=Да,no=Не)', 'input=none,notNull,value=no');
+        $this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим,generic=Генеричен)', 'caption=Свойства->Списък,columns=2,mandatory');
         
         $this->setDbIndex('isPublic');
         $this->setDbIndex('canSell');
@@ -642,7 +643,7 @@ class cat_Products extends embed_Manager
         // Разпределяме свойствата в отделни полета за полесно търсене
         if ($rec->meta) {
             $metas = type_Set::toArray($rec->meta);
-            foreach (array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture') as $fld) {
+            foreach (array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture', 'generic') as $fld) {
                 $rec->{$fld} = (isset($metas[$fld])) ? 'yes' : 'no';
             }
         }
@@ -720,7 +721,7 @@ class cat_Products extends embed_Manager
         
         $categoryType = 'key(mvc=cat_Categories,select=name,allowEmpty)';
         $groupType = 'keylist(mvc=cat_Groups, select=name, makeLinks)';
-        $metaType = 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)';
+        $metaType = 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим,generic=Генеричен)';
         
         $fields['Category'] = array('caption' => 'Допълнителен избор->Категория', 'mandatory' => 'mandatory', 'notColumn' => true, 'type' => $categoryType);
         $fields['Groups'] = array('caption' => 'Допълнителен избор->Групи', 'notColumn' => true, 'type' => $groupType);
@@ -957,7 +958,7 @@ class cat_Products extends embed_Manager
                                 fixedAsset=Дълготрайни активи,
     							fixedAssetStorable=Дълготрайни материални активи,
     							fixedAssetNotStorable=Дълготрайни НЕматериални активи,
-        					    canManifacture=Производими)', 'input,autoFilter');
+        					    canManifacture=Производими,generic=Генеричен)', 'input,autoFilter');
         $data->listFilter->showFields = 'search,order,type,meta1,groupId';
         $data->listFilter->input('order,groupId,search,meta1,type', 'silent');
         
@@ -1488,6 +1489,7 @@ class cat_Products extends embed_Manager
             }
             
             self::filterQueryByMeta($query, $params['hasProperties'], $params['hasnotProperties'], $params['orHasProperties']);
+            
             if(isset($params['groups'])){
                 $groups = (keylist::isKeylist($params['groups'])) ? $params['groups'] : keylist::fromArray(arr::make($params['groups'], true));
                 $query->likeKeylist('groups', $groups);
@@ -1715,7 +1717,7 @@ class cat_Products extends embed_Manager
         
         if (countR($hasnotProperties)) {
             foreach ($hasnotProperties as $meta1) {
-                $query->where("#{$meta1} = 'no'");
+                $query->where("#{$meta1} != 'yes' OR #{$meta1} IS NULL");
             }
         }
     }
@@ -2027,7 +2029,7 @@ class cat_Products extends embed_Manager
         foreach ($rows as &$arrs) {
             if (countR($arrs['rows'])) {
                 foreach ($arrs['rows'] as &$row) {
-                    $row['packId'] = $data->packName;
+                    $row->packId = $data->packName;
                 }
             }
         }
@@ -2855,7 +2857,9 @@ class cat_Products extends embed_Manager
             }
         } else {
             $Driver = static::getDriver($id);
-            $res = $Driver->getMaterialsForProduction($id, $quantity);
+            if($Driver !== false){
+                $res = $Driver->getMaterialsForProduction($id, $quantity);
+            }
         }
         
         return $res;

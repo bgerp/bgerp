@@ -33,6 +33,12 @@ class accda_transaction_Da extends acc_DocumentTransactionSource
         // Извличаме записа
         expect($rec = $this->class->fetchRec($id));
         
+        if (Mode::get('saveTransaction')) {
+            if($redirectError = deals_Helper::getContoRedirectError(array($rec->productId => $rec->productId), 'fixedAsset', 'generic', 'трябва да е дълготраен актив и да не е генеричен')){
+                acc_journal_RejectRedirect::expect(false, $redirectError);
+            }
+        }
+        
         $entries = array();
         
         if ($rec->id) {

@@ -129,7 +129,7 @@ class cat_products_Usage extends core_Manager
         // Ограничаване на заявката
         $query = $data->Document->getQuery();
         $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2  WHEN 'pending' THEN '3' ELSE 4 END)");
-        $query->orderBy('#orderByState=ASC');
+        $query->orderBy('#orderByState=ASC,#id=ASC');
         
         if (countR($ids)) {
             $query->in('id', $ids);
@@ -268,7 +268,7 @@ class cat_products_Usage extends core_Manager
             $data->rows[$rec->id] = $data->Jobs->recToVerbal($rec, $fields);
         }
         
-        if ($masterRec->canManifacture != 'yes') {
+        if ($masterRec->canManifacture != 'yes' || $masterRec->generic == 'yes') {
             $data->notManifacturable = true;
         }
         

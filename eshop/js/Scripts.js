@@ -166,7 +166,7 @@ function eshopActions() {
 	// Бутоните за +/- да променят количеството
 	$(document.body).on('click tap', ".btnUp, .btnDown",  function(){
 		var data = {type:'error'};
-		render_clearStatuses(data)
+		render_clearStatuses(data);
 		
 		var input = $(this).siblings('.option-quantity-input');
 
@@ -178,6 +178,7 @@ function eshopActions() {
 
 		if (valNew > 0 && (!max || step == -1 || (max && val + step <= max))) {
 			$(input).val(valNew);
+			disableBtns();
             if(update) {
 			    $(input).css( "color", "green");
                 $("#cart-view-table").css("cursor", "progress");
@@ -261,4 +262,17 @@ function disableBtns() {
 function render_disableBtns(data)
 {
 	disableBtns();
+}
+
+
+/**
+ * Добавяне на клас към елемент
+ */
+function render_addClass(data)
+{
+	var id = data.id;
+    var cls = data.class;
+	
+	var element = $("#" + id);
+	element.addClass(cls);
 }

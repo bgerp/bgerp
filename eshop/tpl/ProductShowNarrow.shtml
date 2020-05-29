@@ -21,7 +21,9 @@
 	<div class="vtop" style='padding-left:8px;'>
 		[#info#]
 		<br>
+		[#AFTER_PRODUCTS#]
 		[#longInfo#]
         [#nearProducts#]
+        [#nearProductImages#]
 	</div>
 </div>

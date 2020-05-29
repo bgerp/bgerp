@@ -402,6 +402,10 @@ class doc_plg_TplManager extends core_Plugin
                 $row->state = $mvc->getVerbal($rec, 'state');
             }
             
+            if ($mvc->getFieldType('activatedOn', false)) {
+                $row->activatedOn = $mvc->getVerbal($rec, 'activatedOn');
+            }
+            
             if ($mvc->getFieldType('createdOn', false)) {
                 $row->createdOn = $mvc->getVerbal($rec, 'createdOn');
             }

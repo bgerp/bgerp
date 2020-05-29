@@ -775,6 +775,11 @@ class frame2_Reports extends embed_Manager
     {
         if ($rec->state == 'draft') {
             $rec->state = 'active';
+            
+            if (empty($rec->activatedOn)) {
+                $rec->activatedOn = dt::now();
+                $rec->activatedBy = core_Users::getCurrent();
+            }
         } elseif ($rec->state == 'rejected' || $rec->state == 'closed') {
             $rec->removeSetUpdateTimes = true;
         } elseif ($rec->state == 'active' && in_array($rec->brState, array('rejected', 'closed'))) {

@@ -87,6 +87,10 @@
     font-weight: bold;
 }
 
+.select2-container .select2-selection--single .select2-selection__rendered {
+    text-overflow: clip;
+}
+
 span.all-users{
     color: #777;
 }

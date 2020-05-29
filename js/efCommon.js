@@ -133,6 +133,10 @@ function showTooltip() {
                 $(element).addClass('bottom');
             }
 
+            if($(element).parent().offset().left < 200){
+                $(element).addClass('right');
+            }
+
             $(element).css('display', 'block');
         } else {
             // при кликане в бодито затвавяме отворения тултип, ако има такъв
@@ -1618,6 +1622,7 @@ function isTouchDevice() {
  * Задава минимална височина на контента във външната част
  */
 function setMinHeightExt() {
+
     var clientHeight = document.documentElement.clientHeight;
     if ($('#cmsTop').length) {
     	var padding = $('.background-holder').css('padding-top');
@@ -1644,9 +1649,17 @@ function setMinHeightExt() {
             	$('#maincontent').css('minHeight', h);
             }
         }
+    } else if( $('.narrowCenter .headerImg').length){
+        var elHeight = parseInt($('.narrowCenter .headerImg').height() - 5);
+        $('.wide .narrowCenter').height(elHeight);
+        $('.wide .fadein').height(elHeight);
     }
+
     $('.toggleLink').on('click', function(){
         $('.narrowNav').slideToggle();
+    });
+    $(window).resize(function(){
+        setMinHeightExt();
     });
 }
 function getWindowWidth() {
@@ -1780,6 +1793,9 @@ function setFormElementsWidth() {
                  $(this).attr('title', $(this).text());
              }
          });
+    	 if ($('.typeTable .batchNameTd').length) {
+             $('.typeTable').width("100%");
+         }
     }
 }
 

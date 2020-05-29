@@ -396,7 +396,15 @@ class cat_GeneralProductDriver extends cat_ProductDriver
             $res['PREVIEW'] = $preview;
         }
         
-        $labelText = cat_Products::getParams($rec, 'labelText');
+        $labelText = null;
+        $lg = core_Lg::getCurrent();
+        if ($lg != 'bg') {
+            $labelText = cat_Products::getParams($rec, 'labelTextEn');
+        }
+        if (empty($labelText)) {
+            $labelText = cat_Products::getParams($rec, 'labelText');
+        }
+        
         if (!empty($labelText)) {
             $res['OTHER'] = $labelText;
         }

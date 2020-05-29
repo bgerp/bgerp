@@ -150,7 +150,7 @@ class cat_plg_Grouping extends core_Plugin
                     $obj->id = $id;
                     $obj->meta = $rec->meta;
                     
-                    $mvc->save($obj, 'meta,canSell,canBuy,canStore,canConvert,fixedAsset,canManifacture');
+                    $mvc->save($obj, 'meta,canSell,canBuy,canStore,canConvert,fixedAsset,canManifacture,generic');
                     $mvc->logWrite('Промяна на свойствата на артикул', $id);
                     $changed = 1;
                 } else {
@@ -165,7 +165,7 @@ class cat_plg_Grouping extends core_Plugin
                         $obj->meta = cls::get('type_Set')->fromVerbal($groups);
                         
                         if ($groups != $exGroups) {
-                            $mvc->save($obj, 'meta,canSell,canBuy,canStore,canConvert,fixedAsset,canManifacture');
+                            $mvc->save($obj, 'meta,canSell,canBuy,canStore,canConvert,fixedAsset,canManifacture,generic');
                             $mvc->logWrite('Промяна на свойствата на артикул', $id);
                             $changed++;
                         }

@@ -148,7 +148,8 @@ class cat_Setup extends core_ProtoSetup
         'cat_ListingDetails',
         'cat_PackParams',
         'migrate::updateIntName',
-        'migrate::updateBrState'
+        'migrate::updateBrState',
+        'migrate::updateEmptyEanCode'
     );
     
     
@@ -305,5 +306,19 @@ class cat_Setup extends core_ProtoSetup
         if(countR($toSave)){
             $Products->saveArray($toSave, 'id,brState');
         }
+    }
+    
+    
+    /**
+     * Миграция на празните баркодове
+     */
+    public function updateEmptyEanCode()
+    {
+        if(!cat_products_Packagings::count()) return;
+        
+        $Packs = cls::get('cat_products_Packagings');
+        $eanCol = str::phpToMysqlName('eanCode');
+        $query = "UPDATE {$Packs->dbTableName} SET {$eanCol} = '' WHERE {$eanCol} IS NULL";
+        $Packs->db->query($query);
     }
 }

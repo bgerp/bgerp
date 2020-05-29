@@ -69,6 +69,7 @@ class frame2_Setup extends core_ProtoSetup
         'frame2_AllReports',
         'migrate::migrateStates',
         'migrate::keyToKeylist1',
+        'migrate::setFieldTypeOfGroups3',
     );
     
     
@@ -134,5 +135,46 @@ class frame2_Setup extends core_ProtoSetup
             
         }
        
+    }
+    
+    /**
+     * Миграция: в спрвките "Продаде ни артикули"
+     * set  на полето typeOfGroups 
+     */
+    public function setFieldTypeOfGroups3()
+    {
+        $reportClassId =sales_reports_SoldProductsRep::getClassId();
+        if (!$reportClassId)return;
+        
+        $Frames = cls::get('frame2_Reports');
+        
+        $reportQuery=(frame2_Reports::getQuery());
+        
+        $reportQuery->where("#driverClass = $reportClassId");
+        
+        while ($fRec = $reportQuery->fetch()){
+            
+            $oldQuery = frame2_ReportVersions::getQuery();
+            $oldQuery->where("#reportId = $fRec->id");
+            
+            
+            
+            while ($oldRec = $oldQuery->fetch()){
+                if ($fRec->id == 1163)bp($fRec,$oldRec);
+                $oldRec->oldRec->driverRec['typeOfGroups'] ='art';
+                $oldRec->oldRec->typeOfGroups ='art';
+                
+                frame2_ReportVersions::save($oldRec);
+                
+            }
+            
+            if (is_null($fRec->typeOfGroups)){
+                $fRec->typeOfGroups = 'art';
+            }
+            
+            $Frames->save($fRec);
+            
+        }
+        
     }
 }

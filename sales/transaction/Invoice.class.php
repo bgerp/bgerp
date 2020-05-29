@@ -83,6 +83,14 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
             if ($rec->type == 'invoice' && $onlyZeroQuantities === true && empty($rec->dpAmount)) {
                 acc_journal_RejectRedirect::expect(false, 'Трябва да има поне един ред с ненулево количество|*!');
             }
+            
+            // Проверка дали артикулите отговарят на нужните свойства
+            if (countR($productArr)) {
+                if($redirectError = deals_Helper::getContoRedirectError($productArr, 'canSell', 'generic', 'вече не са продаваеми или са генерични')){
+                    
+                    acc_journal_RejectRedirect::expect(false, $redirectError);
+                }
+            }
         }
         
         $origin = $this->class->getOrigin($rec);

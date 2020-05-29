@@ -30,6 +30,7 @@ abstract class deals_Helper
         'currencyId' => 'currencyId',
         'discAmountFld' => 'discAmount',
         'discount' => 'discount',
+        'autoDiscount' => 'autoDiscount',
         'alwaysHideVat' => false, // TRUE всичко трябва да е без ДДС
     );
     
@@ -136,9 +137,10 @@ abstract class deals_Helper
             $rec->{$map['priceFld']} = ($hasVat) ? $price->withVat : $price->noVat;
             
             $noVatAmount = round($price->noVat * $rec->{$map['quantityFld']}, $vatDecimals);
+            $discountVal = isset($rec->{$map['discount']}) ? $rec->{$map['discount']} : $rec->{$map['autoDiscount']};
             
-            if ($rec->{$map['discount']}) {
-                $withoutVatAndDisc = round($noVatAmount * (1 - $rec->{$map['discount']}), $vatDecimals);
+            if ($discountVal) {
+                $withoutVatAndDisc = round($noVatAmount * (1 - $discountVal), $vatDecimals);
             } else {
                 $withoutVatAndDisc = $noVatAmount;
             }
@@ -151,9 +153,9 @@ abstract class deals_Helper
                 $rec->{$map['amountFld']} = round($rec->{$map['amountFld']} + round($noVatAmount * $vat, $vatDecimals), $vatDecimals);
             }
             
-            if ($rec->{$map['discount']}) {
+            if ($discountVal) {
                 if (!($masterRec->type === 'dc_note' && $rec->changedQuantity !== true && $rec->changedPrice !== true)) {
-                    $discount += $rec->{$map['amountFld']} * $rec->{$map['discount']};
+                    $discount += $rec->{$map['amountFld']} * $discountVal;
                 }
             }
             
@@ -2007,5 +2009,22 @@ abstract class deals_Helper
         }
         
         return;
+    }
+    
+    
+    public static function getContoRedirectError($productArr, $haveMetas, $haveNotMetas = null, $metaError = null)
+    {
+        $productCheck = deals_Helper::checkProductForErrors($productArr, $haveMetas, $haveNotMetas);
+        if($productCheck['notActive']){
+            
+            return "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |са затворени|*!";
+        }
+        
+        if($productCheck['metasError']){
+            
+            return "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |{$metaError}|*!";
+        }
+        
+        return null;
     }
 }

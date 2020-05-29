@@ -965,7 +965,7 @@ class crm_Profiles extends core_Master
         }
         
         // Само ако записа на потребителя има
-        if (!empty($user->email) && (strpos($person->email, $user->email) === false)) {
+        if (!empty($user->email) && (strpos($person->email, $user->email) === false) && (strpos($person->buzEmail, $user->email) === false)) {
             $person->email = type_Emails::prepend($person->email, $user->email);
             
             $mustSave = true;

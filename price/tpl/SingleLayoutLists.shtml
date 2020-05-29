@@ -43,6 +43,14 @@
             <td>[#discountCompared#]</td>
         </tr>
         <!--ET_END discountCompared-->
+        
+        <!--ET_BEGIN discountClass-->
+        <tr>
+            <td class="title-style">|Клас за автоматични отстъпки|*</td>
+            <td>[#discountClass#]</td>
+        </tr>
+        <!--ET_END discountClass-->
+        
     	<!--ET_BEGIN clientInfo-->
     		[#clientInfo#]
         <tr>

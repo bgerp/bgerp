@@ -210,7 +210,7 @@ class sales_Sales extends deals_DealMaster
      *
      * @see bgerp_plg_CsvExport
      */
-    public $exportableCsvFields = 'valior,id,folderId,currencyId,amountDeal,amountDelivered,amountPaid,amountInvoiced,invoices=Фактури';
+    public $exportableCsvFields = 'valior,id,folderId,currencyId,paymentMethodId,amountDeal,amountDelivered,amountPaid,amountInvoiced,invoices=Фактури';
     
     
     /**
@@ -303,7 +303,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
+    public $filterDateField = 'createdOn, valior, activatedOn, deliveryTime,modifiedOn';
     
     
     /**
@@ -593,6 +593,7 @@ class sales_Sales extends deals_DealMaster
         $result->set('involvedContragents', array((object) array('classId' => $rec->contragentClassId, 'id' => $rec->contragentId)));
         
         $result->set('amount', $rec->amountDeal);
+        $result->setIfNot('reff', $rec->reff);
         $result->setIfNot('currency', $rec->currencyId);
         $result->setIfNot('rate', $rec->currencyRate);
         $result->setIfNot('vatType', $rec->chargeVat);
@@ -1261,9 +1262,11 @@ class sales_Sales extends deals_DealMaster
      */
     private function getExpectedTransportCost($rec)
     {
-        if(isset($rec->expectedTransportCost))
+        if(isset($rec->expectedTransportCost)){
+            
+            return $rec->expectedTransportCost;
+        }
  
- return $rec->expectedTransportCost;
         $expectedTransport = 0;
         
         // Ако няма калкулатор в условието на доставка, не се изчислява нищо
@@ -1283,12 +1286,16 @@ class sales_Sales extends deals_DealMaster
         $codeAndCountryArr = sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, null, null, $rec->deliveryLocationId ? $rec->deliveryLocationId : $rec->deliveryAdress);
         $ourCompany = crm_Companies::fetchOurCompany();
         $params = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
+        if ($rec->deliveryData) {
+            $params += $rec->deliveryData;
+        }
         
         // Изчисляване на общото тегло на офертата
         $total = sales_TransportValues::getTotalWeightAndVolume($TransportCalc, $products, $rec->deliveryTermId, $params);
-        if($total == cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT)
- 
- return cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT;
+        if($total == cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT){
+            
+            return cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT;
+        }
         
         // За всеки артикул се изчислява очаквания му транспорт
         foreach ($products as $p2) {
@@ -1642,6 +1649,38 @@ class sales_Sales extends deals_DealMaster
                     $rec->invoices = str_replace('#Inv', '', implode(', ', $invoices));
                 }
             }
+        }
+    }
+    
+    
+    /**
+     * Обновява мастъра
+     *
+     * @param mixed $id - ид/запис на мастъра
+     */
+    public static function on_AfterUpdateMaster($mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if(!in_array($rec->state, array('draft', 'pending'))) {
+            
+            return;
+        }
+        
+        // Изчисляване на автоматичните отстъпки ако може
+        $DiscountInterface = price_ListToCustomers::getAutoDiscountClassForCustomer($rec->priceListId, $rec->contragentClassId, $rec->contragentId, $rec->valior);
+        if($DiscountInterface){
+            $update = array();
+            $dQuery = cls::get('sales_SalesDetails')->getQuery();
+            $dQuery->where("#saleId = {$rec->id}");
+            while($dRec = $dQuery->fetch()){
+                $dRec->autoDiscount = $DiscountInterface->calcAutoSaleDiscount($dRec, $rec);
+                $update[$dRec->id] = $dRec;
+            }
+            
+            cls::get('sales_SalesDetails')->saveArray($update, 'id,autoDiscount');
+            
+            // Вика се пак да се преизчислят кеш полетата наново след въведената отстъпка
+            parent::updateMaster_($id);
         }
     }
 }

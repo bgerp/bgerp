@@ -334,12 +334,72 @@ class eshop_Products extends core_Master
         $row->groupId = eshop_Groups::getHyperlink($rec->groupId, true);
         
         if (is_array($rec->nearProducts) && (isset($fields['-single']) || isset($fields['-external']))) {
+            $nearProductsData = $mvc->getNearProductsBlock($rec);
             $row->nearProducts = '';
-            foreach ($rec->nearProducts as $productId => $weight) {
-                $row->nearProducts .= '<li>' . ht::createLink(eshop_Products::getTitleById($productId), self::getUrl(self::fetch($productId))) . '</li>';
+            
+            // Показване на линковете към свързаните артикули
+            if(countR($nearProductsData->products)){
+                foreach ($nearProductsData->products as $productLink) {
+                    $row->nearProducts .= "<li>{$productLink}</li>";
+                }
+                
+                $row->nearProducts = '<p  style="margin-bottom: 5px;">' . tr('Вижте също') . ':</p><ul style="margin-top: 0px;">' . $row->nearProducts . '</ul>';
             }
-            $row->nearProducts = '<p  style="margin-bottom: 5px;">' . tr('Вижте също') . ':</p><ul style="margin-top: 0px;">' . $row->nearProducts . '</ul>';
+            
+            // Показване на изображениятя линковете към свързаните артикули
+            if(countR($nearProductsData->images)){
+                $row->nearProductImages = '';
+                foreach ($nearProductsData->images as $productImageLink) {
+                    $row->nearProductImages .= "<li>{$productImageLink}</li>";
+                }
+                
+                $row->nearProductImages = "<ul class='eshopNearProductImageHolder'>{$row->nearProductImages}</ul>";
+            }
         }
+    }
+    
+    
+    /**
+     * Връща данните за свързаните артикули, за показване във външната час
+     * 
+     * @param stdClass $rec   - запис
+     * @return stdClass $data - върнати данни
+     */
+    private function getNearProductsBlock($rec)
+    {
+        $data = (object)array('products' => array(), 'images' => array());
+        
+        // Ако няма свързани артикули, се връща празен обект
+        if(!is_array($rec->nearProducts)){
+            
+            return $data;
+        }
+        
+        // За всеки свързан
+        $nearProducts = array_keys($rec->nearProducts);
+        foreach ($nearProducts as $productId) {
+            
+            // Ако е затворен, се пропуска
+            $productRec = eshop_Products::fetch($productId, 'image,image2,image3,image4,image5,state');
+            if($productRec->state == 'closed') continue;
+            
+            // Показване на линковете към артикула
+            $prodRec = self::fetch($productId);
+            if ($prodRec) {
+                $productUrl = self::getUrl($prodRec);
+                $productTitle = eshop_Products::getTitleById($productId);
+                $data->products[$productId] = ht::createLink($productTitle, $productUrl)->getContent();
+                
+                // Ако има се показва тъмбнейл, към него
+                $thumb = static::getProductThumb($productRec, 300, 300);
+                if(isset($thumb)){
+                    $thumbHtml = $thumb->createImg(array('class' => 'eshopNearProductThumb', 'title' => $productTitle))->getContent();
+                    $data->images[$productId] = ht::createLink($thumbHtml, $productUrl);
+                }
+            }
+        }
+        
+        return $data;
     }
     
     
@@ -412,6 +472,40 @@ class eshop_Products extends core_Master
     
     
     /**
+     * Показване на тъмбнейла на е-артикула
+     * 
+     * @param stdClass $rec
+     * @param int $width
+     * @param int $height
+     * 
+     * @return thumb_Img|NULL
+     */
+    public static function getProductThumb($rec, $width = 120, $height = 120)
+    {
+        $imageArr = array();
+        foreach (array('', '2', '3', '4', '5') as $i){
+            $fh = $rec->{"image{$i}"};
+            if(!empty($fh)){
+                $path = fileman::fetchByFh($fh, 'path');
+                if(file_exists($path)){
+                    $imageArr[] = $fh;
+                }
+            }
+        }
+        
+        if (countR($imageArr)) {
+            $tact = abs(crc32($rec->id . round(time() / (24 * 60 * 60 + 537)))) % countR($imageArr);
+            $image = $imageArr[$tact];
+            $thumb = new thumb_Img($image, 120, 120);
+            
+            return $thumb;
+        }
+        
+        return null;
+    }
+    
+    
+    /**
      * Подготвя данните за продуктите от една група
      */
     public static function prepareGroupList($data)
@@ -426,38 +520,18 @@ class eshop_Products extends core_Master
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $perPage));
         $data->Pager->itemsCount = $pQuery->count();
         $data->Pager->setLimit($pQuery);
+        $settings = cms_Domains::getSettings();
         
         while ($pRec = $pQuery->fetch()) {
             $data->recs[] = $pRec;
             $pRow = $data->rows[] = self::recToVerbal($pRec, 'name,info,image,code,coMoq');
             
-            $imageArr = array();
-            if ($pRec->image) {
-                $imageArr[] = $pRec->image;
+            // Показване на тъмбнейл на артикула
+            $thumb = static::getProductThumb($pRec);
+            if(empty($thumb)){
+                $thumb = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') .'.png'), 120, 120, 'path');
             }
-            if ($pRec->image1) {
-                $imageArr[] = $pRec->image1;
-            }
-            if ($pRec->image2) {
-                $imageArr[] = $pRec->image2;
-            }
-            if ($pRec->image3) {
-                $imageArr[] = $pRec->image3;
-            }
-            if ($pRec->image4) {
-                $imageArr[] = $pRec->image4;
-            }
-            if (countR($imageArr)) {
-                $tact = abs(crc32($pRec->id . round(time() / (24 * 60 * 60 + 537)))) % countR($imageArr);
-                $image = $imageArr[$tact];
-                $img = new thumb_Img($image, 120, 120);
-            } else {
-                $img = new thumb_Img(getFullPath('eshop/img/noimage' .
-                    (cms_Content::getLang() == 'bg' ? 'bg' : 'en') .
-                    '.png'), 120, 120, 'path');
-            }
-            
-            $pRow->image = $img->createImg(array('class' => 'eshop-product-image'));
+            $pRow->image = $thumb->createImg(array('class' => 'eshop-product-image'));
             
             if($pRec->saleState == 'single'){
                 
@@ -499,7 +573,6 @@ class eshop_Products extends core_Master
                         $pRecClone->_listView = true;
                         $dRow = eshop_ProductDetails::getExternalRow($pRecClone);
                         
-                        $settings = cms_Domains::getSettings();
                         $pRow->singleCurrencyId = $settings->currencyId;
                         $pRow->chargeVat = ($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС');
                         $pRow->catalogPrice = $dRow->catalogPrice;
@@ -508,11 +581,11 @@ class eshop_Products extends core_Master
                     }
                 }
             } elseif($pRec->saleState == 'multi'){
-                $pRow->btn = ht::createBtn($settings->addToCartBtn . '...', self::getUrl($pRec->id), false, false, 'title=Избор на артикул,class=productBtn,ef_icon=img/16/cart_go.png');
+                $pRow->btn = ht::createBtn($settings->addToCartBtn . '...', self::getUrl($pRec->id), false, false, 'title=Избор на артикул,class=productBtn addToCard,ef_icon=img/16/cart_go.png');
             } elseif($pRec->saleState == 'closed'){
                 $pRow->btn = "<span class='option-not-in-stock'>" . mb_strtoupper(tr(('Спрян||Not available'))) . '</span>';
             }
-            
+
             $commonParams = self::getCommonParams($pRec->id);
             $pRow->commonParams = (countR($commonParams)) ? self::renderParams(self::getCommonParams($pRec->id)) : null;
         }
@@ -532,11 +605,20 @@ class eshop_Products extends core_Master
         $layout = new ET();
         
         if (is_array($data->groups)) {
+            
             foreach ($data->groups as $gData) {
                 if (!countR($gData->recs)) {
                     continue;
                 }
-                $layout->append('<h2>' . eshop_Groups::getVerbal($gData->groupRec, 'name') . '</h2>');
+
+                $groupName = eshop_Groups::getVerbal($gData->groupRec, 'name');
+                $layout->append('<h2>' . $groupName . '</h2>');
+
+                if (!empty($gData->groupRec->image)) {
+                    $image = fancybox_Fancybox::getImage($gData->groupRec->image, array(1200,800), array(1600, 1000), $groupName);
+                    $layout->append(new core_ET("<div class='eshop-group-image'>[#IMAGE#]</div>"));
+                    $layout->replace($image, 'IMAGE');
+                }
                 $layout->append(self::renderGroupList($gData));
             }
         }
@@ -625,6 +707,12 @@ class eshop_Products extends core_Master
         }
         
         $data->rec = self::fetch($data->productId);
+        if($data->rec->state == 'closed'){
+            $groupRec = eshop_Groups::fetch($data->rec->groupId);
+            
+            return new Redirect(eshop_Groups::getUrl($groupRec), 'Артикулът в момента е спрян от продажба|*!', 'warning');
+        }
+       
         $data->groups = new stdClass();
         $data->groups->groupId = $data->rec->groupId;
         if ($groupId = Request::get('groupId', 'int')) {
@@ -749,8 +837,6 @@ class eshop_Products extends core_Master
         
         if($data->rec->saleState == 'closed'){
             $data->row->STATE_EXTERNAL = "<span class='option-not-in-stock' style='font-size:0.9em !important'>" . tr('Този продукт вече не се предлага') . "</span>";
-        } elseif($data->rec->saleState == 'empty' && empty($data->rec->coDriver)){
-            $data->row->STATE_EXTERNAL = "<span style='border-radius: 3px;padding: 4px;font-size: .8em;background-color: #e6e6e6;border: solid 1px #ff7070;display: inline-block;color: #c00;' '>" . tr('Свържете се с нас') . "</span>";
         }
     }
     
@@ -1388,7 +1474,7 @@ class eshop_Products extends core_Master
      *
      * @return core_ET
      */
-    public static function renderParams($array)
+    public static function renderParams($array, $isTable = true)
     {
         $tpl = new core_ET('');
         if (!is_array($array)) {
@@ -1396,13 +1482,22 @@ class eshop_Products extends core_Master
             return $tpl;
         }
         
-        $tpl = new core_ET("<table class='paramsTable'>[#row#]</table>");
-        foreach ($array as $paramId => $value) {
-            $paramBlock = new core_ET('<tr><td nowrap valign="top"><b>&bull; [#caption#]:<b></td><td>[#value#]</td></tr>');
-            $paramBlock->placeArray(array('caption' => cat_Params::getTitleById($paramId), 'value' => $value));
-            $paramBlock->removeBlocks();
-            $paramBlock->removePlaces();
-            $tpl->append($paramBlock, 'row');
+        if($isTable){
+            $tpl = new core_ET("<table class='paramsTable'>[#row#]</table>");
+            foreach ($array as $paramId => $value) {
+                $paramBlock = new core_ET('<tr><td nowrap valign="top"><b>&bull; [#caption#]:<b></td><td>[#value#]</td></tr>');
+                $paramBlock->placeArray(array('caption' => str::mbUcfirst(tr(cat_Params::getTitleById($paramId))), 'value' => $value));
+                $paramBlock->removeBlocksAndPlaces();
+                $tpl->append($paramBlock, 'row');
+            }
+        } else {
+            $tpl = new core_ET("<div class='richtext'><ul>[#row#]</ul></div>");
+            foreach ($array as $paramId => $value) {
+                $paramBlock = new core_ET('<li><b>[#caption#]</b> : [#value#]</li>');
+                $paramBlock->placeArray(array('caption' => str::mbUcfirst(tr(cat_Params::getTitleById($paramId))), 'value' => $value));
+                $paramBlock->removeBlocksAndPlaces();
+                $tpl->append($paramBlock, 'row');
+            }
         }
         
         return $tpl;

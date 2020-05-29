@@ -112,7 +112,11 @@ class core_SystemLock
                 $refresh = '<meta http-equiv="refresh" content="1">';
             }
             
-            $leftMin = round(($lockTime - (time() - $startTime)) / 60);
+            if (is_numeric($lockTime) && is_numeric($startTime)) {
+                $leftMin = round(($lockTime - (time() - $startTime)) / 60);
+            } else {
+                $leftMin = 0;
+            }
             
             if ($leftMin == 1) {
                 $after = 'минута';

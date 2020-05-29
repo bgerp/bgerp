@@ -1315,6 +1315,13 @@ a.tOld {
   .typeTable td {
     text-align: center;
     font-size: 0.8em; }
+    .typeTable .batchNameTd input {
+      white-space: nowrap;
+      width: 100% !important; }
+    .typeTable .batchNameTd ~ td {
+      width: 120px; }
+      .typeTable .batchNameTd ~ td input {
+        max-width: 120px; }
 
 /*
  * стилове за документи
@@ -1672,6 +1679,10 @@ a.tOld {
   .document-settings-left .additionalInfo {
     left: auto;
     right: -4px; }
+    .document-settings .additionalInfo.right,
+    .document-settings-left .additionalInfo.right {
+      left: -42px;
+      right: auto; }
   .document-settings .pluginCountButtonNub,
   .document-settings-left .pluginCountButtonNub {
     height: 0;
@@ -2885,7 +2896,8 @@ span.sharing-history-title {
   height: auto; }
 
 .narrow .externalPage #maincontent {
-  padding: 2px 5px 5px; }
+  padding: 2px 5px 5px;
+  position: relative; }
 
 .wide .externalPage .formTable {
   margin: 20px; }
@@ -3008,6 +3020,27 @@ span.sharing-history-title {
   font-weight: normal;
   display: inline-block; }
 
+.eshopNearProductImageHolder {
+  list-style: none;
+  padding-left: 0; }
+  .eshopNearProductImageHolder li {
+    float: left;
+    display: inline-block;
+    width: 90px;
+    height: 90px;
+    margin-right: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    border-radius: 3px; }
+    .eshopNearProductImageHolder li:hover img {
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.8); }
+    .eshopNearProductImageHolder li img {
+      max-height: 90px;
+      max-width: 90px;
+      width: auto;
+      padding: 4px;
+      border-radius: 3px; }
+
 .order-info {
   background-color: #f1f1f1;
   border: 1px solid #cccccc;
@@ -3058,7 +3091,8 @@ span.sharing-history-title {
   display: inline-block;
   position: relative;
   margin-left: 2px;
-  top: -6px; }
+  top: -6px;
+  padding: 2px 2px 1px; }
   #cart-external-status .count a {
     padding-top: 5px; }
 
@@ -3301,6 +3335,17 @@ table .eshop-btn {
   .productBtn:hover {
     background-color: #eeeeee !important; }
 
+.narrow .eshop-btn.addToCard,
+.narrow .productBtn.addToCard {
+  background-image: url("../img/16/cart_go.png") !important;
+  background-position: 3px center;
+  background-repeat: no-repeat;
+  margin-bottom: 5px !important;
+  padding: 4px 8px 5px 25px !important;
+  top: -1px !important;
+  position: relative;
+  border: 1px solid #bbbbbb !important; }
+
 .order-btn {
   color: white !important;
   text-shadow: 1px 1px 0 #333333;
@@ -3475,6 +3520,9 @@ table .eshop-btn {
     text-shadow: none; }
   .contractorExtHolder .toolbar-btn {
     max-width: 16px !important; }
+
+.narrow .contractorExtHolder {
+  padding-top: 40px; }
 
 .narrow #login-form {
   max-width: 17em !important;
@@ -4875,10 +4923,22 @@ div.location.public {
     font-weight: normal; }
     .eshop-group-button .eshop-group-button-title a {
       color: #004488; }
-  .eshop-group-button .eshop-group-button-img img {
-    width: auto;
-    width: 100% \9;
-    max-height: 220px; }
+  .eshop-group-button .eshop-group-button-img a {
+    display: block; }
+    .eshop-group-button .eshop-group-button-img a img {
+      max-width: 100%;
+      max-height: 220px; }
+
+.narrow .externalPage #maincontent.hasLogoutBlock {
+  padding-top: 29px !important; }
+
+.narrow .hasLogoutBlock .logoutBlock {
+  top: -29px;
+  right: -2px; }
+
+.narrow #all .hasLogoutBlock .logoutBlock {
+  top: 0;
+  right: 0; }
 
 .narrow .eshop-group-button {
   margin-bottom: 10px;
@@ -4944,7 +5004,8 @@ div.location.public {
   margin-bottom: 10px; }
 
 .eshop-group-image img {
-  width: 100% !important; }
+  width: 100% !important;
+  height: auto !important; }
 
 .eshop-group {
   margin-top: -5px; }
@@ -6075,6 +6136,9 @@ only screen and (max-width: 320px) {
     font-size: 13px !important;
     color: #333333 !important;
     font-family: Verdana !important; } }
+
+.narrow .folder-cover .groupTitle {
+  white-space: normal; }
 
   .printing .specialLink {
     font-weight: bold; }
