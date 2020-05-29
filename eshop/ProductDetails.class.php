@@ -428,7 +428,7 @@ class eshop_ProductDetails extends core_Detail
                     $btn = "<span class='{$class} option-not-in-stock'>" . $notInStock . ' </span>';
                     $row->quantity = 1;
                 } else {
-                    $expectedBlock = "<span style='margin-right: 5px' class='{$class} option-not-in-stock'>" . tr('Артикулът не е наличен, но ще бъде доставен') . '</span>';
+                    $expectedBlock = "<span style='margin-right: 5px' class='{$class} option-not-in-stock waitingDelivery'>" . tr('Очаквана доставка') . '</span>';
                     $btn = $expectedBlock . $btn;
                 }
             }
