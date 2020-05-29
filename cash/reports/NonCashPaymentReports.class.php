@@ -300,7 +300,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
             $fld->FLD('contragentName', 'varchar', 'caption=Контрагент');
             $fld->FLD('pko', 'varchar', 'caption=ПКО->Документ');
             $fld->FLD('invoiceNum', 'varchar', 'caption=ПКО->Фактура');
-            $fld->FLD('pkoAmount', 'double(smartRound,decimals=2)', 'caption=ПКО->Сума');
+            $fld->FLD('pkoAmount', 'varchar', 'caption=ПКО->Сума');
             $fld->FLD('rest', 'varchar', 'caption=ПКО->Остатък');
             $fld->FLD('transfer', 'varchar', 'caption=Трансфер->Документ');
             $fld->FLD('amount', 'varchar', 'caption=Трансфер->Сума');
@@ -494,19 +494,28 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         $Double->params['decimals'] = 2;
         
         $res->pko = "Pko #$dRec->pkoId".' / '.$Date->toVerbal($dRec->pkoValior);
-        
+        $res->pkoAmount = $Double->toVerbal($dRec->pkoAmount);
        
         
         if (is_array($dRec->inTransferMoney)) {
-            $sum = 0;
+            $sum = 0;$marker = 0;
             foreach ($dRec->inTransferMoney as $val) {
-                
+                $marker ++;
                 $inAmount = ($val->state == 'pending' || $val->state == 'draft') ? 0 : $val->amount;
                 
                 $sum += $inAmount;
                 
-                $res->transfer .= "Cvt#$val->id".'; ';
-                $res->amount .= $Double->toVerbal("$inAmount").'; ';
+                $res->transfer .= "Cvt#$val->id";
+                $res->amount .= $Double->toVerbal($inAmount);
+                
+                
+                if ((countR($dRec->inTransferMoney)) - $marker != 0) {
+                $res->transfer .= ' |';
+                $res->amount .= ' |';
+                }
+                
+                
+                
                 
             }
         }
