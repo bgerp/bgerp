@@ -517,15 +517,12 @@ class cat_Categories extends core_Master
         $metasArr = is_array($metasArr) ? $metasArr : type_Set::toArray($metasArr);
         
         if(isset($metasArr['generic'])) {
-            if(!isset($metasArr['canConvert'])){
-                $error = "Генеричният артикул трябва да е и Вложим";
-                
-            } elseif(isset($metasArr['canBuy']) || isset($metasArr['canSell']) || isset($metasArr['fixedAsset']) || isset($metasArr['canManifacture'])){
+             if(isset($metasArr['canBuy']) || isset($metasArr['canSell']) || isset($metasArr['fixedAsset']) || isset($metasArr['canManifacture'])){
                 $error = "Генеричният артикул не може да е Продаваем, Купуваем, Производим или ДА";
-                
-            } elseif(isset($productId) && !haveRole('debug')){
+             } elseif(!isset($metasArr['canConvert'])){
+                 $error = "Генеричният артикул трябва да е и Вложим";
+             } elseif(isset($productId) && !haveRole('debug')){
                 $exMeta = type_Set::toArray(cat_Products::fetchField($productId, 'meta'));
-               
                 if(!isset($exMeta['generic'])){
                     $error = "Съществуващ артикул не може да става генеричен";
                 }
