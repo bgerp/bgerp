@@ -283,7 +283,7 @@ class eshop_ProductDetails extends core_Detail
             $data->paramListFields["param{$paramId}"] = cat_Params::getVerbal($paramId, 'typeExt');
         }
         
-        $data->listFields = $data->paramListFields + arr::make('code=Код,productId=Опция,packagingId=Опаковка,quantity=Количество,catalogPrice=Цена,btn=|*&nbsp;');
+        $data->listFields = $data->paramListFields + arr::make('code=Код,productId=Опция,packagingId=Опаковка,quantity=Количество,catalogPrice=Цена,saleInfo=|*&nbsp;');
         $fields = cls::get(get_called_class())->selectFields();
         $fields['-external'] = $fields;
         
@@ -425,11 +425,12 @@ class eshop_ProductDetails extends core_Detail
             if ($quantity < $rec->quantityInPack) {
                 if(empty($rec->deliveryTime)){
                     $notInStock = !empty($settings->notInStockText) ? $settings->notInStockText : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
-                    $btn = "<span class='{$class} option-not-in-stock'>" . $notInStock . ' </span>';
+                    $row->saleInfo = "<span class='{$class} option-not-in-stock'>" . $notInStock . ' </span>';
+                    
+                    unset($btn);
                     $row->quantity = 1;
                 } else {
-                    $expectedBlock = "<span style='margin-right: 5px' class='{$class} option-not-in-stock waitingDelivery'>" . tr('Очаквана доставка') . '</span>';
-                    $btn = $expectedBlock . $btn;
+                    $row->saleInfo = "<span style='margin-right: 5px' class='{$class} option-not-in-stock waitingDelivery'>" . tr('Очаквана доставка') . '</span>';
                 }
             }
         }
