@@ -518,16 +518,20 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                 if(!empty($dRec->invoice)){
                     $res->invoiceNum .='За избор: ';
                 }
+                $marker = 0;
                 foreach ($dRec->invoice as $val){ 
-                    
+                    $marker++;
                     $Invoice = doc_Containers::getDocument($val);
                     
                     $invRec = sales_Invoices::fetch($Invoice->that);
                     
-                    $handle = "$invRec->number";
+                    $handle = "Inv#$invRec->number";
                     
-                    $res->invoiceNum .=$handle.";";
-                   
+                    $res->invoiceNum .=$handle;
+                    
+                    if ((countR($dRec->invoice)) - $marker != 0) {
+                        $res->invoiceNum .=" |";
+                    }
                 }
                 
                 
