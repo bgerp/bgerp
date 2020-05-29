@@ -120,7 +120,6 @@ class planning_Setup extends core_ProtoSetup
         'planning_DirectProductNoteDetails',
         'planning_ReturnNotes',
         'planning_ReturnNoteDetails',
-        'planning_ObjectResources',
         'planning_Tasks',
         'planning_AssetResources',
         'planning_AssetResourceFolders',
@@ -134,6 +133,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_Stages',
         'planning_WorkCards',
         'planning_Points',
+        'planning_GenericMapper',
         'migrate::assetResourceFields',
         'migrate::updateTasks',
         'migrate::updateTasksPart2'
