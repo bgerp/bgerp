@@ -1335,6 +1335,11 @@ class cat_Products extends embed_Manager
     public function canAddToListOnActivation($rec)
     {
         $rec = $this->fetchRec($rec);
+        
+        // Ако артикула е генеричен не става перо по дефолт
+        $generic = ($rec->generic) ? $rec->generic : $this->fetchField($rec->id, 'generic');
+        if($generic == 'yes') return false;
+        
         $isPublic = ($rec->isPublic) ? $rec->isPublic : $this->fetchField($rec->id, 'isPublic');
         
         return ($isPublic == 'yes') ? true : false;
