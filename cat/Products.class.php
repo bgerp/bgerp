@@ -963,7 +963,7 @@ class cat_Products extends embed_Manager
                                 fixedAsset=Дълготрайни активи,
     							fixedAssetStorable=Дълготрайни материални активи,
     							fixedAssetNotStorable=Дълготрайни НЕматериални активи,
-        					    canManifacture=Производими,generic=Генеричен)', 'input,autoFilter');
+        					    canManifacture=Производими,generic=Генерични)', 'input,autoFilter');
         $data->listFilter->showFields = 'search,order,type,meta1,groupId';
         $data->listFilter->input('order,groupId,search,meta1,type', 'silent');
         
