@@ -885,11 +885,19 @@ abstract class deals_InvoiceMaster extends core_Master
         if(!empty($inChargeRec->buzLocationId)){
              $locationRec = crm_Locations::fetch($inChargeRec->buzLocationId, 'place,countryId');
              $place = $locationRec->place;
+             $countryId = $locationRec->countryId;
         }
         
         if(empty($place)){
             $myCompany = crm_Companies::fetchOwnCompany();
             $place = $myCompany->place;
+            $countryId = $myCompany->countryId;
+        }
+        
+        $contragentCountryId = doc_Folders::getContragentData($rec->folderId)->countryId;
+        if (!empty($place) && $contragentCountryId != $countryId) {
+            $cCountry = drdata_Countries::fetchField($countryId, 'commonNameBg');
+            $place .= ", {$cCountry}";
         }
         
         return $place;
