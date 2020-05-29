@@ -65,7 +65,7 @@ class cat_Products extends embed_Manager
      * Детайла, на модела
      */
     public $details = 'Packagings=cat_products_Packagings,Prices=cat_products_PriceDetails,AccReports=acc_ReportDetails,
-    Resources=planning_ObjectResources,Usage=cat_products_Usage,Boms=cat_Boms,Shared=cat_products_SharedInFolders,store_Products';
+    Resources=planning_GenericMapper,Usage=cat_products_Usage,Boms=cat_Boms,Shared=cat_products_SharedInFolders,store_Products';
     
     
     /**
@@ -1468,7 +1468,6 @@ class cat_Products extends embed_Manager
             }
             
             $ids = implode(',', $onlyIds);
-            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
             
             $query->where("#id IN (${ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
@@ -1519,6 +1518,11 @@ class cat_Products extends embed_Manager
             // Филтър по драйвер, ако има
             if(isset($params['driverId'])){
                 $query->where("#innerClass = {$params['driverId']}");
+            }
+            
+            // Ако има ограничение по ид-та
+            if(isset($params['onlyIn'])){
+                $query->in("id", $params['onlyIn']);
             }
         }
         
@@ -3394,7 +3398,7 @@ class cat_Products extends embed_Manager
         if ($pRec->canConvert == 'yes') {
             
             // Кои са му еквивалентните
-            $similar = planning_ObjectResources::getEquivalentProducts($productId);
+            $similar = planning_GenericMapper::getEquivalentProducts($productId);
             
             // Подреждане на еквивалентните му, по к-то им във всички складове
             if (countR($similar)) {

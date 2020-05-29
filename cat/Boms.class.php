@@ -1068,7 +1068,7 @@ class cat_Boms extends core_Master
             }
             
             if (!isset($price)) {
-                $price = planning_ObjectResources::getAvgPriceEquivalentProducts($productId, $date);
+                $price = planning_GenericMapper::getAvgPriceEquivalentProducts($productId, $date);
             }
             
             // Ако и по рецепта няма тогава да гледа по складова
@@ -1079,7 +1079,7 @@ class cat_Boms extends core_Master
                 if (isset($pInfo->meta['canStore'])) {
                     $price = cat_Products::getWacAmountInStore(1, $productId, $date);
                 } else {
-                    $price = planning_ObjectResources::getWacAmountInProduction(1, $productId, $date);
+                    $price = planning_GenericMapper::getWacAmountInProduction(1, $productId, $date);
                 }
                 
                 if (isset($price) && $price < 0) {
@@ -1093,7 +1093,7 @@ class cat_Boms extends core_Master
             if (isset($pInfo->meta['canStore'])) {
                 $price = cat_Products::getWacAmountInStore(1, $productId, $date);
             } else {
-                $price = planning_ObjectResources::getWacAmountInProduction(1, $productId, $date);
+                $price = planning_GenericMapper::getWacAmountInProduction(1, $productId, $date);
             }
             
             if (!isset($price)) {
@@ -1105,7 +1105,7 @@ class cat_Boms extends core_Master
             }
             
             if (!isset($price)) {
-                $price = planning_ObjectResources::getAvgPriceEquivalentProducts($productId, $date);
+                $price = planning_GenericMapper::getAvgPriceEquivalentProducts($productId, $date);
             }
             
             // В краен случай взимаме мениджърската себестойност

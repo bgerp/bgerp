@@ -244,7 +244,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                         if ($canStore == 'yes') {
                             $primeCost = cat_Products::getWacAmountInStore($dRec1->quantity, $dRec1->productId, $valior, $dRec1->storeId);
                         } else {
-                            $primeCost = planning_ObjectResources::getWacAmountInProduction($dRec1->quantity, $dRec1->productId, $valior);
+                            $primeCost = planning_GenericMapper::getWacAmountInProduction($dRec1->quantity, $dRec1->productId, $valior);
                         }
                         
                         $sign = 1;
