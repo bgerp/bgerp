@@ -636,7 +636,7 @@ class eshop_Products extends core_Master
      */
     public function renderGroupList_($data)
     {
-        $layout = new ET('');
+        $layout = new ET("<div class='eshop-product-list-holder'>[#BLOCK#]</div>");
         
         if (is_array($data->rows)) {
             
@@ -665,7 +665,7 @@ class eshop_Products extends core_Master
                 $pTpl->removePlaces();
                 $pTpl->removeBlocks();
                 
-                $layout->append($pTpl);
+                $layout->append($pTpl, 'BLOCK');
             }
         }
         
