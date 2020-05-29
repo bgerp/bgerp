@@ -136,6 +136,7 @@ class planning_GenericMapper extends core_Manager
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $row->genericProductId = cat_Products::getHyperlink($rec->genericProductId, true);
+        $row->productId = cat_Products::getHyperlink($rec->productId, true);
         $row->created = $row->createdOn . " " . tr('от||by') . " " . $row->createdBy;
     }
     

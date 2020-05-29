@@ -623,6 +623,11 @@ class cat_Products extends embed_Manager
                     $form->setWarning('name', '|Артикулът участва в продажба на чернова|*. |За да се преизчисли цената в нея, трябва да се редактира артикула, да се изтрие цената и да се презапише|*. |Наистина ли желаете да редактирате артикула|*?');
                 }
             }
+            
+            $metaError = null;
+            if(!cat_Categories::checkMetas($rec->meta, $rec->id, $metaError)){
+                $form->setError('meta', $metaError);
+            }
         }
     }
     
