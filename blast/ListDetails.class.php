@@ -821,6 +821,34 @@ class blast_ListDetails extends doc_Detail
         
         return $csv;
     }
+
+
+    /**
+     * Извежда списък с всички под-нива на дадената група, включително и нея
+     */
+    private static function expandTree($groupId)
+    {
+        $Groups = cls::get('crm_Groups');
+        $gQuery = $Groups->getQuery();
+        $res[$groupId] = $groupId;
+        $flag = true;
+        $gRecs = $gQuery->fetchAll();
+        while($flag) {
+            $flag = false;
+           
+            foreach($gRecs as $r) {
+                if(isset($res[$r->parentId])) {
+                    if(!isset($res[$r->id])) {
+                        $res[$r->id] = $r->id;
+                        $flag = true;
+                    }
+                }
+            }
+        }
+        $res = keylist::fromArray($res);
+
+        return $res;
+    }
     
     
     /**
@@ -841,8 +869,10 @@ class blast_ListDetails extends doc_Detail
             
             return $resArr[$hash];
         }
-        
+         
         $cQuery = $class::getQuery();
+        $groupId = self::expandTree($groupId);
+
         $cQuery->likeKeylist('groupList', $groupId);
         
         $cQuery->groupBy('country');
@@ -1257,9 +1287,10 @@ class blast_ListDetails extends doc_Detail
         $mvc = cls::get($className);
         
         $cQuery = $mvc->getQuery();
-        
-        $cQuery->where("#state != 'rejected' AND #groupList like '%|{$groupId}|%'");
-        
+        $groupId = self::expandTree($groupId);
+        $cQuery->where("#state != 'rejected'");
+        $cQuery->likeKeylist('groupList', $groupId);
+
         if ($inChargeUsers) {
             $cQuery->in('inCharge', $inChargeUsers);
         }
