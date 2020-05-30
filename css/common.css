@@ -1,246 +1,166 @@
-/*
- * ***************************************************************
- * *                                                              *
- * *   Общи стилове на Experta Framework при рендиране върху      *
- * *   клиенти с обичайно големи дисплеи и малки дисплеи          *
- * *                                                              *
- * ***************************************************************
+/****************************************************************
+ *                                                              *
+ *   Общи стилове на Experta Framework при рендиране върху      *
+ *   клиенти с обичайно големи дисплеи и малки дисплеи          *
+ *                                                              *
+ ****************************************************************/
+/*общи функции и параметри*/
+/*светло-сиво за фон*/
+/*като фона на th на таблиците*/
+/*като mainmenu и бутони*/
+/*като фона на известията в мобилен и стандартен бордър*/
+/*лилаво от формите*/
+/*бледо жълто от формите*/
+/*оранжево като при ховър на менюто*/
+/*край на общи функции и параметри*/
+/*! normalize.css v2.1.2 | MIT License | git.io/normalize */
+/* ==========================================================================
+ HTML5 display definitions
+ ========================================================================== */
+/**
+ * Correct `block` display not defined in IE 8/9.
  */
-/*
- * общи функции и параметри
- */
-/*
- * светло-сиво за фон
- */
-/*
- * като фона на th на таблиците
- */
-/*
- * като mainmenu и бутони
- */
-/*
- * като фона на известията в мобилен и стандартен бордър
- */
-/*
- * лилаво от формите
- */
-/*
- * бледо жълто от формите
- */
-/*
- * оранжево като при ховър на менюто
- */
-/*
- * край на общи функции и параметри
- */
-/*
- * ! normalize.css v2.1.2 | MIT License | git.io/normalize
- */
-/*
- * ==========================================================================
- * HTML5 display definitions
- * ==========================================================================
- */
-/*
- * *
- * * Correct `block` display not defined in IE 8/9.
- */
-article,
-aside,
-details,
-figcaption,
-figure,
-footer,
-header,
-hgroup,
-main,
-nav,
-section,
-summary {
+article, aside, details, figcaption, figure, footer, header, hgroup, main, nav, section, summary {
   display: block; }
 
-/*
- * *
- * * Correct `inline-block` display not defined in IE 8/9.
+/**
+ * Correct `inline-block` display not defined in IE 8/9.
  */
-audio,
-canvas,
-video {
+audio, canvas, video {
   display: inline-block; }
 
-/*
- * *
- * * Prevent modern browsers from displaying `audio` without controls.
- * * Remove excess height in iOS 5 devices.
+/**
+ * Prevent modern browsers from displaying `audio` without controls.
+ * Remove excess height in iOS 5 devices.
  */
 audio:not([controls]) {
   display: none;
   height: 0; }
 
-/*
- * *
- * * Address styling not present in IE 8/9.
+/**
+ * Address styling not present in IE 8/9.
  */
 [hidden] {
   display: none; }
 
-/*
- * ==========================================================================
- * Base
- * ==========================================================================
- */
-/*
- * *
- * * 1. Set default font family to sans-serif.
- * * 2. Prevent iOS text size adjust after orientation change, without disabling
- * *    user zoom.
+/* ==========================================================================
+ Base
+ ========================================================================== */
+/**
+ * 1. Set default font family to sans-serif.
+ * 2. Prevent iOS text size adjust after orientation change, without disabling
+ *    user zoom.
  */
 html {
   font-family: sans-serif;
-    /*
-   * 1
-   */
+  /* 1 */
   -ms-text-size-adjust: 100%;
-    /*
-   * 2
-   */
+  /* 2 */
   -webkit-text-size-adjust: 100%;
-    /*
-   * 2
-   */ }
+  /* 2 */ }
 
-/*
- * *
- * * Remove default margin.
+/**
+ * Remove default margin.
  */
 body {
   margin: 0; }
 
-/*
- * ==========================================================================
- * Links
- * ==========================================================================
- */
-/*
- * *
- * * Address `outline` inconsistency between Chrome and other browsers.
+/* ==========================================================================
+ Links
+ ========================================================================== */
+/**
+ * Address `outline` inconsistency between Chrome and other browsers.
  */
 a:focus {
   outline: thin dotted; }
 
-/*
- * *
- * * Improve readability when focused and also mouse hovered in all browsers.
+/**
+ * Improve readability when focused and also mouse hovered in all browsers.
  */
-a:active,
-a:hover {
+a:active, a:hover {
   outline: 0; }
 
-/*
- * ==========================================================================
- * Typography
- * ==========================================================================
- */
-/*
- * *
- * * Address variable `h1` font-size and margin within `section` and `article`
- * * contexts in Firefox 4+, Safari 5, and Chrome.
+/* ==========================================================================
+ Typography
+ ========================================================================== */
+/**
+ * Address variable `h1` font-size and margin within `section` and `article`
+ * contexts in Firefox 4+, Safari 5, and Chrome.
  */
 h1 {
   font-size: 2em;
   margin: 0.67em 0; }
 
-/*
- * *
- * * Address styling not present in IE 8/9, Safari 5, and Chrome.
+/**
+ * Address styling not present in IE 8/9, Safari 5, and Chrome.
  */
 abbr[title] {
   border-bottom: 1px dotted; }
 
-/*
- * *
- * * Address style set to `bolder` in Firefox 4+, Safari 5, and Chrome.
+/**
+ * Address style set to `bolder` in Firefox 4+, Safari 5, and Chrome.
  */
-b,
-strong {
+b, strong {
   font-weight: bold; }
 
-/*
- * *
- * * Address styling not present in Safari 5 and Chrome.
+/**
+ * Address styling not present in Safari 5 and Chrome.
  */
 dfn {
   font-style: italic; }
 
-/*
- * *
- * * Address differences between Firefox and other browsers.
+/**
+ * Address differences between Firefox and other browsers.
  */
 hr {
   -moz-box-sizing: content-box;
   box-sizing: content-box;
   height: 0; }
 
-/*
- * *
- * * Address styling not present in IE 8/9.
+/**
+ * Address styling not present in IE 8/9.
  */
 mark {
-  background: yellow;
-  color: black; }
+  background: #ff0;
+  color: #000; }
 
-/*
- * *
- * * Correct font family set oddly in Safari 5 and Chrome.
+/**
+ * Correct font family set oddly in Safari 5 and Chrome.
  */
-code,
-kbd,
-pre,
-samp {
+code, kbd, pre, samp {
   font-family: Courier New, monospace, serif;
   font-size: 1em; }
 
-/*
- * *
- * * Tab-size default
+/**
+ * Tab-size default
  */
-textarea,
-code,
-pre,
-samp,
-kbd {
+textarea, code, pre, samp, kbd {
   -moz-tab-size: 4;
   -o-tab-size: 4;
   tab-size: 4; }
 
-/*
- * *
- * * Improve readability of pre-formatted text in all browsers.
+/**
+ * Improve readability of pre-formatted text in all browsers.
  */
 pre {
   white-space: pre-wrap; }
 
-/*
- * *
- * * Set consistent quote types.
+/**
+ * Set consistent quote types.
  */
 q {
   quotes: "\201C" "\201D" "\2018" "\2019"; }
 
-/*
- * *
- * * Address inconsistent and variable font size in all browsers.
+/**
+ * Address inconsistent and variable font size in all browsers.
  */
-small,
-.small {
+small, .small {
   font-size: 80%; }
 
-/*
- * *
- * * Prevent `sub` and `sup` affecting `line-height` in all browsers.
+/**
+ * Prevent `sub` and `sup` affecting `line-height` in all browsers.
  */
-sub,
-sup {
+sub, sup {
   font-size: 75%;
   line-height: 0;
   position: relative;
@@ -252,186 +172,136 @@ sup {
 sub {
   bottom: -0.25em; }
 
-/*
- * ==========================================================================
- * Embedded content
- * ==========================================================================
- */
-/*
- * *
- * * Remove border when inside `a` element in IE 8/9.
+/* ==========================================================================
+ Embedded content
+ ========================================================================== */
+/**
+ * Remove border when inside `a` element in IE 8/9.
  */
 img {
   border: 0; }
 
-/*
- * *
- * * Correct overflow displayed oddly in IE 9.
+/**
+ * Correct overflow displayed oddly in IE 9.
  */
 svg:not(:root) {
   overflow: hidden; }
 
-/*
- * ==========================================================================
- * Figures
- * ==========================================================================
- */
-/*
- * *
- * * Address margin not present in IE 8/9 and Safari 5.
+/* ==========================================================================
+ Figures
+ ========================================================================== */
+/**
+ * Address margin not present in IE 8/9 and Safari 5.
  */
 figure {
   margin: 0; }
 
-/*
- * ==========================================================================
- * Forms
- * ==========================================================================
- */
-/*
- * *
- * * Define consistent border, margin, and padding.
+/* ==========================================================================
+ Forms
+ ========================================================================== */
+/**
+ * Define consistent border, margin, and padding.
  */
 fieldset {
-  border: 1px solid silver;
+  border: 1px solid #c0c0c0;
   margin: 0 2px;
   padding: 0.35em 0.625em 0.75em; }
 
-/*
- * *
- * * 1. Correct `color` not being inherited in IE 8/9.
- * * 2. Remove padding so people aren't caught out if they zero out fieldsets.
+/**
+ * 1. Correct `color` not being inherited in IE 8/9.
+ * 2. Remove padding so people aren't caught out if they zero out fieldsets.
  */
 legend {
   border: 0;
-    /*
-   * 1
-   */
+  /* 1 */
   padding: 0;
-    /*
-   * 2
-   */ }
+  /* 2 */ }
 
-/*
- * *
- * * 1. Correct font family not being inherited in all browsers.
- * * 2. Correct font size not being inherited in all browsers.
- * * 3. Address margins set differently in Firefox 4+, Safari 5, and Chrome.
+/**
+ * 1. Correct font family not being inherited in all browsers.
+ * 2. Correct font size not being inherited in all browsers.
+ * 3. Address margins set differently in Firefox 4+, Safari 5, and Chrome.
  */
-button,
-input,
-select,
-textarea {
+button, input, select, textarea {
   font-family: inherit;
-    /*
-   * 1
-   */
+  /* 1 */
   font-size: 100%;
-    /*
-   * 2
-   */
+  /* 2 */
   margin: 0;
-    /*
-   * 3
-   */ }
+  /* 3 */ }
 
-/*
- * *
- * * Address Firefox 4+ setting `line-height` on `input` using `!important` in
- * * the UA stylesheet.
+/**
+ * Address Firefox 4+ setting `line-height` on `input` using `!important` in
+ * the UA stylesheet.
  */
-button,
-input {
+button, input {
   line-height: normal; }
 
-/*
- * *
- * * Address inconsistent `text-transform` inheritance for `button` and `select`.
- * * All other form control elements do not inherit `text-transform` values.
- * * Correct `button` style inheritance in Chrome, Safari 5+, and IE 8+.
- * * Correct `select` style inheritance in Firefox 4+ and Opera.
+/**
+ * Address inconsistent `text-transform` inheritance for `button` and `select`.
+ * All other form control elements do not inherit `text-transform` values.
+ * Correct `button` style inheritance in Chrome, Safari 5+, and IE 8+.
+ * Correct `select` style inheritance in Firefox 4+ and Opera.
  */
-button,
-select {
+button, select {
   text-transform: none; }
 
-/*
- * *
- * * 1. Avoid the WebKit bug in Android 4.0.* where (2) destroys native `audio`
- * *    and `video` controls.
- * * 2. Correct inability to style clickable `input` types in iOS.
- * * 3. Improve usability and consistency of cursor style between image-type
- * *    `input` and others.
+/**
+ * 1. Avoid the WebKit bug in Android 4.0.* where (2) destroys native `audio`
+ *    and `video` controls.
+ * 2. Correct inability to style clickable `input` types in iOS.
+ * 3. Improve usability and consistency of cursor style between image-type
+ *    `input` and others.
  */
-
-input[type="reset"],
-input[type="submit"] {
+button, html input[type="button"], input[type="reset"], input[type="submit"] {
+  /* 1 */
   cursor: pointer;
-    /*
-   * 3
-   */ }
+  /* 3 */ }
 
-/*
- * *
- * * Re-set default cursor for disabled elements.
+/**
+ * Re-set default cursor for disabled elements.
  */
-button[disabled],
-html input[disabled] {
+button[disabled], html input[disabled] {
   cursor: default; }
 
-/*
- * *
- * * 1. Address box sizing set to `content-box` in IE 8/9.
- * * 2. Remove excess padding in IE 8/9.
+/**
+ * 1. Address box sizing set to `content-box` in IE 8/9.
+ * 2. Remove excess padding in IE 8/9.
  */
-input[type="checkbox"],
-input[type="radio"] {
+input[type="checkbox"], input[type="radio"] {
   box-sizing: border-box;
-    /*
-   * 1
-   */
+  /* 1 */
   padding: 0;
-    /*
-   * 2
-   */ }
+  /* 2 */ }
 
-/*
- * *
- * * 1. Address `appearance` set to `searchfield` in Safari 5 and Chrome.
- * * 2. Address `box-sizing` set to `border-box` in Safari 5 and Chrome
- * *    (include `-moz` to future-proof).
+/**
+ * 1. Address `appearance` set to `searchfield` in Safari 5 and Chrome.
+ * 2. Address `box-sizing` set to `border-box` in Safari 5 and Chrome
+ *    (include `-moz` to future-proof).
  */
 input[type="search"] {
   -webkit-appearance: textfield;
-    /*
-   * 1
-   */
+  /* 1 */
   -moz-box-sizing: content-box;
   -webkit-box-sizing: content-box;
-    /*
-   * 2
-   */
+  /* 2 */
   box-sizing: content-box; }
 
-/*
- * *
- * хак за смяна на цвета на плейсхолдърите в IE11
+/**
+ хак за смяна на цвета на плейсхолдърите в IE11
  */
 input:-ms-input-placeholder {
-  color: #999999; }
+  color: #999; }
 
-/*
- * *
- * * Remove inner padding and search cancel button in Safari 5 and Chrome
- * * on OS X.
+/**
+ * Remove inner padding and search cancel button in Safari 5 and Chrome
+ * on OS X.
  */
-input[type="search"]::-webkit-search-cancel-button,
-input[type="search"]::-webkit-search-decoration {
+input[type="search"]::-webkit-search-cancel-button, input[type="search"]::-webkit-search-decoration {
   -webkit-appearance: none; }
 
-/*
- * *
- * * Remove the arrow in input when there is list
+/**
+ * Remove the arrow in input when there is list
  */
 input::-webkit-calendar-picker-indicator {
   display: none; }
@@ -439,14 +309,14 @@ input::-webkit-calendar-picker-indicator {
 #simpleSearch {
   width: 15em;
   max-width: 100%;
-  border: solid 1px #cccccc;
+  border: solid 1px #ccc;
   display: block;
   position: relative;
   height: 1.5em;
   border-radius: 5px;
   box-shadow: 1px 1px 0 rgba(60, 60, 60, 0.1); }
 
-.wide  #all #simpleSearch {
+.wide #all #simpleSearch {
   padding: 3px 2px 2px; }
 
 #simpleSearch.forumSearch .button {
@@ -459,8 +329,7 @@ input::-webkit-calendar-picker-indicator {
 .narrow #searchform {
   margin-bottom: 10px !important; }
 
-#simpleSearch input[type='text'],
-#simpleSearch #searchInput {
+#simpleSearch input[type='text'], #simpleSearch #searchInput {
   display: inline-block;
   border: none !important;
   outline: none;
@@ -470,13 +339,11 @@ input::-webkit-calendar-picker-indicator {
   padding: 0px;
   padding-left: 0.2em; }
 
-.narrow #simpleSearch input[type='text'],
-.narrow #simpleSearch #searchInput {
+.narrow #simpleSearch input[type='text'], .narrow #simpleSearch #searchInput {
   top: 0.1em;
   position: absolute; }
 
-#simpleSearch button,
-#simpleSearch .button {
+#simpleSearch button, #simpleSearch .button {
   width: 10%;
   margin-right: 0px;
   padding: 0;
@@ -484,62 +351,43 @@ input::-webkit-calendar-picker-indicator {
   right: 0px;
   position: absolute;
   border: none;
-  background-color: rgba(0, 0, 0, 0);
+  background-color: transparent;
   cursor: pointer;
   display: inline-block; }
 
 .narrow #simpleSearch button {
   right: 2px; }
 
-/*
- * *
- * * Remove inner padding and border in Firefox 4+.
+/**
+ * Remove inner padding and border in Firefox 4+.
  */
-button::-moz-focus-inner,
-input::-moz-focus-inner {
+button::-moz-focus-inner, input::-moz-focus-inner {
   border: 0;
   padding: 0; }
 
-/*
- * *
- * * 1. Remove default vertical scrollbar in IE 8/9.
- * * 2. Improve readability and alignment in all browsers.
+/**
+ * 1. Remove default vertical scrollbar in IE 8/9.
+ * 2. Improve readability and alignment in all browsers.
  */
 textarea {
   overflow: auto;
-    /*
-   * 1
-   */
+  /* 1 */
   vertical-align: top;
-    /*
-   * 2
-   */ }
+  /* 2 */ }
 
-/*
- * ==========================================================================
- * Tables
- * ==========================================================================
- */
-/*
- * *
- * * Remove most spacing between table cells.
+/* ==========================================================================
+ Tables
+ ========================================================================== */
+/**
+ * Remove most spacing between table cells.
  */
 table {
   border-collapse: collapse;
   border-spacing: 0;
   border: none; }
 
-/*
- * височини на някои от елементите, за да няма разминавания при някои устройства
- */
-input[type="text"],
-input[type="color"],
-input[type="number"],
-input[type="tel"],
-input[type="email"],
-input[type="search"],
-input[type="url"],
-input[type="password"] {
+/*височини на някои от елементите, за да няма разминавания при някои устройства*/
+input[type="text"], input[type="color"], input[type="number"], input[type="tel"], input[type="email"], input[type="search"], input[type="url"], input[type="password"] {
   height: 1.5em; }
 
 select {
@@ -552,28 +400,20 @@ select {
 .narrow .chzn-container .chzn-single {
   height: 1.33em !important; }
 
-/*
- * височини на някои от елементите, за да няма разминавания при някои устройства
- */
+/*височини на някои от елементите, за да няма разминавания при някои устройства*/
 @-moz-document url-prefix() {
-    select {
+  select {
     -moz-appearance: none;
     background-image: url('../img/16/darrow.png') !important;
     background-repeat: no-repeat !important;
     background-position: center right !important;
     padding-right: 1em;
     padding-left: 0.2em;
-    -webkit-border-radius: 0; }
- }
-/*
- * reseting webkit differences
- */
-@media screen and (-webkit-min-device-pixel-ratio:0),
-@media screen and (-ms-high-contrast: active),
-(-ms-high-contrast: none) {
+    -webkit-border-radius: 0; } }
+/*reseting webkit differences*/
+@media screen and (-webkit-min-device-pixel-ratio:0), @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
   select::-ms-expand {
     display: none; }
-
   select {
     -webkit-appearance: none;
     background-image: url('../img/16/darrow.png') !important;
@@ -582,47 +422,25 @@ select {
     padding-right: 1em;
     padding-left: 0.2em;
     -webkit-border-radius: 0; }
-
   .wide select {
     padding-top: 1px; }
-
-  input[type="text"],
-  input[type="color"],
-  input[type="number"],
-  input[type="tel"],
-  input[type="email"],
-  input[type="search"],
-  input[type="url"],
-  input[type="password"] {
+  input[type="text"], input[type="color"], input[type="number"], input[type="tel"], input[type="email"], input[type="search"], input[type="url"], input[type="password"] {
     -webkit-appearance: none;
     border-radius: 0;
     margin: 0; }
-
-  .wide input[type="text"],
-  .wide input[type="color"],
-  .wide  input[type="number"],
-  .wide input[type="tel"],
-  .wide input[type="email"],
-  .wide input[type="search"],
-  .wide input[type="url"],
-  .wide input[type="password"] {
+  .wide input[type="text"], .wide input[type="color"], .wide input[type="number"], .wide input[type="tel"], .wide input[type="email"], .wide input[type="search"], .wide input[type="url"], .wide input[type="password"] {
     padding-top: 2px; }
-
   textarea {
     -webkit-border-radius: 0;
     -webkit-appearance: none; }
-
   .wide .chzn-container .chzn-single {
     height: 1.3em !important; }
-
   .narrow .chzn-container .chzn-single {
     height: 1.3em !important; } }
 
-/*
- * our reset and common classes
- */
+/*our reset and common classes*/
 body {
-  background-color: #dddddd;
+  background-color: #ddd;
   font-family: Helvetica, Arial, Verdana, Sans-serif;
   font-size: 16px; }
 
@@ -630,7 +448,7 @@ body.narrow {
   min-width: 320px; }
 
 hr {
-  border-color: #eeeeee;
+  border-color: #eee;
   -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
   opacity: 0.8; }
 
@@ -655,9 +473,7 @@ textarea {
   padding: 0.1em;
   font-family: monospace; }
 
-select,
-input,
-textarea {
+select, input, textarea {
   -ms-box-sizing: border-box;
   box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -670,39 +486,31 @@ select.combo {
   overflow: hidden;
   cursor: text; }
 
-.checkbox,
-.radiobutton,
-input[type=checkbox],
-input[type=radio] {
+.checkbox, .radiobutton, input[type=checkbox], input[type=radio] {
   border: none !important;
   box-shadow: none !important;
-  background-color: rgba(0, 0, 0, 0);
+  background-color: transparent;
   outline: none; }
 
-.checkbox,
-input[type=checkbox] {
+.checkbox, input[type=checkbox] {
   margin: 3px 3px 3px 4px; }
 
-.radiobutton,
-input[type=radio] {
+.radiobutton, input[type=radio] {
   margin: 2px 3px 3px 4px;
   vertical-align: middle; }
 
-input[type=radio] + label,
-input[type=checkbox] + label {
-  color: #888888;
-  background-color: rgba(0, 0, 0, 0) !important;
+input[type=radio] + label, input[type=checkbox] + label {
+  color: #888;
+  background-color: transparent !important;
   display: inline-block;
   vertical-align: baseline; }
 
-.narrow input[type=radio] + label,
-.narrow input[type=checkbox] + label {
+.narrow input[type=radio] + label, .narrow input[type=checkbox] + label {
   font-size: 0.9em; }
 
-input[type=radio]:checked + label,
-input[type=checkbox]:checked + label {
-  color: black;
-  text-shadow: 1px 1px 1px #aaaaaa; }
+input[type=radio]:checked + label, input[type=checkbox]:checked + label {
+  color: #000;
+  text-shadow: 1px 1px 1px #aaa; }
 
 .selectMenuItem {
   padding-top: 3px; }
@@ -715,22 +523,21 @@ input[type=checkbox]:checked + label {
   position: relative; }
 
 @-moz-document url-prefix() {
-    .narrow .selectMenuItem input[type=radio] + label {
-    vertical-align: -1px; }
- }
+  .narrow .selectMenuItem input[type=radio] + label {
+    vertical-align: -1px; } }
+
 .top-table {
   border-collapse: separate;
   border-spacing: 2px; }
 
 .readonly {
-  background: #dddddd;
-  border: solid 1px #aaaaaa;
+  background: #ddd;
+  border: solid 1px #aaa;
   min-width: 100px; }
   select.readonly {
     max-width: 36em; }
 
-.calendar,
-.calendar table {
+.calendar, .calendar table {
   border-collapse: separate !important;
   table-layout: fixed; }
 
@@ -740,8 +547,7 @@ tr.zebra0 {
 tr.zebra1 {
   background-color: rgba(240, 245, 255, 0.5); }
 
-.wide input[type=submit],
-.wide input[type=button] {
+.wide input[type=submit], .wide input[type=button] {
   cursor: pointer; }
 
 .narrow input[type=submit] {
@@ -760,16 +566,9 @@ tr.zebra1 {
 .fleft {
   float: left; }
 
-/*
- * end of our common styles
- */
-/*
- * BUTTONS
- */
-a.button,
-input[type="button"],
-input[type="submit"],
-button {
+/*end of our common styles*/
+/* BUTTONS */
+a.button, input[type="button"], input[type="submit"], button {
   margin: 1px 0.5em 0 0;
   font-weight: bold;
   text-decoration: none;
@@ -787,19 +586,13 @@ button {
 a.button {
   box-sizing: border-box; }
 
-.narrow a.button,
-.narrow input[type=button],
-.narrow input[type=submit],
-.narrow button {
+.narrow a.button, .narrow input[type=button], .narrow input[type=submit], .narrow button {
   padding: 0.3em 0.4em;
   font-family: Tahoma, Arial, sans-serif;
   margin-top: 0;
   margin-bottom: 0; }
 
-a.button.fright,
-input[type="button"].fright,
-input[type="submit"].fright,
-button.fright {
+a.button.fright, input[type="button"].fright, input[type="submit"].fright, button.fright {
   margin: 1px 0 0 0.5em; }
 
 .toggle-movement {
@@ -808,40 +601,35 @@ button.fright {
 form[method=post] .toogleHolder {
   float: right;
   display: inline-block; }
-    form[method=post] .toogleHolder .toogleBtn.toggleLeft {
-      margin-right: 0 !important;
-      border-radius: 5px 0 0 5px !important; }
-      form[method=post] .toogleHolder .toogleBtn.toggleLeft.toggleOn {
-        color: lightgreen; }
-    form[method=post] .toogleHolder .toogleBtn.toggleRight {
-      margin-left: 0 !important;
-      border-radius: 0 5px 5px 0 !important;
-      border-left: none !important; }
-      form[method=post] .toogleHolder .toogleBtn.toggleRight.toggleOn {
-        color: #ff44ff; }
-    form[method=post] .toogleHolder .toogleBtn.toggleOn {
-      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8);
-      background: #777777 !important;
-      text-shadow: 1px 1px 0 #333333; }
-    form[method=post] .toogleHolder .toogleBtn.toggleOff {
-      box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.3);
-      color: #eeeeee !important; }
-      form[method=post] .toogleHolder .toogleBtn.toggleOff:hover {
-        background-color: #aaaaaa; }
+  form[method=post] .toogleHolder .toogleBtn.toggleLeft {
+    margin-right: 0 !important;
+    border-radius: 5px 0 0 5px !important; }
+    form[method=post] .toogleHolder .toogleBtn.toggleLeft.toggleOn {
+      color: lightgreen; }
+  form[method=post] .toogleHolder .toogleBtn.toggleRight {
+    margin-left: 0 !important;
+    border-radius: 0 5px 5px 0 !important;
+    border-left: none !important; }
+    form[method=post] .toogleHolder .toogleBtn.toggleRight.toggleOn {
+      color: #f4f; }
+  form[method=post] .toogleHolder .toogleBtn.toggleOn {
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8);
+    background: #777 !important;
+    text-shadow: 1px 1px 0 #333; }
+  form[method=post] .toogleHolder .toogleBtn.toggleOff {
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.3);
+    color: #eee !important; }
+    form[method=post] .toogleHolder .toogleBtn.toggleOff:hover {
+      background-color: #aaa; }
 
-h1:target,
-h2:target,
-h3:target,
-h4:target,
-h5:target,
-h6:target {
+h1:target, h2:target, h3:target, h4:target, h5:target, h6:target {
   color: blue; }
 
 a.header:hover {
   color: inherit; }
 
 .narrow .toolbar .button {
-  border-right: 1px solid #999999;
+  border-right: 1px solid #999;
   margin-right: 2px;
   margin-bottom: 3px;
   -moz-border-radius: 3px;
@@ -850,21 +638,17 @@ a.header:hover {
   border-radius: 3px; }
 
 .btn-disabled {
-  color: #bbbbbb !important;
+  color: #bbb !important;
   cursor: default !important; }
 
 .out-btn {
-  color: #008800 !important; }
+  color: #080 !important; }
 
 .wide .noicon {
   padding-right: 3px !important;
-    /*
-   * IE6
-   */
+  /* IE6 */
   padding-left: 3px !important;
-    /*
-   * IE6
-   */ }
+  /* IE6 */ }
 
 .location-input {
   position: relative;
@@ -889,14 +673,14 @@ a.header:hover {
   background-position: 3px center; }
 
 .btn-with-selected-disabled:hover {
-  background-color: #dddddd !important; }
+  background-color: #ddd !important; }
 
 .btn-with-selected-disabled {
-  color: #999999 !important;
+  color: #999 !important;
   cursor: default !important; }
 
 .btn-with-selected-disabled:hover {
-  background-color: #dddddd !important; }
+  background-color: #ddd !important; }
 
 .wide .btn-settings {
   background-image: url('../img/16/settings.png');
@@ -944,7 +728,7 @@ a.linkWithIcon.small-padding-icon {
   background-position: 0px center; }
 
 a.linkInTitle {
-  color: #004488 !important; }
+  color: #048 !important; }
 
 .smallLinkWithWithIcon {
   display: inline-block;
@@ -971,8 +755,7 @@ input.more-btn {
   width: 1.9em;
   height: 2em \9; }
 
-.more-btn:not(.toolbar-btn,
-.transparent) {
+.more-btn:not(.toolbar-btn, .transparent) {
   background-repeat: no-repeat !important;
   background-image: url(../img/16/toggle1.png) !important; }
 
@@ -989,9 +772,9 @@ input.more-btn {
 .hiddenToolbar {
   display: none; }
 
-  .small .modal-toolbar .linkWithIcon {
-    height: auto !important;
-    font-size: 1em; }
+.small .modal-toolbar .linkWithIcon {
+  height: auto !important;
+  font-size: 1em; }
 
 .small .fileHolder {
   display: block; }
@@ -1021,13 +804,13 @@ a.more-btn {
   border: none;
   outline: none;
   box-shadow: none;
-  color: white;
+  color: #fff;
   cursor: pointer; }
   .shortSelect:focus {
     outline: none;
     box-shadow: none; }
   .shortSelect option {
-    color: #222222; }
+    color: #222; }
 
 .docBgIcon {
   padding-left: 22px !important;
@@ -1054,9 +837,7 @@ a.more-btn {
   position: relative;
   top: 2px; }
 
-/*
- * бутони с инструменти
- */
+/*бутони с инструменти*/
 div.rowtools {
   display: inline;
   width: 100%; }
@@ -1080,8 +861,7 @@ th .rowtools .r {
     margin-right: 5px;
     border: none; }
 
-th .rowtools .r,
-th .rowtools .l {
+th .rowtools .r, th .rowtools .l {
   vertical-align: baseline; }
 
 .rowtools .nw {
@@ -1090,42 +870,33 @@ th .rowtools .l {
 .sortBtn {
   vertical-align: middle; }
 
-/*
- * край на бутони
- */
-/*
- * Общи стилове за линковете
- */
-  a:link,
-  a:visited {
-    text-decoration: none; }
-  a.out:hover {
-    text-decoration: underline; }
+/*край на бутони*/
+/* Общи стилове за линковете */
+a:link, a:visited {
+  text-decoration: none; }
+a.out:hover {
+  text-decoration: underline; }
 
 .login-links {
   font-weight: bold;
-  border-bottom: solid 1px #cccccc;
+  border-bottom: solid 1px #ccc;
   padding: 2px; }
 
 .err-word {
   border-bottom: 1px dashed #ff6566;
   display: inline-block; }
 
-/*
- * край на общи стилове за линковете
- */
-/*
- * Хипервръзки към профилите на потребители
- */
+/* край на общи стилове за линковете */
+/*Хипервръзки към профилите на потребители*/
 a.profile {
   padding: 2px;
   border-radius: 3px; }
   a.profile.ceo {
-    color: #0000cc; }
+    color: #00c; }
     a.profile.ceo.inactive {
-      color: #333399; }
+      color: #339; }
     a.profile.ceo.active {
-      color: blue; }
+      color: #00f; }
   a.profile.manager {
     color: #a000b0; }
     a.profile.manager.inactive {
@@ -1133,28 +904,28 @@ a.profile {
     a.profile.manager.active {
       color: #bb00cb; }
   a.profile.officer {
-    color: #00aa00; }
+    color: #0a0; }
     a.profile.officer.inactive {
-      color: #447744; }
+      color: #474; }
     a.profile.officer.active {
-      color: #00cc00; }
+      color: #0c0; }
   a.profile.executive {
-    color: #aa6600; }
+    color: #a60; }
     a.profile.executive.inactive {
-      color: #886622; }
+      color: #862; }
     a.profile.executive.active {
-      color: #dd8800; }
+      color: #d80; }
   a.profile.partner {
-    color: #cc0000; }
+    color: #c00; }
     a.profile.partner.inactive {
-      color: #993333; }
+      color: #933; }
     a.profile.partner.active {
-      color: red; }
+      color: #f00; }
   a.profile.no-one {
     font-style: italic; }
   a.profile.state-rejected {
     display: inline-block;
-    color: #777777 !important; }
+    color: #777 !important; }
 
 .profile-state {
   text-decoration: underline !important; }
@@ -1163,22 +934,18 @@ a.profile {
   text-decoration: underline !important;
   text-decoration-style: dotted !important; }
 
-/*
- * край на хипервръзки към профилите на потребители
- */
-/*
- * състояния
- */
+/*край на хипервръзки към профилите на потребители*/
+/*състояния*/
 .state-draft {
-  background-color: #bbffff;
+  background-color: #bff;
   background-color: rgba(187, 255, 255, 0.7); }
 
 .state-active {
-  background-color: #ffeedd;
+  background-color: #fed;
   background-color: rgba(250, 221, 187, 0.7); }
 
 .state-opened {
-  background-color: #bbffcc; }
+  background-color: #bfc; }
 
 .state-opened-link > a {
   background-color: #e0ffe0;
@@ -1186,7 +953,7 @@ a.profile {
   box-shadow: inset 0 0 3px #aaf2aa; }
 
 .state-pending {
-  background-color: #eeccff;
+  background-color: #ecf;
   background-color: rgba(238, 204, 255, 0.7); }
 
 .state-pending-link > a {
@@ -1195,14 +962,14 @@ a.profile {
   box-shadow: inset 0 0 3px #f4e4f5; }
 
 .state-closed-link > a {
-  background-color: #dddddd;
+  background-color: #ddd;
   padding-right: 4px;
-  box-shadow: inset 0 0 3px #cccccc; }
+  box-shadow: inset 0 0 3px #ccc; }
 
 .state-stopped-link > a {
   background-color: #fee3ad;
   padding-right: 4px;
-  box-shadow: inset 0 0 3px #ffbb33; }
+  box-shadow: inset 0 0 3px #fb3; }
 
 .state-late-link > a {
   background-color: #fecccc;
@@ -1220,16 +987,15 @@ a.profile {
   box-shadow: inset 0 0 3px #aaf277; }
 
 .state-closed {
-  background-color: #eeeeee;
+  background-color: #eee;
   background-color: rgba(230, 230, 230, 0.7); }
 
-.state-stopped,
-.state-blocked {
-  background-color: #ffbb33;
+.state-stopped, .state-blocked {
+  background-color: #fb3;
   background-color: rgba(255, 187, 51, 0.7); }
 
 .state-rejected {
-  background-color: #cc6666;
+  background-color: #c66;
   background-color: rgba(204, 102, 102, 0.8); }
 
 .state-edited {
@@ -1241,33 +1007,15 @@ a.profile {
   background-color: rgba(210, 255, 120, 0.6); }
 
 .state-removed {
-  background-color: #dddddd;
-  color: #888888;
+  background-color: #ddd;
+  color: #888;
   text-decoration: line-through; }
 
-  .state-rejected td,
-  .state-rejected .document th,
-  .state-rejected .document td a,
-  .state-rejected .document p,
-  .state-rejected .document h3,
-  .state-rejected .document h4,
-  .state-rejected .richtext,
-  .state-rejected .document a,
-  .state-rejected .document span:not(.state),
-  .state-rejected .richtext div,
-  .state-rejected .cCode,
-  .state-rejected .antetka,
-  .state-rejected .row-fluid div,
-  .state-rejected .document ul,
-  .state-rejected .document ol,
-  .state-rejected .document li,
-  .state-rejected .document b,
-  .state-rejected .document font,
-  .state-rejected .document legend {
-    color: #999999 !important;
-    text-decoration: line-through !important; }
-  .state-rejected .tagColumn {
-    opacity: 0.5; }
+.state-rejected td, .state-rejected .document th, .state-rejected .document td a, .state-rejected .document p, .state-rejected .document h3, .state-rejected .document h4, .state-rejected .richtext, .state-rejected .document a, .state-rejected .document span:not(.state), .state-rejected .richtext div, .state-rejected .cCode, .state-rejected .antetka, .state-rejected .row-fluid div, .state-rejected .document ul, .state-rejected .document ol, .state-rejected .document li, .state-rejected .document b, .state-rejected .document font, .state-rejected .document legend {
+  color: #999 !important;
+  text-decoration: line-through !important; }
+.state-rejected .tagColumn {
+  opacity: 0.5; }
 
 .soft-rejected {
   background-color: #e2aaaa;
@@ -1276,17 +1024,14 @@ a.profile {
 
 .single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab {
   opacity: 0.5; }
-  .single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab:hover,
-  .single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab.selected {
-    background-color: #cccccc !important; }
+  .single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab:hover, .single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab.selected {
+    background-color: #ccc !important; }
 
-  .state-rejected div.tab-control.deal-history-tab .tab-row .tab a,
-  .state-rejected .single-thread .document .tab-top div.alphabet .tab-row .tab a {
-    color: #999999 !important;
-    text-decoration: none !important; }
-  .state-rejected .row-fluid table td,
-  .state-rejected .row-fluid table {
-    border-color: #999999 !important; }
+.state-rejected div.tab-control.deal-history-tab .tab-row .tab a, .state-rejected .single-thread .document .tab-top div.alphabet .tab-row .tab a {
+  color: #999 !important;
+  text-decoration: none !important; }
+.state-rejected .row-fluid table td, .state-rejected .row-fluid table {
+  border-color: #999 !important; }
 
 .hidden-document.state-rejected {
   opacity: 0.6; }
@@ -1302,60 +1047,48 @@ a.profile {
   display: inline-block; }
 
 .sale-with-closed-job {
-  background-color: #cccccc;
+  background-color: #ccc;
   padding: 1px !important;
   border-radius: 5px;
   display: inline-block; }
 
-.document .state-rejected.state,
-.document .state-rejected.state a {
-  color: #444444 !important;
+.document .state-rejected.state, .document .state-rejected.state a {
+  color: #444 !important;
   text-decoration: none !important; }
 
-  .detail-info.state-rejected td,
-  .detail-info.state-rejected th,
-  .detail-info.state-rejected a,
-  .detail-info.state-rejected p,
-  .detail-info.state-rejected span,
-  .detail-info.state-rejected ul,
-  .detail-info.state-rejected ol,
-  .detail-info.state-rejected li,
-  .detail-info.state-rejected div {
-    color: #999999 !important;
-    text-decoration: line-through !important; }
+.detail-info.state-rejected td, .detail-info.state-rejected th, .detail-info.state-rejected a, .detail-info.state-rejected p, .detail-info.state-rejected span, .detail-info.state-rejected ul, .detail-info.state-rejected ol, .detail-info.state-rejected li, .detail-info.state-rejected div {
+  color: #999 !important;
+  text-decoration: line-through !important; }
 
 .state-rejected .document .profile {
   text-decoration: none !important; }
 
-.state-rejected .docBgIcon,
-.state-rejected .document .docBgIcon b,
-.state-rejected .document .docBgIcon a {
-  color: #444444 !important; }
+.state-rejected .docBgIcon, .state-rejected .document .docBgIcon b, .state-rejected .document .docBgIcon a {
+  color: #444 !important; }
 
-.state-rejected .document img,
-.state-rejected .anchor-arrow {
+.state-rejected .document img, .state-rejected .anchor-arrow {
   opacity: 0.5;
   -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"; }
 
 .state-rejected .linkWithIcon.state-rejected {
-  background-color: rgba(0, 0, 0, 0); }
+  background-color: transparent; }
 
 .state-free {
   background-color: #33ccf5;
   background-color: rgba(51, 204, 245, 0.7); }
 
 .state-hidden {
-  background-color: #ffee77; }
+  background-color: #fe7; }
 
 .state-revert {
-  background-color: #cc9933; }
+  background-color: #c93; }
 
 .state-wakeup {
   background-color: #2baf4c;
   background-color: rgba(43, 175, 76, 0.7); }
 
 .row-negative {
-  color: #ff3333; }
+  color: #f33; }
 
 .state-created {
   background-color: #d896c5; }
@@ -1366,23 +1099,19 @@ a.profile {
 .stateIndicator {
   height: 0.6em;
   width: 0.6em;
-  border: solid 1px #999999;
+  border: solid 1px #999;
   -moz-border-radius: 0.3em;
   -webkit-border-radius: 0.3em;
   -ms-border-radius: 0.3em;
   border-radius: 0.3em; }
 
-/*
- * край на състояния
- */
-/*
- * Стилове за елемента 'list Table'
- */
+/*край на състояния*/
+/* Стилове за елемента 'list Table' */
 table.listTable {
   margin: 0 0 15px 0;
-  border: 1px solid #bbbbbb; }
+  border: 1px solid #bbb; }
   table.listTable > thead > tr > th {
-    border: 1px solid #bbbbbb;
+    border: 1px solid #bbb;
     padding: 4px 3px 2px;
     background-color: #e0e0e0;
     font-weight: bold;
@@ -1390,7 +1119,7 @@ table.listTable {
     line-height: normal;
     text-align: center; }
   table.listTable > tbody > tr > td {
-    border: 1px solid #bbbbbb;
+    border: 1px solid #bbb;
     padding: 4px 3px 3px;
     line-height: normal;
     font-family: Arial, Verdana;
@@ -1399,16 +1128,15 @@ table.listTable {
   table.listTable .document h2 {
     margin-top: 3px; }
   table.listTable > tbody > tr.row-error > td {
-    color: #990000; }
+    color: #900; }
   table.listTable .rowNumColumn {
     width: 1%; }
 
-  .listAction table.listTable > tbody > tr > td,
-  table.listTable.listAction > tbody > tr > td {
-    max-width: 400px; }
+.listAction table.listTable > tbody > tr > td, table.listTable.listAction > tbody > tr > td {
+  max-width: 400px; }
 
-  .single-thread  table.listTable > tbody > tr > td {
-    max-width: none; }
+.single-thread table.listTable > tbody > tr > td {
+  max-width: none; }
 
 .detailNumbering {
   text-align: right;
@@ -1433,43 +1161,29 @@ table.listTable {
 .wide .singleView table.listTable {
   max-width: 915px !important; }
 
-table.listTable:not(.noHoverTable) > tbody > tr:hover,
-table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
-  background-color: #ffffcc; }
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-draft,
-  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-draft {
-    background-color: #88ffff; }
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-active,
-  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-active {
+table.listTable:not(.noHoverTable) > tbody > tr:hover, table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
+  background-color: #ffc; }
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-draft, table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-draft {
+    background-color: #8ff; }
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-active, table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-active {
     background: rgba(247, 197, 139, 0.5); }
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-opened,
-  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-opened {
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-opened, table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-opened {
     background-color: #97ffb1; }
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-pending,
-  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-pending {
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-pending, table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-pending {
     background-color: #e6b3ff; }
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-closed,
-  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-closed {
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-closed, table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-closed {
     background-color: #e4e4e4; }
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-stopped,
-  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-stopped,
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-blocked,
-  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-blocked {
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-stopped, table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-stopped, table.listTable:not(.noHoverTable) > tbody > tr:hover.state-blocked, table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-blocked {
     background-color: #f5a300; }
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-rejected,
-  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-rejected {
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-rejected, table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-rejected {
     background-color: #bf4040; }
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-free,
-  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-free {
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-free, table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-free {
     background-color: #0bbbea; }
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-hidden,
-  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-hidden {
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-hidden, table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-hidden {
     background-color: #ffe42b; }
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-revert,
-  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-revert {
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-revert, table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-revert {
     background-color: #a37a29; }
-  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-wakeup,
-  table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-wakeup {
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-wakeup, table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr.state-wakeup {
     background-color: #269b43; }
 
 .listTitle {
@@ -1483,18 +1197,10 @@ table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
 .wide .user-profile .remote_Authorizations table.listAction {
   min-width: 0; }
 
-/*
- * край на стилове за елемента 'list Table'
- */
-/*
- * Стилове за показване на формите
- */
-/*
- * грешки и предупреждения
- */
-.formError,
-.formNotice,
-.formWarning {
+/* край на стилове за елемента 'list Table' */
+/* Стилове за показване на формите */
+/*грешки и предупреждения*/
+.formError, .formNotice, .formWarning {
   font-size: 0.9em;
   padding: 10px;
   margin-bottom: 10px;
@@ -1504,18 +1210,18 @@ table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
   border-radius: 5px; }
 
 .formNotice {
-  background-color: #ffff66;
+  background-color: #ff6;
   border: solid 1px green;
   color: green; }
 
 .formError {
   border: solid 1px red;
-  background-color: #ffff66;
+  background-color: #ff6;
   color: red; }
 
 .formWarning {
   border: solid 1px blue;
-  background-color: #ffff66;
+  background-color: #ff6;
   color: blue; }
 
 .wide .formError {
@@ -1531,7 +1237,7 @@ table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
     margin-left: 10px; }
 
 .formError li.ignored {
-  color: #aaaaaa; }
+  color: #aaa; }
 
 .inputError {
   border: solid 1px red; }
@@ -1544,7 +1250,7 @@ table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
   border: 1px solid #5c8ef4;
   text-align: center; }
   .formBottom.bottomErrorClass {
-    border: 1px solid #cc0000;
+    border: 1px solid #c00;
     background-color: #ff6d6b !important; }
 
 .formFooter {
@@ -1552,15 +1258,13 @@ table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
   padding-bottom: 10px; }
   .formFooter label {
     max-width: none !important; }
-  .formFooter .checkbox,
-  .formFooter input[type=checkbox] {
+  .formFooter .checkbox, .formFooter input[type=checkbox] {
     margin-right: 4px;
     position: relative;
     top: 1px; }
   .formFooter input[type=checkbox]:checked + label {
-    color: #222222 !important; }
-  .formFooter input[type=radio] + label a,
-  .formFooter input[type=checkbox] + label a {
+    color: #222 !important; }
+  .formFooter input[type=radio] + label a, .formFooter input[type=checkbox] + label a {
     opacity: 0.8; }
   .formFooter input[type=checkbox]:checked + label a {
     opacity: 1; }
@@ -1568,7 +1272,7 @@ table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
     color: red; }
 
 form .inputAdvanced {
-  background-color: #ddffdd !important; }
+  background-color: #dfd !important; }
 
 .inlineForm .listFilter form {
   float: none !important; }
@@ -1577,8 +1281,8 @@ form .inputAdvanced {
   border: solid 1px blue; }
 
 span.inputLackOfChoice {
-  border: solid 1px #bbbbbb;
-  background-color: #dddddd;
+  border: solid 1px #bbb;
+  background-color: #ddd;
   padding: 4px;
   border-radius: 2px; }
 
@@ -1592,8 +1296,7 @@ span.inputLackOfChoiceMandatory {
   border: solid 1px red;
   border-radius: 2px; }
 
-.formInfo,
-.formWarning {
+.formInfo, .formWarning {
   margin-bottom: 8px; }
 
 .warningMsg {
@@ -1608,20 +1311,15 @@ span.inputLackOfChoiceMandatory {
   border: dotted 1px red;
   color: red; }
 
-.narrow .formInfo,
-.narrow .formWarning {
+.narrow .formInfo, .narrow .formWarning {
   margin-bottom: 1px;
   margin-top: 8px; }
 
 .narrow .formError ul {
   padding-left: 1em; }
 
-/*
- * край на грешки и предупреждения
- */
-/*
- * общи стилове за елементите на формите
- */
+/* край на грешки и предупреждения*/
+/*общи стилове за елементите на формите*/
 .formFields {
   margin-bottom: 10px; }
 
@@ -1629,9 +1327,9 @@ span.inputLackOfChoiceMandatory {
   margin-bottom: 0; }
 
 .staticFormView .formFieldValue {
-  border: solid 1px #9999ff;
+  border: solid 1px #99f;
   padding: 3px;
-  background-color: white;
+  background-color: #fff;
   min-height: 1.2em;
   overflow-x: auto; }
 
@@ -1682,7 +1380,7 @@ span.inputLackOfChoiceMandatory {
   text-align: right;
   line-height: 18px;
   padding-right: 15px;
-  color: #888888; }
+  color: #888; }
 
 div.hFormField {
   float: left;
@@ -1717,35 +1415,27 @@ td.formElement {
   _width: auto;
   *width: auto; }
 
-.formFields input,
-textarea,
-select {
+.formFields input, textarea, select {
   margin-top: 0;
   -moz-transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset; }
 
-.formFields input:focus,
-textarea:focus,
-select:focus,
-input:focus[type=submit],
-input:focus[type=button] {
+.formFields input:focus, textarea:focus, select:focus, input:focus[type=submit], input:focus[type=button] {
   outline: none;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1) inset, 0 0 7px rgba(153, 153, 255, 0.7); }
 
-  .simpleForm .vertical .formSection,
-  .simpleForm .vertical .formTable,
-  .simpleForm .vertical .formToolbar {
-    box-shadow: none !important;
-    border: none !important;
-    background: none !important;
-    padding: 0; }
-  .simpleForm .formFields {
-    margin: 0; }
-  .simpleForm .vertical .formGroup {
-    font-weight: bold !important;
-    color: black !important;
-    background: none !important;
-    border: none !important; }
+.simpleForm .vertical .formSection, .simpleForm .vertical .formTable, .simpleForm .vertical .formToolbar {
+  box-shadow: none !important;
+  border: none !important;
+  background: none !important;
+  padding: 0; }
+.simpleForm .formFields {
+  margin: 0; }
+.simpleForm .vertical .formGroup {
+  font-weight: bold !important;
+  color: black !important;
+  background: none !important;
+  border: none !important; }
 
 .wide #main-container .formTable .formElement {
   min-width: 32em; }
@@ -1755,34 +1445,30 @@ input:focus[type=button] {
   padding-top: 2px;
   display: inline-block; }
 
-  .wide .vertical .formFields .w100 {
-    width: 100%; }
-  .wide .vertical .formFields .w75 {
-    width: 24em; }
-  .wide .vertical .formFields .w50 {
-    width: 16em; }
-  .wide .vertical .formFields .w25 {
-    width: 8em; }
-    .wide .vertical .formFields .inlineTo .w25 {
-      width: 7.5em; }
+.wide .vertical .formFields .w100 {
+  width: 100%; }
+.wide .vertical .formFields .w75 {
+  width: 24em; }
+.wide .vertical .formFields .w50 {
+  width: 16em; }
+.wide .vertical .formFields .w25 {
+  width: 8em; }
+  .wide .vertical .formFields .inlineTo .w25 {
+    width: 7.5em; }
 
-  .narrow .vertical .formFields .w100 {
-    width: 100%; }
-  .narrow .vertical .formFields .w75 {
-    width: 100%; }
-  .narrow .vertical .formFields .w50 {
-    width: 100%; }
-  .narrow .vertical .formFields .w25 {
-    width: 50%; }
-    .narrow .vertical .formFields .inlineTo .w25 {
-      max-width: 40%; }
+.narrow .vertical .formFields .w100 {
+  width: 100%; }
+.narrow .vertical .formFields .w75 {
+  width: 100%; }
+.narrow .vertical .formFields .w50 {
+  width: 100%; }
+.narrow .vertical .formFields .w25 {
+  width: 50%; }
+  .narrow .vertical .formFields .inlineTo .w25 {
+    max-width: 40%; }
 
-/*
- * край на общи стилове за елементите на формите
- */
-/*
- * тулбар
- */
+/* край на общи стилове за елементите на формите*/
+/*тулбар*/
 .wide .toolbar > div:first-child {
   display: block;
   margin-bottom: 8px; }
@@ -1823,32 +1509,27 @@ input:focus[type=button] {
 .wide .listTopContainer {
   min-width: 760px; }
 
-.narrow .ListToolbar,
-.narrow .SingleToolbar {
+.narrow .ListToolbar, .narrow .SingleToolbar {
   margin-top: 10px; }
 
 .narrow .toolbar {
   margin: 5px 0; }
 
-  .wide .doc_Search .listFilter {
-    padding-bottom: 0; }
+.wide .doc_Search .listFilter {
+  padding-bottom: 0; }
 
-  .narrow .doc_Search .pages {
-    padding-top: 3px;
-    margin-bottom: 13px; }
-  .narrow .doc_Search .listTable {
-    margin-top: 10px; }
+.narrow .doc_Search .pages {
+  padding-top: 3px;
+  margin-bottom: 13px; }
+.narrow .doc_Search .listTable {
+  margin-top: 10px; }
 
 .toolbar #btnDelete {
   margin-right: 0;
   float: right; }
 
-/*
- * край на тулбар
- */
-/*
- * вертикални форми
- */
+/*край на тулбар*/
+/*вертикални форми*/
 .vertical .formTitle {
   font-size: 1.2em;
   border-bottom: none;
@@ -1881,10 +1562,10 @@ input:focus[type=button] {
   color: white; }
 
 .vertical .formSection {
-  border-left: solid 1px #bbbbbb;
-  border-right: solid 1px #bbbbbb;
+  border-left: solid 1px #bbb;
+  border-right: solid 1px #bbb;
   background-image: url('../img/yellow.png');
-  background-color: #ffffee;
+  background-color: #ffe;
   padding: 15px;
   padding-bottom: 0;
   color: black;
@@ -1902,9 +1583,9 @@ input:focus[type=button] {
   -webkit-border-radius: 5px;
   -ms-border-radius: 5px;
   border-radius: 5px;
-  -moz-box-shadow: 2px 2px 8px 3px #aaaabb;
-  -webkit-box-shadow: 2px 2px 8px 3px #aaaabb;
-  box-shadow: 2px 2px 8px 3px #aaaabb;
+  -moz-box-shadow: 2px 2px 8px 3px #aab;
+  -webkit-box-shadow: 2px 2px 8px 3px #aab;
+  box-shadow: 2px 2px 8px 3px #aab;
   margin-bottom: 20px;
   border-collapse: separate;
   max-width: 48em; }
@@ -1918,19 +1599,19 @@ input:focus[type=button] {
   -moz-border-radius: 0 0 5px 5px;
   -webkit-border-radius: 0 0 5px 5px;
   border-radius: 0 0 5px 5px;
-  border: solid 1px #bbbbbb;
+  border: solid 1px #bbb;
   border-top: none;
-  background: #cccccc url('../img/formToolbarBg.jpg'); }
+  background: #ccc url('../img/formToolbarBg.jpg'); }
 
 .wide .vertical .formToolbar .toolbar div {
   margin: 2px 0; }
 
 .narrow .vertical .formToolbar {
   background-image: none;
-  border: solid 1px #bbbbbb;
+  border: solid 1px #bbb;
   border-top: none;
   padding: 3px 6px 3px 6px !important;
-  background-color: #ffffee; }
+  background-color: #ffe; }
   .narrow .vertical .formToolbar input {
     margin-right: 5px; }
   .narrow .vertical .formToolbar .toolbar {
@@ -1939,19 +1620,14 @@ input:focus[type=button] {
 .narrow .vertical .keylist td {
   overflow: hidden; }
 
-.narrow .vertical .keylist input[type=checkbox],
-.narrow .vertical .keylist input[type=radio] {
+.narrow .vertical .keylist input[type=checkbox], .narrow .vertical .keylist input[type=radio] {
   vertical-align: middle; }
 
 .vertical .formTable select {
   margin-right: 3px; }
 
-/*
- * край на вертикални форми
- */
-/*
- * хоризонтални форми
- */
+/*край на вертикални форми*/
+/*хоризонтални форми*/
 .wide .horizontal .formToolbar {
   float: left;
   margin-bottom: 13px;
@@ -1959,9 +1635,7 @@ input:focus[type=button] {
 
 .wide .horizontal .formFields {
   float: left; }
-  .wide .horizontal .formFields .combobox,
-  .wide .horizontal .formFields select,
-  .wide .horizontal .formFields input {
+  .wide .horizontal .formFields .combobox, .wide .horizontal .formFields select, .wide .horizontal .formFields input {
     max-width: 350px; }
 
 .narrow .horizontal {
@@ -1972,12 +1646,8 @@ input:focus[type=button] {
 
 .flashElem {
   background-color: #fffa99;
-  transition: background-color linear 500; }
-  .flashElem label,
-  .flashEleminput.combo,
-  .flashEleminput[type="checkbox"],
-  .flashEleminput[type="radio"],
-  small.flashElem {
+  transition: background-color linear 500ms; }
+  .flashEleminput.combo, .flashEleminput[type="checkbox"], .flashEleminput[type="radio"], .flashElem label, small.flashElem {
     background: none; }
 
 .flashElem.select2 > .selection > .select2-selection {
@@ -1986,10 +1656,10 @@ input:focus[type=button] {
 .multipleFiles {
   font-weight: bold; }
 
-  .input_align_horizontal .multipleFiles {
-    margin-right: 10px;
-    display: block;
-    float: left; }
+.input_align_horizontal .multipleFiles {
+  margin-right: 10px;
+  display: block;
+  float: left; }
 
 .align_horizontal .fileHolder {
   padding: 5px; }
@@ -1998,8 +1668,7 @@ input:focus[type=button] {
   display: block;
   padding: 1px; }
 
-.input_align_vertical_btn,
-.input_align_horizontal_btn {
+.input_align_vertical_btn, .input_align_horizontal_btn {
   float: left; }
 
 .align_vertical {
@@ -2012,8 +1681,7 @@ input:focus[type=button] {
     float: left;
     display: block;
     padding: 0px; }
-    .input_align_vertical .multipleFiles .align_vertical,
-    .input_align_vertical .multipleFiles a {
+    .input_align_vertical .multipleFiles .align_vertical, .input_align_vertical .multipleFiles a {
       display: inline-block;
       padding: 1px; }
     .input_align_vertical .multipleFiles .remove-file-link {
@@ -2026,15 +1694,11 @@ input:focus[type=button] {
       top: -2px;
       display: inline-block; }
 
-/*
- * край на хоризонтални форми
- */
+/*край на хоризонтални форми*/
 .contextCursor {
   cursor: context-menu; }
 
-/*
- * Загвавие, състоящо се от пътека
- */
+/*Загвавие, състоящо се от пътека*/
 .path-title {
   font-size: 0.9em;
   display: inline;
@@ -2045,9 +1709,7 @@ input:focus[type=button] {
   max-width: 1100px;
   display: block; }
 
-/*
- * Загвавие, състоящо се от пътека
- */
+/*Загвавие, състоящо се от пътека*/
 table.keylist {
   width: 100%;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
@@ -2060,8 +1722,8 @@ table.keylist {
       height: 1.6em !important; }
     table.keylist .inner-keylist td {
       padding: 0.2em 0.1em 0.1em 0.1em; }
-    table.keylist.shrinked:not(.keylist-wide) td {
-      padding-right: 20px; }
+  table.keylist.shrinked:not(.keylist-wide) td {
+    padding-right: 20px; }
 
 .wide table.keylist.shrinked:not(.keylist-wide) {
   width: auto !important; }
@@ -2080,8 +1742,7 @@ td.keylist-group {
     margin-top: 1px;
     cursor: pointer;
     position: relative; }
-    td.keylist-group > div .minus,
-    td.keylist-group > div .plus {
+    td.keylist-group > div .minus, td.keylist-group > div .plus {
       position: absolute;
       right: 3px;
       top: 5px;
@@ -2105,41 +1766,36 @@ td.keylist-group {
   top: 50%;
   margin-top: -8px; }
 
-  .narrow td.keylist-group .minus,
-  .narrow td.keylist-group .plus {
-    top: 7px; }
-  .narrow td.keylist-group .invert-checkbox {
-    position: relative;
-    padding: 5px;
-    left: -5px;
-    top: -3px;
-    margin-right: -5px; }
+.narrow td.keylist-group .minus, .narrow td.keylist-group .plus {
+  top: 7px; }
+.narrow td.keylist-group .invert-checkbox {
+  position: relative;
+  padding: 5px;
+  left: -5px;
+  top: -3px;
+  margin-right: -5px; }
 
 .hiddenFormRow {
   display: none; }
 
-    .openToggleRow .formGroup .btns-icon {
-      display: none !important; }
+.openToggleRow .formGroup .btns-icon {
+  display: none !important; }
 
-  .opened td.keylist-group > div .plus {
-    display: none; }
-  .opened td.keylist-group > div .minus {
-    display: inline-block; }
+.opened td.keylist-group > div .plus {
+  display: none; }
+.opened td.keylist-group > div .minus {
+  display: inline-block; }
 
-  .closed td.keylist-group > div .minus {
-    display: none; }
-  .closed td.keylist-group > div .plus {
-    display: inline-block; }
+.closed td.keylist-group > div .minus {
+  display: none; }
+.closed td.keylist-group > div .plus {
+  display: inline-block; }
 
 .inner-keylist .hiddenElement {
   display: none; }
 
-/*
- * край на стилове за показване на формите
- */
-/*
- * Стилове за странициране 'hlp_Pager'
- */
+/*край на стилове за показване на формите */
+/* Стилове за странициране 'hlp_Pager' */
 .pages {
   clear: both;
   margin: 16px 2px 8px 2px; }
@@ -2163,14 +1819,13 @@ a.pager {
   padding: 2px;
   margin-left: -2px;
   margin-right: 4px;
-  border: solid 1px rgba(0, 0, 0, 0);
+  border: solid 1px transparent;
   -moz-border-radius: 4px;
   -webkit-border-radius: 4px;
   -ms-border-radius: 4px;
   border-radius: 4px;
   cursor: pointer; }
-  a.pager:hover,
-  a.pager.pagerSelected {
+  a.pager:hover, a.pager.pagerSelected {
     -moz-border-radius: 4px;
     -webkit-border-radius: 4px;
     -ms-border-radius: 4px;
@@ -2183,18 +1838,9 @@ a.pager {
   margin: 0.2em;
   margin-left: 0; }
 
-/*
- * край на стилове за странициране 'hlp_Pager'
- */
-/*
- * Стилове за елемента 'tab'
- */
-.noSelect,
-div.richedit-toolbar,
-#mainMenu,
-#subMenu,
-div.tab-row,
-#nav-panel {
+/*край на стилове за странициране 'hlp_Pager' */
+/* Стилове за елемента 'tab' */
+.noSelect, div.richedit-toolbar, #mainMenu, #subMenu, div.tab-row, #nav-panel {
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
@@ -2205,15 +1851,14 @@ div.tab-row,
 div.tab-control .tab-title {
   font-weight: bold; }
 
-select.tab-control,
-select.tab-control option {
+select.tab-control, select.tab-control option {
   border-top-left-radius: 3px;
   -moz-border-radius-topleft: 3px;
   -webkit-border-top-left: 3px;
   border-top-right-radius: 3px;
   -moz-border-radius-topright: 3px;
   -webkit-border-top-right: 3px;
-  background-color: #dddddd; }
+  background-color: #ddd; }
 
 div.tab-control div.tab-row .tab {
   font-family: arial;
@@ -2228,7 +1873,7 @@ div.tab-control div.tab-row .tab {
   -moz-border-radius: 5px 5px 0 0;
   -webkit-border-radius: 5px 5px 0 0;
   border-radius: 5px 5px 0 0;
-  border-top: 2px solid #004488; }
+  border-top: 2px solid #048; }
   div.tab-control div.tab-row .tab.selected {
     z-index: 3;
     padding: 4px 5px 6px 5px;
@@ -2267,12 +1912,8 @@ div.tab-control div.tab-page {
 .narrow div.tab-control.alphabet div.tab-page {
   padding: 0.1em; }
 
-/*
- * край на стилове за елемента 'tab'
- */
-/*
- * таб alphabet
- */
+/* край на стилове за елемента 'tab' */
+/*таб alphabet*/
 div.alphabet div.tab-row .tab {
   line-height: 1.1em;
   padding: 5px;
@@ -2288,24 +1929,24 @@ div.alphabet div.tab-row .tab {
   div.alphabet div.tab-row .tab:hover {
     margin-top: -1px;
     margin-bottom: 8px;
-    background-color: #ffffcc !important; }
+    background-color: #ffc !important; }
   div.alphabet div.tab-row .tab:hover a {
     color: red !important; }
   div.alphabet div.tab-row .tab.selected {
-    background: #ffffcc;
-    border: 1px solid #aaaaaa;
+    background: #ffc;
+    border: 1px solid #aaa;
     top: 0;
     margin: -1px 4px 8px 0;
     padding: 5px !important;
-    -moz-box-shadow: 0px 0px 3px 1px #cccccc;
-    -webkit-box-shadow: 0px 0px 3px 1px #cccccc;
-    box-shadow: 0px 0px 3px 1px #cccccc; }
+    -moz-box-shadow: 0px 0px 3px 1px #ccc;
+    -webkit-box-shadow: 0px 0px 3px 1px #ccc;
+    box-shadow: 0px 0px 3px 1px #ccc; }
 
 div.alphabet div.tab-page {
   margin: 0;
   padding: 10px 0 0 0; }
 
-.narrow div.alphabet  div.tab-row {
+.narrow div.alphabet div.tab-row {
   float: left;
   padding-bottom: 5px; }
 
@@ -2321,15 +1962,14 @@ div.alphabet div.tab-page {
     background-color: #fefec2; }
   .single-thread .document .docStatistic .detail-info .row-state-returned td {
     background-color: #fed6d6; }
-  .single-thread .document .docStatistic .detail-info .stateIndicator,
-  .single-thread .document .docStatistic .detail-info .inline-date {
+  .single-thread .document .docStatistic .detail-info .stateIndicator, .single-thread .document .docStatistic .detail-info .inline-date {
     display: inline-block; }
     .single-thread .document .docStatistic .detail-info .stateIndicator.state-active {
-      background-color: #ffeedd; }
+      background-color: #fed; }
     .single-thread .document .docStatistic .detail-info .stateIndicator.state-stopped {
       background-color: #feadad; }
     .single-thread .document .docStatistic .detail-info .stateIndicator.state-closed {
-      background-color: #dddddd; }
+      background-color: #ddd; }
 
 .systemFlag {
   border-radius: 5px;
@@ -2338,27 +1978,25 @@ div.alphabet div.tab-page {
   box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4);
   font-size: 0.9em; }
   .systemFlag.critical_priority {
-    background: #ee0000;
-    color: white; }
+    background: #e00;
+    color: #fff; }
   .systemFlag.high_priority {
     background: #ee701e;
-    color: white; }
+    color: #fff; }
   .systemFlag.normal_priority {
     background: #eecf2c;
-    color: black; }
+    color: #000; }
   .systemFlag.low_priority {
-    background: #999999;
-    color: black; }
+    background: #999;
+    color: #000; }
 
-/*
- * вътрешни alphabet табовете в документ - изглеждат като основните, но по-малки
- */
+/*вътрешни alphabet табовете в документ - изглеждат като основните, но по-малки*/
 .single-thread .document .docStatistic div.alphabet {
   padding-bottom: 0; }
   .single-thread .document .docStatistic div.alphabet .tab-page {
     padding: 0 !important;
     clear: both;
-    border-top: 1px solid #cccccc;
+    border-top: 1px solid #ccc;
     box-shadow: 0 -1px 1px rgba(0, 0, 0, 0.1);
     position: relative;
     top: 1px;
@@ -2378,27 +2016,27 @@ div.alphabet div.tab-page {
     .single-thread .document .docStatistic div.alphabet .tab-page .listTable {
       width: 100%; }
     .single-thread .document .docStatistic div.alphabet .tab-page .listTable td {
-      border: 1px dotted #bbbbbb;
+      border: 1px dotted #bbb;
       text-align: center;
       padding: 2px; }
       .single-thread .document .docStatistic div.alphabet .tab-page .listTable td:first-child {
         white-space: nowrap; }
-      .single-thread .document .docStatistic div.alphabet .tab-page .listTable tr:last-child td:first-child {
-        border-radius: 0 0 0 5px; }
-      .single-thread .document .docStatistic div.alphabet .tab-page .listTable tr:last-child td:last-child {
-        border-radius: 0 0 5px 0; }
+    .single-thread .document .docStatistic div.alphabet .tab-page .listTable tr:last-child td:first-child {
+      border-radius: 0 0 0 5px; }
+    .single-thread .document .docStatistic div.alphabet .tab-page .listTable tr:last-child td:last-child {
+      border-radius: 0 0 5px 0; }
     .single-thread .document .docStatistic div.alphabet .tab-page .listTable th {
       background-color: #fefec2;
-      border-left: 1px solid rgba(0, 0, 0, 0);
-      border-right: 1px solid rgba(0, 0, 0, 0);
-      border-top: 1px solid rgba(0, 0, 0, 0);
-      border-bottom: 1px dotted #bbbbbb;
-      color: #333333;
+      border-left: 1px solid transparent;
+      border-right: 1px solid transparent;
+      border-top: 1px solid transparent;
+      border-bottom: 1px dotted #bbb;
+      color: #333;
       padding: 5px 0; }
       .single-thread .document .docStatistic div.alphabet .tab-page .listTable th:first-child {
-        border-left: 1px solid #bbbbbb; }
+        border-left: 1px solid #bbb; }
       .single-thread .document .docStatistic div.alphabet .tab-page .listTable th:last-child {
-        border-right: 1px solid #bbbbbb; }
+        border-right: 1px solid #bbb; }
   .single-thread .document .docStatistic div.alphabet .detail-info {
     border: none !important; }
   .single-thread .document .docStatistic div.alphabet div.tab-row .tab {
@@ -2410,10 +2048,10 @@ div.alphabet div.tab-page {
     display: inline;
     margin: 1px -8px -1px 10px;
     float: left;
-    background: #dddddd;
-    border: 1px solid #bbbbbb;
+    background: #ddd;
+    border: 1px solid #bbb;
     border-bottom: none;
-    color: #999999;
+    color: #999;
     z-index: 1;
     white-space: nowrap;
     position: relative;
@@ -2423,7 +2061,7 @@ div.alphabet div.tab-page {
     border-radius: 5px 5px 0 0; }
     .single-thread .document .docStatistic div.alphabet div.tab-row .tab a {
       display: inline-block;
-      color: #004488;
+      color: #048;
       padding: 4px 5px 4px 5px !important;
       -moz-border-radius: 5px 5px 0 0;
       -webkit-border-radius: 5px 5px 0 0;
@@ -2432,14 +2070,14 @@ div.alphabet div.tab-page {
       display: inline-block;
       padding: 4px 5px 4px 5px !important; }
     .single-thread .document .docStatistic div.alphabet div.tab-row .tab:hover a {
-      background-color: #ffffcc !important;
-      color: #004488 !important; }
+      background-color: #ffc !important;
+      color: #048 !important; }
     .single-thread .document .docStatistic div.alphabet div.tab-row .tab:hover span {
-      background-color: #dddddd !important; }
+      background-color: #ddd !important; }
     .single-thread .document .docStatistic div.alphabet div.tab-row .tab.selected {
       margin: 1px -8px -3px 10px;
       background: #fefec2 !important;
-      border: 1px solid #cccccc;
+      border: 1px solid #ccc;
       box-shadow: 0 -1px 1px rgba(0, 0, 0, 0.2);
       border-bottom: none;
       z-index: 3;
@@ -2490,77 +2128,62 @@ div.alphabet div.tab-page {
       .top-tab-content .detail-info .table-title a img {
         vertical-align: middle; }
 
-/*
- * табове за поддетайли на документ
- */
-  div.tab-control.deal-history-tab .tab-page,
-  .single-thread .document .tab-top div.alphabet .tab-page {
-    border: none;
-    padding: 0; }
-  div.tab-control.deal-history-tab .tab-row,
-  .single-thread .document .tab-top div.alphabet .tab-row {
-    float: left;
-    margin-bottom: 10px; }
-    div.tab-control.deal-history-tab .tab-row .tab,
-    .single-thread .document .tab-top div.alphabet .tab-row .tab {
-      display: inline-block;
-      line-height: 1.1em;
+/*табове за поддетайли на документ*/
+div.tab-control.deal-history-tab .tab-page, .single-thread .document .tab-top div.alphabet .tab-page {
+  border: none;
+  padding: 0; }
+div.tab-control.deal-history-tab .tab-row, .single-thread .document .tab-top div.alphabet .tab-row {
+  float: left;
+  margin-bottom: 10px; }
+  div.tab-control.deal-history-tab .tab-row .tab, .single-thread .document .tab-top div.alphabet .tab-row .tab {
+    display: inline-block;
+    line-height: 1.1em;
+    padding: 4px;
+    font-size: 0.7em;
+    text-align: center;
+    margin: 0 3px 0 0;
+    -moz-border-radius: 7px;
+    -webkit-border-radius: 7px;
+    -ms-border-radius: 7px;
+    border-radius: 7px;
+    background-color: #ccc !important;
+    border: 1px solid #aaa; }
+    div.tab-control.deal-history-tab .tab-row .tab a, .single-thread .document .tab-top div.alphabet .tab-row .tab a {
+      text-shadow: none;
+      cursor: pointer; }
+    div.tab-control.deal-history-tab .tab-row .tab:hover, .single-thread .document .tab-top div.alphabet .tab-row .tab:hover, div.tab-control.deal-history-tab .tab-row .tab.selected, .single-thread .document .tab-top div.alphabet .tab-row .tab.selected {
       padding: 4px;
-      font-size: 0.7em;
-      text-align: center;
+      top: 0 !important;
       margin: 0 3px 0 0;
-      -moz-border-radius: 7px;
-      -webkit-border-radius: 7px;
-      -ms-border-radius: 7px;
-      border-radius: 7px;
-      background-color: #cccccc !important;
-      border: 1px solid #aaaaaa; }
-      div.tab-control.deal-history-tab .tab-row .tab a,
-      .single-thread .document .tab-top div.alphabet .tab-row .tab a {
-        text-shadow: none;
-        cursor: pointer; }
-      div.tab-control.deal-history-tab .tab-row .tab:hover,
-      .single-thread .document .tab-top div.alphabet .tab-row .tab:hover,
-      div.tab-control.deal-history-tab .tab-row .tab.selected,
-      .single-thread .document .tab-top div.alphabet .tab-row .tab.selected {
-        padding: 4px;
-        top: 0 !important;
-        margin: 0 3px 0 0;
-        border: 1px solid #bbbbbb;
-        background-color: #ffffcc !important; }
-        div.tab-control.deal-history-tab .tab-row .tab:hover a,
-        .single-thread .document .tab-top div.alphabet .tab-row .tab:hover a,
-        div.tab-control.deal-history-tab .tab-row .tab.selected a,
-        .single-thread .document .tab-top div.alphabet .tab-row .tab.selected a {
-          color: #333333; }
+      border: 1px solid #bbb;
+      background-color: #ffc !important; }
+      div.tab-control.deal-history-tab .tab-row .tab:hover a, .single-thread .document .tab-top div.alphabet .tab-row .tab:hover a, div.tab-control.deal-history-tab .tab-row .tab.selected a, .single-thread .document .tab-top div.alphabet .tab-row .tab.selected a {
+        color: #333; }
 
-.wide .single-thread .document .tab-top div.alphabet  .tab-row {
+.wide .single-thread .document .tab-top div.alphabet .tab-row {
   margin-bottom: 5px; }
-  .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab {
+  .wide .single-thread .document .tab-top div.alphabet .tab-row .tab {
     font-size: 0.7em;
     margin: 0 4px 0 0;
     padding: 5px 8px;
     margin: 0 4px 0 0 !important;
     cursor: pointer;
-    border: 1px solid #bbbbbb !important;
+    border: 1px solid #bbb !important;
     font-size: 0.7em;
     text-decoration: none;
     white-space: nowrap;
-    color: #555555 !important;
-    background-color: #dddddd !important;
-    background-image: linear-gradient(top, white, rgba(255, 255, 255, 0)), ();
+    color: #555 !important;
+    background-color: #ddd !important;
+    background-image: linear-gradient(top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0)), url(data:image/png;base64,iVBORw0KGg[...]QmCC) !important;
     transition: background-color 0.2s ease-out !important;
     background-clip: padding-box;
-        /*
-     * Fix bleeding
-     */
+    /* Fix bleeding */
     border-radius: 5px !important;
     box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.3) inset !important;
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) !important; }
-    .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab a {
-      color: #333333 !important; }
-    .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab:hover,
-    .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected {
+    .wide .single-thread .document .tab-top div.alphabet .tab-row .tab a {
+      color: #333 !important; }
+    .wide .single-thread .document .tab-top div.alphabet .tab-row .tab:hover, .wide .single-thread .document .tab-top div.alphabet .tab-row .tab.selected {
       margin: 0 4px 0 0 !important;
       background: #ffffe9 !important;
       padding: 5px 8px !important;
@@ -2568,26 +2191,20 @@ div.alphabet div.tab-page {
       top: 1px;
       top: -4px;
       text-shadow: none; }
-      .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab:hover a,
-      .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected a {
-        color: #444444 !important; }
+      .wide .single-thread .document .tab-top div.alphabet .tab-row .tab:hover a, .wide .single-thread .document .tab-top div.alphabet .tab-row .tab.selected a {
+        color: #444 !important; }
 
-  .narrow div.tab-control.deal-history-tab .tab-row,
-  .narrow .single-thread .document .tab-top div.alphabet .tab-row {
-    float: none;
-    margin: 0px 5px;
-    clear: both; }
-    .narrow div.tab-control.deal-history-tab div.tab-row .tab,
-    .narrow div.tab-control.deal-history-tab div.tab-row .tab.selected,
-    .narrow .single-thread .document .tab-top div.alphabet div.tab-row .tab,
-    .narrow .single-thread .document .tab-top div.alphabet div.tab-row .tab.selected {
-      margin: 1px 0px 1px 3px !important;
-      padding: 4px 3px 2px !important;
-      font-size: 0.65em; }
-  .narrow div.tab-control.deal-history-tab div.tab-page,
-  .narrow .single-thread .document .tab-top div.alphabet div.tab-page {
-    background: none;
-    padding: 5px; }
+.narrow div.tab-control.deal-history-tab .tab-row, .narrow .single-thread .document .tab-top div.alphabet .tab-row {
+  float: none;
+  margin: 0px 5px;
+  clear: both; }
+  .narrow div.tab-control.deal-history-tab div.tab-row .tab, .narrow .single-thread .document .tab-top div.alphabet div.tab-row .tab, .narrow div.tab-control.deal-history-tab div.tab-row .tab.selected, .narrow .single-thread .document .tab-top div.alphabet div.tab-row .tab.selected {
+    margin: 1px 0px 1px 3px !important;
+    padding: 4px 3px 2px !important;
+    font-size: 0.65em; }
+.narrow div.tab-control.deal-history-tab div.tab-page, .narrow .single-thread .document .tab-top div.alphabet div.tab-page {
+  background: none;
+  padding: 5px; }
 
 .badge {
   -moz-border-radius: 9px;
@@ -2595,21 +2212,19 @@ div.alphabet div.tab-page {
   -ms-border-radius: 9px;
   border-radius: 9px;
   border-radius: 9px;
-  color: white;
-  background-color: #999999;
+  color: #fff;
+  background-color: #999;
   font-size: 0.84em;
   padding: 1px 7px 2px;
   position: relative;
   top: -2px; }
 
-/*
- * Стилове за елемента 'RichEdit'
- */
+/* Стилове за елемента 'RichEdit' */
 div.richEdit div.richedit-toolbar {
   padding: 4px;
   font-size: 0.85em;
   text-align: left;
-  color: #333333;
+  color: #333;
   font-size: 0.9em;
   margin-top: -4px; }
 
@@ -2644,7 +2259,7 @@ div.richEdit {
 .richEdit textarea {
   margin-bottom: 0;
   overflow: auto;
-  border-bottom: 1px solid rgba(0, 0, 0, 0);
+  border-bottom: 1px solid transparent;
   width: 32em; }
 
 .hiddenFormRow .richEdit textarea {
@@ -2658,7 +2273,7 @@ div.richEdit {
   _height: 1%; }
 
 .richedit-toolbar.inputError {
-  border: solid 1px red !important;
+  border: solid 1px #f00 !important;
   border-top: none !important; }
 
 .richtext-relative-group {
@@ -2670,8 +2285,8 @@ div.richEdit {
   cursor: pointer; }
 
 a.rtbutton {
-  border: 1px solid rgba(0, 0, 0, 0);
-  background: rgba(0, 0, 0, 0);
+  border: 1px solid transparent;
+  background: transparent;
   padding: 0.2em 0.3em 0.3em;
   cursor: pointer;
   display: block;
@@ -2684,8 +2299,8 @@ a.rtbutton {
   z-index: 1001; }
 
 .richtext-holder-group a.rtbutton {
-  background: #dddddd;
-  border: 1px solid #bbbbaa;
+  background: #ddd;
+  border: 1px solid #bba;
   padding: 4px;
   border-radius: 0px !important; }
 
@@ -2693,12 +2308,10 @@ a.rtbutton {
   padding: 0.2em 0.3em 0.3em;
   height: 1.1em; }
 
-a.rtbutton:hover,
-a.rtbutton:active,
-a.rtbutton:focus {
+a.rtbutton:hover, a.rtbutton:active, a.rtbutton:focus {
   background: #d0d0ff;
   border-style: outset;
-  border: 1px solid #bbbbdd;
+  border: 1px solid #bbd;
   border-radius: 3px;
   color: black; }
 
@@ -2706,8 +2319,8 @@ a.lang {
   position: absolute;
   top: 2px;
   right: 4px;
-  color: white;
-  border: 1px solid #bbbbdd;
+  color: #fff;
+  border: 1px solid #bbd;
   text-transform: uppercase;
   min-width: 22px;
   font-size: 0.9em;
@@ -2717,28 +2330,28 @@ a.lang {
   border-radius: 3px !important; }
   a.lang.en {
     background-color: #05008e;
-    color: white; }
+    color: #fff; }
   a.lang.bg {
-    background-color: yellow;
-    color: black !important; }
+    background-color: #ff0;
+    color: #000 !important; }
   a.lang.ro {
     background-color: #ae1c26; }
     a.lang.ro:hover {
-      color: white; }
+      color: #fff; }
   a.lang.sr {
     background-color: #2b7728; }
     a.lang.sr:hover {
-      color: white; }
+      color: #fff; }
   a.lang.ru {
     background-color: #578ade;
-    color: black; }
+    color: #000; }
   a.lang.it {
-    background-color: white;
-    color: black; }
+    background-color: #fff;
+    color: #000; }
   a.lang:hover {
     background-color: none !important;
     border-style: outset;
-    border: 1px solid #9999cc; }
+    border: 1px solid #99c; }
 
 .narrow .richtext {
   -webkit-hyphens: auto;
@@ -2748,15 +2361,10 @@ a.lang {
   word-break: break-word; }
 
 @-moz-document url-prefix() {
-    a.lang {
-    padding: 2px !important; }
- }
-.richtext-emoticons,
-.richtext-emoticons2,
-.richtext-emoticons3,
-.richtext-emoticons4,
-.richtext-emoticons5,
-.richtext-emoticons7 {
+  a.lang {
+    padding: 2px !important; } }
+
+.richtext-emoticons, .richtext-emoticons2, .richtext-emoticons3, .richtext-emoticons4, .richtext-emoticons5, .richtext-emoticons7 {
   position: absolute;
   left: 0;
   bottom: 2.1em;
@@ -2780,11 +2388,7 @@ a.lang {
 .richtext-emoticons5 {
   left: -260%; }
 
-.richtext-emoticons a.rtbutton,
-.richtext-emoticons2 a.rtbutton,
-.richtext-emoticons3 a.rtbutton,
-.richtext-emoticons4 a.rtbutton,
-.richtext-emoticons5 a.rtbutton {
+.richtext-emoticons a.rtbutton, .richtext-emoticons2 a.rtbutton, .richtext-emoticons3 a.rtbutton, .richtext-emoticons4 a.rtbutton, .richtext-emoticons5 a.rtbutton {
   display: table-cell;
   float: none;
   padding: 0.2em 0.3em 0.1em;
@@ -2820,38 +2424,34 @@ a.lang {
   display: block;
   width: 80px;
   padding: 5px;
-  background: #dddddd;
-  border: 1px solid #bbbbaa; }
+  background: #ddd;
+  border: 1px solid #bba; }
   .popup-table-info input {
     max-width: 80px !important; }
   .popup-table-info .popupBlock {
     display: block;
     margin-bottom: 5px; }
 
-/*
- * край на стилове за елемента 'RichEdit'
- */
-/*
- * richtext
- */
+/* край на стилове за елемента 'RichEdit' */
+/*richtext*/
 .richtext {
-  color: #333333;
+  color: #333;
   font-family: sans-serif;
   line-height: 1.4em; }
 
 h3.richtext-title {
   margin-top: 0 !important;
-  color: #333333; }
+  color: #333; }
 
 pre.rich-text {
   font-family: Courier New, monospace;
   padding: 10px;
   zoom: 1;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF, endColorstr=#50F1F1FF);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF);
   background: rgba(245, 245, 255, 0.5);
-  color: black;
+  color: #000;
   line-height: 120%;
-  border: solid 1px #dddddd;
+  border: solid 1px #ddd;
   white-space: pre-wrap;
   overflow: auto;
   font-size: 0.97em;
@@ -2874,9 +2474,9 @@ pre.rich-text {
   background-color: rgba(0, 0, 0, 0.2); }
 
 div.richtext pre .code {
-  border: 1px solid #dddddd;
-  background: rgba(0, 0, 0, 0);
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF, endColorstr=#50F1F1FF);
+  border: 1px solid #ddd;
+  background: transparent;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF);
   background: rgba(245, 245, 255, 0.5);
   margin: 10px 0;
   padding: 10px;
@@ -2889,7 +2489,7 @@ div.richtext pre code {
   padding: 0;
   font-size: 0.97em;
   overflow: auto;
-  background: rgba(0, 0, 0, 0) !important; }
+  background: transparent !important; }
 
 .printing .richtext .code {
   white-space: pre-wrap !important; }
@@ -2898,14 +2498,14 @@ div.richtext pre code {
   font-family: "Courier New", monospace;
   font-size: 0.96em;
   line-height: normal;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF, endColorstr=#50F1F1FF);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF);
   background: rgba(235, 235, 235, 0.5);
-  border: 1px solid #dddddd;
+  border: 1px solid #ddd;
   border-radius: 3px;
   margin: 0 2px 1px;
   padding: 0 5px 0;
   display: inline-block;
-  color: black; }
+  color: #000; }
 
 .narrow .richtext .oneLineCode {
   padding: 0 5px;
@@ -2917,28 +2517,21 @@ div.code {
 div.richtextHide {
   display: none;
   margin-left: 4px;
-  border-left: dotted 1px #cccccc;
+  border-left: dotted 1px #ccc;
   padding: 10px; }
 
 .strike-text {
-  color: #666666;
+  color: #666;
   text-decoration: line-through; }
   .strike-text .oneLineCode {
-    color: #666666;
+    color: #666;
     text-decoration: line-through; }
 
-/*
- * richtext elements
- */
+/*richtext elements*/
 .narrow .richtext {
   font-size: 0.9em; }
 
-.richtext h1,
-.richtext h2,
-.richtext h3,
-.richtext h4,
-.richtext h5,
-.richtext h6 {
+.richtext h1, .richtext h2, .richtext h3, .richtext h4, .richtext h5, .richtext h6 {
   margin-top: 0;
   margin-bottom: 5px;
   line-height: normal; }
@@ -2961,8 +2554,7 @@ div.richtext li {
   margin-left: 1.5em;
   padding-top: 0.2em; }
 
-div.richtext ul,
-div.richtext ol {
+div.richtext ul, div.richtext ol {
   padding-left: 1.5em;
   margin: 0; }
 
@@ -2991,7 +2583,7 @@ div.richtext ol ol ol {
   list-style-type: disc; }
 
 .richtext-quote {
-  color: #444444;
+  color: #444;
   padding: 2px 0 0 15px;
   border-left: 5px solid #e0e0e0;
   font-family: Courier New, monospace, serif;
@@ -3012,9 +2604,7 @@ div.richtext ol ol ol {
     height: 20px;
     min-width: 10px; }
 
-/*
- * richtext message-box
- */
+/*richtext message-box*/
 .richtext-message {
   font-family: Courier New, mono;
   border: 1px dotted;
@@ -3035,7 +2625,7 @@ div.richtext ol ol ol {
   background-color: rgba(255, 255, 128, 0.3);
   padding: 10px;
   margin: 10px 0;
-  border: solid 1px #cccccc;
+  border: solid 1px #ccc;
   font-family: Courier New, mono; }
 
 .richtext-info {
@@ -3079,40 +2669,35 @@ div.richtext ol ol ol {
   margin-right: 0;
   font-size: 0.9em; }
 
-  .richtext-message h1,
-  .richtext-message h2,
-  .richtext-message h3,
-  .richtext-message h4,
-  .richtext-message h5,
-  .richtext-message h6 {
-    line-height: 1;
-    margin: 0 !important; }
-  .richtext-message .header {
-    padding: 0 !important;
-    display: block;
-    clear: both;
-    margin: 1em 0 1em 0 !important; }
-  .richtext-message .header:first-child {
-    padding: 0 !important;
-    display: block;
-    margin: 0.2em 0 0.5em 0 !important; }
-  .richtext-message h1 {
-    font-size: 1.8em;
-    margin-top: 0.17em !important; }
-  .richtext-message h2 {
-    margin-top: -0.15em !important; }
-  .richtext-message h3 {
-    margin-top: 0.6em !important; }
-  .richtext-message h4 {
-    margin-top: 0.7em !important; }
-  .richtext-message h5 {
-    margin-top: 0.9em !important; }
-  .richtext-message h6 {
-    margin-top: 1.2em !important; }
+.richtext-message h1, .richtext-message h2, .richtext-message h3, .richtext-message h4, .richtext-message h5, .richtext-message h6 {
+  line-height: 1;
+  margin: 0 !important; }
+.richtext-message .header {
+  padding: 0 !important;
+  display: block;
+  clear: both;
+  margin: 1em 0 1em 0 !important; }
+.richtext-message .header:first-child {
+  padding: 0 !important;
+  display: block;
+  margin: 0.2em 0 0.5em 0 !important; }
+.richtext-message h1 {
+  font-size: 1.8em;
+  margin-top: 0.17em !important; }
+.richtext-message h2 {
+  margin-top: -0.15em !important; }
+.richtext-message h3 {
+  margin-top: 0.6em !important; }
+.richtext-message h4 {
+  margin-top: 0.7em !important; }
+.richtext-message h5 {
+  margin-top: 0.9em !important; }
+.richtext-message h6 {
+  margin-top: 1.2em !important; }
 
-    .document .richtext-message .header:first-child h2 {
-      margin-top: 0.35em !important;
-      margin-bottom: 0.3em !important; }
+.document .richtext-message .header:first-child h2 {
+  margin-top: 0.35em !important;
+  margin-bottom: 0.3em !important; }
 
 .richtext-message a[href] {
   color: inherit !important;
@@ -3123,16 +2708,12 @@ div.richtext ol ol ol {
 .richtext > .richtext-message:last-of-type {
   margin-bottom: 0; }
 
-/*
- * край на richtext message-box
- */
-/*
- * нотификации
- */
+/*край на richtext message-box*/
+/*нотификации*/
 div.notification-info {
   display: table;
-  border: solid 1px #ff9900;
-  background-color: #ffffcc;
+  border: solid 1px #f90;
+  background-color: #ffc;
   text-align: center;
   font-weight: bold;
   margin: 10px;
@@ -3147,8 +2728,8 @@ div.notification-info {
 .narrow div.notification-info {
   display: table;
   margin: 5px 0;
-  border: solid 1px #ff9900;
-  background-color: #ffffcc;
+  border: solid 1px #f90;
+  background-color: #ffc;
   padding: 5px;
   font-size: 1.5em;
   -moz-border-radius: 0px;
@@ -3209,9 +2790,7 @@ div.statuses-message h2 {
   -ms-border-radius: 0px;
   border-radius: 0px; }
 
-/*
- * край на нотификации
- */
+/*край на нотификации*/
 .core_Cron .listTable td p {
   margin: 5px;
   font-family: monospace;
@@ -3223,24 +2802,22 @@ div.statuses-message h2 {
   display: inline-block;
   margin: -2px 5px 0; }
 
-/*
- * цветове
- */
+/*цветове*/
 .quiet {
-  color: #888888; }
+  color: #888; }
 
 .quiet td {
   border-top-width: 0;
   border-bottom: none; }
 
 .red {
-  color: #cc0000; }
+  color: #c00; }
 
 .green {
-  color: #008800; }
+  color: #080; }
 
 .future {
-  background-color: #99eecc; }
+  background-color: #9ec; }
 
 .current {
   font-weight: bold; }
@@ -3251,24 +2828,20 @@ div.statuses-message h2 {
   color: black; }
 
 .debug-new {
-  color: #00aa00; }
+  color: #0a0; }
 
 .debug-update {
-  color: #00aa00; }
+  color: #0a0; }
 
 .debug-error {
-  color: #dd0000;
+  color: #d00;
   font-size: 1em; }
 
 #setupLog li {
   font-size: 0.5em; }
 
-/*
- * край на цветове
- */
-/*
- * стилове за пакети
- */
+/*край на цветове*/
+/*стилове за пакети*/
 .elem-holder {
   position: relative;
   display: block;
@@ -3281,17 +2854,16 @@ div.statuses-message h2 {
   .elem-holder.core-pack-state-active {
     background: #fcfae8; }
   .elem-holder.core-pack-state-draft {
-    background: #bbffff; }
+    background: #bff; }
   .elem-holder.core-pack-state-closed {
-    background: #dddddd; }
+    background: #ddd; }
   .elem-holder.core-pack-missing {
     background: #feadad; }
   .elem-holder.core-pack-state-hidden {
-    background: #ffee77; }
+    background: #fe7; }
   .elem-holder .pack-title {
     display: inline-block; }
-    .elem-holder .pack-title:hover,
-    .elem-holder .pack-title:hover b {
+    .elem-holder .pack-title:hover, .elem-holder .pack-title:hover b {
       text-decoration: underline; }
   .elem-holder .deinstall-pack {
     position: absolute;
@@ -3327,7 +2899,7 @@ div.statuses-message h2 {
     min-height: 20px;
     display: block;
     float: right;
-    color: #999999;
+    color: #999;
     font-size: 0.8em; }
     .elem-holder .btns a {
       display: inline-block;
@@ -3364,50 +2936,38 @@ div.statuses-message h2 {
 .narrow select[name='pack'] {
   min-width: 290px; }
 
-/*
- * край на стилове за пакети
- */
-/*
- * Стилове за diff между html текстове
- */
+/*край на стилове за пакети*/
+/* Стилове за diff между html текстове */
 span.del {
-  background-color: #ffcccc;
+  background-color: #fcc;
   text-decoration: line-through;
-  color: #777777; }
+  color: #777; }
 
 span.ins {
-  background-color: #ccffcc; }
+  background-color: #cfc; }
 
 span.cng {
-  background-color: #ffffaa;
-  border-bottom: dotted 1px #cccc99; }
+  background-color: #ffa;
+  border-bottom: dotted 1px #cc9; }
 
-/*
- * Край на стилове за diff
- */
-/*
- * Стилове за core_Packs
- */
+/* Край на стилове за diff */
+/* Стилове за core_Packs */
 .const-default-value {
-  color: #666699; }
+  color: #669; }
 
 .const-default-value option {
   color: black; }
 
-/*
- * Край на стилове за core_Packs
- */
+/* Край на стилове за core_Packs */
 .checkBrowser {
   width: 1px;
   height: 1px;
   display: block;
   overflow: hidden; }
 
-/*
- * bugFix - линкове в toast
- */
+/*bugFix - линкове в toast*/
 .toast-container a {
-  color: #eeeeee !important;
+  color: #eee !important;
   font-weight: bold; }
   .toast-container a:hover {
     text-decoration: underline; }
@@ -3423,7 +2983,7 @@ span.cng {
   font-family: Arial, Verdana, Sans-serif !important; }
 
 .loginLog-first_login {
-  background-color: #ffffdd !important; }
+  background-color: #ffd !important; }
 
 .loginLog-success {
   background-color: #dbffe4 !important; }
@@ -3432,19 +2992,17 @@ span.cng {
   background-color: #fee1e4 !important; }
 
 .core_LoginLog .group-by-date-row {
-  background-color: rgba(0, 0, 0, 0) !important; }
+  background-color: transparent !important; }
 
 .fracPart {
   display: inline-block;
   text-align: left; }
 
-td.rightCol,
-th.rightCol {
+td.rightCol, th.rightCol {
   white-space: nowrap;
   text-align: right !important; }
 
-td.leftCol,
-th.leftCol {
+td.leftCol, th.leftCol {
   white-space: nowrap;
   text-align: left !important; }
 
@@ -3457,7 +3015,7 @@ td.leftColImportant {
   text-align: left !important; }
 
 .dangerFile {
-  color: #990000 !important; }
+  color: #900 !important; }
 
 .wide .treelist {
   font-family: Consolas, Courier New, monospace; }
@@ -3471,7 +3029,7 @@ td.leftColImportant {
   overflow-x: hidden;
   overflow-y: auto;
   position: relative;
-  border: solid 1px #bbbbbb;
+  border: solid 1px #bbb;
   border-radius: 3px;
   background-color: white;
   padding: 4px 20px 4px 4px;
@@ -3499,21 +3057,20 @@ td.leftColImportant {
     text-align: center; }
   .treelist .verbal {
     white-space: normal; }
-    .treelist .verbal a,
-    .treelist .verbal span {
+    .treelist .verbal a, .treelist .verbal span {
       background-color: #e4e4e4;
-      border: 1px solid #aaaaaa;
+      border: 1px solid #aaa;
       border-radius: 4px;
       display: inline-block;
       font-size: 0.8em;
       padding: 1px 3px;
-      color: black !important;
+      color: #000 !important;
       opacity: 1;
       font-family: Helvetica, Arial, Verdana, Sans-serif; }
     .treelist .verbal span:hover {
       cursor: default !important; }
   .treelist .underline {
-    border-bottom: 1px dashed #cccccc; }
+    border-bottom: 1px dashed #ccc; }
   .treelist .hidden {
     display: none; }
   .treelist .more-btn {
@@ -3527,4 +3084,3 @@ td.leftColImportant {
     background-image: url('../img/16/toggle1.png') !important; }
   .treelist .minus-icon {
     background-image: url('../img/16/toggle2.png') !important; }
-
