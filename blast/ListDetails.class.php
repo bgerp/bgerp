@@ -1280,6 +1280,7 @@ class blast_ListDetails extends doc_Detail
      */
     public static function importCsvFromContacts($className, $groupId, $listId, $countriesInclude, $countriesExlude, $inChargeUsers)
     {
+        core_App::setTimeLimit(240);
         $listRec = blast_Lists::fetch($listId);
         
         core_Lg::push($listRec->lg);
