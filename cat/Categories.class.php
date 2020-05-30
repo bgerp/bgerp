@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -501,5 +501,39 @@ class cat_Categories extends core_Master
         }
         
         return 'public';
+    }
+    
+    
+    /**
+     * Добавена проверка на различните комбинации от свойства
+     * 
+     * @param mixed $metasArr
+     * @param int|null $productId
+     * @param string|null $error
+     * @return boolean
+     */
+    public static function checkMetas($metasArr, $productId, &$error)
+    {
+        $metasArr = is_array($metasArr) ? $metasArr : type_Set::toArray($metasArr);
+        
+        if(isset($metasArr['generic'])) {
+             if(isset($metasArr['canBuy']) || isset($metasArr['canSell']) || isset($metasArr['fixedAsset']) || isset($metasArr['canManifacture'])){
+                $error = "Генеричният артикул не може да е Продаваем, Купуваем, Производим или ДА";
+             } elseif(!isset($metasArr['canConvert'])){
+                 $error = "Генеричният артикул трябва да е и Вложим";
+             } elseif(isset($productId) && !haveRole('debug')){
+                $exMeta = type_Set::toArray(cat_Products::fetchField($productId, 'meta'));
+                if(!isset($exMeta['generic'])){
+                    $error = "Съществуващ артикул не може да става генеричен";
+                }
+            }
+        } elseif(isset($productId)) {
+            $exMeta = type_Set::toArray(cat_Products::fetchField($productId, 'meta'));
+            if(isset($exMeta['generic'])){
+                $error = "Артикул създаден като генеричен, не може да се променя на негенеричен";
+            }
+        }
+        
+        return empty($error);
     }
 }

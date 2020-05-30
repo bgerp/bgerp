@@ -3698,7 +3698,9 @@ fieldset.sharing-history {
 	display: inline-block;
 	margin-bottom: 5px;
 	text-align: center;
-
+	&.waitingDelivery {
+		background-color: rgba(41, 86, 222, 0.8) !important;
+	}
 }
 
 .small .colorBox {

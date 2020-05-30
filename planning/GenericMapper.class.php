@@ -2,24 +2,24 @@
 
 
 /**
- * Мениджър на ресурсите свързани с обекти
+ * Съответствие с генерични артикули
  *
  *
  * @category  bgerp
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
-class planning_ObjectResources extends core_Manager
+class planning_GenericMapper extends core_Manager
 {
     /**
      * Заглавие
      */
-    public $title = 'Ресурси на обекти';
+    public $title = 'Съответствия с генерични артикули';
     
     
     /**
@@ -55,25 +55,19 @@ class planning_ObjectResources extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,debug';
+    public $canList = 'ceo,planning';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'likeProductId=Влагане като';
+    public $listFields = 'productId,genericProductId=Генеричен артикул,createdOn,createdBy'; 
     
     
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Заместващ артикул';
-    
-    
-    /**
-     * Работен кеш
-     */
-    protected static $cache = array();
+    public $singleTitle = 'Съответствие с генерични артикули';
     
     
     /**
@@ -83,57 +77,30 @@ class planning_ObjectResources extends core_Manager
     
     
     /**
+     * Работен кеш
+     */
+    protected static $cache = array();
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
-        $this->FLD('objectId', 'key(mvc=cat_Products,select=name)', 'input=hidden,caption=Обект,silent');
-        $this->FLD('likeProductId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Влагане като,mandatory,silent');
-        
-        $this->FLD('resourceId', 'int', 'caption=Ресурс,input=none');
-        $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,input=none,silent');
-        $this->FLD('conversionRate', 'double(smartRound,Min=0)', 'caption=Отношение,input=none');
-        
-        // Поставяне на уникални индекси
-        $this->setDbUnique('objectId');
-    }
-    
-    
-    /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass     $data
-     */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-        $form = &$data->form;
-        $rec = &$form->rec;
-        
-        // Коя е мярката на артикула, и намираме всички мерки от същия тип
-        $measureId = cat_Products::getProductInfo($rec->objectId)->productRec->measureId;
-        
-        // Кои са възможните подобни артикули за избор
-        $products = $mvc->getAvailableSimilarProducts($measureId, $rec->objectId);
-        
-        // Добавяме възможностите за избор на заместващи артикули за влагане
-        if (countR($products)) {
-            $products = array('' => '') + $products;
-            
-            $form->setOptions('likeProductId', $products);
-        } else {
-            $form->setReadOnly('likeProductId');
-        }
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Артикул,mandatory,silent,input=hidden');
+        $this->FLD('genericProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=generic,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Генеричен артикул,mandatory,silent');
+       
+        $this->setDbUnique('productId,genericProductId');
     }
     
     
     /**
      * След подготовката на заглавието на формата
      */
-    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
         $rec = $data->form->rec;
-        $data->form->title = core_Detail::getEditTitle('cat_Products', $rec->objectId, $mvc->singleTitle, $rec->id);
+        $data->form->title = core_Detail::getEditTitle('cat_Products', $rec->productId, $mvc->singleTitle, $rec->id);
     }
     
     
@@ -145,33 +112,32 @@ class planning_ObjectResources extends core_Manager
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
-        $rec = &$form->rec;
-        
         if ($form->isSubmitted()) {
-            $equivalentProducts = self::getEquivalentProducts($rec->likeProductId, $rec->id);
+            $rec = &$form->rec;
             
-            if (array_key_exists($rec->objectId, $equivalentProducts)) {
-                $form->setError('likeProductId', 'Артикулът вече е взаимозаменяем с избрания');
+            $measureProductId = cat_Products::fetchField($rec->productId, 'measureId');
+            $measureGenericId = cat_Products::fetchField($rec->genericProductId, 'measureId');
+            
+            if($measureProductId != $measureGenericId){
+                $genericMeasureName = cat_UoM::getVerbal($measureGenericId, 'name');
+                $form->setError('genericProductId', "Генеричният артикул трябва да е в същата мярка|*: <b>{$genericMeasureName}</b>");
             }
         }
     }
     
     
     /**
-     * Опции за избиране на всички артикули, като които може да се използва артикула за влагане
+     * След преобразуване на записа в четим за хора вид.
      *
-     * @param int $measureId - ид на мярка
-     *
-     * @return array $products - опции за избор на артикули
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
      */
-    private function getAvailableSimilarProducts($measureId, $productId)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        // Намираме всички артикули, които са били влагане в производството от документи
-        $consumedProducts = array();
-        $consumedProducts = cat_Products::getByProperty('canConvert');
-        unset($consumedProducts[$productId]);
-        
-        return $consumedProducts;
+        $row->genericProductId = cat_Products::getHyperlink($rec->genericProductId, true);
+        $row->productId = cat_Products::getHyperlink($rec->productId, true);
+        $row->created = $row->createdOn . " " . tr('от||by') . " " . $row->createdBy;
     }
     
     
@@ -188,7 +154,7 @@ class planning_ObjectResources extends core_Manager
         
         $data->rows = array();
         $query = $this->getQuery();
-        $query->where("#objectId = {$data->masterId}");
+        $query->where("#productId = {$data->masterId}");
         while ($rec = $query->fetch()) {
             $data->rows[$rec->id] = $this->recToVerbal($rec);
         }
@@ -205,11 +171,11 @@ class planning_ObjectResources extends core_Manager
         
         $data->TabCaption = 'Влагане';
         $data->Tab = 'top';
-        $data->listFields = arr::make($this->listFields);
+        $data->listFields = arr::make("genericProductId=Генеричен артикул,created=Създаване", true);
         
         if (!Mode::is('printing') && !Mode::is('inlineDocument')) {
-            if (self::haveRightFor('add', (object) array('objectId' => $data->masterId))) {
-                $data->addUrl = array($this, 'add', 'objectId' => $data->masterId, 'ret_url' => true);
+            if (self::haveRightFor('add', (object) array('productId' => $data->masterId))) {
+                $data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'ret_url' => true);
             }
         }
     }
@@ -257,23 +223,19 @@ class planning_ObjectResources extends core_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
         if (($action == 'add' || $action == 'delete' || $action == 'edit') && isset($rec)) {
-            $masterRec = cat_Products::fetchRec($rec->objectId);
             
             // Не може да добавяме запис ако не може към обекта, ако той е оттеглен или ако нямаме достъп до сингъла му
-            if ($masterRec->state != 'active' || !cat_Products::haveRightFor('single', $rec->objectId)) {
+            $masterRec = cat_Products::fetch($rec->productId, 'state,canConvert,generic');
+            if ($masterRec->state != 'active' || !cat_Products::haveRightFor('single', $rec->productId)) {
                 $res = 'no_one';
-            } else {
-                if ($pInfo = cat_Products::getProductInfo($rec->objectId)) {
-                    if (!isset($pInfo->meta['canConvert'])) {
-                        $res = 'no_one';
-                    }
-                }
+            } elseif($masterRec->canConvert != 'yes' || $masterRec->generic == 'yes') {
+                $res = 'no_one';
             }
         }
         
         // За да се добави ресурс към обект, трябва самия обект да може да има ресурси
         if ($action == 'add' && isset($rec)) {
-            if ($mvc->fetch("#objectId = {$rec->objectId}")) {
+            if ($mvc->fetch("#productId = {$rec->productId}")) {
                 $res = 'no_one';
             }
         }
@@ -281,54 +243,44 @@ class planning_ObjectResources extends core_Manager
     
     
     /**
-     * След преобразуване на записа в четим за хора вид.
+     * Намира еквивалентите за влагане артикули на даден артикул
      *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * @param int $productId         - на кой артикул му търсим еквивалентните
+     * @param int|null $ignoreRecId  - ид на ред, който да се игнорира
+     *
+     * @return array  $res           - масив за избор с еквивалентни артикули
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function getEquivalentProducts($productId, $ignoreRecId = null)
     {
-        if (isset($rec->likeProductId)) {
-            $row->likeProductId = cat_Products::getHyperlink($rec->likeProductId, true);
-        }
-    }
-    
-    
-    /**
-     * Връща себестойността на материала
-     *
-     * @param int $objectId - ид на артикула - материал
-     *
-     * @return float $selfValue - себестойността му
-     */
-    public static function getSelfValue($objectId, $quantity = 1, $date = null)
-    {
-        if (empty($objectId)) {
-            
-            return;
+        $res = array();
+        
+        $inArr = array($productId => $productId);
+        if($genericProductId = self::fetchField("#productId = {$productId}", 'genericProductId')){
+            $inArr[$genericProductId] = $genericProductId;
         }
         
-        // Проверяваме имали зададена търговска себестойност
-        $selfValue = cat_Products::getPrimeCost($objectId, null, $quantity, $date);
+        // Всички артикули, които се влагат като търсения, или се влагат като неговия генеричен
+        $query = self::getQuery();
+        $query->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
+        $query->EXT('canConvert', 'cat_Products', 'externalName=canConvert,externalKey=productId');
+        $query->where("#state = 'active' AND #canConvert = 'yes'");
+        $query->in("genericProductId", $inArr);
+        $query->show('productId,genericProductId');
+        if (isset($ignoreRecId)) {
+            $query->where("#id != {$ignoreRecId}");
+        }
         
-        // Ако няма търговска себестойност: проверяваме за счетоводна
-        if (!isset($selfValue)) {
-            if (!$date) {
-                $date = dt::now();
+        while ($dRec = $query->fetch()) {
+            if(!array_key_exists($dRec->productId, $res)){
+                $res[$dRec->productId] = cat_Products::getTitleById($dRec->productId, false);
             }
             
-            $pInfo = cat_Products::getProductInfo($objectId);
-            
-            // Ако артикула е складируем взимаме среднопритеглената му цена от склада
-            if (isset($pInfo->meta['canStore'])) {
-                $selfValue = cat_Products::getWacAmountInStore($quantity, $objectId, $date);
-            } else {
-                $selfValue = static::getWacAmountInProduction($quantity, $objectId, $date);
+            if(!array_key_exists($dRec->genericProductId, $res)){
+                $res[$dRec->genericProductId] = cat_Products::getTitleById($dRec->genericProductId, false);
             }
         }
         
-        return $selfValue;
+        return $res;
     }
     
     
@@ -355,66 +307,6 @@ class planning_ObjectResources extends core_Manager
         }
         
         return $selfValue;
-    }
-    
-    
-    /**
-     * Намира еквивалентите за влагане артикули на даден артикул
-     *
-     * @param int $likeProductId - на кой артикул му търсим еквивалентните
-     * @param int $ignoreRecId   - ид на ред, който да се игнорира
-     *
-     * @return array - масив за избор с еквивалентни артикули
-     */
-    public static function getEquivalentProducts($likeProductId, $ignoreRecId = null)
-    {
-        $array = array();
-        $query = self::getQuery();
-        $query->EXT('state', 'cat_Products', 'externalName=state,externalKey=objectId');
-        $query->where("#state = 'active'");
-        if (isset($ignoreRecId)) {
-            $query->where("#id != {$ignoreRecId}");
-        }
-        
-        $query->show('objectId,likeProductId');
-        while ($dRec = $query->fetch()) {
-            $array[$dRec->objectId] = $dRec->likeProductId;
-        }
-        
-        $res = array();
-        self::fetchConvertableProducts($likeProductId, $array, $res);
-        foreach ($res as $id => &$v) {
-            $v = cat_Products::getTitleById($id, false);
-        }
-        
-        return $res;
-    }
-    
-    
-    /**
-     * Връща масив със всички артикули, които могат да се влагат като друг артикул
-     *
-     * @param int $productId - ид на продукта, като който ще се влагат
-     *
-     * @return array - намерените артикули
-     */
-    private static function fetchConvertableProducts($productId, $array, &$res = array())
-    {
-        if (isset($array[$productId]) && $res[$array[$productId]] !== true) {
-            $res[$array[$productId]] = true;
-            self::fetchConvertableProducts($array[$productId], $array, $res);
-        }
-        
-        if (is_array($array)) {
-            foreach ($array as $key => $value) {
-                if ($value == $productId) {
-                    if ($res[$key] !== true) {
-                        $res[$key] = true;
-                        self::fetchConvertableProducts($key, $array, $res);
-                    }
-                }
-            }
-        }
     }
     
     
@@ -478,4 +370,42 @@ class planning_ObjectResources extends core_Manager
         // Връщаме цената ако е намерена
         return $avgPrice;
     }
+    
+    
+    /**
+     * Връща себестойността на материала
+     *
+     * @param int $productId - ид на артикула - материал
+     *
+     * @return float $selfValue - себестойността му
+     */
+    public static function getSelfValue($productId, $quantity = 1, $date = null)
+    {
+        if (empty($productId)) {
+            
+            return;
+        }
+        
+        // Проверяваме имали зададена търговска себестойност
+        $selfValue = cat_Products::getPrimeCost($productId, null, $quantity, $date);
+        
+        // Ако няма търговска себестойност: проверяваме за счетоводна
+        if (!isset($selfValue)) {
+            if (!$date) {
+                $date = dt::now();
+            }
+            
+            $pInfo = cat_Products::getProductInfo($productId);
+            
+            // Ако артикула е складируем взимаме среднопритеглената му цена от склада
+            if (isset($pInfo->meta['canStore'])) {
+                $selfValue = cat_Products::getWacAmountInStore($quantity, $productId, $date);
+            } else {
+                $selfValue = static::getWacAmountInProduction($quantity, $productId, $date);
+            }
+        }
+        
+        return $selfValue;
+    }
 }
+    

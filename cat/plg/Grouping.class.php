@@ -52,6 +52,10 @@ class cat_plg_Grouping extends core_Plugin
             }
             
             $metas = $mvc->getFieldType('meta')->suggestions;
+            if(!haveRole('debug')){
+                unset($metas['generic']);
+            }
+            
             $canDelMetas = $canAddMetas = array();
             
             // Премахване на лишите или недостъпните id-та
@@ -99,7 +103,7 @@ class cat_plg_Grouping extends core_Plugin
                     }
                     $metas = $mvc->getFieldType('meta')->fromVerbal($metas);
                     $pRec = (object)array('id' => $id, 'meta' => $metas);
-                    $mvc->save($pRec, 'meta,canSell,canBuy,canStore,canConvert,fixedAsset,canManifacture');
+                    $mvc->save($pRec, 'meta,canSell,canBuy,canStore,canConvert,fixedAsset,canManifacture,generic');
                     $mvc->logWrite('Промяна на свойствата на артикул', $id);
                     
                     followRetUrl();
@@ -143,6 +147,8 @@ class cat_plg_Grouping extends core_Plugin
             if ($form->isSubmitted()) {
                 $rec = $form->rec;
                 
+                $metaError = null;
+                
                 $changed = 0;
                 
                 if ($selArrCnt == 1) {
@@ -150,9 +156,15 @@ class cat_plg_Grouping extends core_Plugin
                     $obj->id = $id;
                     $obj->meta = $rec->meta;
                     
-                    $mvc->save($obj, 'meta,canSell,canBuy,canStore,canConvert,fixedAsset,canManifacture,generic');
-                    $mvc->logWrite('Промяна на свойствата на артикул', $id);
-                    $changed = 1;
+                    if(!cat_Categories::checkMetas($rec->meta, $id, $metaError)){
+                        $form->setError('meta', $metaError);
+                    }
+                    
+                    if(!$form->gotErrors()){
+                        $mvc->save($obj, 'meta,canSell,canBuy,canStore,canConvert,fixedAsset,canManifacture,generic');
+                        $mvc->logWrite('Промяна на свойствата на артикул', $id);
+                        $changed = 1;
+                    }
                 } else {
                     foreach ($selArr as $id) {
                         $exGroups = $groups = type_Set::toArray($mvc->fetchField($id, 'meta'));
@@ -160,14 +172,20 @@ class cat_plg_Grouping extends core_Plugin
                         $groups = array_merge($groups, arr::make($rec->addMetas, true));
                         $groups = array_diff($groups, arr::make($rec->delMetas, true));
                         
-                        $obj = new stdClass();
-                        $obj->id = $id;
-                        $obj->meta = cls::get('type_Set')->fromVerbal($groups);
+                        if(!cat_Categories::checkMetas($groups, $id, $metaError)){
+                            $form->setError('addMetas', $metaError);
+                        }
                         
-                        if ($groups != $exGroups) {
-                            $mvc->save($obj, 'meta,canSell,canBuy,canStore,canConvert,fixedAsset,canManifacture,generic');
-                            $mvc->logWrite('Промяна на свойствата на артикул', $id);
-                            $changed++;
+                        if(!$form->gotErrors()){
+                            $obj = new stdClass();
+                            $obj->id = $id;
+                            $obj->meta = cls::get('type_Set')->fromVerbal($groups);
+                            
+                            if ($groups != $exGroups) {
+                                $mvc->save($obj, 'meta,canSell,canBuy,canStore,canConvert,fixedAsset,canManifacture,generic');
+                                $mvc->logWrite('Промяна на свойствата на артикул', $id);
+                                $changed++;
+                            }
                         }
                     }
                 }
@@ -180,11 +198,15 @@ class cat_plg_Grouping extends core_Plugin
                     $msg = "|Бяха променени свойствата на|* {$changed} "  . mb_strtolower($mvc->title);
                 }
                 
-                $res = new Redirect($retUrl, $msg);
-            } else {
-                $res = $mvc->renderWrapping($form->renderHtml());
-                core_Form::preventDoubleSubmission($res, $form);
+                if(!$form->gotErrors()){
+                    $res = new Redirect($retUrl, $msg);
+                    
+                    return false;
+                }
             }
+            
+            $res = $mvc->renderWrapping($form->renderHtml());
+            core_Form::preventDoubleSubmission($res, $form);
             
             return false;
         }

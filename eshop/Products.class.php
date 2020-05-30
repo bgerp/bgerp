@@ -573,6 +573,7 @@ class eshop_Products extends core_Master
                         $pRecClone->_listView = true;
                         $dRow = eshop_ProductDetails::getExternalRow($pRecClone);
                         
+                        $pRow->saleInfo = $dRow->saleInfo;
                         $pRow->singleCurrencyId = $settings->currencyId;
                         $pRow->chargeVat = ($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС');
                         $pRow->catalogPrice = $dRow->catalogPrice;
@@ -583,7 +584,7 @@ class eshop_Products extends core_Master
             } elseif($pRec->saleState == 'multi'){
                 $pRow->btn = ht::createBtn($settings->addToCartBtn . '...', self::getUrl($pRec->id), false, false, 'title=Избор на артикул,class=productBtn addToCard,ef_icon=img/16/cart_go.png');
             } elseif($pRec->saleState == 'closed'){
-                $pRow->btn = "<span class='option-not-in-stock'>" . mb_strtoupper(tr(('Спрян||Not available'))) . '</span>';
+                $pRow->saleInfo = "<span class='option-not-in-stock'>" . mb_strtoupper(tr(('Спрян||Not available'))) . '</span>';
             }
 
             $commonParams = self::getCommonParams($pRec->id);
@@ -636,7 +637,7 @@ class eshop_Products extends core_Master
      */
     public function renderGroupList_($data)
     {
-        $layout = new ET('');
+        $layout = new ET("<div class='eshop-product-list-holder'>[#BLOCK#]</div>");
         
         if (is_array($data->rows)) {
             
@@ -665,7 +666,7 @@ class eshop_Products extends core_Master
                 $pTpl->removePlaces();
                 $pTpl->removeBlocks();
                 
-                $layout->append($pTpl);
+                $layout->append($pTpl, 'BLOCK');
             }
         }
         
@@ -1257,7 +1258,7 @@ class eshop_Products extends core_Master
     public static function canLinkProduct($productId)
     {
         $productRec = cat_Products::fetch($productId, 'canSell,isPublic,nameEn,state');
-        $res = ($productRec->state != 'closed' && $productRec->state != 'rejected' && $productRec->state != 'template' && $productRec->isPublic == 'yes' && $productRec->canSell == 'yes');
+        $res = ($productRec->state != 'closed' && $productRec->state != 'rejected' && $productRec->state != 'template' && $productRec->isPublic == 'yes' && $productRec->canSell == 'yes' && $productRec->generic != 'yes');
         
         return $res;
     }

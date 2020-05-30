@@ -252,6 +252,7 @@ class sales_Quotations extends core_Master
         $this->FLD('address', 'varchar', 'caption=Получател->Адрес, changable, class=contactData,input=hidden');
         
         $this->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Допълнително->Валидност,mandatory');
+        $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Цени,notChangeableByContractor');
         $this->FLD('others', 'text(rows=4)', 'caption=Допълнително->Условия');
     }
     
@@ -284,6 +285,8 @@ class sales_Quotations extends core_Master
         $contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
         $form->setDefault('contragentClassId', $contragentClassId);
         $form->setDefault('contragentId', $contragentId);
+        $form->setOptions('priceListId', array('' => '') + price_Lists::getAccessibleOptions($rec->contragentClassId, $rec->contragentId));
+        
         $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, false);
         if (countR($locations)) {
             $form->setOptions('deliveryPlaceId', array('' => '') + $locations);
@@ -629,6 +632,10 @@ class sales_Quotations extends core_Master
                 foreach ($additionalConditions as $cond) {
                     $row->others .= "<li>{$cond}</li>";
                 }
+            }
+            
+            if (isset($rec->priceListId) && !Mode::isReadOnly()) {
+                $row->priceListId = price_Lists::getHyperlink($rec->priceListId, true);
             }
             
             if (isset($rec->bankAccountId)) {

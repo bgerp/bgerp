@@ -57,7 +57,8 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
             // Оставяме да се показват само определени полета
             $fields = $form->selectFields("#input != 'hidden' AND #input != 'none'");
             if (is_array($fields)) {
-                foreach ($fields as $name => $fld) {
+                $fields = array_keys($fields);
+                foreach ($fields as $name) {
                     if (!in_array($name, array($mvc->replaceProductQuantityFieldName, $mvc->replaceProductFieldName, $mvc->replaceProductPackagingFieldName))) {
                         $form->setField($name, 'input=hidden');
                     }
@@ -65,9 +66,14 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
             }
             
             // Кои са допустимите заместващи артикули
-            $equivalenProducts = planning_ObjectResources::getEquivalentProducts($rec->{$mvc->replaceProductFieldName});
-            $equivalenProducts = array('x' => (object) array('title' => tr('Заместващи'), 'group' => true)) + $equivalenProducts;
-            $form->setOptions($mvc->replaceProductFieldName, $equivalenProducts);
+            $equivalentArr = planning_GenericMapper::getEquivalentProducts($rec->{$mvc->replaceProductFieldName});
+            $FieldType = $mvc->getFieldType($mvc->replaceProductFieldName);
+            if($FieldType instanceof type_Key2){
+                $equivalentIds = array_keys($equivalentArr);
+                $form->setFieldTypeParams($mvc->replaceProductFieldName, array('onlyIn' => $equivalentIds));
+            } else {
+                $form->setOptions($mvc->replaceProductFieldName, $equivalentArr);
+            }
             
             // Инпутваме формата
             $form->input();
@@ -149,7 +155,7 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
             
             // Могат да се подменят само артикулите, които имат други взаимозаменямеми
             if ($requiredRoles != 'no_one' && isset($rec->{$mvc->replaceProductFieldName})) {
-                $equivalentProducts = planning_ObjectResources::getEquivalentProducts($rec->{$mvc->replaceProductFieldName});
+                $equivalentProducts = planning_GenericMapper::getEquivalentProducts($rec->{$mvc->replaceProductFieldName});
                 if (!countR($equivalentProducts)) {
                     $requiredRoles = 'no_one';
                 }

@@ -183,7 +183,9 @@ class sales_QuotationsDetails extends doc_Detail
             
             return;
         }
-        $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $rec->date, $masterRec->currencyRate, $masterRec->chargeVat, null, false);
+        
+        $listId = ($masterRec->priceListId) ? $masterRec->priceListId : null;
+        $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $rec->date, $masterRec->currencyRate, $masterRec->chargeVat, $listId, false);
         
         if (isset($policyInfo->price)) {
             $rec->price = $policyInfo->price;
@@ -379,6 +381,7 @@ class sales_QuotationsDetails extends doc_Detail
         $rec = &$form->rec;
         $masterRec = $data->masterRec;
         
+        $form->setDefault('showMode', 'detailed');
         $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties' => 'generic'));
         if (isset($rec->id)) {
             $data->form->setReadOnly('productId');
