@@ -1095,6 +1095,10 @@ class eshop_Carts extends core_Master
             $body->replace($url, 'REGISTER_LINK');
         }
         
+        if($expectedDeliveryText = self::getExpectedDeliveryText($rec, $settings)){
+            $body->replace($expectedDeliveryText, 'EXPECTED_DELIVERY');
+        }
+        
         // Името на 'Моята фирма' във футъра
         $companyName = tr(crm_Companies::fetchOwnCompany()->company);
         $body->replace($companyName, 'COMPANY_NAME');
@@ -1855,16 +1859,29 @@ class eshop_Carts extends core_Master
         if(isset($fields['-external'])){
             
             // Показване на текст за очаквана доставка
-            if($rec->haveProductsWithExpectedDelivery == 'yes'){
-                $expectedDeliveryText = new core_ET($settings->expectedDeliveryText);
-                $cartName = self::getCartDisplayName();
-                $expectedDeliveryText->replace(mb_strtolower($cartName), 'cartName');
-                
+            if($expectedDeliveryText = self::getExpectedDeliveryText($rec, $settings)){
                 $row->EXPECTED_DELIVERY = $expectedDeliveryText;
             }
         }
     }
     
+    
+    /**
+     * Връща текста на очакваната доставка
+     */
+    private function getExpectedDeliveryText($rec, $settings)
+    {
+        if($rec->haveProductsWithExpectedDelivery == 'yes'){
+            $expectedDeliveryText = new core_ET($settings->expectedDeliveryText);
+            $cartName = self::getCartDisplayName();
+            $expectedDeliveryText->replace(mb_strtolower($cartName), 'cartName');
+            
+            return $expectedDeliveryText;
+        }
+        
+        return null;
+    }
+        
     
     /**
      * Екшън за показване на външния изглед на кошницата
