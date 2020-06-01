@@ -436,7 +436,11 @@ class eshop_ProductDetails extends core_Detail
         }
         
         if(!empty($btn)){
-            $row->catalogPrice .= " " . $btn;
+            if($rec->_listView !== true){
+                $row->catalogPrice .= " " . $btn;
+            } else {
+                $row->btn = $btn;
+            }
         }
         
         return $row;
