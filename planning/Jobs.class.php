@@ -880,7 +880,7 @@ class planning_Jobs extends core_Master
                 if (empty($rec->productId)) {
                     $res = 'no_one';
                 } else {
-                    $productRec = cat_Products::fetch($rec->productId, 'state,canManifacture');
+                    $productRec = cat_Products::fetch($rec->productId, 'state,canManifacture,generic');
                     
                     // Трябва да е активиран
                     if ($productRec->state != 'active') {
@@ -889,7 +889,7 @@ class planning_Jobs extends core_Master
                     
                     // Трябва и да е производим
                     if ($res != 'no_one') {
-                        if ($productRec->canManifacture == 'no') {
+                        if ($productRec->canManifacture == 'no' || $productRec->generic == 'yes') {
                             $res = 'no_one';
                         }
                     }

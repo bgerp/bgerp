@@ -148,6 +148,18 @@ class eshop_Settings extends core_Manager
     
     
     /**
+     * Дефолтен текст за информация за артикули с очаквана доставка
+     */
+    const DEFAULT_EXPECTED_DELIVERY_TEXT_BG = 'Във вашата [#cartName#] има артикули, които в момента не са налични. Очаква се да бъдат доставени скоро.';
+    
+    
+    /**
+     * Дефолтен текст за информация за артикули с очаквана доставка
+     */
+    const DEFAULT_EXPECTED_DELIVERY_TEXT_EN = 'In your [#cartName#] there are items, which are currently not in stock, but delivery is expected soon';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
@@ -187,6 +199,7 @@ class eshop_Settings extends core_Manager
         
         $this->FLD('freeDelivery', 'double(min=0)', 'caption=Безплатна доставка->Сума');
         $this->FLD('freeDeliveryByBus', 'double(min=0)', 'caption=Безплатна доставка->За маршрут');
+        $this->FLD('expectedDeliveryText', 'text(rows=3)', 'caption=Текст за очаквана доставка->Текст');
         
         $this->FLD('dealerId', 'user(roles=sales|ceo,allowEmpty,rolesForAll=eshop|ceo|admin,rolesForTeam=eshop|ceo|admin)', 'caption=Продажби създадени от онлайн магазина->Търговец');
         
@@ -323,11 +336,14 @@ class eshop_Settings extends core_Manager
         }
         
         $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_ADD_TO_CART_LABEL_BG : self::DEFAULT_ADD_TO_CART_LABEL_EN;
-        $form->setField('addToCartBtn', "placeholder={$btnPlaceholder}");
+        $form->setField('addToCartBtn', array('placeholder' => $btnPlaceholder));
     
-        $companyPlaceholder = $mvc->getFieldType('countries')->toVerbal(keylist::addKey('', $ownCompany->country));
-        $form->setField('countries', "placeholder={$companyPlaceholder}");
+        $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_EXPECTED_DELIVERY_TEXT_BG : self::DEFAULT_EXPECTED_DELIVERY_TEXT_EN;
+        $form->setField('expectedDeliveryText', array('placeholder' => $btnPlaceholder));
         
+        $companyPlaceholder = $mvc->getFieldType('countries')->toVerbal(keylist::addKey('', $ownCompany->country));
+        $form->setField('countries',  array('placeholder' => $companyPlaceholder));
+       
         // При нов запис, за имейл да е корпоратичния имейл
         if(empty($rec->id)){
             if($emailRec = email_Accounts::getCorporateAcc()){
@@ -429,6 +445,10 @@ class eshop_Settings extends core_Manager
             
             if (empty($settingRec->addToCartBtn)) {
                 $settingRec->addToCartBtn = ($lang == 'bg') ? self::DEFAULT_ADD_TO_CART_LABEL_BG : self::DEFAULT_ADD_TO_CART_LABEL_EN;
+            }
+            
+            if (empty($settingRec->expectedDeliveryText)) {
+                $settingRec->expectedDeliveryText = ($lang == 'bg') ? self::DEFAULT_EXPECTED_DELIVERY_TEXT_BG : self::DEFAULT_EXPECTED_DELIVERY_TEXT_EN;
             }
             
             if (empty($settingRec->countries)) {

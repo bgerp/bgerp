@@ -566,8 +566,8 @@ class marketing_Inquiries2 extends embed_Manager
             // Създаваме HTML частта на документа и превръщаме всички стилове в inline
             // Вземаме всичките css стилове
             
-            $css = file_get_contents(sbf('css/common.css', '', true)) .
-            "\n" . file_get_contents(sbf('css/Application.css', '', true));
+            $css = getFileContent('css/common.css') .
+            "\n" . getFileContent('css/Application.css');
             
             $res = '<div id="begin">' . $body . '<div id="end">';
             
@@ -1257,6 +1257,10 @@ class marketing_Inquiries2 extends embed_Manager
         
         if ($rec->state != 'rejected') {
             $rec->state = 'active';
+            if(empty($rec->activatedOn)){
+                $rec->activatedOn = dt::now();
+                $rec->activatedBy = core_Users::getCurrent();
+            }
         }
         
         if (!strlen($rec->title)) {

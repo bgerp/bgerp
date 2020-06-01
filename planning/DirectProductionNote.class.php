@@ -393,8 +393,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                             
                             // Ако артикула от заданието не е производим не можем да добавяме документ
                             $productId = $originDoc->fetchField('productId');
-                            $canManifacture = cat_Products::fetchField($productId, 'canManifacture');
-                            if ($canManifacture != 'yes') {
+                            $productRec = cat_Products::fetch($productId, 'canManifacture,generic');
+                            if ($productRec->canManifacture != 'yes' || $productRec->generic == 'yes') {
                                 $requiredRoles = 'no_one';
                             } else {
                                 if($originDoc->isInstanceOf('planning_Jobs')){

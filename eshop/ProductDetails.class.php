@@ -43,7 +43,7 @@ class eshop_ProductDetails extends core_Detail
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'eshopProductId=Е-артикул,productId,title,packagings=Опаковки/Мерки,state=Състояние,modifiedOn,modifiedBy';
+    public $listFields = 'eshopProductId=Е-артикул,productId,title,packagings=Опаковки/Мерки,deliveryTime,state=Състояние,modifiedOn,modifiedBy';
     
     
     /**
@@ -97,6 +97,7 @@ class eshop_ProductDetails extends core_Detail
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=price_ListRules::getSellableProducts,titleFld=name)', 'caption=Артикул,silent,removeAndRefreshForm=packagings,mandatory');
         $this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковки/Мерки,mandatory');
         $this->FLD('title', 'varchar(nullIfEmpty)', 'caption=Заглавие');
+        $this->FLD('deliveryTime', 'time', 'caption=Доставка до');
         $this->FLD('state', 'enum(active=Активен,closed=Затворен,rejected=Оттеглен)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('eshopProductId,title');
@@ -282,7 +283,7 @@ class eshop_ProductDetails extends core_Detail
             $data->paramListFields["param{$paramId}"] = cat_Params::getVerbal($paramId, 'typeExt');
         }
         
-        $data->listFields = $data->paramListFields + arr::make('code=Код,productId=Опция,packagingId=Опаковка,quantity=Количество,catalogPrice=Цена,btn=|*&nbsp;');
+        $data->listFields = $data->paramListFields + arr::make('code=Код,productId=Опция,packagingId=Опаковка,quantity=Количество,catalogPrice=Цена,saleInfo=|*&nbsp;');
         $fields = cls::get(get_called_class())->selectFields();
         $fields['-external'] = $fields;
         
@@ -293,7 +294,7 @@ class eshop_ProductDetails extends core_Detail
         $data->commonParams = eshop_Products::getCommonParams($data->rec->id);
         
         while ($rec = $query->fetch()) {
-            $newRec = (object) array('eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'title' => $rec->title);
+            $newRec = (object) array('eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'title' => $rec->title, 'deliveryTime' => $rec->deliveryTime);
             $packagins = keylist::toArray($rec->packagings);
             
             // Кои параметри ще се показват
@@ -422,14 +423,24 @@ class eshop_ProductDetails extends core_Detail
         if (isset($settings->storeId) && $canStore == 'yes') {
             $quantity = store_Products::getQuantity($rec->productId, $settings->storeId, true);
             if ($quantity < $rec->quantityInPack) {
-                $notInStock = !empty($settings->notInStockText) ? $settings->notInStockText : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
-                $btn = "<span class='{$class} option-not-in-stock'>" . $notInStock . ' </span>';
-                $row->quantity = 1;
+                if(empty($rec->deliveryTime)){
+                    $notInStock = !empty($settings->notInStockText) ? $settings->notInStockText : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
+                    $row->saleInfo = "<span class='{$class} option-not-in-stock'>" . $notInStock . ' </span>';
+                    
+                    unset($btn);
+                    $row->quantity = 1;
+                } else {
+                    $row->saleInfo = "<span style='margin-right: 5px' class='{$class} option-not-in-stock waitingDelivery'>" . tr('Очаквана доставка') . '</span>';
+                }
             }
         }
         
         if(!empty($btn)){
-            $row->catalogPrice .= " " . $btn;
+            if($rec->_listView !== true){
+                $row->catalogPrice .= " " . $btn;
+            } else {
+                $row->btn = $btn;
+            }
         }
         
         return $row;

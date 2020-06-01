@@ -2010,4 +2010,21 @@ abstract class deals_Helper
         
         return;
     }
+    
+    
+    public static function getContoRedirectError($productArr, $haveMetas, $haveNotMetas = null, $metaError = null)
+    {
+        $productCheck = deals_Helper::checkProductForErrors($productArr, $haveMetas, $haveNotMetas);
+        if($productCheck['notActive']){
+            
+            return "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |са затворени|*!";
+        }
+        
+        if($productCheck['metasError']){
+            
+            return "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |{$metaError}|*!";
+        }
+        
+        return null;
+    }
 }

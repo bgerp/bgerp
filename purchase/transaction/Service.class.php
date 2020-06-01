@@ -66,13 +66,16 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
         
         if (Mode::get('saveTransaction')) {
             $property = ($rec->isReverse == 'yes') ? 'canSell' : 'canBuy';
-            $msg = ($rec->isReverse == 'yes') ? 'продаваеми услуги' : 'купуваеми услуги';
-            $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($rec->details, 'productId'), $property, 'canStore');
             
-            if(countR($productCheck['notActive'])){
-                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
-            } elseif($productCheck['metasError']){
-                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са {$msg}|*!");
+            $productArr = arr::extractValuesFromArray($rec->details, 'productId');
+            if (countR($productArr)) {
+                $msg = ($rec->isReverse == 'yes') ? 'продаваеми услуги' : 'купуваеми услуги';
+                $msg = "трябва да са {$msg} и да не са генерични";
+                
+                if($redirectError = deals_Helper::getContoRedirectError($productArr, $property, 'canStore,generic', $msg)){
+                    
+                    acc_journal_RejectRedirect::expect(false, $redirectError);
+                }
             }
         }
         

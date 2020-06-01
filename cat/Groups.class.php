@@ -116,7 +116,7 @@ class cat_Groups extends core_Manager
                                 canStore=Складируеми,
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
-        						canManifacture=Производими)', 'caption=Свойства->Списък,columns=2,input=none');
+        						canManifacture=Производими,generic=Генерични)', 'caption=Свойства->Списък,columns=2,input=none');
         
         $this->setDbUnique('sysId');
         $this->setDbIndex('parentId');

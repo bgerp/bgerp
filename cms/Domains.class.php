@@ -350,16 +350,15 @@ class cms_Domains extends core_Embedder
     {
         $opt = array();
         $query = self::getQuery();
-        while ($rec = $query->fetch("#state = 'active'")) {
-            if (self::haveRightfor('select', $rec) || $rec->id == $form->rec->{$field}) {
+        while ($rec = $query->fetch()) {
+            if (self::haveRightfor('select', $rec)) {
                 $opt[$rec->id] = self::getRecTitle($rec);
             }
         }
+        
         expect($form instanceof core_Form);
         $form->setOptions($field, $opt);
-        if (!$form->rec->{$field}) {
-            $form->rec->{$field} = self::getCurrent();
-        }
+        $form->setDefault($field, self::getCurrent());
     }
     
     

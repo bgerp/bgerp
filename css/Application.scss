@@ -1514,7 +1514,7 @@ a.tOld {
 /*край на стилове при тредове*/
 
 .typeTable {
-	 border:none !important;
+	border:none !important;
 	.formTypeTable {
 		text-align: center;
 		font-weight: bold;
@@ -1524,6 +1524,18 @@ a.tOld {
 	td  {
 		text-align: center;
         font-size: 0.8em;
+	}
+	.batchNameTd {
+		input {
+			white-space: nowrap;
+			width: 100% !important;
+		}
+		~ td {
+			width: 120px;
+			input {
+				max-width: 120px;
+			}
+		}
 	}
 
 }
@@ -2205,7 +2217,7 @@ td.rowtools-column {
 	margin-bottom: 0;
 }
 
-.wide .singleView div:not(".folder-cover") .listTable {
+.wide .singleView div:not(.folder-cover) .listTable {
 	min-width: 800px;
 	width: 1%;
 }
@@ -3368,6 +3380,7 @@ fieldset.sharing-history {
 
 .narrow .externalPage #maincontent {
 	padding: 2px 5px 5px;
+	position: relative;
 }
 
 .wide .externalPage .formTable{
@@ -3595,6 +3608,7 @@ fieldset.sharing-history {
 	position: relative;
 	margin-left: 2px;
 	top: -6px;
+	padding: 2px 2px 1px;
     a {
         padding-top: 5px;
     }
@@ -3684,7 +3698,9 @@ fieldset.sharing-history {
 	display: inline-block;
 	margin-bottom: 5px;
 	text-align: center;
-
+	&.waitingDelivery {
+		background-color: rgba(41, 86, 222, 0.8) !important;
+	}
 }
 
 .small .colorBox {
@@ -5597,6 +5613,11 @@ div.location.public {
 	right: -2px;
 }
 
+.narrow #all .hasLogoutBlock .logoutBlock {
+	top: 0;
+	right: 0;
+}
+
 .narrow .eshop-group-button{
 	margin-bottom:10px;
 	height:auto;
@@ -5619,7 +5640,7 @@ div.location.public {
 	margin-top: 10px;
 }
 
-.eshop-product-labels span {
+.eshop-product-labels .info {
     @include border-radius(3px);
 	padding: 4px;
 	font-size:0.8em;
@@ -5690,6 +5711,7 @@ div.location.public {
     border-radius: 3px;
     box-shadow: 1px 1px 1px rgba(0,0,0,0.1);
      _height: 1%;
+
     .richtext {
         line-height: 1.35em;
     }
@@ -5937,7 +5959,7 @@ body.narrow {
 	.background-holder {
 	    padding: 10px 0;
 	}
-	.wide:not('.user-profile') .listBlock .listRows > table.listTable {
+	.wide:not(.user-profile) .listBlock .listRows > table.listTable {
 		min-width:760px;
 	}
 }
@@ -6221,7 +6243,7 @@ body.narrow {
     .externalPage .formGroup {
         font-size: 0.85em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 558px;
         }
@@ -6256,7 +6278,7 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 483px;
         }
@@ -6285,7 +6307,7 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 458px;
         }
@@ -6317,7 +6339,7 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 438px;
         }
@@ -6364,7 +6386,7 @@ body.narrow {
     .externalPage .formGroup {
         font-size: 0.75em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 318px;
         }
@@ -6407,7 +6429,7 @@ body.narrow {
        margin-left: 0%;
        font-size: 0.9em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 278px;
         }
