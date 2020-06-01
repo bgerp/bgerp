@@ -2217,7 +2217,7 @@ td.rowtools-column {
 	margin-bottom: 0;
 }
 
-.wide .singleView div:not(".folder-cover") .listTable {
+.wide .singleView div:not(.folder-cover) .listTable {
 	min-width: 800px;
 	width: 1%;
 }
@@ -5634,7 +5634,7 @@ div.location.public {
 	margin-top: 10px;
 }
 
-.eshop-product-labels span {
+.eshop-product-labels .info {
     @include border-radius(3px);
 	padding: 4px;
 	font-size:0.8em;
@@ -5697,7 +5697,6 @@ div.location.public {
 }
 
 .eshop-product-list {
-	margin-top: 10px;
 	background-color: #e8e8e8;
 	border: solid 1px #ccc;
 	clear: both;
@@ -5705,6 +5704,7 @@ div.location.public {
     border-radius: 3px;
     box-shadow: 1px 1px 1px rgba(0,0,0,0.1);
      _height: 1%;
+
     .richtext {
         line-height: 1.35em;
     }
@@ -5952,7 +5952,7 @@ body.narrow {
 	.background-holder {
 	    padding: 10px 0;
 	}
-	.wide:not('.user-profile') .listBlock .listRows > table.listTable {
+	.wide:not(.user-profile) .listBlock .listRows > table.listTable {
 		min-width:760px;
 	}
 }
@@ -6236,7 +6236,7 @@ body.narrow {
     .externalPage .formGroup {
         font-size: 0.85em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 558px;
         }
@@ -6271,7 +6271,7 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 483px;
         }
@@ -6300,7 +6300,7 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 458px;
         }
@@ -6332,7 +6332,7 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 438px;
         }
@@ -6379,7 +6379,7 @@ body.narrow {
     .externalPage .formGroup {
         font-size: 0.75em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 318px;
         }
@@ -6422,7 +6422,7 @@ body.narrow {
        margin-left: 0%;
        font-size: 0.9em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 278px;
         }
