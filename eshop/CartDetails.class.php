@@ -453,6 +453,18 @@ class eshop_CartDetails extends core_Detail
         
         $url = eshop_Products::getUrl($rec->eshopProductId);
         $row->productId = ht::createLinkRef($row->productId, $url);
+        
+        $productRec = cat_Products::fetch($rec->productId, 'canStore');
+        if (isset($settings->storeId) && $productRec->canStore == 'yes') {
+            $quantity = store_Products::getQuantity($rec->productId, $settings->storeId, true);
+            $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}", 'deliveryTime');
+            
+            if (is_null($maxQuantity) && $maxQuantity <= 0) {
+                if(!empty($eshopProductRec->deliveryTime)){
+                    $row->productId .= "<br><span style='margin-right: 5px' class='option-not-in-stock waitingDelivery'>" . tr('Очаквана доставка') . '</span>';
+                }
+            }
+        }
     }
     
     

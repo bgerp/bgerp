@@ -74,16 +74,13 @@
 			<!--ET_END SALE_BLOCK-->
 
             <!--ET_BEGIN DELIVERY_BLOCK-->
+            	[#DELIVERY_BLOCK#]
                <tr>
                   <td colspan = 2>
                      <h4 style="margin: 10px 0 3px;">|Доставка|*</h4>
                   </td>
                </tr>
-               <!--ET_BEGIN termId-->
-               <tr>
-                  <td class="aright">|Начин|*:</td><td> [#termId#]</td>
-               </tr>
-               <!--ET_END termId-->
+               
                <!--ET_BEGIN deliveryCountry-->
                <tr>
                   <td class="aright">
@@ -111,9 +108,12 @@
                   <td class="aright">|Инструкции|*:</td><td> <span class="richtext-holder"> [#instruction#]</span></td>
                </tr>
                <!--ET_END instruction-->
-               [#DELIVERY_BLOCK#]
                <!--ET_END DELIVERY_BLOCK-->
-            
+               <!--ET_BEGIN EXPECTED_DELIVERY-->
+               <tr>
+                  <td colspan = '2'> <span class="expected-delivery-block">[#EXPECTED_DELIVERY#]</span></td>
+               </tr>
+               <!--ET_END EXPECTED_DELIVERY-->
          <!--ET_BEGIN INVOICE_BLOCK-->
                <tr>
                   <td colspan="2">
