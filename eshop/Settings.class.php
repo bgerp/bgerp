@@ -150,7 +150,7 @@ class eshop_Settings extends core_Manager
     /**
      * Дефолтен текст за информация за артикули с очаквана доставка
      */
-    const DEFAULT_EXPECTED_DELIVERY_TEXT_BG = 'Във вашата [#cartName#] има артикули, които в момента не са налични, но се очаква да бъдат доставени скоро';
+    const DEFAULT_EXPECTED_DELIVERY_TEXT_BG = 'Във вашата [#cartName#] има артикули, които в момента не са налични. Очаква се да бъдат доставени скоро.';
     
     
     /**
