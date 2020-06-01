@@ -111,7 +111,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
         
         $form->setFieldTypeParams('productId', array('hasProperties' => $data->defaultMeta));
         
-        if (isset($form->rec->id)) {
+        if (isset($form->rec->id) && $data->action != 'replaceproduct') {
             $data->form->setReadOnly('productId');
         }
     }
