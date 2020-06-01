@@ -634,10 +634,6 @@ class sales_Quotations extends core_Master
                 }
             }
             
-            if (isset($rec->priceListId) && !Mode::isReadOnly()) {
-                $row->priceListId = price_Lists::getHyperlink($rec->priceListId, true);
-            }
-            
             if (isset($rec->bankAccountId)) {
                 $ownAccount = bank_OwnAccounts::getOwnAccountInfo($rec->bankAccountId);
                 if (!Mode::isReadOnly()) {
