@@ -903,8 +903,8 @@ class blast_Emails extends core_Master
         //Ако изпращаме имейла
         if ($sending) {
             //Добавяме CSS, като inline стилове
-            $css = file_get_contents(sbf('css/common.css', '', true)) .
-            "\n" . file_get_contents(sbf('css/Application.css', '', true)) . "\n" . file_get_contents(sbf('css/email.css', '', true));
+            $css = getFileContent('css/common.css') .
+            "\n" . getFileContent('css/Application.css') . "\n" . getFileContent('css/email.css');
             
             $content = '<div id="begin">' . $content . '<div id="end">';
             
