@@ -51,6 +51,16 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
             $data->action = 'replaceproduct';
             $data->rec = $rec;
             $mvc->prepareEditForm($data);
+            
+            // Да не се рефрешва полето за количество
+            $removeAndRefreshForm = $mvc->getFieldParam($mvc->replaceProductFieldName, 'removeAndRefreshForm');
+            if(!empty($removeAndRefreshForm)){
+                $removeAndRefreshForm = arr::make(explode('|', $removeAndRefreshForm), true);
+                unset($removeAndRefreshForm[$mvc->packQuantityFld]);
+                $removeAndRefreshForm = implode('|', $removeAndRefreshForm);
+                $data->form->setField($mvc->replaceProductFieldName, "removeAndRefreshForm={$removeAndRefreshForm}");
+            }
+          
             $form = &$data->form;
             $form->setAction(array($mvc, 'replaceproduct', $id));
             
