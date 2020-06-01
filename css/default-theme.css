@@ -1,106 +1,127 @@
-a:link, a:visited {
-  color: #048; }
-a:hover {
-  color: #e70; }
-a.out {
-  color: #06f; }
-  a.out:visited {
-    color: #60c; }
+  a:link,
+  a:visited {
+    color: #004488; }
+  a:hover {
+    color: #ee7700; }
+  a.out {
+    color: #0066ff; }
+    a.out:visited {
+      color: #6600cc; }
 
-select, input, textarea {
-  border: solid 1px #99f;
-  background: #fff;
-  color: #222; }
+select,
+input,
+textarea {
+  border: solid 1px #9999ff;
+  background: white;
+  color: #222222; }
 
 div.richEdit div.richedit-toolbar {
   background: #e0e0e0;
-  border: solid 1px #99f;
+  border: solid 1px #9999ff;
   border-top: none; }
 
-.chzn-container-single .chzn-single, .chzn-container-active .chzn-single, .chzn-container-active .chzn-single-with-drop {
-  border: 1px solid #99f;
-  background-color: #fff;
-  color: #222; }
+.chzn-container-single .chzn-single,
+.chzn-container-active .chzn-single,
+.chzn-container-active .chzn-single-with-drop {
+  border: 1px solid #9999ff;
+  background-color: white;
+  color: #222222; }
 
 .chzn-container .chzn-results .highlighted {
-  background-color: #39f;
-  color: #fff !important; }
+  background-color: #3399ff;
+  color: white !important; }
 
-.dropdown-menu > .active > a, .dropdown-menu > .active > a:hover, .dropdown-menu > .active > a:focus, .dropdown-menu > li > a:hover, .dropdown-menu > li > a:focus {
-  background: #39f;
-  color: #fff; }
+.dropdown-menu > .active > a,
+.dropdown-menu > .active > a:hover,
+.dropdown-menu > .active > a:focus,
+.dropdown-menu > li > a:hover,
+.dropdown-menu > li > a:focus {
+  background: #3399ff;
+  color: white; }
 
-.highlight, .highlight-row {
-  background-color: #ffb; }
+.highlight,
+.highlight-row {
+  background-color: #ffffbb; }
 
-a.button, input[type="button"], input[type="submit"], button {
-  color: #036;
-  background-color: #ddd;
-  border: 1px solid #bbb; }
+a.button,
+input[type="button"],
+input[type="submit"],
+button {
+  color: #003366;
+  background-color: #dddddd;
+  border: 1px solid #bbbbbb; }
 
-.narrow a.button, .narrow input[type=button], .narrow input[type=submit], .narrow button {
-  border: 1px solid #999; }
+.narrow a.button,
+.narrow input[type=button],
+.narrow input[type=submit],
+.narrow button {
+  border: 1px solid #999999; }
 
-a.button:hover, input:hover[type=button], input:hover[type=submit], button:hover {
-  background-color: #ffb; }
+a.button:hover,
+input:hover[type=button],
+input:hover[type=submit],
+button:hover {
+  background-color: #ffffbb; }
 
 form[method="post"] input[type="submit"] {
-  border: solid 1px #888;
-  background-color: #99f;
+  border: solid 1px #888888;
+  background-color: #9999ff;
   color: white; }
 
-.toolbar form[method=post] input[type=button], .toolbar form[method=post] a.button {
-  border: solid 1px #888;
-  background-color: #888;
-  color: white; }
+  .toolbar form[method=post]  input[type=button],
+  .toolbar form[method=post]  a.button {
+    border: solid 1px #888888;
+    background-color: #888888;
+    color: white; }
 
 .vertical .formTitle {
   color: white;
-  background-color: #99f;
-  border: solid 1px #88e; }
+  background-color: #9999ff;
+  border: solid 1px #8888ee; }
 
 .vertical .formGroup {
   color: white;
-  background-color: #99f; }
+  background-color: #9999ff; }
 
 td.keylist-group > div {
-  background-color: #eef;
+  background-color: #eeeeff;
   border: 1px solid #e0e0f0;
-  color: #333; }
+  color: #333333; }
 
-a.pager:hover {
-  border: solid 1px #aaa;
-  background-color: #eee; }
-a.pager.pagerSelected {
-  border: solid 1px #aaa;
-  background-color: #ffc; }
+  a.pager:hover {
+    border: solid 1px #aaaaaa;
+    background-color: #eeeeee; }
+  a.pager.pagerSelected {
+    border: solid 1px #aaaaaa;
+    background-color: #ffffcc; }
 
 div.tab-control div.tab-row .tab {
-  background: #ddd;
-  border-left: 1px solid #bbb;
-  border-right: 1px solid #bbb;
-  border-top: 2px solid #048; }
+  background: #dddddd;
+  border-left: 1px solid #bbbbbb;
+  border-right: 1px solid #bbbbbb;
+  border-top: 2px solid #004488; }
   div.tab-control div.tab-row .tab.selected {
-    background: #fff;
-    border-left: 1px solid #bbb;
-    border-right: 1px solid #bbb;
-    border-top: 2px solid #048; }
+    background: white;
+    border-left: 1px solid #bbbbbb;
+    border-right: 1px solid #bbbbbb;
+    border-top: 2px solid #004488; }
 
 div.tab-control.alphabet div.tab-row .tab {
-  background: #ddd;
-  border: 1px solid #aaa; }
+  background: #dddddd;
+  border: 1px solid #aaaaaa; }
   div.tab-control.alphabet div.tab-row .tab:hover a {
     color: red !important; }
   div.tab-control.alphabet div.tab-row .tab.selected {
-    background: #ffc;
-    border: 1px solid #aaa; }
+    background: #ffffcc;
+    border: 1px solid #aaaaaa; }
   div.tab-control.alphabet div.tab-row .tab:hover {
-    background-color: #ffc; }
+    background-color: #ffffcc; }
 
 div.tab-control div.tab-page {
-  border: 1px solid #bbb;
-  background: #fff; }
+  border: 1px solid #bbbbbb;
+  background: white; }
 
 div.alphabet div.tab-page {
   border: none;
-  background: transparent; }
+  background: rgba(0, 0, 0, 0); }
+
