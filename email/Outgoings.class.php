@@ -429,7 +429,7 @@ class email_Outgoings extends core_Master
         }
         
         // CSS' а за имейли
-        $emailCss = file_get_contents(sbf('css/email.css', '', true));
+        $emailCss = getFileContent('css/email.css');
         
         // списъци с изпратени и проблеми получатели
         $success = $failure = array();
@@ -1524,10 +1524,9 @@ class email_Outgoings extends core_Master
         if ($css) {
             //Създаваме HTML частта на документа и превръщаме всички стилове в inline
             //Вземаме всичките css стилове
-            
-            $css = file_get_contents(sbf('css/common.css', '', true)) .
-            "\n" . file_get_contents(sbf('css/Application.css', '', true)) . "\n" . $css ;
-            
+           $css = getFileContent('css/common.css') .
+           "\n" . getFileContent('css/Application.css') . "\n" . $css ;
+           
             $content = '<div id="begin">' . $content . '<div id="end">';
             
             // Вземаме пакета
