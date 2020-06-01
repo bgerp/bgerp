@@ -722,22 +722,35 @@ class eshop_CartDetails extends core_Detail
      * Кои са уникалните параметри на артикула като текст
      *
      * @param stdClass $rec
+     * @param boolean $asRichText
      *
      * @return string $str
      */
-    public static function getUniqueParamsAsText($rec)
+    public static function getUniqueParamsAsText($rec, $asRichText = false)
     {
         $displayParams = eshop_Products::getParamsToDisplay($rec->eshopProductId);
         $commonParams = eshop_Products::getCommonParams($rec->eshopProductId);
         $productParams = cat_Products::getParams($rec->productId, null, true);
         
+        if($asRichText){
+            $pureParams = cat_Products::getParams($rec->productId);
+            $fileTypes = array(cond_type_File::getClassId(), cond_type_Image::getClassId());
+        }
+        
         $productParams = array_intersect_key($productParams, $displayParams);
         $diff = array_diff_key($productParams, $commonParams);
-       
+        
         $arr = array();
         foreach ($diff as $paramId => $value) {
             $paramRec = cat_Params::fetch($paramId);
             $value = (!empty($paramRec->suffix)) ? $value .  ' ' . tr($paramRec->suffix) : $value;
+           
+            if($asRichText && in_array($paramRec->driverClass, $fileTypes)){
+                $handler = $pureParams[$paramId];
+                $fileName = strip_tags($value);
+                $value = "[file={$handler}]{$fileName}[/file]";
+            }
+            
             $arr[] = tr(cat_Params::getVerbal($paramRec, 'name')) . ': ' . $value;
         }
         

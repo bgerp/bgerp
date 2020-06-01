@@ -925,4 +925,13 @@ class eshop_Groups extends core_Master
         
         return $res;
     }
+    
+    
+    function act_Test()
+    {
+        $d = eshop_CartDetails::fetch(210);
+        $r = eshop_CartDetails::getUniqueParamsAsText($d);
+        
+        bp($r);
+    }
 }
