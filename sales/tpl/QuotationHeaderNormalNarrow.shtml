@@ -72,9 +72,6 @@
 	        <tr>
 	            <td> 
 	                <ol id='conditions'>
-	                	<!--ET_BEGIN priceListId-->
-	                    <li> |Ценова политика|*: [#priceListId#]</li>
-	                    <!--ET_END priceListId-->
 	                    <!--ET_BEGIN validFor-->
 			            <li> |Валидност на офертата|*: [#validFor#] (|до|* [#validDate#])</li>
 			            <!--ET_END validFor-->
