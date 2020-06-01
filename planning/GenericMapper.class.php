@@ -88,8 +88,7 @@ class planning_GenericMapper extends core_Manager
     public function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Артикул,mandatory,silent,input=hidden');
-        $this->FLD('genericProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=generic,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Генеричен артикул,mandatory,silent');
-       
+        $this->FLD('genericProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=generic,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Генеричен артикул,mandatory,silent,class=w50');
         $this->setDbUnique('productId,genericProductId');
     }
     
@@ -152,13 +151,22 @@ class planning_GenericMapper extends core_Manager
             return;
         }
         
+        $data->isGeneric = $data->masterData->rec->generic;
         $data->rows = array();
         $query = $this->getQuery();
-        $query->where("#productId = {$data->masterId}");
+        
+        if($data->isGeneric == 'yes'){
+            $listFields = "productId=Заместващ артикул,created=Създаване";
+            $query->where("#genericProductId = {$data->masterId}");
+        } else {
+            $listFields = "genericProductId=Генеричен артикул,created=Създаване";
+            $query->where("#productId = {$data->masterId}");
+        }
+        
         while ($rec = $query->fetch()) {
             $data->rows[$rec->id] = $this->recToVerbal($rec);
         }
-        
+       
         $pInfo = $data->masterMvc->getProductInfo($data->masterId);
         if (!isset($pInfo->meta['canConvert'])) {
             $data->notConvertableAnymore = true;
@@ -171,7 +179,7 @@ class planning_GenericMapper extends core_Manager
         
         $data->TabCaption = 'Влагане';
         $data->Tab = 'top';
-        $data->listFields = arr::make("genericProductId=Генеричен артикул,created=Създаване", true);
+        $data->listFields = arr::make($listFields, true);
         
         if (!Mode::is('printing') && !Mode::is('inlineDocument')) {
             if (self::haveRightFor('add', (object) array('productId' => $data->masterId))) {
@@ -192,7 +200,7 @@ class planning_GenericMapper extends core_Manager
             return;
         }
         
-        $tpl = getTplFromFile('planning/tpl/ResourceObjectDetail.shtml');
+        $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         
         if ($data->notConvertableAnymore === true) {
             $title = tr('Артикулът вече не е вложим');
@@ -209,8 +217,8 @@ class planning_GenericMapper extends core_Manager
         $tpl->append($table->get($data->rows, $data->listFields), 'content');
         
         if (isset($data->addUrl)) {
-            $addLink = ht::createBtn('Добави', $data->addUrl, false, false, 'ef_icon=img/16/star_2.png,title=Добавяне на информация за влагане');
-            $tpl->append($addLink, 'BTNS');
+            $addLink = ht::createLink('', $data->addUrl, false, 'ef_icon=img/16/add.png,title=Добавяне на информация за влагане');
+            $tpl->append($addLink, 'title');
         }
         
         return $tpl;
