@@ -26,6 +26,9 @@
             <div class="attention"> [#PAYMENT_TEXT_RIGHT#]</div>
             <!--ET_END PAYMENT_TEXT_RIGHT-->
 
+            <!--ET_BEGIN EXPECTED_DELIVERY-->
+            <div class="attention">[#EXPECTED_DELIVERY#]</div>
+            <!--ET_END EXPECTED_DELIVERY-->
          </div>
          <div class="clearfix21"></div>
          <!--ET_BEGIN CHECK_EMAIL-->
@@ -109,11 +112,7 @@
                </tr>
                <!--ET_END instruction-->
                <!--ET_END DELIVERY_BLOCK-->
-               <!--ET_BEGIN EXPECTED_DELIVERY-->
-               <tr>
-                  <td colspan = '2'> <span class="expected-delivery-block">[#EXPECTED_DELIVERY#]</span></td>
-               </tr>
-               <!--ET_END EXPECTED_DELIVERY-->
+
          <!--ET_BEGIN INVOICE_BLOCK-->
                <tr>
                   <td colspan="2">
