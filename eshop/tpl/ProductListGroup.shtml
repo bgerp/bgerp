@@ -7,7 +7,8 @@
             <td class="vtop">
                 <h2 class='eshop-product-list-name'>[#name#] [#singleLink#][#editLink#]</h2>
                 <div class='eshop-product-labels'>
-                    <!--ET_BEGIN code--><span>|Код|*: <b>[#code#]</b></span><!--ET_END code--> <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--> [#coInquiry#]<!--ET_BEGIN catalogPrice--><span>|Цена|*: <b>[#catalogPrice#]</b> [#singleCurrencyId#] [#chargeVat#] |за|* [#packagingId#]</span> <!--ET_END catalogPrice--><!--ET_BEGIN saleInfo--><span class='product-additional-info'>[#saleInfo#]<!--ET_END saleInfo--></span>[#btn#]
+                    <!--ET_BEGIN code--><span>|Код|*: <b>[#code#]</b></span><!--ET_END code--> <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--> [#coInquiry#]<!--ET_BEGIN catalogPrice--><span>|Цена|*: <b>[#catalogPrice#]</b> [#singleCurrencyId#] [#chargeVat#] |за|* [#packagingId#]</span> <!--ET_END catalogPrice-->[#btn#]
+                    <!--ET_BEGIN saleInfo--><div>[#saleInfo#]</div><!--ET_END saleInfo-->
                 </div>
                 [#info#]
                 <!--ET_BEGIN commonParams-->
