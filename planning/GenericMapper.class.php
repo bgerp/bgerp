@@ -260,7 +260,8 @@ class planning_GenericMapper extends core_Manager
             $tpl->append(tr('Влагане'), 'title');
         }
         
-        $table = cls::get('core_TableView', array('mvc' => $this));
+        $listTableMvc = clone $this;
+        $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         
         $tpl->append($table->get($data->rows, $data->listFields), 'content');
