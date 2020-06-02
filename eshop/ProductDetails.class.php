@@ -333,10 +333,16 @@ class eshop_ProductDetails extends core_Detail
             
             $prev = null;
             foreach ($data->rows as &$row1) {
-                if (isset($prev) && $prev == $row1->productId) {
-                    $row1->productId = "<span class='quiet'>{$row1->productId}</span>";
+                if (isset($prev) && $prev == $row1->orderCode) {
+                    unset($row1->productId);
+                    unset($row1->code);
+                    unset($row1->params);
+                } else {
+                    if(!empty($row1->saleInfo)){
+                        $row1->productId .= "<span class='eshop-product-buy-sale-info'>{$row1->saleInfo}</span>";
+                    }
                 }
-                $prev = strip_tags($row1->productId);
+                $prev = strip_tags($row1->orderCode);
             }
         }
     }
@@ -425,6 +431,7 @@ class eshop_ProductDetails extends core_Detail
                     $notInStock = !empty($settings->notInStockText) ? $settings->notInStockText : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
                     $row->saleInfo = "<span class='{$class} option-not-in-stock'>" . $notInStock . ' </span>';
                     $row->quantity = 1;
+                    unset($row->btn);
                 } else {
                     $row->saleInfo = "<span style='margin-right: 5px' class='{$class} option-not-in-stock waitingDelivery'>" . tr('Очаквана доставка') . '</span>';
                 }
@@ -435,10 +442,6 @@ class eshop_ProductDetails extends core_Detail
             $row->catalogPrice = "<div class='eshop-product-price-holder'>{$row->catalogPrice}</div>";
             if(!empty($row->btn)){
                 $row->catalogPrice .= "<div class='eshop-product-buy-button'>{$row->btn}</div>";
-            }
-            
-            if(!empty($row->saleInfo)){
-                $row->catalogPrice .= "<div class='eshop-product-buy-sale-info'>{$row->saleInfo}</div>";
             }
         } 
         
