@@ -276,7 +276,7 @@ a.menuItem:focus {
 div.folder-cover {
   background-image: url('../img/cover-bg.png');
   display: inline-block;
-  max-width: 800px;
+  max-width: 1000px;
   min-width: 540px;
   margin-top: 10px;
   line-height: 1.2em;
@@ -302,7 +302,7 @@ div.folder-cover {
     font-weight: bold; }
   div.folder-cover .groupList {
     font-size: 0.95em;
-    max-width: 725px; }
+    max-width: 980px; }
     div.folder-cover .groupList .toolbar-btn {
       margin-top: 0 !important;
       margin-bottom: 0 !important;
