@@ -3658,9 +3658,15 @@ fieldset.sharing-history {
 		white-space: nowrap;
 	}
 }
+
+.narrow .optionsTable .productCol {
+	white-space: nowrap;
+}
+
 .eshop-product-buy-button {
 	margin-top: 3px;
 }
+
 .external-discount {
 	color: #333;
 	font-size: 0.8em;

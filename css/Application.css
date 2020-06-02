@@ -3130,6 +3130,9 @@ span.sharing-history-title {
   .optionsTable .paramCol {
     white-space: nowrap; }
 
+.narrow .optionsTable .productCol {
+  white-space: nowrap; }
+
 .eshop-product-buy-button {
   margin-top: 3px; }
 
