@@ -338,28 +338,28 @@ class borsa_Lots extends core_Master
         
         $form->layout = new ET("<div><form method=\"post\" action=\"{$act}\" [#FORM_ATTR#]><!--ET_BEGIN FORM_ERROR-->\n<div class=\"formError\" style='margin-top:10px'>[#FORM_ERROR#]</div><!--ET_END FORM_ERROR-->[#FORM_FIELDS#]</form></div>");
         
-        $form->FNC('productId', 'key(mvc=borsa_Lots, select=productName)', 'input,caption=Продукт,removeAndRefreshForm,silent,submitFormOnRefresh');
+        $form->FNC('lotId', 'key(mvc=borsa_Lots, select=productName)', 'input,caption=Продукт,removeAndRefreshForm,silent,submitFormOnRefresh');
         
         $form->formAttr['submitFormOnRefresh'] = 'submitFormOnRefresh';
         
         // Показваме само позволените продукти, към този потребител
         $prodOptArr = $this->getAllowedProdId($cId);
         if ($prodOptArr) {
-            $pOptArr = $form->fields['productId']->type->prepareOptions();
+            $pOptArr = $form->fields['lotId']->type->prepareOptions();
             foreach ($prodOptArr as $pId) {
                 if (!isset($pOptArr[$pId])) {
                     continue;
                 }
                 $nProdArr[$pId] = $pOptArr[$pId];
             }
-            $form->setDefault('productId', key($nProdArr));
+            $form->setDefault('lotId', key($nProdArr));
         } else {
             $nProdArr = array();
         }
         
-        $form->fields['productId']->type->options = $nProdArr;
+        $form->fields['lotId']->type->options = $nProdArr;
         
-        $form->input('productId', true);
+        $form->input('lotId', true);
         
         $tpl = $form->renderHtml();
         
@@ -379,18 +379,21 @@ class borsa_Lots extends core_Master
         $this->FNC('price', 'double(smartRound,decimals=2)');
         
         $sName = '';
-        $mId = cat_Products::fetchField($form->rec->productId, 'measureId');
-        if ($mId) {
-            $sName = cat_UoM::getShortName($mId);
+        if ($form->rec->lotId) {
+            $lRec = $this->fetch($form->rec->lotId);
+            $mId = cat_Products::fetchField($lRec->productId, 'measureId');
+            if ($mId) {
+                $sName = cat_UoM::getShortName($mId);
+            }
         }
         
         $table = new ET('<table class="listTable"> [#PERIOD#] </table>');
         
         // За всеки период, добавяме по един ред в таблицата
-        $pArr = $this->getPeriods($form->rec->productId);
+        $pArr = $this->getPeriods($form->rec->lotId);
         foreach ($pArr as $pId => $pVal) {
             
-            $perRec = borsa_Periods::fetch(array("#lotId = '[#1#]' AND #from = '[#2#]' AND #to = '[#3#]'", $form->rec->productId, $pArr[$pId]['bPeriod'], $pArr[$pId]['ePeriod']));
+            $perRec = borsa_Periods::fetch(array("#lotId = '[#1#]' AND #from = '[#2#]' AND #to = '[#3#]'", $form->rec->lotId, $pArr[$pId]['bPeriod'], $pArr[$pId]['ePeriod']));
             
             $pRow = new ET("<tr> <td colspan=3 class='periodHead'> [#DATE#] <span>[#PRICE#]</span> </td> </tr> <tr> <td> [#QUANTITY#] </td> <td> [#CBIDS#] </td> <td> [#QBIDS#] </td> </tr>");
             
@@ -434,7 +437,7 @@ class borsa_Lots extends core_Master
             
             $bQuery = borsa_Bids::getQuery();
             $bQuery->where(array("#periodId = '[#1#]'", $perRec->id));
-            $bQuery->where(array("#lotId = '[#1#]'", $form->rec->productId));
+            $bQuery->where(array("#lotId = '[#1#]'", $form->rec->lotId));
             $bQuery->show('companyId, quantity, state, createdOn');
             $bQuery->orderBy('createdOn', 'DESC');
             
@@ -458,7 +461,7 @@ class borsa_Lots extends core_Master
             }
             
             if ($haveQuantity) {
-                $qBidsRows .= "<td colspan=2>" . ht::createBtn('Заяви', array($this, 'Bid', $form->rec->productId, 'period' => $pId), false, false, 'title=Добавяне на заявка') . "<td>";
+                $qBidsRows .= "<td colspan=2>" . ht::createBtn('Заяви', array($this, 'Bid', $form->rec->lotId, 'period' => $pId), false, false, 'title=Добавяне на заявка') . "<td>";
             }
             
             $qBidsRows .= '</table>';
@@ -518,7 +521,7 @@ class borsa_Lots extends core_Master
         
         $form->setReadOnly('price', $pArr[$period]['price']);
         
-        $retUrl = array($this, 'Show', 'productId' => $id);
+        $retUrl = array($this, 'Show', 'lotId' => $id);
         
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Подаване на оферта');
         $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
