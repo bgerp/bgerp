@@ -1534,6 +1534,10 @@ class cat_Products extends embed_Manager
             if(isset($params['onlyIn'])){
                 $query->in("id", $params['onlyIn']);
             }
+            
+            if(isset($params['notIn'])){
+                $query->notIn("id", $params['notIn']);
+            }
         }
         
         $query->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id, ' ', #id))");
