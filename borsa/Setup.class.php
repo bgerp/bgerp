@@ -2,6 +2,12 @@
 
 
 /**
+ * Информация, която да се добави във формата за добавяне на оферта
+ */
+defIfNot('BORSA_ADD_BID_INFO', 'Трябва да платите до 3 дена след офериране. В противен случай, офертата може да не бъде одобрена.');
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с продуктите
  *
@@ -48,7 +54,6 @@ class borsa_Setup extends core_ProtoSetup
             array(3.1, 'Търговия', 'Борса', 'borsa_Lots', 'default', 'borsa, ceo')
     );
     
-    // @todo - addRole
     
     /**
      * Списък с мениджърите, които съдържа пакета
@@ -67,20 +72,4 @@ class borsa_Setup extends core_ProtoSetup
     public $roles = array(
             array('borsa'),
     );
-    
-    
-//     /**
-//      * Скрипт за инсталиране
-//      */
-//     public function install()
-//     {
-//         $html = parent::install();
-        
-//         $Plugins = cls::get('core_Plugins');
-        
-//         // Инсталираме на плъгина за проверка на правописа
-//         $html .= $Plugins->forcePlugin('Spell Check', 'borsa_Plugin', 'core_Master', 'family');
-        
-//         return $html;
-//     }
 }

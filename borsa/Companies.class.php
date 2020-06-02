@@ -14,7 +14,6 @@
  */
 class borsa_Companies extends core_Manager
 {
-    
     /**
      * Заглавие на модела
      */
@@ -57,26 +56,10 @@ class borsa_Companies extends core_Manager
     public $canDelete = 'borsa, ceo';
     
     
-//     /**
-//      * Кой може да променя състоянието на документите
-//      *
-//      * @see plg_State2
-//      */
-//     public $canChangestate = 'borsa, ceo';
-    
-    
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'borsa_Wrapper';
-//     public $loadList = 'borsa_Wrapper, plg_RowTools2, plg_State2, plg_Created, plg_Modified, plg_Search, plg_Sorting';
-    
-    
-    /**
-     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
-     */
-//     public $searchFields = 'pattern';
-
+    public $loadList = 'borsa_Wrapper, plg_Created, plg_Modified';
     
     
     public function description()
@@ -90,11 +73,25 @@ class borsa_Companies extends core_Manager
         $this->setDbUnique('companyId,email');
     }
     
+    
+    /**
+     * Попълване на полето за URL
+     * 
+     * @param borsa_Companies $mvc
+     * @param stdClass $rec
+     */
     function on_CalcUrl($mvc, $rec)
     {
         $rec->url = $mvc->getAccessUrl('borsa_Lots', $rec);
     }
     
+    
+    /**
+     * Задаване на полето name
+     * 
+     * @param borsa_Companies $mvc
+     * @param stdClass $rec
+     */
     function on_CalcName($mvc, $rec)
     {
         if ($rec->companyId) {
@@ -114,7 +111,6 @@ class borsa_Companies extends core_Manager
      */
     protected static function getAccessUrl($className, $rec, $lifeTime = 604800)
     {
-        
         return core_Forwards::getURL($className, 'openBid', array('id' => $rec->id, 'companyId' => $rec->companyId, 'email' => $rec->email), $lifeTime);
     }
     

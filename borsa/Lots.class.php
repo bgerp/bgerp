@@ -14,7 +14,6 @@
  */
 class borsa_Lots extends core_Master
 {
-    
     /**
      * Заглавие на модела
      */
@@ -65,53 +64,63 @@ class borsa_Lots extends core_Master
     var $interfaces = 'cms_SourceIntf';
     
     
-    
-    protected $powerRoles = 'borsa, ceo';
-    
+    /**
+     * Името на сесийната променлива за записване на профила
+     */
     protected $profileModeName = 'borsaProfile';
     
+    
+    /**
+     * Името на сесийната променлива за записване на позволените продукти
+     */
     protected $allowedProdModeName = 'allowedProd';
     
-//     /**
-//      * Кой може да променя състоянието на документите
-//      *
-//      * @see plg_State2
-//      */
-//     public $canChangestate = 'borsa, ceo';
+    
+    /**
+     * Кой може да променя състоянието на документите
+     *
+     * @see plg_State2
+     */
+    public $canChangestate = 'borsa, ceo';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'borsa_Wrapper, plg_Rejected, plg_Created, plg_State2, plg_RowTools';
-//     public $loadList = 'borsa_Wrapper, plg_RowTools2, plg_State2, plg_Created, plg_Modified, plg_Search, plg_Sorting';
+    public $loadList = 'borsa_Wrapper, plg_Rejected, plg_Created, plg_State2, plg_RowTools2, plg_Modified';
     
     
     /**
-     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     * 
      */
-//     public $searchFields = 'pattern';
-    
-    
     public function description()
     {
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,hasProperties=fixedAsset,maxSuggestions=100,forceAjax)', 'class=w100,caption=Артикул,mandatory,silent,removeAndRefreshForm=basePrice');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,maxSuggestions=100,forceAjax)', 'class=w100,caption=Артикул,mandatory,silent,removeAndRefreshForm=basePrice');
         $this->FLD('periodType', 'enum(day=Ден, week=Седмица, month=Месец)', 'caption=Вид период,mandatory');
         $this->FLD('basePrice', 'double(smartRound,decimals=2)', 'caption=Базова цена,mandatory');
-        $this->FLD('quantity', 'double', 'caption=Количество,mandatory,hint=Количество за всеки период');
-        $this->FLD('priceChange', 'table(columns=period|priceChange,captions=Период|Промяна %,validate=borsa_Lots::priceChangeValidate)', 'caption=Промяна на цена');
+        $this->FNC('quantity', 'double(min=0)', 'caption=Количество,hint=Количество по подразбиране за офериране,input');
+        $this->FLD('priceChange', 'table(columns=period|priceChange,captions=Период|Промяна %,validate=borsa_Lots::priceChangeValidate, period_opt=|01|02|03|04|05|06|07|08|09|10|11|12)', 'caption=Промяна на цена');
+        
         
         $this->FNC('productName', 'varchar');
         
         $this->setDbUnique('productId');
     }
     
+    
+    /**
+     * Изчисляване на името на продукта
+     * 
+     * @param borsa_Lots $mvc
+     * @param stdClass $rec
+     */
     function on_CalcProductName($mvc, $rec)
     {
         if ($rec->productId) {
             $rec->productName = cat_Products::fetchField($rec->productId, 'name');
         }
     }
+    
     
     /**
      * Преди показване на форма за добавяне/промяна.
@@ -123,6 +132,13 @@ class borsa_Lots extends core_Master
     {
         if ($data->form->rec->productId) {
             $data->form->setDefault('basePrice', cls::get('cat_Products')->getDefaultCost($data->form->rec->productId, 1));
+            
+            $mId = cat_Products::fetchField($data->form->rec->productId, 'measureId');
+            
+            if ($mId) {
+                $sName = cat_UoM::getShortName($mId);
+                $data->form->setField('quantity', array('unit' => $sName));
+            }
         }
     }
     
@@ -169,13 +185,13 @@ class borsa_Lots extends core_Master
         }
         
         foreach ((array)$values['priceChange'] as $key => $val) {
-            if (!is_numeric($val)) {
+            if (trim($val) && !is_numeric($val)) {
                 $msg = 'Полето трябва да съдържа само цели числа';
                 $resArr['errorFields']['priceChange'][$key] = $msg;
                 $resArr['error'] .= "|*<li>| {$msg}";
             }
             
-            if (!trim($val)) {
+            if (!strlen(trim($val))) {
                 $msg = 'Не е попълнена стойност';
                 $resArr['errorFields']['priceChange'][$key] = $msg;
                 $resArr['error'] .= "|*<li>| {$msg}";
@@ -193,13 +209,61 @@ class borsa_Lots extends core_Master
     
     
     /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
+     * @param int          $id      Първичния ключ на направения запис
+     * @param stdClass     $rec     Всички полета, които току-що са били записани
+     * @param string|array $fields  Имена на полетата, които sa записани
+     * @param string       $mode    Режим на записа: replace, ignore
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        $pArr = $this->getPeriods($rec->id);
+        
+        $sPerArr = array();
+        
+        // Добавяме периоди с количества по подразбиране
+        foreach ($pArr as $pVal) {
+            $pRec = borsa_Periods::fetch(array("#lotId = '[#1#]' AND #from = '[#2#]' AND #to = '[#3#]'", $rec->id, $pVal['bPeriod'], $pVal['ePeriod']));
+            
+            if (!$pRec) {
+                $pRec = new stdClass();
+                $pRec->lotId = $rec->id;
+                $pRec->from = $pVal['bPeriod'];
+                $pRec->to = $pVal['ePeriod'];
+                $pRec->qAviable = $rec->quantity ? $rec->quantity : 0;
+                $pRec->qBooked = 0;
+                $pRec->qConfirmed = 0;
+            }
+            
+            $pRec->state = 'active';
+            
+            borsa_Periods::save($pRec);
+            
+            $sPerArr[$pRec->id] = $pRec->id;
+        }
+        
+        // Ако след редакция, някои са премахнати - деактивираме ги
+        $pQuery = borsa_Periods::getQuery();
+        $pQuery->where(array("#lotId = '[#1#]'", $rec->id));
+        $pQuery->notIn('id', $sPerArr);
+        while ($pRec = $pQuery->fetch()) {
+            $pRec->state = 'closed';
+            
+            borsa_Periods::save($pRec, 'state');
+        }
+    }
+    
+    
+    /**
      * Колбек функция, която се извиква от линковете в изпратените писма
      */
     public static function callback_openBid($data)
     {
         $me = cls::get(get_called_class());
         
-        if(!haveRole($me->powerRoles)) {
+        if(!self::haveRightFor('list')) {
             
             if (Mode::get($me->profileModeName) != $data['id']) {
                 Mode::setPermanent($me->profileModeName, $data['id']);
@@ -220,9 +284,6 @@ class borsa_Lots extends core_Master
     }
     
     
-    
-    
-    
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -238,8 +299,11 @@ class borsa_Lots extends core_Master
     }
     
     
-    
-    
+    /**
+     * 
+     * 
+     * @see core_Manager::act_List()
+     */
     function act_List()
     {
         if (!$this->haveRightFor('list')) {
@@ -253,45 +317,171 @@ class borsa_Lots extends core_Master
         return parent::act_List();
     }
     
-    protected function setAllowedProdIds($cId = null)
+    
+    /**
+     * Екшън за показване на всички периоди за съответния продукт
+     */
+    function act_Show()
     {
-        if (!isset($cId)) {
-            $cId = Mode::get($this->profileModeName);
+        if ($this->haveRightFor('list')) {
+            
+            return new Redirect(array($this, 'List'));
         }
+        
+        $cId = Mode::get($this->profileModeName);
         
         expect($cId);
         
-        $cRec = borsa_Companies::fetch($cId);
+        $form = cls::get('core_Form');
         
-        $qProd = borsa_Lots::getQuery();
-        $qProd->where("#state != 'rejected'");
+        $act = toUrl(array($this, 'Show'));
         
-        $qProd->show('productId');
+        $form->layout = new ET("<div><form method=\"post\" action=\"{$act}\" [#FORM_ATTR#]><!--ET_BEGIN FORM_ERROR-->\n<div class=\"formError\" style='margin-top:10px'>[#FORM_ERROR#]</div><!--ET_END FORM_ERROR-->[#FORM_FIELDS#]</form></div>");
         
-        if ($cRec->allowedProducts) {
-            $qProd->in('productId', $cRec->allowedProducts);
+        $form->FNC('productId', 'key(mvc=borsa_Lots, select=productName)', 'input,caption=Продукт,removeAndRefreshForm,silent,submitFormOnRefresh');
+        
+        $form->formAttr['submitFormOnRefresh'] = 'submitFormOnRefresh';
+        
+        // Показваме само позволените продукти, към този потребител
+        $prodOptArr = $this->getAllowedProdId($cId);
+        if ($prodOptArr) {
+            $pOptArr = $form->fields['productId']->type->prepareOptions();
+            foreach ($prodOptArr as $pId) {
+                if (!isset($pOptArr[$pId])) {
+                    continue;
+                }
+                $nProdArr[$pId] = $pOptArr[$pId];
+            }
+            $form->setDefault('productId', key($nProdArr));
+        } else {
+            $nProdArr = array();
         }
         
-        $resArr = array();
-        while ($qRec = $qProd->fetch()) {
-            $resArr[$qRec->id] = $qRec->id;
+        $form->fields['productId']->type->options = $nProdArr;
+        
+        $form->input('productId', true);
+        
+        $tpl = $form->renderHtml();
+        
+        $rows = array();
+        
+        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
+        
+        $Double = cls::get('type_Double');
+        $Double->params['smartRound'] = 'smartRound';
+        $Double->params['minDecimals'] = 2;
+        $Double->params['maxDecimals'] = 4;
+        
+        $this->FLD('qAviable', 'double(smartRound,decimals=2)');
+        $this->FLD('qBooked', 'double(smartRound,decimals=2)');
+        $this->FLD('qConfirmed', 'double(smartRound,decimals=2)');
+        $this->FLD('qFree', 'double(smartRound,decimals=2)');
+        $this->FLD('price', 'double(smartRound,decimals=2)');
+        
+        $sName = '';
+        $mId = cat_Products::fetchField($form->rec->productId, 'measureId');
+        if ($mId) {
+            $sName = cat_UoM::getShortName($mId);
         }
         
-        Mode::setPermanent($this->allowedProdModeName, $resArr);
+        $table = new ET('<table class="listTable"> [#PERIOD#] </table>');
+        
+        // За всеки период, добавяме по един ред в таблицата
+        $pArr = $this->getPeriods($form->rec->productId);
+        foreach ($pArr as $pId => $pVal) {
+            
+            $perRec = borsa_Periods::fetch(array("#lotId = '[#1#]' AND #from = '[#2#]' AND #to = '[#3#]'", $form->rec->productId, $pArr[$pId]['bPeriod'], $pArr[$pId]['ePeriod']));
+            
+            $pRow = new ET("<tr> <td colspan=3 class='periodHead'> [#DATE#] <span>[#PRICE#]</span> </td> </tr> <tr> <td> [#QUANTITY#] </td> <td> [#CBIDS#] </td> <td> [#QBIDS#] </td> </tr>");
+            
+            // Дата
+            $pRow->replace($this->getPeriodVerb($pVal), 'DATE');
+            
+            // Цена
+            $price = $this->fields['price']->type->toVerbal($pVal['price']);
+            $price = tr("Цена|*: {$price}<span class='cCode'>{$baseCurrencyCode}</span>") . ' <b>' . $sName . '</b> ' . tr('без ДДС');
+            $pRow->replace($price, 'PRICE');
+            
+            // Количества
+            $qAviable = $perRec->qAviable ? $perRec->qAviable : 0;
+            $qAviable = $this->fields['qAviable']->type->toVerbal($qAviable);
+            
+            $qBooked = $perRec->qBooked ? $perRec->qBooked : 0;
+            $qBooked = $this->fields['qBooked']->type->toVerbal($qBooked);
+            
+            $qConfirmed = $perRec->qConfirmed ? $perRec->qConfirmed : 0;
+            $qConfirmed = $this->fields['qConfirmed']->type->toVerbal($qConfirmed);
+            
+            $qFree = $perRec->qAviable - $perRec->qConfirmed;
+            $haveQuantity = ($qFree <= 0) ? false : true;
+            $qFree = $this->fields['qFree']->type->toVerbal($qFree);
+            
+            $quantity = "<div>" . tr('Количества') . "</div>";
+            $quantity .= "<table>";
+            $quantity .= "<tr><td>" . tr('Оферирано') . "</td><td>" . $qAviable . "</td></tr>";
+            $quantity .= "<tr><td>" . tr('Заявено') . "</td><td>" . $qBooked . "</td></tr>";
+            $quantity .= "<tr><td>" . tr('Потвърдено') . "</td><td>" . $qConfirmed . "</td></tr>";
+            $quantity .= "<tr><td>" . tr('Свободно') . "</td><td>" . $qFree . "</td></tr>";
+            $quantity .= "</table>";
+            $pRow->replace($quantity, 'QUANTITY');
+            
+            // Потвърдени и заявени количества
+            $cBidsRows = "<div>" . tr('Потвърдени') . "</div>";
+            $cBidsRows .= '<table>';
+            
+            $qBidsRows = "<div>" . tr('Заявени') . "</div>";
+            $qBidsRows .= '<table>';
+            
+            $bQuery = borsa_Bids::getQuery();
+            $bQuery->where(array("#periodId = '[#1#]'", $perRec->id));
+            $bQuery->where(array("#lotId = '[#1#]'", $form->rec->productId));
+            $bQuery->show('companyId, quantity, state, createdOn');
+            $bQuery->orderBy('createdOn', 'DESC');
+            
+            while ($bRec = $bQuery->fetch()) {
+                
+                $v = borsa_Bids::recToVerbal($bRec, 'companyId, quantity, state');
+                if ($cId != $bRec->companyId) {
+                    $v->companyId = '******';
+                }
+                
+                $v->quantity = ht::createHint($v->quantity, dt::mysql2verbal($bRec->createdOn, 'd.m.Y H:i:s'));
+                
+                $rowStr = "<tr><td>{$v->companyId}</td><td>{$v->quantity}</td></tr>";
+                if ($bRec->state == 'draft') {
+                    $qBidsRows .= $rowStr;
+                }
+                
+                if ($bRec->state == 'active') {
+                    $cBidsRows .= $rowStr;
+                }
+            }
+            
+            if ($haveQuantity) {
+                $qBidsRows .= "<td colspan=2>" . ht::createBtn('Заяви', array($this, 'Bid', $form->rec->productId, 'period' => $pId), false, false, 'title=Добавяне на заявка') . "<td>";
+            }
+            
+            $qBidsRows .= '</table>';
+            $cBidsRows .= '</table>';
+            
+            $pRow->replace($cBidsRows, 'CBIDS');
+            $pRow->replace($qBidsRows, 'QBIDS');
+            
+            $table->append($pRow, 'PERIOD');
+        }
+        
+        $tpl->append($table);
+        
+        return $this->getExternalLayout($tpl, $data->pageTitle);
+    
     }
     
-    protected function getAllowedProdId($cId = null)
-    {
-        $res = Mode::get($this->allowedProdModeName, $resArr);
-        
-        if (!isset($res)) {
-            $this->setAllowedProdIds($cId);
-        }
-        
-        return Mode::get($this->allowedProdModeName, $resArr);
-    }
     
-    
+    /**
+     * Екшън за добавяне на заявка
+     *
+     * @return Redirect|core_Et
+     */
     function act_Bid()
     {
         $id = Request::get('id', 'int');
@@ -320,40 +510,30 @@ class borsa_Lots extends core_Master
         
         $form = cls::get('core_Form');
         
-        $form->layout = new ET("<div><form method=\"post\" action=\"{$act}\"><!--ET_BEGIN FORM_ERROR-->\n<div class=\"formError\" style='margin-top:10px'>[#FORM_ERROR#]</div><!--ET_END FORM_ERROR-->[#FORM_FIELDS#][#FORM_TOOLBAR#]</form></div>");
+        $bQurr = acc_Periods::getBaseCurrencyCode();
         
         $form->FNC('qBid', 'double(min=0)', 'caption=Количество,input, mandatory');
+        $form->FNC('price', 'double(smartRound,decimals=4)', "caption=Цена,input,unit={$bQurr}");
         $form->FNC('note', 'text(rows=2)', 'caption=Забележка,input');
         
-        $noteStr = tr('Забележка');
-        $qStr = tr('Количество');
+        $form->setReadOnly('price', $pArr[$period]['price']);
+        
+        $retUrl = array($this, 'Show', 'productId' => $id);
         
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Подаване на оферта');
-        
-        
-        $tpl = $form->renderHtml();
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         $form->input();
         
         $perRec = borsa_Periods::fetch(array("#lotId = '[#1#]' AND #from = '[#2#]' AND #to = '[#3#]'", $id, $pArr[$period]['bPeriod'], $pArr[$period]['ePeriod']));
         
         if ($form->isSubmitted()) {
-            
-            if (!$perRec) {
-                $perRec = new stdClass();
-                $perRec->lotId = $id;
-                $perRec->from = $pArr[$period]['bPeriod'];
-                $perRec->to = $pArr[$period]['ePeriod'];
-            }
-            
-            $perRec->qBooked += $form->rec->qBid;
-            borsa_Periods::save($perRec);
-            
             $nRec = new stdClass();
             $nRec->lotId = $id;
             $nRec->periodId = $perRec->id;
             $nRec->price = $pArr[$period]['price'];
             $nRec->quantity = $form->rec->qBid;
+            $nRec->note = $form->rec->note;
             $nRec->companyId = $cId;
             $nRec->ip = core_Users::getRealIpAddr();
             $nRec->brid = log_Browsers::getBrid();
@@ -361,29 +541,98 @@ class borsa_Lots extends core_Master
             
             borsa_Bids::save($nRec);
             
-            return new Redirect(array($this, 'Show', 'productId' => $id), '|Успешно оферирахте');
+            return new Redirect($retUrl, '|Успешно добавихте заявка');
         }
         
-        $bQuery = borsa_Bids::getQuery();
-        $bQuery->where(array("#periodId = '[#1#]'", $perRec->id));
-        $bQuery->where(array("#lotId = '[#1#]'", $id));
-        $bQuery->show('companyId, quantity, state');
-        $bQuery->orderBy('createdOn', 'DESC');
-        while ($bRec = $bQuery->fetch()) {
-            $v = borsa_Bids::recToVerbal($bRec, 'companyId, quantity, state');
-            if ($cId != $bRec->companyId) {
-                $v->companyId = '******';
-            }
-            $rows[$bRec->id] = $v;
-        }
+        $form->title = 'Добавяне на оферта за|* ' . $this->getPeriodVerb($pArr[$period]);
         
-        $table = cls::get('core_TableView', array('mvc' => $this));
-        $tpl->append($table->get($rows, "companyId=Фирма, quantity=Оферирано"));
+        $form->info = '<b>' . tr(borsa_Setup::get('ADD_BID_INFO')) . '</b>';
         
-        return $this->getExternalLayout($tpl, $data->pageTitle);
-        
+        return $this->getExternalLayout($form->renderHtml(), $data->pageTitle);
+    
     }
     
+    
+    /**
+     * Задаване на позволените продукти за покзване към този профил
+     * 
+     * @param null|integer $cId
+     */
+    protected function setAllowedProdIds($cId = null)
+    {
+        if (!isset($cId)) {
+            $cId = Mode::get($this->profileModeName);
+        }
+        
+        expect($cId);
+        
+        $cRec = borsa_Companies::fetch($cId);
+        
+        $qProd = borsa_Lots::getQuery();
+        $qProd->where("#state != 'rejected'");
+        
+        $qProd->show('productId');
+        
+        if ($cRec->allowedProducts) {
+            $qProd->in('productId', $cRec->allowedProducts);
+        }
+        
+        $resArr = array();
+        while ($qRec = $qProd->fetch()) {
+            $resArr[$qRec->id] = $qRec->id;
+        }
+        
+        Mode::setPermanent($this->allowedProdModeName, $resArr);
+    }
+    
+    
+    /**
+     * Връща масив с позволените продикти за офериране
+     * 
+     * @param null|integer $cId
+     * 
+     * @return null|array
+     */
+    protected function getAllowedProdId($cId = null)
+    {
+        $res = Mode::get($this->allowedProdModeName, $resArr);
+        
+        if (!isset($res) || (rand(1,10) == 5)) {
+            $this->setAllowedProdIds($cId);
+        }
+        
+        return Mode::get($this->allowedProdModeName, $resArr);
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на вербално представяне на съответния период
+     * 
+     * @param array $pVal
+     * @param string $mask
+     * 
+     * @return string
+     */
+    protected static function getPeriodVerb($pVal, $mask = 'd.m.Y, l')
+    {
+        if ($pVal['bPeriod'] == $pVal['ePeriod']) {
+            $period = core_DateTime::mysql2verbal($pVal['bPeriod'], $mask);
+        } else {
+            $period = core_DateTime::mysql2verbal($pVal['bPeriod'], $mask) . ' - ' . core_DateTime::mysql2verbal($pVal['ePeriod'], $mask);
+        }
+        
+        return $period;
+    }
+    
+    
+    /**
+     * Помощна функция за задаване на врапер за външната част
+     * 
+     * @param core_ET $tpl
+     * @param null|string $pageTitle
+     * 
+     * @return core_ET
+     */
     protected function getExternalLayout($tpl, $pageTitle = null)
     {
         Mode::set('wrapper', 'cms_page_External');
@@ -412,116 +661,13 @@ class borsa_Lots extends core_Master
     }
     
     
-    function act_Show()
-    {
-        if ($this->haveRightFor('list')) {
-            
-            return new Redirect(array($this, 'List'));
-        }
-        
-        $cId = Mode::get($this->profileModeName);
-        
-        expect($cId);
-        
-        $form = cls::get('core_Form');
-        
-        $act = toUrl(array($this, 'Show'));
-        
-        $form->layout = new ET("<div><form method=\"post\" action=\"{$act}\" [#FORM_ATTR#]><!--ET_BEGIN FORM_ERROR-->\n<div class=\"formError\" style='margin-top:10px'>[#FORM_ERROR#]</div><!--ET_END FORM_ERROR-->[#FORM_FIELDS#]</form></div>");
-        
-        $form->FNC('productId', 'key(mvc=borsa_Lots, select=productName)', 'input,caption=Продукт,removeAndRefreshForm,silent,submitFormOnRefresh');
-        
-        $form->formAttr['submitFormOnRefresh'] = 'submitFormOnRefresh';
-        
-        $prodOptArr = $this->getAllowedProdId($cId);
-        
-        if ($prodOptArr) {
-            $pOptArr = $form->fields['productId']->type->prepareOptions();
-            foreach ($prodOptArr as $pId) {
-                $nProdArr[$pId] = $pOptArr[$pId];
-            }
-            $form->setDefault('productId', key($nProdArr));
-        } else {
-            $nProdArr = array();
-        }
-        
-        $form->fields['productId']->type->options = $nProdArr;
-        
-        $form->input('productId', true);
-        
-        $tpl = $form->renderHtml();
-        
-        $table = cls::get('core_TableView', array('mvc' => $this, 'tableId' => 'periodTable'));
-        
-        $rows = array();
-        
-        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
-        
-        $pRec = $this->fetch($form->rec->productId);
-        
-        $Double = cls::get('type_Double');
-        $Double->params['smartRound'] = 'smartRound';
-        $Double->params['minDecimals'] = 2;
-        $Double->params['maxDecimals'] = 4;
-        
-        $this->FLD('qAviable', 'double(smartRound,decimals=2)');
-        $this->FLD('qBooked', 'double(smartRound,decimals=2)');
-        $this->FLD('qConfirmed', 'double(smartRound,decimals=2)');
-        $this->FLD('qAll', 'double(smartRound,decimals=2)');
-        
-        $qAll = $pRec->quantity ? $pRec->quantity : 0;
-        $qAll = $this->fields['qAll']->type->toVerbal($qAll);
-        
-        $pArr = $this->getPeriods($form->rec->productId);
-        
-        foreach ($pArr as $pId => $pVal) {
-            
-            $rows[$pId] = new stdClass();
-            
-            if ($pVal['bPeriod'] == $pVal['ePeriod']) {
-                $rows[$pId]->period = core_DateTime::mysql2verbal($pVal['bPeriod'], 'smartDate');
-            } else {
-                $rows[$pId]->period = core_DateTime::mysql2verbal($pVal['bPeriod'], 'smartDate') . ' - ' . core_DateTime::mysql2verbal($pVal['ePeriod'], 'smartDate');
-            }
-            
-            $rows[$pId]->period = ht::createLinkRef($rows[$pId]->period, array($this, 'bid', $form->rec->productId, 'period' => $pId));
-            
-            $rows[$pId]->price = $Double->toVerbal($pVal['price']);
-            
-            
-            $perRec = borsa_Periods::fetch(array("#lotId = '[#1#]' AND #from = '[#2#]' AND #to = '[#3#]'", $form->rec->productId, $pArr[$pId]['bPeriod'], $pArr[$pId]['ePeriod']));
-            
-            $qAviable = $perRec->qAviable ? $perRec->qAviable : 0;
-            $qAviable = $this->fields['qAviable']->type->toVerbal($qAviable);
-            
-            $qBooked = $perRec->qBooked ? $perRec->qBooked : 0;
-            $qBooked = $this->fields['qBooked']->type->toVerbal($qBooked);
-            
-            $qConfirmed = $perRec->qConfirmed ? $perRec->qConfirmed : 0;
-            $qConfirmed = $this->fields['qConfirmed']->type->toVerbal($qConfirmed);
-            
-            
-            $rows[$pId]->qAviable = $qAviable;
-            $rows[$pId]->qBooked = $qBooked;
-            $rows[$pId]->qConfirmed = $qConfirmed;
-            $rows[$pId]->qAll = $qAll;
-        }
-        
-        $table = $table->get($rows, "period=Период, price=Цена|* {$baseCurrencyCode} (|Без ДДС|*), qAviable=Количество->Оферирано, qBooked=Количество->Запазено, qConfirmed=Количество->Потвърдено, qAll=Количество->Общо");
-        $tpl->append($table);
-        
-//         if ($ajaxMode) {
-//             $resObj = new stdClass();
-//             $resObj->func = 'replaceById';
-//             $resObj->arg = array('html' => $table->getContent(), 'Ids' => 'periodTable');
-            
-//             core_App::outputJson(array($resObj));
-//         }
-        
-        return $this->getExternalLayout($tpl, $data->pageTitle);
-        
-    }
-    
+    /**
+     * Помощна функция за вземане на съответните периоди за лота
+     * 
+     * @param integer $id
+     * 
+     * @return array
+     */
     protected function getPeriods($id)
     {
         $mArr = array();
@@ -534,16 +680,15 @@ class borsa_Lots extends core_Master
         if ($pRec->priceChange) {
             $pChange = @json_decode($pRec->priceChange);
         }
+        
+        // Добавяме текущия
         $period = $pChange->period;
         $priceChange = $pChange->priceChange;
         $period[-1] = $priceChange[-1] = 0;
         
         if ($period) {
-                
             ksort($period);
             $now = dt::now(false);
-            
-            
             
             foreach ($period as $pId => $pVal) {
                 $beginPeriod = $endPeriod = '';
@@ -579,13 +724,14 @@ class borsa_Lots extends core_Master
             }
         }
         
-        
         return $mArr;
     }
     
     
     /**
      * Връща URL към съдържание в публичната част, което отговаря на посоченото меню
+     * 
+     * @see cms_SourceIntf
      */
     public function getUrlByMenuId($cMenuId)
     {
@@ -595,6 +741,8 @@ class borsa_Lots extends core_Master
     
     /**
      * Връща URL към съдържание в публичната част, което отговаря на посочения запис
+     * 
+     * @see cms_SourceIntf
      */
     public function getUrlByRec($rec)
     {
@@ -604,6 +752,8 @@ class borsa_Lots extends core_Master
     
     /**
      * Връща URL към съдържание във вътрешната част (работилницата), което отговаря на посоченото меню
+     * 
+     * @see cms_SourceIntf
      */
     public function getWorkshopUrl($cMenuId)
     {
@@ -613,29 +763,22 @@ class borsa_Lots extends core_Master
     
     /**
      * Връща връща масив със заглавия и URL-ta, които отговарят на търсенето
+     * 
+     * @see cms_SourceIntf
      */
     public function getSearchResults($menuId, $q, $maxLimit = 10)
     {
-        
         return array();
     }
     
     
     /**
      * Връща връща масив със обекти, съдържащи връзки към публичните страници, генерирани от този обект
+     * 
+     * @see cms_SourceIntf
      */
     public function getSitemapEntries($menuId)
     {
-        
         return array();
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
 }
