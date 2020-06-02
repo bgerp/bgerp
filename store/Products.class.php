@@ -451,21 +451,26 @@ class store_Products extends core_Detail
     {
         $data->listFields['expectedQuantity'] = "|Очаквано|*<span class='small notBolded'> |*днес|*</span>";
         $data->listFields['expectedQuantityTotal'] = "<span class='notBolded'>|Очаквано|*";
+        $historyBefore = 'code';
+        
         if (isset($data->masterMvc)) {
             if($data->masterMvc instanceof cat_Products){
                 arr::placeInAssocArray($data->listFields, array('storeId' => 'Склад|*'), null, 'code');
+                
+               
                 if($data->masterData->rec->generic == 'yes'){
                     $data->listFields = array('code' => 'Код', 'productId' => 'Артикул') + $data->listFields;
                 } else {
                     unset($data->listFields['code']);
                     unset($data->listFields['productId']);
+                    $historyBefore = 'storeId';
                 }
             } else {
                 unset($data->listFields['storeId']);
             }
             
             if (acc_BalanceDetails::haveRightFor('history')) {
-                arr::placeInAssocArray($data->listFields, array('history' => ' '), 'code');
+                arr::placeInAssocArray($data->listFields, array('history' => ' '), $historyBefore);
             }
         }
     }
