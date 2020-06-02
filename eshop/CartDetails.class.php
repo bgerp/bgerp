@@ -461,7 +461,7 @@ class eshop_CartDetails extends core_Detail
             
             if (is_null($maxQuantity) && $maxQuantity <= 0) {
                 if(!empty($eshopProductRec->deliveryTime)){
-                    $row->productId .= "<br><span style='margin-right: 5px' class='option-not-in-stock waitingDelivery'>" . tr('Очаквана доставка') . '</span>';
+                    $row->productId .= "<span style='margin-right: 5px' class='option-not-in-stock waitingDelivery'>" . tr('Очаквана доставка') . '</span>';
                 }
             }
         }

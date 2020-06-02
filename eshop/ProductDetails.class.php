@@ -462,7 +462,7 @@ class eshop_ProductDetails extends core_Detail
         
         $fieldset = cls::get(get_called_class());
         $fieldset->FNC('code', 'varchar');
-        $fieldset->FNC('params', 'double', 'tdClass=centered paramCol');
+        $fieldset->FNC('params', 'varchar', 'tdClass=paramCol');
         $fieldset->FNC('catalogPrice', 'double', 'tdClass=rightCol priceCol');
         $fieldset->FNC('packagingId', 'varchar', 'tdClass=centered');
         $fieldset->FLD('quantity', 'varchar', 'tdClass=quantity-input-column small-field');

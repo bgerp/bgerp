@@ -3638,23 +3638,12 @@ fieldset.sharing-history {
 		border-top: 1px solid #ccc;
 	}
 	td {
-		padding: 4px 7px; 
+		padding: 5px 10px;
+		height: 30px;
 	}
-	tbody tr:not(.ecartCommonRow) {
+	tbody tr {
 		background: linear-gradient(white, white, white, white, white, white, #eee);
 	}
-	tbody tr.ecartCommonRow {
-		background: linear-gradient(#eee, white, white, white, white, white, white);
-	}
-	tbody tr:not(.ecartCommonRow) td {
-		padding-bottom:10px;
-   		padding-top:3px;
-    }
-	tbody tr.ecartCommonRow td {
-        padding-top:10px;
-   		padding-bottom:3px;
-	}
-
   	thead tr:first-child {
 		background-color: #F1F1F1;
 	}
@@ -3665,8 +3654,13 @@ fieldset.sharing-history {
 		font-size: 0.9em;
 		color: #444;
 	}
+	.paramCol {
+		white-space: nowrap;
+	}
 }
-
+.eshop-product-buy-button {
+	margin-top: 3px;
+}
 .external-discount {
 	color: #333;
 	font-size: 0.8em;
@@ -3696,8 +3690,10 @@ fieldset.sharing-history {
 	border: solid 1px #d8d8d8;
 	text-shadow: 1px 1px 1px #cccccc;
 	display: inline-block;
-	margin-bottom: 5px;
+	margin-left: 5px;
 	text-align: center;
+	position: relative;
+	top: -2px;
 	&.waitingDelivery {
 		background-color: rgba(41, 86, 222, 0.8) !important;
 	}

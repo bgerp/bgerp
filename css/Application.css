@@ -3116,17 +3116,10 @@ span.sharing-history-title {
     padding: 7px 5px;
     border-top: 1px solid #cccccc; }
   .optionsTable td {
-    padding: 4px 7px; }
-  .optionsTable tbody tr:not(.ecartCommonRow) {
+    padding: 5px 10px;
+    height: 30px; }
+  .optionsTable tbody tr {
     background: linear-gradient(white, white, white, white, white, white, #eeeeee); }
-  .optionsTable tbody tr.ecartCommonRow {
-    background: linear-gradient(#eeeeee, white, white, white, white, white, white); }
-  .optionsTable tbody tr:not(.ecartCommonRow) td {
-    padding-bottom: 10px;
-    padding-top: 3px; }
-  .optionsTable tbody tr.ecartCommonRow td {
-    padding-top: 10px;
-    padding-bottom: 3px; }
   .optionsTable thead tr:first-child {
     background-color: #f1f1f1; }
   .optionsTable tbody tr:last-child td {
@@ -3134,6 +3127,11 @@ span.sharing-history-title {
   .optionsTable .option-table-info {
     font-size: 0.9em;
     color: #444444; }
+  .optionsTable .paramCol {
+    white-space: nowrap; }
+
+.eshop-product-buy-button {
+  margin-top: 3px; }
 
 .external-discount {
   color: #333333;
@@ -3160,8 +3158,10 @@ span.sharing-history-title {
   border: solid 1px #d8d8d8;
   text-shadow: 1px 1px 1px #cccccc;
   display: inline-block;
-  margin-bottom: 5px;
-  text-align: center; }
+  margin-left: 5px;
+  text-align: center;
+  position: relative;
+  top: -2px; }
   .option-not-in-stock.waitingDelivery {
     background-color: rgba(41, 86, 222, 0.8) !important; }
 
