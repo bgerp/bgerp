@@ -376,6 +376,8 @@ class eshop_ProductDetails extends core_Detail
             if($catalogPriceInfo->price == 0){
                 $row->catalogPrice = "<span class='green'>" . tr('Безплатно') . "</span>";
             }
+            
+            $row->catalogPrice = currency_Currencies::decorate($row->catalogPrice, $settings->currencyId);
             $row->catalogPrice = "<b>{$row->catalogPrice}</b>";
         } else {
             $showCartBtn = false;
