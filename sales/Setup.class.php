@@ -169,6 +169,10 @@ defIfNot('SALES_DELTA_MIN_PERCENT_PRIME_COST', '0.2');
 defIfNot('SALES_QUOTATION_DEFAULT_CHARGE_VAT', 'auto');
 
 
+/**
+ * Да се изчислява ли себестойноста на делтата на ЕН и СР лайв
+ */
+defIfNot('SALES_LIVE_CALC_SO_DELTAS', 'no');
 
 
 /**
@@ -179,7 +183,7 @@ defIfNot('SALES_QUOTATION_DEFAULT_CHARGE_VAT', 'auto');
  * @package sales
  *
  * @author Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license GPL 3
  *
  * @since v 0.1
@@ -325,6 +329,8 @@ class sales_Setup extends core_ProtoSetup
         ),
         
         'SALES_QUOTATION_DEFAULT_CHARGE_VAT' => array('enum(auto=Автоматично,yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Режим на ДДС в офертите по подразбиране->Избор след'),
+    
+        'SALES_LIVE_CALC_SO_DELTAS' => array('enum(no=Не,yes=Да)', 'caption=Изчисляване на делти на ЕН/СР себестойността да се изчислява на момента->Избор'),
     );
     
     
