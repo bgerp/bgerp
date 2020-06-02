@@ -87,7 +87,7 @@ class planning_GenericMapper extends core_Manager
      */
     public function description()
     {
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canConvert,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Замества,mandatory,silent,class=w50');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canConvert,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Замества,mandatory,silent,class=w50,smartCenter');
         $this->FLD('genericProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=generic,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Генеричен артикул,mandatory,silent,class=w50');
         $this->FNC('fromGeneric', 'int', 'silent,input=hidden');
         
