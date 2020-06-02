@@ -232,7 +232,7 @@ class borsa_Lots extends core_Master
                 $pRec->lotId = $rec->id;
                 $pRec->from = $pVal['bPeriod'];
                 $pRec->to = $pVal['ePeriod'];
-                $pRec->qAviable = $rec->quantity ? $rec->quantity : 0;
+                $pRec->qAvailable = $rec->quantity ? $rec->quantity : 0;
                 $pRec->qBooked = 0;
                 $pRec->qConfirmed = 0;
             }
@@ -372,11 +372,11 @@ class borsa_Lots extends core_Master
         $Double->params['minDecimals'] = 2;
         $Double->params['maxDecimals'] = 4;
         
-        $this->FLD('qAviable', 'double(smartRound,decimals=2)');
-        $this->FLD('qBooked', 'double(smartRound,decimals=2)');
-        $this->FLD('qConfirmed', 'double(smartRound,decimals=2)');
-        $this->FLD('qFree', 'double(smartRound,decimals=2)');
-        $this->FLD('price', 'double(smartRound,decimals=2)');
+        $this->FNC('qAvailable', 'double(smartRound,decimals=2)');
+        $this->FNC('qBooked', 'double(smartRound,decimals=2)');
+        $this->FNC('qConfirmed', 'double(smartRound,decimals=2)');
+        $this->FNC('qFree', 'double(smartRound,decimals=2)');
+        $this->FNC('price', 'double(smartRound,decimals=2)');
         
         $sName = '';
         $mId = cat_Products::fetchField($form->rec->productId, 'measureId');
@@ -403,8 +403,8 @@ class borsa_Lots extends core_Master
             $pRow->replace($price, 'PRICE');
             
             // Количества
-            $qAviable = $perRec->qAviable ? $perRec->qAviable : 0;
-            $qAviable = $this->fields['qAviable']->type->toVerbal($qAviable);
+            $qAvailable = $perRec->qAvailable ? $perRec->qAvailable : 0;
+            $qAvailable = $this->fields['qAvailable']->type->toVerbal($qAvailable);
             
             $qBooked = $perRec->qBooked ? $perRec->qBooked : 0;
             $qBooked = $this->fields['qBooked']->type->toVerbal($qBooked);
@@ -412,13 +412,13 @@ class borsa_Lots extends core_Master
             $qConfirmed = $perRec->qConfirmed ? $perRec->qConfirmed : 0;
             $qConfirmed = $this->fields['qConfirmed']->type->toVerbal($qConfirmed);
             
-            $qFree = $perRec->qAviable - $perRec->qConfirmed;
+            $qFree = $perRec->qAvailable - $perRec->qConfirmed;
             $haveQuantity = ($qFree <= 0) ? false : true;
             $qFree = $this->fields['qFree']->type->toVerbal($qFree);
             
             $quantity = "<div>" . tr('Количества') . "</div>";
             $quantity .= "<table>";
-            $quantity .= "<tr><td>" . tr('Оферирано') . "</td><td>" . $qAviable . "</td></tr>";
+            $quantity .= "<tr><td>" . tr('Оферирано') . "</td><td>" . $qAvailable . "</td></tr>";
             $quantity .= "<tr><td>" . tr('Заявено') . "</td><td>" . $qBooked . "</td></tr>";
             $quantity .= "<tr><td>" . tr('Потвърдено') . "</td><td>" . $qConfirmed . "</td></tr>";
             $quantity .= "<tr><td>" . tr('Свободно') . "</td><td>" . $qFree . "</td></tr>";
