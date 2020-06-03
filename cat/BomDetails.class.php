@@ -409,9 +409,17 @@ class cat_BomDetails extends doc_Detail
         if ($form->isSubmitted()) {
             $calced = static::calcExpr($rec->propQuantity, $rec->params);
             if ($calced == static::CALC_ERROR) {
-                $form->setWarning('propQuantity', 'Има проблем при изчисляването на количеството');
+                if($form->_replaceProduct = true){
+                    $form->setWarning('resourceId', 'При замяна на артикула, формулата за количествата му няма да може да се изчисли');
+                } else {
+                    $form->setWarning('propQuantity', 'Има проблем при изчисляването на количеството');
+                }
             } elseif ($calced <= 0) {
-                $form->setError('propQuantity', 'Изчисленото количество трябва да е положително');
+                if($form->_replaceProduct = true){
+                    $form->setError('propQuantity', 'При замяна на артикула, формулата за количествата му не може да изчисли положително число');
+                } else {
+                    $form->setError('propQuantity', 'Изчисленото количество трябва да е положително');
+                }
             }
             
             if (isset($rec->resourceId)) {

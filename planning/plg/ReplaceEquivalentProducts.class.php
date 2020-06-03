@@ -79,11 +79,11 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
             } else {
                 $form->setOptions($mvc->replaceProductFieldName, $equivalentArr);
             }
-            unset($form->fields[$mvc->replaceProductFieldName]->removeAndRefreshForm);
             
             // Инпутваме формата
             $form->input();
             $form->setField($mvc->packagingFld, 'input=hidden');
+            $mvc->invoke('AfterInputEditForm', array($form));
             
             // Ако е събмитната
             if ($form->isSubmitted()) {
@@ -98,6 +98,11 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
                     //bp($nRec);
                 }
                 
+                
+                
+               // if (!$form->gotErrors()) {
+                    
+               // }
                 
                 if($nRec->{$mvc->replaceProductFieldName} == $exRec->{$mvc->replaceProductFieldName}) {
                     
