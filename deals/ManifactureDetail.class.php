@@ -171,6 +171,13 @@ abstract class deals_ManifactureDetail extends doc_Detail
                 $requiredRoles = 'no_one';
             }
         }
+        
+        if ($action == 'replaceproduct' && isset($rec)) {
+            $masterState = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state');
+            if (!in_array($masterState, array('pending', 'draft'))) {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
     
     

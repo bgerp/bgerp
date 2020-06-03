@@ -65,6 +65,12 @@ class cat_BomDetails extends doc_Detail
     
     
     /**
+     * Кой има право да променя взаимно заменяемите артикули?
+     */
+    public $canReplaceproduct = 'ceo,cat,sales';
+    
+    
+    /**
      * Кой има право да разгъва?
      */
     public $canExpand = 'ceo,cat,sales';

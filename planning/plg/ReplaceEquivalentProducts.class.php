@@ -180,8 +180,6 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'replaceproduct' && isset($rec)) {
-            $requiredRoles = $mvc->getRequiredRoles('edit', $rec);
-            
             // Могат да се подменят само артикулите, които имат други взаимозаменямеми
             if ($requiredRoles != 'no_one' && isset($rec->{$mvc->replaceProductFieldName})) {
                 $equivalentProducts = planning_GenericMapper::getEquivalentProducts($rec->{$mvc->replaceProductFieldName});
