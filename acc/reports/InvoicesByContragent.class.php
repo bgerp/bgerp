@@ -807,7 +807,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             if ($rec->unpaid == 'all') {
                 $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
                 $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
-                $fld->FLD('invoiceValueBaseCurr', 'double(smartRound,decimals=2)', 'caption=Стойност[лв.]');
+                $fld->FLD('invoiceValueBaseCurr', 'double(smartRound,decimals=2)', 'caption=Стойност BGN');
             }
             
             if ($rec->unpaid == 'unpaid') {

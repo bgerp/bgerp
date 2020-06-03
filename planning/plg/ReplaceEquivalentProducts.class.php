@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -45,35 +45,30 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
             expect($id = Request::get('id', 'int'));
             expect($rec = $mvc->fetch($id));
             $mvc->requireRightFor('replaceproduct', $rec);
+            $exRec = clone $rec;
             
             // Подготвяме формата
             $data = new stdClass();
             $data->action = 'replaceproduct';
             $data->rec = $rec;
             $mvc->prepareEditForm($data);
+            setIfNot($mvc->packagingFld, 'packagingId');
             
-            // Да не се рефрешва полето за количество
-            $removeAndRefreshForm = $mvc->getFieldParam($mvc->replaceProductFieldName, 'removeAndRefreshForm');
-            if(!empty($removeAndRefreshForm)){
-                $removeAndRefreshForm = arr::make(explode('|', $removeAndRefreshForm), true);
-                unset($removeAndRefreshForm[$mvc->packQuantityFld]);
-                $removeAndRefreshForm = implode('|', $removeAndRefreshForm);
-                $data->form->setField($mvc->replaceProductFieldName, "removeAndRefreshForm={$removeAndRefreshForm}");
-            }
-          
             $form = &$data->form;
             $form->setAction(array($mvc, 'replaceproduct', $id));
+            $form->_replaceProduct = true;
             
             // Оставяме да се показват само определени полета
-            $fields = $form->selectFields("#input != 'hidden' AND #input != 'none'");
+            $fields = $form->selectFields("#name != 'id' AND #name != {$mvc->replaceProductFieldName} AND #name != 'ret_url' AND #name != '{$mvc->masterKey}'");
             if (is_array($fields)) {
                 $fields = array_keys($fields);
                 foreach ($fields as $name) {
-                    if (!in_array($name, array($mvc->replaceProductQuantityFieldName, $mvc->replaceProductFieldName, $mvc->replaceProductPackagingFieldName))) {
-                        $form->setField($name, 'input=hidden');
-                    }
+                    $form->setField($name, 'input=none');
+                    unset($form->fields[$name]->mandatory);
                 }
             }
+           
+            $form->setDefault($mvc->replaceProductFieldName, $rec->{$mvc->replaceProductFieldName});
             
             // Кои са допустимите заместващи артикули
             $equivalentArr = planning_GenericMapper::getEquivalentProducts($rec->{$mvc->replaceProductFieldName});
@@ -84,13 +79,21 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
             } else {
                 $form->setOptions($mvc->replaceProductFieldName, $equivalentArr);
             }
+            unset($form->fields[$mvc->replaceProductFieldName]->removeAndRefreshForm);
             
             // Инпутваме формата
             $form->input();
-            $mvc->invoke('AfterInputEditForm', array($form));
+            $form->setField($mvc->packagingFld, 'input=hidden');
             
             // Ако е събмитната
             if ($form->isSubmitted()) {
+                $productMeasureId = cat_Products::fetchField($form->rec->{$mvc->replaceProductFieldName}, 'measureId');
+                $form->rec->{$mvc->packagingFld} = $productMeasureId;
+               
+                if($form->rec->{$mvc->replaceProductFieldName} == $exRec->{$mvc->replaceProductFieldName}) {
+                    
+                    return followRetUrl(null, 'Артикулът не е подменен');
+                }
                 
                 // Обновяваме записа
                 $nRec = $form->rec;
@@ -98,8 +101,9 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
                 if ($mvc->isUnique($nRec, $nFields)) {
                     $nRec->autoAllocate = true;
                     $mvc->save($nRec);
+                    $mvc->Master->logWrite('Заместване на артикул в документа с друг подобен', $form->rec->{$mvc->masterKey});
                     
-                    return followRetUrl();
+                    return followRetUrl(null, 'Артикулът е заместен успешно');
                 }
                 
                 $form->setError($nFields, 'Вече съществува запис със същите данни');
@@ -107,13 +111,14 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
             
             // Бутони и заглавие на формата
             $name = cat_Products::getHyperlink($rec->{$mvc->replaceProductFieldName}, true);
-            $form->title = "Подмяна на |* <b>{$name}</b> |с друг в|* <b>" . $mvc->Master->getHyperlink($form->rec->{$mvc->masterKey}, true) . "</b>";
-            $form->toolbar->addSbBtn('Подмяна', 'replaceproduct', 'ef_icon = img/16/star_2.png, title=Подмяна');
+            $form->title = "Заместване на |* <b>{$name}</b> |с друг в|* <b>" . $mvc->Master->getHyperlink($form->rec->{$mvc->masterKey}, true) . "</b>";
+            $form->toolbar->addSbBtn('Заместване', 'replaceproduct', 'ef_icon = img/16/star_2.png, title=Заместване на артикула в реда на документа');
             $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
             
             // Рендиране на формата
             $res = $mvc->renderWrapping($form->renderHtml());
             core_Form::preventDoubleSubmission($res, $form);
+            $mvc->Master->logRead('Разглеждане на формата за подмяна на артикул', $form->rec->{$mvc->masterKey});
             
             // ВАЖНО: спираме изпълнението на евентуални други плъгини
             return false;
