@@ -87,21 +87,29 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
             
             // Ако е събмитната
             if ($form->isSubmitted()) {
-                $productMeasureId = cat_Products::fetchField($form->rec->{$mvc->replaceProductFieldName}, 'measureId');
-                $form->rec->{$mvc->packagingFld} = $productMeasureId;
+                $nRec = $form->rec;
+                
+                $productMeasureId = cat_Products::fetchField($nRec->{$mvc->replaceProductFieldName}, 'measureId');
+                $nRec->{$mvc->packagingFld} = $productMeasureId;
                
-                if($form->rec->{$mvc->replaceProductFieldName} == $exRec->{$mvc->replaceProductFieldName}) {
+                if($mvc instanceof deals_ManifactureDetail){
+                    $nRec->{$mvc->quantityInPackFld} = 1;
+                } elseif($mvc instanceof cat_BomDetails) {
+                    //bp($nRec);
+                }
+                
+                
+                if($nRec->{$mvc->replaceProductFieldName} == $exRec->{$mvc->replaceProductFieldName}) {
                     
                     return followRetUrl(null, 'Артикулът не е подменен');
                 }
                 
                 // Обновяваме записа
-                $nRec = $form->rec;
                 $nFields = array();
                 if ($mvc->isUnique($nRec, $nFields)) {
                     $nRec->autoAllocate = true;
                     $mvc->save($nRec);
-                    $mvc->Master->logWrite('Заместване на артикул в документа с друг подобен', $form->rec->{$mvc->masterKey});
+                    $mvc->Master->logWrite('Заместване на артикул в документа с друг подобен', $nRec->{$mvc->masterKey});
                     
                     return followRetUrl(null, 'Артикулът е заместен успешно');
                 }
