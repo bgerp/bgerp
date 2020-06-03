@@ -482,6 +482,12 @@ class borsa_Lots extends core_Master
             jquery_Jquery::run($tpl, "flashDocInterpolation('{$pId}');", true);
         }
         
+        Mode::push('text', 'xhtml');
+        $dDesc = cat_Products::getAutoProductDesc($lRec->productId, null, 'detailed', 'public', core_Lg::getCurrent());
+        Mode::pop('text');
+        $dDesc = "<div>{$dDesc}</div>";
+        $tpl->prepend($dDesc);
+        
         return $this->getExternalLayout($tpl, $data->pageTitle);
     
     }
@@ -559,12 +565,6 @@ class borsa_Lots extends core_Master
         $form->info = '<b>' . tr(borsa_Setup::get('ADD_BID_INFO')) . '</b>';
         
         $tpl = $form->renderHtml();
-        
-        Mode::push('text', 'xhtml');
-        $dDesc = cat_Products::getAutoProductDesc($rec->productId, null, 'detailed', 'public', core_Lg::getCurrent());
-        Mode::pop('text');
-        $dDesc = "<div>{$dDesc}</div>";
-        $tpl->prepend($dDesc);
         
         return $this->getExternalLayout($tpl, $data->pageTitle);
     
