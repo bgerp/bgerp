@@ -13,6 +13,9 @@ html {
     position: relative;
     min-height: 100%;
 }
+.cms-last {
+    margin: 0 !important;
+}
 #cmsTop, #cmsBottom, #cmsTop.a, #cmsBottom.a {
     color: white;
 }
