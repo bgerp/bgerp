@@ -146,14 +146,11 @@ class planning_GenericMapper extends core_Manager
             
             $measureProductId = cat_Products::fetchField($rec->productId, 'measureId');
             $measureGenericId = cat_Products::fetchField($rec->genericProductId, 'measureId');
-            
-            if($measureProductId != $measureGenericId){
+            $similarMeasures = cat_UoM::getSameTypeMeasures($measureGenericId);
+            if(!array_key_exists($measureProductId, $similarMeasures)){
                 $genericMeasureName = cat_UoM::getVerbal($measureGenericId, 'name');
-                if(isset($rec->fromGeneric)){
-                    $form->setError('productId', "Заместващият артикул, трябва да е в същата мярка|*: <b>{$genericMeasureName}</b>");
-                } else {
-                    $form->setError('genericProductId', "Генеричният артикул трябва да е в същата мярка|*: <b>{$genericMeasureName}</b>");
-                }
+                
+                $form->setError('productId', "Заместващият артикул, трябва да е в мярка производна на|*: <b>{$genericMeasureName}</b>");
             }
         }
     }

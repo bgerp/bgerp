@@ -90,19 +90,19 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
                 $nRec = $form->rec;
                 
                 $productMeasureId = cat_Products::fetchField($nRec->{$mvc->replaceProductFieldName}, 'measureId');
-                $nRec->{$mvc->packagingFld} = $productMeasureId;
-               
+                $originalMeasureId = cat_Products::fetchField($exRec->{$mvc->replaceProductFieldName}, 'measureId');
+                
                 if($mvc instanceof deals_ManifactureDetail){
-                    $nRec->{$mvc->quantityInPackFld} = 1;
-                } elseif($mvc instanceof cat_BomDetails) {
-                    //bp($nRec);
+                    $convertedQuantity = cat_Uom::convertValue($rec->{$mvc->quantityFld}, $originalMeasureId, $productMeasureId);
+                    $nRec->{$mvc->quantityFld} = $convertedQuantity;
+                    $nRec->{$mvc->packQuantityFld} = $nRec->{$mvc->quantityFld};
+                } elseif($mvc instanceof cat_BomDetails){
+                    $formula = trim($nRec->propQuantity);
+                    if(is_numeric($formula)){
+                        $convertedQuantity = cat_Uom::convertValue($formula, $originalMeasureId, $productMeasureId);
+                        $nRec->propQuantity = $convertedQuantity;
+                    }
                 }
-                
-                
-                
-               // if (!$form->gotErrors()) {
-                    
-               // }
                 
                 if($nRec->{$mvc->replaceProductFieldName} == $exRec->{$mvc->replaceProductFieldName}) {
                     
@@ -113,6 +113,7 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
                 $nFields = array();
                 if ($mvc->isUnique($nRec, $nFields)) {
                     $nRec->autoAllocate = true;
+                    
                     $mvc->save($nRec);
                     $mvc->Master->logWrite('Заместване на артикул в документа с друг подобен', $nRec->{$mvc->masterKey});
                     

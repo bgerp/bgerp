@@ -383,15 +383,19 @@ class cat_BomDetails extends doc_Detail
             
             $pInfo = cat_Products::getProductInfo($rec->resourceId);
             
-            $packs = cat_Products::getPacks($rec->resourceId);
-            $form->setOptions('packagingId', $packs);
-            $form->setDefault('packagingId', key($packs));
+            if($form->_replaceProduct !== true){
+                $packs = cat_Products::getPacks($rec->resourceId);
+                $form->setOptions('packagingId', $packs);
+                $form->setDefault('packagingId', key($packs));
+            } else {
+                $form->rec->packagingId = $pInfo->productRec->measureId;
+            }
             
             // Ако артикула не е складируем, скриваме полето за мярка
             if (!isset($pInfo->meta['canStore'])) {
                 $measureShort = cat_UoM::getShortName($rec->packagingId);
                 $form->setField('propQuantity', "unit={$measureShort}");
-            } else {
+            } elseif($form->_replaceProduct !== true) {
                 $form->setField('packagingId', 'input');
             }
             
@@ -409,7 +413,7 @@ class cat_BomDetails extends doc_Detail
         if ($form->isSubmitted()) {
             $calced = static::calcExpr($rec->propQuantity, $rec->params);
             if ($calced == static::CALC_ERROR) {
-                if($form->_replaceProduct = true){
+                if($form->_replaceProduct === true){
                     $form->setWarning('resourceId', 'При замяна на артикула, формулата за количествата му няма да може да се изчисли');
                 } else {
                     $form->setWarning('propQuantity', 'Има проблем при изчисляването на количеството');
