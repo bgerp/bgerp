@@ -637,6 +637,16 @@ class cat_BomDetails extends doc_Detail
         $rec->type = 'stage';
         $rec->primeCost = null;
         
+        // Проверка може ли артикулът да бъде разпънат като етап
+        $masterRec = cat_Boms::fetch($rec->bomId);
+        $notAllowed = array();
+        $this->findNotAllowedProducts($rec->resourceId, $masterRec->productId, $notAllowed);
+        if (isset($notAllowed[$rec->resourceId])) {
+            $productVerbal = cat_Products::getTitleById($masterRec->productId);
+            
+            return followRetUrl(null, "Артикулът не може да бъде , защото в рецептата на някой от материалите му се съдържа|* <b>{$productVerbal}</b>", 'error');
+        }
+        
         $bomRec = null;
         cat_BomDetails::addProductComponents($rec->resourceId, $rec->bomId, $rec->id, $bomRec);
         
