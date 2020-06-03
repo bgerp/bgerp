@@ -9,7 +9,7 @@
 		[#image4#]
 		[#image5#]
 	</div>
-	<div class="vtop" style='padding-left:2%;float:left;width:74%'>
+	<div class="vtop" style='padding-left:2%;float:right;width:74%'>
 		<div class='eshop-product-labels'>
 			<!--ET_BEGIN code--><span><b>|Код|*: [#code#]</b></span><!--ET_END code-->
             <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--> [#coInquiry#]

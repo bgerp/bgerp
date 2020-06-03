@@ -43,6 +43,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
     {
         $entries = array();
         
+        $error = null;
         $rec = $this->fetchShipmentData($id, $error);
         if (Mode::get('saveTransaction')) {
             if ($error === true) {
@@ -51,12 +52,16 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
             
             // Проверка на артикулите
             $property = ($rec->isReverse == 'yes') ? 'canSell' : 'canBuy';
-            $msg = ($rec->isReverse == 'yes') ? 'продаваеми' : 'купуваеми';
-            $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($rec->details, 'productId'), $property);
-            if(countR($productCheck['notActive'])){
-                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(',', $productCheck['notActive']) . " |не са активни|*!");
-            } elseif($productCheck['metasError']){
-                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(',', $productCheck['metasError']) . " |трябва да са {$msg}|*!");
+            
+            $productArr = arr::extractValuesFromArray($rec->details, 'productId');
+            if (countR($productArr)) {
+                $msg = ($rec->isReverse == 'yes') ? 'продаваеми' : 'купуваеми';
+                $msg = "трябва да са {$msg} и да не са генерични";
+                
+                if($redirectError = deals_Helper::getContoRedirectError($productArr, $property, 'generic', $msg)){
+                    
+                    acc_journal_RejectRedirect::expect(false, $redirectError);
+                }
             }
         }
         

@@ -91,7 +91,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         
         $data->form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ';
         $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
-        $data->form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts));
+        $data->form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties' => 'generic'));
         
         if (isset($rec->id)) {
             $data->form->setReadOnly('productId');
@@ -135,7 +135,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $masterRec = $data->masterData->rec;
             
             $error = '';
-            if (!countR(cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, null, 1))) {
+            if (!countR(cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, 'generic', 1))) {
                 $text = ($mvc->metaProducts == 'canSell') ? 'продаваеми' : 'купуваеми';
                 $error = "error=Няма {$text} артикули,";
             }

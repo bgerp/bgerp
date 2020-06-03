@@ -198,8 +198,8 @@ class doc_PdfCreator extends core_Manager
     public static function getCssStr($html)
     {
         //Вземаме всичките css стилове
-        $css = file_get_contents(sbf('css/common.css', '', true)) .
-            "\n" . file_get_contents(sbf('css/Application.css', '', true));
+        $css = getFileContent('css/common.css') .
+            "\n" . getFileContent('css/Application.css');
         
         // Ако е инстанция на core_ET
         if ($html instanceof core_ET) {
@@ -210,7 +210,7 @@ class doc_PdfCreator extends core_Manager
                 try {
                     
                     // Опитваме се да вземаме съдържанието на CSS
-                    $css .= "\n" . file_get_contents(sbf($cssPath, '', true));
+                    $css .= "\n" . getFileContent($cssPath);
                 } catch (core_exception_Expect $e) {
                     
                     // Ако възникне грешка, добавяме в лога
@@ -225,8 +225,8 @@ class doc_PdfCreator extends core_Manager
             }
         }
         
-        $css .= "\n" . file_get_contents(sbf('css/email.css', '', true)) .
-            "\n" . file_get_contents(sbf('css/pdf.css', '', true));
+        $css .= "\n" . getFileContent('css/email.css') .
+            "\n" . getFileContent('css/pdf.css');
         
         return $css;
     }

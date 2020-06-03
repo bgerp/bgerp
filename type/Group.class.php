@@ -62,9 +62,21 @@ class type_Group extends type_Key
                 $groups[$id]++;
             }
         }
+
+        $parentIdName = $mvc->parentFieldName;
         
         if (is_array($groups)) {
             foreach ($groups as $id => $cnt) {
+                if($parentIdName) {
+                    $gId = $id;
+                    while($gId && ($gRec = $mvc->fetch($gId))) {
+                        if($gId = $gRec->{$parentIdName}) {
+                            if(!isset($this->options[$gId])) {
+                                $this->options[$gId] = $mvc->getTitleById($gId, false);
+                            }
+                        }
+                    }
+                }
                 $this->options[$id] = $mvc->getTitleById($id, false) . " ({$cnt})";
             }
         }

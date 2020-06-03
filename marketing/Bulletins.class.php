@@ -478,8 +478,8 @@ class marketing_Bulletins extends core_Master
      */
     protected static function addInlineCSS($str)
     {
-        $css = file_get_contents(sbf('css/common.css', '', true)) .
-            "\n" . file_get_contents(sbf('css/Application.css', '', true));
+        $css = getFileContent('css/common.css') .
+            "\n" . getFileContent('css/Application.css');
         
         $str = '<div id="begin">' . $str . '<div id="end">';
         

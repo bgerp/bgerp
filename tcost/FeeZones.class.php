@@ -184,24 +184,25 @@ class tcost_FeeZones extends core_Master
     /**
      * Определяне на обемното тегло, на база на обема на товара
      *
-     * @param float $weight        - Тегло на товара
-     * @param float $volume        - Обем  на товара
+     * @param double $weight        - Тегло на товара
+     * @param double $volume        - Обем  на товара
      * @param int $deliveryTermId  - Условие на доставка
      * @param array $params        - допълнителни параметри
      *
-     * @return float - Обемно тегло на товара
+     * @return double - Обемно тегло на товара
      */
     public function getVolumicWeight($weight, $volume, $deliveryTermId, $params)
     {
         $volumicWeight = null;
         if (!empty($weight) || !empty($volume)) {
             $multiplier = self::V2C;
-            if($zoneRec = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $params['deliveryCountry'], $params['deliveryPCode'])){
-                if($zoneRec->volume2quantity){
-                    $multiplier = $zoneRec->volume2quantity;
+            if($zoneArr = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $params['deliveryCountry'], $params['deliveryPCode'])){
+                $volume2quantity = tcost_FeeZones::fetchField($zoneArr['zoneId'], 'volume2quantity');
+                if($volume2quantity){
+                    $multiplier = $volume2quantity;
                 }
             }
-
+            
             if($volume * 33 < $weight) {
                 $multiplier *= 1000;
             }

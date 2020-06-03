@@ -76,9 +76,9 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         $entries = array();
         $rec = $this->class->fetchRec($id);
         $actions = type_Set::toArray($rec->contoActions);
+        $rec = $this->fetchPurchaseData($rec); // покупката ще контира - нужни са и детайлите
         
         if ($actions['ship'] || $actions['pay']) {
-            $rec = $this->fetchPurchaseData($rec); // покупката ще контира - нужни са и детайлите
             deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));
             
             if ($actions['ship']) {
@@ -101,6 +101,15 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                 // покупката играе роля и на платежен документ (РКО)
                 // Записите от тип 3 (получаване на плащане)
                 $entries = array_merge($entries, $this->getPaymentPart($rec));
+            }
+        }
+        
+        // Проверка дали артикулите отговарят на нужните свойства
+        $products = arr::extractValuesFromArray($rec->details, 'productId');
+        if (Mode::get('saveTransaction') && countR($products)) {
+            if($redirectError = deals_Helper::getContoRedirectError($products, 'canBuy', 'generic', 'вече не са купуваеми или са генерични')){
+                
+                acc_journal_RejectRedirect::expect(false, $redirectError);
             }
         }
         

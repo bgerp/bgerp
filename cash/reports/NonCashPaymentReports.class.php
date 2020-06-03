@@ -230,7 +230,15 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
             }
           
            if ($rec->see == 'notIn' && $pkoNonCashAmount[$pkoRec->id]->nonCashPaymentAmount == $pkoTransferedSumm)continue;
-            
+           
+           $pkoInvoice = $pkoRec->fromContainerId;
+           
+           if(!$pkoInvoice){
+               
+               $pkoInvoice = self::determiningInvoice($pkoRec);
+           }
+         
+           
            $contragentClassName = core_Classes::getName($pkoRec->contragentClassId);
            $contragentName = $contragentClassName::getTitleById($pkoRec->contragentId);
            
@@ -239,6 +247,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                 $recs[$id] = (object) array(
                     
                     'pkoId' => $pkoRec->id,
+                    'invoice' => $pkoInvoice,
                     'contragentName' => $contragentName,
                     'pkoValior' => $pkoRec->valior,
                     'folderId' => $pkoRec->folderId,
@@ -280,6 +289,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         
         $fld->FLD('contragentName', 'varchar', 'caption=Контрагент');
         $fld->FLD('pko', 'varchar', 'caption=ПКО->Документ');
+        $fld->FLD('invoiceNum', 'varchar', 'caption=ПКО->Фактура');
         $fld->FLD('pkoAmount', 'double(smartRound,decimals=2)', 'caption=ПКО->Сума');
         $fld->FLD('rest', 'double(smartRound,decimals=2)', 'caption=ПКО->Остатък');
         $fld->FLD('transfer', 'varchar', 'caption=Трансфер->Документ');
@@ -289,13 +299,13 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
             
             $fld->FLD('contragentName', 'varchar', 'caption=Контрагент');
             $fld->FLD('pko', 'varchar', 'caption=ПКО->Документ');
-            $fld->FLD('pkoAmount', 'double(smartRound,decimals=2)', 'caption=ПКО->Сума');
+            $fld->FLD('invoiceNum', 'varchar', 'caption=ПКО->Фактура');
+            $fld->FLD('pkoAmount', 'varchar', 'caption=ПКО->Сума');
             $fld->FLD('rest', 'varchar', 'caption=ПКО->Остатък');
             $fld->FLD('transfer', 'varchar', 'caption=Трансфер->Документ');
             $fld->FLD('amount', 'varchar', 'caption=Трансфер->Сума');
             
         }
-        
         
         return $fld;
     }
@@ -376,6 +386,42 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
             }
         }
         
+        if (isset($dRec->invoice)) {
+            
+            if(!is_array($dRec->invoice)){
+            
+            $Invoice = doc_Containers::getDocument($dRec->invoice);
+            
+            $invRec = sales_Invoices::fetch($Invoice->that);
+            
+            $handle = "Inv #$invRec->number".' / '.$Date->toVerbal($invRec->date);
+           
+            $url = toUrl(array("sales_Invoices",'single', $Invoice->that));
+            
+            $row->invoiceNum =ht::createLink($handle, $url, false, array());
+            }else{
+                
+                if(!empty($dRec->invoice)){
+                    $row->invoiceNum ='За избор'."</br>";
+                }
+                
+                foreach ($dRec->invoice as $val){
+                    
+                    $Invoice = doc_Containers::getDocument($val);
+                    
+                    $invRec = sales_Invoices::fetch($Invoice->that);
+                    
+                    $handle = "Inv #$invRec->number".' / '.$Date->toVerbal($invRec->date);
+                    
+                    $url = toUrl(array("sales_Invoices",'single', $Invoice->that));
+                    
+                    $row->invoiceNum .=ht::createLink($handle, $url, false, array())."</br>";
+                    
+                }
+            }
+        }
+        
+        
         return $row;
     }
     
@@ -448,25 +494,104 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         $Double->params['decimals'] = 2;
         
         $res->pko = "Pko #$dRec->pkoId".' / '.$Date->toVerbal($dRec->pkoValior);
-        
+        $res->pkoAmount = $Double->toVerbal($dRec->pkoAmount);
        
         
         if (is_array($dRec->inTransferMoney)) {
-            $sum = 0;
+            $sum = 0;$marker = 0;
             foreach ($dRec->inTransferMoney as $val) {
-                
+                $marker ++;
                 $inAmount = ($val->state == 'pending' || $val->state == 'draft') ? 0 : $val->amount;
                 
                 $sum += $inAmount;
                 
-                $res->transfer .= "Cvt#$val->id".'; ';
-                $res->amount .= $Double->toVerbal("$inAmount").'; ';
+                $res->transfer .= "Cvt#$val->id";
+                $res->amount .= $Double->toVerbal($inAmount);
+                
+                
+                if ((countR($dRec->inTransferMoney)) - $marker != 0) {
+                $res->transfer .= ' |';
+                $res->amount .= ' |';
+                }
+                
+                
+                
                 
             }
         }
         
+       
+            
+            if (is_array($dRec->invoice)){
+                
+                if(!empty($dRec->invoice)){
+                    $res->invoiceNum .='За избор: ';
+                }
+                $marker = 0;
+                foreach ($dRec->invoice as $val){ 
+                    $marker++;
+                    $Invoice = doc_Containers::getDocument($val);
+                    
+                    $invRec = sales_Invoices::fetch($Invoice->that);
+                    
+                    $handle = "Inv#$invRec->number";
+                    
+                    $res->invoiceNum .=$handle;
+                    
+                    if ((countR($dRec->invoice)) - $marker != 0) {
+                        $res->invoiceNum .=" |";
+                    }
+                }
+                
+                
+            }else{
+            
+                $Invoice = doc_Containers::getDocument($dRec->invoice);
+                
+                $invRec = sales_Invoices::fetch($Invoice->that);
+                
+                 $handle = "Inv #$invRec->number".' / '.$Date->toVerbal($invRec->date);
+                
+                 $res->invoiceNum =$handle;
+                 
+                 
+                 
+             }
+       
+        
         $rest = $dRec->pkoAmount - $sum;
         $res->rest =$Double->toVerbal($rest);
         
+    }
+    
+    private static function determiningInvoice($pkoRec) {
+        
+        $invArr = array();
+        
+        $iQuery = sales_Invoices::getQuery();
+        $iQuery->where("#threadId = $pkoRec->threadId AND #state = 'active'"); 
+        $iQuery->where("#paymentType = 'cash'"); 
+        
+        
+        //Условие за дата на издаване на фактурата: +/- 5 дена от вальора на ПКО
+        $from = dt::addDays(-5,$pkoRec->valior);
+        $to = dt::addDays(5,$pkoRec->valior);
+        
+        $iQuery->where(array("#date>= '[#1#]' AND #date <= '[#2#]'",$from. ' 00:00:00',$to . ' 23:59:59'));
+        
+        
+        while ($iRec = $iQuery->fetch()) {
+            $totalAmount = ($iRec->dealValue + $iRec->vatAmount)-$iRec->discountAmount ;
+            
+            if(($pkoRec->amountDeal <= ($totalAmount + 0.05)) && ($pkoRec->amountDeal >= ($totalAmount - 0.05))){
+            
+                return $iRec->containerId;
+            
+            }else{
+                array_push($invArr, $iRec->containerId);
+            }
+        }
+        
+        return $invArr  ;
     }
 }

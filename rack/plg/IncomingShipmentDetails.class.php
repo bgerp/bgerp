@@ -39,7 +39,7 @@ class rack_plg_IncomingShipmentDetails extends core_Plugin
             
             $batchDef = batch_Defs::getBatchDef($rec->{$mvc->productFld});
             if(empty($batchDef)){
-                if($palletImgLink = rack_Pallets::getFloorToPalletImgLink($storeId, $rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->packQuantityFld})){
+                if($palletImgLink = rack_Pallets::getFloorToPalletImgLink($storeId, $rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->packQuantityFld}, null, $data->masterData->rec->containerId)){
                     $row->packQuantity = $palletImgLink . $row->packQuantity;
                 }
             }

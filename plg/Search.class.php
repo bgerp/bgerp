@@ -707,7 +707,7 @@ class plg_Search extends core_Plugin
             
             return ;
         }
-        $callOn = dt::addSecs(120);
+        $callOn = dt::addSecs(55);
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', $clsName, $callOn);
         
         $query->orderBy('id', 'ASC');
@@ -735,6 +735,8 @@ class plg_Search extends core_Plugin
                 
                 $clsInst->save_($rec, 'searchKeywords');
             } catch (Exception $e) {
+                reportException($e);
+            } catch (Throwable  $e) {
                 reportException($e);
             }
             

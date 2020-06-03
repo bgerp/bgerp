@@ -73,6 +73,8 @@ class sync_Persons extends sync_Helper
         
         core_App::setTimeLimit(1000);
         
+        $update = (Request::get('update') == 'none') ? false : true;
+        
         $resArr = self::getDataFromUrl(get_called_class());
         
         core_Users::forceSystemUser();
@@ -82,7 +84,7 @@ class sync_Persons extends sync_Helper
         
         foreach ($resArr as $class => $objArr) {
             foreach ($objArr as $id => $rec) {
-                sync_Map::importRec($class, $id, $resArr, $this);
+                sync_Map::importRec($class, $id, $resArr, $this, $update);
             }
         }
     }

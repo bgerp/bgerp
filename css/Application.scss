@@ -321,7 +321,7 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus {
 div.folder-cover {
 	background-image: url('../img/cover-bg.png');
 	display: inline-block;
-	max-width: 800px;
+	max-width: 1000px;
 	min-width: 540px;
 	margin-top: 10px;
 	line-height: 1.2em;
@@ -351,7 +351,7 @@ div.folder-cover {
 
 	.groupList {
 		font-size: 0.95em;
-		max-width: 725px;
+		max-width: 980px;
 		.toolbar-btn {
 			margin-top: 0 !important;
 			margin-bottom: 0 !important;
@@ -1514,7 +1514,7 @@ a.tOld {
 /*край на стилове при тредове*/
 
 .typeTable {
-	 border:none !important;
+	border:none !important;
 	.formTypeTable {
 		text-align: center;
 		font-weight: bold;
@@ -1524,6 +1524,18 @@ a.tOld {
 	td  {
 		text-align: center;
         font-size: 0.8em;
+	}
+	.batchNameTd {
+		input {
+			white-space: nowrap;
+			width: 100% !important;
+		}
+		~ td {
+			width: 120px;
+			input {
+				max-width: 120px;
+			}
+		}
 	}
 
 }
@@ -2205,7 +2217,7 @@ td.rowtools-column {
 	margin-bottom: 0;
 }
 
-.wide .singleView div:not(".folder-cover") .listTable {
+.wide .singleView div:not(.folder-cover) .listTable {
 	min-width: 800px;
 	width: 1%;
 }
@@ -3143,6 +3155,72 @@ fieldset.sharing-history {
 }
 /*край на стилове за история и автор*/
 
+/*борса*/
+.auctionContent {
+	padding: 0 20px 10px;
+	.listTable {
+		margin-top: 20px;
+		width: 100%;
+		> tbody > tr > td {
+			padding: 10px !important;
+			vertical-align: top !important;
+			table {
+				width: 300px;
+				margin: 0 auto;
+				td {
+					padding: 4px 5px 0;
+				}
+				th {
+					color: #444;
+					padding-bottom: 5px;
+					border-bottom: 1px solid #ccc;
+				}
+				.name {
+					text-align: right !important;
+					width: 1%;
+					padding-right: 20px;
+				}
+				.quantityField {
+					text-align: right;
+				}
+			}
+		}
+	}
+	.periodHead {
+		color: #495057;
+		background-color: #e9ecef;
+		border-color: #c7ced5;
+		padding: 5px 10px;
+		font-weight: bold;
+	}
+
+	.priceBlock {
+		float: right;
+	}
+	.newsCol {
+		background: #fafafa;
+	}
+	.reservedCol {
+		background: #c7f3c7;
+	}
+	.orderedCol {
+		background: #ffffbc;
+	}
+	.button {
+		width: 100px;
+		color: #333 !important;
+		padding: 5px 20px;
+		font-size: 0.85em;
+		background-color: #f6f6f6 !important;
+		border: 1px solid #bbbbbb;
+		border-radius: 3px;
+		box-shadow: inset 0 -1px 0 1px rgba(0, 0, 0, 0.1), inset 0 -10px 20px rgba(0, 0, 0, 0.1);
+		margin: 10px auto 0;
+		&:hover {
+			background-color: #ddd !important;
+		}
+	}
+}
 
 /* CMS */
 /*външни стилове за ширина*/
@@ -3368,6 +3446,7 @@ fieldset.sharing-history {
 
 .narrow .externalPage #maincontent {
 	padding: 2px 5px 5px;
+	position: relative;
 }
 
 .wide .externalPage .formTable{
@@ -3595,6 +3674,7 @@ fieldset.sharing-history {
 	position: relative;
 	margin-left: 2px;
 	top: -6px;
+	padding: 2px 2px 1px;
     a {
         padding-top: 5px;
     }
@@ -3624,23 +3704,12 @@ fieldset.sharing-history {
 		border-top: 1px solid #ccc;
 	}
 	td {
-		padding: 4px 7px; 
+		padding: 5px 10px;
+		height: 30px;
 	}
-	tbody tr:not(.ecartCommonRow) {
+	tbody tr {
 		background: linear-gradient(white, white, white, white, white, white, #eee);
 	}
-	tbody tr.ecartCommonRow {
-		background: linear-gradient(#eee, white, white, white, white, white, white);
-	}
-	tbody tr:not(.ecartCommonRow) td {
-		padding-bottom:10px;
-   		padding-top:3px;
-    }
-	tbody tr.ecartCommonRow td {
-        padding-top:10px;
-   		padding-bottom:3px;
-	}
-
   	thead tr:first-child {
 		background-color: #F1F1F1;
 	}
@@ -3651,6 +3720,17 @@ fieldset.sharing-history {
 		font-size: 0.9em;
 		color: #444;
 	}
+	.paramCol {
+		white-space: nowrap;
+	}
+}
+
+.narrow .optionsTable .productCol {
+	white-space: nowrap;
+}
+
+.eshop-product-buy-button {
+	margin-top: 3px;
 }
 
 .external-discount {
@@ -3682,8 +3762,17 @@ fieldset.sharing-history {
 	border: solid 1px #d8d8d8;
 	text-shadow: 1px 1px 1px #cccccc;
 	display: inline-block;
-	margin-bottom: 5px;
+	margin-top: 3px;
 	text-align: center;
+	position: relative;
+	top: -2px;
+	&.waitingDelivery {
+		background-color: rgba(41, 86, 222, 0.8) !important;
+	}
+}
+.eshop-product-list-param {
+	font-size: 0.85em;
+	color: #333;
 
 }
 
@@ -5591,6 +5680,11 @@ div.location.public {
 	right: -2px;
 }
 
+.narrow #all .hasLogoutBlock .logoutBlock {
+	top: 0;
+	right: 0;
+}
+
 .narrow .eshop-group-button{
 	margin-bottom:10px;
 	height:auto;
@@ -5613,7 +5707,7 @@ div.location.public {
 	margin-top: 10px;
 }
 
-.eshop-product-labels span {
+.eshop-product-labels .info {
     @include border-radius(3px);
 	padding: 4px;
 	font-size:0.8em;
@@ -5684,6 +5778,7 @@ div.location.public {
     border-radius: 3px;
     box-shadow: 1px 1px 1px rgba(0,0,0,0.1);
      _height: 1%;
+
     .richtext {
         line-height: 1.35em;
     }
@@ -5931,7 +6026,7 @@ body.narrow {
 	.background-holder {
 	    padding: 10px 0;
 	}
-	.wide:not('.user-profile') .listBlock .listRows > table.listTable {
+	.wide:not(.user-profile) .listBlock .listRows > table.listTable {
 		min-width:760px;
 	}
 }
@@ -6215,7 +6310,7 @@ body.narrow {
     .externalPage .formGroup {
         font-size: 0.85em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 558px;
         }
@@ -6250,7 +6345,7 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 483px;
         }
@@ -6279,7 +6374,7 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 458px;
         }
@@ -6311,7 +6406,7 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 438px;
         }
@@ -6358,7 +6453,7 @@ body.narrow {
     .externalPage .formGroup {
         font-size: 0.75em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 318px;
         }
@@ -6401,7 +6496,7 @@ body.narrow {
        margin-left: 0%;
        font-size: 0.9em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 278px;
         }

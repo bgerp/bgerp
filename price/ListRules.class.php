@@ -448,8 +448,8 @@ class price_ListRules extends core_Detail
         
         $masterRec = price_Lists::fetch($rec->listId);
         $form->setFieldTypeParams('productId', array('listId' => $masterRec->id));
-        $masterTitle = $masterRec->title;
         
+        $masterTitle = $masterRec->title;
         if ($masterRec->parent) {
             $parentRec = price_Lists::fetch($masterRec->parent);
             $parentTitle = $parentRec->title;
@@ -944,7 +944,7 @@ class price_ListRules extends core_Detail
         } elseif (ctype_digit("{$onlyIds}")) {
             $pQuery->where("#id = ${onlyIds}");
         } else {
-            $pQuery->where("#state != 'closed' AND #state != 'rejected' AND #canSell = 'yes'");
+            $pQuery->where("#state != 'closed' AND #state != 'rejected'");
             if (!isset($params['showTemplates'])) {
                 $pQuery->where("#state != 'template'");
             }
@@ -953,9 +953,11 @@ class price_ListRules extends core_Detail
             }
             
             // Нестандартните артикули да се показват само в политика 'Себестойност'
+            $pQuery->where("#canSell = 'yes'");
+            
             if (isset($params['listId'])) {
-                if ($params['listId'] != price_ListRules::PRICE_LIST_COST) {
-                    $pQuery->where("#isPublic = 'yes'");
+                if ($params['listId'] == price_ListRules::PRICE_LIST_COST) {
+                    $pQuery->orWhere("#generic = 'yes'");
                 }
             }
             

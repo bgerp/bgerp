@@ -977,6 +977,7 @@ class cal_Reminders extends core_Master
         }
         
         $fcMvc->save($newRec);
+        $fcMvc->logWrite("Създаване от напомняне", $newRec->id);
         
         if ($havePlgClone) {
             // Инвокваме фунцкцията, ако някой иска да променя нещо

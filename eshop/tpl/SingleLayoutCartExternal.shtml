@@ -26,6 +26,9 @@
             <div class="attention"> [#PAYMENT_TEXT_RIGHT#]</div>
             <!--ET_END PAYMENT_TEXT_RIGHT-->
 
+            <!--ET_BEGIN EXPECTED_DELIVERY-->
+            <div class="attention">[#EXPECTED_DELIVERY#]</div>
+            <!--ET_END EXPECTED_DELIVERY-->
          </div>
          <div class="clearfix21"></div>
          <!--ET_BEGIN CHECK_EMAIL-->
@@ -74,16 +77,13 @@
 			<!--ET_END SALE_BLOCK-->
 
             <!--ET_BEGIN DELIVERY_BLOCK-->
+            	[#DELIVERY_BLOCK#]
                <tr>
                   <td colspan = 2>
                      <h4 style="margin: 10px 0 3px;">|Доставка|*</h4>
                   </td>
                </tr>
-               <!--ET_BEGIN termId-->
-               <tr>
-                  <td class="aright">|Начин|*:</td><td> [#termId#]</td>
-               </tr>
-               <!--ET_END termId-->
+               
                <!--ET_BEGIN deliveryCountry-->
                <tr>
                   <td class="aright">
@@ -111,9 +111,8 @@
                   <td class="aright">|Инструкции|*:</td><td> <span class="richtext-holder"> [#instruction#]</span></td>
                </tr>
                <!--ET_END instruction-->
-               [#DELIVERY_BLOCK#]
                <!--ET_END DELIVERY_BLOCK-->
-            
+
          <!--ET_BEGIN INVOICE_BLOCK-->
                <tr>
                   <td colspan="2">

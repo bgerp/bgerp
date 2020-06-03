@@ -73,6 +73,19 @@
                <td>[#isNotified#]</td>
             </tr>
             <!--ET_END isNotified-->
+            
+            <!--ET_BEGIN haveOnlyServices-->
+            <tr>
+               <td class="title-style quiet nowrap">|Само услуги|*:</td>
+               <td>[#haveOnlyServices#]</td>
+            </tr>
+            <!--ET_END haveOnlyServices-->
+            <!--ET_BEGIN haveProductsWithExpectedDelivery-->
+            <tr>
+               <td class="title-style quiet nowrap">|Oчаквана доставка|*:</td>
+               <td>[#haveProductsWithExpectedDelivery#]</td>
+            </tr>
+            <!--ET_END haveProductsWithExpectedDelivery-->
          </table>
       </div>
    </fieldset>

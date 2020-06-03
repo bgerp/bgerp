@@ -863,10 +863,44 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
         
-        $form->rec->_edited = true;
         
         // Метод който да бъде прихванат от deals_plg_DpInvoice
+        $form->rec->_edited = true;
         $mvc->inputDpInvoice($form);
+    }
+    
+    
+    /**
+     * Кое е мястото на фактурата по подразбиране
+     * 
+     * @param stdClass $rec
+     * @return string|null $place
+     */
+    public static function getDefaultPlace($rec)
+    {
+        $inCharge = doc_Folders::fetchField($rec->folderId, 'inCharge');
+        $inChargeRec = crm_Profiles::getProfile($inCharge);
+        
+        $place = null;
+        if(!empty($inChargeRec->buzLocationId)){
+             $locationRec = crm_Locations::fetch($inChargeRec->buzLocationId, 'place,countryId');
+             $place = $locationRec->place;
+             $countryId = $locationRec->countryId;
+        }
+        
+        if(empty($place)){
+            $myCompany = crm_Companies::fetchOwnCompany();
+            $place = $myCompany->place;
+            $countryId = $myCompany->countryId;
+        }
+        
+        $contragentCountryId = doc_Folders::getContragentData($rec->folderId)->countryId;
+        if (!empty($place) && $contragentCountryId != $countryId) {
+            $cCountry = drdata_Countries::fetchField($countryId, 'commonNameBg');
+            $place .= ", {$cCountry}";
+        }
+        
+        return $place;
     }
     
     
@@ -885,20 +919,6 @@ abstract class deals_InvoiceMaster extends core_Master
         }
         
         if ($rec->state == 'active') {
-            if (empty($rec->place) && $rec->state == 'active') {
-                $inCharge = cls::get($rec->contragentClassId)->fetchField($rec->contragentId, 'inCharge');
-                $inChargeRec = crm_Profiles::getProfile($inCharge);
-                $myCompany = crm_Companies::fetchOwnCompany();
-                $place = empty($inChargeRec->place) ? $myCompany->place : $inChargeRec->place;
-                $countryId = empty($inChargeRec->country) ? $myCompany->countryId : $inChargeRec->country;
-                
-                $rec->place = $place;
-                if ($rec->contragentCountryId != $countryId) {
-                    $cCountry = drdata_Countries::fetchField($countryId, 'commonNameBg');
-                    $rec->place .= (($place) ? ', ' : '') . $cCountry;
-                }
-            }
-            
             if (empty($rec->dueDate)) {
                 $dueTime = ($rec->dueTime) ? $rec->dueTime : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
                 

@@ -173,7 +173,7 @@ class cat_interface_PackLabelImpl
             $measureId = cat_UoM::fetchBySysId('pcs')->id;
         }
         
-        $measureId = tr(cat_UoM::getShortName($measureId));
+        $measureId = cat_UoM::getShortName($measureId);
         
         // Продуктови параметри
         $params = cat_Products::getParams($rec->productId, null, true);
