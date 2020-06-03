@@ -337,6 +337,7 @@ class eshop_ProductDetails extends core_Detail
                     unset($row1->productId);
                     unset($row1->code);
                     unset($row1->params);
+                    $row1->ROW_ATTR['class'] = "no-product-rows";
                 } else {
                     if(!empty($row1->saleInfo)){
                         $row1->productId .= "<br> " . $row1->saleInfo;
