@@ -163,6 +163,20 @@ class deals_plg_EditClonedDetails extends core_Plugin
     
     
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if($form->rec->deduct == 'yes'){
+            $form->setWarning('deduct', "Наистина ли искате да приспаднете количествата от заявката, която клонирате|*?");
+        }
+    }
+    
+    
+    /**
      * Преди запис на клонираните детайли
      */
     public static function on_BeforeSaveCloneDetails($mvc, &$newRec, &$detailArray)

@@ -520,7 +520,7 @@ abstract class deals_Helper
         }
         
         $tpl = new core_ET("<span class='nowrap'>&nbsp;<small class='quiet'>[#quantityInPack#] [#shortUomName#]</small></span>");
-        $tpl->append(tr(cat_UoM::getShortName($measureId)), 'shortUomName');
+        $tpl->append(cat_UoM::getShortName($measureId), 'shortUomName');
         $tpl->append($quantityInPack, 'quantityInPack');
         $tpl->removeBlocks();
         
@@ -2009,5 +2009,22 @@ abstract class deals_Helper
         }
         
         return;
+    }
+    
+    
+    public static function getContoRedirectError($productArr, $haveMetas, $haveNotMetas = null, $metaError = null)
+    {
+        $productCheck = deals_Helper::checkProductForErrors($productArr, $haveMetas, $haveNotMetas);
+        if($productCheck['notActive']){
+            
+            return "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |са затворени|*!";
+        }
+        
+        if($productCheck['metasError']){
+            
+            return "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |{$metaError}|*!";
+        }
+        
+        return null;
     }
 }

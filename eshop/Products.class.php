@@ -292,7 +292,7 @@ class eshop_Products extends core_Master
         $rec->coMoq = $mvc->getMoq($rec);
         
         // Определяме, ако има мярката на продукта
-        $uom = tr(cat_UoM::getShortName($uomId));
+        $uom = cat_UoM::getShortName($uomId);
         
         if ($rec->coMoq) {
             $row->coMoq = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($rec->coMoq);
@@ -384,15 +384,18 @@ class eshop_Products extends core_Master
             if($productRec->state == 'closed') continue;
             
             // Показване на линковете към артикула
-            $productUrl = self::getUrl(self::fetch($productId));
-            $productTitle = eshop_Products::getTitleById($productId);
-            $data->products[$productId] = ht::createLink($productTitle, $productUrl)->getContent();
-         
-            // Ако има се показва тъмбнейл, към него
-            $thumb = static::getProductThumb($productRec, 300, 300);
-            if(isset($thumb)){
-                $thumbHtml = $thumb->createImg(array('class' => 'eshopNearProductThumb', 'title' => $productTitle))->getContent();
-                $data->images[$productId] = ht::createLink($thumbHtml, $productUrl);
+            $prodRec = self::fetch($productId);
+            if ($prodRec) {
+                $productUrl = self::getUrl($prodRec);
+                $productTitle = eshop_Products::getTitleById($productId);
+                $data->products[$productId] = ht::createLink($productTitle, $productUrl)->getContent();
+                
+                // Ако има се показва тъмбнейл, към него
+                $thumb = static::getProductThumb($productRec, 300, 300);
+                if(isset($thumb)){
+                    $thumbHtml = $thumb->createImg(array('class' => 'eshopNearProductThumb', 'title' => $productTitle))->getContent();
+                    $data->images[$productId] = ht::createLink($thumbHtml, $productUrl);
+                }
             }
         }
         
@@ -570,6 +573,7 @@ class eshop_Products extends core_Master
                         $pRecClone->_listView = true;
                         $dRow = eshop_ProductDetails::getExternalRow($pRecClone);
                         
+                        $pRow->saleInfo = $dRow->saleInfo;
                         $pRow->singleCurrencyId = $settings->currencyId;
                         $pRow->chargeVat = ($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС');
                         $pRow->catalogPrice = $dRow->catalogPrice;
@@ -580,7 +584,7 @@ class eshop_Products extends core_Master
             } elseif($pRec->saleState == 'multi'){
                 $pRow->btn = ht::createBtn($settings->addToCartBtn . '...', self::getUrl($pRec->id), false, false, 'title=Избор на артикул,class=productBtn addToCard,ef_icon=img/16/cart_go.png');
             } elseif($pRec->saleState == 'closed'){
-                $pRow->btn = "<span class='option-not-in-stock'>" . mb_strtoupper(tr(('Спрян||Not available'))) . '</span>';
+                $pRow->saleInfo = "<span class='option-not-in-stock'>" . mb_strtoupper(tr(('Спрян||Not available'))) . '</span>';
             }
 
             $commonParams = self::getCommonParams($pRec->id);
@@ -602,11 +606,20 @@ class eshop_Products extends core_Master
         $layout = new ET();
         
         if (is_array($data->groups)) {
+            
             foreach ($data->groups as $gData) {
                 if (!countR($gData->recs)) {
                     continue;
                 }
-                $layout->append('<h2>' . eshop_Groups::getVerbal($gData->groupRec, 'name') . '</h2>');
+
+                $groupName = eshop_Groups::getVerbal($gData->groupRec, 'name');
+                $layout->append('<h2>' . $groupName . '</h2>');
+
+                if (!empty($gData->groupRec->image)) {
+                    $image = fancybox_Fancybox::getImage($gData->groupRec->image, array(1200,800), array(1600, 1000), $groupName);
+                    $layout->append(new core_ET("<div class='eshop-group-image'>[#IMAGE#]</div>"));
+                    $layout->replace($image, 'IMAGE');
+                }
                 $layout->append(self::renderGroupList($gData));
             }
         }
@@ -624,7 +637,7 @@ class eshop_Products extends core_Master
      */
     public function renderGroupList_($data)
     {
-        $layout = new ET('');
+        $layout = new ET("<div class='eshop-product-list-holder'>[#BLOCK#]</div>");
         
         if (is_array($data->rows)) {
             
@@ -653,7 +666,7 @@ class eshop_Products extends core_Master
                 $pTpl->removePlaces();
                 $pTpl->removeBlocks();
                 
-                $layout->append($pTpl);
+                $layout->append($pTpl, 'BLOCK');
             }
         }
         
@@ -733,11 +746,8 @@ class eshop_Products extends core_Master
         cms_Content::addCanonicalUrl($url, $tpl);
         
         // Страницата да се кешира в браузъра
-        $cu = core_Users::getCurrent('id', false);
-        if(isset($cu) && haveRole('debug', $cu)){
-            $conf = core_Packs::getConfig('eshop');
-            Mode::set('BrowserCacheExpires', $conf->ESHOP_BROWSER_CACHE_EXPIRES);
-        }
+        $conf = core_Packs::getConfig('eshop');
+        Mode::set('BrowserCacheExpires', $conf->ESHOP_BROWSER_CACHE_EXPIRES);
         
         if (core_Packs::fetch("#name = 'vislog'")) {
             vislog_History::add('Продукт «' . $data->rec->name .'»');
@@ -1248,7 +1258,7 @@ class eshop_Products extends core_Master
     public static function canLinkProduct($productId)
     {
         $productRec = cat_Products::fetch($productId, 'canSell,isPublic,nameEn,state');
-        $res = ($productRec->state != 'closed' && $productRec->state != 'rejected' && $productRec->state != 'template' && $productRec->isPublic == 'yes' && $productRec->canSell == 'yes');
+        $res = ($productRec->state != 'closed' && $productRec->state != 'rejected' && $productRec->state != 'template' && $productRec->isPublic == 'yes' && $productRec->canSell == 'yes' && $productRec->generic != 'yes');
         
         return $res;
     }

@@ -95,7 +95,9 @@ class csv_tests_Lib extends unit_Class
         
         $res = csv_Lib::createCsv($restData, $fieldSet, $listFields, $format);
         $trimRes = trim($res);
-        $expect = "Тип на документа,Автор,Създадени документи (бр.)\nЗадачи,\"| <a class=\"\"\"\" profile ceo inactive\"\"\"\" title=\"\"\"\"Йордан Бонев\"\"\"\" href=\"\"\"\"/crm_Profiles/single/1OGU/\"\"\"\">Bachko</a>|\",7\nЗадачи,\"<a class=\"\" profile ceo active\"\" title=\"\"Gabriela Petrova\"\" href=\"\"/crm_Profiles/single/27NmR/\"\">Gaby</a>\",1\nВарниш (DS-09454 a),кг,95\n#Ч-та LD вън.др 50х40 - ГЕПАРД,\"<a href=\"\"/sales_Invoices/single/5739YjN/\"\" class=\"\" linkWithIcon\"\" style=\"\"background-image:url(&#039;/sbf/bgerp/img/16/invoice_0722143638.png&#039;);\"\">0000005642</a>\",15 800\nЧ-та LD вън.др 50х40 - ГЕПАРД - 3986652,#Sal5664,4 000.0000\n##Ч-та LD вън.др 50х40 - ГЕПАРД - 3986652,\||Sal5664|,4 000 0000\n";
+        $expect = "Тип на документа,Автор,Създадени документи (бр.),Дата,Стойност,Процент\nЗадачи,\"| <a class=\"\"\"\" profile ceo inactive\"\"\"\" title=\"\"\"\"Йордан Бонев\"\"\"\" href=\"\"\"\"/crm_Profiles/single/1OGU/\"\"\"\">Bachko</a>|\",7,20.05.2020,\"29084,00\",\"1500,00%\"\nЗадачи,\"<a class=\"\" profile ceo active\"\" title=\"\"Gabriela Petrova\"\" href=\"\"/crm_Profiles/single/27NmR/\"\">Gaby</a>\",1,20.05.2020,\"8754,00\",\"0,00%\"\nВарниш (DS-09454 a),кг,95,20.05.2020,\"244,00\",\"2500,00%\"\n#Ч-та LD вън.др 50х40 - ГЕПАРД,\"<a href=\"\"/sales_Invoices/single/5739YjN/\"\" class=\"\" linkWithIcon\"\" style=\"\"background-image:url(&#039;/sbf/bgerp/img/16/invoice_0722143638.png&#039;);\"\">0000005642</a>\",15 800,21.04.2015,\"15,00\",\"100,00%\"\nЧ-та LD вън.др 50х40 - ГЕПАРД - 3986652,#Sal5664,4 000.0000,05.12.2014,\"88,00\",\"9900,00%\"\n##Ч-та LD вън.др 50х40 - ГЕПАРД - 3986652,\||Sal5664|,4 000 0000,05.12.2014,\"99,76\",\"800,00%\"";
+        $expect = str_replace('20.05.2020', dt::mysql2verbal(dt::now(), 'd.m.Y'), $expect);
+          
         $trimExp = trim($expect);
         
         ut::expectEqual($trimExp, $trimRes);

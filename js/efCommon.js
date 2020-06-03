@@ -1793,6 +1793,9 @@ function setFormElementsWidth() {
                  $(this).attr('title', $(this).text());
              }
          });
+    	 if ($('.typeTable .batchNameTd').length) {
+             $('.typeTable').width("100%");
+         }
     }
 }
 

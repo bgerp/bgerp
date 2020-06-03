@@ -252,6 +252,7 @@ class sales_Quotations extends core_Master
         $this->FLD('address', 'varchar', 'caption=Получател->Адрес, changable, class=contactData,input=hidden');
         
         $this->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Допълнително->Валидност,mandatory');
+        $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Цени,notChangeableByContractor');
         $this->FLD('others', 'text(rows=4)', 'caption=Допълнително->Условия');
     }
     
@@ -261,7 +262,13 @@ class sales_Quotations extends core_Master
      */
     public function getDefaultChargeVat($rec)
     {
-        return deals_Helper::getDefaultChargeVat($rec->folderId);
+        $defaultChargeVat = sales_Setup::get("QUOTATION_DEFAULT_CHARGE_VAT");
+        
+        if($defaultChargeVat == 'auto') {
+            $defaultChargeVat = deals_Helper::getDefaultChargeVat($rec->folderId);
+        }
+        
+        return $defaultChargeVat;
     }
     
     
@@ -278,6 +285,8 @@ class sales_Quotations extends core_Master
         $contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
         $form->setDefault('contragentClassId', $contragentClassId);
         $form->setDefault('contragentId', $contragentId);
+        $form->setOptions('priceListId', array('' => '') + price_Lists::getAccessibleOptions($rec->contragentClassId, $rec->contragentId));
+        
         $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, false);
         if (countR($locations)) {
             $form->setOptions('deliveryPlaceId', array('' => '') + $locations);
@@ -1519,7 +1528,7 @@ class sales_Quotations extends core_Master
         expect(currency_Currencies::getIdByCode($newRec->currencyId), 'Невалиден код');
         $newRec->currencyRate = (isset($fields['rate'])) ? $fields['rate'] : currency_CurrencyRates::getRate($newRec->date, $newRec->currencyId, null);
         expect(cls::get('type_Double')->fromVerbal($newRec->currencyRate), 'Невалиден курс');
-        $newRec->chargeVat = (isset($fields['chargeVat'])) ? $fields['chargeVat'] : (($Cover->shouldChargeVat($contragentId)) ? 'yes' : 'no');
+        $newRec->chargeVat = (isset($fields['chargeVat'])) ? $fields['chargeVat'] : cls::get(get_called_class())->getDefaultChargeVat($newRec);
         expect(in_array($newRec->chargeVat, array('yes', 'no', 'exempt', 'separate')), 'Невалидно ДДС');
         
         // Намиране на метода за плащане

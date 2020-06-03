@@ -246,7 +246,9 @@ class eshop_CartDetails extends core_Detail
             
             // Проверка достигнато ли е максималното количество
             $packQuantity = isset($rec->packQuantity) ? $rec->packQuantity : $rec->defaultQuantity;
-            $maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack);
+            $maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack, $rec->eshopProductId);
+            
+            
             if (isset($maxQuantity) && $maxQuantity < $packQuantity) {
                 $form->setError('packQuantity', 'Избраното количество не е налично');
             }
@@ -365,14 +367,18 @@ class eshop_CartDetails extends core_Detail
      *
      * @return NULL|float $maxQuantity - максималното к-во, NULL за без ограничение
      */
-    public static function getMaxQuantity($productId, $quantityInPack)
+    public static function getMaxQuantity($productId, $quantityInPack, $eshopProductId)
     {
         $maxQuantity = null;
         
         $canStore = cat_Products::fetchField($productId, 'canStore');
         $settings = cms_Domains::getSettings();
         if (isset($settings->storeId) && $canStore == 'yes') {
+            $deliveryTime = eshop_ProductDetails::fetchField("#eshopProductId = {$eshopProductId} AND #productId = {$productId}", 'deliveryTime');
             $quantityInStore = store_Products::getQuantity($productId, $settings->storeId, true);
+            
+            if(isset($deliveryTime) && $quantityInStore <= 0) return $maxQuantity;
+            
             $maxQuantity = round($quantityInStore / $quantityInPack, 2);
         }
         
@@ -400,14 +406,13 @@ class eshop_CartDetails extends core_Detail
             }
             
             $row->productId = eshop_ProductDetails::getPublicProductName($rec->eshopProductId, $rec->productId);
-            $row->packagingId = tr(cat_UoM::getShortName($rec->packagingId));
+            $row->packagingId = cat_UoM::getShortName($rec->packagingId);
             
             $quantity = (isset($rec->packQuantity)) ? $rec->packQuantity : 1;
             $dataUrl = toUrl(array('eshop_CartDetails', 'updateCart', $rec->id, 'cartId' => $rec->cartId), 'local');
             
             // Колко е максималното допустимо количество
-            $maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack);
-            
+            $maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack, $rec->eshopProductId);
             $maxReachedTex = '';
             if(isset($maxQuantity)){
                 $maxReachedTex = tr("Избраното количество не е налично");
@@ -439,15 +444,29 @@ class eshop_CartDetails extends core_Detail
             // Показване на уникалните параметри под името на артикула
             $paramsText = self::getUniqueParamsAsText($rec);
             if (!empty($paramsText)) {
-                $row->productId .= "<br><span class='cart-qunique-product-params'>{$paramsText}</span>";
+                $row->productId .= "<br><span class='eshop-product-list-param'>{$paramsText}";
             }
             
             deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-            $row->productId .= " ({$row->packagingId})";
+            $row->productId .= " ({$row->packagingId})</span>";
+
+
         }
         
         $url = eshop_Products::getUrl($rec->eshopProductId);
         $row->productId = ht::createLinkRef($row->productId, $url);
+        
+        $productRec = cat_Products::fetch($rec->productId, 'canStore');
+        if (isset($settings->storeId) && $productRec->canStore == 'yes') {
+            $quantity = store_Products::getQuantity($rec->productId, $settings->storeId, true);
+            $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}", 'deliveryTime');
+            
+            if (is_null($maxQuantity) && $maxQuantity <= 0) {
+                if(!empty($eshopProductRec->deliveryTime)){
+                    $row->productId .= "<br><span  class='option-not-in-stock waitingDelivery'>" . tr('Очаквана доставка') . '</span>';
+                }
+            }
+        }
     }
     
     
@@ -643,7 +662,7 @@ class eshop_CartDetails extends core_Detail
      * @param int|NULL $domainId
      * @param bool     $save
      */
-    private static function updatePriceInfo(&$rec, $domainId = null, $save = false)
+    public static function updatePriceInfo(&$rec, $domainId = null, $save = false)
     {
         $settings = cms_Domains::getSettings($domainId);
         $rec->currencyId = isset($rec->currencyId) ? $rec->currencyId : $settings->currencyId;
@@ -696,6 +715,7 @@ class eshop_CartDetails extends core_Detail
         
         if ($update === true && $save === true) {
             self::save($rec, 'oldPrice,finalPrice,discount');
+            $rec->_updatedPrice = true;
         }
     }
     
@@ -704,22 +724,35 @@ class eshop_CartDetails extends core_Detail
      * Кои са уникалните параметри на артикула като текст
      *
      * @param stdClass $rec
+     * @param boolean $asRichText
      *
      * @return string $str
      */
-    public static function getUniqueParamsAsText($rec)
+    public static function getUniqueParamsAsText($rec, $asRichText = false)
     {
         $displayParams = eshop_Products::getParamsToDisplay($rec->eshopProductId);
         $commonParams = eshop_Products::getCommonParams($rec->eshopProductId);
         $productParams = cat_Products::getParams($rec->productId, null, true);
         
+        if($asRichText){
+            $pureParams = cat_Products::getParams($rec->productId);
+            $fileTypes = array(cond_type_File::getClassId(), cond_type_Image::getClassId());
+        }
+        
         $productParams = array_intersect_key($productParams, $displayParams);
         $diff = array_diff_key($productParams, $commonParams);
-       
+        
         $arr = array();
         foreach ($diff as $paramId => $value) {
             $paramRec = cat_Params::fetch($paramId);
             $value = (!empty($paramRec->suffix)) ? $value .  ' ' . tr($paramRec->suffix) : $value;
+           
+            if($asRichText && in_array($paramRec->driverClass, $fileTypes)){
+                $handler = $pureParams[$paramId];
+                $fileName = strip_tags($value);
+                $value = "[file={$handler}]{$fileName}[/file]";
+            }
+            
             $arr[] = tr(cat_Params::getVerbal($paramRec, 'name')) . ': ' . $value;
         }
         

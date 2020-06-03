@@ -209,7 +209,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
         
         $groupId = cat_Groups::fetchField("#sysId = 'packagings'", 'id');
         $Cover = doc_Folders::getCover($masterRec->folderId);
-        $data->form->setFieldTypeParams('productId', array('customerClass' => $Cover->getClassId(), 'customerId' => $Cover->that, 'hasProperties' => 'canStore', 'groups' => $groupId));
+        $data->form->setFieldTypeParams('productId', array('customerClass' => $Cover->getClassId(), 'customerId' => $Cover->that, 'hasProperties' => 'canStore', 'groups' => $groupId, 'hasnotProperties' => 'generic'));
     }
     
     

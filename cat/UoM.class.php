@@ -401,18 +401,20 @@ class cat_UoM extends core_Manager
      */
     public static function getShortName($id)
     {
-        static $uoms;
+        static $uoms = array();
         
         if (!$id) {
             
             return '???';
         }
         
-        if (empty($uoms[$id])) {
-            $uoms[$id] = static::fetchField($id, 'shortName');
-        }
+        $cLg = core_Lg::getCurrent();
         
-        return $uoms[$id];
+        if (empty($uoms[$cLg][$id])) {
+            $uoms[$cLg][$id] = static::getVerbal($id, 'shortName');
+        } 
+        
+        return $uoms[$cLg][$id];
     }
     
     
@@ -576,7 +578,7 @@ class cat_UoM extends core_Manager
             if ($amount >= 1) {
                 $all[$mId] = ($verbal) ? $Double->toVerbal($all[$mId]) : $all[$mId];
                 
-                return ($asObject) ? (object) (array('value' => $all[$mId], 'measure' => $mId)) : $all[$mId] . ' ' . tr(static::getShortName($mId));
+                return ($asObject) ? (object) (array('value' => $all[$mId], 'measure' => $mId)) : $all[$mId] . ' ' . static::getShortName($mId);
             }
         }
         
@@ -586,7 +588,7 @@ class cat_UoM extends core_Manager
         
         $all[$mId] = ($verbal) ? $Double->toVerbal($all[$mId]) : $all[$mId];
         
-        return ($asObject) ? (object) (array('value' => $all[$uomId], 'measure' => $mId)) : $all[$uomId] . ' ' . tr(static::getShortName($mId));
+        return ($asObject) ? (object) (array('value' => $all[$uomId], 'measure' => $mId)) : $all[$uomId] . ' ' . static::getShortName($mId);
     }
     
     

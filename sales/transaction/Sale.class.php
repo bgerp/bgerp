@@ -48,7 +48,6 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
      *
      *    Ct: 701. Приходи от продажби на Стоки и Продукти       (Клиент, Сделка, Стоки и Продукти)
      *    	  703. Приходи от продажби на услуги                 (Клиент, Сделка, Услуга)
-     *    	  706. Приходи от продажби на Суровини и Материали   (Клиент, Сделка, Суровини и Материали)
      *
      *
      * 2. Експедиране на стоката от склада (в някой случаи)
@@ -83,13 +82,13 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         $entries = array();
         $rec = $this->class->fetchRec($id);
         $actions = type_Set::toArray($rec->contoActions);
+        $rec = $this->fetchSaleData($rec); // Продажбата ще контира - нужни са и детайлите
         
         if ($actions['ship'] || $actions['pay']) {
-            $rec = $this->fetchSaleData($rec); // Продажбата ще контира - нужни са и детайлите
+            
             deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));
             
             if ($actions['ship']) {
-                
                 $entriesProduction = self::getProductionEntries($rec, $this->class);
                 if (countR($entriesProduction)) {
                     $entries = array_merge($entries, $entriesProduction);
@@ -105,9 +104,9 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                 $delPart = $this->getDeliveryPart($rec, $storable);
                 
                 if (Mode::get('saveTransaction') && countR($storable)) {
-                    $productCheck = deals_Helper::checkProductForErrors($storable, 'canStore');
-                    if($productCheck['metasError']){
-                        acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |вече не са складируеми и не може да засклаждате|*!");
+                    if($redirectError = deals_Helper::getContoRedirectError($storable, 'canStore', null, 'вече не са складируеми и не може да се изписват от склада')){
+                        
+                        acc_journal_RejectRedirect::expect(false, $redirectError);
                     }
                 }
                 
@@ -122,6 +121,15 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                 // Продажбата играе роля и на платежен документ (ПКО)
                 // Записите от тип 3 (получаване на плащане)
                 $entries = array_merge($entries, $this->getPaymentPart($rec));
+            }
+        }
+        
+        // Проверка дали артикулите отговарят на нужните свойства
+        $products = arr::extractValuesFromArray($rec->details, 'productId');
+        if (Mode::get('saveTransaction') && countR($products)) {
+            if($redirectError = deals_Helper::getContoRedirectError($products, 'canSell', 'generic', 'вече не са продаваеми или са генерични')){
+                
+                acc_journal_RejectRedirect::expect(false, $redirectError);
             }
         }
         
@@ -312,7 +320,6 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
      * Експедиране на стоката от склада (в някой случаи)
      *
      *    Dt: 701. Приходи от продажби на Стоки и Продукти    (Клиент, Сделки, Стоки и Продукти)
-     *    	  706 - Приходи от продажба на Суровини и материали (Клиент, Сделки, Суровини и материали)
      *
      *    Ct: 321. Суровини, материали, продукция, стоки (Склад, Стоки и Продукти)
      *

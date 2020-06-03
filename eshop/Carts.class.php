@@ -204,7 +204,7 @@ class eshop_Carts extends core_Master
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'caption=Продажба,input=none');
         $this->FLD('activatedOn', 'datetime(format=smartTime)', 'caption=Активиране||Activated->На,input=none');
         $this->FLD('haveOnlyServices', 'enum(no=Не,yes=Да)', 'caption=Само услуги,input=none,notNull,value=no');
-        
+        $this->FLD('haveProductsWithExpectedDelivery', 'enum(no=Не,yes=Да)', 'caption=Очаквана доставка,input=none,notNull,value=no');
         $this->XPR('orderDate', 'datetime', 'COALESCE(#activatedOn, #createdOn)', 'caption=Дата');
         
         $this->setDbIndex('brid');
@@ -294,7 +294,7 @@ class eshop_Carts extends core_Master
         // Ако има избран склад, проверка дали к-то е допустимо
         $msg = '|Проблем при добавянето на артикула|*!';
         
-        $maxQuantity = eshop_CartDetails::getMaxQuantity($productId, $quantityInPack);
+        $maxQuantity = eshop_CartDetails::getMaxQuantity($productId, $quantityInPack, $eshopProductId);
         if (isset($maxQuantity) && $maxQuantity < $packQuantity) {
             $msg = '|Избраното количество не е налично|*';
             $success = false;
@@ -318,7 +318,7 @@ class eshop_Carts extends core_Master
                 
                 $exRec = eshop_CartDetails::fetch("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$packagingId}");
                 
-                $packagingName = tr(cat_UoM::getShortName($packagingId));
+                $packagingName = cat_UoM::getShortName($packagingId);
                 $packType = cat_UoM::fetchField($packagingId, 'type');
                 if ($packType == 'packaging') {
                     $packagingName = str::getPlural($exRec->packQuantity, $packagingName, true);
@@ -477,12 +477,12 @@ class eshop_Carts extends core_Master
         array_walk($dRecs, function ($a) use (&$haveOnlyServices) {
             if ($a->canStore == 'yes') {
                 $haveOnlyServices = 'no';
-                
-                //break;
             }
         });
         
         $rec->haveOnlyServices = $haveOnlyServices;
+        $rec->haveProductsWithExpectedDelivery = 'no';
+        $settings = cms_Domains::getSettings($rec->domainId);
         
         foreach ($dRecs as $dRec) {
             $rec->productCount++;
@@ -499,6 +499,17 @@ class eshop_Carts extends core_Master
             } else {
                 $rec->totalNoVat += round($sum, 4);
                 $rec->total += round($sum * (1 + $dRec->vat), 4);
+            }
+            
+            // Дигане на флаг ако има артикули очакващи доставка
+            if($rec->haveProductsWithExpectedDelivery != 'yes' && isset($settings->storeId) && $dRec->canStore == 'yes'){
+                $quantityInStore = store_Products::getQuantity($dRec->productId, $settings->storeId, true);
+                if($quantityInStore < $dRec->quantity){
+                    $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$dRec->eshopProductId} AND #productId = {$dRec->productId}", 'deliveryTime');
+                    if(!empty($eshopProductRec->deliveryTime)){
+                        $rec->haveProductsWithExpectedDelivery = 'yes';
+                    }
+                }
             }
         }
         
@@ -532,7 +543,7 @@ class eshop_Carts extends core_Master
         $rec->totalNoVat = round($rec->totalNoVat, 4);
         $rec->total = round($rec->total, 4);
         
-        $id = $this->save_($rec, 'productCount,total,totalNoVat,deliveryNoVat,deliveryTime,freeDelivery,haveOnlyServices');
+        $id = $this->save_($rec, 'productCount,total,totalNoVat,deliveryNoVat,deliveryTime,freeDelivery,haveOnlyServices,haveProductsWithExpectedDelivery');
         
         return $id;
     }
@@ -890,7 +901,7 @@ class eshop_Carts extends core_Master
                 $price /= 1 + $dRec->vat;
             }
             
-            $paramsText = eshop_CartDetails::getUniqueParamsAsText($dRec);
+            $paramsText = eshop_CartDetails::getUniqueParamsAsText($dRec, true);
             $notes = (!empty($paramsText)) ? $paramsText : null;
             
             $price = currency_CurrencyRates::convertAmount($price, null, $dRec->currencyId);
@@ -1082,6 +1093,10 @@ class eshop_Carts extends core_Master
             $url = core_Forwards::getUrl('colab_FolderToPartners', 'Createnewcontractor', array('companyId' => (int) $Cover->that, 'email' => $rec->email, 'rand' => str::getRand(), 'className' => $Cover->className, 'userNames' => $rec->personNames, 'onlyPartner' => 'yes'), 604800);
             $url = "[link={$url}]" . tr('връзка||link') . '[/link]';
             $body->replace($url, 'REGISTER_LINK');
+        }
+        
+        if($expectedDeliveryText = self::getExpectedDeliveryText($rec, $settings)){
+            $body->replace($expectedDeliveryText, 'EXPECTED_DELIVERY');
         }
         
         // Името на 'Моята фирма' във футъра
@@ -1304,6 +1319,13 @@ class eshop_Carts extends core_Master
         Mode::set('currentExternalTab', 'eshop_Carts');
         
         $tpl = self::renderView($rec);
+        
+        // Редирект ако количката се е ъпдейтнала
+        if($rec->_updatedPrice === true){
+            
+            return new Redirect(array($this, 'view', $rec->id));
+        }
+        
         $tpl->prepend("<div id = 'cart-view-single'>");
         $tpl->append('</div>');
         Mode::set('wrapper', 'cms_page_External');
@@ -1584,7 +1606,7 @@ class eshop_Carts extends core_Master
         $fields['-external'] = true;
         
         $row = self::recToVerbal($rec, $fields);
-        $data = (object) array('rec' => $rec, 'row' => $row);
+        $data = (object) array('rec' => &$rec, 'row' => $row);
         self::prepareExternalCart($data);
         $tpl = self::renderExternalCart($data);
         
@@ -1614,7 +1636,9 @@ class eshop_Carts extends core_Master
         while ($dRec = $dQuery->fetch()) {
             $data->recs[$dRec->id] = $dRec;
             $row = eshop_CartDetails::recToVerbal($dRec, $fields);
-            
+            if($dRec->_updatedPrice === true){
+                $data->rec->_updatedPrice = true;
+            }
             if (!empty($dRec->discount)) {
                 $discountType = type_Set::toArray($settings->discountType);
                 $row->finalPrice = "<span class='end-price'>{$row->finalPrice}</span>";
@@ -1769,11 +1793,11 @@ class eshop_Carts extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if ($rec->userId){
-            
             $row->userId = core_Users::getNick($rec->userId)."</br>";
         }
-        $row->userId .=type_Ip::decorateIp($rec->ip, $rec->createdOn)."</br>"
-                       .log_Browsers::getLink($rec->brid);
+        
+        $settings = cms_Domains::getSettings($rec->domainId);
+        $row->userId .=type_Ip::decorateIp($rec->ip, $rec->createdOn)."</br>" .log_Browsers::getLink($rec->brid);
         $row->ROW_ATTR['class'] = "state-{$rec->state}";
         $row->STATE_CLASS = $row->ROW_ATTR['class'];
         $row->domainId = cms_Domains::getHyperlink($rec->domainId);
@@ -1785,7 +1809,6 @@ class eshop_Carts extends core_Master
                 
                 // Кога ще се изпраща имейл за нотифициране
                 if (!empty($rec->email)) {
-                    $settings = cms_Domains::getSettings($rec->domainId);
                     $timeToNotifyBeforeDeletion = dt::addSecs(-1 * $settings->timeBeforeDelete, $delitionTime);
                     $row->timeToNotifyBeforeDeletion = core_Type::getByName('datetime(format=smartTime)')->toVerbal($timeToNotifyBeforeDeletion);
                     $isNotified = core_Permanent::get("eshopCartsNotify{$rec->id}");
@@ -1795,7 +1818,7 @@ class eshop_Carts extends core_Master
             }
         }
         
-        $currencyCode = cms_Domains::getSettings($rec->domainId)->currencyId;
+        $currencyCode = $settings->currencyId;
         $rec->vatAmount = $rec->total - $rec->totalNoVat;
         
         if ($rec->freeDelivery != 'yes') {
@@ -1832,8 +1855,33 @@ class eshop_Carts extends core_Master
         if (isset($rec->paymentId) && !isset($fields['-external'])) {
             $row->paymentId = cond_PaymentMethods::getHyperlink($rec->paymentId, true);
         }
+        
+        if(isset($fields['-external'])){
+            
+            // Показване на текст за очаквана доставка
+            if($expectedDeliveryText = self::getExpectedDeliveryText($rec, $settings)){
+                $row->EXPECTED_DELIVERY = $expectedDeliveryText;
+            }
+        }
     }
     
+    
+    /**
+     * Връща текста на очакваната доставка
+     */
+    private function getExpectedDeliveryText($rec, $settings)
+    {
+        if($rec->haveProductsWithExpectedDelivery == 'yes'){
+            $expectedDeliveryText = new core_ET($settings->expectedDeliveryText);
+            $cartName = self::getCartDisplayName();
+            $expectedDeliveryText->replace(mb_strtolower($cartName), 'cartName');
+            
+            return $expectedDeliveryText;
+        }
+        
+        return null;
+    }
+        
     
     /**
      * Екшън за показване на външния изглед на кошницата

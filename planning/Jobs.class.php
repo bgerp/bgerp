@@ -880,7 +880,7 @@ class planning_Jobs extends core_Master
                 if (empty($rec->productId)) {
                     $res = 'no_one';
                 } else {
-                    $productRec = cat_Products::fetch($rec->productId, 'state,canManifacture');
+                    $productRec = cat_Products::fetch($rec->productId, 'state,canManifacture,generic');
                     
                     // Трябва да е активиран
                     if ($productRec->state != 'active') {
@@ -889,7 +889,7 @@ class planning_Jobs extends core_Master
                     
                     // Трябва и да е производим
                     if ($res != 'no_one') {
-                        if ($productRec->canManifacture == 'no') {
+                        if ($productRec->canManifacture == 'no' || $productRec->generic == 'yes') {
                             $res = 'no_one';
                         }
                     }
@@ -1319,7 +1319,7 @@ class planning_Jobs extends core_Master
         
         while ($rec = $query->fetch()) {
             $activatedBy = isset($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
-            if (empty($activatedBy)) {
+            if (empty($activatedBy) || $activatedBy == core_Users::SYSTEM_USER) {
                 continue;
             }
             $personId = crm_Profiles::fetchField("#userId = {$activatedBy}", 'personId');

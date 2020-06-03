@@ -42,6 +42,7 @@ class sync_Eshop extends sync_Helper
             '*::lastActivityTime' => null,
             '*::lastUsedOn' => null,
             '*::id' => null,
+            'eshop_Products::nearProducts' => null,
             'cms_Domains::domain' => 'sync_Eshop::fixDomain',
             'cms_Domains::lang' => 'sync_Eshop::fixDomain',
     );
@@ -107,6 +108,8 @@ class sync_Eshop extends sync_Helper
         
         expect(core_Packs::isInstalled('eshop'));
         
+        $update = (Request::get('update') == 'none') ? false : true;
+        
         core_App::setTimeLimit(1000);
         
         $resArr = self::getDataFromUrl(get_called_class());
@@ -118,7 +121,7 @@ class sync_Eshop extends sync_Helper
         
         foreach ($resArr as $class => $objArr) {
             foreach ($objArr as $id => $rec) {
-                sync_Map::importRec($class, $id, $resArr, $this);
+                sync_Map::importRec($class, $id, $resArr, $this, $update);
             }
         }
     }
@@ -227,5 +230,39 @@ class sync_Eshop extends sync_Helper
             
             $rec->__id = $rec->id;
         }
+    }
+    
+    
+    /**
+     * Помощна функция за подготвяне на всички групи от електронния магазин
+     * 
+     * @param type_Keylist $type
+     * @param NULL|array $options
+     * 
+     * @return array
+     */
+    public static function getEshopGroups($type, $options)
+    {
+        $gQuery = eshop_Groups::getQuery();
+        
+        $gQuery->where("#state != 'rejected'");
+        
+        $gQuery->EXT('domainId', 'cms_Content', 'externalName=domainId,externalKey=menuId');
+        
+        $gQuery->show('name, state, domainId');
+        
+        $gQuery->orderBy('domainId', 'DESC');
+        $gQuery->orderBy('modifiedOn', 'DESC');
+        
+        $resArr = array();
+        while ($gRec = $gQuery->fetch()) {
+            $resArr[$gRec->id] = eshop_Groups::getVerbal($gRec, 'name') . ' (' . cms_Content::getVerbal($gRec->domainId, 'domainId') . ')';
+            
+            if ($gRec->state != 'active') {
+                $resArr[$gRec->id] .= ' - ' . eshop_Groups::getVerbal($gRec, 'state');
+            }
+        }
+        
+        return $resArr;
     }
 }

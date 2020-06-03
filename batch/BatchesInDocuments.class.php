@@ -177,10 +177,10 @@ class batch_BatchesInDocuments extends core_Manager
                 $quantityInPack = empty($rInfo->quantityInPack) ? 1 : $rInfo->quantityInPack;
                 $q = $rec->quantity / $quantityInPack;
                 $quantity = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($q);
-                $quantity .= ' ' . tr(cat_UoM::getShortName($rInfo->packagingId));
+                $quantity .= ' ' . cat_UoM::getShortName($rInfo->packagingId);
                 
                 if ($showBatchLink) {
-                    if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, $q, $rec->batch)) {
+                    if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, $q, $rec->batch, $rInfo->containerId)) {
                         $label = $palletImgLink . $label;
                     }
                 }
@@ -190,7 +190,7 @@ class batch_BatchesInDocuments extends core_Manager
             
             if ($batchDef instanceof batch_definitions_Serial) {
                 if ($showBatchLink) {
-                    if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, 1, $rec->batch)) {
+                    if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, 1, $rec->batch, $rInfo->containerId)) {
                         $batch = $palletImgLink . $batch;
                     }
                 }
@@ -217,10 +217,10 @@ class batch_BatchesInDocuments extends core_Manager
                 $noBatchQuantity = $total / $rInfo->quantityInPack;
                 $batch = "<i style=''>" . tr('Без партида') . '</i>';
                 $quantity = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($noBatchQuantity);
-                $quantity .= ' ' . tr(cat_UoM::getShortName($rInfo->packagingId));
+                $quantity .= ' ' . cat_UoM::getShortName($rInfo->packagingId);
                 
                 if ($showBatchLink) {
-                    if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, $noBatchQuantity)) {
+                    if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, $noBatchQuantity, null, $rInfo->containerId)) {
                         $batch = $palletImgLink . $batch;
                     }
                 }
@@ -439,7 +439,7 @@ class batch_BatchesInDocuments extends core_Manager
         $hideTable = (($Def instanceof batch_definitions_Serial) && !empty($btnoff)) || (!empty($btnoff) && !countR($suggestions) && !($Def instanceof batch_definitions_Serial));
         
         if($hideTable === false){
-            $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Нови партиди->{$caption},placeholder={$Def->placeholder}");
+            $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_class=batchNameTd,batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Нови партиди->{$caption},placeholder={$Def->placeholder}");
             $form->setFieldTypeParams('newArray', array('batch_sgt' => $suggestions));
             $form->setFieldTypeParams('newArray', array('batchDefinition' => $Def));
             $form->setDefault('newArray', $tableRec);
@@ -652,7 +652,7 @@ class batch_BatchesInDocuments extends core_Manager
         }
         
         if (countR($error)) {
-            $error = implode('<li>', $error);
+            $error = implode('|*<li>|', $error);
             $res['error'] = $error;
         }
         

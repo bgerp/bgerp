@@ -12,4 +12,7 @@ Delivery: [#TERM_ID#]
 <!--ET_BEGIN REGISTER_LINK-->
 If you want to save time in the future purchases of our online shop, please register from this [#REGISTER_LINK#], which expires in 7 days.
 <!--ET_END REGISTER_LINK-->
+<!--ET_BEGIN EXPECTED_DELIVERY-->
+[#EXPECTED_DELIVERY#]
+<!--ET_END EXPECTED_DELIVERY-->
 [#FOOTER#]

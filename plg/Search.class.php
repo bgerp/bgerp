@@ -736,6 +736,8 @@ class plg_Search extends core_Plugin
                 $clsInst->save_($rec, 'searchKeywords');
             } catch (Exception $e) {
                 reportException($e);
+            } catch (Throwable  $e) {
+                reportException($e);
             }
             
             if (dt::now() >= $maxTime) {
