@@ -402,7 +402,7 @@ class borsa_Lots extends core_Master
             
             // Цена
             $price = $this->fields['price']->type->toVerbal($pVal['price']);
-            $price =  "<div class='priceBlock'> {$price} <span class='small'>{$baseCurrencyCode}</span>" . ' за ' . $sName . " ". tr('без ДДС') . "</div>";
+            $price =  "<div class='priceBlock'> {$price} <span class='small'>{$baseCurrencyCode}</span>" . ' ' . tr('за') . ' ' . $sName . " ". tr('без ДДС') . "</div>";
             $pRow->replace($price, 'PRICE');
             
             // Количества
