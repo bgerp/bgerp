@@ -100,7 +100,7 @@ class borsa_Lots extends core_Master
         $this->FLD('basePrice', 'double(smartRound,decimals=2)', 'caption=Базова цена,mandatory');
         $this->FNC('quantity', 'double(min=0)', 'caption=Количество,hint=Количество по подразбиране за офериране,input');
         $this->FLD('priceChange', 'table(columns=period|priceChange,captions=Период|Промяна %,validate=borsa_Lots::priceChangeValidate, period_opt=|01|02|03|04|05|06|07|08|09|10|11|12)', 'caption=Промяна на цена');
-        
+        $this->FLD('canConfirm', 'userList(roles=sales)', array('caption' => 'Потребители, които могат да одобряват заявките->Потребители'));
         
         $this->FNC('productName', 'varchar');
         
@@ -265,6 +265,8 @@ class borsa_Lots extends core_Master
         
         if(!self::haveRightFor('list')) {
             
+            $me->setAllowedProdIds($data['id']);
+            
             if (Mode::get($me->profileModeName) != $data['id']) {
                 Mode::setPermanent($me->profileModeName, $data['id']);
                 
@@ -276,8 +278,6 @@ class borsa_Lots extends core_Master
                                 status_Messages::newStatus($status);
                                 vislog_History::add('Логване в борсата');
             }
-            
-            $me->setAllowedProdIds($data['id']);
         }
         
         redirect(array('borsa_Lots', 'Show'));
@@ -573,13 +573,15 @@ class borsa_Lots extends core_Master
         
         $cRec = borsa_Companies::fetch($cId);
         
+        expect($cRec);
+        
         $qProd = borsa_Lots::getQuery();
         $qProd->where("#state != 'rejected'");
         
         $qProd->show('productId');
         
-        if ($cRec->allowedProducts) {
-            $qProd->in('productId', $cRec->allowedProducts);
+        if ($cRec->allowedLots) {
+            $qProd->in('id', type_Keylist::toArray($cRec->allowedLots));
         }
         
         $resArr = array();
