@@ -318,7 +318,7 @@ class eshop_Carts extends core_Master
                 
                 $exRec = eshop_CartDetails::fetch("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$packagingId}");
                 
-                $packagingName = tr(cat_UoM::getShortName($packagingId));
+                $packagingName = cat_UoM::getShortName($packagingId);
                 $packType = cat_UoM::fetchField($packagingId, 'type');
                 if ($packType == 'packaging') {
                     $packagingName = str::getPlural($exRec->packQuantity, $packagingName, true);

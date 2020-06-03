@@ -365,7 +365,7 @@ class eshop_ProductDetails extends core_Detail
         $row->code = substr($fullCode, 0, 10);
         $row->code = "<span title={$fullCode}>{$row->code}</span>";
         
-        $row->packagingId = tr(cat_UoM::getShortName($rec->packagingId));
+        $row->packagingId = cat_UoM::getShortName($rec->packagingId);
         $minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намаляване на количеството'), '-');
         $plus = ht::createElement('span', array('class' => 'btnUp', 'title' => 'Увеличаване на количеството'), '+');
         $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}-{$rec->packagingId}", 1, "class=eshop-product-option option-quantity-input") . $plus . '</span>';

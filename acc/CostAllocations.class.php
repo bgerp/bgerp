@@ -374,7 +374,7 @@ class acc_CostAllocations extends core_Manager
         }
         
         if ($isPercent === false) {
-            $row->uomId = tr(cat_UoM::getShortName($uomId));
+            $row->uomId = cat_UoM::getShortName($uomId);
         }
         
         // Линк към обекта на перото

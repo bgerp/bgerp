@@ -529,7 +529,7 @@ class price_ListDocs extends core_Master
         }
         
         if (isset($rec->pack)) {
-            $row->pack = tr(cat_UoM::getShortName($rec->pack));
+            $row->pack = cat_UoM::getShortName($rec->pack);
             $row->pack .= deals_Helper::getPackMeasure($rec->measureId, $rec->perPack);
         }
         
@@ -541,7 +541,7 @@ class price_ListDocs extends core_Master
         }
         
         if ($rec->measureId && $rec->priceM) {
-            $row->measureId = tr(cat_UoM::getShortName($rec->measureId));
+            $row->measureId = cat_UoM::getShortName($rec->measureId);
         } else {
             unset($row->productId);
             unset($row->code);

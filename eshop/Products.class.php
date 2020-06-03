@@ -292,7 +292,7 @@ class eshop_Products extends core_Master
         $rec->coMoq = $mvc->getMoq($rec);
         
         // Определяме, ако има мярката на продукта
-        $uom = tr(cat_UoM::getShortName($uomId));
+        $uom = cat_UoM::getShortName($uomId);
         
         if ($rec->coMoq) {
             $row->coMoq = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($rec->coMoq);

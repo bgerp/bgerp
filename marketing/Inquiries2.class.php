@@ -454,7 +454,7 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         $measureId = $mvc->getDefaultMeasureId($rec);
-        $shortName = tr(cat_UoM::getShortName($measureId));
+        $shortName = cat_UoM::getShortName($measureId);
         
         $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
         foreach (range(1, 3) as $i) {

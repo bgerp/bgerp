@@ -406,7 +406,7 @@ class eshop_CartDetails extends core_Detail
             }
             
             $row->productId = eshop_ProductDetails::getPublicProductName($rec->eshopProductId, $rec->productId);
-            $row->packagingId = tr(cat_UoM::getShortName($rec->packagingId));
+            $row->packagingId = cat_UoM::getShortName($rec->packagingId);
             
             $quantity = (isset($rec->packQuantity)) ? $rec->packQuantity : 1;
             $dataUrl = toUrl(array('eshop_CartDetails', 'updateCart', $rec->id, 'cartId' => $rec->cartId), 'local');
