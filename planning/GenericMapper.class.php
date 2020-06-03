@@ -150,7 +150,7 @@ class planning_GenericMapper extends core_Manager
             if(!array_key_exists($measureProductId, $similarMeasures)){
                 $genericMeasureName = cat_UoM::getVerbal($measureGenericId, 'name');
                 
-                $form->setError('productId', "Заместващият артикул, трябва да е в мярка производна на|*: <b>{$genericMeasureName}</b>");
+                $form->setError('productId', "Заместващият артикул трябва да е в мярка, производна на|*: <b>{$genericMeasureName}</b>");
             }
         }
     }
