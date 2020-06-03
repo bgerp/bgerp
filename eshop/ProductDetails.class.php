@@ -334,7 +334,7 @@ class eshop_ProductDetails extends core_Detail
             $prev = null;
             foreach ($data->rows as &$row1) {
                 if (isset($prev) && $prev == $row1->orderCode) {
-                    unset($row1->productId);
+                    $row1->productId = "<span class='quiet'>{$row1->productId}</span>";
                     unset($row1->code);
                     unset($row1->params);
                     $row1->ROW_ATTR['class'] = "no-product-rows";
