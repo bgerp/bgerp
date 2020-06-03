@@ -3762,13 +3762,18 @@ fieldset.sharing-history {
 	border: solid 1px #d8d8d8;
 	text-shadow: 1px 1px 1px #cccccc;
 	display: inline-block;
-	margin-left: 5px;
+	margin-top: 3px;
 	text-align: center;
 	position: relative;
 	top: -2px;
 	&.waitingDelivery {
 		background-color: rgba(41, 86, 222, 0.8) !important;
 	}
+}
+.eshop-product-list-param {
+	font-size: 0.85em;
+	color: #333;
+
 }
 
 .small .colorBox {

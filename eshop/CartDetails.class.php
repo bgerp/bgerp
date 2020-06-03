@@ -444,11 +444,13 @@ class eshop_CartDetails extends core_Detail
             // Показване на уникалните параметри под името на артикула
             $paramsText = self::getUniqueParamsAsText($rec);
             if (!empty($paramsText)) {
-                $row->productId .= "<br><span class='cart-qunique-product-params'>{$paramsText}</span>";
+                $row->productId .= "<br><span class='eshop-product-list-param'>{$paramsText}";
             }
             
             deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-            $row->productId .= " ({$row->packagingId})";
+            $row->productId .= " ({$row->packagingId})</span>";
+
+
         }
         
         $url = eshop_Products::getUrl($rec->eshopProductId);
@@ -461,7 +463,7 @@ class eshop_CartDetails extends core_Detail
             
             if (is_null($maxQuantity) && $maxQuantity <= 0) {
                 if(!empty($eshopProductRec->deliveryTime)){
-                    $row->productId .= "<span style='margin-right: 5px' class='option-not-in-stock waitingDelivery'>" . tr('Очаквана доставка') . '</span>';
+                    $row->productId .= "<br><span  class='option-not-in-stock waitingDelivery'>" . tr('Очаквана доставка') . '</span>';
                 }
             }
         }

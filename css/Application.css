@@ -2469,6 +2469,57 @@ fieldset.sharing-history i {
   font-size: 0.9em; }
 
 /*край на стилове за история и автор*/
+/*борса*/
+.auctionContent {
+  padding: 0 20px 10px; }
+  .auctionContent .listTable {
+    margin-top: 20px;
+    width: 100%; }
+    .auctionContent .listTable > tbody > tr > td {
+      padding: 10px !important;
+      vertical-align: top !important; }
+      .auctionContent .listTable > tbody > tr > td table {
+        width: 300px;
+        margin: 0 auto; }
+        .auctionContent .listTable > tbody > tr > td table td {
+          padding: 4px 5px 0; }
+        .auctionContent .listTable > tbody > tr > td table th {
+          color: #444;
+          padding-bottom: 5px;
+          border-bottom: 1px solid #ccc; }
+        .auctionContent .listTable > tbody > tr > td table .name {
+          text-align: right !important;
+          width: 1%;
+          padding-right: 20px; }
+        .auctionContent .listTable > tbody > tr > td table .quantityField {
+          text-align: right; }
+  .auctionContent .periodHead {
+    color: #495057;
+    background-color: #e9ecef;
+    border-color: #c7ced5;
+    padding: 5px 10px;
+    font-weight: bold; }
+  .auctionContent .priceBlock {
+    float: right; }
+  .auctionContent .newsCol {
+    background: #fafafa; }
+  .auctionContent .reservedCol {
+    background: #c7f3c7; }
+  .auctionContent .orderedCol {
+    background: #ffffbc; }
+  .auctionContent .button {
+    width: 100px;
+    color: #333 !important;
+    padding: 5px 20px;
+    font-size: 0.85em;
+    background-color: #f6f6f6 !important;
+    border: 1px solid #bbb;
+    border-radius: 3px;
+    box-shadow: inset 0 -1px 0 1px rgba(0, 0, 0, 0.1), inset 0 -10px 20px rgba(0, 0, 0, 0.1);
+    margin: 10px auto 0; }
+    .auctionContent .button:hover {
+      background-color: #ddd !important; }
+
 /* CMS */
 /*външни стилове за ширина*/
 .externalPage {
@@ -2914,12 +2965,16 @@ fieldset.sharing-history i {
   border: solid 1px #d8d8d8;
   text-shadow: 1px 1px 1px #ccc;
   display: inline-block;
-  margin-left: 5px;
+  margin-top: 3px;
   text-align: center;
   position: relative;
   top: -2px; }
   .option-not-in-stock.waitingDelivery {
     background-color: rgba(41, 86, 222, 0.8) !important; }
+
+.eshop-product-list-param {
+  font-size: 0.85em;
+  color: #333; }
 
 .small .colorBox {
   width: 12px !important;
@@ -3433,56 +3488,6 @@ table .eshop-btn {
   clear: both; }
 
 /*край на newsbar*/
-.auctionContent {
-  padding: 0 20px 10px; }
-  .auctionContent .listTable {
-    margin-top: 20px;
-    width: 100%; }
-    .auctionContent .listTable > tbody > tr > td {
-      padding: 10px !important;
-      vertical-align: top !important; }
-      .auctionContent .listTable > tbody > tr > td table {
-        width: 300px;
-        margin: 0 auto; }
-        .auctionContent .listTable > tbody > tr > td table td {
-          padding: 4px 5px 0; }
-        .auctionContent .listTable > tbody > tr > td table th {
-          color: #444;
-          padding-bottom: 5px;
-          border-bottom: 1px solid #ccc; }
-        .auctionContent .listTable > tbody > tr > td table .name {
-          text-align: right !important;
-          width: 1%;
-          padding-right: 20px; }
-        .auctionContent .listTable > tbody > tr > td table .quantityField {
-          text-align: right; }
-  .auctionContent .periodHead {
-    color: #495057;
-    background-color: #e9ecef;
-    border-color: #c7ced5;
-    padding: 5px 10px;
-    font-weight: bold; }
-  .auctionContent .priceBlock {
-    float: right; }
-  .auctionContent .newsCol {
-    background: #fafafa; }
-  .auctionContent .reservedCol {
-    background: #c7f3c7; }
-  .auctionContent .orderedCol {
-    background: #ffffbc; }
-  .auctionContent .button {
-    width: 100px;
-    color: #333 !important;
-    padding: 5px 20px;
-    font-size: 0.85em;
-    background-color: #f6f6f6 !important;
-    border: 1px solid #bbb;
-    border-radius: 3px;
-    box-shadow: inset 0 -1px 0 1px rgba(0, 0, 0, 0.1), inset 0 -10px 20px rgba(0, 0, 0, 0.1);
-    margin: 10px auto 0; }
-    .auctionContent .button:hover {
-      background-color: #ddd !important; }
-
 /*стилове за социални бутони*/
 .soc-sharing-holder {
   margin: 20px 0 15px;
@@ -4504,7 +4509,6 @@ div.location.public {
     width: 90px; }
 
 /*край на бъгфиксове*/
-
 /* Стилове за eshop */
 .eshop-group-holder {
   margin-bottom: 25px; }

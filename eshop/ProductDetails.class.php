@@ -339,7 +339,7 @@ class eshop_ProductDetails extends core_Detail
                     unset($row1->params);
                 } else {
                     if(!empty($row1->saleInfo)){
-                        $row1->productId .= "<span class='eshop-product-buy-sale-info'>{$row1->saleInfo}</span>";
+                        $row1->productId .= "<br> " . $row1->saleInfo;
                     }
                 }
                 $prev = strip_tags($row1->orderCode);
@@ -435,7 +435,7 @@ class eshop_ProductDetails extends core_Detail
                     $row->quantity = 1;
                     unset($row->btn);
                 } else {
-                    $row->saleInfo = "<span style='margin-right: 5px' class='{$class} option-not-in-stock waitingDelivery'>" . tr('Очаквана доставка') . '</span>';
+                    $row->saleInfo = "<span class='{$class} option-not-in-stock waitingDelivery'>" . tr('Очаквана доставка') . '</span>';
                 }
             }
         }
