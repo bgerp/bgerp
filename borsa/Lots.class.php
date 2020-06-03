@@ -395,14 +395,14 @@ class borsa_Lots extends core_Master
             
             $perRec = borsa_Periods::fetch(array("#lotId = '[#1#]' AND #from = '[#2#]' AND #to = '[#3#]'", $form->rec->lotId, $pArr[$pId]['bPeriod'], $pArr[$pId]['ePeriod']));
             
-            $pRow = new ET("<tr> <td colspan=3 class='periodHead'> [#DATE#] <span>[#PRICE#]</span> </td> </tr> <tr> <td> [#QUANTITY#] </td> <td> [#CBIDS#] </td> <td> [#QBIDS#] </td> </tr>");
-            
+            $pRow = new ET("<tr> <td colspan=3 class='periodHead'> [#DATE#] <span class='priceTag'>[#PRICE#]</span> </td> </tr> <tr> <td class='newsCol'> [#QUANTITY#] </td> <td class='reservedCol'> [#CBIDS#] </td> <td class='orderedCol'> [#QBIDS#] </td> </tr>");
+
             // Дата
             $pRow->replace($this->getPeriodVerb($pVal), 'DATE');
             
             // Цена
             $price = $this->fields['price']->type->toVerbal($pVal['price']);
-            $price = tr("Цена|*: {$price}<span class='cCode'>{$baseCurrencyCode}</span>") . ' <b>' . $sName . '</b> ' . tr('без ДДС');
+            $price =  "<div class='priceBlock'> {$price} <span class='small'>{$baseCurrencyCode}</span>" . ' за ' . $sName . " ". tr('без ДДС') . "</div>";
             $pRow->replace($price, 'PRICE');
             
             // Количества
@@ -418,22 +418,24 @@ class borsa_Lots extends core_Master
             $qFree = $perRec->qAvailable - $perRec->qConfirmed;
             $haveQuantity = ($qFree <= 0) ? false : true;
             $qFree = $this->fields['qFree']->type->toVerbal($qFree);
-            
-            $quantity = "<div>" . tr('Количества') . "</div>";
-            $quantity .= "<table>";
-            $quantity .= "<tr><td>" . tr('Оферирано') . "</td><td>" . $qAvailable . "</td></tr>";
-            $quantity .= "<tr><td>" . tr('Заявено') . "</td><td>" . $qBooked . "</td></tr>";
-            $quantity .= "<tr><td>" . tr('Потвърдено') . "</td><td>" . $qConfirmed . "</td></tr>";
-            $quantity .= "<tr><td>" . tr('Свободно') . "</td><td>" . $qFree . "</td></tr>";
+
+            $quantity = "<table>";
+            $quantity .= "<tr><th colspan='2'>" .  tr('Количества') . "</td></tr>";
+            $quantity .= "<tr><td class='name'>" . tr('Оферирано') . ":</td><td class='value'>" . $qAvailable . "</td></tr>";
+            $quantity .= "<tr><td class='name'>" . tr('Заявено') . ":</td><td class='value'>" . $qBooked . "</td></tr>";
+            $quantity .= "<tr><td class='name'>" . tr('Потвърдено') . ":</td><td class='value'>" . $qConfirmed . "</td></tr>";
+            $quantity .= "<tr><td class='name'>" . tr('Свободно') . ":</td><td class='value'>" . $qFree . "</td></tr>";
             $quantity .= "</table>";
             $pRow->replace($quantity, 'QUANTITY');
             
             // Потвърдени и заявени количества
-            $cBidsRows = "<div>" . tr('Потвърдени') . "</div>";
-            $cBidsRows .= '<table>';
+
+            $cBidsRows = '<table>';
+            $cBidsRows .= "<tr><th colspan='2'>" . tr('Потвърдени') . "</th></tr>";
             
-            $qBidsRows = "<div>" . tr('Заявени') . "</div>";
-            $qBidsRows .= '<table>';
+
+            $qBidsRows = '<table>';
+            $qBidsRows .= "<tr><th colspan='2'>" . tr('Заявени') . "</th></tr>";
             
             $bQuery = borsa_Bids::getQuery();
             $bQuery->where(array("#periodId = '[#1#]'", $perRec->id));
@@ -450,7 +452,7 @@ class borsa_Lots extends core_Master
                 
                 $v->quantity = ht::createHint($v->quantity, dt::mysql2verbal($bRec->createdOn, 'd.m.Y H:i:s'));
                 
-                $rowStr = "<tr><td>{$v->companyId}</td><td>{$v->quantity}</td></tr>";
+                $rowStr = "<tr><td>{$v->companyId}</td><td class='quantityField'>{$v->quantity}</td></tr>";
                 if ($bRec->state == 'draft') {
                     $qBidsRows .= $rowStr;
                 }
@@ -461,7 +463,7 @@ class borsa_Lots extends core_Master
             }
             
             if ($haveQuantity) {
-                $qBidsRows .= "<td colspan=2>" . ht::createBtn('Заяви', array($this, 'Bid', $form->rec->lotId, 'period' => $pId), false, false, 'title=Добавяне на заявка') . "<td>";
+                $qBidsRows .= "<tr><td colspan=2 align='center'>" . ht::createBtn('Заяви', array($this, 'Bid', $form->rec->lotId, 'period' => $pId), false, false, 'title=Добавяне на заявка') . "</td></tr>";
             }
             
             $qBidsRows .= '</table>';
@@ -648,7 +650,7 @@ class borsa_Lots extends core_Master
         if(Mode::is('screenMode', 'narrow')) {
             $layout = getTplFromFile('cms/themes/default/ArticlesNarrow.shtml');
         } else {
-            $layout = getTplFromFile('cms/themes/default/Articles.shtml');
+            $layout = getTplFromFile('borsa/tpl/content.shtml');
         }
         
         $layout->replace($tpl, 'PAGE_CONTENT');
