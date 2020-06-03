@@ -288,7 +288,8 @@ class cms_FancyTheme extends core_ProtoInner
 
 
         $conf = core_Packs::getConfig('core');
-        $hImage = ht::createElement('img', array('src' => $imageURL, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg'));
+        if($imageURL)
+            $hImage = ht::createElement('img', array('src' => $imageURL, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg'));
 
         return $hImage;
     }
