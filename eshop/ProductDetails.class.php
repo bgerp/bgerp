@@ -294,10 +294,6 @@ class eshop_ProductDetails extends core_Detail
             $newRec = (object) array('eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'title' => $rec->title, 'deliveryTime' => $rec->deliveryTime);
             $packagins = keylist::toArray($rec->packagings);
             
-            // Кои параметри ще се показват
-            $params = cat_Products::getParams($rec->productId, null, true);
-            $intersect = array_intersect_key($params, $displayParams);
-            
             // Всяка от посочените опаковки се разбива във отделни редове
             $i = 1;
             foreach ($packagins as $packagingId) {
@@ -308,12 +304,8 @@ class eshop_ProductDetails extends core_Detail
                 $clone->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
                 
                 $row = self::getExternalRow($clone);
-                if(countR($intersect)){
-                    foreach ($intersect as $paramId => $pVal) {
-                        $paramName = cat_Params::getVerbal($paramId, 'typeExt');
-                        $row->params .= "<div class='eshop-product-list-param'>{$paramName}: {$pVal}</div>";
-                    }
-                }
+                $paramsText = eshop_CartDetails::getUniqueParamsAsText($rec->eshopProductId, $rec->productId);
+                $row->paramsText = $paramsText;
                 
                 $data->recs[] = $clone;
                 $data->rows[] = $row;
@@ -339,6 +331,10 @@ class eshop_ProductDetails extends core_Detail
                     unset($row1->params);
                     $row1->ROW_ATTR['class'] = "no-product-rows";
                 } else {
+                    if (!empty($row1->paramsText)) {
+                        $row1->productId .= "<br><span class='eshop-product-list-param'>{$row1->paramsText}</span>";
+                    }
+                    
                     if(!empty($row1->saleInfo)){
                         $row1->productId .= "<br> " . $row1->saleInfo;
                     }
@@ -478,9 +474,6 @@ class eshop_ProductDetails extends core_Detail
         }
         
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'params');
-        
-        $listFields = &$data->listFields;
-        array_walk(array_keys($data->commonParams), function($paramId) use (&$listFields){unset($listFields["param{$paramId}"]);});
         
         $settings = cms_Domains::getSettings();
         $tpl->append($table->get($data->rows, $data->listFields));

@@ -442,7 +442,7 @@ class eshop_CartDetails extends core_Detail
             $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
         
             // Показване на уникалните параметри под името на артикула
-            $paramsText = self::getUniqueParamsAsText($rec);
+            $paramsText = self::getUniqueParamsAsText($rec->eshopProductId, $rec->productId);
             if (!empty($paramsText)) {
                 $row->productId .= "<br><span class='eshop-product-list-param'>{$paramsText}";
             }
@@ -728,14 +728,14 @@ class eshop_CartDetails extends core_Detail
      *
      * @return string $str
      */
-    public static function getUniqueParamsAsText($rec, $asRichText = false)
+    public static function getUniqueParamsAsText($eshopProductId, $productId, $asRichText = false)
     {
-        $displayParams = eshop_Products::getParamsToDisplay($rec->eshopProductId);
-        $commonParams = eshop_Products::getCommonParams($rec->eshopProductId);
-        $productParams = cat_Products::getParams($rec->productId, null, true);
+        $displayParams = eshop_Products::getParamsToDisplay($eshopProductId);
+        $commonParams = eshop_Products::getCommonParams($eshopProductId);
+        $productParams = cat_Products::getParams($productId, null, true);
         
         if($asRichText){
-            $pureParams = cat_Products::getParams($rec->productId);
+            $pureParams = cat_Products::getParams($productId);
             $fileTypes = array(cond_type_File::getClassId(), cond_type_Image::getClassId());
         }
         

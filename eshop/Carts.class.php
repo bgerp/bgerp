@@ -901,7 +901,7 @@ class eshop_Carts extends core_Master
                 $price /= 1 + $dRec->vat;
             }
             
-            $paramsText = eshop_CartDetails::getUniqueParamsAsText($dRec, true);
+            $paramsText = eshop_CartDetails::getUniqueParamsAsText($dRec->eshopProductId, $dRec->productId, true);
             $notes = (!empty($paramsText)) ? $paramsText : null;
             
             $price = currency_CurrencyRates::convertAmount($price, null, $dRec->currencyId);
