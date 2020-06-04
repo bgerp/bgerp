@@ -180,7 +180,6 @@
             	<!--ET_BEGIN amount-->
                <tr>
                   <td class="aright">|Сума|*: </td>
-                  <td class="aright"><span class='cCode' style='font-weight:normal'>[#amountCurrencyId#]</span></td>
                   <td class="aright"><b>[#amount#]</b></td>
                </tr>
                <!--ET_END amount-->
@@ -189,9 +188,6 @@
                   <!--ET_BEGIN deliveryCaption-->
                   <td class="aright">[#deliveryCaption#]: </td>
                   <!--ET_END deliveryCaption-->
-                  <!--ET_BEGIN deliveryCurrencyId-->
-                  <td class="aright"><span class='cCode' style='font-weight:normal;'>[#deliveryCurrencyId#]</span></td>
-                  <!--ET_END deliveryCurrencyId-->
                   <td class="aright" [#deliveryColspan#]><b>[#deliveryAmount#]</b></td>
                </tr>
                <!--ET_END deliveryAmount-->
@@ -205,7 +201,6 @@
                <!--ET_BEGIN total-->
                <tr>
                   <td class="aright"><b style='font-size:1.2em'>|Общо|*</b>: </td>
-                  <td class="aright"><span class='cCode' style='font-weight:normal'>[#currencyId#]</span></td>
                   <td class="aright"><b>[#total#]</b></td>
                </tr>
                <!--ET_END total-->

@@ -396,6 +396,8 @@ class eshop_ProductDetails extends core_Detail
                 if (isset($discountType['amount'])) {
                     $amountWithoutDiscount = $catalogPriceInfo->price / (1 - $catalogPriceInfo->discount);
                     $discountAmount = core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutDiscount);
+                    $discountAmount = currency_Currencies::decorate($discountAmount, $settings->currencyId);
+                    
                     $row->catalogPrice .= "<div class='{$class} external-discount-amount' {$style}> {$discountAmount}</div>";
                 }
                 

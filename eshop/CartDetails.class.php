@@ -427,8 +427,9 @@ class eshop_CartDetails extends core_Detail
             $settings = cms_Domains::getSettings();
             $finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, null, $rec->currencyId, $settings->currencyId);
             $row->finalPrice = core_Type::getByName('double(smartRound)')->toVerbal($finalPrice);
+            $row->finalPrice = currency_Currencies::decorate($row->finalPrice, $settings->currencyId);
             
-            if ($rec->oldPrice) {
+            if ($rec->oldPrice) { 
                 $difference = round($rec->finalPrice, 2) - round($rec->oldPrice, 2);
                 $caption = ($difference > 0) ? 'увеличена' : 'намалена';
                 $difference = abs($difference);
@@ -440,7 +441,8 @@ class eshop_CartDetails extends core_Detail
             
             $amount = currency_CurrencyRates::convertAmount($rec->amount, null, $rec->currencyId, $settings->currencyId);
             $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
-        
+            $row->amount = currency_Currencies::decorate($row->amount, $settings->currencyId);
+            
             // Показване на уникалните параметри под името на артикула
             $paramsText = self::getUniqueParamsAsText($rec->eshopProductId, $rec->productId);
             if (!empty($paramsText)) {
@@ -449,8 +451,6 @@ class eshop_CartDetails extends core_Detail
             
             deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
             $row->productId .= " ({$row->packagingId})</span>";
-
-
         }
         
         $url = eshop_Products::getUrl($rec->eshopProductId);

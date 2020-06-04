@@ -441,7 +441,6 @@ class tcost_FeeZones extends core_Master
         $settings = cms_Domains::getSettings();
         
         if(!empty($settings->freeDelivery) && $cartRec->haveOnlyServices != 'yes'){
-            $cartRow->freeDeliveryCurrencyId = $settings->currencyId;
             $deliveryAmount = $settings->freeDelivery;
             
             if($cartRec->freeDelivery != 'yes'){
@@ -460,8 +459,9 @@ class tcost_FeeZones extends core_Master
             }
             
             $cartRow->freeDelivery = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
+            $cartRow->freeDelivery = currency_Currencies::decorate($cartRow->freeDelivery, $settings->currencyId);
+            
             $block->append($cartRow->freeDelivery, 'freeDelivery');
-            $block->append($cartRow->freeDeliveryCurrencyId, 'freeDeliveryCurrencyId');
             
             $tpl->append($block, 'CART_FOOTER');
         }
