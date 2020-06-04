@@ -145,6 +145,12 @@ class eshop_ProductDetails extends core_Detail
             $productRec = cat_Products::fetch($rec->productId, 'canStore,measureId');
             if ($productRec->canStore == 'yes') {
                 $packs = cat_Products::getPacks($rec->productId);
+                
+                $allowedPacks = eshop_Products::getSettingField($rec->eshopProductId, null, 'showPacks');
+                if(countR($allowedPacks)){
+                    $packs = array_intersect_key($packs, $allowedPacks);
+                }
+                
                 $form->setSuggestions('packagings', $packs);
                 $form->setDefault('packagings', keylist::addKey('', key($packs)));
             } else {
