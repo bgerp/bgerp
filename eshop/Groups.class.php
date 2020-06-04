@@ -154,11 +154,10 @@ class eshop_Groups extends core_Master
             $cQuery->where("#id != {$menuId}");
         }
         
+        $menuArr = array();
         while ($cRec = $cQuery->fetch()) {
             $menuArr[$cRec->id] = cms_Content::getVerbal($cRec, 'menu') . ' (' . cms_Content::getVerbal($cRec, 'domainId') . ')';
         }
-        
-        
         $data->form->setSuggestions('sharedMenus', $menuArr);
         
         $cQuery = cms_Content::getQuery();
@@ -212,9 +211,9 @@ class eshop_Groups extends core_Master
         }
         
         if ($form->rec->menuId) {
-            $data->query->where(array("#menuId = '[#1#]'", $form->rec->menuId));
+            $data->query->where(array("#menuId = '[#1#]' OR #sharedMenus LIKE '%|[#1#]|%'", $form->rec->menuId));
+            $data->query->XPR('_isShared', 'enum(no,yes)', "(CASE #menuId WHEN {$form->rec->menuId} THEN 'no' ELSE 'yes' END)");
         }
-        
         
         $data->query->orderBy('#menuId');
     }
@@ -232,6 +231,11 @@ class eshop_Groups extends core_Master
             if (haveRole('powerUser') && $rec->state != 'closed') {
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $row->_rowTools->addLink('Преглед', self::getUrl($rec), 'alwaysShow,ef_icon=img/16/monitor.png,title=Преглед във външната част');
+            }
+            
+            if($rec->_isShared == 'yes'){
+                $row->ROW_ATTR['class'] = "state-pending";
+                $row->name = ht::createHint($row->name, "Групата е споделена към менюто", 'notice', false);
             }
         }
         
