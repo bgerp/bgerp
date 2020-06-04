@@ -399,8 +399,18 @@ class label_Prints extends core_Master
             $estCnt = $intfInst->getLabelEstimatedCnt($objId);
         }
         
-        if (!$estCnt && $rec->mediaId) {
-            $estCnt = label_Media::getCountInPage($rec->mediaId);
+        if(isset($rec->mediaId)){
+            if($estCnt){
+                
+                // Допълване на бройката на етикетите
+                $mediaColumnsCount = label_Media::fetchField($rec->mediaId, 'columnsCnt');
+                $rest = $estCnt % $mediaColumnsCount;
+                if(!empty($rest)){
+                    $estCnt = $estCnt + ($mediaColumnsCount - $rest);
+                }
+            } else {
+                $estCnt = label_Media::getCountInPage($rec->mediaId);
+            }
         }
         
         setIfNot($estCnt, 1);
