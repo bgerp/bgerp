@@ -236,6 +236,9 @@ class eshop_Groups extends core_Master
             
             if($rec->_isShared == 'yes'){
                 $row->name = ht::createHint($row->name, "Групата е споделена към менюто", 'notice', false);
+                $otherDomainId = cms_Content::fetchField($rec->menuId, 'domainId');
+                $otherDomainName = cms_Domains::getTitleById($otherDomainId);
+                $row->menuId .= " [<span style='color:green'>{$otherDomainName}</span>]";
             }
             
             $productCnt = eshop_Products::count("#groupId = {$rec->id} OR #sharedInGroups LIKE '%|{$rec->id}|%'");
