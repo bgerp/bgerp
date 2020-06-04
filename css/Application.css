@@ -4559,6 +4559,9 @@ div.location.public {
 .paramsTable {
   margin-top: 10px; }
 
+.eshop-product .richtext ul {
+  margin-bottom: 10px; }
+
 .eshop-product-labels .info {
   -moz-border-radius: 3px;
   -webkit-border-radius: 3px;
