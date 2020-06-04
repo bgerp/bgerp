@@ -218,7 +218,7 @@ class cms_FancyTheme extends core_ProtoInner
     {
         $imgs = array();
         if (!Mode::is('screenMode', 'narrow')) {
-            if ((core_Users::isContractor() || (!core_Users::getCurrent('id', false) && Request::get('Act') == 'login')) && $this->innerForm->colabImg) {
+            if (core_Users::isContractor()) {
                 $img = new thumb_Img(array($this->innerForm->colabImg, 1000, 150, 'fileman', 'isAbsolute' => true,'mode' => 'large-no-change'));
                 $imageURL = $img->getUrl('forced');
             } else {
