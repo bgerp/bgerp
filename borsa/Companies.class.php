@@ -59,13 +59,14 @@ class borsa_Companies extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'borsa_Wrapper, plg_Created, plg_Modified';
+    public $loadList = 'borsa_Wrapper, plg_Created, plg_Modified, plg_RowTools2, plg_Sorting';
     
     
     public function description()
     {
         $this->FLD('companyId', 'key(mvc=crm_Companies, allowEmpty, restrictViewAccess=no)', 'caption=Фирма,removeAndRefreshForm=email,mandatory,silent');
         $this->FLD('email', 'email', 'caption=Имейл,mandatory');
+        $this->FLD('allowedLots', 'keylist(mvc=borsa_Lots,select=productName,allowEmpty)', 'caption=Търгове');
         
         $this->FNC('url', 'url');
         $this->FNC('name', 'varchar');

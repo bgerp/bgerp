@@ -100,7 +100,7 @@ class borsa_Lots extends core_Master
         $this->FLD('basePrice', 'double(smartRound,decimals=2)', 'caption=Базова цена,mandatory');
         $this->FNC('quantity', 'double(min=0)', 'caption=Количество,hint=Количество по подразбиране за офериране,input');
         $this->FLD('priceChange', 'table(columns=period|priceChange,captions=Период|Промяна %,validate=borsa_Lots::priceChangeValidate, period_opt=|01|02|03|04|05|06|07|08|09|10|11|12)', 'caption=Промяна на цена');
-        
+        $this->FLD('canConfirm', 'userList(roles=sales)', array('caption' => 'Потребители, които могат да одобряват заявките->Потребители'));
         
         $this->FNC('productName', 'varchar');
         
@@ -265,6 +265,8 @@ class borsa_Lots extends core_Master
         
         if(!self::haveRightFor('list')) {
             
+            $me->setAllowedProdIds($data['id']);
+            
             if (Mode::get($me->profileModeName) != $data['id']) {
                 Mode::setPermanent($me->profileModeName, $data['id']);
                 
@@ -276,8 +278,6 @@ class borsa_Lots extends core_Master
                                 status_Messages::newStatus($status);
                                 vislog_History::add('Логване в борсата');
             }
-            
-            $me->setAllowedProdIds($data['id']);
         }
         
         redirect(array('borsa_Lots', 'Show'));
@@ -395,7 +395,7 @@ class borsa_Lots extends core_Master
             
             $perRec = borsa_Periods::fetch(array("#lotId = '[#1#]' AND #from = '[#2#]' AND #to = '[#3#]'", $form->rec->lotId, $pArr[$pId]['bPeriod'], $pArr[$pId]['ePeriod']));
             
-            $pRow = new ET("<tr> <td colspan=3 class='periodHead'> [#DATE#] <span class='priceTag'>[#PRICE#]</span> </td> </tr> <tr> <td class='newsCol'> [#QUANTITY#] </td> <td class='reservedCol'> [#CBIDS#] </td> <td class='orderedCol'> [#QBIDS#] </td> </tr>");
+            $pRow = new ET("<tr> <td colspan=3 class='periodHead'> [#DATE#] <span class='priceTag'>[#PRICE#]</span> </td> </tr> <tr> <td class='newsCol'> [#QUANTITY#] </td> <td class='reservedCol'> [#CBIDS#] </td> <td class='orderedCol' id='pId{$pId}'> [#QBIDS#] </td> </tr>");
 
             // Дата
             $pRow->replace($this->getPeriodVerb($pVal), 'DATE');
@@ -477,6 +477,17 @@ class borsa_Lots extends core_Master
         
         $tpl->append($table);
         
+        $pId = Request::get('flash');
+        if ($pId) {
+            jquery_Jquery::run($tpl, "flashDocInterpolation('{$pId}');", true);
+        }
+        
+        Mode::push('text', 'xhtml');
+        $dDesc = cat_Products::getAutoProductDesc($lRec->productId, null, 'detailed', 'public', core_Lg::getCurrent());
+        Mode::pop('text');
+        $dDesc = "<div>{$dDesc}</div>";
+        $tpl->prepend($dDesc);
+        
         return $this->getExternalLayout($tpl, $data->pageTitle);
     
     }
@@ -523,7 +534,7 @@ class borsa_Lots extends core_Master
         
         $form->setReadOnly('price', $pArr[$period]['price']);
         
-        $retUrl = array($this, 'Show', 'lotId' => $id);
+        $retUrl = array($this, 'Show', 'lotId' => $id, 'flash' => 'pId' . $period, '#' => 'pId' . $period);
         
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Подаване на оферта');
         $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
@@ -549,11 +560,13 @@ class borsa_Lots extends core_Master
             return new Redirect($retUrl, '|Успешно добавихте заявка');
         }
         
-        $form->title = 'Добавяне на оферта за|* ' . $this->getPeriodVerb($pArr[$period]);
+        $form->title = 'Добавяне на оферта за периода|* ' . $this->getPeriodVerb($pArr[$period]);
         
         $form->info = '<b>' . tr(borsa_Setup::get('ADD_BID_INFO')) . '</b>';
         
-        return $this->getExternalLayout($form->renderHtml(), $data->pageTitle);
+        $tpl = $form->renderHtml();
+        
+        return $this->getExternalLayout($tpl, $data->pageTitle);
     
     }
     
@@ -573,13 +586,15 @@ class borsa_Lots extends core_Master
         
         $cRec = borsa_Companies::fetch($cId);
         
+        expect($cRec);
+        
         $qProd = borsa_Lots::getQuery();
         $qProd->where("#state != 'rejected'");
         
         $qProd->show('productId');
         
-        if ($cRec->allowedProducts) {
-            $qProd->in('productId', $cRec->allowedProducts);
+        if ($cRec->allowedLots) {
+            $qProd->in('id', type_Keylist::toArray($cRec->allowedLots));
         }
         
         $resArr = array();

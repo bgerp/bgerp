@@ -61,6 +61,12 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     
     
     /**
+     * Кой има право да подменя артикула?
+     */
+    public $canReplaceproduct = 'ceo,planning,store';
+    
+    
+    /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo,planning,store';
