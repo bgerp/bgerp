@@ -300,7 +300,7 @@ class borsa_Bids extends core_Manager
             if (!$sRec) {
                 $form->setError('saleIdInt', 'Не е открита такава продажба');
             } elseif ($sRec->state != 'active') {
-                $form->setError('saleIdInt', 'Тази продажба не е контирана');
+                $form->setWarning('saleIdInt', 'Тази продажба не е контирана');
             }
         }
         
