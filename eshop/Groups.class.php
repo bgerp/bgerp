@@ -43,7 +43,7 @@ class eshop_Groups extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Име,menuId=Меню->Основно,sharedMenus=Меню->Други,productCnt=Продукти,state=Видимост';
+    public $listFields = 'name=Име,menuId=Меню->Основно,sharedMenus=Меню->Споделяне||Shared,productCnt=Продукти,state=Видимост';
     
     
     /**
