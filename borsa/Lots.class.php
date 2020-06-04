@@ -77,6 +77,12 @@ class borsa_Lots extends core_Master
     
     
     /**
+     * През колко време да се обновява по AJAX
+     */
+    protected $lotAjaxRefreshTime = 5000;
+    
+    
+    /**
      * Кой може да променя състоянието на документите
      *
      * @see plg_State2
@@ -340,8 +346,6 @@ class borsa_Lots extends core_Master
         
         $form->FNC('lotId', 'key(mvc=borsa_Lots, select=productName)', 'input,caption=Продукт,removeAndRefreshForm,silent,submitFormOnRefresh');
         
-        $form->formAttr['submitFormOnRefresh'] = 'submitFormOnRefresh';
-        
         // Показваме само позволените продукти, към този потребител
         $prodOptArr = $this->getAllowedProdId($cId);
         if ($prodOptArr) {
@@ -360,6 +364,20 @@ class borsa_Lots extends core_Master
         $form->fields['lotId']->type->options = $nProdArr;
         
         $form->input('lotId', true);
+        
+        $ajaxMode = Request::get('ajax_mode');
+        
+        if ($ajaxMode) {
+            // След рефрешване на формата по AJAX, форсираме рефрешването на елементите
+            $url = getCurrentUrl();
+            $url['lotId'] = $form->rec->lotId;
+            $localUrl = toUrl($url, 'local');
+            $localUrl = urlencode($localUrl);
+            
+            // Добавяме стринга, който субскрайбва съответното URL
+            jquery_Jquery::run($form->layout, "getEfae().subscribe('updateLots', '{$localUrl}', {$this->lotAjaxRefreshTime});", true);
+            jquery_Jquery::run($form->layout, "getEfae().process({updateLots: '{$localUrl}'});", true);
+        }
         
         $tpl = $form->renderHtml();
         
@@ -387,7 +405,7 @@ class borsa_Lots extends core_Master
             }
         }
         
-        $table = new ET('<table class="listTable"> [#PERIOD#] </table>');
+        $table = new ET('<table class="listTable" id="lotTable"> [#PERIOD#] </table>');
         
         // За всеки период, добавяме по един ред в таблицата
         $pArr = $this->getPeriods($form->rec->lotId);
@@ -475,6 +493,14 @@ class borsa_Lots extends core_Master
             $table->append($pRow, 'PERIOD');
         }
         
+        // Добавяме описание на продукта
+        Mode::push('text', 'xhtml');
+        $dDesc = cat_Products::getAutoProductDesc($lRec->productId, null, 'detailed', 'public', core_Lg::getCurrent());
+        Mode::pop('text');
+        $dDesc = "<div id='prodDesc'>{$dDesc}</div>";
+        $tpl->append($dDesc);
+        
+        // Добавяме таблица
         $tpl->append($table);
         
         $pId = Request::get('flash');
@@ -482,13 +508,22 @@ class borsa_Lots extends core_Master
             jquery_Jquery::run($tpl, "flashDocInterpolation('{$pId}');", true);
         }
         
-        Mode::push('text', 'xhtml');
-        $dDesc = cat_Products::getAutoProductDesc($lRec->productId, null, 'detailed', 'public', core_Lg::getCurrent());
-        Mode::pop('text');
-        $dDesc = "<div>{$dDesc}</div>";
-        $tpl->prepend($dDesc);
+        $tpl = $this->getExternalLayout($tpl, $data->pageTitle);
         
-        return $this->getExternalLayout($tpl, $data->pageTitle);
+        if ($ajaxMode) {
+            // По AJAX подменяме само някои от елементите
+            $res = array();
+            $resObj = new stdClass();
+            $resObj->func = 'replaceById';
+            $resObj->arg = array('html' => (string) $tpl, 'Ids' => 'lotTable,prodDesc');
+            
+            core_App::outputJson(array($resObj));
+        } else {
+            $url = getCurrentUrl();
+            core_Ajax::subscribe($tpl, $url, 'updateLots', $this->lotAjaxRefreshTime);
+        }
+        
+        return $tpl;
     
     }
     
