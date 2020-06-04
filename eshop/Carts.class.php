@@ -901,7 +901,7 @@ class eshop_Carts extends core_Master
                 $price /= 1 + $dRec->vat;
             }
             
-            $paramsText = eshop_CartDetails::getUniqueParamsAsText($dRec, true);
+            $paramsText = eshop_CartDetails::getUniqueParamsAsText($dRec->eshopProductId, $dRec->productId, true);
             $notes = (!empty($paramsText)) ? $paramsText : null;
             
             $price = currency_CurrencyRates::convertAmount($price, null, $dRec->currencyId);
@@ -1461,7 +1461,7 @@ class eshop_Carts extends core_Master
         
         $amountWithoutDelivery = ($settings->chargeVat == 'yes') ? $total : $totalNoVat;
         $row->total = $Double->toVerbal($total);
-        $row->currencyId = $settings->currencyId;
+        $row->total = currency_Currencies::decorate($row->total, $settings->currencyId);
         
         // Ако има доставка се показва и нея
         if (isset($rec->deliveryNoVat) && $rec->deliveryNoVat >= 0) {
@@ -1487,15 +1487,16 @@ class eshop_Carts extends core_Master
                 $totalNoVat -= $deliveryAmount;
                 
                 $deliveryAmountV = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
+                $deliveryAmountV = currency_Currencies::decorate($deliveryAmountV, $settings->currencyId);
                 $row->deliveryAmount = $deliveryAmountV;
             }
         }
         
         $row->amount = $Double->toVerbal($amountWithoutDelivery);
+        $row->amount = currency_Currencies::decorate($row->amount, $settings->currencyId);
         $row->amountCurrencyId = $row->currencyId;
         
         if ($settings->chargeVat != 'yes') {
-            $row->vatCurrencyId = $row->currencyId;
             $row->totalVat = $Double->toVerbal($vatAmount);
         }
         
@@ -1647,6 +1648,7 @@ class eshop_Carts extends core_Master
                 if (isset($discountType['amount'])) {
                     $amountWithoutDiscount = $dRec->finalPrice / (1 - $dRec->discount);
                     $discountAmount = core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutDiscount);
+                    $discountAmount = currency_Currencies::decorate($discountAmount, $settings->currencyId);
                     $row->finalPrice .= "<div class='external-discount-amount'> {$discountAmount}</div>";
                 }
                 

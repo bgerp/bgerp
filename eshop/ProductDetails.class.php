@@ -9,7 +9,7 @@
  * @package   eshop
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -277,9 +277,6 @@ class eshop_ProductDetails extends core_Detail
     {
         $data->rows = $data->recs = array();
         
-        // Добавяне към колонките по една за всеки параметър
-        $displayParams = eshop_Products::getParamsToDisplay($data->rec->id);
-        
         $data->listFields = arr::make('code=Код,productId=Артикул,params=Параметри,packagingId=Опаковка,quantity=Количество,catalogPrice=Цена');
         $fields = cls::get(get_called_class())->selectFields();
         $fields['-external'] = $fields;
@@ -294,10 +291,6 @@ class eshop_ProductDetails extends core_Detail
             $newRec = (object) array('eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'title' => $rec->title, 'deliveryTime' => $rec->deliveryTime);
             $packagins = keylist::toArray($rec->packagings);
             
-            // Кои параметри ще се показват
-            $params = cat_Products::getParams($rec->productId, null, true);
-            $intersect = array_intersect_key($params, $displayParams);
-            
             // Всяка от посочените опаковки се разбива във отделни редове
             $i = 1;
             foreach ($packagins as $packagingId) {
@@ -308,12 +301,8 @@ class eshop_ProductDetails extends core_Detail
                 $clone->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
                 
                 $row = self::getExternalRow($clone);
-                if(countR($intersect)){
-                    foreach ($intersect as $paramId => $pVal) {
-                        $paramName = cat_Params::getVerbal($paramId, 'typeExt');
-                        $row->params .= "<div class='eshop-product-list-param'>{$paramName}: {$pVal}</div>";
-                    }
-                }
+                $paramsText = eshop_CartDetails::getUniqueParamsAsText($rec->eshopProductId, $rec->productId);
+                $row->paramsText = $paramsText;
                 
                 $data->recs[] = $clone;
                 $data->rows[] = $row;
@@ -339,6 +328,10 @@ class eshop_ProductDetails extends core_Detail
                     unset($row1->params);
                     $row1->ROW_ATTR['class'] = "no-product-rows";
                 } else {
+                    if (!empty($row1->paramsText)) {
+                        $row1->productId .= "<br><span class='eshop-product-list-param'>{$row1->paramsText}</span>";
+                    }
+                    
                     if(!empty($row1->saleInfo)){
                         $row1->productId .= "<br> " . $row1->saleInfo;
                     }
@@ -403,6 +396,8 @@ class eshop_ProductDetails extends core_Detail
                 if (isset($discountType['amount'])) {
                     $amountWithoutDiscount = $catalogPriceInfo->price / (1 - $catalogPriceInfo->discount);
                     $discountAmount = core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutDiscount);
+                    $discountAmount = currency_Currencies::decorate($discountAmount, $settings->currencyId);
+                    
                     $row->catalogPrice .= "<div class='{$class} external-discount-amount' {$style}> {$discountAmount}</div>";
                 }
                 
@@ -478,10 +473,6 @@ class eshop_ProductDetails extends core_Detail
         }
         
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'params');
-        
-        $listFields = &$data->listFields;
-        array_walk(array_keys($data->commonParams), function($paramId) use (&$listFields){unset($listFields["param{$paramId}"]);});
-        
         $settings = cms_Domains::getSettings();
         $tpl->append($table->get($data->rows, $data->listFields));
         

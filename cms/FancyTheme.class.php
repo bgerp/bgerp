@@ -39,11 +39,11 @@ class cms_FancyTheme extends core_ProtoInner
      */
     public function addEmbeddedFields(core_FieldSet &$form)
     {
-        $form->FLD('wImg1', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (2000x300px)->Изображение 1');
-        $form->FLD('wImg2', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (2000x300px)->Изображение 2');
-        $form->FLD('wImg3', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (2000x300px)->Изображение 3');
-        $form->FLD('wImg4', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (2000x300px)->Изображение 4');
-        $form->FLD('wImg5', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (2000x300px)->Изображение 5');
+        $form->FLD('wImg1', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 1');
+        $form->FLD('wImg2', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 2');
+        $form->FLD('wImg3', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 3');
+        $form->FLD('wImg4', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 4');
+        $form->FLD('wImg5', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 5');
         $form->FLD('colabImg', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Картинка за логин и при колаборатор (1000x150px)->Изображение');
 
         $form->FLD('fadeDelay', 'int', 'caption=Превключване на картинките->Задържане,suggestions=3000|5000|7000');
@@ -240,7 +240,7 @@ class cms_FancyTheme extends core_ProtoInner
                     foreach ($imgs as $iHash) {
                         $img = new thumb_Img(array($iHash, 1000, 288, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                         $imageURL = $img->getUrl('forced');
-                        $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 2000, 'height' => 300, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
+                        $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1200, 'height' => 220, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
                         $banner .= "\n{$hImage}";
                         $style = 'display:none;';
                     }
@@ -276,7 +276,7 @@ class cms_FancyTheme extends core_ProtoInner
             
             if ($img) {
                 if (!Mode::is('screenMode', 'narrow')) {
-                    $img = new thumb_Img(array($img, 2000, 300, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
+                    $img = new thumb_Img(array($img, 1200, 220, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                 } else {
                     $img = new thumb_Img(array($img, 360, 104, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                 }
@@ -285,11 +285,13 @@ class cms_FancyTheme extends core_ProtoInner
             }
         }
 
-
-
         $conf = core_Packs::getConfig('core');
-        $hImage = ht::createElement('img', array('src' => $imageURL, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg'));
-
-        return $hImage;
+        if($imageURL){
+            $hImage = ht::createElement('img', array('src' => $imageURL, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg'));
+        
+            return $hImage;
+        }
+        
+        return null;
     }
 }

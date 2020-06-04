@@ -60,6 +60,7 @@ class rack_Setup extends core_ProtoSetup
         'rack_ZoneGroups',
         'rack_Zones',
         'rack_ZoneDetails',
+        'rack_OccupancyOfRacks',
         'migrate::truncateOldRecs',
         'migrate::deleteOldPlugins',
         'migrate::updateNoBatchRackDetails2',
@@ -107,6 +108,16 @@ class rack_Setup extends core_ProtoSetup
             'action' => 'update',
             'period' => 60,
             'offset' => 55,
+            'timeLimit' => 20,
+            'delay' => 0,
+        ),
+        
+        array(
+            'systemId' => 'Get occupancy of racks',
+            'description' => 'Запис на текущото състояние на стелажите',
+            'controller' => 'rack_OccupancyOfRacks',
+            'action' => 'GetOccupancyOfRacks',
+            'period' => 1440,
             'timeLimit' => 20,
             'delay' => 0,
         )
