@@ -219,7 +219,6 @@ class label_Prints extends core_Master
         // Ако е подаден клас и обект
         $classId = $rec->classId;
         $objId = $rec->objectId;
-        $templateId = $rec->templateId;
         
         $labelDataArr = array();
         
@@ -252,6 +251,7 @@ class label_Prints extends core_Master
                 return followRetUrl(null, '|Няма шаблон, който да се използва', 'error');
             }
             
+            $optArr = array();
             foreach ($templatesArr as $tRec) {
                 $template = label_Templates::getTemplate($tRec->id);
                 $templatePlaceArr = label_Templates::getPlaceHolders($template);
@@ -1349,9 +1349,6 @@ class label_Prints extends core_Master
         // Ще се принтира
         Mode::set('wrapper', 'page_Print');
         Mode::set('printing');
-        
-        $data = new stdClass();
-        
         $pData = $this->getLabelDataFromRec($rec);
         
         // Ако са зададени страниците, които да се отпечата, подготвяме само тях
