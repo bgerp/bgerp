@@ -9,7 +9,7 @@
  * @package   eshop
  *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -43,7 +43,7 @@ class eshop_Groups extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Име,menuId=Меню,productCnt=Продукти,state=Видимост';
+    public $listFields = 'name=Име,menuId=Меню->Основно,sharedMenus=Меню->Други,productCnt=Продукти,state=Видимост';
     
     
     /**
@@ -234,9 +234,12 @@ class eshop_Groups extends core_Master
             }
             
             if($rec->_isShared == 'yes'){
-                $row->ROW_ATTR['class'] = "state-pending";
                 $row->name = ht::createHint($row->name, "Групата е споделена към менюто", 'notice', false);
             }
+            
+            $productCnt = eshop_Products::count("#groupId = {$rec->id} OR #sharedInGroups LIKE '%|{$rec->id}|%'");
+            $row->productCnt = $mvc->getFieldType('productCnt')->toVerbal($productCnt);
+            $row->productCnt = ht::createLinkRef($row->productCnt, array('eshop_Products', 'list', 'groupId' => $rec->id));
         }
         
         $row->perPage = !empty($rec->perPage) ? $row->perPage : ht::createHint(eshop_Setup::get('PRODUCTS_PER_PAGE'), 'Стойност по подразбиране');
@@ -470,7 +473,7 @@ class eshop_Groups extends core_Master
         $classId = core_Classes::getId($mvc->className);
         
         while ($rec = $cQuery->fetch("#source = {$classId} AND #state = 'active'")) {
-            $data->toolbar->addBtn(type_Varchar::escape($rec->menu), array('eshop_Groups', 'ShowAll', 'cMenuId' => $rec->id, 'PU' => 1));
+            $data->toolbar->addBtn(type_Varchar::escape($rec->menu), array('eshop_Groups', 'ShowAll', 'cMenuId' => $rec->id, 'PU' => 1), 'ef_icon=img/16/monitor.png,title=Преглед на артикулите в менюто');
         }
     }
     
