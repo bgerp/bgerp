@@ -722,10 +722,11 @@ class eshop_CartDetails extends core_Detail
     
     /**
      * Кои са уникалните параметри на артикула като текст
-     *
-     * @param stdClass $rec
+     * 
+     * @param int $eshopProductId
+     * @param int $productId
      * @param boolean $asRichText
-     *
+     * 
      * @return string $str
      */
     public static function getUniqueParamsAsText($eshopProductId, $productId, $asRichText = false)

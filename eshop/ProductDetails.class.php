@@ -9,7 +9,7 @@
  * @package   eshop
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -277,9 +277,6 @@ class eshop_ProductDetails extends core_Detail
     {
         $data->rows = $data->recs = array();
         
-        // Добавяне към колонките по една за всеки параметър
-        $displayParams = eshop_Products::getParamsToDisplay($data->rec->id);
-        
         $data->listFields = arr::make('code=Код,productId=Артикул,params=Параметри,packagingId=Опаковка,quantity=Количество,catalogPrice=Цена');
         $fields = cls::get(get_called_class())->selectFields();
         $fields['-external'] = $fields;
@@ -474,7 +471,6 @@ class eshop_ProductDetails extends core_Detail
         }
         
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'params');
-        
         $settings = cms_Domains::getSettings();
         $tpl->append($table->get($data->rows, $data->listFields));
         
