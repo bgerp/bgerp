@@ -123,6 +123,7 @@ class eshop_Groups extends core_Master
         $this->FLD('name', 'varchar(64)', 'caption=Група->Наименование, mandatory,width=100%');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Група->Описание');
         $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Група->Параметри,optionsFunc=cat_Params::getPublic');
+        $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Група->Опаковки/Мерки');
         $this->FLD('order', 'double', 'caption=Подредба,hint=Важи само за менютата, където групата е споделена');
         $this->FLD('perPage', 'int(Min=0)', 'caption=Страниране,unit=продукта на страница');
         $this->FLD('icon', 'fileman_FileType(bucket=eshopImages)', 'caption=Картинка->Малка');
@@ -242,7 +243,18 @@ class eshop_Groups extends core_Master
             $row->productCnt = ht::createLinkRef($row->productCnt, array('eshop_Products', 'list', 'groupId' => $rec->id));
         }
         
-        $row->perPage = !empty($rec->perPage) ? $row->perPage : ht::createHint(eshop_Setup::get('PRODUCTS_PER_PAGE'), 'Стойност по подразбиране');
+        foreach (array('showPacks', 'showParams') as $fld){
+            $hint = null;
+            $showPacks = eshop_Products::getSettingField(null, $rec->id, $fld, $hint);
+            if(countR($showPacks)){
+                $row->{$fld} = $mvc->getFieldType($fld)->toVerbal(keylist::fromArray($showPacks));
+                if(!empty($hint)){
+                    $row->{$fld} = ht::createHint($row->{$fld}, $hint, 'notice', false);
+                }
+            }
+        }
+        
+        $row->perPage = !empty($rec->perPage) ? $row->perPage : ht::createHint(eshop_Setup::get('PRODUCTS_PER_PAGE'), 'Стойност по подразбиране', 'notice', false);
     }
     
     

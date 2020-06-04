@@ -289,11 +289,16 @@ class eshop_ProductDetails extends core_Detail
         
         while ($rec = $query->fetch()) {
             $newRec = (object) array('eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'title' => $rec->title, 'deliveryTime' => $rec->deliveryTime);
-            $packagins = keylist::toArray($rec->packagings);
+            
+            $packagings = keylist::toArray($rec->packagings);
+            $allowedPacks = eshop_Products::getSettingField($rec->eshopProductId, 'null', 'showPacks');
+            if(countR($allowedPacks)){
+                $packagings = array_intersect_key($packagings, $allowedPacks);
+            }
             
             // Всяка от посочените опаковки се разбива във отделни редове
             $i = 1;
-            foreach ($packagins as $packagingId) {
+            foreach ($packagings as $packagingId) {
                 $clone = clone $newRec;
                 $clone->first = ($i == 1) ? true : false;
                 $clone->packagingId = $packagingId;

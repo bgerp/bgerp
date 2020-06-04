@@ -731,7 +731,7 @@ class eshop_CartDetails extends core_Detail
      */
     public static function getUniqueParamsAsText($eshopProductId, $productId, $asRichText = false)
     {
-        $displayParams = eshop_Products::getParamsToDisplay($eshopProductId);
+        $displayParams = eshop_Products::getSettingField($eshopProductId, null, 'showParams');
         $commonParams = eshop_Products::getCommonParams($eshopProductId);
         $productParams = cat_Products::getParams($productId, null, true);
         
