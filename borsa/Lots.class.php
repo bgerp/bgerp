@@ -79,8 +79,8 @@ class borsa_Lots extends core_Master
     /**
      * През колко време да се обновява по AJAX
      */
-    protected $lotAjaxRefreshTime = 5000;
-    
+    protected $lotAjaxRefreshTime = 100000000;
+
     
     /**
      * Кой може да променя състоянието на документите
@@ -344,14 +344,15 @@ class borsa_Lots extends core_Master
         
         unset($prodOptArr[$lotId]);
         
-        $tpl = new ET('<h2>[#LOT_INFO#]</h2><div id="prodDesc">[#PROD_DESC#]</div> <div>[#TABLE#]</div><!--ET_BEGIN OTHER_LOTS--><div class="otherLots"><h3>[#OTHER_LOTS_INFO#]</h3>[#OTHER_LOTS#]</div><!--ET_END OTHER_LOTS-->');
+        $tpl = new ET('<h2>[#LOT_INFO#]</h2><div id="prodDesc">[#PROD_DESC#]</div> <div>[#TABLE#]</div><!--ET_BEGIN OTHER_LOTS--><div class="otherLots"><h4>[#OTHER_LOTS_INFO#]</h4>[#OTHER_LOTS#]</div><!--ET_END OTHER_LOTS-->');
         
-        $links .= '';
+        $links .= '<ul class="otherProduct">';
         foreach ((array)$prodOptArr as $pId) {
             $pLRec = $this->fetch($pId);
             $pLRec->productName = trim($pLRec->productName) ? $pLRec->productName : tr("Продукт") . $pId;
             $links .= "<li>" . ht::createLink($pLRec->productName, array($this, 'show', $pId)) . "</li>";
         }
+        $links .= "</ul>";
         
         if ($links) {
             $tpl->replace($links, 'OTHER_LOTS');

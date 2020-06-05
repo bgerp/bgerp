@@ -3219,14 +3219,25 @@ fieldset.sharing-history {
 	.priceBlock {
 		float: right;
 	}
+	h4 {
+		margin-top: 40px;
+	}
+	.otherProduct {
+		li {
+			margin: 10px 0;
+			a:hover {
+				text-decoration: underline;
+			}
+		}
+	}
+	.state-draft {
+		background-color: #bbffff;
+	}
+	.state-active {
+		background-color: #ffeedd;
+	}
 	.newsCol {
-		background: #fafafa;
-	}
-	.reservedCol {
-		background: #c7f3c7;
-	}
-	.orderedCol {
-		background: #ffffbc;
+		background: #fff;
 	}
 }
 

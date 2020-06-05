@@ -2746,12 +2746,18 @@ span.sharing-history-title {
     font-weight: bold; }
   .auctionContent .priceBlock {
     float: right; }
+  .auctionContent h4 {
+    margin-top: 40px; }
+    .auctionContent .otherProduct li {
+      margin: 10px 0; }
+      .auctionContent .otherProduct li a:hover {
+        text-decoration: underline; }
+  .auctionContent .state-draft {
+    background-color: #bbffff; }
+  .auctionContent .state-active {
+    background-color: #ffeedd; }
   .auctionContent .newsCol {
-    background: #fafafa; }
-  .auctionContent .reservedCol {
-    background: #c7f3c7; }
-  .auctionContent .orderedCol {
-    background: #ffffbc; }
+    background: white; }
 
 /*
  * CMS
