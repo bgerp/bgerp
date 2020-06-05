@@ -484,11 +484,20 @@ class eshop_Groups extends core_Master
      */
     protected function on_AfterPrepareListToolbar($mvc, $data)
     {
+        $currentDomainId = cms_Domains::getCurrent();
         $cQuery = cms_Content::getQuery();
-        $classId = core_Classes::getId($mvc->className);
+        $cQuery->XPR('_domainOrder', 'int', "(CASE #domainId WHEN {$currentDomainId} THEN 1 ELSE 2 END)");
+        $cQuery->orderBy("_domainOrder", 'ASC');
         
+        $classId = core_Classes::getId($mvc->className);
         while ($rec = $cQuery->fetch("#source = {$classId} AND #state = 'active'")) {
-            $data->toolbar->addBtn(type_Varchar::escape($rec->menu), array('eshop_Groups', 'ShowAll', 'cMenuId' => $rec->id, 'PU' => 1), 'ef_icon=img/16/monitor.png,title=Преглед на артикулите в менюто');
+            $menuName = cms_Content::getVerbal($rec, 'menu');
+            if($rec->domainId != $currentDomainId){
+                $domainName = cms_Content::getVerbal($rec, 'domainId');
+                $menuName .= " [{$domainName}]";
+            }
+            
+            $data->toolbar->addBtn($menuName, array('eshop_Groups', 'ShowAll', 'cMenuId' => $rec->id, 'PU' => 1), 'ef_icon=img/16/monitor.png,title=Преглед на артикулите в менюто');
         }
     }
     
