@@ -160,7 +160,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                     $fee = $TransportShipmentArr['Calculator']->getTransportFee($TransportShipmentArr['deliveryTermId'], $volumicWeight, $TransportShipmentArr['totalVolumicWeight'], $TransportShipmentArr['deliveryData']);
                     
                     if(isset($fee['fee']) && $fee['fee'] > 0){
-                        $singleFee += $fee['fee'] / $dRec->quantity;
+                        $singleFee = $fee['fee'] / $dRec->quantity;
                         $primeCost += $singleFee;
                     }
                 }
