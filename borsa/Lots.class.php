@@ -388,14 +388,14 @@ class borsa_Lots extends core_Master
         foreach ($pArr as $pId => $pVal) {
             $perRec = $pVal['rec'];
             
-            $pRow = new ET("<tr> <td colspan=3 class='periodHead'> [#DATE#] <span class='priceTag'>[#PRICE#]</span> </td> </tr> <tr> <td class='newsCol'> [#QUANTITY#] </td> <td class='reservedCol'> [#CBIDS#] </td> <td class='orderedCol' id='pId{$pId}'> [#QBIDS#] </td> </tr>");
+            $pRow = new ET("<tr> <td colspan=3 class='periodHead'> [#DATE#] <span class='priceTag'>[#PRICE#]</span> </td> </tr> <tr> <td class='newsCol'> [#QUANTITY#] </td> <td class='state-active'> [#CBIDS#] </td> <td class='state-draft' id='pId{$pId}'> [#QBIDS#] </td> </tr>");
 
             // Дата
             $pRow->replace($this->getPeriodVerb($pVal), 'DATE');
             
             // Цена
             $price = $this->fields['price']->type->toVerbal($pVal['price']);
-            $price =  "<div class='priceBlock'> {$price} <span class='small'>{$baseCurrencyCode}</span>" . ' ' . tr('за') . ' ' . $sName . " ". tr('без ДДС') . "</div>";
+            $price =  "<div class='priceBlock'><span class='priceInfo'> {$price} <span class='small'>{$baseCurrencyCode}</span></span>" . ' ' . tr('за') . ' ' . $sName . " ". tr('без ДДС') . "</div>";
             $pRow->replace($price, 'PRICE');
             
             // Количества
@@ -414,7 +414,7 @@ class borsa_Lots extends core_Master
 
             $quantity = "<table>";
             $quantity .= "<tr><th colspan='2'>" .  tr('Количества') . "</td></tr>";
-            $quantity .= "<tr><td class='name'>" . tr('Оферирано') . ":</td><td class='value'>" . $qAvailable . "</td></tr>";
+            $quantity .= "<tr><td class='name'>" . tr('Общо') . ":</td><td class='value'>" . $qAvailable . "</td></tr>";
             $quantity .= "<tr><td class='name'>" . tr('Заявено') . ":</td><td class='value'>" . $qBooked . "</td></tr>";
             $quantity .= "<tr><td class='name'>" . tr('Потвърдено') . ":</td><td class='value'>" . $qConfirmed . "</td></tr>";
             $quantity .= "<tr><td class='name'>" . tr('Свободно') . ":</td><td class='value'>" . $qFree . "</td></tr>";
