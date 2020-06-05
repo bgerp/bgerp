@@ -84,7 +84,7 @@ class borsa_Periods extends core_Manager
         $this->FLD('lotId', 'key(mvc=borsa_Lots,select=productName)', 'caption=Лот, mandatory, input=none');
         $this->FLD('from', 'varchar(32)', 'caption=От, mandatory, input=none');
         $this->FLD('to', 'varchar(32)', 'caption=До, mandatory, input=none');
-        $this->FLD('qAvailable', 'double(smartRound,decimals=2)', 'caption=Количество->Оферирано, oldFieldName=qAviable');
+        $this->FLD('qAvailable', 'double(smartRound,decimals=2)', 'caption=Количество->Общо, oldFieldName=qAviable');
         $this->FLD('qBooked', 'double(smartRound,decimals=2)', 'caption=Количество->Запазено, input=none');
         $this->FLD('qConfirmed', 'double(smartRound,decimals=2)', 'caption=Количество->Потвърдено, input=none');
         
