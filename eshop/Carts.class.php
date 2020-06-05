@@ -2371,7 +2371,7 @@ class eshop_Carts extends core_Master
     /**
      * Изтриване на забравните колички
      */
-    public function cron_DeleteDraftCarts()
+    public function cron_CheckDraftCarts()
     {
         // Всички чернови колички
         $now = dt::now();
@@ -2385,8 +2385,10 @@ class eshop_Carts extends core_Master
             $endOfLife = self::getDeletionTime($rec);
             $timeToNotifyBeforeDeletion = dt::addSecs(-1 * $settings->timeBeforeDelete, $endOfLife);
             
+            $isDeleted = false;
             if ($endOfLife <= $now) {
                 self::delete($rec->id);
+                $isDeleted = true;
             } elseif (!empty($rec->email) && $timeToNotifyBeforeDeletion <= $now) {
                 
                 // Ако не е изпращан нотифициращ имейл за забравена поръчка, изпраща се
@@ -2395,6 +2397,11 @@ class eshop_Carts extends core_Master
                     self::sendNotificationEmail($rec);
                     core_Permanent::set("eshopCartsNotify{$rec->id}", 'y', 10080);
                 }
+            }
+            
+            // Ако количката не е изтрита се обновява
+            if(!$isDeleted){
+                $this->updateMaster($rec);
             }
         }
     }
