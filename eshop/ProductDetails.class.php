@@ -483,7 +483,6 @@ class eshop_ProductDetails extends core_Detail
             unset($data->listFields['productId']);
         }
         
-        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'params');
         $settings = cms_Domains::getSettings();
         $tpl->append($table->get($data->rows, $data->listFields));
         
