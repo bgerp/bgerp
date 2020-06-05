@@ -2758,6 +2758,11 @@ span.sharing-history-title {
     background-color: #ffeedd; }
   .auctionContent .newsCol {
     background: white; }
+  .auctionContent #prodDesc {
+    display: inline-block;
+    min-width: 800px; }
+    .auctionContent #prodDesc .productPreviewHolder {
+      margin-left: 30px; }
 
 /*
  * CMS

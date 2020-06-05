@@ -3239,6 +3239,14 @@ fieldset.sharing-history {
 	.newsCol {
 		background: #fff;
 	}
+	#prodDesc {
+		display: inline-block;
+		min-width: 800px;
+		.productPreviewHolder {
+			margin-left: 30px;
+		}
+
+	}
 }
 
 /* CMS */
