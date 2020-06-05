@@ -1390,13 +1390,23 @@ class eshop_Products extends core_Master
         }
         
         // Опциите към артикула
+        $displayPacks = eshop_Products::getSettingField($id, null, 'showPacks');
         $dQuery = eshop_ProductDetails::getQuery();
         $dQuery->where("#eshopProductId = {$rec->id}");
-        $dQuery->show('productId');
+        $dQuery->show('productId,packagings');
         
         while ($dRec = $dQuery->fetch()) {
             if (!eshop_ProductDetails::getPublicDisplayPrice($dRec->productId)) {
                 continue;
+            }
+            
+            // Ако нито една от опаковките на артикула няма да се показва, игнорираме го
+            if(countR($displayPacks)){
+                $packs = keylist::toArray($dRec->packagings);
+                if(!array_intersect_key($packs, $displayPacks)){
+                    
+                    continue;
+                }
             }
             
             // Какви стойности имат избраните параметри
