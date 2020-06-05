@@ -234,10 +234,11 @@ class rack_Setup extends core_ProtoSetup
         $q = core_Cron::getQuery();
         
         $qRec = $q->fetch("#systemId = 'Get occupancy of racks'");
-        
-        $qRec->offset = 5;
-        
-        core_Cron::save($qRec);
-        
+       
+        if($qRec){
+            $qRec->offset = 5;
+            
+            core_Cron::save($qRec);
+        }
     }
 }
