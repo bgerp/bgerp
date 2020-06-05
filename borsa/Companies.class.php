@@ -64,7 +64,7 @@ class borsa_Companies extends core_Manager
     
     public function description()
     {
-        $this->FLD('companyId', 'key(mvc=crm_Companies, allowEmpty, restrictViewAccess=no)', 'caption=Фирма,removeAndRefreshForm=email,mandatory,silent');
+        $this->FLD('companyId', 'key2(mvc=crm_Companies, select=name, allowEmpty, restrictViewAccess=no)', 'caption=Фирма,removeAndRefreshForm=email,mandatory,silent,class=w100');
         $this->FLD('email', 'email', 'caption=Имейл,mandatory');
         $this->FLD('allowedLots', 'keylist(mvc=borsa_Lots,select=productName,allowEmpty)', 'caption=Търгове');
         
