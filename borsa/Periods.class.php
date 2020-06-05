@@ -61,13 +61,19 @@ class borsa_Periods extends core_Manager
      *
      * @see plg_State2
      */
-    public $canChangestate = 'no_one';
+    public $canChangestate = 'borsa, ceo';
     
     
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'borsa_Wrapper, plg_Created, plg_State2, plg_Sorting, plg_Modified, plg_RowTools2';
+    
+    
+    /**
+     * Поддържани интерфейси
+     */
+    var $interfaces = 'bgerp_PersonalizationSourceIntf';
     
     
     /**
@@ -86,6 +92,27 @@ class borsa_Periods extends core_Manager
         $this->FNC('periodFromTo', 'varchar', 'caption=За период');
         
         $this->setDbUnique('lotId, from, to');
+    }
+    
+    
+    /**
+     * Връща съответния запис за периода
+     * 
+     * @param integer $lotId
+     * @param DateTime $from
+     * @param DateTime $to
+     * 
+     * @return false|stdClass
+     */
+    public static function getPeriodRec($lotId, $from, $to, $state = null)
+    {
+        if (isset($state)) {
+            
+            return self::fetch(array("#lotId = '[#1#]' AND #from = '[#2#]' AND #to = '[#3#]' AND #state = '[#4#]'", $lotId, $from, $to, $state));
+        } else {
+            
+            return self::fetch(array("#lotId = '[#1#]' AND #from = '[#2#]' AND #to = '[#3#]'", $lotId, $from, $to));
+        }
     }
     
     

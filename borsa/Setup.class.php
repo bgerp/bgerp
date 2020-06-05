@@ -8,6 +8,12 @@ defIfNot('BORSA_ADD_BID_INFO', 'Трябва да платите до 3 дена
 
 
 /**
+ * 
+ */
+defIfNot('BORSA_LOT_INFO', 'Форма за заявяване на продукти');
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с продуктите
  *
@@ -52,6 +58,14 @@ class borsa_Setup extends core_ProtoSetup
      */
     public $menuItems = array(
             array(3.1, 'Търговия', 'Борса', 'borsa_Lots', 'default', 'borsa, ceo')
+    );
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+            'BORSA_LOT_INFO' => array('text(rows=2)', 'caption=Текст във формата за заявяване на продукти->Информация, width=100%'),
     );
     
     
