@@ -58,6 +58,10 @@ class plg_Current extends core_Plugin
                 }
             }
             
+            if ($bForce && Request::get('forced')) {
+                bp($bForce, $part);
+            }
+            
             // Ако форсираме
             if ($bForce && !$rec) {
                 if (is_numeric($bForce)) {
