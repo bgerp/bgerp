@@ -716,7 +716,13 @@ class plg_Search extends core_Plugin
         
         $query->limit(10000);
         
+        $lastId = $kVal;
+        
         while ($rec = $query->fetch()) {
+            
+            if (dt::now() >= $maxTime) {
+                break;
+            }
             
             if ($isFirst) {
                 $clsInst->logDebug("Регенериране на ключови думи от {$rec->id}");
@@ -727,7 +733,6 @@ class plg_Search extends core_Plugin
             
             try {
                 $generatedKeywords = $clsInst->getSearchKeywords($rec);
-                
                 if ($generatedKeywords == $rec->searchKeywords) {
                     
                     continue;
@@ -740,10 +745,6 @@ class plg_Search extends core_Plugin
                 reportException($e);
             } catch (Throwable  $e) {
                 reportException($e);
-            }
-            
-            if (dt::now() >= $maxTime) {
-                break;
             }
         }
         
