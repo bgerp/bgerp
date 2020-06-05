@@ -20,8 +20,12 @@ html {
     color: white;
 }
 
-.wide .narrowCenter, header {
+.wide .narrowCenter {
     text-align: center;
+    width: 1200px;
+    height: 220px;
+    margin: 0 auto;
+    position: relative;
 }
 
 .wide .fadein {
@@ -30,10 +34,8 @@ html {
 
 .wide  .headerImg{
     height:auto;
-    width: auto;
+    max-width: 1200px;
     float: none;
-    max-width: 100%;
-    margin: -5px;
 
 }
 #cmsBottom {
@@ -67,7 +69,7 @@ html {
     padding:5px;
 }
 .wide .app-name{
-    top: 21%;
+    top: 15%;
     left: 2%;
 }
 
@@ -112,16 +114,13 @@ html {
     width: 1200px;
     margin: 0 auto;
     float: none;
+
 }
-.centerFixed {
-    position: absolute;
-    width: 1200px;
-    left: 20%;
-    top: 0;
-}
+
 #searchform {
     margin-bottom: 20px;
 }
+
 header {
     position: relative;
 }
@@ -171,7 +170,7 @@ header img {
     .narrow .externalPage #maincontent {
         min-height: 410px;
     }
-    .centerContent, .narrow .narrowCenter, .centerFixed {
+    .centerContent, .wide .narrowCenter, .centerFixed {
         width: 100%;
         margin: 0;
         display: block;
@@ -187,8 +186,8 @@ header img {
     }
     #cmsMenu {
         box-sizing: border-box;
-        padding-left: 2%;
-        padding-right: 2%;
+        padding-left: 2px;
+        padding-right: 2px;
         font-size: 0.9em;
     }
     #cmsBottom {
@@ -205,5 +204,8 @@ header img {
     }
     .narrow .externalPage .vertical .formTable {
         padding: 15px 10px 0px;
+    }
+    .narrow .narrowCenter {
+        width: 100%;
     }
 }

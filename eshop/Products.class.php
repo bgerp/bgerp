@@ -152,6 +152,7 @@ class eshop_Products extends core_Master
         $this->FLD('info', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Кратко');
         $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Разширено');
         $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Описание->Параметри,optionsFunc=cat_Params::getPublic');
+        $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Описание->Опаковки/Мерки');
         $this->FLD('nearProducts', 'blob(serialize)', 'caption=Описание->Виж също,input=none');
         
         // Запитване за нестандартен продукт
@@ -287,12 +288,11 @@ class eshop_Products extends core_Master
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $row->name = tr($row->name);
-        
         $uomId = self::getUomId($rec);
         $rec->coMoq = $mvc->getMoq($rec);
         
         // Определяме, ако има мярката на продукта
-        $uom = tr(cat_UoM::getShortName($uomId));
+        $uom = cat_UoM::getShortName($uomId);
         
         if ($rec->coMoq) {
             $row->coMoq = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($rec->coMoq);
@@ -320,8 +320,16 @@ class eshop_Products extends core_Master
         }
         
         if (isset($fields['-single'])) {
-            $params = self::getParamsToDisplay($rec);
-            $row->showParams = $mvc->getFieldType('showParams')->toVerbal(keylist::fromArray($params));
+            foreach (array('showPacks', 'showParams') as $fld){
+                $hint = null;
+                $showPacks = eshop_Products::getSettingField($rec->id, null, $fld, $hint);
+                if(countR($showPacks)){
+                    $row->{$fld} = $mvc->getFieldType($fld)->toVerbal(keylist::fromArray($showPacks));
+                    if(!empty($hint)){
+                        $row->{$fld} = ht::createHint($row->{$fld}, $hint, 'notice', false);
+                    }
+                }
+            }
         }
         
         if (isset($fields['-list'])) {
@@ -1315,32 +1323,51 @@ class eshop_Products extends core_Master
     
     
     /**
-     * Връща параметрите за показване във външната част
-     *
-     * @param int $id
-     *
-     * @return array
+     * Връща първата намерена стойност на полето в последователността:
+     *      1. Ако е заданена в самия е-артикул
+     *      2. Ако е зададена в групата на е-артикула
+     *      3. Ако е зададена в настройките на домейна, в който е групата
+     * 
+     * @param int|null $eshopProductId
+     * @param int|null $groupId
+     * @param string $field
+     * @param null|string $hint
+     * 
+     * @return array $res
      */
-    public static function getParamsToDisplay($id)
+    public static function getSettingField($eshopProductId, $groupId, $field, &$hint = null)
     {
-        $rec = self::fetchRec($id);
-        if (!empty($rec->showParams)) {
+        // Ако има зададен е-артикул търсим първо в него
+        if(isset($eshopProductId)){
+            $rec = self::fetchRec($eshopProductId);
+            if (!empty($rec->{$field})) {
+                $res = keylist::isKeylist($rec->{$field}) ? keylist::toArray($rec->{$field}) : arr::make($rec->{$field}, true);
+                
+                return $res;
+            }
             
-            return keylist::toArray($rec->showParams);
+            $groupId = $rec->groupId;
         }
         
-        $groupRec = eshop_Groups::fetch($rec->groupId, 'showParams,menuId');
-        if (!empty($groupRec->showParams)) {
+        // Търсим полето в групата
+        $groupRec = eshop_Groups::fetch($groupId, "{$field},menuId");
+        if (!empty($groupRec->{$field})) {
+            $res = keylist::isKeylist($groupRec->{$field}) ? keylist::toArray($groupRec->{$field}) : arr::make($groupRec->{$field}, true);
+            if(isset($eshopProductId)){
+                $hint = 'Стойността е зададена в групата';
+            }
             
-            return keylist::toArray($groupRec->showParams);
+            return $res;
         }
         
+        // В краен случай търсим полето в настройките на домейна
         $domainId = cms_Content::fetchField($groupRec->menuId, 'domainId');
         $settings = cms_Domains::getSettings($domainId);
+        $res = keylist::isKeylist($settings->{$field}) ? keylist::toArray($settings->{$field}) : arr::make($settings->{$field}, true);
+        $hint = 'Стойността е зададена в настройките на домейна';
         
-        return keylist::toArray($settings->showParams);
+        return $res;
     }
-    
     
     /**
      * Връща общите параметри за артикулите, тези които са с еднакви стойности за
@@ -1356,20 +1383,30 @@ class eshop_Products extends core_Master
         $rec = self::fetchRec($id);
         
         // Има ли параметри за показване
-        $displayParams = self::getParamsToDisplay($rec);
+        $displayParams = eshop_Products::getSettingField($id, null, 'showParams');
         if (!countR($displayParams)) {
             
             return $res;
         }
         
         // Опциите към артикула
+        $displayPacks = eshop_Products::getSettingField($id, null, 'showPacks');
         $dQuery = eshop_ProductDetails::getQuery();
         $dQuery->where("#eshopProductId = {$rec->id}");
-        $dQuery->show('productId');
+        $dQuery->show('productId,packagings');
         
         while ($dRec = $dQuery->fetch()) {
             if (!eshop_ProductDetails::getPublicDisplayPrice($dRec->productId)) {
                 continue;
+            }
+            
+            // Ако нито една от опаковките на артикула няма да се показва, игнорираме го
+            if(countR($displayPacks)){
+                $packs = keylist::toArray($dRec->packagings);
+                if(!array_intersect_key($packs, $displayPacks)){
+                    
+                    continue;
+                }
             }
             
             // Какви стойности имат избраните параметри

@@ -77,6 +77,12 @@ class borsa_Lots extends core_Master
     
     
     /**
+     * През колко време да се обновява по AJAX
+     */
+    protected $lotAjaxRefreshTime = 5000;
+    
+    
+    /**
      * Кой може да променя състоянието на документите
      *
      * @see plg_State2
@@ -100,7 +106,7 @@ class borsa_Lots extends core_Master
         $this->FLD('basePrice', 'double(smartRound,decimals=2)', 'caption=Базова цена,mandatory');
         $this->FNC('quantity', 'double(min=0)', 'caption=Количество,hint=Количество по подразбиране за офериране,input');
         $this->FLD('priceChange', 'table(columns=period|priceChange,captions=Период|Промяна %,validate=borsa_Lots::priceChangeValidate, period_opt=|01|02|03|04|05|06|07|08|09|10|11|12)', 'caption=Промяна на цена');
-        
+        $this->FLD('canConfirm', 'userList(roles=sales)', array('caption' => 'Потребители, които могат да одобряват заявките->Потребители'));
         
         $this->FNC('productName', 'varchar');
         
@@ -265,6 +271,8 @@ class borsa_Lots extends core_Master
         
         if(!self::haveRightFor('list')) {
             
+            $me->setAllowedProdIds($data['id']);
+            
             if (Mode::get($me->profileModeName) != $data['id']) {
                 Mode::setPermanent($me->profileModeName, $data['id']);
                 
@@ -276,8 +284,6 @@ class borsa_Lots extends core_Master
                                 status_Messages::newStatus($status);
                                 vislog_History::add('Логване в борсата');
             }
-            
-            $me->setAllowedProdIds($data['id']);
         }
         
         redirect(array('borsa_Lots', 'Show'));
@@ -340,8 +346,6 @@ class borsa_Lots extends core_Master
         
         $form->FNC('lotId', 'key(mvc=borsa_Lots, select=productName)', 'input,caption=Продукт,removeAndRefreshForm,silent,submitFormOnRefresh');
         
-        $form->formAttr['submitFormOnRefresh'] = 'submitFormOnRefresh';
-        
         // Показваме само позволените продукти, към този потребител
         $prodOptArr = $this->getAllowedProdId($cId);
         if ($prodOptArr) {
@@ -360,6 +364,20 @@ class borsa_Lots extends core_Master
         $form->fields['lotId']->type->options = $nProdArr;
         
         $form->input('lotId', true);
+        
+        $ajaxMode = Request::get('ajax_mode');
+        
+        if ($ajaxMode) {
+            // След рефрешване на формата по AJAX, форсираме рефрешването на елементите
+            $url = getCurrentUrl();
+            $url['lotId'] = $form->rec->lotId;
+            $localUrl = toUrl($url, 'local');
+            $localUrl = urlencode($localUrl);
+            
+            // Добавяме стринга, който субскрайбва съответното URL
+            jquery_Jquery::run($form->layout, "getEfae().subscribe('updateLots', '{$localUrl}', {$this->lotAjaxRefreshTime});", true);
+            jquery_Jquery::run($form->layout, "getEfae().process({updateLots: '{$localUrl}'});", true);
+        }
         
         $tpl = $form->renderHtml();
         
@@ -387,7 +405,7 @@ class borsa_Lots extends core_Master
             }
         }
         
-        $table = new ET('<table class="listTable"> [#PERIOD#] </table>');
+        $table = new ET('<table class="listTable" id="lotTable"> [#PERIOD#] </table>');
         
         // За всеки период, добавяме по един ред в таблицата
         $pArr = $this->getPeriods($form->rec->lotId);
@@ -395,14 +413,14 @@ class borsa_Lots extends core_Master
             
             $perRec = borsa_Periods::fetch(array("#lotId = '[#1#]' AND #from = '[#2#]' AND #to = '[#3#]'", $form->rec->lotId, $pArr[$pId]['bPeriod'], $pArr[$pId]['ePeriod']));
             
-            $pRow = new ET("<tr> <td colspan=3 class='periodHead'> [#DATE#] <span class='priceTag'>[#PRICE#]</span> </td> </tr> <tr> <td class='newsCol'> [#QUANTITY#] </td> <td class='reservedCol'> [#CBIDS#] </td> <td class='orderedCol'> [#QBIDS#] </td> </tr>");
+            $pRow = new ET("<tr> <td colspan=3 class='periodHead'> [#DATE#] <span class='priceTag'>[#PRICE#]</span> </td> </tr> <tr> <td class='newsCol'> [#QUANTITY#] </td> <td class='reservedCol'> [#CBIDS#] </td> <td class='orderedCol' id='pId{$pId}'> [#QBIDS#] </td> </tr>");
 
             // Дата
             $pRow->replace($this->getPeriodVerb($pVal), 'DATE');
             
             // Цена
             $price = $this->fields['price']->type->toVerbal($pVal['price']);
-            $price =  "<div class='priceBlock'> {$price} <span class='small'>{$baseCurrencyCode}</span>" . ' за ' . $sName . " ". tr('без ДДС') . "</div>";
+            $price =  "<div class='priceBlock'> {$price} <span class='small'>{$baseCurrencyCode}</span>" . ' ' . tr('за') . ' ' . $sName . " ". tr('без ДДС') . "</div>";
             $pRow->replace($price, 'PRICE');
             
             // Количества
@@ -475,9 +493,37 @@ class borsa_Lots extends core_Master
             $table->append($pRow, 'PERIOD');
         }
         
+        // Добавяме описание на продукта
+        Mode::push('text', 'xhtml');
+        $dDesc = cat_Products::getAutoProductDesc($lRec->productId, null, 'detailed', 'public', core_Lg::getCurrent());
+        Mode::pop('text');
+        $dDesc = "<div id='prodDesc'>{$dDesc}</div>";
+        $tpl->append($dDesc);
+        
+        // Добавяме таблица
         $tpl->append($table);
         
-        return $this->getExternalLayout($tpl, $data->pageTitle);
+        $pId = Request::get('flash');
+        if ($pId) {
+            jquery_Jquery::run($tpl, "flashDocInterpolation('{$pId}');", true);
+        }
+        
+        $tpl = $this->getExternalLayout($tpl, $data->pageTitle);
+        
+        if ($ajaxMode) {
+            // По AJAX подменяме само някои от елементите
+            $res = array();
+            $resObj = new stdClass();
+            $resObj->func = 'replaceById';
+            $resObj->arg = array('html' => (string) $tpl, 'Ids' => 'lotTable,prodDesc');
+            
+            core_App::outputJson(array($resObj));
+        } else {
+            $url = getCurrentUrl();
+            core_Ajax::subscribe($tpl, $url, 'updateLots', $this->lotAjaxRefreshTime);
+        }
+        
+        return $tpl;
     
     }
     
@@ -523,7 +569,7 @@ class borsa_Lots extends core_Master
         
         $form->setReadOnly('price', $pArr[$period]['price']);
         
-        $retUrl = array($this, 'Show', 'lotId' => $id);
+        $retUrl = array($this, 'Show', 'lotId' => $id, 'flash' => 'pId' . $period, '#' => 'pId' . $period);
         
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Подаване на оферта');
         $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
@@ -549,11 +595,13 @@ class borsa_Lots extends core_Master
             return new Redirect($retUrl, '|Успешно добавихте заявка');
         }
         
-        $form->title = 'Добавяне на оферта за|* ' . $this->getPeriodVerb($pArr[$period]);
+        $form->title = 'Добавяне на оферта за периода|* ' . $this->getPeriodVerb($pArr[$period]);
         
         $form->info = '<b>' . tr(borsa_Setup::get('ADD_BID_INFO')) . '</b>';
         
-        return $this->getExternalLayout($form->renderHtml(), $data->pageTitle);
+        $tpl = $form->renderHtml();
+        
+        return $this->getExternalLayout($tpl, $data->pageTitle);
     
     }
     
@@ -573,13 +621,15 @@ class borsa_Lots extends core_Master
         
         $cRec = borsa_Companies::fetch($cId);
         
+        expect($cRec);
+        
         $qProd = borsa_Lots::getQuery();
         $qProd->where("#state != 'rejected'");
         
         $qProd->show('productId');
         
-        if ($cRec->allowedProducts) {
-            $qProd->in('productId', $cRec->allowedProducts);
+        if ($cRec->allowedLots) {
+            $qProd->in('id', type_Keylist::toArray($cRec->allowedLots));
         }
         
         $resArr = array();

@@ -310,14 +310,26 @@ class sales_Setup extends core_ProtoSetup
             'time',
             'caption=Оферти->Валидност'
         ),
+        'SALES_QUOTATION_DEFAULT_CHARGE_VAT' => array(
+            'enum(auto=Автоматично,yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 
+            'caption=Режим на ДДС в офертите по подразбиране->Избор'
+        ),
+    
         'SALES_PROD_NAME_LENGTH' => array(
             'int(min=0)',
             'caption=Дължина на артикула в името на продажбата->Дължина, customizeBy=powerUser'
         ),
+        
+        'SALES_LIVE_CALC_SO_DELTAS' => array(
+            'enum(no=Договор,yes=ЕН/СР)', 
+            'caption=Записване на себестойност за изчисляване на делти при контиране на->Избор'
+        ),
+        
         'SALES_DELTA_MIN_PERCENT' => array(
             'percent',
             'caption=Неснижаема делта->Стойност'
         ),
+        
         'SALES_DELTA_MIN_PERCENT_PRIME_COST' => array(
             'percent',
             'caption=Колко % от продажната цена да се приема за делта при липса на себестойност->Стойност'
@@ -328,9 +340,6 @@ class sales_Setup extends core_ProtoSetup
             'mandatory,caption=Транспорт->Артикули,optionsFunc=sales_Setup::getPossibleTransportProducts'
         ),
         
-        'SALES_QUOTATION_DEFAULT_CHARGE_VAT' => array('enum(auto=Автоматично,yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Режим на ДДС в офертите по подразбиране->Избор след'),
-    
-        'SALES_LIVE_CALC_SO_DELTAS' => array('enum(no=Не,yes=Да)', 'caption=Изчисляване на делти на ЕН/СР себестойността да се изчислява на момента->Избор'),
     );
     
     

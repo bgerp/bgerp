@@ -689,12 +689,12 @@ class plg_Search extends core_Plugin
         $query = $clsInst->getQuery();
         
         if (isset($kVal)) {
-            $query->where(array("#id > '[#1#]'", $kVal));
+            $query->where(array("#id < '[#1#]'", $kVal));
         }
         
         $cnt = $query->count();
         
-        $clsInst->logDebug("Начало на регенериране на ключови думи за {$clsName} за {$cnt} записа след id>{$kVal}");
+        $clsInst->logDebug("Начало на регенериране на ключови думи за {$clsName} за {$cnt} записа преди id<{$kVal}");
         
         if (!$cnt) {
             if (!is_null($kVal)) {
@@ -710,24 +710,26 @@ class plg_Search extends core_Plugin
         $callOn = dt::addSecs(55);
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', $clsName, $callOn);
         
-        $query->orderBy('id', 'ASC');
+        $query->orderBy('id', 'DESC');
         
         $isFirst = true;
         
         $query->limit(10000);
         
         while ($rec = $query->fetch()) {
+            
             if ($isFirst) {
                 $clsInst->logDebug("Регенериране на ключови думи от {$rec->id}");
                 $isFirst = false;
             }
             
-            $maxId = $rec->id;
+            $lastId = $rec->id;
             
             try {
                 $generatedKeywords = $clsInst->getSearchKeywords($rec);
                 
                 if ($generatedKeywords == $rec->searchKeywords) {
+                    
                     continue;
                 }
                 
@@ -745,9 +747,9 @@ class plg_Search extends core_Plugin
             }
         }
         
-        $clsInst->logDebug('Регенерирани ключови думи до id=' . $maxId);
+        $clsInst->logDebug('Регенерирани ключови думи до id=' . $lastId);
         
-        core_Permanent::set($pKey, $maxId, 1000);
+        core_Permanent::set($pKey, $lastId, 1000);
     }
     
     

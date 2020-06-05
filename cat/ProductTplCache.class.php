@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -19,7 +19,7 @@ class cat_ProductTplCache extends core_Master
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, plg_Select';
     
     
     /**
@@ -37,19 +37,19 @@ class cat_ProductTplCache extends core_Master
     /**
      * Права за запис
      */
-    public $canDelete = 'ceo, cat';
+    public $canDelete = 'ceo, debug, cat';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, cat';
+    public $canList = 'ceo, debug, cat';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo, cat';
+    public $canSingle = 'ceo, debug, cat';
     
     
     /**
@@ -104,7 +104,7 @@ class cat_ProductTplCache extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (isset($fields['-single'])) {
             if ($rec->type == 'description') {
@@ -132,18 +132,19 @@ class cat_ProductTplCache extends core_Master
     /**
      * Подготовка на филтър формата
      */
-    public static function on_AfterPrepareListFilter($mvc, &$data)
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->FLD('docId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'input,caption=Артикул,refreshForm');
+        $data->listFilter->FLD('docId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'input,caption=Артикул,removeAndRefreshForm');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'docId';
-        
         $data->listFilter->input(null, 'silent');
         
         if (isset($data->listFilter->rec->docId)) {
             $data->query->where("#productId = '{$data->listFilter->rec->docId}'");
         }
+        
+        $data->query->orderBy('id', "DESC");
     }
     
     

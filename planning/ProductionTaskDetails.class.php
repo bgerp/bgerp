@@ -484,8 +484,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         } else {
             $packagingId = $pRec->measureId;
         }
-        $packagingName = tr(cat_UoM::getShortName($packagingId));
-        $labelPackagingName = tr(cat_UoM::getShortName($labelPackagingId));
+        $packagingName = cat_UoM::getShortName($packagingId);
+        $labelPackagingName = cat_UoM::getShortName($labelPackagingId);
         
         if (cat_UoM::fetchField($packagingId, 'type') != 'uom') {
             $row->measureId = str::getPlural($rec->quantity, $packagingName, true);

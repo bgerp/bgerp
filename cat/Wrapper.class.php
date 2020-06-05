@@ -34,7 +34,7 @@ class cat_Wrapper extends plg_ProtoWrapper
         $this->TAB('cat_PackParams', 'Мерки->Размери', 'packEdit,ceo,sales,purchase');
         
         $this->TAB('cat_Params', 'Параметри', 'cat,ceo,sales,purchase');
-        $this->TAB('cat_ProductTplCache', 'Кеш', 'ceo, cat');
+        $this->TAB('cat_ProductTplCache', 'Дебъг->Кеш', 'ceo, debug, cat');
         $this->TAB('cat_Serials', 'Дебъг->Генерирани номера', 'debug');
         
         $this->title = 'Продукти';

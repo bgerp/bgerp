@@ -65,6 +65,12 @@ class cat_BomDetails extends doc_Detail
     
     
     /**
+     * Кой има право да променя взаимно заменяемите артикули?
+     */
+    public $canReplaceproduct = 'ceo,cat,sales';
+    
+    
+    /**
      * Кой има право да разгъва?
      */
     public $canExpand = 'ceo,cat,sales';
@@ -383,15 +389,19 @@ class cat_BomDetails extends doc_Detail
             
             $pInfo = cat_Products::getProductInfo($rec->resourceId);
             
-            $packs = cat_Products::getPacks($rec->resourceId);
-            $form->setOptions('packagingId', $packs);
-            $form->setDefault('packagingId', key($packs));
+            if($form->_replaceProduct !== true){
+                $packs = cat_Products::getPacks($rec->resourceId);
+                $form->setOptions('packagingId', $packs);
+                $form->setDefault('packagingId', key($packs));
+            } else {
+                $form->rec->packagingId = $pInfo->productRec->measureId;
+            }
             
             // Ако артикула не е складируем, скриваме полето за мярка
             if (!isset($pInfo->meta['canStore'])) {
                 $measureShort = cat_UoM::getShortName($rec->packagingId);
                 $form->setField('propQuantity', "unit={$measureShort}");
-            } else {
+            } elseif($form->_replaceProduct !== true) {
                 $form->setField('packagingId', 'input');
             }
             
@@ -409,9 +419,17 @@ class cat_BomDetails extends doc_Detail
         if ($form->isSubmitted()) {
             $calced = static::calcExpr($rec->propQuantity, $rec->params);
             if ($calced == static::CALC_ERROR) {
-                $form->setWarning('propQuantity', 'Има проблем при изчисляването на количеството');
+                if($form->_replaceProduct === true){
+                    $form->setWarning('resourceId', 'При замяна на артикула, формулата за количествата му няма да може да се изчисли');
+                } else {
+                    $form->setWarning('propQuantity', 'Има проблем при изчисляването на количеството');
+                }
             } elseif ($calced <= 0) {
-                $form->setError('propQuantity', 'Изчисленото количество трябва да е положително');
+                if($form->_replaceProduct = true){
+                    $form->setError('propQuantity', 'При замяна на артикула, формулата за количествата му не може да изчисли положително число');
+                } else {
+                    $form->setError('propQuantity', 'Изчисленото количество трябва да е положително');
+                }
             }
             
             if (isset($rec->resourceId)) {
@@ -624,6 +642,16 @@ class cat_BomDetails extends doc_Detail
         
         $rec->type = 'stage';
         $rec->primeCost = null;
+        
+        // Проверка може ли артикулът да бъде разпънат като етап
+        $masterRec = cat_Boms::fetch($rec->bomId);
+        $notAllowed = array();
+        $this->findNotAllowedProducts($rec->resourceId, $masterRec->productId, $notAllowed);
+        if (isset($notAllowed[$rec->resourceId])) {
+            $productVerbal = cat_Products::getTitleById($masterRec->productId);
+            
+            return followRetUrl(null, "Артикулът не може да бъде , защото в рецептата на някой от материалите му се съдържа|* <b>{$productVerbal}</b>", 'error');
+        }
         
         $bomRec = null;
         cat_BomDetails::addProductComponents($rec->resourceId, $rec->bomId, $rec->id, $bomRec);

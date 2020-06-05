@@ -79,29 +79,43 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
             } else {
                 $form->setOptions($mvc->replaceProductFieldName, $equivalentArr);
             }
-            unset($form->fields[$mvc->replaceProductFieldName]->removeAndRefreshForm);
             
             // Инпутваме формата
             $form->input();
             $form->setField($mvc->packagingFld, 'input=hidden');
+            $mvc->invoke('AfterInputEditForm', array($form));
             
             // Ако е събмитната
             if ($form->isSubmitted()) {
-                $productMeasureId = cat_Products::fetchField($form->rec->{$mvc->replaceProductFieldName}, 'measureId');
-                $form->rec->{$mvc->packagingFld} = $productMeasureId;
-               
-                if($form->rec->{$mvc->replaceProductFieldName} == $exRec->{$mvc->replaceProductFieldName}) {
+                $nRec = $form->rec;
+                
+                $productMeasureId = cat_Products::fetchField($nRec->{$mvc->replaceProductFieldName}, 'measureId');
+                $originalMeasureId = cat_Products::fetchField($exRec->{$mvc->replaceProductFieldName}, 'measureId');
+                
+                if($mvc instanceof deals_ManifactureDetail){
+                    $convertedQuantity = cat_Uom::convertValue($rec->{$mvc->quantityFld}, $originalMeasureId, $productMeasureId);
+                    $nRec->{$mvc->quantityFld} = $convertedQuantity;
+                    $nRec->{$mvc->packQuantityFld} = $nRec->{$mvc->quantityFld};
+                } elseif($mvc instanceof cat_BomDetails){
+                    $formula = trim($nRec->propQuantity);
+                    if(is_numeric($formula)){
+                        $convertedQuantity = cat_Uom::convertValue($formula, $originalMeasureId, $productMeasureId);
+                        $nRec->propQuantity = $convertedQuantity;
+                    }
+                }
+                
+                if($nRec->{$mvc->replaceProductFieldName} == $exRec->{$mvc->replaceProductFieldName}) {
                     
                     return followRetUrl(null, 'Артикулът не е подменен');
                 }
                 
                 // Обновяваме записа
-                $nRec = $form->rec;
                 $nFields = array();
                 if ($mvc->isUnique($nRec, $nFields)) {
                     $nRec->autoAllocate = true;
+                    
                     $mvc->save($nRec);
-                    $mvc->Master->logWrite('Заместване на артикул в документа с друг подобен', $form->rec->{$mvc->masterKey});
+                    $mvc->Master->logWrite('Заместване на артикул в документа с друг подобен', $nRec->{$mvc->masterKey});
                     
                     return followRetUrl(null, 'Артикулът е заместен успешно');
                 }
@@ -166,8 +180,6 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'replaceproduct' && isset($rec)) {
-            $requiredRoles = $mvc->getRequiredRoles('edit', $rec);
-            
             // Могат да се подменят само артикулите, които имат други взаимозаменямеми
             if ($requiredRoles != 'no_one' && isset($rec->{$mvc->replaceProductFieldName})) {
                 $equivalentProducts = planning_GenericMapper::getEquivalentProducts($rec->{$mvc->replaceProductFieldName});

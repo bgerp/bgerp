@@ -47,7 +47,7 @@ class borsa_Bids extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'borsa, ceo';
+    public $canList = 'borsa, ceo, sales';
     
     
     /**
@@ -71,13 +71,19 @@ class borsa_Bids extends core_Manager
     /**
      * Кой има право да одобрява запитванията
      */
-    public $canConfirm = 'borsa, ceo';
+    public $canConfirm = 'borsa, ceo, sales';
+    
+    
+    /**
+     * Мастър ролите за работа със заявките
+     */
+    public $masterRoles = 'borsa, ceo';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'borsa_Wrapper, plg_state, plg_Created, plg_RowTools2, plg_Rejected, plg_Modified';
+    public $loadList = 'borsa_Wrapper, plg_state, plg_Created, plg_RowTools2, plg_Rejected, plg_Modified, plg_Sorting';
     
     
     /**
@@ -85,7 +91,7 @@ class borsa_Bids extends core_Manager
      */
     public function description()
     {
-        $this->FLD('lotId', 'key(mvc=borsa_Lots,select=productName)', 'caption=Лот, mandatory');
+        $this->FLD('lotId', 'key(mvc=borsa_Lots,select=productName,allowEmpty)', 'caption=Продукт, mandatory, refreshForm');
         $this->FLD('periodId', 'key(mvc=borsa_Periods,select=periodFromTo)', 'caption=Период, mandatory');
         $this->FLD('price', 'double(smartRound,decimals=2)', 'caption=Цена');
         $this->FLD('quantity', 'double(smartRound,decimals=5)', 'caption=Количество');
@@ -111,7 +117,44 @@ class borsa_Bids extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
+        $data->query->orderBy('state', 'ASC');
         $data->query->orderBy('createdOn', 'DESC');
+        
+        $data->listFilter->showFields = 'lotId';
+        
+        // Ако ще вижда само определени търгове
+        if (!haveRole($mvc->masterRoles)) {
+            $cu = core_Users::getCurrent();
+            
+            // Ограничаваме да се показват само достъпните резултати
+            $data->query->EXT('canConfirm', 'borsa_Lots', 'externalName=canConfirm,externalKey=lotId');
+            $data->query->likeKeylist('canConfirm', $cu);
+            
+            // Показваме само достъпните опции
+            $optArr = $data->listFilter->fields['lotId']->type->prepareOptions();
+            $lQuery = borsa_Lots::getQuery();
+            $lQuery->likeKeylist('canConfirm', $cu);
+            $lQuery->show('id');
+            $aRec = $lQuery->fetchAll();
+            foreach ($optArr as $oId => $oName) {
+                if (!$aRec[$oId]) {
+                    unset($optArr[$oId]);
+                }
+            }
+            $optArr[''] = '';
+            
+            $data->listFilter->setOptions('lotId', $optArr);
+        }
+        
+        $data->listFilter->input('lotId');
+        
+        if ($data->listFilter->rec->lotId) {
+            $data->query->where(array("#lotId = '[#1#]'", $data->listFilter->rec->lotId));
+        }
+        
+        $data->listFilter->view = 'horizontal';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     }
     
     
@@ -206,9 +249,16 @@ class borsa_Bids extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($action == 'confirm' && $rec) {
+        if ($action == 'confirm' && $rec && ($requiredRoles != 'no_one')) {
             if ($rec->state != 'draft') {
                 $requiredRoles = 'no_one';
+            }
+            
+            if (!haveRole($mvc->masterRoles, $userId)) {
+                $lRec = borsa_Lots::fetch($rec->lotId);
+                if (!type_Keylist::isIn($userId, $lRec->canConfirm)) {
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
@@ -250,7 +300,7 @@ class borsa_Bids extends core_Manager
             if (!$sRec) {
                 $form->setError('saleIdInt', 'Не е открита такава продажба');
             } elseif ($sRec->state != 'active') {
-                $form->setError('saleIdInt', 'Тази продажба не е контирана');
+                $form->setWarning('saleIdInt', 'Тази продажба не е контирана');
             }
         }
         

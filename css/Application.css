@@ -2920,7 +2920,7 @@ fieldset.sharing-history i {
     padding: 7px 5px;
     border-top: 1px solid #ccc; }
   .optionsTable td {
-    padding: 5px 10px;
+    padding: 10px;
     height: 30px; }
   .optionsTable tbody tr {
     background: linear-gradient(white, white, white, white, white, white, #eee); }
@@ -4564,6 +4564,9 @@ div.location.public {
 
 .paramsTable {
   margin-top: 10px; }
+
+.eshop-product .richtext ul {
+  margin-bottom: 10px; }
 
 .eshop-product-labels .info {
   -moz-border-radius: 3px;

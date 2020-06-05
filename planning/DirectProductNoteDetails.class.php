@@ -49,6 +49,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     
     
     /**
+     * Кой има право да променя взаимно заменяемите артикули?
+     */
+    public $canReplaceproduct = 'ceo,planning,store';
+    
+    
+    /**
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,planning,store,production';

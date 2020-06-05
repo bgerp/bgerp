@@ -729,11 +729,31 @@ class callcenter_Talks extends core_Master
                 $endTime = urldecode($endTime);
             }
             
+            
+            // Ако не е подаден статус на обаждането
+            if (!($dialStatus = Request::get('dialstatus'))) {
+                
+                // Добавяме грешката
+                $errArr[] = 'Не е подаден статус на обаждането';
+            }
+            
+            $dialStatus = strtoupper($dialStatus);
+            
             // Вземаме текущото време
             $now = dt::now();
             
             // Инстанция на класа
             $TimeInst = cls::get('type_Time');
+            
+            if (!$answerTime && ($dialStatus == 'ANSWERED')) {
+                $errArr[] = 'Не е подадено време на отговор';
+                $answerTime = $rec->startTime;
+            }
+            
+            if (!$endTime && ($dialStatus == 'ANSWERED')) {
+                $errArr[] = 'Не е подадено време на край';
+                $endTime = $now;
+            }
             
             // Ако има време отговор и край
             if ($endTime && $answerTime) {
@@ -815,13 +835,6 @@ class callcenter_Talks extends core_Master
                     // Задаваме текущото време
                     $endTime = $now;
                 }
-            }
-            
-            // Ако не е подаден статус на обаждането
-            if (!($dialStatus = Request::get('dialstatus'))) {
-                
-                // Добавяме грешката
-                $errArr[] = 'Не е подаден статус на обаждането';
             }
             
             if (trim($answerTime)) {

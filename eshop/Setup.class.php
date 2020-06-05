@@ -158,10 +158,10 @@ class eshop_Setup extends core_ProtoSetup
      */
     public $cronSettings = array(
         array(
-            'systemId' => 'Delete Carts',
-            'description' => 'Изтриване на старите колички',
+            'systemId' => 'Check Draft Carts',
+            'description' => 'Обхождане на черновите колички',
             'controller' => 'eshop_Carts',
-            'action' => 'DeleteDraftCarts',
+            'action' => 'CheckDraftCarts',
             'period' => 60,
             'offset' => 30,
             'timeLimit' => 100
