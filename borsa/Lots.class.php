@@ -93,7 +93,7 @@ class borsa_Lots extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'borsa_Wrapper, plg_Rejected, plg_Created, plg_State2, plg_RowTools2, plg_Modified';
+    public $loadList = 'borsa_Wrapper, plg_Rejected, plg_Created, plg_State2, plg_RowTools2, plg_Modified, plg_Sorting';
     
     
     /**
@@ -626,7 +626,7 @@ class borsa_Lots extends core_Master
         expect($cRec);
         
         $qProd = borsa_Lots::getQuery();
-        $qProd->where("#state != 'rejected'");
+        $qProd->where("#state = 'active'");
         
         $qProd->show('productId');
         
