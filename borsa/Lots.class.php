@@ -98,6 +98,13 @@ class borsa_Lots extends core_Master
     
     /**
      * 
+     * @var string
+     */
+    public $listFields = 'productId, periodType, basePrice, quantity, priceChange, canConfirm, formInfo, formInfoEn, modifiedOn, modifiedBy, state';
+    
+    
+    /**
+     * 
      */
     public function description()
     {
@@ -110,7 +117,7 @@ class borsa_Lots extends core_Master
         $this->FLD('formInfo', 'text(rows=4)', 'caption=Допълнителна информация във формата->Български');
         $this->FLD('formInfoEn', 'text(rows=4)', 'caption=Допълнителна информация във формата->Английски');
         
-        $this->FNC('productName', 'varchar');
+        $this->FNC('productName', 'varchar', 'caption=Артикул');
         
         $this->setDbUnique('productId');
     }
@@ -232,19 +239,21 @@ class borsa_Lots extends core_Master
     {
         $pArr = $this->getChangePeriods($rec->id);
         
-        // Добавяме периоди с количества по подразбиране
-        foreach ($pArr as $pVal) {
-            $pRec = borsa_Periods::getPeriodRec($rec->id, $pVal['bPeriod'], $pVal['ePeriod']);
-            if (!$pRec) {
-                $pRec = new stdClass();
-                $pRec->lotId = $rec->id;
-                $pRec->from = $pVal['bPeriod'];
-                $pRec->to = $pVal['ePeriod'];
-                $pRec->qAvailable = $rec->quantity ? $rec->quantity : 0;
-                $pRec->qBooked = 0;
-                $pRec->qConfirmed = 0;
-                $pRec->state = 'active';
-                borsa_Periods::save($pRec);
+        if ($rec->quantity) {
+            // Добавяме периоди с количества по подразбиране
+            foreach ($pArr as $pVal) {
+                $pRec = borsa_Periods::getPeriodRec($rec->id, $pVal['bPeriod'], $pVal['ePeriod']);
+                if (!$pRec) {
+                    $pRec = new stdClass();
+                    $pRec->lotId = $rec->id;
+                    $pRec->from = $pVal['bPeriod'];
+                    $pRec->to = $pVal['ePeriod'];
+                    $pRec->qAvailable = $rec->quantity ? $rec->quantity : 0;
+                    $pRec->qBooked = 0;
+                    $pRec->qConfirmed = 0;
+                    $pRec->state = 'active';
+                    borsa_Periods::save($pRec);
+                }
             }
         }
     }
@@ -401,18 +410,22 @@ class borsa_Lots extends core_Master
             
             // Количества
             $qAvailable = $perRec->qAvailable ? $perRec->qAvailable : 0;
-            $qAvailable = $this->fields['qAvailable']->type->toVerbal($qAvailable);
+            $qAvailable = $this->fields['qAvailable']->type->toVerbal($qAvailable) . $sName;
             
             $qBooked = $perRec->qBooked ? $perRec->qBooked : 0;
-            $qBooked = $this->fields['qBooked']->type->toVerbal($qBooked);
+            $qBooked = $this->fields['qBooked']->type->toVerbal($qBooked) . $sName;
             
             $qConfirmed = $perRec->qConfirmed ? $perRec->qConfirmed : 0;
-            $qConfirmed = $this->fields['qConfirmed']->type->toVerbal($qConfirmed);
+            $qConfirmed = $this->fields['qConfirmed']->type->toVerbal($qConfirmed) . $sName;
             
             $qFree = $perRec->qAvailable - $perRec->qConfirmed;
             $haveQuantity = ($qFree <= 0) ? false : true;
-            $qFree = $this->fields['qFree']->type->toVerbal($qFree);
-
+            if (!$haveQuantity) {
+                $qFree = tr('*Няма*');
+            } else {
+                $qFree = $this->fields['qFree']->type->toVerbal($qFree) . $sName;
+            }
+            
             $quantity = "<table>";
             $quantity .= "<tr><th colspan='2'>" .  tr('Количества') . "</td></tr>";
             $quantity .= "<tr><td class='name'>" . tr('Общо') . ":</td><td class='value'>" . $qAvailable . "</td></tr>";
@@ -444,6 +457,7 @@ class borsa_Lots extends core_Master
                     $v->companyId = '*************';
                 }
                 
+                $v->quantity .= $sName;
                 $v->quantity = ht::createHint($v->quantity, dt::mysql2verbal($bRec->createdOn, 'd.m.Y H:i:s'));
                 
                 $rowStr = "<tr><td>{$v->companyId}</td><td class='quantityField'>{$v->quantity}</td></tr>";
@@ -670,7 +684,7 @@ class borsa_Lots extends core_Master
      * 
      * @return string
      */
-    protected static function getPeriodVerb($pVal, $mask = 'd.m.Y, l')
+    public static function getPeriodVerb($pVal, $mask = 'd.m.Y, l')
     {
         $keySel = null;
         $periodArr = plg_SelectPeriod::getOptions($keySel, $pVal['bPeriod'], $pVal['ePeriod']);
@@ -727,7 +741,14 @@ class borsa_Lots extends core_Master
     }
     
     
-    protected function getPeriods($id)
+    /**
+     * Помощна фунцкция за вземане на съответните активни периоди за лота
+     * 
+     * @param integer $id
+     * 
+     * @return array
+     */
+    public function getPeriods($id)
     {
         $pArr = $this->getChangePeriods($id);
         
@@ -754,7 +775,7 @@ class borsa_Lots extends core_Master
      * 
      * @return array
      */
-    protected function getChangePeriods($id)
+    public function getChangePeriods($id)
     {
         $mArr = array();
         

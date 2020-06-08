@@ -57,9 +57,15 @@ class borsa_Companies extends core_Manager
     
     
     /**
+     * 
+     */
+    public $searchFields = 'companyId, email';
+    
+    
+    /**
      * Плъгини за зареждане
      */
-    public $loadList = 'borsa_Wrapper, plg_Created, plg_Modified, plg_RowTools2, plg_Sorting';
+    public $loadList = 'borsa_Wrapper, plg_Created, plg_Modified, plg_RowTools2, plg_Sorting, plg_Search';
     
     
     public function description()
@@ -72,6 +78,23 @@ class borsa_Companies extends core_Manager
         $this->FNC('name', 'varchar');
         
         $this->setDbUnique('companyId,email');
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->showFields = 'search';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Сортиране на записите по num
+        $data->query->orderBy('modifiedOn');
     }
     
     
