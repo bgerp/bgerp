@@ -436,6 +436,8 @@ class batch_Items extends core_Master
         $form = cls::get('core_Form');
         
         $form->FLD("storeId{$data->masterId}", 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,silent');
+        $form->FLD("state{$data->masterId}", 'enum(active=Активни,closed=Затворени,all=Всички)', 'caption=Състояние,silent');
+        $form->setDefault("state{$data->masterId}", 'active');
         $form->view = 'horizontal';
         $form->setAction(getCurrentUrl());
         $form->toolbar->addSbBtn('', 'default', 'id=filter', 'ef_icon=img/16/funnel.png');
@@ -452,6 +454,10 @@ class batch_Items extends core_Master
         if (isset($data->form->rec->{"storeId{$data->masterId}"})) {
             $data->storeId = $data->form->rec->{"storeId{$data->masterId}"};
             $query->where("#storeId = {$data->storeId}");
+        }
+        
+        if ($data->form->rec->{"state{$data->masterId}"} != 'all') {
+            $query->where("#state = '{$data->form->rec->{"state{$data->masterId}"}}'");
         }
         
         $data->recs = $query->fetchAll();
