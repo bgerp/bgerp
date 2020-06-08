@@ -590,7 +590,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if ($rec->$filterGroupsType && $rec->products) {
                 $prodsArr = keylist::toArray($rec->products);
                 $query->in('productId', $prodsArr);
-                $query->likeKeylist($checkFieldName, $rec->$filterGroupsType);
+                $query->orLikeKeylist($checkFieldName, $rec->$filterGroupsType);
             }
         }
         
