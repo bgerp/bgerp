@@ -436,7 +436,7 @@ class batch_Items extends core_Master
         $form = cls::get('core_Form');
         
         $form->FLD("storeId{$data->masterId}", 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,silent');
-        $form->FLD("state{$data->masterId}", 'enum(active=Активни,closed=Затворени,all=Всички)', 'caption=Състояние,silent');
+        $form->FLD("state{$data->masterId}", 'enum(active=Активни,closed=Затворени,inStock=Налични,notInStock=Без наличност,all=Всички)', 'caption=Състояние,silent');
         $form->setDefault("state{$data->masterId}", 'active');
         $form->view = 'horizontal';
         $form->setAction(getCurrentUrl());
@@ -449,6 +449,7 @@ class batch_Items extends core_Master
         // Намираме наличните партиди на артикула
         $query = $this->getQuery();
         $query->where("#productId = {$data->masterId}");
+        $query->orderBy('state');
         
         // Ако филтрираме по склад, оставяме само тези в избрания склад
         if (isset($data->form->rec->{"storeId{$data->masterId}"})) {
@@ -456,8 +457,15 @@ class batch_Items extends core_Master
             $query->where("#storeId = {$data->storeId}");
         }
         
-        if ($data->form->rec->{"state{$data->masterId}"} != 'all') {
-            $query->where("#state = '{$data->form->rec->{"state{$data->masterId}"}}'");
+        $filterState = $data->form->rec->{"state{$data->masterId}"};
+        if ($filterState != 'all') {
+            if($filterState == 'inStock'){
+                $query->where("#quantity > 0");
+            } elseif($filterState == 'notInStock'){
+                $query->where("#quantity <= 0");
+            } else {
+                $query->where("#state = '{$data->form->rec->{"state{$data->masterId}"}}'");
+            }
         }
         
         $data->recs = $query->fetchAll();
