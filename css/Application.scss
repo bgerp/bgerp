@@ -5193,7 +5193,15 @@ div.location.public {
 .acc_JournalDetails {
 	margin-top: 10px;
 }
-
+.details .portal .formToolbar #filter{
+	background-color: #e5e5e5;
+	padding: 6px 4px !important;
+	width: 26px;
+	background-position: center;
+	&:hover {
+		background-color: #ccc;
+	}
+}
 /*шаблон за журнал*/
 
 .closePeriod .listTable tr > th:first-child {
