@@ -445,7 +445,7 @@ class eshop_ProductDetails extends core_Detail
                     $row->quantity = 1;
                     unset($row->btn);
                 } else {
-                    $row->saleInfo = "<span class='{$class} option-not-in-stock waitingDelivery'>" . tr('Очаквана доставка') . '</span>';
+                    $row->saleInfo = "<span class='{$class} option-not-in-stock waitingDelivery'>" . tr('Очаква се доставка') . '</span>';
                 }
             }
         }
