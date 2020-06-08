@@ -234,7 +234,7 @@ class sales_QuotationsDetails extends doc_Detail
                     }
                 }
                 
-                if(isset($rec->price) && $masterRec->chargeVat == 'separate') {
+                if(isset($rec->price)) {
                     $vat = cat_Products::getVat($rec->productId, $masterRec->date);
                     $rec->vatPackPrice = $rec->packPrice * (1 + $vat);
                 }
@@ -345,6 +345,8 @@ class sales_QuotationsDetails extends doc_Detail
                 }
             }
         }
+        
+        $data->renderVatPriceInRec = ($masterRec->chargeVat == 'separate' && empty($data->summary));
     }
     
     
@@ -948,7 +950,7 @@ class sales_QuotationsDetails extends doc_Detail
             $vat = cat_Products::getVat($rec->productId, $masterRec->date);
             $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $fee->explain);
         
-            if(isset($rec->vatPackPrice)){
+            if(isset($rec->vatPackPrice) && $data->renderVatPriceInRec){
                 $row->vatPackPrice = $mvc->getFieldType('vatPackPrice')->toVerbal($rec->vatPackPrice);
             }
         }
