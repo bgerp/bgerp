@@ -671,6 +671,7 @@ class plg_Search extends core_Plugin
      */
     public static function callback_repairSerchKeywords($clsName)
     {
+        $clsName = 'lab_Hora';
         $pKey = $clsName . '|repairSearchKeywords';
         
         if (!cls::load($clsName, true)) {
@@ -750,14 +751,13 @@ class plg_Search extends core_Plugin
             }
         } catch (Exception $e) {
             reportException($e);
-            if (is_null($kVal)) {
+            if (is_null($lastId)) {
                 
                 return ;
             }
         } catch (Throwable  $e) {
             reportException($e);
-            
-            if (is_null($kVal)) {
+            if (is_null($lastId)) {
                 
                 return ;
             }
