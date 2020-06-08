@@ -120,7 +120,7 @@ class sales_QuotationsDetails extends doc_Detail
         $this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,smartCenter');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none');
         $this->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
-        
+        $this->FNC('vatPackPrice', 'double(minDecimals=2)', 'caption=Цена с ддс,smartCenter');
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none');
         $this->FLD('price', 'double(minDecimals=2,maxDecimals=4)', 'caption=Ед. цена, input=none');
         $this->FLD('discount', 'percent(smartRound,min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.3)', 'caption=Отстъпка,smartCenter');
@@ -228,11 +228,15 @@ class sales_QuotationsDetails extends doc_Detail
                     if (isset($rec->price)) {
                         $rec->packPrice = $rec->price * $rec->quantityInPack;
                         $rec->amount = $rec->packPrice * $rec->packQuantity;
-                        
                         $rec->livePrice = true;
                     } else {
                         $data->noTotal = true;
                     }
+                }
+                
+                if(isset($rec->price) && $masterRec->chargeVat == 'separate') {
+                    $vat = cat_Products::getVat($rec->productId, $masterRec->date);
+                    $rec->vatPackPrice = $rec->packPrice * (1 + $vat);
                 }
                 
                 if ($rec->optional == 'no') {
@@ -654,7 +658,7 @@ class sales_QuotationsDetails extends doc_Detail
                 $optionalRows[$ind] = $data->rows[$ind];
             }
         }
-        
+       
         // Подравняваме ги спрямо едни други
         plg_AlignDecimals2::alignDecimals($this, $optionalRecs, $optionalRows);
         plg_AlignDecimals2::alignDecimals($this, $notOptionalRecs, $notOptionalRows);
@@ -842,7 +846,9 @@ class sales_QuotationsDetails extends doc_Detail
             $dTpl->removeBlock('totalPlace');
         }
         
-        $vatRow = ($masterRec->chargeVat == 'yes') ? tr(', |с ДДС|*') : tr(', |без ДДС|*');
+        $vatRow = " " . (($masterRec->chargeVat == 'yes') ? tr('с ДДС') : (($masterRec->chargeVat == 'separate') ? "<b>" . tr('без ДДС') . "</b>" : tr('без ДДС')));
+        
+        
         $miscMandatory = $masterRec->currencyId . $vatRow;
         $miscOptional = $masterRec->currencyId . $vatRow;
         if (countR($data->discounts) && $data->hasDiscounts === true) {
@@ -941,6 +947,10 @@ class sales_QuotationsDetails extends doc_Detail
             
             $vat = cat_Products::getVat($rec->productId, $masterRec->date);
             $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $fee->explain);
+        
+            if(isset($rec->vatPackPrice)){
+                $row->vatPackPrice = $mvc->getFieldType('vatPackPrice')->toVerbal($rec->vatPackPrice);
+            }
         }
         
         core_Lg::pop();
