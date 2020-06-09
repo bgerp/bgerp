@@ -2592,7 +2592,7 @@ class email_Outgoings extends core_Master
                 $badIpArr = email_Incomings::getBadIpArr($viewIp, $rec->folderId, $emailsTld);
                 
                 if (!empty($badIpArr)) {
-                    $row->IpErrorString = 'Писмото е видяно от потребител в рискова зона|* - ';
+                    $row->IpErrorString = tr('Писмото е видяно от потребител в рискова зона|* - ');
                     $countryName = '';
                     foreach ($badIpArr as $ip => $countryCode) {
                         $row->IpErrorString .= ($countryName) ? ', ' : '';
