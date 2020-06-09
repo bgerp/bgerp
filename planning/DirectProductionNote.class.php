@@ -458,7 +458,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         } else {
             $details = $this->getDefaultDetailsFromBom($rec);
         }
-        //
+        
         // Връщаме намерените дефолтни детайли
         return $details;
     }
