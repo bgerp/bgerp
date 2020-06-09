@@ -548,14 +548,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
           
             // Дефолтното к-во ще е разликата между к-та за произведеното до сега и за произведеното в момента
             $dRec->quantity = $resource->propQuantity - $bomInfo1['resources'][$index]->propQuantity;
-           
-            // Подсигуряване, че количеството е опаковка е добре
-            $round = cat_UoM::fetchField($dRec->packagingId, 'round');
-            if(isset($round)){
-                $packQuantity = round($dRec->quantity / $dRec->quantityInPack, $round);
-                $dRec->quantity = $packQuantity * $dRec->quantityInPack;
-            }
-           
             $dRec->quantityFromBom = $dRec->quantity;
             
             $pInfo = cat_Products::getProductInfo($resource->productId);

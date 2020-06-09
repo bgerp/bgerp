@@ -555,7 +555,7 @@ abstract class deals_DealDetail extends doc_Detail
             $Policy = cls::get($Policy);
             
             // Подготовка на записите
-            $error = $error2 = $error3 = $toSave = $toUpdate = $multiError = array();
+            $error = $error2 = $warnings = $toSave = $toUpdate = $multiError = array();
             foreach ($listed as $lId => $lRec) {
                 $packQuantity = $rec->{"quantity{$lId}"};
                 $quantityInPack = $rec->{"quantityInPack{$lId}"};
@@ -592,7 +592,7 @@ abstract class deals_DealDetail extends doc_Detail
                 
                 $warning = null;
                 if (!deals_Helper::checkQuantity($packagingId, $packQuantity, $warning)) {
-                    $error3[$warning][] = "quantity{$lId}";
+                    $warnings[$warning][] = "quantity{$lId}";
                 }
                 
                 if (isset($lRec->moq) && $packQuantity < $lRec->moq) {
@@ -639,9 +639,9 @@ abstract class deals_DealDetail extends doc_Detail
                 $form->setError(implode(',', $error), 'Артикулът няма цена');
             }
             
-            if (countR($error3)) {
-                foreach ($error3 as $msg => $fields) {
-                    $form->setError(implode(',', $fields), $msg);
+            if (countR($warnings)) {
+                foreach ($warnings as $msg => $fields) {
+                    $form->setWarning(implode(',', $fields), $msg);
                 }
             }
             
@@ -653,7 +653,7 @@ abstract class deals_DealDetail extends doc_Detail
                 }
             }
             
-            if (!countR($error) && !countR($error3) && (!countR($error2) || (countR($error2) && Request::get('Ignore'))) && (!countR($multiError) || (countR($multiError) && Request::get('Ignore')))) {
+            if (!countR($error) && (!countR($error2) || (countR($error2) && Request::get('Ignore'))) && (!countR($multiError) || (countR($multiError) && Request::get('Ignore')))) {
                 
                 // Запис на обновените записи
                 if (countR($toUpdate)) {
