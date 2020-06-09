@@ -478,6 +478,8 @@ class cat_Boms extends core_Master
             $origin = doc_Containers::getDocument($rec->originId);
             if($origin->isInstanceOf('planning_Tasks')){
                 $res = 'no_one';
+            } elseif(in_array($origin->fetchField('state'), array('draft', 'rejected'))) {
+                $res = 'no_one';
             }
         }
         
