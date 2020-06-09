@@ -451,13 +451,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      */
     protected function getDefaultDetails($rec)
     {
+        $rec = $this->fetchRec($rec);
         $origin = doc_Containers::getDocument($rec->originId);
         if($origin->isInstanceOf('planning_Tasks')){
             $details = $this->getDefaultDetailsFromTasks($rec);
         } else {
             $details = $this->getDefaultDetailsFromBom($rec);
         }
-        
+        //
         // Връщаме намерените дефолтни детайли
         return $details;
     }
@@ -544,17 +545,17 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $dRec->type = $resource->type;
             $dRec->packagingId = $resource->packagingId;
             $dRec->quantityInPack = $resource->quantityInPack;
-            
-            // Дефолтното к-вво ще е разликата между к-та за произведеното до сега и за произведеното в момента
+          
+            // Дефолтното к-во ще е разликата между к-та за произведеното до сега и за произведеното в момента
             $dRec->quantity = $resource->propQuantity - $bomInfo1['resources'][$index]->propQuantity;
-            
+           
             // Подсигуряване, че количеството е опаковка е добре
             $round = cat_UoM::fetchField($dRec->packagingId, 'round');
             if(isset($round)){
-                $packQuantity = round($dRec->quantity * $dRec->quantityInPack, $round);
-                $dRec->quantity = $packQuantity / $dRec->quantityInPack;
+                $packQuantity = round($dRec->quantity / $dRec->quantityInPack, $round);
+                $dRec->quantity = $packQuantity * $dRec->quantityInPack;
             }
-            
+           
             $dRec->quantityFromBom = $dRec->quantity;
             
             $pInfo = cat_Products::getProductInfo($resource->productId);
