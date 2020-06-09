@@ -772,7 +772,7 @@ class doc_Linked extends core_Manager
             
             $url['ret_url'] = true;
             
-            core_Permanent::set($url['linkedHashKey'], $nRec, 120);
+            core_Permanent::set($url['linkedHashKey'], $nRec, 600);
             
             return new Redirect($url);
         }
