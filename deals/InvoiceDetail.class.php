@@ -538,7 +538,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             // Проверка на к-то, само ако не е КИ или ДИ
             $warning = null;
             if (!deals_Helper::checkQuantity($rec->packagingId, $rec->quantity, $warning) && $masterRec->type != 'dc_note') {
-                $form->setError('quantity', $warning);
+                $form->setWarning('quantity', $warning);
             }
             
             if ($masterRec->type != 'dc_note') {

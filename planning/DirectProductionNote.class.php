@@ -321,7 +321,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             // Проверка на к-то
             $warning = null;
             if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
-                $form->setError('packQuantity', $warning);
+                $form->setWarning('packQuantity', $warning);
             }
             
             $productInfo = cat_Products::getProductInfo($form->rec->productId);

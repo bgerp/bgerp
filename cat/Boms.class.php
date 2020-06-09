@@ -1533,7 +1533,7 @@ class cat_Boms extends core_Master
             $measureId = cat_Products::fetchField($rec->productId, 'measureId');
             $warning = '';
             if (!deals_Helper::checkQuantity($measureId, $rec->quantity, $warning)) {
-                $form->setError('quantity', $warning);
+                $form->setWarning('quantity', $warning);
             }
             
             $firstDocument = doc_Containers::getDocument($rec->originId);
