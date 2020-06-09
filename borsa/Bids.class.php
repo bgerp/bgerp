@@ -250,9 +250,23 @@ class borsa_Bids extends core_Manager
     public static function on_AfterPrepareListRows($mvc, $data)
     {
         foreach ($data->rows as $id => &$row) {
-            if ($mvc->haveRightFor('confirm', $data->recs[$id])) {
+            $rec = $data->recs[$id];
+            
+            if ($mvc->haveRightFor('confirm', $rec)) {
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $row->_rowTools->addLink('Потвърждаване', array($mvc, 'confirm', $id, 'ret_url' => true), array('ef_icon' => 'img/16/stock_new_meeting.png', 'title' => 'Потвърждаване на оферта'));
+            }
+            
+            // Бутон за създаване на продажба
+            if (($rec->companyId) && ($rec->state == 'draft') && sales_Sales::haveRightFor('add')) {
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+                
+                $cRec = borsa_Companies::fetch($rec->companyId);
+                $folderId = crm_Companies::forceCoverAndFolder($cRec->companyId);
+                
+                if (sales_Sales::haveRightFor('add', (object)array('folderId' => $folderId))) {
+                    $row->_rowTools->addLink('Продажба', array('sales_Sales', 'add', 'folderId' => $folderId, 'ret_url' => true), array('ef_icon' => 'img/16/cart_go.png', 'title' => 'Създаване на продажба'));
+                }
             }
         }
     }
@@ -332,6 +346,14 @@ class borsa_Bids extends core_Manager
                 $form->setError('saleIdInt', 'Не е открита такава продажба');
             } elseif ($sRec->state != 'active') {
                 $form->setWarning('saleIdInt', 'Тази продажба не е контирана');
+            }
+            
+            if ($sRec && $rec->companyId) {
+                $cRec = borsa_Companies::fetch($rec->companyId);
+                $folderId = crm_Companies::forceCoverAndFolder($cRec->companyId);
+                if ($folderId != $sRec->folderId) {
+                    $form->setWarning('saleIdInt', 'Продажбата не е към този контрагент');
+                }
             }
             
             $pRec = borsa_Periods::fetch($rec->periodId);

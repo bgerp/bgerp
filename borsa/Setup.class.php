@@ -86,4 +86,17 @@ class borsa_Setup extends core_ProtoSetup
     public $roles = array(
             array('borsa'),
     );
+    
+    
+    /**
+     * Инсталиране на пакета
+     */
+    public function install()
+    {
+        $html = parent::install();
+        
+        $html .= core_Plugins::installPlugin('Добавяне на фирма към борса', 'borsa_Plugin', 'crm_Companies', 'private');
+        
+        return $html;
+    }
 }
