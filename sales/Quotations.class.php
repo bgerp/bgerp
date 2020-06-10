@@ -957,9 +957,14 @@ class sales_Quotations extends core_Master
      */
     public function getDefaultEmailBody($id, $forward = false)
     {
+        $rec = $this->fetchRec($id);
         $handle = $this->getHandle($id);
-        $tpl = new ET(tr('Моля запознайте се с нашата оферта') . ': #[#handle#]');
+        $tpl = new core_ET(tr("Моля запознайте се с нашата оферта|* : #[#handle#]."));
         $tpl->append($handle, 'handle');
+        
+        if($rec->chargeVat == 'separate'){
+            $tpl->append("\n\n" . tr("Обърнете внимание, че цените в тази оферта са [b]без ДДС[/b]. В договора ДДС ще е на отделен ред."));
+        }
         
         return $tpl->getContent();
     }
