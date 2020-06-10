@@ -155,7 +155,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 // Проверка на к-то
                 $warning = null;
                 if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
-                    $form->setError('packQuantity', $warning);
+                    $form->setWarning('packQuantity', $warning);
                 }
                 
                 // Ако добавяме отпадък, искаме да има себестойност

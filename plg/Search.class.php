@@ -671,6 +671,7 @@ class plg_Search extends core_Plugin
      */
     public static function callback_repairSerchKeywords($clsName)
     {
+        $clsName = 'lab_Hora';
         $pKey = $clsName . '|repairSearchKeywords';
         
         if (!cls::load($clsName, true)) {
@@ -718,33 +719,47 @@ class plg_Search extends core_Plugin
         
         $lastId = $kVal;
         
-        while ($rec = $query->fetch()) {
-            
-            if (dt::now() >= $maxTime) {
-                break;
-            }
-            
-            if ($isFirst) {
-                $clsInst->logDebug("Регенериране на ключови думи от {$rec->id}");
-                $isFirst = false;
-            }
-            
-            $lastId = $rec->id;
-            
-            try {
-                $generatedKeywords = $clsInst->getSearchKeywords($rec);
-                if ($generatedKeywords == $rec->searchKeywords) {
-                    
-                    continue;
+        try {
+            while ($rec = $query->fetch()) {
+                
+                if (dt::now() >= $maxTime) {
+                    break;
                 }
                 
-                $rec->searchKeywords = $generatedKeywords;
+                if ($isFirst) {
+                    $clsInst->logDebug("Регенериране на ключови думи от {$rec->id}");
+                    $isFirst = false;
+                }
                 
-                $clsInst->save_($rec, 'searchKeywords');
-            } catch (Exception $e) {
-                reportException($e);
-            } catch (Throwable  $e) {
-                reportException($e);
+                $lastId = $rec->id;
+                
+                try {
+                    $generatedKeywords = $clsInst->getSearchKeywords($rec);
+                    if ($generatedKeywords == $rec->searchKeywords) {
+                        
+                        continue;
+                    }
+                    
+                    $rec->searchKeywords = $generatedKeywords;
+                    
+                    $clsInst->save_($rec, 'searchKeywords');
+                } catch (Exception $e) {
+                    reportException($e);
+                } catch (Throwable  $e) {
+                    reportException($e);
+                }
+            }
+        } catch (Exception $e) {
+            reportException($e);
+            if (is_null($lastId)) {
+                
+                return ;
+            }
+        } catch (Throwable  $e) {
+            reportException($e);
+            if (is_null($lastId)) {
+                
+                return ;
             }
         }
         

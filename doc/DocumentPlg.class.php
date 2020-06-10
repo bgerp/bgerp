@@ -844,14 +844,16 @@ class doc_DocumentPlg extends core_Plugin
         
         if ($rec->linkedHashKey) {
             $lRec = core_Permanent::get($rec->linkedHashKey);
-            $lRec->inVal = $rec->containerId;
-            
-            doc_Linked::save($lRec);
-            
-            try {
-                $outDoc = doc_Containers::getDocument($lRec->outVal);
-                $outDoc->instance->logRead('Създаден документ', $outDoc->that);
-            } catch (core_exception_Expect $e) {
+            if ($lRec && is_object($lRec)) {
+                $lRec->inVal = $rec->containerId;
+                
+                doc_Linked::save($lRec);
+                
+                try {
+                    $outDoc = doc_Containers::getDocument($lRec->outVal);
+                    $outDoc->instance->logRead('Създаден документ', $outDoc->that);
+                } catch (core_exception_Expect $e) {
+                }
             }
         }
         

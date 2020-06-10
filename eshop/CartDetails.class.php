@@ -241,7 +241,7 @@ class eshop_CartDetails extends core_Detail
             // Проверка на к-то
             $warning = null;
             if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
-                $form->setError('packQuantity', $warning);
+                $form->setWarning('packQuantity', $warning);
             }
             
             // Проверка достигнато ли е максималното количество
@@ -463,7 +463,7 @@ class eshop_CartDetails extends core_Detail
             
             if (is_null($maxQuantity) && $maxQuantity <= 0) {
                 if(!empty($eshopProductRec->deliveryTime)){
-                    $row->productId .= "<br><span  class='option-not-in-stock waitingDelivery'>" . tr('Очаквана доставка') . '</span>';
+                    $row->productId .= "<br><span  class='option-not-in-stock waitingDelivery'>" . tr('Очаква се доставка') . '</span>';
                 }
             }
         }
@@ -731,7 +731,7 @@ class eshop_CartDetails extends core_Detail
      */
     public static function getUniqueParamsAsText($eshopProductId, $productId, $asRichText = false)
     {
-        $displayParams = eshop_Products::getParamsToDisplay($eshopProductId);
+        $displayParams = eshop_Products::getSettingField($eshopProductId, null, 'showParams');
         $commonParams = eshop_Products::getCommonParams($eshopProductId);
         $productParams = cat_Products::getParams($productId, null, true);
         

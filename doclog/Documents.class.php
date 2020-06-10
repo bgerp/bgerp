@@ -2116,6 +2116,49 @@ class doclog_Documents extends core_Manager
         
         // Изчистваме кешираната история на треда, понеже тя току-що е била променена.
         $mvc::removeHistoryFromCache($rec->threadId);
+
+        try {
+            if ($rec->containerId) {
+                $sendEmailsArr = doclog_Documents::getSendEmails($rec->containerId);
+                $emailsTld = type_Emails::getCountryFromTld($sendEmailsArr, 'letterCode2');
+                
+                $folderId = doc_Containers::fetchField($rec->containerId, 'folderId');
+                
+                $viewIp = doclog_Documents::getViewIp($rec->containerId);
+                $badIpArr = email_Incomings::getBadIpArr($viewIp, $folderId, $emailsTld);
+                
+                if (!empty($badIpArr)) {
+                    $errStr = '|Документът е видян от потребител в рискова зона|*: ';
+                    $countryName = '';
+                    foreach ($badIpArr as $ip => $countryCode) {
+                        $errStr .= ($countryName) ? ', ' : '';
+                        $countryName = drdata_Countries::getCountryName($countryCode);
+                        $errStr .= $countryName;
+                    }
+                    
+                    $mvc->logWarning(tr($errStr), $rec->id);
+                    doc_Containers::logErr(tr($errStr), $rec->containerId);
+                    
+                    $userId = $rec->createdBy;
+                    if (($userId <= 0) || !haveRole('powerUser', $userId)) {
+                        $cRec = doc_Containers::fetch($rec->containerId);
+                        $userId = $cRec->activatedBy;
+                        if (($userId <= 0) || !haveRole('powerUser', $userId)) {
+                            $userId = $cRec->createdBy;
+                        }
+                    }
+                    
+                    if ($userId && haveRole('powerUser', $userId)) {
+                        $doc = doc_Containers::getDocument($rec->containerId);
+                        bgerp_Notifications::add($errStr, array($doc->instance, 'single', $doc->that), $userId);
+                    }
+                }
+            }
+        } catch (core_exception_Expect $e) {
+            reportException($e);
+        } catch (Throwable $t) {
+            reportException($t);
+        }
     }
     
     

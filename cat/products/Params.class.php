@@ -319,6 +319,15 @@ class cat_products_Params extends doc_Detail
     {
         if (is_array($data->params)) {
             foreach ($data->params as &$row) {
+                
+                // Ревербализиране на файловете да се покажат с подходящите права
+                if(!empty($row->_paramId)){
+                    $ParamDriver = cat_Params::getDriver($row->_paramId);
+                    if($ParamDriver instanceof cond_type_File || $ParamDriver instanceof cond_type_Image){
+                        $row->paramValue = cat_Params::toVerbal($row->_paramId, $row->classId, $row->productId, $row->_paramValue);
+                    }
+                }
+                
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 if ($data->noChange !== true && !Mode::isReadOnly()) {
                     $row->tools = $row->_rowTools->renderHtml();
@@ -361,6 +370,8 @@ class cat_products_Params extends doc_Detail
         
         while ($rec = $query->fetch()) {
             $data->params[$rec->id] = static::recToVerbal($rec);
+            $data->params[$rec->id]->_paramId = $rec->paramId;
+            $data->params[$rec->id]->_paramValue = $rec->paramValue;
         }
         
         if (self::haveRightFor('add', (object) array('productId' => $data->masterId, 'classId' => $data->masterClassId))) {

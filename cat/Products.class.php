@@ -2288,7 +2288,7 @@ class cat_Products extends embed_Manager
             
             // Удебеляваме името само ако има допълнително описание
             if (strlen($descriptionTpl->getContent())) {
-                $title = "<b>{$title}</b>";
+                $title = "<b class='productName'>{$title}</b>";
             }
         }
         

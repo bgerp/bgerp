@@ -3157,7 +3157,11 @@ fieldset.sharing-history {
 
 /*борса*/
 .auctionContent {
-	padding: 0 20px 10px;
+	padding: 0 30px 10px;
+	.productName {
+		font-size: 1.3em;
+		line-height: 150%;
+	}
 	.listTable {
 		margin-top: 20px;
 		width: 100%;
@@ -3183,6 +3187,24 @@ fieldset.sharing-history {
 				.quantityField {
 					text-align: right;
 				}
+
+			}
+		}
+		.priceInfo {
+			color: green !important;
+		}
+		.button {
+			width: 100px;
+			color: #333 !important;
+			padding: 5px 20px;
+			font-size: 0.85em;
+			background-color: #f6f6f6 !important;
+			border: 1px solid #bbbbbb;
+			border-radius: 3px;
+			box-shadow: inset 0 -1px 0 1px rgba(0, 0, 0, 0.1), inset 0 -10px 20px rgba(0, 0, 0, 0.1);
+			margin: 10px auto 0;
+			&:hover {
+				background-color: #ddd !important;
 			}
 		}
 	}
@@ -3197,28 +3219,33 @@ fieldset.sharing-history {
 	.priceBlock {
 		float: right;
 	}
-	.newsCol {
-		background: #fafafa;
+	h4 {
+		margin-top: 40px;
 	}
-	.reservedCol {
-		background: #c7f3c7;
-	}
-	.orderedCol {
-		background: #ffffbc;
-	}
-	.button {
-		width: 100px;
-		color: #333 !important;
-		padding: 5px 20px;
-		font-size: 0.85em;
-		background-color: #f6f6f6 !important;
-		border: 1px solid #bbbbbb;
-		border-radius: 3px;
-		box-shadow: inset 0 -1px 0 1px rgba(0, 0, 0, 0.1), inset 0 -10px 20px rgba(0, 0, 0, 0.1);
-		margin: 10px auto 0;
-		&:hover {
-			background-color: #ddd !important;
+	.otherProduct {
+		li {
+			margin: 10px 0;
+			a:hover {
+				text-decoration: underline;
+			}
 		}
+	}
+	.state-draft {
+		background-color: #bbffff;
+	}
+	.state-active {
+		background-color: #ffeedd;
+	}
+	.newsCol {
+		background: #fff;
+	}
+	#prodDesc {
+		display: inline-block;
+		min-width: 800px;
+		.productPreviewHolder {
+			margin-left: 30px;
+		}
+
 	}
 }
 
@@ -5166,7 +5193,15 @@ div.location.public {
 .acc_JournalDetails {
 	margin-top: 10px;
 }
-
+.details .portal .formToolbar #filter{
+	background-color: #e5e5e5;
+	padding: 6px 4px !important;
+	width: 26px;
+	background-position: center;
+	&:hover {
+		background-color: #ccc;
+	}
+}
 /*шаблон за журнал*/
 
 .closePeriod .listTable tr > th:first-child {

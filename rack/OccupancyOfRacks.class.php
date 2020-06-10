@@ -18,9 +18,10 @@ class rack_OccupancyOfRacks extends core_Manager
 {
     public $title = 'Заетост на стелажите в склад';
     
-    public $loadList = 'plg_Created, plg_RowTools2';
-    
-    public $listFields;
+    /**
+     * Плъгини за зареждане
+     */
+    public $loadList = 'rack_Wrapper,plg_Created, plg_RowTools2';
     
     
     /**

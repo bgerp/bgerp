@@ -430,6 +430,11 @@ class cat_BomDetails extends doc_Detail
                 } else {
                     $form->setError('propQuantity', 'Изчисленото количество трябва да е положително');
                 }
+            } else {
+                $warning = null;
+                if(!deals_Helper::checkQuantity($rec->packagingId, $calced, $warning)){
+                    $form->setWarning('propQuantity', $warning);
+                }
             }
             
             if (isset($rec->resourceId)) {

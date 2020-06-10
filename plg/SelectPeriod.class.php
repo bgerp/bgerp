@@ -308,7 +308,7 @@ class plg_SelectPeriod extends core_Plugin
     /**
      * Подготва опциите за избир на период
      */
-    private static function getOptions(&$keySel = null, $fromSel = null, $toSel = null)
+    public static function getOptions(&$keySel = null, $fromSel = null, $toSel = null)
     {
         $opt = array();
         

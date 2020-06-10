@@ -166,7 +166,7 @@ defIfNot('SALES_DELTA_MIN_PERCENT_PRIME_COST', '0.2');
 /**
  * Дефолтен режим на ДДС в офертите
  */
-defIfNot('SALES_QUOTATION_DEFAULT_CHARGE_VAT', 'auto');
+defIfNot('SALES_QUOTATION_DEFAULT_CHARGE_VAT_BG', 'auto');
 
 
 /**
@@ -310,9 +310,9 @@ class sales_Setup extends core_ProtoSetup
             'time',
             'caption=Оферти->Валидност'
         ),
-        'SALES_QUOTATION_DEFAULT_CHARGE_VAT' => array(
+        'SALES_QUOTATION_DEFAULT_CHARGE_VAT_BG' => array(
             'enum(auto=Автоматично,yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 
-            'caption=Режим на ДДС в офертите по подразбиране->Избор'
+            'caption=Режим на ДДС в офертите по подразбиране (клиенти от България)->Избор'
         ),
     
         'SALES_PROD_NAME_LENGTH' => array(

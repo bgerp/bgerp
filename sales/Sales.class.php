@@ -453,6 +453,11 @@ class sales_Sales extends deals_DealMaster
                     }
                 }
             }
+            
+            // Дефолтната ценова политика се показва като плейсхолдър
+            if($listId = price_ListToCustomers::getListForCustomer($form->rec->contragentClassId, $form->rec->contragentId)){
+                $form->setField("priceListId", "placeholder=" . price_Lists::getTitleById($listId));
+            }
         }
     }
     
