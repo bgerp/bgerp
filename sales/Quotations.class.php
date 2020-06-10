@@ -1503,6 +1503,7 @@ class sales_Quotations extends core_Master
     public static function createNewDraft($contragentClass, $contragentId, $date = null, $fields = array())
     {
         // Проверки
+        $me = cls::get(get_called_class());
         expect($Cover = cls::get($contragentClass), 'Невалиден клас');
         expect(cls::haveInterface('crm_ContragentAccRegIntf', $Cover), 'Класа не е на контрагент');
         expect($Cover->fetch($contragentId), 'Няма такъв контрагент');
@@ -1529,21 +1530,23 @@ class sales_Quotations extends core_Master
             $newRec->folderId = $Cover->forceCoverAndFolder($contragentId);
         }
         
-        $newRec->currencyId = (isset($fields['currencyCode'])) ? $fields['currencyCode'] : $Cover->getDefaultcurrencyId($contragentId);
+        $newRec->currencyId = (isset($fields['currencyCode'])) ? $fields['currencyCode'] : cond_plg_DefaultValues::getDefaultValue($me, $newRec->folderId, 'currencyId');
         expect(currency_Currencies::getIdByCode($newRec->currencyId), 'Невалиден код');
+        
         $newRec->currencyRate = (isset($fields['rate'])) ? $fields['rate'] : currency_CurrencyRates::getRate($newRec->date, $newRec->currencyId, null);
         expect(cls::get('type_Double')->fromVerbal($newRec->currencyRate), 'Невалиден курс');
-        $newRec->chargeVat = (isset($fields['chargeVat'])) ? $fields['chargeVat'] : cls::get(get_called_class())->getDefaultChargeVat($newRec);
+        
+        $newRec->chargeVat = (isset($fields['chargeVat'])) ? $fields['chargeVat'] : cond_plg_DefaultValues::getDefaultValue($me, $newRec->folderId, 'chargeVat');
         expect(in_array($newRec->chargeVat, array('yes', 'no', 'exempt', 'separate')), 'Невалидно ДДС');
         
         // Намиране на метода за плащане
-        $newRec->paymentMethodId = (isset($fields['paymentMethodId'])) ? $fields['paymentMethodId'] : cond_Parameters::getParameter($Cover->getClassId(), $contragentId, 'paymentMethodSale');
+        $newRec->paymentMethodId = (isset($fields['paymentMethodId'])) ? $fields['paymentMethodId'] : cond_plg_DefaultValues::getDefaultValue($me, $newRec->folderId, 'paymentMethodId');
         if (isset($newRec->paymentMethodId)) {
             expect(cond_PaymentMethods::fetch($newRec->paymentMethodId), 'Невалиден метод за плащане');
         }
         
         // Условието на доставка
-        $newRec->deliveryTermId = (isset($fields['deliveryTermId'])) ? $fields['deliveryTermId'] : cond_Parameters::getParameter($Cover->getClassId(), $contragentId, 'deliveryTermSale');
+        $newRec->deliveryTermId = (isset($fields['deliveryTermId'])) ? $fields['deliveryTermId'] : cond_plg_DefaultValues::getDefaultValue($me, $newRec->folderId, 'deliveryTermId');
         if (isset($newRec->deliveryTermId)) {
             expect(cond_DeliveryTerms::fetch($newRec->deliveryTermId), 'Невалидно условие на доставка');
         }
