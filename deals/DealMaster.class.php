@@ -1012,7 +1012,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 if ($Driver = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
                     $deliveryDataArr = $Driver->getVerbalDeliveryData($rec->deliveryTermId, $rec->deliveryData, get_called_class());
                     foreach ($deliveryDataArr as $delObj){
-                        $row->notes .= "<li>{$delObj->caption}: {$delObj->value}</li>";
+                        $row->deliveryBlock .= "<li>{$delObj->caption}: {$delObj->value}</li>";
                     }
                 }
             }
