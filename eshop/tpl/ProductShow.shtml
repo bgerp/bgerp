@@ -19,7 +19,7 @@
 		<!--ET_BEGIN STATE_EXTERNAL-->
 		[#STATE_EXTERNAL#]
 		<!--ET_END STATE_EXTERNAL-->
-
+		
 		<div style="padding: 10px 0;">
 		[#info#]
 		</div>

@@ -781,7 +781,9 @@ class rack_Racks extends core_Master
     protected static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
     {
         if($data->rec->storeId != store_Stores::getCurrent()){
-           redirect(array('rack_Racks', 'list'));
+            if (core_Users::getCurrent() != -1) {
+                redirect(array('rack_Racks', 'list'));
+            }
         }
     }
 }

@@ -145,6 +145,12 @@ class eshop_ProductDetails extends core_Detail
             $productRec = cat_Products::fetch($rec->productId, 'canStore,measureId');
             if ($productRec->canStore == 'yes') {
                 $packs = cat_Products::getPacks($rec->productId);
+                
+                $allowedPacks = eshop_Products::getSettingField($rec->eshopProductId, null, 'showPacks');
+                if(countR($allowedPacks)){
+                    $packs = array_intersect_key($packs, $allowedPacks);
+                }
+                
                 $form->setSuggestions('packagings', $packs);
                 $form->setDefault('packagings', keylist::addKey('', key($packs)));
             } else {
@@ -277,7 +283,8 @@ class eshop_ProductDetails extends core_Detail
     {
         $data->rows = $data->recs = array();
         
-        $data->listFields = arr::make('code=Код,productId=Артикул,params=Параметри,packagingId=Опаковка,quantity=Количество,catalogPrice=Цена');
+        $me = cls::get(get_called_class());
+        $data->listFields = arr::make('code=Код,productId=Артикул,packagingId=Опаковка,quantity=Количество,catalogPrice=Цена');
         $fields = cls::get(get_called_class())->selectFields();
         $fields['-external'] = $fields;
         
@@ -289,11 +296,16 @@ class eshop_ProductDetails extends core_Detail
         
         while ($rec = $query->fetch()) {
             $newRec = (object) array('eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'title' => $rec->title, 'deliveryTime' => $rec->deliveryTime);
-            $packagins = keylist::toArray($rec->packagings);
+            
+            $packagings = keylist::toArray($rec->packagings);
+            $allowedPacks = eshop_Products::getSettingField($rec->eshopProductId, 'null', 'showPacks');
+            if(countR($allowedPacks)){
+                $packagings = array_intersect_key($packagings, $allowedPacks);
+            }
             
             // Всяка от посочените опаковки се разбива във отделни редове
             $i = 1;
-            foreach ($packagins as $packagingId) {
+            foreach ($packagings as $packagingId) {
                 $clone = clone $newRec;
                 $clone->first = ($i == 1) ? true : false;
                 $clone->packagingId = $packagingId;
@@ -303,6 +315,7 @@ class eshop_ProductDetails extends core_Detail
                 $row = self::getExternalRow($clone);
                 $paramsText = eshop_CartDetails::getUniqueParamsAsText($rec->eshopProductId, $rec->productId);
                 $row->paramsText = $paramsText;
+                $me->invoke('AfterRecToVerbal', array($row, $rec));
                 
                 $data->recs[] = $clone;
                 $data->rows[] = $row;
@@ -326,6 +339,7 @@ class eshop_ProductDetails extends core_Detail
                     $row1->productId = "<span class='quiet'>{$row1->productId}</span>";
                     unset($row1->code);
                     unset($row1->params);
+                    unset($row1->_rowTools);
                     $row1->ROW_ATTR['class'] = "no-product-rows";
                 } else {
                     if (!empty($row1->paramsText)) {
@@ -431,7 +445,7 @@ class eshop_ProductDetails extends core_Detail
                     $row->quantity = 1;
                     unset($row->btn);
                 } else {
-                    $row->saleInfo = "<span class='{$class} option-not-in-stock waitingDelivery'>" . tr('Очаквана доставка') . '</span>';
+                    $row->saleInfo = "<span class='{$class} option-not-in-stock waitingDelivery'>" . tr('Очаква се доставка') . '</span>';
                 }
             }
         }
@@ -460,11 +474,11 @@ class eshop_ProductDetails extends core_Detail
         
         $fieldset = cls::get(get_called_class());
         $fieldset->FNC('code', 'varchar');
-        $fieldset->FNC('params', 'varchar', 'tdClass=paramCol');
         $fieldset->setField('productId', 'tdClass=productCol');
         $fieldset->FNC('catalogPrice', 'double', 'tdClass=rightCol priceCol');
         $fieldset->FNC('packagingId', 'varchar', 'tdClass=centered');
         $fieldset->FLD('quantity', 'varchar', 'tdClass=quantity-input-column small-field');
+        $data->listTableMvc = $fieldset;
         $table = cls::get('core_TableView', array('mvc' => $fieldset, 'tableClass' => 'optionsTable'));
         
         if ($data->optionsProductsCount == 1) {
@@ -472,8 +486,9 @@ class eshop_ProductDetails extends core_Detail
             unset($data->listFields['productId']);
         }
         
-        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'params');
         $settings = cms_Domains::getSettings();
+        cls::get(get_called_class())->invoke('BeforeRenderListTable', array($tpl, &$data));
+        
         $tpl->append($table->get($data->rows, $data->listFields));
         
         $colspan = countR($data->listFields);

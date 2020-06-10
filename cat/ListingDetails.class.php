@@ -167,14 +167,14 @@ class cat_ListingDetails extends doc_Detail
             // Проверка на МКП-то
             if (!empty($rec->moq)) {
                 if (!deals_Helper::checkQuantity($rec->packagingId, $rec->moq, $warning)) {
-                    $form->setError('moq', $warning);
+                    $form->setWarning('moq', $warning);
                 }
             }
             
             // Проверка на кратноста
             if (!empty($rec->multiplicity)) {
                 if (!deals_Helper::checkQuantity($rec->packagingId, $rec->multiplicity, $warning)) {
-                    $form->setError('multiplicity', $warning);
+                    $form->setWarning('multiplicity', $warning);
                 }
             }
         }

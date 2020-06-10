@@ -64,6 +64,7 @@ class rack_Setup extends core_ProtoSetup
         'migrate::truncateOldRecs',
         'migrate::deleteOldPlugins',
         'migrate::updateNoBatchRackDetails2',
+        'migrate::changeOffsetInGetOccupancyOfRacks',
     );
     
     
@@ -119,7 +120,7 @@ class rack_Setup extends core_ProtoSetup
             'action' => 'GetOccupancyOfRacks',
             'period' => 1440,
             'timeLimit' => 20,
-            'delay' => 0,
+            'offset' => 5,
         )
     );
     
@@ -221,6 +222,23 @@ class rack_Setup extends core_ProtoSetup
         
         foreach ($deleteArr as $delId) {
             rack_ZoneDetails::delete($delId);
+        }
+    }
+    
+    /**
+     * Миграция: за промяна на offset-a
+     * на cron_GetOccupancyOfRacks
+     */
+    public function changeOffsetInGetOccupancyOfRacks()
+    {
+        $q = core_Cron::getQuery();
+        
+        $qRec = $q->fetch("#systemId = 'Get occupancy of racks'");
+       
+        if($qRec){
+            $qRec->offset = 5;
+            
+            core_Cron::save($qRec);
         }
     }
 }

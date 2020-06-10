@@ -1207,30 +1207,40 @@ class eshop_Carts extends core_Master
         }
         core_Lg::pop();
         
-        // Да се рефрешва по Ajax ако количката вече не е чернова
-        core_Ajax::subscribe($tpl, array('eshop_Carts', 'refreshOnChangedState', $rec->id), 'eshop_Carts_Redirect', 1000);
+        // Да се рефрешва по Ajax, трябвали да се рефрешне количката
+        core_Ajax::subscribe($tpl, array('eshop_Carts', 'refreshCartIfNecessary', $rec->id, 'state' => $rec->state, 'total' => $rec->total, 'haveProductsWithExpectedDelivery' => $rec->haveProductsWithExpectedDelivery), 'eshop_Carts_Redirect', 1000);
         
         return $tpl;
     }
     
     
     /**
-     * Ако количката вече е активна да се прави автоматичен рефреш на страницата
+     * Рефрешва количката, ако има промяна
      *
      * @return array
      */
-    public function act_refreshOnChangedState()
+    public function act_refreshCartIfNecessary()
     {
         $id = Request::get('id', 'int');
         if (Request::get('ajax_mode')) {
             if (!empty($id)) {
-                $state = self::fetchField($id, 'state');
+                $exState = Request::get('state', 'varchar');
+                $exTotal = Request::get('total', 'double');
+                $exHaveProductsWithExpectedDelivery = Request::get('haveProductsWithExpectedDelivery', 'enum(yes,no)');
+                
+                $url = array();
+                $currentRec = self::fetch($id, 'total,state,haveProductsWithExpectedDelivery');
+                if($currentRec->state != $exState) {
+                    $url = cls::get('eshop_Groups')->getUrlByMenuId(null);
+                } elseif(trim($exTotal) != trim($currentRec->total) || $exHaveProductsWithExpectedDelivery != $currentRec->haveProductsWithExpectedDelivery){
+                    $url = array($this, 'view', $id);
+                }
                 
                 // Ако състоянието на количката не е чернова, се редиректва
-                if ($state != 'draft') {
+                if (countR($url)) {
                     $resObj = new stdClass();
                     $resObj->func = 'redirect';
-                    $resObj->arg = array('url' => toUrl(cls::get('eshop_Groups')->getUrlByMenuId(null)));
+                    $resObj->arg = array('url' => toUrl($url));
                 }
             }
             
@@ -2371,7 +2381,7 @@ class eshop_Carts extends core_Master
     /**
      * Изтриване на забравните колички
      */
-    public function cron_DeleteDraftCarts()
+    public function cron_CheckDraftCarts()
     {
         // Всички чернови колички
         $now = dt::now();
@@ -2385,8 +2395,10 @@ class eshop_Carts extends core_Master
             $endOfLife = self::getDeletionTime($rec);
             $timeToNotifyBeforeDeletion = dt::addSecs(-1 * $settings->timeBeforeDelete, $endOfLife);
             
+            $isDeleted = false;
             if ($endOfLife <= $now) {
                 self::delete($rec->id);
+                $isDeleted = true;
             } elseif (!empty($rec->email) && $timeToNotifyBeforeDeletion <= $now) {
                 
                 // Ако не е изпращан нотифициращ имейл за забравена поръчка, изпраща се
@@ -2395,6 +2407,11 @@ class eshop_Carts extends core_Master
                     self::sendNotificationEmail($rec);
                     core_Permanent::set("eshopCartsNotify{$rec->id}", 'y', 10080);
                 }
+            }
+            
+            // Ако количката не е изтрита се обновява
+            if(!$isDeleted){
+                $this->updateMaster($rec);
             }
         }
     }

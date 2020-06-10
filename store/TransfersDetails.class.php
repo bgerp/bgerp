@@ -250,7 +250,7 @@ class store_TransfersDetails extends doc_Detail
             // Проверка на к-то
             $warning = null;
             if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
-                $form->setError('packQuantity', $warning);
+                $form->setWarning('packQuantity', $warning);
             }
             
             $pInfo = cat_Products::getProductInfo($rec->newProductId);
