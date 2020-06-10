@@ -262,11 +262,17 @@ class sales_Quotations extends core_Master
      */
     public function getDefaultChargeVat($rec)
     {
-        $defaultChargeVat = sales_Setup::get("QUOTATION_DEFAULT_CHARGE_VAT");
-        
-        if($defaultChargeVat == 'auto') {
-            $defaultChargeVat = deals_Helper::getDefaultChargeVat($rec->folderId);
+        $cData = doc_Folders::getContragentData($rec->folderId);
+        $bgId = drdata_Countries::getIdByName('Bulgaria');
+        if(empty($cData->countryId) || $bgId == $cData->countryId){
+            $defaultChargeVat = sales_Setup::get("QUOTATION_DEFAULT_CHARGE_VAT_BG");
+            if($defaultChargeVat != 'auto'){
+                
+                return $defaultChargeVat;
+            }
         }
+        
+        $defaultChargeVat = deals_Helper::getDefaultChargeVat($rec->folderId);
         
         return $defaultChargeVat;
     }
