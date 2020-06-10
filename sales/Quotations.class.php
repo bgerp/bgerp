@@ -328,6 +328,11 @@ class sales_Quotations extends core_Master
         if(isset($rec->deliveryTermId)){
             cond_DeliveryTerms::prepareDocumentForm($rec->deliveryTermId, $form, $mvc);
         }
+        
+        // Дефолтната ценова политика се показва като плейсхолдър
+        if($listId = price_ListToCustomers::getListForCustomer($form->rec->contragentClassId, $form->rec->contragentId)){
+            $form->setField("priceListId", "placeholder=" . price_Lists::getTitleById($listId));
+        }
     }
     
     
