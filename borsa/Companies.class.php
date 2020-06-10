@@ -155,4 +155,43 @@ class borsa_Companies extends core_Manager
             }
         }
     }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if ($form->rec->email && $form->isSubmitted()) {
+            if ($form->rec->id) {
+                $haveRec = $mvc->fetch(array("#email = '[#1#]' AND #id != '[#1#]'", $form->rec->email, $form->rec->id));
+            } else {
+                $haveRec = $mvc->fetch(array("#email = '[#1#]'", $form->rec->email));
+            }
+            
+            if ($haveRec) {
+                $form->setWarning('email', 'Вече съществува фирма с този имейл');
+            }
+        }
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        if ($rec->companyId) {
+            if (crm_Companies::haveRightFor('single', $rec->companyId)) {
+                $row->companyId = crm_Companies::getLinkToSingle($rec->companyId, 'name');
+            }
+        }
+    }
 }

@@ -241,6 +241,31 @@ class borsa_Bids extends core_Manager
                 $row->lotId = cat_Products::getLinkToSingle($pId, 'name');
             }
         }
+        
+        if ($rec->saleId) {
+            if (sales_Sales::haveRightFor('single', $rec->saleId)) {
+                $row->saleId = sales_Sales::getLinkToSingle($rec->saleId);
+            }
+        }
+        
+        if ($rec->companyId) {
+            $cId = borsa_Companies::fetchField($rec->companyId, 'companyId');
+            if (crm_Companies::haveRightFor('single', $cId)) {
+                $row->companyId = crm_Companies::getLinkToSingle($cId, 'name');
+            }
+        }
+        
+        if ($rec->quantity) {
+            if ($rec->lotId) {
+                $pId = borsa_Lots::fetchField($rec->lotId, 'productId');
+                $mId = cat_Products::fetchField($pId, 'measureId');
+                
+                if ($mId) {
+                    $sName = cat_UoM::getShortName($mId);
+                    $row->quantity .= ' ' . $sName;
+                }
+            }
+        }
     }
     
     
@@ -363,6 +388,10 @@ class borsa_Bids extends core_Manager
             if ($form->rec->quantity > $qFree) {
                 $form->setWarning('quantity', 'Надвишавате свободното допустимо количество с|* ' . ($form->rec->quantity - $qFree) . $sName);
             }
+            
+            if ($form->rec->saleIdInt && $this->fetch(array("#saleId = '[#1#]'", $form->rec->saleIdInt))) {
+                $form->setWarning('saleIdInt', 'Вече има одобрена оферта за тази продажба');
+            }
         }
         
         $form->title = 'Потвърждаване на заявка';
@@ -452,5 +481,14 @@ class borsa_Bids extends core_Manager
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Преди подготовката на полетата за листовия изглед
+     */
+    public static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    {
+        $data->listFields['price'] .= ' ' . acc_Periods::getBaseCurrencyCode();
     }
 }

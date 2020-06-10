@@ -89,6 +89,23 @@ class borsa_Setup extends core_ProtoSetup
     
     
     /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+            array(
+                    'systemId' => 'Borsa Send Blast Emails',
+                    'description' => 'Изпращане на циркулярни имейли в борсата',
+                    'controller' => 'borsa_Periods',
+                    'action' => 'sendBlast',
+                    'period' => 1440,
+                    'offset' => 570,
+                    'timeLimit' => 300
+            ),
+            
+    );
+    
+    
+    /**
      * Инсталиране на пакета
      */
     public function install()
