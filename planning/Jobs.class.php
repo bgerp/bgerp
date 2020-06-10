@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -157,6 +157,14 @@ class planning_Jobs extends core_Master
      * Клас за отделния ред в листовия изглед
      */
     public $commonRowClass = 'separateRowTable';
+    
+    
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     *
+     *  @var string
+     */
+    public $hideListFieldsIfEmpty = 'quantityFromTasks,quantityNotStored';
     
     
     /**
@@ -824,18 +832,18 @@ class planning_Jobs extends core_Master
                 $row->batches = implode(', ', $batchArr);
             }
             
-            if(!empty($rec->quantityFromTasks)){
-                $row->measureId2 = $row->measureId;
-                $row->quantityFromTasksCaption = tr('Произведено');
-            } else {
-                unset($row->quantityFromTasks);
-                unset($row->captionNotStored);
-                unset($row->quantityNotStored);
-            }
-            
             if (isset($rec->storeId)) {
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             }
+        }
+        
+        if(!empty($rec->quantityFromTasks)){
+            $row->measureId2 = $row->measureId;
+            $row->quantityFromTasksCaption = tr('Произведено');
+        } else {
+            unset($row->quantityFromTasks);
+            unset($row->captionNotStored);
+            unset($row->quantityNotStored);
         }
     }
     
