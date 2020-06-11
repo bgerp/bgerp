@@ -127,11 +127,11 @@
                 <li>Combines: [#closedDocuments#]</li>
                 <!--ET_END closedDocuments-->
                 <!--ET_BEGIN deliveryBlock-->
-                [#deliveryBlock#]
                 <li>
                     Delivery: [#deliveryTermId#]
                     <!--ET_BEGIN deliveryTime--> till [#deliveryTime#]<!--ET_END deliveryTime-->
                 </li>
+                [#deliveryBlock#]
                 <!--ET_END deliveryBlock-->
                 <!--ET_BEGIN deliveryTermTime-->
                 <li>Delivery time up to [#deliveryTermTime#] after starting the order</li>
