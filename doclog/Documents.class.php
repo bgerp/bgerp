@@ -1548,6 +1548,8 @@ class doclog_Documents extends core_Manager
      */
     public static function getViewIp($cid = null, $action = null, $mid = null)
     {
+        $viewIpArr = array();
+        
         if (!$cid && !$mid) {
             
             return $viewIpArr;
@@ -1559,8 +1561,6 @@ class doclog_Documents extends core_Manager
         } elseif ($mid) {
             $recsArr[] = self::fetchByMid($mid);
         }
-        
-        $viewIpArr = array();
         
         foreach ($recsArr as $recObj) {
             if (isset($recObj->data->seenFromIp)) {
