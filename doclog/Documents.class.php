@@ -1540,21 +1540,27 @@ class doclog_Documents extends core_Manager
     /**
      * Връща масив с IP-адреси от които е видян/свален документа
      *
-     * @param int               $cid
-     * @param NULL|string|array $action
+     * @param int|null          $cid
+     * @param null|string|array $action
+     * @param null|string       $mid
      *
      * @return array
      */
-    public static function getViewIp($cid, $action = null)
+    public static function getViewIp($cid = null, $action = null, $mid = null)
     {
-        $recsArr = self::fetchByCid($cid, $action);
-        
-        $viewIpArr = array();
-        
-        if (!$cid) {
+        if (!$cid && !$mid) {
             
             return $viewIpArr;
         }
+        
+        $recsArr = array();
+        if ($cid) {
+            $recsArr = self::fetchByCid($cid, $action);
+        } elseif ($mid) {
+            $recsArr[] = self::fetchByMid($mid);
+        }
+        
+        $viewIpArr = array();
         
         foreach ($recsArr as $recObj) {
             if (isset($recObj->data->seenFromIp)) {
@@ -1589,9 +1595,15 @@ class doclog_Documents extends core_Manager
      *
      * @return array
      */
-    public static function getSendEmails($cid)
+    public static function getSendEmails($cid = null, $mid = null)
     {
-        $resArr = self::fetchByCid($cid, self::ACTION_SEND);
+        $resArr = array();
+        
+        if ($cid) {
+            $resArr = self::fetchByCid($cid, self::ACTION_SEND);
+        } elseif ($mid) {
+            $resArr[] = self::fetchByMid($mid);
+        }
         
         $toEmails = '';
         
@@ -2116,6 +2128,60 @@ class doclog_Documents extends core_Manager
         
         // Изчистваме кешираната история на треда, понеже тя току-що е била променена.
         $mvc::removeHistoryFromCache($rec->threadId);
+
+        try {
+            if ($rec->containerId) {
+                $sendEmailsArr = doclog_Documents::getSendEmails(null, $rec->mid);
+                
+                $emailsTld = type_Emails::getCountryFromTld($sendEmailsArr, 'letterCode2');
+                
+                $folderId = doc_Containers::fetchField($rec->containerId, 'folderId');
+                
+                $viewIp = doclog_Documents::getViewIp(null, null, $rec->mid);
+                
+                $badIpArr = email_Incomings::getBadIpArr($viewIp, $folderId, $emailsTld);
+                
+                if (!empty($badIpArr)) {
+                    if (empty($sendEmailsArr)) {
+                        $errStr = '|Документът е видян от потребител в рискова зона|*: ';
+                    } else {
+                        $errStr = '|Документът изпратен до|* ' . type_Emails::fromArray($sendEmailsArr) . ' |е видян от потребител в рискова зона|*: ';
+                    }
+                    $countryName = '';
+                    $cCodeArr = array();
+                    foreach ($badIpArr as $ip => $countryCode) {
+                        if (isset($cCodeArr[$countryCode])) {
+                            continue;
+                        }
+                        $errStr .= ($countryName) ? ', ' : '';
+                        $countryName = drdata_Countries::getCountryName($countryCode);
+                        $errStr .= $countryName;
+                        $cCodeArr[$countryCode] = true;
+                    }
+                    
+                    $mvc->logWarning(tr($errStr), $rec->id);
+                    doc_Containers::logErr(tr($errStr), $rec->containerId);
+                    
+                    $userId = $rec->createdBy;
+                    if (($userId <= 0) || !haveRole('powerUser', $userId)) {
+                        $cRec = doc_Containers::fetch($rec->containerId);
+                        $userId = $cRec->activatedBy;
+                        if (($userId <= 0) || !haveRole('powerUser', $userId)) {
+                            $userId = $cRec->createdBy;
+                        }
+                    }
+                    
+                    if ($userId && haveRole('powerUser', $userId)) {
+                        $doc = doc_Containers::getDocument($rec->containerId);
+                        bgerp_Notifications::add($errStr, array($doc->instance, 'single', $doc->that), $userId);
+                    }
+                }
+            }
+        } catch (core_exception_Expect $e) {
+            reportException($e);
+        } catch (Throwable $t) {
+            reportException($t);
+        }
     }
     
     

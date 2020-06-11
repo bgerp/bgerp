@@ -33,6 +33,10 @@ class drdata_Wrapper extends plg_ProtoWrapper
         $this->TAB('drdata_Vats', 'ЗДДС №', 'admin');
         $this->TAB('drdata_PhoneCache', 'T. Кеш', 'debug');
         
+        if(core_Packs::isInstalled('speedy')){
+            $this->TAB('speedy_Offices', 'Speedy', 'admin');
+        }
+        
         $this->title = 'Адресни данни';
         $this->title = 'Система « Адресни данни';
         Mode::set('menuPage', 'Адресни данни:Система');

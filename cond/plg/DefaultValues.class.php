@@ -121,6 +121,31 @@ class cond_plg_DefaultValues extends core_Plugin
     
     
     /**
+     * Връща дефолтната стойност според стратегията
+     * 
+     * @param mixed $class 
+     * @param int $folderId
+     * @param string $field
+     * 
+     * @return mixed
+     */
+    public static function getDefaultValue($class, $folderId, $field)
+    {
+        $mvc = cls::get($class);
+        $strategy = $mvc::$defaultStrategies[$field];
+        if(empty($strategy)){
+            
+            return null;
+        }
+        
+        $rec = (object)array('folderId' => $folderId);
+        $value = self::getDefValue($mvc, $rec, $field, $strategy);
+      
+        return $value;
+    }
+    
+    
+    /**
      *  Намира стойност по подразбиране на дадено поле
      */
     private static function getDefValue(core_Mvc $mvc, $rec, $name, $strat)

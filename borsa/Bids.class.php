@@ -29,13 +29,13 @@ class borsa_Bids extends core_Manager
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'no_one';
+    public $canEdit = 'borsa, ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'no_one';
+    public $canAdd = 'borsa, ceo';
     
     
     /**
@@ -87,15 +87,21 @@ class borsa_Bids extends core_Manager
     
     
     /**
+     *
+     */
+    public $listFields = 'lotId, companyId, saleId, periodId, price, quantity, note, ip, brid, state, modifiedOn, modifiedBy';
+    
+    
+    /**
      * Описание на полетата
      */
     public function description()
     {
-        $this->FLD('lotId', 'key(mvc=borsa_Lots,select=productName,allowEmpty)', 'caption=Продукт, mandatory, refreshForm');
-        $this->FLD('periodId', 'key(mvc=borsa_Periods,select=periodFromTo)', 'caption=Период, mandatory');
-        $this->FLD('price', 'double(smartRound,decimals=2)', 'caption=Цена');
-        $this->FLD('quantity', 'double(smartRound,decimals=5)', 'caption=Количество');
-        $this->FLD('companyId', 'key(mvc=borsa_Companies,select=name)', 'caption=Фирма');
+        $this->FLD('lotId', 'key(mvc=borsa_Lots,select=productName,allowEmpty)', 'caption=Продукт, mandatory, refreshForm, silent, removeAndRefreshForm=price|quantity|periodId');
+        $this->FLD('periodId', 'key(mvc=borsa_Periods,select=periodFromTo)', 'caption=Период, mandatory, silent, removeAndRefreshForm=price|quantity');
+        $this->FLD('price', 'double(smartRound,decimals=2, Min=0)', 'mandatory, caption=Цена, unit=' . acc_Periods::getBaseCurrencyCode());
+        $this->FLD('quantity', 'double(smartRound,decimals=5, Min=0)', 'caption=Количество, mandatory');
+        $this->FLD('companyId', 'key(mvc=borsa_Companies,select=name)', 'caption=Фирма, refreshForm, mandatory');
         $this->FLD('note', 'text', 'caption=Забележка');
         $this->FLD('ip', 'ip', 'caption=IP,input=none');
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
@@ -120,7 +126,10 @@ class borsa_Bids extends core_Manager
         $data->query->orderBy('state', 'ASC');
         $data->query->orderBy('createdOn', 'DESC');
         
-        $data->listFilter->showFields = 'lotId';
+        
+        $data->listFilter->setFieldTypeParams('companyId', array('allowEmpty' => 'allowEmpty'));
+        
+        $data->listFilter->showFields = 'lotId, companyId';
         
         // Ако ще вижда само определени търгове
         if (!haveRole($mvc->masterRoles)) {
@@ -146,10 +155,14 @@ class borsa_Bids extends core_Manager
             $data->listFilter->setOptions('lotId', $optArr);
         }
         
-        $data->listFilter->input('lotId');
+        $data->listFilter->input('lotId, companyId');
         
         if ($data->listFilter->rec->lotId) {
             $data->query->where(array("#lotId = '[#1#]'", $data->listFilter->rec->lotId));
+        }
+        
+        if ($data->listFilter->rec->companyId) {
+            $data->query->where(array("#companyId = '[#1#]'", $data->listFilter->rec->companyId));
         }
         
         $data->listFilter->view = 'horizontal';
@@ -221,6 +234,38 @@ class borsa_Bids extends core_Manager
         $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, true);
         
         $row->brid = log_Browsers::getLink($rec->brid);
+        
+        if ($rec->lotId) {
+            $pId = borsa_Lots::fetchField($rec->lotId, 'productId');
+            if ($pId && cat_Products::haveRightFor('single', $pId)) {
+                $row->lotId = cat_Products::getLinkToSingle($pId, 'name');
+            }
+        }
+        
+        if ($rec->saleId) {
+            if (sales_Sales::haveRightFor('single', $rec->saleId)) {
+                $row->saleId = sales_Sales::getLinkToSingle($rec->saleId);
+            }
+        }
+        
+        if ($rec->companyId) {
+            $cId = borsa_Companies::fetchField($rec->companyId, 'companyId');
+            if (crm_Companies::haveRightFor('single', $cId)) {
+                $row->companyId = crm_Companies::getLinkToSingle($cId, 'name');
+            }
+        }
+        
+        if ($rec->quantity) {
+            if ($rec->lotId) {
+                $pId = borsa_Lots::fetchField($rec->lotId, 'productId');
+                $mId = cat_Products::fetchField($pId, 'measureId');
+                
+                if ($mId) {
+                    $sName = cat_UoM::getShortName($mId);
+                    $row->quantity .= ' ' . $sName;
+                }
+            }
+        }
     }
     
     
@@ -230,9 +275,23 @@ class borsa_Bids extends core_Manager
     public static function on_AfterPrepareListRows($mvc, $data)
     {
         foreach ($data->rows as $id => &$row) {
-            if ($mvc->haveRightFor('confirm', $data->recs[$id])) {
+            $rec = $data->recs[$id];
+            
+            if ($mvc->haveRightFor('confirm', $rec)) {
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $row->_rowTools->addLink('Потвърждаване', array($mvc, 'confirm', $id, 'ret_url' => true), array('ef_icon' => 'img/16/stock_new_meeting.png', 'title' => 'Потвърждаване на оферта'));
+            }
+            
+            // Бутон за създаване на продажба
+            if (($rec->companyId) && ($rec->state == 'draft') && sales_Sales::haveRightFor('add')) {
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+                
+                $cRec = borsa_Companies::fetch($rec->companyId);
+                $folderId = crm_Companies::forceCoverAndFolder($cRec->companyId);
+                
+                if (sales_Sales::haveRightFor('add', (object)array('folderId' => $folderId))) {
+                    $row->_rowTools->addLink('Продажба', array('sales_Sales', 'add', 'folderId' => $folderId, 'ret_url' => true), array('ef_icon' => 'img/16/cart_go.png', 'title' => 'Създаване на продажба'));
+                }
             }
         }
     }
@@ -294,6 +353,17 @@ class borsa_Bids extends core_Manager
         $form->input(null, true);
         $form->input();
         
+        $sName = '';
+        if ($rec->lotId) {
+            $pId = borsa_Lots::fetchField($rec->lotId, 'productId');
+            $mId = cat_Products::fetchField($pId, 'measureId');
+            
+            if ($mId) {
+                $sName = cat_UoM::getShortName($mId);
+                $form->setField('quantity', array('unit' => $sName));
+            }
+        }
+        
         if ($form->isSubmitted()) {
             $sRec = sales_Sales::fetch($form->rec->saleIdInt);
             
@@ -302,6 +372,26 @@ class borsa_Bids extends core_Manager
             } elseif ($sRec->state != 'active') {
                 $form->setWarning('saleIdInt', 'Тази продажба не е контирана');
             }
+            
+            if ($sRec && $rec->companyId) {
+                $cRec = borsa_Companies::fetch($rec->companyId);
+                $folderId = crm_Companies::forceCoverAndFolder($cRec->companyId);
+                if ($folderId != $sRec->folderId) {
+                    $form->setWarning('saleIdInt', 'Продажбата не е към този контрагент');
+                }
+            }
+            
+            $pRec = borsa_Periods::fetch($rec->periodId);
+            
+            $qFree = $pRec->qAvailable - $pRec->qConfirmed;
+            
+            if ($form->rec->quantity > $qFree) {
+                $form->setWarning('quantity', 'Надвишавате свободното допустимо количество с|* ' . ($form->rec->quantity - $qFree) . $sName);
+            }
+            
+            if ($form->rec->saleIdInt && $this->fetch(array("#saleId = '[#1#]'", $form->rec->saleIdInt))) {
+                $form->setWarning('saleIdInt', 'Вече има одобрена оферта за тази продажба');
+            }
         }
         
         $form->title = 'Потвърждаване на заявка';
@@ -309,16 +399,6 @@ class borsa_Bids extends core_Manager
             $cId = borsa_Companies::fetchField($rec->companyId, 'companyId');
             if ($cId) {
                 $form->title .= ' към|*' . crm_Companies::getLinkToSingle($cId, 'name');
-            }
-        }
-        
-        if ($rec->lotId) {
-            $pId = borsa_Lots::fetchField($rec->lotId, 'productId');
-            $mId = cat_Products::fetchField($pId, 'measureId');
-            
-            if ($mId) {
-                $sName = cat_UoM::getShortName($mId);
-                $form->setField('quantity', array('unit' => $sName));
             }
         }
         
@@ -336,7 +416,7 @@ class borsa_Bids extends core_Manager
             $rec->state = 'active';
             $rec->saleId = $form->rec->saleIdInt;
             
-            $this->save($rec, 'exState, state, saleId');
+            $this->save($rec, 'exState, state, saleId, modifiedOn, modifiedBy');
             
             return new Redirect($retUrl);
         }
@@ -349,5 +429,66 @@ class borsa_Bids extends core_Manager
         $this->logInfo('Разглеждане на формата за добавяне на пера към номенклатура');
         
         return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = $data->form;
+        $rec = $form->rec;
+        if ($rec->id) {
+            $form->setReadOnly('periodId');
+            $form->setReadOnly('lotId');
+            $form->setReadOnly('companyId');
+        } else {
+            $optArr = $form->fields['lotId']->type->prepareOptions();
+            if (!empty($optArr)) {
+                $form->setDefault('lotId', key($optArr));
+            }
+            
+            if ($rec->lotId) {
+                $pArr = cls::get('borsa_Lots')->getPeriods($rec->lotId);
+                $optArr = $form->fields['periodId']->type->prepareOptions();
+                $resOptArr = array();
+                foreach ($pArr as $pId => $pRec) {
+                    $resOptArr[$pId] = $optArr[$pId] ? $optArr[$pId] : $pId;
+                }
+                $form->setOptions('periodId', $resOptArr);
+                
+                if (!empty($resOptArr)) {
+                    $form->setDefault('periodId', key($resOptArr));
+                }
+                
+                if ($rec->periodId) {
+                    $form->setDefault('price', $pArr[$rec->periodId]['price']);
+                }
+            }
+        }
+        
+        if ($rec->lotId) {
+            $pId = borsa_Lots::fetchField($rec->lotId, 'productId');
+            if ($pId) {
+                $mId = cat_Products::fetchField($pId, 'measureId');
+                if ($mId) {
+                    $sName = cat_UoM::getShortName($mId);
+                    $data->form->setField('quantity', array('unit' => $sName));
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * Преди подготовката на полетата за листовия изглед
+     */
+    public static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    {
+        $data->listFields['price'] .= ' ' . acc_Periods::getBaseCurrencyCode();
     }
 }

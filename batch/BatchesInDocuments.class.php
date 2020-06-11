@@ -487,7 +487,7 @@ class batch_BatchesInDocuments extends core_Manager
                         // Проверка на к-то
                         $warning = null;
                         if (!deals_Helper::checkQuantity($recInfo->packagingId, $quantity, $warning)) {
-                            $form->setError('newArray', $warning);
+                            $form->setWarning('newArray', $warning);
                         }
                     } else {
                         $delete[] = $newBatches['batch'][$i];

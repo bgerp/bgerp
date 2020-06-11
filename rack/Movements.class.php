@@ -168,7 +168,7 @@ class rack_Movements extends core_Manager
             if (!empty($rec->packQuantity)) {
                 $warning = null;
                 if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning, 'uom')) {
-                    $form->setError('packQuantity', $warning);
+                    $form->setWarning('packQuantity', $warning);
                 }
             }
             

@@ -48,7 +48,7 @@ class speedy_Offices extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'speedy_Wrapper';
+    public $loadList = 'drdata_Wrapper';
     
     
     /**

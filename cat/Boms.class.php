@@ -105,7 +105,7 @@ class cat_Boms extends core_Master
     /**
      * Кой може да пише?
      */
-    public $canEdit = 'cat,ceo,sales';
+    public $canEdit = 'cat,ceo,sales,planning';
 
 
     /**
@@ -113,34 +113,31 @@ class cat_Boms extends core_Master
      *
      * @see change_Plugin
      */
-    public $canChangerec = 'cat,ceo,sales';
+    public $canChangerec = 'cat,ceo,sales,planning';
     
     
     /**
      * Кой може да добавя?
      */
-    public $canAdd = 'cat,ceo,sales';
+    public $canAdd = 'cat,ceo,sales,planning';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,cat,sales';
+    public $canList = 'cat,ceo,sales,purchase,planning';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,cat,sales';
+    public $canSingle = 'cat,ceo,sales,purchase,planning';
         
 
     /**
-
      * Кой може да затваря?
-
      */
-
-    public $canClose = 'cat,ceo,sales';
+    public $canClose = 'cat,ceo,sales,planning';
     
     
     /**
@@ -481,12 +478,14 @@ class cat_Boms extends core_Master
             $origin = doc_Containers::getDocument($rec->originId);
             if($origin->isInstanceOf('planning_Tasks')){
                 $res = 'no_one';
+            } elseif(in_array($origin->fetchField('state'), array('draft', 'rejected'))) {
+                $res = 'no_one';
             }
         }
         
-        if (($action == 'add' || $action == 'edit' || $action == 'reject' || $action == 'restore') && isset($rec)) {
+        if (($action == 'add' || $action == 'edit' || $action == 'reject' || $action == 'restore' || $action == 'changerec') && isset($rec)) {
             if ($rec->type == 'production') {
-                if (!haveRole('techno,ceo', $userId)) {
+                if (!haveRole('cat,planning,ceo', $userId)) {
                     $res = 'no_one';
                 }
             }
@@ -1534,7 +1533,7 @@ class cat_Boms extends core_Master
             $measureId = cat_Products::fetchField($rec->productId, 'measureId');
             $warning = '';
             if (!deals_Helper::checkQuantity($measureId, $rec->quantity, $warning)) {
-                $form->setError('quantity', $warning);
+                $form->setWarning('quantity', $warning);
             }
             
             $firstDocument = doc_Containers::getDocument($rec->originId);

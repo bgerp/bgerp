@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -157,6 +157,14 @@ class planning_Jobs extends core_Master
      * Клас за отделния ред в листовия изглед
      */
     public $commonRowClass = 'separateRowTable';
+    
+    
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     *
+     *  @var string
+     */
+    public $hideListFieldsIfEmpty = 'quantityFromTasks,quantityNotStored';
     
     
     /**
@@ -572,10 +580,8 @@ class planning_Jobs extends core_Master
     {
         $rec = &$data->rec;
         
-        if ($rec->state != 'draft' && $rec->state != 'rejected') {
-            if (cat_Boms::haveRightFor('add', (object) array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))) {
-                $data->toolbar->addBtn('Рецепта', array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantityForPrice' => $rec->quantity, 'ret_url' => true, 'type' => 'production'), 'ef_icon = img/16/add.png,title=Създаване на нова работна рецепта,row=2');
-            }
+        if (cat_Boms::haveRightFor('add', (object) array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))) {
+            $data->toolbar->addBtn('Рецепта', array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantityForPrice' => $rec->quantity, 'ret_url' => true, 'type' => 'production'), 'ef_icon = img/16/add.png,title=Създаване на нова работна рецепта,row=2');
         }
         
         // Бутон за добавяне на документ за производство
@@ -711,18 +717,20 @@ class planning_Jobs extends core_Master
         
         $rec->quantityProduced /= $rec->quantityInPack;
         $row->quantityProduced = $Double->toVerbal($rec->quantityProduced);
-        
         $rec->quantityNotStored = $rec->quantityFromTasks - $rec->quantityProduced;
         $row->quantityNotStored = $Double->toVerbal($rec->quantityNotStored);
-        
         $rec->quantityToProduce = $rec->packQuantity - (($rec->quantityFromTasks) ? $rec->quantityFromTasks : $rec->quantityProduced);
-        
         $row->quantityToProduce = $Double->toVerbal($rec->quantityToProduce);
         
         foreach (array('quantityNotStored', 'quantityToProduce') as $fld) {
             if ($rec->{$fld} < 0) {
                 $row->{$fld} = "<span class='red'>{$row->{$fld}}</span>";
             }
+        }
+        
+        if (cat_Boms::haveRightFor('add', (object) array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))) {
+            core_RowToolbar::createIfNotExists($row->_rowTools);
+            $row->_rowTools->addLink('Нова работна рецепта', array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantityForPrice' => $rec->quantity, 'ret_url' => true, 'type' => 'production'), "ef_icon=img/16/article.png,title=Създаване на нова работна рецепта");
         }
         
         if (isset($fields['-list'])) {
@@ -824,18 +832,18 @@ class planning_Jobs extends core_Master
                 $row->batches = implode(', ', $batchArr);
             }
             
-            if(!empty($rec->quantityFromTasks)){
-                $row->measureId2 = $row->measureId;
-                $row->quantityFromTasksCaption = tr('Произведено');
-            } else {
-                unset($row->quantityFromTasks);
-                unset($row->captionNotStored);
-                unset($row->quantityNotStored);
-            }
-            
             if (isset($rec->storeId)) {
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             }
+        }
+        
+        if(!empty($rec->quantityFromTasks)){
+            $row->measureId2 = $row->measureId;
+            $row->quantityFromTasksCaption = tr('Произведено');
+        } else {
+            unset($row->quantityFromTasks);
+            unset($row->captionNotStored);
+            unset($row->quantityNotStored);
         }
     }
     
