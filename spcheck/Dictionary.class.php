@@ -154,6 +154,10 @@ class spcheck_Dictionary extends core_Manager
             }
         }
         
+        if ($cLgArr[$lg] && i18n_Charset::is7Bit($word)) {
+            $lg = 'en';
+        }
+        
         $key = $word . '|' . $lg;
         
         if (isset($wArr[$key])) {
@@ -472,12 +476,18 @@ class spcheck_Dictionary extends core_Manager
             
             $systemLg = core_Lg::getDefaultLang();
             
+            $checkStr = array();
+            
+            $autoCorrectCnt = spcheck_Setup::get('AUTO_CORRECT_CNT');
+            
             foreach ($textArr as $str) {
                 $str = trim($str);
                 
-                if (!$str) {
+                if (!$str || $checkStr[$str]) {
                     continue;
                 }
+                
+                $checkStr[$str] = $str;
                 
                 if (mb_strlen($str) <= self::$minLen) {
                     continue;
@@ -500,8 +510,16 @@ class spcheck_Dictionary extends core_Manager
                         $rec->cnt = 1;
                         $saveF = null;
                     } else {
+                        $saveF = 'cnt, modifiedOn, modifiedBy';
+                        
+                        if ($rec->cnt >= $autoCorrectCnt) {
+                            if ($rec->isCorrect != 'yes') {
+                                $saveF .= ', isCorrect';
+                                $rec->isCorrect = 'yes';
+                            }
+                        }
+                        
                         $rec->cnt++;
-                        $saveF = 'cnt';
                     }
                     
                     self::save($rec, $saveF);
