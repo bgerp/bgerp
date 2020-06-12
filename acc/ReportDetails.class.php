@@ -216,9 +216,6 @@ class acc_ReportDetails extends core_Manager
                     }
                 }
             }
-            
-            
-            
         }
         
         if (is_array($accounts)) {
