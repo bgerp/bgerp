@@ -122,6 +122,12 @@ class acc_Articles extends core_Master
     
     
     /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'ceo,acc';
+    
+    
+    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'reason, valior, id';
@@ -171,7 +177,7 @@ class acc_Articles extends core_Master
         $this->FLD('reason', 'varchar(128)', 'caption=Основание,mandatory');
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
         $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
-        $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Оттеглен,template=Шаблон,stopped=Спряно)', 'caption=Състояние,input=none');
+        $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Оттеглен,template=Шаблон,stopped=Спряно,pending=Заявка)', 'caption=Състояние,input=none');
         $this->FLD('useCloseItems', 'enum(no=Не,yes=Да)', 'caption=Използване на приключени пера->Избор,maxRadio=2,notNull,default=no,input=none');
         
         // Ако потребителя има роля 'accMaster', може да контира/оотегля/възстановява МО с приключени права
