@@ -25,7 +25,7 @@ class acc_Articles extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'acc_TransactionSourceIntf=acc_transaction_Article';
+    public $interfaces = 'acc_TransactionSourceIntf=acc_transaction_Article, doc_DocumentIntf';
     
     
     /**
