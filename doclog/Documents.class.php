@@ -2159,9 +2159,6 @@ class doclog_Documents extends core_Manager
                         $cCodeArr[$countryCode] = true;
                     }
                     
-                    $mvc->logWarning(tr($errStr), $rec->id);
-                    doc_Containers::logErr(tr($errStr), $rec->containerId);
-                    
                     $userId = $rec->createdBy;
                     if (($userId <= 0) || !haveRole('powerUser', $userId)) {
                         $cRec = doc_Containers::fetch($rec->containerId);
@@ -2171,9 +2168,18 @@ class doclog_Documents extends core_Manager
                         }
                     }
                     
-                    if (($userId > 0) && haveRole('powerUser', $userId)) {
-                        $doc = doc_Containers::getDocument($rec->containerId);
-                        bgerp_Notifications::add($errStr, array($doc->instance, 'single', $doc->that), $userId);
+                    $kKey = md5($errStr . '|' . $userId . '|' . $rec->containerId);
+                    $keyVal = core_Permanent::get($kKey);
+                    if (!isset($keyVal)) {
+                        core_Permanent::set($kKey, true, 10000);
+                        
+                        $mvc->logWarning(tr($errStr), $rec->id);
+                        doc_Containers::logErr(tr($errStr), $rec->containerId);
+                        
+                        if (($userId > 0) && haveRole('powerUser', $userId)) {
+                            $doc = doc_Containers::getDocument($rec->containerId);
+                            bgerp_Notifications::add($errStr, array($doc->instance, 'single', $doc->that), $userId);
+                        }
                     }
                 }
             }
