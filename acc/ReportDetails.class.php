@@ -183,6 +183,10 @@ class acc_ReportDetails extends core_Manager
                         }
                     }
                     
+                    if(is_array($res[$accountId]['rows'])){
+                        arr::sortObjects($res[$accountId]['rows'], 'sortField', 'asc', 'natural');
+                    }
+                    
                     $res[$accountId]['total'] = arr::sumValuesArray($recsWithAccount, 'blAmount');
                 } else {
                     // Ако няма в текущия период, търсим в кой последно има
@@ -212,6 +216,9 @@ class acc_ReportDetails extends core_Manager
                     }
                 }
             }
+            
+            
+            
         }
         
         if (is_array($accounts)) {
@@ -255,6 +262,7 @@ class acc_ReportDetails extends core_Manager
        // Обхождане на останалите пера
        
        $accGroups = acc_Accounts::getAccountInfo($dRec->accountId)->groups;
+       $row['sortField'] = '';
        
        foreach (range(1, 3) as $pos) {
            $entry = $dRec->{"ent{$pos}Id"};
@@ -263,8 +271,11 @@ class acc_ReportDetails extends core_Manager
            if (isset($entry, $accGroups[$pos])) {
                
                // Ако перото не е групиращото, ще се показва в справката
-               $row["ent{$pos}Id"] = acc_Items::getVerbal(acc_Items::fetch($entry), 'titleLink');
+               $itemRec = acc_Items::fetch($entry);
+              
+               $row["ent{$pos}Id"] = acc_Items::getVerbal($itemRec, 'titleLink');
                $row["ent{$pos}Id"] = "<span class='feather-title'>{$row["ent{$pos}Id"]}</span>";
+               $row['sortField'] .= $itemRec->num . " ";
            }
        }
        
