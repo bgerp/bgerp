@@ -256,8 +256,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $iData->listTableMvc = clone $this;
         $iData->rows = $data->inputArr;
         $iData->recs = array_intersect_key($iData->recs, $iData->rows);
-        plg_AlignDecimals2::alignDecimals($this, $iData->recs, $iData->rows);
+        
         $this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
+        plg_AlignDecimals2::alignDecimals($this, $iData->recs, $iData->rows);
         
         $iData->listFields = core_TableView::filterEmptyColumns($iData->rows, $iData->listFields, $this->hideListFieldsIfEmpty);
         $detailsInput = $table->get($iData->rows, $iData->listFields);
@@ -279,8 +280,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             $pData->listTableMvc = clone $this;
             $pData->rows = $data->popArr;
             $pData->recs = array_intersect_key($pData->recs, $pData->rows);
-            plg_AlignDecimals2::alignDecimals($this, $pData->recs, $pData->rows);
+            
             $this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
+            plg_AlignDecimals2::alignDecimals($this, $pData->recs, $pData->rows);
             
             $pData->listFields = core_TableView::filterEmptyColumns($pData->rows, $pData->listFields, $this->hideListFieldsIfEmpty);
             $popTable = $table->get($pData->rows, $pData->listFields);
