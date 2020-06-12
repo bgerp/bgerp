@@ -2168,7 +2168,7 @@ class doclog_Documents extends core_Manager
                         }
                     }
                     
-                    $kKey = md5($errStr . '|' . $userId . '|' . $rec->containerId);
+                    $kKey = md5($errStr . '|' . $userId . '|' . $rec->containerId . '|' . $rec->mid);
                     $keyVal = core_Permanent::get($kKey);
                     if (!isset($keyVal)) {
                         core_Permanent::set($kKey, true, 10000);
