@@ -2171,7 +2171,7 @@ class doclog_Documents extends core_Manager
                         }
                     }
                     
-                    if ($userId && haveRole('powerUser', $userId)) {
+                    if (($userId > 0) && haveRole('powerUser', $userId)) {
                         $doc = doc_Containers::getDocument($rec->containerId);
                         bgerp_Notifications::add($errStr, array($doc->instance, 'single', $doc->that), $userId);
                     }
