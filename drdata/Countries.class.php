@@ -232,9 +232,13 @@ class drdata_Countries extends core_Manager
             $country = drdata_Countries::fetch($mix)->{$field};
         } elseif (strlen($mix) == 2) {
             $country = drdata_Countries::fetch(array("#letterCode2 = '[#1#]'", $mix))->{$field};
-        } else {
-            expect(strlen($mix) == 3, $mix);
+        } elseif(strlen($mix) == 3) {
             $country = drdata_Countries::fetch(array("#letterCode3 = '[#1#]'", $mix))->{$field};
+        } else {
+            $cId = drdata_Countries::getIdByName($mix);
+            if($cId) {
+                $country = drdata_Countries::fetch($cId)->{$field};
+            }
         }
         
         return $country;
