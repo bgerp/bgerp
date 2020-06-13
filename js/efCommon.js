@@ -1650,9 +1650,14 @@ function setMinHeightExt() {
             }
         }
     } else if( $('.narrowCenter .headerImg').length){
-        var elHeight = parseInt($('.narrowCenter .headerImg').height() - 5);
-        $('.wide .narrowCenter').height(elHeight);
-        $('.wide .fadein').height(elHeight);
+        if (getWindowWidth() < 1200 ) {
+            var elHeight = parseInt($('.narrowCenter .headerImg').height());
+            $('.wide .narrowCenter').height(elHeight);
+            $('.wide .fadein').height(elHeight);
+        } else {
+            $('.wide .narrowCenter').height(220);
+            $('.wide .fadein').height(220);
+        }
     }
 
     $('.toggleLink').on('click', function(){

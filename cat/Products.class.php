@@ -605,7 +605,7 @@ class cat_Products extends embed_Manager
                         $rec->name = str::addIncrementSuffix($rec->name, 'v', 2);
                     }
                 } elseif ($Cover->getProductType() == 'template') {
-                    if (cat_Products::fetchField(array("#name = '[#1#]' AND #id != '{$rec->id}'", $rec->name), 'id') || doc_Prototypes::fetchField(array("#title = '[#1#]' AND #classId = '{$mvc->getClassId}' AND #docId != '{$rec->id}'", $rec->name))) {
+                    if (cat_Products::fetchField(array("#name = '[#1#]' AND #id != '{$rec->id}' AND #state = 'template'", $rec->name), 'id') || doc_Prototypes::fetchField(array("#title = '[#1#]' AND #classId = '{$mvc->getClassId}' AND #docId != '{$rec->id}'", $rec->name))) {
                         $form->setError('name', 'Има вече шаблон с това име');
                     }
                 }
@@ -1534,6 +1534,10 @@ class cat_Products extends embed_Manager
             if(isset($params['onlyIn'])){
                 $query->in("id", $params['onlyIn']);
             }
+            
+            if(isset($params['notIn'])){
+                $query->notIn("id", $params['notIn']);
+            }
         }
         
         $query->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id, ' ', #id))");
@@ -2284,7 +2288,7 @@ class cat_Products extends embed_Manager
             
             // Удебеляваме името само ако има допълнително описание
             if (strlen($descriptionTpl->getContent())) {
-                $title = "<b>{$title}</b>";
+                $title = "<b class='productName'>{$title}</b>";
             }
         }
         
@@ -3614,6 +3618,11 @@ class cat_Products extends embed_Manager
         $canSeePrice = haveRole('seePrice', $activatedBy);
         $pStrName = 'price';
         
+        $Detail = null;
+        if(isset($masterMvc->mainDetail)){
+            $Detail = cls::get($masterMvc->mainDetail);
+        }
+        
         $detArr = arr::make($masterMvc->details);
         
         expect(!empty($detArr));
@@ -3679,6 +3688,9 @@ class cat_Products extends embed_Manager
                     $recs[$dRec->id] = new stdClass();
                 }
                 
+                $recs[$dRec->id]->productId = $dRec->productId;
+                $recs[$dRec->id]->packPrice = $dRec->packPrice;
+                
                 $allFFieldsArr = $fFieldsArr;
                 
                 if ($dInst->exportToMaster) {
@@ -3694,7 +3706,7 @@ class cat_Products extends embed_Manager
                     
                     $allFFieldsArr = array_merge($allFFieldsArr, $exportToMasterArr);
                 }
-                
+               
                 foreach ($allFFieldsArr as $k => $vArr) {
                     if (!$dInst->fields[$k]) {
                         continue;
@@ -3821,6 +3833,21 @@ class cat_Products extends embed_Manager
                             } else {
                                 unset($recs[$dRec->id]);
                             }
+                        }
+                    }
+                }
+            }
+            
+            
+            /**
+             * Ако артикула е ред във КИ или ДИ със промяна, да се покаже промененото количество
+             */
+            if($masterMvc instanceof deals_InvoiceMaster){
+                if(isset($allFFieldsArr['quantity']) && $mRec->type == 'dc_note'){
+                    $Detail::modifyDcDetails($recs, $mRec, $Detail);
+                    foreach ($recs as $id => $mdRec){
+                        if(!$mdRec->changedQuantity && !$mdRec->changedPrice){
+                            unset($recs[$id]);
                         }
                     }
                 }

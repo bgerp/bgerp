@@ -51,6 +51,13 @@ class plg_Current extends core_Plugin
                 $rec = $query->fetch();
             }
             
+            if ($bForce === true) {
+                if (core_Users::getCurrent() == -1) {
+                    $bForce = false;
+                    wp($rec, 'Предпазване от редирект на системния потребител');
+                }
+            }
+            
             // Ако форсираме
             if ($bForce && !$rec) {
                 if (is_numeric($bForce)) {

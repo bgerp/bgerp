@@ -72,7 +72,7 @@ class store_Products extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantity,reservedQuantity,expectedQuantity,freeQuantity,expectedQuantityTotal,storeId';
+    public $listFields = 'code=Код,productId=Артикул,measureId=Мярка,quantity,reservedQuantity,expectedQuantity,freeQuantity,expectedQuantityTotal,storeId';
     
     
     /**
@@ -98,7 +98,7 @@ class store_Products extends core_Detail
      */
     public function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Име,tdClass=leftAlign');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,tdClass=leftAlign');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,tdClass=storeCol leftAlign');
         $this->FLD('quantity', 'double(maxDecimals=3)', 'caption=Налично');
         $this->FLD('reservedQuantity', 'double(maxDecimals=3)', 'caption=Запазено');
@@ -187,7 +187,16 @@ class store_Products extends core_Detail
     {
         if($data->masterMvc instanceof cat_Products){
             $data->query->EXT('storeName', 'store_Stores', 'externalName=name,externalKey=storeId');
-            $data->query->orderBy('storeName', 'ASC');
+            
+            if($data->masterData->rec->generic == 'yes'){
+                $equivalent = planning_GenericMapper::getEquivalentProducts($data->masterId);
+                if(countR($equivalent) > 1){
+                    $data->query->in('productId', array_keys($equivalent), false, true);
+                    $data->query->orderBy('productId', 'ASC');
+                }
+            } else {
+                $data->query->orderBy('storeName', 'ASC');
+            }
             
             return;
         }
@@ -442,17 +451,26 @@ class store_Products extends core_Detail
     {
         $data->listFields['expectedQuantity'] = "|Очаквано|*<span class='small notBolded'> |*днес|*</span>";
         $data->listFields['expectedQuantityTotal'] = "<span class='notBolded'>|Очаквано|*";
+        $historyBefore = 'code';
+        
         if (isset($data->masterMvc)) {
             if($data->masterMvc instanceof cat_Products){
                 arr::placeInAssocArray($data->listFields, array('storeId' => 'Склад|*'), null, 'code');
-                unset($data->listFields['productId']);
-                unset($data->listFields['code']);
+                
+               
+                if($data->masterData->rec->generic == 'yes'){
+                    $data->listFields = array('code' => 'Код', 'productId' => 'Артикул') + $data->listFields;
+                } else {
+                    unset($data->listFields['code']);
+                    unset($data->listFields['productId']);
+                    $historyBefore = 'storeId';
+                }
             } else {
                 unset($data->listFields['storeId']);
             }
             
             if (acc_BalanceDetails::haveRightFor('history')) {
-                arr::placeInAssocArray($data->listFields, array('history' => ' '), 'code');
+                arr::placeInAssocArray($data->listFields, array('history' => ' '), $historyBefore);
             }
         }
     }
@@ -1051,17 +1069,16 @@ class store_Products extends core_Detail
     {
         if($data->masterMvc instanceof cat_Products){
             $data->masterKey = 'productId';
-            
+           
             $data->render = true;
-            $canStore = cat_Products::fetchField($data->masterId, 'canStore');
             $tabParam = $data->masterData->tabTopParam;
             $prepareTab = Request::get($tabParam);
             
-            if($canStore != 'yes' || !store_Products::haveRightFor('list') || $prepareTab != 'store_Products'){
+            if($data->masterData->rec->canStore != 'yes' || !store_Products::haveRightFor('list') || $prepareTab != 'store_Products'){
                 $data->render = false;
             }
             
-            if($canStore != 'yes' || !store_Products::haveRightFor('list')){
+            if($data->masterData->rec->canStore != 'yes' || !store_Products::haveRightFor('list')){
                 
                 return;
             }
@@ -1071,6 +1088,19 @@ class store_Products extends core_Detail
         }
         
         parent::prepareDetail_($data);
+        
+        if(countR($data->recs)){
+            $totalField = ($data->masterData->rec->generic == 'yes') ? 'code' : 'storeId';
+            $data->rows['total'] = (object)array($totalField => "<div style='float:left'>" .  tr('Сумарно') . "</div>");
+            foreach ($data->recs as $rec){
+                foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'expectedQuantityTotal', 'freeQuantity') as $fld){
+                    if(!empty($rec->{$fld})){
+                       $data->rows['total']->{$fld} += $rec->{$fld};
+                       $data->rows['total']->ROW_ATTR['style'] = 'background-color:#eee;font-weight:bold';
+                    }
+                }
+            }
+        }
     }
     
     
@@ -1086,8 +1116,14 @@ class store_Products extends core_Detail
         }
         
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+        if($data->masterData->rec->generic == 'yes'){
+            $infoBlock = tr("Показани са наличностите на артикулите, които заместват|* <b class='green'>") . cat_Products::getTitleById($data->masterId) . "</b>";
+            $infoBlock = "<div style='margin-bottom:5px'>{$infoBlock}</div>";
+            $tpl->append($infoBlock, 'content');
+        }
+        
         $tpl->append(parent::renderDetail_($data), 'content');
-       
+        
         return $tpl;
     }
 }

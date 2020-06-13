@@ -69,7 +69,7 @@ class speedy_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(1.99999, 'Система', 'SPEEDY', 'speedy_Offices', 'default', 'admin'),
+        //array(1.99999, 'Система', 'SPEEDY', 'speedy_Offices', 'default', 'admin'),
     );
     
     

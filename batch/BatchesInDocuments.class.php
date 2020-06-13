@@ -177,7 +177,7 @@ class batch_BatchesInDocuments extends core_Manager
                 $quantityInPack = empty($rInfo->quantityInPack) ? 1 : $rInfo->quantityInPack;
                 $q = $rec->quantity / $quantityInPack;
                 $quantity = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($q);
-                $quantity .= ' ' . tr(cat_UoM::getShortName($rInfo->packagingId));
+                $quantity .= ' ' . cat_UoM::getShortName($rInfo->packagingId);
                 
                 if ($showBatchLink) {
                     if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, $q, $rec->batch, $rInfo->containerId)) {
@@ -217,7 +217,7 @@ class batch_BatchesInDocuments extends core_Manager
                 $noBatchQuantity = $total / $rInfo->quantityInPack;
                 $batch = "<i style=''>" . tr('Без партида') . '</i>';
                 $quantity = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($noBatchQuantity);
-                $quantity .= ' ' . tr(cat_UoM::getShortName($rInfo->packagingId));
+                $quantity .= ' ' . cat_UoM::getShortName($rInfo->packagingId);
                 
                 if ($showBatchLink) {
                     if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, $noBatchQuantity, null, $rInfo->containerId)) {
@@ -487,7 +487,7 @@ class batch_BatchesInDocuments extends core_Manager
                         // Проверка на к-то
                         $warning = null;
                         if (!deals_Helper::checkQuantity($recInfo->packagingId, $quantity, $warning)) {
-                            $form->setError('newArray', $warning);
+                            $form->setWarning('newArray', $warning);
                         }
                     } else {
                         $delete[] = $newBatches['batch'][$i];

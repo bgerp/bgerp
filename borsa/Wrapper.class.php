@@ -25,6 +25,18 @@ class borsa_Wrapper extends plg_ProtoWrapper
         $this->TAB('borsa_Lots', 'Лотове', 'borsa, ceo');
         $this->TAB('borsa_Periods', 'Периоди', 'borsa, ceo');
         $this->TAB('borsa_Companies', 'Фирми', 'borsa, ceo');
-        $this->TAB('borsa_Bids', 'Оферти', 'borsa, ceo');
+        
+        // Показваме таба, само ако има лот за който да отговаря - за `sales`
+        $showBids = true;
+        $Bids = cls::get('borsa_Bids');
+        if (!haveRole($Bids->masterRoles)) {
+            $showBids = false;
+            if (borsa_Lots::fetch(array("#canConfirm LIKE '%[#1#]%'", core_Users::getCurrent()))) {
+                $showBids = true;
+            }
+        }
+        if ($showBids) {
+            $this->TAB('borsa_Bids', 'Оферти', 'borsa, ceo, sales');
+        }
     }
 }

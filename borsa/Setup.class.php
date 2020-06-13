@@ -2,6 +2,18 @@
 
 
 /**
+ * Информация, която да се добави във формата за добавяне на оферта
+ */
+defIfNot('BORSA_ADD_BID_INFO', 'Трябва да платите до 3 дена след офериране. В противен случай, офертата може да не бъде одобрена.');
+
+
+/**
+ * 
+ */
+defIfNot('BORSA_LOT_INFO', 'Форма за заявяване на продукти');
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с продуктите
  *
@@ -48,7 +60,14 @@ class borsa_Setup extends core_ProtoSetup
             array(3.1, 'Търговия', 'Борса', 'borsa_Lots', 'default', 'borsa, ceo')
     );
     
-    // @todo - addRole
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+            'BORSA_LOT_INFO' => array('text(rows=2)', 'caption=Текст във формата за заявяване на продукти->Информация, width=100%'),
+    );
+    
     
     /**
      * Списък с мениджърите, които съдържа пакета
@@ -69,18 +88,32 @@ class borsa_Setup extends core_ProtoSetup
     );
     
     
-//     /**
-//      * Скрипт за инсталиране
-//      */
-//     public function install()
-//     {
-//         $html = parent::install();
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+            array(
+                    'systemId' => 'Borsa Send Blast Emails',
+                    'description' => 'Изпращане на циркулярни имейли в борсата',
+                    'controller' => 'borsa_Periods',
+                    'action' => 'sendBlast',
+                    'period' => 1440,
+                    'offset' => 570,
+                    'timeLimit' => 300
+            ),
+            
+    );
+    
+    
+    /**
+     * Инсталиране на пакета
+     */
+    public function install()
+    {
+        $html = parent::install();
         
-//         $Plugins = cls::get('core_Plugins');
+        $html .= core_Plugins::installPlugin('Добавяне на фирма към борса', 'borsa_Plugin', 'crm_Companies', 'private');
         
-//         // Инсталираме на плъгина за проверка на правописа
-//         $html .= $Plugins->forcePlugin('Spell Check', 'borsa_Plugin', 'core_Master', 'family');
-        
-//         return $html;
-//     }
+        return $html;
+    }
 }

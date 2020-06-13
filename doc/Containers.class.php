@@ -302,6 +302,29 @@ class doc_Containers extends core_Manager
     
     
     /**
+     * Помощна функция за вземане на ключовите думи
+     * 
+     * @param stdClass $rec
+     * 
+     * @return string
+     */
+    public function getSearchKeywords($rec)
+    {
+        $sKeywords = '';
+        
+        if ($rec->docClass && $rec->docId && (cls::load($rec->docClass, true))) {
+            $clsInst = cls::get($rec->docClass);
+            
+            $dRec = $clsInst->fetch($rec->docId);
+            
+            $sKeywords = $clsInst->getSearchKeywords($dRec);
+        }
+        
+        return $sKeywords;
+    }
+    
+    
+    /**
      * Регенерира ключовите думи, ако е необходимо
      *
      * @param bool $force

@@ -241,7 +241,7 @@ class eshop_CartDetails extends core_Detail
             // Проверка на к-то
             $warning = null;
             if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
-                $form->setError('packQuantity', $warning);
+                $form->setWarning('packQuantity', $warning);
             }
             
             // Проверка достигнато ли е максималното количество
@@ -406,7 +406,7 @@ class eshop_CartDetails extends core_Detail
             }
             
             $row->productId = eshop_ProductDetails::getPublicProductName($rec->eshopProductId, $rec->productId);
-            $row->packagingId = tr(cat_UoM::getShortName($rec->packagingId));
+            $row->packagingId = cat_UoM::getShortName($rec->packagingId);
             
             $quantity = (isset($rec->packQuantity)) ? $rec->packQuantity : 1;
             $dataUrl = toUrl(array('eshop_CartDetails', 'updateCart', $rec->id, 'cartId' => $rec->cartId), 'local');
@@ -427,8 +427,9 @@ class eshop_CartDetails extends core_Detail
             $settings = cms_Domains::getSettings();
             $finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, null, $rec->currencyId, $settings->currencyId);
             $row->finalPrice = core_Type::getByName('double(smartRound)')->toVerbal($finalPrice);
+            $row->finalPrice = currency_Currencies::decorate($row->finalPrice, $settings->currencyId);
             
-            if ($rec->oldPrice) {
+            if ($rec->oldPrice) { 
                 $difference = round($rec->finalPrice, 2) - round($rec->oldPrice, 2);
                 $caption = ($difference > 0) ? 'увеличена' : 'намалена';
                 $difference = abs($difference);
@@ -440,19 +441,32 @@ class eshop_CartDetails extends core_Detail
             
             $amount = currency_CurrencyRates::convertAmount($rec->amount, null, $rec->currencyId, $settings->currencyId);
             $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
-        
+            $row->amount = currency_Currencies::decorate($row->amount, $settings->currencyId);
+            
             // Показване на уникалните параметри под името на артикула
-            $paramsText = self::getUniqueParamsAsText($rec);
+            $paramsText = self::getUniqueParamsAsText($rec->eshopProductId, $rec->productId);
             if (!empty($paramsText)) {
-                $row->productId .= "<br><span class='cart-qunique-product-params'>{$paramsText}</span>";
+                $row->productId .= "<br><span class='eshop-product-list-param'>{$paramsText}";
             }
             
             deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-            $row->productId .= " ({$row->packagingId})";
+            $row->productId .= " ({$row->packagingId})</span>";
         }
         
         $url = eshop_Products::getUrl($rec->eshopProductId);
         $row->productId = ht::createLinkRef($row->productId, $url);
+        
+        $productRec = cat_Products::fetch($rec->productId, 'canStore');
+        if (isset($settings->storeId) && $productRec->canStore == 'yes') {
+            $quantity = store_Products::getQuantity($rec->productId, $settings->storeId, true);
+            $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}", 'deliveryTime');
+            
+            if (is_null($maxQuantity) && $maxQuantity <= 0) {
+                if(!empty($eshopProductRec->deliveryTime)){
+                    $row->productId .= "<br><span  class='option-not-in-stock waitingDelivery'>" . tr('Очаква се доставка') . '</span>';
+                }
+            }
+        }
     }
     
     
@@ -708,24 +722,38 @@ class eshop_CartDetails extends core_Detail
     
     /**
      * Кои са уникалните параметри на артикула като текст
-     *
-     * @param stdClass $rec
-     *
+     * 
+     * @param int $eshopProductId
+     * @param int $productId
+     * @param boolean $asRichText
+     * 
      * @return string $str
      */
-    public static function getUniqueParamsAsText($rec)
+    public static function getUniqueParamsAsText($eshopProductId, $productId, $asRichText = false)
     {
-        $displayParams = eshop_Products::getParamsToDisplay($rec->eshopProductId);
-        $commonParams = eshop_Products::getCommonParams($rec->eshopProductId);
-        $productParams = cat_Products::getParams($rec->productId, null, true);
+        $displayParams = eshop_Products::getSettingField($eshopProductId, null, 'showParams');
+        $commonParams = eshop_Products::getCommonParams($eshopProductId);
+        $productParams = cat_Products::getParams($productId, null, true);
+        
+        if($asRichText){
+            $pureParams = cat_Products::getParams($productId);
+            $fileTypes = array(cond_type_File::getClassId(), cond_type_Image::getClassId());
+        }
         
         $productParams = array_intersect_key($productParams, $displayParams);
         $diff = array_diff_key($productParams, $commonParams);
-       
+        
         $arr = array();
         foreach ($diff as $paramId => $value) {
             $paramRec = cat_Params::fetch($paramId);
             $value = (!empty($paramRec->suffix)) ? $value .  ' ' . tr($paramRec->suffix) : $value;
+           
+            if($asRichText && in_array($paramRec->driverClass, $fileTypes)){
+                $handler = $pureParams[$paramId];
+                $fileName = strip_tags($value);
+                $value = "[file={$handler}]{$fileName}[/file]";
+            }
+            
             $arr[] = tr(cat_Params::getVerbal($paramRec, 'name')) . ': ' . $value;
         }
         

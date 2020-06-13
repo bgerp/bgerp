@@ -127,11 +127,11 @@
                 <li>|Обединява|*: [#closedDocuments#]</li>
                 <!--ET_END closedDocuments-->
                 <!--ET_BEGIN deliveryBlock-->
-                [#deliveryBlock#]
                 <li>
                     |Доставка|*: [#deliveryTermId#]
                     <!--ET_BEGIN deliveryTime-->|до|* [#deliveryTime#]<!--ET_END deliveryTime-->
                 </li>
+                [#deliveryBlock#]
                 <!--ET_END deliveryBlock-->
                 <!--ET_BEGIN deliveryTermTime-->
                 <li>|Срок за доставка|* [#deliveryTermTime#] |след стартиране на договора|*</li>

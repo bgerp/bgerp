@@ -111,7 +111,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
         
         $form->setFieldTypeParams('productId', array('hasProperties' => $data->defaultMeta));
         
-        if (isset($form->rec->id)) {
+        if (isset($form->rec->id) && $data->action != 'replaceproduct') {
             $data->form->setReadOnly('productId');
         }
     }
@@ -125,18 +125,23 @@ abstract class deals_ManifactureDetail extends doc_Detail
         $rec = &$form->rec;
         
         if ($rec->productId) {
-            $form->setDefault('measureId', cat_Products::getProductInfo($rec->productId)->productRec->measureId);
+            $measureId = cat_Products::fetchField($rec->productId, 'measureId');
+            $form->setDefault('measureId', $measureId);
             
-            $packs = cat_Products::getPacks($rec->productId);
-            $form->setOptions('packagingId', $packs);
-            $form->setDefault('packagingId', key($packs));
+            if($form->_replaceProduct !== true){
+                $packs = cat_Products::getPacks($rec->productId);
+                $form->setOptions('packagingId', $packs);
+                $form->setDefault('packagingId', key($packs));
+            } else {
+                $form->rec->packagingId = $measureId;
+            }
             
             // Ако артикула не е складируем, скриваме полето за мярка
             $productInfo = cat_Products::getProductInfo($rec->productId);
             if (!isset($productInfo->meta['canStore'])) {
                 $measureShort = cat_UoM::getShortName($rec->packagingId);
                 $form->setField('packQuantity', "unit={$measureShort}");
-            } else {
+            } elseif($form->_replaceProduct !== true) {
                 $form->setField('packagingId', 'input');
             }
         }
@@ -163,6 +168,13 @@ abstract class deals_ManifactureDetail extends doc_Detail
     {
         if (($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)) {
             if ($mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state') != 'draft') {
+                $requiredRoles = 'no_one';
+            }
+        }
+        
+        if ($action == 'replaceproduct' && isset($rec)) {
+            $masterState = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state');
+            if (!in_array($masterState, array('pending', 'draft'))) {
                 $requiredRoles = 'no_one';
             }
         }

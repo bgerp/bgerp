@@ -671,11 +671,12 @@ class plg_Search extends core_Plugin
      */
     public static function callback_repairSerchKeywords($clsName)
     {
+        $clsName = 'lab_Hora';
         $pKey = $clsName . '|repairSearchKeywords';
         
         if (!cls::load($clsName, true)) {
             
-            $clsInst->logDebug("Регенериране на ключови думи: липсващ клас {$clsName}");
+            log_System::add(get_called_class(), "Регенериране на ключови думи: липсващ клас {$clsName}", null, 'debug', 1);
             
             return;
         }
@@ -689,12 +690,12 @@ class plg_Search extends core_Plugin
         $query = $clsInst->getQuery();
         
         if (isset($kVal)) {
-            $query->where(array("#id > '[#1#]'", $kVal));
+            $query->where(array("#id < '[#1#]'", $kVal));
         }
         
         $cnt = $query->count();
         
-        $clsInst->logDebug("Начало на регенериране на ключови думи за {$clsName} за {$cnt} записа след id>{$kVal}");
+        $clsInst->logDebug("Начало на регенериране на ключови думи за {$clsName} за {$cnt} записа преди id<{$kVal}");
         
         if (!$cnt) {
             if (!is_null($kVal)) {
@@ -710,44 +711,61 @@ class plg_Search extends core_Plugin
         $callOn = dt::addSecs(55);
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', $clsName, $callOn);
         
-        $query->orderBy('id', 'ASC');
+        $query->orderBy('id', 'DESC');
         
         $isFirst = true;
         
         $query->limit(10000);
         
-        while ($rec = $query->fetch()) {
-            if ($isFirst) {
-                $clsInst->logDebug("Регенериране на ключови думи от {$rec->id}");
-                $isFirst = false;
-            }
-            
-            $maxId = $rec->id;
-            
-            try {
-                $generatedKeywords = $clsInst->getSearchKeywords($rec);
+        $lastId = $kVal;
+        
+        try {
+            while ($rec = $query->fetch()) {
                 
-                if ($generatedKeywords == $rec->searchKeywords) {
-                    continue;
+                if (dt::now() >= $maxTime) {
+                    break;
                 }
                 
-                $rec->searchKeywords = $generatedKeywords;
+                if ($isFirst) {
+                    $clsInst->logDebug("Регенериране на ключови думи от {$rec->id}");
+                    $isFirst = false;
+                }
                 
-                $clsInst->save_($rec, 'searchKeywords');
-            } catch (Exception $e) {
-                reportException($e);
-            } catch (Throwable  $e) {
-                reportException($e);
+                $lastId = $rec->id;
+                
+                try {
+                    $generatedKeywords = $clsInst->getSearchKeywords($rec);
+                    if ($generatedKeywords == $rec->searchKeywords) {
+                        
+                        continue;
+                    }
+                    
+                    $rec->searchKeywords = $generatedKeywords;
+                    
+                    $clsInst->save_($rec, 'searchKeywords');
+                } catch (Exception $e) {
+                    reportException($e);
+                } catch (Throwable  $e) {
+                    reportException($e);
+                }
             }
-            
-            if (dt::now() >= $maxTime) {
-                break;
+        } catch (Exception $e) {
+            reportException($e);
+            if (is_null($lastId)) {
+                
+                return ;
+            }
+        } catch (Throwable  $e) {
+            reportException($e);
+            if (is_null($lastId)) {
+                
+                return ;
             }
         }
         
-        $clsInst->logDebug('Регенерирани ключови думи до id=' . $maxId);
+        $clsInst->logDebug('Регенерирани ключови думи до id=' . $lastId);
         
-        core_Permanent::set($pKey, $maxId, 1000);
+        core_Permanent::set($pKey, $lastId, 1000);
     }
     
     

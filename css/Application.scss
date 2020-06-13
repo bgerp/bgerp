@@ -321,7 +321,7 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus {
 div.folder-cover {
 	background-image: url('../img/cover-bg.png');
 	display: inline-block;
-	max-width: 800px;
+	max-width: 1000px;
 	min-width: 540px;
 	margin-top: 10px;
 	line-height: 1.2em;
@@ -351,7 +351,7 @@ div.folder-cover {
 
 	.groupList {
 		font-size: 0.95em;
-		max-width: 725px;
+		max-width: 980px;
 		.toolbar-btn {
 			margin-top: 0 !important;
 			margin-bottom: 0 !important;
@@ -2217,7 +2217,7 @@ td.rowtools-column {
 	margin-bottom: 0;
 }
 
-.wide .singleView div:not(".folder-cover") .listTable {
+.wide .singleView div:not(.folder-cover) .listTable {
 	min-width: 800px;
 	width: 1%;
 }
@@ -3155,6 +3155,99 @@ fieldset.sharing-history {
 }
 /*край на стилове за история и автор*/
 
+/*борса*/
+.auctionContent {
+	padding: 0 30px 10px;
+	.productName {
+		font-size: 1.3em;
+		line-height: 150%;
+	}
+	.listTable {
+		margin-top: 20px;
+		width: 100%;
+		> tbody > tr > td {
+			padding: 10px !important;
+			vertical-align: top !important;
+			table {
+				width: 300px;
+				margin: 0 auto;
+				td {
+					padding: 4px 5px 0;
+				}
+				th {
+					color: #444;
+					padding-bottom: 5px;
+					border-bottom: 1px solid #ccc;
+				}
+				.name {
+					text-align: right !important;
+					width: 1%;
+					padding-right: 20px;
+				}
+				.quantityField {
+					text-align: right;
+				}
+
+			}
+		}
+		.priceInfo {
+			color: green !important;
+		}
+		.button {
+			width: 100px;
+			color: #333 !important;
+			padding: 5px 20px;
+			font-size: 0.85em;
+			background-color: #f6f6f6 !important;
+			border: 1px solid #bbbbbb;
+			border-radius: 3px;
+			box-shadow: inset 0 -1px 0 1px rgba(0, 0, 0, 0.1), inset 0 -10px 20px rgba(0, 0, 0, 0.1);
+			margin: 10px auto 0;
+			&:hover {
+				background-color: #ddd !important;
+			}
+		}
+	}
+	.periodHead {
+		color: #495057;
+		background-color: #e9ecef;
+		border-color: #c7ced5;
+		padding: 5px 10px;
+		font-weight: bold;
+	}
+
+	.priceBlock {
+		float: right;
+	}
+	h4 {
+		margin-top: 40px;
+	}
+	.otherProduct {
+		li {
+			margin: 10px 0;
+			a:hover {
+				text-decoration: underline;
+			}
+		}
+	}
+	.state-draft {
+		background-color: #bbffff;
+	}
+	.state-active {
+		background-color: #ffeedd;
+	}
+	.newsCol {
+		background: #fff;
+	}
+	#prodDesc {
+		display: inline-block;
+		min-width: 800px;
+		.productPreviewHolder {
+			margin-left: 30px;
+		}
+
+	}
+}
 
 /* CMS */
 /*външни стилове за ширина*/
@@ -3638,23 +3731,12 @@ fieldset.sharing-history {
 		border-top: 1px solid #ccc;
 	}
 	td {
-		padding: 4px 7px; 
+		padding: 10px;
+		height: 30px;
 	}
-	tbody tr:not(.ecartCommonRow) {
+	tbody tr {
 		background: linear-gradient(white, white, white, white, white, white, #eee);
 	}
-	tbody tr.ecartCommonRow {
-		background: linear-gradient(#eee, white, white, white, white, white, white);
-	}
-	tbody tr:not(.ecartCommonRow) td {
-		padding-bottom:10px;
-   		padding-top:3px;
-    }
-	tbody tr.ecartCommonRow td {
-        padding-top:10px;
-   		padding-bottom:3px;
-	}
-
   	thead tr:first-child {
 		background-color: #F1F1F1;
 	}
@@ -3665,6 +3747,17 @@ fieldset.sharing-history {
 		font-size: 0.9em;
 		color: #444;
 	}
+	.paramCol {
+		white-space: nowrap;
+	}
+}
+
+.narrow .optionsTable .productCol {
+	white-space: nowrap;
+}
+
+.eshop-product-buy-button {
+	margin-top: 3px;
 }
 
 .external-discount {
@@ -3696,11 +3789,18 @@ fieldset.sharing-history {
 	border: solid 1px #d8d8d8;
 	text-shadow: 1px 1px 1px #cccccc;
 	display: inline-block;
-	margin-bottom: 5px;
+	margin-top: 3px;
 	text-align: center;
+	position: relative;
+	top: -2px;
 	&.waitingDelivery {
 		background-color: rgba(41, 86, 222, 0.8) !important;
 	}
+}
+.eshop-product-list-param {
+	font-size: 0.85em;
+	color: #333;
+
 }
 
 .small .colorBox {
@@ -5093,7 +5193,15 @@ div.location.public {
 .acc_JournalDetails {
 	margin-top: 10px;
 }
-
+.details .portal .formToolbar #filter{
+	background-color: #e5e5e5;
+	padding: 6px 4px !important;
+	width: 26px;
+	background-position: center;
+	&:hover {
+		background-color: #ccc;
+	}
+}
 /*шаблон за журнал*/
 
 .closePeriod .listTable tr > th:first-child {
@@ -5634,7 +5742,11 @@ div.location.public {
 	margin-top: 10px;
 }
 
-.eshop-product-labels span {
+.eshop-product .richtext ul{
+	margin-bottom: 10px;
+}
+
+.eshop-product-labels .info {
     @include border-radius(3px);
 	padding: 4px;
 	font-size:0.8em;
@@ -5705,6 +5817,7 @@ div.location.public {
     border-radius: 3px;
     box-shadow: 1px 1px 1px rgba(0,0,0,0.1);
      _height: 1%;
+
     .richtext {
         line-height: 1.35em;
     }
@@ -5952,7 +6065,7 @@ body.narrow {
 	.background-holder {
 	    padding: 10px 0;
 	}
-	.wide:not('.user-profile') .listBlock .listRows > table.listTable {
+	.wide:not(.user-profile) .listBlock .listRows > table.listTable {
 		min-width:760px;
 	}
 }
@@ -6236,7 +6349,7 @@ body.narrow {
     .externalPage .formGroup {
         font-size: 0.85em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 558px;
         }
@@ -6271,7 +6384,7 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 483px;
         }
@@ -6300,7 +6413,7 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 458px;
         }
@@ -6332,7 +6445,7 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 438px;
         }
@@ -6379,7 +6492,7 @@ body.narrow {
     .externalPage .formGroup {
         font-size: 0.75em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 318px;
         }
@@ -6422,7 +6535,7 @@ body.narrow {
        margin-left: 0%;
        font-size: 0.9em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 278px;
         }

@@ -188,7 +188,8 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
      */
     public function addToCartView($termRec, $cartRec, $cartRow, &$tpl)
     {
-        
+        $FeeZones = cls::getInterface('cond_TransportCalc', 'tcost_FeeZones');
+        $FeeZones->addToCartView($termRec, $cartRec, $cartRow, $tpl);
     }
     
     
@@ -201,7 +202,8 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
      */
     public function onUpdateCartMaster(&$cartRec)
     {
-        
+        $FeeZones = cls::getInterface('cond_TransportCalc', 'tcost_FeeZones');
+        $FeeZones->onUpdateCartMaster($cartRec);
     }
     
     

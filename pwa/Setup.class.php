@@ -31,7 +31,7 @@ class pwa_Setup extends core_ProtoSetup
         // Инсталираме плъгина към страницата
         $html .= $Plugins->installPlugin('bgERP PWA', 'pwa_Plugin', 'core_page_Active', 'family');
         
-        $sw = file_get_contents(sbf('pwa/js/sw.js', '', true));
+        $sw = getFileContent('pwa/js/sw.js');
         core_Webroot::register($sw, '', 'sw.js', 1);
         
         return $html;

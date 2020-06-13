@@ -29,12 +29,6 @@ class planning_GenericMapper extends core_Manager
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,planning';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,planning';
@@ -61,7 +55,7 @@ class planning_GenericMapper extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId,genericProductId=Генеричен артикул,createdOn,createdBy'; 
+    public $listFields = 'productId,productMeasureId=Мярка,genericProductId=Генеричен артикул,genericProductMeasureId=Мярка генеричен артикул,createdOn,createdBy'; 
     
     
     /**
@@ -87,9 +81,10 @@ class planning_GenericMapper extends core_Manager
      */
     public function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Артикул,mandatory,silent,input=hidden');
-        $this->FLD('genericProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=generic,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Генеричен артикул,mandatory,silent');
-       
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canConvert,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Замества,mandatory,silent,class=w50,smartCenter');
+        $this->FLD('genericProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=generic,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Генеричен артикул,mandatory,silent,class=w50');
+        $this->FNC('fromGeneric', 'int', 'silent,input=hidden');
+        
         $this->setDbUnique('productId,genericProductId');
     }
     
@@ -100,9 +95,37 @@ class planning_GenericMapper extends core_Manager
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
         $rec = $data->form->rec;
-        $data->form->title = core_Detail::getEditTitle('cat_Products', $rec->productId, $mvc->singleTitle, $rec->id);
+        $productId = $rec->productId;
+        if(empty($rec->id) && empty($productId)){
+            $productId = $rec->genericProductId;
+        }
+        
+        $data->form->title = core_Detail::getEditTitle('cat_Products', $productId, $mvc->singleTitle, $rec->id);
     }
     
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+        $rec = &$form->rec;
+        
+        if(empty($rec->id) && isset($rec->genericProductId)){
+            $query = self::getQuery();
+            $query->show('productId');
+            $alreadySelectedProductsArr = arr::extractValuesFromArray($query->fetchAll(), 'productId');
+            $form->setFieldTypeParams("productId", array('notIn' => $alreadySelectedProductsArr));
+            
+            $form->setField('genericProductId', 'input=hidden');
+        } else {
+            $form->setField('productId', 'input=hidden');
+        }
+    }
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
@@ -117,10 +140,11 @@ class planning_GenericMapper extends core_Manager
             
             $measureProductId = cat_Products::fetchField($rec->productId, 'measureId');
             $measureGenericId = cat_Products::fetchField($rec->genericProductId, 'measureId');
-            
-            if($measureProductId != $measureGenericId){
+            $similarMeasures = cat_UoM::getSameTypeMeasures($measureGenericId);
+            if(!array_key_exists($measureProductId, $similarMeasures)){
                 $genericMeasureName = cat_UoM::getVerbal($measureGenericId, 'name');
-                $form->setError('genericProductId', "Генеричният артикул трябва да е в същата мярка|*: <b>{$genericMeasureName}</b>");
+                
+                $form->setError('productId', "Заместващият артикул трябва да е в мярка, производна на|*: <b>{$genericMeasureName}</b>");
             }
         }
     }
@@ -138,6 +162,17 @@ class planning_GenericMapper extends core_Manager
         $row->genericProductId = cat_Products::getHyperlink($rec->genericProductId, true);
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         $row->created = $row->createdOn . " " . tr('от||by') . " " . $row->createdBy;
+        
+        $row->genericProductMeasureId = cat_UoM::getVerbal(cat_Products::fetchField($rec->genericProductId, 'measureId'), 'name');
+        $row->productMeasureId = cat_UoM::getVerbal(cat_Products::fetchField($rec->productId, 'measureId'), 'name');
+        
+        $canConvert = cat_Products::fetchField($rec->productId, 'canConvert');
+        if($canConvert != 'yes'){
+            $row->ROW_ATTR['class'] = 'state-closed';
+            $row->productId = ht::createHint($row->productId, "Артикулът вече не е вложим", 'warning', false);
+        } else {
+            $row->ROW_ATTR['class'] = 'state-active';
+        }
     }
     
     
@@ -152,13 +187,22 @@ class planning_GenericMapper extends core_Manager
             return;
         }
         
+        $data->isGeneric = $data->masterData->rec->generic;
         $data->rows = array();
         $query = $this->getQuery();
-        $query->where("#productId = {$data->masterId}");
+        
+        if($data->isGeneric == 'yes'){
+            $listFields = "productId=Заместващ артикул,productMeasureId=Мярка,created=Създаване";
+            $query->where("#genericProductId = {$data->masterId}");
+        } else {
+            $listFields = "genericProductId=Генеричен артикул,genericProductMeasureId=Мярка,created=Създаване";
+            $query->where("#productId = {$data->masterId}");
+        }
+        
         while ($rec = $query->fetch()) {
             $data->rows[$rec->id] = $this->recToVerbal($rec);
         }
-        
+       
         $pInfo = $data->masterMvc->getProductInfo($data->masterId);
         if (!isset($pInfo->meta['canConvert'])) {
             $data->notConvertableAnymore = true;
@@ -171,11 +215,18 @@ class planning_GenericMapper extends core_Manager
         
         $data->TabCaption = 'Влагане';
         $data->Tab = 'top';
-        $data->listFields = arr::make("genericProductId=Генеричен артикул,created=Създаване", true);
+        $data->listFields = arr::make($listFields, true);
         
         if (!Mode::is('printing') && !Mode::is('inlineDocument')) {
-            if (self::haveRightFor('add', (object) array('productId' => $data->masterId))) {
-                $data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'ret_url' => true);
+            
+            if($data->isGeneric == 'yes'){
+                if (self::haveRightFor('add', (object) array('genericProductId' => $data->masterId))) {
+                    $data->addUrl = array($this, 'add', 'genericProductId' => $data->masterId, 'fromGeneric' => true, 'ret_url' => true);
+                }
+            } else {
+                if (self::haveRightFor('add', (object) array('productId' => $data->masterId))) {
+                    $data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'ret_url' => true);
+                }
             }
         }
     }
@@ -192,7 +243,7 @@ class planning_GenericMapper extends core_Manager
             return;
         }
         
-        $tpl = getTplFromFile('planning/tpl/ResourceObjectDetail.shtml');
+        $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         
         if ($data->notConvertableAnymore === true) {
             $title = tr('Артикулът вече не е вложим');
@@ -203,14 +254,15 @@ class planning_GenericMapper extends core_Manager
             $tpl->append(tr('Влагане'), 'title');
         }
         
-        $table = cls::get('core_TableView', array('mvc' => $this));
+        $listTableMvc = clone $this;
+        $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         
         $tpl->append($table->get($data->rows, $data->listFields), 'content');
         
         if (isset($data->addUrl)) {
-            $addLink = ht::createBtn('Добави', $data->addUrl, false, false, 'ef_icon=img/16/star_2.png,title=Добавяне на информация за влагане');
-            $tpl->append($addLink, 'BTNS');
+            $addLink = ht::createLink('', $data->addUrl, false, 'ef_icon=img/16/add.png,title=Добавяне на информация за влагане');
+            $tpl->append($addLink, 'title');
         }
         
         return $tpl;
@@ -225,18 +277,31 @@ class planning_GenericMapper extends core_Manager
         if (($action == 'add' || $action == 'delete' || $action == 'edit') && isset($rec)) {
             
             // Не може да добавяме запис ако не може към обекта, ако той е оттеглен или ако нямаме достъп до сингъла му
-            $masterRec = cat_Products::fetch($rec->productId, 'state,canConvert,generic');
-            if ($masterRec->state != 'active' || !cat_Products::haveRightFor('single', $rec->productId)) {
-                $res = 'no_one';
-            } elseif($masterRec->canConvert != 'yes' || $masterRec->generic == 'yes') {
-                $res = 'no_one';
+            if(isset($rec->productId)){
+                $masterRec = cat_Products::fetch($rec->productId, 'state,canConvert,generic');
+                if ($masterRec->state != 'active' || !cat_Products::haveRightFor('single', $rec->productId)) {
+                    $res = 'no_one';
+                } elseif($action != 'delete' && ($masterRec->canConvert != 'yes' || $masterRec->generic == 'yes')) {
+                    $res = 'no_one';
+                }
+            }
+            
+            if(isset($rec->genericProductId)){
+                $masterRec = cat_Products::fetch($rec->genericProductId, 'state,canConvert,generic');
+                if ($masterRec->state != 'active' || !cat_Products::haveRightFor('single', $rec->genericProductId)) {
+                    $res = 'no_one';
+                } elseif($masterRec->generic != 'yes') {
+                    $res = 'no_one';
+                }
             }
         }
         
         // За да се добави ресурс към обект, трябва самия обект да може да има ресурси
         if ($action == 'add' && isset($rec)) {
-            if ($mvc->fetch("#productId = {$rec->productId}")) {
-                $res = 'no_one';
+            if(isset($rec->productId)){
+                if ($mvc->fetch("#productId = {$rec->productId}")) {
+                    $res = 'no_one';
+                }
             }
         }
     }

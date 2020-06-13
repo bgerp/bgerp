@@ -166,9 +166,13 @@ defIfNot('SALES_DELTA_MIN_PERCENT_PRIME_COST', '0.2');
 /**
  * Дефолтен режим на ДДС в офертите
  */
-defIfNot('SALES_QUOTATION_DEFAULT_CHARGE_VAT', 'auto');
+defIfNot('SALES_QUOTATION_DEFAULT_CHARGE_VAT_BG', 'auto');
 
 
+/**
+ * Да се изчислява ли себестойноста на делтата на ЕН и СР лайв
+ */
+defIfNot('SALES_LIVE_CALC_SO_DELTAS', 'no');
 
 
 /**
@@ -179,7 +183,7 @@ defIfNot('SALES_QUOTATION_DEFAULT_CHARGE_VAT', 'auto');
  * @package sales
  *
  * @author Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license GPL 3
  *
  * @since v 0.1
@@ -306,14 +310,26 @@ class sales_Setup extends core_ProtoSetup
             'time',
             'caption=Оферти->Валидност'
         ),
+        'SALES_QUOTATION_DEFAULT_CHARGE_VAT_BG' => array(
+            'enum(auto=Автоматично,yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 
+            'caption=Режим на ДДС в офертите по подразбиране (клиенти от България)->Избор'
+        ),
+    
         'SALES_PROD_NAME_LENGTH' => array(
             'int(min=0)',
             'caption=Дължина на артикула в името на продажбата->Дължина, customizeBy=powerUser'
         ),
+        
+        'SALES_LIVE_CALC_SO_DELTAS' => array(
+            'enum(no=Договор,yes=ЕН/СР)', 
+            'caption=Записване на себестойност за изчисляване на делти при контиране на->Избор'
+        ),
+        
         'SALES_DELTA_MIN_PERCENT' => array(
             'percent',
             'caption=Неснижаема делта->Стойност'
         ),
+        
         'SALES_DELTA_MIN_PERCENT_PRIME_COST' => array(
             'percent',
             'caption=Колко % от продажната цена да се приема за делта при липса на себестойност->Стойност'
@@ -324,7 +340,6 @@ class sales_Setup extends core_ProtoSetup
             'mandatory,caption=Транспорт->Артикули,optionsFunc=sales_Setup::getPossibleTransportProducts'
         ),
         
-        'SALES_QUOTATION_DEFAULT_CHARGE_VAT' => array('enum(auto=Автоматично,yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Режим на ДДС в офертите по подразбиране->Избор след'),
     );
     
     

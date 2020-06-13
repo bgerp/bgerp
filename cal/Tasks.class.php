@@ -831,7 +831,7 @@ class cal_Tasks extends embed_Manager
                         
             $tTpl = $table->get($data->Progresses, $showFieldArr);
             
-            $tplx = new ET('<div class="clearfix21 portal" style="margin-top:20px;background-color:transparent;display:table-cell;">
+            $tplx = new ET('<div class="clearfix21 portal" style="margin-top:20px;background-color:transparent;">
                             <div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black">' . tr('Прогрес') . '</div>
                             <div class="listRows">
                             [#TABLE#]

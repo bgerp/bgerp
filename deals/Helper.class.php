@@ -520,7 +520,7 @@ abstract class deals_Helper
         }
         
         $tpl = new core_ET("<span class='nowrap'>&nbsp;<small class='quiet'>[#quantityInPack#] [#shortUomName#]</small></span>");
-        $tpl->append(tr(cat_UoM::getShortName($measureId)), 'shortUomName');
+        $tpl->append(cat_UoM::getShortName($measureId), 'shortUomName');
         $tpl->append($quantityInPack, 'quantityInPack');
         $tpl->removeBlocks();
         

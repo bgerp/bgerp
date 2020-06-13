@@ -183,8 +183,8 @@ class planning_ProductionTaskProducts extends core_Detail
             $form->setField('plannedQuantity', array('unit' => $unit));
             
             if(isset($rec->id)){
-                $form->setReadOnly('productId');
                 if($data->action != 'replaceproduct'){
+                    $form->setReadOnly('productId');
                     $form->setReadOnly('packagingId');
                 }
                 

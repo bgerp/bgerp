@@ -276,7 +276,7 @@ a.menuItem:focus {
 div.folder-cover {
   background-image: url('../img/cover-bg.png');
   display: inline-block;
-  max-width: 800px;
+  max-width: 1000px;
   min-width: 540px;
   margin-top: 10px;
   line-height: 1.2em;
@@ -302,7 +302,7 @@ div.folder-cover {
     font-weight: bold; }
   div.folder-cover .groupList {
     font-size: 0.95em;
-    max-width: 725px; }
+    max-width: 980px; }
     div.folder-cover .groupList .toolbar-btn {
       margin-top: 0 !important;
       margin-bottom: 0 !important;
@@ -1905,7 +1905,7 @@ table.listTable.listAction>tbody>tr>td.wideColumn {
 .wide .document table.listTable {
   margin-bottom: 0; }
 
-.wide .singleView div:not(".folder-cover") .listTable {
+.wide .singleView div:not(.folder-cover) .listTable {
   min-width: 800px;
   width: 1%; }
 
@@ -2696,6 +2696,75 @@ span.sharing-history-title {
  * край на стилове за история и автор
  */
 /*
+ * борса
+ */
+.auctionContent {
+  padding: 0 30px 10px; }
+  .auctionContent .productName {
+    font-size: 1.3em;
+    line-height: 150%; }
+  .auctionContent .listTable {
+    margin-top: 20px;
+    width: 100%; }
+    .auctionContent .listTable > tbody > tr > td {
+      padding: 10px !important;
+      vertical-align: top !important; }
+      .auctionContent .listTable > tbody > tr > td table {
+        width: 300px;
+        margin: 0 auto; }
+        .auctionContent .listTable > tbody > tr > td table td {
+          padding: 4px 5px 0; }
+        .auctionContent .listTable > tbody > tr > td table th {
+          color: #444444;
+          padding-bottom: 5px;
+          border-bottom: 1px solid #cccccc; }
+        .auctionContent .listTable > tbody > tr > td table .name {
+          text-align: right !important;
+          width: 1%;
+          padding-right: 20px; }
+        .auctionContent .listTable > tbody > tr > td table .quantityField {
+          text-align: right; }
+    .auctionContent .listTable .priceInfo {
+      color: green !important; }
+    .auctionContent .listTable .button {
+      width: 100px;
+      color: #333333 !important;
+      padding: 5px 20px;
+      font-size: 0.85em;
+      background-color: #f6f6f6 !important;
+      border: 1px solid #bbbbbb;
+      border-radius: 3px;
+      box-shadow: inset 0 -1px 0 1px rgba(0, 0, 0, 0.1), inset 0 -10px 20px rgba(0, 0, 0, 0.1);
+      margin: 10px auto 0; }
+      .auctionContent .listTable .button:hover {
+        background-color: #dddddd !important; }
+  .auctionContent .periodHead {
+    color: #495057;
+    background-color: #e9ecef;
+    border-color: #c7ced5;
+    padding: 5px 10px;
+    font-weight: bold; }
+  .auctionContent .priceBlock {
+    float: right; }
+  .auctionContent h4 {
+    margin-top: 40px; }
+    .auctionContent .otherProduct li {
+      margin: 10px 0; }
+      .auctionContent .otherProduct li a:hover {
+        text-decoration: underline; }
+  .auctionContent .state-draft {
+    background-color: #bbffff; }
+  .auctionContent .state-active {
+    background-color: #ffeedd; }
+  .auctionContent .newsCol {
+    background: white; }
+  .auctionContent #prodDesc {
+    display: inline-block;
+    min-width: 800px; }
+    .auctionContent #prodDesc .productPreviewHolder {
+      margin-left: 30px; }
+
+/*
  * CMS
  */
 /*
@@ -3116,17 +3185,10 @@ span.sharing-history-title {
     padding: 7px 5px;
     border-top: 1px solid #cccccc; }
   .optionsTable td {
-    padding: 4px 7px; }
-  .optionsTable tbody tr:not(.ecartCommonRow) {
+    padding: 10px;
+    height: 30px; }
+  .optionsTable tbody tr {
     background: linear-gradient(white, white, white, white, white, white, #eeeeee); }
-  .optionsTable tbody tr.ecartCommonRow {
-    background: linear-gradient(#eeeeee, white, white, white, white, white, white); }
-  .optionsTable tbody tr:not(.ecartCommonRow) td {
-    padding-bottom: 10px;
-    padding-top: 3px; }
-  .optionsTable tbody tr.ecartCommonRow td {
-    padding-top: 10px;
-    padding-bottom: 3px; }
   .optionsTable thead tr:first-child {
     background-color: #f1f1f1; }
   .optionsTable tbody tr:last-child td {
@@ -3134,6 +3196,14 @@ span.sharing-history-title {
   .optionsTable .option-table-info {
     font-size: 0.9em;
     color: #444444; }
+  .optionsTable .paramCol {
+    white-space: nowrap; }
+
+.narrow .optionsTable .productCol {
+  white-space: nowrap; }
+
+.eshop-product-buy-button {
+  margin-top: 3px; }
 
 .external-discount {
   color: #333333;
@@ -3160,10 +3230,16 @@ span.sharing-history-title {
   border: solid 1px #d8d8d8;
   text-shadow: 1px 1px 1px #cccccc;
   display: inline-block;
-  margin-bottom: 5px;
-  text-align: center; }
+  margin-top: 3px;
+  text-align: center;
+  position: relative;
+  top: -2px; }
   .option-not-in-stock.waitingDelivery {
     background-color: rgba(41, 86, 222, 0.8) !important; }
+
+.eshop-product-list-param {
+  font-size: 0.85em;
+  color: #333333; }
 
 .small .colorBox {
   width: 12px !important;
@@ -4445,6 +4521,14 @@ div.location.public {
 .acc_JournalDetails {
   margin-top: 10px; }
 
+.details .portal .formToolbar #filter {
+  background-color: #e5e5e5;
+  padding: 6px 4px !important;
+  width: 26px;
+  background-position: center; }
+  .details .portal .formToolbar #filter:hover {
+    background-color: #cccccc; }
+
 /*
  * шаблон за журнал
  */
@@ -4959,7 +5043,10 @@ div.location.public {
 .paramsTable {
   margin-top: 10px; }
 
-.eshop-product-labels span {
+.eshop-product .richtext ul {
+  margin-bottom: 10px; }
+
+.eshop-product-labels .info {
   -moz-border-radius: 3px;
   -webkit-border-radius: 3px;
   -ms-border-radius: 3px;
@@ -4971,7 +5058,7 @@ div.location.public {
   text-shadow: 1px 1px 1px #cccccc;
   display: inline-block;
   margin-bottom: 5px; }
-  .eshop-product-labels span:last-child {
+  .eshop-product-labels .info:last-child {
     margin-right: 0 !important; }
 
 .eshop-product-images {
@@ -5233,7 +5320,7 @@ only screen and (min-width: 1240px) {
   .background-holder {
     padding: 10px 0; }
 
-  .wide:not('.user-profile') .listBlock .listRows > table.listTable {
+  .wide:not(.user-profile) .listBlock .listRows > table.listTable {
     min-width: 760px; } }
 
 @media handheld,
@@ -5516,16 +5603,16 @@ only screen and (max-width: 600px) {
   .externalPage .formGroup {
     font-size: 0.85em; }
 
-    :not('.modern-theme') .narrow .main-container .chzn-container,
-    :not('.modern-theme') .narrow .main-container .formFields input,
-    :not('.modern-theme') .narrow .main-container .formFields .richEdit,
-    :not('.modern-theme') .narrow .main-container .formFields select,
-    :not('.modern-theme') .narrow .main-container .formTitle {
+    :not(.modern-theme) .narrow .main-container .chzn-container,
+    :not(.modern-theme) .narrow .main-container .formFields input,
+    :not(.modern-theme) .narrow .main-container .formFields .richEdit,
+    :not(.modern-theme) .narrow .main-container .formFields select,
+    :not(.modern-theme) .narrow .main-container .formTitle {
       max-width: 558px; }
-    :not('.modern-theme') .narrow .main-container .chzn-container .chzn-drop,
-    :not('.modern-theme') .narrow .select2 {
+    :not(.modern-theme) .narrow .main-container .chzn-container .chzn-drop,
+    :not(.modern-theme) .narrow .select2 {
       max-width: 548px; }
-    :not('.modern-theme') .narrow .main-container .chzn-container-single .chzn-search input {
+    :not(.modern-theme) .narrow .main-container .chzn-container-single .chzn-search input {
       max-width: 538px; }
 
   .externalPage h2 {
@@ -5551,16 +5638,16 @@ only screen and (max-width: 533px) {
     margin-left: 2%;
     font-size: 0.9em; }
 
-    :not('.modern-theme') .narrow .main-container .chzn-container,
-    :not('.modern-theme') .narrow .main-container .formFields input,
-    :not('.modern-theme') .narrow .main-container .formFields .richEdit,
-    :not('.modern-theme') .narrow .main-container .formFields select,
-    :not('.modern-theme') .narrow .main-container .formTitle {
+    :not(.modern-theme) .narrow .main-container .chzn-container,
+    :not(.modern-theme) .narrow .main-container .formFields input,
+    :not(.modern-theme) .narrow .main-container .formFields .richEdit,
+    :not(.modern-theme) .narrow .main-container .formFields select,
+    :not(.modern-theme) .narrow .main-container .formTitle {
       max-width: 483px; }
-    :not('.modern-theme') .narrow .main-container .chzn-container .chzn-drop,
-    :not('.modern-theme') .narrow .select2 {
+    :not(.modern-theme) .narrow .main-container .chzn-container .chzn-drop,
+    :not(.modern-theme) .narrow .select2 {
       max-width: 481px; }
-    :not('.modern-theme') .narrow .main-container .chzn-container-single .chzn-search input {
+    :not(.modern-theme) .narrow .main-container .chzn-container-single .chzn-search input {
       max-width: 471px; }
 
   .externalPage h2 {
@@ -5580,16 +5667,16 @@ only screen and (max-width: 500px) {
     margin-left: 2%;
     font-size: 0.9em; }
 
-    :not('.modern-theme') .narrow .main-container .chzn-container,
-    :not('.modern-theme') .narrow .main-container .formFields input,
-    :not('.modern-theme') .narrow .main-container .formFields .richEdit,
-    :not('.modern-theme') .narrow .main-container .formFields select,
-    :not('.modern-theme') .narrow .main-container .formTitle {
+    :not(.modern-theme) .narrow .main-container .chzn-container,
+    :not(.modern-theme) .narrow .main-container .formFields input,
+    :not(.modern-theme) .narrow .main-container .formFields .richEdit,
+    :not(.modern-theme) .narrow .main-container .formFields select,
+    :not(.modern-theme) .narrow .main-container .formTitle {
       max-width: 458px; }
-    :not('.modern-theme') .narrow .main-container .chzn-container .chzn-drop,
-    :not('.modern-theme') .narrow .select2 {
+    :not(.modern-theme) .narrow .main-container .chzn-container .chzn-drop,
+    :not(.modern-theme) .narrow .select2 {
       max-width: 448px; }
-    :not('.modern-theme') .narrow .main-container .chzn-container-single .chzn-search input {
+    :not(.modern-theme) .narrow .main-container .chzn-container-single .chzn-search input {
       max-width: 438px; }
 
   .externalPage h2 {
@@ -5612,16 +5699,16 @@ only screen and (max-width: 480px) {
     margin-left: 2%;
     font-size: 0.9em; }
 
-    :not('.modern-theme') .narrow .main-container .chzn-container,
-    :not('.modern-theme') .narrow .main-container .formFields input,
-    :not('.modern-theme') .narrow .main-container .formFields .richEdit,
-    :not('.modern-theme') .narrow .main-container .formFields select,
-    :not('.modern-theme') .narrow .main-container .formTitle {
+    :not(.modern-theme) .narrow .main-container .chzn-container,
+    :not(.modern-theme) .narrow .main-container .formFields input,
+    :not(.modern-theme) .narrow .main-container .formFields .richEdit,
+    :not(.modern-theme) .narrow .main-container .formFields select,
+    :not(.modern-theme) .narrow .main-container .formTitle {
       max-width: 438px; }
-    :not('.modern-theme') .narrow .main-container .chzn-container .chzn-drop,
-    :not('.modern-theme') .narrow .select2 {
+    :not(.modern-theme) .narrow .main-container .chzn-container .chzn-drop,
+    :not(.modern-theme) .narrow .select2 {
       max-width: 428px; }
-    :not('.modern-theme') .narrow .main-container .chzn-container-single .chzn-search input {
+    :not(.modern-theme) .narrow .main-container .chzn-container-single .chzn-search input {
       max-width: 418px; }
 
   .externalPage h2 {
@@ -5658,18 +5745,18 @@ only screen and (max-width: 360px) {
   .externalPage .formGroup {
     font-size: 0.75em; }
 
-    :not('.modern-theme') .narrow .main-container .chzn-container,
-    :not('.modern-theme') .narrow .main-container .formFields input,
-    :not('.modern-theme') .narrow .main-container .formFields .richEdit,
-    :not('.modern-theme') .narrow .main-container .formFields select,
-    :not('.modern-theme') .narrow .main-container .formTitle {
+    :not(.modern-theme) .narrow .main-container .chzn-container,
+    :not(.modern-theme) .narrow .main-container .formFields input,
+    :not(.modern-theme) .narrow .main-container .formFields .richEdit,
+    :not(.modern-theme) .narrow .main-container .formFields select,
+    :not(.modern-theme) .narrow .main-container .formTitle {
       max-width: 318px; }
-    :not('.modern-theme') .narrow .main-container .chzn-container .chzn-drop,
-    :not('.modern-theme') .narrow .select2 {
+    :not(.modern-theme) .narrow .main-container .chzn-container .chzn-drop,
+    :not(.modern-theme) .narrow .select2 {
       max-width: 308px; }
-    :not('.modern-theme') .narrow .main-container .chzn-container-single .chzn-search input {
+    :not(.modern-theme) .narrow .main-container .chzn-container-single .chzn-search input {
       max-width: 298px; }
-    :not('.modern-theme') .narrow .main-container .formTable .keylist label {
+    :not(.modern-theme) .narrow .main-container .formTable .keylist label {
       max-width: 159px; }
 
   .externalPage h2 {
@@ -5699,18 +5786,18 @@ only screen and (max-width: 320px) {
     margin-left: 0%;
     font-size: 0.9em; }
 
-    :not('.modern-theme') .narrow .main-container .chzn-container,
-    :not('.modern-theme') .narrow .main-container .formFields input,
-    :not('.modern-theme') .narrow .main-container .formFields .richEdit,
-    :not('.modern-theme') .narrow .main-container .formFields select,
-    :not('.modern-theme') .narrow .main-container .formTitle {
+    :not(.modern-theme) .narrow .main-container .chzn-container,
+    :not(.modern-theme) .narrow .main-container .formFields input,
+    :not(.modern-theme) .narrow .main-container .formFields .richEdit,
+    :not(.modern-theme) .narrow .main-container .formFields select,
+    :not(.modern-theme) .narrow .main-container .formTitle {
       max-width: 278px; }
-    :not('.modern-theme') .formFields .main-container textarea {
+    :not(.modern-theme) .formFields .main-container textarea {
       min-width: 278px; }
-    :not('.modern-theme') .narrow .main-container .chzn-container .chzn-drop,
-    :not('.modern-theme') .narrow .select2 {
+    :not(.modern-theme) .narrow .main-container .chzn-container .chzn-drop,
+    :not(.modern-theme) .narrow .select2 {
       max-width: 268px; }
-    :not('.modern-theme') .narrow .main-container .chzn-container-single .chzn-search input {
+    :not(.modern-theme) .narrow .main-container .chzn-container-single .chzn-search input {
       max-width: 258px; }
 
   .externalPage h2 {

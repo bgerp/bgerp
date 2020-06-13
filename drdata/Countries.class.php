@@ -109,6 +109,7 @@ class drdata_Countries extends core_Manager
         $this->setDbUnique('commonName');
         $this->setDbIndex('letterCode2');
         $this->setDbIndex('letterCode3');
+        $this->setDbIndex('domain');
     }
     
     

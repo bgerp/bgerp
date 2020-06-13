@@ -91,7 +91,7 @@ class deals_plg_SelectInvoice extends core_Plugin
         
         $form = cls::get('core_Form');
         $form->title = core_Detail::getEditTitle($mvc, $rec->id, 'информация', $rec->id);
-        $form->FLD('fromContainerId', 'int', 'caption=Към,class=w25');
+        $form->FLD('fromContainerId', 'int', 'caption=Към,class=w50');
         
         $invoices = $mvc->getReasonContainerOptions($rec);
         $form->setOptions('fromContainerId', array('' => '') + $invoices);

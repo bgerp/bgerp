@@ -79,7 +79,9 @@ class eshop_plg_Users extends core_Plugin
                     eshop_CartDetails::updatePriceInfo($dRec2, $dRec->id, true);
                 }
                 
-                $Carts->updateMaster($dCart);
+                if(!empty($dCart)){
+                    $Carts->updateMaster($dCart);
+                }
             }
         }
     }
