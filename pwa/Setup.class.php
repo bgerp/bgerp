@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Мобилното приложение активно ли е?
+ */
+defIfNot('PWA_ACTIVE', 'no');
 
 /**
  * Клас 'pwa_Setup' -  bgERP progressive web application
@@ -17,6 +21,12 @@ class pwa_Setup extends core_ProtoSetup
 {
     public $info = 'bgERP progressive web application';
     
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'PWA_ACTIVE' => array('enum(no=Не,yes=Да)', 'caption=Мобилно приложение->Активиране,customizeBy=user'),
+        );
     
     /**
      * Инсталиране на пакета
