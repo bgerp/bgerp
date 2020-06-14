@@ -51,7 +51,7 @@ class pwa_Manifest extends core_Mvc
             'name' => 'Интегрирана система за управление',
             'display' => 'standalone',
             'background_color' => '#fff',
-            'theme_color' => '#fff',
+            'theme_color' => '#ddd',
             'start_url' => '/Portal/Show',
             'scope' => '/',
             'icons' => $iconInfoArr
