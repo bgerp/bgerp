@@ -19,7 +19,7 @@ class pwa_Plugin extends core_Plugin
         // Винаги добавяме, ако може ServiceWorker
         $serviceWorkerPath = getFullPath('pwa/js/sw.js');
         $name = 'sw' . crc32(filemtime($serviceWorkerPath)) . '.js';
-        $domainId = cms_Domains::fetchField("#domain = 'localhost'", 'id');
+        $domainId = cms_Domains::fetchField("#domain = 'localhost' AND #lang = 'bg'", 'id');
 
         if(!core_Webroot::isExists($name, $domainId)) {
             $lastServiceWorker = core_Permanent::get('lastServiceWorker' . $domainId);

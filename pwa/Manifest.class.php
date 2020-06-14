@@ -22,7 +22,7 @@ class pwa_Manifest extends core_Mvc
         $iconSizes = array(72, 96, 128, 144, 152, 192, 384, 512);
         $iconInfoArr = array();
 
-        $domainId = cms_Domains::fetchField("#domain = 'localhost'", 'id');
+        $domainId = cms_Domains::fetchField("#domain = 'localhost' AND #lang = 'bg'", 'id');
         
         if(core_Webroot::isExists('android-chrome-512x512.png', $domainId)) {
             $imageUrl = str_replace('/xxx', '', toUrl(array('xxx'), 'absolute')) . '/android-chrome-512x512.png';
