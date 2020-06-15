@@ -5595,11 +5595,41 @@ JSON.parse = JSON.parse || function (str) {
 };
 
 
-function unregisterServiceWorker() {
-    if($('#main-container').length && !$('link[rel="manifest"]').length && !isIE() && typeof navigator.serviceWorker !== 'undefined' && navigator.serviceWorker.getRegistrations) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            eval("for(var registration of registrations) {registration.unregister();}");
-        });
+/**
+ * Функция за синхронизиране между регистрирания и желания ServiceWorker
+ */
+function syncServiceWorker() {
+
+    if(!isIE() && ('serviceWorker' in navigator)) {
+
+        if(typeof navigator.serviceWorker !== 'undefined') {
+            navigator.serviceWorker.getRegistrations().then((r) => {
+                r.forEach((sw) => {
+                    if(typeof serviceWorkerURL !== 'undefined') {
+                        exSw = sw.active.scriptURL.substr(sw.active.scriptURL.length - serviceWorkerURL.length);
+                        if(exSw == serviceWorkerURL) {
+                            console.log('ServiceWorker registration skiped: ' + serviceWorkerURL);
+                            serviceWorkerURL = false;
+                        } else {
+                            sw.unregister();
+                            console.log('ServiceWorker registration unregistered: ' + exSw);
+                        }
+                    }
+                });
+
+                // Рефистрираме новия ServiceWorker
+                if((typeof serviceWorkerURL !== 'undefined') && (serviceWorkerURL !== false)) {
+          
+                    navigator.serviceWorker.register(serviceWorkerURL, {scope: '/'}).then(function(registration) {
+                    // Registration was successful
+                        console.log('ServiceWorker registration successful: ' + serviceWorkerURL);
+                    }, function(err) {
+                        // registration failed :(
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+                 }
+            })
+        }
     }
 }
 
@@ -5608,3 +5638,4 @@ runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);
 runOnLoad(reloadOnPageShow);
 runOnLoad(focusOnHeader);
+runOnLoad(syncServiceWorker);

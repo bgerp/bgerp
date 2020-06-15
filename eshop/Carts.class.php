@@ -1881,7 +1881,7 @@ class eshop_Carts extends core_Master
     /**
      * Връща текста на очакваната доставка
      */
-    private function getExpectedDeliveryText($rec, $settings)
+    private static function getExpectedDeliveryText($rec, $settings)
     {
         if($rec->haveProductsWithExpectedDelivery == 'yes'){
             $expectedDeliveryText = new core_ET($settings->expectedDeliveryText);

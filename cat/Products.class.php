@@ -3615,8 +3615,13 @@ class cat_Products extends embed_Manager
     {
         expect($mRec);
         
-        $canSeePrice = haveRole('seePrice', $activatedBy);
+        $canSeePrice = haveRole('seePrice,ceo', $activatedBy);
         $pStrName = 'price';
+        
+        $Detail = null;
+        if(isset($masterMvc->mainDetail)){
+            $Detail = cls::get($masterMvc->mainDetail);
+        }
         
         $detArr = arr::make($masterMvc->details);
         
@@ -3677,11 +3682,15 @@ class cat_Products extends embed_Manager
             $dQuery->where(array("#{$dInst->masterKey} = {$mRec->id}"));
             
             $dQuery->orderBy('id', 'ASC');
-            
+           
             while ($dRec = $dQuery->fetch()) {
                 if (!$recs[$dRec->id]) {
                     $recs[$dRec->id] = new stdClass();
                 }
+                
+                $recs[$dRec->id]->productId = $dRec->productId;
+                $recs[$dRec->id]->packPrice = $dRec->packPrice;
+                $recs[$dRec->id]->discount = $dRec->discount;
                 
                 $allFFieldsArr = $fFieldsArr;
                 
@@ -3698,7 +3707,7 @@ class cat_Products extends embed_Manager
                     
                     $allFFieldsArr = array_merge($allFFieldsArr, $exportToMasterArr);
                 }
-                
+               
                 foreach ($allFFieldsArr as $k => $vArr) {
                     if (!$dInst->fields[$k]) {
                         continue;
@@ -3769,7 +3778,7 @@ class cat_Products extends embed_Manager
                 
                 // Добавяме отстъпката към цената
                 if ($allFFieldsArr['packPrice']) {
-                    if ($recs[$dRec->id]->packPrice && $dRec->discount) {
+                    if ($recs[$dRec->id]->packPrice && $dRec->discount && !($masterMvc instanceof deals_InvoiceMaster && $mRec->type == 'dc_note')) {
                         $recs[$dRec->id]->packPrice -= ($recs[$dRec->id]->packPrice * $dRec->discount);
                     }
                 }
@@ -3825,6 +3834,28 @@ class cat_Products extends embed_Manager
                             } else {
                                 unset($recs[$dRec->id]);
                             }
+                        }
+                    }
+                }
+            }
+            
+            
+            /**
+             * Ако артикула е ред във КИ или ДИ със промяна, да се покаже промененото количество
+             */
+            if($masterMvc instanceof deals_InvoiceMaster){
+                if(isset($allFFieldsArr['quantity']) && $mRec->type == 'dc_note'){
+                    $Detail::modifyDcDetails($recs, $mRec, $Detail);
+                    
+                    foreach ($recs as $id => &$mdRec){
+                        if ($allFFieldsArr['packPrice']) {
+                            if ($mdRec->packPrice && $mdRec->discount) {
+                                $mdRec->packPrice -= ($mdRec->packPrice * $mdRec->discount);
+                            }
+                        }
+                        
+                        if(!$mdRec->changedQuantity && !$mdRec->changedPrice){
+                            unset($recs[$id]);
                         }
                     }
                 }

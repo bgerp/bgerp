@@ -1570,6 +1570,8 @@ class type_Richtext extends type_Blob
      */
     public static function parseInternalUrl($rest)
     {
+        $rest = preg_replace('/(?<!\/)\?/', '/?', $rest);
+        
         $rest = trim($rest, '/');
         
         $restArr = explode('/', $rest);

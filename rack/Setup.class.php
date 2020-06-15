@@ -69,6 +69,12 @@ class rack_Setup extends core_ProtoSetup
     
     
     /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'rack_reports_DurationPallets';
+    
+    
+    /**
      * Роли за достъп до модула
      */
     public $roles = array('rack', array('rackMaster', 'rack'));

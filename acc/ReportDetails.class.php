@@ -127,7 +127,7 @@ class acc_ReportDetails extends core_Manager
         }
         
         $accounts = arr::make($data->masterMvc->balanceRefAccounts, true);
-        $data->canSeePrices = haveRole('ceo,accJournal');
+        $data->canSeePrices = haveRole('ceo,sales,accJournal');
         
         // Полета за таблицата
         $data->listFields = arr::make('tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,blQuantity=К-во,blPrice=Цена,blAmount=Сума');
@@ -181,6 +181,10 @@ class acc_ReportDetails extends core_Manager
                         if($row = $this->getVerbalBalanceRec($dRec, $groupBy, $data)){
                             $res[$accountId]['rows'][] = $row;
                         }
+                    }
+                    
+                    if(is_array($res[$accountId]['rows'])){
+                        arr::sortObjects($res[$accountId]['rows'], 'sortField', 'asc', 'natural');
                     }
                     
                     $res[$accountId]['total'] = arr::sumValuesArray($recsWithAccount, 'blAmount');
@@ -255,6 +259,7 @@ class acc_ReportDetails extends core_Manager
        // Обхождане на останалите пера
        
        $accGroups = acc_Accounts::getAccountInfo($dRec->accountId)->groups;
+       $row['sortField'] = '';
        
        foreach (range(1, 3) as $pos) {
            $entry = $dRec->{"ent{$pos}Id"};
@@ -263,8 +268,11 @@ class acc_ReportDetails extends core_Manager
            if (isset($entry, $accGroups[$pos])) {
                
                // Ако перото не е групиращото, ще се показва в справката
-               $row["ent{$pos}Id"] = acc_Items::getVerbal(acc_Items::fetch($entry), 'titleLink');
+               $itemRec = acc_Items::fetch($entry);
+              
+               $row["ent{$pos}Id"] = acc_Items::getVerbal($itemRec, 'titleLink');
                $row["ent{$pos}Id"] = "<span class='feather-title'>{$row["ent{$pos}Id"]}</span>";
+               $row['sortField'] .= $itemRec->num . " ";
            }
        }
        

@@ -376,6 +376,10 @@ class plg_Search extends core_Plugin
             
             $maxId = $qRec->maxId;
             
+            if (!isset($maxId)) {
+                $maxId = 0;
+            }
+            
             core_Permanent::set($key, $maxId, 1000);
         }
         
@@ -676,7 +680,7 @@ class plg_Search extends core_Plugin
         
         if (!cls::load($clsName, true)) {
             
-            $clsInst->logDebug("Регенериране на ключови думи: липсващ клас {$clsName}");
+            log_System::add(get_called_class(), "Регенериране на ключови думи: липсващ клас {$clsName}", null, 'debug', 1);
             
             return;
         }
