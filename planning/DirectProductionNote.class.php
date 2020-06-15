@@ -403,16 +403,20 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $row->expenseItemId = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
         }
         
-        $row->subTitle = (isset($rec->storeId)) ? 'Засклаждане на продукт' : 'Производство на услуга';
-        $row->subTitle = tr($row->subTitle);
-        
+        $quantityInPack = $rec->quantityInPack;
         if(!empty($rec->additionalMeasureId)){
             if($rec->additionalMeasureId == $productRec->measureId){
-                unset($row->additionalMeasureQuantity, $row->additionalMeasureId);
+                
+                // Ако втората мярка е основната показваме оригиналното к-во в опаковка
+                $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
+                $quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
+                $row->additionalMeasureId = ht::createHint($row->additionalMeasureId, "Това количество ще отчетено в производството");
             }
         }
         
-        deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+        $row->subTitle = (isset($rec->storeId)) ? 'Засклаждане на продукт' : 'Производство на услуга';
+        $row->subTitle = tr($row->subTitle);
+        deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $quantityInPack);
         
         if (isset($rec->inputStoreId)) {
             $row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, true);
