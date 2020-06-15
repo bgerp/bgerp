@@ -511,8 +511,7 @@ class spcheck_Dictionary extends core_Manager
                         $saveF = null;
                     } else {
                         $saveF = 'cnt';
-                        
-                        if ($rec->cnt >= $autoCorrectCnt) {
+                        if (($rec->modifiedBy == -1) && ($rec->cnt >= $autoCorrectCnt)) {
                             if ($rec->isCorrect != 'yes') {
                                 $saveF .= ', modifiedOn, modifiedBy, isCorrect';
                                 $rec->isCorrect = 'yes';

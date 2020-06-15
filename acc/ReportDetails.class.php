@@ -127,7 +127,7 @@ class acc_ReportDetails extends core_Manager
         }
         
         $accounts = arr::make($data->masterMvc->balanceRefAccounts, true);
-        $data->canSeePrices = haveRole('ceo,accJournal');
+        $data->canSeePrices = haveRole('ceo,sales,accJournal');
         
         // Полета за таблицата
         $data->listFields = arr::make('tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,blQuantity=К-во,blPrice=Цена,blAmount=Сума');
