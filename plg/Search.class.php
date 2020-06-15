@@ -376,6 +376,10 @@ class plg_Search extends core_Plugin
             
             $maxId = $qRec->maxId;
             
+            if (!isset($maxId)) {
+                $maxId = 0;
+            }
+            
             core_Permanent::set($key, $maxId, 1000);
         }
         
