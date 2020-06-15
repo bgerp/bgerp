@@ -87,7 +87,20 @@ class core_Webroot
         }
     }
     
+
+    /**
+     * Връща съдържанието на посочения файл
+     */
+    public static function getContents($filename, $domain = null)
+    {
+        $path = self::getPath($filename, $domain);
+        
+        $res = file_get_contents($path);
+
+        return $res;
+    }
     
+
     /**
      * Връща път до посочения файл в UPLOADS
      */

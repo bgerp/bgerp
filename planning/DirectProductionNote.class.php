@@ -186,17 +186,22 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'mandatory,input=hidden,before=packQuantity,silent,removeAndRefreshForm=additionalMeasureId|additionalMeasureQuantity');
         $this->FNC('packQuantity', 'double(Min=0,smartRound)', 'caption=Количество,input,mandatory,after=jobQuantity');
+        $this->FLD('expenses', 'percent(Min=0)', 'caption=Реж. разходи,after=packQuantity');
+        
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         $this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=Количество,input=none');
         
-        $this->FLD('additionalMeasureId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Втора мярка->Избор', 'input=none,after=packQuantity,autohide');
-        $this->FLD('additionalMeasureQuantity', 'double(Min=0,smartRound)', 'caption=Втора мярка->Количество,input=none,after=additionalMeasureId,autohide');
+        $this->FLD('additionalMeasureId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Втора мярка->Избор', 'input=none,after=expenses');
+        $this->FLD('additionalMeasureQuantity', 'double(Min=0,smartRound)', 'caption=Втора мярка->Количество,input=none');
         
-        $this->FLD('expenses', 'percent(Min=0)', 'caption=Реж. разходи,after=quantity');
-        $this->setField('storeId', 'caption=Складове->Засклаждане в,after=expenses,silent,removeAndRefreshForm');
-        $this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Влагане от,after=storeId,input');
+        $this->setField('deadline', 'caption=Информация->Срок до');
+        $this->setField('storeId', 'caption=Информация->Засклаждане в,silent,removeAndRefreshForm');
+        $this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Информация->Влагане от,input');
         $this->FLD('debitAmount', 'double(smartRound)', 'input=none');
         $this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,allowEmpty)', 'input=none,after=expenses,caption=Разходен обект / Продажба->Избор');
+        
+        $this->setField('note', 'caption=Информация->Бележки,after=deadline');
+        
         
         $this->setDbIndex('productId');
     }
@@ -398,16 +403,20 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $row->expenseItemId = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
         }
         
-        $row->subTitle = (isset($rec->storeId)) ? 'Засклаждане на продукт' : 'Производство на услуга';
-        $row->subTitle = tr($row->subTitle);
-        
+        $quantityInPack = $rec->quantityInPack;
         if(!empty($rec->additionalMeasureId)){
             if($rec->additionalMeasureId == $productRec->measureId){
-                unset($row->additionalMeasureQuantity, $row->additionalMeasureId);
+                
+                // Ако втората мярка е основната показваме оригиналното к-во в опаковка
+                $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
+                $quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
+                $row->additionalMeasureId = ht::createHint($row->additionalMeasureId, "Това количество ще отчетено в производството");
             }
         }
         
-        deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+        $row->subTitle = (isset($rec->storeId)) ? 'Засклаждане на продукт' : 'Производство на услуга';
+        $row->subTitle = tr($row->subTitle);
+        deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $quantityInPack);
         
         if (isset($rec->inputStoreId)) {
             $row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, true);

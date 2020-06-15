@@ -162,7 +162,7 @@ class log_Ips extends core_Manager
         
         $mustSave = false;
         
-        if (stripos(',' . $rec->users . ',', ',' . $nick . ',') === false) {
+        if ($rec && stripos(',' . $rec->users . ',', ',' . $nick . ',') === false) {
             $rec->users = trim($nick . ',' . $rec->users, ', ');
             while (strlen($rec->users) > 128) {
                 $userArr = explode(',', $rec->users);

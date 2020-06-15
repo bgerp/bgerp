@@ -1088,6 +1088,19 @@ class store_Products extends core_Detail
         }
         
         parent::prepareDetail_($data);
+        
+        if(countR($data->recs)){
+            $totalField = ($data->masterData->rec->generic == 'yes') ? 'code' : 'storeId';
+            $data->rows['total'] = (object)array($totalField => "<div style='float:left'>" .  tr('Сумарно') . "</div>");
+            foreach ($data->recs as $rec){
+                foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'expectedQuantityTotal', 'freeQuantity') as $fld){
+                    if(!empty($rec->{$fld})){
+                       $data->rows['total']->{$fld} += $rec->{$fld};
+                       $data->rows['total']->ROW_ATTR['style'] = 'background-color:#eee;font-weight:bold';
+                    }
+                }
+            }
+        }
     }
     
     
@@ -1110,7 +1123,7 @@ class store_Products extends core_Detail
         }
         
         $tpl->append(parent::renderDetail_($data), 'content');
-       
+        
         return $tpl;
     }
 }

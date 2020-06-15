@@ -647,7 +647,7 @@ class cms_Domains extends core_Embedder
         }
         
         $fiContent = null;
-        
+ 
         // favicon.ico
         if($rec->favicon) {
             $iconContent = $fiContent = fileman_Files::getContent($rec->favicon);
@@ -657,7 +657,11 @@ class cms_Domains extends core_Embedder
             $iconContent = getFileContent('img/favicon.png');
             $fiContent = getFileContent('img/favicon.ico');
         }
-        
+
+        if(core_Webroot::isExists('android-chrome-512x512.png', $id)) {
+            $iconContent = core_Webroot::getContents('android-chrome-512x512.png', $id);
+        }
+
         if($iconContent) {
             core_Webroot::register($iconContent, '', 'favicon.png', $id);
         }
