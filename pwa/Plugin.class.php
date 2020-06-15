@@ -32,7 +32,7 @@ class pwa_Plugin extends core_Plugin
         $invoker->appendOnce("\n<script>\n    var serviceWorkerURL = '/{$name}';\n</script>\n", 'HEAD');
         
         // Ако е активирана опцията за мобилно приложение - манифестираме го
-        if(pwa_Setup::get('ACTIVE') == 'yes') {
+        if(pwa_Setup::get('ACTIVE') == 'yes' && cms_Domains::getPublicDomain('domain') == 'localhost') {
             $manifestUrl = toUrl(array('pwa_Manifest'));
             $invoker->appendOnce("\n<link  rel=\"manifest\" href=\"{$manifestUrl}\">", 'HEAD');
         }
