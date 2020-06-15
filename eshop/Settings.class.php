@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class eshop_Settings extends core_Manager
+class eshop_Settings extends core_Master
 {
     /**
      * Заглавие
