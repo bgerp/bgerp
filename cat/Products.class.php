@@ -3845,10 +3845,6 @@ class cat_Products extends embed_Manager
              */
             if($masterMvc instanceof deals_InvoiceMaster){
                 if(isset($allFFieldsArr['quantity']) && $mRec->type == 'dc_note'){
-                   
-                    
-                   // bp($recs);
-                    
                     $Detail::modifyDcDetails($recs, $mRec, $Detail);
                     
                     foreach ($recs as $id => &$mdRec){
