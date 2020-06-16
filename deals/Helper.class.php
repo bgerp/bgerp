@@ -1070,15 +1070,15 @@ abstract class deals_Helper
      * @param float     $quantity
      * @param float     $quantityInPack
      * @param string    $quantityField
-     *
+     * @param string    $action
      * @return void
      */
-    public static function isQuantityBellowMoq(&$form, $productId, $quantity, $quantityInPack, $quantityField = 'packQuantity')
+    public static function isQuantityBellowMoq(&$form, $productId, $quantity, $quantityInPack, $quantityField = 'packQuantity', $action = 'sell')
     {
         $moq = $form->rec->_moq;
         
         if (!$moq) {
-            $moq = cat_Products::getMoq($productId);
+            $moq = cat_Products::getMoq($productId, $action);
         }
         
         if (isset($moq, $quantity) && $quantity < $moq) {

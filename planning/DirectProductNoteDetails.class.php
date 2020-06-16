@@ -102,7 +102,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,input=hidden');
         parent::setDetailFields($this);
         $this->setField('quantity', 'caption=Количества');
-        $this->FLD('quantityFromBom', 'double', 'caption=По рецепта,input=none');
+        $this->FLD('quantityFromBom', 'double', 'caption=От рецепта,input=none,smartCenter');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
         
         $this->setDbIndex('productId');

@@ -389,7 +389,7 @@ class cat_ImportedProductDriver extends cat_ProductDriver
      *
      * @return float|NULL - минималното количество в основна мярка, или NULL ако няма
      */
-    public function getMoq($id = null)
+    public function getMoq($id = null, $action = 'sell')
     {
         return $this->driverRec->moq;
     }

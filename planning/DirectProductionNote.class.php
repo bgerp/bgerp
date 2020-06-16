@@ -191,8 +191,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         $this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=Количество,input=none');
         
-        $this->FLD('additionalMeasureId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Втора мярка->Избор', 'input=none,after=expenses,autohide');
-        $this->FLD('additionalMeasureQuantity', 'double(Min=0,smartRound)', 'caption=Втора мярка->Количество,input=none,autohide');
+        $this->FLD('additionalMeasureId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Втора мярка->Избор', 'input=none,after=expenses');
+        $this->FLD('additionalMeasureQuantity', 'double(Min=0,smartRound)', 'caption=Втора мярка->Количество,input=none');
         
         $this->setField('deadline', 'caption=Информация->Срок до');
         $this->setField('storeId', 'caption=Информация->Засклаждане в,silent,removeAndRefreshForm');
@@ -403,16 +403,20 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $row->expenseItemId = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
         }
         
-        $row->subTitle = (isset($rec->storeId)) ? 'Засклаждане на продукт' : 'Производство на услуга';
-        $row->subTitle = tr($row->subTitle);
-        
+        $quantityInPack = $rec->quantityInPack;
         if(!empty($rec->additionalMeasureId)){
             if($rec->additionalMeasureId == $productRec->measureId){
-                unset($row->additionalMeasureQuantity, $row->additionalMeasureId);
+                
+                // Ако втората мярка е основната показваме оригиналното к-во в опаковка
+                $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
+                $quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
+                $row->additionalMeasureId = ht::createHint($row->additionalMeasureId, "Това количество ще отчетено в производството");
             }
         }
         
-        deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+        $row->subTitle = (isset($rec->storeId)) ? 'Засклаждане на продукт' : 'Производство на услуга';
+        $row->subTitle = tr($row->subTitle);
+        deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $quantityInPack);
         
         if (isset($rec->inputStoreId)) {
             $row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, true);
