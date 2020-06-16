@@ -515,7 +515,7 @@ class cat_Categories extends core_Master
     public static function checkMetas($metasArr, $productId, &$error)
     {
         $metasArr = is_array($metasArr) ? $metasArr : type_Set::toArray($metasArr);
-        $exMeta = type_Set::toArray(cat_Products::fetchField($productId, 'meta'));
+        $exMeta = (isset($productId)) ? type_Set::toArray(cat_Products::fetchField($productId, 'meta')) : array();
         
         if(isset($metasArr['generic'])) {
              if(isset($metasArr['canBuy']) || isset($metasArr['canSell']) || isset($metasArr['fixedAsset']) || isset($metasArr['canManifacture'])){
