@@ -9,7 +9,7 @@
  * @package   rack
  *
  * @author    Milen Georgiev <milen2experta.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -99,15 +99,33 @@ class rack_Products extends store_Products
             $row->_rowTools->addLink('Палетиране', array('rack_Movements', 'add', 'productId' => $rec->productId, 'packagingId' => $measureId, 'movementType' => 'floor2rack', 'ret_url' => true), 'ef_icon=img/16/pallet1.png,title=Палетиране на артикул');
         }
         
-        if ($rec->quantityOnPallets > 0) {
-            $row->_rowTools->addLink('Търсене', array('rack_Pallets', 'list', 'productId' => $rec->productId, 'ret_url' => true), 'ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт');
-            $row->quantityOnPallets = ht::createLink('', array('rack_Pallets', 'list', 'productId' => $rec->productId, 'ret_url' => true), false, 'ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт') . '&nbsp;' . $row->quantityOnPallets;
-        }
-        
         // Добавяне на бутони за преизчисляване на кешираните количества
         if ($mvc->haveRightFor('recalccachecquantity', $rec->id)) {
             $row->_rowTools->addLink('К-во по зони', array('rack_Products', 'recalcquantityonzones', 'id' => $rec->id, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на количеството по зони');
             $row->_rowTools->addLink('К-во по палети', array('rack_Products', 'recalcquantityonpallets', 'id' => $rec->id, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на количеството по палети');
+        }
+        
+        if ($rec->quantityOnPallets > 0) {
+            $row->_rowTools->addLink('Търсене', array('rack_Pallets', 'list', 'productId' => $rec->productId, 'ret_url' => true), 'ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт');
+        }
+    }
+    
+    
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $rows = &$data->rows;
+        
+        if(countR($rows)){
+            foreach ($rows as $id => &$row){
+                $rec = $data->recs[$id];
+                
+                if ($rec->quantityOnPallets > 0) {
+                    $row->quantityOnPallets = ht::createLink('', array('rack_Pallets', 'list', 'productId' => $rec->productId, 'ret_url' => true), false, 'ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт') . '&nbsp;' . $row->quantityOnPallets;
+                }
+            }
         }
     }
     
