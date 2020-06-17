@@ -255,12 +255,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $diffQuantity = $dRec->quantity - $originRef['quantity'];
                 $diffPrice = $dRec->packPrice - $originRef['price'];
                 
-                if (round($diffQuantity, 5) != 0) {
+                if (round($diffQuantity, 4) != 0) {
                     $dRec->quantity = $diffQuantity;
                     $dRec->changedQuantity = true;
                 }
                 
-                if (round($diffPrice, 5) != 0) {
+                if (round($diffPrice, 4) != 0) {
                     $dRec->packPrice = $diffPrice;
                     $dRec->changedPrice = true;
                 }
