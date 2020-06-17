@@ -123,6 +123,7 @@ class planning_GenericMapper extends core_Manager
             
             $form->setField('genericProductId', 'input=hidden');
         } else {
+            
             $form->setField('productId', 'input=hidden');
         }
     }
@@ -138,13 +139,18 @@ class planning_GenericMapper extends core_Manager
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
             
-            $measureProductId = cat_Products::fetchField($rec->productId, 'measureId');
-            $measureGenericId = cat_Products::fetchField($rec->genericProductId, 'measureId');
-            $similarMeasures = cat_UoM::getSameTypeMeasures($measureGenericId);
-            if(!array_key_exists($measureProductId, $similarMeasures)){
-                $genericMeasureName = cat_UoM::getVerbal($measureGenericId, 'name');
+            $productRec = cat_Products::fetch($rec->productId, 'measureId,canStore');
+            $genericRec = cat_Products::fetch($rec->genericProductId, 'measureId,canStore');
+            
+            $similarMeasures = cat_UoM::getSameTypeMeasures($genericRec->measureId);
+            if(!array_key_exists($productRec->measureId, $similarMeasures)){
+                $genericMeasureName = cat_UoM::getVerbal($genericRec->measureId, 'name');
                 
                 $form->setError('productId', "Заместващият артикул трябва да е в мярка, производна на|*: <b>{$genericMeasureName}</b>");
+            }
+            
+            if($productRec->canStore != $genericRec->canStore){
+                $form->setError('productId', "И двата артикула, трябва да са складируеми или само услуги");
             }
         }
     }

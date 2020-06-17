@@ -251,9 +251,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $count = 0;
             foreach ($recs as &$dRec) {
                 $originRef = $cached->recs[$count][$dRec->productId];
-                
                 $diffQuantity = $dRec->quantity - $originRef['quantity'];
-                $diffPrice = $dRec->packPrice - $originRef['price'];
+                
+                $originPrice = deals_Helper::getDisplayPrice($originRef['price'], 0, $rec->rate, 'no');
+                $diffPrice = $dRec->packPrice - $originPrice;
                 
                 if (round($diffQuantity, 5) != 0) {
                     $dRec->quantity = $diffQuantity;

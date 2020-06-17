@@ -515,6 +515,7 @@ class cat_Categories extends core_Master
     public static function checkMetas($metasArr, $productId, &$error)
     {
         $metasArr = is_array($metasArr) ? $metasArr : type_Set::toArray($metasArr);
+        $exMeta = (isset($productId)) ? type_Set::toArray(cat_Products::fetchField($productId, 'meta')) : array();
         
         if(isset($metasArr['generic'])) {
              if(isset($metasArr['canBuy']) || isset($metasArr['canSell']) || isset($metasArr['fixedAsset']) || isset($metasArr['canManifacture'])){
@@ -528,9 +529,22 @@ class cat_Categories extends core_Master
                 }
             }
         } elseif(isset($productId)) {
-            $exMeta = type_Set::toArray(cat_Products::fetchField($productId, 'meta'));
             if(isset($exMeta['generic'])){
                 $error = "Артикул създаден като генеричен, не може да се променя на негенеричен";
+            }
+        }
+        
+        if(isset($productId)){
+            $genericProductId = planning_GenericMapper::fetchField("#productId = {$productId}", 'genericProductId');
+            if(isset($genericProductId)){
+                $genericMeta = type_Set::toArray(cat_Products::fetchField($genericProductId, 'meta'));
+                if(!isset($metasArr['canConvert'])){
+                    $error = "Артикулът има избран генеричен. Трябва да остане вложим";
+                } elseif(isset($metasArr['canStore']) && !isset($genericMeta['canStore'])){
+                    $error = "Артикулът има избран генеричен. Трябва да остане НЕ складируем";
+                } elseif(!isset($metasArr['canStore']) && isset($genericMeta['canStore'])){
+                    $error = "Артикулът има избран генеричен. Трябва да остане Складируем";
+                }
             }
         }
         

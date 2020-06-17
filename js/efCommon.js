@@ -5606,13 +5606,12 @@ function syncServiceWorker() {
             navigator.serviceWorker.getRegistrations().then((r) => {
                 r.forEach((sw) => {
                     if(typeof serviceWorkerURL !== 'undefined') {
-                        exSw = sw.active.scriptURL.substr(sw.active.scriptURL.length - serviceWorkerURL.length);
-                        if(exSw == serviceWorkerURL) {
+                        if (sw.active.scriptURL.indexOf(serviceWorkerURL) != -1) {
                             console.log('ServiceWorker registration skiped: ' + serviceWorkerURL);
                             serviceWorkerURL = false;
                         } else {
                             sw.unregister();
-                            console.log('ServiceWorker registration unregistered: ' + exSw);
+                            console.log('ServiceWorker registration unregistered: ' + sw.active.scriptURL);
                         }
                     }
                 });

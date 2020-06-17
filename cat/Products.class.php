@@ -3508,11 +3508,12 @@ class cat_Products extends embed_Manager
     /**
      * Връща минималното количество за поръчка
      *
-     * @param int|NULL $id - ид на артикул
+     * @param int|NULL $id   - ид на артикул
+     * @param string $action - дали да е за продажба или покупка
      *
      * @return float|NULL - минималното количество в основна мярка, или NULL ако няма
      */
-    public static function getMoq($id = null)
+    public static function getMoq($id = null, $action = 'sell')
     {
         // Ако има драйвър, питаме го за МКП-то
         if (!isset($id)) {
@@ -3520,8 +3521,10 @@ class cat_Products extends embed_Manager
             return;
         }
         
+        expect(in_array($action, array('sell', 'buy')));
+        
         if ($Driver = static::getDriver($id)) {
-            $moq = $Driver->getMoq($id);
+            $moq = $Driver->getMoq($id, $action);
             
             return (!empty($moq)) ? $moq : null;
         }
