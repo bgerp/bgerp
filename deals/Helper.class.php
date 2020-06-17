@@ -2027,4 +2027,29 @@ abstract class deals_Helper
         
         return null;
     }
+    
+    
+    /**
+     * Проверка дали цената е под очакваната за клиента
+     * 
+     * @param int $productId
+     * @param double $price
+     * @param double $discount
+     * @param int $contragentClassId
+     * @param int $contragentId
+     * @param datetime|null $valior
+     * @param int $listId
+     * 
+     * @return boolean
+     */
+    public static function isPriceBellowContragentPrice($productId, $price, $discount, $contragentClassId, $contragentId, $valior, $listId = null)
+    {
+        $price = $price * (1 - $discount);
+        
+        $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, 1, $valior, 1, 'no', $listId);
+        $foundPrice = $foundPrice->price * (1 - $foundPrice->discount);
+        $res = round($price, 4) < round($foundPrice, 4);
+       
+        return $res;
+    }
 }
