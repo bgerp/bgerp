@@ -319,7 +319,8 @@ abstract class deals_DealDetail extends doc_Detail
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
             
             // Проверка дали к-то е под МКП
-            deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack);
+            $action = ($mvc instanceof sales_SalesDetails) ? 'sell' : 'buy';
+            deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack, 'packQuantity', $action);
             
             if (!isset($rec->packPrice)) {
                 $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');

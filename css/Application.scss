@@ -2217,7 +2217,7 @@ td.rowtools-column {
 	margin-bottom: 0;
 }
 
-.wide .singleView div:not(.folder-cover) .listTable {
+.wide .singleView div:not(.folder-cover, .no-cover) .listTable {
 	min-width: 800px;
 	width: 1%;
 }
@@ -6064,9 +6064,6 @@ body.narrow {
 @media handheld , only screen and (min-width: 1240px) {
 	.background-holder {
 	    padding: 10px 0;
-	}
-	.wide:not(.user-profile) .listBlock .listRows > table.listTable {
-		min-width:760px;
 	}
 }
 @media handheld , only screen and (min-width: 1500px) {

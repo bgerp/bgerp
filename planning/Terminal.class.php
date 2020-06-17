@@ -293,7 +293,7 @@ class planning_Terminal extends peripheral_Terminal
         $Tasks->prepareListFields($data);
         $Tasks->prepareListRecs($data);
         $Tasks->prepareListRows($data);
-        if(countrR($data->recs)){
+        if(countR($data->recs)){
             foreach ($data->rows as $id => &$row){
                 $title = planning_Tasks::getRecTitle($data->recs[$id]);
                 $selectUrl = toUrl(array($this, 'selectTask', $rec->id, 'taskId' => $id));
