@@ -232,11 +232,12 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                 $priceDate = ($masterRec == 'draft') ? null : $masterRec->valior;
                 if (sales_PrimeCostByDocument::isPriceBellowPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $priceDate)) {
                     $row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', false);
-                }
-                
-                // Предупреждение дали цената е под очакваната за клиента
-                if(deals_Helper::isPriceBellowContragentPrice($rec->productId, $rec->price, $rec->discount, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate)){
-                    $row->packPrice = ht::createHint($row->packPrice, 'Крайната цена е под очакваната за клиента', 'warning', false);
+                } else {
+                    
+                    // Предупреждение дали цената е под очакваната за клиента
+                    if(deals_Helper::isPriceBellowContragentPrice($rec->productId, $rec->price, $rec->discount, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate)){
+                        $row->packPrice = ht::createHint($row->packPrice, 'Крайната цена е под очакваната за клиента', 'warning', false);
+                    }
                 }
             }
         }

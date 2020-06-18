@@ -2048,7 +2048,7 @@ abstract class deals_Helper
         
         $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, 1, $valior, 1, 'no', $listId);
         $foundPrice = $foundPrice->price * (1 - $foundPrice->discount);
-        $res = round($price, 4) < round($foundPrice, 4);
+        $res = round($price, 5) < round($foundPrice, 5);
        
         return $res;
     }
