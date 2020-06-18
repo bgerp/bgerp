@@ -327,9 +327,10 @@ class sales_Sales extends deals_DealMaster
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate,notChangeableByContractor');
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Цени,notChangeableByContractor');
+        $this->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане->Начин,before=accountId,after=paymentMethodId');
         $this->setField('shipmentStoreId', 'salecondSysId=defaultStoreSale');
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
-        $this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale');
+        $this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale,removeAndRefreshForm=paymentType,silent');
     }
     
     
@@ -458,6 +459,11 @@ class sales_Sales extends deals_DealMaster
             if($listId = price_ListToCustomers::getListForCustomer($form->rec->contragentClassId, $form->rec->contragentId)){
                 $form->setField("priceListId", "placeholder=" . price_Lists::getTitleById($listId));
             }
+        }
+        
+        if(isset($rec->paymentMethodId)){
+            $type = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
+            $form->setDefault('paymentType', $type);
         }
     }
     
@@ -608,6 +614,7 @@ class sales_Sales extends deals_DealMaster
         $result->setIfNot('deliveryTerm', $rec->deliveryTermId);
         $result->setIfNot('storeId', $rec->shipmentStoreId);
         $result->setIfNot('paymentMethodId', $rec->paymentMethodId);
+        $result->setIfNot('paymentType', $rec->paymentType);
         $result->setIfNot('caseId', $rec->caseId);
         $result->setIfNot('bankAccountId', $rec->bankAccountId);
         $result->setIfNot('priceListId', $rec->priceListId);

@@ -87,6 +87,11 @@
                         <span class='quiet'>|Метод на плащане|*: </span>[#paymentMethodId#]
                     </div>
                     <!--ET_END paymentMethodId-->
+                    <!--ET_BEGIN paymentType-->
+            		<div class='cellRow'>
+            		<span class='quiet'>|Начин на плащане|*: </span>[#paymentType#]
+            		</div>
+            <!--ET_END paymentType-->
                     <!--ET_BEGIN downpayment-->
                     <div class='cellRow'>
                         <span class='quiet'>|Авансово|*:</span> [#downpayment#]
