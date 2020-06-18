@@ -693,7 +693,9 @@ abstract class deals_InvoiceMaster extends core_Master
                 if (!isset($form->rec->id)) {
                     $form->setDefault('dueTime', $plan['timeBalancePayment']);
                 }
-                $form->setDefault('paymentType', $aggregateInfo->get('paymentType'));
+                
+                $paymentType = ($aggregateInfo->get('paymentType')) ? $aggregateInfo->get('paymentType') : cond_PaymentMethods::fetchField($paymentMethodId, 'type');
+                $form->setDefault('paymentType', $paymentType);
             }
             
             $form->rec->deliveryId = $aggregateInfo->get('deliveryTerm');

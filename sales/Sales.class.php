@@ -461,7 +461,7 @@ class sales_Sales extends deals_DealMaster
             }
         }
         
-        if(isset($rec->paymentMethodId)){
+        if(isset($rec->paymentMethodId) && (!isset($rec->id) || $form->cmd == 'refresh')){
             $type = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
             $form->setDefault('paymentType', $type);
         }
