@@ -616,14 +616,16 @@ abstract class cash_Document extends deals_PaymentDocument
     {
         $userId = isset($userId) ? $userId : core_Users::getCurrent();
         $caseId = cash_Cases::getCurrent('id', false);
-       
-        foreach (array(true, false) as $exp){
-            $query = cash_Cases::getQuery();
-            $query->show('id');
-            bgerp_plg_FLB::addUserFilterToQuery('cash_Cases', $query, $userId, $exp);
-            if($firstRec = $query->fetch()){
-                $caseId = $firstRec->id;
-                break;
+        
+        if(!isset($caseId)){
+            foreach (array(true, false) as $exp){
+                $query = cash_Cases::getQuery();
+                $query->show('id');
+                bgerp_plg_FLB::addUserFilterToQuery('cash_Cases', $query, $userId, $exp);
+                if($firstRec = $query->fetch()){
+                    $caseId = $firstRec->id;
+                    break;
+                }
             }
         }
         
