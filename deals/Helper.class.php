@@ -2035,6 +2035,7 @@ abstract class deals_Helper
      * @param int $productId
      * @param double $price
      * @param double $discount
+     * @param double $quantity
      * @param int $contragentClassId
      * @param int $contragentId
      * @param datetime|null $valior
@@ -2042,11 +2043,11 @@ abstract class deals_Helper
      * 
      * @return boolean
      */
-    public static function isPriceBellowContragentPrice($productId, $price, $discount, $contragentClassId, $contragentId, $valior, $listId = null)
+    public static function isPriceBellowContragentPrice($productId, $price, $discount, $quantity, $contragentClassId, $contragentId, $valior, $listId = null)
     {
         $price = $price * (1 - $discount);
         
-        $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, 1, $valior, 1, 'no', $listId);
+        $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $listId);
         $foundPrice = $foundPrice->price * (1 - $foundPrice->discount);
         
         $diff = abs(round($price - $foundPrice, 5));

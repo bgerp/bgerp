@@ -235,7 +235,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                 } else {
                     
                     // Предупреждение дали цената е под очакваната за клиента
-                    if(deals_Helper::isPriceBellowContragentPrice($rec->productId, $rec->price, $rec->discount, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate)){
+                    if(deals_Helper::isPriceBellowContragentPrice($rec->productId, $rec->price, $rec->discount, $rec->quantity, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate)){
                         $row->packPrice = ht::createHint($row->packPrice, 'Крайната цена е под очакваната за клиента', 'warning', false);
                     }
                 }
