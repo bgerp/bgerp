@@ -2048,8 +2048,18 @@ abstract class deals_Helper
         
         $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, 1, $valior, 1, 'no', $listId);
         $foundPrice = $foundPrice->price * (1 - $foundPrice->discount);
-        $res = round($price, 5) < round($foundPrice, 5);
+        
+        $diff = abs(round($price - $foundPrice, 5));
+        $price1Round = round($price, 5);
+        $price2Round = round($foundPrice, 5);
+        
+        if($price1Round < $price2Round){
+            $diff = abs($price1Round - $price2Round);
+            $diff = number_format($diff, 5);
+            
+            return $diff > 0.0001;
+        }
        
-        return $res;
+        return false;
     }
 }
