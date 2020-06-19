@@ -256,12 +256,18 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $originPrice = deals_Helper::getDisplayPrice($originRef['price'], 0, 1, 'no');
                 $diffPrice = $dRec->packPrice - $originPrice;
                 
+                $priceIsChanged = false;
+                $diffPrice = number_format($diffPrice, 5);
+                if(abs($diffPrice) > 0.0001){
+                    $priceIsChanged = true;
+                }
+                
                 if (round($diffQuantity, 5) != 0) {
                     $dRec->quantity = $diffQuantity;
                     $dRec->changedQuantity = true;
                 }
                 
-                if (round($diffPrice, 5) != 0) {
+                if ($priceIsChanged) {
                     $dRec->packPrice = $diffPrice;
                     $dRec->changedPrice = true;
                 }
@@ -640,9 +646,17 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 }
                 $index = array_search($rec->id, $recs);
                 $cache = $cache->recs[$index][$rec->productId];
-                
                 $pPrice = isset($packPrice)? $packPrice : $rec->packPrice;
-                if (round($cache['quantity'], 5) != round($rec->quantity, 5) && (isset($rec->packPrice) && round($cache['price'], 5) != round($pPrice, 5))) {
+                
+                $priceIsChanged = false;
+                $originPrice = deals_Helper::getDisplayPrice($cache['price'], 0, 1, 'no');
+                $diffPrice = abs($pPrice - $originPrice);
+                $diffPrice = number_format($diffPrice, 5);
+                if($diffPrice > 0.0001){
+                    $priceIsChanged = true;
+                }
+                
+                if (round($cache['quantity'], 5) != round($rec->quantity, 5) && (isset($rec->packPrice) && $priceIsChanged)) {
                     $form->setError('quantity,packPrice', 'Не може да е променена и цената и количеството');
                 }
             }

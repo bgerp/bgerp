@@ -262,7 +262,8 @@ class rack_Movements extends core_Manager
                     $documents[$zoneContainerId] = $zoneContainerId;
                 }
                 
-                $rec->documents = (countR($documents)) ? keylist::fromArray($documents) : null;
+                $documents = (countR($documents)) ? keylist::fromArray($documents) : null;
+                $rec->documents = keylist::merge($rec->documents, $documents);
             }
         }
     }
