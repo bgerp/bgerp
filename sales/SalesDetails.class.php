@@ -231,12 +231,13 @@ class sales_SalesDetails extends deals_DealDetail
                // Предупреждение дали цената е под себестойност
                if(sales_PrimeCostByDocument::isPriceBellowPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $priceDate)){
                    $row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', false);
-               }
-               
-               // Предупреждение дали цената е под очакваната за клиента
-               $discount = isset($rec->discount) ? $rec->discount : $rec->autoDiscount;
-               if(deals_Helper::isPriceBellowContragentPrice($rec->productId, $rec->price, $discount, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $rec->priceListId)){
-                   $row->packPrice = ht::createHint($row->packPrice, 'Крайната цена е под очакваната за клиента', 'warning', false);
+               } else {
+                   
+                   // Предупреждение дали цената е под очакваната за клиента
+                   $discount = isset($rec->discount) ? $rec->discount : $rec->autoDiscount;
+                   if(deals_Helper::isPriceBellowContragentPrice($rec->productId, $rec->price, $discount, $rec->quantity, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $rec->priceListId)){
+                       $row->packPrice = ht::createHint($row->packPrice, 'Крайната цена е под очакваната за клиента', 'warning', false);
+                   }
                }
             }
             

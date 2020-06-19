@@ -265,6 +265,35 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     
     
     /**
+     * След рендиране на единичния изглед
+     *
+     * @param tremol_FiscPrinterDriverWeb $Driver
+     * @param peripheral_Devices     $Embedder
+     * @param core_Form         $form
+     * @param stdClass          $data
+     */
+    protected static function on_AfterInputEditForm($Driver, $Embedder, &$form)
+    {
+        if ($form->isSubmitted() && ($form->rec->header == 'yes')) {
+            $haveHeaderText = false;
+            for ($i = 1; $i <=7; $i++) {
+                $hName = 'headerText' . $i;
+                if (trim($form->rec->{$hName})) {
+                    
+                    $haveHeaderText = true;
+                    
+                    break;
+                }
+            }
+            
+            if (!$haveHeaderText) {
+                $form->setError('header', 'Трябва да има поне един добавен хедър');
+            }
+        }
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param tremol_FiscPrinterDriverParent $Driver

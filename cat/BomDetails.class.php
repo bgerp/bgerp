@@ -619,9 +619,9 @@ class cat_BomDetails extends doc_Detail
             $row->rowQuantity = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->rowQuantity);
         }
         
-        if (!$rec->primeCost && $rec->type != 'stage') {
+        if (!isset($rec->primeCost) && $rec->type != 'stage') {
             $row->primeCost = "<span class='red'>???</span>";
-            $row->primeCost = ht::createHint($row->primeCost, 'Няма себестойност', 'warning', false);
+            $row->primeCost = ht::createHint($row->primeCost, 'Сумата не може да бъде изчислена', 'warning', false);
         }
         
         $compare = str_replace(',', '.', $rec->propQuantity);
