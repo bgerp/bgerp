@@ -258,7 +258,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 
                 $priceIsChanged = false;
                 $diffPrice = number_format($diffPrice, 5);
-                if($diffPrice > 0.0001){
+                if(abs($diffPrice) > 0.0001){
                     $priceIsChanged = true;
                 }
                 
