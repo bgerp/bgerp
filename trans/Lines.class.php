@@ -444,9 +444,9 @@ class trans_Lines extends core_Master
     {
         $states = arr::make($states);
         $query = trans_LineDetails::getQuery();
-        $query->where("#lineId = {$id}");
+        $query->where("#lineId = {$id} AND #status != 'removed'");
         $query->in('containerState', $states);
-        
+       
         return $query->count();
     }
     

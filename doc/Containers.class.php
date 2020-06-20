@@ -3091,7 +3091,9 @@ class doc_Containers extends core_Manager
                     $msg = "|{$str}|* {$count} |{$name}|*";
                     
                     // Създаваме нотификация към потребителя с линк към филтрирани неговите документи
-                    bgerp_Notifications::add($msg, $url, $uRec->id, 'normal', $customUrl);
+                    if(!haveRole('debug', $uRec->id)){
+                        bgerp_Notifications::add($msg, $url, $uRec->id, 'normal', $customUrl);
+                    }
                 }
             }
         }

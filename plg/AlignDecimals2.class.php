@@ -61,11 +61,12 @@ class plg_AlignDecimals2 extends core_Plugin
                         $Type->params['decimals'] = min($max, max($min, ${"{$fName}FracLen"}));
                     }
                     
-                    if(strpos($rows[$id]->{$fName}, $mvc->getFieldType($fName)->toVerbal($rec->{$fName})) !== FALSE) {
-                        $rows[$id]->{$fName} = str_replace($mvc->getFieldType($fName)->toVerbal($rec->{$fName}), $Type->toVerbal($rec->{$fName}), $rows[$id]->{$fName});
-                    } else {
-                        $rows[$id]->{$fName} = $Type->toVerbal($rec->{$fName});
-                    }
+                    $rows[$id]->{$fName} = $Type->toVerbal($rec->{$fName});
+                    //if(strpos($rows[$id]->{$fName}, $mvc->getFieldType($fName)->toVerbal($rec->{$fName})) !== FALSE) {
+                       // $rows[$id]->{$fName} = str_replace($mvc->getFieldType($fName)->toVerbal($rec->{$fName}), $Type->toVerbal($rec->{$fName}), $rows[$id]->{$fName});
+                    //} else {
+                      //  $rows[$id]->{$fName} = $Type->toVerbal($rec->{$fName});
+                    //}
                 }
             }
         }

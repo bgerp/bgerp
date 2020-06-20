@@ -592,22 +592,28 @@ class frame2_Reports extends embed_Manager
         
         // Рендиране на данните
         if ($Driver = $mvc->getDriver($rec)) {
-            $lang = $Driver->getRenderLang($rec);
-            if(isset($lang)){
-                core_Lg::push($lang);
-            }
             
-            $tplData = $Driver->renderData($rec);
-            if(isset($lang)){
-                core_Lg::pop();
+            try{
+                $lang = $Driver->getRenderLang($rec);
+                if(isset($lang)){
+                    core_Lg::push($lang);
+                }
+                
+                $tplData = $Driver->renderData($rec);
+                if(isset($lang)){
+                    core_Lg::pop();
+                }
+                
+                if (Mode::is('saveJS')) {
+                    $tpl->replace($tplData, 'DRIVER_DATA');
+                } else{
+                    $tpl->replace($tplData->getContent(), 'DRIVER_DATA');
+                }
+                
+            } catch(core_exception_Expect $e){
+                reportException($e);
+                $tpl->replace("<span class='red'><b>" . tr('Проблем при показването на справката') . '</b></span>', 'DRIVER_DATA');
             }
-            
-            if (Mode::is('saveJS')) {
-                $tpl->replace($tplData, 'DRIVER_DATA');
-            } else{
-                $tpl->replace($tplData->getContent(), 'DRIVER_DATA');
-            }
-            
         } else {
              $tpl->replace("<span class='red'><b>" . tr('Проблем при зареждането на справката') . '</b></span>', 'DRIVER_DATA');
         }

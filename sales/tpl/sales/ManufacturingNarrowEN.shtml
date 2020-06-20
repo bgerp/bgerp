@@ -77,11 +77,10 @@
     <tbody>
     <tr>
         <td class="topCell vtop" style='width:33%;'>
-            <!--ET_BEGIN paymentMethodId-->
             <div class='cellRow'>
-                <span class='quiet'>Payment method: </span>[#paymentMethodId#]
-            </div>
-            <!--ET_END paymentMethodId-->
+                        <span class='quiet'>Payment: </span><!--ET_BEGIN paymentType-->[#paymentType#], <!--ET_END paymentType-->[#paymentMethodId#]
+                    </div>
+            
             <!--ET_BEGIN downpayment-->
             <div class='cellRow'>
                 <span class='quiet'>Downpayment:</span> [#downpayment#]
