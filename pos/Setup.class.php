@@ -88,7 +88,7 @@ class pos_Setup extends core_ProtoSetup
     public $configDescription = array(
         'POS_PRODUCTS_DEFAULT_THEME' => array('class(interface=pos_ThemeIntf,select=title)', 'caption=Темата по-подразбиране за пос терминала->Тема'),
         'POS_RESULT_PRODUCT_PARAMS' => array('keylist(mvc=cat_Params,select=name)', 'caption=Параметри за показване търсене на продукт->Параметри,columns=2'),
-        'POS_SHOW_RECEIPT_DIGITS' => array('double', 'caption=Цифри показващи се цифри от кода на бележката->Брой'),
+        'POS_SHOW_RECEIPT_DIGITS' => array('double', 'caption=Показващи се цифри от кода на бележката->Брой'),
         'POS_CLOSE_REPORTS_PER_TRY' => array('int', 'caption=По колко отчета да се приключват автоматично на опит->Брой,columns=2'),
         'POS_CLOSE_REPORTS_OLDER_THAN' => array('time(uom=days,suggestions=1 ден|2 дена|3 дена)', 'caption=Автоматично приключване на отчети по стари от->Дни'),
         'POS_SHOW_DISCOUNT_BTN' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на бутони в терминала->Отстъпка'),
