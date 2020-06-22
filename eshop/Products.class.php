@@ -1593,4 +1593,19 @@ class eshop_Products extends core_Master
             }
         }
     }
+    
+    
+    /**
+     * Кои продукти са използвани в Е-маг
+     * 
+     * @return array $eProductArr
+     */
+    public static function getProductsInEshop()
+    {
+        $query = eshop_ProductDetails::getQuery();
+        $query->show('productId');
+        $eProductArr = arr::extractValuesFromArray($query->fetchAll(), 'productId');
+        
+        return $eProductArr;
+    }
 }

@@ -203,7 +203,7 @@ class store_Products extends core_Detail
         
         // Подготвяме формата
         cat_Products::expandFilter($data->listFilter);
-        $orderOptions = arr::make('all=Всички,active=Активни,standard=Стандартни,private=Нестандартни,last=Последно добавени,closed=Изчерпани,reserved=Запазени,free=Разполагаеми');
+        $orderOptions = arr::make('all=Всички,active=Активни,standard=Стандартни,private=Нестандартни,last=Последно добавени,eproduct=Артикул в Е-маг,closed=Изчерпани,reserved=Запазени,free=Разполагаеми');
         $data->listFilter->setOptions('order', $orderOptions);
         $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
         
@@ -290,6 +290,14 @@ class store_Products extends core_Detail
                         break;
                     case 'reserved':
                         $data->query->where("#reservedQuantity IS NOT NULL");
+                        break;
+                    case 'eproduct':
+                        $eProductArr = eshop_Products::getProductsInEshop();
+                        if(countR($eProductArr)){
+                            $data->query->in("productId", $eProductArr);
+                        } else {
+                            $data->query->where("1=2");
+                        }
                         break;
                     case 'free':
                         $data->query->XPR('free', 'double', 'ROUND(COALESCE(#quantity, 0) - COALESCE(#reservedQuantity, 0), 2)');
