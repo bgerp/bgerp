@@ -369,7 +369,7 @@ class planning_Tasks extends core_Master
         }
         
         $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
-        $row->productId = cat_Products::getShortHyperlink($rec->productId);
+        $row->productId = cat_Products::getHyperlink($rec->productId, true);
         
         foreach (array('plannedQuantity', 'totalQuantity', 'scrappedQuantity', 'producedQuantity') as $quantityFld) {
             $row->{$quantityFld} = ($rec->{$quantityFld}) ? $row->{$quantityFld} : 0;
