@@ -456,7 +456,12 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             
             return;
         }
-        $row->{$mvc->productFieldName} = new core_ET($row->{$mvc->productFieldName});
-        $row->{$mvc->productFieldName}->append(batch_BatchesInDocuments::renderBatches($mvc, $rec->id, $rec->{$mvc->storeFieldName}));
+        
+        if($mvc->batchPlaceholderField){
+            $row->{$mvc->batchPlaceholderField} = batch_BatchesInDocuments::renderBatches($mvc, $rec->id, $rec->{$mvc->storeFieldName});
+        } else {
+            $row->{$mvc->productFieldName} = new core_ET($row->{$mvc->productFieldName});
+            $row->{$mvc->productFieldName}->append(batch_BatchesInDocuments::renderBatches($mvc, $rec->id, $rec->{$mvc->storeFieldName}));
+        }
     }
 }
