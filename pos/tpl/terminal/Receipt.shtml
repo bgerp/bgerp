@@ -1,41 +1,35 @@
-<table id = 'receipt-table' class="[#REVERT_CLASS#]">
-	<tbody>
-		<tr id='receipt-header'>
-			<td colspan='3'>
-				<div><span id='receipt-title'>[#RECEIPT_CAPTION#]<span id='receipt-number'> &nbsp;<b>№[#id#]</b> [#rejectBtn#]</span></span><!--ET_BEGIN SUB_TITLE--><div class='terminal-receipt-subtitle'>[#SUB_TITLE#]</div><!--ET_END SUB_TITLE--></div> 
-				<div class='secondRow'>[#createdBy#]<!--ET_BEGIN EXIT_TERMINAL--> [#EXIT_TERMINAL#]<!--ET_END EXIT_TERMINAL--> &#124; [#valior#] <span class='hiddenElem'>&#124; </span>[#LOGO#]<span class='newLine'>[#pointId#]</span><!--ET_BEGIN revertId-->  &#124;<span class='terminal-revert-id newLine'>[#revertId#]</span>[#loadUrl#]<!--ET_END revertId--></div>
-			</td>
-		</tr>
-		<tr id='receipt-details-th'>
-			<td>|К-во|*</td>
-			<td>|Цена|* <small class='currency-element'>[#currency#]</small></td>
-			<td>|Стойност|* <small class='currency-element'>[#currency#]</small></td>
-		</tr>
-		
-		<!--ET_BEGIN DETAILS-->
-			[#DETAILS#]
-		<!--ET_END DETAILS-->
+<div class='[#TERMINAL_STATE_CLASS#]'>
+<div class="scrolling-vertical">
+	<div class="receiptHeader onlyPrint">
+		<!--ET_BEGIN RECEIPT_HEADER-->[#RECEIPT_HEADER#]
+		<div class="receipt-title">
+			<!--ET_BEGIN MY_COMPANY--><div class='onlyPrint'><b>[#MY_COMPANY#]</b></div><!--ET_END MY_COMPANY-->
+			<div>№ [#id#]/[#valior#]</div></div>
+		<!--ET_BEGIN SUB_TITLE--><div class='onlyPrint'>[#SUB_TITLE#]</div><!--ET_END SUB_TITLE-->
+		<!--ET_BEGIN revertId--><div class='terminal-revert-id newLine'>|Сторнира|* № [#revertId#]</div><!--ET_END revertId-->
+		<span >[#contragentId#]</span>
+		<!--ET_END RECEIPT_HEADER-->
+	</div>
+	<!--ET_BEGIN DETAILS-->
+	[#DETAILS#]
+	<!--ET_END DETAILS-->
+</div>
+<div class='paymentBlock' >
+<hr>
+	<span class='paymentNotRequiredLabel'>[#PAYMENT_NOT_REQUIRED#]</span>
+	<table class='total'>
 		<tr>
-			<td colspan="3" style='padding: 0;'>
-				<table class='gradient' >
-					<tr>
-						<td id = 'total-label'>|Общо|*:</td>
-						<td colspan='2' id = 'receipt-total-sum' class = 'receipt-info-right'>[#total#] [#currency#]</td>
-					</tr>
-					<tr>
-						<td>[#PAID_CAPTION#]:</td>
-						<td colspan='2' class = 'receipt-info-right'><b>[#paid#]</b> <small>[#currency#]</small></td>
-					</tr>
-					<tr>
-						<td style='padding-bottom:6px'>|Ресто|*:</td>	
-						<td  colspan='2' style='padding-bottom:6px' class = 'receipt-info-right'>[#change#] <small>[#currency#]</small></td>
-					</tr>
-				</table>
-			</td>
+			<th class = 'caption revertCaption' colspan="2">[#REVERT_CAPTION#]</th>
+			<th class='caption [#CHANGE_CLASS#]' style="width: 20%">[#CHANGE_CAPTION#]</th>
+			<th class='caption paidCaption' style="width: 20%">[#PAID_CAPTION#]</th>
+			<th class='caption totalCaption' style="width: 20%">|Общо|*</th>
 		</tr>
-		<tr class='footerDocInfo'>
-            <td colspan="3">
-                <div class='aright'>|Документът е създаден чрез системата|* <b><a href='http://bgerp.com'>bgERP</a></b></div>
-            </td>
-        </tr>
-</table>			
+		<tr>
+			<td style="text-align: center" colspan="2">[#revertId#]</td>
+			<td class='[#CHANGE_CLASS#]'>[#change#]</td>
+			<td class='paidCaption'>[#paid#]</td>
+			<td class='totalLabel'>[#total#]</td>
+		</tr>
+	</table>
+</div>
+</div>

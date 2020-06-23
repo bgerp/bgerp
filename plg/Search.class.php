@@ -202,8 +202,10 @@ class plg_Search extends core_Plugin
         }
         
         $wCacheArr = array();
-        
-        if ($words = static::parseQuery($search)) {
+        $words = static::parseQuery($search);
+        $query->mvc->invoke('AfterParseSearchQuery', array(&$words));
+
+        if ($words) {
             usort($words, 'plg_Search::sortLength');
             
             $stopWordsCnt = $notStopWordsCnt = $shortWordsCnt = $longWordsCnt = 0;
@@ -541,15 +543,15 @@ class plg_Search extends core_Plugin
             return false;
         }
         
-        if ($latin) {
+     /*   if ($latin) {
             $str = str::utf2ascii($str);
             $iConvStr = @iconv('UTF-8', 'ASCII//TRANSLIT', $str);
             if (isset($iConvStr)) {
                 $str = $iConvStr;
             }
-        }
+        } */
         
-        $str = strtolower($str);
+        $str = mb_strtolower($str);
         
         $len = strlen($str);
         
@@ -600,7 +602,7 @@ class plg_Search extends core_Plugin
      */
     public static function highlight($text, $query, $class = 'document')
     {
-        $qArr = self::parseQuery($query, false);
+        $qArr = self::parseQuery($query);
         
         if (is_array($qArr)) {
             foreach ($qArr as $q) {

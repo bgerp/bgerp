@@ -8,7 +8,7 @@
  * @package   accda
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -44,6 +44,12 @@ class accda_transaction_Da extends acc_DocumentTransactionSource
         if ($rec->id) {
             $pInfo = cat_Products::getProductInfo($rec->productId);
             if (isset($pInfo->meta['canStore'])) {
+                if (Mode::get('saveTransaction')) {
+                    if(empty($rec->storeId)){
+                        acc_journal_RejectRedirect::expect(false, 'Дълготрайният актив е складируем, а не е избран склад');
+                    }
+                }
+                
                 $creditArr = array('321',
                     array('store_Stores', $rec->storeId),
                     array('cat_Products', $rec->productId),

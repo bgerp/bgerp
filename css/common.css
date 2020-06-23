@@ -436,6 +436,11 @@ input[type="search"]::-webkit-search-decoration {
 input::-webkit-calendar-picker-indicator {
   display: none; }
 
+*,
+*:focus,
+*:hover {
+  outline: none; }
+
 #simpleSearch {
   width: 15em;
   max-width: 100%;

@@ -8,13 +8,27 @@
 				<legend class="groupTitle">|Информация|*</legend>
 				<div class="groupList">
 						<table>
+						
+							<!--ET_BEGIN prototypeId-->
+							<tr>
+								<td class='dt'>|Прототип|*:</td>
+								<td>[#prototypeId#]</td>
+							</tr>
+							<!--ET_END prototypeId-->
+						
 							<tr>
 								<td class='dt'>|Каса|*:</td>
 								<td>[#caseId#]</td>
 							</tr>
+							
 							<tr>
-								<td class='dt'>|Склад|*:</td>
+								<td class='dt'>|Основен склад|*:</td>
 								<td>[#storeId#]</td>
+							</tr>
+							
+							<tr>
+								<td class='dt'>|Политика|*:</td>
+								<td>[#policyId#]</td>
 							</tr>
 							<tr>
 								<td class='dt'>|Контрагент|*:</td>
@@ -25,10 +39,82 @@
 								<td class='dt'>|Плащания|*:</td>
 								<td>[#payments#]</td>
 							</tr>
+							
 							<tr>
-								<td class='dt'>|Политика|*:</td>
-								<td>[#policyId#]</td>
+								<td class='dt'>|Тема|*:</td>
+								<td>[#theme#]</td>
 							</tr>
+							
+							<tr>
+								<td class='dt'>|Оператори|*:</td>
+								<td>[#cashiers#]</td>
+							</tr>
+							
+							<tr>
+								<td class='dt'>|Ръчно задаване на цени|*:</td>
+								<td>[#setPrices#]</td>
+							</tr>
+							
+							
+							<tr>
+								<td class='dt'>|Ръчно задаване на отстъпки|*:</td>
+								<td>[#setDiscounts#]</td>
+							</tr>
+							
+							<!--ET_BEGIN usedDiscounts-->
+							<tr>
+								<td class='dt'>|Използвани отстъпки|*:</td>
+								<td>[#usedDiscounts#]</td>
+							</tr>
+							<!--ET_END usedDiscounts-->
+							
+							<!--ET_BEGIN otherStores-->
+							<tr>
+								<td class='dt'>|Други складове|*:</td>
+								<td>[#otherStores#]</td>
+							</tr>
+							<!--ET_END otherStores-->
+						
+							<tr>
+								<td class='dt'>|Артикули за бърз избор|*:</td>
+								<td>[#products#]</td>
+							</tr>
+						
+							<tr>
+								<td class='dt'>|Брой намерени артикули|*:</td>
+								<td>[#maxSearchProducts#]</td>
+							</tr>
+						
+							<tr>
+								<td class='dt'>|Брой свързани артикули|*:</td>
+								<td>[#maxSearchProductRelations#]</td>
+							</tr>
+							
+							<tr>
+								<td class='dt'>|Брой последни продажби|*:</td>
+								<td>[#maxSearchProductInLastSales#]</td>
+							</tr>
+							
+							<tr>
+								<td class='dt'>|Брой намерени бележки|*:</td>
+								<td>[#maxSearchReceipts#]</td>
+							</tr>
+							
+							<tr>
+								<td class='dt'>|Брой първоначално намерени контрагенти|*:</td>
+								<td>[#maxSearchContragentStart#]</td>
+							</tr>
+							
+							<tr>
+								<td class='dt'>|Брой намерени контрагенти при търсене|*:</td>
+								<td>[#maxSearchContragentStart#]</td>
+							</tr>
+							
+							<tr>
+								<td class='dt'>|Търсене в терминала след|*:</td>
+								<td>[#searchDelayTerminal#] |милисекунди|*</td>
+							</tr>
+							
 						</table>
 				</div>
 			</fieldset>

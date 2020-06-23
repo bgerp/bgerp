@@ -576,9 +576,14 @@ class eshop_ProductDetails extends core_Detail
      */
     public static function getPublicProductName($eProductId, $productId)
     {
-        $productTitle = eshop_ProductDetails::fetchField("#eshopProductId = {$eProductId} AND #productId = {$productId}", 'title');
-        $publicName = !empty($productTitle) ? core_Type::getByName('varchar')->toVerbal($productTitle) : cat_Products::getVerbal($productId, 'name');
-    
+        $publicName = eshop_Products::getVerbal($eProductId, 'name');
+        $optionRec = eshop_ProductDetails::fetch("#eshopProductId = {$eProductId} AND #productId = {$productId}", 'title');
+        $optionName = !empty($optionRec->title) ? eshop_ProductDetails::getVerbal($optionRec, 'title') : cat_Products::getVerbal($productId, 'name');
+        
+        if($publicName != $optionName){
+            $publicName = "{$publicName}: {$optionName}";
+        }
+        
         return $publicName;
     }
 }

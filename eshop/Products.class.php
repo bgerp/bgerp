@@ -25,7 +25,7 @@ class eshop_Products extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, eshop_Wrapper, plg_State2, cat_plg_AddSearchKeywords, cms_VerbalIdPlg, plg_Search, plg_Sorting, plg_StructureAndOrder';
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, eshop_Wrapper, plg_State2, cat_plg_AddSearchKeywords, cms_VerbalIdPlg, plg_Search, plg_Sorting, plg_StructureAndOrder,plg_BulSearch';
     
     
     /**
@@ -781,29 +781,22 @@ class eshop_Products extends core_Master
         
         $data->row = $this->recToVerbal($data->rec, $fields);
         
-        if ($data->rec->image) {
-            $data->row->image = fancybox_Fancybox::getImage($data->rec->image, array(160, 160), array(800, 800), $data->row->name, array('class' => 'product-image'));
-        } elseif (!$data->rec->image2 && !$data->rec->image3 && !$data->rec->image4 && !$data->rec->image5) {
-            $data->row->image = new thumb_Img(getFullPath('eshop/img/noimage' .
-                    (cms_Content::getLang() == 'bg' ? 'bg' : 'en') .
-                    '.png'), 120, 120, 'path');
+        $hasImage = false;
+        foreach (array('image', 'image2', 'image3', 'image4', 'image5') as $i => $imgFld){
+            if (!empty($data->rec->{$imgFld})) {
+                $path = fileman::fetchByFh($data->rec->{$imgFld}, 'path');
+                if(file_exists($path)){
+                    $data->row->{$imgFld} = fancybox_Fancybox::getImage($data->rec->{$imgFld}, array(160, 160), array(800, 800), $data->row->name . " {$i}", array('class' => 'product-image'));
+                    $hasImage = true;
+                } else {
+                    unset($data->row->{$imgFld});
+                }
+            }
+        }
+        
+        if($hasImage === false){
+            $data->row->image = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') . '.png'), 120, 120, 'path');
             $data->row->image = $data->row->image->createImg(array('width' => 160, 'height' => 160, 'class' => 'product-image'));
-        }
-        
-        if ($data->rec->image2) {
-            $data->row->image2 = fancybox_Fancybox::getImage($data->rec->image2, array(160, 160), array(800, 800), $data->row->name . ' 2', array('class' => 'product-image'));
-        }
-        
-        if ($data->rec->image3) {
-            $data->row->image3 = fancybox_Fancybox::getImage($data->rec->image3, array(160, 160), array(800, 800), $data->row->name3 . ' 3', array('class' => 'product-image'));
-        }
-        
-        if ($data->rec->image4) {
-            $data->row->image4 = fancybox_Fancybox::getImage($data->rec->image4, array(160, 160), array(800, 800), $data->row->name4 . ' 4', array('class' => 'product-image'));
-        }
-        
-        if ($data->rec->image5) {
-            $data->row->image5 = fancybox_Fancybox::getImage($data->rec->image5, array(160, 160), array(800, 6800), $data->row->name5 . ' 5', array('class' => 'product-image'));
         }
         
         if (self::haveRightFor('single', $data->rec)) {
@@ -1599,5 +1592,20 @@ class eshop_Products extends core_Master
                 self::save($rec, 'nearProducts');
             }
         }
+    }
+    
+    
+    /**
+     * Кои продукти са използвани в Е-маг
+     * 
+     * @return array $eProductArr
+     */
+    public static function getProductsInEshop()
+    {
+        $query = eshop_ProductDetails::getQuery();
+        $query->show('productId');
+        $eProductArr = arr::extractValuesFromArray($query->fetchAll(), 'productId');
+        
+        return $eProductArr;
     }
 }
