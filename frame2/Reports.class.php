@@ -512,25 +512,6 @@ class frame2_Reports extends embed_Manager
         return $row;
     }
     
-    /**
-     * След като е готово вербалното представяне
-     */
-    protected static function on_AfterGetVerbal1($mvc, &$num, $rec, $part)
-    {
-        // Искаме състоянието на оттеглените чернови да се казва 'Анулиран'
-        if ($part == 'title') {
-            
-            $Driver = $mvc->getDriver($rec);
-            if (is_object($Driver)) {
-                $driverTitle = $Driver->getTitle($rec);
-                if(trim($driverTitle) != trim($rec->title)){
-                    $num = "{$driverTitle}/{$rec->title}";
-                }
-            }
-        }
-    }
-    
-    
     
     /**
      * След подготовка на тулбара на единичен изглед.
