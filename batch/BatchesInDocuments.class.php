@@ -181,7 +181,7 @@ class batch_BatchesInDocuments extends core_Manager
                 
                 if ($showBatchLink) {
                     if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, $q, $rec->batch, $rInfo->containerId)) {
-                        $label = $palletImgLink . $label;
+                       $label = $palletImgLink . $label;
                     }
                 }
                 

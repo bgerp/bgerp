@@ -1,26 +1,17 @@
 <!--ET_BEGIN sale-->
-<tr data-id='[#id#]' class='pos-sale [#lastRow#]' title = '|Селектиране на реда|*'>
-	<td colspan='3' class='receipt-sale name-product'>[#productId#] [#DEL_BTN#]&nbsp;&nbsp;[#perPack#] [#uomId#]</td>
-</tr>
-<tr  data-code='[#code#]'class='pos-sale [#lastRow#]' data-id='[#id#]'>
-	<td class='receipt-quantity'><span class='quantity'>[#quantity#]</span> <!--ET_BEGIN packagingId--> &nbsp;[#value#]<!--ET_END packagingId--></td>
-	<td class='receipt-price'>[#price#] 
-	<!--ET_BEGIN discountPercent-->
-	 (<span class='receipt-discount-td'> [#discountPercent#] </span>)
-	<!--ET_END discountPercent-->
-	</td>
-	<td class='receipt-amount'><span class='sale-amount'>[#amount#]</span></td>
-</tr>
+<div data-id='[#id#]' data-url = '[#DATA_URL#]' data-delete-url = '[#DATA_DELETE_URL#]' data-enlarge-class-id = '[#ENLARGABLE_CLASS_ID#]'  data-enlarge-object-id = '[#ENLARGABLE_OBJECT_ID#]' data-modal-title = '[#ENLARGABLE_MODAL_TITLE#]' data-delete-warning = '[#DATA_DELETE_WARNING#]' class='[#ROW_CLASS#] productRow enlargable [#CLASS#]' title = '|Селектиране на реда|*'>
+	<div class="receiptProduct">[#productId#] <!--ET_BEGIN STOPPED_PRODUCT--><span class='not-in-stock no-print'>[#STOPPED_PRODUCT#]</span><!--ET_END STOPPED_PRODUCT--> <div class="fright"> [#amount#]</div></div>
+	<!--ET_BEGIN storeId--><div class="subStoreId no-print">|Склад|*: [#storeId#]</div><!--ET_END storeId-->
+
+	<!--ET_BEGIN text--><div class="subText indent"> [#text#]</div><!--ET_END text-->
+	<div class="indent">[#quantity#] [#value#]<span class="quiet">
+		<!--ET_BEGIN quantityInPack--><span>([#quantityInPack#])</span> <!--ET_END quantityInPack--> * <span class='priceText'>[#price#]</span>
+		<!--ET_BEGIN discountPercent-->([#discountPercent#])<!--ET_END discountPercent--></span>
+		<!--ET_BEGIN batch--><span class="subBatch">[#batch#]</span><!--ET_END batch-->
+	</div>
+</div>
 <!--ET_END sale-->
 
 <!--ET_BEGIN payment-->
-<tr [#lastRow#]>
-	<td colspan='3' class='receipt-payment'>[#paymentCaption#] [#actionValue#]: &nbsp;&nbsp;[#amount#] [#DEL_BTN#]</td>
-</tr>
+<div data-id='[#id#]' data-url = '[#DATA_URL#]' data-delete-url = '[#DATA_DELETE_URL#]' data-delete-warning = '[#DATA_DELETE_WARNING#]' class="receiptPayment paymentRow [#ROW_CLASS#] [#CLASS#]">[#paymentCaption#] [#actionValue#]: &nbsp; <div class="fright">[#amount#] </div></div>
 <!--ET_END payment-->
-
-<!--ET_BEGIN client-->
-<tr [#lastRow#]>
-	<td colspan='3' class='receipt-client'>|Клиент|*: &nbsp;&nbsp;[#clientName#] [#DEL_BTN#]</td>
-</tr>
-<!--ET_END client-->
