@@ -1659,10 +1659,6 @@ function setMinHeightExt() {
             $('.wide .fadein').height(220);
         }
     }
-
-    $('.toggleLink').on('click', function(){
-        $('.narrowNav').slideToggle();
-    });
     $(window).resize(function(){
         setMinHeightExt();
     });
@@ -1813,6 +1809,15 @@ function maxSelectWidth(){
 		 var formElWidth = getCalculatedElementWidth();
 		 $('.narrow .horizontal .select2-container').css('maxWidth', formElWidth - 15);
 	 }
+}
+
+/**
+ *  Меню тип хамбургер в мобилен
+ */
+function toggleNarrowMenu() {
+    $('.toggleLink').on('click', function(e){
+        $('.narrowNav').slideToggle();
+    });
 }
 
 
