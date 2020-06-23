@@ -1464,6 +1464,9 @@ class pos_Terminal extends peripheral_Terminal
             jquery_Jquery::run($tpl, 'scrollToHighlight();');
             jquery_Jquery::run($tpl, 'openCurrentPosTab();');
             
+            $searchDelayTerminal = pos_Points::getSettings($rec->pointId, 'searchDelayTerminal');
+            jquery_Jquery::run($tpl, "setSearchTimeout({$searchDelayTerminal});");
+            
             jqueryui_Ui::enable($tpl);
         }
         

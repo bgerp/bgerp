@@ -2,6 +2,7 @@ var dialog;
 var activeInput;
 var timeout;
 var timeoutPageNavigation;
+var searchTimeout;
 
 function posActions() {
 
@@ -95,7 +96,7 @@ function posActions() {
 			var params = {operation:operation,search:inpVal,recId:selectedRecId};
 			processUrl(url, params);
 
-		}, 2000);
+		}, searchTimeout);
 	});
 
 
@@ -1177,4 +1178,12 @@ function doOperation(operation, selectedRecId, forceSubmit) {
 
 	activeInput = false;
 	scrollToHighlight();
+}
+
+/**
+ * Задава таймаута при търсенето
+ */
+function setSearchTimeout(timeout)
+{
+	searchTimeout = timeout;
 }

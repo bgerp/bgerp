@@ -37,7 +37,7 @@ class pos_Points extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name, caseId, storeId, cashiers=Оператори';
+    public $listFields = 'name, caseId, storeId, prototypeId, cashiers=Оператори';
     
     
     /**
@@ -117,7 +117,7 @@ class pos_Points extends core_Master
      * 
      * @see plg_Settings
      */
-    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,setDiscounts,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,products,maxSearchProductInLastSales';
+    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,setDiscounts,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,products,maxSearchProductInLastSales,searchDelayTerminal';
       
     
     /**
@@ -128,6 +128,7 @@ class pos_Points extends core_Master
                                      'maxSearchProducts' => 'TERMINAL_MAX_SEARCH_PRODUCTS', 
                                      'maxSearchProductRelations' => 'TERMINAL_MAX_SEARCH_PRODUCT_RELATIONS',
                                      'maxSearchProductInLastSales' => 'TERMINAL_MAX_SEARCH_PRODUCT_LAST_SALE',
+                                     'searchDelayTerminal' => 'TERMINAL_SEARCH_SECONDS',
                                      'maxSearchReceipts' => 'TERMINAL_MAX_SEARCH_RECEIPTS');
     
     
@@ -154,6 +155,7 @@ class pos_Points extends core_Master
         $this->FLD('maxSearchReceipts', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->Бележки');
         $this->FLD('maxSearchContragentStart', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->(Клиенти) Първоначално');
         $this->FLD('maxSearchContragent', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->(Клиенти) При търсене');
+        $this->FLD('searchDelayTerminal', 'int(min=500)', 'caption=Настройки в терминала->Търсене след,unit=милисекунди');
         
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Складове->Основен, mandatory');
         $this->FLD('otherStores', 'keylist(mvc=store_Stores, select=name)', 'caption=Складове->Допълнителни');
@@ -356,6 +358,9 @@ class pos_Points extends core_Master
         
         $row->caseId = cash_Cases::getHyperlink($rec->caseId, true);
         $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
+        if(isset($rec->prototypeId)){
+            $row->prototypeId = pos_Points::getHyperlink($rec->prototypeId, true);
+        }
         
         if ($fields['-single']) {
             if($rec->state != 'rejected'){
@@ -366,10 +371,6 @@ class pos_Points extends core_Master
             $row->policyId = price_Lists::getHyperlink($rec->policyId, true);
             if ($defaultContragent = self::defaultContragent($rec->id)) {
                 $row->contragent = crm_Persons::getHyperlink($defaultContragent, true);
-            }
-            
-            if(isset($rec->prototypeId)){
-                $row->prototypeId = pos_Points::getHyperlink($rec->prototypeId, true);
             }
             
             if($mvc->haveRightFor('edit', $rec)){

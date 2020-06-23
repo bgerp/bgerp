@@ -109,6 +109,12 @@
 								<td class='dt'>|Брой намерени контрагенти при търсене|*:</td>
 								<td>[#maxSearchContragentStart#]</td>
 							</tr>
+							
+							<tr>
+								<td class='dt'>|Търсене в терминала след|*:</td>
+								<td>[#searchDelayTerminal#] |милисекунди|*</td>
+							</tr>
+							
 						</table>
 				</div>
 			</fieldset>
