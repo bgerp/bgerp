@@ -157,7 +157,7 @@ class frame2_Reports extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Документ,updateDays,updateTime,lastRefreshed,createdOn,createdBy,modifiedOn,modifiedBy';
+    public $listFields = 'id,title=Наименование,lastRefreshed=Обновяване->Последно,nextUpdate=Обновяване->Следващо,updateDays=Обновяване->Дни,updateTime=Обновяване->Час,folderId,modifiedOn,modifiedBy';
     
     
     /**
@@ -229,7 +229,7 @@ class frame2_Reports extends embed_Manager
         $this->FLD('changeFields', 'set', 'caption=Други настройки->Промяна,autohide,input=none');
         $this->FLD('maxKeepHistory', 'int(Min=0,max=40)', 'caption=Други настройки->Предишни състояния,autohide,placeholder=Неограничено');
         $this->FLD('data', 'blob(serialize, compress,size=20000000)', 'input=none');
-        $this->FLD('lastRefreshed', 'datetime', 'caption=Последно актуализиране,input=none');
+        $this->FLD('lastRefreshed', 'datetime(format=smartTime)', 'caption=Последно актуализиране,input=none');
         $this->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Други настройки->Видими от партньори,input=none,after=maxKeepHistory');
     }
     
@@ -954,11 +954,11 @@ class frame2_Reports extends embed_Manager
                     }
                 }
             }
-            
-            $callOn = $mvc->getNextRefreshTime($rec);
-            if (!empty($callOn)) {
-                $row->nextUpdate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($callOn);
-            }
+        }
+        
+        $callOn = $mvc->getNextRefreshTime($rec);
+        if (!empty($callOn)) {
+            $row->nextUpdate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($callOn);
         }
     }
     
