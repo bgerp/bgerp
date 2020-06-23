@@ -248,15 +248,14 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         
-        $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered');
+        $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
         
         $fld->FLD('quantyti', 'double(smartRound,decimals=2)', 'caption=Количество');
         $fld->FLD('selfPrice', 'double(smartRound,decimals=2)', 'caption=Себестойност');
         $fld->FLD('amount', 'double(smartRound,decimals=2)', 'caption=Стойност');
         
-       
         return $fld;
     }
     
@@ -277,13 +276,11 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $Double->params['decimals'] = 2;
         
         $row = new stdClass();
-        
-        
         if (isset($dRec->code)) {
             $row->code = $dRec->code;
         }
         if (isset($dRec->productId)) {
-            $row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name');
+            $row->productId = cat_Products::getLinkToSingle($dRec->productId, 'name');
         }
         
         $row->measure = cat_UoM::fetchField(cat_Products::fetch($dRec->productId)->measureId, 'shortName');
@@ -291,15 +288,16 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         
         if (isset($dRec->blQuantity)) {
             $row->quantyti = $Double->toVerbal($dRec->blQuantity);
+            $row->quantyti = ht::styleNumber($row->quantyti, $dRec->blQuantity);
         }
         
         if (isset($dRec->selfPrice)) {
             $row->selfPrice = $Double->toVerbal($dRec->selfPrice);
+            $row->selfPrice = ht::styleNumber($row->selfPrice, $dRec->selfPrice);
         }
         
         $row->amount = $Double->toVerbal($dRec->selfPrice * $dRec->blQuantity);
-        
-        
+        $row->amount = ht::styleNumber($row->amount, $dRec->selfPrice * $dRec->blQuantity);
         
         return $row;
     }

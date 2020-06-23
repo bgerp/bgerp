@@ -176,6 +176,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     
     
     /**
+     * Плейдхолдър където да се показват партидите
+     */
+    public $batchPlaceholderField = 'batch';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()

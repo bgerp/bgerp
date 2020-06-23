@@ -117,6 +117,14 @@ class cond_DeliveryTerms extends core_Master
     
     
     /**
+     * Дали при обновяване от импорт на същестуващ запис да се запази предишното състояние или не
+     *
+     * @see plg_State2
+     */
+    public $updateExistingStateOnImport = false;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

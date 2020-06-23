@@ -10,12 +10,11 @@
                         </td>
                     </tr>
                     <tr>
-                    	<td class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left;font-weight: normal'>
+                    	<td class = 'nowrap' style='font-size:0.9em;vertical-align:top;text-align:left;font-weight: normal'>
                         	|От|*: [#from#]
                         	<br>|До|*: [#to#]
                         	<br>|Точка|*: [#pointId#]
                         	<br>|Каса|*: [#caseId#]
-                        	<br>|Склад|*: [#storeId#]
                         	<br>|Търговец|*: [#dealerId#]
                         	<!--ET_BEGIN baseAccountId-->
                         	<br>|Начално салдо|*: [#baseAmountType#] <b>[#baseAmount#]</b> <span class='cCode'>[#bCurrencyId#]</span>

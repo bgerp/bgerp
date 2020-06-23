@@ -452,6 +452,12 @@ input[type="search"]::-webkit-search-decoration {
 input::-webkit-calendar-picker-indicator {
 	display: none;
 }
+/**
+	fix chrome input
+ */
+*,*:focus,*:hover {
+	outline: none;
+}
 
 #simpleSearch {
 	width:15em;

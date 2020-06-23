@@ -1,80 +1,23 @@
 <div class='single-receipt-wrapper'>
-		<div id='single-receipt-holder'>
-			<div id='single-receipt' class='tabs-holder'>
-			<div class='scrolling-vertical'>
-				[#RECEIPT#]
-				</div>
-				<div class="clearfix21"></div>			
-				<div id='tools-holder'>
-				<ul id ='tools-tabs' class='pos-tabs'>[#TABS#]</ul>
-				<!--ET_BEGIN TOOLS-->[#TOOLS#]
-					<div class='pos-tab-content tabs-holder-content'>
-					
-						<div class='tab-content active' id = 'tools-form'> [#TAB_TOOLS#]</div>
-						<!--ET_BEGIN CHOOSE_DIV-->
-						   <div class='tab-content [#active_choose#]' id = 'tools-choose'>
-						      [#CHOOSE_DIV#] 
-						   </div>
-						<!--ET_END CHOOSE_DIV-->
-						
-						<!--ET_BEGIN SEARCH_DIV-->
-						   <div class='tab-content' id = 'tools-search'>
-						      [#SEARCH_DIV#]
-						   </div>
-						<!--ET_END SEARCH_DIV-->
-						
-						<!--ET_BEGIN PAYMENTS_BLOCK-->
-						   <div class='tab-content' id = 'tools-payment'>
-						      [#PAYMENTS#]
-						   </div>
-						<!--ET_END PAYMENTS_BLOCK-->
-						
-						<!--ET_BEGIN TRANSFER_BLOCK-->
-						   <div class='tab-content' id = 'tools-transfer'>
-						      [#TRANSFERS#]
-						   </div>
-						<!--ET_END TRANSFER_BLOCK-->
-						
-						<!--ET_BEGIN DRAFTS-->
-						   <div class='tab-content' id = 'tools-drafts'>
-						      [#DRAFTS#]
-						      <div class='clearfix21'></div>
-						   </div>
-						<!--ET_END DRAFTS-->
-					</div>
-				<!--ET_END TOOLS-->
-				</div>
-				<a name = 'form'></a>
-			</div>
+	<div class="headerContent no-print" id='receiptTerminalHeader'>
+		[#HEADER_BAR#]
+	</div>
+	<div id='single-receipt-holder'>
+		<div id='single-receipt' class='tabs-holder'>
+			<div id = 'receipt-table'>[#RECEIPT#]</div>
 		</div>
-	<div class="clearfix21"></div>
-	
-	<div id='tools-wide-holder' class='tabs-holder'>
-		<ul id ='tools-wide-tabs' class='pos-tabs'>[#TABS_WIDE#]</ul>
-		<!--ET_BEGIN WIDE_RIGHT_PANEL-->[#WIDE_RIGHT_PANEL#]
-		<div class='tools-wide-select-content tabs-holder-content'>
-		         <!--ET_BEGIN CHOOSE_DIV_WIDE-->
-	             <div class='tab-content active' id = 'tools-choose'>
-	                [#CHOOSE_DIV_WIDE#] 
-	             </div>
-	             <!--ET_END CHOOSE_DIV_WIDE-->
-	             
-	             <!--ET_BEGIN SEARCH_DIV_WIDE-->
-	             <div class='tab-content' id = 'tools-search'>
-	                 [#SEARCH_DIV_WIDE#]
-	             </div>
-	             <!--ET_END SEARCH_DIV_WIDE-->
-	                    
-	             <!--ET_BEGIN DRAFTS_WIDE-->
-	                 <div class='tab-content' id = 'tools-drafts'>
-	                    [#DRAFTS_WIDE#]
-	                      <div class='clearfix21'></div>
-	                 </div>
-	             <!--ET_END DRAFTS_WIDE-->
+		<div id='tools-holder' class='holder tools-content no-print'>
+			[#TAB_TOOLS#]
 		</div>
-		<!--ET_END WIDE_RIGHT_PANEL-->
+	</div>
+	<div id='result-holder' class='holder result-content no-print'>
+	    [#SEARCH_RESULT#]
 	</div>
 	<div class='statuses' id='statuses' style='margin: 0 auto;'>
        [#STATUSES#]
     </div>
+</div>
+
+<div id='modalContent'>
+	
 </div>

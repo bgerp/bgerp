@@ -39,6 +39,18 @@
 			</tr>
 			<!--ET_END revertId-->
 			
+			<tr>
+				<td>|Контрагент|*</td>
+				<td>[#contragentId#]</td>
+			</tr>
+			
+			<!--ET_BEGIN contragentLocationId-->
+			<tr>
+				<td>|Локация|*:</td>
+				<td><b>[#contragentLocationId#]</b></td>
+			</tr>
+			<!--ET_END contragentLocationId-->
+			
 			<!--ET_BEGIN transferedIn-->
 			<tr>
 				<td>|Прехвълено към|*:</td>
@@ -60,10 +72,20 @@
 				<td>|Платено|*:</td>
 				<td class = 'summary-right'><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span> <b>[#paid#]</b></td>
 			</tr>
+			
+			<!--ET_BEGIN change-->
 			<tr>
 				<td>|Ресто|*:</td>
-				<td class = 'summary-right'><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span> <b>[#change#]</b></td>
+				<td class = 'summary-right'><span class='cCode' style='margin:0px 12px'>[#changeCurrency#]</span> <b>[#change#]</b></td>
 			</tr>
+			<!--ET_END change-->
+			
+			<!--ET_BEGIN returnedTotal-->
+			<tr>
+				<td>|Сторнирано|*:</td>
+				<td class = 'summary-right'><span class='cCode' style='margin:0px 12px'>[#returnedCurrency#]</span> <b>[#returnedTotal#]</b></td>
+			</tr>
+			<!--ET_END returnedTotal-->
 		</table>
 	<br /><br />
 	<!--ET_BEGIN DETAILS-->

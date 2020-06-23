@@ -250,4 +250,17 @@ abstract class frame2_driver_Proto extends core_BaseClass
     {
         return true;
     }
+    
+    
+    /**
+     * Иконка на справката
+     *
+     * @param mixed $id
+     *
+     * @return string
+     */
+    public static function getIcon($id)
+    {
+        return 'img/16/report.png';
+    }
 }

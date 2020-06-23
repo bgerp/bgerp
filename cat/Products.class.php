@@ -909,26 +909,14 @@ class cat_Products extends embed_Manager
      */
     public static function expandFilter(&$listFilter)
     {
-        $orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,prototypes=Шаблони,closed=Закрити,vat09=ДДС 9%,vat0=ДДС 0%');
+        $orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,eproduct=Артикул в Е-маг,prototypes=Шаблони,closed=Закрити,vat09=ДДС 9%,vat0=ДДС 0%');
+        if(!core_Packs::isInstalled('eshop')){
+            unset($orderOptions['eproduct']);
+        }
+        
         $orderOptions = arr::fromArray($orderOptions);
-        
-        $listFilter->FNC(
-            
-            'order',
-            
-            "enum({$orderOptions})",
-        'caption=Подредба,input,silent,remember,autoFilter'
-        
-        );
-        
-        $listFilter->FNC(
-            
-            'groupId',
-            
-            'key2(mvc=cat_Groups,select=name,allowEmpty)',
-                'placeholder=Групи,input,silent,remember,autoFilter'
-        
-        );
+        $listFilter->FNC('order', "enum({$orderOptions})", 'caption=Подредба,input,silent,remember,autoFilter');
+        $listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Групи,input,silent,remember,autoFilter');
         
         $listFilter->view = 'horizontal';
         $listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -999,6 +987,14 @@ class cat_Products extends embed_Manager
                 break;
             case 'prototypes':
                 $data->query->where("#state = 'template'");
+                break;
+            case 'eproduct':
+                $eProductArr = eshop_Products::getProductsInEshop();
+                if(countR($eProductArr)){
+                    $data->query->in("id", $eProductArr);
+                } else {
+                    $data->query->where("1=2");
+                }
                 break;
             case 'vat09':
             case 'vat0':

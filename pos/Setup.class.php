@@ -2,12 +2,6 @@
 
 
 /**
- *  Темата по-подразбиране за пос терминала
- */
-defIfNot('POS_PRODUCTS_DEFAULT_THEME', 'pos_DefaultTheme');
-
-
-/**
  *  Параметри на продукти, които да се показват при търсене
  */
 defIfNot('POS_RESULT_PRODUCT_PARAMS', '');
@@ -17,6 +11,18 @@ defIfNot('POS_RESULT_PRODUCT_PARAMS', '');
  *  Колко цифри от края на бележката да се показват в номера и
  */
 defIfNot('POS_SHOW_RECEIPT_DIGITS', 4);
+
+
+/**
+ *  Колко свързани артикула да се показват до избрания
+ */
+defIfNot('POS_TERMINAL_MAX_SEARCH_PRODUCT_RELATIONS', 4);
+
+
+/**
+ * Колко артикула от последните продажби да се показват
+ */
+defIfNot('POS_TERMINAL_MAX_SEARCH_PRODUCT_LAST_SALE', 10);
 
 
 /**
@@ -32,15 +38,63 @@ defIfNot('POS_CLOSE_REPORTS_OLDER_THAN', 60 * 60 * 24 * 2);
 
 
 /**
- *  Показване на бутона за отстъпка в терминала
+ *  Показване на бутона за цената в терминала
  */
-defIfNot('POS_SHOW_DISCOUNT_BTN', 'yes');
+defIfNot('POS_TERMINAL_PRICE_CHANGE', 'yes');
 
 
 /**
  *  Продаване на неналични артикули през ПОС-а
  */
 defIfNot('POS_ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK', 'yes');
+
+
+/**
+ *  Под каква ширина да се смята за тесен режим
+ */
+defIfNot('POS_MIN_WIDE_WIDTH', '1200');
+
+
+/**
+ *  Максимален брой търсения на контрагенти в терминала
+ */
+defIfNot('POS_TERMINAL_MAX_SEARCH_CONTRAGENTS', '20');
+
+
+/**
+ *  Максимален брой търсения на артикули в терминала
+ */
+defIfNot('POS_TERMINAL_MAX_SEARCH_PRODUCTS', '30');
+
+
+/**
+ *  Максимален брой търсения на артикули в терминала
+ */
+defIfNot('POS_TERMINAL_MAX_SEARCH_RECEIPTS', '20');
+
+
+/**
+ *  Звук за добавяне в терминала
+ */
+defIfNot('POS_TERMINAL_ADD_SOUND', 'click');
+
+
+/**
+ *  Звук за редакция в терминала
+ */
+defIfNot('POS_TERMINAL_EDIT_SOUND', 'click');
+
+
+/**
+ *  Звук за изтриване в терминала
+ */
+defIfNot('POS_TERMINAL_DELETE_SOUND', 'delete1');
+
+
+/**
+ *  След колко секунди да сработва търсенето в резултатите на терминала
+ */
+defIfNot('POS_TERMINAL_SEARCH_SECONDS', 2000);
 
 
 /**
@@ -51,7 +105,7 @@ defIfNot('POS_ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK', 'yes');
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -86,13 +140,22 @@ class pos_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи за този модул
      */
     public $configDescription = array(
-        'POS_PRODUCTS_DEFAULT_THEME' => array('class(interface=pos_ThemeIntf,select=title)', 'caption=Темата по-подразбиране за пос терминала->Тема'),
         'POS_RESULT_PRODUCT_PARAMS' => array('keylist(mvc=cat_Params,select=name)', 'caption=Параметри за показване търсене на продукт->Параметри,columns=2'),
         'POS_SHOW_RECEIPT_DIGITS' => array('double', 'caption=Цифри показващи се цифри от кода на бележката->Брой'),
-        'POS_CLOSE_REPORTS_PER_TRY' => array('int', 'caption=По колко отчета да се приключват автоматично на опит->Брой,columns=2'),
+        'POS_CLOSE_REPORTS_PER_TRY' => array('int(min=0)', 'caption=По колко отчета да се приключват автоматично на опит->Брой,columns=2'),
         'POS_CLOSE_REPORTS_OLDER_THAN' => array('time(uom=days,suggestions=1 ден|2 дена|3 дена)', 'caption=Автоматично приключване на отчети по стари от->Дни'),
-        'POS_SHOW_DISCOUNT_BTN' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на бутони в терминала->Отстъпка'),
+        'POS_TERMINAL_PRICE_CHANGE' => array('enum(yes=Разрешено,no=Забранено)', 'caption=Операции в POS терминала->Промяна на цена'),
+        'POS_TERMINAL_MAX_SEARCH_CONTRAGENTS' => array('int(min=0)', 'caption=Операции в POS терминала->Брой на намерени контрагенти'),
+        'POS_TERMINAL_MAX_SEARCH_PRODUCTS' => array('int(min=0)', 'caption=Операции в POS терминала->Брой на намерени артикули'),
+        'POS_TERMINAL_MAX_SEARCH_RECEIPTS' => array('int(min=0)', 'caption=Операции в POS терминала->Брой на намерени бележки'),
+        'POS_TERMINAL_MAX_SEARCH_PRODUCT_RELATIONS' => array('int(min=0)', 'caption=Операции в POS терминала->Брой намерени свързани артикули'),
+        'POS_TERMINAL_MAX_SEARCH_PRODUCT_LAST_SALE' => array('int(min=0)', 'caption=Операции в POS терминала->Брой намерени последни продажби'),
+        'POS_TERMINAL_SEARCH_SECONDS' => array('int(min=500)', 'caption=Операции в POS терминала->Търсене след,unit=милисекунди'),
         'POS_ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK' => array('enum(yes=Включено,no=Изключено)', 'caption=Продажба на неналични артикули->Избор'),
+        'POS_MIN_WIDE_WIDTH' => array('int', 'caption=Под каква ширина да се смята за тесен режим->Под,unit=px'),
+        'POS_TERMINAL_ADD_SOUND' => array('enum(click=Клик (1),mouseclick=Клик (2),tap=Клик (3),terminal=Скенер (1),terminal2=Скенер (2))', 'caption=Звуци в терминала->Добавяне'),
+        'POS_TERMINAL_EDIT_SOUND' => array('enum(click=Клик (1),mouseclick=Клик (2),tap=Клик (3),terminal=Скенер (1),terminal2=Скенер (2))', 'caption=Звуци в терминала->Редактиране'),
+        'POS_TERMINAL_DELETE_SOUND' => array('enum(crash=Изтриване (1),delete1=Изтриване (2),filedelete=Изтриване (3))', 'caption=Звуци в терминала->Изтриване'),
     );
     
     
@@ -103,12 +166,11 @@ class pos_Setup extends core_ProtoSetup
         'pos_Points',
         'pos_Receipts',
         'pos_ReceiptDetails',
-        'pos_Favourites',
-        'pos_FavouritesCategories',
         'pos_Reports',
         'pos_Stocks',
+        'migrate::migrateCronSettings',
+        'migrate::updateStoreIdInReceipts',
         'migrate::updateBrState',
-        'migrate::migrateCronSettings'
     );
     
     
@@ -121,7 +183,10 @@ class pos_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    public $roles = 'pos';
+    public $roles = array(
+        array('pos'),
+        array('posMaster', 'pos'),
+    );
     
     
     /**
@@ -143,12 +208,6 @@ class pos_Setup extends core_ProtoSetup
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('pos_ProductsImages', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '6MB', 'user', 'every_one');
         
-        // Добавяме класа връщащ темата в core_Classes
-        $html .= core_Classes::add('pos_DefaultTheme');
-        
-        // Добавяне на роля за старши пос
-        $html .= core_Roles::addOnce('posMaster', 'pos');
-        
         return $html;
     }
     
@@ -167,12 +226,12 @@ class pos_Setup extends core_ProtoSetup
             'timeLimit' => 100,
         ),
         array(
-            'systemId' => 'Update Pos Buttons Group',
-            'description' => 'Обновяване на групите на категориите на бързите бутони',
-            'controller' => 'pos_Favourites',
-            'action' => 'UpdateButtonsGroup',
-            'period' => 10,
-            'offset' => 0,
+            'systemId' => 'Update Pos statistic',
+            'description' => 'Обновява статистическите данни в POS-а',
+            'controller' => 'pos_Setup',
+            'action' => 'UpdateStatistic',
+            'period' => 1440,
+            'offset' => 1320,
             'timeLimit' => 100,
         ),
     );
@@ -218,5 +277,42 @@ class pos_Setup extends core_ProtoSetup
                 core_Cron::save($cronRec, 'offset');
             }
         }
+    }
+    
+    
+    /**
+     * Добавя склада към реда
+     */
+    public function updateStoreIdInReceipts()
+    {
+        cls::get('pos_Points')->setupMvc();
+        $Details = cls::get('pos_ReceiptDetails');
+        $Details->setupMvc();
+        cls::get('pos_Receipts')->setupMvc();
+        
+        if(!pos_ReceiptDetails::count()) return;
+        
+        $toSave = array();
+        $query = pos_ReceiptDetails::getQuery();
+        $query->EXT('pointId', 'pos_Receipts', 'externalName=pointId,externalKey=receiptId');
+        $query->where("#storeId IS NULL AND #action = 'sale|code'");
+        $query->show('id,pointId,storeId');
+        while($rec = $query->fetch()){
+            $rec->storeId = pos_Points::fetchField($rec->pointId, 'storeId');
+            $toSave[] = $rec;
+        }
+        
+        if(countR($toSave)){
+            $Details->saveArray($toSave, 'storeId,id');
+        }
+    }
+    
+    
+    /**
+     * Обновява статистическите данни в POS-а
+     */
+    public function cron_UpdateStatistic()
+    {
+        pos_ReceiptDetails::getMostUsedTexts(24, true);
     }
 }

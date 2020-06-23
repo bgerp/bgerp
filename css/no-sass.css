@@ -1,0 +1,9 @@
+.wide .eshop-product-list-holder {
+    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+    display: grid;
+    grid-gap: 1rem;
+}
+
+.wide .eshop-product-list-holder .eshop-product-list {
+    margin-top: 0;
+}

@@ -82,6 +82,21 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             unset($rec->details);
         }
         
+        // Проверка на артикулите преди контиране
+        if (Mode::get('saveTransaction')) {
+            $productsArr = array_filter($rec->details['receiptDetails'], function($a){return $a->action == 'sale';});
+            $productsArr = arr::extractValuesFromArray($productsArr, 'value');
+            $productCheck = deals_Helper::checkProductForErrors($productsArr, 'canSell');
+            
+            // Проверка на артикулите
+            if(count($productCheck['notActive'])){
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
+            } elseif($productCheck['metasError']){
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!");
+            }
+        }
+        
+        
         return $transaction;
     }
     
@@ -102,7 +117,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
     protected function getTakingPart($rec, $products, &$totalVat, $posRec)
     {
         $entries = array();
-        
+      
         foreach ($products as $product) {
             $product->totalQuantity = round($product->quantity * $product->quantityInPack, 2);
             $totalAmount = currency_Currencies::round($product->amount);
@@ -111,12 +126,9 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             }
             
             $currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
-            $pInfo = cat_Products::getProductInfo($product->value);
-            $storable = isset($pInfo->meta['canStore']);
-            $convertable = isset($pInfo->meta['canConvert']);
+            $pRec = cat_Products::fetch($product->value, 'canStore,canConvert');
             
-            // Нескладируемите продукти дебит 703, складируемите 701
-            $creditAccId = ($storable) ? '701' : '703';
+            $creditAccId = ($pRec->canStore == 'yes') ? '701' : '703';
             $credit = array(
                 $creditAccId,
                 array($product->contragentClassId, $product->contragentId),
@@ -139,7 +151,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             
             $this->totalAmount += $totalAmount;
             
-            if ($storable) {
+            if ($pRec->canStore == 'yes') {
                 $entries = array_merge($entries, $this->getDeliveryPart($rec, $product, $posRec, $convertable));
             }
         }
@@ -180,7 +192,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             
             'credit' => array(
                 $creditAccId,
-                array('store_Stores', $posRec->storeId),
+                array('store_Stores', $product->storeId),
                 array('cat_Products', $product->value),
                 'quantity' => $product->totalQuantity),
         );

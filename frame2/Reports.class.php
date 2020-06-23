@@ -2,14 +2,14 @@
 
 
 /**
- * Мениджър за справки от нов тип
+ * Мениджър за справки
  *
  *
  * @category  bgerp
  * @package   frame2
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -38,6 +38,7 @@ class frame2_Reports extends embed_Manager
      * @see plg_SelectPeriod
      */
     public $useFilterDateOnFilter = false;
+    
     
     /**
      * Необходими плъгини
@@ -130,12 +131,6 @@ class frame2_Reports extends embed_Manager
     
     
     /**
-     * Икона по подразбиране за единичния обект
-     */
-    public $singleIcon = 'img/16/report.png';
-    
-    
-    /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
@@ -162,7 +157,7 @@ class frame2_Reports extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Документ,updateDays,updateTime,lastRefreshed,createdOn,createdBy,modifiedOn,modifiedBy';
+    public $listFields = 'id,title=Наименование,lastRefreshed=Обновяване->Последно,nextUpdate=Обновяване->Следващо,updateDays=Обновяване->Дни,updateTime=Обновяване->Час,folderId,modifiedOn,modifiedBy';
     
     
     /**
@@ -234,7 +229,7 @@ class frame2_Reports extends embed_Manager
         $this->FLD('changeFields', 'set', 'caption=Други настройки->Промяна,autohide,input=none');
         $this->FLD('maxKeepHistory', 'int(Min=0,max=40)', 'caption=Други настройки->Предишни състояния,autohide,placeholder=Неограничено');
         $this->FLD('data', 'blob(serialize, compress,size=20000000)', 'input=none');
-        $this->FLD('lastRefreshed', 'datetime', 'caption=Последно актуализиране,input=none');
+        $this->FLD('lastRefreshed', 'datetime(format=smartTime)', 'caption=Последно актуализиране,input=none');
         $this->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Други настройки->Видими от партньори,input=none,after=maxKeepHistory');
     }
     
@@ -293,6 +288,7 @@ class frame2_Reports extends embed_Manager
         
         return $data;
     }
+    
     
     /**
      * Извиква се след подготовката на формата
@@ -372,9 +368,9 @@ class frame2_Reports extends embed_Manager
     {
         if ($form->isSubmitted()) {
             $rec = $form->rec;
-            $Driver = $mvc->getDriver($rec);
             
             // Ако има драйвер
+            $Driver = $mvc->getDriver($rec);
             if ($Driver) {
                 
                 // и няма заглавие на справката, прави се опит да се вземе от драйвера
@@ -515,25 +511,6 @@ class frame2_Reports extends embed_Manager
         
         return $row;
     }
-    
-    /**
-     * След като е готово вербалното представяне
-     */
-    protected static function on_AfterGetVerbal1($mvc, &$num, $rec, $part)
-    {
-        // Искаме състоянието на оттеглените чернови да се казва 'Анулиран'
-        if ($part == 'title') {
-            
-            $Driver = $mvc->getDriver($rec);
-            if (is_object($Driver)) {
-                $driverTitle = $Driver->getTitle($rec);
-                if(trim($driverTitle) != trim($rec->title)){
-                    $num = "{$driverTitle}/{$rec->title}";
-                }
-            }
-        }
-    }
-    
     
     
     /**
@@ -977,11 +954,11 @@ class frame2_Reports extends embed_Manager
                     }
                 }
             }
-            
-            $callOn = $mvc->getNextRefreshTime($rec);
-            if (!empty($callOn)) {
-                $row->nextUpdate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($callOn);
-            }
+        }
+        
+        $callOn = $mvc->getNextRefreshTime($rec);
+        if (!empty($callOn)) {
+            $row->nextUpdate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($callOn);
         }
     }
     
@@ -1306,5 +1283,23 @@ class frame2_Reports extends embed_Manager
         
         $data->query->orderBy('state', 'ASC');
         $data->query->orderBy('modifiedOn', 'DESC');
+    }
+    
+    
+    /**
+     * Връща иконката на документа
+     *
+     * @param mixed $id - ид или запис
+     *
+     * @return string   - пътя на иконката
+     */
+    public function getIcon($id)
+    {
+        if ($Driver = $this->getDriver($id)) {
+            
+            return $Driver->getIcon($id);
+        }
+        
+        return 'img/16/error-red.png';
     }
 }
