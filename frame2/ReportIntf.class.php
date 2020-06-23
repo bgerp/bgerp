@@ -216,4 +216,17 @@ class frame2_ReportIntf extends embed_DriverIntf
     {
         return $this->class->requireUserForNotification($rec);
     }
+    
+    
+    /**
+     * Иконка на справката
+     *
+     * @param mixed $id
+     *
+     * @return string
+     */
+    public function getIcon($id)
+    {
+        return $this->class->getIcon($id);
+    }
 }

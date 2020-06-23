@@ -2,14 +2,14 @@
 
 
 /**
- * Мениджър за справки от нов тип
+ * Мениджър за справки
  *
  *
  * @category  bgerp
  * @package   frame2
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -38,6 +38,7 @@ class frame2_Reports extends embed_Manager
      * @see plg_SelectPeriod
      */
     public $useFilterDateOnFilter = false;
+    
     
     /**
      * Необходими плъгини
@@ -127,12 +128,6 @@ class frame2_Reports extends embed_Manager
      * Абревиатура
      */
     public $abbr = 'Rpt';
-    
-    
-    /**
-     * Икона по подразбиране за единичния обект
-     */
-    public $singleIcon = 'img/16/report.png';
     
     
     /**
@@ -294,6 +289,7 @@ class frame2_Reports extends embed_Manager
         return $data;
     }
     
+    
     /**
      * Извиква се след подготовката на формата
      */
@@ -372,9 +368,9 @@ class frame2_Reports extends embed_Manager
     {
         if ($form->isSubmitted()) {
             $rec = $form->rec;
-            $Driver = $mvc->getDriver($rec);
             
             // Ако има драйвер
+            $Driver = $mvc->getDriver($rec);
             if ($Driver) {
                 
                 // и няма заглавие на справката, прави се опит да се вземе от драйвера
@@ -1306,5 +1302,23 @@ class frame2_Reports extends embed_Manager
         
         $data->query->orderBy('state', 'ASC');
         $data->query->orderBy('modifiedOn', 'DESC');
+    }
+    
+    
+    /**
+     * Връща иконката на документа
+     *
+     * @param mixed $id - ид или запис
+     *
+     * @return string   - пътя на иконката
+     */
+    public function getIcon($id)
+    {
+        if ($Driver = $this->getDriver($id)) {
+            
+            return $Driver->getIcon($id);
+        }
+        
+        return 'img/16/error-red.png';
     }
 }
