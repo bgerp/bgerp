@@ -82,11 +82,9 @@
         <tbody>
             <tr>
                 <td class="topCell vtop" style='width:33%;'>
-                    <!--ET_BEGIN paymentMethodId-->
                     <div class='cellRow'>
-                        <span class='quiet'>|Метод на плащане|*: </span>[#paymentMethodId#]
+                        <span class='quiet'>|Плащане|*: </span><!--ET_BEGIN paymentType-->[#paymentType#], <!--ET_END paymentType-->[#paymentMethodId#]
                     </div>
-                    <!--ET_END paymentMethodId-->
                     <!--ET_BEGIN downpayment-->
                     <div class='cellRow'>
                         <span class='quiet'>|Авансово|*:</span> [#downpayment#]
@@ -133,10 +131,10 @@
                             <li>[#cartId#]</li>
                             <!--ET_END cartId-->
                             <!--ET_BEGIN deliveryBlock-->
-                            [#deliveryBlock#]
                             <li>
                                 |Доставка|*: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> |до|* [#deliveryTime#]<!--ET_END deliveryTime-->
                             </li>
+                            [#deliveryBlock#]
                             <!--ET_END deliveryBlock-->
                             <!--ET_BEGIN deliveryTermTime-->
                             <li>|Срок за доставка|* [#deliveryTermTime#] |след стартиране на договора|*</li>

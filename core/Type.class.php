@@ -341,8 +341,9 @@ class core_Type extends core_BaseClass
     public function createInput($name, $value, $attr)
     {
         $this->setFieldWidth($attr);
-        
-        if (isset($this->params['inputmode'])) {
+ 
+        if (isset($this->params['inputmode'])) { 
+           
             $attr['inputmode'] = $this->params['inputmode'];
         }
         

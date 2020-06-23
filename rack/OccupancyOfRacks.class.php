@@ -35,7 +35,7 @@ class rack_OccupancyOfRacks extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,admin';
+    public $canList = 'ceo,admin,debug';
     
     
     /**
@@ -59,7 +59,7 @@ class rack_OccupancyOfRacks extends core_Manager
      *
      * @var string|array
      */
-    public $canView = 'ceo,admin';
+    public $canView = 'ceo,admin,debug';
     
     
     /**

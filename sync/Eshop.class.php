@@ -249,14 +249,14 @@ class sync_Eshop extends sync_Helper
         
         $gQuery->EXT('domainId', 'cms_Content', 'externalName=domainId,externalKey=menuId');
         
-        $gQuery->show('name, state, domainId');
+        $gQuery->show('name, state, domainId, menuId');
         
         $gQuery->orderBy('domainId', 'DESC');
         $gQuery->orderBy('modifiedOn', 'DESC');
         
         $resArr = array();
         while ($gRec = $gQuery->fetch()) {
-            $resArr[$gRec->id] = eshop_Groups::getVerbal($gRec, 'name') . ' (' . cms_Content::getVerbal($gRec->domainId, 'domainId') . ')';
+            $resArr[$gRec->id] = eshop_Groups::getVerbal($gRec, 'name') . ' (' . cms_Content::getVerbal($gRec->menuId, 'domainId') . ')';
             
             if ($gRec->state != 'active') {
                 $resArr[$gRec->id] .= ' - ' . eshop_Groups::getVerbal($gRec, 'state');

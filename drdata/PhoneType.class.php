@@ -34,9 +34,8 @@ class drdata_PhoneType extends type_Varchar
      */
     public function init($params = array())
     {
+        setIfNot($params['params']['inputmode'], 'tel');
         parent::init($params);
-        
-        $this->params['inputmode'] = 'tel';
     }
     
     /**

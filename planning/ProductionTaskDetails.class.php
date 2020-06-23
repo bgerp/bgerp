@@ -794,7 +794,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $data->listFilter->showFields .= ",employees";
         }
         
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->toolbar->addSbBtn('', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
         
         // Филтър по избраните стойности

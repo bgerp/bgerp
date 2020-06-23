@@ -203,7 +203,11 @@ class store_Products extends core_Detail
         
         // Подготвяме формата
         cat_Products::expandFilter($data->listFilter);
-        $orderOptions = arr::make('all=Всички,active=Активни,standard=Стандартни,private=Нестандартни,last=Последно добавени,closed=Изчерпани,reserved=Запазени,free=Разполагаеми');
+        $orderOptions = arr::make('all=Всички,active=Активни,standard=Стандартни,private=Нестандартни,last=Последно добавени,eproduct=Артикул в Е-маг,closed=Изчерпани,reserved=Запазени,free=Разполагаеми');
+        if(!core_Packs::isInstalled('eshop')){
+            unset($orderOptions['eproduct']);
+        }
+        
         $data->listFilter->setOptions('order', $orderOptions);
         $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
         
@@ -290,6 +294,14 @@ class store_Products extends core_Detail
                         break;
                     case 'reserved':
                         $data->query->where("#reservedQuantity IS NOT NULL");
+                        break;
+                    case 'eproduct':
+                        $eProductArr = eshop_Products::getProductsInEshop();
+                        if(countR($eProductArr)){
+                            $data->query->in("productId", $eProductArr);
+                        } else {
+                            $data->query->where("1=2");
+                        }
                         break;
                     case 'free':
                         $data->query->XPR('free', 'double', 'ROUND(COALESCE(#quantity, 0) - COALESCE(#reservedQuantity, 0), 2)');
@@ -1088,6 +1100,19 @@ class store_Products extends core_Detail
         }
         
         parent::prepareDetail_($data);
+        
+        if(countR($data->recs)){
+            $totalField = ($data->masterData->rec->generic == 'yes') ? 'code' : 'storeId';
+            $data->rows['total'] = (object)array($totalField => "<div style='float:left'>" .  tr('Сумарно') . "</div>");
+            foreach ($data->recs as $rec){
+                foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'expectedQuantityTotal', 'freeQuantity') as $fld){
+                    if(!empty($rec->{$fld})){
+                       $data->rows['total']->{$fld} += $rec->{$fld};
+                       $data->rows['total']->ROW_ATTR['style'] = 'background-color:#eee;font-weight:bold';
+                    }
+                }
+            }
+        }
     }
     
     
@@ -1110,7 +1135,7 @@ class store_Products extends core_Detail
         }
         
         $tpl->append(parent::renderDetail_($data), 'content');
-       
+        
         return $tpl;
     }
 }

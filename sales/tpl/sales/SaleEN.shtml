@@ -80,12 +80,9 @@
         <tbody>
             <tr>
                 <td class="topCell vtop" style='width:33%;'>
-                    <!--ET_BEGIN paymentMethodId-->
                     <div class='cellRow'>
-                        <span class='quiet'>Payment method: </span>
-                        [#paymentMethodId#]
+                        <span class='quiet'>Payment: </span><!--ET_BEGIN paymentType-->[#paymentType#], <!--ET_END paymentType-->[#paymentMethodId#]
                     </div>
-                    <!--ET_END paymentMethodId-->
                     <!--ET_BEGIN downpayment-->
                     <div class='cellRow'>
                         <span class='quiet'>Downpayment:</span> [#downpayment#]
@@ -133,10 +130,10 @@
                             <li>[#cartId#]</li>
                             <!--ET_END cartId-->
                             <!--ET_BEGIN deliveryBlock-->
-                            [#deliveryBlock#]
                             <li>
                                 Delivery: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> till [#deliveryTime#]<!--ET_END deliveryTime-->
                             </li>
+                            [#deliveryBlock#]
                             <!--ET_END deliveryBlock-->
                             <!--ET_BEGIN deliveryTermTime-->
                             <li>Delivery time up to [#deliveryTermTime#] after starting the order</li>

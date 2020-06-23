@@ -909,26 +909,14 @@ class cat_Products extends embed_Manager
      */
     public static function expandFilter(&$listFilter)
     {
-        $orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,prototypes=Шаблони,closed=Закрити,vat09=ДДС 9%,vat0=ДДС 0%');
+        $orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,eproduct=Артикул в Е-маг,prototypes=Шаблони,closed=Закрити,vat09=ДДС 9%,vat0=ДДС 0%');
+        if(!core_Packs::isInstalled('eshop')){
+            unset($orderOptions['eproduct']);
+        }
+        
         $orderOptions = arr::fromArray($orderOptions);
-        
-        $listFilter->FNC(
-            
-            'order',
-            
-            "enum({$orderOptions})",
-        'caption=Подредба,input,silent,remember,autoFilter'
-        
-        );
-        
-        $listFilter->FNC(
-            
-            'groupId',
-            
-            'key2(mvc=cat_Groups,select=name,allowEmpty)',
-                'placeholder=Групи,input,silent,remember,autoFilter'
-        
-        );
+        $listFilter->FNC('order', "enum({$orderOptions})", 'caption=Подредба,input,silent,remember,autoFilter');
+        $listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Групи,input,silent,remember,autoFilter');
         
         $listFilter->view = 'horizontal';
         $listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -999,6 +987,14 @@ class cat_Products extends embed_Manager
                 break;
             case 'prototypes':
                 $data->query->where("#state = 'template'");
+                break;
+            case 'eproduct':
+                $eProductArr = eshop_Products::getProductsInEshop();
+                if(countR($eProductArr)){
+                    $data->query->in("id", $eProductArr);
+                } else {
+                    $data->query->where("1=2");
+                }
                 break;
             case 'vat09':
             case 'vat0':
@@ -3508,11 +3504,12 @@ class cat_Products extends embed_Manager
     /**
      * Връща минималното количество за поръчка
      *
-     * @param int|NULL $id - ид на артикул
+     * @param int|NULL $id   - ид на артикул
+     * @param string $action - дали да е за продажба или покупка
      *
      * @return float|NULL - минималното количество в основна мярка, или NULL ако няма
      */
-    public static function getMoq($id = null)
+    public static function getMoq($id = null, $action = 'sell')
     {
         // Ако има драйвър, питаме го за МКП-то
         if (!isset($id)) {
@@ -3520,8 +3517,10 @@ class cat_Products extends embed_Manager
             return;
         }
         
+        expect(in_array($action, array('sell', 'buy')));
+        
         if ($Driver = static::getDriver($id)) {
-            $moq = $Driver->getMoq($id);
+            $moq = $Driver->getMoq($id, $action);
             
             return (!empty($moq)) ? $moq : null;
         }
@@ -3615,7 +3614,7 @@ class cat_Products extends embed_Manager
     {
         expect($mRec);
         
-        $canSeePrice = haveRole('seePrice', $activatedBy);
+        $canSeePrice = haveRole('seePrice,ceo', $activatedBy);
         $pStrName = 'price';
         
         $Detail = null;
@@ -3682,7 +3681,7 @@ class cat_Products extends embed_Manager
             $dQuery->where(array("#{$dInst->masterKey} = {$mRec->id}"));
             
             $dQuery->orderBy('id', 'ASC');
-            
+           
             while ($dRec = $dQuery->fetch()) {
                 if (!$recs[$dRec->id]) {
                     $recs[$dRec->id] = new stdClass();
@@ -3690,6 +3689,7 @@ class cat_Products extends embed_Manager
                 
                 $recs[$dRec->id]->productId = $dRec->productId;
                 $recs[$dRec->id]->packPrice = $dRec->packPrice;
+                $recs[$dRec->id]->discount = $dRec->discount;
                 
                 $allFFieldsArr = $fFieldsArr;
                 
@@ -3777,7 +3777,7 @@ class cat_Products extends embed_Manager
                 
                 // Добавяме отстъпката към цената
                 if ($allFFieldsArr['packPrice']) {
-                    if ($recs[$dRec->id]->packPrice && $dRec->discount) {
+                    if ($recs[$dRec->id]->packPrice && $dRec->discount && !($masterMvc instanceof deals_InvoiceMaster && $mRec->type == 'dc_note')) {
                         $recs[$dRec->id]->packPrice -= ($recs[$dRec->id]->packPrice * $dRec->discount);
                     }
                 }
@@ -3845,7 +3845,14 @@ class cat_Products extends embed_Manager
             if($masterMvc instanceof deals_InvoiceMaster){
                 if(isset($allFFieldsArr['quantity']) && $mRec->type == 'dc_note'){
                     $Detail::modifyDcDetails($recs, $mRec, $Detail);
-                    foreach ($recs as $id => $mdRec){
+                    
+                    foreach ($recs as $id => &$mdRec){
+                        if ($allFFieldsArr['packPrice']) {
+                            if ($mdRec->packPrice && $mdRec->discount) {
+                                $mdRec->packPrice -= ($mdRec->packPrice * $mdRec->discount);
+                            }
+                        }
+                        
                         if(!$mdRec->changedQuantity && !$mdRec->changedPrice){
                             unset($recs[$id]);
                         }

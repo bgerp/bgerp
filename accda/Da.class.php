@@ -39,7 +39,7 @@ class accda_Da extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, accda_Wrapper, acc_plg_Contable, acc_plg_DocumentSummary, plg_Printing, plg_Clone, doc_DocumentPlg, plg_Search,
-                     bgerp_plg_Blank, acc_plg_Registry, plg_SaveAndNew, plg_Search, doc_plg_SelectFolder,change_Plugin';
+                     bgerp_plg_Blank, acc_plg_Registry, plg_SaveAndNew, plg_Search, doc_plg_SelectFolder,change_Plugin,cat_plg_AddSearchKeywords';
     
     
     /**

@@ -29,12 +29,6 @@ class planning_GenericMapper extends core_Manager
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,planning';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,planning';
@@ -61,7 +55,7 @@ class planning_GenericMapper extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId,genericProductId=Генеричен артикул,createdOn,createdBy'; 
+    public $listFields = 'productId,productMeasureId=Мярка,genericProductId=Генеричен артикул,genericProductMeasureId=Мярка генеричен артикул,createdOn,createdBy'; 
     
     
     /**
@@ -129,6 +123,7 @@ class planning_GenericMapper extends core_Manager
             
             $form->setField('genericProductId', 'input=hidden');
         } else {
+            
             $form->setField('productId', 'input=hidden');
         }
     }
@@ -144,13 +139,18 @@ class planning_GenericMapper extends core_Manager
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
             
-            $measureProductId = cat_Products::fetchField($rec->productId, 'measureId');
-            $measureGenericId = cat_Products::fetchField($rec->genericProductId, 'measureId');
-            $similarMeasures = cat_UoM::getSameTypeMeasures($measureGenericId);
-            if(!array_key_exists($measureProductId, $similarMeasures)){
-                $genericMeasureName = cat_UoM::getVerbal($measureGenericId, 'name');
+            $productRec = cat_Products::fetch($rec->productId, 'measureId,canStore');
+            $genericRec = cat_Products::fetch($rec->genericProductId, 'measureId,canStore');
+            
+            $similarMeasures = cat_UoM::getSameTypeMeasures($genericRec->measureId);
+            if(!array_key_exists($productRec->measureId, $similarMeasures)){
+                $genericMeasureName = cat_UoM::getVerbal($genericRec->measureId, 'name');
                 
                 $form->setError('productId', "Заместващият артикул трябва да е в мярка, производна на|*: <b>{$genericMeasureName}</b>");
+            }
+            
+            if($productRec->canStore != $genericRec->canStore){
+                $form->setError('productId', "И двата артикула, трябва да са складируеми или само услуги");
             }
         }
     }
@@ -168,6 +168,9 @@ class planning_GenericMapper extends core_Manager
         $row->genericProductId = cat_Products::getHyperlink($rec->genericProductId, true);
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         $row->created = $row->createdOn . " " . tr('от||by') . " " . $row->createdBy;
+        
+        $row->genericProductMeasureId = cat_UoM::getVerbal(cat_Products::fetchField($rec->genericProductId, 'measureId'), 'name');
+        $row->productMeasureId = cat_UoM::getVerbal(cat_Products::fetchField($rec->productId, 'measureId'), 'name');
         
         $canConvert = cat_Products::fetchField($rec->productId, 'canConvert');
         if($canConvert != 'yes'){
@@ -195,10 +198,10 @@ class planning_GenericMapper extends core_Manager
         $query = $this->getQuery();
         
         if($data->isGeneric == 'yes'){
-            $listFields = "productId=Заместващ артикул,created=Създаване";
+            $listFields = "productId=Заместващ артикул,productMeasureId=Мярка,created=Създаване";
             $query->where("#genericProductId = {$data->masterId}");
         } else {
-            $listFields = "genericProductId=Генеричен артикул,created=Създаване";
+            $listFields = "genericProductId=Генеричен артикул,genericProductMeasureId=Мярка,created=Създаване";
             $query->where("#productId = {$data->masterId}");
         }
         
