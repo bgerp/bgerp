@@ -1178,15 +1178,13 @@ abstract class deals_DealMaster extends deals_DealBase
             $invAmount = 0;
             foreach ($closed as $docId) {
                 $dInfo = $mvc->getAggregateDealInfo($docId);
-                $dInvoiced = $dInfo->get('invoicedAmount') - $dInfo->get('downpaymentInvoiced') + $dInfo->get('downpaymentDeducted');
-                $invAmount += $dInvoiced;
+                $invAmount += $dInfo->get('invoicedAmount');
             }
-            
             $rec->amountInvoiced += $invAmount;
         } else {
-            $rec->amountInvoiced = $aggregateDealInfo->get('invoicedAmount') - $aggregateDealInfo->get('downpaymentInvoiced') + $aggregateDealInfo->get('downpaymentDeducted');
+            $rec->amountInvoiced = $aggregateDealInfo->get('invoicedAmount');
         }
-     
+        
         $rec->paymentState = $mvc->getPaymentState($aggregateDealInfo);
         $rec->modifiedOn = dt::now();
         
