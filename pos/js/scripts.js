@@ -75,13 +75,16 @@ function posActions() {
 		}
 
 		var inpVal = $(this).val();
-
 		var operation = getSelectedOperation();
 
 		if(isMicroformat(inpVal) && (operation == 'add' || operation == 'edit')){
 
 			var selectedRecId = getSelectedRowId();
 			doOperation(operation, selectedRecId, true);
+			return;
+		}
+		
+		if(inpVal.startsWith("*")){
 			return;
 		}
 		
@@ -878,9 +881,19 @@ function isMicroformat(string) {
 			
 			// Премахваме * да остане чист стринг
 			var quantity = string.replace("*", "");
+			quantity = quantity.replace(",", ".");
 			
 			// Ако останалата част от стринга е положително число
 			if($.isNumeric(quantity) && quantity > 0){
+				if(string.startsWith("*")){
+					var split = quantity.split(".");
+					var cnt = (split[1]) ? split[1].length : 0;
+					if(cnt == 2){
+						return true;
+					}
+					
+					return false;
+				}
 				
 				return true;
 			}
