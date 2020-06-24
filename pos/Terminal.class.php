@@ -1522,7 +1522,7 @@ class pos_Terminal extends peripheral_Terminal
             $res['similar'] = (object)array('rows' => $this->prepareResultSimilarProducts($rec, $selectedRec, $string), 'placeholder' => 'BLOCK1');
         }
         
-        $res['result'] = (object)array('rows' => $this->prepareProductTable($rec, $string), 'placeholder' => 'BLOCK2');
+        $foundResults = (object)array('rows' => $this->prepareProductTable($rec, $string), 'placeholder' => 'BLOCK2');
         $firstDividerCaption = countR($res['similar']->rows == 1) ? 'Избран артикул' : 'Свързани артикули';
         $res['contragent'] = (object)array('rows' => $this->prepareContragentProducts($rec, $string), 'placeholder' => 'BLOCK3');
         
@@ -1530,8 +1530,7 @@ class pos_Terminal extends peripheral_Terminal
                                                     <div class='grid'>[#BLOCK2#]</div><!--ET_END BLOCK2-->
                                                     <!--ET_BEGIN BLOCK1--><div class='divider'>|{$firstDividerCaption}|*</div>
                                                     <div class='grid'>[#BLOCK1#]</div><!--ET_END BLOCK1-->
-                            
-                            <!--ET_BEGIN BLOCK3--><div class='divider'>|Списък от предишни продажби|*</div>
+                                                    <!--ET_BEGIN BLOCK3--><div class='divider'>|Списък от предишни продажби|*</div>
                                                     <div class='grid'>[#BLOCK3#]</div><!--ET_END BLOCK3-->"));
         
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PRODUCTS_RESULT');
@@ -1547,9 +1546,49 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
-        if(!$count){
-            $tpl->prepend("<div class='resultText'>" . tr('Няма намерени артикули|*!') . "</div>");
+        $resultTpl = new core_ET("");
+        $groups = keylist::toArray(pos_Points::getSettings($rec->pointId, 'groups'));
+        
+        // Ако има групи на артикулите
+        if(countR($groups)){
+            $resultTpl = new core_ET("<div class='scroll-holder'><ul class='tabHolder'>[#TAB#]</ul></div><div class='contentHolder'>");
+            $groups = array('all' => null) + $groups;
+            foreach ($groups as $groupId){
+                $inGroup = array_filter($foundResults->rows, function($e) use ($groupId){ return is_null($groupId) || keylist::isIn($groupId, $e->_groups);});
+              
+                $groupName = (isset($groupId)) ? cat_Groups::getVerbal($groupId, 'name') : tr("Всички");
+                $contentId = "content{$groupId}";
+                $class = (!isset($groupId)) ? 'active' : '';
+                $tab = "<li class='{$class}' data-content = '{$contentId}'>{$groupName}</li>";
+                $resultTpl->append($tab, "TAB");
+                
+                // Показват се тези от резултатите, които са във всяка група
+                $groupTpl = new core_ET("<div class='content' id='{$contentId}'><div class='grid'>[#RESULT_CONTENT#]</div></div>");
+                foreach($inGroup as $row){
+                    $row->elementId = "result{$row->id}";
+                    $bTpl = clone $block;
+                    $bTpl->placeObject($row);
+                    $bTpl->removeBlocksAndPlaces();
+                    $groupTpl->append($bTpl, 'RESULT_CONTENT');
+                }
+                
+                $resultTpl->append($groupTpl);
+            }
+            $resultTpl->append("</div>");
+        } else {
+            
+            // Ако няма рендират се всички
+            foreach($foundResults->rows as $row){
+                $row->elementId = "result{$row->id}";
+                $bTpl = clone $block;
+                $bTpl->placeObject($row);
+                $bTpl->removeBlocksAndPlaces();
+                $resultTpl->append($bTpl);
+            }
         }
+        
+        $resultTpl->removeBlocksAndPlaces();
+        $tpl->append($resultTpl, 'BLOCK2');
         
         return $tpl;
     }
@@ -1607,7 +1646,12 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function prepareProductTable($rec, $searchString)
     {
-        $result = core_Cache::get('planning_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}");
+        $result = null;          
+        
+        //@todo да го върна 
+        core_Cache::get('planning_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}");
+        
+        
         if(!is_array($result)){
             
             $count = 0;
@@ -1617,17 +1661,27 @@ class pos_Terminal extends peripheral_Terminal
             $folderId = cls::get($rec->contragentClass)->fetchField($rec->contragentObjectId, 'folderId');
             $pQuery = cat_Products::getQuery();
             $pQuery->where("#state = 'active' AND #isPublic = 'yes' OR (#isPublic = 'no' AND #folderId = '{$folderId}')");
+            
             $pQuery->show('name,isPublic,nameEn,code,canStore,measureId,canSell');
             $maxSearchProducts = pos_Points::getSettings($rec->pointId, 'maxSearchProducts');
             
             // Ако не се търси подробно артикул, се показват тези от любими
             if(empty($searchString)){
+                $groups = keylist::toArray(pos_Points::getSettings($rec->pointId, 'groups'));
                 $productsArr = keylist::toArray(pos_Points::getSettings($rec->pointId, 'products'));
                 
-                
-                if(countR($productsArr)){
+                if(countR($productsArr) || countR($groups)){
                     $pQuery->in("id", array_keys($productsArr));
                     $pQuery->orderBy('code,name', 'ASC');
+                    
+                    if(countR($groups)){
+                        $pQuery->likeKeylist('groups', $groups);
+                        
+                        if(!countR($productsArr)){
+                            $pQuery->limit($maxSearchProducts);
+                        }
+                    }
+                    
                     $sellable = $pQuery->fetchAll();
                 }
             } else {
@@ -1636,6 +1690,7 @@ class pos_Terminal extends peripheral_Terminal
                 
                 // Ако има артикул, чийто код отговаря точно на стринга, той е най-отгоре
                 $foundRec = cat_Products::getByCode($searchString);
+                
                 if(isset($foundRec->productId)){
                     $cloneQuery = clone $pQuery;
                     $cloneQuery->where("#id = {$foundRec->productId}");
@@ -1711,8 +1766,6 @@ class pos_Terminal extends peripheral_Terminal
             return $res;
         }
         
-        
-        
         $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
         $defaultContragentClassId = crm_Persons::getClassId();
         
@@ -1776,6 +1829,8 @@ class pos_Terminal extends peripheral_Terminal
                 $res[$id]->measureId = tr(cat_UoM::getSmartName($packId, 0));
                 $res[$id]->measureId = "<span class='notInStock'>0 {$res[$id]->measureId}</span>";
             }
+            
+            $res[$id]->_groups = cat_Products::fetchField($id, 'groups');
         }
         
         return $res;
@@ -1893,18 +1948,8 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $tpl->append('</div>');
-        
-        
-        
-        
-        
-        //$tpl->append('<li>love</li>', 'TAB');
-        
-        
         $tpl->removeBlocksAndPlaces();
        
-        
-        
         return $tpl;
     }
     
