@@ -696,6 +696,7 @@ function deleteSelectedElement() {
 	
 	selectedElement.closest('.receiptRow').css('border', '1px solid red');
 	processUrl(url, null);
+	CtrlMod = false;
 }
 
 function render_openCurrentPosTab() {
