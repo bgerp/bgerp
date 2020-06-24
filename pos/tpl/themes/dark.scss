@@ -68,3 +68,13 @@
   font-weight: bold;
   border-color: #999;
 }
+
+.tabHolder li{
+  border-color: transparent !important;
+  color: #99c;
+}
+
+.tabHolder li.active {
+  color: #fff;
+  border-bottom: 4px solid #fff !important;
+}
