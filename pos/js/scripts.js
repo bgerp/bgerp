@@ -1,6 +1,7 @@
 var dialog;
 var activeInput;
 var timeout;
+var timeoutRemoveDisabled;
 var timeoutPageNavigation;
 var searchTimeout;
 
@@ -715,6 +716,8 @@ function render_prepareResult() {
 			$('.enlargeProductBtn').addClass('disabledBtn');
 		}
 	}
+	
+	clearTimeout(timeoutRemoveDisabled);
 }
 
 function render_calculateWidth(){
@@ -722,7 +725,6 @@ function render_calculateWidth(){
 }
 
 // След презареждане
-
 var semaphor;
 
 function render_afterload()
@@ -835,6 +837,12 @@ function pressNavigable(element)
 	
 	element.addClass( "disabledBtn");
 	element.prop("disabled", true);
+	
+	timeoutRemoveDisabled = setTimeout(function(){
+		element.removeClass('disabledBtn');
+		element.removeAttr("disabled");
+	}, 1000);
+	
 	processUrl(url, params);
 }
 
