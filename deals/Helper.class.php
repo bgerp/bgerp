@@ -2058,7 +2058,7 @@ abstract class deals_Helper
             $diff = abs($price1Round - $price2Round);
             $diff = number_format($diff, 5);
             
-            return $diff > 0.0001;
+            return $diff > 0.001;
         }
        
         return false;
