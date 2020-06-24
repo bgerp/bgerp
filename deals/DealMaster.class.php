@@ -205,7 +205,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('amountInvoiced', 'double(decimals=2)', 'caption=Стойности->Фактурирано,input=none,summary=amount'); // Сумата която е платена
         
         $mvc->FLD('amountInvoicedDownpayment', 'double(decimals=2)', 'caption=Стойности->Фактуриран аванс,input=none');
-        $mvc->FLD('amountInvoicedDownpaymentToDeduct', 'double(decimals=2)', 'caption=Стойности->Аванс за приспадане');
+        $mvc->FLD('amountInvoicedDownpaymentToDeduct', 'double(decimals=2)', 'caption=Стойности->Аванс за приспадане,input=none');
         
         $mvc->FLD('amountVat', 'double(decimals=2)', 'input=none');
         $mvc->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
