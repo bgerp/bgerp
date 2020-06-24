@@ -325,7 +325,7 @@ function posActions() {
 		openPrint();
 	});
 
-	$("body").setShortcutKey( CONTROL , V ,function() {
+	$("body").setShortcutKey( CONTROL , M ,function() {
 		openKeyboard();
 	});
 
