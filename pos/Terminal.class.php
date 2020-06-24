@@ -1634,7 +1634,7 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         foreach ($productRelations as $productId){
-            $products[$productId] = cat_Products::fetch($productId, 'name,isPublic,nameEn,code,canStore,measureId');
+            $products[$productId] = cat_Products::fetch($productId, 'name,isPublic,nameEn,code,canStore,measureId,canSell');
         }
         
         return $this->prepareProductResultRows($products, $rec);
@@ -1774,7 +1774,7 @@ class pos_Terminal extends peripheral_Terminal
         if(!($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId)){
             $listId = price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
         }
-       
+        
         foreach ($products as $id => $pRec) {
             if(isset($pRec->packId)){
                 $packId = $pRec->packId;
@@ -1956,7 +1956,7 @@ class pos_Terminal extends peripheral_Terminal
     
     /**
      * Как ще се показва бележката
-     * 
+     *
      * @param stdClass $rec
      * @param boolean $fullDate
      * 
