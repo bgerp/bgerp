@@ -289,13 +289,31 @@
   width: 48%;
   display: table-cell; }
 
-.tabHolder {
+.wide .tabHolder {
   display: grid;
   align-items: center;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1));
   text-align: center;
   padding-left: 0;
   grid-gap: 1rem; }
+
+.narrow .scroll-holder {
+  overflow-x: auto;
+  display: block; }
+  .narrow .scroll-holder .tabHolder {
+    padding-left: 0;
+    width: 600px; }
+    .narrow .scroll-holder .tabHolder li {
+      display: inline-block;
+      border-color: rgba(0, 0, 0, 0);
+      margin-right: 10px; }
+
+.narrow #receiptnew {
+  color: #333333 !important; }
+
+.narrow .contentHolder {
+  padding: 10px; }
+
   .tabHolder li {
     list-style: none;
     padding: 7px 10px;
