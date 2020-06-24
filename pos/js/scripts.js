@@ -1,6 +1,7 @@
 var dialog;
 var activeInput;
 var timeout;
+var timeoutRemoveDisabled;
 var timeoutPageNavigation;
 var searchTimeout;
 
@@ -75,13 +76,16 @@ function posActions() {
 		}
 
 		var inpVal = $(this).val();
-
 		var operation = getSelectedOperation();
 
 		if(isMicroformat(inpVal) && (operation == 'add' || operation == 'edit')){
 
 			var selectedRecId = getSelectedRowId();
 			doOperation(operation, selectedRecId, true);
+			return;
+		}
+		
+		if(inpVal.startsWith("*")){
 			return;
 		}
 		
@@ -321,7 +325,7 @@ function posActions() {
 		openPrint();
 	});
 
-	$("body").setShortcutKey( CONTROL , V ,function() {
+	$("body").setShortcutKey( CONTROL , M ,function() {
 		openKeyboard();
 	});
 
@@ -692,6 +696,7 @@ function deleteSelectedElement() {
 	
 	selectedElement.closest('.receiptRow').css('border', '1px solid red');
 	processUrl(url, null);
+	CtrlMod = false;
 }
 
 function render_openCurrentPosTab() {
@@ -712,6 +717,8 @@ function render_prepareResult() {
 			$('.enlargeProductBtn').addClass('disabledBtn');
 		}
 	}
+	
+	clearTimeout(timeoutRemoveDisabled);
 }
 
 function render_calculateWidth(){
@@ -719,7 +726,6 @@ function render_calculateWidth(){
 }
 
 // След презареждане
-
 var semaphor;
 
 function render_afterload()
@@ -832,6 +838,12 @@ function pressNavigable(element)
 	
 	element.addClass( "disabledBtn");
 	element.prop("disabled", true);
+	
+	timeoutRemoveDisabled = setTimeout(function(){
+		element.removeClass('disabledBtn');
+		element.removeAttr("disabled");
+	}, 1000);
+	
 	processUrl(url, params);
 }
 
@@ -878,9 +890,19 @@ function isMicroformat(string) {
 			
 			// Премахваме * да остане чист стринг
 			var quantity = string.replace("*", "");
+			quantity = quantity.replace(",", ".");
 			
 			// Ако останалата част от стринга е положително число
 			if($.isNumeric(quantity) && quantity > 0){
+				if(string.startsWith("*")){
+					var split = quantity.split(".");
+					var cnt = (split[1]) ? split[1].length : 0;
+					if(cnt == 2){
+						return true;
+					}
+					
+					return false;
+				}
 				
 				return true;
 			}
@@ -1088,13 +1110,15 @@ function addProduct(el) {
 
 	// При добавяне на артикул ако в инпута има написано число или число и * да го третира като число
 	var quantity = $("input[name=ean]").val();
-	quantity = $.trim(quantity);
-	quantity = quantity.replace("*", "");
-
-	// Подаване и на количеството от инпута
-	if(quantity && $.isNumeric(quantity) && quantity > 0){
-		data.string = quantity;
-	}
+	
+	/*
+	 * quantity = $.trim(quantity);
+	 * quantity = quantity.replace("*", "");
+	 * // Подаване и на количеството от инпута
+	 * if(quantity && $.isNumeric(quantity) && quantity > 0){
+	 * data.string = quantity;
+	 * }
+	 */
 	data.recId = getSelectedRowId();
 	
 	processUrl(url, data);

@@ -128,7 +128,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid, amountInvoiced,
+    public $listFields = 'valior, title=Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid, amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,
                              dealerId=Търговец,paymentState,
                              createdOn, createdBy';
     

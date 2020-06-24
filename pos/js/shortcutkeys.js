@@ -105,12 +105,14 @@ var BACK_SLASH = 220; 		// BACK SLASH
 var CLOSE_BRACKET = 221; 	// CLOSE BRAKET
 var QUOTE = 222; 		// SINGLE QUOTE
 
+var ShiftMod = false;
+var CtrlMod = false;
+var AltMod = false;
+
 (function( $ ) {
 
 	 // VARIABLES //
-	var ShiftMod = false;
-	var CtrlMod = false;
-	var AltMod = false;
+
 
 	$.fn.setShortcutKey = function(mod, key, func){
 		try {

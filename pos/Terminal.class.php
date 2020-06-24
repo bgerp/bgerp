@@ -61,7 +61,7 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Бутони за бърз достъп до терминала
      */
-    protected static $operationShortcuts = 'operation-add=Ctrl A,operation-payment=Ctrl Z,operation-quantity=Ctrl S,operation-text=Ctrl E,operation-contragent=Ctrl K,operation-receipts=Ctrl B,enlarge=F2,print=Ctrl P,keyboard=Ctrl V,exit=Ctrl X,reject=Ctrl O,help=F1,delete=Ctrl I';
+    protected static $operationShortcuts = 'operation-add=Ctrl A,operation-payment=Ctrl Z,operation-quantity=Ctrl S,operation-text=Ctrl E,operation-contragent=Ctrl K,operation-receipts=Ctrl B,enlarge=F2,print=Ctrl P,keyboard=Ctrl M,exit=Ctrl X,reject=Ctrl O,help=F1,delete=Ctrl I';
 
     /**
      * Кои са разрешените операции
@@ -789,7 +789,6 @@ class pos_Terminal extends peripheral_Terminal
                 if (is_object($at)) {
                     $rowTpl = clone(${"{$action->type}Tpl"});
                     $rowTpl->placeObject($row);
-                    
                     $rowTpl->removeBlocks();
                     $tpl->append($rowTpl);
                 }
@@ -817,7 +816,7 @@ class pos_Terminal extends peripheral_Terminal
     {
         expect(core_Packs::isInstalled('batch'));
         $receiptRec = pos_ReceiptDetails::fetchRec($selectedRec);
-        
+       
         if($Def = batch_Defs::getBatchDef($receiptRec->productId)){
             $dataUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setbatch');
             $batchTpl = new core_ET("");
@@ -825,10 +824,9 @@ class pos_Terminal extends peripheral_Terminal
             $batchesInStore = batch_Items::getBatchQuantitiesInStore($receiptRec->productId, $receiptRec->storeId, $rec->valior);
             if(countR($batchesInStore)){
                 $cnt = 0;
-                $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'title' => 'Артикулът да е без партида', 'data-url' => toUrl($dataUrl, 'local')), 'Без партида', true);
+                $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'title' => 'Добавяне на артикул без партида', 'data-url' => toUrl($dataUrl, 'local')), 'Без партида', true);
                 $batchTpl->append($btn);
             }
-
 
             foreach ($batchesInStore as $batch => $quantity){
                 $class = 'resultBatch posBtns navigable';
@@ -854,8 +852,6 @@ class pos_Terminal extends peripheral_Terminal
                 $batchTpl = ht::createElement('div', array('class' => 'grid'), $batchTpl, true);
                 $tpl->append($batchTpl, 'BATCHES');
             }
-        } else {
-            $tpl->append(tr('Нямат партидност'), 'BATCHES');
         }
     }
     
@@ -1830,7 +1826,7 @@ class pos_Terminal extends peripheral_Terminal
             plg_Search::applySearch($string, $query);
         }
         
-        $tpl = new core_ET("<ul class='tabHolder'>[#TAB#]</ul><div class='contentHolder'>");
+        $tpl = new core_ET("<div class='scroll-holder'><ul class='tabHolder'>[#TAB#]</ul></div><div class='contentHolder'>");
         
         // Групиране на записите по дата
         $arr = array('draft' => array('caption' => 'Чернови', 'receipts' => new core_ET(""), 'count' => 0),
