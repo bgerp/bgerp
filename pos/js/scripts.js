@@ -1088,13 +1088,15 @@ function addProduct(el) {
 
 	// При добавяне на артикул ако в инпута има написано число или число и * да го третира като число
 	var quantity = $("input[name=ean]").val();
-	quantity = $.trim(quantity);
-	quantity = quantity.replace("*", "");
-
-	// Подаване и на количеството от инпута
-	if(quantity && $.isNumeric(quantity) && quantity > 0){
-		data.string = quantity;
-	}
+	
+	/*
+	 * quantity = $.trim(quantity);
+	 * quantity = quantity.replace("*", "");
+	 * // Подаване и на количеството от инпута
+	 * if(quantity && $.isNumeric(quantity) && quantity > 0){
+	 * data.string = quantity;
+	 * }
+	 */
 	data.recId = getSelectedRowId();
 	
 	processUrl(url, data);
