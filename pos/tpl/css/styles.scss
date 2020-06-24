@@ -339,13 +339,34 @@
 	width:48%;
 	display: table-cell;
 }
+.wide .tabHolder {
+		display: grid;
+		align-items: center;
+		grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+		text-align: center;
+		padding-left: 0;
+		grid-gap: 1rem;
+}
+.narrow .scroll-holder {
+	overflow-x: auto;
+	display: block;
+	.tabHolder {
+		padding-left: 0;
+		width: 600px;
+		li {
+			display: inline-block;
+			border-color: transparent;
+			margin-right: 10px;
+		}
+	}
+}
+.narrow #receiptnew {
+	color: #333 !important;
+}
+.narrow .contentHolder {
+	padding: 10px;
+}
 .tabHolder {
-	display: grid;
-	align-items: center;
-	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-	text-align: center;
-	padding-left: 0;
-	grid-gap: 1rem;
 	li {
 		list-style: none;
 		padding: 7px 10px;

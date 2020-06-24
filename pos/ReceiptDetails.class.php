@@ -417,6 +417,11 @@ class pos_ReceiptDetails extends core_Detail
         $selectedRec = null;
         if($recId = request::get('recId', 'int')){
             $selectedRec = $this->fetch($recId);
+        
+            // Ако селектирания ред е с партида, се приема че ще се добавя нов ред
+            if(!empty($selectedRec->batch)){
+                $selectedRec = null;
+            }
         }
         
         try{

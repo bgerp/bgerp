@@ -4,7 +4,7 @@
   font-family: 'Fira Mono', monospace !important;
   font-size: 0.9em; }
 
-.wide #result-holder {
+#result-holder {
   background: #12008a; }
 
 .highlighted {
@@ -61,4 +61,12 @@
   color: #333333 !important;
   font-weight: bold;
   border-color: #999999; }
+
+.tabHolder li {
+  border-color: rgba(0, 0, 0, 0) !important;
+  color: #9999cc; }
+
+.tabHolder li.active {
+  color: white;
+  border-bottom: 4px solid white !important; }
 

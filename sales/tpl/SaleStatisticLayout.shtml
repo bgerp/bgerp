@@ -15,6 +15,9 @@
                  |Фактурирано|*, [#currencyId#]
              </td>
              <td class = 'sum-th'>
+                 |Фактуриран аванс|*, [#currencyId#]
+             </td>
+             <td class = 'sum-th'>
                  |Информация|*
              </td>
           </tr>
@@ -23,6 +26,8 @@
               <td class = 'nowrap'>[#amountDelivered#] </td>
               <td class = 'nowrap'>[#amountPaid#]</td>
               <td class = 'nowrap'>[#amountInvoiced#]</td>
+              <td class = 'nowrap'>[#amountInvoicedDownpayment#]</td>
+              
               <td class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left' rowspan='3'>
                   <!--ET_BEGIN paymentState-->
                   <span style='font-weight:normal'>|Чакащо плащане|*</span>: [#paymentState#]<br>
@@ -60,12 +65,16 @@
            <td class = 'sum-th'>
              |За фактуриране|*, |ДДС|*
           </td>
+          <td class = 'sum-th'>
+             |Аванс за приспадане|*, |ДДС|*
+          </td>
           </tr>
           <tr>
             <td>[#amountBl#]</td>
             <td>[#amountToDeliver#]</td>
             <td>[#amountToPay#]</td>
             <td>[#amountToInvoice#]</td>
+            <td>[#amountInvoicedDownpaymentToDeduct#]</td>
           </tr>
        </table>
     </div>

@@ -5,7 +5,7 @@
   font-size: 0.9em;
 }
 
-.wide #result-holder{
+#result-holder{
   background: #12008a;
 }
 
@@ -67,4 +67,14 @@
   color: #333 !important;
   font-weight: bold;
   border-color: #999;
+}
+
+.tabHolder li{
+  border-color: transparent !important;
+  color: #99c;
+}
+
+.tabHolder li.active {
+  color: #fff;
+  border-bottom: 4px solid #fff !important;
 }

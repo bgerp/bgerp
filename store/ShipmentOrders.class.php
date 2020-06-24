@@ -220,6 +220,8 @@ class store_ShipmentOrders extends store_DocumentMaster
         $this->FLD('address', 'varchar', 'caption=Адрес за доставка->Адрес, changable, class=contactData');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
         $this->setField('deliveryTime', 'caption=Натоварване');
+        
+        $this->setDbIndex('createdOn');
     }
     
     

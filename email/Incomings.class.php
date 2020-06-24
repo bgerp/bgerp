@@ -249,6 +249,8 @@ class email_Incomings extends core_Master
         
         $this->setDbUnique('hash');
         $this->setDbIndex('fromEml');
+        
+        $this->setDbIndex('modifiedOn');
     }
     
     
