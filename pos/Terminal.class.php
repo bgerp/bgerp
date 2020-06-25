@@ -1685,7 +1685,8 @@ class pos_Terminal extends peripheral_Terminal
                     $pQuery->orderBy('code,name', 'ASC');
                     
                     if(countR($groups)){
-                        $pQuery->likeKeylist('groups', $groups);
+                        $or = countR($productsArr) ? true : false;
+                        $pQuery->likeKeylist('groups', $groups, $or);
                         if(!countR($productsArr)){
                             $pQuery->limit($maxSearchProducts);
                         }
