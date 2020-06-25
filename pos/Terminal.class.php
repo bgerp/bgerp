@@ -1572,7 +1572,7 @@ class pos_Terminal extends peripheral_Terminal
                 if(!countR($inGroup)){
                     $class .= ' disabledTab';
                 }
-                $tab = "<li class='{$class}' data-content = '{$contentId}'>{$groupName}</li>";
+                $tab = "<li id='group{$groupId}' class='{$class}' data-content = '{$contentId}'>{$groupName}</li>";
                 $resultTpl->append($tab, "TAB");
             }
             
