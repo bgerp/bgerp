@@ -374,6 +374,14 @@ function posActions() {
 		showHints();
 	});
 
+	$("body").setShortcutKey( CONTROL , HOME ,function() {
+		$( "#result-holder" ).scrollTop( 0 );
+	});
+
+	$("body").setShortcutKey( CONTROL , END ,function() {
+		$( "#result-holder" ).scrollTop( 5000);
+	});
+
 	// При натискане на бутона за клавиатура
 	$(document.body).on('click',  function(e){
 		hideHints();
