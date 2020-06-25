@@ -148,7 +148,7 @@
 
 #receipt-table .highlighted {
   background: #fefead !important;
-  border-left: 6px solid #12008a; }
+  border-left: 6px solid #f70026; }
 
 .num-keyboard {
   margin-left: -8px; }
@@ -368,7 +368,8 @@
   border: 1px solid #666666;
   border-radius: 3px;
   box-shadow: rgba(233, 233, 233, 0.5) 1px 1px 0 0 inset, 2px 2px 3px rgba(0, 0, 0, 0.1);
-  position: relative; }
+  position: relative;
+  opacity: 0.7; }
   .posBtns.imgDiv {
     padding-left: 50px !important;
     text-align: left; }
@@ -418,9 +419,10 @@
     right: 3px !important; }
   .posBtns:focus,
   .posBtns.selected {
-    box-shadow: 0px 0px 3px #0000fa !important;
+    box-shadow: 0px 0px 15px #0000fa !important;
     border: 3px solid #080f56;
-    padding: 8px 18px !important; }
+    padding: 8px 18px !important;
+    opacity: 1; }
   .posBtns.revertReceiptBtn {
     color: #8c1919 !important; }
   .posBtns#receiptnew,
@@ -574,12 +576,14 @@
   border-radius: 5px;
   height: 113px;
   background: #f1f1f1;
-  user-select: none; }
+  user-select: none;
+  opacity: 0.7; }
   .element:focus,
   .element.selected {
-    box-shadow: 0px 0px 3px #0000fa !important;
+    box-shadow: 0px 0px 15px #0000fa !important;
     border: 3px solid #080f56;
-    padding: 8px !important; }
+    padding: 8px !important;
+    opacity: 1; }
   .element .pos-title {
     text-indent: -75px;
     height: 72px;
@@ -816,6 +820,9 @@ td.revertCaption {
     background-color: #cc6666 !important; }
   .actionBtn.onBtn {
     background-color: #53a163 !important; }
+
+.noFoundInGroup {
+  padding: 20px 0 30px; }
 
 /*
  * media queries за клавиатурата
