@@ -255,6 +255,11 @@ function posActions() {
 		activeInput = false;
 		clearTimeout(timeout);
 	});
+
+	
+	$(document.body).on('click', ".large-field.select-input-pos", function(e){
+		activeInput = true;
+	});
 	
 	// При прехвърляне на бележка, автоматично създаваме нова
 	$(document.body).on('click', ".transferBtn", function(e){
