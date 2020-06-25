@@ -316,6 +316,9 @@
 	width: 34px;
 	height: 34px;
 }
+.half td {
+	height: 45px;
+}
 .shortcuts {
 	span {
 		position: relative;
@@ -333,7 +336,8 @@
 }
 .title {
 	font-weight: bold;
-	padding: 10px 0;
+	vertical-align: bottom;
+	padding-bottom: 10px;
 }
 .half {
 	width:48%;

@@ -1,7 +1,7 @@
 <html>
 
 <body>
-<div class="half">
+<div class="half" >
     <table>
         <tr>
             <td colspan="3"  class='title'>Клавишни комбинации:</td>
@@ -46,7 +46,7 @@
         </tr>
         <tr>
             <td class="imageCell">[#img9#]</td>
-            <td class="shortcuts"><span>Ctrl + V </span></td>
+            <td class="shortcuts"><span>Ctrl + M </span></td>
             <td class="textShortcut"> - Отваряне на виртуална клавиатура</td>
         </tr>
         <tr>
@@ -64,15 +64,25 @@
             <td class="shortcuts"><span>Ctrl + X </span></td>
             <td class="textShortcut"> - Изход терминала</td>
         </tr>
-        <tr>
-            <td></td>
-            <td class="shortcuts"><span>Ctrl + DEL </span></td>
-            <td class="textShortcut"> - Изтриване на избрания ред от бележката</td>
-        </tr>
     </table>
 </div>
 <div class="half">
     <table>
+        <tr>
+            <td></td><td></td>
+        </tr>
+        <tr>
+            <td class="shortcuts"><span>Ctrl + DEL </span></td>
+            <td class="textShortcut"> - Изтриване на избрания ред от бележката</td>
+        </tr>
+        <tr>
+            <td class="shortcuts"><span>Ctrl + HOME </span></td>
+            <td class="textShortcut"> - Скролира до началото на страницата</td>
+        </tr>
+        <tr>
+            <td class="shortcuts"><span>Ctrl + END </span></td>
+            <td class="textShortcut"> - Скролира до края на страницата</td>
+        </tr>
         <tr>
             <td colspan="2" class='title'>Съкратени формати за редактиране на текущ ред: </td>
         </tr>
@@ -88,5 +98,7 @@
             <td class="shortcuts"><span>5% </span></td>
             <td class="textShortcut"> - Задаване на отстъпка</td>
         <tr>
+
+    </table>
 </div>
 </body>
