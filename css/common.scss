@@ -3796,10 +3796,12 @@ span.cng {
 	text-align: left;
 }
 
-
 td.rightCol, th.rightCol {
-	white-space:nowrap;
 	text-align:right !important;
+}
+
+td.rightCol {
+	white-space: nowrap;
 }
 
 td.leftCol, th.leftCol {
