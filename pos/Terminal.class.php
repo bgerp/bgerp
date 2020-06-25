@@ -1574,15 +1574,24 @@ class pos_Terminal extends peripheral_Terminal
             }
             
             // Показват се тези от резултатите, които са във всяка група
-            $groupTpl = ($countGroups) ? new core_ET("<div class='content' id='{$contentId}'><div class='grid'>[#RESULT_CONTENT#]</div></div>") : new core_ET("<div class='grid'>[#RESULT_CONTENT#]</div>");
+            $groupTpl = ($countGroups) ? new core_ET("<div class='content' id='{$contentId}'>[#RESULT_CONTENT#]</div>") : new core_ET("<div class='grid'>[#RESULT_CONTENT#]</div>");
             if(countR($inGroup)){
+                $grTpl = new core_ET("");
                 foreach($inGroup as $row){
                     $row->elementId = "result{$groupId}_{$row->id}";
                     $bTpl = clone $block;
                     $bTpl->placeObject($row);
                     $bTpl->removeBlocksAndPlaces();
-                    $groupTpl->append($bTpl, 'RESULT_CONTENT');
+                    $grTpl->append($bTpl);
                 }
+                
+                if($countGroups){
+                    $grTpl->prepend("<div class='grid'>");
+                    $grTpl->append("</div>");
+                } 
+                
+                $grTpl->removeBlocksAndPlaces();
+                $groupTpl->append($grTpl, 'RESULT_CONTENT');
             } else {
                 $groupTpl->append('<div class="noFoundInGroup">' . tr("Няма намерени артикули в групата") . '</div>', 'RESULT_CONTENT');
             }
