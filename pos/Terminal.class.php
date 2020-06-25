@@ -1477,7 +1477,7 @@ class pos_Terminal extends peripheral_Terminal
         cls::get('pos_Receipts')->invoke('AfterPushTerminalFiles', array(&$tpl, $rec));
         
         // Абониране за рефреш на хедъра
-        core_Ajax::subscribe($tpl, array($this, 'autoRefreshHeader', $rec->id), 'refreshTime', 20);
+        core_Ajax::subscribe($tpl, array($this, 'autoRefreshHeader', $rec->id), 'refreshTime', 30);
     }
     
     
@@ -1490,13 +1490,25 @@ class pos_Terminal extends peripheral_Terminal
         pos_Receipts::requireRightFor('terminal');
         expect($id = Request::get('id', 'int'));
         pos_Receipts::requireRightFor('terminal', $id);
+        $res = array();
         
         // Добавяме резултата
         $resObj = new stdClass();
         $resObj->func = 'html';
         $resObj->arg = array('id' => 'terminalTime', 'html' => $this->renderCurrentTime()->getContent(), 'replace' => true);
+        $res[] = $resObj;
         
-        return array($resObj);
+        $resObj1 = new stdClass();
+        $resObj1->func = 'clearStatuses';
+        $resObj1->arg = array('type' => 'notice');
+        $res[] = $resObj1;
+        
+        $resObj2 = new stdClass();
+        $resObj2->func = 'clearStatuses';
+        $resObj2->arg = array('type' => 'error');
+        $res[] = $resObj2;
+        
+        return $res;
     }
     
     
