@@ -3797,11 +3797,15 @@ span.cng {
 }
 
 td.rightCol, th.rightCol {
+	white-space: nowrap;
 	text-align:right !important;
 }
 
-td.rightCol {
-	white-space: nowrap;
+.sales_Sales, .purchase_Purchases {
+	.listTable th {
+		white-space: normal;
+		font-size: 0.95em;
+	}
 }
 
 td.leftCol, th.leftCol {
