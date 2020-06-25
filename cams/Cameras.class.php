@@ -279,7 +279,7 @@ class cams_Cameras extends core_Master
      */
     public function act_Settings()
     {
-        requireRole('ceo,admin');
+        requireRole('ceo,admin,cams');
         
         $form = cls::get('core_Form');
         
