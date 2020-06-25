@@ -1545,49 +1545,43 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
-        $resultTpl = new core_ET("");
         $groups = keylist::toArray(pos_Points::getSettings($rec->pointId, 'groups'));
+        $countGroups = countR($groups);
         
         // Ако има групи на артикулите
-        if(countR($groups)){
-            $resultTpl = new core_ET("<div class='scroll-holder'><ul class='tabHolder'>[#TAB#]</ul></div><div class='contentHolder'>");
-            $groups = array('all' => null) + $groups;
-            foreach ($groups as $groupId){
-                $inGroup = array_filter($foundResults->rows, function($e) use ($groupId){ return is_null($groupId) || keylist::isIn($groupId, $e->_groups);});
-              
+        $resultTpl = ($countGroups) ? new core_ET("<div class='scroll-holder'><ul class='tabHolder'>[#TAB#]</ul></div><div class='contentHolder'>") : new core_ET("");
+        $groups = array('all' => null) + $groups;
+        foreach ($groups as $groupId){
+            $inGroup = array_filter($foundResults->rows, function($e) use ($groupId){ return is_null($groupId) || keylist::isIn($groupId, $e->_groups);});
+            if($countGroups){
                 $groupName = (isset($groupId)) ? cat_Groups::getVerbal($groupId, 'name') : tr("Всички");
                 $contentId = "content{$groupId}";
                 $class = (!isset($groupId)) ? 'active' : '';
+                if(!countR($inGroup)){
+                    $class .= ' disabledTab';
+                }
                 $tab = "<li class='{$class}' data-content = '{$contentId}'>{$groupName}</li>";
                 $resultTpl->append($tab, "TAB");
-                
-                // Показват се тези от резултатите, които са във всяка група
-                $groupTpl = new core_ET("<div class='content' id='{$contentId}'><div class='grid'>[#RESULT_CONTENT#]</div></div>");
-                foreach($inGroup as $row){
-                    $row->elementId = "result{$groupId}_{$row->id}";
-                    $bTpl = clone $block;
-                    $bTpl->placeObject($row);
-                    $bTpl->removeBlocksAndPlaces();
-                    $groupTpl->append($bTpl, 'RESULT_CONTENT');
-                }
-                
-                $resultTpl->append($groupTpl);
             }
-            $resultTpl->append("</div>");
-        } else {
             
-            // Ако няма рендират се всички
-            foreach($foundResults->rows as $row){
-                $row->elementId = "result{$row->id}";
+            // Показват се тези от резултатите, които са във всяка група
+            $groupTpl = ($countGroups) ? new core_ET("<div class='content' id='{$contentId}'><div class='grid'>[#RESULT_CONTENT#]</div></div>") : new core_ET("<div class='grid'>[#RESULT_CONTENT#]</div>");
+            foreach($inGroup as $row){
+                $row->elementId = "result{$groupId}_{$row->id}";
                 $bTpl = clone $block;
                 $bTpl->placeObject($row);
                 $bTpl->removeBlocksAndPlaces();
-                $resultTpl->append($bTpl);
+                $groupTpl->append($bTpl, 'RESULT_CONTENT');
             }
+            
+            $resultTpl->append($groupTpl);
+        }
+        
+        if($countGroups){
+            $resultTpl->append("</div>");
         }
         
         $resultTpl->removeBlocksAndPlaces();
-        
         if(!empty($data->searchString)){
             $resultTpl->prepend(tr("|*<div class='divider'>|Намерени артикули|*</div>"));
         }
@@ -1802,6 +1796,7 @@ class pos_Terminal extends peripheral_Terminal
             $res[$id] = new stdClass();;
             $Double = core_Type::getByName('double(decimals=2)');
             
+            $obj->price *= 1 + $vat;
             $res[$id]->price = currency_Currencies::decorate($Double->toVerbal($obj->price));
             $res[$id]->stock = core_Type::getByName('double(smartRound)')->toVerbal($obj->stock);
             $packagingId = ($obj->packagingId) ? $obj->packagingId : $obj->measureId;
