@@ -1568,8 +1568,7 @@ class pos_Terminal extends peripheral_Terminal
             if($countGroups){
                 $groupName = (isset($groupId)) ? cat_Groups::getVerbal($groupId, 'name') : tr("Всички");
                 $contentId = "content{$groupId}";
-                $class = (!countR($inGroup)) ? '' : ' selectable';
-                $tab = "<li id='group{$groupId}' class='{$class}' data-content = '{$contentId}'>{$groupName}</li>";
+                $tab = "<li id='group{$groupId}' class='selectable' data-content = '{$contentId}'>{$groupName}</li>";
                 $resultTpl->append($tab, "TAB");
             }
             
@@ -1923,7 +1922,6 @@ class pos_Terminal extends peripheral_Terminal
         
         $revertBlock = ht::createLink('↶ Сторно бележка', $revertDefaultUrl, $warning, array('id' => "revertReceiptBtn", 'class' => "pos-notes posBtns revertReceiptBtn {$disabledRevertClass}", 'title' => 'Създаване на нова сторно бележка'));
         $arr['draft']['receipts']->append($revertBlock);
-        $count = $query->count();
         
         while ($receiptRec = $query->fetch()) {
             $key = $receiptRec->state;
@@ -1949,22 +1947,19 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
-        $currentSelected = false;
-        
         foreach ($arr as $key => $element){
-            $class = '';
-            if(!$currentSelected && (!$count || $element['count'] > 0)){
-                $currentSelected = true;
-            }
-            
             $contentId = "content{$key}";
-            $tab = "<li class='{$class}' data-content = '{$contentId}'>{$element['caption']}</li>";
+            $tab = "<li class='selectable' data-content = '{$contentId}'>{$element['caption']}</li>";
             $tpl->append($tab, "TAB");
             
-            $element['receipts']->prepend("<div class='content' id='{$contentId}'><div class='grid'>");
-            $element['receipts']->append("</div></div>");
-            $element['receipts']->removeBlocksAndPlaces();
-            $tpl->append($element['receipts']);
+            if($element['count']){
+                $element['receipts']->prepend("<div class='content' id='{$contentId}'><div class='grid'>");
+                $element['receipts']->append("</div></div>");
+                $element['receipts']->removeBlocksAndPlaces();
+                $tpl->append($element['receipts']);
+            } else {
+                $tpl->append("<div class='content' id='{$contentId}'><div class='noFoundInGroup'>" . tr("Няма намерени бележки") . "</div></div>");
+            }
         }
         
         $tpl->append('</div>');
