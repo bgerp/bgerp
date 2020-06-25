@@ -19,7 +19,10 @@ function posActions() {
 		})
 	});
 
+
+
 	$('.large-field.select-input-pos').focus();
+
 
 	// Забраняване на скалирането, за да избегнем забавяне
 	if(isTouchDevice()){
@@ -968,8 +971,9 @@ function startNavigation() {
 	if($('.navigable').length) {
 		var focused = sessionStorage.getItem('focused');
 
+		console.log(focused);
 		// ръчно избирам първия елемент за селектед
-		if(!focused || $('.navigable.selected:visible').length == 0){
+		if(!focused && $('.navigable.selected:visible').length == 0){
 			selectFirstNavigable();
 		} else if (focused && !$('#' + focused ).hasClass('disabledBtn') && document.getElementById(focused) && $('.navigable.selected:visible').length == 0) {
 			$('.selected').removeClass('selected');
