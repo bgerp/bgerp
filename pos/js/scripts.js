@@ -178,6 +178,9 @@ function posActions() {
 		var id = $(this).attr('data-content');
 		$(this).addClass('active').siblings().removeClass('active');
 		$("#" + id).show().siblings().hide();
+		if($('.scroll-holder.productTabs').length) {
+			sessionStorage.setItem("activeProductTab", $('.tabHolder li.active').attr('id'));
+		}
 		startNavigation();
 	});
 
@@ -382,6 +385,7 @@ function prevTab() {
 	if($(currentTab).prev().length) {
 		$(currentTab).prev().click();
 		activeInput = false;
+		sessionStorage.setItem("activeProductTab", $('.tabHolder li.active').attr('id'));
 	}
 
 	startNavigation();
@@ -393,13 +397,13 @@ function prevTab() {
  */
 function nextTab() {
 	sessionStorage.removeItem("focused");
-	
+
 	var currentTab = $('.tabHolder li.active');
 	if($(currentTab).next().length) {
 		$(currentTab).next().click();
 		activeInput = false;
+		sessionStorage.setItem("activeProductTab", $('.tabHolder li.active').attr('id'));
 	}
-
 	startNavigation();
 }
 
@@ -1162,10 +1166,16 @@ function getSelectedRowId() {
 }
 
 function openCurrentPosTab() {
-	if($('.tabHolder li.active').length) {
-		var currentTab = $('.tabHolder li.active').attr('data-content');
+	if($('.tabHolder li').length) {
+		var activeId = sessionStorage.getItem('activeProductTab');
+		if (activeId) {
+			var activeTab = $('.tabHolder li#' + activeId ).addClass('active');
+		} else {
+			var activeTab = $('.tabHolder li').first().addClass('active');
+		}
+		var currentTabContent = activeTab.attr('data-content');
 
-		$("#" + currentTab).show();
+		$("#" + currentTabContent).show();
 		startNavigation();
 	}
 }

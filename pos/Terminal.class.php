@@ -1561,7 +1561,7 @@ class pos_Terminal extends peripheral_Terminal
         $countGroups = countR($groups);
         
         // Ако има групи на артикулите
-        $resultTpl = ($countGroups) ? new core_ET("<div class='scroll-holder'><ul class='tabHolder'>[#TAB#]</ul></div><div class='contentHolder'>") : new core_ET("");
+        $resultTpl = ($countGroups) ? new core_ET("<div class='scroll-holder productTabs'><ul class='tabHolder'>[#TAB#]</ul></div><div class='contentHolder'>") : new core_ET("");
         $groups = array('all' => null) + $groups;
         foreach ($groups as $groupId){
             $inGroup = array_filter($foundResults->rows, function($e) use ($groupId){ return is_null($groupId) || keylist::isIn($groupId, $e->_groups);});
@@ -1955,7 +1955,6 @@ class pos_Terminal extends peripheral_Terminal
             $class = '';
             if(!$currentSelected && (!$count || $element['count'] > 0)){
                 $currentSelected = true;
-                $class = 'active';
             }
             
             $contentId = "content{$key}";
