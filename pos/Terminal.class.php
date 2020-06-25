@@ -1568,20 +1568,23 @@ class pos_Terminal extends peripheral_Terminal
             if($countGroups){
                 $groupName = (isset($groupId)) ? cat_Groups::getVerbal($groupId, 'name') : tr("Всички");
                 $contentId = "content{$groupId}";
-                $class = (!isset($groupId)) ? 'active' : '';
-                $class .= (!countR($inGroup)) ? ' disabledTab' : ' selectable';
+                $class = (!countR($inGroup)) ? '' : ' selectable';
                 $tab = "<li id='group{$groupId}' class='{$class}' data-content = '{$contentId}'>{$groupName}</li>";
                 $resultTpl->append($tab, "TAB");
             }
             
             // Показват се тези от резултатите, които са във всяка група
             $groupTpl = ($countGroups) ? new core_ET("<div class='content' id='{$contentId}'><div class='grid'>[#RESULT_CONTENT#]</div></div>") : new core_ET("<div class='grid'>[#RESULT_CONTENT#]</div>");
-            foreach($inGroup as $row){
-                $row->elementId = "result{$groupId}_{$row->id}";
-                $bTpl = clone $block;
-                $bTpl->placeObject($row);
-                $bTpl->removeBlocksAndPlaces();
-                $groupTpl->append($bTpl, 'RESULT_CONTENT');
+            if(countR($inGroup)){
+                foreach($inGroup as $row){
+                    $row->elementId = "result{$groupId}_{$row->id}";
+                    $bTpl = clone $block;
+                    $bTpl->placeObject($row);
+                    $bTpl->removeBlocksAndPlaces();
+                    $groupTpl->append($bTpl, 'RESULT_CONTENT');
+                }
+            } else {
+                $groupTpl->append('<div class="noFoundInGroup">' . tr("Няма намерени артикули в групата") . '</div>', 'RESULT_CONTENT');
             }
             
             $resultTpl->append($groupTpl);
