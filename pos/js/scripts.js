@@ -42,7 +42,7 @@ function posActions() {
 		var val = $(this).val();
 
 		var inputElement = $('.select-input-pos');
-
+		activeInput = true;
 		inputChars(inputElement, val);
 	});
 	
@@ -174,6 +174,7 @@ function posActions() {
 		if (currentAttrValue == "ENTER") {
 			$('.select-input-pos').val($('.keyboardText').val());
 			$('.ui-dialog-titlebar-close').click();
+			activeInput = true;
 		} else {
 			inputChars($('.keyboardText'), currentAttrValue);
 		}
@@ -256,7 +257,7 @@ function posActions() {
 		clearTimeout(timeout);
 	});
 
-	
+
 	$(document.body).on('click', ".large-field.select-input-pos", function(e){
 		activeInput = true;
 	});
