@@ -78,7 +78,7 @@ class type_Keylist extends core_Type
         $ids = str_replace($div, ',', $value);
         
         if ($ids) {
-            $idsKey = md5($ids . '|' . json_encode($this->params) . '|' . Mode::is('text-export', 'csv') . '|' . Mode::get('text'));
+            $idsKey = md5($ids . '|' . json_encode($this->params) . '|' . Mode::get('text-export') . '|' . Mode::get('text'));
             
             if (($res = $cache[$mvc->className][$idsKey]) === null) {
                 foreach ($vals as $v) {
