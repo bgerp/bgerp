@@ -51,15 +51,16 @@ class payment_ParserIso20022 extends core_BaseClass
         
         if(strpos(implode('|', $transactions->getNamespaces()), 'camt.052') !== false) {
             $array = array($transactions->BkToCstmrAcctRpt->Rpt);
-        } elseif (strpos(implode('|', $transactions->getNamespaces()), 'camt.053') !== false) {
-            $res->warnings[] = "Друг формата - camt.053";
-            
-            return $res;
         } else {
             $array = $transactions->BkToCstmrStmt->Stmt;
         }
         
         if (!$array) {
+            if (strpos(implode('|', $transactions->getNamespaces()), 'camt.053') !== false) {
+                $res->warnings[] = "Друг формата - camt.053";
+                
+                return $res;
+            }
             
             return ;
         }
