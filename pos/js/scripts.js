@@ -1168,10 +1168,10 @@ function getSelectedRowId() {
 function openCurrentPosTab() {
 	if($('.tabHolder li').length) {
 		var activeId = sessionStorage.getItem('activeProductTab');
-		if (activeId) {
+		if (activeId && $('.tabHolder li#' + activeId ).length) {
 			var activeTab = $('.tabHolder li#' + activeId ).addClass('active');
 		} else {
-			var activeTab = $('.tabHolder li').first().addClass('active');
+			var activeTab = $('.tabHolder li:first').addClass('active');
 		}
 		var currentTabContent = activeTab.attr('data-content');
 
