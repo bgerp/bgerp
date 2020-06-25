@@ -99,8 +99,9 @@ class type_Keylist extends core_Type
                             if($this->params['makeLinks'] === 'hyperlink' && ($mvc instanceof core_Master)){
                                 $name = $mvc->getTitleById($v);
                             }
-
-                            $name = ht::createElement('span', $attr, $name, true);
+                            if (!Mode::is('text-export', 'csv')) {
+                                $name = ht::createElement('span', $attr, $name, true);
+                            }
                         }
                             
                         if (Mode::is('text-export', 'csv')) {
