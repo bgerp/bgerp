@@ -969,11 +969,9 @@ function startNavigation() {
 		var focused = sessionStorage.getItem('focused');
 
 		// ръчно избирам първия елемент за селектед
-		if(!focused && $('.navigable.selected:visible').length == 0){
+		if(!focused || $('.navigable.selected:visible').length == 0){
 			selectFirstNavigable();
-		}
-
-		if (focused && !$('#' + focused ).hasClass('disabledBtn') && document.getElementById(focused) && $('.navigable.selected:visible').length == 0) {
+		} else if (focused && !$('#' + focused ).hasClass('disabledBtn') && document.getElementById(focused) && $('.navigable.selected:visible').length == 0) {
 			$('.selected').removeClass('selected');
 			$('#' + focused ).addClass('selected');
 		}
