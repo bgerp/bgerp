@@ -53,7 +53,12 @@ function posActions() {
 		
 		processUrl(url, params);
 	});
-	
+
+	$(document.body).on('keypress', ".large-field", function(e){
+		if(activeInput == false) {
+			$('.large-field.select-input-pos').val("");
+		}
+	});
 	/**
 	 * При спиране на писането в полето за търсене
 	 * @param e
@@ -65,9 +70,10 @@ function posActions() {
 		if($(".buttonOverlay").css('display') != 'none'){
 			return;
 		}
+
 		// Хак да не се тригърва ивента при натискане на ентър или при навигацията на страницата за избор на селектиран елемент
 		if(e.key == "Enter" || e.key == "ArrowRight" || e.key == "ArrowLeft" || e.key == "ArrowUp" || e.key == "ArrowDown"  || e.key == "PageUp" || e.key == "PageDown" || e.key == 'Alt' || e.key == 'Control' || e.key == 'Escape' || e.key == 'F2') return;
-		
+
 		activeInput = true;
 
 		// След всяко натискане на бутон изчистваме времето на изчакване
