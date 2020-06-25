@@ -1569,9 +1569,7 @@ class pos_Terminal extends peripheral_Terminal
                 $groupName = (isset($groupId)) ? cat_Groups::getVerbal($groupId, 'name') : tr("Всички");
                 $contentId = "content{$groupId}";
                 $class = (!isset($groupId)) ? 'active' : '';
-                if(!countR($inGroup)){
-                    $class .= ' disabledTab';
-                }
+                $class .= (!countR($inGroup)) ? ' disabledTab' : ' selectable';
                 $tab = "<li id='group{$groupId}' class='{$class}' data-content = '{$contentId}'>{$groupName}</li>";
                 $resultTpl->append($tab, "TAB");
             }
