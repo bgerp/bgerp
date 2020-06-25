@@ -1591,6 +1591,13 @@ abstract class deals_DealMaster extends deals_DealBase
         if ($data->paymentPlan) {
             $tpl->placeObject($data->paymentPlan);
         }
+        
+        if(!$data->rec->amountInvoicedDownpayment && !$data->rec->amountInvoicedDownpaymentToDeduct){
+            $tpl->removeBlock('INVOICE_DOWNPAYMENT_TH');
+            $tpl->removeBlock('INVOICE_DOWNPAYMENT_TD');
+            $tpl->removeBlock('INVOICE_DOWNPAYMENT_DEDUCTED_TD');
+            $tpl->removeBlock('INVOICE_DOWNPAYMENT_DEDUCTED_TH');
+        }
     }
     
     
