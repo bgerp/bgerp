@@ -178,6 +178,7 @@ function posActions() {
 		var id = $(this).attr('data-content');
 		$(this).addClass('active').siblings().removeClass('active');
 		$("#" + id).show().siblings().hide();
+		startNavigation();
 	});
 
 	$(document.body).on('click', ".ui-dialog-titlebar-close", function() {
@@ -225,7 +226,10 @@ function posActions() {
 			hideHints();
 		}
 	});
-	startNavigation();
+	if($('.tabHolder').length == 0) {
+		startNavigation();
+	}
+
 
 	// действие на бутоните за действията
 	$(document.body).on('click', ".operationBtn", function(e){
@@ -708,7 +712,9 @@ function render_openCurrentPosTab() {
 
 function render_prepareResult() {
 	activeInput = false;
-	startNavigation();
+	if($('.tabHolder').length == 0) {
+		startNavigation();
+	}
 
 	// Бутона за увеличение да се дисейбва ако няма избран селектиран ред
 	if($('.enlargeProductBtn').length){
@@ -970,13 +976,12 @@ function selectFirstNavigable()
 function startNavigation() {
 	if($('.navigable').length) {
 		var focused = sessionStorage.getItem('focused');
+		$('.selected').removeClass('selected');
 
-		console.log(focused);
 		// ръчно избирам първия елемент за селектед
-		if(!focused && $('.navigable.selected:visible').length == 0){
+		if(!focused ||  $('#' + focused ).length == 0){
 			selectFirstNavigable();
 		} else if (focused && !$('#' + focused ).hasClass('disabledBtn') && document.getElementById(focused) && $('.navigable.selected:visible').length == 0) {
-			$('.selected').removeClass('selected');
 			$('#' + focused ).addClass('selected');
 		}
 
