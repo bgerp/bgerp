@@ -234,14 +234,17 @@ class pos_ReceiptDetails extends core_Detail
                     }
                     
                     $rec->quantity = $quantity;
-                    $rec->amount = $rec->price * $rec->quantity;
-                    
+                   
                     if(!empty($secondValue)){
                         expect($packagingId = cat_UoM::fetchBySinonim($secondValue)->id, 'Не е разпозната опаковка');
                         $packs = cat_Products::getPacks($rec->productId);
                         expect(array_key_exists($packagingId, $packs), 'Опаковката/мярка не е налична за въпросния артикул');
                         $rec->value = $packagingId;
+                    
+                        // Преизчисляване на цената на опаковката
+                        $this->getProductInfo($rec);
                     }
+                    $rec->amount = $rec->price * $rec->quantity;
                     
                     if(isset($receiptRec->revertId)){
                         if($receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
