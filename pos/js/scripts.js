@@ -759,7 +759,7 @@ function enter(){
 	var value = $("input[name=ean]").val();
 
 	// Ако има селектиран ред в резултатите
-	var element = $(".navigable.selected");
+	var element = $(".navigable.selected:visible");
 
 	// Ако има селектиран елемент в резултатите
 	if(element.length){
