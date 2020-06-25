@@ -1564,7 +1564,7 @@ class pos_Terminal extends peripheral_Terminal
                 // Показват се тези от резултатите, които са във всяка група
                 $groupTpl = new core_ET("<div class='content' id='{$contentId}'><div class='grid'>[#RESULT_CONTENT#]</div></div>");
                 foreach($inGroup as $row){
-                    $row->elementId = "result{$row->id}";
+                    $row->elementId = "result{$groupId}_{$row->id}";
                     $bTpl = clone $block;
                     $bTpl->placeObject($row);
                     $bTpl->removeBlocksAndPlaces();
