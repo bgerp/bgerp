@@ -517,21 +517,17 @@ class pos_ReceiptDetails extends core_Detail
             // Ако селектирания ред е с партида, се приема че ще се добавя нов ред
             $defaultStoreId = static::getDefaultStoreId($receiptRec->pointId, $rec->productId, $rec->quantity, $rec->value);
             
-            if(!empty($selectedRec->batch)){ 
-                $unsetRec = true;
-                if(isset($defaultStoreId)){
-                    if(core_Packs::isInstalled('batch')){
-                        $batchQuantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $defaultStoreId);
-                        if(countR($batchQuantities) == 1){
-                            $rec->batch = key($batchQuantities);
-                            $unsetRec = false;
-                        }
+            if(isset($defaultStoreId)){
+                if(core_Packs::isInstalled('batch')){
+                    $batchQuantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $defaultStoreId);
+                    if(countR($batchQuantities) != 1){
+                        $rec->batch = key($batchQuantities);
                     }
                 }
-                
-                if($unsetRec){
-                    $selectedRec = null;
-                }
+            }
+            
+            if(!empty($selectedRec->batch) && empty($rec->batch)){ 
+                $selectedRec = null;
             }
             
             if($selectedRec->productId == $rec->productId){
