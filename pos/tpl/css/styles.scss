@@ -319,6 +319,19 @@
 .half td {
 	height: 45px;
 }
+
+.flash {
+	transition: all  linear;
+	transition-duration: 1s;
+}
+
+.updatedDiv {
+	color: red !important;
+	span {
+		color: red !important;
+	}
+}
+
 .shortcuts {
 	span {
 		position: relative;
