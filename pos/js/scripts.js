@@ -740,7 +740,11 @@ function render_prepareResult() {
 	if($('.tabHolder').length == 0) {
 		startNavigation();
 	}
-
+	setTimeout(function () {
+		if($('.updatedDiv').length){
+			$('.updatedDiv').removeClass('updatedDiv');
+		}
+	}, 2000);
 	// Бутона за увеличение да се дисейбва ако няма избран селектиран ред
 	if($('.enlargeProductBtn').length){
 		var selectedElement = $(".highlighted");
