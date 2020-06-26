@@ -669,7 +669,7 @@ class pos_ReceiptDetails extends core_Detail
         if($rec->id == $lastEdited['id']){
             $operationPlaceholder = self::$updatedOperationPlaceholderMap[$lastEdited['action']];
             if($operationPlaceholder){
-               $row->{$operationPlaceholder} = 'updatedDiv';
+               $row->{$operationPlaceholder} = 'updatedDiv flash';
             }
         }
         
