@@ -1477,7 +1477,7 @@ class pos_Terminal extends peripheral_Terminal
         cls::get('pos_Receipts')->invoke('AfterPushTerminalFiles', array(&$tpl, $rec));
         
         // Абониране за рефреш на хедъра
-        core_Ajax::subscribe($tpl, array($this, 'autoRefreshHeader', $rec->id), 'refreshTime', 20);
+        core_Ajax::subscribe($tpl, array($this, 'autoRefreshHeader', $rec->id), 'refreshTime', 30);
     }
     
     
@@ -1490,13 +1490,25 @@ class pos_Terminal extends peripheral_Terminal
         pos_Receipts::requireRightFor('terminal');
         expect($id = Request::get('id', 'int'));
         pos_Receipts::requireRightFor('terminal', $id);
+        $res = array();
         
         // Добавяме резултата
         $resObj = new stdClass();
         $resObj->func = 'html';
         $resObj->arg = array('id' => 'terminalTime', 'html' => $this->renderCurrentTime()->getContent(), 'replace' => true);
+        $res[] = $resObj;
         
-        return array($resObj);
+        $resObj1 = new stdClass();
+        $resObj1->func = 'clearStatuses';
+        $resObj1->arg = array('type' => 'notice');
+        $res[] = $resObj1;
+        
+        $resObj2 = new stdClass();
+        $resObj2->func = 'clearStatuses';
+        $resObj2->arg = array('type' => 'error');
+        $res[] = $resObj2;
+        
+        return $res;
     }
     
     
@@ -1545,49 +1557,52 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
-        $resultTpl = new core_ET("");
         $groups = keylist::toArray(pos_Points::getSettings($rec->pointId, 'groups'));
+        $countGroups = countR($groups);
         
         // Ако има групи на артикулите
-        if(countR($groups)){
-            $resultTpl = new core_ET("<div class='scroll-holder'><ul class='tabHolder'>[#TAB#]</ul></div><div class='contentHolder'>");
-            $groups = array('all' => null) + $groups;
-            foreach ($groups as $groupId){
-                $inGroup = array_filter($foundResults->rows, function($e) use ($groupId){ return is_null($groupId) || keylist::isIn($groupId, $e->_groups);});
-              
+        $resultTpl = ($countGroups) ? new core_ET("<div class='scroll-holder productTabs'><ul class='tabHolder'>[#TAB#]</ul></div><div class='contentHolder'>") : new core_ET("");
+        $groups = array('all' => null) + $groups;
+        foreach ($groups as $groupId){
+            $inGroup = array_filter($foundResults->rows, function($e) use ($groupId){ return is_null($groupId) || keylist::isIn($groupId, $e->_groups);});
+            if($countGroups){
                 $groupName = (isset($groupId)) ? cat_Groups::getVerbal($groupId, 'name') : tr("Всички");
                 $contentId = "content{$groupId}";
-                $class = (!isset($groupId)) ? 'active' : '';
-                $tab = "<li class='{$class}' data-content = '{$contentId}'>{$groupName}</li>";
+                $tab = "<li id='group{$groupId}' class='selectable' data-content = '{$contentId}'>{$groupName}</li>";
                 $resultTpl->append($tab, "TAB");
-                
-                // Показват се тези от резултатите, които са във всяка група
-                $groupTpl = new core_ET("<div class='content' id='{$contentId}'><div class='grid'>[#RESULT_CONTENT#]</div></div>");
+            }
+            
+            // Показват се тези от резултатите, които са във всяка група
+            $groupTpl = ($countGroups) ? new core_ET("<div class='content' id='{$contentId}'>[#RESULT_CONTENT#]</div>") : new core_ET("<div class='grid'>[#RESULT_CONTENT#]</div>");
+            if(countR($inGroup)){
+                $grTpl = new core_ET("");
                 foreach($inGroup as $row){
-                    $row->elementId = "result{$row->id}";
+                    $row->elementId = "result{$groupId}_{$row->id}";
                     $bTpl = clone $block;
                     $bTpl->placeObject($row);
                     $bTpl->removeBlocksAndPlaces();
-                    $groupTpl->append($bTpl, 'RESULT_CONTENT');
+                    $grTpl->append($bTpl);
                 }
                 
-                $resultTpl->append($groupTpl);
+                if($countGroups){
+                    $grTpl->prepend("<div class='grid'>");
+                    $grTpl->append("</div>");
+                } 
+                
+                $grTpl->removeBlocksAndPlaces();
+                $groupTpl->append($grTpl, 'RESULT_CONTENT');
+            } else {
+                $groupTpl->append('<div class="noFoundInGroup">' . tr("Няма намерени артикули в групата") . '</div>', 'RESULT_CONTENT');
             }
-            $resultTpl->append("</div>");
-        } else {
             
-            // Ако няма рендират се всички
-            foreach($foundResults->rows as $row){
-                $row->elementId = "result{$row->id}";
-                $bTpl = clone $block;
-                $bTpl->placeObject($row);
-                $bTpl->removeBlocksAndPlaces();
-                $resultTpl->append($bTpl);
-            }
+            $resultTpl->append($groupTpl);
+        }
+        
+        if($countGroups){
+            $resultTpl->append("</div>");
         }
         
         $resultTpl->removeBlocksAndPlaces();
-        
         if(!empty($data->searchString)){
             $resultTpl->prepend(tr("|*<div class='divider'>|Намерени артикули|*</div>"));
         }
@@ -1679,7 +1694,8 @@ class pos_Terminal extends peripheral_Terminal
                     $pQuery->orderBy('code,name', 'ASC');
                     
                     if(countR($groups)){
-                        $pQuery->likeKeylist('groups', $groups);
+                        $or = countR($productsArr) ? true : false;
+                        $pQuery->likeKeylist('groups', $groups, $or);
                         if(!countR($productsArr)){
                             $pQuery->limit($maxSearchProducts);
                         }
@@ -1802,6 +1818,7 @@ class pos_Terminal extends peripheral_Terminal
             $res[$id] = new stdClass();;
             $Double = core_Type::getByName('double(decimals=2)');
             
+            $obj->price *= 1 + $vat;
             $res[$id]->price = currency_Currencies::decorate($Double->toVerbal($obj->price));
             $res[$id]->stock = core_Type::getByName('double(smartRound)')->toVerbal($obj->stock);
             $packagingId = ($obj->packagingId) ? $obj->packagingId : $obj->measureId;
@@ -1905,7 +1922,6 @@ class pos_Terminal extends peripheral_Terminal
         
         $revertBlock = ht::createLink('↶ Сторно бележка', $revertDefaultUrl, $warning, array('id' => "revertReceiptBtn", 'class' => "pos-notes posBtns revertReceiptBtn {$disabledRevertClass}", 'title' => 'Създаване на нова сторно бележка'));
         $arr['draft']['receipts']->append($revertBlock);
-        $count = $query->count();
         
         while ($receiptRec = $query->fetch()) {
             $key = $receiptRec->state;
@@ -1931,23 +1947,19 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
-        $currentSelected = false;
-        
         foreach ($arr as $key => $element){
-            $class = '';
-            if(!$currentSelected && (!$count || $element['count'] > 0)){
-                $currentSelected = true;
-                $class = 'active';
-            }
-            
             $contentId = "content{$key}";
-            $tab = "<li class='{$class}' data-content = '{$contentId}'>{$element['caption']}</li>";
+            $tab = "<li class='selectable' data-content = '{$contentId}'>{$element['caption']}</li>";
             $tpl->append($tab, "TAB");
             
-            $element['receipts']->prepend("<div class='content' id='{$contentId}'><div class='grid'>");
-            $element['receipts']->append("</div></div>");
-            $element['receipts']->removeBlocksAndPlaces();
-            $tpl->append($element['receipts']);
+            if($element['count']){
+                $element['receipts']->prepend("<div class='content' id='{$contentId}'><div class='grid'>");
+                $element['receipts']->append("</div></div>");
+                $element['receipts']->removeBlocksAndPlaces();
+                $tpl->append($element['receipts']);
+            } else {
+                $tpl->append("<div class='content' id='{$contentId}'><div class='noFoundInGroup'>" . tr("Няма намерени бележки") . "</div></div>");
+            }
         }
         
         $tpl->append('</div>');

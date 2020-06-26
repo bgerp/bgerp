@@ -95,6 +95,12 @@ class pos_ReceiptDetails extends core_Detail
     
     
     /**
+     * Плейсхолдър за клас за обновяване
+     */
+    private static $updatedOperationPlaceholderMap = array('setquantity' => 'quantityUpdated', 'settext' => 'textUpdated', 'setbatch' => 'batchUpdated', 'setprice' => 'priceUpdated', 'setstore' => 'storeUpdated', 'setdiscount' => 'discountUpdated');
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -234,14 +240,17 @@ class pos_ReceiptDetails extends core_Detail
                     }
                     
                     $rec->quantity = $quantity;
-                    $rec->amount = $rec->price * $rec->quantity;
-                    
+                   
                     if(!empty($secondValue)){
                         expect($packagingId = cat_UoM::fetchBySinonim($secondValue)->id, 'Не е разпозната опаковка');
                         $packs = cat_Products::getPacks($rec->productId);
                         expect(array_key_exists($packagingId, $packs), 'Опаковката/мярка не е налична за въпросния артикул');
                         $rec->value = $packagingId;
+                    
+                        // Преизчисляване на цената на опаковката
+                        $this->getProductInfo($rec);
                     }
+                    $rec->amount = $rec->price * $rec->quantity;
                     
                     if(isset($receiptRec->revertId)){
                         if($receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
@@ -344,8 +353,8 @@ class pos_ReceiptDetails extends core_Detail
             
             if($this->save($rec) && $skip !== true){
                 $this->Master->logInAct($sucessMsg, $receiptId);
-                
                 Mode::setPermanent("currentSearchString{$receiptId}", null);
+                Mode::setPermanent("lastEditedRow", array('id' => $rec->id, 'action' => $operation));
             }
             
         } catch(core_exception_Expect $e){
@@ -649,11 +658,20 @@ class pos_ReceiptDetails extends core_Detail
         $Varchar = cls::get('type_Varchar');
         $Double = core_Type::getByName('double(decimals=2)');
         $productRec = cat_Products::fetch($rec->productId, 'code,measureId');
+        $defaultStoreId = pos_Points::fetchField(pos_Receipts::fetchField($rec->receiptId, 'pointId'), 'storeId');
         
         $price = $this->Master->getDisplayPrice($rec->price, $rec->param, $rec->discountPercent, pos_Receipts::fetchField($rec->receiptId, 'pointId'), $rec->quantity);
         $row->price = $Double->toVerbal($rec->price * (1 + $rec->param));
         $row->amount = $Double->toVerbal($price * $rec->quantity);
         $row->amount = ht::styleNumber($row->amount, $price * $rec->quantity);
+        
+        $lastEdited = Mode::get("lastEditedRow");
+        if($rec->id == $lastEdited['id']){
+            $operationPlaceholder = self::$updatedOperationPlaceholderMap[$lastEdited['action']];
+            if($operationPlaceholder){
+               $row->{$operationPlaceholder} = 'updatedDiv';
+            }
+        }
         
         if ($rec->discountPercent < 0) {
             $row->discountPercent = "<span class='surchargeText'>+" . trim($row->discountPercent, '-') . "</span>";
@@ -714,7 +732,6 @@ class pos_ReceiptDetails extends core_Detail
         $row->productId = ($fields['-list']) ? cat_Products::getHyperLink($rec->productId, true) :  mb_subStr(cat_Products::getTitleById($rec->productId), 0, 95);
     
         // Показване на склада, само ако е различен от дефолтния
-        $defaultStoreId = pos_Points::fetchField(pos_Receipts::fetchField($rec->receiptId, 'pointId'), 'storeId');
         if(isset($fields['-list'])){
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         } elseif($rec->storeId == $defaultStoreId) {

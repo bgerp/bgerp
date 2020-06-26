@@ -455,7 +455,7 @@ input::-webkit-calendar-picker-indicator {
 /**
 	fix chrome input
  */
-*,*:focus,*:hover {
+input, textarea, select,input:focus, textarea:focus, select:focus, input:hover, select:hover, textarea:hover {
 	outline: none;
 }
 
@@ -3796,10 +3796,16 @@ span.cng {
 	text-align: left;
 }
 
-
 td.rightCol, th.rightCol {
-	white-space:nowrap;
+	white-space: nowrap;
 	text-align:right !important;
+}
+
+.sales_Sales, .purchase_Purchases {
+	.listTable th {
+		white-space: normal;
+		font-size: 0.95em;
+	}
 }
 
 td.leftCol, th.leftCol {

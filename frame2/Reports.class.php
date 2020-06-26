@@ -454,7 +454,9 @@ class frame2_Reports extends embed_Manager
         
         // Заместване на параметрите в текста на нотификацията
         if ($Driver = self::getDriver($rec)) {
+            Mode::push('text', 'plain');
             $params = $Driver->getNotificationParams($rec);
+            Mode::pop('text');
             if (is_array($params)) {
                 $msg->placeArray($params);
             }

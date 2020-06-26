@@ -230,6 +230,8 @@ class planning_Jobs extends core_Master
         
         $this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Количество->Произведено,notNull,value=0');
         $this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Количество->Заскладено,notNull,value=0');
+        $this->FLD('quantityProducedInOtherMeasures', 'blob(serialize, compress)', 'input=none,caption=Количество->Заскладено други мерки');
+        
         $this->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки');
         $this->FLD('tolerance', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.1)', 'caption=Толеранс,silent');
         $this->FLD('department', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност');
@@ -721,6 +723,16 @@ class planning_Jobs extends core_Master
         $row->quantityNotStored = $Double->toVerbal($rec->quantityNotStored);
         $rec->quantityToProduce = $rec->packQuantity - (($rec->quantityFromTasks) ? $rec->quantityFromTasks : $rec->quantityProduced);
         $row->quantityToProduce = $Double->toVerbal($rec->quantityToProduce);
+        if(is_array($rec->quantityProducedInOtherMeasures)){
+            $producedInfoArr = array();
+            foreach ($rec->quantityProducedInOtherMeasures as $additionalMeasureId => $additionalQuantity){
+                $additionalQuantityVerbal  = $Double->toVerbal($additionalQuantity);
+                $additionalMeasureName = cat_UoM::getShortName($additionalMeasureId);
+                $producedInfoArr[] = "{$additionalQuantityVerbal} {$additionalMeasureName}";
+            }
+            
+            $row->producedInfo = implode("; ", $producedInfoArr);
+        }
         
         foreach (array('quantityNotStored', 'quantityToProduce') as $fld) {
             if ($rec->{$fld} < 0) {
@@ -1088,16 +1100,24 @@ class planning_Jobs extends core_Master
         $containerIds[$rec->containerId] = $rec->containerId;
         
         // Взимаме к-та на произведените артикули по заданието в протокола за производство
+        $totalQuantity = 0;
+        $additionalMeasures = array();
         $directProdQuery = planning_DirectProductionNote::getQuery();
         $directProdQuery->in("originId", $containerIds);
         $directProdQuery->where("#state = 'active' AND #productId = {$rec->productId}");
-        $directProdQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
-        $directProdQuery->show('totalQuantity');
-        $producedQuantity = $directProdQuery->fetch()->totalQuantity;
+        $directProdQuery->show('quantity,additionalMeasureId,additionalMeasureQuantity');
+        
+        while($protocolRec = $directProdQuery->fetch()){
+            $totalQuantity += $protocolRec->quantity;
+            if(!empty($protocolRec->additionalMeasureId)){
+                $additionalMeasures[$protocolRec->additionalMeasureId] += $protocolRec->additionalMeasureQuantity;
+            }
+        }
         
         // Обновяваме произведеното к-то по заданието
-        $rec->quantityProduced = $producedQuantity;
-        self::save($rec, 'quantityProduced');
+        $rec->quantityProduced = $totalQuantity;
+        $rec->quantityProducedInOtherMeasures = $additionalMeasures;
+        self::save($rec, 'quantityProduced,quantityProducedInOtherMeasures');
     }
     
     
