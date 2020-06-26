@@ -731,7 +731,7 @@ class planning_Jobs extends core_Master
                 $producedInfoArr[] = "{$additionalQuantityVerbal} {$additionalMeasureName}";
             }
             
-            $row->producedInfo = implode("; ", $producedInfoArr);
+            $row->producedInfo = implode(" + ", $producedInfoArr);
         }
         
         foreach (array('quantityNotStored', 'quantityToProduce') as $fld) {
