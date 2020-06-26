@@ -1098,6 +1098,7 @@ class planning_Jobs extends core_Master
         $tQuery->show('containerId');
         $containerIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'containerId');
         $containerIds[$rec->containerId] = $rec->containerId;
+        $measureId = cat_Products::fetchField($rec->productId, 'measureId');
         
         // Взимаме к-та на произведените артикули по заданието в протокола за производство
         $totalQuantity = 0;
@@ -1109,7 +1110,7 @@ class planning_Jobs extends core_Master
         
         while($protocolRec = $directProdQuery->fetch()){
             $totalQuantity += $protocolRec->quantity;
-            if(!empty($protocolRec->additionalMeasureId)){
+            if(!empty($protocolRec->additionalMeasureId) && $measureId != $protocolRec->additionalMeasureId){
                 $additionalMeasures[$protocolRec->additionalMeasureId] += $protocolRec->additionalMeasureQuantity;
             }
         }
