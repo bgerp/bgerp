@@ -4,7 +4,7 @@
 	<div class='[#storeUpdated#]'><!--ET_BEGIN storeId--><div class="subStoreId no-print">|Склад|*: [#storeId#]</div><!--ET_END storeId--></div>
 
 	<!--ET_BEGIN text--><div class="subText indent [#textUpdated#]"> [#text#]</div><!--ET_END text-->
-	<div class="indent [#quantityUpdated#]">[#quantity#] [#value#]<span class="quiet">
+	<div class="indent"><span class='[#quantityUpdated#]'>[#quantity#] [#value#]</span><span class="quiet">
 		<!--ET_BEGIN quantityInPack--><span>([#quantityInPack#])</span> <!--ET_END quantityInPack--> * <span class='priceText [#priceUpdated#]'>[#price#]</span>
 		<span class='[#discountUpdated#]'><!--ET_BEGIN discountPercent-->([#discountPercent#])<!--ET_END discountPercent--></span></span>
 		<!--ET_BEGIN batch--><span class="subBatch [#batchUpdated#]">[#batch#]</span><!--ET_END batch-->

@@ -2101,6 +2101,7 @@ class pos_Terminal extends peripheral_Terminal
         $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
         
         $res = array_merge($res, (array) $statusData);
+        Mode::setPermanent("lastEditedRow", null);
         
         return $res;
     }
