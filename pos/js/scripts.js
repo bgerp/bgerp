@@ -19,7 +19,10 @@ function posActions() {
 		})
 	});
 
+
+
 	$('.large-field.select-input-pos').focus();
+
 
 	// Забраняване на скалирането, за да избегнем забавяне
 	if(isTouchDevice()){
@@ -39,7 +42,7 @@ function posActions() {
 		var val = $(this).val();
 
 		var inputElement = $('.select-input-pos');
-
+		activeInput = true;
 		inputChars(inputElement, val);
 	});
 	
@@ -50,7 +53,13 @@ function posActions() {
 		
 		processUrl(url, params);
 	});
-	
+
+	$(document.body).on('keypress', ".large-field", function(e){
+		if(activeInput == false) {
+			$('.large-field.select-input-pos').val("");
+			activeInput = true;
+		}
+	});
 	/**
 	 * При спиране на писането в полето за търсене
 	 * @param e
@@ -62,9 +71,10 @@ function posActions() {
 		if($(".buttonOverlay").css('display') != 'none'){
 			return;
 		}
+
 		// Хак да не се тригърва ивента при натискане на ентър или при навигацията на страницата за избор на селектиран елемент
 		if(e.key == "Enter" || e.key == "ArrowRight" || e.key == "ArrowLeft" || e.key == "ArrowUp" || e.key == "ArrowDown"  || e.key == "PageUp" || e.key == "PageDown" || e.key == 'Alt' || e.key == 'Control' || e.key == 'Escape' || e.key == 'F2') return;
-		
+
 		activeInput = true;
 
 		// След всяко натискане на бутон изчистваме времето на изчакване
@@ -165,6 +175,7 @@ function posActions() {
 		if (currentAttrValue == "ENTER") {
 			$('.select-input-pos').val($('.keyboardText').val());
 			$('.ui-dialog-titlebar-close').click();
+			activeInput = true;
 		} else {
 			inputChars($('.keyboardText'), currentAttrValue);
 		}
@@ -175,6 +186,10 @@ function posActions() {
 		var id = $(this).attr('data-content');
 		$(this).addClass('active').siblings().removeClass('active');
 		$("#" + id).show().siblings().hide();
+		if($('.scroll-holder.productTabs').length) {
+			sessionStorage.setItem("activeProductTab", $('.tabHolder li.active').attr('id'));
+		}
+		startNavigation();
 	});
 
 	$(document.body).on('click', ".ui-dialog-titlebar-close", function() {
@@ -222,7 +237,10 @@ function posActions() {
 			hideHints();
 		}
 	});
-	startNavigation();
+	if($('.tabHolder').length == 0) {
+		startNavigation();
+	}
+
 
 	// действие на бутоните за действията
 	$(document.body).on('click', ".operationBtn", function(e){
@@ -238,6 +256,11 @@ function posActions() {
 	$(document.body).on('click', ".posBtns", function(e){
 		activeInput = false;
 		clearTimeout(timeout);
+	});
+
+
+	$(document.body).on('click', ".large-field.select-input-pos", function(e){
+		activeInput = true;
 	});
 	
 	// При прехвърляне на бележка, автоматично създаваме нова
@@ -358,6 +381,14 @@ function posActions() {
 		showHints();
 	});
 
+	$("body").setShortcutKey( CONTROL , HOME ,function() {
+		$( "#result-holder" ).scrollTop( 0 );
+	});
+
+	$("body").setShortcutKey( CONTROL , END ,function() {
+		$( "#result-holder" ).scrollTop( 5000);
+	});
+
 	// При натискане на бутона за клавиатура
 	$(document.body).on('click',  function(e){
 		hideHints();
@@ -375,6 +406,7 @@ function prevTab() {
 	if($(currentTab).prev().length) {
 		$(currentTab).prev().click();
 		activeInput = false;
+		sessionStorage.setItem("activeProductTab", $('.tabHolder li.active').attr('id'));
 	}
 
 	startNavigation();
@@ -386,13 +418,13 @@ function prevTab() {
  */
 function nextTab() {
 	sessionStorage.removeItem("focused");
-	
+
 	var currentTab = $('.tabHolder li.active');
 	if($(currentTab).next().length) {
 		$(currentTab).next().click();
 		activeInput = false;
+		sessionStorage.setItem("activeProductTab", $('.tabHolder li.active').attr('id'));
 	}
-
 	startNavigation();
 }
 
@@ -705,7 +737,9 @@ function render_openCurrentPosTab() {
 
 function render_prepareResult() {
 	activeInput = false;
-	startNavigation();
+	if($('.tabHolder').length == 0) {
+		startNavigation();
+	}
 
 	// Бутона за увеличение да се дисейбва ако няма избран селектиран ред
 	if($('.enlargeProductBtn').length){
@@ -740,7 +774,7 @@ function enter(){
 	var value = $("input[name=ean]").val();
 
 	// Ако има селектиран ред в резултатите
-	var element = $(".navigable.selected");
+	var element = $(".navigable.selected:visible");
 
 	// Ако има селектиран елемент в резултатите
 	if(element.length){
@@ -967,14 +1001,12 @@ function selectFirstNavigable()
 function startNavigation() {
 	if($('.navigable').length) {
 		var focused = sessionStorage.getItem('focused');
+		$('.selected').removeClass('selected');
 
 		// ръчно избирам първия елемент за селектед
-		if(!focused && $('.navigable.selected:visible').length == 0){
+		if(!focused ||  $('#' + focused ).length == 0){
 			selectFirstNavigable();
-		}
-
-		if (focused && !$('#' + focused ).hasClass('disabledBtn') && document.getElementById(focused) && $('.navigable.selected:visible').length == 0) {
-			$('.selected').removeClass('selected');
+		} else if (focused && !$('#' + focused ).hasClass('disabledBtn') && document.getElementById(focused) && $('.navigable.selected:visible').length == 0) {
 			$('#' + focused ).addClass('selected');
 		}
 
@@ -1155,10 +1187,16 @@ function getSelectedRowId() {
 }
 
 function openCurrentPosTab() {
-	if($('.tabHolder li.active').length) {
-		var currentTab = $('.tabHolder li.active').attr('data-content');
+	if($('.tabHolder li').length) {
+		var activeId = sessionStorage.getItem('activeProductTab');
+		if (activeId && $('.tabHolder li#' + activeId ).length) {
+			var activeTab = $('.tabHolder li#' + activeId ).addClass('active');
+		} else {
+			var activeTab = $('.tabHolder li:first').addClass('active');
+		}
+		var currentTabContent = activeTab.attr('data-content');
 
-		$("#" + currentTab).show();
+		$("#" + currentTabContent).show();
 		startNavigation();
 	}
 }

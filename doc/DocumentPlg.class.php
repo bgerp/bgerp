@@ -1507,6 +1507,8 @@ class doc_DocumentPlg extends core_Plugin
             
             $mvc->requireRightFor('movelast', $rec);
             
+            bgerp_Notifications::clear(array('doc_Containers', 'list', 'threadId' => $rec->threadId), '*');
+            
             $oldThreadId = $rec->threadId;
             
             $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy);
