@@ -211,7 +211,7 @@ class planning_Jobs extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId';
+    public $fieldsNotToClone = 'dueDate,quantityProduced,quantityProducedInOtherMeasures,history,oldJobId';
     
     
     /**
