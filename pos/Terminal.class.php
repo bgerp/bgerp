@@ -1227,36 +1227,40 @@ class pos_Terminal extends peripheral_Terminal
         $query->limit(10);
         
         // Добавяне на бутони за последните количества, в които е продаван
-        while ($productRec = $query->fetch()) {
+        while ($detailRec = $query->fetch()) {
             $count++;
             Mode::push('text', 'plain');
-            $quantity = core_Type::getByName('double(smartRound)')->toVerbal($productRec->quantity);
+            $quantity = core_Type::getByName('double(smartRound)')->toVerbal($detailRec->quantity);
             Mode::pop('text', 'plain');
-            if(!$productRec->value)  continue; // Да не гърми при лоши данни
-            $packagingId = cat_UoM::getSmartName($productRec->value, 1);
-            $btnCaption =  "{$quantity} " . tr(cat_UoM::getSmartName($productRec->value, $productRec->quantity));
-            $packDataName = cat_UoM::getTitleById($productRec->value);
-            $frequentPackButtons[] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => "{$baseClass} packWithQuantity", 'data-quantity' => $productRec->quantity, 'data-pack' => $packDataName, 'data-url' => $dataUrl), $btnCaption, true);
+            if(!$detailRec->value)  continue; // Да не гърми при лоши данни
+            $packagingId = cat_UoM::getSmartName($detailRec->value, 1);
+            $btnCaption =  "{$quantity} " . tr(cat_UoM::getSmartName($detailRec->value, $detailRec->quantity));
+            $packDataName = cat_UoM::getTitleById($detailRec->value);
+            $frequentPackButtons[] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => "{$baseClass} packWithQuantity", 'data-quantity' => $detailRec->quantity, 'data-pack' => $packDataName, 'data-url' => $dataUrl), $btnCaption, true);
         }
         
-        $stores = pos_Points::getStores($rec->pointId);
-        if(countR($stores) > 1 && empty($rec->revertId)){
-            $storeArr = array();
-            foreach ($stores as $storeId){
-                $quantity = pos_Stocks::getQuantityByStore($selectedRec->productId, $storeId);
-                $storeArr[$storeId] = $quantity;
-            }
-            
-            arsort($storeArr);
-            foreach ($storeArr as $storeId => $quantity){
-                $btnClass = ($storeId == $selectedRec->storeId) ? 'current' : 'navigable';
-                $dataUrl = ($storeId == $selectedRec->storeId) ? null : $dataChangeStoreUrl;
+        $productRec = cat_Products::fetch($selectedRec->productId, 'canStore');
+        
+        if($productRec->canStore == 'yes'){
+            $stores = pos_Points::getStores($rec->pointId);
+            if(countR($stores) > 1 && empty($rec->revertId)){
+                $storeArr = array();
+                foreach ($stores as $storeId){
+                    $quantity = pos_Stocks::getQuantityByStore($selectedRec->productId, $storeId);
+                    $storeArr[$storeId] = $quantity;
+                }
                 
-                $quantityInStockVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
-                $quantityInStockVerbal = ht::styleNumber($quantityInStockVerbal, $quantity);
-                $storeName = store_Stores::getTitleById($storeId);
-                $storeCaption = "<span><div class='storeNameInBtn'>{$storeName}</div> <div class='storeQuantityInStock'>({$quantityInStockVerbal} " . tr(cat_UoM::getShortName($measureId)) . ")</div></span>";
-                $storeBtns[] = ht::createElement("div", array('id' => "changeStore{$storeId}", 'class' => "{$btnClass} posBtns chooseStoreBtn", 'data-url' => $dataUrl, 'data-storeid' => $storeId), $storeCaption, true);
+                arsort($storeArr);
+                foreach ($storeArr as $storeId => $quantity){
+                    $btnClass = ($storeId == $selectedRec->storeId) ? 'current' : 'navigable';
+                    $dataUrl = ($storeId == $selectedRec->storeId) ? null : $dataChangeStoreUrl;
+                    
+                    $quantityInStockVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
+                    $quantityInStockVerbal = ht::styleNumber($quantityInStockVerbal, $quantity);
+                    $storeName = store_Stores::getTitleById($storeId);
+                    $storeCaption = "<span><div class='storeNameInBtn'>{$storeName}</div> <div class='storeQuantityInStock'>({$quantityInStockVerbal} " . tr(cat_UoM::getShortName($measureId)) . ")</div></span>";
+                    $storeBtns[] = ht::createElement("div", array('id' => "changeStore{$storeId}", 'class' => "{$btnClass} posBtns chooseStoreBtn", 'data-url' => $dataUrl, 'data-storeid' => $storeId), $storeCaption, true);
+                }
             }
         }
 
