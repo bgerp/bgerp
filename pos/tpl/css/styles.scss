@@ -323,6 +323,10 @@
 .flash {
 	transition: all  linear;
 	transition-duration: 1s;
+	span {
+		transition: all  linear;
+		transition-duration: 1s;
+	}
 }
 
 .updatedDiv {

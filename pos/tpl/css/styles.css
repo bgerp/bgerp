@@ -275,6 +275,9 @@
 .flash {
   transition: all linear;
   transition-duration: 1s; }
+  .flash span {
+    transition: all linear;
+    transition-duration: 1s; }
 
 .updatedDiv {
   color: red !important; }
