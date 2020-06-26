@@ -194,7 +194,8 @@
   padding: 10px 13px !important; }
   .keyboard-btn.keyboard-space-btn {
     min-width: 140px; }
-  .keyboard-btn:hover {
+  .keyboard-btn:hover,
+  .keyboard-btn.pressed {
     border-top: black 2px solid !important;
     border-bottom: #303030 2px solid !important;
     background: #505050 !important;
@@ -270,6 +271,15 @@
 
 .half td {
   height: 45px; }
+
+.flash {
+  transition: all linear;
+  transition-duration: 1s; }
+
+.updatedDiv {
+  color: red !important; }
+  .updatedDiv span {
+    color: red !important; }
 
   .shortcuts span {
     position: relative;

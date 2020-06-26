@@ -231,7 +231,7 @@
 	&.keyboard-space-btn {
 		min-width: 140px;
 	}
-	&:hover {
+	&:hover, &.pressed {
 		border-top: #000 2px solid !important;
 		border-bottom: #303030 2px solid !important;
 		background: #505050 !important;
