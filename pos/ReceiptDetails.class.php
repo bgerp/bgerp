@@ -431,11 +431,6 @@ class pos_ReceiptDetails extends core_Detail
         $selectedRec = null;
         if($recId = request::get('recId', 'int')){
             $selectedRec = $this->fetch($recId);
-        
-            // Ако селектирания ред е с партида, се приема че ще се добавя нов ред
-            if(!empty($selectedRec->batch)){
-                $selectedRec = null;
-            }
         }
         
         try{
@@ -519,6 +514,26 @@ class pos_ReceiptDetails extends core_Detail
                 expect(empty($errorQuantity), $errorQuantity);
             }
             
+            // Ако селектирания ред е с партида, се приема че ще се добавя нов ред
+            $defaultStoreId = static::getDefaultStoreId($receiptRec->pointId, $rec->productId, $rec->quantity, $rec->value);
+            
+            if(!empty($selectedRec->batch)){ 
+                $unsetRec = true;
+                if(isset($defaultStoreId)){
+                    if(core_Packs::isInstalled('batch')){
+                        $batchQuantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $defaultStoreId);
+                        if(countR($batchQuantities) == 1){
+                            $rec->batch = key($batchQuantities);
+                            $unsetRec = false;
+                        }
+                    }
+                }
+                
+                if($unsetRec){
+                    $selectedRec = null;
+                }
+            }
+            
             if($selectedRec->productId == $rec->productId){
                 $rec->value = $selectedRec->value;
                 $rec->batch = $selectedRec->batch;
@@ -548,8 +563,8 @@ class pos_ReceiptDetails extends core_Detail
                 expect($rec->quantity >= 1, 'При добавяне количеството трябва да е положително');
             }
             
-            if($rec->_canStore == 'yes' && empty($rec->storeId)){
-                $rec->storeId = static::getDefaultStoreId($receiptRec->pointId, $rec->productId, $rec->quantity, $rec->value);
+            if($rec->_canStore == 'yes'){
+                $rec->storeId = isset($rec->storeId) ? $rec->storeId : $defaultStoreId;
                 if(empty($rec->storeId)){
                     expect(false,  "Артикулът не е наличен в нито един склад свързан с POS-а");
                 }
