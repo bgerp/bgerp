@@ -169,6 +169,7 @@ function posActions() {
 			var lang = $(this).attr('data-klang');
 			sessionStorage.setItem('activeKeyboard', lang);
 			$('.keyboard#' + lang).show().siblings('.keyboard').hide();
+			$('.keyboardText').focus();
 			return;
 		}
 
@@ -740,7 +741,11 @@ function render_prepareResult() {
 	if($('.tabHolder').length == 0) {
 		startNavigation();
 	}
-
+	setTimeout(function () {
+		if($('.updatedDiv').length){
+			$('.updatedDiv').removeClass('updatedDiv');
+		}
+	}, 2000);
 	// Бутона за увеличение да се дисейбва ако няма избран селектиран ред
 	if($('.enlargeProductBtn').length){
 		var selectedElement = $(".highlighted");
@@ -976,17 +981,32 @@ function openModal(title, heightModal) {
 	});
 
 	dialog.dialog( "open" );
+	if ($('.keyboard'.length)) {
+		setTimeout(function(){
 
-	setTimeout(function(){
-			if ($('.keyboard'.length)) {
-				var keyboard = sessionStorage.getItem('activeKeyboard');
-				if (!keyboard) {
-					keyboard = "keyboard-lat";
-				}
-				$('.keyboard#' + keyboard).show().siblings('.keyboard').hide();
-			}
-			$('.ui-dialog-titlebar-close').focus();
-		},50);
+					var keyboard = sessionStorage.getItem('activeKeyboard');
+					if (!keyboard) {
+						keyboard = "keyboard-lat";
+					}
+					$('.keyboard#' + keyboard).show().siblings('.keyboard').hide();
+
+				$('.keyboardText').focus();
+
+				$('.keyboardText').keydown(function(event) {
+					$('.pressed').removeClass('pressed');
+					var key = event.key.toLowerCase();
+					$(".keyboard-btn[data-key=" + key+ "]").addClass('pressed');
+					console.log(event.key);
+					if (event.key == "Enter") {
+						$('.select-input-pos').val($('.keyboardText').val());
+						$('.ui-dialog-titlebar-close').click();
+						activeInput = true;
+					}
+				});
+
+			},50);
+
+	}
 	openedModal = true;
 }
 

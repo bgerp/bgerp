@@ -2,197 +2,197 @@
 <input type="text" class="keyboardText" />
 <div id='keyboard-lat' class='keyboard'>
     <div class='keyboard-row' style='padding-left:1.2em'>
-        <input class="keyboard-btn" type="button" value="." />
-        <input class="keyboard-btn" type="button" value="+" />
-        <input class="keyboard-btn" type="button" value="-" />
-        <input class="keyboard-btn" type="button" value="*" />
-        <input class="keyboard-btn" type="button" value="/" />
-        <input class="keyboard-btn" type="button" value="%" />
-        <input class="keyboard-btn" type="button" value="@" />
-        <input class="keyboard-btn" type="button" value="#" />
-        <input class="keyboard-btn" type="button" value="(" />
-        <input class="keyboard-btn" type="button" value=")" />
-        <input class="keyboard-btn" type="button" value="«" />
+        <input class="keyboard-btn" type="button" value="." data-key="."/>
+        <input class="keyboard-btn" type="button" value="+" data-key="+"/>
+        <input class="keyboard-btn" type="button" value="-" data-key="-"/>
+        <input class="keyboard-btn" type="button" value="*" data-key="*"/>
+        <input class="keyboard-btn" type="button" value="/" data-key="/"/>
+        <input class="keyboard-btn" type="button" value="%" data-key="%"/>
+        <input class="keyboard-btn" type="button" value="@" data-key="@"/>
+        <input class="keyboard-btn" type="button" value="#" data-key="#"/>
+        <input class="keyboard-btn" type="button" value="(" data-key="("/>
+        <input class="keyboard-btn" type="button" value=")" data-key=")"/>
+        <input class="keyboard-btn" type="button" value="«" data-key="«"/>
         <input class="keyboard-btn keyboard-change-btn" data-klang='keyboard-bg' type="button" value="BG" />
     </div>
     <div class='keyboard-row' style='padding-left:3.4em'>
-        <input class="keyboard-btn" type="button" value="1" />
-        <input class="keyboard-btn" type="button" value="2" />
-        <input class="keyboard-btn" type="button" value="3" />
-        <input class="keyboard-btn" type="button" value="4" />
-        <input class="keyboard-btn" type="button" value="5" />
-        <input class="keyboard-btn" type="button" value="6" />
-        <input class="keyboard-btn" type="button" value="7" />
-        <input class="keyboard-btn" type="button" value="8" />
-        <input class="keyboard-btn" type="button" value="9" />
-        <input class="keyboard-btn" type="button" value="0" />
+        <input class="keyboard-btn" type="button" value="1"  data-key="1"/>
+        <input class="keyboard-btn" type="button" value="2"  data-key="2"/>
+        <input class="keyboard-btn" type="button" value="3"  data-key="3"/>
+        <input class="keyboard-btn" type="button" value="4"  data-key="4"/>
+        <input class="keyboard-btn" type="button" value="5"  data-key="5"/>
+        <input class="keyboard-btn" type="button" value="6"  data-key="6"/>
+        <input class="keyboard-btn" type="button" value="7"  data-key="7"/>
+        <input class="keyboard-btn" type="button" value="8"  data-key="8"/>
+        <input class="keyboard-btn" type="button" value="9"  data-key="9"/>
+        <input class="keyboard-btn" type="button" value="0"  data-key="0"/>
 
     </div>
     <div class='keyboard-row' style='padding-left:5.6em'>
-        <input class="keyboard-btn" type="button" value="Q" />
-        <input class="keyboard-btn" type="button" value="W" />
-        <input class="keyboard-btn" type="button" value="E" />
-        <input class="keyboard-btn" type="button" value="R" />
-        <input class="keyboard-btn" type="button" value="T" />
-        <input class="keyboard-btn" type="button" value="Y" />
-        <input class="keyboard-btn" type="button" value="U" />
-        <input class="keyboard-btn" type="button" value="I" />
-        <input class="keyboard-btn" type="button" value="O" />
-        <input class="keyboard-btn" type="button" value="P" />
+        <input class="keyboard-btn" type="button" value="Q" data-key="q"/>
+        <input class="keyboard-btn" type="button" value="W" data-key="w"/>
+        <input class="keyboard-btn" type="button" value="E" data-key="e"/>
+        <input class="keyboard-btn" type="button" value="R" data-key="r"/>
+        <input class="keyboard-btn" type="button" value="T" data-key="t"/>
+        <input class="keyboard-btn" type="button" value="Y" data-key="y"/>
+        <input class="keyboard-btn" type="button" value="U" data-key="u"/>
+        <input class="keyboard-btn" type="button" value="I" data-key="i"/>
+        <input class="keyboard-btn" type="button" value="O" data-key="o"/>
+        <input class="keyboard-btn" type="button" value="P" data-key="p"/>
     </div>
     <div class='keyboard-row' style='padding-left:3.5em'>
-        <input class="keyboard-btn" type="button" value="A" />
-        <input class="keyboard-btn" type="button" value="S" />
-        <input class="keyboard-btn" type="button" value="D" />
-        <input class="keyboard-btn" type="button" value="F" />
-        <input class="keyboard-btn" type="button" value="G" />
-        <input class="keyboard-btn" type="button" value="H" />
-        <input class="keyboard-btn" type="button" value="J" />
-        <input class="keyboard-btn" type="button" value="K" />
-        <input class="keyboard-btn" type="button" value="L" />
+        <input class="keyboard-btn" type="button" value="A"  data-key="a"/>
+        <input class="keyboard-btn" type="button" value="S"  data-key="s"/>
+        <input class="keyboard-btn" type="button" value="D"  data-key="d"/>
+        <input class="keyboard-btn" type="button" value="F"  data-key="f"/>
+        <input class="keyboard-btn" type="button" value="G"  data-key="g"/>
+        <input class="keyboard-btn" type="button" value="H"  data-key="h"/>
+        <input class="keyboard-btn" type="button" value="J"  data-key="j"/>
+        <input class="keyboard-btn" type="button" value="K"  data-key="k" />
+        <input class="keyboard-btn" type="button" value="L"  data-key="l"/>
         <input class="keyboard-btn keyboard-space-btn" type="button" value="ENTER" />
     </div>
     <div class='keyboard-row' style='padding-left:5.6em'>
-        <input class="keyboard-btn" type="button" value="Z" />
-        <input class="keyboard-btn" type="button" value="X" />
-        <input class="keyboard-btn" type="button" value="C" />
-        <input class="keyboard-btn" type="button" value="V" />
-        <input class="keyboard-btn" type="button" value="B" />
-        <input class="keyboard-btn" type="button" value="N" />
-        <input class="keyboard-btn" type="button" value="M" />
+        <input class="keyboard-btn" type="button" value="Z" data-key="z"/>
+        <input class="keyboard-btn" type="button" value="X" data-key="x"/>
+        <input class="keyboard-btn" type="button" value="C" data-key="c"/>
+        <input class="keyboard-btn" type="button" value="V" data-key="v"/>
+        <input class="keyboard-btn" type="button" value="B" data-key="b"/>
+        <input class="keyboard-btn" type="button" value="N" data-key="n"/>
+        <input class="keyboard-btn" type="button" value="M" data-key="m"/>
         <input class="keyboard-btn keyboard-space-btn" type="button" value=" " />
     </div>
 </div>
 <div id='keyboard-bg' class='keyboard'>
     <div class='keyboard-row' style='padding-left:1.2em'>
-        <input class="keyboard-btn" type="button" value="." />
-        <input class="keyboard-btn" type="button" value="+" />
-        <input class="keyboard-btn" type="button" value="-" />
-        <input class="keyboard-btn" type="button" value="*" />
-        <input class="keyboard-btn" type="button" value="/" />
-        <input class="keyboard-btn" type="button" value="%" />
-        <input class="keyboard-btn" type="button" value="@" />
-        <input class="keyboard-btn" type="button" value="#" />
-        <input class="keyboard-btn" type="button" value="(" />
-        <input class="keyboard-btn" type="button" value=")" />
-        <input class="keyboard-btn" type="button" value="«" />
+        <input class="keyboard-btn" type="button" value="." data-key="."/>
+        <input class="keyboard-btn" type="button" value="+" data-key="+"/>
+        <input class="keyboard-btn" type="button" value="-" data-key="-"/>
+        <input class="keyboard-btn" type="button" value="*" data-key="*"/>
+        <input class="keyboard-btn" type="button" value="/" data-key="/"/>
+        <input class="keyboard-btn" type="button" value="%" data-key="%"/>
+        <input class="keyboard-btn" type="button" value="@" data-key="@"/>
+        <input class="keyboard-btn" type="button" value="#" data-key="#"/>
+        <input class="keyboard-btn" type="button" value="(" data-key="("/>
+        <input class="keyboard-btn" type="button" value=")" data-key=")"/>
+        <input class="keyboard-btn" type="button" value="«" data-key="«"/>
         <input class="keyboard-btn keyboard-change-btn" data-klang='keyboard-ph' type="button" value="PH" title='|Смяна на езика|*' />
     </div>
     <div class='keyboard-row' style='padding-left:3.5em'>
-        <input class="keyboard-btn" type="button" value="1" />
-        <input class="keyboard-btn" type="button" value="2" />
-        <input class="keyboard-btn" type="button" value="3" />
-        <input class="keyboard-btn" type="button" value="4" />
-        <input class="keyboard-btn" type="button" value="5" />
-        <input class="keyboard-btn" type="button" value="6" />
-        <input class="keyboard-btn" type="button" value="7" />
-        <input class="keyboard-btn" type="button" value="8" />
-        <input class="keyboard-btn" type="button" value="9" />
-        <input class="keyboard-btn" type="button" value="0" />
+        <input class="keyboard-btn" type="button" value="1"  data-key="1"/>
+        <input class="keyboard-btn" type="button" value="2"  data-key="2"/>
+        <input class="keyboard-btn" type="button" value="3"  data-key="3"/>
+        <input class="keyboard-btn" type="button" value="4"  data-key="4"/>
+        <input class="keyboard-btn" type="button" value="5"  data-key="5"/>
+        <input class="keyboard-btn" type="button" value="6"  data-key="6"/>
+        <input class="keyboard-btn" type="button" value="7"  data-key="7"/>
+        <input class="keyboard-btn" type="button" value="8"  data-key="8"/>
+        <input class="keyboard-btn" type="button" value="9"  data-key="9"/>
+        <input class="keyboard-btn" type="button" value="0"  data-key="0"/>
 
     </div>
     <div class='keyboard-row' style='padding-left:1.2em'>
-        <input class="keyboard-btn" type="button" value="Ы" />
-        <input class="keyboard-btn" type="button" value="У" />
-        <input class="keyboard-btn" type="button" value="Е" />
-        <input class="keyboard-btn" type="button" value="И" />
-        <input class="keyboard-btn" type="button" value="Ш" />
-        <input class="keyboard-btn" type="button" value="Щ" />
-        <input class="keyboard-btn" type="button" value="К" />
-        <input class="keyboard-btn" type="button" value="С" />
-        <input class="keyboard-btn" type="button" value="Д" />
-        <input class="keyboard-btn" type="button" value="З" />
-        <input class="keyboard-btn" type="button" value="Ц" />
+        <input class="keyboard-btn" type="button" value="ь"  data-key="ь"/>
+        <input class="keyboard-btn" type="button" value="У"  data-key="у"/>
+        <input class="keyboard-btn" type="button" value="Е"  data-key="е"/>
+        <input class="keyboard-btn" type="button" value="И"  data-key="и"/>
+        <input class="keyboard-btn" type="button" value="Ш"  data-key="ш"/>
+        <input class="keyboard-btn" type="button" value="Щ"  data-key="щ"/>
+        <input class="keyboard-btn" type="button" value="К"  data-key="к"/>
+        <input class="keyboard-btn" type="button" value="С"  data-key="с"/>
+        <input class="keyboard-btn" type="button" value="Д"  data-key="д"/>
+        <input class="keyboard-btn" type="button" value="З"  data-key="з"/>
+        <input class="keyboard-btn" type="button" value="Ц"  data-key="ц"/>
     </div>
     <div class='keyboard-row' style='padding-left:3.5em'>
-        <input class="keyboard-btn" type="button" value="Я" />
-        <input class="keyboard-btn" type="button" value="А" />
-        <input class="keyboard-btn" type="button" value="О" />
-        <input class="keyboard-btn" type="button" value="Ж" />
-        <input class="keyboard-btn" type="button" value="Г" />
-        <input class="keyboard-btn" type="button" value="Т" />
-        <input class="keyboard-btn" type="button" value="Н" />
-        <input class="keyboard-btn" type="button" value="В" />
-        <input class="keyboard-btn" type="button" value="М" />
-        <input class="keyboard-btn" type="button" value="Ч" />
+        <input class="keyboard-btn" type="button" value="Я" data-key="я"/>
+        <input class="keyboard-btn" type="button" value="А" data-key="а"/>
+        <input class="keyboard-btn" type="button" value="О" data-key="о"/>
+        <input class="keyboard-btn" type="button" value="Ж" data-key="ж"/>
+        <input class="keyboard-btn" type="button" value="Г" data-key="г"/>
+        <input class="keyboard-btn" type="button" value="Т" data-key="т"/>
+        <input class="keyboard-btn" type="button" value="Н" data-key="н"/>
+        <input class="keyboard-btn" type="button" value="В" data-key="в"/>
+        <input class="keyboard-btn" type="button" value="М" data-key="м"/>
+        <input class="keyboard-btn" type="button" value="Ч" data-key="ч"/>
         <input class="keyboard-btn keyboard-space-btn" type="button" value="ENTER" />
     </div>
     <div class='keyboard-row' style='padding-left:1.2em'>
-        <input class="keyboard-btn" type="button" value="Ю" />
-        <input class="keyboard-btn" type="button" value="Й" />
-        <input class="keyboard-btn" type="button" value="Ъ" />
-        <input class="keyboard-btn" type="button" value="Э" />
-        <input class="keyboard-btn" type="button" value="Ф" />
-        <input class="keyboard-btn" type="button" value="Х" />
-        <input class="keyboard-btn" type="button" value="П" />
-        <input class="keyboard-btn" type="button" value="Р" />
-        <input class="keyboard-btn" type="button" value="Л" />
-        <input class="keyboard-btn" type="button" value="Б" />
+        <input class="keyboard-btn" type="button" value="Ю"  data-key="ю"/>
+        <input class="keyboard-btn" type="button" value="Й"  data-key="й"/>
+        <input class="keyboard-btn" type="button" value="Ъ"  data-key="ъ"/>
+        <input class="keyboard-btn" type="button" value="Э"  data-key="з"/>
+        <input class="keyboard-btn" type="button" value="Ф"  data-key="ф"/>
+        <input class="keyboard-btn" type="button" value="Х"  data-key="х"/>
+        <input class="keyboard-btn" type="button" value="П"  data-key="п"/>
+        <input class="keyboard-btn" type="button" value="Р"  data-key="р"/>
+        <input class="keyboard-btn" type="button" value="Л"  data-key="л"/>
+        <input class="keyboard-btn" type="button" value="Б"  data-key="б"/>
         <input class="keyboard-btn keyboard-space-btn" type="button" value=" " />
     </div>
 </div>
 <div id='keyboard-ph' class='keyboard'>
     <div class='keyboard-row' style='padding-left:0em'>
-        <input class="keyboard-btn" type="button" value="." />
-        <input class="keyboard-btn" type="button" value="+" />
-        <input class="keyboard-btn" type="button" value="-" />
-        <input class="keyboard-btn" type="button" value="*" />
-        <input class="keyboard-btn" type="button" value="/" />
-        <input class="keyboard-btn" type="button" value="%" />
-        <input class="keyboard-btn" type="button" value="@" />
-        <input class="keyboard-btn" type="button" value="#" />
-        <input class="keyboard-btn" type="button" value="(" />
-        <input class="keyboard-btn" type="button" value=")" />
-        <input class="keyboard-btn" type="button" value="«" />
+        <input class="keyboard-btn" type="button" value="." data-key="."/>
+        <input class="keyboard-btn" type="button" value="+" data-key="+"/>
+        <input class="keyboard-btn" type="button" value="-" data-key="-"/>
+        <input class="keyboard-btn" type="button" value="*" data-key="*"/>
+        <input class="keyboard-btn" type="button" value="/" data-key="/"/>
+        <input class="keyboard-btn" type="button" value="%" data-key="%"/>
+        <input class="keyboard-btn" type="button" value="@" data-key="@"/>
+        <input class="keyboard-btn" type="button" value="#" data-key="#"/>
+        <input class="keyboard-btn" type="button" value="(" data-key="("/>
+        <input class="keyboard-btn" type="button" value=")" data-key=")"/>
+        <input class="keyboard-btn" type="button" value="«" data-key="«"/>
         <input class="keyboard-btn keyboard-change-btn" data-klang='keyboard-lat' type="button" value="EN" />
     </div>
     <div class='keyboard-row' style='padding-left:2.5em'>
-        <input class="keyboard-btn" type="button" value="1" />
-        <input class="keyboard-btn" type="button" value="2" />
-        <input class="keyboard-btn" type="button" value="3" />
-        <input class="keyboard-btn" type="button" value="4" />
-        <input class="keyboard-btn" type="button" value="5" />
-        <input class="keyboard-btn" type="button" value="6" />
-        <input class="keyboard-btn" type="button" value="7" />
-        <input class="keyboard-btn" type="button" value="8" />
-        <input class="keyboard-btn" type="button" value="9" />
-        <input class="keyboard-btn" type="button" value="0" />
+        <input class="keyboard-btn" type="button" value="1"  data-key="1"/>
+        <input class="keyboard-btn" type="button" value="2"  data-key="2"/>
+        <input class="keyboard-btn" type="button" value="3"  data-key="3"/>
+        <input class="keyboard-btn" type="button" value="4"  data-key="4"/>
+        <input class="keyboard-btn" type="button" value="5"  data-key="5"/>
+        <input class="keyboard-btn" type="button" value="6"  data-key="6"/>
+        <input class="keyboard-btn" type="button" value="7"  data-key="7"/>
+        <input class="keyboard-btn" type="button" value="8"  data-key="8"/>
+        <input class="keyboard-btn" type="button" value="9"  data-key="9"/>
+        <input class="keyboard-btn" type="button" value="0"  data-key="0"/>
     </div>
     <div class='keyboard-row' style='padding-left:0'>
-        <input class="keyboard-btn" type="button" value="Я" />
-        <input class="keyboard-btn" type="button" value="В" />
-        <input class="keyboard-btn" type="button" value="Е" />
-        <input class="keyboard-btn" type="button" value="Р" />
-        <input class="keyboard-btn" type="button" value="Т" />
-        <input class="keyboard-btn" type="button" value="Ъ" />
-        <input class="keyboard-btn" type="button" value="У" />
-        <input class="keyboard-btn" type="button" value="И" />
-        <input class="keyboard-btn" type="button" value="О" />
-        <input class="keyboard-btn" type="button" value="П" />
-        <input class="keyboard-btn" type="button" value="Ш" />
-        <input class="keyboard-btn" type="button" value="Щ" />
-        <input class="keyboard-btn" type="button" value="Ю" />
+        <input class="keyboard-btn" type="button" value="Я" data-key="я"/>
+        <input class="keyboard-btn" type="button" value="В" data-key="в"/>
+        <input class="keyboard-btn" type="button" value="Е" data-key="е"/>
+        <input class="keyboard-btn" type="button" value="Р" data-key="р"/>
+        <input class="keyboard-btn" type="button" value="Т" data-key="т"/>
+        <input class="keyboard-btn" type="button" value="Ъ" data-key="ъ"/>
+        <input class="keyboard-btn" type="button" value="У" data-key="у"/>
+        <input class="keyboard-btn" type="button" value="И" data-key="и"/>
+        <input class="keyboard-btn" type="button" value="О" data-key="о"/>
+        <input class="keyboard-btn" type="button" value="П" data-key="п"/>
+        <input class="keyboard-btn" type="button" value="Ш" data-key="ш"/>
+        <input class="keyboard-btn" type="button" value="Щ" data-key="щ"/>
+        <input class="keyboard-btn" type="button" value="Ю" data-key="ю"/>
     </div>
     <div class='keyboard-row' style='padding-left:2.5em'>
-        <input class="keyboard-btn" type="button" value="А" />
-        <input class="keyboard-btn" type="button" value="С" />
-        <input class="keyboard-btn" type="button" value="Д" />
-        <input class="keyboard-btn" type="button" value="Ф" />
-        <input class="keyboard-btn" type="button" value="Г" />
-        <input class="keyboard-btn" type="button" value="Х" />
-        <input class="keyboard-btn" type="button" value="Й" />
-        <input class="keyboard-btn" type="button" value="К" />
-        <input class="keyboard-btn" type="button" value="Л" />
+        <input class="keyboard-btn" type="button" value="А" data-key="а"/>
+        <input class="keyboard-btn" type="button" value="С" data-key="с"/>
+        <input class="keyboard-btn" type="button" value="Д" data-key="д"/>
+        <input class="keyboard-btn" type="button" value="Ф" data-key="ф"/>
+        <input class="keyboard-btn" type="button" value="Г" data-key="г"/>
+        <input class="keyboard-btn" type="button" value="Х" data-key="х"/>
+        <input class="keyboard-btn" type="button" value="Й" data-key="й"/>
+        <input class="keyboard-btn" type="button" value="К" data-key="к"/>
+        <input class="keyboard-btn" type="button" value="Л" data-key="л"/>
         <input class="keyboard-btn keyboard-space-btn" type="button" value="ENTER" />
     </div>
     <div class='keyboard-row' style='padding-left:5em'>
-        <input class="keyboard-btn" type="button" value="З" />
-        <input class="keyboard-btn" type="button" value="Ь" />
-        <input class="keyboard-btn" type="button" value="Ц" />
-        <input class="keyboard-btn" type="button" value="Ж" />
-        <input class="keyboard-btn" type="button" value="Б" />
-        <input class="keyboard-btn" type="button" value="Н" />
-        <input class="keyboard-btn" type="button" value="М" />
+        <input class="keyboard-btn" type="button" value="З" data-key="з"/>
+        <input class="keyboard-btn" type="button" value="Ь" data-key="ь"/>
+        <input class="keyboard-btn" type="button" value="Ц" data-key="ц"/>
+        <input class="keyboard-btn" type="button" value="Ж" data-key="ж"/>
+        <input class="keyboard-btn" type="button" value="Б" data-key="б"/>
+        <input class="keyboard-btn" type="button" value="Н" data-key="н"/>
+        <input class="keyboard-btn" type="button" value="М" data-key="м"/>
         <input class="keyboard-btn keyboard-space-btn" type="button" value=" " />
     </div>
 </div>

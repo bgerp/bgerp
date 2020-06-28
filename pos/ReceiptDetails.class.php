@@ -221,6 +221,8 @@ class pos_ReceiptDetails extends core_Detail
                 expect(empty($receiptRec->paid), 'Не може да се променя информацията, ако има направено плащане|*!');
             }
             
+            $productRec = cat_Products::fetch($rec->productId, 'canStore');
+            
             switch($operation){
                 case 'setquantity':
                     expect($quantity = core_Type::getByName('double')->fromVerbal(str_replace('*', '', $firstValue)), 'Не е зададено количество');
@@ -277,7 +279,6 @@ class pos_ReceiptDetails extends core_Detail
                    
                    if(isset($discount)){
                        expect($discount >= -1 && $discount <= 1, 'Отстъпката трябва да е между -100% и 100%|*!');
-                       
                        if(strpos($string, '%')){
                            $discount *= -1;
                        }
@@ -338,6 +339,10 @@ class pos_ReceiptDetails extends core_Detail
                    
                    break;
                case 'setstore':
+                   if($productRec->canStore != 'yes'){
+                       expect(false, "Не може да се зададе склад, защото артикула е услуга");
+                   }
+                   
                    $stores = pos_Points::getStores($receiptRec->pointId);
                    expect(in_array($firstValue, $stores), 'Невъзможен склад за избор');
                    $rec->storeId = $firstValue;
@@ -426,11 +431,6 @@ class pos_ReceiptDetails extends core_Detail
         $selectedRec = null;
         if($recId = request::get('recId', 'int')){
             $selectedRec = $this->fetch($recId);
-        
-            // Ако селектирания ред е с партида, се приема че ще се добавя нов ред
-            if(!empty($selectedRec->batch)){
-                $selectedRec = null;
-            }
         }
         
         try{
@@ -514,6 +514,22 @@ class pos_ReceiptDetails extends core_Detail
                 expect(empty($errorQuantity), $errorQuantity);
             }
             
+            // Ако селектирания ред е с партида, се приема че ще се добавя нов ред
+            $defaultStoreId = static::getDefaultStoreId($receiptRec->pointId, $rec->productId, $rec->quantity, $rec->value);
+            
+            if(isset($defaultStoreId)){
+                if(core_Packs::isInstalled('batch')){
+                    $batchQuantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $defaultStoreId);
+                    if(countR($batchQuantities) != 1){
+                        $rec->batch = key($batchQuantities);
+                    }
+                }
+            }
+            
+            if(!empty($selectedRec->batch) && empty($rec->batch)){ 
+                $selectedRec = null;
+            }
+            
             if($selectedRec->productId == $rec->productId){
                 $rec->value = $selectedRec->value;
                 $rec->batch = $selectedRec->batch;
@@ -539,22 +555,26 @@ class pos_ReceiptDetails extends core_Detail
                 $rec->storeId = $sameProduct->storeId;
                 $rec->amount += $sameProduct->amount;
                 $rec->id = $sameProduct->id;
+                
+                Mode::setPermanent("lastEditedRow", array('id' => $rec->id, 'action' => 'setquantity'));
             } else {
                 expect($rec->quantity >= 1, 'При добавяне количеството трябва да е положително');
             }
             
-            if(empty($rec->storeId)){
-                $rec->storeId = static::getDefaultStoreId($receiptRec->pointId, $rec->productId, $rec->quantity, $rec->value);
+            if($rec->_canStore == 'yes'){
+                $rec->storeId = isset($rec->storeId) ? $rec->storeId : $defaultStoreId;
                 if(empty($rec->storeId)){
                     expect(false,  "Артикулът не е наличен в нито един склад свързан с POS-а");
                 }
             }
             
             $error = '';
-            if (!pos_Receipts::checkQuantity($rec, $error)) {
+            if ($rec->_canStore == 'yes' && !pos_Receipts::checkQuantity($rec, $error)) {
                 expect(false, $error);
             }
             expect(!(!empty($receiptRec->revertId) && ($receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT) && abs($originProductRec->quantity) < abs($rec->quantity)), "Количеството е по-голямо от продаденото|* " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
+            
+            
             $this->save($rec);
             $success = true;
             $this->Master->logInAct('Добавяне на артикул', $rec->receiptId);
@@ -669,7 +689,7 @@ class pos_ReceiptDetails extends core_Detail
         if($rec->id == $lastEdited['id']){
             $operationPlaceholder = self::$updatedOperationPlaceholderMap[$lastEdited['action']];
             if($operationPlaceholder){
-               $row->{$operationPlaceholder} = 'updatedDiv';
+               $row->{$operationPlaceholder} = 'updatedDiv flash';
             }
         }
         
@@ -784,7 +804,7 @@ class pos_ReceiptDetails extends core_Detail
             return;
         }
         
-        $productRec = cat_Products::fetch($product->productId, 'canSell,measureId');
+        $productRec = cat_Products::fetch($product->productId, 'canSell,measureId,canStore');
         if ($productRec->canSell != 'yes') {
             $rec->notSellable = true;
             return;
@@ -810,6 +830,7 @@ class pos_ReceiptDetails extends core_Detail
         $rec->price = $price->price * $perPack;
         $rec->param = cat_Products::getVat($rec->productId, $receiptRec->valior);
         $rec->amount = $rec->price * $rec->quantity;
+        $rec->_canStore = $productRec->canStore;
     }
     
     
