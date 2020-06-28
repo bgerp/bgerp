@@ -96,7 +96,7 @@ class remote_Tokens extends core_Master
      */
     public static function storeToken($authId, $token, $expiredOn)
     {
-        $rec->ip = $_SERVER['REMOTE_ADDR'];
+        $ip = $_SERVER['REMOTE_ADDR'];
         if (strlen($ip) > 15) {
             $ip = substr($ip, 0, 10) . substr(md5($ip), 0, 5);
         }
@@ -107,7 +107,7 @@ class remote_Tokens extends core_Master
                 return false;
             }
             
-            return $rec->ip;
+            return $rec->id;
         }
         
         $rec = (object) array('authId' => $authId, 'token' => $token, 'expiredOn' => $expiredOn, 'ip' => $ip);
