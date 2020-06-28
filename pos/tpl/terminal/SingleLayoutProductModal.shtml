@@ -1,33 +1,43 @@
 <div style="margin-left: 20px; line-height: 1.6em">
     <div class="fleft imagePreview">[#preview#]</div>
+    <div>
 
-    <div>[#name#]</div>
-    
-    <div style="margin-bottom: 20px; font-weight: bold">[#info#]</div>
-	<!--ET_BEGIN STOPPED_PRODUCT--><span class='not-in-stock'>[#STOPPED_PRODUCT#]</span><!--ET_END STOPPED_PRODUCT-->
-    <div>|Мярка|*: [#measureId#]</div>
+        <div>[#name#]</div>
 
-    <div>|Цена|*: [#price#]</div>
+        <div style="margin-bottom: 10px; font-weight: bold">[#info#]</div>
+        <!--ET_BEGIN STOPPED_PRODUCT--><span class='not-in-stock'>[#STOPPED_PRODUCT#]</span><!--ET_END STOPPED_PRODUCT-->
+        <div>|Мярка|*: [#measureId#]</div>
 
-    <!--ET_BEGIN salePrice--><div>Продажна цена: [#salePrice#]</div><!--ET_END salePrice-->
-    <!--ET_BEGIN maxSaleDiscount--><div>Максимална ТО: [#maxSaleDiscount#]</div><!--ET_END maxSaleDiscount-->
-    <!--ET_BEGIN deliveryPrice--><div>Доставна цена: [#deliveryPrice#]</div><!--ET_END deliveryPrice-->
-    <!--ET_BEGIN storePlace--><div>Участък от склада: [#storePlace#]</div><!--ET_END storePlace-->
+        <div>|Цена|*: [#price#]</div>
 
-    [#PARAMETERS#]
-    <!--ET_BEGIN PARAM_BLOCK-->
-    [#PARAM_BLOCK#]
-    <div>[#paramCaption#] : [#paramValue#]</div>
-    <!--ET_END PARAM_BLOCK-->
-    [#TOOLBAR#]
+        <!--ET_BEGIN salePrice--><div>Продажна цена: [#salePrice#]</div><!--ET_END salePrice-->
+        <!--ET_BEGIN maxSaleDiscount--><div>Максимална ТО: [#maxSaleDiscount#]</div><!--ET_END maxSaleDiscount-->
+        <!--ET_BEGIN deliveryPrice--><div>Доставна цена: [#deliveryPrice#]</div><!--ET_END deliveryPrice-->
+        <!--ET_BEGIN storePlace--><div>Участък от склада: [#storePlace#]</div><!--ET_END storePlace-->
+
+        [#PARAMETERS#]
+        <!--ET_BEGIN PARAM_BLOCK-->
+        [#PARAM_BLOCK#]
+        <div>[#paramCaption#] : [#paramValue#]</div>
+        <!--ET_END PARAM_BLOCK-->
+        [#TOOLBAR#]
+
+        <div style="margin: 10px 0 0;"><b>|Налично|*:</b></div>
+        <table>
+        [#INSTOCK#]
+
+        <!--ET_BEGIN INSTOCK_BLOCK-->
+        [#INSTOCK_BLOCK#]
+        <tr>
+            <td>[#storeId#]:</td><td style="text-align: right"><b>[#inStock#]</b></td>
+        </tr>
+        <!--ET_END INSTOCK_BLOCK-->
+        </table>
+        <div class="clearfix21"></div>
+    </div>
+
 </div>
 
-<div class="clearfix21"></div>
-<div style="margin: 10px 0 0;font-size: 1.1em">|Налично|*:</div>
-[#INSTOCK#]
-<!--ET_BEGIN INSTOCK_BLOCK-->
-[#INSTOCK_BLOCK#]
-<div style="margin: 0px 0 5px; font-size: 1.1em">[#storeId#]: <b>[#inStock#]</b></div>
-<!--ET_END INSTOCK_BLOCK-->
+
 
 [#Packagings#]

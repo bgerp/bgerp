@@ -530,7 +530,8 @@ class blast_ListDetails extends doc_Detail
         $exp->functions['importcsvfromcontacts'] = 'blast_ListDetails::importCsvFromContacts';
         $exp->functions['importcsvfromdocuments'] = 'blast_ListDetails::importCsvFromDocuments';
         $exp->functions['importcsvfromlists'] = 'blast_Lists::importCsvFromLists';
-        
+        $exp->functions['csvanalize'] = 'blast_ListDetails::csvAnalize';
+
         $exp->DEF('#listId', 'int', 'fromRequest');
         
         $exp->DEF('#source=Източник', 'enum(csv=Copy&Paste на CSV данни, 
@@ -570,9 +571,9 @@ class blast_ListDetails extends doc_Detail
         
         $exp->question('#documentType,#catGroups,#countriesInclude,#countriesExclude,#contragentType,#docFrom,#docTo', tr('Избор на вид документ') . ':', "#source == 'document'", 'title=' . tr('Избор на вид документ'));
         
-        $exp->rule('#delimiter', "','", "#source == 'groupPersons' || #source == 'groupCompanies' || #source == 'document'");
-        $exp->rule('#enclosure', "'\"'", "#source == 'groupPersons' || #source == 'groupCompanies' || #source == 'document'");
-        $exp->rule('#firstRow', "'columnNames'", "#source == 'groupPersons' || #source == 'groupCompanies' || #source == 'document'");
+        $exp->rule('#delimiter', "','", "#source == 'groupPersons' || #source == 'groupCompanies' || #source == 'document' || #source == 'blastList'");
+        $exp->rule('#enclosure', "'\"'", "#source == 'groupPersons' || #source == 'groupCompanies' || #source == 'document' || #source == 'blastList'");
+        $exp->rule('#firstRow', "'columnNames'", "#source == 'groupPersons' || #source == 'groupCompanies' || #source == 'document' || #source == 'blastList'");
         
         $exp->rule('#csvData', "importCsvFromContacts('crm_Companies', #companiesGroup, #listId, #countriesInclude, #countriesExclude, #inChargeUsers)");
         $exp->rule('#csvData', "importCsvFromContacts('crm_Persons', #personsGroup, #listId, #countriesInclude, #countriesExclude, #inChargeUsers)");
@@ -589,17 +590,21 @@ class blast_ListDetails extends doc_Detail
         $exp->rule('#csvData', 'getFileContentCsv(#csvFile)');
         
         $exp->rule('#csvColumnsCnt', 'count(getCsvColNames(#csvData,#delimiter,#enclosure))');
-        $exp->WARNING(tr('Възможен е проблем с формата на CSV данните, защото е открита само една колона'), '#csvColumnsCnt == 2');
+        $exp->WARNING(tr('Възможен е проблем с формата на CSV данните, защото е открита само една колона'), '#csvColumnsCnt == 2 && #listColumns > 1');
         $exp->ERROR(tr('Има проблем с формата на CSV данните') . '. <br>' . tr('Моля проверете дали правилно сте въвели данните и разделителя'), '#csvColumnsCnt < 2');
         
+        $exp->rule('#csvAnalize', 'csvanalize(#csvData)', "is_string(#csvData)");
         $exp->DEF('#delimiter=Разделител', 'varchar(1,size=1)', 'mandatory');
-        $exp->SUGGESTIONS('#delimiter', array(',' => ',', ';' => ';', ':' => ':', '|' => '|'));
-        $exp->ASSUME('#delimiter', '"|"');
+        $exp->SUGGESTIONS('#delimiter', array(',' => ',', ';' => ';', ':' => ':', '|' => '|', 'tab=>[tab]'));
+        $exp->ASSUME('#delimiter', '#csvAnalize[1] == "' . "\t" . '" ? "tab" : #csvAnalize[1]');
         
         $exp->DEF('#enclosure=Ограждане', 'varchar(1,size=1)', array('value' => '"'), 'mandatory');
         $exp->SUGGESTIONS('#enclosure', array('"' => '"', '\'' => '\''));
+        $exp->ASSUME('#enclosure', '#csvAnalize[2]');
+
         $exp->DEF('#firstRow=Първи ред', 'enum(columnNames=Имена на колони,data=Данни)', 'mandatory');
-        
+        $exp->ASSUME('#firstRow', '#csvAnalize[3]');
+
         $exp->question('#delimiter,#enclosure,#firstRow', tr('Посочете формата на CSV данните') . ':', '#csvData', 'title=' . tr('Уточняване на разделителя и ограждането'));
         
         setIfNot($listId, Request::get('listId', 'int'), $exp->getValue('listId'));
@@ -623,8 +628,13 @@ class blast_ListDetails extends doc_Detail
             
             $qFields .= ($qFields ? ',' : '') . "#col{$name}";
         }
+
+        $exp->rule('#listColumns', count($fieldsArr));
+
         
         $exp->DEF('#priority=Приоритет', 'enum(update=Новите данни да обновят съществуващите,data=Съществуващите данни да се запазят)', 'mandatory');
+        $exp->rule('#priority', '"data"', $listRec->contactsCnt ? "0" : "1");
+
         $exp->question('#priority', tr('Какъв да бъде приоритета в случай, че има нов контакт с дублирано съдържание на полето') . " <span class=\"green\">'" . $fieldsArr[$listRec->keyField] . "'</span> ?", true, 'title=' . tr('Приоритет на данните'));
         
         $exp->question($qFields, tr('Въведете съответстващите полета') . ':', true, 'title=' . tr('Съответствие между полетата на източника и списъка'));
@@ -741,6 +751,16 @@ class blast_ListDetails extends doc_Detail
         }
         
         return $res;
+    }
+
+
+    /**
+     * Анализ на csv данни за откриване на разделител, оградител и първи ред
+     */
+    public static function csvAnalize($data)
+    {
+        return csv_Lib::analyze($data);
+
     }
     
     
@@ -953,11 +973,11 @@ class blast_ListDetails extends doc_Detail
                     continue;
                 }
                 
-                if (strpos($captionC, $valC) !== false || strpos($valC, $captionC)) {
+                if (strpos($captionC, $valC) !== false || strpos($valC, $captionC) !== false) {
                     
                     return $id + 1;
                 }
-                if (strpos($nameC, $valC) !== false || strpos($valC, $nameC)) {
+                if (strpos($nameC, $valC) !== false || strpos($valC, $nameC) !== false) {
                     
                     return $id + 1;
                 }

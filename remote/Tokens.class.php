@@ -77,6 +77,7 @@ class remote_Tokens extends core_Master
         $this->FLD('authId', 'key(mvc=remote_Authorizations)', 'caption=Оторизация,mandatory');
         $this->FLD('token', 'password(64)', 'caption=Временен код,input=none');
         $this->FLD('expiredOn', 'datetime', 'caption=Годен до');
+        $this->FLD('ip', 'ip', 'caption=Ip');
         
         $this->setDbUnique('token, authId');
     }
@@ -95,12 +96,21 @@ class remote_Tokens extends core_Master
      */
     public static function storeToken($authId, $token, $expiredOn)
     {
-        if (self::fetch(array("#authId = [#1#] AND #token = '[#2#]'", $authId, $token))) {
-            
-            return false;
+        $ip = $_SERVER['REMOTE_ADDR'];
+        if (strlen($ip) > 15) {
+            $ip = substr($ip, 0, 10) . substr(md5($ip), 0, 5);
         }
         
-        $rec = (object) array('authId' => $authId, 'token' => $token, 'expiredOn' => $expiredOn);
+        if ($rec = self::fetch(array("#authId = [#1#] AND #token = '[#2#]'", $authId, $token))) {
+            if ($rec->ip != $ip || (dt::mysql2timestamp($rec->expiredOn) - self::DEFAULT_TOKEN_EXPIRY_TIME + 5 < dt::mysql2timestamp())) {
+                
+                return false;
+            }
+            
+            return $rec->id;
+        }
+        
+        $rec = (object) array('authId' => $authId, 'token' => $token, 'expiredOn' => $expiredOn, 'ip' => $ip);
         
         self::save($rec);
         

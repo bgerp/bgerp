@@ -316,7 +316,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             // Ако има избрана опаковка
             if(isset($rec->packagingId)){
                 $additionalMeasures = cat_Products::getPacks($rec->productId, true);
+                $similarMeasures = cat_UoM::getSameTypeMeasures($rec->packagingId);
+               
+                // От допълнителните мерки махам подобните на тези от главната опаковка/мярка
+                unset($similarMeasures['']);
                 unset($additionalMeasures[$rec->packagingId]);
+                $additionalMeasures = array_diff_key($additionalMeasures, $similarMeasures);
                 $additionalMeasureCount = countR($additionalMeasures);
                 
                 // Показване на избор на допълнителната мярка
