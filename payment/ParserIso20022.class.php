@@ -56,6 +56,11 @@ class payment_ParserIso20022 extends core_BaseClass
         }
         
         if (!$array) {
+            if (strpos(implode('|', $transactions->getNamespaces()), 'camt.053') !== false) {
+                $res->warnings[] = "Друг формата - camt.053";
+                
+                return $res;
+            }
             
             return ;
         }

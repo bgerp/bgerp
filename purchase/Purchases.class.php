@@ -94,7 +94,7 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid,amountInvoiced,dealerId=Закупчик,paymentState,createdOn, createdBy';
+    public $listFields = 'valior, title=Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,dealerId=Закупчик,paymentState,createdOn, createdBy';
     
     
     /**

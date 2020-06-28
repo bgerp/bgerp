@@ -511,7 +511,7 @@ class price_Lists extends core_Master
                 $row->significantDigits = ht::createHint($row->significantDigits, 'Стойност по подразбиране');
             }
             
-            if (empty($rec->minDecimals)) {
+            if (!isset($rec->minDecimals)) {
                 $minDecimals = price_Setup::get('MIN_DECIMALS');
                 $row->minDecimals = $mvc->getFieldType('minDecimals')->toVerbal($minDecimals);
                 $row->minDecimals = ht::createHint($row->minDecimals, 'Стойност по подразбиране');

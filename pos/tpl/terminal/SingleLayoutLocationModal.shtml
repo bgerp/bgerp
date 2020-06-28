@@ -1,0 +1,45 @@
+<div class=''>
+    <h2 style='line-height:26px' class='[#headerRejected#]'>|Локация|* <b style="color:green;">[#title#]</b> |на|* [#contragent#]</h2>
+    <!--ET_BEGIN image-->
+    <div class="crmImage locImage">
+        <div>
+            [#image#]
+        </div>
+    </div>
+    <!--ET_END image-->
+    <!--ET_BEGIN type-->
+    <div class="groupList">
+        <!--ET_BEGIN type-->
+            <div class="info"><span class="gray-title">|Тип|*:</span> [#type#]</div>
+        <!--ET_END type-->
+        <!--ET_BEGIN mol-->
+            <div class="info"><span class="gray-title">|Отговорник|*:</span> [#mol#]</div>
+        <!--ET_END mol-->
+        <!--ET_BEGIN tel-->
+            <div class="info"><span class="gray-title">|Телефони|*:</span> [#tel#]</div>
+        <!--ET_END tel-->
+        <!--ET_BEGIN email-->
+            <div class="info"><span class="gray-title">|Имейли|*:</span> [#email#]</div>
+        <!--ET_END email-->
+        <!--ET_BEGIN gln-->
+            <div class="info"><span class="gray-title">GLN |код|*:</span> [#gln#]</div>
+        <!--ET_END gln-->
+        <!--ET_BEGIN comment-->
+            <div class="info">[#comment#]</div>
+        <!--ET_END comment-->
+
+        <!--ET_BEGIN ADDRESS_SECTION-->
+        [#ADDRESS_SECTION#]
+        <div class="info"><span class="gray-title">|Адрес|*: </span><!--ET_BEGIN countryId-->[#countryId#],<!--ET_END countryId--> <!--ET_BEGIN place-->[#pCode#] [#place#], <!--ET_END place-->   <!--ET_BEGIN address-->[#address#]<!--ET_END address--></div>
+        <!--ET_END ADDRESS_SECTION-->
+        <div><span class="gray-title"> |Създаден|*:</span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
+    </div>
+    <!--ET_END type-->
+
+    <!--ET_BEGIN ROUTES-->
+    [#routes#]
+    <!--ET_END ROUTES-->
+    <!--ET_BEGIN gpsCoords-->
+        [#gpsCoords#]
+    <!--ET_END gpsCoords-->
+</div>

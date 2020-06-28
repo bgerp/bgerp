@@ -443,18 +443,18 @@ class eshop_CartDetails extends core_Detail
             $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
             $row->amount = currency_Currencies::decorate($row->amount, $settings->currencyId);
             
+            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+            $row->productId .= " <span class='small'>({$row->packagingId})</span>";
+            
+            $url = eshop_Products::getUrl($rec->eshopProductId);
+            $row->productId = ht::createLinkRef($row->productId, $url);
+            
             // Показване на уникалните параметри под името на артикула
             $paramsText = self::getUniqueParamsAsText($rec->eshopProductId, $rec->productId);
             if (!empty($paramsText)) {
-                $row->productId .= "<br><span class='eshop-product-list-param'>{$paramsText}";
+                $row->productId .= "<br><span class='eshop-product-list-param'>{$paramsText}</span>";
             }
-            
-            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-            $row->productId .= " ({$row->packagingId})</span>";
         }
-        
-        $url = eshop_Products::getUrl($rec->eshopProductId);
-        $row->productId = ht::createLinkRef($row->productId, $url);
         
         $productRec = cat_Products::fetch($rec->productId, 'canStore');
         if (isset($settings->storeId) && $productRec->canStore == 'yes') {

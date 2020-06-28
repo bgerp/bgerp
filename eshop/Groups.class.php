@@ -340,7 +340,8 @@ class eshop_Groups extends core_Master
         
         // Премахва зададения временно текущ език
         core_Lg::pop();
-        
+
+        $layout->push("css/no-sass.css", "CSS");
         return $layout;
     }
     
@@ -408,7 +409,8 @@ class eshop_Groups extends core_Master
         
         // Премахва зададения временно текущ език
         core_Lg::pop();
-        
+
+        $layout->push("css/no-sass.css", "CSS");
         return $layout;
     }
     

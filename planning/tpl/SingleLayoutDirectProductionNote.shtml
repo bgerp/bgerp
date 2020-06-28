@@ -19,13 +19,13 @@
                                         <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
                                         <!--ET_END state-->
                                     </td>
-                                    <td class="cell custom-header-bg" style='width:35%;'><b>|Информация|*</b></td>
+                                    <td class="cell custom-header-bg" style='width:35%;'><b>|Произведено|*</b></td>
                                 </tr>
                                 <tr>
                                     <td class="cell">
                                         <table class='no-border'>
                                             <tr>
-                                                <td colspan='2'>[#addBatchBtn#] [#productId#]</td>
+                                                <td colspan='2'>[#addBatchBtn#] <b style="font-size: 1.1em">[#productId#]</b> [#batch#]</td>
                                             </tr>
 
                                             <!--ET_BEGIN expenseItemId-->
@@ -35,8 +35,8 @@
                                             </tr>
                                             <!--ET_END expenseItemId-->
                                             <tr>
-                                                <td class='quiet'>|Количество|*:</td>
-                                                <td>[#packQuantity#] [#packagingId#]</td>
+                                                <td class='quiet' style="width: 1%">|Количество|*:</td>
+                                                <td><b style="font-size: 1.1em">[#packQuantity#] [#packagingId#]</b></td>
                                             </tr>
                                             
                                             <!--ET_BEGIN additionalMeasureId-->

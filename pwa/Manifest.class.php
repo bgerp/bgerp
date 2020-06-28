@@ -21,7 +21,7 @@ class pwa_Manifest extends core_Mvc
     {
         $iconSizes = array(72, 96, 128, 144, 152, 192, 384, 512);
         $iconInfoArr = array();
-
+        
         $domainId = cms_Domains::fetchField("#domain = 'localhost' AND #lang = 'bg'", 'id');
         
         if(core_Webroot::isExists('android-chrome-512x512.png', $domainId)) {
@@ -29,7 +29,7 @@ class pwa_Manifest extends core_Mvc
         } elseif(core_Webroot::isExists('favicon.png', $domainId)) {
             $imageUrl = str_replace('/xxx', '', toUrl(array('xxx'), 'absolute')) . '/favicon.png';
         }
-
+        
         foreach ($iconSizes as $size) {
             if ($imageUrl) {
                 // Създаваме thumbnail с определени размери
@@ -45,16 +45,35 @@ class pwa_Manifest extends core_Mvc
             $tempArray['type'] = 'image/png';
             $iconInfoArr[] = $tempArray;
         }
-
+        
+        $appTitle = core_Setup::get('EF_APP_TITLE', true);
+        $appTitle = tr($appTitle);
+        $text = tr('интегрирана система за управление');
+        
         $json = array(
-            'short_name' => core_Setup::get('EF_APP_TITLE', true),
-            'name' => 'Интегрирана система за управление',
+            'short_name' => $appTitle,
+            'name' => $appTitle . ' - ' . $text,
             'display' => 'standalone',
             'background_color' => '#fff',
             'theme_color' => '#ddd',
             'start_url' => '/Portal/Show',
             'scope' => '/',
-            'icons' => $iconInfoArr
+            'icons' => $iconInfoArr,
+            'share_target' => array(
+                'action' => '/pwa_Share/Target',
+                'method' => 'POST',
+                'enctype' => 'multipart/form-data',
+                'params' => array (
+                    'title' => 'name',
+                    'text' => 'description',
+                    'url' => 'link',
+                    'files' => array(
+                        array('name' => 'file',
+                              'accept' => array('*/*')
+                        ),
+                    ),
+                )
+            ),
         );
         
         core_App::outputJson($json);

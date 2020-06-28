@@ -1,0 +1,16 @@
+<div class="fleft">
+    <span class='headerReceiptIdLink'>№ [#ID#]/[#valior#]</span>
+    <span class="unp">[#SUB_TITLE#]</span>
+    <span class="companyName">[#contragentId#]</span>
+</div>
+
+<div class="fright">
+
+    <span class='headerAppName'>[#APP_NAME#]</span>
+    <span class='headerPointId'>[#pointId#]</span>
+    <span class='headerUserNick'>[#userId#]</span>
+
+    <span class='headerTime' id = 'terminalTime'>[#TIME#]</span>
+    <span class='headerReceiptOtherLink'>[#OTHER_ELEMENTS#]</span>
+</div>
+<div class="clearfix21"></div>

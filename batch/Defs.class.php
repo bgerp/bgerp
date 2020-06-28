@@ -168,13 +168,13 @@ class batch_Defs extends core_Manager
             $form->setField('batchCaption', 'input');
             $form->setField('alwaysRequire', 'input');
             $form->setDefault('alwaysRequire', 'auto');
-            
             $form->setField('onlyExistingBatches', 'input');
             $form->setDefault('onlyExistingBatches', 'auto');
             
-            $Class = cls::get($templateRec->driverClass);
-            if (isset($Class->fieldCaption)) {
-                $form->setField('batchCaption', "placeholder={$Class->fieldCaption}");
+            if($Driver = batch_Templates::getDriver($templateRec)){
+                if (isset($Driver->fieldCaption)) {
+                    $form->setField('batchCaption', "placeholder={$Driver->fieldCaption}");
+                }
             }
         }
     }
