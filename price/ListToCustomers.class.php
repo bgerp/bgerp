@@ -414,7 +414,7 @@ class price_ListToCustomers extends core_Manager
                 $disc = ($rec->price - $comparePrice) / $comparePrice;
                 $discount = round(-1 * $disc, 4);
                 
-                $compareTo = isset($listRec->discountComparedShowAbove) ? $listRec->discountComparedShowAbove : 0;
+                $compareTo = isset($listRec->discountComparedShowAbove) ? $listRec->discountComparedShowAbove : 0.1;
                
                 // Ще показваме цената без отстъпка и отстъпката само ако отстъпката е над $compareTo
                 // Целта е да не показваме надценката а само отстъпката
