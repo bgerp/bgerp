@@ -1004,10 +1004,6 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $row->rate = ($rec->displayRate) ? $row->displayRate : $row->rate;
         
-        if ($rec->number) {
-            $row->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
-        }
-        
         if ($rec->type == 'dc_note') {
             core_Lg::push($rec->tplLang);
             $row->type = ($rec->dealValue <= 0) ? tr('Кредитно известие') : tr('Дебитно известие');
@@ -1166,7 +1162,7 @@ abstract class deals_InvoiceMaster extends core_Master
             $row->type = ($rec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие';
         }
         
-        $row->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+        $row->number = $me->getVerbal($rec, 'number');
         $num = ($row->number) ? $row->number : $rec->id;
         
         return tr("|{$row->type}|* №{$num}");
@@ -1524,7 +1520,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $fields = $mvc->selectFields();
         $fields['-list'] = true;
         foreach ($recs as &$rec) {
-            $rec->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+            $rec->number = $mvc->getVerbal($rec, 'number');
             
             $row = new stdClass();
             self::getVerbalInvoice($mvc, $rec, $row, $fields);
@@ -1547,5 +1543,19 @@ abstract class deals_InvoiceMaster extends core_Master
         // Искаме освен фактурите показващи се в лист изгледа да излизат и тези,
         // които са били активни, но сега са оттеглени
         $query->where("#state != 'draft' OR (#state = 'rejected' AND #brState = 'active')");
+    }
+    
+    
+    /**
+     * След като е готово вербалното представяне
+     */
+    protected static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
+    {
+        if ($part == 'number') {
+            $number = core_Type::getByName('varchar')->toVerbal($rec->number);
+            $number = str_pad($number, 10, '0', STR_PAD_LEFT);
+            
+            $num = $number;
+        }
     }
 }

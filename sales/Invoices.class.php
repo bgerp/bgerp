@@ -782,7 +782,7 @@ class sales_Invoices extends deals_InvoiceMaster
         if (!$rec->number) {
             $hnd = $self->abbr . $rec->id;
         } else {
-            $number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+            $number = $self->getVerbal($rec, 'number');
             $hnd = $self->abbr . $number;
         }
         
