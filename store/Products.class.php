@@ -937,7 +937,6 @@ class store_Products extends core_Detail
         if(core_Packs::isInstalled('pos') && $field == 'reservedQuantity'){
             $receiptQuery = pos_ReceiptDetails::getQuery();
             $receiptQuery->EXT('pointId', 'pos_Receipts', "externalName=pointId,externalKey=receiptId");
-            $receiptQuery->EXT('storeId', 'pos_Points', "externalName=storeId,externalKey=pointId");
             $receiptQuery->EXT('state', 'pos_Receipts', "externalName=state,externalKey=receiptId");
             $receiptQuery->where("#productId = {$rec->productId} AND #state = 'waiting' AND #action LIKE '%sale%'");
             $receiptQuery->where("#storeId = {$rec->storeId}");
