@@ -267,7 +267,7 @@ class doc_Ranges extends core_Manager
             $query->where("#class = {$rec->class} AND #id != '{$rec->id}'");
             while ($exRange = $query->fetch()){
                 if(!($exRange->max <= $rec->min || $exRange->min >= $rec->max)){
-                    $form->setError('min,max', "Има препокриване с|* <b>{$exRange}</b>");
+                    $form->setError('min,max', "Има препокриване с|* <b>{$exRange->min} - {$exRange->max}</b>");
                 }
             }
         }
