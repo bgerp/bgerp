@@ -467,20 +467,6 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * Изпълнява се след създаване на нов запис
-     */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
-    {
-        if ($rec->_numberAdded && !empty($rec->number)) {
-            $number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
-            $rec->searchKeywords .= ' ' . plg_Search::normalizeText($number) . " " . plg_Search::normalizeText($rec->number);
-           
-            $mvc->save_($rec, 'searchKeywords');
-        }
-    }
-    
-    
-    /**
      * Преди запис в модела
      */
     public static function on_BeforeSave($mvc, $id, $rec)

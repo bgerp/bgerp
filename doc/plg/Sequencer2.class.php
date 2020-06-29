@@ -78,8 +78,14 @@ class doc_plg_Sequencer2 extends core_Plugin
                         return new Redirect(array($mvc, 'single', $rec->id), 'Изберете друг диапазон, този е запълнен', 'error');
                     }
                     
-                    //@todo да добавям номера към ключовите думи
-                    $rec->_numberAdded = true;
+                    if($mvc->hasPlugin('plg_Search')){
+                        $rec->searchKeywords .= ' ' . plg_Search::normalizeText($rec->{$mvc->numberFld});
+                        
+                        $numberVerbal = $mvc->getVerbal($rec, $mvc->numberFld);
+                        if(strpos($rec->searchKeywords, ' ' . $numberVerbal) === false){
+                            $rec->searchKeywords .= ' ' . plg_Search::normalizeText($numberVerbal);
+                        }
+                    }
                 }
             }
         }

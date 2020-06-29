@@ -1552,10 +1552,12 @@ abstract class deals_InvoiceMaster extends core_Master
     protected static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
     {
         if ($part == 'number') {
-            $number = core_Type::getByName('varchar')->toVerbal($rec->number);
-            $number = str_pad($number, 10, '0', STR_PAD_LEFT);
-            
-            $num = $number;
+            if(!empty($rec->number)){
+                $number = core_Type::getByName('varchar')->toVerbal($rec->number);
+                $number = str_pad($number, 10, '0', STR_PAD_LEFT);
+                
+                $num = $number;
+            }
         }
     }
 }
