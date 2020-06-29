@@ -114,11 +114,10 @@ class doc_Ranges extends core_Manager
      * Кои са допустимите диапазони за документа
      * 
      * @param mixed $class
-     * @param mixed $expectId
      * 
      * @return array $res
      */
-    public static function getAvailableRanges($class, $expectId = null)
+    public static function getAvailableRanges($class)
     {
         $res = array();
         $mvc = cls::get($class);
@@ -126,9 +125,6 @@ class doc_Ranges extends core_Manager
         $query = self::getQuery();
         $query->where("#class = {$mvc->getClassId()} AND #state = 'active'");
         $query->where("#current IS NULL OR (#current IS NOT NULL AND #current < #max)");
-        if(isset($expectId)){
-            $query->where("id != '{$expectId}'");
-        }
         
         $query->orderBy('min', 'ASC');
         while($rec = $query->fetch()){
@@ -267,11 +263,10 @@ class doc_Ranges extends core_Manager
                 $form->setError('min,max', "Невъзможна стойност");
             }
             
-            $exRanges = self::getAvailableRanges($rec->class, $rec->id);
-            
-            foreach ($exRanges as $exRange){
-                $range = explode(' - ', $exRange);
-                if(!($range[1] <= $rec->min || $range[0] >= $rec->max)){
+            $query = self::getQuery();
+            $query->where("#class = {$rec->class} AND #id != '{$rec->id}'");
+            while ($exRange = $query->fetch()){
+                if(!($exRange->max <= $rec->min || $exRange->min >= $rec->max)){
                     $form->setError('min,max', "Има препокриване с|* <b>{$exRange}</b>");
                 }
             }
