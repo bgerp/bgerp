@@ -165,6 +165,10 @@ class doc_Ranges extends core_Manager
         expect($rec = self::fetchRec($id));
         $mvc = cls::get($class);
         
+        if($rec->state == 'closed'){
+            throw new core_exception_Expect('Избраният диапазон е запълнен. Моля изберете друг|*!', 'Несъответствие');
+        }
+        
         $query = $mvc->getQuery();
         $query->XPR('maxNum', 'int', "MAX(#{$numberField})");
         $query->between('number', $rec->min, $rec->max);
@@ -172,17 +176,27 @@ class doc_Ranges extends core_Manager
         if (!$maxNum = $query->fetch()->maxNum) {
             $maxNum = $rec->min;
         }
-        $next = $maxNum + 1;
-        expect($next <= $rec->max, 'Избраният диапазон е запълнен. Моля изберете друг|*!');
         
-        $rec->current = $next;
+        $next = $maxNum + 1;
+        if($next > $rec->max){
+            throw new core_exception_Expect('Избраният диапазон е запълнен. Моля изберете друг|*!', 'Несъответствие');
+        }
+        
+        return $next;
+    }
+    
+    
+    
+    public static function updateRange($id, $number)
+    {
+        expect($rec = self::fetchRec($id));
+        
+        $rec->current = $number;
         if($rec->current >= $rec->max){
             $rec->state = 'closed';
         }
         
         self::save($rec, 'current,state');
-        
-        return $next;
     }
     
     

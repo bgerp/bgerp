@@ -73,6 +73,8 @@ class doc_plg_Sequencer2 extends core_Plugin
                     
                     try{
                         $rec->{$mvc->numberFld} = doc_Ranges::getNextNumber($rec->{$mvc->rangeNumFld}, $mvc, $mvc->numberFld);
+                    
+                        doc_Ranges::updateRange($rec->{$mvc->rangeNumFld}, $rec->{$mvc->numberFld});
                     } catch(core_exception_Expect $e){
                         
                         return new Redirect(array($mvc, 'single', $rec->id), 'Изберете друг диапазон, този е запълнен', 'error');
