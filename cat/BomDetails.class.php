@@ -1133,21 +1133,6 @@ class cat_BomDetails extends doc_Detail
     
     
     /**
-     * Клонира детайлите на рецептата
-     *
-     * @param int $fromBomId
-     * @param int $toBomId
-     *
-     * @return void
-     */
-    public function cloneDetails($fromBomId, $toBomId)
-    {
-        $fromBomRec = cat_Boms::fetchRec($fromBomId);
-        cat_BomDetails::addProductComponents($fromBomRec->productId, $toBomId, null);
-    }
-    
-    
-    /**
      * След изтриване на запис
      */
     public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
