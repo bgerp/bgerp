@@ -568,7 +568,6 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
      */
     private function getVerbal($rec)
     {
-        $RichtextType = cls::get('type_Richtext');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
         $VatType = cls::get('drdata_VatType');

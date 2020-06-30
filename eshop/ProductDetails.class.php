@@ -420,7 +420,7 @@ class eshop_ProductDetails extends core_Detail
                 }
                 
                 if (isset($discountType['percent'])) {
-                    $discountPercent = core_Type::getByName('percent(decimals=0)')->toVerbal($catalogPriceInfo->discount);
+                    $discountPercent = core_Type::getByName('percent(decimals=2)')->toVerbal($catalogPriceInfo->discount);
                     $discountPercent = str_replace('&nbsp;', '', $discountPercent);
                     $row->catalogPrice .= "<div class='{$class} external-discount-percent' {$style}> (-{$discountPercent})</div>";
                 }

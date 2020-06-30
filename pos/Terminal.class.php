@@ -966,7 +966,7 @@ class pos_Terminal extends peripheral_Terminal
             $stringInput = core_Type::getByName('varchar')->fromVerbal($string);
             
             // Ако има подаден стринг за търсене
-            
+            $ownCompany = crm_Companies::fetchOurCompany();
             
             if(!empty($stringInput)){
                 $maxContragents = pos_Points::getSettings($rec->pointId, 'maxSearchContragent');
@@ -982,7 +982,7 @@ class pos_Terminal extends peripheral_Terminal
                 
                 // Ако има фирма с такъв данъчен или национален номер
                 $cQuery = crm_Companies::getQuery();
-                $cQuery->fetch("#vatId = '{$stringInput}' OR #uicId = '{$stringInput}'");
+                $cQuery->fetch("#vatId = '{$stringInput}' OR #uicId = '{$stringInput}' AND #id != {$ownCompany->id}");
                 $cQuery->show('id,folderId');
                 while($cRec = $cQuery->fetch()){
                     $contragents["{$companyClassId}|{$cRec->id}"] = (object)array('contragentClassId' => crm_Companies::getClassId(), 'contragentId' => $cRec->id, 'title' => crm_Companies::getTitleById($cRec->id));
@@ -1005,6 +1005,9 @@ class pos_Terminal extends peripheral_Terminal
             foreach (array('crm_Companies', 'crm_Persons') as $ContragentClass){
                 $cQuery = $ContragentClass::getQuery();
                 $cQuery->where("#state != 'rejected' AND #state != 'closed'");
+                if($ContragentClass == 'crm_Companies'){
+                    $cQuery->where("#id != {$ownCompany->id}");
+                }
                 $cQuery->show('id,folderId,name');
                 
                 // Обикалят се всички фирми/лице които съдържат търсения стринг в името си
@@ -1029,6 +1032,9 @@ class pos_Terminal extends peripheral_Terminal
                 foreach (array('crm_Companies', 'crm_Persons') as $ContragentClass){
                     $cQuery = $ContragentClass::getQuery();
                     $cQuery->where("#state != 'rejected' AND #state != 'closed'");
+                    if($ContragentClass == 'crm_Companies'){
+                        $cQuery->where("#id != {$ownCompany->id}");
+                    }
                     $cQuery->show('id,folderId,name');
                     
                     // Обикалят се всички фирми/лице които съдържат търсения стринг в името си
@@ -1669,11 +1675,7 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function prepareProductTable($rec, $searchString)
     {
-        $result = null;          
-        
-        //@todo да го върна 
-        core_Cache::get('planning_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}");
-        
+        $result = core_Cache::get('planning_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}");
         
         if(!is_array($result)){
             

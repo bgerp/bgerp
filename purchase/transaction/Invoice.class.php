@@ -61,7 +61,7 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
         // Ако е ДИ или КИ се посочва към коя фактура е то
         if ($rec->type != 'invoice') {
             $type = ($rec->dealValue > 0) ? 'Дебитно известие' : 'Кредитно известие';
-            $result->reason = "{$type} към фактура №" . str_pad($origin->fetchField('number'), '10', '0', STR_PAD_LEFT);
+            $result->reason = "{$type} към фактура №" . $origin->getVerbal('number');
             
             // Намираме оридиджана на фактурата върху която е ДИ или КИ
             $origin = $origin->getOrigin();

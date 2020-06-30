@@ -104,7 +104,7 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
                 
                 return $result;
             }
-            $result->reason = "{$type} към фактура №" . str_pad($origin->fetchField('number'), '10', '0', STR_PAD_LEFT);
+            $result->reason = "{$type} към фактура №" . $origin->getVerbal('number');
             
             // Намираме оридиджана на фактурата върху която е ДИ или КИ
             $origin = $origin->getOrigin();

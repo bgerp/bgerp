@@ -765,9 +765,9 @@ class store_Products extends core_Detail
         // Добавят се и запазените от бележки в POS-а
         if(core_Packs::isInstalled('pos')){
             $receiptQuery = pos_Receipts::getQuery();
-            $receiptQuery->EXT('storeId', 'pos_Points', 'externalName=storeId,externalKey=pointId');
+            $receiptQuery->EXT('storePointId', 'pos_Points', 'externalName=storeId,externalKey=pointId');
             $receiptQuery->where("#state = 'waiting'");
-            $receiptQuery->show('storeId,modifiedOn');
+            $receiptQuery->show('storePointId,modifiedOn');
             while($receiptRec = $receiptQuery->fetch()){
                 $reserved = core_Permanent::get("reserved_receipts_{$receiptRec->id}", $receiptRec->modifiedOn);
                 
@@ -782,8 +782,11 @@ class store_Products extends core_Detail
                         $packRec = cat_products_Packagings::getPack($rd->productId, $rd->value);
                         $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
                         $quantity = $quantityInPack * $rd->quantity;
-                        $key = "{$receiptRec->storeId}|{$rd->productId}";
-                        $reserved[$key] = array('sId' => $receiptRec->storeId, 'pId' => $rd->productId, 'reserved' => $quantity, 'expected' => null, 'expectedTotal' => null);
+                        
+                        if(!empty($rd->storeId)){
+                            $key = "{$rd->storeId}|{$rd->productId}";
+                            $reserved[$key] = array('sId' => $rd->storeId, 'pId' => $rd->productId, 'reserved' => $quantity, 'expected' => null, 'expectedTotal' => null);
+                        }
                     }
                     
                     core_Permanent::set("reserved_receipts_{$receiptRec->id}", $reserved, 4320);
@@ -934,7 +937,6 @@ class store_Products extends core_Detail
         if(core_Packs::isInstalled('pos') && $field == 'reservedQuantity'){
             $receiptQuery = pos_ReceiptDetails::getQuery();
             $receiptQuery->EXT('pointId', 'pos_Receipts', "externalName=pointId,externalKey=receiptId");
-            $receiptQuery->EXT('storeId', 'pos_Points', "externalName=storeId,externalKey=pointId");
             $receiptQuery->EXT('state', 'pos_Receipts', "externalName=state,externalKey=receiptId");
             $receiptQuery->where("#productId = {$rec->productId} AND #state = 'waiting' AND #action LIKE '%sale%'");
             $receiptQuery->where("#storeId = {$rec->storeId}");
