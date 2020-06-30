@@ -548,6 +548,12 @@ class sales_Invoices extends deals_InvoiceMaster
                 
                 $row->bic = $Varchar->toVerbal($ownAcc->bic);
             }
+            
+            if(empty($rec->number)){
+                $row->number = str::removeWhiteSpace(doc_Ranges::displayRange($rec->numlimit));
+                $row->number = "<span style='color:blue;'>{$row->number}</span>";
+                $row->number = ht::createHint($row->number, 'При активиране номерът ще бъде в този диапазон', 'notice', false);
+            }
         }
     }
     
