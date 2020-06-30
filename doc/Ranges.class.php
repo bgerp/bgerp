@@ -304,6 +304,8 @@ class doc_Ranges extends core_Manager
             if(isset($rec->current)){
                 if($rec->max < $rec->current){
                     $form->setError('max', "Горната граница не може да е по-малка от текущия номер|*: <b>{$rec->current}</b>");
+                } elseif($rec->min > $rec->current){
+                    $form->setError('min', "Долната граница не може да е по-голяма от текущия номер|*: <b>{$rec->current}</b>");
                 }
             }
         }
