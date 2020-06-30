@@ -1676,7 +1676,7 @@ class pos_Terminal extends peripheral_Terminal
     private function prepareProductTable($rec, $searchString)
     {
         $result = core_Cache::get('planning_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}");
-        
+        $result = false;
         if(!is_array($result)){
             
             $count = 0;
@@ -1685,9 +1685,9 @@ class pos_Terminal extends peripheral_Terminal
             
             $folderId = cls::get($rec->contragentClass)->fetchField($rec->contragentObjectId, 'folderId');
             $pQuery = cat_Products::getQuery();
-            $pQuery->where("#state = 'active' AND #isPublic = 'yes' OR (#isPublic = 'no' AND #folderId = '{$folderId}')");
-            
+            $pQuery->where("#state = 'active' AND (#isPublic = 'yes' OR (#isPublic = 'no' AND #folderId = '{$folderId}'))");
             $pQuery->show('name,isPublic,nameEn,code,canStore,measureId,canSell');
+            
             $maxSearchProducts = pos_Points::getSettings($rec->pointId, 'maxSearchProducts');
             
             // Ако не се търси подробно артикул, се показват тези от любими
