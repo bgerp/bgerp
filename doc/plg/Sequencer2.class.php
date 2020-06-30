@@ -72,7 +72,7 @@ class doc_plg_Sequencer2 extends core_Plugin
                 if (empty($rec->{$mvc->numberFld})) {
                     
                     try{
-                        $rec->{$mvc->numberFld} = doc_Ranges::getNextNumber($rec->{$mvc->rangeNumFld}, $mvc, $mvc->numberFld);
+                        $rec->{$mvc->numberFld} = doc_Ranges::getNextNumber($rec->{$mvc->rangeNumFld}, $mvc, $mvc->numberFld, $mvc->rangeNumFld);
                     
                         doc_Ranges::updateRange($rec->{$mvc->rangeNumFld}, $rec->{$mvc->numberFld});
                     } catch(core_exception_Expect $e){

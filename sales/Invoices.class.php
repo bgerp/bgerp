@@ -689,7 +689,7 @@ class sales_Invoices extends deals_InvoiceMaster
         }
         
         try{
-            $number = (isset($rec->number)) ? $rec->number : doc_Ranges::getNextNumber($rec->numlimit, $this, 'number');
+            $number = (isset($rec->number)) ? $rec->number : doc_Ranges::getNextNumber($rec->numlimit, $this, 'number', 'numlimit');
         } catch(core_exception_Expect $e){
             $msg = $e->getMessage();
             

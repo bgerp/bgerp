@@ -128,7 +128,7 @@ class doc_Ranges extends core_Manager
         
         $query->orderBy('min', 'ASC');
         while($rec = $query->fetch()){
-            $res[$rec->id] = "{$rec->min} - {$rec->max}";
+            $res[$rec->id] = self::displayRange($rec);
         }
         
         return $res;
@@ -152,14 +152,23 @@ class doc_Ranges extends core_Manager
     
     
     /**
-     * Ф-я връщаща следващия номер на документа
-     *
-     * @return int - следващия номер на фактура
+     * Ф-я връщаща следващия номер на документа в зададения диапазон
+     * 
+     * @param int $id
+     * @param mixed $class
+     * @param string|null $numberField
+     * @param string|null $rangeNumField
+     * 
+     * @throws core_exception_Expect
+     * 
+     * @return int $next
      */
-    public static function getNextNumber($id, $class, $numberField)
+    public static function getNextNumber($id, $class, $numberField = null, $rangeNumField = null)
     {
         expect($rec = self::fetchRec($id));
         $mvc = cls::get($class);
+        setIfNot($numberField, $mvc->numberFld);
+        setIfNot($rangeNumField, $mvc->rangeNumFld);
         
         if($rec->state == 'closed'){
             throw new core_exception_Expect('Избраният диапазон е запълнен. Моля изберете друг|*!', 'Несъответствие');
@@ -168,6 +177,7 @@ class doc_Ranges extends core_Manager
         $query = $mvc->getQuery();
         $query->XPR('maxNum', 'int', "MAX(#{$numberField})");
         $query->between('number', $rec->min, $rec->max);
+        $query->where("#{$rangeNumField} = {$rec->id}");
         
         if (!$maxNum = $query->fetch()->maxNum) {
             $next = $rec->min;
@@ -215,8 +225,14 @@ class doc_Ranges extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if(in_array($action, array('edit', 'delete')) && isset($rec)) {
+        if($action == 'delete' && isset($rec)) {
             if(!empty($rec->lastUsedOn) || !empty($rec->current)){
+                $requiredRoles = 'no_one';
+            }
+        }
+        
+        if($action == 'edit' && isset($rec)) {
+            if($rec->state == 'closed'){
                 $requiredRoles = 'no_one';
             }
         }
@@ -278,6 +294,28 @@ class doc_Ranges extends core_Manager
                     $form->setError('min,max', "Има препокриване с|* <b>{$exRange->min} - {$exRange->max}</b>");
                 }
             }
+            
+            if(isset($rec->current)){
+                if($rec->max < $rec->current){
+                    $form->setError('max', "Горната граница не може да е по-малка от текущия номер|*: <b>{$rec->current}</b>");
+                }
+            }
         }
+    }
+    
+    
+    /**
+     * Показване на диапазона
+     * 
+     * @param int $id
+     * 
+     * @return string $res
+     */
+    public static function displayRange($id)
+    {
+        $rec = self::fetchRec($id);
+        $res = "{$rec->min} - {$rec->max}";
+        
+        return $res;
     }
 }
