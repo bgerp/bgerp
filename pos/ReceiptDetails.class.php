@@ -557,7 +557,7 @@ class pos_ReceiptDetails extends core_Detail
                 $rec->id = $sameProduct->id;
                 
                 Mode::setPermanent("lastEditedRow", array('id' => $rec->id, 'action' => 'setquantity'));
-            } else {
+            } elseif(empty($receiptRec->revertId)) {
                 expect($rec->quantity >= 1, 'При добавяне количеството трябва да е положително');
             }
             

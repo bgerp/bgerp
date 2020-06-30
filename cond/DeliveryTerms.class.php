@@ -471,7 +471,14 @@ class cond_DeliveryTerms extends core_Master
         if ($Document instanceof sales_Sales || $Document instanceof sales_Quotations) {
             $deliveryData = is_array($formRec->deliveryData) ? $formRec->deliveryData : array();
             
-            if ($error = sales_TransportValues::getDeliveryTermError($id, $formRec->deliveryAdress, $formRec->contragentClassId, $formRec->contragentId, $formRec->deliveryLocationId, $deliveryData)) {
+            $locationId = $formRec->deliveryLocationId;
+            if($Document instanceof sales_Quotations){
+                if(!empty($formRec->deliveryPlaceId)){
+                    $locationId = crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$formRec->contragentClassId}' AND #contragentId = '{$formRec->contragentId}'", $formRec->deliveryPlaceId), 'id');
+                }
+            }
+            
+            if ($error = sales_TransportValues::getDeliveryTermError($id, $formRec->deliveryAdress, $formRec->contragentClassId, $formRec->contragentId, $locationId, $deliveryData)) {
                 $form->setError('deliveryTermId,deliveryAdress,deliveryLocationId', $error);
             }
         }

@@ -137,6 +137,12 @@ class pos_Setup extends core_ProtoSetup
     
     
     /**
+     * Необходими пакети
+     */
+    public $depends = 'cat=0.1,peripheral=0.1';
+    
+    
+    /**
      * Описание на конфигурационните константи за този модул
      */
     public $configDescription = array(
@@ -172,12 +178,6 @@ class pos_Setup extends core_ProtoSetup
         'migrate::updateStoreIdInReceipts',
         'migrate::updateBrState',
     );
-    
-    
-    /**
-     * Необходими пакети
-     */
-    public $depends = 'peripheral=0.1';
     
     
     /**
@@ -233,6 +233,15 @@ class pos_Setup extends core_ProtoSetup
             'period' => 1440,
             'offset' => 1320,
             'timeLimit' => 100,
+        ),
+        array(
+            'systemId' => 'Update Pos Top 100',
+            'description' => 'Обновява най-продаваните артикули',
+            'controller' => 'pos_Setup',
+            'action' => 'UpdatePosTop100',
+            'period' => 1440,
+            'offset' => 120,
+            'timeLimit' => 200,
         ),
     );
     
@@ -314,5 +323,67 @@ class pos_Setup extends core_ProtoSetup
     public function cron_UpdateStatistic()
     {
         pos_ReceiptDetails::getMostUsedTexts(24, true);
+    }
+    
+    
+    /**
+     * Обновява статистическите данни в POS-а
+     */
+    public function cron_UpdatePosTop100()
+    {
+        // Кои са POS групите
+        $topGroupId = cat_Groups::fetch("#sysId = 'topPos100'")->id;
+        $topGroupFatherId = cat_Groups::fetch("#sysId = 'posProducts'")->id;
+        
+        // За всяка бележка, намират се най-продаваните 100 артикула
+        $receiptQuery = pos_ReceiptDetails::getQuery();
+        $receiptQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
+        $receiptQuery->EXT('groupsInput', 'cat_Products', 'externalName=groupsInput,externalKey=productId');
+        $receiptQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+        $receiptQuery->XPR('count', 'int', 'count(#id)');
+        $receiptQuery->where("#state != 'draft' && #state != 'rejected'");
+        $receiptQuery->show('productId,groups,groupsInput');
+        $receiptQuery->groupBy('productId');
+        $receiptQuery->orderBy("count", 'DESC');
+        $receiptQuery->limit(100);
+        
+        // Те ще се добавят в групата за Топ 100 най-продавани
+        $products = $existingProducts = $topKeys = array();
+        while($receiptRec = $receiptQuery->fetch()){
+            $topKeys[$receiptRec->productId] = $receiptRec->productId;
+            if(keylist::isIn($topGroupId, $receiptRec->group)) continue;
+            
+            $receiptRec->groupsInput = keylist::addKey($receiptRec->groupsInput, $topGroupId);
+            $receiptRec->groups = keylist::addKey($receiptRec->groups, $topGroupId);
+            $receiptRec->groups = keylist::addKey($receiptRec->groups, $topGroupFatherId);
+            $products[$receiptRec->productId] = (object)array('id' => $receiptRec->productId, 'groups' => $receiptRec->groups, 'groupsInput' => $receiptRec->groupsInput);
+        }
+        
+        // Ако има артикули, които са в тази група, но вече не влизат в Топ 100 те се махат
+        $pQuery = cat_Products::getQuery();
+        $pQuery->where("#groups LIKE '%|{$topGroupId}|%'");
+        $pQuery->show('id,groups,groupsInput');
+        if(countR($products)){
+            $pQuery->notIn("id", array_keys($topKeys));
+        }
+        
+        while($pRec = $pQuery->fetch()){
+            $pRec->groupsInput = keylist::removeKey($pRec->groupsInput, $topGroupId);
+            $pRec->groupsInput = !empty($pRec->groupsInput) ? $pRec->groupsInput : null;
+            $pRec->groups = keylist::removeKey($pRec->groups, $topGroupId);
+            $pRec->groups = keylist::removeKey($pRec->groups, $topGroupFatherId);
+            $pRec->groups = !empty($pRec->groups) ? $pRec->groups : null;
+            $existingProducts[$pRec->id] = $pRec;
+        }
+        
+        // Записване на най-продаваните артикули
+        $Products = cls::get('cat_Products');
+        if(countR($products)){
+            $Products->saveArray($products, 'id,groups,groupsInput');
+        }
+        
+        if(countR($existingProducts)){
+            $Products->saveArray($existingProducts, 'id,groups,groupsInput');
+        }
     }
 }

@@ -157,7 +157,7 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
         }
         
         $nRec->contragent = $rec->contragentName;
-        $nRec->invNumber = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+        $nRec->invNumber = purchase_Invoices::getVerbal($rec, 'number');
         $nRec->date = dt::mysql2verbal($rec->date, 'd.m.Y');
         $nRec->num = $count;
         if ($rec->type == 'dc_note') {

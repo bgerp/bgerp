@@ -34,9 +34,10 @@ class deals_plg_SelectInvoice extends core_Plugin
     public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
         if (isset($rec->fromContainerId)) {
-            $number = sales_Invoices::fetchField("#containerId = {$rec->fromContainerId}", 'number');
-            $numberPadded = str_pad($number, '10', '0', STR_PAD_LEFT);
-            $res .= ' ' . plg_Search::normalizeText($number) . ' ' . plg_Search::normalizeText($numberPadded);
+            $invRec = sales_Invoices::fetch("#containerId = {$rec->fromContainerId}", 'number');
+            $numberPadded = sales_Invoices::getVerbal($invRec, 'number');
+            
+            $res .= ' ' . plg_Search::normalizeText($invRec->number) . ' ' . plg_Search::normalizeText($numberPadded);
         }
     }
     
@@ -49,8 +50,7 @@ class deals_plg_SelectInvoice extends core_Plugin
         if (isset($rec->fromContainerId)) {
             $Document = doc_Containers::getDocument($rec->fromContainerId);
             if($Document->isInstanceOf('deals_InvoiceMaster')){
-                $number = str_pad($Document->fetchField('number'), '10', '0', STR_PAD_LEFT);
-                $row->fromContainerId = "#{$Document->abbr}{$number}";
+                $row->fromContainerId = $Document->getHandle();
                 
                 if (!Mode::isReadOnly()) {
                     $row->fromContainerId = ht::createLink($row->fromContainerId, $Document->getSingleurlArray());
