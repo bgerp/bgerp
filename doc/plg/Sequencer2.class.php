@@ -2,12 +2,12 @@
 
 
 /**
- * Плъгин за генериране на номера на документите
- *
- *
+ * Плъгин за генериране на номера на документите според зададен диапазон
+ * @see doc_Ranges
+ * 
  * @category  bgerp
  * @package   doc
- *
+ * 
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3

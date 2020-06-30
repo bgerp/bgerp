@@ -284,7 +284,7 @@ class doc_Ranges extends core_Manager
             $rec = $form->rec;
             
             if($rec->min >= $rec->max){
-                $form->setError('min,max', "Невъзможна стойност");
+                $form->setError('min,max', "Горната граница трябва да е по-голяма от горната");
             }
             
             $query = self::getQuery();
@@ -293,11 +293,11 @@ class doc_Ranges extends core_Manager
             
             foreach ($ranges as $exRange){
                 if(!($exRange->max <= $rec->min || $exRange->min >= $rec->max)){
-                    $form->setError('min,max', "Има препокриване с|* <b>{$exRange->min} - {$exRange->max}</b>");
+                    $form->setError('min,max', "Има припокриване с|* <b>{$exRange->min} - {$exRange->max}</b>");
                 } elseif($rec->max == $exRange->min){
-                    $form->setError('max', "Горната граница се препокрива с долната на друд диапазон|* <b>{$exRange->min} - {$exRange->max}</b>");
+                    $form->setError('max', "Горната граница се припокрива с долната на друг диапазон|* <b>{$exRange->min} - {$exRange->max}</b>");
                 } elseif($rec->min == $exRange->max){
-                    $form->setError('max', "Долната граница се препокрива с горната на друд диапазон|* <b>{$exRange->min} - {$exRange->max}</b>");
+                    $form->setError('min', "Долната граница се припокрива с горната на друг диапазон|* <b>{$exRange->min} - {$exRange->max}</b>");
                 }
             }
             
