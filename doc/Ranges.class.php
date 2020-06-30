@@ -289,9 +289,15 @@ class doc_Ranges extends core_Manager
             
             $query = self::getQuery();
             $query->where("#class = {$rec->class} AND #id != '{$rec->id}'");
-            while ($exRange = $query->fetch()){
+            $ranges = $query->fetchAll();
+            
+            foreach ($ranges as $exRange){
                 if(!($exRange->max <= $rec->min || $exRange->min >= $rec->max)){
                     $form->setError('min,max', "Има препокриване с|* <b>{$exRange->min} - {$exRange->max}</b>");
+                } elseif($rec->max == $exRange->min){
+                    $form->setError('max', "Горната граница се препокрива с долната на друд диапазон|* <b>{$exRange->min} - {$exRange->max}</b>");
+                } elseif($rec->min == $exRange->max){
+                    $form->setError('max', "Долната граница се препокрива с горната на друд диапазон|* <b>{$exRange->min} - {$exRange->max}</b>");
                 }
             }
             
