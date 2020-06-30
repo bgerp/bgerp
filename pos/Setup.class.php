@@ -348,8 +348,11 @@ class pos_Setup extends core_ProtoSetup
         $receiptQuery->limit(100);
         
         // Те ще се добавят в групата за Топ 100 най-продавани
-        $products = $existingProducts = array();
+        $products = $existingProducts = $topKeys = array();
         while($receiptRec = $receiptQuery->fetch()){
+            $topKeys[$receiptRec->productId] = $receiptRec->productId;
+            if(keylist::isIn($topGroupId, $receiptRec->group)) continue;
+            
             $receiptRec->groupsInput = keylist::addKey($receiptRec->groupsInput, $topGroupId);
             $receiptRec->groups = keylist::addKey($receiptRec->groups, $topGroupId);
             $receiptRec->groups = keylist::addKey($receiptRec->groups, $topGroupFatherId);
@@ -361,7 +364,7 @@ class pos_Setup extends core_ProtoSetup
         $pQuery->where("#groups LIKE '%|{$topGroupId}|%'");
         $pQuery->show('id,groups,groupsInput');
         if(countR($products)){
-            $pQuery->notIn("id", array_keys($products));
+            $pQuery->notIn("id", array_keys($topKeys));
         }
         
         while($pRec = $pQuery->fetch()){
