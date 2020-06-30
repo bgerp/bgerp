@@ -16,7 +16,7 @@ defIfNot('SALES_DEFAULT_VALIDITY_OF_QUOTATION', '2592000');
 /**
  * Начален номер на фактурите
  */
-defIfNot('SALE_INV_MIN_NUMBER1', '0');
+defIfNot('SALE_INV_MIN_NUMBER1', '1');
 
 
 /**
@@ -34,7 +34,7 @@ defIfNot('SALE_INV_MAX_NUMBER1', '2000000');
 /**
  * Начален номер на фактурите
  */
-defIfNot('SALE_INV_MIN_NUMBER2', '2000000');
+defIfNot('SALE_INV_MIN_NUMBER2', '2000001');
 
 
 /**

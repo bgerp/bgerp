@@ -170,10 +170,11 @@ class doc_Ranges extends core_Manager
         $query->between('number', $rec->min, $rec->max);
         
         if (!$maxNum = $query->fetch()->maxNum) {
-            $maxNum = $rec->min;
+            $next = $rec->min;
+        } else {
+            $next = $maxNum + 1;
         }
         
-        $next = $maxNum + 1;
         if($next > $rec->max){
             throw new core_exception_Expect('Избраният диапазон е запълнен. Моля изберете друг|*!', 'Несъответствие');
         }
@@ -182,12 +183,19 @@ class doc_Ranges extends core_Manager
     }
     
     
-    
-    public static function updateRange($id, $number)
+    /**
+     * Обновява брояча на диапазона
+     * 
+     * @param int $id
+     * @param double $number
+     * 
+     * @return void
+     */
+    public static function updateRange($id, $current)
     {
         expect($rec = self::fetchRec($id));
         
-        $rec->current = $number;
+        $rec->current = $current;
         if($rec->current >= $rec->max){
             $rec->state = 'closed';
         }
