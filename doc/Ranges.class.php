@@ -57,7 +57,7 @@ class doc_Ranges extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,class,min,max,current,lastUsedOn,systemId,state,createdOn,createdBy';
+    public $listFields = 'id,class,min,max,isDefault,current,lastUsedOn,systemId,state,createdOn,createdBy';
     
     
     /**
@@ -72,6 +72,7 @@ class doc_Ranges extends core_Manager
         $this->FLD('current', 'varchar', 'input=none,caption=Текущ');
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'input=none,caption=Последно');
         $this->FLD('systemId', 'varchar', 'input=none,caption=Системно ид');
+        $this->FLD('isDefault', 'enum(no=Не,yes=Да)', 'maxRadio=1,caption=По подразбиране,notNull,value=no');
         
         $this->setDbIndex('class');
         $this->setDbUnique('class,min,max');
@@ -104,6 +105,10 @@ class doc_Ranges extends core_Manager
             $rec->id = $exRec->id;
         } else {
             $rec->state = 'active';
+            
+            if(!self::count("#class = {$mvc->getClassId()}")){
+                $rec->isDefault = 'yes';
+            }
         }
         
         return self::save($rec);
@@ -144,7 +149,17 @@ class doc_Ranges extends core_Manager
      */
     public static function getDefaultRangeId($class)
     {
+        $mvc = cls::get($class);
+        
+        // Ако има ръчно зададен дефолтен диапазон се връща той
+        $defaultRangeId = self::fetchField("#class={$mvc->getClassId()} AND #isDefault = 'yes'", 'id');
         $ranges = self::getAvailableRanges($class);
+        if($defaultRangeId && array_key_exists($defaultRangeId, $ranges)){
+            
+            return $defaultRangeId;
+        }
+        
+        // Ако няма се връща първият
         $defaultRangeId = key($ranges);
         
         return $defaultRangeId;
@@ -208,9 +223,10 @@ class doc_Ranges extends core_Manager
         $rec->current = $current;
         if($rec->current >= $rec->max){
             $rec->state = 'closed';
+            $rec->isDefault = 'no';
         }
         
-        self::save($rec, 'current,state');
+        self::save($rec, 'current,isDefault,state');
     }
     
     
@@ -289,6 +305,7 @@ class doc_Ranges extends core_Manager
             
             $query = self::getQuery();
             $query->where("#class = {$rec->class} AND #id != '{$rec->id}'");
+            $query->show("min,max");
             $ranges = $query->fetchAll();
             
             foreach ($ranges as $exRange){
@@ -306,6 +323,20 @@ class doc_Ranges extends core_Manager
                     $form->setError('max', "Горната граница не може да е по-малка от текущия номер|*: <b>{$rec->current}</b>");
                 } elseif($rec->min > $rec->current){
                     $form->setError('min', "Долната граница не може да е по-голяма от текущия номер|*: <b>{$rec->current}</b>");
+                }
+            }
+            
+            // Ако диапазона ще е дефолтен, всички останали няма да са дефолтни
+            if($rec->isDefault == 'yes'){
+                $id = $rec->id;
+                array_walk($ranges, function($a) use ($id){
+                    if($id != $a->id) {
+                        $a->isDefault = 'no';
+                    }
+                });
+                
+                if(countR($ranges)){
+                    $mvc->saveArray($ranges, 'id,isDefault');
                 }
             }
         }
