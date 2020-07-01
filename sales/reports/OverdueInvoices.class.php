@@ -222,6 +222,12 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         if (is_array($threadsId)) {
             foreach ($threadsId as $thread) {
                 
+                $firstDoc = doc_Threads::getFirstDocument($thread);
+                $firstDocClassName = $firstDoc->className;
+                $firstDocId = $firstDoc->that;
+                $firstDocState = $firstDocClassName::fetch($firstDocId)->state;
+                if ($firstDocState == 'closed')continue;
+                
                 // масив от фактури в тази нишка към избраната дата
                 $invoicePayments = (deals_Helper::getInvoicePayments($thread, $rec->checkDate));
                 
