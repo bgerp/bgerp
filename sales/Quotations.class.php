@@ -254,6 +254,8 @@ class sales_Quotations extends core_Master
         $this->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Допълнително->Валидност,mandatory');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Цени,notChangeableByContractor');
         $this->FLD('others', 'text(rows=4)', 'caption=Допълнително->Условия');
+    
+        $this->setDbIndex('date');
     }
     
     
