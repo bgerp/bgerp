@@ -1576,7 +1576,9 @@ class pos_Terminal extends peripheral_Terminal
         foreach ($groups as $groupId){
             $inGroup = array_filter($foundResults->rows, function($e) use ($groupId){ return is_null($groupId) || keylist::isIn($groupId, $e->_groups);});
             if($countGroups){
+                Mode::push('treeShortName', true);
                 $groupName = (isset($groupId)) ? cat_Groups::getVerbal($groupId, 'name') : tr("Всички");
+                Mode::pop('treeShortName');
                 $contentId = "content{$groupId}";
                 $tab = "<li id='group{$groupId}' class='selectable' data-content = '{$contentId}'>{$groupName}</li>";
                 $resultTpl->append($tab, "TAB");
