@@ -104,6 +104,13 @@ defIfNot('POS_TOP_100_PERIOD', 86400);
 
 
 /**
+ *  Време на изпълнение на периодичния процес за обновяване на продаваемите артикули
+ */
+defIfNot('POS_CRON_CACHE_SELLABLE_PERIOD', 3600);
+
+
+
+/**
  * Модул "Точки на продажба" - инсталиране/деинсталиране
  *
  *
@@ -169,6 +176,7 @@ class pos_Setup extends core_ProtoSetup
         'POS_TERMINAL_EDIT_SOUND' => array('enum(click=Клик (1),mouseclick=Клик (2),tap=Клик (3),terminal=Скенер (1),terminal2=Скенер (2))', 'caption=Звуци в терминала->Редактиране'),
         'POS_TERMINAL_DELETE_SOUND' => array('enum(crash=Изтриване (1),delete1=Изтриване (2),filedelete=Изтриване (3))', 'caption=Звуци в терминала->Изтриване'),
         'POS_TOP_100_PERIOD' => array('time', 'caption=Време за изпълнение на периодичните процеси->Top 100'),
+        'POS_CRON_CACHE_SELLABLE_PERIOD' => array('time', 'caption=Време за изпълнение на периодичните процеси->Кеш на продаваемите артикули'),
     );
     
     
@@ -181,6 +189,7 @@ class pos_Setup extends core_ProtoSetup
         'pos_ReceiptDetails',
         'pos_Reports',
         'pos_Stocks',
+        'pos_SellableProductsCache',
         'migrate::migrateCronSettings',
         'migrate::updateStoreIdInReceipts',
         'migrate::updateBrState',
@@ -223,6 +232,16 @@ class pos_Setup extends core_ProtoSetup
         $rec->action = 'UpdatePosTop100';
         $rec->period = static::get('TOP_100_PERIOD') / 60;
         $rec->offset = 120;
+        $rec->timeLimit = 200;
+        $html .= core_Cron::addOnce($rec);
+        
+        // Залагаме в cron
+        $rec = new stdClass();
+        $rec->systemId = 'Update POS sellableProducts';
+        $rec->description = 'Обновява на кеша на продаваемите артикули в ПОС-а';
+        $rec->controller = 'pos_SellableProductsCache';
+        $rec->action = 'CacheSellablePosProducts';
+        $rec->period = static::get('CRON_CACHE_SELLABLE_PERIOD') / 60;
         $rec->timeLimit = 200;
         
         $html .= core_Cron::addOnce($rec);

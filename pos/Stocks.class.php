@@ -37,12 +37,6 @@ class pos_Stocks extends core_Manager
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'pos, ceo';
-    
-    
-    /**
      * Кой може да пише?
      */
     public $canWrite = 'no_one';
