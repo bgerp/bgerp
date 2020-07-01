@@ -1541,7 +1541,10 @@ class pos_Terminal extends peripheral_Terminal
         
         $res = array();
         if(isset($selectedRec->productId)){
+            core_Debug::startTimer('renderSimilarTable');
+            core_Debug::log('RENDER PRODUCT SIMILAR TABLE START');
             $res['similar'] = (object)array('rows' => $this->prepareResultSimilarProducts($rec, $selectedRec, $string), 'placeholder' => 'BLOCK1');
+            core_Debug::log('RENDER PRODUCT SIMILAR TABLE END: ' . round(core_Debug::$timers['renderSimilarTable']->workingTime, 2));
         }
         
         $foundResults = (object)array('rows' => $this->prepareProductTable($rec, $string), 'placeholder' => 'BLOCK2');
