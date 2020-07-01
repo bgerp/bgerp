@@ -491,7 +491,15 @@ class pos_ReceiptDetails extends core_Detail
             }
             
             // Намираме нужната информация за продукта
+            
+            
+            core_Debug::startTimer('getProductInfo');
             $this->getProductInfo($rec);
+            
+            core_Debug::stopTimer('getProductInfo');
+            core_Debug::log('GET PRODUCT INFO END: ' . round(core_Debug::$timers['getProductInfo']->workingTime, 2));
+            
+            
             expect($rec->productId, 'Няма такъв продукт в системата|*!');
             expect($rec->notSellable !== true, 'Артикулът е спрян от продажба|*!');
             
