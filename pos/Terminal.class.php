@@ -1686,6 +1686,7 @@ class pos_Terminal extends peripheral_Terminal
         
         if(!is_array($result)){
             core_Debug::startTimer('renderProductTable');
+            core_Debug::log('RENDER PRODUCT TABLE START');
             
             $count = 0;
             $sellable = array();
@@ -1783,7 +1784,7 @@ class pos_Terminal extends peripheral_Terminal
             core_Cache::set('planning_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}", $result, 2);
             
             core_Debug::stopTimer('renderProductTable');
-            core_Debug::log('RENDER PRODUCT TABLE: ' . round(core_Debug::$timers['renderProductTable']->workingTime, 2));
+            core_Debug::log('RENDER PRODUCT TABLE END: ' . round(core_Debug::$timers['renderProductTable']->workingTime, 2));
         }
         
         return $result;
