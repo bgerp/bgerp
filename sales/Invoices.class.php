@@ -246,7 +246,7 @@ class sales_Invoices extends deals_InvoiceMaster
         parent::setInvoiceFields($this);
         
         $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable');
-        $this->FLD('numlimit', "key(mvc=doc_Ranges,select=id)", 'caption=Диапазон, after=template,input=hidden,notNull,default=1');
+        $this->FLD('numlimit', "key(mvc=cond_Ranges,select=id)", 'caption=Диапазон, after=template,input=hidden,notNull,default=1');
         $this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)', 'caption=Статус, input=none');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
@@ -277,8 +277,8 @@ class sales_Invoices extends deals_InvoiceMaster
         $res = '';
         $res .= doc_TplManager::addOnce($this, $tplArr);
         
-        doc_Ranges::add('sales_Invoices', sales_Setup::get('SALE_INV_MIN_NUMBER1', true), sales_Setup::get('SALE_INV_MAX_NUMBER1', true), 1);
-        doc_Ranges::add('sales_Invoices', sales_Setup::get('SALE_INV_MIN_NUMBER2', true), sales_Setup::get('SALE_INV_MAX_NUMBER2', true), 2);
+        cond_Ranges::add('sales_Invoices', sales_Setup::get('SALE_INV_MIN_NUMBER1', true), sales_Setup::get('SALE_INV_MAX_NUMBER1', true), 1);
+        cond_Ranges::add('sales_Invoices', sales_Setup::get('SALE_INV_MIN_NUMBER2', true), sales_Setup::get('SALE_INV_MAX_NUMBER2', true), 2);
         
         return $res;
     }
@@ -550,7 +550,7 @@ class sales_Invoices extends deals_InvoiceMaster
             }
             
             if(empty($rec->number)){
-                $row->number = str::removeWhiteSpace(doc_Ranges::displayRange($rec->numlimit));
+                $row->number = str::removeWhiteSpace(cond_Ranges::displayRange($rec->numlimit));
                 $row->number = "<span style='color:blue;'>{$row->number}</span>";
                 $row->number = ht::createHint($row->number, 'При активиране номерът ще бъде в този диапазон', 'notice', false);
             }
@@ -689,7 +689,7 @@ class sales_Invoices extends deals_InvoiceMaster
         }
         
         try{
-            $number = (isset($rec->number)) ? $rec->number : doc_Ranges::getNextNumber($rec->numlimit, $this, 'number', 'numlimit');
+            $number = (isset($rec->number)) ? $rec->number : cond_Ranges::getNextNumber($rec->numlimit, $this, 'number', 'numlimit');
         } catch(core_exception_Expect $e){
             $msg = $e->getMessage();
             

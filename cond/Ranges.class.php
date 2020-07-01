@@ -2,11 +2,11 @@
 
 
 /**
- * Клас 'doc_Ranges' - Модел за диапазони на номерата на документите
+ * Клас 'cond_Ranges' - Модел за диапазони на номерата на документите
  *
  *
  * @category  bgerp
- * @package   doc
+ * @package   cond
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2020 Experta OOD
@@ -14,8 +14,14 @@
  *
  * @since     v 0.11
  */
-class doc_Ranges extends core_Manager
+class cond_Ranges extends core_Manager
 {
+    
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'doc_Ranges';
     
     
     /**
@@ -27,19 +33,19 @@ class doc_Ranges extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,admin';
+    public $canList = 'ceo, admin';
     
     
     /**
      * Кой може да го редактира?
      */
-    public $canWrite = 'ceo,admin';
+    public $canWrite = 'ceo, admin';
     
     
     /**
      * Кой може да променя състоянието?
      */
-    public $canChangestate = 'ceo,admin';
+    public $canChangestate = 'ceo, admin';
     
     
     /**
