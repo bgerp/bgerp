@@ -27,7 +27,7 @@ class cond_Ranges extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created,doc_Wrapper,plg_RowTools2,plg_State2';
+    public $loadList = 'plg_Created,cond_Wrapper,plg_RowTools2,plg_State2';
     
     
     /**
