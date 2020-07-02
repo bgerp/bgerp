@@ -1683,7 +1683,7 @@ class pos_Terminal extends peripheral_Terminal
         $result = core_Cache::get('planning_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}");
         
         //@todo временно
-        $result = false;
+        //$result = false;
         
         $settings = pos_Points::getSettings($rec->pointId);
         
