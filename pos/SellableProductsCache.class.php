@@ -58,6 +58,7 @@ class pos_SellableProductsCache extends core_Master
         $this->FLD('priceListId', 'key(mvc=cat_Products,select=name)', 'caption=Ценова политика');
         
         $this->setDbIndex('priceListId');
+        $this->setDbIndex('productId');
         $this->setDbIndex('string');
     }
     

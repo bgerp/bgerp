@@ -72,6 +72,7 @@ class pos_Stocks extends core_Manager
         $this->FLD('batches', 'blob', 'input=none,caption=Партиди');
         
         $this->setDbUnique('productId, storeId');
+        $this->setDbIndex('storeId, productId');
     }
     
     

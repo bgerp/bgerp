@@ -1683,7 +1683,7 @@ class pos_Terminal extends peripheral_Terminal
         $result = core_Cache::get('planning_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}");
         
         //@todo временно
-        $result = false;
+        //$result = false;
         
         $settings = pos_Points::getSettings($rec->pointId);
         
@@ -1712,15 +1712,13 @@ class pos_Terminal extends peripheral_Terminal
                 $productsArr = keylist::toArray(pos_Points::getSettings($rec->pointId, 'products'));
                 
                 if(countR($productsArr) || countR($groups)){
+                    $pQuery->limit($settings->maxSearchProducts);
                     $pQuery->in("productId", array_keys($productsArr));
                     $pQuery->orderBy('code,name', 'ASC');
                     
                     if(countR($groups)){
                         $or = countR($productsArr) ? true : false;
                         $pQuery->likeKeylist('groups', $groups, $or);
-                        if(!countR($productsArr)){
-                            $pQuery->limit($settings->maxSearchProducts);
-                        }
                     }
                     
                     while($pRec = $pQuery->fetch()){
@@ -1738,7 +1736,7 @@ class pos_Terminal extends peripheral_Terminal
                     $cloneQuery = clone $pQuery;
                     $cloneQuery->where("#productId = {$foundRec->productId}");
                     if($productRec = $cloneQuery->fetch()){
-                        $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canSell' => $productRec->canSell,'canStore' => $productRec->canStore, 'measureId' => $productRec->measureId, 'packId' => isset($foundRec->packagingId) ? $foundRec->packagingId : null);
+                        $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canSell' => $productRec->canSell,'canStore' => $productRec->canStore, 'measureId' => $productRec->measureId, 'code' => $productRec->code, 'packId' => isset($foundRec->packagingId) ? $foundRec->packagingId : null);
                         $count++;
                     }
                 }
@@ -1752,9 +1750,11 @@ class pos_Terminal extends peripheral_Terminal
                 
                 $searchString = plg_Search::normalizeText($searchString);
                 $pQuery1->where("LOCATE ('{$searchString}', #string)");
+                plg_Search::applySearch($searchString, $pQuery1);
+                $pQuery1->limit($settings->maxSearchProducts);
                 
                 while($pRec1 = $pQuery1->fetch()){
-                    $sellable[$pRec1->productId] = (object)array('id' => $pRec1->productId, 'canSell' => $pRec1->canSell, 'canStore' => $pRec1->canStore, 'measureId' => $pRec1->measureId);
+                    $sellable[$pRec1->productId] = (object)array('id' => $pRec1->productId, 'canSell' => $pRec1->canSell, 'code' => $pRec1->code, 'canStore' => $pRec1->canStore, 'measureId' => $pRec1->measureId);
                     $count++;
                     $maxCount--;
                     if($count == $settings->maxSearchProducts) break;
@@ -1764,6 +1764,7 @@ class pos_Terminal extends peripheral_Terminal
                 if($count < $settings->maxSearchProducts){
                     $notInKeys = array_keys($sellable);
                     $pQuery2 = clone $pQuery;
+                    $pQuery2->limit($settings->maxSearchProducts);
                     if(empty($searchStringPure)){
                         $pQuery2->where("1=2");
                     } else {
@@ -1775,7 +1776,7 @@ class pos_Terminal extends peripheral_Terminal
                     }
                    
                     while($pRec2 = $pQuery2->fetch()){
-                        $sellable[$pRec2->productId] = (object)array('id' => $pRec2->productId, 'canSell' => $pRec2->canSell, 'canStore' => $pRec2->canStore, 'measureId' =>  $pRec2->measureId);
+                        $sellable[$pRec2->productId] = (object)array('id' => $pRec2->productId, 'canSell' => $pRec2->canSell, 'code' => $pRec2->code, 'canStore' => $pRec2->canStore, 'measureId' =>  $pRec2->measureId);
                         $count++;
                         $maxCount--;
                         if($count == $settings->maxSearchProducts) break;
@@ -1812,6 +1813,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
         $defaultContragentClassId = crm_Persons::getClassId();
+        $productClassId = cat_Products::getClassId();
         
         $Policy = cls::get('price_ListToCustomers');
         $listId = pos_Points::fetchField($rec->pointId, 'policyId');
@@ -1827,15 +1829,15 @@ class pos_Terminal extends peripheral_Terminal
                 $packId = key($packs);
             }
             
-            $packRec = cat_products_Packagings::getPack($id, $packId);
-            $perPack = (is_object($packRec)) ? $packRec->quantity : 1;
+            $packQuantity = cat_products_Packagings::getPack($id, $packId, 'quantity');
+            $perPack = (!empty($packQuantity)) ? $packQuantity : 1;
             $price = $Policy->getPriceByList($listId, $id, $packId, 1, null, 1, 'yes');
             
             // Обръщаме реда във вербален вид
             $res[$id] = new stdClass();;
             $Double = core_Type::getByName('double(decimals=2)');
             
-            $obj = (object) array('productId' => $id, 'measureId' => $pRec->measureId, 'packagingId' => $packId, 'vat' => $vat);
+            $obj = (object) array('productId' => $id, 'measureId' => $pRec->measureId, 'packagingId' => $packId);
             if (empty($price->price)){
                 $res[$id]->price = "<b class='red'>n/a</b>";
             } else {
@@ -1850,16 +1852,14 @@ class pos_Terminal extends peripheral_Terminal
             $res[$id]->stock = core_Type::getByName('double(smartRound)')->toVerbal($obj->stock);
             $packagingId = ($obj->packagingId) ? $obj->packagingId : $obj->measureId;
             $res[$id]->packagingId = cat_UoM::getSmartName($packagingId, $obj->stock);
-            
-            $productRec = cat_Products::fetch($obj->productId, 'code');
             $res[$id]->productId = mb_subStr(cat_Products::getVerbal($obj->productId, 'name'), 0, 95);
-            $res[$id]->code = (!empty($productRec->code)) ? cat_Products::getVerbal($obj->productId, 'code') : "Art{$obj->productId}";
+            $res[$id]->code = !empty($pRec->code) ? cat_Products::getVerbal($obj->productId, 'code') : "Art{$obj->productId}";
             
             $res[$id]->photo = $this->getPosProductPreview($obj->productId, 64, 64);
             $res[$id]->CLASS = ' pos-add-res-btn navigable enlargable';
             $res[$id]->DATA_URL = (pos_ReceiptDetails::haveRightFor('add', $obj)) ? toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $rec->id), 'local') : null;
             $res[$id]->DATA_ENLARGE_OBJECT_ID = $id;
-            $res[$id]->DATA_ENLARGE_CLASS_ID = cat_Products::getClassId();
+            $res[$id]->DATA_ENLARGE_CLASS_ID = $productClassId;
             $res[$id]->DATA_MODAL_TITLE = cat_Products::getTitleById($id);
             $res[$id]->id = $id;
             $res[$id]->receiptId = $rec->id;
