@@ -738,9 +738,14 @@ function render_openCurrentPosTab() {
 
 function render_prepareResult() {
 	activeInput = false;
+	if($('#result-holder .noFoundInGroup:visible').length) {
+		sessionStorage.setItem('focused', '');
+	}
+
 	if($('.tabHolder').length == 0) {
 		startNavigation();
 	}
+
 	setTimeout(function () {
 		if($('.updatedDiv').length){
 			$('.updatedDiv').removeClass('updatedDiv');
@@ -981,6 +986,7 @@ function openModal(title, heightModal) {
 	});
 
 	dialog.dialog( "open" );
+	$('.ui-dialog-titlebar-close').focus();
 	if ($('.keyboard'.length)) {
 		setTimeout(function(){
 
@@ -996,7 +1002,6 @@ function openModal(title, heightModal) {
 					$('.pressed').removeClass('pressed');
 					var key = event.key.toLowerCase();
 					$(".keyboard-btn[data-key=" + key+ "]").addClass('pressed');
-					console.log(event.key);
 					if (event.key == "Enter") {
 						$('.select-input-pos').val($('.keyboardText').val());
 						$('.ui-dialog-titlebar-close').click();
