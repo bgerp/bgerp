@@ -448,6 +448,7 @@ class pos_ReceiptDetails extends core_Detail
             
             // Ако е зададено ид на продукта
             if ($productId = Request::get('productId', 'int')) {
+                $increment = true;
                 $rec->productId = $productId;
             }
             
