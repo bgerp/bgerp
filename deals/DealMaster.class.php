@@ -1633,6 +1633,9 @@ abstract class deals_DealMaster extends deals_DealBase
      *		o $fields['template'] 		    -  бележки за сделката
      *      o $fields['receiptId']          -  информативно от коя бележка е
      *      o $fields['onlineSale']         -  дали е онлайн продажба
+     *      o $fields['priceListId']        -  ценова политика
+     *      
+     *      
      *
      * @return mixed $id/FALSE - ид на запис или FALSE
      */
@@ -1736,7 +1739,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if (isset($fields['receiptId'])) {
             $rec->_receiptId = $fields['receiptId'];
         }
-        
+       
         if ($id = $me->save($rec)) {
             doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, core_Users::getCurrent());
             

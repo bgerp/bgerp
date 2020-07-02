@@ -2053,13 +2053,12 @@ abstract class deals_Helper
         $price1Round = round($price, 5);
         $price2Round = round($foundPrice, 5);
         
-        if($price1Round < $price2Round){
-            $diff = abs($price1Round - $price2Round);
-            $diff = number_format($diff, 5);
-            
-            return $diff > 0.001;
+        if($price2Round){
+            $diff = abs(core_Math::diffInPercent($price1Round, $price2Round));
+        } else {
+            $diff = 0;
         }
-       
-        return false;
+        
+        return $diff > 1;
     }
 }
