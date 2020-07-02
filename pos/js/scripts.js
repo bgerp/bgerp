@@ -738,7 +738,7 @@ function render_openCurrentPosTab() {
 
 function render_prepareResult() {
 	activeInput = false;
-	if($('#result-holder .noFoundInGroup').length) {
+	if($('#result-holder .noFoundInGroup:visible').length) {
 		sessionStorage.setItem('focused', '');
 	}
 
