@@ -337,6 +337,7 @@ class price_ListToCustomers extends core_Manager
                 
                 // За стандартните артикули се търси себестойността в ценовите политики
                 $rec = $this->getPriceByList($listId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
+                $rec->listId = $listId;
             }
         }
         
