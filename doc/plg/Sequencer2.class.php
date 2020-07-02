@@ -28,7 +28,6 @@ class doc_plg_Sequencer2 extends core_Plugin
     {
         setIfNot($mvc->rangeNumFld, 'numberRange');
         setIfNot($mvc->numberFld, 'number');
-        setIfNot($mvc->canChangerangenum, 'ceo,admin');
         setIfNot($mvc->addNumberOnActivation, false);
         
         if (!isset($mvc->fields[$mvc->rangeNumFld])) {
@@ -47,12 +46,11 @@ class doc_plg_Sequencer2 extends core_Plugin
     {
         $form = $data->form;
        
-        if($mvc->haveRightFor('changerangenum', $form->rec)){
-            $options = cond_Ranges::getAvailableRanges($mvc);
+        $options = cond_Ranges::getAvailableRanges($mvc);
+        
+        if(countR($options)){
             $form->setField($mvc->rangeNumFld, 'input');
-            if(countR($options) > 1){
-                $form->setOptions($mvc->rangeNumFld, $options);
-            }
+            $form->setOptions($mvc->rangeNumFld, $options);
         }
         
         $form->setDefault($mvc->rangeNumFld, cond_Ranges::getDefaultRangeId($mvc));

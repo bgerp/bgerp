@@ -225,14 +225,6 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * Поле за избор на диапазон на документа
-     * 
-     * @see doc_plg_Sequencer2
-     */
-    public $canChangerangenum = 'acc,ceo';
-    
-    
-    /**
      * Кои ключове да се тракват, кога за последно са използвани
      */
     public $lastUsedKeys = 'numlimit';
@@ -277,8 +269,8 @@ class sales_Invoices extends deals_InvoiceMaster
         $res = '';
         $res .= doc_TplManager::addOnce($this, $tplArr);
         
-        cond_Ranges::add('sales_Invoices', sales_Setup::get('SALE_INV_MIN_NUMBER1', true), sales_Setup::get('SALE_INV_MAX_NUMBER1', true), 1);
-        cond_Ranges::add('sales_Invoices', sales_Setup::get('SALE_INV_MIN_NUMBER2', true), sales_Setup::get('SALE_INV_MAX_NUMBER2', true), 2);
+        cond_Ranges::add('sales_Invoices', 1, 1999999, null, 'acc,ceo', 1);
+        $res .= cls::get('sales_Setup')->callMigrate('updateSecondInvoiceRange', 'sales');
         
         return $res;
     }

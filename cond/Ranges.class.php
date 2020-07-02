@@ -49,6 +49,12 @@ class cond_Ranges extends core_Manager
     
     
     /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'ceo, admin';
+    
+    
+    /**
      * Заглавие
      */
     public $title = 'Диапазони на документите';
@@ -63,7 +69,7 @@ class cond_Ranges extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,class,min,max,isDefault,current,lastUsedOn,systemId,state,createdOn,createdBy';
+    public $listFields = 'id,class,min,max,current,lastUsedOn,isDefault,users,roles,createdOn,createdBy,state';
     
     
     /**
@@ -73,12 +79,15 @@ class cond_Ranges extends core_Manager
     {
         // Информация за нишката
         $this->FLD('class', 'class(interface=doc_DocumentIntf,select=title)', 'mandatory,caption=Документ');
-        $this->FLD('min', 'int(min=0)', 'mandatory,caption=Долна граница');
-        $this->FLD('max', 'int(Min=0)', 'mandatory,caption=Горна граница');
-        $this->FLD('current', 'varchar', 'input=none,caption=Текущ');
+        $this->FLD('min', 'bigint(min=0)', 'mandatory,caption=Долна граница');
+        $this->FLD('max', 'bigint(Min=0)', 'mandatory,caption=Горна граница');
+        $this->FLD('isDefault', 'enum(no=Не,yes=Да)', 'maxRadio=1,caption=По подразбиране,notNull,value=no');
+        $this->FLD('roles', 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Достъп->Роли,autohide');
+        $this->FLD('users', 'userList', 'caption=Достъп->Потребители,autohide');
+        
+        $this->FLD('current', 'bigint', 'input=none,caption=Текущ');
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'input=none,caption=Последно');
         $this->FLD('systemId', 'varchar', 'input=none,caption=Системно ид');
-        $this->FLD('isDefault', 'enum(no=Не,yes=Да)', 'maxRadio=1,caption=По подразбиране,notNull,value=no');
         
         $this->setDbIndex('class');
         $this->setDbUnique('class,min,max');
@@ -96,12 +105,17 @@ class cond_Ranges extends core_Manager
      * 
      * @return int
      */
-    public static function add($class, $min, $max, $systemId = null)
+    public static function add($class, $min, $max, $users = null, $roles = null, $systemId = null)
     {
         $mvc = cls::get($class);
         
-        expect($max > $min && (empty($min) || ($min && ctype_digit($min))) && ctype_digit($max));
-        $rec = (object)array('class' => $mvc->getClassId(), 'min' => $min, 'max' => $max);
+        expect($max > $min && (empty($min) || ($min && type_Int::isInt($min))) && type_Int::isInt($max));
+        expect($users || $roles);
+        $usersKeylist = isset($users) ? keylist::fromArray(arr::make($users, true)) : null;
+        $rolesKeylist = isset($roles) ? core_Roles::getRolesAsKeylist($roles) : null;
+        expect(!empty($usersKeylist) || !empty($rolesKeylist));
+        
+        $rec = (object)array('class' => $mvc->getClassId(), 'min' => $min, 'max' => $max, 'users' => $usersKeylist, 'roles' => $rolesKeylist);
         if(isset($systemId)){
             $rec->systemId = $systemId;
         }
@@ -122,24 +136,30 @@ class cond_Ranges extends core_Manager
     
     
     /**
-     * Кои са допустимите диапазони за документа
+     * Кои диапазони на класа може да избира потребителя
      * 
-     * @param mixed $class
+     * @param mixed $class - клас
+     * @param int|null $cu - текущ потребител
      * 
-     * @return array $res
+     * @return array $res  - достъпните диапазони
      */
-    public static function getAvailableRanges($class)
+    public static function getAvailableRanges($class, $cu = null)
     {
+        $cu = isset($cu) ? $cu : core_Users::getCurrent();
+        
         $res = array();
         $mvc = cls::get($class);
         
         $query = self::getQuery();
         $query->where("#class = {$mvc->getClassId()} AND #state = 'active'");
         $query->where("#current IS NULL OR (#current IS NOT NULL AND #current < #max)");
-        
         $query->orderBy('min', 'ASC');
         while($rec = $query->fetch()){
-            $res[$rec->id] = self::displayRange($rec);
+            
+            // Диапазона е достъпен ако потребителя е ceo или е изрично посочен или има някоя от посочените роли или диапазона е без ограничение
+            if(haveRole('ceo', $cu) || (keylist::isIn($cu, $rec->users) || haveRole($rec->roles, $cu) || (empty($rec->users) && empty($rec->roles)))){
+                $res[$rec->id] = self::displayRange($rec);
+            }
         }
         
         return $res;
@@ -147,28 +167,53 @@ class cond_Ranges extends core_Manager
     
     
     /**
-     * Кой е дефолтния диапазон на класа
+     * Кой е дефолтния диапазон, който може да избере потребителя
      * 
-     * @param mixed $class
+     * @param mixed $class - клас
+     * @param int|null $cu - текущ потребител
      * 
-     * @return int $defaultRangeId
+     * @return int         - дефолтния диапазон
      */
-    public static function getDefaultRangeId($class)
+    public static function getDefaultRangeId($class, $cu = null)
     {
-        $mvc = cls::get($class);
+        $cu = isset($cu) ? $cu : core_Users::getCurrent();
         
-        // Ако има ръчно зададен дефолтен диапазон се връща той
-        $defaultRangeId = self::fetchField("#class={$mvc->getClassId()} AND #isDefault = 'yes'", 'id');
-        $ranges = self::getAvailableRanges($class);
-        if($defaultRangeId && array_key_exists($defaultRangeId, $ranges)){
+        // Ако има достъп до само един диапазон, той е дефолтния
+        $mvc = cls::get($class);
+        $ranges = self::getAvailableRanges($class, $cu);
+        if(countR($ranges) == 1){
             
-            return $defaultRangeId;
+            return key($ranges);
         }
         
-        // Ако няма се връща първият
-        $defaultRangeId = key($ranges);
+        // Ако глобалния дефолтен за класа е достъпен за потребителя е той
+        $globalDefaultrangeId = self::fetchField("#class={$mvc->getClassId()} AND #state = 'active' AND #isDefault = 'yes'", 'id');
+        if(isset($globalDefaultrangeId) && array_key_exists($globalDefaultrangeId, $ranges)){
+           
+            return $globalDefaultrangeId;
+        }
         
-        return $defaultRangeId;
+        // Ако има повече от 1 диапазон и нито един не е дефолтен, то дефолтен ще е този с по малко ид
+        if(countR($ranges) > 1){
+            
+            return key($ranges);
+        }
+        
+        // Ако няма глобален дефолт и няма налични тогава дефолтен е първия свободен въобще
+        if(!isset($globalDefaultrangeId)){
+            $query = self::getQuery("#class={$mvc->getClassId()} AND #state = 'active'");
+            $query->orderBy('id', 'ASC');
+            $query->limit(1);
+            
+            
+            if($foundRec = $query->fetch()){
+                
+                return $foundRec->id;
+            }
+        }
+        
+        // В краен вариант връщаме глобалния дефолт
+        return $globalDefaultrangeId;
     }
     
     
@@ -229,10 +274,28 @@ class cond_Ranges extends core_Manager
         $rec->current = $current;
         if($rec->current >= $rec->max){
             $rec->state = 'closed';
+            
+            
             $rec->isDefault = 'no';
         }
         
         self::save($rec, 'current,isDefault,state');
+    }
+    
+    
+    
+    
+    public function setNextDefault($class)
+    {
+        if($rec->isDefault == 'yes'){
+            $query = self::getQuery();
+            $query->where("#id != {$rec->id} AND #class = {$rec->class}");
+            $query->orderBy('id', 'ASC');
+            if($nextRec = $query->fetch()){
+                $nextRec->isDefault = 'yes';
+                self::save($nextRec, 'isDefault');
+            }
+        }
     }
     
     
@@ -291,6 +354,12 @@ class cond_Ranges extends core_Manager
         }
         
         $form->setOptions('class', $documentOptions);
+        
+        if($form->rec->createdBy == core_Users::SYSTEM_USER){
+            foreach (array('class', 'min', 'max', 'roles', 'users') as $field){
+                $form->setField($field, 'input=none');
+            }
+        }
     }
     
     

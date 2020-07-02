@@ -26,24 +26,6 @@ defIfNot('SALES_DELTA_CAT_GROUPS', '');
 
 
 /**
- * Краен номер на фактурите
- */
-defIfNot('SALE_INV_MAX_NUMBER1', '2000000');
-
-
-/**
- * Начален номер на фактурите
- */
-defIfNot('SALE_INV_MIN_NUMBER2', '2000001');
-
-
-/**
- * Краен номер на фактурите
- */
-defIfNot('SALE_INV_MAX_NUMBER2', '3000000');
-
-
-/**
  * Колко време след като не е платена една продажба, да се отбелязва като просрочена
  */
 defIfNot('SALE_OVERDUE_CHECK_DELAY', 60 * 60 * 6);
@@ -233,22 +215,6 @@ class sales_Setup extends core_ProtoSetup
         'SALE_INV_VAT_DISPLAY' => array(
             'enum(no=Не,yes=Да)',
             'caption=Без закръгляне на ДДС за всеки ред от фактурите->Избор'
-        ),
-        'SALE_INV_MIN_NUMBER1' => array(
-            'int(min=0)',
-            'caption=Първи диапазон за номериране на фактури->Долна граница'
-        ),
-        'SALE_INV_MAX_NUMBER1' => array(
-            'int(min=0)',
-            'caption=Първи диапазон за номериране на фактури->Горна граница'
-        ),
-        'SALE_INV_MIN_NUMBER2' => array(
-            'int(min=0)',
-            'caption=Втори диапазон за номериране на фактури->Долна граница'
-        ),
-        'SALE_INV_MAX_NUMBER2' => array(
-            'int(min=0)',
-            'caption=Втори диапазон за номериране на фактури->Горна граница'
         ),
         'SALE_INV_HAS_FISC_PRINTERS' => array(
             'enum(no=Не,yes=Да)',
@@ -530,5 +496,20 @@ class sales_Setup extends core_ProtoSetup
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Добавя втори рейндж на фактурите ако има такива
+     */
+    public static function updateSecondInvoiceRange()
+    {
+        $Invoices = cls::get('sales_Invoices');
+        $query = $Invoices->getQuery();
+        $query->where("numlimit=2");
+        
+        if($query->count()){
+            cond_Ranges::add('sales_Invoices', 2000000, 2999999, null, 'acc,ceo', 2);
+        }
     }
 }
