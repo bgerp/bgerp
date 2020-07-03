@@ -1095,9 +1095,7 @@ function render_scrollToHighlight() {
 }
 
 function scrollAfterKey(){
-	if( !isInViewport($(".highlighted")[0])) {
-		$(".highlighted")[0].scrollIntoView({block: "end", inline: "end"});
-	}
+	$(".highlighted")[0].scrollIntoView({block: "end", inline: "end"});
 }
 
 // Добавя хинт
