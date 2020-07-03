@@ -10,7 +10,7 @@
 			[#TAB_TOOLS#]
 		</div>
 	</div>
-	<div id='result-holder [#TAB_CLASS#]' class='holder result-content no-print'>
+	<div id='result-holder' class='holder result-content no-print [#TAB_CLASS#]'>
 	    [#SEARCH_RESULT#]
 	</div>
 	<div class='statuses' id='statuses' style='margin: 0 auto;'>
