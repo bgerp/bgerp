@@ -150,6 +150,21 @@
   background: #fefead !important;
   border-left: 6px solid #f70026; }
 
+#result-holder.withTabs {
+  margin-top: 60px;
+  padding-top: 15px; }
+
+.wide .withTabs .tabHolder {
+  margin-top: 0;
+  margin-left: -15px;
+  padding-left: 15px !important;
+  background: #cccccc;
+  position: fixed;
+  top: 46px;
+  width: 105%;
+  height: 60px;
+  z-index: 100; }
+
 .num-keyboard {
   margin-left: -8px; }
 
