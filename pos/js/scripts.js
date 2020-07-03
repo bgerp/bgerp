@@ -578,7 +578,8 @@ function calculateWidth(){
 		$('.scrolling-vertical').css('height',receiptHeight);
 
 		var headerHeight = $('.headerContent').outerHeight();
-		$('#result-holder').css('height',winHeight - headerHeight);
+		var tabsFix = $('#result-holder').hasClass('withTabs') ? 60 : 0;
+		$('#result-holder').css('height',winHeight - headerHeight - tabsFix);
 		$('#result-holder, #single-receipt-holder').css('top',headerHeight);
 		$('.tools-content').css('height',500);
 
@@ -1071,6 +1072,7 @@ function isInViewport(el){
 	if (rect.right < 0 || rect.bottom < 0
 		|| rect.left > vWidth || rect.top > vHeight)
 		return false;
+
 
 	// Return true if any of its four corners are visible
 	return (
