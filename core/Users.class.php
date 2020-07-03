@@ -2393,6 +2393,12 @@ class core_Users extends core_Manager
      */
     public static function redirectToEnableHttps()
     {
+        if (core_Users::getCurrent() == self::SYSTEM_USER) {
+            wp($_SERVER['HTTPS'], EF_HTTPS);
+            
+            return ;
+        }
+        
         $url = core_App::getSelfURL();
         
         $newUrl = static::setHttpsInUrl($url);
