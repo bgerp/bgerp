@@ -1086,7 +1086,7 @@ function isInViewport(el){
 
 function scrollToHighlight(){
 	if ($(".highlighted").length && !isInViewport($(".highlighted")[0])) {
-		$(".highlighted")[0].scrollIntoView();
+		$(".highlighted")[0].scrollIntoView({block: "end", inline: "end"});
 	}
 }
 
@@ -1096,7 +1096,7 @@ function render_scrollToHighlight() {
 
 function scrollAfterKey(){
 	if( !isInViewport($(".highlighted")[0])) {
-		$(".highlighted")[0].scrollIntoView();
+		$(".highlighted")[0].scrollIntoView({block: "end", inline: "end"});
 	}
 }
 
