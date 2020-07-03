@@ -187,10 +187,10 @@ class cond_Ranges extends core_Manager
         }
         
         // Ако глобалния дефолтен за класа е достъпен за потребителя е той
-        $globalDefaultrangeId = self::fetchField("#class={$mvc->getClassId()} AND #state = 'active' AND #isDefault = 'yes'", 'id');
-        if(isset($globalDefaultrangeId) && array_key_exists($globalDefaultrangeId, $ranges)){
+        $globalDefaultRangeId = self::fetchField("#class={$mvc->getClassId()} AND #state = 'active' AND #isDefault = 'yes'", 'id');
+        if(isset($globalDefaultRangeId) && array_key_exists($globalDefaultRangeId, $ranges)){
            
-            return $globalDefaultrangeId;
+            return $globalDefaultRangeId;
         }
         
         // Ако има повече от 1 диапазон и нито един не е дефолтен, то дефолтен ще е този с по малко ид
@@ -200,7 +200,7 @@ class cond_Ranges extends core_Manager
         }
         
         // Ако няма глобален дефолт и няма налични тогава дефолтен е първия свободен въобще
-        if(!isset($globalDefaultrangeId)){
+        if(!isset($globalDefaultRangeId)){
             $query = self::getQuery("#class={$mvc->getClassId()} AND #state = 'active'");
             $query->orderBy('id', 'ASC');
             $query->limit(1);
@@ -220,7 +220,7 @@ class cond_Ranges extends core_Manager
         }
         
         // В краен вариант връщаме глобалния дефолт
-        return $globalDefaultrangeId;
+        return $globalDefaultRangeId;
     }
     
     
