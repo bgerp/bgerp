@@ -1626,7 +1626,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $holderClass = (empty($tab)) ? "noTabs" : "withTabs";
         $tpl->prepend("<div class='{$holderClass}'>");
-        $tpl->prepend("</div>");
+        $tpl->append("</div>");
        
         return $tpl;
     }
