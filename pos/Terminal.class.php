@@ -1624,6 +1624,12 @@ class pos_Terminal extends peripheral_Terminal
         
         $tpl->append($resultTpl, 'BLOCK2');
         
+        if(empty($tab)){
+            $tpl->append("noTabs", 'TAB_CLASS');
+        } else {
+            $tpl->append("withTabs", 'TAB_CLASS');
+        }
+        
         return $tpl;
     }
     
