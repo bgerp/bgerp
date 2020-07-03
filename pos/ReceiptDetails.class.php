@@ -121,6 +121,7 @@ class pos_ReceiptDetails extends core_Detail
         
         $this->setDbIndex('action');
         $this->setDbIndex('productId');
+        $this->setDbIndex('productId,receiptId');
     }
     
     
