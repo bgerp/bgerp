@@ -530,14 +530,16 @@ class plg_TreeObject extends core_Plugin
             $title = $num;
             $i = 0;
             
-            while ($parent && ($pRec = $mvc->fetch($parent))) {
-                $pName = type_Varchar::escape($pRec->{$mvc->nameField});
-                $title = $pName . ' » ' . $title;
-                $parent = $pRec->{$mvc->parentFieldName};
-                $i++;
-                if ($i > 20) {
-                    wp($parent, $pRec);
-                    break;
+            if(!Mode::is('treeShortName')){
+                while ($parent && ($pRec = $mvc->fetch($parent))) {
+                    $pName = type_Varchar::escape($pRec->{$mvc->nameField});
+                    $title = $pName . ' » ' . $title;
+                    $parent = $pRec->{$mvc->parentFieldName};
+                    $i++;
+                    if ($i > 20) {
+                        wp($parent, $pRec);
+                        break;
+                    }
                 }
             }
             

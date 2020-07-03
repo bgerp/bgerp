@@ -350,6 +350,7 @@ class cat_Boms extends core_Master
             
             // Ако има такава я активираме
             $id = $this->save_($nextActiveBomRec, 'state,brState,modifiedOn');
+            $this->logWrite("Активиране на последна '" . $this->getVerbal($rec, 'type') . "' рецепта", $id);
             doc_DocumentCache::cacheInvalidation($nextActiveBomRec->containerId);
             
             return $id;
@@ -390,6 +391,8 @@ class cat_Boms extends core_Master
                 $bomRec->brState = 'active';
                 $bomRec->modifiedOn = dt::now();
                 $mvc->save_($bomRec, 'state,brState,modifiedOn');
+                $mvc->logWrite("Затваряне при активиране на нова '" . $mvc->getVerbal($cRec, 'type') . "' рецепта", $bomRec->id);
+                
                 doc_DocumentCache::cacheInvalidation($bomRec->containerId);
                 $idCount++;
             }

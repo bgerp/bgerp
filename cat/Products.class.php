@@ -1231,10 +1231,10 @@ class cat_Products extends embed_Manager
         if (!$res->productId) {
             
             // Търси се продукта по код, без значение на кейса
-            if ($rec = self::fetch(array("LOWER(#code) = '[#1#]'", mb_strtolower($code)), 'id')) {
-                $res->productId = $rec->id;
-                $res->packagingId = null;
-            }
+            //if ($rec = self::fetch(array("LOWER(#code) = '[#1#]'", mb_strtolower($code)), 'id')) {
+               // $res->productId = $rec->id;
+               // $res->packagingId = null;
+           // }
         }
         
         // Ако не е намерен артикул с този баркод или код, търсим дали е ArtXXX, търси артикул с това ид

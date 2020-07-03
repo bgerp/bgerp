@@ -3801,8 +3801,8 @@ td.rightCol, th.rightCol {
 	text-align:right !important;
 }
 
-.sales_Sales, .purchase_Purchases {
-	.listTable th {
+.listBlock > .listRows > , .listBlock > form > div > .listRows > , .listBlock > div > .listRows >{
+	.listTable > thead > tr > th {
 		white-space: normal;
 		font-size: 0.95em;
 	}

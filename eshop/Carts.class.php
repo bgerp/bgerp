@@ -864,6 +864,14 @@ class eshop_Carts extends core_Master
             'onlineSale' => true,
         );
         
+        // Коя е ценовата политика
+        $priceListId = $settings->listId;
+        if ($lastActiveFolder = core_Mode::get('lastActiveContragentFolder')) {
+            $Cover = doc_Folders::getCover($lastActiveFolder);
+            $priceListId = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
+        }
+        $fields['priceListId'] = $priceListId;
+        
         $folderIncharge = doc_Folders::fetchField($folderId, 'inCharge');
         if (haveRole('sales', $folderIncharge)) {
             $fields['dealerId'] = $folderIncharge;
@@ -874,10 +882,11 @@ class eshop_Carts extends core_Master
         // Създаване на продажба по количката
         try{
             $saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
-        } catch(core_exception_Expect $e){
+           
+         } catch(core_exception_Expect $e){
             reportException($e);
             eshop_Carts::logErr("Грешка при създаване на онлайн продажба: '{$e->getMessage()}'", $rec->id);
-        }
+         }
         
         if (empty($saleId)) {
             

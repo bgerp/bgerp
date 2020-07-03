@@ -310,6 +310,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             'contragent' => $salesInvoice->contragentName,
                             'type' => $salesInvoice->type,
                             'payDocuments' => $paydocs->used,
+                            'invoicePayout' => $paydocs->payout,
                         );
                     }
                     
@@ -549,6 +550,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             'contragent' => $purchaseInvoices->contragentName,
                             'type' => $purchaseInvoices->type,
                             'payDocuments' => $paydocs->used,
+                            'invoicePayout' => $paydocs->payout,
                         );
                     }
                     

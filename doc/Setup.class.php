@@ -267,7 +267,6 @@ class doc_Setup extends core_ProtoSetup
         'doc_LinkedTemplates',
         'doc_FolderResources',
         'doc_LinkedLast',
-        'doc_Ranges',
         'migrate::showDocumentsAsButtons0419',
         'migrate::updateHiddenDocCreated0120'
     );

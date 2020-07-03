@@ -694,18 +694,21 @@ class eshop_CartDetails extends core_Detail
             if (!empty($priceObject->discount)) {
                 $discount = $priceObject->discount;
             }
-            
+           
             $finalPrice = $price * $rec->quantityInPack;
             if ($rec->haveVat == 'yes') {
                 $finalPrice *= 1 + $rec->vat;
             }
-            
+           
             $finalPrice = currency_CurrencyRates::convertAmount($finalPrice, null, null, $rec->currencyId);
         }
         
+        $toleranceDiff = price_Lists::fetchField($listId, 'discountComparedShowAbove');
+        $toleranceDiff = !empty($toleranceDiff) ? $toleranceDiff * 100 : 1;
+        
         // Ако цената е променена, обновява се
         $update = false;
-        if (!isset($rec->finalPrice) || (isset($rec->finalPrice) && round($rec->finalPrice, 2) != round($finalPrice, 2))) {
+        if (!isset($rec->finalPrice) || (isset($rec->finalPrice) && abs(core_Math::diffInPercent($finalPrice, $rec->finalPrice)) > $toleranceDiff)) {
             $rec->oldPrice = $rec->finalPrice;
             $rec->finalPrice = $finalPrice;
             $rec->discount = $discount;

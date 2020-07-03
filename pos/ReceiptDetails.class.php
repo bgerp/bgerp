@@ -121,6 +121,7 @@ class pos_ReceiptDetails extends core_Detail
         
         $this->setDbIndex('action');
         $this->setDbIndex('productId');
+        $this->setDbIndex('productId,receiptId');
     }
     
     
@@ -394,11 +395,11 @@ class pos_ReceiptDetails extends core_Detail
             // Ако се съдържа "%" значи се задава отстъпка/надценка
             $res = Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'updaterec', 'receiptId' => $receiptId, 'action' => 'setdiscount', 'recId' => $recId));
         } elseif(substr($string, 0, 1) == "*"){
-            
+           
             // Ако се започва с "*" значи се задава цена
             $res = Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'updaterec', 'receiptId' => $receiptId, 'action' => 'setprice', 'recId' => $recId));
         } elseif(str::endsWith($string, '*')){
-            
+           
             // Ако завършва с "*" значи се задава количество
             $res = Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'updaterec', 'receiptId' => $receiptId, 'action' => 'setquantity', 'recId' => $recId));
         } else {
@@ -411,7 +412,7 @@ class pos_ReceiptDetails extends core_Detail
             
             $res = Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'addproduct', 'receiptId' => $receiptId, 'string' => $string, 'recId' => $recId));
         }
-        
+       
         return $res;
     }
     
@@ -435,7 +436,8 @@ class pos_ReceiptDetails extends core_Detail
         
         try{
             expect(empty($receiptRec->paid), 'Не може да се добави артикул, ако има направено плащане|*!');
-           
+            $increment = false;
+            
             // Запис на продукта
             $rec = (object)array('receiptId' => $receiptId, 'action' => 'sale|code');
             $quantity = Request::get('quantity');
@@ -447,6 +449,7 @@ class pos_ReceiptDetails extends core_Detail
             
             // Ако е зададено ид на продукта
             if ($productId = Request::get('productId', 'int')) {
+                $increment = true;
                 $rec->productId = $productId;
             }
             
@@ -473,6 +476,7 @@ class pos_ReceiptDetails extends core_Detail
                 } elseif (!empty($matches[1]) && empty($matches[3])) {
                     $rec->quantity = cls::get('type_Double')->fromVerbal($matches[1]);
                 } else {
+                    $increment = true;
                     if (isset($rec->productId)) {
                         $rec->quantity = cls::get('type_Double')->fromVerbal($ean);
                     } else {
@@ -481,8 +485,8 @@ class pos_ReceiptDetails extends core_Detail
                 }
             }
             
-            $sing = isset($receiptRec->revertId) ? -1 : 1;
-            $rec->quantity *= $sing;
+            $sign = isset($receiptRec->revertId) ? -1 : 1;
+            $rec->quantity *= $sign;
             
             expect(!empty($rec->productId) || !empty($rec->ean), 'Не е избран артикул|*!');
             if ($packId = Request::get('packId', 'int')) {
@@ -491,7 +495,12 @@ class pos_ReceiptDetails extends core_Detail
             }
             
             // Намираме нужната информация за продукта
+            core_Debug::startTimer('getProductInfo');
             $this->getProductInfo($rec);
+            
+            core_Debug::stopTimer('getProductInfo');
+            core_Debug::log('GET PRODUCT INFO END: ' . round(core_Debug::$timers['getProductInfo']->workingTime, 2));
+            
             expect($rec->productId, 'Няма такъв продукт в системата|*!');
             expect($rec->notSellable !== true, 'Артикулът е спрян от продажба|*!');
             
@@ -543,7 +552,7 @@ class pos_ReceiptDetails extends core_Detail
             if ($sameProduct) {
                 
                 // Ако текущо селектирания ред е избрания инкрементира се, ако не се задава ново количество
-                $newQuantity = ($selectedRec->id == $sameProduct->id) ? $rec->quantity + $sameProduct->quantity : $rec->quantity;
+                $newQuantity = ($selectedRec->id == $sameProduct->id) ? $rec->quantity + $sameProduct->quantity : (($increment === true) ? ($rec->quantity + $sameProduct->quantity) : $rec->quantity);
                 if($newQuantity <= 0 && !isset($receiptRec->revertId)){
                     core_Statuses::newStatus('Редът беше изтрит защото количеството стана отрицателно|*!');
                     
