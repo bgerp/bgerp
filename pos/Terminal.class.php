@@ -1994,6 +1994,10 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $tpl->append('</div>');
+        
+        $tpl->prepend("<div class='withTabs'>");
+        $tpl->append("</div>");
+        
         $tpl->removeBlocksAndPlaces();
        
         return $tpl;
