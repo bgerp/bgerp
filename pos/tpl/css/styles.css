@@ -150,9 +150,8 @@
   background: #fefead !important;
   border-left: 6px solid #f70026; }
 
-#result-holder.withTabs {
-  margin-top: 60px;
-  padding-top: 15px; }
+#result-holder .withTabs {
+  margin-top: 60px; }
 
 .wide .withTabs .tabHolder {
   margin-top: 0;
