@@ -269,7 +269,10 @@ class sales_Invoices extends deals_InvoiceMaster
         $res = '';
         $res .= doc_TplManager::addOnce($this, $tplArr);
         
-        cond_Ranges::add('sales_Invoices', 1, 1999999, null, 'acc,ceo', 1);
+        // Добавяне на първия диапазон за фактурите
+        cond_Ranges::add('sales_Invoices', 1, 1999999, null, 'acc', 1);
+        
+        // Еднократно се изпълнява миграция, която ще създаде и втори диапазон ако има създадени ф-ри вече в него
         $res .= cls::get('sales_Setup')->callMigrate('updateSecondInvoiceRange', 'sales');
         
         return $res;
