@@ -205,8 +205,15 @@ class cond_Ranges extends core_Manager
             $query->orderBy('id', 'ASC');
             $query->limit(1);
             
+            $query2 = clone $query;
+            $query->where("#users IS NULL AND #roles IS NULL");
             
             if($foundRec = $query->fetch()){
+                
+                return $foundRec->id;
+            }
+            
+            if($foundRec = $query2->fetch()){
                 
                 return $foundRec->id;
             }
@@ -259,6 +266,7 @@ class cond_Ranges extends core_Manager
     }
     
     
+    
     /**
      * Обновява брояча на диапазона
      * 
@@ -274,27 +282,57 @@ class cond_Ranges extends core_Manager
         $rec->current = $current;
         if($rec->current >= $rec->max){
             $rec->state = 'closed';
-            
-            
-            $rec->isDefault = 'no';
         }
         
         self::save($rec, 'current,isDefault,state');
     }
     
     
-    
-    
-    public function setNextDefault($class)
+    /**
+     * Активира следващия дефолтен диапазон за документа
+     * 
+     * @param mixed $class
+     * @param int $exceptId
+     * 
+     * @return void
+     */
+    private static function setNextDefault($class, $exceptId)
     {
-        if($rec->isDefault == 'yes'){
-            $query = self::getQuery();
-            $query->where("#id != {$rec->id} AND #class = {$rec->class}");
-            $query->orderBy('id', 'ASC');
-            if($nextRec = $query->fetch()){
-                $nextRec->isDefault = 'yes';
-                self::save($nextRec, 'isDefault');
-            }
+        $class = cls::get($class);
+        
+        // Имали активен период без ограничение
+        $query = self::getQuery();
+        $query->where("#id != '{$exceptId}' AND #class = {$class->getClassId()} AND #state = 'active'");
+        $query->orderBy('id', 'ASC');
+        $query->limit(1);
+        $query2 = clone $query;
+        
+        $query->where("#users IS NULL AND #roles IS NULL");
+        $nextRec = $query->fetch();
+        
+        // Ако няма без ограничения, диапазон търсим първия свободен въобще
+        if(empty($nextRec)){
+            $nextRec = $query2->fetch();
+        }
+        
+        // Задаване на периода като дефолтен
+        if(is_object($nextRec)){
+            $nextRec->isDefault = 'yes';
+            self::save($nextRec, 'isDefault');
+        }
+    }
+    
+    
+    /**
+     * Извиква се преди запис в модела
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        // Ако се затваря дефолтен период, да се активира следващия
+        if($rec->state == 'closed' && $rec->isDefault == 'yes'){
+            $rec->isDefault = 'no';
+            $mvc->save_($rec, 'isDefault');
+            self::setNextDefault($rec->class, $rec->id);
         }
     }
     
