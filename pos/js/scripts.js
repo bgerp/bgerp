@@ -819,7 +819,7 @@ function pressNavigable(element)
 	
 	if(element.hasClass('pos-add-res-btn')){
 		addProduct(element);
-		
+		sessionStorage.setItem('focusedOffset', $('#result-holder').scrollTop());
 		return;
 	} else if(element.hasClass('chooseStoreBtn')) {
 		var storeId = element.attr("data-storeid");
@@ -1026,6 +1026,7 @@ function selectFirstNavigable()
 function startNavigation() {
 	if($('.navigable').length) {
 		var focused = sessionStorage.getItem('focused');
+		var scrollTop = sessionStorage.getItem('focusedOffset');
 		$('.selected').removeClass('selected');
 
 		// ръчно избирам първия елемент за селектед
@@ -1036,6 +1037,7 @@ function startNavigation() {
 		}
 
 		$('#result-holder .navigable:visible').keynav();
+		$('#result-holder').scrollTop(scrollTop);
 	}
 }
 
@@ -1223,6 +1225,7 @@ function openCurrentPosTab() {
 
 		$("#" + currentTabContent).show();
 		startNavigation();
+		sessionStorage.removeItem('focusedOffset');
 	}
 }
 
