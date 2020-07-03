@@ -58,6 +58,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         if (cls::haveInterface('marketing_InquiryEmbedderIntf', $Embedder)) {
             $form->setField('photo', 'input=none');
             $form->setField('measureId', 'display=hidden');
+            $form->setField('infoInt', 'input=none');
             
             if ($Embedder instanceof marketing_Inquiries2) {
                 $form->setField('inqDescription', 'mandatory');
