@@ -569,7 +569,7 @@ function calculateWidth(){
 
 	if (winWidth > 1024) {
 		//задаване на ширина на двете колони
-		$('.result-content').css('width', winWidth - $('#single-receipt-holder').width());
+		$('#result-holder').css('width', winWidth - $('#single-receipt-holder').width());
 		$('#single-receipt-holder').addClass('fixedHolder');
 		$('.headerContent').addClass('fixed');
 
@@ -578,8 +578,17 @@ function calculateWidth(){
 		$('.scrolling-vertical').css('height',receiptHeight);
 
 		var headerHeight = $('.headerContent').outerHeight();
-		var tabsFix = $('#result-holder').hasClass('withTabs') ? 60 : 0;
-		$('#result-holder').css('height',winHeight - headerHeight - tabsFix);
+		if($('#result-holder .withTabs:visible').length) {
+			var tabsFix = 80;
+			$('#result-holder').css('padding', '0');
+			$('#result-holder').css('overflow-y', 'visible');
+			$('#result-holder .withTabs').css('height',winHeight - headerHeight - tabsFix);
+		} else {
+			$('#result-holder').css('padding', '15px');
+			$('#result-holder').css('overflow-y', 'auto');
+		}
+		$('#result-holder').css('height',winHeight - headerHeight);
+
 		$('#result-holder, #single-receipt-holder').css('top',headerHeight);
 		$('.tools-content').css('height',500);
 
@@ -738,6 +747,8 @@ function render_openCurrentPosTab() {
 }
 
 function render_prepareResult() {
+	calculateWidth();
+
 	activeInput = false;
 	if($('#result-holder .noFoundInGroup:visible').length) {
 		sessionStorage.setItem('focused', '');
@@ -820,7 +831,7 @@ function pressNavigable(element)
 	
 	if(element.hasClass('pos-add-res-btn')){
 		addProduct(element);
-		sessionStorage.setItem('focusedOffset', $('#result-holder').scrollTop());
+		sessionStorage.setItem('focusedOffset', $('#result-holder .withTabs').scrollTop());
 		return;
 	} else if(element.hasClass('chooseStoreBtn')) {
 		var storeId = element.attr("data-storeid");
@@ -1038,7 +1049,7 @@ function startNavigation() {
 		}
 
 		$('#result-holder .navigable:visible').keynav();
-		$('#result-holder').scrollTop(scrollTop);
+		$('#result-holder .withTabs').scrollTop(scrollTop);
 	}
 }
 
@@ -1181,7 +1192,6 @@ function addProduct(el) {
 	data.recId = getSelectedRowId();
 	
 	processUrl(url, data);
-	calculateWidth();
 
 	activeInput = false;
 }

@@ -151,7 +151,11 @@
   border-left: 6px solid #f70026; }
 
 #result-holder .withTabs {
-  margin-top: 60px; }
+  margin-top: 60px;
+  overflow-y: scroll;
+  padding-top: 15px;
+  padding-right: 15px;
+  padding-left: 15px; }
 
 .wide .withTabs .tabHolder {
   margin-top: 0;
@@ -853,7 +857,7 @@ td.revertCaption {
     background-color: #53a163 !important; }
 
 .noFoundInGroup {
-  padding: 20px 0 30px; }
+  padding: 5px 0 15px 10px; }
 
 /*
  * media queries за клавиатурата
