@@ -63,6 +63,7 @@ class cond_Setup extends core_ProtoSetup
         'cond_Countries',
         'cond_TaxAndFees',
         'cond_Colors',
+        'cond_Ranges'
     );
     
     

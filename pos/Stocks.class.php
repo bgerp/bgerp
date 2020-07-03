@@ -37,12 +37,6 @@ class pos_Stocks extends core_Manager
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'pos, ceo';
-    
-    
-    /**
      * Кой може да пише?
      */
     public $canWrite = 'no_one';
@@ -78,6 +72,7 @@ class pos_Stocks extends core_Manager
         $this->FLD('batches', 'blob', 'input=none,caption=Партиди');
         
         $this->setDbUnique('productId, storeId');
+        $this->setDbIndex('storeId, productId');
     }
     
     

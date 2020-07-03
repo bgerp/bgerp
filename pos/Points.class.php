@@ -496,7 +496,7 @@ class pos_Points extends core_Master
         $form->input();
         if ($form->isSubmitted()) {
             $fRec = $form->rec;
-            $this->save((object) array('id' => $id, $field => $fRec->{$field}));
+            $this->save((object) array('id' => $id, $field => $fRec->{$field}), $field);
             $this->logInAct($formTitle, $rec);
             
             return followRetUrl();

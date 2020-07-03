@@ -2,12 +2,12 @@
 
 
 /**
- * Плъгин за генериране на номера на документите
- *
- *
+ * Плъгин за генериране на номера на документите според зададен диапазон
+ * @see cond_Ranges
+ * 
  * @category  bgerp
  * @package   doc
- *
+ * 
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
@@ -28,11 +28,10 @@ class doc_plg_Sequencer2 extends core_Plugin
     {
         setIfNot($mvc->rangeNumFld, 'numberRange');
         setIfNot($mvc->numberFld, 'number');
-        setIfNot($mvc->canChangerangenum, 'ceo,admin');
         setIfNot($mvc->addNumberOnActivation, false);
         
         if (!isset($mvc->fields[$mvc->rangeNumFld])) {
-            $mvc->FLD($mvc->rangeNumFld, "key(mvc=doc_Ranges,select=id)", 'caption=Диапазон,input=hidden');
+            $mvc->FLD($mvc->rangeNumFld, "key(mvc=cond_Ranges,select=id)", 'caption=Диапазон,input=hidden');
         }
     }
     
@@ -47,15 +46,14 @@ class doc_plg_Sequencer2 extends core_Plugin
     {
         $form = $data->form;
        
-        if($mvc->haveRightFor('changerangenum', $form->rec)){
-            $options = doc_Ranges::getAvailableRanges($mvc);
+        $options = cond_Ranges::getAvailableRanges($mvc);
+        
+        if(countR($options)){
             $form->setField($mvc->rangeNumFld, 'input');
-            if(countR($options) > 1){
-                $form->setOptions($mvc->rangeNumFld, $options);
-            }
+            $form->setOptions($mvc->rangeNumFld, $options);
         }
         
-        $form->setDefault($mvc->rangeNumFld, doc_Ranges::getDefaultRangeId($mvc));
+        $form->setDefault($mvc->rangeNumFld, cond_Ranges::getDefaultRangeId($mvc));
     }
     
     
@@ -72,9 +70,9 @@ class doc_plg_Sequencer2 extends core_Plugin
                 if (empty($rec->{$mvc->numberFld})) {
                     
                     try{
-                        $rec->{$mvc->numberFld} = doc_Ranges::getNextNumber($rec->{$mvc->rangeNumFld}, $mvc, $mvc->numberFld);
+                        $rec->{$mvc->numberFld} = cond_Ranges::getNextNumber($rec->{$mvc->rangeNumFld}, $mvc, $mvc->numberFld, $mvc->rangeNumFld);
                     
-                        doc_Ranges::updateRange($rec->{$mvc->rangeNumFld}, $rec->{$mvc->numberFld});
+                        cond_Ranges::updateRange($rec->{$mvc->rangeNumFld}, $rec->{$mvc->numberFld});
                     } catch(core_exception_Expect $e){
                         
                         return new Redirect(array($mvc, 'single', $rec->id), 'Изберете друг диапазон, този е запълнен', 'error');

@@ -2045,21 +2045,26 @@ abstract class deals_Helper
     public static function isPriceBellowContragentPrice($productId, $price, $discount, $quantity, $contragentClassId, $contragentId, $valior, $listId = null)
     {
         $price = $price * (1 - $discount);
-        
         $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $listId);
+        
+        $toleranceDiff = 0;
+        if(isset($foundPrice->listId)){
+            $toleranceDiff = price_Lists::fetchField($foundPrice->listId, 'discountComparedShowAbove');
+        }
+        $toleranceDiff = !empty($toleranceDiff) ? $toleranceDiff * 100 : 1;
+        
         $foundPrice = $foundPrice->price * (1 - $foundPrice->discount);
         
         $diff = abs(round($price - $foundPrice, 5));
         $price1Round = round($price, 5);
         $price2Round = round($foundPrice, 5);
         
-        if($price1Round < $price2Round){
-            $diff = abs($price1Round - $price2Round);
-            $diff = number_format($diff, 5);
-            
-            return $diff > 0.001;
+        if($price2Round){
+            $diff = abs(core_Math::diffInPercent($price1Round, $price2Round));
+        } else {
+            $diff = 0;
         }
-       
-        return false;
+        
+        return $diff > $toleranceDiff;
     }
 }

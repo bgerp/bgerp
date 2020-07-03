@@ -3458,8 +3458,9 @@ th.rightCol {
   white-space: nowrap;
   text-align: right !important; }
 
-  .sales_Sales .listTable th,
-  .purchase_Purchases .listTable th {
+  .listBlock > .listRows > .listTable > thead > tr > th,
+  .listBlock > form > div > .listRows > .listTable > thead > tr > th,
+  .listBlock > div > .listRows > .listTable > thead > tr > th {
     white-space: normal;
     font-size: 0.95em; }
 
