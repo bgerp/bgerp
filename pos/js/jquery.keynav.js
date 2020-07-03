@@ -88,9 +88,9 @@
 				elements.removeClass('selected');
 				current = $(matrix[i][j]);
 				current.addClass('selected');
-
-					$(current)[0].scrollIntoView({block: "center", inline: "end"});
-
+				if (!isItVisible($(current))) {
+					$(current)[0].scrollIntoView();
+				}
 
 				sessionStorage.setItem('focused', $(current).attr('id'));
 				disableOrEnableEnlargeBtn();
