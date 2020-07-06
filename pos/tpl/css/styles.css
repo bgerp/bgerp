@@ -5,7 +5,7 @@
   #receipt-table .rejected-receipt {
     background-color: rgba(204, 102, 102, 0.8); }
 
-.wide #single-receipt-holder {
+#single-receipt-holder {
   float: left;
   font-family: 'Source Sans Pro', sans-serif;
   font-size: 1.2em; }
@@ -21,7 +21,7 @@
   .narrowHolder #receipt-table {
     height: 300px; }
 
-.wide .result-content {
+.result-content {
   background: #cccccc;
   position: fixed;
   top: 5%;
@@ -29,15 +29,15 @@
   padding: 15px 15px 5px 15px;
   overflow-y: auto;
   box-sizing: border-box; }
-  .wide .result-content .receiptRow.navigable {
+  .result-content .receiptRow.navigable {
     border: 3px solid rgba(0, 0, 0, 0); }
-    .wide .result-content .receiptRow.navigable.disabledBtn,
-    .wide .result-content .receiptRow.navigable.disabledBtn .priceText {
+    .result-content .receiptRow.navigable.disabledBtn,
+    .result-content .receiptRow.navigable.disabledBtn .priceText {
       color: #999999 !important; }
-    .wide .result-content .receiptRow.navigable.selected {
+    .result-content .receiptRow.navigable.selected {
       border: 3px solid #080f56;
       box-shadow: 0px 0px 3px #0000fa !important; }
-  .wide .result-content .receiptRow.disabledBtn {
+  .result-content .receiptRow.disabledBtn {
     cursor: auto !important; }
 
 .tools-content {
@@ -328,7 +328,7 @@
     border: 1px solid #666666;
     border-radius: 5px; }
 
-.wide .withTabs .scroll-holder {
+.withTabs .scroll-holder {
   margin-top: 0;
   margin-left: -15px;
   background: #333333;
@@ -338,12 +338,12 @@
   z-index: 100;
   overflow-x: auto;
   display: block; }
-  .wide .withTabs .scroll-holder .tabHolder {
+  .withTabs .scroll-holder .tabHolder {
     padding-left: 2px;
     padding-right: 2px;
     text-align: center;
     margin: 10px 0 7px; }
-    .wide .withTabs .scroll-holder .tabHolder li {
+    .withTabs .scroll-holder .tabHolder li {
       user-select: none;
       display: inline-block;
       float: left;

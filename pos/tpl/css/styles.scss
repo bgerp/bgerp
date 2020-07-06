@@ -9,7 +9,7 @@
 	}
 }
 
-.wide #single-receipt-holder {
+#single-receipt-holder {
 	float: left;
 	font-family: 'Source Sans Pro', sans-serif;
 	font-size: 1.2em;
@@ -23,12 +23,13 @@
 	background: #12008a;
 	box-sizing: border-box;
 }
+
 .narrowHolder {
 	#receipt-table{
 		height: 300px;
 	}
 }
-.wide .result-content {
+.result-content {
 	background: #ccc;
 	position: fixed;
 	top: 5%;
@@ -385,7 +386,7 @@
 		border-radius: 5px;
 	}
 }
-.wide .withTabs .scroll-holder {
+.withTabs .scroll-holder {
 	margin-top: 0;
 	margin-left: -15px;
 	background: #333;
