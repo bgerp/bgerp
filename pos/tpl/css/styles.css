@@ -13,7 +13,7 @@
 #single-receipt-holder.fixedHolder {
   position: fixed;
   left: 0;
-  width: 570px;
+  width: 526px;
   height: 100%;
   background: #12008a;
   box-sizing: border-box; }
@@ -157,7 +157,7 @@
 .numBack {
   min-width: 60px;
   height: 60px;
-  margin: 8px 8px 8px 8px !important;
+  margin: 4px !important;
   text-align: center;
   color: white !important;
   border-radius: 3px !important;
@@ -220,7 +220,7 @@
 
 #tools-holder .buttons {
   float: left;
-  width: 236px; }
+  width: 225px; }
   #tools-holder .buttons a,
   #tools-holder .buttons div {
     display: inline-block;
@@ -229,7 +229,7 @@
 .operationHolder {
   display: inline-block;
   position: relative;
-  margin: 8px 0 8px 18px;
+  margin: 4px 0 4px 14px;
   border: 1px solid #999999;
   background: #cccccc;
   padding: 14px;
