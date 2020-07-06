@@ -508,7 +508,7 @@ class sales_Setup extends core_ProtoSetup
         $query->where("numlimit=2");
         
         if($query->count()){
-            cond_Ranges::add('sales_Invoices', 2000000, 2999999, null, 'acc,ceo', 2);
+            cond_Ranges::add('sales_Invoices', 2000000, 2999999, null, 'acc,ceo', 2, false);
         }
     }
 }

@@ -70,7 +70,7 @@ class core_Settings extends core_Manager
     {
         $this->FLD('key', 'varchar(16)', 'caption=Ключ');
         $this->FLD('objectId', 'int', 'caption=Обект, input=none');
-        $this->FLD('userOrRole', 'userOrRole(rolesType=team)', 'caption=Потребител/Роля');
+        $this->FLD('userOrRole', 'userOrRole(rolesType=team, showRolesFirst=admin)', 'caption=Потребител/Роля');
         $this->FLD('data', 'blob(serialize, compress)', 'caption=Данни');
         
         $this->setDbUnique('key, objectId, userOrRole');
@@ -386,7 +386,7 @@ class core_Settings extends core_Manager
         $form->title = 'Персонализиране';
         
         // Добавяме необходимите полета
-        $form->FNC('_userOrRole', 'userOrRole(rolesType=team)', 'caption=Потребител, input=input, silent', array('attr' => array('onchange' => 'addCmdRefresh(this.form);this.form.submit()')));
+        $form->FNC('_userOrRole', 'userOrRole(rolesType=team, showRolesFirst=admin)', 'caption=Потребител, input=input, silent', array('attr' => array('onchange' => 'addCmdRefresh(this.form);this.form.submit()')));
         $form->FNC('_key', 'varchar', 'input=none, silent');
         $form->FNC('_className', 'varchar', 'input=none, silent');
         
