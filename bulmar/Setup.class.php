@@ -218,6 +218,12 @@ defIfNot('BULMAR_BANK_DOCUMENT_OPERATION_TYPE', 4);
 
 
 /**
+ * Съответствие на аналитичностите за банкова сметка
+ */
+defIfNot('BULMAR_BANK_DOCUMENT_OWN_ACCOUNT_MAP', '');
+
+
+/**
  * class bulmar_Setup
  *
  * Инсталиране/Деинсталиране на
