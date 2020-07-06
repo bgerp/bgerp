@@ -67,6 +67,8 @@ class type_UserOrRole extends type_User
         
         $this->options = parent::prepareOptions();
         
+        $oArr = array();
+        
         // Ако има съответната роля за виждане на ролите
         if (haveRole($this->params['rolesForAllRoles'])) {
             
@@ -75,7 +77,7 @@ class type_UserOrRole extends type_User
             $group->title = tr('Роли');
             $group->attr = array('class' => 'role');
             $group->group = true;
-            $this->options['roles'] = $group;
+            $oArr['roles'] = $group;
             
             // Ако има права за избор на цялата система, добавяме съответния избор
             if (haveRole($this->params['rolesForAllSysTeam'])) {
@@ -85,7 +87,7 @@ class type_UserOrRole extends type_User
                 $roleObj->title = tr('Всички потребители');
                 $roleObj->value = $allSysTeam;
                 $roleObj->attr = array('clas' => 'all-sys-team');
-                $this->options['r_' . 'allSysTeam'] = $roleObj;
+                $oArr['r_' . 'allSysTeam'] = $roleObj;
             }
             
             // Вземаме всички роли
@@ -103,7 +105,26 @@ class type_UserOrRole extends type_User
                 $roleObj->title = core_Roles::getVerbal($rec, 'role');
                 $roleObj->id = $rec->id;
                 $roleObj->value = self::getSysRoleId($rec->id);
-                $this->options['r_' . $rec->id] = $roleObj;
+                $oArr['r_' . $rec->id] = $roleObj;
+            }
+        }
+        
+        if (!empty($oArr)) {
+            setIfNot($this->options, array());
+            
+            if ($this->params['showRolesFirst'] && haveRole($this->params['showRolesFirst'])) {
+                
+                if ($this->options) {
+                    $fk = key($this->options);
+                    if ($this->options[$fk] && ($this->options[$fk]->value == core_Users::getCurrent())) {
+                        $oArr = array($fk => $this->options[$fk]) + $oArr;
+                        unset($this->options[$fk]);
+                    }
+                }
+                
+                $this->options = $oArr + $this->options;
+            } else {
+                $this->options += $oArr;
             }
         }
         
