@@ -71,8 +71,7 @@ class doc_plg_Sequencer2 extends core_Plugin
                     
                     try{
                         $rec->{$mvc->numberFld} = cond_Ranges::getNextNumber($rec->{$mvc->rangeNumFld}, $mvc, $mvc->numberFld);
-                    
-                        cond_Ranges::updateRange($rec->{$mvc->rangeNumFld}, $rec->{$mvc->numberFld});
+                        $rec->_isNumberGenerated = true;
                     } catch(core_exception_Expect $e){
                         
                         return new Redirect(array($mvc, 'single', $rec->id), 'Изберете друг диапазон, този е запълнен', 'error');
@@ -88,6 +87,24 @@ class doc_plg_Sequencer2 extends core_Plugin
                     }
                 }
             }
+        }
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
+     * @param int          $id      Първичния ключ на направения запис
+     * @param stdClass     $rec     Всички полета, които току-що са били записани
+     * @param string|array $fields  Имена на полетата, които sa записани
+     * @param string       $mode    Режим на записа: replace, ignore
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        if($rec->_isNumberGenerated && $rec->_rollback !== true){
+            $rec = $mvc->fetchRec($rec);
+            cond_Ranges::updateRange($rec->{$mvc->rangeNumFld}, $rec->{$mvc->numberFld});
         }
     }
 }
