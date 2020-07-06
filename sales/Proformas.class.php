@@ -285,14 +285,14 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
-     * След извличане на ключовите думи
+     * Добавя ключови думи за пълнотекстово търсене
      */
-    public function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-        $rec = $mvc->fetchRec($rec);
-        
-        $searchKeywords .= ' ' . plg_Search::normalizeText($rec->number);
-        
+        // Добавяне на кода към ключовите думи
+        if(!empty($rec->number)){
+            $res .= ' ' . plg_Search::normalizeText($rec->number);
+        }
     }
     
     
