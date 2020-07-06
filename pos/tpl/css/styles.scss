@@ -9,7 +9,7 @@
 	}
 }
 
-.wide #single-receipt-holder {
+#single-receipt-holder {
 	float: left;
 	font-family: 'Source Sans Pro', sans-serif;
 	font-size: 1.2em;
@@ -18,17 +18,18 @@
 #single-receipt-holder.fixedHolder {
 	position: fixed;
 	left: 0;
-	width: 570px;
+	width: 526px;
 	height: 100%;
 	background: #12008a;
 	box-sizing: border-box;
 }
+
 .narrowHolder {
 	#receipt-table{
 		height: 300px;
 	}
 }
-.wide .result-content {
+.result-content {
 	background: #ccc;
 	position: fixed;
 	top: 5%;
@@ -193,7 +194,7 @@
 .numPad, .numBack{
 	min-width: 60px;
 	height: 60px;
-	margin: 8px 8px 8px 8px !important;
+	margin: 4px !important;
 	text-align: center;
 	color:white !important;
 	border-radius: 3px !important;
@@ -260,7 +261,7 @@
 }
 #tools-holder .buttons {
 	float: left;
-	width: 236px;
+	width: 225px;
 	 a, div {
 		display: inline-block;
 		float: left;
@@ -269,7 +270,7 @@
 .operationHolder {
 	display: inline-block;
 	position: relative;
-	margin: 8px 0 8px 18px;
+	margin: 4px 0 4px 14px;
 	border: 1px solid #999;
 	background: #ccc;
 	padding: 14px;
@@ -385,13 +386,13 @@
 		border-radius: 5px;
 	}
 }
-.wide .withTabs .scroll-holder {
+.withTabs .scroll-holder {
 	margin-top: 0;
 	margin-left: -15px;
 	background: #333;
 	position: fixed;
-	top:46px;
-	height: 60px;
+	top:44px;
+	height: 62px;
 	z-index: 100;
 	overflow-x: auto;
 	display: block;
@@ -452,7 +453,7 @@
 	display: grid;
 	align-items: center;
 	text-align: center;
-	grid-gap: 1rem;
+	grid-gap: 0.8rem;
 	margin-bottom:10px;
 }
 .posResultContragent {

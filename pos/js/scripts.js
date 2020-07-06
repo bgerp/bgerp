@@ -598,7 +598,7 @@ function calculateWidth(){
 		$('#result-holder').css('height',winHeight - headerHeight);
 
 		$('#result-holder, #single-receipt-holder').css('top',headerHeight);
-		$('.tools-content').css('height',500);
+		$('.tools-content').css('height',460);
 
 	} else {
 		$('#single-receipt-holder').removeClass('fixedHolder')
