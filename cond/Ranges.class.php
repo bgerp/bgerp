@@ -102,6 +102,7 @@ class cond_Ranges extends core_Manager
      * @param int $min
      * @param int $max
      * @param string|null $systemId
+     * @param boolean $updateExisting
      * 
      * @return int
      */
@@ -236,18 +237,16 @@ class cond_Ranges extends core_Manager
      * @param int $id
      * @param mixed $class
      * @param string|null $numberField
-     * @param string|null $rangeNumField
      * 
      * @throws core_exception_Expect
      * 
      * @return int $next
      */
-    public static function getNextNumber($id, $class, $numberField = null, $rangeNumField = null)
+    public static function getNextNumber($id, $class, $numberField = null)
     {
         expect($rec = self::fetchRec($id));
         $mvc = cls::get($class);
         setIfNot($numberField, $mvc->numberFld);
-        setIfNot($rangeNumField, $mvc->rangeNumFld);
         
         if($rec->state == 'closed'){
             throw new core_exception_Expect('Избраният диапазон е запълнен. Моля изберете друг|*!', 'Несъответствие');
@@ -256,7 +255,6 @@ class cond_Ranges extends core_Manager
         $query = $mvc->getQuery();
         $query->XPR('maxNum', 'int', "MAX(#{$numberField})");
         $query->between('number', $rec->min, $rec->max);
-        $query->where("#{$rangeNumField} = {$rec->id}");
         
         if (!$maxNum = $query->fetch()->maxNum) {
             $next = $rec->min;
