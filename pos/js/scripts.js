@@ -587,7 +587,6 @@ function calculateWidth(){
 			var scrollerWidth = 0;
 			$('#result-holder .tabHolder li').each(function () {
 				scrollerWidth += $(this).outerWidth() + 20;
-				console.log(scrollerWidth);
 			});
 
 			$('#result-holder .scroll-holder .tabHolder').css('width', scrollerWidth);
@@ -1065,7 +1064,7 @@ function startNavigation() {
 function isItVisible(element) {
 	var viewportWidth = $(window).width(),
 		viewportHeight = $(window).height(),
-		documentScrollTop = $(document).scrollTop(),
+		documentScrollTop = $('.withTabs').scrollTop(),
 		documentScrollLeft = $(document).scrollLeft(),
 
 		elementOffset = element.offset(),
