@@ -1046,7 +1046,7 @@ function selectFirstNavigable()
 function startNavigation() {
 	if($('.navigable').length) {
 		var focused = sessionStorage.getItem('focused');
-		var scrollTop = sessionStorage.getItem('focusedOffset');
+		var scrollTop = sessionStorage.getItem('focusedOffset') ?  sessionStorage.getItem('focusedOffset') : 0;
 		$('.selected').removeClass('selected');
 
 		// ръчно избирам първия елемент за селектед
@@ -1056,10 +1056,8 @@ function startNavigation() {
 			$('#' + focused ).addClass('selected');
 		}
 		$('#result-holder .navigable:visible').keynav();
+		$('#result-holder .withTabs').scrollTop(scrollTop);
 
-		if (scrollTop) {
-			$('#result-holder .withTabs').scrollTop(scrollTop);
-		}
 	}
 }
 
@@ -1245,6 +1243,7 @@ function openCurrentPosTab() {
 
 		$("#" + currentTabContent).show();
 		startNavigation();
+		sessionStorage.removeItem('focusedOffset');
 	}
 }
 
