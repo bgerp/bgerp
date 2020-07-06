@@ -2543,7 +2543,9 @@ class eshop_Carts extends core_Master
             $file = ($var == 'html') ? $file : $fileTxt;
             $tpl = getTplFromFile($file);
             $tpl->replace(new core_ET($settings->emailBodyIntroduction), 'INTRODUCTION');
-            $settings->emailBodyFooter = str_replace("\n", '<br>', $settings->emailBodyFooter);
+            if($var == 'html'){
+                $settings->emailBodyFooter = str_replace("\n", '<br>', $settings->emailBodyFooter);
+            }
             
             $tpl->replace(new core_ET($settings->emailBodyFooter), 'FOOTER');
             $body->{$var} = $tpl;
