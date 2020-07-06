@@ -208,7 +208,8 @@ class cond_Ranges extends core_Manager
         
         // Ако няма глобален дефолт и няма налични тогава дефолтен е първия свободен въобще
         if(!isset($globalDefaultRangeId)){
-            $query = self::getQuery("#class={$mvc->getClassId()} AND #state = 'active'");
+            $query = self::getQuery();
+            $query->where("#class={$mvc->getClassId()} AND #state = 'active'");
             $query->orderBy('id', 'ASC');
             $query->limit(1);
             
