@@ -160,7 +160,7 @@ class cond_Ranges extends core_Manager
         $query = self::getQuery();
         $query->where("#class = {$mvc->getClassId()} AND #state = 'active'");
         $query->where("#current IS NULL OR (#current IS NOT NULL AND #current < #max)");
-        $query->orderBy('min', 'ASC');
+        $query->orderBy('id', 'ASC');
         while($rec = $query->fetch()){
             
             // Диапазона е достъпен ако потребителя е ceo или е изрично посочен или има някоя от посочените роли или диапазона е без ограничение
