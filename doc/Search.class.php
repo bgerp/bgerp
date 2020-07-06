@@ -43,7 +43,7 @@ class doc_Search extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Заглавие,author=Автор,createdOn=Създаване,hnd=Номер,modifiedOn=Модифициране||Modified,searchKeywords';
+    public $listFields = 'title=Заглавие,author=Автор,createdOn=Създаване,hnd=Номер,modifiedOn=Модифициране||Modified';
     
     
     /**
