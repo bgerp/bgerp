@@ -333,8 +333,8 @@
   margin-left: -15px;
   background: #333333;
   position: fixed;
-  top: 46px;
-  height: 60px;
+  top: 44px;
+  height: 62px;
   z-index: 100;
   overflow-x: auto;
   display: block; }
@@ -386,7 +386,7 @@
   display: grid;
   align-items: center;
   text-align: center;
-  grid-gap: 1rem;
+  grid-gap: 0.8rem;
   margin-bottom: 10px; }
 
 .posResultContragent {
