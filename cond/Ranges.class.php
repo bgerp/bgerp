@@ -105,7 +105,7 @@ class cond_Ranges extends core_Manager
      * 
      * @return int
      */
-    public static function add($class, $min, $max, $users = null, $roles = null, $systemId = null)
+    public static function add($class, $min, $max, $users = null, $roles = null, $systemId = null, $updateExisting = true)
     {
         $mvc = cls::get($class);
         
@@ -123,6 +123,12 @@ class cond_Ranges extends core_Manager
         $exRec = $fields = null;
         if (!cls::get(get_called_class())->isUnique($rec, $fields, $exRec)) {
             $rec->id = $exRec->id;
+            if($updateExisting !== true){
+                $rec->min = $exRec->min;
+                $rec->max = $exRec->max;
+                $rec->users = $exRec->users;
+                $rec->roles = $exRec->roles;
+            }
         } else {
             $rec->state = 'active';
             
@@ -130,7 +136,7 @@ class cond_Ranges extends core_Manager
                 $rec->isDefault = 'yes';
             }
         }
-        
+       
         return self::save($rec);
     }
     
@@ -392,12 +398,6 @@ class cond_Ranges extends core_Manager
         }
         
         $form->setOptions('class', $documentOptions);
-        
-        if($form->rec->createdBy == core_Users::SYSTEM_USER){
-            foreach (array('class', 'min', 'max', 'roles', 'users') as $field){
-                $form->setField($field, 'input=none');
-            }
-        }
     }
     
     
