@@ -583,6 +583,15 @@ function calculateWidth(){
 			$('#result-holder').css('padding', '0');
 			$('#result-holder').css('overflow-y', 'visible');
 			$('#result-holder .withTabs').css('height',winHeight - headerHeight - tabsFix);
+			$('#result-holder .scroll-holder').css('width', winWidth - $('#single-receipt-holder').width());
+			var scrollerWidth = 0;
+			$('#result-holder .tabHolder li').each(function () {
+				scrollerWidth += $(this).outerWidth() + 20;
+				console.log(scrollerWidth);
+			});
+
+			$('#result-holder .scroll-holder .tabHolder').css('width', scrollerWidth);
+
 		} else {
 			$('#result-holder').css('padding', '15px');
 			$('#result-holder').css('overflow-y', 'auto');

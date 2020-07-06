@@ -150,24 +150,6 @@
   background: #fefead !important;
   border-left: 6px solid #f70026; }
 
-#result-holder .withTabs {
-  margin-top: 60px;
-  overflow-y: scroll;
-  padding-top: 15px;
-  padding-right: 15px;
-  padding-left: 15px; }
-
-.wide .withTabs .tabHolder {
-  margin-top: 0;
-  margin-left: -15px;
-  padding-left: 15px !important;
-  background: #333333;
-  position: fixed;
-  top: 46px;
-  width: 105%;
-  height: 60px;
-  z-index: 100; }
-
 .num-keyboard {
   margin-left: -8px; }
 
@@ -324,24 +306,57 @@
   width: 48%;
   display: table-cell; }
 
-.wide .tabHolder {
-  display: grid;
-  align-items: center;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1));
-  text-align: center;
-  padding-left: 0;
-  grid-gap: 1rem; }
+#result-holder .withTabs {
+  margin-top: 60px;
+  overflow-y: scroll;
+  padding-top: 15px;
+  padding-right: 15px;
+  padding-left: 15px;
+    /*
+   * Track
+   */
+    /*
+   * Handle
+   */ }
+  #result-holder .withTabs ::-webkit-scrollbar {
+    height: 10px; }
+  #result-holder .withTabs ::-webkit-scrollbar-track {
+    background: #333333; }
+  #result-holder .withTabs ::-webkit-scrollbar-thumb {
+    background: #cccccc;
+    position: relative;
+    border: 1px solid #666666;
+    border-radius: 5px; }
 
-.narrow .scroll-holder {
+.wide .withTabs .scroll-holder {
+  margin-top: 0;
+  margin-left: -15px;
+  background: #333333;
+  position: fixed;
+  top: 46px;
+  height: 60px;
+  z-index: 100;
   overflow-x: auto;
   display: block; }
-  .narrow .scroll-holder .tabHolder {
-    padding-left: 0;
-    width: 600px; }
-    .narrow .scroll-holder .tabHolder li {
+  .wide .withTabs .scroll-holder .tabHolder {
+    padding-left: 2px;
+    padding-right: 2px;
+    text-align: center;
+    margin: 10px 0 7px; }
+    .wide .withTabs .scroll-holder .tabHolder li {
+      user-select: none;
       display: inline-block;
+      float: left;
       border-color: rgba(0, 0, 0, 0);
-      margin-right: 10px; }
+      margin: 0 10px;
+      padding-left: 15px;
+      padding-right: 15px; }
+
+/*
+ * Handle on hover
+ */
+::-webkit-scrollbar-thumb:hover {
+  background: #eeeeee; }
 
 .narrow #receiptnew {
   color: #333333 !important; }
