@@ -161,7 +161,7 @@
   margin-top: 0;
   margin-left: -15px;
   padding-left: 15px !important;
-  background: #cccccc;
+  background: #333333;
   position: fixed;
   top: 46px;
   width: 105%;
@@ -357,10 +357,12 @@
     color: #707a8c;
     font-weight: bold;
     text-align: center !important;
-    border-bottom: 4px solid rgba(0, 0, 0, 0) !important; }
-    .tabHolder li.active {
-      color: #12008a;
-      border-bottom: 4px solid #12008a !important; }
+    background: #dddddd !important;
+    border-radius: 3px; }
+    .tabHolder li.active,
+    .tabHolder li:hover {
+      background: #fefead !important;
+      color: black; }
 
   .contentHolder .content {
     display: none; }

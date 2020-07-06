@@ -198,7 +198,7 @@
 	margin-top: 0;
 	margin-left: -15px;
 	padding-left: 15px !important;
-	background: #ccc;
+	background: #333;
 	position: fixed;
 	top:46px;
 	width: 105%;
@@ -381,12 +381,12 @@
 	display: table-cell;
 }
 .wide .tabHolder {
-		display: grid;
-		align-items: center;
-		grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-		text-align: center;
-		padding-left: 0;
-		grid-gap: 1rem;
+	display: grid;
+	align-items: center;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	text-align: center;
+	padding-left: 0;
+	grid-gap: 1rem;
 }
 .narrow .scroll-holder {
 	overflow-x: auto;
@@ -416,10 +416,11 @@
 		color: #707a8c;
 		font-weight: bold;
 		text-align: center !important;
-		border-bottom: 4px solid transparent !important;
-		&.active {
-			color: #12008a;
-			border-bottom: 4px solid #12008a !important;
+		background: #ddd !important;
+		border-radius: 3px;
+		&.active, &:hover {
+			background: #fefead  !important;
+			color: #000;
 		}
 	}
 }
