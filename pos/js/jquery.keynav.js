@@ -76,7 +76,7 @@
 			return(found);
 		}
 
-		function setCurrent(i,j) {
+		function setCurrent(i,j, clicked) {
 			if (i<0) i=(matrix.length-1);
 			if (matrix && i>=matrix.length) i=0;
 			if (j<0) j=(matrix[i].length-1);
@@ -88,7 +88,7 @@
 				elements.removeClass('selected');
 				current = $(matrix[i][j]);
 				current.addClass('selected');
-				if (!isItVisible($(current))) {
+				if (!isItVisible($(current)) && !clicked) {
 					$(current)[0].scrollIntoView();
 				}
 
@@ -108,7 +108,7 @@
 
 				current = $(element);
 				var currentPosition = findCurrent();
-				setCurrent(currentPosition[0], currentPosition[1]);
+				setCurrent(currentPosition[0], currentPosition[1], true);
 			}
 
 		});
@@ -120,7 +120,7 @@
 				if (element.length) {
 					current = $(element);
 					var currentPosition = findCurrent();
-					setCurrent(currentPosition[0], currentPosition[1]);
+					setCurrent(currentPosition[0], currentPosition[1], true);
 				}
 			});
 		}
@@ -139,19 +139,19 @@
 			if (checkNav && checkNav()) return;
 			if (e.keyCode == 37) {
 				// left
-				setCurrent(x,y-1);
+				setCurrent(x,y-1,false);
 				e.preventDefault();
 			} else if (e.keyCode == 38) {
 				// up
-				setCurrent(x-1,y);
+				setCurrent(x-1,y, false);
 				e.preventDefault();
 			} else if (e.keyCode == 39) {
 				// right
-				setCurrent(x,y+1);
+				setCurrent(x,y+1, false);
 				e.preventDefault();
 			} else if (e.keyCode == 40) {
 				// down
-				setCurrent(x+1,y);
+				setCurrent(x+1,y, false);
 				e.preventDefault();
 			}
 		});
