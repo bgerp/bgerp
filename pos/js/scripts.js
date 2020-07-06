@@ -1055,9 +1055,11 @@ function startNavigation() {
 		} else if (focused && !$('#' + focused ).hasClass('disabledBtn') && document.getElementById(focused) && $('.navigable.selected:visible').length == 0) {
 			$('#' + focused ).addClass('selected');
 		}
-
 		$('#result-holder .navigable:visible').keynav();
-		$('#result-holder .withTabs').scrollTop(scrollTop);
+
+		if (scrollTop) {
+			$('#result-holder .withTabs').scrollTop(scrollTop);
+		}
 	}
 }
 
@@ -1243,7 +1245,6 @@ function openCurrentPosTab() {
 
 		$("#" + currentTabContent).show();
 		startNavigation();
-		sessionStorage.removeItem('focusedOffset');
 	}
 }
 
