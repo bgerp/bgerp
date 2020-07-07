@@ -1227,7 +1227,6 @@ class core_Mvc extends core_FieldSet
                 // Трябва ли да извършим обновяване/създаване на полето
                 if ($updateName || $updateType || $updateOptions || $updateSize ||
                     $updateNotNull || $updateUnsigned || $updateDefault || $updateCollation) {
-                        
                     try {
                         if ($this->db->forceField($tableName, $mfAttr)) {
                             // Преименуване или създаване на полето?
@@ -1242,15 +1241,6 @@ class core_Mvc extends core_FieldSet
                             }
                         }
                     } catch (core_exception_Expect $e) {
-                        
-                        if($e->dump['mysqlErrCode'] == 1062){
-                            
-                            // Ако при обновяване на полето възникне грешка за дуплициран код, прави се миграция на кодовете
-                            $html .= $this->migrateDuplicatedEntries($tableName, $dfAttr, $mfAttr);
-                            
-                            continue;
-                        }
-                        
                         reportException($e);
                         
                         if ($mfAttr->field) {
@@ -1367,79 +1357,6 @@ class core_Mvc extends core_FieldSet
         $this->invoke('afterSetupMVC', array(&$html));
         
         return "${html}</ul>";
-    }
-    
-    
-    /**
-     * Миграция на дубликирани полета при обновяване
-     */
-    private function migrateDuplicatedEntries($tableName, $dfAttr, $mfAttr)
-    {
-        $updateRecs = $saveRecs = array();
-        $query = $this->getQuery();
-        $query->where("#{$mfAttr->name} IS NOT NULL");
-        $query->show($mfAttr->name);
-        $query->orderBy('id', 'DESC');
-        
-        while($rec = $query->fetch()){
-            $updateRecs[$rec->id] = $rec;
-        }
-        
-        $count = countR($updateRecs);
-        core_App::setTimeLimit($count * 0.2, false, 100);
-        
-        foreach ($updateRecs as &$uRec){
-           
-            // Проверява се има ли записи със същото уникално поле
-            $foundRec = array_filter($updateRecs, function ($a) use ($uRec, $mfAttr) {return mb_strtolower($a->{$mfAttr->name}) == mb_strtolower($uRec->{$mfAttr->name}) && $a->id != $uRec->id;});
-            if(countR($foundRec)){
-                
-                // Отново се проверява дали е уникално
-                $loop = true;
-                while($loop){
-                    
-                    // Ако има то се инкрементира
-                    $uRec->{$mfAttr->name} = str::addIncrementSuffix($uRec->{$mfAttr->name}, '_');
-                
-                    // Ако още не е уникално още се инкрементира
-                    $foundRec = array_filter($updateRecs, function ($a) use ($uRec, $mfAttr) {return mb_strtolower($a->{$mfAttr->name}) == mb_strtolower($uRec->{$mfAttr->name}) && $a->id != $uRec->id;});
-                    if(!countR($foundRec)){
-                        $loop = false;
-                    }
-                }
-                
-                $saveRecs[$uRec->id] = $uRec;
-            }
-        }
-        
-        $this->saveArray($saveRecs, "id, {$mfAttr->name}");
-        $migratedCount = countR($saveRecs);
-        $title = "<span style='color:#007733;'>Мигрирани са {$migratedCount} дублирани записи на полето <b>{$mfAttr->name}</b> </span>";
-        
-        try {
-            if ($this->db->forceField($tableName, $mfAttr)) {
-                // Преименуване или създаване на полето?
-                if ($dfAttr->field) {
-                    if ($mfAttr->field != $mfAttr->name) {
-                        $title .= "<span style='color:#007733;'>Преименуване <b>{$mfAttr->field}</b> => <b>{$mfAttr->name}</b></span>";
-                    } else {
-                        $title .= "<span>Обновяване на поле <b>{$mfAttr->name}</b></span>";
-                    }
-                } else {
-                    $title .= "<span style='color:#007733;'>Създаване на поле <b>{$mfAttr->name}</b></span>";
-                }
-            }
-        } catch (core_exception_Expect $e) {
-            reportException($e);
-            
-            if ($mfAttr->field) {
-                $title .= "<li class='debug-error'>Проблем при обновяване на поле '<b>{$mfAttr->field}</b>', {$e->getMessage()}</li>";
-            } else {
-                $title .= "<li class='debug-error'>Проблем при добавяне на поле '<b>{$mfAttr->field}</b>', {$e->getMessage()}</li>";
-            }
-        }
-        
-        return $title;
     }
     
     
