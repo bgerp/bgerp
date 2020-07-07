@@ -131,6 +131,7 @@ class cat_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
+        'migrate::updateProductCodes1',
         'cat_UoM',
         'cat_Groups',
         'cat_Categories',
@@ -320,5 +321,61 @@ class cat_Setup extends core_ProtoSetup
         $eanCol = str::phpToMysqlName('eanCode');
         $query = "UPDATE {$Packs->dbTableName} SET {$eanCol} = '' WHERE {$eanCol} IS NULL";
         $Packs->db->query($query);
+    }
+    
+    
+    /**
+     * Миграция на кодовете
+     */
+    public function updateProductCodes1()
+    {
+        $Products = cls::get('cat_Products');
+        
+        if ($Products->db->tableExists('cat_products')){
+            $Products->setupMvc();
+            
+            $updateRecs = $saveRecs = array();
+            $query = $Products->getQuery();
+            $query->where("#code IS NOT NULL");
+            $query->show('code');
+            $query->orderBy('id', 'DESC');
+            
+            while($rec = $query->fetch()){
+                $updateRecs[$rec->id] = $rec;
+            }
+            
+            if(!countR($updateRecs)) return;
+            
+            $count = countR($updateRecs);
+            core_App::setTimeLimit($count * 0.2, false, 100);
+            
+            foreach ($updateRecs as &$uRec){
+                
+                // Проверява се има ли записи със същото уникално поле
+                $foundRec = array_filter($updateRecs, function ($a) use ($uRec) {return mb_strtolower($a->code) == mb_strtolower($uRec->code) && $a->id != $uRec->id;});
+                if(countR($foundRec)){
+                    
+                    // Отново се проверява дали е уникално
+                    $loop = true;
+                    while($loop){
+                        
+                        // Ако има то се инкрементира
+                        $uRec->code = str::addIncrementSuffix($uRec->code, '_');
+                        
+                        // Ако още не е уникално още се инкрементира
+                        $foundRec = array_filter($updateRecs, function ($a) use ($uRec) {return mb_strtolower($a->code) == mb_strtolower($uRec->code) && $a->id != $uRec->id;});
+                        if(!countR($foundRec)){
+                            $loop = false;
+                        }
+                    }
+                    
+                    $saveRecs[$uRec->id] = $uRec;
+                }
+            }
+            
+            if(!countR($saveRecs)) return;
+            
+            $Products->saveArray($saveRecs, "id, code");
+        }
     }
 }
