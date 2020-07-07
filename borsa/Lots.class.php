@@ -18,7 +18,7 @@ class borsa_Lots extends core_Master
      * Заглавие на модела
      */
     public $title = 'Лотове';
-    public $singleTitle = 'Лотове';
+    public $singleTitle = 'Лот';
     
     
     /**
