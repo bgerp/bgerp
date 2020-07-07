@@ -374,7 +374,6 @@ class doc_Containers extends core_Manager
             
             $clsQuery->show($show);
             
-            $i = 0;
             while ($cRec = $clsQuery->fetch()) {
                 try {
                     // Ако новите ключови думи не отговарят на старите, записваме ги
@@ -396,16 +395,13 @@ class doc_Containers extends core_Manager
                     }
                     $contRec->searchKeywords = $generatedKeywords;
                     $docContainers->save_($contRec, 'searchKeywords');
-                    $i++;
+                    
+                    $resArr[$rec->docClass]++;
+                    $resArr[0]++;
                 } catch (core_exception_Expect $e) {
                     reportException($e);
                     continue;
                 }
-            }
-            
-            if ($i) {
-                $resArr[$rec->docClass] = $i;
-                $resArr[0] += $i;
             }
         }
         
@@ -3244,8 +3240,7 @@ class doc_Containers extends core_Manager
             
             $limit = $query->count() * 0.005;
             core_App::setTimeLimit($limit, false, 2000);
-            
-            $rArr = self::regenerateSerchKeywords($force, $query);
+            $rArr = self::regenerateSerchKeywords($force, $query, true);
             
             $retUrl = getRetUrl();
             if (!$retUrl) {
