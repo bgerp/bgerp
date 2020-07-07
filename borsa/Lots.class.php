@@ -79,7 +79,7 @@ class borsa_Lots extends core_Master
     /**
      * През колко време да се обновява по AJAX
      */
-    protected $lotAjaxRefreshTime = 100000000;
+    protected $lotAjaxRefreshTime = 5000;
 
     
     /**
