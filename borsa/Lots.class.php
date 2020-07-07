@@ -18,6 +18,7 @@ class borsa_Lots extends core_Master
      * Заглавие на модела
      */
     public $title = 'Лотове';
+    public $singleTitle = 'Лотове';
     
     
     /**
@@ -42,6 +43,11 @@ class borsa_Lots extends core_Master
      * Кой има право да го види?
      */
     public $canView = 'borsa, ceo';
+    
+    /**
+     * Кой има право да за сингъла?
+     */
+    public $canSingle = 'borsa, ceo';
     
     
     /**
