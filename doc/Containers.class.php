@@ -365,19 +365,15 @@ class doc_Containers extends core_Manager
             
             $clsQuery = $clsInst->getQuery();
             
-            $show = 'searchKeywords, containerId';
-            
             if ($useCId) {
                 $clsQuery->where(array("#containerId = '[#1#]'", $rec->id));
-                $show .= ',containerId';
             }
-            
-            $clsQuery->show($show);
             
             while ($cRec = $clsQuery->fetch()) {
                 try {
                     // Ако новите ключови думи не отговарят на старите, записваме ги
                     $generatedKeywords = $clsInst->getSearchKeywords($cRec);
+                    
                     if (!$force && ($generatedKeywords == $cRec->searchKeywords)) {
                         continue;
                     }
