@@ -331,7 +331,7 @@ class doc_Containers extends core_Manager
      *
      * @return array
      */
-    public static function regenerateSerchKeywords($force = false, $query = null, $useCId = false)
+    public static function regenerateSerchKeywords($force = false, $query = null, $useCId = true)
     {
         $docContainers = cls::get('doc_Containers');
         
