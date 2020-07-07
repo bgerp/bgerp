@@ -585,15 +585,6 @@ class cat_Products extends embed_Manager
                 if (preg_match('/[^0-9a-zа-я\- _]/iu', $rec->code)) {
                     $form->setError('code', 'Полето може да съдържа само букви, цифри, тирета, интервали и долна черта!');
                 }
-                
-                // Проверяваме дали има продукт с такъв код (като изключим текущия)
-                $check = $mvc->getByCode($rec->code);
-                if ($check && ($check->productId != $rec->id)
-                    || ($check->productId == $rec->id && $check->packagingId != $rec->packagingId)) {
-                        $checkProductLink = cat_Products::getHyperlink($check->productId, true);
-                        
-                        $form->setError('code', 'Има вече артикул с такъв код|*: ' . $checkProductLink);
-                }
             }
             
             // Ако артикулът е в папка на контрагент, и има вече артикул, със същото се сетва предупреждение
@@ -1226,15 +1217,6 @@ class cat_Products extends embed_Manager
                 $res->productId = $catPack->productId;
                 $res->packagingId = $catPack->packagingId;
             }
-        }
-        
-        if (!$res->productId) {
-            
-            // Търси се продукта по код, без значение на кейса
-            //if ($rec = self::fetch(array("LOWER(#code) = '[#1#]'", mb_strtolower($code)), 'id')) {
-               // $res->productId = $rec->id;
-               // $res->packagingId = null;
-           // }
         }
         
         // Ако не е намерен артикул с този баркод или код, търсим дали е ArtXXX, търси артикул с това ид
