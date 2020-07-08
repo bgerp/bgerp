@@ -636,7 +636,7 @@ class pos_Terminal extends peripheral_Terminal
         Mode::setPermanent("currentOperation{$id}", $operation);
         Mode::setPermanent("currentSearchString{$id}", $string);
         
-        return static::returnAjaxResponse($rec->id, $selectedRecId, true, false, $refreshPanel);
+        return static::returnAjaxResponse($rec->id, $selectedRecId, true, false, $refreshPanel, true, null);
     }
     
     
@@ -2050,7 +2050,7 @@ class pos_Terminal extends peripheral_Terminal
      * 
      * @return array $res
      */
-    public static function returnAjaxResponse($receiptId, $selectedRecId, $success, $refreshTable = false, $refreshPanel = true, $refreshResult = true, $sound = null)
+    public static function returnAjaxResponse($receiptId, $selectedRecId, $success, $refreshTable = false, $refreshPanel = true, $refreshResult = true, $sound = null, $clearInput = false)
     {
         $me = cls::get(get_called_class());
         $Receipts = cls::get('pos_Receipts');
@@ -2116,6 +2116,12 @@ class pos_Terminal extends peripheral_Terminal
             
             $resObj = new stdClass();
             $resObj->func = 'openCurrentPosTab';
+            $res[] = $resObj;
+        }
+        
+        if($clearInput){
+            $resObj = new stdClass();
+            $resObj->func = 'clearInput';
             $res[] = $resObj;
         }
         

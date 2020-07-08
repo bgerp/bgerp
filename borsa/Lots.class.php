@@ -18,6 +18,7 @@ class borsa_Lots extends core_Master
      * Заглавие на модела
      */
     public $title = 'Лотове';
+    public $singleTitle = 'Лот';
     
     
     /**
@@ -42,6 +43,11 @@ class borsa_Lots extends core_Master
      * Кой има право да го види?
      */
     public $canView = 'borsa, ceo';
+    
+    /**
+     * Кой има право да за сингъла?
+     */
+    public $canSingle = 'borsa, ceo';
     
     
     /**
@@ -79,7 +85,7 @@ class borsa_Lots extends core_Master
     /**
      * През колко време да се обновява по AJAX
      */
-    protected $lotAjaxRefreshTime = 100000000;
+    protected $lotAjaxRefreshTime = 5000;
 
     
     /**
