@@ -206,12 +206,20 @@ class pos_Terminal extends peripheral_Terminal
                                     'TIME' => $this->renderCurrentTime(),
                                     'valior' => pos_Receipts::getVerbal($rec->id, 'valior'),
                                     'userId' => core_Users::getVerbal(core_Users::getCurrent(), 'nick'));
-        $headerData->contragentId = (!empty($rec->transferedIn)) ? sales_Sales::getLink($rec->transferedIn, 0, array('ef_icon' => false)) : cls::get($rec->contragentClass)->getTitleById($rec->contragentObjectId);
         
-        $tpl->append(ht::createImg(array('path' => 'img/16/bgerp.png')), 'OTHER_ELEMENTS');
+        $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
+        $contragentName = ($rec->contragentClass == crm_Persons::getClassId() && $defaultContragentId == $rec->contragentObjectId) ? null : cls::get($rec->contragentClass)->getTitleById($rec->contragentObjectId);
+        $headerData->contragentId = (!empty($rec->transferedIn)) ? sales_Sales::getLink($rec->transferedIn, 0, array('ef_icon' => false)) : $contragentName;
+       
+        $img = ht::createImg(array('path' => 'img/16/bgerp.png'));
+        $logoTpl = new core_ET("[#img#] [#logo#]");
+        $logoTpl->replace($img, 'img');
+        $logoTpl->replace($Receipts->getTerminalHeaderLogo($rec), 'logo');
+        $logoLink = ht::createLink($logoTpl, array('bgerp_Portal', 'show'));
+        
+        $tpl->append($logoLink, 'OTHER_ELEMENTS');
         $tpl->placeObject($headerData);        
-        $Receipts->invoke('AfterRenderterminalHeader', array(&$tpl, $rec));
-        $tpl->replace(' bgERP', 'OTHER_ELEMENTS');
+        $Receipts->invoke('AfterRenderTerminalHeader', array(&$tpl, $rec));
         
         return $tpl;
     }
@@ -258,6 +266,8 @@ class pos_Terminal extends peripheral_Terminal
                 Mode::push('text', 'xhtml');
                 $packData = (object)array('masterMvc' => cls::get('cat_Products'), 'masterId' => $enlargeObjectId);
                 cls::get('cat_products_Packagings')->preparePackagings($packData);
+                unset($packData->listFields['user']);
+               
                 $packagingTpl = cls::get('cat_products_Packagings')->renderPackagings($packData);
                 $modalTpl->append($packagingTpl, 'Packagings');
                 Mode::pop();
