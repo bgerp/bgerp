@@ -422,12 +422,16 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $originQuantity = $originDetRec->quantity*$originDetRec->quantityInPack;
                     $changeQuatity = $invQuantity - $originQuantity;
                     $changePrice = $invDetRec->price - $originDetRec->price;
+       
                     if ($changeQuatity == 0 && $changePrice == 0) {
                         continue;
                     }
                     $invQuantity = $changeQuatity != 0 ? $changeQuatity :0;
                     $invAmount =$changeQuatity == 0 ? $changePrice * $invDetRec->quantity*$invDetRec->quantityInPack : $invDetRec->price  * $invQuantity;
-                  
+                    if ($invDetRec->discount){
+                        
+                        $invAmount = $invAmount*(1 - $invDetRec->discount);
+                    }
                 }
                 
                 // Запис в масива с фактурираните артикули $invProd
@@ -477,8 +481,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         $query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         
-        $query->where("#state != 'rejected'");
-        
+        $query->in('state',array('rejected','stopped'),true);
         
         //Когато е БЕЗ СРАВНЕНИЕ
         if (($rec->compare) == 'no') {

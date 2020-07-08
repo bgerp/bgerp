@@ -9,7 +9,7 @@
 	}
 }
 
-.wide #single-receipt-holder {
+#single-receipt-holder {
 	float: left;
 	font-family: 'Source Sans Pro', sans-serif;
 	font-size: 1.2em;
@@ -18,17 +18,18 @@
 #single-receipt-holder.fixedHolder {
 	position: fixed;
 	left: 0;
-	width: 570px;
+	width: 526px;
 	height: 100%;
 	background: #12008a;
 	box-sizing: border-box;
 }
+
 .narrowHolder {
 	#receipt-table{
 		height: 300px;
 	}
 }
-.wide .result-content {
+.result-content {
 	background: #ccc;
 	position: fixed;
 	top: 5%;
@@ -187,32 +188,13 @@
 	border-left: 6px solid #f70026 ;
 }
 
-#result-holder .withTabs {
-	margin-top: 60px;
-	overflow-y: scroll;
-	padding-top: 15px;
-	padding-right: 15px;
-	padding-left: 15px;
-}
-.wide .withTabs .tabHolder {
-	margin-top: 0;
-	margin-left: -15px;
-	padding-left: 15px !important;
-	background: #ccc;
-	position: fixed;
-	top:46px;
-	width: 105%;
-	height: 60px;
-	z-index: 100;
-}
-
 .num-keyboard {
 	margin-left: -8px;
 }
 .numPad, .numBack{
 	min-width: 60px;
 	height: 60px;
-	margin: 8px 8px 8px 8px !important;
+	margin: 4px !important;
 	text-align: center;
 	color:white !important;
 	border-radius: 3px !important;
@@ -279,7 +261,7 @@
 }
 #tools-holder .buttons {
 	float: left;
-	width: 236px;
+	width: 225px;
 	 a, div {
 		display: inline-block;
 		float: left;
@@ -288,7 +270,7 @@
 .operationHolder {
 	display: inline-block;
 	position: relative;
-	margin: 8px 0 8px 18px;
+	margin: 4px 0 4px 14px;
 	border: 1px solid #999;
 	background: #ccc;
 	padding: 14px;
@@ -380,27 +362,65 @@
 	width:48%;
 	display: table-cell;
 }
-.wide .tabHolder {
-		display: grid;
-		align-items: center;
-		grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-		text-align: center;
-		padding-left: 0;
-		grid-gap: 1rem;
+
+#result-holder .withTabs {
+	margin-top: 60px;
+	overflow-y: scroll;
+	padding-top: 15px;
+	padding-right: 15px;
+	padding-left: 15px;
+	::-webkit-scrollbar {
+		height: 10px;
+	}
+
+	/* Track */
+	::-webkit-scrollbar-track {
+		background: #333;
+	}
+
+	/* Handle */
+	::-webkit-scrollbar-thumb {
+		background: #ccc;
+		position: relative;
+		border: 1px solid #666;
+		border-radius: 5px;
+	}
 }
-.narrow .scroll-holder {
+.withTabs .scroll-holder {
+	margin-top: 0;
+	margin-left: -15px;
+	background: #333;
+	position: fixed;
+	top:44px;
+	height: 62px;
+	z-index: 100;
 	overflow-x: auto;
 	display: block;
 	.tabHolder {
-		padding-left: 0;
-		width: 600px;
+		padding-left: 2px;
+		padding-right: 2px;
+		text-align: center;
+		margin: 10px 0 7px;
 		li {
+			user-select: none;
 			display: inline-block;
+			float: left;
 			border-color: transparent;
-			margin-right: 10px;
+			margin: 0 10px;
+			padding-left: 15px;
+			padding-right: 15px;
 		}
 	}
 }
+
+
+
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+	background: #eee;
+}
+
 .narrow #receiptnew {
 	color: #333 !important;
 }
@@ -416,10 +436,11 @@
 		color: #707a8c;
 		font-weight: bold;
 		text-align: center !important;
-		border-bottom: 4px solid transparent !important;
-		&.active {
-			color: #12008a;
-			border-bottom: 4px solid #12008a !important;
+		background: #ddd !important;
+		border-radius: 3px;
+		&.active, &:hover {
+			background: #fefead  !important;
+			color: #000;
 		}
 	}
 }
@@ -432,7 +453,7 @@
 	display: grid;
 	align-items: center;
 	text-align: center;
-	grid-gap: 1rem;
+	grid-gap: 0.8rem;
 	margin-bottom:10px;
 }
 .posResultContragent {

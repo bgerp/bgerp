@@ -815,4 +815,23 @@ class plg_Search extends core_Plugin
         
         return $minLenFTS;
     }
+    
+    
+    /**
+     * Форсира ръчно обновяване на ключовите думи на модела
+     * (и на контейнера му ако е документ)
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    public static function forceUpdateKeywords($mvc, $rec)
+    {
+        $fRec = $mvc->fetch("id = {$rec->id}", '*', false);
+        $rec->searchKeywords = $mvc->getSearchKeywords($fRec);
+        
+        $mvc->save_($fRec, 'searchKeywords');
+        if($fRec->containerId){
+            doc_Containers::update_($fRec->containerId);
+        }
+    }
 }

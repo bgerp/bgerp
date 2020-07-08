@@ -556,15 +556,15 @@ abstract class bank_Document extends deals_PaymentDocument
         $form->setDefault('dealCurrencyId', $cId);
         $form->setDefault('rate', $dealInfo->get('rate'));
         
-        // Ако има банкова сметка по подразбиране
-        if ($bankId = $dealInfo->get('bankAccountId')) {
-            
-            // Ако потребителя има права, логва се тихо
-            if ($bankId = bank_OwnAccounts::fetchField("#bankAccountId = {$bankId}", 'id')) {
-                bank_OwnAccounts::selectCurrent($bankId);
+        if(isset($form->rec->fromContainerId)){
+            $FromContainer = doc_Containers::getDocument($form->rec->fromContainerId);
+            if($FromContainer->isInstanceOf('deals_InvoiceMaster')){
+                $bankId = $FromContainer->fetchField('accountId');
             }
         }
         
+        $bankId = isset($bankId) ? $bankId : (($dealInfo->get('bankAccountId') ? bank_OwnAccounts::fetchField("#bankAccountId = {$dealInfo->get('bankAccountId')}", 'id') : null));
+       
         if (empty($form->rec->id) && $form->cmd != 'refresh') {
             $form->setDefault('ownAccount', bank_OwnAccounts::getCurrent('id', false));
             $form->setDefault('ownAccount', $bankId);

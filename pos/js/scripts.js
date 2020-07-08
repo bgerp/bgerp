@@ -583,6 +583,14 @@ function calculateWidth(){
 			$('#result-holder').css('padding', '0');
 			$('#result-holder').css('overflow-y', 'visible');
 			$('#result-holder .withTabs').css('height',winHeight - headerHeight - tabsFix);
+			$('#result-holder .scroll-holder').css('width', winWidth - $('#single-receipt-holder').width());
+			var scrollerWidth = 0;
+			$('#result-holder .tabHolder li').each(function () {
+				scrollerWidth += $(this).outerWidth() + 20;
+			});
+
+			$('#result-holder .scroll-holder .tabHolder').css('width', scrollerWidth);
+
 		} else {
 			$('#result-holder').css('padding', '15px');
 			$('#result-holder').css('overflow-y', 'auto');
@@ -590,7 +598,7 @@ function calculateWidth(){
 		$('#result-holder').css('height',winHeight - headerHeight);
 
 		$('#result-holder, #single-receipt-holder').css('top',headerHeight);
-		$('.tools-content').css('height',500);
+		$('.tools-content').css('height',460);
 
 	} else {
 		$('#single-receipt-holder').removeClass('fixedHolder')
@@ -1038,7 +1046,7 @@ function selectFirstNavigable()
 function startNavigation() {
 	if($('.navigable').length) {
 		var focused = sessionStorage.getItem('focused');
-		var scrollTop = sessionStorage.getItem('focusedOffset');
+		var scrollTop = sessionStorage.getItem('focusedOffset') ?  sessionStorage.getItem('focusedOffset') : 0;
 		$('.selected').removeClass('selected');
 
 		// ръчно избирам първия елемент за селектед
@@ -1047,16 +1055,16 @@ function startNavigation() {
 		} else if (focused && !$('#' + focused ).hasClass('disabledBtn') && document.getElementById(focused) && $('.navigable.selected:visible').length == 0) {
 			$('#' + focused ).addClass('selected');
 		}
-
 		$('#result-holder .navigable:visible').keynav();
 		$('#result-holder .withTabs').scrollTop(scrollTop);
+
 	}
 }
 
 function isItVisible(element) {
 	var viewportWidth = $(window).width(),
 		viewportHeight = $(window).height(),
-		documentScrollTop = $(document).scrollTop(),
+		documentScrollTop = $('.withTabs').scrollTop(),
 		documentScrollLeft = $(document).scrollLeft(),
 
 		elementOffset = element.offset(),
@@ -1280,10 +1288,20 @@ function doOperation(operation, selectedRecId, forceSubmit) {
 	scrollToHighlight();
 }
 
+
 /**
  * Задава таймаута при търсенето
  */
 function setSearchTimeout(timeout)
 {
 	searchTimeout = timeout;
+}
+
+
+/**
+ * Изчистване на инпута
+ */
+function clearInput()
+{
+	$("input[name=ean]").val("");
 }

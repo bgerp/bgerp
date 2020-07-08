@@ -545,6 +545,11 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
         }
+        
+        if(!in_array($data->listFilter->rec->type, array('draft', 'pending', 'all'))){
+            unset($data->listFields['createdBy']);
+            unset($data->listFields['createdOn']);
+        }
     }
     
     

@@ -331,7 +331,7 @@ class doc_Containers extends core_Manager
      *
      * @return array
      */
-    public static function regenerateSerchKeywords($force = false, $query = null, $useCId = false)
+    public static function regenerateSerchKeywords($force = false, $query = null, $useCId = true)
     {
         $docContainers = cls::get('doc_Containers');
         
@@ -365,20 +365,15 @@ class doc_Containers extends core_Manager
             
             $clsQuery = $clsInst->getQuery();
             
-            $show = 'searchKeywords, containerId';
-            
             if ($useCId) {
                 $clsQuery->where(array("#containerId = '[#1#]'", $rec->id));
-                $show .= ',containerId';
             }
             
-            $clsQuery->show($show);
-            
-            $i = 0;
             while ($cRec = $clsQuery->fetch()) {
                 try {
                     // Ако новите ключови думи не отговарят на старите, записваме ги
                     $generatedKeywords = $clsInst->getSearchKeywords($cRec);
+                    
                     if (!$force && ($generatedKeywords == $cRec->searchKeywords)) {
                         continue;
                     }
@@ -396,16 +391,13 @@ class doc_Containers extends core_Manager
                     }
                     $contRec->searchKeywords = $generatedKeywords;
                     $docContainers->save_($contRec, 'searchKeywords');
-                    $i++;
+                    
+                    $resArr[$rec->docClass]++;
+                    $resArr[0]++;
                 } catch (core_exception_Expect $e) {
                     reportException($e);
                     continue;
                 }
-            }
-            
-            if ($i) {
-                $resArr[$rec->docClass] = $i;
-                $resArr[0] += $i;
             }
         }
         
@@ -3244,8 +3236,7 @@ class doc_Containers extends core_Manager
             
             $limit = $query->count() * 0.005;
             core_App::setTimeLimit($limit, false, 2000);
-            
-            $rArr = self::regenerateSerchKeywords($force, $query);
+            $rArr = self::regenerateSerchKeywords($force, $query, true);
             
             $retUrl = getRetUrl();
             if (!$retUrl) {

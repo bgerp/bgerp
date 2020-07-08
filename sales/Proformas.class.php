@@ -187,7 +187,7 @@ class sales_Proformas extends deals_InvoiceMaster
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'caption=Продажба,input=none');
         $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
-        $this->FLD('number', 'int', 'caption=Номер, export=Csv,input=none');
+        $this->FLD('number', 'int', 'caption=Номер, export=Csv,after=reff');
         $this->FLD('reff', 'varchar(255,nullIfEmpty)', 'caption=Ваш реф.,class=contactData,after=place');
         
         $this->setDbUnique('number');
@@ -273,24 +273,25 @@ class sales_Proformas extends deals_InvoiceMaster
         }
         
         parent::beforeInvoiceSave($rec);
+        
+        if (empty($rec->number)) {
+            $query = $mvc->getQuery();
+            $query->XPR('maxNumber', 'int', 'MAX(#number)');
+            $number = $query->fetch()->maxNumber;
+            ++$number;
+            $rec->number = $number;
+        }
     }
     
     
     /**
-     * Извиква се след успешен запис в модела
+     * Добавя ключови думи за пълнотекстово търсене
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-        $number = ($rec->number) ? $rec->number : $mvc->fetchField($rec->id, 'number');
-        
-        if (empty($number)) {
-            $query = $mvc->getQuery();
-            $query->XPR('maxNumber', 'int', 'MAX(#number)');
-            
-            $number = $query->fetch()->maxNumber;
-            ++$number;
-            $rec->number = $number;
-            $mvc->save_($rec, 'number');
+        // Добавяне на кода към ключовите думи
+        if(!empty($rec->number)){
+            $res .= ' ' . plg_Search::normalizeText($rec->number);
         }
     }
     

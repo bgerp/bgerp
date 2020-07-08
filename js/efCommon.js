@@ -5194,7 +5194,7 @@ function debugLayout() {
     if ($('body').hasClass('narrow')) {
         $('.linksGroup').scrollTop($('.debugLink.current').offset().top - $('.linksGroup').height() -10);
     }
-    $('.search-fields input').on('click', function(){
+    $('.search-fields input[type=text]').on('click', function(){
         $('.other-fileds').slideDown();
 
         $('.other-fileds').find('input.combo').each(function(){
