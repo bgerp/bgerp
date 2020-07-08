@@ -1288,10 +1288,20 @@ function doOperation(operation, selectedRecId, forceSubmit) {
 	scrollToHighlight();
 }
 
+
 /**
  * Задава таймаута при търсенето
  */
 function setSearchTimeout(timeout)
 {
 	searchTimeout = timeout;
+}
+
+
+/**
+ * Изчистване на инпута
+ */
+function clearInput()
+{
+	$("input[name=ean]").val("");
 }
