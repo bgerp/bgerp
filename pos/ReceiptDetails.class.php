@@ -604,14 +604,9 @@ class pos_ReceiptDetails extends core_Detail
             }
         }
        
-        if(isset($productId)){
-            $clear = false;
-        } else {
-            $clear = true;
-            Mode::setPermanent("currentSearchString{$rec->receiptId}", null);
-        }
+        Mode::setPermanent("currentSearchString{$rec->receiptId}", null);
         
-        return pos_Terminal::returnAjaxResponse($receiptId, $selectedRecId, $success, true, true, true, 'add', $clear);
+        return pos_Terminal::returnAjaxResponse($receiptId, $selectedRecId, $success, true, true, true, 'add', true);
     }
     
     
