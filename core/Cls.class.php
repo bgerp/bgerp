@@ -75,7 +75,7 @@ class core_Cls
             // Ако се използва съкратено име, то името на приложението
             // се прибавя като приставка и долна черта отпред
             if (($last = strrpos($className, '_')) === false) {
-                if(is_dir(getFullPath($className))) {
+                if(is_dir(getFullPath(strtolower($className)))) {
                     $className = strtolower($className) . '_Index';
                 } else {
                     $className = EF_APP_CODE_NAME . '_' . $className;
