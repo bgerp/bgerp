@@ -106,7 +106,7 @@ function posActions() {
 		timeout = setTimeout(function(){
 			resObj = new Object();
 			resObj['url'] = url;
-
+			
 			var params = {operation:operation,search:inpVal,recId:selectedRecId};
 			processUrl(url, params);
 
@@ -975,8 +975,20 @@ function isMicroformat(string) {
 			}
 		} else if(string.endsWith("%") || string.startsWith("%")){
 			var quantity = string.replace("%", "");
+			quantity = quantity.replace(",", ".");
+			
 			if($.isNumeric(quantity)){
-				
+				if(string.startsWith("%")){
+					
+					var split = quantity.split(".");
+					var cnt = (split[1]) ? split[1].length : 0;
+					if(cnt == 2){
+						return true;
+					}
+					
+					return false;
+				}
+			
 				return true;
 			}
 		}

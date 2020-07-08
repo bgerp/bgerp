@@ -393,7 +393,7 @@ class pos_Receipts extends core_Master
         $query->where('#quantity != 0');
         $query->where("#action LIKE '%sale%'");
         $query->orderBy('id', 'ASC');
-        
+       
         while ($rec = $query->fetch()) {
             $info = cat_Products::getProductInfo($rec->productId);
             $quantityInPack = ($info->packagings[$rec->value]) ? $info->packagings[$rec->value]->quantity : 1;
@@ -406,6 +406,8 @@ class pos_Receipts extends core_Master
                 'discount' => $rec->discountPercent,
                 'quantity' => $rec->quantity);
         }
+        
+        
         
         return $products;
     }
@@ -565,6 +567,11 @@ class pos_Receipts extends core_Master
             
             // Всеки продукт се прехвърля едно към 1
             foreach ($products as $product) {
+                if($product->discount < 0){
+                    $product->price *= (1 + abs($product->discount));
+                    $product->discount = null;
+                }
+                
                 sales_Sales::addRow($sId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount);
             }
         }
