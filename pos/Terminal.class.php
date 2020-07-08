@@ -1527,13 +1527,7 @@ class pos_Terminal extends peripheral_Terminal
         expect($id = Request::get('id', 'int'));
         pos_Receipts::requireRightFor('terminal', $id);
         $res = array();
-        
-        // Добавяме резултата
-        $resObj = new stdClass();
-        $resObj->func = 'html';
-        $resObj->arg = array('id' => 'terminalTime', 'html' => $this->renderCurrentTime()->getContent(), 'replace' => true);
-        $res[] = $resObj;
-        
+
         $resObj1 = new stdClass();
         $resObj1->func = 'clearStatuses';
         $resObj1->arg = array('type' => 'notice');
