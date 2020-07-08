@@ -280,15 +280,31 @@ class pos_Terminal extends peripheral_Terminal
                 if ($productRec->canStore == 'yes') {
                     $stores = pos_Points::getStores($receiptRec->pointId);
                     $row->INSTOCK = '';
+                    
                     foreach ($stores as $storeId){
                         $block = clone $modalTpl->getBlock('INSTOCK_BLOCK');
                         $storeRow = (object)array('storeId' => store_Stores::getTitleById($storeId));
                         
-                        $inStock = pos_Stocks::getQuantityByStore($productRec->id, $storeId);
-                        $inStockVerbal = core_Type::getByName('double(smartRound)')->toVerbal($inStock);
-                        $inStockVerbal = ht::styleIfNegative($inStockVerbal, $inStock);
+                        $quantity = pos_Stocks::fetchField("#storeId = '{$storeId}' AND #productId = '{$productRec->id}'", 'quantity');
+                        $quantity = isset($quantity) ? $quantity : 0;
+                        $reservedQuantity = store_Products::fetchField("#storeId = {$storeId} AND #productId = {$productRec->id}", 'reservedQuantity');
+                        $free = $quantity;
                         
-                        $storeRow->inStock .= "{$inStockVerbal} " . cat_UoM::getShortName($productRec->measureId);
+                        $inStockVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
+                        $inStockVerbal = ht::styleIfNegative($inStockVerbal, $quantity);
+                        $storeRow->inStock = $inStockVerbal;
+                        
+                        if(!empty($reservedQuantity) && $quantity){
+                            $reservedQuantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($reservedQuantity);
+                            $reservedQuantityVerbal = ht::styleIfNegative($reservedQuantityVerbal, $reservedQuantity);
+                            $storeRow->reserved = $reservedQuantityVerbal;
+                            $free -= $reservedQuantity;
+                        }
+                        
+                        $freeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($free);
+                        $freeVerbal = ht::styleIfNegative($freeVerbal, $free);
+                        $storeRow->free = $freeVerbal;
+                        
                         $block->placeObject($storeRow);
                         $row->INSTOCK .= $block->getContent();
                     }
