@@ -98,7 +98,10 @@
             <td class="shortcuts"><span>5% </span></td>
             <td class="textShortcut"> - Задаване на отстъпка</td>
         <tr>
-
+		<tr>
+            <td class="shortcuts"><span>%5 </span></td>
+            <td class="textShortcut"> - Задаване на надценка</td>
+        <tr>
     </table>
 </div>
 </body>
