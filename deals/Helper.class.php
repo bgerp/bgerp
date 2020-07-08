@@ -2040,10 +2040,12 @@ abstract class deals_Helper
      * @param datetime|null $valior
      * @param int $listId
      * 
-     * @return boolean
+     * @return stdClass|null $obj
      */
-    public static function isPriceBellowContragentPrice($productId, $price, $discount, $quantity, $contragentClassId, $contragentId, $valior, $listId = null)
+    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $contragentClassId, $contragentId, $valior, $listId = null)
     {
+        $obj = null;
+        
         $price = $price * (1 - $discount);
         $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $listId);
         
@@ -2058,13 +2060,22 @@ abstract class deals_Helper
         $diff = abs(round($price - $foundPrice, 5));
         $price1Round = round($price, 5);
         $price2Round = round($foundPrice, 5);
+       
+        
         
         if($price2Round){
+            $percent = core_Math::diffInPercent($price1Round, $price2Round);
             $diff = abs(core_Math::diffInPercent($price1Round, $price2Round));
-        } else {
-            $diff = 0;
-        }
+            
+            
+            
+            if($diff > $toleranceDiff){
+                $obj = array();
+                $obj['hint'] = ($percent < 0) ? 'Крайната цена е над очакваната за клиента' : 'Крайната цена е под очакваната за клиента';
+                $obj['hintType'] = ($percent < 0) ? 'notice' : 'warning';
+            }
+        } 
         
-        return $diff > $toleranceDiff;
+        return $obj;
     }
 }

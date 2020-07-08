@@ -10,7 +10,6 @@
     <span class='headerPointId'>[#pointId#]</span>
     <span class='headerUserNick'>[#userId#]</span>
 
-    <span class='headerTime' id = 'terminalTime'>[#TIME#]</span>
-    <span class='headerReceiptOtherLink'>[#OTHER_ELEMENTS#]</span>
+    <span class='specialLink'>[#OTHER_ELEMENTS#]</span>
 </div>
 <div class="clearfix21"></div>

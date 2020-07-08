@@ -4,6 +4,7 @@ var timeout;
 var timeoutRemoveDisabled;
 var timeoutPageNavigation;
 var searchTimeout;
+var addedProduct;
 
 function posActions() {
 
@@ -106,7 +107,7 @@ function posActions() {
 		timeout = setTimeout(function(){
 			resObj = new Object();
 			resObj['url'] = url;
-
+			
 			var params = {operation:operation,search:inpVal,recId:selectedRecId};
 			processUrl(url, params);
 
@@ -567,11 +568,15 @@ function calculateWidth(){
 	var winWidth = parseInt($(window).outerWidth());
 	var winHeight = parseInt($(window).outerHeight());
 
-	if (winWidth > 1024) {
+	if (winWidth >= 1200) {
 		//задаване на ширина на двете колони
 		$('#result-holder').css('width', winWidth - $('#single-receipt-holder').width());
+
 		$('#single-receipt-holder').addClass('fixedHolder');
-		$('.headerContent').addClass('fixed');
+		$('#result-holder').addClass('fixedPosition');
+		$('#result-holder').removeClass('relativePosition');
+		$('#single-receipt-holder').removeClass('blockHolder');
+		$('#single-receipt-holder').addClass('fixedHolder');
 
 		//височина за таблицата с резултатите
 		var receiptHeight = winHeight -  $('.tools-content').height() - $('.paymentBlock').height();
@@ -583,14 +588,7 @@ function calculateWidth(){
 			$('#result-holder').css('padding', '0');
 			$('#result-holder').css('overflow-y', 'visible');
 			$('#result-holder .withTabs').css('height',winHeight - headerHeight - tabsFix);
-			$('#result-holder .scroll-holder').css('width', winWidth - $('#single-receipt-holder').width());
-			var scrollerWidth = 0;
-			$('#result-holder .tabHolder li').each(function () {
-				scrollerWidth += $(this).outerWidth() + 20;
-			});
-
-			$('#result-holder .scroll-holder .tabHolder').css('width', scrollerWidth);
-
+			$('#result-holder .scroll-holder, #result-holder').css('width', winWidth - $('#single-receipt-holder').width());
 		} else {
 			$('#result-holder').css('padding', '15px');
 			$('#result-holder').css('overflow-y', 'auto');
@@ -598,23 +596,29 @@ function calculateWidth(){
 		$('#result-holder').css('height',winHeight - headerHeight);
 
 		$('#result-holder, #single-receipt-holder').css('top',headerHeight);
+
 		$('.tools-content').css('height',460);
 
 	} else {
-		$('#single-receipt-holder').removeClass('fixedHolder')
-		$('.result-content').width(winWidth);
-		$('#single-receipt-holder').width(winWidth);
-
+		$('#single-receipt-holder').removeClass('fixedHolder');
+		$('#result-holder').removeClass('fixedPosition');
+		$('#result-holder').addClass('relativePosition');
+		$('#single-receipt-holder').addClass('blockHolder');
+		$('#single-receipt-holder').removeClass('fixedHolder');
 		$('#single-receipt-holder').addClass('narrowHolder');
-		if(winWidth > 400) {
-			$('#keyboard-num').width(winWidth - $('.buttons').width() - 30);
-		} else {
-			$('.narrowHolder #receipt-table').height(500);
-		}
 
-		$('.scrolling-vertical').css('height', $('#single-receipt').height() -  $('.paymentBlock').height() - 10);
+		$('#result-holder').css('width', "100%");
+		$('.tools-content').css('height','auto');
+		$('#result-holder .withTabs').css('height', "100%");
+		$('#result-holder .scroll-holder').css('width', "100%");
 
 	}
+	var scrollerWidth = 0;
+	$('#result-holder .tabHolder li').each(function () {
+		scrollerWidth += $(this).outerWidth() + 20;
+	});
+
+	$('#result-holder .scroll-holder .tabHolder').css('width', scrollerWidth);
 }
 
 // Направа на плащане
@@ -972,8 +976,20 @@ function isMicroformat(string) {
 			}
 		} else if(string.endsWith("%") || string.startsWith("%")){
 			var quantity = string.replace("%", "");
+			quantity = quantity.replace(",", ".");
+			
 			if($.isNumeric(quantity)){
-				
+				if(string.startsWith("%")){
+					
+					var split = quantity.split(".");
+					var cnt = (split[1]) ? split[1].length : 0;
+					if(cnt == 2){
+						return true;
+					}
+					
+					return false;
+				}
+			
 				return true;
 			}
 		}
@@ -1146,31 +1162,34 @@ function afterload() {
  */
 function disableOrEnableEnlargeBtn()
 {
-	var element = $(".navigable.selected");
-	
-	var operation = getSelectedOperation();
-	if(operation == 'quantity' || operation == 'text' || operation == 'payment'){
-		var selectedRow = $(".highlighted.productRow");
-		element = selectedRow;
-	}
-	
-	if(element.hasClass('enlargable')){
-		var enlargeClassId = element.attr("data-enlarge-class-id");
-		var enlargeObjectId = element.attr("data-enlarge-object-id");
-		var enlargeTitle= element.attr("data-modal-title");
+	setTimeout(function () {
+		var element = $(".navigable.selected");
 
-		if(enlargeClassId && enlargeObjectId && enlargeTitle) {
-			$(".enlargeProductBtn").removeClass('disabledBtn');
-			$(".enlargeProductBtn").removeAttr("disabled");
-
-			$(".enlargeProductBtn").attr('data-modal-title', enlargeTitle);
-			$(".enlargeProductBtn").attr('data-enlarge-class-id', enlargeClassId);
-			$(".enlargeProductBtn").attr('data-enlarge-object-id', enlargeObjectId);
+		var operation = getSelectedOperation();
+		if(operation == 'quantity' || operation == 'text' || operation == 'payment'){
+			var selectedRow = $(".highlighted.productRow");
+			element = selectedRow;
 		}
-	} else {
-		$(".enlargeProductBtn").addClass('disabledBtn');
-		$(".enlargeProductBtn").attr('disabled', 'disabled');
-	}
+
+		if(element.hasClass('enlargable')){
+			var enlargeClassId = element.attr("data-enlarge-class-id");
+			var enlargeObjectId = element.attr("data-enlarge-object-id");
+			var enlargeTitle= element.attr("data-modal-title");
+
+			if(enlargeClassId && enlargeObjectId && enlargeTitle) {
+				$(".enlargeProductBtn").removeClass('disabledBtn');
+				$(".enlargeProductBtn").removeAttr("disabled");
+
+				$(".enlargeProductBtn").attr('data-modal-title', enlargeTitle);
+				$(".enlargeProductBtn").attr('data-enlarge-class-id', enlargeClassId);
+				$(".enlargeProductBtn").attr('data-enlarge-object-id', enlargeObjectId);
+			}
+		} else {
+			$(".enlargeProductBtn").addClass('disabledBtn');
+			$(".enlargeProductBtn").attr('disabled', 'disabled');
+		}
+	});
+
 }
 
 
@@ -1299,9 +1318,9 @@ function setSearchTimeout(timeout)
 
 
 /**
- * Изчистване на инпута
+ * сетва флаг че артикул е добавен
  */
-function clearInput()
+function render_toggleAddedProductFlag(data)
 {
-	$("input[name=ean]").val("");
+	addedProduct = data.flag;
 }

@@ -235,8 +235,8 @@ class sales_SalesDetails extends deals_DealDetail
                    
                    // Предупреждение дали цената е под очакваната за клиента
                    $discount = isset($rec->discount) ? $rec->discount : $rec->autoDiscount;
-                   if(deals_Helper::isPriceBellowContragentPrice($rec->productId, $rec->price, $discount, $rec->quantity, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $masterRec->priceListId)){
-                       $row->packPrice = ht::createHint($row->packPrice, 'Крайната цена е под очакваната за клиента', 'warning', false);
+                   if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $discount, $rec->quantity, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $masterRec->priceListId)){
+                       $row->packPrice = ht::createHint($row->packPrice, $checkedObject['hint'], $checkedObject['hintType'], false);
                    }
                }
             }

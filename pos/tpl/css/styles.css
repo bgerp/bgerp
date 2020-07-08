@@ -18,17 +18,19 @@
   background: #12008a;
   box-sizing: border-box; }
 
-  .narrowHolder #receipt-table {
-    height: 300px; }
+#single-receipt-holder.blockHolder {
+  box-sizing: border-box; }
 
 .result-content {
   background: #cccccc;
-  position: fixed;
-  top: 5%;
-  right: 0;
-  padding: 15px 15px 5px 15px;
-  overflow-y: auto;
   box-sizing: border-box; }
+  .result-content.fixedPosition {
+    position: fixed;
+    top: 5%;
+    right: 0;
+    padding: 15px 15px 5px 15px;
+    overflow-y: auto; }
+
   .result-content .receiptRow.navigable {
     border: 3px solid rgba(0, 0, 0, 0); }
     .result-content .receiptRow.navigable.disabledBtn,
@@ -306,63 +308,69 @@
   width: 48%;
   display: table-cell; }
 
-#result-holder .withTabs {
+#result-holder.fixedPosition .withTabs {
   margin-top: 60px;
   overflow-y: scroll;
   padding-top: 15px;
   padding-right: 15px;
   padding-left: 15px;
     /*
+   * Handle on hover
+   */
+    /*
    * Track
    */
     /*
    * Handle
    */ }
-  #result-holder .withTabs ::-webkit-scrollbar {
+  #result-holder.fixedPosition .withTabs ::-webkit-scrollbar {
     height: 10px; }
-  #result-holder .withTabs ::-webkit-scrollbar-track {
+  #result-holder.fixedPosition .withTabs ::-webkit-scrollbar-thumb:hover {
+    background: #eeeeee; }
+  #result-holder.fixedPosition .withTabs ::-webkit-scrollbar-track {
     background: #333333; }
-  #result-holder .withTabs ::-webkit-scrollbar-thumb {
+  #result-holder.fixedPosition .withTabs ::-webkit-scrollbar-thumb {
     background: #cccccc;
     position: relative;
     border: 1px solid #666666;
     border-radius: 5px; }
 
-.withTabs .scroll-holder {
+.fixedPosition .withTabs .scroll-holder {
   margin-top: 0;
   margin-left: -15px;
   background: #333333;
   position: fixed;
   top: 44px;
   height: 62px;
-  z-index: 100;
+  z-index: 100; }
+
+  .relativePosition .contentHolder {
+    padding-top: 20px; }
+  .relativePosition .scroll-holder {
+    padding-bottom: 10px; }
+
+.withTabs .scroll-holder {
   overflow-x: auto;
   display: block; }
-  .withTabs .scroll-holder .tabHolder {
-    padding-left: 2px;
-    padding-right: 2px;
-    text-align: center;
-    margin: 10px 0 7px; }
-    .withTabs .scroll-holder .tabHolder li {
-      user-select: none;
-      display: inline-block;
-      float: left;
-      border-color: rgba(0, 0, 0, 0);
-      margin: 0 10px;
-      padding-left: 15px;
-      padding-right: 15px; }
 
-/*
- * Handle on hover
- */
-::-webkit-scrollbar-thumb:hover {
-  background: #eeeeee; }
+.withTabs .scroll-holder .tabHolder {
+  padding-left: 2px;
+  padding-right: 2px;
+  text-align: center;
+  margin: 10px 0 7px; }
+  .withTabs .scroll-holder .tabHolder li {
+    user-select: none;
+    display: inline-block;
+    float: left;
+    border-color: rgba(0, 0, 0, 0);
+    margin: 0 10px;
+    padding-left: 15px;
+    padding-right: 15px; }
+  .withTabs .scroll-holder .tabHolder:after {
+    clear: both; }
 
 .narrow #receiptnew {
   color: #333333 !important; }
-
-.narrow .contentHolder {
-  padding: 10px; }
 
   .tabHolder li {
     list-style: none;
@@ -379,6 +387,8 @@
       background: #fefead !important;
       color: black; }
 
+.contentHolder {
+  clear: both; }
   .contentHolder .content {
     display: none; }
 
@@ -887,12 +897,44 @@ only screen and (max-width: 1600px) {
 @media handheld,
 only screen and (max-width: 1400px) {
   .headerContent {
-    font-size: 0.8em !important; }
+    font-size: 0.8em !important; } }
 
-  .half {
-    width: 100%;
-    display: block;
-    margin-bottom: 20px; } }
+@media handheld,
+only screen and (max-width: 1280px) {
+  .buttons {
+    width: 100% !important; }
+    .buttons .operationHolder {
+      margin: 7px 11px 7px 11px; } }
+
+@media handheld,
+only screen and (max-width: 1200px) {
+  .headerContent {
+    font-size: 0.75em !important; }
+
+  #receipt-table {
+    font-size: 0.8em; }
+
+  #single-receipt-holder {
+    float: none; }
+
+  .withTabs {
+    margin-top: 0 !important; }
+
+  .oneRow .operationHolder {
+    margin: 5px; }
+
+  .receiptRow {
+    padding: 5px;
+    border-top: 1px solid #eeeeee; }
+
+  .contentHolder {
+    padding: 10px; }
+
+  #keyboard-num {
+    display: none; }
+
+  .scrolling-vertical {
+    max-height: 420px; } }
 
 @media handheld,
 only screen and (max-width: 1024px) {
@@ -900,6 +942,18 @@ only screen and (max-width: 1024px) {
     width: 60px !important;
     height: 60px !important;
     margin: 8px 0 8px 18px; } }
+
+@media handheld,
+only screen and (max-width: 1024px) {
+  .numPad {
+    width: 60px !important;
+    height: 60px !important;
+    margin: 8px 0 8px 18px; } }
+
+@media handheld,
+only screen and (max-width: 800px) {
+  .oneRow .operationHolder {
+    margin: 4px 2px !important; } }
 
 @media handheld,
 only screen and (max-width: 640px) {
