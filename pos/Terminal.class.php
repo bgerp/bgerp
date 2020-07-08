@@ -206,12 +206,20 @@ class pos_Terminal extends peripheral_Terminal
                                     'TIME' => $this->renderCurrentTime(),
                                     'valior' => pos_Receipts::getVerbal($rec->id, 'valior'),
                                     'userId' => core_Users::getVerbal(core_Users::getCurrent(), 'nick'));
-        $headerData->contragentId = (!empty($rec->transferedIn)) ? sales_Sales::getLink($rec->transferedIn, 0, array('ef_icon' => false)) : cls::get($rec->contragentClass)->getTitleById($rec->contragentObjectId);
         
-        $tpl->append(ht::createImg(array('path' => 'img/16/bgerp.png')), 'OTHER_ELEMENTS');
+        $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
+        $contragentName = ($rec->contragentClass == crm_Persons::getClassId() && $defaultContragentId == $rec->contragentObjectId) ? null : cls::get($rec->contragentClass)->getTitleById($rec->contragentObjectId);
+        $headerData->contragentId = (!empty($rec->transferedIn)) ? sales_Sales::getLink($rec->transferedIn, 0, array('ef_icon' => false)) : $contragentName;
+       
+        $img = ht::createImg(array('path' => 'img/16/bgerp.png'));
+        $logoTpl = new core_ET("[#img#] [#logo#]");
+        $logoTpl->replace($img, 'img');
+        $logoTpl->replace($Receipts->getTerminalHeaderLogo($rec), 'logo');
+        $logoLink = ht::createLink($logoTpl, array('bgerp_Portal', 'show'));
+        
+        $tpl->append($logoLink, 'OTHER_ELEMENTS');
         $tpl->placeObject($headerData);        
-        $Receipts->invoke('AfterRenderterminalHeader', array(&$tpl, $rec));
-        $tpl->replace(' bgERP', 'OTHER_ELEMENTS');
+        $Receipts->invoke('AfterRenderTerminalHeader', array(&$tpl, $rec));
         
         return $tpl;
     }
@@ -258,6 +266,8 @@ class pos_Terminal extends peripheral_Terminal
                 Mode::push('text', 'xhtml');
                 $packData = (object)array('masterMvc' => cls::get('cat_Products'), 'masterId' => $enlargeObjectId);
                 cls::get('cat_products_Packagings')->preparePackagings($packData);
+                unset($packData->listFields['user']);
+               
                 $packagingTpl = cls::get('cat_products_Packagings')->renderPackagings($packData);
                 $modalTpl->append($packagingTpl, 'Packagings');
                 Mode::pop();
@@ -280,15 +290,31 @@ class pos_Terminal extends peripheral_Terminal
                 if ($productRec->canStore == 'yes') {
                     $stores = pos_Points::getStores($receiptRec->pointId);
                     $row->INSTOCK = '';
+                    
                     foreach ($stores as $storeId){
                         $block = clone $modalTpl->getBlock('INSTOCK_BLOCK');
                         $storeRow = (object)array('storeId' => store_Stores::getTitleById($storeId));
                         
-                        $inStock = pos_Stocks::getQuantityByStore($productRec->id, $storeId);
-                        $inStockVerbal = core_Type::getByName('double(smartRound)')->toVerbal($inStock);
-                        $inStockVerbal = ht::styleIfNegative($inStockVerbal, $inStock);
+                        $quantity = pos_Stocks::fetchField("#storeId = '{$storeId}' AND #productId = '{$productRec->id}'", 'quantity');
+                        $quantity = isset($quantity) ? $quantity : 0;
+                        $reservedQuantity = store_Products::fetchField("#storeId = {$storeId} AND #productId = {$productRec->id}", 'reservedQuantity');
+                        $free = $quantity;
                         
-                        $storeRow->inStock .= "{$inStockVerbal} " . cat_UoM::getShortName($productRec->measureId);
+                        $inStockVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
+                        $inStockVerbal = ht::styleIfNegative($inStockVerbal, $quantity);
+                        $storeRow->inStock = $inStockVerbal;
+                        
+                        if(!empty($reservedQuantity) && $quantity){
+                            $reservedQuantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($reservedQuantity);
+                            $reservedQuantityVerbal = ht::styleIfNegative($reservedQuantityVerbal, $reservedQuantity);
+                            $storeRow->reserved = $reservedQuantityVerbal;
+                            $free -= $reservedQuantity;
+                        }
+                        
+                        $freeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($free);
+                        $freeVerbal = ht::styleIfNegative($freeVerbal, $free);
+                        $storeRow->free = $freeVerbal;
+                        
                         $block->placeObject($storeRow);
                         $row->INSTOCK .= $block->getContent();
                     }
@@ -1501,13 +1527,7 @@ class pos_Terminal extends peripheral_Terminal
         expect($id = Request::get('id', 'int'));
         pos_Receipts::requireRightFor('terminal', $id);
         $res = array();
-        
-        // Добавяме резултата
-        $resObj = new stdClass();
-        $resObj->func = 'html';
-        $resObj->arg = array('id' => 'terminalTime', 'html' => $this->renderCurrentTime()->getContent(), 'replace' => true);
-        $res[] = $resObj;
-        
+
         $resObj1 = new stdClass();
         $resObj1->func = 'clearStatuses';
         $resObj1->arg = array('type' => 'notice');
@@ -1533,6 +1553,7 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultProducts($rec, $string, $selectedRec)
     {
+        $settings = pos_Points::getSettings($rec->pointId);
         $searchString = plg_Search::normalizeText($string);
         $data = new stdClass();
         $data->rec = $rec;
@@ -1540,11 +1561,8 @@ class pos_Terminal extends peripheral_Terminal
         $data->searchStringPure = $string;
         
         $res = array();
-        if(isset($selectedRec->productId)){
-            core_Debug::startTimer('renderSimilarTable');
-            core_Debug::log('RENDER PRODUCT SIMILAR TABLE START');
+        if(isset($selectedRec->productId) && $settings->showSimilar == 'yes'){
             $res['similar'] = (object)array('rows' => $this->prepareResultSimilarProducts($rec, $selectedRec, $string), 'placeholder' => 'BLOCK1');
-            core_Debug::log('RENDER PRODUCT SIMILAR TABLE END: ' . round(core_Debug::$timers['renderSimilarTable']->workingTime, 2));
         }
         
         $foundResults = (object)array('rows' => $this->prepareProductTable($rec, $string), 'placeholder' => 'BLOCK2');
@@ -1570,7 +1588,7 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
-        $groups = keylist::toArray(pos_Points::getSettings($rec->pointId, 'groups'));
+        $groups = keylist::toArray($settings->groups);
         $countGroups = countR($groups);
         
         // Ако има групи на артикулите
@@ -1684,16 +1702,10 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function prepareProductTable($rec, $searchString)
     {
-        $result = core_Cache::get('planning_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}");
-        
-        //@todo временно
-        //$result = false;
+        $result = core_Cache::get('planning_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}");
         
         $settings = pos_Points::getSettings($rec->pointId);
-        
         if(!is_array($result)){
-            core_Debug::startTimer('renderProductTable');
-            core_Debug::log('RENDER PRODUCT TABLE START');
             
             $count = 0;
             $sellable = array();
@@ -1789,10 +1801,7 @@ class pos_Terminal extends peripheral_Terminal
             }
             
             $result = $this->prepareProductResultRows($sellable, $rec);
-            core_Cache::set('planning_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}", $result, 2);
-            
-            core_Debug::stopTimer('renderProductTable');
-            core_Debug::log('RENDER PRODUCT TABLE END: ' . round(core_Debug::$timers['renderProductTable']->workingTime, 2));
+            core_Cache::set('planning_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}", $result, 2);
         }
         
         return $result;
@@ -1845,6 +1854,10 @@ class pos_Terminal extends peripheral_Terminal
             if (empty($price->price)){
                 $res[$id]->price = "<b class='red'>n/a</b>";
             } else {
+                if(!empty($price->discount)){
+                    $price->price *= (1 - $price->discount);
+                }
+                
                 $vat = cat_Products::getVat($id);
                 $price = $price->price * $perPack;
                 $price *= 1 + $vat;
@@ -2118,12 +2131,16 @@ class pos_Terminal extends peripheral_Terminal
             $resObj->func = 'openCurrentPosTab';
             $res[] = $resObj;
         }
+       
+        $addedProduct = Mode::get("productAdded{$receiptId}");
         
-        if($clearInput){
-            $resObj = new stdClass();
-            $resObj->func = 'clearInput';
-            $res[] = $resObj;
-        }
+        $resObj = new stdClass();
+        $resObj->func = 'toggleAddedProductFlag';
+        $resObj->arg = array('flag' => !empty($addedProduct) ? true : false);
+        $res[] = $resObj;
+        
+        Mode::setPermanent("productAdded{$receiptId}", null);
+        
         
         // Добавяне на звук
         if(isset($sound) && in_array($sound, array('add', 'edit', 'delete'))){

@@ -393,7 +393,7 @@ class pos_Receipts extends core_Master
         $query->where('#quantity != 0');
         $query->where("#action LIKE '%sale%'");
         $query->orderBy('id', 'ASC');
-        
+       
         while ($rec = $query->fetch()) {
             $info = cat_Products::getProductInfo($rec->productId);
             $quantityInPack = ($info->packagings[$rec->value]) ? $info->packagings[$rec->value]->quantity : 1;
@@ -406,6 +406,8 @@ class pos_Receipts extends core_Master
                 'discount' => $rec->discountPercent,
                 'quantity' => $rec->quantity);
         }
+        
+        
         
         return $products;
     }
@@ -558,29 +560,18 @@ class pos_Receipts extends core_Master
         
         // Опитваме се да създадем чернова на нова продажба породена от бележката
         if ($sId = sales_Sales::createNewDraft($contragentClassId, $contragentId, $fields)) {
-            sales_Sales::logWrite('Създаване от POS', $sId);
+            sales_Sales::logWrite('Прехвърлена от POS продажба', $sId);
             
             // Намираме продуктите на бележката (трябва да има поне един)
             $products = $this->getProducts($rec->id);
             
-            // За всеки продукт
+            // Всеки продукт се прехвърля едно към 1
             foreach ($products as $product) {
-                
-                // Намираме цената от ценовата политика
-                $Policy = cls::get('price_ListToCustomers');
-                $pInfo = $Policy->getPriceInfo($contragentClassId, $contragentId, $product->productId, $product->packagingId, $product->quantity);
-                
-                // Колко са двете цени с приспадната отстъпка
-                $rPrice1 = $product->price * (1 - $product->discount);
-                $rPrice2 = $pInfo->price * (1 - $pInfo->discount);
-                
-                // Оставяме по-малката цена
-                if ($rPrice2 < $rPrice1) {
-                    $product->price = $pInfo->price;
-                    $product->discount = $pInfo->discount;
+                if($product->discount < 0){
+                    $product->price *= (1 + abs($product->discount));
+                    $product->discount = null;
                 }
                 
-                // Добавяме го като детайл на продажбата;
                 sales_Sales::addRow($sId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount);
             }
         }
@@ -870,6 +861,29 @@ class pos_Receipts extends core_Master
         $rec->contragentLocationId = $locationId;
         
         $this->save($rec, 'contragentObjectId,contragentClass,contragentName,contragentLocationId');
+        
+        $Policy = cls::get('price_ListToCustomers');
+        
+        // Ако има детайли
+        $dQuery = pos_ReceiptDetails::getQuery();
+        $dQuery->where("#action = 'sale|code' AND #receiptId = {$rec->id}");
+        while($dRec = $dQuery->fetch()){
+           
+            // Обновява им се цената по текущата политика, ако може
+            $packRec = cat_products_Packagings::getPack($dRec->productId, $dRec->value);
+            $perPack = (is_object($packRec)) ? $packRec->quantity : 1;
+            $price = $Policy->getPriceInfo($rec->contragentClass, $rec->contragentObjectId, $dRec->productId, $dRec->value, 1, $rec->createdOn, 1, 'no');
+            if(!empty($price->price)){
+               
+                $dRec->price = $price->price * $perPack;
+                $dRec->amount = $rec->price * $dRec->quantity;
+                $dRec->discountPercent = $price->discount;
+                pos_ReceiptDetails::save($dRec, 'price,amount,discountPercent');
+            }
+            
+            $this->logWrite('Обновяване на цена при смяна на контрагента', $id);
+        }
+        
         $this->logWrite('Задаване на контрагент', $id);
         
         followRetUrl();
@@ -966,5 +980,14 @@ class pos_Receipts extends core_Master
         }
         
         return true;
+    }
+    
+    
+    /**
+     * Какво е логото на терминала на бележката
+     */
+    public function getTerminalHeaderLogo_($rec)
+    {
+        return 'bgERP';
     }
 }

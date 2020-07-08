@@ -22,14 +22,21 @@
         <!--ET_END PARAM_BLOCK-->
         [#TOOLBAR#]
 
-        <div style="margin: 10px 0 0;"><b>|Налично|*:</b></div>
         <table>
+        <tr>
+			<th>|Склад|*</th>
+			<th>|Налично|*</th>
+			<th>|Запазено|*</th>
+			<th>|Разполагаемо|*</th>
+		</tr>
         [#INSTOCK#]
-
         <!--ET_BEGIN INSTOCK_BLOCK-->
         [#INSTOCK_BLOCK#]
         <tr>
-            <td>[#storeId#]:</td><td style="text-align: right"><b>[#inStock#]</b></td>
+            <td>[#storeId#]:</td>
+            <td style="text-align: right"><b>[#inStock#]</b></td>
+            <td style="text-align: right"><b>[#reserved#]</b></td>
+            <td style="text-align: right"><b>[#free#]</b></td>
         </tr>
         <!--ET_END INSTOCK_BLOCK-->
         </table>
