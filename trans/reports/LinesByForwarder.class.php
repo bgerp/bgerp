@@ -19,7 +19,7 @@
      /**
       * Кой може да избира драйвъра
       */
-     public $canSelectDriver = 'ceo,acc';
+     public $canSelectDriver = 'ceo,acc,debug';
      
      
      /**
