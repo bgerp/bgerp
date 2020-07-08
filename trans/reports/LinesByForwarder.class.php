@@ -131,7 +131,7 @@
          
          $query->where("#status != 'removed'");
          
-         $query->where("#state = 'active' OR #state = 'closed' ");
+         $query->in('state',array('active','closed'));
          
          // Ако е посочена начална дата на период
          if ($rec->from) {
