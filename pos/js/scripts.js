@@ -567,11 +567,15 @@ function calculateWidth(){
 	var winWidth = parseInt($(window).outerWidth());
 	var winHeight = parseInt($(window).outerHeight());
 
-	if (winWidth > 1024) {
+	if (winWidth >= 1200) {
 		//задаване на ширина на двете колони
 		$('#result-holder').css('width', winWidth - $('#single-receipt-holder').width());
+
 		$('#single-receipt-holder').addClass('fixedHolder');
-		$('.headerContent').addClass('fixed');
+		$('#result-holder').addClass('fixedPosition');
+		$('#result-holder').removeClass('relativePosition');
+		$('#single-receipt-holder').removeClass('blockHolder');
+		$('#single-receipt-holder').addClass('fixedHolder');
 
 		//височина за таблицата с резултатите
 		var receiptHeight = winHeight -  $('.tools-content').height() - $('.paymentBlock').height();
@@ -583,14 +587,7 @@ function calculateWidth(){
 			$('#result-holder').css('padding', '0');
 			$('#result-holder').css('overflow-y', 'visible');
 			$('#result-holder .withTabs').css('height',winHeight - headerHeight - tabsFix);
-			$('#result-holder .scroll-holder').css('width', winWidth - $('#single-receipt-holder').width());
-			var scrollerWidth = 0;
-			$('#result-holder .tabHolder li').each(function () {
-				scrollerWidth += $(this).outerWidth() + 20;
-			});
-
-			$('#result-holder .scroll-holder .tabHolder').css('width', scrollerWidth);
-
+			$('#result-holder .scroll-holder, #result-holder').css('width', winWidth - $('#single-receipt-holder').width());
 		} else {
 			$('#result-holder').css('padding', '15px');
 			$('#result-holder').css('overflow-y', 'auto');
@@ -598,23 +595,29 @@ function calculateWidth(){
 		$('#result-holder').css('height',winHeight - headerHeight);
 
 		$('#result-holder, #single-receipt-holder').css('top',headerHeight);
+
 		$('.tools-content').css('height',460);
 
 	} else {
-		$('#single-receipt-holder').removeClass('fixedHolder')
-		$('.result-content').width(winWidth);
-		$('#single-receipt-holder').width(winWidth);
-
+		$('#single-receipt-holder').removeClass('fixedHolder');
+		$('#result-holder').removeClass('fixedPosition');
+		$('#result-holder').addClass('relativePosition');
+		$('#single-receipt-holder').addClass('blockHolder');
+		$('#single-receipt-holder').removeClass('fixedHolder');
 		$('#single-receipt-holder').addClass('narrowHolder');
-		if(winWidth > 400) {
-			$('#keyboard-num').width(winWidth - $('.buttons').width() - 30);
-		} else {
-			$('.narrowHolder #receipt-table').height(500);
-		}
 
-		$('.scrolling-vertical').css('height', $('#single-receipt').height() -  $('.paymentBlock').height() - 10);
+		$('#result-holder').css('width', "100%");
+		$('.tools-content').css('height','auto');
+		$('#result-holder .withTabs').css('height', "100%");
+		$('#result-holder .scroll-holder').css('width', "100%");
 
 	}
+	var scrollerWidth = 0;
+	$('#result-holder .tabHolder li').each(function () {
+		scrollerWidth += $(this).outerWidth() + 20;
+	});
+
+	$('#result-holder .scroll-holder .tabHolder').css('width', scrollerWidth);
 }
 
 // Направа на плащане
