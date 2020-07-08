@@ -2131,12 +2131,16 @@ class pos_Terminal extends peripheral_Terminal
             $resObj->func = 'openCurrentPosTab';
             $res[] = $resObj;
         }
+       
+        $addedProduct = Mode::get("productAdded{$receiptId}");
         
-        if($clearInput){
-            $resObj = new stdClass();
-            $resObj->func = 'clearInput';
-            $res[] = $resObj;
-        }
+        $resObj = new stdClass();
+        $resObj->func = 'toggleAddedProductFlag';
+        $resObj->arg = array('flag' => !empty($addedProduct) ? true : false);
+        $res[] = $resObj;
+        
+        Mode::setPermanent("productAdded{$receiptId}", null);
+        
         
         // Добавяне на звук
         if(isset($sound) && in_array($sound, array('add', 'edit', 'delete'))){

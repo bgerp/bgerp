@@ -4,6 +4,7 @@ var timeout;
 var timeoutRemoveDisabled;
 var timeoutPageNavigation;
 var searchTimeout;
+var addedProduct;
 
 function posActions() {
 
@@ -1317,9 +1318,9 @@ function setSearchTimeout(timeout)
 
 
 /**
- * Изчистване на инпута
+ * сетва флаг че артикул е добавен
  */
-function render_clearInput()
+function render_toggleAddedProductFlag(data)
 {
-	$("input[name=ean]").val("");
+	addedProduct = data.flag;
 }
