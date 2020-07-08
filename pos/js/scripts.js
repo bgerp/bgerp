@@ -54,13 +54,7 @@ function posActions() {
 		
 		processUrl(url, params);
 	});
-
-	$(document.body).on('keypress', ".large-field", function(e){
-		if(activeInput == false) {
-			$('.large-field.select-input-pos').val("");
-			activeInput = true;
-		}
-	});
+	
 	/**
 	 * При спиране на писането в полето за търсене
 	 * @param e
