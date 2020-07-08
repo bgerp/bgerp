@@ -1702,12 +1702,10 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function prepareProductTable($rec, $searchString)
     {
-        $result = core_Cache::get('planning_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}");
+        $result = core_Cache::get('planning_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}");
         
         $settings = pos_Points::getSettings($rec->pointId);
         if(!is_array($result)){
-            core_Debug::startTimer('renderProductTable');
-            core_Debug::log('RENDER PRODUCT TABLE START');
             
             $count = 0;
             $sellable = array();
@@ -1803,10 +1801,7 @@ class pos_Terminal extends peripheral_Terminal
             }
             
             $result = $this->prepareProductResultRows($sellable, $rec);
-            core_Cache::set('planning_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}", $result, 2);
-            
-            core_Debug::stopTimer('renderProductTable');
-            core_Debug::log('RENDER PRODUCT TABLE END: ' . round(core_Debug::$timers['renderProductTable']->workingTime, 2));
+            core_Cache::set('planning_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}", $result, 2);
         }
         
         return $result;
@@ -1859,6 +1854,10 @@ class pos_Terminal extends peripheral_Terminal
             if (empty($price->price)){
                 $res[$id]->price = "<b class='red'>n/a</b>";
             } else {
+                if(!empty($price->discount)){
+                    $price->price *= (1 - $price->discount);
+                }
+                
                 $vat = cat_Products::getVat($id);
                 $price = $price->price * $perPack;
                 $price *= 1 + $vat;
