@@ -131,7 +131,7 @@ class cat_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-        'migrate::updateProductCodes1',
+        'migrate::updateProductCodes2',
         'cat_UoM',
         'cat_Groups',
         'cat_Categories',
@@ -327,19 +327,29 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Миграция на кодовете
      */
-    public function updateProductCodes1()
+    public function updateProductCodes2()
     {
         $Products = cls::get('cat_Products');
         
         if ($Products->db->tableExists('cat_products')){
             $Products->setupMvc();
-            
             $updateRecs = $saveRecs = array();
-            $query = $Products->getQuery();
-            $query->where("#code IS NOT NULL");
-            $query->show('code');
-            $query->orderBy('id', 'DESC');
             
+            $query = cat_Products::getQuery();
+            $query->XPR('normCode', 'varchar', 'LOWER(#code)');
+            $query->XPR('count', 'varchar', 'COUNT(#id)');
+            $query->show('normCode');
+            $query->where("#count > 1 AND #code IS NOT NULL");
+            $query->groupBy("normCode");
+            $query->orderBy("id", 'DESC');
+            
+            $duplicatedCodes = arr::extractValuesFromArray($query->fetchAll(), 'normCode');
+            
+            $query = $Products->getQuery();
+            $query->XPR('normCode', 'varchar', 'LOWER(#code)');
+            $query->where("#code IS NOT NULL");
+            $query->show('code,normCode');
+            $query->orderBy('id', 'DESC');
             while($rec = $query->fetch()){
                 $updateRecs[$rec->id] = $rec;
             }
@@ -350,20 +360,22 @@ class cat_Setup extends core_ProtoSetup
             core_App::setTimeLimit($count * 0.2, false, 100);
             
             foreach ($updateRecs as &$uRec){
+                if(!array_key_exists($uRec->normCode, $duplicatedCodes)) continue;
                 
                 // Проверява се има ли записи със същото уникално поле
-                $foundRec = array_filter($updateRecs, function ($a) use ($uRec) {return mb_strtolower($a->code) == mb_strtolower($uRec->code) && $a->id != $uRec->id;});
+                $foundRec = array_filter($updateRecs, function ($a) use ($uRec) {return $a->normCode == $uRec->normCode && $a->id != $uRec->id;});
+                
                 if(countR($foundRec)){
                     
                     // Отново се проверява дали е уникално
                     $loop = true;
                     while($loop){
-                        
+                       
                         // Ако има то се инкрементира
                         $uRec->code = str::addIncrementSuffix($uRec->code, '_');
-                        
-                        // Ако още не е уникално още се инкрементира
-                        $foundRec = array_filter($updateRecs, function ($a) use ($uRec) {return mb_strtolower($a->code) == mb_strtolower($uRec->code) && $a->id != $uRec->id;});
+                        $uRec->normCode = mb_strtolower($uRec->code);
+                        $foundRec = array_filter($updateRecs, function ($a) use ($uRec) {return $a->normCode == $uRec->normCode && $a->id != $uRec->id;});
+                       
                         if(!countR($foundRec)){
                             $loop = false;
                         }
