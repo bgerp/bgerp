@@ -1533,6 +1533,7 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultProducts($rec, $string, $selectedRec)
     {
+        $settings = pos_Points::getSettings($rec->pointId);
         $searchString = plg_Search::normalizeText($string);
         $data = new stdClass();
         $data->rec = $rec;
@@ -1540,11 +1541,8 @@ class pos_Terminal extends peripheral_Terminal
         $data->searchStringPure = $string;
         
         $res = array();
-        if(isset($selectedRec->productId)){
-            core_Debug::startTimer('renderSimilarTable');
-            core_Debug::log('RENDER PRODUCT SIMILAR TABLE START');
+        if(isset($selectedRec->productId) && $settings->showSimilar == 'yes'){
             $res['similar'] = (object)array('rows' => $this->prepareResultSimilarProducts($rec, $selectedRec, $string), 'placeholder' => 'BLOCK1');
-            core_Debug::log('RENDER PRODUCT SIMILAR TABLE END: ' . round(core_Debug::$timers['renderSimilarTable']->workingTime, 2));
         }
         
         $foundResults = (object)array('rows' => $this->prepareProductTable($rec, $string), 'placeholder' => 'BLOCK2');
@@ -1570,7 +1568,7 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
         
-        $groups = keylist::toArray(pos_Points::getSettings($rec->pointId, 'groups'));
+        $groups = keylist::toArray($settings->groups);
         $countGroups = countR($groups);
         
         // Ако има групи на артикулите
@@ -1686,11 +1684,7 @@ class pos_Terminal extends peripheral_Terminal
     {
         $result = core_Cache::get('planning_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}");
         
-        //@todo временно
-        //$result = false;
-        
         $settings = pos_Points::getSettings($rec->pointId);
-        
         if(!is_array($result)){
             core_Debug::startTimer('renderProductTable');
             core_Debug::log('RENDER PRODUCT TABLE START');

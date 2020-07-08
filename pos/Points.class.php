@@ -117,7 +117,7 @@ class pos_Points extends core_Master
      * 
      * @see plg_Settings
      */
-    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,setDiscounts,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,products,maxSearchProductInLastSales,searchDelayTerminal,groups';
+    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,setDiscounts,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,products,maxSearchProductInLastSales,searchDelayTerminal,groups,showSimilar';
       
     
     /**
@@ -158,7 +158,7 @@ class pos_Points extends core_Master
         $this->FLD('maxSearchContragentStart', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->(Клиенти) Първоначално');
         $this->FLD('maxSearchContragent', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->(Клиенти) При търсене');
         $this->FLD('searchDelayTerminal', 'int(min=500)', 'caption=Настройки в терминала->Търсене след,unit=милисекунди');
-        
+        $this->FLD('showSimilar', 'enum(yes=Показване,no=Скриване)', 'caption=Настройки в терминала->Свързани артикули,notNull,value=no');
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Складове->Основен, mandatory');
         $this->FLD('otherStores', 'keylist(mvc=store_Stores, select=name)', 'caption=Складове->Допълнителни');
     }
