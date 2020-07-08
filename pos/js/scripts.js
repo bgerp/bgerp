@@ -1319,7 +1319,7 @@ function setSearchTimeout(timeout)
 /**
  * Изчистване на инпута
  */
-function clearInput()
+function render_clearInput()
 {
 	$("input[name=ean]").val("");
 }
