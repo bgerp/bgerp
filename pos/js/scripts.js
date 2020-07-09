@@ -615,7 +615,7 @@ function calculateWidth(){
 	}
 	var scrollerWidth = 0;
 	$('#result-holder .tabHolder li').each(function () {
-		scrollerWidth += Math.ceil($(this).outerWidth()) + 20;
+		scrollerWidth += Math.ceil($(this).outerWidth()) + 21;
 	});
 
 	$('#result-holder .scroll-holder .tabHolder').css('width', scrollerWidth);
