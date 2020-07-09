@@ -117,7 +117,7 @@ class pos_Points extends core_Master
      * 
      * @see plg_Settings
      */
-    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,setDiscounts,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,products,maxSearchProductInLastSales,searchDelayTerminal,groups,showSimilar';
+    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,setDiscounts,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,products,maxSearchProductInLastSales,searchDelayTerminal,groups';
       
     
     /**
@@ -152,13 +152,12 @@ class pos_Points extends core_Master
         $this->FLD('usedDiscounts', 'table(columns=discount,captions=Отстъпки,validate=pos_Points::validateAllowedDiscounts)', 'caption=Ръчно задаване->Използвани отстъпки');
         
         $this->FLD('maxSearchProducts', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->Артикули');
-        $this->FLD('maxSearchProductRelations', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->Близки артикули');
-        $this->FLD('maxSearchProductInLastSales', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->Последни продажи');
+        $this->FLD('maxSearchProductRelations', 'int(min=0)', 'caption=Максимален брой резултати в "Избор"->Свързани артикули');
+        $this->FLD('maxSearchProductInLastSales', 'int(min=0)', 'caption=Максимален брой резултати в "Избор"->Последни продажби');
         $this->FLD('maxSearchReceipts', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->Бележки');
         $this->FLD('maxSearchContragentStart', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->(Клиенти) Първоначално');
         $this->FLD('maxSearchContragent', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->(Клиенти) При търсене');
         $this->FLD('searchDelayTerminal', 'int(min=500)', 'caption=Настройки в терминала->Търсене след,unit=милисекунди');
-        $this->FLD('showSimilar', 'enum(yes=Показване,no=Скриване)', 'caption=Настройки в терминала->Свързани артикули,notNull,value=no');
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Складове->Основен, mandatory');
         $this->FLD('otherStores', 'keylist(mvc=store_Stores, select=name)', 'caption=Складове->Допълнителни');
     }
@@ -457,7 +456,7 @@ class pos_Points extends core_Master
             }
         } else {
             foreach (static::$fieldMap as $field => $const){
-                if(empty($res->{$field})){
+                if(!isset($res->{$field})){
                     $res->{$field} = pos_Setup::get($const);
                     $inherited->{$field} = $field;
                 }
