@@ -280,9 +280,8 @@ class pos_ReceiptDetails extends core_Detail
                    
                    if(isset($discount)){
                        expect($discount >= -1 && $discount <= 1, 'Отстъпката трябва да е между -100% и 100%|*!');
-                      
                        if($discount != 0){
-                           if(strpos($string, '%') == 0){
+                           if(strpos($string, '%') === 0){
                                $discount = -1 * $discount;
                             }
                        } else {
@@ -605,7 +604,6 @@ class pos_ReceiptDetails extends core_Detail
         }
        
         Mode::setPermanent("productAdded{$rec->receiptId}", $rec->productId);
-        Mode::setPermanent("currentSearchString{$rec->receiptId}", null);
         
         return pos_Terminal::returnAjaxResponse($receiptId, $selectedRecId, $success, true, true, true, 'add');
     }

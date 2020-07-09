@@ -81,11 +81,10 @@
     margin-right: 15px;
     color: white;
     display: inline-block; }
-  .headerContent .specialLink {
-    color: #cccccc !important;
-    text-decoration: underline; }
-    .headerContent .specialLink:hover {
-      text-decoration: none; }
+  .headerContent .specialLink a {
+    color: #cccccc !important; }
+    .headerContent .specialLink a:hover {
+      text-decoration: underline; }
 
 .receipt-header {
   padding: 10px; }

@@ -55,12 +55,7 @@ function posActions() {
 		processUrl(url, params);
 	});
 
-	$(document.body).on('keypress', ".large-field", function(e){
-		if(activeInput == false) {
-			$('.large-field.select-input-pos').val("");
-			activeInput = true;
-		}
-	});
+
 	/**
 	 * При спиране на писането в полето за търсене
 	 * @param e
@@ -276,8 +271,8 @@ function posActions() {
 		$('.highlighted').removeClass('highlighted');
 		$(this).closest('.receiptRow').addClass('highlighted');
 		
-		var operation = getSelectedOperation();
-		refreshResultByOperation($(this), operation);
+		//var operation = getSelectedOperation();
+		refreshResultByOperation($(this), 'quantity');
 	});
 
 
@@ -615,7 +610,7 @@ function calculateWidth(){
 	}
 	var scrollerWidth = 0;
 	$('#result-holder .tabHolder li').each(function () {
-		scrollerWidth += $(this).outerWidth() + 20;
+		scrollerWidth += Math.ceil($(this).outerWidth()) + 20;
 	});
 
 	$('#result-holder .scroll-holder .tabHolder').css('width', scrollerWidth);
@@ -631,8 +626,6 @@ function doPayment(url, type){
 	
 	var data = {amount:amount, type:type};
 	processUrl(url, data);
-
-	$("input[name=ean]").val("");
 }
 
 // При натискане на pageUp
@@ -1296,9 +1289,9 @@ function doOperation(operation, selectedRecId, forceSubmit) {
 		
 		return;
 	}
-	
+
 	$("input[name=ean]").val("");
-	
+
 	sessionStorage.setItem('operationClicked', true);
 	var data = {operation:operation,recId:selectedRecId};
 	processUrl(url, data);
@@ -1323,4 +1316,16 @@ function setSearchTimeout(timeout)
 function render_toggleAddedProductFlag(data)
 {
 	addedProduct = data.flag;
+
+	 $(document.body).on('keypress', ".large-field", function(e){
+		if(e.key == "Enter" || e.key == "ArrowRight" || e.key == "ArrowLeft" || e.key == "ArrowUp" || e.key == "ArrowDown"  || e.key == "PageUp" || e.key == "PageDown" || e.key == 'Alt' || e.key == 'Control' || e.key == 'Escape' || e.key == 'F2') return;
+
+		if(addedProduct) {
+			$('.large-field.select-input-pos').val("");
+			sessionStorage.removeItem("focused");
+			sessionStorage.removeItem("focusedOffset");
+			addedProduct = false;
+
+		}
+	});
 }
