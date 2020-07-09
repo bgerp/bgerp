@@ -271,8 +271,8 @@ function posActions() {
 		$('.highlighted').removeClass('highlighted');
 		$(this).closest('.receiptRow').addClass('highlighted');
 		
-		var operation = getSelectedOperation();
-		refreshResultByOperation($(this), operation);
+		//var operation = getSelectedOperation();
+		refreshResultByOperation($(this), 'quantity');
 	});
 
 
@@ -626,8 +626,6 @@ function doPayment(url, type){
 	
 	var data = {amount:amount, type:type};
 	processUrl(url, data);
-
-	//$("input[name=ean]").val("");
 }
 
 // При натискане на pageUp
