@@ -61,7 +61,7 @@
         </tr>
         <tr>
             <td class="imageCell">[#img12#]</td>
-            <td class="shortcuts"><span>Ctrl + X </span></td>
+            <td class="shortcuts"><span>Ctrl + Q </span></td>
             <td class="textShortcut"> - Изход терминала</td>
         </tr>
     </table>

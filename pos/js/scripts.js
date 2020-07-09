@@ -353,7 +353,7 @@ function posActions() {
 		openReject();
 	});
 
-	$("body").setShortcutKey( CONTROL , X ,function() {
+	$("body").setShortcutKey( CONTROL , Q ,function() {
 		logout();
 	});
 
