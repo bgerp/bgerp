@@ -610,7 +610,7 @@ function calculateWidth(){
 	}
 	var scrollerWidth = 0;
 	$('#result-holder .tabHolder li').each(function () {
-		scrollerWidth += $(this).outerWidth() + 20;
+		scrollerWidth += parseInt($(this).outerWidth()) + 21;
 	});
 
 	$('#result-holder .scroll-holder .tabHolder').css('width', scrollerWidth);
