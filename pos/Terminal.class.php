@@ -1218,6 +1218,8 @@ class pos_Terminal extends peripheral_Terminal
                         $locationAttr['class'] .= ' current';
                     }
                     
+                    $locationName .= "<div style=font-size:0.8em>" . crm_Locations::getAddress($locationId) . "</div>";
+                    
                     $holderDiv = ht::createElement('div', $locationAttr, $locationName, true);
                     $tpl->append($holderDiv);
                 }
