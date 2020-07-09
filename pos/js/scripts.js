@@ -65,7 +65,7 @@ function posActions() {
 		
 		// @todo да се намери по красиво решение
 		if($(".buttonOverlay").css('display') != 'none'){
-			return;
+			//return;
 		}
 
 		// Хак да не се тригърва ивента при натискане на ентър или при навигацията на страницата за избор на селектиран елемент
@@ -305,63 +305,78 @@ function posActions() {
 	
 	// При натискане на бутона за клавиатура
 	$(document.body).on('click', ".helpBtn", function(e){
+		clearTimeout(timeout);
 		openHelp();
 	});
 
 	$("body").setShortcutKey( CONTROL , DELETE ,function() {
+		 clearTimeout(timeout);
 		 deleteSelectedElement();
 	});
 
 	$("body").setShortcutKey( CONTROL , A ,function() {
+		clearTimeout(timeout);
 		openProducts();
 	});
 
 	$("body").setShortcutKey( CONTROL , S ,function() {
+		clearTimeout(timeout);
 		openQuantity();
 	});
 
 	$("body").setShortcutKey( CONTROL , Z ,function() {
+		clearTimeout(timeout);
 		openPayment();
 	});
 
 	$("body").setShortcutKey( CONTROL , E ,function() {
+		clearTimeout(timeout);
 		openText();
 	});
 
 	$("body").setShortcutKey( CONTROL , K ,function() {
+		clearTimeout(timeout);
 		openClient();
 	});
 
 	$("body").setShortcutKey( CONTROL , B ,function() {
+		clearTimeout(timeout);
 		openReceipt();
 	});
 
 	$("body").setShortcutKey( null , F2 ,function() {
+		clearTimeout(timeout);
 		var element = $('.enlargeProductBtn');
 		openInfo(element);
 	});
 	
 	$("body").setShortcutKey( CONTROL , P ,function() {
+		clearTimeout(timeout);
 		openPrint();
 	});
 
 	$("body").setShortcutKey( CONTROL , M ,function() {
+		clearTimeout(timeout);
 		openKeyboard();
 	});
 
 	$("body").setShortcutKey( CONTROL , O ,function() {
+		clearTimeout(timeout);
 		openReject();
 	});
 
 	$("body").setShortcutKey( CONTROL , Q ,function() {
+		clearTimeout(timeout);
 		logout();
 	});
 
 	$("body").setShortcutKey( null , F1 ,function() {
+		clearTimeout(timeout);
 		openHelp();
 	});
 
 	$("body").setShortcutKey( CONTROL , I ,function() {
+		clearTimeout(timeout);
 		deteleElements();
 	});
 
