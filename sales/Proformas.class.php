@@ -274,7 +274,8 @@ class sales_Proformas extends deals_InvoiceMaster
         
         parent::beforeInvoiceSave($rec);
         
-        if (empty($rec->number)) {
+        $number = (isset($rec->number)) ? $rec->number : ((isset($rec->id) ? $mvc->fetchField($rec->id, 'number') : 0));
+        if (empty($number)) {
             $query = $mvc->getQuery();
             $query->XPR('maxNumber', 'int', 'MAX(#number)');
             $number = $query->fetch()->maxNumber;

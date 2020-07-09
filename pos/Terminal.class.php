@@ -1561,13 +1561,17 @@ class pos_Terminal extends peripheral_Terminal
         $data->searchStringPure = $string;
         
         $res = array();
-        if(isset($selectedRec->productId) && $settings->showSimilar == 'yes'){
-            $res['similar'] = (object)array('rows' => $this->prepareResultSimilarProducts($rec, $selectedRec, $string), 'placeholder' => 'BLOCK1');
-        }
         
         $foundResults = (object)array('rows' => $this->prepareProductTable($rec, $string), 'placeholder' => 'BLOCK2');
-        $firstDividerCaption = countR($res['similar']->rows == 1) ? 'Избран артикул' : 'Свързани артикули';
-        $res['contragent'] = (object)array('rows' => $this->prepareContragentProducts($rec, $string), 'placeholder' => 'BLOCK3');
+        
+        if(isset($selectedRec->productId)){
+            $res['similar'] = (object)array('rows' => $this->prepareResultSimilarProducts($rec, $selectedRec, $string), 'placeholder' => 'BLOCK1');
+            $firstDividerCaption = countR($res['similar']->rows == 1) ? 'Избран артикул' : 'Свързани артикули';
+        }
+        
+        if(!empty($settings->maxSearchProductInLastSales)){
+            $res['contragent'] = (object)array('rows' => $this->prepareContragentProducts($rec, $string), 'placeholder' => 'BLOCK3');
+        }
         
         $tpl = new core_ET(tr("|*[#BLOCK2#]
                                 <!--ET_BEGIN BLOCK1--><div class='divider'>|{$firstDividerCaption}|*</div>
@@ -1680,12 +1684,18 @@ class pos_Terminal extends peripheral_Terminal
     private function prepareResultSimilarProducts($rec, $selectedRec, $string)
     {
         $productRelations = array();
-        $products = array($selectedRec->productId => cat_Products::fetch($selectedRec->productId, 'name,isPublic,nameEn,code,canStore,measureId'));
+        $maxSearchProductRelations = pos_Points::getSettings($rec->pointId)->maxSearchProductRelations;
+        if(empty($maxSearchProductRelations)) {
+            
+            return $productRelations;
+        }
+        
+        $products = array($selectedRec->productId => cat_Products::fetch($selectedRec->productId, 'name,isPublic,nameEn,code,canStore,measureId,canSell'));
         $products[$selectedRec->productId]->packId = $selectedRec->value;
         $similarProducts = sales_ProductRelations::fetchField("#productId = {$selectedRec->productId}", 'data');
+       
         if(is_array($similarProducts)){
             $productRelations = array_keys($similarProducts);
-            $maxSearchProductRelations = pos_Points::getSettings($rec->pointId)->maxSearchProductRelations;
             $productRelations = array_slice($productRelations, 0, $maxSearchProductRelations);
         }
         

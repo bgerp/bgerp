@@ -104,11 +104,10 @@
 		color: #fff;
 		display: inline-block;
 	}
-	.specialLink {
+	.specialLink a {
 		color: #ccc !important;
-		text-decoration: underline;
 		&:hover {
-			text-decoration: none;
+			text-decoration: underline;
 		}
 	}
 }
