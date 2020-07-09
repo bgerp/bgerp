@@ -402,7 +402,7 @@ class core_Setup extends core_ProtoSetup
         
         'CORE_BACKUP_PATH' => array('varchar', 'caption=Настройки за бекъп->Път до бекъпите,readOnly'),
             
-        'CORE_BGERP_UNIQ_ID' => array('varchar(16)', 'caption=Сериен номер на инсталацията->СН,readOnly'),
+        'CORE_BGERP_UNIQ_ID' => array('varchar(16)', 'caption=Сериен номер на инсталацията->ID,readOnly'),
     );
     
     
