@@ -760,9 +760,15 @@ class label_Prints extends core_Master
         // По подразбиране да се показват черновите записи най-отпред
         $data->query->orderBy('createdOn', 'DESC');
         
+        $data->listFilter->setField('mediaId', 'allowEmpty');
+        unset($data->listFilter->fields['mediaId']->notNull);
+        unset($data->listFilter->fields['mediaId']->removeAndRefreshForm);
+        unset($data->listFilter->fields['mediaId']->mandatory);
+        $data->listFilter->fields['mediaId']->type->params['allowEmpty'] = 'allowEmpty';
+        
         $data->listFilter->FNC('author', 'users(rolesForAll=labelMaster|ceo|admin, rolesForTeams=label|ceo|admin)', 'caption=От, refreshForm');
         
-        $data->listFilter->showFields = 'author, search, templateId';
+        $data->listFilter->showFields = 'author, search, templateId, mediaId';
         
         $data->listFilter->view = 'horizontal';
         
@@ -797,6 +803,10 @@ class label_Prints extends core_Master
             
             if ($filter->templateId) {
                 $data->query->where(array("#templateId = '[#1#]'", $filter->templateId));
+            }
+            
+            if ($filter->mediaId) {
+                $data->query->where(array("#mediaId = '[#1#]'", $filter->mediaId));
             }
         }
     }
