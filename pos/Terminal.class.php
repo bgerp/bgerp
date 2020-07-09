@@ -993,8 +993,12 @@ class pos_Terminal extends peripheral_Terminal
             
             // Ако има подаден стринг за търсене
             $ownCompany = crm_Companies::fetchOurCompany();
+            $Varchar = core_Type::getByName('varchar');
+            $searchString = plg_Search::normalizeText($stringInput);
+            $showUniqueNumberLike = false;
             
             if(!empty($stringInput)){
+                $showUniqueNumberLike = type_Int::isInt($searchString) || preg_match('/^[a-zA-Z]{2}\d/', $searchString);
                 $maxContragents = pos_Points::getSettings($rec->pointId, 'maxSearchContragent');
                 
                 // Ако има клиентска карта с посочения номер, намира се контрагента ѝ
@@ -1009,42 +1013,72 @@ class pos_Terminal extends peripheral_Terminal
                 // Ако има фирма с такъв данъчен или национален номер
                 $cQuery = crm_Companies::getQuery();
                 $cQuery->fetch("#vatId = '{$stringInput}' OR #uicId = '{$stringInput}' AND #id != {$ownCompany->id}");
-                $cQuery->show('id,folderId');
+                $cQuery->show('id,folderId,vatId,uicId');
                 while($cRec = $cQuery->fetch()){
-                    $contragents["{$companyClassId}|{$cRec->id}"] = (object)array('contragentClassId' => crm_Companies::getClassId(), 'contragentId' => $cRec->id, 'title' => crm_Companies::getTitleById($cRec->id));
+                    $contragents["{$companyClassId}|{$cRec->id}"] = (object)array('contragentClassId' => crm_Companies::getClassId(), 'contragentId' => $cRec->id, 'title' => crm_Companies::getTitleById($cRec->id), 'vatId' => $Varchar->toVerbal($cRec->vatId), 'uicId' => $Varchar->toVerbal($cRec->uicId));
                     $count++;
                 }
                 
                 // Ако има лице с такова егн или данъчен номер
                 $pQuery = crm_Persons::getQuery();
                 $pQuery->fetch("#egn = '{$stringInput}' OR #vatId = '{$stringInput}'");
-                $pQuery->show('id,folderId');
+                $pQuery->show('id,folderId,egn,vatId');
                 while($pRec = $pQuery->fetch()){
-                    $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => crm_Persons::getTitleById($cRec->id));
+                    $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => crm_Persons::getTitleById($cRec->id), 'egn' => $Varchar->toVerbal($cRec->egn), 'uicId' => $Varchar->toVerbal($cRec->uicId));
                     $count++;
                 }
+                
+                if($showUniqueNumberLike){
+                    
+                    // Ако има фирма чийто данъчен или национален номер започва с числото
+                    $cQuery = crm_Companies::getQuery();
+                    $cQuery->where("#vatId LIKE '{$searchString}%' OR #uicId LIKE '{$searchString}%'");
+                    $cQuery->show('id,folderId,vatId,uicId');
+                    while($cRec = $cQuery->fetch()){
+                        $contragents["{$companyClassId}|{$cRec->id}"] = (object)array('contragentClassId' => crm_Companies::getClassId(), 'contragentId' => $cRec->id, 'title' => crm_Companies::getTitleById($cRec->id), 'vatId' => $Varchar->toVerbal($cRec->vatId), 'uicId' => $Varchar->toVerbal($cRec->uicId));
+                        $count++;
+                    }
+                    
+                    // Ако има лице чието егн или национален номер започва с числото
+                    $pQuery = crm_Persons::getQuery();
+                    $pQuery->where("#vatId LIKE '{$searchString}%' OR #egn LIKE '{$searchString}%'");
+                    $pQuery->show('id,folderId,egn,vatId');
+                    while($pRec = $pQuery->fetch()){
+                        $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => crm_Persons::getTitleById($cRec->id), 'egn' => $Varchar->toVerbal($cRec->egn), 'uicId' => $Varchar->toVerbal($cRec->uicId));
+                        $count++;
+                    }
+                }
+                
             } else {
                 $maxContragents = pos_Points::getSettings($rec->pointId, 'maxSearchContragentStart');
             }
             
-            $searchString = plg_Search::normalizeText($stringInput);
             foreach (array('crm_Companies', 'crm_Persons') as $ContragentClass){
                 $cQuery = $ContragentClass::getQuery();
                 $cQuery->where("#state != 'rejected' AND #state != 'closed'");
+                
                 if($ContragentClass == 'crm_Companies'){
                     $cQuery->where("#id != {$ownCompany->id}");
+                    $cQuery->show('id,folderId,vatId,uicId,name');
+                    $uicField = 'uicId';
+                } else {
+                    $cQuery->show('id,folderId,name,egn,vatId,name');
+                    $uicField = 'egn';
                 }
-                $cQuery->show('id,folderId,name');
                 
                 // Обикалят се всички фирми/лице които съдържат търсения стринг в името си
                 $classId = ($ContragentClass == 'crm_Companies') ? $companyClassId : $personClassId;
+                if(!empty($stringInput)){
+                    plg_Search::applySearch($stringInput, $cQuery);
+                }
+                
                 while($cRec = $cQuery->fetch()){
                     $name = plg_Search::normalizeText($cRec->name);
                     
                     // Ако го съдържат в името си се добавят
                     if(empty($searchString) || strpos($name, $searchString) !== false){
                         if(!array_key_exists("{$classId}|{$cRec->id}", $contragents)){
-                            $contragents["{$classId}|{$cRec->id}"] = (object)array('contragentClassId' => $ContragentClass::getClassId(), 'contragentId' => $cRec->id, 'title' => $ContragentClass::getTitleById($cRec->id));
+                            $contragents["{$classId}|{$cRec->id}"] = (object)array('contragentClassId' => $ContragentClass::getClassId(), 'contragentId' => $cRec->id, 'title' => $ContragentClass::getTitleById($cRec->id), 'vatId' => $Varchar->toVerbal($cRec->vatId), "{$uicField}" => $Varchar->toVerbal($cRec->{$uicField}));
                             $count++;
                         }
                     }
@@ -1059,9 +1093,13 @@ class pos_Terminal extends peripheral_Terminal
                     $cQuery = $ContragentClass::getQuery();
                     $cQuery->where("#state != 'rejected' AND #state != 'closed'");
                     if($ContragentClass == 'crm_Companies'){
+                        $cQuery->show('id,folderId,name,vatId,uicId');
                         $cQuery->where("#id != {$ownCompany->id}");
+                        $uicField = 'uicId';
+                    } else {
+                        $cQuery->show('id,folderId,name,egn,vatId');
+                        $uicField = 'egn';
                     }
-                    $cQuery->show('id,folderId,name');
                     
                     // Обикалят се всички фирми/лице които съдържат търсения стринг в името си
                     $classId = ($ContragentClass == 'crm_Companies') ? $companyClassId : $personClassId;
@@ -1069,7 +1107,7 @@ class pos_Terminal extends peripheral_Terminal
                     plg_Search::applySearch($stringInput, $cQuery);
                     while($cRec = $cQuery->fetch()){
                         if(!array_key_exists("{$classId}|{$cRec->id}", $contragents)){
-                            $contragents["{$classId}|{$cRec->id}"] = (object)array('contragentClassId' => $ContragentClass::getClassId(), 'contragentId' => $cRec->id, 'title' => $ContragentClass::getTitleById($cRec->id));
+                            $contragents["{$classId}|{$cRec->id}"] = (object)array('contragentClassId' => $ContragentClass::getClassId(), 'contragentId' => $cRec->id, 'title' => $ContragentClass::getTitleById($cRec->id), 'vatId' => $Varchar->toVerbal($cRec->vatId), "{$uicField}" => $Varchar->toVerbal($cRec->{$uicField}));
                             $count++;
                         }
                         
@@ -1087,6 +1125,32 @@ class pos_Terminal extends peripheral_Terminal
                     $divAttr['disabled'] = 'disabled';
                     $divAttr['disabledBtn'] = 'disabledBtn';
                     unset($divAttr['data-url']);
+                }
+                
+                $obj->title = str::limitLen($obj->title, 48);
+                if($showUniqueNumberLike){
+                    $subArr = array();
+                    if(!empty($obj->vatId)){
+                        $subArr[] = tr("ДДС №") . ": {$obj->vatId}";
+                    }
+                    if($obj->contragentId == $personClassId){
+                        if(!empty($obj->egn)){
+                            $subArr[] = tr("ЕГН") . ": {$obj->egn}";
+                        }
+                    } else {
+                        if(!empty($obj->uicId)){
+                            $subArr[] = tr("Нац. №") . ": {$obj->uicId}";
+                        }
+                    }
+                    
+                    if(countR($subArr)){
+                        $stringInputSearch = strtoupper($stringInput);
+                        array_walk($subArr, function(&$a) use ($stringInputSearch) {$a = str_replace($stringInputSearch, "<span style='color:blue'>{$stringInputSearch}</span>", $a);});
+                        
+                        $subTitle = implode('; ', $subArr);
+                        $subTitle = "<div style='font-size:0.7em'>{$subTitle}</div>";
+                        $obj->title .= $subTitle;
+                    }
                 }
                 
                 $holderDiv = ht::createElement('div', $divAttr, $obj->title, true);
