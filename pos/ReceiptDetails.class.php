@@ -605,7 +605,6 @@ class pos_ReceiptDetails extends core_Detail
         }
        
         Mode::setPermanent("productAdded{$rec->receiptId}", $rec->productId);
-        Mode::setPermanent("currentSearchString{$rec->receiptId}", null);
         
         return pos_Terminal::returnAjaxResponse($receiptId, $selectedRecId, $success, true, true, true, 'add');
     }
