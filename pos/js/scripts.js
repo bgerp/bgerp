@@ -54,7 +54,8 @@ function posActions() {
 		
 		processUrl(url, params);
 	});
-	
+
+
 	/**
 	 * При спиране на писането в полето за търсене
 	 * @param e
@@ -626,7 +627,7 @@ function doPayment(url, type){
 	var data = {amount:amount, type:type};
 	processUrl(url, data);
 
-	$("input[name=ean]").val("");
+	//$("input[name=ean]").val("");
 }
 
 // При натискане на pageUp
@@ -1290,9 +1291,9 @@ function doOperation(operation, selectedRecId, forceSubmit) {
 		
 		return;
 	}
-	
+
 	$("input[name=ean]").val("");
-	
+
 	sessionStorage.setItem('operationClicked', true);
 	var data = {operation:operation,recId:selectedRecId};
 	processUrl(url, data);
@@ -1317,4 +1318,16 @@ function setSearchTimeout(timeout)
 function render_toggleAddedProductFlag(data)
 {
 	addedProduct = data.flag;
+
+	 $(document.body).on('keypress', ".large-field", function(e){
+		if(e.key == "Enter" || e.key == "ArrowRight" || e.key == "ArrowLeft" || e.key == "ArrowUp" || e.key == "ArrowDown"  || e.key == "PageUp" || e.key == "PageDown" || e.key == 'Alt' || e.key == 'Control' || e.key == 'Escape' || e.key == 'F2') return;
+
+		if(addedProduct) {
+			$('.large-field.select-input-pos').val("");
+			sessionStorage.removeItem("focused");
+			sessionStorage.removeItem("focusedOffset");
+			addedProduct = false;
+
+		}
+	});
 }
