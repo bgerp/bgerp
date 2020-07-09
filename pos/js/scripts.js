@@ -401,6 +401,7 @@ function prevTab() {
 	sessionStorage.removeItem("focused");
 	var currentTab = $('.tabHolder li.active');
 	if($(currentTab).prev().length) {
+		$(currentTab).prev()[0].scrollIntoView({inline: "center", block: "end"});
 		$(currentTab).prev().click();
 		activeInput = false;
 		sessionStorage.setItem("activeProductTab", $('.tabHolder li.active').attr('id'));
@@ -418,9 +419,13 @@ function nextTab() {
 
 	var currentTab = $('.tabHolder li.active');
 	if($(currentTab).next().length) {
+		$(currentTab).next()[0].scrollIntoView({inline: "center", block: "end"});
 		$(currentTab).next().click();
+
 		activeInput = false;
 		sessionStorage.setItem("activeProductTab", $('.tabHolder li.active').attr('id'));
+
+
 	}
 	startNavigation();
 }
@@ -1254,7 +1259,9 @@ function openCurrentPosTab() {
 		var currentTabContent = activeTab.attr('data-content');
 
 		$("#" + currentTabContent).show();
+
 		startNavigation();
+		$(activeTab)[0].scrollIntoView({block: "center", end: "center"});
 		sessionStorage.removeItem('focusedOffset');
 	}
 }
