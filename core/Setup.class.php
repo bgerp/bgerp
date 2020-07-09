@@ -263,6 +263,12 @@ defIfNot('CORE_BACKUP_CREATE_FULL_OFFSET', (60 * 3 + 50) * 60);
 
 
 /**
+ * 
+ */
+defIfNot('CORE_BGERP_UNIQ_ID', '');
+
+
+/**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
  *
@@ -395,6 +401,8 @@ class core_Setup extends core_ProtoSetup
         'CORE_BACKUP_CREATE_FULL_OFFSET' => array('time', 'caption=Настройки за бекъп->Изместване'),
         
         'CORE_BACKUP_PATH' => array('varchar', 'caption=Настройки за бекъп->Път до бекъпите,readOnly'),
+            
+        'CORE_BGERP_UNIQ_ID' => array('varchar(16)', 'caption=Сериен номер на инсталацията->СН,readOnly'),
     );
     
     
@@ -579,8 +587,15 @@ class core_Setup extends core_ProtoSetup
         $html .= core_Classes::add('core_page_Internal');
         $html .= core_Classes::add('core_page_InternalModern');
         
-        
         $html .= static::addCronToDelOldTempFiles();
+        
+        try {
+            $this->setBGERPUniqId();
+        } catch (Exception $e) {
+            reportException($e);
+        } catch (Throwable $t) {
+            reportException($t);
+        }
         
         return $html;
     }
@@ -751,5 +766,77 @@ class core_Setup extends core_ProtoSetup
             
             $secs += 60;
         }
+    }
+    
+    
+    /**
+     * Връща уникалното ID на системата
+     *
+     * @return string
+     */
+    public static function getBGERPUniqId()
+    {
+        
+        return core_Setup::get('BGERP_UNIQ_ID');
+    }
+    
+    
+    /**
+     * Задаване на уникално ID на системата
+     *
+     * @param boolean $force
+     *
+     * @return string
+     */
+    protected static function setBGERPUniqId($force = false)
+    {
+        $id = '';
+        if (!$force) {
+            $id = self::getBGERPUniqId();
+        }
+        
+        if (!$id) {
+            $id = self::generateBGERPUniqId();
+            
+            core_Packs::setConfig('core', array('CORE_BGERP_UNIQ_ID' => $id));
+        }
+        
+        return $id;
+    }
+    
+    
+    /**
+     * Връща 16 цифрено уникалното id на системата за тази инсталация
+     *
+     * @return string
+     */
+    protected static function generateBGERPUniqId()
+    {
+        $res = '';
+        
+        $fm = filectime(getFullPath('core'));
+        $t = date('dm', $fm);
+        $y = date('y', $fm);
+        $res = str_pad($t . ($y % 10), 5, 0, STR_PAD_LEFT);
+        
+        $u = substr(crc32(php_uname('s')), 0, 3);
+        $res .= str_pad($u, 3, 0, STR_PAD_LEFT);
+        
+        $m = substr(crc32(exec("ifconfig -a | grep -Po 'HWaddr \K.*$'")), 0, 2);
+        $res .= str_pad($m, 2, 0, STR_PAD_LEFT);
+        
+        $s = substr(crc32(EF_SALT . "SystemID"), 0, 2);
+        $res .= str_pad($s, 2, 0, STR_PAD_LEFT);
+        
+        $res .= str::getRand('##');
+        
+        $resCrc = substr(crc32($res), 0, 2);
+        $res .= str_pad($resCrc, 2, 0, STR_PAD_LEFT);
+        
+        $res = str_pad($res, 16, 0, STR_PAD_LEFT);
+        
+        $res = substr($res, 0, 16);
+        
+        return $res;
     }
 }
