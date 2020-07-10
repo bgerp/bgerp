@@ -200,8 +200,8 @@ class pos_Terminal extends peripheral_Terminal
         $rec = $Receipts->fetchRec($rec);
         $tpl = getTplFromFile('pos/tpl/terminal/Header.shtml');
         
-        $headerData = (object)array('APP_NAME' => EF_APP_NAME,
-                                    'pointId' => pos_Points::getVerbal($rec->pointId, 'name'),
+        $headerData = (object)array('APP_NAME' => core_Setup::get('EF_APP_TITLE', true),
+                                    'pointId' => pos_Points::getHyperlink($rec->pointId, false),
                                     'ID' => pos_Receipts::getVerbal($rec->id, 'id'),
                                     'TIME' => $this->renderCurrentTime(),
                                     'valior' => pos_Receipts::getVerbal($rec->id, 'valior'),
