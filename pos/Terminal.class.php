@@ -530,10 +530,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $searchUrl = toUrl(array($this, 'displayOperation', 'receiptId' => $rec->id), 'local');
         $params = array('name' => 'ean', 'value' => $inputValue, 'type' => 'text', 'class'=> 'large-field select-input-pos', 'data-url' => $inputUrl, 'data-keyupurl' => $keyupUrl, 'data-defaultpayment' => $value, 'title' => 'Въвеждане', 'list' => 'suggestions', 'autocomplete' => 'off');
-        if(Mode::is('screenMode', 'narrow')) {
-            $params['readonly'] = 'readonly';
-        }
-        
+
         $operations = arr::make(self::$operationsArr);
         $allowedOperationsForNonDraftReceipts = arr::make(self::$allowedOperationOnNonDraftReceipts);
         $detailsCount = pos_ReceiptDetails::count("#receiptId = {$rec->id}");
