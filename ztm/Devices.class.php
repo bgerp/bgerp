@@ -272,4 +272,19 @@ class ztm_Devices extends core_Master
         $data->form->setReadOnly('ident');
         $data->form->setReadOnly('model');
     }
+    
+    
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return bool
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->query->orderBy('createdOn', 'DESC');
+    }
 }
