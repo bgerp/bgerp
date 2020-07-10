@@ -61,7 +61,7 @@
         </tr>
         <tr>
             <td class="imageCell">[#img12#]</td>
-            <td class="shortcuts"><span>Ctrl + X </span></td>
+            <td class="shortcuts"><span>Ctrl + Q </span></td>
             <td class="textShortcut"> - Изход терминала</td>
         </tr>
     </table>
@@ -82,6 +82,14 @@
         <tr>
             <td class="shortcuts"><span>Ctrl + END </span></td>
             <td class="textShortcut"> - Скролира до края на страницата</td>
+        </tr>
+        <tr>
+            <td class="shortcuts"><span>Page Up </span></td>
+            <td class="textShortcut"> - Мести текущия ред от бележката нагоре</td>
+        </tr>
+        <tr>
+            <td class="shortcuts"><span>Page Down </span></td>
+            <td class="textShortcut"> - Мести текущия ред от бележката надолу</td>
         </tr>
         <tr>
             <td colspan="2" class='title'>Съкратени формати за редактиране на текущ ред: </td>

@@ -856,3 +856,15 @@ function countR($arr)
 
     return empty($arr) ? 0 : count($arr);
 }
+
+
+/**
+ * Връща уникалното ID на системата
+ * 
+ * @return string
+ */
+function getBGERPUniqId()
+{
+    
+    return core_Setup::getBGERPUniqId();
+}

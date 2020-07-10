@@ -30,4 +30,21 @@ class ztm_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Контролен панел';
+    
+    
+    /**
+     * Роли за достъп до модула
+     */
+    public $roles = array(
+            array('ztm'),
+    );
+    
+    
+    
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    public $managers = array(
+            'ztm_Devices',
+    );
 }
