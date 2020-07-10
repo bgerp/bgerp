@@ -144,8 +144,8 @@ function posActions() {
 		
 		if(url){
 			setTimeout(function() {
-				var e = jQuery.Event("keyup");
-				$('.large-field').trigger(e);
+				var ev = jQuery.Event("keyup");
+				$('.large-field').trigger(ev);
 	        }, 100);
 		}
 	});
@@ -592,7 +592,6 @@ function openPayment() {
 function calculateWidth(){
 	var winWidth = parseInt($(window).outerWidth());
 	var winHeight = parseInt($(window).outerHeight());
-
 	if (winWidth >= 1200) {
 		//задаване на ширина на двете колони
 		$('#result-holder').css('width', winWidth - $('#single-receipt-holder').width());
@@ -624,7 +623,16 @@ function calculateWidth(){
 
 		$('.tools-content').css('height',460);
 
+		if(!isTouchDevice()) {
+			$('#keyboard-num').css('display','block');
+		} else {
+			$('#tools-holder').css('height', 330);
+			$('#keyboard-num').css('display','none');
+		}
+
 	} else {
+		$('#keyboard-num').css('display','none');
+
 		$('#single-receipt-holder').removeClass('fixedHolder');
 		$('#result-holder').removeClass('fixedPosition');
 		$('#result-holder').addClass('relativePosition');
@@ -636,6 +644,9 @@ function calculateWidth(){
 		$('.tools-content').css('height','auto');
 		$('#result-holder .withTabs').css('height', "100%");
 		$('#result-holder .scroll-holder').css('width', "100%");
+
+		$('.keyboardBtn.operationHolder').addClass('disabledBtn');
+		$('.keyboardBtn.operationHolder').attr('disabled', 'disabled');
 
 	}
 	var scrollerWidth = 0;
@@ -1031,13 +1042,13 @@ function openModal(title, heightModal) {
 	
 	// Изчистване на предишното съдържание на модала, да не се визуализира, докато се зареди новото
 	$("#modalContent").html("");
-	
 	var height = (heightModal == "smallHeight" ) ?  500 : 700;
+	var width = ($(window).width() > 1200) ?  1000 : parseInt($(window).width()) - 40;
 
 	dialog = $("#modalContent").dialog({
 		autoOpen: false,
 		height: height,
-		width: 1000,
+		width: width,
 		modal: true,
 		title: title,
 		beforeClose: event.preventDefault(),
