@@ -2036,7 +2036,7 @@ class pos_Terminal extends peripheral_Terminal
                       'rejected' => array('caption' => 'Оттеглени', 'receipts' => new core_ET(""), 'count' => 0));
         
         $disabledClass = (pos_Receipts::haveRightFor('add')) ? 'navigable' : 'disabledBtn';
-        $addUrl = (pos_Receipts::haveRightFor('add')) ? array('pos_Receipts', 'new', 'forced' => true) : array();
+        $addUrl = (pos_Receipts::haveRightFor('add')) ? array('pos_Receipts', 'new') : array();
         
         $revertDefaultUrl = (pos_Receipts::haveRightFor('revert', pos_Receipts::DEFAULT_REVERT_RECEIPT)) ? array('pos_Receipts', 'revert', pos_Receipts::DEFAULT_REVERT_RECEIPT, 'ret_url' => true) : array();
         $disabledRevertClass = countR($revertDefaultUrl) ? 'navigable' : 'disabledBtn';

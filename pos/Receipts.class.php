@@ -202,12 +202,34 @@ class pos_Receipts extends core_Master
             $this->logWrite('Създаване на нова бележка', $id);
         } else {
             
-            // Ако има чернова бележка от същия ден, не създаваме нова
+            // Коя е последната чернова бележка от ПОС-а
             $today = dt::today();
             $query = $this->getQuery();
-            $query->where("#valior = '{$today}' AND #createdBy = {$cu} AND #pointId = {$pointId} AND #state = 'draft'");
+            $query->where("#pointId = {$pointId} AND #state = 'draft'");
+            $query->show('valior,contragentClass,contragentObjectId,total');
             $query->orderBy('id', 'DESC');
-            if (!$id = $query->fetch()->id) {
+            $lastDraft = $query->fetch();
+            
+            $id = null;
+            if(is_object($lastDraft)){
+                
+                // Ако има такава и тя е без контрагент и е празна
+                $defaultContragentId = pos_Points::defaultContragent($pointId);
+                if(empty($lastDraft->total) && $lastDraft->contragentClass == crm_Persons::getClassId() && $lastDraft->contragentObjectId == $defaultContragentId){
+                    $today = dt::today();
+                    
+                    // Ако е със стара дата, подменя се
+                    if($lastDraft->valior != $today){
+                        $lastDraft->valior = $today;
+                        $this->save_($lastDraft, 'valior');
+                    }
+                    
+                    // Ще се редиректне към нея
+                    $id = $lastDraft->id;
+                }
+            }
+            
+            if (empty($id)) {
                 $id = $this->createNew();
                 $this->logWrite('Създаване на нова бележка', $id);
             }
@@ -485,7 +507,7 @@ class pos_Receipts extends core_Master
         
         // Никой не може да оттегли затворена бележка
         if ($action == 'reject' && isset($rec)) {
-            if ($rec->state == 'closed') {
+            if ($rec->state == 'closed' || empty($rec->total)) {
                 $res = 'no_one';
             }
         }
