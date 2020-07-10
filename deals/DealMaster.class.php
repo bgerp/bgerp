@@ -1515,7 +1515,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         // Закръглената оставаща сума за плащане
-        $query->XPR('toInvoice', 'double', 'ROUND(#amountDelivered - #amountInvoiced, 2)');
+        $query->XPR('toInvoice', 'double', 'ROUND(#amountDelivered - COALESCE(#amountInvoiced, 0), 2)');
         $query->XPR('deliveredRound', 'double', 'ROUND(#amountDelivered, 2)');
         
         $percent = bgerp_Setup::get('CLOSE_UNDELIVERED_OVER');
@@ -1532,10 +1532,10 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // На които треда им не е променян от определено време
         $query->where("#threadModifiedOn <= '{$oldBefore}'");
-        
-        // Крайното салдо, и Аванса за фактуриране по сметката на сделката трябва да е в допустимия толеранс
+      
+        // Крайното салдо, и Аванса за фактуриране по сметката на сделката трябва да е в допустимия толеранс или да е NULL
         $query->where("#amountBl BETWEEN -{$tolerance} AND {$tolerance}");
-        $query->where("#amountInvoicedDownpaymentToDeduct BETWEEN -{$tolerance} AND {$tolerance}");
+        $query->where("#amountInvoicedDownpaymentToDeduct BETWEEN -{$tolerance} AND {$tolerance} OR #amountInvoicedDownpaymentToDeduct IS NULL");
         
         // Ако трябва да се фактурират и са доставеното - фактурираното е в допустими граници
         $query->where("(#makeInvoice = 'yes' || #makeInvoice IS NULL) AND #toInvoice BETWEEN -{$tolerance} AND {$tolerance}");

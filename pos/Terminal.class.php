@@ -1576,7 +1576,8 @@ class pos_Terminal extends peripheral_Terminal
         cls::get('pos_Receipts')->invoke('AfterPushTerminalFiles', array(&$tpl, $rec));
         
         // Абониране за рефреш на хедъра
-        core_Ajax::subscribe($tpl, array($this, 'autoRefreshHeader', $rec->id), 'refreshTime', 30);
+        $originState = $rec->state;
+        core_Ajax::subscribe($tpl, array($this, 'autoRefreshHeader', $rec->id, 'originState' => $originState), 'refreshTime', 30);
     }
     
     
@@ -1589,8 +1590,15 @@ class pos_Terminal extends peripheral_Terminal
         pos_Receipts::requireRightFor('terminal');
         expect($id = Request::get('id', 'int'));
         pos_Receipts::requireRightFor('terminal', $id);
+        $originState = Request::get('originState', 'enum(draft,waiting,rejected,closed)');
+        $rec = pos_Receipts::fetch($id);
+        
+        // Ако има промяна в оригиналното състояние на бележката се прави нова
+        if($originState != $rec->state){
+            redirect(array('pos_Receipts', 'new', 'forced' => true));
+        }
+        
         $res = array();
-
         $resObj1 = new stdClass();
         $resObj1->func = 'clearStatuses';
         $resObj1->arg = array('type' => 'notice');
