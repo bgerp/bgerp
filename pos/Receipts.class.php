@@ -275,7 +275,7 @@ class pos_Receipts extends core_Master
            
             if ($rec->state == 'closed' || $rec->state == 'rejected') {
                 $reportQuery = pos_Reports::getQuery();
-                $reportQuery->where("#state = 'active'");
+                $reportQuery->where("#state = 'active' || #state = 'closed'");
                 $reportQuery->show('details');
                 
                 // Опитваме се да намерим репорта в който е приключена бележката
