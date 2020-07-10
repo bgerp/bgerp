@@ -956,21 +956,15 @@ only screen and (max-width: 800px) {
 
 @media handheld,
 only screen and (max-width: 640px) {
-  .narrow .pos-product {
-    width: 74px !important;
-    height: 74px !important; }
-    .narrow .pos-product img {
-      width: 74px !important;
-      height: 74px !important; } }
+   }
 
 @media handheld,
 only screen and (max-width: 360px) {
-  .narrow .pos-product {
-    width: 73px !important;
-    height: 73px !important; }
-    .narrow .pos-product img {
-      width: 73px !important;
-      height: 73px !important; } }
+  .operationHolder {
+    margin: 3px !important;
+    width: 49px !important;
+    height: 49px !important;
+    padding: 8px !important; } }
 
   .printing .onlyPrint {
     display: block; }

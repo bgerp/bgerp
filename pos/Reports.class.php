@@ -292,7 +292,7 @@ class pos_Reports extends core_Master
         // Табличната информация и пейджъра на плащанията
         $detail->listFields = "value=Действие, pack=Мярка, quantity=Количество, amount=Сума ({$data->row->baseCurrency}), storeId=Склад,contragentId=Клиент";
         $detail->rows = $detail->receiptDetails;
-        wp($detail);
+       
         $mvc->prepareDetail($detail);
         $data->rec->details = $detail;
         
