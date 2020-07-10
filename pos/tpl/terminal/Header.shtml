@@ -7,7 +7,7 @@
 <div class="fright">
 
     <span class='headerAppName'>[#APP_NAME#]</span>
-    <span class='headerPointId'>[#pointId#]</span>
+    <span class='specialLink'>[#pointId#]</span>
     <span class='headerUserNick'>[#userId#]</span>
 
     <span class='specialLink'>[#OTHER_ELEMENTS#]</span>
