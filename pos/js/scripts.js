@@ -56,32 +56,20 @@ function posActions() {
 	});
 
 
-	/**
-	 * При спиране на писането в полето за търсене
-	 * @param e
-	 * @returns
+	/*
+	 * Търси по инпута ако може
 	 */
-	$(document.body).on('keyup', ".large-field", function(e){
-		
-		// @todo да се намери по красиво решение
-		if($(".buttonOverlay").css('display') != 'none'){
-			//return;
-		}
-
-		// Хак да не се тригърва ивента при натискане на ентър или при навигацията на страницата за избор на селектиран елемент
-		if(e.key == "Enter" || e.key == "ArrowRight" || e.key == "ArrowLeft" || e.key == "ArrowUp" || e.key == "ArrowDown"  || e.key == "PageUp" || e.key == "PageDown" || e.key == 'Alt' || e.key == 'Control' || e.key == 'Escape' || e.key == 'F2') return;
-
-		activeInput = true;
-
+	function triggerSearchInput(element, timeoutTime)
+	{
 		// След всяко натискане на бутон изчистваме времето на изчакване
 		clearTimeout(timeout);
-
-		var url = $(this).attr("data-keyupurl");
+		
+		var url = element.attr("data-keyupurl");
 		if(!url){
 			return;
 		}
 
-		var inpVal = $(this).val();
+		var inpVal = element.val();
 		var operation = getSelectedOperation();
 
 		if(isMicroformat(inpVal) && (operation == 'add' || operation == 'edit')){
@@ -106,7 +94,28 @@ function posActions() {
 			var params = {operation:operation,search:inpVal,recId:selectedRecId};
 			processUrl(url, params);
 
-		}, searchTimeout);
+		}, timeoutTime);
+	}
+	
+	
+	/**
+	 * При спиране на писането в полето за търсене
+	 * @param e
+	 * @returns
+	 */
+	$(document.body).on('keyup', ".large-field", function(e){
+		
+		// @todo да се намери по красиво решение
+		if($(".buttonOverlay").css('display') != 'none'){
+			//return;
+		}
+
+		// Хак да не се тригърва ивента при натискане на ентър или при навигацията на страницата за избор на селектиран елемент
+		if(e.key == "Enter" || e.key == "ArrowRight" || e.key == "ArrowLeft" || e.key == "ArrowUp" || e.key == "ArrowDown"  || e.key == "PageUp" || e.key == "PageDown" || e.key == 'Alt' || e.key == 'Control' || e.key == 'Escape' || e.key == 'F2') return;
+
+		activeInput = true;
+
+		triggerSearchInput($(this), searchTimeout);
 	});
 
 
@@ -186,6 +195,7 @@ function posActions() {
 		if($('.scroll-holder.productTabs').length) {
 			sessionStorage.setItem("activeProductTab", $('.tabHolder li.active').attr('id'));
 		}
+		
 		startNavigation();
 	});
 
