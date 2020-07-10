@@ -107,7 +107,7 @@ class label_Templates extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'title, template, css';
+    public $searchFields = 'title, template, css, sizes';
     
     
     /**
@@ -391,14 +391,24 @@ class label_Templates extends core_Master
         $form->FNC('fClassId', 'varchar', 'caption=Източник');
         $form->setOptions('fClassId', array('' => '') + $sourceOptions);
         
-        $form->showFields = 'search,fClassId';
+        $q = $mvc->getQuery();
+        $q->groupBy('sizes');
+        $q->show('sizes');
+        $sArr = array();
+        $sArr[''] = '';
+        while ($qR = $q->fetch()) {
+            $sArr[$qR->sizes] = $qR->sizes;
+        }
+        $form->setSuggestions('sizes', $sArr);
+        
+        $form->showFields = 'search,fClassId,sizes';
         if (!core_Request::get('Rejected', 'int')) {
             $form->FNC('fState', 'enum(, active=Използвани, closed=Затворени)', 'caption=Всички, allowEmpty,autoFilter');
             $form->showFields .= ', fState';
             $form->setDefault('fState', 'active');
             
             // Инпутваме полетата
-            $form->input('fState,fClassId', 'silent');
+            $form->input('fState,fClassId,sizes', 'silent');
         }
         
         // Подреждане по състояние
@@ -414,6 +424,11 @@ class label_Templates extends core_Master
             } else {
                 $data->query->where(array("#classId = '[#1#]'", $classId));
             }
+        }
+        $sizes = $data->listFilter->rec->sizes;
+        $sizes = trim($sizes);
+        if ($sizes) {
+            $data->query->where(array("#sizes = '[#1#]'", $sizes));
         }
     }
     

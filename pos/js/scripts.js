@@ -65,7 +65,7 @@ function posActions() {
 		
 		// @todo да се намери по красиво решение
 		if($(".buttonOverlay").css('display') != 'none'){
-			return;
+			//return;
 		}
 
 		// Хак да не се тригърва ивента при натискане на ентър или при навигацията на страницата за избор на селектиран елемент
@@ -305,63 +305,78 @@ function posActions() {
 	
 	// При натискане на бутона за клавиатура
 	$(document.body).on('click', ".helpBtn", function(e){
+		clearTimeout(timeout);
 		openHelp();
 	});
 
 	$("body").setShortcutKey( CONTROL , DELETE ,function() {
+		 clearTimeout(timeout);
 		 deleteSelectedElement();
 	});
 
 	$("body").setShortcutKey( CONTROL , A ,function() {
+		clearTimeout(timeout);
 		openProducts();
 	});
 
 	$("body").setShortcutKey( CONTROL , S ,function() {
+		clearTimeout(timeout);
 		openQuantity();
 	});
 
 	$("body").setShortcutKey( CONTROL , Z ,function() {
+		clearTimeout(timeout);
 		openPayment();
 	});
 
 	$("body").setShortcutKey( CONTROL , E ,function() {
+		clearTimeout(timeout);
 		openText();
 	});
 
 	$("body").setShortcutKey( CONTROL , K ,function() {
+		clearTimeout(timeout);
 		openClient();
 	});
 
 	$("body").setShortcutKey( CONTROL , B ,function() {
+		clearTimeout(timeout);
 		openReceipt();
 	});
 
 	$("body").setShortcutKey( null , F2 ,function() {
+		clearTimeout(timeout);
 		var element = $('.enlargeProductBtn');
 		openInfo(element);
 	});
 	
 	$("body").setShortcutKey( CONTROL , P ,function() {
+		clearTimeout(timeout);
 		openPrint();
 	});
 
 	$("body").setShortcutKey( CONTROL , M ,function() {
+		clearTimeout(timeout);
 		openKeyboard();
 	});
 
 	$("body").setShortcutKey( CONTROL , O ,function() {
+		clearTimeout(timeout);
 		openReject();
 	});
 
-	$("body").setShortcutKey( CONTROL , X ,function() {
+	$("body").setShortcutKey( CONTROL , Q ,function() {
+		clearTimeout(timeout);
 		logout();
 	});
 
 	$("body").setShortcutKey( null , F1 ,function() {
+		clearTimeout(timeout);
 		openHelp();
 	});
 
 	$("body").setShortcutKey( CONTROL , I ,function() {
+		clearTimeout(timeout);
 		deteleElements();
 	});
 
@@ -401,6 +416,7 @@ function prevTab() {
 	sessionStorage.removeItem("focused");
 	var currentTab = $('.tabHolder li.active');
 	if($(currentTab).prev().length) {
+		$(currentTab).prev()[0].scrollIntoView({inline: "center", block: "end"});
 		$(currentTab).prev().click();
 		activeInput = false;
 		sessionStorage.setItem("activeProductTab", $('.tabHolder li.active').attr('id'));
@@ -418,9 +434,13 @@ function nextTab() {
 
 	var currentTab = $('.tabHolder li.active');
 	if($(currentTab).next().length) {
+		$(currentTab).next()[0].scrollIntoView({inline: "center", block: "end"});
 		$(currentTab).next().click();
+
 		activeInput = false;
 		sessionStorage.setItem("activeProductTab", $('.tabHolder li.active').attr('id'));
+
+
 	}
 	startNavigation();
 }
@@ -610,7 +630,7 @@ function calculateWidth(){
 	}
 	var scrollerWidth = 0;
 	$('#result-holder .tabHolder li').each(function () {
-		scrollerWidth += Math.ceil($(this).outerWidth()) + 20;
+		scrollerWidth += Math.ceil($(this).outerWidth()) + 21;
 	});
 
 	$('#result-holder .scroll-holder .tabHolder').css('width', scrollerWidth);
@@ -1254,7 +1274,9 @@ function openCurrentPosTab() {
 		var currentTabContent = activeTab.attr('data-content');
 
 		$("#" + currentTabContent).show();
+
 		startNavigation();
+		$(activeTab)[0].scrollIntoView({block: "center", end: "center"});
 		sessionStorage.removeItem('focusedOffset');
 	}
 }

@@ -559,15 +559,24 @@ abstract class bank_Document extends deals_PaymentDocument
         if(isset($form->rec->fromContainerId)){
             $FromContainer = doc_Containers::getDocument($form->rec->fromContainerId);
             if($FromContainer->isInstanceOf('deals_InvoiceMaster')){
-                $bankId = $FromContainer->fetchField('accountId');
+                if($bankId = $FromContainer->fetchField('accountId')){
+                    if($FromContainer->isInstanceOf('purchase_Invoices')){
+                        $iban = bank_Accounts::fetchField($bankId, 'iban');
+                        $form->setDefault('contragentIban', $iban);
+                    } else {
+                        $form->setDefault('ownAccount', $bankId);
+                    }
+                }
             }
         }
         
-        $bankId = isset($bankId) ? $bankId : (($dealInfo->get('bankAccountId') ? bank_OwnAccounts::fetchField("#bankAccountId = {$dealInfo->get('bankAccountId')}", 'id') : null));
-       
         if (empty($form->rec->id) && $form->cmd != 'refresh') {
+            if($dealInfo->get('bankAccountId')){
+                $bankId = bank_OwnAccounts::fetchField("#bankAccountId = {$dealInfo->get('bankAccountId')}", 'id');
+                $form->setDefault('ownAccount', $bankId);
+            }
+            
             $form->setDefault('ownAccount', bank_OwnAccounts::getCurrent('id', false));
-            $form->setDefault('ownAccount', $bankId);
         }
         
         if (isset($form->rec->ownAccount)) {
