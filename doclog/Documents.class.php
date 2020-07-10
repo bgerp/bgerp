@@ -1759,6 +1759,9 @@ class doclog_Documents extends core_Manager
             $requestedDoc = doc_Containers::getDocument($cid);
             $midDoc = doc_Containers::getDocument($parent->containerId);
             
+            $mRec = $midDoc->fetch();
+            expect($mRec && ($mRec->state != 'rejected'), $mRec);
+            
             // Вземаме от парент записа id то на изпращача
             $fParent = $parent;
             
