@@ -144,8 +144,8 @@ class pos_Points extends core_Master
         $this->FLD('theme', 'enum(default=Стандартна,dark=Тъмна)', 'caption=Настройки->Тема,default=dark,mandatory');
         $this->FLD('cashiers', 'keylist(mvc=core_Users,select=nick)', 'caption=Настройки->Оператори, mandatory,optionsFunc=pos_Points::getCashiers');
         
-        $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name)', 'caption=Настройки->Групи,input=none');
-        $this->FLD('products', 'keylist(mvc=cat_Products, select=name)', 'caption=Настройки->Артикули,input=none');
+        $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name)', 'caption=Настройки->Групи');
+        $this->FLD('products', 'keylist(mvc=cat_Products, select=name)', 'caption=Настройки->Артикули');
         
         $this->FLD('setPrices', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Цени, mandatory,default=yes');
         $this->FLD('setDiscounts', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Отстъпки, mandatory,settings,default=yes');
