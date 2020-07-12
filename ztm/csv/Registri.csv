@@ -1,0 +1,165 @@
+Регистър,Тип,Диапазон,Плъгин,Приоритет,Стойност,Описание
+access_control_1.allowed_attendees,Array,,Access control 1,system,"[""445E6046010080FF""]",Allowed attendees cards IDs.
+access_control_1.card_reader.enabled,int,,Access control 1,system,1,"Card reader, enabled"
+access_control_1.card_reader.model,str,,Access control 1,system,"""act230""",Card reader model
+access_control_1.card_reader.port.baudrate,int,,Access control 1,system,9600,"Card reader, port, baud rate"
+access_control_1.card_reader.port.name,str,,Access control 1,system,COM4,"Card reader, port, name"
+access_control_1.card_reader.serial_number,str,,Access control 1,system,"""2897""","Card reader, serial number"
+access_control_1.card_reader.vendor,int,,Access control 1,system,"""TERACOM""","Card reader, vendor"
+access_control_1.enabled,int,,Access control 1,system,1,"Card reader, enabled"
+access_control_1.exit_button.enabled,int,,Access control 1,system,1,"Exit button, enabled"
+access_control_1.exit_button.input,str,,Access control 1,system,"""DI0""","Exit button, input"
+access_control_1.lock_mechanism.enabled,str,,Access control 1,system,1,"Lock mechanism, enabled"
+access_control_1.lock_mechanism.output,str,,Access control 1,system,"""DO2""","Lock mechanism, output"
+access_control_1.time_to_open,int,,Access control 1,system,10,"Lock mechanism, time to open"
+access_control_2.allowed_attendees,Array,,Access control 2,system,"[""445E6046010080FF""]",Allowed attendees cards IDs.
+access_control_2.card_reader.enabled,int,,Access control 2,system,1,"Card reader, enabled"
+access_control_2.card_reader.model,str,,Access control 2,system,"""act230""",Card reader model
+access_control_2.card_reader.port.baudrate,int,,Access control 2,system,9600,"Card reader, port, baud rate"
+access_control_2.card_reader.port.name,str,,Access control 2,system,COM5,"Card reader, port, name"
+access_control_2.card_reader.serial_number,str,,Access control 2,system,"""2911""","Card reader, serial number"
+access_control_2.card_reader.vendor,int,,Access control 2,system,"""TERACOM""","Card reader, vendor"
+access_control_2.enabled,int,,Access control 2,system,1,"Card reader, enabled"
+access_control_2.exit_button.enabled,int,,Access control 2,system,1,"Exit button, enabled"
+access_control_2.exit_button.input,str,,Access control 2,system,"""DI0""","Exit button, input"
+access_control_2.lock_mechanism.enabled,str,,Access control 2,system,1,"Lock mechanism, enabled"
+access_control_2.lock_mechanism.output,str,,Access control 2,system,"""DO2""","Lock mechanism, output"
+access_control_2.time_to_open,Int,,Access control 2,system,10,"Lock mechanism, time to open"
+anti_tampering.enabled,Int,,Anti Tampering,system,0,Enabled
+anti_tampering.input,str,,Anti Tampering,system,"""DI1""",Signal input
+blinds.enabled,int,,Blinds,system,0,Enabled
+blinds.input_fb,str,,Blinds,system,"""AI1""",Feedback input
+blinds.output_ccw,str,,Blinds,system,"""DO0""",CCW output
+blinds.output_cw,str,,Blinds,system,"""DO1""",CW output
+blinds.position,int,,Blinds,system,0,Position
+blinds.sun.azimuth.mou,str,,Blinds,system,"""deg""",Sun azimuth MOU
+blinds.sun.azimuth.value,float,,Blinds,system,223.0418142258,Sun azimuth value
+blinds.sun.elevation.mou,str,,Blinds,system,"""deg""",Sun elevation MOU
+blinds.sun.elevation.value,float,,Blinds,system,41.592762155,Sun elevation value
+cold_circle.enabled,int,,Cold drink water,system,0,
+cold_water_fm.input,str,,Cold drink water,system,"""DI6""",
+cold_water_fm.tpl,int,,Cold drink water,system,10,
+cold_water_fm.value,int,,Cold drink water,device,0,Cold water liters
+hot_circle.enabled,int,,Hot drink water,system,0,
+hot_water_fm.input,str,,Hot drink water,system,"""DI7""",
+hot_water_fm.tpl,int,,Hot drink water,system,10,
+hot_water_fm.value,int,,Hot drink water,device,0,Hot water liters
+door_closed.enabled,int,,Door closed,system,0,Enabled
+door_closed.input,str,,Door closed,system,"""DI2""",Door tamper signal
+door_closed.state,Int,,Door closed,device,0,State
+general.cold_water_fm.leak,float,,General,device,0,Reported liters for the last reporting period.
+general.hot_water_fm.leak,float,,General,device,,Reported liters for the last reporting period.
+general.is_empty,int,,General,device,0,Is the zone empty.
+general.is_empty_timeout,int,,General,device,0,Time since empty.
+hvac.adjust_temp,int,,HVAC,system,0,Adjust temperature.
+hvac.air_temp_cent.circuit,str,,HVAC,system,"""28FFFCD0001703AE""",Air temp sensor central circuit.
+hvac.air_temp_cent.dev,str,,HVAC,system,"""temp""",Air temp sensor central device.
+hvac.air_temp_cent.enabled,int,,HVAC,system,1,Air temp sensor central enabled.
+hvac.air_temp_cent.type,str,,HVAC,system,"""DS18B20""",Air temp sensor central type.
+hvac.air_temp_lower.circuit,str,,HVAC,system,"""28FFC4EE00170349""",Air temp sensor lower circuit
+hvac.air_temp_lower.dev,str,,HVAC,system,"""temp""",Air temp sensor lower device
+hvac.air_temp_lower.enabled,int,,HVAC,system,1,Air temp sensor lower enabled
+hvac.air_temp_lower.type,str,,HVAC,system,"""DS18B20""",Air temp sensor lower type
+hvac.air_temp_upper.circuit,str,,HVAC,system,"""28FF2B70C11604B7""",Air temp sensor upper circuit
+hvac.air_temp_upper.dev,str,,HVAC,system,"""temp""",Air temp sensor upper device
+hvac.air_temp_upper.enabled,int,,HVAC,system,1,Air temp sensor upper enabled
+hvac.air_temp_upper.type,str,,HVAC,system,"""DS18B20""",Air temp sensor upper type
+hvac.convector.enabled,int,,HVAC,system,1,Convector enabled.
+hvac.convector.stage_1.output,str,,HVAC,system,"""RO0""",Convector stage 1 output
+hvac.convector.stage_2.output,str,,HVAC,system,"""RO1""",Convector stage 2 output
+hvac.convector.stage_3.output,str,,HVAC,system,"""RO2""",Convector stage 3 output
+hvac.convector.vendor,str,,HVAC,system,"""silpa""",Convector model
+hvac.delta_time,int,,HVAC,system,5,Measuring delta time
+hvac.enabled,int,,HVAC,system,0,Enabled
+hvac.goal_building_temp,int,,HVAC,system,20,Goal of the building temperature
+hvac.loop1.cnt.enabled,int,,HVAC,system,1,"Loop 1, water flow meter enabled"
+hvac.loop1.cnt.input,str,,HVAC,system,"""DI4""","Loop 1, water flow meter signal input"
+hvac.loop1.cnt.tpl,int,,HVAC,system,1,"Loop 1, water flow meter ticks per liter scale"
+hvac.loop1.fan.enabled,int,,HVAC,system,1,"Loop 1, fan enabled"
+hvac.loop1.fan.max_speed,int,,HVAC,system,30,"Loop 1, fan maximum speed [%]"
+hvac.loop1.fan.min_speed,int,,HVAC,system,0,"Loop 1, fan minimum speed [%]"
+hvac.loop1.fan.output,str,,HVAC,system,"""AO3""","Loop 1, fan analog output"
+hvac.loop1.fan.vendor,str,,HVAC,system,"""HangzhouAirflowElectricApplications""","Loop 1, fan vendor"
+hvac.loop1.temp.circuit,str,,HVAC,system,"""28FF2B70C11604B7""","Loop 1, temperature sensor circuit"
+hvac.loop1.temp.dev,str,,HVAC,system,"""temp""","Loop 1, temperature sensor device"
+hvac.loop1.temp.enabled,int,,HVAC,system,1,"Loop 1, temperature sensor enabled"
+hvac.loop1.temp.type,str,,HVAC,system,"""DS18B20""","Loop 1, temperature sensor type"
+hvac.loop1.valve.enabled,int,,HVAC,system,1,"Loop 1, valve enabled"
+hvac.loop1.valve.feedback,str,,HVAC,system,"""AI1""","Loop 1, valve feed back input"
+hvac.loop1.valve.max_pos,int,,HVAC,system,100,"Loop 1, valve maximum position"
+hvac.loop1.valve.min_pos,int,,HVAC,system,0,"Loop 1, valve minimum position"
+hvac.loop1.valve.output,str,,HVAC,system,"""RO4""","Loop 1, valve output"
+hvac.loop1.valve.vendor,str,,HVAC,system,"""TONHE""","Loop 1, valve vendor"
+hvac.loop2.cnt.enabled,int,,HVAC,system,1,"Loop 2, water flow meter enabled"
+hvac.loop2.cnt.input,str,,HVAC,system,"""DI5""","Loop 2, water flow meter signal input"
+hvac.loop2.cnt.tpl,int,,HVAC,system,1,"Loop 2, water flow meter ticks per liter scale"
+hvac.loop2.fan.enabled,int,,HVAC,system,1,"Loop 2, fan enabled"
+hvac.loop2.fan.max_speed,int,,HVAC,system,30,"Loop 2, fan maximum speed [%]"
+hvac.loop2.fan.min_speed,int,,HVAC,system,0,"Loop 2, fan minimum speed [%]"
+hvac.loop2.fan.output,str,,HVAC,system,"""AO4""","Loop 2, fan analog output"
+hvac.loop2.fan.vendor,str,,HVAC,system,"""HangzhouAirflowElectricApplications""","Loop 2, fan vendor"
+hvac.loop2.temp.circuit,str,,HVAC,system,"""28FFC4EE00170349""","Loop 2, temperature sensor circuit"
+hvac.loop2.temp.dev,str,,HVAC,system,"""temp""","Loop 2, temperature sensor device"
+hvac.loop2.temp.enabled,int,,HVAC,system,1,"Loop 2, temperature sensor enabled"
+hvac.loop2.temp.type,str,,HVAC,system,"""DS18B20""","Loop 2, temperature sensor type"
+hvac.loop2.valve.enabled,int,,HVAC,system,1,"Loop 2, valve enabled"
+hvac.loop2.valve.feedback,str,,HVAC,system,"""AI2""","Loop 2, valve feed back input"
+hvac.loop2.valve.max_pos,int,,HVAC,system,100,"Loop 2, valve maximum position"
+hvac.loop2.valve.min_pos,int,,HVAC,system,0,"Loop 2, valve minimum position"
+hvac.loop2.valve.output,str,,HVAC,system,"""RO3""","Loop 2, valve output"
+hvac.loop2.valve.vendor,str,,HVAC,system,"""TONHE""","Loop 2, valve vendor"
+hvac.temp.actual,int,,HVAC,system,null,Actual temperature
+hvac.temp.max,int,,HVAC,system,30,Maximum achievable
+hvac.temp.min,int,,HVAC,system,20,Minimum achievable
+hvac.thermal_force_limit,int,,HVAC,system,100,Thermal force limit
+hvac.thermal_mode,int,,HVAC,system,2,Thermal mode
+hvac.update_rate,int,,HVAC,system,3,Update rate of the plugin
+light.enabled,int,,Light,system,0,Enabled
+light.max,int,,Light,system,10000,Maximum limit
+light.min,int,,Light,system,800,Minimum limit
+light.sensor.circuit,str,,Light,system,"""26607314020000F8""",Sensor circuit
+light.sensor.dev,str,,Light,system,"""1wdevice""",Sensor device
+light.sensor.enabled,int,,Light,system,1,Sensor enabled
+light.v1.output,str,,Light,system,"""AO1""",Analog output 1
+light.v2.output,str,,Light,system,"""AO2""",Analog output 2
+mode.emergency,int,,Mode,system,0,"State of the emergency outputs, bit coded"
+mode.energy,int,,Mode,system,0,Energy mode of the building
+monitoring.enabled,int,,Monitoring,system,0,Enabled
+monitoring.clear_errors,int,,Monitoring,device,0,Clear last messages in the registers below
+monitoring.error_message,object,,Monitoring,device,,"Error, similar resource conflict description"
+monitoring.info_message,object,,Monitoring,device,,"Info, similar resource detected description"
+monitoring.warning_message,object,,Monitoring,device,,"Warning, similar resource description"
+outside.light,int,,Outside,system,null,Outside of the building light.
+outside.rh,int,,Outside,system,null,Outside of the building relative humidity
+outside.temp.a6,int,,Outside,system,null,Outside of the building actual temp 6hours behind
+outside.temp.actual,int,,Outside,system,null,Outside of the building actual temperature
+outside.temp.max24,int,,Outside,system,null,Outside of the building maximum temperature for 24 hours
+outside.temp.min24,int,,Outside,system,null,Outside of the building minimum temperature for 24 hours
+outside.wind.actual,int,,Outside,system,null,Outside of the building actual wind speed
+outside.wind.max12,int,,Outside,system,null,Outside of the building average speed for 12 hours.
+pir_detector.enabled,int,,PIR Detector,system,0,Enabled
+pir_detector.input,str,,PIR Detector,system,"""DI0""",Signal input
+pir_detector.state,Int,,PIR Detector,device,0,State
+self_current.enabled,int,,Self current,system,0,Enabled
+self_current.sub_dev.dev_id,int,,Self current,system,2,Power analyser MODBUS ID
+self_current.sub_dev.model,str,,Self current,system,"""SDM120""",Power analyser model name
+self_current.sub_dev.uart,int,,Self current,system,1,Power analyser UART name
+self_current.sub_dev.vendor,str,,Self current,system,"""Eastron""",Power analyser vendor name
+self_current.sub_dev.current.value,float,,Self current,device,0.098,Drained current of the room
+self_current.sub_dev.current_power.value,float,,Self current,device,17.029,Drained power of the room
+self_current.sub_dev.total_energy.value,float,,Self current,device,0.18,Total consumed energy
+self.ram.current,float,,Self,device,0,RAM Usage
+self.ram.peak,float,,Self,device,0,RAM Peak usage
+self.time.usage,float,,Self,device,0,Cycle time consumption.
+status_led.blink_time,int,,Status LED,system,1,Blink time
+status_led.enabled,int,,Status LED,system,1,Enabled
+status_led.output,str,,Status LED,system,"""LED0""",Signal output
+sun_pos.enabled,int,,Software SUN position,system,1,Enabled
+wdt_tablet.enabled,int,,WDT Tablet,system,0,DEPRECATED
+wdt_tablet.output,str,,WDT Tablet,system,"""DO3""",DEPRECATED
+wdt_tablet.pulse_time,int,,WDT Tablet,system,10,DEPRECATED
+wdt_tablet.reset,int,,WDT Tablet,system,0,DEPRECATED
+wdt_tablet.state,int,,WDT Tablet,device,0,DEPRECATED
+window_closed.enabled,int,,Window closed,system,0,Enabled
+window_closed.input,str,,Window closed,system,"""!DI3""",Signal input
+window_closed.state,Int,,Window closed,device,0,State

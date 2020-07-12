@@ -18,5 +18,8 @@ class ztm_Wrapper extends plg_ProtoWrapper
     public function description()
     {
         $this->TAB('ztm_Devices', 'Устройства', 'ztm, ceo');
+        $this->TAB('ztm_Profiles', 'Профили', 'ztm, ceo');
+        $this->TAB('ztm_ProfileDefaults', 'Профили->Регистри', 'ztm, ceo');
+        $this->TAB('ztm_RegistersDef', 'Регистри', 'ztm, ceo');
     }
 }
