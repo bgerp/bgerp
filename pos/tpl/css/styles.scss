@@ -224,6 +224,9 @@
 }
 #modalContent .keyboard {
 	display: none;
+	&#keyboard-lat {
+		display: block;
+	}
 }
 .productModal {
 	margin-left: 20px;

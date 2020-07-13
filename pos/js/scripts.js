@@ -1064,31 +1064,34 @@ function openModal(title, heightModal) {
 
 	dialog.dialog( "open" );
 	$('.ui-dialog-titlebar-close').focus();
-	if ($('.keyboard'.length)) {
-		setTimeout(function(){
 
-					var keyboard = sessionStorage.getItem('activeKeyboard');
-					if (!keyboard) {
-						keyboard = "keyboard-lat";
-					}
-					$('.keyboard#' + keyboard).show().siblings('.keyboard').hide();
 
-				$('.keyboardText').focus();
+	setTimeout(function () {
+		if ($('#modalContent .keyboard').length) {
+			var keyboard = sessionStorage.getItem('activeKeyboard');
+			if($('#' + keyboard).length ){
+				$('.keyboard#' + keyboard).show().siblings('.keyboard').hide();
+			}
 
-				$('.keyboardText').keydown(function(event) {
-					$('.pressed').removeClass('pressed');
-					var key = event.key.toLowerCase();
-					$(".keyboard-btn[data-key=" + key+ "]").addClass('pressed');
-					if (event.key == "Enter") {
-						$('.select-input-pos').val($('.keyboardText').val());
-						$('.ui-dialog-titlebar-close').click();
-						activeInput = true;
-					}
-				});
+			$('.keyboardText').focus();
 
-			},50);
+			$('.keyboardText').keydown(function(event) {
+				$('.pressed').removeClass('pressed');
+				var key = event.key.toLowerCase();
+				$(".keyboard-btn[data-key=" + key+ "]").addClass('pressed');
+				if (event.key == "Enter") {
+					$('.select-input-pos').val($('.keyboardText').val());
+					$('.ui-dialog-titlebar-close').click();
+					activeInput = true;
+				}
+			});
 
-	}
+		}
+	}, 1);
+
+
+
+
 	openedModal = true;
 }
 
