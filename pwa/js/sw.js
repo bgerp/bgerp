@@ -19,9 +19,6 @@ addEventListener('fetch', function (event) {
 	  return;
   }
   
-  console.log('URL:' + event.request.url);
-  console.log('Method: ' + event.request.method);
-  
 // event.respondWith(Response.redirect('/doc_Files'));
   
   event.waitUntil(async function () {
