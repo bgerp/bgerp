@@ -909,7 +909,9 @@ class pos_Terminal extends peripheral_Terminal
             $count++;
         }
         $tpl = ht::createElement('div', array('class' => 'grid'), $tpl, true);
-        $tpl->prepend(tr("|*<div class='divider'>|Най-използвани текстове|*</div>"));
+        $tpl->prepend(tr("|*<div class='contentHolderResults'><div class='divider'>|Най-използвани текстове|*</div>"));
+        $tpl->append("</div>");
+        
         return $tpl;
     }
     
@@ -1241,7 +1243,7 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultPayment($rec, $string, $selectedRec)
     {
-        $tpl = new core_ET(tr("|*<div class='grid'>[#PAYMENTS#]</div><div class='divider'>|Приключване|*</div><div class='grid'>[#CLOSE_BTNS#]</div>"));
+        $tpl = new core_ET(tr("|*<div class='contentHolderResults'><div class='grid'>[#PAYMENTS#]</div><div class='divider'>|Приключване|*</div><div class='grid'>[#CLOSE_BTNS#]</div></div>"));
         
         $payUrl = (pos_Receipts::haveRightFor('pay', $rec)) ? toUrl(array('pos_ReceiptDetails', 'makePayment', 'receiptId' => $rec->id), 'local') : null;
         $disClass = ($payUrl) ? 'navigable' : 'disabledBtn';
