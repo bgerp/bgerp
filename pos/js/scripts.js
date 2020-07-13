@@ -198,17 +198,11 @@ function posActions() {
 		
 		var id = $(this).attr('data-content');
 		$(this).addClass('active').siblings().removeClass('active');
-		
+
 		// да се скриват и показват само табовете на бележките
 		if($(this).hasClass('noajaxtabs')){
 			$("#" + id).show().siblings().hide();
-		}
-		
-		if($('.scroll-holder.productTabs').length) {
-			sessionStorage.setItem("activeProductTab", $('.tabHolder li.active').attr('id'));
-		}
-		
-		if(!$(this).hasClass('noajaxtabs')){console.log('aa');
+		} else {
 			triggerSearchInput($(".large-field"), 0);
 		}
 		
@@ -440,7 +434,6 @@ function prevTab() {
 		$(currentTab).prev()[0].scrollIntoView({inline: "center", block: "end"});
 		$(currentTab).prev().click();
 		activeInput = false;
-		sessionStorage.setItem("activeProductTab", $('.tabHolder li.active').attr('id'));
 	}
 
 	startNavigation();
@@ -459,9 +452,6 @@ function nextTab() {
 		$(currentTab).next().click();
 
 		activeInput = false;
-		sessionStorage.setItem("activeProductTab", $('.tabHolder li.active').attr('id'));
-
-
 	}
 	startNavigation();
 }
@@ -1295,14 +1285,9 @@ function getSelectedRowId() {
 }
 
 function openCurrentPosTab() {
-	if($('.tabHolder li').length) {
-		var activeId = sessionStorage.getItem('activeProductTab');
-		if (activeId && $('.tabHolder li#' + activeId ).length) {
-			var activeTab = $('.tabHolder li#' + activeId ).addClass('active');
-		} else {
-			var activeTab = $('.tabHolder li:first').addClass('active');
-		}
-		var currentTabContent = activeTab.attr('data-content');
+	if($('.tabHolder .noajaxtabs').length) {
+		var activeTab =  $('.tabHolder .noajaxtabs:first').addClass('active');
+		var currentTabContent = $(activeTab).attr('data-content');
 
 		$("#" + currentTabContent).show();
 
