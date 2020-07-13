@@ -55,55 +55,6 @@ function posActions() {
 		processUrl(url, params);
 	});
 
-
-	/*
-	 * Търси по инпута ако може
-	 */
-	function triggerSearchInput(element, timeoutTime)
-	{
-		// След всяко натискане на бутон изчистваме времето на изчакване
-		clearTimeout(timeout);
-		
-		var url = element.attr("data-keyupurl");
-		if(!url){
-			return;
-		}
-
-		var inpVal = element.val();
-		var operation = getSelectedOperation();
-
-		if(isMicroformat(inpVal) && (operation == 'add' || operation == 'edit')){
-
-			var selectedRecId = getSelectedRowId();
-			doOperation(operation, selectedRecId, true);
-			return;
-		}
-		
-		if(inpVal.startsWith("*")){
-			return;
-		}
-		
-		var selectedElement = $(".highlighted.productRow");
-		var selectedRecId = selectedElement.attr("data-id");
-
-		// Правим Ajax заявката като изтече време за изчакване
-		timeout = setTimeout(function(){
-			resObj = new Object();
-			resObj['url'] = url;
-			
-			var params = {operation:operation,search:inpVal,recId:selectedRecId};
-			
-			var activeTab = $(".tabHolder li.active");
-			if(activeTab.length){
-				var id = activeTab.attr("data-id");
-				params.selectedProductGroupId = id;
-			}
-			
-			processUrl(url, params);
-
-		}, timeoutTime);
-	}
-	
 	
 	/**
 	 * При спиране на писането в полето за търсене
@@ -194,21 +145,17 @@ function posActions() {
 		}
 	});
 
+	
+	/**
+	 * При клик на таба
+	 */
 	$(document.body).on('click', ".tabHolder li", function() {
-		
-		var id = $(this).attr('data-content');
-		$(this).addClass('active').siblings().removeClass('active');
-
-		// да се скриват и показват само табовете на бележките
-		if($(this).hasClass('noajaxtabs')){
-			$("#" + id).show().siblings().hide();
-		} else {
-			triggerSearchInput($(".large-field"), 0);
-		}
+		activateTab($(this), 0);
 		
 		startNavigation();
 	});
 
+	
 	$(document.body).on('click', ".ui-dialog-titlebar-close", function() {
 		if($('.keyboardText').val()){
 			$('.select-input-pos').val($('.keyboardText').val());
@@ -432,7 +379,8 @@ function prevTab() {
 	var currentTab = $('.tabHolder li.active');
 	if($(currentTab).prev().length) {
 		$(currentTab).prev()[0].scrollIntoView({inline: "center", block: "end"});
-		$(currentTab).prev().click();
+		activateTab($(currentTab).prev(), 750);
+		
 		activeInput = false;
 	}
 
@@ -449,8 +397,8 @@ function nextTab() {
 	var currentTab = $('.tabHolder li.active');
 	if($(currentTab).next().length) {
 		$(currentTab).next()[0].scrollIntoView({inline: "center", block: "end"});
-		$(currentTab).next().click();
-
+		activateTab($(currentTab).next(), 750);
+		
 		activeInput = false;
 	}
 	startNavigation();
@@ -1367,4 +1315,70 @@ function render_toggleAddedProductFlag(data)
 
 		}
 	});
+}
+
+
+/*
+ * Активира таба
+ */
+function activateTab(element, timeOut)
+{
+	var id = element.attr('data-content');
+	element.addClass('active').siblings().removeClass('active');
+
+	// да се скриват и показват само табовете на бележките
+	if(element.hasClass('noajaxtabs')){
+		$("#" + id).show().siblings().hide();
+	} else {
+		triggerSearchInput($(".large-field"), timeOut);
+	}
+}
+
+
+/*
+ * Търси по инпута ако може
+ */
+function triggerSearchInput(element, timeoutTime)
+{
+	// След всяко натискане на бутон изчистваме времето на изчакване
+	clearTimeout(timeout);
+	
+	var url = element.attr("data-keyupurl");
+	if(!url){
+		return;
+	}
+
+	var inpVal = element.val();
+	var operation = getSelectedOperation();
+
+	if(isMicroformat(inpVal) && (operation == 'add' || operation == 'edit')){
+
+		var selectedRecId = getSelectedRowId();
+		doOperation(operation, selectedRecId, true);
+		return;
+	}
+	
+	if(inpVal.startsWith("*")){
+		return;
+	}
+	
+	var selectedElement = $(".highlighted.productRow");
+	var selectedRecId = selectedElement.attr("data-id");
+
+	// Правим Ajax заявката като изтече време за изчакване
+	timeout = setTimeout(function(){
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		var params = {operation:operation,search:inpVal,recId:selectedRecId};
+		
+		var activeTab = $(".tabHolder li.active");
+		if(activeTab.length){
+			var id = activeTab.attr("data-id");
+			params.selectedProductGroupId = id;
+		}
+		
+		processUrl(url, params);
+
+	}, timeoutTime);
 }
