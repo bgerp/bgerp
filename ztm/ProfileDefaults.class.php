@@ -20,6 +20,11 @@ class ztm_ProfileDefaults extends core_Detail
 {
     public $title = 'Детайл на профил в Zontromat';
     
+    /**
+     * Заглавие в единствено число
+     */
+    public $singleTitle = 'Регистър';
+    
     
     /**
      * Кой има право да чете?
@@ -95,6 +100,18 @@ class ztm_ProfileDefaults extends core_Detail
         $this->FLD('value', 'varchar(32)', 'caption=Стойност');
         
         $this->setDbUnique('profileId, registerId');
+        
+    }
+    
+    
+    
+    /**
+     * След подготовка на лист тулбара
+     */
+    public static function on_AfterPrepareListToolbar($mvc, $data)
+    {
+      
+        $data->toolbar->removeBtn('btnAdd');
         
     }
     

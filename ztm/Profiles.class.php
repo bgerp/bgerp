@@ -117,15 +117,10 @@ class ztm_Profiles extends core_Master
         
         $data->toolbar->addBtn('Изход', array('ztm_Profiles','ret_url' => true));
         
-        $data->toolbar->addBtn('Добавяне на Регистър', array(ztm_ProfileDefaults, 'add', 'profileId' => $data->rec->id, 'ret_url' => true),
-                               'title=Добавяне на Регистър,ef_icon = img/16/shopping.png');
-        
-        
-    }
-    
-    public static function on_AfterPrepareSingle($mvc, &$res, $data)
-    {
-        
+        if (ztm_ProfileDefaults::haveRightFor('add')) {
+            $data->toolbar->addBtn('Добавяне на Регистър', array(ztm_ProfileDefaults, 'add', 'profileId' => $data->rec->id, 'ret_url' => true),
+                                'order=15,title=Добавяне на Регистър,ef_icon = img/16/shopping.png');
+        }
     }
     
     

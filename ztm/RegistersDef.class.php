@@ -121,6 +121,61 @@ class ztm_RegistersDef extends core_Master
         
        
     }
+    
+    /**
+     * След подготовка на лист тулбара
+     */
+    public static function on_AfterPrepareListToolbar($mvc, $data)
+    {
+        
+        $data->toolbar->addBtn('Базово Зареждане', array(ztm_RegistersDef, 'BasicLoadingOfRegisters', 'ret_url' => true),
+            'order=10,title=Базово Зареждане,ef_icon = img/16/shopping.png');
+        
+    }
+    
+    /**
+     * Изключва един том от по-голям
+     */
+    public function act_BasicLoadingOfRegisters()
+    {
+        /**
+         * Установява необходима роля за да се стартира екшъна
+         */
+        requireRole('ztm');
+        
+        $regQuery = ztm_RegistersDef::getQuery();
+        
+        $existingRegisters = arr::extractValuesFromArray($regQuery->fetchAll(), 'name');
+        
+        $baseRegistersArr = array();
+        
+        $baseRegistersArr = file('../bgerp/ztm/csv/Registri.csv');
+        
+        for ($i = 1; $i<= count($baseRegistersArr); $i++){
+            
+            list($name, $type, $range, $plugin, $priority, $default, $description) = explode(',', $baseRegistersArr[$i]);
+            
+            if (in_array($name, $existingRegisters))continue;
+            
+            $baseRegisters = (object)array(
+                'name' => $name,
+                'type' => $type,
+                'range' => $range,
+                'plugin' => $plugin,
+                'priority' => $priority,
+                'default' => $default,
+                'description' => $description,
+            );
+            
+            ztm_RegistersDef::save($baseRegisters);
+            
+            unset($name, $type, $range, $plugin, $priority, $default, $description);
+      
+        }
+
+        
+        return new Redirect(getRetUrl());
+    }
 
     
 }
