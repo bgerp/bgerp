@@ -401,11 +401,6 @@ function posActions() {
 		openHelp();
 	});
 
-	$("body").setShortcutKey( CONTROL , I ,function() {
-		clearTimeout(timeout);
-		deteleElements();
-	});
-
 	$("body").setShortcutKey( CONTROL , LEFT ,function() {
 		prevTab();
 	});
@@ -506,10 +501,6 @@ function inputChars(inputElement, val) {
 	activeInput = true;
 }
 
-
-function deteleElements(){
-	$('.rejectBtn').parent().trigger("click");
-}
 
 // Активиране на лупата за увеличение
 function openInfo(element) {
