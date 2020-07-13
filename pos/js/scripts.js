@@ -1106,6 +1106,7 @@ function startNavigation() {
 			$('#' + focused ).addClass('selected');
 		}
 		$('#result-holder .navigable:visible').keynav();
+
 		$('#result-holder .withTabs').scrollTop(scrollTop);
 
 	}
@@ -1291,10 +1292,9 @@ function openCurrentPosTab() {
 
 		$("#" + currentTabContent).show();
 
-
-		$(activeTab)[0].scrollIntoView({block: "center", end: "center"});
 		sessionStorage.removeItem('focusedOffset');
 	}
+	$('.tabHolder .active')[0].scrollIntoView({block: "end", inline: "end"});
 	startNavigation();
 }
 
