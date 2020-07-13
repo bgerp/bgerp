@@ -100,7 +100,9 @@ $orange: #f90; /*оранжево като при ховър на менюто*/
 		padding-right: 10px;
 	}
 }
-
+.narrow .folder-cover .groupList table .dt {
+	white-space: normal;
+}
 tr.noHover td:hover { 
 	color: #999; 
 	background: white;

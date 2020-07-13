@@ -58,6 +58,9 @@ dl {
     white-space: nowrap;
     padding-right: 10px; }
 
+.narrow .folder-cover .groupList table .dt {
+  white-space: normal; }
+
 tr.noHover td:hover {
   color: #999999;
   background: white; }
