@@ -556,13 +556,15 @@ class callcenter_Talks extends core_Master
         }
         
         if (strpos($internalNum, '00') === 0) {
-            $errArr[] = 'Вътрешният номер започва с две нули';
-            $internalNum = substr($internalNum, 1);
+            $errArr[] = 'Вътрешният номер започва с повече от една нула';
+            $internalNum = ltrim($internalNum, 0);
+            $internalNum = '0' . $internalNum;
         }
         
         if (strpos($externalNum, '00') === 0) {
-            $errArr[] = 'Външният номер започва с две нули';
-            $externalNum = substr($externalNum, 1);
+            $errArr[] = 'Външният номер започва с повече от една нула';
+            $externalNum = ltrim($externalNum, 0);
+            $externalNum = '0' . $externalNum;
         }
         
         // Ако не е подаден вътрешен номер
