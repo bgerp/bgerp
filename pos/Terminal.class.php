@@ -1633,7 +1633,7 @@ class pos_Terminal extends peripheral_Terminal
         $data->searchString = $searchString;
         $data->searchStringPure = $string;
         $rec->_selectedGroupId = Mode::get("currentSelectedGroup{$rec->id}");
-       
+        
         $res = array();
         $res['products'] = (object)array('rows' => $this->prepareProductTable($rec, $string), 'placeholder' => 'BLOCK2');
         if(isset($selectedRec->productId) && !empty($settings->maxSearchProductRelations)){
@@ -1652,12 +1652,14 @@ class pos_Terminal extends peripheral_Terminal
                                     <div class='grid'>[#BLOCK3#]</div><!--ET_END BLOCK3-->
                                  </div>"));
         
-        $groups = keylist::toArray($settings->groups);
-        $countGroups = countR($groups);
+        $groupsTable = type_Table::toArray($settings->productGroups);
         
         // Ако има групи на артикулите
-        if($countGroups){
-            $resultTpl = ($countGroups) ? new core_ET("<div class='scroll-holder productTabs'><ul class='tabHolder'>[#TAB#]</ul></div>") : new core_ET("");
+        if(countR($groupsTable)){
+            arr::sortObjects($groupsTable, 'order', 'asc');
+            $groups = arr::extractValuesFromArray($groupsTable, 'groupId');
+            
+            $resultTpl = new core_ET("<div class='scroll-holder productTabs'><ul class='tabHolder'>[#TAB#]</ul></div>");
             $groups = array('all' => null) + $groups;
             foreach ($groups as $groupId){
                 $active = ($rec->_selectedGroupId == $groupId) ? 'active' : '';
@@ -1789,7 +1791,7 @@ class pos_Terminal extends peripheral_Terminal
             
             // Ако не се търси подробно артикул, се показват тези от любими
             if(empty($searchString)){
-                $groups = keylist::toArray(pos_Points::getSettings($rec->pointId, 'groups'));
+                $groups = type_Table::toArray(pos_Points::getSettings($rec->pointId, 'productGroups'));
                 $productsArr = keylist::toArray(pos_Points::getSettings($rec->pointId, 'products'));
                 
                 if(countR($productsArr) || countR($groups)){
@@ -1798,6 +1800,7 @@ class pos_Terminal extends peripheral_Terminal
                     $pQuery->orderBy('code,name', 'ASC');
                     
                     if(countR($groups)){
+                        $groups = arr::extractValuesFromArray($groups, 'groupId');
                         $or = countR($productsArr) ? true : false;
                         $pQuery->likeKeylist('groups', $groups, $or);
                         
