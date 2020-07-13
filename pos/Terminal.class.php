@@ -461,6 +461,8 @@ class pos_Terminal extends peripheral_Terminal
      */
     public function act_Keyboard()
     {
+        pos_Receipts::requireRightFor('terminal');
+        
         $string = Request::get('string', 'varchar');
         $tpl = getTplFromFile('pos/tpl/terminal/KeyboardFull.shtml');
         $tpl->replace($string, 'STRING');
@@ -1121,14 +1123,14 @@ class pos_Terminal extends peripheral_Terminal
             $temp =  new core_ET("");
             foreach ($contragents as $obj){
                 $setContragentUrl = toUrl(array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $obj->contragentClassId, 'contragentId' => $obj->contragentId, 'ret_url' => true));
-                $divAttr = array("id" => "contragent{$cnt}", 'class' => 'posResultContragent posBtns navigable enlargable', 'data-url' => $setContragentUrl, 'data-enlarge-object-id' => $obj->contragentId, 'data-enlarge-class-id' => $obj->contragentClassId, 'data-modal-title' => strip_tags($obj->title));
+                $divAttr = array("id" => "contragent{$cnt}", 'class' => 'posResultContragent posBtns navigable enlargable', 'title' => 'Избор на контрагент', 'data-url' => $setContragentUrl, 'data-enlarge-object-id' => $obj->contragentId, 'data-enlarge-class-id' => $obj->contragentClassId, 'data-modal-title' => strip_tags($obj->title));
                 if(!$canSetContragent){
                     $divAttr['disabled'] = 'disabled';
                     $divAttr['disabledBtn'] = 'disabledBtn';
                     unset($divAttr['data-url']);
                 }
                 
-                $obj->title = str::limitLen($obj->title, 48);
+                $obj->title = ht::createHint(str::limitLen($obj->title, 32), $obj->title);
                 if($showUniqueNumberLike){
                     $subArr = array();
                     if(!empty($obj->vatId)){
@@ -1649,9 +1651,9 @@ class pos_Terminal extends peripheral_Terminal
                                  <div class='contentHolderResults'>
                                     [#BLOCK2#]
                                     <!--ET_BEGIN BLOCK1--><div class='divider'>|Свързани артикули|*</div>
-                                    <div class='grid'>[#BLOCK1#]</div><!--ET_END BLOCK1-->
+                                    [#BLOCK1#]<!--ET_END BLOCK1-->
                                     <!--ET_BEGIN BLOCK3--><div class='divider'>|Списък от предишни продажби|*</div>
-                                    <div class='grid'>[#BLOCK3#]</div><!--ET_END BLOCK3-->
+                                    [#BLOCK3#]<!--ET_END BLOCK3-->
                                  </div>"));
         
         $groupsTable = type_Table::toArray($settings->productGroups);
