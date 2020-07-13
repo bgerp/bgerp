@@ -4,7 +4,7 @@
 /**
  * Път до външния файл
  */
-defIfNot('CANVASGAUGE_VERSION', '2.1.3');
+defIfNot('CANVASGAUGE_VERSION', '2.1.4');
 
 
 /**
