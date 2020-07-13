@@ -1721,7 +1721,7 @@ class pos_Terminal extends peripheral_Terminal
             $productsInList = arr::extractValuesFromArray(cat_Listings::getAll($listId, null, $maxSearchProductInLastSales), 'productId');
             if(is_array($productsInList)){
                 foreach ($productsInList as $productId){
-                    $pRec = cat_Products::fetch($productId, 'name,isPublic,nameEn,code,canStore,measureId,groups');
+                    $pRec = cat_Products::fetch($productId, 'name,isPublic,nameEn,code,canStore,measureId,groups,canSell');
                 
                     if(empty($rec->_selectedGroupId) || keylist::isIn($rec->_selectedGroupId, $pRec->groups)){
                         $products[$productId] = $pRec;
