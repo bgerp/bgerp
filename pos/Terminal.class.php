@@ -1647,7 +1647,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $tpl = new core_ET(tr("|*<!--ET_BEGIN GROUP_TAB-->[#GROUP_TAB#]<!--ET_END GROUP_TAB-->
                                  <div class='contentHolderResults'>
-                                    <div class='grid'>[#BLOCK2#]</div>
+                                    [#BLOCK2#]
                                     <!--ET_BEGIN BLOCK1--><div class='divider'>|Свързани артикули|*</div>
                                     <div class='grid'>[#BLOCK1#]</div><!--ET_END BLOCK1-->
                                     <!--ET_BEGIN BLOCK3--><div class='divider'>|Списък от предишни продажби|*</div>
@@ -1679,18 +1679,22 @@ class pos_Terminal extends peripheral_Terminal
         $count = 0;
         foreach ($res as $key => $obj){
             $countRows = countR($obj->rows);
-            
-            foreach ($obj->rows as $row){
-                $row->elementId = "{$key}{$row->id}";
-                $bTpl = clone $block;
-                $bTpl->placeObject($row);
-                $bTpl->removeBlocksAndPlaces();
-                $tpl->append($bTpl, $obj->placeholder);
-                $count++;
-            }
-            
-            if(!$countRows && $key == 'products'){
-                $tpl->append('<div class="noFoundInGroup">' . tr("Няма намерени артикули в групата") . '</div>', $obj->placeholder);
+            if($countRows){
+                $pTpl = new core_ET("<div class='grid'>[#RES#]</div>");
+                
+                foreach ($obj->rows as $row){
+                    $row->elementId = "{$key}{$row->id}";
+                    $bTpl = clone $block;
+                    $bTpl->placeObject($row);
+                    $bTpl->removeBlocksAndPlaces();
+                    $pTpl->append($bTpl, 'RES');
+                    $count++;
+                }
+                
+                $pTpl->removeBlocksAndPlaces();
+                $tpl->append($pTpl, $obj->placeholder);
+            } elseif($key == 'products'){
+                $tpl->append('<div class="noFoundInGroup">' . tr("Няма намерени артикули") . '</div>', $obj->placeholder);
             }
         }
         
