@@ -1291,10 +1291,11 @@ function openCurrentPosTab() {
 
 		$("#" + currentTabContent).show();
 
-		startNavigation();
+
 		$(activeTab)[0].scrollIntoView({block: "center", end: "center"});
 		sessionStorage.removeItem('focusedOffset');
 	}
+	startNavigation();
 }
 
 /**
