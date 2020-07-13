@@ -1673,7 +1673,8 @@ class pos_Terminal extends peripheral_Terminal
                 Mode::push('treeShortName', true);
                 $groupName = (isset($groupId)) ? cat_Groups::getVerbal($groupId, 'name') : tr("Всички");
                 Mode::pop('treeShortName');
-                $tab = "<li id='group{$groupId}' data-id = '{$groupId}' class='selectable {$active}'>{$groupName}</li>";
+                $tabTitle = tr("Избор на група|*: \"{$groupName}\"");
+                $tab = "<li id='group{$groupId}' data-id = '{$groupId}' class='selectable {$active}' title='{$tabTitle}'>{$groupName}</li>";
                 $resultTpl->append($tab, "TAB");
             }
             
@@ -1688,7 +1689,7 @@ class pos_Terminal extends peripheral_Terminal
                 $pTpl = new core_ET("<div class='grid'>[#RES#]</div>");
                 
                 foreach ($obj->rows as $row){
-                    $row->elementId = "{$key}{$row->id}";
+                    $row->elementId = "{$key}|{$rec->_selectedGroupId}|{$row->id}";
                     $bTpl = clone $block;
                     $bTpl->placeObject($row);
                     $bTpl->removeBlocksAndPlaces();
