@@ -174,12 +174,19 @@ class pos_Points extends core_Master
      */
     public static function validateGroups($tableData, $Type)
     {
-        $res = $error = $groups = $errorFields = array();
+        $res = $error = $groups = $orders = $errorFields = array();
         
         foreach ($tableData['order'] as $k1 => $q1) {
             if (!type_Int::isInt($q1) || $q1 <= 0) {
                 $error[] = 'Не допустими символи в число/израз|*';
                 $errorFields['order'][$k1] = 'Не е въведено положително число|*';
+            }
+            
+            if (array_key_exists($q1, $orders)) {
+                $error[] = 'Повтаряща се подредба';
+                $errorFields['order'][$k1] = 'Повтаряща се подредба';
+            } else {
+                $orders[$q1] = $q1;
             }
         }
         
