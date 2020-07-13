@@ -1267,12 +1267,15 @@ class pos_Terminal extends peripheral_Terminal
         // Добавяне на бутон за приключване на бележката
         cls::get('pos_Receipts')->invoke('BeforeGetPaymentTabBtns', array(&$paymentArr, $rec));
         
-        foreach ($paymentArr as $btnObject){
-            $tpl->append($btnObject->body, $btnObject->placeholder);
+        $deleteBtn = $this->renderDeleteRowBtn($selectedRec);
+        if(!$payUrl){
+            $paymentArr = array('delete' => (object)array('body' => $deleteBtn, 'placeholder' => 'PAYMENTS')) + $paymentArr;
+        } else {
+            $paymentArr['delete'] = (object)array('body' => $deleteBtn, 'placeholder' => 'PAYMENTS');
         }
         
-        if(!empty($rec->paid)){
-            $tpl->append($this->renderDeleteRowBtn($selectedRec), 'PAYMENTS');
+        foreach ($paymentArr as $btnObject){
+            $tpl->append($btnObject->body, $btnObject->placeholder);
         }
         
         $tpl->append("<div class='clearfix21'></div>");
