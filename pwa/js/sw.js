@@ -1,14 +1,14 @@
-addEventListener('install', () => {
+addEventListener('install', function() {
   skipWaiting();
   console.log('install');
 });
 
-addEventListener('activate', () => {
+addEventListener('activate', function() {
   clients.claim();
   console.log('activate');
 });
 
-addEventListener('fetch', (event) => {
+addEventListener('fetch', function (event) {
   if (event.request.url.indexOf('/pwa_Share/Target') == -1) {
 	  
 	  return ;
