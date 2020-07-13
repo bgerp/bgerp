@@ -92,6 +92,13 @@ function posActions() {
 			resObj['url'] = url;
 			
 			var params = {operation:operation,search:inpVal,recId:selectedRecId};
+			
+			var activeTab = $(".tabHolder li.active");
+			if(activeTab.length){
+				var id = activeTab.attr("data-id");
+				params.selectedProductGroupId = id;
+			}
+			
 			processUrl(url, params);
 
 		}, timeoutTime);
@@ -191,9 +198,18 @@ function posActions() {
 		
 		var id = $(this).attr('data-content');
 		$(this).addClass('active').siblings().removeClass('active');
-		$("#" + id).show().siblings().hide();
+		
+		// да се скриват и показват само табовете на бележките
+		if($(this).hasClass('noajaxtabs')){
+			$("#" + id).show().siblings().hide();
+		}
+		
 		if($('.scroll-holder.productTabs').length) {
 			sessionStorage.setItem("activeProductTab", $('.tabHolder li.active').attr('id'));
+		}
+		
+		if(!$(this).hasClass('noajaxtabs')){console.log('aa');
+			triggerSearchInput($(".large-field"), 0);
 		}
 		
 		startNavigation();

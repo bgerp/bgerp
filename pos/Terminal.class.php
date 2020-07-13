@@ -644,6 +644,7 @@ class pos_Terminal extends peripheral_Terminal
         expect($rec = pos_Receipts::fetch($id));
         expect($operation = Request::get('operation', "enum(" . self::$operationsArr . ")"));
         $refreshPanel = Request::get('refreshPanel', 'varchar');
+        $selectedProductGroupId = Request::get('selectedProductGroupId', 'int');
         $refreshPanel = ($refreshPanel == 'no') ? false : true;
         pos_Receipts::requireRightFor('terminal', $rec);
         
@@ -658,6 +659,7 @@ class pos_Terminal extends peripheral_Terminal
         $string = Request::get('search', 'varchar');
         Mode::setPermanent("currentOperation{$id}", $operation);
         Mode::setPermanent("currentSearchString{$id}", $string);
+        Mode::setPermanent("currentSelectedGroup{$id}", $selectedProductGroupId);
         
         return static::returnAjaxResponse($rec->id, $selectedRecId, true, false, $refreshPanel, true, null);
     }
@@ -1630,29 +1632,50 @@ class pos_Terminal extends peripheral_Terminal
         $data->rec = $rec;
         $data->searchString = $searchString;
         $data->searchStringPure = $string;
-        
+        $rec->_selectedGroupId = Mode::get("currentSelectedGroup{$rec->id}");
+       
         $res = array();
-        
-        $foundResults = (object)array('rows' => $this->prepareProductTable($rec, $string), 'placeholder' => 'BLOCK2');
-        
-        if(isset($selectedRec->productId)){
+        $res['products'] = (object)array('rows' => $this->prepareProductTable($rec, $string), 'placeholder' => 'BLOCK2');
+        if(isset($selectedRec->productId) && !empty($settings->maxSearchProductRelations)){
             $res['similar'] = (object)array('rows' => $this->prepareResultSimilarProducts($rec, $selectedRec, $string), 'placeholder' => 'BLOCK1');
-            $firstDividerCaption = countR($res['similar']->rows == 1) ? 'Избран артикул' : 'Свързани артикули';
         }
-        
         if(!empty($settings->maxSearchProductInLastSales)){
             $res['contragent'] = (object)array('rows' => $this->prepareContragentProducts($rec, $string), 'placeholder' => 'BLOCK3');
         }
         
-        $tpl = new core_ET(tr("|*[#BLOCK2#]
-                                <!--ET_BEGIN BLOCK1--><div class='divider'>|{$firstDividerCaption}|*</div>
-                                <div class='grid'>[#BLOCK1#]</div><!--ET_END BLOCK1-->
-                                <!--ET_BEGIN BLOCK3--><div class='divider'>|Списък от предишни продажби|*</div>
-                                <div class='grid'>[#BLOCK3#]</div><!--ET_END BLOCK3-->"));
+        $tpl = new core_ET(tr("|*<!--ET_BEGIN GROUP_TAB-->[#GROUP_TAB#]<!--ET_END GROUP_TAB-->
+                                 <div class='contentHolderResults'>
+                                    <div class='grid'>[#BLOCK2#]</div>
+                                    <!--ET_BEGIN BLOCK1--><div class='divider'>|Свързани артикули|*</div>
+                                    <div class='grid'>[#BLOCK1#]</div><!--ET_END BLOCK1-->
+                                    <!--ET_BEGIN BLOCK3--><div class='divider'>|Списък от предишни продажби|*</div>
+                                    <div class='grid'>[#BLOCK3#]</div><!--ET_END BLOCK3-->
+                                 </div>"));
+        
+        $groups = keylist::toArray($settings->groups);
+        $countGroups = countR($groups);
+        
+        // Ако има групи на артикулите
+        if($countGroups){
+            $resultTpl = ($countGroups) ? new core_ET("<div class='scroll-holder productTabs'><ul class='tabHolder'>[#TAB#]</ul></div>") : new core_ET("");
+            $groups = array('all' => null) + $groups;
+            foreach ($groups as $groupId){
+                $active = ($rec->_selectedGroupId == $groupId) ? 'active' : '';
+                Mode::push('treeShortName', true);
+                $groupName = (isset($groupId)) ? cat_Groups::getVerbal($groupId, 'name') : tr("Всички");
+                Mode::pop('treeShortName');
+                $tab = "<li id='group{$groupId}' data-id = '{$groupId}' class='selectable {$active}'>{$groupName}</li>";
+                $resultTpl->append($tab, "TAB");
+            }
+            
+            $tpl->append($resultTpl, 'GROUP_TAB');
+        }
         
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PRODUCTS_RESULT');
         $count = 0;
         foreach ($res as $key => $obj){
+            $countRows = countR($obj->rows);
+            
             foreach ($obj->rows as $row){
                 $row->elementId = "{$key}{$row->id}";
                 $bTpl = clone $block;
@@ -1661,66 +1684,16 @@ class pos_Terminal extends peripheral_Terminal
                 $tpl->append($bTpl, $obj->placeholder);
                 $count++;
             }
-        }
-        
-        $groups = keylist::toArray($settings->groups);
-        $countGroups = countR($groups);
-        
-        // Ако има групи на артикулите
-        $resultTpl = ($countGroups) ? new core_ET("<div class='scroll-holder productTabs'><ul class='tabHolder'>[#TAB#]</ul></div><div class='contentHolder'>") : new core_ET("");
-        $groups = array('all' => null) + $groups;
-        foreach ($groups as $groupId){
-            $inGroup = array_filter($foundResults->rows, function($e) use ($groupId){ return is_null($groupId) || keylist::isIn($groupId, $e->_groups);});
-            if($countGroups){
-                Mode::push('treeShortName', true);
-                $groupName = (isset($groupId)) ? cat_Groups::getVerbal($groupId, 'name') : tr("Всички");
-                Mode::pop('treeShortName');
-                $contentId = "content{$groupId}";
-                $tab = "<li id='group{$groupId}' class='selectable' data-content = '{$contentId}'>{$groupName}</li>";
-                $resultTpl->append($tab, "TAB");
-            }
             
-            // Показват се тези от резултатите, които са във всяка група
-            $groupTpl = ($countGroups) ? new core_ET("<div class='content' id='{$contentId}'>[#RESULT_CONTENT#]</div>") : new core_ET("<div class='grid'>[#RESULT_CONTENT#]</div>");
-            if(countR($inGroup)){
-                $grTpl = new core_ET("");
-                foreach($inGroup as $row){
-                    $row->elementId = "result{$groupId}_{$row->id}";
-                    $bTpl = clone $block;
-                    $bTpl->placeObject($row);
-                    $bTpl->removeBlocksAndPlaces();
-                    $grTpl->append($bTpl);
-                }
-                
-                if($countGroups){
-                    $grTpl->prepend("<div class='grid'>");
-                    $grTpl->append("</div>");
-                } 
-                
-                $grTpl->removeBlocksAndPlaces();
-                $groupTpl->append($grTpl, 'RESULT_CONTENT');
-            } else {
-                $groupTpl->append('<div class="noFoundInGroup">' . tr("Няма намерени артикули в групата") . '</div>', 'RESULT_CONTENT');
+            if(!$countRows && $key == 'products'){
+                $tpl->append('<div class="noFoundInGroup">' . tr("Няма намерени артикули в групата") . '</div>', $obj->placeholder);
             }
-            
-            $resultTpl->append($groupTpl);
         }
-        
-        if($countGroups){
-            $resultTpl->append("</div>");
-        }
-        
-        $resultTpl->removeBlocksAndPlaces();
-        if(!empty($data->searchString)){
-            $resultTpl->prepend(tr("|*<div class='divider'>|Намерени артикули|*</div>"));
-        }
-        
-        $tpl->append($resultTpl, 'BLOCK2');
         
         $holderClass = (empty($tab)) ? "noTabs" : "withTabs";
         $tpl->prepend("<div class='{$holderClass}'>");
         $tpl->append("</div>");
-       
+        
         return $tpl;
     }
     
@@ -1738,7 +1711,11 @@ class pos_Terminal extends peripheral_Terminal
             $productsInList = arr::extractValuesFromArray(cat_Listings::getAll($listId, null, $maxSearchProductInLastSales), 'productId');
             if(is_array($productsInList)){
                 foreach ($productsInList as $productId){
-                    $products[$productId] = cat_Products::fetch($productId, 'name,isPublic,nameEn,code,canStore,measureId');
+                    $pRec = cat_Products::fetch($productId, 'name,isPublic,nameEn,code,canStore,measureId,groups');
+                
+                    if(empty($rec->_selectedGroupId) || keylist::isIn($rec->_selectedGroupId, $pRec->groups)){
+                        $products[$productId] = $pRec;
+                    }
                 }
             }
         }
@@ -1756,6 +1733,7 @@ class pos_Terminal extends peripheral_Terminal
     {
         $productRelations = array();
         $maxSearchProductRelations = pos_Points::getSettings($rec->pointId)->maxSearchProductRelations;
+        
         if(empty($maxSearchProductRelations)) {
             
             return $productRelations;
@@ -1771,7 +1749,11 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         foreach ($productRelations as $productId){
-            $products[$productId] = cat_Products::fetch($productId, 'name,isPublic,nameEn,code,canStore,measureId,canSell');
+            $pRec = cat_Products::fetch($productId, 'name,isPublic,nameEn,code,canStore,measureId,canSell,groups');
+            
+            if(empty($rec->_selectedGroupId) || keylist::isIn($rec->_selectedGroupId, $pRec->groups)){
+                 $products[$productId] = $pRec;
+            }
         }
         
         return $this->prepareProductResultRows($products, $rec);
@@ -1784,6 +1766,8 @@ class pos_Terminal extends peripheral_Terminal
     private function prepareProductTable($rec, $searchString)
     {
         $result = core_Cache::get('planning_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}");
+        
+        $result = false;
         
         $settings = pos_Points::getSettings($rec->pointId);
         if(!is_array($result)){
@@ -1816,6 +1800,10 @@ class pos_Terminal extends peripheral_Terminal
                     if(countR($groups)){
                         $or = countR($productsArr) ? true : false;
                         $pQuery->likeKeylist('groups', $groups, $or);
+                        
+                        if(!empty($rec->_selectedGroupId)){
+                            $pQuery->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
+                        }
                     }
                     
                     while($pRec = $pQuery->fetch()){
@@ -1832,6 +1820,10 @@ class pos_Terminal extends peripheral_Terminal
                 if(isset($foundRec->productId)){
                     $cloneQuery = clone $pQuery;
                     $cloneQuery->where("#productId = {$foundRec->productId}");
+                    if(!empty($rec->_selectedGroupId)){
+                        $cloneQuery->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
+                    }
+                    
                     if($productRec = $cloneQuery->fetch()){
                         $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canSell' => $productRec->canSell,'canStore' => $productRec->canStore, 'measureId' => $productRec->measureId, 'code' => $productRec->code, 'packId' => isset($foundRec->packagingId) ? $foundRec->packagingId : null);
                         $count++;
@@ -1848,6 +1840,10 @@ class pos_Terminal extends peripheral_Terminal
                 $searchString = plg_Search::normalizeText($searchString);
                 $pQuery1->where("LOCATE ('{$searchString}', #string)");
                 plg_Search::applySearch($searchString, $pQuery1);
+                if(!empty($rec->_selectedGroupId)){
+                    $pQuery1->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
+                }
+                
                 $pQuery1->limit($settings->maxSearchProducts);
                 
                 while($pRec1 = $pQuery1->fetch()){
@@ -1862,6 +1858,10 @@ class pos_Terminal extends peripheral_Terminal
                     $notInKeys = array_keys($sellable);
                     $pQuery2 = clone $pQuery;
                     $pQuery2->limit($settings->maxSearchProducts);
+                    if(!empty($rec->_selectedGroupId)){
+                        $pQuery2->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
+                    }
+                    
                     if(empty($searchStringPure)){
                         $pQuery2->where("1=2");
                     } else {
@@ -2074,7 +2074,7 @@ class pos_Terminal extends peripheral_Terminal
         
         foreach ($arr as $key => $element){
             $contentId = "content{$key}";
-            $tab = "<li class='selectable' data-content = '{$contentId}'>{$element['caption']}</li>";
+            $tab = "<li class='selectable noajaxtabs' data-content = '{$contentId}'>{$element['caption']}</li>";
             $tpl->append($tab, "TAB");
             
             if($element['count']){
