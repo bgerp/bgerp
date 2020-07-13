@@ -555,16 +555,6 @@ class callcenter_Talks extends core_Master
             $externalNum = Request::get('callerId');
         }
         
-        if (strpos($internalNum, '00') === 0) {
-            $errArr[] = 'Вътрешният номер започва с две нули';
-            $internalNum = substr($internalNum, 1);
-        }
-        
-        if (strpos($externalNum, '00') === 0) {
-            $errArr[] = 'Външният номер започва с две нули';
-            $externalNum = substr($externalNum, 1);
-        }
-        
         // Ако не е подаден вътрешен номер
         if (!$internalNum) {
             
