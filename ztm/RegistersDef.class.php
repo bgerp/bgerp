@@ -76,7 +76,7 @@ class ztm_RegistersDef extends core_Master
      *
      * @var string
      */
-     public $listFields = 'name, type, range, plugin, priority, default, description';
+     public $listFields = 'id, name, type, range, plugin, priority, default, description';
     
     /**
      * Описание на модела (таблицата)
