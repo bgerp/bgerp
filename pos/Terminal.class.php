@@ -66,7 +66,7 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Кои са разрешените операции
      */
-    protected static $operationsArr = "add=Добавяне на артикул,quantity=Промяна на реда,payment=Плащане по бележката,contragent=Избор на контрагент,text=Текст,receipts=Търсене на бележка";
+    protected static $operationsArr = "add=Добавяне на артикул,quantity=Редактиране на реда,payment=Плащане по бележката,contragent=Търсене на клиент,text=Задаване на текст на реда,receipts=Избор на бележка";
 
 
     /**
@@ -1123,14 +1123,15 @@ class pos_Terminal extends peripheral_Terminal
             $temp =  new core_ET("");
             foreach ($contragents as $obj){
                 $setContragentUrl = toUrl(array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $obj->contragentClassId, 'contragentId' => $obj->contragentId, 'ret_url' => true));
-                $divAttr = array("id" => "contragent{$cnt}", 'class' => 'posResultContragent posBtns navigable enlargable', 'title' => 'Избор на контрагент', 'data-url' => $setContragentUrl, 'data-enlarge-object-id' => $obj->contragentId, 'data-enlarge-class-id' => $obj->contragentClassId, 'data-modal-title' => strip_tags($obj->title));
+                $divAttr = array("id" => "contragent{$cnt}", 'class' => 'posResultContragent posBtns navigable enlargable', 'title' => "Избиране на клиента в бележката", 'data-url' => $setContragentUrl, 'data-enlarge-object-id' => $obj->contragentId, 'data-enlarge-class-id' => $obj->contragentClassId, 'data-modal-title' => strip_tags($obj->title));
                 if(!$canSetContragent){
                     $divAttr['disabled'] = 'disabled';
                     $divAttr['disabledBtn'] = 'disabledBtn';
                     unset($divAttr['data-url']);
                 }
                 
-                $obj->title = ht::createHint(str::limitLen($obj->title, 32), $obj->title);
+                $shortName = cls::get($obj->contragentClassId)->getVerbal($obj->contragentId, 'name');
+                $obj->title = ht::createHint(str::limitLen($shortName, 32), $obj->title);
                 if($showUniqueNumberLike){
                     $subArr = array();
                     if(!empty($obj->vatId)){
