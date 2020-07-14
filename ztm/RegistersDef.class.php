@@ -146,6 +146,6 @@ class ztm_RegistersDef extends core_Master
         $res = $cntObj->html;
         
         return $res;
-
+    }
     
 }
