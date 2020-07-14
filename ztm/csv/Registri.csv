@@ -1,4 +1,3 @@
-Origin Name,Тип,Диапазон,Плъгин,Приоритет,Стойност,Описание
 ac1.allowed_attendees,array,,Access control 1,system,,Allowed attendees cards IDs.
 ac1.card_reader.enabled,int,,Access control 1,system,1,"Card reader, enabled"
 ac1.card_reader.model,str,,Access control 1,system,"""act230""",Card reader model
