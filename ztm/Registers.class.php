@@ -71,6 +71,15 @@ class ztm_Registers extends core_Manager
         $this->setDbUnique('deviceId,registerDefId');
     }
     
+    
+    /**
+     * Извлича стойността на дадения регистър
+     * 
+     * @param int $deviceId       - ид на устройство
+     * @param int $registerId     - ид на вид регистър
+     * 
+     * @return stdClass|null $rec - записа на регистъра, null ако няма
+     */
     public static function get($deviceId, $registerId)
     {
         $rec = self::fetch("#deviceId = '{$deviceId}' AND #registerDefId = '{$registerId}'");
@@ -84,6 +93,17 @@ class ztm_Registers extends core_Manager
         return is_object($rec) ? $rec : null;
     }
     
+    
+    /**
+     * Задава стойност на регистъра
+     * 
+     * @param int $deviceId        - ид на устройство
+     * @param int $registerId      - ид на вид регистър
+     * @param mixed $value         - стойност
+     * @param datetime|null $time  - време 
+     * 
+     * @return null|stdClass $rec  - сетнатия запис или null, ако не е обновен
+     */
     public static function set($deviceId, $registerId, $value, $time = null)
     {
         $now = dt::now();
@@ -142,6 +162,14 @@ class ztm_Registers extends core_Manager
     
     
     
+    /**
+     * Извлича регистрите за устройството, обновени след определена дата
+     * 
+     * @param int $deviceId               - ид на устройство
+     * @param datetime|null $updatedAfter - обновени след дата
+     * 
+     * @return array $res                 - масив от намерените регистри
+     */
     public static function grab($deviceId, $updatedAfter = null)
     {
         $query = self::getQuery();
@@ -157,18 +185,4 @@ class ztm_Registers extends core_Manager
         
         return $res;
     }
-    
-    
-    
-    
-    
-    //set($deviceId, $registerId, $value, $time = null)
-    
-    // Взема стойност
-    //get($deviceId, $registerId)
-    
-    // Връща всички регистри на дадено устройство, които са обновени след определен таймстамп
-    //grab($deviceId, $updatedAfter = null)
-    
-    
 }
