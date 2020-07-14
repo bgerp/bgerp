@@ -208,7 +208,7 @@ class pos_Terminal extends peripheral_Terminal
                                     'userId' => core_Users::getVerbal(core_Users::getCurrent(), 'nick'));
         
         $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
-        $contragentName = ($rec->contragentClass == crm_Persons::getClassId() && $defaultContragentId == $rec->contragentObjectId) ? null : cls::get($rec->contragentClass)->getTitleById($rec->contragentObjectId);
+        $contragentName = ($rec->contragentClass == crm_Persons::getClassId() && $defaultContragentId == $rec->contragentObjectId) ? null : cls::get($rec->contragentClass)->getHyperlink($rec->contragentObjectId);
         $headerData->contragentId = (!empty($rec->transferedIn)) ? sales_Sales::getLink($rec->transferedIn, 0, array('ef_icon' => false)) : $contragentName;
        
         $img = ht::createImg(array('path' => 'img/16/bgerp.png'));
@@ -1209,7 +1209,7 @@ class pos_Terminal extends peripheral_Terminal
             if(countR($locationArr)){
                 $tpl->append(tr("|*<div class='divider'>|Локации|*</div><div class='grid'>"));
                 foreach ($locationArr as $locationId => $locationName){
-                    $locationAttr = array("id" => "location{$locationId}", 'class' => 'posBtns locationBtn enlargable', 'data-enlarge-object-id' => $locationId, 'data-enlarge-class-id' => crm_Locations::getClassId(), 'data-modal-title' => strip_tags($locationName));
+                    $locationAttr = array("id" => "location{$locationId}", 'class' => 'posBtns locationBtn enlargable', 'data-enlarge-object-id' => $locationId, 'data-enlarge-class-id' => crm_Locations::getClassId(), 'data-modal-title' => strip_tags($locationName), 'title' => 'Избор на локация');
                     if(pos_Receipts::haveRightFor('setcontragent', $rec)){
                         $locationAttr['class'] .= ' navigable';
                         $locationAttr['data-url'] = toUrl(array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $rec->contragentClass, 'contragentId' => $rec->contragentObjectId, 'locationId' => $locationId, 'ret_url' => true));
@@ -1222,7 +1222,7 @@ class pos_Terminal extends peripheral_Terminal
                         $locationAttr['class'] .= ' current';
                     }
                     
-                    $locationName .= "<div style=font-size:0.8em>" . crm_Locations::getAddress($locationId) . "</div>";
+                    $locationName .= "<div style=font-size:0.8em>" . str::limitLen(crm_Locations::getAddress($locationId), 68) . "</div>";
                     
                     $holderDiv = ht::createElement('div', $locationAttr, $locationName, true);
                     $tpl->append($holderDiv);
