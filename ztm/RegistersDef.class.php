@@ -127,10 +127,10 @@ class ztm_RegistersDef extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
-        
-        $data->toolbar->addBtn('Базово Зареждане', array(ztm_RegistersDef, 'BasicLoadingOfRegisters', 'ret_url' => true),
-            'order=10,title=Базово Зареждане,ef_icon = img/16/shopping.png');
-        
+        if(haveRole('ztm,ceo')){
+            $data->toolbar->addBtn('Базово Зареждане', array('ztm_RegistersDef', 'BasicLoadingOfRegisters', 'ret_url' => true),
+                'order=10,title=Базово Зареждане,ef_icon = img/16/shopping.png');
+        }
     }
     
     /**
@@ -141,7 +141,7 @@ class ztm_RegistersDef extends core_Master
         /**
          * Установява необходима роля за да се стартира екшъна
          */
-        requireRole('ztm');
+        requireRole('ztm,ceo');
         
         $regQuery = ztm_RegistersDef::getQuery();
         
