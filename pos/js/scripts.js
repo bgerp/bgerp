@@ -1242,7 +1242,9 @@ function openCurrentPosTab() {
 
 		sessionStorage.removeItem('focusedOffset');
 	}
-	$('.tabHolder .active')[0].scrollIntoView({block: "end", inline: "end"});
+	if($('.tabHolder .active').length) {
+		$('.tabHolder .active')[0].scrollIntoView({block: "end", inline: "end"});
+	}
 	startNavigation();
 }
 
