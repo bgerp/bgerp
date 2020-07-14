@@ -12,13 +12,13 @@ ac1.exit_button.input,str,,Access control 1,system,"""DI0""","Exit button, input
 ac1.lock_mechanism.enabled,str,,Access control 1,system,1,"Lock mechanism, enabled"
 ac1.lock_mechanism.output,str,,Access control 1,system,"""DO2""","Lock mechanism, output"
 ac1.time_to_open,int,,Access control 1,system,10,"Lock mechanism, time to open"
-ac2.allowed_attendees,array,,Access control 2,system,"[""445E6046010080FF""]",Allowed attendees cards IDs.
+ac2.allowed_attendees,array,,Access control 2,system,,Allowed attendees cards IDs.
 ac2.card_reader.enabled,int,,Access control 2,system,1,"Card reader, enabled"
 ac2.card_reader.model,str,,Access control 2,system,"""act230""",Card reader model
 ac2.card_reader.port.baudrate,int,,Access control 2,system,9600,"Card reader, port, baud rate"
 ac2.card_reader.port.name,str,,Access control 2,system,COM5,"Card reader, port, name"
 ac2.card_reader.serial_number,str,,Access control 2,system,"""2911""","Card reader, serial number"
-ac2.card_reader.vendor,int,,Access control 2,system,"""TERACOM""","Card reader, vendor"
+ac2.card_reader.vendor,int,,Access control 2,system,,"Card reader, vendor"
 ac2.enabled,int,,Access control 2,system,1,"Card reader, enabled"
 ac2.exit_button.enabled,int,,Access control 2,system,1,"Exit button, enabled"
 ac2.exit_button.input,str,,Access control 2,system,"""DI0""","Exit button, input"
