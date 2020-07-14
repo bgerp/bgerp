@@ -97,7 +97,7 @@ class ztm_Devices extends core_Master
         $this->FLD('model', 'varchar(32)', 'caption=Модел');
         $this->FLD('name', 'varchar(32)', 'caption=Име, mandatory');
         $this->FLD('state', 'enum(draft=Чакащо,active=Активно,rejected=Оттеглено )', 'caption=Състояние,input=none');
-//         $this->FLD('profileId', 'key(mvc=ztm_DeviceProfiles)', 'caption=Профил, mandatory');
+        $this->FLD('profileId', 'key(mvc=ztm_Profiles,select=name)', 'caption=Профил, mandatory');
         $this->FLD('ip', 'ip', 'caption=IP, input=none');
         $this->FLD('token', 'password(16)', 'caption=Сесия, input=none');
         $this->FLD('lastSync', 'datetime(format=smartTime)', 'caption=Синхронизиране,input=none');
