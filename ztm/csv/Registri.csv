@@ -1,32 +1,32 @@
-Регистър,Тип,Диапазон,Плъгин,Приоритет,Стойност,Описание
-access_control_1.allowed_attendees,Array,,Access control 1,system,"[""445E6046010080FF""]",Allowed attendees cards IDs.
-access_control_1.card_reader.enabled,int,,Access control 1,system,1,"Card reader, enabled"
-access_control_1.card_reader.model,str,,Access control 1,system,"""act230""",Card reader model
-access_control_1.card_reader.port.baudrate,int,,Access control 1,system,9600,"Card reader, port, baud rate"
-access_control_1.card_reader.port.name,str,,Access control 1,system,COM4,"Card reader, port, name"
-access_control_1.card_reader.serial_number,str,,Access control 1,system,"""2897""","Card reader, serial number"
-access_control_1.card_reader.vendor,int,,Access control 1,system,"""TERACOM""","Card reader, vendor"
-access_control_1.enabled,int,,Access control 1,system,1,"Card reader, enabled"
-access_control_1.exit_button.enabled,int,,Access control 1,system,1,"Exit button, enabled"
-access_control_1.exit_button.input,str,,Access control 1,system,"""DI0""","Exit button, input"
-access_control_1.lock_mechanism.enabled,str,,Access control 1,system,1,"Lock mechanism, enabled"
-access_control_1.lock_mechanism.output,str,,Access control 1,system,"""DO2""","Lock mechanism, output"
-access_control_1.time_to_open,int,,Access control 1,system,10,"Lock mechanism, time to open"
-access_control_2.allowed_attendees,Array,,Access control 2,system,"[""445E6046010080FF""]",Allowed attendees cards IDs.
-access_control_2.card_reader.enabled,int,,Access control 2,system,1,"Card reader, enabled"
-access_control_2.card_reader.model,str,,Access control 2,system,"""act230""",Card reader model
-access_control_2.card_reader.port.baudrate,int,,Access control 2,system,9600,"Card reader, port, baud rate"
-access_control_2.card_reader.port.name,str,,Access control 2,system,COM5,"Card reader, port, name"
-access_control_2.card_reader.serial_number,str,,Access control 2,system,"""2911""","Card reader, serial number"
-access_control_2.card_reader.vendor,int,,Access control 2,system,"""TERACOM""","Card reader, vendor"
-access_control_2.enabled,int,,Access control 2,system,1,"Card reader, enabled"
-access_control_2.exit_button.enabled,int,,Access control 2,system,1,"Exit button, enabled"
-access_control_2.exit_button.input,str,,Access control 2,system,"""DI0""","Exit button, input"
-access_control_2.lock_mechanism.enabled,str,,Access control 2,system,1,"Lock mechanism, enabled"
-access_control_2.lock_mechanism.output,str,,Access control 2,system,"""DO2""","Lock mechanism, output"
-access_control_2.time_to_open,Int,,Access control 2,system,10,"Lock mechanism, time to open"
-anti_tampering.enabled,Int,,Anti Tampering,system,0,Enabled
-anti_tampering.input,str,,Anti Tampering,system,"""DI1""",Signal input
+Origin Name,Тип,Диапазон,Плъгин,Приоритет,Стойност,Описание
+ac1.allowed_attendees,array,,Access control 1,system,,Allowed attendees cards IDs.
+ac1.card_reader.enabled,int,,Access control 1,system,1,"Card reader, enabled"
+ac1.card_reader.model,str,,Access control 1,system,"""act230""",Card reader model
+ac1.card_reader.port.baudrate,int,,Access control 1,system,9600,"Card reader, port, baud rate"
+ac1.card_reader.port.name,str,,Access control 1,system,COM4,"Card reader, port, name"
+ac1.card_reader.serial_number,str,,Access control 1,system,"""2897""","Card reader, serial number"
+ac1.card_reader.vendor,int,,Access control 1,system,,"Card reader, vendor"
+ac1.enabled,int,,Access control 1,system,1,"Card reader, enabled"
+ac1.exit_button.enabled,int,,Access control 1,system,1,"Exit button, enabled"
+ac1.exit_button.input,str,,Access control 1,system,"""DI0""","Exit button, input"
+ac1.lock_mechanism.enabled,str,,Access control 1,system,1,"Lock mechanism, enabled"
+ac1.lock_mechanism.output,str,,Access control 1,system,"""DO2""","Lock mechanism, output"
+ac1.time_to_open,int,,Access control 1,system,10,"Lock mechanism, time to open"
+ac2.allowed_attendees,array,,Access control 2,system,"[""445E6046010080FF""]",Allowed attendees cards IDs.
+ac2.card_reader.enabled,int,,Access control 2,system,1,"Card reader, enabled"
+ac2.card_reader.model,str,,Access control 2,system,"""act230""",Card reader model
+ac2.card_reader.port.baudrate,int,,Access control 2,system,9600,"Card reader, port, baud rate"
+ac2.card_reader.port.name,str,,Access control 2,system,COM5,"Card reader, port, name"
+ac2.card_reader.serial_number,str,,Access control 2,system,"""2911""","Card reader, serial number"
+ac2.card_reader.vendor,int,,Access control 2,system,"""TERACOM""","Card reader, vendor"
+ac2.enabled,int,,Access control 2,system,1,"Card reader, enabled"
+ac2.exit_button.enabled,int,,Access control 2,system,1,"Exit button, enabled"
+ac2.exit_button.input,str,,Access control 2,system,"""DI0""","Exit button, input"
+ac2.lock_mechanism.enabled,str,,Access control 2,system,1,"Lock mechanism, enabled"
+ac2.lock_mechanism.output,str,,Access control 2,system,"""DO2""","Lock mechanism, output"
+ac2.time_to_open,int,,Access control 2,system,10,"Lock mechanism, time to open"
+at.enabled,int,,Anti Tampering,system,0,Enabled
+at.input,str,,Anti Tampering,system,"""DI1""",Signal input
 blinds.enabled,int,,Blinds,system,0,Enabled
 blinds.input_fb,str,,Blinds,system,"""AI1""",Feedback input
 blinds.output_ccw,str,,Blinds,system,"""DO0""",CCW output
@@ -36,17 +36,17 @@ blinds.sun.azimuth.mou,str,,Blinds,system,"""deg""",Sun azimuth MOU
 blinds.sun.azimuth.value,float,,Blinds,system,223.0418142258,Sun azimuth value
 blinds.sun.elevation.mou,str,,Blinds,system,"""deg""",Sun elevation MOU
 blinds.sun.elevation.value,float,,Blinds,system,41.592762155,Sun elevation value
-cold_circle.enabled,int,,Cold drink water,system,0,
-cold_water_fm.input,str,,Cold drink water,system,"""DI6""",
-cold_water_fm.tpl,int,,Cold drink water,system,10,
-cold_water_fm.value,int,,Cold drink water,device,0,Cold water liters
-hot_circle.enabled,int,,Hot drink water,system,0,
-hot_water_fm.input,str,,Hot drink water,system,"""DI7""",
-hot_water_fm.tpl,int,,Hot drink water,system,10,
-hot_water_fm.value,int,,Hot drink water,device,0,Hot water liters
-door_closed.enabled,int,,Door closed,system,0,Enabled
-door_closed.input,str,,Door closed,system,"""DI2""",Door tamper signal
-door_closed.state,Int,,Door closed,device,0,State
+cc.enabled,int,,Cold drink water,system,0,
+cwf.input,str,,Cold drink water,system,"""DI6""",
+cwf.tpl,int,,Cold drink water,system,10,
+cwf.value,int,,Cold drink water,device,0,Cold water liters
+hc.enabled,int,,Hot drink water,system,0,
+hwf.input,str,,Hot drink water,system,"""DI7""",
+hwf.tpl,int,,Hot drink water,system,10,
+hwf.value,int,,Hot drink water,device,0,Hot water liters
+dc.enabled,int,,Door closed,system,0,Enabled
+dc.input,str,,Door closed,system,"""DI2""",Door tamper signal
+dc.state,int,,Door closed,device,0,State
 general.cold_water_fm.leak,float,,General,device,0,Reported liters for the last reporting period.
 general.hot_water_fm.leak,float,,General,device,,Reported liters for the last reporting period.
 general.is_empty,int,,General,device,0,Is the zone empty.
@@ -80,7 +80,7 @@ hvac.loop1.fan.max_speed,int,,HVAC,system,30,"Loop 1, fan maximum speed [%]"
 hvac.loop1.fan.min_speed,int,,HVAC,system,0,"Loop 1, fan minimum speed [%]"
 hvac.loop1.fan.output,str,,HVAC,system,"""AO3""","Loop 1, fan analog output"
 hvac.loop1.fan.vendor,str,,HVAC,system,"""HangzhouAirflowElectricApplications""","Loop 1, fan vendor"
-hvac.loop1.temp.circuit,str,,HVAC,system,"""28FF2B70C11604B7""","Loop 1, temperature sensor circuit"
+hvac.loop1.temp.circuit,str,,HVAC,system,,"Loop 1, temperature sensor circuit"
 hvac.loop1.temp.dev,str,,HVAC,system,"""temp""","Loop 1, temperature sensor device"
 hvac.loop1.temp.enabled,int,,HVAC,system,1,"Loop 1, temperature sensor enabled"
 hvac.loop1.temp.type,str,,HVAC,system,"""DS18B20""","Loop 1, temperature sensor type"
@@ -137,29 +137,29 @@ outside.temp.max24,int,,Outside,system,null,Outside of the building maximum temp
 outside.temp.min24,int,,Outside,system,null,Outside of the building minimum temperature for 24 hours
 outside.wind.actual,int,,Outside,system,null,Outside of the building actual wind speed
 outside.wind.max12,int,,Outside,system,null,Outside of the building average speed for 12 hours.
-pir_detector.enabled,int,,PIR Detector,system,0,Enabled
-pir_detector.input,str,,PIR Detector,system,"""DI0""",Signal input
-pir_detector.state,Int,,PIR Detector,device,0,State
-self_current.enabled,int,,Self current,system,0,Enabled
-self_current.sub_dev.dev_id,int,,Self current,system,2,Power analyser MODBUS ID
-self_current.sub_dev.model,str,,Self current,system,"""SDM120""",Power analyser model name
-self_current.sub_dev.uart,int,,Self current,system,1,Power analyser UART name
-self_current.sub_dev.vendor,str,,Self current,system,"""Eastron""",Power analyser vendor name
-self_current.sub_dev.current.value,float,,Self current,device,0.098,Drained current of the room
-self_current.sub_dev.current_power.value,float,,Self current,device,17.029,Drained power of the room
-self_current.sub_dev.total_energy.value,float,,Self current,device,0.18,Total consumed energy
+pd.enabled,int,,PIR Detector,system,0,Enabled
+pd.input,str,,PIR Detector,system,"""DI0""",Signal input
+pd.state,int,,PIR Detector,device,0,State
+sc.enabled,int,,Self current,system,0,Enabled
+sc.sub_dev.dev_id,int,,Self current,system,2,Power analyser MODBUS ID
+sc.sub_dev.model,str,,Self current,system,"""SDM120""",Power analyser model name
+sc.sub_dev.uart,int,,Self current,system,1,Power analyser UART name
+sc.sub_dev.vendor,str,,Self current,system,"""Eastron""",Power analyser vendor name
+sc.sub_dev.current.value,float,,Self current,device,0.098,Drained current of the room
+sc.sub_dev.current_power.value,float,,Self current,device,17.029,Drained power of the room
+sc.sub_dev.total_energy.value,float,,Self current,device,0.18,Total consumed energy
 self.ram.current,float,,Self,device,0,RAM Usage
 self.ram.peak,float,,Self,device,0,RAM Peak usage
 self.time.usage,float,,Self,device,0,Cycle time consumption.
-status_led.blink_time,int,,Status LED,system,1,Blink time
-status_led.enabled,int,,Status LED,system,1,Enabled
-status_led.output,str,,Status LED,system,"""LED0""",Signal output
-sun_pos.enabled,int,,Software SUN position,system,1,Enabled
-wdt_tablet.enabled,int,,WDT Tablet,system,0,DEPRECATED
-wdt_tablet.output,str,,WDT Tablet,system,"""DO3""",DEPRECATED
-wdt_tablet.pulse_time,int,,WDT Tablet,system,10,DEPRECATED
-wdt_tablet.reset,int,,WDT Tablet,system,0,DEPRECATED
-wdt_tablet.state,int,,WDT Tablet,device,0,DEPRECATED
-window_closed.enabled,int,,Window closed,system,0,Enabled
-window_closed.input,str,,Window closed,system,"""!DI3""",Signal input
-window_closed.state,Int,,Window closed,device,0,State
+sl.blink_time,int,,Status LED,system,1,Blink time
+sl.enabled,int,,Status LED,system,1,Enabled
+sl.output,str,,Status LED,system,"""LED0""",Signal output
+sp.enabled,int,,Software SUN position,system,1,Enabled
+wt.enabled,int,,WDT Tablet,system,0,DEPRECATED
+wt.output,str,,WDT Tablet,system,"""DO3""",DEPRECATED
+wt.pulse_time,int,,WDT Tablet,system,10,DEPRECATED
+wt.reset,int,,WDT Tablet,system,0,DEPRECATED
+wt.state,int,,WDT Tablet,device,0,DEPRECATED
+wc.enabled,int,,Window closed,system,0,Enabled
+wc.input,str,,Window closed,system,"""!DI3""",Signal input
+wc.state,int,,Window closed,device,0,State
