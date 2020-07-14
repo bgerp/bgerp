@@ -1269,7 +1269,7 @@ class pos_Terminal extends peripheral_Terminal
         // Добавяне на бутон за приключване на бележката
         cls::get('pos_Receipts')->invoke('BeforeGetPaymentTabBtns', array(&$paymentArr, $rec));
         
-        $deleteBtn = $this->renderDeleteRowBtn($selectedRec);
+        $deleteBtn = $this->renderDeleteRowBtn($rec, $selectedRec);
         if(!$payUrl){
             $paymentArr = array('delete' => (object)array('body' => $deleteBtn, 'placeholder' => 'PAYMENTS')) + $paymentArr;
         } else {
@@ -1323,7 +1323,7 @@ class pos_Terminal extends peripheral_Terminal
             $count++;
         }
         
-        $buttons["delete{$selectedRec->id}"] = $this->renderDeleteRowBtn($selectedRec);
+        $buttons["delete{$selectedRec->id}"] = $this->renderDeleteRowBtn($rec, $selectedRec);
         
         $query = pos_ReceiptDetails::getQuery();
         $query->where("#productId = {$selectedRec->productId} AND #action = 'sale|code' AND #quantity > 0");
@@ -1402,13 +1402,14 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Добавяне на бутон за изтриване на реда
      * 
+     * @param stdClass $rec
      * @param stdClass $selectedRec
      * @return core_ET
      */
-    private function renderDeleteRowBtn($selectedRec)
+    private function renderDeleteRowBtn($rec, $selectedRec)
     {
         $deleteAttr = array('id' => "delete{$selectedRec->id}", 'class' => "posBtns deleteRow", 'title' => 'Изтриване на реда');
-        $deleteAttr['class'] .= (pos_ReceiptDetails::haveRightFor('delete', $selectedRec)) ? ' navigable' : ' disabledBtn';
+        $deleteAttr['class'] .= (!empty($rec->total) && pos_ReceiptDetails::haveRightFor('delete', $selectedRec)) ? ' navigable' : ' disabledBtn';
        
         return ht::createElement("div", $deleteAttr, tr('Изтриване'), true);
     }
