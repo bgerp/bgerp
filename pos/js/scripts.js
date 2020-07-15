@@ -1242,8 +1242,8 @@ function openCurrentPosTab() {
 
 		sessionStorage.removeItem('focusedOffset');
 	}
-	if($('.tabHolder .active').length) {
-		$('.tabHolder .active')[0].scrollIntoView({block: "end", inline: "end"});
+	if($('.productTabs .active').length) {
+		$('.productTabs').scrollLeft(sessionStorage.getItem('tabOffset'));
 	}
 	startNavigation();
 }
@@ -1252,6 +1252,7 @@ function openCurrentPosTab() {
  * Извършва подадената операция
  */
 function doOperation(operation, selectedRecId, forceSubmit) {
+	sessionStorage.setItem('tabOffset', 0);
 	clearTimeout(timeout);
 	
 	sessionStorage.removeItem("focused");
@@ -1328,6 +1329,7 @@ function activateTab(element, timeOut)
 	var id = element.attr('data-content');
 	element.addClass('active').siblings().removeClass('active');
 
+	sessionStorage.setItem('tabOffset', element.closest('.productTabs').scrollLeft());
 	// да се скриват и показват само табовете на бележките
 	if(element.hasClass('noajaxtabs')){
 		$("#" + id).show().siblings().hide();
