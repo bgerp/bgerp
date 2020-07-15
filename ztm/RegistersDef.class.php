@@ -148,4 +148,7 @@ class ztm_RegistersDef extends core_Master
         return $res;
     }
     
+    
+    
+    
 }

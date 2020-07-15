@@ -185,4 +185,42 @@ class ztm_Registers extends core_Manager
         
         return $res;
     }
+    
+    
+    public function sync($regArr, $lastSync)
+    {
+        
+    }
+    
+    
+    
+    /**
+     * Създава пряк път до публичните статии
+     */
+    public function act_Sync()
+    {   
+       
+        $token = Request::get('token');
+        $lastSync = Request::get('last_sync');
+        
+        log_System::logWarning(serialize(Request::$vars));
+        expect($deviceRec = ztm_Devices::getRecForToken($token), $token);
+        ztm_Devices::updateSyncTime($token);
+        
+        //if(empty($lastSync)){
+            
+            //$defaultResponse = ztm_Profiles::getDefaultResponse($deviceRec->profileId);
+           // $defaultResponse = array('') + $defaultResponse;
+            
+            $test = (object)array("hvac.enabled" => 1);
+            //bp();
+            //log_System::logWarning($response);
+            //wp($response);
+            core_App::outputJson($test);
+        //}
+        
+        
+        
+    }
+    
 }

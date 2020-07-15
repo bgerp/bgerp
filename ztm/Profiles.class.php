@@ -104,8 +104,6 @@ class ztm_Profiles extends core_Master
     {
         $form = $data->form;
         $rec = $form->rec;
-        
-        
     }
     
     
@@ -123,5 +121,29 @@ class ztm_Profiles extends core_Master
         }
     }
     
+    public static function getDefaultResponse($profileId)
+    {
+        $dArr = array();
+        $dQuery = ztm_ProfileDefaults::getQuery();
+        $dQuery->where("#profileId = {$profileId}");
+        $dQuery->show('registerId,value');
+        while($dRec = $dQuery->fetch()){
+            $dArr[$dRec->registerId] = $dRec->value;
+        }
+        
+        $res = array();
+        $query = ztm_RegistersDef::getQuery();
+        
+        while($rec = $query->fetch()){
+            $default = $rec->default;
+            if(array_key_exists($rec->id, $dArr)){
+                $default = $dArr[$rec->id];
+            }
+            
+            $res[$rec->name] = $default;
+        }
+        
+        return (object)$res;
+    }
     
 }
