@@ -295,7 +295,6 @@ class sales_Proformas extends deals_InvoiceMaster
         
         if(!empty($rec->number)){
             $res .= ' ' . plg_Search::normalizeText($rec->number);
-            core_Statuses::newStatus($number);
         }
     }
     
