@@ -293,9 +293,8 @@ class sales_Proformas extends deals_InvoiceMaster
         // Добавяне на кода към ключовите думи
         $number = !empty($rec->number) ? $rec->number : (isset($rec->id) ? $mvc->fetchField($rec->id, 'number') : null);
         
-        if(!empty($rec->number)){
-            $res .= ' ' . plg_Search::normalizeText($rec->number);
-            core_Statuses::newStatus($number);
+        if(!empty($number)){
+            $res .= ' ' . plg_Search::normalizeText($number);
         }
     }
     

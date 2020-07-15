@@ -1,7 +1,5 @@
-<div style="margin-left: 20px; line-height: 1.6em">
+<div class="productModal">
     <div class="fleft imagePreview">[#preview#]</div>
-    <div>
-
         <div>[#name#]</div>
 
         <div style="margin-bottom: 10px; font-weight: bold">[#info#]</div>
@@ -22,7 +20,7 @@
         <!--ET_END PARAM_BLOCK-->
         [#TOOLBAR#]
 
-        <table>
+        <table class="table-bordered" style=" margin: 10px 0">
         <tr>
 			<th>|Склад|*</th>
 			<th>|Налично|*</th>
@@ -41,7 +39,6 @@
         <!--ET_END INSTOCK_BLOCK-->
         </table>
         <div class="clearfix21"></div>
-    </div>
 
 </div>
 

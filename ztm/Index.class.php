@@ -30,13 +30,6 @@ class ztm_Index extends core_Mvc
      */
     public function act_Sync()
     {
-        // TODO - да се вкара вътре в екшъна
-        $token = Request::get('token');
-        $lastSync = Request::get('last_sync');
-        
-        expect(ztm_Devices::getRecForToken($token), $token);
-        
-        ztm_Devices::updateSyncTime($token);
-//         return Request::forward(array('Ctr' => '', 'Act' => ''));
+        return Request::forward(array('Ctr' => 'ztm_Registers', 'Act' => 'Sync'));
     }
 }

@@ -182,6 +182,12 @@
 
 #modalContent .keyboard {
   display: none; }
+  #modalContent .keyboard#keyboard-lat {
+    display: block; }
+
+.productModal {
+  margin-left: 20px;
+  line-height: 1.6em; }
 
 .keyboard-btn {
   background: #303030 !important;
@@ -203,6 +209,7 @@
     box-shadow: inset 0 0 50px black; }
 
 #keyboard-num {
+  display: none;
   float: left;
   margin-right: -5px; }
 
@@ -272,6 +279,12 @@
 
 .half td {
   height: 45px; }
+
+  .table-bordered td,
+  .table-bordered th {
+    border: 1px solid #cccccc;
+    padding: 3px;
+    font-size: 0.95em; }
 
 .flash {
   transition: all linear;
@@ -933,21 +946,32 @@ only screen and (max-width: 1200px) {
     display: none; }
 
   .scrolling-vertical {
-    max-height: 420px; } }
+    max-height: 420px; }
+
+  .productModal {
+    margin: 0; }
+
+  .imagePreview {
+    float: none;
+    margin: 0 0 10px 0;
+    max-width: 400px; }
+    .imagePreview img {
+      width: 100%;
+      height: auto; }
+
+  .ui-dialog-content {
+    padding: 10px !important; } }
 
 @media handheld,
 only screen and (max-width: 1024px) {
   .numPad {
     width: 60px !important;
     height: 60px !important;
-    margin: 8px 0 8px 18px; } }
+    margin: 8px 0 8px 18px; }
 
-@media handheld,
-only screen and (max-width: 1024px) {
-  .numPad {
-    width: 60px !important;
-    height: 60px !important;
-    margin: 8px 0 8px 18px; } }
+  .half {
+    width: 100%;
+    display: block; } }
 
 @media handheld,
 only screen and (max-width: 800px) {

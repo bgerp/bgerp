@@ -105,7 +105,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'folderId, contragentName';
+    public $searchFields = 'number, folderId, contragentName';
     
     
     /**
@@ -1200,5 +1200,16 @@ class purchase_Invoices extends deals_InvoiceMaster
         // Ако текущата дата е ДО 12-о число включително - СД е първо число на предходния месец;
         // Ако текущата дата е СЛЕД 12-о число - СД е първо число на текущия месец
         return ($numOfDay <= $nDay) ? dt::mysql2verbal($prevLastDay, 'Y-m-01') : dt::mysql2verbal($today, 'Y-m-01');
+    }
+    
+    
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        if(!empty($rec->number)){
+            $res .= ' ' . plg_Search::normalizeText($rec->number);
+        }
     }
 }
