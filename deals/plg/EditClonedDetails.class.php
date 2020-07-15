@@ -201,6 +201,8 @@ class deals_plg_EditClonedDetails extends core_Plugin
         $Detail = cls::get($mvc->mainDetail);
         $detailClassId = $Detail->getClassId();
         
+        $dontCloneFields = arr::make($Detail->fieldsNotToClone, true);
+        
         if (countR($rec->details)) {
             foreach ($rec->details as $det) {
                 if (!empty($det->baseQuantity)) {
@@ -257,6 +259,12 @@ class deals_plg_EditClonedDetails extends core_Plugin
                     }
                     unset($det->id, $det->createdOn, $det->createdBy);
                     
+                    // Махане на полетата, които не трябва да се клонират
+                    if(countR($dontCloneFields)){
+                        foreach ($dontCloneFields as $unsetField) {
+                            unset($det->{$unsetField});
+                        }
+                    }
                     
                     $det->{$Detail->masterKey} = $rec->id;
                     $Detail->save($det);

@@ -61,23 +61,21 @@
 								<td>[#setDiscounts#]</td>
 							</tr>
 							
-							<!--ET_BEGIN usedDiscounts-->
-							<tr>
-								<td class='dt'>|Използвани отстъпки|*:</td>
-								<td>[#usedDiscounts#]</td>
-							</tr>
-							<!--ET_END usedDiscounts-->
-							
 							<!--ET_BEGIN otherStores-->
 							<tr>
 								<td class='dt'>|Други складове|*:</td>
 								<td>[#otherStores#]</td>
 							</tr>
 							<!--ET_END otherStores-->
-						
+							<!--ET_BEGIN usedDiscounts-->
+							<tr>
+								<td class='dt'>|Използвани отстъпки|*:</td>
+								<td>[#usedDiscounts#]</td>
+							</tr>
+							<!--ET_END usedDiscounts-->
 							<tr>
 								<td class='dt'>|Групи за бърз избор|*:</td>
-								<td>[#groups#]</td>
+								<td>[#productGroups#]</td>
 							</tr>
 						
 							<tr>

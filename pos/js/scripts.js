@@ -55,7 +55,7 @@ function posActions() {
 		processUrl(url, params);
 	});
 
-
+	
 	/**
 	 * При спиране на писането в полето за търсене
 	 * @param e
@@ -73,40 +73,7 @@ function posActions() {
 
 		activeInput = true;
 
-		// След всяко натискане на бутон изчистваме времето на изчакване
-		clearTimeout(timeout);
-
-		var url = $(this).attr("data-keyupurl");
-		if(!url){
-			return;
-		}
-
-		var inpVal = $(this).val();
-		var operation = getSelectedOperation();
-
-		if(isMicroformat(inpVal) && (operation == 'add' || operation == 'edit')){
-
-			var selectedRecId = getSelectedRowId();
-			doOperation(operation, selectedRecId, true);
-			return;
-		}
-		
-		if(inpVal.startsWith("*")){
-			return;
-		}
-		
-		var selectedElement = $(".highlighted.productRow");
-		var selectedRecId = selectedElement.attr("data-id");
-
-		// Правим Ajax заявката като изтече време за изчакване
-		timeout = setTimeout(function(){
-			resObj = new Object();
-			resObj['url'] = url;
-			
-			var params = {operation:operation,search:inpVal,recId:selectedRecId};
-			processUrl(url, params);
-
-		}, searchTimeout);
+		triggerSearchInput($(this), searchTimeout);
 	});
 
 
@@ -135,8 +102,8 @@ function posActions() {
 		
 		if(url){
 			setTimeout(function() {
-				var e = jQuery.Event("keyup");
-				$('.large-field').trigger(e);
+				var ev = jQuery.Event("keyup");
+				$('.large-field').trigger(ev);
 	        }, 100);
 		}
 	});
@@ -178,17 +145,17 @@ function posActions() {
 		}
 	});
 
+	
+	/**
+	 * При клик на таба
+	 */
 	$(document.body).on('click', ".tabHolder li", function() {
+		activateTab($(this), 0);
 		
-		var id = $(this).attr('data-content');
-		$(this).addClass('active').siblings().removeClass('active');
-		$("#" + id).show().siblings().hide();
-		if($('.scroll-holder.productTabs').length) {
-			sessionStorage.setItem("activeProductTab", $('.tabHolder li.active').attr('id'));
-		}
 		startNavigation();
 	});
 
+	
 	$(document.body).on('click', ".ui-dialog-titlebar-close", function() {
 		if($('.keyboardText').val()){
 			$('.select-input-pos').val($('.keyboardText').val());
@@ -375,11 +342,6 @@ function posActions() {
 		openHelp();
 	});
 
-	$("body").setShortcutKey( CONTROL , I ,function() {
-		clearTimeout(timeout);
-		deteleElements();
-	});
-
 	$("body").setShortcutKey( CONTROL , LEFT ,function() {
 		prevTab();
 	});
@@ -417,9 +379,9 @@ function prevTab() {
 	var currentTab = $('.tabHolder li.active');
 	if($(currentTab).prev().length) {
 		$(currentTab).prev()[0].scrollIntoView({inline: "center", block: "end"});
-		$(currentTab).prev().click();
+		activateTab($(currentTab).prev(), 750);
+		
 		activeInput = false;
-		sessionStorage.setItem("activeProductTab", $('.tabHolder li.active').attr('id'));
 	}
 
 	startNavigation();
@@ -435,12 +397,9 @@ function nextTab() {
 	var currentTab = $('.tabHolder li.active');
 	if($(currentTab).next().length) {
 		$(currentTab).next()[0].scrollIntoView({inline: "center", block: "end"});
-		$(currentTab).next().click();
-
+		activateTab($(currentTab).next(), 750);
+		
 		activeInput = false;
-		sessionStorage.setItem("activeProductTab", $('.tabHolder li.active').attr('id'));
-
-
 	}
 	startNavigation();
 }
@@ -480,10 +439,6 @@ function inputChars(inputElement, val) {
 	activeInput = true;
 }
 
-
-function deteleElements(){
-	$('.rejectBtn').parent().trigger("click");
-}
 
 // Активиране на лупата за увеличение
 function openInfo(element) {
@@ -582,7 +537,6 @@ function openPayment() {
 function calculateWidth(){
 	var winWidth = parseInt($(window).outerWidth());
 	var winHeight = parseInt($(window).outerHeight());
-
 	if (winWidth >= 1200) {
 		//задаване на ширина на двете колони
 		$('#result-holder').css('width', winWidth - $('#single-receipt-holder').width());
@@ -614,7 +568,16 @@ function calculateWidth(){
 
 		$('.tools-content').css('height',460);
 
+		if(!isTouchDevice()) {
+			$('#keyboard-num').css('display','block');
+		} else {
+			$('#tools-holder').css('height', 330);
+			$('#keyboard-num').css('display','none');
+		}
+
 	} else {
+		$('#keyboard-num').css('display','none');
+
 		$('#single-receipt-holder').removeClass('fixedHolder');
 		$('#result-holder').removeClass('fixedPosition');
 		$('#result-holder').addClass('relativePosition');
@@ -626,6 +589,9 @@ function calculateWidth(){
 		$('.tools-content').css('height','auto');
 		$('#result-holder .withTabs').css('height', "100%");
 		$('#result-holder .scroll-holder').css('width', "100%");
+
+		$('.keyboardBtn.operationHolder').addClass('disabledBtn');
+		$('.keyboardBtn.operationHolder').attr('disabled', 'disabled');
 
 	}
 	var scrollerWidth = 0;
@@ -1021,13 +987,13 @@ function openModal(title, heightModal) {
 	
 	// Изчистване на предишното съдържание на модала, да не се визуализира, докато се зареди новото
 	$("#modalContent").html("");
-	
 	var height = (heightModal == "smallHeight" ) ?  500 : 700;
+	var width = ($(window).width() > 1200) ?  1000 : parseInt($(window).width()) - 40;
 
 	dialog = $("#modalContent").dialog({
 		autoOpen: false,
 		height: height,
-		width: 1000,
+		width: width,
 		modal: true,
 		title: title,
 		beforeClose: event.preventDefault(),
@@ -1036,31 +1002,34 @@ function openModal(title, heightModal) {
 
 	dialog.dialog( "open" );
 	$('.ui-dialog-titlebar-close').focus();
-	if ($('.keyboard'.length)) {
-		setTimeout(function(){
 
-					var keyboard = sessionStorage.getItem('activeKeyboard');
-					if (!keyboard) {
-						keyboard = "keyboard-lat";
-					}
-					$('.keyboard#' + keyboard).show().siblings('.keyboard').hide();
 
-				$('.keyboardText').focus();
+	setTimeout(function () {
+		if ($('#modalContent .keyboard').length) {
+			var keyboard = sessionStorage.getItem('activeKeyboard');
+			if($('#' + keyboard).length ){
+				$('.keyboard#' + keyboard).show().siblings('.keyboard').hide();
+			}
 
-				$('.keyboardText').keydown(function(event) {
-					$('.pressed').removeClass('pressed');
-					var key = event.key.toLowerCase();
-					$(".keyboard-btn[data-key=" + key+ "]").addClass('pressed');
-					if (event.key == "Enter") {
-						$('.select-input-pos').val($('.keyboardText').val());
-						$('.ui-dialog-titlebar-close').click();
-						activeInput = true;
-					}
-				});
+			$('.keyboardText').focus();
 
-			},50);
+			$('.keyboardText').keydown(function(event) {
+				$('.pressed').removeClass('pressed');
+				var key = event.key.toLowerCase();
+				$(".keyboard-btn[data-key=" + key+ "]").addClass('pressed');
+				if (event.key == "Enter") {
+					$('.select-input-pos').val($('.keyboardText').val());
+					$('.ui-dialog-titlebar-close').click();
+					activeInput = true;
+				}
+			});
 
-	}
+		}
+	}, 1);
+
+
+
+
 	openedModal = true;
 }
 
@@ -1085,6 +1054,7 @@ function startNavigation() {
 			$('#' + focused ).addClass('selected');
 		}
 		$('#result-holder .navigable:visible').keynav();
+
 		$('#result-holder .withTabs').scrollTop(scrollTop);
 
 	}
@@ -1264,27 +1234,25 @@ function getSelectedRowId() {
 }
 
 function openCurrentPosTab() {
-	if($('.tabHolder li').length) {
-		var activeId = sessionStorage.getItem('activeProductTab');
-		if (activeId && $('.tabHolder li#' + activeId ).length) {
-			var activeTab = $('.tabHolder li#' + activeId ).addClass('active');
-		} else {
-			var activeTab = $('.tabHolder li:first').addClass('active');
-		}
-		var currentTabContent = activeTab.attr('data-content');
+	if($('.tabHolder .noajaxtabs').length) {
+		var activeTab =  $('.tabHolder .noajaxtabs:first').addClass('active');
+		var currentTabContent = $(activeTab).attr('data-content');
 
 		$("#" + currentTabContent).show();
 
-		startNavigation();
-		$(activeTab)[0].scrollIntoView({block: "center", end: "center"});
 		sessionStorage.removeItem('focusedOffset');
 	}
+	if($('.productTabs .active').length) {
+		$('.productTabs').scrollLeft(sessionStorage.getItem('tabOffset'));
+	}
+	startNavigation();
 }
 
 /**
  * Извършва подадената операция
  */
 function doOperation(operation, selectedRecId, forceSubmit) {
+	sessionStorage.setItem('tabOffset', 0);
 	clearTimeout(timeout);
 	
 	sessionStorage.removeItem("focused");
@@ -1350,4 +1318,71 @@ function render_toggleAddedProductFlag(data)
 
 		}
 	});
+}
+
+
+/*
+ * Активира таба
+ */
+function activateTab(element, timeOut)
+{
+	var id = element.attr('data-content');
+	element.addClass('active').siblings().removeClass('active');
+
+	sessionStorage.setItem('tabOffset', element.closest('.productTabs').scrollLeft());
+	// да се скриват и показват само табовете на бележките
+	if(element.hasClass('noajaxtabs')){
+		$("#" + id).show().siblings().hide();
+	} else {
+		triggerSearchInput($(".large-field"), timeOut);
+	}
+}
+
+
+/*
+ * Търси по инпута ако може
+ */
+function triggerSearchInput(element, timeoutTime)
+{
+	// След всяко натискане на бутон изчистваме времето на изчакване
+	clearTimeout(timeout);
+	
+	var url = element.attr("data-keyupurl");
+	if(!url){
+		return;
+	}
+
+	var inpVal = element.val();
+	var operation = getSelectedOperation();
+
+	if(isMicroformat(inpVal) && (operation == 'add' || operation == 'edit')){
+
+		var selectedRecId = getSelectedRowId();
+		doOperation(operation, selectedRecId, true);
+		return;
+	}
+	
+	if(inpVal.startsWith("*")){
+		return;
+	}
+	
+	var selectedElement = $(".highlighted.productRow");
+	var selectedRecId = selectedElement.attr("data-id");
+
+	// Правим Ajax заявката като изтече време за изчакване
+	timeout = setTimeout(function(){
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		var params = {operation:operation,search:inpVal,recId:selectedRecId};
+		
+		var activeTab = $(".tabHolder li.active");
+		if(activeTab.length){
+			var id = activeTab.attr("data-id");
+			params.selectedProductGroupId = id;
+		}
+		
+		processUrl(url, params);
+
+	}, timeoutTime);
 }

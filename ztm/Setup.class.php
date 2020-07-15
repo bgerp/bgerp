@@ -40,11 +40,23 @@ class ztm_Setup extends core_ProtoSetup
     );
     
     
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    public $menuItems = array(
+        array(3.4, 'Мониторинг', 'ZTM', 'ztm_Devices', 'default', 'ztm, ceo'),
+    );
+    
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
             'ztm_Devices',
+            'ztm_RegistersDef',
+            'ztm_Registers',
+            'ztm_RegisterLongValues',
+            'ztm_Profiles',
+            'ztm_ProfileDefaults',
     );
 }

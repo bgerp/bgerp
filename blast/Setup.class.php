@@ -263,7 +263,11 @@ class blast_Setup extends core_ProtoSetup
                 $bRec->unsubscribe = $unsTextEn;
             }
             
-            blast_Emails::save($bRec, 'unsubscribe');
+            try {
+                blast_Emails::save($bRec, 'unsubscribe');
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+            }
         }
     }
 }

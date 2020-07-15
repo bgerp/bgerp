@@ -1,3 +1,4 @@
+<div class='contentHolderResults'>
 <div class='divider'>|Опаковка|*</div>
 [#PACK_BUTTONS#]
 
@@ -25,3 +26,4 @@
 	<div class='divider'>|Последни количества|*</div>
 	[#FREQUENT_PACK_BUTTONS#]
 <!--ET_END FREQUENT_PACK_BUTTONS-->
+</div>

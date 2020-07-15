@@ -38,4 +38,11 @@ class canvasgauge_Setup extends core_ProtoSetup
      * Пакет без инсталация
      */
     public $noInstall = true;
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'CANVASGAUGE_VERSION' => array('enum(2.1.4, 2.1.7)', 'caption=Версия на canvasgauge->Версия')
+    );
 }
