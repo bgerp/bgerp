@@ -50,8 +50,7 @@ class deals_plg_SelectInvoice extends core_Plugin
         if (isset($rec->fromContainerId)) {
             $Document = doc_Containers::getDocument($rec->fromContainerId);
             if($Document->isInstanceOf('deals_InvoiceMaster')){
-                $row->fromContainerId = $Document->getHandle();
-                
+                $row->fromContainerId = $Document->getInstance()->getVerbal($Document->fetch(), 'number');
                 if (!Mode::isReadOnly()) {
                     $row->fromContainerId = ht::createLink($row->fromContainerId, $Document->getSingleurlArray());
                 }
