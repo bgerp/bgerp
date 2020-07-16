@@ -1401,7 +1401,7 @@ abstract class deals_Helper
             
             while ($iRec = $iQuery->fetch()) {
                 $Document = doc_Containers::getDocument($iRec->containerId);
-                $invoices[$iRec->containerId] = "#{$Document->getHandle()}";
+                $invoices[$iRec->containerId] = $Document->getInstance()->getVerbal($Document->fetch(), 'number');
             }
         }
         
