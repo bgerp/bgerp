@@ -62,10 +62,9 @@ function posActions() {
 	 * @returns
 	 */
 	$(document.body).on('keyup', ".large-field", function(e){
-		
-		// @todo да се намери по красиво решение
-		if($(".buttonOverlay").css('display') != 'none'){
-			//return;
+		// ако е клавишна комбинация с ctrl
+		if(e.ctrlKey){
+			return;
 		}
 
 		// Хак да не се тригърва ивента при натискане на ентър или при навигацията на страницата за избор на селектиран елемент
