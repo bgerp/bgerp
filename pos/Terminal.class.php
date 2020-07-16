@@ -1232,6 +1232,9 @@ class pos_Terminal extends peripheral_Terminal
             }
         }
        
+        $tpl->prepend("<div class='contentHolderResults'>");
+        $tpl->prepend("</div>");
+        
         return $tpl;
     }
     
