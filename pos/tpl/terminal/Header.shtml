@@ -1,5 +1,5 @@
 <div class="fleft">
-    <span class='headerReceiptIdLink'>№ [#ID#]/[#valior#]</span>
+    <span class='headerReceiptIdLink'>[#ID#] / [#valior#]</span>
     <span class="unp">[#SUB_TITLE#]</span>
     <span class="companyName specialLink">[#contragentId#]</span>
 </div>
