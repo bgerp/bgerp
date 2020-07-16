@@ -1132,7 +1132,7 @@ class pos_Terminal extends peripheral_Terminal
                 }
                 
                 $shortName = cls::get($obj->contragentClassId)->getVerbal($obj->contragentId, 'name');
-                $obj->title = ht::createHint(str::limitLen($shortName, 32), $obj->title);
+                $obj->title = ht::createHint(str::limitLen($shortName, 28), $obj->title);
                 if($showUniqueNumberLike){
                     $subArr = array();
                     if(!empty($obj->vatId)){
@@ -1233,7 +1233,7 @@ class pos_Terminal extends peripheral_Terminal
         }
        
         $tpl->prepend("<div class='contentHolderResults'>");
-        $tpl->prepend("</div>");
+        $tpl->append("</div>");
         
         return $tpl;
     }
