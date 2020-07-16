@@ -343,7 +343,7 @@ class pos_Receipts extends core_Master
         
         if (isset($rec->revertId)) {
             $row->REVERT_CAPTION = tr("Сторно");
-            $row->revertId = ($rec->revertId != self::DEFAULT_REVERT_RECEIPT) ? pos_Receipts::getHyperlink($rec->revertId, true) : ht::createHint(' ', 'Произволна сторнираща бележка', 'warning');
+            $row->revertId = ($rec->revertId != self::DEFAULT_REVERT_RECEIPT) ? pos_Receipts::getHyperlink($rec->revertId, true) : (!Mode::is('printing') ? ht::createHint(' ', 'Произволна сторнираща бележка', 'warning') : null);
         } elseif($rec->state != 'draft') {
             if(isset($rec->transferedIn)){
                 $row->revertId = tr('Прехвърлена');
