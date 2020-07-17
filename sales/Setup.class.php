@@ -534,7 +534,7 @@ class sales_Setup extends core_ProtoSetup
         $cache = array();
         $query = $Deltas->getQuery();
         $query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-        $query->where("#canStore = 'yes' AND #storeId IS NULL AND #detailClassId != '{$reportClassId}'");
+        $query->where("#canStore = 'yes' AND #storeId IS NULL AND #detailClassId != '{$reportClassId}' AND #sellCost IS NOT NULL");
         $query->show('containerId');
         $query->limit(10000);
         
