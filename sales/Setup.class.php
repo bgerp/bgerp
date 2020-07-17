@@ -328,6 +328,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_PrimeCostByDocument',
         'sales_TransportValues',
         'sales_ProductRelations',
+        'migrate::updateStoreIdInDeltas'
     );
     
     
@@ -511,5 +512,47 @@ class sales_Setup extends core_ProtoSetup
         if($query->count()){
             cond_Ranges::add('sales_Invoices', 2000000, 2999999, null, 'acc,ceo', 2, false);
         }
+    }
+    
+    
+    /**
+     * Миграция да се записва склада в модела за делтите
+     */
+    public function updateStoreIdInDeltas()
+    {
+        $Deltas = cls::get('sales_PrimeCostByDocument');
+        $Deltas->setupMvc();
+        
+        if(!$Deltas->count()) {
+            
+            return;
+        }
+        
+        $reportClassId = pos_Reports::getClassId();
+        
+        $updateRecs = array();
+        $cache = array();
+        $query = $Deltas->getQuery();
+        $query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $query->where("#canStore = 'yes' AND #storeId IS NULL AND #detailClassId != '{$reportClassId}'");
+        $query->show('containerId');
+        
+        core_App::setTimeLimit($query->count() * 0.3, false, 120);
+        while($rec = $query->fetch()){
+            if(!empty($rec->containerId) && !array_key_exists($rec->containerId, $cache)){
+                try{
+                    $Document = doc_Containers::getDocument($rec->containerId);
+                    $storeId = ($Document->isInstanceOf('sales_Sales')) ? $Document->fetchField('shipmentStoreId') : ($Document->isInstanceOf('store_DocumentMaster') ? $Document->fetchField('storeId') : null);
+                    $cache[$rec->containerId] = $storeId;
+                } catch(core_exception_Expect $e){
+                    
+                }
+            }
+            
+            $rec->storeId = $cache[$rec->containerId];
+            $updateRecs[] = $rec;
+        }
+        
+        $Deltas->saveArray($updateRecs, 'id,storeId');
     }
 }
