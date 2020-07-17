@@ -1516,31 +1516,6 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
-     * Какво правим след сетъпа на модела?
-     */
-    public static function on_AfterSetupMVC($mvc, &$res)
-    {
-        if (!$mvc->fetch("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
-            $count = 0;
-            $query = static::getQuery();
-            $query->orderBy('#id', 'DESC');
-            
-            while ($rec = $query->fetch()) {
-                // Обновяваме ключовите думи на нотификациите, ако нямат
-                if ($rec->searchKeywords) {
-                    continue;
-                }
-                $rec->searchKeywords = $mvc->getSearchKeywords($rec);
-                $mvc->save_($rec, 'searchKeywords');
-                $count++;
-            }
-            
-            $res .= "Обновени ключови думи на  {$count} записа в Нотификациите";
-        }
-    }
-    
-    
-    /**
      * Абонира функцията за промяна на броя на нотификациите по AJAX
      *
      * $param core_ET|NULL $tpl
