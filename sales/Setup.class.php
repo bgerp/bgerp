@@ -536,7 +536,7 @@ class sales_Setup extends core_ProtoSetup
         $query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         $query->where("#canStore = 'yes' AND #storeId IS NULL AND #detailClassId != '{$reportClassId}' AND #sellCost IS NOT NULL");
         $query->show('containerId');
-        $query->limit(10000);
+        //$query->limit(10000);
         
         core_App::setTimeLimit($query->count() * 0.3, false, 120);
         while($rec = $query->fetch()){
