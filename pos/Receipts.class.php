@@ -897,7 +897,7 @@ class pos_Receipts extends core_Master
             if(!empty($price->price)){
                
                 $dRec->price = $price->price * $perPack;
-                $dRec->amount = $rec->price * $dRec->quantity;
+                $dRec->amount = $dRec->price * $dRec->quantity;
                 $dRec->discountPercent = $price->discount;
                 pos_ReceiptDetails::save($dRec, 'price,amount,discountPercent');
             }
