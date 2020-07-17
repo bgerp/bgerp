@@ -862,6 +862,8 @@ class plg_Search extends core_Plugin
         $fRec = $mvc->fetch("id = {$rec->id}", '*', false);
         $rec->searchKeywords = $mvc->getSearchKeywords($fRec);
         
+        $rec->searchKeywords = self::purifyKeywods($rec->searchKeywords);
+        
         $mvc->save_($rec, 'searchKeywords');
         if($rec->containerId){
             doc_Containers::update_($rec->containerId);
