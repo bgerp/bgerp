@@ -328,7 +328,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_PrimeCostByDocument',
         'sales_TransportValues',
         'sales_ProductRelations',
-        'migrate::updateStoreIdInDeltas'
+        'migrate::updateStoreIdInDeltas1'
     );
     
     
@@ -518,7 +518,7 @@ class sales_Setup extends core_ProtoSetup
     /**
      * Миграция да се записва склада в модела за делтите
      */
-    public function updateStoreIdInDeltas()
+    public function updateStoreIdInDeltas1()
     {
         $Deltas = cls::get('sales_PrimeCostByDocument');
         $Deltas->setupMvc();
@@ -536,6 +536,7 @@ class sales_Setup extends core_ProtoSetup
         $query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         $query->where("#canStore = 'yes' AND #storeId IS NULL AND #detailClassId != '{$reportClassId}'");
         $query->show('containerId');
+        $query->limit(10000);
         
         core_App::setTimeLimit($query->count() * 0.3, false, 120);
         while($rec = $query->fetch()){
