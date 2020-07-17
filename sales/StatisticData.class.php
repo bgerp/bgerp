@@ -27,7 +27,7 @@ class sales_StatisticData extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'sales_Wrapper, plg_Sorting';
+    public $loadList = 'sales_Wrapper, plg_Sorting, plg_AlignDecimals2';
     
     
     /**
@@ -77,7 +77,22 @@ class sales_StatisticData extends core_Manager
     }
     
     
+    /**
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if(isset($rec->storeId)){
+            $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
+        }
+        
+        $row->productId = cat_Products::getHyperlink($rec->productId, true);
+    }
     
+    
+    /**
+     * Събиране на статистическата информация по разписание
+     */
     public function cron_GatherSalesData()
     {
         $exPosQuery = self::getQuery();
