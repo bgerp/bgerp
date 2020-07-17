@@ -377,6 +377,7 @@ class doc_Containers extends core_Manager
                     if (!$force && ($generatedKeywords == $cRec->searchKeywords)) {
                         continue;
                     }
+                    $generatedKeywords = plg_Search::purifyKeywods($generatedKeywords);
                     $cRec->searchKeywords = $generatedKeywords;
                     $clsInst->save_($cRec, 'searchKeywords');
                     

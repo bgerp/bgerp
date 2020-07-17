@@ -4034,6 +4034,7 @@ class cat_Products extends embed_Manager
         if($rec = $mvc->fetchRec($id)){
             $keywords = $mvc->getSearchKeywords($rec);
             if($rec->searchKeywords != $keywords){
+                $keywords = plg_Search::purifyKeywods($keywords);
                 $rec->searchKeywords = $keywords;
                 $mvc->save_($rec, 'searchKeywords');
                 $cRec = (object)array('id' => $rec->containerId, 'searchKeywords' => $rec->searchKeywords);
