@@ -328,6 +328,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_PrimeCostByDocument',
         'sales_TransportValues',
         'sales_ProductRelations',
+        'migrate::updateStoreIdInDeltas2',
     );
     
     
@@ -517,7 +518,7 @@ class sales_Setup extends core_ProtoSetup
     /**
      * Миграция да се записва склада в модела за делтите
      */
-    public function updateStoreIdInDeltas1()
+    public function updateStoreIdInDeltas2()
     {
         $Deltas = cls::get('sales_PrimeCostByDocument');
         $Deltas->setupMvc();
@@ -527,32 +528,38 @@ class sales_Setup extends core_ProtoSetup
             return;
         }
         
-        $reportClassId = pos_Reports::getClassId();
+        $Products = cls::get('cat_Products');
+        $Products->setupMvc();
         
-        $updateRecs = array();
-        $cache = array();
-        $query = $Deltas->getQuery();
-        $query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-        $query->where("#canStore = 'yes' AND #storeId IS NULL AND #detailClassId != '{$reportClassId}' AND #sellCost IS NOT NULL");
-        $query->show('containerId');
-        //$query->limit(10000);
+        $Sales = cls::get('sales_Sales');
+        $Sales->setupMvc();
         
-        core_App::setTimeLimit($query->count() * 0.3, false, 120);
-        while($rec = $query->fetch()){
-            if(!empty($rec->containerId) && !array_key_exists($rec->containerId, $cache)){
-                try{
-                    $Document = doc_Containers::getDocument($rec->containerId);
-                    $storeId = ($Document->isInstanceOf('sales_Sales')) ? $Document->fetchField('shipmentStoreId') : ($Document->isInstanceOf('store_DocumentMaster') ? $Document->fetchField('storeId') : null);
-                    $cache[$rec->containerId] = $storeId;
-                } catch(core_exception_Expect $e){
-                    
-                }
-            }
-            
-            $rec->storeId = $cache[$rec->containerId];
-            $updateRecs[] = $rec;
-        }
+        $Shipments = cls::get('store_ShipmentOrders');
+        $Shipments->setupMvc();
         
-        $Deltas->saveArray($updateRecs, 'id,storeId');
+        $Receipts = cls::get('store_Receipts');
+        $Receipts->setupMvc();
+        $Containers = cls::get('doc_Containers');
+        
+        $productCol = str::phpToMysqlName('productId');
+        $containerCol = str::phpToMysqlName('containerId');
+        $docIdCol = str::phpToMysqlName('docId');
+        $shipmentStoreIdCol = str::phpToMysqlName('shipmentStoreId');
+        $storeCol = str::phpToMysqlName('storeId');
+        $docClassCol = str::phpToMysqlName('docClass');
+        $canStoreCol = str::phpToMysqlName('can_store');
+        
+        $salesClassId = sales_Sales::getClassId();
+        $storeShipmentClassId = store_ShipmentOrders::getClassId();
+        $storeReceiptsClassId = store_Receipts::getClassId();
+        
+        $query = "UPDATE {$Deltas->dbTableName} JOIN {$Products->dbTableName} ON {$Products->dbTableName}.id = {$Deltas->dbTableName}.{$productCol} JOIN {$Containers->dbTableName} ON {$Deltas->dbTableName}.{$containerCol} = {$Containers->dbTableName}.id RIGHT JOIN {$Sales->dbTableName} ON {$Sales->dbTableName}.id = {$Containers->dbTableName}.{$docIdCol} SET {$Deltas->dbTableName}.{$storeCol} = {$Sales->dbTableName}.{$shipmentStoreIdCol} WHERE {$Containers->dbTableName}.{$docClassCol} = {$salesClassId} AND {$Products->dbTableName}.{$canStoreCol} = 'yes' AND {$Deltas->dbTableName}.{$storeCol} IS NULL";
+        $Deltas->db->query($query);
+        
+        $query = "UPDATE {$Deltas->dbTableName} JOIN {$Products->dbTableName} ON {$Products->dbTableName}.id = {$Deltas->dbTableName}.{$productCol} JOIN {$Containers->dbTableName} ON {$Deltas->dbTableName}.{$containerCol} = {$Containers->dbTableName}.id RIGHT JOIN {$Shipments->dbTableName} ON {$Shipments->dbTableName}.id = {$Containers->dbTableName}.{$docIdCol} SET {$Deltas->dbTableName}.{$storeCol} = {$Shipments->dbTableName}.{$storeCol} WHERE {$Containers->dbTableName}.{$docClassCol} = {$storeShipmentClassId} AND {$Products->dbTableName}.{$canStoreCol} = 'yes' AND {$Deltas->dbTableName}.{$storeCol} IS NULL";
+        $Deltas->db->query($query);
+        
+        $query = "UPDATE {$Deltas->dbTableName} JOIN {$Products->dbTableName} ON {$Products->dbTableName}.id = {$Deltas->dbTableName}.{$productCol} JOIN {$Containers->dbTableName} ON {$Deltas->dbTableName}.{$containerCol} = {$Containers->dbTableName}.id RIGHT JOIN {$Receipts->dbTableName} ON {$Receipts->dbTableName}.id = {$Containers->dbTableName}.{$docIdCol} SET {$Deltas->dbTableName}.{$storeCol} = {$Receipts->dbTableName}.{$storeCol} WHERE {$Containers->dbTableName}.{$docClassCol} = {$storeReceiptsClassId} AND {$Products->dbTableName}.{$canStoreCol} = 'yes' AND {$Deltas->dbTableName}.{$storeCol} IS NULL";
+        $Deltas->db->query($query);
     }
 }
