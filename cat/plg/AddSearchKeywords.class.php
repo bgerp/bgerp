@@ -20,6 +20,11 @@ class cat_plg_AddSearchKeywords extends core_Plugin
      */
     public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
+        $rec = $mvc->fetchRec($rec);
+        if (!isset($res)) {
+            $res = plg_Search::getKeywords($mvc, $rec);
+        }
+        
         $Products = cls::get('cat_Products');
         $products = array();
         
