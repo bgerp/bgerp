@@ -86,6 +86,11 @@ class doc_plg_Sequencer2 extends core_Plugin
      */
     public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
+        $rec = $mvc->fetchRec($rec);
+        if (!isset($res)) {
+            $res = plg_Search::getKeywords($mvc, $rec);
+        }
+        
         // Добавяне на кода към ключовите думи
         if(!empty($rec->{$mvc->numberFld})){
             $res .= ' ' . plg_Search::normalizeText($rec->{$mvc->numberFld});

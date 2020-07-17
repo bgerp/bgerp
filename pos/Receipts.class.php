@@ -881,7 +881,6 @@ class pos_Receipts extends core_Master
         
         $rec->contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
         $rec->contragentLocationId = $locationId;
-        
         $this->save($rec, 'contragentObjectId,contragentClass,contragentName,contragentLocationId');
         
         $Policy = cls::get('price_ListToCustomers');
@@ -898,12 +897,10 @@ class pos_Receipts extends core_Master
             if(!empty($price->price)){
                
                 $dRec->price = $price->price * $perPack;
-                $dRec->amount = $rec->price * $dRec->quantity;
+                $dRec->amount = $dRec->price * $dRec->quantity;
                 $dRec->discountPercent = $price->discount;
                 pos_ReceiptDetails::save($dRec, 'price,amount,discountPercent');
             }
-            
-            $this->logWrite('Обновяване на цена при смяна на контрагента', $id);
         }
         
         $this->logWrite('Задаване на контрагент', $id);

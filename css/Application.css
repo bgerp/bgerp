@@ -4513,6 +4513,9 @@ div.location.public {
   width: 100%;
   max-width: 400px; }
 
+.ajaxSelect {
+  min-width: 250px; }
+
 .productCell {
   max-width: none !important; }
 

@@ -200,6 +200,13 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                 'contragentClassId' => $Cover->getClassId(),
                 'primeCost' => $primeCost);
             
+            $canStore = cat_products::fetchField($dRec->{$mvc->detailProductFld}, 'canStore');
+            if($canStore == 'yes'){
+                if($storeId = ($mvc instanceof sales_Sales) ? $rec->shipmentStoreId : (($mvc instanceof store_DocumentMaster) ? $rec->storeId : null)){
+                    $r->storeId = $storeId;
+                }
+            }
+            
             // Ако първия документ е обединяваща продажба
             $persons = null;
             if($firstDoc = doc_Threads::getFirstDocument($rec->threadId)){

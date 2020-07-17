@@ -845,12 +845,17 @@ class pos_Reports extends core_Master
                 $r->dealerId = $dealerId;
                 
                 // Изчисляване на себестойността на артикула
-                $productRec = cat_Products::fetchField($dRec->value, 'isPublic,code');
+                $productRec = cat_Products::fetch($dRec->value, 'isPublic,code,canStore');
                 if ($productRec->code == 'surcharge') {
                     $r->primeCost = 0;
                 } else {
                     $r->primeCost = cat_Products::getPrimeCost($dRec->value, $dRec->pack, $r->quantity, $valior, price_ListRules::PRICE_LIST_COST);
                 }
+                
+                if($productRec->canStore == 'yes'){
+                    $r->storeId = $dRec->storeId;
+                }
+                
                 
                 $res[] = $r;
             }

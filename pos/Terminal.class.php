@@ -66,7 +66,7 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Кои са разрешените операции
      */
-    protected static $operationsArr = "add=Добавяне на артикул,quantity=Редактиране на реда,payment=Плащане по бележката,contragent=Търсене на клиент,text=Задаване на текст на реда,receipts=Избор на бележка";
+    protected static $operationsArr = "add=Избор на артикул,quantity=Редактиране на реда,payment=Плащане по бележката,contragent=Търсене на клиент,text=Задаване на текст на реда,receipts=Избор на бележка";
 
 
     /**
