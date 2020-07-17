@@ -33,6 +33,11 @@ class deals_plg_SelectInvoice extends core_Plugin
      */
     public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
+        $rec = $mvc->fetchRec($rec);
+        if (!isset($res)) {
+            $res = plg_Search::getKeywords($mvc, $rec);
+        }
+        
         if (isset($rec->fromContainerId)) {
             $invRec = sales_Invoices::fetch("#containerId = {$rec->fromContainerId}", 'number');
             $numberPadded = sales_Invoices::getVerbal($invRec, 'number');
@@ -149,24 +154,6 @@ class deals_plg_SelectInvoice extends core_Plugin
             
             if ($rec->state == 'rejected' || !$hasInvoices) {
                 $requiredRoles = 'no_one';
-            }
-        }
-    }
-    
-    
-    /**
-     * Подготовка на формата за добавяне
-     */
-    public static function on_AfterPrepareEditForm($mvc, $res, $data)
-    {
-        $form = $data->form;
-        
-        // Ако е към проформа да се показва в описанието
-        if (isset($mvc->reasonField, $form->rec->fromContainerId)) {
-            $fromDocument = doc_Containers::getDocument($form->rec->fromContainerId);
-            if ($fromDocument->isInstanceOf('sales_Proformas')) {
-                $form->setDefault($mvc->reasonField, tr('Към') . ' #' . $fromDocument->getHandle());
-                unset($form->rec->fromContainerId);
             }
         }
     }
