@@ -65,6 +65,8 @@ class plg_Search extends core_Plugin
                 $fields['searchKeywords'] = 'searchKeywords';
             }
             
+            $rec->searchKeywords = self::purifyKeywods($rec->searchKeywords);
+            
             $rec->searchKeywords = $mvc->getSearchKeywords($rec);
         }
     }
@@ -132,6 +134,36 @@ class plg_Search extends core_Plugin
         }
         
         return $searchKeywords;
+    }
+    
+    
+    /**
+     * Помощна функция за изчистване на ключовите думи от ненужни празни интервали
+     * Само по един интерва да остава и в началото и в края да има по един
+     *
+     * @param string $keywords
+     *
+     * @return string
+     */
+    public static function purifyKeywods($keywords)
+    {
+        if (!$keywords) {
+            
+            return $keywords;
+        }
+        
+        $keywords = trim($keywords);
+        
+        if (!$keywords) {
+            
+            return $keywords;
+        }
+        
+        $keywords = preg_replace('/\s{2,}/', ' ', $keywords);
+        
+        $keywords = ' ' . $keywords . ' ';
+        
+        return $keywords;
     }
     
     
@@ -677,7 +709,6 @@ class plg_Search extends core_Plugin
      */
     public static function callback_repairSerchKeywords($clsName)
     {
-        $clsName = 'lab_Hora';
         $pKey = $clsName . '|repairSearchKeywords';
         
         if (!cls::load($clsName, true)) {
@@ -745,6 +776,8 @@ class plg_Search extends core_Plugin
                         
                         continue;
                     }
+                    
+                    $generatedKeywords = plg_Search::purifyKeywods($generatedKeywords);
                     
                     $rec->searchKeywords = $generatedKeywords;
                     
@@ -828,6 +861,8 @@ class plg_Search extends core_Plugin
     {
         $fRec = $mvc->fetch("id = {$rec->id}", '*', false);
         $rec->searchKeywords = $mvc->getSearchKeywords($fRec);
+        
+        $rec->searchKeywords = self::purifyKeywods($rec->searchKeywords);
         
         $mvc->save_($rec, 'searchKeywords');
         if($rec->containerId){
