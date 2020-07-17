@@ -33,6 +33,11 @@ class deals_plg_SelectInvoice extends core_Plugin
      */
     public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
+        $rec = $mvc->fetchRec($rec);
+        if (!isset($res)) {
+            $res = plg_Search::getKeywords($mvc, $rec);
+        }
+        
         if (isset($rec->fromContainerId)) {
             $invRec = sales_Invoices::fetch("#containerId = {$rec->fromContainerId}", 'number');
             $numberPadded = sales_Invoices::getVerbal($invRec, 'number');
