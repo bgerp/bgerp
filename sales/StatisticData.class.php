@@ -65,9 +65,9 @@ class sales_StatisticData extends core_Manager
      */
     public function description()
     {
-        $this->FLD('type', 'enum(sales=Продажби,pos=ПОС,eshop=Е-шоп)', 'mandatory,caption=Източник');
-        $this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'input=none,caption=Артикул');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'mandatory,caption=Склад');
+        $this->FLD('type', 'enum(,sales=Продажби,pos=ПОС,eshop=Е-шоп)', 'mandatory,caption=Източник');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Артикул,silent,class=ajaxSelect');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'mandatory,caption=Склад,silent');
         $this->FLD('count', 'int', 'mandatory,caption=Брой');
         $this->FLD('quantity', 'double', 'mandatory,caption=Количество');
         $this->FLD('amount', 'double', 'mandatory,caption=Сума (без ДДС)');
@@ -75,6 +75,33 @@ class sales_StatisticData extends core_Manager
         $this->setDbIndex('type');
         $this->setDbUnique('type,productId,storeId');
     }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->showFields = 'productId,storeId,type';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input('productId,storeId,type');
+        
+        if($rec = $data->listFilter->rec){
+            if(!empty($rec->productId)){
+                $data->query->where("#productId = {$rec->productId}");
+            }
+            
+            if(!empty($rec->storeId)){
+                $data->query->where("#storeId = {$rec->storeId}");
+            }
+            
+            if(!empty($rec->type)){
+                $data->query->where("#type = '{$rec->type}'");
+            }
+        }
+    }
+    
     
     
     /**
