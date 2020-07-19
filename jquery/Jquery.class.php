@@ -17,20 +17,6 @@
 class jquery_Jquery
 {
     /**
-     * Пътя до JQuery библиотеката
-     *
-     * @return string
-     */
-    public static function getPath()
-    {
-        $conf = core_Packs::getConfig('jquery');
-        $jQueryPath = 'jquery/' . $conf->JQUERY_VERSION . '/jquery.min.js';
-        
-        return $jQueryPath;
-    }
-    
-    
-    /**
      * Добавя JQuery библиотеката към шаблона
      *
      * @param core_ET $tpl
@@ -47,12 +33,18 @@ class jquery_Jquery
             
             return false;
         }
-        
-        // Пътя до библиотеката
-        $jQueryPath = static::getPath();
+        $jQuery = page_Html::getFileForAppend('jquery/' . jquery_Setup::get('VERSION') . '/jquery.min.js');
+        if (($url = jquery_Setup::get('CDN_URL')) && ($integrity = jquery_Setup::get('CDN_INTEGRITY'))) {
+            $jQuery = (object) array(
+                'src' => $url,
+                'integrity' => $integrity,
+                'crossorigin' => 'anonymous',
+                'fallback' => "\n<script>window.jQuery || document.write('<script src=\"{$jQuery}\"><\/script>')</script>",
+            );
+        }
         
         // Добавяме библиотеката
-        $tpl->push($jQueryPath, 'JS');
+        $tpl->push($jQuery, 'JS');
     }
     
     
