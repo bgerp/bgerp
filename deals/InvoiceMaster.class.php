@@ -41,6 +41,14 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
+     * Каква да е максималната дължина на стринга за пълнотекстово търсене
+     *
+     * @see plg_Search
+     */
+    public $maxSearchKeywordLen = 13;
+    
+    
+    /**
      * На кой ред в тулбара да се показва бутона за принтиране
      */
     public $printBtnToolbarRow = 1;
@@ -1152,20 +1160,19 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $row = new stdClass();
         $me = cls::get(get_called_class());
-        if (!$me->getField('type', false)) {
-            
-            return parent::getRecTitle($rec, $escaped);
-        }
         
-        $row->type = $me->getVerbal($rec, 'type');
-        if ($rec->type == 'dc_note') {
-            $row->type = ($rec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие';
+        $singleTitle = $me->singleTitle;
+        if ($me->getField('type', false)) {
+            $singleTitle = $me->getVerbal($rec, 'type');
+            if ($rec->type == 'dc_note') {
+                $singleTitle = ($rec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие';
+            }
         }
         
         $row->number = $me->getVerbal($rec, 'number');
         $num = ($row->number) ? $row->number : $rec->id;
         
-        return tr("|{$row->type}|* №{$num}");
+        return tr("|{$singleTitle}|* №{$num}");
     }
     
     

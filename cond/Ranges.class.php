@@ -69,7 +69,7 @@ class cond_Ranges extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,class,min,max,current,lastUsedOn,isDefault,users,roles,createdOn,createdBy,state';
+    public $listFields = 'id,class,min,max,current,lastUsedOn,isDefault,users,roles,state,createdOn,createdBy';
     
     
     /**
@@ -176,6 +176,12 @@ class cond_Ranges extends core_Manager
     /**
      * Кой е дефолтния диапазон, който може да избере потребителя
      * 
+     * 1. Ако има достъп до само един диапазон - той
+     * 2. Ако има достъп до няколко, като дефолтния е сред тях - той
+     * 3. Ако има достъп до няколко, но без дефолтния - този с най-малко ид
+     * 4. Ако няма достъп до дефолтния и няма достъп до никакви диапазони - първия свободен без ограничение по роли
+     * 5. Ако няма достъп до дефолтния и няма достъп до никакви диапазони - първия свободен дори да е ограничен
+     * 
      * @param mixed $class - клас
      * @param int|null $cu - текущ потребител
      * 
@@ -214,13 +220,15 @@ class cond_Ranges extends core_Manager
             $query->limit(1);
             
             $query2 = clone $query;
-            $query->where("#users IS NULL AND #roles IS NULL");
             
+            // С приоритет е първия свободен без ограничение по роли/потребители
+            $query->where("#users IS NULL AND #roles IS NULL");
             if($foundRec = $query->fetch()){
                 
                 return $foundRec->id;
             }
             
+            // Ако няма такъв, първия свободен дори да е ограничен
             if($foundRec = $query2->fetch()){
                 
                 return $foundRec->id;
@@ -238,18 +246,17 @@ class cond_Ranges extends core_Manager
      * @param int $id
      * @param mixed $class
      * @param string|null $numberField
-     * 
      * @throws core_exception_Expect
      * 
      * @return int $next
      */
     public static function getNextNumber($id, $class, $numberField = null)
     {
-        expect($rec = self::fetchRec($id));
         $mvc = cls::get($class);
+        expect($rec = self::fetchRec($id));
         setIfNot($numberField, $mvc->numberFld);
-        
         if($rec->state == 'closed'){
+            
             throw new core_exception_Expect('Избраният диапазон е запълнен. Моля изберете друг|*!', 'Несъответствие');
         }
         
@@ -264,6 +271,7 @@ class cond_Ranges extends core_Manager
         }
         
         if($next > $rec->max){
+            
             throw new core_exception_Expect('Избраният диапазон е запълнен. Моля изберете друг|*!', 'Несъответствие');
         }
         
@@ -283,7 +291,6 @@ class cond_Ranges extends core_Manager
     public static function updateRange($id, $current)
     {
         expect($rec = self::fetchRec($id));
-        
         $rec->current = $current;
         if($rec->current >= $rec->max){
             $rec->state = 'closed';
@@ -295,6 +302,7 @@ class cond_Ranges extends core_Manager
     
     /**
      * Активира следващия дефолтен диапазон за документа
+     * с приоритет са диапазоните без ограничение по роли
      * 
      * @param mixed $class
      * @param int $exceptId

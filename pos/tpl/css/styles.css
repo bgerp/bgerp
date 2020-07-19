@@ -5,7 +5,7 @@
   #receipt-table .rejected-receipt {
     background-color: rgba(204, 102, 102, 0.8); }
 
-.wide #single-receipt-holder {
+#single-receipt-holder {
   float: left;
   font-family: 'Source Sans Pro', sans-serif;
   font-size: 1.2em; }
@@ -13,31 +13,33 @@
 #single-receipt-holder.fixedHolder {
   position: fixed;
   left: 0;
-  width: 570px;
+  width: 526px;
   height: 100%;
   background: #12008a;
   box-sizing: border-box; }
 
-  .narrowHolder #receipt-table {
-    height: 300px; }
-
-.wide .result-content {
-  background: #cccccc;
-  position: fixed;
-  top: 5%;
-  right: 0;
-  padding: 15px 15px 5px 15px;
-  overflow-y: auto;
+#single-receipt-holder.blockHolder {
   box-sizing: border-box; }
-  .wide .result-content .receiptRow.navigable {
+
+.result-content {
+  background: #cccccc;
+  box-sizing: border-box; }
+  .result-content.fixedPosition {
+    position: fixed;
+    top: 5%;
+    right: 0;
+    padding: 15px 15px 5px 15px;
+    overflow-y: auto; }
+
+  .result-content .receiptRow.navigable {
     border: 3px solid rgba(0, 0, 0, 0); }
-    .wide .result-content .receiptRow.navigable.disabledBtn,
-    .wide .result-content .receiptRow.navigable.disabledBtn .priceText {
+    .result-content .receiptRow.navigable.disabledBtn,
+    .result-content .receiptRow.navigable.disabledBtn .priceText {
       color: #999999 !important; }
-    .wide .result-content .receiptRow.navigable.selected {
+    .result-content .receiptRow.navigable.selected {
       border: 3px solid #080f56;
       box-shadow: 0px 0px 3px #0000fa !important; }
-  .wide .result-content .receiptRow.disabledBtn {
+  .result-content .receiptRow.disabledBtn {
     cursor: auto !important; }
 
 .tools-content {
@@ -79,11 +81,10 @@
     margin-right: 15px;
     color: white;
     display: inline-block; }
-  .headerContent .specialLink {
-    color: #cccccc !important;
-    text-decoration: underline; }
-    .headerContent .specialLink:hover {
-      text-decoration: none; }
+  .headerContent .specialLink a {
+    color: #cccccc !important; }
+    .headerContent .specialLink a:hover {
+      text-decoration: underline; }
 
 .receipt-header {
   padding: 10px; }
@@ -157,7 +158,7 @@
 .numBack {
   min-width: 60px;
   height: 60px;
-  margin: 8px 8px 8px 8px !important;
+  margin: 4px !important;
   text-align: center;
   color: white !important;
   border-radius: 3px !important;
@@ -181,6 +182,12 @@
 
 #modalContent .keyboard {
   display: none; }
+  #modalContent .keyboard#keyboard-lat {
+    display: block; }
+
+.productModal {
+  margin-left: 20px;
+  line-height: 1.6em; }
 
 .keyboard-btn {
   background: #303030 !important;
@@ -202,6 +209,7 @@
     box-shadow: inset 0 0 50px black; }
 
 #keyboard-num {
+  display: none;
   float: left;
   margin-right: -5px; }
 
@@ -220,7 +228,7 @@
 
 #tools-holder .buttons {
   float: left;
-  width: 236px; }
+  width: 225px; }
   #tools-holder .buttons a,
   #tools-holder .buttons div {
     display: inline-block;
@@ -229,7 +237,7 @@
 .operationHolder {
   display: inline-block;
   position: relative;
-  margin: 8px 0 8px 18px;
+  margin: 4px 0 4px 14px;
   border: 1px solid #999999;
   background: #cccccc;
   padding: 14px;
@@ -272,6 +280,12 @@
 .half td {
   height: 45px; }
 
+  .table-bordered td,
+  .table-bordered th {
+    border: 1px solid #cccccc;
+    padding: 3px;
+    font-size: 0.95em; }
+
 .flash {
   transition: all linear;
   transition-duration: 1s; }
@@ -306,63 +320,69 @@
   width: 48%;
   display: table-cell; }
 
-#result-holder .withTabs {
+#result-holder.fixedPosition .withTabs {
   margin-top: 60px;
   overflow-y: scroll;
   padding-top: 15px;
   padding-right: 15px;
   padding-left: 15px;
     /*
+   * Handle on hover
+   */
+    /*
    * Track
    */
     /*
    * Handle
    */ }
-  #result-holder .withTabs ::-webkit-scrollbar {
+  #result-holder.fixedPosition .withTabs ::-webkit-scrollbar {
     height: 10px; }
-  #result-holder .withTabs ::-webkit-scrollbar-track {
+  #result-holder.fixedPosition .withTabs ::-webkit-scrollbar-thumb:hover {
+    background: #eeeeee; }
+  #result-holder.fixedPosition .withTabs ::-webkit-scrollbar-track {
     background: #333333; }
-  #result-holder .withTabs ::-webkit-scrollbar-thumb {
+  #result-holder.fixedPosition .withTabs ::-webkit-scrollbar-thumb {
     background: #cccccc;
     position: relative;
     border: 1px solid #666666;
     border-radius: 5px; }
 
-.wide .withTabs .scroll-holder {
+.fixedPosition .withTabs .scroll-holder {
   margin-top: 0;
   margin-left: -15px;
   background: #333333;
   position: fixed;
-  top: 46px;
-  height: 60px;
-  z-index: 100;
+  top: 44px;
+  height: 62px;
+  z-index: 100; }
+
+  .relativePosition .contentHolder {
+    padding-top: 20px; }
+  .relativePosition .scroll-holder {
+    padding-bottom: 10px; }
+
+.withTabs .scroll-holder {
   overflow-x: auto;
   display: block; }
-  .wide .withTabs .scroll-holder .tabHolder {
-    padding-left: 2px;
-    padding-right: 2px;
-    text-align: center;
-    margin: 10px 0 7px; }
-    .wide .withTabs .scroll-holder .tabHolder li {
-      user-select: none;
-      display: inline-block;
-      float: left;
-      border-color: rgba(0, 0, 0, 0);
-      margin: 0 10px;
-      padding-left: 15px;
-      padding-right: 15px; }
 
-/*
- * Handle on hover
- */
-::-webkit-scrollbar-thumb:hover {
-  background: #eeeeee; }
+.withTabs .scroll-holder .tabHolder {
+  padding-left: 2px;
+  padding-right: 2px;
+  text-align: center;
+  margin: 10px 0 7px; }
+  .withTabs .scroll-holder .tabHolder li {
+    user-select: none;
+    display: inline-block;
+    float: left;
+    border-color: rgba(0, 0, 0, 0);
+    margin: 0 10px;
+    padding-left: 15px;
+    padding-right: 15px; }
+  .withTabs .scroll-holder .tabHolder:after {
+    clear: both; }
 
 .narrow #receiptnew {
   color: #333333 !important; }
-
-.narrow .contentHolder {
-  padding: 10px; }
 
   .tabHolder li {
     list-style: none;
@@ -379,6 +399,8 @@
       background: #fefead !important;
       color: black; }
 
+.contentHolder {
+  clear: both; }
   .contentHolder .content {
     display: none; }
 
@@ -386,7 +408,7 @@
   display: grid;
   align-items: center;
   text-align: center;
-  grid-gap: 1rem;
+  grid-gap: 0.8rem;
   margin-bottom: 10px; }
 
 .posResultContragent {
@@ -887,37 +909,89 @@ only screen and (max-width: 1600px) {
 @media handheld,
 only screen and (max-width: 1400px) {
   .headerContent {
-    font-size: 0.8em !important; }
+    font-size: 0.8em !important; } }
 
-  .half {
-    width: 100%;
-    display: block;
-    margin-bottom: 20px; } }
+@media handheld,
+only screen and (max-width: 1280px) {
+  .buttons {
+    width: 100% !important; }
+    .buttons .operationHolder {
+      margin: 7px 11px 7px 11px; } }
+
+@media handheld,
+only screen and (max-width: 1200px) {
+  .headerContent {
+    font-size: 0.75em !important; }
+
+  #receipt-table {
+    font-size: 0.8em; }
+
+  #single-receipt-holder {
+    float: none; }
+
+  .withTabs {
+    margin-top: 0 !important; }
+
+  .oneRow .operationHolder {
+    margin: 5px; }
+
+  .receiptRow {
+    padding: 5px;
+    border-top: 1px solid #eeeeee; }
+
+  .contentHolder {
+    padding: 10px; }
+
+  #keyboard-num {
+    display: none; }
+
+  .scrolling-vertical {
+    max-height: 420px; }
+
+  .productModal {
+    margin: 0; }
+
+  .imagePreview {
+    float: none;
+    margin: 0 0 10px 0;
+    max-width: 400px; }
+    .imagePreview img {
+      width: 100%;
+      height: auto; }
+
+  .ui-dialog-content {
+    padding: 10px !important; }
+
+  .contentHolderResults {
+    padding: 15px; } }
 
 @media handheld,
 only screen and (max-width: 1024px) {
   .numPad {
     width: 60px !important;
     height: 60px !important;
-    margin: 8px 0 8px 18px; } }
+    margin: 8px 0 8px 18px; }
+
+  .half {
+    width: 100%;
+    display: block; } }
+
+@media handheld,
+only screen and (max-width: 800px) {
+  .oneRow .operationHolder {
+    margin: 4px 2px !important; } }
 
 @media handheld,
 only screen and (max-width: 640px) {
-  .narrow .pos-product {
-    width: 74px !important;
-    height: 74px !important; }
-    .narrow .pos-product img {
-      width: 74px !important;
-      height: 74px !important; } }
+   }
 
 @media handheld,
 only screen and (max-width: 360px) {
-  .narrow .pos-product {
-    width: 73px !important;
-    height: 73px !important; }
-    .narrow .pos-product img {
-      width: 73px !important;
-      height: 73px !important; } }
+  .operationHolder {
+    margin: 3px !important;
+    width: 49px !important;
+    height: 49px !important;
+    padding: 8px !important; } }
 
   .printing .onlyPrint {
     display: block; }

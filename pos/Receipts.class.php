@@ -202,12 +202,34 @@ class pos_Receipts extends core_Master
             $this->logWrite('Създаване на нова бележка', $id);
         } else {
             
-            // Ако има чернова бележка от същия ден, не създаваме нова
+            // Коя е последната чернова бележка от ПОС-а
             $today = dt::today();
             $query = $this->getQuery();
-            $query->where("#valior = '{$today}' AND #createdBy = {$cu} AND #pointId = {$pointId} AND #state = 'draft'");
+            $query->where("#pointId = {$pointId} AND #state = 'draft'");
+            $query->show('valior,contragentClass,contragentObjectId,total');
             $query->orderBy('id', 'DESC');
-            if (!$id = $query->fetch()->id) {
+            $lastDraft = $query->fetch();
+            
+            $id = null;
+            if(is_object($lastDraft)){
+                
+                // Ако има такава и тя е без контрагент и е празна
+                $defaultContragentId = pos_Points::defaultContragent($pointId);
+                if(empty($lastDraft->total) && $lastDraft->contragentClass == crm_Persons::getClassId() && $lastDraft->contragentObjectId == $defaultContragentId){
+                    $today = dt::today();
+                    
+                    // Ако е със стара дата, подменя се
+                    if($lastDraft->valior != $today){
+                        $lastDraft->valior = $today;
+                        $this->save_($lastDraft, 'valior');
+                    }
+                    
+                    // Ще се редиректне към нея
+                    $id = $lastDraft->id;
+                }
+            }
+            
+            if (empty($id)) {
                 $id = $this->createNew();
                 $this->logWrite('Създаване на нова бележка', $id);
             }
@@ -275,7 +297,7 @@ class pos_Receipts extends core_Master
            
             if ($rec->state == 'closed' || $rec->state == 'rejected') {
                 $reportQuery = pos_Reports::getQuery();
-                $reportQuery->where("#state = 'active'");
+                $reportQuery->where("#state = 'active' || #state = 'closed'");
                 $reportQuery->show('details');
                 
                 // Опитваме се да намерим репорта в който е приключена бележката
@@ -321,7 +343,7 @@ class pos_Receipts extends core_Master
         
         if (isset($rec->revertId)) {
             $row->REVERT_CAPTION = tr("Сторно");
-            $row->revertId = ($rec->revertId != self::DEFAULT_REVERT_RECEIPT) ? pos_Receipts::getHyperlink($rec->revertId, true) : ht::createHint(' ', 'Произволна сторнираща бележка', 'warning');
+            $row->revertId = ($rec->revertId != self::DEFAULT_REVERT_RECEIPT) ? pos_Receipts::getHyperlink($rec->revertId, true) : (!Mode::is('printing') ? ht::createHint(' ', 'Произволна сторнираща бележка', 'warning') : null);
         } elseif($rec->state != 'draft') {
             if(isset($rec->transferedIn)){
                 $row->revertId = tr('Прехвърлена');
@@ -393,7 +415,7 @@ class pos_Receipts extends core_Master
         $query->where('#quantity != 0');
         $query->where("#action LIKE '%sale%'");
         $query->orderBy('id', 'ASC');
-        
+       
         while ($rec = $query->fetch()) {
             $info = cat_Products::getProductInfo($rec->productId);
             $quantityInPack = ($info->packagings[$rec->value]) ? $info->packagings[$rec->value]->quantity : 1;
@@ -406,6 +428,8 @@ class pos_Receipts extends core_Master
                 'discount' => $rec->discountPercent,
                 'quantity' => $rec->quantity);
         }
+        
+        
         
         return $products;
     }
@@ -483,7 +507,7 @@ class pos_Receipts extends core_Master
         
         // Никой не може да оттегли затворена бележка
         if ($action == 'reject' && isset($rec)) {
-            if ($rec->state == 'closed') {
+            if ($rec->state == 'closed' || empty($rec->total)) {
                 $res = 'no_one';
             }
         }
@@ -558,29 +582,18 @@ class pos_Receipts extends core_Master
         
         // Опитваме се да създадем чернова на нова продажба породена от бележката
         if ($sId = sales_Sales::createNewDraft($contragentClassId, $contragentId, $fields)) {
-            sales_Sales::logWrite('Създаване от POS', $sId);
+            sales_Sales::logWrite('Прехвърлена от POS продажба', $sId);
             
             // Намираме продуктите на бележката (трябва да има поне един)
             $products = $this->getProducts($rec->id);
             
-            // За всеки продукт
+            // Всеки продукт се прехвърля едно към 1
             foreach ($products as $product) {
-                
-                // Намираме цената от ценовата политика
-                $Policy = cls::get('price_ListToCustomers');
-                $pInfo = $Policy->getPriceInfo($contragentClassId, $contragentId, $product->productId, $product->packagingId, $product->quantity);
-                
-                // Колко са двете цени с приспадната отстъпка
-                $rPrice1 = $product->price * (1 - $product->discount);
-                $rPrice2 = $pInfo->price * (1 - $pInfo->discount);
-                
-                // Оставяме по-малката цена
-                if ($rPrice2 < $rPrice1) {
-                    $product->price = $pInfo->price;
-                    $product->discount = $pInfo->discount;
+                if($product->discount < 0){
+                    $product->price *= (1 + abs($product->discount));
+                    $product->discount = null;
                 }
                 
-                // Добавяме го като детайл на продажбата;
                 sales_Sales::addRow($sId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount);
             }
         }
@@ -868,8 +881,28 @@ class pos_Receipts extends core_Master
         
         $rec->contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
         $rec->contragentLocationId = $locationId;
-        
         $this->save($rec, 'contragentObjectId,contragentClass,contragentName,contragentLocationId');
+        
+        $Policy = cls::get('price_ListToCustomers');
+        
+        // Ако има детайли
+        $dQuery = pos_ReceiptDetails::getQuery();
+        $dQuery->where("#action = 'sale|code' AND #receiptId = {$rec->id}");
+        while($dRec = $dQuery->fetch()){
+           
+            // Обновява им се цената по текущата политика, ако може
+            $packRec = cat_products_Packagings::getPack($dRec->productId, $dRec->value);
+            $perPack = (is_object($packRec)) ? $packRec->quantity : 1;
+            $price = $Policy->getPriceInfo($rec->contragentClass, $rec->contragentObjectId, $dRec->productId, $dRec->value, 1, $rec->createdOn, 1, 'no');
+            if(!empty($price->price)){
+               
+                $dRec->price = $price->price * $perPack;
+                $dRec->amount = $dRec->price * $dRec->quantity;
+                $dRec->discountPercent = $price->discount;
+                pos_ReceiptDetails::save($dRec, 'price,amount,discountPercent');
+            }
+        }
+        
         $this->logWrite('Задаване на контрагент', $id);
         
         followRetUrl();
@@ -966,5 +999,14 @@ class pos_Receipts extends core_Master
         }
         
         return true;
+    }
+    
+    
+    /**
+     * Какво е логото на терминала на бележката
+     */
+    public function getTerminalHeaderLogo_($rec)
+    {
+        return 'bgERP';
     }
 }

@@ -280,8 +280,12 @@ class pos_ReceiptDetails extends core_Detail
                    
                    if(isset($discount)){
                        expect($discount >= -1 && $discount <= 1, 'Отстъпката трябва да е между -100% и 100%|*!');
-                       if(strpos($string, '%')){
-                           $discount *= -1;
+                       if($discount != 0){
+                           if(strpos($string, '%') === 0){
+                               $discount = -1 * $discount;
+                            }
+                       } else {
+                           $discount = null;
                        }
                        
                        $rec->discountPercent = $discount;
@@ -495,11 +499,7 @@ class pos_ReceiptDetails extends core_Detail
             }
             
             // Намираме нужната информация за продукта
-            core_Debug::startTimer('getProductInfo');
             $this->getProductInfo($rec);
-            
-            core_Debug::stopTimer('getProductInfo');
-            core_Debug::log('GET PRODUCT INFO END: ' . round(core_Debug::$timers['getProductInfo']->workingTime, 2));
             
             expect($rec->productId, 'Няма такъв продукт в системата|*!');
             expect($rec->notSellable !== true, 'Артикулът е спрян от продажба|*!');
@@ -603,6 +603,8 @@ class pos_ReceiptDetails extends core_Detail
             }
         }
        
+        Mode::setPermanent("productAdded{$rec->receiptId}", $rec->productId);
+        
         return pos_Terminal::returnAjaxResponse($receiptId, $selectedRecId, $success, true, true, true, 'add');
     }
     
@@ -831,11 +833,17 @@ class pos_ReceiptDetails extends core_Detail
         
         $rec->productId = $product->productId;
         $receiptRec = pos_Receipts::fetch($rec->receiptId, 'pointId,contragentClass,contragentObjectId,valior,createdOn');
-        $listId = pos_Points::getSettings($receiptRec->pointId, 'policyId');
+        
+        $listId = null;
+        $defaultContragentId = pos_Points::defaultContragent($receiptRec->pointId);
+        if($rec->contragentClass == crm_Persons::getClassId() && $defaultContragentId == $rec->contragentObjectId){
+            $listId = pos_Points::getSettings($receiptRec->pointId, 'policyId');
+        }
         
         $Policy = cls::get('price_ListToCustomers');
         $price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, $rec->value, 1, $receiptRec->createdOn, 1, 'no', $listId);
         
+        $rec->discountPercent = $price->discount;
         $rec->price = $price->price * $perPack;
         $rec->param = cat_Products::getVat($rec->productId, $receiptRec->valior);
         $rec->amount = $rec->price * $rec->quantity;

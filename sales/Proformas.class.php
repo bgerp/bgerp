@@ -274,7 +274,8 @@ class sales_Proformas extends deals_InvoiceMaster
         
         parent::beforeInvoiceSave($rec);
         
-        if (empty($rec->number)) {
+        $number = (isset($rec->number)) ? $rec->number : ((isset($rec->id) ? $mvc->fetchField($rec->id, 'number') : 0));
+        if (empty($number)) {
             $query = $mvc->getQuery();
             $query->XPR('maxNumber', 'int', 'MAX(#number)');
             $number = $query->fetch()->maxNumber;
@@ -285,14 +286,16 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
-     * След извличане на ключовите думи
+     * Добавя ключови думи за пълнотекстово търсене
      */
-    public function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-        $rec = $mvc->fetchRec($rec);
+        // Добавяне на кода към ключовите думи
+        $number = !empty($rec->number) ? $rec->number : (isset($rec->id) ? $mvc->fetchField($rec->id, 'number') : null);
         
-        $searchKeywords .= ' ' . plg_Search::normalizeText($rec->number);
-        
+        if(!empty($number)){
+            $res .= ' ' . plg_Search::normalizeText($number);
+        }
     }
     
     

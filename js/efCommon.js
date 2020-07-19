@@ -5608,8 +5608,8 @@ function syncServiceWorker() {
     if(!isIE() && ('serviceWorker' in navigator)) {
 
         if(typeof navigator.serviceWorker !== 'undefined') {
-            navigator.serviceWorker.getRegistrations().then((r) => {
-                r.forEach((sw) => {
+            navigator.serviceWorker.getRegistrations().then(function(r) {
+                r.forEach(function(sw) {
                     if(typeof serviceWorkerURL !== 'undefined') {
                         if (sw.active.scriptURL.indexOf(serviceWorkerURL) != -1) {
                             console.log('ServiceWorker registration skiped: ' + serviceWorkerURL);

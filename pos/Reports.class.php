@@ -292,6 +292,7 @@ class pos_Reports extends core_Master
         // Табличната информация и пейджъра на плащанията
         $detail->listFields = "value=Действие, pack=Мярка, quantity=Количество, amount=Сума ({$data->row->baseCurrency}), storeId=Склад,contragentId=Клиент";
         $detail->rows = $detail->receiptDetails;
+       
         $mvc->prepareDetail($detail);
         $data->rec->details = $detail;
         
@@ -411,7 +412,10 @@ class pos_Reports extends core_Master
             
             // Ако детайла е продажба
             $row->ROW_ATTR['class'] = 'report-sale';
-            $row->storeId = store_Stores::getHyperlink($obj->storeId, true);
+            if(isset($obj->storeId)){
+                $row->storeId = store_Stores::getHyperlink($obj->storeId, true);
+            }
+            
             $row->pack = cat_UoM::getShortName($obj->pack);
             deals_Helper::getPackInfo($row->pack, $obj->value, $obj->pack, $obj->quantityInPack);
             
@@ -793,6 +797,7 @@ class pos_Reports extends core_Master
             $rec->state = 'closed';
             $rec->closedOn = dt::addSecs(-1 * $conf->POS_CLOSE_REPORTS_OLDER_THAN, $now);
             $this->save($rec, 'state,brState,closedOn');
+            $this->logWrite('Автоматично затваряне на отчет', $rec->id);
         }
     }
     
@@ -840,12 +845,17 @@ class pos_Reports extends core_Master
                 $r->dealerId = $dealerId;
                 
                 // Изчисляване на себестойността на артикула
-                $productRec = cat_Products::fetchField($dRec->value, 'isPublic,code');
+                $productRec = cat_Products::fetch($dRec->value, 'isPublic,code,canStore');
                 if ($productRec->code == 'surcharge') {
                     $r->primeCost = 0;
                 } else {
                     $r->primeCost = cat_Products::getPrimeCost($dRec->value, $dRec->pack, $r->quantity, $valior, price_ListRules::PRICE_LIST_COST);
                 }
+                
+                if($productRec->canStore == 'yes'){
+                    $r->storeId = $dRec->storeId;
+                }
+                
                 
                 $res[] = $r;
             }

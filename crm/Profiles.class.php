@@ -1578,7 +1578,6 @@ class crm_Profiles extends core_Master
             
             $packConf = core_Packs::getConfig($rec->name);
             
-            
             // Обхождаме всички полета за конфигуриране
             foreach ((array) $clsInst->getConfigDescription() as $field => $arguments) {
                 
@@ -1603,6 +1602,7 @@ class crm_Profiles extends core_Master
                 
                 $isEnum = false;
                 $isKey = false;
+                $isFile = false;
                 
                 // Ако е enum поле, добавя в началото да може да се избира автоматично
                 if ($typeInst instanceof type_Enum) {
@@ -1610,6 +1610,8 @@ class crm_Profiles extends core_Master
                     $isEnum = true;
                 } elseif (($typeInst instanceof type_Key) || ($typeInst instanceof type_Key2)) {
                     $isKey = true;
+                } elseif ($typeInst instanceof fileman_FileType) {
+                    $isFile = true;
                 }
                 
                 // Полето ще се въвежда
@@ -1618,8 +1620,8 @@ class crm_Profiles extends core_Master
                 // Добавяме функционално поле
                 $form->FNC($field, $typeInst, $params);
                 
-                if (isset($form->rec->$field) || $isEnum || $isKey) {
-                    if ($paramType != 'unit') {
+                if (isset($form->rec->{$field}) || $isEnum || $isKey || $isFile) {
+                    if (($paramType != 'unit') && (!$isFile)) {
                         Mode::push('text', 'plain');
                         $defVal = $typeInst->toVerbal($fieldVal);
                         Mode::pop();
@@ -1627,9 +1629,15 @@ class crm_Profiles extends core_Master
                         $defVal = $typeInst->toVerbal($fieldVal);
                     }
                     
-                    
                     if ($defVal) {
-                        $form->setParams($field, array($paramType => $defaultStr . $defVal));
+                        if ($isFile) {
+                            if (!isset($form->rec->{$field})) {
+                                $form->setParams($field, array('unit' => $defaultStr . $defVal));
+                                $fieldVal = '';
+                            }
+                        } else {
+                            $form->setParams($field, array($paramType => $defaultStr . $defVal));
+                        }
                     }
                 } else {
                     $form->setField($field, array('attr' => array('class' => 'const-default-value')));

@@ -352,7 +352,7 @@ class cat_Products extends embed_Manager
     {
         $this->FLD('proto', 'key(mvc=cat_Products,allowEmpty,select=name)', 'caption=Шаблон,input=hidden,silent,refreshForm,placeholder=Популярни продукти,groupByDiv=»');
         
-        $this->FLD('code', 'varchar(32)', 'caption=Код,remember=info,width=15em');
+        $this->FLD('code', 'varchar(32, ci)', 'caption=Код,remember=info,width=15em');
         $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%, translate=field|transliterate');
         $this->FLD('nameEn', 'varchar', 'caption=Международно,width=100%,after=name, oldFieldName=nameInt');
         $this->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание');
@@ -584,15 +584,6 @@ class cat_Products extends embed_Manager
             if (!empty($rec->code)) {
                 if (preg_match('/[^0-9a-zа-я\- _]/iu', $rec->code)) {
                     $form->setError('code', 'Полето може да съдържа само букви, цифри, тирета, интервали и долна черта!');
-                }
-                
-                // Проверяваме дали има продукт с такъв код (като изключим текущия)
-                $check = $mvc->getByCode($rec->code);
-                if ($check && ($check->productId != $rec->id)
-                    || ($check->productId == $rec->id && $check->packagingId != $rec->packagingId)) {
-                        $checkProductLink = cat_Products::getHyperlink($check->productId, true);
-                        
-                        $form->setError('code', 'Има вече артикул с такъв код|*: ' . $checkProductLink);
                 }
             }
             
@@ -1226,15 +1217,6 @@ class cat_Products extends embed_Manager
                 $res->productId = $catPack->productId;
                 $res->packagingId = $catPack->packagingId;
             }
-        }
-        
-        if (!$res->productId) {
-            
-            // Търси се продукта по код, без значение на кейса
-            //if ($rec = self::fetch(array("LOWER(#code) = '[#1#]'", mb_strtolower($code)), 'id')) {
-               // $res->productId = $rec->id;
-               // $res->packagingId = null;
-           // }
         }
         
         // Ако не е намерен артикул с този баркод или код, търсим дали е ArtXXX, търси артикул с това ид
@@ -4052,6 +4034,7 @@ class cat_Products extends embed_Manager
         if($rec = $mvc->fetchRec($id)){
             $keywords = $mvc->getSearchKeywords($rec);
             if($rec->searchKeywords != $keywords){
+                $keywords = plg_Search::purifyKeywods($keywords);
                 $rec->searchKeywords = $keywords;
                 $mvc->save_($rec, 'searchKeywords');
                 $cRec = (object)array('id' => $rec->containerId, 'searchKeywords' => $rec->searchKeywords);

@@ -4,6 +4,7 @@ var timeout;
 var timeoutRemoveDisabled;
 var timeoutPageNavigation;
 var searchTimeout;
+var addedProduct;
 
 function posActions() {
 
@@ -54,21 +55,15 @@ function posActions() {
 		processUrl(url, params);
 	});
 
-	$(document.body).on('keypress', ".large-field", function(e){
-		if(activeInput == false) {
-			$('.large-field.select-input-pos').val("");
-			activeInput = true;
-		}
-	});
+	
 	/**
 	 * При спиране на писането в полето за търсене
 	 * @param e
 	 * @returns
 	 */
 	$(document.body).on('keyup', ".large-field", function(e){
-		
-		// @todo да се намери по красиво решение
-		if($(".buttonOverlay").css('display') != 'none'){
+		// ако е клавишна комбинация с ctrl
+		if(e.ctrlKey){
 			return;
 		}
 
@@ -77,40 +72,7 @@ function posActions() {
 
 		activeInput = true;
 
-		// След всяко натискане на бутон изчистваме времето на изчакване
-		clearTimeout(timeout);
-
-		var url = $(this).attr("data-keyupurl");
-		if(!url){
-			return;
-		}
-
-		var inpVal = $(this).val();
-		var operation = getSelectedOperation();
-
-		if(isMicroformat(inpVal) && (operation == 'add' || operation == 'edit')){
-
-			var selectedRecId = getSelectedRowId();
-			doOperation(operation, selectedRecId, true);
-			return;
-		}
-		
-		if(inpVal.startsWith("*")){
-			return;
-		}
-		
-		var selectedElement = $(".highlighted.productRow");
-		var selectedRecId = selectedElement.attr("data-id");
-
-		// Правим Ajax заявката като изтече време за изчакване
-		timeout = setTimeout(function(){
-			resObj = new Object();
-			resObj['url'] = url;
-
-			var params = {operation:operation,search:inpVal,recId:selectedRecId};
-			processUrl(url, params);
-
-		}, searchTimeout);
+		triggerSearchInput($(this), searchTimeout);
 	});
 
 
@@ -139,8 +101,8 @@ function posActions() {
 		
 		if(url){
 			setTimeout(function() {
-				var e = jQuery.Event("keyup");
-				$('.large-field').trigger(e);
+				var ev = jQuery.Event("keyup");
+				$('.large-field').trigger(ev);
 	        }, 100);
 		}
 	});
@@ -182,17 +144,17 @@ function posActions() {
 		}
 	});
 
+	
+	/**
+	 * При клик на таба
+	 */
 	$(document.body).on('click', ".tabHolder li", function() {
+		activateTab($(this), 0);
 		
-		var id = $(this).attr('data-content');
-		$(this).addClass('active').siblings().removeClass('active');
-		$("#" + id).show().siblings().hide();
-		if($('.scroll-holder.productTabs').length) {
-			sessionStorage.setItem("activeProductTab", $('.tabHolder li.active').attr('id'));
-		}
 		startNavigation();
 	});
 
+	
 	$(document.body).on('click', ".ui-dialog-titlebar-close", function() {
 		if($('.keyboardText').val()){
 			$('.select-input-pos').val($('.keyboardText').val());
@@ -275,8 +237,8 @@ function posActions() {
 		$('.highlighted').removeClass('highlighted');
 		$(this).closest('.receiptRow').addClass('highlighted');
 		
-		var operation = getSelectedOperation();
-		refreshResultByOperation($(this), operation);
+		//var operation = getSelectedOperation();
+		refreshResultByOperation($(this), 'quantity');
 	});
 
 
@@ -309,64 +271,74 @@ function posActions() {
 	
 	// При натискане на бутона за клавиатура
 	$(document.body).on('click', ".helpBtn", function(e){
+		clearTimeout(timeout);
 		openHelp();
 	});
 
 	$("body").setShortcutKey( CONTROL , DELETE ,function() {
+		 clearTimeout(timeout);
 		 deleteSelectedElement();
 	});
 
 	$("body").setShortcutKey( CONTROL , A ,function() {
+		clearTimeout(timeout);
 		openProducts();
 	});
 
 	$("body").setShortcutKey( CONTROL , S ,function() {
+		clearTimeout(timeout);
 		openQuantity();
 	});
 
 	$("body").setShortcutKey( CONTROL , Z ,function() {
+		clearTimeout(timeout);
 		openPayment();
 	});
 
 	$("body").setShortcutKey( CONTROL , E ,function() {
+		clearTimeout(timeout);
 		openText();
 	});
 
 	$("body").setShortcutKey( CONTROL , K ,function() {
+		clearTimeout(timeout);
 		openClient();
 	});
 
 	$("body").setShortcutKey( CONTROL , B ,function() {
+		clearTimeout(timeout);
 		openReceipt();
 	});
 
 	$("body").setShortcutKey( null , F2 ,function() {
+		clearTimeout(timeout);
 		var element = $('.enlargeProductBtn');
 		openInfo(element);
 	});
 	
 	$("body").setShortcutKey( CONTROL , P ,function() {
+		clearTimeout(timeout);
 		openPrint();
 	});
 
 	$("body").setShortcutKey( CONTROL , M ,function() {
+		clearTimeout(timeout);
 		openKeyboard();
 	});
 
 	$("body").setShortcutKey( CONTROL , O ,function() {
+		clearTimeout(timeout);
 		openReject();
 	});
 
-	$("body").setShortcutKey( CONTROL , X ,function() {
+	$("body").setShortcutKey( CONTROL , Q ,function() {
+		clearTimeout(timeout);
 		logout();
 	});
 
 	$("body").setShortcutKey( null , F1 ,function() {
+		clearTimeout(timeout);
 		openHelp();
-	});
-
-	$("body").setShortcutKey( CONTROL , I ,function() {
-		deteleElements();
 	});
 
 	$("body").setShortcutKey( CONTROL , LEFT ,function() {
@@ -405,9 +377,10 @@ function prevTab() {
 	sessionStorage.removeItem("focused");
 	var currentTab = $('.tabHolder li.active');
 	if($(currentTab).prev().length) {
-		$(currentTab).prev().click();
+		$(currentTab).prev()[0].scrollIntoView({inline: "center", block: "end"});
+		activateTab($(currentTab).prev(), 750);
+		
 		activeInput = false;
-		sessionStorage.setItem("activeProductTab", $('.tabHolder li.active').attr('id'));
 	}
 
 	startNavigation();
@@ -422,9 +395,10 @@ function nextTab() {
 
 	var currentTab = $('.tabHolder li.active');
 	if($(currentTab).next().length) {
-		$(currentTab).next().click();
+		$(currentTab).next()[0].scrollIntoView({inline: "center", block: "end"});
+		activateTab($(currentTab).next(), 750);
+		
 		activeInput = false;
-		sessionStorage.setItem("activeProductTab", $('.tabHolder li.active').attr('id'));
 	}
 	startNavigation();
 }
@@ -464,10 +438,6 @@ function inputChars(inputElement, val) {
 	activeInput = true;
 }
 
-
-function deteleElements(){
-	$('.rejectBtn').parent().trigger("click");
-}
 
 // Активиране на лупата за увеличение
 function openInfo(element) {
@@ -566,12 +536,15 @@ function openPayment() {
 function calculateWidth(){
 	var winWidth = parseInt($(window).outerWidth());
 	var winHeight = parseInt($(window).outerHeight());
-
-	if (winWidth > 1024) {
+	if (winWidth >= 1200) {
 		//задаване на ширина на двете колони
 		$('#result-holder').css('width', winWidth - $('#single-receipt-holder').width());
+
 		$('#single-receipt-holder').addClass('fixedHolder');
-		$('.headerContent').addClass('fixed');
+		$('#result-holder').addClass('fixedPosition');
+		$('#result-holder').removeClass('relativePosition');
+		$('#single-receipt-holder').removeClass('blockHolder');
+		$('#single-receipt-holder').addClass('fixedHolder');
 
 		//височина за таблицата с резултатите
 		var receiptHeight = winHeight -  $('.tools-content').height() - $('.paymentBlock').height();
@@ -583,14 +556,7 @@ function calculateWidth(){
 			$('#result-holder').css('padding', '0');
 			$('#result-holder').css('overflow-y', 'visible');
 			$('#result-holder .withTabs').css('height',winHeight - headerHeight - tabsFix);
-			$('#result-holder .scroll-holder').css('width', winWidth - $('#single-receipt-holder').width());
-			var scrollerWidth = 0;
-			$('#result-holder .tabHolder li').each(function () {
-				scrollerWidth += $(this).outerWidth() + 20;
-			});
-
-			$('#result-holder .scroll-holder .tabHolder').css('width', scrollerWidth);
-
+			$('#result-holder .scroll-holder, #result-holder').css('width', winWidth - $('#single-receipt-holder').width());
 		} else {
 			$('#result-holder').css('padding', '15px');
 			$('#result-holder').css('overflow-y', 'auto');
@@ -598,23 +564,41 @@ function calculateWidth(){
 		$('#result-holder').css('height',winHeight - headerHeight);
 
 		$('#result-holder, #single-receipt-holder').css('top',headerHeight);
-		$('.tools-content').css('height',500);
 
-	} else {
-		$('#single-receipt-holder').removeClass('fixedHolder')
-		$('.result-content').width(winWidth);
-		$('#single-receipt-holder').width(winWidth);
+		$('.tools-content').css('height',460);
 
-		$('#single-receipt-holder').addClass('narrowHolder');
-		if(winWidth > 400) {
-			$('#keyboard-num').width(winWidth - $('.buttons').width() - 30);
+		if(!isTouchDevice()) {
+			$('#keyboard-num').css('display','block');
 		} else {
-			$('.narrowHolder #receipt-table').height(500);
+			$('#tools-holder').css('height', 330);
+			$('#keyboard-num').css('display','none');
 		}
 
-		$('.scrolling-vertical').css('height', $('#single-receipt').height() -  $('.paymentBlock').height() - 10);
+	} else {
+		$('#keyboard-num').css('display','none');
+
+		$('#single-receipt-holder').removeClass('fixedHolder');
+		$('#result-holder').removeClass('fixedPosition');
+		$('#result-holder').addClass('relativePosition');
+		$('#single-receipt-holder').addClass('blockHolder');
+		$('#single-receipt-holder').removeClass('fixedHolder');
+		$('#single-receipt-holder').addClass('narrowHolder');
+
+		$('#result-holder').css('width', "100%");
+		$('.tools-content').css('height','auto');
+		$('#result-holder .withTabs').css('height', "100%");
+		$('#result-holder .scroll-holder').css('width', "100%");
+
+		$('.keyboardBtn.operationHolder').addClass('disabledBtn');
+		$('.keyboardBtn.operationHolder').attr('disabled', 'disabled');
 
 	}
+	var scrollerWidth = 0;
+	$('#result-holder .tabHolder li').each(function () {
+		scrollerWidth += Math.ceil($(this).outerWidth()) + 21;
+	});
+
+	$('#result-holder .scroll-holder .tabHolder').css('width', scrollerWidth);
 }
 
 // Направа на плащане
@@ -627,8 +611,6 @@ function doPayment(url, type){
 	
 	var data = {amount:amount, type:type};
 	processUrl(url, data);
-
-	$("input[name=ean]").val("");
 }
 
 // При натискане на pageUp
@@ -972,8 +954,20 @@ function isMicroformat(string) {
 			}
 		} else if(string.endsWith("%") || string.startsWith("%")){
 			var quantity = string.replace("%", "");
+			quantity = quantity.replace(",", ".");
+			
 			if($.isNumeric(quantity)){
-				
+				if(string.startsWith("%")){
+					
+					var split = quantity.split(".");
+					var cnt = (split[1]) ? split[1].length : 0;
+					if(cnt == 2){
+						return true;
+					}
+					
+					return false;
+				}
+			
 				return true;
 			}
 		}
@@ -992,13 +986,13 @@ function openModal(title, heightModal) {
 	
 	// Изчистване на предишното съдържание на модала, да не се визуализира, докато се зареди новото
 	$("#modalContent").html("");
-	
 	var height = (heightModal == "smallHeight" ) ?  500 : 700;
+	var width = ($(window).width() > 1200) ?  1000 : parseInt($(window).width()) - 40;
 
 	dialog = $("#modalContent").dialog({
 		autoOpen: false,
 		height: height,
-		width: 1000,
+		width: width,
 		modal: true,
 		title: title,
 		beforeClose: event.preventDefault(),
@@ -1007,31 +1001,34 @@ function openModal(title, heightModal) {
 
 	dialog.dialog( "open" );
 	$('.ui-dialog-titlebar-close').focus();
-	if ($('.keyboard'.length)) {
-		setTimeout(function(){
 
-					var keyboard = sessionStorage.getItem('activeKeyboard');
-					if (!keyboard) {
-						keyboard = "keyboard-lat";
-					}
-					$('.keyboard#' + keyboard).show().siblings('.keyboard').hide();
 
-				$('.keyboardText').focus();
+	setTimeout(function () {
+		if ($('#modalContent .keyboard').length) {
+			var keyboard = sessionStorage.getItem('activeKeyboard');
+			if($('#' + keyboard).length ){
+				$('.keyboard#' + keyboard).show().siblings('.keyboard').hide();
+			}
 
-				$('.keyboardText').keydown(function(event) {
-					$('.pressed').removeClass('pressed');
-					var key = event.key.toLowerCase();
-					$(".keyboard-btn[data-key=" + key+ "]").addClass('pressed');
-					if (event.key == "Enter") {
-						$('.select-input-pos').val($('.keyboardText').val());
-						$('.ui-dialog-titlebar-close').click();
-						activeInput = true;
-					}
-				});
+			$('.keyboardText').focus();
 
-			},50);
+			$('.keyboardText').keydown(function(event) {
+				$('.pressed').removeClass('pressed');
+				var key = event.key.toLowerCase();
+				$(".keyboard-btn[data-key=" + key+ "]").addClass('pressed');
+				if (event.key == "Enter") {
+					$('.select-input-pos').val($('.keyboardText').val());
+					$('.ui-dialog-titlebar-close').click();
+					activeInput = true;
+				}
+			});
 
-	}
+		}
+	}, 1);
+
+
+
+
 	openedModal = true;
 }
 
@@ -1046,7 +1043,7 @@ function selectFirstNavigable()
 function startNavigation() {
 	if($('.navigable').length) {
 		var focused = sessionStorage.getItem('focused');
-		var scrollTop = sessionStorage.getItem('focusedOffset');
+		var scrollTop = sessionStorage.getItem('focusedOffset') ?  sessionStorage.getItem('focusedOffset') : 0;
 		$('.selected').removeClass('selected');
 
 		// ръчно избирам първия елемент за селектед
@@ -1055,9 +1052,10 @@ function startNavigation() {
 		} else if (focused && !$('#' + focused ).hasClass('disabledBtn') && document.getElementById(focused) && $('.navigable.selected:visible').length == 0) {
 			$('#' + focused ).addClass('selected');
 		}
-
 		$('#result-holder .navigable:visible').keynav();
+
 		$('#result-holder .withTabs').scrollTop(scrollTop);
+
 	}
 }
 
@@ -1146,31 +1144,34 @@ function afterload() {
  */
 function disableOrEnableEnlargeBtn()
 {
-	var element = $(".navigable.selected");
-	
-	var operation = getSelectedOperation();
-	if(operation == 'quantity' || operation == 'text' || operation == 'payment'){
-		var selectedRow = $(".highlighted.productRow");
-		element = selectedRow;
-	}
-	
-	if(element.hasClass('enlargable')){
-		var enlargeClassId = element.attr("data-enlarge-class-id");
-		var enlargeObjectId = element.attr("data-enlarge-object-id");
-		var enlargeTitle= element.attr("data-modal-title");
+	setTimeout(function () {
+		var element = $(".navigable.selected");
 
-		if(enlargeClassId && enlargeObjectId && enlargeTitle) {
-			$(".enlargeProductBtn").removeClass('disabledBtn');
-			$(".enlargeProductBtn").removeAttr("disabled");
-
-			$(".enlargeProductBtn").attr('data-modal-title', enlargeTitle);
-			$(".enlargeProductBtn").attr('data-enlarge-class-id', enlargeClassId);
-			$(".enlargeProductBtn").attr('data-enlarge-object-id', enlargeObjectId);
+		var operation = getSelectedOperation();
+		if(operation == 'quantity' || operation == 'text' || operation == 'payment'){
+			var selectedRow = $(".highlighted.productRow");
+			element = selectedRow;
 		}
-	} else {
-		$(".enlargeProductBtn").addClass('disabledBtn');
-		$(".enlargeProductBtn").attr('disabled', 'disabled');
-	}
+
+		if(element.hasClass('enlargable')){
+			var enlargeClassId = element.attr("data-enlarge-class-id");
+			var enlargeObjectId = element.attr("data-enlarge-object-id");
+			var enlargeTitle= element.attr("data-modal-title");
+
+			if(enlargeClassId && enlargeObjectId && enlargeTitle) {
+				$(".enlargeProductBtn").removeClass('disabledBtn');
+				$(".enlargeProductBtn").removeAttr("disabled");
+
+				$(".enlargeProductBtn").attr('data-modal-title', enlargeTitle);
+				$(".enlargeProductBtn").attr('data-enlarge-class-id', enlargeClassId);
+				$(".enlargeProductBtn").attr('data-enlarge-object-id', enlargeObjectId);
+			}
+		} else {
+			$(".enlargeProductBtn").addClass('disabledBtn');
+			$(".enlargeProductBtn").attr('disabled', 'disabled');
+		}
+	});
+
 }
 
 
@@ -1232,25 +1233,25 @@ function getSelectedRowId() {
 }
 
 function openCurrentPosTab() {
-	if($('.tabHolder li').length) {
-		var activeId = sessionStorage.getItem('activeProductTab');
-		if (activeId && $('.tabHolder li#' + activeId ).length) {
-			var activeTab = $('.tabHolder li#' + activeId ).addClass('active');
-		} else {
-			var activeTab = $('.tabHolder li:first').addClass('active');
-		}
-		var currentTabContent = activeTab.attr('data-content');
+	if($('.tabHolder .noajaxtabs').length) {
+		var activeTab =  $('.tabHolder .noajaxtabs:first').addClass('active');
+		var currentTabContent = $(activeTab).attr('data-content');
 
 		$("#" + currentTabContent).show();
-		startNavigation();
+
 		sessionStorage.removeItem('focusedOffset');
 	}
+	if($('.productTabs .active').length) {
+		$('.productTabs').scrollLeft(sessionStorage.getItem('tabOffset'));
+	}
+	startNavigation();
 }
 
 /**
  * Извършва подадената операция
  */
 function doOperation(operation, selectedRecId, forceSubmit) {
+	sessionStorage.setItem('tabOffset', 0);
 	clearTimeout(timeout);
 	
 	sessionStorage.removeItem("focused");
@@ -1277,9 +1278,9 @@ function doOperation(operation, selectedRecId, forceSubmit) {
 		
 		return;
 	}
-	
+
 	$("input[name=ean]").val("");
-	
+
 	sessionStorage.setItem('operationClicked', true);
 	var data = {operation:operation,recId:selectedRecId};
 	processUrl(url, data);
@@ -1288,10 +1289,99 @@ function doOperation(operation, selectedRecId, forceSubmit) {
 	scrollToHighlight();
 }
 
+
 /**
  * Задава таймаута при търсенето
  */
 function setSearchTimeout(timeout)
 {
 	searchTimeout = timeout;
+}
+
+
+/**
+ * сетва флаг че артикул е добавен
+ */
+function render_toggleAddedProductFlag(data)
+{
+	addedProduct = data.flag;
+
+	 $(document.body).on('keypress', ".large-field", function(e){
+		if(e.key == "Enter" || e.key == "ArrowRight" || e.key == "ArrowLeft" || e.key == "ArrowUp" || e.key == "ArrowDown"  || e.key == "PageUp" || e.key == "PageDown" || e.key == 'Alt' || e.key == 'Control' || e.key == 'Escape' || e.key == 'F2') return;
+
+		if(addedProduct) {
+			$('.large-field.select-input-pos').val("");
+			sessionStorage.removeItem("focused");
+			sessionStorage.removeItem("focusedOffset");
+			addedProduct = false;
+
+		}
+	});
+}
+
+
+/*
+ * Активира таба
+ */
+function activateTab(element, timeOut)
+{
+	var id = element.attr('data-content');
+	element.addClass('active').siblings().removeClass('active');
+
+	sessionStorage.setItem('tabOffset', element.closest('.productTabs').scrollLeft());
+	// да се скриват и показват само табовете на бележките
+	if(element.hasClass('noajaxtabs')){
+		$("#" + id).show().siblings().hide();
+	} else {
+		triggerSearchInput($(".large-field"), timeOut);
+	}
+}
+
+
+/*
+ * Търси по инпута ако може
+ */
+function triggerSearchInput(element, timeoutTime)
+{
+	// След всяко натискане на бутон изчистваме времето на изчакване
+	clearTimeout(timeout);
+	
+	var url = element.attr("data-keyupurl");
+	if(!url){
+		return;
+	}
+
+	var inpVal = element.val();
+	var operation = getSelectedOperation();
+
+	if(isMicroformat(inpVal) && (operation == 'add' || operation == 'edit')){
+
+		var selectedRecId = getSelectedRowId();
+		doOperation(operation, selectedRecId, true);
+		return;
+	}
+	
+	if(inpVal.startsWith("*")){
+		return;
+	}
+	
+	var selectedElement = $(".highlighted.productRow");
+	var selectedRecId = selectedElement.attr("data-id");
+
+	// Правим Ajax заявката като изтече време за изчакване
+	timeout = setTimeout(function(){
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		var params = {operation:operation,search:inpVal,recId:selectedRecId};
+		
+		var activeTab = $(".tabHolder li.active");
+		if(activeTab.length){
+			var id = activeTab.attr("data-id");
+			params.selectedProductGroupId = id;
+		}
+		
+		processUrl(url, params);
+
+	}, timeoutTime);
 }

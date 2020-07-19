@@ -93,6 +93,7 @@
 				}
 
 				sessionStorage.setItem('focused', $(current).attr('id'));
+				sessionStorage.setItem('focusedOffset', $('#result-holder .withTabs').scrollTop());
 				disableOrEnableEnlargeBtn();
 				x=i;
 				y=j;

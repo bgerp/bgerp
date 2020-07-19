@@ -8,6 +8,7 @@
     user-select: none;
 }
 
+
 .select2-container--default .select2-selection--single, .select2-dropdown , .select2-container--default .select2-selection--multiple,
 .select2-container--default.select2-container--focus .select2-selection--multiple {
     border: solid 1px #9999ff;
@@ -25,7 +26,6 @@
 .select2-container .select2-selection--single .select2-selection__rendered {
     padding-left: 4px;
     color: #000;
-    font-size: 1.07em;
     line-height: 24px;
     box-shadow: none;
     max-height: 24px;         /* bugFix при по-дълга опция да не излиза извън селекта */
@@ -85,10 +85,6 @@
     color: #fff;
     background-color: #777;
     font-weight: bold;
-}
-
-.select2-container .select2-selection--single .select2-selection__rendered {
-    text-overflow: clip;
 }
 
 span.all-users{

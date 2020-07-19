@@ -9,7 +9,7 @@
 	}
 }
 
-.wide #single-receipt-holder {
+#single-receipt-holder {
 	float: left;
 	font-family: 'Source Sans Pro', sans-serif;
 	font-size: 1.2em;
@@ -18,24 +18,31 @@
 #single-receipt-holder.fixedHolder {
 	position: fixed;
 	left: 0;
-	width: 570px;
+	width: 526px;
 	height: 100%;
 	background: #12008a;
 	box-sizing: border-box;
 }
-.narrowHolder {
-	#receipt-table{
-		height: 300px;
-	}
-}
-.wide .result-content {
-	background: #ccc;
-	position: fixed;
-	top: 5%;
-	right: 0;
-	padding:15px 15px 5px 15px;
-	overflow-y: auto;
+
+#single-receipt-holder.blockHolder {
 	box-sizing: border-box;
+}
+
+
+.result-content {
+	background: #ccc;
+
+	box-sizing: border-box;
+	&.fixedPosition {
+		position: fixed;
+		top: 5%;
+		right: 0;
+		padding:15px 15px 5px 15px;
+		overflow-y: auto;
+	}
+	&.relativePosition {
+
+	}
 	.receiptRow.navigable {
 		border: 3px solid transparent;
 		&.disabledBtn , &.disabledBtn .priceText{
@@ -97,11 +104,10 @@
 		color: #fff;
 		display: inline-block;
 	}
-	.specialLink {
+	.specialLink a {
 		color: #ccc !important;
-		text-decoration: underline;
 		&:hover {
-			text-decoration: none;
+			text-decoration: underline;
 		}
 	}
 }
@@ -193,7 +199,7 @@
 .numPad, .numBack{
 	min-width: 60px;
 	height: 60px;
-	margin: 8px 8px 8px 8px !important;
+	margin: 4px !important;
 	text-align: center;
 	color:white !important;
 	border-radius: 3px !important;
@@ -218,6 +224,13 @@
 }
 #modalContent .keyboard {
 	display: none;
+	&#keyboard-lat {
+		display: block;
+	}
+}
+.productModal {
+	margin-left: 20px;
+	line-height: 1.6em;
 }
 .keyboard-btn{
 	background: #303030 !important;
@@ -240,6 +253,7 @@
 	}
 }
 #keyboard-num {
+	display: none;
 	float: left;
 	margin-right: -5px;
 }
@@ -260,7 +274,7 @@
 }
 #tools-holder .buttons {
 	float: left;
-	width: 236px;
+	width: 225px;
 	 a, div {
 		display: inline-block;
 		float: left;
@@ -269,7 +283,7 @@
 .operationHolder {
 	display: inline-block;
 	position: relative;
-	margin: 8px 0 8px 18px;
+	margin: 4px 0 4px 14px;
 	border: 1px solid #999;
 	background: #ccc;
 	padding: 14px;
@@ -320,7 +334,13 @@
 .half td {
 	height: 45px;
 }
-
+.table-bordered {
+	td, th {
+		border: 1px solid #ccc;
+		padding: 3px;
+		font-size: 0.95em;
+	}
+}
 .flash {
 	transition: all  linear;
 	transition-duration: 1s;
@@ -362,7 +382,7 @@
 	display: table-cell;
 }
 
-#result-holder .withTabs {
+#result-holder.fixedPosition .withTabs {
 	margin-top: 60px;
 	overflow-y: scroll;
 	padding-top: 15px;
@@ -371,7 +391,10 @@
 	::-webkit-scrollbar {
 		height: 10px;
 	}
-
+	/* Handle on hover */
+	::-webkit-scrollbar-thumb:hover {
+		background: #eee;
+	}
 	/* Track */
 	::-webkit-scrollbar-track {
 		background: #333;
@@ -385,47 +408,53 @@
 		border-radius: 5px;
 	}
 }
-.wide .withTabs .scroll-holder {
+.fixedPosition .withTabs .scroll-holder {
 	margin-top: 0;
 	margin-left: -15px;
 	background: #333;
 	position: fixed;
-	top:46px;
-	height: 60px;
+	top:44px;
+	height: 62px;
 	z-index: 100;
+}
+.relativePosition {
+	.contentHolder {
+		padding-top: 20px;
+	}
+	.scroll-holder {
+		padding-bottom: 10px;
+	}
+}
+
+.withTabs .scroll-holder {
 	overflow-x: auto;
 	display: block;
-	.tabHolder {
-		padding-left: 2px;
-		padding-right: 2px;
-		text-align: center;
-		margin: 10px 0 7px;
-		li {
-			user-select: none;
-			display: inline-block;
-			float: left;
-			border-color: transparent;
-			margin: 0 10px;
-			padding-left: 15px;
-			padding-right: 15px;
-		}
+}
+
+.withTabs .scroll-holder .tabHolder {
+	padding-left: 2px;
+	padding-right: 2px;
+	text-align: center;
+	margin: 10px 0 7px;
+	li {
+		user-select: none;
+		display: inline-block;
+		float: left;
+		border-color: transparent;
+		margin: 0 10px;
+		padding-left: 15px;
+		padding-right: 15px;
+	}
+	&:after {
+		clear: both;
 	}
 }
 
 
-
-
-/* Handle on hover */
-::-webkit-scrollbar-thumb:hover {
-	background: #eee;
-}
-
 .narrow #receiptnew {
 	color: #333 !important;
 }
-.narrow .contentHolder {
-	padding: 10px;
-}
+
 .tabHolder {
 	li {
 		list-style: none;
@@ -444,6 +473,7 @@
 	}
 }
 .contentHolder {
+	clear: both;
 	.content {
 		display: none;
 	}
@@ -452,7 +482,7 @@
 	display: grid;
 	align-items: center;
 	text-align: center;
-	grid-gap: 1rem;
+	grid-gap: 0.8rem;
 	margin-bottom:10px;
 }
 .posResultContragent {
@@ -523,7 +553,7 @@
 			width: 32.1% !important;
 		}
 	}
-	
+
 	&.closeBtn {
 		border-radius:3px;
 		height:70px;
@@ -536,7 +566,7 @@
 			width: 32.1% !important;
 		}
 	}
-	
+
 	&.pos-notes {
 		font-size: 1.1em;
 	}
@@ -569,17 +599,17 @@
 		background: #8c1919 !important;
 		color: #FFF !important;
 	}
-	
+
 	&.reload{
 		color: #000 !important;
 		background: #ddd !important;
 	}
-	
+
 	&.locationBtn{
 		color: #fff !important;
 		font-size: 1em;
 		background: #374bbe !important;
-		
+
 		&.current {
 			background: #53a163 !important;
 		}
@@ -631,7 +661,7 @@
 .resultBatch {
 	color: green !important;
 	background: #e6e9b9;
-	
+
 	&.current {
 		background-color: #8abf95 !important;
 	}
@@ -640,7 +670,7 @@
 .discountBtn {
 	background: #FF9C3A;
 	color: #333 !important;
-	
+
 	&.current {
 		background-color: #8abf95 !important;
 	}
@@ -648,7 +678,7 @@
 .textResult {
 	color: #FFF !important;
 	background: #b163cc;
-	
+
 	&.emptyText {
 		background: #37103a !important;
 	}
@@ -1042,41 +1072,94 @@ th.revertCaption, td.revertCaption {
 	.headerContent {
 		font-size: 0.8em !important;
 	}
-	.half {
-		 width: 100%;
-		 display: block;
-		 margin-bottom: 20px;
-	 }
 }
+
+@media handheld, only screen and (max-width: 1280px) {
+	.buttons {
+		width: 100% !important;
+		.operationHolder {
+			margin: 7px 11px 7px 11px;
+		}
+	}
+}
+
+@media handheld, only screen and (max-width: 1200px) {
+	.headerContent {
+		font-size: 0.75em !important;
+	}
+	#receipt-table {
+		font-size: 0.8em;
+	}
+	#single-receipt-holder {
+		float: none;
+	}
+	.withTabs {
+		margin-top: 0 !important;
+	}
+	.oneRow .operationHolder {
+		margin: 5px;
+	}
+	.receiptRow {
+		padding: 5px;
+		border-top: 1px solid #eee;
+	}
+	.contentHolder {
+		padding: 10px;
+	}
+	#keyboard-num {
+		display: none;
+	}
+	.scrolling-vertical {
+		max-height: 420px;
+	}
+	.productModal {
+		margin: 0;
+	}
+	.imagePreview {
+		float: none;
+		margin:  0 0 10px 0;
+		max-width: 400px;
+		img {
+			width: 100%;
+			height: auto;
+		}
+	}
+	.ui-dialog-content {
+		padding: 10px !important;
+	}
+	.contentHolderResults {
+		padding: 15px;
+	}
+}
+
 @media handheld, only screen and (max-width: 1024px) {
 	.numPad {
 		width: 60px !important;
 		height: 60px !important;
 		margin: 8px 0 8px 18px; !important;
 	}
+	.half {
+		width: 100%;
+		display: block;
+	}
 
 }
-
-@media handheld, only screen and (max-width: 640px) {
-	.narrow .pos-product {
-		width: 74px !important;
-		height: 74px !important;
-		img {
-			width: 74px !important;
-			height: 74px !important;
-		}
+@media handheld, only screen and (max-width: 800px) {
+	.oneRow .operationHolder {
+		margin: 4px 2px !important;
 	}
+}
+@media handheld, only screen and (max-width: 640px) {
+
 }
 
 
 @media handheld, only screen and (max-width: 360px) {
-	.narrow .pos-product {
-		width: 73px !important;
-		height: 73px !important;
-		img {
-			width: 73px !important;
-			height: 73px !important;
-		}
+	.operationHolder {
+		margin: 3px !important;
+		width: 49px !important;
+		height: 49px !important;
+		padding: 8px !important;
 	}
 }
 
@@ -1087,15 +1170,15 @@ th.revertCaption, td.revertCaption {
 	.red {
 		color:black !important;
 	}
-	
+
 	.discountText {
 		color:black !important;
 	}
-	
+
 	#receipt-table .highlighted {
 		border-left: 0px;
 	}
-	
+
 	.paidCaption, .changePositive, .changeNegative {
 		color:black !important;
 	}

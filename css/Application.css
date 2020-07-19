@@ -58,6 +58,9 @@ dl {
     white-space: nowrap;
     padding-right: 10px; }
 
+.narrow .folder-cover .groupList table .dt {
+  white-space: normal; }
+
 tr.noHover td:hover {
   color: #999999;
   background: white; }
@@ -4509,6 +4512,9 @@ div.location.public {
 .balance-custom-form select {
   width: 100%;
   max-width: 400px; }
+
+.ajaxSelect {
+  min-width: 250px; }
 
 .productCell {
   max-width: none !important; }

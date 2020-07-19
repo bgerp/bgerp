@@ -117,7 +117,7 @@ class pos_Points extends core_Master
      * 
      * @see plg_Settings
      */
-    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,setDiscounts,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,products,maxSearchProductInLastSales,searchDelayTerminal,groups';
+    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,setDiscounts,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,products,maxSearchProductInLastSales,searchDelayTerminal,productGroups';
       
     
     /**
@@ -144,23 +144,71 @@ class pos_Points extends core_Master
         $this->FLD('theme', 'enum(default=Стандартна,dark=Тъмна)', 'caption=Настройки->Тема,default=dark,mandatory');
         $this->FLD('cashiers', 'keylist(mvc=core_Users,select=nick)', 'caption=Настройки->Оператори, mandatory,optionsFunc=pos_Points::getCashiers');
         
-        $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name)', 'caption=Настройки->Групи,input=none');
-        $this->FLD('products', 'keylist(mvc=cat_Products, select=name)', 'caption=Настройки->Артикули,input=none');
+        $this->FLD('productGroups', 'table(columns=groupId|order,captions=Група|Подредба,validate=pos_Points::validateGroups)', 'caption=Настройки->Групи');
+        $this->FLD('products', 'keylist(mvc=cat_Products, select=name)', 'caption=Настройки->Артикули');
         
         $this->FLD('setPrices', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Цени, mandatory,default=yes');
         $this->FLD('setDiscounts', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Отстъпки, mandatory,settings,default=yes');
         $this->FLD('usedDiscounts', 'table(columns=discount,captions=Отстъпки,validate=pos_Points::validateAllowedDiscounts)', 'caption=Ръчно задаване->Използвани отстъпки');
         
         $this->FLD('maxSearchProducts', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->Артикули');
-        $this->FLD('maxSearchProductRelations', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->Близки артикули');
-        $this->FLD('maxSearchProductInLastSales', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->Последни продажи');
+        $this->FLD('maxSearchProductRelations', 'int(min=0)', 'caption=Максимален брой резултати в "Избор"->Свързани артикули');
+        $this->FLD('maxSearchProductInLastSales', 'int(min=0)', 'caption=Максимален брой резултати в "Избор"->Последни продажби');
         $this->FLD('maxSearchReceipts', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->Бележки');
         $this->FLD('maxSearchContragentStart', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->(Клиенти) Първоначално');
         $this->FLD('maxSearchContragent', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->(Клиенти) При търсене');
         $this->FLD('searchDelayTerminal', 'int(min=500)', 'caption=Настройки в терминала->Търсене след,unit=милисекунди');
-        
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Складове->Основен, mandatory');
         $this->FLD('otherStores', 'keylist(mvc=store_Stores, select=name)', 'caption=Складове->Допълнителни');
+    }
+    
+    
+    
+    /**
+     * Валидиране на групите с артикули
+     *
+     * @param array     $tableData
+     * @param core_Type $Type
+     *
+     * @return array
+     */
+    public static function validateGroups($tableData, $Type)
+    {
+        $res = $error = $groups = $orders = $errorFields = array();
+        
+        foreach ($tableData['order'] as $k1 => $q1) {
+            if (!type_Int::isInt($q1) || $q1 <= 0) {
+                $error[] = 'Не допустими символи в число/израз|*';
+                $errorFields['order'][$k1] = 'Не е въведено положително число|*';
+            }
+            
+            if (array_key_exists($q1, $orders)) {
+                $error[] = 'Повтаряща се подредба';
+                $errorFields['order'][$k1] = 'Повтаряща се подредба';
+            } else {
+                $orders[$q1] = $q1;
+            }
+        }
+        
+        foreach ($tableData['groupId'] as $k1 => $groupId) {
+            if (array_key_exists($groupId, $groups)) {
+                $error[] = 'Повтаряща се група';
+                $errorFields['groupId'][$k1] = 'Повтаряща се група';
+            } else {
+                $groups[$groupId] = $groupId;
+            }
+        }
+        
+        if (countR($error)) {
+            $error = implode('<li>', $error);
+            $res['error'] = $error;
+        }
+        
+        if (countR($errorFields)) {
+            $res['errorFields'] = $errorFields;
+        }
+        
+        return $res;
     }
     
     
@@ -290,6 +338,9 @@ class pos_Points extends core_Master
                 $form->setField($field, "placeholder={$defaultValue}");
             }
         }
+        
+        $productGroupOptions = array('' => '') + cls::get('cat_Groups')->makeArray4Select('name');
+        $form->setFieldTypeParams('productGroups', array('groupId_opt' => $productGroupOptions));
     }
     
     
@@ -375,12 +426,11 @@ class pos_Points extends core_Master
                 $row->contragent = crm_Persons::getHyperlink($defaultContragent, true);
             }
             
-            if($mvc->haveRightFor('edit', $rec)){
-                $row->products .= ht::createLink('', array($mvc, 'selectbuttons', $rec->id, 'type' => 'products', 'ret_url' => true), false, 'ef_icon=img/16/edit.png,title=Избор на групи');
-            }
-            
-            if($mvc->haveRightFor('edit', $rec)){
-                $row->groups .= ht::createLink('', array($mvc, 'selectbuttons', $rec->id, 'type' => 'groups', 'ret_url' => true), false, 'ef_icon=img/16/edit.png,title=Избор на артикули');
+            if(!empty($rec->productGroups)){
+                $Type = $mvc->getFieldType('productGroups');
+                $productGroupOptions = array('' => '') + cls::get('cat_Groups')->makeArray4Select('name');
+                $Type->params['groupId_opt'] = $productGroupOptions;
+                $row->productGroups = $Type->toVerbal($rec->productGroups);
             }
         }
     }
@@ -457,54 +507,11 @@ class pos_Points extends core_Master
             }
         } else {
             foreach (static::$fieldMap as $field => $const){
-                if(empty($res->{$field})){
+                if(!isset($res->{$field})){
                     $res->{$field} = pos_Setup::get($const);
                     $inherited->{$field} = $field;
                 }
             }
         }
-    }
-    
-    
-    /**
-     * Селектиране на бутоните
-     */
-    public function act_selectbuttons()
-    {
-        $this->requireRightFor('edit');
-        expect($id = Request::get('id'));
-        expect($type = Request::get('type', "enum(groups,products)"));
-        expect($rec = $this->fetch($id));
-        $this->requireRightFor('edit', $rec);
-        
-        // Форма за избор на бързи артикули
-        $form = cls::get('core_Form');
-        $formTitle = ($type == 'products') ? 'Избор на бързи артикули в' : 'Избор на групи в';
-        $field = ($type == 'products') ? 'products' : 'groups';
-        $fieldCaption = ($type == 'products') ? 'Артикули' : 'Групи';
-        $keylistMvc = ($type == 'products') ? 'cat_Products' : 'cat_Groups';
-        
-        $form->title = "{$formTitle}|* <b>" . pos_Points::getHyperlink($rec, true) . '</b>';
-        $form->FLD($field, "keylist(mvc={$keylistMvc},select=name)", "caption={$fieldCaption}");
-        $form->setDefault($field, $rec->{$field});
-        
-        if($field == 'products'){
-            $suggestions = cat_Products::getProducts(null, null, null, 'canSell', null, null, false, null, null, 'yes', null);
-            $form->setSuggestions($field, $suggestions);
-        }
-        
-        $form->input();
-        if ($form->isSubmitted()) {
-            $fRec = $form->rec;
-            $this->save((object) array('id' => $id, $field => $fRec->{$field}), $field);
-            $this->logInAct($formTitle, $rec);
-            
-            return followRetUrl();
-        }
-        
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на промените');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
-        
-        return $this->renderWrapping($form->renderHtml());
     }
 }

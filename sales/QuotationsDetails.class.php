@@ -346,7 +346,7 @@ class sales_QuotationsDetails extends doc_Detail
             }
         }
         
-        $data->renderVatPriceInRec = ($masterRec->chargeVat == 'separate' && empty($data->summary));
+        $data->renderVatPriceInRec = ($masterRec->chargeVat == 'separate' && (empty($data->summary) || countR($recs) == 1));
     }
     
     

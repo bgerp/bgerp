@@ -2264,6 +2264,8 @@ class crm_Persons extends core_Master
                     continue;
                 }
                 
+                $generatedKeywords = plg_Search::purifyKeywods($generatedKeywords);
+                
                 $rRec->searchKeywords = $generatedKeywords;
                 
                 $clsInst->save_($rRec, 'searchKeywords');
