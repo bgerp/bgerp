@@ -38,12 +38,6 @@ class ztm_Registers extends core_Master
     
     
     /**
-     * Кой има право да го види?
-     */
-    public $canView = 'ztm, ceo';
-    
-    
-    /**
      * Кой може да го разглежда?
      */
     public $canList = 'ztm, ceo';
@@ -92,35 +86,8 @@ class ztm_Registers extends core_Master
         $this->FLD('description', 'text', 'caption=Описание на регистъра');
         
         $this->setDbUnique('name');
-        
     }
     
-    
-    /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param embed_Manager $Embedder
-     * @param stdClass      $data
-     */
-    protected static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-        $form = $data->form;
-        $rec = $form->rec;
-        
-        
-    }
-    
-    
-    /**
-     * Добавя бутони  към единичния изглед на документа
-     */
-    public static function on_AfterPrepareSingleToolbar($mvc, $data)
-    {
-        
-        $data->toolbar->addBtn('Изход', array('ztm_Registers','ret_url' => true));
-        
-       
-    }
     
     /**
      * Извиква се след SetUp-а на таблицата за модела
@@ -149,6 +116,80 @@ class ztm_Registers extends core_Master
     }
     
     
+    public static function getValueFormType($registerId)
+    {
+        $type = ztm_Registers::fetchField($registerId, 'type');
+        switch($type){
+            case 'int':
+                $ourType = 'Int';
+                break;
+            case 'float':
+                $ourType = 'Double';
+            case 'bool':
+                $ourType = 'enum(yes=Да,no=Не)';
+                break;
+            case 'str':
+                $ourType = 'varchar';
+                break;
+            default:
+                $ourType = 'text';
+                break;
+        }
+        
+        return core_Type::getByName($ourType);
+    }
     
     
+    /**
+     * Добавя функционално поле за въвеждане на допустима стойност
+     * 
+     * @param core_Form $form
+     * @param string|null $registerFld
+     * @param string|null $valueFld 
+     * 
+     * @return void
+     */
+    public static function extendAddForm($form, $registerFld = 'registerId', $valueFld = 'value')
+    {
+        $rec = &$form->rec;
+        
+        if(isset($rec->{$registerFld})){
+            $form->FLD('extValue', ztm_Registers::getValueFormType($rec->{$registerFld}), 'caption=Стойност,mandatory');
+            
+            if(!empty($rec->{$valueFld})){
+                $value = ztm_LongValues::getValueByHash($rec->{$valueFld});
+                $form->setDefault('extValue', $value);
+            }
+        }
+    }
+    
+    
+    /**
+     * Записва стойностите 
+     * 
+     * @param int $registerId
+     * @param mixed $extValue
+     * 
+     * @return mixed
+     */
+    public static function recordValues($registerId, $extValue)
+    {
+        $type = ztm_Registers::fetchField($registerId, 'type');
+        
+        // Записва стойността в помощния модел при нужда
+        if(in_array($type, array('text', 'object', 'array'))){
+            $hash = md5(serialize($extValue));
+            $value = $hash;
+            
+            $exValue = ztm_LongValues::fetchField("#hash = '{$hash}'", 'value');
+            if(!isset($exValue)){
+                $longRec = (object)array('hash' => $hash, 'value' => serialize($extValue));
+                ztm_LongValues::save($longRec);
+            }
+        } else {
+            $value = $extValue;
+        }
+        
+        return $value;
+    }
 }

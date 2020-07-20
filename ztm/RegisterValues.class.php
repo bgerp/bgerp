@@ -71,8 +71,8 @@ class ztm_RegisterValues extends core_Manager
     public function description()
     {
         $this->FLD('deviceId', 'key(mvc=ztm_Devices, select=name)','caption=Устройство,mandatory');
-        $this->FLD('registerId', 'key(mvc=ztm_Registers, select=name)','caption=Регистър');
-        $this->FLD('value', 'varchar(32)','caption=Стойност');
+        $this->FLD('registerId', 'key(mvc=ztm_Registers, select=name,allowEmpty)','caption=Регистър,mandatory,removeAndRefreshForm=value|extValue,silent');
+        $this->FLD('value', 'varchar(32)','caption=Стойност,input=none');
         $this->FLD('updatedOn', 'datetime(format=smartTime)','caption=Обновено на');
         
         $this->setDbUnique('deviceId,registerId');
@@ -295,9 +295,51 @@ class ztm_RegisterValues extends core_Manager
             //wp($response);
             core_App::outputJson($test);
         //}
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param embed_Manager $Embedder
+     * @param stdClass      $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = $data->form;
+        $form->setDefault('updatedOn', dt::now());
+        ztm_Registers::extendAddForm($form);
+    }
+    
+    
+    /**
+     * Извиква се преди запис в модела
+     *
+     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
+     * @param int          $id      Тук се връща първичния ключ на записа, след като бъде направен
+     * @param stdClass     $rec     Съдържащ стойностите, които трябва да бъдат записани
+     * @param string|array $fields  Имена на полетата, които трябва да бъдат записани
+     * @param string       $mode    Режим на записа: replace, ignore
+     */
+    protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        $rec->value = ztm_Registers::recordValues($rec->registerId, $rec->extValue);
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        $value = ztm_LongValues::getValueByHash($rec->value);
         
-        
-        
+        $Type = ztm_Registers::getValueFormType($rec->registerId);
+        $row->value = $Type->toVerbal($value);
     }
     
 }
