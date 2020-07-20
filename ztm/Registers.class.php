@@ -117,7 +117,7 @@ class ztm_Registers extends core_Master
     public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         
-        $data->toolbar->addBtn('Изход', array('ztm_RegistersDef','ret_url' => true));
+        $data->toolbar->addBtn('Изход', array('ztm_Registers','ret_url' => true));
         
        
     }

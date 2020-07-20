@@ -96,7 +96,7 @@ class ztm_ProfileDefaults extends core_Detail
     protected function description()
     {
         $this->FLD('profileId','key(mvc=ztm_Profiles, select=name)','caption=Профил,mandatory,smartCenter');
-        $this->FLD('registerId','key(mvc=ztm_RegistersDef, select=name)','caption=Регистър');
+        $this->FLD('registerId','key(mvc=ztm_Registers, select=name)','caption=Регистър');
         $this->FLD('value', 'varchar(32)', 'caption=Стойност');
         
         $this->setDbUnique('profileId, registerId');

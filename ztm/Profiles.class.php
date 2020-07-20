@@ -132,7 +132,7 @@ class ztm_Profiles extends core_Master
         }
         
         $res = array();
-        $query = ztm_RegistersDef::getQuery();
+        $query = ztm_Registers::getQuery();
         
         while($rec = $query->fetch()){
             $default = $rec->default;

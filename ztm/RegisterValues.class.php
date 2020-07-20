@@ -71,7 +71,7 @@ class ztm_RegisterValues extends core_Manager
     public function description()
     {
         $this->FLD('deviceId', 'key(mvc=ztm_Devices, select=name)','caption=Устройство,mandatory');
-        $this->FLD('registerDefId', 'key(mvc=ztm_RegistersDef, select=name)','caption=Регистър');
+        $this->FLD('registerDefId', 'key(mvc=ztm_Registers, select=name)','caption=Регистър');
         $this->FLD('value', 'varchar(32)','caption=Стойност');
         $this->FLD('updatedOn', 'datetime(format=smartTime)','caption=Обновено на');
         
@@ -117,7 +117,7 @@ class ztm_RegisterValues extends core_Manager
         $time = isset($time) ? $time : $now;
        
         expect(ztm_Devices::fetch($deviceId), "Няма такова устройство");
-        expect($registerDefRec = ztm_RegistersDef::fetch($registerId), "Няма такъв регистър");
+        expect($registerDefRec = ztm_Registers::fetch($registerId), "Няма такъв регистър");
         expect($time <= $now, 'Не може да се зададе бъдеще време');
         
         $rec = (object)array('deviceId' => $deviceId, 'registerDefId' => $registerId, 'updatedOn' => $time, 'value' => $value);
@@ -221,7 +221,7 @@ class ztm_RegisterValues extends core_Manager
     {
         $deviceRec = ztm_Devices::fetchRec($deviceId);
         $query = self::getQuery();
-        $query->EXT('priority', 'ztm_RegistersDef', 'externalName=priority,externalKey=registerDefId');
+        $query->EXT('priority', 'ztm_Registers', 'externalName=priority,externalKey=registerDefId');
         $query->where("#deviceId = '{$deviceRec->id}'");
         
         if(isset($updatedAfter)){
@@ -269,7 +269,7 @@ class ztm_RegisterValues extends core_Manager
     {
         $res = array();
         foreach ($arr as $name => $value){
-            $registerId = ztm_RegistersDef::fetchField();
+            $registerId = ztm_Registers::fetchField();
         }
     }
     
