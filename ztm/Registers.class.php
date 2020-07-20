@@ -2,7 +2,7 @@
 
 
 /**
- * Клас 'ztm_Registers' - Документ за Транспортни линии
+ * Клас 'ztm_RegisterValues' - Документ за Транспортни линии
  *
  *
  * @category  bgerp
@@ -14,12 +14,19 @@
  *
  * @since     v 0.1
  */
-class ztm_Registers extends core_Manager
+class ztm_RegisterValues extends core_Manager
 {
+    
     /**
      * Заглавие
      */
     public $title = 'Регистри в Zontromat';
+    
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'ztm_Registers';
     
     
     /**
@@ -147,6 +154,44 @@ class ztm_Registers extends core_Manager
     function act_Test()
     {
         requireRole('debug');
+        
+        
+        $r = '{
+    "ac1.next_attendance": null,
+    "ac2.next_attendance": null,
+    "at.state": null,
+    "cwf.value": null,
+    "dc.state": null,
+    "fire_detect.state": null,
+    "general.cwf.leak": 0,
+    "general.hwf.leak": 0,
+    "general.is_empty": 1,
+    "general.is_empty_timeout": null,
+    "hwf.value": null,
+    "monitoring.clear_errors": 0,
+    "monitoring.error_message": "",
+    "monitoring.info_message": "",
+    "monitoring.warning_message": "",
+    "pd.state": null,
+    "sc.sub_dev.current.value": 0,
+    "sc.sub_dev.current_power.value": 0,
+    "sc.sub_dev.total_energy.value": 0,
+    "self.ram.current": 0,
+    "self.ram.peak": 0,
+    "self.time.usage": 0,
+    "wc.state": null,
+    "wt.state": null
+}';
+        $lastSync = '2020-01-01 10:00:00';
+        
+        $regArr = json_decode($r);
+        $deviceId = 3;
+        
+        
+        self::sync($regArr, $deviceId, $lastSync);
+        
+        
+        
         $a = self::get(1, 1);
         //bp($a);
         //$time = '2020-07-10 18:35:34';
@@ -162,6 +207,8 @@ class ztm_Registers extends core_Manager
     
     
     
+    
+    
     /**
      * Извлича регистрите за устройството, обновени след определена дата
      * 
@@ -172,47 +219,79 @@ class ztm_Registers extends core_Manager
      */
     public static function grab($deviceId, $updatedAfter = null)
     {
+        $deviceRec = ztm_Devices::fetchRec($deviceId);
         $query = self::getQuery();
-        $query->where("#deviceId = '{$deviceId}'");
+        $query->EXT('priority', 'ztm_RegistersDef', 'externalName=priority,externalKey=registerDefId');
+        $query->where("#deviceId = '{$deviceRec->id}'");
+        
         if(isset($updatedAfter)){
             $query->where("#updatedOn >= '{$updatedAfter}'");
         }
         
         $res = array();
         while($rec = $query->fetch()){
-            $res[] = self::get($deviceId, $rec->registerDefId);
+            $extRec = self::get($deviceRec->id, $rec->registerDefId);
+            $res[$rec->registerDefId] = array('deviceId' => $deviceRec->id, 'registerDefId' => $rec->registerDefId, 'value' => $extRec->value, 'priority' => $rec->priority);
         }
         
-        return $res;
+        return (object)$res;
     }
     
     
-    public function sync($regArr, $lastSync)
+    /**
+     * ->synch($regArr, $lastSync)
+        // $regArr е масив с обекти, идващ от устройството, които имат name->(value, lastUpdate)
+        Какво прави тази функция:
+        1. Взема лок, да не се дублира
+        2. $lastSync= min($lastSync, $deviceRec->lastSync) - взема по-старото време от полученото (от контролера) и пазаното в bgERP
+        3. Взема всички регистри от модела, които са променяни след $lastSync и премахва от тях тези за които priority==device
+        4. Нанася $regArr върху вътрешното състояние, като взема само регистрите с priority==device и този с priority=time и имащи по-голям таймстамп
+        5. Връща получения в 3 масив
+     * 
+     * 
+     * @param array $regArr
+     * @param stdClass $deviceId
+     * @param datetime $lastSync
+     */
+    public function sync($regArr, $deviceId, $lastSync)
     {
+        expect($deviceRec = ztm_Devices::fetchRec($deviceId));
+        //core_Locks::get("ZTM_SYNC_DEVICE_{$deviceRec->id}");
         
+        $lastSyncMin = min($lastSync, $deviceRec->lastSync);
+        
+        $expandRegister = self::expandArr($regArr, $deviceRec->id);
+        $ourRegisters = self::grab($deviceRec, $lastSyncMin);
+        bp($regArr, $ourRegisters);
     }
     
-    
+    public static function expandArr($arr)
+    {
+        $res = array();
+        foreach ($arr as $name => $value){
+            $registerId = ztm_RegistersDef::fetchField();
+        }
+    }
     
     /**
      * Създава пряк път до публичните статии
      */
     public function act_Sync()
     {   
-       
         $token = Request::get('token');
         $lastSync = Request::get('last_sync');
-        
-        log_System::logWarning(serialize(Request::$vars));
+       
+        log_System::logAlert(serialize(Request::$vars));
         expect($deviceRec = ztm_Devices::getRecForToken($token), $token);
         ztm_Devices::updateSyncTime($token);
         
         //if(empty($lastSync)){
             
-            //$defaultResponse = ztm_Profiles::getDefaultResponse($deviceRec->profileId);
+        // samo global system bez device za purvonachalna
+            $defaultResponse = ztm_Profiles::getDefaultResponse($deviceRec->profileId);
            // $defaultResponse = array('') + $defaultResponse;
             
-            $test = (object)array("hvac.enabled" => 1);
+            $test = (object)array("monitoring.enabled" => 1, 'pir_detector.enabled' => 1, 'window_closed.enabled' => 1, 'access_control_1' => 1, 'self' => 1, 'access_control_1.card_reader.enabled' => 1, 'general' => 1);
             //bp();
             //log_System::logWarning($response);
             //wp($response);

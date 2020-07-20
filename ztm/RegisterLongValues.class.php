@@ -57,7 +57,7 @@ class ztm_RegisterLongValues extends core_Manager
      */
     public function description()
     {
-        $this->FLD('registerId', 'key(mvc=ztm_Registers, select=id)','caption=Регистер,mandatory,input=none');
+        $this->FLD('registerId', 'key(mvc=ztm_RegisterValues, select=id)','caption=Регистер,mandatory,input=none');
         $this->FLD('value', 'blob(serialize, compress)', 'mandatory,input=none');
         $this->FLD('hash', 'varchar', 'mandatory,input=none');
         

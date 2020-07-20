@@ -21,7 +21,7 @@ class ztm_Wrapper extends plg_ProtoWrapper
         $this->TAB('ztm_Profiles', 'Профили->Списък', 'ztm, ceo');
         $this->TAB('ztm_ProfileDefaults', 'Профили->Регистри', 'ztm, ceo');
         
-        $this->TAB('ztm_Registers', 'Регистри->Списък', 'ztm, ceo');
+        $this->TAB('ztm_RegisterValues', 'Регистри->Списък', 'ztm, ceo');
         $this->TAB('ztm_RegistersDef', 'Регистри->Видове', 'ztm, ceo');
         $this->TAB('ztm_RegisterLongValues', 'Регистри->Дълги стойности', 'debug');
     }

@@ -54,7 +54,7 @@ class ztm_Setup extends core_ProtoSetup
     public $managers = array(
             'ztm_Devices',
             'ztm_RegistersDef',
-            'ztm_Registers',
+            'ztm_RegisterValues',
             'ztm_RegisterLongValues',
             'ztm_Profiles',
             'ztm_ProfileDefaults',
