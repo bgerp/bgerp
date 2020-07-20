@@ -2071,9 +2071,11 @@ class pos_Terminal extends peripheral_Terminal
         
         $row = ht::createLink('+ Нова бележка', $addUrl, null, array('id' => "receiptnew", 'class' => "pos-notes posBtns {$disabledClass}", 'title' => 'Създаване на нова бележка'));
         $arr['draft']['receipts']->append($row);
+        $arr['draft']['count']++;
         
         $revertBlock = ht::createLink('↶ Сторно бележка', $revertDefaultUrl, $warning, array('id' => "revertReceiptBtn", 'class' => "pos-notes posBtns revertReceiptBtn {$disabledRevertClass}", 'title' => 'Създаване на нова сторно бележка'));
         $arr['draft']['receipts']->append($revertBlock);
+        $arr['draft']['count']++;
         
         while ($receiptRec = $query->fetch()) {
             $key = $receiptRec->state;
@@ -2115,7 +2117,6 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $tpl->append('</div>');
-        
         $tpl->prepend("<div class='withTabs'>");
         $tpl->append("</div>");
         
