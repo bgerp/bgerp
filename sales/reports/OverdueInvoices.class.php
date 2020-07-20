@@ -673,9 +673,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         
         $res->invoiceNo = $invoiceNo;
         
-        $contragentName = crm_Companies::getTitleById($dRec->contragentId);
-        
-        $res->contragentId = $contragentName;
+        $res->contragent = doc_Folders::getTitleById($dRec->contragent);
     }
     
     

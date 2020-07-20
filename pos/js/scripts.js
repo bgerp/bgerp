@@ -72,6 +72,11 @@ function posActions() {
 
 		activeInput = true;
 
+		var operation = getSelectedOperation();
+		if(operation == 'payment'){
+			disableOrEnableCurrencyBtn();
+		}
+		
 		triggerSearchInput($(this), searchTimeout);
 	});
 
@@ -1137,7 +1142,31 @@ function setInputPlaceholder() {
 function afterload() {
 	setInputPlaceholder();
 	disableOrEnableEnlargeBtn();
+	disableOrEnableCurrencyBtn();
 }
+
+
+/**
+ * Активиране/скриване на бутона за Валутите
+ */
+function disableOrEnableCurrencyBtn()
+{
+	var value = $("input[name=ean]").val();
+	
+	if(!$('.currencyBtn').length) {
+		
+		return
+	}
+	
+	if(!value.length || !$.isNumeric(value)){
+		$('.currencyBtn').addClass('disabledBtn');
+		$('.currencyBtn').attr('disabled', 'disabled');
+	} else {
+		$(".currencyBtn").removeClass('disabledBtn');
+		$(".currencyBtn").removeAttr("disabled");
+	}
+}
+
 
 /**
  * Активира или закрива бутона за подробна информация на артикула

@@ -2,7 +2,7 @@
 
 
 /**
- * Клас 'ztm_Registers' - Документ за Транспортни линии
+ * Клас 'ztm_LongValues' - Кеш на дългите стойностти на регистрите
  *
  *
  * @category  bgerp
@@ -14,8 +14,15 @@
  *
  * @since     v 0.1
  */
-class ztm_RegisterLongValues extends core_Manager
+class ztm_LongValues extends core_Manager
 {
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'ztm_RegisterLongValues';
+    
+    
     /**
      * Заглавие
      */
@@ -57,11 +64,9 @@ class ztm_RegisterLongValues extends core_Manager
      */
     public function description()
     {
-        $this->FLD('registerId', 'key(mvc=ztm_Registers, select=id)','caption=Регистер,mandatory,input=none');
-        $this->FLD('value', 'blob(serialize, compress)', 'mandatory,input=none');
-        $this->FLD('hash', 'varchar', 'mandatory,input=none');
+        $this->FLD('hash', 'varchar', 'mandatory,input=none,caption=Хеш');
+        $this->FLD('value', 'blob(serialize, compress)', 'mandatory,input=none,caption=Стойност');
         
-        $this->setDbUnique('registerId');
-        $this->setDbIndex('hash');
+        $this->setDbUnique('hash');
     }
 }
