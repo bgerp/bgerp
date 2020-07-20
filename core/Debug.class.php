@@ -855,6 +855,15 @@ class core_Debug
             if (defined('DEBUG_FATAL_ERRORS_PATH')) {
                 $contex['DEBUG_FATAL_ERRORS_PATH'] = defined('DEBUG_FATAL_ERRORS_PATH') ? DEBUG_FATAL_ERRORS_PATH : 'undefined';
             }
+            
+            try {
+                $uId = core_Setup::get('BGERP_UNIQ_ID');
+                $contex['CORE_BGERP_UNIQ_ID']  = $uId ? $uId : 'undefined';
+            } catch (Exception $e) {
+                
+            } catch (Throwable $t) {
+                
+            }
         }
         
         $state = array('errType' => $errType,

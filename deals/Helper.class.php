@@ -520,7 +520,7 @@ abstract class deals_Helper
         }
         
         $tpl = new core_ET("<span class='nowrap'>&nbsp;<small class='quiet'>[#quantityInPack#] [#shortUomName#]</small></span>");
-        $tpl->append(tr(cat_UoM::getShortName($measureId)), 'shortUomName');
+        $tpl->append(cat_UoM::getShortName($measureId), 'shortUomName');
         $tpl->append($quantityInPack, 'quantityInPack');
         $tpl->removeBlocks();
         
@@ -1070,15 +1070,15 @@ abstract class deals_Helper
      * @param float     $quantity
      * @param float     $quantityInPack
      * @param string    $quantityField
-     *
+     * @param string    $action
      * @return void
      */
-    public static function isQuantityBellowMoq(&$form, $productId, $quantity, $quantityInPack, $quantityField = 'packQuantity')
+    public static function isQuantityBellowMoq(&$form, $productId, $quantity, $quantityInPack, $quantityField = 'packQuantity', $action = 'sell')
     {
         $moq = $form->rec->_moq;
         
         if (!$moq) {
-            $moq = cat_Products::getMoq($productId);
+            $moq = cat_Products::getMoq($productId, $action);
         }
         
         if (isset($moq, $quantity) && $quantity < $moq) {
@@ -1401,8 +1401,7 @@ abstract class deals_Helper
             
             while ($iRec = $iQuery->fetch()) {
                 $Document = doc_Containers::getDocument($iRec->containerId);
-                $number = str_pad($Document->fetchField('number'), '10', '0', STR_PAD_LEFT);
-                $invoices[$iRec->containerId] = "#{$Document->abbr}{$number}";
+                $invoices[$iRec->containerId] = $Document->getInstance()->getVerbal($Document->fetch(), 'number');
             }
         }
         
@@ -2009,5 +2008,74 @@ abstract class deals_Helper
         }
         
         return;
+    }
+    
+    
+    public static function getContoRedirectError($productArr, $haveMetas, $haveNotMetas = null, $metaError = null)
+    {
+        $productCheck = deals_Helper::checkProductForErrors($productArr, $haveMetas, $haveNotMetas);
+        if($productCheck['notActive']){
+            
+            return "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |са затворени|*!";
+        }
+        
+        if($productCheck['metasError']){
+            
+            return "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |{$metaError}|*!";
+        }
+        
+        return null;
+    }
+    
+    
+    /**
+     * Проверка дали цената е под очакваната за клиента
+     * 
+     * @param int $productId
+     * @param double $price
+     * @param double $discount
+     * @param double $quantity
+     * @param int $contragentClassId
+     * @param int $contragentId
+     * @param datetime|null $valior
+     * @param int $listId
+     * 
+     * @return stdClass|null $obj
+     */
+    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $contragentClassId, $contragentId, $valior, $listId = null)
+    {
+        $obj = null;
+        
+        $price = $price * (1 - $discount);
+        $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $listId);
+        
+        $toleranceDiff = 0;
+        if(isset($foundPrice->listId)){
+            $toleranceDiff = price_Lists::fetchField($foundPrice->listId, 'discountComparedShowAbove');
+        }
+        $toleranceDiff = !empty($toleranceDiff) ? $toleranceDiff * 100 : 1;
+        
+        $foundPrice = $foundPrice->price * (1 - $foundPrice->discount);
+        
+        $diff = abs(round($price - $foundPrice, 5));
+        $price1Round = round($price, 5);
+        $price2Round = round($foundPrice, 5);
+       
+        
+        
+        if($price2Round){
+            $percent = core_Math::diffInPercent($price1Round, $price2Round);
+            $diff = abs(core_Math::diffInPercent($price1Round, $price2Round));
+            
+            
+            
+            if($diff > $toleranceDiff){
+                $obj = array();
+                $obj['hint'] = ($percent < 0) ? 'Крайната цена е над очакваната за клиента' : 'Крайната цена е под очакваната за клиента';
+                $obj['hintType'] = ($percent < 0) ? 'notice' : 'warning';
+            }
+        } 
+        
+        return $obj;
     }
 }

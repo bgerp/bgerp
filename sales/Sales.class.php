@@ -128,7 +128,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid, amountInvoiced,
+    public $listFields = 'valior, title=Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid, amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,
                              dealerId=Търговец,paymentState,
                              createdOn, createdBy';
     
@@ -210,7 +210,7 @@ class sales_Sales extends deals_DealMaster
      *
      * @see bgerp_plg_CsvExport
      */
-    public $exportableCsvFields = 'valior,id,folderId,currencyId,amountDeal,amountDelivered,amountPaid,amountInvoiced,invoices=Фактури';
+    public $exportableCsvFields = 'valior,id,folderId,currencyId,paymentMethodId,amountDeal,amountDelivered,amountPaid,amountInvoiced,invoices=Фактури';
     
     
     /**
@@ -303,7 +303,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
+    public $filterDateField = 'createdOn, valior, activatedOn, deliveryTime,modifiedOn';
     
     
     /**
@@ -327,9 +327,10 @@ class sales_Sales extends deals_DealMaster
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate,notChangeableByContractor');
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Цени,notChangeableByContractor');
+        $this->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане->Начин,before=accountId,after=paymentMethodId');
         $this->setField('shipmentStoreId', 'salecondSysId=defaultStoreSale');
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
-        $this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale');
+        $this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale,removeAndRefreshForm=paymentType,silent');
     }
     
     
@@ -453,6 +454,16 @@ class sales_Sales extends deals_DealMaster
                     }
                 }
             }
+            
+            // Дефолтната ценова политика се показва като плейсхолдър
+            if($listId = price_ListToCustomers::getListForCustomer($form->rec->contragentClassId, $form->rec->contragentId)){
+                $form->setField("priceListId", "placeholder=" . price_Lists::getTitleById($listId));
+            }
+        }
+        
+        if(isset($rec->paymentMethodId) && (!isset($rec->id) || $form->cmd == 'refresh')){
+            $type = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
+            $form->setDefault('paymentType', $type);
         }
     }
     
@@ -593,6 +604,7 @@ class sales_Sales extends deals_DealMaster
         $result->set('involvedContragents', array((object) array('classId' => $rec->contragentClassId, 'id' => $rec->contragentId)));
         
         $result->set('amount', $rec->amountDeal);
+        $result->setIfNot('reff', $rec->reff);
         $result->setIfNot('currency', $rec->currencyId);
         $result->setIfNot('rate', $rec->currencyRate);
         $result->setIfNot('vatType', $rec->chargeVat);
@@ -602,6 +614,7 @@ class sales_Sales extends deals_DealMaster
         $result->setIfNot('deliveryTerm', $rec->deliveryTermId);
         $result->setIfNot('storeId', $rec->shipmentStoreId);
         $result->setIfNot('paymentMethodId', $rec->paymentMethodId);
+        $result->setIfNot('paymentType', $rec->paymentType);
         $result->setIfNot('caseId', $rec->caseId);
         $result->setIfNot('bankAccountId', $rec->bankAccountId);
         $result->setIfNot('priceListId', $rec->priceListId);
@@ -1261,9 +1274,11 @@ class sales_Sales extends deals_DealMaster
      */
     private function getExpectedTransportCost($rec)
     {
-        if(isset($rec->expectedTransportCost))
+        if(isset($rec->expectedTransportCost)){
+            
+            return $rec->expectedTransportCost;
+        }
  
- return $rec->expectedTransportCost;
         $expectedTransport = 0;
         
         // Ако няма калкулатор в условието на доставка, не се изчислява нищо
@@ -1283,12 +1298,16 @@ class sales_Sales extends deals_DealMaster
         $codeAndCountryArr = sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, null, null, $rec->deliveryLocationId ? $rec->deliveryLocationId : $rec->deliveryAdress);
         $ourCompany = crm_Companies::fetchOurCompany();
         $params = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
+        if ($rec->deliveryData) {
+            $params += $rec->deliveryData;
+        }
         
         // Изчисляване на общото тегло на офертата
         $total = sales_TransportValues::getTotalWeightAndVolume($TransportCalc, $products, $rec->deliveryTermId, $params);
-        if($total == cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT)
- 
- return cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT;
+        if($total == cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT){
+            
+            return cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT;
+        }
         
         // За всеки артикул се изчислява очаквания му транспорт
         foreach ($products as $p2) {

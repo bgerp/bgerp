@@ -41,6 +41,14 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
+     * Каква да е максималната дължина на стринга за пълнотекстово търсене
+     *
+     * @see plg_Search
+     */
+    public $maxSearchKeywordLen = 13;
+    
+    
+    /**
      * На кой ред в тулбара да се показва бутона за принтиране
      */
     public $printBtnToolbarRow = 1;
@@ -388,7 +396,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
         
-        foreach (array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId', 'dueDate', 'type', 'originId', 'changeAmount') as $key) {
+        foreach (array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId', 'dueDate', 'type', 'originId', 'changeAmount', 'activatedOn', 'activatedBy') as $key) {
             unset($invArr[$key]);
         }
         
@@ -690,11 +698,12 @@ abstract class deals_InvoiceMaster extends core_Master
             if ($aggregateInfo->get('paymentMethodId') && !($mvc instanceof sales_Proformas)) {
                 $paymentMethodId = $aggregateInfo->get('paymentMethodId');
                 $plan = cond_PaymentMethods::getPaymentPlan($paymentMethodId, $aggregateInfo->get('amount'), $form->rec->date);
-                $type = cond_PaymentMethods::fetchField($paymentMethodId, 'type');
-                $form->setDefault('paymentType', $type);
                 if (!isset($form->rec->id)) {
                     $form->setDefault('dueTime', $plan['timeBalancePayment']);
                 }
+                
+                $paymentType = ($aggregateInfo->get('paymentType')) ? $aggregateInfo->get('paymentType') : cond_PaymentMethods::fetchField($paymentMethodId, 'type');
+                $form->setDefault('paymentType', $paymentType);
             }
             
             $form->rec->deliveryId = $aggregateInfo->get('deliveryTerm');
@@ -863,10 +872,44 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
         
-        $form->rec->_edited = true;
         
         // Метод който да бъде прихванат от deals_plg_DpInvoice
+        $form->rec->_edited = true;
         $mvc->inputDpInvoice($form);
+    }
+    
+    
+    /**
+     * Кое е мястото на фактурата по подразбиране
+     * 
+     * @param stdClass $rec
+     * @return string|null $place
+     */
+    public static function getDefaultPlace($rec)
+    {
+        $inCharge = doc_Folders::fetchField($rec->folderId, 'inCharge');
+        $inChargeRec = crm_Profiles::getProfile($inCharge);
+        
+        $place = null;
+        if(!empty($inChargeRec->buzLocationId)){
+             $locationRec = crm_Locations::fetch($inChargeRec->buzLocationId, 'place,countryId');
+             $place = $locationRec->place;
+             $countryId = $locationRec->countryId;
+        }
+        
+        if(empty($place)){
+            $myCompany = crm_Companies::fetchOwnCompany();
+            $place = $myCompany->place;
+            $countryId = $myCompany->countryId;
+        }
+        
+        $contragentCountryId = doc_Folders::getContragentData($rec->folderId)->countryId;
+        if (!empty($place) && $contragentCountryId != $countryId) {
+            $cCountry = drdata_Countries::fetchField($countryId, 'commonNameBg');
+            $place .= ", {$cCountry}";
+        }
+        
+        return $place;
     }
     
     
@@ -885,20 +928,6 @@ abstract class deals_InvoiceMaster extends core_Master
         }
         
         if ($rec->state == 'active') {
-            if (empty($rec->place) && $rec->state == 'active') {
-                $inCharge = cls::get($rec->contragentClassId)->fetchField($rec->contragentId, 'inCharge');
-                $inChargeRec = crm_Profiles::getProfile($inCharge);
-                $myCompany = crm_Companies::fetchOwnCompany();
-                $place = empty($inChargeRec->place) ? $myCompany->place : $inChargeRec->place;
-                $countryId = empty($inChargeRec->country) ? $myCompany->countryId : $inChargeRec->country;
-                
-                $rec->place = $place;
-                if ($rec->contragentCountryId != $countryId) {
-                    $cCountry = drdata_Countries::fetchField($countryId, 'commonNameBg');
-                    $rec->place .= (($place) ? ', ' : '') . $cCountry;
-                }
-            }
-            
             if (empty($rec->dueDate)) {
                 $dueTime = ($rec->dueTime) ? $rec->dueTime : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
                 
@@ -982,10 +1011,6 @@ abstract class deals_InvoiceMaster extends core_Master
     protected static function getVerbalInvoice($mvc, $rec, $row, $fields)
     {
         $row->rate = ($rec->displayRate) ? $row->displayRate : $row->rate;
-        
-        if ($rec->number) {
-            $row->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
-        }
         
         if ($rec->type == 'dc_note') {
             core_Lg::push($rec->tplLang);
@@ -1135,20 +1160,19 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $row = new stdClass();
         $me = cls::get(get_called_class());
-        if (!$me->getField('type', false)) {
-            
-            return parent::getRecTitle($rec, $escaped);
+        
+        $singleTitle = $me->singleTitle;
+        if ($me->getField('type', false)) {
+            $singleTitle = $me->getVerbal($rec, 'type');
+            if ($rec->type == 'dc_note') {
+                $singleTitle = ($rec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие';
+            }
         }
         
-        $row->type = $me->getVerbal($rec, 'type');
-        if ($rec->type == 'dc_note') {
-            $row->type = ($rec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие';
-        }
-        
-        $row->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+        $row->number = $me->getVerbal($rec, 'number');
         $num = ($row->number) ? $row->number : $rec->id;
         
-        return tr("|{$row->type}|* №{$num}");
+        return tr("|{$singleTitle}|* №{$num}");
     }
     
     
@@ -1503,7 +1527,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $fields = $mvc->selectFields();
         $fields['-list'] = true;
         foreach ($recs as &$rec) {
-            $rec->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+            $rec->number = $mvc->getVerbal($rec, 'number');
             
             $row = new stdClass();
             self::getVerbalInvoice($mvc, $rec, $row, $fields);
@@ -1526,5 +1550,21 @@ abstract class deals_InvoiceMaster extends core_Master
         // Искаме освен фактурите показващи се в лист изгледа да излизат и тези,
         // които са били активни, но сега са оттеглени
         $query->where("#state != 'draft' OR (#state = 'rejected' AND #brState = 'active')");
+    }
+    
+    
+    /**
+     * След като е готово вербалното представяне
+     */
+    protected static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
+    {
+        if ($part == 'number') {
+            if(!empty($rec->number)){
+                $number = core_Type::getByName('varchar')->toVerbal($rec->number);
+                $number = str_pad($number, 10, '0', STR_PAD_LEFT);
+                
+                $num = $number;
+            }
+        }
     }
 }

@@ -125,7 +125,7 @@ class store_InventoryNoteDetails extends doc_Detail
     public function description()
     {
         $this->FLD('noteId', 'key(mvc=store_InventoryNotes)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,caption=Артикул,mandatory,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack|packQuantity|batch');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,caption=Артикул,mandatory,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack|packQuantity|batch');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,tdClass=small-field nowrap,removeAndRefreshForm=quantity|quantityInPack|packQuantity|batch,remember,silent');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=hidden,column=none');
@@ -243,7 +243,7 @@ class store_InventoryNoteDetails extends doc_Detail
             // Проверка на к-то
             $warning = null;
             if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
-                $form->setError('packQuantity', $warning);
+                $form->setWarning('packQuantity', $warning);
             }
             
             $productInfo = cat_Products::getProductInfo($rec->productId);

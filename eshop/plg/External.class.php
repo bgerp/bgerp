@@ -21,8 +21,13 @@ class eshop_plg_External extends core_Plugin
      */
     public static function on_AfterPrepareExternalPage($mvc, &$res)
     {
-
-        $res->replace(eshop_Carts::getStatus(), 'USERCART');
+        $cartTpl = eshop_Carts::getStatus();
+        $res->replace($cartTpl, 'USERCART');
+        
+        $cu = core_Users::getCurrent('id', false);
+        if($cartTpl->getContent() !== ' ' || (isset($cu) && core_Users::isContractor($cu))){
+            $res->replace("hasLogoutBlock", 'MAIN_CONTENT_CLASS');
+        }
         
         $res->push(('eshop/js/Scripts.js'), 'JS');
         jquery_Jquery::run($res, 'eshopActions();');

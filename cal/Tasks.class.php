@@ -1376,14 +1376,23 @@ class cal_Tasks extends embed_Manager
         }
         
         // Ако отговаря на условията да се активира, вместо да е заявка
-        if ($oldRec->state == 'pending' && $newRec->state == 'pending') {
+        if (($oldRec->state == 'pending' && $newRec->state == 'pending') || 
+            ($oldRec->state == 'waiting' && $newRec->state == 'waiting') ||
+            ($oldRec->state == 'active' && $newRec->state == 'active')) {
             $canActivate = $mvc->canActivateTask($newRec);
+            
             if ($canActivate !== null) {
                 $now = dt::now();
                 if (dt::addDays(-1 * cal_Tasks::$taskShowPeriod, $canActivate) <= $now) {
                     $newRec->state = 'active';
-                    $newRec->timeActivated = dt::now();
+                    if ($oldRec->state != 'active') {
+                        $newRec->timeActivated = dt::now();
+                    }
+                } else {
+                    $newRec->state = 'waiting';
                 }
+            } else {
+                $newRec->state = 'pending';
             }
         }
     }

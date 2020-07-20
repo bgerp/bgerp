@@ -380,7 +380,7 @@ function logHitState($debugCode = '200', $state = array())
         if (isset($state['_breakFile'], $state['_breakLine'])) {
             $state['_code'] = core_Debug::getCodeAround($state['_breakFile'], $state['_breakLine']);
         }
-        
+   
         $data = @json_encode($state);
         
         // Ако възникне JSON грешка, записваме я и сериализираме данните
@@ -855,4 +855,16 @@ function countR($arr)
     }
 
     return empty($arr) ? 0 : count($arr);
+}
+
+
+/**
+ * Връща уникалното ID на системата
+ * 
+ * @return string
+ */
+function getBGERPUniqId()
+{
+    
+    return core_Setup::getBGERPUniqId();
 }

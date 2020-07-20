@@ -60,9 +60,7 @@ class type_Emails extends type_Varchar
     public function init($params = array())
     {
         setIfNot($params['params']['ci'], 'ci');
-        
-        $this->params['inputmode'] = 'email';
-        
+        setIfNot($params['params']['inputmode'], 'email');
         parent::init($params);
     }
     

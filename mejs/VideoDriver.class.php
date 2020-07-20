@@ -36,6 +36,9 @@ class mejs_VideoDriver extends core_BaseClass
     {
         $form->FLD('source1', 'fileman_FileType(bucket=cms_Video,align=vertical)', 'caption=Файл 1');
         $form->FLD('source2', 'fileman_FileType(bucket=cms_Video,align=vertical)', 'caption=Файл 2');
+        $form->FLD('width', 'int(min=10,max=1200)', 'caption=Широчина,placeholder=100%');
+        $form->FLD('height', 'int(min=10,max=1200)', 'caption=Височина,placeholder=100%');
+
     }
     
     
@@ -57,8 +60,8 @@ class mejs_VideoDriver extends core_BaseClass
         }
         
         // Определяме широчината на видеото в зависимост от мода
-        $width = '100%';
-        $height = '100%';
+        $width = $rec->width ? $rec->width . 'px' : '100%';
+        $height = $rec->height ? $rec->height . 'px' : '100%';
                 
         $source = array();
         if($rec->source1) {
@@ -69,7 +72,7 @@ class mejs_VideoDriver extends core_BaseClass
         }
  
         // Шаблона за видеото
-        $tpl = mejs_Adapter::createVideo($source, array('width' => $width, 'height' => $height));
+        $tpl = mejs_Adapter::createVideo($source, array('width' => $width, 'height' =>  $height));
 
         
         return $tpl;

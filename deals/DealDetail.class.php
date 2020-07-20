@@ -206,7 +206,7 @@ abstract class deals_DealDetail extends doc_Detail
         
         $form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ';
         $form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
-        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts));
+        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties' => 'generic'));
         
         if (empty($rec->id)) {
             // Ако потребителя е партньор и има листвани артикули за контрагента
@@ -311,7 +311,7 @@ abstract class deals_DealDetail extends doc_Detail
             // Проверка на к-то
             $warning = null;
             if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
-                $form->setError('packQuantity', $warning);
+                $form->setWarning('packQuantity', $warning);
             }
             
             // Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
@@ -319,7 +319,8 @@ abstract class deals_DealDetail extends doc_Detail
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
             
             // Проверка дали к-то е под МКП
-            deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack);
+            $action = ($mvc instanceof sales_SalesDetails) ? 'sell' : 'buy';
+            deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack, 'packQuantity', $action);
             
             if (!isset($rec->packPrice)) {
                 $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
@@ -555,7 +556,7 @@ abstract class deals_DealDetail extends doc_Detail
             $Policy = cls::get($Policy);
             
             // Подготовка на записите
-            $error = $error2 = $error3 = $toSave = $toUpdate = $multiError = array();
+            $error = $error2 = $warnings = $toSave = $toUpdate = $multiError = array();
             foreach ($listed as $lId => $lRec) {
                 $packQuantity = $rec->{"quantity{$lId}"};
                 $quantityInPack = $rec->{"quantityInPack{$lId}"};
@@ -592,7 +593,7 @@ abstract class deals_DealDetail extends doc_Detail
                 
                 $warning = null;
                 if (!deals_Helper::checkQuantity($packagingId, $packQuantity, $warning)) {
-                    $error3[$warning][] = "quantity{$lId}";
+                    $warnings[$warning][] = "quantity{$lId}";
                 }
                 
                 if (isset($lRec->moq) && $packQuantity < $lRec->moq) {
@@ -639,9 +640,9 @@ abstract class deals_DealDetail extends doc_Detail
                 $form->setError(implode(',', $error), 'Артикулът няма цена');
             }
             
-            if (countR($error3)) {
-                foreach ($error3 as $msg => $fields) {
-                    $form->setError(implode(',', $fields), $msg);
+            if (countR($warnings)) {
+                foreach ($warnings as $msg => $fields) {
+                    $form->setWarning(implode(',', $fields), $msg);
                 }
             }
             
@@ -653,7 +654,7 @@ abstract class deals_DealDetail extends doc_Detail
                 }
             }
             
-            if (!countR($error) && !countR($error3) && (!countR($error2) || (countR($error2) && Request::get('Ignore'))) && (!countR($multiError) || (countR($multiError) && Request::get('Ignore')))) {
+            if (!countR($error) && (!countR($error2) || (countR($error2) && Request::get('Ignore'))) && (!countR($multiError) || (countR($multiError) && Request::get('Ignore')))) {
                 
                 // Запис на обновените записи
                 if (countR($toUpdate)) {

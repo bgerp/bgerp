@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -52,7 +52,7 @@ class planning_Jobs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, doc_SharablePlg, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing';
+    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, doc_SharablePlg, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing, cat_plg_AddSearchKeywords';
     
     
     /**
@@ -160,6 +160,14 @@ class planning_Jobs extends core_Master
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     *
+     *  @var string
+     */
+    public $hideListFieldsIfEmpty = 'quantityFromTasks,quantityNotStored';
+    
+    
+    /**
      * Вербални наименования на състоянията
      */
     private static $actionNames = array('created' => 'Създаване',
@@ -203,7 +211,7 @@ class planning_Jobs extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId';
+    public $fieldsNotToClone = 'dueDate,quantityProduced,quantityProducedInOtherMeasures,history,oldJobId';
     
     
     /**
@@ -222,6 +230,8 @@ class planning_Jobs extends core_Master
         
         $this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Количество->Произведено,notNull,value=0');
         $this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Количество->Заскладено,notNull,value=0');
+        $this->FLD('quantityProducedInOtherMeasures', 'blob(serialize, compress)', 'input=none,caption=Количество->Заскладено други мерки');
+        
         $this->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки');
         $this->FLD('tolerance', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.1)', 'caption=Толеранс,silent');
         $this->FLD('department', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност');
@@ -572,10 +582,8 @@ class planning_Jobs extends core_Master
     {
         $rec = &$data->rec;
         
-        if ($rec->state != 'draft' && $rec->state != 'rejected') {
-            if (cat_Boms::haveRightFor('add', (object) array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))) {
-                $data->toolbar->addBtn('Рецепта', array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantityForPrice' => $rec->quantity, 'ret_url' => true, 'type' => 'production'), 'ef_icon = img/16/add.png,title=Създаване на нова работна рецепта,row=2');
-            }
+        if (cat_Boms::haveRightFor('add', (object) array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))) {
+            $data->toolbar->addBtn('Рецепта', array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantityForPrice' => $rec->quantity, 'ret_url' => true, 'type' => 'production'), 'ef_icon = img/16/add.png,title=Създаване на нова работна рецепта,row=2');
         }
         
         // Бутон за добавяне на документ за производство
@@ -711,18 +719,30 @@ class planning_Jobs extends core_Master
         
         $rec->quantityProduced /= $rec->quantityInPack;
         $row->quantityProduced = $Double->toVerbal($rec->quantityProduced);
-        
         $rec->quantityNotStored = $rec->quantityFromTasks - $rec->quantityProduced;
         $row->quantityNotStored = $Double->toVerbal($rec->quantityNotStored);
-        
         $rec->quantityToProduce = $rec->packQuantity - (($rec->quantityFromTasks) ? $rec->quantityFromTasks : $rec->quantityProduced);
-        
         $row->quantityToProduce = $Double->toVerbal($rec->quantityToProduce);
+        if(is_array($rec->quantityProducedInOtherMeasures)){
+            $producedInfoArr = array();
+            foreach ($rec->quantityProducedInOtherMeasures as $additionalMeasureId => $additionalQuantity){
+                $additionalQuantityVerbal  = $Double->toVerbal($additionalQuantity);
+                $additionalMeasureName = cat_UoM::getShortName($additionalMeasureId);
+                $producedInfoArr[] = "{$additionalQuantityVerbal} {$additionalMeasureName}";
+            }
+            
+            $row->producedInfo = implode(" + ", $producedInfoArr);
+        }
         
         foreach (array('quantityNotStored', 'quantityToProduce') as $fld) {
             if ($rec->{$fld} < 0) {
                 $row->{$fld} = "<span class='red'>{$row->{$fld}}</span>";
             }
+        }
+        
+        if (cat_Boms::haveRightFor('add', (object) array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))) {
+            core_RowToolbar::createIfNotExists($row->_rowTools);
+            $row->_rowTools->addLink('Нова работна рецепта', array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantityForPrice' => $rec->quantity, 'ret_url' => true, 'type' => 'production'), "ef_icon=img/16/article.png,title=Създаване на нова работна рецепта");
         }
         
         if (isset($fields['-list'])) {
@@ -824,18 +844,18 @@ class planning_Jobs extends core_Master
                 $row->batches = implode(', ', $batchArr);
             }
             
-            if(!empty($rec->quantityFromTasks)){
-                $row->measureId2 = $row->measureId;
-                $row->quantityFromTasksCaption = tr('Произведено');
-            } else {
-                unset($row->quantityFromTasks);
-                unset($row->captionNotStored);
-                unset($row->quantityNotStored);
-            }
-            
             if (isset($rec->storeId)) {
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             }
+        }
+        
+        if(!empty($rec->quantityFromTasks)){
+            $row->measureId2 = $row->measureId;
+            $row->quantityFromTasksCaption = tr('Произведено');
+        } else {
+            unset($row->quantityFromTasks);
+            unset($row->captionNotStored);
+            unset($row->quantityNotStored);
         }
     }
     
@@ -880,7 +900,7 @@ class planning_Jobs extends core_Master
                 if (empty($rec->productId)) {
                     $res = 'no_one';
                 } else {
-                    $productRec = cat_Products::fetch($rec->productId, 'state,canManifacture');
+                    $productRec = cat_Products::fetch($rec->productId, 'state,canManifacture,generic');
                     
                     // Трябва да е активиран
                     if ($productRec->state != 'active') {
@@ -889,7 +909,7 @@ class planning_Jobs extends core_Master
                     
                     // Трябва и да е производим
                     if ($res != 'no_one') {
-                        if ($productRec->canManifacture == 'no') {
+                        if ($productRec->canManifacture == 'no' || $productRec->generic == 'yes') {
                             $res = 'no_one';
                         }
                     }
@@ -1078,18 +1098,27 @@ class planning_Jobs extends core_Master
         $tQuery->show('containerId');
         $containerIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'containerId');
         $containerIds[$rec->containerId] = $rec->containerId;
+        $measureId = cat_Products::fetchField($rec->productId, 'measureId');
         
         // Взимаме к-та на произведените артикули по заданието в протокола за производство
+        $totalQuantity = 0;
+        $additionalMeasures = array();
         $directProdQuery = planning_DirectProductionNote::getQuery();
         $directProdQuery->in("originId", $containerIds);
         $directProdQuery->where("#state = 'active' AND #productId = {$rec->productId}");
-        $directProdQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
-        $directProdQuery->show('totalQuantity');
-        $producedQuantity = $directProdQuery->fetch()->totalQuantity;
+        $directProdQuery->show('quantity,additionalMeasureId,additionalMeasureQuantity');
+        
+        while($protocolRec = $directProdQuery->fetch()){
+            $totalQuantity += $protocolRec->quantity;
+            if(!empty($protocolRec->additionalMeasureId) && $measureId != $protocolRec->additionalMeasureId){
+                $additionalMeasures[$protocolRec->additionalMeasureId] += $protocolRec->additionalMeasureQuantity;
+            }
+        }
         
         // Обновяваме произведеното к-то по заданието
-        $rec->quantityProduced = $producedQuantity;
-        self::save($rec, 'quantityProduced');
+        $rec->quantityProduced = $totalQuantity;
+        $rec->quantityProducedInOtherMeasures = $additionalMeasures;
+        self::save($rec, 'quantityProduced,quantityProducedInOtherMeasures');
     }
     
     
@@ -1319,7 +1348,7 @@ class planning_Jobs extends core_Master
         
         while ($rec = $query->fetch()) {
             $activatedBy = isset($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
-            if (empty($activatedBy)) {
+            if (empty($activatedBy) || $activatedBy == core_Users::SYSTEM_USER) {
                 continue;
             }
             $personId = crm_Profiles::fetchField("#userId = {$activatedBy}", 'personId');

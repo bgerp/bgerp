@@ -227,8 +227,17 @@ class sales_SalesDetails extends deals_DealDetail
             
             if (core_Users::haveRole('ceo,seePrice') && isset($row->packPrice)) {
                $priceDate = ($masterRec == 'draft') ? null : $masterRec->valior;
+               
+               // Предупреждение дали цената е под себестойност
                if(sales_PrimeCostByDocument::isPriceBellowPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $priceDate)){
                    $row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', false);
+               } elseif(in_array($masterRec->state, array('pending', 'draft'))){
+                   
+                   // Предупреждение дали цената е под очакваната за клиента
+                   $discount = isset($rec->discount) ? $rec->discount : $rec->autoDiscount;
+                   if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $discount, $rec->quantity, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $masterRec->priceListId)){
+                       $row->packPrice = ht::createHint($row->packPrice, $checkedObject['hint'], $checkedObject['hintType'], false);
+                   }
                }
             }
             
@@ -288,6 +297,7 @@ class sales_SalesDetails extends deals_DealDetail
         if (($action == 'add') && isset($rec)) {
             if ($requiredRoles != 'no_one') {
                 $roles = sales_Setup::get('ADD_BY_PRODUCT_BTN');
+                
                 if (!haveRole($roles, $userId)) {
                     $requiredRoles = 'no_one';
                 }

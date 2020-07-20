@@ -661,6 +661,7 @@ class core_Users extends core_Manager
             $rangs[core_Roles::fetchByName('officer')] = 'officer';
             $rangs[core_Roles::fetchByName('executive')] = 'executive';
             $rangs[core_Roles::fetchByName('partner')] = 'partner';
+            $rangs[core_Roles::fetchByName('powerPartner')] = 'powerPartner';
             
             $form->setOptions('roleRank', $rangs);
             $rec = $form->input(null, 'silent');
@@ -677,8 +678,9 @@ class core_Users extends core_Manager
             }
             
             $partnerR = core_Roles::fetchByName('partner');
+            $partnerRpower = core_Roles::fetchByName('powerPartner');
             
-            if ($rec->roleRank == $partnerR) {
+            if ($rec->roleRank == $partnerR || $rec->roleRank == $partnerRpower) {
                 $otherRoles = arr::combine(
                         array('external' => (object) array('title' => 'Външен достъп', 'group' => true)),
                         $roleTypes['external']
@@ -2391,6 +2393,12 @@ class core_Users extends core_Manager
      */
     public static function redirectToEnableHttps()
     {
+        if (core_Users::getCurrent() == self::SYSTEM_USER) {
+            wp($_SERVER['HTTPS'], EF_HTTPS);
+            
+            return ;
+        }
+        
         $url = core_App::getSelfURL();
         
         $newUrl = static::setHttpsInUrl($url);

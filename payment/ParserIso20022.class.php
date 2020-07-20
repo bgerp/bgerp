@@ -56,6 +56,11 @@ class payment_ParserIso20022 extends core_BaseClass
         }
         
         if (!$array) {
+            if (strpos(implode('|', $transactions->getNamespaces()), 'camt.053') !== false) {
+                $res->warnings[] = "Друг формата - camt.053";
+                
+                return $res;
+            }
             
             return ;
         }
@@ -149,6 +154,8 @@ class payment_ParserIso20022 extends core_BaseClass
         
         if ($sScore >= $this->maxSpamScore) {
             
+            log_System::add(get_called_class(), "Не е подходящ за ISO20022 - висок спам резултат: {$sScore}", null, 'debug', 3);
+            
             return ;
         }
         
@@ -158,6 +165,8 @@ class payment_ParserIso20022 extends core_BaseClass
         $filesArr = keylist::toArray($filesKeyList);
         
         if (empty($filesArr)) {
+            
+            log_System::add(get_called_class(), "Не е подходящ за ISO20022 - няма файлове", null, 'debug', 3);
             
             return ;
         }

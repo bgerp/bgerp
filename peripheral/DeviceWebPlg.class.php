@@ -130,6 +130,11 @@ class peripheral_DeviceWebPlg extends core_Plugin
      */
     public static function on_AfterGetSearchKeywords($Driver, embed_Manager $Embedder, &$res, $rec)
     {
+        $rec = $mvc->fetchRec($rec);
+        if (!isset($res)) {
+            $res = plg_Search::getKeywords($mvc, $rec);
+        }
+        
         if ($rec->brid || $rec->ip) {
             $p = trim($rec->brid);
             $p .= $p ? ' ' : '';

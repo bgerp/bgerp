@@ -60,10 +60,18 @@ class rack_Setup extends core_ProtoSetup
         'rack_ZoneGroups',
         'rack_Zones',
         'rack_ZoneDetails',
+        'rack_OccupancyOfRacks',
         'migrate::truncateOldRecs',
         'migrate::deleteOldPlugins',
         'migrate::updateNoBatchRackDetails2',
+        'migrate::changeOffsetInGetOccupancyOfRacks',
     );
+    
+    
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'rack_reports_DurationPallets';
     
     
     /**
@@ -109,6 +117,16 @@ class rack_Setup extends core_ProtoSetup
             'offset' => 55,
             'timeLimit' => 20,
             'delay' => 0,
+        ),
+        
+        array(
+            'systemId' => 'Get occupancy of racks',
+            'description' => 'Запис на текущото състояние на стелажите',
+            'controller' => 'rack_OccupancyOfRacks',
+            'action' => 'GetOccupancyOfRacks',
+            'period' => 1440,
+            'timeLimit' => 20,
+            'offset' => 5,
         )
     );
     
@@ -210,6 +228,23 @@ class rack_Setup extends core_ProtoSetup
         
         foreach ($deleteArr as $delId) {
             rack_ZoneDetails::delete($delId);
+        }
+    }
+    
+    /**
+     * Миграция: за промяна на offset-a
+     * на cron_GetOccupancyOfRacks
+     */
+    public function changeOffsetInGetOccupancyOfRacks()
+    {
+        $q = core_Cron::getQuery();
+        
+        $qRec = $q->fetch("#systemId = 'Get occupancy of racks'");
+       
+        if($qRec){
+            $qRec->offset = 5;
+            
+            core_Cron::save($qRec);
         }
     }
 }

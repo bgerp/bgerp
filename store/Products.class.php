@@ -17,6 +17,16 @@
  */
 class store_Products extends core_Detail
 {
+    
+    
+    /**
+     * Каква да е максималната дължина на стринга за пълнотекстово търсене
+     *
+     * @see plg_Search
+     */
+    public $maxSearchKeywordLen = 13;
+    
+    
     /**
      * Ключ с който да се заключи ъпдейта на таблицата
      */
@@ -62,7 +72,7 @@ class store_Products extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantity,reservedQuantity,expectedQuantity,freeQuantity,expectedQuantityTotal,storeId';
+    public $listFields = 'code=Код,productId=Артикул,measureId=Мярка,quantity,reservedQuantity,expectedQuantity,freeQuantity,expectedQuantityTotal,storeId';
     
     
     /**
@@ -88,7 +98,7 @@ class store_Products extends core_Detail
      */
     public function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Име,tdClass=leftAlign');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,tdClass=leftAlign');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,tdClass=storeCol leftAlign');
         $this->FLD('quantity', 'double(maxDecimals=3)', 'caption=Налично');
         $this->FLD('reservedQuantity', 'double(maxDecimals=3)', 'caption=Запазено');
@@ -177,14 +187,27 @@ class store_Products extends core_Detail
     {
         if($data->masterMvc instanceof cat_Products){
             $data->query->EXT('storeName', 'store_Stores', 'externalName=name,externalKey=storeId');
-            $data->query->orderBy('storeName', 'ASC');
+            
+            if($data->masterData->rec->generic == 'yes'){
+                $equivalent = planning_GenericMapper::getEquivalentProducts($data->masterId);
+                if(countR($equivalent) > 1){
+                    $data->query->in('productId', array_keys($equivalent), false, true);
+                    $data->query->orderBy('productId', 'ASC');
+                }
+            } else {
+                $data->query->orderBy('storeName', 'ASC');
+            }
             
             return;
         }
         
         // Подготвяме формата
         cat_Products::expandFilter($data->listFilter);
-        $orderOptions = arr::make('all=Всички,active=Активни,standard=Стандартни,private=Нестандартни,last=Последно добавени,closed=Изчерпани,reserved=Запазени,free=Разполагаеми');
+        $orderOptions = arr::make('all=Всички,active=Активни,standard=Стандартни,private=Нестандартни,last=Последно добавени,eproduct=Артикул в Е-маг,closed=Изчерпани,reserved=Запазени,free=Разполагаеми');
+        if(!core_Packs::isInstalled('eshop')){
+            unset($orderOptions['eproduct']);
+        }
+        
         $data->listFilter->setOptions('order', $orderOptions);
         $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
         
@@ -271,6 +294,14 @@ class store_Products extends core_Detail
                         break;
                     case 'reserved':
                         $data->query->where("#reservedQuantity IS NOT NULL");
+                        break;
+                    case 'eproduct':
+                        $eProductArr = eshop_Products::getProductsInEshop();
+                        if(countR($eProductArr)){
+                            $data->query->in("productId", $eProductArr);
+                        } else {
+                            $data->query->where("1=2");
+                        }
                         break;
                     case 'free':
                         $data->query->XPR('free', 'double', 'ROUND(COALESCE(#quantity, 0) - COALESCE(#reservedQuantity, 0), 2)');
@@ -432,17 +463,26 @@ class store_Products extends core_Detail
     {
         $data->listFields['expectedQuantity'] = "|Очаквано|*<span class='small notBolded'> |*днес|*</span>";
         $data->listFields['expectedQuantityTotal'] = "<span class='notBolded'>|Очаквано|*";
+        $historyBefore = 'code';
+        
         if (isset($data->masterMvc)) {
             if($data->masterMvc instanceof cat_Products){
                 arr::placeInAssocArray($data->listFields, array('storeId' => 'Склад|*'), null, 'code');
-                unset($data->listFields['productId']);
-                unset($data->listFields['code']);
+                
+               
+                if($data->masterData->rec->generic == 'yes'){
+                    $data->listFields = array('code' => 'Код', 'productId' => 'Артикул') + $data->listFields;
+                } else {
+                    unset($data->listFields['code']);
+                    unset($data->listFields['productId']);
+                    $historyBefore = 'storeId';
+                }
             } else {
                 unset($data->listFields['storeId']);
             }
             
             if (acc_BalanceDetails::haveRightFor('history')) {
-                arr::placeInAssocArray($data->listFields, array('history' => ' '), 'code');
+                arr::placeInAssocArray($data->listFields, array('history' => ' '), $historyBefore);
             }
         }
     }
@@ -651,13 +691,14 @@ class store_Products extends core_Detail
             $srQuery->where("#state = 'pending' AND #{$arr['storeFld']} IS NOT NULL");
             
             if($Doc instanceof purchase_Purchases){
-                $srQuery->show("id,containerId,modifiedOn,shipmentStoreId,valior");
+                $srQuery->show("id,containerId,modifiedOn,shipmentStoreId,valior,deliveryTime");
             } else {
                 $srQuery->show("id,containerId,modifiedOn,storeId,deliveryTime");
             }
             
             while ($sRec = $srQuery->fetch()) {
                 $deliveryTime = isset($sRec->deliveryTime) ? $sRec->deliveryTime : (isset($sRec->valior) ? $sRec->valior : $now);
+                
                 if($deliveryTime <= $now){
                     core_Permanent::remove("reserved_{$sRec->containerId}");
                 }
@@ -724,9 +765,9 @@ class store_Products extends core_Detail
         // Добавят се и запазените от бележки в POS-а
         if(core_Packs::isInstalled('pos')){
             $receiptQuery = pos_Receipts::getQuery();
-            $receiptQuery->EXT('storeId', 'pos_Points', 'externalName=storeId,externalKey=pointId');
+            $receiptQuery->EXT('storePointId', 'pos_Points', 'externalName=storeId,externalKey=pointId');
             $receiptQuery->where("#state = 'waiting'");
-            $receiptQuery->show('storeId,modifiedOn');
+            $receiptQuery->show('storePointId,modifiedOn');
             while($receiptRec = $receiptQuery->fetch()){
                 $reserved = core_Permanent::get("reserved_receipts_{$receiptRec->id}", $receiptRec->modifiedOn);
                 
@@ -741,8 +782,11 @@ class store_Products extends core_Detail
                         $packRec = cat_products_Packagings::getPack($rd->productId, $rd->value);
                         $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
                         $quantity = $quantityInPack * $rd->quantity;
-                        $key = "{$receiptRec->storeId}|{$rd->productId}";
-                        $reserved[$key] = array('sId' => $receiptRec->storeId, 'pId' => $rd->productId, 'reserved' => $quantity, 'expected' => null, 'expectedTotal' => null);
+                        
+                        if(!empty($rd->storeId)){
+                            $key = "{$rd->storeId}|{$rd->productId}";
+                            $reserved[$key] = array('sId' => $rd->storeId, 'pId' => $rd->productId, 'reserved' => $quantity, 'expected' => null, 'expectedTotal' => null);
+                        }
                     }
                     
                     core_Permanent::set("reserved_receipts_{$receiptRec->id}", $reserved, 4320);
@@ -893,7 +937,6 @@ class store_Products extends core_Detail
         if(core_Packs::isInstalled('pos') && $field == 'reservedQuantity'){
             $receiptQuery = pos_ReceiptDetails::getQuery();
             $receiptQuery->EXT('pointId', 'pos_Receipts', "externalName=pointId,externalKey=receiptId");
-            $receiptQuery->EXT('storeId', 'pos_Points', "externalName=storeId,externalKey=pointId");
             $receiptQuery->EXT('state', 'pos_Receipts', "externalName=state,externalKey=receiptId");
             $receiptQuery->where("#productId = {$rec->productId} AND #state = 'waiting' AND #action LIKE '%sale%'");
             $receiptQuery->where("#storeId = {$rec->storeId}");
@@ -912,9 +955,9 @@ class store_Products extends core_Detail
             while($noteRec = $pNoteQuery->fetch()){
                 $deliveryTime = isset($noteRec->deadline) ? $noteRec->deadline : (isset($noteRec->valior) ? $noteRec->valior : null);
                 if($field == 'expectedQuantityTotal'){
-                    $docs[$dRec->containerId] = doc_Containers::getDocument($noteRec->containerId)->getLink(0);
+                    $docs[$noteRec->containerId] = doc_Containers::getDocument($noteRec->containerId)->getLink(0);
                 } if(!empty($deliveryTime) && $deliveryTime <= $now){
-                    $docs[$dRec->containerId] = doc_Containers::getDocument($noteRec->containerId)->getLink(0);
+                    $docs[$noteRec->containerId] = doc_Containers::getDocument($noteRec->containerId)->getLink(0);
                 }
             }
         }
@@ -1040,17 +1083,16 @@ class store_Products extends core_Detail
     {
         if($data->masterMvc instanceof cat_Products){
             $data->masterKey = 'productId';
-            
+           
             $data->render = true;
-            $canStore = cat_Products::fetchField($data->masterId, 'canStore');
             $tabParam = $data->masterData->tabTopParam;
             $prepareTab = Request::get($tabParam);
             
-            if($canStore != 'yes' || !store_Products::haveRightFor('list') || $prepareTab != 'store_Products'){
+            if($data->masterData->rec->canStore != 'yes' || !store_Products::haveRightFor('list') || $prepareTab != 'store_Products'){
                 $data->render = false;
             }
             
-            if($canStore != 'yes' || !store_Products::haveRightFor('list')){
+            if($data->masterData->rec->canStore != 'yes' || !store_Products::haveRightFor('list')){
                 
                 return;
             }
@@ -1060,6 +1102,19 @@ class store_Products extends core_Detail
         }
         
         parent::prepareDetail_($data);
+        
+        if(countR($data->recs)){
+            $totalField = ($data->masterData->rec->generic == 'yes') ? 'code' : 'storeId';
+            $data->rows['total'] = (object)array($totalField => "<div style='float:left'>" .  tr('Сумарно') . "</div>");
+            foreach ($data->recs as $rec){
+                foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'expectedQuantityTotal', 'freeQuantity') as $fld){
+                    if(!empty($rec->{$fld})){
+                       $data->rows['total']->{$fld} += $rec->{$fld};
+                       $data->rows['total']->ROW_ATTR['style'] = 'background-color:#eee;font-weight:bold';
+                    }
+                }
+            }
+        }
     }
     
     
@@ -1075,8 +1130,14 @@ class store_Products extends core_Detail
         }
         
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+        if($data->masterData->rec->generic == 'yes'){
+            $infoBlock = tr("Показани са наличностите на артикулите, които заместват|* <b class='green'>") . cat_Products::getTitleById($data->masterId) . "</b>";
+            $infoBlock = "<div style='margin-bottom:5px'>{$infoBlock}</div>";
+            $tpl->append($infoBlock, 'content');
+        }
+        
         $tpl->append(parent::renderDetail_($data), 'content');
-       
+        
         return $tpl;
     }
 }

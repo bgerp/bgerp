@@ -170,7 +170,7 @@ class purchase_Invoices extends deals_InvoiceMaster
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-        'place' => 'lastDocUser|lastDoc',
+        'place' => 'lastDocUser|lastDoc|defMethod',
         'responsible' => 'lastDocUser|lastDoc',
         'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
         'contragentVatNo' => 'clientData|lastDocUser|lastDoc',
@@ -490,6 +490,11 @@ class purchase_Invoices extends deals_InvoiceMaster
                 $rec->contragentClassId = crm_Companies::getClassId();
                 core_Statuses::newStatus("Добавена е нова фирма|* '{$rec->contragentName}'");
             }
+        }
+        
+        if(!empty($rec->number)){
+            $number = $mvc->getVerbal($rec, 'number');
+            $rec->searchKeywords .= ' ' . plg_Search::normalizeText($number) . " " . plg_Search::normalizeText($rec->number);
         }
     }
     
@@ -1195,5 +1200,16 @@ class purchase_Invoices extends deals_InvoiceMaster
         // Ако текущата дата е ДО 12-о число включително - СД е първо число на предходния месец;
         // Ако текущата дата е СЛЕД 12-о число - СД е първо число на текущия месец
         return ($numOfDay <= $nDay) ? dt::mysql2verbal($prevLastDay, 'Y-m-01') : dt::mysql2verbal($today, 'Y-m-01');
+    }
+    
+    
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        if(!empty($rec->number)){
+            $res .= ' ' . plg_Search::normalizeText($rec->number);
+        }
     }
 }

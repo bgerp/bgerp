@@ -124,7 +124,6 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
     private function prepareExportData($recs)
     {
         $data = new stdClass();
-        
         $data->static = $this->getStaticData();
         $data->recs = array();
         
@@ -132,8 +131,8 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
         foreach ($recs as $rec) {
             $count++;
             $newRec = $this->prepareRec($rec, $count);
-            if($newRec->_skip !== true){
-                $data->recs[$rec->id] = $this->prepareRec($rec, $count);
+            if(is_object($newRec)){
+                $data->recs[$rec->id] = $newRec;
             }
         }
         
@@ -152,12 +151,13 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
         if(isset($rec->contragentCountryId)){
             $bgId =   drdata_Countries::getIdByName('Bulgaria');
             if($rec->contragentCountryId != $bgId){
-                $nRec->_skip = true;
+                
+                return null;
             }
         }
         
         $nRec->contragent = $rec->contragentName;
-        $nRec->invNumber = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+        $nRec->invNumber = purchase_Invoices::getVerbal($rec, 'number');
         $nRec->date = dt::mysql2verbal($rec->date, 'd.m.Y');
         $nRec->num = $count;
         if ($rec->type == 'dc_note') {
@@ -195,7 +195,8 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
        
         // Пропускат се фактурите в които има услуги
         if(!empty($byServices)){
-            $nRec->_skip = true;
+            
+            return null;
         }
         
         if ($rec->type != 'invoice') {

@@ -308,7 +308,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         $row->productId = cat_Products::getAutoProductDesc($dRec->productId, null, $display, 'public', $rec->lang, null, false);
         $row->groupName = core_Type::getByName('varchar')->toVerbal($dRec->groupName);
         $row->code = core_Type::getByName('varchar')->toVerbal($dRec->code);
-        $row->measureId = tr(cat_UoM::getShortName($dRec->measureId));
+        $row->measureId = cat_UoM::getShortName($dRec->measureId);
         
         $decimals = isset($rec->round) ? $rec->round : self::DEFAULT_ROUND;
         $row->price = core_Type::getByName("double(decimals={$decimals})")->toVerbal($dRec->price);

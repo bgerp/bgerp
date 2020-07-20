@@ -57,6 +57,12 @@ class cond_TransportCalc
     
     
     /**
+     * Стойността, ако е възникнала друга грешка
+     */
+    const OTHER_FEE_ERROR = -64;
+    
+    
+    /**
      * Определяне на обемното тегло, на база на обема на товара
      *
      * @param float $weight        - Тегло на товара
@@ -157,7 +163,7 @@ class cond_TransportCalc
      * @param stdClass $cartRow
      * @param core_ET $tpl
      * 
-     * @return boolean
+     * @return void
      */
     public function addToCartView($termRec, $cartRec, $cartRow, &$tpl)
     {
@@ -175,5 +181,19 @@ class cond_TransportCalc
     public function onUpdateCartMaster(&$cartRec)
     {
         return $this->class->onUpdateCartMaster($cartRec);
+    }
+    
+    
+    /**
+     * Може ли да се избира условието в онлайн магазина
+     *
+     * @param int|stdClass $cartRec
+     * @param int|null $cu
+     *
+     * @return boolean
+     */
+    public function canSelectInEshop(&$rec, $cu = null)
+    {
+        return $this->class->canSelectInEshop($rec, $cu);
     }
 }

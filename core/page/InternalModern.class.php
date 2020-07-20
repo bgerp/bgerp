@@ -78,7 +78,6 @@ class core_page_InternalModern extends core_page_Active
         
         jquery_Jquery::run($this, 'slidebars();');
         jquery_Jquery::run($this, 'scrollToHash();');
-        jquery_Jquery::run($this, 'unregisterServiceWorker();');
         
         if (Mode::is('screenMode', 'narrow')) {
             jquery_Jquery::run($this, 'checkForElementWidthChange();');

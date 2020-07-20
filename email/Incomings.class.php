@@ -249,6 +249,8 @@ class email_Incomings extends core_Master
         
         $this->setDbUnique('hash');
         $this->setDbIndex('fromEml');
+        
+        $this->setDbIndex('modifiedOn');
     }
     
     
@@ -1081,6 +1083,36 @@ class email_Incomings extends core_Master
                     $coutryCode = drdata_Countries::fetchField((int) $cData->countryId, 'letterCode2');
                     if ($coutryCode == $ipCoutryCode) {
                         continue ;
+                    }
+                } else {
+                    if ($ipCoutryCode) {
+                        $fRec = doc_Folders::fetch($folderId);
+                        if ($fRec->coverClass && $fRec->coverId && cls::load($fRec->coverClass, true)) {
+                            $cInst = cls::get($fRec->coverClass);
+                            if ($cInst instanceof doc_UnsortedFolders) {
+                                $cRec = $cInst->fetch($fRec->coverId);
+                                
+                                $country = drdata_Countries::getCountryName($ipCoutryCode);
+                                $unsortedName = sprintf(email_Setup::get('UNSORTABLE_COUNTRY'), $country);
+                                $unsortedName = trim($unsortedName);
+                                $unsortedName = mb_strtolower($unsortedName);
+                                $fRec->title = trim($fRec->title);
+                                $fRec->title = mb_strtolower($fRec->title);
+                                if ($unsortedName == $fRec->title) {
+                                    continue;
+                                }
+                                
+                                core_Lg::push('en');
+                                $countryEn = drdata_Countries::getCountryName($ipCoutryCode, 'en');
+                                $unsortedNameEn = sprintf(email_Setup::get('UNSORTABLE_COUNTRY'), $countryEn);
+                                $unsortedNameEn = trim($unsortedNameEn);
+                                $unsortedNameEn = mb_strtolower($unsortedNameEn);
+                                core_Lg::pop();
+                                if ($unsortedNameEn == $fRec->title) {
+                                    continue;
+                                }
+                            }
+                        }
                     }
                 }
             }

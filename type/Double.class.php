@@ -52,9 +52,8 @@ class type_Double extends core_Type
      */
     public function init($params = array())
     {
+        setIfNot($params['params']['inputmode'], 'decimals');
         parent::init($params);
-        
-        $this->params['inputmode'] = 'decimals';
     }
     
     

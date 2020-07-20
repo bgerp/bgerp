@@ -219,7 +219,6 @@ class label_Prints extends core_Master
         // Ако е подаден клас и обект
         $classId = $rec->classId;
         $objId = $rec->objectId;
-        $templateId = $rec->templateId;
         
         $labelDataArr = array();
         
@@ -252,6 +251,7 @@ class label_Prints extends core_Master
                 return followRetUrl(null, '|Няма шаблон, който да се използва', 'error');
             }
             
+            $optArr = array();
             foreach ($templatesArr as $tRec) {
                 $template = label_Templates::getTemplate($tRec->id);
                 $templatePlaceArr = label_Templates::getPlaceHolders($template);
@@ -399,8 +399,18 @@ class label_Prints extends core_Master
             $estCnt = $intfInst->getLabelEstimatedCnt($objId);
         }
         
-        if (!$estCnt && $rec->mediaId) {
-            $estCnt = label_Media::getCountInPage($rec->mediaId);
+        if(isset($rec->mediaId)){
+            if($estCnt){
+                
+                // Допълване на бройката на етикетите
+                $mediaColumnsCount = label_Media::fetchField($rec->mediaId, 'columnsCnt');
+                $rest = $estCnt % $mediaColumnsCount;
+                if(!empty($rest)){
+                    $estCnt = $estCnt + ($mediaColumnsCount - $rest);
+                }
+            } else {
+                $estCnt = label_Media::getCountInPage($rec->mediaId);
+            }
         }
         
         setIfNot($estCnt, 1);
@@ -750,9 +760,15 @@ class label_Prints extends core_Master
         // По подразбиране да се показват черновите записи най-отпред
         $data->query->orderBy('createdOn', 'DESC');
         
+        $data->listFilter->setField('mediaId', 'allowEmpty');
+        unset($data->listFilter->fields['mediaId']->notNull);
+        unset($data->listFilter->fields['mediaId']->removeAndRefreshForm);
+        unset($data->listFilter->fields['mediaId']->mandatory);
+        $data->listFilter->fields['mediaId']->type->params['allowEmpty'] = 'allowEmpty';
+        
         $data->listFilter->FNC('author', 'users(rolesForAll=labelMaster|ceo|admin, rolesForTeams=label|ceo|admin)', 'caption=От, refreshForm');
         
-        $data->listFilter->showFields = 'author, search, templateId';
+        $data->listFilter->showFields = 'author, search, templateId, mediaId';
         
         $data->listFilter->view = 'horizontal';
         
@@ -787,6 +803,10 @@ class label_Prints extends core_Master
             
             if ($filter->templateId) {
                 $data->query->where(array("#templateId = '[#1#]'", $filter->templateId));
+            }
+            
+            if ($filter->mediaId) {
+                $data->query->where(array("#mediaId = '[#1#]'", $filter->mediaId));
             }
         }
     }
@@ -1339,9 +1359,6 @@ class label_Prints extends core_Master
         // Ще се принтира
         Mode::set('wrapper', 'page_Print');
         Mode::set('printing');
-        
-        $data = new stdClass();
-        
         $pData = $this->getLabelDataFromRec($rec);
         
         // Ако са зададени страниците, които да се отпечата, подготвяме само тях

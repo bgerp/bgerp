@@ -100,7 +100,9 @@ $orange: #f90; /*оранжево като при ховър на менюто*/
 		padding-right: 10px;
 	}
 }
-
+.narrow .folder-cover .groupList table .dt {
+	white-space: normal;
+}
 tr.noHover td:hover { 
 	color: #999; 
 	background: white;
@@ -321,7 +323,7 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus {
 div.folder-cover {
 	background-image: url('../img/cover-bg.png');
 	display: inline-block;
-	max-width: 800px;
+	max-width: 1000px;
 	min-width: 540px;
 	margin-top: 10px;
 	line-height: 1.2em;
@@ -351,7 +353,7 @@ div.folder-cover {
 
 	.groupList {
 		font-size: 0.95em;
-		max-width: 725px;
+		max-width: 980px;
 		.toolbar-btn {
 			margin-top: 0 !important;
 			margin-bottom: 0 !important;
@@ -1514,7 +1516,7 @@ a.tOld {
 /*край на стилове при тредове*/
 
 .typeTable {
-	 border:none !important;
+	border:none !important;
 	.formTypeTable {
 		text-align: center;
 		font-weight: bold;
@@ -1524,6 +1526,18 @@ a.tOld {
 	td  {
 		text-align: center;
         font-size: 0.8em;
+	}
+	.batchNameTd {
+		input {
+			white-space: nowrap;
+			width: 100% !important;
+		}
+		~ td {
+			width: 120px;
+			input {
+				max-width: 120px;
+			}
+		}
 	}
 
 }
@@ -1965,6 +1979,10 @@ a.tOld {
     .additionalInfo {
     	left: auto;
     	right: -4px;
+		&.right {
+			left: -42px;
+			right: auto;
+		}
     }
   	.pluginCountButtonNub {
 		height: 0;
@@ -2201,7 +2219,7 @@ td.rowtools-column {
 	margin-bottom: 0;
 }
 
-.wide .singleView div:not(".folder-cover") .listTable {
+.wide .singleView div:not(.folder-cover, .no-cover) .listTable {
 	min-width: 800px;
 	width: 1%;
 }
@@ -3139,6 +3157,99 @@ fieldset.sharing-history {
 }
 /*край на стилове за история и автор*/
 
+/*борса*/
+.auctionContent {
+	padding: 0 30px 10px;
+	.productName {
+		font-size: 1.3em;
+		line-height: 150%;
+	}
+	.listTable {
+		margin-top: 20px;
+		width: 100%;
+		> tbody > tr > td {
+			padding: 10px !important;
+			vertical-align: top !important;
+			table {
+				width: 300px;
+				margin: 0 auto;
+				td {
+					padding: 4px 5px 0;
+				}
+				th {
+					color: #444;
+					padding-bottom: 5px;
+					border-bottom: 1px solid #ccc;
+				}
+				.name {
+					text-align: right !important;
+					width: 1%;
+					padding-right: 20px;
+				}
+				.quantityField {
+					text-align: right;
+				}
+
+			}
+		}
+		.priceInfo {
+			color: green !important;
+		}
+		.button {
+			width: 100px;
+			color: #333 !important;
+			padding: 5px 20px;
+			font-size: 0.85em;
+			background-color: #f6f6f6 !important;
+			border: 1px solid #bbbbbb;
+			border-radius: 3px;
+			box-shadow: inset 0 -1px 0 1px rgba(0, 0, 0, 0.1), inset 0 -10px 20px rgba(0, 0, 0, 0.1);
+			margin: 10px auto 0;
+			&:hover {
+				background-color: #ddd !important;
+			}
+		}
+	}
+	.periodHead {
+		color: #495057;
+		background-color: #e9ecef;
+		border-color: #c7ced5;
+		padding: 5px 10px;
+		font-weight: bold;
+	}
+
+	.priceBlock {
+		float: right;
+	}
+	h4 {
+		margin-top: 40px;
+	}
+	.otherProduct {
+		li {
+			margin: 10px 0;
+			a:hover {
+				text-decoration: underline;
+			}
+		}
+	}
+	.state-draft {
+		background-color: #bbffff;
+	}
+	.state-active {
+		background-color: #ffeedd;
+	}
+	.newsCol {
+		background: #fff;
+	}
+	#prodDesc {
+		display: inline-block;
+		min-width: 800px;
+		.productPreviewHolder {
+			margin-left: 30px;
+		}
+
+	}
+}
 
 /* CMS */
 /*външни стилове за ширина*/
@@ -3364,6 +3475,7 @@ fieldset.sharing-history {
 
 .narrow .externalPage #maincontent {
 	padding: 2px 5px 5px;
+	position: relative;
 }
 
 .wide .externalPage .formTable{
@@ -3506,7 +3618,30 @@ fieldset.sharing-history {
 	font-weight: normal;
 	display: inline-block;
 }
-
+.eshopNearProductImageHolder {
+	list-style: none;
+	padding-left: 0;
+	li {
+		float: left;
+		display: inline-block;
+		width: 90px;
+		height: 90px;
+		margin-right: 20px;
+		text-align: center;
+		margin-bottom: 20px;
+		border-radius: 3px;
+		&:hover img {
+			box-shadow: 0 0 5px rgba(0,0,0,0.8);
+		}
+		img {
+			max-height: 90px;
+			max-width: 90px;
+			width: auto;
+			padding: 4px;
+			border-radius: 3px;
+		}
+	}
+}
 .order-info {
 	background-color: #f1f1f1;
 	border: 1px solid #ccc ;
@@ -3568,6 +3703,7 @@ fieldset.sharing-history {
 	position: relative;
 	margin-left: 2px;
 	top: -6px;
+	padding: 2px 2px 1px;
     a {
         padding-top: 5px;
     }
@@ -3597,23 +3733,12 @@ fieldset.sharing-history {
 		border-top: 1px solid #ccc;
 	}
 	td {
-		padding: 4px 7px; 
+		padding: 10px;
+		height: 30px;
 	}
-	tbody tr:not(.ecartCommonRow) {
+	tbody tr {
 		background: linear-gradient(white, white, white, white, white, white, #eee);
 	}
-	tbody tr.ecartCommonRow {
-		background: linear-gradient(#eee, white, white, white, white, white, white);
-	}
-	tbody tr:not(.ecartCommonRow) td {
-		padding-bottom:10px;
-   		padding-top:3px;
-    }
-	tbody tr.ecartCommonRow td {
-        padding-top:10px;
-   		padding-bottom:3px;
-	}
-
   	thead tr:first-child {
 		background-color: #F1F1F1;
 	}
@@ -3624,6 +3749,17 @@ fieldset.sharing-history {
 		font-size: 0.9em;
 		color: #444;
 	}
+	.paramCol {
+		white-space: nowrap;
+	}
+}
+
+.narrow .optionsTable .productCol {
+	white-space: nowrap;
+}
+
+.eshop-product-buy-button {
+	margin-top: 3px;
 }
 
 .external-discount {
@@ -3655,8 +3791,17 @@ fieldset.sharing-history {
 	border: solid 1px #d8d8d8;
 	text-shadow: 1px 1px 1px #cccccc;
 	display: inline-block;
-	margin-bottom: 5px;
+	margin-top: 3px;
 	text-align: center;
+	position: relative;
+	top: -2px;
+	&.waitingDelivery {
+		background-color: rgba(41, 86, 222, 0.8) !important;
+	}
+}
+.eshop-product-list-param {
+	font-size: 0.85em;
+	color: #333;
 
 }
 
@@ -3860,15 +4005,25 @@ table .eshop-btn {
 	position: relative;
 	top: -1px;
 
-	&:hover{
+	&:hover {
 		background-color: #eee !important;
 	}
-
 }
+
+.narrow .eshop-btn.addToCard, .narrow .productBtn.addToCard {
+	background-image: url("../img/16/cart_go.png") !important;
+	background-position: 3px center;
+	background-repeat: no-repeat;
+	margin-bottom: 5px !important;
+	padding: 4px 8px 5px 25px !important;
+	top: -1px !important;
+	position: relative;
+	border: 1px solid #bbb !important;
+}
+
 .order-btn {
 	color: #fff !important;
 	text-shadow: 1px 1px 0 #333;
-
 	padding: 10px 20px !important;
 	font-size: 1.2em !important;
 	-moz-box-shadow:inset 0px 1px 0px 0px #54a3f7;
@@ -4059,7 +4214,9 @@ table .eshop-btn {
 		max-width: 16px !important;
 	}
 }
-
+.narrow .contractorExtHolder {
+	padding-top: 40px;
+}
 .narrow #login-form {
 	max-width:17em !important;
 	margin:20px auto;
@@ -5025,7 +5182,9 @@ div.location.public {
     width: 100%;
     max-width: 400px;
 }
-
+.ajaxSelect {
+	min-width: 250px;
+}
 .productCell {
 	max-width: none !important;
 }
@@ -5038,7 +5197,15 @@ div.location.public {
 .acc_JournalDetails {
 	margin-top: 10px;
 }
-
+.details .portal .formToolbar #filter{
+	background-color: #e5e5e5;
+	padding: 6px 4px !important;
+	width: 26px;
+	background-position: center;
+	&:hover {
+		background-color: #ccc;
+	}
+}
 /*шаблон за журнал*/
 
 .closePeriod .listTable tr > th:first-child {
@@ -5408,7 +5575,13 @@ div.location.public {
 	padding: 0;
 	margin: 0;
 }
+.doc_Containers table.listTable.listTable > tbody > tr.report-payment{
+	background-color:rgb(209, 255, 218) !important;
+}
 
+.doc_Containers table.listTable.listTable > tbody > tr.report-sale{
+	background-color:rgba(246, 237, 167, 0.5) !important;
+}
 .accordian {
 	margin-top: 0.5em;
 }
@@ -5534,11 +5707,27 @@ div.location.public {
 	        color: #048;
         }
     }
-    .eshop-group-button-img img{
-		width: auto;
-        width: 100% \9;
-		max-height: 220px;
-    }
+    .eshop-group-button-img a {
+		display: block;
+		img{
+			max-width: 100% ;
+			max-height: 220px;
+		}
+	}
+}
+
+.narrow .externalPage #maincontent.hasLogoutBlock {
+	padding-top: 29px !important;
+}
+
+.narrow .hasLogoutBlock .logoutBlock {
+	top: -29px;
+	right: -2px;
+}
+
+.narrow #all .hasLogoutBlock .logoutBlock {
+	top: 0;
+	right: 0;
 }
 
 .narrow .eshop-group-button{
@@ -5563,7 +5752,11 @@ div.location.public {
 	margin-top: 10px;
 }
 
-.eshop-product-labels span {
+.eshop-product .richtext ul{
+	margin-bottom: 10px;
+}
+
+.eshop-product-labels .info {
     @include border-radius(3px);
 	padding: 4px;
 	font-size:0.8em;
@@ -5614,6 +5807,7 @@ div.location.public {
 
 .eshop-group-image img {
 	width: 100% !important;
+	height: auto !important;
 }
 
 .eshop-group {
@@ -5633,6 +5827,7 @@ div.location.public {
     border-radius: 3px;
     box-shadow: 1px 1px 1px rgba(0,0,0,0.1);
      _height: 1%;
+
     .richtext {
         line-height: 1.35em;
     }
@@ -5879,9 +6074,6 @@ body.narrow {
 @media handheld , only screen and (min-width: 1240px) {
 	.background-holder {
 	    padding: 10px 0;
-	}
-	.wide:not('.user-profile') .listBlock .listRows > table.listTable {
-		min-width:760px;
 	}
 }
 @media handheld , only screen and (min-width: 1500px) {
@@ -6164,7 +6356,7 @@ body.narrow {
     .externalPage .formGroup {
         font-size: 0.85em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 558px;
         }
@@ -6199,7 +6391,7 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 483px;
         }
@@ -6228,7 +6420,7 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 458px;
         }
@@ -6260,7 +6452,7 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 438px;
         }
@@ -6307,7 +6499,7 @@ body.narrow {
     .externalPage .formGroup {
         font-size: 0.75em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 318px;
         }
@@ -6350,7 +6542,7 @@ body.narrow {
        margin-left: 0%;
        font-size: 0.9em;
     }
-    :not('.modern-theme') {
+    :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 278px;
         }
@@ -6834,6 +7026,10 @@ body.narrow {
 		font-family: Verdana !important;
 	}
 
+}
+
+.narrow .folder-cover .groupTitle {
+	white-space: normal;
 }
 
 .printing {

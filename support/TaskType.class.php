@@ -36,7 +36,7 @@ class support_TaskType extends core_Mvc
         
         $fieldset->FLD('name', 'varchar(64)', 'caption=Данни за обратна връзка->Име, mandatory, input=none, silent');
         $fieldset->FLD('email', 'email', 'caption=Данни за обратна връзка->Имейл, mandatory, input=none, silent');
-        $fieldset->FLD('url', 'varchar', 'caption=Данни за обратна връзка->URL, input=none');
+        $fieldset->FLD('url', 'varchar(500)', 'caption=Данни за обратна връзка->URL, input=none');
         $fieldset->FLD('ip', 'ip', 'caption=Ип,input=none');
         $fieldset->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
         $fieldset->FLD('file', 'fileman_FileType(bucket=Support)', 'caption=Файл, input=none');

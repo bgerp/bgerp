@@ -56,6 +56,11 @@ function printFiscalReceipt(onSuccess, onError) {
                         fpOpenFiscReceipt([#OPER_NUM#], [#OPER_PASS#], [#IS_DETAILED#], [#IS_PRINT_VAT#], [#PRINT_TYPE_STR#], [#RCP_NUM#]);
                     <!--ET_END OPEN_FISC_RECEIPT_1-->
                     
+                    <!--ET_BEGIN OPEN_FISC_INVOICE_1-->
+                        [#OPEN_FISC_INVOICE_1#]
+                        fpOpenInvoiceWithFreeCustomerData([#OPER_NUM#], [#OPER_PASS#], [#PRINT_TYPE_STR#], [#RECIPIENT#], [#BUYER#], [#VAT_NUMBER#], [#UIC#], [#ADDRESS#], [#UIC_TYPE_STR#], [#RCP_NUM#]);
+                    <!--ET_END OPEN_FISC_INVOICE_1-->
+                    
                     <!--ET_BEGIN OPEN_STORNO_RECEIPT_1-->
                         [#OPEN_STORNO_RECEIPT_1#]
                         fpOpenStornoReceipt([#OPER_NUM#], [#OPER_PASS#], [#IS_DETAILED#], [#IS_PRINT_VAT#], [#PRINT_TYPE_STR#], [#STORNO_REASON#], [#RELATED_TO_RCP_NUM#], [#RELATED_TO_RCP_DATE_TIME#], [#FM_NUM#], [#RELATED_TO_URN#]);
@@ -83,6 +88,11 @@ function printFiscalReceipt(onSuccess, onError) {
                             [#OPEN_FISC_RECEIPT_2#]
                             fpOpenFiscReceipt([#OPER_NUM#], [#OPER_PASS#], [#IS_DETAILED#], [#IS_PRINT_VAT#], [#PRINT_TYPE_STR#], [#RCP_NUM#]);
                         <!--ET_END OPEN_FISC_RECEIPT_2-->
+                        
+                        <!--ET_BEGIN OPEN_FISC_INVOICE_2-->
+                            [#OPEN_FISC_INVOICE_2#]
+                            fpOpenInvoiceWithFreeCustomerData([#OPER_NUM#], [#OPER_PASS#], [#PRINT_TYPE_STR#], [#RECIPIENT#], [#BUYER#], [#VAT_NUMBER#], [#UIC#], [#ADDRESS#], [#UIC_TYPE_STR#], [#RCP_NUM#]);
+                        <!--ET_END OPEN_FISC_INVOICE_2-->
                         
                         <!--ET_BEGIN OPEN_STORNO_RECEIPT_2-->
                             [#OPEN_STORNO_RECEIPT_2#]

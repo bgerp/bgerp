@@ -74,6 +74,8 @@ class type_Table extends type_Blob
             $selOpt = $field . '_opt';
             $suggestOpt = $field . '_sgt';
             $readOnlyFld = $field . '_ro';
+            $classFld = $field . '_class';
+            $tdClass = ($this->params[$classFld]) ? "class={$this->params[$classFld]}" : '';
             
             if ($this->params[$selOpt]) {
                 if (is_string($this->params[$selOpt])) {
@@ -85,8 +87,8 @@ class type_Table extends type_Blob
                     $opt[$field] = $this->params[$selOpt];
                 }
                 
-                $tpl .= '<td>' . ht::createSelect($attr[$field]['name'], $opt[$field], null, $attr[$field]) . '</td>';
-                $row1 .= '<td>' . ht::createSelect($attr[$field]['name'], $opt[$field], strip_tags($value[$field][0]), $attr[$field]) . '</td>';
+                $tpl .= "<td {$tdClass}>" . ht::createSelect($attr[$field]['name'], $opt[$field], null, $attr[$field]) . '</td>';
+                $row1 .= "<td {$tdClass}>" . ht::createSelect($attr[$field]['name'], $opt[$field], strip_tags($value[$field][0]), $attr[$field]) . '</td>';
             } elseif ($this->params[$suggestOpt]) {
                 if (!is_array($this->params[$suggestOpt])) {
                     $sgt = (strpos($this->params[$suggestOpt], '=') !== false) ? arr::make($this->params[$suggestOpt]) : explode('|', $this->params[$suggestOpt]);
@@ -101,21 +103,21 @@ class type_Table extends type_Blob
                 
                 $datalistTpl = ht::createDataList("{$name}List", $sgt[$field]);
                 $attr[$field]['list'] = "{$name}List";
-                $tpl .= '<td>' . ht::createCombo($attr[$field]['name'], null, $attr[$field], $sgt[$field]) . '</td>';
+                $tpl .= "<td {$tdClass}>" . ht::createCombo($attr[$field]['name'], null, $attr[$field], $sgt[$field]) . '</td>';
                 
                 if ($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][0]) && empty($this->errorFields[$field][0])) {
                     $text = strip_tags($value[$field][0]);
-                    $row1 .= '<td>' . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'text-indent:2px', 'readonly' => 'readonly', 'title' => strlen($text) > 16 ? $text : "", 'value' => $text)) . '</td>';
+                    $row1 .= "<td {$tdClass}>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'text-indent:2px', 'readonly' => 'readonly', 'title' => strlen($text) > 16 ? $text : "", 'value' => $text)) . '</td>';
                 } else {
-                    $row1 .= '<td>' . ht::createCombo($attr[$field]['name'], $value[$field][0], $attr[$field] + $this->getErrorArr($field, 0), array('' => '') + $sgt[$field]) . '</td>';
+                    $row1 .= "<td {$tdClass}>" . ht::createCombo($attr[$field]['name'], $value[$field][0], $attr[$field] + $this->getErrorArr($field, 0), array('' => '') + $sgt[$field]) . '</td>';
                 }
             } else {
-                $tpl .= '<td>' . ht::createElement('input', $attr[$field]) . '</td>';
+                $tpl .= "<td {$tdClass}>" . ht::createElement('input', $attr[$field]) . '</td>';
                 if ($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][0]) && empty($this->errorFields[$field][0])) {
                     $text = strip_tags($value[$field][0]);
-                    $row1 .= '<td>' . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'title' => strlen($text) > 16 ? $text : "", 'value' => $text)) . '</td>';
+                    $row1 .= "<td {$tdClass}>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'title' => strlen($text) > 16 ? $text : "", 'value' => $text)) . '</td>';
                 } else {
-                    $row1 .= '<td>' . ht::createElement('input', $attr[$field] + array('value' => $value[$field][0]) + $this->getErrorArr($field, 0)) . '</td>';
+                    $row1 .= "<td {$tdClass}>" . ht::createElement('input', $attr[$field] + array('value' => $value[$field][0]) + $this->getErrorArr($field, 0)) . '</td>';
                 }
             }
         }
@@ -126,15 +128,19 @@ class type_Table extends type_Blob
             $used = false;
             $empty = true;
             $row = '';
+            
             foreach ($columns as $field => $fObj) {
+                $classFld = $field . '_class';
+                $tdClass = ($this->params[$classFld]) ? "class={$this->params[$classFld]}" : '';
+                
                 if (isset($opt[$field])) {
-                    $row .= '<td>' . ht::createSelect($attr[$field]['name'], $opt[$field], strip_tags($value[$field][$i]), $attr[$field]) . '</td>';
+                    $row .= "<td {$tdClass}>" . ht::createSelect($attr[$field]['name'], $opt[$field], strip_tags($value[$field][$i]), $attr[$field]) . '</td>';
                 } else {
                     $readOnlyFld = $field . '_ro';
                     if ($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][$i]) && empty($this->errorFields[$field][$i])) {
-                        $row .= '<td>' . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => strip_tags($value[$field][$i]))) . '</td>';
+                        $row .= "<td {$tdClass}>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => strip_tags($value[$field][$i]))) . '</td>';
                     } else {
-                        $row .= '<td>' . ht::createElement('input', $attr[$field] + array('value' => strip_tags($value[$field][$i])) + $this->getErrorArr($field, $i)) . '</td>';
+                        $row .= "<td {$tdClass}>" . ht::createElement('input', $attr[$field] + array('value' => strip_tags($value[$field][$i])) + $this->getErrorArr($field, $i)) . '</td>';
                     }
                 }
                 if (isset($value[$field][$i])) {

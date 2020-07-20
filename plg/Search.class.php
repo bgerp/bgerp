@@ -65,6 +65,8 @@ class plg_Search extends core_Plugin
                 $fields['searchKeywords'] = 'searchKeywords';
             }
             
+            $rec->searchKeywords = self::purifyKeywods($rec->searchKeywords);
+            
             $rec->searchKeywords = $mvc->getSearchKeywords($rec);
         }
     }
@@ -136,6 +138,36 @@ class plg_Search extends core_Plugin
     
     
     /**
+     * Помощна функция за изчистване на ключовите думи от ненужни празни интервали
+     * Само по един интерва да остава и в началото и в края да има по един
+     *
+     * @param string $keywords
+     *
+     * @return string
+     */
+    public static function purifyKeywods($keywords)
+    {
+        if (!$keywords) {
+            
+            return $keywords;
+        }
+        
+        $keywords = trim($keywords);
+        
+        if (!$keywords) {
+            
+            return $keywords;
+        }
+        
+        $keywords = preg_replace('/\s{2,}/', ' ', $keywords);
+        
+        $keywords = ' ' . $keywords . ' ';
+        
+        return $keywords;
+    }
+    
+    
+    /**
      * Изпълнява се след подготовката на формата за филтриране
      * Добавя поле за пълнотекстово търсене
      *
@@ -202,8 +234,10 @@ class plg_Search extends core_Plugin
         }
         
         $wCacheArr = array();
-        
-        if ($words = static::parseQuery($search)) {
+        $words = static::parseQuery($search);
+        $query->mvc->invoke('AfterParseSearchQuery', array(&$words));
+
+        if ($words) {
             usort($words, 'plg_Search::sortLength');
             
             $stopWordsCnt = $notStopWordsCnt = $shortWordsCnt = $longWordsCnt = 0;
@@ -376,6 +410,10 @@ class plg_Search extends core_Plugin
             
             $maxId = $qRec->maxId;
             
+            if (!isset($maxId)) {
+                $maxId = 0;
+            }
+            
             core_Permanent::set($key, $maxId, 1000);
         }
         
@@ -537,15 +575,15 @@ class plg_Search extends core_Plugin
             return false;
         }
         
-        if ($latin) {
+     /*   if ($latin) {
             $str = str::utf2ascii($str);
             $iConvStr = @iconv('UTF-8', 'ASCII//TRANSLIT', $str);
             if (isset($iConvStr)) {
                 $str = $iConvStr;
             }
-        }
+        } */
         
-        $str = strtolower($str);
+        $str = mb_strtolower($str);
         
         $len = strlen($str);
         
@@ -596,7 +634,7 @@ class plg_Search extends core_Plugin
      */
     public static function highlight($text, $query, $class = 'document')
     {
-        $qArr = self::parseQuery($query, false);
+        $qArr = self::parseQuery($query);
         
         if (is_array($qArr)) {
             foreach ($qArr as $q) {
@@ -673,6 +711,13 @@ class plg_Search extends core_Plugin
     {
         $pKey = $clsName . '|repairSearchKeywords';
         
+        if (!cls::load($clsName, true)) {
+            
+            log_System::add(get_called_class(), "Регенериране на ключови думи: липсващ клас {$clsName}", null, 'debug', 1);
+            
+            return;
+        }
+        
         $clsInst = cls::get($clsName);
         
         $maxTime = dt::addSecs(40);
@@ -682,47 +727,84 @@ class plg_Search extends core_Plugin
         $query = $clsInst->getQuery();
         
         if (isset($kVal)) {
-            $query->where(array("#id > '[#1#]'", $kVal));
+            $query->where(array("#id < '[#1#]'", $kVal));
         }
         
-        if (!$query->count()) {
-            core_Permanent::remove($pKey);
+        $cnt = $query->count();
+        
+        $clsInst->logDebug("Начало на регенериране на ключови думи за {$clsName} за {$cnt} записа преди id<{$kVal}");
+        
+        if (!$cnt) {
+            if (!is_null($kVal)) {
+                core_Permanent::set($pKey, $kVal, 200);
+            } else {
+                core_Permanent::remove($pKey);
+            }
             
             $clsInst->logDebug('Приключи регенерирането на ключови думи');
             
             return ;
         }
-        
-        $callOn = dt::addSecs(120);
+        $callOn = dt::addSecs(55);
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', $clsName, $callOn);
         
-        $query->orderBy('id', 'ASC');
+        $query->orderBy('id', 'DESC');
         
-        while ($rec = $query->fetch()) {
-            if (dt::now() >= $maxTime) {
-                break;
-            }
-            
-            $maxId = $rec->id;
-            
-            try {
-                $generatedKeywords = $clsInst->getSearchKeywords($rec);
+        $isFirst = true;
+        
+        $query->limit(10000);
+        
+        $lastId = $kVal;
+        
+        try {
+            while ($rec = $query->fetch()) {
                 
-                if ($generatedKeywords == $rec->searchKeywords) {
-                    continue;
+                if (dt::now() >= $maxTime) {
+                    break;
                 }
                 
-                $rec->searchKeywords = $generatedKeywords;
+                if ($isFirst) {
+                    $clsInst->logDebug("Регенериране на ключови думи от {$rec->id}");
+                    $isFirst = false;
+                }
                 
-                $clsInst->save_($rec, 'searchKeywords');
-            } catch (core_exception_Expect $e) {
-                reportException($e);
+                $lastId = $rec->id;
+                
+                try {
+                    $generatedKeywords = $clsInst->getSearchKeywords($rec);
+                    if ($generatedKeywords == $rec->searchKeywords) {
+                        
+                        continue;
+                    }
+                    
+                    $generatedKeywords = plg_Search::purifyKeywods($generatedKeywords);
+                    
+                    $rec->searchKeywords = $generatedKeywords;
+                    
+                    $clsInst->save_($rec, 'searchKeywords');
+                } catch (Exception $e) {
+                    reportException($e);
+                } catch (Throwable  $e) {
+                    reportException($e);
+                }
+            }
+        } catch (Exception $e) {
+            reportException($e);
+            if (is_null($lastId)) {
+                
+                return ;
+            }
+        } catch (Throwable  $e) {
+            reportException($e);
+            if (is_null($lastId)) {
+                
+                return ;
             }
         }
         
-        $clsInst->logDebug('Регенерирани ключови думи до id=' . $maxId);
+        $clsInst->logDebug('Регенерирани ключови думи до id=' . $lastId);
         
-        core_Permanent::set($pKey, $maxId, 100000);
+        core_Permanent::set($pKey, $lastId, 1000);
     }
     
     
@@ -765,5 +847,26 @@ class plg_Search extends core_Plugin
         }
         
         return $minLenFTS;
+    }
+    
+    
+    /**
+     * Форсира ръчно обновяване на ключовите думи на модела
+     * (и на контейнера му ако е документ)
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    public static function forceUpdateKeywords($mvc, $rec)
+    {
+        $fRec = $mvc->fetch("id = {$rec->id}", '*', false);
+        $rec->searchKeywords = $mvc->getSearchKeywords($fRec);
+        
+        $rec->searchKeywords = self::purifyKeywods($rec->searchKeywords);
+        
+        $mvc->save_($rec, 'searchKeywords');
+        if($rec->containerId){
+            doc_Containers::update_($rec->containerId);
+        }
     }
 }

@@ -19,7 +19,7 @@
      /**
       * Кой може да избира драйвъра
       */
-     public $canSelectDriver = 'ceo,acc';
+     public $canSelectDriver = 'ceo,acc,debug';
      
      
      /**
@@ -131,7 +131,7 @@
          
          $query->where("#status != 'removed'");
          
-         $query->where("#state = 'active' OR #state = 'closed' ");
+         $query->in('state',array('active','closed'));
          
          // Ако е посочена начална дата на период
          if ($rec->from) {
@@ -166,8 +166,13 @@
          );
          
          //Платежни документи(в момента отчита само ПКО)
-         $paymentDocsArr = array(cash_Pko::getClassId()
-         );
+         $paymentDocsArr = array(cash_Pko::getClassId());
+         
+         // Синхронизира таймлимита с броя записи //
+         $maxTimeLimit = $query->count() * 0.5;
+         $maxTimeLimit = max(array($maxTimeLimit, 300));
+         core_App::setTimeLimit($maxTimeLimit);
+         
          while ($tRec = $query->fetch()) {
              $isShipmentDoc = $isPaymentDoc = 0;
              $weight = $transportUnits = $cashAmount = 0;

@@ -8,14 +8,14 @@
 <div class="externalPage">
 [#TOP_PAGE#]
         <header>
-            <div class="narrowCenter">[#HEADER_IMG#]</div>
-            [#PAGE_HEADER#]
+            <div class="narrowCenter">[#HEADER_IMG#]
+                <!--ET_BEGIN CORE_APP_NAME-->
 
-            <!--ET_BEGIN CORE_APP_NAME-->
-            <div class="centerFixed">
                 <div class='app-name'>[#CORE_APP_NAME#]</div>
+
+                <!--ET_END CORE_APP_NAME-->
             </div>
-            <!--ET_END CORE_APP_NAME-->
+            [#PAGE_HEADER#]
 
             [#BOTTOM_HEADER#]
         </header>
@@ -25,7 +25,7 @@
             </div>
         </div>
         [#BOTTOM_MENU#]
-        <div id="maincontent">
+        <div id="maincontent" class="[#MAIN_CONTENT_CLASS#]">
             <div class='statuses' id='statuses' style='margin: 0 auto;'>
                 [#STATUSES#]
             </div>

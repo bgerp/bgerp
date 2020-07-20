@@ -46,11 +46,9 @@ class type_Int extends core_Type
      */
     public function init($params = array())
     {
+        setIfNot($params['params']['allowHex'], 'allowHex');
+        setIfNot($params['params']['inputmode'], 'numeric');
         parent::init($params);
-        
-        $this->params['allowHex'] = 'allowHex';
-        
-        $this->params['inputmode'] = 'numeric';
     }
     
     

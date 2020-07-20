@@ -1,0 +1,47 @@
+<div class="productModal">
+    <div class="fleft imagePreview">[#preview#]</div>
+        <div>[#name#]</div>
+
+        <div style="margin-bottom: 10px; font-weight: bold">[#info#]</div>
+        <!--ET_BEGIN STOPPED_PRODUCT--><span class='not-in-stock'>[#STOPPED_PRODUCT#]</span><!--ET_END STOPPED_PRODUCT-->
+        <div>|Мярка|*: [#measureId#]</div>
+
+        <div>|Цена|*: [#price#]</div>
+
+        <!--ET_BEGIN salePrice--><div>Продажна цена: [#salePrice#]</div><!--ET_END salePrice-->
+        <!--ET_BEGIN maxSaleDiscount--><div>Максимална ТО: [#maxSaleDiscount#]</div><!--ET_END maxSaleDiscount-->
+        <!--ET_BEGIN deliveryPrice--><div>Доставна цена: [#deliveryPrice#]</div><!--ET_END deliveryPrice-->
+        <!--ET_BEGIN storePlace--><div>Участък от склада: [#storePlace#]</div><!--ET_END storePlace-->
+
+        [#PARAMETERS#]
+        <!--ET_BEGIN PARAM_BLOCK-->
+        [#PARAM_BLOCK#]
+        <div>[#paramCaption#] : [#paramValue#]</div>
+        <!--ET_END PARAM_BLOCK-->
+        [#TOOLBAR#]
+
+        <table class="table-bordered" style=" margin: 10px 0">
+        <tr>
+			<th>|Склад|*</th>
+			<th>|Налично|*</th>
+			<th>|Запазено|*</th>
+			<th>|Разполагаемо|*</th>
+		</tr>
+        [#INSTOCK#]
+        <!--ET_BEGIN INSTOCK_BLOCK-->
+        [#INSTOCK_BLOCK#]
+        <tr>
+            <td>[#storeId#]:</td>
+            <td style="text-align: right"><b>[#inStock#]</b></td>
+            <td style="text-align: right"><b>[#reserved#]</b></td>
+            <td style="text-align: right"><b>[#free#]</b></td>
+        </tr>
+        <!--ET_END INSTOCK_BLOCK-->
+        </table>
+        <div class="clearfix21"></div>
+
+</div>
+
+
+
+[#Packagings#]

@@ -825,14 +825,19 @@ class sales_TransportValues extends core_Manager
             $quoteQuery->EXT('containerId', $Detail->Master, "externalName=containerId,externalKey={$Detail->masterKey}");
             $quoteQuery->where("#state = 'draft' AND #productId = '{$productId}'");
             
+            $hasRecalcedTransport = false;
+            
             while($detailRec = $quoteQuery->fetch()){
-                
                 // Прави се опит за преизчисление на транспорта (ако трябва)
                 $isRecalced = self::recalcTransport($Detail, $detailRec);
                 if($isRecalced === true){
-                    $Detail->Master->logWrite('Преизчисляване на сумата за транспорт  на артикул', $detailRec->{$Detail->masterKey});
+                    $hasRecalcedTransport = true;
                     doc_DocumentCache::cacheInvalidation($detailRec->containerId);
                 }
+            }
+            
+            if($hasRecalcedTransport){
+                $Detail->Master->logWrite('Преизчисляване на сумата за транспорт  на артикул', $detailRec->{$Detail->masterKey});
             }
         }
     }

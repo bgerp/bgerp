@@ -61,7 +61,7 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
         // Ако е ДИ или КИ се посочва към коя фактура е то
         if ($rec->type != 'invoice') {
             $type = ($rec->dealValue > 0) ? 'Дебитно известие' : 'Кредитно известие';
-            $result->reason = "{$type} към фактура №" . str_pad($origin->fetchField('number'), '10', '0', STR_PAD_LEFT);
+            $result->reason = "{$type} към фактура №" . $origin->getVerbal('number');
             
             // Намираме оридиджана на фактурата върху която е ДИ или КИ
             $origin = $origin->getOrigin();
@@ -90,9 +90,7 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
         if (isset($cloneRec->vatAmount)) {
             $entries[] = array(
                 'amount' => $cloneRec->vatAmount * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
-                
                 'debit' => array('4531'),
-                
                 'credit' => array('4530', array($origin->className, $origin->that)),
             );
         }
@@ -106,11 +104,12 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
                 $productArr[$dRec->productId] = $dRec->productId;
             }
             
-            $productCheck = deals_Helper::checkProductForErrors($productArr, 'canBuy');
-            if(countR($productCheck['notActive'])){
-                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
-            } elseif($productCheck['metasError']){
-                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са купуваеми|*!");
+            // Проверка дали артикулите отговарят на нужните свойства
+            if (Mode::get('saveTransaction') && countR($productArr)) {
+                if($redirectError = deals_Helper::getContoRedirectError($productArr, 'canBuy', 'generic', 'трябва да са купуваеми и да не са генерични')){
+                    
+                    acc_journal_RejectRedirect::expect(false, $redirectError);
+                }
             }
         }
         

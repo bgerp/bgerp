@@ -39,7 +39,7 @@ class accda_Da extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, accda_Wrapper, acc_plg_Contable, acc_plg_DocumentSummary, plg_Printing, plg_Clone, doc_DocumentPlg, plg_Search,
-                     bgerp_plg_Blank, acc_plg_Registry, plg_SaveAndNew, plg_Search, doc_plg_SelectFolder,change_Plugin';
+                     bgerp_plg_Blank, acc_plg_Registry, plg_SaveAndNew, plg_Search, doc_plg_SelectFolder,change_Plugin,cat_plg_AddSearchKeywords';
     
     
     /**
@@ -163,7 +163,7 @@ class accda_Da extends core_Master
      */
     public function description()
     {
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=fixedAsset,maxSuggestions=100,forceAjax)', 'class=w100,caption=Счетоводство->Артикул,mandatory,silent,refreshForm,remember');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=fixedAsset,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'class=w100,caption=Счетоводство->Артикул,mandatory,silent,refreshForm,remember');
         $this->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Счетоводство->Сметка,mandatory,input=hidden,remember');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Счетоводство->Склад,input=none,silent,refreshForm,remember');
         $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Счетоводство->В употреба от,mandatory,remember');

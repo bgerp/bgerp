@@ -105,7 +105,7 @@ class cat_Boms extends core_Master
     /**
      * Кой може да пише?
      */
-    public $canEdit = 'cat,ceo,sales';
+    public $canEdit = 'cat,ceo,sales,planning';
 
 
     /**
@@ -113,34 +113,31 @@ class cat_Boms extends core_Master
      *
      * @see change_Plugin
      */
-    public $canChangerec = 'cat,ceo,sales';
+    public $canChangerec = 'cat,ceo,sales,planning';
     
     
     /**
      * Кой може да добавя?
      */
-    public $canAdd = 'cat,ceo,sales';
+    public $canAdd = 'cat,ceo,sales,planning';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,cat,sales';
+    public $canList = 'cat,ceo,sales,purchase,planning';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,cat,sales';
+    public $canSingle = 'cat,ceo,sales,purchase,planning';
         
 
     /**
-
      * Кой може да затваря?
-
      */
-
-    public $canClose = 'cat,ceo,sales';
+    public $canClose = 'cat,ceo,sales,planning';
     
     
     /**
@@ -353,6 +350,7 @@ class cat_Boms extends core_Master
             
             // Ако има такава я активираме
             $id = $this->save_($nextActiveBomRec, 'state,brState,modifiedOn');
+            $this->logWrite("Активиране на последна '" . $this->getVerbal($rec, 'type') . "' рецепта", $id);
             doc_DocumentCache::cacheInvalidation($nextActiveBomRec->containerId);
             
             return $id;
@@ -393,6 +391,8 @@ class cat_Boms extends core_Master
                 $bomRec->brState = 'active';
                 $bomRec->modifiedOn = dt::now();
                 $mvc->save_($bomRec, 'state,brState,modifiedOn');
+                $mvc->logWrite("Затваряне при активиране на нова '" . $mvc->getVerbal($cRec, 'type') . "' рецепта", $bomRec->id);
+                
                 doc_DocumentCache::cacheInvalidation($bomRec->containerId);
                 $idCount++;
             }
@@ -481,12 +481,14 @@ class cat_Boms extends core_Master
             $origin = doc_Containers::getDocument($rec->originId);
             if($origin->isInstanceOf('planning_Tasks')){
                 $res = 'no_one';
+            } elseif(in_array($origin->fetchField('state'), array('draft', 'rejected'))) {
+                $res = 'no_one';
             }
         }
         
-        if (($action == 'add' || $action == 'edit' || $action == 'reject' || $action == 'restore') && isset($rec)) {
+        if (($action == 'add' || $action == 'edit' || $action == 'reject' || $action == 'restore' || $action == 'changerec') && isset($rec)) {
             if ($rec->type == 'production') {
-                if (!haveRole('techno,ceo', $userId)) {
+                if (!haveRole('cat,planning,ceo', $userId)) {
                     $res = 'no_one';
                 }
             }
@@ -1068,7 +1070,7 @@ class cat_Boms extends core_Master
             }
             
             if (!isset($price)) {
-                $price = planning_ObjectResources::getAvgPriceEquivalentProducts($productId, $date);
+                $price = planning_GenericMapper::getAvgPriceEquivalentProducts($productId, $date);
             }
             
             // Ако и по рецепта няма тогава да гледа по складова
@@ -1079,7 +1081,7 @@ class cat_Boms extends core_Master
                 if (isset($pInfo->meta['canStore'])) {
                     $price = cat_Products::getWacAmountInStore(1, $productId, $date);
                 } else {
-                    $price = planning_ObjectResources::getWacAmountInProduction(1, $productId, $date);
+                    $price = planning_GenericMapper::getWacAmountInProduction(1, $productId, $date);
                 }
                 
                 if (isset($price) && $price < 0) {
@@ -1093,7 +1095,7 @@ class cat_Boms extends core_Master
             if (isset($pInfo->meta['canStore'])) {
                 $price = cat_Products::getWacAmountInStore(1, $productId, $date);
             } else {
-                $price = planning_ObjectResources::getWacAmountInProduction(1, $productId, $date);
+                $price = planning_GenericMapper::getWacAmountInProduction(1, $productId, $date);
             }
             
             if (!isset($price)) {
@@ -1105,7 +1107,7 @@ class cat_Boms extends core_Master
             }
             
             if (!isset($price)) {
-                $price = planning_ObjectResources::getAvgPriceEquivalentProducts($productId, $date);
+                $price = planning_GenericMapper::getAvgPriceEquivalentProducts($productId, $date);
             }
             
             // В краен случай взимаме мениджърската себестойност
@@ -1534,7 +1536,7 @@ class cat_Boms extends core_Master
             $measureId = cat_Products::fetchField($rec->productId, 'measureId');
             $warning = '';
             if (!deals_Helper::checkQuantity($measureId, $rec->quantity, $warning)) {
-                $form->setError('quantity', $warning);
+                $form->setWarning('quantity', $warning);
             }
             
             $firstDocument = doc_Containers::getDocument($rec->originId);

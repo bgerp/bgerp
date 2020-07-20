@@ -508,7 +508,11 @@ class cms_Articles extends core_Master
             $navTpl->replace($toggleLink, 'TOGGLE_BTN');
             $navTpl->replace($currentPage, 'CURRENT_PAGE');
         }
-        
+
+        if (Mode::is('screenMode', 'narrow')) {
+            jquery_Jquery::run($navTpl, 'toggleNarrowMenu();', true);
+        }
+
         return $navTpl;
     }
     

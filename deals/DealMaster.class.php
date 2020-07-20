@@ -59,7 +59,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn';
+    public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn';
     
     
     /**
@@ -203,6 +203,9 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('amountBl', 'double(decimals=2)', 'caption=Стойности->Крайно салдо,input=none,summary=amount');
         $mvc->FLD('amountPaid', 'double(decimals=2)', 'caption=Стойности->Платено,input=none,summary=amount'); // Сумата която е платена
         $mvc->FLD('amountInvoiced', 'double(decimals=2)', 'caption=Стойности->Фактурирано,input=none,summary=amount'); // Сумата която е платена
+        
+        $mvc->FLD('amountInvoicedDownpayment', 'double(decimals=2)', 'caption=Стойности->Фактуриран аванс,input=none');
+        $mvc->FLD('amountInvoicedDownpaymentToDeduct', 'double(decimals=2)', 'caption=Стойности->Аванс за приспадане,input=none');
         
         $mvc->FLD('amountVat', 'double(decimals=2)', 'input=none');
         $mvc->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
@@ -439,7 +442,7 @@ abstract class deals_DealMaster extends deals_DealBase
     public static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
         if (!Request::get('Rejected', 'int')) {
-            $data->listFilter->FNC('type', 'enum(all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки)', 'caption=Състояние,refreshForm');
+            $data->listFilter->FNC('type', 'enum(all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки)', 'caption=Състояние,refreshForm');
             $data->listFilter->setDefault('type', 'active');
             $data->listFilter->showFields .= ',type';
         }
@@ -452,6 +455,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $data->query->XPR('dealRound', 'double', 'ROUND(COALESCE(#amountDeal, 0), 2)');
             $data->query->XPR('invRound', 'double', 'ROUND(COALESCE(#amountInvoiced, 0), 2)');
             $data->query->XPR('deliveredRound', 'double', 'ROUND(COALESCE(#amountDelivered, 0), 2)');
+            $data->query->XPR('invoicedDownpaymentToDeductRound', 'double', 'ROUND(COALESCE(#amountInvoicedDownpaymentToDeduct, 0), 2)');
             
             // Ако има филтър по клиентска група
             if (isset($filter->groupId)) {
@@ -497,6 +501,10 @@ abstract class deals_DealMaster extends deals_DealBase
                     case 'notInvoicedActive':
                         $data->query->where("(#deliveredRound - #invRound) > 0.05 AND #state = 'active'");
                         break;
+                    case 'invoiceDownpaymentToDeduct':
+                        $data->query->where('#invoicedDownpaymentToDeductRound > 0.01');
+                        $data->query->where("#state = 'active' OR #state = 'closed'");
+                        break;
                     case 'overdue':
                         $data->query->where("#paymentState = 'overdue'");
                         break;
@@ -530,7 +538,17 @@ abstract class deals_DealMaster extends deals_DealBase
                         $data->query->where("#closedDocuments IS NULL OR #closedDocuments = ''");
                         break;
                 }
+                
+                if(!in_array($filter->type, array('draft', 'pending', 'all'))){
+                    $data->query->orderBy('activatedOn', 'DESC');
+                    arr::placeInAssocArray($data->listFields, array('activatedOn' => 'Активирано->На'), null, 'createdBy');
+                }
             }
+        }
+        
+        if(!in_array($data->listFilter->rec->type, array('draft', 'pending', 'all'))){
+            unset($data->listFields['createdBy']);
+            unset($data->listFields['createdOn']);
         }
     }
     
@@ -932,7 +950,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $actions = type_Set::toArray($rec->contoActions);
         
-        foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'ToDeliver', 'ToInvoice', 'Bl') as $amnt) {
+        foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'ToDeliver', 'ToInvoice', 'Bl', 'InvoicedDownpayment', 'InvoicedDownpaymentToDeduct') as $amnt) {
             if (round($rec->{"amount{$amnt}"}, 2) == 0) {
                 $coreConf = core_Packs::getConfig('core');
                 $pointSign = $coreConf->EF_NUMBER_DEC_POINT;
@@ -948,7 +966,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
         
-        foreach (array('ToPay', 'ToDeliver', 'ToInvoice', 'Bl') as $amnt) {
+        foreach (array('ToPay', 'ToDeliver', 'ToInvoice', 'Bl', 'InvoicedDownpayment', 'InvoicedDownpaymentToDeduct') as $amnt) {
             if (round($rec->{"amount{$amnt}"}, 2) == 0) {
                 continue;
             }
@@ -1007,7 +1025,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 if ($Driver = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
                     $deliveryDataArr = $Driver->getVerbalDeliveryData($rec->deliveryTermId, $rec->deliveryData, get_called_class());
                     foreach ($deliveryDataArr as $delObj){
-                        $row->notes .= "<li>{$delObj->caption}: {$delObj->value}</li>";
+                        $row->deliveryBlock .= "<li>{$delObj->caption}: {$delObj->value}</li>";
                     }
                 }
             }
@@ -1165,19 +1183,24 @@ abstract class deals_DealMaster extends deals_DealBase
         $rec->amountDelivered = $aggregateDealInfo->get('deliveryAmount');
         $rec->amountBl = $aggregateDealInfo->get('blAmount');
         $rec->amountInvoiced = $aggregateDealInfo->get('invoicedAmount');
+        $rec->amountInvoicedDownpayment = $aggregateDealInfo->get('downpaymentInvoiced');
+        $rec->amountInvoicedDownpaymentToDeduct = $aggregateDealInfo->get('downpaymentInvoiced') - $aggregateDealInfo->get('downpaymentDeducted');
         
         if (!empty($rec->closedDocuments)) {
             
             // Ако документа приключва други сделки, събираме им фактурираното и го добавяме към текущата
             $closed = keylist::toArray($rec->closedDocuments);
-            $invAmount = 0;
+            $invAmount = $downpaymentInvoicedAmount = $downpaymentInvoicedToDeductAmount = 0;
             foreach ($closed as $docId) {
                 $dInfo = $mvc->getAggregateDealInfo($docId);
                 $invAmount += $dInfo->get('invoicedAmount');
+                $downpaymentInvoicedAmount += $dInfo->get('downpaymentInvoiced');
+                $downpaymentInvoicedToDeductAmount += $dInfo->get('downpaymentInvoiced') - $dInfo->get('downpaymentDeducted');
             }
+            
             $rec->amountInvoiced += $invAmount;
-        } else {
-            $rec->amountInvoiced = $aggregateDealInfo->get('invoicedAmount');
+            $rec->amountInvoicedDownpayment += $downpaymentInvoicedAmount;
+            $rec->amountInvoicedDownpaymentToDeduct += $downpaymentInvoicedToDeductAmount;
         }
         
         $rec->paymentState = $mvc->getPaymentState($aggregateDealInfo);
@@ -1492,7 +1515,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         // Закръглената оставаща сума за плащане
-        $query->XPR('toInvoice', 'double', 'ROUND(#amountDelivered - #amountInvoiced, 2)');
+        $query->XPR('toInvoice', 'double', 'ROUND(#amountDelivered - COALESCE(#amountInvoiced, 0), 2)');
         $query->XPR('deliveredRound', 'double', 'ROUND(#amountDelivered, 2)');
         
         $percent = bgerp_Setup::get('CLOSE_UNDELIVERED_OVER');
@@ -1509,9 +1532,10 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // На които треда им не е променян от определено време
         $query->where("#threadModifiedOn <= '{$oldBefore}'");
-        
-        // Крайното салдо по сметката на сделката трябва да е в допустимия толеранс
+      
+        // Крайното салдо, и Аванса за фактуриране по сметката на сделката трябва да е в допустимия толеранс или да е NULL
         $query->where("#amountBl BETWEEN -{$tolerance} AND {$tolerance}");
+        $query->where("#amountInvoicedDownpaymentToDeduct BETWEEN -{$tolerance} AND {$tolerance} OR #amountInvoicedDownpaymentToDeduct IS NULL");
         
         // Ако трябва да се фактурират и са доставеното - фактурираното е в допустими граници
         $query->where("(#makeInvoice = 'yes' || #makeInvoice IS NULL) AND #toInvoice BETWEEN -{$tolerance} AND {$tolerance}");
@@ -1572,6 +1596,13 @@ abstract class deals_DealMaster extends deals_DealBase
         if ($data->paymentPlan) {
             $tpl->placeObject($data->paymentPlan);
         }
+        
+        if(!$data->rec->amountInvoicedDownpayment && !$data->rec->amountInvoicedDownpaymentToDeduct){
+            $tpl->removeBlock('INVOICE_DOWNPAYMENT_TH');
+            $tpl->removeBlock('INVOICE_DOWNPAYMENT_TD');
+            $tpl->removeBlock('INVOICE_DOWNPAYMENT_DEDUCTED_TD');
+            $tpl->removeBlock('INVOICE_DOWNPAYMENT_DEDUCTED_TH');
+        }
     }
     
     
@@ -1607,6 +1638,9 @@ abstract class deals_DealMaster extends deals_DealBase
      *		o $fields['template'] 		    -  бележки за сделката
      *      o $fields['receiptId']          -  информативно от коя бележка е
      *      o $fields['onlineSale']         -  дали е онлайн продажба
+     *      o $fields['priceListId']        -  ценова политика
+     *      
+     *      
      *
      * @return mixed $id/FALSE - ид на запис или FALSE
      */
@@ -1710,7 +1744,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if (isset($fields['receiptId'])) {
             $rec->_receiptId = $fields['receiptId'];
         }
-        
+       
         if ($id = $me->save($rec)) {
             doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, core_Users::getCurrent());
             

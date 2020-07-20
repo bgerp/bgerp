@@ -169,6 +169,80 @@ function fpOpenStornoReceipt(operNum, operPass, isDetailed, isPrintVat, printTyp
 
 
 /**
+ * Фактура
+ * 
+ * @param operNum
+ * @param operPass
+ * @param printTypeStr
+ * @param recipient
+ * @param buyer
+ * @param VATNumber
+ * @param UIC
+ * @param address
+ * @param UICTypeStr
+ * @param rcpNum
+ */
+function fpOpenInvoiceWithFreeCustomerData(operNum, operPass, printTypeStr, recipient, buyer, VATNumber, UIC, address, UICTypeStr, rcpNum)
+{
+	checkOperNum(operNum);
+	
+	checkOperPass(operPass);
+	
+	if (printTypeStr == 'postponed') {
+		var printType = Tremol.Enums.OptionInvoicePrintType.Postponed_Printing;
+	} else if (printTypeStr == 'buffered') {
+		var printType = Tremol.Enums.OptionInvoicePrintType.Buffered_Printing;
+	} else if (printTypeStr == 'stepByStep') {
+		var printType = Tremol.Enums.OptionInvoicePrintType.Step_by_step_printing;
+	} else {
+		throw new Error("Непозволен тип за принтиране");
+	}
+	
+	if (recipient && recipient.length > 26) {
+		throw new Error("Максималната дължина на получателя е 26 символа");
+	}
+	
+	if (buyer && buyer.length > 16) {
+		throw new Error("Максималната дължина на купувача е 16 символа");
+	}
+	
+	if (VATNumber && VATNumber.length > 13) {
+		throw new Error("Максималната дължина на VAT номера е 13 символа");
+	}
+	
+	if (UIC && UIC.length > 13) {
+		throw new Error("Максималната дължина на UIC номера е 13 символа");
+	}
+	
+	if (address && address.length > 30) {
+		throw new Error("Максималната дължина на адрес номера е 30 символа");
+	}
+	
+	if (UICTypeStr == 'bulstat') {
+		var UICType = 0;
+	} else if (UICTypeStr == 'EGN') {
+		var UICType = 1;
+	} else if (UICTypeStr == 'FN') {
+		var UICType = 2;
+	} else if (UICTypeStr == 'NRA') {
+		var UICType = 3;
+	} else {
+		throw new Error("Непозволен тип за UIC тип");
+	}
+	
+	if (rcpNum) {
+		checkRcpNum(rcpNum);
+	}
+	
+	try {
+		fp.OpenInvoiceWithFreeCustomerData(operNum, operPass, printType, recipient, buyer, VATNumber, UIC, address, UICType, rcpNum);
+	} catch(ex) {
+	    handleException(ex);
+	}
+}
+
+
+/**
  * Кредитно известие
  * 
  * @param operNum

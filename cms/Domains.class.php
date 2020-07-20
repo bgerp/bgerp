@@ -9,7 +9,7 @@
  * @package   cms
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -56,13 +56,25 @@ class cms_Domains extends core_Embedder
     /**
      * Права за писане
      */
-    public $canWrite = 'admin';
+    public $canWrite = 'ceo, admin, cms';
     
     
     /**
      * Права за писане
      */
-    public $canEdit = 'admin';
+    public $canEdit = 'ceo, admin, cms';
+    
+    
+    /**
+     * Кой може да редактира системните данни
+     */
+    public $canEditsysdata = 'ceo,admin,cms';
+    
+    
+    /**
+     * Кой може да изтрива системните данни
+     */
+    public $canDeletesysdata = 'ceo,admin,cms';
     
     
     /**
@@ -75,15 +87,6 @@ class cms_Domains extends core_Embedder
      * Кой може да избира текущ домейн
      */
     public $canSelect = 'ceo, admin, cms';
-    
-    
-    /**
-     *    Админа може да редактира и изтрива създадените от системата записи
-     */
-    public $canEditsysdata = 'admin';
-    
-    
-    public $canDeletesysdata = 'admin';
     
     
     /**
@@ -331,6 +334,7 @@ class cms_Domains extends core_Embedder
             $domainRecs = self::findPublicDomainRecs();
         }
         
+        $cmsLangs = array();
         foreach ($domainRecs as $rec) {
             $cmsLangs[$rec->lang] = $rec->lang;
         }
@@ -344,17 +348,17 @@ class cms_Domains extends core_Embedder
      */
     public static function setFormField($form, $field = 'domainId')
     {
+        $opt = array();
         $query = self::getQuery();
-        while ($rec = $query->fetch("#state = 'active'")) {
-            if (self::haveRightfor('select', $rec) || $rec->id == $form->rec->{$field}) {
+        while ($rec = $query->fetch()) {
+            if (self::haveRightfor('select', $rec)) {
                 $opt[$rec->id] = self::getRecTitle($rec);
             }
         }
+        
         expect($form instanceof core_Form);
         $form->setOptions($field, $opt);
-        if (!$form->rec->{$field}) {
-            $form->rec->{$field} = self::getCurrent();
-        }
+        $form->setDefault($field, self::getCurrent());
     }
     
     
@@ -369,6 +373,7 @@ class cms_Domains extends core_Embedder
             return key($cmsLangs);
         }
         
+        $langParse = array();
         // Парсираме Accept-Language съгласно:
         // http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.4
         preg_match_all(
@@ -551,7 +556,6 @@ class cms_Domains extends core_Embedder
                 }
             }
         }
-    
     }
     
     
@@ -643,7 +647,7 @@ class cms_Domains extends core_Embedder
         }
         
         $fiContent = null;
-        
+ 
         // favicon.ico
         if($rec->favicon) {
             $iconContent = $fiContent = fileman_Files::getContent($rec->favicon);
@@ -653,7 +657,11 @@ class cms_Domains extends core_Embedder
             $iconContent = getFileContent('img/favicon.png');
             $fiContent = getFileContent('img/favicon.ico');
         }
-        
+
+        if(core_Webroot::isExists('android-chrome-512x512.png', $id)) {
+            $iconContent = core_Webroot::getContents('android-chrome-512x512.png', $id);
+        }
+
         if($iconContent) {
             core_Webroot::register($iconContent, '', 'favicon.png', $id);
         }
@@ -749,7 +757,7 @@ class cms_Domains extends core_Embedder
      */
     public static function getDomainOptions($uniqDomains = false)
     {
-        $options = array();
+        $options = $domains = array();
         $query = self::getQuery();
         while ($rec = $query->fetch()) {
             if($uniqDomains) {

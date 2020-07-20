@@ -80,6 +80,13 @@ class findeals_transaction_AdvanceReport extends acc_DocumentTransactionSource
             }
         }
         
+        if (Mode::get('saveTransaction')) {
+            $productsArr = arr::extractValuesFromArray($details, 'productId');
+            if($redirectError = deals_Helper::getContoRedirectError($productsArr, 'canBuy', 'generic,canStore', 'трябва да са купуваеми и да не са складируеми или генерични')){
+                acc_journal_RejectRedirect::expect(false, $redirectError);
+            }
+        }
+        
         // Отчитаме ддс-то
         if ($this->class->_total) {
             $vat = $this->class->_total->vat;

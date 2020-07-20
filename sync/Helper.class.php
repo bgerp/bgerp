@@ -104,6 +104,10 @@ class sync_Helper extends core_Manager
      */
     public static function outputRes($resArr, $usersFirst = true)
     {
+        if (Request::get('_bp') && haveRole('admin')) {
+            bp($resArr);
+        }
+        
         $resArr = array_reverse($resArr, true);
         
         if ($usersFirst) {
@@ -133,13 +137,17 @@ class sync_Helper extends core_Manager
      */
     public static function getDataFromUrl($expAdd)
     {
-        ini_set('default_socket_timeout', 600);
+        ini_set('default_socket_timeout', 1000);
         
         $url = sync_Setup::get('EXPORT_URL');
         expect($url);
         $url = rtrim($url, '/') . '/' . $expAdd . '/export';
         $res = file_get_contents($url);
         $resArr = unserialize(gzuncompress($res), array('allowed_classes' => array('stdClass')));
+        
+        if (Request::get('_bp') && haveRole('admin')) {
+            bp($resArr);
+        }
         
         return $resArr;
     }

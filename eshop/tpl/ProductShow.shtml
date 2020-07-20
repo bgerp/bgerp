@@ -9,7 +9,7 @@
 		[#image4#]
 		[#image5#]
 	</div>
-	<div class="vtop" style='padding-left:2%;float:left;width:74%'>
+	<div class="vtop" style='padding-left:2%;float:right;width:74%'>
 		<div class='eshop-product-labels'>
 			<!--ET_BEGIN code--><span><b>|Код|*: [#code#]</b></span><!--ET_END code-->
             <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--> [#coInquiry#]
@@ -19,7 +19,7 @@
 		<!--ET_BEGIN STATE_EXTERNAL-->
 		[#STATE_EXTERNAL#]
 		<!--ET_END STATE_EXTERNAL-->
-
+		
 		<div style="padding: 10px 0;">
 		[#info#]
 		</div>
@@ -29,8 +29,10 @@
 		</div>
 		<!--ET_END PRODUCT_OPT-->
 		<div style="padding: 10px 0;">
+		[#AFTER_PRODUCTS#]
 		[#longInfo#]
         [#nearProducts#]
+        [#nearProductImages#]
 		</div>
 	</div>
 	<div class="clearfix21"></div>

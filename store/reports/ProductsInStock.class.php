@@ -61,7 +61,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         
-        $fieldset->FLD('date', 'date', 'caption=Към дата,after=title,single=none,mandatory');
+        $fieldset->FLD('date', 'date', 'caption=Към дата,after=title,single=none');
         $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=date,single=none');
         
         $fieldset->FLD('selfPrices', 'enum(balance=По баланс, manager=Мениджърска)', 'notNull,caption=Филтри->Вид цени,after=storeId,single=none');
@@ -115,12 +115,15 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+        
+        $date = (is_null($rec->date)) ? dt::today() : $rec->date;
+        
         $recs = array();
         
         $storeItemId = $rec->storeId ? acc_Items::fetchItem('store_Stores', $rec->storeId)->id : null;
         $productItemId = $rec->products ? acc_Items::fetchItem('cat_Products', $rec->products)->id : null;
         
-        $Balance = new acc_ActiveShortBalance(array('from' => $rec->date, 'to' => $rec->date, 'accs' => '321','item1' => $storeItemId, 'item2' => $productItemId, 'cacheBalance' => false, 'keepUnique' => true));
+        $Balance = new acc_ActiveShortBalance(array('from' => $date, 'to' => $date, 'accs' => '321','item1' => $storeItemId, 'item2' => $productItemId, 'cacheBalance' => false, 'keepUnique' => true));
         $bRecs = $Balance->getBalance('321');
         
         foreach ($bRecs as $item) {
@@ -218,7 +221,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
           
             //Себестойност на артикула
             if ($rec->selfPrice == 'manager'){
-                $val->selfPrice = cat_Products::getPrimeCost($key, null, $val->blQuantity, $rec->date);
+                $val->selfPrice = cat_Products::getPrimeCost($key, null, $val->blQuantity, $date);
             }else{
                 
                 $val->selfPrice =$val->blQuantity ? $val->blAmount / $val->blQuantity : null;
@@ -245,15 +248,14 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         
-        $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered');
+        $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
         
         $fld->FLD('quantyti', 'double(smartRound,decimals=2)', 'caption=Количество');
         $fld->FLD('selfPrice', 'double(smartRound,decimals=2)', 'caption=Себестойност');
         $fld->FLD('amount', 'double(smartRound,decimals=2)', 'caption=Стойност');
         
-       
         return $fld;
     }
     
@@ -274,13 +276,11 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $Double->params['decimals'] = 2;
         
         $row = new stdClass();
-        
-        
         if (isset($dRec->code)) {
             $row->code = $dRec->code;
         }
         if (isset($dRec->productId)) {
-            $row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name');
+            $row->productId = cat_Products::getLinkToSingle($dRec->productId, 'name');
         }
         
         $row->measure = cat_UoM::fetchField(cat_Products::fetch($dRec->productId)->measureId, 'shortName');
@@ -288,15 +288,16 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         
         if (isset($dRec->blQuantity)) {
             $row->quantyti = $Double->toVerbal($dRec->blQuantity);
+            $row->quantyti = ht::styleNumber($row->quantyti, $dRec->blQuantity);
         }
         
         if (isset($dRec->selfPrice)) {
             $row->selfPrice = $Double->toVerbal($dRec->selfPrice);
+            $row->selfPrice = ht::styleNumber($row->selfPrice, $dRec->selfPrice);
         }
         
         $row->amount = $Double->toVerbal($dRec->selfPrice * $dRec->blQuantity);
-        
-        
+        $row->amount = ht::styleNumber($row->amount, $dRec->selfPrice * $dRec->blQuantity);
         
         return $row;
     }
@@ -338,9 +339,11 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN products-->|Артикул|*: [#products#]<!--ET_END products--></div></small>
                                 <small><div><!--ET_BEGIN availability-->|Наличност|*: [#availability#]<!--ET_END availability--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
-        if (isset($data->rec->date)) {
-            $fieldTpl->append('<b>' .$Date->toVerbal($data->rec->date) . '</b>', 'date');
-        }
+        
+        $date = (is_null($data->rec->date)) ? dt::today() : $data->rec->date;
+        
+        $fieldTpl->append('<b>' .$Date->toVerbal($date) . '</b>', 'date');
+       
         
         if (isset($data->rec->group)) {
             foreach (type_Keylist::toArray($data->rec->group) as $group) {

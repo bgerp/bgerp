@@ -113,6 +113,7 @@ class eshop_Setup extends core_ProtoSetup
         'eshop_ProductDetails',
         'eshop_Carts',
         'eshop_CartDetails',
+        'migrate::addOnlineClientsGroup',
     );
     
     
@@ -157,10 +158,10 @@ class eshop_Setup extends core_ProtoSetup
      */
     public $cronSettings = array(
         array(
-            'systemId' => 'Delete Carts',
-            'description' => 'Изтриване на старите колички',
+            'systemId' => 'Check Draft Carts',
+            'description' => 'Обхождане на черновите колички',
             'controller' => 'eshop_Carts',
-            'action' => 'DeleteDraftCarts',
+            'action' => 'CheckDraftCarts',
             'period' => 60,
             'offset' => 30,
             'timeLimit' => 100
@@ -214,5 +215,40 @@ class eshop_Setup extends core_ProtoSetup
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Добавя клиентите с онлайн поръчки в съответната група
+     */
+    function addOnlineClientsGroup()
+    {
+        $cartQuery = eshop_Carts::getQuery();
+        $cartQuery->where("#saleId IS NOT NULL");
+        $cartQuery->show('saleId');
+        $onlineSales = arr::extractValuesFromArray($cartQuery->fetchAll(), 'saleId');
+        
+        if(!countR($onlineSales)) return;
+        
+        $saleQuery = sales_Sales::getQuery();
+        $saleQuery->where("#state = 'pending' || #state = 'active' || #state = 'closed'");
+        $saleQuery->in('id', $onlineSales);
+        $saleQuery->show('contragentClassId,contragentId');
+        
+        $contragents = array();
+        while ($saleRec = $saleQuery->fetch()) {
+            $contragents["{$saleRec->contragentClassId}|{$saleRec->contragentId}"] = (object)array("contragentClassId" => $saleRec->contragentClassId, "contragentId" => $saleRec->contragentId);
+        }
+        
+        $groupRec = (object)array('name' => 'Онлайн клиенти', 'sysId' => 'onlineClients', 'parentId' => crm_Groups::getIdFromSysId('customers'));
+        $groupId = crm_Groups::forceGroup($groupRec);
+        
+        foreach ($contragents as $obj) {
+            try{
+                cls::get($obj->contragentClassId)->forceGroup($obj->contragentId, $groupId, false);
+            } catch(core_exception_Expect $e){
+                
+            }
+        }
     }
 }

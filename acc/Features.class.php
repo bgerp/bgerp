@@ -414,7 +414,11 @@ class acc_Features extends core_Manager
         $query->groupBy('itemId');
         $query->where("#state != 'closed'");
         while ($rec = $query->fetch()) {
-            $items[$rec->itemId] = $rec->itemId;
+            if(!empty($rec->itemId)){
+                $items[$rec->itemId] = $rec->itemId;
+            } else {
+                self::delete($rec->id);
+            }
         }
         
         // Ако има пера
@@ -422,7 +426,11 @@ class acc_Features extends core_Manager
             foreach ($items as $itemId) {
                 
                 // За всяко перо синхронизираме свойствата му
-                self::syncItem($itemId);
+                try{
+                    self::syncItem($itemId);
+                } catch(core_exception_Expect $e){
+                    reportException($e);
+                }
             }
         }
         

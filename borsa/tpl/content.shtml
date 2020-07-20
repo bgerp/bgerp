@@ -1,0 +1,11 @@
+<div class='cms-row'>
+    <div class='auctionContent'>
+        [#TOP_CONTENT#]
+        [#PAGE_CONTENT#]
+        <!--ET_BEGIN SOCIAL-->
+        [#SOCIAL#]
+        [#social_Sharings::getButtons#]
+        <!--ET_END SOCIAL-->
+        [#BOTTOM_CONTENT#]
+    </div>
+</div>

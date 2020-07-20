@@ -302,6 +302,8 @@ class doc_DocumentPlg extends core_Plugin
         if (!$data->row) {
             $data->row = new stdClass();
         }
+        
+        $data->row->HEADER_STATE = $data->row->state;
         $data->row->iconStyle = 'background-image:url("' . sbf($mvc->getIcon($data->rec->id), '', Mode::is('text', 'xhtml') || Mode::is('printing')) . '");';
         $data->row->LetterHead = $mvc->getLetterHead($data->rec, $data->row);
         
@@ -842,14 +844,16 @@ class doc_DocumentPlg extends core_Plugin
         
         if ($rec->linkedHashKey) {
             $lRec = core_Permanent::get($rec->linkedHashKey);
-            $lRec->inVal = $rec->containerId;
-            
-            doc_Linked::save($lRec);
-            
-            try {
-                $outDoc = doc_Containers::getDocument($lRec->outVal);
-                $outDoc->instance->logRead('Създаден документ', $outDoc->that);
-            } catch (core_exception_Expect $e) {
+            if ($lRec && is_object($lRec)) {
+                $lRec->inVal = $rec->containerId;
+                
+                doc_Linked::save($lRec);
+                
+                try {
+                    $outDoc = doc_Containers::getDocument($lRec->outVal);
+                    $outDoc->instance->logRead('Създаден документ', $outDoc->that);
+                } catch (core_exception_Expect $e) {
+                }
             }
         }
         
@@ -1503,6 +1507,8 @@ class doc_DocumentPlg extends core_Plugin
             
             $mvc->requireRightFor('movelast', $rec);
             
+            bgerp_Notifications::clear(array('doc_Containers', 'list', 'threadId' => $rec->threadId), '*');
+            
             $oldThreadId = $rec->threadId;
             
             $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy);
@@ -1585,7 +1591,13 @@ class doc_DocumentPlg extends core_Plugin
         doc_Threads::setModification($rec->threadId);
         
         doc_Files::recalcFiles($rec->containerId);
-        bgerp_Notifications::hideNotificationsForSingle($mvc->className, $rec->id);
+        
+        if ($rec->threadId) {
+            $fCid = doc_Threads::getFirstContainerId($rec->threadId);
+            if ($fCid == $rec->containerId) {
+                bgerp_Notifications::hideNotificationsForSingle($mvc->className, $rec->id);
+            }
+        }
         
         // Ако е оттеглен контиран документ, се бият нотификации
         if($rec->brState == 'active' && cls::haveInterface('acc_TransactionSourceIntf', $mvc)){
@@ -4542,7 +4554,10 @@ class doc_DocumentPlg extends core_Plugin
         // Ако документа е оттеглен се подсигуряваме че ще се покаже от кого е оттеглен и кога
         if ($data->rec->state == 'rejected') {
             $nTpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
-            $data->row->state .= $nTpl->placeArray(array('user' => crm_Profiles::createLink($data->rec->modifiedBy), 'date' => dt::mysql2Verbal($data->rec->modifiedOn)));
+            $data->row->HEADER_STATE .= $nTpl->placeArray(array('user' => crm_Profiles::createLink($data->rec->modifiedBy), 'date' => dt::mysql2Verbal($data->rec->modifiedOn)));
+        } elseif($data->rec->state == 'active' && isset($data->rec->activatedBy)){
+            $nTpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
+            $data->row->HEADER_STATE .= $nTpl->placeArray(array('user' => crm_Profiles::createLink($data->rec->activatedBy), 'date' => dt::mysql2Verbal($data->rec->activatedOn)));
         }
         
         // При генерирането за външно показване, махаме състоянието, защото е вътрешна информация
@@ -4597,6 +4612,7 @@ class doc_DocumentPlg extends core_Plugin
         if (empty($rec->activatedOn)) {
             $rec->activatedOn = dt::now();
             $rec->activatedBy = core_Users::getCurrent();
+            
             $mvc->save_($rec, 'activatedOn,activatedBy');
         }
     }

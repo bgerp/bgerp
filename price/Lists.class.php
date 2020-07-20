@@ -160,6 +160,7 @@ class price_Lists extends core_Master
         $this->FLD('cId', 'int', 'caption=Клиент->Id,input=hidden,silent');
         $this->FLD('cClass', 'class(select=title,interface=crm_ContragentAccRegIntf)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('discountCompared', 'key(mvc=price_Lists,select=title,where=#state !\\= \\\'rejected\\\',allowEmpty)', 'caption=Показване на отстъпка в документите спрямо->Ценоразпис');
+        $this->FLD('discountComparedShowAbove', 'percent(min=0)', 'caption=Показване на отстъпка в документите->Ако е над,placeholder=1 %');
         $this->FLD('significantDigits', 'double(smartRound)', 'caption=Закръгляне->Значещи цифри');
         $this->FLD('minDecimals', 'double(smartRound)', 'caption=Закръгляне->Мин. знаци');
         $this->FLD('defaultSurcharge', 'percent(min=-1,max=1)', 'caption=Надценка/Отстъпка по подразбиране->Процент');
@@ -461,7 +462,7 @@ class price_Lists extends core_Master
      */
     protected static function on_AfterCreate($mvc, $rec)
     {
-        if (isset($rec->cId, $rec->cClass)) {
+        if (isset($rec->cId, $rec->cClass) && !Mode::is('syncing')) {
             price_ListToCustomers::setPolicyToCustomer($rec->id, $rec->cClass, $rec->cId);
         }
     }
@@ -511,10 +512,14 @@ class price_Lists extends core_Master
                 $row->significantDigits = ht::createHint($row->significantDigits, 'Стойност по подразбиране');
             }
             
-            if (empty($rec->minDecimals)) {
+            if (!isset($rec->minDecimals)) {
                 $minDecimals = price_Setup::get('MIN_DECIMALS');
                 $row->minDecimals = $mvc->getFieldType('minDecimals')->toVerbal($minDecimals);
                 $row->minDecimals = ht::createHint($row->minDecimals, 'Стойност по подразбиране');
+            }
+            
+            if(empty($rec->discountComparedShowAbove)){
+                $row->discountComparedShowAbove = ht::createHint($mvc->getFieldType('discountComparedShowAbove')->toVerbal(0.01), 'Стойност по подразбиране');
             }
         }
     }

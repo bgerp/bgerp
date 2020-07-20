@@ -27,9 +27,8 @@ class type_Url extends type_Varchar
      */
     public function init($params = array())
     {
+        setIfNot($params['params']['inputmode'], 'url');
         parent::init($params);
-        
-        $this->params['inputmode'] = 'url';
     }
     
     

@@ -47,12 +47,6 @@ abstract class store_DocumentMaster extends core_Master
     
     
     /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    public $rowToolsSingleField = 'title';
-    
-    
-    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array('template' => 'lastDocUser|lastDoc|lastDocSameCountry');

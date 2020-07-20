@@ -133,6 +133,10 @@ function showTooltip() {
                 $(element).addClass('bottom');
             }
 
+            if($(element).parent().offset().left < 200){
+                $(element).addClass('right');
+            }
+
             $(element).css('display', 'block');
         } else {
             // при кликане в бодито затвавяме отворения тултип, ако има такъв
@@ -1618,6 +1622,7 @@ function isTouchDevice() {
  * Задава минимална височина на контента във външната част
  */
 function setMinHeightExt() {
+
     var clientHeight = document.documentElement.clientHeight;
     if ($('#cmsTop').length) {
     	var padding = $('.background-holder').css('padding-top');
@@ -1644,9 +1649,18 @@ function setMinHeightExt() {
             	$('#maincontent').css('minHeight', h);
             }
         }
+    } else if( $('.narrowCenter .headerImg').length){
+        if (getWindowWidth() < 1200 ) {
+            var elHeight = parseInt($('.narrowCenter .headerImg').height());
+            $('.wide .narrowCenter').height(elHeight);
+            $('.wide .fadein').height(elHeight);
+        } else {
+            $('.wide .narrowCenter').height(220);
+            $('.wide .fadein').height(220);
+        }
     }
-    $('.toggleLink').on('click', function(){
-        $('.narrowNav').slideToggle();
+    $(window).resize(function(){
+        setMinHeightExt();
     });
 }
 function getWindowWidth() {
@@ -1780,6 +1794,9 @@ function setFormElementsWidth() {
                  $(this).attr('title', $(this).text());
              }
          });
+    	 if ($('.typeTable .batchNameTd').length) {
+             $('.typeTable').width("100%");
+         }
     }
 }
 
@@ -1792,6 +1809,15 @@ function maxSelectWidth(){
 		 var formElWidth = getCalculatedElementWidth();
 		 $('.narrow .horizontal .select2-container').css('maxWidth', formElWidth - 15);
 	 }
+}
+
+/**
+ *  Меню тип хамбургер в мобилен
+ */
+function toggleNarrowMenu() {
+    $('.toggleLink').on('click', function(e){
+        $('.narrowNav').slideToggle();
+    });
 }
 
 
@@ -5115,8 +5141,8 @@ function prepareBugReport(form, user, domain, name, ctr, act, sysDomain)
 	var browser = getUserAgent();
 	var title = sysDomain + '/' + ctr + '/' + act;
 	
-	if (url && (url.length > 250)) {
-		url = url.substring(0, 250);
+	if (url && (url.length > 495)) {
+		url = url.substring(0, 495);
 		url += '...';
 	}
 	
@@ -5168,7 +5194,7 @@ function debugLayout() {
     if ($('body').hasClass('narrow')) {
         $('.linksGroup').scrollTop($('.debugLink.current').offset().top - $('.linksGroup').height() -10);
     }
-    $('.search-fields input').on('click', function(){
+    $('.search-fields input[type=text]').on('click', function(){
         $('.other-fileds').slideDown();
 
         $('.other-fileds').find('input.combo').each(function(){
@@ -5574,11 +5600,40 @@ JSON.parse = JSON.parse || function (str) {
 };
 
 
-function unregisterServiceWorker() {
-    if($('#main-container').length && !$('link[rel="manifest"]').length && !isIE() && typeof navigator.serviceWorker !== 'undefined' && navigator.serviceWorker.getRegistrations) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            eval("for(var registration of registrations) {registration.unregister();}");
-        });
+/**
+ * Функция за синхронизиране между регистрирания и желания ServiceWorker
+ */
+function syncServiceWorker() {
+
+    if(!isIE() && ('serviceWorker' in navigator)) {
+
+        if(typeof navigator.serviceWorker !== 'undefined') {
+            navigator.serviceWorker.getRegistrations().then(function(r) {
+                r.forEach(function(sw) {
+                    if(typeof serviceWorkerURL !== 'undefined') {
+                        if (sw.active.scriptURL.indexOf(serviceWorkerURL) != -1) {
+                            console.log('ServiceWorker registration skiped: ' + serviceWorkerURL);
+                            serviceWorkerURL = false;
+                        } else {
+                            sw.unregister();
+                            console.log('ServiceWorker registration unregistered: ' + sw.active.scriptURL);
+                        }
+                    }
+                });
+
+                // Рефистрираме новия ServiceWorker
+                if((typeof serviceWorkerURL !== 'undefined') && (serviceWorkerURL !== false)) {
+          
+                    navigator.serviceWorker.register(serviceWorkerURL, {scope: '/'}).then(function(registration) {
+                    // Registration was successful
+                        console.log('ServiceWorker registration successful: ' + serviceWorkerURL);
+                    }, function(err) {
+                        // registration failed :(
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+                 }
+            })
+        }
     }
 }
 
@@ -5587,3 +5642,4 @@ runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);
 runOnLoad(reloadOnPageShow);
 runOnLoad(focusOnHeader);
+runOnLoad(syncServiceWorker);

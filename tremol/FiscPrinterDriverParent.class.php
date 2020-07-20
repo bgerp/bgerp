@@ -46,6 +46,12 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     
     
     /**
+     * Кой може да създава отчет
+     */
+    public $canSetInvoiceRange = 'admin, peripheral';
+    
+    
+    /**
      * Кой може да отпечатва дубликат
      */
     public $canPrintDuplicate = 'admin, peripheral, cash, posMaster';
@@ -114,6 +120,29 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      * @param null|core_Et $jsTpl
      */
     abstract protected function getResForCashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $retUrl = array(), $printAvailability = false, $text = '', $actTypeVerb = '', &$jsTpl = null);
+    
+    
+    /**
+     * Връща диапазона на фактурите
+     *
+     * @param stdClass $pRec
+     * @param null|core_Et $jsTpl
+     * 
+     * @return array|null
+     */
+    abstract protected function getInvoiceRange($pRec, &$jsTpl = null);
+    
+    
+    /**
+     * Задава диапазон на фактурите
+     *
+     * @param stdClass $pRec
+     * @param int $from
+     * @param int $to
+     * @param null|core_Et $jsTpl
+     * @param array $retUrl
+     */
+    abstract protected function setInvoiceRange($pRec, $from, $to, &$jsTpl = null, $retUrl = array());
     
     
     /**
@@ -209,7 +238,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     
     /**
      * Помощна фунцкия за подготвяне на текста за печат
-     *
+     * 
      * @param array|string $tArr
      * @param integer       $maxLen
      * 
@@ -232,6 +261,35 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         }
         
         return $resStrArr;
+    }
+    
+    
+    /**
+     * След рендиране на единичния изглед
+     *
+     * @param tremol_FiscPrinterDriverWeb $Driver
+     * @param peripheral_Devices     $Embedder
+     * @param core_Form         $form
+     * @param stdClass          $data
+     */
+    protected static function on_AfterInputEditForm($Driver, $Embedder, &$form)
+    {
+        if ($form->isSubmitted() && ($form->rec->header == 'yes')) {
+            $haveHeaderText = false;
+            for ($i = 1; $i <=7; $i++) {
+                $hName = 'headerText' . $i;
+                if (trim($form->rec->{$hName})) {
+                    
+                    $haveHeaderText = true;
+                    
+                    break;
+                }
+            }
+            
+            if (!$haveHeaderText) {
+                $form->setError('header', 'Трябва да има поне един добавен хедър');
+            }
+        }
     }
     
     
@@ -362,12 +420,18 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      */
     public static function on_AfterPrepareSingleToolbar($Driver, $mvc, &$res, $data)
     {
+        $rand = str::getRand();
+        
         if (haveRole($Driver->canMakeReport)) {
-            $data->toolbar->addBtn('Отчети', array($Driver, 'Reports', 'pId' => $data->rec->id, 'ret_url' => true, 'rand' => str::getRand()), 'ef_icon = img/16/report.png, title=Отпечатване на отчети, row=2');
+            $data->toolbar->addBtn('Отчети', array($Driver, 'Reports', 'pId' => $data->rec->id, 'ret_url' => true, 'rand' => $rand), 'ef_icon = img/16/report.png, title=Отпечатване на отчети, row=2');
         }
         
         if (haveRole($Driver->canCashReceived) || haveRole($Driver->canCashPaidOut)) {
-            $data->toolbar->addBtn('Средства', array($Driver, 'CashReceivedOrPaidOut', 'pId' => $data->rec->id, 'ret_url' => true, 'rand' => str::getRand()), 'ef_icon = img/16/money.png, title=Вкарване или изкарване на пари от касата, row=1');
+            $data->toolbar->addBtn('Средства', array($Driver, 'CashReceivedOrPaidOut', 'pId' => $data->rec->id, 'ret_url' => true, 'rand' => $rand), 'ef_icon = img/16/money.png, title=Вкарване или изкарване на пари от касата, row=1');
+        }
+        
+        if (haveRole($Driver->canSetInvoiceRange)) {
+            $data->toolbar->addBtn('Диапазон', array($Driver, 'setInvoiceRange', 'pId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/invoice.png, title=Задаване на диапазон на фактурите, row=2');
         }
     }
     
@@ -656,6 +720,75 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         $form->title = 'Вкарване или изкарване на пари от касата|* ' . peripheral_Devices::getLinkToSingle($pRec->id, 'name');
         
         $form->toolbar->addBtn($cancelBtn, $retUrl, 'ef_icon = img/16/close-red.png');
+        
+        $html = $form->renderHtml();
+        
+        if ($jsTpl) {
+            $html->appendOnce($jsTpl, 'SCRIPTS');
+        }
+        
+        $tpl = cls::get('peripheral_Devices')->renderWrapping($html);
+        
+        core_Form::preventDoubleSubmission($tpl, $form);
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Екшън за задаване на диапазон на фактурите
+     *
+     * @return core_ET
+     */
+    public function act_SetInvoiceRange()
+    {
+        expect(haveRole($this->canSetInvoiceRange));
+        
+        $pId = Request::get('pId', 'int');
+        
+        $pRec = peripheral_Devices::fetch($pId);
+        
+        expect($pRec);
+        
+        $form = cls::get('core_Form');
+        
+        $form->FLD('start', 'int(min=0)', 'caption=От, mandatory, class=startNum');
+        $form->FLD('end', 'int(min=0)', 'caption=До, mandatory, class=endNum');
+        
+        $form->input();
+        
+        $rec = $form->rec;
+        
+        $jsTpl = null;
+        
+        $retUrl = getRetUrl();
+        if (empty($retUrl)) {
+            $retUrl = array('peripheral_Devices', 'single', $pId);
+        }
+        
+        if ($form->isSubmitted()) {
+            
+            $retUrl = getRetUrl();
+            if (empty($retUrl)) {
+                $retUrl = array('peripheral_Devices', 'single', $pId);
+            } else {
+                unset($retUrl['update']);
+            }
+            
+            $this->setInvoiceRange($pRec, $form->rec->start, $form->rec->end, $jsTpl, $retUrl);
+        } else {
+            $iRangeArr = $this->getInvoiceRange($pRec, $jsTpl);
+            
+            if (!empty($iRangeArr)) {
+                $form->setField('start', array('placeholder' => $iRangeArr['start']));
+                $form->setField('end', array('placeholder' => $iRangeArr['end']));
+            }
+        }
+        
+        $form->toolbar->addSbBtn('Запис', 'save', "ef_icon = img/16/disk.png");
+        $form->toolbar->addBtn("Отказ", $retUrl, 'ef_icon = img/16/close-red.png');
+        
+        $form->title = 'Задаване на диапазон на фактирите за |* ' . peripheral_Devices::getLinkToSingle($pRec->id, 'name');
         
         $html = $form->renderHtml();
         

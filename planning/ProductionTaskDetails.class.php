@@ -313,7 +313,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
             
             if(isset($rec->productId)){
-                $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+                $productRec = cat_Products::fetch($rec->productId, 'canStore,generic');
+                
                 if(!empty($rec->serial)){
                     $rec->serial = plg_Search::normalizeText($rec->serial);
                     $rec->serial = str::removeWhiteSpace($rec->serial);
@@ -337,7 +338,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
                 
                 // Ако артикулът е действие към оборудването
-                if ($canStore != 'yes' && $rec->type == 'input') {
+                if ($productRec->canStore != 'yes' && $rec->type == 'input') {
                     $inTp = planning_ProductionTaskProducts::fetchField("#taskId = {$rec->taskId} AND #type = 'input' AND #productId = {$rec->productId}");
                     $inInputTask = planning_Tasks::fetchField("#originId = {$masterRec->originId} AND #inputInTask = {$rec->taskId} AND #state != 'draft' AND #state != 'rejected' AND #state != 'pending' AND #productId = {$rec->productId}");
                     
@@ -348,6 +349,11 @@ class planning_ProductionTaskDetails extends doc_Detail
                         }
                     }
                 }
+                
+                if($productRec->generic == 'yes') {
+                    $form->setError('productId', 'Избраният артикул е генеричен|*! |Трябва да бъде заместен|*!');
+                }
+                
             } elseif(empty($rec->serial)){
                 $form->setError('productId,serial', 'Трябва да е избран артикул');
             }
@@ -478,8 +484,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         } else {
             $packagingId = $pRec->measureId;
         }
-        $packagingName = tr(cat_UoM::getShortName($packagingId));
-        $labelPackagingName = tr(cat_UoM::getShortName($labelPackagingId));
+        $packagingName = cat_UoM::getShortName($packagingId);
+        $labelPackagingName = cat_UoM::getShortName($labelPackagingId);
         
         if (cat_UoM::fetchField($packagingId, 'type') != 'uom') {
             $row->measureId = str::getPlural($rec->quantity, $packagingName, true);
@@ -788,7 +794,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $data->listFilter->showFields .= ",employees";
         }
         
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->toolbar->addSbBtn('', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
         
         // Филтър по избраните стойности

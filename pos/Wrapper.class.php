@@ -2,14 +2,14 @@
 
 
 /**
- * Покупки - опаковка
+ * Точки на продажба - опаковка
  *
  *
  * @category  bgerp
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -25,8 +25,7 @@ class pos_Wrapper extends plg_ProtoWrapper
         $this->TAB('pos_Receipts', 'Бележки', 'ceo,pos');
         $this->TAB('pos_Reports', 'Отчети', 'ceo,pos');
         $this->TAB('pos_Stocks', 'Наличности', 'ceo,pos');
-        $this->TAB('pos_Favourites', 'Настройки->Бързи бутони', 'ceo,pos');
-        $this->TAB('pos_FavouritesCategories', 'Настройки->Категории', 'ceo,pos');
+        $this->TAB('pos_SellableProductsCache', 'Дебъг->Keш', 'debug');
         
         $this->title = 'Точки на продажба';
     }

@@ -78,7 +78,9 @@ class type_Keylist extends core_Type
         $ids = str_replace($div, ',', $value);
         
         if ($ids) {
-            if (($res = $cache[$mvc->className][$ids]) === null) {
+            $idsKey = md5($ids . '|' . json_encode($this->params) . '|' . Mode::get('text-export') . '|' . Mode::get('text'));
+            
+            if (($res = $cache[$mvc->className][$idsKey]) === null) {
                 foreach ($vals as $v) {
                     if ($v) {
                         $attr = array();
@@ -99,8 +101,9 @@ class type_Keylist extends core_Type
                             if($this->params['makeLinks'] === 'hyperlink' && ($mvc instanceof core_Master)){
                                 $name = $mvc->getTitleById($v);
                             }
-
-                            $name = ht::createElement('span', $attr, $name, true);
+                            if (!Mode::is('text-export', 'csv')) {
+                                $name = ht::createElement('span', $attr, $name, true);
+                            }
                         }
                             
                         if (Mode::is('text-export', 'csv')) {
@@ -112,7 +115,7 @@ class type_Keylist extends core_Type
                     }
                 }
                 
-                $cache[$mvc->className][$ids] = $res;
+                $cache[$mvc->className][$idsKey] = $res;
             }
         }
         

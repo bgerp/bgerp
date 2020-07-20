@@ -127,7 +127,7 @@ class acc_ReportDetails extends core_Manager
         }
         
         $accounts = arr::make($data->masterMvc->balanceRefAccounts, true);
-        $data->canSeePrices = haveRole('ceo,accJournal');
+        $data->canSeePrices = haveRole('ceo,sales,accJournal');
         
         // Полета за таблицата
         $data->listFields = arr::make('tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,blQuantity=К-во,blPrice=Цена,blAmount=Сума');
@@ -161,10 +161,8 @@ class acc_ReportDetails extends core_Manager
         
         // Взимане на данните от текущия баланс в който участват посочените сметки
         // и ид-то на перото е на произволна позиция
-        $dRecs = acc_Balances::fetchCurrent($accounts, $data->itemRec->id);
-        
         $res = array();
-        $data->recs = $dRecs;
+        $data->recs = acc_Balances::fetchCurrent($accounts, $data->itemRec->id);
         
         // Извикване на евент в мастъра за след извличане на записите от БД
         $data->masterMvc->invoke('AfterPrepareAccReportRecs', array($data));
@@ -174,9 +172,8 @@ class acc_ReportDetails extends core_Manager
         if(is_array($accounts)){
             foreach ($accounts as $accSysId){
                 $accountId = acc_Accounts::fetchField("#systemId = '{$accSysId}'", 'id');
-                
-                // Има ли записи в текущия период
                 $recsWithAccount = array_filter($data->recs, function ($a) use ($accountId) {return $a->accountId == $accountId;});
+                
                 if(countR($recsWithAccount)){
                     foreach ($recsWithAccount as $dRec){
                         
@@ -184,6 +181,10 @@ class acc_ReportDetails extends core_Manager
                         if($row = $this->getVerbalBalanceRec($dRec, $groupBy, $data)){
                             $res[$accountId]['rows'][] = $row;
                         }
+                    }
+                    
+                    if(is_array($res[$accountId]['rows'])){
+                        arr::sortObjects($res[$accountId]['rows'], 'sortField', 'asc', 'natural');
                     }
                     
                     $res[$accountId]['total'] = arr::sumValuesArray($recsWithAccount, 'blAmount');
@@ -258,6 +259,7 @@ class acc_ReportDetails extends core_Manager
        // Обхождане на останалите пера
        
        $accGroups = acc_Accounts::getAccountInfo($dRec->accountId)->groups;
+       $row['sortField'] = '';
        
        foreach (range(1, 3) as $pos) {
            $entry = $dRec->{"ent{$pos}Id"};
@@ -266,8 +268,11 @@ class acc_ReportDetails extends core_Manager
            if (isset($entry, $accGroups[$pos])) {
                
                // Ако перото не е групиращото, ще се показва в справката
-               $row["ent{$pos}Id"] = acc_Items::getVerbal(acc_Items::fetch($entry), 'titleLink');
+               $itemRec = acc_Items::fetch($entry);
+              
+               $row["ent{$pos}Id"] = acc_Items::getVerbal($itemRec, 'titleLink');
                $row["ent{$pos}Id"] = "<span class='feather-title'>{$row["ent{$pos}Id"]}</span>";
+               $row['sortField'] .= $itemRec->num . " ";
            }
        }
        

@@ -9,7 +9,7 @@
  * @package   eshop
  *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -43,7 +43,7 @@ class eshop_Groups extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Име,menuId=Меню,productCnt=Продукти,state=Видимост';
+    public $listFields = 'name=Име,menuId=Меню->Основно,sharedMenus=Меню->Споделяне||Shared,productCnt=Продукти,state=Видимост';
     
     
     /**
@@ -123,6 +123,7 @@ class eshop_Groups extends core_Master
         $this->FLD('name', 'varchar(64)', 'caption=Група->Наименование, mandatory,width=100%');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Група->Описание');
         $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Група->Параметри,optionsFunc=cat_Params::getPublic');
+        $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Група->Опаковки/Мерки');
         $this->FLD('order', 'double', 'caption=Подредба,hint=Важи само за менютата, където групата е споделена');
         $this->FLD('perPage', 'int(Min=0)', 'caption=Страниране,unit=продукта на страница');
         $this->FLD('icon', 'fileman_FileType(bucket=eshopImages)', 'caption=Картинка->Малка');
@@ -154,11 +155,10 @@ class eshop_Groups extends core_Master
             $cQuery->where("#id != {$menuId}");
         }
         
+        $menuArr = array();
         while ($cRec = $cQuery->fetch()) {
             $menuArr[$cRec->id] = cms_Content::getVerbal($cRec, 'menu') . ' (' . cms_Content::getVerbal($cRec, 'domainId') . ')';
         }
-        
-        
         $data->form->setSuggestions('sharedMenus', $menuArr);
         
         $cQuery = cms_Content::getQuery();
@@ -212,9 +212,9 @@ class eshop_Groups extends core_Master
         }
         
         if ($form->rec->menuId) {
-            $data->query->where(array("#menuId = '[#1#]'", $form->rec->menuId));
+            $data->query->where(array("#menuId = '[#1#]' OR #sharedMenus LIKE '%|[#1#]|%'", $form->rec->menuId));
+            $data->query->XPR('_isShared', 'enum(no,yes)', "(CASE #menuId WHEN {$form->rec->menuId} THEN 'no' ELSE 'yes' END)");
         }
-        
         
         $data->query->orderBy('#menuId');
     }
@@ -233,9 +233,31 @@ class eshop_Groups extends core_Master
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $row->_rowTools->addLink('Преглед', self::getUrl($rec), 'alwaysShow,ef_icon=img/16/monitor.png,title=Преглед във външната част');
             }
+            
+            if($rec->_isShared == 'yes'){
+                $row->name = ht::createHint($row->name, "Групата е споделена към менюто", 'notice', false);
+                $otherDomainId = cms_Content::fetchField($rec->menuId, 'domainId');
+                $otherDomainName = cms_Domains::getTitleById($otherDomainId);
+                $row->menuId .= " [<span style='color:green'>{$otherDomainName}</span>]";
+            }
+            
+            $productCnt = eshop_Products::count("#groupId = {$rec->id} OR #sharedInGroups LIKE '%|{$rec->id}|%'");
+            $row->productCnt = $mvc->getFieldType('productCnt')->toVerbal($productCnt);
+            $row->productCnt = ht::createLinkRef($row->productCnt, array('eshop_Products', 'list', 'groupId' => $rec->id));
         }
         
-        $row->perPage = !empty($rec->perPage) ? $row->perPage : ht::createHint(eshop_Setup::get('PRODUCTS_PER_PAGE'), 'Стойност по подразбиране');
+        foreach (array('showPacks', 'showParams') as $fld){
+            $hint = null;
+            $showPacks = eshop_Products::getSettingField(null, $rec->id, $fld, $hint);
+            if(countR($showPacks)){
+                $row->{$fld} = $mvc->getFieldType($fld)->toVerbal(keylist::fromArray($showPacks));
+                if(!empty($hint)){
+                    $row->{$fld} = ht::createHint($row->{$fld}, $hint, 'notice', false);
+                }
+            }
+        }
+        
+        $row->perPage = !empty($rec->perPage) ? $row->perPage : ht::createHint(eshop_Setup::get('PRODUCTS_PER_PAGE'), 'Стойност по подразбиране', 'notice', false);
     }
     
     
@@ -318,7 +340,8 @@ class eshop_Groups extends core_Master
         
         // Премахва зададения временно текущ език
         core_Lg::pop();
-        
+
+        $layout->push("css/no-sass.css", "CSS");
         return $layout;
     }
     
@@ -386,7 +409,8 @@ class eshop_Groups extends core_Master
         
         // Премахва зададения временно текущ език
         core_Lg::pop();
-        
+
+        $layout->push("css/no-sass.css", "CSS");
         return $layout;
     }
     
@@ -462,11 +486,20 @@ class eshop_Groups extends core_Master
      */
     protected function on_AfterPrepareListToolbar($mvc, $data)
     {
+        $currentDomainId = cms_Domains::getCurrent();
         $cQuery = cms_Content::getQuery();
-        $classId = core_Classes::getId($mvc->className);
+        $cQuery->XPR('_domainOrder', 'int', "(CASE #domainId WHEN {$currentDomainId} THEN 1 ELSE 2 END)");
+        $cQuery->orderBy("_domainOrder", 'ASC');
         
+        $classId = core_Classes::getId($mvc->className);
         while ($rec = $cQuery->fetch("#source = {$classId} AND #state = 'active'")) {
-            $data->toolbar->addBtn(type_Varchar::escape($rec->menu), array('eshop_Groups', 'ShowAll', 'cMenuId' => $rec->id, 'PU' => 1));
+            $menuName = cms_Content::getVerbal($rec, 'menu');
+            if($rec->domainId != $currentDomainId){
+                $domainName = cms_Content::getVerbal($rec, 'domainId');
+                $menuName .= " [{$domainName}]";
+            }
+            
+            $data->toolbar->addBtn($menuName, array('eshop_Groups', 'ShowAll', 'cMenuId' => $rec->id, 'PU' => 1), 'ef_icon=img/16/monitor.png,title=Преглед на артикулите в менюто');
         }
     }
     

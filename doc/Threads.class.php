@@ -1584,8 +1584,8 @@ class doc_Threads extends core_Manager
      */
     public static function getExpectationMoveTime($threadId, $moveRest = 'no')
     {
-        $timeFormMoveContainer = 0.006;
-        $timeFormMoveThread = 0.02;
+        $timeForMoveContainer = 0.2;
+        $timeForMoveThread = 0.4;
         
         $moveTime = 0;
         
@@ -1613,10 +1613,10 @@ class doc_Threads extends core_Manager
             $cQuery->show('id');
             
             if ($cCnt = $cQuery->count()) {
-                $moveTime += $timeFormMoveContainer * $cCnt;
+                $moveTime += $timeForMoveContainer * $cCnt;
             }
             
-            $moveTime += $timeFormMoveThread;
+            $moveTime += $timeForMoveThread;
         }
         
         return $moveTime;

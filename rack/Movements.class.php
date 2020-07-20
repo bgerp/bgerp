@@ -132,6 +132,7 @@ class rack_Movements extends core_Manager
         $this->FLD('note', 'varchar(64)', 'caption=Движение->Забележка,column=none');
         $this->FLD('zoneList', 'keylist(mvc=rack_Zones, select=num)', 'caption=Зони,input=none');
         $this->FLD('fromIncomingDocument', 'enum(no,yes)', 'input=hidden,silent,notNull,value=no');
+        $this->FNC('containerId', 'int', 'input=hidden,caption=Документи,silent');
         $this->FLD('documents', 'keylist(mvc=doc_Containers,select=id)', 'input=none,caption=Документи');
         
         $this->setDbIndex('storeId');
@@ -167,7 +168,7 @@ class rack_Movements extends core_Manager
             if (!empty($rec->packQuantity)) {
                 $warning = null;
                 if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning, 'uom')) {
-                    $form->setError('packQuantity', $warning);
+                    $form->setWarning('packQuantity', $warning);
                 }
             }
             
@@ -209,6 +210,10 @@ class rack_Movements extends core_Manager
                     
                     if ($rec->state == 'closed') {
                         $rec->_isCreatedClosed = true;
+                    }
+                    
+                    if(!empty($rec->containerId)){
+                        $rec->documents = keylist::addKey($rec->documents, $rec->containerId);
                     }
                 }
             }
@@ -257,7 +262,8 @@ class rack_Movements extends core_Manager
                     $documents[$zoneContainerId] = $zoneContainerId;
                 }
                 
-                $rec->documents = (countR($documents)) ? keylist::fromArray($documents) : null;
+                $documents = (countR($documents)) ? keylist::fromArray($documents) : null;
+                $rec->documents = keylist::merge($rec->documents, $documents);
             }
         }
     }

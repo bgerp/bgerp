@@ -188,13 +188,11 @@ class pos_Reports extends core_Master
     {
         $row->title = $mvc->getLink($rec->id, 0);
         $row->pointId = pos_Points::getHyperLink($rec->pointId, true);
-        
         $row->from = dt::mysql2verbal($rec->details['receipts'][0]->createdOn, 'd.m.Y H:i');
         $row->to = dt::mysql2verbal($rec->details['receipts'][count($rec->details['receipts']) - 1]->createdOn, 'd.m.Y H:i');
         
         if ($fields['-single']) {
             $pointRec = pos_Points::fetch($rec->pointId);
-            $row->storeId = store_Stores::getHyperLink($pointRec->storeId, true);
             $row->caseId = cash_Cases::getHyperLink($pointRec->caseId, true);
             $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
             setIfNot($row->dealerId, $row->createdBy);
@@ -292,8 +290,9 @@ class pos_Reports extends core_Master
         arr::sortObjects($detail->receiptDetails, 'action');
         
         // Табличната информация и пейджъра на плащанията
-        $detail->listFields = "value=Действие,pack=Мярка, quantity=Количество, amount=Сума ({$data->row->baseCurrency})";
+        $detail->listFields = "value=Действие, pack=Мярка, quantity=Количество, amount=Сума ({$data->row->baseCurrency}), storeId=Склад,contragentId=Клиент";
         $detail->rows = $detail->receiptDetails;
+       
         $mvc->prepareDetail($detail);
         $data->rec->details = $detail;
         
@@ -413,12 +412,27 @@ class pos_Reports extends core_Master
             
             // Ако детайла е продажба
             $row->ROW_ATTR['class'] = 'report-sale';
+            if(isset($obj->storeId)){
+                $row->storeId = store_Stores::getHyperlink($obj->storeId, true);
+            }
             
             $row->pack = cat_UoM::getShortName($obj->pack);
             deals_Helper::getPackInfo($row->pack, $obj->value, $obj->pack, $obj->quantityInPack);
             
             $row->value = cat_Products::getHyperlink($obj->value, true);
             $obj->amount *= 1 + $obj->param;
+            
+            if(core_Packs::isInstalled('batch')){
+                $batchDef = batch_Defs::getBatchDef($obj->value);
+                if(is_object($batchDef)){
+                    if(!empty($obj->batch)){
+                        $batch = batch_Movements::getLinkArr($obj->value, $obj->batch);
+                        $row->value .= "<br><span class='richtext'>" . $batch[$obj->batch] . "</span>";
+                    } else {
+                        $row->value .= "<br><span class='richtext quiet'>" . tr("Без партида") . "</span>";
+                    }
+                }
+            }
         } else {
             
             // Ако детайла е плащане
@@ -435,6 +449,7 @@ class pos_Reports extends core_Master
         
         $row->value = "<span style='white-space:nowrap;'>{$row->value}</span>";
         $row->amount = "<span style='float:right'>" . $double->toVerbal($obj->amount) . '</span>';
+        $row->contragentId = cls::get($obj->contragentClassId)->getHyperlink($obj->contragentId, true);
         
         return $row;
     }
@@ -511,13 +526,18 @@ class pos_Reports extends core_Master
             $data = pos_ReceiptDetails::fetchReportData($rec->id);
             
             foreach ($data as $obj) {
-                $index = implode('|', array($obj->action, $obj->pack, $obj->contragentClassId, $obj->contragentId, $obj->value));
+                $indexArr = array($obj->action, $obj->pack, $obj->contragentClassId, $obj->contragentId, $obj->value);
+                if(core_Packs::isInstalled('batch')){
+                    $indexArr[] = str_replace('|', '>', $obj->batch);
+                }
+                
+                $index = implode('|', $indexArr);
                 if (!array_key_exists($index, $results)) {
                     $results[$index] = $obj;
                 } else {
                     $results[$index]->quantity += $obj->quantity;
                     $results[$index]->amount += $obj->amount;
-                }
+                }   
             }
         }
     }
@@ -532,6 +552,7 @@ class pos_Reports extends core_Master
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
         if ($rec->state == 'active' && $rec->brState != 'closed') {
+            
             // Ако няма записани детайли извличаме актуалните
             $mvc->extractData($rec);
         }
@@ -713,13 +734,13 @@ class pos_Reports extends core_Master
     public static function canMakeReport($pointId)
     {
         // Ако няма нито една активна бележка за посочената каса и касиер, не може да се създаде отчет
-        if (!pos_Receipts::fetch("#pointId = {$pointId} AND #state = 'waiting'")) {
+        if (!pos_Receipts::fetchField("#pointId = {$pointId} AND #state = 'waiting'")) {
             
             return false;
         }
         
         // Ако има неприключена започната бележка в тачката от касиера, също не може да се направи отчет
-        if (pos_Receipts::fetch("#pointId = {$pointId} AND #total != 0 AND #state = 'draft'")) {
+        if (pos_Receipts::fetchField("#pointId = {$pointId} AND #total != 0 AND #state = 'draft'")) {
             
             return false;
         }
@@ -776,6 +797,7 @@ class pos_Reports extends core_Master
             $rec->state = 'closed';
             $rec->closedOn = dt::addSecs(-1 * $conf->POS_CLOSE_REPORTS_OLDER_THAN, $now);
             $this->save($rec, 'state,brState,closedOn');
+            $this->logWrite('Автоматично затваряне на отчет', $rec->id);
         }
     }
     
@@ -823,12 +845,17 @@ class pos_Reports extends core_Master
                 $r->dealerId = $dealerId;
                 
                 // Изчисляване на себестойността на артикула
-                $productRec = cat_Products::fetchField($dRec->value, 'isPublic,code');
+                $productRec = cat_Products::fetch($dRec->value, 'isPublic,code,canStore');
                 if ($productRec->code == 'surcharge') {
                     $r->primeCost = 0;
                 } else {
                     $r->primeCost = cat_Products::getPrimeCost($dRec->value, $dRec->pack, $r->quantity, $valior, price_ListRules::PRICE_LIST_COST);
                 }
+                
+                if($productRec->canStore == 'yes'){
+                    $r->storeId = $dRec->storeId;
+                }
+                
                 
                 $res[] = $r;
             }

@@ -48,7 +48,7 @@ class speedy_Offices extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'speedy_Wrapper';
+    public $loadList = 'drdata_Wrapper';
     
     
     /**
@@ -76,7 +76,10 @@ class speedy_Offices extends core_Manager
      */
     protected static function on_CalcExtName($mvc, $rec)
     {
-        $rec->extName = $rec->name . "({$rec->address})";
+        $rec->extName = $rec->name;
+        if(!empty($rec->address)){
+            $rec->extName .= " ({$rec->address})";
+        }
     }
     
     

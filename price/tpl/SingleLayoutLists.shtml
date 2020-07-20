@@ -44,6 +44,13 @@
         </tr>
         <!--ET_END discountCompared-->
         
+        <!--ET_BEGIN discountComparedShowAbove-->
+        <tr>
+            <td class="title-style">|Показване на отстъпки над|*</td>
+            <td>[#discountComparedShowAbove#]</td>
+        </tr>
+        <!--ET_END discountComparedShowAbove-->
+        
         <!--ET_BEGIN discountClass-->
         <tr>
             <td class="title-style">|Клас за автоматични отстъпки|*</td>

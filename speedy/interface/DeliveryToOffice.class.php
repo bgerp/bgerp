@@ -184,16 +184,12 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
      * @param stdClass $cartRow
      * @param core_ET $tpl
      *
-     * @return boolean
+     * @return void
      */
     public function addToCartView($termRec, $cartRec, $cartRow, &$tpl)
     {
-        //$bgName = drdata_Countries::getCountryName('BG', core_Lg::getCurrent());
-        
-        //$block = new core_ET(tr("|*<div>|Безплатна доставка на територията на|* <b>{$bgName}</b>|*</div>"));
-        //$tpl->append($block, 'CART_FOOTER');
-        
-        return false;
+        $FeeZones = cls::getInterface('cond_TransportCalc', 'tcost_FeeZones');
+        $FeeZones->addToCartView($termRec, $cartRec, $cartRow, $tpl);
     }
     
     
@@ -206,6 +202,21 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
      */
     public function onUpdateCartMaster(&$cartRec)
     {
-        
+        $FeeZones = cls::getInterface('cond_TransportCalc', 'tcost_FeeZones');
+        $FeeZones->onUpdateCartMaster($cartRec);
+    }
+    
+    
+    /**
+     * Може ли да се избира условието в онлайн магазина
+     *
+     * @param int|stdClass $cartRec
+     * @param int|null $cu
+     *
+     * @return boolean
+     */
+    public function canSelectInEshop(&$rec, $cu = null)
+    {
+        return true;
     }
 }

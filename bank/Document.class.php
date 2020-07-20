@@ -35,7 +35,7 @@ abstract class bank_Document extends deals_PaymentDocument
      */
     public $loadList = 'plg_RowTools2, bank_Wrapper, acc_plg_RejectContoDocuments, acc_plg_Contable,
          plg_Sorting, plg_Clone, doc_DocumentPlg, plg_Printing,deals_plg_SelectInvoice, acc_plg_DocumentSummary,doc_plg_HidePrices,
-         plg_Search, bgerp_plg_Blank, doc_EmailCreatePlg, doc_SharablePlg, deals_plg_SetTermDate,deals_plg_SaveValiorOnActivation';
+         plg_Search, bgerp_plg_Blank, doc_EmailCreatePlg, doc_SharablePlg, deals_plg_SetTermDate,deals_plg_SaveValiorOnActivation,bgerp_plg_Export';
     
     
     /**
@@ -556,18 +556,27 @@ abstract class bank_Document extends deals_PaymentDocument
         $form->setDefault('dealCurrencyId', $cId);
         $form->setDefault('rate', $dealInfo->get('rate'));
         
-        // Ако има банкова сметка по подразбиране
-        if ($bankId = $dealInfo->get('bankAccountId')) {
-            
-            // Ако потребителя има права, логва се тихо
-            if ($bankId = bank_OwnAccounts::fetchField("#bankAccountId = {$bankId}", 'id')) {
-                bank_OwnAccounts::selectCurrent($bankId);
+        if(isset($form->rec->fromContainerId)){
+            $FromContainer = doc_Containers::getDocument($form->rec->fromContainerId);
+            if($FromContainer->isInstanceOf('deals_InvoiceMaster')){
+                if($bankId = $FromContainer->fetchField('accountId')){
+                    if($FromContainer->isInstanceOf('purchase_Invoices')){
+                        $iban = bank_Accounts::fetchField($bankId, 'iban');
+                        $form->setDefault('contragentIban', $iban);
+                    } else {
+                        $form->setDefault('ownAccount', $bankId);
+                    }
+                }
             }
         }
         
         if (empty($form->rec->id) && $form->cmd != 'refresh') {
+            if($dealInfo->get('bankAccountId')){
+                $bankId = bank_OwnAccounts::fetchField("#bankAccountId = {$dealInfo->get('bankAccountId')}", 'id');
+                $form->setDefault('ownAccount', $bankId);
+            }
+            
             $form->setDefault('ownAccount', bank_OwnAccounts::getCurrent('id', false));
-            $form->setDefault('ownAccount', $bankId);
         }
         
         if (isset($form->rec->ownAccount)) {

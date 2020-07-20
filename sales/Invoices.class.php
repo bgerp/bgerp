@@ -50,8 +50,8 @@ class sales_Invoices extends deals_InvoiceMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Contable, plg_Clone, plg_Printing, doc_DocumentPlg, bgerp_plg_Export,
-					doc_EmailCreatePlg, recently_Plugin, cond_plg_DefaultValues,deals_plg_DpInvoice,
-                    doc_plg_HidePrices, doc_plg_TplManager, bgerp_plg_Blank, acc_plg_DocumentSummary, change_Plugin,cat_plg_AddSearchKeywords, plg_Search';
+					doc_EmailCreatePlg, recently_Plugin, cond_plg_DefaultValues,deals_plg_DpInvoice,doc_plg_Sequencer2,
+                    doc_plg_HidePrices, doc_plg_TplManager, bgerp_plg_Blank, acc_plg_DocumentSummary, change_Plugin,cat_plg_AddSearchKeywords, plg_Search,plg_LastUsedKeys';
     
     
     /**
@@ -154,7 +154,7 @@ class sales_Invoices extends deals_InvoiceMaster
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-        'place' => 'lastDocUser|lastDoc',
+        'place' => 'lastDocUser|lastDoc|defMethod',
         'responsible' => 'lastDocUser|lastDoc',
         'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
         'contragentVatNo' => 'clientData|lastDocUser|lastDoc',
@@ -209,6 +209,28 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
+     * Поле за избор на диапазон на документа
+     * 
+     * @see doc_plg_Sequencer2
+     */
+    public $rangeNumFld = 'numlimit';
+    
+    
+    /**
+     * Да се добавя ли номера при генериране
+     * 
+     * @see doc_plg_Sequencer2
+     */
+    public $addNumberOnActivation = true;
+    
+    
+    /**
+     * Кои ключове да се тракват, кога за последно са използвани
+     */
+    public $lastUsedKeys = 'numlimit';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
@@ -216,7 +238,7 @@ class sales_Invoices extends deals_InvoiceMaster
         parent::setInvoiceFields($this);
         
         $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable');
-        $this->FLD('numlimit', 'enum(1,2)', 'caption=Диапазон, after=template,input=hidden,notNull,default=1');
+        $this->FLD('numlimit', "key(mvc=cond_Ranges,select=id)", 'caption=Диапазон, after=template,input=hidden,notNull,default=1');
         $this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)', 'caption=Статус, input=none');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
@@ -246,6 +268,12 @@ class sales_Invoices extends deals_InvoiceMaster
         
         $res = '';
         $res .= doc_TplManager::addOnce($this, $tplArr);
+        
+        // Добавяне на първия диапазон за фактурите
+        cond_Ranges::add('sales_Invoices', 1, 1999999, null, 'acc', 1, false);
+        
+        // Еднократно се изпълнява миграция, която ще създаде и втори диапазон ако има създадени ф-ри вече в него
+        $res .= cls::get('sales_Setup')->callMigrate('updateSecondInvoiceRange', 'sales');
         
         return $res;
     }
@@ -310,17 +338,6 @@ class sales_Invoices extends deals_InvoiceMaster
         
         $form->setField('contragentPlace', 'mandatory');
         $form->setField('contragentAddress', 'mandatory');
-        
-        $conf = core_Packs::getConfig('sales');
-        $options = array();
-        $options[1] = "{$conf->SALE_INV_MIN_NUMBER1} - {$conf->SALE_INV_MAX_NUMBER1}";
-        $options[2] = "{$conf->SALE_INV_MIN_NUMBER2} - {$conf->SALE_INV_MAX_NUMBER2}";
-        $form->setOptions('numlimit', $options);
-        $form->setDefault('numlimit', $mvc->defaultNumRange);
-        
-        if (haveRole('ceo,accMaster')) {
-            $form->setField('numlimit', 'input');
-        }
         
         if ($data->aggregateInfo) {
             if ($accId = $data->aggregateInfo->get('bankAccountId')) {
@@ -450,15 +467,6 @@ class sales_Invoices extends deals_InvoiceMaster
     public static function on_BeforeSave($mvc, $id, $rec)
     {
         parent::beforeInvoiceSave($rec);
-        
-        if ($rec->state == 'active') {
-            if (empty($rec->number)) {
-                $rec->number = self::getNextNumber($rec);
-                $numberPadded = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
-                
-                $rec->searchKeywords .= ' ' . plg_Search::normalizeText($rec->number) . ' ' . plg_Search::normalizeText($numberPadded);
-            }
-        }
     }
     
     
@@ -535,6 +543,12 @@ class sales_Invoices extends deals_InvoiceMaster
                 
                 $row->bic = $Varchar->toVerbal($ownAcc->bic);
             }
+            
+            if(empty($rec->number)){
+                $row->number = str::removeWhiteSpace(cond_Ranges::displayRange($rec->numlimit));
+                $row->number = "<span style='color:blue;'>{$row->number}</span>";
+                $row->number = ht::createHint($row->number, 'При активиране номерът ще бъде в този диапазон', 'notice', false);
+            }
         }
     }
     
@@ -548,40 +562,6 @@ class sales_Invoices extends deals_InvoiceMaster
     public static function canAddToFolder($folderId)
     {
         return false;
-    }
-    
-    
-    /**
-     * Ф-я връщаща следващия номер на фактурата, ако той е в границите
-     *
-     * @return int - следващия номер на фактура
-     */
-    protected static function getNextNumber($rec)
-    {
-        $conf = core_Packs::getConfig('sales');
-        if ($rec->numlimit == 2) {
-            $min = $conf->SALE_INV_MIN_NUMBER2;
-            $max = $conf->SALE_INV_MAX_NUMBER2;
-        } else {
-            $min = $conf->SALE_INV_MIN_NUMBER1;
-            $max = $conf->SALE_INV_MAX_NUMBER1;
-        }
-        
-        $query = static::getQuery();
-        $query->XPR('maxNum', 'int', 'MAX(#number)');
-        $query->between('number', $min, $max);
-        
-        if (!$maxNum = $query->fetch()->maxNum) {
-            $maxNum = $min;
-        }
-        $nextNum = $maxNum + 1;
-        
-        if ($nextNum > $max) {
-            
-            return;
-        }
-        
-        return $nextNum;
     }
     
     
@@ -703,14 +683,20 @@ class sales_Invoices extends deals_InvoiceMaster
             return true;
         }
         
-        $number = (isset($rec->number)) ? $rec->number : $this->getNextNumber($rec);
+        try{
+            $number = (isset($rec->number)) ? $rec->number : cond_Ranges::getNextNumber($rec->numlimit, $this, 'number');
+        } catch(core_exception_Expect $e){
+            $msg = $e->getMessage();
+            
+            return false;
+        }
         
         $queryBefore = clone $query;
         $query->orderBy('number', 'DESC');
         $queryBefore->where("#date < '{$rec->date}' AND #state = 'active' AND #number > {$number} AND #id != '{$rec->id}'");
         if ($iBefore = $queryBefore->fetch()) {
             $numberB = $this->recToVerbal($iBefore, 'number')->number;
-            $msg = "|Фактурата не може да се възстанови|* - |фактура|* №{$numberB} |е с по-голям номер и по-малка дата в диапазона|*";
+            $msg = "Фактурата не може да се възстанови|* - |фактура|* №{$numberB} |е с по-голям номер и по-малка дата в диапазона|*";
             
             return false;
         }
@@ -720,7 +706,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $queryAfter->where("#date > '{$rec->date}' AND #state = 'active' AND #number <= {$number} AND #id != '{$rec->id}'");
         if ($iAfter = $queryAfter->fetch()) {
             $numberA = $this->recToVerbal($iAfter, 'number')->number;
-            $msg = "|Фактурата не може да се възстанови|* - |фактура|* №{$numberA} |е с по-малък номер и по-голяма дата в диапазона|*";
+            $msg = "Фактурата не може да се възстанови|* - |фактура|* №{$numberA} |е с по-малък номер и по-голяма дата в диапазона|*";
             
             return false;
         }
@@ -783,7 +769,7 @@ class sales_Invoices extends deals_InvoiceMaster
         if (!$rec->number) {
             $hnd = $self->abbr . $rec->id;
         } else {
-            $number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+            $number = $self->getVerbal($rec, 'number');
             $hnd = $self->abbr . $number;
         }
         

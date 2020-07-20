@@ -102,6 +102,32 @@ class sales_plg_CalcPriceDelta extends core_Plugin
         $detailClassId = $Detail->getClassId();
         $query = $Detail->getQuery();
         $query->where("#{$Detail->masterKey} = {$rec->id}");
+        $query->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey={$mvc->detailProductFld}");
+        
+        $calcLiveSoDelta = sales_Setup::get('LIVE_CALC_SO_DELTAS');
+        
+        $TransportShipmentArr = null;
+        if($mvc instanceof store_DocumentMaster){
+            if($calcLiveSoDelta == 'yes'){
+                $saleRec = doc_Threads::getFirstDocument($rec->threadId)->fetch('deliveryTermId,deliveryData');
+                
+                // Ако има калкулатор се изчислява колко е общото обемно тегло на цялото ен
+                if($Calculator = cond_DeliveryTerms::getTransportCalculator($saleRec->deliveryTermId)){
+                    
+                    $totalWeight = $totalVolume = 0;
+                    $cloneQuery = clone $query;
+                    $allDetails = $cloneQuery->fetchAll();
+                    array_walk($allDetails, function($a) use (&$totalWeight, &$totalVolume){$totalWeight += $a->weight; $totalVolume += $a->volume;});
+                    
+                    $logisticData = $mvc->getLogisticData($rec);
+                    setIfNot($logisticData['toPCode'], '');
+                    $deliveryData = $saleRec->deliveryData + array('deliveryCountry' => drdata_Countries::getIdByName($logisticData['toCountry']), 'deliveryPCode' => $logisticData['toPCode']);
+                 
+                    $totalVolumicWeight = $Calculator->getVolumicWeight($totalWeight, $totalVolume, $saleRec->deliveryTermId, $deliveryData);
+                    $TransportShipmentArr = array('Calculator' => $Calculator, 'totalVolumicWeight' => $totalVolumicWeight, 'deliveryData' => $deliveryData, 'deliveryTermId' => $saleRec->deliveryTermId);
+                }
+            }
+        }
         
         $valior = $rec->{$mvc->valiorFld};
         while ($dRec = $query->fetch()) {
@@ -110,9 +136,14 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                 // Ако документа е продажба, изчислява се каква му е себестойноста
                 $primeCost = sales_PrimeCostByDocument::getPrimeCostInSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec, $deltaListId);
             } else {
+                $primeCost = null;
                 
-                // Ако документа е към продажба, то се взима себестойноста от продажбата
-                $primeCost = sales_PrimeCostByDocument::getPrimeCostFromSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec->containerId, $deltaListId);
+                if($calcLiveSoDelta != 'yes'){
+                    
+                    // Ако документа е към продажба, то се взима себестойноста от продажбата
+                    $primeCost = sales_PrimeCostByDocument::getPrimeCostFromSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec->containerId, $deltaListId);
+                }
+                
                 if(!isset($primeCost)){
                     
                     // Ако артикулът няма себестойност в продажбата, то се изчислява себестоността му към момента
@@ -120,6 +151,17 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                         $primeCost = price_ListRules::getPrice($deltaListId, $dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $valior);
                     } else {
                         $primeCost = cat_Products::getPrimeCost($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $valior, price_ListRules::PRICE_LIST_COST);
+                    }
+                }
+                
+                // Ако ще се изчислява лайв себестойноста на ен смята се какъв би бил транспорта и се добавя към себестойността
+                if(isset($primeCost) && $calcLiveSoDelta == 'yes' && isset($TransportShipmentArr) && $dRec->canStore == 'yes'){
+                    $volumicWeight = $Calculator->getVolumicWeight($dRec->weight, $dRec->volume, $TransportShipmentArr['deliveryTermId'], $TransportShipmentArr['deliveryData']);
+                    $fee = $TransportShipmentArr['Calculator']->getTransportFee($TransportShipmentArr['deliveryTermId'], $volumicWeight, $TransportShipmentArr['totalVolumicWeight'], $TransportShipmentArr['deliveryData']);
+                    
+                    if(isset($fee['fee']) && $fee['fee'] > 0){
+                        $singleFee = $fee['fee'] / $dRec->quantity;
+                        $primeCost += $singleFee;
                     }
                 }
             }
@@ -157,6 +199,13 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                 'contragentId' => $Cover->that,
                 'contragentClassId' => $Cover->getClassId(),
                 'primeCost' => $primeCost);
+            
+            $canStore = cat_products::fetchField($dRec->{$mvc->detailProductFld}, 'canStore');
+            if($canStore == 'yes'){
+                if($storeId = ($mvc instanceof sales_Sales) ? $rec->shipmentStoreId : (($mvc instanceof store_DocumentMaster) ? $rec->storeId : null)){
+                    $r->storeId = $storeId;
+                }
+            }
             
             // Ако първия документ е обединяваща продажба
             $persons = null;

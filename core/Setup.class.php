@@ -263,6 +263,12 @@ defIfNot('CORE_BACKUP_CREATE_FULL_OFFSET', (60 * 3 + 50) * 60);
 
 
 /**
+ * 
+ */
+defIfNot('CORE_BGERP_UNIQ_ID', '');
+
+
+/**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
  *
@@ -395,6 +401,8 @@ class core_Setup extends core_ProtoSetup
         'CORE_BACKUP_CREATE_FULL_OFFSET' => array('time', 'caption=Настройки за бекъп->Изместване'),
         
         'CORE_BACKUP_PATH' => array('varchar', 'caption=Настройки за бекъп->Път до бекъпите,readOnly'),
+            
+        'CORE_BGERP_UNIQ_ID' => array('varchar(16)', 'caption=Сериен номер на инсталацията->ID,readOnly'),
     );
     
     
@@ -421,6 +429,7 @@ class core_Setup extends core_ProtoSetup
         'core_Forwards',
         'core_Updates',
         'core_Permanent',
+        'migrate::repairSearchKeywords31920'
     );
     
     
@@ -578,8 +587,15 @@ class core_Setup extends core_ProtoSetup
         $html .= core_Classes::add('core_page_Internal');
         $html .= core_Classes::add('core_page_InternalModern');
         
-        
         $html .= static::addCronToDelOldTempFiles();
+        
+        try {
+            $this->setBGERPUniqId();
+        } catch (Exception $e) {
+            reportException($e);
+        } catch (Throwable $t) {
+            reportException($t);
+        }
         
         return $html;
     }
@@ -696,6 +712,130 @@ class core_Setup extends core_ProtoSetup
         } else {
             $res = "<li class=\"debug-info\">Във файла <b>{$dest}</b> не са копирани линии от файла <b>{$src}</b></li>";
         }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Форсира регенерирането на ключовите думи за всички мениджъри, които използват `plg_Search`
+     */
+    public static function repairSearchKeywords31920()
+    {
+        // Вземаме инстанция на core_Interfaces
+        $Interfaces = cls::get('core_Interfaces');
+        
+        // id' то на интерфейса
+        $interfaceId = $Interfaces->fetchByName('core_ManagerIntf');
+        
+        $query = core_Classes::getQuery();
+        $query->where("#state = 'active' AND #interfaces LIKE '%|{$interfaceId}|%'");
+        
+        $secs = 180;
+        
+        while ($rec = $query->fetch()) {
+            if (!cls::load($rec->name, true)) {
+                continue;
+            }
+            
+            $Inst = cls::get($rec->name);
+            
+            // Ако няма таблица
+            if (!$Inst || !$Inst->db) {
+                continue;
+            }
+            
+            // Ако таблицата не съществува в модела
+            if (!$Inst->db->tableExists($Inst->dbTableName)) {
+                continue ;
+            }
+            
+            // Ако полето не съществува в таблицата
+            $sk = str::phpToMysqlName('searchKeywords');
+            if (!$Inst->db->isFieldExists($Inst->dbTableName, $sk)) {
+                continue ;
+            }
+            
+            $plugins = arr::make($Inst->loadList, true);
+            
+            if (!isset($plugins['plg_Search']) && !$Inst->fields['searchKeywords']) {
+                continue;
+            }
+            
+            core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', $rec->name, dt::addSecs($secs));
+            
+            $secs += 60;
+        }
+    }
+    
+    
+    /**
+     * Връща уникалното ID на системата
+     *
+     * @return string
+     */
+    public static function getBGERPUniqId()
+    {
+        
+        return core_Setup::get('BGERP_UNIQ_ID');
+    }
+    
+    
+    /**
+     * Задаване на уникално ID на системата
+     *
+     * @param boolean $force
+     *
+     * @return string
+     */
+    protected static function setBGERPUniqId($force = false)
+    {
+        $id = '';
+        if (!$force) {
+            $id = self::getBGERPUniqId();
+        }
+        
+        if (!$id) {
+            $id = self::generateBGERPUniqId();
+            
+            core_Packs::setConfig('core', array('CORE_BGERP_UNIQ_ID' => $id));
+        }
+        
+        return $id;
+    }
+    
+    
+    /**
+     * Връща 16 цифрено уникалното id на системата за тази инсталация
+     *
+     * @return string
+     */
+    protected static function generateBGERPUniqId()
+    {
+        $res = '';
+        
+        $fm = filectime(getFullPath('core'));
+        $t = date('dm', $fm);
+        $y = date('y', $fm);
+        $res = str_pad($t . ($y % 10), 5, 0, STR_PAD_LEFT);
+        
+        $u = substr(crc32(php_uname('s')), 0, 3);
+        $res .= str_pad($u, 3, 0, STR_PAD_LEFT);
+        
+        $m = substr(crc32(exec("ifconfig -a | grep -Po 'HWaddr \K.*$'")), 0, 2);
+        $res .= str_pad($m, 2, 0, STR_PAD_LEFT);
+        
+        $s = substr(crc32(EF_SALT . "SystemID"), 0, 2);
+        $res .= str_pad($s, 2, 0, STR_PAD_LEFT);
+        
+        $res .= str::getRand('##');
+        
+        $resCrc = substr(crc32($res), 0, 2);
+        $res .= str_pad($resCrc, 2, 0, STR_PAD_LEFT);
+        
+        $res = str_pad($res, 16, 0, STR_PAD_LEFT);
+        
+        $res = substr($res, 0, 16);
         
         return $res;
     }

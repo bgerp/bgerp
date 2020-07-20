@@ -144,7 +144,8 @@ class bulmar_InvoiceExport extends core_Manager
     {
         $nRec = new stdClass();
         $nRec->contragent = $rec->contragentName;
-        $nRec->invNumber = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+        $nRec->invNumber = sales_Invoices::getVerbal($rec, 'number');
+        
         $nRec->date = dt::mysql2verbal($rec->date, 'd.m.Y');
         $nRec->num = $count;
         if ($rec->type == 'dc_note') {
@@ -277,8 +278,13 @@ class bulmar_InvoiceExport extends core_Manager
             if ($rec->productsAmount) {
                 $line .= "{$static->creditSaleProducts}|||{$rec->productsAmount}||";
             }
+            
             if ($rec->servicesAmount) {
                 $line .= "{$static->creditSaleServices}|||{$rec->servicesAmount}||";
+            }
+            
+            if($rec->type != 'invoice' && empty($rec->servicesAmount) && empty($rec->productsAmount)){
+                $line .= "{$static->creditSaleProducts}|||{$rec->baseAmount}||";
             }
             
             $line .= "{$static->creditSaleVat}|||{$rec->vat}||" . "\r\n";

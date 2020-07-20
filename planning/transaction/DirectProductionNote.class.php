@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -29,7 +29,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         // Извличане на мастър-записа
         expect($rec = $this->class->fetchRec($id));
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
-        
+       
         $result = (object) array(
             'reason' => "Протокол за производство №{$rec->id}",
             'valior' => $rec->valior,
@@ -41,6 +41,24 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         $entries = $this->getEntries($rec, $result->totalAmount);
         if (countR($entries)) {
             $result->entries = $entries;
+        }
+        
+        if (Mode::get('saveTransaction')) {
+            $productArr = arr::extractValuesFromArray($rec->_details, 'productId');
+            if($redirectError = deals_Helper::getContoRedirectError($productArr, 'canConvert', null, 'трябва да са вложими')){
+                acc_journal_RejectRedirect::expect(false, $redirectError);
+            }
+            
+            if($redirectError = deals_Helper::getContoRedirectError($productArr, null, 'generic', 'са генерични и трябва да бъдат заменени')){
+                acc_journal_RejectRedirect::expect(false, $redirectError);
+            }
+            
+            $returnProductArr = array_filter($rec->_details, function($a) { return $a->type != 'input';});
+            if(countR($returnProductArr)){
+                if($redirectError = deals_Helper::getContoRedirectError($productArr, 'canStore', null, 'трябва да са складируеми за да са отпадъци')){
+                    acc_journal_RejectRedirect::expect(false, $redirectError);
+                }
+            }
         }
         
         return $result;
@@ -113,6 +131,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             $dQuery->where("#noteId = {$rec->id}");
             $dQuery->orderBy('id,type', 'ASC');
             $dRecs = $dQuery->fetchAll();
+            $rec->_details = $dRecs;
         }
         
         $entries = self::getProductionEntries($rec->productId, $rec->quantity, $rec->storeId, $rec->debitAmount, $this->class, $rec->id, $rec->expenseItemId, $rec->valior, $rec->expenses, $dRecs, $rec->jobQuantity);
@@ -190,23 +209,23 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                             }
                             
                             $entry = array('debit' => array('61101',
-                                array('cat_Products', $dRec->productId),
-                                'quantity' => $dRec->quantity),
-                                'credit' => array('321',
-                                    array('store_Stores', $dRec->storeId),
-                                    array('cat_Products', $dRec->productId),
-                                    'quantity' => $dRec->quantity),
-                                'reason' => 'Влагане на материал в производството');
+                                                      array('cat_Products', $dRec->productId),
+                                                     'quantity' => $dRec->quantity),
+                                           'credit' => array('321',
+                                                       array('store_Stores', $dRec->storeId),
+                                                       array('cat_Products', $dRec->productId),
+                                                     'quantity' => $dRec->quantity),
+                                           'reason' => 'Влагане на материал в производството');
                         } else {
                             $item = acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
                             $entry = array('debit' => array('61101',
-                                array('cat_Products', $dRec->productId),
-                                'quantity' => $dRec->quantity),
-                                'credit' => array('60201',
-                                    $item,
-                                    array('cat_Products', $dRec->productId),
-                                    'quantity' => $dRec->quantity),
-                                'reason' => 'Влагане на нескладируема услуга или консуматив в производството');
+                                                      array('cat_Products', $dRec->productId),
+                                                      'quantity' => $dRec->quantity),
+                                           'credit' => array('60201', 
+                                                             $item,
+                                                       array('cat_Products', $dRec->productId),
+                                                      'quantity' => $dRec->quantity),
+                                           'reason' => 'Влагане на нескладируема услуга или консуматив в производството');
                         }
                         
                         $entries[] = $entry;
@@ -225,7 +244,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                         if ($canStore == 'yes') {
                             $primeCost = cat_Products::getWacAmountInStore($dRec1->quantity, $dRec1->productId, $valior, $dRec1->storeId);
                         } else {
-                            $primeCost = planning_ObjectResources::getWacAmountInProduction($dRec1->quantity, $dRec1->productId, $valior);
+                            $primeCost = planning_GenericMapper::getWacAmountInProduction($dRec1->quantity, $dRec1->productId, $valior);
                         }
                         
                         $sign = 1;

@@ -61,7 +61,7 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,valior=Вальор,containerId,productId,quantity,sellCost,primeCost,delta,expenses,dealerId,initiatorId,state,isPublic,folderId';
+    public $listFields = 'id,valior=Вальор,containerId,productId,quantity,sellCost,primeCost,delta,expenses,dealerId,initiatorId,state,isPublic,folderId,storeId';
     
     
     /**
@@ -99,6 +99,7 @@ class sales_PrimeCostByDocument extends core_Manager
         $this->FLD('contragentId', 'int', 'caption=Контрагент,tdClass=leftCol');
         $this->FLD('contragentClassId', 'int', 'caption=Контрагент');
         $this->FLD('expenses', 'double', 'caption=Разходи,mandatory');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
         
         $this->setDbIndex('productId,containerId');
         $this->setDbIndex('productId');
@@ -174,6 +175,10 @@ class sales_PrimeCostByDocument extends core_Manager
         
         if(isset($rec->folderId)){
             $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+        }
+        
+        if(isset($rec->storeId)){
+            $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         }
     }
     
@@ -261,13 +266,22 @@ class sales_PrimeCostByDocument extends core_Manager
             $dQuery->EXT('state', $Master, "externalName=state,externalKey={$Detail->masterKey}");
             $dQuery->EXT('containerId', $Master, "externalName=containerId,externalKey={$Detail->masterKey}");
             $dQuery->EXT('modifiedOn', $Master, "externalName=modifiedOn,externalKey={$Detail->masterKey}");
+            
             $dQuery->where("#modifiedOn >= '{$timeline}'");
             $dQuery->where("#state != 'draft' AND #state != 'pending' AND #state != 'stopped'");
             
-            $fields = 'modifiedOn,state,containerId';
+            $fields = 'modifiedOn,state,containerId,amountDiscount';
             if ($Master != 'sales_Sales') {
                 $dQuery->EXT('isReverse', $Master, "externalName=isReverse,externalKey={$Detail->masterKey}");
-                $fields .= ',isReverse';
+                $dQuery->EXT('amountDelivered', $Master, "externalName=amountDelivered,externalKey={$Detail->masterKey}");
+                $dQuery->EXT('amountDeliveredVat', $Master, "externalName=amountDeliveredVat,externalKey={$Detail->masterKey}");
+                $dQuery->EXT('amountDiscount', $Master, "externalName=amountDiscount,externalKey={$Detail->masterKey}");
+                $fields .= ',isReverse,amountDeliveredVat,amountDelivered';
+            } else {
+                $dQuery->EXT('amountDeal', $Master, "externalName=amountDeal,externalKey={$Detail->masterKey}");
+                $dQuery->EXT('amountVat', $Master, "externalName=amountVat,externalKey={$Detail->masterKey}");
+                $dQuery->EXT('amountDiscount', $Master, "externalName=amountDiscount,externalKey={$Detail->masterKey}");
+                $fields .= ',amountVat,amountDeal';
             }
             
             $ids = array();
@@ -277,7 +291,14 @@ class sales_PrimeCostByDocument extends core_Manager
             while ($dRec = $dQuery->fetch()) {
                 if (!isset($masters[$dRec->containerId])) {
                     try {
-                        $masters[$dRec->containerId] = array(doc_Containers::getDocument($dRec->containerId), $dRec->state, $dRec->isReverse);
+                        $Document = doc_Containers::getDocument($dRec->containerId);
+                        $masters[$dRec->containerId] = array($Document, $dRec->state, $dRec->isReverse);
+                        
+                        if($Document->isInstanceOf('sales_Sales')){
+                            $masters[$dRec->containerId]['total'] = $dRec->amountDeal;
+                        } else {
+                            $masters[$dRec->containerId]['total'] = $dRec->amountDelivered;
+                        }
                     } catch (core_exception_Expect $e) {
                         reportException($e);
                         continue;
@@ -299,9 +320,11 @@ class sales_PrimeCostByDocument extends core_Manager
         $posIds = array();
         $posQuery = pos_Reports::getQuery();
         $posQuery->where("#modifiedOn >= '{$timeline}'");
-        $posQuery->show('modifiedOn,state,containerId,details');
+        $posQuery->show('modifiedOn,state,containerId,details,total');
         while ($pRec = $posQuery->fetch()) {
             $masters[$pRec->containerId] = array(doc_Containers::getDocument($pRec->containerId), $pRec->state, null);
+            $masters[$pRec->containerId]['total'] = $pRec->total;
+            
             foreach ($pRec->details['receiptDetails'] as $pdRec){
                 if($pdRec->action != 'sale') continue;
                 $key = "{$pRec->id}000{$pdRec->value}";

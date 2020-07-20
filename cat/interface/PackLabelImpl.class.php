@@ -173,7 +173,7 @@ class cat_interface_PackLabelImpl
             $measureId = cat_UoM::fetchBySysId('pcs')->id;
         }
         
-        $measureId = tr(cat_UoM::getShortName($measureId));
+        $measureId = cat_UoM::getShortName($measureId);
         
         // Продуктови параметри
         $params = cat_Products::getParams($rec->productId, null, true);
@@ -183,6 +183,11 @@ class cat_interface_PackLabelImpl
         $Driver = cat_Products::getDriver($rec->productId);
         if (is_object($Driver)) {
             $additionalFields = $Driver->getAdditionalLabelData($rec->productId, $this->class);
+        }
+        
+        // Дигане на тайм-лимита
+        if($onlyPreview === false){
+            core_App::setTimeLimit(round($cnt / 8, 2), false, 100);
         }
         
         $arr = array();
@@ -201,7 +206,7 @@ class cat_interface_PackLabelImpl
                 $res['JOB'] = $jobCode;
             }
             
-            if (isset($rec->eanCode)) {
+            if (!empty($rec->eanCode)) {
                 $res['EAN'] = $rec->eanCode;
             }
             

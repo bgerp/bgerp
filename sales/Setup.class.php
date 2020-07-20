@@ -16,31 +16,13 @@ defIfNot('SALES_DEFAULT_VALIDITY_OF_QUOTATION', '2592000');
 /**
  * Начален номер на фактурите
  */
-defIfNot('SALE_INV_MIN_NUMBER1', '0');
+defIfNot('SALE_INV_MIN_NUMBER1', '1');
 
 
 /**
  * Групи за делта
  */
 defIfNot('SALES_DELTA_CAT_GROUPS', '');
-
-
-/**
- * Краен номер на фактурите
- */
-defIfNot('SALE_INV_MAX_NUMBER1', '2000000');
-
-
-/**
- * Начален номер на фактурите
- */
-defIfNot('SALE_INV_MIN_NUMBER2', '2000000');
-
-
-/**
- * Краен номер на фактурите
- */
-defIfNot('SALE_INV_MAX_NUMBER2', '3000000');
 
 
 /**
@@ -164,6 +146,18 @@ defIfNot('SALES_DELTA_MIN_PERCENT_PRIME_COST', '0.2');
 
 
 /**
+ * Дефолтен режим на ДДС в офертите
+ */
+defIfNot('SALES_QUOTATION_DEFAULT_CHARGE_VAT_BG', 'auto');
+
+
+/**
+ * Да се изчислява ли себестойноста на делтата на ЕН и СР лайв
+ */
+defIfNot('SALES_LIVE_CALC_SO_DELTAS', 'no');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -171,7 +165,7 @@ defIfNot('SALES_DELTA_MIN_PERCENT_PRIME_COST', '0.2');
  * @package sales
  *
  * @author Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license GPL 3
  *
  * @since v 0.1
@@ -221,22 +215,6 @@ class sales_Setup extends core_ProtoSetup
         'SALE_INV_VAT_DISPLAY' => array(
             'enum(no=Не,yes=Да)',
             'caption=Без закръгляне на ДДС за всеки ред от фактурите->Избор'
-        ),
-        'SALE_INV_MIN_NUMBER1' => array(
-            'int(min=0)',
-            'caption=Първи диапазон за номериране на фактури->Долна граница'
-        ),
-        'SALE_INV_MAX_NUMBER1' => array(
-            'int(min=0)',
-            'caption=Първи диапазон за номериране на фактури->Горна граница'
-        ),
-        'SALE_INV_MIN_NUMBER2' => array(
-            'int(min=0)',
-            'caption=Втори диапазон за номериране на фактури->Долна граница'
-        ),
-        'SALE_INV_MAX_NUMBER2' => array(
-            'int(min=0)',
-            'caption=Втори диапазон за номериране на фактури->Горна граница'
         ),
         'SALE_INV_HAS_FISC_PRINTERS' => array(
             'enum(no=Не,yes=Да)',
@@ -298,14 +276,26 @@ class sales_Setup extends core_ProtoSetup
             'time',
             'caption=Оферти->Валидност'
         ),
+        'SALES_QUOTATION_DEFAULT_CHARGE_VAT_BG' => array(
+            'enum(auto=Автоматично,yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 
+            'caption=Режим на ДДС в офертите по подразбиране (клиенти от България)->Избор'
+        ),
+    
         'SALES_PROD_NAME_LENGTH' => array(
             'int(min=0)',
             'caption=Дължина на артикула в името на продажбата->Дължина, customizeBy=powerUser'
         ),
+        
+        'SALES_LIVE_CALC_SO_DELTAS' => array(
+            'enum(no=Договор,yes=ЕН/СР)', 
+            'caption=Записване на себестойност за изчисляване на делти при контиране на->Избор'
+        ),
+        
         'SALES_DELTA_MIN_PERCENT' => array(
             'percent',
             'caption=Неснижаема делта->Стойност'
         ),
+        
         'SALES_DELTA_MIN_PERCENT_PRIME_COST' => array(
             'percent',
             'caption=Колко % от продажната цена да се приема за делта при липса на себестойност->Стойност'
@@ -314,7 +304,8 @@ class sales_Setup extends core_ProtoSetup
         'SALES_TRANSPORT_PRODUCTS_ID' => array(
             'keylist(mvc=cat_Products,select=name)',
             'mandatory,caption=Транспорт->Артикули,optionsFunc=sales_Setup::getPossibleTransportProducts'
-        )
+        ),
+        
     );
     
     
@@ -337,6 +328,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_PrimeCostByDocument',
         'sales_TransportValues',
         'sales_ProductRelations',
+        'migrate::updateStoreIdInDeltas2',
     );
     
     
@@ -360,7 +352,7 @@ class sales_Setup extends core_ProtoSetup
      */
     public $defClasses = 'sales_SalesLastPricePolicy, 
                        sales_reports_ShipmentReadiness,sales_reports_PurBomsRep,sales_reports_OverdueByAdvancePayment,
-                       sales_reports_VatOnSalesWithoutInvoices,sales_reports_SoldProductsRep, sales_reports_PriceDeviation,sales_reports_OverdueInvoices,sales_reports_SalesByContragents';
+                       sales_reports_VatOnSalesWithoutInvoices,sales_reports_SoldProductsRep, sales_reports_PriceDeviation,sales_reports_OverdueInvoices,sales_reports_SalesByContragents,sales_interface_FreeRegularDelivery';
     
     /**
      * Настройки за Cron
@@ -504,5 +496,69 @@ class sales_Setup extends core_ProtoSetup
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Добавя втори рейндж на фактурите ако има такива
+     */
+    public static function updateSecondInvoiceRange()
+    {
+        $Invoices = cls::get('sales_Invoices');
+        $query = $Invoices->getQuery();
+        $query->where("numlimit=2");
+        
+        if($query->count()){
+            cond_Ranges::add('sales_Invoices', 2000000, 2999999, null, 'acc,ceo', 2, false);
+        }
+    }
+    
+    
+    /**
+     * Миграция да се записва склада в модела за делтите
+     */
+    public function updateStoreIdInDeltas2()
+    {
+        $Deltas = cls::get('sales_PrimeCostByDocument');
+        $Deltas->setupMvc();
+        
+        if(!$Deltas->count()) {
+            
+            return;
+        }
+        
+        $Products = cls::get('cat_Products');
+        $Products->setupMvc();
+        
+        $Sales = cls::get('sales_Sales');
+        $Sales->setupMvc();
+        
+        $Shipments = cls::get('store_ShipmentOrders');
+        $Shipments->setupMvc();
+        
+        $Receipts = cls::get('store_Receipts');
+        $Receipts->setupMvc();
+        $Containers = cls::get('doc_Containers');
+        
+        $productCol = str::phpToMysqlName('productId');
+        $containerCol = str::phpToMysqlName('containerId');
+        $docIdCol = str::phpToMysqlName('docId');
+        $shipmentStoreIdCol = str::phpToMysqlName('shipmentStoreId');
+        $storeCol = str::phpToMysqlName('storeId');
+        $docClassCol = str::phpToMysqlName('docClass');
+        $canStoreCol = str::phpToMysqlName('can_store');
+        
+        $salesClassId = sales_Sales::getClassId();
+        $storeShipmentClassId = store_ShipmentOrders::getClassId();
+        $storeReceiptsClassId = store_Receipts::getClassId();
+        
+        $query = "UPDATE {$Deltas->dbTableName} JOIN {$Products->dbTableName} ON {$Products->dbTableName}.id = {$Deltas->dbTableName}.{$productCol} JOIN {$Containers->dbTableName} ON {$Deltas->dbTableName}.{$containerCol} = {$Containers->dbTableName}.id RIGHT JOIN {$Sales->dbTableName} ON {$Sales->dbTableName}.id = {$Containers->dbTableName}.{$docIdCol} SET {$Deltas->dbTableName}.{$storeCol} = {$Sales->dbTableName}.{$shipmentStoreIdCol} WHERE {$Containers->dbTableName}.{$docClassCol} = {$salesClassId} AND {$Products->dbTableName}.{$canStoreCol} = 'yes' AND {$Deltas->dbTableName}.{$storeCol} IS NULL";
+        $Deltas->db->query($query);
+        
+        $query = "UPDATE {$Deltas->dbTableName} JOIN {$Products->dbTableName} ON {$Products->dbTableName}.id = {$Deltas->dbTableName}.{$productCol} JOIN {$Containers->dbTableName} ON {$Deltas->dbTableName}.{$containerCol} = {$Containers->dbTableName}.id RIGHT JOIN {$Shipments->dbTableName} ON {$Shipments->dbTableName}.id = {$Containers->dbTableName}.{$docIdCol} SET {$Deltas->dbTableName}.{$storeCol} = {$Shipments->dbTableName}.{$storeCol} WHERE {$Containers->dbTableName}.{$docClassCol} = {$storeShipmentClassId} AND {$Products->dbTableName}.{$canStoreCol} = 'yes' AND {$Deltas->dbTableName}.{$storeCol} IS NULL";
+        $Deltas->db->query($query);
+        
+        $query = "UPDATE {$Deltas->dbTableName} JOIN {$Products->dbTableName} ON {$Products->dbTableName}.id = {$Deltas->dbTableName}.{$productCol} JOIN {$Containers->dbTableName} ON {$Deltas->dbTableName}.{$containerCol} = {$Containers->dbTableName}.id RIGHT JOIN {$Receipts->dbTableName} ON {$Receipts->dbTableName}.id = {$Containers->dbTableName}.{$docIdCol} SET {$Deltas->dbTableName}.{$storeCol} = {$Receipts->dbTableName}.{$storeCol} WHERE {$Containers->dbTableName}.{$docClassCol} = {$storeReceiptsClassId} AND {$Products->dbTableName}.{$canStoreCol} = 'yes' AND {$Deltas->dbTableName}.{$storeCol} IS NULL";
+        $Deltas->db->query($query);
     }
 }

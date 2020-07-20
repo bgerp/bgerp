@@ -284,12 +284,6 @@ abstract class cash_Document extends deals_PaymentDocument
             }
         }
         
-        // Поставяме стойности по подразбиране
-        if (empty($form->rec->id) && $form->cmd != 'refresh') {
-            $form->setDefault('peroCase', cash_Cases::getCurrent('id', false));
-            $form->setDefault('peroCase', $caseId);
-        }
-        
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);
         $form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
         
@@ -513,7 +507,7 @@ abstract class cash_Document extends deals_PaymentDocument
             } else {
                 if($defaultCase = $mvc->getDefaultCase($rec)){
                     $row->peroCase = cash_Cases::getHyperlink($defaultCase);
-                    $row->peroCase = ht::createHint($row->peroCase, 'Касата ще бъде записана при контирана, ако не е избрана конкретна', 'notice', false);
+                    $row->peroCase = ht::createHint($row->peroCase, 'Касата ще бъде записана при контиране, ако не е избрана конкретна', 'notice', false);
                 } else {
                     $row->peroCase = tr('Предстои да бъде уточнена');
                     $row->peroCase = "<span class='red'><small><i>{$row->peroCase}</i></small></span>";
@@ -622,14 +616,16 @@ abstract class cash_Document extends deals_PaymentDocument
     {
         $userId = isset($userId) ? $userId : core_Users::getCurrent();
         $caseId = cash_Cases::getCurrent('id', false);
-       
-        foreach (array(true, false) as $exp){
-            $query = cash_Cases::getQuery();
-            $query->show('id');
-            bgerp_plg_FLB::addUserFilterToQuery('cash_Cases', $query, $userId, $exp);
-            if($firstRec = $query->fetch()){
-                $caseId = $firstRec->id;
-                break;
+        
+        if(!isset($caseId)){
+            foreach (array(true, false) as $exp){
+                $query = cash_Cases::getQuery();
+                $query->show('id');
+                bgerp_plg_FLB::addUserFilterToQuery('cash_Cases', $query, $userId, $exp);
+                if($firstRec = $query->fetch()){
+                    $caseId = $firstRec->id;
+                    break;
+                }
             }
         }
         

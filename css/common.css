@@ -436,6 +436,21 @@ input[type="search"]::-webkit-search-decoration {
 input::-webkit-calendar-picker-indicator {
   display: none; }
 
+/*
+ * *
+ * fix chrome input
+ */
+input,
+textarea,
+select,
+input:focus,
+textarea:focus,
+select:focus,
+input:hover,
+select:hover,
+textarea:hover {
+  outline: none; }
+
 #simpleSearch {
   width: 15em;
   max-width: 100%;
@@ -3442,6 +3457,12 @@ td.rightCol,
 th.rightCol {
   white-space: nowrap;
   text-align: right !important; }
+
+  .listBlock > .listRows > .listTable > thead > tr > th,
+  .listBlock > form > div > .listRows > .listTable > thead > tr > th,
+  .listBlock > div > .listRows > .listTable > thead > tr > th {
+    white-space: normal;
+    font-size: 0.95em; }
 
 td.leftCol,
 th.leftCol {

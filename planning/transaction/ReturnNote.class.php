@@ -115,12 +115,16 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
                 acc_journal_RejectRedirect::expect(false, "Артикулите: |{$errorArr}|* не могат да бъдат върнати защото липсва себестойност");
             }
             
-            // Проверка на артикулите
-            $productCheck = deals_Helper::checkProductForErrors($productsArr, 'canConvert,canStore');
-            if(countR($productCheck['notActive'])){
-                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
-            } elseif($productCheck['metasError']){
-                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са складируеми и вложими|*!");
+            $msg = "трябва да са складируеми и вложими";
+            if($redirectError = deals_Helper::getContoRedirectError($productsArr, 'canConvert,canStore', null, $msg)){
+                
+                acc_journal_RejectRedirect::expect(false, $redirectError);
+            }
+            
+            $msg = "са генерични и трябва да бъдат заменени";
+            if($redirectError = deals_Helper::getContoRedirectError($productsArr, null, 'generic', $msg)){
+                
+                acc_journal_RejectRedirect::expect(false, $redirectError);
             }
         }
         
