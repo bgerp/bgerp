@@ -14,15 +14,15 @@
  
  * @title     Дефинирани регистри в Zontromat
  */
-class ztm_RegistersDef extends core_Master
+class ztm_Registers extends core_Master
 {
     public $title = 'Дефинирани регистри в Zontromat';
     
     
     /**
-     * Кой има право да чете?
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
-    public $canRead = 'ztm, ceo';
+    public $oldClassName = 'ztm_RegistersDef';
     
     
     /**
