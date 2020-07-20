@@ -1598,7 +1598,7 @@ class pos_Terminal extends peripheral_Terminal
         
         // Абониране за рефреш на хедъра
         $originState = $rec->state;
-        core_Ajax::subscribe($tpl, array($this, 'autoRefreshHeader', $rec->id, 'originState' => $originState), 'refreshTime', 30);
+        core_Ajax::subscribe($tpl, array($this, 'autoRefreshHeader', $rec->id, 'originState' => $originState), 'refreshTime', 20000);
     }
     
     
