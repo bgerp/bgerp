@@ -164,4 +164,32 @@ class pos_SellableProductsCache extends core_Master
             }
         }
     }
+    
+    
+    /**
+     * Връща статистическа информация за пос продажбите
+     *
+     * @return array $res
+     */
+    public static function getPosStatisticData()
+    {
+        // За всяка бележка, намират се най-продаваните 100 артикула
+        $receiptQuery = pos_ReceiptDetails::getQuery();
+        $receiptQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
+        $receiptQuery->EXT('groupsInput', 'cat_Products', 'externalName=groupsInput,externalKey=productId');
+        $receiptQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+        $receiptQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+        $receiptQuery->XPR('count', 'int', 'count(#id)');
+        $receiptQuery->XPR('sumQuantity', 'int', 'SUM(#quantity)');
+        $receiptQuery->XPR('sumAmount', 'int', 'SUM(#amount)');
+        $receiptQuery->where("#state != 'draft' && #state != 'rejected' AND #isPublic = 'yes'");
+        $receiptQuery->show('productId,groups,groupsInput,storeId,sumQuantity,sumAmount');
+        $receiptQuery->groupBy('productId,storeId');
+        $receiptQuery->orderBy("count", 'DESC');
+        
+        // Те ще се добавят в групата за Топ 100 най-продавани
+        $res = $receiptQuery->fetchAll();
+        
+        return $res;
+    }
 }

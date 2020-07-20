@@ -500,7 +500,7 @@ class pos_ReceiptDetails extends core_Detail
             
             // Намираме нужната информация за продукта
             $this->getProductInfo($rec);
-            
+         
             expect($rec->productId, 'Няма такъв продукт в системата|*!');
             expect($rec->notSellable !== true, 'Артикулът е спрян от продажба|*!');
             
@@ -535,20 +535,21 @@ class pos_ReceiptDetails extends core_Detail
                 }
             }
             
-            if(!empty($selectedRec->batch) && empty($rec->batch)){ 
+            if((!empty($selectedRec->batch) && empty($rec->batch))){ 
                 $selectedRec = null;
             }
-            
-            if($selectedRec->productId == $rec->productId){
+           
+            if($selectedRec->productId == $rec->productId && $selectedRec->value == $rec->value){
                 $rec->value = $selectedRec->value;
                 $rec->batch = $selectedRec->batch;
             } else {
-                $count = $this->count("#receiptId = {$rec->receiptId} && #productId = {$rec->productId}");
+                $count = $this->count("#receiptId = {$rec->receiptId} && #productId = {$rec->productId} AND #value = {$rec->value}");
                 expect($count <= 1, 'Не е избран конкретен ред|*!');
             }
             
             // Намираме дали този проект го има въведен
             $sameProduct = $this->findSale($rec->productId, $rec->receiptId, $rec->value, $rec->batch);
+            
             if ($sameProduct) {
                 
                 // Ако текущо селектирания ред е избрания инкрементира се, ако не се задава ново количество

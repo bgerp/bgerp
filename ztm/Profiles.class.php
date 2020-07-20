@@ -38,15 +38,14 @@ class ztm_Profiles extends core_Master
     
     
     /**
-     * Кой има право да го види?
-     */
-    public $canView = 'ztm, ceo';
-    
-    
-    /**
      * Кой може да го разглежда?
      */
     public $canList = 'ztm, ceo';
+    
+    
+    /**
+     * Кой има право да го разглежда?
+     */
     public $canSingle = 'ztm, ceo';
     
     
@@ -54,7 +53,17 @@ class ztm_Profiles extends core_Master
      * Кой има право да го изтрие?
      */
     public $canDelete = 'no_one';
+    
+    
+    /**
+     * Кой има право да го оттегля?
+     */
     public $canReject = 'ztm, ceo';
+    
+    
+    /**
+     * Кой има право да го възстановява?
+     */
     public $canRestore = 'ztm, ceo';
     
     
@@ -69,7 +78,7 @@ class ztm_Profiles extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'ztm_ProfileDefaults';    
+    public $details = 'ztm_ProfileDetails';    
     
     /**
      * Плъгини за зареждане
@@ -83,6 +92,13 @@ class ztm_Profiles extends core_Master
      */
     public $listFields = 'name, description';
     
+    
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsSingleField = 'name';
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -90,7 +106,6 @@ class ztm_Profiles extends core_Master
     {
         $this->FLD('name', 'varchar(32)', 'caption=Име');
         $this->FLD('description', 'richtext', 'caption=Описание');
-        
     }
     
     
@@ -106,25 +121,10 @@ class ztm_Profiles extends core_Master
         $rec = $form->rec;
     }
     
-    
-    /**
-     * Добавя бутони  към единичния изглед на документа
-     */
-    public static function on_AfterPrepareSingleToolbar($mvc, $data)
-    {
-        
-        $data->toolbar->addBtn('Изход', array('ztm_Profiles','ret_url' => true));
-        
-        if (ztm_ProfileDefaults::haveRightFor('add')) {
-            $data->toolbar->addBtn('Добавяне на Регистър', array(ztm_ProfileDefaults, 'add', 'profileId' => $data->rec->id, 'ret_url' => true),
-                                'order=15,title=Добавяне на Регистър,ef_icon = img/16/shopping.png');
-        }
-    }
-    
     public static function getDefaultResponse($profileId)
     {
         $dArr = array();
-        $dQuery = ztm_ProfileDefaults::getQuery();
+        $dQuery = ztm_ProfileDetails::getQuery();
         $dQuery->where("#profileId = {$profileId}");
         $dQuery->show('registerId,value');
         while($dRec = $dQuery->fetch()){
@@ -132,7 +132,7 @@ class ztm_Profiles extends core_Master
         }
         
         $res = array();
-        $query = ztm_RegistersDef::getQuery();
+        $query = ztm_Registers::getQuery();
         
         while($rec = $query->fetch()){
             $default = $rec->default;

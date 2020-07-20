@@ -56,8 +56,8 @@ class pwa_Manifest extends core_Mvc
             'display' => 'standalone',
             'background_color' => '#fff',
             'theme_color' => '#ddd',
-            'start_url' => '/Portal/Show',
-            'scope' => '/',
+            'start_url' => '/pwa_Share/Portal',
+            'scope' => '/pwa_Share',
             'icons' => $iconInfoArr,
             'share_target' => array(
                 'action' => '/pwa_Share/Target',
