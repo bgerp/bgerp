@@ -182,6 +182,7 @@ class eshop_Settings extends core_Master
         $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Показване на е-артикулите във външната част->Опаковки/Мерки');
         
         $this->FLD('enableCart', 'enum(yes=Винаги,no=Ако съдържа продукти)', 'caption=Показване на количката във външната част->Показване,notNull,value=no');
+        $this->FLD('enableCartAddBtn', 'enum(yes=Да,no=Не)', 'caption=Показване на количката във външната част->Бутон "Добавяне"');
         $this->FLD('cartName', 'varchar(16)', 'caption=Показване на количката във външната част->Надпис');
         $this->FLD('canUseCards', 'enum(yes=Включено,no=Изключено)', 'caption=Възможност за логване с клиентска карта->Избор,notNull,value=yes');
         $this->FLD('locationIsMandatory', 'enum(no=Опционална,yes=Задължителна)', 'caption=Настройки на партньори за онлайн магазина->Локация,notNull,value=no');
@@ -401,6 +402,7 @@ class eshop_Settings extends core_Master
         }
         
         $settingRec = core_Cache::get('eshop_Settings', $cacheKey);
+        
         if (!is_object($settingRec)) {
             $date = dt::now();
             $settingRec = self::get($classId, $objectId, $date);
@@ -565,6 +567,7 @@ class eshop_Settings extends core_Master
                 $settingRec = (object)array('classId' => $domainClassId, 'objectId' => $dRec->id, 'listId' => price_ListRules::PRICE_LIST_CATALOG);
                 $settingRec->discountType = 'percent';
                 $settingRec->enableCart = 'no';
+                $settingRec->enableCartAddBtn = 'yes';
                 $settingRec->currencyId = acc_Periods::getBaseCurrencyCode();
                 $settingRec->chargeVat = 'yes';
                 
