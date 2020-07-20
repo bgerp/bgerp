@@ -78,7 +78,7 @@ class ztm_Profiles extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'ztm_ProfileDefaults';    
+    public $details = 'ztm_ProfileDetails';    
     
     /**
      * Плъгини за зареждане
@@ -121,22 +121,10 @@ class ztm_Profiles extends core_Master
         $rec = $form->rec;
     }
     
-    
-    /**
-     * Добавя бутони  към единичния изглед на документа
-     */
-    public static function on_AfterPrepareSingleToolbar($mvc, $data)
-    {
-        
-        $data->toolbar->addBtn('Изход', array('ztm_Profiles','ret_url' => true));
-        
-        
-    }
-    
     public static function getDefaultResponse($profileId)
     {
         $dArr = array();
-        $dQuery = ztm_ProfileDefaults::getQuery();
+        $dQuery = ztm_ProfileDetails::getQuery();
         $dQuery->where("#profileId = {$profileId}");
         $dQuery->show('registerId,value');
         while($dRec = $dQuery->fetch()){
