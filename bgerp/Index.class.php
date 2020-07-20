@@ -37,6 +37,43 @@ class bgerp_Index extends core_Manager
     
     
     /**
+     * Екшън за покзване на информация за инсталацията 
+     */
+    public function act_About()
+    {
+        $tpl = getTplFromFile('/bgerp/tpl/About.shtml');
+        
+        $resData = new stdClass();
+        $resData->APP_TITLE = core_Setup::get('EF_APP_TITLE', true);
+        $resData->INFO = tr('Информация за страницата');
+        $resData->VERSION = core_setup::CURRENT_VERSION;
+        $resData->SN = core_setup::getBGERPUniqId();
+        $resData->THANKS = ht::createElement('a', array('target' => '_blank',  'href' => 'https://bgerp.com/Bg/Blagodarnosti/'), 'Външни проекти');
+        
+        require_once(EF_APP_PATH . '/core/Setup.inc.php');
+        $repos = core_App::getRepos();
+        $repos = array_reverse($repos);
+        $reposLastDate = '<table>';
+        $log = '';
+        foreach ($repos as $repoPath => $branch) {
+            $lastCommitDate = gitLastCommitDate($repoPath, $log);
+            if ($lastCommitDate) {
+                $lastCommitDate = dt::mysql2verbal($lastCommitDate);
+            }
+            
+            $hash = gitLastCommitHash($repoPath);
+            $reposLastDate .= "<tr><td align='right'>" . basename($repoPath).": </td><td style='font-weight: bold;'>" . $lastCommitDate . ' (' . gitCurrentBranch($repoPath, $log) . ' - ' . $hash . ')</td></tr> ';
+        }
+        $reposLastDate .= '</table>';
+        $resData->REPOS = $reposLastDate;
+        
+        $tpl->placeObject($resData);
+        
+        return $tpl;
+    }
+    
+    
+    /**
      * Връща линк към подадения обект
      *
      * @param int $objId

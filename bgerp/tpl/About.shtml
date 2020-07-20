@@ -1,0 +1,46 @@
+<div class="groupList">
+	<table style="width: 100%; margin-bottom:5px;">
+	    <tr>
+	        <td class="dt">|Проложение|*:</td>
+	        <td>
+	            [#APP_TITLE#]
+	        </td>
+	    </tr>
+	    
+	    <tr>
+            <td class="dt">|Описание|*:</td>
+            <td>
+                [#INFO#]
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="dt">|Версия|*:</td>
+            <td>
+                [#VERSION#]
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="dt">|Сериен номер|*:</td>
+            <td>
+                [#SN#]
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="dt">|Хранилища|*:</td>
+            <td>
+                [#REPOS#]
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="dt">|Благодарности|*:</td>
+            <td>
+                [#THANKS#]
+            </td>
+        </tr>
+	    
+	</table>
+</div>

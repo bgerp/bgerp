@@ -175,6 +175,7 @@ class core_page_InternalModern extends core_page_Active
                                                 [#CHANGE_MODE#]
                                                 [#LANG_CHANGE#]
                                                 [#SIGNAL#]
+                                                [#ABOUT_BTN#]
                                                 [#DEBUG_BTN#]
                                                 [#PROFILE_MENU_ITEM#]
                                                 <div class='divider'></div>
@@ -396,7 +397,10 @@ class core_page_InternalModern extends core_page_Active
         $portalLink = ht::createLink($coreConf->EF_APP_TITLE, $url, null, $portalLinkAttr);
         $nLink = ht::createLink("{$openNotifications}", $url, null, $attr);
         
+        $about = ht::createLink(tr('За системата'), array('Bgerp', 'About'), null, array('ef_icon' => 'img/16/info-gray.png', 'title' => 'Информация за инсталацията'));
+        
         $tpl->replace($debug, 'DEBUG_BTN');
+        $tpl->replace($about, 'ABOUT_BTN');
         $tpl->replace($mode, 'CHANGE_MODE');
         $tpl->replace($singal, 'SIGNAL');
         $tpl->replace($nLink, 'NOTIFICATIONS_CNT');
