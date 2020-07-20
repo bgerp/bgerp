@@ -103,7 +103,6 @@ class sales_StatisticData extends core_Manager
     }
     
     
-    
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
@@ -124,7 +123,12 @@ class sales_StatisticData extends core_Manager
     {
         $exPosQuery = self::getQuery();
         $exRecs = $exPosQuery->fetchAll();
-        $newRecs = self::getSaleStatistic();
+        
+        $newRecs = array();
+        $saleRecs = self::getSaleStatistic();
+        foreach ($saleRecs as $saleRec){
+            $newRecs["sales|{$saleRec->productId}|{$saleRec->storeId}"] = (object)array('type' => 'sales', 'productId' => $saleRec->productId, 'storeId' => $saleRec->storeId, 'count' => $saleRec->count, 'quantity' => $saleRec->sumQuantity, 'amount' => $saleRec->sumAmount);
+        }
         
         if(core_Packs::isInstalled('pos')){
             $posRecs = array();
@@ -137,13 +141,12 @@ class sales_StatisticData extends core_Manager
         }
         
         if(core_Packs::isInstalled('eshop')){
-            /*$eshopRecs = array();
-            $eshopDataRecs = eshop_Carts::getStatisticData();
-            foreach($eshopDataRecs as $posRec){
-                $eshopRecs["eshop|{$posRec->productId}|{$posRec->storeId}"] = (object)array('type' => 'eshop', 'productId' => $posRec->productId, 'storeId' => $posRec->storeId, 'count' => $posRec->count, 'quantity' => $posRec->sumQuantity, 'amount' => $posRec->sumAmount);
+            $saleEshopRecs = self::getSaleStatistic(true);
+            $eshopRecs = array();
+            foreach ($saleEshopRecs as $saleEshopRec){
+              $eshopRecs["eshop|{$saleEshopRec->productId}|{$saleEshopRec->storeId}"] = (object)array('type' => 'eshop', 'productId' => $saleEshopRec->productId, 'storeId' => $saleEshopRec->storeId, 'count' => $saleEshopRec->count, 'quantity' => $saleEshopRec->sumQuantity, 'amount' => $saleEshopRec->sumAmount);
             }
-            
-            $newRecs += $eshopRecs;*/
+            $newRecs += $eshopRecs;
         }
         
         $res = arr::syncArrays($newRecs, $exRecs, 'type,productId,storeId', 'storeId,count,quantity,amount');
@@ -169,24 +172,32 @@ class sales_StatisticData extends core_Manager
     /**
      * Връща статистическа информация за продажбите
      * 
-     * @return array $res 
+     * @return array
      */
-    public function getSaleStatistic()
+    public function getSaleStatistic($onlyOnlineSales = false)
     {
-        $res = array();
-        
         $deltaQuery = sales_PrimeCostByDocument::getQuery();
         $deltaQuery->XPR('count', 'int', 'count(#id)');
         $deltaQuery->XPR('sumQuantity', 'int', 'SUM(#quantity)');
         $deltaQuery->XPR('sumAmount', 'int', 'SUM(#quantity * #sellCost)');
-        $deltaQuery->where("#sellCost IS NOT NULL AND (#state = 'active' OR #state = 'closed')");
+        $deltaQuery->where("#sellCost IS NOT NULL AND (#state = 'active' OR #state = 'closed') AND #isPublic = 'yes'");
         $deltaQuery->groupBy('productId,storeId');
         $deltaQuery->orderBy("count", 'DESC');
         $deltaQuery->show('productId,storeId,sumQuantity,sumAmount,count');
-        while($saleRec = $deltaQuery->fetch()){
-            $res["sales|{$saleRec->productId}|{$saleRec->storeId}"] = (object)array('type' => 'sales', 'productId' => $saleRec->productId, 'storeId' => $saleRec->storeId, 'count' => $saleRec->count, 'quantity' => $saleRec->sumQuantity, 'amount' => $saleRec->sumAmount);
+        
+        if($onlyOnlineSales){
+            $cartQuery = eshop_Carts::getQuery();
+            $cartQuery->EXT('threadId', 'sales_Sales', 'externalName=threadId,externalKey=saleId');
+            $cartQuery->where("#saleId IS NOT NULL");
+            $cartQuery->show('threadId');
+            $threadsArr = arr::extractValuesFromArray($cartQuery->fetchAll(), 'threadId');
+            if(countR($threadsArr)){
+                $deltaQuery->in('threadId', $threadsArr);
+            } else {
+                $deltaQuery->where("1=2");
+            }
         }
         
-        return $res;
+        return $deltaQuery->fetchAll();
     }
 }
