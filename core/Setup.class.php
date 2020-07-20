@@ -402,7 +402,7 @@ class core_Setup extends core_ProtoSetup
         
         'CORE_BACKUP_PATH' => array('varchar', 'caption=Настройки за бекъп->Път до бекъпите,readOnly'),
             
-        'CORE_BGERP_UNIQ_ID' => array('varchar(16)', 'caption=Сериен номер на инсталацията->ID,readOnly'),
+        'CORE_BGERP_UNIQ_ID' => array('varchar(19)', 'caption=Сериен номер на инсталацията->ID,readOnly'),
     );
     
     
@@ -429,7 +429,8 @@ class core_Setup extends core_ProtoSetup
         'core_Forwards',
         'core_Updates',
         'core_Permanent',
-        'migrate::repairSearchKeywords31920'
+        'migrate::repairSearchKeywords31920',
+        'migrate::setBGERPUNIQId3020'
     );
     
     
@@ -806,7 +807,7 @@ class core_Setup extends core_ProtoSetup
     
     
     /**
-     * Връща 16 цифрено уникалното id на системата за тази инсталация
+     * Връща 19 цифрено уникалното id на системата за тази инсталация
      *
      * @return string
      */
@@ -815,9 +816,9 @@ class core_Setup extends core_ProtoSetup
         $res = '';
         
         $fm = filectime(getFullPath('core'));
-        $t = date('dm', $fm);
+        $t = date('md', $fm);
         $y = date('y', $fm);
-        $res = str_pad($t . ($y % 10), 5, 0, STR_PAD_LEFT);
+        $res = str_pad(($y % 10) . $t, 5, 0, STR_PAD_LEFT);
         
         $u = substr(crc32(php_uname('s')), 0, 3);
         $res .= str_pad($u, 3, 0, STR_PAD_LEFT);
@@ -837,6 +838,17 @@ class core_Setup extends core_ProtoSetup
         
         $res = substr($res, 0, 16);
         
+        $res = implode('-', str_split($res, 4));
+        
         return $res;
+    }
+    
+    
+    /**
+     * Миграция за добавянер на уникален номер на системата
+     */
+    function setBGERPUNIQId3020()
+    {
+        $this->setBGERPUniqId(true);
     }
 }
