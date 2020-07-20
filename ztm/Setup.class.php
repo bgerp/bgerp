@@ -55,8 +55,8 @@ class ztm_Setup extends core_ProtoSetup
             'ztm_Devices',
             'ztm_Registers',
             'ztm_RegisterValues',
-            'ztm_RegisterLongValues',
+            'ztm_LongValues',
             'ztm_Profiles',
-            'ztm_ProfileDefaults',
+            'ztm_ProfileDetails',
     );
 }

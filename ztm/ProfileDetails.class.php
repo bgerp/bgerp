@@ -16,20 +16,24 @@
  
  * @title     Детайл на профил в Zontromat
  */
-class ztm_ProfileDefaults extends core_Detail
+class ztm_ProfileDetails extends core_Detail
 {
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'ztm_ProfileDefaults';
+    
+    
+    /**
+     * Заглавие на модела
+     */
     public $title = 'Детайл на профил в Zontromat';
+    
     
     /**
      * Заглавие в единствено число
      */
     public $singleTitle = 'Регистър';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ztm, ceo';
     
     
     /**
@@ -54,6 +58,11 @@ class ztm_ProfileDefaults extends core_Detail
      * Кой може да го разглежда?
      */
     public $canList = 'ztm, ceo';
+    
+    
+    /**
+     * Кой може да го разглежда?
+     */
     public $canSingle = 'ztm, ceo';
     
     
@@ -61,14 +70,22 @@ class ztm_ProfileDefaults extends core_Detail
      * Кой има право да го изтрие?
      */
     public $canDelete = 'no_one';
+    
+    
+    /**
+     * Кой има право да го оттегли?
+     */
     public $canReject = 'ztm, ceo';
+    
+    
+    /**
+     * Кой има право да го възстанови?
+     */
     public $canRestore = 'ztm, ceo';
     
     
     /**
      * Кой може да променя състоянието на документите
-     *
-     * @see plg_State2
      */
     public $canChangestate = 'ztm, ceo';
     
@@ -77,6 +94,7 @@ class ztm_ProfileDefaults extends core_Detail
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'profileId';
+    
     
     /**
      * Плъгини за зареждане
@@ -102,19 +120,4 @@ class ztm_ProfileDefaults extends core_Detail
         $this->setDbUnique('profileId, registerId');
         
     }
-    
-    
-    
-    /**
-     * След подготовка на лист тулбара
-     */
-    public static function on_AfterPrepareListToolbar($mvc, $data)
-    {
-      
-        $data->toolbar->removeBtn('btnAdd');
-        
-    }
-    
-    
-    
 }

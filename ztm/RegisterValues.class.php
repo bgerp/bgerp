@@ -62,7 +62,7 @@ class ztm_RegisterValues extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,deviceId,registerDefId,value,updatedOn';
+    public $listFields = 'id,deviceId,registerId,value,updatedOn';
     
     
     /**
@@ -71,11 +71,11 @@ class ztm_RegisterValues extends core_Manager
     public function description()
     {
         $this->FLD('deviceId', 'key(mvc=ztm_Devices, select=name)','caption=Устройство,mandatory');
-        $this->FLD('registerDefId', 'key(mvc=ztm_Registers, select=name)','caption=Регистър');
+        $this->FLD('registerId', 'key(mvc=ztm_Registers, select=name)','caption=Регистър');
         $this->FLD('value', 'varchar(32)','caption=Стойност');
         $this->FLD('updatedOn', 'datetime(format=smartTime)','caption=Обновено на');
         
-        $this->setDbUnique('deviceId,registerDefId');
+        $this->setDbUnique('deviceId,registerId');
     }
     
     
@@ -89,10 +89,10 @@ class ztm_RegisterValues extends core_Manager
      */
     public static function get($deviceId, $registerId)
     {
-        $rec = self::fetch("#deviceId = '{$deviceId}' AND #registerDefId = '{$registerId}'");
+        $rec = self::fetch("#deviceId = '{$deviceId}' AND #registerId = '{$registerId}'");
         
         if(is_object($rec)){
-            if($longValue = ztm_RegisterLongValues::fetchField("#registerId = {$rec->id}", 'value')){
+            if($longValue = ztm_LongValues::fetchField("#hash = '{$rec->value}'", 'value')){
                 $rec->value = $longValue;
             }
         }
@@ -120,8 +120,8 @@ class ztm_RegisterValues extends core_Manager
         expect($registerDefRec = ztm_Registers::fetch($registerId), "Няма такъв регистър");
         expect($time <= $now, 'Не може да се зададе бъдеще време');
         
-        $rec = (object)array('deviceId' => $deviceId, 'registerDefId' => $registerId, 'updatedOn' => $time, 'value' => $value);
-        $exRec = self::fetch("#deviceId = '{$deviceId}' AND #registerDefId = '{$registerId}'");
+        $rec = (object)array('deviceId' => $deviceId, 'registerId' => $registerId, 'updatedOn' => $time, 'value' => $value);
+        $exRec = self::fetch("#deviceId = '{$deviceId}' AND #registerId = '{$registerId}'");
         if(is_object($exRec)){
             if($exRec->updatedOn > $time) {
                 
@@ -137,14 +137,12 @@ class ztm_RegisterValues extends core_Manager
             $rec->value = $hash;
         }
         
-        $id = self::save($rec);
         if(isset($hash)){
-            $longRec = (object)array('registerId' => $id, 'value' => $value, 'hash' => $hash);
-            if($exId = ztm_RegisterLongValues::fetchField("#registerId = {$id}")){
-                $longRec->id = $exId;
+            $longRec = ztm_LongValues::fetch("#hash = {$rec->value}");
+            if(!$longRec){
+                $longRec = (object)array('value' => $value, 'hash' => $rec->value);
+                ztm_LongValues::save($longRec);
             }
-            
-            ztm_RegisterLongValues::save($longRec);
         }
         
         return $rec;
@@ -221,7 +219,7 @@ class ztm_RegisterValues extends core_Manager
     {
         $deviceRec = ztm_Devices::fetchRec($deviceId);
         $query = self::getQuery();
-        $query->EXT('priority', 'ztm_Registers', 'externalName=priority,externalKey=registerDefId');
+        $query->EXT('priority', 'ztm_Registers', 'externalName=priority,externalKey=registerId');
         $query->where("#deviceId = '{$deviceRec->id}'");
         
         if(isset($updatedAfter)){
@@ -230,8 +228,8 @@ class ztm_RegisterValues extends core_Manager
         
         $res = array();
         while($rec = $query->fetch()){
-            $extRec = self::get($deviceRec->id, $rec->registerDefId);
-            $res[$rec->registerDefId] = array('deviceId' => $deviceRec->id, 'registerDefId' => $rec->registerDefId, 'value' => $extRec->value, 'priority' => $rec->priority);
+            $extRec = self::get($deviceRec->id, $rec->registerId);
+            $res[$rec->registerId] = array('deviceId' => $deviceRec->id, 'registerId' => $rec->registerId, 'value' => $extRec->value, 'priority' => $rec->priority);
         }
         
         return (object)$res;
