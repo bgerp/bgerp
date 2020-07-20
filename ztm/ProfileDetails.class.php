@@ -81,14 +81,14 @@ class ztm_ProfileDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'ztm_Wrapper, plg_Created, plg_RowTools2, plg_Modified, plg_Sorting';
+    public $loadList = 'ztm_Wrapper, plg_Created, plg_RowTools2, plg_Modified, plg_Sorting, plg_SaveAndNew';
     
     
     /**
-     *
-     * @var string
+     * Полета в листовия изглед
      */
-    public $listFields = 'profileId,registerId, value';
+    public $listFields = 'registerId, value, modifiedOn,modifiedBy';
+    
     
     /**
      * Описание на модела (таблицата)
@@ -127,7 +127,7 @@ class ztm_ProfileDetails extends core_Detail
      */
     protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        $rec->value = ztm_Registers::recordValues($rec->registerId, $rec->extValue);
+        $rec->value = ztm_Registers::recordValue($rec->registerId, $rec->extValue);
     }
     
     

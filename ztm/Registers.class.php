@@ -172,7 +172,7 @@ class ztm_Registers extends core_Master
      * 
      * @return mixed
      */
-    public static function recordValues($registerId, $extValue)
+    public static function recordValue($registerId, $extValue)
     {
         $type = ztm_Registers::fetchField($registerId, 'type');
         

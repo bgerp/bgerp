@@ -32,7 +32,7 @@ class ztm_RegisterValues extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, ztm_Wrapper';
+    public $loadList = 'plg_RowTools2, ztm_Wrapper, plg_Modified';
     
     
     /**
@@ -62,7 +62,7 @@ class ztm_RegisterValues extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,deviceId,registerId,value,updatedOn';
+    public $listFields = 'id,deviceId,registerId,value,updatedOn,modifiedOn,modifiedBy';
     
     
     /**
@@ -80,6 +80,29 @@ class ztm_RegisterValues extends core_Manager
     
     
     /**
+     * Подредба на записите
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->setFieldTypeParams('deviceId', array('allowEmpty' => 'allowEmpty'));
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->showFields = 'deviceId,registerId';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input();
+        
+        if ($data->listFilter->isSubmitted()) {
+            if ($deviceId = $data->listFilter->rec->deviceId) {
+                $data->query->where("#deviceId = {$deviceId}");
+            }
+            
+            if ($registerId = $data->listFilter->rec->registerId) {
+                $data->query->where("#registerId = {$registerId}");
+            }
+        }
+    }
+    
+    
+    /**
      * Извлича стойността на дадения регистър
      * 
      * @param int $deviceId       - ид на устройство
@@ -90,12 +113,13 @@ class ztm_RegisterValues extends core_Manager
     public static function get($deviceId, $registerId)
     {
         $rec = self::fetch("#deviceId = '{$deviceId}' AND #registerId = '{$registerId}'");
+        $rec->value = ztm_LongValues::getValueByHash($rec->value);
         
-        if(is_object($rec)){
-            if($longValue = ztm_LongValues::fetchField("#hash = '{$rec->value}'", 'value')){
-                $rec->value = $longValue;
-            }
-        }
+       // if(is_object($rec)){
+           // if($longValue = ztm_LongValues::fetchField("#hash = '{$rec->value}'", 'value')){
+                //$rec->value = $longValue;
+            //}
+       // }
         
         return is_object($rec) ? $rec : null;
     }
@@ -180,9 +204,15 @@ class ztm_RegisterValues extends core_Manager
     "wc.state": null,
     "wt.state": null
 }';
+       
+        
         $lastSync = '2020-01-01 10:00:00';
         
         $regArr = json_decode($r);
+        
+        
+        
+        
         $deviceId = 3;
         
         
@@ -219,6 +249,7 @@ class ztm_RegisterValues extends core_Manager
     {
         $deviceRec = ztm_Devices::fetchRec($deviceId);
         $query = self::getQuery();
+        $query->EXT('name', 'ztm_Registers', 'externalName=name,externalKey=registerId');
         $query->EXT('priority', 'ztm_Registers', 'externalName=priority,externalKey=registerId');
         $query->where("#deviceId = '{$deviceRec->id}'");
         
@@ -229,10 +260,10 @@ class ztm_RegisterValues extends core_Manager
         $res = array();
         while($rec = $query->fetch()){
             $extRec = self::get($deviceRec->id, $rec->registerId);
-            $res[$rec->registerId] = array('deviceId' => $deviceRec->id, 'registerId' => $rec->registerId, 'value' => $extRec->value, 'priority' => $rec->priority);
+            $res[$rec->registerId] = (object)array("name" => $deviceRec->name, 'deviceId' => $deviceRec->id, 'registerId' => $rec->registerId, 'value' => ztm_LongValues::getValueByHash($extRec->value), 'priority' => $rec->priority);
         }
         
-        return (object)$res;
+        return $res;
     }
     
     
@@ -259,16 +290,43 @@ class ztm_RegisterValues extends core_Manager
         $lastSyncMin = min($lastSync, $deviceRec->lastSync);
         
         $expandRegister = self::expandArr($regArr, $deviceRec->id);
+        foreach ($expandRegister as $k => $ourReg){
+            if($ourReg->priority == 'device'){
+                unset($ourRegisters[$k]);
+            }
+        }
+        
+        
         $ourRegisters = self::grab($deviceRec, $lastSyncMin);
-        bp($regArr, $ourRegisters);
+        foreach ($ourRegisters as $k => $ourReg){
+            if($ourReg->priority == 'device'){
+                unset($ourRegisters[$k]);
+            }
+        }
+        
+       // bp($ourRegisters);
+        
+        //Взема всички регистри от модела, които са променяни след $lastSync и премахва от тях тези за които priority==device
+        //4. Нанася $regArr върху вътрешното състояние, като взема само регистрите с priority==device и този с priority=time и имащи
+        
+        
+        
+        
+        
+        
+        
+        bp($expandRegister, $ourRegisters);
     }
     
     public static function expandArr($arr)
     {
         $res = array();
         foreach ($arr as $name => $value){
-            $registerId = ztm_Registers::fetchField();
+            $registerRec = ztm_Registers::fetch(array("#name = '[#1#]'", trim($name)), 'priority,id');
+            $res[] = (object)array('name' => $name, 'value' => $value, 'registerId' => $registerRec->id, 'priority' => $registerRec->priority);
         }
+        
+        return $res;
     }
     
     /**
@@ -289,11 +347,11 @@ class ztm_RegisterValues extends core_Manager
             $defaultResponse = ztm_Profiles::getDefaultResponse($deviceRec->profileId);
            // $defaultResponse = array('') + $defaultResponse;
             
-            $test = (object)array("monitoring.enabled" => 1, 'pir_detector.enabled' => 1, 'window_closed.enabled' => 1, 'access_control_1' => 1, 'self' => 1, 'access_control_1.card_reader.enabled' => 1, 'general' => 1);
-            //bp();
+            //$test = (object)array("monitoring.enabled" => 1, 'pir_detector.enabled' => 1, 'window_closed.enabled' => 1, 'access_control_1' => 1, 'self' => 1, 'access_control_1.card_reader.enabled' => 1, 'general' => 1);
+            //bp($defaultResponse);
             //log_System::logWarning($response);
             //wp($response);
-            core_App::outputJson($test);
+            core_App::outputJson($defaultResponse);
         //}
     }
     
@@ -323,7 +381,7 @@ class ztm_RegisterValues extends core_Manager
      */
     protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        $rec->value = ztm_Registers::recordValues($rec->registerId, $rec->extValue);
+        $rec->value = ztm_Registers::recordValue($rec->registerId, $rec->extValue);
     }
     
     
@@ -340,6 +398,6 @@ class ztm_RegisterValues extends core_Manager
         
         $Type = ztm_Registers::getValueFormType($rec->registerId);
         $row->value = $Type->toVerbal($value);
+        $row->deviceId = ztm_Devices::getHyperlink($rec->deviceId, true);
     }
-    
 }
