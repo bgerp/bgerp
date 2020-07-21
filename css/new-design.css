@@ -484,7 +484,9 @@ body {
 .logoText {
   font-weight: bold;
   font-size: 26px;
-  font-family: Arial; }
+  font-family: Arial;
+  position: relative;
+  z-index: 10; }
 
 .logoText a {
   color: #111111 !important; }
@@ -498,7 +500,8 @@ body {
   margin-right: -100px;
   text-align: center;
   z-index: 1;
-  line-height: normal; }
+  line-height: normal;
+  height: 30px; }
 
 #nav-panel {
   background-color: #333333 !important; }
@@ -938,9 +941,9 @@ body {
  */
 .notificationsCnt {
   display: inline-block;
-  position: relative;
-  top: -10px;
-  margin-left: 1px; }
+  position: absolute;
+  top: 0px;
+  margin-left: -5px; }
 
 .notificationsCnt a {
   display: block;
@@ -950,7 +953,9 @@ body {
   border-radius: 10px; }
 
 .narrow .notificationsCnt a {
-  padding: 0 4px; }
+  padding: 0 4px;
+  position: relative;
+  top: 0px; }
 
 .notificationsCnt a.haveNtf {
   background-color: #eedddd;

@@ -532,6 +532,8 @@ body {
     font-weight: bold;
     font-size: 26px;
     font-family: Arial;
+    position: relative;
+    z-index: 10;
 }
 
 .logoText a{
@@ -548,6 +550,7 @@ body {
     text-align: center;
     z-index: 1;
     line-height: normal;
+    height: 30px;
 }
 
 
@@ -1045,9 +1048,9 @@ body {
 /*норификации*/
 .notificationsCnt {
     display: inline-block;
-    position: relative;
-    top: -10px;
-    margin-left: 1px;
+    position: absolute;
+    top: 0px;
+    margin-left: -5px;
 }
 
 
@@ -1061,6 +1064,8 @@ body {
 
 .narrow .notificationsCnt a {
     padding: 0 4px;
+    position: relative;
+    top: 0px;
 }
 
 .notificationsCnt a.haveNtf {
