@@ -45,7 +45,7 @@ class bgerp_Index extends core_Manager
         
         $resData = new stdClass();
         $resData->APP_TITLE = core_Setup::get('EF_APP_TITLE', true);
-        $resData->INFO = tr('Информация за страницата');
+        $resData->INFO = tr('Интегрирана система за управление на бизнеса');
         $resData->VERSION = core_setup::CURRENT_VERSION;
         $resData->SN = core_setup::getBGERPUniqId();
         $resData->THANKS = ht::createElement('a', array('target' => '_blank',  'href' => 'https://bgerp.com/Bg/Blagodarnosti/'), 'Външни проекти');

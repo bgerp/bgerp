@@ -548,6 +548,7 @@ body {
     text-align: center;
     z-index: 1;
     line-height: normal;
+    height: 30px;
 }
 
 
@@ -1045,9 +1046,9 @@ body {
 /*норификации*/
 .notificationsCnt {
     display: inline-block;
-    position: relative;
-    top: -10px;
-    margin-left: 1px;
+    position: absolute;
+    top: 0px;
+    margin-left: -5px;
 }
 
 
@@ -1061,10 +1062,12 @@ body {
 
 .narrow .notificationsCnt a {
     padding: 0 4px;
+    position: relative;
+    top: 0px;
 }
 
 .notificationsCnt a.haveNtf {
-  background-color: #edd;
+  background-color: rgba(238, 221, 221, 0.8);
   border: 1px solid #d66 !important;
   box-shadow: 0 1px 2px 0 #f99;
   color: #e00;
