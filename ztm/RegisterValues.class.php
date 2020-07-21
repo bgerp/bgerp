@@ -113,10 +113,11 @@ class ztm_RegisterValues extends core_Manager
     public static function get($deviceId, $registerId)
     {
         if($rec = self::fetch("#deviceId = '{$deviceId}' AND #registerId = '{$registerId}'")){
+            
+            // Разпъва стойността и добавя името и приоритета
             $registerRec = ztm_Registers::fetch($registerId, 'priority,name,type');
             $rec->priority = $registerRec->priority;
             $rec->name = $registerRec->name;
-            
             $rec->value = ztm_LongValues::getValueByHash($rec->value);
         }
         
@@ -167,11 +168,7 @@ class ztm_RegisterValues extends core_Manager
     {
         requireRole('debug');
         
-        $val = (array)ztm_Devices::fetch(3);
-        //$val = array('name' => 'ivelin', 'sex' => 'male', 'familyName' => 'dimov','zorrrrry' => 'morrrrrroi');
-        bp(self::set(3, 14, $val));
-        
-        
+       
         $r = '{
     "ac1.next_attendance": null,
     "ac2.next_attendance": null,
@@ -208,11 +205,11 @@ class ztm_RegisterValues extends core_Manager
         
         
         $deviceId = 3;
+        $regArr = 'general.is_empty_timeout';
         
+        $synced = $this->sync($regArr, $deviceId, $lastSync);
         
-        self::sync($regArr, $deviceId, $lastSync);
-        
-        
+        bp($synced);
         
         $a = self::get(1, 1);
         //bp($a);
@@ -228,15 +225,101 @@ class ztm_RegisterValues extends core_Manager
     }
     
     
+    /**
+     * Синхронизация на вътрешните ни данни за регистрите с тези от устройството
+     * 
+     * 1. Заключва синхронизацията
+     * 2. $lastSync= min($lastSync, $deviceRec->lastSync) - взема по-старото време от полученото (от контролера) и пазаното в bgERP
+     * 3. Взема всички регистри от модела, които са променяни след $lastSync и премахва от тях тези за които priority==device
+     * 4. Нанася $regArr върху вътрешното състояние, като взема само регистрите с priority==device и този с priority=time и имащи по-голям таймстамп
+     * 5. Връща получения в 3 масив
+     * 
+     * @param array $regArr      - масив върнат от устройството
+     * @param stdClass $deviceId - ид на устройство
+     * @param datetime $lastSync - обновени след, коя дата
+     * 
+     * @return stdClass $syncedArray
+     */
+    public function sync($regArr, $deviceId, $lastSync)
+    {
+        expect($deviceRec = ztm_Devices::fetchRec($deviceId));
+        
+        // Заключване на синхронизацията
+        //if(!core_Locks::get("ZTM_SYNC_DEVICE_{$deviceRec->id}")){
+           // $this->logNotice('Синхронизирането на устройството е вече заключено');
+        //}
+        
+        // След кое, време ще обновяваме записите
+        $lastSyncMin = min($lastSync, $deviceRec->lastSync);
+        
+        // Обработка на входящия масив
+        $expandedRegArr = $notFoundregisters = array();
+        self::processRegArr($regArr, $deviceRec->id, $expandedRegArr, $notFoundregisters);
+        
+        // Извлича нашите регистри обновени след $lastSyncMin, махайки тези, които са приоритетно от устройството
+        $ourRegisters = self::grab($deviceRec, $lastSyncMin);
+        foreach ($ourRegisters as $k => $ourReg){
+            if($ourReg->priority == 'device'){
+                unset($ourRegisters[$k]);
+            }
+        }
+        
+        // Кои стойностти от нашите не са променени
+        $notChangedValues = array_diff_key($ourRegisters, $expandedRegArr);
+        
+        // Записване на новите стойностти, върнати от устройството
+        $syncedArray = array();
+        foreach ($expandedRegArr as $obj){
+            ztm_RegisterValues::set($deviceId, $obj->registerId, $obj->value, $lastSync);
+            $syncedArray[$obj->name] = $obj->value;
+        }
+        
+        // Тези, които няма да се обновяват ги връщаме към резултата
+        foreach ($notChangedValues as $obj1){
+            $syncedArray[$obj1->name] = $obj1->value;
+        }
+        
+        // Отключване на синхронизацията
+        //core_Locks::release("ZTM_SYNC_DEVICE_{$deviceRec->id}");
+        
+        // Връщане на синхронизирания масив
+        return (object)$syncedArray;
+    }
+    
+    
+    /**
+     * Обработва подадения входящ масив
+     * 
+     * @param array $arr                - подадения масив
+     * @param int $deviceId             - ид на устройство
+     * @param array $expandedRegArr     - масив с намерените регистри при нас
+     * @param array $notFoundregisters  - масив с регистрите, които не са намерени
+     * 
+     * @return void
+     */
+    private static function processRegArr($arr, $deviceId, &$expandedRegArr, &$notFoundregisters)
+    {
+        if(is_array($arr)){
+            foreach ($arr as $name => $value){
+                if($registerRec = ztm_Registers::fetch(array("#name = '[#1#]'", trim($name)), 'priority,id')){
+                    if(in_array($registerRec->priority, array('device', 'time'))){
+                        $expandedRegArr[$registerRec->id] = (object)array('name' => $name, 'value' => $value, 'deviceId' => $deviceId, 'registerId' => $registerRec->id, 'priority' => $registerRec->priority);
+                    }
+                } else {
+                    $notFoundregisters[] = $name;
+                }
+            }
+        }
+    }
     
     
     
     /**
      * Извлича регистрите за устройството, обновени след определена дата
-     * 
+     *
      * @param int $deviceId               - ид на устройство
      * @param datetime|null $updatedAfter - обновени след дата
-     * 
+     *
      * @return array $res                 - масив от намерените регистри
      */
     public static function grab($deviceId, $updatedAfter = null)
@@ -259,68 +342,6 @@ class ztm_RegisterValues extends core_Manager
     
     
     /**
-     * ->synch($regArr, $lastSync)
-        // $regArr е масив с обекти, идващ от устройството, които имат name->(value, lastUpdate)
-        Какво прави тази функция:
-        1. Взема лок, да не се дублира
-        2. $lastSync= min($lastSync, $deviceRec->lastSync) - взема по-старото време от полученото (от контролера) и пазаното в bgERP
-        3. Взема всички регистри от модела, които са променяни след $lastSync и премахва от тях тези за които priority==device
-        4. Нанася $regArr върху вътрешното състояние, като взема само регистрите с priority==device и този с priority=time и имащи по-голям таймстамп
-        5. Връща получения в 3 масив
-     * 
-     * 
-     * @param array $regArr
-     * @param stdClass $deviceId
-     * @param datetime $lastSync
-     */
-    public function sync($regArr, $deviceId, $lastSync)
-    {
-        expect($deviceRec = ztm_Devices::fetchRec($deviceId));
-        //core_Locks::get("ZTM_SYNC_DEVICE_{$deviceRec->id}");
-        
-        $lastSyncMin = min($lastSync, $deviceRec->lastSync);
-        
-        $expandRegister = self::expandArr($regArr, $deviceRec->id);
-        foreach ($expandRegister as $k => $ourReg){
-            if($ourReg->priority == 'device'){
-                unset($ourRegisters[$k]);
-            }
-        }
-        
-        
-        $ourRegisters = self::grab($deviceRec, $lastSyncMin);
-        foreach ($ourRegisters as $k => $ourReg){
-            if($ourReg->priority == 'device'){
-                unset($ourRegisters[$k]);
-            }
-        }
-        
-       // bp($ourRegisters);
-        
-        //Взема всички регистри от модела, които са променяни след $lastSync и премахва от тях тези за които priority==device
-        //4. Нанася $regArr върху вътрешното състояние, като взема само регистрите с priority==device и този с priority=time и имащи
-        
-        
-        
-        
-        
-        
-        
-        bp($expandRegister, $ourRegisters);
-    }
-    
-    public static function expandArr($arr)
-    {
-        $res = array();
-        foreach ($arr as $name => $value){
-            $registerRec = ztm_Registers::fetch(array("#name = '[#1#]'", trim($name)), 'priority,id');
-            $res[] = (object)array('name' => $name, 'value' => $value, 'registerId' => $registerRec->id, 'priority' => $registerRec->priority);
-        }
-        
-        return $res;
-    }
-    
-    /**
      * Създава пряк път до публичните статии
      */
     public function act_Sync()
@@ -328,22 +349,35 @@ class ztm_RegisterValues extends core_Manager
         $token = Request::get('token');
         $lastSync = Request::get('last_sync');
        
-        log_System::logAlert(serialize(Request::$vars));
+        log_System::logAlert(Request::get('registers'));
+        
+        // Кое е устройството
         expect($deviceRec = ztm_Devices::getRecForToken($token), $token);
         ztm_Devices::updateSyncTime($token);
         
-        //if(empty($lastSync)){
+        if(empty($lastSync)){
             
-        // samo global system bez device za purvonachalna
-            $defaultResponse = ztm_Profiles::getDefaultResponse($deviceRec->profileId);
-           // $defaultResponse = array('') + $defaultResponse;
+            // При първоначална сихронизация, се подават дефолтните данни
+            $result = ztm_Profiles::getDefaultResponse($deviceRec->profileId);
+        } else {
+            $registers = Request::get('registers');
+            if(empty($registers)){
+                $regArr = array();
+            } else {
+                $regArr = $registers;
+            }
             
-            //$test = (object)array("monitoring.enabled" => 1, 'pir_detector.enabled' => 1, 'window_closed.enabled' => 1, 'access_control_1' => 1, 'self' => 1, 'access_control_1.card_reader.enabled' => 1, 'general' => 1);
-            //bp($defaultResponse);
-            //log_System::logWarning($response);
-            //wp($response);
-            core_App::outputJson($defaultResponse);
-        //}
+            // Синхронизране на данните от устройството с тези от системата
+            $result = $this->sync($regArr, $deviceRec->id, $lastSync);
+            
+            wp($result, Request::get('registers'));
+        }
+        
+        log_System::logAlert(serialize($result));
+        
+        
+        // Връщане на резултатния обект
+        core_App::outputJson($result);
     }
     
     

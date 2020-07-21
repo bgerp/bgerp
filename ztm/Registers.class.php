@@ -127,7 +127,7 @@ class ztm_Registers extends core_Master
             case 'float':
                 $ourType = 'Double';
             case 'bool':
-                $ourType = 'enum(yes=Да,no=Не)';
+                $ourType = 'enum(1=Да,0=Не)';
                 break;
             case 'str':
                 $ourType = 'varchar';
