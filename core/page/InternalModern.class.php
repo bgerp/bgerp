@@ -396,7 +396,7 @@ class core_page_InternalModern extends core_page_Active
         $portalLink = ht::createLink($coreConf->EF_APP_TITLE, $url, null, $portalLinkAttr);
         $nLink = ht::createLink("{$openNotifications}", $url, null, $attr);
         
-        $about = ht::createLink(tr('About'), array('Bgerp', 'About'), null, array('ef_icon' => 'img/16/info-gray.png', 'title' => 'Информация за инсталацията'));
+        $about = ht::createLink(tr('За bgERP||About'), array('Bgerp', 'About'), null, array('ef_icon' => 'img/16/info-icon.png', 'title' => 'Информация за инсталацията'));
         
         $tpl->replace($debug, 'DEBUG_BTN');
         $tpl->replace($about, 'ABOUT_BTN');
