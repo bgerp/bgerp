@@ -1424,4 +1424,23 @@ class core_String
         
         return (substr($haystack, -1) === $needle);
     }
+    
+    
+    /**
+     * Дали подадения стринг е json
+     *
+     * @param string $string
+     * @return boolean
+     */
+    public static function isJson($string)
+    {
+        if(!is_scalar($string)) {
+            
+            return false;
+        }
+        
+        json_decode($string);
+        
+        return (json_last_error() == JSON_ERROR_NONE);
+    }
 }
