@@ -49,15 +49,9 @@ class ztm_ProfileDetails extends core_Detail
     
     
     /**
-     * Кой има право да го види?
-     */
-    public $canView = 'ztm, ceo';
-    
-    
-    /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ztm, ceo';
+    public $canList = 'no_one';
     
     
     /**
@@ -81,7 +75,7 @@ class ztm_ProfileDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'ztm_Wrapper, plg_Created, plg_RowTools2, plg_Modified, plg_Sorting, plg_SaveAndNew';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_Modified, plg_SaveAndNew';
     
     
     /**
@@ -142,7 +136,11 @@ class ztm_ProfileDetails extends core_Detail
     {
         $value = ztm_LongValues::getValueByHash($rec->value);
         
-        $Type = ztm_Registers::getValueFormType($rec->registerId);
+        $Type = ztm_Registers::getOurType($rec->registerId, false);
         $row->value = $Type->toVerbal($value);
+        
+        if($description = ztm_Registers::fetchField($rec->registerId, 'description')){
+            $row->registerId = ht::createHint($row->registerId, $description);
+        }
     }
 }

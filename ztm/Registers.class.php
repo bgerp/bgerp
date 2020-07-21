@@ -72,6 +72,7 @@ class ztm_Registers extends core_Master
      */
      public $listFields = 'id, name, type, range, plugin, priority, default, description';
     
+     
     /**
      * Описание на модела (таблицата)
      */
@@ -116,7 +117,7 @@ class ztm_Registers extends core_Master
     }
     
     
-    public static function getValueFormType($registerId)
+    public static function getOurType($registerId, $forForm = true)
     {
         $type = ztm_Registers::fetchField($registerId, 'type');
         switch($type){
@@ -130,6 +131,12 @@ class ztm_Registers extends core_Master
                 break;
             case 'str':
                 $ourType = 'varchar';
+                break;
+            case 'object':
+                $ourType = ($forForm)? 'text' : 'Blob';
+                break;
+            case 'array':
+                $ourType = ($forForm)? 'text' : 'Blob';
                 break;
             default:
                 $ourType = 'text';
@@ -154,10 +161,16 @@ class ztm_Registers extends core_Master
         $rec = &$form->rec;
         
         if(isset($rec->{$registerFld})){
-            $form->FLD('extValue', ztm_Registers::getValueFormType($rec->{$registerFld}), 'caption=Стойност,mandatory');
+            $form->FLD('extValue', ztm_Registers::getOurType($rec->{$registerFld}), 'caption=Стойност,mandatory');
+            $form->rec->_type = ztm_Registers::fetchField($rec->{$registerFld}, 'type');
             
             if(!empty($rec->{$valueFld})){
                 $value = ztm_LongValues::getValueByHash($rec->{$valueFld});
+                if(is_object($value) || is_array($value)){
+                    $form->rec->_decodeJson = true;
+                    $value = json_encode($value);
+                }
+                
                 $form->setDefault('extValue', $value);
             }
         }
@@ -165,7 +178,8 @@ class ztm_Registers extends core_Master
     
     
     /**
-     * Записва стойностите 
+     * Обработва стойността, ако е от нескаларен тип записва я в помощен модел
+     * подменяйки я с нейния хеш
      * 
      * @param int $registerId
      * @param mixed $extValue
@@ -178,11 +192,18 @@ class ztm_Registers extends core_Master
         
         // Записва стойността в помощния модел при нужда
         if(in_array($type, array('text', 'object', 'array'))){
+            if($type == 'object' && str::isJson($extValue)){
+                $extValue = (object)json_decode($extValue);
+            } elseif($type == 'array' && str::isJson($extValue)){
+                $extValue = (array)json_decode($extValue);
+            }
+            
             $hash = md5(serialize($extValue));
             $value = $hash;
             
-            $exValue = ztm_LongValues::fetchField("#hash = '{$hash}'", 'value');
-            if(!isset($exValue)){
+            $existingValue = ztm_LongValues::fetchField("#hash = '{$hash}'", 'value');
+            if(!isset($existingValue)){
+                
                 $longRec = (object)array('hash' => $hash, 'value' => serialize($extValue));
                 ztm_LongValues::save($longRec);
             }

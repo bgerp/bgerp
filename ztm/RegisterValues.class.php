@@ -20,7 +20,7 @@ class ztm_RegisterValues extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Регистри в Zontromat';
+    public $title = 'Стойности на регистрите в Zontromat';
     
     
     /**
@@ -112,42 +112,42 @@ class ztm_RegisterValues extends core_Manager
      */
     public static function get($deviceId, $registerId)
     {
-        $rec = self::fetch("#deviceId = '{$deviceId}' AND #registerId = '{$registerId}'");
-        $rec->value = ztm_LongValues::getValueByHash($rec->value);
+        if($rec = self::fetch("#deviceId = '{$deviceId}' AND #registerId = '{$registerId}'")){
+            $registerRec = ztm_Registers::fetch($registerId, 'priority,name,type');
+            $rec->priority = $registerRec->priority;
+            $rec->name = $registerRec->name;
+            
+            $rec->value = ztm_LongValues::getValueByHash($rec->value);
+        }
         
-       // if(is_object($rec)){
-           // if($longValue = ztm_LongValues::fetchField("#hash = '{$rec->value}'", 'value')){
-                //$rec->value = $longValue;
-            //}
-       // }
-        
-        return is_object($rec) ? $rec : null;
+        return $rec;
     }
     
     
     /**
      * Задава стойност на регистъра
      * 
-     * @param int $deviceId        - ид на устройство
-     * @param int $registerId      - ид на вид регистър
-     * @param mixed $value         - стойност
-     * @param datetime|null $time  - време 
+     * @param int $deviceId         - ид на устройство
+     * @param int $registerId       - ид на регистър
+     * @param mixed $value          - стойност
+     * @param datetime|null $time   - време 
+     * @param boolean $forceUpdate  - форсирано обновяване 
      * 
      * @return null|stdClass $rec  - сетнатия запис или null, ако не е обновен
      */
-    public static function set($deviceId, $registerId, $value, $time = null)
+    public static function set($deviceId, $registerId, $value, $time = null, $forceUpdate = false)
     {
         $now = dt::now();
         $time = isset($time) ? $time : $now;
        
         expect(ztm_Devices::fetch($deviceId), "Няма такова устройство");
-        expect($registerDefRec = ztm_Registers::fetch($registerId), "Няма такъв регистър");
+        expect(ztm_Registers::fetch($registerId), "Няма такъв регистър");
         expect($time <= $now, 'Не може да се зададе бъдеще време');
         
         $rec = (object)array('deviceId' => $deviceId, 'registerId' => $registerId, 'updatedOn' => $time, 'value' => $value);
         $exRec = self::fetch("#deviceId = '{$deviceId}' AND #registerId = '{$registerId}'");
         if(is_object($exRec)){
-            if($exRec->updatedOn > $time) {
+            if($forceUpdate === false && $exRec->updatedOn > $time) {
                 
                 return null;
             }
@@ -155,19 +155,9 @@ class ztm_RegisterValues extends core_Manager
             $rec->id = $exRec->id;
         }
         
-        $hash = null;
-        if(in_array($registerDefRec->type, array('array', 'object', 'text'))){
-            $hash = md5(serialize($value));
-            $rec->value = $hash;
-        }
-        
-        if(isset($hash)){
-            $longRec = ztm_LongValues::fetch("#hash = {$rec->value}");
-            if(!$longRec){
-                $longRec = (object)array('value' => $value, 'hash' => $rec->value);
-                ztm_LongValues::save($longRec);
-            }
-        }
+        $rec->value = ztm_Registers::recordValue($registerId, $rec->value);
+        $rec->_skip = true;
+        self::save($rec);
         
         return $rec;
     }
@@ -176,6 +166,10 @@ class ztm_RegisterValues extends core_Manager
     function act_Test()
     {
         requireRole('debug');
+        
+        $val = (array)ztm_Devices::fetch(3);
+        //$val = array('name' => 'ivelin', 'sex' => 'male', 'familyName' => 'dimov','zorrrrry' => 'morrrrrroi');
+        bp(self::set(3, 14, $val));
         
         
         $r = '{
@@ -249,10 +243,7 @@ class ztm_RegisterValues extends core_Manager
     {
         $deviceRec = ztm_Devices::fetchRec($deviceId);
         $query = self::getQuery();
-        $query->EXT('name', 'ztm_Registers', 'externalName=name,externalKey=registerId');
-        $query->EXT('priority', 'ztm_Registers', 'externalName=priority,externalKey=registerId');
         $query->where("#deviceId = '{$deviceRec->id}'");
-        
         if(isset($updatedAfter)){
             $query->where("#updatedOn >= '{$updatedAfter}'");
         }
@@ -260,7 +251,7 @@ class ztm_RegisterValues extends core_Manager
         $res = array();
         while($rec = $query->fetch()){
             $extRec = self::get($deviceRec->id, $rec->registerId);
-            $res[$rec->registerId] = (object)array("name" => $deviceRec->name, 'deviceId' => $deviceRec->id, 'registerId' => $rec->registerId, 'value' => ztm_LongValues::getValueByHash($extRec->value), 'priority' => $rec->priority);
+            $res[$rec->registerId] = (object)array('deviceId' => $deviceRec->id, "name" => $extRec->name, 'registerId' => $rec->registerId, 'value' => $extRec->value, 'priority' => $extRec->priority);
         }
         
         return $res;
@@ -381,7 +372,9 @@ class ztm_RegisterValues extends core_Manager
      */
     protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        $rec->value = ztm_Registers::recordValue($rec->registerId, $rec->extValue);
+        if($rec->_skip !== true){
+            $rec->value = ztm_Registers::recordValue($rec->registerId, $rec->extValue);
+        }
     }
     
     
@@ -395,9 +388,43 @@ class ztm_RegisterValues extends core_Manager
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $value = ztm_LongValues::getValueByHash($rec->value);
+        $Type = ztm_Registers::getOurType($rec->registerId, false);
         
-        $Type = ztm_Registers::getValueFormType($rec->registerId);
         $row->value = $Type->toVerbal($value);
         $row->deviceId = ztm_Devices::getHyperlink($rec->deviceId, true);
+        
+        if($description = ztm_Registers::fetchField($rec->registerId, 'description')){
+            $row->registerId = ht::createHint($row->registerId, $description);
+        }
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на списъчния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        // Бутон за изчистване на всички
+        if (haveRole('debug')) {
+            $data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искате ли да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
+        }
+    }
+    
+    
+    /**
+     * Изчиства записите в балансите
+     */
+    public function act_Truncate()
+    {
+        requireRole('debug');
+        
+        // Изчистваме записите от моделите
+        self::truncate();
+        ztm_LongValues::truncate();
+        
+        return new Redirect(array($this, 'list'), '|Записите са изчистени успешно');
     }
 }
