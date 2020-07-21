@@ -53,7 +53,7 @@ class bgerp_Index extends core_Manager
         require_once(EF_APP_PATH . '/core/Setup.inc.php');
         $repos = core_App::getRepos();
         $repos = array_reverse($repos);
-        $reposLastDate = '<table>';
+        $reposLastDate = '';
         $log = '';
         foreach ($repos as $repoPath => $branch) {
             $lastCommitDate = gitLastCommitDate($repoPath, $log);
@@ -62,9 +62,8 @@ class bgerp_Index extends core_Manager
             }
             
             $hash = gitLastCommitHash($repoPath);
-            $reposLastDate .= "<tr><td align='right'>" . basename($repoPath).":   </td><td style='font-weight: bold;'>" . $lastCommitDate . ' (' . gitCurrentBranch($repoPath, $log) . ' - ' . $hash . ')</td></tr> ';
+            $reposLastDate .= "<div>" . basename($repoPath).":   <b>" . $lastCommitDate . ' (' . gitCurrentBranch($repoPath, $log) . ' - ' . $hash . ')</b></div> ';
         }
-        $reposLastDate .= '</table>';
         $resData->REPOS = $reposLastDate;
         
         
