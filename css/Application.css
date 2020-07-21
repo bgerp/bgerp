@@ -5578,7 +5578,10 @@ only screen and (max-width: 700px) {
     font-size: 1.84em; }
 
   .wide .app-name {
-    font-size: 4.4em; } }
+    font-size: 4.4em; }
+
+  .notificationsCnt {
+    margin-left: -5px; } }
 
 @media handheld,
 only screen and (max-width: 640px) {
@@ -5800,7 +5803,10 @@ only screen and (max-width: 360px) {
     width: 100%; }
 
   .wide .app-name {
-    font-size: 3em; } }
+    font-size: 3em; }
+
+  .notificationsCnt {
+    margin-left: -10px !important; } }
 
 @media handheld,
 only screen and (max-width: 320px) {

@@ -941,7 +941,7 @@ body {
   display: inline-block;
   position: absolute;
   top: 0px;
-  margin-left: -5px; }
+  margin-left: -1px; }
 
 .notificationsCnt a {
   display: block;
