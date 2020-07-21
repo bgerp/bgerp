@@ -484,9 +484,7 @@ body {
 .logoText {
   font-weight: bold;
   font-size: 26px;
-  font-family: Arial;
-  position: relative;
-  z-index: 10; }
+  font-family: Arial; }
 
 .logoText a {
   color: #111111 !important; }
@@ -958,7 +956,7 @@ body {
   top: 0px; }
 
 .notificationsCnt a.haveNtf {
-  background-color: #eedddd;
+  background-color: rgba(238, 221, 221, 0.8);
   border: 1px solid #dd6666 !important;
   box-shadow: 0 1px 2px 0 #ff9999;
   color: #ee0000; }
