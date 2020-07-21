@@ -2109,6 +2109,23 @@ pre.document {
   .document .listTable .acc-article-entries td {
     border: none !important; }
 
+.center-content {
+  width: 1000px;
+  margin: 0 auto; }
+  .center-content table {
+    line-height: 170%; }
+    .center-content table .title {
+      color: #888888;
+      vertical-align: top;
+      padding-right: 10px;
+      text-align: right; }
+
+.aboutImg {
+  max-width: 30px;
+  position: relative;
+  top: 3px;
+  height: auto; }
+
 .dec-document {
   font-size: 0.95em; }
   .dec-document ul {
@@ -5397,7 +5414,10 @@ only screen and (max-width: 1024px) {
  */
 @media  (min-device-width : 768px)  and (max-device-width : 1024px) {
   .wide .document {
-    max-width: 50em; } }
+    max-width: 50em; }
+
+  .center-content {
+    width: 100%; } }
 
 /*
  * Mobile

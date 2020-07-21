@@ -1,42 +1,44 @@
-<div class="groupList">
-	<table style="width: 100%; margin-bottom:5px;">
+<div class="center-content">
+
+    <h1>[#LOGO_IMG#] bgERP</h1>
+	<table style="margin-bottom:5px;">
 	    <tr>
-	        <td class="dt">|Проложение|*:</td>
+	        <td class="title">|Приложение|*:</td>
 	        <td>
 	            [#APP_TITLE#]
 	        </td>
 	    </tr>
 	    
 	    <tr>
-            <td class="dt">|Описание|*:</td>
+            <td class="title">|Описание|*:</td>
             <td>
                 [#INFO#]
             </td>
         </tr>
         
         <tr>
-            <td class="dt">|Версия|*:</td>
+            <td class="title">|Версия|*:</td>
             <td>
                 [#VERSION#]
             </td>
         </tr>
         
         <tr>
-            <td class="dt">|Сериен номер|*:</td>
+            <td class="title">|Сериен номер|*:</td>
             <td>
                 [#SN#]
             </td>
         </tr>
         
         <tr>
-            <td class="dt">|Хранилища|*:</td>
+            <td class="title">|Хранилища|*:</td>
             <td>
                 [#REPOS#]
             </td>
         </tr>
         
         <tr>
-            <td class="dt">|Благодарности|*:</td>
+            <td class="title">|Благодарности|*:</td>
             <td>
                 [#THANKS#]
             </td>
