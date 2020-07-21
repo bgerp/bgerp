@@ -382,15 +382,14 @@ class core_page_InternalModern extends core_page_Active
         $portalLinkAttr = array();
         
         $appLen = mb_strlen($coreConf->EF_APP_TITLE);
-        
         if ($appLen >= 20) {
-            $portalLinkAttr['style'] = 'letter-spacing: -2px;font-size: 0.9em;';
+            $portalLinkAttr['style'] = 'letter-spacing: -2px;font-size: 0.8em;';
         } elseif ($appLen >= 13) {
-            $portalLinkAttr['style'] = 'letter-spacing: -1px;font-size: 0.95em;';
-        } elseif (($appLen >= 6) && ($appLen <= 12)) {
-            $lSpacing = (5 - $appLen) / 10;
-            
-            $portalLinkAttr['style'] = "letter-spacing: {$lSpacing}px;";
+            $portalLinkAttr['style'] = 'letter-spacing: -1px;font-size: 0.85em;';
+        } elseif (($appLen >= 8) && ($appLen <= 12)) {
+            $portalLinkAttr['style'] = "letter-spacing: -1px;font-size: 0.9em;";
+        } elseif ($appLen <= 7) {
+            $portalLinkAttr['style'] = "font-size: 0.95em;";
         }
         
         // Добавя линк към броя на отворените нотификации
