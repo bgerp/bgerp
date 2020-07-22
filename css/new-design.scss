@@ -532,6 +532,8 @@ body {
     font-weight: bold;
     font-size: 26px;
     font-family: Arial;
+    position: relative;
+    display: inline-block;
 }
 
 .logoText a{
@@ -1047,40 +1049,29 @@ body {
 .notificationsCnt {
     display: inline-block;
     position: absolute;
-    top: 0px;
-    margin-left: -1px;
+    top: -4px;
 }
-
 
 .notificationsCnt a {
     display: block;
     color: white;
-    padding: 2px 5px 1px 4px;
-    font-size: 0.75em;
-    border-radius: 10px;
-}
-
-.narrow .notificationsCnt a {
-    padding: 0 4px;
-    position: relative;
-    top: 0px;
+    padding: 1px 2px 1px 1px;
+    font-size: 0.5em;
+    border-radius: 3px;
+    font-weight: normal !important;
 }
 
 .notificationsCnt a.haveNtf {
-  background-color: rgba(238, 221, 221, 0.8);
-  border: 1px solid #d66 !important;
+  background-color: rgba(250,56,55,0.65);
+  border: 1px solid #f92f2e !important;
   box-shadow: 0 1px 2px 0 #f99;
-  color: #e00;
+  color: #fff !important;
 }
 
 .notificationsCnt a.noNtf {
 	display: none;
 }
 
-.narrow .notificationsCnt a.noNtf {
-    color: #fff;
-    border: solid 1px #999 !important;
-}
 
 .portal .legend {
 	z-index: 1 !important;

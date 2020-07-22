@@ -6295,7 +6295,10 @@ body.narrow {
     }
     .externalPage h1{
         font-size: 1.86em;
-    }
+	}
+	.notificationsCnt {
+		 right: 0;
+	}
 }
 
 @media handheld, only screen and (max-width: 700px) {
@@ -6325,9 +6328,6 @@ body.narrow {
     }
     .wide .app-name {
         font-size: 4.4em;
-	}
-	.notificationsCnt {
-		margin-left: -5px;
 	}
 }
 
@@ -6554,9 +6554,6 @@ body.narrow {
 	}
 	.wide .app-name {
          font-size: 3em;
-	}
-	.notificationsCnt {
-		margin-left: -10px !important;
 	}
 }
 

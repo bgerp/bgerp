@@ -5550,7 +5550,10 @@ only screen and (max-width: 760px) {
     font-size: 1.36em; }
 
   .externalPage h1 {
-    font-size: 1.86em; } }
+    font-size: 1.86em; }
+
+  .notificationsCnt {
+    right: 0; } }
 
 @media handheld,
 only screen and (max-width: 700px) {
@@ -5579,10 +5582,7 @@ only screen and (max-width: 700px) {
     font-size: 1.84em; }
 
   .wide .app-name {
-    font-size: 4.4em; }
-
-  .notificationsCnt {
-    margin-left: -5px; } }
+    font-size: 4.4em; } }
 
 @media handheld,
 only screen and (max-width: 640px) {
@@ -5804,10 +5804,7 @@ only screen and (max-width: 360px) {
     width: 100%; }
 
   .wide .app-name {
-    font-size: 3em; }
-
-  .notificationsCnt {
-    margin-left: -10px !important; } }
+    font-size: 3em; } }
 
 @media handheld,
 only screen and (max-width: 320px) {
