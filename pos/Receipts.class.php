@@ -729,8 +729,10 @@ class pos_Receipts extends core_Master
             $data->count = core_Type::getByName('int')->toVerbal($count);
         }
         
+        $currencyCode = acc_Periods::getBaseCurrencyCode();
         while ($rec = $query->fetch()) {
-            $num = self::getReceiptShortNum($rec->id);
+            $total = core_Type::getByName('double(decimals=2)')->toVerbal($rec->total);
+            $num = self::getReceiptShortNum($rec->id). " [{$total} {$currencyCode}]";
             $stateClass = ($rec->state == 'draft') ? 'state-draft' : 'state-waiting';
             $num = (isset($rec->revertId)) ? "<span class='red'>{$num}</span>" : $num;
             $borderColor = (isset($rec->revertId)) ? 'red' : '#a6a8a7';
@@ -743,11 +745,6 @@ class pos_Receipts extends core_Master
                 }
             }
             
-            if ($rec->state == 'draft') {
-                if ($rec->total != 0) {
-                    $num = ht::createHint($num, 'Бележката е започната, но не е приключена', 'warning', false);
-                }
-            }
             $num = " <span class='open-note {$stateClass}' style='border:1px solid {$borderColor}'>{$num}</span>";
             
             $data->rows[$rec->id] = $num;
