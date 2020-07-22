@@ -143,6 +143,7 @@ function posActions() {
 		if (currentAttrValue == "ENTER") {
 			$('.select-input-pos').val($('.keyboardText').val());
 			$('.ui-dialog-titlebar-close').click();
+			triggerSearchInput($(".large-field"), 0);
 			activeInput = true;
 		} else {
 			inputChars($('.keyboardText'), currentAttrValue);
