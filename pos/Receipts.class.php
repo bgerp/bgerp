@@ -720,22 +720,22 @@ class pos_Receipts extends core_Master
     public function prepareReceipts(&$data)
     {
         $data->rows = array();
+        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 20));
         
         $query = $this->getQuery();
         $query->where("#pointId = {$data->masterId}");
         $query->where("#state = 'waiting' OR #state = 'draft'");
-        $query->orderBy('#state');
+        $query->orderBy('#state,#total', 'DESC');
         if ($count = $query->count()) {
             $data->count = core_Type::getByName('int')->toVerbal($count);
         }
         
         $currencyCode = acc_Periods::getBaseCurrencyCode();
+        
+        $data->Pager->setLimit($query);
         while ($rec = $query->fetch()) {
             $total = core_Type::getByName('double(decimals=2)')->toVerbal($rec->total);
-            $num = self::getReceiptShortNum($rec->id). " [{$total} {$currencyCode}]";
-            $stateClass = ($rec->state == 'draft') ? 'state-draft' : 'state-waiting';
-            $num = (isset($rec->revertId)) ? "<span class='red'>{$num}</span>" : $num;
-            $borderColor = (isset($rec->revertId)) ? 'red' : '#a6a8a7';
+            $num = self::getRecTitle($rec);
             
             if (!Mode::isReadOnly()) {
                 if ($this->haveRightFor('terminal', $rec)) {
@@ -745,9 +745,8 @@ class pos_Receipts extends core_Master
                 }
             }
             
-            $num = " <span class='open-note {$stateClass}' style='border:1px solid {$borderColor}'>{$num}</span>";
-            
-            $data->rows[$rec->id] = $num;
+            $data->rows[$rec->id] = (object)array('name' => $num, 'total' => "{$total} {$currencyCode}");
+            $data->rows[$rec->id]->ROW_ATTR['class'] = ($rec->state == 'draft') ? 'state-draft' : 'state-waiting';
         }
     }
     
@@ -762,9 +761,20 @@ class pos_Receipts extends core_Master
     public function renderReceipts($data)
     {
         $tpl = new ET('');
-        $str = implode('', $data->rows);
-        $tpl->append($str);
-        $tpl->replace($data->count, 'waitingCount');
+        
+        $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+        $tpl->append(tr('Чакащи бележки') . "({$data->count})", 'title');
+        $fieldset = new core_FieldSet();
+        $fieldset->FLD('name', 'varchar', 'smartcenter,tdClass=leftCol');
+        $fieldset->FLD('total', 'double', 'smartcenter');
+        
+        $table = cls::get('core_TableView', array('mvc' => $fieldset));
+        $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+        $details = $table->get($data->rows, 'name=Бележка,total=Сума');
+        $tpl->append($details, 'content');
+        if (isset($data->Pager)) {
+            $tpl->append($data->Pager->getHtml(), 'content');
+        }
         
         return $tpl;
     }
