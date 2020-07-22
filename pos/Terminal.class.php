@@ -2152,7 +2152,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $num = pos_Receipts::getReceiptShortNum($rec->id);
         $contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
-        $contragentName = str::limitLen($contragentName, 14);
+        $contragentName = str::limitLen($contragentName, 18);
         $num .= "/{$contragentName}";
         
         $title = "{$num}<div class='nowrap'><span class='spanDate'>{$date}</span> <span class='receiptResultAmount'>{$amountVerbal}</span></div>";
