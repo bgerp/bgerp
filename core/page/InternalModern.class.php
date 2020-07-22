@@ -143,7 +143,7 @@ class core_page_InternalModern extends core_page_Active
         
         $key = 'intrnalModernTpl-debug';
         
-       // if (($tpl = core_Cache::get($key, 'page')) === false) {
+        if (($tpl = core_Cache::get($key, 'page')) === false) {
             $menuImg = ht::createElement('img', array('src' => sbf('img/menu.png', ''), 'class' => 'menuIcon', 'alt' => 'menu'));
             $pinImg = ht::createElement('img', array('src' => sbf('img/pin.png', ''), 'class' => 'menuIcon pin [#pin#]', 'alt' => 'pin'));
             $searchImg = ht::createElement('img', array('src' => sbf('img/32/search.png', ''), 'alt' => 'search', 'width' => '20','height' => '20'));
@@ -204,7 +204,7 @@ class core_page_InternalModern extends core_page_Active
             $tpl->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
             
             core_Cache::set($key, 'page', $tpl, 10000);
-       // }
+        }
         
         if (isDebug() && !log_Debug::haveRightFor('list')) {
             $tpl->prepend(new ET("<div id='debug_info' style='margin:5px; display:none;overflow-x: hidden'>
