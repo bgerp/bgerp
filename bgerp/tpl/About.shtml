@@ -1,48 +1,17 @@
 <div class="center-content">
-
-    <h1>[#LOGO_IMG#] bgERP</h1>
-	<table style="margin-bottom:5px;">
-	    <tr>
-	        <td class="title">|Приложение|*:</td>
-	        <td>
-	            [#APP_TITLE#]
-	        </td>
-	    </tr>
-	    
-	    <tr>
-            <td class="title">|Описание|*:</td>
-            <td>
-                [#INFO#]
-            </td>
-        </tr>
-        
-        <tr>
-            <td class="title">|Версия|*:</td>
-            <td>
-                [#VERSION#]
-            </td>
-        </tr>
-        
-        <tr>
-            <td class="title">|Сериен номер|*:</td>
-            <td>
-                [#SN#]
-            </td>
-        </tr>
-        
-        <tr>
-            <td class="title">|Хранилища|*:</td>
-            <td>
-                [#REPOS#]
-            </td>
-        </tr>
-        
-        <tr>
-            <td class="title">|Благодарности|*:</td>
-            <td>
-                [#THANKS#]
-            </td>
-        </tr>
-	    
-	</table>
+    <fieldset class="detail-info">
+        <legend>|За системата|*</legend>
+        <div class="scrollable">    
+            <h1>[#LOGO_IMG#] bgERP</h1>
+            <h3>[#INFO#]</h3>
+            <h4>|Версия|*:  [#VERSION#]</h4>
+            <ul class="list-group">
+                <li class="list-group-item">|Собственик|*: <b>[#MY_COMPANY#]</b></li>
+                <li class="list-group-item">|Приложение|*: <b>[#APP_TITLE#]</b></li>
+                <li class="list-group-item">|Сериен|*  №:  <b>[#SN#]</b></li>
+                <li class="list-group-item"><div style="text-align: center;">|Хранилища|*:</div>  [#REPOS#]</li>
+                <li class="list-group-item" ><div style="text-align: center;">|Благодарности|*:</div>[#THANKS#]</li>
+            </ul>
+        </div>
+    </fieldset>
 </div>

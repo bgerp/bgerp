@@ -62,13 +62,14 @@ class bgerp_Index extends core_Manager
             }
             
             $hash = gitLastCommitHash($repoPath);
-            $reposLastDate .= "<div>" . basename($repoPath).":   <b>" . $lastCommitDate . ' (' . gitCurrentBranch($repoPath, $log) . ' - ' . $hash . ')</b></div> ';
+            $reposLastDate .= "<div>" . basename($repoPath).":   <b>" . $lastCommitDate . ' </b>(' . gitCurrentBranch($repoPath, $log) . ' - ' . $hash . ') <span class="fright"></span></div> ';
         }
         $resData->REPOS = $reposLastDate;
         
         
         $img = ht::createElement('img', array('src' => sbf('img/logo.png', ''), 'class' => "aboutImg", 'width' => 40));
         $tpl->replace($img, "LOGO_IMG");
+        jquery_Jquery::run($tpl, '$(".scrollable").css("height", $(window).height() - $(".inner-framecontentTop").height() - 88)');
         
         $tpl->placeObject($resData);
         
