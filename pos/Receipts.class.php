@@ -424,6 +424,7 @@ class pos_Receipts extends core_Master
                 'productId' => $rec->productId,
                 'price' => $rec->price / $quantityInPack,
                 'packagingId' => $rec->value,
+                'text'       => $rec->text,
                 'vatPrice' => $rec->price * $rec->param,
                 'discount' => $rec->discountPercent,
                 'quantity' => $rec->quantity);
@@ -594,7 +595,7 @@ class pos_Receipts extends core_Master
                     $product->discount = null;
                 }
                 
-                sales_Sales::addRow($sId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount);
+                sales_Sales::addRow($sId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount, null, null, $product->text);
             }
         }
         
