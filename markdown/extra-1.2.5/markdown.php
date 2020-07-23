@@ -239,7 +239,7 @@ class Markdown_Parser {
 	var $predef_titles = array();
 
 
-	function __counstruct() {
+	function Markdown_Parser() {
 	#
 	# Constructor function. Initialize appropriate member variables.
 	#
