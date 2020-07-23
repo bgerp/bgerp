@@ -54,7 +54,7 @@ class speedy_Offices extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "id,num,extName";
+    public $listFields = "id,extName";
     
     
     /**
@@ -76,9 +76,9 @@ class speedy_Offices extends core_Manager
      */
     protected static function on_CalcExtName($mvc, $rec)
     {
-        $rec->extName = $rec->name;
+        $rec->extName = "[{$rec->num}] {$rec->name}";
         if(!empty($rec->address)){
-            $rec->extName .= " ({$rec->address})";
+            $rec->extName .= "; {$rec->address}";
         }
     }
     
