@@ -6,10 +6,10 @@
             <h3>[#INFO#]</h3>
             <h4>|Версия|*:  [#VERSION#]</h4>
             <ul class="list-group">
-                <li class="list-group-item">|Собственик|*: <b>[#MY_COMPANY#]</b></li>
+                <li class="list-group-item">|Лицензиант|*: <b>[#MY_COMPANY#]</b></li>
                 <li class="list-group-item">|Приложение|*: <b>[#APP_TITLE#]</b></li>
                 <li class="list-group-item">|Сериен|*  №:  <b>[#SN#]</b></li>
-                <li class="list-group-item"><div style="text-align: center;">|Хранилища|*:</div>  [#REPOS#]</li>
+                <li class="list-group-item"><div style="text-align: center;">|Инсталирани приложения|*:</div>  [#REPOS#]</li>
                 <li class="list-group-item" ><div style="text-align: center;">|Благодарности|*:</div>[#THANKS#]</li>
             </ul>
         </div>
