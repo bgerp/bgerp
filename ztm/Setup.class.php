@@ -58,14 +58,14 @@ class ztm_Setup extends core_ProtoSetup
             'ztm_LongValues',
             'ztm_Profiles',
             'ztm_ProfileDetails',
-            'migrate::importOnceRegistersFromZero1',
+            'migrate::importOnceRegistersFromZero5',
     );
     
     
     /**
      * Миграция: за зареждане на регистри от нула
      */
-    public function importOnceRegistersFromZero1()
+    public function importOnceRegistersFromZero5()
     {
         $Registers = cls::get('ztm_Registers');
         

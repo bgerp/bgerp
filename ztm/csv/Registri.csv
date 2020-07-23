@@ -1,13 +1,13 @@
-ac.enabled,str,,Access Control,system,yes,Plugin enabled
+ac.enabled,bool,,Access Control,system,yes,Plugin enabled
 ac.allowed_attendees,json,,Access Control,system,"[{'card_id': '445E6046010080FF', 'pin': '159753', 'valid_until': '1595322860'}]",Allowed attendees
 ac.nearby_attendees,json,,Access Control,system,[],
-ac.entry_reader.enabled,str,,Access Control,system,yes,Card reader enabled
+ac.entry_reader.enabled,bool,,Access Control,system,yes,Card reader enabled
 ac.entry_reader.vendor,str,,Access Control,system,TERACOM,Card reader vendor
 ac.entry_reader.model,str,,Access Control,system,act230,Card reader model
 ac.entry_reader.port.baudrate,int,,Access Control,system,9600,Card reader port baud rate
 ac.entry_reader.port.name,str,,Access Control,system,COM5,Card reader port name
 ac.entry_reader.serial_number,str,,Access Control,system,2897,Card reader serial number
-ac.exit_reader.enabled,str,,Access Control,system,yes,Card reader enabled
+ac.exit_reader.enabled,bool,,Access Control,system,yes,Card reader enabled
 ac.exit_reader.vendor,str,,Access Control,system,TERACOM,Card reader vendor
 ac.exit_reader.model,str,,Access Control,system,act230,Card reader model
 ac.exit_reader.port.baudrate,int,,Access Control,system,9600,Card reader port baud rate
@@ -66,7 +66,7 @@ monitoring.pa.uart,int,,monitoring,system,2,EVOK UART Index
 monitoring.pa.model,str,,monitoring,system,SDM630,Model of the power analyser
 monitoring.pa.vendor,str,,monitoring,system,Eastron,Vendor of the power analyser
 monitoring.pa.dev_id,int,,monitoring,system,3,EVOK Device index
-monitoring.enabled,str,,monitoring,system,yes,Enabled
+monitoring.enabled,bool,,monitoring,system,yes,Enabled
 monitoring.info_message,str,,monitoring,device,"[{'hvac.air_temp_upper.circuit': '28FF2B70C11604B7'}, {'hvac.loop1.temp.circuit': '28FF2B70C11604B7'}, {'hc.tank_temp.circuit': '28FF2B70C11604B7'}]","Info, similar resource detected description"
 monitoring.warning_message,str,,monitoring,device,,"Warning, similar resource description"
 monitoring.error_message,str,,monitoring,device,"[{'ac.lock_mechanism.output': 'DO1'}, {'blinds.output_cw': 'DO1'}]","Error, similar resource conflict description"
@@ -87,7 +87,7 @@ env.rh,int/float,,Environment,system,60,Actual outside relative humidity [%]
 env.wind.actual,int/float,,Environment,system,3,Actual wind [m/sec]
 env.wind.max12,int/float,,Environment,system,6,Maximum wind for 12 hours [m/sec]
 env.light,int/float,,Environment,system,1000,Outside light [lux]
-env.enabled,str,,Environment,system,yes,Enabled
+env.enabled,bool,,Environment,system,yes,Enabled
 env.energy,int/float,,Environment,system,0,Energy mode of the building
 env.emergency,int/float,,Environment,system,0,Emergency flags of the building
 env.sunpos.enabled,str,,Environment,system,no,Enable software calculation of the sun position
@@ -165,7 +165,7 @@ light.v1.output,str,,light,system,AO1,Analog output 1
 light.v2.output,str,,light,system,AO2,Analog output 2
 sys.sl.output,str,,system,system,LED0,System activity LED output
 sys.sl.blink_time,int/float,,system,system,1,LEd blink time
-sys.enabled,str,,system,system,yes,Enabled
+sys.enabled,bool,,system,system,yes,Enabled
 sys.ram.current,int/float,,system,device,0,Current consumed RAM
 sys.ram.peak,int/float,,system,device,0,Maximum consumed RAM
 sys.time.usage,int/float,,system,device,0,Application cycle time.
