@@ -40,15 +40,15 @@ ac.window_closed2.input,str,,Access Control,system,off,Window closed input
 ac.last30_attendees,json,,Access Control,device,[],Last 30 attendees
 ac.next_attendance,int/float,,Access Control,device,0,Next attendance
 ac.zone_occupied,int,,Access Control,device,0,zone_occupied
-ac.door_closed.state,int,,Access Control,device,False,Door closed flag
+ac.door_closed.state,int,,Access Control,device,0,Door closed flag
 ac.door_closed2.state,int,,Access Control,device,0,Door closed flag
-ac.pir.state,int,,Access Control,device,False,PIR sensor flag
+ac.pir.state,int,,Access Control,device,0,PIR sensor flag
 ac.pir2.state,int,,Access Control,device,0,PIR sensor flag
-ac.window_closed.state,int,,Access Control,device,False,Window closed flag
+ac.window_closed.state,int,,Access Control,device,0,Window closed flag
 ac.window_closed2.state,int,,Access Control,device,0,Window closed flag
-at.enabled,Int,,Anti Tampering,system,0,Enabled
+at.enabled,int,,Anti Tampering,system,0,Enabled
 at.input,str,,Anti Tampering,system,DI1,Signal input
-at.state,Int,,Anti Tampering,device,0,State
+at.state,int,,Anti Tampering,device,0,State
 blinds.enabled,int,,blinds,system,0,Enabled
 blinds.input_fb,str,,blinds,system,AI1,Feedback input
 blinds.output_ccw,str,,blinds,system,DO0,CCW output

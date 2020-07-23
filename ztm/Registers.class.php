@@ -79,7 +79,7 @@ class ztm_Registers extends core_Master
     protected function description()
     {
         $this->FLD('name', 'varchar(32)', 'caption=Име');
-        $this->FLD('type', 'enum(int, bool, float, str, text, object,array)', 'caption=Тип');
+        $this->FLD('type', 'enum(int,bool,float,str,json,int/float)', 'caption=Тип');
         $this->FLD('range', 'text', 'caption=Диапазон');
         $this->FLD('plugin', 'varchar(32)', 'caption=Модул');
         $this->FLD('priority', 'enum(system, device, global, time)', 'caption=Приоритет за вземане на стойност');
