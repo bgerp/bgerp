@@ -42,8 +42,6 @@ class ztm_Registers extends core_Master
      */
     public $canList = 'ztm, ceo';
     public $canSingle = 'ztm, ceo';
-    
-    
     /**
      * Кой има право да го изтрие?
      */
@@ -83,7 +81,7 @@ class ztm_Registers extends core_Master
         $this->FLD('range', 'text', 'caption=Диапазон');
         $this->FLD('plugin', 'varchar(32)', 'caption=Модул');
         $this->FLD('priority', 'enum(system, device, global, time)', 'caption=Приоритет за вземане на стойност');
-        $this->FLD('default', 'varchar(32)', 'caption=Дефолтна стойност');
+        $this->FLD('default', 'text', 'caption=Дефолтна стойност');
         $this->FLD('description', 'text', 'caption=Описание на регистъра');
         
         $this->setDbUnique('name');
@@ -117,7 +115,15 @@ class ztm_Registers extends core_Master
     }
     
     
-    public static function getOurType($registerId, $forForm = true)
+    /**
+     * Какъв наш тип отговаря на техния
+     * 
+     * @param int $registerId
+     * @param boolean $forForm
+     * 
+     * @return core_Type
+     */
+    public static function getOurType($registerId)
     {
         $type = ztm_Registers::fetchField($registerId, 'type');
         switch($type){
@@ -132,11 +138,8 @@ class ztm_Registers extends core_Master
             case 'str':
                 $ourType = 'varchar';
                 break;
-            case 'object':
-                $ourType = ($forForm)? 'text' : 'Blob';
-                break;
-            case 'array':
-                $ourType = ($forForm)? 'text' : 'Blob';
+            case 'int/float':
+                $ourType = 'Double';
                 break;
             default:
                 $ourType = 'text';
@@ -166,11 +169,6 @@ class ztm_Registers extends core_Master
             
             if(!empty($rec->{$valueFld})){
                 $value = ztm_LongValues::getValueByHash($rec->{$valueFld});
-                if(is_object($value) || is_array($value)){
-                    $form->rec->_decodeJson = true;
-                    $value = json_encode($value);
-                }
-                
                 $form->setDefault('extValue', $value);
             }
         }
@@ -191,20 +189,14 @@ class ztm_Registers extends core_Master
         $type = ztm_Registers::fetchField($registerId, 'type');
         
         // Записва стойността в помощния модел при нужда
-        if(in_array($type, array('text', 'object', 'array'))){
-            if($type == 'object' && str::isJson($extValue)){
-                $extValue = (object)json_decode($extValue);
-            } elseif($type == 'array' && str::isJson($extValue)){
-                $extValue = (array)json_decode($extValue);
-            }
-            
+        if(in_array($type, array('json'))){
             $hash = md5(serialize($extValue));
             $value = $hash;
             
             $existingValue = ztm_LongValues::fetchField("#hash = '{$hash}'", 'value');
             if(!isset($existingValue)){
                 
-                $longRec = (object)array('hash' => $hash, 'value' => serialize($extValue));
+                $longRec = (object)array('hash' => $hash, 'value' => $extValue);
                 ztm_LongValues::save($longRec);
             }
         } else {
