@@ -655,7 +655,15 @@ function getCurrentElementFromSelectedRow(element){
 	clearTimeout(timeoutPageNavigation);
 
 	timeoutPageNavigation = setTimeout(function(){
-		refreshResultByOperation(element, 'quantity');
+		
+		var newOperation = 'quantity';
+		var operationBtn = $('.operationBtn[data-value=quantity]');
+		var url = operationBtn.attr("data-url");
+		if(!url){
+			newOperation = 'payment';
+		}
+		
+		refreshResultByOperation(element, newOperation);
 		if(operation != 'quantity'){
 			scrollAfterKey();
 		}

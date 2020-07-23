@@ -904,7 +904,7 @@ class pos_ReceiptDetails extends core_Detail
             } else {
                 
                 // Ако редактираме/добавяме/изтриваме ред с продукт, проверяваме имали направено плащане
-                if (!($action == 'delete' && !$rec->productId)) {
+                if ($action == 'delete' && $rec->productId) {
                     if ($masterRec->paid) {
                         $res = 'no_one';
                     }
