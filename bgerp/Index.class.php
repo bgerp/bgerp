@@ -41,15 +41,26 @@ class bgerp_Index extends core_Manager
      */
     public function act_About()
     {
-        $tpl = getTplFromFile('/bgerp/tpl/About.shtml');
-        
         $resData = new stdClass();
         $resData->APP_TITLE = core_Setup::get('EF_APP_TITLE', true);
         $resData->INFO = tr('Интегрирана система за управление на бизнеса');
         $resData->VERSION = core_setup::CURRENT_VERSION;
         $resData->SN = core_setup::getBGERPUniqId();
-        $resData->THANKS = ht::createElement('a', array('target' => '_blank',  'href' => 'https://bgerp.com/Bg/Blagodarnosti/'), 'Външни проекти');
+        $resData->AUTHOR = ht::createElement('a', array('target' => '_blank',  'href' => 'https://experta.bg'), tr('Експерта ООД'));
+        $resData->LOGO_IMG = ht::createElement('img', array('src' => sbf('img/logo.png', ''), 'class' => "aboutImg", 'width' => 40));
+        $resData->LOGO_LINK = ht::createElement('a', array('target' => '_blank',  'href' =>'https://bgerp.com'), 'bgERP');
         
+        $oCompany = crm_Companies::fetchOwnCompany();
+        $resData->MY_COMPANY = $oCompany->companyVerb . ' (' . $oCompany->country . ')';
+        
+        $rows = csv_Lib::getCsvRows(getFileContent('bgerp/data/gratitude.csv'), '|');
+        $resData->THANKS = '<table>';
+        foreach ($rows as $row) {
+            $resData->THANKS .= '<tr><td>' . ht::createElement('a', array('target' => '_blank',  'href' => $row[1]), $row[2]) . '</td><td>' . core_String::mbUcfirst($row[3]) . '</td></tr>';
+        }
+        $resData->THANKS .= '</table>';
+        
+        // Зареждаме хранилищата
         require_once(EF_APP_PATH . '/core/Setup.inc.php');
         $repos = core_App::getRepos();
         $repos = array_reverse($repos);
@@ -61,14 +72,46 @@ class bgerp_Index extends core_Manager
                 $lastCommitDate = dt::mysql2verbal($lastCommitDate);
             }
             
+            $licensePath = rtrim($repoPath, '/') . '/' . 'LICENSE.md';
+            
+            $baseName = basename($repoPath);
+            
+            $licenseText = @file_get_contents($licensePath);
+            if ($licenseText) {
+                $firstRow = '';
+                foreach (explode("\n", $licenseText) as $line) {
+                    $line = trim($line);
+                    if ($line) {
+                        $firstRow = trim($line, '#');
+                        $firstRow = trim($firstRow, '*');
+                        
+                        break;
+                    }
+                }
+                
+                if ($lName = Request::get('license')) {
+                    if ($lName == $baseName) {
+                        $resData->LICENSE_TEXT = markdown_Render::Convert($licenseText);
+                    }
+                }
+                
+                if (!$firstRow) {
+                    $firstRow = 'LICENSE';
+                }
+                
+                $lName = ht::createLink($firstRow, array('Bgerp', 'About', 'license' => $baseName));
+            } else {
+                $lName = tr('Private license');
+            }
+                
+            
             $hash = gitLastCommitHash($repoPath);
-            $reposLastDate .= "<div>" . basename($repoPath).":   <b>" . $lastCommitDate . ' </b>(' . gitCurrentBranch($repoPath, $log) . ' - ' . $hash . ') <span class="fright"></span></div> ';
+            $reposLastDate .= "<div>" . $baseName . ":   <b>" . $lastCommitDate . ' </b>(' . gitCurrentBranch($repoPath, $log) . ' - ' . $hash . ") <span class='fright'>{$lName}</span></div>";
         }
         $resData->REPOS = $reposLastDate;
         
+        $tpl = getTplFromFile('/bgerp/tpl/About.shtml');
         
-        $img = ht::createElement('img', array('src' => sbf('img/logo.png', ''), 'class' => "aboutImg", 'width' => 40));
-        $tpl->replace($img, "LOGO_IMG");
         jquery_Jquery::run($tpl, '$(".scrollable").css("height", $(window).height() - $(".inner-framecontentTop").height() - 88)');
         
         $tpl->placeObject($resData);

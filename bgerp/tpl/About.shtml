@@ -2,14 +2,18 @@
     <fieldset class="detail-info">
         <legend>|За системата|*</legend>
         <div class="scrollable">    
-            <h1>[#LOGO_IMG#] bgERP</h1>
+            <h1>[#LOGO_IMG#] [#LOGO_LINK#]</h1>
             <h3>[#INFO#]</h3>
             <h4>|Версия|*:  [#VERSION#]</h4>
+            
+            [#LICENSE_TEXT#]
+            
             <ul class="list-group">
                 <li class="list-group-item">|Лицензиант|*: <b>[#MY_COMPANY#]</b></li>
                 <li class="list-group-item">|Приложение|*: <b>[#APP_TITLE#]</b></li>
-                <li class="list-group-item">|Сериен|*  №:  <b>[#SN#]</b></li>
-                <li class="list-group-item"><div style="text-align: center;">|Инсталирани приложения|*:</div>  [#REPOS#]</li>
+                <li class="list-group-item">|Автор|*: <b>[#AUTHOR#]</b></li>
+                <li class="list-group-item">|Сериен №|*: <b>[#SN#]</b></li>
+                <li class="list-group-item"><div style="text-align: center;">|Инсталирани приложения|*:</div>[#REPOS#]</li>
                 <li class="list-group-item" ><div style="text-align: center;">|Благодарности|*:</div>[#THANKS#]</li>
             </ul>
         </div>
