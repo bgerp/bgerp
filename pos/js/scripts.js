@@ -20,8 +20,6 @@ function posActions() {
 		})
 	});
 
-
-
 	$('.large-field.select-input-pos').focus();
 
 
@@ -937,6 +935,7 @@ function submitInputString(){
 		return;
 	}
 	
+	clearTimeout(timeout);
 	var params = {string:value,recId:getSelectedRowId()};
 
 	processUrl(url, params);

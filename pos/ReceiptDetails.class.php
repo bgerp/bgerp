@@ -500,7 +500,12 @@ class pos_ReceiptDetails extends core_Detail
             
             // Намираме нужната информация за продукта
             $this->getProductInfo($rec);
-         
+            if($rec->ean && empty($rec->productId)){
+                $forwardUrl = array('Ctr' =>'pos_Terminal', 'Act' =>'displayOperation', 'search' => $rec->ean, 'receiptId' => $receiptId, 'operation' => 'add', 'refreshPanel' => 'no');
+                
+                return core_Request::forward($forwardUrl);
+            }
+            
             expect($rec->productId, 'Няма такъв продукт в системата|*!');
             expect($rec->notSellable !== true, 'Артикулът е спрян от продажба|*!');
             
