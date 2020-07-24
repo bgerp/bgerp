@@ -89,6 +89,7 @@ function posActions() {
 		e.preventDefault();
 	});
 
+	var oldTime = Date.now();
 	// При натискане на елемент с клас за навигиране (ако сме на touch устройство или не сме на продукти или артикула е селектиран) до добавяме
 	$(document.body).on('click', ".navigable", function(e){
 		if(!isTouchDevice() && $(this).hasClass('pos-add-res-btn') && !$(this).hasClass('selected')) return;
@@ -96,8 +97,11 @@ function posActions() {
 		if($(this).hasClass('deleteRow')) return;
 		if($(this).hasClass('printReceiptBtn')) return;
 		
-		pressNavigable(this);
-		e.preventDefault();
+		if(Date.now() - oldTime > 400) {	
+			pressNavigable(this);
+			e.preventDefault();
+		}
+		oldTime = Date.now();
 	});
 
 	$('body').on('paste', '.large-field', function (e){
