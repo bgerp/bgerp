@@ -46,7 +46,7 @@ class jquery_Jquery
             }
             
             // Добавяме библиотеката
-            $tpl->push($jQuery, 'JS');
+            $tpl->push($jQuery, 'JS', true);
         }
     }
     
