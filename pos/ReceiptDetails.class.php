@@ -822,8 +822,8 @@ class pos_ReceiptDetails extends core_Detail
             return;
         }
         
-        $productRec = cat_Products::fetch($product->productId, 'canSell,measureId,canStore');
-        if ($productRec->canSell != 'yes') {
+        $productRec = cat_Products::fetch($product->productId, 'canSell,measureId,canStore,state');
+        if ($productRec->canSell != 'yes' || $productRec->state != 'active') {
             $rec->notSellable = true;
             return;
         }
