@@ -71,7 +71,7 @@ class ztm_LongValues extends core_Manager
     public function description()
     {
         $this->FLD('hash', 'varchar', 'mandatory,caption=Хеш');
-        $this->FLD('value', 'blob(serialize)', 'mandatory,caption=Стойност');
+        $this->FLD('value', 'blob', 'mandatory,caption=Стойност');
         
         $this->setDbUnique('hash');
     }
@@ -87,6 +87,6 @@ class ztm_LongValues extends core_Manager
     {
         $value = ztm_LongValues::fetchField("#hash = '{$var}'", 'value');
         
-        return isset($value) ? unserialize($value) : $var;
+        return isset($value) ? $value : $var;
     }
 }

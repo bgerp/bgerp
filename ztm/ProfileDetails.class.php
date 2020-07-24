@@ -75,7 +75,7 @@ class ztm_ProfileDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, plg_Modified, plg_SaveAndNew';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_Modified, plg_SaveAndNew, ztm_Wrapper';
     
     
     /**

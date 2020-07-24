@@ -133,7 +133,7 @@ class ztm_Registers extends core_Master
             case 'float':
                 $ourType = 'Double';
             case 'bool':
-                $ourType = 'enum(1=Да,0=Не)';
+                $ourType = 'enum(yes=Да,no=Не)';
                 break;
             case 'str':
                 $ourType = 'varchar';
@@ -195,8 +195,12 @@ class ztm_Registers extends core_Master
             
             $existingValue = ztm_LongValues::fetchField("#hash = '{$hash}'", 'value');
             if(!isset($existingValue)){
+                $valueToSave = (is_array($extValue) || is_object($extValue)) ? json_encode($extValue) : $extValue;
                 
-                $longRec = (object)array('hash' => $hash, 'value' => $extValue);
+                
+                $longRec = (object)array('hash' => $hash, 'value' => $valueToSave);
+                //bp($longRec);
+                
                 ztm_LongValues::save($longRec);
             }
         } else {
