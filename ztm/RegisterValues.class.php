@@ -350,10 +350,6 @@ class ztm_RegisterValues extends core_Manager
         
         $regArr = (array)json_decode($r);
         
-        bp($regArr);
-        
-        
-        
         $deviceRec = ztm_Devices::fetch(4);
         $synced = $this->sync($regArr, $deviceRec->id, $lastSync);
         
@@ -404,8 +400,8 @@ class ztm_RegisterValues extends core_Manager
         $lastSyncMin = min($lastSync, $deviceRec->lastSync);
         
         // Обработка на входящия масив
-        $expandedRegArr = $notFoundregisters = array();
-        self::processRegArr($regArr, $deviceRec->id, $expandedRegArr, $notFoundregisters);
+        $expandedRegArr = $unknownRegisters = array();
+        self::processRegArr($regArr, $deviceRec->id, $expandedRegArr, $unknownRegisters);
         
         // Извлича нашите регистри обновени след $lastSyncMin, махайки тези, които са приоритетно от устройството
         $ourRegisters = self::grab($deviceRec, $lastSyncMin);
@@ -431,6 +427,10 @@ class ztm_RegisterValues extends core_Manager
             $syncedArray[$obj1->name] = $obj1->value;
         }
         
+        foreach ($unknownRegisters as $unknownRegister){
+            log_System::logErr("Неразпознат ZTM регистър: '{$unknownRegister}'");
+        }
+        
         // Отключване на синхронизацията
         //core_Locks::release("ZTM_SYNC_DEVICE_{$deviceRec->id}");
         
@@ -445,11 +445,11 @@ class ztm_RegisterValues extends core_Manager
      * @param array $arr                - подадения масив
      * @param int $deviceId             - ид на устройство
      * @param array $expandedRegArr     - масив с намерените регистри при нас
-     * @param array $notFoundregisters  - масив с регистрите, които не са намерени
+     * @param array $unknownRegisters  - масив с регистрите, които не са намерени
      * 
      * @return void
      */
-    private static function processRegArr($arr, $deviceId, &$expandedRegArr, &$notFoundregisters)
+    private static function processRegArr($arr, $deviceId, &$expandedRegArr, &$unknownRegisters)
     {
         if(is_array($arr)){
             foreach ($arr as $name => $value){
@@ -458,7 +458,7 @@ class ztm_RegisterValues extends core_Manager
                         $expandedRegArr[$registerRec->id] = (object)array('name' => $name, 'value' => $value, 'deviceId' => $deviceId, 'registerId' => $registerRec->id, 'priority' => $registerRec->priority);
                     }
                 } else {
-                    $notFoundregisters[] = $name;
+                    $unknownRegisters[] = $name;
                 }
             }
         }
@@ -500,10 +500,11 @@ class ztm_RegisterValues extends core_Manager
         $token = Request::get('token');
         $lastSync = Request::get('last_sync');
        
+        log_System::logAlert(serialize(Request::$vars));
+        
         // Кое е устройството
         expect($deviceRec = ztm_Devices::getRecForToken($token), $token);
         ztm_Devices::updateSyncTime($token);
-        
         
         try{
             if(empty($lastSync)){
@@ -512,8 +513,17 @@ class ztm_RegisterValues extends core_Manager
                 $result = ztm_Profiles::getDefaultResponse($deviceRec->profileId);
             
             } else {
+                $regArr = array();
                 $registers = Request::get('registers');
-                $regArr = (empty($registers)) ? array() : $registers;
+                if(!empty($registers)){
+                    if(is_scalar($registers)){
+                        if(str::isJson($registers)){
+                            $regArr = (array)json_decode($registers);
+                        } else {
+                            $regArr = arr::make($registers, true);
+                        }
+                    }
+                }
                 
                 // Синхронизране на данните от устройството с тези от системата
                 $result = $this->sync($regArr, $deviceRec->id, $lastSync);
@@ -522,11 +532,6 @@ class ztm_RegisterValues extends core_Manager
             $result = Request::get('registers');
             reportException($e);
         }
-        
-        
-        wp($result, Request::get('registers'));
-        
-        log_System::logAlert(serialize($result));
         
         // Връщане на резултатния обект
         core_App::outputJson($result);
