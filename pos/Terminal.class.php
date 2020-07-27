@@ -200,8 +200,7 @@ class pos_Terminal extends peripheral_Terminal
         $rec = $Receipts->fetchRec($rec);
         $tpl = getTplFromFile('pos/tpl/terminal/Header.shtml');
         
-        $headerData = (object)array('APP_NAME' => core_Setup::get('EF_APP_TITLE', true),
-                                    'pointId' => pos_Points::getHyperlink($rec->pointId, false),
+        $headerData = (object)array('pointId' => pos_Points::getHyperlink($rec->pointId, false),
                                     'ID' => pos_Receipts::getVerbal($rec->id, 'id'),
                                     'TIME' => $this->renderCurrentTime(),
                                     'valior' => pos_Receipts::getVerbal($rec->id, 'valior'),
@@ -212,12 +211,13 @@ class pos_Terminal extends peripheral_Terminal
         $headerData->contragentId = (!empty($rec->transferedIn)) ? sales_Sales::getLink($rec->transferedIn, 0, array('ef_icon' => false)) : $contragentName;
        
         $img = ht::createImg(array('path' => 'img/16/bgerp.png'));
-        $logoTpl = new core_ET("[#img#] [#logo#]");
+        $logoTpl = new core_ET("[#img#] [#APP_NAME#]");
         $logoTpl->replace($img, 'img');
-        $logoTpl->replace($Receipts->getTerminalHeaderLogo($rec), 'logo');
+        $logoTpl->replace(core_Setup::get('EF_APP_TITLE', true), 'APP_NAME');
+        $logoTpl->removeBlocksAndPlaces();
         $logoLink = ht::createLink($logoTpl, array('bgerp_Portal', 'show'));
         
-        $tpl->append($logoLink, 'OTHER_ELEMENTS');
+        $tpl->append($logoLink, 'APP_NAME');
         $tpl->placeObject($headerData);        
         $Receipts->invoke('AfterRenderTerminalHeader', array(&$tpl, $rec));
         
