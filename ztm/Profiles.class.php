@@ -110,24 +110,23 @@ class ztm_Profiles extends core_Master
     
     
     /**
-     * Преди показване на форма за добавяне/промяна.
+     * Връща първоначалния отговор
      *
-     * @param embed_Manager $Embedder
-     * @param stdClass      $data
+     * @param int $profileId
+     * 
+     * @return stdClass $res
      */
-    protected static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-        $form = $data->form;
-        $rec = $form->rec;
-    }
-    
     public static function getDefaultResponse($profileId)
     {
         $dArr = array();
         $dQuery = ztm_ProfileDetails::getQuery();
+        $dQuery->EXT('type', 'ztm_Registers', 'externalName=type,externalKey=registerId');
         $dQuery->where("#profileId = {$profileId}");
-        $dQuery->show('registerId,value');
+        $dQuery->show('registerId,value,type');
         while($dRec = $dQuery->fetch()){
+            if(in_array($dRec->type, array('int', 'int/float', 'float')) == 'int'){
+                $dRec->value = (float)$dRec->value;
+            }
             $dArr[$dRec->registerId] = $dRec->value;
         }
         
@@ -135,6 +134,10 @@ class ztm_Profiles extends core_Master
         $query = ztm_Registers::getQuery();
         
         while($rec = $query->fetch()){
+            if(in_array($rec->type, array('int', 'int/float', 'float')) == 'int'){
+                $rec->default = (float)$rec->default;
+            }
+            
             $default = $rec->default;
             if(array_key_exists($rec->id, $dArr)){
                 $default = $dArr[$rec->id];
@@ -145,5 +148,4 @@ class ztm_Profiles extends core_Master
         
         return (object)$res;
     }
-    
 }
