@@ -72,7 +72,7 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Икони за операциите
      */
-    protected static $operationImgs = array('enlarge' => 'pos/img/search.png', 'print' => 'pos/img/printer.png', 'keyboard' => 'pos/img/keyboard.png', 'operation-add' => 'pos/img/а.png', 'operation-text' =>  'pos/img/comment.png', 'operation-payment' => 'pos/img/dollar.png', 'operation-quantity' => 'pos/img/multiply.png',  'operation-add' => 'pos/img/a.png',  'operation-receipts' => 'pos/img/receipt.png', 'operation-contragent' => 'pos/img/user.png', 'close' => 'pos/img/close.png', 'transfer' => 'pos/img/transfer.png', 'reject' => 'pos/img/cancel.png', 'delete' => 'pos/img/delete.png', 'help' => "pos/img/info.png");
+    protected static $operationImgs = array('enlarge' => 'pos/img/search.png', 'print' => 'pos/img/printer.png', 'keyboard' => 'pos/img/keyboard.png', 'operation-add' => 'pos/img/а.png', 'operation-text' =>  'pos/img/comment.png', 'operation-payment' => 'pos/img/dollar.png', 'operation-quantity' => 'pos/img/multiply.png',  'operation-add' => 'pos/img/a.png',  'operation-receipts' => 'pos/img/receipt.png', 'operation-contragent' => 'pos/img/user.png', 'close' => 'pos/img/close.png', 'transfer' => 'pos/img/transfer.png', 'reject' => 'pos/img/cancel.png', 'delete' => 'pos/img/delete.png', 'help' => "pos/img/info.png", 'revert' => "pos/img/redo.png");
 
     
     /**
@@ -579,16 +579,17 @@ class pos_Terminal extends peripheral_Terminal
         $buttons["keyboard"] = (object)array('body' => $img, 'attr' => array('title' => 'Отваряне на виртуална клавиатура', 'data-url' => toUrl(array('pos_Terminal', 'Keyboard'), 'local'), 'class' => "keyboardBtn", 'data-modal-title' => tr('Виртуална клавиатура')));
         
         // Слагаме бутон за оттегляне ако имаме права
-        $img = ht::createImg(array('path' => self::$operationImgs["reject"]));
+        $img = ht::createImg(array('path' => self::$operationImgs["revert"]));
         if (pos_Receipts::haveRightFor('reject', $rec)) {
+            $img = ht::createImg(array('path' => self::$operationImgs["reject"]));
              $buttons["reject"] = (object)array('body' => $img, 'attr' => array('title' => 'Оттегляне на бележката', 'class' => "rejectBtn"), 'linkUrl' => array('pos_Receipts', 'reject', $rec->id, 'ret_url' => toUrl(array('pos_Receipts', 'new'), 'local')), 'linkWarning' => 'Наистина ли желаете да оттеглите бележката|*?');
         } elseif (pos_Receipts::haveRightFor('delete', $rec)) {
              $img = ht::createImg(array('path' => self::$operationImgs["delete"]));
              $buttons["delete"] = (object)array('body' => $img, 'attr' => array('title' => 'Изтриване на бележката', 'class' => "rejectBtn"), 'linkUrl' => array('pos_Receipts', 'delete', $rec->id, 'ret_url' => toUrl(array('pos_Receipts', 'new'), 'local')), 'linkWarning' => 'Наистина ли желаете да изтриете бележката|*?');
         } elseif(pos_Receipts::haveRightFor('revert', $rec->id)){
-            $buttons["delete"] = (object)array('body' => $img, 'attr' => array('title' => 'Сторниране на бележката', 'class' => "rejectBtn"), 'linkUrl' => array('pos_Receipts', 'revert', $rec->id), 'linkWarning' => 'Наистина ли желаете да сторнирате бележката|*?');
+            $buttons["revert"] = (object)array('body' => $img, 'attr' => array('title' => 'Сторниране на бележката', 'class' => "rejectBtn"), 'linkUrl' => array('pos_Receipts', 'revert', $rec->id), 'linkWarning' => 'Наистина ли желаете да сторнирате бележката|*?');
         } elseif(pos_Receipts::haveRightFor('revert', pos_Receipts::DEFAULT_REVERT_RECEIPT)) {
-            $buttons["delete"] = (object)array('body' => $img, 'attr' => array('title' => 'Нова сторнираща бележка', 'class' => "rejectBtn"), 'linkUrl' => array('pos_Receipts', 'revert', pos_Receipts::DEFAULT_REVERT_RECEIPT), 'linkWarning' => 'Наистина ли желаете да създадете нова сторнираща бележка|*?');
+            $buttons["revert"] = (object)array('body' => $img, 'attr' => array('title' => 'Нова сторнираща бележка', 'class' => "rejectBtn revert"), 'linkUrl' => array('pos_Receipts', 'revert', pos_Receipts::DEFAULT_REVERT_RECEIPT), 'linkWarning' => 'Наистина ли желаете да създадете нова сторнираща бележка|*?');
         } else {
             $buttons["delete"] = (object)array('body' => $img, 'attr' => array('class' => "rejectBtn disabledBtn", 'disabled' => 'disabled'));
         }

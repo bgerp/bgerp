@@ -296,6 +296,9 @@
 	box-sizing: border-box;
 	&.btnWithWarning {
 		background: rgba(189, 106, 0, 0.85);
+		&.revert {
+			background-color: #dd2d21;
+		}
 	}
 	.buttonOverlay {
 		display: none;
