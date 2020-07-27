@@ -389,13 +389,14 @@ class pos_Terminal extends peripheral_Terminal
      */
     public function act_Help()
     {
+        requireRole('powerUser');
         $tpl = getTplFromFile('pos/tpl/terminal/Help.shtml');
-
+        $rejectAction = Request::get('rejectAction', 'enum(revert,delete,reject)');
+        
         for($i = 1; $i<=12; $i++) {
             $tpl->replace( ht::createElement('img', array('src' => sbf("pos/img/btn{$i}.png", ''))), "img{$i}");
         }
 
-        
         // Ще се реплейсва и пулта
         $res = array();
         $resObj = new stdClass();
@@ -581,17 +582,17 @@ class pos_Terminal extends peripheral_Terminal
         // Слагаме бутон за оттегляне ако имаме права
         $img = ht::createImg(array('path' => self::$operationImgs["revert"]));
         if (pos_Receipts::haveRightFor('reject', $rec)) {
-            $img = ht::createImg(array('path' => self::$operationImgs["reject"]));
-             $buttons["reject"] = (object)array('body' => $img, 'attr' => array('title' => 'Оттегляне на бележката', 'class' => "rejectBtn"), 'linkUrl' => array('pos_Receipts', 'reject', $rec->id, 'ret_url' => toUrl(array('pos_Receipts', 'new'), 'local')), 'linkWarning' => 'Наистина ли желаете да оттеглите бележката|*?');
+             $img = ht::createImg(array('path' => self::$operationImgs["reject"]));
+             $buttons["reject"] = (object)array('body' => $img, 'attr' => array('title' => 'Оттегляне на бележката', 'class' => "rejectBtn", 'data-action' => 'reject'), 'linkUrl' => array('pos_Receipts', 'reject', $rec->id, 'ret_url' => toUrl(array('pos_Receipts', 'new'), 'local')), 'linkWarning' => 'Наистина ли желаете да оттеглите бележката|*?');
         } elseif (pos_Receipts::haveRightFor('delete', $rec)) {
              $img = ht::createImg(array('path' => self::$operationImgs["delete"]));
-             $buttons["delete"] = (object)array('body' => $img, 'attr' => array('title' => 'Изтриване на бележката', 'class' => "rejectBtn"), 'linkUrl' => array('pos_Receipts', 'delete', $rec->id, 'ret_url' => toUrl(array('pos_Receipts', 'new'), 'local')), 'linkWarning' => 'Наистина ли желаете да изтриете бележката|*?');
+             $buttons["delete"] = (object)array('body' => $img, 'attr' => array('title' => 'Изтриване на бележката', 'class' => "rejectBtn", 'data-action' => 'delete'), 'linkUrl' => array('pos_Receipts', 'delete', $rec->id, 'ret_url' => toUrl(array('pos_Receipts', 'new'), 'local')), 'linkWarning' => 'Наистина ли желаете да изтриете бележката|*?');
         } elseif(pos_Receipts::haveRightFor('revert', $rec->id)){
-            $buttons["revert"] = (object)array('body' => $img, 'attr' => array('title' => 'Сторниране на бележката', 'class' => "rejectBtn"), 'linkUrl' => array('pos_Receipts', 'revert', $rec->id), 'linkWarning' => 'Наистина ли желаете да сторнирате бележката|*?');
+            $buttons["revert"] = (object)array('body' => $img, 'attr' => array('title' => 'Сторниране на бележката', 'class' => "rejectBtn revert", 'data-action' => 'revert'), 'linkUrl' => array('pos_Receipts', 'revert', $rec->id), 'linkWarning' => 'Наистина ли желаете да сторнирате бележката|*?');
         } elseif(pos_Receipts::haveRightFor('revert', pos_Receipts::DEFAULT_REVERT_RECEIPT)) {
-            $buttons["revert"] = (object)array('body' => $img, 'attr' => array('title' => 'Нова сторнираща бележка', 'class' => "rejectBtn revert"), 'linkUrl' => array('pos_Receipts', 'revert', pos_Receipts::DEFAULT_REVERT_RECEIPT), 'linkWarning' => 'Наистина ли желаете да създадете нова сторнираща бележка|*?');
+            $buttons["revert"] = (object)array('body' => $img, 'attr' => array('title' => 'Нова сторнираща бележка', 'class' => "rejectBtn revert", 'data-action' => 'revert'), 'linkUrl' => array('pos_Receipts', 'revert', pos_Receipts::DEFAULT_REVERT_RECEIPT), 'linkWarning' => 'Наистина ли желаете да създадете нова сторнираща бележка|*?');
         } else {
-            $buttons["delete"] = (object)array('body' => $img, 'attr' => array('class' => "rejectBtn disabledBtn", 'disabled' => 'disabled'));
+            $buttons["delete"] = (object)array('body' => $img, 'attr' => array('class' => "rejectBtn disabledBtn", 'disabled' => 'disabled', 'data-action' => 'reject'));
         }
         
         // Бутон за увеличение на избрания артикул

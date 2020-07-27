@@ -468,7 +468,11 @@ function openInfo(element) {
 // Отваря модал с хелпа
 function openHelp() {
 	var url = $('.helpBtn').attr("data-url");
-	processUrl(url, null);
+	
+	var rejectAction = $('div.rejectBtn').attr("data-action");
+	var params = {rejectAction:rejectAction};
+	
+	processUrl(url, params);
 	
 	var modalTitle = $('.helpBtn').attr("data-modal-title");
 	openModal(modalTitle);

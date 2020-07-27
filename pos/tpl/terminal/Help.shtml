@@ -49,11 +49,31 @@
             <td class="shortcuts"><span>Ctrl + M </span></td>
             <td class="textShortcut"> - |Отваряне на виртуална клавиатура|*</td>
         </tr>
+        
+        <!--ET_BEGIN img10-->
         <tr>
             <td class="imageCell">[#img10#]</td>
             <td class="shortcuts"><span>Ctrl + O </span></td>
             <td class="textShortcut"> - |Оттегляне на бележка|*</td>
         </tr>
+        <!--ET_END img10-->
+        
+        <!--ET_BEGIN img13-->
+        <tr>
+            <td class="imageCell">[#img13#]</td>
+            <td class="shortcuts"><span>Ctrl + O </span></td>
+            <td class="textShortcut"> - |Сторниране на бележка|*</td>
+        </tr>
+        <!--ET_END img13-->
+        
+        <!--ET_BEGIN img14-->
+        <tr>
+            <td class="imageCell">[#img14#]</td>
+            <td class="shortcuts"><span>Ctrl + O </span></td>
+            <td class="textShortcut"> - |Изтриване на бележка|*</td>
+        </tr>
+        <!--ET_END img14-->
+        
         <tr>
             <td class="imageCell">[#img11#]</td>
             <td class="shortcuts"><span>F1 </span></td>
