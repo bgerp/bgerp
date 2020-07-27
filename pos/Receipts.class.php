@@ -1013,13 +1013,4 @@ class pos_Receipts extends core_Master
         
         return true;
     }
-    
-    
-    /**
-     * Какво е логото на терминала на бележката
-     */
-    public function getTerminalHeaderLogo_($rec)
-    {
-        return 'bgERP';
-    }
 }
