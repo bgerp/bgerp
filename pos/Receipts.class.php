@@ -175,6 +175,7 @@ class pos_Receipts extends core_Master
         $this->FLD('returnedTotal', 'double(decimals=2)', 'caption=Сторнирано, input=none');
         
         $this->setDbIndex('valior');
+        $this->setDbIndex('revertId');
     }
     
     
@@ -205,7 +206,7 @@ class pos_Receipts extends core_Master
             // Коя е последната чернова бележка от ПОС-а
             $today = dt::today();
             $query = $this->getQuery();
-            $query->where("#pointId = {$pointId} AND #state = 'draft'");
+            $query->where("#pointId = {$pointId} AND #state = 'draft' AND #revertId IS NULL");
             $query->show('valior,contragentClass,contragentObjectId,total');
             $query->orderBy('id', 'DESC');
             $lastDraft = $query->fetch();
@@ -508,8 +509,12 @@ class pos_Receipts extends core_Master
         
         // Никой не може да оттегли затворена бележка
         if ($action == 'reject' && isset($rec)) {
-            if ($rec->state == 'closed' || empty($rec->total)) {
+            if(in_array($rec->state, array('closed', 'pending', 'rejected'))){
                 $res = 'no_one';
+            } elseif(empty($rec->total)){
+                if(empty($rec->revertId)){
+                    $res = 'no_one';
+                }
             }
         }
         

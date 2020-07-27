@@ -587,6 +587,8 @@ class pos_Terminal extends peripheral_Terminal
              $buttons["delete"] = (object)array('body' => $img, 'attr' => array('title' => 'Изтриване на бележката', 'class' => "rejectBtn"), 'linkUrl' => array('pos_Receipts', 'delete', $rec->id, 'ret_url' => toUrl(array('pos_Receipts', 'new'), 'local')), 'linkWarning' => 'Наистина ли желаете да изтриете бележката|*?');
         } elseif(pos_Receipts::haveRightFor('revert', $rec->id)){
             $buttons["delete"] = (object)array('body' => $img, 'attr' => array('title' => 'Сторниране на бележката', 'class' => "rejectBtn"), 'linkUrl' => array('pos_Receipts', 'revert', $rec->id), 'linkWarning' => 'Наистина ли желаете да сторнирате бележката|*?');
+        } elseif(pos_Receipts::haveRightFor('revert', pos_Receipts::DEFAULT_REVERT_RECEIPT)) {
+            $buttons["delete"] = (object)array('body' => $img, 'attr' => array('title' => 'Нова сторнираща бележка', 'class' => "rejectBtn"), 'linkUrl' => array('pos_Receipts', 'revert', pos_Receipts::DEFAULT_REVERT_RECEIPT), 'linkWarning' => 'Наистина ли желаете да създадете нова сторнираща бележка|*?');
         } else {
             $buttons["delete"] = (object)array('body' => $img, 'attr' => array('class' => "rejectBtn disabledBtn", 'disabled' => 'disabled'));
         }
@@ -2065,16 +2067,8 @@ class pos_Terminal extends peripheral_Terminal
         $disabledClass = (pos_Receipts::haveRightFor('add')) ? 'navigable' : 'disabledBtn';
         $addUrl = (pos_Receipts::haveRightFor('add')) ? array('pos_Receipts', 'new') : array();
         
-        $revertDefaultUrl = (pos_Receipts::haveRightFor('revert', pos_Receipts::DEFAULT_REVERT_RECEIPT)) ? array('pos_Receipts', 'revert', pos_Receipts::DEFAULT_REVERT_RECEIPT, 'ret_url' => true) : array();
-        $disabledRevertClass = countR($revertDefaultUrl) ? 'navigable' : 'disabledBtn';
-        $warning = countR($revertDefaultUrl) ? 'Наистина ли искате да създадете нова сторнираща бележка|*?' : null;
-        
         $row = ht::createLink('+ Нова бележка', $addUrl, null, array('id' => "receiptnew", 'class' => "pos-notes posBtns {$disabledClass}", 'title' => 'Създаване на нова бележка'));
         $arr['draft']['receipts']->append($row);
-        $arr['draft']['count']++;
-        
-        $revertBlock = ht::createLink('↶ Сторно бележка', $revertDefaultUrl, $warning, array('id' => "revertReceiptBtn", 'class' => "pos-notes posBtns revertReceiptBtn {$disabledRevertClass}", 'title' => 'Създаване на нова сторно бележка'));
-        $arr['draft']['receipts']->append($revertBlock);
         $arr['draft']['count']++;
         
         while ($receiptRec = $query->fetch()) {
