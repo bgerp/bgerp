@@ -144,7 +144,7 @@ class pos_ReceiptDetails extends core_Detail
             
             $amount = Request::get('amount', 'varchar');
             $amount = core_Type::getByName('double')->fromVerbal($amount);
-            expect($amount, 'Не е подадане сума за плащане');
+            expect($amount, 'Невалидна сума за плащане');
             expect($amount > 0, 'Сумата трябва да е положителна');
             
             $diff = abs($receiptRec->paid - $receiptRec->total);
