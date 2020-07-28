@@ -78,3 +78,16 @@
   color: #fff;
   border-bottom: 4px solid #fff !important;
 }
+
+.contentHolderResults {
+    color: #fff;
+    .element {
+        color: #000
+    }
+    .posBtns, .element {
+        opacity: 0.9;
+        &.selected {
+            opacity: 1;
+        }
+    }
+}

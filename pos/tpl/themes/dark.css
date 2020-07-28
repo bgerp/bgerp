@@ -70,3 +70,14 @@
   color: white;
   border-bottom: 4px solid white !important; }
 
+.contentHolderResults {
+  color: white; }
+  .contentHolderResults .element {
+    color: black; }
+  .contentHolderResults .posBtns,
+  .contentHolderResults .element {
+    opacity: 0.9; }
+    .contentHolderResults .posBtns.selected,
+    .contentHolderResults .element.selected {
+      opacity: 1; }
+
