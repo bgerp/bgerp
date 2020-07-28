@@ -39,13 +39,14 @@ class cms_FancyTheme extends core_ProtoInner
      */
     public function addEmbeddedFields(core_FieldSet &$form)
     {
+        $form->FLD('menuPosition', 'enum(above=Над картинката,below=Под картинката)', 'caption=Позиция на менюто');
         $form->FLD('wImg1', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 1');
         $form->FLD('wImg2', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 2');
         $form->FLD('wImg3', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 3');
         $form->FLD('wImg4', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 4');
         $form->FLD('wImg5', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 5');
         $form->FLD('colabImg', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Картинка за логин и при колаборатор (1000x150px)->Изображение');
-
+        
         $form->FLD('fadeDelay', 'int', 'caption=Превключване на картинките->Задържане,suggestions=3000|5000|7000');
         $form->FLD('fadeTransition', 'int', 'caption=Превключване на картинките->Транзиция,suggestions=500|1000|1500');
         $form->FLD('nImg', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Заглавна картинка за мобилен (360x104px)->Изображение 1');
@@ -65,8 +66,15 @@ class cms_FancyTheme extends core_ProtoInner
     {
         // Добавяме заглавната картика
         $tpl->replace($this->getHeaderImg(), 'HEADER_IMG');
-
-        // Добавяме заглавния текст
+        
+        $menu = new ET("<div id='cmsMenu' class='menuRow'><div class='centerContent'>[#CMS_MENU#]  </div></div>");
+        if($this->innerForm->menuPosition == 'above'){
+            $tpl->replace($menu, 'TOP_PAGE');
+            $css .= "\n    header {border-bottom: 2px solid {$this->innerForm->baseColor} !important;}";
+        } else {
+            $tpl->replace($menu, 'BOTTOM_MENU');
+        }
+        // Добавяме заглавния текст---ч-ч-чч--ччччч-34563++++++--+-+-+++++++
         $title = $this->innerForm->title;
         if (!$this->haveOwnHeaderImages && !$title) {
             $conf = core_Packs::getConfig('core');
@@ -137,7 +145,7 @@ class cms_FancyTheme extends core_ProtoInner
                 $activeColor = '333';
             }
         }
-
+        
         // изчисления за фон и рамка на линковете
         if (phpcolor_Adapter::checkColor($activeColor, 'dark')) {
             $fontColor = phpcolor_Adapter::changeColor($activeColor, 'darken', 25);
@@ -171,7 +179,7 @@ class cms_FancyTheme extends core_ProtoInner
         if ($tempBalance < 200 && phpcolor_Adapter::changeColor($bgcolorActive, 'lighten', 20) != '#ffffff') {
             $bgcolorActive = phpcolor_Adapter::changeColor($bgcolorActive, 'lighten', 20);
         }
-
+        
         $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover, .cookies .agree {background-color:#{$activeColor};}";
         
         $css .= "\n    .selected-external-tab  {border-top: 3px solid #{$activeColor} !important;}";
@@ -199,11 +207,11 @@ class cms_FancyTheme extends core_ProtoInner
         $css .= "\n    h2 {background-color:#{$bgcolorActive} !important; padding: 5px 10px;border:none !important}";
         $css .= "\n    .prevNextNav {border:dotted 1px #ccc; background-color:#eee; margin-top:10px;margin-bottom:7px; width:100%; display:table;}";
         $css .= "\n    .prevNextNav div {margin:5px;}";
-
+        
         if ($css) {
             $tpl->append($css, 'STYLES');
         }
-
+        
         // добавяме css-a за структурата
         $tpl->push('cms/css/Fancy.css', 'CSS');
         // Добавяме дефолт темата за цветове
@@ -234,7 +242,7 @@ class cms_FancyTheme extends core_ProtoInner
                     $conf = core_Packs::getConfig('core');
                     
                     $banner = '';
-
+                    
                     $banner .= '<div class="fadein">';
                     $style = '';
                     foreach ($imgs as $iHash) {
@@ -284,11 +292,11 @@ class cms_FancyTheme extends core_ProtoInner
                 $this->haveOwnHeaderImages = true;
             }
         }
-
+        
         $conf = core_Packs::getConfig('core');
         if($imageURL){
             $hImage = ht::createElement('img', array('src' => $imageURL, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg'));
-        
+            
             return $hImage;
         }
         
