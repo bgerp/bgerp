@@ -79,7 +79,7 @@
   border-bottom: 4px solid #fff !important;
 }
 
-.contentHolderResults {
+#result-holder {
     color: #fff;
     .element {
         color: #000
@@ -89,5 +89,13 @@
         &.selected {
             opacity: 1;
         }
+    }
+}
+.tabHolder li {
+    color: #666;
+    border: none !important;
+    &.active {
+      color: #333 !important;
+      border: none !important;
     }
 }

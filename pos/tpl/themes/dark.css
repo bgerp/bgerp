@@ -70,14 +70,21 @@
   color: white;
   border-bottom: 4px solid white !important; }
 
-.contentHolderResults {
+#result-holder {
   color: white; }
-  .contentHolderResults .element {
+  #result-holder .element {
     color: black; }
-  .contentHolderResults .posBtns,
-  .contentHolderResults .element {
+  #result-holder .posBtns,
+  #result-holder .element {
     opacity: 0.9; }
-    .contentHolderResults .posBtns.selected,
-    .contentHolderResults .element.selected {
+    #result-holder .posBtns.selected,
+    #result-holder .element.selected {
       opacity: 1; }
+
+.tabHolder li {
+  color: #666666;
+  border: none !important; }
+  .tabHolder li.active {
+    color: #333333 !important;
+    border: none !important; }
 
