@@ -66,7 +66,7 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Кои са разрешените операции
      */
-    protected static $operationsArr = "add=Избор на артикул,quantity=Редактиране на реда,payment=Плащане по бележката,contragent=Търсене на клиент,text=Задаване на текст на реда,receipts=Избор на бележка";
+    protected static $operationsArr = "add=Избор на артикул,quantity=Редактиране на реда,payment=Плащане по бележката,contragent=Търсене на клиент,text=Задаване на текст на реда,receipts=Търсене на бележка";
 
 
     /**
@@ -389,7 +389,8 @@ class pos_Terminal extends peripheral_Terminal
      */
     public function act_Help()
     {
-        requireRole('powerUser');
+        pos_Receipts::requireRightFor('terminal');
+        
         $tpl = getTplFromFile('pos/tpl/terminal/Help.shtml');
         $rejectAction = Request::get('rejectAction', 'enum(revert,delete,reject)');
         
