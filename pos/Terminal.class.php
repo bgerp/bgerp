@@ -1375,7 +1375,7 @@ class pos_Terminal extends peripheral_Terminal
                 
                 arsort($storeArr);
                 foreach ($storeArr as $storeId => $quantity){
-                    $btnClass = ($storeId == $selectedRec->storeId) ? 'current' : 'navigable';
+                    $btnClass = ($storeId == $selectedRec->storeId) ? 'current navigable' : 'navigable';
                     $dataUrl = ($storeId == $selectedRec->storeId) ? null : $dataChangeStoreUrl;
                     
                     $quantityInStockVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);

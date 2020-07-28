@@ -70,3 +70,21 @@
   color: white;
   border-bottom: 4px solid white !important; }
 
+#result-holder {
+  color: white; }
+  #result-holder .element {
+    color: black; }
+  #result-holder .posBtns,
+  #result-holder .element {
+    opacity: 0.9; }
+    #result-holder .posBtns.selected,
+    #result-holder .element.selected {
+      opacity: 1; }
+
+.tabHolder li {
+  color: #666666;
+  border: none !important; }
+  .tabHolder li.active {
+    color: #333333 !important;
+    border: none !important; }
+
