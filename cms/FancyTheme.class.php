@@ -39,13 +39,14 @@ class cms_FancyTheme extends core_ProtoInner
      */
     public function addEmbeddedFields(core_FieldSet &$form)
     {
-        $form->FLD('menuPosition', 'enum(above=Над картинката,below=Под картинката)', 'caption=Позиция на менюто');
         $form->FLD('wImg1', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 1');
         $form->FLD('wImg2', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 2');
         $form->FLD('wImg3', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 3');
         $form->FLD('wImg4', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 4');
         $form->FLD('wImg5', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 5');
         $form->FLD('colabImg', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Картинка за логин и при колаборатор (1000x150px)->Изображение');
+
+        $form->FLD('menuPosition', 'enum(below=Под банера,above=Над банера)', 'caption=Меню->Позиция спрямо банера');
         
         $form->FLD('fadeDelay', 'int', 'caption=Превключване на картинките->Задържане,suggestions=3000|5000|7000');
         $form->FLD('fadeTransition', 'int', 'caption=Превключване на картинките->Транзиция,suggestions=500|1000|1500');
