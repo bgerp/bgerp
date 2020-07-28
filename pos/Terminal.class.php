@@ -393,10 +393,13 @@ class pos_Terminal extends peripheral_Terminal
         $tpl = getTplFromFile('pos/tpl/terminal/Help.shtml');
         $rejectAction = Request::get('rejectAction', 'enum(revert,delete,reject)');
         
-        for($i = 1; $i<=12; $i++) {
+        for($i = 1; $i<=11; $i++) {
             $tpl->replace( ht::createElement('img', array('src' => sbf("pos/img/btn{$i}.png", ''))), "img{$i}");
         }
 
+        $rejectIconNumber = ($rejectAction == 'reject') ? '12' : (($rejectAction == 'revert') ? '13' : '14'); 
+        $tpl->replace(ht::createElement('img', array('src' => sbf("pos/img/btn{$rejectIconNumber}.png", ''))), "img{$rejectIconNumber}");
+        
         // Ще се реплейсва и пулта
         $res = array();
         $resObj = new stdClass();

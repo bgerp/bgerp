@@ -50,13 +50,13 @@
             <td class="textShortcut"> - |Отваряне на виртуална клавиатура|*</td>
         </tr>
         
-        <!--ET_BEGIN img10-->
+        <!--ET_BEGIN img12-->
         <tr>
-            <td class="imageCell">[#img10#]</td>
+            <td class="imageCell">[#img12#]</td>
             <td class="shortcuts"><span>Ctrl + O </span></td>
             <td class="textShortcut"> - |Оттегляне на бележка|*</td>
         </tr>
-        <!--ET_END img10-->
+        <!--ET_END img12-->
         
         <!--ET_BEGIN img13-->
         <tr>
@@ -80,7 +80,7 @@
             <td class="textShortcut"> - |Помощна информация|*</td>
         </tr>
         <tr>
-            <td class="imageCell">[#img12#]</td>
+            <td class="imageCell">[#img10#]</td>
             <td class="shortcuts"><span>Ctrl + Q </span></td>
             <td class="textShortcut"> - |Изход от терминала|*</td>
         </tr>
