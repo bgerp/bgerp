@@ -254,6 +254,9 @@ class bulmar_BankDocumentExport extends core_Manager
         $nRec->amount = $amount;
         $nRec->valior = $rec->valior;
         $nRec->endDate =  dt::getLastDayOfMonth($nRec->valior);
+        $nRec->valior = dt::mysql2verbal($nRec->valior, 'd.m.Y');
+        $nRec->endDate = dt::mysql2verbal($nRec->endDate, 'd.m.Y');
+        
         $nRec->reason = $nRec->contragentName = null;
         $nRec->accountId = $rec->ownAccount;
         
@@ -261,7 +264,10 @@ class bulmar_BankDocumentExport extends core_Manager
             if($Document = doc_Containers::getDocument($rec->fromContainerId)){
                 
                 if($Document->isInstanceOf('deals_InvoiceMaster')){
-                    $nRec->reason .= "#" . str_pad($Document->fetchField('number'), 10, '0', STR_PAD_LEFT) . "/" . $Document->getVerbal('date');
+                    $invoiceDate = $Document->getVerbal('date');
+                    $invoiceDate = dt::mysql2verbal($invoiceDate, 'd.m.Y');
+                    
+                    $nRec->reason .= "#" . str_pad($Document->fetchField('number'), 10, '0', STR_PAD_LEFT) . "/" . $invoiceDate;
                     $nRec->contragentName = cls::get($rec->contragentClassId)->getVerbal($rec->contragentId, 'name');
                 
                     $cData = cls::get($rec->contragentClassId)->getContragentData($rec->contragentId);
