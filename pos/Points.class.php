@@ -143,7 +143,7 @@ class pos_Points extends core_Master
         $this->FLD('payments', 'keylist(mvc=cond_Payments, select=title)', 'caption=Настройки->Безналични плащания,placeholder=Всички');
         $this->FLD('theme', 'enum(default=Стандартна,dark=Тъмна)', 'caption=Настройки->Тема,default=dark,mandatory');
         $this->FLD('cashiers', 'keylist(mvc=core_Users,select=nick)', 'caption=Настройки->Оператори, mandatory,optionsFunc=pos_Points::getCashiers');
-        $this->FLD('productGroups', 'table(columns=groupId|order,captions=Група|Подредба,validate=pos_Points::validateGroups)', 'caption=Настройки->Групи');
+        $this->FLD('productGroups', 'table(columns=groupId,captions=Група,validate=pos_Points::validateGroups)', 'caption=Настройки->Групи');
         
         $this->FLD('setPrices', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Цени, mandatory,default=yes');
         $this->FLD('setDiscounts', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Отстъпки, mandatory,settings,default=yes');
@@ -172,21 +172,7 @@ class pos_Points extends core_Master
      */
     public static function validateGroups($tableData, $Type)
     {
-        $res = $error = $groups = $orders = $errorFields = array();
-        
-        foreach ($tableData['order'] as $k1 => $q1) {
-            if (!type_Int::isInt($q1) || $q1 <= 0) {
-                $error[] = 'Не допустими символи в число/израз|*';
-                $errorFields['order'][$k1] = 'Не е въведено положително число|*';
-            }
-            
-            if (array_key_exists($q1, $orders)) {
-                $error[] = 'Повтаряща се подредба';
-                $errorFields['order'][$k1] = 'Повтаряща се подредба';
-            } else {
-                $orders[$q1] = $q1;
-            }
-        }
+        $res = $error = $groups = $errorFields = array();
         
         foreach ($tableData['groupId'] as $k1 => $groupId) {
             if (array_key_exists($groupId, $groups)) {
