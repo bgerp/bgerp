@@ -445,6 +445,8 @@ class pos_Terminal extends peripheral_Terminal
             $rec->contragentObjectId = $companyRec->id;
             $rec->contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
             pos_Receipts::save($rec, 'contragentObjectId,contragentClass,contragentName');
+            Mode::setPermanent("currentSearchString{$rec->id}", null);
+            
             
             redirect(array('pos_Terminal', 'open', 'receiptId' => $rec->id));
         }
