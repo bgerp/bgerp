@@ -985,8 +985,15 @@ class pos_Terminal extends peripheral_Terminal
         if($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId){
             
             $contragents = array();
+            $vatId = null;
+            if(!empty($string)){
+                list($status) = cls::get('drdata_Vats')->checkStatus($string);
+                if($status == 'valid'){
+                    $vatId = $string;
+                }
+            }
             
-            $newCompanyAttr = array('id' => 'contragentnew', 'data-url' => toUrl(array('pos_Terminal', 'transferInNewCompany', 'receiptId' => $rec->id, 'ret_url' => true)), 'class' => 'posBtns');
+            $newCompanyAttr = array('id' => 'contragentnew', 'data-url' => toUrl(array('pos_Terminal', 'transferInNewCompany', 'receiptId' => $rec->id, 'vatId' => $vatId, 'ret_url' => true)), 'class' => 'posBtns');
             if(!crm_Companies::haveRightFor('add') || !pos_Receipts::haveRightFor('transfer', $rec)){
                 $newCompanyAttr['disabled'] = 'disabled';
                 $newCompanyAttr['class'] .= ' disabledBtn';
