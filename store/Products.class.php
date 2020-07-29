@@ -1111,13 +1111,11 @@ class store_Products extends core_Detail
         if(countR($data->recs)){
             $totalField = ($data->masterData->rec->generic == 'yes') ? 'code' : 'storeId';
             $data->rows['total'] = (object)array($totalField => "<div style='float:left'>" .  tr('Сумарно') . "</div>");
-            foreach ($data->recs as $rec){
-                foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'expectedQuantityTotal', 'freeQuantity') as $fld){
-                    if(!empty($rec->{$fld})){
-                       $data->rows['total']->{$fld} += $rec->{$fld};
-                       $data->rows['total']->ROW_ATTR['style'] = 'background-color:#eee;font-weight:bold';
-                    }
-                }
+            $data->rows['total']->ROW_ATTR['style'] = 'background-color:#eee;font-weight:bold';
+            
+            foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'expectedQuantityTotal', 'freeQuantity') as $fld){
+                ${$fld} = arr::sumValuesArray($data->recs, $fld, true);
+                $data->rows['total']->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal(${$fld});
             }
         }
     }
