@@ -264,7 +264,7 @@ class bulmar_BankDocumentExport extends core_Manager
             if($Document = doc_Containers::getDocument($rec->fromContainerId)){
                 
                 if($Document->isInstanceOf('deals_InvoiceMaster')){
-                    $invoiceDate = $Document->getVerbal('date');
+                    $invoiceDate = $Document->fetchField('date');
                     $invoiceDate = dt::mysql2verbal($invoiceDate, 'd.m.Y');
                     
                     $nRec->reason .= "#" . str_pad($Document->fetchField('number'), 10, '0', STR_PAD_LEFT) . "/" . $invoiceDate;
