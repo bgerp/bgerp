@@ -584,12 +584,26 @@ class callcenter_Talks extends core_Master
             $savedId = static::save($nRec, null, 'IGNORE');
             
             if (!$savedId) {
+                $oRec = self::fetch(array("#internalNum = '[#1#]' AND #uniqId='[#2#]'", $nRec->internalNum, $nRec->uniqId));
+                
+                // Предпазване от дублиране
+                if ($nRec->startTime == $oRec->startTime) {
+                    
+                    break;
+                }
+                
                 $nRec->uniqId = self::getUniqId($uniqId);
+                
                 unset($nRec->id);
             } else {
                 break;
             }
         } while (!$savedId);
+        
+        if (!$savedId) {
+            
+            return false;
+        }
         
         // Нотифицираме потребителя, за входящото обаждане
         if (!$isOutgoing) {
