@@ -1176,10 +1176,10 @@ function disableOrEnableCurrencyBtn()
 	
 	if(!value.length || !$.isNumeric(value)){
 		$('.currencyBtn').addClass('disabledBtn');
-		$('.currencyBtn').attr('disabled', 'disabled');
+		$('.currencyBtn').prop('disabled', true);
 	} else {
 		$(".currencyBtn").removeClass('disabledBtn');
-		$(".currencyBtn").removeAttr("disabled");
+		$(".currencyBtn").prop("disabled", false);
 	}
 }
 
