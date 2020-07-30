@@ -25,7 +25,7 @@ class pos_Points extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Settings, plg_Rejected, doc_FolderPlg,pos_Wrapper, plg_Current, plg_State,plg_Created';
+    public $loadList = 'plg_RowTools2, plg_Settings, plg_Rejected, doc_FolderPlg, pos_Wrapper, plg_Current, plg_State, plg_Created';
     
     
     /**
@@ -55,25 +55,19 @@ class pos_Points extends core_Master
     /**
      * Кой може да променя?
      */
-    public $canWrite = 'ceo, posMaster';
-    
-    
-    /**
-     * Кой може да пише
-     */
-    public $canCreatenewfolder = 'ceo, pos';
+    public $canWrite = 'ceo, posMaster, admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, pos';
+    public $canList = 'ceo, pos, admin';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,pos';
+    public $canSingle = 'ceo, pos, admin';
     
     
     /**
@@ -85,7 +79,7 @@ class pos_Points extends core_Master
     /**
      * Кой може да го отхвърли?
      */
-    public $canReject = 'admin, posMaster';
+    public $canReject = 'ceo, posMaster, admin';
     
     
     /**
