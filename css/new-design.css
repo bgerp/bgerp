@@ -947,7 +947,8 @@ body {
 .notificationsCnt a {
   display: block;
   color: white;
-  padding: 1px 2px 1px 1px;
+  padding: 1px 2px 1px;
+  text-align: center;
   font-size: 0.5em;
   border-radius: 3px;
   font-weight: normal !important; }

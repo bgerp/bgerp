@@ -111,7 +111,7 @@ class pos_Points extends core_Master
      * 
      * @see plg_Settings
      */
-    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,setDiscounts,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,products,maxSearchProductInLastSales,searchDelayTerminal,productGroups';
+    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,setDiscounts,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,maxSearchProductInLastSales,searchDelayTerminal,productGroups';
       
     
     /**
