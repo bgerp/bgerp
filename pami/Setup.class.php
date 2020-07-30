@@ -299,6 +299,8 @@ class pami_Setup extends core_ProtoSetup
             return true;
         }
         
+        log_System::add(get_called_class(), "Открит чужд процес с PID={$pid} и CMD={$cmd}", null, 'warning');
+        
         // Процеса не е нашия и чистим връзката с него
         core_Packs::setConfig('pami', array('PAMI_PID' => '', 'PAMI_CMD' => ''));
         
