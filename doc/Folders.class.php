@@ -1787,6 +1787,8 @@ class doc_Folders extends core_Master
             if ($countryId) {
                 $searchKeywords = drdata_Countries::addCountryInBothLg($countryId, $searchKeywords);
             }
+            
+            $searchKeywords .= ' ' . $class->getSearchKeywords($rec->coverId);
         }
     }
     

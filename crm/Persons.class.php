@@ -20,6 +20,12 @@
 class crm_Persons extends core_Master
 {
     /**
+     * Да се създаде папка при създаване на нов запис
+     */
+    public $autoCreateFolder = 'instant';
+    
+    
+    /**
      * Интерфейси, поддържани от този мениджър
      */
     public $interfaces = array(
