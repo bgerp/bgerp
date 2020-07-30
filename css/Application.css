@@ -1325,6 +1325,8 @@ a.tOld {
       width: 120px; }
       .typeTable .batchNameTd ~ td input {
         max-width: 120px; }
+  .typeTable select {
+    max-width: 270px; }
 
 /*
  * стилове за документи
