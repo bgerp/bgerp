@@ -1279,8 +1279,9 @@ class pos_Terminal extends peripheral_Terminal
         foreach ($payments as $paymentId => $paymentTitle){
             $attr = array('id' => "payment{$paymentId}", 'class' => "{$disClass} posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl);
             $currencyCode = cond_Payments::fetchField($paymentId, 'currencyCode');
-            if(!empty($currencyCode) && $disClass != 'disabledBtn'){
-                $attr['class'] .= ' currencyBtn'; 
+            if(!empty($currencyCode)){
+                //$disClass = 'disabledBtn';
+                $attr['class'] .= ' currencyBtn disabledBtn'; 
             }
             
             $paymentArr["payment{$paymentId}"] = (object)array('body' => ht::createElement("div", $attr, tr($paymentTitle), true), 'placeholder' => 'PAYMENTS');
@@ -1692,7 +1693,6 @@ class pos_Terminal extends peripheral_Terminal
         
         // Ако има групи на артикулите
         if(countR($groupsTable)){
-            arr::sortObjects($groupsTable, 'order', 'asc');
             $groups = arr::extractValuesFromArray($groupsTable, 'groupId');
             
             $resultTpl = new core_ET("<div class='scroll-holder productTabs'><ul class='tabHolder'>[#TAB#]</ul></div>");
@@ -1833,21 +1833,15 @@ class pos_Terminal extends peripheral_Terminal
             // Ако не се търси подробно артикул, се показват тези от любими
             if(empty($searchString)){
                 $groups = type_Table::toArray(pos_Points::getSettings($rec->pointId, 'productGroups'));
-                $productsArr = keylist::toArray(pos_Points::getSettings($rec->pointId, 'products'));
                 
-                if(countR($productsArr) || countR($groups)){
+                if(countR($groups)){
                     $pQuery->limit($settings->maxSearchProducts);
-                    $pQuery->in("productId", array_keys($productsArr));
                     $pQuery->orderBy('code,name', 'ASC');
                     
-                    if(countR($groups)){
-                        $groups = arr::extractValuesFromArray($groups, 'groupId');
-                        $or = countR($productsArr) ? true : false;
-                        $pQuery->likeKeylist('groups', $groups, $or);
-                        
-                        if(!empty($rec->_selectedGroupId)){
-                            $pQuery->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
-                        }
+                    $groups = arr::extractValuesFromArray($groups, 'groupId');
+                    $pQuery->likeKeylist('groups', $groups);
+                    if(!empty($rec->_selectedGroupId)){
+                        $pQuery->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
                     }
                     
                     while($pRec = $pQuery->fetch()){
