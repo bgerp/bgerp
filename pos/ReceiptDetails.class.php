@@ -144,7 +144,7 @@ class pos_ReceiptDetails extends core_Detail
             
             $amount = Request::get('amount', 'varchar');
             $amount = core_Type::getByName('double')->fromVerbal($amount);
-            expect($amount, 'Не е подадане сума за плащане');
+            expect($amount, 'Невалидна сума за плащане');
             expect($amount > 0, 'Сумата трябва да е положителна');
             
             $diff = abs($receiptRec->paid - $receiptRec->total);
@@ -500,7 +500,12 @@ class pos_ReceiptDetails extends core_Detail
             
             // Намираме нужната информация за продукта
             $this->getProductInfo($rec);
-         
+            if($rec->ean && empty($rec->productId)){
+                $forwardUrl = array('Ctr' =>'pos_Terminal', 'Act' =>'displayOperation', 'search' => $rec->ean, 'receiptId' => $receiptId, 'operation' => 'add', 'refreshPanel' => 'no');
+                
+                return core_Request::forward($forwardUrl);
+            }
+            
             expect($rec->productId, 'Няма такъв продукт в системата|*!');
             expect($rec->notSellable !== true, 'Артикулът е спрян от продажба|*!');
             
@@ -605,6 +610,7 @@ class pos_ReceiptDetails extends core_Detail
         }
        
         Mode::setPermanent("productAdded{$rec->receiptId}", $rec->productId);
+        Mode::setPermanent("currentSearchString{$rec->receiptId}", null);
         
         return pos_Terminal::returnAjaxResponse($receiptId, $selectedRecId, $success, true, true, true, 'add');
     }
@@ -816,8 +822,8 @@ class pos_ReceiptDetails extends core_Detail
             return;
         }
         
-        $productRec = cat_Products::fetch($product->productId, 'canSell,measureId,canStore');
-        if ($productRec->canSell != 'yes') {
+        $productRec = cat_Products::fetch($product->productId, 'canSell,measureId,canStore,state');
+        if ($productRec->canSell != 'yes' || $productRec->state != 'active') {
             $rec->notSellable = true;
             return;
         }
@@ -904,9 +910,9 @@ class pos_ReceiptDetails extends core_Detail
             } else {
                 
                 // Ако редактираме/добавяме/изтриваме ред с продукт, проверяваме имали направено плащане
-                if (!($action == 'delete' && !$rec->productId)) {
+                if ($action == 'delete' && $rec->productId) {
                     if ($masterRec->paid) {
-                        $res = 'no_one';
+                       // $res = 'no_one';
                     }
                 }
             }

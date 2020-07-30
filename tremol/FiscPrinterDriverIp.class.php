@@ -1411,7 +1411,9 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                     $msg = "Грешка! ste1 == 0x34 - Отворен фискален бон и ste2 == 0x32 - Командата е непозволена в текущото състояние на ФУ";
                 } else if ($ste1 == 0x39 && $ste2 == 0x32) {
                     $msg = "Грешка! ste1 == 0x39 - Грешна парола и ste2 == 0x32 - Командата е непозволена";
-                } else {
+                } else if ($ste1 === 0x32 && $ste2 === 0x35) {
+                    $msg = "Недостатъчна наличност в касата";
+                }else {
                     $msg = "Грешка! " . $ex->getMessage() . " ste1=" . $ste1 . ", ste2=" . $ste2;
                 }
             } else if($code == \Tremol\ServerErrorType::ServerDefsMismatch) {

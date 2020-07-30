@@ -78,3 +78,24 @@
   color: #fff;
   border-bottom: 4px solid #fff !important;
 }
+
+#result-holder {
+    color: #fff;
+    .element {
+        color: #000
+    }
+    .posBtns, .element {
+        opacity: 0.9;
+        &.selected {
+            opacity: 1;
+        }
+    }
+}
+.tabHolder li {
+    color: #666;
+    border: none !important;
+    &.active {
+      color: #333 !important;
+      border: none !important;
+    }
+}

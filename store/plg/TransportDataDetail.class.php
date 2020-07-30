@@ -128,7 +128,7 @@ class store_plg_TransportDataDetail extends core_Plugin
             }
             
             // Сумира се
-            if (!empty($w) && !is_null($cWeight)) {
+            if (empty($rec->{$mvc->quantityFld}) || (!empty($w) && !is_null($cWeight))) {
                 $cWeight += $w;
             } else {
                 $cWeight = null;
@@ -145,7 +145,7 @@ class store_plg_TransportDataDetail extends core_Plugin
             }
             
             // Сумира се
-            if (!empty($v) && !is_null($cVolume)) {
+            if (empty($rec->{$mvc->quantityFld}) || (!empty($v) && !is_null($cVolume))) {
                 $cVolume += $v;
             } else {
                 $cVolume = null;

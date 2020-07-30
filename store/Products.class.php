@@ -922,13 +922,14 @@ class store_Products extends core_Detail
             
             while ($dRec = $dQuery->fetch()) {
                 $deliveryTime = isset($dRec->deliveryTime) ? $dRec->deliveryTime : (isset($dRec->valior) ? $dRec->valior : null);
+                $deliveryTimeVerbal = isset($deliveryTime) ? core_Type::getByName('datetime(format=smartTime)')->toVerbal($deliveryTime) : null;
                 
                 if($field == 'reservedQuantity'){
-                    $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
+                    $docs[$dRec->containerId] = array('link' => doc_Containers::getDocument($dRec->containerId)->getLink(0), 'date' => $deliveryTimeVerbal);
                 } elseif($field == 'expectedQuantityTotal'){
-                    $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
+                    $docs[$dRec->containerId] = array('link' => doc_Containers::getDocument($dRec->containerId)->getLink(0), 'date' => $deliveryTimeVerbal);
                 } if(!empty($deliveryTime) && $deliveryTime <= $now){
-                    $docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
+                    $docs[$dRec->containerId] = array('link' => doc_Containers::getDocument($dRec->containerId)->getLink(0), 'date' => $deliveryTimeVerbal);
                 }
             }
         }
@@ -943,7 +944,7 @@ class store_Products extends core_Detail
             $receiptQuery->groupBy('receiptId');
             $receiptQuery->show('receiptId');
             while ($receiptRec = $receiptQuery->fetch()) {
-                $docs["receipt|{$receiptRec->receiptId}"] = pos_Receipts::getHyperlink($receiptRec->receiptId, true);
+                $docs["receipt|{$receiptRec->receiptId}"] = array('link' => pos_Receipts::getHyperlink($receiptRec->receiptId, true));
             }
         }
         
@@ -954,29 +955,33 @@ class store_Products extends core_Detail
             $pNoteQuery->show('containerId,deadline,valior');
             while($noteRec = $pNoteQuery->fetch()){
                 $deliveryTime = isset($noteRec->deadline) ? $noteRec->deadline : (isset($noteRec->valior) ? $noteRec->valior : null);
+                $deliveryTimeVerbal = isset($deliveryTime) ? core_Type::getByName('datetime(format=smartTime)')->toVerbal($deliveryTime) : null;
+                
                 if($field == 'expectedQuantityTotal'){
-                    $docs[$noteRec->containerId] = doc_Containers::getDocument($noteRec->containerId)->getLink(0);
+                    $docs[$noteRec->containerId] = array('link' => doc_Containers::getDocument($noteRec->containerId)->getLink(0), 'date' => $deliveryTimeVerbal);
                 } if(!empty($deliveryTime) && $deliveryTime <= $now){
-                    $docs[$noteRec->containerId] = doc_Containers::getDocument($noteRec->containerId)->getLink(0);
+                    $docs[$noteRec->containerId] = array('link' => doc_Containers::getDocument($noteRec->containerId)->getLink(0), 'date' => $deliveryTimeVerbal);
                 }
             }
         }
         
         $links = '';
-        foreach ($docs as $containerId => $link) {
+        foreach ($docs as $containerId => $arr) {
             if(strpos($containerId, 'receipt') === false){
                 $cRec = doc_Containers::fetch($containerId);
             } else {
                 list(, $receiptId) = explode('|', $containerId);
                 $cRec = pos_Receipts::fetch($receiptId);
             }
-            $createdBy = crm_Profiles::createLink($cRec->createdBy);
+            $arr['createdBy'] = crm_Profiles::createLink($cRec->createdBy);
             if($cRec->folderId){
                 $folderId = doc_Folders::recToVerbal(doc_Folders::fetch($cRec->folderId))->title;
-                $createdBy .= " | {$folderId}";
+                $arr['createdBy'] .= " | {$folderId}";
             }
             
-            $links .= "<div style='float:left'>{$link} | {$createdBy}</div>";
+            $link = new core_ET("<div style='float:left'>[#link#] | [#createdBy#]<!--ET_BEGIN date--> | [#date#]<!--ET_END date--></div>");
+            $link->placeArray($arr);
+            $links .= $link->getContent();
         }
         $tpl = new core_ET($links);
        
@@ -1106,13 +1111,11 @@ class store_Products extends core_Detail
         if(countR($data->recs)){
             $totalField = ($data->masterData->rec->generic == 'yes') ? 'code' : 'storeId';
             $data->rows['total'] = (object)array($totalField => "<div style='float:left'>" .  tr('Сумарно') . "</div>");
-            foreach ($data->recs as $rec){
-                foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'expectedQuantityTotal', 'freeQuantity') as $fld){
-                    if(!empty($rec->{$fld})){
-                       $data->rows['total']->{$fld} += $rec->{$fld};
-                       $data->rows['total']->ROW_ATTR['style'] = 'background-color:#eee;font-weight:bold';
-                    }
-                }
+            $data->rows['total']->ROW_ATTR['style'] = 'background-color:#eee;font-weight:bold';
+            
+            foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'expectedQuantityTotal', 'freeQuantity') as $fld){
+                ${$fld} = arr::sumValuesArray($data->recs, $fld, true);
+                $data->rows['total']->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal(${$fld});
             }
         }
     }

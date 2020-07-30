@@ -116,12 +116,7 @@
 				</div>
 			</fieldset>
 			
-			<!--ET_BEGIN Receipts-->
-			<fieldset class="detail-info">
-				<legend class="groupTitle">|Чакащи бележки|* ([#waitingCount#])</legend>
-				[#Receipts#]
-			</fieldset>
-			<!--ET_END Receipts-->
+			[#Receipts#]
 			
 			[#DETAILS#]
 		</div>

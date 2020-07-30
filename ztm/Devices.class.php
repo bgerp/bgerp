@@ -89,6 +89,12 @@ class ztm_Devices extends core_Master
     
     
     /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsSingleField = 'name';
+    
+    
+    /**
      * 
      */
     public function description()
@@ -261,6 +267,10 @@ class ztm_Devices extends core_Master
     {
         $row->configTime = dt::timestamp2Mysql($rec->configTime);
         $row->configTime = dt::mysql2verbal($row->configTime, 'smartTime');
+        
+        if(isset($rec->profileId)){
+            $row->profileId = ztm_Profiles::getHyperlink($rec->profileId, true);
+        }
     }
     
     

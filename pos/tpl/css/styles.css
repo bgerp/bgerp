@@ -234,6 +234,9 @@
     display: inline-block;
     float: left; }
 
+.printReceiptBtn {
+  font-size: 1.1em !important; }
+
 .operationHolder {
   display: inline-block;
   position: relative;
@@ -247,6 +250,8 @@
   box-sizing: border-box; }
   .operationHolder.btnWithWarning {
     background: rgba(189, 106, 0, 0.85); }
+    .operationHolder.btnWithWarning.revert {
+      background-color: #dd2d21; }
   .operationHolder .buttonOverlay {
     display: none;
     position: absolute;
@@ -466,7 +471,7 @@
     height: 70px;
     display: flex;
     vertical-align: middle;
-    font-size: 1.3em;
+    font-size: 1.2em;
     margin: 0 !important;
     background: #b7e2f3 !important;
     color: #333333 !important; }

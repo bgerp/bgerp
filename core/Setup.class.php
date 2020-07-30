@@ -401,8 +401,6 @@ class core_Setup extends core_ProtoSetup
         'CORE_BACKUP_CREATE_FULL_OFFSET' => array('time', 'caption=Настройки за бекъп->Изместване'),
         
         'CORE_BACKUP_PATH' => array('varchar', 'caption=Настройки за бекъп->Път до бекъпите,readOnly'),
-            
-        'CORE_BGERP_UNIQ_ID' => array('varchar(19)', 'caption=Сериен номер на инсталацията->ID,readOnly'),
     );
     
     

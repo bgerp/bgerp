@@ -50,7 +50,7 @@ class speedy_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Интеграция с "speedy"';
+    public $info = 'Интеграция със "speedy"';
     
     
     /**
