@@ -58,5 +58,29 @@ class ztm_Setup extends core_ProtoSetup
             'ztm_LongValues',
             'ztm_Profiles',
             'ztm_ProfileDetails',
+            'migrate::importOnceRegistersFromZero7',
     );
+    
+    
+    /**
+     * Миграция: за зареждане на регистри от нула
+     */
+    public function importOnceRegistersFromZero7()
+    {
+        $Registers = cls::get('ztm_Registers');
+        
+        $file = 'ztm/csv/Registri.csv';
+        
+        $fields = array(
+            0 => 'name',
+            1 => 'type',
+            2 => 'range',
+            3 => 'plugin',
+            4 => 'priority',
+            5 => 'default',
+            6 => 'description',
+        );
+        
+        csv_Lib::importOnceFromZero($Registers, $file, $fields);
+    }
 }

@@ -49,15 +49,9 @@ class ztm_ProfileDetails extends core_Detail
     
     
     /**
-     * Кой има право да го види?
-     */
-    public $canView = 'ztm, ceo';
-    
-    
-    /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ztm, ceo';
+    public $canList = 'no_one';
     
     
     /**
@@ -69,25 +63,7 @@ class ztm_ProfileDetails extends core_Detail
     /**
      * Кой има право да го изтрие?
      */
-    public $canDelete = 'no_one';
-    
-    
-    /**
-     * Кой има право да го оттегли?
-     */
-    public $canReject = 'ztm, ceo';
-    
-    
-    /**
-     * Кой има право да го възстанови?
-     */
-    public $canRestore = 'ztm, ceo';
-    
-    
-    /**
-     * Кой може да променя състоянието на документите
-     */
-    public $canChangestate = 'ztm, ceo';
+    public $canDelete = 'ztm, ceo';
     
     
     /**
@@ -99,14 +75,14 @@ class ztm_ProfileDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'ztm_Wrapper, plg_Rejected, plg_Created, plg_State2, plg_RowTools2, plg_Modified, plg_Sorting';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_Modified, plg_SaveAndNew, ztm_Wrapper';
     
     
     /**
-     *
-     * @var string
+     * Полета в листовия изглед
      */
-    public $listFields = 'profileId,registerId, value';
+    public $listFields = 'registerId, value, modifiedOn,modifiedBy';
+    
     
     /**
      * Описание на модела (таблицата)
@@ -114,10 +90,57 @@ class ztm_ProfileDetails extends core_Detail
     protected function description()
     {
         $this->FLD('profileId','key(mvc=ztm_Profiles, select=name)','caption=Профил,mandatory,smartCenter');
-        $this->FLD('registerId','key(mvc=ztm_Registers, select=name)','caption=Регистър');
-        $this->FLD('value', 'varchar(32)', 'caption=Стойност');
+        $this->FLD('registerId','key(mvc=ztm_Registers, select=name, allowEmpty)','caption=Регистър,removeAndRefreshForm=value|extValue,silent');
+        $this->FLD('value', 'varchar(32)', 'caption=Стойност,input=none');
         
         $this->setDbUnique('profileId, registerId');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param embed_Manager $Embedder
+     * @param stdClass      $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = $data->form;
+        ztm_Registers::extendAddForm($form);
+    }
+    
+    
+    /**
+     * Извиква се преди запис в модела
+     *
+     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
+     * @param int          $id      Тук се връща първичния ключ на записа, след като бъде направен
+     * @param stdClass     $rec     Съдържащ стойностите, които трябва да бъдат записани
+     * @param string|array $fields  Имена на полетата, които трябва да бъдат записани
+     * @param string       $mode    Режим на записа: replace, ignore
+     */
+    protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        $rec->value = ztm_Registers::recordValue($rec->registerId, $rec->extValue);
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        $value = ztm_LongValues::getValueByHash($rec->value);
         
+        $Type = ztm_Registers::getOurType($rec->registerId, false);
+        $row->value = $Type->toVerbal($value);
+        
+        if($description = ztm_Registers::fetchField($rec->registerId, 'description')){
+            $row->registerId = ht::createHint($row->registerId, $description);
+        }
     }
 }

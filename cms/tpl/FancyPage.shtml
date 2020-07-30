@@ -19,11 +19,7 @@
 
             [#BOTTOM_HEADER#]
         </header>
-        <div id="cmsMenu" class='menuRow'>
-            <div class="centerContent">
-            [#CMS_MENU#]
-            </div>
-        </div>
+      
         [#BOTTOM_MENU#]
         <div id="maincontent" class="[#MAIN_CONTENT_CLASS#]">
             <div class='statuses' id='statuses' style='margin: 0 auto;'>

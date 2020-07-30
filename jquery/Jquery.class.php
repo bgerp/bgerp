@@ -33,18 +33,21 @@ class jquery_Jquery
             
             return false;
         }
-        $jQuery = page_Html::getFileForAppend('jquery/' . jquery_Setup::get('VERSION') . '/jquery.min.js');
-        if (($url = jquery_Setup::get('CDN_URL')) && ($integrity = jquery_Setup::get('CDN_INTEGRITY'))) {
-            $jQuery = (object) array(
-                'src' => $url,
-                'integrity' => $integrity,
-                'crossorigin' => 'anonymous',
-                'fallback' => "\n<script>window.jQuery || document.write('<script src=\"{$jQuery}\"><\/script>')</script>",
-            );
-        }
         
-        // Добавяме библиотеката
-        $tpl->push($jQuery, 'JS');
+        if (!core_Packs::isInstalled('compactor')) {
+            $jQuery = page_Html::getFileForAppend('jquery/' . jquery_Setup::get('VERSION') . '/jquery.min.js');
+            if (($url = jquery_Setup::get('CDN_URL')) && ($integrity = jquery_Setup::get('CDN_INTEGRITY'))) {
+                $jQuery = (object) array(
+                        'src' => $url,
+                        'integrity' => $integrity,
+                        'crossorigin' => 'anonymous',
+                        'fallback' => "\n<script>window.jQuery || document.write('<script src=\"{$jQuery}\"><\/script>')</script>",
+                );
+            }
+            
+            // Добавяме библиотеката
+            $tpl->push($jQuery, 'JS');
+        }
     }
     
     

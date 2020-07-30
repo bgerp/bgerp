@@ -399,8 +399,8 @@ class planning_Jobs extends core_Master
             
             return;
         }
-        $deliveryDate = dt::verbal2mysql($deliveryDate, false);
         
+        $deliveryDate = dt::verbal2mysql($deliveryDate, false);
         $saleClassId = sales_Sales::getClassId();
         $transRec = sales_TransportValues::fetch("#docClassId = {$saleClassId} AND #docId = {$saleId}", 'deliveryTime');
         $subtractTime = 3 * 24 * 60 * 60 + $transRec->deliveryTime;
@@ -408,7 +408,13 @@ class planning_Jobs extends core_Master
         $dueDate = cal_Calendar::nextWorkingDay($dueDate, null, -1);
         $dueDate = dt::verbal2mysql($dueDate, false);
         
-        return $dueDate;
+        $today = dt::today();
+        if($dueDate > $today){
+            
+            return $dueDate;
+        }
+        
+        return $today;
     }
     
     

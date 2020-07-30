@@ -220,15 +220,69 @@ class type_Users extends type_Keylist
             $value = '|' . core_Users::getCurrent() . '|';
         }
         
+        $haveMatch = false;
+        
         foreach ($this->options as $key => $optObj) {
+            
             if ($value == $optObj->keylist || $key == $value) {
+                $haveMatch = true;
+                
                 break;
             }
+        }
+        
+        if (!$haveMatch && $value) {
+            $key = $this->getClosestKey($value);
+            if (isset($key)) {
+                $haveMatch = true;
+            }
+        }
+        
+        if (!$haveMatch) {
+            $key = null;
         }
         
         parent::setFieldWidth($attr);
         
         return ht::createSelect($name, $this->options, $key, $attr);
+    }
+    
+    
+    /**
+     * Връща най-близката възможна опция за $value от $this->options
+     * 
+     * @param string $value
+     * 
+     * @return NULL|string
+     */
+    protected function getClosestKey($value)
+    {
+        $key = null;
+        
+        $bestMatchArr = array();
+        $vArr = $this->toArray($value);
+        if (countR($vArr) > 1) {
+            $isAll = (stripos($value, '-1') === false) ? false : true;
+            foreach ($this->options as $key => $optObj) {
+                if ($isAll) {
+                    if ((stripos($optObj->keylist, '-1') !== false) || (stripos($key, '-1') !== false)) {
+                        $bestMatchArr[$key] = 1;
+                    }
+                } else {
+                    $kArr = $this->toArray($optObj->keylist);
+                    
+                    $bestMatchArr[$key] = countR(array_diff($kArr, $vArr)) + countR(array_diff($vArr, $kArr));
+                }
+            }
+            
+            if (!empty($bestMatchArr)) {
+                asort($bestMatchArr);
+                $key = key($bestMatchArr);
+                $haveMatch = true;
+            }
+        }
+        
+        return $key;
     }
     
     

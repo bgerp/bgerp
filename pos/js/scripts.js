@@ -20,8 +20,6 @@ function posActions() {
 		})
 	});
 
-
-
 	$('.large-field.select-input-pos').focus();
 
 
@@ -89,6 +87,7 @@ function posActions() {
 		e.preventDefault();
 	});
 
+	var oldTime = Date.now();
 	// При натискане на елемент с клас за навигиране (ако сме на touch устройство или не сме на продукти или артикула е селектиран) до добавяме
 	$(document.body).on('click', ".navigable", function(e){
 		if(!isTouchDevice() && $(this).hasClass('pos-add-res-btn') && !$(this).hasClass('selected')) return;
@@ -96,8 +95,11 @@ function posActions() {
 		if($(this).hasClass('deleteRow')) return;
 		if($(this).hasClass('printReceiptBtn')) return;
 		
-		pressNavigable(this);
-		e.preventDefault();
+		if(Date.now() - oldTime > 400) {	
+			pressNavigable(this);
+			e.preventDefault();
+		}
+		oldTime = Date.now();
 	});
 
 	$('body').on('paste', '.large-field', function (e){
@@ -143,6 +145,7 @@ function posActions() {
 		if (currentAttrValue == "ENTER") {
 			$('.select-input-pos').val($('.keyboardText').val());
 			$('.ui-dialog-titlebar-close').click();
+			triggerSearchInput($(".large-field"), 0);
 			activeInput = true;
 		} else {
 			inputChars($('.keyboardText'), currentAttrValue);
@@ -465,7 +468,11 @@ function openInfo(element) {
 // Отваря модал с хелпа
 function openHelp() {
 	var url = $('.helpBtn').attr("data-url");
-	processUrl(url, null);
+	
+	var rejectAction = $('div.rejectBtn').attr("data-action");
+	var params = {rejectAction:rejectAction};
+	
+	processUrl(url, params);
 	
 	var modalTitle = $('.helpBtn').attr("data-modal-title");
 	openModal(modalTitle);
@@ -654,7 +661,15 @@ function getCurrentElementFromSelectedRow(element){
 	clearTimeout(timeoutPageNavigation);
 
 	timeoutPageNavigation = setTimeout(function(){
-		refreshResultByOperation(element, 'quantity');
+		
+		var newOperation = 'quantity';
+		var operationBtn = $('.operationBtn[data-value=quantity]');
+		var url = operationBtn.attr("data-url");
+		if(!url){
+			newOperation = 'payment';
+		}
+		
+		refreshResultByOperation(element, newOperation);
 		if(operation != 'quantity'){
 			scrollAfterKey();
 		}
@@ -924,6 +939,7 @@ function submitInputString(){
 		return;
 	}
 	
+	clearTimeout(timeout);
 	var params = {string:value,recId:getSelectedRowId()};
 
 	processUrl(url, params);

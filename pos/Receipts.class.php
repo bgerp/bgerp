@@ -175,6 +175,7 @@ class pos_Receipts extends core_Master
         $this->FLD('returnedTotal', 'double(decimals=2)', 'caption=Сторнирано, input=none');
         
         $this->setDbIndex('valior');
+        $this->setDbIndex('revertId');
     }
     
     
@@ -205,7 +206,7 @@ class pos_Receipts extends core_Master
             // Коя е последната чернова бележка от ПОС-а
             $today = dt::today();
             $query = $this->getQuery();
-            $query->where("#pointId = {$pointId} AND #state = 'draft'");
+            $query->where("#pointId = {$pointId} AND #state = 'draft' AND #revertId IS NULL");
             $query->show('valior,contragentClass,contragentObjectId,total');
             $query->orderBy('id', 'DESC');
             $lastDraft = $query->fetch();
@@ -424,6 +425,7 @@ class pos_Receipts extends core_Master
                 'productId' => $rec->productId,
                 'price' => $rec->price / $quantityInPack,
                 'packagingId' => $rec->value,
+                'text'       => $rec->text,
                 'vatPrice' => $rec->price * $rec->param,
                 'discount' => $rec->discountPercent,
                 'quantity' => $rec->quantity);
@@ -507,8 +509,12 @@ class pos_Receipts extends core_Master
         
         // Никой не може да оттегли затворена бележка
         if ($action == 'reject' && isset($rec)) {
-            if ($rec->state == 'closed' || empty($rec->total)) {
+            if(in_array($rec->state, array('closed', 'pending', 'rejected'))){
                 $res = 'no_one';
+            } elseif(empty($rec->total)){
+                if(empty($rec->revertId)){
+                    $res = 'no_one';
+                }
             }
         }
         
@@ -594,7 +600,7 @@ class pos_Receipts extends core_Master
                     $product->discount = null;
                 }
                 
-                sales_Sales::addRow($sId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount);
+                sales_Sales::addRow($sId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount, null, null, $product->text);
             }
         }
         
@@ -719,20 +725,22 @@ class pos_Receipts extends core_Master
     public function prepareReceipts(&$data)
     {
         $data->rows = array();
+        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 20));
         
         $query = $this->getQuery();
         $query->where("#pointId = {$data->masterId}");
         $query->where("#state = 'waiting' OR #state = 'draft'");
-        $query->orderBy('#state');
+        $query->orderBy('#state,#total', 'DESC');
         if ($count = $query->count()) {
             $data->count = core_Type::getByName('int')->toVerbal($count);
         }
         
+        $currencyCode = acc_Periods::getBaseCurrencyCode();
+        
+        $data->Pager->setLimit($query);
         while ($rec = $query->fetch()) {
-            $num = self::getReceiptShortNum($rec->id);
-            $stateClass = ($rec->state == 'draft') ? 'state-draft' : 'state-waiting';
-            $num = (isset($rec->revertId)) ? "<span class='red'>{$num}</span>" : $num;
-            $borderColor = (isset($rec->revertId)) ? 'red' : '#a6a8a7';
+            $total = core_Type::getByName('double(decimals=2)')->toVerbal($rec->total);
+            $num = self::getRecTitle($rec);
             
             if (!Mode::isReadOnly()) {
                 if ($this->haveRightFor('terminal', $rec)) {
@@ -742,14 +750,8 @@ class pos_Receipts extends core_Master
                 }
             }
             
-            if ($rec->state == 'draft') {
-                if ($rec->total != 0) {
-                    $num = ht::createHint($num, 'Бележката е започната, но не е приключена', 'warning', false);
-                }
-            }
-            $num = " <span class='open-note {$stateClass}' style='border:1px solid {$borderColor}'>{$num}</span>";
-            
-            $data->rows[$rec->id] = $num;
+            $data->rows[$rec->id] = (object)array('name' => $num, 'total' => "{$total} {$currencyCode}");
+            $data->rows[$rec->id]->ROW_ATTR['class'] = ($rec->state == 'draft') ? 'state-draft' : 'state-waiting';
         }
     }
     
@@ -764,9 +766,20 @@ class pos_Receipts extends core_Master
     public function renderReceipts($data)
     {
         $tpl = new ET('');
-        $str = implode('', $data->rows);
-        $tpl->append($str);
-        $tpl->replace($data->count, 'waitingCount');
+        
+        $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+        $tpl->append(tr('Чакащи бележки') . "({$data->count})", 'title');
+        $fieldset = new core_FieldSet();
+        $fieldset->FLD('name', 'varchar', 'smartcenter,tdClass=leftCol');
+        $fieldset->FLD('total', 'double', 'smartcenter');
+        
+        $table = cls::get('core_TableView', array('mvc' => $fieldset));
+        $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+        $details = $table->get($data->rows, 'name=Бележка,total=Сума');
+        $tpl->append($details, 'content');
+        if (isset($data->Pager)) {
+            $tpl->append($data->Pager->getHtml(), 'content');
+        }
         
         return $tpl;
     }
@@ -999,14 +1012,5 @@ class pos_Receipts extends core_Master
         }
         
         return true;
-    }
-    
-    
-    /**
-     * Какво е логото на терминала на бележката
-     */
-    public function getTerminalHeaderLogo_($rec)
-    {
-        return 'bgERP';
     }
 }
