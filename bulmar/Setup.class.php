@@ -154,7 +154,7 @@ defIfNot('BULMAR_INV_TAX_OPERATION_SALE_SERVICES', '3');
 /**
  * Папка за експорт на приходните и разходните банкови документи
  */
-defIfNot('BULMAR_BANK_DOCUMENT_FOLDER', '4');
+defIfNot('BULMAR_BANK_DOCUMENT_FOLDER', '4.03');
 
 
 /**

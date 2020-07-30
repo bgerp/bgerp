@@ -43,9 +43,6 @@ class bulmar_BankDocumentExport extends core_Manager
     {
         $form->FLD('from', 'date', 'caption=От,mandatory');
         $form->FLD('to', 'date', 'caption=До,mandatory');
-        
-        $form->setDefault('from', '2020-07-06');
-        $form->setDefault('to', '2020-07-07');
     }
     
     
