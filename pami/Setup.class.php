@@ -281,13 +281,14 @@ class pami_Setup extends core_ProtoSetup
     private function isStarted()
     {
         $pid = $this->get('PID');
-        $cmd = trim($this->get('CMD'));
         
         // Взимаме PID-а от конфигурацията - ако няма стойност значи не е бил пускан или е спрян
         if (empty($pid)) {
             
             return false;
         }
+        
+        $cmd = trim($this->get('CMD'));
         
         // Парсираме резултата от ps -fp <PID> команда и взимаме командната линия на процеса
         @exec('ps -fp ' . $pid, $output);
@@ -299,7 +300,7 @@ class pami_Setup extends core_ProtoSetup
         }
         
         // Процеса не е нашия и чистим връзката с него
-        core_Packs::setConfig('pami', array('PAMI_PID' => $pid, 'PAMI_CMD' => $cmd));
+        core_Packs::setConfig('pami', array('PAMI_PID' => '', 'PAMI_CMD' => ''));
         
         return false;
     }
