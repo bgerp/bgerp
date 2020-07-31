@@ -606,13 +606,13 @@ function calculateWidth(){
 		$('.keyboardBtn.operationHolder').addClass('disabledBtn');
 		$('.keyboardBtn.operationHolder').attr('disabled', 'disabled');
 
-	}
-	var scrollerWidth = 0;
-	$('#result-holder .tabHolder li').each(function () {
-		scrollerWidth += Math.ceil($(this).outerWidth()) + 21;
-	});
 
-	$('.narrow #result-holder .tabs .tabHolder').css('width', scrollerWidth);
+		var scrollerWidth = 0;
+		$('#result-holder .tabHolder li').each(function () {
+			scrollerWidth += Math.ceil($(this).outerWidth()) + 21;
+		});
+
+	}
 }
 
 // Направа на плащане
