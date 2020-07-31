@@ -1090,6 +1090,22 @@ th.revertCaption, td.revertCaption {
 @media handheld, only screen and (max-width: 1200px) {
 	.headerContent {
 		font-size: 0.75em !important;
+		.fleft {
+			width: 50%;
+		}
+		span {
+			margin: 0 10px !important;
+			height: 20px;
+			display: inline-block;
+			line-height: 20px;
+			float: left;
+		}
+	}
+	.headerAppName img{
+		position: relative;
+		top: 2px;
+		width: 14px;
+		height: 14px;
 	}
 	#receipt-table {
 		font-size: 0.8em;
@@ -1164,6 +1180,20 @@ th.revertCaption, td.revertCaption {
 		width: 49px !important;
 		height: 49px !important;
 		padding: 8px !important;
+	}
+	.headerContent {
+		.fleft, .fright {
+			width: 100%;
+		}
+		.unp, .headerAppName {
+			float: right;
+		}
+		.pointId {
+			width: 25%;
+		}
+	}
+	.companyName {
+		display: block;
 	}
 }
 
