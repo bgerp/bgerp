@@ -495,7 +495,7 @@
     right: 3px !important; }
   .posBtns:focus,
   .posBtns.selected {
-    box-shadow: 0px 0px 15px #f1d103 !important;
+    box-shadow: 0px 0px 10px #fca40b !important;
     border: 3px solid #fa0606;
     padding: 8px 18px !important;
     opacity: 1; }
@@ -656,7 +656,7 @@
   opacity: 0.7; }
   .element:focus,
   .element.selected {
-    box-shadow: 0px 0px 15px #f1d103 !important;
+    box-shadow: 0px 0px 10px #fca40b !important;
     border: 3px solid #fa0606;
     padding: 8px !important;
     opacity: 1; }
@@ -985,7 +985,18 @@ only screen and (max-width: 1200px) {
     margin: 3px !important;
     width: 44px !important;
     height: 44px !important;
-    padding: 5px !important; } }
+    padding: 5px !important; }
+
+  .contentHolderResults {
+    float: left;
+    width: 100%;
+    box-sizing: border-box; }
+
+  .tabs {
+    float: left; }
+    .tabs .tabHolder li {
+      padding: 2px 5px;
+      margin: 2px 5px 2px 0; } }
 
 @media handheld,
 only screen and (max-width: 1024px) {
