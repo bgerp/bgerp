@@ -2097,6 +2097,9 @@ pre.document {
 .tags {
   margin-left: 2px; }
 
+.maxwidth {
+  display: block; }
+
 .maxwidth .tags,
 .document-handler .tags,
 .rowBlock .tags {
