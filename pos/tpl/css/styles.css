@@ -374,15 +374,12 @@
   padding-left: 2px;
   padding-right: 2px;
   text-align: center;
-  margin: 10px 0 7px; }
+  margin: 10px 7px; }
   .withTabs .scroll-holder .tabHolder li {
     user-select: none;
     display: inline-block;
     float: left;
-    border-color: rgba(0, 0, 0, 0);
-    margin: 0 10px;
-    padding-left: 15px;
-    padding-right: 15px; }
+    border-color: rgba(0, 0, 0, 0); }
   .withTabs .scroll-holder .tabHolder:after {
     clear: both; }
 
@@ -391,14 +388,15 @@
 
   .tabHolder li {
     list-style: none;
-    padding: 7px 10px;
     border: 1px solid #cccccc;
     cursor: pointer;
     color: #707a8c;
     font-weight: bold;
     text-align: center !important;
     background: #dddddd !important;
-    border-radius: 3px; }
+    border-radius: 3px;
+    margin: 0 5px;
+    padding: 7px; }
     .tabHolder li.active,
     .tabHolder li:hover {
       background: #fefead !important;

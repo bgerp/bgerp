@@ -441,15 +441,12 @@
 	padding-left: 2px;
 	padding-right: 2px;
 	text-align: center;
-	margin: 10px 0 7px;
+	margin: 10px 7px;
 	li {
 		user-select: none;
 		display: inline-block;
 		float: left;
 		border-color: transparent;
-		margin: 0 10px;
-		padding-left: 15px;
-		padding-right: 15px;
 	}
 	&:after {
 		clear: both;
@@ -464,7 +461,6 @@
 .tabHolder {
 	li {
 		list-style: none;
-		padding: 7px 10px;
 		border: 1px solid #ccc;
 		cursor: pointer;
 		color: #707a8c;
@@ -472,6 +468,8 @@
 		text-align: center !important;
 		background: #ddd !important;
 		border-radius: 3px;
+		margin: 0 5px;
+		padding: 7px;
 		&.active, &:hover {
 			background: #fefead  !important;
 			color: #000;
