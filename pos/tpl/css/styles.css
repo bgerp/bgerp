@@ -352,35 +352,34 @@
     border: 1px solid #666666;
     border-radius: 5px; }
 
-.fixedPosition .withTabs .scroll-holder {
+.fixedPosition .withTabs .tabs {
   margin-top: 0;
   margin-left: -15px;
   background: #333333;
   position: fixed;
   top: 44px;
-  height: 62px;
-  z-index: 100; }
+  z-index: 100;
+  padding-bottom: 5px; }
 
   .relativePosition .contentHolder {
     padding-top: 20px; }
-  .relativePosition .scroll-holder {
+  .relativePosition .tabs {
     padding-bottom: 10px; }
 
-.withTabs .scroll-holder {
-  overflow-x: auto;
+.withTabs .tabs {
   display: block; }
 
-.withTabs .scroll-holder .tabHolder {
+.withTabs .tabs .tabHolder {
   padding-left: 2px;
   padding-right: 2px;
   text-align: center;
   margin: 10px 7px; }
-  .withTabs .scroll-holder .tabHolder li {
+  .withTabs .tabs .tabHolder li {
     user-select: none;
     display: inline-block;
     float: left;
     border-color: rgba(0, 0, 0, 0); }
-  .withTabs .scroll-holder .tabHolder:after {
+  .withTabs .tabs .tabHolder:after {
     clear: both; }
 
 .narrow #receiptnew {
@@ -395,7 +394,7 @@
     text-align: center !important;
     background: #dddddd !important;
     border-radius: 3px;
-    margin: 0 5px;
+    margin: 5px 10px 5px 0;
     padding: 7px; }
     .tabHolder li.active,
     .tabHolder li:hover {

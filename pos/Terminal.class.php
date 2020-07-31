@@ -1695,7 +1695,7 @@ class pos_Terminal extends peripheral_Terminal
         if(countR($groupsTable)){
             $groups = arr::extractValuesFromArray($groupsTable, 'groupId');
             
-            $resultTpl = new core_ET("<div class='scroll-holder productTabs'><ul class='tabHolder'>[#TAB#]</ul></div>");
+            $resultTpl = new core_ET("<div class='tabs productTabs'><ul class='tabHolder'>[#TAB#]</ul></div>");
             $groups = array('all' => null) + $groups;
             foreach ($groups as $groupId){
                 $active = ($rec->_selectedGroupId == $groupId) ? 'active' : '';
@@ -2064,7 +2064,7 @@ class pos_Terminal extends peripheral_Terminal
             plg_Search::applySearch($string, $query);
         }
         
-        $tpl = new core_ET("<div class='scroll-holder'><ul class='tabHolder'>[#TAB#]</ul></div><div class='contentHolder'>");
+        $tpl = new core_ET("<div class='tabs'><ul class='tabHolder'>[#TAB#]</ul></div><div class='contentHolder'>");
         
         // Групиране на записите по дата
         $arr = array('draft' => array('caption' => 'Чернови', 'receipts' => new core_ET(""), 'count' => 0),

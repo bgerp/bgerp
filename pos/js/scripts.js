@@ -564,11 +564,13 @@ function calculateWidth(){
 
 		var headerHeight = $('.headerContent').outerHeight();
 		if($('#result-holder .withTabs:visible').length) {
-			var tabsFix = 80;
+			var tabsFix = $('.withTabs .tabs').height();
 			$('#result-holder').css('padding', '0');
 			$('#result-holder').css('overflow-y', 'visible');
-			$('#result-holder .withTabs').css('height',winHeight - headerHeight - tabsFix);
-			$('#result-holder .scroll-holder, #result-holder').css('width', winWidth - $('#single-receipt-holder').width());
+
+			$('#result-holder').css('margin-top', tabsFix -55);
+			$('#result-holder .withTabs').css('height',winHeight - headerHeight - tabsFix - 22);
+			$('#result-holder .tabs, #result-holder').css('width', winWidth - $('#single-receipt-holder').width());
 		} else {
 			$('#result-holder').css('padding', '15px');
 			$('#result-holder').css('overflow-y', 'auto');
@@ -599,7 +601,7 @@ function calculateWidth(){
 		$('#result-holder').css('width', "100%");
 		$('.tools-content').css('height','auto');
 		$('#result-holder .withTabs').css('height', "100%");
-		$('#result-holder .scroll-holder').css('width', "100%");
+		$('#result-holder .tabs').css('width', "100%");
 
 		$('.keyboardBtn.operationHolder').addClass('disabledBtn');
 		$('.keyboardBtn.operationHolder').attr('disabled', 'disabled');
@@ -610,7 +612,7 @@ function calculateWidth(){
 		scrollerWidth += Math.ceil($(this).outerWidth()) + 21;
 	});
 
-	$('#result-holder .scroll-holder .tabHolder').css('width', scrollerWidth);
+	$('.narrow #result-holder .tabs .tabHolder').css('width', scrollerWidth);
 }
 
 // Направа на плащане
