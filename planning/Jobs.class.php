@@ -1124,7 +1124,7 @@ class planning_Jobs extends core_Master
         
         // Взимаме к-та на произведените артикули по заданието в протокола за производство
         $totalQuantity = 0;
-        $additionalMeasures = array();
+        //$additionalMeasures = array();
         $directProdQuery = planning_DirectProductionNote::getQuery();
         $directProdQuery->in("originId", $containerIds);
         $directProdQuery->where("#state = 'active' AND #productId = {$rec->productId}");
@@ -1133,14 +1133,14 @@ class planning_Jobs extends core_Master
         while($protocolRec = $directProdQuery->fetch()){
             $totalQuantity += $protocolRec->quantity;
             if(!empty($protocolRec->additionalMeasureId) && $measureId != $protocolRec->additionalMeasureId){
-                $additionalMeasures[$protocolRec->additionalMeasureId] += $protocolRec->additionalMeasureQuantity;
+                //$additionalMeasures[$protocolRec->additionalMeasureId] += $protocolRec->additionalMeasureQuantity;
             }
         }
         
         // Обновяваме произведеното к-то по заданието
         $rec->quantityProduced = $totalQuantity;
-        $rec->quantityProducedInOtherMeasures = $additionalMeasures;
-        self::save($rec, 'quantityProduced,quantityProducedInOtherMeasures');
+        //$rec->quantityProducedInOtherMeasures = $additionalMeasures;
+        self::save($rec, 'quantityProduced');
     }
     
     
