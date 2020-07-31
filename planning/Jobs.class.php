@@ -211,7 +211,7 @@ class planning_Jobs extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'dueDate,quantityProduced,quantityProducedInOtherMeasures,history,oldJobId';
+    public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId';
     
     
     /**
@@ -230,7 +230,7 @@ class planning_Jobs extends core_Master
         
         $this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Количество->Произведено,notNull,value=0');
         $this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Количество->Заскладено,notNull,value=0');
-        $this->FLD('quantityProducedInOtherMeasures', 'blob(serialize, compress)', 'input=none,caption=Количество->Заскладено други мерки');
+        //$this->FLD('quantityProducedInOtherMeasures', 'blob(serialize, compress)', 'input=none,caption=Количество->Заскладено други мерки');
         
         $this->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки');
         $this->FLD('tolerance', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.1)', 'caption=Толеранс,silent');
@@ -745,7 +745,8 @@ class planning_Jobs extends core_Master
         $row->quantityNotStored = $Double->toVerbal($rec->quantityNotStored);
         $rec->quantityToProduce = $rec->packQuantity - (($rec->quantityFromTasks) ? $rec->quantityFromTasks : $rec->quantityProduced);
         $row->quantityToProduce = $Double->toVerbal($rec->quantityToProduce);
-        if(is_array($rec->quantityProducedInOtherMeasures)){
+        
+        /*if(is_array($rec->quantityProducedInOtherMeasures)){
             $producedInfoArr = array();
             foreach ($rec->quantityProducedInOtherMeasures as $additionalMeasureId => $additionalQuantity){
                 $additionalQuantityVerbal  = $Double->toVerbal($additionalQuantity);
@@ -754,7 +755,7 @@ class planning_Jobs extends core_Master
             }
             
             $row->producedInfo = implode(" + ", $producedInfoArr);
-        }
+        }*/
         
         foreach (array('quantityNotStored', 'quantityToProduce') as $fld) {
             if ($rec->{$fld} < 0) {
