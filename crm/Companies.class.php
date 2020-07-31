@@ -303,7 +303,7 @@ class crm_Companies extends core_Master
         
         // Данъчен номер на фирмата
         $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv,silent');
-        $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv');
+        $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv,silent');
         
         // Вземаме конфига
         $visibleNKID = crm_Setup::get('VISIBLE_NKID');
