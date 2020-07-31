@@ -583,8 +583,8 @@
 		right: 3px !important;
 	}
 	&:focus, &.selected {
-		box-shadow: 0px 0px 15px rgba(0,0,250,1) !important;
-		border: 3px solid  #080f56;
+		box-shadow: 0px 0px 15px rgb(241, 209, 3) !important;
+		border: 3px solid #fa0606;
 		padding: 8px 18px !important;
 		opacity: 1;
 	}
@@ -785,8 +785,8 @@
 	user-select: none;
 	opacity: 0.7;
 	&:focus, &.selected {
-		box-shadow: 0px 0px 15px rgba(0,0,250,1) !important;
-		border: 3px solid  #080f56;
+		box-shadow: 0px 0px 15px rgb(241, 209, 3) !important;
+		border: 3px solid #fa0606;
 		padding: 8px !important;
 		opacity: 1;
 	}

@@ -495,8 +495,8 @@
     right: 3px !important; }
   .posBtns:focus,
   .posBtns.selected {
-    box-shadow: 0px 0px 15px #0000fa !important;
-    border: 3px solid #080f56;
+    box-shadow: 0px 0px 15px #f1d103 !important;
+    border: 3px solid #fa0606;
     padding: 8px 18px !important;
     opacity: 1; }
   .posBtns.revertReceiptBtn {
@@ -656,8 +656,8 @@
   opacity: 0.7; }
   .element:focus,
   .element.selected {
-    box-shadow: 0px 0px 15px #0000fa !important;
-    border: 3px solid #080f56;
+    box-shadow: 0px 0px 15px #f1d103 !important;
+    border: 3px solid #fa0606;
     padding: 8px !important;
     opacity: 1; }
   .element .pos-title {
