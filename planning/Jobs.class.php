@@ -1158,12 +1158,14 @@ class planning_Jobs extends core_Master
         $form->FLD('productId', 'key(mvc=cat_Products)', 'caption=Артикул,mandatory');
         $saleRec = sales_Sales::fetch($saleId, 'threadId,containerId');
         
-        $selectable = $this->getSelectableProducts($saleId);
+        $default = null;
+        $selectable = $this->getSelectableProducts($saleId, $default);
         if (countR($selectable) == 1) {
             $selectable = array_keys($selectable);
             redirect(array($this, 'add', 'threadId' => $saleRec->threadId, 'productId' => $selectable[0], 'saleId' => $saleId, 'foreignId' => $saleRec->containerId, 'ret_url' => array('sales_Sales', 'single', $saleId)));
         }
         
+        $form->setDefault('productId', $default);
         $form->setOptions('productId', array('' => '') + $selectable);
         $form->input();
         if ($form->isSubmitted()) {
@@ -1305,19 +1307,24 @@ class planning_Jobs extends core_Master
      * Намира всички производими артикули по една продажба, към които може да се създават задания
      *
      * @param int $saleId
+     * @param int|null $default
      *
-     * @return array $res
+     * @return array $options
      */
-    private function getSelectableProducts($saleId)
+    private function getSelectableProducts($saleId, &$default = null)
     {
-        $res = sales_Sales::getManifacurableProducts($saleId);
-        foreach ($res as $productId => $name) {
-            if (!$this->haveRightFor('add', (object) array('productId' => $productId, 'saleId' => $saleId))) {
-                unset($res[$productId]);
+        $options = array();
+        $products = sales_Sales::getManifacurableProducts($saleId);
+        foreach ($products as $productId => $name) {
+            if ($this->haveRightFor('add', (object) array('productId' => $productId, 'saleId' => $saleId))) {
+                $options[$productId] = $name;
+                if(empty($default) && !planning_Jobs::fetchField("#productId = {$productId} AND #saleId = {$saleId}")){
+                    $default = $productId;
+                }
             }
         }
         
-        return $res;
+        return $options;
     }
     
     
