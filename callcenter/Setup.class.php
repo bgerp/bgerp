@@ -44,6 +44,24 @@ defIfNot('CALLCENTER_SMS_SENDER', '');
 
 
 /**
+ * Записване на вътрешните обаждания
+ */
+defIfNot('CALLCENTER_SAVE_INNTERNAL_CALLS', 'no');
+
+
+/**
+ * Записване на изходящите обаждания
+ */
+defIfNot('CALLCENTER_SAVE_OUTGOING_CALLS', 'no');
+
+
+/**
+ * Максимална дълбина на вътрешните номера
+ */
+defIfNot('CALLCENTER_MAX_INTERNAL_NUM_LENGTH', 6);
+
+
+/**
  * Инсталиране/Деинсталиране на мениджъри свързани с callcenter модула
  *
  * @category  bgerp
@@ -104,6 +122,10 @@ class callcenter_Setup extends core_ProtoSetup
         'CALLCENTER_MAX_CALL_DURATION' => array('time(suggestions=30 мин.|1 час|2 часа)', 'caption=Максимално време на продължителност на разговорите->Време, width=100px'),
         'CALLCENTER_DEVIATION_BETWEEN_TIMES' => array('time(suggestions=30 мин.|1 час|2 часа)', 'caption=Допустимото отклонение при регистриране на обажданията->Време, width=100px'),
         'CALLCENTER_ALLOWED_IP_ADDRESS' => array('varchar', 'caption=Разрешени IP адреси от които да се регистрира обаждане->IP адрес'),
+            
+        'CALLCENTER_SAVE_INNTERNAL_CALLS' => array('enum(no=Не,yes=Да)', 'caption=Записване на вътрешните обаждания->Избор'),
+        'CALLCENTER_SAVE_OUTGOING_CALLS' => array('enum(no=Не,yes=Да)', 'caption=Записване на изходящите обаждания->Избор'),
+            
         'CALLCENTER_SMS_SERVICE' => array('class(interface=callcenter_SentSMSIntf, select=title, allowEmpty)', 'caption=Изпращане на SMS->Услуга'),
         'CALLCENTER_SMS_SENDER' => array('varchar', 'caption=Изпращане на SMS->Изпращач'),
     );

@@ -211,7 +211,7 @@ class planning_Jobs extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'dueDate,quantityProduced,quantityProducedInOtherMeasures,history,oldJobId';
+    public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId';
     
     
     /**
@@ -230,7 +230,7 @@ class planning_Jobs extends core_Master
         
         $this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Количество->Произведено,notNull,value=0');
         $this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Количество->Заскладено,notNull,value=0');
-        $this->FLD('quantityProducedInOtherMeasures', 'blob(serialize, compress)', 'input=none,caption=Количество->Заскладено други мерки');
+        //$this->FLD('quantityProducedInOtherMeasures', 'blob(serialize, compress)', 'input=none,caption=Количество->Заскладено други мерки');
         
         $this->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки');
         $this->FLD('tolerance', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.1)', 'caption=Толеранс,silent');
@@ -316,8 +316,9 @@ class planning_Jobs extends core_Master
         $form->setOptions('packagingId', $packs);
         
         // Ако артикула не е складируем, скриваме полето за мярка
-        $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-        if ($canStore == 'no') {
+        $productRec = cat_Products::fetch($rec->productId, 'canStore,isPublic,innerClass');
+        
+        if ($productRec->canStore == 'no') {
             $form->setDefault('packagingId', key($packs));
             $measureShort = cat_UoM::getShortName($rec->packagingId);
             $form->setField('packQuantity', "unit={$measureShort}");
@@ -358,6 +359,21 @@ class planning_Jobs extends core_Master
             $form->setField('deliveryDate', 'input=none');
             $form->setField('deliveryPlace', 'input=none');
             $form->setField('department', 'mandatory');
+        }
+        
+        // Дефолтния център е този от последния артикул или драйвер, ако артикула е нестандартен
+        $lastQuery = self::getQuery();
+        $lastQuery->where("#state != 'rejected' AND #department IS NOT NULL");
+        $lastQuery->orderBy('id', 'DESC');
+        if($productRec->isPublic == 'yes'){
+            $lastQuery->where("#productId = {$productRec->id}");
+        } else {
+            $lastQuery->EXT('innerClass', 'cat_Products', 'externalName=innerClass,externalKey=productId');
+            $lastQuery->where("#innerClass = {$productRec->innerClass}");
+        }
+        
+        if($lastRec = $lastQuery->fetch()){
+            $form->setDefault('department', $lastRec->department);
         }
         
         // Ако е избрано предишно задание зареждат се данните от него
@@ -729,7 +745,8 @@ class planning_Jobs extends core_Master
         $row->quantityNotStored = $Double->toVerbal($rec->quantityNotStored);
         $rec->quantityToProduce = $rec->packQuantity - (($rec->quantityFromTasks) ? $rec->quantityFromTasks : $rec->quantityProduced);
         $row->quantityToProduce = $Double->toVerbal($rec->quantityToProduce);
-        if(is_array($rec->quantityProducedInOtherMeasures)){
+        
+        /*if(is_array($rec->quantityProducedInOtherMeasures)){
             $producedInfoArr = array();
             foreach ($rec->quantityProducedInOtherMeasures as $additionalMeasureId => $additionalQuantity){
                 $additionalQuantityVerbal  = $Double->toVerbal($additionalQuantity);
@@ -738,7 +755,7 @@ class planning_Jobs extends core_Master
             }
             
             $row->producedInfo = implode(" + ", $producedInfoArr);
-        }
+        }*/
         
         foreach (array('quantityNotStored', 'quantityToProduce') as $fld) {
             if ($rec->{$fld} < 0) {
@@ -1108,7 +1125,7 @@ class planning_Jobs extends core_Master
         
         // Взимаме к-та на произведените артикули по заданието в протокола за производство
         $totalQuantity = 0;
-        $additionalMeasures = array();
+        //$additionalMeasures = array();
         $directProdQuery = planning_DirectProductionNote::getQuery();
         $directProdQuery->in("originId", $containerIds);
         $directProdQuery->where("#state = 'active' AND #productId = {$rec->productId}");
@@ -1117,14 +1134,14 @@ class planning_Jobs extends core_Master
         while($protocolRec = $directProdQuery->fetch()){
             $totalQuantity += $protocolRec->quantity;
             if(!empty($protocolRec->additionalMeasureId) && $measureId != $protocolRec->additionalMeasureId){
-                $additionalMeasures[$protocolRec->additionalMeasureId] += $protocolRec->additionalMeasureQuantity;
+                //$additionalMeasures[$protocolRec->additionalMeasureId] += $protocolRec->additionalMeasureQuantity;
             }
         }
         
         // Обновяваме произведеното к-то по заданието
         $rec->quantityProduced = $totalQuantity;
-        $rec->quantityProducedInOtherMeasures = $additionalMeasures;
-        self::save($rec, 'quantityProduced,quantityProducedInOtherMeasures');
+        //$rec->quantityProducedInOtherMeasures = $additionalMeasures;
+        self::save($rec, 'quantityProduced');
     }
     
     
@@ -1142,12 +1159,14 @@ class planning_Jobs extends core_Master
         $form->FLD('productId', 'key(mvc=cat_Products)', 'caption=Артикул,mandatory');
         $saleRec = sales_Sales::fetch($saleId, 'threadId,containerId');
         
-        $selectable = $this->getSelectableProducts($saleId);
+        $default = null;
+        $selectable = $this->getSelectableProducts($saleId, $default);
         if (countR($selectable) == 1) {
             $selectable = array_keys($selectable);
             redirect(array($this, 'add', 'threadId' => $saleRec->threadId, 'productId' => $selectable[0], 'saleId' => $saleId, 'foreignId' => $saleRec->containerId, 'ret_url' => array('sales_Sales', 'single', $saleId)));
         }
         
+        $form->setDefault('productId', $default);
         $form->setOptions('productId', array('' => '') + $selectable);
         $form->input();
         if ($form->isSubmitted()) {
@@ -1289,19 +1308,24 @@ class planning_Jobs extends core_Master
      * Намира всички производими артикули по една продажба, към които може да се създават задания
      *
      * @param int $saleId
+     * @param int|null $default
      *
-     * @return array $res
+     * @return array $options
      */
-    private function getSelectableProducts($saleId)
+    private function getSelectableProducts($saleId, &$default = null)
     {
-        $res = sales_Sales::getManifacurableProducts($saleId);
-        foreach ($res as $productId => $name) {
-            if (!$this->haveRightFor('add', (object) array('productId' => $productId, 'saleId' => $saleId))) {
-                unset($res[$productId]);
+        $options = array();
+        $products = sales_Sales::getManifacurableProducts($saleId);
+        foreach ($products as $productId => $name) {
+            if ($this->haveRightFor('add', (object) array('productId' => $productId, 'saleId' => $saleId))) {
+                $options[$productId] = $name;
+                if(empty($default) && !planning_Jobs::fetchField("#productId = {$productId} AND #saleId = {$saleId}")){
+                    $default = $productId;
+                }
             }
         }
         
-        return $res;
+        return $options;
     }
     
     
