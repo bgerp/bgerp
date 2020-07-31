@@ -316,8 +316,9 @@ class planning_Jobs extends core_Master
         $form->setOptions('packagingId', $packs);
         
         // Ако артикула не е складируем, скриваме полето за мярка
-        $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-        if ($canStore == 'no') {
+        $productRec = cat_Products::fetch($rec->productId, 'canStore,isPublic,innerClass');
+        
+        if ($productRec->canStore == 'no') {
             $form->setDefault('packagingId', key($packs));
             $measureShort = cat_UoM::getShortName($rec->packagingId);
             $form->setField('packQuantity', "unit={$measureShort}");
@@ -358,6 +359,21 @@ class planning_Jobs extends core_Master
             $form->setField('deliveryDate', 'input=none');
             $form->setField('deliveryPlace', 'input=none');
             $form->setField('department', 'mandatory');
+        }
+        
+        // Дефолтния център е този от последния артикул или драйвер, ако артикула е нестандартен
+        $lastQuery = self::getQuery();
+        $lastQuery->where("#state != 'rejected' AND #department IS NOT NULL");
+        $lastQuery->orderBy('id', 'DESC');
+        if($productRec->isPublic == 'yes'){
+            $lastQuery->where("#productId = {$productRec->id}");
+        } else {
+            $lastQuery->EXT('innerClass', 'cat_Products', 'externalName=innerClass,externalKey=productId');
+            $lastQuery->where("#innerClass = {$productRec->innerClass}");
+        }
+        
+        if($lastRec = $lastQuery->fetch()){
+            $form->setDefault('department', $lastRec->department);
         }
         
         // Ако е избрано предишно задание зареждат се данните от него
