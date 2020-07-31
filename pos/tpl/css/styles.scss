@@ -1150,6 +1150,12 @@ th.revertCaption, td.revertCaption {
 	.contentHolderResults {
 		padding: 15px;
 	}
+	.operationHolder {
+		margin: 3px !important;
+		width: 44px !important;
+		height: 44px !important;
+		padding: 5px !important;
+	}
 }
 
 @media handheld, only screen and (max-width: 1024px) {
@@ -1176,10 +1182,7 @@ th.revertCaption, td.revertCaption {
 
 @media handheld, only screen and (max-width: 360px) {
 	.operationHolder {
-		margin: 3px !important;
-		width: 49px !important;
-		height: 49px !important;
-		padding: 8px !important;
+		margin: 5px !important;
 	}
 	.headerContent {
 		.fleft, .fright {

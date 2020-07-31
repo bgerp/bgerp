@@ -925,6 +925,20 @@ only screen and (max-width: 1280px) {
 only screen and (max-width: 1200px) {
   .headerContent {
     font-size: 0.75em !important; }
+    .headerContent .fleft {
+      width: 50%; }
+    .headerContent span {
+      margin: 0 10px !important;
+      height: 20px;
+      display: inline-block;
+      line-height: 20px;
+      float: left; }
+
+  .headerAppName img {
+    position: relative;
+    top: 2px;
+    width: 14px;
+    height: 14px; }
 
   #receipt-table {
     font-size: 0.8em; }
@@ -966,7 +980,13 @@ only screen and (max-width: 1200px) {
     padding: 10px !important; }
 
   .contentHolderResults {
-    padding: 15px; } }
+    padding: 15px; }
+
+  .operationHolder {
+    margin: 3px !important;
+    width: 44px !important;
+    height: 44px !important;
+    padding: 5px !important; } }
 
 @media handheld,
 only screen and (max-width: 1024px) {
@@ -991,10 +1011,19 @@ only screen and (max-width: 640px) {
 @media handheld,
 only screen and (max-width: 360px) {
   .operationHolder {
-    margin: 3px !important;
-    width: 49px !important;
-    height: 49px !important;
-    padding: 8px !important; } }
+    margin: 5px !important; }
+
+    .headerContent .fleft,
+    .headerContent .fright {
+      width: 100%; }
+    .headerContent .unp,
+    .headerContent .headerAppName {
+      float: right; }
+    .headerContent .pointId {
+      width: 25%; }
+
+  .companyName {
+    display: block; } }
 
   .printing .onlyPrint {
     display: block; }
