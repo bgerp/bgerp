@@ -174,7 +174,7 @@ class core_Ajax extends core_Mvc
      * @param core_ET $tpl      - Щаблон, към който ще се добавя
      * @param array   $urlArr   - Масив, от който ще се генерира локално URL
      * @param string  $name     - Уникално име
-     * @param int     $interval - Интервал на извикване в секунди
+     * @param int     $interval - Интервал на извикване в милисекунди
      */
     public static function subscribe(&$tpl, $urlArr, $name, $interval = 5000)
     {

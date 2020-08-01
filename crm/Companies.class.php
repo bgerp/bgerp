@@ -302,8 +302,8 @@ class crm_Companies extends core_Master
         $this->FLD('website', 'url', 'caption=Web сайт,class=contactData,export=Csv');
         
         // Данъчен номер на фирмата
-        $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv');
-        $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv');
+        $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv,silent');
+        $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv,silent');
         
         // Вземаме конфига
         $visibleNKID = crm_Setup::get('VISIBLE_NKID');
@@ -490,9 +490,23 @@ class crm_Companies extends core_Master
         $form = $data->form;
         
         if (empty($form->rec->id)) {
+            $form->setField('vatId', 'removeAndRefreshForm=name|address');
+            
             // Слагаме Default за поле 'country'
             $myCompany = self::fetchOwnCompany();
             $form->setDefault('country', $myCompany->countryId);
+           
+            if(empty($form->rec->name)){
+                
+                // Ако не е въведено име, но има валиден ват попълват се адресните данни от него
+                if(!empty($form->rec->vatId)){
+                    list($status, , $name, $address) = cls::get('drdata_Vats')->checkStatus($form->rec->vatId);
+                    if($status == 'valid' && !empty($name)){
+                        $form->setDefault('name', $name);
+                        $form->setDefault('address', $address);
+                    }
+                }
+            }
         }
         
         // Ако сме в тесен режим

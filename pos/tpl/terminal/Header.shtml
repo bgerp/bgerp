@@ -1,15 +1,13 @@
 <div class="fleft">
     <span class='headerReceiptIdLink'>[#ID#] / [#valior#]</span>
     <span class="unp">[#SUB_TITLE#]</span>
+    <!--ET_BEGIN contragentId-->
     <span class="companyName specialLink">[#contragentId#]</span>
+    <!--ET_END contragentId-->
 </div>
-
 <div class="fright">
-
-    <span class='headerAppName'>[#APP_NAME#]</span>
-    <span class='specialLink'>[#pointId#]</span>
+    <span class='specialLink pointId'>[#pointId#]</span>
     <span class='headerUserNick'>[#userId#]</span>
-
-    <span class='specialLink'>[#OTHER_ELEMENTS#]</span>
+	<span class='headerAppName specialLink'>[#img#][#APP_NAME#]</span>
 </div>
 <div class="clearfix21"></div>

@@ -151,6 +151,7 @@ class callcenter_Talks extends core_Master
 //        $this->FLD('mp3', 'varchar', 'caption=Аудио');
         $this->FLD('dialStatus', 'enum(NO ANSWER=Без отговор, FAILED=Прекъснато, BUSY=Заето, ANSWERED=Отговорено, UNKNOWN=Няма информация, REDIRECTED=Пренасочено)', 'allowEmpty, caption=Състояние, hint=Състояние на обаждането');
         $this->FLD('uniqId', 'varchar', 'caption=Номер');
+        $this->FLD('linkedUniqId', 'varchar', 'caption=Номер, input=none');
         $this->FLD('startTime', 'datetime(format=smartTime)', 'caption=Време->Начало');
         $this->FLD('answerTime', 'datetime(format=smartTime)', 'allowEmpty, caption=Време->Отговор');
         $this->FLD('endTime', 'datetime(format=smartTime)', 'allowEmpty, caption=Време->Край');
@@ -477,6 +478,349 @@ class callcenter_Talks extends core_Master
             // Записваме
             static::save($rec);
         }
+    }
+    
+    
+    /**
+     * Регистрира начало на разговор
+     * 
+     * @param string $uniqId
+     * @param string $fromNum
+     * @param string $toNum
+     * @param integer $time
+     * @param boolean $isOutgoing
+     * @param null|string $destUniqId
+     * 
+     * @return null|boolean
+     */
+    public static function registerBeginCall($uniqId, $fromNum, $toNum, $time, $isOutgoing = false, $destUniqId = null)
+    {
+        $fromNum = trim($fromNum);
+        $toNum = trim($toNum);
+        
+        if ((!$fromNum) || (!$toNum)) {
+            
+            return false;
+        }
+        
+        if (!self::isAuthorizedIp()) {
+            
+            return false;
+        }
+        
+        $nRec = new stdClass();
+        
+        // Определяне дали е вътрешно обаждане и дали е изходящо или входящо
+        $isInternalTalk = false;
+        $fNumArr = callcenter_Numbers::getRecForNum($fromNum, 'internal');
+        $tNumArr = callcenter_Numbers::getRecForNum($toNum, 'internal');
+        $fLen = strlen($fromNum);
+        $tLen = strlen($toNum);
+        if (($tLen == $fLen) && ($tLen <= callcenter_Setup::get('MAX_INTERNAL_NUM_LENGTH'))) {
+            $isInternalTalk = true;
+        }
+        if (!$isInternalTalk) {
+            if (!empty($fNumArr) && empty($tNumArr)) {
+                setIfNot($isOutgoing, true);
+            }
+        }
+        if (empty($fNumArr) && empty($tNumArr)) {
+            if ($tLen > $fLen) {
+                setIfNot($isOutgoing, true);
+            }
+        } 
+        if (!empty($fNumArr) && !empty($tNumArr)) {
+            $isInternalTalk = true;
+        }
+        setIfNot($isOutgoing, false);
+        
+        // Ако е вътрешно обаждане и няма да се записва
+        if ($isInternalTalk) {
+            if (callcenter_Setup::get('SAVE_INNTERNAL_CALLS') == 'no') {
+                
+                return ;
+            }
+        }
+        
+        // Ако е изходящо обаждане и няма да се записва
+        if ($isOutgoing) {
+            if (callcenter_Setup::get('SAVE_OUTGOING_CALLS') == 'no') {
+                
+                return ;
+            }
+        }
+        
+        if ($isOutgoing) {
+            $nRec->callType = 'outgoing';
+            $externalNum = $toNum;
+            $internalNum = $fromNum;
+        } else {
+            $nRec->callType = 'incoming';
+            $externalNum = $fromNum;
+            $internalNum = $toNum;
+        }
+        
+        $cRecArr = callcenter_Numbers::getRecForNum($externalNum);
+        
+        if ($cRecArr[0]) {
+            $nRec->externalData = $cRecArr[0]->id;
+        }
+        
+        $dRecArr = callcenter_Numbers::getRecForNum($internalNum, 'internal', true);
+        foreach ((array) $dRecArr as $dRec) {
+            $nRec->internalData = type_Keylist::addKey($nRec->internalData, $dRec->id);
+        }
+        
+        $nRec->externalNum = drdata_PhoneType::getNumberStr($externalNum, 0);
+        $nRec->internalNum = drdata_PhoneType::getNumberStr($internalNum, 0);
+        $nRec->uniqId = $uniqId;
+        $nRec->startTime = self::prepareTime($time);
+        
+        if ($destUniqId) {
+            $nRec->linkedUniqId = $destUniqId . self::$callUniqIdDelimiter;
+        }
+        
+        do {
+            $savedId = static::save($nRec, null, 'IGNORE');
+            
+            if (!$savedId) {
+                $oRec = self::fetch(array("#internalNum = '[#1#]' AND #uniqId='[#2#]'", $nRec->internalNum, $nRec->uniqId));
+                
+                // Предпазване от дублиране
+                if ($nRec->startTime == $oRec->startTime) {
+                    
+                    break;
+                }
+                
+                $nRec->uniqId = self::getUniqId($uniqId);
+                
+                unset($nRec->id);
+            } else {
+                break;
+            }
+        } while (!$savedId);
+        
+        if (!$savedId) {
+            
+            return false;
+        }
+        
+        // Нотифицираме потребителя, за входящото обаждане
+        if (!$isOutgoing) {
+            
+            if (!$cRecArr[0]) {
+                $externalData = $externalNum;
+            } else {
+                $externalData = $cRecArr;
+            }
+            
+            static::notifyUsersForIncoming($externalData, $dRecArr, $savedId);
+        }
+        
+        return true;
+    }
+    
+    
+    /**
+     * Регистрира връзка между две обаждания
+     * 
+     * @param string $uniqId1
+     * @param string $uniqId2
+     * 
+     * @return null|boolean
+     */
+    public static function registerBridge($uniqId1, $uniqId2)
+    {
+        if (!self::isAuthorizedIp()) {
+            
+            return false;
+        }
+        
+        if ($uniqId1 == $uniqId2) {
+            
+            return ;
+        }
+        
+        $isUniq1 = true;
+        $rec = self::fetch(array("#uniqId = '[#1#]'", $uniqId1));
+        if (!$rec) {
+            $rec = self::fetch(array("#uniqId = '[#1#]'", $uniqId2));
+            $isUniq1 = false;
+        }
+        
+        if (!$rec) {
+            $rec = self::getLastTalksRec($uniqId1);
+        }
+        
+        if (!$rec) {
+            $rec = self::getLastTalksRec($uniqId2);
+            $isUniq1 = false;
+        }
+        
+        if (!$rec) {
+            
+            return false;
+        }
+        
+        if ($isUniq1) {
+            $lUniqStr = $uniqId2;
+        } else {
+            $lUniqStr = $uniqId1;
+        }
+        
+        $lUniqStr = $lUniqStr . self::$callUniqIdDelimiter;
+        
+        if (strpos($rec->linkedUniqId, $lUniqStr) === false) {
+            $rec->linkedUniqId .= $lUniqStr;
+            
+            self::save($rec, 'linkedUniqId');
+        }
+    }
+    
+    
+    /**
+     * Регистрира разговора като отговорен
+     * 
+     * @param string $uniqId
+     * @param integer $time
+     * @return boolean
+     */
+    public static function registerAnswer($uniqId, $time)
+    {
+        if (!self::isAuthorizedIp()) {
+            
+            return false;
+        }
+        
+        $rec = self::getLastTalksRec($uniqId);
+        
+        if (!$rec) {
+            
+            return false;
+        }
+        
+        if ($rec->answerTime) {
+            
+            return false;
+        }
+        
+        $rec->answerTime = self::prepareTime($time);
+        
+        self::save($rec, 'answerTime');
+    }
+    
+    
+    
+    /**
+     * Регистрира край на разговора
+     * 
+     * @param string $uniqId
+     * @param string $dialStatus
+     * @param integer $time
+     * 
+     * @return boolean|null
+     */
+    public static function registerEndCall($uniqId, $dialStatus, $time)
+    {
+        if (!self::isAuthorizedIp()) {
+            
+            return false;
+        }
+        
+        $rec = self::getLastTalksRec($uniqId, null);
+        
+        if (!$rec) {
+            $rec = self::getLastTalksRec($uniqId);
+            
+            if ($rec) {
+                
+                return false;
+            }
+        }
+        
+        if (!$rec) {
+            
+            return false;
+        }
+        
+        $rec->endTime = self::prepareTime($time);
+        
+        if ($rec->dialStatus != 'REDIRECTED') {
+            $dialStatus = strtolower($dialStatus);
+            switch ($dialStatus) {
+                case ('noanswer'):
+                    $rec->dialStatus = 'NO ANSWER';
+                    break;
+                    
+                case ('cancel'):
+                    $rec->dialStatus = 'FAILED';
+                    break;
+                    
+                case ('answer'):
+                    $rec->dialStatus = 'ANSWERED';
+                    break;
+                    
+                case ('busy'):
+                    $rec->dialStatus = 'BUSY';
+                    break;
+                    
+                default:
+                    $rec->dialStatus = 'UNKNOWN';
+                    break;
+            }
+        }
+        
+        // Определяме продължителнността на разговоря
+        $rec->duration = self::getDuration($rec->answerTime, $rec->endTime);
+        
+        static::save($rec);
+        
+        if (self::isRedirected($rec)) {
+            // Маркираме обаждането от което е пренасочено, като 'REDIRECTED'
+            self::markParentAsRedirected($rec->uniqId);
+        }
+        
+        self::addNotification($rec);
+    }
+    
+    
+    /**
+     * Помощна фунцкия, която подготвя времето
+     * Ако има разминава, записва в лога
+     * 
+     * @param integer $timestamp
+     * 
+     * @return string
+     */
+    public static function prepareTime($timestamp)
+    {
+        if ($timestamp) {
+            // Вземаме текущото време
+            $now = dt::now();
+            
+            $time = dt::timestamp2Mysql($timestamp);
+            
+            $deviationSecs = abs(dt::secsBetween($now, $time));
+            
+            // Ако разликата е над допустимите
+            if (($deviationSecs) && ($deviationSecs > callcenter_Setup::get('DEVIATION_BETWEEN_TIMES'))) {
+                $deviationVerbal = cls::get('type_Time')->toVerbal($deviationSecs);
+                
+                self::errToLog(array("Разминаване във времето на сървара и подаденото в URL с {$deviationVerbal}"));
+                
+                $time = $now;
+            }
+        } else {
+            
+            // Ако няма време
+            
+            // Задаваме текущото време за начало на позвъняване
+            $time = dt::now();
+            
+            self::errToLog(array('Не е подадено начално време'));
+        }
+        
+        return $time;
     }
     
     
@@ -894,7 +1238,8 @@ class callcenter_Talks extends core_Master
     {
         $i = 0;
         do {
-            if ($i++ > 100) {
+            if ($i++ > 200) {
+                wp('@Unable to generate uniqId', $uniqId);
                 error('@Unable to generate uniqId', $uniqId);
             }
             
@@ -973,7 +1318,7 @@ class callcenter_Talks extends core_Master
      *
      * @return object
      */
-    protected static function getLastTalksRec($uniqId)
+    protected static function getLastTalksRec($uniqId, $dialStatus = false)
     {
         if (!$uniqId) {
             
@@ -983,6 +1328,17 @@ class callcenter_Talks extends core_Master
         $query = self::getQuery();
         $query->where(array("#uniqId LIKE '[#1#]%'", $uniqId . self::$callUniqIdDelimiter));
         $query->orWhere(array("#uniqId = '[#1#]'", $uniqId));
+        
+        $query->orWhere(array("#linkedUniqId LIKE '[#1#]%'", $uniqId . self::$callUniqIdDelimiter));
+        $query->orWhere(array("#linkedUniqId = '[#1#]'", $uniqId));
+        
+        if ($dialStatus !== false) {
+            if (!isset($dialStatus)) {
+                $query->where("#dialStatus IS NULL");
+            } else {
+                $query->where(array("#dialStatus = [#1#]", $dialStatus));
+            }
+        }
         
         $query->orderBy('id', 'DESC');
         $query->limit(1);
@@ -1288,6 +1644,21 @@ class callcenter_Talks extends core_Master
             return false;
         }
         
+        // Ако проверките минат успешно
+        return self::isAuthorizedIp();
+    }
+    
+    
+    /**
+     * Проверява списъка с позволените IP-та
+     * 
+     * @return boolean
+     */
+    public static function isAuthorizedIp()
+    {
+        // Вземам конфигурационните данни
+        $conf = core_Packs::getConfig('callcenter');
+        
         // Масив с разрешените IP' та
         $allowedIpArr = arr::make($conf->CALLCENTER_ALLOWED_IP_ADDRESS, true);
         
@@ -1307,7 +1678,6 @@ class callcenter_Talks extends core_Master
             }
         }
         
-        // Ако проверките минат успешно
         return true;
     }
     

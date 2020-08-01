@@ -20,8 +20,6 @@ function posActions() {
 		})
 	});
 
-
-
 	$('.large-field.select-input-pos').focus();
 
 
@@ -72,6 +70,11 @@ function posActions() {
 
 		activeInput = true;
 
+		var operation = getSelectedOperation();
+		if(operation == 'payment'){
+			disableOrEnableCurrencyBtn();
+		}
+		
 		triggerSearchInput($(this), searchTimeout);
 	});
 
@@ -84,6 +87,7 @@ function posActions() {
 		e.preventDefault();
 	});
 
+	var oldTime = Date.now();
 	// При натискане на елемент с клас за навигиране (ако сме на touch устройство или не сме на продукти или артикула е селектиран) до добавяме
 	$(document.body).on('click', ".navigable", function(e){
 		if(!isTouchDevice() && $(this).hasClass('pos-add-res-btn') && !$(this).hasClass('selected')) return;
@@ -91,8 +95,11 @@ function posActions() {
 		if($(this).hasClass('deleteRow')) return;
 		if($(this).hasClass('printReceiptBtn')) return;
 		
-		pressNavigable(this);
-		e.preventDefault();
+		if(Date.now() - oldTime > 400) {	
+			pressNavigable(this);
+			e.preventDefault();
+		}
+		oldTime = Date.now();
 	});
 
 	$('body').on('paste', '.large-field', function (e){
@@ -138,6 +145,7 @@ function posActions() {
 		if (currentAttrValue == "ENTER") {
 			$('.select-input-pos').val($('.keyboardText').val());
 			$('.ui-dialog-titlebar-close').click();
+			triggerSearchInput($(".large-field"), 0);
 			activeInput = true;
 		} else {
 			inputChars($('.keyboardText'), currentAttrValue);
@@ -460,7 +468,11 @@ function openInfo(element) {
 // Отваря модал с хелпа
 function openHelp() {
 	var url = $('.helpBtn').attr("data-url");
-	processUrl(url, null);
+	
+	var rejectAction = $('div.rejectBtn').attr("data-action");
+	var params = {rejectAction:rejectAction};
+	
+	processUrl(url, params);
 	
 	var modalTitle = $('.helpBtn').attr("data-modal-title");
 	openModal(modalTitle);
@@ -552,11 +564,13 @@ function calculateWidth(){
 
 		var headerHeight = $('.headerContent').outerHeight();
 		if($('#result-holder .withTabs:visible').length) {
-			var tabsFix = 80;
+			var tabsFix = $('.withTabs .tabs').height();
 			$('#result-holder').css('padding', '0');
 			$('#result-holder').css('overflow-y', 'visible');
-			$('#result-holder .withTabs').css('height',winHeight - headerHeight - tabsFix);
-			$('#result-holder .scroll-holder, #result-holder').css('width', winWidth - $('#single-receipt-holder').width());
+
+			$('#result-holder').css('margin-top', tabsFix -55);
+			$('#result-holder .withTabs').css('height',winHeight - headerHeight - tabsFix - 22);
+			$('#result-holder .tabs, #result-holder').css('width', winWidth - $('#single-receipt-holder').width());
 		} else {
 			$('#result-holder').css('padding', '15px');
 			$('#result-holder').css('overflow-y', 'auto');
@@ -587,18 +601,18 @@ function calculateWidth(){
 		$('#result-holder').css('width', "100%");
 		$('.tools-content').css('height','auto');
 		$('#result-holder .withTabs').css('height', "100%");
-		$('#result-holder .scroll-holder').css('width', "100%");
+		$('#result-holder .tabs').css('width', "100%");
 
 		$('.keyboardBtn.operationHolder').addClass('disabledBtn');
 		$('.keyboardBtn.operationHolder').attr('disabled', 'disabled');
 
-	}
-	var scrollerWidth = 0;
-	$('#result-holder .tabHolder li').each(function () {
-		scrollerWidth += Math.ceil($(this).outerWidth()) + 21;
-	});
 
-	$('#result-holder .scroll-holder .tabHolder').css('width', scrollerWidth);
+		var scrollerWidth = 0;
+		$('#result-holder .tabHolder li').each(function () {
+			scrollerWidth += Math.ceil($(this).outerWidth()) + 21;
+		});
+
+	}
 }
 
 // Направа на плащане
@@ -649,7 +663,15 @@ function getCurrentElementFromSelectedRow(element){
 	clearTimeout(timeoutPageNavigation);
 
 	timeoutPageNavigation = setTimeout(function(){
-		refreshResultByOperation(element, 'quantity');
+		
+		var newOperation = 'quantity';
+		var operationBtn = $('.operationBtn[data-value=quantity]');
+		var url = operationBtn.attr("data-url");
+		if(!url){
+			newOperation = 'payment';
+		}
+		
+		refreshResultByOperation(element, newOperation);
 		if(operation != 'quantity'){
 			scrollAfterKey();
 		}
@@ -919,6 +941,7 @@ function submitInputString(){
 		return;
 	}
 	
+	clearTimeout(timeout);
 	var params = {string:value,recId:getSelectedRowId()};
 
 	processUrl(url, params);
@@ -1137,7 +1160,31 @@ function setInputPlaceholder() {
 function afterload() {
 	setInputPlaceholder();
 	disableOrEnableEnlargeBtn();
+	disableOrEnableCurrencyBtn();
 }
+
+
+/**
+ * Активиране/скриване на бутона за Валутите
+ */
+function disableOrEnableCurrencyBtn()
+{
+	var value = $("input[name=ean]").val();
+	
+	if(!$('.currencyBtn').length) {
+		
+		return
+	}
+	
+	if(!value.length || !$.isNumeric(value)){
+		$('.currencyBtn').addClass('disabledBtn');
+		$('.currencyBtn').prop('disabled', true);
+	} else {
+		$(".currencyBtn").removeClass('disabledBtn');
+		$(".currencyBtn").prop("disabled", false);
+	}
+}
+
 
 /**
  * Активира или закрива бутона за подробна информация на артикула

@@ -122,4 +122,16 @@ class pwa_Share extends core_Mvc
             return new Redirect(array('Index'));
         }
     }
+    
+    
+    /**
+     * Помощен екшън за редирект към портала
+     * 
+     * @return Redirect
+     */
+    function act_Portal()
+    {
+        
+        return new Redirect(array('Portal', 'Show'));
+    }
 }

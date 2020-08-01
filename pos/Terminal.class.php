@@ -61,18 +61,18 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Бутони за бърз достъп до терминала
      */
-    protected static $operationShortcuts = 'operation-add=Ctrl A,operation-payment=Ctrl Z,operation-quantity=Ctrl S,operation-text=Ctrl E,operation-contragent=Ctrl K,operation-receipts=Ctrl B,enlarge=F2,print=Ctrl P,keyboard=Ctrl M,exit=Ctrl Q,reject=Ctrl O,help=F1,delete=Ctrl O';
+    protected static $operationShortcuts = 'operation-add=Ctrl A,operation-payment=Ctrl Z,operation-quantity=Ctrl S,operation-text=Ctrl E,operation-contragent=Ctrl K,operation-receipts=Ctrl B,enlarge=F2,print=Ctrl P,keyboard=Ctrl M,exit=Ctrl Q,reject=Ctrl O,help=F1,delete=Ctrl O,revert=Ctrl O';
 
     /**
      * Кои са разрешените операции
      */
-    protected static $operationsArr = "add=Избор на артикул,quantity=Редактиране на реда,payment=Плащане по бележката,contragent=Търсене на клиент,text=Задаване на текст на реда,receipts=Избор на бележка";
+    protected static $operationsArr = "add=Избор на артикул,quantity=Редактиране на реда,payment=Плащане по бележката,contragent=Търсене на клиент,text=Задаване на текст на реда,receipts=Търсене на бележка";
 
 
     /**
      * Икони за операциите
      */
-    protected static $operationImgs = array('enlarge' => 'pos/img/search.png', 'print' => 'pos/img/printer.png', 'keyboard' => 'pos/img/keyboard.png', 'operation-add' => 'pos/img/а.png', 'operation-text' =>  'pos/img/comment.png', 'operation-payment' => 'pos/img/dollar.png', 'operation-quantity' => 'pos/img/multiply.png',  'operation-add' => 'pos/img/a.png',  'operation-receipts' => 'pos/img/receipt.png', 'operation-contragent' => 'pos/img/user.png', 'close' => 'pos/img/close.png', 'transfer' => 'pos/img/transfer.png', 'reject' => 'pos/img/cancel.png', 'delete' => 'pos/img/delete.png', 'help' => "pos/img/info.png");
+    protected static $operationImgs = array('enlarge' => 'pos/img/search.png', 'print' => 'pos/img/printer.png', 'keyboard' => 'pos/img/keyboard.png', 'operation-add' => 'pos/img/а.png', 'operation-text' =>  'pos/img/comment.png', 'operation-payment' => 'pos/img/dollar.png', 'operation-quantity' => 'pos/img/multiply.png',  'operation-add' => 'pos/img/a.png',  'operation-receipts' => 'pos/img/receipt.png', 'operation-contragent' => 'pos/img/user.png', 'close' => 'pos/img/close.png', 'transfer' => 'pos/img/transfer.png', 'reject' => 'pos/img/cancel.png', 'delete' => 'pos/img/delete.png', 'help' => "pos/img/info.png", 'revert' => "pos/img/redo.png");
 
     
     /**
@@ -200,8 +200,7 @@ class pos_Terminal extends peripheral_Terminal
         $rec = $Receipts->fetchRec($rec);
         $tpl = getTplFromFile('pos/tpl/terminal/Header.shtml');
         
-        $headerData = (object)array('APP_NAME' => core_Setup::get('EF_APP_TITLE', true),
-                                    'pointId' => pos_Points::getHyperlink($rec->pointId, false),
+        $headerData = (object)array('pointId' => pos_Points::getHyperlink($rec->pointId, false),
                                     'ID' => pos_Receipts::getVerbal($rec->id, 'id'),
                                     'TIME' => $this->renderCurrentTime(),
                                     'valior' => pos_Receipts::getVerbal($rec->id, 'valior'),
@@ -212,12 +211,13 @@ class pos_Terminal extends peripheral_Terminal
         $headerData->contragentId = (!empty($rec->transferedIn)) ? sales_Sales::getLink($rec->transferedIn, 0, array('ef_icon' => false)) : $contragentName;
        
         $img = ht::createImg(array('path' => 'img/16/bgerp.png'));
-        $logoTpl = new core_ET("[#img#] [#logo#]");
+        $logoTpl = new core_ET("[#img#] [#APP_NAME#]");
         $logoTpl->replace($img, 'img');
-        $logoTpl->replace($Receipts->getTerminalHeaderLogo($rec), 'logo');
+        $logoTpl->replace(core_Setup::get('EF_APP_TITLE', true), 'APP_NAME');
+        $logoTpl->removeBlocksAndPlaces();
         $logoLink = ht::createLink($logoTpl, array('bgerp_Portal', 'show'));
         
-        $tpl->append($logoLink, 'OTHER_ELEMENTS');
+        $tpl->append($logoLink, 'APP_NAME');
         $tpl->placeObject($headerData);        
         $Receipts->invoke('AfterRenderTerminalHeader', array(&$tpl, $rec));
         
@@ -389,12 +389,17 @@ class pos_Terminal extends peripheral_Terminal
      */
     public function act_Help()
     {
+        pos_Receipts::requireRightFor('terminal');
+        
         $tpl = getTplFromFile('pos/tpl/terminal/Help.shtml');
-
-        for($i = 1; $i<=12; $i++) {
+        $rejectAction = Request::get('rejectAction', 'enum(revert,delete,reject)');
+        
+        for($i = 1; $i<=11; $i++) {
             $tpl->replace( ht::createElement('img', array('src' => sbf("pos/img/btn{$i}.png", ''))), "img{$i}");
         }
 
+        $rejectIconNumber = ($rejectAction == 'reject') ? '12' : (($rejectAction == 'revert') ? '13' : '14'); 
+        $tpl->replace(ht::createElement('img', array('src' => sbf("pos/img/btn{$rejectIconNumber}.png", ''))), "img{$rejectIconNumber}");
         
         // Ще се реплейсва и пулта
         $res = array();
@@ -440,6 +445,8 @@ class pos_Terminal extends peripheral_Terminal
             $rec->contragentObjectId = $companyRec->id;
             $rec->contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
             pos_Receipts::save($rec, 'contragentObjectId,contragentClass,contragentName');
+            Mode::setPermanent("currentSearchString{$rec->id}", null);
+            
             
             redirect(array('pos_Terminal', 'open', 'receiptId' => $rec->id));
         }
@@ -579,16 +586,19 @@ class pos_Terminal extends peripheral_Terminal
         $buttons["keyboard"] = (object)array('body' => $img, 'attr' => array('title' => 'Отваряне на виртуална клавиатура', 'data-url' => toUrl(array('pos_Terminal', 'Keyboard'), 'local'), 'class' => "keyboardBtn", 'data-modal-title' => tr('Виртуална клавиатура')));
         
         // Слагаме бутон за оттегляне ако имаме права
-        $img = ht::createImg(array('path' => self::$operationImgs["reject"]));
+        $img = ht::createImg(array('path' => self::$operationImgs["revert"]));
         if (pos_Receipts::haveRightFor('reject', $rec)) {
-             $buttons["reject"] = (object)array('body' => $img, 'attr' => array('title' => 'Оттегляне на бележката', 'class' => "rejectBtn"), 'linkUrl' => array('pos_Receipts', 'reject', $rec->id, 'ret_url' => toUrl(array('pos_Receipts', 'new'), 'local')), 'linkWarning' => 'Наистина ли желаете да оттеглите бележката|*?');
+             $img = ht::createImg(array('path' => self::$operationImgs["reject"]));
+             $buttons["reject"] = (object)array('body' => $img, 'attr' => array('title' => 'Оттегляне на бележката', 'class' => "rejectBtn", 'data-action' => 'reject'), 'linkUrl' => array('pos_Receipts', 'reject', $rec->id, 'ret_url' => toUrl(array('pos_Receipts', 'new'), 'local')), 'linkWarning' => 'Наистина ли желаете да оттеглите бележката|*?');
         } elseif (pos_Receipts::haveRightFor('delete', $rec)) {
              $img = ht::createImg(array('path' => self::$operationImgs["delete"]));
-             $buttons["delete"] = (object)array('body' => $img, 'attr' => array('title' => 'Изтриване на бележката', 'class' => "rejectBtn"), 'linkUrl' => array('pos_Receipts', 'delete', $rec->id, 'ret_url' => toUrl(array('pos_Receipts', 'new'), 'local')), 'linkWarning' => 'Наистина ли желаете да изтриете бележката|*?');
+             $buttons["delete"] = (object)array('body' => $img, 'attr' => array('title' => 'Изтриване на бележката', 'class' => "rejectBtn", 'data-action' => 'delete'), 'linkUrl' => array('pos_Receipts', 'delete', $rec->id, 'ret_url' => toUrl(array('pos_Receipts', 'new'), 'local')), 'linkWarning' => 'Наистина ли желаете да изтриете бележката|*?');
         } elseif(pos_Receipts::haveRightFor('revert', $rec->id)){
-            $buttons["delete"] = (object)array('body' => $img, 'attr' => array('title' => 'Сторниране на бележката', 'class' => "rejectBtn"), 'linkUrl' => array('pos_Receipts', 'revert', $rec->id), 'linkWarning' => 'Наистина ли желаете да сторнирате бележката|*?');
+            $buttons["revert"] = (object)array('body' => $img, 'attr' => array('title' => 'Сторниране на бележката', 'class' => "rejectBtn revert", 'data-action' => 'revert'), 'linkUrl' => array('pos_Receipts', 'revert', $rec->id), 'linkWarning' => 'Наистина ли желаете да сторнирате бележката|*?');
+        } elseif(pos_Receipts::haveRightFor('revert', pos_Receipts::DEFAULT_REVERT_RECEIPT)) {
+            $buttons["revert"] = (object)array('body' => $img, 'attr' => array('title' => 'Нова сторнираща бележка', 'class' => "rejectBtn revert", 'data-action' => 'revert'), 'linkUrl' => array('pos_Receipts', 'revert', pos_Receipts::DEFAULT_REVERT_RECEIPT), 'linkWarning' => 'Наистина ли желаете да създадете нова сторнираща бележка|*?');
         } else {
-            $buttons["delete"] = (object)array('body' => $img, 'attr' => array('class' => "rejectBtn disabledBtn", 'disabled' => 'disabled'));
+            $buttons["delete"] = (object)array('body' => $img, 'attr' => array('class' => "rejectBtn disabledBtn", 'disabled' => 'disabled', 'data-action' => 'reject'));
         }
         
         // Бутон за увеличение на избрания артикул
@@ -977,8 +987,15 @@ class pos_Terminal extends peripheral_Terminal
         if($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId){
             
             $contragents = array();
+            $vatId = null;
+            if(!empty($string)){
+                list($status) = cls::get('drdata_Vats')->checkStatus($string);
+                if($status == 'valid'){
+                    $vatId = $string;
+                }
+            }
             
-            $newCompanyAttr = array('id' => 'contragentnew', 'data-url' => toUrl(array('pos_Terminal', 'transferInNewCompany', 'receiptId' => $rec->id, 'ret_url' => true)), 'class' => 'posBtns');
+            $newCompanyAttr = array('id' => 'contragentnew', 'data-url' => toUrl(array('pos_Terminal', 'transferInNewCompany', 'receiptId' => $rec->id, 'vatId' => $vatId, 'ret_url' => true)), 'class' => 'posBtns');
             if(!crm_Companies::haveRightFor('add') || !pos_Receipts::haveRightFor('transfer', $rec)){
                 $newCompanyAttr['disabled'] = 'disabled';
                 $newCompanyAttr['class'] .= ' disabledBtn';
@@ -1258,9 +1275,16 @@ class pos_Terminal extends peripheral_Terminal
         $paymentArr = array();
         $paymentArr["payment-1"] = (object)array('body' => ht::createElement("div", array('id' => "payment-1", 'class' => "{$disClass} posBtns payment", 'data-type' => '-1', 'data-url' => $payUrl), tr('В брой'), true), 'placeholder' => 'PAYMENTS');
         $payments = pos_Points::fetchSelected($rec->pointId);
-       
+        
         foreach ($payments as $paymentId => $paymentTitle){
-            $paymentArr["payment{$paymentId}"] = (object)array('body' => ht::createElement("div", array('id' => "payment{$paymentId}", 'class' => "{$disClass} posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl), tr($paymentTitle), true), 'placeholder' => 'PAYMENTS');
+            $attr = array('id' => "payment{$paymentId}", 'class' => "{$disClass} posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl);
+            $currencyCode = cond_Payments::fetchField($paymentId, 'currencyCode');
+            if(!empty($currencyCode)){
+                //$disClass = 'disabledBtn';
+                $attr['class'] .= ' currencyBtn disabledBtn'; 
+            }
+            
+            $paymentArr["payment{$paymentId}"] = (object)array('body' => ht::createElement("div", $attr, tr($paymentTitle), true), 'placeholder' => 'PAYMENTS');
         }
         
         $contoUrl = (pos_Receipts::haveRightFor('close', $rec)) ? array('pos_Receipts', 'close', $rec->id, 'ret_url' => true) : null;
@@ -1361,7 +1385,7 @@ class pos_Terminal extends peripheral_Terminal
                 
                 arsort($storeArr);
                 foreach ($storeArr as $storeId => $quantity){
-                    $btnClass = ($storeId == $selectedRec->storeId) ? 'current' : 'navigable';
+                    $btnClass = ($storeId == $selectedRec->storeId) ? 'current navigable' : 'navigable';
                     $dataUrl = ($storeId == $selectedRec->storeId) ? null : $dataChangeStoreUrl;
                     
                     $quantityInStockVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
@@ -1592,7 +1616,7 @@ class pos_Terminal extends peripheral_Terminal
         
         // Абониране за рефреш на хедъра
         $originState = $rec->state;
-        core_Ajax::subscribe($tpl, array($this, 'autoRefreshHeader', $rec->id, 'originState' => $originState), 'refreshTime', 30);
+        core_Ajax::subscribe($tpl, array($this, 'autoRefreshHeader', $rec->id, 'originState' => $originState), 'refreshTime', 20000);
     }
     
     
@@ -1669,10 +1693,9 @@ class pos_Terminal extends peripheral_Terminal
         
         // Ако има групи на артикулите
         if(countR($groupsTable)){
-            arr::sortObjects($groupsTable, 'order', 'asc');
             $groups = arr::extractValuesFromArray($groupsTable, 'groupId');
             
-            $resultTpl = new core_ET("<div class='scroll-holder productTabs'><ul class='tabHolder'>[#TAB#]</ul></div>");
+            $resultTpl = new core_ET("<div class='tabs productTabs'><ul class='tabHolder'>[#TAB#]</ul></div>");
             $groups = array('all' => null) + $groups;
             foreach ($groups as $groupId){
                 $active = ($rec->_selectedGroupId == $groupId) ? 'active' : '';
@@ -1810,21 +1833,15 @@ class pos_Terminal extends peripheral_Terminal
             // Ако не се търси подробно артикул, се показват тези от любими
             if(empty($searchString)){
                 $groups = type_Table::toArray(pos_Points::getSettings($rec->pointId, 'productGroups'));
-                $productsArr = keylist::toArray(pos_Points::getSettings($rec->pointId, 'products'));
                 
-                if(countR($productsArr) || countR($groups)){
+                if(countR($groups)){
                     $pQuery->limit($settings->maxSearchProducts);
-                    $pQuery->in("productId", array_keys($productsArr));
                     $pQuery->orderBy('code,name', 'ASC');
                     
-                    if(countR($groups)){
-                        $groups = arr::extractValuesFromArray($groups, 'groupId');
-                        $or = countR($productsArr) ? true : false;
-                        $pQuery->likeKeylist('groups', $groups, $or);
-                        
-                        if(!empty($rec->_selectedGroupId)){
-                            $pQuery->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
-                        }
+                    $groups = arr::extractValuesFromArray($groups, 'groupId');
+                    $pQuery->likeKeylist('groups', $groups);
+                    if(!empty($rec->_selectedGroupId)){
+                        $pQuery->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
                     }
                     
                     while($pRec = $pQuery->fetch()){
@@ -2047,7 +2064,7 @@ class pos_Terminal extends peripheral_Terminal
             plg_Search::applySearch($string, $query);
         }
         
-        $tpl = new core_ET("<div class='scroll-holder'><ul class='tabHolder'>[#TAB#]</ul></div><div class='contentHolder'>");
+        $tpl = new core_ET("<div class='tabs'><ul class='tabHolder'>[#TAB#]</ul></div><div class='contentHolder'>");
         
         // Групиране на записите по дата
         $arr = array('draft' => array('caption' => 'Чернови', 'receipts' => new core_ET(""), 'count' => 0),
@@ -2059,15 +2076,9 @@ class pos_Terminal extends peripheral_Terminal
         $disabledClass = (pos_Receipts::haveRightFor('add')) ? 'navigable' : 'disabledBtn';
         $addUrl = (pos_Receipts::haveRightFor('add')) ? array('pos_Receipts', 'new') : array();
         
-        $revertDefaultUrl = (pos_Receipts::haveRightFor('revert', pos_Receipts::DEFAULT_REVERT_RECEIPT)) ? array('pos_Receipts', 'revert', pos_Receipts::DEFAULT_REVERT_RECEIPT, 'ret_url' => true) : array();
-        $disabledRevertClass = countR($revertDefaultUrl) ? 'navigable' : 'disabledBtn';
-        $warning = countR($revertDefaultUrl) ? 'Наистина ли искате да създадете нова сторнираща бележка|*?' : null;
-        
         $row = ht::createLink('+ Нова бележка', $addUrl, null, array('id' => "receiptnew", 'class' => "pos-notes posBtns {$disabledClass}", 'title' => 'Създаване на нова бележка'));
         $arr['draft']['receipts']->append($row);
-        
-        $revertBlock = ht::createLink('↶ Сторно бележка', $revertDefaultUrl, $warning, array('id' => "revertReceiptBtn", 'class' => "pos-notes posBtns revertReceiptBtn {$disabledRevertClass}", 'title' => 'Създаване на нова сторно бележка'));
-        $arr['draft']['receipts']->append($revertBlock);
+        $arr['draft']['count']++;
         
         while ($receiptRec = $query->fetch()) {
             $key = $receiptRec->state;
@@ -2109,7 +2120,6 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $tpl->append('</div>');
-        
         $tpl->prepend("<div class='withTabs'>");
         $tpl->append("</div>");
         
@@ -2145,7 +2155,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $num = pos_Receipts::getReceiptShortNum($rec->id);
         $contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
-        $contragentName = str::limitLen($contragentName, 14);
+        $contragentName = str::limitLen($contragentName, 18);
         $num .= "/{$contragentName}";
         
         $title = "{$num}<div class='nowrap'><span class='spanDate'>{$date}</span> <span class='receiptResultAmount'>{$amountVerbal}</span></div>";

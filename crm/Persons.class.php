@@ -20,6 +20,12 @@
 class crm_Persons extends core_Master
 {
     /**
+     * Да се създаде папка при създаване на нов запис
+     */
+    public $autoCreateFolder = 'instant';
+    
+    
+    /**
      * Интерфейси, поддържани от този мениджър
      */
     public $interfaces = array(
@@ -274,7 +280,7 @@ class crm_Persons extends core_Master
         $this->FNC('nameList', 'varchar', 'sortingLike=name, translate=transliterate');
         
         // Единен Граждански Номер
-        $this->FLD('egn', 'bglocal_EgnType', 'caption=ЕГН,export=Csv');
+        $this->FLD('egn', 'bglocal_EgnType', 'caption=ЕГН,export=Csv,silent');
         $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv');
         
         // Дата на раждане

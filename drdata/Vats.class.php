@@ -296,7 +296,7 @@ class drdata_Vats extends core_Manager
             }
         }
         
-        return array($res, $info);
+        return array($res, $info, $result->name, $result->address);
     }
     
     

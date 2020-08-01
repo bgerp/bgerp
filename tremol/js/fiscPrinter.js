@@ -1014,6 +1014,8 @@ function handleException(sx) {
 				msg = "sx.STE1 === 0x34 - Отворен фискален бон и sx.STE2 === 0x32 - Командата е непозволена в текущото състояние на ФУ";
 			} else if (sx.ste1 === 0x39 && sx.ste2 === 0x32) {
 				msg = "sx.STE1 === 0x39 - Грешна парола и sx.STE2 === 0x32 - Командата е непозволена";
+			} else if (sx.ste1 === 0x32 && sx.ste2 === 0x35) {
+				msg = "Недостатъчна наличност в касата";
 			} else {
 				msg = sx.message + "\nSTE1=" + sx.ste1 + ", STE2=" + sx.ste2;
 			}

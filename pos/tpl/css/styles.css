@@ -234,6 +234,9 @@
     display: inline-block;
     float: left; }
 
+.printReceiptBtn {
+  font-size: 1.1em !important; }
+
 .operationHolder {
   display: inline-block;
   position: relative;
@@ -247,6 +250,8 @@
   box-sizing: border-box; }
   .operationHolder.btnWithWarning {
     background: rgba(189, 106, 0, 0.85); }
+    .operationHolder.btnWithWarning.revert {
+      background-color: #dd2d21; }
   .operationHolder .buttonOverlay {
     display: none;
     position: absolute;
@@ -347,38 +352,34 @@
     border: 1px solid #666666;
     border-radius: 5px; }
 
-.fixedPosition .withTabs .scroll-holder {
+.fixedPosition .withTabs .tabs {
   margin-top: 0;
   margin-left: -15px;
   background: #333333;
   position: fixed;
   top: 44px;
-  height: 62px;
-  z-index: 100; }
+  z-index: 100;
+  padding-bottom: 5px; }
 
   .relativePosition .contentHolder {
     padding-top: 20px; }
-  .relativePosition .scroll-holder {
+  .relativePosition .tabs {
     padding-bottom: 10px; }
 
-.withTabs .scroll-holder {
-  overflow-x: auto;
+.withTabs .tabs {
   display: block; }
 
-.withTabs .scroll-holder .tabHolder {
+.withTabs .tabs .tabHolder {
   padding-left: 2px;
   padding-right: 2px;
   text-align: center;
-  margin: 10px 0 7px; }
-  .withTabs .scroll-holder .tabHolder li {
+  margin: 10px 7px; }
+  .withTabs .tabs .tabHolder li {
     user-select: none;
     display: inline-block;
     float: left;
-    border-color: rgba(0, 0, 0, 0);
-    margin: 0 10px;
-    padding-left: 15px;
-    padding-right: 15px; }
-  .withTabs .scroll-holder .tabHolder:after {
+    border-color: rgba(0, 0, 0, 0); }
+  .withTabs .tabs .tabHolder:after {
     clear: both; }
 
 .narrow #receiptnew {
@@ -386,14 +387,15 @@
 
   .tabHolder li {
     list-style: none;
-    padding: 7px 10px;
     border: 1px solid #cccccc;
     cursor: pointer;
     color: #707a8c;
     font-weight: bold;
     text-align: center !important;
     background: #dddddd !important;
-    border-radius: 3px; }
+    border-radius: 3px;
+    margin: 5px 10px 5px 0;
+    padding: 7px; }
     .tabHolder li.active,
     .tabHolder li:hover {
       background: #fefead !important;
@@ -466,7 +468,7 @@
     height: 70px;
     display: flex;
     vertical-align: middle;
-    font-size: 1.3em;
+    font-size: 1.2em;
     margin: 0 !important;
     background: #b7e2f3 !important;
     color: #333333 !important; }
@@ -493,8 +495,8 @@
     right: 3px !important; }
   .posBtns:focus,
   .posBtns.selected {
-    box-shadow: 0px 0px 15px #0000fa !important;
-    border: 3px solid #080f56;
+    box-shadow: 0px 0px 10px #fca40b !important;
+    border: 3px solid #fa0606;
     padding: 8px 18px !important;
     opacity: 1; }
   .posBtns.revertReceiptBtn {
@@ -654,8 +656,8 @@
   opacity: 0.7; }
   .element:focus,
   .element.selected {
-    box-shadow: 0px 0px 15px #0000fa !important;
-    border: 3px solid #080f56;
+    box-shadow: 0px 0px 10px #fca40b !important;
+    border: 3px solid #fa0606;
     padding: 8px !important;
     opacity: 1; }
   .element .pos-title {
@@ -922,6 +924,20 @@ only screen and (max-width: 1280px) {
 only screen and (max-width: 1200px) {
   .headerContent {
     font-size: 0.75em !important; }
+    .headerContent .fleft {
+      width: 50%; }
+    .headerContent span {
+      margin: 0 10px !important;
+      height: 20px;
+      display: inline-block;
+      line-height: 20px;
+      float: left; }
+
+  .headerAppName img {
+    position: relative;
+    top: 2px;
+    width: 14px;
+    height: 14px; }
 
   #receipt-table {
     font-size: 0.8em; }
@@ -963,7 +979,24 @@ only screen and (max-width: 1200px) {
     padding: 10px !important; }
 
   .contentHolderResults {
-    padding: 15px; } }
+    padding: 15px; }
+
+  .operationHolder {
+    margin: 3px !important;
+    width: 44px !important;
+    height: 44px !important;
+    padding: 5px !important; }
+
+  .contentHolderResults {
+    float: left;
+    width: 100%;
+    box-sizing: border-box; }
+
+  .tabs {
+    float: left; }
+    .tabs .tabHolder li {
+      padding: 2px 5px;
+      margin: 2px 5px 2px 0; } }
 
 @media handheld,
 only screen and (max-width: 1024px) {
@@ -988,10 +1021,19 @@ only screen and (max-width: 640px) {
 @media handheld,
 only screen and (max-width: 360px) {
   .operationHolder {
-    margin: 3px !important;
-    width: 49px !important;
-    height: 49px !important;
-    padding: 8px !important; } }
+    margin: 5px !important; }
+
+    .headerContent .fleft,
+    .headerContent .fright {
+      width: 100%; }
+    .headerContent .unp,
+    .headerContent .headerAppName {
+      float: right; }
+    .headerContent .pointId {
+      width: 25%; }
+
+  .companyName {
+    display: block; } }
 
   .printing .onlyPrint {
     display: block; }

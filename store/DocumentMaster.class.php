@@ -725,6 +725,8 @@ abstract class store_DocumentMaster extends core_Master
         $query->where("#{$Detail->masterKey} = {$rec->id}");
         
         while ($dRec = $query->fetch()) {
+            if(empty($dRec->quantity)) continue;
+            
             $dRec->quantity /= $dRec->quantityInPack;
             if (!($forMvc instanceof sales_Proformas)) {
                 $dRec->price -= $dRec->price * $dRec->discount;

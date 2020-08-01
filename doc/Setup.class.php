@@ -268,7 +268,8 @@ class doc_Setup extends core_ProtoSetup
         'doc_FolderResources',
         'doc_LinkedLast',
         'migrate::showDocumentsAsButtons0419',
-        'migrate::updateHiddenDocCreated0120'
+        'migrate::updateHiddenDocCreated0120',
+        'migrate::foldersRepairSerchKeywords3120',
     );
     
     
@@ -569,5 +570,14 @@ class doc_Setup extends core_ProtoSetup
         $now = dt::now();
         
         $cInst->db->query("UPDATE `{$cInst->dbTableName}` SET `date` = '{$now}'");
+    }
+    
+    
+    /**
+     * Форсира регенерирането на ключовите думи за всички мениджъри, които използват `plg_Search`
+     */
+    public static function foldersRepairSerchKeywords3120()
+    {
+        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'doc_Folders', dt::addSecs(120));
     }
 }

@@ -1,37 +1,28 @@
 <?php
-
-
 /**
- * Клас 'ztm_Registers' - Документ за Транспортни линии
+ * Мениджър за дефиниране на регистри в Zontromat
  *
  *
  * @category  bgerp
  * @package   ztm
  *
- * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
+ * @author    Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
+ 
+ * @title     Дефинирани регистри в Zontromat
  */
-class ztm_Registers extends core_Manager
+class ztm_Registers extends core_Master
 {
-    /**
-     * Заглавие
-     */
-    public $title = 'Регистри в Zontromat';
+    public $title = 'Дефинирани регистри в Zontromat';
     
     
     /**
-     * Плъгини за зареждане
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
-    public $loadList = 'plg_RowTools2, ztm_Wrapper';
-    
-    
-    /**
-     * Кой може да го разглежда?
-     */
-    public $canList = 'ztm, ceo';
+    public $oldClassName = 'ztm_RegistersDef';
     
     
     /**
@@ -47,180 +38,175 @@ class ztm_Registers extends core_Manager
     
     
     /**
-     * Кой има право да пише?
+     * Кой може да го разглежда?
      */
-    public $canWrite = 'ztm, ceo';
+    public $canList = 'ztm, ceo';
+    public $canSingle = 'ztm, ceo';
+    /**
+     * Кой има право да го изтрие?
+     */
+    public $canDelete = 'no_one';
+    public $canReject = 'ztm, ceo';
+    public $canRestore = 'ztm, ceo';
     
     
     /**
-     * Полета, които ще се показват в листов изглед
+     * Кой може да променя състоянието на документите
+     *
+     * @see plg_State2
      */
-    public $listFields = 'id,deviceId,registerDefId,value,updatedOn';
+    public $canChangestate = 'ztm, ceo';
     
     
+    /**
+     * Плъгини за зареждане
+     */
+    public $loadList = 'ztm_Wrapper, plg_Rejected, plg_Created, plg_State2, plg_RowTools2, plg_Modified, plg_Sorting';
+    
+    
+    /**
+     *
+     * @var string
+     */
+     public $listFields = 'id, name, type, range, plugin, priority, default, description';
+    
+     
     /**
      * Описание на модела (таблицата)
      */
-    public function description()
+    protected function description()
     {
-        $this->FLD('deviceId', 'key(mvc=ztm_Devices, select=name)','caption=Устройство,mandatory');
-        $this->FLD('registerDefId', 'key(mvc=ztm_RegistersDef, select=name)','caption=Регистър');
-        $this->FLD('value', 'varchar(32)','caption=Стойност');
-        $this->FLD('updatedOn', 'datetime(format=smartTime)','caption=Обновено на');
+        $this->FLD('name', 'varchar(32)', 'caption=Име');
+        $this->FLD('type', 'enum(int,bool,float,str,json,int/float)', 'caption=Тип');
+        $this->FLD('range', 'text', 'caption=Диапазон');
+        $this->FLD('plugin', 'varchar(32)', 'caption=Модул');
+        $this->FLD('priority', 'enum(system, device, global, time)', 'caption=Приоритет за вземане на стойност');
+        $this->FLD('default', 'text', 'caption=Дефолтна стойност');
+        $this->FLD('description', 'text', 'caption=Описание на регистъра');
         
-        $this->setDbUnique('deviceId,registerDefId');
+        $this->setDbUnique('name');
     }
     
     
     /**
-     * Извлича стойността на дадения регистър
-     * 
-     * @param int $deviceId       - ид на устройство
-     * @param int $registerId     - ид на вид регистър
-     * 
-     * @return stdClass|null $rec - записа на регистъра, null ако няма
+     * Извиква се след SetUp-а на таблицата за модела
      */
-    public static function get($deviceId, $registerId)
+    public function loadSetupData()
     {
-        $rec = self::fetch("#deviceId = '{$deviceId}' AND #registerDefId = '{$registerId}'");
-        
-        if(is_object($rec)){
-            if($longValue = ztm_RegisterLongValues::fetchField("#registerId = {$rec->id}", 'value')){
-                $rec->value = $longValue;
-            }
+        if($this->getQuery()->count()){
+            return;
         }
+        $file = 'ztm/csv/Registri.csv';
         
-        return is_object($rec) ? $rec : null;
-    }
-    
-    
-    /**
-     * Задава стойност на регистъра
-     * 
-     * @param int $deviceId        - ид на устройство
-     * @param int $registerId      - ид на вид регистър
-     * @param mixed $value         - стойност
-     * @param datetime|null $time  - време 
-     * 
-     * @return null|stdClass $rec  - сетнатия запис или null, ако не е обновен
-     */
-    public static function set($deviceId, $registerId, $value, $time = null)
-    {
-        $now = dt::now();
-        $time = isset($time) ? $time : $now;
-       
-        expect(ztm_Devices::fetch($deviceId), "Няма такова устройство");
-        expect($registerDefRec = ztm_RegistersDef::fetch($registerId), "Няма такъв регистър");
-        expect($time <= $now, 'Не може да се зададе бъдеще време');
+        $fields = array(
+            0 => 'name',
+            1 => 'type',
+            2 => 'range',
+            3 => 'plugin',
+            4 => 'priority',
+            5 => 'default',
+            6 => 'description',
+        );
         
-        $rec = (object)array('deviceId' => $deviceId, 'registerDefId' => $registerId, 'updatedOn' => $time, 'value' => $value);
-        $exRec = self::fetch("#deviceId = '{$deviceId}' AND #registerDefId = '{$registerId}'");
-        if(is_object($exRec)){
-            if($exRec->updatedOn > $time) {
-                
-                return null;
-            }
-            
-            $rec->id = $exRec->id;
-        }
-        
-        $hash = null;
-        if(in_array($registerDefRec->type, array('array', 'object', 'text'))){
-            $hash = md5(serialize($value));
-            $rec->value = $hash;
-        }
-        
-        $id = self::save($rec);
-        if(isset($hash)){
-            $longRec = (object)array('registerId' => $id, 'value' => $value, 'hash' => $hash);
-            if($exId = ztm_RegisterLongValues::fetchField("#registerId = {$id}")){
-                $longRec->id = $exId;
-            }
-            
-            ztm_RegisterLongValues::save($longRec);
-        }
-        
-        return $rec;
-    }
-    
-    
-    function act_Test()
-    {
-        requireRole('debug');
-        $a = self::get(1, 1);
-        //bp($a);
-        //$time = '2020-07-10 18:35:34';
-        $deviceId = 1;
-        $registerId = 128;
-        $value = (object)array('test' => 'daaaa', 'test' => 'neeeeee');
-        
-        
-        $t = self::set($deviceId, $registerId, $value, $time);
-        
-        bp($t);
-    }
-    
-    
-    
-    /**
-     * Извлича регистрите за устройството, обновени след определена дата
-     * 
-     * @param int $deviceId               - ид на устройство
-     * @param datetime|null $updatedAfter - обновени след дата
-     * 
-     * @return array $res                 - масив от намерените регистри
-     */
-    public static function grab($deviceId, $updatedAfter = null)
-    {
-        $query = self::getQuery();
-        $query->where("#deviceId = '{$deviceId}'");
-        if(isset($updatedAfter)){
-            $query->where("#updatedOn >= '{$updatedAfter}'");
-        }
-        
-        $res = array();
-        while($rec = $query->fetch()){
-            $res[] = self::get($deviceId, $rec->registerDefId);
-        }
+        $cntObj = csv_Lib::importOnce($this, $file, $fields);
+        $res = $cntObj->html;
         
         return $res;
     }
     
     
-    public function sync($regArr, $lastSync)
+    /**
+     * Какъв наш тип отговаря на техния
+     * 
+     * @param int $registerId
+     * @param boolean $forForm
+     * 
+     * @return core_Type
+     */
+    public static function getOurType($registerId)
     {
+        $type = ztm_Registers::fetchField($registerId, 'type');
+        switch($type){
+            case 'int':
+                $ourType = 'Int';
+                break;
+            case 'float':
+                $ourType = 'Double';
+            case 'bool':
+                $ourType = 'enum(yes=Да,no=Не)';
+                break;
+            case 'str':
+                $ourType = 'varchar';
+                break;
+            case 'int/float':
+                $ourType = 'Double';
+                break;
+            default:
+                $ourType = 'text';
+                break;
+        }
         
+        return core_Type::getByName($ourType);
     }
-    
     
     
     /**
-     * Създава пряк път до публичните статии
+     * Добавя функционално поле за въвеждане на допустима стойност
+     * 
+     * @param core_Form $form
+     * @param string|null $registerFld
+     * @param string|null $valueFld 
+     * 
+     * @return void
      */
-    public function act_Sync()
-    {   
-       
-        $token = Request::get('token');
-        $lastSync = Request::get('last_sync');
+    public static function extendAddForm($form, $registerFld = 'registerId', $valueFld = 'value')
+    {
+        $rec = &$form->rec;
         
-        log_System::logWarning(serialize(Request::$vars));
-        expect($deviceRec = ztm_Devices::getRecForToken($token), $token);
-        ztm_Devices::updateSyncTime($token);
-        
-        //if(empty($lastSync)){
+        if(isset($rec->{$registerFld})){
+            $form->FLD('extValue', ztm_Registers::getOurType($rec->{$registerFld}), 'caption=Стойност,mandatory');
+            $form->rec->_type = ztm_Registers::fetchField($rec->{$registerFld}, 'type');
             
-            //$defaultResponse = ztm_Profiles::getDefaultResponse($deviceRec->profileId);
-           // $defaultResponse = array('') + $defaultResponse;
-            
-            $test = (object)array("hvac.enabled" => 1);
-            //bp();
-            //log_System::logWarning($response);
-            //wp($response);
-            core_App::outputJson($test);
-        //}
-        
-        
-        
+            if(!empty($rec->{$valueFld})){
+                $value = ztm_LongValues::getValueByHash($rec->{$valueFld});
+                $form->setDefault('extValue', $value);
+            }
+        }
     }
     
+    
+    /**
+     * Обработва стойността, ако е от нескаларен тип записва я в помощен модел
+     * подменяйки я с нейния хеш
+     * 
+     * @param int $registerId
+     * @param mixed $extValue
+     * 
+     * @return mixed
+     */
+    public static function recordValue($registerId, $extValue)
+    {
+        $type = ztm_Registers::fetchField($registerId, 'type');
+        
+        // Записва стойността в помощния модел при нужда
+        if(in_array($type, array('json'))){
+            $hash = md5(serialize($extValue));
+            $value = $hash;
+            
+            $existingValue = ztm_LongValues::fetchField("#hash = '{$hash}'", 'value');
+            if(!isset($existingValue)){
+                $valueToSave = (is_array($extValue) || is_object($extValue)) ? json_encode($extValue) : $extValue;
+                
+                
+                $longRec = (object)array('hash' => $hash, 'value' => $valueToSave);
+                //bp($longRec);
+                
+                ztm_LongValues::save($longRec);
+            }
+        } else {
+            $value = $extValue;
+        }
+        
+        return $value;
+    }
 }
