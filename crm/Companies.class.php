@@ -2256,7 +2256,7 @@ class crm_Companies extends core_Master
         $rec = $this->fetch($id);
         
         if (email_Outgoings::haveRightFor('add', array('folderId' => $rec->folderId))) {
-            $res[] = 'email_Outgoings';
+            $res[] = (object)array('class' => 'email_Outgoings');
         }
         
         static $clientGroupId, $supplierGroupId, $debitGroupId, $creditGroupId;
@@ -2277,13 +2277,13 @@ class crm_Companies extends core_Master
         
         // Ако е в група на клиент, показваме бутона за продажба
         if (in_array($clientGroupId, $groupList)) {
-            $res[] = (object)array('class' => 'sales_Sales');
+            $res[] = (object)array('class' => 'sales_Sales', 'url' => array('sales_Sales', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'ret_url' => true));
             $res[] = (object)array('class' => 'sales_Quotations');
         }
         
         // Ако е в група на достачик, показваме бутона за покупка
         if (in_array($supplierGroupId, $groupList)) {
-            $res[] = (object)array('class' => 'purchase_Purchases');
+            $res[] = (object)array('class' => 'purchase_Purchases', 'url' => array('purchase_Purchases', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'ret_url' => true));
             $res[] = (object)array('class' => 'purchase_Offers', 'caption' => 'Вх. оферта');
         }
         
