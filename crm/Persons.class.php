@@ -2804,7 +2804,7 @@ class crm_Persons extends core_Master
         // Ако е в група на клиент, показваме бутона за продажба
         if (in_array($clientGroupId, $groupList)) {
             $res[] = (object)array('class' => 'sales_Sales', 'url' => array('sales_Sales', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'ret_url' => true));
-            $res[] = (object)array('class' => 'sales_Quotations');
+            $res[] = (object)array('class' => 'sales_Quotations', 'url' => array('sales_Quotations', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'ret_url' => true));
         }
         
         // Ако е в група на достачик, показваме бутона за покупка

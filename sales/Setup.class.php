@@ -164,6 +164,12 @@ defIfNot('SALES_NEW_SALE_AUTO_ACTION_BTN', 'form');
 
 
 /**
+ * Дефолтно действие при създаване на нова продажба в папка
+ */
+defIfNot('SALES_NEW_QUOTATION_AUTO_ACTION_BTN', 'form');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -315,6 +321,11 @@ class sales_Setup extends core_ProtoSetup
         'SALES_NEW_SALE_AUTO_ACTION_BTN' => array(
             'enum(none=Няма,form=Форма за продажба,addProduct=Добавяне на артикул,createProduct=Създаване на артикул,importlisted=Списък от предишни продажби)',
             'mandatory,caption=Действие на бързите бутони в папките->Продажба,customizeBy=ceo|sales|purchase',
+        ),
+        
+        'SALES_NEW_QUOTATION_AUTO_ACTION_BTN' => array(
+            'enum(none=Няма,form=Форма за оферта,addProduct=Добавяне на артикул,createProduct=Създаване на артикул)',
+            'mandatory,caption=Действие на бързите бутони в папките->Оферта,customizeBy=ceo|sales',
         ),
     );
     
