@@ -4552,7 +4552,12 @@ class doc_DocumentPlg extends core_Plugin
             $nTpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
             $data->row->HEADER_STATE .= $nTpl->placeArray(array('user' => crm_Profiles::createLink($data->rec->modifiedBy), 'date' => dt::mysql2Verbal($data->rec->modifiedOn)));
         } elseif($data->rec->state == 'active' && isset($data->rec->activatedBy)){
-            $nTpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
+            if (isset($data->rec->activatedOn)) {
+                $nTpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
+            } else {
+                $nTpl = new ET(tr('|* |от|* [#user#]'));
+            }
+            
             $data->row->HEADER_STATE .= $nTpl->placeArray(array('user' => crm_Profiles::createLink($data->rec->activatedBy), 'date' => dt::mysql2Verbal($data->rec->activatedOn)));
         }
         
