@@ -1908,9 +1908,6 @@ class sales_Quotations extends core_Master
         foreach ($fieldsWithStrategy as $field){
             $fields[$field] = cond_plg_DefaultValues::getDefaultValue($this, $folderId, $field);
         }
-        if($this instanceof sales_Sales){
-            $fields['dealerId'] = static::getDefaultDealerId($folderId, $fields['deliveryLocationId']);
-        }
         
         // Създаване на мастър на документа
         try{
