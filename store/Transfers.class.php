@@ -22,12 +22,6 @@ class store_Transfers extends core_Master
     
     
     /**
-     * Име на документа в бързия бутон за добавяне в папката
-     */
-    public $buttonInFolderTitle = 'Трансфер';
-    
-    
-    /**
      * Абревиатура
      */
     public $abbr = 'Str';
