@@ -1306,9 +1306,6 @@ function openCurrentPosTab() {
 
 		sessionStorage.removeItem('focusedOffset');
 	}
-	if($('.productTabs .active').length) {
-		$('.productTabs').scrollLeft(sessionStorage.getItem('tabOffset'));
-	}
 	startNavigation();
 }
 
@@ -1390,7 +1387,8 @@ function render_toggleAddedProductFlag(data)
 function activateTab(element, timeOut)
 {
 	var id = element.attr('data-content');
-	element.addClass('active').siblings().removeClass('active');
+	$('.tabHolder li').removeClass('active');
+	element.addClass('active');
 	// да се скриват и показват само табовете на бележките
 	if(element.hasClass('noajaxtabs')){
 		$("#" + id).show().siblings().hide();
