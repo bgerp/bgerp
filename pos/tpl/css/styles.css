@@ -385,7 +385,7 @@
 .narrow #receiptnew {
   color: #333333 !important; }
 
-  .tabHolder li {
+  .tabHolder li.selectable {
     list-style: none;
     border: 1px solid #cccccc;
     cursor: pointer;
@@ -396,10 +396,29 @@
     border-radius: 3px;
     margin: 5px 10px 5px 0;
     padding: 7px; }
-    .tabHolder li.active,
-    .tabHolder li:hover {
+    .tabHolder li.selectable.active,
+    .tabHolder li.selectable:hover {
       background: #fefead !important;
       color: black; }
+  .tabHolder .mobileHolder {
+    display: none;
+    padding: 7px;
+    margin: 0;
+    background: #999999;
+    border-radius: 3px;
+    border: 1px solid #666666;
+    width: 240px;
+    position: absolute;
+    bottom: 25px;
+    right: -5px; }
+    .tabHolder .mobileHolder li {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      text-align: left !important; }
+  .tabHolder .toggle {
+    position: relative;
+    float: right !important; }
 
 .contentHolder {
   clear: both; }
@@ -925,7 +944,7 @@ only screen and (max-width: 1200px) {
   .headerContent {
     font-size: 0.75em !important; }
     .headerContent .fleft {
-      width: 50%; }
+      width: 54%; }
     .headerContent span {
       margin: 0 10px !important;
       height: 20px;
