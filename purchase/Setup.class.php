@@ -131,7 +131,7 @@ class purchase_Setup extends core_ProtoSetup
         'PURCHASE_ADD_BY_PRODUCT_BTN' => array('keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Необходими роли за добавяне на артикули в покупка от->Артикул'),
         'PURCHASE_ADD_BY_LIST_BTN' => array('keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Необходими роли за добавяне на артикули в покупка от->Списък'),
         'PURCHASE_NEW_PURCHASE_AUTO_ACTION_BTN' => array(
-            'enum(none=Няма,form=Форма за покупка,addProduct=Добавяне на артикул,createProduct=Създаване на артикул,importlisted=Списък от предишни продажби)',
+            'enum(none=Няма,form=Форма за покупка,addProduct=Добавяне на артикул,createProduct=Създаване на артикул,importlisted=Списък от предишни покупки)',
             'mandatory,caption=Действие на бързите бутони в папките->Покупка,customizeBy=ceo|sales|purchase',
         ),
     );
