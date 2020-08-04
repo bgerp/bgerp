@@ -394,7 +394,7 @@ class sales_QuotationsDetails extends doc_Detail
         }
         
         if (!empty($rec->packPrice)) {
-            if (Request::get('Act') != 'CreateProduct') {
+            if (strtolower(Request::get('Act')) != 'createproduct') {
                 $valior = !empty($masterRec->valior) ? $masterRec->valior : dt::today();
                 $vat = cat_Products::getVat($rec->productId, $valior);
             } else {
