@@ -532,8 +532,7 @@ class sales_QuotationsDetails extends doc_Detail
             deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack);
             
             if (!$form->gotErrors()) {
-                
-                if (Request::get('Act') != 'CreateProduct') {
+                if (strtolower(Request::get('Act')) != 'createproduct') {
                     if ($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}")) {
                         if ($rec->optional == 'no' && $sameProduct->optional == 'yes' && $rec->id != $sameProduct->id) {
                             $form->setError('productId', 'Не може да добавите продукта като задължителен, защото фигурира вече като опционален!');
