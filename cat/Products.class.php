@@ -946,15 +946,17 @@ class cat_Products extends embed_Manager
         $data->listFilter->showFields = 'search,order,type,meta1,groupId';
         $data->listFilter->input('order,groupId,search,meta1,type', 'silent');
         
-        // Сортираме по име
-        $order = 'name';
-        
         // Ако е избран маркер и той е указано да се подрежда по код, сортираме по код
+        $orderBy = "state";
         if (!empty($data->listFilter->rec->groupId)) {
             $gRec = cat_Groups::fetch($data->listFilter->rec->groupId);
             if ($gRec->orderProductBy == 'code') {
-                $order = 'code';
+                $orderBy .= ',code';
+            } else {
+                $orderBy .= ',name';
             }
+        } else {
+            $orderBy .= ',createdOn=DESC';
         }
         
         if ($data->listFilter->rec->type) {
@@ -963,18 +965,18 @@ class cat_Products extends embed_Manager
         
         switch ($data->listFilter->rec->order) {
             case 'all':
-                $data->query->orderBy("#state,#{$order}");
+                $data->query->orderBy($orderBy);
                 break;
             case 'private':
                 $data->query->where("#isPublic = 'no'");
-                $data->query->orderBy("#state,#{$order}");
+                $data->query->orderBy($orderBy);
                 break;
             case 'last':
                 $data->query->orderBy('#createdOn=DESC');
                 break;
             case 'closed':
                 $data->query->where("#state = 'closed'");
-                $data->query->orderBy("#{$order}");
+                $data->query->orderBy($orderBy);
                 break;
             case 'prototypes':
                 $data->query->where("#state = 'template'");
@@ -999,7 +1001,7 @@ class cat_Products extends embed_Manager
                 break;
             default:
                 $data->query->where("#isPublic = 'yes' AND #state != 'template' AND #state != 'closed'");
-                $data->query->orderBy("#state,#{$order}");
+                $data->query->orderBy($orderBy);
                 break;
         }
         
@@ -4032,15 +4034,23 @@ class cat_Products extends embed_Manager
     protected static function on_AfterTouchRec($mvc, &$res, $id)
     {
         if($rec = $mvc->fetchRec($id)){
-            $keywords = $mvc->getSearchKeywords($rec);
-            if($rec->searchKeywords != $keywords){
-                $keywords = plg_Search::purifyKeywods($keywords);
-                $rec->searchKeywords = $keywords;
-                $mvc->save_($rec, 'searchKeywords');
-                $cRec = (object)array('id' => $rec->containerId, 'searchKeywords' => $rec->searchKeywords);
-                
-                $containersInst = cls::get('doc_Containers');
-                $containersInst->save_($cRec, 'searchKeywords');
+            plg_Search::forceUpdateKeywords($mvc, $rec);
+        }
+    }
+    
+    
+    /**
+     * След извличане на ключовите думи
+     */
+    protected function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
+    {
+        if(isset($rec->id)){
+            $packQuery = cat_products_Packagings::getQuery();
+            $packQuery->where("#productId = {$rec->id} AND #eanCode IS NOT NULL");
+            $packQuery->show("eanCode");
+            
+            while($packRec = $packQuery->fetch()){
+                $searchKeywords .= ' ' . plg_Search::normalizeText($packRec->eanCode);
             }
         }
     }
