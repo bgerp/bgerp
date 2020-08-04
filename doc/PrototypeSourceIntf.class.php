@@ -28,4 +28,17 @@ class doc_PrototypeSourceIntf
     {
         return $this->class->canBeTemplate($id);
     }
+    
+    
+    /**
+     * Връща името на шаблона
+     *
+     * @param mixed $id
+     *
+     * @return bool
+     */
+    public function getPrototypeTitle($id)
+    {
+        return $this->class->getPrototypeTitle($id);
+    }
 }
