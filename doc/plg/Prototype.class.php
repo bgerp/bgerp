@@ -158,7 +158,7 @@ class doc_plg_Prototype extends core_Plugin
                     if (count($fields)) {
                         foreach ($fields as $field) {
                             $value = ($isCoreEmbedder === false) ? $protoRec->{$field} : $protoRec->{$mvc->innerFormField}->{$field};
-                            //$form->rec->{$field} = $value;
+                            $form->rec->{$field} = $value;
                         }
                     }
                 }

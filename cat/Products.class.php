@@ -595,10 +595,6 @@ class cat_Products extends embed_Manager
                     while (cat_Products::fetchField(array("#folderId = {$rec->folderId} AND #name = '[#1#]' {$cond}", $rec->name), 'id')) {
                         $rec->name = str::addIncrementSuffix($rec->name, 'v', 2);
                     }
-                } elseif ($Cover->getProductType() == 'template') {
-                    if (cat_Products::fetchField(array("#name = '[#1#]' AND #id != '{$rec->id}' AND #state = 'template'", $rec->name), 'id') || doc_Prototypes::fetchField(array("#title = '[#1#]' AND #classId = '{$mvc->getClassId}' AND #docId != '{$rec->id}'", $rec->name))) {
-                        $form->setError('name', 'Има вече шаблон с това име');
-                    }
                 }
             }
             
