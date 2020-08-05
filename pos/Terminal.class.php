@@ -1695,7 +1695,7 @@ class pos_Terminal extends peripheral_Terminal
         if(countR($groupsTable)){
             $groups = arr::extractValuesFromArray($groupsTable, 'groupId');
             if (Mode::get('screenMode') == 'narrow') {
-                $resultTpl = new core_ET("<div class='tabs productTabs'><select class='tabHolder'>[#TAB#]</select></div>");
+                $resultTpl = new core_ET("<div class='tabs productTabs'><select style='width: 90%' class='tabHolder'>[#TAB#]</select></div>");
             } else {
                 $resultTpl = new core_ET("<div class='tabs productTabs'><ul class='tabHolder'>[#TAB#]</ul></div>");
             }
