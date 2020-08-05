@@ -382,6 +382,9 @@
   .withTabs .tabs .tabHolder:after {
     clear: both; }
 
+select.tabHolder {
+  margin-left: 17px !important; }
+
 .narrow #receiptnew {
   color: #333333 !important; }
 

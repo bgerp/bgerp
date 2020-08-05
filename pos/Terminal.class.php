@@ -1694,8 +1694,11 @@ class pos_Terminal extends peripheral_Terminal
         // Ако има групи на артикулите
         if(countR($groupsTable)){
             $groups = arr::extractValuesFromArray($groupsTable, 'groupId');
-            
-            $resultTpl = new core_ET("<div class='tabs productTabs'><ul class='tabHolder'>[#TAB#]</ul></div>");
+            if (Mode::get('screenMode') == 'narrow') {
+                $resultTpl = new core_ET("<div class='tabs productTabs'><select class='tabHolder'>[#TAB#]</select></div>");
+            } else {
+                $resultTpl = new core_ET("<div class='tabs productTabs'><ul class='tabHolder'>[#TAB#]</ul></div>");
+            }
             $groups = array('all' => null) + $groups;
             foreach ($groups as $groupId){
                 $active = ($rec->_selectedGroupId == $groupId) ? 'active' : '';
@@ -1703,7 +1706,12 @@ class pos_Terminal extends peripheral_Terminal
                 $groupName = (isset($groupId)) ? cat_Groups::getVerbal($groupId, 'name') : tr("Всички");
                 Mode::pop('treeShortName');
                 $tabTitle = tr("Избор на група|*: \"{$groupName}\"");
-                $tab = "<li id='group{$groupId}' data-id = '{$groupId}' class='selectable {$active}' title='{$tabTitle}'>{$groupName}</li>";
+                if (Mode::get('screenMode') == 'narrow') {
+                    $tab = "<option id='group{$groupId}' data-id = '{$groupId}'>{$groupName}</option>";
+                } else {
+                    $tab = "<li id='group{$groupId}' data-id = '{$groupId}' class='selectable {$active}' title='{$tabTitle}'>{$groupName}</li>";
+                }
+
                 $resultTpl->append($tab, "TAB");
             }
             
