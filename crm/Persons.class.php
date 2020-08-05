@@ -89,7 +89,7 @@ class crm_Persons extends core_Master
     public $loadList = 'plg_Created, plg_Modified, plg_RowTools2,  plg_LastUsedKeys,plg_Rejected, plg_Select,
                      crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext, bgerp_plg_Groups, plg_Printing, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
-                     bgerp_plg_Import, doc_plg_Close, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput, core_UserTranslatePlg';
+                     bgerp_plg_Import, doc_plg_Close, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput, core_UserTranslatePlg, callcenter_AdditionalNumbersPlg';
     
     
     /**
@@ -242,6 +242,14 @@ class crm_Persons extends core_Master
      * @see plg_ExpandInput
      */
     public $expandFieldName = 'groupList';
+    
+    
+    /**
+     * Кои полета да се записват в номерата
+     * @var array
+     * @see callcenter_AdditionalNumbersPlg
+     */
+    public $updateNumMap = array('tel' => 'tel', 'buzTel' => 'tel', 'fax' => 'fax', 'buzFax' => 'fax', 'mobile' => 'mobile');
     
     
     /**
@@ -752,9 +760,6 @@ class crm_Persons extends core_Master
         
         $mvc->updateRoutingRules($rec);
         
-        // Обновяме номерата
-        $mvc->updateNumbers($rec);
-        
         if (crm_Profiles::fetch("#personId = {$rec->id}")) {
             $Profiles = cls::get('crm_Profiles');
             $Profiles->invoke('AfterMasterSave', array($rec, $mvc));
@@ -791,61 +796,6 @@ class crm_Persons extends core_Master
                 $typeKey->options[$rec->id] = $rec->name . " ({$rec->id})";
             }
         }
-    }
-    
-    
-    /**
-     * Добавя номера за лицето
-     */
-    public static function updateNumbers($rec)
-    {
-        $numbersArr = array();
-        
-        // Ако има телефон
-        if ($rec->tel) {
-            
-            // Добавяме в масива
-            $numbersArr['tel'][] = $rec->tel;
-        }
-        
-        // Ако има бизнес номер
-        if ($rec->buzTel) {
-            
-            // Добавяме към телефона
-            $numbersArr['tel'][] = $rec->buzTel;
-        }
-        
-        // Ако има факс
-        if ($rec->fax) {
-            
-            // Добавяме факса
-            $numbersArr['fax'][] = $rec->fax;
-        }
-        
-        // Ако има бизнес факс
-        if ($rec->buzFax) {
-            
-            // Добавяме към факса
-            $numbersArr['fax'][] = $rec->buzFax;
-        }
-        
-        // Ако има мобилен
-        if ($rec->mobile) {
-            
-            // Добавяме мобилния
-            $numbersArr['mobile'][] = $rec->mobile;
-        }
-        
-        // id на класа
-        $classId = static::getClassId();
-        
-        // Ако е инсталиран пакета
-        if (core_Packs::isInstalled('callcenter')) {
-            $numArr = callcenter_Numbers::addNumbers($numbersArr, $classId, $rec->id, $rec->country);
-        }
-        
-        // Добавяме номерата в КЦ
-        return $numArr;
     }
     
     
