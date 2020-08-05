@@ -1068,17 +1068,13 @@ function startNavigation() {
 	if($('.navigable').length) {
 		var focused = sessionStorage.getItem('focused');
 		$('.selected').removeClass('selected');
-
 		// ръчно избирам първия елемент за селектед
 		if(!focused ||  $('#' + focused ).length == 0){
 			selectFirstNavigable();
-		} else if (focused && !$('#' + focused ).hasClass('disabledBtn') && document.getElementById(focused) && $('.navigable.selected:visible').length == 0 && $('.navigable.selected.contragentLinkBtns').length == 0) {
+		} else if (focused && !$('#' + focused ).hasClass('disabledBtn') && document.getElementById(focused) && $('.navigable.selected:visible').length == 0 && $('.navigable.contragentLinkBtns').length == 0) {
 			$('#' + focused ).addClass('selected');
 		}
 		$('#result-holder .navigable:visible').keynav();
-
-		$('#result-holder .withTabs').scrollTop(scrollTop);
-
 	}
 }
 
