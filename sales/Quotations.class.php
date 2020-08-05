@@ -1924,15 +1924,11 @@ class sales_Quotations extends core_Master
         // Редирект към добавянето на детайл
         if($constValue == 'addProduct') {
             if($Detail->haveRightFor('add', (object)array("{$Detail->masterKey}" => $masterId))){
-                $redirectUrl = array($Detail, 'add', "{$Detail->masterKey}" => $masterId, 'ret_url' => array($this, 'single', $masterId));
+                $redirectUrl = array($Detail, 'add', "{$Detail->masterKey}" => $masterId, 'optional' => 'no', 'ret_url' => array($this, 'single', $masterId));
             }
         } elseif($constValue == 'createProduct'){
             if($Detail->haveRightFor('createproduct', (object)array("{$Detail->masterKey}" => $masterId))){
-                $redirectUrl = array($Detail, 'createproduct', "{$Detail->masterKey}" => $masterId, 'ret_url' => array($this, 'single', $masterId));
-            }
-        } elseif($constValue == 'importlisted'){
-            if($Detail->haveRightFor('importlisted', (object)array("{$Detail->masterKey}" => $masterId))){
-                $redirectUrl = array($Detail, 'importlisted', "{$Detail->masterKey}" => $masterId, 'ret_url' => array($this, 'single', $masterId));
+                $redirectUrl = array($Detail, 'createproduct', "{$Detail->masterKey}" => $masterId, 'optional' => 'no', 'ret_url' => array($this, 'single', $masterId));
             }
         }
         
