@@ -1685,7 +1685,11 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Ако има платежен метод, съществува ли?
         if (isset($fields['paymentMethodId'])) {
-            expect(cond_PaymentMethods::fetch($fields['paymentMethodId']));
+            $paymentRec = cond_PaymentMethods::fetch($fields['paymentMethodId']);
+            expect($paymentRec);
+            if(!empty($paymentRec->type)){
+                $fields['paymentType'] = $paymentRec->type;
+            }
         }
         
         // Форсираме папката на клиента
@@ -1737,6 +1741,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Опиваме се да запишем мастъра на сделката
         $rec = (object) $fields;
+        
         if ($fields['onlineSale'] === true) {
             $rec->_onlineSale = true;
         }
@@ -1747,7 +1752,7 @@ abstract class deals_DealMaster extends deals_DealBase
        
         if ($id = $me->save($rec)) {
             doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, core_Users::getCurrent());
-            
+           
             return $id;
         }
         
@@ -2248,5 +2253,63 @@ abstract class deals_DealMaster extends deals_DealBase
                 redirect(array($mvc, 'single', $rec->id), false, $error, 'error');
             }
         }
+    }
+    
+    
+    /**
+     * Екшън за автоматичен редирект към създаване на детайл
+     */
+    function act_autoCreateInFolder()
+    {
+        $this->requireRightFor('add');
+        expect($folderId = Request::get('folderId', 'int'));
+        $this->requireRightFor('add', (object)array('folderId' => $folderId));
+        expect(doc_Folders::haveRightToFolder($folderId));
+        
+        // Има ли избрана константа
+        $constValue = ($this instanceof sales_Sales) ? sales_Setup::get('NEW_SALE_AUTO_ACTION_BTN') : purchase_Setup::get('NEW_PURCHASE_AUTO_ACTION_BTN');
+        if($constValue == 'form') {
+            
+            return Redirect(array($this, 'add', 'folderId' => $folderId));
+        }
+        
+        // Генерира дефолтите според папката
+        $Cover = doc_Folders::getCover($folderId);
+        $fields = array();
+        $fieldsWithStrategy = array_keys(static::$defaultStrategies);
+        foreach ($fieldsWithStrategy as $field){
+            $fields[$field] = cond_plg_DefaultValues::getDefaultValue($this, $folderId, $field);
+        }
+        if($this instanceof sales_Sales){
+            $fields['dealerId'] = static::getDefaultDealerId($folderId, $fields['deliveryLocationId']);
+        }
+        
+        // Създаване на мастър на документа
+        try{
+            $masterId = static::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
+        } catch(core_exception_Expect $e){
+            reportException($e);
+            followRetUrl(null, "Проблем при създаване на|* " . mb_strtolower($this->singleTitle));
+        }
+        
+        $redirectUrl = array($this, 'single', $masterId);
+        $Detail = cls::get($this->mainDetail);
+        
+        // Редирект към добавянето на детайл
+        if($constValue == 'addProduct') {
+            if($Detail->haveRightFor('add', (object)array("{$Detail->masterKey}" => $masterId))){
+                $redirectUrl = array($Detail, 'add', "{$Detail->masterKey}" => $masterId, 'ret_url' => array($this, 'single', $masterId));
+            }
+        } elseif($constValue == 'createProduct'){
+            if($Detail->haveRightFor('createproduct', (object)array("{$Detail->masterKey}" => $masterId))){
+                $redirectUrl = array($Detail, 'createproduct', "{$Detail->masterKey}" => $masterId, 'ret_url' => array($this, 'single', $masterId));
+            }
+        } elseif($constValue == 'importlisted'){
+            if($Detail->haveRightFor('importlisted', (object)array("{$Detail->masterKey}" => $masterId))){
+                $redirectUrl = array($Detail, 'importlisted', "{$Detail->masterKey}" => $masterId, 'ret_url' => array($this, 'single', $masterId));
+            }
+        }
+        
+        return Redirect($redirectUrl);
     }
 }

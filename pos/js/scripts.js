@@ -157,9 +157,13 @@ function posActions() {
 	 * При клик на таба
 	 */
 	$(document.body).on('click', ".tabHolder li", function() {
-		activateTab($(this), 0);
-		
-		startNavigation();
+		if (!$(this).hasClass('toggle')) {
+			activateTab($(this), 0);
+
+			startNavigation();
+		} else {
+			$('.mobileHolder').toggle();
+		}
 	});
 
 	
@@ -608,10 +612,24 @@ function calculateWidth(){
 
 
 		var scrollerWidth = 0;
-		$('#result-holder .tabHolder li').each(function () {
-			scrollerWidth += Math.ceil($(this).outerWidth()) + 21;
-		});
+		var isFull = false;
+		if (!$('.mobileHolder').length) {
+			var mobileHolder = document.createElement('li');
+			$(mobileHolder).addClass("selectable toggle");
+			$(mobileHolder).append(">");
+			var tempHolder = document.createElement('ul');
+			$(tempHolder).addClass("mobileHolder");
+			$('#result-holder .tabHolder li.selectable').each(function () {
 
+				scrollerWidth += Math.ceil($(this).outerWidth()) + 5;
+				if (scrollerWidth > winWidth - 34 || isFull) {
+					isFull = true;
+					$(this).appendTo(tempHolder);
+				}
+			});
+			$(mobileHolder).append(tempHolder);
+			$('.tabHolder').append(mobileHolder);
+		}
 	}
 }
 
@@ -1288,9 +1306,6 @@ function openCurrentPosTab() {
 
 		sessionStorage.removeItem('focusedOffset');
 	}
-	if($('.productTabs .active').length) {
-		$('.productTabs').scrollLeft(sessionStorage.getItem('tabOffset'));
-	}
 	startNavigation();
 }
 
@@ -1298,7 +1313,6 @@ function openCurrentPosTab() {
  * Извършва подадената операция
  */
 function doOperation(operation, selectedRecId, forceSubmit) {
-	sessionStorage.setItem('tabOffset', 0);
 	clearTimeout(timeout);
 	
 	sessionStorage.removeItem("focused");
@@ -1373,9 +1387,8 @@ function render_toggleAddedProductFlag(data)
 function activateTab(element, timeOut)
 {
 	var id = element.attr('data-content');
-	element.addClass('active').siblings().removeClass('active');
-
-	sessionStorage.setItem('tabOffset', element.closest('.productTabs').scrollLeft());
+	$('.tabHolder li').removeClass('active');
+	element.addClass('active');
 	// да се скриват и показват само табовете на бележките
 	if(element.hasClass('noajaxtabs')){
 		$("#" + id).show().siblings().hide();
@@ -1423,11 +1436,11 @@ function triggerSearchInput(element, timeoutTime)
 		var params = {operation:operation,search:inpVal,recId:selectedRecId};
 		
 		var activeTab = $(".tabHolder li.active");
+
 		if(activeTab.length){
 			var id = activeTab.attr("data-id");
 			params.selectedProductGroupId = id;
 		}
-		
 		processUrl(url, params);
 
 	}, timeoutTime);

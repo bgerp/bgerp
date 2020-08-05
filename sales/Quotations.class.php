@@ -1882,4 +1882,60 @@ class sales_Quotations extends core_Master
         
         return ($createdBy == core_Users::SYSTEM_USER) ? 'opened' : null;
     }
+    
+    
+    /**
+     * Екшън за автоматичен редирект към създаване на детайл
+     */
+    function act_autoCreateInFolder()
+    {
+        $this->requireRightFor('add');
+        expect($folderId = Request::get('folderId', 'int'));
+        $this->requireRightFor('add', (object)array('folderId' => $folderId));
+        expect(doc_Folders::haveRightToFolder($folderId));
+        
+        // Има ли избрана константа
+        $constValue = sales_Setup::get('NEW_QUOTATION_AUTO_ACTION_BTN');
+        if($constValue == 'form') {
+            
+            return Redirect(array($this, 'add', 'folderId' => $folderId));
+        }
+        
+        // Генерира дефолтите според папката
+        $Cover = doc_Folders::getCover($folderId);
+        $fields = array();
+        $fieldsWithStrategy = array_keys(static::$defaultStrategies);
+        foreach ($fieldsWithStrategy as $field){
+            $fields[$field] = cond_plg_DefaultValues::getDefaultValue($this, $folderId, $field);
+        }
+        
+        // Създаване на мастър на документа
+        try{
+            $masterId = static::createNewDraft($Cover->getClassId(), $Cover->that, null, $fields);
+        } catch(core_exception_Expect $e){
+            reportException($e);
+            
+            followRetUrl(null, "Проблем при създаване на оферта");
+        }
+        
+        $redirectUrl = array($this, 'single', $masterId);
+        $Detail = cls::get($this->mainDetail);
+        
+        // Редирект към добавянето на детайл
+        if($constValue == 'addProduct') {
+            if($Detail->haveRightFor('add', (object)array("{$Detail->masterKey}" => $masterId))){
+                $redirectUrl = array($Detail, 'add', "{$Detail->masterKey}" => $masterId, 'ret_url' => array($this, 'single', $masterId));
+            }
+        } elseif($constValue == 'createProduct'){
+            if($Detail->haveRightFor('createproduct', (object)array("{$Detail->masterKey}" => $masterId))){
+                $redirectUrl = array($Detail, 'createproduct', "{$Detail->masterKey}" => $masterId, 'ret_url' => array($this, 'single', $masterId));
+            }
+        } elseif($constValue == 'importlisted'){
+            if($Detail->haveRightFor('importlisted', (object)array("{$Detail->masterKey}" => $masterId))){
+                $redirectUrl = array($Detail, 'importlisted', "{$Detail->masterKey}" => $masterId, 'ret_url' => array($this, 'single', $masterId));
+            }
+        }
+        
+        return Redirect($redirectUrl);
+    }
 }

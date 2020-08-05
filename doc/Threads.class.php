@@ -2267,17 +2267,19 @@ class doc_Threads extends core_Manager
                 
                 // Ако има мениджъри, на които да се слагат бързи бутони, добавяме ги
                 $Cover = doc_Folders::getCover($data->folderId);
-                $managersIds = self::getFastButtons($Cover->getInstance(), $Cover->that);
+                $fastBtnObjects = self::getFastButtons($Cover->getInstance(), $Cover->that);
                 
                 $fState = doc_Folders::fetchField($data->folderId, 'state');
-                if (count($managersIds) && ($fState != 'closed' && $fState != 'rejected')) {
+                if (countR($fastBtnObjects) && ($fState != 'closed' && $fState != 'rejected')) {
                     
                     // Всеки намерен мениджър го добавяме като бутон, ако потребителя има права
-                    foreach ($managersIds as $classId) {
-                        $Cls = cls::get($classId);
+                    foreach ($fastBtnObjects as $obj) {
+                        $Cls = cls::get($obj->class);
+                        
                         if ($Cls->haveRightFor('add', (object) array('folderId' => $data->folderId))) {
-                            $bArr['btnTitle'] = ($Cls->buttonInFolderTitle) ? $Cls->buttonInFolderTitle : $Cls->singleTitle;
-                            $bArr['url'] = array($Cls, 'add', 'folderId' => $data->folderId, 'ret_url' => true);
+                            $bArr = array();
+                            $bArr['btnTitle'] = ($obj->caption) ? $obj->caption : $Cls->singleTitle;
+                            $bArr['url'] = (isset($obj->url)) ? $obj->url : array($Cls, 'add', 'folderId' => $data->folderId, 'ret_url' => true);
                             $bArr['ef_icon'] = $Cls->singleIcon;
                             $bArr['title'] = 'Създаване на ' . mb_strtolower($Cls->singleTitle);
                             
@@ -2367,23 +2369,21 @@ class doc_Threads extends core_Manager
     public static function getFastButtons($coverClass, $coverId)
     {
         expect($Cover = cls::get($coverClass));
-        $managers = $Cover->getDocButtonsInFolder($coverId);
-        
-        $managers = arr::make($managers, true);
-        
+        $buttons = $Cover->getDocButtonsInFolder($coverId);
+       
         $res = array();
-        if (is_array($managers) && count($managers)) {
-            foreach ($managers as $manager) {
+        if (countR($buttons)) {
+            foreach ($buttons as $btnObject) {
                 
                 // Проверяваме дали може да се зареди класа
-                if (cls::load($manager, true)) {
-                    $Cls = cls::get($manager);
+                if (cls::load($btnObject->class, true)) {
+                    $Cls = cls::get($btnObject->class);
                     
                     if (!cls::haveInterface('doc_DocumentIntf', $Cls)) {
                         continue;
                     }
                     
-                    $res[$Cls->getClassId()] = $Cls->getClassId();
+                    $res[$Cls->getClassId()] = $btnObject;
                 }
             }
         }

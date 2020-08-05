@@ -394,8 +394,9 @@ class sales_QuotationsDetails extends doc_Detail
         }
         
         if (!empty($rec->packPrice)) {
-            if (Request::get('Act') != 'CreateProduct') {
-                $vat = cat_Products::getVat($rec->productId, $masterRec->valior);
+            if (strtolower(Request::get('Act')) != 'createproduct') {
+                $valior = !empty($masterRec->valior) ? $masterRec->valior : dt::today();
+                $vat = cat_Products::getVat($rec->productId, $valior);
             } else {
                 $vat = acc_Periods::fetchByDate($masterRec->valior)->vatRate;
             }
@@ -531,8 +532,7 @@ class sales_QuotationsDetails extends doc_Detail
             deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack);
             
             if (!$form->gotErrors()) {
-                
-                if (Request::get('Act') != 'CreateProduct') {
+                if (strtolower(Request::get('Act')) != 'createproduct') {
                     if ($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}")) {
                         if ($rec->optional == 'no' && $sameProduct->optional == 'yes' && $rec->id != $sameProduct->id) {
                             $form->setError('productId', 'Не може да добавите продукта като задължителен, защото фигурира вече като опционален!');

@@ -338,9 +338,9 @@ class store_Stores extends core_Master
     public function getDocButtonsInFolder_($id)
     {
         $res = array();
-        $res[] = planning_ConsumptionNotes::getClassId();
-        $res[] = store_Transfers::getClassId();
-        $res[] = store_InventoryNotes::getClassId();
+        $res[] = (object)array('class' => 'planning_ConsumptionNotes', 'caption' => 'Влагане');
+        $res[] = (object)array('class' => 'store_Transfers', 'caption' => 'Трансфер');
+        $res[] = (object)array('class' => 'store_InventoryNotes', 'caption' => 'Инвентаризация');
         
         return $res;
     }

@@ -458,7 +458,7 @@
 }
 
 .tabHolder {
-	li {
+	li.selectable {
 		list-style: none;
 		border: 1px solid #ccc;
 		cursor: pointer;
@@ -470,9 +470,31 @@
 		margin: 5px 10px 5px 0 ;
 		padding: 7px;
 		&.active, &:hover {
-			background: #fefead  !important;
+			background: #fefead !important;
 			color: #000;
 		}
+	}
+	.mobileHolder {
+		display: none;
+		padding: 7px;
+		margin: 0;
+		background: #999;
+		border-radius: 3px;
+		border: 1px solid #666;
+		width: 240px;
+		position: absolute;
+		bottom: 25px;
+		right: -5px;
+		li {
+			display: block;
+			width: 100%;
+			box-sizing: border-box;
+			text-align: left !important;
+		}
+	}
+	.toggle {
+		position: relative;
+		float: right !important;
 	}
 }
 .contentHolder {
@@ -1090,7 +1112,7 @@ th.revertCaption, td.revertCaption {
 	.headerContent {
 		font-size: 0.75em !important;
 		.fleft {
-			width: 50%;
+			width: 54%;
 		}
 		span {
 			margin: 0 10px !important;

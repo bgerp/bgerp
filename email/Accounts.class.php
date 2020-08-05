@@ -90,7 +90,7 @@ class email_Accounts extends core_Master
      */
     public function description()
     {
-        $this->FLD('email', 'email(link=no)', 'caption=Имейл,mandatory,width=100%', array('hint' => 'Имейл адреса, съответстващ на сметката', 'attr' => array('onblur' => 'mailServerSettings();', 'id' => 'email')));
+        $this->FLD('email', 'email(link=no)', 'caption=Имейл,mandatory,width=100%,refreshForm', array('hint' => 'Имейл адреса, съответстващ на сметката', 'attr' => array('onblur' => 'mailServerSettings();', 'id' => 'email')));
         
         // Дали да се рутират писмата, получени на този акаунт
         $this->FLD('applyRouting', 'enum(no=Без рутиране, yes=С рутиране)', 'notNull,caption=Рутиране,maxRadio=2');
@@ -369,6 +369,10 @@ class email_Accounts extends core_Master
         if ($data->form->rec->type == 'corporate') {
             $data->form->setField('noRetPathDomains', 'input=input');
         }
+
+//         $data->form->tpl = new ET('');
+//         $data->form->tpl->push('email/js/serverSettings.js', 'JS');
+//        jquery_Jquery::run($data->form->tpl, "mailServerSettings();", true);
     }
     
     
@@ -927,4 +931,24 @@ class email_Accounts extends core_Master
         $callOn = dt::addSecs(60 * $mp);
         core_CallOnTime::setCall('email_Accounts', 'checkMailBox', $emlStatus, $callOn);
     }
+    
+    
+    /**
+     * Изпълнява се след опаковане на съдаржанието от мениджъра
+     *
+     * @param core_Mvc       $mvc
+     * @param string|core_ET $res
+     * @param string|core_ET $tpl
+     * @param stdClass       $data
+     *
+     * @return bool
+     */
+    protected static function on_AfterRenderWrapping(core_Manager $mvc, &$res, &$tpl = null, $data = null)
+    {
+        
+        //bp($res, $tpl, $mvc, $data);
+        $res->push('email/js/serverSettings.js', 'JS');
+        //jquery_Jquery::run($res, "mailServerSettings('{$id}');", true);
+    }
+    
 }

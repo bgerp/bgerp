@@ -748,13 +748,13 @@ class doc_UnsortedFolders extends core_Master
         
         if (empty($res)) {
             if (cal_Tasks::haveRightFor('add')) {
-                $res[] = 'cal_Tasks';
+                $res[] = (object)array('class' => 'cal_Tasks');
             }
         }
         
         // Ако има клас с името на проекта, връщаме и него
         if ($defClassId = core_Classes::fetchField(array("#title = '[#1#]'", $rec->name), 'id')) {
-            $res[] = $defClassId;
+            $res[] = (object)array('class' => $defClassId);
         } else {
             
             // Ако името на папката е зададено в defaultFolder
@@ -770,7 +770,7 @@ class doc_UnsortedFolders extends core_Master
                 if ($clsInst->defaultFolder != $rec->name) continue;
                 
                 if ($clsInst->haveRightFor('add')) {
-                    $res[] = $clsId;
+                    $res[] = (object)array('class' => $clsId);
                 }
             }
         }

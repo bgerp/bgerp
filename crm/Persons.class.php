@@ -2798,19 +2798,19 @@ class crm_Persons extends core_Master
         
         // Ако е в група дебитори или кредитови, показваме бутон за финансова сделка
         if (in_array($debitGroupId, $groupList) || in_array($creditGroupId, $groupList)) {
-            $res[] = 'findeals_Deals';
+            $res[] = (object)array('class' => 'findeals_Deals');
         }
         
         // Ако е в група на клиент, показваме бутона за продажба
         if (in_array($clientGroupId, $groupList)) {
-            $res[] = 'sales_Sales';
-            $res[] = 'sales_Quotations';
+            $res[] = (object)array('class' => 'sales_Sales', 'url' => array('sales_Sales', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'ret_url' => true));
+            $res[] = (object)array('class' => 'sales_Quotations', 'url' => array('sales_Quotations', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'ret_url' => true));
         }
         
         // Ако е в група на достачик, показваме бутона за покупка
         if (in_array($supplierGroupId, $groupList)) {
-            $res[] = 'purchase_Purchases';
-            $res[] = 'purchase_Offers';
+            $res[] = (object)array('class' => 'purchase_Purchases', 'url' => array('purchase_Purchases', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'ret_url' => true));
+            $res[] = (object)array('class' => 'purchase_Offers', 'caption' => 'Вх. оферта');
         }
         
         return $res;
