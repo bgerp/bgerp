@@ -237,6 +237,7 @@ function posActions() {
 	});
 
 
+
 	$(document.body).on('click', ".large-field.select-input-pos", function(e){
 		activeInput = true;
 	});
@@ -1066,13 +1067,12 @@ function selectFirstNavigable()
 function startNavigation() {
 	if($('.navigable').length) {
 		var focused = sessionStorage.getItem('focused');
-		var scrollTop = sessionStorage.getItem('focusedOffset') ?  sessionStorage.getItem('focusedOffset') : 0;
 		$('.selected').removeClass('selected');
 
 		// ръчно избирам първия елемент за селектед
 		if(!focused ||  $('#' + focused ).length == 0){
 			selectFirstNavigable();
-		} else if (focused && !$('#' + focused ).hasClass('disabledBtn') && document.getElementById(focused) && $('.navigable.selected:visible').length == 0) {
+		} else if (focused && !$('#' + focused ).hasClass('disabledBtn') && document.getElementById(focused) && $('.navigable.selected:visible').length == 0 && $('.navigable.selected.contragentLinkBtns').length == 0) {
 			$('#' + focused ).addClass('selected');
 		}
 		$('#result-holder .navigable:visible').keynav();
