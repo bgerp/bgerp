@@ -98,7 +98,10 @@ class callcenter_AdditionalNumbersPlg extends core_Plugin
      */
     protected static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
     {
-        $mvc->updateNumbers($rec, $mvc->updateNumMap);
+        // Подсигуряваме се, че е целия запис
+        $rec = $mvc->fetch($rec->id);
+        
+        $mvc->updateNumbers($rec);
     }
     
     
@@ -110,19 +113,17 @@ class callcenter_AdditionalNumbersPlg extends core_Plugin
      * @param stdClass $rec
      * @param array $fArr
      */
-    static function on_AfterUpdateNumbers($mvc, &$res, $rec, $fArr)
+    static function on_AfterUpdateNumbers($mvc, &$res, $rec)
     {
         if (!$rec->id) {
             
             return ;
         }
         
+        $fArr = $mvc->updateNumMap;
         $fArr['additionalTel'] = 'tel';
         $fArr['additionalMobile'] = 'mobile';
         $fArr['additionalFax'] = 'fax';
-        
-        // Подсигуряваме се, че е целия запис
-        $rec = $mvc->fetch($rec->id);
         
         $sNumArr = array();
         
@@ -170,7 +171,7 @@ class callcenter_AdditionalNumbersPlg extends core_Plugin
                 }
             }
             if (!empty($numStrArr)) {
-                $row->info .= tr('Номера от имейли') . ': ' . implode($numStrArr, ', ');
+                $row->info .= tr('Други номера') . ': ' . implode($numStrArr, ', ');
                 
             }
         }

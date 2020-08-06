@@ -734,12 +734,9 @@ class crm_Locations extends core_Master
             
             return ;
         }
-        
-        $cRec = new stdClass();
-        $cRec->id = $rec->contragentId;
-        $cRec->tel = $rec->tel;
-        
-        return $contragentCls->updateNumbers($cRec);
+
+        $cRec = $contragentCls->fetch($rec->contragentId); 
+        $contragentCls->addAddtionalNumber($cRec, null, $rec->tel, null);
     }
     
     
