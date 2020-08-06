@@ -134,6 +134,8 @@ class type_UserList extends type_Keylist
                 $group->attr = $gVals->attr;
                 $group->group = $gVals->group;
                 $group->autoOpen = $gVals->autoOpen;
+                $gName = $gKey . ' ' . $gVals->suggName;
+                
                 if (!$group->autoOpen && $openAllGroups) {
                     $group->autoOpen = true;
                 }
@@ -142,7 +144,7 @@ class type_UserList extends type_Keylist
                     $haveOpenedGroup = true;
                 }
                 
-                $this->suggestions[$gKey . ' group'] = $group;
+                $this->suggestions[$gName] = $group;
                 foreach ($gVals->suggArr as $uId) {
                     if ($uRec = $userArr['r'][$uId]) {
                         $key = $this->getKey($gKey, $uId);
