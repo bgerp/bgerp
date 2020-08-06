@@ -4124,16 +4124,26 @@ class doc_DocumentPlg extends core_Plugin
             $rec->modifiedOn = dt::verbal2Mysql();
             
             $mvc->save_($rec, 'modifiedOn, modifiedBy');
-            $cid = $rec->containerId;
             
-            if ($cid) {
+            if ($rec->containerId) {
                 $cRec = new stdClass();
-                $cRec->id = $cid;
+                $cRec->id = $rec->containerId;
                 $cRec->modifiedOn = $rec->modifiedOn;
                 $cRec->modifiedBy = $rec->modifiedBy;
                 
                 $containersInst = cls::get('doc_Containers');
                 $containersInst->save_($cRec, 'modifiedOn, modifiedBy');
+            }
+            
+            if ($rec->threadId) {
+                $tRec = new stdClass();
+                $tRec->id = $rec->threadId;
+                $tRec->last = $rec->modifiedOn;
+                $tRec->modifiedOn = $rec->modifiedOn;
+                $tRec->modifiedBy = $rec->modifiedBy;
+                
+                $threadsInst = cls::get('doc_Threads');
+                $threadsInst->save($tRec, 'last, modifiedOn, modifiedBy');
             }
         }
     }
