@@ -383,7 +383,11 @@
     clear: both; }
 
 select.tabHolder {
-  margin-left: 17px !important; }
+  margin-left: 17px !important;
+  height: 36px;
+  line-height: 36px;
+  border: 1px solid #999999;
+  border-radius: 3px; }
 
 .narrow #receiptnew {
   color: #333333 !important; }

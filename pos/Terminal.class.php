@@ -1694,7 +1694,7 @@ class pos_Terminal extends peripheral_Terminal
         // Ако има групи на артикулите
         if(countR($groupsTable)){
             $groups = arr::extractValuesFromArray($groupsTable, 'groupId');
-            if (Mode::get('screenMode') == 'narrow') {
+            if (Mode::get('screenMode') == 'narrow' && countR($groupsTable) > 3) {
                 $resultTpl = new core_ET("<div class='tabs productTabs'><select style='width: 90%' class='tabHolder'>[#TAB#]</select></div>");
             } else {
                 $resultTpl = new core_ET("<div class='tabs productTabs'><ul class='tabHolder'>[#TAB#]</ul></div>");
@@ -1706,7 +1706,7 @@ class pos_Terminal extends peripheral_Terminal
                 $groupName = (isset($groupId)) ? cat_Groups::getVerbal($groupId, 'name') : tr("Всички");
                 Mode::pop('treeShortName');
                 $tabTitle = tr("Избор на група|*: \"{$groupName}\"");
-                if (Mode::get('screenMode') == 'narrow') {
+                if (Mode::get('screenMode') == 'narrow' && countR($groupsTable) > 3) {
                     $tab = "<option id='group{$groupId}' data-id = '{$groupId}'>{$groupName}</option>";
                 } else {
                     $tab = "<li id='group{$groupId}' data-id = '{$groupId}' class='selectable {$active}' title='{$tabTitle}'>{$groupName}</li>";
