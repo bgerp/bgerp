@@ -1920,6 +1920,11 @@ class doc_Folders extends core_Master
         
         $form->FNC('ordering', 'enum(default=Автоматично, ' . doc_Threads::filterList . ')', 'caption=Подредба на темите->Правило, input=input');
         
+        $pu = core_Roles::fetchByName('powerUser');
+        $form->FNC('shareUsers', "type_Keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE \\'%|{$pu}|%\\', allowEmpty)", 'caption=Група от потребители за споделяне->Потребители, input=input, allowEmpty');
+        $form->FNC('shareFromThread', 'enum(default=Автоматично, yes=Да, no=Не)', 'caption=Група от потребители за споделяне->От нишката, input=input');
+        $form->FNC('shareMaxCnt', 'int(min=0)', 'caption=Група от потребители за споделяне->Макс. брой, input=input, allowEmpty');
+        
         $form->FNC('defaultEmail', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Адрес|* `From` за изходящите писма от тази папка->Имейл, input=input');
         
         // Показва се само когато се настройват всички потребители
@@ -1970,6 +1975,7 @@ class doc_Folders extends core_Master
             $form->setSuggestions('showDocumentsAsButtons', $docSuggestionsArr);
         }
         
+        $form->setDefault('shareFromThread', 'default');
         $form->setDefault('folOpenings', 'default');
         $form->setDefault('newPending', 'default');
         $form->setDefault('stateChange', 'default');
