@@ -286,6 +286,9 @@ class speedy_Adapter {
         $pickingData->payerType = ($rec->payer == 'sender') ? ParamCalculation::PAYER_TYPE_SENDER : (($rec->payer == 'receiver') ? ParamCalculation::PAYER_TYPE_RECEIVER : ParamCalculation::PAYER_TYPE_THIRD_PARTY);
         $pickingData->payerTypePackings = ($rec->payerPackaging == 'same') ? $pickingData->payerType : (($rec->payerPackaging == 'sender') ? ParamCalculation::PAYER_TYPE_SENDER : (($rec->payerPackaging == 'receiver') ? ParamCalculation::PAYER_TYPE_RECEIVER : ParamCalculation::PAYER_TYPE_THIRD_PARTY));
         
+        $pickingData->returnServiceId = ($rec->returnServiceId == 'same') ? $pickingData->payerType : (($rec->payerPackaging == 'sender') ? ParamCalculation::PAYER_TYPE_SENDER : (($rec->payerPackaging == 'receiver') ? ParamCalculation::PAYER_TYPE_RECEIVER : ParamCalculation::PAYER_TYPE_THIRD_PARTY));
+        $pickingData->returnPayer = ($rec->returnPayer == 'same') ? $pickingData->payerType : (($rec->payerPackaging == 'sender') ? ParamCalculation::PAYER_TYPE_SENDER : (($rec->payerPackaging == 'receiver') ? ParamCalculation::PAYER_TYPE_RECEIVER : ParamCalculation::PAYER_TYPE_THIRD_PARTY));
+        
         if(isset($rec->insurancePayer)){
             $pickingData->insurancePayer = ($rec->insurancePayer == 'same') ? $pickingData->payerType : (($rec->insurancePayer == 'sender') ? ParamCalculation::PAYER_TYPE_SENDER : (($rec->insurancePayer == 'receiver') ? ParamCalculation::PAYER_TYPE_RECEIVER : ParamCalculation::PAYER_TYPE_THIRD_PARTY));
         }
@@ -364,8 +367,8 @@ class speedy_Adapter {
         // Задаване на опции преди плащане, ако има
         if(in_array($rec->options, array('test', 'open'))){
             $paramOptionsBeforePayment = new ParamOptionsBeforePayment();
-            $paramOptionsBeforePayment->setReturnServiceTypeId($pickingData->serviceTypeId);
-            $paramOptionsBeforePayment->setReturnPayerType($pickingData->payerType);
+            $paramOptionsBeforePayment->setReturnServiceTypeId($pickingData->returnServiceId);
+            $paramOptionsBeforePayment->setReturnPayerType($pickingData->returnPayer);
             
             if($rec->options == 'test'){
                 $paramOptionsBeforePayment->setTest(true);

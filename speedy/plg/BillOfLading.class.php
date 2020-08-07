@@ -183,10 +183,15 @@ class speedy_plg_BillOfLading extends core_Plugin
         
         $form->FLD('amountCODBase', 'double(min=0)', 'caption=Параметри на пратката 3.->Наложен платеж,unit=BGN,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer');
         $form->FLD('codType', 'set(post=Като паричен превод,including=Вкл. цената на к.у. в НП)', 'caption=Параметри на пратката 3.->Вид,after=amountCODBase,input=none');
-        $form->FLD('options', 'enum(,open=Отвори преди плащане/получаване,test=Тествай преди плащане/получаване)', 'caption=Параметри на пратката 3.->Опции преди плащане/получаване');
+        
         $form->FLD('amountInsurance', 'double', 'caption=Параметри на пратката 3.->Обявена стойност,unit=BGN,silent,removeAndRefreshForm=insurancePayer|isFragile');
         $form->FLD('insurancePayer', 'enum(same=Както к.у.,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Параметри на пратката 3.->Платец обявена ст.,input=none');
         $form->FLD('isFragile', 'set(yes=Да)', 'caption=Параметри на пратката 3.->Чупливост,after=amountInsurance,input=none');
+        
+        $form->FLD('options', 'enum(,open=Отвори преди плащане/получаване,test=Тествай преди плащане/получаване)', 'caption=Параметри на пратката 3.->Опции преди плащане/получаване,silent,removeAndRefreshForm=returnServiceId|returnPayer');
+        $form->FLD('returnServiceId', 'varchar', 'caption=Параметри на пратката 3.->Услуга за Връщане,input=none,after=options');
+        $form->FLD('returnPayer', 'enum(same=Както к.у.,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Параметри на пратката 3.->Платец на Връщането,input=none,after=returnServiceId');
+        
         
         $form->input(null, 'silent');
         
@@ -289,7 +294,6 @@ class speedy_plg_BillOfLading extends core_Plugin
         }
         $form->input('service', 'silent');
         
-        
         if(!isset($form->rec->service)){
             $form->setField('date', 'input=none');
         } else {
@@ -303,6 +307,12 @@ class speedy_plg_BillOfLading extends core_Plugin
                 $msg = $adapter->handleException($e);
                 $form->setError('receiverCountryId,receiverPCode', $msg);
             }
+        }
+        
+        if(!empty($rec->options)){
+            $form->setField('returnServiceId', 'input');
+            $form->setOptions('returnServiceId', array('same' => 'Както к.у.') + $serviceOptions);
+            $form->setField('returnPayer', 'input');
         }
         
         return $form;
