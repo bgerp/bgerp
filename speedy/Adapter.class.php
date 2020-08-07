@@ -206,9 +206,12 @@ class speedy_Adapter {
         $sndrSiteId = $senderClientData->getAddress()->getSiteId();
         
         // На получателя от въведените му данни
-        $rcptCountryId = $this->getCountryId($toCountryId);
-        $rcptSiteId = $this->getSiteId($toCountryId, $toPCode, $toPlace);
-        $rcptPostCode = $toPCode;
+        $rcptCountryId = $rcptSiteId = $rcptPostCode = null;
+        if(!isset($toOfficeId)){
+            $rcptCountryId = $this->getCountryId($toCountryId);
+            $rcptSiteId = $this->getSiteId($toCountryId, $toPCode, $toPlace);
+            $rcptPostCode = $toPCode;
+        }
         
         // Извличане на масив с наличните услуги
         $resultListServicesForSites = $this->eps->listServicesForSites($currentDate, $sndrSiteId, $rcptSiteId, null, null, $rcptCountryId, $rcptPostCode, $language, null, null, null, $toOfficeId);
