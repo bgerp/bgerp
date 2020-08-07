@@ -591,9 +591,11 @@ function calculateWidth(){
 
 		if(!isTouchDevice()) {
 			$('#keyboard-num').css('display','block');
+			$('.buttons').removeClass('oneRow');
 		} else {
 			$('#tools-holder').css('height', 330);
 			$('#keyboard-num').css('display','none');
+			$('.buttons').addClass('oneRow');
 		}
 
 	} else {
@@ -605,6 +607,7 @@ function calculateWidth(){
 		$('#single-receipt-holder').addClass('blockHolder');
 		$('#single-receipt-holder').removeClass('fixedHolder');
 		$('#single-receipt-holder').addClass('narrowHolder');
+		$('.buttons').addClass('oneRow');
 
 		$('#result-holder').css('width', "100%");
 		$('.tools-content').css('height','auto');
