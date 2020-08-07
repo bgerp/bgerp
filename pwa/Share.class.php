@@ -131,6 +131,7 @@ class pwa_Share extends core_Mvc
      */
     function act_Portal()
     {
+        Mode::setPermanent('isPWA', true);
         
         return new Redirect(array('Portal', 'Show'));
     }

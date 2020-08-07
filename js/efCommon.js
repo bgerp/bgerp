@@ -5535,7 +5535,7 @@ function syncServiceWorker() {
                 // Рефистрираме новия ServiceWorker
                 if((typeof serviceWorkerURL !== 'undefined') && (serviceWorkerURL !== false)) {
           
-                    navigator.serviceWorker.register(serviceWorkerURL, {scope: '/pwa_Share'}).then(function(registration) {
+                    navigator.serviceWorker.register(serviceWorkerURL, {scope: '/'}).then(function(registration) {
                     // Registration was successful
                         console.log('ServiceWorker registration successful: ' + serviceWorkerURL);
                     }, function(err) {
