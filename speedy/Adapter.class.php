@@ -346,7 +346,7 @@ class speedy_Adapter {
         } else {
             $receiverAddress = new ParamAddress();
             $receiverAddress->setSiteId($receiverSiteId);
-            $receiverAddress->setAddressNote($rec->receiverAdress);
+            $receiverAddress->setAddressNote($rec->receiverAddress);
             $receiver->setAddress($receiverAddress);
         }
         
