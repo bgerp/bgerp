@@ -118,47 +118,4 @@ class speedy_Offices extends core_Manager
         
         return $res;
     }
-    
-    function act_Test11111111()
-    {
-        // Клиентска конфигурация.
-        $clientConfiguration = new StdClass();
-        $clientConfiguration->userName = '999389';                 // Конфигурирайте името на потребителя преодставен за вас от Speedy
-        $clientConfiguration->userPassword = '6685946573';             // Конфигурирайте паролата за потребителя преодставен за вас от Speedy
-        $clientConfiguration->arrEnabledServices = array(0=>505);  // Конфигурирайте ограничен списък от услуги на Speedy, с които клиентът ще работи
-        $clientConfiguration->contactName='Ivelin Dimov';                // Конфигурирайте име за контакт на подателя при откриване на товарителници и заявки за куриер
-        $clientConfiguration->contactPhone='0888 888 888';         
-        
-        
-        //try {
-            
-            header("Content-Type: text/html; charset=utf-8");
-            
-            // Иницализация на времевата зона.
-            // Препоръчва се параметрите и аргументите от тип datetime да са форматирани във времевата зона на Спиди,
-            // поради специфики при определяне на датата и времето в някои от подаваните стойности
-            if (function_exists("date_default_timezone_set")) {
-                date_default_timezone_set(Util::SPEEDY_TIME_ZONE);
-                $timeZone = date_default_timezone_get();
-            } else {
-                putenv("TZ=".Util::SPEEDY_TIME_ZONE);
-                $timeZone = getenv("TZ");
-            }
-            
-            $eps = new EPSFacade(new EPSSOAPInterfaceImpl(), $clientConfiguration->userName,  $clientConfiguration->userPassword);
-            
-            echo "Установяване на сесия [login]<br>";
-            $resultLogin = $eps->getResultLogin();
-            
-            
-            bp($eps, $resultLogin);
-            
-            
-       // } catch(Exception $e){
-            
-       // }
-        
-        
-        bp($clientConfiguration);
-    }
 }
