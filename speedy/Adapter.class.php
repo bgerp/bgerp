@@ -316,6 +316,7 @@ class speedy_Adapter {
         if($rec->isPrivatePerson == 'yes'){
             $receiver->setPrivatePersonType(1);
         } else {
+            $receiver->setPrivatePersonType(2);
             $receiver->setContactName($rec->receiverPerson);
         }
         
