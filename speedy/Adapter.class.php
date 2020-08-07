@@ -290,7 +290,7 @@ class speedy_Adapter {
         $pickingData->payerTypePackings = ($rec->payerPackaging == 'same') ? $pickingData->payerType : (($rec->payerPackaging == 'sender') ? ParamCalculation::PAYER_TYPE_SENDER : (($rec->payerPackaging == 'receiver') ? ParamCalculation::PAYER_TYPE_RECEIVER : ParamCalculation::PAYER_TYPE_THIRD_PARTY));
         
         $pickingData->returnServiceId = ($rec->returnServiceId == 'same') ? $pickingData->serviceTypeId : $rec->returnServiceId;
-        $pickingData->returnPayer = ($rec->returnPayer == 'same') ? $pickingData->payerType : (($rec->payerPackaging == 'sender') ? ParamCalculation::PAYER_TYPE_SENDER : (($rec->payerPackaging == 'receiver') ? ParamCalculation::PAYER_TYPE_RECEIVER : ParamCalculation::PAYER_TYPE_THIRD_PARTY));
+        $pickingData->returnPayer = ($rec->returnPayer == 'same') ? $pickingData->payerType : (($rec->returnPayer == 'sender') ? ParamCalculation::PAYER_TYPE_SENDER : (($rec->returnPayer == 'receiver') ? ParamCalculation::PAYER_TYPE_RECEIVER : ParamCalculation::PAYER_TYPE_THIRD_PARTY));
         
         if(isset($rec->insurancePayer)){
             $pickingData->insurancePayer = ($rec->insurancePayer == 'same') ? $pickingData->payerType : (($rec->insurancePayer == 'sender') ? ParamCalculation::PAYER_TYPE_SENDER : (($rec->insurancePayer == 'receiver') ? ParamCalculation::PAYER_TYPE_RECEIVER : ParamCalculation::PAYER_TYPE_THIRD_PARTY));
@@ -307,9 +307,7 @@ class speedy_Adapter {
         
         if(!empty($rec->senderNotes)){
             $senderAddress = new ParamAddress();
-            $receiverSiteId = $this->getSiteId($rec->senderCountryId, null, null);
             $senderAddress->setAddressNote($rec->senderNotes);
-            $sender->setAddress($senderAddress);
         }
         
         // Подготовка и задаване на данните на получателя
@@ -346,6 +344,7 @@ class speedy_Adapter {
         } else {
             $receiverAddress = new ParamAddress();
             $receiverAddress->setSiteId($receiverSiteId);
+            //$receiverAddress->setStreetName($rec->receiverAddress);
             $receiverAddress->setAddressNote($rec->receiverAddress);
             $receiver->setAddress($receiverAddress);
         }
