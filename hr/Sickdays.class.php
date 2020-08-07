@@ -436,7 +436,7 @@ class hr_Sickdays extends core_Master
         $toDate = ($cYear + 2) . '-12-31';
         
         // Префикс на ключовете за записите в календара от тази задача
-        $prefix = "Sick-{$id}";
+        $prefix = "SICK-{$id}";
         
         $curDate = $rec->startDate;
         

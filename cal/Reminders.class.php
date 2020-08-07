@@ -745,7 +745,7 @@ class cal_Reminders extends core_Master
             self::updateRemindersToCalendar($rec, $fromDate, $toDate, $prefix, $events);
         }
         
-        $res = cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
+        $res = cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix . '-');
         
         $status = "В календара са добавени {$res['new']}, обновени {$res['updated']} и изтрити {$res['deleted']} напомняния";
         
