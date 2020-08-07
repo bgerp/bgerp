@@ -813,6 +813,8 @@ class callcenter_Numbers extends core_Manager
         // Изискваме да има роля admin
         requireRole('admin');
         
+        core_App::setTimeLimit('600');
+        
         // Вземаме всички записи за потребителите
         $Person = cls::get('crm_Persons');
         $pQuery = $Person->getQuery();
