@@ -1823,8 +1823,13 @@ class doc_Folders extends core_Master
             if ($countryId) {
                 $searchKeywords = drdata_Countries::addCountryInBothLg($countryId, $searchKeywords);
             }
-            
-            $searchKeywords .= ' ' . $class->getSearchKeywords($rec->coverId);
+        }
+        
+        if ($rec->coverId) {
+            $plugins = arr::make($class->loadList, true);
+            if ($plugins['plg_Search'] || method_exists($class, 'getSearchKeywords')) {
+                $searchKeywords .= ' ' . $class->getSearchKeywords($rec->coverId);
+            }
         }
     }
     

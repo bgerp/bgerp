@@ -53,6 +53,7 @@ class doc_FolderPlg extends core_Plugin
         $mvc->details['Rights'] = $mvc->className;
         $mvc->details['History'] = $mvc->className;
         $mvc->details['Resources'] = 'doc_FolderResources';
+        setIfNot($mvc->autoCreateFolder, 'instant');
     }
     
     
