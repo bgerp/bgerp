@@ -289,7 +289,7 @@ class speedy_Adapter {
         $pickingData->payerType = ($rec->payer == 'sender') ? ParamCalculation::PAYER_TYPE_SENDER : (($rec->payer == 'receiver') ? ParamCalculation::PAYER_TYPE_RECEIVER : ParamCalculation::PAYER_TYPE_THIRD_PARTY);
         $pickingData->payerTypePackings = ($rec->payerPackaging == 'same') ? $pickingData->payerType : (($rec->payerPackaging == 'sender') ? ParamCalculation::PAYER_TYPE_SENDER : (($rec->payerPackaging == 'receiver') ? ParamCalculation::PAYER_TYPE_RECEIVER : ParamCalculation::PAYER_TYPE_THIRD_PARTY));
         
-        $pickingData->returnServiceId = ($rec->returnServiceId == 'same') ? $pickingData->payerType : (($rec->payerPackaging == 'sender') ? ParamCalculation::PAYER_TYPE_SENDER : (($rec->payerPackaging == 'receiver') ? ParamCalculation::PAYER_TYPE_RECEIVER : ParamCalculation::PAYER_TYPE_THIRD_PARTY));
+        $pickingData->returnServiceId = ($rec->returnServiceId == 'same') ? $pickingData->serviceTypeId : $rec->returnServiceId;
         $pickingData->returnPayer = ($rec->returnPayer == 'same') ? $pickingData->payerType : (($rec->payerPackaging == 'sender') ? ParamCalculation::PAYER_TYPE_SENDER : (($rec->payerPackaging == 'receiver') ? ParamCalculation::PAYER_TYPE_RECEIVER : ParamCalculation::PAYER_TYPE_THIRD_PARTY));
         
         if(isset($rec->insurancePayer)){
