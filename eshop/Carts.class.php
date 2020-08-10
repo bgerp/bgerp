@@ -1092,7 +1092,9 @@ class eshop_Carts extends core_Master
             }
         }
         
-        $body->replace($rec->personNames, 'NAME');
+        $personNames = mb_convert_case($rec->personNames, MB_CASE_TITLE, "UTF-8");
+        
+        $body->replace($personNames, 'NAME');
         if ($hnd = sales_Sales::getHandle($saleRec->id)) {
             $body->replace("#{$hnd}", 'SALE_HANDLER');
         }
@@ -1111,6 +1113,24 @@ class eshop_Carts extends core_Master
         // Името на 'Моята фирма' във футъра
         $companyName = tr(crm_Companies::fetchOwnCompany()->company);
         $body->replace($companyName, 'COMPANY_NAME');
+        
+        if($rec->makeInvoice != 'none'){
+            $body->replace(self::getVerbal($rec, 'invoiceNames'), 'invoiceNames');
+            if(!empty($rec->invoiceVatNo)){
+                $body->replace(tr('ДДС №|*: ') . self::getVerbal($rec, 'invoiceVatNo'), 'invoiceVatNo');
+            }
+            
+            if(!empty($rec->invoiceUicNo)){
+                $prefix = ($rec->makeInvoice == 'person') ? tr('ЕГН|*: ') : tr('ЕИК|*": ');
+                $body->replace($prefix . self::getVerbal($rec, 'invoiceUicNo'), 'invoiceUicNo');
+            }
+            
+            $body->replace(self::getVerbal($rec, 'invoiceCountry'), 'invoiceCountry');
+            $body->replace(self::getVerbal($rec, 'invoicePCode'), 'invoicePCode');
+            $body->replace(self::getVerbal($rec, 'invoicePlace'), 'invoicePlace');
+            $body->replace(self::getVerbal($rec, 'invoiceAddress'), 'invoiceAddress');
+        }
+        
         $body = core_Type::getByName('richtext')->fromVerbal($body->getContent());
         
         // Подготовка на имейла
