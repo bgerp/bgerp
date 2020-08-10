@@ -119,18 +119,19 @@ class speedy_Adapter {
      * Списък с офисите в подадената държава
      * 
      * @param int $countryId
-     * @return array
+     * 
+     * @return ResultOfficeEx[] $resultListOffices
      */
     public function getOffices($countryId)
     {
-        // Option 1
+        $countryId = is_numeric($countryId) ? drdata_Countries::getTitleById($countryId) : $countryId;
         $name = NULL;
         $siteId = NULL;
-        $language = 'EN';
+        $language = 'BG';
         
         $resultListOffices = $this->eps->listOfficesEx($name, $siteId, $language, $countryId);
         
-        bp($resultListOffices);
+        return $resultListOffices;
     }
     
     

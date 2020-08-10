@@ -285,13 +285,14 @@ class speedy_plg_BillOfLading extends core_Plugin
             }
         }
         
+        $serviceOptions = array();
         if((isset($form->rec->receiverCountryId) && !empty($form->rec->receiverPCode)) || !empty($form->rec->receiverSpeedyOffice)){
            try{
                 $serviceOptions = $adapter->getServicesBySites($form->rec->receiverCountryId, $form->rec->receiverPlace, $form->rec->receiverPCode, $form->rec->receiverSpeedyOffice);
            } catch(ServerException $e){
-               $serviceOptions = array();
-               $msg = $adapter->handleException($e);
-               $form->setError('receiverCountryId,receiverPCode', $msg);
+               $fields = null;
+               $msg = $adapter->handleException($e, $fields);
+               $form->setError($fields, $msg);
            }
         }
         

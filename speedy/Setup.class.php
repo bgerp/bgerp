@@ -98,6 +98,22 @@ class speedy_Setup extends core_ProtoSetup
     
     
     /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'Update Speedy Offices',
+            'description' => 'Обновяване на офисите на Speedy',
+            'controller' => 'speedy_Offices',
+            'action' => 'UpdateOffices',
+            'period' => 10080,
+            'offset' => 120,
+            'timeLimit' => 200
+        ),
+    );
+    
+    
+    /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
@@ -123,5 +139,22 @@ class speedy_Setup extends core_ProtoSetup
         $html .= $Bucket->createBucket('billOfLadings', 'Товарителници към Speedy',  'pdf,jpg,jpeg,png', '200MB', 'user', 'user');
         
         return $html;
+    }
+    
+    
+    /**
+     * Проверява дали програмата е инсталирана в сървъра
+     *
+     * @return null|string
+     */
+    public function checkConfig()
+    {
+        $accountUserName = self::get('DEFAULT_ACCOUNT_USERNAME');
+        $accountPassword = self::get('DEFAULT_ACCOUNT_PASSWORD');
+        
+        if(empty($accountUserName) || empty($accountPassword)){
+            
+            return "Не са настроени паролата и акаунта, за връзка с онлайн услугите на Speedy";
+        }
     }
 }
