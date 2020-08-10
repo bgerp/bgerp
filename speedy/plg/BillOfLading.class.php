@@ -76,7 +76,7 @@ class speedy_plg_BillOfLading extends core_Plugin
             if($form->isSubmitted()){
                 $fRec = $form->rec;
                 
-                if(mb_strlen($fRec->receiverAddress) < 5 || is_numeric($fRec->receiverAddress)){
+                if(empty($fRec->receiverSpeedyOffice) && (mb_strlen($fRec->receiverAddress) < 5 || is_numeric($fRec->receiverAddress))){
                     $form->setError('receiverAddress', 'Адреса трябва да е поне от 5 символа и да съдържа буква');
                 }
                 
@@ -103,22 +103,24 @@ class speedy_plg_BillOfLading extends core_Plugin
                         $bolId = $adapter->getBol($form->rec);
                     } catch(ServerException $e){
                         $mvc->logErr("Проблем при генериране на товарителница", $id);
-                        $msg = $adapter->handleException($e);
-                        
-                        $form->setError('senderPhone', $msg);
+                        $fields = null;
+                        $msg = $adapter->handleException($e, $fields);
+                        $form->setError($fields, $msg);
                     }
                     
                     // Записване на товарителницата като PDF
-                    try{
-                        $bolFh = $adapter->getBolPdf($bolId);
-                        $fileId = fileman::fetchByFh($bolFh, 'id');
-                        doc_Linked::add($rec->containerId, $fileId, 'doc', 'file', 'Товарителница');
-                        
-                    } catch(ServerException $e){
-                        reportException($e);
-                        $mvc->logErr("Проблем при генериране на PDF на товарителница", $id);
-                        
-                        core_Statuses::newStatus('Проблем при генериране на PDF на товарителница', 'error');
+                    if(!$form->gotErrors()){
+                        try{
+                            $bolFh = $adapter->getBolPdf($bolId);
+                            $fileId = fileman::fetchByFh($bolFh, 'id');
+                            doc_Linked::add($rec->containerId, $fileId, 'doc', 'file', 'Товарителница');
+                            
+                        } catch(ServerException $e){
+                            reportException($e);
+                            $mvc->logErr("Проблем при генериране на PDF на товарителница", $id);
+                            
+                            core_Statuses::newStatus('Проблем при генериране на PDF на товарителница', 'error');
+                        }
                     }
                 }
                 
@@ -160,23 +162,28 @@ class speedy_plg_BillOfLading extends core_Plugin
         $form->FLD('senderName', 'varchar', 'caption=Данни за подател->Фирма/Име,mandatory');
         $form->FLD('senderNotes', 'text(rows=2)', 'caption=Данни за подател->Уточнение');
         
-        $form->FLD('receiverPhone', 'drdata_PhoneType(type=tel,unrecognized=error)', 'caption=Данни за получател->Телефон,mandatory');
+        $form->FLD('isPrivatePerson', 'enum(no=Фирма,yes=Частно лице)', 'caption=Данни за получател->Получател,silent,removeAndRefreshForm=receiverPerson,maxRadio=2,mandatory');
         $form->FLD('receiverName', 'varchar', 'caption=Данни за получател->Фирма/Име,mandatory');
         $form->FLD('receiverPerson', 'varchar', 'caption=Данни за получател->Лице за конт,mandatory');
+        $form->FLD('receiverPhone', 'drdata_PhoneType(type=tel,unrecognized=error)', 'caption=Данни за получател->Телефон,mandatory');
         
-        $form->FLD('isPrivatePerson', 'set(yes=ЧЛ)', 'caption=Данни за получател->,inlineTo=receiverName,silent,removeAndRefreshForm=receiverPerson');
-        $form->FLD('receiverSpeedyOffice', 'customKey(mvc=speedy_Offices,key=num,select=extName,allowEmpty)', 'caption=Данни за получател->Офис на Спиди,removeAndRefreshForm=service|date|receiverCountryId|receiverPlace|receiverAddress|receiverPCode,silent');
-        $form->FLD('receiverCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Данни за получател->Държава,removeAndRefreshForm=service|date|receiverPlace|receiverPCode|receiverAddress,silent,mandatory');
-        $form->FLD('receiverPCode', 'varchar', 'caption=Данни за получател->Пощ. код,removeAndRefreshForm=service,silent,mandatory');
-        $form->FLD('receiverPlace', 'varchar', 'caption=Данни за получател->Нас. място,removeAndRefreshForm=service,silent,mandatory');
-        $form->FLD('receiverAddress', 'varchar', 'caption=Данни за получател->Адрес,mandatory');
-        $form->FLD('receiverNotes', 'text(rows=2)', 'caption=Данни за получател->Уточнение');
+        $form->FLD('receiverSpeedyOffice', 'customKey(mvc=speedy_Offices,key=num,select=extName,allowEmpty)', 'caption=Адрес на получател->Офис на Спиди,removeAndRefreshForm=service|date|receiverCountryId|receiverPlace|receiverAddress|receiverPCode,silent');
+        $form->FLD('receiverCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адрес на получател->Държава,removeAndRefreshForm=service|date|receiverPlace|receiverPCode|receiverAddress,silent,mandatory');
+        $form->FLD('receiverPCode', 'varchar', 'caption=Адрес на получател->Пощ. код,removeAndRefreshForm=service,silent,mandatory');
+        $form->FLD('receiverPlace', 'varchar', 'caption=Адрес на получател->Нас. място,removeAndRefreshForm=service,silent,mandatory');
+        $form->FLD('receiverAddress', 'varchar', 'caption=Адрес на получател->Адрес,mandatory');
+        $form->FLD('receiverBlock', 'varchar', 'caption=Адрес на получател->Блок');
+        $form->FLD('receiverEntrance', 'varchar', 'caption=Адрес на получател->Вход');
+        $form->FLD('receiverFloor', 'int', 'caption=Адрес на получател->Етаж');
+        $form->FLD('receiverApp', 'varchar', 'caption=Адрес на получател->Апартамент');
+        $form->FLD('receiverNotes', 'text(rows=2)', 'caption=Адрес на получател->Уточнение');
+        $form->FLD('floorNum', 'int', 'caption=Адрес на получател->Качване до етаж');
         
         $form->FLD('service', 'varchar', 'caption=Параметри на пратката 1.->Услуга,mandatory,removeAndRefreshForm=date,silent');
         $form->FLD('date', 'varchar', 'caption=Параметри на пратката 1.->Изпращане на,mandatory');
         
         $form->FLD('payer', 'enum(sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Параметри на пратката 1.->Платец,mandatory');
-        $form->FLD('payerPackaging', 'enum(same=Както к.у.,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Параметри на пратката 1.->Платец опаковка,mandatory');
+        $form->FLD('payerPackaging', 'enum(same=Както куриерска услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Параметри на пратката 1.->Платец опаковка,mandatory');
         
         $form->FLD('isDocuments', 'set(yes=Документи)', 'caption=Параметри на пратката 2.->,inlineTo=payerPackaging,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer');
         $form->FLD('palletCount', 'int(min=0,Max=10)', 'caption=Параметри на пратката 2.->Бр. пакети,mandatory');
@@ -184,27 +191,25 @@ class speedy_plg_BillOfLading extends core_Plugin
         $form->FLD('packaging', 'varchar', 'caption=Параметри на пратката 2.->Опаковка,mandatory,recently');
         $form->FLD('totalWeight', 'double(min=0,max=50)', 'caption=Параметри на пратката 2.->Общо тегло,unit=кг,mandatory');
         $form->FLD('isPaletize', 'set(yes=Да)', 'caption=Параметри на пратката 2.->Палетизирана,after=amountInsurance');
-        //$form->FLD('declare', 'set(yes=Декларирам че не изпращам акцизна стока с неплатен акциз!,)', 'caption=Параметри на пратката 2.->Друго');
         
         $form->FLD('amountCODBase', 'double(min=0)', 'caption=Параметри на пратката 3.->Наложен платеж,unit=BGN,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer');
-        $form->FLD('codType', 'set(post=Като паричен превод,including=Вкл. цената на к.у. в НП)', 'caption=Параметри на пратката 3.->Вид,after=amountCODBase,input=none');
+        $form->FLD('codType', 'set(post=Като паричен превод,including=Вкл. цената на куриерска услуга в НП)', 'caption=Параметри на пратката 3.->Вид,after=amountCODBase,input=none');
         
         $form->FLD('amountInsurance', 'double', 'caption=Параметри на пратката 3.->Обявена стойност,unit=BGN,silent,removeAndRefreshForm=insurancePayer|isFragile');
-        $form->FLD('insurancePayer', 'enum(same=Както к.у.,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Параметри на пратката 3.->Платец обявена ст.,input=none');
+        $form->FLD('insurancePayer', 'enum(same=Както куриерска услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Параметри на пратката 3.->Платец обявена ст.,input=none');
         $form->FLD('isFragile', 'set(yes=Да)', 'caption=Параметри на пратката 3.->Чупливост,after=amountInsurance,input=none');
         
-        $form->FLD('options', 'enum(,open=Отвори преди плащане/получаване,test=Тествай преди плащане/получаване)', 'caption=Параметри на пратката 3.->Опции преди плащане/получаване,silent,removeAndRefreshForm=returnServiceId|returnPayer');
+        $form->FLD('options', 'enum(no=Няма,open=Отвори преди плащане/получаване,test=Тествай преди плащане/получаване)', 'caption=Параметри на пратката 3.->Опции,silent,removeAndRefreshForm=returnServiceId|returnPayer,maxRadio=3');
         $form->FLD('returnServiceId', 'varchar', 'caption=Параметри на пратката 3.->Услуга за Връщане,input=none,after=options');
-        $form->FLD('returnPayer', 'enum(same=Както к.у.,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Параметри на пратката 3.->Платец на Връщането,input=none,after=returnServiceId');
+        $form->FLD('returnPayer', 'enum(same=Както куриерска услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Параметри на пратката 3.->Платец на Връщането,input=none,after=returnServiceId');
         
         
         $form->input(null, 'silent');
         
         if(isset($rec->receiverSpeedyOffice)){
-            $form->setField('receiverCountryId', 'input=none');
-            $form->setField('receiverPlace', 'input=none');
-            $form->setField('receiverAddress', 'input=none');
-            $form->setField('receiverPCode', 'input=none');
+            foreach (array('receiverCountryId', 'receiverPlace', 'receiverAddress', 'receiverPCode', 'receiverBlock', 'receiverEntrance', 'receiverFloor', 'receiverApp') as $addressField){
+                $form->setField($addressField, 'input=none');
+            }
         }
         
         if($rec->isDocuments == 'yes'){
@@ -246,12 +251,14 @@ class speedy_plg_BillOfLading extends core_Plugin
                 $form->setDefault('receiverName', $logisticData['toPerson']);
                 $form->setDefault('isPrivatePerson', 'yes');
             } else{
+                $form->setDefault('isPrivatePerson', 'no');
                 $receiverName = !empty($logisticData['toPerson']) ? $logisticData['toPerson'] : $logisticData['toCompany'];
                 $form->setDefault('receiverName', $receiverName);
                 $form->setDefault('receiverPerson', $logisticData['toPerson']);
             }
         }
         
+        $form->setDefault('options', 'no');
         if($rec->isPrivatePerson == 'yes'){
             $form->setField('receiverPerson', 'input=none');
         }
@@ -316,7 +323,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         
         if(!empty($rec->options)){
             $form->setField('returnServiceId', 'input');
-            $form->setOptions('returnServiceId', array('same' => 'Както к.у.') + $serviceOptions);
+            $form->setOptions('returnServiceId', array('same' => 'Както куриерска услуга') + $serviceOptions);
             $form->setField('returnPayer', 'input');
         }
         

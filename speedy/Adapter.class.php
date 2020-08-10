@@ -156,6 +156,8 @@ class speedy_Adapter {
         }
         
         $resultListSiteEx = $this->eps->listSitesEx($filter, $language);
+        
+        
         if(countR($resultListSiteEx)){
             
             return $resultListSiteEx[0]->getSite()->getId();
@@ -215,6 +217,7 @@ class speedy_Adapter {
         
         // Извличане на масив с наличните услуги
         $resultListServicesForSites = $this->eps->listServicesForSites($currentDate, $sndrSiteId, $rcptSiteId, null, null, $rcptCountryId, $rcptPostCode, $language, null, null, null, $toOfficeId);
+        
         if(is_array($resultListServicesForSites)){
             foreach ($resultListServicesForSites as $serviceForSite){
                 $typeId = $serviceForSite->getTypeId();
@@ -311,8 +314,9 @@ class speedy_Adapter {
         }
         
         // Подготовка и задаване на данните на получателя
-        $receiverSiteId = $this->getSiteId($rec->receiverCountryId, $rec->receiverPCode, $rec->receiverPlace);
         $receiver = new ParamClientData();
+        $receiver->setPartnerName($rec->receiverName);
+        
         if($rec->isPrivatePerson == 'yes'){
             $receiver->setPrivatePersonType(1);
         } else {
@@ -322,7 +326,6 @@ class speedy_Adapter {
         
         $receiverPhones = drdata_PhoneType::toArray($rec->receiverPhone);
         $receiverPhonesArr = array();
-        $receiver->setPartnerName($rec->receiverName);
         foreach ($receiverPhones as $parsedPhone){
             $paramPhoneNumber = new ParamPhoneNumber();
             $paramPhoneNumber->setNumber($parsedPhone->original);
@@ -343,10 +346,26 @@ class speedy_Adapter {
         if(isset($pickingData->takeFromOfficeId)){
             $picking->setOfficeToBeCalledId($pickingData->takeFromOfficeId);
         } else {
+            $receiverSiteId = $this->getSiteId($rec->receiverCountryId, $rec->receiverPCode, $rec->receiverPlace);
             $receiverAddress = new ParamAddress();
             $receiverAddress->setSiteId($receiverSiteId);
-            //$receiverAddress->setStreetName($rec->receiverAddress);
             $receiverAddress->setAddressNote($rec->receiverAddress);
+            if(!empty($rec->receiverBlock)){
+                $receiverAddress->setBlockNo($rec->receiverBlock);
+            }
+            
+            if(!empty($rec->receiverEntrance)){
+                $receiverAddress->setEntranceNo($rec->receiverEntrance);
+            }
+            
+            if(!empty($rec->receiverFloor)){
+                $receiverAddress->setFloorNo($rec->receiverFloor);
+            }
+            
+            if(!empty($rec->receiverApp)){
+                $receiverAddress->setApartmentNo($rec->receiverApp);
+            }
+            
             $receiver->setAddress($receiverAddress);
         }
         
@@ -366,6 +385,7 @@ class speedy_Adapter {
         $picking->setAmountCodBase($pickingData->amountCODBase);
         $picking->setAmountInsuranceBase($pickingData->amountInsurance);
         $picking->setPayerTypeInsurance($pickingData->insurancePayer);
+        $picking->setDeliveryToFloorNo($rec->floorNum);
         
         // Задаване на опции преди плащане, ако има
         if(in_array($rec->options, array('test', 'open'))){
@@ -438,12 +458,17 @@ class speedy_Adapter {
      * @param ServerException $e
      * @return string $errorMsg
      */
-    public function handleException(ServerException $e)
+    public function handleException(ServerException $e, &$fields)
     {
+        $fields = null;
         $errorMsg = $e->getMessage();
         
         if(strpos($errorMsg, '[ERR_012]') !== false){
             $errorMsg = 'Има разминаване между държавата и мястото в базата на Speedy';
+            $fields = 'receiverCountryId,receiverPlace,receiverAddress';
+        } elseif(strpos($errorMsg, 'Delivery to floor not allowed for service') !== false){
+            $errorMsg = 'Избраната услуга непозволява качване до етаж';
+            $fields = 'service,floorNum';
         }
         
         return $errorMsg;
