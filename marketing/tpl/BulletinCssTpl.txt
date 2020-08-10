@@ -283,6 +283,12 @@ body {
     }
 }
 
+@media handheld, only screen and (max-width: 642px) and (orientation:landscape) {
+	.bulletinReg {
+		top: 70% !important
+	}
+}
+
 @media handheld, only screen and (max-width: 640px) and (orientation:landscape) {
     .bulletinHolder .richtext {
         font-size: 1.1em;
@@ -309,6 +315,26 @@ body {
         max-height: 100px;
     }
 }
+@media handheld, only screen and (max-width: 361px) {
+
+	.bulletinReg {
+		width: 300px !important;
+		padding: 0 0 10px 0 !important;
+	}
+	.bulletinFields {
+		max-width: 260px;
+	}
+	.push_button {
+		font-size:14px !important;
+		height: 36px;
+		line-height: 36px;
+		padding: 2px !important;
+	}
+	.bulletinHolder .richtext {
+		padding: 0 15px 15px;
+		font-size: 1.05em;
+	}
+}
 
 @media handheld, only screen and (max-width: 360px) {
     .bulletinReg {
@@ -329,7 +355,7 @@ body {
     }
 }
 
-@media handheld, only screen and (max-width: 320px) {
+@media handheld, only screen and (max-width: 321px) {
     .bulletinReg {
         width: 280px;
         padding: 0 0 10px 0 !important;
