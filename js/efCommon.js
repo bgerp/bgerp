@@ -1739,7 +1739,7 @@ function setFormElementsWidth() {
                     if (!colsInRow) {
                         colsInRow = 1;
                     }
-                    $(this).parent().css('maxWidth', parseInt((formElWidth - 10) / colsInRow));
+                    $(this).parent().css('maxWidth', parseInt((formElWidth - 20) / colsInRow));
                     $(this).parent().css('overflow-x', 'hidden');
 
                     $(this).attr('title', $(this).text());
