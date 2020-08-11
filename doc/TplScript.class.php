@@ -82,4 +82,30 @@ abstract class doc_TplScript
     public function beforeRenderListTable(core_Mvc $detail, &$tpl, &$data)
     {
     }
+    
+    
+    /**
+     * Преди подготовка на мастър данните
+     *
+     * @param core_Mvc $detail
+     * @param core_ET  $tpl
+     * @param stdClass $data
+     */
+    public function beforePrepareMasterData(core_Mvc $mvc, &$data)
+    {
+        
+    }
+    
+    
+    /**
+     * Преди подготовка на данните на детайла
+     *
+     * @param core_Mvc $detail
+     * @param core_ET  $tpl
+     * @param stdClass $data
+     */
+    public function beforePrepareDetailListRows(core_Mvc $detail, &$data)
+    {
+        
+    }
 }
