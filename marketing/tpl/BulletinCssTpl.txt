@@ -192,6 +192,10 @@ body {
     float: left;
     margin: 0 20px 5px 0;
 }
+
+.bulletin-link {
+    clear: both;
+}
 @media handheld, only screen and (max-width: 640px) {
     .bulletinHolder {
         overflow: hidden;
