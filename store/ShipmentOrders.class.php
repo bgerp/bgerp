@@ -204,6 +204,12 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array('template' => 'defMethod|lastDocUser|lastDoc|lastDocSameCountry');
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -222,6 +228,23 @@ class store_ShipmentOrders extends store_DocumentMaster
         $this->setField('deliveryTime', 'caption=Натоварване');
         
         $this->setDbIndex('createdOn');
+    }
+    
+    
+    /**
+     * Метод по подразбиране за намиране на дефолт шаблона
+     */
+    public function getDefaultTemplate_($rec)
+    {
+        if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
+            if($firstDocument->isInstanceOf('sales_Sales')){
+                if(eshop_Carts::fetchField("#saleId = {$firstDocument->that}")){
+                    $templateId = doc_TplManager::fetchField("#name = 'Експедиционно нареждане с цени (Онлайн поръчка)' AND #docClassId = {$this->getClassId()}");
+                    
+                    return $templateId;
+                }
+            }
+        }
     }
     
     
@@ -410,6 +433,10 @@ class store_ShipmentOrders extends store_DocumentMaster
         $tplArr[] = array('name' => 'Packing list за митница',
             'content' => 'store/tpl/SingleLayoutPackagingListGrouped.shtml', 'lang' => 'en',
             'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
+        
+        $tplArr[] = array('name' => 'Експедиционно нареждане с цени (Онлайн поръчка)',
+            'content' => 'store/tpl/SingleLayoutShipmentOrderPricesOnline.shtml', 'lang' => 'bg',
+            'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,packPrice,discount,amount'));
         
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
