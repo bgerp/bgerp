@@ -338,7 +338,6 @@ class planning_Jobs extends core_Master
             $dRec = sales_SalesDetails::fetch("#saleId = {$rec->saleId} AND #productId = {$rec->productId}");
             $form->setDefault('packagingId', $dRec->packagingId);
             $form->setDefault('packQuantity', $dRec->packQuantity);
-            $form->setDefault('quantityInPack', $dRec->quantityInPack);
             
             // Ако има данни от продажба, попълваме ги
             $form->setDefault('storeId', $saleRec->shipmentStoreId);
@@ -669,10 +668,7 @@ class planning_Jobs extends core_Master
             }
             
             $productInfo = cat_Products::getProductInfo($form->rec->productId);
-            if(empty($rec->quantityInPack)){
-                $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
-            }
-            
+            $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
             $rec->isEdited = true;
             
