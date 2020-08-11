@@ -281,5 +281,15 @@ function render_addClass(data)
  * Да скролира да данните за доставка
  */
 function scrollToDetail(){
-	$(window).scrollTop($('.narrow #cart-view-order-info').offset().top - 12);
+	if(sessionStorage.getItem('editedForm') == 1) {
+		$(window).scrollTop($('.narrow #cart-view-order-info').offset().top - 12);
+		sessionStorage.setItem('editedForm', 0);
+	}
+}
+
+
+function afterSubmitDetails(){
+	$(document.body).on('click', ".submitBtn", function(e){
+		sessionStorage.setItem('editedForm', 1);
+	});
 }

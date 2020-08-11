@@ -2148,7 +2148,7 @@ class eshop_Carts extends core_Master
         Mode::set('wrapper', 'cms_page_External');
         
         // Добавяне на бутони
-        $form->toolbar->addSbBtn('Обобщение', 'save', 'ef_icon = img/16/move.png, title = Запис на данните за поръчката');
+        $form->toolbar->addSbBtn('Обобщение', 'save', 'ef_icon = img/16/move.png, title = Запис на данните за поръчката, class=submitBtn');
         $form->toolbar->addBtn('Назад', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         if ($form->cmd == 'refresh') {
@@ -2166,6 +2166,8 @@ class eshop_Carts extends core_Master
         // Рефрешване на формата ако потребителя се логне докато е в нея
         cms_Helper::setRefreshFormIfNeeded($tpl);
         jquery_Jquery::run($tpl, 'runOnLoad(copyValToPlaceholder);');
+        jquery_Jquery::run($tpl, 'afterSubmitDetails();');
+
         $tpl->prepend("\n<meta name=\"robots\" content=\"nofollow\">", 'HEAD');
         
         return $tpl;
