@@ -168,10 +168,10 @@ class speedy_plg_BillOfLading extends core_Plugin
         $form->FLD('receiverPhone', 'drdata_PhoneType(type=tel,unrecognized=error)', 'caption=Данни за получател->Телефон,mandatory');
         
         $form->FLD('receiverSpeedyOffice', 'customKey(mvc=speedy_Offices,key=num,select=extName,allowEmpty)', 'caption=Адрес на получател->Офис на Спиди,removeAndRefreshForm=service|date|receiverCountryId|receiverPlace|receiverAddress|receiverPCode,silent');
-        $form->FLD('receiverCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адрес на получател->Държава,removeAndRefreshForm=service|date|receiverPlace|receiverPCode|receiverAddress,silent,mandatory');
-        $form->FLD('receiverPCode', 'varchar', 'caption=Адрес на получател->Пощ. код,removeAndRefreshForm=service,silent,mandatory');
-        $form->FLD('receiverPlace', 'varchar', 'caption=Адрес на получател->Нас. място,removeAndRefreshForm=service,silent,mandatory');
-        $form->FLD('receiverAddress', 'varchar', 'caption=Адрес на получател->Адрес,mandatory');
+        $form->FLD('receiverCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адрес на получател->Държава,removeAndRefreshForm=service|date|receiverPlace|receiverPCode|receiverAddress,silent');
+        $form->FLD('receiverPCode', 'varchar', 'caption=Адрес на получател->Пощ. код,removeAndRefreshForm=service,silent');
+        $form->FLD('receiverPlace', 'varchar', 'caption=Адрес на получател->Нас. място,removeAndRefreshForm=service,silent');
+        $form->FLD('receiverAddress', 'varchar', 'caption=Адрес на получател->Адрес');
         $form->FLD('receiverBlock', 'varchar', 'caption=Адрес на получател->Блок');
         $form->FLD('receiverEntrance', 'varchar', 'caption=Адрес на получател->Вход');
         $form->FLD('receiverFloor', 'int', 'caption=Адрес на получател->Етаж');
@@ -223,13 +223,13 @@ class speedy_plg_BillOfLading extends core_Plugin
             $amountCod = $documentRec->amountDeal;
             if($documentRec->deliveryTermId){
                 if($DeliveryCalc = cond_DeliveryTerms::getTransportCalculator($documentRec->deliveryTermId)){
-                    if($form->cmd != 'refresh' && $DeliveryCalc->class instanceof speedy_interface_DeliveryToOffice){
+                    if($form->cmd != 'refresh' && $form->cmd != 'save' && $DeliveryCalc->class instanceof speedy_interface_DeliveryToOffice){
                         $officeNum = speedy_Offices::fetchField($documentRec->deliveryData['officeId'], 'num');
                         $form->setDefault('receiverSpeedyOffice', $officeNum);
                     }
                 }
             }
-            
+           
             if($cartRec = eshop_Carts::fetch("#saleId = {$documentRec->id}")){
                 $toPerson = $cartRec->personNam;
                 $form->setDefault('receiverPhone', $cartRec->tel);
@@ -292,6 +292,10 @@ class speedy_plg_BillOfLading extends core_Plugin
         if(isset($rec->receiverSpeedyOffice)){
             foreach (array('receiverCountryId', 'receiverPlace', 'receiverAddress', 'receiverPCode', 'receiverBlock', 'receiverEntrance', 'receiverFloor', 'receiverApp') as $addressField){
                 $form->setField($addressField, 'input=none');
+            }
+        } else {
+            foreach (array('receiverCountryId', 'receiverPlace', 'receiverAddress', 'receiverPCode') as $addressField){
+                $form->setField($addressField, 'mandatory');
             }
         }
         
