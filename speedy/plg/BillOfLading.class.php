@@ -162,7 +162,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         $form->FLD('senderName', 'varchar', 'caption=Данни за подател->Фирма/Име,mandatory');
         $form->FLD('senderNotes', 'text(rows=2)', 'caption=Данни за подател->Уточнение');
         
-        $form->FLD('isPrivatePerson', 'enum(no=Фирма,yes=Частно лице)', 'caption=Данни за получател->Получател,silent,removeAndRefreshForm=receiverPerson,maxRadio=2,mandatory');
+        $form->FLD('isPrivatePerson', 'enum(no=Фирма,yes=Частно лице)', 'caption=Данни за получател->Получател,silent,removeAndRefreshForm=receiverPerson|receiverName,maxRadio=2,mandatory');
         $form->FLD('receiverName', 'varchar', 'caption=Данни за получател->Фирма/Име,mandatory');
         $form->FLD('receiverPerson', 'varchar', 'caption=Данни за получател->Лице за конт,mandatory');
         $form->FLD('receiverPhone', 'drdata_PhoneType(type=tel,unrecognized=error)', 'caption=Данни за получател->Телефон,mandatory');
@@ -203,6 +203,9 @@ class speedy_plg_BillOfLading extends core_Plugin
         $form->FLD('returnServiceId', 'varchar', 'caption=Параметри на пратката 3.->Услуга за Връщане,input=none,after=options');
         $form->FLD('returnPayer', 'enum(same=Както куриерска услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Параметри на пратката 3.->Платец на Връщането,input=none,after=returnServiceId');
         
+        $Cover = doc_Folders::getCover($documentRec->folderId);
+        $isPrivatePerson = ($Cover->haveInterface('crm_PersonAccRegIntf')) ? 'yes' : 'no';
+        $form->setDefault('isPrivatePerson', $isPrivatePerson);
         
         $form->input(null, 'silent');
         
@@ -212,6 +215,9 @@ class speedy_plg_BillOfLading extends core_Plugin
             $form->setField('insurancePayer', 'input=none');
         }
         
+        $logisticData = $mvc->getLogisticData($documentRec);
+        $toPerson = null;
+       
         if($mvc instanceof sales_Sales){
             $paymentType = $documentRec->paymentMethodId;
             $amountCod = $documentRec->amountDeal;
@@ -223,10 +229,51 @@ class speedy_plg_BillOfLading extends core_Plugin
                     }
                 }
             }
+            
+            if($cartRec = eshop_Carts::fetch("#saleId = {$documentRec->id}", 'personNames,tel')){
+                $toPerson = $cartRec->personNam;
+                $form->setDefault('receiverPhone', $cartRec->tel);
+            } elseif($documentRec->deliveryLocationId){
+                $locationRec = crm_Locations::fetch($documentRec->deliveryLocationId, 'mol,tel');
+                if(!empty($locationRec->mol)){
+                    $toPerson = $locationRec->mol;
+                }
+                
+                if(!empty($locationRec->tel)){
+                    $form->setDefault('receiverPhone', $locationRec->tel);
+                }
+            }
+            
         } elseif($mvc instanceof store_DocumentMaster){
             $firstDocument = doc_Threads::getFirstDocument($documentRec->threadId);
             $paymentType = $firstDocument->fetchField('paymentMethodId');
             $amountCod = ($documentRec->chargeVat == 'separate') ? $documentRec->amountDelivered + $documentRec->amountDeliveredVat : $documentRec->amountDelivered;
+        
+            if($documentRec->locationId){
+                $locationRec = crm_Locations::fetch($documentRec->locationId, 'mol,tel');
+                if(!empty($locationRec->mol)){
+                    $toPerson = $locationRec->mol;
+                }
+                if(!empty($locationRec->tel)){
+                    $form->setDefault('receiverPhone', $locationRec->tel);
+                }
+            } elseif(!empty($documentRec->tel)){
+                $toPerson =  $locationRec->person;
+                $form->setDefault('receiverPhone', $documentRec->tel);
+            }
+        }
+        
+        if(empty($toPerson) && $Cover->haveInterface('crm_PersonAccRegIntf')){
+            $toPerson = $Cover->fetchField('name');
+            $form->setDefault('receiverPhone', $Cover->fetchField('tel'));
+        }
+        
+        if($rec->isPrivatePerson == 'yes'){
+            $form->setDefault('receiverName', $toPerson);
+            $form->setField('receiverPerson', 'input=none');
+        } else {
+            $form->setDefault('receiverName', $logisticData['toCompany']);
+            $form->setDefault('receiverPerson', $toPerson);
         }
         
         if(isset($rec->receiverSpeedyOffice)){
@@ -250,21 +297,27 @@ class speedy_plg_BillOfLading extends core_Plugin
             $form->setField('insurancePayer', 'input');
             $form->setDefault('insurancePayer', 'same');
         }
-        
-        $logisticData = $mvc->getLogisticData($documentRec);
        
+        
+        
+        
+        
         if($form->cmd != 'refresh'){
             $Cover = doc_Folders::getCover($documentRec->folderId);
             if($Cover->haveInterface('crm_PersonAccRegIntf')){
-                $form->setDefault('receiverName', $logisticData['toPerson']);
+                bp($toPerson);
+                $form->setDefault('receiverName', $toPerson);
                 $form->setDefault('isPrivatePerson', 'yes');
             } else{
                 $form->setDefault('isPrivatePerson', 'no');
-                $receiverName = !empty($logisticData['toPerson']) ? $logisticData['toPerson'] : $logisticData['toCompany'];
-                $form->setDefault('receiverName', $receiverName);
-                $form->setDefault('receiverPerson', $logisticData['toPerson']);
+                $form->setDefault('receiverName', $logisticData['toCompany']);
+                $form->setDefault('receiverPerson', $toPerson);
             }
         }
+        
+        
+        
+        
         
         $form->setDefault('options', 'no');
         if($rec->isPrivatePerson == 'yes'){
