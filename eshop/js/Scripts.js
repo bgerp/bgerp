@@ -276,3 +276,10 @@ function render_addClass(data)
 	var element = $("#" + id);
 	element.addClass(cls);
 }
+
+/**
+ * Да скролира да данните за доставка
+ */
+function scrollToDetail(){
+	$(window).scrollTop($('.narrow #cart-view-order-info').offset().top - 12);
+}

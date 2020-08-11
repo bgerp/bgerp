@@ -1369,7 +1369,11 @@ class eshop_Carts extends core_Master
         $tpl->append('</div>');
         Mode::set('wrapper', 'cms_page_External');
         $tpl->prepend("\n<meta name=\"robots\" content=\"nofollow\">", 'HEAD');
-        
+
+        if (Mode::is('screenMode', 'narrow')) {
+            jquery_Jquery::run($tpl, 'scrollToDetail();');
+        }
+
         vislog_History::add('Разглеждане на количка');
         
         return $tpl;
