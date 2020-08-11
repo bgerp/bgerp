@@ -112,9 +112,7 @@ body {
     width: 100%;
 }
 
-.bulletinReg .push_button {
-    margin: 5px auto 20px !important;
-}
+
 
 .push_button.small {
     line-height: 26px !important;
@@ -122,9 +120,14 @@ body {
     font-size: 0.8em !important;
     padding: 3px;
     width: 220px;
-    margin: 20px 0;
+    margin: 20px 2px !important;
 }
-
+.narrow .push_button.small {
+    margin: 10px 2px !important;
+}
+.bulletinReg .push_button {
+    margin: 5px auto 20px !important;
+}
 .push_button:before {
     background:#f0f0f0;
     -webkit-border-radius:5px;
@@ -194,6 +197,7 @@ body {
 }
 
 .bulletin-link {
+    padding-top: 20px;
     clear: both;
 }
 @media handheld, only screen and (max-width: 640px) {
