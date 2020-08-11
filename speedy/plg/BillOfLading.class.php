@@ -297,27 +297,6 @@ class speedy_plg_BillOfLading extends core_Plugin
             $form->setField('insurancePayer', 'input');
             $form->setDefault('insurancePayer', 'same');
         }
-       
-        
-        
-        
-        
-        if($form->cmd != 'refresh'){
-            $Cover = doc_Folders::getCover($documentRec->folderId);
-            if($Cover->haveInterface('crm_PersonAccRegIntf')){
-                bp($toPerson);
-                $form->setDefault('receiverName', $toPerson);
-                $form->setDefault('isPrivatePerson', 'yes');
-            } else{
-                $form->setDefault('isPrivatePerson', 'no');
-                $form->setDefault('receiverName', $logisticData['toCompany']);
-                $form->setDefault('receiverPerson', $toPerson);
-            }
-        }
-        
-        
-        
-        
         
         $form->setDefault('options', 'no');
         if($rec->isPrivatePerson == 'yes'){
