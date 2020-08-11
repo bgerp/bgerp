@@ -171,7 +171,7 @@ class eshop_Carts extends core_Master
         $this->FLD('paidOnline', 'enum(no=Не,yes=Да)', 'caption=Общи данни->Платено,input=none,notNull,value=no');
         $this->FLD('productCount', 'int', 'caption=Общи данни->Брой,input=none, summary=quantity,summaryCaption=  Брой артикули');
         
-        $this->FLD('personNames', 'varchar(255,autocomplete=off)', 'caption=Имена,class=contactData,hint=Вашето име||Your name,mandatory,silent');
+        $this->FLD('personNames', 'varchar(255,autocomplete=off)', 'caption=Имена,class=contactData,hint=Име и фамилия||Name and surname,mandatory,silent');
         $this->FLD('email', 'email(valid=drdata_Emails->validate,autocomplete=off)', 'caption=Имейл,hint=Вашият имейл||Your email,mandatory');
         $this->FLD('tel', 'drdata_PhoneType(type=tel,nullIfEmpty,unrecognized=warning,autocomplete=off)', 'caption=Телефон,hint=Вашият телефон,mandatory');
         $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,mandatory');
@@ -189,7 +189,7 @@ class eshop_Carts extends core_Master
         $this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=locationId|invoiceNames|invoiceUicNo|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|invoiceNames');
         
         $this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактуриране->Папка,input=none,silent,removeAndRefreshForm=locationId|invoiceNames|invoiceVatNo|invoiceUicNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|makeInvoice');
-        $this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактуриране->Наименование,invoiceData,hint=Име,input=none,mandatory');
+        $this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактуриране->Наименование,invoiceData,hint=Име и фамилия||Name and surname,input=none,mandatory');
         
         $this->FLD('invoiceVatNo', 'drdata_VatType', 'caption=Данни за фактуриране->ДДС №||VAT ID,input=hidden,invoiceData');
         $this->FLD('invoiceUicNo', 'varchar(26)', 'caption=Данни за фактуриране->ЕИК №,input=hidden,invoiceData');
@@ -2063,18 +2063,30 @@ class eshop_Carts extends core_Master
             
             // Проверка на имената да са поне две с поне 2 букви
             if (!core_Users::checkNames($rec->personNames)) {
-                $form->setError('personNames', 'Невалидни имена');
+                $form->setError('personNames', 'Невалидно име и фамилия');
             }
             
             // Проверка на имената на лицето на фактурата, ако тя е за лице да са поне две с поне 2 букви
             if ($rec->makeInvoice == 'person') {
                 if (!core_Users::checkNames($rec->invoiceNames)) {
-                    $form->setError('invoiceNames', 'Невалидни имена');
+                    $form->setError('invoiceNames', 'Невалидно име и фамилия');
                 }
             }
             
             if ($rec->makeInvoice != 'none' && empty($rec->invoiceVatNo) && empty($rec->invoiceUicNo)) {
                 $form->setError('invoiceVatNo,invoiceUicNo', 'Поне едно от полетата трябва да бъде въведено');
+            }
+            
+            if (!empty($rec->invoiceUicNo)) {
+                $msg = $isError = null;
+                crm_Companies::checkUicId($rec->invoiceUicNo, $rec->invoiceCountry, $msg, $isError);
+                if (!empty($msg)) {
+                    if ($isError === true) {
+                        $form->setError('invoiceUicNo', $msg);
+                    } else {
+                        $form->setWarning('invoiceUicNo', $msg);
+                    }
+                }
             }
             
             if (!empty($rec->invoiceNames) && $rec->makeInvoice != 'none') {
