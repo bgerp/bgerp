@@ -2530,6 +2530,10 @@ class fileman_Files extends core_Master
         $filter = $data->listFilter->rec;
         
         $usersArr = type_Keylist::toArray($filter->usersSearch);
+        if ($usersArr[-1]) {
+            $data->query->isSlowQuery = true;
+            $data->query->useCacheForPager = true;
+        }
         $mvc->prepareFilesQuery($data->query, $usersArr, $data->groupByDateField);
         
         $data->query->orderBy('modifiedOn', 'DESC');
