@@ -266,11 +266,11 @@ class speedy_plg_BillOfLading extends core_Plugin
                     $form->setDefault('receiverPhone', $locationRec->tel);
                 }
             } elseif(!empty($documentRec->tel)){
-                $toPerson =  $locationRec->person;
+                $toPerson =  $documentRec->person;
                 $form->setDefault('receiverPhone', $documentRec->tel);
             } elseif($firstDocument->isInstanceOf('sales_Sales')){
                 if($cartRec = eshop_Carts::fetch("#saleId = {$firstDocument->that}", 'personNames,tel')){
-                    $toPerson = $cartRec->personNam;
+                    $toPerson = $cartRec->personNames;
                     $form->setDefault('receiverPhone', $cartRec->tel);
                 }
             }
