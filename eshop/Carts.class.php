@@ -2140,6 +2140,9 @@ class eshop_Carts extends core_Master
                 $this->updateMaster($rec);
                 core_Lg::pop();
                 eshop_Carts::logWrite("Попълване на данни за поръчката от външната част", $rec->id);
+                if(isset($rec->saleFolderId)){
+                    colab_Folders::setLastActiveContragentFolder($rec->saleFolderId);
+                }
                 
                 return followRetUrl();
             }
