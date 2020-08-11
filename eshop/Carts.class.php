@@ -2081,11 +2081,7 @@ class eshop_Carts extends core_Master
                 $msg = $isError = null;
                 crm_Companies::checkUicId($rec->invoiceUicNo, $rec->invoiceCountry, $msg, $isError);
                 if (!empty($msg)) {
-                    if ($isError === true) {
-                        $form->setError('invoiceUicNo', $msg);
-                    } else {
-                        $form->setWarning('invoiceUicNo', $msg);
-                    }
+                    $form->setWarning('invoiceUicNo', $msg);
                 }
             }
             
