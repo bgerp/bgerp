@@ -52,7 +52,7 @@ class fileman_Files extends core_Master
     /**
      * Кой има права за регенерира на файла
      */
-    protected $canRegenerate = 'admin';
+    protected $canRegenerate = 'admin, debug';
     
     
     /**
@@ -2339,7 +2339,7 @@ class fileman_Files extends core_Master
         $data->toolbar->addBtn('Линк', array('F', 'GetLink', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => true), 'id=btn-downloadLink', 'ef_icon = img/16/link.png, title=Генериране на линк за сваляне, order=9');
         
         if ($mvc->haveRightFor('regenerate', $data->rec->id)) {
-            $data->toolbar->addBtn('Регенериране', array($mvc, 'Regenerate', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => true), 'id=btn-regenerate', 'ef_icon = img/16/recycle.png, title=Повторна обработка на файла, order=19.99');
+            $data->toolbar->addBtn('Регенериране', array($mvc, 'Regenerate', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => true), 'id=btn-regenerate', 'ef_icon = img/16/recycle.png, title=Повторна обработка на файла, order=19.99, row=2');
         }
         
         if ($printAttr = $this->checkForPrintBnt($mvc, $data->rec, true)) {
