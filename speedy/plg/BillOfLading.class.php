@@ -230,9 +230,17 @@ class speedy_plg_BillOfLading extends core_Plugin
                 }
             }
             
-            if($cartRec = eshop_Carts::fetch("#saleId = {$documentRec->id}", 'personNames,tel')){
+            if($cartRec = eshop_Carts::fetch("#saleId = {$documentRec->id}")){
                 $toPerson = $cartRec->personNam;
                 $form->setDefault('receiverPhone', $cartRec->tel);
+                
+                
+                $form->setDefault('receiverCountryId', $cartRec->deliveryCountry);
+                if($rec->receiverCountryId == $cartRec->deliveryCountry){
+                    $form->setDefault('receiverPlace', $cartRec->deliveryPlace);
+                    $form->setDefault('receiverAddress', $cartRec->deliveryAddress);
+                    $form->setDefault('receiverPCode', $cartRec->deliveryPCode);
+                }
             } elseif($documentRec->deliveryLocationId){
                 $locationRec = crm_Locations::fetch($documentRec->deliveryLocationId, 'mol,tel');
                 if(!empty($locationRec->mol)){
@@ -260,6 +268,11 @@ class speedy_plg_BillOfLading extends core_Plugin
             } elseif(!empty($documentRec->tel)){
                 $toPerson =  $locationRec->person;
                 $form->setDefault('receiverPhone', $documentRec->tel);
+            } elseif($firstDocument->isInstanceOf('sales_Sales')){
+                if($cartRec = eshop_Carts::fetch("#saleId = {$firstDocument->that}", 'personNames,tel')){
+                    $toPerson = $cartRec->personNam;
+                    $form->setDefault('receiverPhone', $cartRec->tel);
+                }
             }
         }
         

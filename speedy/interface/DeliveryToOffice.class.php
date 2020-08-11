@@ -144,7 +144,7 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
             $officeLocationUrlTpl = new core_ET(speedy_Setup::get('OFFICE_LOCATOR_URL'));
             $officeLocationUrlTpl->replace($officeRec->num, 'NUM');
             
-            if($officeRec->state == 'closed'){
+            if($officeRec->state != 'closed'){
                 $officeName = ht::createLinkRef($officeName, $officeLocationUrlTpl->getContent(), false, 'target=_blank');
             } else {
                 $officeName = ht::createHint($officeName, 'Офисът, вече не е актуален', 'warning');
