@@ -93,6 +93,8 @@ class speedy_Offices extends core_Manager
     {
         $options = array();
         $query = self::getQuery();
+        $query->where("#state != 'closed'");
+        
         while($rec = $query->fetch()){
             $options[$rec->id] = $rec->extName;
         }
