@@ -206,12 +206,6 @@ class speedy_plg_BillOfLading extends core_Plugin
         
         $form->input(null, 'silent');
         
-        if(isset($rec->receiverSpeedyOffice)){
-            foreach (array('receiverCountryId', 'receiverPlace', 'receiverAddress', 'receiverPCode', 'receiverBlock', 'receiverEntrance', 'receiverFloor', 'receiverApp') as $addressField){
-                $form->setField($addressField, 'input=none');
-            }
-        }
-        
         if($rec->isDocuments == 'yes'){
             $form->setField('amountInsurance', 'input=none');
             $form->setField('isFragile', 'input=none');
@@ -221,10 +215,24 @@ class speedy_plg_BillOfLading extends core_Plugin
         if($mvc instanceof sales_Sales){
             $paymentType = $documentRec->paymentMethodId;
             $amountCod = $documentRec->amountDeal;
+            if($documentRec->deliveryTermId){
+                if($DeliveryCalc = cond_DeliveryTerms::getTransportCalculator($documentRec->deliveryTermId)){
+                    if($form->cmd != 'refresh' && $DeliveryCalc->class instanceof speedy_interface_DeliveryToOffice){
+                        $officeNum = speedy_Offices::fetchField($documentRec->deliveryData['officeId'], 'num');
+                        $form->setDefault('receiverSpeedyOffice', $officeNum);
+                    }
+                }
+            }
         } elseif($mvc instanceof store_DocumentMaster){
             $firstDocument = doc_Threads::getFirstDocument($documentRec->threadId);
             $paymentType = $firstDocument->fetchField('paymentMethodId');
             $amountCod = ($documentRec->chargeVat == 'separate') ? $documentRec->amountDelivered + $documentRec->amountDeliveredVat : $documentRec->amountDelivered;
+        }
+        
+        if(isset($rec->receiverSpeedyOffice)){
+            foreach (array('receiverCountryId', 'receiverPlace', 'receiverAddress', 'receiverPCode', 'receiverBlock', 'receiverEntrance', 'receiverFloor', 'receiverApp') as $addressField){
+                $form->setField($addressField, 'input=none');
+            }
         }
         
         if(isset($paymentType)){
