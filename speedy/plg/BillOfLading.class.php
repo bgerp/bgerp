@@ -230,18 +230,22 @@ class speedy_plg_BillOfLading extends core_Plugin
                 }
             }
            
-            if($cartRec = eshop_Carts::fetch("#saleId = {$documentRec->id}")){
-                $toPerson = $cartRec->personNam;
-                $form->setDefault('receiverPhone', $cartRec->tel);
-                
-                
-                $form->setDefault('receiverCountryId', $cartRec->deliveryCountry);
-                if($rec->receiverCountryId == $cartRec->deliveryCountry){
-                    $form->setDefault('receiverPlace', $cartRec->deliveryPlace);
-                    $form->setDefault('receiverAddress', $cartRec->deliveryAddress);
-                    $form->setDefault('receiverPCode', $cartRec->deliveryPCode);
+            if(core_Packs::isInstalled('eshop')){
+                if($cartRec = eshop_Carts::fetch("#saleId = {$documentRec->id}")){
+                    $toPerson = $cartRec->personNam;
+                    $form->setDefault('receiverPhone', $cartRec->tel);
+                    
+                    
+                    $form->setDefault('receiverCountryId', $cartRec->deliveryCountry);
+                    if($rec->receiverCountryId == $cartRec->deliveryCountry){
+                        $form->setDefault('receiverPlace', $cartRec->deliveryPlace);
+                        $form->setDefault('receiverAddress', $cartRec->deliveryAddress);
+                        $form->setDefault('receiverPCode', $cartRec->deliveryPCode);
+                    }
                 }
-            } elseif($documentRec->deliveryLocationId){
+            }
+            
+            if(empty($cartRec) && $documentRec->deliveryLocationId){
                 $locationRec = crm_Locations::fetch($documentRec->deliveryLocationId, 'mol,tel');
                 if(!empty($locationRec->mol)){
                     $toPerson = $locationRec->mol;
@@ -269,9 +273,11 @@ class speedy_plg_BillOfLading extends core_Plugin
                 $toPerson =  $documentRec->person;
                 $form->setDefault('receiverPhone', $documentRec->tel);
             } elseif($firstDocument->isInstanceOf('sales_Sales')){
-                if($cartRec = eshop_Carts::fetch("#saleId = {$firstDocument->that}", 'personNames,tel')){
-                    $toPerson = $cartRec->personNames;
-                    $form->setDefault('receiverPhone', $cartRec->tel);
+                if(core_Packs::isInstalled('eshop')){
+                    if($cartRec = eshop_Carts::fetch("#saleId = {$firstDocument->that}", 'personNames,tel')){
+                        $toPerson = $cartRec->personNames;
+                        $form->setDefault('receiverPhone', $cartRec->tel);
+                    }
                 }
             }
         }
