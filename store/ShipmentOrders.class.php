@@ -236,12 +236,14 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public function getDefaultTemplate_($rec)
     {
-        if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
-            if($firstDocument->isInstanceOf('sales_Sales')){
-                if(eshop_Carts::fetchField("#saleId = {$firstDocument->that}")){
-                    $templateId = doc_TplManager::fetchField("#name = 'Експедиционно нареждане с цени (Онлайн поръчка)' AND #docClassId = {$this->getClassId()}");
-                    
-                    return $templateId;
+        if(core_Packs::isInstalled('eshop')){
+            if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
+                if($firstDocument->isInstanceOf('sales_Sales')){
+                    if(eshop_Carts::fetchField("#saleId = {$firstDocument->that}")){
+                        $templateId = doc_TplManager::fetchField("#name = 'Експедиционно нареждане с цени (Онлайн поръчка)' AND #docClassId = {$this->getClassId()}");
+                        
+                        return $templateId;
+                    }
                 }
             }
         }
