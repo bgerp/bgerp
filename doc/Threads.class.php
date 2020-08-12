@@ -1853,7 +1853,7 @@ class doc_Threads extends core_Manager
         // Запазваме общия брой документи
         $exAllDocCnt = $rec->allDocCnt;
         
-        self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
+        self::prepareDocCnt($rec, $firstDcRec, $lastDcRec, $lastChangeDate);
         
         // Попълваме полето за споделените потребители
         $rec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->id));
@@ -1873,12 +1873,7 @@ class doc_Threads extends core_Manager
                 }
             }
             
-            // Последния документ в треда
-            if ($lastDcRec->state != 'draft') {
-                $rec->last = max($lastDcRec->createdOn, $lastDcRec->modifiedOn);
-            } else {
-                $rec->last = $lastDcRec->createdOn;
-            }
+            $rec->last = $lastChangeDate;
             
             // Ако имаме добавяне/махане на документ от треда или промяна на състоянието към активно
             // тогава състоянието му се определя от последния документ в него
@@ -1940,7 +1935,7 @@ class doc_Threads extends core_Manager
      * @param NULL|stdClass $firstDcRec
      * @param NULL|stdClass $lastDcRec
      */
-    public static function prepareDocCnt(&$rec, &$firstDcRec, &$lastDcRec)
+    public static function prepareDocCnt(&$rec, &$firstDcRec, &$lastDcRec, &$lastChangeDate = null)
     {
         // Публични документи в треда
         $rec->partnerDocCnt = $rec->allDocCnt = 0;
@@ -1954,6 +1949,12 @@ class doc_Threads extends core_Manager
         while ($dcRec = $dcQuery->fetch("#threadId = {$rec->id}")) {
             if (!$firstDcRec) {
                 $firstDcRec = $dcRec;
+            }
+            
+            if ($dcRec->state == 'draft') {
+                $lastChangeDate = max($lastChangeDate, $dcRec->createdOn);
+            } else {
+                $lastChangeDate = max($lastChangeDate, $dcRec->modifiedOn, $dcRec->createdOn);
             }
             
             // Не броим оттеглените документи
