@@ -187,7 +187,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         $form->FLD('date', 'varchar', 'caption=Описание на пратката->Изпращане на,mandatory');
         
         $form->FLD('payer', 'enum(sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец,mandatory');
-        $form->FLD('payerPackaging', 'enum(same=Както куриерска услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец опаковка,mandatory');
+        $form->FLD('payerPackaging', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец опаковка,mandatory');
         
         $form->FLD('isDocuments', 'set(yes=Документи)', 'caption=Описание на пратката->,inlineTo=payerPackaging,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer|palletCount');
         $form->FLD('palletCount', 'int(min=0,Max=10)', 'caption=Описание на пратката->Бр. пакети,mandatory');
@@ -200,12 +200,12 @@ class speedy_plg_BillOfLading extends core_Plugin
         $form->FLD('codType', 'set(post=Като паричен превод,including=Вкл. цената на куриерска услуга в НП)', 'caption=Описание на пратката->Вид,after=amountCODBase,input=none');
         
         $form->FLD('amountInsurance', 'double', 'caption=Описание на пратката->Обявена стойност,unit=BGN,silent,removeAndRefreshForm=insurancePayer|isFragile');
-        $form->FLD('insurancePayer', 'enum(same=Както куриерска услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец обявена ст.,input=none');
+        $form->FLD('insurancePayer', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец обявена ст.,input=none');
         $form->FLD('isFragile', 'set(yes=Да)', 'caption=Описание на пратката->Чупливост,after=amountInsurance,input=none');
         
         $form->FLD('options', 'enum(no=Няма,open=Отвори преди плащане/получаване,test=Тествай преди плащане/получаване)', 'caption=Описание на пратката->Опции,silent,removeAndRefreshForm=returnServiceId|returnPayer,maxRadio=3');
         $form->FLD('returnServiceId', 'varchar', 'caption=Описание на пратката->Услуга за Връщане,input=none,after=options');
-        $form->FLD('returnPayer', 'enum(same=Както куриерска услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец на Връщането,input=none,after=returnServiceId');
+        $form->FLD('returnPayer', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец на Връщането,input=none,after=returnServiceId');
         $form->FLD('backRequest', 'set(document=Документи,receipt=Разписка)', 'caption=Заявка за обр->Избор');
        
         $Cover = doc_Folders::getCover($documentRec->folderId);
@@ -395,7 +395,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         
         if(!empty($rec->options)){
             $form->setField('returnServiceId', 'input');
-            $form->setOptions('returnServiceId', array('same' => 'Както куриерска услуга') + $serviceOptions);
+            $form->setOptions('returnServiceId', array('same' => 'Както куриерската услуга') + $serviceOptions);
             $form->setField('returnPayer', 'input');
         }
         
