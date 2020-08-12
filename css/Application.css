@@ -6731,6 +6731,11 @@ only screen and (max-width: 320px) {
   left: auto;
   margin: 0; }
 
+  .endTooltip img,
+  .frontToolip img {
+    width: 16px;
+    height: 16px; }
+
 .narrow .elem-holder .endTooltip {
   float: right; }
 

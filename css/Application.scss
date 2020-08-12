@@ -7643,6 +7643,12 @@ body.narrow {
     left: auto;
     margin: 0;
 }
+.endTooltip, .frontToolip {
+	img {
+		width: 16px;
+		height: 16px;
+	}
+}
 
 .narrow .elem-holder .endTooltip {
 	float: right;
