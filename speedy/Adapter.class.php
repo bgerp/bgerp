@@ -406,6 +406,7 @@ class speedy_Adapter {
         
         $picking->setTakingDate($pickingData->takingDate);
         $codOptions = type_Set::toArray($rec->codType);
+        
         if(isset($codOptions['post'])){
             $picking->setPayCodToLoggedInClient(true);
         } 
@@ -461,7 +462,7 @@ class speedy_Adapter {
      */
     public function handleException(ServerException $e, &$fields)
     {
-        $fields = null;
+        $fields = 'receiverPhone';
         $errorMsg = $e->getMessage();
         
         if(strpos($errorMsg, '[ERR_012]') !== false){
