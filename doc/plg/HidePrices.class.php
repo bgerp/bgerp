@@ -181,4 +181,28 @@ class doc_plg_HidePrices extends core_Plugin
             }
         }
     }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        if (self::canSeePriceFields($data->masterRec)){
+            
+            return;
+        }
+        
+        $form = &$data->form;
+        $priceFields = arr::make($mvc->priceFields);
+        
+        foreach ($priceFields as $fld){
+            if($form->getField($fld, false)){
+                $form->setField($fld, 'input=none');
+            }
+        }
+    }
 }
