@@ -149,6 +149,7 @@ class speedy_Offices extends core_Manager
         } catch(ServerException $e){
             reportException($e);
             $this->logErr('Проблем при извличане на офисите на Speedy');
+            $this->logErr($e->getMessage());
             core_Users::cancelSystemUser();
             
             return;
