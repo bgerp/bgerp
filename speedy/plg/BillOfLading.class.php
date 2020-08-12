@@ -67,7 +67,7 @@ class speedy_plg_BillOfLading extends core_Plugin
             
             // Подготовка на формата
             $form = self::getBillOfLadingForm($mvc, $rec, $adapter);
-            $form->FLD('senderAddress', 'varchar', 'after=senderName,caption=Данни за подател->Адрес,hint=Адресът е настроен в профика в Speedy');
+            $form->FLD('senderAddress', 'varchar', 'after=senderName,caption=Подател->Адрес,hint=Адресът е настроен в профика в Speedy');
             $senderAddress = $adapter->getSenderAddress();
             $form->setReadOnly('senderAddress', $senderAddress);
             
@@ -158,50 +158,50 @@ class speedy_plg_BillOfLading extends core_Plugin
         $rec = &$form->rec;
         $form->title = 'Попълване на товарителница за Speedy към|* ' . $mvc->getFormTitleLink($documentRec);
         
-        $form->FLD('senderPhone', 'drdata_PhoneType(type=tel,unrecognized=error)', 'caption=Данни за подател->Телефон,mandatory');
-        $form->FLD('senderName', 'varchar', 'caption=Данни за подател->Фирма/Име,mandatory');
-        $form->FLD('senderNotes', 'text(rows=2)', 'caption=Данни за подател->Уточнение');
+        $form->FLD('senderPhone', 'drdata_PhoneType(type=tel,unrecognized=error)', 'caption=Подател->Телефон,mandatory');
+        $form->FLD('senderName', 'varchar', 'caption=Подател->Фирма/Име,mandatory');
+        $form->FLD('senderNotes', 'text(rows=2)', 'caption=Подател->Уточнение');
         
-        $form->FLD('isPrivatePerson', 'enum(no=Фирма,yes=Частно лице)', 'caption=Данни за получател->Получател,silent,removeAndRefreshForm=receiverPerson|receiverName,maxRadio=2,mandatory');
-        $form->FLD('receiverName', 'varchar', 'caption=Данни за получател->Фирма/Име,mandatory');
-        $form->FLD('receiverPerson', 'varchar', 'caption=Данни за получател->Лице за конт,mandatory');
-        $form->FLD('receiverPhone', 'drdata_PhoneType(type=tel,unrecognized=error)', 'caption=Данни за получател->Телефон,mandatory');
+        $form->FLD('isPrivatePerson', 'enum(no=Фирма,yes=Частно лице)', 'caption=Получател->Получател,silent,removeAndRefreshForm=receiverPerson|receiverName,maxRadio=2,mandatory');
+        $form->FLD('receiverName', 'varchar', 'caption=Получател->Фирма/Име,mandatory');
+        $form->FLD('receiverPerson', 'varchar', 'caption=Получател->Лице за конт,mandatory');
+        $form->FLD('receiverPhone', 'drdata_PhoneType(type=tel,unrecognized=error)', 'caption=Получател->Телефон,mandatory');
         
-        $form->FLD('receiverSpeedyOffice', 'customKey(mvc=speedy_Offices,key=num,select=extName,allowEmpty)', 'caption=Адрес на получател->Офис на Спиди,removeAndRefreshForm=service|date|receiverCountryId|receiverPlace|receiverAddress|receiverPCode,silent');
-        $form->FLD('receiverCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адрес на получател->Държава,removeAndRefreshForm=service|date|receiverPlace|receiverPCode|receiverAddress,silent');
-        $form->FLD('receiverPCode', 'varchar', 'caption=Адрес на получател->Пощ. код,removeAndRefreshForm=service,silent');
-        $form->FLD('receiverPlace', 'varchar', 'caption=Адрес на получател->Нас. място,removeAndRefreshForm=service,silent');
-        $form->FLD('receiverAddress', 'varchar', 'caption=Адрес на получател->Адрес');
-        $form->FLD('receiverBlock', 'varchar', 'caption=Адрес на получател->Блок');
-        $form->FLD('receiverEntrance', 'varchar', 'caption=Адрес на получател->Вход');
-        $form->FLD('receiverFloor', 'int', 'caption=Адрес на получател->Етаж');
-        $form->FLD('receiverApp', 'varchar', 'caption=Адрес на получател->Апартамент');
-        $form->FLD('receiverNotes', 'text(rows=2)', 'caption=Адрес на получател->Уточнение');
-        $form->FLD('floorNum', 'int', 'caption=Адрес на получател->Качване до етаж');
+        $form->FLD('receiverSpeedyOffice', 'customKey(mvc=speedy_Offices,key=num,select=extName,allowEmpty)', 'caption=Адрес за доставка->Офис на Спиди,removeAndRefreshForm=service|date|receiverCountryId|receiverPlace|receiverAddress|receiverPCode,silent');
+        $form->FLD('receiverCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адрес за доставка->Държава,removeAndRefreshForm=service|date|receiverPlace|receiverPCode|receiverAddress,silent');
+        $form->FLD('receiverPCode', 'varchar', 'caption=Адрес за доставка->Пощ. код,removeAndRefreshForm=service,silent');
+        $form->FLD('receiverPlace', 'varchar', 'caption=Адрес за доставка->Нас. място,removeAndRefreshForm=service,silent');
+        $form->FLD('receiverAddress', 'varchar', 'caption=Адрес за доставка->Адрес');
+        $form->FLD('receiverBlock', 'varchar', 'caption=Адрес за доставка->Блок');
+        $form->FLD('receiverEntrance', 'varchar', 'caption=Адрес за доставка->Вход');
+        $form->FLD('receiverFloor', 'int', 'caption=Адрес за доставка->Етаж');
+        $form->FLD('receiverApp', 'varchar', 'caption=Адрес за доставка->Апартамент');
+        $form->FLD('receiverNotes', 'text(rows=2)', 'caption=Адрес за доставка->Уточнение');
+        $form->FLD('floorNum', 'int', 'caption=Адрес за доставка->Качване до етаж');
         
-        $form->FLD('service', 'varchar', 'caption=Параметри на пратката 1.->Услуга,mandatory,removeAndRefreshForm=date,silent');
-        $form->FLD('date', 'varchar', 'caption=Параметри на пратката 1.->Изпращане на,mandatory');
+        $form->FLD('service', 'varchar', 'caption=Описание на пратката->Услуга,mandatory,removeAndRefreshForm=date,silent');
+        $form->FLD('date', 'varchar', 'caption=Описание на пратката->Изпращане на,mandatory');
         
-        $form->FLD('payer', 'enum(sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Параметри на пратката 1.->Платец,mandatory');
-        $form->FLD('payerPackaging', 'enum(same=Както куриерска услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Параметри на пратката 1.->Платец опаковка,mandatory');
+        $form->FLD('payer', 'enum(sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец,mandatory');
+        $form->FLD('payerPackaging', 'enum(same=Както куриерска услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец опаковка,mandatory');
         
-        $form->FLD('isDocuments', 'set(yes=Документи)', 'caption=Параметри на пратката 2.->,inlineTo=payerPackaging,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer');
-        $form->FLD('palletCount', 'int(min=0,Max=10)', 'caption=Параметри на пратката 2.->Бр. пакети,mandatory');
-        $form->FLD('content', 'text(rows=2)', 'caption=Параметри на пратката 2.->Съдържание,mandatory,recently');
-        $form->FLD('packaging', 'varchar', 'caption=Параметри на пратката 2.->Опаковка,mandatory,recently');
-        $form->FLD('totalWeight', 'double(min=0,max=50)', 'caption=Параметри на пратката 2.->Общо тегло,unit=кг,mandatory');
-        $form->FLD('isPaletize', 'set(yes=Да)', 'caption=Параметри на пратката 2.->Палетизирана,after=amountInsurance');
+        $form->FLD('isDocuments', 'set(yes=Документи)', 'caption=Описание на пратката->,inlineTo=payerPackaging,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer');
+        $form->FLD('palletCount', 'int(min=0,Max=10)', 'caption=Описание на пратката->Бр. пакети,mandatory');
+        $form->FLD('content', 'text(rows=2)', 'caption=Описание на пратката->Съдържание,mandatory,recently');
+        $form->FLD('packaging', 'varchar', 'caption=Описание на пратката->Опаковка,mandatory,recently');
+        $form->FLD('totalWeight', 'double(min=0,max=50)', 'caption=Описание на пратката->Общо тегло,unit=кг,mandatory');
+        $form->FLD('isPaletize', 'set(yes=Да)', 'caption=Описание на пратката->Палетизирана');
         
-        $form->FLD('amountCODBase', 'double(min=0)', 'caption=Параметри на пратката 3.->Наложен платеж,unit=BGN,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer');
-        $form->FLD('codType', 'set(post=Като паричен превод,including=Вкл. цената на куриерска услуга в НП)', 'caption=Параметри на пратката 3.->Вид,after=amountCODBase,input=none');
+        $form->FLD('amountCODBase', 'double(min=0)', 'caption=Описание на пратката->Наложен платеж,unit=BGN,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer');
+        $form->FLD('codType', 'set(post=Като паричен превод,including=Вкл. цената на куриерска услуга в НП)', 'caption=Описание на пратката->Вид,after=amountCODBase,input=none');
         
-        $form->FLD('amountInsurance', 'double', 'caption=Параметри на пратката 3.->Обявена стойност,unit=BGN,silent,removeAndRefreshForm=insurancePayer|isFragile');
-        $form->FLD('insurancePayer', 'enum(same=Както куриерска услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Параметри на пратката 3.->Платец обявена ст.,input=none');
-        $form->FLD('isFragile', 'set(yes=Да)', 'caption=Параметри на пратката 3.->Чупливост,after=amountInsurance,input=none');
+        $form->FLD('amountInsurance', 'double', 'caption=Описание на пратката->Обявена стойност,unit=BGN,silent,removeAndRefreshForm=insurancePayer|isFragile');
+        $form->FLD('insurancePayer', 'enum(same=Както куриерска услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец обявена ст.,input=none');
+        $form->FLD('isFragile', 'set(yes=Да)', 'caption=Описание на пратката->Чупливост,after=amountInsurance,input=none');
         
-        $form->FLD('options', 'enum(no=Няма,open=Отвори преди плащане/получаване,test=Тествай преди плащане/получаване)', 'caption=Параметри на пратката 3.->Опции,silent,removeAndRefreshForm=returnServiceId|returnPayer,maxRadio=3');
-        $form->FLD('returnServiceId', 'varchar', 'caption=Параметри на пратката 3.->Услуга за Връщане,input=none,after=options');
-        $form->FLD('returnPayer', 'enum(same=Както куриерска услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Параметри на пратката 3.->Платец на Връщането,input=none,after=returnServiceId');
+        $form->FLD('options', 'enum(no=Няма,open=Отвори преди плащане/получаване,test=Тествай преди плащане/получаване)', 'caption=Описание на пратката->Опции,silent,removeAndRefreshForm=returnServiceId|returnPayer,maxRadio=3');
+        $form->FLD('returnServiceId', 'varchar', 'caption=Описание на пратката->Услуга за Връщане,input=none,after=options');
+        $form->FLD('returnPayer', 'enum(same=Както куриерска услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец на Връщането,input=none,after=returnServiceId');
         
         $Cover = doc_Folders::getCover($documentRec->folderId);
         $isPrivatePerson = ($Cover->haveInterface('crm_PersonAccRegIntf')) ? 'yes' : 'no';
