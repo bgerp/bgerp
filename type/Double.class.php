@@ -150,10 +150,6 @@ class type_Double extends core_Type
             return;
         }
         
-        //$value = 0.01 / 205;
-        //bp();
-        
-        
         $conf = core_Packs::getConfig('core');
         
         $decPoint = isset($this->params['decPoint']) ? $this->params['decPoint'] : html_entity_decode($conf->EF_NUMBER_DEC_POINT);
