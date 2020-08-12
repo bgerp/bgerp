@@ -6587,6 +6587,9 @@ body.narrow {
             max-width: 159px;
         }
     }
+	.narrow .vFormField .select2 {
+		max-width: 335px !important;
+	}
     .externalPage h2{
         font-size: 1.22em;
     }
