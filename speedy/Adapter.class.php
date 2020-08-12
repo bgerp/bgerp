@@ -281,7 +281,6 @@ class speedy_Adapter {
         $pickingData->palletized = ($rec->isPaletize == 'yes') ? true : false;
         $pickingData->fragile = ($rec->isFragile == 'yes') ? true : false;
         
-        // Информация за съдържанието и наложения платеж и обявената стойност
         $pickingData->amountCODBase = $rec->amountCODBase;
         $pickingData->amountInsurance = $rec->amountInsurance;
         $pickingData->backDocumentReq = true;
@@ -383,7 +382,18 @@ class speedy_Adapter {
         $picking->setPayerTypePackings($pickingData->payerTypePackings);
         
         $picking->setTakingDate($pickingData->takingDate);
-        $picking->setAmountCodBase($pickingData->amountCODBase);
+        
+        
+        // Информация за съдържанието и наложения платеж и обявената стойност
+        $codOptions = type_Set::toArray($rec->codType);
+        if(!empty($pickingData->amountCODBase)){
+            if(isset($codOptions['post'])){
+                $picking->setRetMoneyTransferReqAmount($pickingData->amountCODBase);
+            } else {
+                $picking->setAmountCodBase($pickingData->amountCODBase);
+            }
+        }
+        
         $picking->setAmountInsuranceBase($pickingData->amountInsurance);
         $picking->setPayerTypeInsurance($pickingData->insurancePayer);
         $picking->setDeliveryToFloorNo($rec->floorNum);
@@ -405,14 +415,16 @@ class speedy_Adapter {
         }
         
         $picking->setTakingDate($pickingData->takingDate);
-        $codOptions = type_Set::toArray($rec->codType);
-        
-        if(isset($codOptions['post'])){
-            $picking->setPayCodToLoggedInClient(true);
-        } 
         if(isset($codOptions['including'])){
             $picking->setIncludeShippingPriceInCod(true);
         }
+        
+        $backRequest = type_Set::toArray($rec->backRequest);
+        $backDocumentsRequest = isset($backRequest['document']) ? true : false;
+        $picking->setBackDocumentsRequest($backDocumentsRequest);
+        
+        $backReceiptRequest = isset($backRequest['receipt']) ? true : false;
+        $picking->setBackReceiptRequest($backReceiptRequest);
         
         // Генериране на товарителница
         $resultBOL = $this->eps->createBillOfLading($picking);
@@ -474,6 +486,12 @@ class speedy_Adapter {
         } elseif(strpos($errorMsg, '[INVALID_PHONE_NUMBER') !== false){
             $errorMsg = 'Невалиден телефонен номер на получатек';
             $fields = 'receiverPhone';
+        } elseif(strpos($errorMsg, '[INVALID_BACK_DOCUMENT_REQUEST') !== false || strpos($errorMsg, 'INVALID_BACK_RECEIPT_REQUEST') !== false){
+            $errorMsg = 'Не може да са избрани документи/разписка за връщане, при доставка до Автомат';
+            $fields = 'receiverSpeedyOffice,backRequest';
+        } elseif(strpos($errorMsg, '[INVALID_RECEIVER_MOBILE_PHONE_NUMBER_FOR_APT_TBC') !== false){
+            $errorMsg = 'Неразпознат телефонен номер';
+            $fields = 'receiverSpeedyOffice,receiverPhone';
         }
         
         return $errorMsg;
