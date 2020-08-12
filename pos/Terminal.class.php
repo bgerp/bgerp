@@ -1816,7 +1816,7 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function prepareProductTable($rec, $searchString)
     {
-        $result = core_Cache::get('planning_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}_{$rec->_selectedGroupId}");
+        $result = core_Cache::get('pos_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}_{$rec->_selectedGroupId}");
         
         //$result = false;
         
@@ -1928,7 +1928,7 @@ class pos_Terminal extends peripheral_Terminal
             }
             
             $result = $this->prepareProductResultRows($sellable, $rec);
-            core_Cache::set('planning_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}", $result, 2);
+            core_Cache::set('pos_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}", $result, 2);
         }
         
         return $result;
