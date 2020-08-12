@@ -103,13 +103,14 @@ class speedy_plg_BillOfLading extends core_Plugin
                         $bolId = $adapter->getBol($form->rec);
                     } catch(ServerException $e){
                         $mvc->logErr("Проблем при генериране на товарителница", $id);
+                        $mvc->logErr($e->getMessage(), $id);
                         $fields = null;
                         $msg = $adapter->handleException($e, $fields);
                         $form->setError($fields, $msg);
                     }
                     
-                    // Записване на товарителницата като PDF
-                    if(!$form->gotErrors()){
+                    // Записване на товарителницата като PDF, ако е създадеба
+                    if(!$form->gotErrors() && !empty($bolId)){
                         try{
                             $bolFh = $adapter->getBolPdf($bolId);
                             $fileId = fileman::fetchByFh($bolFh, 'id');
@@ -118,13 +119,13 @@ class speedy_plg_BillOfLading extends core_Plugin
                         } catch(ServerException $e){
                             reportException($e);
                             $mvc->logErr("Проблем при генериране на PDF на товарителница", $id);
-                            
+                            $mvc->logErr($e->getMessage(), $id);
                             core_Statuses::newStatus('Проблем при генериране на PDF на товарителница', 'error');
                         }
                     }
                 }
                 
-                if(!$form->gotErrors()){
+                if(!$form->gotErrors() && !empty($bolId)){
                     followRetUrl(null, "Успешно генерирана товарителница|*: №{$bolId}");
                 }
             }
