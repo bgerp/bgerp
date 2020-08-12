@@ -733,36 +733,14 @@ class cal_Tasks extends embed_Manager
             }
         }
         
-        if ($form->isSubmitted() && (cal_Setup::get('SHOW_TASK_TIME_INTERSECTION') != 'no')) {
+        if ($form->isSubmitted()) {
             $mvc->calculateExpectationTime($rec);
             
             $query = self::getQuery();
-            $useQ = $mvc->prepareQueryForTimeIntersection($query, $rec);
-            if ($useQ !== false) {
-                $query->orderBy('modifiedOn', 'DESC');
-                
-                $cnt = $query->count();
-                $limit = 10;
-                $query->limit($limit);
-                
-                $link = '';
-                // За всяка една задача отговаряща на условията проверяваме
-                while ($recTask = $query->fetch()) {
-                    $link .= ($link) ? '<br>' : '';
-                    $link .= ht::createLink($recTask->title, $mvc->getSingleUrlArray($recTask->id), null, 'ef_icon=img/16/task-normal.png');
-                }
-                
-                if ($link) {
-                    if ($cnt > 1) {
-                        $link = '<br>' . $link;
-                    }
-                    
-                    if ($cnt > $limit) {
-                        $link .= '<br>' . ' +' . tr('още') . ': ' . ($cnt - $limit);
-                    }
-                    
-                    $form->setWarning('timeStart, timeDuration, timeEnd', "|Засичане по време с|*: {$link}");
-                }
+            $link = $mvc->prepareQueryForTimeIntersection($rec);
+            
+            if ($link !== false) {
+                $form->setWarning('timeStart, timeDuration, timeEnd', "|Засичане по време с|*: {$link}");
             }
         }
     }
@@ -888,7 +866,7 @@ class cal_Tasks extends embed_Manager
             
             // Заявка към базата
             $query = self::getQuery();
-            $useQ = $mvc->prepareQueryForTimeIntersection($query, $data->rec);
+            $useQ = $mvc->prepareQueryForTimeIntersection($data->rec, 1, false);
             if ($useQ !== false) {
                 $query->limit(1);
                 
@@ -910,14 +888,16 @@ class cal_Tasks extends embed_Manager
      * 
      * @return null|false
      */
-    protected function prepareQueryForTimeIntersection($query, $rec)
+    protected function prepareQueryForTimeIntersection($rec, $limit = 10, $showMore = true)
     {
+        $secToTimeStart = 60 * 60;
+        
         if (!$rec->assign) {
             
             return false;
         }
         
-        if (!$rec->timeStart && !$rec->timeEnd && !$rec->timeDuration ) {
+        if (!$rec->timeStart && !$rec->timeDuration) {
             
             return false;
         }
@@ -929,21 +909,85 @@ class cal_Tasks extends embed_Manager
             return false;
         }
         
-        // При следните условия
-        $query->likeKeylist('assign', $rec->assign);
-        
-        $query->where(array("(#timeStart IS NOT NULL OR #timeEnd IS NOT NULL) AND #expectationTimeStart <= '[#1#]' AND #expectationTimeEnd >= '[#1#]'", $rec->expectationTimeStart));
-        $query->orWhere(array("(#timeStart IS NOT NULL OR #timeEnd IS NOT NULL) AND #expectationTimeStart <= '[#1#]' AND #expectationTimeEnd >= '[#1#]'", $rec->expectationTimeEnd));
-        
-        if ($rec->id) {
-            $query->where(array("#id != '[#1#]'", $rec->id));
+        $tStart = $rec->expectationTimeStart;
+        $tEnd = $rec->expectationTimeEnd;
+        if (($rec->timeStart) && (!$rec->timeEnd) && (!$rec->timeDuration)) {
+            $tStart = dt::subtractSecs($secToTimeStart, $rec->timeStart);
+            $tEnd = dt::addSecs($secToTimeStart, $rec->timeStart);
         }
         
-        $query->where("#state = 'active'");
-        $query->orWhere("#state = 'pending'");
-        $query->orWhere("#state = 'waiting'");
+        $cQuery = cal_Calendar::getQuery();
         
-        doc_Threads::restrictAccess($query);
+        $cQuery->likeKeylist('users', $rec->assign);
+        
+        $cQuery->where(array("#time >= '[#1#]' AND #timeEnd <= '[#1#]'", $tStart));
+        $cQuery->orWhere(array("#time <= '[#1#]' AND #timeEnd >= '[#1#]'", $tEnd));
+        $cQuery->orWhere(array("#time <= '[#1#]' AND #timeEnd >= '[#2#]' AND #timeEnd <= '[#1#]' AND #time >= '[#2#]'", $tEnd, $tStart));
+        $cQuery->orWhere(array("#timeEnd IS NULL AND #time >= '[#1#]' AND #time <= '[#2#]'", $tStart, $tEnd));
+        $cQuery->orWhere(array("#time <= '[#1#]' AND #timeEnd <= '[#2#]' AND #timeEnd >= '[#1#]'", $tStart, $tEnd));
+        
+        $cQuery->where("#type = 'task'");
+        $cQuery->orWhere("#type = 'working-travel'");
+        $cQuery->orWhere("#type = 'leaves'");
+        $cQuery->orWhere("#type = 'sick'");
+        
+        $cQuery->orderBy('type', 'ASC');
+        $cQuery->orderBy('time', 'DESC');
+        $cQuery->groupBy('url');
+        
+        $haveRes = false;
+        $link = new ET('|*');
+        while ($cRec = $cQuery->fetch()) {
+            if ($cRec->type == 'task') {
+                $urlArr = parseLocalUrl($cRec->url, false);
+                
+                if (!cls::load($urlArr['Ctr'], true)) {
+                    
+                    continue;
+                }
+                
+                if ($rec->id && ($rec->id == $urlArr['id'])) {
+                    
+                    continue;
+                }
+                
+                $cInst = cls::get($urlArr['Ctr']);
+                if (!$cInst->haveRightFor($urlArr['Act'], $urlArr['id'])) {
+                    
+                    continue;
+                }
+                
+                if ($urlArr['id']) {
+                    $tRec = $cInst->fetch($urlArr['id']);
+                    if (!$tRec->timeStart && !$tRec->timeDuration) {
+                        
+                        continue;
+                    }
+                }
+            }
+            
+            if ($limit > 0) {
+                $link->append('<div>');
+                $link->append(cal_Calendar::recToVerbal($cRec)->event);
+                $link->append('</div>');
+                $haveRes = true;
+            } else {
+                if (!$showMore) {
+                    
+                    break;
+                }
+            }
+            
+            $limit--;
+        }
+        
+        if ($haveRes && $limit < 0) {
+            $link->append('<div>');
+            $link->append(tr('Още: ') . -1 * $limit);
+            $link->append('</div>');
+        }
+        
+        return $haveRes ? $link : false;
     }
     
     
@@ -2892,7 +2936,7 @@ class cal_Tasks extends embed_Manager
             $expStart = $now;
             $expEnd = dt::timestamp2Mysql(dt::mysql2timestamp($expStart) + $rec->timeDuration);
         } elseif (($rec->timeDuration && $timeEnd) && !$timeStart) {
-            $expStart = dt::timestamp2Mysql(dt::mysql2timestamp($expStart) - $rec->timeDuration);
+            $expStart = dt::timestamp2Mysql(dt::mysql2timestamp($timeEnd) - $rec->timeDuration);
             $expEnd = $timeEnd;
         }
         
