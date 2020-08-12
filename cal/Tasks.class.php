@@ -902,6 +902,11 @@ class cal_Tasks extends embed_Manager
             return false;
         }
         
+        if ($rec->timeDuration && !$rec->timeStart && !$rec->timeEnd) {
+            
+            return false;
+        }
+        
         $this->calculateExpectationTime($rec);
         
         if (!$rec->expectationTimeStart || !$rec->expectationTimeEnd) {
