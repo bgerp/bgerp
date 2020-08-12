@@ -3714,6 +3714,13 @@ class doc_DocumentPlg extends core_Plugin
     {
         // Отбелязване в лога
         doclog_Documents::changed($recsArr);
+        if (!empty($recsArr)) {
+            $lRec = end($recsArr);
+            if ($lRec->docId && cls::load($lRec->docClass, true)) {
+                $inst = cls::get($lRec->docClass);
+                $inst->touchRec($lRec->docId);
+            }
+        }
     }
     
     
@@ -4136,14 +4143,7 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             if ($rec->threadId) {
-                $tRec = new stdClass();
-                $tRec->id = $rec->threadId;
-                $tRec->last = $rec->modifiedOn;
-                $tRec->modifiedOn = $rec->modifiedOn;
-                $tRec->modifiedBy = $rec->modifiedBy;
-                
-                $threadsInst = cls::get('doc_Threads');
-                $threadsInst->save($tRec, 'last, modifiedOn, modifiedBy');
+                doc_Threads::updateThread($rec->threadId);
             }
         }
     }
