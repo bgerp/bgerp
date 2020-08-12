@@ -470,6 +470,9 @@ class speedy_Adapter {
         } elseif(strpos($errorMsg, 'Delivery to floor not allowed for service') !== false){
             $errorMsg = 'Избраната услуга непозволява качване до етаж';
             $fields = 'service,floorNum';
+        } elseif(strpos($errorMsg, '[INVALID_PHONE_NUMBER') !== false){
+            $errorMsg = 'Невалиден телефонен номер на получатек';
+            $fields = 'receiverPhone';
         }
         
         return $errorMsg;
