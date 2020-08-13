@@ -2,11 +2,11 @@
 
 
 /**
- * Клас 'speedy_plg_BillOfLading' за изпращане на товарителница към SPEEDY
+ * Клас 'speedy_plg_BillOfLading' за изпращане на товарителница към Speedy
  *
  *
  * @category  bgerp
- * @package   store
+ * @package   speedy
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2020 Experta OOD
@@ -437,6 +437,13 @@ class speedy_plg_BillOfLading extends core_Plugin
         if($action == 'makebilloflading' && isset($rec)){
             if($rec->state != 'active'){
                 $requiredRoles = 'no_one';
+            } else {
+                if($mvc instanceof sales_Sales){
+                    $actions = type_Set::toArray($rec->contoActions);
+                    if (!isset($actions['ship'])) {
+                        $requiredRoles = 'no_one';
+                    }
+                }
             }
         }
     }
