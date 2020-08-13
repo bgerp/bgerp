@@ -669,13 +669,17 @@ class sales_Invoices extends deals_InvoiceMaster
         $query->where("#state = 'active' AND #numlimit = {$rec->numlimit}");
         $query->limit(1);
         
+        $rangeName = cond_Ranges::displayRange($rec->numlimit);
+        
         if ($restore === false) {
             $query->orderBy('date', 'DESC');
             $newDate = $query->fetch()->date;
             
+            
+            
             if ($newDate > $rec->date) {
                 $newDate = dt::mysql2verbal($newDate, 'd.m.y');
-                $msg = 'Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона|* (' . $newDate .')';
+                $msg = "Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона|* [<b>{$rangeName}</b>] ({$newDate})";
                 
                 return false;
             }
@@ -696,7 +700,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $queryBefore->where("#date < '{$rec->date}' AND #state = 'active' AND #number > {$number} AND #id != '{$rec->id}'");
         if ($iBefore = $queryBefore->fetch()) {
             $numberB = $this->recToVerbal($iBefore, 'number')->number;
-            $msg = "Фактурата не може да се възстанови|* - |фактура|* №{$numberB} |е с по-голям номер и по-малка дата в диапазона|*";
+            $msg = "Фактурата не може да се възстанови|* - |фактура|* №{$numberB} |е с по-голям номер и по-малка дата в диапазона|* [<b>{$rangeName}</b>]";
             
             return false;
         }
@@ -706,7 +710,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $queryAfter->where("#date > '{$rec->date}' AND #state = 'active' AND #number <= {$number} AND #id != '{$rec->id}'");
         if ($iAfter = $queryAfter->fetch()) {
             $numberA = $this->recToVerbal($iAfter, 'number')->number;
-            $msg = "Фактурата не може да се възстанови|* - |фактура|* №{$numberA} |е с по-малък номер и по-голяма дата в диапазона|*";
+            $msg = "Фактурата не може да се възстанови|* - |фактура|* №{$numberA} |е с по-малък номер и по-голяма дата в диапазона|* [<b>{$rangeName}</b>]";
             
             return false;
         }

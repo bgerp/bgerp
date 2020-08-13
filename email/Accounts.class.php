@@ -927,4 +927,20 @@ class email_Accounts extends core_Master
         $callOn = dt::addSecs(60 * $mp);
         core_CallOnTime::setCall('email_Accounts', 'checkMailBox', $emlStatus, $callOn);
     }
+    
+    
+    /**
+     * Изпълнява се след опаковане на съдаржанието от мениджъра
+     *
+     * @param core_Mvc       $mvc
+     * @param string|core_ET $res
+     * @param string|core_ET $tpl
+     * @param stdClass       $data
+     *
+     * @return bool
+     */
+    protected static function on_AfterRenderWrapping(core_Manager $mvc, &$res, &$tpl = null, $data = null)
+    {
+        $res->push('email/js/serverSettings.js', 'JS');
+    }
 }

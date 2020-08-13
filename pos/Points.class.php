@@ -297,6 +297,8 @@ class pos_Points extends core_Master
             
             crm_Persons::save($defaultContragent);
         }
+        
+        cls::get('pos_SellableProductsCache')->cron_CacheSellablePosProducts();
     }
     
     

@@ -194,7 +194,6 @@ class doc_plg_Prototype extends core_Plugin
     public static function on_AfterCreate($mvc, $rec)
     {
         if (isset($rec->{$mvc->protoFieldName}) && ($rec->_isClone !== true)) {
-            $oldRec = (object) array('id' => $rec->{$mvc->protoFieldName});
             
             // След създаване на документ с избран прототип, клонират се детайлите му
             $Details = $mvc->getDetailsToClone($rec);
@@ -206,8 +205,8 @@ class doc_plg_Prototype extends core_Plugin
             
             // Създаване на шаблон
             $driverClassId = ($mvc instanceof embed_Manager) ? $rec->{$mvc->driverClassField} : (($mvc instanceof core_Embedder) ? $rec->{$mvc->innerClassField} : null);
-            $templateTitle = doc_Prototypes::getTemplateTitle($mvc, $rec->id);
-            doc_Prototypes::add($templateTitle, $mvc, $rec->id, $driverClassId);
+            
+            doc_Prototypes::add($mvc, $rec->id, $driverClassId);
             
             $handle = $mvc->getHandle($rec->id);
             core_Statuses::newStatus("|*#{$handle} |е добавен като шаблон|*");
@@ -242,6 +241,17 @@ class doc_plg_Prototype extends core_Plugin
                 $pRec = doc_Prototypes::fetch("#originId = {$rec->containerId}");
                 $requiredRoles = doc_Prototypes::getRequiredRoles('edit', $pRec);
             }
+        }
+    }
+    
+    
+    /**
+     * Име на шаблона по подразбиране
+     */
+    public static function on_AfterGetPrototypeTitle($mvc, &$res, $id)
+    {
+        if(empty($res)){
+            $res = $mvc->getTitleById($id);
         }
     }
 }

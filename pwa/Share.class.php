@@ -131,6 +131,16 @@ class pwa_Share extends core_Mvc
      */
     function act_Portal()
     {
+        $v = Request::get('v');
+        if ($v) {
+            $v = str::checkHash($v);
+        }
+        
+        if (!$v) {
+            wp(Request::get('v'));
+        }
+        
+        Mode::setPermanent('isPWA', true);
         
         return new Redirect(array('Portal', 'Show'));
     }
