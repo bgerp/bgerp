@@ -160,6 +160,8 @@ class speedy_plg_BillOfLading extends core_Plugin
     private static function getBillOfLadingForm($mvc, $documentRec, $adapter)
     {
         $form = cls::get('core_Form');
+        $form->class = 'speedyBillOfLading';
+        
         $rec = &$form->rec;
         $form->title = 'Попълване на товарителница за Speedy към|* ' . $mvc->getFormTitleLink($documentRec);
         
@@ -169,7 +171,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         
         $form->FLD('isPrivatePerson', 'enum(no=Фирма,yes=Частно лице)', 'caption=Получател->Получател,silent,removeAndRefreshForm=receiverPerson|receiverName,maxRadio=2,mandatory');
         $form->FLD('receiverName', 'varchar', 'caption=Получател->Фирма/Име,mandatory');
-        $form->FLD('receiverPerson', 'varchar', 'caption=Получател->Лице за конт,mandatory');
+        $form->FLD('receiverPerson', 'varchar', 'caption=Получател->Лице за контакт,mandatory');
         $form->FLD('receiverPhone', 'drdata_PhoneType(type=tel,unrecognized=error)', 'caption=Получател->Телефон,mandatory');
         
         $form->FLD('receiverSpeedyOffice', 'customKey(mvc=speedy_Offices,key=num,select=extName,allowEmpty)', 'caption=Адрес за доставка->Офис на Спиди,removeAndRefreshForm=service|date|receiverCountryId|receiverPlace|receiverAddress|receiverPCode,silent');

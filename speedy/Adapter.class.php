@@ -500,7 +500,7 @@ class speedy_Adapter {
             $errorMsg = 'Неразпознат телефонен номер';
             $fields = 'receiverSpeedyOffice,receiverPhone';
         } elseif(strpos($errorMsg, 'COMMON_ERROR, [ERR_010] Pickings without COD') !== false){
-            $errorMsg = 'Не може, пощенския паричен превод да е включен в цената на наложения платеж';
+            $errorMsg = 'Не може пощенския паричен превод да е включен в цената на наложения платеж';
             $fields = 'codType';
         } elseif(strpos($errorMsg, "[COMMON_ERROR, [ERR_011] 'PayerTypeInsurance'  MUST be set") !== false){
             $errorMsg = 'При обявената стойност, трябва да има избран платец на обявената стойност';
