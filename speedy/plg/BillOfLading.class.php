@@ -141,7 +141,7 @@ class speedy_plg_BillOfLading extends core_Plugin
             $mvc->logInfo('Разглеждане на формата за генериране на товарителница');
             
             $res = $mvc->renderWrapping($form->renderHtml());
-          
+            core_Form::preventDoubleSubmission($res, $form);
             
             return false;
         }
