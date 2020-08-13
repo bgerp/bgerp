@@ -153,12 +153,6 @@ class store_InventoryNotes extends core_Master
     
     
     /**
-     * Име на документа в бързия бутон за добавяне в папката
-     */
-    public $buttonInFolderTitle = 'Инвентаризация';
-    
-    
-    /**
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = false;

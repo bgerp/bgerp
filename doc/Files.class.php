@@ -494,6 +494,8 @@ class doc_Files extends core_Manager
                     
                     // Търсене по всички папки
                     if ($fSearch == 'allFolders') {
+                        $data->query->isSlowQuery = true;
+                        $data->query->useCacheForPager = true;
                         doc_Threads::restrictAccess($data->query);
                     } else {
                         // Показваме файловете в папката
@@ -520,6 +522,10 @@ class doc_Files extends core_Manager
             
             if (isset($usersArr)) {
                 $data->query = fileman_Files::getQuery();
+                if ($usersArr[-1]) {
+                    $data->query->isSlowQuery = true;
+                    $data->query->useCacheForPager = true;
+                }
                 
                 // TODO - след JOIN може да се увеличи с restrictAccess
                 fileman_Files::prepareFilesQuery($data->query, $usersArr);

@@ -434,18 +434,6 @@ class core_page_InternalModern extends core_page_Active
             $colum2 .= ht::createLink(tr('Папки'), array('doc_Folders', 'list'), null, $attr);
         }
         
-        if (crm_Companies::haveRightFor('list')) {
-            $attr['ef_icon'] = 'img/16/building-black.png';
-            $attr['id'] = 'modern-company-seach';
-            $colum1 .= ht::createLink(tr('Фирми'), array('crm_Companies', 'list'), null, $attr);
-        }
-        
-        if (crm_Persons::haveRightFor('list')) {
-            $attr['ef_icon'] = 'img/16/vcard-black.png';
-            $attr['id'] = 'modern-person-seach';
-            $colum2 .= ht::createLink(tr('Лица'), array('crm_Persons', 'list'), null, $attr);
-        }
-        
         // Бутон за търсене по баркод
         if (barcode_Search::haveRightFor('list')) {
             $attr['ef_icon'] = 'img/16/barcode-icon.png';

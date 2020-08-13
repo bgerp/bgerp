@@ -6,7 +6,7 @@
         [#NAVIGATION#]
         [#BOTTOM_NAV#]
         [#BEFORE_FOOTER_INFO#]
-        <div class='bulletin-link'></div>
+        <div class='bulletin-link clearfix21'></div>
     </div>
     <!--ET_END NAVIGATION-->
     <div class='eightcol cms-last' style='margin-right:2%;'>

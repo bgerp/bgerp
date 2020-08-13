@@ -22,12 +22,6 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     
     
     /**
-     * Име на документа в бързия бутон за добавяне в папката
-     */
-    public $buttonInFolderTitle = 'Влагане';
-    
-    
-    /**
      * Абревиатура
      */
     public $abbr = 'Mcn';

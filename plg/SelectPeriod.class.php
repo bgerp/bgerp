@@ -133,7 +133,11 @@ class plg_SelectPeriod extends core_Plugin
         
         $selectPeriod = Request::get('selectPeriod');
         
-        if ($selectPeriod != 'select') {
+        if(empty($selectPeriod) && isset($mvc->defaultSelectPeriod)) {
+            $selectPeriod = $mvc->defaultSelectPeriod;
+        }
+
+        if (!empty($selectPeriod) && $selectPeriod != 'select') {
             list($from, $to) = self::getFromTo($selectPeriod);
             Request::push(array($fF => $from, $fT => $to));
         }

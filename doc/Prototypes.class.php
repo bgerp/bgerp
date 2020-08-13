@@ -9,7 +9,7 @@
  * @package   doc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -37,7 +37,7 @@ class doc_Prototypes extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'docId,title,sharedWithRoles,sharedWithUsers,sharedFolders,state,modifiedOn,modifiedBy';
+    public $listFields = 'docId,titleCalc,sharedWithRoles,sharedWithUsers,sharedFolders,state,modifiedOn,modifiedBy';
     
     
     /**
@@ -95,7 +95,7 @@ class doc_Prototypes extends core_Manager
      */
     public function description()
     {
-        $this->FLD('title', 'varchar', 'caption=Заглавие,mandatory');
+        $this->FNC('titleCalc', 'varchar', 'caption=Заглавие');
         $this->FLD('originId', 'key(mvc=doc_Containers)', 'caption=Документ,mandatory,input=hidden,silent');
         $this->FLD('classId', 'class(interface=doc_PrototypeSourceIntf)', 'caption=Документ,mandatory,input=hidden,silent');
         $this->FLD('docId', 'int', 'caption=Документ,mandatory,input=hidden,silent,tdClass=leftColImportant');
@@ -106,7 +106,6 @@ class doc_Prototypes extends core_Manager
         $this->FLD('fields', 'blob(serialize, compress)', 'input=none');
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено,closed=Затворено)', 'caption=Състояние,column=none,input=none,notNull,value=active');
         
-        $this->setDbUnique('classId,title');
         $this->setDbUnique('originId');
         $this->setDbUnique('classId,docId');
         $this->setDbIndex('classId,docId,driverClassId');
@@ -191,10 +190,8 @@ class doc_Prototypes extends core_Manager
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
-        expect($origin = doc_Containers::getDocument($form->rec->originId));
-        $templateTitle = doc_Prototypes::getTemplateTitle($origin->getInstance(), $origin->that);
         
-        $form->setDefault('title', $templateTitle);
+        $origin = doc_Containers::getDocument($form->rec->originId);
         $form->setDefault('classId', $origin->getClassId());
         $form->setDefault('docId', $origin->that);
         
@@ -245,7 +242,10 @@ class doc_Prototypes extends core_Manager
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (isset($fields['-list'])) {
-            $row->docId = doc_Containers::getDocument($rec->originId)->getLink(0);
+            $origin = doc_Containers::getDocument($rec->originId);
+            $row->titleCalc = $origin->getPrototypeTitle();
+            
+            $row->docId = $origin->getLink(0);
             $row->ROW_ATTR['class'] = "state-{$rec->state}";
         }
     }
@@ -323,8 +323,7 @@ class doc_Prototypes extends core_Manager
         
         // Ако има записи, се връщат ид-та на документите
         while ($rec = $query->fetch()) {
-            $title = (strpos($rec->title, '||') !== false) ? tr($rec->title) : $rec->title;
-            $arr[$rec->docId] = trim($title);
+            $arr[$rec->docId] = $Class->getPrototypeTitle($rec->docId);
         }
         
         asort($arr);
@@ -360,18 +359,17 @@ class doc_Prototypes extends core_Manager
     /**
      * Създаване на шаблон + смяна на състоянието на документа в 'шаблон'
      *
-     * @param string      $title           - име на шаблона
      * @param mixed       $class           - клас на документа
      * @param int         $docId           - ид на документа
      * @param int|NULL    $driverClassId   - ид на класа на драйвера
      * @param string|NULL $sharedWithRoles - споделени роли
      * @param string|NULL $sharedWithUsers - споделени потребители
      */
-    public static function add($title, $class, $docId, $driverClassId = null, $sharedWithRoles = null, $sharedWithUsers = null)
+    public static function add($class, $docId, $driverClassId = null, $sharedWithRoles = null, $sharedWithUsers = null)
     {
         $Class = cls::get($class);
         
-        $rec = (object) array('title' => $title,
+        $rec = (object) array(
             'originId' => $Class->fetchField($docId, 'containerId'),
             'classId' => $Class->getClassId(),
             'docId' => $docId,
@@ -381,34 +379,13 @@ class doc_Prototypes extends core_Manager
             'state' => 'active',
         );
         
+        $fields = array();
+        $exRec = null;
         cls::get(get_called_class())->isUnique($rec, $fields, $exRec);
         if ($exRec) {
             $rec->id = $rec->id;
         }
         
         doc_Prototypes::save($rec);
-    }
-    
-    
-    /**
-     * Връща дефолтното име на шаблона
-     *
-     * @param mixed $classId
-     * @param int   $docId
-     *
-     * @return string
-     */
-    public static function getTemplateTitle($classId, $docId)
-    {
-        $Class = cls::get($classId);
-        if ($Class->getField('title', false)) {
-            $title = $Class->fetchField($docId, 'title');
-        } elseif ($Class->getField('name', false)) {
-            $title = $Class->fetchField($docId, 'name');
-        } else {
-            $title = $Class->getTitleById($docId);
-        }
-        
-        return $title;
     }
 }

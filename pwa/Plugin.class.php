@@ -33,7 +33,9 @@ class pwa_Plugin extends core_Plugin
         
         // Ако е активирана опцията за мобилно приложение - манифестираме го
         if(pwa_Setup::get('ACTIVE') == 'yes' && cms_Domains::getPublicDomain('domain') == 'localhost') {
-            $manifestUrl = toUrl(array('pwa_Manifest'));
+            $cu = (int) core_Users::getCurrent();
+            $cu = str::addHash($cu);
+            $manifestUrl = toUrl(array('pwa_Manifest', 'Default', 'u' => $cu));
             $invoker->appendOnce("\n<link  rel=\"manifest\" href=\"{$manifestUrl}\">", 'HEAD');
         }
     }

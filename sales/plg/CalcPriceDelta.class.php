@@ -121,6 +121,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                     
                     $logisticData = $mvc->getLogisticData($rec);
                     setIfNot($logisticData['toPCode'], '');
+                    $saleRec->deliveryData = is_array($saleRec->deliveryData) ? $saleRec->deliveryData : array();
                     $deliveryData = $saleRec->deliveryData + array('deliveryCountry' => drdata_Countries::getIdByName($logisticData['toCountry']), 'deliveryPCode' => $logisticData['toPCode']);
                  
                     $totalVolumicWeight = $Calculator->getVolumicWeight($totalWeight, $totalVolume, $saleRec->deliveryTermId, $deliveryData);

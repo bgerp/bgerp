@@ -1279,7 +1279,10 @@ only screen and (max-width: 800px) {
 
   .narrow .sidemenu-push-toleft #framecontentTop,
   .narrow .sidemenu-push-toleft .tab-control > .tab-row {
-    left: -170px !important; } }
+    left: -170px !important; }
+
+  .inner-framecontentTop {
+    padding: 9px 7px 7px 7px !important; } }
 
 @media handheld,
 only screen and (max-width: 1280px) {
@@ -1293,7 +1296,7 @@ only screen and (max-width: 1280px) {
 @media handheld,
 only screen and (max-width: 640px) {
   .inner-framecontentTop {
-    padding: 7px 7px 9px 7px !important; }
+    padding: 9px 7px 7px 7px !important; }
 
   .narrowPortalBlocks {
     margin: 5px; }

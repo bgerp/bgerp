@@ -296,6 +296,86 @@ class doc_SharablePlg extends core_Plugin
                 $form->setFieldTypeParams('sharedUsers', array('roles' => $sharedRoles));
             }
         }
+        
+        // Добавяме раздел със споделените в папката
+        $shareUsersArr = self::getShareUsersArr($form->rec);
+        if (!empty($shareUsersArr)) {
+            $title = "|От папка|* " . '"' . str::limitLen(doc_Folders::getVerbal($form->rec->folderId, 'title'), 72) . '"';
+            $form->fields['sharedUsers']->type->userOtherGroup = array(-1 => (object) array('suggName' => 'doc', 'title' => $title, 'attr' => array('class' => 'team'), 'group' => true, 'autoOpen' => true, 'suggArr' => $shareUsersArr));
+        }
+    }
+    
+    
+    /**
+     * Взе списък с потребителите за споделяне
+     * Ако са зададени потребители в настройките на папката (Група от потребители за споделяне),
+     * ако не са зададени - от споделените и собствените на папката
+     * Допълват се със споделените и абонираните (тези, които са добавили документ) в нишката - пак зависи от настройката на папката
+     * Ако надвишават максималната бройка (пак от настройките на папката) - не се показват
+     * 
+     * @param stdClass $formRec
+     * 
+     * @return array
+     */
+    public static function getShareUsersArr($formRec)
+    {
+        $shareUsers = array();
+        
+        if (!$formRec->folderId) {
+            
+            return $shareUsers;
+        }
+        
+        $vals = core_Settings::fetchKey(doc_Folders::getSettingsKey($formRec->folderId));
+        
+        if ($vals['shareMaxCnt'] === 0) {
+            
+            return $shareUsers;
+        }
+        
+        setIfNot($vals['shareMaxCnt'], 10);
+        
+        $shareUsers = array();
+        if ($vals['shareUsers']) {
+            $shareUsers = type_Keylist::toArray($vals['shareUsers']);
+        } else {
+            $fRec = doc_Folders::fetch($formRec->folderId);
+            if ($fRec->shared) {
+                $shareUsers = type_Keylist::toArray($fRec->shared);
+            }
+            if ($fRec->inCharge > 0) {
+                $shareUsers[$fRec->inCharge] = $fRec->inCharge;
+            }
+        }
+        
+        if ($formRec->threadId && ($vals['shareFromThread'] != 'no')) {
+            $shareUsers += doc_ThreadUsers::getShared($formRec->threadId);
+            $shareUsers += doc_ThreadUsers::getSubscribed($formRec->threadId);
+        }
+        
+        // Премахваме неактивните потребители и тези, които не са powerUser
+        if (!empty($shareUsers)) {
+            $uQuery = core_Users::getQuery();
+            $uQuery->in('id', $shareUsers);
+            $pu = core_Roles::fetchByName('powerUser');
+            
+            $uQuery->like('roles', "|{$pu}|", false);
+            $uQuery->orWhere("#state != 'active'");
+            $uQuery->show('id');
+            while ($uRec = $uQuery->fetch()) {
+                unset($shareUsers[$uRec->id]);
+            }
+        }
+        
+        if (!empty($shareUsers)) {
+            if (isset($vals['shareMaxCnt'])) {
+                if (count($shareUsers) > $vals['shareMaxCnt']) {
+                    $shareUsers = array();
+                }
+            }
+        }
+        
+        return $shareUsers;
     }
     
     

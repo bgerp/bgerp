@@ -276,3 +276,20 @@ function render_addClass(data)
 	var element = $("#" + id);
 	element.addClass(cls);
 }
+
+/**
+ * Да скролира да данните за доставка
+ */
+function scrollToDetail(){
+	if(sessionStorage.getItem('editedForm') == 1) {
+		$(window).scrollTop($('.narrow #cart-view-order-info').offset().top - 12);
+		sessionStorage.setItem('editedForm', 0);
+	}
+}
+
+
+function afterSubmitDetails(){
+	$(document.body).on('click', ".submitBtn", function(e){
+		sessionStorage.setItem('editedForm', 1);
+	});
+}

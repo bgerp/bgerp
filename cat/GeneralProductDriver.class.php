@@ -55,6 +55,10 @@ class cat_GeneralProductDriver extends cat_ProductDriver
             $form->setDefault('name', cat_Products::fetchField($rec->proto, 'name'));
         }
         
+        if(empty($rec->nameEn) && !empty($rec->proto)){
+            $form->setDefault('nameEn', cat_Products::fetchField($rec->proto, 'nameEn'));
+        }
+        
         if (cls::haveInterface('marketing_InquiryEmbedderIntf', $Embedder)) {
             $form->setField('photo', 'input=none');
             $form->setField('measureId', 'display=hidden');
@@ -100,8 +104,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
             }
             
             $refreshFields = implode('|', $refreshFields);
-            
             $remFields = $form->getFieldParam($Embedder->driverClassField, 'removeAndRefreshForm') . '|' . $refreshFields;
+            
             $form->setField($Embedder->driverClassField, "removeAndRefreshForm={$remFields}");
             
             $remFields = $form->getFieldParam('proto', 'removeAndRefreshForm') . '|' . $refreshFields;
