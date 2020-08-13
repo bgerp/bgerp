@@ -138,7 +138,7 @@ class speedy_plg_BillOfLading extends core_Plugin
             $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
             
             // Записваме, че потребителя е разглеждал този списък
-            $mvc->logInfo('Разглеждане на формата за генериране на товарителница');
+            $mvc->logInfo('Форма за генериране на товарителница на Speedy');
             
             $res = $mvc->renderWrapping($form->renderHtml());
             core_Form::preventDoubleSubmission($res, $form);
