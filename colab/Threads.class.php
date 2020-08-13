@@ -415,7 +415,9 @@ class colab_Threads extends core_Manager
                     $requiredRoles = 'no_one';
                 } elseif(empty($rec->createdBy)) {
                     $email = core_Users::fetchField($userId, 'email');
-                    if(!$mvc->canNonPowerPartnerSeeAnonymDocument($rec, $email)){
+                    if(!is_object($rec)){
+                        $requiredRoles = 'no_one';
+                    } elseif(!$mvc->canNonPowerPartnerSeeAnonymDocument($rec, $email)){
                         $requiredRoles = 'no_one';
                     }
                 }
@@ -496,15 +498,10 @@ class colab_Threads extends core_Manager
      */
     private function canNonPowerPartnerSeeAnonymDocument($threadRec, $cuEmail)
     {
-        try{
-            $docProxy = doc_Containers::getDocument($threadRec->firstContainerId);
-            $docRow = $docProxy->getDocumentRow();
-            
-            return strtolower(trim($docRow->author)) == strtolower(trim($cuEmail));
-        } catch(core_exception_Expect $e){
-            
-            return false;
-        }
+        $docProxy = doc_Containers::getDocument($threadRec->firstContainerId);
+        $docRow = $docProxy->getDocumentRow();
+        
+        return strtolower(trim($docRow->author)) == strtolower(trim($cuEmail));
     }
     
     
