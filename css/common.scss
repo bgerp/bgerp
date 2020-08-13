@@ -689,6 +689,12 @@ select.combo {
 	box-shadow: none !important;
 	background-color: transparent;
 	outline: none;
+	&.inputError ~ label {
+		color: red !important;
+	}
+	&.inputWarning ~ label {
+		color: blue !important;
+	}
 }
 
 .checkbox, input[type=checkbox] {

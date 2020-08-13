@@ -693,6 +693,16 @@ input[type=radio] {
   box-shadow: none !important;
   background-color: rgba(0, 0, 0, 0);
   outline: none; }
+  .checkbox.inputError ~ label,
+  .radiobutton.inputError ~ label,
+  input[type=checkbox].inputError ~ label,
+  input[type=radio].inputError ~ label {
+    color: red !important; }
+  .checkbox.inputWarning ~ label,
+  .radiobutton.inputWarning ~ label,
+  input[type=checkbox].inputWarning ~ label,
+  input[type=radio].inputWarning ~ label {
+    color: blue !important; }
 
 .checkbox,
 input[type=checkbox] {
@@ -1549,7 +1559,7 @@ table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
   color: #aaaaaa; }
 
 .inputError {
-  border: solid 1px red; }
+  border: solid 1px red !important; }
 
 .formBottom {
   margin-bottom: 15px;
