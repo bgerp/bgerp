@@ -134,7 +134,7 @@ class speedy_plg_BillOfLading extends core_Plugin
                 }
             }
             
-            $form->toolbar->addSbBtn('Изпращане', 'save', 'ef_icon = img/16/disk.png, title = Изпращане на товарителницата');
+            $form->toolbar->addSbBtn('Изпращане', 'save', 'ef_icon = img/16/disk.png, title = Изпращане на товарителницата,id=save');
             $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
             
             // Записваме, че потребителя е разглеждал този списък
