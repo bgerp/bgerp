@@ -413,9 +413,14 @@ class speedy_Adapter {
             
             if($rec->options == 'test'){
                 $paramOptionsBeforePayment->setTest(true);
+            } else {
+                $paramOptionsBeforePayment->setTest(false);
             }
+            
             if($rec->options == 'open'){
                 $paramOptionsBeforePayment->setOpen(true);
+            } else {
+                $paramOptionsBeforePayment->setOpen(false);
             }
             
             $picking->setOptionsBeforePayment($paramOptionsBeforePayment);

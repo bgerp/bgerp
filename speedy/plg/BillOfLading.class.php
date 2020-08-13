@@ -98,7 +98,6 @@ class speedy_plg_BillOfLading extends core_Plugin
                     $form->setError('amountInsurance,totalWeight', 'Не може да има обявена стойност, на пратки с тегло над 32 кг');
                 }
                 
-                
                 if(!$form->gotErrors()){
                     
                     // Опит за създаване на товарителница
@@ -192,28 +191,30 @@ class speedy_plg_BillOfLading extends core_Plugin
         $form->FLD('payer', 'enum(sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец,mandatory');
         $form->FLD('payerPackaging', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец опаковка,mandatory');
         
-        $form->FLD('isDocuments', 'set(yes=Документи)', 'caption=Описание на пратката->,inlineTo=payerPackaging,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer|palletCount');
+        $form->FLD('isDocuments', 'enum(no=Не,yes=Да)', 'caption=Описание на пратката->Документи,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer|palletCount,maxRadio=2');
         $form->FLD('palletCount', 'int(min=0,Max=10)', 'caption=Описание на пратката->Бр. пакети,mandatory');
-        $form->FLD('content', 'text(rows=2)', 'caption=Описание на пратката->Съдържание,mandatory,recently');
+        $form->FLD('content', 'varchar', 'caption=Описание на пратката->Съдържание,mandatory,recently');
         $form->FLD('packaging', 'varchar', 'caption=Описание на пратката->Опаковка,mandatory,recently');
         $form->FLD('totalWeight', 'double(min=0,max=50)', 'caption=Описание на пратката->Общо тегло,unit=кг (Макс: 50),mandatory');
-        $form->FLD('isPaletize', 'set(yes=Да)', 'caption=Описание на пратката->Палетизирана');
+        $form->FLD('isPaletize', 'enum(no=Не,yes=Да)', 'caption=Описание на пратката->Палетизиране,maxRadio=2');
         
         $form->FLD('amountCODBase', 'double(min=0)', 'caption=Описание на пратката->Наложен платеж,unit=BGN,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer');
         $form->FLD('codType', 'set(post=Като паричен превод,including=Вкл. цената на куриерска услуга в НП)', 'caption=Описание на пратката->Вид,after=amountCODBase,input=none');
         
         $form->FLD('amountInsurance', 'double', 'caption=Описание на пратката->Обявена стойност,unit=BGN,silent,removeAndRefreshForm=insurancePayer|isFragile');
         $form->FLD('insurancePayer', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец обявена ст.,input=none');
-        $form->FLD('isFragile', 'set(yes=Да)', 'caption=Описание на пратката->Чупливост,after=amountInsurance,input=none');
+        $form->FLD('isFragile', 'enum(no=Не,yes=Да)', 'caption=Описание на пратката->Чупливост,input=none,maxRadio=2');
         
-        $form->FLD('options', 'enum(no=Няма,open=Отвори преди плащане/получаване,test=Тествай преди плащане/получаване)', 'caption=Описание на пратката->Опции,silent,removeAndRefreshForm=returnServiceId|returnPayer,maxRadio=3');
-        $form->FLD('returnServiceId', 'varchar', 'caption=Описание на пратката->Услуга за Връщане,input=none,after=options');
-        $form->FLD('returnPayer', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец на Връщането,input=none,after=returnServiceId');
+        $form->FLD('options', 'enum(no=Няма,open=Отваряне,test=Тест)', 'caption=Описание на пратката->Преди получаване/плащане,silent,removeAndRefreshForm=returnServiceId|returnPayer,maxRadio=3');
+        $form->FLD('returnServiceId', 'varchar', 'caption=Описание на пратката->Услуга за връщане,input=none,after=options');
+        $form->FLD('returnPayer', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец на връщането,input=none,after=returnServiceId');
         $form->FLD('backRequest', 'set(document=Документи,receipt=Разписка)', 'caption=Заявка за обратни документи->Избор');
        
         $Cover = doc_Folders::getCover($documentRec->folderId);
         $isPrivatePerson = ($Cover->haveInterface('crm_PersonAccRegIntf')) ? 'yes' : 'no';
         $form->setDefault('isPrivatePerson', $isPrivatePerson);
+        $form->setDefault('isDocuments', 'no');
+        $form->setDefault('isPaletize', 'no');
         
         $form->input(null, 'silent');
         
@@ -232,6 +233,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         if($mvc instanceof sales_Sales){
             $paymentType = $documentRec->paymentMethodId;
             $amountCod = $documentRec->amountDeal;
+            
             if($documentRec->deliveryTermId){
                 if($DeliveryCalc = cond_DeliveryTerms::getTransportCalculator($documentRec->deliveryTermId)){
                     if($form->cmd != 'refresh' && $form->cmd != 'save' && $DeliveryCalc->class instanceof speedy_interface_DeliveryToOffice){
@@ -269,6 +271,18 @@ class speedy_plg_BillOfLading extends core_Plugin
             
         } elseif($mvc instanceof store_DocumentMaster){
             $firstDocument = doc_Threads::getFirstDocument($documentRec->threadId);
+            $deliveryTermId = $firstDocument->fetchField('deliveryTermId');
+            
+            if($deliveryTermId){
+                if($DeliveryCalc = cond_DeliveryTerms::getTransportCalculator($deliveryTermId)){
+                    if($form->cmd != 'refresh' && $form->cmd != 'save' && $DeliveryCalc->class instanceof speedy_interface_DeliveryToOffice){
+                        $deliveryData = $firstDocument->fetchField('deliveryData');
+                        $officeNum = speedy_Offices::fetchField($deliveryData['officeId'], 'num');
+                        $form->setDefault('receiverSpeedyOffice', $officeNum);
+                    }
+                }
+            }
+            
             $paymentType = $firstDocument->fetchField('paymentMethodId');
             $amountCod = ($documentRec->chargeVat == 'separate') ? $documentRec->amountDelivered + $documentRec->amountDeliveredVat : $documentRec->amountDelivered;
         
@@ -293,6 +307,8 @@ class speedy_plg_BillOfLading extends core_Plugin
             }
         }
         
+        
+        $amountCod = round($amountCod, 2);
         if(empty($toPerson) && $Cover->haveInterface('crm_PersonAccRegIntf')){
             $toPerson = $Cover->fetchField('name');
             $form->setDefault('receiverPhone', $Cover->fetchField('tel'));
@@ -316,14 +332,15 @@ class speedy_plg_BillOfLading extends core_Plugin
             }
         }
         
-        if(isset($paymentType)){
-            if(cond_PaymentMethods::isCOD($paymentType)){
-                $form->setDefault('amountCODBase', round($amountCod, 2));
-            }
+        if(isset($paymentType) && cond_PaymentMethods::isCOD($paymentType)){
+            $form->setDefault('amountCODBase', round($amountCod, 2));
         }
         
+        $form->setSuggestions('amountCODBase', array('' => '', "{$amountCod}" => $amountCod));
         if($rec->amountCODBase){
+            $form->setDefault('isFragile', 'no');
             $form->setField('codType', 'input');
+            $form->setSuggestions('amountInsurance', array('' => '', "{$amountCod}" => $amountCod));
         }
         
         if(isset($rec->amountInsurance)){
