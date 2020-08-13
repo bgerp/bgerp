@@ -207,7 +207,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         $form->FLD('options', 'enum(no=Няма,open=Отвори преди плащане/получаване,test=Тествай преди плащане/получаване)', 'caption=Описание на пратката->Опции,silent,removeAndRefreshForm=returnServiceId|returnPayer,maxRadio=3');
         $form->FLD('returnServiceId', 'varchar', 'caption=Описание на пратката->Услуга за Връщане,input=none,after=options');
         $form->FLD('returnPayer', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец на Връщането,input=none,after=returnServiceId');
-        $form->FLD('backRequest', 'set(document=Документи,receipt=Разписка)', 'caption=Заявка за обр->Избор');
+        $form->FLD('backRequest', 'set(document=Документи,receipt=Разписка)', 'caption=Заявка за обратни документи->Избор');
        
         $Cover = doc_Folders::getCover($documentRec->folderId);
         $isPrivatePerson = ($Cover->haveInterface('crm_PersonAccRegIntf')) ? 'yes' : 'no';
