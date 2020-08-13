@@ -23,7 +23,7 @@ class speedy_plg_BillOfLading extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        setIfNot($mvc->canMakebilloflading, 'debug');//speedy,ceo
+        setIfNot($mvc->canMakebilloflading, 'speedy,ceo');
     }
     
     
@@ -129,11 +129,12 @@ class speedy_plg_BillOfLading extends core_Plugin
                 }
                 
                 if(!$form->gotErrors() && !empty($bolId)){
+                    $mvc->logWrite("Генерирана товарителница на Speedy", $id);
                     followRetUrl(null, "Успешно генерирана товарителница|*: №{$bolId}");
                 }
             }
             
-            $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Изпращане на товарителницата');
+            $form->toolbar->addSbBtn('Изпращане', 'save', 'ef_icon = img/16/disk.png, title = Изпращане на товарителницата');
             $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
             
             // Записваме, че потребителя е разглеждал този списък

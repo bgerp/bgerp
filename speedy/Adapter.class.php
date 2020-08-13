@@ -295,6 +295,10 @@ class speedy_Adapter {
         $pickingData->returnServiceId = ($rec->returnServiceId == 'same') ? $pickingData->serviceTypeId : $rec->returnServiceId;
         $pickingData->returnPayer = ($rec->returnPayer == 'same') ? $pickingData->payerType : (($rec->returnPayer == 'sender') ? ParamCalculation::PAYER_TYPE_SENDER : (($rec->returnPayer == 'receiver') ? ParamCalculation::PAYER_TYPE_RECEIVER : ParamCalculation::PAYER_TYPE_THIRD_PARTY));
         
+        if($pickingData->amountInsurance){
+            setIfNot($rec->insurancePayer, 'same');
+        }
+        
         if(isset($rec->insurancePayer)){
             $pickingData->insurancePayer = ($rec->insurancePayer == 'same') ? $pickingData->payerType : (($rec->insurancePayer == 'sender') ? ParamCalculation::PAYER_TYPE_SENDER : (($rec->insurancePayer == 'receiver') ? ParamCalculation::PAYER_TYPE_RECEIVER : ParamCalculation::PAYER_TYPE_THIRD_PARTY));
         }
@@ -498,6 +502,9 @@ class speedy_Adapter {
         } elseif(strpos($errorMsg, 'COMMON_ERROR, [ERR_010] Pickings without COD') !== false){
             $errorMsg = 'Не може, пощенския паричен превод да е включен в цената на наложения платеж';
             $fields = 'codType';
+        } elseif(strpos($errorMsg, "[COMMON_ERROR, [ERR_011] 'PayerTypeInsurance'  MUST be set") !== false){
+            $errorMsg = 'При обявената стойност, трябва да има избран платец на обявената стойност';
+            $fields = 'insurancePayer,amountInsurance';
         }
         
         return $errorMsg;
