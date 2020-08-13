@@ -192,15 +192,4 @@ class pos_SellableProductsCache extends core_Master
         
         return $res;
     }
-    
-    
-    /**
-     * След началното установяване на този мениджър
-     */
-    public function loadSetupData()
-    {
-        if(!pos_SellableProductsCache::count() && pos_Points::count()){
-            $this->cron_CacheSellablePosProducts();
-        }
-    }
 }
