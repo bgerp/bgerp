@@ -1559,7 +1559,7 @@ table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
   color: #aaaaaa; }
 
 .inputError {
-  border: solid 1px red !important; }
+  border: solid 1px red; }
 
 .formBottom {
   margin-bottom: 15px;
