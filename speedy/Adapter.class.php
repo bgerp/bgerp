@@ -307,10 +307,11 @@ class speedy_Adapter {
         $senderPhoneNumber = new ParamPhoneNumber();
         $senderPhoneNumber->setNumber($rec->senderPhone);
         $sender->setPhones(array(0 => $senderPhoneNumber));
-        
+       
         if(!empty($rec->senderNotes)){
             $senderAddress = new ParamAddress();
             $senderAddress->setAddressNote($rec->senderNotes);
+            $sender->setAddress($senderAddress);
         }
         
         // Подготовка и задаване на данните на получателя
@@ -349,7 +350,9 @@ class speedy_Adapter {
             $receiverSiteId = $this->getSiteId($rec->receiverCountryId, $rec->receiverPCode, $rec->receiverPlace);
             $receiverAddress = new ParamAddress();
             $receiverAddress->setSiteId($receiverSiteId);
-            $receiverAddress->setAddressNote($rec->receiverAddress);
+           
+            $addressNote = $rec->receiverAddress . (!empty($rec->receiverNotes) ? ", {$rec->receiverNotes}" : "");
+            $receiverAddress->setAddressNote($addressNote);
             if(!empty($rec->receiverBlock)){
                 $receiverAddress->setBlockNo($rec->receiverBlock);
             }
@@ -425,7 +428,7 @@ class speedy_Adapter {
         
         $backReceiptRequest = isset($backRequest['receipt']) ? true : false;
         $picking->setBackReceiptRequest($backReceiptRequest);
-        
+      
         // Генериране на товарителница
         $resultBOL = $this->eps->createBillOfLading($picking);
         $parcels = $resultBOL->getGeneratedParcels();
@@ -492,6 +495,9 @@ class speedy_Adapter {
         } elseif(strpos($errorMsg, '[INVALID_RECEIVER_MOBILE_PHONE_NUMBER_FOR_APT_TBC') !== false){
             $errorMsg = 'Неразпознат телефонен номер';
             $fields = 'receiverSpeedyOffice,receiverPhone';
+        } elseif(strpos($errorMsg, 'COMMON_ERROR, [ERR_010] Pickings without COD') !== false){
+            $errorMsg = 'Не може, пощенския паричен превод да е включен в цената на наложения платеж';
+            $fields = 'codType';
         }
         
         return $errorMsg;

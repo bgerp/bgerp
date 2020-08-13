@@ -304,7 +304,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         }
         
         if(isset($rec->receiverSpeedyOffice)){
-            foreach (array('receiverCountryId', 'receiverPlace', 'receiverAddress', 'receiverPCode', 'receiverBlock', 'receiverEntrance', 'receiverFloor', 'receiverApp') as $addressField){
+            foreach (array('receiverCountryId', 'receiverPlace', 'receiverAddress', 'receiverPCode', 'receiverBlock', 'receiverEntrance', 'receiverFloor', 'receiverApp', 'receiverNotes') as $addressField){
                 $form->setField($addressField, 'input=none');
             }
         } else {
