@@ -496,10 +496,15 @@ class colab_Threads extends core_Manager
      */
     private function canNonPowerPartnerSeeAnonymDocument($threadRec, $cuEmail)
     {
-        $docProxy = doc_Containers::getDocument($threadRec->firstContainerId);
-        $docRow = $docProxy->getDocumentRow();
-        
-        return strtolower(trim($docRow->author)) == strtolower(trim($cuEmail));
+        try{
+            $docProxy = doc_Containers::getDocument($threadRec->firstContainerId);
+            $docRow = $docProxy->getDocumentRow();
+            
+            return strtolower(trim($docRow->author)) == strtolower(trim($cuEmail));
+        } catch(core_exception_Expect $e){
+            
+            return false;
+        }
     }
     
     
