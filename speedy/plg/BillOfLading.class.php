@@ -36,7 +36,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         
         // Бутон за Товарителница
         if ($mvc->haveRightFor('makebilloflading', $rec)) {
-            $data->toolbar->addBtn('Speedy', array($mvc, 'makebilloflading', 'documentId' => $rec->id, 'ret_url' => true), "id=btnSpeedy", 'ef_icon = img/16/tick-circle-frame.png,title=Изпращане на товарителница към Speedy');
+            $data->toolbar->addBtn('Speedy', array($mvc, 'makebilloflading', 'documentId' => $rec->id, 'ret_url' => true), "id=btnSpeedy", 'ef_icon = img/16/speedy.png,title=Изпращане на товарителница към Speedy');
         }
     }
     
