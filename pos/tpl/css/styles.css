@@ -1165,6 +1165,10 @@ only screen and (max-width: 360px) {
     .headerContent .unp,
     .headerContent .headerAppName {
       float: right !important; }
+    .headerContent .pointId,
+    .headerContent .headerUserNick {
+      float: left !important;
+      width: 30%; }
     .headerContent .pointId {
       width: 25%; }
 

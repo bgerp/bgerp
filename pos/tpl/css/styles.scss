@@ -1362,6 +1362,10 @@ th.revertCaption, td.revertCaption {
 		.unp, .headerAppName {
 			float: right !important;
 		}
+		.pointId, .headerUserNick {
+			float: left !important;
+			width: 30%;
+		}
 		.pointId {
 			width: 25%;
 		}
