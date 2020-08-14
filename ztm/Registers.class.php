@@ -20,12 +20,6 @@ class ztm_Registers extends core_Master
     
     
     /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'ztm_RegistersDef';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ztm, ceo';

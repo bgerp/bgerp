@@ -20,7 +20,7 @@ class ztm_Index extends core_Mvc
      */
     public function act_Register()
     {
-        
+        wp('Register', Request::$vars);
         return Request::forward(array('Ctr' => 'ztm_Devices', 'Act' => 'Register'));
     }
     
@@ -30,6 +30,7 @@ class ztm_Index extends core_Mvc
      */
     public function act_Sync()
     {
+        wp('Sync', Request::$vars);
         return Request::forward(array('Ctr' => 'ztm_RegisterValues', 'Act' => 'Sync'));
     }
 }

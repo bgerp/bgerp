@@ -24,12 +24,6 @@ class ztm_RegisterValues extends core_Manager
     
     
     /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'ztm_Registers';
-    
-    
-    /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, ztm_Wrapper, plg_Modified';
@@ -496,7 +490,7 @@ class ztm_RegisterValues extends core_Manager
      * Създава пряк път до публичните статии
      */
     public function act_Sync()
-    {   
+    {
         $token = Request::get('token');
         $lastSync = Request::get('last_sync');
        
