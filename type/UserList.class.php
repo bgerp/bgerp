@@ -126,6 +126,8 @@ class type_UserList extends type_Keylist
         
         $haveOpenedGroup = false;
         
+        $allUserOtherGroupArr = array();
+        
         // Попълваме опциите от допълнително зададените
         if (isset($this->userOtherGroup)) {
             foreach ($this->userOtherGroup as $gKey => $gVals) {
@@ -152,6 +154,8 @@ class type_UserList extends type_Keylist
                         if (EF_USSERS_EMAIL_AS_NICK) {
                             $this->suggestions[$key] = html_entity_decode($this->suggestions[$key]);
                         }
+                        
+                        $allUserOtherGroupArr[$uId] = $uId;
                     }
                 }
             }
@@ -202,6 +206,8 @@ class type_UserList extends type_Keylist
                     if (EF_USSERS_EMAIL_AS_NICK) {
                         $this->suggestions[$key] = html_entity_decode($this->suggestions[$key]);
                     }
+                    
+                    unset($allUserOtherGroupArr[$uId]);
                 }
                 
                 if ($uId == core_Users::getCurrent() && !$ids) {
@@ -212,6 +218,32 @@ class type_UserList extends type_Keylist
             
             if (!$teamMembers) {
                 unset($this->suggestions[$t . ' team']);
+            }
+        }
+        
+        // Премахваме потребителите от грипите, ако не участват в списъка
+        if (!empty($allUserOtherGroupArr)) {
+            foreach ($this->userOtherGroup as $gKey => $gVals) {
+                foreach ($allUserOtherGroupArr as $uId) {
+                    $key = $this->getKey($gKey, $uId);
+                    unset($this->suggestions[$key]);
+                }
+                
+                // Ако списъка е празен, скриваме групата
+                $haveRec = false;
+                $key = $gKey . $this->keySep;
+                foreach ($this->suggestions as $sKey => $sVal) {
+                    if (strpos($sKey, $key) === 0) {
+                        $haveRec = true;
+                        
+                        break;
+                    }
+                }
+                
+                if (!$haveRec) {
+                    $gName = $gKey . ' ' . $gVals->suggName;
+                    unset($this->suggestions[$gName]);
+                }
             }
         }
         
