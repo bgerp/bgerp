@@ -95,6 +95,8 @@ class blast_BlockedEmails extends core_Manager
     public function on_AfterPrepareImportFields($mvc, &$fields)
     {
         $fields['state'] = array('caption' => 'Състояние', 'mandatory' => 'mandatory');
+        $fields['state']['notColumn'] = true;
+        $fields['state']['type'] = 'enum(ok=OK, blocked=Блокирано, error=Грешка)';
     }
     
     
