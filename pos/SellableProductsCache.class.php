@@ -187,7 +187,7 @@ class pos_SellableProductsCache extends core_Master
         
         $res = array();
         while ($receiptRec = $receiptQuery->fetch()){
-            $storeId = ($receiptRec->canStore == 'yes') ? pos_Points::fetchField($receiptRec->pointId, 'storeId') : null;
+            $storeId = pos_Points::fetchField($receiptRec->pointId, 'storeId');
             $key = "{$storeId}|{$receiptRec->productId}";
             if(!array_key_exists($key, $res)){
                 $res[$key] = (object)array('productId' => $receiptRec->productId, 'storeId' => $storeId, 'sumQuantity' => 0, 'sumAmount' => 0, 'count' => 0);
