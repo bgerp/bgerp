@@ -96,7 +96,7 @@ class blast_BlockedEmails extends core_Manager
     {
         $fields['state'] = array('caption' => 'Състояние', 'mandatory' => 'mandatory');
         $fields['state']['notColumn'] = true;
-        $fields['state']['type'] = 'enum(ok=OK, blocked=Блокирано, error=Грешка)';
+        $fields['state']['type'] = 'enum(blocked=Блокирано, error=Грешка, ok=OK)';
     }
     
     
