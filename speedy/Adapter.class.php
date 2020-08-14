@@ -179,8 +179,11 @@ class speedy_Adapter {
     {
         $senderClientData = $this->eps->getClientById($this->resultLogin->getClientId());
         $Address = $senderClientData->getAddress();
-        
+       
         $res = $Address->getPostCode() . " " . $Address->getSiteName() . " " . $Address->getStreetType() . " " . $Address->getStreetName() . " " . $Address->getStreetNo() . " " . $Address->getAddressNote();
+        if($quarterName = $Address->getQuarterName()){
+            $res .= " {$quarterName}";
+        }
         
         return $res;
     }
@@ -304,7 +307,7 @@ class speedy_Adapter {
         }
         
         // Задаване на данните на изпращача
-        $senderClientData = $this->eps->getClientById($this->resultLogin ->getClientId());
+        $senderClientData = $this->eps->getClientById($this->resultLogin->getClientId());
         $sender = new ParamClientData();
         $sender->setClientId($senderClientData->getClientId());
         $sender->setContactName($rec->senderName);
