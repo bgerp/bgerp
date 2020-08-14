@@ -148,9 +148,6 @@ class sales_StatisticData extends core_Manager
             $newRecs += $eshopRecs;
         }
         
-        
-        
-        //bp($newRecs);
         $res = arr::syncArrays($newRecs, $exRecs, 'key,productId', 'count,quantity,amount');
         $this->saveArray($res['insert']);
         $this->saveArray($res['update'], 'id,count,quantity,amount');

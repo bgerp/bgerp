@@ -182,6 +182,9 @@ class pos_SellableProductsCache extends core_Master
         $receiptQuery->where("#state != 'draft' && #state != 'rejected' AND #isPublic = 'yes'");
         $receiptQuery->show('productId,quantity,amount,canStore,pointId');
         
+        $count = $receiptQuery->count();
+        core_App::setTimeLimit($count * 0.3, false, 200);
+        
         $res = array();
         while ($receiptRec = $receiptQuery->fetch()){
             $storeId = ($receiptRec->canStore == 'yes') ? pos_Points::fetchField($receiptRec->pointId, 'storeId') : null;
