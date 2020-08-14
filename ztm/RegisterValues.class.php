@@ -494,7 +494,7 @@ class ztm_RegisterValues extends core_Manager
         $token = Request::get('token');
         $lastSync = Request::get('last_sync');
        
-        log_System::logAlert(serialize(Request::$vars));
+        log_System::logDebug(serialize(Request::$vars));
         
         // Кое е устройството
         expect($deviceRec = ztm_Devices::getRecForToken($token), $token);
