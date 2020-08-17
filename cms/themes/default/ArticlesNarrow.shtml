@@ -16,11 +16,11 @@
     <div style="padding: 4% 2% 2% ">
         [#TOP_CONTENT#]
         [#PAGE_CONTENT#]
+        <div class='bulletin-link'></div>
         <!--ET_BEGIN SOCIAL-->
         [#SOCIAL#]
         [#social_Sharings::getButtons#]
         <!--ET_END SOCIAL-->
-        <div class='bulletin-link'></div>
         [#BEFORE_FOOTER_INFO#]
         [#BOTTOM_CONTENT#]
     </div>

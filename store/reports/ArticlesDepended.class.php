@@ -90,8 +90,8 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $fieldset->FLD('soonPeriod', 'time(suggestions=1 месец|3 месеца|6 месеца|1 година)', 'caption=Последни доставки/производства->Период, after=orderBy,mandatory,single=none');
         $fieldset->FLD('soonQuantity', 'percent(suggestions=10%|20% |30%|50%)', 'caption=Последни доставки/производства->Количество,unit=от наличното, after=soonPeriod,single=none');
         
-        $fieldset->FNC('from', 'date', 'caption=Период->От,after=title,single=none,input = hiden');
-        $fieldset->FNC('to', 'date', 'caption=Период->До,after=from,single=none,input = hiden');
+        $fieldset->FNC('from', 'date', 'caption=Период->От,after=title,single=none,input = hidden');
+        $fieldset->FNC('to', 'date', 'caption=Период->До,after=from,single=none,input = hidden');
     }
     
     

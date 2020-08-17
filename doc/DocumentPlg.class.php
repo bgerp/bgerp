@@ -3714,6 +3714,13 @@ class doc_DocumentPlg extends core_Plugin
     {
         // Отбелязване в лога
         doclog_Documents::changed($recsArr);
+        if (!empty($recsArr)) {
+            $lRec = end($recsArr);
+            if ($lRec->docId && cls::load($lRec->docClass, true)) {
+                $inst = cls::get($lRec->docClass);
+                $inst->touchRec($lRec->docId);
+            }
+        }
     }
     
     
@@ -4124,16 +4131,19 @@ class doc_DocumentPlg extends core_Plugin
             $rec->modifiedOn = dt::verbal2Mysql();
             
             $mvc->save_($rec, 'modifiedOn, modifiedBy');
-            $cid = $rec->containerId;
             
-            if ($cid) {
+            if ($rec->containerId) {
                 $cRec = new stdClass();
-                $cRec->id = $cid;
+                $cRec->id = $rec->containerId;
                 $cRec->modifiedOn = $rec->modifiedOn;
                 $cRec->modifiedBy = $rec->modifiedBy;
                 
                 $containersInst = cls::get('doc_Containers');
                 $containersInst->save_($cRec, 'modifiedOn, modifiedBy');
+            }
+            
+            if ($rec->threadId) {
+                doc_Threads::updateThread($rec->threadId);
             }
         }
     }

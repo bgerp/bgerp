@@ -50,14 +50,22 @@ class pwa_Manifest extends core_Mvc
         $appTitle = tr($appTitle);
         $text = tr('интегрирана система за управление');
         
+        $cu = str::checkHash(Request::get('u'));
+        if (!$cu) {
+            wp(Request::get('u'));
+        }
+        $bVals = (int) $cu . '_' . dt::mysql2timestamp() . '_' . log_Browsers::getBrid();
+        $bVals = core_String::addHash($bVals);
+        $pwaActionUrl = '/pwa_Share/Portal/?v=' . $bVals;
+        
         $json = array(
             'short_name' => $appTitle,
             'name' => $appTitle . ' - ' . $text,
             'display' => 'standalone',
             'background_color' => '#fff',
             'theme_color' => '#ddd',
-            'start_url' => '/pwa_Share/Portal',
-            'scope' => '/pwa_Share',
+            'start_url' => $pwaActionUrl,
+            'scope' => '/',
             'icons' => $iconInfoArr,
             'share_target' => array(
                 'action' => '/pwa_Share/Target',

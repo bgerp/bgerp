@@ -1694,8 +1694,11 @@ class pos_Terminal extends peripheral_Terminal
         // Ако има групи на артикулите
         if(countR($groupsTable)){
             $groups = arr::extractValuesFromArray($groupsTable, 'groupId');
-            
-            $resultTpl = new core_ET("<div class='tabs productTabs'><ul class='tabHolder'>[#TAB#]</ul></div>");
+            if (Mode::get('screenMode') == 'narrow' && countR($groupsTable) > 3) {
+                $resultTpl = new core_ET("<div class='tabs productTabs'><select style='width: 90%' class='tabHolder'>[#TAB#]</select></div>");
+            } else {
+                $resultTpl = new core_ET("<div class='tabs productTabs'><ul class='tabHolder'>[#TAB#]</ul></div>");
+            }
             $groups = array('all' => null) + $groups;
             foreach ($groups as $groupId){
                 $active = ($rec->_selectedGroupId == $groupId) ? 'active' : '';
@@ -1703,7 +1706,12 @@ class pos_Terminal extends peripheral_Terminal
                 $groupName = (isset($groupId)) ? cat_Groups::getVerbal($groupId, 'name') : tr("Всички");
                 Mode::pop('treeShortName');
                 $tabTitle = tr("Избор на група|*: \"{$groupName}\"");
-                $tab = "<li id='group{$groupId}' data-id = '{$groupId}' class='selectable {$active}' title='{$tabTitle}'>{$groupName}</li>";
+                if (Mode::get('screenMode') == 'narrow' && countR($groupsTable) > 3) {
+                    $tab = "<option id='group{$groupId}' data-id = '{$groupId}'>{$groupName}</option>";
+                } else {
+                    $tab = "<li id='group{$groupId}' data-id = '{$groupId}' class='selectable {$active}' title='{$tabTitle}'>{$groupName}</li>";
+                }
+
                 $resultTpl->append($tab, "TAB");
             }
             
@@ -1808,7 +1816,7 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function prepareProductTable($rec, $searchString)
     {
-        $result = core_Cache::get('planning_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}_{$rec->_selectedGroupId}");
+        $result = core_Cache::get('pos_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}_{$rec->_selectedGroupId}");
         
         //$result = false;
         
@@ -1920,7 +1928,7 @@ class pos_Terminal extends peripheral_Terminal
             }
             
             $result = $this->prepareProductResultRows($sellable, $rec);
-            core_Cache::set('planning_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}", $result, 2);
+            core_Cache::set('pos_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}", $result, 2);
         }
         
         return $result;

@@ -24,12 +24,6 @@ class ztm_RegisterValues extends core_Manager
     
     
     /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'ztm_Registers';
-    
-    
-    /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, ztm_Wrapper, plg_Modified';
@@ -158,7 +152,6 @@ class ztm_RegisterValues extends core_Manager
        
         $rec->value = ztm_Registers::recordValue($registerId, $rec->value);
         
-        
         $rec->_skip = true;
         self::save($rec);
         
@@ -172,13 +165,6 @@ class ztm_RegisterValues extends core_Manager
         
        
         $r = '{
-    "ac.allowed_attendees": [
-        {
-            "card_id": "445E6046010080FF",
-            "pin": "159753",
-            "valid_until": "1595322860"
-        }
-    ],
     "ac.door_closed.input": "DI2",
     "ac.door_closed2.input": "off",
     "ac.enabled": "yes",
@@ -346,9 +332,12 @@ class ztm_RegisterValues extends core_Manager
         
         
         
-        $lastSync = '2020-01-01 10:00:00';
+        $lastSync = '2018-01-01 10:00:00';
         
         $regArr = (array)json_decode($r);
+        
+      
+        
         
         $deviceRec = ztm_Devices::fetch(4);
         $synced = $this->sync($regArr, $deviceRec->id, $lastSync);
@@ -356,7 +345,7 @@ class ztm_RegisterValues extends core_Manager
         
         //$result = ztm_Profiles::getDefaultResponse($deviceRec->profileId);
         
-        bp($synced,$regArr);
+       
         
         $a = self::get(1, 1);
         //bp($a);
@@ -418,8 +407,12 @@ class ztm_RegisterValues extends core_Manager
         // Записване на новите стойностти, върнати от устройството
         $syncedArray = array();
         foreach ($expandedRegArr as $obj){
-            ztm_RegisterValues::set($deviceId, $obj->registerId, $obj->value, $lastSync);
-            $syncedArray[$obj->name] = $obj->value;
+            try{
+                ztm_RegisterValues::set($deviceId, $obj->registerId, $obj->value, $lastSync);
+                $syncedArray[$obj->name] = $obj->value;
+            } catch(core_exception_Expect $e){
+                log_System::logErr("Невалидна стойност за числов регистър: '{$obj->name}' - {$obj->value}");
+            }
         }
        
         // Тези, които няма да се обновяват ги връщаме към резултата
@@ -496,11 +489,11 @@ class ztm_RegisterValues extends core_Manager
      * Създава пряк път до публичните статии
      */
     public function act_Sync()
-    {   
+    {
         $token = Request::get('token');
         $lastSync = Request::get('last_sync');
        
-        log_System::logAlert(serialize(Request::$vars));
+        log_System::logDebug(serialize(Request::$vars));
         
         // Кое е устройството
         expect($deviceRec = ztm_Devices::getRecForToken($token), $token);
@@ -526,6 +519,7 @@ class ztm_RegisterValues extends core_Manager
                 }
                 
                 // Синхронизране на данните от устройството с тези от системата
+                $lastSync = dt::timestamp2Mysql($lastSync);
                 $result = $this->sync($regArr, $deviceRec->id, $lastSync);
             }
         } catch(core_exception_Expect $e){

@@ -20,12 +20,6 @@ class ztm_Registers extends core_Master
     
     
     /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'ztm_RegistersDef';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ztm, ceo';
@@ -188,6 +182,14 @@ class ztm_Registers extends core_Master
     {
         $type = ztm_Registers::fetchField($registerId, 'type');
         
+        if(in_array($type, array('int', 'float', 'int|float'))){
+            $Double = core_Type::getByName('double');
+            if(!$Double->fromVerbal($extValue)){
+               
+                throw new core_exception_Expect('Въведената стойност не е число|*!', 'Несъответствие');
+            }
+        }
+        
         // Записва стойността в помощния модел при нужда
         if(in_array($type, array('json'))){
             $hash = md5(serialize($extValue));
@@ -196,10 +198,7 @@ class ztm_Registers extends core_Master
             $existingValue = ztm_LongValues::fetchField("#hash = '{$hash}'", 'value');
             if(!isset($existingValue)){
                 $valueToSave = (is_array($extValue) || is_object($extValue)) ? json_encode($extValue) : $extValue;
-                
-                
                 $longRec = (object)array('hash' => $hash, 'value' => $valueToSave);
-                //bp($longRec);
                 
                 ztm_LongValues::save($longRec);
             }

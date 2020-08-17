@@ -2166,15 +2166,20 @@ abstract class deals_DealMaster extends deals_DealBase
         $res["{$contrPart}Country"] = $contragentCountry;
         $res["{$contrPart}Company"] = $contragentData->company;
         
+        $parsedAddress = drdata_Address::parsePlace($rec->deliveryAdress);
+        
         if (isset($contragentLocation)) {
             $res["{$contrPart}PCode"] = !empty($contragentLocation->pCode) ? $contragentLocation->pCode : null;
             $res["{$contrPart}Place"] = !empty($contragentLocation->place) ? $contragentLocation->place : null;
             $res["{$contrPart}Address"] = !empty($contragentLocation->address) ? $contragentLocation->address : null;
             $res["{$contrPart}Person"] = !empty($contragentLocation->mol) ? $contragentLocation->mol : null;
+        } elseif(is_object($parsedAddress)) {
+            $res["{$contrPart}Country"] = $parsedAddress->countryId;
+            $res["{$contrPart}PCode"] = $parsedAddress->pCode;
         } else {
             $res["{$contrPart}PCode"] = !empty($contragentData->pCode) ? $contragentData->pCode : null;
             $res["{$contrPart}Place"] = !empty($contragentData->place) ? $contragentData->place : null;
-            $res["{$contrPart}Address"] = !empty($contragentData->address) ? $contragentData->address : null;
+            $res["{$contrPart}Address"] = !empty($contragentData->pAddress) ? $contragentData->pAddress : (($contragentData->address) ? $contragentData->address : null);
             $res["{$contrPart}Person"] = !empty($contragentData->person) ? $contragentData->person : null;
         }
         

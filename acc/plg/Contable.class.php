@@ -97,9 +97,20 @@ class acc_plg_Contable extends core_Plugin
             acc_Journal::deleteTransaction($mvc, $rec->id);
             
             // Записване на новата транзакция на документа
-            Mode::push('recontoTransaction', true);
-            $success = acc_Journal::saveTransaction($mvc, $rec->id, false);
-            Mode::pop('recontoTransaction');
+            try{
+                Mode::push('recontoTransaction', true);
+                $success = acc_Journal::saveTransaction($mvc, $rec->id, false);
+                Mode::pop('recontoTransaction');
+            } catch(acc_journal_RejectRedirect  $e){
+                if($mvc instanceof deals_DealMaster){
+                    $rec->contoActions = null;
+                    $mvc->save_($rec, 'contoActions');
+                }
+                
+                $url = $mvc->getSingleUrlArray($rec->id);
+                redirect($url, false, '|' . $e->getMessage(), 'error');
+            }
+            
             $msg = ($success) ? 'Документът е реконтиран|*!' : 'Документът не е реконтиран|*!';
             $msgType = ($success) ? 'notice' : 'error';
             $mvc->logWrite('Ръчно реконтиране', $rec->id);

@@ -157,13 +157,16 @@ function posActions() {
 	 * При клик на таба
 	 */
 	$(document.body).on('click', ".tabHolder li", function() {
-		if (!$(this).hasClass('toggle')) {
 			activateTab($(this), 0);
-
+			sessionStorage.setItem('selectedTab', $(this).attr('id'));
 			startNavigation();
-		} else {
-			$('.mobileHolder').toggle();
-		}
+
+	});
+
+	$(document.body).on('change', "select.tabHolder", function() {
+			activateTab($(this), 0);
+			sessionStorage.setItem('selectedTab', $(this.selectedOptions).attr('id'));
+			startNavigation();
 	});
 
 	
@@ -232,6 +235,7 @@ function posActions() {
 		activeInput = false;
 		clearTimeout(timeout);
 	});
+
 
 
 	$(document.body).on('click', ".large-field.select-input-pos", function(e){
@@ -572,7 +576,7 @@ function calculateWidth(){
 			$('#result-holder').css('padding', '0');
 			$('#result-holder').css('overflow-y', 'visible');
 
-			$('#result-holder').css('margin-top', tabsFix -55);
+			$('#result-holder').css('margin-top', tabsFix - 41);
 			$('#result-holder .withTabs').css('height',winHeight - headerHeight - tabsFix - 22);
 			$('#result-holder .tabs, #result-holder').css('width', winWidth - $('#single-receipt-holder').width());
 		} else {
@@ -587,9 +591,11 @@ function calculateWidth(){
 
 		if(!isTouchDevice()) {
 			$('#keyboard-num').css('display','block');
+			$('.buttons').removeClass('oneRow');
 		} else {
 			$('#tools-holder').css('height', 330);
 			$('#keyboard-num').css('display','none');
+			$('.buttons').addClass('oneRow');
 		}
 
 	} else {
@@ -601,6 +607,7 @@ function calculateWidth(){
 		$('#single-receipt-holder').addClass('blockHolder');
 		$('#single-receipt-holder').removeClass('fixedHolder');
 		$('#single-receipt-holder').addClass('narrowHolder');
+		$('.buttons').addClass('oneRow');
 
 		$('#result-holder').css('width', "100%");
 		$('.tools-content').css('height','auto');
@@ -609,27 +616,6 @@ function calculateWidth(){
 
 		$('.keyboardBtn.operationHolder').addClass('disabledBtn');
 		$('.keyboardBtn.operationHolder').attr('disabled', 'disabled');
-
-
-		var scrollerWidth = 0;
-		var isFull = false;
-		if (!$('.mobileHolder').length) {
-			var mobileHolder = document.createElement('li');
-			$(mobileHolder).addClass("selectable toggle");
-			$(mobileHolder).append(">");
-			var tempHolder = document.createElement('ul');
-			$(tempHolder).addClass("mobileHolder");
-			$('#result-holder .tabHolder li.selectable').each(function () {
-
-				scrollerWidth += Math.ceil($(this).outerWidth()) + 5;
-				if (scrollerWidth > winWidth - 34 || isFull) {
-					isFull = true;
-					$(this).appendTo(tempHolder);
-				}
-			});
-			$(mobileHolder).append(tempHolder);
-			$('.tabHolder').append(mobileHolder);
-		}
 	}
 }
 
@@ -1084,19 +1070,14 @@ function selectFirstNavigable()
 function startNavigation() {
 	if($('.navigable').length) {
 		var focused = sessionStorage.getItem('focused');
-		var scrollTop = sessionStorage.getItem('focusedOffset') ?  sessionStorage.getItem('focusedOffset') : 0;
 		$('.selected').removeClass('selected');
-
 		// ръчно избирам първия елемент за селектед
 		if(!focused ||  $('#' + focused ).length == 0){
 			selectFirstNavigable();
-		} else if (focused && !$('#' + focused ).hasClass('disabledBtn') && document.getElementById(focused) && $('.navigable.selected:visible').length == 0) {
+		} else if (focused && !$('#' + focused ).hasClass('disabledBtn') && document.getElementById(focused) && $('.navigable.selected:visible').length == 0 && $('.navigable.contragentLinkBtns').length == 0) {
 			$('#' + focused ).addClass('selected');
 		}
 		$('#result-holder .navigable:visible').keynav();
-
-		$('#result-holder .withTabs').scrollTop(scrollTop);
-
 	}
 }
 
@@ -1303,8 +1284,10 @@ function openCurrentPosTab() {
 		var currentTabContent = $(activeTab).attr('data-content');
 
 		$("#" + currentTabContent).show();
-
 		sessionStorage.removeItem('focusedOffset');
+	} else {
+		var activeTab = sessionStorage.getItem('selectedTab')
+		$(".tabHolder  option#" + activeTab ).attr("selected", "selected");
 	}
 	startNavigation();
 }
@@ -1375,7 +1358,6 @@ function render_toggleAddedProductFlag(data)
 			sessionStorage.removeItem("focused");
 			sessionStorage.removeItem("focusedOffset");
 			addedProduct = false;
-
 		}
 	});
 }
@@ -1434,9 +1416,13 @@ function triggerSearchInput(element, timeoutTime)
 		resObj['url'] = url;
 		
 		var params = {operation:operation,search:inpVal,recId:selectedRecId};
-		
-		var activeTab = $(".tabHolder li.active");
 
+		if ($(".tabHolder li.active").length) {
+			var activeTab = $(".tabHolder li.active");
+		} else {
+			var activeTab = $('.tabHolder option:selected');
+
+		}
 		if(activeTab.length){
 			var id = activeTab.attr("data-id");
 			params.selectedProductGroupId = id;

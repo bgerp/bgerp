@@ -1739,7 +1739,7 @@ function setFormElementsWidth() {
                     if (!colsInRow) {
                         colsInRow = 1;
                     }
-                    $(this).parent().css('maxWidth', parseInt((formElWidth - 10) / colsInRow));
+                    $(this).parent().css('maxWidth', parseInt((formElWidth - 20) / colsInRow));
                     $(this).parent().css('overflow-x', 'hidden');
 
                     $(this).attr('title', $(this).text());
@@ -5535,7 +5535,7 @@ function syncServiceWorker() {
                 // Рефистрираме новия ServiceWorker
                 if((typeof serviceWorkerURL !== 'undefined') && (serviceWorkerURL !== false)) {
           
-                    navigator.serviceWorker.register(serviceWorkerURL, {scope: '/pwa_Share'}).then(function(registration) {
+                    navigator.serviceWorker.register(serviceWorkerURL, {scope: '/'}).then(function(registration) {
                     // Registration was successful
                         console.log('ServiceWorker registration successful: ' + serviceWorkerURL);
                     }, function(err) {

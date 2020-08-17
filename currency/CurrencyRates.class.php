@@ -212,12 +212,12 @@ class currency_CurrencyRates extends core_Detail
         $rec->controller = 'currency_CurrencyRates';
         $rec->action = 'RetrieveCurrencies';
         $rec->period = 24 * 60;
-        $rec->offset = 17 * 60;
+        $rec->offset = 19 * 60;
         $res .= core_Cron::addOnce($rec);
         
         unset($rec->id);
         $rec->systemId = 'update_currencies_night';
-        $rec->offset = 21 * 60;
+        $rec->offset = 22 * 60;
         $res .= core_Cron::addOnce($rec);
     }
     

@@ -1068,7 +1068,6 @@ class core_Packs extends core_Manager
             
             $form->FNC($field, $type, $params);
             
-            
             if (($data[$field] || $data[$field] === (double) 0 || $data[$field] === (int) 0) &&
                             (!defined($field) || ($data[$field] != constant($field)))) {
                 $form->setDefault($field, $data[$field]);
@@ -1083,7 +1082,7 @@ class core_Packs extends core_Manager
         }
         
         $form->setHidden('pack', $rec->name);
-        
+        $setup->manageConfigDescriptionForm($form);
         $form->input();
         
         $retUrl = getRetUrl();

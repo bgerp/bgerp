@@ -118,7 +118,7 @@ class pami_Setup extends core_ProtoSetup
         'PAMI_PORT' => array('int(Min=0, max=65535)', 'mandatory, caption=Данни за връзка с PAMI->Порт'),
         'PAMI_SCHEME' => array('enum(tcp,tls)', 'mandatory, caption=Данни за връзка с PAMI->Схема'),
         'PAMI_USER' => array('varchar(64)', 'mandatory, mandatory, caption=Данни за връзка с PAMI->Потребител'),
-        'PAMI_PASS' => array('password', 'caption=Данни за връзка с PAMI->Парола'),
+        'PAMI_PASS' => array('password', 'mandatory,caption=Данни за връзка с PAMI->Парола'),
         'PAMI_LOG_KEY' => array('password', 'caption=Ключ за връзка->Парола'),
         'PAMI_LOG_KEEP_DAYS' => array('int(min=0)', 'mandatory, caption=Живот за логовете->Дни'),
         'PAMI_LOG_URL' => array('varchar', 'caption=mandatory, URL за логване->URL'),

@@ -172,6 +172,11 @@ class type_Double extends core_Type
             $decimals = max($decimals, $this->params['minDecimals']);
         }
         
+        if(is_infinite($decimals)){
+            wp($value, $this->params);
+            $decimals = 0;
+        }
+        
         // Закръгляме числото преди да го обърнем в нормален вид
         $value = round($value, $decimals);
         

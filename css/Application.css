@@ -3468,7 +3468,8 @@ table .eshop-btn {
 
 .narrow .eshop-btn.addToCard,
 .narrow .productBtn.addToCard {
-  background-image: url("../img/16/cart_go.png") !important;
+  background-image: url("../img/32/cart_go.png") !important;
+  background-size: 16px;
   background-position: 3px center;
   background-repeat: no-repeat;
   margin-bottom: 5px !important;
@@ -5824,6 +5825,9 @@ only screen and (max-width: 360px) {
     :not(.modern-theme) .narrow .main-container .formTable .keylist label {
       max-width: 159px; }
 
+  .narrow .vFormField .select2 {
+    max-width: 335px !important; }
+
   .externalPage h2 {
     font-size: 1.22em; }
 
@@ -6730,6 +6734,11 @@ only screen and (max-width: 320px) {
   right: 10px;
   left: auto;
   margin: 0; }
+
+  .endTooltip img,
+  .frontToolip img {
+    width: 16px;
+    height: 16px; }
 
 .narrow .elem-holder .endTooltip {
   float: right; }
