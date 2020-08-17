@@ -197,6 +197,13 @@ class ztm_Registers extends core_Master
                 
                 ztm_LongValues::save($longRec);
             }
+        } elseif(in_array($type, array('json', 'float'))){
+            
+            // Хак за всеки случай
+            if(!is_numeric($extValue)){
+                $extValue = 0;
+            }
+            $value = $extValue;
         } else {
             $value = $extValue;
         }
