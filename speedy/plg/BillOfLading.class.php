@@ -67,9 +67,11 @@ class speedy_plg_BillOfLading extends core_Plugin
             
             // Подготовка на формата
             $form = self::getBillOfLadingForm($mvc, $rec, $adapter);
-            $form->FLD('senderAddress', 'varchar', 'after=senderName,caption=Подател->Адрес,hint=Адресът е настроен в профика в Speedy');
-            $senderAddress = $adapter->getSenderAddress();
-            $form->setReadOnly('senderAddress', $senderAddress);
+            
+            $senderObjects = $adapter->getSenderObjects();
+            $form->FLD('senderClientId', 'varchar', 'after=senderName,caption=Подател->Обект,hint=Адресът е настроен в профика в Speedy');
+            $form->setOptions('senderClientId', $senderObjects);
+            $form->setDefault('senderClientId', $adapter->getDefaultClientId());
             
             $form->input();
             
@@ -96,6 +98,20 @@ class speedy_plg_BillOfLading extends core_Plugin
                 
                 if(isset($fRec->amountInsurance) && $fRec->totalWeight > 32){
                     $form->setError('amountInsurance,totalWeight', 'Не може да има обявена стойност, на пратки с тегло над 32 кг');
+                }
+                
+                $parcelInfo = type_Table::toArray($fRec->parcelInfo);
+                $parcelCount = countR($parcelInfo);
+                $parcelCalcWeight = arr::sumValuesArray($parcelInfo, 'weight');
+                
+                if($parcelCount && !empty($fRec->palletCount)){
+                    if($parcelCount != $fRec->palletCount){
+                        $form->setError('parcelInfo,palletCount', 'Има разминаване между броя на палетите');
+                    }
+                }
+                
+                if(empty($parcelCalcWeight) && empty($fRec->totalWeight)){
+                    $form->setError('totalWeight,parcelInfo', 'Задължително е да има тегло');
                 }
                 
                 if(!$form->gotErrors()){
@@ -192,10 +208,11 @@ class speedy_plg_BillOfLading extends core_Plugin
         $form->FLD('payerPackaging', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец опаковка,mandatory');
         
         $form->FLD('isDocuments', 'enum(no=Не,yes=Да)', 'caption=Описание на пратката->Документи,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer|palletCount,maxRadio=2');
-        $form->FLD('palletCount', 'int(min=0,Max=10)', 'caption=Описание на пратката->Бр. пакети,mandatory');
+        $form->FLD('palletCount', 'int(min=0,Max=10)', 'caption=Описание на пратката->Бр. пакети');
+        $form->FLD("parcelInfo", "table(columns=width|depth|height|weight|num,captions=Ширина|Дълбочина|Височина|Тегло|№ на опаковка,validate=speedy_plg_BillOfLading::validatePallets)", 'caption=Описание на пратката->Палети,after=palletCount');
         $form->FLD('content', 'varchar', 'caption=Описание на пратката->Съдържание,mandatory,recently');
         $form->FLD('packaging', 'varchar', 'caption=Описание на пратката->Опаковка,mandatory,recently');
-        $form->FLD('totalWeight', 'double(min=0,max=50)', 'caption=Описание на пратката->Общо тегло,unit=кг (Макс: 50),mandatory');
+        $form->FLD('totalWeight', 'double(min=0,max=50)', 'caption=Описание на пратката->Общо тегло,unit=кг (Макс: 50)');
         $form->FLD('isPaletize', 'enum(no=Не,yes=Да)', 'caption=Описание на пратката->Палетизиране,maxRadio=2');
         
         $form->FLD('amountCODBase', 'double(min=0)', 'caption=Описание на пратката->Наложен платеж,unit=BGN,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer');
@@ -307,7 +324,6 @@ class speedy_plg_BillOfLading extends core_Plugin
             }
         }
         
-        
         $amountCod = round($amountCod, 2);
         if(empty($toPerson) && $Cover->haveInterface('crm_PersonAccRegIntf')){
             $toPerson = $Cover->fetchField('name');
@@ -355,7 +371,6 @@ class speedy_plg_BillOfLading extends core_Plugin
         }
         
         $receiverCountryId = drdata_Countries::getIdByName($logisticData['toCountry']);
-        $form->setDefault('palletCount', 1);
         $form->setDefault('payerPackaging', 'same');
         
         $profile = crm_Profiles::getProfile();
@@ -401,6 +416,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         if(!isset($form->rec->service)){
             $form->setField('date', 'input=none');
         } else {
+            
             try{
                 $takingDates =  $adapter->getAllowedTakingDays($form->rec->service);
                 $form->setOptions('date', $takingDates);
@@ -420,6 +436,65 @@ class speedy_plg_BillOfLading extends core_Plugin
         }
         
         return $form;
+    }
+    
+    
+    /**
+     * Проверка на данните за палетите
+     *
+     * @param array     $tableData
+     * @param core_Type $Type
+     *
+     * @return array
+     */
+    public static function validatePallets($tableData, $Type)
+    {
+        $res = $error = $errorFields = array();
+        $TableArr = type_Table::toArray($tableData);
+        
+        $Double = core_Type::getByName('double');
+       
+        foreach($TableArr as $i => $obj){
+            foreach (array('weight', 'depth', 'height', 'width', 'num') as $field){
+                if(!empty($obj->{$field})){
+                    if(!$Double->fromVerbal($obj->{$field}) || $obj->{$field} < 0){
+                        $error[] = 'Невалидни числа';
+                        $errorFields[$field][$i] = 'Невалидно число';
+                    }
+                }
+            }
+            
+            if(empty($obj->weight)){
+                $error['sizeError'] = 'Трябва да са въведени размерите';
+                $errorFields['weight'][$i] = 'Трябва да е въведено тегло';
+            }
+            
+            if(empty($obj->width)){
+                $error['sizeError'] = 'Трябва да са въведени размерите';
+                $errorFields['width'][$i] = 'Трябва да е въведена ширина';
+            }
+            
+            if(empty($obj->depth)){
+                $error['sizeError'] = 'Трябва да са въведени размерите';
+                $errorFields['depth'][$i] = 'Трябва да е въведена дълбочина';
+            }
+            
+            if(empty($obj->height)){
+                $error['sizeError'] = 'Трябва да са въведени размерите';
+                $errorFields['height'][$i] = 'Трябва да е въведена височина';
+            }
+        }
+        
+        if (countR($error)) {
+            $error = implode('<li>', $error);
+            $res['error'] = $error;
+        }
+        
+        if (countR($errorFields)) {
+            $res['errorFields'] = $errorFields;
+        }
+        
+        return $res;
     }
     
     
