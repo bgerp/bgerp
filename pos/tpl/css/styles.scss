@@ -399,7 +399,7 @@
 }
 
 #result-holder.fixedPosition .withTabs {
-	margin-top: 60px;
+	margin-top: 47px;
 	overflow-y: scroll;
 	padding-top: 15px;
 	padding-right: 15px;
@@ -449,8 +449,7 @@
 .withTabs .tabs .tabHolder {
 	padding-left: 2px;
 	padding-right: 2px;
-	text-align: center;
-	margin: 10px 7px;
+	margin: -3px 7px 0;
 	li {
 		user-select: none;
 		display: inline-block;
@@ -484,7 +483,7 @@ select.tabHolder {
 		text-align: center !important;
 		background: #ddd !important;
 		border-radius: 3px;
-		margin: 5px 10px 5px 0 ;
+		margin: 5px 7px 5px 0 ;
 		padding: 7px;
 		&.active, &:hover {
 			background: #fefead !important;
