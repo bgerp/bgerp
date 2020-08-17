@@ -182,6 +182,14 @@ class ztm_Registers extends core_Master
     {
         $type = ztm_Registers::fetchField($registerId, 'type');
         
+        if(in_array($type, array('int', 'float', 'int|float'))){
+            $Double = core_Type::getByName('double');
+            if(!$Double->fromVerbal($extValue)){
+               
+                throw new core_exception_Expect('Въведената стойност не е число|*!', 'Несъответствие');
+            }
+        }
+        
         // Записва стойността в помощния модел при нужда
         if(in_array($type, array('json'))){
             $hash = md5(serialize($extValue));
@@ -194,13 +202,6 @@ class ztm_Registers extends core_Master
                 
                 ztm_LongValues::save($longRec);
             }
-        } elseif(in_array($type, array('int', 'float'))){
-            
-            // Хак за всеки случай
-            if(!is_numeric($extValue)){
-                $extValue = 0;
-            }
-            $value = $extValue;
         } else {
             $value = $extValue;
         }
