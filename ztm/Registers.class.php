@@ -190,14 +190,11 @@ class ztm_Registers extends core_Master
             $existingValue = ztm_LongValues::fetchField("#hash = '{$hash}'", 'value');
             if(!isset($existingValue)){
                 $valueToSave = (is_array($extValue) || is_object($extValue)) ? json_encode($extValue) : $extValue;
-                
-                
                 $longRec = (object)array('hash' => $hash, 'value' => $valueToSave);
-                //bp($longRec);
                 
                 ztm_LongValues::save($longRec);
             }
-        } elseif(in_array($type, array('json', 'float'))){
+        } elseif(in_array($type, array('int', 'float'))){
             
             // Хак за всеки случай
             if(!is_numeric($extValue)){
