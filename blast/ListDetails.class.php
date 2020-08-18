@@ -80,6 +80,12 @@ class blast_ListDetails extends doc_Detail
     
     
     /**
+     * Кой може да екпортира?
+     */
+    public $canExport = 'blast,ceo,admin';
+    
+    
+    /**
      * Заглавие в единствено число
      */
     public $singleTitle = 'Контакт за масово разпращане';
@@ -310,8 +316,8 @@ class blast_ListDetails extends doc_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($rec && ($action == 'export')) {
-            if (!haveRole('blast,ceo,admin', $userId)) {
-                if ($rec->createdBy != $userId) {
+            if ($rec->createdBy != $userId) {
+                if (!blast_Lists::haveRightFor('single', $rec->listId)) {
                     $requiredRoles = 'no_one';
                 }
             }

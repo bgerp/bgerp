@@ -544,7 +544,7 @@ body {
     color: #444;
     position: absolute;
     right:50%;
-    top: 0;
+    top: 3px;
     min-width: 200px;
     margin-right: -100px;
     text-align: center;
@@ -1049,7 +1049,7 @@ body {
 .notificationsCnt {
     display: inline-block;
     position: absolute;
-    top: -4px;
+    top: -6px;
 }
 
 .notificationsCnt a {
@@ -1446,9 +1446,9 @@ div.tab-control.deal-history-tab .tab-row .tab {
 @media handheld, only screen and (max-width: 1280px) {
     @-moz-document url-prefix() {
         .center-block {
-            top: -4px;
+            1top: -4px;
             .notificationsCnt {
-                top: -2px;
+                1top: -2px;
             }
         }
     }

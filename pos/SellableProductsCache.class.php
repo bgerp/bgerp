@@ -176,20 +176,31 @@ class pos_SellableProductsCache extends core_Master
         // За всяка бележка, намират се най-продаваните 100 артикула
         $receiptQuery = pos_ReceiptDetails::getQuery();
         $receiptQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
-        $receiptQuery->EXT('groupsInput', 'cat_Products', 'externalName=groupsInput,externalKey=productId');
-        $receiptQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $receiptQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
-        $receiptQuery->XPR('count', 'int', 'count(#id)');
-        $receiptQuery->XPR('sumQuantity', 'int', 'SUM(#quantity)');
-        $receiptQuery->XPR('sumAmount', 'int', 'SUM(#amount)');
+        $receiptQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $receiptQuery->EXT('pointId', 'pos_Receipts', 'externalName=pointId,externalKey=receiptId');
         $receiptQuery->where("#state != 'draft' && #state != 'rejected' AND #isPublic = 'yes'");
-        $receiptQuery->show('productId,groups,groupsInput,storeId,sumQuantity,sumAmount');
-        $receiptQuery->groupBy('productId,storeId');
-        $receiptQuery->orderBy("count", 'DESC');
+        $receiptQuery->show('productId,quantity,amount,canStore,pointId');
         
-        // Те ще се добавят в групата за Топ 100 най-продавани
-        $res = $receiptQuery->fetchAll();
+        $count = $receiptQuery->count();
+        core_App::setTimeLimit($count * 0.3, false, 200);
         
+        $res = array();
+        while ($receiptRec = $receiptQuery->fetch()){
+            $storeId = pos_Points::fetchField($receiptRec->pointId, 'storeId');
+            $key = "{$storeId}|{$receiptRec->productId}";
+            if(!array_key_exists($key, $res)){
+                $res[$key] = (object)array('productId' => $receiptRec->productId, 'storeId' => $storeId, 'sumQuantity' => 0, 'sumAmount' => 0, 'count' => 0);
+                
+            }
+            $res[$key]->count++;
+            $res[$key]->sumQuantity += $receiptRec->quantity;
+            $res[$key]->sumAmount += $receiptRec->amount;
+        }
+        
+        arr::sortObjects($res, 'count', 'desc');
+        $res = array_slice($res, 0, 200);
+       
         return $res;
     }
 }
