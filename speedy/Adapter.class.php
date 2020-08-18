@@ -342,14 +342,17 @@ class speedy_Adapter {
         
         $Double = core_Type::getByName('double(decimals=2)');
         $row = new stdClass();
-        $row->deadlineDelivery = dt::mysql2verbal($calculated->getDeadlineDelivery());
+        $row->deadlineDelivery = dt::mysql2verbal($calculated->getDeadlineDelivery(), 'd.m.Y H:i:s');
         
         foreach (arr::make('net,addrPickupSurcharge,addrDeliverySurcharge,discPcntFixed,discPcntAdditional,pcntFuelSurcharge,nonStdDeliveryDateSurcharge,tro,islandSurcharge,testBeforePayment,tollSurcharge,heavyPackageFee,codPremium,insurancePremium,vat,total') as $fld){
             $value = $Amounts->{"get{$fld}"}();
             $valueVerbal = $Double->toVerbal($value);
+            $valueVerbal = ht::styleNumber($valueVerbal, $value);
             $row->{$fld} = $valueVerbal;
         }
         
+        $row->net = currency_Currencies::decorate($row->net);
+        $row->total = currency_Currencies::decorate($row->total);
         $row->totalNoVat = $Double->toVerbal($Amounts->getTotal() - $Amounts->getVat());
         
         $tpl = getTplFromFile('speedy/tpl/CalculatedAmounts.shtml');
