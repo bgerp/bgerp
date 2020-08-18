@@ -282,7 +282,6 @@ class speedy_plg_BillOfLading extends core_Plugin
                     $toPerson = $cartRec->personNames;
                     $form->setDefault('receiverPhone', $cartRec->tel);
                     
-                    
                     $form->setDefault('receiverCountryId', $cartRec->deliveryCountry);
                     if($rec->receiverCountryId == $cartRec->deliveryCountry){
                         $form->setDefault('receiverPlace', $cartRec->deliveryPlace);
@@ -320,6 +319,14 @@ class speedy_plg_BillOfLading extends core_Plugin
             $paymentType = $firstDocument->fetchField('paymentMethodId');
             $amountCod = ($documentRec->chargeVat == 'separate') ? $documentRec->amountDelivered + $documentRec->amountDeliveredVat : $documentRec->amountDelivered;
         
+            if(core_Packs::isInstalled('eshop')){
+                if($cartRec = eshop_Carts::fetch("#saleId = {$firstDocument->that}")){
+                    if(!empty($cartRec->instruction)){
+                        $form->setDefault('receiverNotes', $cartRec->instruction);
+                    }
+                }
+            }
+            
             if($documentRec->locationId){
                 $locationRec = crm_Locations::fetch($documentRec->locationId, 'mol,tel');
                 if(!empty($locationRec->mol)){
