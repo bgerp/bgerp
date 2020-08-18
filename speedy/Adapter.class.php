@@ -321,14 +321,69 @@ class speedy_Adapter {
     
     
     /**
-     * Генерира товарителница в услугата на Speedy
+     * Подробна разбивка на калкулираната цена на товарителницата
      *
-     * @param stdClass $rec - ид на товарителница
+     * @param stdClass $rec - данни за товавителница
      * @throws ServerException
      *
-     * @return int $bolId   - ид-то на товарителницата
+     * @return core_ET $tpl
+     */
+    public function calculate($rec)
+    {
+        $picking = $this->generatePicking($rec, true);
+        $calculated = $this->eps->calculate($picking);
+        $Amounts = $calculated->getAmounts();
+        
+        $Double = core_Type::getByName('double(decimals=2)');
+        $row = new stdClass();
+        $row->deadlineDelivery = dt::mysql2verbal($calculated->getDeadlineDelivery());
+        
+        foreach (arr::make('net,addrPickupSurcharge,addrDeliverySurcharge,discPcntFixed,discPcntAdditional,pcntFuelSurcharge,nonStdDeliveryDateSurcharge,tro,islandSurcharge,testBeforePayment,tollSurcharge,heavyPackageFee,codPremium,insurancePremium,vat,total') as $fld){
+            $value = $Amounts->{"get{$fld}"}();
+            $valueVerbal = $Double->toVerbal($value);
+            $row->{$fld} = $valueVerbal;
+        }
+        
+        $row->totalNoVat = $Double->toVerbal($Amounts->getTotal() - $Amounts->getVat());
+        
+        $tpl = getTplFromFile('speedy/tpl/CalculatedAmounts.shtml');
+        $tpl->placeObject($row);
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Генерира товарителница в услугата на Speedy
+     *
+     * @param stdClass $rec - данни за товавителница
+     * @throws ServerException
+     *
+     * @return int $bolId - ид-то на товарителницата
      */
     public function getBol($rec)
+    {
+        $picking = $this->generatePicking($rec, false);
+        
+        // Генериране на товарителница
+        $resultBOL = $this->eps->createBillOfLading($picking);
+        $parcels = $resultBOL->getGeneratedParcels();
+        $firstParcel = $parcels[0];
+        $bolId = $firstParcel->getParcelId();
+        
+        return $bolId;
+    }
+    
+    
+    /**
+     * Генерира данни за товарителница
+     *
+     * @param stdClass $rec - ид на товарителница
+     * @param boolean $onlyCalculate - само калкулация или товарителница
+     *
+     * @return ParamCalculation|ParamPicking $picking
+     */
+    private function generatePicking($rec, $onlyCalculate = false)
     {
         $pickingData = new StdClass();
         
@@ -342,8 +397,6 @@ class speedy_Adapter {
         
         $pickingData->amountCODBase = $rec->amountCODBase;
         $pickingData->amountInsurance = $rec->amountInsurance;
-        $pickingData->backDocumentReq = true;
-        $pickingData->backReceiptReq = false;
         $pickingData->contents = $rec->content;
         $pickingData->packing = $rec->packaging;
         $pickingData->serviceTypeId = $rec->service;
@@ -396,13 +449,9 @@ class speedy_Adapter {
             $receiverPhonesArr[] = $paramPhoneNumber;
         }
         $receiver->setPhones($receiverPhonesArr);
+        $picking = ($onlyCalculate === true) ? new ParamCalculation() : new ParamPicking();
         
-        // Подготовка на товарителницата
-        $picking = new ParamPicking();
         $picking->setServiceTypeId($pickingData->serviceTypeId);
-        $picking->setBackDocumentsRequest($pickingData->backDocumentReq);
-        $picking->setBackReceiptRequest($pickingData->backReceiptReq);
-        
         if(isset($pickingData->bringToOfficeId)){
             $picking->setWillBringToOffice($pickingData->bringToOfficeId);
         }
@@ -411,6 +460,10 @@ class speedy_Adapter {
             $picking->setOfficeToBeCalledId($pickingData->takeFromOfficeId);
         } else {
             $receiverSiteId = $this->getSiteId($rec->receiverCountryId, $rec->receiverPCode, $rec->receiverPlace);
+            if($picking instanceof ParamCalculation){
+                $picking->setReceiverSiteId($receiverSiteId);
+            }
+            
             $receiverAddress = new ParamAddress();
             $receiverAddress->setSiteId($receiverSiteId);
            
@@ -435,13 +488,20 @@ class speedy_Adapter {
             $receiver->setAddress($receiverAddress);
         }
         
-        $picking->setContents($pickingData->contents);
-        $picking->setPacking($pickingData->packing);
+        if($picking instanceof ParamPicking){
+            $picking->setContents($pickingData->contents);
+            $picking->setPacking($pickingData->packing);
+            $picking->setSender($sender);
+            $picking->setReceiver($receiver);
+            $picking->setDeliveryToFloorNo($rec->floorNum);
+        } else {
+            $picking->setSenderId($rec->senderClientId);
+        }
+        
         $picking->setDocuments($pickingData->documents);
         $picking->setPalletized($pickingData->palletized);
         $picking->setFragile($pickingData->fragile);
-        $picking->setSender($sender);
-        $picking->setReceiver($receiver);
+        
         $picking->setPayerType($pickingData->payerType);
         $picking->setPayerTypePackings($pickingData->payerTypePackings);
         $picking->setTakingDate($pickingData->takingDate);
@@ -458,7 +518,6 @@ class speedy_Adapter {
         
         $picking->setAmountInsuranceBase($pickingData->amountInsurance);
         $picking->setPayerTypeInsurance($pickingData->insurancePayer);
-        $picking->setDeliveryToFloorNo($rec->floorNum);
         
         // Задаване на опции преди плащане, ако има
         if(in_array($rec->options, array('test', 'open'))){
@@ -486,12 +545,14 @@ class speedy_Adapter {
             $picking->setIncludeShippingPriceInCod(true);
         }
         
-        $backRequest = type_Set::toArray($rec->backRequest);
-        $backDocumentsRequest = isset($backRequest['document']) ? true : false;
-        $picking->setBackDocumentsRequest($backDocumentsRequest);
-        
-        $backReceiptRequest = isset($backRequest['receipt']) ? true : false;
-        $picking->setBackReceiptRequest($backReceiptRequest);
+        if($picking instanceof ParamPicking){
+            $backRequest = type_Set::toArray($rec->backRequest);
+            $backDocumentsRequest = isset($backRequest['document']) ? true : false;
+            $picking->setBackDocumentsRequest($backDocumentsRequest);
+            
+            $backReceiptRequest = isset($backRequest['receipt']) ? true : false;
+            $picking->setBackReceiptRequest($backReceiptRequest);
+        }
       
         $parcels = type_Table::toArray($rec->parcelInfo);
         $countParcels = countR($parcels);
@@ -523,13 +584,7 @@ class speedy_Adapter {
             $picking->setParcels($parcelsArray);
         }
         
-        // Генериране на товарителница
-        $resultBOL = $this->eps->createBillOfLading($picking);
-        $parcels = $resultBOL->getGeneratedParcels();
-        $firstParcel = $parcels[0];
-        $bolId = $firstParcel->getParcelId();
-        
-        return $bolId;
+        return $picking;
     }
     
     
@@ -598,6 +653,12 @@ class speedy_Adapter {
         } elseif(strpos($errorMsg, "[INVALID_PARCELS_INFO, Wrong sequential numbers") !== false){
             $errorMsg = 'Грешна последователност на палетите';
             $fields = 'parcelInfo';
+        } elseif(strpos($errorMsg, '[INVALID_OPTIONS_BEFORE_PAYMENT, Option "Open before payment" with delivery to address is not allowed for selected service') !== false){
+            $errorMsg = 'Опцията за отваряне преди плащане не е налична за избраната услуга';
+            $fields = 'service,options';
+        } elseif(strpos($errorMsg, '[INVALID_OPTIONS_BEFORE_PAYMENT, Option "Test before delivery" with delivery to address is not allowed for selected service.') !== false){
+            $errorMsg = 'Опцията за тестване преди плащане не е налична за избраната услуга';
+            $fields = 'service,options';
         }
         
         return $errorMsg;

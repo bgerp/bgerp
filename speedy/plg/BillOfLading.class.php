@@ -116,40 +116,57 @@ class speedy_plg_BillOfLading extends core_Plugin
                 
                 if(!$form->gotErrors()){
                     
-                    // Опит за създаване на товарителница
-                    try{
-                        $bolId = $adapter->getBol($form->rec);
-                    } catch(ServerException $e){
-                        $mvc->logErr("Проблем при генериране на товарителница", $id);
-                        $mvc->logErr($e->getMessage(), $id);
-                        $fields = null;
-                        $msg = $adapter->handleException($e, $fields);
-                        $form->setError($fields, $msg);
-                    }
-                    
-                    // Записване на товарителницата като PDF, ако е създадеба
-                    if(!$form->gotErrors() && !empty($bolId)){
+                    // Ако само ще се калкулира
+                    if($form->cmd == 'calc'){
                         try{
-                            $bolFh = $adapter->getBolPdf($bolId);
-                            $fileId = fileman::fetchByFh($bolFh, 'id');
-                            doc_Linked::add($rec->containerId, $fileId, 'doc', 'file', 'Товарителница');
-                            
+                            $tpl = $adapter->calculate($form->rec);
+                            $form->info = $tpl;
+                            core_Statuses::newStatus('Цената е изчислена');
                         } catch(ServerException $e){
-                            reportException($e);
-                            $mvc->logErr("Проблем при генериране на PDF на товарителница", $id);
+                            $mvc->logErr("Проблем при изчисление на цената на товарителницата", $id);
                             $mvc->logErr($e->getMessage(), $id);
-                            core_Statuses::newStatus('Проблем при генериране на PDF на товарителница', 'error');
+                            $fields = null;
+                            $msg = $adapter->handleException($e, $fields);
+                            $form->setError($fields, $msg);
+                        }
+                    } else {
+                        
+                        // Опит за създаване на товарителница
+                        try{
+                            $bolId = $adapter->getBol($form->rec);
+                        } catch(ServerException $e){
+                            $mvc->logErr("Проблем при генериране на товарителница", $id);
+                            $mvc->logErr($e->getMessage(), $id);
+                            $fields = null;
+                            $msg = $adapter->handleException($e, $fields);
+                            $form->setError($fields, $msg);
+                        }
+                        
+                        // Записване на товарителницата като PDF, ако е създадеба
+                        if(!$form->gotErrors() && !empty($bolId)){
+                            try{
+                                $bolFh = $adapter->getBolPdf($bolId);
+                                $fileId = fileman::fetchByFh($bolFh, 'id');
+                                doc_Linked::add($rec->containerId, $fileId, 'doc', 'file', 'Товарителница');
+                                
+                            } catch(ServerException $e){
+                                reportException($e);
+                                $mvc->logErr("Проблем при генериране на PDF на товарителница", $id);
+                                $mvc->logErr($e->getMessage(), $id);
+                                core_Statuses::newStatus('Проблем при генериране на PDF на товарителница', 'error');
+                            }
+                        }
+                        
+                        if(!$form->gotErrors() && !empty($bolId)){
+                            $mvc->logWrite("Генерирана товарителница на Speedy", $id);
+                            followRetUrl(null, "Успешно генерирана товарителница|*: №{$bolId}");
                         }
                     }
-                }
-                
-                if(!$form->gotErrors() && !empty($bolId)){
-                    $mvc->logWrite("Генерирана товарителница на Speedy", $id);
-                    followRetUrl(null, "Успешно генерирана товарителница|*: №{$bolId}");
                 }
             }
             
             $form->toolbar->addSbBtn('Изпращане', 'save', 'ef_icon = img/16/speedy.png, title = Изпращане на товарителницата,id=save');
+            $form->toolbar->addSbBtn('Изчисли', 'calc', 'ef_icon = img/16/calculator16.png, title = Изчисляване на на товарителницата');
             $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
             
             // Записваме, че потребителя е разглеждал този списък
@@ -209,7 +226,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         
         $form->FLD('isDocuments', 'enum(no=Не,yes=Да)', 'caption=Описание на пратката->Документи,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer|palletCount,maxRadio=2');
         $form->FLD('palletCount', 'int(min=0,Max=10)', 'caption=Описание на пратката->Бр. пакети');
-        $form->FLD("parcelInfo", "table(columns=width|depth|height|weight|num,captions=Ширина|Дълбочина|Височина|Тегло|№ на опаковка,validate=speedy_plg_BillOfLading::validatePallets)", 'caption=Описание на пратката->Палети,after=palletCount');
+        $form->FLD("parcelInfo", "table(columns=width|depth|height|weight,captions=Ширина|Дълбочина|Височина|Тегло,validate=speedy_plg_BillOfLading::validatePallets)", 'caption=Описание на пратката->Палети,after=palletCount');
         $form->FLD('content', 'varchar', 'caption=Описание на пратката->Съдържание,mandatory,recently');
         $form->FLD('packaging', 'varchar', 'caption=Описание на пратката->Опаковка,mandatory,recently');
         $form->FLD('totalWeight', 'double(min=0,max=50)', 'caption=Описание на пратката->Общо тегло,unit=кг (Макс: 50)');
@@ -455,7 +472,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         $Double = core_Type::getByName('double');
        
         foreach($TableArr as $i => $obj){
-            foreach (array('weight', 'depth', 'height', 'width', 'num') as $field){
+            foreach (array('weight', 'depth', 'height', 'width') as $field){
                 if(!empty($obj->{$field})){
                     if(!$Double->fromVerbal($obj->{$field}) || $obj->{$field} < 0){
                         $error[] = 'Невалидни числа';
