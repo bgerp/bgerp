@@ -686,7 +686,7 @@ abstract class store_DocumentMaster extends core_Master
         } else {
             $res["{$contrPart}PCode"] = !empty($contragentData->pCode) ? $contragentData->pCode : null;
             $res["{$contrPart}Place"] = !empty($contragentData->place) ? $contragentData->place : null;
-            $res["{$contrPart}Address"] = !empty($contragentData->address) ? $contragentData->address : null;
+            $res["{$contrPart}Address"] = !empty($contragentData->pAddress) ? $contragentData->pAddress : (($contragentData->address) ? $contragentData->address : null);
             $res["{$contrPart}Person"] = !empty($contragentData->person) ? $contragentData->person : null;
         }
         
@@ -725,6 +725,8 @@ abstract class store_DocumentMaster extends core_Master
         $query->where("#{$Detail->masterKey} = {$rec->id}");
         
         while ($dRec = $query->fetch()) {
+            if(empty($dRec->quantity)) continue;
+            
             $dRec->quantity /= $dRec->quantityInPack;
             if (!($forMvc instanceof sales_Proformas)) {
                 $dRec->price -= $dRec->price * $dRec->discount;

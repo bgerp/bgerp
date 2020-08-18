@@ -872,6 +872,10 @@ abstract class cat_ProductDriver extends core_BaseClass
                 }
             }
         }
+        
+        if(!empty($res)){
+            $res = preg_replace('/ (\\d{1,6})[xh](\\d{1,6})([xh](\\d{1,6})|) /i', '$0$1 $2 $4 ', $res, -1);
+        }
     }
     
     

@@ -32,12 +32,6 @@ class planning_ProductionNotes extends planning_ProductionDocument
     
     
     /**
-     * Име на документа в бързия бутон за добавяне в папката
-     */
-    public $buttonInFolderTitle = 'Произвеждане';
-    
-    
-    /**
      * Абревиатура
      */
     public $abbr = 'Mpd';

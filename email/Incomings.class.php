@@ -1524,6 +1524,56 @@ class email_Incomings extends core_Master
     
     
     /**
+     * Крон процес за извличане на телофонни номера от имейлите
+     */
+    public function cron_ExtractPhoneNumbers()
+    {
+        $period = core_Cron::getRecForSystemId('ExtractPhoneNumbers')->period;
+        $period = $period ? $period : 60;
+        $period *= 60;
+        
+        $query = self::getQuery();
+        $before = dt::subtractSecs($period);
+        $query->where(array("#modifiedOn >= '[#1#]'", $before));
+        
+        $query->EXT('coverClass', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
+        $query->where(array("#coverClass = '[#1#]'", $clsId = crm_Companies::getClassId()));
+        $query->orWhere(array("#coverClass = '[#1#]'", $clsId = crm_Persons::getClassId()));
+        
+        $query->EXT('coverId', 'doc_Folders', 'externalName=coverId,externalKey=folderId');
+        $query->where("#coverId IS NOT NULL");
+        
+        $query->orderBy('modifiedOn', 'DESC');
+        
+        try {
+            while ($rec = $query->fetch()) {
+                if (!$rec->coverClass || !$rec->coverId) {
+                    continue;
+                }
+                
+                $cData = $this->getContragentData($rec->id);
+                
+                $mob = $cData->mob ? $cData->mob : null;
+                $tel = $cData->tel ? $cData->tel : null;
+                $fax = $cData->fax ? $cData->fax : null;
+                
+                if (!$mob && !$tel && !$fax) {
+                    continue;
+                }
+                
+                $inst = cls::get($rec->coverClass);
+                $iRec = $inst->fetch($rec->coverId);
+                $inst->addAddtionalNumber($iRec, $mob, $tel, $fax);
+            }
+        } catch (Exception $e) {
+            reportException($e);
+        } catch (Throwable $t) {
+            reportException($t);
+        }
+    }
+    
+    
+    /**
      * Обучаване на SPAS за HAM и SPAM
      *
      * Правила за обучение:
@@ -1539,8 +1589,12 @@ class email_Incomings extends core_Master
             return ;
         }
         
+        $period = core_Cron::getRecForSystemId('trainSpas')->period;
+        $period = $period ? $period : 60;
+        $period *= 60;
+        
         $query = self::getQuery();
-        $before = dt::subtractSecs(3600);
+        $before = dt::subtractSecs($period);
         $query->where(array("#modifiedOn >= '[#1#]'", $before));
         $query->EXT('docCnt', 'doc_Threads', 'externalName=allDocCnt,remoteKey=firstContainerId, externalFieldName=containerId');
         $query->where('#docCnt <= 1');
@@ -1705,6 +1759,18 @@ class email_Incomings extends core_Master
         $rec->description = 'Обучение на SPAS';
         $rec->controller = $mvc->className;
         $rec->action = 'trainSpas';
+        $rec->period = 60;
+        $rec->offset = rand(0, 59);
+        $rec->delay = 0;
+        $rec->timeLimit = 250;
+        $res .= core_Cron::addOnce($rec);
+        
+        
+        $rec = new stdClass();
+        $rec->systemId = 'ExtractPhoneNumbers';
+        $rec->description = 'Извличане на телефонни номер';
+        $rec->controller = $mvc->className;
+        $rec->action = 'ExtractPhoneNumbers';
         $rec->period = 60;
         $rec->offset = rand(0, 59);
         $rec->delay = 0;

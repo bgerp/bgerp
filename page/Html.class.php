@@ -24,7 +24,7 @@ class page_Html extends core_ET
         
         $bodyId = str::getRand();
         
-        if($this instanceof cms_page_External) {
+        if ($this instanceof cms_page_External) {
             $loadJS = "\n<script type=\"text/javascript\"> [#SCRIPTS#] window.onload = function() {if (window.jQuery) {[#JQRUN#]} }\n</script>";
         } else {
             $loadJS = "<script type=\"text/javascript\">[#SCRIPTS#][#JQRUN#]\n</script>";
@@ -203,11 +203,25 @@ class page_Html extends core_ET
         
         if (is_array($files->js)) {
             foreach ($files->js as $file) {
-                $file = $this->getFileForAppend($file, $absolute);
-                if($this instanceof cms_page_External) {
-                   $attr = "defer";
+                $attr = array();
+                $fallbackScript = null;
+                if (is_string($file)) {
+                    $attr['src'] = $file;
+                } elseif (is_object($file)) {
+                    $attr = (array) $file;
+                    if ($fallbackScript = $attr['fallbackScript']) {
+                        unset($attr['fallbackScript']);
+                    }
                 }
-                $files->invoker->appendOnce("\n<script {$attr} type=\"text/javascript\" src=\"{$file}\"></script>", 'HEAD', true);
+                $attr['type'] = 'text/javascript';
+                $attr['src'] = $this->getFileForAppend($attr['src'], $absolute);
+                if ($this instanceof cms_page_External) {
+                    $attr['defer'] = 'defer';
+                }
+                $files->invoker->appendOnce("\n" . ht::createElement('script', $attr, ''), 'HEAD', true);
+                if ($fallback) {
+                    $files->invoker->appendOnce($fallbackScript, 'HEAD', true);
+                }
             }
         }
     }
@@ -224,7 +238,7 @@ class page_Html extends core_ET
      */
     public static function getFileForAppend($filePath, $absolute = null)
     {
-        if (preg_match('#^[^/]*//#', $filePath)) {
+        if (preg_match('#^[^/]*//#', $filePath) || $filePath{0} == '/') {
             
             return $filePath;
         }

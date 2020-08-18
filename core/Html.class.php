@@ -1049,7 +1049,7 @@ class core_Html
         } else {
             $iconAttr = arr::make($iconAttr, true);
             if (!array_key_exists('src', $iconAttr)) {
-                $iconPath = ($type == 'notice') ? 'img/16/info-gray.png' : (($type == 'warning') ? 'img/16/dialog_warning.png' : (($type == 'error') ? 'img/16/dialog_error.png' : $type));
+                $iconPath = ($type == 'notice') ? 'img/32/info-gray.png' : (($type == 'warning') ? 'img/32/dialog_warning.png' : (($type == 'error') ? 'img/32/dialog_error.png' : $type));
                 $iconAttr['src'] = $iconPath;
             }
             $iconAttr['src'] = sbf($iconAttr['src'], '');
@@ -1414,7 +1414,7 @@ class core_Html
         
         // Вкарваме предупреждението
         if ($warning) {
-            $attr['onclick'] .= " if (!confirm('" . str_replace("'", "\'", tr($warning)) . "')) {event.stopPropagation(); return false; }";
+            $attr['onclick'] .= " if (!confirm('" . str_replace("'", "\'", tr($warning)) . "')) { $(event.target).blur(); event.stopPropagation(); return false; }";
         }
         
         return $attr;

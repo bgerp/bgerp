@@ -77,12 +77,6 @@
 								<td class='dt'>|Групи за бърз избор|*:</td>
 								<td>[#productGroups#]</td>
 							</tr>
-						
-							<tr>
-								<td class='dt'>|Артикули за бърз избор|*:</td>
-								<td>[#products#]</td>
-							</tr>
-						
 							<tr>
 								<td class='dt'>|Брой намерени артикули|*:</td>
 								<td>[#maxSearchProducts#]</td>
@@ -122,12 +116,7 @@
 				</div>
 			</fieldset>
 			
-			<!--ET_BEGIN Receipts-->
-			<fieldset class="detail-info">
-				<legend class="groupTitle">|Чакащи бележки|* ([#waitingCount#])</legend>
-				[#Receipts#]
-			</fieldset>
-			<!--ET_END Receipts-->
+			[#Receipts#]
 			
 			[#DETAILS#]
 		</div>

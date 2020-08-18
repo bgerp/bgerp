@@ -394,8 +394,9 @@ class sales_QuotationsDetails extends doc_Detail
         }
         
         if (!empty($rec->packPrice)) {
-            if (Request::get('Act') != 'CreateProduct') {
-                $vat = cat_Products::getVat($rec->productId, $masterRec->valior);
+            if (strtolower(Request::get('Act')) != 'createproduct') {
+                $valior = !empty($masterRec->valior) ? $masterRec->valior : dt::today();
+                $vat = cat_Products::getVat($rec->productId, $valior);
             } else {
                 $vat = acc_Periods::fetchByDate($masterRec->valior)->vatRate;
             }
@@ -531,8 +532,7 @@ class sales_QuotationsDetails extends doc_Detail
             deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack);
             
             if (!$form->gotErrors()) {
-                
-                if (Request::get('Act') != 'CreateProduct') {
+                if (strtolower(Request::get('Act')) != 'createproduct') {
                     if ($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}")) {
                         if ($rec->optional == 'no' && $sameProduct->optional == 'yes' && $rec->id != $sameProduct->id) {
                             $form->setError('productId', 'Не може да добавите продукта като задължителен, защото фигурира вече като опционален!');
@@ -639,7 +639,8 @@ class sales_QuotationsDetails extends doc_Detail
             $data->addOptionalBtn = ht::createBtn('Опционален артикул', array($this, 'add', 'quotationId' => $data->masterId, 'optional' => 'yes', 'ret_url' => true), false, false, "{$error} ef_icon = img/16/shopping.png, title=Добавяне на опционален артикул към офертата");
             
             if ($this->haveRightFor('createProduct', (object) array('quotationId' => $data->masterId))) {
-                $data->addNewProductBtn = ht::createBtn('Създаване', array($this, 'CreateProduct', 'quotationId' => $data->masterId, 'ret_url' => true), false, false, 'id=btnNewProduct,title=Създаване на нов нестандартен артикул,ef_icon = img/16/bag-new.png,order=12');
+                $data->addNewProductBtn = ht::createBtn('Създаване', array($this, 'CreateProduct', 'quotationId' => $data->masterId, 'optional' => 'no', 'ret_url' => true), false, false, 'id=btnNewProduct,title=Създаване на нов нестандартен артикул,ef_icon = img/16/bag-new.png,order=12');
+                $data->addNewProductOptionalBtn = ht::createBtn('Създаване', array($this, 'CreateProduct', 'quotationId' => $data->masterId, 'optional' => 'yes', 'ret_url' => true), false, false, 'id=btnNewProduct,title=Създаване на нов нестандартен артикул,ef_icon = img/16/bag-new.png,order=12');
             }
         }
         
@@ -889,6 +890,11 @@ class sales_QuotationsDetails extends doc_Detail
             if (isset($data->addOptionalBtn)) {
                 $oTpl->append($data->addOptionalBtn, 'ADD_BTN');
             }
+            
+            if (isset($data->addNewProductOptionalBtn)) {
+                $oTpl->append($data->addNewProductOptionalBtn, 'ADD_BTN');
+            }
+            
             $oTpl->removePlaces();
             $oTpl->removeBlocks();
             $tpl->append($oTpl, 'OPTIONAL');

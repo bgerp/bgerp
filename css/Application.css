@@ -1325,6 +1325,8 @@ a.tOld {
       width: 120px; }
       .typeTable .batchNameTd ~ td input {
         max-width: 120px; }
+  .typeTable select {
+    max-width: 270px; }
 
 /*
  * стилове за документи
@@ -2095,6 +2097,9 @@ pre.document {
 .tags {
   margin-left: 2px; }
 
+.maxwidth {
+  display: block; }
+
 .maxwidth .tags,
 .document-handler .tags,
 .rowBlock .tags {
@@ -2108,6 +2113,50 @@ pre.document {
   padding-left: 1em; }
   .document .listTable .acc-article-entries td {
     border: none !important; }
+
+.center-content {
+  width: 800px;
+  margin: 0 auto; }
+  .center-content .scrollable {
+    overflow-y: auto; }
+  .center-content h1 {
+    text-align: right;
+    padding: 0 20px;
+    font-size: 36px; }
+  .center-content h3 {
+    font-size: 24px;
+    text-align: center; }
+  .center-content h4 {
+    font-size: 20px;
+    text-align: center; }
+  .center-content .aboutImg {
+    max-width: 30px;
+    position: relative;
+    top: 3px;
+    height: auto; }
+  .center-content .list-group {
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    padding: 10px 20px;
+    margin-bottom: 0;
+    border-radius: 0.35rem; }
+  .center-content .list-group-item {
+    position: relative;
+    display: block;
+    padding: 0.25rem 1.25rem;
+    background-color: white;
+    border: 1px solid rgba(0, 0, 0, 0.13);
+    line-height: 200%; }
+    .center-content .list-group-item:first-child {
+      border-top-left-radius: inherit;
+      border-top-right-radius: inherit; }
+    .center-content .list-group-item:last-child {
+      border-bottom-right-radius: inherit;
+      border-bottom-left-radius: inherit; }
+    .center-content .list-group-item .list-group-item+.list-group-item {
+      border-top-width: 0; }
 
 .dec-document {
   font-size: 0.95em; }
@@ -3419,7 +3468,8 @@ table .eshop-btn {
 
 .narrow .eshop-btn.addToCard,
 .narrow .productBtn.addToCard {
-  background-image: url("../img/16/cart_go.png") !important;
+  background-image: url("../img/32/cart_go.png") !important;
+  background-size: 16px;
   background-position: 3px center;
   background-repeat: no-repeat;
   margin-bottom: 5px !important;
@@ -5390,7 +5440,10 @@ only screen and (max-width: 1024px) {
 
   .wide .cartInfoBlock {
     width: 29%;
-    font-size: 0.92em; } }
+    font-size: 0.92em; }
+
+  .center-content {
+    width: 100% !important; } }
 
 /*
  * ipad
@@ -5529,7 +5582,10 @@ only screen and (max-width: 760px) {
     font-size: 1.36em; }
 
   .externalPage h1 {
-    font-size: 1.86em; } }
+    font-size: 1.86em; }
+
+  .notificationsCnt {
+    right: 0; } }
 
 @media handheld,
 only screen and (max-width: 700px) {
@@ -5768,6 +5824,9 @@ only screen and (max-width: 360px) {
       max-width: 298px; }
     :not(.modern-theme) .narrow .main-container .formTable .keylist label {
       max-width: 159px; }
+
+  .narrow .vFormField .select2 {
+    max-width: 335px !important; }
 
   .externalPage h2 {
     font-size: 1.22em; }
@@ -6675,6 +6734,11 @@ only screen and (max-width: 320px) {
   right: 10px;
   left: auto;
   margin: 0; }
+
+  .endTooltip img,
+  .frontToolip img {
+    width: 16px;
+    height: 16px; }
 
 .narrow .elem-holder .endTooltip {
   float: right; }

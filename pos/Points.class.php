@@ -25,7 +25,7 @@ class pos_Points extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Settings, plg_Rejected, doc_FolderPlg,pos_Wrapper, plg_Current, plg_State,plg_Created';
+    public $loadList = 'plg_RowTools2, plg_Settings, plg_Rejected, doc_FolderPlg, pos_Wrapper, plg_Current, plg_State, plg_Created';
     
     
     /**
@@ -55,25 +55,19 @@ class pos_Points extends core_Master
     /**
      * Кой може да променя?
      */
-    public $canWrite = 'ceo, posMaster';
-    
-    
-    /**
-     * Кой може да пише
-     */
-    public $canCreatenewfolder = 'ceo, pos';
+    public $canWrite = 'ceo, posMaster, admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, pos';
+    public $canList = 'ceo, pos, admin';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,pos';
+    public $canSingle = 'ceo, pos, admin';
     
     
     /**
@@ -85,7 +79,7 @@ class pos_Points extends core_Master
     /**
      * Кой може да го отхвърли?
      */
-    public $canReject = 'admin, posMaster';
+    public $canReject = 'ceo, posMaster, admin';
     
     
     /**
@@ -117,7 +111,7 @@ class pos_Points extends core_Master
      * 
      * @see plg_Settings
      */
-    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,setDiscounts,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,products,maxSearchProductInLastSales,searchDelayTerminal,productGroups';
+    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,setDiscounts,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,maxSearchProductInLastSales,searchDelayTerminal,productGroups';
       
     
     /**
@@ -143,10 +137,7 @@ class pos_Points extends core_Master
         $this->FLD('payments', 'keylist(mvc=cond_Payments, select=title)', 'caption=Настройки->Безналични плащания,placeholder=Всички');
         $this->FLD('theme', 'enum(default=Стандартна,dark=Тъмна)', 'caption=Настройки->Тема,default=dark,mandatory');
         $this->FLD('cashiers', 'keylist(mvc=core_Users,select=nick)', 'caption=Настройки->Оператори, mandatory,optionsFunc=pos_Points::getCashiers');
-        
-        $this->FLD('productGroups', 'table(columns=groupId|order,captions=Група|Подредба,validate=pos_Points::validateGroups)', 'caption=Настройки->Групи');
-        $this->FLD('products', 'keylist(mvc=cat_Products, select=name)', 'caption=Настройки->Артикули');
-        
+        $this->FLD('productGroups', 'table(columns=groupId,captions=Група,validate=pos_Points::validateGroups)', 'caption=Настройки->Групи');
         $this->FLD('setPrices', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Цени, mandatory,default=yes');
         $this->FLD('setDiscounts', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Отстъпки, mandatory,settings,default=yes');
         $this->FLD('usedDiscounts', 'table(columns=discount,captions=Отстъпки,validate=pos_Points::validateAllowedDiscounts)', 'caption=Ръчно задаване->Използвани отстъпки');
@@ -174,21 +165,7 @@ class pos_Points extends core_Master
      */
     public static function validateGroups($tableData, $Type)
     {
-        $res = $error = $groups = $orders = $errorFields = array();
-        
-        foreach ($tableData['order'] as $k1 => $q1) {
-            if (!type_Int::isInt($q1) || $q1 <= 0) {
-                $error[] = 'Не допустими символи в число/израз|*';
-                $errorFields['order'][$k1] = 'Не е въведено положително число|*';
-            }
-            
-            if (array_key_exists($q1, $orders)) {
-                $error[] = 'Повтаряща се подредба';
-                $errorFields['order'][$k1] = 'Повтаряща се подредба';
-            } else {
-                $orders[$q1] = $q1;
-            }
-        }
+        $res = $error = $groups = $errorFields = array();
         
         foreach ($tableData['groupId'] as $k1 => $groupId) {
             if (array_key_exists($groupId, $groups)) {
@@ -320,6 +297,8 @@ class pos_Points extends core_Master
             
             crm_Persons::save($defaultContragent);
         }
+        
+        cls::get('pos_SellableProductsCache')->cron_CacheSellablePosProducts();
     }
     
     

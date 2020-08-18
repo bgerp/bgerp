@@ -30,6 +30,7 @@ class ztm_Index extends core_Mvc
      */
     public function act_Sync()
     {
-        return Request::forward(array('Ctr' => 'ztm_Registers', 'Act' => 'Sync'));
+        
+        return Request::forward(array('Ctr' => 'ztm_RegisterValues', 'Act' => 'Sync'));
     }
 }

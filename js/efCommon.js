@@ -1676,22 +1676,19 @@ function getWindowWidth() {
 function getCalculatedElementWidth() {
 	var winWidth = getWindowWidth();
     // разстояние около формата
-	var outsideWidth = 42;
+	var outsideWidth = parseInt($('#packWrapper').css('padding-left')) + parseInt($(' #packWrapper').css('padding-right'));
     var menuSize = 0;
 	if($('.externalPage').length) {
 		outsideWidth = 30;
 		if($('#login-form input').length) {
 			outsideWidth = parseInt($('#login-form input').offset().left * 2  + 2);
 		}
-	}  else if ($('.modern-theme').length && $('.vertical .formCell > input[type="text"]').length) {
-        outsideWidth = parseInt($('.vertical .formCell > input[type="text"]').first().offset().left * 2 + 2);
-    }
+	}
     if($('.sidemenu-open').length) {
         menuSize = $('.sidemenu-open').length * $('.sidemenu-open').first().width();
     }
-    var formElWidth = winWidth - outsideWidth - menuSize;
 
-    return formElWidth;
+    return winWidth - outsideWidth - menuSize;
 }
 
 
@@ -1716,62 +1713,66 @@ function setFormElementsWidth() {
         // разстояние около формата
 
         // изчислена максимална ширина формата
-        var formElWidth = getCalculatedElementWidth();
-        var winWidth = getWindowWidth();
+        setTimeout(function () {
+            var formElWidth = getCalculatedElementWidth();
+            var winWidth = getWindowWidth();
 
-        // колко ЕМ е широка страницата
-        var currentEm = parseFloat($(".formTable input[type=text]").first().css("font-size"));
-        if (!currentEm) {
-            currentEm = parseFloat($(".formTable select").first().css("font-size"));
-        }
-
-        var sizeInEm = winWidth / currentEm;
-
-        // колко РХ е 1 ЕМ
-        var em = parseInt(winWidth / sizeInEm);
-
-        // изчислена ширина, равна на ширината в ем, която предпочитаме
-        var preferredSizeInPx = preferredSizeInEm * em;
-
-        if (formElWidth > preferredSizeInPx) formElWidth = preferredSizeInPx;
-
-        $('.formTable label').each(function() {
-            if(!$(this).closest('.treelist').length)  {
-                var colsInRow = parseInt($(this).attr('data-colsInRow'));
-                if (!colsInRow) {
-                    colsInRow = 1;
-                }
-                $(this).parent().css('maxWidth', parseInt((formElWidth - 10) / colsInRow));
-                $(this).parent().css('overflow-x', 'hidden');
-
-                $(this).attr('title', $(this).text());
+            // колко ЕМ е широка страницата
+            var currentEm = parseFloat($(".formTable input[type=text]").first().css("font-size"));
+            if (!currentEm) {
+                currentEm = parseFloat($(".formTable select").first().css("font-size"));
             }
-        });
 
-        $('.staticFormView .formFieldValue').css('max-width', formElWidth - 5);
+            var sizeInEm = winWidth / currentEm;
 
-        $('.vertical .formTitle').css('min-width', formElWidth -10);
-        $('.formTable textarea').css('width', formElWidth);
-        $('.formTable .treelist').css('width', formElWidth - 10);
-        $('.formTable .chzn-container').css('maxWidth', formElWidth);
-        $('.formTable .select2-container').css('maxWidth', formElWidth);
-        $('.vFormField .select2-container').css('maxWidth', formElWidth + 20);
+            // колко РХ е 1 ЕМ
+            var em = parseInt(winWidth / sizeInEm);
 
-        $('.formTable select').css('maxWidth', formElWidth);
+            // изчислена ширина, равна на ширината в ем, която предпочитаме
+            var preferredSizeInPx = preferredSizeInEm * em;
 
-        $('.formTable .scrolling-holder').css('maxWidth', formElWidth);
+            if (formElWidth > preferredSizeInPx) formElWidth = preferredSizeInPx;
 
-        $('.formTable .hiddenFormRow select.w50').css('width', formElWidth);
-        $('.formTable .hiddenFormRow select.w75').css('width', formElWidth);
-        $('.formTable .hiddenFormRow select.w100').css('width', formElWidth);
-        $('.formTable .hiddenFormRow select.w25').css('width', formElWidth/2);
+            $('.formTable label').each(function() {
+                if(!$(this).closest('.treelist').length)  {
+                    var colsInRow = parseInt($(this).attr('data-colsInRow'));
+                    if (!colsInRow) {
+                        colsInRow = 1;
+                    }
+                    $(this).parent().css('maxWidth', parseInt((formElWidth - 20) / colsInRow));
+                    $(this).parent().css('overflow-x', 'hidden');
 
-        $('.formTable .hiddenFormRow .inlineTo select.w50').css('width', formElWidth - 8);
-        $('.formTable .hiddenFormRow .inlineTo select.w25').css('width', formElWidth/2 - 8);
+                    $(this).attr('title', $(this).text());
+                }
+            });
 
-        $('.formTable .inlineTo .chzn-container').css('maxWidth', formElWidth/2 - 10);
-        $('.formTable .inlineTo .select2-container').css('maxWidth', formElWidth/2 - 10);
-        $('.formTable .inlineTo  select').css('maxWidth', formElWidth/2 - 10);
+            $('.staticFormView .formFieldValue').css('max-width', formElWidth - 5);
+
+            $('.vertical .formTitle').css('min-width', formElWidth -10);
+            $('.formTable textarea').css('width', formElWidth);
+            $('.formTable .treelist').css('width', formElWidth - 10);
+            $('.formTable .chzn-container').css('maxWidth', formElWidth);
+            $('.formTable .select2-container').css('maxWidth', formElWidth);
+            $('.vFormField .select2-container').css('maxWidth', formElWidth + 20);
+
+            $('.formTable select').css('maxWidth', formElWidth);
+
+            $('.formTable .scrolling-holder').css('maxWidth', formElWidth);
+
+            $('.formTable .hiddenFormRow select.w50').css('width', formElWidth);
+            $('.formTable .hiddenFormRow select.w75').css('width', formElWidth);
+            $('.formTable .hiddenFormRow select.w100').css('width', formElWidth);
+            $('.formTable .hiddenFormRow select.w25').css('width', formElWidth/2);
+
+            $('.formTable .hiddenFormRow .inlineTo select.w50').css('width', formElWidth - 8);
+            $('.formTable .hiddenFormRow .inlineTo select.w25').css('width', formElWidth/2 - 8);
+
+            $('.formTable .inlineTo .chzn-container').css('maxWidth', formElWidth/2 - 10);
+            $('.formTable .inlineTo .select2-container').css('maxWidth', formElWidth/2 - 10);
+            $('.formTable .inlineTo  select').css('maxWidth', formElWidth/2 - 10);
+        }, 1);
+
+
     } else {
         $('.formTable .hiddenFormRow select.w50').css('width', "50%");
         $('.formTable .hiddenFormRow select.w75').css('width', "75%");
@@ -5219,96 +5220,6 @@ $.fn.scrollView = function () {
                             scrollTop: $(this).offset().top - $(window).height() + $(this).height()
                         }, 500);
                     });
-};
-
-function mailServerSettings() {
-    var email = document.getElementById('email');
-    var server = document.getElementById('server');
-    var protocol = document.getElementById('protocol');
-    var security = document.getElementById('security');
-    var cert = document.getElementById('cert');
-    var folder = document.getElementById('folder');
-    var user = document.getElementById('user');
-    var smtpServer = document.getElementById('smtpServer');
-    var smtpSecure = document.getElementById('smtpSecure');
-    var smtpAuth = document.getElementById('smtpAuth');
-    var smtpUser = document.getElementById('smtpUser');
-
-    var n = email.value.search("@");
-
-    var provider = email.value.substr(n+1);
-    var userAccountt = email.value.substr(0,n);
-
-    if (server.value == "") {
-		switch (provider) {
-		    case "abv.bg":
-		    	server.value = "pop3.abv.bg:995";
-			    protocol.value = "pop3";
-			    security.value = "ssl";
-			    cert.value = "noValidate";
-			    smtpServer.value = "smtp.abv.bg:465";
-			    smtpSecure.value = "ssl";
-			    smtpAuth.value = "LOGIN";
-			    user.value = email.value;
-			    smtpUser.value = email.value;
-		    	break;
-		    case "gmail.com":
-		    	server.value = "imap.gmail.com:993";
-		    	protocol.value = "imap";
-		    	security.value = "ssl";
-		    	cert.value = "validate";
-		    	smtpServer.value = "smtp.gmail.com:587";
-		    	smtpSecure.value = "tls";
-		    	smtpAuth.value = "LOGIN";
-		    	user.value = email.value;
-		    	smtpUser.value = email.value;
-		        break;
-		    case "yahoo.com":
-		    	server.value = "imap.mail.yahoo.com:993";
-		    	protocol.value = "imap";
-		    	security.value = "ssl";
-		    	cert.value = "validate";
-		    	smtpServer.value = "smtp.mail.yahoo.com:465";
-		    	smtpSecure.value = "ssl";
-		    	smtpAuth.value = "LOGIN";
-		    	user.value = email.value;
-		    	smtpUser.value = email.value;
-		        break;
-		    case "outlook.com":
-		    	server.value = "imap-mail.outlook.com:993";
-		    	protocol.value = "imap";
-		    	security.value = "ssl";
-		    	cert.value = "validate";
-		    	smtpServer.value = "smtp-mail.outlook.com:587";
-		    	smtpSecure.value = "tls";
-		    	smtpAuth.value = "LOGIN";
-		    	user.value = email.value;
-		    	smtpUser.value = email.value;
-		        break;
-		    case "mail.bg":
-		    	server.value = " imap.mail.bg:143";
-		    	protocol.value = "imap";
-		    	security.value = "tls";
-		    	cert.value = "validate";
-		    	smtpServer.value = "smtp.mail.bg:465";
-		    	smtpSecure.value = "tls";
-		    	smtpAuth.value = "LOGIN";
-		    	user.value = email.value;
-		    	smtpUser.value = email.value;
-		        break;
-
-		    default:
-		    	protocol.value = "imap";
-		    	security.value = "default";
-		    	cert.value = "noValidate";
-		    	smtpSecure.value = "no";
-		    	smtpAuth.value = "no";
-		}
-
-        if($('.select2').length){
-            $('select').trigger("change");
-        }
-    }
 };
 
 

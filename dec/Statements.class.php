@@ -90,7 +90,7 @@ class dec_Statements extends core_Master
         
         // Импортираме данните от CSV файла.
         // Ако той не е променян - няма да се импортират повторно
-        $cntObj = csv_Lib::importOnce($mvc, $file, $fields, null, null, true);
+        $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
         
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res .= $cntObj->html;

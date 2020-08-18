@@ -48,13 +48,13 @@ class speedy_Offices extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'drdata_Wrapper';
+    public $loadList = 'drdata_Wrapper, plg_Sorting, plg_State2';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "id,num,extName";
+    public $listFields = "id,num,name,address,extName";
     
     
     /**
@@ -65,6 +65,7 @@ class speedy_Offices extends core_Manager
         $this->FLD('num', 'int', 'caption=Код');
         $this->FNC('extName', 'varchar', 'caption=Наименование');
         $this->FLD('name', 'varchar', 'caption=Име');
+        $this->FLD('pCode', 'varchar', 'caption=П.код');
         $this->FLD('address', 'varchar', 'caption=Адрес');
         
         $this->setDbUnique('num');
@@ -76,9 +77,9 @@ class speedy_Offices extends core_Manager
      */
     protected static function on_CalcExtName($mvc, $rec)
     {
-        $rec->extName = $rec->name;
+        $rec->extName = "[{$rec->num}] {$rec->name}";
         if(!empty($rec->address)){
-            $rec->extName .= " ({$rec->address})";
+            $rec->extName .= ", {$rec->address}";
         }
     }
     
@@ -92,6 +93,8 @@ class speedy_Offices extends core_Manager
     {
         $options = array();
         $query = self::getQuery();
+        $query->where("#state != 'closed'");
+        
         while($rec = $query->fetch()){
             $options[$rec->id] = $rec->extName;
         }
@@ -117,5 +120,81 @@ class speedy_Offices extends core_Manager
         $res = $cntObj->html;
         
         return $res;
+    }
+    
+    
+    /**
+     * Обновяване на офисите на спиди по разписание
+     */
+    public function cron_UpdateOffices()
+    {
+        core_Users::forceSystemUser();
+        
+        $adapter = new speedy_Adapter();
+        $connectResult = $adapter->connect();
+        
+        // Логване към API-то на спиди
+        if($connectResult->success !== true){
+            log_System::add($this, "Проблем при свързване към акаунта на Speedy", null, 'warning');
+            core_Users::cancelSystemUser();
+            
+            return;
+        }
+        
+        $ownCompanyId = crm_Setup::get('BGERP_OWN_COMPANY_COUNTRY', true);
+        
+        try{
+            // Извличане на офисите на Speedy
+            $offices = $adapter->getOffices($ownCompanyId);
+        } catch(ServerException $e){
+            reportException($e);
+            $this->logErr('Проблем при извличане на офисите на Speedy');
+            $this->logErr($e->getMessage());
+            core_Users::cancelSystemUser();
+            
+            return;
+        }
+        
+        // Ако има намерени офиси
+        if(is_array($offices)){
+            $current = array();
+            
+            // Извличат им се адресните данни
+            foreach ($offices as $OfficeRes){
+                try{
+                    $Address = $OfficeRes->getAddress();
+                    $obj = (object)array('num' => $OfficeRes->getId(), 'name' => $OfficeRes->getName(), 'pCode' => $Address->getPostCode(), 'address' => trim($Address->getFullAddressString()), 'state' => 'active');
+                    $current[$obj->num] = $obj;
+                } catch(ServerException $e){
+                    reportException($e);
+                }
+            }
+            
+            $query = self::getQuery();
+            $exRecs = $query->fetchAll();
+            $sync = arr::syncArrays($current, $exRecs, 'num', 'name,pCode,address,state');
+            
+            // Добавяне на новите офиси
+            if(countR($sync['insert'])){
+                $this->saveArray($sync['insert']);
+            }
+            
+            // Ъпдейт на офисите с промяна
+            if(countR($sync['update'])){
+                $this->saveArray($sync['update'], 'id,pCode,address,name,state');
+            }
+            
+            // Затваряне на вече не-активните офиси
+            if(countR($sync['delete'])){
+                $closeRecs = array();
+                foreach ($sync['delete'] as $officeId){
+                    $closeRecs[] = (object)array('id' => $officeId, 'state' => 'closed');
+                }
+                
+                $this->saveArray($closeRecs, 'id,state');
+            }
+        }
+          
+        core_Users::cancelSystemUser();
     }
 }

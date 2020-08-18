@@ -98,7 +98,7 @@ class crm_Companies extends core_Master
     public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, plg_State, 
                      Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,
                      plg_Sorting, recently_Plugin, plg_Search, plg_Rejected,doc_FolderPlg, bgerp_plg_Groups, plg_Printing,
-                     acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput, core_UserTranslatePlg';
+                     acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput, core_UserTranslatePlg, callcenter_AdditionalNumbersPlg';
     
     
     /**
@@ -268,6 +268,14 @@ class crm_Companies extends core_Master
     
     
     /**
+     * Кои полета да се записват в номерата
+     * @var array
+     * @see callcenter_AdditionalNumbersPlg
+     */
+    public $updateNumMap = array('tel' => 'tel', 'fax' => 'fax');
+    
+    
+    /**
      * Предефинирани подредби на листовия изглед
      */
     public $listOrderBy = array(
@@ -302,8 +310,8 @@ class crm_Companies extends core_Master
         $this->FLD('website', 'url', 'caption=Web сайт,class=contactData,export=Csv');
         
         // Данъчен номер на фирмата
-        $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv');
-        $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv');
+        $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv,silent');
+        $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv,silent');
         
         // Вземаме конфига
         $visibleNKID = crm_Setup::get('VISIBLE_NKID');
@@ -490,9 +498,23 @@ class crm_Companies extends core_Master
         $form = $data->form;
         
         if (empty($form->rec->id)) {
+            $form->setField('vatId', 'removeAndRefreshForm=name|address');
+            
             // Слагаме Default за поле 'country'
             $myCompany = self::fetchOwnCompany();
             $form->setDefault('country', $myCompany->countryId);
+           
+            if(empty($form->rec->name)){
+                
+                // Ако не е въведено име, но има валиден ват попълват се адресните данни от него
+                if(!empty($form->rec->vatId)){
+                    list($status, , $name, $address) = cls::get('drdata_Vats')->checkStatus($form->rec->vatId);
+                    if($status == 'valid' && !empty($name)){
+                        $form->setDefault('name', $name);
+                        $form->setDefault('address', $address);
+                    }
+                }
+            }
         }
         
         // Ако сме в тесен режим
@@ -943,9 +965,6 @@ class crm_Companies extends core_Master
          */
         $mvc->updateRoutingRules($rec);
         
-        // Обновяме номерата
-        $mvc->updateNumbers($rec);
-        
         // Ако се редактира текущата фирма, генерираме лог от данните
         if (crm_Setup::BGERP_OWN_COMPANY_ID == $rec->id) {
             hr_Departments::forceFirstDepartment($rec->name);
@@ -1291,46 +1310,6 @@ class crm_Companies extends core_Master
         }
         
         return $res;
-    }
-    
-    
-    /**
-     * Обновява номера за фирмата
-     *
-     * @param object $rec
-     *
-     * @return array
-     */
-    public static function updateNumbers($rec)
-    {
-        $numbersArr = array();
-        
-        // Ако има телефон
-        if ($rec->tel) {
-            
-            // Добавяме в масива
-            $numbersArr['tel'][] = $rec->tel;
-        }
-        
-        // Ако има факс
-        if ($rec->fax) {
-            
-            // Добавяме в масива
-            $numbersArr['fax'][] = $rec->fax;
-        }
-        
-        // Вземаме id на класа
-        $classId = static::getClassId();
-        
-        $numArr = array();
-        
-        // Ако е инсталиран пакета
-        if (core_Packs::isInstalled('callcenter')) {
-            $numArr = callcenter_Numbers::addNumbers($numbersArr, $classId, $rec->id, $rec->country);
-        }
-        
-        // Добавяме в КЦ
-        return $numArr;
     }
     
     
@@ -2242,7 +2221,7 @@ class crm_Companies extends core_Master
         $rec = $this->fetch($id);
         
         if (email_Outgoings::haveRightFor('add', array('folderId' => $rec->folderId))) {
-            $res[] = 'email_Outgoings';
+            $res[] = (object)array('class' => 'email_Outgoings');
         }
         
         static $clientGroupId, $supplierGroupId, $debitGroupId, $creditGroupId;
@@ -2258,19 +2237,19 @@ class crm_Companies extends core_Master
         
         // Ако е в група дебитори или кредитови, показваме бутон за финансова сделка
         if (in_array($debitGroupId, $groupList) || in_array($creditGroupId, $groupList)) {
-            $res[] = 'findeals_Deals';
+            $res[] = (object)array('class' => 'findeals_Deals');
         }
         
         // Ако е в група на клиент, показваме бутона за продажба
         if (in_array($clientGroupId, $groupList)) {
-            $res[] = 'sales_Sales';
-            $res[] = 'sales_Quotations';
+            $res[] = (object)array('class' => 'sales_Sales', 'url' => array('sales_Sales', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'ret_url' => true));
+            $res[] = (object)array('class' => 'sales_Quotations', 'url' => array('sales_Quotations', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'ret_url' => true));
         }
         
         // Ако е в група на достачик, показваме бутона за покупка
         if (in_array($supplierGroupId, $groupList)) {
-            $res[] = 'purchase_Purchases';
-            $res[] = 'purchase_Offers';
+            $res[] = (object)array('class' => 'purchase_Purchases', 'url' => array('purchase_Purchases', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'ret_url' => true));
+            $res[] = (object)array('class' => 'purchase_Offers', 'caption' => 'Вх. оферта');
         }
         
         return $res;

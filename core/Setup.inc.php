@@ -1321,6 +1321,27 @@ function gitLastCommitDate($repoPath, &$log)
 
 
 /**
+ * Връща датата на последния комит на дадено репозитори
+ */
+function gitLastCommitHash($repoPath, $short = true)
+{
+    if ($short) {
+        $command = " --git-dir=\"{$repoPath}/.git\" log -1 --format='%h'";
+    } else {
+        $command = " --git-dir=\"{$repoPath}/.git\" log -1 --format='%H'";
+    }
+    
+    // Първият ред съдържа резултата
+    if (gitExec($command, $res)) {
+        
+        return trim($res[0]);
+    }
+    
+    return false;
+}
+
+
+/**
  * Връща текущият бранч на репозиторито или FALSE ако не е сетнат
  */
 function gitCurrentBranch($repoPath, &$log)

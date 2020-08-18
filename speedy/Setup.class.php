@@ -8,6 +8,24 @@ defIfNot('SPEEDY_OFFICE_LOCATOR_URL', "https://www.speedy.bg/speedy_office_locat
 
 
 /**
+ * Коя е клиентската версия на библиотеката
+ */
+defIfNot('SPEEDY_CLIENT_LIBRARY_VERSION', '3.5.4');
+
+
+/**
+ * Потребителско име в системата на Speedy
+ */
+defIfNot('SPEEDY_DEFAULT_ACCOUNT_USERNAME', '');
+
+
+/**
+ * Парола в системата на спиди
+ */
+defIfNot('SPEEDY_DEFAULT_ACCOUNT_PASSWORD', '');
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с speedy
  *
@@ -50,19 +68,19 @@ class speedy_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Интеграция с "speedy"';
-    
-    
-    /**
-     * Описание на конфигурационните константи
-     */
-    public $configDescription = array('SPEEDY_OFFICE_LOCATOR_URL' => array('varchar', 'caption=Локатор на офис'),);
+    public $info = 'Интеграция със "speedy"';
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array('speedy_Offices');
+    
+    
+    /**
+     * Роли за достъп до модула
+     */
+    public $roles = 'speedy';
     
     
     /**
@@ -77,4 +95,66 @@ class speedy_Setup extends core_ProtoSetup
      * Дефинирани класове, които имат интерфейси
      */
     public $defClasses = 'speedy_interface_DeliveryToOffice';
+    
+    
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'Update Speedy Offices',
+            'description' => 'Обновяване на офисите на Speedy',
+            'controller' => 'speedy_Offices',
+            'action' => 'UpdateOffices',
+            'period' => 10080,
+            'offset' => 120,
+            'timeLimit' => 200
+        ),
+    );
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'SPEEDY_OFFICE_LOCATOR_URL' => array('varchar', 'caption=Локатор на офис'),
+        'SPEEDY_DEFAULT_ACCOUNT_USERNAME' => array('varchar','caption=Акаунт в сайта на Speedy->Потребител,customizeBy=speedy|ceo'),
+        'SPEEDY_DEFAULT_ACCOUNT_PASSWORD' => array('password', 'caption=Акаунт в сайта на Speedy->Парола,customizeBy=speedy|ceo'),
+        'SPEEDY_CLIENT_LIBRARY_VERSION' => array('enum(3.5.4)','caption=Клиентска библиотека->Версия'),
+    );
+    
+    
+    /**
+     * Инсталиране на пакета
+     */
+    public function install()
+    {
+        $html = parent::install();
+        
+        $Plugins = cls::get('core_Plugins');
+        $html .= $Plugins->installPlugin('Генериране на товарителница от ЕН към Speedy', 'speedy_plg_BillOfLading', 'store_ShipmentOrders', 'private');
+        $html .= $Plugins->installPlugin('Генериране на товарителница от Продажба към Speedy', 'speedy_plg_BillOfLading', 'sales_Sales', 'private');
+        
+        $Bucket = cls::get('fileman_Buckets');
+        $html .= $Bucket->createBucket('billOfLadings', 'Товарителници към Speedy',  'pdf,jpg,jpeg,png', '200MB', 'user', 'user');
+        
+        return $html;
+    }
+    
+    
+    /**
+     * Проверява дали програмата е инсталирана в сървъра
+     *
+     * @return null|string
+     */
+    public function checkConfig()
+    {
+        $accountUserName = self::get('DEFAULT_ACCOUNT_USERNAME');
+        $accountPassword = self::get('DEFAULT_ACCOUNT_PASSWORD');
+        
+        if(empty($accountUserName) || empty($accountPassword)){
+            
+            return "Не са настроени паролата и акаунта, за връзка с онлайн услугите на Speedy";
+        }
+    }
 }

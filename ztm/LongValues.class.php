@@ -2,7 +2,7 @@
 
 
 /**
- * Клас 'ztm_Registers' - Документ за Транспортни линии
+ * Клас 'ztm_LongValues' - Кеш на дългите стойностти на регистрите
  *
  *
  * @category  bgerp
@@ -14,8 +14,10 @@
  *
  * @since     v 0.1
  */
-class ztm_RegisterLongValues extends core_Manager
+class ztm_LongValues extends core_Manager
 {
+    
+    
     /**
      * Заглавие
      */
@@ -25,7 +27,7 @@ class ztm_RegisterLongValues extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'ztm_Wrapper';
+    public $loadList = 'ztm_Wrapper,plg_RowTools2';
     
     
     /**
@@ -35,9 +37,15 @@ class ztm_RegisterLongValues extends core_Manager
     
     
     /**
+     * Кой има право да изтрива?
+     */
+    public $canDelete = 'debug';
+    
+    
+    /**
      * Кой има право да променя?
      */
-    public $canEdit = 'no_one';
+    public $canEdit = 'debug';
     
     
     /**
@@ -57,11 +65,23 @@ class ztm_RegisterLongValues extends core_Manager
      */
     public function description()
     {
-        $this->FLD('registerId', 'key(mvc=ztm_Registers, select=id)','caption=Регистер,mandatory,input=none');
-        $this->FLD('value', 'blob(serialize, compress)', 'mandatory,input=none');
-        $this->FLD('hash', 'varchar', 'mandatory,input=none');
+        $this->FLD('hash', 'varchar', 'mandatory,caption=Хеш');
+        $this->FLD('value', 'blob', 'mandatory,caption=Стойност');
         
-        $this->setDbUnique('registerId');
-        $this->setDbIndex('hash');
+        $this->setDbUnique('hash');
+    }
+    
+    
+    /**
+     * Връща стойността при нужда
+     * 
+     * @param mixed $var
+     * @return mixed
+     */
+    public static function getValueByHash($var)
+    {
+        $value = ztm_LongValues::fetchField("#hash = '{$var}'", 'value');
+        
+        return isset($value) ? $value : $var;
     }
 }

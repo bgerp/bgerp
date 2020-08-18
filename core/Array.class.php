@@ -678,19 +678,24 @@ class core_Array
     /**
      * Сумира стойноста на всички полета от масив от обекти/масиви
      *
-     * @param stdClass|array $arr   - обект
-     * @param string|array   $field - кое поле да се събере
+     * @param stdClass|array $arr         - обект
+     * @param string|array   $field       - кое поле да се събере
+     * @param boolean        $emptyAsZero - да третирали липсващото поле като нула
      *
      * @return null|float $sum - сумата от полетата или null за липсата на такава
      */
-    public static function sumValuesArray($arr, $field)
+    public static function sumValuesArray($arr, $field, $emptyAsZero = false)
     {
         $sum = null;
         $arr = arr::make($arr);
         
-        array_walk($arr, function ($a) use (&$sum, $field) {
+        array_walk($arr, function ($a) use (&$sum, $field, $emptyAsZero) {
             $value = is_array($a) ? $a[$field] : $a->{$field};
-            expect(isset($value), "Няма поле: {$field}");
+            
+            if($emptyAsZero === false){
+                expect(isset($value), "Няма поле: {$field}");
+            }
+            
             $sum += $value;
         });
         

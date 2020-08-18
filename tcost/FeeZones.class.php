@@ -455,7 +455,7 @@ class tcost_FeeZones extends core_Master
                 $deliveryAmount = round($deliveryAmount - ($delivery), 2);
             } else {
                 $string = tr('Печелите безплатна доставка, защото поръчката ви надвишава');
-                $block = new core_ET(tr("|*<!--ET_BEGIN freeDelivery--><div>{$string} <b style='font-size:1.1em'>[#freeDelivery#]</b> <span class='cCode'>[#freeDeliveryCurrencyId#]</span>.</div><!--ET_END freeDelivery-->"));
+                $block = new core_ET(tr("|*<!--ET_BEGIN freeDelivery--><div>{$string} <b style='font-size:1.1em'>[#freeDelivery#]</b>.</div><!--ET_END freeDelivery-->"));
             }
             
             $cartRow->freeDelivery = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);

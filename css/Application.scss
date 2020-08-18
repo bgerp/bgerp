@@ -1539,6 +1539,9 @@ a.tOld {
 			}
 		}
 	}
+	select {
+		max-width: 270px;
+	}
 
 }
 
@@ -2449,6 +2452,10 @@ pre.document {
 	margin-left: 2px;
 }
 
+.maxwidth {
+	display: block;
+}
+
 .maxwidth .tags, .document-handler .tags, .rowBlock .tags {
 	position: relative;
 	top: 2px;
@@ -2461,6 +2468,65 @@ pre.document {
     padding-left: 1em;
 	td {
 		border: none !important;
+	}
+}
+
+.center-content {
+	width: 800px;
+	margin: 0 auto;
+	.scrollable {
+		overflow-y: auto;
+	}
+	h1 {
+		text-align: right;
+		padding: 0 20px;
+		font-size: 36px;
+	}
+	h3 {
+		font-size: 24px;
+		text-align: center;
+	}
+	h4 {
+		font-size: 20px;
+		text-align: center;
+	}
+	.aboutImg {
+		max-width: 30px;
+		position: relative;
+		top: 3px;
+		height: auto;
+	}
+	.list-group {
+		display: -ms-flexbox;
+		display: flex;
+		-ms-flex-direction: column;
+		flex-direction: column;
+		padding: 10px 20px;
+		margin-bottom: 0;
+		border-radius: .35rem;
+		
+	
+	}
+	.list-group-item {
+		position: relative;
+		display: block;
+		padding: .25rem 1.25rem;
+		background-color: #fff;
+		border: 1px solid rgba(0,0,0,.125);
+		
+			line-height: 200%;
+		
+		&:first-child {
+			border-top-left-radius: inherit;;
+			border-top-right-radius: inherit;;
+		}
+		&:last-child {
+			border-bottom-right-radius: inherit;
+			border-bottom-left-radius: inherit;
+		}
+		.list-group-item+.list-group-item {
+			border-top-width: 0;
+		}
 	}
 }
 
@@ -4011,7 +4077,8 @@ table .eshop-btn {
 }
 
 .narrow .eshop-btn.addToCard, .narrow .productBtn.addToCard {
-	background-image: url("../img/16/cart_go.png") !important;
+	background-image: url("../img/32/cart_go.png") !important;
+	background-size: 16px;
 	background-position: 3px center;
 	background-repeat: no-repeat;
 	margin-bottom: 5px !important;
@@ -6139,6 +6206,9 @@ body.narrow {
 		width: 29%;
 		font-size: 0.92em	;
 	}
+	.center-content {
+		width: 100% !important;
+	}
 }
 
 /* ipad */
@@ -6146,6 +6216,7 @@ body.narrow {
 	.wide .document {
 		max-width: 50em;
 	}
+
 }
 
 	/* Mobile */
@@ -6269,7 +6340,10 @@ body.narrow {
     }
     .externalPage h1{
         font-size: 1.86em;
-    }
+	}
+	.notificationsCnt {
+		 right: 0;
+	}
 }
 
 @media handheld, only screen and (max-width: 700px) {
@@ -6299,7 +6373,7 @@ body.narrow {
     }
     .wide .app-name {
         font-size: 4.4em;
-    }
+	}
 }
 
 @media handheld, only screen and (max-width: 640px) {
@@ -6513,6 +6587,9 @@ body.narrow {
             max-width: 159px;
         }
     }
+	.narrow .vFormField .select2 {
+		max-width: 335px !important;
+	}
     .externalPage h2{
         font-size: 1.22em;
     }
@@ -6525,7 +6602,7 @@ body.narrow {
 	}
 	.wide .app-name {
          font-size: 3em;
-    }
+	}
 }
 
 
@@ -7569,6 +7646,12 @@ body.narrow {
     right: 10px;
     left: auto;
     margin: 0;
+}
+.endTooltip, .frontToolip {
+	img {
+		width: 16px;
+		height: 16px;
+	}
 }
 
 .narrow .elem-holder .endTooltip {

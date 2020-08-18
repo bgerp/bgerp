@@ -57,7 +57,7 @@ class sales_StatisticData extends core_Manager
     /**
      * Полета, които се виждат
      */
-    public $listFields = 'productId,storeId,storeId,count,quantity,amount,type';
+    public $listFields = 'productId,key,count,quantity,amount';
     
     
     /**
@@ -65,15 +65,14 @@ class sales_StatisticData extends core_Manager
      */
     public function description()
     {
-        $this->FLD('type', 'enum(,sales=Продажби,pos=ПОС,eshop=Е-шоп)', 'mandatory,caption=Източник');
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Артикул,silent,class=ajaxSelect');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'mandatory,caption=Склад,silent');
+        $this->FLD('key', 'varchar', 'mandatory,caption=Ключ,silent');
         $this->FLD('count', 'int', 'mandatory,caption=Брой');
         $this->FLD('quantity', 'double', 'mandatory,caption=Количество');
         $this->FLD('amount', 'double', 'mandatory,caption=Сума (без ДДС)');
         
-        $this->setDbIndex('type');
-        $this->setDbUnique('type,productId,storeId');
+        $this->setDbIndex('key');
+        $this->setDbUnique('key,productId');
     }
     
     
@@ -82,10 +81,10 @@ class sales_StatisticData extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->showFields = 'productId,storeId,type';
+        $data->listFilter->showFields = 'productId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->input('productId,storeId,type');
+        $data->listFilter->input('productId');
         
         if($rec = $data->listFilter->rec){
             if(!empty($rec->productId)){
@@ -101,7 +100,6 @@ class sales_StatisticData extends core_Manager
             }
         }
     }
-    
     
     
     /**
@@ -124,31 +122,35 @@ class sales_StatisticData extends core_Manager
     {
         $exPosQuery = self::getQuery();
         $exRecs = $exPosQuery->fetchAll();
-        $newRecs = self::getSaleStatistic();
+        
+        $newRecs = array();
+        $saleRecs = self::getSaleStatistic();
+        foreach ($saleRecs as $saleRec){
+            $newRecs["sales|{$saleRec->productId}|{$saleRec->storeId}"] = (object)array("key" => "sales|{$saleRec->storeId}", 'productId' => $saleRec->productId, 'count' => $saleRec->count, 'quantity' => $saleRec->sumQuantity, 'amount' => $saleRec->sumAmount);
+        }
         
         if(core_Packs::isInstalled('pos')){
             $posRecs = array();
             $posDataRecs = pos_SellableProductsCache::getPosStatisticData();
             foreach($posDataRecs as $posRec){
-                $posRecs["pos|{$posRec->productId}|{$posRec->storeId}"] = (object)array('type' => 'pos', 'productId' => $posRec->productId, 'storeId' => $posRec->storeId, 'count' => $posRec->count, 'quantity' => $posRec->sumQuantity, 'amount' => $posRec->sumAmount);
+                $posRecs["pos|{$posRec->productId}|{$posRec->storeId}"] = (object)array("key" => "pos|{$posRec->storeId}", 'productId' => $posRec->productId, 'count' => $posRec->count, 'quantity' => $posRec->sumQuantity, 'amount' => $posRec->sumAmount);
             }
             
             $newRecs += $posRecs;
         }
         
         if(core_Packs::isInstalled('eshop')){
-            /*$eshopRecs = array();
-            $eshopDataRecs = eshop_Carts::getStatisticData();
-            foreach($eshopDataRecs as $posRec){
-                $eshopRecs["eshop|{$posRec->productId}|{$posRec->storeId}"] = (object)array('type' => 'eshop', 'productId' => $posRec->productId, 'storeId' => $posRec->storeId, 'count' => $posRec->count, 'quantity' => $posRec->sumQuantity, 'amount' => $posRec->sumAmount);
+            $saleEshopRecs = self::getSaleStatistic(true);
+            $eshopRecs = array();
+            foreach ($saleEshopRecs as $saleEshopRec){
+                $eshopRecs["eshop|{$saleEshopRec->productId}|{$saleEshopRec->storeId}"] = (object)array("key" => "eshop|{$saleEshopRec->storeId}", 'productId' => $saleEshopRec->productId, 'count' => $saleEshopRec->count, 'quantity' => $saleEshopRec->sumQuantity, 'amount' => $saleEshopRec->sumAmount);
             }
-            
-            $newRecs += $eshopRecs;*/
+            $newRecs += $eshopRecs;
         }
         
-        $res = arr::syncArrays($newRecs, $exRecs, 'type,productId,storeId', 'storeId,count,quantity,amount');
+        $res = arr::syncArrays($newRecs, $exRecs, 'key,productId', 'count,quantity,amount');
         $this->saveArray($res['insert']);
-        $this->saveArray($res['update'], 'id,storeId,count,quantity,amount');
+        $this->saveArray($res['update'], 'id,count,quantity,amount');
         
         if(countR($res['delete'])){
             foreach ($res['delete'] as $deleteId){
@@ -169,24 +171,33 @@ class sales_StatisticData extends core_Manager
     /**
      * Връща статистическа информация за продажбите
      * 
-     * @return array $res 
+     * @return array
      */
-    public function getSaleStatistic()
+    public function getSaleStatistic($onlyOnlineSales = false)
     {
-        $res = array();
-        
         $deltaQuery = sales_PrimeCostByDocument::getQuery();
         $deltaQuery->XPR('count', 'int', 'count(#id)');
         $deltaQuery->XPR('sumQuantity', 'int', 'SUM(#quantity)');
         $deltaQuery->XPR('sumAmount', 'int', 'SUM(#quantity * #sellCost)');
-        $deltaQuery->where("#sellCost IS NOT NULL AND (#state = 'active' OR #state = 'closed')");
+        $deltaQuery->where("#sellCost IS NOT NULL AND (#state = 'active' OR #state = 'closed') AND #isPublic = 'yes'");
         $deltaQuery->groupBy('productId,storeId');
         $deltaQuery->orderBy("count", 'DESC');
+        $deltaQuery->limit(200);
         $deltaQuery->show('productId,storeId,sumQuantity,sumAmount,count');
-        while($saleRec = $deltaQuery->fetch()){
-            $res["sales|{$saleRec->productId}|{$saleRec->storeId}"] = (object)array('type' => 'sales', 'productId' => $saleRec->productId, 'storeId' => $saleRec->storeId, 'count' => $saleRec->count, 'quantity' => $saleRec->sumQuantity, 'amount' => $saleRec->sumAmount);
+        
+        if($onlyOnlineSales){
+            $cartQuery = eshop_Carts::getQuery();
+            $cartQuery->EXT('threadId', 'sales_Sales', 'externalName=threadId,externalKey=saleId');
+            $cartQuery->where("#saleId IS NOT NULL");
+            $cartQuery->show('threadId');
+            $threadsArr = arr::extractValuesFromArray($cartQuery->fetchAll(), 'threadId');
+            if(countR($threadsArr)){
+                $deltaQuery->in('threadId', $threadsArr);
+            } else {
+                $deltaQuery->where("1=2");
+            }
         }
         
-        return $res;
+        return $deltaQuery->fetchAll();
     }
 }

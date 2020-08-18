@@ -171,7 +171,7 @@ class eshop_Carts extends core_Master
         $this->FLD('paidOnline', 'enum(no=Не,yes=Да)', 'caption=Общи данни->Платено,input=none,notNull,value=no');
         $this->FLD('productCount', 'int', 'caption=Общи данни->Брой,input=none, summary=quantity,summaryCaption=  Брой артикули');
         
-        $this->FLD('personNames', 'varchar(255,autocomplete=off)', 'caption=Имена,class=contactData,hint=Вашето име||Your name,mandatory,silent');
+        $this->FLD('personNames', 'varchar(255,autocomplete=off)', 'caption=Имена,class=contactData,hint=Име и фамилия||Name and surname,mandatory,silent');
         $this->FLD('email', 'email(valid=drdata_Emails->validate,autocomplete=off)', 'caption=Имейл,hint=Вашият имейл||Your email,mandatory');
         $this->FLD('tel', 'drdata_PhoneType(type=tel,nullIfEmpty,unrecognized=warning,autocomplete=off)', 'caption=Телефон,hint=Вашият телефон,mandatory');
         $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,mandatory');
@@ -189,7 +189,7 @@ class eshop_Carts extends core_Master
         $this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=locationId|invoiceNames|invoiceUicNo|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|invoiceNames');
         
         $this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактуриране->Папка,input=none,silent,removeAndRefreshForm=locationId|invoiceNames|invoiceVatNo|invoiceUicNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|makeInvoice');
-        $this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактуриране->Наименование,invoiceData,hint=Име,input=none,mandatory');
+        $this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактуриране->Наименование,invoiceData,hint=Име и фамилия||Name and surname,input=none,mandatory');
         
         $this->FLD('invoiceVatNo', 'drdata_VatType', 'caption=Данни за фактуриране->ДДС №||VAT ID,input=hidden,invoiceData');
         $this->FLD('invoiceUicNo', 'varchar(26)', 'caption=Данни за фактуриране->ЕИК №,input=hidden,invoiceData');
@@ -1092,7 +1092,9 @@ class eshop_Carts extends core_Master
             }
         }
         
-        $body->replace($rec->personNames, 'NAME');
+        $personNames = mb_convert_case($rec->personNames, MB_CASE_TITLE, "UTF-8");
+        
+        $body->replace($personNames, 'NAME');
         if ($hnd = sales_Sales::getHandle($saleRec->id)) {
             $body->replace("#{$hnd}", 'SALE_HANDLER');
         }
@@ -1111,6 +1113,24 @@ class eshop_Carts extends core_Master
         // Името на 'Моята фирма' във футъра
         $companyName = tr(crm_Companies::fetchOwnCompany()->company);
         $body->replace($companyName, 'COMPANY_NAME');
+        
+        if($rec->makeInvoice != 'none'){
+            $body->replace(self::getVerbal($rec, 'invoiceNames'), 'invoiceNames');
+            if(!empty($rec->invoiceVatNo)){
+                $body->replace(tr('ДДС №|*: ') . self::getVerbal($rec, 'invoiceVatNo'), 'invoiceVatNo');
+            }
+            
+            if(!empty($rec->invoiceUicNo)){
+                $prefix = ($rec->makeInvoice == 'person') ? tr('ЕГН|*: ') : tr('ЕИК|*": ');
+                $body->replace($prefix . self::getVerbal($rec, 'invoiceUicNo'), 'invoiceUicNo');
+            }
+            
+            $body->replace(self::getVerbal($rec, 'invoiceCountry'), 'invoiceCountry');
+            $body->replace(self::getVerbal($rec, 'invoicePCode'), 'invoicePCode');
+            $body->replace(self::getVerbal($rec, 'invoicePlace'), 'invoicePlace');
+            $body->replace(self::getVerbal($rec, 'invoiceAddress'), 'invoiceAddress');
+        }
+        
         $body = core_Type::getByName('richtext')->fromVerbal($body->getContent());
         
         // Подготовка на имейла
@@ -1349,7 +1369,11 @@ class eshop_Carts extends core_Master
         $tpl->append('</div>');
         Mode::set('wrapper', 'cms_page_External');
         $tpl->prepend("\n<meta name=\"robots\" content=\"nofollow\">", 'HEAD');
-        
+
+        if (Mode::is('screenMode', 'narrow')) {
+            jquery_Jquery::run($tpl, 'scrollToDetail();');
+        }
+
         vislog_History::add('Разглеждане на количка');
         
         return $tpl;
@@ -1552,7 +1576,9 @@ class eshop_Carts extends core_Master
         $tpl->append($btn, 'CART_TOOLBAR_TOP');
         $wideSpan = '<span>|</span>';
         
-        if (eshop_CartDetails::haveRightFor('add', (object) array('cartId' => $rec->id))) {
+        $settings = cms_Domains::getSettings($rec->domainId);
+        
+        if ($settings->enableCartAddBtn != 'no' && eshop_CartDetails::haveRightFor('add', (object) array('cartId' => $rec->id, 'domainId' => $rec->domainId))) {
             $addUrl = array('eshop_CartDetails', 'add', 'cartId' => $rec->id, 'external' => true, 'ret_url' => true);
             $btn = ht::createLink(tr('Добавяне'), $addUrl, null, 'title=Добавяне на нов артикул,class=eshop-link,ef_icon=img/16/add1-16.png,rel=nofollow');
             $tpl->append($wideSpan . $btn, 'CART_TOOLBAR_TOP');
@@ -2041,18 +2067,26 @@ class eshop_Carts extends core_Master
             
             // Проверка на имената да са поне две с поне 2 букви
             if (!core_Users::checkNames($rec->personNames)) {
-                $form->setError('personNames', 'Невалидни имена');
+                $form->setError('personNames', 'Невалидно име и фамилия');
             }
             
             // Проверка на имената на лицето на фактурата, ако тя е за лице да са поне две с поне 2 букви
             if ($rec->makeInvoice == 'person') {
                 if (!core_Users::checkNames($rec->invoiceNames)) {
-                    $form->setError('invoiceNames', 'Невалидни имена');
+                    $form->setError('invoiceNames', 'Невалидно име и фамилия');
                 }
             }
             
             if ($rec->makeInvoice != 'none' && empty($rec->invoiceVatNo) && empty($rec->invoiceUicNo)) {
                 $form->setError('invoiceVatNo,invoiceUicNo', 'Поне едно от полетата трябва да бъде въведено');
+            }
+            
+            if (!empty($rec->invoiceUicNo)) {
+                $msg = $isError = null;
+                crm_Companies::checkUicId($rec->invoiceUicNo, $rec->invoiceCountry, $msg, $isError);
+                if (!empty($msg)) {
+                    $form->setWarning('invoiceUicNo', $msg);
+                }
             }
             
             if (!empty($rec->invoiceNames) && $rec->makeInvoice != 'none') {
@@ -2106,6 +2140,9 @@ class eshop_Carts extends core_Master
                 $this->updateMaster($rec);
                 core_Lg::pop();
                 eshop_Carts::logWrite("Попълване на данни за поръчката от външната част", $rec->id);
+                if(isset($rec->saleFolderId)){
+                    colab_Folders::setLastActiveContragentFolder($rec->saleFolderId);
+                }
                 
                 return followRetUrl();
             }
@@ -2114,8 +2151,8 @@ class eshop_Carts extends core_Master
         Mode::set('wrapper', 'cms_page_External');
         
         // Добавяне на бутони
-        $form->toolbar->addSbBtn('Продължи', 'save', 'ef_icon = img/16/disk.png, title = Запис на данните за поръчката');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        $form->toolbar->addSbBtn('Обобщение', 'save', 'ef_icon = img/16/move.png, title = Запис на данните за поръчката, class=submitBtn');
+        $form->toolbar->addBtn('Назад', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         if ($form->cmd == 'refresh') {
             $form->renderLayout();
@@ -2132,6 +2169,8 @@ class eshop_Carts extends core_Master
         // Рефрешване на формата ако потребителя се логне докато е в нея
         cms_Helper::setRefreshFormIfNeeded($tpl);
         jquery_Jquery::run($tpl, 'runOnLoad(copyValToPlaceholder);');
+        jquery_Jquery::run($tpl, 'afterSubmitDetails();');
+
         $tpl->prepend("\n<meta name=\"robots\" content=\"nofollow\">", 'HEAD');
         
         return $tpl;

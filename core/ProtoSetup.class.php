@@ -591,4 +591,16 @@ class core_ProtoSetup
         
         return $description;
     }
+    
+    
+    /**
+     * Менижиране на формата формата за настройките
+     *
+     * @param core_Form $configForm
+     * @return void
+     */
+    public function manageConfigDescriptionForm(&$configForm)
+    {
+        return null;
+    }
 }

@@ -117,7 +117,7 @@ class cal_Progresses extends core_Mvc
     {
         if ($rec->originId) {
             $tDoc = doc_Containers::getDocument($rec->originId);
-            if ($tDoc->isInstanceOf('cal_Tasks')) {
+            if ($tDoc->isInstanceOf('cal_Tasks') && ($rec->state != 'draft')) {
                 $tDoc->touchRec();
             }
         }

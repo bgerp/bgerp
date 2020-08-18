@@ -237,7 +237,7 @@ class bulmar_InvoiceExport extends core_Manager
                 $nRec->productsAmount = $nRec->baseAmount - $nRec->servicesAmount;
             }
         }
-        
+       
         return $nRec;
     }
     
@@ -283,7 +283,7 @@ class bulmar_InvoiceExport extends core_Manager
                 $line .= "{$static->creditSaleServices}|||{$rec->servicesAmount}||";
             }
             
-            if($rec->type != 'invoice' && empty($rec->servicesAmount) && empty($rec->productsAmount)){
+            if($rec->type != 1 && empty($rec->servicesAmount) && empty($rec->productsAmount)){
                 $line .= "{$static->creditSaleProducts}|||{$rec->baseAmount}||";
             }
             

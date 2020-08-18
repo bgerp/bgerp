@@ -389,11 +389,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             }
             
             $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
-            if(!empty($rec->additionalMeasureId) && !empty($rec->additionalMeasureQuantity)){
-                if($rec->additionalMeasureId == $productInfo->productRec->measureId){
-                    $rec->quantityInPack = $rec->additionalMeasureQuantity / $rec->packQuantity;
-                }
-            }
+            //if(!empty($rec->additionalMeasureId) && !empty($rec->additionalMeasureQuantity)){
+                //if($rec->additionalMeasureId == $productInfo->productRec->measureId){
+                    //$rec->quantityInPack = $rec->additionalMeasureQuantity / $rec->packQuantity;
+                //}
+            //}
             
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
         }
@@ -418,20 +418,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $row->expenseItemId = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
         }
         
-        $quantityInPack = $rec->quantityInPack;
-        if(!empty($rec->additionalMeasureId)){
-            if($rec->additionalMeasureId == $productRec->measureId){
-                
-                // Ако втората мярка е основната показваме оригиналното к-во в опаковка
-                $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
-                $quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
-                $row->additionalMeasureId = ht::createHint($row->additionalMeasureId, "Това количество ще отчетено в производството");
-            }
-        }
-        
         $row->subTitle = (isset($rec->storeId)) ? 'Засклаждане на продукт' : 'Производство на услуга';
         $row->subTitle = tr($row->subTitle);
-        deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $quantityInPack);
+        deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         
         if (isset($rec->inputStoreId)) {
             $row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, true);

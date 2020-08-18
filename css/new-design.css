@@ -484,7 +484,9 @@ body {
 .logoText {
   font-weight: bold;
   font-size: 26px;
-  font-family: Arial; }
+  font-family: Arial;
+  position: relative;
+  display: inline-block; }
 
 .logoText a {
   color: #111111 !important; }
@@ -493,12 +495,13 @@ body {
   color: #444444;
   position: absolute;
   right: 50%;
-  top: 0;
+  top: 3px;
   min-width: 200px;
   margin-right: -100px;
   text-align: center;
   z-index: 1;
-  line-height: normal; }
+  line-height: normal;
+  height: 30px; }
 
 #nav-panel {
   background-color: #333333 !important; }
@@ -938,32 +941,26 @@ body {
  */
 .notificationsCnt {
   display: inline-block;
-  position: relative;
-  top: -10px;
-  margin-left: 1px; }
+  position: absolute;
+  top: -6px; }
 
 .notificationsCnt a {
   display: block;
   color: white;
-  padding: 2px 5px 1px 4px;
-  font-size: 0.75em;
-  border-radius: 10px; }
-
-.narrow .notificationsCnt a {
-  padding: 0 4px; }
+  padding: 1px 2px 1px;
+  text-align: center;
+  font-size: 0.5em;
+  border-radius: 3px;
+  font-weight: normal !important; }
 
 .notificationsCnt a.haveNtf {
-  background-color: #eedddd;
-  border: 1px solid #dd6666 !important;
+  background-color: rgba(250, 56, 55, 0.75);
+  border: 1px solid #f92f2e !important;
   box-shadow: 0 1px 2px 0 #ff9999;
-  color: #ee0000; }
+  color: white !important; }
 
 .notificationsCnt a.noNtf {
   display: none; }
-
-.narrow .notificationsCnt a.noNtf {
-  color: white;
-  border: solid 1px #999999 !important; }
 
 .portal .legend {
   z-index: 1 !important; }
@@ -1282,21 +1279,24 @@ only screen and (max-width: 800px) {
 
   .narrow .sidemenu-push-toleft #framecontentTop,
   .narrow .sidemenu-push-toleft .tab-control > .tab-row {
-    left: -170px !important; } }
+    left: -170px !important; }
+
+  .inner-framecontentTop {
+    padding: 9px 7px 7px 7px !important; } }
 
 @media handheld,
 only screen and (max-width: 1280px) {
   @-moz-document url-prefix() {
         .center-block {
-      top: -4px; }
+      1top: -4px; }
       .center-block .notificationsCnt {
-        top: -2px; }
+        1top: -2px; }
  } }
 
 @media handheld,
 only screen and (max-width: 640px) {
   .inner-framecontentTop {
-    padding: 7px 7px 9px 7px !important; }
+    padding: 9px 7px 7px 7px !important; }
 
   .narrowPortalBlocks {
     margin: 5px; }

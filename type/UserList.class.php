@@ -109,9 +109,10 @@ class type_UserList extends type_Keylist
         $uQueryAll->likeKeylist('roles', "{$teamsKeylist}");
         $uQueryAll->likeKeylist('roles', $roles);
         
-        // Броя на групите
+        // Броя на потребителите
         $cnt = $uQueryAll->count();
         
+        $openAllGroups = false;
         // Ако броя е под максимално допустимите или са избрани всичките
         if ((trim($this->params['autoOpenGroups']) == '*') || ($cnt < $this->params['maxOptForOpenGroups'])) {
             
@@ -122,6 +123,43 @@ class type_UserList extends type_Keylist
         $userArr = core_Users::getRolesWithUsers();
         
         $rolesArr = type_Keylist::toArray($roles);
+        
+        $haveOpenedGroup = false;
+        
+        $allUserOtherGroupArr = array();
+        
+        // Попълваме опциите от допълнително зададените
+        if (isset($this->userOtherGroup)) {
+            foreach ($this->userOtherGroup as $gKey => $gVals) {
+                $group = new stdClass();
+                $group->title = tr($gVals->title);
+                $group->attr = $gVals->attr;
+                $group->group = $gVals->group;
+                $group->autoOpen = $gVals->autoOpen;
+                $gName = $gKey . ' ' . $gVals->suggName;
+                
+                if (!$group->autoOpen && $openAllGroups) {
+                    $group->autoOpen = true;
+                }
+                
+                if ($group->autoOpen) {
+                    $haveOpenedGroup = true;
+                }
+                
+                $this->suggestions[$gName] = $group;
+                foreach ($gVals->suggArr as $uId) {
+                    if ($uRec = $userArr['r'][$uId]) {
+                        $key = $this->getKey($gKey, $uId);
+                        $this->suggestions[$key] = html_entity_decode(core_Users::getVerbal($uRec, 'nick'));
+                        if (EF_USSERS_EMAIL_AS_NICK) {
+                            $this->suggestions[$key] = html_entity_decode($this->suggestions[$key]);
+                        }
+                        
+                        $allUserOtherGroupArr[$uId] = $uId;
+                    }
+                }
+            }
+        }
         
         foreach ($teams as $t) {
             if (countR($ownRoles) && !$ownRoles[$t]) {
@@ -168,6 +206,8 @@ class type_UserList extends type_Keylist
                     if (EF_USSERS_EMAIL_AS_NICK) {
                         $this->suggestions[$key] = html_entity_decode($this->suggestions[$key]);
                     }
+                    
+                    unset($allUserOtherGroupArr[$uId]);
                 }
                 
                 if ($uId == core_Users::getCurrent() && !$ids) {
@@ -178,6 +218,32 @@ class type_UserList extends type_Keylist
             
             if (!$teamMembers) {
                 unset($this->suggestions[$t . ' team']);
+            }
+        }
+        
+        // Премахваме потребителите от грипите, ако не участват в списъка
+        if (!empty($allUserOtherGroupArr)) {
+            foreach ($this->userOtherGroup as $gKey => $gVals) {
+                foreach ($allUserOtherGroupArr as $uId) {
+                    $key = $this->getKey($gKey, $uId);
+                    unset($this->suggestions[$key]);
+                }
+                
+                // Ако списъка е празен, скриваме групата
+                $haveRec = false;
+                $key = $gKey . $this->keySep;
+                foreach ($this->suggestions as $sKey => $sVal) {
+                    if (strpos($sKey, $key) === 0) {
+                        $haveRec = true;
+                        
+                        break;
+                    }
+                }
+                
+                if (!$haveRec) {
+                    $gName = $gKey . ' ' . $gVals->suggName;
+                    unset($this->suggestions[$gName]);
+                }
             }
         }
         
@@ -273,6 +339,13 @@ class type_UserList extends type_Keylist
         if ($value) {
             $teams = core_Roles::getRolesByType('team');
             
+            if (isset($this->userOtherGroup)) {
+                foreach ($this->userOtherGroup as $gName => $gVal) {
+                    $teams = ltrim($teams, '|');
+                    $teams = '|' . $gName . '|' . $teams;
+                }
+            }
+            
             if (is_array($value)) {
                 $value = $this->fromArray($value);
             }
@@ -282,10 +355,29 @@ class type_UserList extends type_Keylist
             $nValArr = array();
             
             foreach ($valuesArr as $uId) {
+                $haveMatch = false;
                 $roles = core_Users::fetchField($uId, 'roles');
                 
                 $dArr = $this->getDiffArr($teams, $roles);
+                
                 $rolesArr = $dArr['same'];
+                
+                if (!empty($this->userOtherGroup)) {
+                    
+                    foreach ($this->userOtherGroup as $gName => $gVal) {
+                        $key = $this->getKey($gName, $uId);
+                        if ($this->suggestions[$key]) {
+                            $nValArr[$key] = $key;
+                            $haveMatch = true;
+                            
+                            break;
+                        }
+                    }
+                }
+                
+                if ($haveMatch) {
+                    continue;
+                }
                 
                 // Потребителят да е избран само в първата група, която участва
                 if ($rolesArr) {

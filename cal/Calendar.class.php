@@ -188,6 +188,10 @@ class cal_Calendar extends core_Master
      */
     public static function updateEvents($events, $fromDate, $toDate, $prefix, $onlyDel = false)
     {
+        if (!preg_match('/^[A-Z]+\-$/', $prefix)) {
+            wp('Лоши символи за префикс', $prefix);
+        }
+        
         $query    = self::getQuery();
         
         $fromTime = $fromDate . ' 00:00:00';

@@ -20,6 +20,12 @@
 class crm_Persons extends core_Master
 {
     /**
+     * Да се създаде папка при създаване на нов запис
+     */
+    public $autoCreateFolder = 'instant';
+    
+    
+    /**
      * Интерфейси, поддържани от този мениджър
      */
     public $interfaces = array(
@@ -83,7 +89,7 @@ class crm_Persons extends core_Master
     public $loadList = 'plg_Created, plg_Modified, plg_RowTools2,  plg_LastUsedKeys,plg_Rejected, plg_Select,
                      crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext, bgerp_plg_Groups, plg_Printing, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
-                     bgerp_plg_Import, doc_plg_Close, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput, core_UserTranslatePlg';
+                     bgerp_plg_Import, doc_plg_Close, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput, core_UserTranslatePlg, callcenter_AdditionalNumbersPlg';
     
     
     /**
@@ -239,6 +245,14 @@ class crm_Persons extends core_Master
     
     
     /**
+     * Кои полета да се записват в номерата
+     * @var array
+     * @see callcenter_AdditionalNumbersPlg
+     */
+    public $updateNumMap = array('tel' => 'tel', 'buzTel' => 'tel', 'fax' => 'fax', 'buzFax' => 'fax', 'mobile' => 'mobile');
+    
+    
+    /**
      * Предефинирани подредби на листовия изглед
      */
     public $listOrderBy = array(
@@ -274,7 +288,7 @@ class crm_Persons extends core_Master
         $this->FNC('nameList', 'varchar', 'sortingLike=name, translate=transliterate');
         
         // Единен Граждански Номер
-        $this->FLD('egn', 'bglocal_EgnType', 'caption=ЕГН,export=Csv');
+        $this->FLD('egn', 'bglocal_EgnType', 'caption=ЕГН,export=Csv,silent');
         $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv');
         
         // Дата на раждане
@@ -746,9 +760,6 @@ class crm_Persons extends core_Master
         
         $mvc->updateRoutingRules($rec);
         
-        // Обновяме номерата
-        $mvc->updateNumbers($rec);
-        
         if (crm_Profiles::fetch("#personId = {$rec->id}")) {
             $Profiles = cls::get('crm_Profiles');
             $Profiles->invoke('AfterMasterSave', array($rec, $mvc));
@@ -785,61 +796,6 @@ class crm_Persons extends core_Master
                 $typeKey->options[$rec->id] = $rec->name . " ({$rec->id})";
             }
         }
-    }
-    
-    
-    /**
-     * Добавя номера за лицето
-     */
-    public static function updateNumbers($rec)
-    {
-        $numbersArr = array();
-        
-        // Ако има телефон
-        if ($rec->tel) {
-            
-            // Добавяме в масива
-            $numbersArr['tel'][] = $rec->tel;
-        }
-        
-        // Ако има бизнес номер
-        if ($rec->buzTel) {
-            
-            // Добавяме към телефона
-            $numbersArr['tel'][] = $rec->buzTel;
-        }
-        
-        // Ако има факс
-        if ($rec->fax) {
-            
-            // Добавяме факса
-            $numbersArr['fax'][] = $rec->fax;
-        }
-        
-        // Ако има бизнес факс
-        if ($rec->buzFax) {
-            
-            // Добавяме към факса
-            $numbersArr['fax'][] = $rec->buzFax;
-        }
-        
-        // Ако има мобилен
-        if ($rec->mobile) {
-            
-            // Добавяме мобилния
-            $numbersArr['mobile'][] = $rec->mobile;
-        }
-        
-        // id на класа
-        $classId = static::getClassId();
-        
-        // Ако е инсталиран пакета
-        if (core_Packs::isInstalled('callcenter')) {
-            $numArr = callcenter_Numbers::addNumbers($numbersArr, $classId, $rec->id, $rec->country);
-        }
-        
-        // Добавяме номерата в КЦ
-        return $numArr;
     }
     
     
@@ -905,12 +861,11 @@ class crm_Persons extends core_Master
     public static function updateBirthdaysToCalendar($id)
     {
         if (($rec = static::fetch($id)) && ($rec->state != 'rejected')) {
-            if (!$rec->birthday) {
-                
-                return;
+            if ($rec->birthday) {
+                list($y, $m, $d) = type_Combodate::toArray($rec->birthday);
+            } else {
+                $y = $m = $d = 0;
             }
-            
-            list($y, $m, $d) = type_Combodate::toArray($rec->birthday);
         }
         
         $events = array();
@@ -2792,19 +2747,19 @@ class crm_Persons extends core_Master
         
         // Ако е в група дебитори или кредитови, показваме бутон за финансова сделка
         if (in_array($debitGroupId, $groupList) || in_array($creditGroupId, $groupList)) {
-            $res[] = 'findeals_Deals';
+            $res[] = (object)array('class' => 'findeals_Deals');
         }
         
         // Ако е в група на клиент, показваме бутона за продажба
         if (in_array($clientGroupId, $groupList)) {
-            $res[] = 'sales_Sales';
-            $res[] = 'sales_Quotations';
+            $res[] = (object)array('class' => 'sales_Sales', 'url' => array('sales_Sales', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'ret_url' => true));
+            $res[] = (object)array('class' => 'sales_Quotations', 'url' => array('sales_Quotations', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'ret_url' => true));
         }
         
         // Ако е в група на достачик, показваме бутона за покупка
         if (in_array($supplierGroupId, $groupList)) {
-            $res[] = 'purchase_Purchases';
-            $res[] = 'purchase_Offers';
+            $res[] = (object)array('class' => 'purchase_Purchases', 'url' => array('purchase_Purchases', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'ret_url' => true));
+            $res[] = (object)array('class' => 'purchase_Offers', 'caption' => 'Вх. оферта');
         }
         
         return $res;

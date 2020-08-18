@@ -415,7 +415,9 @@ class colab_Threads extends core_Manager
                     $requiredRoles = 'no_one';
                 } elseif(empty($rec->createdBy)) {
                     $email = core_Users::fetchField($userId, 'email');
-                    if(!$mvc->canNonPowerPartnerSeeAnonymDocument($rec, $email)){
+                    if(!is_object($rec)){
+                        $requiredRoles = 'no_one';
+                    } elseif(!$mvc->canNonPowerPartnerSeeAnonymDocument($rec, $email)){
                         $requiredRoles = 'no_one';
                     }
                 }

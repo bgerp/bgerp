@@ -154,7 +154,7 @@ defIfNot('BULMAR_INV_TAX_OPERATION_SALE_SERVICES', '3');
 /**
  * Папка за експорт на приходните и разходните банкови документи
  */
-defIfNot('BULMAR_BANK_DOCUMENT_FOLDER', '4');
+defIfNot('BULMAR_BANK_DOCUMENT_FOLDER', '4.03');
 
 
 /**
@@ -275,7 +275,7 @@ class bulmar_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'BULMAR_INV_CONTR_FOLDER' => array('int', 'caption=Експорт на ИЗХОДЯЩИ фактури->Папка'),
+        'BULMAR_INV_CONTR_FOLDER' => array('double', 'caption=Експорт на ИЗХОДЯЩИ фактури->Папка'),
         'BULMAR_INV_TAX_OPERATION_SALE_PRODUCTS' => array('varchar(10)', 'caption=Експорт на ИЗХОДЯЩИ фактури->Сч. Операция на продажба на стока №'),
         'BULMAR_INV_TAX_OPERATION_SALE_SERVICES' => array('varchar(10)', 'caption=Експорт на ИЗХОДЯЩИ фактури->Сч. Операция на продажба на услуга №'),
         'BULMAR_INV_TAX_OPERATION_PAYMENT' => array('varchar(10)', 'caption=Експорт на ИЗХОДЯЩИ фактури->Сч. Операция на плащане №'),
@@ -288,7 +288,7 @@ class bulmar_Setup extends core_ProtoSetup
         'BULMAR_INV_CREDIT_PAYMENT' => array('varchar(10)', 'caption=Експорт на ИЗХОДЯЩИ фактури->Кредитна сметка плащане'),
         'BULMAR_INV_CREDIT_AV' => array('varchar(10)', 'caption=Експорт на ИЗХОДЯЩИ фактури->Кредитна сметка за авансово плащане'),
     
-        'BULMAR_PURINV_CONTR_FOLDER' => array('int', 'caption=Експорт на ВХОДЯЩИ фактури->Папка'),
+        'BULMAR_PURINV_CONTR_FOLDER' => array('double', 'caption=Експорт на ВХОДЯЩИ фактури->Папка'),
         'BULMAR_PURINV_PURCHASE_PRODUCTS_OPER' => array('varchar(10)', 'caption=Експорт на ВХОДЯЩИ фактури->Сч. Операция на покупка на стока №'),
         'BULMAR_PURINV_PURCHASE_SERVICES_OPER' => array('varchar(10)', 'caption=Експорт на ВХОДЯЩИ фактури->Сч. Операция на покупка на услуги №'),
         'BULMAR_PURINV_PAYMENT_OPERATION' => array('varchar(10)', 'caption=Експорт на ВХОДЯЩИ фактури->Сч. Операция на плащане №'),
@@ -301,7 +301,7 @@ class bulmar_Setup extends core_ProtoSetup
         'BULMAR_PURINV_DEBIT_PAYMENT' => array('varchar(10)', 'caption=Експорт на ВХОДЯЩИ фактури->Дебитна сметка плащане'),
         'BULMAR_PURINV_DEBIT_DOWNPAYMENT' => array('varchar(10)', 'caption=Експорт на ВХОДЯЩИ фактури->Дебитна сметка за авансово плащане'),
         
-        'BULMAR_BANK_DOCUMENT_FOLDER' => array('int', 'caption=Експорт на Приходни и разходни банкови документи->Папка'),
+        'BULMAR_BANK_DOCUMENT_FOLDER' => array('double', 'caption=Експорт на Приходни и разходни банкови документи->Папка'),
         'BULMAR_BANK_DOCUMENT_OPERATION_TYPE' => array('int', 'caption=Експорт на Приходни и разходни банкови документи->Операция №'),
         
         'BULMAR_BANK_DOCUMENT_NUMBER' => array('varchar(10)', 'caption=Експорт на Приходни и разходни банкови документи->Документ №'),

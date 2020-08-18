@@ -53,6 +53,7 @@ class doc_FolderPlg extends core_Plugin
         $mvc->details['Rights'] = $mvc->className;
         $mvc->details['History'] = $mvc->className;
         $mvc->details['Resources'] = 'doc_FolderResources';
+        setIfNot($mvc->autoCreateFolder, 'instant');
     }
     
     
@@ -724,20 +725,19 @@ class doc_FolderPlg extends core_Plugin
             
             // Имали бързи бутони
             if ($mvc->hasPlugin('plg_RowTools2') && $rec->state != 'rejected' && doc_Folders::haveRightToObject($rec)) {
-                $managersIds = doc_Threads::getFastButtons($mvc, $rec->id);
-                if (count($managersIds)) {
+                $buttons = doc_Threads::getFastButtons($mvc, $rec->id);
+                if (countR($buttons)) {
                     
                     // За всеки документ който може да се създаде от бърз бутон
-                    foreach ($managersIds as $classId) {
-                        $Cls = cls::get($classId);
+                    foreach ($buttons as $obj) {
+                        $Cls = cls::get($obj->class);
                         
                         if ($Cls->haveRightFor('add', (object) array('folderId' => $mvc->forceCoverAndFolder($rec->id, false)))) {
-                            $btnTitle = ($Cls->buttonInFolderTitle) ? $Cls->buttonInFolderTitle : $Cls->singleTitle;
-                            $url = array($mvc, 'forcedocumentinfolder', 'id' => $rec->id, 'documentClassId' => $classId, 'ret_url' => true);
+                            $url = array($mvc, 'forcedocumentinfolder', 'id' => $rec->id, 'documentClassId' => $Cls->getClassId(), 'ret_url' => true);
                             
                             // Добавяме го в rowToolbar-а
                             core_RowToolbar::createIfNotExists($row->_rowTools);
-                            $row->_rowTools->addLink($btnTitle, $url, "ef_icon = {$Cls->singleIcon},order=18,title=Създаване на " . mb_strtolower($Cls->singleTitle));
+                            $row->_rowTools->addLink($Cls->singleTitle, $url, "ef_icon = {$Cls->singleIcon},order=18,title=Създаване на " . mb_strtolower($Cls->singleTitle));
                         }
                     }
                 }
@@ -992,13 +992,19 @@ class doc_FolderPlg extends core_Plugin
         $settings = core_Settings::fetchKeyNoMerge($fKey, $allSysTeamId);
         
         if ($settings['showDocumentsAsButtons']) {
-            $res += type_Keylist::toArray($settings['showDocumentsAsButtons']);
+            $keyArr = type_Keylist::toArray($settings['showDocumentsAsButtons']);
+            foreach ($keyArr as $key){
+                $res[] = (object)array('class' => $key);
+            }
         }
-        
+       
         if (empty($res)) {
             // Ако има зададени класове по подразбиране
             if (isset($mvc->defaultDefaultDocuments)) {
-                $res = arr::make($mvc->defaultDefaultDocuments);
+                $defaultArr = arr::make($mvc->defaultDefaultDocuments);
+                foreach ($defaultArr as $def){
+                    $res[] = (object)array('class' => $def);
+                }
             }
         }
     }

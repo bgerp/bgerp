@@ -502,10 +502,6 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        if (isset($data->rec->id) && log_System::haveRightFor('list')) {
-            $data->toolbar->addBtn('Системен лог', array('log_System', 'list', 'search' => $mvc->className, 'objectId' => $data->rec->id), 'ef_icon=img/16/bug.png, title=Разглеждане на логовете на документа, order=20, row=3');
-        }
-        
         $classId = $mvc->getClassId();
         if ($mvc->createView || ($classId && doc_TplManager::fetch(array("#docClassId = '[#1#]'", $classId)))) {
             if (doc_View::haveRightFor('add') && $mvc->haveRightFor('single', $data->rec->id)) {
@@ -3718,6 +3714,13 @@ class doc_DocumentPlg extends core_Plugin
     {
         // Отбелязване в лога
         doclog_Documents::changed($recsArr);
+        if (!empty($recsArr)) {
+            $lRec = end($recsArr);
+            if ($lRec->docId && cls::load($lRec->docClass, true)) {
+                $inst = cls::get($lRec->docClass);
+                $inst->touchRec($lRec->docId);
+            }
+        }
     }
     
     
@@ -4128,16 +4131,19 @@ class doc_DocumentPlg extends core_Plugin
             $rec->modifiedOn = dt::verbal2Mysql();
             
             $mvc->save_($rec, 'modifiedOn, modifiedBy');
-            $cid = $rec->containerId;
             
-            if ($cid) {
+            if ($rec->containerId) {
                 $cRec = new stdClass();
-                $cRec->id = $cid;
+                $cRec->id = $rec->containerId;
                 $cRec->modifiedOn = $rec->modifiedOn;
                 $cRec->modifiedBy = $rec->modifiedBy;
                 
                 $containersInst = cls::get('doc_Containers');
                 $containersInst->save_($cRec, 'modifiedOn, modifiedBy');
+            }
+            
+            if ($rec->threadId) {
+                doc_Threads::updateThread($rec->threadId);
             }
         }
     }
@@ -4556,7 +4562,12 @@ class doc_DocumentPlg extends core_Plugin
             $nTpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
             $data->row->HEADER_STATE .= $nTpl->placeArray(array('user' => crm_Profiles::createLink($data->rec->modifiedBy), 'date' => dt::mysql2Verbal($data->rec->modifiedOn)));
         } elseif($data->rec->state == 'active' && isset($data->rec->activatedBy)){
-            $nTpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
+            if (isset($data->rec->activatedOn)) {
+                $nTpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
+            } else {
+                $nTpl = new ET(tr('|* |от|* [#user#]'));
+            }
+            
             $data->row->HEADER_STATE .= $nTpl->placeArray(array('user' => crm_Profiles::createLink($data->rec->activatedBy), 'date' => dt::mysql2Verbal($data->rec->activatedOn)));
         }
         
