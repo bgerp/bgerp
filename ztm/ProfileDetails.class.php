@@ -18,10 +18,6 @@
  */
 class ztm_ProfileDetails extends core_Detail
 {
-    /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'ztm_ProfileDefaults';
     
     
     /**

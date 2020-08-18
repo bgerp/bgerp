@@ -68,6 +68,13 @@ class label_Templates extends core_Master
     public $canReject = 'labelMaster, admin, ceo';
     
     
+    
+    /**
+     * Необходими роли за оттегляне на документа
+     */
+    public $canRestore = 'labelMaster, admin, ceo';
+    
+    
     /**
      * Кой може да променя състоянието на валутата
      */

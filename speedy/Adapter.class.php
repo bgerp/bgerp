@@ -30,7 +30,7 @@ class speedy_Adapter {
      *
      * @var EPSFacade
      */
-    private $eps;
+    public $eps;
     
     
     /**
@@ -45,6 +45,18 @@ class speedy_Adapter {
      * Резултат от логването
      */
     private $resultLogin;
+    
+    
+    /**
+     * Свързаните клиенти
+     */
+    private $contractClients;
+    
+    
+    /**
+     * Свързаните клиенти
+     */
+    private $services = array();
     
     
     /**
@@ -81,6 +93,8 @@ class speedy_Adapter {
         try{
             $this->eps = new EPSFacade(new EPSSOAPInterfaceImpl(), $userName,  $password);
             $this->resultLogin = $this->eps->getResultLogin();
+            $this->contractClients = $this->eps->listContractClients();
+            
         } catch (ServerException $e){
             reportException($e);
             
@@ -89,6 +103,17 @@ class speedy_Adapter {
         }
        
         return $result;
+    }
+    
+    
+    /**
+     * Дефолтния клиент
+     * 
+     * @return int
+     */
+    public function getDefaultClientId()
+    {
+        return $this->resultLogin->getClientId();
     }
     
     
@@ -169,18 +194,39 @@ class speedy_Adapter {
     
     
     /**
+     * Обекти към акаунта
+     *
+     * @return array $res
+     */
+    public function getSenderObjects()
+    { 
+       $res = array();
+       foreach ($this->contractClients as $Client){
+           $clientId = $Client->getClientId();
+           $res[$clientId] = $this->getObjectName($clientId);
+       }
+       
+       return $res;
+    }
+    
+    
+    /**
      * Кой е адреса на изпращача от настройките в акаунта на Speedy
      *
      * @param int $countryId
      * 
      * @return string $res
      */
-    public function getSenderAddress()
+    public function getObjectName($clientId)
     {
-        $senderClientData = $this->eps->getClientById($this->resultLogin->getClientId());
+        $senderClientData = $this->eps->getClientById($clientId);
         $Address = $senderClientData->getAddress();
+        $objectName = $senderClientData->getObjectName();
         
-        $res = $Address->getPostCode() . " " . $Address->getSiteName() . " " . $Address->getStreetType() . " " . $Address->getStreetName() . " " . $Address->getStreetNo() . " " . $Address->getAddressNote();
+        $res = (!empty($objectName) ? "{$objectName}: " : "") . $Address->getPostCode() . " " . $Address->getSiteName() . " " . $Address->getStreetType() . " " . $Address->getStreetName() . " " . $Address->getStreetNo() . " " . $Address->getAddressNote();
+        if($quarterName = $Address->getQuarterName()){
+            $res .= " {$quarterName}";
+        }
         
         return $res;
     }
@@ -218,15 +264,35 @@ class speedy_Adapter {
         
         // Извличане на масив с наличните услуги
         $resultListServicesForSites = $this->eps->listServicesForSites($currentDate, $sndrSiteId, $rcptSiteId, null, null, $rcptCountryId, $rcptPostCode, $language, null, null, null, $toOfficeId);
-        
+      
         if(is_array($resultListServicesForSites)){
+            $this->services = array();
             foreach ($resultListServicesForSites as $serviceForSite){
                 $typeId = $serviceForSite->getTypeId();
+                $this->services[$typeId] = $serviceForSite;
                 $res[$typeId] = $serviceForSite->getName();
             }
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Кои са наличните услуги за доставка до мястото
+     *
+     * @param int $serviceId - ид на товарителница
+     * 
+     * @return boolean
+     */
+    public function requireParcelData($serviceId)
+    {
+        if(is_object($this->services[$serviceId])){
+            
+            return $this->services[$serviceId]->getRequireParcelsData();
+        }
+        
+        return false;
     }
     
     
@@ -255,36 +321,82 @@ class speedy_Adapter {
     
     
     /**
-     * Генерира товарителница в услугата на Speedy
+     * Подробна разбивка на калкулираната цена на товарителницата
      *
-     * @param stdClass $rec - ид на товарителница
+     * @param stdClass $rec - данни за товавителница
      * @throws ServerException
      *
-     * @return int $bolId   - ид-то на товарителницата
+     * @return core_ET $tpl
+     */
+    public function calculate($rec)
+    {
+        $picking = $this->generatePicking($rec, true);
+        $calculated = $this->eps->calculate($picking);
+        $Amounts = $calculated->getAmounts();
+        
+        $Double = core_Type::getByName('double(decimals=2)');
+        $row = new stdClass();
+        $row->deadlineDelivery = dt::mysql2verbal($calculated->getDeadlineDelivery());
+        
+        foreach (arr::make('net,addrPickupSurcharge,addrDeliverySurcharge,discPcntFixed,discPcntAdditional,pcntFuelSurcharge,nonStdDeliveryDateSurcharge,tro,islandSurcharge,testBeforePayment,tollSurcharge,heavyPackageFee,codPremium,insurancePremium,vat,total') as $fld){
+            $value = $Amounts->{"get{$fld}"}();
+            $valueVerbal = $Double->toVerbal($value);
+            $row->{$fld} = $valueVerbal;
+        }
+        
+        $row->totalNoVat = $Double->toVerbal($Amounts->getTotal() - $Amounts->getVat());
+        
+        $tpl = getTplFromFile('speedy/tpl/CalculatedAmounts.shtml');
+        $tpl->placeObject($row);
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Генерира товарителница в услугата на Speedy
+     *
+     * @param stdClass $rec - данни за товавителница
+     * @throws ServerException
+     *
+     * @return int $bolId - ид-то на товарителницата
      */
     public function getBol($rec)
     {
-        setIfNot($rec->palletCount, 1);
+        $picking = $this->generatePicking($rec, false);
         
+        // Генериране на товарителница
+        $resultBOL = $this->eps->createBillOfLading($picking);
+        $parcels = $resultBOL->getGeneratedParcels();
+        $firstParcel = $parcels[0];
+        $bolId = $firstParcel->getParcelId();
+        
+        return $bolId;
+    }
+    
+    
+    /**
+     * Генерира данни за товарителница
+     *
+     * @param stdClass $rec - ид на товарителница
+     * @param boolean $onlyCalculate - само калкулация или товарителница
+     *
+     * @return ParamCalculation|ParamPicking $picking
+     */
+    private function generatePicking($rec, $onlyCalculate = false)
+    {
         $pickingData = new StdClass();
         
         // Колко е общото тегло
-        $pickingData->weightDeclared = $rec->totalWeight; 
-        
         // От кои офиси да се вземе и доставки пратката, ако са зададени
         $pickingData->bringToOfficeId = null;
         $pickingData->takeFromOfficeId = $rec->receiverSpeedyOffice; 
-        
-        // Характеристики на пратката
-        $pickingData->parcelsCount = $rec->palletCount;
         $pickingData->documents = ($rec->isDocuments == 'yes') ? true : false;
         $pickingData->palletized = ($rec->isPaletize == 'yes') ? true : false;
         $pickingData->fragile = ($rec->isFragile == 'yes') ? true : false;
         
         $pickingData->amountCODBase = $rec->amountCODBase;
         $pickingData->amountInsurance = $rec->amountInsurance;
-        $pickingData->backDocumentReq = true;
-        $pickingData->backReceiptReq = false;
         $pickingData->contents = $rec->content;
         $pickingData->packing = $rec->packaging;
         $pickingData->serviceTypeId = $rec->service;
@@ -304,7 +416,7 @@ class speedy_Adapter {
         }
         
         // Задаване на данните на изпращача
-        $senderClientData = $this->eps->getClientById($this->resultLogin ->getClientId());
+        $senderClientData = $this->eps->getClientById($rec->senderClientId);
         $sender = new ParamClientData();
         $sender->setClientId($senderClientData->getClientId());
         $sender->setContactName($rec->senderName);
@@ -337,13 +449,9 @@ class speedy_Adapter {
             $receiverPhonesArr[] = $paramPhoneNumber;
         }
         $receiver->setPhones($receiverPhonesArr);
+        $picking = ($onlyCalculate === true) ? new ParamCalculation() : new ParamPicking();
         
-        // Подготовка на товарителницата
-        $picking = new ParamPicking();
         $picking->setServiceTypeId($pickingData->serviceTypeId);
-        $picking->setBackDocumentsRequest($pickingData->backDocumentReq);
-        $picking->setBackReceiptRequest($pickingData->backReceiptReq);
-        
         if(isset($pickingData->bringToOfficeId)){
             $picking->setWillBringToOffice($pickingData->bringToOfficeId);
         }
@@ -352,6 +460,10 @@ class speedy_Adapter {
             $picking->setOfficeToBeCalledId($pickingData->takeFromOfficeId);
         } else {
             $receiverSiteId = $this->getSiteId($rec->receiverCountryId, $rec->receiverPCode, $rec->receiverPlace);
+            if($picking instanceof ParamCalculation){
+                $picking->setReceiverSiteId($receiverSiteId);
+            }
+            
             $receiverAddress = new ParamAddress();
             $receiverAddress->setSiteId($receiverSiteId);
            
@@ -376,20 +488,23 @@ class speedy_Adapter {
             $receiver->setAddress($receiverAddress);
         }
         
-        $picking->setParcelsCount($pickingData->parcelsCount);
-        $picking->setWeightDeclared($pickingData->weightDeclared);
-        $picking->setContents($pickingData->contents);
-        $picking->setPacking($pickingData->packing);
+        if($picking instanceof ParamPicking){
+            $picking->setContents($pickingData->contents);
+            $picking->setPacking($pickingData->packing);
+            $picking->setSender($sender);
+            $picking->setReceiver($receiver);
+            $picking->setDeliveryToFloorNo($rec->floorNum);
+        } else {
+            $picking->setSenderId($rec->senderClientId);
+        }
+        
         $picking->setDocuments($pickingData->documents);
         $picking->setPalletized($pickingData->palletized);
         $picking->setFragile($pickingData->fragile);
-        $picking->setSender($sender);
-        $picking->setReceiver($receiver);
+        
         $picking->setPayerType($pickingData->payerType);
         $picking->setPayerTypePackings($pickingData->payerTypePackings);
-        
         $picking->setTakingDate($pickingData->takingDate);
-        
         
         // Информация за съдържанието и наложения платеж и обявената стойност
         $codOptions = type_Set::toArray($rec->codType);
@@ -403,7 +518,6 @@ class speedy_Adapter {
         
         $picking->setAmountInsuranceBase($pickingData->amountInsurance);
         $picking->setPayerTypeInsurance($pickingData->insurancePayer);
-        $picking->setDeliveryToFloorNo($rec->floorNum);
         
         // Задаване на опции преди плащане, ако има
         if(in_array($rec->options, array('test', 'open'))){
@@ -431,20 +545,46 @@ class speedy_Adapter {
             $picking->setIncludeShippingPriceInCod(true);
         }
         
-        $backRequest = type_Set::toArray($rec->backRequest);
-        $backDocumentsRequest = isset($backRequest['document']) ? true : false;
-        $picking->setBackDocumentsRequest($backDocumentsRequest);
-        
-        $backReceiptRequest = isset($backRequest['receipt']) ? true : false;
-        $picking->setBackReceiptRequest($backReceiptRequest);
+        if($picking instanceof ParamPicking){
+            $backRequest = type_Set::toArray($rec->backRequest);
+            $backDocumentsRequest = isset($backRequest['document']) ? true : false;
+            $picking->setBackDocumentsRequest($backDocumentsRequest);
+            
+            $backReceiptRequest = isset($backRequest['receipt']) ? true : false;
+            $picking->setBackReceiptRequest($backReceiptRequest);
+        }
       
-        // Генериране на товарителница
-        $resultBOL = $this->eps->createBillOfLading($picking);
-        $parcels = $resultBOL->getGeneratedParcels();
-        $firstParcel = $parcels[0];
-        $bolId = $firstParcel->getParcelId();
+        $parcels = type_Table::toArray($rec->parcelInfo);
+        $countParcels = countR($parcels);
+        $pickingData->parcelsCount = ($rec->palletCount) ? $rec->palletCount : (!empty($countParcels) ? $countParcels : 1);
         
-        return $bolId;
+        $pickingData->weightDeclared = ($rec->totalWeight) ? $rec->totalWeight : arr::sumValuesArray($parcels, 'weight');
+        $picking->setWeightDeclared($pickingData->weightDeclared);
+        
+        $parcelsArray = array();
+        $seqNo = 1;
+        foreach ($parcels as $parcel){
+            $parcelDetail = new ParamParcelInfo();
+            
+            $size = new Size();
+            $size->setWidth($parcel->width);
+            $size->setDepth($parcel->depth);
+            $size->setHeight($parcel->height);
+           
+            $parcelDetail->setSize($size);
+            $parcelDetail->setParcelId(-1);
+            $parcelDetail->setSeqNo($seqNo);
+            $parcelDetail->setWeight($parcel->weight);
+            $parcelsArray[] = $parcelDetail;
+            $seqNo++;
+        }
+        
+        $picking->setParcelsCount($pickingData->parcelsCount);
+        if(countR($parcelsArray)){
+            $picking->setParcels($parcelsArray);
+        }
+        
+        return $picking;
     }
     
     
@@ -510,6 +650,15 @@ class speedy_Adapter {
         } elseif(strpos($errorMsg, "[COMMON_ERROR, [ERR_011] 'PayerTypeInsurance'  MUST be set") !== false){
             $errorMsg = 'При обявената стойност, трябва да има избран платец на обявената стойност';
             $fields = 'insurancePayer,amountInsurance';
+        } elseif(strpos($errorMsg, "[INVALID_PARCELS_INFO, Wrong sequential numbers") !== false){
+            $errorMsg = 'Грешна последователност на палетите';
+            $fields = 'parcelInfo';
+        } elseif(strpos($errorMsg, '[INVALID_OPTIONS_BEFORE_PAYMENT, Option "Open before payment" with delivery to address is not allowed for selected service') !== false){
+            $errorMsg = 'Опцията за отваряне преди плащане не е налична за избраната услуга';
+            $fields = 'service,options';
+        } elseif(strpos($errorMsg, '[INVALID_OPTIONS_BEFORE_PAYMENT, Option "Test before delivery" with delivery to address is not allowed for selected service.') !== false){
+            $errorMsg = 'Опцията за тестване преди плащане не е налична за избраната услуга';
+            $fields = 'service,options';
         }
         
         return $errorMsg;

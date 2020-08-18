@@ -17,11 +17,6 @@
 class ztm_LongValues extends core_Manager
 {
     
-    /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'ztm_RegisterLongValues';
-    
     
     /**
      * Заглавие

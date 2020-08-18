@@ -1,0 +1,5336 @@
+SiteType,SiteType_EN,SiteName,SiteName_EN,PostCode
+гр.,gr.,АЙТОС,AYTOS,8500
+гр.,gr.,АКСАКОВО,AKSAKOVO,9154
+гр.,gr.,АЛФАТАР,ALFATAR,7570
+гр.,gr.,АНТОНОВО,ANTONOVO,7970
+гр.,gr.,АПРИЛЦИ,APRILTSI,5641
+гр.,gr.,АРДИНО,ARDINO,6750
+гр.,gr.,АСЕНОВГРАД,ASENOVGRAD,4230
+гр.,gr.,АХЕЛОЙ,AHELOY,8217
+гр.,gr.,АХТОПОЛ,AHTOPOL,8280
+гр.,gr.,БАЛЧИК,BALCHIK,9600
+гр.,gr.,БАНКЯ,BANKYA,1320
+гр.,gr.,БАНСКО,BANSKO,2770
+гр.,gr.,БАНЯ,BANYA,4360
+гр.,gr.,БАТАК,BATAK,4580
+гр.,gr.,БАТАНОВЦИ,BATANOVTSI,2340
+гр.,gr.,БЕЛЕНЕ,BELENE,5930
+гр.,gr.,БЕЛИЦА,BELITSA,2780
+гр.,gr.,БЕЛОВО,BELOVO,4470
+гр.,gr.,БЕЛОГРАДЧИК,BELOGRADCHIK,3900
+гр.,gr.,БЕЛОСЛАВ,BELOSLAV,9178
+гр.,gr.,БЕРКОВИЦА,BERKOVITSA,3500
+гр.,gr.,БЛАГОЕВГРАД,BLAGOEVGRAD,2700
+гр.,gr.,БОБОВ ДОЛ,BOBOV DOL,2670
+гр.,gr.,БОБОШЕВО,BOBOSHEVO,2660
+гр.,gr.,БОЖУРИЩЕ,BOZHURISHTE,2227
+гр.,gr.,БОЙЧИНОВЦИ,BOYCHINOVTSI,3430
+гр.,gr.,БОЛЯРОВО,BOLYAROVO,8720
+гр.,gr.,БОРОВО,BOROVO,7174
+гр.,gr.,БОТЕВГРАД,BOTEVGRAD,2140
+гр.,gr.,БРАЦИГОВО,BRATSIGOVO,4579
+гр.,gr.,БРЕГОВО,BREGOVO,3790
+гр.,gr.,БРЕЗНИК,BREZNIK,2360
+гр.,gr.,БРЕЗОВО,BREZOVO,4160
+гр.,gr.,БРУСАРЦИ,BRUSARTSI,3680
+гр.,gr.,БУРГАС,BURGAS,8000
+гр.,gr.,БУХОВО,BUHOVO,1830
+гр.,gr.,БЪЛГАРОВО,BALGAROVO,8110
+гр.,gr.,БЯЛА,BYALA,9101
+гр.,gr.,БЯЛА,BYALA,7100
+гр.,gr.,БЯЛА СЛАТИНА,BYALA SLATINA,3200
+гр.,gr.,БЯЛА ЧЕРКВА,BYALA CHERKVA,5220
+гр.,gr.,ВАРНА,VARNA,9000
+гр.,gr.,ВЕЛИКИ ПРЕСЛАВ,VELIKI PRESLAV,9850
+гр.,gr.,ВЕЛИКО ТЪРНОВО,VELIKO TARNOVO,5000
+гр.,gr.,ВЕЛИНГРАД,VELINGRAD,4600
+гр.,gr.,ВЕТОВО,VETOVO,7080
+гр.,gr.,ВЕТРЕН,VETREN,4480
+гр.,gr.,ВИДИН,VIDIN,3700
+гр.,gr.,ВРАЦА,VRATSA,3000
+гр.,gr.,ВЪЛЧЕДРЪМ,VALCHEDRAM,3650
+гр.,gr.,ВЪЛЧИ ДОЛ,VALCHI DOL,9280
+гр.,gr.,ВЪРБИЦА,VARBITSA,9870
+гр.,gr.,ВЪРШЕЦ,VARSHETS,3540
+гр.,gr.,ГАБРОВО,GABROVO,5300
+гр.,gr.,ГЕНЕРАЛ ТОШЕВО,GENERAL TOSHEVO,9500
+гр.,gr.,ГЛАВИНИЦА,GLAVINITSA,7630
+гр.,gr.,ГЛОДЖЕВО,GLODZHEVO,7040
+гр.,gr.,ГОДЕЧ,GODECH,2240
+гр.,gr.,ГОРНА ОРЯХОВИЦА,GORNA ORYAHOVITSA,5100
+гр.,gr.,ГОЦЕ ДЕЛЧЕВ,GOTSE DELCHEV,2900
+гр.,gr.,ГРАМАДА,GRAMADA,3830
+гр.,gr.,ГУЛЯНЦИ,GULYANTSI,5960
+гр.,gr.,ГУРКОВО,GURKOVO,6199
+гр.,gr.,ГЪЛЪБОВО,GALABOVO,6280
+гр.,gr.,ДВЕ МОГИЛИ,DVE MOGILI,7150
+гр.,gr.,ДЕБЕЛЕЦ,DEBELETS,5030
+гр.,gr.,ДЕВИН,DEVIN,4800
+гр.,gr.,ДЕВНЯ,DEVNYA,9160
+гр.,gr.,ДЖЕБЕЛ,DZHEBEL,6850
+гр.,gr.,ДИМИТРОВГРАД,DIMITROVGRAD,6400
+гр.,gr.,ДИМОВО,DIMOVO,3750
+гр.,gr.,ДОБРИНИЩЕ,DOBRINISHTE,2777
+гр.,gr.,ДОБРИЧ,DOBRICH,9300
+гр.,gr.,ДОЛНА БАНЯ,DOLNA BANYA,2040
+гр.,gr.,ДОЛНА МИТРОПОЛИЯ,DOLNA MITROPOLIA,5855
+гр.,gr.,ДОЛНА ОРЯХОВИЦА,DOLNA ORYAHOVITSA,5130
+гр.,gr.,ДОЛНИ ДЪБНИК,DOLNI DABNIK,5870
+гр.,gr.,ДОЛНИ ЧИФЛИК,DOLNI CHIFLIK,9120
+гр.,gr.,ДОСПАТ,DOSPAT,4831
+гр.,gr.,ДРАГОМАН,DRAGOMAN,2210
+гр.,gr.,ДРЯНОВО,DRYANOVO,5370
+гр.,gr.,ДУЛОВО,DULOVO,7650
+гр.,gr.,ДУНАВЦИ,DUNAVTSI,3740
+гр.,gr.,ДУПНИЦА,DUPNITSA,2600
+гр.,gr.,ДЪЛГОПОЛ,DALGOPOL,9250
+гр.,gr.,ЕЛЕНА,ELENA,5070
+гр.,gr.,ЕЛИН ПЕЛИН,ELIN PELIN,2100
+гр.,gr.,ЕЛХОВО,ELHOVO,8700
+гр.,gr.,ЕТРОПОЛЕ,ETROPOLE,2180
+гр.,gr.,ЗАВЕТ,ZAVET,7330
+гр.,gr.,ЗЕМЕН,ZEMEN,2440
+гр.,gr.,ЗЛАТАРИЦА,ZLATARITSA,5090
+гр.,gr.,ЗЛАТИЦА,ZLATITSA,2080
+гр.,gr.,ЗЛАТОГРАД,ZLATOGRAD,4980
+гр.,gr.,ИВАЙЛОВГРАД,IVAYLOVGRAD,6570
+гр.,gr.,ИГНАТИЕВО,IGNATIEVO,9143
+гр.,gr.,ИСКЪР,ISKAR,5868
+гр.,gr.,ИСПЕРИХ,ISPERIH,7400
+гр.,gr.,ИХТИМАН,IHTIMAN,2050
+гр.,gr.,КАБЛЕШКОВО,KABLESHKOVO,8210
+гр.,gr.,КАВАРНА,KAVARNA,9650
+гр.,gr.,КАЗАНЛЪК,KAZANLAK,6100
+гр.,gr.,КАЛОФЕР,KALOFER,4370
+гр.,gr.,КАМЕНО,KAMENO,8120
+гр.,gr.,КАОЛИНОВО,KAOLINOVO,9960
+гр.,gr.,КАРЛОВО,KARLOVO,4300
+гр.,gr.,КАРНОБАТ,KARNOBAT,8400
+гр.,gr.,КАСПИЧАН,KASPICHAN,9930
+гр.,gr.,КЕРМЕН,KERMEN,8870
+гр.,gr.,КИЛИФАРЕВО,KILIFAREVO,5050
+гр.,gr.,КИТЕН,KITEN,8183
+гр.,gr.,КЛИСУРА,KLISURA,4341
+гр.,gr.,КНЕЖА,KNEZHA,5835
+гр.,gr.,КОЗЛОДУЙ,KOZLODUY,3320
+гр.,gr.,КОЙНАРЕ,KOYNARE,5986
+гр.,gr.,КОПРИВЩИЦА,KOPRIVSHTITSA,2077
+гр.,gr.,КОСТАНДОВО,KOSTANDOVO,4644
+гр.,gr.,КОСТЕНЕЦ,KOSTENETS,2030
+гр.,gr.,КОСТИНБРОД,KOSTINBROD,2230
+гр.,gr.,КОТЕЛ,KOTEL,8970
+гр.,gr.,КОЧЕРИНОВО,KOCHERINOVO,2640
+гр.,gr.,КРЕСНА,KRESNA,2840
+гр.,gr.,КРИВОДОЛ,KRIVODOL,3060
+гр.,gr.,КРИЧИМ,KRICHIM,4220
+гр.,gr.,КРУМОВГРАД,KRUMOVGRAD,6900
+гр.,gr.,КРЪН,KRAN,6140
+гр.,gr.,КУБРАТ,KUBRAT,7300
+гр.,gr.,КУКЛЕН,KUKLEN,4101
+гр.,gr.,КУЛА,KULA,3800
+гр.,gr.,КЪРДЖАЛИ,KARDZHALI,6600
+гр.,gr.,КЮСТЕНДИЛ,KYUSTENDIL,2500
+гр.,gr.,ЛЕВСКИ,LEVSKI,5900
+гр.,gr.,ЛЕТНИЦА,LETNITSA,5570
+гр.,gr.,ЛОВЕЧ,LOVECH,5500
+гр.,gr.,ЛОЗНИЦА,LOZNITSA,7290
+гр.,gr.,ЛОМ,LOM,3600
+гр.,gr.,ЛУКОВИТ,LUKOVIT,5770
+гр.,gr.,ЛЪКИ,LAKI,4241
+гр.,gr.,ЛЮБИМЕЦ,LYUBIMETS,6550
+гр.,gr.,ЛЯСКОВЕЦ,LYASKOVETS,5140
+гр.,gr.,МАДАН,MADAN,4900
+гр.,gr.,МАДЖАРОВО,MADZHAROVO,6480
+гр.,gr.,МАЛКО ТЪРНОВО,MALKO TARNOVO,8162
+гр.,gr.,МАРТЕН,MARTEN,7058
+гр.,gr.,МЕЗДРА,MEZDRA,3100
+гр.,gr.,МЕЛНИК,MELNIK,2820
+гр.,gr.,МЕРИЧЛЕРИ,MERICHLERI,6430
+гр.,gr.,МИЗИЯ,MIZIA,3330
+гр.,gr.,МОМИН ПРОХОД,MOMIN PROHOD,2035
+гр.,gr.,МОМЧИЛГРАД,MOMCHILGRAD,6800
+гр.,gr.,МОНТАНА,MONTANA,3400
+гр.,gr.,МЪГЛИЖ,MAGLIZH,6180
+гр.,gr.,НЕДЕЛИНО,NEDELINO,4990
+гр.,gr.,НЕСЕБЪР,NESEBAR,8230
+гр.,gr.,НИКОЛАЕВО,NIKOLAEVO,6190
+гр.,gr.,НИКОПОЛ,NIKOPOL,5940
+гр.,gr.,НОВА ЗАГОРА,NOVA ZAGORA,8900
+гр.,gr.,НОВИ ИСКЪР,NOVI ISKAR,1280
+гр.,gr.,НОВИ ПАЗАР,NOVI PAZAR,9900
+гр.,gr.,ОБЗОР,OBZOR,8250
+гр.,gr.,ОМУРТАГ,OMURTAG,7900
+гр.,gr.,ОПАКА,OPAKA,7840
+гр.,gr.,ОРЯХОВО,ORYAHOVO,3300
+гр.,gr.,ПАВЕЛ БАНЯ,PAVEL BANYA,6155
+гр.,gr.,ПАВЛИКЕНИ,PAVLIKENI,5200
+гр.,gr.,ПАЗАРДЖИК,PAZARDZHIK,4400
+гр.,gr.,ПАНАГЮРИЩЕ,PANAGYURISHTE,4500
+гр.,gr.,ПЕРНИК,PERNIK,2300
+гр.,gr.,ПЕРУЩИЦА,PERUSHTITSA,4225
+гр.,gr.,ПЕТРИЧ,PETRICH,2850
+гр.,gr.,ПЕЩЕРА,PESHTERA,4550
+гр.,gr.,ПИРДОП,PIRDOP,2070
+гр.,gr.,ПЛАЧКОВЦИ,PLACHKOVTSI,5360
+гр.,gr.,ПЛЕВЕН,PLEVEN,5800
+гр.,gr.,ПЛИСКА,PLISKA,9920
+гр.,gr.,ПЛОВДИВ,PLOVDIV,4000
+гр.,gr.,ПОЛСКИ ТРЪМБЕШ,POLSKI TRAMBESH,5180
+гр.,gr.,ПОМОРИЕ,POMORIE,8200
+гр.,gr.,ПОПОВО,POPOVO,7800
+гр.,gr.,ПОРДИМ,PORDIM,5898
+гр.,gr.,ПРАВЕЦ,PRAVETS,2161
+гр.,gr.,ПРИМОРСКО,PRIMORSKO,8180
+гр.,gr.,ПРОВАДИЯ,PROVADIA,9200
+гр.,gr.,ПЪРВОМАЙ,PARVOMAY,4270
+гр.,gr.,РАДНЕВО,RADNEVO,6260
+гр.,gr.,РАДОМИР,RADOMIR,2400
+гр.,gr.,РАЗГРАД,RAZGRAD,7200
+гр.,gr.,РАЗЛОГ,RAZLOG,2760
+гр.,gr.,РАКИТОВО,RAKITOVO,4640
+гр.,gr.,РАКОВСКИ,RAKOVSKI,4150
+гр.,gr.,РИЛА,RILA,2630
+гр.,gr.,РОМАН,ROMAN,3130
+гр.,gr.,РУДОЗЕМ,RUDOZEM,4960
+гр.,gr.,РУСЕ,RUSE,7000
+гр.,gr.,САДОВО,SADOVO,4122
+гр.,gr.,САМОКОВ,SAMOKOV,2000
+гр.,gr.,САНДАНСКИ,SANDANSKI,2800
+гр.,gr.,САПАРЕВА БАНЯ,SAPAREVA BANYA,2650
+гр.,gr.,СВЕТИ ВЛАС,SVETI VLAS,8256
+гр.,gr.,СВИЛЕНГРАД,SVILENGRAD,6500
+гр.,gr.,СВИЩОВ,SVISHTOV,5250
+гр.,gr.,СВОГЕ,SVOGE,2260
+гр.,gr.,СЕВЛИЕВО,SEVLIEVO,5400
+гр.,gr.,СЕНОВО,SENOVO,7038
+гр.,gr.,СЕПТЕМВРИ,SEPTEMVRI,4490
+гр.,gr.,СИЛИСТРА,SILISTRA,7500
+гр.,gr.,СИМЕОНОВГРАД,SIMEONOVGRAD,6490
+гр.,gr.,СИМИТЛИ,SIMITLI,2730
+гр.,gr.,СЛАВЯНОВО,SLAVYANOVO,5840
+гр.,gr.,СЛИВЕН,SLIVEN,8800
+гр.,gr.,СЛИВНИЦА,SLIVNITSA,2200
+гр.,gr.,СЛИВО ПОЛЕ,SLIVO POLE,7060
+гр.,gr.,СМОЛЯН,SMOLYAN,4700
+гр.,gr.,СМЯДОВО,SMYADOVO,9820
+гр.,gr.,СОЗОПОЛ,SOZOPOL,8130
+гр.,gr.,СОПОТ,SOPOT,4330
+гр.,gr.,СОФИЯ,SOFIA,1000
+гр.,gr.,СРЕДЕЦ,SREDETS,8300
+гр.,gr.,СТАМБОЛИЙСКИ,STAMBOLIYSKI,4210
+гр.,gr.,СТАРА ЗАГОРА,STARA ZAGORA,6000
+гр.,gr.,СТРАЖИЦА,STRAZHITSA,5150
+гр.,gr.,СТРАЛДЖА,STRALDZHA,8680
+гр.,gr.,СТРЕЛЧА,STRELCHA,4530
+гр.,gr.,СУВОРОВО,SUVOROVO,9170
+гр.,gr.,СУНГУРЛАРЕ,SUNGURLARE,8470
+гр.,gr.,СУХИНДОЛ,SUHINDOL,5240
+гр.,gr.,СЪЕДИНЕНИЕ,SAEDINENIE,4190
+гр.,gr.,СЪРНИЦА,SARNITSA,4633
+гр.,gr.,ТВЪРДИЦА,TVARDITSA,8890
+гр.,gr.,ТЕРВЕЛ,TERVEL,9450
+гр.,gr.,ТЕТЕВЕН,TETEVEN,5700
+гр.,gr.,ТОПОЛОВГРАД,TOPOLOVGRAD,6560
+гр.,gr.,ТРОЯН,TROYAN,5600
+гр.,gr.,ТРЪН,TRAN,2460
+гр.,gr.,ТРЪСТЕНИК,TRASTENIK,5857
+гр.,gr.,ТРЯВНА,TRYAVNA,5350
+гр.,gr.,ТУТРАКАН,TUTRAKAN,7600
+гр.,gr.,ТЪРГОВИЩЕ,TARGOVISHTE,7700
+гр.,gr.,УГЪРЧИН,UGARCHIN,5580
+гр.,gr.,ХАДЖИДИМОВО,HADZHIDIMOVO,2933
+гр.,gr.,ХАРМАНЛИ,HARMANLI,6450
+гр.,gr.,ХАСКОВО,HASKOVO,6300
+гр.,gr.,ХИСАРЯ,HISARYA,4180
+гр.,gr.,ЦАР КАЛОЯН,TSAR KALOYAN,7280
+гр.,gr.,ЦАРЕВО,TSAREVO,8260
+гр.,gr.,ЧЕПЕЛАРЕ,CHEPELARE,4850
+гр.,gr.,ЧЕРВЕН БРЯГ,CHERVEN BRYAG,5980
+гр.,gr.,ЧЕРНОМОРЕЦ,CHERNOMORETS,8142
+гр.,gr.,ЧИПРОВЦИ,CHIPROVTSI,3460
+гр.,gr.,ЧИРПАН,CHIRPAN,6200
+гр.,gr.,ШАБЛА,SHABLA,9680
+гр.,gr.,ШИВАЧЕВО,SHIVACHEVO,8895
+гр.,gr.,ШИПКА,SHIPKA,6150
+гр.,gr.,ШУМЕН,SHUMEN,9700
+гр.,gr.,ЯБЛАНИЦА,YABLANITSA,5750
+гр.,gr.,ЯКОРУДА,YAKORUDA,2790
+гр.,gr.,ЯМБОЛ,YAMBOL,8600
+в.с.,v.s.,ДЮНИ,DYUNI,8133
+в.с.,v.s.,ЕЛЕНИТЕ,ELENITE,8256
+в.с.,v.s.,МЕЖДУНАРОДЕН МЛАДЕЖКИ ЦЕНТЪР,MEZHDUNARODEN MLADEZHKI TSENTAR,8181
+в.с.,v.s.,РУСАЛКА ЕЛИТ,RUSALKA ELIT,9695
+к.,k.,БЕКЛЕМЕТО,BEKLEMETO,5673
+к.,k.,БУРГАСКИ МИНЕРАЛНИ БАНИ,BURGASKI MINERALNI BANI,8124
+к.,k.,БЯЛА ЧЕРКВА,BYALA CHERKVA,
+к.,k.,КАМЧИЯ,KAMCHIA,9130
+к.,k.,СВ. КОНСТАНТИН,SV. KONSTANTIN,4577
+к.,k.,СЛИВЕНСКИ МИНЕРАЛНИ БАНИ,SLIVENSKI MINERALNI BANI,8840
+к.,k.,ТУЗЛАТА,TUZLATA,9633
+к.,k.,ЦИГОВ ЧАРК,TSIGOV CHARK,
+к.,k.,ЧАИРА,CHAIRA,4476
+к.,k.,ЯЗОВИР БАТАК,YAZOVIR BATAK,
+к.к.,k.k.,АЛБЕНА,ALBENA,9620
+к.к.,k.k.,БОРОВЕЦ,BOROVETS,2010
+к.к.,k.k.,ЗЛАТНИ ПЯСЪЦИ,ZLATNI PYASATSI,9007
+к.к.,k.k.,ПАМПОРОВО,PAMPOROVO,4870
+к.к.,k.k.,СВ. СВ. КОНСТАНТИН И ЕЛЕНА,SV. SV. KONSTANTIN I ELENA,9006
+к.к.,k.k.,СЛЪНЧЕВ БРЯГ,SLANCHEV BRYAG,8240
+к.к.,k.k.,ЧАЙКА,CHAYKA,9007
+к.м.,k.m.,КАРАНДИЛА,KARANDILA,8839
+к.м.,k.m.,ЛЮЛЯЦИТЕ,LYULYATSITE,5307
+к.м.,k.m.,ПОПИНА ЛЪКА,POPINA LAKA,
+к.м.,k.m.,ПОПОВИ ЛИВАДИ,POPOVI LIVADI,
+к.м.,k.m.,СТУДЕНЕЦ,STUDENETS,
+к.м.,k.m.,ТРЕЩЕНИК,TRESHTENIK,
+к.м.,k.m.,ТУРИЧКА ЧЕРКВА,TURICHKA CHERKVA,
+к.м.,k.m.,УЗАНА,UZANA,
+лет.,let.,БОДРОСТ,BODROST,
+с.,s.,АБЛАНИЦА,ABLANITSA,2932
+с.,s.,АБЛАНИЦА,ABLANITSA,5574
+с.,s.,АБЛАНИЦА,ABLANITSA,4645
+с.,s.,АБРИТ,ABRIT,9407
+с.,s.,АВРАМОВО,AVRAMOVO,2795
+с.,s.,АВРАМОВО,AVRAMOVO,6797
+с.,s.,АВРЕН,AVREN,9135
+с.,s.,АВРЕН,AVREN,6930
+с.,s.,АГАТОВО,AGATOVO,5431
+с.,s.,АЗМАНИТЕ,AZMANITE,5350
+с.,s.,АЙДЕМИР,AYDEMIR,7538
+с.,s.,АЙРОВО,AYROVO,6639
+с.,s.,АКАНДЖИЕВО,AKANDZHIEVO,4483
+с.,s.,АКАЦИЕВО,AKATSIEVO,3727
+с.,s.,АЛАМОВЦИ,ALAMOVTSI,4984
+с.,s.,АЛБАНЦИ,ALBANTSI,6850
+с.,s.,АЛВАНОВО,ALVANOVO,7752
+с.,s.,АЛДОМИРОВЦИ,ALDOMIROVTSI,2222
+с.,s.,АЛЕКО КОНСТАНТИНОВО,ALEKO KONSTANTINOVO,4411
+с.,s.,АЛЕКОВО,ALEKOVO,5288
+с.,s.,АЛЕКОВО,ALEKOVO,7555
+с.,s.,АЛЕКСАНДРИЯ,ALEKSANDRIA,9404
+с.,s.,АЛЕКСАНДРОВО,ALEKSANDROVO,8211
+с.,s.,АЛЕКСАНДРОВО,ALEKSANDROVO,5289
+с.,s.,АЛЕКСАНДРОВО,ALEKSANDROVO,5560
+с.,s.,АЛЕКСАНДРОВО,ALEKSANDROVO,6154
+с.,s.,АЛЕКСАНДРОВО,ALEKSANDROVO,7761
+с.,s.,АЛЕКСАНДРОВО,ALEKSANDROVO,6351
+с.,s.,АЛЕКСАНДРОВО,ALEKSANDROVO,9829
+с.,s.,АЛЕКСАНДРОВО,ALEKSANDROVO,8653
+с.,s.,АЛЕКСАНДЪР СТАМБОЛИЙСКИ,ALEKSANDAR STAMBOLIYSKI,9565
+с.,s.,АЛЕНДАРОВА,ALENDAROVA,4621
+с.,s.,АЛИГОВСКА,ALIGOVSKA,4787
+с.,s.,АЛИНО,ALINO,2019
+с.,s.,АЛТИМИР,ALTIMIR,3251
+с.,s.,АЛЦЕК,ALTSEK,9434
+с.,s.,АНГЕЛ ВОЙВОДА,ANGEL VOYVODA,6373
+с.,s.,АНГЕЛАРИЙ,ANGELARIY,9483
+с.,s.,АНГЕЛОВ,ANGELOV,5342
+с.,s.,АНЕВО,ANEVO,4331
+с.,s.,АНТИМОВО,ANTIMOVO,7628
+с.,s.,АНТИМОВО,ANTIMOVO,3776
+с.,s.,АНТОН,ANTON,2089
+с.,s.,АПЛАЦИ,APLATSI,5094
+с.,s.,АПРИЛОВО,APRILOVO,2128
+с.,s.,АПРИЛОВО,APRILOVO,6281
+с.,s.,АПРИЛОВО,APRILOVO,7864
+с.,s.,АПРИЛЦИ,APRILTSI,4445
+с.,s.,АПРИЛЦИ,APRILTSI,6888
+с.,s.,АРБАНАСИ,ARBANASI,5029
+с.,s.,АРДА,ARDA,4790
+с.,s.,АРЗАН,ARZAN,2386
+с.,s.,АРКОВНА,ARKOVNA,9246
+с.,s.,АРМЕНИТЕ,ARMENITE,5347
+с.,s.,АРМЯНКОВЦИ,ARMYANKOVTSI,5363
+с.,s.,АРНАУТИТО,ARNAUTITO,6069
+с.,s.,АРПАДЖИК,ARPADZHIK,4922
+с.,s.,АРЧАР,ARCHAR,3770
+с.,s.,АСЕН,ASEN,6149
+с.,s.,АСЕНОВЕЦ,ASENOVETS,8933
+с.,s.,АСЕНОВО,ASENOVO,5159
+с.,s.,АСЕНОВО,ASENOVO,5957
+с.,s.,АСЕНОВО,ASENOVO,8667
+с.,s.,АСЕНОВЦИ,ASENOVTSI,5913
+с.,s.,АСПАРУХОВО,ASPARUHOVO,8485
+с.,s.,АСПАРУХОВО,ASPARUHOVO,9260
+с.,s.,АСПАРУХОВО,ASPARUHOVO,3661
+с.,s.,АСПАРУХОВО,ASPARUHOVO,5914
+с.,s.,АТИЯ,ATIA,8140
+с.,s.,АТОЛОВО,ATOLOVO,8683
+с.,s.,АУСТА,AUSTA,6821
+с.,s.,АХМАТОВО,AHMATOVO,4128
+с.,s.,АХРЯНСКО,AHRYANSKO,6761
+с.,s.,БАБА СТАНА,BABA STANA,5632
+с.,s.,БАБА ТОНКА,BABA TONKA,7861
+с.,s.,БАБЕК,BABEK,4156
+с.,s.,БАБИНО,BABINO,2683
+с.,s.,БАБИНСКА РЕКА,BABINSKA REKA,2668
+с.,s.,БАБИНЦИ,BABINTSI,5726
+с.,s.,БАБИЦА,BABITSA,2365
+с.,s.,БАБЛОН,BABLON,4774
+с.,s.,БАБОВО,BABOVO,7068
+с.,s.,БАБУК,BABUK,7573
+с.,s.,БАБЯК,BABYAK,2784
+с.,s.,БАГАЛЕВЦИ,BAGALEVTSI,5094
+с.,s.,БАГРА,BAGRA,6749
+с.,s.,БАГРЕНЦИ,BAGRENTSI,2530
+с.,s.,БАГРИЛЦИ,BAGRILTSI,6944
+с.,s.,БАГРЯНКА,BAGRYANKA,6819
+с.,s.,БАДЕВЦИ,BADEVTSI,5093
+с.,s.,БАДИНО,BADINO,2676
+с.,s.,БАЕВЦИ,BAEVTSI,5087
+с.,s.,БАЕВЦИ,BAEVTSI,5304
+с.,s.,БАЖДАРИ,BAZHDARI,5095
+с.,s.,БАЙКАЛ,BAYKAL,5861
+с.,s.,БАЙКАЛСКО,BAYKALSKO,2427
+с.,s.,БАЙКОВО,BAYKOVO,9767
+с.,s.,БАЙЛОВО,BAYLOVO,2133
+с.,s.,БАКАЛИТЕ,BAKALITE,6698
+с.,s.,БАКЬОВО,BAKYOVO,2295
+с.,s.,БАЛАБАНОВО,BALABANOVO,6816
+с.,s.,БАЛАБАНСКО,BALABANSKO,5615
+с.,s.,БАЛАБАНЧЕВО,BALABANCHEVO,8471
+с.,s.,БАЛАЛЕЯ,BALALEYA,5370
+с.,s.,БАЛАНИТЕ,BALANITE,5301
+с.,s.,БАЛАНОВО,BALANOVO,2680
+с.,s.,БАЛВАН,BALVAN,5064
+с.,s.,БАЛВАНЦИТЕ,BALVANTSITE,5388
+с.,s.,БАЛДЕВО,BALDEVO,2948
+с.,s.,БАЛЕЙ,BALEY,3797
+с.,s.,БАЛИК,BALIK,9485
+с.,s.,БАЛИНОВЦИ,BALINOVTSI,5342
+с.,s.,БАЛКАН,BALKAN,6363
+с.,s.,БАЛКАН МАХАЛА,BALKAN MAHALA,4245
+с.,s.,БАЛКАНЕЦ,BALKANETS,5634
+с.,s.,БАЛКАНСКИ,BALKANSKI,7265
+с.,s.,БАЛКАНЦИ,BALKANTSI,5162
+с.,s.,БАЛКАНЦИ,BALKANTSI,9549
+с.,s.,БАЛУЦИ,BALUTSI,5081
+с.,s.,БАЛША,BALSHA,1217
+с.,s.,БАЛЬОВЦИ,BALYOVTSI,2060
+с.,s.,БАЛЮВИЦА,BALYUVITSA,3529
+с.,s.,БАНАРИ,BANARI,5370
+с.,s.,БАНГЕЙЦИ,BANGEYTSI,5351
+с.,s.,БАНИСКА,BANISKA,7167
+с.,s.,БАНИТЕ,BANITE,4940
+с.,s.,БАНИЦА,BANITSA,3077
+с.,s.,БАНИЧАН,BANICHAN,2905
+с.,s.,БАНИЩЕ,BANISHTE,2388
+с.,s.,БАНКОВЕЦ,BANKOVETS,7997
+с.,s.,БАНКОВЦИ,BANKOVTSI,5300
+с.,s.,БАНКЯ,BANKYA,2466
+с.,s.,БАНОВО,BANOVO,9144
+с.,s.,БАНЧОВЦИ,BANCHOVTSI,2060
+с.,s.,БАНЯ,BANYA,2778
+с.,s.,БАНЯ,BANYA,8239
+с.,s.,БАНЯ,BANYA,4523
+с.,s.,БАНЯ,BANYA,8914
+с.,s.,БАРАКОВО,BARAKOVO,2634
+с.,s.,БАРАЦИ,BARATSI,6910
+с.,s.,БАРУТИН,BARUTIN,4830
+с.,s.,БАСАРБОВО,BASARBOVO,7071
+с.,s.,БАСКАЛЦИ,BASKALTSI,2883
+с.,s.,БАТА,BATA,8218
+с.,s.,БАТАК,BATAK,5228
+с.,s.,БАТИН,BATIN,7172
+с.,s.,БАТИШНИЦА,BATISHNITSA,7169
+с.,s.,БАТОВО,BATOVO,9364
+с.,s.,БАТОШЕВО,BATOSHEVO,5470
+с.,s.,БАТУЛИЯ,BATULIA,2295
+с.,s.,БАТУЛЦИ,BATULTSI,5764
+с.,s.,БАУРЕНЕ,BAURENE,3068
+с.,s.,БАХАЛИН,BAHALIN,2219
+с.,s.,БАХОВИЦА,BAHOVITSA,5567
+с.,s.,БАХРЕЦИ,BAHRETSI,5367
+с.,s.,БАЦОВА МАХАЛА,BATSOVA MAHALA,5948
+с.,s.,БАЧЕВО,BACHEVO,2769
+с.,s.,БАЧКОВО,BACHKOVO,4251
+с.,s.,БАШЕВО,BASHEVO,6777
+с.,s.,БАЩИНО,BASHTINO,6669
+с.,s.,БАЩИНО,BASHTINO,7619
+с.,s.,БАЩИНО,BASHTINO,6068
+с.,s.,БАЯЧЕВО,BAYACHEVO,7745
+с.,s.,БДИНЦИ,BDINTSI,9381
+с.,s.,БЕБРОВО,BEBROVO,5084
+с.,s.,БЕГЛЕЖ,BEGLEZH,5872
+с.,s.,БЕГОВО,BEGOVO,4166
+с.,s.,БЕГУНОВЦИ,BEGUNOVTSI,2395
+с.,s.,БЕГУНЦИ,BEGUNTSI,4359
+с.,s.,БЕДЕН,BEDEN,4817
+с.,s.,БЕДЖЕНЕ,BEDZHENE,9924
+с.,s.,БЕДРОВО,BEDROVO,6716
+с.,s.,БЕЖАНОВО,BEZHANOVO,5792
+с.,s.,БЕЖАНОВО,BEZHANOVO,9567
+с.,s.,БЕЗВОДИЦА,BEZVODITSA,9637
+с.,s.,БЕЗВОДНО,BEZVODNO,6718
+с.,s.,БЕЗДЕН,BEZDEN,2236
+с.,s.,БЕЗДЕНИЦА,BEZDENITSA,3454
+с.,s.,БЕЗМЕР,BEZMER,9480
+с.,s.,БЕЗМЕР,BEZMER,8637
+с.,s.,БЕЙКОВЦИ,BEYKOVTSI,5094
+с.,s.,БЕКРИИТЕ,BEKRIITE,5300
+с.,s.,БЕЛ КАМЕН,BEL KAMEN,2793
+с.,s.,БЕЛА,BELA,3965
+с.,s.,БЕЛА РАДА,BELA RADA,3731
+с.,s.,БЕЛАНИЦА,BELANITSA,2453
+с.,s.,БЕЛАСИЦА,BELASITSA,2881
+с.,s.,БЕЛАЩИЦА,BELASHTITSA,4124
+с.,s.,БЕЛГУН,BELGUN,9690
+с.,s.,БЕЛЕВ ДОЛ,BELEV DOL,4738
+с.,s.,БЕЛЕВЕХЧЕВО,BELEVEHCHEVO,2800
+с.,s.,БЕЛЕВРЕН,BELEVREN,8345
+с.,s.,БЕЛЕНЦИ,BELENTSI,5783
+с.,s.,БЕЛИ БРЕГ,BELI BREG,3441
+с.,s.,БЕЛИ БРОД,BELI BROD,3447
+с.,s.,БЕЛИ БРЯГ,BELI BRYAG,6262
+с.,s.,БЕЛИ ВИР,BELI VIR,6702
+с.,s.,БЕЛИ ДОЛ,BELI DOL,6590
+с.,s.,БЕЛИ ИЗВОР,BELI IZVOR,3040
+с.,s.,БЕЛИ ИСКЪР,BELI ISKAR,2011
+с.,s.,БЕЛИ ЛОМ,BELI LOM,7293
+с.,s.,БЕЛИ ОСЪМ,BELI OSAM,5662
+с.,s.,БЕЛИ ПЛАСТ,BELI PLAST,6689
+с.,s.,БЕЛИЛА,BELILA,8316
+с.,s.,БЕЛИМЕЛ,BELIMEL,3462
+с.,s.,БЕЛИНЦИ,BELINTSI,7432
+с.,s.,БЕЛИЦА,BELITSA,5363
+с.,s.,БЕЛИЦА,BELITSA,7648
+с.,s.,БЕЛИЦА,BELITSA,4242
+с.,s.,БЕЛИЦА,BELITSA,6557
+с.,s.,БЕЛИЦА,BELITSA,2062
+с.,s.,БЕЛИШ,BELISH,5628
+с.,s.,БЕЛО ПОЛЕ,BELO POLE,2709
+с.,s.,БЕЛО ПОЛЕ,BELO POLE,3961
+с.,s.,БЕЛОВЕЦ,BELOVETS,7321
+с.,s.,БЕЛОВИЦА,BELOVITSA,4182
+с.,s.,БЕЛОГРАДЕЦ,BELOGRADETS,9230
+с.,s.,БЕЛОДОЛ,BELODOL,8219
+с.,s.,БЕЛОЗЕМ,BELOZEM,4130
+с.,s.,БЕЛОКОПИТОВО,BELOKOPITOVO,9801
+с.,s.,БЕЛОМОРЦИ,BELOMORTSI,7917
+с.,s.,БЕЛОМЪЖИТЕ,BELOMAZHITE,5340
+с.,s.,БЕЛОПОЛЦИ,BELOPOLTSI,6588
+с.,s.,БЕЛОПОЛЯНЕ,BELOPOLYANE,6584
+с.,s.,БЕЛОПОПЦИ,BELOPOPTSI,2132
+с.,s.,БЕЛОТИНЦИ,BELOTINTSI,3499
+с.,s.,БЕЛЦОВ,BELTSOV,7138
+с.,s.,БЕЛЧЕВЦИ,BELCHEVTSI,5035
+с.,s.,БЕЛЧИН,BELCHIN,2025
+с.,s.,БЕЛЧИНСКИ БАНИ,BELCHINSKI BANI,2024
+с.,s.,БЕЛЬОВО,BELYOVO,2824
+с.,s.,БЕЛЯКОВЕЦ,BELYAKOVETS,5031
+с.,s.,БЕЛЯНОВО,BELYANOVO,7134
+с.,s.,БЕНКОВСКИ,BENKOVSKI,9133
+с.,s.,БЕНКОВСКИ,BENKOVSKI,6865
+с.,s.,БЕНКОВСКИ,BENKOVSKI,4201
+с.,s.,БЕНКОВСКИ,BENKOVSKI,2076
+с.,s.,БЕНКОВСКИ,BENKOVSKI,6055
+с.,s.,БЕНКОВСКИ,BENKOVSKI,9380
+с.,s.,БЕРАЙНЦИ,BERAYNTSI,2488
+с.,s.,БЕРЕНДЕ,BERENDE,2435
+с.,s.,БЕРЕНДЕ,BERENDE,2212
+с.,s.,БЕРЕНДЕ ИЗВОР,BERENDE IZVOR,2212
+с.,s.,БЕРИЕВО,BERIEVO,5438
+с.,s.,БЕРКОВСКИ,BERKOVSKI,7857
+с.,s.,БЕРКОВЦИ,BERKOVTSI,5093
+с.,s.,БЕРОНОВО,BERONOVO,8448
+с.,s.,БЕРСИН,BERSIN,2587
+с.,s.,БЕСЛЕН,BESLEN,2934
+с.,s.,БЕСНУРКА,BESNURKA,6698
+с.,s.,БИВОЛАРЕ,BIVOLARE,5849
+с.,s.,БИВОЛЯНЕ,BIVOLYANE,6837
+с.,s.,БИЖОВЦИ,BIZHOVTSI,5035
+с.,s.,БИЖОВЦИ,BIZHOVTSI,5350
+с.,s.,БИКОВО,BIKOVO,8885
+с.,s.,БИЛИНЦИ,BILINTSI,2383
+с.,s.,БИЛКА,BILKA,8551
+с.,s.,БИЛКИНИ,BILKINI,5370
+с.,s.,БИЛО,BILO,9691
+с.,s.,БИЛЯНСКА,BILYANSKA,4789
+с.,s.,БИНКОС,BINKOS,8855
+с.,s.,БИРКОВА,BIRKOVA,4650
+с.,s.,БИСЕР,BISER,6470
+с.,s.,БИСЕРЦИ,BISERTSI,7334
+с.,s.,БИСТРА,BISTRA,7557
+с.,s.,БИСТРА,BISTRA,7777
+с.,s.,БИСТРЕНЦИ,BISTRENTSI,7121
+с.,s.,БИСТРЕЦ,BISTRETS,8334
+с.,s.,БИСТРЕЦ,BISTRETS,9412
+с.,s.,БИСТРИЛИЦА,BISTRILITSA,3527
+с.,s.,БИСТРИЦА,BISTRITSA,2724
+с.,s.,БИСТРИЦА,BISTRITSA,2644
+с.,s.,БИСТРИЦА,BISTRITSA,1444
+с.,s.,БИСТРОГЛЕД,BISTROGLED,6769
+с.,s.,БЛАГОВО,BLAGOVO,3488
+с.,s.,БЛАГОВО,BLAGOVO,9812
+с.,s.,БЛАГОЕВО,BLAGOEVO,5178
+с.,s.,БЛАГОЕВО,BLAGOEVO,7275
+с.,s.,БЛАГУН,BLAGUN,6955
+с.,s.,БЛАЖИЕВО,BLAZHIEVO,2678
+с.,s.,БЛАТЕЦ,BLATETS,2548
+с.,s.,БЛАТЕЦ,BLATETS,8878
+с.,s.,БЛАТЕШНИЦА,BLATESHNITSA,2441
+с.,s.,БЛАТИНО,BLATINO,2617
+с.,s.,БЛАТНИЦА,BLATNITSA,4537
+с.,s.,БЛАТО,BLATO,2657
+с.,s.,БЛАТСКА,BLATSKA,2941
+с.,s.,БЛЕНИКА,BLENIKA,6742
+с.,s.,БЛИЗНАК,BLIZNAK,8174
+с.,s.,БЛИЗНАЦИ,BLIZNATSI,9132
+с.,s.,БЛИЗНАЦИ,BLIZNATSI,9787
+с.,s.,БЛИЗНЕЦ,BLIZNETS,8896
+с.,s.,БЛЪСКОВО,BLASKOVO,9240
+с.,s.,БЛЪСКОВЦИ,BLASKOVTSI,5078
+с.,s.,БОАЗЪТ,BOAZAT,5453
+с.,s.,БОБЕВЦИ,BOBEVTSI,5300
+с.,s.,БОБЕШИНО,BOBESHINO,2567
+с.,s.,БОБОВЕЦ,BOBOVETS,9616
+с.,s.,БОБОРАЦИ,BOBORATSI,2454
+с.,s.,БОВ,BOV,2270
+с.,s.,БОГАТИНО,BOGATINO,6781
+с.,s.,БОГАТОВО,BOGATOVO,5421
+с.,s.,БОГДАН,BOGDAN,4343
+с.,s.,БОГДАН,BOGDAN,9348
+с.,s.,БОГДАНИЦА,BOGDANITSA,4115
+с.,s.,БОГДАНЛИЯ,BOGDANLIA,2116
+с.,s.,БОГДАНОВ ДОЛ,BOGDANOV DOL,2341
+с.,s.,БОГДАНОВО,BOGDANOVO,8337
+с.,s.,БОГДАНОВО,BOGDANOVO,8948
+с.,s.,БОГДАНОВЦИ,BOGDANOVTSI,2060
+с.,s.,БОГДАНСКО,BOGDANSKO,5084
+с.,s.,БОГДАНЦИ,BOGDANTSI,7449
+с.,s.,БОГДАНЦИ,BOGDANTSI,7611
+с.,s.,БОГДАНЧОВЦИ,BOGDANCHOVTSI,5301
+с.,s.,БОГОЙНА,BOGOYNA,2467
+с.,s.,БОГОЛИН,BOGOLIN,2931
+с.,s.,БОГОМИЛ,BOGOMIL,6460
+с.,s.,БОГОМИЛОВО,BOGOMILOVO,6065
+с.,s.,БОГОМИЛЦИ,BOGOMILTSI,7458
+с.,s.,БОГОМОЛСКО,BOGOMOLSKO,7997
+с.,s.,БОГОРОВО,BOGOROVO,7542
+с.,s.,БОГОРОВО,BOGOROVO,8687
+с.,s.,БОГОРОДИЦА,BOGORODITSA,2875
+с.,s.,БОГОСЛОВ,BOGOSLOV,2509
+с.,s.,БОГУТЕВО,BOGUTEVO,4855
+с.,s.,БОГЬОВЦИ,BOGYOVTSI,2235
+с.,s.,БОДЕНЕЦ,BODENETS,3128
+с.,s.,БОДРОВО,BODROVO,6446
+с.,s.,БОЕВО,BOEVO,4964
+с.,s.,БОЕРИЦА,BOERITSA,2066
+с.,s.,БОЖАК,BOZHAK,6744
+с.,s.,БОЖАН,BOZHAN,9475
+с.,s.,БОЖАНОВО,BOZHANOVO,9677
+с.,s.,БОЖДОВО,BOZHDOVO,2811
+с.,s.,БОЖЕВЦИ,BOZHEVTSI,8844
+с.,s.,БОЖЕНИЦА,BOZHENITSA,2157
+с.,s.,БОЖЕНЦИТЕ,BOZHENTSITE,5349
+с.,s.,БОЖИЧЕН,BOZHICHEN,7089
+с.,s.,БОЖУРЕЦ,BOZHURETS,9656
+с.,s.,БОЖУРИЦА,BOZHURITSA,5848
+с.,s.,БОЖУРКА,BOZHURKA,7765
+с.,s.,БОЖУРЛУК,BOZHURLUK,5926
+с.,s.,БОЖУРОВО,BOZHUROVO,7335
+с.,s.,БОЖУРОВО,BOZHUROVO,9368
+с.,s.,БОЖУРОВО,BOZHUROVO,9874
+с.,s.,БОЖУРЦИ,BOZHURTSI,6704
+с.,s.,БОЗАДЖИИ,BOZADZHII,8872
+с.,s.,БОЗВЕЛИЙСКО,BOZVELIYSKO,9273
+с.,s.,БОЗДУГАНОВО,BOZDUGANOVO,6269
+с.,s.,БОЗЬОВА,BOZYOVA,4654
+с.,s.,БОИЛ,BOIL,7683
+с.,s.,БОЙКОВЕЦ,BOYKOVETS,2181
+с.,s.,БОЙКОВО,BOYKOVO,4103
+с.,s.,БОЙКОВЦИ,BOYKOVTSI,5080
+с.,s.,БОЙНИК,BOYNIK,6958
+с.,s.,БОЙНИЦА,BOYNITSA,3840
+с.,s.,БОЙНО,BOYNO,6730
+с.,s.,БОЙНОВЦИ,BOYNOVTSI,5307
+с.,s.,БОЙЧЕВИ КОЛИБИ,BOYCHEVI KOLIBI,5050
+с.,s.,БОЙЧЕТА,BOYCHETA,5309
+с.,s.,БОЙЧОВЦИ,BOYCHOVTSI,5038
+с.,s.,БОКИЛОВЦИ,BOKILOVTSI,3517
+с.,s.,БОЛТАТА,BOLTATA,5340
+с.,s.,БОЛЯРИНО,BOLYARINO,4132
+с.,s.,БОЛЯРСКИ ИЗВОР,BOLYARSKI IZVOR,6474
+с.,s.,БОЛЯРСКО,BOLYARSKO,8631
+с.,s.,БОЛЯРЦИ,BOLYARTSI,9124
+с.,s.,БОЛЯРЦИ,BOLYARTSI,6681
+с.,s.,БОЛЯРЦИ,BOLYARTSI,4114
+с.,s.,БОНЕВО,BONEVO,9472
+с.,s.,БОР,BOR,4233
+с.,s.,БОРЕЦ,BORETS,4144
+с.,s.,БОРИЕ,BORIE,4961
+с.,s.,БОРИКА,BORIKA,4926
+с.,s.,БОРИКА,BORIKA,2064
+с.,s.,БОРИКИ,BORIKI,5335
+с.,s.,БОРИКОВО,BORIKOVO,4762
+с.,s.,БОРИЛОВЕЦ,BORILOVETS,3838
+с.,s.,БОРИЛОВО,BORILOVO,6046
+с.,s.,БОРИМА,BORIMA,5672
+с.,s.,БОРИМЕЧКОВО,BORIMECHKOVO,4464
+с.,s.,БОРИНО,BORINO,4824
+с.,s.,БОРИНОВО,BORINOVO,4905
+с.,s.,БОРИНЦИ,BORINTSI,8999
+с.,s.,БОРИСЛАВ,BORISLAV,5889
+с.,s.,БОРИСЛАВЦИ,BORISLAVTSI,6478
+с.,s.,БОРИСОВО,BORISOVO,7064
+с.,s.,БОРИСОВО,BORISOVO,8731
+с.,s.,БОРНАРЕВО,BORNAREVO,2407
+с.,s.,БОРОВ ДОЛ,BOROV DOL,8898
+с.,s.,БОРОВАН,BOROVAN,3240
+с.,s.,БОРОВЕЦ,BOROVETS,2626
+с.,s.,БОРОВИНА,BOROVINA,4923
+с.,s.,БОРОВИЦА,BOROVITSA,3955
+с.,s.,БОРОВИЦА,BOROVITSA,6790
+с.,s.,БОРОВИЧЕНЕ,BOROVICHENE,2884
+с.,s.,БОРОВО,BOROVO,2904
+с.,s.,БОРОВО,BOROVO,4243
+с.,s.,БОРОВО,BOROVO,6070
+с.,s.,БОРОВСКО,BOROVSKO,6698
+с.,s.,БОРОВЦИ,BOROVTSI,3528
+с.,s.,БОРСКОТО,BORSKOTO,5333
+с.,s.,БОРУЩИЦА,BORUSHTITSA,6187
+с.,s.,БОРЦИ,BORTSI,9752
+с.,s.,БОРЯНА,BORYANA,9255
+с.,s.,БОСЕВЦИ,BOSEVTSI,5084
+с.,s.,БОСИЛИЦА,BOSILITSA,6697
+с.,s.,БОСИЛКОВО,BOSILKOVO,8446
+с.,s.,БОСИЛКОВО,BOSILKOVO,4945
+с.,s.,БОСИЛКОВЦИ,BOSILKOVTSI,7128
+с.,s.,БОСНА,BOSNA,7533
+с.,s.,БОСНЕК,BOSNEK,2345
+с.,s.,БОСТАНИТЕ,BOSTANITE,3952
+с.,s.,БОСТАНЦИ,BOSTANTSI,6716
+с.,s.,БОСТИНА,BOSTINA,4745
+с.,s.,БОТЕВО,BOTEVO,9159
+с.,s.,БОТЕВО,BOTEVO,3746
+с.,s.,БОТЕВО,BOTEVO,3353
+с.,s.,БОТЕВО,BOTEVO,3634
+с.,s.,БОТЕВО,BOTEVO,8638
+с.,s.,БОТРОВ,BOTROV,7125
+с.,s.,БОТУНЯ,BOTUNYA,3046
+с.,s.,БОТУРЧЕ,BOTURCHE,6589
+с.,s.,БОХОВА,BOHOVA,2483
+с.,s.,БОХОТ,BOHOT,5891
+с.,s.,БОЧКОВЦИ,BOCHKOVTSI,5035
+с.,s.,БОШУЛЯ,BOSHULYA,4481
+с.,s.,БОЯДЖИК,BOYADZHIK,8640
+с.,s.,БОЯН,BOYAN,9771
+с.,s.,БОЯН БОТЕВО,BOYAN BOTEVO,6374
+с.,s.,БОЯНА,BOYANA,9147
+с.,s.,БОЯНОВО,BOYANOVO,3832
+с.,s.,БОЯНОВО,BOYANOVO,8730
+с.,s.,БОЯНОВЦИ,BOYANOVTSI,5041
+с.,s.,БОЯНЦИ,BOYANTSI,4246
+с.,s.,БРАДВАРИ,BRADVARI,7568
+с.,s.,БРАКНИЦА,BRAKNITSA,7855
+с.,s.,БРАКЬОВЦИ,BRAKYOVTSI,2251
+с.,s.,БРАНИПОЛЕ,BRANIPOLE,4109
+с.,s.,БРАНИЦА,BRANITSA,6463
+с.,s.,БРАНИЧЕВО,BRANICHEVO,9967
+с.,s.,БРАНИЩЕ,BRANISHTE,9361
+с.,s.,БРАНКОВЦИ,BRANKOVTSI,5041
+с.,s.,БРАНКОВЦИ,BRANKOVTSI,3824
+с.,s.,БРАТАН,BRATAN,8983
+с.,s.,БРАТАНИЦА,BRATANITSA,4412
+с.,s.,БРАТОВО,BRATOVO,8111
+с.,s.,БРАТОВО,BRATOVO,7764
+с.,s.,БРАТУШКОВО,BRATUSHKOVO,2222
+с.,s.,БРАТЯ ДАСКАЛОВИ,BRATYA DASKALOVI,6250
+с.,s.,БРАТЯ КУНЧЕВИ,BRATYA KUNCHEVI,6057
+с.,s.,БРЕГАРЕ,BREGARE,5862
+с.,s.,БРЕГОВО,BREGOVO,6878
+с.,s.,БРЕЖАНА,BREZHANA,6850
+с.,s.,БРЕЖАНИ,BREZHANI,2750
+с.,s.,БРЕЖНИЦИТЕ,BREZHNITSITE,5360
+с.,s.,БРЕЗА,BREZA,4959
+с.,s.,БРЕЗЕ,BREZE,4849
+с.,s.,БРЕЗЕ,BREZE,2278
+с.,s.,БРЕЗЕН,BREZEN,6792
+с.,s.,БРЕЗНИЦА,BREZNITSA,2972
+с.,s.,БРЕЗНИШКИ ИЗВОР,BREZNISHKI IZVOR,2385
+с.,s.,БРЕЗОВДОЛ,BREZOVDOL,2292
+с.,s.,БРЕЗОВО,BREZOVO,5083
+с.,s.,БРЕЗОВО,BREZOVO,5721
+с.,s.,БРЕНИЦА,BRENITSA,5834
+с.,s.,БРЕНИЦА,BRENITSA,7649
+с.,s.,БРЕСТ,BREST,2558
+с.,s.,БРЕСТ,BREST,5971
+с.,s.,БРЕСТАК,BRESTAK,9290
+с.,s.,БРЕСТАКА,BRESTAKA,2072
+с.,s.,БРЕСТЕ,BRESTE,5992
+с.,s.,БРЕСТНИК,BRESTNIK,4107
+с.,s.,БРЕСТНИЦА,BRESTNITSA,5761
+с.,s.,БРЕСТНИЦА,BRESTNITSA,9484
+с.,s.,БРЕСТОВА,BRESTOVA,6194
+с.,s.,БРЕСТОВЕНЕ,BRESTOVENE,7331
+с.,s.,БРЕСТОВЕЦ,BRESTOVETS,5884
+с.,s.,БРЕСТОВИЦА,BRESTOVITSA,4224
+с.,s.,БРЕСТОВИЦА,BRESTOVITSA,7177
+с.,s.,БРЕСТОВО,BRESTOVO,2735
+с.,s.,БРЕСТОВО,BRESTOVO,5551
+с.,s.,БРОД,BROD,6442
+с.,s.,БРОДИЛОВО,BRODILOVO,8282
+с.,s.,БРОШ,BROSH,6737
+с.,s.,БРУСЕВЦИ,BRUSEVTSI,6488
+с.,s.,БРУСЕН,BRUSEN,3126
+с.,s.,БРУСЕН,BRUSEN,2185
+с.,s.,БРУСИНО,BRUSINO,6595
+с.,s.,БРУСНИК,BRUSNIK,2372
+с.,s.,БРЪНЕЦИТЕ,BRANETSITE,5342
+с.,s.,БРЪЧКОВЦИ,BRACHKOVTSI,5081
+с.,s.,БРЪШЛЕН,BRASHLEN,7069
+с.,s.,БРЪШЛЯН,BRASHLYAN,8163
+с.,s.,БРЪШЛЯНИЦА,BRASHLYANITSA,5844
+с.,s.,БРЪЩЕН,BRASHTEN,4821
+с.,s.,БРЯГОВЕЦ,BRYAGOVETS,6929
+с.,s.,БРЯГОВИЦА,BRYAGOVITSA,5152
+с.,s.,БРЯГОВО,BRYAGOVO,4294
+с.,s.,БРЯГОВО,BRYAGOVO,6355
+с.,s.,БРЯСТ,BRYAST,6434
+с.,s.,БРЯСТОВЕЦ,BRYASTOVETS,8113
+с.,s.,БРЯСТОВО,BRYASTOVO,8935
+с.,s.,БРЯСТОВО,BRYASTOVO,9647
+с.,s.,БРЯСТОВО,BRYASTOVO,6345
+с.,s.,БУБИНО,BUBINO,6582
+с.,s.,БУЗОВГРАД,BUZOVGRAD,6159
+с.,s.,БУЗЯКОВЦИ,BUZYAKOVTSI,2060
+с.,s.,БУЙНОВИЦА,BUYNOVITSA,9756
+с.,s.,БУЙНОВО,BUYNOVO,4812
+с.,s.,БУЙНОВО,BUYNOVO,7753
+с.,s.,БУЙНОВЦИ,BUYNOVTSI,5097
+с.,s.,БУК,BUK,6966
+с.,s.,БУКАК,BUKAK,7996
+с.,s.,БУКАТА,BUKATA,4763
+с.,s.,БУКАЦИТЕ,BUKATSITE,4782
+с.,s.,БУКОВА ПОЛЯНА,BUKOVA POLYANA,4935
+с.,s.,БУКОВЕЦ,BUKOVETS,5063
+с.,s.,БУКОВЕЦ,BUKOVETS,3762
+с.,s.,БУКОВЕЦ,BUKOVETS,3242
+с.,s.,БУКОВЕЦ,BUKOVETS,3678
+с.,s.,БУКОВЕЦ,BUKOVETS,2293
+с.,s.,БУКОВЛЪК,BUKOVLAK,5839
+с.,s.,БУКОВО,BUKOVO,2915
+с.,s.,БУКОВО,BUKOVO,4930
+с.,s.,БУКОВО,BUKOVO,4295
+с.,s.,БУКОРОВЦИ,BUKOROVTSI,2253
+с.,s.,БУЛАИР,BULAIR,9115
+с.,s.,БУНОВО,BUNOVO,2539
+с.,s.,БУНОВО,BUNOVO,2074
+с.,s.,БУНЦЕВО,BUNTSEVO,2791
+с.,s.,БУРАНОВО,BURANOVO,2628
+с.,s.,БУРЕВО,BUREVO,4998
+с.,s.,БУРЯ,BURYA,5424
+с.,s.,БУСИНЦИ,BUSINTSI,2486
+с.,s.,БУСМАНЦИ,BUSMANTSI,1520
+с.,s.,БУТАН,BUTAN,3326
+с.,s.,БУТОВО,BUTOVO,5232
+с.,s.,БУТРЕВА,BUTREVA,4652
+с.,s.,БУТРОИНЦИ,BUTROINTSI,2473
+с.,s.,БУХОВЦИ,BUHOVTSI,7757
+с.,s.,БУЧИН ПРОХОД,BUCHIN PROHOD,2236
+с.,s.,БУЧИНО,BUCHINO,2742
+с.,s.,БУЧУКОВЦИ,BUCHUKOVTSI,5380
+с.,s.,БЪДЕЩЕ,BADESHTE,6058
+с.,s.,БЪЗОВЕЦ,BAZOVETS,3635
+с.,s.,БЪЗОВЕЦ,BAZOVETS,7168
+с.,s.,БЪЗОВИЦА,BAZOVITSA,2555
+с.,s.,БЪЗЪН,BAZAN,7077
+с.,s.,БЪЛГАРАНОВО,BALGARANOVO,7944
+с.,s.,БЪЛГАРЕВО,BALGAREVO,9660
+с.,s.,БЪЛГАРЕНЕ,BALGARENE,5583
+с.,s.,БЪЛГАРЕНЕ,BALGARENE,5923
+с.,s.,БЪЛГАРЕНЕ,BALGARENE,6274
+с.,s.,БЪЛГАРИ,BALGARI,8274
+с.,s.,БЪЛГАРИ,BALGARI,5441
+с.,s.,БЪЛГАРИН,BALGARIN,6460
+с.,s.,БЪЛГАРКА,BALGARKA,7544
+с.,s.,БЪЛГАРСКА ПОЛЯНА,BALGARSKA POLYANA,6569
+с.,s.,БЪЛГАРСКИ ИЗВОР,BALGARSKI IZVOR,5733
+с.,s.,БЪЛГАРСКО СЛИВОВО,BALGARSKO SLIVOVO,5284
+с.,s.,БЪЛГАРЧЕВО,BALGARCHEVO,2746
+с.,s.,БЪНЗАРЕТО,BANZARETO,6186
+с.,s.,БЪРДАРЕВО,BARDAREVO,9117
+с.,s.,БЪРДАРИТЕ,BARDARITE,5360
+с.,s.,БЪРДАРСКИ ГЕРАН,BARDARSKI GERAN,3259
+с.,s.,БЪРДЕНИ,BARDENI,5365
+с.,s.,БЪРДО,BARDO,2060
+с.,s.,БЪРДОКВА,BARDOKVA,7448
+с.,s.,БЪРЗА РЕКА,BARZA REKA,6710
+с.,s.,БЪРЗЕЯ,BARZEYA,6884
+с.,s.,БЪРЗИНА,BARZINA,3359
+с.,s.,БЪРЗИЦА,BARZITSA,9274
+с.,s.,БЪРЗИЯ,BARZIA,3520
+с.,s.,БЪРКАЧ,BARKACH,5877
+с.,s.,БЪРКАЧЕВО,BARKACHEVO,3245
+с.,s.,БЪРЛОЖНИЦА,BARLOZHNITSA,2222
+с.,s.,БЪРЛЯ,BARLYA,2255
+с.,s.,БЪРЧЕВО,BARCHEVO,4965
+с.,s.,БЪТА,BATA,4527
+с.,s.,БЯГА,BYAGA,4587
+с.,s.,БЯЛ БРЯГ,BYAL BRYAG,9824
+с.,s.,БЯЛ ИЗВОР,BYAL IZVOR,6770
+с.,s.,БЯЛ ИЗВОР,BYAL IZVOR,6073
+с.,s.,БЯЛ КЛАДЕНЕЦ,BYAL KLADENETS,8961
+с.,s.,БЯЛ КЛАДЕНЕЦ,BYAL KLADENETS,6377
+с.,s.,БЯЛА,BYALA,8850
+с.,s.,БЯЛА ВОДА,BYALA VODA,8171
+с.,s.,БЯЛА ВОДА,BYALA VODA,5932
+с.,s.,БЯЛА ПАЛАНКА,BYALA PALANKA,8892
+с.,s.,БЯЛА ПОЛЯНА,BYALA POLYANA,6662
+с.,s.,БЯЛА РЕКА,BYALA REKA,5237
+с.,s.,БЯЛА РЕКА,BYALA REKA,4285
+с.,s.,БЯЛА РЕКА,BYALA REKA,4966
+с.,s.,БЯЛА РЕКА,BYALA REKA,9882
+с.,s.,БЯЛГРАДЕЦ,BYALGRADETS,6590
+с.,s.,БЯЛКА,BYALKA,6656
+с.,s.,БЯЛКОВО,BYALKOVO,5344
+с.,s.,БЯЛКОВЦИ,BYALKOVTSI,5084
+с.,s.,БЯЛО ПОЛЕ,BYALO POLE,6054
+с.,s.,ВАЗОВО,VAZOVO,7422
+с.,s.,ВАКАРЕЛ,VAKAREL,2060
+с.,s.,ВАКЛИНО,VAKLINO,9672
+с.,s.,ВАКЛИНОВО,VAKLINOVO,2957
+с.,s.,ВАКСЕВО,VAKSEVO,2590
+с.,s.,ВАЛЕВЦИ,VALEVTSI,5462
+с.,s.,ВАЛЕТО,VALETO,5099
+с.,s.,ВАРАНА,VARANA,5911
+с.,s.,ВАРВАРА,VARVARA,8278
+с.,s.,ВАРВАРА,VARVARA,4492
+с.,s.,ВАРДИМ,VARDIM,5281
+с.,s.,ВАРДУН,VARDUN,7780
+с.,s.,ВАРНЕНЦИ,VARNENTSI,7638
+с.,s.,ВАРНИК,VARNIK,6536
+с.,s.,ВАРОВНИК,VAROVNIK,8338
+с.,s.,ВАСИЛ ДРУМЕВ,VASIL DRUMEV,9814
+с.,s.,ВАСИЛ ЛЕВСКИ,VASIL LEVSKI,4363
+с.,s.,ВАСИЛ ЛЕВСКИ,VASIL LEVSKI,7571
+с.,s.,ВАСИЛ ЛЕВСКИ,VASIL LEVSKI,6068
+с.,s.,ВАСИЛ ЛЕВСКИ,VASIL LEVSKI,7749
+с.,s.,ВАСИЛЕВО,VASILEVO,9543
+с.,s.,ВАСИЛКОВСКА МАХАЛА,VASILKOVSKA MAHALA,5576
+с.,s.,ВАСИЛОВЦИ,VASILOVTSI,3658
+с.,s.,ВАСИЛОВЦИ,VASILOVTSI,2205
+с.,s.,ВАСИЛЬОВО,VASILYOVO,5723
+с.,s.,ВАСКОВО,VASKOVO,6556
+с.,s.,ВЕДРАРЕ,VEDRARE,4364
+с.,s.,ВЕДРИНА,VEDRINA,9355
+с.,s.,ВЕДРОВО,VEDROVO,8447
+с.,s.,ВЕЗЕНКОВО,VEZENKOVO,8457
+с.,s.,ВЕКИЛСКИ,VEKILSKI,9941
+с.,s.,ВЕЛЕНЦИ,VELENTSI,5351
+с.,s.,ВЕЛЕШАНИ,VELESHANI,6727
+с.,s.,ВЕЛИКА,VELIKA,8271
+с.,s.,ВЕЛИКАН,VELIKAN,6431
+с.,s.,ВЕЛИКДЕНЧЕ,VELIKDENCHE,6845
+с.,s.,ВЕЛИКДЕНЧЕ,VELIKDENCHE,7916
+с.,s.,ВЕЛИКОВО,VELIKOVO,6282
+с.,s.,ВЕЛИКОВО,VELIKOVO,9547
+с.,s.,ВЕЛИКОВЦИ,VELIKOVTSI,7964
+с.,s.,ВЕЛИНО,VELINO,9793
+с.,s.,ВЕЛИНОВО,VELINOVO,2476
+с.,s.,ВЕЛИСЛАВ,VELISLAV,8458
+с.,s.,ВЕЛИЧКА,VELICHKA,7941
+с.,s.,ВЕЛИЧКОВО,VELICHKOVO,9263
+с.,s.,ВЕЛИЧКОВО,VELICHKOVO,4413
+с.,s.,ВЕЛКОВО,VELKOVO,5365
+с.,s.,ВЕЛКОВЦИ,VELKOVTSI,5097
+с.,s.,ВЕЛКОВЦИ,VELKOVTSI,5343
+с.,s.,ВЕЛКОВЦИ,VELKOVTSI,2375
+с.,s.,ВЕЛЧЕВО,VELCHEVO,5032
+с.,s.,ВЕЛЧЕВО,VELCHEVO,5643
+с.,s.,ВЕЛЧОВЦИ,VELCHOVTSI,5367
+с.,s.,ВЕЛЬОВО,VELYOVO,7985
+с.,s.,ВЕЛЮВЦИ,VELYUVTSI,5070
+с.,s.,ВЕЛЮЩЕЦ,VELYUSHTETS,2849
+с.,s.,ВЕНЕЛИН,VENELIN,9119
+с.,s.,ВЕНЕЦ,VENETS,8473
+с.,s.,ВЕНЕЦ,VENETS,6078
+с.,s.,ВЕНЕЦ,VENETS,9751
+с.,s.,ВЕНКОВЕЦ,VENKOVETS,2066
+с.,s.,ВЕНЧАН,VENCHAN,9219
+с.,s.,ВЕРЕН,VEREN,6244
+с.,s.,ВЕРЕНЦИ,VERENTSI,7957
+с.,s.,ВЕРИНСКО,VERINSKO,2063
+с.,s.,ВЕРСКО,VERSKO,6710
+с.,s.,ВЕСЕЛЕЦ,VESELETS,7327
+с.,s.,ВЕСЕЛЕЦ,VESELETS,7942
+с.,s.,ВЕСЕЛИЕ,VESELIE,8145
+с.,s.,ВЕСЕЛИНА,VESELINA,5094
+с.,s.,ВЕСЕЛИНА,VESELINA,7289
+с.,s.,ВЕСЕЛИНОВО,VESELINOVO,9828
+с.,s.,ВЕСЕЛИНОВО,VESELINOVO,8632
+с.,s.,ВЕСЛЕЦ,VESLETS,3053
+с.,s.,ВЕТРЕН,VETREN,2579
+с.,s.,ВЕТРЕН,VETREN,7588
+с.,s.,ВЕТРЕН,VETREN,6175
+с.,s.,ВЕТРЕН ДОЛ,VETREN DOL,4493
+с.,s.,ВЕТРИНО,VETRINO,9220
+с.,s.,ВЕТРИНЦИ,VETRINTSI,5066
+с.,s.,ВЕТРИЩЕ,VETRISHTE,9809
+с.,s.,ВЕТРОВО,VETROVO,5300
+с.,s.,ВЕТРУШКА,VETRUSHKA,6591
+с.,s.,ВЕХТИНО,VEHTINO,4924
+с.,s.,ВЕХТОВО,VEHTOVO,9818
+с.,s.,ВЕЩИЦА,VESHTITSA,3918
+с.,s.,ВИДЕН,VIDEN,6156
+с.,s.,ВИДИНЦИ,VIDINTSI,8671
+с.,s.,ВИДЛИЦА,VIDLITSA,3478
+с.,s.,ВИДНО,VIDNO,9668
+с.,s.,ВИДРАР,VIDRAR,2495
+с.,s.,ВИДРАРЕ,VIDRARE,2166
+с.,s.,ВИДРИЦА,VIDRITSA,2364
+с.,s.,ВИЕВО,VIEVO,4748
+с.,s.,ВИЗИЦА,VIZITSA,8167
+с.,s.,ВИЛАРЕ,VILARE,5035
+с.,s.,ВИНАРОВО,VINAROVO,3773
+с.,s.,ВИНАРОВО,VINAROVO,6238
+с.,s.,ВИНАРСКО,VINARSKO,8118
+с.,s.,ВИНЕВО,VINEVO,6375
+с.,s.,ВИНИЦА,VINITSA,4284
+с.,s.,ВИНИЩЕ,VINISHTE,3482
+с.,s.,ВИНОГРАД,VINOGRAD,5171
+с.,s.,ВИНОГРАДЕЦ,VINOGRADETS,4487
+с.,s.,ВИНОГРАДИ,VINOGRADI,2822
+с.,s.,ВИРОВЕ,VIROVE,3455
+с.,s.,ВИРОВСКО,VIROVSKO,3057
+с.,s.,ВИС,VIS,6591
+с.,s.,ВИСКЯР,VISKYAR,2358
+с.,s.,ВИСОК,VISOK,7955
+с.,s.,ВИСОКА,VISOKA,6744
+с.,s.,ВИСОКА МОГИЛА,VISOKA MOGILA,2665
+с.,s.,ВИСОКА ПОЛЯНА,VISOKA POLYANA,6678
+с.,s.,ВИСОКА ПОЛЯНА,VISOKA POLYANA,9765
+с.,s.,ВИСОКИТЕ,VISOKITE,4921
+с.,s.,ВИСОКОВЦИ,VISOKOVTSI,5098
+с.,s.,ВИТАНОВЦИ,VITANOVTSI,2354
+с.,s.,ВИТИНА,VITINA,4975
+с.,s.,ВИХРЕН,VIHREN,2800
+с.,s.,ВИЧОВО,VICHOVO,9563
+с.,s.,ВИШАН,VISHAN,2213
+с.,s.,ВИШЕГРАД,VISHEGRAD,6646
+с.,s.,ВИШЛЕНЕ,VISHLENE,2895
+с.,s.,ВИШНА,VISHNA,8562
+с.,s.,ВИШНЕВО,VISHNEVO,4939
+с.,s.,ВИШОВГРАД,VISHOVGRAD,5239
+с.,s.,ВЛАДАЯ,VLADAYA,1641
+с.,s.,ВЛАДИМИР,VLADIMIR,2411
+с.,s.,ВЛАДИМИРОВО,VLADIMIROVO,3440
+с.,s.,ВЛАДИМИРОВО,VLADIMIROVO,9379
+с.,s.,ВЛАДИМИРОВО,VLADIMIROVO,6545
+с.,s.,ВЛАДИМИРОВЦИ,VLADIMIROVTSI,7440
+с.,s.,ВЛАДИНЯ,VLADINYA,5563
+с.,s.,ВЛАДИСЛАВ,VLADISLAV,5179
+с.,s.,ВЛАДИСЛАВЦИ,VLADISLAVTSI,2215
+с.,s.,ВЛАДИЧЕНЦИ,VLADICHENTSI,3748
+с.,s.,ВЛАДО ТРИЧКОВ,VLADO TRICHKOV,2299
+с.,s.,ВЛАДОВЦИ,VLADOVTSI,5365
+с.,s.,ВЛАЙЧОВЦИ,VLAYCHOVTSI,5344
+с.,s.,ВЛАСАТИЛИ,VLASATILI,5367
+с.,s.,ВЛАСАТИЦА,VLASATITSA,3041
+с.,s.,ВЛАХИ,VLAHI,2841
+с.,s.,ВЛАХОВО,VLAHOVO,4724
+с.,s.,ВЛАХОВЦИ,VLAHOVTSI,5349
+с.,s.,ВОДАТА,VODATA,4713
+с.,s.,ВОДАЧ,VODACH,6709
+с.,s.,ВОДЕН,VODEN,4289
+с.,s.,ВОДЕН,VODEN,6412
+с.,s.,ВОДЕН,VODEN,8750
+с.,s.,ВОДЕНИЧАНЕ,VODENICHANE,8693
+с.,s.,ВОДЕНИЧАРОВО,VODENICHAROVO,6051
+с.,s.,ВОДЕНИЧАРСКО,VODENICHARSKO,6852
+с.,s.,ВОДЕНЦИ,VODENTSI,6382
+с.,s.,ВОДИЦА,VODITSA,9141
+с.,s.,ВОДИЦА,VODITSA,7851
+с.,s.,ВОДНА,VODNA,3831
+с.,s.,ВОДНИ ПАД,VODNI PAD,4826
+с.,s.,ВОДНО,VODNO,5166
+с.,s.,ВОДНО,VODNO,7657
+с.,s.,ВОДНЯНЦИ,VODNYANTSI,3924
+с.,s.,ВОДНЯНЦИ,VODNYANTSI,9435
+с.,s.,ВОДОЛЕЙ,VODOLEY,5061
+с.,s.,ВОЖДОВО,VOZHDOVO,6716
+с.,s.,ВОЙВОДА,VOYVODA,9958
+с.,s.,ВОЙВОДЕНЕЦ,VOYVODENETS,6381
+с.,s.,ВОЙВОДИНО,VOYVODINO,9292
+с.,s.,ВОЙВОДИНОВО,VOYVODINOVO,4135
+с.,s.,ВОЙВОДОВО,VOYVODOVO,3332
+с.,s.,ВОЙВОДОВО,VOYVODOVO,6353
+с.,s.,ВОЙКОВА ЛЪКА,VOYKOVA LAKA,4967
+с.,s.,ВОЙНЕГОВЦИ,VOYNEGOVTSI,1223
+с.,s.,ВОЙНЕЖА,VOYNEZHA,5045
+с.,s.,ВОЙНИКА,VOYNIKA,8661
+с.,s.,ВОЙНИКОВО,VOYNIKOVO,9473
+с.,s.,ВОЙНИЦА,VOYNITSA,3734
+с.,s.,ВОЙНИЦИ,VOYNITSI,3481
+с.,s.,ВОЙНИЦИТЕ,VOYNITSITE,5350
+с.,s.,ВОЙНИШКА,VOYNISHKA,5458
+с.,s.,ВОЙНОВО,VOYNOVO,6698
+с.,s.,ВОЙНОВО,VOYNOVO,7551
+с.,s.,ВОЙНЯГОВО,VOYNYAGOVO,4347
+с.,s.,ВОЙСИЛ,VOYSIL,4203
+с.,s.,ВОКИЛ,VOKIL,7670
+с.,s.,ВОЛНО,VOLNO,2886
+с.,s.,ВОЛОВАРОВО,VOLOVAROVO,6231
+с.,s.,ВОЛОВАРЦИ,VOLOVARTSI,6633
+с.,s.,ВОЛОВО,VOLOVO,7175
+с.,s.,ВОЛУЯК,VOLUYAK,1346
+с.,s.,ВОНЕЩА ВОДА,VONESHTA VODA,5035
+с.,s.,ВРАБЕВО,VRABEVO,5660
+с.,s.,ВРАБЦИТЕ,VRABTSITE,5307
+с.,s.,ВРАБЧА,VRABCHA,2470
+с.,s.,ВРАКУПОВИЦА,VRAKUPOVITSA,2834
+с.,s.,ВРАНЕНЦИ,VRANENTSI,4649
+с.,s.,ВРАНИ КОН,VRANI KON,7940
+с.,s.,ВРАНИЛОВЦИ,VRANILOVTSI,5347
+с.,s.,ВРАНИНО,VRANINO,9663
+с.,s.,ВРАНИНЦИ,VRANINTSI,4906
+с.,s.,ВРАНСКО,VRANSKO,6912
+с.,s.,ВРАНЯ,VRANYA,2830
+с.,s.,ВРАНЯ СТЕНА,VRANYA STENA,2445
+с.,s.,ВРАНЯК,VRANYAK,3248
+с.,s.,ВРАТА,VRATA,4234
+с.,s.,ВРАТАРИТЕ,VRATARITE,9382
+с.,s.,ВРАТИЦА,VRATITSA,8109
+с.,s.,ВРАТЦА,VRATTSA,2575
+с.,s.,ВРАЧАНЦИ,VRACHANTSI,9345
+с.,s.,ВРАЧЕШ,VRACHESH,2151
+с.,s.,ВРЕЛО,VRELO,6834
+с.,s.,ВРЕСОВО,VRESOVO,8560
+с.,s.,ВРЪВ,VRAV,3779
+с.,s.,ВРЪДЛОВЦИ,VRADLOVTSI,2254
+с.,s.,ВСЕМИРЦИ,VSEMIRTSI,4622
+с.,s.,ВУКАН,VUKAN,2485
+с.,s.,ВУКОВО,VUKOVO,2661
+с.,s.,ВЪБЕЛ,VABEL,5953
+с.,s.,ВЪГЛАРОВО,VAGLAROVO,6313
+с.,s.,ВЪГЛЕВЦИ,VAGLEVTSI,5041
+с.,s.,ВЪГЛЕН,VAGLEN,9157
+с.,s.,ВЪГЛЕН,VAGLEN,8851
+с.,s.,ВЪЗЕЛ,VAZEL,6710
+с.,s.,ВЪЛКАН,VALKAN,7643
+с.,s.,ВЪЛКОВ ДОЛ,VALKOV DOL,5349
+с.,s.,ВЪЛКОВИЧ,VALKOVICH,6850
+с.,s.,ВЪЛКОВО,VALKOVO,2807
+с.,s.,ВЪЛКОВЦИ,VALKOVTSI,5365
+с.,s.,ВЪЛКОСЕЛ,VALKOSEL,2930
+с.,s.,ВЪЛНАРИ,VALNARI,9963
+с.,s.,ВЪЛЧА ПОЛЯНА,VALCHA POLYANA,8748
+с.,s.,ВЪЛЧАН,VALCHAN,4775
+с.,s.,ВЪЛЧАН ДОЛ,VALCHAN DOL,4947
+с.,s.,ВЪЛЧАНКА,VALCHANKA,6893
+с.,s.,ВЪЛЧАНОВО,VALCHANOVO,8341
+с.,s.,ВЪЛЧЕ ПОЛЕ,VALCHE POLE,6587
+с.,s.,ВЪЛЧЕК,VALCHEK,3851
+с.,s.,ВЪЛЧИ ИЗВОР,VALCHI IZVOR,8723
+с.,s.,ВЪЛЧИН,VALCHIN,8443
+с.,s.,ВЪЛЧИТРЪН,VALCHITRAN,5890
+с.,s.,ВЪЛЧОВЦИ,VALCHOVTSI,5081
+с.,s.,ВЪЛЧОВЦИ,VALCHOVTSI,5086
+с.,s.,ВЪРБА,VARBA,3939
+с.,s.,ВЪРБА,VARBA,4920
+с.,s.,ВЪРБАК,VARBAK,9781
+с.,s.,ВЪРБЕН,VARBEN,6873
+с.,s.,ВЪРБЕН,VARBEN,4145
+с.,s.,ВЪРБЕНЦИ,VARBENTSI,6745
+с.,s.,ВЪРБЕШНИЦА,VARBESHNITSA,3147
+с.,s.,ВЪРБИНА,VARBINA,4921
+с.,s.,ВЪРБИНО,VARBINO,7674
+с.,s.,ВЪРБИЦА,VARBITSA,5128
+с.,s.,ВЪРБИЦА,VARBITSA,3056
+с.,s.,ВЪРБИЦА,VARBITSA,5845
+с.,s.,ВЪРБИЦА,VARBITSA,6445
+с.,s.,ВЪРБНИЦА,VARBNITSA,2248
+с.,s.,ВЪРБОВКА,VARBOVKA,5233
+с.,s.,ВЪРБОВО,VARBOVO,3951
+с.,s.,ВЪРБОВО,VARBOVO,4710
+с.,s.,ВЪРБОВО,VARBOVO,6488
+с.,s.,ВЪРБОВЧЕЦ,VARBOVCHETS,3948
+с.,s.,ВЪРБЯНЕ,VARBYANE,9943
+с.,s.,ВЪРГОВ ДОЛ,VARGOV DOL,4907
+с.,s.,ВЪРЗИЛКОВЦИ,VARZILKOVTSI,5081
+с.,s.,ВЪРЗУЛИЦА,VARZULITSA,5191
+с.,s.,ВЪРЛИ ДОЛ,VARLI DOL,6873
+с.,s.,ВЪРЛИ ДОЛ,VARLI DOL,4989
+с.,s.,ВЪРЛИНКА,VARLINKA,5050
+с.,s.,ВЪРЛИНО,VARLINO,4983
+с.,s.,ВЪРТОП,VARTOP,3752
+с.,s.,ВЪРХАРИ,VARHARI,6814
+с.,s.,ВЪРШИЛО,VARSHILO,8157
+с.,s.,ГАБАРЕ,GABARE,3265
+с.,s.,ГАБАРЕВО,GABAREVO,6162
+с.,s.,ГАБЕР,GABER,2215
+с.,s.,ГАБЕР,GABER,9419
+с.,s.,ГАБЕРОВО,GABEROVO,8212
+с.,s.,ГАБЕРОВО,GABEROVO,6482
+с.,s.,ГАБРА,GABRA,2112
+с.,s.,ГАБРАКА,GABRAKA,5097
+с.,s.,ГАБРЕНЕ,GABRENE,2898
+с.,s.,ГАБРЕШЕВЦИ,GABRESHEVTSI,2557
+с.,s.,ГАБРИНА,GABRINA,4921
+с.,s.,ГАБРИЦА,GABRITSA,4795
+с.,s.,ГАБРИЦА,GABRITSA,9779
+с.,s.,ГАБРОВДОЛ,GABROVDOL,2392
+с.,s.,ГАБРОВИЦА,GABROVITSA,4467
+с.,s.,ГАБРОВНИЦА,GABROVNITSA,3453
+с.,s.,ГАБРОВНИЦА,GABROVNITSA,2277
+с.,s.,ГАБРОВО,GABROVO,2747
+с.,s.,ГАБРОВО,GABROVO,6691
+с.,s.,ГАБРОВЦИ,GABROVTSI,5051
+с.,s.,ГАБЪР,GABAR,8158
+с.,s.,ГАБЪРНИЦА,GABARNITSA,9227
+с.,s.,ГАВРАИЛОВО,GAVRAILOVO,8854
+с.,s.,ГАВРИЛ ГЕНОВО,GAVRIL GENOVO,3469
+с.,s.,ГАГАНИЦА,GAGANITSA,3525
+с.,s.,ГАГОВО,GAGOVO,7831
+с.,s.,ГАЙДАРИ,GAYDARI,5367
+с.,s.,ГАЙКИНИ,GAYKINI,5300
+с.,s.,ГАЙТАНЕВО,GAYTANEVO,2114
+с.,s.,ГАЙТАНИНОВО,GAYTANINOVO,2924
+с.,s.,ГАЙТАНИТЕ,GAYTANITE,5345
+с.,s.,ГАЙТАНЦИ,GAYTANTSI,3753
+с.,s.,ГАЛАТА,GALATA,5731
+с.,s.,ГАЛАТИН,GALATIN,3071
+с.,s.,ГАЛИЧЕ,GALICHE,3250
+с.,s.,ГАЛИЩЕ,GALISHTE,4934
+с.,s.,ГАЛОВО,GALOVO,3342
+с.,s.,ГАНЕВ ДОЛ,GANEV DOL,5084
+с.,s.,ГАНЧОВЕЦ,GANCHOVETS,5397
+с.,s.,ГАРА БОВ,GARA BOV,2271
+с.,s.,ГАРА ЕЛИН ПЕЛИН,GARA ELIN PELIN,2109
+с.,s.,ГАРА ЛАКАТНИК,GARA LAKATNIK,2272
+с.,s.,ГАРА ОРЕШЕЦ,GARA ORESHETS,3940
+с.,s.,ГАРВАН,GARVAN,5345
+с.,s.,ГАРВАН,GARVAN,7589
+с.,s.,ГАРВАНОВО,GARVANOVO,6349
+с.,s.,ГАЩЕВЦИ,GASHTEVTSI,5041
+с.,s.,ГЕГА,GEGA,2882
+с.,s.,ГЕЛА,GELA,4710
+с.,s.,ГЕЛЕМЕНОВО,GELEMENOVO,4444
+с.,s.,ГЕНЕРАЛ ГЕШЕВО,GENERAL GESHEVO,6856
+с.,s.,ГЕНЕРАЛ ИНЗОВО,GENERAL INZOVO,8670
+с.,s.,ГЕНЕРАЛ КАНТАРДЖИЕВО,GENERAL KANTARDZHIEVO,9150
+с.,s.,ГЕНЕРАЛ КИСЕЛОВО,GENERAL KISELOVO,9142
+с.,s.,ГЕНЕРАЛ КОЛЕВО,GENERAL KOLEVO,9295
+с.,s.,ГЕНЕРАЛ КОЛЕВО,GENERAL KOLEVO,9373
+с.,s.,ГЕНЕРАЛ МАРИНОВО,GENERAL MARINOVO,3732
+с.,s.,ГЕНЕРАЛ ТОДОРОВ,GENERAL TODOROV,2873
+с.,s.,ГЕНЕРАЛ ТОШЕВО,GENERAL TOSHEVO,8625
+с.,s.,ГЕНЕРАЛОВО,GENERALOVO,6523
+с.,s.,ГЕНОВЦИ,GENOVTSI,5307
+с.,s.,ГЕНЧОВЦИ,GENCHOVTSI,5301
+с.,s.,ГЕНЧОВЦИ,GENCHOVTSI,5350
+с.,s.,ГЕНЯ,GENYA,5397
+с.,s.,ГЕОРГИ ДАМЯНОВО,GEORGI DAMYANOVO,3470
+с.,s.,ГЕОРГИ ДОБРЕВО,GEORGI DOBREVO,6559
+с.,s.,ГЕРГЕВЕЦ,GERGEVETS,8869
+с.,s.,ГЕРГИНИ,GERGINI,5345
+с.,s.,ГЕРМАН,GERMAN,1186
+с.,s.,ГЕЦОВО,GETSOVO,7219
+с.,s.,ГЕША,GESHA,5370
+с.,s.,ГЕШАНОВО,GESHANOVO,9393
+с.,s.,ГИГЕН,GIGEN,5970
+с.,s.,ГИГИНЦИ,GIGINTSI,2393
+с.,s.,ГИНЦИ,GINTSI,2250
+с.,s.,ГИРЧЕВЦИ,GIRCHEVTSI,2546
+с.,s.,ГИТА,GITA,6215
+с.,s.,ГЛАВА,GLAVA,5985
+с.,s.,ГЛАВАН,GLAVAN,7543
+с.,s.,ГЛАВАН,GLAVAN,6295
+с.,s.,ГЛАВАНОВЦИ,GLAVANOVTSI,3468
+с.,s.,ГЛАВАНОВЦИ,GLAVANOVTSI,2480
+с.,s.,ГЛАВАНЦИ,GLAVANTSI,9499
+с.,s.,ГЛАВАТАР,GLAVATAR,4171
+с.,s.,ГЛАВАТАРЦИ,GLAVATARTSI,6738
+с.,s.,ГЛАВАЦИ,GLAVATSI,3045
+с.,s.,ГЛАВИНИЦА,GLAVINITSA,4409
+с.,s.,ГЛАВНИК,GLAVNIK,6789
+с.,s.,ГЛАШАТАЙ,GLASHATAY,7986
+с.,s.,ГЛЕДАЦИ,GLEDATSI,5345
+с.,s.,ГЛЕДАЧЕВО,GLEDACHEVO,6263
+с.,s.,ГЛЕДКА,GLEDKA,6362
+с.,s.,ГЛОГИНКА,GLOGINKA,7879
+с.,s.,ГЛОГИНО,GLOGINO,4948
+с.,s.,ГЛОГОВЕЦ,GLOGOVETS,5080
+с.,s.,ГЛОГОВИЦА,GLOGOVITSA,2463
+с.,s.,ГЛОГОВО,GLOGOVO,5724
+с.,s.,ГЛОЖЕНЕ,GLOZHENE,5740
+с.,s.,ГЛОЖЕНЕ,GLOZHENE,3327
+с.,s.,ГЛУМОВО,GLUMOVO,6572
+с.,s.,ГЛУМЧЕ,GLUMCHE,8429
+с.,s.,ГЛУТНИЦИТЕ,GLUTNITSITE,5363
+с.,s.,ГЛУФИШЕВО,GLUFISHEVO,8866
+с.,s.,ГЛУХАР,GLUHAR,6647
+с.,s.,ГЛУШКА,GLUSHKA,5370
+с.,s.,ГЛУШНИК,GLUSHNIK,8879
+с.,s.,ГНЕЗДАРЕ,GNEZDARE,6590
+с.,s.,ГНЯЗДОВО,GNYAZDOVO,6675
+с.,s.,ГОВЕДАРЕ,GOVEDARE,4453
+с.,s.,ГОВЕДАРЦИ,GOVEDARTSI,2020
+с.,s.,ГОВЕЖДА,GOVEZHDA,3474
+с.,s.,ГОДЕШЕВО,GODESHEVO,2938
+с.,s.,ГОДЛЕВО,GODLEVO,2768
+с.,s.,ГОЗ,GOZ,2366
+с.,s.,ГОЗДЕВИЦА,GOZDEVITSA,4791
+с.,s.,ГОЗДЕЙКА,GOZDEYKA,5392
+с.,s.,ГОЛАК,GOLAK,2036
+с.,s.,ГОЛЕМ ЦАЛИМ,GOLEM TSALIM,2800
+с.,s.,ГОЛЕМА РАКОВИЦА,GOLEMA RAKOVITSA,2113
+с.,s.,ГОЛЕМА ФУЧА,GOLEMA FUCHA,2667
+с.,s.,ГОЛЕМАНИ,GOLEMANI,5070
+с.,s.,ГОЛЕМАНИТЕ,GOLEMANITE,5054
+с.,s.,ГОЛЕМАНОВО,GOLEMANOVO,3839
+с.,s.,ГОЛЕМАНЦИ,GOLEMANTSI,6358
+с.,s.,ГОЛЕМИ БЪЛГАРЕНИ,GOLEMI BALGARENI,5370
+с.,s.,ГОЛЕМИ СТАНЧОВЦИ,GOLEMI STANCHOVTSI,5365
+с.,s.,ГОЛЕМО БАБИНО,GOLEMO BABINO,3063
+с.,s.,ГОЛЕМО БУЧИНО,GOLEMO BUCHINO,2348
+с.,s.,ГОЛЕМО МАЛОВО,GOLEMO MALOVO,2204
+с.,s.,ГОЛЕМО СЕЛО,GOLEMO SELO,2635
+с.,s.,ГОЛЕЦ,GOLETS,5573
+с.,s.,ГОЛЕШ,GOLESH,7547
+с.,s.,ГОЛЕШ,GOLESH,2254
+с.,s.,ГОЛЕШОВО,GOLESHOVO,2818
+с.,s.,ГОЛИЦА,GOLITSA,9114
+с.,s.,ГОЛОБРАД,GOLOBRAD,6793
+с.,s.,ГОЛОБРАДОВО,GOLOBRADOVO,6386
+с.,s.,ГОЛЯМ ВЪРБОВНИК,GOLYAM VARBOVNIK,2690
+с.,s.,ГОЛЯМ ДЕВЕСИЛ,GOLYAM DEVESIL,6932
+с.,s.,ГОЛЯМ ДЕРВЕНТ,GOLYAM DERVENT,8757
+с.,s.,ГОЛЯМ ДОЛ,GOLYAM DOL,6245
+с.,s.,ГОЛЯМ ИЗВОР,GOLYAM IZVOR,5741
+с.,s.,ГОЛЯМ ИЗВОР,GOLYAM IZVOR,7459
+с.,s.,ГОЛЯМ ИЗВОР,GOLYAM IZVOR,6395
+с.,s.,ГОЛЯМ МАНАСТИР,GOLYAM MANASTIR,8624
+с.,s.,ГОЛЯМ ПОРОВЕЦ,GOLYAM POROVETS,7444
+с.,s.,ГОЛЯМ ЧАРДАК,GOLYAM CHARDAK,4193
+с.,s.,ГОЛЯМА БАРА,GOLYAMA BARA,6744
+с.,s.,ГОЛЯМА БРЕСТНИЦА,GOLYAMA BRESTNITSA,5753
+с.,s.,ГОЛЯМА ВОДА,GOLYAMA VODA,7452
+с.,s.,ГОЛЯМА ДОЛИНА,GOLYAMA DOLINA,6476
+с.,s.,ГОЛЯМА ЖЕЛЯЗНА,GOLYAMA ZHELYAZNA,5670
+с.,s.,ГОЛЯМА ЧИНКА,GOLYAMA CHINKA,6940
+с.,s.,ГОЛЯМО АСЕНОВО,GOLYAMO ASENOVO,6424
+с.,s.,ГОЛЯМО БЕЛОВО,GOLYAMO BELOVO,4473
+с.,s.,ГОЛЯМО БУКОВО,GOLYAMO BUKOVO,8329
+с.,s.,ГОЛЯМО ВРАНОВО,GOLYAMO VRANOVO,7065
+с.,s.,ГОЛЯМО ГРАДИЩЕ,GOLYAMO GRADISHTE,7848
+с.,s.,ГОЛЯМО ДОЛЯНЕ,GOLYAMO DOLYANE,7960
+с.,s.,ГОЛЯМО ДРЯНОВО,GOLYAMO DRYANOVO,6146
+с.,s.,ГОЛЯМО КАМЕНЯНЕ,GOLYAMO KAMENYANE,6925
+с.,s.,ГОЛЯМО КРУШЕВО,GOLYAMO KRUSHEVO,8729
+с.,s.,ГОЛЯМО НОВО,GOLYAMO NOVO,7789
+с.,s.,ГОЛЯМО ОСОЕ,GOLYAMO OSOE,5743
+с.,s.,ГОЛЯМО ПЕЩЕНЕ,GOLYAMO PESHTENE,3058
+с.,s.,ГОЛЯМО СОКОЛОВО,GOLYAMO SOKOLOVO,7778
+с.,s.,ГОЛЯМО ЦЪРКВИЩЕ,GOLYAMO TSARKVISHTE,7924
+с.,s.,ГОЛЯМО ЧОЧОВЕНИ,GOLYAMO CHOCHOVENI,8863
+с.,s.,ГОЛЯНОВЦИ,GOLYANOVTSI,2231
+с.,s.,ГОМОТАРЦИ,GOMOTARTSI,3772
+с.,s.,ГОРАН,GORAN,5552
+с.,s.,ГОРАНОВЦИ,GORANOVTSI,5035
+с.,s.,ГОРАНОВЦИ,GORANOVTSI,2565
+с.,s.,ГОРЕМЕ,GOREME,2834
+с.,s.,ГОРЕН ЕНЕВЕЦ,GOREN ENEVETS,5050
+с.,s.,ГОРЕН ЧИФЛИК,GOREN CHIFLIK,9100
+с.,s.,ГОРИЦА,GORITSA,8225
+с.,s.,ГОРИЦА,GORITSA,9101
+с.,s.,ГОРИЦА,GORITSA,7854
+с.,s.,ГОРИЦА,GORITSA,9558
+с.,s.,ГОРИЧАНЕ,GORICHANE,9688
+с.,s.,ГОРИЧЕВО,GORICHEVO,7337
+с.,s.,ГОРНА АРДА,GORNA ARDA,4788
+с.,s.,ГОРНА БЕЛА РЕЧКА,GORNA BELA RECHKA,3544
+с.,s.,ГОРНА БЕШОВИЦА,GORNA BESHOVITSA,3155
+с.,s.,ГОРНА БИРКОВА,GORNA BIRKOVA,4657
+с.,s.,ГОРНА БРЕЗНИЦА,GORNA BREZNITSA,2842
+с.,s.,ГОРНА БРЕСТНИЦА,GORNA BRESTNITSA,2575
+с.,s.,ГОРНА ВАСИЛИЦА,GORNA VASILITSA,2046
+с.,s.,ГОРНА ВЕРЕНИЦА,GORNA VERENITSA,3484
+с.,s.,ГОРНА ВРАБЧА,GORNA VRABCHA,2439
+с.,s.,ГОРНА ГЛОГОВИЦА,GORNA GLOGOVITSA,2459
+с.,s.,ГОРНА ГРАЩИЦА,GORNA GRASHTITSA,2535
+с.,s.,ГОРНА ДИКАНЯ,GORNA DIKANYA,2419
+с.,s.,ГОРНА ДЪБЕВА,GORNA DABEVA,4648
+с.,s.,ГОРНА ЗЛАТИЦА,GORNA ZLATITSA,7969
+с.,s.,ГОРНА КАБДА,GORNA KABDA,7865
+с.,s.,ГОРНА КОВАЧИЦА,GORNA KOVACHITSA,3463
+с.,s.,ГОРНА КОЗНИЦА,GORNA KOZNITSA,2687
+с.,s.,ГОРНА КРЕМЕНА,GORNA KREMENA,3154
+с.,s.,ГОРНА КРЕПОСТ,GORNA KREPOST,6685
+с.,s.,ГОРНА КРУШИЦА,GORNA KRUSHITSA,2827
+с.,s.,ГОРНА КУЛА,GORNA KULA,6952
+с.,s.,ГОРНА ЛИПНИЦА,GORNA LIPNITSA,5227
+с.,s.,ГОРНА ЛУКА,GORNA LUKA,3458
+с.,s.,ГОРНА МАЛИНА,GORNA MALINA,2131
+с.,s.,ГОРНА МАХАЛА,GORNA MAHALA,4196
+с.,s.,ГОРНА МЕЛНА,GORNA MELNA,2491
+с.,s.,ГОРНА МИТРОПОЛИЯ,GORNA MITROPOLIA,5869
+с.,s.,ГОРНА РИБНИЦА,GORNA RIBNITSA,2836
+с.,s.,ГОРНА РОСИЦА,GORNA ROSITSA,5448
+с.,s.,ГОРНА СЕКИРНА,GORNA SEKIRNA,2399
+с.,s.,ГОРНА СТУДЕНА,GORNA STUDENA,5294
+с.,s.,ГОРНА СУШИЦА,GORNA SUSHITSA,2811
+с.,s.,ГОРНА ХАДЖИЙСКА,GORNA HADZHIYSKA,5089
+с.,s.,ГОРНА ХУБАВКА,GORNA HUBAVKA,7913
+с.,s.,ГОРНИ БОГРОВ,GORNI BOGROV,1806
+с.,s.,ГОРНИ ВАДИН,GORNI VADIN,3343
+с.,s.,ГОРНИ ВЪРПИЩА,GORNI VARPISHTA,5380
+с.,s.,ГОРНИ ГЛАВАНАК,GORNI GLAVANAK,6485
+с.,s.,ГОРНИ ДАМЯНОВЦИ,GORNI DAMYANOVTSI,5367
+с.,s.,ГОРНИ ДОМЛЯН,GORNI DOMLYAN,4368
+с.,s.,ГОРНИ ДРАГОЙЧА,GORNI DRAGOYCHA,5380
+с.,s.,ГОРНИ ДЪБНИК,GORNI DABNIK,5880
+с.,s.,ГОРНИ КОРИТЕН,GORNI KORITEN,2557
+с.,s.,ГОРНИ КРАЙ,GORNI KRAY,5096
+с.,s.,ГОРНИ ЛОМ,GORNI LOM,3960
+с.,s.,ГОРНИ МАРЕНЦИ,GORNI MARENTSI,5360
+с.,s.,ГОРНИ ОКОЛ,GORNI OKOL,2027
+с.,s.,ГОРНИ РАДКОВЦИ,GORNI RADKOVTSI,5360
+с.,s.,ГОРНИ РОМАНЦИ,GORNI ROMANTSI,2371
+с.,s.,ГОРНИ ТАНЧЕВЦИ,GORNI TANCHEVTSI,5098
+с.,s.,ГОРНИ ЦИБЪР,GORNI TSIBAR,3632
+с.,s.,ГОРНИ ЦОНЕВЦИ,GORNI TSONEVTSI,5360
+с.,s.,ГОРНИ ЮРУЦИ,GORNI YURUTSI,6954
+с.,s.,ГОРНИК,GORNIK,5991
+с.,s.,ГОРНО АБЛАНОВО,GORNO ABLANOVO,7173
+с.,s.,ГОРНО АЛЕКСАНДРОВО,GORNO ALEKSANDROVO,8883
+с.,s.,ГОРНО БЕЛЕВО,GORNO BELEVO,6219
+с.,s.,ГОРНО БОТЕВО,GORNO BOTEVO,6053
+с.,s.,ГОРНО ВОЙВОДИНО,GORNO VOYVODINO,6388
+с.,s.,ГОРНО ВЪРШИЛО,GORNO VARSHILO,4497
+с.,s.,ГОРНО ДРАГЛИЩЕ,GORNO DRAGLISHTE,2797
+с.,s.,ГОРНО ДРЯНОВО,GORNO DRYANOVO,2963
+с.,s.,ГОРНО ИЗВОРОВО,GORNO IZVOROVO,6181
+с.,s.,ГОРНО КАМАРЦИ,GORNO KAMARTSI,2138
+с.,s.,ГОРНО КИРКОВО,GORNO KIRKOVO,6884
+с.,s.,ГОРНО КОБИЛЕ,GORNO KOBILE,2556
+с.,s.,ГОРНО КОЗАРЕВО,GORNO KOZAREVO,7927
+с.,s.,ГОРНО КРАИЩЕ,GORNO KRAISHTE,2783
+с.,s.,ГОРНО КЪПИНОВО,GORNO KAPINOVO,6871
+с.,s.,ГОРНО ЛУКОВО,GORNO LUKOVO,6585
+с.,s.,ГОРНО НОВКОВО,GORNO NOVKOVO,7939
+с.,s.,ГОРНО НОВО СЕЛО,GORNO NOVO SELO,6225
+с.,s.,ГОРНО ОЗИРОВО,GORNO OZIROVO,3547
+с.,s.,ГОРНО ОСЕНОВО,GORNO OSENOVO,2756
+с.,s.,ГОРНО ПАВЛИКЕНЕ,GORNO PAVLIKENE,5549
+с.,s.,ГОРНО ПЕЩЕНЕ,GORNO PESHTENE,3052
+с.,s.,ГОРНО ПОЛЕ,GORNO POLE,6486
+с.,s.,ГОРНО ПРАХОВО,GORNO PRAHOVO,6780
+с.,s.,ГОРНО САХРАНЕ,GORNO SAHRANE,6151
+с.,s.,ГОРНО СЕЛО,GORNO SELO,2213
+с.,s.,ГОРНО СПАНЧЕВО,GORNO SPANCHEVO,2824
+с.,s.,ГОРНО ТРАПЕ,GORNO TRAPE,5614
+с.,s.,ГОРНО УЙНО,GORNO UYNO,2561
+с.,s.,ГОРНО ХЪРСОВО,GORNO HARSOVO,2727
+с.,s.,ГОРНО ЦЕРОВЕНЕ,GORNO TSEROVENE,3487
+с.,s.,ГОРНО ЧЕРКОВИЩЕ,GORNO CHERKOVISHTE,6165
+с.,s.,ГОРНО ЯБЪЛКОВО,GORNO YABALKOVO,8343
+с.,s.,ГОРНОВА МОГИЛА,GORNOVA MOGILA,5304
+с.,s.,ГОРНОСЕЛЦИ,GORNOSELTSI,6574
+с.,s.,ГОРНОСЛАВ,GORNOSLAV,4253
+с.,s.,ГОРНОТО СЕЛО,GORNOTO SELO,5748
+с.,s.,ГОРОВО,GOROVO,8469
+с.,s.,ГОРОВО,GOROVO,4776
+с.,s.,ГОРОЦВЕТ,GOROTSVET,7288
+с.,s.,ГОРОЧЕВЦИ,GOROCHEVTSI,2496
+с.,s.,ГОРСКА,GORSKA,5083
+с.,s.,ГОРСКА ПОЛЯНА,GORSKA POLYANA,8721
+с.,s.,ГОРСКИ ГОРЕН ТРЪМБЕШ,GORSKI GOREN TRAMBESH,5132
+с.,s.,ГОРСКИ ДОЛЕН ТРЪМБЕШ,GORSKI DOLEN TRAMBESH,5131
+с.,s.,ГОРСКИ ИЗВОР,GORSKI IZVOR,6865
+с.,s.,ГОРСКИ ИЗВОР,GORSKI IZVOR,6420
+с.,s.,ГОРСКИ СЕНОВЕЦ,GORSKI SENOVETS,5167
+с.,s.,ГОРСКО,GORSKO,6590
+с.,s.,ГОРСКО АБЛАНОВО,GORSKO ABLANOVO,7847
+с.,s.,ГОРСКО ДЮЛЕВО,GORSKO DYULEVO,6800
+с.,s.,ГОРСКО КАЛУГЕРОВО,GORSKO KALUGEROVO,5238
+с.,s.,ГОРСКО КОСОВО,GORSKO KOSOVO,5235
+с.,s.,ГОРСКО НОВО СЕЛО,GORSKO NOVO SELO,5075
+с.,s.,ГОРСКО ПИСАРЕВО,GORSKO PISAREVO,5088
+с.,s.,ГОРСКО СЕЛО,GORSKO SELO,7947
+с.,s.,ГОРСКО СЛИВОВО,GORSKO SLIVOVO,5557
+с.,s.,ГОРТАЛОВО,GORTALOVO,5888
+с.,s.,ГОРУН,GORUN,9689
+с.,s.,ГОРУНАКА,GORUNAKA,2191
+с.,s.,ГОРУНЬОВО,GORUNYOVO,5722
+с.,s.,ГОРЧЕВО,GORCHEVO,2882
+с.,s.,ГОРЯНИ,GORYANI,5367
+с.,s.,ГОСПОДИНОВО,GOSPODINOVO,9107
+с.,s.,ГОСПОДИНОВО,GOSPODINOVO,7561
+с.,s.,ГОСПОДИНЦИ,GOSPODINTSI,2914
+с.,s.,ГОСТИЛИЦА,GOSTILITSA,5390
+с.,s.,ГОСТИЛЯ,GOSTILYA,5864
+с.,s.,ГОСТИНЯ,GOSTINYA,5543
+с.,s.,ГОСТУН,GOSTUN,2773
+с.,s.,ГРАДЕВО,GRADEVO,2755
+с.,s.,ГРАДЕЖНИЦА,GRADEZHNITSA,5732
+с.,s.,ГРАДЕЦ,GRADETS,3780
+с.,s.,ГРАДЕЦ,GRADETS,8990
+с.,s.,ГРАДЕЦ,GRADETS,2239
+с.,s.,ГРАДЕШНИЦА,GRADESHNITSA,3074
+с.,s.,ГРАДИНА,GRADINA,5879
+с.,s.,ГРАДИНА,GRADINA,4290
+с.,s.,ГРАДИНА,GRADINA,7239
+с.,s.,ГРАДИНАРОВО,GRADINAROVO,9243
+с.,s.,ГРАДИНИ,GRADINI,9552
+с.,s.,ГРАДИНКА,GRADINKA,7964
+с.,s.,ГРАДИЩЕ,GRADISHTE,5435
+с.,s.,ГРАДИЩЕ,GRADISHTE,5910
+с.,s.,ГРАДИЩЕ,GRADISHTE,9803
+с.,s.,ГРАДНИЦА,GRADNITSA,5439
+с.,s.,ГРАДНИЦА,GRADNITSA,9498
+с.,s.,ГРАДСКО,GRADSKO,8852
+с.,s.,ГРАДСКОВСКИ КОЛИБИ,GRADSKOVSKI KOLIBI,3835
+с.,s.,ГРАДЪТ,GRADAT,4749
+с.,s.,ГРАМАДЕ,GRAMADE,2679
+с.,s.,ГРАМАДЕ,GRAMADE,4968
+с.,s.,ГРАМАЖДАНО,GRAMAZHDANO,2574
+с.,s.,ГРАМАТИКОВО,GRAMATIKOVO,8166
+с.,s.,ГРАМАТИЦИ,GRAMATITSI,5099
+с.,s.,ГРАНИТ,GRANIT,6252
+с.,s.,ГРАНИТЕЦ,GRANITETS,8333
+с.,s.,ГРАНИТОВО,GRANITOVO,3914
+с.,s.,ГРАНИТОВО,GRANITOVO,8740
+с.,s.,ГРАНИЦА,GRANITSA,2589
+с.,s.,ГРАНИЧАК,GRANICHAK,3934
+с.,s.,ГРАНИЧАР,GRANICHAR,8347
+с.,s.,ГРАНИЧАР,GRANICHAR,9669
+с.,s.,ГРАФ ИГНАТИЕВО,GRAF IGNATIEVO,4198
+с.,s.,ГРАФИТОВО,GRAFITOVO,8938
+с.,s.,ГРАШЕВО,GRASHEVO,4618
+с.,s.,ГРАЩИЦА,GRASHTITSA,4714
+с.,s.,ГРЕЕВЦИ,GREEVTSI,7960
+с.,s.,ГРИВИЦА,GRIVITSA,5841
+с.,s.,ГРИВКА,GRIVKA,6965
+с.,s.,ГРИВЯК,GRIVYAK,6890
+с.,s.,ГРИГОРЕВО,GRIGOREVO,2108
+с.,s.,ГРОЗДЕН,GROZDEN,8464
+с.,s.,ГРОЗДЬОВО,GROZDYOVO,9106
+с.,s.,ГРОМШИН,GROMSHIN,3444
+с.,s.,ГРОХОТНО,GROHOTNO,4815
+с.,s.,ГРУЕВО,GRUEVO,6809
+с.,s.,ГРЪБЛЕВЦИ,GRABLEVTSI,5300
+с.,s.,ГРЪЛСКА ПАДИНА,GRALSKA PADINA,2213
+с.,s.,ГРЪНЧАРОВО,GRANCHAROVO,7669
+с.,s.,ГУБЕШ,GUBESH,2255
+с.,s.,ГУБИСЛАВ,GUBISLAV,2274
+с.,s.,ГУГУТКА,GUGUTKA,6590
+с.,s.,ГУДЕВИЦА,GUDEVITSA,4792
+с.,s.,ГУЛИЙКА,GULIYKA,6943
+с.,s.,ГУЛИЯ,GULIA,6926
+с.,s.,ГУМОЩНИК,GUMOSHTNIK,5654
+с.,s.,ГУРБАНОВЦИ,GURBANOVTSI,2567
+с.,s.,ГУРГУЛИЦА,GURGULITSA,6830
+с.,s.,ГУРГУЛЯТ,GURGULYAT,2223
+с.,s.,ГУРКОВО,GURKOVO,2145
+с.,s.,ГУРКОВО,GURKOVO,9644
+с.,s.,ГУРМАЗОВО,GURMAZOVO,2226
+с.,s.,ГУСЛА,GUSLA,9969
+с.,s.,ГУСЛАР,GUSLAR,9479
+с.,s.,ГУЦАЛ,GUTSAL,2045
+с.,s.,ГЪБЕНЕ,GABENE,5333
+с.,s.,ГЪЛЪБЕЦ,GALABETS,8220
+с.,s.,ГЪЛЪБЕЦ,GALABETS,6366
+с.,s.,ГЪЛЪБИНЦИ,GALABINTSI,8642
+с.,s.,ГЪЛЪБНИК,GALABNIK,2426
+с.,s.,ГЪЛЪБОВО,GALABOVO,4938
+с.,s.,ГЪЛЪБОВО,GALABOVO,2784
+с.,s.,ГЪЛЪБОВО,GALABOVO,4125
+с.,s.,ГЪЛЪБОВЦИ,GALABOVTSI,2223
+с.,s.,ГЪМЗОВО,GAMZOVO,3785
+с.,s.,ГЪРБИНО,GARBINO,2550
+с.,s.,ГЪРБИЩЕ,GARBISHTE,6760
+с.,s.,ГЪРДЕВЦИ,GARDEVTSI,5087
+с.,s.,ГЪРЛО,GARLO,2381
+с.,s.,ГЪРЛЯНО,GARLYANO,2568
+с.,s.,ГЪРМЕН,GARMEN,2960
+с.,s.,ГЪРНАТИ,GARNATI,4991
+с.,s.,ГЪРНЯ,GARNYA,5370
+с.,s.,ГЪРЧИНОВО,GARCHINOVO,7844
+с.,s.,ГЪСКОВО,GASKOVO,6651
+с.,s.,ГЬОВРЕН,GYOVREN,4811
+с.,s.,ГЮЕШЕВО,GYUESHEVO,2570
+с.,s.,ГЮЛЬОВЦА,GYULYOVTSA,8249
+с.,s.,ГЮРГЕВО,GYURGEVO,2875
+с.,s.,ГЮРГИЧ,GYURGICH,3932
+с.,s.,ДАВЕРИ,DAVERI,5083
+с.,s.,ДАВИДКОВО,DAVIDKOVO,4944
+с.,s.,ДАВИДОВО,DAVIDOVO,7563
+с.,s.,ДАВИДОВО,DAVIDOVO,7758
+с.,s.,ДАГОНОВО,DAGONOVO,2779
+с.,s.,ДАЕВЦИ,DAEVTSI,5365
+с.,s.,ДАЙНОВЦИ,DAYNOVTSI,5084
+с.,s.,ДАМЯНИЦА,DAMYANITSA,2813
+с.,s.,ДАМЯНОВО,DAMYANOVO,5437
+с.,s.,ДАСКАЛ АТАНАСОВО,DASKAL ATANASOVO,6261
+с.,s.,ДАСКАЛОВО,DASKALOVO,6707
+с.,s.,ДВЕ ТОПОЛИ,DVE TOPOLI,4949
+с.,s.,ДВОРИЩЕ,DVORISHTE,2541
+с.,s.,ДВОРИЩЕ,DVORISHTE,6193
+с.,s.,ДЕБЕЛ ДЯЛ,DEBEL DYAL,5307
+с.,s.,ДЕБЕЛЕЦ,DEBELETS,
+с.,s.,ДЕБЕЛИ ЛАГ,DEBELI LAG,2416
+с.,s.,ДЕБЕЛИ РЪТ,DEBELI RAT,5084
+с.,s.,ДЕБЕЛТ,DEBELT,8314
+с.,s.,ДЕБЕЛЦОВО,DEBELTSOVO,5435
+с.,s.,ДЕБЕЛЯНОВО,DEBELYANOVO,4946
+с.,s.,ДЕБНЕВО,DEBNEVO,5657
+с.,s.,ДЕБОВО,DEBOVO,5958
+с.,s.,ДЕБОЧИЦА,DEBOCHITSA,2748
+с.,s.,ДЕБРЕН,DEBREN,2961
+с.,s.,ДЕБРЕНЕ,DEBRENE,2803
+с.,s.,ДЕБРЕНЕ,DEBRENE,9353
+с.,s.,ДЕБРЪЩИЦА,DEBRASHTITSA,4414
+с.,s.,ДЕВЕНЕ,DEVENE,3065
+с.,s.,ДЕВЕНЦИ,DEVENTSI,5995
+с.,s.,ДЕВЕСИЛИЦА,DEVESILITSA,6934
+с.,s.,ДЕВЕСИЛОВО,DEVESILOVO,6933
+с.,s.,ДЕВЕТАК,DEVETAK,8480
+с.,s.,ДЕВЕТАКИ,DEVETAKI,5555
+с.,s.,ДЕВЕТАЦИТЕ,DEVETATSITE,5050
+с.,s.,ДЕВЕТИНЦИ,DEVETINTSI,8474
+с.,s.,ДЕВИНО,DEVINO,7972
+с.,s.,ДЕВИНЦИ,DEVINTSI,6833
+с.,s.,ДЕДЕЦ,DEDETS,6861
+с.,s.,ДЕДИНА,DEDINA,5089
+с.,s.,ДЕДИНО,DEDINO,6779
+с.,s.,ДЕДИНЦИ,DEDINTSI,5089
+с.,s.,ДЕДОВО,DEDOVO,4106
+с.,s.,ДЕКОВ,DEKOV,5935
+с.,s.,ДЕЛВИНО,DELVINO,2728
+с.,s.,ДЕЛВИНО,DELVINO,6896
+с.,s.,ДЕЛЕЙНА,DELEYNA,3795
+с.,s.,ДЕЛОВА МАХАЛА,DELOVA MAHALA,5084
+с.,s.,ДЕЛЧЕВО,DELCHEVO,2917
+с.,s.,ДЕЛЧЕВО,DELCHEVO,7427
+с.,s.,ДЕЛЯН,DELYAN,2652
+с.,s.,ДЕЛЯН,DELYAN,2225
+с.,s.,ДЕЛЯНОВЦИ,DELYANOVTSI,5292
+с.,s.,ДЕННИЦА,DENNITSA,9772
+с.,s.,ДЕННИЦА,DENNITSA,8726
+с.,s.,ДЕНЧЕВЦИ,DENCHEVTSI,5377
+с.,s.,ДЕРВИШКА МОГИЛА,DERVISHKA MOGILA,6539
+с.,s.,ДЕРМАНЦИ,DERMANTSI,5780
+с.,s.,ДЕТЕЛИНА,DETELINA,8483
+с.,s.,ДЕТЕЛИНА,DETELINA,9111
+с.,s.,ДЕЧКОВЦИ,DECHKOVTSI,5041
+с.,s.,ДЖАМУЗОВЦИ,DZHAMUZOVTSI,2060
+с.,s.,ДЖАНКА,DZHANKA,6908
+с.,s.,ДЖЕЛЕПСКО,DZHELEPSKO,6824
+с.,s.,ДЖЕРМАН,DZHERMAN,2648
+с.,s.,ДЖЕРОВО,DZHEROVO,6872
+с.,s.,ДЖИГУРОВО,DZHIGUROVO,2812
+с.,s.,ДЖИНОТ,DZHINOT,8691
+с.,s.,ДЖИНЧОВЦИ,DZHINCHOVTSI,2483
+с.,s.,ДЖУЛЮНИЦА,DZHULYUNITSA,5146
+с.,s.,ДЖУЛЮНИЦА,DZHULYUNITSA,7137
+с.,s.,ДЖУМРИИТЕ,DZHUMRIITE,5343
+с.,s.,ДЖУРКОВО,DZHURKOVO,4241
+с.,s.,ДЖУРОВО,DZHUROVO,2163
+с.,s.,ДЖУРОВЦИ,DZHUROVTSI,5380
+с.,s.,ДИБИЧ,DIBICH,9811
+с.,s.,ДИВА СЛАТИНА,DIVA SLATINA,3492
+с.,s.,ДИВЕЦИ,DIVETSI,5345
+с.,s.,ДИВЛЯ,DIVLYA,2457
+с.,s.,ДИВОТИНО,DIVOTINO,2350
+с.,s.,ДИВЧОВОТО,DIVCHOVOTO,5727
+с.,s.,ДИМАНОВО,DIMANOVO,4994
+с.,s.,ДИМИЕВЦИ,DIMIEVTSI,5363
+с.,s.,ДИМИТРИЕВО,DIMITRIEVO,6259
+с.,s.,ДИМИТРОВЦИ,DIMITROVTSI,5050
+с.,s.,ДИМИТРОВЧЕ,DIMITROVCHE,6518
+с.,s.,ДИМОВО,DIMOVO,4757
+с.,s.,ДИМОВЦИ,DIMOVTSI,5035
+с.,s.,ДИМОВЦИ,DIMOVTSI,6192
+с.,s.,ДИМЧА,DIMCHA,5234
+с.,s.,ДИМЧЕВО,DIMCHEVO,8159
+с.,s.,ДИНЕВО,DINEVO,6340
+с.,s.,ДИНК,DINK,4149
+с.,s.,ДИНКАТА,DINKATA,4458
+с.,s.,ДИНКОВИЦА,DINKOVITSA,3783
+с.,s.,ДИНКОВО,DINKOVO,3921
+с.,s.,ДИНЯ,DINYA,6268
+с.,s.,ДИРАЛО,DIRALO,4927
+с.,s.,ДИСЕВИЦА,DISEVITSA,5886
+с.,s.,ДИСМАНИЦА,DISMANITSA,5441
+с.,s.,ДИЧЕВО,DICHEVO,7625
+с.,s.,ДИЧИН,DICHIN,5059
+с.,s.,ДЛЪГНЕВО,DLAGNEVO,6432
+с.,s.,ДЛЪГНЯ,DLAGNYA,5392
+с.,s.,ДЛЪЖКА ПОЛЯНА,DLAZHKA POLYANA,7997
+с.,s.,ДЛЪЖКО,DLAZHKO,9789
+с.,s.,ДЛЪХЧЕВО-САБЛЯР,DLAHCHEVO-SABLYAR,2582
+с.,s.,ДОБОРСКО,DOBORSKO,6947
+с.,s.,ДОБРА ПОЛЯНА,DOBRA POLYANA,8580
+с.,s.,ДОБРАВИЦА,DOBRAVITSA,2279
+с.,s.,ДОБРАЛЪК,DOBRALAK,4259
+с.,s.,ДОБРЕВА ЧЕРЕША,DOBREVA CHERESHA,4917
+с.,s.,ДОБРЕВО,DOBREVO,9399
+с.,s.,ДОБРЕВЦИ,DOBREVTSI,5095
+с.,s.,ДОБРЕВЦИ,DOBREVTSI,5365
+с.,s.,ДОБРЕВЦИ,DOBREVTSI,5762
+с.,s.,ДОБРЕНИТЕ,DOBRENITE,5380
+с.,s.,ДОБРИ ВОЙНИКОВО,DOBRI VOYNIKOVO,9782
+с.,s.,ДОБРИ ДОЛ,DOBRI DOL,9128
+с.,s.,ДОБРИ ДОЛ,DOBRI DOL,2559
+с.,s.,ДОБРИ ДОЛ,DOBRI DOL,3667
+с.,s.,ДОБРИ ДОЛ,DOBRI DOL,4292
+с.,s.,ДОБРИ ДЯЛ,DOBRI DYAL,5149
+с.,s.,ДОБРИ ЛАКИ,DOBRI LAKI,2838
+с.,s.,ДОБРИН,DOBRIN,9402
+с.,s.,ДОБРИНА,DOBRINA,9216
+с.,s.,ДОБРИНОВО,DOBRINOVO,8477
+с.,s.,ДОБРИНОВО,DOBRINOVO,6670
+с.,s.,ДОБРИНЦИ,DOBRINTSI,6857
+с.,s.,ДОБРИЧ,DOBRICH,6437
+с.,s.,ДОБРИЧ,DOBRICH,8724
+с.,s.,ДОБРОВНИЦА,DOBROVNITSA,4405
+с.,s.,ДОБРОВО,DOBROVO,2662
+с.,s.,ДОБРОГЛЕД,DOBROGLED,9145
+с.,s.,ДОБРОДАН,DOBRODAN,5658
+с.,s.,ДОБРОЛЕВО,DOBROLEVO,3253
+с.,s.,ДОБРОМИР,DOBROMIR,8552
+с.,s.,ДОБРОМИРКА,DOBROMIRKA,5430
+с.,s.,ДОБРОМИРЦИ,DOBROMIRTSI,6861
+с.,s.,ДОБРОПЛОДНО,DOBROPLODNO,9281
+с.,s.,ДОБРОСЕЛЕЦ,DOBROSELETS,6560
+с.,s.,ДОБРОСЛАВЦИ,DOBROSLAVTSI,1247
+с.,s.,ДОБРОСТАН,DOBROSTAN,4256
+с.,s.,ДОБРОТИНО,DOBROTINO,2919
+с.,s.,ДОБРОТИЦА,DOBROTITSA,7531
+с.,s.,ДОБРОТИЦА,DOBROTITSA,7990
+с.,s.,ДОБРОТИЧ,DOBROTICH,9282
+с.,s.,ДОБРУДЖАНКА,DOBRUDZHANKA,7548
+с.,s.,ДОБРУША,DOBRUSHA,3069
+с.,s.,ДОБЪРСКО,DOBARSKO,2799
+с.,s.,ДОБЪРЧИН,DOBARCHIN,2289
+с.,s.,ДОГАНОВО,DOGANOVO,2115
+с.,s.,ДОЖДЕВИЦА,DOZHDEVITSA,2547
+с.,s.,ДОЙНОВЦИ,DOYNOVTSI,5035
+с.,s.,ДОЙРАНЦИ,DOYRANTSI,6799
+с.,s.,ДОЙРАНЦИ,DOYRANTSI,9961
+с.,s.,ДОЙРЕНЦИ,DOYRENTSI,5550
+с.,s.,ДОКАТИЧЕВО,DOKATICHEVO,2734
+с.,s.,ДОКТОР ЙОСИФОВО,DOKTOR YOSIFOVO,3449
+с.,s.,ДОКЬОВЦИ,DOKYOVTSI,2497
+с.,s.,ДОЛЕН,DOLEN,2968
+с.,s.,ДОЛЕН,DOLEN,4985
+с.,s.,ДОЛЕН ЕНЕВЕЦ,DOLEN ENEVETS,5050
+с.,s.,ДОЛЕНЕ,DOLENE,2887
+с.,s.,ДОЛЕНИ,DOLENI,2811
+с.,s.,ДОЛЕЦ,DOLETS,7682
+с.,s.,ДОЛЕЦ,DOLETS,7858
+с.,s.,ДОЛИЕ,DOLIE,4921
+с.,s.,ДОЛИНА,DOLINA,9358
+с.,s.,ДОЛИНА,DOLINA,9947
+с.,s.,ДОЛИСТОВО,DOLISTOVO,2637
+с.,s.,ДОЛИЩЕ,DOLISHTE,9152
+с.,s.,ДОЛИЩЕ,DOLISHTE,6663
+с.,s.,ДОЛНА БЕЛА РЕЧКА,DOLNA BELA RECHKA,3545
+с.,s.,ДОЛНА БЕШОВИЦА,DOLNA BESHOVITSA,3143
+с.,s.,ДОЛНА ВАСИЛИЦА,DOLNA VASILITSA,2034
+с.,s.,ДОЛНА ВЕРЕНИЦА,DOLNA VERENITSA,3485
+с.,s.,ДОЛНА ВРАБЧА,DOLNA VRABCHA,2458
+с.,s.,ДОЛНА ГРАДЕШНИЦА,DOLNA GRADESHNITSA,2843
+с.,s.,ДОЛНА ГРАЩИЦА,DOLNA GRASHTITSA,2536
+с.,s.,ДОЛНА ДИКАНЯ,DOLNA DIKANYA,2420
+с.,s.,ДОЛНА ДЪБЕВА,DOLNA DABEVA,4655
+с.,s.,ДОЛНА ЗЛАТИЦА,DOLNA ZLATITSA,7968
+с.,s.,ДОЛНА КАБДА,DOLNA KABDA,7867
+с.,s.,ДОЛНА КОЗНИЦА,DOLNA KOZNITSA,2595
+с.,s.,ДОЛНА КРЕМЕНА,DOLNA KREMENA,3153
+с.,s.,ДОЛНА КРЕПОСТ,DOLNA KREPOST,6686
+с.,s.,ДОЛНА КРУШИЦА,DOLNA KRUSHITSA,2888
+с.,s.,ДОЛНА КУЛА,DOLNA KULA,6953
+с.,s.,ДОЛНА ЛИПНИЦА,DOLNA LIPNITSA,5226
+с.,s.,ДОЛНА МАЛИНА,DOLNA MALINA,2107
+с.,s.,ДОЛНА МАРГАТИНА,DOLNA MARGATINA,5659
+с.,s.,ДОЛНА МАХАЛА,DOLNA MAHALA,4200
+с.,s.,ДОЛНА МЕЛНА,DOLNA MELNA,2490
+с.,s.,ДОЛНА НЕВЛЯ,DOLNA NEVLYA,2213
+с.,s.,ДОЛНА РИБНИЦА,DOLNA RIBNITSA,2892
+с.,s.,ДОЛНА РИКСА,DOLNA RIKSA,3452
+с.,s.,ДОЛНА СЕКИРНА,DOLNA SEKIRNA,2397
+с.,s.,ДОЛНА СТУДЕНА,DOLNA STUDENA,7123
+с.,s.,ДОЛНА ХУБАВКА,DOLNA HUBAVKA,7931
+с.,s.,ДОЛНИ БОГРОВ,DOLNI BOGROV,1855
+с.,s.,ДОЛНИ БОШНЯК,DOLNI BOSHNYAK,3782
+с.,s.,ДОЛНИ ВАДИН,DOLNI VADIN,3344
+с.,s.,ДОЛНИ ВИТ,DOLNI VIT,5969
+с.,s.,ДОЛНИ ВЪРПИЩА,DOLNI VARPISHTA,5380
+с.,s.,ДОЛНИ ГЛАВАНАК,DOLNI GLAVANAK,6483
+с.,s.,ДОЛНИ ДАМЯНОВЦИ,DOLNI DAMYANOVTSI,5036
+с.,s.,ДОЛНИ ДРАГОЙЧА,DOLNI DRAGOYCHA,5380
+с.,s.,ДОЛНИ КОРИТЕН,DOLNI KORITEN,2558
+с.,s.,ДОЛНИ ЛОМ,DOLNI LOM,3958
+с.,s.,ДОЛНИ ЛУКОВИТ,DOLNI LUKOVIT,5867
+с.,s.,ДОЛНИ МАРЕНЦИ,DOLNI MARENTSI,5360
+с.,s.,ДОЛНИ МАРЯН,DOLNI MARYAN,5084
+с.,s.,ДОЛНИ ОКОЛ,DOLNI OKOL,2028
+с.,s.,ДОЛНИ ПАСАРЕЛ,DOLNI PASAREL,1165
+с.,s.,ДОЛНИ РАДКОВЦИ,DOLNI RADKOVTSI,5360
+с.,s.,ДОЛНИ РАКОВЕЦ,DOLNI RAKOVETS,2413
+с.,s.,ДОЛНИ РОМАНЦИ,DOLNI ROMANTSI,2367
+с.,s.,ДОЛНИ ТАНЧЕВЦИ,DOLNI TANCHEVTSI,5097
+с.,s.,ДОЛНИ ТОМЧЕВЦИ,DOLNI TOMCHEVTSI,5350
+с.,s.,ДОЛНИ ЦИБЪР,DOLNI TSIBAR,3642
+с.,s.,ДОЛНИ ЮРУЦИ,DOLNI YURUTSI,6954
+с.,s.,ДОЛНО АБЛАНОВО,DOLNO ABLANOVO,7053
+с.,s.,ДОЛНО БЕЛЕВО,DOLNO BELEVO,6422
+с.,s.,ДОЛНО БЕЛОТИНЦИ,DOLNO BELOTINTSI,3437
+с.,s.,ДОЛНО БОТЕВО,DOLNO BOTEVO,6393
+с.,s.,ДОЛНО ВОЙВОДИНО,DOLNO VOYVODINO,6389
+с.,s.,ДОЛНО ВЪРШИЛО,DOLNO VARSHILO,4498
+с.,s.,ДОЛНО ГОЛЕМАНЦИ,DOLNO GOLEMANTSI,6358
+с.,s.,ДОЛНО ДРАГЛИЩЕ,DOLNO DRAGLISHTE,2798
+с.,s.,ДОЛНО ДРЯНОВО,DOLNO DRYANOVO,2944
+с.,s.,ДОЛНО ИЗВОРОВО,DOLNO IZVOROVO,6183
+с.,s.,ДОЛНО КАМАРЦИ,DOLNO KAMARTSI,2137
+с.,s.,ДОЛНО КОБИЛЕ,DOLNO KOBILE,2556
+с.,s.,ДОЛНО КОЗАРЕВО,DOLNO KOZAREVO,7926
+с.,s.,ДОЛНО КЪПИНОВО,DOLNO KAPINOVO,6870
+с.,s.,ДОЛНО ЛИНЕВО,DOLNO LINEVO,3605
+с.,s.,ДОЛНО ЛУКОВО,DOLNO LUKOVO,6586
+с.,s.,ДОЛНО НОВКОВО,DOLNO NOVKOVO,7938
+с.,s.,ДОЛНО НОВО СЕЛО,DOLNO NOVO SELO,2212
+с.,s.,ДОЛНО НОВО СЕЛО,DOLNO NOVO SELO,6226
+с.,s.,ДОЛНО ОЗИРОВО,DOLNO OZIROVO,3538
+с.,s.,ДОЛНО ОСЕНОВО,DOLNO OSENOVO,2757
+с.,s.,ДОЛНО ПОЛЕ,DOLNO POLE,6382
+с.,s.,ДОЛНО ПРАХОВО,DOLNO PRAHOVO,6779
+с.,s.,ДОЛНО РЯХОВО,DOLNO RYAHOVO,7624
+с.,s.,ДОЛНО САХРАНЕ,DOLNO SAHRANE,6161
+с.,s.,ДОЛНО СЕЛО,DOLNO SELO,2567
+с.,s.,ДОЛНО СПАНЧЕВО,DOLNO SPANCHEVO,2869
+с.,s.,ДОЛНО СЪДИЕВО,DOLNO SADIEVO,6455
+с.,s.,ДОЛНО УЙНО,DOLNO UYNO,2560
+с.,s.,ДОЛНО ЦЕРОВЕНЕ,DOLNO TSEROVENE,3639
+с.,s.,ДОЛНО ЧЕРКОВИЩЕ,DOLNO CHERKOVISHTE,6381
+с.,s.,ДОЛНО ШИВАЧЕВО,DOLNO SHIVACHEVO,5090
+с.,s.,ДОЛНО ЯБЪЛКОВО,DOLNO YABALKOVO,8342
+с.,s.,ДОЛНОСЕЛЦИ,DOLNOSELTSI,6573
+с.,s.,ДОЛНОСЛАВ,DOLNOSLAV,4254
+с.,s.,ДОМИЩЕ,DOMISHTE,6887
+с.,s.,ДОМЛЯН,DOMLYAN,4357
+с.,s.,ДОНДУКОВО,DONDUKOVO,3659
+с.,s.,ДОНИНО,DONINO,5342
+с.,s.,ДОНКИНО,DONKINO,5360
+с.,s.,ДОНКОВЦИ,DONKOVTSI,5081
+с.,s.,ДОНЧЕВО,DONCHEVO,9354
+с.,s.,ДОНЧОВЦИ,DONCHOVTSI,5351
+с.,s.,ДОРКОВО,DORKOVO,4641
+с.,s.,ДОСИТЕЕВО,DOSITEEVO,6472
+с.,s.,ДОСПЕЙ,DOSPEY,2012
+с.,s.,ДОЧА,DOCHA,5380
+с.,s.,ДРАБИШНА,DRABISHNA,6577
+с.,s.,ДРАГАНА,DRAGANA,5524
+с.,s.,ДРАГАНИЦА,DRAGANITSA,3534
+с.,s.,ДРАГАНОВЕЦ,DRAGANOVETS,7773
+с.,s.,ДРАГАНОВО,DRAGANOVO,8114
+с.,s.,ДРАГАНОВО,DRAGANOVO,5137
+с.,s.,ДРАГАНОВО,DRAGANOVO,6714
+с.,s.,ДРАГАНОВО,DRAGANOVO,9349
+с.,s.,ДРАГАНОВЦИ,DRAGANOVTSI,5094
+с.,s.,ДРАГАНОВЦИ,DRAGANOVTSI,5332
+с.,s.,ДРАГАНОСКОВЦИ,DRAGANOSKOVTSI,5081
+с.,s.,ДРАГАНЦИ,DRAGANTSI,8489
+с.,s.,ДРАГАНЧЕТАТА,DRAGANCHETATA,5335
+с.,s.,ДРАГАШ ВОЙВОДА,DRAGASH VOYVODA,5952
+с.,s.,ДРАГИЕВЦИ,DRAGIEVTSI,5332
+с.,s.,ДРАГИЖЕВО,DRAGIZHEVO,5145
+с.,s.,ДРАГИЙЦИ,DRAGIYTSI,5094
+с.,s.,ДРАГИНОВО,DRAGINOVO,4642
+с.,s.,ДРАГИЧЕВО,DRAGICHEVO,2351
+с.,s.,ДРАГНЕВЦИ,DRAGNEVTSI,5097
+с.,s.,ДРАГНЕВЦИ,DRAGNEVTSI,5360
+с.,s.,ДРАГОВИЩИЦА,DRAGOVISHTITSA,2564
+с.,s.,ДРАГОВИЩИЦА,DRAGOVISHTITSA,2237
+с.,s.,ДРАГОВО,DRAGOVO,8437
+с.,s.,ДРАГОДАН,DRAGODAN,2625
+с.,s.,ДРАГОДАНОВО,DRAGODANOVO,8888
+с.,s.,ДРАГОЕВО,DRAGOEVO,9860
+с.,s.,ДРАГОИЛ,DRAGOIL,2208
+с.,s.,ДРАГОЙНОВО,DRAGOYNOVO,4293
+с.,s.,ДРАГОЙЧИНЦИ,DRAGOYCHINTSI,2554
+с.,s.,ДРАГОМАНИ,DRAGOMANI,5343
+с.,s.,ДРАГОМИР,DRAGOMIR,4184
+с.,s.,ДРАГОМИРОВО,DRAGOMIROVO,5285
+с.,s.,ДРАГОМИРОВО,DRAGOMIROVO,2428
+с.,s.,ДРАГОМЪЖ,DRAGOMAZH,7419
+с.,s.,ДРАГОР,DRAGOR,4406
+с.,s.,ДРАГОСТИН,DRAGOSTIN,2916
+с.,s.,ДРАГОТИНЦИ,DRAGOTINTSI,2218
+с.,s.,ДРАГУШ,DRAGUSH,2875
+с.,s.,ДРАГУШИНОВО,DRAGUSHINOVO,2008
+с.,s.,ДРАЖЕВО,DRAZHEVO,8634
+с.,s.,ДРАЖИНЦИ,DRAZHINTSI,3929
+с.,s.,ДРАКА,DRAKA,8324
+с.,s.,ДРАКАТА,DRAKATA,2829
+с.,s.,ДРАЛФА,DRALFA,7782
+с.,s.,ДРАМА,DRAMA,8651
+с.,s.,ДРАНГОВО,DRANGOVO,2859
+с.,s.,ДРАНГОВО,DRANGOVO,6860
+с.,s.,ДРАНГОВО,DRANGOVO,4164
+с.,s.,ДРАНДАРИТЕ,DRANDARITE,5363
+с.,s.,ДРАЧЕВО,DRACHEVO,8319
+с.,s.,ДРАШАН,DRASHAN,3267
+с.,s.,ДРАШКОВА ПОЛЯНА,DRASHKOVA POLYANA,5648
+с.,s.,ДРЕАТИН,DREATIN,2213
+с.,s.,ДРЕН,DREN,2430
+с.,s.,ДРЕНКОВО,DRENKOVO,2739
+с.,s.,ДРЕНОВ,DRENOV,5562
+с.,s.,ДРЕНОВЕЦ,DRENOVETS,3920
+с.,s.,ДРЕНОВИЦА,DRENOVITSA,2895
+с.,s.,ДРЕНОВО,DRENOVO,2876
+с.,s.,ДРЕНОВО,DRENOVO,2236
+с.,s.,ДРЕНТА,DRENTA,5095
+с.,s.,ДРЕНЦИ,DRENTSI,9788
+с.,s.,ДРИНОВО,DRINOVO,7834
+с.,s.,ДРИПЧЕВО,DRIPCHEVO,6477
+с.,s.,ДРОПЛА,DROPLA,8563
+с.,s.,ДРОПЛА,DROPLA,9641
+с.,s.,ДРУГАН,DRUGAN,2410
+с.,s.,ДРУЖБА,DRUZHBA,3730
+с.,s.,ДРУЖЕВО,DRUZHEVO,2281
+с.,s.,ДРУЖИНЦИ,DRUZHINTSI,6885
+с.,s.,ДРУМЕВО,DRUMEVO,9815
+с.,s.,ДРУМОХАР,DRUMOHAR,2596
+с.,s.,ДРУМЧЕ,DRUMCHE,6820
+с.,s.,ДРЪМША,DRAMSHA,2238
+с.,s.,ДРЪНДАР,DRANDAR,9173
+с.,s.,ДРЯНКА,DRYANKA,4941
+с.,s.,ДРЯНКОВЕЦ,DRYANKOVETS,8524
+с.,s.,ДРЯНОВА ГЛАВА,DRYANOVA GLAVA,6865
+с.,s.,ДРЯНОВЕЦ,DRYANOVETS,7268
+с.,s.,ДРЯНОВЕЦ,DRYANOVETS,7122
+с.,s.,ДРЯНОВЕЦ,DRYANOVETS,4856
+с.,s.,ДРЯНОВЕЦ,DRYANOVETS,9392
+с.,s.,ДРЯНОВО,DRYANOVO,4241
+с.,s.,ДРЯНОВО,DRYANOVO,6493
+с.,s.,ДРЯНОВО,DRYANOVO,8652
+с.,s.,ДРЯНСКА,DRYANSKA,5618
+с.,s.,ДРЯНЪТ,DRYANAT,5462
+с.,s.,ДУВАНЛИИ,DUVANLII,4174
+с.,s.,ДУКОВЦИ,DUKOVTSI,5094
+с.,s.,ДУМНИЦИ,DUMNITSI,5345
+с.,s.,ДУНАВЕЦ,DUNAVETS,7623
+с.,s.,ДУНАВЦИ,DUNAVTSI,5041
+с.,s.,ДУНАВЦИ,DUNAVTSI,6145
+с.,s.,ДУНЕВО,DUNEVO,4723
+с.,s.,ДУНЯ,DUNYA,4990
+с.,s.,ДУРАНКУЛАК,DURANKULAK,9670
+с.,s.,ДУРОВЦИ,DUROVTSI,5089
+с.,s.,ДУРЧА,DURCHA,5380
+с.,s.,ДУХОВЕЦ,DUHOVETS,7435
+с.,s.,ДУШАНЦИ,DUSHANTSI,2083
+с.,s.,ДУШЕВО,DUSHEVO,5455
+с.,s.,ДУШЕВСКИ КОЛИБИ,DUSHEVSKI KOLIBI,5455
+с.,s.,ДУШИНКОВО,DUSHINKOVO,6846
+с.,s.,ДУШИНЦИ,DUSHINTSI,2398
+с.,s.,ДУШКА,DUSHKA,6714
+с.,s.,ДЪБЕН,DABEN,5787
+с.,s.,ДЪБЕНЕ,DABENE,4349
+с.,s.,ДЪБНИК,DABNIK,8213
+с.,s.,ДЪБНИЦА,DABNITSA,2940
+с.,s.,ДЪБОВА,DABOVA,8996
+с.,s.,ДЪБОВА,DABOVA,4969
+с.,s.,ДЪБОВА МАХАЛА,DABOVA MAHALA,3674
+с.,s.,ДЪБОВАН,DABOVAN,5973
+с.,s.,ДЪБОВЕЦ,DABOVETS,6587
+с.,s.,ДЪБОВИК,DABOVIK,9551
+с.,s.,ДЪБОВИЦА,DABOVITSA,8449
+с.,s.,ДЪБОВО,DABOVO,6178
+с.,s.,ДЪБОВО,DABOVO,8736
+с.,s.,ДЪБРАВА,DABRAVA,2723
+с.,s.,ДЪБРАВА,DABRAVA,5546
+с.,s.,ДЪБРАВА,DABRAVA,9638
+с.,s.,ДЪБРАВАТА,DABRAVATA,5765
+с.,s.,ДЪБРАВИНО,DABRAVINO,9126
+с.,s.,ДЪБРАВИТЕ,DABRAVITE,4472
+с.,s.,ДЪБРАВИЦА,DABRAVITSA,7997
+с.,s.,ДЪБРАВКА,DABRAVKA,3916
+с.,s.,ДЪЖДИНО,DAZHDINO,6642
+с.,s.,ДЪЖДОВНИК,DAZHDOVNIK,6917
+с.,s.,ДЪЖДОВНИЦА,DAZHDOVNITSA,6747
+с.,s.,ДЪЛБОК ДОЛ,DALBOK DOL,5668
+с.,s.,ДЪЛБОК ИЗВОР,DALBOK IZVOR,4280
+с.,s.,ДЪЛБОКИ,DALBOKI,6060
+с.,s.,ДЪЛГА ЛИВАДА,DALGA LIVADA,5745
+с.,s.,ДЪЛГА ЛУКА,DALGA LUKA,2492
+с.,s.,ДЪЛГАЧ,DALGACH,7742
+с.,s.,ДЪЛГИ ДЕЛ,DALGI DEL,3475
+с.,s.,ДЪЛГИ ПРИПЕК,DALGI PRIPEK,5088
+с.,s.,ДЪЛГО ПОЛЕ,DALGO POLE,3756
+с.,s.,ДЪЛГО ПОЛЕ,DALGO POLE,4195
+с.,s.,ДЪЛГОДЕЛЦИ,DALGODELTSI,3638
+с.,s.,ДЪНГОВО,DANGOVO,6637
+с.,s.,ДЪРВАРИ,DARVARI,5350
+с.,s.,ДЪРЖАВА,DARZHAVA,6217
+с.,s.,ДЪРЖАВЕН,DARZHAVEN,6188
+с.,s.,ДЪРЖАНИЦА,DARZHANITSA,3747
+с.,s.,ДЪРЛЕВЦИ,DARLEVTSI,5070
+с.,s.,ДЪРМАНЦИ,DARMANTSI,3129
+с.,s.,ДЪСКАРИТЕ,DASKARITE,5363
+с.,s.,ДЪСКОТ,DASKOT,5223
+с.,s.,ДЪСКОТНА,DASKOTNA,8561
+с.,s.,ДЮЛЕВО,DYULEVO,8330
+с.,s.,ДЮЛЕВО,DYULEVO,4529
+с.,s.,ДЮЛИНО,DYULINO,9108
+с.,s.,ДЮЛИЦА,DYULITSA,6876
+с.,s.,ДЮЛЯ,DYULYA,8571
+с.,s.,ДЯДОВО,DYADOVO,8918
+с.,s.,ДЯДОВСКО,DYADOVSKO,6705
+с.,s.,ДЯДОВЦИ,DYADOVTSI,6764
+с.,s.,ДЯКОВО,DYAKOVO,2651
+с.,s.,ДЯЛЪК,DYALAK,5454
+с.,s.,ДЯНКОВО,DYANKOVO,7270
+с.,s.,ЕВЛОГИЕВО,EVLOGIEVO,5965
+с.,s.,ЕВРЕНОЗОВО,EVRENOZOVO,8172
+с.,s.,ЕГРЕК,EGREK,6931
+с.,s.,ЕГЪЛНИЦА,EGALNITSA,2429
+с.,s.,ЕДИНАКОВЦИ,EDINAKOVTSI,9792
+с.,s.,ЕДРЕВО,EDREVO,6173
+с.,s.,ЕДРИНО,EDRINO,6909
+с.,s.,ЕЗДИМИРЦИ,EZDIMIRTSI,2464
+с.,s.,ЕЗЕРЕЦ,EZERETS,9687
+с.,s.,ЕЗЕРО,EZERO,8919
+с.,s.,ЕЗЕРОВО,EZEROVO,9168
+с.,s.,ЕЗЕРОВО,EZEROVO,4288
+с.,s.,ЕЗЕРОТО,EZEROTO,5309
+с.,s.,ЕЗЕРЧЕ,EZERCHE,7274
+с.,s.,ЕКЗАРХ АНТИМОВО,EKZARH ANTIMOVO,8490
+с.,s.,ЕКЗАРХ ЙОСИФ,EKZARH YOSIF,7171
+с.,s.,ЕЛЕНА,ELENA,6399
+с.,s.,ЕЛЕНИНО,ELENINO,6047
+с.,s.,ЕЛЕНКА,ELENKA,4990
+с.,s.,ЕЛЕНОВ ДОЛ,ELENOV DOL,2275
+с.,s.,ЕЛЕНОВО,ELENOVO,2726
+с.,s.,ЕЛЕНОВО,ELENOVO,8943
+с.,s.,ЕЛЕНОВО,ELENOVO,7837
+с.,s.,ЕЛЕНСКА,ELENSKA,4731
+с.,s.,ЕЛЕНЦИТЕ,ELENTSITE,5388
+с.,s.,ЕЛЕШНИЦА,ELESHNITSA,2782
+с.,s.,ЕЛЕШНИЦА,ELESHNITSA,2125
+с.,s.,ЕЛИСЕЙНА,ELISEYNA,3160
+с.,s.,ЕЛОВ ДОЛ,ELOV DOL,2159
+с.,s.,ЕЛОВДОЛ,ELOVDOL,2434
+с.,s.,ЕЛОВИЦА,ELOVITSA,3471
+с.,s.,ЕЛОВИЦА,ELOVITSA,2489
+с.,s.,ЕЛХОВЕЦ,ELHOVETS,4970
+с.,s.,ЕЛХОВО,ELHOVO,6064
+с.,s.,ЕЛХОВО,ELHOVO,6174
+с.,s.,ЕЛШИЦА,ELSHITSA,4538
+с.,s.,ЕЛЬОВО,ELYOVO,4783
+с.,s.,ЕМЕН,EMEN,5065
+с.,s.,ЕМОНА,EMONA,8252
+с.,s.,ЕНЕВ РЪТ,ENEV RAT,5469
+с.,s.,ЕНЕВО,ENEVO,9389
+с.,s.,ЕНЕВО,ENEVO,9919
+с.,s.,ЕНИНА,ENINA,6142
+с.,s.,ЕНИЦА,ENITSA,5837
+с.,s.,ЕНЧЕЦ,ENCHETS,6735
+с.,s.,ЕНЧОВЦИ,ENCHOVTSI,5360
+с.,s.,ЕНЬОВЧЕ,ENYOVCHE,6788
+с.,s.,ЕРДЕН,ERDEN,3431
+с.,s.,ЕРЕМИЯ,EREMIA,2585
+с.,s.,ЕРМА РЕКА,ERMA REKA,4997
+с.,s.,ЕРОВЕТЕ,EROVETE,6865
+с.,s.,ЕРУЛ,ERUL,2486
+с.,s.,ЕСЕН,ESEN,8459
+с.,s.,ЕСЕНИЦА,ESENITSA,9289
+с.,s.,ЕФРЕЙТОР БАКАЛОВО,EFREYTOR BAKALOVO,9422
+с.,s.,ЕФРЕМ,EFREM,6476
+с.,s.,ЖАБЛЯНО,ZHABLYANO,2442
+с.,s.,ЖАБОКРЪТ,ZHABOKRAT,2545
+с.,s.,ЖЕГЛАРЦИ,ZHEGLARTSI,9492
+с.,s.,ЖЕГЛИЦА,ZHEGLITSA,3738
+с.,s.,ЖЕДНА,ZHEDNA,2423
+с.,s.,ЖЕЛЕЗАРИ,ZHELEZARI,6594
+с.,s.,ЖЕЛЕЗАРИ,ZHELEZARI,7948
+с.,s.,ЖЕЛЕЗАРЦИ,ZHELEZARTSI,5164
+с.,s.,ЖЕЛЕЗИНО,ZHELEZINO,6595
+с.,s.,ЖЕЛЕЗНА,ZHELEZNA,3461
+с.,s.,ЖЕЛЕЗНИК,ZHELEZNIK,8488
+с.,s.,ЖЕЛЕЗНИК,ZHELEZNIK,6711
+с.,s.,ЖЕЛЕЗНИЦА,ZHELEZNITSA,2732
+с.,s.,ЖЕЛЕЗНИЦА,ZHELEZNITSA,1475
+с.,s.,ЖЕЛЕН,ZHELEN,2267
+с.,s.,ЖЕЛЪД,ZHELAD,9826
+с.,s.,ЖЕЛЪДОВО,ZHELADOVO,6855
+с.,s.,ЖЕЛЮ ВОЙВОДА,ZHELYU VOYVODA,8860
+с.,s.,ЖЕЛЯВА,ZHELYAVA,1807
+с.,s.,ЖЕЛЯЗКОВЕЦ,ZHELYAZKOVETS,7455
+с.,s.,ЖЕЛЯЗНО,ZHELYAZNO,4136
+с.,s.,ЖЕЛЯЗОВО,ZHELYAZOVO,8106
+с.,s.,ЖЕНДА,ZHENDA,6693
+с.,s.,ЖЕРАВИНО,ZHERAVINO,2567
+с.,s.,ЖЕРАВИЦА,ZHERAVITSA,5621
+с.,s.,ЖЕРАВНА,ZHERAVNA,8988
+с.,s.,ЖЕРГОВЕЦ,ZHERGOVETS,6190
+с.,s.,ЖЕРНОВ,ZHERNOV,5964
+с.,s.,ЖИВКО,ZHIVKO,5344
+с.,s.,ЖИВКОВО,ZHIVKOVO,2065
+с.,s.,ЖИВКОВО,ZHIVKOVO,9794
+с.,s.,ЖИДОВ ДОЛ,ZHIDOV DOL,5622
+с.,s.,ЖИЖЕВО,ZHIZHEVO,2956
+с.,s.,ЖИЛЕНЦИ,ZHILENTSI,2573
+с.,s.,ЖИЛИНО,ZHILINO,9929
+с.,s.,ЖИНЗИФОВО,ZHINZIFOVO,6654
+с.,s.,ЖИТАРНИК,ZHITARNIK,6636
+с.,s.,ЖИТЕН,ZHITEN,1211
+с.,s.,ЖИТЕН,ZHITEN,9555
+с.,s.,ЖИТНИЦА,ZHITNITSA,9278
+с.,s.,ЖИТНИЦА,ZHITNITSA,6708
+с.,s.,ЖИТНИЦА,ZHITNITSA,4172
+с.,s.,ЖИТНИЦА,ZHITNITSA,9424
+с.,s.,ЖИТОСВЯТ,ZHITOSVYAT,8475
+с.,s.,ЖИТУША,ZHITUSHA,2432
+с.,s.,ЖРЕБЕВО,ZHREBEVO,4827
+с.,s.,ЖРЕБИНО,ZHREBINO,8733
+с.,s.,ЖРЕБИЧКО,ZHREBICHKO,4585
+с.,s.,ЖЪЛТ БРЯГ,ZHALT BRYAG,8894
+с.,s.,ЖЪЛТ КАМЪК,ZHALT KAMAK,4298
+с.,s.,ЖЪЛТЕШ,ZHALTESH,5335
+с.,s.,ЖЪЛТИ БРЯГ,ZHALTI BRYAG,6368
+с.,s.,ЖЪЛТИ РИД,ZHALTI RID,6846
+с.,s.,ЖЪЛТИКА,ZHALTIKA,6842
+с.,s.,ЖЪЛТОПОП,ZHALTOPOP,6195
+с.,s.,ЖЪЛТУША,ZHALTUSHA,6789
+с.,s.,ЗАБЕЛ,ZABEL,2469
+с.,s.,ЗАБЕРНОВО,ZABERNOVO,8168
+с.,s.,ЗАБЪРДО,ZABARDO,4872
+с.,s.,ЗАВАЛА,ZAVALA,2374
+с.,s.,ЗАВЕТ,ZAVET,8432
+с.,s.,ЗАВЕТНО,ZAVETNO,7881
+с.,s.,ЗАВИДОВЦИ,ZAVIDOVTSI,2288
+с.,s.,ЗАВОЙ,ZAVOY,8633
+с.,s.,ЗАВОЯ,ZAVOYA,6885
+с.,s.,ЗАГОРЕ,ZAGORE,6063
+с.,s.,ЗАГОРИЧЕ,ZAGORICHE,9966
+с.,s.,ЗАГОРСКИ,ZAGORSKI,6865
+с.,s.,ЗАГОРСКО,ZAGORSKO,6817
+с.,s.,ЗАГОРЦИ,ZAGORTSI,8321
+с.,s.,ЗАГОРЦИ,ZAGORTSI,8939
+с.,s.,ЗАГОРЦИ,ZAGORTSI,9413
+с.,s.,ЗАГРАЖДЕН,ZAGRAZHDEN,5974
+с.,s.,ЗАГРАЖДЕН,ZAGRAZHDEN,4950
+с.,s.,ЗАДРУГА,ZADRUGA,7317
+с.,s.,ЗАЕВИТЕ,ZAEVITE,4710
+с.,s.,ЗАИМЧЕВО,ZAIMCHEVO,8564
+с.,s.,ЗАЙЧАР,ZAYCHAR,8557
+с.,s.,ЗАЙЧАРИ,ZAYCHARI,8843
+с.,s.,ЗАЙЧИНО,ZAYCHINO,6749
+с.,s.,ЗАЙЧИНО ОРЕШЕ,ZAYCHINO ORESHE,9918
+с.,s.,ЗАМФИР,ZAMFIR,3644
+с.,s.,ЗАМФИРОВО,ZAMFIROVO,3530
+с.,s.,ЗАНОГА,ZANOGA,2875
+с.,s.,ЗАНОГЕ,ZANOGE,2283
+с.,s.,ЗАРАЕВО,ZARAEVO,7832
+с.,s.,ЗАРИЦА,ZARITSA,7689
+с.,s.,ЗАРНИК,ZARNIK,7552
+с.,s.,ЗАСЕЛЕ,ZASELE,2284
+с.,s.,ЗАСМЯНО,ZASMYANO,9141
+с.,s.,ЗАФИРОВО,ZAFIROVO,7610
+с.,s.,ЗАХАРИ СТОЯНОВО,ZAHARI STOYANOVO,9671
+с.,s.,ЗАХАРИ СТОЯНОВО,ZAHARI STOYANOVO,7842
+с.,s.,ЗАЯ,ZAYA,5397
+с.,s.,ЗВЕГОР,ZVEGOR,9791
+с.,s.,ЗВЕЗДА,ZVEZDA,8572
+с.,s.,ЗВЕЗДА,ZVEZDA,7878
+с.,s.,ЗВЕЗДЕЛ,ZVEZDEL,6820
+с.,s.,ЗВЕЗДЕЛИНА,ZVEZDELINA,6653
+с.,s.,ЗВЕЗДЕН,ZVEZDEN,6658
+с.,s.,ЗВЕЗДЕЦ,ZVEZDETS,8170
+с.,s.,ЗВЕЗДИЦА,ZVEZDITSA,9103
+с.,s.,ЗВЕЗДИЦА,ZVEZDITSA,7945
+с.,s.,ЗВЕНИМИР,ZVENIMIR,7644
+с.,s.,ЗВЕРИНО,ZVERINO,3170
+с.,s.,ЗВИНИЦА,ZVINITSA,6668
+с.,s.,ЗВЪНАРКА,ZVANARKA,6920
+с.,s.,ЗВЪНАРЦИ,ZVANARTSI,7333
+с.,s.,ЗВЪНЕЦ,ZVANETS,9142
+с.,s.,ЗВЪНИКА,ZVANIKA,6732
+с.,s.,ЗВЪНИЧЕВО,ZVANICHEVO,4415
+с.,s.,ЗВЪНЧЕ,ZVANCHE,6744
+с.,s.,ЗГАЛЕВО,ZGALEVO,5897
+с.,s.,ЗГОРИГРАД,ZGORIGRAD,3042
+с.,s.,ЗГУРОВО,ZGUROVO,2592
+с.,s.,ЗДРАВЕЦ,ZDRAVETS,9137
+с.,s.,ЗДРАВЕЦ,ZDRAVETS,7437
+с.,s.,ЗДРАВЕЦ,ZDRAVETS,7769
+с.,s.,ЗДРАВЕЦ,ZDRAVETS,6435
+с.,s.,ЗДРАВЕЦ,ZDRAVETS,4241
+с.,s.,ЗДРАВКОВЕЦ,ZDRAVKOVETS,5344
+с.,s.,ЗДРАВЧЕЦ,ZDRAVCHETS,6861
+с.,s.,ЗЕБИЛ,ZEBIL,7641
+с.,s.,ЗЕЛЕНА МОРАВА,ZELENA MORAVA,7954
+с.,s.,ЗЕЛЕНДОЛ,ZELENDOL,2745
+с.,s.,ЗЕЛЕНИГРАД,ZELENIGRAD,2478
+с.,s.,ЗЕЛЕНИК,ZELENIK,5099
+с.,s.,ЗЕЛЕНИКА,ZELENIKA,5351
+с.,s.,ЗЕЛЕНИКОВО,ZELENIKOVO,6740
+с.,s.,ЗЕЛЕНИКОВО,ZELENIKOVO,4155
+с.,s.,ЗЕЛЕНО ДЪРВО,ZELENO DARVO,5304
+с.,s.,ЗЕМЕНЦИ,ZEMENTSI,9411
+с.,s.,ЗЕМЛЕН,ZEMLEN,6266
+с.,s.,ЗЕТЬОВО,ZETYOVO,8517
+с.,s.,ЗЕТЬОВО,ZETYOVO,6220
+с.,s.,ЗИДАРОВО,ZIDAROVO,8160
+с.,s.,ЗИДАРЦИ,ZIDARTSI,2356
+с.,s.,ЗИМЕВИЦА,ZIMEVITSA,2282
+с.,s.,ЗИМЕН,ZIMEN,8428
+с.,s.,ЗИМЗЕЛЕН,ZIMZELEN,6627
+с.,s.,ЗИМНИЦА,ZIMNITSA,6177
+с.,s.,ЗИМНИЦА,ZIMNITSA,9421
+с.,s.,ЗИМНИЦА,ZIMNITSA,8690
+с.,s.,ЗИМОВИНА,ZIMOVINA,6396
+с.,s.,ЗИМОРНИЦА,ZIMORNITSA,6965
+с.,s.,ЗЛАТАР,ZLATAR,9880
+с.,s.,ЗЛАТАРИ,ZLATARI,8641
+с.,s.,ЗЛАТАРИЦА,ZLATARITSA,2783
+с.,s.,ЗЛАТЕВЦИ,ZLATEVTSI,5345
+с.,s.,ЗЛАТИ ВОЙВОДА,ZLATI VOYVODA,8875
+с.,s.,ЗЛАТИНА,ZLATINA,9218
+с.,s.,ЗЛАТИНИЦА,ZLATINITSA,8746
+с.,s.,ЗЛАТИРЪТ,ZLATIRAT,6197
+с.,s.,ЗЛАТИТРАП,ZLATITRAP,4212
+с.,s.,ЗЛАТИЯ,ZLATIA,3630
+с.,s.,ЗЛАТИЯ,ZLATIA,9385
+с.,s.,ЗЛАТНА ЛИВАДА,ZLATNA LIVADA,6221
+с.,s.,ЗЛАТНА НИВА,ZLATNA NIVA,9944
+с.,s.,ЗЛАТНА ПАНЕГА,ZLATNA PANEGA,5760
+с.,s.,ЗЛАТОВРЪХ,ZLATOVRAH,4264
+с.,s.,ЗЛАТОКЛАС,ZLATOKLAS,7694
+с.,s.,ЗЛАТОЛИСТ,ZLATOLIST,2830
+с.,s.,ЗЛАТОЛИСТ,ZLATOLIST,6915
+с.,s.,ЗЛАТОПОЛЕ,ZLATOPOLE,6421
+с.,s.,ЗЛАТОСЕЛ,ZLATOSEL,4162
+с.,s.,ЗЛАТОУСТОВО,ZLATOUSTOVO,6484
+с.,s.,ЗЛАТУША,ZLATUSHA,2225
+с.,s.,ЗЛИДОЛ,ZLIDOL,3161
+с.,s.,ЗЛОГОШ,ZLOGOSH,2558
+с.,s.,ЗЛОКУЧЕНЕ,ZLOKUCHENE,4491
+с.,s.,ЗЛОКУЧЕНЕ,ZLOKUCHENE,2009
+с.,s.,ЗМЕЕВО,ZMEEVO,9643
+с.,s.,ЗМЕИЦА,ZMEITSA,4834
+с.,s.,ЗМЕЙНО,ZMEYNO,7945
+с.,s.,ЗМЕЙОВО,ZMEYOVO,6059
+с.,s.,ЗМИЕВО,ZMIEVO,4777
+с.,s.,ЗНАМЕНОСЕЦ,ZNAMENOSETS,6272
+с.,s.,ЗОГРАФ,ZOGRAF,9553
+с.,s.,ЗОЙЧЕНЕ,ZOYCHENE,2882
+с.,s.,ЗОРЕНИШКИ ДОЛ,ZORENISHKI DOL,5737
+с.,s.,ЗОРНИЦА,ZORNITSA,2821
+с.,s.,ЗОРНИЦА,ZORNITSA,9156
+с.,s.,ЗОРНИЦА,ZORNITSA,6650
+с.,s.,ЗОРНИЦА,ZORNITSA,4857
+с.,s.,ЗОРНИЦА,ZORNITSA,6367
+с.,s.,ЗОРНИЦА,ZORNITSA,8313
+с.,s.,ЗЪРНЕВО,ZARNEVO,9491
+с.,s.,ИВАЙЛО,IVAYLO,4407
+с.,s.,ИВАН ВАЗОВО,IVAN VAZOVO,4206
+с.,s.,ИВАН ДИМОВ,IVAN DIMOV,5363
+с.,s.,ИВАН ШИШМАНОВО,IVAN SHISHMANOVO,7342
+с.,s.,ИВАНИВАНОВЦИ,IVANIVANOVTSI,5084
+с.,s.,ИВАНИЛИ,IVANILI,5300
+с.,s.,ИВАНКОВЦИ,IVANKOVTSI,5340
+с.,s.,ИВАНОВО,IVANOVO,2875
+с.,s.,ИВАНОВО,IVANOVO,7088
+с.,s.,ИВАНОВО,IVANOVO,6465
+с.,s.,ИВАНОВО,IVANOVO,9865
+с.,s.,ИВАНОВО,IVANOVO,4918
+с.,s.,ИВАНОВЦИ,IVANOVTSI,5035
+с.,s.,ИВАНОВЦИ,IVANOVTSI,3739
+с.,s.,ИВАНОВЦИ,IVANOVTSI,2562
+с.,s.,ИВАНСКИ,IVANSKI,9810
+с.,s.,ИВАНЦИ,IVANTSI,6628
+с.,s.,ИВАНЧА,IVANCHA,5194
+с.,s.,ИВАНЧА,IVANCHA,7859
+с.,s.,ИВАНШНИЦА,IVANSHNITSA,5623
+с.,s.,ИВАНЯНЕ,IVANYANE,1393
+с.,s.,ИГАНОВО,IGANOVO,4334
+с.,s.,ИГЛИКА,IGLIKA,5343
+с.,s.,ИГЛИКА,IGLIKA,9797
+с.,s.,ИГЛИКА,IGLIKA,8745
+с.,s.,ИГНАТИЦА,IGNATITSA,3167
+с.,s.,ИГНАТОВО,IGNATOVO,3631
+с.,s.,ИГНАТОВЦИ,IGNATOVTSI,5098
+с.,s.,ИГНАТОВЦИ,IGNATOVTSI,5370
+с.,s.,ИГРАЛИЩЕ,IGRALISHTE,2848
+с.,s.,ИДИЛЕВО,IDILEVO,5422
+с.,s.,ИЗБЕГЛИИ,IZBEGLII,4269
+с.,s.,ИЗБУЛ,IZBUL,9959
+с.,s.,ИЗВОР,IZVOR,8153
+с.,s.,ИЗВОР,IZVOR,3742
+с.,s.,ИЗВОР,IZVOR,2415
+с.,s.,ИЗВОР,IZVOR,4116
+с.,s.,ИЗВОР,IZVOR,2219
+с.,s.,ИЗВОР МАХАЛА,IZVOR MAHALA,3821
+с.,s.,ИЗВОРИЩЕ,IZVORISHTE,8116
+с.,s.,ИЗВОРНИК,IZVORNIK,9297
+с.,s.,ИЗВОРОВО,IZVOROVO,6242
+с.,s.,ИЗВОРОВО,IZVOROVO,9538
+с.,s.,ИЗВОРОВО,IZVOROVO,7950
+с.,s.,ИЗВОРОВО,IZVOROVO,6461
+с.,s.,ИЗВОРОВО,IZVOROVO,4235
+с.,s.,ИЗВОРСКО,IZVORSKO,9154
+с.,s.,ИЗВОРЧЕ,IZVORCHE,5536
+с.,s.,ИЗГРЕВ,IZGREV,2711
+с.,s.,ИЗГРЕВ,IZGREV,8273
+с.,s.,ИЗГРЕВ,IZGREV,9176
+с.,s.,ИЗГРЕВ,IZGREV,5924
+с.,s.,ИЗГРЕВ,IZGREV,8847
+с.,s.,ИЗГРЕВ,IZGREV,4990
+с.,s.,ИЗГРЕВ,IZGREV,9754
+с.,s.,ИЗГРЕВ,IZGREV,8717
+с.,s.,ИЗТОЧНИК,IZTOCHNIK,5335
+с.,s.,ИЛАКОВ РЪТ,ILAKOV RAT,5082
+с.,s.,ИЛЕВЦИ,ILEVTSI,5045
+с.,s.,ИЛИЙНО,ILIYNO,7948
+с.,s.,ИЛИЙСКО,ILIYSKO,6845
+с.,s.,ИЛИНДЕН,ILINDEN,2929
+с.,s.,ИЛИНДЕН,ILINDEN,2072
+с.,s.,ИЛИНДЕНЦИ,ILINDENTSI,2833
+с.,s.,ИЛИНИЦА,ILINITSA,6745
+с.,s.,ИЛИЮВЦИ,ILIYUVTSI,5093
+с.,s.,ИЛИЯ,ILIA,2581
+с.,s.,ИЛИЯ БЛЪСКОВО,ILIA BLASKOVO,9813
+с.,s.,ИМРЕНЧЕВО,IMRENCHEVO,9877
+с.,s.,ИНДЖЕ ВОЙВОДА,INDZHE VOYVODA,8149
+с.,s.,ИНОВО,INOVO,3763
+с.,s.,ИРЕЧЕК,IRECHEK,9666
+с.,s.,ИРЕЧЕКОВО,IRECHEKOVO,8697
+с.,s.,ИРИНЕЦИ,IRINETSI,5367
+с.,s.,ИРНИК,IRNIK,7532
+с.,s.,ИСКРА,ISKRA,8481
+с.,s.,ИСКРА,ISKRA,5380
+с.,s.,ИСКРА,ISKRA,4297
+с.,s.,ИСКРА,ISKRA,7580
+с.,s.,ИСКРА,ISKRA,6781
+с.,s.,ИСКРЕЦ,ISKRETS,2290
+с.,s.,ИСКРИЦА,ISKRITSA,6293
+с.,s.,ИСКЪР,ISKAR,5972
+с.,s.,ИСКЪР,ISKAR,9285
+с.,s.,ИСПЕРИХОВО,ISPERIHOVO,4588
+с.,s.,ИСЬОВЦИ,ISYOVTSI,4767
+с.,s.,ИЧЕРА,ICHERA,8849
+с.,s.,ЙЕРУСАЛИМОВО,YERUSALIMOVO,6551
+с.,s.,ЙОАКИМ ГРУЕВО,YOAKIM GRUEVO,4219
+с.,s.,ЙОВКОВО,YOVKOVO,9531
+с.,s.,ЙОВОВЦИ,YOVOVTSI,5360
+с.,s.,ЙОВЧЕВЦИ,YOVCHEVTSI,5035
+с.,s.,ЙОГЛАВ,YOGLAV,5553
+с.,s.,ЙОНКОВО,YONKOVO,7450
+с.,s.,ЙОНЧОВО,YONCHOVO,6724
+с.,s.,ЙОРДАНОВО,YORDANOVO,7569
+с.,s.,КАБИЛЕ,KABILE,8629
+с.,s.,КАБЛЕШКОВО,KABLESHKOVO,6703
+с.,s.,КАБЛЕШКОВО,KABLESHKOVO,9488
+с.,s.,КАВЛАК,KAVLAK,5163
+с.,s.,КАВРАКИРОВО,KAVRAKIROVO,2889
+с.,s.,КАДИЕВО,KADIEVO,4213
+с.,s.,КАДРОВИЦА,KADROVITSA,2593
+с.,s.,КАЗАК,KAZAK,6590
+с.,s.,КАЗАНКА,KAZANKA,6062
+с.,s.,КАЗАЦИТЕ,KAZATSITE,6850
+с.,s.,КАЗАЧЕВО,KAZACHEVO,5548
+с.,s.,КАЗАШКА РЕКА,KAZASHKA REKA,9125
+с.,s.,КАЗАШКО,KAZASHKO,9140
+с.,s.,КАЗИМИР,KAZIMIR,7574
+с.,s.,КАЗИЧЕНЕ,KAZICHENE,1532
+с.,s.,КАЙНАРДЖА,KAYNARDZHA,7550
+с.,s.,КАЛАЙДЖИЕВО,KALAYDZHIEVO,6927
+с.,s.,КАЛАЙДЖИИ,KALAYDZHII,5096
+с.,s.,КАЛЕЙЦА,KALEYTSA,5667
+с.,s.,КАЛЕКОВЕЦ,KALEKOVETS,4147
+с.,s.,КАЛЕН,KALEN,3151
+с.,s.,КАЛЕНИК,KALENIK,3729
+с.,s.,КАЛЕНИК,KALENIK,5575
+с.,s.,КАЛЕНОВЦИ,KALENOVTSI,2253
+с.,s.,КАЛИМАНЦИ,KALIMANTSI,2832
+с.,s.,КАЛИМАНЦИ,KALIMANTSI,9177
+с.,s.,КАЛИНА,KALINA,3788
+с.,s.,КАЛИНА,KALINA,9544
+с.,s.,КАЛИНКА,KALINKA,6623
+с.,s.,КАЛИНО,KALINO,9795
+с.,s.,КАЛИПЕТРОВО,KALIPETROVO,7539
+с.,s.,КАЛИТИНОВО,KALITINOVO,6049
+с.,s.,КАЛИЩЕ,KALISHTE,2431
+с.,s.,КАЛНИЩЕ,KALNISHTE,7960
+с.,s.,КАЛОВО,KALOVO,8169
+с.,s.,КАЛОМЕН,KALOMEN,5388
+с.,s.,КАЛОТИНА,KALOTINA,2212
+с.,s.,КАЛОТИНЦИ,KALOTINTSI,2444
+с.,s.,КАЛОЯН,KALOYAN,9288
+с.,s.,КАЛОЯНОВЕЦ,KALOYANOVETS,6070
+с.,s.,КАЛОЯНОВО,KALOYANOVO,4173
+с.,s.,КАЛОЯНОВО,KALOYANOVO,8881
+с.,s.,КАЛОЯНЦИ,KALOYANTSI,6675
+с.,s.,КАЛУГЕРЕНЕ,KALUGERENE,7631
+с.,s.,КАЛУГЕРОВО,KALUGEROVO,4462
+с.,s.,КАЛУГЕРОВО,KALUGEROVO,2169
+с.,s.,КАЛУГЕРОВО,KALUGEROVO,6495
+с.,s.,КАЛЧЕВО,KALCHEVO,8677
+с.,s.,КАЛЧОВЦИ,KALCHOVTSI,5340
+с.,s.,КАМБЕЛЕВЦИ,KAMBELEVTSI,2215
+с.,s.,КАМБУРОВО,KAMBUROVO,7930
+с.,s.,КАМЕН,KAMEN,5160
+с.,s.,КАМЕН,KAMEN,8882
+с.,s.,КАМЕН,KAMEN,9425
+с.,s.,КАМЕН БРЯГ,KAMEN BRYAG,9661
+с.,s.,КАМЕН ВРЪХ,KAMEN VRAH,8728
+с.,s.,КАМЕН ДЯЛ,KAMEN DYAL,9253
+с.,s.,КАМЕНА,KAMENA,2878
+с.,s.,КАМЕНАР,KAMENAR,8215
+с.,s.,КАМЕНАР,KAMENAR,9102
+с.,s.,КАМЕНАР,KAMENAR,7247
+с.,s.,КАМЕНАРИ,KAMENARI,5083
+с.,s.,КАМЕНАРЦИ,KAMENARTSI,6729
+с.,s.,КАМЕНЕЦ,KAMENETS,6800
+с.,s.,КАМЕНЕЦ,KAMENETS,5866
+с.,s.,КАМЕНЕЦ,KAMENETS,8655
+с.,s.,КАМЕНИК,KAMENIK,2677
+с.,s.,КАМЕНИЦА,KAMENITSA,2828
+с.,s.,КАМЕНИЦА,KAMENITSA,2072
+с.,s.,КАМЕНИЧКА СКАКАВИЦА,KAMENICHKA SKAKAVITSA,2572
+с.,s.,КАМЕНКА,KAMENKA,6918
+с.,s.,КАМЕННА РЕКА,KAMENNA REKA,6546
+с.,s.,КАМЕННА РИКСА,KAMENNA RIKSA,3479
+с.,s.,КАМЕНО ПОЛЕ,KAMENO POLE,3150
+с.,s.,КАМЕНОВО,KAMENOVO,7343
+с.,s.,КАМЕНОВО,KAMENOVO,8928
+с.,s.,КАМЕНСКО,KAMENSKO,8455
+с.,s.,КАМЕНЦИ,KAMENTSI,7565
+с.,s.,КАМЕНЯК,KAMENYAK,8578
+с.,s.,КАМЕНЯК,KAMENYAK,9783
+с.,s.,КАМЕНЯНЕ,KAMENYANE,6850
+с.,s.,КАМЕЩИЦА,KAMESHTITSA,5333
+с.,s.,КАМИЛСКИ ДОЛ,KAMILSKI DOL,6571
+с.,s.,КАМЧИЯ,KAMCHIA,8434
+с.,s.,КАНДИЛКА,KANDILKA,6937
+с.,s.,КАНДОВИ,KANDOVI,4631
+с.,s.,КАНИЦ,KANITS,3843
+с.,s.,КАНТАРИ,KANTARI,5094
+с.,s.,КАНЯК,KANYAK,6695
+с.,s.,КАПАТОВО,KAPATOVO,2872
+с.,s.,КАПИТАН АНДРЕЕВО,KAPITAN ANDREEVO,6530
+с.,s.,КАПИТАН ДИМИТРИЕВО,KAPITAN DIMITRIEVO,4589
+с.,s.,КАПИТАН ДИМИТРОВО,KAPITAN DIMITROVO,9408
+с.,s.,КАПИТАН ПЕТКО,KAPITAN PETKO,9770
+с.,s.,КАПИТАН ПЕТКО ВОЙВОДА,KAPITAN PETKO VOYVODA,6561
+с.,s.,КАПИТАНОВЦИ,KAPITANOVTSI,3768
+с.,s.,КАПИЩЕ,KAPISHTE,7988
+с.,s.,КАРА МИХАЛ,KARA MIHAL,7453
+с.,s.,КАРАБУНАР,KARABUNAR,4484
+с.,s.,КАРАВЕЛОВО,KARAVELOVO,4350
+с.,s.,КАРАВЕЛОВО,KARAVELOVO,9942
+с.,s.,КАРАВЕЛОВО,KARAVELOVO,8647
+с.,s.,КАРАВЕЛЬОВО,KARAVELYOVO,8553
+с.,s.,КАРАГЕОРГИЕВО,KARAGEORGIEVO,8543
+с.,s.,КАРАДЖАЛОВО,KARADZHALOVO,4283
+с.,s.,КАРАДЖОВО,KARADZHOVO,4117
+с.,s.,КАРАИВАНЦА,KARAIVANTSA,5386
+с.,s.,КАРАИВАНЦИ,KARAIVANTSI,5095
+с.,s.,КАРАИСЕН,KARAISEN,5230
+с.,s.,КАРАЛИ,KARALI,5343
+с.,s.,КАРАМАНИТЕ,KARAMANITE,9299
+с.,s.,КАРАМАНОВО,KARAMANOVO,7130
+с.,s.,КАРАМАНЦИ,KARAMANTSI,6372
+с.,s.,КАРАМИЧЕВЦИ,KARAMICHEVTSI,5471
+с.,s.,КАРАМФИЛ,KARAMFIL,6826
+с.,s.,КАРАН ВЪРБОВКА,KARAN VARBOVKA,7163
+с.,s.,КАРАНДИЛИ,KARANDILI,5094
+с.,s.,КАРАНОВО,KARANOVO,8532
+с.,s.,КАРАНОВО,KARANOVO,8934
+с.,s.,КАРАНЦИ,KARANTSI,5188
+с.,s.,КАРАПЕЛИТ,KARAPELIT,9390
+с.,s.,КАРАПОЛЦИ,KARAPOLTSI,2118
+с.,s.,КАРАШ,KARASH,3136
+с.,s.,КАРБИНЦИ,KARBINTSI,3923
+с.,s.,КАРВУНА,KARVUNA,9619
+с.,s.,КАРДАМ,KARDAM,9530
+с.,s.,КАРДАМ,KARDAM,7830
+с.,s.,КАРЛИЕВО,KARLIEVO,2088
+с.,s.,КАРЛОВСКО,KARLOVSKO,6572
+с.,s.,КАРЛУКОВО,KARLUKOVO,5782
+с.,s.,КАСАПСКО,KASAPSKO,4921
+с.,s.,КАСИЛАГ,KASILAG,2424
+с.,s.,КАСНАКОВО,KASNAKOVO,6439
+с.,s.,КАСПИЧАН,KASPICHAN,9931
+с.,s.,КАСТЕЛ,KASTEL,5472
+с.,s.,КАТЕРИЦА,KATERITSA,5894
+с.,s.,КАТРАНДЖИИ,KATRANDZHII,5392
+с.,s.,КАТРАНИЦА,KATRANITSA,4739
+с.,s.,КАТРИЩЕ,KATRISHTE,2537
+с.,s.,КАТУНЕЦ,KATUNETS,5569
+с.,s.,КАТУНИЦА,KATUNITSA,4120
+с.,s.,КАТУНИЩЕ,KATUNISHTE,8991
+с.,s.,КАТУНЦИ,KATUNTSI,2830
+с.,s.,КАЦЕЛОВО,KATSELOVO,7160
+с.,s.,КАЧУЛКА,KACHULKA,6907
+с.,s.,КАШЕНЦИ,KASHENTSI,5351
+с.,s.,КАШИНА,KASHINA,2820
+с.,s.,КАЯЛОБА,KAYALOBA,6865
+с.,s.,КЕРЕКА,KEREKA,5388
+с.,s.,КЕРЕНИТЕ,KERENITE,5365
+с.,s.,КЕСАРЕВО,KESAREVO,5161
+с.,s.,КЕСТЕН,KESTEN,4828
+с.,s.,КЕСТЕНОВО,KESTENOVO,7973
+с.,s.,КИЕВЦИ,KIEVTSI,5345
+с.,s.,КИПИЛОВО,KIPILOVO,8998
+с.,s.,КИПРА,KIPRA,9169
+с.,s.,КИРЕВЦИ,KIREVTSI,5094
+с.,s.,КИРЕЕВО,KIREEVO,3823
+с.,s.,КИРИЛОВО,KIRILOVO,6064
+с.,s.,КИРИЛОВО,KIRILOVO,8741
+с.,s.,КИРКОВО,KIRKOVO,6884
+с.,s.,КИРОВО,KIROVO,8344
+с.,s.,КИРЧЕВО,KIRCHEVO,5521
+с.,s.,КИСЕЛЕВО,KISELEVO,3675
+с.,s.,КИСЕЛИЦА,KISELITSA,2556
+с.,s.,КИСЕЛКОВЦИ,KISELKOVTSI,5360
+с.,s.,КИСЕЛЧОВО,KISELCHOVO,4765
+с.,s.,КИСИЙЦИТЕ,KISIYTSITE,5365
+с.,s.,КИСЬОВЦИ,KISYOVTSI,5035
+с.,s.,КИТАНЧЕВО,KITANCHEVO,7430
+с.,s.,КИТЕН,KITEN,9241
+с.,s.,КИТИНО,KITINO,7993
+с.,s.,КИТКА,KITKA,8558
+с.,s.,КИТКА,KITKA,9127
+с.,s.,КИТНА,KITNA,6868
+с.,s.,КИТНИЦА,KITNITSA,6791
+с.,s.,КИЧЕВО,KICHEVO,9151
+с.,s.,КИЧЕНИЦА,KICHENITSA,7243
+с.,s.,КЛАДЕНЕЦ,KLADENETS,6395
+с.,s.,КЛАДЕНЕЦ,KLADENETS,9816
+с.,s.,КЛАДЕНЦИ,KLADENTSI,2895
+с.,s.,КЛАДЕНЦИ,KLADENTSI,9497
+с.,s.,КЛАДНИ ДЯЛ,KLADNI DYAL,5046
+с.,s.,КЛАДНИЦА,KLADNITSA,2347
+с.,s.,КЛАДОРУБ,KLADORUB,3758
+с.,s.,КЛЕНОВИК,KLENOVIK,2421
+с.,s.,КЛЕПАЛО,KLEPALO,2837
+с.,s.,КЛИКАЧ,KLIKACH,8427
+с.,s.,КЛИМАШ,KLIMASH,8442
+с.,s.,КЛИМЕНТ,KLIMENT,4348
+с.,s.,КЛИМЕНТ,KLIMENT,9970
+с.,s.,КЛИМЕНТОВО,KLIMENTOVO,9150
+с.,s.,КЛИМЕНТОВО,KLIMENTOVO,5183
+с.,s.,КЛИСУРА,KLISURA,2738
+с.,s.,КЛИСУРА,KLISURA,1320
+с.,s.,КЛИСУРА,KLISURA,2026
+с.,s.,КЛИСУРИЦА,KLISURITSA,3483
+с.,s.,КЛОКОТНИЦА,KLOKOTNITSA,6310
+с.,s.,КЛЪШКА РЕКА,KLASHKA REKA,5035
+с.,s.,КЛЮЧ,KLYUCH,2899
+с.,s.,КМЕТОВЦИ,KMETOVTSI,5340
+с.,s.,КМЕТЧЕТА,KMETCHETA,5343
+с.,s.,КНИЖОВНИК,KNIZHOVNIK,6390
+с.,s.,КНЯЖЕВА МАХАЛА,KNYAZHEVA MAHALA,3677
+с.,s.,КНЯЖЕВО,KNYAZHEVO,6566
+с.,s.,КНЯЖЕВСКО,KNYAZHEVSKO,6077
+с.,s.,КОБИЛИНО,KOBILINO,6593
+с.,s.,КОБИЛЯК,KOBILYAK,3442
+с.,s.,КОБИЛЯНЕ,KOBILYANE,6734
+с.,s.,КОВАЧ,KOVACH,6272
+с.,s.,КОВАЧЕВЕЦ,KOVACHEVETS,7852
+с.,s.,КОВАЧЕВИЦА,KOVACHEVITSA,2969
+с.,s.,КОВАЧЕВО,KOVACHEVO,2824
+с.,s.,КОВАЧЕВО,KOVACHEVO,4477
+с.,s.,КОВАЧЕВО,KOVACHEVO,6264
+с.,s.,КОВАЧЕВЦИ,KOVACHEVTSI,2450
+с.,s.,КОВАЧЕВЦИ,KOVACHEVTSI,2023
+с.,s.,КОВАЧИТЕ,KOVACHITE,8874
+с.,s.,КОВАЧИЦА,KOVACHITSA,3643
+с.,s.,КОВИЛ,KOVIL,6913
+с.,s.,КОЕВЦИ,KOEVTSI,5241
+с.,s.,КОЕВЦИ,KOEVTSI,5365
+с.,s.,КОЖАРИ,KOZHARI,4813
+с.,s.,КОЖИНЦИ,KOZHINTSI,2487
+с.,s.,КОЖЛЮВЦИ,KOZHLYUVTSI,5097
+с.,s.,КОЖУХАРЦИ,KOZHUHARTSI,6957
+с.,s.,КОЗАНОВО,KOZANOVO,4248
+с.,s.,КОЗАР БЕЛЕНЕ,KOZAR BELENE,5915
+с.,s.,КОЗАРЕ,KOZARE,8493
+с.,s.,КОЗАРЕВЕЦ,KOZAREVETS,5148
+с.,s.,КОЗАРЕВЕЦ,KOZAREVETS,6070
+с.,s.,КОЗАРЕВО,KOZAREVO,8674
+с.,s.,КОЗАРКА,KOZARKA,4983
+с.,s.,КОЗАРСКО,KOZARSKO,4584
+с.,s.,КОЗИ РОГ,KOZI ROG,5344
+с.,s.,КОЗИЦА,KOZITSA,6848
+с.,s.,КОЗИЦА,KOZITSA,7833
+с.,s.,КОЗИЧИНО,KOZICHINO,8224
+с.,s.,КОЗЛЕВО,KOZLEVO,6865
+с.,s.,КОЗЛЕЦ,KOZLETS,6371
+с.,s.,КОЗЛОВЕЦ,KOZLOVETS,5290
+с.,s.,КОЗЛОДУЙЦИ,KOZLODUYTSI,9387
+с.,s.,КОЗМА ПРЕЗВИТЕР,KOZMA PREZVITER,7913
+с.,s.,КОЗНИЦА,KOZNITSA,8255
+с.,s.,КОЗЯ РЕКА,KOZYA REKA,5080
+с.,s.,КОЗЯК,KOZYAK,7673
+с.,s.,КОИЛОВЦИ,KOILOVTSI,5842
+с.,s.,КОЙЧОВЦИ,KOYCHOVTSI,5350
+с.,s.,КОКАЛЯНЕ,KOKALYANE,1191
+с.,s.,КОКИЧЕ,KOKICHE,6676
+с.,s.,КОКОРОВО,KOKOROVO,4725
+с.,s.,КОКОРЦИ,KOKORTSI,4971
+с.,s.,КОКОШАНЕ,KOKOSHANE,6733
+с.,s.,КОЛАРИ,KOLARI,5084
+с.,s.,КОЛАРОВО,KOLAROVO,2880
+с.,s.,КОЛАРОВО,KOLAROVO,7613
+с.,s.,КОЛАРОВО,KOLAROVO,6271
+с.,s.,КОЛАРОВО,KOLAROVO,6460
+с.,s.,КОЛАРЦИ,KOLARTSI,9481
+с.,s.,КОЛЕНА,KOLENA,6050
+с.,s.,КОЛЕЦ,KOLETS,6376
+с.,s.,КОЛИБИТЕ,KOLIBITE,2838
+с.,s.,КОЛИШОВЦИ,KOLISHOVTSI,5343
+с.,s.,КОЛОБЪР,KOLOBAR,7675
+с.,s.,КОЛЮ ГАНЕВ,KOLYU GANEV,5360
+с.,s.,КОЛЮ МАРИНОВО,KOLYU MARINOVO,6237
+с.,s.,КОМАРЕВО,KOMAREVO,9269
+с.,s.,КОМАРЕВО,KOMAREVO,3247
+с.,s.,КОМАРЕВО,KOMAREVO,3516
+с.,s.,КОМАРЕВО,KOMAREVO,5853
+с.,s.,КОМОЩИЦА,KOMOSHTITSA,3648
+с.,s.,КОМУНАРИ,KOMUNARI,9254
+с.,s.,КОМУНИГА,KOMUNIGA,6690
+с.,s.,КОМЩИЦА,KOMSHTITSA,2255
+с.,s.,КОНАК,KONAK,7868
+с.,s.,КОНАРЕ,KONARE,6189
+с.,s.,КОНАРЕ,KONARE,9548
+с.,s.,КОНАРСКО,KONARSKO,2792
+с.,s.,КОНАРСКОТО,KONARSKOTO,5364
+с.,s.,КОНДОВО,KONDOVO,6593
+с.,s.,КОНДОЛОВО,KONDOLOVO,8275
+с.,s.,КОНДОФРЕЙ,KONDOFREY,2422
+с.,s.,КОНЕВЕЦ,KONEVETS,8623
+с.,s.,КОНЕВО,KONEVO,6661
+с.,s.,КОНЕВО,KONEVO,7442
+с.,s.,КОНЕВО,KONEVO,9887
+с.,s.,КОННИЦИ,KONNITSI,6588
+с.,s.,КОНОП,KONOP,7995
+с.,s.,КОНСКА,KONSKA,2379
+с.,s.,КОНСТАНТИН,KONSTANTIN,5080
+с.,s.,КОНСТАНТИНОВЕЦ,KONSTANTINOVETS,6267
+с.,s.,КОНСТАНТИНОВО,KONSTANTINOVO,9180
+с.,s.,КОНСТАНТИНОВО,KONSTANTINOVO,6494
+с.,s.,КОНСТАНТИНОВО,KONSTANTINOVO,8129
+с.,s.,КОНТИЛ,KONTIL,6841
+с.,s.,КОНУШ,KONUSH,4268
+с.,s.,КОНУШ,KONUSH,6370
+с.,s.,КОНЧЕ,KONCHE,6828
+с.,s.,КОНЬОВЕЦ,KONYOVETS,9748
+с.,s.,КОНЬОВО,KONYOVO,8920
+с.,s.,КОНЯВО,KONYAVO,2540
+с.,s.,КОПАНИЦА,KOPANITSA,2409
+с.,s.,КОПИЛОВЦИ,KOPILOVTSI,2543
+с.,s.,КОПИЛОВЦИ,KOPILOVTSI,3467
+с.,s.,КОПИТНИК,KOPITNIK,6698
+с.,s.,КОПРЕЦ,KOPRETS,7775
+с.,s.,КОПРИВА,KOPRIVA,2567
+с.,s.,КОПРИВЕЦ,KOPRIVETS,7120
+с.,s.,КОПРИВЛЕН,KOPRIVLEN,2921
+с.,s.,КОПРИНКА,KOPRINKA,6137
+с.,s.,КОПЧЕЛИИТЕ,KOPCHELIITE,5342
+с.,s.,КОРЕН,KOREN,6392
+с.,s.,КОРИИТЕ,KORIITE,4921
+с.,s.,КОРИТАТА,KORITATA,4976
+с.,s.,КОРИТЕН,KORITEN,9403
+с.,s.,КОРИЯТА,KORIYATA,5455
+с.,s.,КОРКИНА,KORKINA,2688
+с.,s.,КОРМЯНСКО,KORMYANSKO,5433
+с.,s.,КОРНИЦА,KORNITSA,2970
+с.,s.,КОРТЕН,KORTEN,8930
+с.,s.,КОС,KOS,6820
+с.,s.,КОСАРА,KOSARA,7612
+с.,s.,КОСАРКА,KOSARKA,5392
+с.,s.,КОСАЧА,KOSACHA,2448
+с.,s.,КОСЕВЦИ,KOSEVTSI,5095
+с.,s.,КОСИЛКА,KOSILKA,5380
+с.,s.,КОСОВЕЦ,KOSOVETS,8223
+с.,s.,КОСОВО,KOSOVO,3794
+с.,s.,КОСОВО,KOSOVO,2557
+с.,s.,КОСОВО,KOSOVO,4240
+с.,s.,КОСОВО,KOSOVO,9974
+с.,s.,КОСТА ПЕРЧЕВО,KOSTA PERCHEVO,3833
+с.,s.,КОСТАДИНИТЕ,KOSTADINITE,5301
+с.,s.,КОСТАДИНКИНО,KOSTADINKINO,2060
+с.,s.,КОСТАНДЕНЕЦ,KOSTANDENETS,7273
+с.,s.,КОСТЕЛ,KOSTEL,5099
+с.,s.,КОСТЕЛЕВО,KOSTELEVO,3047
+с.,s.,КОСТЕН,KOSTEN,8441
+с.,s.,КОСТЕНА РЕКА,KOSTENA REKA,9806
+с.,s.,КОСТЕНЕЦ,KOSTENETS,2042
+с.,s.,КОСТЕНКОВЦИ,KOSTENKOVTSI,5343
+с.,s.,КОСТЕНЦИ,KOSTENTSI,3518
+с.,s.,КОСТИ,KOSTI,8283
+с.,s.,КОСТИЕВО,KOSTIEVO,4205
+с.,s.,КОСТИЛКОВО,KOSTILKOVO,6593
+с.,s.,КОСТИНО,KOSTINO,6743
+с.,s.,КОСТИЧОВЦИ,KOSTICHOVTSI,3755
+с.,s.,КОСТУР,KOSTUR,6533
+с.,s.,КОСТУРИНО,KOSTURINO,6884
+с.,s.,КОСТУРИНЦИ,KOSTURINTSI,2489
+с.,s.,КОТЕНОВЦИ,KOTENOVTSI,3522
+с.,s.,КОТЛАРИ,KOTLARI,6957
+с.,s.,КОТЛЕНЦИ,KOTLENTSI,9374
+с.,s.,КОТУЦИ,KOTUTSI,5097
+с.,s.,КОЧАН,KOCHAN,2955
+с.,s.,КОЧАНИ,KOCHANI,4999
+с.,s.,КОЧЕВО,KOCHEVO,4119
+с.,s.,КОЧМАР,KOCHMAR,9477
+с.,s.,КОЧОВО,KOCHOVO,9862
+с.,s.,КОШАВА,KOSHAVA,3771
+с.,s.,КОШАРЕВО,KOSHAREVO,2390
+с.,s.,КОШАРИТЕ,KOSHARITE,2453
+с.,s.,КОШАРИЦА,KOSHARITSA,8253
+с.,s.,КОШАРНА,KOSHARNA,7062
+с.,s.,КОШНИЦА,KOSHNITSA,4778
+с.,s.,КОШНИЧАРИ,KOSHNICHARI,7783
+с.,s.,КОШОВ,KOSHOV,7087
+с.,s.,КРАВИНО,KRAVINO,6075
+с.,s.,КРАВОДЕР,KRAVODER,3048
+с.,s.,КРАГУЛЕВО,KRAGULEVO,9418
+с.,s.,КРАЕВО,KRAEVO,2149
+с.,s.,КРАИЩЕ,KRAISHTE,2781
+с.,s.,КРАИЩЕ,KRAISHTE,9535
+с.,s.,КРАЙГОРЦИ,KRAYGORTSI,9875
+с.,s.,КРАЙНА,KRAYNA,4900
+с.,s.,КРАЙНА,KRAYNA,4990
+с.,s.,КРАЙНИ ДОЛ,KRAYNI DOL,2649
+с.,s.,КРАЙНИЦИ,KRAYNITSI,2633
+с.,s.,КРАЙНО СЕЛО,KRAYNO SELO,6739
+с.,s.,КРАЙНОВО,KRAYNOVO,8752
+с.,s.,КРАЙПОЛЕ,KRAYPOLE,7997
+с.,s.,КРАКРА,KRAKRA,9287
+с.,s.,КРАЛЕВ ДОЛ,KRALEV DOL,2349
+с.,s.,КРАЛЕВО,KRALEVO,7770
+с.,s.,КРАЛЕВО,KRALEVO,6362
+с.,s.,КРАЛИ МАРКО,KRALI MARKO,4452
+с.,s.,КРАМОЛИН,KRAMOLIN,5429
+с.,s.,КРАН,KRAN,6898
+с.,s.,КРАНЕВО,KRANEVO,9649
+с.,s.,КРАНОВО,KRANOVO,7549
+с.,s.,КРАПЕЦ,KRAPETS,3149
+с.,s.,КРАПЕЦ,KRAPETS,9674
+с.,s.,КРАПЧЕНЕ,KRAPCHENE,3434
+с.,s.,КРАСАВА,KRASAVA,2370
+с.,s.,КРАСЕН,KRASEN,7075
+с.,s.,КРАСЕН,KRASEN,9534
+с.,s.,КРАСЕН ДОЛ,KRASEN DOL,9935
+с.,s.,КРАСИМИР,KRASIMIR,9258
+с.,s.,КРАСИНО,KRASINO,6962
+с.,s.,КРАСНО ГРАДИЩЕ,KRASNO GRADISHTE,5242
+с.,s.,КРАСНОВО,KRASNOVO,4178
+с.,s.,КРАСНОСЕЛЦИ,KRASNOSELTSI,7925
+с.,s.,КРАЧИМИР,KRACHIMIR,3964
+с.,s.,КРЕМЕН,KREMEN,2771
+с.,s.,КРЕМЕН,KREMEN,6870
+с.,s.,КРЕМЕНА,KREMENA,9639
+с.,s.,КРЕМЕНЕ,KREMENE,4755
+с.,s.,КРЕМЕНЕЦ,KREMENETS,6822
+с.,s.,КРЕМЕНИК,KREMENIK,2653
+с.,s.,КРЕПОСТ,KREPOST,6410
+с.,s.,КРЕПЧА,KREPCHA,7845
+с.,s.,КРЕСЛЮВЦИ,KRESLYUVTSI,5367
+с.,s.,КРЕТА,KRETA,3127
+с.,s.,КРЕТА,KRETA,5961
+с.,s.,КРИБУЛ,KRIBUL,2951
+с.,s.,КРИВА БАРА,KRIVA BARA,3328
+с.,s.,КРИВА БАРА,KRIVA BARA,3669
+с.,s.,КРИВА КРУША,KRIVA KRUSHA,8936
+с.,s.,КРИВА РЕКА,KRIVA REKA,9938
+с.,s.,КРИВИНА,KRIVINA,7132
+с.,s.,КРИВИНА,KRIVINA,1588
+с.,s.,КРИВИНИ,KRIVINI,9123
+с.,s.,КРИВИЦА,KRIVITSA,7456
+с.,s.,КРИВНЯ,KRIVNYA,9217
+с.,s.,КРИВНЯ,KRIVNYA,7037
+с.,s.,КРИВО ПОЛЕ,KRIVO POLE,6387
+с.,s.,КРИВОНОС,KRIVONOS,2386
+с.,s.,КРИЛАТИЦА,KRILATITSA,6884
+с.,s.,КРИЛЮВЦИ,KRILYUVTSI,5097
+с.,s.,КРИН,KRIN,6671
+с.,s.,КРИСЛОВО,KRISLOVO,4148
+с.,s.,КРОМИДОВО,KROMIDOVO,2871
+с.,s.,КРОЯЧ,KROYACH,7278
+с.,s.,КРОЯЧЕВО,KROYACHEVO,6766
+с.,s.,КРУМ,KRUM,6438
+с.,s.,КРУМОВО,KRUMOVO,9149
+с.,s.,КРУМОВО,KRUMOVO,2627
+с.,s.,КРУМОВО,KRUMOVO,4112
+с.,s.,КРУМОВО,KRUMOVO,8649
+с.,s.,КРУМОВО ГРАДИЩЕ,KRUMOVO GRADISHTE,8487
+с.,s.,КРУМЧЕВЦИ,KRUMCHEVTSI,5080
+с.,s.,КРУПЕН,KRUPEN,9667
+с.,s.,КРУПНИК,KRUPNIK,2740
+с.,s.,КРУША,KRUSHA,9121
+с.,s.,КРУША,KRUSHA,2213
+с.,s.,КРУШАРЕ,KRUSHARE,8877
+с.,s.,КРУШАРИ,KRUSHARI,9410
+с.,s.,КРУШЕВ ДОЛ,KRUSHEV DOL,4919
+с.,s.,КРУШЕВЕЦ,KRUSHEVETS,8148
+с.,s.,КРУШЕВО,KRUSHEVO,2945
+с.,s.,КРУШЕВО,KRUSHEVO,5427
+с.,s.,КРУШЕВО,KRUSHEVO,4291
+с.,s.,КРУШЕВСКА,KRUSHEVSKA,6744
+с.,s.,КРУШЕТО,KRUSHETO,5134
+с.,s.,КРУШКА,KRUSHKA,6743
+с.,s.,КРУШОВЕНЕ,KRUSHOVENE,5860
+с.,s.,КРУШОВИЦА,KRUSHOVITSA,3349
+с.,s.,КРУШОВИЦА,KRUSHOVITSA,5881
+с.,s.,КРУШОВИЦА,KRUSHOVITSA,2112
+с.,s.,КРУШОВО,KRUSHOVO,8482
+с.,s.,КРУШОВО,KRUSHOVO,4241
+с.,s.,КРУШОЛАК,KRUSHOLAK,7962
+с.,s.,КРУШУНА,KRUSHUNA,5561
+с.,s.,КРЪВЕНИК,KRAVENIK,5460
+с.,s.,КРЪКОЖАБЕНЕ,KRAKOZHABENE,5744
+с.,s.,КРЪНДЖИЛИЦА,KRANDZHILITSA,2875
+с.,s.,КРЪНЧА,KRANCHA,5370
+с.,s.,КРЪСТАВА,KRASTAVA,4647
+с.,s.,КРЪСТАТИЦА,KRASTATITSA,4741
+с.,s.,КРЪСТЕВИЧ,KRASTEVICH,4177
+с.,s.,КРЪСТЕНЯЦИТЕ,KRASTENYATSITE,5350
+с.,s.,КРЪСТЕЦ,KRASTETS,5364
+с.,s.,КРЪСТИЛЦИ,KRASTILTSI,2805
+с.,s.,КРЪСТИНА,KRASTINA,8121
+с.,s.,КРЪШНО,KRASHNO,7786
+с.,s.,КУБАДИН,KUBADIN,8335
+с.,s.,КУБРАТОВО,KUBRATOVO,1257
+с.,s.,КУДЕЛИН,KUDELIN,3798
+с.,s.,КУЗЬОВО,KUZYOVO,2788
+с.,s.,КУКЛЯ,KUKLYA,5370
+с.,s.,КУКОРЕВО,KUKOREVO,8673
+с.,s.,КУКУВИЦА,KUKUVITSA,4710
+с.,s.,КУКУРАХЦЕВО,KUKURAHTSEVO,2882
+с.,s.,КУКУРЯК,KUKURYAK,6898
+с.,s.,КУЛАТА,KULATA,2868
+с.,s.,КУЛИНА ВОДА,KULINA VODA,5937
+с.,s.,КУМАНИТЕ,KUMANITE,5380
+с.,s.,КУМАНОВО,KUMANOVO,9153
+с.,s.,КУНДЕВО,KUNDEVO,4990
+с.,s.,КУНИНО,KUNINO,3140
+с.,s.,КУПЕН,KUPEN,5463
+с.,s.,КУПЕН,KUPEN,4921
+с.,s.,КУПЦИТЕ,KUPTSITE,6850
+с.,s.,КУРНОВО,KURNOVO,3138
+с.,s.,КУРТОВО,KURTOVO,4369
+с.,s.,КУРТОВО КОНАРЕ,KURTOVO KONARE,4223
+с.,s.,КУТЕЛА,KUTELA,4752
+с.,s.,КУТЛОВИЦА,KUTLOVITSA,7558
+с.,s.,КУТОВО,KUTOVO,3767
+с.,s.,КУТУГЕРЦИ,KUTUGERTSI,2567
+с.,s.,КУЦАРОВЦИ,KUTSAROVTSI,5042
+с.,s.,КУЦИНА,KUTSINA,5189
+с.,s.,КУЦОВО,KUTSOVO,6697
+с.,s.,КУШЛА,KUSHLA,4986
+с.,s.,КЪКЛИЦА,KAKLITSA,6927
+с.,s.,КЪКРИНА,KAKRINA,5544
+с.,s.,КЪЛНОВО,KALNOVO,9821
+с.,s.,КЪНЧЕВО,KANCHEVO,6164
+с.,s.,КЪПИНЕЦ,KAPINETS,7997
+с.,s.,КЪПИНОВО,KAPINOVO,5043
+с.,s.,КЪПИНОВО,KAPINOVO,9528
+с.,s.,КЪПИНОВЦИ,KAPINOVTSI,7434
+с.,s.,КЪРЛАНОВО,KARLANOVO,2820
+с.,s.,КЪРНАЛОВО,KARNALOVO,2860
+с.,s.,КЪРНАРЕ,KARNARE,4337
+с.,s.,КЪРПАЧЕВО,KARPACHEVO,5558
+с.,s.,КЪРПЕЛЕВО,KARPELEVO,2825
+с.,s.,КЪРТИПЪНЯ,KARTIPANYA,5380
+с.,s.,КЪРТОЖАБЕНЕ,KARTOZHABENE,5883
+с.,s.,КЪРЧОВСКО,KARCHOVSKO,6873
+с.,s.,КЪРШАЛЕВО,KARSHALEVO,2563
+с.,s.,КЪСАК,KASAK,4832
+с.,s.,КЪТИНА,KATINA,1276
+с.,s.,КЪШИН,KASHIN,5885
+с.,s.,КЪШЛЕ,KASHLE,2492
+с.,s.,КЬОЛМЕН,KYOLMEN,9888
+с.,s.,КЬОСЕВО,KYOSEVO,6728
+с.,s.,КЬОСЕВЦИ,KYOSEVTSI,7951
+с.,s.,КЮЛЕВЧА,KYULEVCHA,9972
+с.,s.,ЛАГЕРИТЕ,LAGERITE,5035
+с.,s.,ЛАГОШЕВЦИ,LAGOSHEVTSI,3743
+с.,s.,ЛАДАРЕВО,LADAREVO,2811
+с.,s.,ЛАЗАРОВО,LAZAROVO,5836
+с.,s.,ЛАЗАРЦИ,LAZARTSI,5097
+с.,s.,ЛАКАРЕВО,LAKAREVO,5656
+с.,s.,ЛАКАТНИК,LAKATNIK,2273
+с.,s.,ЛАЛЕ,LALE,6823
+с.,s.,ЛАЛКОВО,LALKOVO,8749
+с.,s.,ЛАМБУХ,LAMBUH,6583
+с.,s.,ЛАСКАР,LASKAR,5876
+с.,s.,ЛАСКАРЕВО,LASKAREVO,2811
+с.,s.,ЛАТИНКА,LATINKA,6767
+с.,s.,ЛЕБЕД,LEBED,6859
+с.,s.,ЛЕБНИЦА,LEBNITSA,2806
+с.,s.,ЛЕВА РЕКА,LEVA REKA,2494
+с.,s.,ЛЕВИЩЕ,LEVISHTE,2276
+с.,s.,ЛЕВКА,LEVKA,6540
+с.,s.,ЛЕВОЧЕВО,LEVOCHEVO,4743
+с.,s.,ЛЕВСКИ,LEVSKI,4535
+с.,s.,ЛЕВСКИ,LEVSKI,9171
+с.,s.,ЛЕВУНОВО,LEVUNOVO,2817
+с.,s.,ЛЕВЦИ,LEVTSI,6781
+с.,s.,ЛЕДЕНИК,LEDENIK,5049
+с.,s.,ЛЕЛИНЦИ,LELINTSI,2588
+с.,s.,ЛЕНИЩЕ,LENISHTE,6783
+с.,s.,ЛЕНКОВО,LENKOVO,5967
+с.,s.,ЛЕНОВО,LENOVO,4261
+с.,s.,ЛЕНСКО,LENSKO,6595
+с.,s.,ЛЕПИЦА,LEPITSA,5987
+с.,s.,ЛЕСИДРЕН,LESIDREN,5520
+с.,s.,ЛЕСИЧАРКА,LESICHARKA,5343
+с.,s.,ЛЕСИЧЕ,LESICHE,5085
+с.,s.,ЛЕСИЧЕРИ,LESICHERI,5222
+с.,s.,ЛЕСИЧОВО,LESICHOVO,4463
+с.,s.,ЛЕСКА,LESKA,2547
+с.,s.,ЛЕСКА,LESKA,4928
+с.,s.,ЛЕСКОВДОЛ,LESKOVDOL,2268
+с.,s.,ЛЕСКОВЕЦ,LESKOVETS,3341
+с.,s.,ЛЕСКОВЕЦ,LESKOVETS,3523
+с.,s.,ЛЕСКОВЕЦ,LESKOVETS,2342
+с.,s.,ЛЕСНОВО,LESNOVO,2119
+с.,s.,ЛЕСОВО,LESOVO,8754
+с.,s.,ЛЕСУРА,LESURA,3073
+с.,s.,ЛЕТНИЦА,LETNITSA,2207
+с.,s.,ЛЕТОВНИК,LETOVNIK,6810
+с.,s.,ЛЕХОВО,LEHOVO,2816
+с.,s.,ЛЕХЧЕВО,LEHCHEVO,3445
+с.,s.,ЛЕШКО,LESHKO,2749
+с.,s.,ЛЕШКО ПРЕСОИ,LESHKO PRESOI,5624
+с.,s.,ЛЕШНИКОВО,LESHNIKOVO,6466
+с.,s.,ЛЕШНИКОВЦИ,LESHNIKOVTSI,2481
+с.,s.,ЛЕШНИЦА,LESHNITSA,2808
+с.,s.,ЛЕШНИЦА,LESHNITSA,5578
+с.,s.,ЛЕЩАК,LESHTAK,4929
+с.,s.,ЛЕЩАРКА,LESHTARKA,6967
+с.,s.,ЛЕЩЕН,LESHTEN,2962
+с.,s.,ЛЕЯРОВО,LEYAROVO,8656
+с.,s.,ЛИВАДА,LIVADA,8107
+с.,s.,ЛИВАДЕ,LIVADE,4921
+с.,s.,ЛИК,LIK,3168
+с.,s.,ЛИЛЕКОВО,LILEKOVO,4858
+с.,s.,ЛИЛКОВО,LILKOVO,4105
+с.,s.,ЛИЛЯК,LILYAK,7760
+с.,s.,ЛИЛЯНОВО,LILYANOVO,2809
+с.,s.,ЛИЛЯЧ,LILYACH,2597
+с.,s.,ЛИЛЯЧЕ,LILYACHE,3051
+с.,s.,ЛИМЕЦ,LIMETS,6936
+с.,s.,ЛИПЕН,LIPEN,3489
+с.,s.,ЛИПЕЦ,LIPETS,4784
+с.,s.,ЛИПИНЦИ,LIPINTSI,2212
+с.,s.,ЛИПНИК,LIPNIK,7242
+с.,s.,ЛИПНИЦА,LIPNITSA,3352
+с.,s.,ЛИПНИЦА,LIPNITSA,2158
+с.,s.,ЛИСЕЦ,LISETS,2547
+с.,s.,ЛИСЕЦ,LISETS,5568
+с.,s.,ЛИСЕЦ,LISETS,2023
+с.,s.,ЛИСИ ВРЪХ,LISI VRAH,9951
+с.,s.,ЛИСИЦИТЕ,LISITSITE,6645
+с.,s.,ЛИСИЯ,LISIA,2743
+с.,s.,ЛИСОВО,LISOVO,6541
+с.,s.,ЛИСТЕЦ,LISTETS,8573
+с.,s.,ЛИСТЕЦ,LISTETS,7642
+с.,s.,ЛИТАКОВО,LITAKOVO,2144
+с.,s.,ЛОБОШ,LOBOSH,2433
+с.,s.,ЛОВЕЦ,LOVETS,6070
+с.,s.,ЛОВЕЦ,LOVETS,7741
+с.,s.,ЛОВЕЦ,LOVETS,9869
+с.,s.,ЛОВНИДОЛ,LOVNIDOL,5423
+с.,s.,ЛОВСКО,LOVSKO,7291
+с.,s.,ЛОВЦИ,LOVTSI,4908
+с.,s.,ЛОВЧАНЦИ,LOVCHANTSI,9430
+с.,s.,ЛОГОДАЖ,LOGODAZH,2737
+с.,s.,ЛОЗА,LOZA,5345
+с.,s.,ЛОЗАРЕВО,LOZAREVO,8440
+с.,s.,ЛОЗЕВО,LOZEVO,9746
+с.,s.,ЛОЗЕН,LOZEN,5172
+с.,s.,ЛОЗЕН,LOZEN,4489
+с.,s.,ЛОЗЕН,LOZEN,1151
+с.,s.,ЛОЗЕН,LOZEN,6552
+с.,s.,ЛОЗЕН,LOZEN,6062
+с.,s.,ЛОЗЕНГРАДЦИ,LOZENGRADTSI,6894
+с.,s.,ЛОЗЕНЕЦ,LOZENETS,8277
+с.,s.,ЛОЗЕНЕЦ,LOZENETS,9414
+с.,s.,ЛОЗЕНЕЦ,LOZENETS,8688
+с.,s.,ЛОЗЕНИЦА,LOZENITSA,2821
+с.,s.,ЛОЗЕТО,LOZETO,5739
+с.,s.,ЛОЗИЦА,LOZITSA,8466
+с.,s.,ЛОЗИЦА,LOZITSA,5954
+с.,s.,ЛОЗНИЦА,LOZNITSA,9541
+с.,s.,ЛОЗНО,LOZNO,2507
+с.,s.,ЛОКВАТА,LOKVATA,2656
+с.,s.,ЛОКОРСКО,LOKORSKO,1513
+с.,s.,ЛОМ ЧЕРКОВНА,LOM CHERKOVNA,7135
+с.,s.,ЛОМЕЦ,LOMETS,5669
+с.,s.,ЛОМНИЦА,LOMNITSA,2562
+с.,s.,ЛОМНИЦА,LOMNITSA,2465
+с.,s.,ЛОМНИЦА,LOMNITSA,9397
+с.,s.,ЛОМЦИ,LOMTSI,7838
+с.,s.,ЛОПУШНА,LOPUSHNA,9237
+с.,s.,ЛОПУШНЯ,LOPUSHNYA,2252
+с.,s.,ЛОПЯН,LOPYAN,2193
+с.,s.,ЛУДОГОРЦИ,LUDOGORTSI,7445
+с.,s.,ЛУКОВО,LUKOVO,2296
+с.,s.,ЛУЛИЧКА,LULICHKA,6921
+с.,s.,ЛЪВИНО,LAVINO,7439
+с.,s.,ЛЪВОВО,LAVOVO,6638
+с.,s.,ЛЪГА,LAGA,2182
+с.,s.,ЛЪЖНИЦА,LAZHNITSA,2971
+с.,s.,ЛЪКА,LAKA,8216
+с.,s.,ЛЪКА,LAKA,4726
+с.,s.,ЛЪКАВИЦА,LAKAVITSA,4241
+с.,s.,ЛЪКИ,LAKI,2928
+с.,s.,ЛЮБЕН,LYUBEN,4188
+с.,s.,ЛЮБЕН,LYUBEN,7534
+с.,s.,ЛЮБЕН КАРАВЕЛОВО,LYUBEN KARAVELOVO,9148
+с.,s.,ЛЮБЕНЕЦ,LYUBENETS,8949
+с.,s.,ЛЮБЕНОВА МАХАЛА,LYUBENOVA MAHALA,8947
+с.,s.,ЛЮБЕНОВО,LYUBENOVO,5955
+с.,s.,ЛЮБЕНОВО,LYUBENOVO,6267
+с.,s.,ЛЮБЕНОВО,LYUBENOVO,6342
+с.,s.,ЛЮБЕНЦИ,LYUBENTSI,5176
+с.,s.,ЛЮБИНО,LYUBINO,6796
+с.,s.,ЛЮБИЧЕВО,LYUBICHEVO,7980
+с.,s.,ЛЮБЛЕН,LYUBLEN,7843
+с.,s.,ЛЮБНИЦА,LYUBNITSA,2061
+с.,s.,ЛЮБОВИЩЕ,LYUBOVISHTE,2820
+с.,s.,ЛЮБОВКА,LYUBOVKA,2811
+с.,s.,ЛЮБЧА,LYUBCHA,4833
+с.,s.,ЛЮЛИН,LYULIN,2352
+с.,s.,ЛЮЛИН,LYULIN,8685
+с.,s.,ЛЮЛКА,LYULKA,4785
+с.,s.,ЛЮЛЯК,LYULYAK,6050
+с.,s.,ЛЮЛЯКОВО,LYULYAKOVO,8570
+с.,s.,ЛЮЛЯКОВО,LYULYAKOVO,6684
+с.,s.,ЛЮЛЯКОВО,LYULYAKOVO,9525
+с.,s.,ЛЮТАДЖИК,LYUTADZHIK,3038
+с.,s.,ЛЮТИБРОД,LYUTIBROD,3159
+с.,s.,ЛЮТИДОЛ,LYUTIDOL,3165
+с.,s.,ЛЮТОВО,LYUTOVO,2791
+с.,s.,ЛЯВА РЕКА,LYAVA REKA,6198
+с.,s.,ЛЯЛИНЦИ,LYALINTSI,2474
+с.,s.,ЛЯСКОВЕЦ,LYASKOVETS,6397
+с.,s.,ЛЯСКОВО,LYASKOVO,9428
+с.,s.,ЛЯСКОВО,LYASKOVO,8518
+с.,s.,ЛЯСКОВО,LYASKOVO,6667
+с.,s.,ЛЯСКОВО,LYASKOVO,4238
+с.,s.,ЛЯСКОВО,LYASKOVO,4818
+с.,s.,ЛЯСКОВО,LYASKOVO,6045
+с.,s.,ЛЯТНО,LYATNO,9948
+с.,s.,ЛЯХОВО,LYAHOVO,4416
+с.,s.,ЛЯХОВО,LYAHOVO,9617
+с.,s.,МАГАРДЖИЦА,MAGARDZHITSA,4710
+с.,s.,МАДАН,MADAN,3448
+с.,s.,МАДАРА,MADARA,9971
+с.,s.,МАДЖАРЕ,MADZHARE,2022
+с.,s.,МАДЖАРИ,MADZHARI,6383
+с.,s.,МАДЖЕРИТО,MADZHERITO,6063
+с.,s.,МАЗАРАЧЕВО,MAZARACHEVO,2549
+с.,s.,МАЙОР УЗУНОВО,MAYOR UZUNOVO,3777
+с.,s.,МАЙСКО,MAYSKO,5085
+с.,s.,МАЙСТОРОВО,MAYSTOROVO,6675
+с.,s.,МАК,MAK,6784
+с.,s.,МАКАРИОПОЛСКО,MAKARIOPOLSKO,7750
+с.,s.,МАКЕДОНЦИ,MAKEDONTSI,6640
+с.,s.,МАКОВО,MAKOVO,7785
+с.,s.,МАКОЦЕВО,MAKOTSEVO,2124
+с.,s.,МАКРЕШ,MAKRESH,3850
+с.,s.,МАЛА РАКОВИЦА,MALA RAKOVITSA,2225
+с.,s.,МАЛА ФУЧА,MALA FUCHA,2669
+с.,s.,МАЛА ЦЪРКВА,MALA TSARKVA,2021
+с.,s.,МАЛЕВО,MALEVO,4891
+с.,s.,МАЛЕВО,MALEVO,6392
+с.,s.,МАЛЕНОВО,MALENOVO,8689
+с.,s.,МАЛИ ВЪРБОВНИК,MALI VARBOVNIK,2691
+с.,s.,МАЛИ ДРЕНОВЕЦ,MALI DRENOVETS,3749
+с.,s.,МАЛИ ИЗВОР,MALI IZVOR,9474
+с.,s.,МАЛИНА,MALINA,8327
+с.,s.,МАЛИНА,MALINA,9559
+с.,s.,МАЛИНИ,MALINI,5335
+с.,s.,МАЛИНОВО,MALINOVO,5582
+с.,s.,МАЛКА АРДА,MALKA ARDA,4742
+с.,s.,МАЛКА ВЕРЕЯ,MALKA VEREYA,6045
+с.,s.,МАЛКА ЖЕЛЯЗНА,MALKA ZHELYAZNA,5729
+с.,s.,МАЛКА ПОЛЯНА,MALKA POLYANA,8519
+с.,s.,МАЛКА СМОЛНИЦА,MALKA SMOLNITSA,9386
+с.,s.,МАЛКА ЧЕРКОВНА,MALKA CHERKOVNA,7997
+с.,s.,МАЛКА ЧИНКА,MALKA CHINKA,6941
+с.,s.,МАЛКИ БЪЛГАРЕНИ,MALKI BALGARENI,5370
+с.,s.,МАЛКИ ВОДЕН,MALKI VODEN,6479
+с.,s.,МАЛКИ ВЪРШЕЦ,MALKI VARSHETS,5432
+с.,s.,МАЛКИ ИСКЪР,MALKI ISKAR,2184
+с.,s.,МАЛКИ СТАНЧОВЦИ,MALKI STANCHOVTSI,5365
+с.,s.,МАЛКИ ЦАЛИМ,MALKI TSALIM,2800
+с.,s.,МАЛКИ ЧИФЛИК,MALKI CHIFLIK,5028
+с.,s.,МАЛКО АСЕНОВО,MALKO ASENOVO,6425
+с.,s.,МАЛКО БРЯГОВО,MALKO BRYAGOVO,6476
+с.,s.,МАЛКО ВРАНОВО,MALKO VRANOVO,7067
+с.,s.,МАЛКО ГРАДИЩЕ,MALKO GRADISHTE,6558
+с.,s.,МАЛКО ДРЯНОВО,MALKO DRYANOVO,6227
+с.,s.,МАЛКО ЙОНКОВО,MALKO YONKOVO,7460
+с.,s.,МАЛКО КАДИЕВО,MALKO KADIEVO,6052
+с.,s.,МАЛКО КАМЕНЯНЕ,MALKO KAMENYANE,6927
+с.,s.,МАЛКО КИРИЛОВО,MALKO KIRILOVO,8756
+с.,s.,МАЛКО КРУШЕВО,MALKO KRUSHEVO,4951
+с.,s.,МАЛКО ПОПОВО,MALKO POPOVO,6482
+с.,s.,МАЛКО СЕЛО,MALKO SELO,8981
+с.,s.,МАЛКО ТРЪНОВО,MALKO TRANOVO,6228
+с.,s.,МАЛКО ЧОЧОВЕНИ,MALKO CHOCHOVENI,8857
+с.,s.,МАЛКО ШАРКОВО,MALKO SHARKOVO,8751
+с.,s.,МАЛКОЧ,MALKOCH,6898
+с.,s.,МАЛО БУЧИНО,MALO BUCHINO,1362
+с.,s.,МАЛО КОНАРЕ,MALO KONARE,4450
+с.,s.,МАЛО КРУШЕВО,MALO KRUSHEVO,4183
+с.,s.,МАЛО МАЛОВО,MALO MALOVO,2205
+с.,s.,МАЛО ПЕЩЕНЕ,MALO PESHTENE,3078
+с.,s.,МАЛО СЕЛО,MALO SELO,2636
+с.,s.,МАЛОГРАДЕЦ,MALOGRADETS,7978
+с.,s.,МАЛОМИР,MALOMIR,9871
+с.,s.,МАЛОМИР,MALOMIR,8650
+с.,s.,МАЛОМИРОВО,MALOMIROVO,8737
+с.,s.,МАЛОРАД,MALORAD,3255
+с.,s.,МАЛУША,MALUSHA,5304
+с.,s.,МАЛЧИКА,MALCHIKA,5917
+с.,s.,МАЛЧОВЦИ,MALCHOVTSI,5050
+с.,s.,МАЛЧОВЦИ,MALCHOVTSI,5367
+с.,s.,МАЛЪК ДЕВЕСИЛ,MALAK DEVESIL,6935
+с.,s.,МАЛЪК ДОЛ,MALAK DOL,6245
+с.,s.,МАЛЪК ИЗВОР,MALAK IZVOR,5734
+с.,s.,МАЛЪК ИЗВОР,MALAK IZVOR,6394
+с.,s.,МАЛЪК МАНАСТИР,MALAK MANASTIR,8742
+с.,s.,МАЛЪК ПОРОВЕЦ,MALAK POROVETS,7429
+с.,s.,МАЛЪК ПРЕСЛАВЕЦ,MALAK PRESLAVETS,7620
+с.,s.,МАЛЪК ЧАРДАК,MALAK CHARDAK,4194
+с.,s.,МАМАРЧЕВО,MAMARCHEVO,8743
+с.,s.,МАНАСЕЛСКА РЕКА,MANASELSKA REKA,2168
+с.,s.,МАНАСТИР,MANASTIR,9224
+с.,s.,МАНАСТИР,MANASTIR,4245
+с.,s.,МАНАСТИР,MANASTIR,6390
+с.,s.,МАНАСТИРИЦА,MANASTIRITSA,7856
+с.,s.,МАНАСТИРИЩЕ,MANASTIRISHTE,3354
+с.,s.,МАНАСТИРИЩЕ,MANASTIRISHTE,2288
+с.,s.,МАНАСТИРСКО,MANASTIRSKO,7285
+с.,s.,МАНАСТИРЦИ,MANASTIRTSI,7292
+с.,s.,МАНДРА,MANDRA,6357
+с.,s.,МАНДРИЦА,MANDRITSA,6585
+с.,s.,МАНЕВЦИ,MANEVTSI,5363
+с.,s.,МАНОЛЕ,MANOLE,4137
+с.,s.,МАНОЛИЧ,MANOLICH,8453
+с.,s.,МАНОЛОВО,MANOLOVO,6152
+с.,s.,МАНОЛСКО КОНАРЕ,MANOLSKO KONARE,4138
+с.,s.,МАНОЯ,MANOYA,5392
+с.,s.,МАНУШЕВЦИ,MANUSHEVTSI,7967
+с.,s.,МАНЧЕВО,MANCHEVO,6800
+с.,s.,МАРАФЕЛЦИ,MARAFELTSI,5070
+с.,s.,МАРАШ,MARASH,9745
+с.,s.,МАРГОВЦИ,MARGOVTSI,5035
+с.,s.,МАРИКОСТИНОВО,MARIKOSTINOVO,2870
+с.,s.,МАРИНКА,MARINKA,8154
+с.,s.,МАРИНО ПОЛЕ,MARINO POLE,2867
+с.,s.,МАРИНО ПОЛЕ,MARINO POLE,4365
+с.,s.,МАРИНОВЦИ,MARINOVTSI,5097
+с.,s.,МАРИНОВЦИ,MARINOVTSI,5445
+с.,s.,МАРИЦА,MARITSA,2044
+с.,s.,МАРКОВО,MARKOVO,4108
+с.,s.,МАРКОВО,MARKOVO,6247
+с.,s.,МАРКОВО,MARKOVO,9973
+с.,s.,МАРКОВО РАВНИЩЕ,MARKOVO RAVNISHTE,3133
+с.,s.,МАРТИНО,MARTINO,6745
+с.,s.,МАРТИНОВО,MARTINOVO,3459
+с.,s.,МАРУЛЕВО,MARULEVO,2725
+с.,s.,МАРУЦЕКОВЦИ,MARUTSEKOVTSI,5360
+с.,s.,МАРЧЕВО,MARCHEVO,2949
+с.,s.,МАРЧИНО,MARCHINO,7869
+с.,s.,МАРЯН,MARYAN,5084
+с.,s.,МАСЛАРЕВО,MASLAREVO,5198
+с.,s.,МАСЛИНОВО,MASLINOVO,6388
+с.,s.,МАТЕШОВЦИ,MATESHOVTSI,5351
+с.,s.,МАТОЧИНА,MATOCHINA,6535
+с.,s.,МАХАЛАТА,MAHALATA,2849
+с.,s.,МАХАЛНИЦИ,MAHALNITSI,5081
+с.,s.,МАЦА,MATSA,6276
+с.,s.,МЕДВЕН,MEDVEN,8987
+с.,s.,МЕДЕВЦИ,MEDEVTSI,6865
+с.,s.,МЕДЕН БУК,MEDEN BUK,6598
+с.,s.,МЕДЕН КЛАДЕНЕЦ,MEDEN KLADENETS,8639
+с.,s.,МЕДЕНИ ПОЛЯНИ,MEDENI POLYANI,4637
+с.,s.,МЕДЕШЕВЦИ,MEDESHEVTSI,3845
+с.,s.,МЕДКОВЕЦ,MEDKOVETS,3670
+с.,s.,МЕДНИКАРОВО,MEDNIKAROVO,6294
+с.,s.,МЕДОВЕНЕ,MEDOVENE,7319
+с.,s.,МЕДОВЕЦ,MEDOVETS,9238
+с.,s.,МЕДОВИНА,MEDOVINA,7863
+с.,s.,МЕДОВНИЦА,MEDOVNITSA,3947
+с.,s.,МЕДОВО,MEDOVO,8214
+с.,s.,МЕДОВО,MEDOVO,6235
+с.,s.,МЕДОВО,MEDOVO,9388
+с.,s.,МЕЖДА,MEZHDA,8644
+с.,s.,МЕЖДЕН,MEZHDEN,7672
+с.,s.,МЕЖДЕНИ,MEZHDENI,5343
+с.,s.,МЕЗДРЕЯ,MEZDREYA,3515
+с.,s.,МЕЗЕК,MEZEK,6521
+с.,s.,МЕЛНИЦА,MELNITSA,8755
+с.,s.,МЕЛЯНЕ,MELYANE,3472
+с.,s.,МЕНГИШЕВО,MENGISHEVO,9885
+с.,s.,МЕНДОВО,MENDOVO,2893
+с.,s.,МЕНЕНКЬОВО,MENENKYOVO,4482
+с.,s.,МЕРДАНЯ,MERDANYA,5147
+с.,s.,МЕСТА,MESTA,2772
+с.,s.,МЕТЛИКА,METLIKA,6938
+с.,s.,МЕТЛИЧИНА,METLICHINA,9291
+с.,s.,МЕТЛИЧИНА,METLICHINA,6873
+с.,s.,МЕТЛИЧКА,METLICHKA,6880
+с.,s.,МЕТОДИЕВО,METODIEVO,9375
+с.,s.,МЕТОДИЕВО,METODIEVO,9867
+с.,s.,МЕТОХИЯ,METOHIA,2556
+с.,s.,МЕЧКА,MECHKA,5843
+с.,s.,МЕЧКА,MECHKA,7091
+с.,s.,МЕЧКАРЕВО,MECHKAREVO,8868
+с.,s.,МЕЧКОВИЦА,MECHKOVITSA,5307
+с.,s.,МЕЧКОВЦИ,MECHKOVTSI,2060
+с.,s.,МЕЧКУЛ,MECHKUL,2754
+с.,s.,МЕЧОВО,MECHOVO,7997
+с.,s.,МЕЩИЦА,MESHTITSA,2353
+с.,s.,МИЙКОВЦИ,MIYKOVTSI,5098
+с.,s.,МИКРЕ,MIKRE,5572
+с.,s.,МИКРЕВО,MIKREVO,2826
+с.,s.,МИЛАДИНОВО,MILADINOVO,6660
+с.,s.,МИЛАДИНОВЦИ,MILADINOVTSI,9431
+с.,s.,МИЛАДИНОВЦИ,MILADINOVTSI,7787
+с.,s.,МИЛАДИНОВЦИ,MILADINOVTSI,8657
+с.,s.,МИЛАНОВО,MILANOVO,2280
+с.,s.,МИЛАНОВО,MILANOVO,9859
+с.,s.,МИЛЕ,MILE,4921
+с.,s.,МИЛЕВО,MILEVO,4131
+с.,s.,МИЛЕВЦИ,MILEVTSI,5350
+с.,s.,МИЛЕНЧА,MILENCHA,5627
+с.,s.,МИЛИНО,MILINO,7984
+с.,s.,МИЛКОВИЦА,MILKOVITSA,5968
+с.,s.,МИЛКОВО,MILKOVO,4779
+с.,s.,МИЛКОВЦИ,MILKOVTSI,5345
+с.,s.,МИЛКЬОВЦИ,MILKYOVTSI,2475
+с.,s.,МИЛОСЛАВЦИ,MILOSLAVTSI,2478
+с.,s.,МИЛЧИНА ЛЪКА,MILCHINA LAKA,3846
+с.,s.,МИНДЯ,MINDYA,5044
+с.,s.,МИНЕВЦИ,MINEVTSI,5083
+с.,s.,МИНЕРАЛНИ БАНИ,MINERALNI BANI,6343
+с.,s.,МИНЗУХАР,MINZUHAR,6665
+с.,s.,МИРКОВО,MIRKOVO,2086
+с.,s.,МИРОВЕЦ,MIROVETS,7751
+с.,s.,МИРОВО,MIROVO,5158
+с.,s.,МИРОВО,MIROVO,2059
+с.,s.,МИРОВО,MIROVO,6255
+с.,s.,МИРОВЦИ,MIROVTSI,9921
+с.,s.,МИРОВЯНЕ,MIROVYANE,1289
+с.,s.,МИРОЛЮБОВО,MIROLYUBOVO,8119
+с.,s.,МИРЧОВЦИ,MIRCHOVTSI,5094
+с.,s.,МИРЯНЦИ,MIRYANTSI,4443
+с.,s.,МИТИНО,MITINO,2857
+с.,s.,МИТОВСКА,MITOVSKA,4909
+с.,s.,МИТРОВЦИ,MITROVTSI,3464
+с.,s.,МИХАЙЛОВО,MIHAYLOVO,3355
+с.,s.,МИХАЙЛОВО,MIHAYLOVO,6051
+с.,s.,МИХАЙЛОВЦИ,MIHAYLOVTSI,5347
+с.,s.,МИХАЛИЧ,MIHALICH,9284
+с.,s.,МИХАЛИЧ,MIHALICH,6537
+с.,s.,МИХАЛКОВО,MIHALKOVO,4820
+с.,s.,МИХАЛЦИ,MIHALTSI,5248
+с.,s.,МИХИЛЦИ,MIHILTSI,4361
+с.,s.,МИХНЕВО,MIHNEVO,2862
+с.,s.,МИХОВЦИ,MIHOVTSI,5365
+с.,s.,МИЧКОВЦИ,MICHKOVTSI,5343
+с.,s.,МИШЕВСКО,MISHEVSKO,6840
+с.,s.,МИШЕМОРКОВ ХАН,MISHEMORKOV HAN,5035
+с.,s.,МИШКАРЕТЕ,MISHKARETE,5767
+с.,s.,МЛАДА ГВАРДИЯ,MLADA GVARDIA,9228
+с.,s.,МЛАДЕЖКО,MLADEZHKO,8173
+с.,s.,МЛАДЕН,MLADEN,5428
+с.,s.,МЛАДИНОВО,MLADINOVO,6531
+с.,s.,МЛАДОВО,MLADOVO,8886
+с.,s.,МЛАМОЛОВО,MLAMOLOVO,2654
+с.,s.,МЛЕКАРЕВО,MLEKAREVO,8960
+с.,s.,МЛЕЧЕВО,MLECHEVO,5441
+с.,s.,МЛЕЧИНО,MLECHINO,6781
+с.,s.,МОГИЛА,MOGILA,6052
+с.,s.,МОГИЛА,MOGILA,9932
+с.,s.,МОГИЛА,MOGILA,8627
+с.,s.,МОГИЛЕЦ,MOGILETS,7943
+с.,s.,МОГИЛИНО,MOGILINO,7165
+с.,s.,МОГИЛИТЕ,MOGILITE,5350
+с.,s.,МОГИЛИЦА,MOGILITSA,4761
+с.,s.,МОГИЛИЩЕ,MOGILISHTE,9665
+с.,s.,МОГИЛОВО,MOGILOVO,6239
+с.,s.,МОГИЛЯНЕ,MOGILYANE,6867
+с.,s.,МОДРЕН,MODREN,6840
+с.,s.,МОКРЕН,MOKREN,8994
+с.,s.,МОКРЕШ,MOKRESH,3647
+с.,s.,МОКРЕШ,MOKRESH,9861
+с.,s.,МОКРИЩЕ,MOKRISHTE,4408
+с.,s.,МОМИН СБОР,MOMIN SBOR,5067
+с.,s.,МОМИНА КЛИСУРА,MOMINA KLISURA,4468
+с.,s.,МОМИНА СЪЛЗА,MOMINA SALZA,6830
+с.,s.,МОМИНА ЦЪРКВА,MOMINA TSARKVA,8320
+с.,s.,МОМИНО,MOMINO,7706
+с.,s.,МОМИНО,MOMINO,6387
+с.,s.,МОМИНО СЕЛО,MOMINO SELO,4143
+с.,s.,МОМИНСКО,MOMINSKO,4118
+с.,s.,МОМКОВО,MOMKOVO,6542
+с.,s.,МОМЧИЛОВО,MOMCHILOVO,9221
+с.,s.,МОМЧИЛОВЦИ,MOMCHILOVTSI,4750
+с.,s.,МОРАВА,MORAVA,5291
+с.,s.,МОРАВИЦА,MORAVITSA,3145
+с.,s.,МОРАВИЦА,MORAVITSA,7974
+с.,s.,МОРАВКА,MORAVKA,7992
+с.,s.,МОРОВЕЦИТЕ,MOROVETSITE,5304
+с.,s.,МОРТАГОНОВО,MORTAGONOVO,7248
+с.,s.,МОРЯНЦИ,MORYANTSI,6959
+с.,s.,МОСКОВЕЦ,MOSKOVETS,4333
+с.,s.,МОСТ,MOST,6670
+с.,s.,МОСТИЧ,MOSTICH,9878
+с.,s.,МОСТОВО,MOSTOVO,4257
+с.,s.,МОЧУРЕ,MOCHURE,4978
+с.,s.,МОЩАНЕЦ,MOSHTANETS,2729
+с.,s.,МРАКЕТИНЦИ,MRAKETINTSI,2477
+с.,s.,МРАМОР,MRAMOR,2487
+с.,s.,МРАМОР,MRAMOR,1261
+с.,s.,МРАМОР,MRAMOR,6562
+с.,s.,МРАМОРЕН,MRAMOREN,3054
+с.,s.,МРАХОРИ,MRAHORI,5345
+с.,s.,МРАЧЕНИК,MRACHENIK,4362
+с.,s.,МРЕЖИЧКО,MREZHICHKO,8538
+с.,s.,МРЕЖИЧКО,MREZHICHKO,6845
+с.,s.,МРЪЗЕЦИ,MRAZETSI,5367
+с.,s.,МУГЛА,MUGLA,4716
+с.,s.,МУЗГА,MUZGA,5333
+с.,s.,МУЛДАВА,MULDAVA,4249
+с.,s.,МУРГА,MURGA,6725
+с.,s.,МУРГАШ,MURGASH,2247
+с.,s.,МУРГОВО,MURGOVO,6679
+с.,s.,МУРЕНО,MURENO,2437
+с.,s.,МУРСАЛЕВО,MURSALEVO,2623
+с.,s.,МУРТИНЦИ,MURTINTSI,2382
+с.,s.,МУСАЧЕВО,MUSACHEVO,2139
+с.,s.,МУСАЧЕВО,MUSACHEVO,6284
+с.,s.,МУСЕВО,MUSEVO,6774
+с.,s.,МУСЕЛИЕВО,MUSELIEVO,5963
+с.,s.,МУСИНА,MUSINA,5247
+с.,s.,МУСОМИЩА,MUSOMISHTA,2920
+с.,s.,МУСТРАК,MUSTRAK,6527
+с.,s.,МУХОВО,MUHOVO,2061
+с.,s.,МУЦЯ,MUTSYA,5370
+с.,s.,МЪГЛЕН,MAGLEN,8523
+с.,s.,МЪГЛЕНЕ,MAGLENE,6865
+с.,s.,МЪГЛИЩА,MAGLISHTA,4910
+с.,s.,МЪДРЕВО,MADREVO,7323
+с.,s.,МЪДРЕЦ,MADRETS,6674
+с.,s.,МЪДРЕЦ,MADRETS,6292
+с.,s.,МЪДРИНО,MADRINO,8444
+с.,s.,МЪРВОДОЛ,MARVODOL,2595
+с.,s.,МЪРЗЯН,MARZYAN,4996
+с.,s.,МЪРТВИНАТА,MARTVINATA,5094
+с.,s.,МЪРЧАЕВО,MARCHAEVO,1696
+с.,s.,МЪРЧЕВО,MARCHEVO,3443
+с.,s.,МЪТЕНИЦА,MATENITSA,4176
+с.,s.,НАВЪСЕН,NAVASEN,6497
+с.,s.,НАДАРЕВО,NADAREVO,7740
+с.,s.,НАДАРЦИ,NADARTSI,4758
+с.,s.,НАДЕЖДЕН,NADEZHDEN,6459
+с.,s.,НАЙДЕН ГЕРОВО,NAYDEN GEROVO,4185
+с.,s.,НАЙДЕНОВО,NAYDENOVO,6224
+с.,s.,НАНЕ,NANE,6800
+с.,s.,НАНОВИЦА,NANOVITSA,6830
+с.,s.,НАРЕЧЕНСКИ БАНИ,NARECHENSKI BANI,4239
+с.,s.,НАСАЛЕВЦИ,NASALEVTSI,2478
+с.,s.,НАУМ,NAUM,9962
+с.,s.,НАУЧЕНЕ,NAUCHENE,8929
+с.,s.,НАЦОВЦИ,NATSOVTSI,5055
+с.,s.,НАЧЕВО,NACHEVO,2213
+с.,s.,НЕБЕСКА,NEBESKA,6693
+с.,s.,НЕВЕСТИНО,NEVESTINO,6722
+с.,s.,НЕВЕСТИНО,NEVESTINO,8431
+с.,s.,НЕВЕСТИНО,NEVESTINO,2595
+с.,s.,НЕВША,NEVSHA,9229
+с.,s.,НЕГОВАН,NEGOVAN,1222
+с.,s.,НЕГОВАНОВЦИ,NEGOVANOVTSI,3774
+с.,s.,НЕГОВАНЦИ,NEGOVANTSI,2417
+с.,s.,НЕГУШЕВО,NEGUSHEVO,2123
+с.,s.,НЕДАН,NEDAN,5231
+с.,s.,НЕДЕЛЕВО,NEDELEVO,4187
+с.,s.,НЕДЕЛИЩЕ,NEDELISHTE,2213
+с.,s.,НЕДЕЛКОВА ГРАЩИЦА,NEDELKOVA GRASHTITSA,2594
+с.,s.,НЕДЕЛКОВО,NEDELKOVO,2477
+с.,s.,НЕДОКЛАН,NEDOKLAN,7251
+с.,s.,НЕДЯЛКОВЦИ,NEDYALKOVTSI,5070
+с.,s.,НЕДЯЛКОВЦИ,NEDYALKOVTSI,5350
+с.,s.,НЕДЯЛСКО,NEDYALSKO,8684
+с.,s.,НЕЙКОВО,NEYKOVO,8993
+с.,s.,НЕЙКОВО,NEYKOVO,9692
+с.,s.,НЕЙКЬОВЕЦ,NEYKYOVETS,2061
+с.,s.,НЕЙЧОВЦИ,NEYCHOVTSI,5380
+с.,s.,НЕНКОВО,NENKOVO,6611
+с.,s.,НЕНОВО,NENOVO,9234
+с.,s.,НЕНОВЦИ,NENOVTSI,5367
+с.,s.,НЕОФИТ БОЗВЕЛИЕВО,NEOFIT BOZVELIEVO,6831
+с.,s.,НЕОФИТ РИЛСКИ,NEOFIT RILSKI,9223
+с.,s.,НЕПРАЗНЕНЦИ,NEPRAZNENTSI,2396
+с.,s.,НЕСЛА,NESLA,2213
+с.,s.,НЕШЕВЦИ,NESHEVTSI,5097
+с.,s.,НИВЯНИН,NIVYANIN,3241
+с.,s.,НИКАЧКОВЦИ,NIKACHKOVTSI,5365
+с.,s.,НИКОЛА КОЗЛЕВО,NIKOLA KOZLEVO,9955
+с.,s.,НИКОЛАЕВКА,NIKOLAEVKA,9172
+с.,s.,НИКОЛАЕВО,NIKOLAEVO,5168
+с.,s.,НИКОЛАЕВО,NIKOLAEVO,5351
+с.,s.,НИКОЛАЕВО,NIKOLAEVO,2406
+с.,s.,НИКОЛАЕВО,NIKOLAEVO,5874
+с.,s.,НИКОЛАЕВО,NIKOLAEVO,8873
+с.,s.,НИКОЛИЧЕВЦИ,NIKOLICHEVTSI,2599
+с.,s.,НИКОЛОВО,NIKOLOVO,3429
+с.,s.,НИКОЛОВО,NIKOLOVO,7057
+с.,s.,НИКОЛОВО,NIKOLOVO,6364
+с.,s.,НИКОЛОВЦИ,NIKOLOVTSI,5070
+с.,s.,НИКОЛЧОВЦИ,NIKOLCHOVTSI,5098
+с.,s.,НИКОЛЧОВЦИ,NIKOLCHOVTSI,5345
+с.,s.,НИКУДИН,NIKUDIN,2839
+с.,s.,НИКЮП,NIKYUP,5068
+с.,s.,НИСОВО,NISOVO,7079
+с.,s.,НИЧОВЦИ,NICHOVTSI,5097
+с.,s.,НОВА БЯЛА РЕКА,NOVA BYALA REKA,9883
+с.,s.,НОВА ВЪРБОВКА,NOVA VARBOVKA,5169
+с.,s.,НОВА КАМЕНА,NOVA KAMENA,9493
+с.,s.,НОВА ЛИВАДА,NOVA LIVADA,6595
+с.,s.,НОВА ЛОВЧА,NOVA LOVCHA,2925
+с.,s.,НОВА МАХАЛА,NOVA MAHALA,4581
+с.,s.,НОВА МАХАЛА,NOVA MAHALA,6191
+с.,s.,НОВА НАДЕЖДА,NOVA NADEZHDA,6330
+с.,s.,НОВА ПОПИНА,NOVA POPINA,7582
+с.,s.,НОВА ЧЕРНА,NOVA CHERNA,7645
+с.,s.,НОВА ШИПКА,NOVA SHIPKA,9116
+с.,s.,НОВАКОВО,NOVAKOVO,9149
+с.,s.,НОВАКОВО,NOVAKOVO,4262
+с.,s.,НОВАКОВЦИ,NOVAKOVTSI,5332
+с.,s.,НОВАЧЕВО,NOVACHEVO,8853
+с.,s.,НОВАЧЕНЕ,NOVACHENE,5950
+с.,s.,НОВАЧЕНЕ,NOVACHENE,2147
+с.,s.,НОВГРАД,NOVGRAD,7133
+с.,s.,НОВИ ИЗВОР,NOVI IZVOR,4265
+с.,s.,НОВИ ПАЗАР,NOVI PAZAR,6710
+с.,s.,НОВИ ХАН,NOVI HAN,2110
+с.,s.,НОВИ ЧИФЛИК,NOVI CHIFLIK,2531
+с.,s.,НОВО БОТЕВО,NOVO BOTEVO,9356
+с.,s.,НОВО БЪРДО,NOVO BARDO,2212
+с.,s.,НОВО ГРАДИЩЕ,NOVO GRADISHTE,5175
+с.,s.,НОВО ДЕЛЧЕВО,NOVO DELCHEVO,2814
+с.,s.,НОВО ЖЕЛЕЗАРЕ,NOVO ZHELEZARE,4167
+с.,s.,НОВО КОНОМЛАДИ,NOVO KONOMLADI,2874
+с.,s.,НОВО ЛЕСКИ,NOVO LESKI,2923
+с.,s.,НОВО ОРЯХОВО,NOVO ORYAHOVO,9113
+с.,s.,НОВО ПАНИЧАРЕВО,NOVO PANICHAREVO,8152
+с.,s.,НОВО СЕЛО,NOVO SELO,5069
+с.,s.,НОВО СЕЛО,NOVO SELO,3784
+с.,s.,НОВО СЕЛО,NOVO SELO,2534
+с.,s.,НОВО СЕЛО,NOVO SELO,4221
+с.,s.,НОВО СЕЛО,NOVO SELO,7052
+с.,s.,НОВО СЕЛО,NOVO SELO,2016
+с.,s.,НОВО СЕЛО,NOVO SELO,6062
+с.,s.,НОВО ХОДЖОВО,NOVO HODZHOVO,2831
+с.,s.,НОВО ЯНКОВО,NOVO YANKOVO,9825
+с.,s.,НОВОГОРЦИ,NOVOGORTSI,5088
+с.,s.,НОВОСЕЛ,NOVOSEL,9807
+с.,s.,НОВОСЕЛЕЦ,NOVOSELETS,8958
+с.,s.,НОВОСЕЛИЩЕ,NOVOSELISHTE,6697
+с.,s.,НОВОСЕЛЦИ,NOVOSELTSI,3725
+с.,s.,НОВОСЕЛЯНЕ,NOVOSELYANE,2689
+с.,s.,НОЕВЦИ,NOEVTSI,2394
+с.,s.,НОЖАРЕВО,NOZHAREVO,7615
+с.,s.,НОЖАРОВО,NOZHAROVO,7441
+с.,s.,НОЖЕРИТЕ,NOZHERITE,5360
+с.,s.,НОСЕИТЕ,NOSEITE,5360
+с.,s.,НОЧЕВО,NOCHEVO,6726
+с.,s.,НЮШКОВЦИ,NYUSHKOVTSI,5097
+с.,s.,ОБЕДИНЕНИЕ,OBEDINENIE,5195
+с.,s.,ОБЕЛ,OBEL,2738
+с.,s.,ОБИДИМ,OBIDIM,2776
+с.,s.,ОБИТЕЛ,OBITEL,7920
+с.,s.,ОБИЧНИК,OBICHNIK,6800
+с.,s.,ОБНОВА,OBNOVA,5922
+с.,s.,ОБОРИЩЕ,OBORISHTE,9147
+с.,s.,ОБОРИЩЕ,OBORISHTE,4522
+с.,s.,ОБРЕТЕНИК,OBRETENIK,7170
+с.,s.,ОБРОЧИЩЕ,OBROCHISHTE,9630
+с.,s.,ОБРУЧИЩЕ,OBRUCHISHTE,6290
+с.,s.,ОВЕН,OVEN,7671
+с.,s.,ОВОЩАРЦИ,OVOSHTARTSI,5342
+с.,s.,ОВОЩНА,OVOSHTNA,5088
+с.,s.,ОВОЩНИК,OVOSHTNIK,6138
+с.,s.,ОВЧА МОГИЛА,OVCHA MOGILA,5295
+с.,s.,ОВЧАГА,OVCHAGA,9233
+с.,s.,ОВЧАРИ,OVCHARI,6922
+с.,s.,ОВЧАРОВО,OVCHAROVO,9395
+с.,s.,ОВЧАРОВО,OVCHAROVO,7747
+с.,s.,ОВЧАРОВО,OVCHAROVO,6468
+с.,s.,ОВЧАРОВО,OVCHAROVO,9805
+с.,s.,ОВЧАРЦИ,OVCHARTSI,2647
+с.,s.,ОВЧАРЦИ,OVCHARTSI,6264
+с.,s.,ОВЧЕВО,OVCHEVO,6846
+с.,s.,ОВЧЕПОЛЦИ,OVCHEPOLTSI,4448
+с.,s.,ОВЧИ КЛАДЕНЕЦ,OVCHI KLADENETS,8660
+с.,s.,ОГЛЕД,OGLED,4972
+с.,s.,ОГНЕН,OGNEN,8467
+с.,s.,ОГНЯНОВО,OGNYANOVO,2947
+с.,s.,ОГНЯНОВО,OGNYANOVO,4417
+с.,s.,ОГНЯНОВО,OGNYANOVO,2117
+с.,s.,ОГНЯНОВО,OGNYANOVO,9423
+с.,s.,ОГОЯ,OGOYA,2297
+с.,s.,ОГРАДНА,OGRADNA,4990
+с.,s.,ОГРАЖДЕН,OGRAZHDEN,9529
+с.,s.,ОДОРОВЦИ,ODOROVTSI,3679
+с.,s.,ОДРАНИЦА,ODRANITSA,2408
+с.,s.,ОДРИНЦИ,ODRINTSI,6584
+с.,s.,ОДРИНЦИ,ODRINTSI,9357
+с.,s.,ОДЪРНЕ,ODARNE,5893
+с.,s.,ОДЪРЦИ,ODARTSI,9362
+с.,s.,ОЗЪРНОВЦИ,OZARNOVTSI,2373
+с.,s.,ОКОЛИИТЕ,OKOLIITE,5350
+с.,s.,ОКОП,OKOP,8669
+с.,s.,ОКОРШ,OKORSH,7680
+с.,s.,ОМАН,OMAN,8727
+с.,s.,ОМАРЧЕВО,OMARCHEVO,8921
+с.,s.,ОМАРЧЕВО,OMARCHEVO,9949
+с.,s.,ОНОГУР,ONOGUR,9486
+с.,s.,ОПАН,OPAN,6078
+с.,s.,ОПАНЕЦ,OPANETS,5851
+с.,s.,ОПАНЕЦ,OPANETS,9347
+с.,s.,ОПИЦВЕТ,OPITSVET,2235
+с.,s.,ОПЛЕТНЯ,OPLETNYA,2276
+с.,s.,ОПЪЛЧЕНЕЦ,OPALCHENETS,6254
+с.,s.,ОПЪЛЧЕНСКО,OPALCHENSKO,6641
+с.,s.,ОРАЧ,ORACH,7977
+с.,s.,ОРЕХ,OREH,
+с.,s.,ОРЕХОВИЦА,OREHOVITSA,5859
+с.,s.,ОРЕХОВО,OREHOVO,4877
+с.,s.,ОРЕШ,ORESH,5280
+с.,s.,ОРЕШАК,ORESHAK,9151
+с.,s.,ОРЕШАК,ORESHAK,5630
+с.,s.,ОРЕШАРИ,ORESHARI,6929
+с.,s.,ОРЕШЕ,ORESHE,2943
+с.,s.,ОРЕШЕНЕ,ORESHENE,5763
+с.,s.,ОРЕШЕНЕ,ORESHENE,7684
+с.,s.,ОРЕШЕЦ,ORESHETS,3945
+с.,s.,ОРЕШЕЦ,ORESHETS,4255
+с.,s.,ОРЕШЕЦ,ORESHETS,6475
+с.,s.,ОРЕШЕЦ,ORESHETS,4727
+с.,s.,ОРЕШИНО,ORESHINO,6579
+с.,s.,ОРЕШНИК,ORESHNIK,6561
+с.,s.,ОРЕШНИЦА,ORESHNITSA,6655
+с.,s.,ОРИЗАРЕ,ORIZARE,8248
+с.,s.,ОРИЗАРИ,ORIZARI,4214
+с.,s.,ОРИЗАРИ,ORIZARI,8893
+с.,s.,ОРИЗОВО,ORIZOVO,6253
+с.,s.,ОРЛИНЦИ,ORLINTSI,8325
+с.,s.,ОРЛИЦА,ORLITSA,6892
+с.,s.,ОРЛОВ ДОЛ,ORLOV DOL,6545
+с.,s.,ОРЛОВА МОГИЛА,ORLOVA MOGILA,9359
+с.,s.,ОРЛОВЕЦ,ORLOVETS,5187
+с.,s.,ОРЛОВО,ORLOVO,8985
+с.,s.,ОРЛОВО,ORLOVO,6354
+с.,s.,ОРЛОВЦИ,ORLOVTSI,5342
+с.,s.,ОРЛЯК,ORLYAK,9490
+с.,s.,ОРЛЯНЕ,ORLYANE,5577
+с.,s.,ОРСОЯ,ORSOYA,3665
+с.,s.,ОРЦЕВО,ORTSEVO,2785
+с.,s.,ОРЯХОВЕЦ,ORYAHOVETS,4942
+с.,s.,ОРЯХОВИЦА,ORYAHOVITSA,6061
+с.,s.,ОРЯХОВО,ORYAHOVO,6555
+с.,s.,ОСЕЛНА,OSELNA,3171
+с.,s.,ОСЕЛНА,OSELNA,2186
+с.,s.,ОСЕН,OSEN,3059
+с.,s.,ОСЕН,OSEN,7634
+с.,s.,ОСЕН,OSEN,7746
+с.,s.,ОСЕНАРИТЕ,OSENARITE,5037
+с.,s.,ОСЕНЕЦ,OSENETS,7267
+с.,s.,ОСЕНОВЕЦ,OSENOVETS,9753
+с.,s.,ОСЕНОВЛАГ,OSENOVLAG,2291
+с.,s.,ОСЕНОВО,OSENOVO,2774
+с.,s.,ОСЕНОВО,OSENOVO,9155
+с.,s.,ОСЕТЕНОВО,OSETENOVO,6153
+с.,s.,ОСИКОВИЦА,OSIKOVITSA,2164
+с.,s.,ОСИКОВО,OSIKOVO,2965
+с.,s.,ОСИКОВО,OSIKOVO,4819
+с.,s.,ОСИКОВО,OSIKOVO,7862
+с.,s.,ОСИКОВСКА ЛАКАВИЦА,OSIKOVSKA LAKAVITSA,2165
+с.,s.,ОСИНА,OSINA,2953
+с.,s.,ОСЛАРКА,OSLARKA,6216
+с.,s.,ОСЛЕН КРИВОДОЛ,OSLEN KRIVODOL,3169
+с.,s.,ОСМАР,OSMAR,9879
+с.,s.,ОСОИЦА,OSOITSA,2121
+с.,s.,ОСТРА МОГИЛА,OSTRA MOGILA,8983
+с.,s.,ОСТРА МОГИЛА,OSTRA MOGILA,6062
+с.,s.,ОСТРЕЦ,OSTRETS,7743
+с.,s.,ОСТРИ ПАЗЛАК,OSTRI PAZLAK,4732
+с.,s.,ОСТРИЦА,OSTRITSA,7161
+с.,s.,ОСТРИЦА,OSTRITSA,4859
+с.,s.,ОСТРОВ,OSTROV,3340
+с.,s.,ОСТРОВЕЦ,OSTROVETS,6881
+с.,s.,ОСТРОВИЦА,OSTROVITSA,6644
+с.,s.,ОСТРОВО,OSTROVO,7326
+с.,s.,ОСТРОВЧЕ,OSTROVCHE,7238
+с.,s.,ОСТРОКАПЦИ,OSTROKAPTSI,3757
+с.,s.,ОСТЪР КАМЪК,OSTAR KAMAK,6457
+с.,s.,ОТЕЦ КИРИЛОВО,OTETS KIRILOVO,4163
+с.,s.,ОТЕЦ ПАИСИЕВО,OTETS PAISIEVO,4207
+с.,s.,ОХЛЮВЕЦ,OHLYUVETS,6624
+с.,s.,ОХОДЕН,OHODEN,3079
+с.,s.,ОХРИД,OHRID,3438
+с.,s.,ОЧИНДОЛ,OCHINDOL,3162
+с.,s.,ОЧУША,OCHUSHA,2049
+с.,s.,ОШАНЕ,OSHANE,3937
+с.,s.,ОШАНИТЕ,OSHANITE,5350
+с.,s.,ОЩАВА,OSHTAVA,2847
+с.,s.,ПАВЕЛ,PAVEL,5197
+с.,s.,ПАВЕЛСКО,PAVELSKO,4889
+с.,s.,ПАВЛЕВЦИ,PAVLEVTSI,5365
+с.,s.,ПАВОЛЧЕ,PAVOLCHE,3044
+с.,s.,ПАДАЛА,PADALA,2632
+с.,s.,ПАДАЛО,PADALO,6960
+с.,s.,ПАДЕШ,PADESH,2747
+с.,s.,ПАДИНА,PADINA,9136
+с.,s.,ПАДИНА,PADINA,6771
+с.,s.,ПАДИНА,PADINA,7617
+с.,s.,ПАДИНЕ,PADINE,2438
+с.,s.,ПАЗАРЦИ,PAZARTSI,6829
+с.,s.,ПАИСИЕВО,PAISIEVO,7681
+с.,s.,ПАИСИЙ,PAISIY,5136
+с.,s.,ПАЙДУШКО,PAYDUSHKO,7767
+с.,s.,ПАЛАМАРЦА,PALAMARTSA,7850
+с.,s.,ПАЛАТ,PALAT,2829
+с.,s.,ПАЛАТИК,PALATIK,2782
+с.,s.,ПАЛАТОВО,PALATOVO,2681
+с.,s.,ПАЛАУЗОВО,PALAUZOVO,8698
+с.,s.,ПАЛИЛУЛА,PALILULA,3439
+с.,s.,ПАЛИЦИ,PALITSI,5083
+с.,s.,ПАМИДОВО,PAMIDOVO,4459
+с.,s.,ПАМУКЧИИ,PAMUKCHII,6058
+с.,s.,ПАМУКЧИИ,PAMUKCHII,9934
+с.,s.,ПАНАГЮРСКИ КОЛОНИИ,PANAGYURSKI KOLONII,4520
+с.,s.,ПАНАЙОТ ВОЛОВО,PANAYOT VOLOVO,9802
+с.,s.,ПАНАЙОТ ХИТОВО,PANAYOT HITOVO,7929
+с.,s.,ПАНАРЕТОВЦИ,PANARETOVTSI,8867
+с.,s.,ПАНИЦОВО,PANITSOVO,8254
+с.,s.,ПАНИЧАРЕВО,PANICHAREVO,2685
+с.,s.,ПАНИЧЕРЕВО,PANICHEREVO,6172
+с.,s.,ПАНИЧЕРИ,PANICHERI,4179
+с.,s.,ПАНИЧИНО,PANICHINO,7928
+с.,s.,ПАНИЧИЩЕ,PANICHISHTE,2650
+с.,s.,ПАНИЧКОВО,PANICHKOVO,6723
+с.,s.,ПАНОВЦИ,PANOVTSI,2060
+с.,s.,ПАНЧАРЕВО,PANCHAREVO,1137
+с.,s.,ПАНЧЕВО,PANCHEVO,6657
+с.,s.,ПАПРАТ,PAPRAT,6851
+с.,s.,ПАПРАТЛИВА,PAPRATLIVA,5094
+с.,s.,ПАРАМУН,PARAMUN,2474
+с.,s.,ПАРИЛ,PARIL,2926
+с.,s.,ПАРТИЗАНИ,PARTIZANI,9245
+с.,s.,ПАРТИЗАНИН,PARTIZANIN,6218
+с.,s.,ПАРЧОВЦИ,PARCHOVTSI,5344
+с.,s.,ПАСКАЛЕВЕЦ,PASKALEVETS,5224
+с.,s.,ПАСКАЛЕВО,PASKALEVO,9370
+с.,s.,ПАСПАЛ,PASPAL,6776
+с.,s.,ПАСТРА,PASTRA,2631
+с.,s.,ПАСТУХ,PASTUH,2595
+с.,s.,ПАТАЛЕНИЦА,PATALENITSA,4418
+с.,s.,ПАТИЦА,PATITSA,6710
+с.,s.,ПАТРЕШ,PATRESH,5225
+с.,s.,ПАТРЕШКО,PATRESHKO,5631
+с.,s.,ПАТРИАРХ ЕВТИМОВО,PATRIARH EVTIMOVO,4267
+с.,s.,ПАУНОВО,PAUNOVO,2069
+с.,s.,ПАШИНЦИ,PASHINTSI,6969
+с.,s.,ПАШКУЛ,PASHKUL,6572
+с.,s.,ПАШОВИ,PASHOVI,4632
+с.,s.,ПАШОВО,PASHOVO,6529
+с.,s.,ПЕВЕЦ,PEVETS,7771
+с.,s.,ПЕВЦИТЕ,PEVTSITE,4335
+с.,s.,ПЕЙКОВЦИ,PEYKOVTSI,5095
+с.,s.,ПЕЙНА,PEYNA,5370
+с.,s.,ПЕЙОВЦИ,PEYOVTSI,5345
+с.,s.,ПЕЙЧИНОВО,PEYCHINOVO,7127
+с.,s.,ПЕЛАТИКОВО,PELATIKOVO,2582
+с.,s.,ПЕЛИН,PELIN,6948
+с.,s.,ПЕЛИШАТ,PELISHAT,5895
+с.,s.,ПЕНКОВЦИ,PENKOVTSI,5333
+с.,s.,ПЕНКЬОВЦИ,PENKYOVTSI,2499
+с.,s.,ПЕНЬОВО,PENYOVO,6741
+с.,s.,ПЕПЕЛИНА,PEPELINA,7158
+с.,s.,ПЕПЕЛИЩЕ,PEPELISHTE,6643
+с.,s.,ПЕРИЛОВЕЦ,PERILOVETS,3841
+с.,s.,ПЕРПЕРЕК,PERPEREK,6673
+с.,s.,ПЕРУНИКА,PERUNIKA,6949
+с.,s.,ПЕСНОПОЙ,PESNOPOY,6798
+с.,s.,ПЕСНОПОЙ,PESNOPOY,4208
+с.,s.,ПЕСОЧНИЦА,PESOCHNITSA,3519
+с.,s.,ПЕТ КЛАДЕНЦИ,PET KLADENTSI,7119
+с.,s.,ПЕТ МОГИЛИ,PET MOGILI,8953
+с.,s.,ПЕТ МОГИЛИ,PET MOGILI,9940
+с.,s.,ПЕТЕЛОВО,PETELOVO,6666
+с.,s.,ПЕТКО КАРАВЕЛОВО,PETKO KARAVELOVO,5184
+с.,s.,ПЕТКО СЛАВЕЙКОВ,PETKO SLAVEYKOV,5434
+с.,s.,ПЕТКОВО,PETKOVO,4740
+с.,s.,ПЕТКОВО,PETKOVO,2111
+с.,s.,ПЕТКОВЦИ,PETKOVTSI,5084
+с.,s.,ПЕТКОВЦИ,PETKOVTSI,5370
+с.,s.,ПЕТЛЕШКОВО,PETLESHKOVO,9521
+с.,s.,ПЕТЛИНО,PETLINO,6634
+с.,s.,ПЕТОКЛАДЕНЦИ,PETOKLADENTSI,5933
+с.,s.,ПЕТРЕВЕНЕ,PETREVENE,5784
+с.,s.,ПЕТРЕЛИК,PETRELIK,2936
+с.,s.,ПЕТРИНО,PETRINO,7956
+с.,s.,ПЕТРИЧ,PETRICH,2085
+с.,s.,ПЕТРОВ ДОЛ,PETROV DOL,9225
+с.,s.,ПЕТРОВ ДОЛ,PETROV DOL,4911
+с.,s.,ПЕТРОВО,PETROVO,2815
+с.,s.,ПЕТРОВО,PETROVO,6058
+с.,s.,ПЕТРОВЦИ,PETROVTSI,5347
+с.,s.,ПЕТЪРНИЦА,PETARNITSA,5878
+с.,s.,ПЕТЪРЧ,PETARCH,2234
+с.,s.,ПЕЦОВЦИ,PETSOVTSI,5345
+с.,s.,ПЕЧЕНИЦА,PECHENITSA,7428
+с.,s.,ПЕЧИНСКА,PECHINSKA,4912
+с.,s.,ПЕШАКОВО,PESHAKOVO,3733
+с.,s.,ПЕЩЕРА,PESHTERA,2443
+с.,s.,ПЕЩЕРА,PESHTERA,4754
+с.,s.,ПЕЩЕРНА,PESHTERNA,5788
+с.,s.,ПЕЩЕРСКО,PESHTERSKO,8525
+с.,s.,ПИПЕРЕВО,PIPEREVO,2618
+с.,s.,ПИПЕРИЦА,PIPERITSA,2831
+с.,s.,ПИПЕРКОВ ЧИФЛИК,PIPERKOV CHIFLIK,2508
+с.,s.,ПИПЕРКОВО,PIPERKOVO,7129
+с.,s.,ПИРАМИДАТА,PIRAMIDATA,5035
+с.,s.,ПИРГОВО,PIRGOVO,7090
+с.,s.,ПИРИН,PIRIN,2823
+с.,s.,ПИРИНЕЦ,PIRINETS,7976
+с.,s.,ПИРНЕ,PIRNE,8528
+с.,s.,ПИСАНЕЦ,PISANETS,7081
+с.,s.,ПИСАНИЦА,PISANITSA,4744
+с.,s.,ПИСАРЕВО,PISAREVO,5127
+с.,s.,ПИСАРЕВО,PISAREVO,9927
+с.,s.,ПИСАРОВО,PISAROVO,5871
+с.,s.,ПИСАРОВО,PISAROVO,9527
+с.,s.,ПИСМЕНОВО,PISMENOVO,8182
+с.,s.,ПИТОВО,PITOVO,8942
+с.,s.,ПИШУРКА,PISHURKA,3662
+с.,s.,ПИЩАНЕ,PISHTANE,2218
+с.,s.,ПИЩИГОВО,PISHTIGOVO,4451
+с.,s.,ПИЯВЕЦ,PIYAVETS,6813
+с.,s.,ПЛАЗИЩЕ,PLAZISHTE,6850
+с.,s.,ПЛАКОВО,PLAKOVO,5042
+с.,s.,ПЛАКУДЕР,PLAKUDER,3781
+с.,s.,ПЛАНА,PLANA,1475
+с.,s.,ПЛАНИНЕЦ,PLANINETS,6599
+с.,s.,ПЛАНИНИЦА,PLANINITSA,8565
+с.,s.,ПЛАНИНИЦА,PLANINITSA,2340
+с.,s.,ПЛАНИНОВО,PLANINOVO,6560
+с.,s.,ПЛАНИНСКО,PLANINSKO,4940
+с.,s.,ПЛАНИНЦИ,PLANINTSI,5367
+с.,s.,ПЛАНИНЦИ,PLANINTSI,4921
+с.,s.,ПЛАЧИДОЛ,PLACHIDOL,9365
+с.,s.,ПЛАЧКА,PLACHKA,5370
+с.,s.,ПЛЕВУН,PLEVUN,6593
+с.,s.,ПЛЕНИМИР,PLENIMIR,9522
+с.,s.,ПЛЕТЕНА,PLETENA,2954
+с.,s.,ПЛЕШИВЕЦ,PLESHIVETS,3931
+с.,s.,ПЛЕШИНЦИ,PLESHINTSI,6800
+с.,s.,ПЛОВДИВЦИ,PLOVDIVTSI,4979
+с.,s.,ПЛОВКА,PLOVKA,6890
+с.,s.,ПЛОДОВИТОВО,PLODOVITOVO,6257
+с.,s.,ПЛОСКА МОГИЛА,PLOSKA MOGILA,6055
+с.,s.,ПЛОСКИ,PLOSKI,2810
+с.,s.,ПЛЪЗИЩЕ,PLAZISHTE,2072
+с.,s.,ПЛЪСТИНА,PLASTINA,7934
+с.,s.,ПОБЕДА,POBEDA,9372
+с.,s.,ПОБЕДА,POBEDA,5873
+с.,s.,ПОБЕДА,POBEDA,8679
+с.,s.,ПОБИТ КАМЪК,POBIT KAMAK,2554
+с.,s.,ПОБИТ КАМЪК,POBIT KAMAK,7262
+с.,s.,ПОБИТ КАМЪК,POBIT KAMAK,4638
+с.,s.,ПОБЪК,POBAK,5365
+с.,s.,ПОВАЛИРЪЖ,POVALIRAZH,2218
+с.,s.,ПОВЕТ,POVET,6630
+с.,s.,ПОДАЙВА,PODAYVA,7431
+с.,s.,ПОДВИС,PODVIS,8450
+с.,s.,ПОДВИС,PODVIS,4733
+с.,s.,ПОДВРЪХ,PODVRAH,6850
+с.,s.,ПОДГОРЕ,PODGORE,3852
+с.,s.,ПОДГОРЕЦ,PODGORETS,8535
+с.,s.,ПОДГОРИЕ,PODGORIE,2049
+с.,s.,ПОДГОРИЦА,PODGORITSA,7768
+с.,s.,ПОДГУМЕР,PODGUMER,1221
+с.,s.,ПОДЕМ,PODEM,5852
+с.,s.,ПОДКОВА,PODKOVA,6880
+с.,s.,ПОДКРЕПА,PODKREPA,6312
+с.,s.,ПОДЛЕС,PODLES,7632
+с.,s.,ПОДРУМЧЕ,PODRUMCHE,6945
+с.,s.,ПОДСЛОН,PODSLON,6057
+с.,s.,ПОДСЛОН,PODSLON,9391
+с.,s.,ПОЖАРЕВО,POZHAREVO,7622
+с.,s.,ПОЖАРЕВО,POZHAREVO,2229
+с.,s.,ПОЖЕРНИК,POZHERNIK,5041
+с.,s.,ПОИБРЕНЕ,POIBRENE,4524
+с.,s.,ПОКРАЙНА,POKRAYNA,3764
+с.,s.,ПОКРОВАН,POKROVAN,6575
+с.,s.,ПОКРОВНИК,POKROVNIK,2708
+с.,s.,ПОЛЕНА,POLENA,2758
+с.,s.,ПОЛЕНИЦА,POLENITSA,2804
+с.,s.,ПОЛЕТИНЦИ,POLETINTSI,2561
+с.,s.,ПОЛЕТКОВЦИ,POLETKOVTSI,3818
+с.,s.,ПОЛЕТО,POLETO,2751
+с.,s.,ПОЛИКРАИЩЕ,POLIKRAISHTE,5138
+с.,s.,ПОЛКОВНИК ДЯКОВО,POLKOVNIK DYAKOVO,9401
+с.,s.,ПОЛКОВНИК ЖЕЛЯЗОВО,POLKOVNIK ZHELYAZOVO,6909
+с.,s.,ПОЛКОВНИК ИВАНОВО,POLKOVNIK IVANOVO,9432
+с.,s.,ПОЛКОВНИК ЛАМБРИНОВО,POLKOVNIK LAMBRINOVO,7579
+с.,s.,ПОЛКОВНИК МИНКОВО,POLKOVNIK MINKOVO,9372
+с.,s.,ПОЛКОВНИК САВОВО,POLKOVNIK SAVOVO,9471
+с.,s.,ПОЛКОВНИК СВЕЩАРОВО,POLKOVNIK SVESHTAROVO,9378
+с.,s.,ПОЛКОВНИК СЕРАФИМОВО,POLKOVNIK SERAFIMOVO,4794
+с.,s.,ПОЛКОВНИК ТАСЛАКОВО,POLKOVNIK TASLAKOVO,7677
+с.,s.,ПОЛКОВНИК ЧОЛАКОВО,POLKOVNIK CHOLAKOVO,7553
+с.,s.,ПОЛСКА СКАКАВИЦА,POLSKA SKAKAVITSA,2551
+с.,s.,ПОЛСКИ ГРАДЕЦ,POLSKI GRADETS,6276
+с.,s.,ПОЛСКИ ИЗВОР,POLSKI IZVOR,8123
+с.,s.,ПОЛСКИ СЕНОВЕЦ,POLSKI SENOVETS,5193
+с.,s.,ПОЛСКО КОСОВО,POLSKO KOSOVO,7131
+с.,s.,ПОЛСКО ПЪДАРЕВО,POLSKO PADAREVO,8937
+с.,s.,ПОЛЯНА,POLYANA,7584
+с.,s.,ПОЛЯНА,POLYANA,4977
+с.,s.,ПОЛЯНА,POLYANA,8654
+с.,s.,ПОЛЯНЕЦ,POLYANETS,6847
+с.,s.,ПОЛЯНОВО,POLYANOVO,8544
+с.,s.,ПОЛЯНОВО,POLYANOVO,6464
+с.,s.,ПОЛЯНЦИ,POLYANTSI,2068
+с.,s.,ПОЛЯЦИТЕ,POLYATSITE,9239
+с.,s.,ПОМЕЖДИН,POMEZHDIN,3476
+с.,s.,ПОМЕН,POMEN,7164
+с.,s.,ПОМОЩИЦА,POMOSHTITSA,7839
+с.,s.,ПОМОЩНИК,POMOSHTNIK,6297
+с.,s.,ПОНОР,PONOR,2236
+с.,s.,ПОПАРИ,POPARI,5343
+с.,s.,ПОПГЕРГЕВЦИ,POPGERGEVTSI,5365
+с.,s.,ПОПГРИГОРОВО,POPGRIGOROVO,9377
+с.,s.,ПОПГРУЕВО,POPGRUEVO,9478
+с.,s.,ПОПИНА,POPINA,7590
+с.,s.,ПОПИНЦИ,POPINTSI,4528
+с.,s.,ПОПИЦА,POPITSA,3244
+с.,s.,ПОПКРАЛЕВО,POPKRALEVO,7545
+с.,s.,ПОПОВЕЦ,POPOVETS,6398
+с.,s.,ПОПОВИЦА,POPOVITSA,4127
+с.,s.,ПОПОВИЧ,POPOVICH,9104
+с.,s.,ПОПОВО,POPOVO,8735
+с.,s.,ПОПОВЦИ,POPOVTSI,5035
+с.,s.,ПОПОВЦИ,POPOVTSI,5345
+с.,s.,ПОПОВЦИ,POPOVTSI,2060
+с.,s.,ПОПОВЯНЕ,POPOVYANE,2014
+с.,s.,ПОПРАЙКОВЦИ,POPRAYKOVTSI,5365
+с.,s.,ПОПРЕЛКА,POPRELKA,4759
+с.,s.,ПОПРУСАНОВО,POPRUSANOVO,7564
+с.,s.,ПОПРУСЕВЦИ,POPRUSEVTSI,5084
+с.,s.,ПОПСКА,POPSKA,5084
+с.,s.,ПОПСКА,POPSKA,5466
+с.,s.,ПОПСКО,POPSKO,6580
+с.,s.,ПОРОИЩЕ,POROISHTE,7218
+с.,s.,ПОРОЙ,POROY,8221
+с.,s.,ПОРОЙНА,POROYNA,4281
+с.,s.,ПОРОЙНО,POROYNO,7658
+с.,s.,ПОРОЙНО,POROYNO,7952
+с.,s.,ПОРОМИНОВО,POROMINOVO,2639
+с.,s.,ПОРТИТОВЦИ,PORTITOVTSI,3432
+с.,s.,ПОРУЧИК КЪРДЖИЕВО,PORUCHIK KARDZHIEVO,9409
+с.,s.,ПОРУЧИК ЧУНЧЕВО,PORUCHIK CHUNCHEVO,9658
+с.,s.,ПОСАБИНА,POSABINA,7853
+с.,s.,ПОСЕВ,POSEV,7567
+с.,s.,ПОСТНИК,POSTNIK,6833
+с.,s.,ПОТОК,POTOK,5309
+с.,s.,ПОТОКА,POTOKA,4768
+с.,s.,ПОТОП,POTOP,2127
+с.,s.,ПОТОЧАРКА,POTOCHARKA,6963
+с.,s.,ПОТОЧЕ,POTOCHE,6850
+с.,s.,ПОТОЧНИЦА,POTOCHNITSA,6960
+с.,s.,ПОЦЪРНЕНЦИ,POTSARNENTSI,2455
+с.,s.,ПРАВДА,PRAVDA,5125
+с.,s.,ПРАВДА,PRAVDA,7690
+с.,s.,ПРАВДИНО,PRAVDINO,8695
+с.,s.,ПРАВДОЛЮБ,PRAVDOLYUB,6765
+с.,s.,ПРАВЕНЦИ,PRAVENTSI,9945
+с.,s.,ПРАВЕШКА ЛАКАВИЦА,PRAVESHKA LAKAVITSA,2170
+с.,s.,ПРАВИЩЕ,PRAVISHTE,4191
+с.,s.,ПРАВО БЪРДО,PRAVO BARDO,2894
+с.,s.,ПРАВОСЛАВ,PRAVOSLAV,6248
+с.,s.,ПРАВОСЛАВЕН,PRAVOSLAVEN,4287
+с.,s.,ПРАУЖДА,PRAUZHDA,3917
+с.,s.,ПРАХАЛИ,PRAHALI,5345
+с.,s.,ПРЕВАЛА,PREVALA,3457
+с.,s.,ПРЕКОЛНИЦА,PREKOLNITSA,2571
+с.,s.,ПРЕКРЪСТЕ,PREKRASTE,2206
+с.,s.,ПРЕЛЕЗ,PRELEZ,7325
+с.,s.,ПРЕЛОМ,PRELOM,5545
+с.,s.,ПРЕОБРАЖЕНЦИ,PREOBRAZHENTSI,8541
+с.,s.,ПРЕСЕКА,PRESEKA,6862
+с.,s.,ПРЕСЕЛЕНЦИ,PRESELENTSI,9558
+с.,s.,ПРЕСЕЛЕЦ,PRESELETS,7772
+с.,s.,ПРЕСЕЛКА,PRESELKA,9922
+с.,s.,ПРЕСИЯН,PRESIYAN,7762
+с.,s.,ПРЕСЛАВЕН,PRESLAVEN,6048
+с.,s.,ПРЕСЛАВЕЦ,PRESLAVETS,6454
+с.,s.,ПРЕСЛАВЦИ,PRESLAVTSI,7635
+с.,s.,ПРЕСОКА,PRESOKA,4987
+с.,s.,ПРЕСПА,PRESPA,2072
+с.,s.,ПРЕСПА,PRESPA,9635
+с.,s.,ПРЕСТОЙ,PRESTOY,5350
+с.,s.,ПРЕСЯК,PRESYAK,7754
+с.,s.,ПРЕСЯКА,PRESYAKA,5542
+с.,s.,ПРИБОЙ,PRIBOY,2452
+с.,s.,ПРИЛЕП,PRILEP,8445
+с.,s.,ПРИЛЕП,PRILEP,9352
+с.,s.,ПРИЛЕПЦИ,PRILEPTSI,6609
+с.,s.,ПРИМОРЦИ,PRIMORTSI,9376
+с.,s.,ПРИПЕК,PRIPEK,8537
+с.,s.,ПРИПЕК,PRIPEK,9146
+с.,s.,ПРИПЕК,PRIPEK,6858
+с.,s.,ПРИСАД,PRISAD,8161
+с.,s.,ПРИСАД,PRISAD,9524
+с.,s.,ПРИСАДЕЦ,PRISADETS,6564
+с.,s.,ПРИСЕЛЦИ,PRISELTSI,8251
+с.,s.,ПРИСЕЛЦИ,PRISELTSI,9131
+с.,s.,ПРИСОВО,PRISOVO,5033
+с.,s.,ПРИСОЙНА,PRISOYNA,7969
+с.,s.,ПРИСТОЕ,PRISTOE,9965
+с.,s.,ПРОБУДА,PROBUDA,7748
+с.,s.,ПРОГЛЕД,PROGLED,4871
+с.,s.,ПРОГРЕС,PROGRES,6819
+с.,s.,ПРОДАНОВЦИ,PRODANOVTSI,5045
+с.,s.,ПРОДАНОВЦИ,PRODANOVTSI,2007
+с.,s.,ПРОДАНОВЦИ,PRODANOVTSI,5307
+с.,s.,ПРОДАНЧА,PRODANCHA,2471
+с.,s.,ПРОЛАЗ,PROLAZ,7739
+с.,s.,ПРОЛАЗНИЦА,PROLAZNITSA,3913
+с.,s.,ПРОЛЕЗ,PROLEZ,9685
+с.,s.,ПРОЛЕША,PROLESHA,2228
+с.,s.,ПРОЛОМ,PROLOM,4358
+с.,s.,ПРОПАСТ,PROPAST,6632
+с.,s.,ПРОСЕНА,PROSENA,7055
+с.,s.,ПРОСЕНИК,PROSENIK,8548
+с.,s.,ПРОСЕЧЕН,PROSECHEN,9175
+с.,s.,ПРОСТОРНО,PROSTORNO,7263
+с.,s.,ПРОТОПОПИНЦИ,PROTOPOPINTSI,3957
+с.,s.,ПРОФЕСОР ЗЛАТАРСКИ,PROFESOR ZLATARSKI,9487
+с.,s.,ПРОФЕСОР ИШИРКОВО,PROFESOR ISHIRKOVO,7572
+с.,s.,ПРОХЛАДА,PROHLADA,7668
+с.,s.,ПРОХОД,PROHOD,8336
+с.,s.,ПРОХОРОВО,PROHOROVO,8944
+с.,s.,ПРЯПОРЕЦ,PRYAPORETS,6716
+с.,s.,ПРЯПОРЕЦ,PRYAPORETS,6062
+с.,s.,ПТИЧАР,PTICHAR,6811
+с.,s.,ПТИЧЕВО,PTICHEVO,7946
+с.,s.,ПУДРИЯ,PUDRIA,3049
+с.,s.,ПУШЕВО,PUSHEVO,5062
+с.,s.,ПЧЕЛА,PCHELA,8718
+с.,s.,ПЧЕЛАРИ,PCHELARI,6385
+с.,s.,ПЧЕЛАРОВО,PCHELAROVO,6664
+с.,s.,ПЧЕЛАРОВО,PCHELAROVO,9550
+с.,s.,ПЧЕЛИН,PCHELIN,8456
+с.,s.,ПЧЕЛИН,PCHELIN,2048
+с.,s.,ПЧЕЛИНА,PCHELINA,7438
+с.,s.,ПЧЕЛИНО,PCHELINO,9363
+с.,s.,ПЧЕЛИНОВО,PCHELINOVO,6196
+с.,s.,ПЧЕЛИЩЕ,PCHELISHTE,5048
+с.,s.,ПЧЕЛНИК,PCHELNIK,9118
+с.,s.,ПЧЕЛНИК,PCHELNIK,9427
+с.,s.,ПЧЕЛНО,PCHELNO,7987
+с.,s.,ПШЕНИЧЕВО,PSHENICHEVO,6268
+с.,s.,ПЪДАРЕВО,PADAREVO,8992
+с.,s.,ПЪДАРИНО,PADARINO,7959
+с.,s.,ПЪДАРСКО,PADARSKO,4158
+с.,s.,ПЪДАРЦИ,PADARTSI,6746
+с.,s.,ПЪНЧЕВО,PANCHEVO,8317
+с.,s.,ПЪРВАН,PARVAN,7958
+с.,s.,ПЪРВЕНЕЦ,PARVENETS,4110
+с.,s.,ПЪРВЕНЕЦ,PARVENETS,8694
+с.,s.,ПЪРВЕНЦИ,PARVENTSI,6865
+с.,s.,ПЪРВИЦА,PARVITSA,6882
+с.,s.,ПЪРВОМАЙ,PARVOMAY,2890
+с.,s.,ПЪРВОМАЙЦИ,PARVOMAYTSI,5139
+с.,s.,ПЪРЖИГРАХ,PARZHIGRAH,5365
+с.,s.,ПЪРЛИЧЕВО,PARLICHEVO,3531
+с.,s.,ПЪРОВЦИ,PAROVTSI,5052
+с.,s.,ПЪРТЕВЦИ,PARTEVTSI,5307
+с.,s.,ПЪРША,PARSHA,5380
+с.,s.,ПЪСТРЕН,PASTREN,6075
+с.,s.,ПЪСТРОВО,PASTROVO,6064
+с.,s.,ПЪСТРОГОР,PASTROGOR,6519
+с.,s.,ПЪСТРООК,PASTROOK,6597
+с.,s.,ПЪТНИКОВО,PATNIKOVO,6379
+с.,s.,ПЯСЪЧЕВО,PYASACHEVO,6496
+с.,s.,РАБИША,RABISHA,3938
+с.,s.,РАБОВО,RABOVO,6384
+с.,s.,РАБРОВО,RABROVO,3842
+с.,s.,РАВАДИНОВО,RAVADINOVO,8146
+с.,s.,РАВДА,RAVDA,8238
+с.,s.,РАВЕН,RAVEN,6834
+с.,s.,РАВНА,RAVNA,9235
+с.,s.,РАВНА,RAVNA,3473
+с.,s.,РАВНА,RAVNA,2249
+с.,s.,РАВНА ГОРА,RAVNA GORA,8151
+с.,s.,РАВНА ГОРА,RAVNA GORA,9124
+с.,s.,РАВНА ГОРА,RAVNA GORA,6526
+с.,s.,РАВНЕЦ,RAVNETS,8117
+с.,s.,РАВНЕЦ,RAVNETS,9523
+с.,s.,РАВНИЛ,RAVNIL,4931
+с.,s.,РАВНИНАТА,RAVNINATA,4781
+с.,s.,РАВНИЩА,RAVNISHTA,4955
+с.,s.,РАВНИЩЕ,RAVNISHTE,2167
+с.,s.,РАВНО,RAVNO,7344
+с.,s.,РАВНО НИВИЩЕ,RAVNO NIVISHTE,4913
+с.,s.,РАВНО ПОЛЕ,RAVNO POLE,2129
+с.,s.,РАВНО СЕЛО,RAVNO SELO,7965
+с.,s.,РАВНОВО,RAVNOVO,5089
+с.,s.,РАВНОГОР,RAVNOGOR,4582
+с.,s.,РАДАН ВОЙВОДА,RADAN VOYVODA,9294
+с.,s.,РАДАНОВО,RADANOVO,5185
+с.,s.,РАДАНЧЕТО,RADANCHETO,5370
+с.,s.,РАДЕВО,RADEVO,9149
+с.,s.,РАДЕВО,RADEVO,8917
+с.,s.,РАДЕВЦИ,RADEVTSI,5360
+с.,s.,РАДЕЦКИ,RADETSKI,8959
+с.,s.,РАДИБОШ,RADIBOSH,2447
+с.,s.,РАДИЕВО,RADIEVO,6427
+с.,s.,РАДИЛОВО,RADILOVO,4590
+с.,s.,РАДИНГРАД,RADINGRAD,7245
+с.,s.,РАДИНО,RADINO,5360
+с.,s.,РАДИНОВО,RADINOVO,4202
+с.,s.,РАДИШЕВО,RADISHEVO,5838
+с.,s.,РАДКО ДИМИТРИЕВО,RADKO DIMITRIEVO,9808
+с.,s.,РАДКОВЦИ,RADKOVTSI,5041
+с.,s.,РАДЛОВЦИ,RADLOVTSI,2548
+с.,s.,РАДОВЕНЕ,RADOVENE,3144
+с.,s.,РАДОВЕЦ,RADOVETS,6564
+с.,s.,РАДОВО,RADOVO,2488
+с.,s.,РАДОВЦИ,RADOVTSI,5084
+с.,s.,РАДОВЦИ,RADOVTSI,5380
+с.,s.,РАДОЕВСКОТО,RADOEVSKOTO,5633
+с.,s.,РАДОЕВЦИ,RADOEVTSI,5367
+с.,s.,РАДОЙНОВО,RADOYNOVO,8323
+с.,s.,РАДОМИРЦИ,RADOMIRTSI,5997
+с.,s.,РАДОТИНА,RADOTINA,2148
+с.,s.,РАДУИЛ,RADUIL,2043
+с.,s.,РАДУЙ,RADUY,2359
+с.,s.,РАДУЛОВЦИ,RADULOVTSI,2222
+с.,s.,РАДУНЦИ,RADUNTSI,6185
+с.,s.,РАДЮВЕНЕ,RADYUVENE,5540
+с.,s.,РАЕВЦИ,RAEVTSI,5363
+с.,s.,РАЖДАВИЦА,RAZHDAVITSA,2550
+с.,s.,РАЗБОИЩЕ,RAZBOISHTE,2253
+с.,s.,РАЗБОЙНА,RAZBOYNA,8531
+с.,s.,РАЗБОЙНА,RAZBOYNA,7707
+с.,s.,РАЗВИГОРОВО,RAZVIGOROVO,9790
+с.,s.,РАЗГРАД,RAZGRAD,3633
+с.,s.,РАЗДЕЛ,RAZDEL,7659
+с.,s.,РАЗДЕЛ,RAZDEL,8747
+с.,s.,РАЗДЕЛНА,RAZDELNA,9181
+с.,s.,РАЗДЕЛНА,RAZDELNA,6283
+с.,s.,РАЗДЕЛЦИ,RAZDELTSI,7989
+с.,s.,РАЗДОЛ,RAZDOL,2835
+с.,s.,РАЗЛИВ,RAZLIV,2162
+с.,s.,РАЗСОХА,RAZSOHA,5089
+с.,s.,РАЙКОВА МОГИЛА,RAYKOVA MOGILA,6525
+с.,s.,РАЙКОВЦИ,RAYKOVTSI,5039
+с.,s.,РАЙНИНО,RAYNINO,7421
+с.,s.,РАЙНОВО,RAYNOVO,6423
+с.,s.,РАЙНОВЦИ,RAYNOVTSI,5094
+с.,s.,РАЙНОВЦИ,RAYNOVTSI,5347
+с.,s.,РАЙНУШКОВЦИ,RAYNUSHKOVTSI,5363
+с.,s.,РАЙОВО,RAYOVO,2017
+с.,s.,РАКЕВО,RAKEVO,3067
+с.,s.,РАКИЛОВЦИ,RAKILOVTSI,2451
+с.,s.,РАКИТА,RAKITA,5998
+с.,s.,РАКИТА,RAKITA,2223
+с.,s.,РАКИТНА,RAKITNA,2753
+с.,s.,РАКИТНИЦА,RAKITNITSA,6067
+с.,s.,РАКИТНИЦА,RAKITNITSA,3791
+с.,s.,РАКЛИНОВО,RAKLINOVO,8547
+с.,s.,РАКЛИЦА,RAKLITSA,8439
+с.,s.,РАКОВИЦА,RAKOVITSA,3820
+с.,s.,РАКОВО,RAKOVO,2577
+с.,s.,РАКОВО,RAKOVO,8884
+с.,s.,РАКОВСКИ,RAKOVSKI,7264
+с.,s.,РАКОВСКИ,RAKOVSKI,9659
+с.,s.,РАКОВСКОВО,RAKOVSKOVO,8257
+с.,s.,РАЛЕВО,RALEVO,5875
+с.,s.,РАЛЕВЦИ,RALEVTSI,5367
+с.,s.,РАЛИНОВЦИ,RALINOVTSI,5098
+с.,s.,РАЛИЦА,RALITSA,6820
+с.,s.,РАЛИЦА,RALITSA,7759
+с.,s.,РАЛИЧЕВО,RALICHEVO,6965
+с.,s.,РАНЕНЦИ,RANENTSI,2569
+с.,s.,РАНИ ЛИСТ,RANI LIST,6720
+с.,s.,РАНИ ЛУГ,RANI LUG,2484
+с.,s.,РАСНИК,RASNIK,2357
+с.,s.,РАСОВО,RASOVO,3660
+с.,s.,РАСТНИК,RASTNIK,6865
+с.,s.,РАХОВЦИ,RAHOVTSI,5343
+с.,s.,РАЧЕВЦИ,RACHEVTSI,5345
+с.,s.,РАЧОВЦИ,RACHOVTSI,5350
+с.,s.,РАШЕВЦИ,RASHEVTSI,5035
+с.,s.,РАШКА ГРАЩИЦА,RASHKA GRASHTITSA,2578
+с.,s.,РАШКОВО,RASHKOVO,2152
+с.,s.,РАШОВИТЕ,RASHOVITE,5350
+с.,s.,РАШОВИЦА,RASHOVITSA,3532
+с.,s.,РАЮВЦИ,RAYUVTSI,5093
+с.,s.,РАЯНОВЦИ,RAYANOVTSI,3935
+с.,s.,РАЯНОВЦИ,RAYANOVTSI,2204
+с.,s.,РАЯНЦИ,RAYANTSI,2446
+с.,s.,РЕБРЕВЦИ,REBREVTSI,5087
+с.,s.,РЕБРО,REBRO,2384
+с.,s.,РЕБРОВО,REBROVO,2294
+с.,s.,РЕБЪРКОВО,REBARKOVO,3158
+с.,s.,РЕДЕШКОВЦИ,REDESHKOVTSI,5340
+с.,s.,РЕДИНА,REDINA,2269
+с.,s.,РЕЖАНЦИ,REZHANTSI,2380
+с.,s.,РЕЖИНЦИ,REZHINTSI,2562
+с.,s.,РЕЗАЧ,REZACH,5088
+с.,s.,РЕЗБАРЦИ,REZBARTSI,6649
+с.,s.,РЕЗОВО,REZOVO,8281
+с.,s.,РЕКА,REKA,4734
+с.,s.,РЕКИЧКА,REKICHKA,5088
+с.,s.,РЕЛЬОВО,RELYOVO,2018
+с.,s.,РЕПЛЯНА,REPLYANA,3954
+с.,s.,РЕСЕЛЕЦ,RESELETS,5993
+с.,s.,РЕСЕН,RESEN,5060
+с.,s.,РЕСИЛОВО,RESILOVO,2621
+с.,s.,РЕЧАНИ,RECHANI,4793
+с.,s.,РЕЧИЦА,RECHITSA,8567
+с.,s.,РЕЯНОВЦИ,REYANOVTSI,2483
+с.,s.,РИБАРИЦА,RIBARITSA,5720
+с.,s.,РИБАРИЦА,RIBARITSA,2192
+с.,s.,РИБАРЦИ,RIBARTSI,6790
+с.,s.,РИБЕН,RIBEN,5847
+с.,s.,РИБЕН ДОЛ,RIBEN DOL,4952
+с.,s.,РИБИНО,RIBINO,6939
+с.,s.,РИБНИК,RIBNIK,2864
+с.,s.,РИБНИЦА,RIBNITSA,4973
+с.,s.,РИБНОВО,RIBNOVO,2967
+с.,s.,РИДИНО,RIDINO,6849
+с.,s.,РИДОВО,RIDOVO,6742
+с.,s.,РИЛЦИ,RILTSI,2710
+с.,s.,РИСИМАНОВО,RISIMANOVO,6274
+с.,s.,РИТЯ,RITYA,5370
+с.,s.,РИШ,RISH,9830
+с.,s.,РОБОВО,ROBOVO,8664
+с.,s.,РОВИНА,ROVINA,4736
+с.,s.,РОГАЧ,ROGACH,6916
+с.,s.,РОГАЧЕВО,ROGACHEVO,9632
+с.,s.,РОГЛЕЦ,ROGLETS,3962
+с.,s.,РОГОЗАРИ,ROGOZARI,6845
+с.,s.,РОГОЗЕН,ROGOZEN,3360
+с.,s.,РОГОЗИНА,ROGOZINA,9560
+с.,s.,РОГОЗИНОВО,ROGOZINOVO,6469
+с.,s.,РОГОЗЧЕ,ROGOZCHE,6845
+с.,s.,РОГОШ,ROGOSH,4140
+с.,s.,РОГУЛЯТ,ROGULYAT,5447
+с.,s.,РОДИНА,RODINA,5092
+с.,s.,РОДОПИ,RODOPI,6356
+с.,s.,РОДОПСКО,RODOPSKO,6762
+с.,s.,РОЖДЕН,ROZHDEN,8539
+с.,s.,РОЖДЕНСКО,ROZHDENSKO,6841
+с.,s.,РОЖЕН,ROZHEN,2820
+с.,s.,РОЗА,ROZA,8630
+с.,s.,РОЗИНО,ROZINO,6596
+с.,s.,РОЗИНО,ROZINO,4340
+с.,s.,РОЗОВЕЦ,ROZOVETS,4154
+с.,s.,РОЗОВО,ROZOVO,4583
+с.,s.,РОЗОВО,ROZOVO,6163
+с.,s.,РОПОТ,ROPOT,2254
+с.,s.,РОСЕН,ROSEN,8150
+с.,s.,РОСЕН,ROSEN,4421
+с.,s.,РОСЕН,ROSEN,9537
+с.,s.,РОСЕНОВО,ROSENOVO,8318
+с.,s.,РОСЕНОВО,ROSENOVO,9369
+с.,s.,РОСИНА,ROSINA,7784
+с.,s.,РОСИЦА,ROSITSA,5221
+с.,s.,РОСИЦА,ROSITSA,9540
+с.,s.,РОСИЦА,ROSITSA,7933
+с.,s.,РОСНО,ROSNO,5091
+с.,s.,РОСОМАН,ROSOMAN,2225
+с.,s.,РОХЛЕВА,ROHLEVA,4653
+с.,s.,РОЯК,ROYAK,9252
+с.,s.,РУДАРЦИ,RUDARTSI,2343
+с.,s.,РУДИНА,RUDINA,8536
+с.,s.,РУДИНА,RUDINA,6659
+с.,s.,РУДНИК,RUDNIK,8112
+с.,s.,РУДНИК,RUDNIK,9105
+с.,s.,РУЕВЦИ,RUEVTSI,5367
+с.,s.,РУЕН,RUEN,8540
+с.,s.,РУЕН,RUEN,4102
+с.,s.,РУЕЦ,RUETS,7744
+с.,s.,РУЖИНЦИ,RUZHINTSI,3930
+с.,s.,РУЖИЦА,RUZHITSA,9954
+с.,s.,РУЖИЦА,RUZHITSA,8722
+с.,s.,РУЙНО,RUYNO,7692
+с.,s.,РУЙЧОВЦИ,RUYCHOVTSI,5304
+с.,s.,РУМАНЯ,RUMANYA,6057
+с.,s.,РУМЕЛИЯ,RUMELIA,6453
+с.,s.,РУМЯНЦЕВО,RUMYANTSEVO,5785
+с.,s.,РУНЯ,RUNYA,5397
+с.,s.,РУПИТЕ,RUPITE,2863
+с.,s.,РУПКИТЕ,RUPKITE,6251
+с.,s.,РУПЦИ,RUPTSI,3726
+с.,s.,РУПЦИ,RUPTSI,5994
+с.,s.,РУПЧА,RUPCHA,8574
+с.,s.,РУСАЛИНА,RUSALINA,6695
+с.,s.,РУСАЛСКО,RUSALSKO,6795
+с.,s.,РУСАЛЯ,RUSALYA,5057
+с.,s.,РУСИНОВЦИ,RUSINOVTSI,5380
+с.,s.,РУСКА БЕЛА,RUSKA BELA,3148
+с.,s.,РУСКОВЦИ,RUSKOVTSI,5035
+с.,s.,РУСОКАСТРО,RUSOKASTRO,8105
+с.,s.,РУСТАН,RUSTAN,4956
+с.,s.,РУХОВЦИ,RUHOVTSI,5079
+с.,s.,РУЧЕЙ,RUCHEY,6928
+с.,s.,РЪЖАВЕЦ,RAZHAVETS,2389
+с.,s.,РЪЖАНА,RAZHANA,2060
+с.,s.,РЪЖДАК,RAZHDAK,2856
+с.,s.,РЪЖЕВО,RAZHEVO,4169
+с.,s.,РЪЖЕВО КОНАРЕ,RAZHEVO KONARE,4170
+с.,s.,РЪЖЕНА,RAZHENA,6171
+с.,s.,РЪЖЕНОВО,RAZHENOVO,6456
+с.,s.,РЪЖИЦА,RAZHITSA,8530
+с.,s.,РЪСОВО,RASOVO,2568
+с.,s.,РЪТ,RAT,6850
+с.,s.,РЪТЛИНА,RATLINA,7935
+с.,s.,РЯЗКОВЦИ,RYAZKOVTSI,5345
+с.,s.,РЯХОВО,RYAHOVO,7070
+с.,s.,РЯХОВЦИТЕ,RYAHOVTSITE,5440
+с.,s.,САВА,SAVA,9251
+с.,s.,САВИН,SAVIN,7318
+с.,s.,САВИНО,SAVINO,8643
+с.,s.,САВОЙСКИ,SAVOYSKI,2576
+с.,s.,САДИНА,SADINA,7841
+с.,s.,САДОВЕЦ,SADOVETS,5896
+с.,s.,САДОВИК,SADOVIK,2387
+с.,s.,САДОВИЦА,SADOVITSA,6815
+с.,s.,САДОВО,SADOVO,2922
+с.,s.,САДОВО,SADOVO,8463
+с.,s.,САДОВО,SADOVO,9139
+с.,s.,САЖДЕНИК,SAZHDENIK,2576
+с.,s.,САКАРЦИ,SAKARTSI,6568
+с.,s.,САЛАСУКА,SALASUKA,5397
+с.,s.,САЛАШ,SALASH,3933
+с.,s.,САЛМАНОВО,SALMANOVO,9817
+с.,s.,САМОВИЛА,SAMOVILA,6942
+с.,s.,САМОВОДЕНЕ,SAMOVODENE,5040
+с.,s.,САМОДИВА,SAMODIVA,6878
+с.,s.,САМОКИТКА,SAMOKITKA,6880
+с.,s.,САМОРАНОВО,SAMORANOVO,2620
+с.,s.,САМОТИНО,SAMOTINO,9101
+с.,s.,САМСИИТЕ,SAMSIITE,5035
+с.,s.,САМУИЛ,SAMUIL,7454
+с.,s.,САМУИЛОВА КРЕПОСТ,SAMUILOVA KREPOST,2895
+с.,s.,САМУИЛОВО,SAMUILOVO,9384
+с.,s.,САМУИЛОВО,SAMUILOVO,2879
+с.,s.,САМУИЛОВО,SAMUILOVO,8865
+с.,s.,САМУИЛОВО,SAMUILOVO,6051
+с.,s.,САН СТЕФАНО,SAN STEFANO,8484
+с.,s.,САНАДИНОВО,SANADINOVO,5949
+с.,s.,САНДРОВО,SANDROVO,7059
+с.,s.,САПАРЕВО,SAPAREVO,2645
+с.,s.,САРАЕВО,SARAEVO,3333
+с.,s.,САРАНСКО,SARANSKO,8659
+с.,s.,САРАНЦИ,SARANTSI,2120
+с.,s.,САРАЯ,SARAYA,4447
+с.,s.,САТОВЧА,SATOVCHA,2950
+с.,s.,СБОР,SBOR,6961
+с.,s.,СБОР,SBOR,4449
+с.,s.,СБОРИНО,SBORINO,6595
+с.,s.,СБОРИЩЕ,SBORISHTE,8899
+с.,s.,СВАЛЕНИК,SVALENIK,7082
+с.,s.,СВАТБАРЕ,SVATBARE,6675
+с.,s.,СВЕЖЕН,SVEZHEN,4304
+с.,s.,СВЕТА ПЕТКА,SVETA PETKA,4620
+с.,s.,СВЕТИ НИКОЛА,SVETI NIKOLA,9662
+с.,s.,СВЕТЛЕН,SVETLEN,6880
+с.,s.,СВЕТЛЕН,SVETLEN,7877
+с.,s.,СВЕТЛИНА,SVETLINA,8322
+с.,s.,СВЕТЛИНА,SVETLINA,6420
+с.,s.,СВЕТЛИНА,SVETLINA,6547
+с.,s.,СВЕТЛЯ,SVETLYA,2449
+с.,s.,СВЕТОВРАЧЕНЕ,SVETOVRACHENE,1252
+с.,s.,СВЕТОСЛАВ,SVETOSLAV,7554
+с.,s.,СВЕТОСЛАВ,SVETOSLAV,6378
+с.,s.,СВЕТОСЛАВЦИ,SVETOSLAVTSI,5080
+с.,s.,СВЕТУЛКА,SVETULKA,6768
+с.,s.,СВЕЩАРИ,SVESHTARI,7423
+с.,s.,СВИДНЯ,SVIDNYA,2266
+с.,s.,СВИНАРСКИ ДОЛ,SVINARSKI DOL,5300
+с.,s.,СВИРАЧИ,SVIRACHI,6578
+с.,s.,СВИРКОВО,SVIRKOVO,6499
+с.,s.,СВИРЦИ,SVIRTSI,5367
+с.,s.,СВИРЧОВО,SVIRCHOVO,7960
+с.,s.,СВОБОДА,SVOBODA,8103
+с.,s.,СВОБОДА,SVOBODA,6800
+с.,s.,СВОБОДА,SVOBODA,4532
+с.,s.,СВОБОДА,SVOBODA,6230
+с.,s.,СВОБОДА,SVOBODA,9398
+с.,s.,СВОБОДЕН,SVOBODEN,6278
+с.,s.,СВОБОДИНОВО,SVOBODINOVO,6706
+с.,s.,СВОБОДИЦА,SVOBODITSA,7997
+с.,s.,СВОДЕ,SVODE,2171
+с.,s.,СЕВАР,SEVAR,7332
+с.,s.,СЕВДАЛИНА,SEVDALINA,6745
+с.,s.,СЕВЕРНЯК,SEVERNYAK,9405
+с.,s.,СЕВЕРЦИ,SEVERTSI,9415
+с.,s.,СЕДЕЛЕЦ,SEDELETS,2834
+с.,s.,СЕДЕФЧЕ,SEDEFCHE,6827
+с.,s.,СЕДЛАРЕВО,SEDLAREVO,8994
+с.,s.,СЕДЛАРИ,SEDLARI,6800
+с.,s.,СЕДЛАРЦИ,SEDLARTSI,6789
+с.,s.,СЕДЛОВИНА,SEDLOVINA,6621
+с.,s.,СЕДЯНКОВЦИ,SEDYANKOVTSI,5300
+с.,s.,СЕЙДОЛ,SEYDOL,7282
+с.,s.,СЕЙКОВЦИ,SEYKOVTSI,5344
+с.,s.,СЕЙМЕНИТЕ,SEYMENITE,5041
+с.,s.,СЕКИРКА,SEKIRKA,6880
+с.,s.,СЕКУЛОВО,SEKULOVO,7665
+с.,s.,СЕЛАНОВЦИ,SELANOVTSI,3301
+с.,s.,СЕЛИМИНОВО,SELIMINOVO,8862
+с.,s.,СЕЛИЩЕ,SELISHTE,2744
+с.,s.,СЕЛИЩЕ,SELISHTE,4735
+с.,s.,СЕЛИЩЕ,SELISHTE,5462
+с.,s.,СЕЛИЩЕН ДОЛ,SELISHTEN DOL,2377
+с.,s.,СЕЛСКА ПОЛЯНА,SELSKA POLYANA,6487
+с.,s.,СЕЛЦЕ,SELTSE,5655
+с.,s.,СЕЛЦЕ,SELTSE,6184
+с.,s.,СЕЛЦЕ,SELTSE,9655
+с.,s.,СЕЛЦИ,SELTSI,4129
+с.,s.,СЕЛЧА,SELCHA,4814
+с.,s.,СЕЛЯНИН,SELYANIN,2060
+с.,s.,СЕМЕРДЖИЕВО,SEMERDZHIEVO,7072
+с.,s.,СЕМЕРДЖИИТЕ,SEMERDZHIITE,5340
+с.,s.,СЕМЕРЦИ,SEMERTSI,7970
+с.,s.,СЕМКОВЦИ,SEMKOVTSI,5035
+с.,s.,СЕМЧИНОВО,SEMCHINOVO,4474
+с.,s.,СЕННИК,SENNIK,5450
+с.,s.,СЕНОКЛАС,SENOKLAS,6481
+с.,s.,СЕНОКОС,SENOKOS,2752
+с.,s.,СЕНОКОС,SENOKOS,9634
+с.,s.,СЕНЦЕ,SENTSE,6800
+с.,s.,СЕПТЕМВРИЙЦИ,SEPTEMVRIYTSI,3637
+с.,s.,СЕПТЕМВРИЙЦИ,SEPTEMVRIYTSI,3796
+с.,s.,СЕПТЕМВРИЙЦИ,SEPTEMVRIYTSI,9693
+с.,s.,СЕСЛАВ,SESLAV,7341
+с.,s.,СЕСТРИМО,SESTRIMO,4469
+с.,s.,СЕСТРИНСКО,SESTRINSKO,6660
+с.,s.,СЕЧЕН КАМЪК,SECHEN KAMAK,5360
+с.,s.,СЕЧИЩЕ,SECHISHTE,9923
+с.,s.,СИВ КЛАДЕНЕЦ,SIV KLADENETS,6585
+с.,s.,СИВА РЕКА,SIVA REKA,6522
+с.,s.,СИВИНО,SIVINO,4780
+с.,s.,СИГМЕН,SIGMEN,8438
+с.,s.,СИЛЕН,SILEN,6380
+с.,s.,СИМЕОНОВЕЦ,SIMEONOVETS,4475
+с.,s.,СИМЕОНОВО,SIMEONOVO,8665
+с.,s.,СИНАГОВЦИ,SINAGOVTSI,3737
+с.,s.,СИНАПОВО,SINAPOVO,6567
+с.,s.,СИНДЕЛ,SINDEL,9125
+с.,s.,СИНДЕЛЦИ,SINDELTSI,6825
+с.,s.,СИНЕМОРЕЦ,SINEMORETS,8279
+с.,s.,СИНИ ВИР,SINI VIR,9950
+с.,s.,СИНИ ВРЪХ,SINI VRAH,4236
+с.,s.,СИНИ РИД,SINI RID,8534
+с.,s.,СИНИГЕР,SINIGER,6956
+с.,s.,СИНИТОВО,SINITOVO,4442
+с.,s.,СИНЧЕЦ,SINCHETS,6785
+с.,s.,СИНЬО БЪРДО,SINYO BARDO,3139
+с.,s.,СИНЬО КАМЕНЕ,SINYO KAMENE,8332
+с.,s.,СИНЯ ВОДА,SINYA VODA,7287
+с.,s.,СИПЕЙ,SIPEY,6629
+с.,s.,СИПЕЦ,SIPETS,6840
+с.,s.,СИРАКОВО,SIRAKOVO,3254
+с.,s.,СИРАКОВО,SIRAKOVO,9564
+с.,s.,СИРАКОВО,SIRAKOVO,6359
+с.,s.,СИРИЩНИК,SIRISHTNIK,2450
+с.,s.,СИТОВО,SITOVO,4104
+с.,s.,СИТОВО,SITOVO,7583
+с.,s.,СИТОВО,SITOVO,8744
+с.,s.,СКАЛА,SKALA,8462
+с.,s.,СКАЛА,SKALA,7667
+с.,s.,СКАЛАК,SKALAK,8575
+с.,s.,СКАЛАК,SKALAK,6923
+с.,s.,СКАЛИНА,SKALINA,6846
+с.,s.,СКАЛИЦА,SKALITSA,8645
+с.,s.,СКАЛИЩЕ,SKALISHTE,6652
+с.,s.,СКАЛНА ГЛАВА,SKALNA GLAVA,6748
+с.,s.,СКАЛСКО,SKALSKO,5386
+с.,s.,СКАНДАЛОТО,SKANDALOTO,5644
+с.,s.,СКЛАВЕ,SKLAVE,2811
+с.,s.,СКОБЕЛЕВО,SKOBELEVO,5508
+с.,s.,СКОБЕЛЕВО,SKOBELEVO,4227
+с.,s.,СКОБЕЛЕВО,SKOBELEVO,8871
+с.,s.,СКОБЕЛЕВО,SKOBELEVO,6148
+с.,s.,СКОБЕЛЕВО,SKOBELEVO,6429
+с.,s.,СКОМЛЯ,SKOMLYA,3946
+с.,s.,СКОРЦИТЕ,SKORTSITE,5350
+с.,s.,СКРАВЕНА,SKRAVENA,2150
+с.,s.,СКРЕБАТНО,SKREBATNO,2964
+с.,s.,СКРИНО,SKRINO,2663
+с.,s.,СКРИНЯНО,SKRINYANO,2599
+с.,s.,СКРЪТ,SKRAT,2897
+с.,s.,СКУТАРЕ,SKUTARE,4134
+с.,s.,СКЪРБИНО,SKARBINO,6720
+с.,s.,СЛАВЕЕВО,SLAVEEVO,6576
+с.,s.,СЛАВЕЕВО,SLAVEEVO,9366
+с.,s.,СЛАВЕЙКОВО,SLAVEYKOVO,9247
+с.,s.,СЛАВЕЙКОВО,SLAVEYKOVO,5391
+с.,s.,СЛАВЕЙКОВО,SLAVEYKOVO,8738
+с.,s.,СЛАВЕЙНО,SLAVEYNO,4747
+с.,s.,СЛАВОВИЦА,SLAVOVITSA,4496
+с.,s.,СЛАВОВИЦА,SLAVOVITSA,5858
+с.,s.,СЛАВОТИН,SLAVOTIN,3451
+с.,s.,СЛАВЩИЦА,SLAVSHTITSA,5522
+с.,s.,СЛАВЯНИ,SLAVYANI,5565
+с.,s.,СЛАВЯНИН,SLAVYANIN,6236
+с.,s.,СЛАВЯНОВО,SLAVYANOVO,7860
+с.,s.,СЛАВЯНОВО,SLAVYANOVO,6473
+с.,s.,СЛАВЯНЦИ,SLAVYANTSI,8460
+с.,s.,СЛАДКА ВОДА,SLADKA VODA,9257
+с.,s.,СЛАДКОДУМ,SLADKODUM,6960
+с.,s.,СЛАДУН,SLADUN,6534
+с.,s.,СЛАДЪК КЛАДЕНЕЦ,SLADAK KLADENETS,6064
+с.,s.,СЛАКОВЦИ,SLAKOVTSI,2369
+с.,s.,СЛАМИНО,SLAMINO,8663
+с.,s.,СЛАНА БАРА,SLANA BARA,3728
+с.,s.,СЛАНОТРЪН,SLANOTRAN,3769
+с.,s.,СЛАТИНА,SLATINA,5768
+с.,s.,СЛАТИНА,SLATINA,5564
+с.,s.,СЛАТИНА,SLATINA,3535
+с.,s.,СЛАТИНА,SLATINA,4342
+с.,s.,СЛАТИНА,SLATINA,7585
+с.,s.,СЛАТИНО,SLATINO,2642
+с.,s.,СЛАТИНО,SLATINO,2449
+с.,s.,СЛАЩЕН,SLASHTEN,2937
+с.,s.,СЛИВАК,SLIVAK,9784
+с.,s.,СЛИВАРКА,SLIVARKA,6919
+с.,s.,СЛИВАРОВО,SLIVAROVO,8164
+с.,s.,СЛИВАТА,SLIVATA,3668
+с.,s.,СЛИВЕК,SLIVEK,5537
+с.,s.,СЛИВЕНЦИ,SLIVENTSI,9395
+с.,s.,СЛИВИТО,SLIVITO,6176
+с.,s.,СЛИВКА,SLIVKA,4943
+с.,s.,СЛИВНИЦА,SLIVNITSA,2844
+с.,s.,СЛИВОВИК,SLIVOVIK,3664
+с.,s.,СЛИВОВИЦА,SLIVOVITSA,5076
+с.,s.,СЛИВОВНИК,SLIVOVNIK,3915
+с.,s.,СЛИВОВО,SLIVOVO,8331
+с.,s.,СЛИВОВО,SLIVOVO,5367
+с.,s.,СЛИВОВО,SLIVOVO,4710
+с.,s.,СЛИШОВЦИ,SLISHOVTSI,2484
+с.,s.,СЛОКОЩИЦА,SLOKOSHTITSA,2533
+с.,s.,СЛОМЕР,SLOMER,5229
+с.,s.,СЛЪНЧЕВО,SLANCHEVO,9144
+с.,s.,СЛЪНЧОВЕЦ,SLANCHOVETS,7963
+с.,s.,СЛЪНЧОГЛЕД,SLANCHOGLED,6850
+с.,s.,СМИЛЕЦ,SMILETS,4531
+с.,s.,СМИЛЕЦ,SMILETS,7577
+с.,s.,СМИЛОВЦИ,SMILOVTSI,5333
+с.,s.,СМИЛЯН,SMILYAN,4770
+с.,s.,СМИН,SMIN,9679
+с.,s.,СМИРНЕНСКИ,SMIRNENSKI,3663
+с.,s.,СМИРНЕНСКИ,SMIRNENSKI,7074
+с.,s.,СМИРНЕНЦИ,SMIRNENTSI,6467
+с.,s.,СМИРОВ ДОЛ,SMIROV DOL,2456
+с.,s.,СМОЛЕВО,SMOLEVO,2794
+с.,s.,СМОЛИЧАНО,SMOLICHANO,2583
+с.,s.,СМОЛНИК,SMOLNIK,8491
+с.,s.,СМОЛНИЦА,SMOLNITSA,9383
+с.,s.,СМОЛСКО,SMOLSKO,2073
+с.,s.,СМОЛЧА,SMOLCHA,2255
+с.,s.,СМОЛЯНОВЦИ,SMOLYANOVTSI,3450
+с.,s.,СМОЧАН,SMOCHAN,5547
+с.,s.,СМОЧЕВО,SMOCHEVO,2641
+с.,s.,СНЕЖА,SNEZHA,8568
+с.,s.,СНЕЖИНА,SNEZHINA,9244
+с.,s.,СНЕЖИНКА,SNEZHINKA,6741
+с.,s.,СНОП,SNOP,9557
+с.,s.,СНЯГОВО,SNYAGOVO,8579
+с.,s.,СНЯГОВО,SNYAGOVO,9533
+с.,s.,СОВАТА,SOVATA,5283
+с.,s.,СОВОЛЯНО,SOVOLYANO,2547
+с.,s.,СОКОЛ,SOKOL,7621
+с.,s.,СОКОЛ,SOKOL,8945
+с.,s.,СОКОЛАРЕ,SOKOLARE,3258
+с.,s.,СОКОЛАРЦИ,SOKOLARTSI,8984
+с.,s.,СОКОЛЕНЦИ,SOKOLENTSI,6595
+с.,s.,СОКОЛЕЦ,SOKOLETS,8554
+с.,s.,СОКОЛИНО,SOKOLINO,6812
+с.,s.,СОКОЛИТЕ,SOKOLITE,6694
+с.,s.,СОКОЛИЦА,SOKOLITSA,4367
+с.,s.,СОКОЛНИК,SOKOLNIK,9351
+с.,s.,СОКОЛОВО,SOKOLOVO,8435
+с.,s.,СОКОЛОВО,SOKOLOVO,5392
+с.,s.,СОКОЛОВО,SOKOLOVO,5538
+с.,s.,СОКОЛОВО,SOKOLOVO,9640
+с.,s.,СОКОЛОВЦИ,SOKOLOVTSI,4751
+с.,s.,СОКОЛСКО,SOKOLSKO,6648
+с.,s.,СОКОЛЯНЕ,SOKOLYANE,6688
+с.,s.,СОЛАРИ,SOLARI,5300
+с.,s.,СОЛИЩА,SOLISHTA,4711
+с.,s.,СОЛИЩЕ,SOLISHTE,6721
+с.,s.,СОЛНИК,SOLNIK,9122
+с.,s.,СОМОВИТ,SOMOVIT,5959
+с.,s.,СОПИЦА,SOPITSA,2378
+с.,s.,СОПОВО,SOPOVO,2664
+с.,s.,СОПОТ,SOPOT,5571
+с.,s.,СОПОТОТ,SOPOTOT,4974
+с.,s.,СОТИРЯ,SOTIRYA,8859
+с.,s.,СОФИЙЦИ,SOFIYTSI,6850
+с.,s.,СОФРОНИЕВО,SOFRONIEVO,3348
+с.,s.,СПАНЦИ,SPANTSI,5344
+с.,s.,СПАНЧЕВЦИ,SPANCHEVTSI,3546
+с.,s.,СПАСОВО,SPASOVO,6249
+с.,s.,СПАСОВО,SPASOVO,9561
+с.,s.,СПАСОВЦИ,SPASOVTSI,5340
+с.,s.,СПАТОВО,SPATOVO,2811
+с.,s.,СПАХИЕВО,SPAHIEVO,6346
+с.,s.,СПОЛУКА,SPOLUKA,6799
+с.,s.,СРАЦИМИР,SRATSIMIR,7541
+с.,s.,СРАЦИМИРОВО,SRATSIMIROVO,3847
+с.,s.,СРЕБРИНОВО,SREBRINOVO,4525
+с.,s.,СРЕБЪРНА,SREBARNA,7587
+с.,s.,СРЕДЕЦ,SREDETS,4998
+с.,s.,СРЕДЕЦ,SREDETS,6066
+с.,s.,СРЕДИНА,SREDINA,9546
+с.,s.,СРЕДИНКА,SREDINKA,6738
+с.,s.,СРЕДИЩЕ,SREDISHTE,7560
+с.,s.,СРЕДКОВЕЦ,SREDKOVETS,9968
+с.,s.,СРЕДНА,SREDNA,2918
+с.,s.,СРЕДНА МАХАЛА,SREDNA MAHALA,8581
+с.,s.,СРЕДНЕВО,SREDNEVO,6717
+с.,s.,СРЕДНИ КОЛИБИ,SREDNI KOLIBI,5093
+с.,s.,СРЕДНИ РЪТ,SREDNI RAT,3137
+с.,s.,СРЕДНО ГРАДИЩЕ,SREDNO GRADISHTE,6241
+с.,s.,СРЕДНО СЕЛО,SREDNO SELO,9222
+с.,s.,СРЕДНО СЕЛО,SREDNO SELO,5088
+с.,s.,СРЕДНОГОРОВО,SREDNOGOROVO,6166
+с.,s.,СРЕДНОГОРЦИ,SREDNOGORTSI,4954
+с.,s.,СРЕДНЯ,SREDNYA,9798
+с.,s.,СРЕДОГРИВ,SREDOGRIV,3959
+с.,s.,СРЕДОК,SREDOK,4798
+с.,s.,СРЕДОРЕК,SREDOREK,2555
+с.,s.,СРЕДОРЕК,SREDOREK,8845
+с.,s.,СРЕДОСЕЛЦИ,SREDOSELTSI,7433
+с.,s.,СРЕДСКА,SREDSKA,6693
+с.,s.,СРЕДСКО,SREDSKO,6890
+с.,s.,СРЕМ,SREM,6565
+с.,s.,СРЪНСКО,SRANSKO,6775
+с.,s.,СТАВЕРЦИ,STAVERTSI,5863
+с.,s.,СТАЕВЦИ,STAEVTSI,9673
+с.,s.,СТАЙНОВЦИ,STAYNOVTSI,5350
+с.,s.,СТАЙЧИН ДОЛ,STAYCHIN DOL,4931
+с.,s.,СТАЙЧОВЦИ,STAYCHOVTSI,2489
+с.,s.,СТАКЕВЦИ,STAKEVTSI,3963
+с.,s.,СТАЛЕВО,STALEVO,6433
+с.,s.,СТАЛИЙСКА МАХАЛА,STALIYSKA MAHALA,3657
+с.,s.,СТАМБОЛИЙСКИ,STAMBOLIYSKI,6311
+с.,s.,СТАМБОЛОВО,STAMBOLOVO,2069
+с.,s.,СТАМБОЛОВО,STAMBOLOVO,5249
+с.,s.,СТАМБОЛОВО,STAMBOLOVO,7063
+с.,s.,СТАМБОЛОВО,STAMBOLOVO,6362
+с.,s.,СТАН,STAN,9917
+с.,s.,СТАНЕВО,STANEVO,3641
+с.,s.,СТАНЕЦ,STANETS,7915
+с.,s.,СТАНИНЦИ,STANINTSI,2254
+с.,s.,СТАНОВЕЦ,STANOVETS,9952
+с.,s.,СТАНЧА,STANCHA,5380
+с.,s.,СТАНЧОВ ХАН,STANCHOV HAN,5367
+с.,s.,СТАНЬОВЦИ,STANYOVTSI,2391
+с.,s.,СТАНЯНЦИ,STANYANTSI,9872
+с.,s.,СТАР ЧИТАК,STAR CHITAK,6792
+с.,s.,СТАРА КРЕСНА,STARA KRESNA,2845
+с.,s.,СТАРА РЕКА,STARA REKA,8841
+с.,s.,СТАРА РЕКА,STARA REKA,8675
+с.,s.,СТАРА РЕЧКА,STARA RECHKA,7999
+с.,s.,СТАРЕЙШИНО,STAREYSHINO,6880
+с.,s.,СТАРИ ЧАЛ,STARI CHAL,6964
+с.,s.,СТАРИЛКОВЦИ,STARILKOVTSI,5343
+с.,s.,СТАРО ЖЕЛЕЗАРЕ,STARO ZHELEZARE,4165
+с.,s.,СТАРО МЯСТО,STARO MYASTO,6741
+с.,s.,СТАРО ОРЯХОВО,STARO ORYAHOVO,9110
+с.,s.,СТАРО СЕЛИЩЕ,STARO SELISHTE,7447
+с.,s.,СТАРО СЕЛО,STARO SELO,3142
+с.,s.,СТАРО СЕЛО,STARO SELO,2412
+с.,s.,СТАРО СЕЛО,STARO SELO,7637
+с.,s.,СТАРО СЕЛО,STARO SELO,8876
+с.,s.,СТАРО СЕЛО,STARO SELO,5671
+с.,s.,СТАРОВО,STAROVO,6877
+с.,s.,СТАРОЗАГОРСКИ БАНИ,STAROZAGORSKI BANI,6062
+с.,s.,СТАРОПАТИЦА,STAROPATITSA,3822
+с.,s.,СТАРОСЕЛ,STAROSEL,4175
+с.,s.,СТАРОСЕЛЕЦ,STAROSELETS,9226
+с.,s.,СТАРОСЕЛЦИ,STAROSELTSI,5865
+с.,s.,СТАРЦЕВО,STARTSEVO,4987
+с.,s.,СТАРЧЕВО,STARCHEVO,2861
+с.,s.,СТАРЧИЩЕ,STARCHISHTE,7963
+с.,s.,СТЕВРЕК,STEVREK,7960
+с.,s.,СТЕЖЕРОВО,STEZHEROVO,5920
+с.,s.,СТЕНСКО,STENSKO,2566
+с.,s.,СТЕФАН КАРАДЖА,STEFAN KARADZHA,9293
+с.,s.,СТЕФАН КАРАДЖА,STEFAN KARADZHA,7633
+с.,s.,СТЕФАН КАРАДЖА,STEFAN KARADZHA,9371
+с.,s.,СТЕФАН КАРАДЖОВО,STEFAN KARADZHOVO,8725
+с.,s.,СТЕФАН СТАМБОЛОВО,STEFAN STAMBOLOVO,5192
+с.,s.,СТЕФАНОВО,STEFANOVO,5335
+с.,s.,СТЕФАНОВО,STEFANOVO,5581
+с.,s.,СТЕФАНОВО,STEFANOVO,2414
+с.,s.,СТЕФАНОВО,STEFANOVO,9360
+с.,s.,СТИКЪЛ,STIKAL,4712
+с.,s.,СТОБ,STOB,2638
+с.,s.,СТОЕВО,STOEVO,4266
+с.,s.,СТОЕВЦИ,STOEVTSI,5347
+с.,s.,СТОЖА,STOZHA,2800
+с.,s.,СТОЖЕР,STOZHER,9350
+с.,s.,СТОИЛ ВОЙВОДА,STOIL VOYVODA,8940
+с.,s.,СТОИЛОВО,STOILOVO,8165
+с.,s.,СТОЙКИТЕ,STOYKITE,4715
+с.,s.,СТОЙКОВО,STOYKOVO,6341
+с.,s.,СТОЙКОВЦИ,STOYKOVTSI,5301
+с.,s.,СТОЙНОВО,STOYNOVO,7953
+с.,s.,СТОЙНОВСКОТО,STOYNOVSKOTO,5625
+с.,s.,СТОЙЧЕВЦИ,STOYCHEVTSI,5081
+с.,s.,СТОЙЧОВЦИ,STOYCHOVTSI,5343
+с.,s.,СТОКИТЕ,STOKITE,5462
+с.,s.,СТОЛЕТОВО,STOLETOVO,4338
+с.,s.,СТОЛЕТОВО,STOLETOVO,6054
+с.,s.,СТОЛНИК,STOLNIK,2134
+с.,s.,СТОЛЪТ,STOLAT,5452
+с.,s.,СТОМАНЕВО,STOMANEVO,4822
+с.,s.,СТОМАНЕЦИТЕ,STOMANETSITE,5304
+с.,s.,СТОМАНЦИ,STOMANTSI,6878
+с.,s.,СТОЯН ЗАИМОВО,STOYAN ZAIMOVO,6243
+с.,s.,СТОЯН МИХАЙЛОВСКИ,STOYAN MIHAYLOVSKI,9928
+с.,s.,СТОЯНОВО,STOYANOVO,6773
+с.,s.,СТОЯНОВО,STOYANOVO,3539
+с.,s.,СТОЯНОВЦИ,STOYANOVTSI,5084
+с.,s.,СТОЯНОВЦИ,STOYANOVTSI,3134
+с.,s.,СТРАДАЛОВО,STRADALOVO,2584
+с.,s.,СТРАЖА,STRAZHA,4726
+с.,s.,СТРАЖА,STRAZHA,7738
+с.,s.,СТРАЖАТА,STRAZHATA,5365
+с.,s.,СТРАЖЕВЦИ,STRAZHEVTSI,6731
+с.,s.,СТРАЖЕЦ,STRAZHETS,7217
+с.,s.,СТРАЖЕЦ,STRAZHETS,6954
+с.,s.,СТРАЖИЦА,STRAZHITSA,9615
+с.,s.,СТРАЖНИЦА,STRAZHNITSA,6710
+с.,s.,СТРАНДЖА,STRANDZHA,8758
+с.,s.,СТРАНДЖЕВО,STRANDZHEVO,6929
+с.,s.,СТРАНСКО,STRANSKO,6428
+с.,s.,СТРАХИЛ,STRAHIL,9142
+с.,s.,СТРАХИЛ ВОЙВОДА,STRAHIL VOYVODA,6660
+с.,s.,СТРАХИЛИЦА,STRAHILITSA,9774
+с.,s.,СТРАХИЛОВО,STRAHILOVO,5190
+с.,s.,СТРАЦИН,STRATSIN,8222
+с.,s.,СТРАШИМИР,STRASHIMIR,4988
+с.,s.,СТРАШИМИРОВО,STRASHIMIROVO,9179
+с.,s.,СТРЕЗИМИРОВЦИ,STREZIMIROVTSI,2482
+с.,s.,СТРЕЛЕЦ,STRELETS,5133
+с.,s.,СТРЕЛЕЦ,STRELETS,6058
+с.,s.,СТРЕЛКОВО,STRELKOVO,7562
+с.,s.,СТРЕЛЦИ,STRELTSI,4152
+с.,s.,СТРЕЛЦИ,STRELTSI,8995
+с.,s.,СТРЕМОВО,STREMOVO,6683
+с.,s.,СТРЕМЦИ,STREMTSI,6680
+с.,s.,СТРИЖБА,STRIZHBA,6899
+с.,s.,СТРОЕВО,STROEVO,4197
+с.,s.,СТРОЙНО,STROYNO,8732
+с.,s.,СТРОЙНОВЦИ,STROYNOVTSI,7964
+с.,s.,СТРУГЪТ,STRUGAT,5626
+с.,s.,СТРУИНДОЛ,STRUINDOL,3919
+с.,s.,СТРУИНО,STRUINO,9804
+с.,s.,СТРУМА,STRUMA,2806
+с.,s.,СТРУМЕШНИЦА,STRUMESHNITSA,2895
+с.,s.,СТРУМЯНИ,STRUMYANI,2825
+с.,s.,СТРУПЕЦ,STRUPETS,3132
+с.,s.,СТРУПЕЦ,STRUPETS,8856
+с.,s.,СТРУЯ,STRUYA,8555
+с.,s.,СТРЪМЦИ,STRAMTSI,5365
+с.,s.,СТРЯМА,STRYAMA,4142
+с.,s.,СТУБЕЛ,STUBEL,3490
+с.,s.,СТУДЕН ИЗВОР,STUDEN IZVOR,2488
+с.,s.,СТУДЕН КЛАДЕНЕЦ,STUDEN KLADENETS,6958
+с.,s.,СТУДЕНА,STUDENA,2344
+с.,s.,СТУДЕНА,STUDENA,4932
+с.,s.,СТУДЕНА,STUDENA,6538
+с.,s.,СТУДЕНЕЦ,STUDENETS,7279
+с.,s.,СТУДЕНЕЦ,STUDENETS,4878
+с.,s.,СТУДЕНИЦА,STUDENITSA,9768
+с.,s.,СТУДЕНО БУЧЕ,STUDENO BUCHE,3480
+с.,s.,СТЪРГЕЛ,STARGEL,2135
+с.,s.,СТЪРМЕН,STARMEN,7124
+с.,s.,СТЪРНИЦА,STARNITSA,4957
+с.,s.,СУГАРЕВО,SUGAREVO,2820
+с.,s.,СУЛИЦА,SULITSA,6062
+с.,s.,СУЛТАНИ,SULTANI,5094
+с.,s.,СУМЕР,SUMER,3491
+с.,s.,СУСАМ,SUSAM,6352
+с.,s.,СУХА РЕКА,SUHA REKA,5045
+с.,s.,СУХА РЕКА,SUHA REKA,9881
+с.,s.,СУХАЧЕ,SUHACHE,5988
+с.,s.,СУХОВО,SUHOVO,6794
+с.,s.,СУХОДОЛ,SUHODOL,8328
+с.,s.,СУХОДОЛ,SUHODOL,7618
+с.,s.,СУХОЗЕМ,SUHOZEM,4209
+с.,s.,СУХОЛОЕВЦИ,SUHOLOEVTSI,5380
+с.,s.,СУХОСТРЕЛ,SUHOSTREL,2736
+с.,s.,СУШЕВО,SUSHEVO,7324
+с.,s.,СУШИНА,SUSHINA,9868
+с.,s.,СУШИЦА,SUSHITSA,2759
+с.,s.,СУШИЦА,SUSHITSA,5177
+с.,s.,СУШИЦА,SUSHITSA,2558
+с.,s.,СЪБКОВЦИ,SABKOVTSI,5099
+с.,s.,СЪБОТКОВЦИ,SABOTKOVTSI,5340
+с.,s.,СЪБРАНО,SABRANO,8941
+с.,s.,СЪДИЕВО,SADIEVO,8522
+с.,s.,СЪДИЕВО,SADIEVO,8923
+с.,s.,СЪДИЙСКО ПОЛЕ,SADIYSKO POLE,8915
+с.,s.,СЪЕДИНЕНИЕ,SAEDINENIE,8430
+с.,s.,СЪЕДИНЕНИЕ,SAEDINENIE,6234
+с.,s.,СЪЕДИНЕНИЕ,SAEDINENIE,7779
+с.,s.,СЪРНАК,SARNAK,6924
+с.,s.,СЪРНЕВЕЦ,SARNEVETS,6232
+с.,s.,СЪРНЕВО,SARNEVO,8479
+с.,s.,СЪРНЕВО,SARNEVO,6268
+с.,s.,СЪРНЕГОР,SARNEGOR,4146
+с.,s.,СЪРНЕНЦИ,SARNENTSI,5035
+с.,s.,СЪРНЕЦ,SARNETS,9482
+с.,s.,СЪРНИНО,SARNINO,4799
+с.,s.,СЪРНИНО,SARNINO,9562
+с.,s.,СЪРНИЦА,SARNITSA,6361
+с.,s.,СЪРПОВО,SARPOVO,7578
+с.,s.,СЪРЦЕВО,SARTSEVO,8896
+с.,s.,СЯНОВО,SYANOVO,7647
+с.,s.,СЯРОВЦИ,SYAROVTSI,5380
+с.,s.,СЯРЦИ,SYARTSI,6800
+с.,s.,ТАБАН,TABAN,2215
+с.,s.,ТАБАЧКА,TABACHKA,7085
+с.,s.,ТАБАШКА,TABASHKA,5461
+с.,s.,ТАВАЛИЧЕВО,TAVALICHEVO,2538
+с.,s.,ТАЙМИЩЕ,TAYMISHTE,7983
+с.,s.,ТАМАРИНО,TAMARINO,8658
+с.,s.,ТАТАРЕВО,TATAREVO,4282
+с.,s.,ТАТАРЕВО,TATAREVO,6344
+с.,s.,ТАТАРИ,TATARI,5934
+с.,s.,ТАТКОВО,TATKOVO,6668
+с.,s.,ТАТУЛ,TATUL,6835
+с.,s.,ТВЪРДИНЦИ,TVARDINTSI,7755
+с.,s.,ТВЪРДИЦА,TVARDITSA,8155
+с.,s.,ТВЪРДИЦА,TVARDITSA,9675
+с.,s.,ТЕКЕТО,TEKETO,6370
+с.,s.,ТЕЛЕРИГ,TELERIG,9420
+с.,s.,ТЕЛИШ,TELISH,5990
+с.,s.,ТЕЛЧАРКА,TELCHARKA,6850
+с.,s.,ТЕМЕНУГА,TEMENUGA,6759
+с.,s.,ТЕМЕНУГА,TEMENUGA,5165
+с.,s.,ТЕНЕВО,TENEVO,8672
+с.,s.,ТЕПАВА,TEPAVA,5554
+с.,s.,ТЕПЛЕН,TEPLEN,2935
+с.,s.,ТЕРВЕЛ,TERVEL,9769
+с.,s.,ТЕРЗИИТЕ,TERZIITE,5035
+с.,s.,ТЕРЗИЙСКО,TERZIYSKO,8465
+с.,s.,ТЕРЗИЙСКО,TERZIYSKO,5665
+с.,s.,ТЕРТЕР,TERTER,7322
+с.,s.,ТЕТОВО,TETOVO,7044
+с.,s.,ТЕШЕЛ,TESHEL,4810
+с.,s.,ТЕШОВО,TESHOVO,2927
+с.,s.,ТИКАЛЕ,TIKALE,4729
+с.,s.,ТИМАРЕВО,TIMAREVO,9785
+с.,s.,ТИНТЯВА,TINTYAVA,6955
+с.,s.,ТИПЧЕНИЦА,TIPCHENITSA,3164
+с.,s.,ТИТЕВЦИ,TITEVTSI,5070
+с.,s.,ТИХОВЕЦ,TIHOVETS,7997
+с.,s.,ТИХОМИР,TIHOMIR,6898
+с.,s.,ТИХОМИРОВО,TIHOMIROVO,6279
+с.,s.,ТИЧА,TICHA,8980
+с.,s.,ТИШАНОВО,TISHANOVO,2591
+с.,s.,ТИШЕВИЦА,TISHEVITSA,3055
+с.,s.,ТИЯНОВЦИ,TIYANOVTSI,3787
+с.,s.,ТЛАЧЕНЕ,TLACHENE,3243
+с.,s.,ТОДОР ИКОНОМОВО,TODOR IKONOMOVO,9964
+с.,s.,ТОДОРЕЦИТЕ,TODORETSITE,5350
+с.,s.,ТОДОРИЧЕНЕ,TODORICHENE,5781
+с.,s.,ТОДОРОВО,TODOROVO,5887
+с.,s.,ТОДОРОВО,TODOROVO,7425
+с.,s.,ТОДОРОВЦИ,TODOROVTSI,5045
+с.,s.,ТОДОРОВЦИ,TODOROVTSI,5301
+с.,s.,ТОДОРЧЕТА,TODORCHETA,5343
+с.,s.,ТОДЮВЦИ,TODYUVTSI,5094
+с.,s.,ТОКАЧКА,TOKACHKA,6965
+с.,s.,ТОЛОВИЦА,TOLOVITSA,3854
+с.,s.,ТОМБЕТО,TOMBETO,5080
+с.,s.,ТОМПСЪН,TOMPSAN,2285
+с.,s.,ТОМЧЕВЦИ,TOMCHEVTSI,5365
+с.,s.,ТОНСКО ДАБЕ,TONSKO DABE,2875
+с.,s.,ТОПИЛИЩА,TOPILISHTA,5736
+с.,s.,ТОПОЛА,TOPOLA,9654
+с.,s.,ТОПОЛИ,TOPOLI,9140
+с.,s.,ТОПОЛИ ДОЛ,TOPOLI DOL,4454
+с.,s.,ТОПОЛИЦА,TOPOLITSA,8549
+с.,s.,ТОПОЛКА,TOPOLKA,6968
+с.,s.,ТОПОЛНИЦА,TOPOLNITSA,2858
+с.,s.,ТОПОЛНИЦА,TOPOLNITSA,2619
+с.,s.,ТОПОЛОВЕЦ,TOPOLOVETS,3828
+с.,s.,ТОПОЛОВЕЦ,TOPOLOVETS,3936
+с.,s.,ТОПОЛОВО,TOPOLOVO,4260
+с.,s.,ТОПОЛОВО,TOPOLOVO,6452
+с.,s.,ТОПОЛЧАНЕ,TOPOLCHANE,6728
+с.,s.,ТОПОЛЧАНЕ,TOPOLCHANE,8880
+с.,s.,ТОПОЛЯНЕ,TOPOLYANE,6277
+с.,s.,ТОПУЗЕВО,TOPUZEVO,8986
+с.,s.,ТОПУЗИ,TOPUZI,5098
+с.,s.,ТОПЧИИ,TOPCHII,7261
+с.,s.,ТОПЧИЙСКО,TOPCHIYSKO,8582
+с.,s.,ТОРБАЛЪЖИТЕ,TORBALAZHITE,5335
+с.,s.,ТОРОС,TOROS,5790
+с.,s.,ТОТЛЕБЕН,TOTLEBEN,5899
+с.,s.,ТОЧИЛАРИ,TOCHILARI,7316
+с.,s.,ТОШЕВЦИ,TOSHEVTSI,3825
+с.,s.,ТРАВЕ,TRAVE,4933
+с.,s.,ТРАВНИК,TRAVNIK,9694
+с.,s.,ТРАЙКОВО,TRAYKOVO,3645
+с.,s.,ТРАКИЕЦ,TRAKIETS,6369
+с.,s.,ТРАКИЙЦИ,TRAKIYTSI,8348
+с.,s.,ТРАКИЯ,TRAKIA,6074
+с.,s.,ТРАПЕСКОВЦИ,TRAPESKOVTSI,5349
+с.,s.,ТРАПИЩЕ,TRAPISHTE,7281
+с.,s.,ТРАПОКЛОВО,TRAPOKLOVO,8889
+с.,s.,ТРЕБИЩЕ,TREBISHTE,4737
+с.,s.,ТРЕКЛЯНО,TREKLYANO,2557
+с.,s.,ТРЕМ,TREM,9764
+с.,s.,ТРЕСКАВЕЦ,TRESKAVETS,7994
+с.,s.,ТРИ КЛАДЕНЦИ,TRI KLADENTSI,3072
+с.,s.,ТРИ МОГИЛИ,TRI MOGILI,6682
+с.,s.,ТРИ МОГИЛИ,TRI MOGILI,4263
+с.,s.,ТРИВОДИЦИ,TRIVODITSI,4222
+с.,s.,ТРИГОРЦИ,TRIGORTSI,9645
+с.,s.,ТРИГРАД,TRIGRAD,4825
+с.,s.,ТРИЛИСТНИК,TRILISTNIK,4141
+с.,s.,ТРИФОНОВО,TRIFONOVO,3435
+с.,s.,ТРОИЦА,TROITSA,9864
+с.,s.,ТРОСКОВО,TROSKOVO,2733
+с.,s.,ТРОЯН,TROYAN,6491
+с.,s.,ТРОЯНОВО,TROYANOVO,8108
+с.,s.,ТРОЯНОВО,TROYANOVO,6270
+с.,s.,ТРУД,TRUD,4199
+с.,s.,ТРУДОВЕЦ,TRUDOVETS,2160
+с.,s.,ТРЪБАЧ,TRABACH,7283
+с.,s.,ТРЪНАК,TRANAK,8550
+с.,s.,ТРЪНИТО,TRANITO,5307
+с.,s.,ТРЪНИЦА,TRANITSA,9925
+с.,s.,ТРЪНКОВО,TRANKOVO,6266
+с.,s.,ТРЪНКОВО,TRANKOVO,8719
+с.,s.,ТРЪНКОВЦИ,TRANKOVTSI,5097
+с.,s.,ТРЪНЧОВИЦА,TRANCHOVITSA,5925
+с.,s.,ТРЪСТЕНИК,TRASTENIK,7092
+с.,s.,ТРЪСТИКА,TRASTIKA,7835
+с.,s.,ТРЪСТИКОВО,TRASTIKOVO,8128
+с.,s.,ТРЪСТИКОВО,TRASTIKOVO,9134
+с.,s.,ТУДЕН,TUDEN,2253
+с.,s.,ТУЛОВО,TULOVO,6170
+с.,s.,ТУМБАЛОВО,TUMBALOVO,5464
+с.,s.,ТУМБЕВЦИ,TUMBEVTSI,5083
+с.,s.,ТУРИЯ,TURIA,6157
+с.,s.,ТУРКИНЧА,TURKINCHA,5388
+с.,s.,ТУРОКОВЦИ,TUROKOVTSI,2468
+с.,s.,ТУРЯН,TURYAN,4753
+с.,s.,ТУТРАКАНЦИ,TUTRAKANTSI,9275
+с.,s.,ТУХОВИЩА,TUHOVISHTA,2939
+с.,s.,ТУЧЕНИЦА,TUCHENITSA,5892
+с.,s.,ТУШОВИЦА,TUSHOVITSA,9884
+с.,s.,ТЪЖА,TAZHA,6160
+с.,s.,ТЪКАЧ,TAKACH,9953
+с.,s.,ТЪНКА БАРА,TANKA BARA,4983
+с.,s.,ТЪНКИ РЪТ,TANKI RAT,5084
+с.,s.,ТЪНКОВО,TANKOVO,8237
+с.,s.,ТЪНКОВО,TANKOVO,6391
+с.,s.,ТЪНКОТО,TANKOTO,4914
+с.,s.,ТЪПЧИЛЕЩОВО,TAPCHILESHTOVO,7919
+с.,s.,ТЪРГОВИЩЕ,TARGOVISHTE,3953
+с.,s.,ТЪРКАШЕНИ,TARKASHENI,5070
+с.,s.,ТЪРНА,TARNA,6778
+с.,s.,ТЪРНАВА,TARNAVA,3252
+с.,s.,ТЪРНАВА,TARNAVA,8699
+с.,s.,ТЪРНАК,TARNAK,3249
+с.,s.,ТЪРНЕНЕ,TARNENE,5882
+с.,s.,ТЪРНИЧЕНИ,TARNICHENI,6158
+с.,s.,ТЪРНОВЛАГ,TARNOVLAG,2532
+с.,s.,ТЪРНОВЦА,TARNOVTSA,7774
+с.,s.,ТЪРНОВЦИ,TARNOVTSI,6850
+с.,s.,ТЪРНОВЦИ,TARNOVTSI,7629
+с.,s.,ТЪРНОСЛИВКА,TARNOSLIVKA,6763
+с.,s.,ТЪРНЯНЕ,TARNYANE,3741
+с.,s.,ТЪРСИНО,TARSINO,2586
+с.,s.,ТЪРХОВО,TARHOVO,5423
+с.,s.,ТЪРЪН,TARAN,4730
+с.,s.,ТЮЛЕНОВО,TYULENOVO,9684
+с.,s.,ТЮРКМЕН,TYURKMEN,4157
+с.,s.,ТЮТЮНЧЕ,TYUTYUNCHE,6850
+с.,s.,ТЯНЕВО,TYANEVO,9429
+с.,s.,ТЯНЕВО,TYANEVO,6492
+с.,s.,УГЛЕДНО,UGLEDNO,7936
+с.,s.,УГЛЯРЦИ,UGLYARTSI,2418
+с.,s.,УГОРЕЛЕЦ,UGORELETS,5465
+с.,s.,УГОРЯЛКОВЦИ,UGORYALKOVTSI,5082
+с.,s.,УЗОВО,UZOVO,9554
+с.,s.,УЗУНДЖОВО,UZUNDZHOVO,6350
+с.,s.,УЗУНИТЕ,UZUNITE,5343
+с.,s.,УЗУНОВО,UZUNOVO,4237
+с.,s.,УМАРЕВЦИ,UMAREVTSI,5541
+с.,s.,УРВАТА,URVATA,5365
+с.,s.,УРОВЕНЕ,UROVENE,3064
+с.,s.,УРУЧЕВЦИ,URUCHEVTSI,4936
+с.,s.,УСОЙКА,USOYKA,2675
+с.,s.,УСТИНА,USTINA,4228
+с.,s.,УСТРЕМ,USTREM,6563
+с.,s.,УСТРЕН,USTREN,6853
+с.,s.,УХЛОВИЦА,UHLOVITSA,4769
+с.,s.,УШЕВЦИ,USHEVTSI,5035
+с.,s.,УШИ,USHI,2557
+с.,s.,УШИНЦИ,USHINTSI,7244
+с.,s.,ФАБРИКА,FABRIKA,4992
+с.,s.,ФАЗАНОВО,FAZANOVO,8272
+с.,s.,ФАКИЯ,FAKIA,8340
+с.,s.,ФАТОВО,FATOVO,4797
+с.,s.,ФЕЛДФЕБЕЛ ДЯНКОВО,FELDFEBEL DYANKOVO,9394
+с.,s.,ФИЛАРЕТОВО,FILARETOVO,8982
+с.,s.,ФИЛИПОВО,FILIPOVO,2775
+с.,s.,ФИЛИПОВО,FILIPOVO,6564
+с.,s.,ФИЛИПОВЦИ,FILIPOVTSI,2472
+с.,s.,ФЛОРЕНТИН,FLORENTIN,3778
+с.,s.,ФОТИНОВО,FOTINOVO,6873
+с.,s.,ФОТИНОВО,FOTINOVO,4571
+с.,s.,ФРОЛОШ,FROLOSH,2682
+с.,s.,ФУРЕН,FUREN,3075
+с.,s.,ФЪРГОВО,FARGOVO,2952
+с.,s.,ФЪРГОВЦИ,FARGOVTSI,5301
+с.,s.,ФЪРЕВЦИ,FAREVTSI,5365
+с.,s.,ФЪРТУНИ,FARTUNI,5367
+с.,s.,ХАДЖИ ДИМИТЪР,HADZHI DIMITAR,9657
+с.,s.,ХАДЖИДИМИТРОВО,HADZHIDIMITROVO,5287
+с.,s.,ХАДЖИДИМИТРОВО,HADZHIDIMITROVO,6141
+с.,s.,ХАДЖИДИМИТРОВО,HADZHIDIMITROVO,8635
+с.,s.,ХАДЖИЕВО,HADZHIEVO,4441
+с.,s.,ХАДЖИИТЕ,HADZHIITE,8492
+с.,s.,ХАДЖИЙСКО,HADZHIYSKO,6875
+с.,s.,ХАЙРЕДИН,HAYREDIN,3357
+с.,s.,ХАЛВАДЖИЙСКО,HALVADZHIYSKO,7997
+с.,s.,ХАЛОВСКИ КОЛИБИ,HALOVSKI KOLIBI,3837
+с.,s.,ХАН АСПАРУХОВО,HAN ASPARUHOVO,6055
+с.,s.,ХАН КРУМ,HAN KRUM,9863
+с.,s.,ХАНОВО,HANOVO,8668
+с.,s.,ХАРАЧЕРИТЕ,HARACHERITE,5340
+с.,s.,ХАРВАЛОВЦИ,HARVALOVTSI,5093
+с.,s.,ХАСОВИЦА,HASOVITSA,4746
+с.,s.,ХВОЙНА,HVOYNA,4890
+с.,s.,ХВОСТЯНЕ,HVOSTYANE,2942
+с.,s.,ХВЪРЧИЛ,HVARCHIL,2072
+с.,s.,ХЕРАКОВО,HERAKOVO,2211
+с.,s.,ХИРЕВО,HIREVO,5451
+с.,s.,ХИСАР,HISAR,6914
+с.,s.,ХИТОВО,HITOVO,9433
+с.,s.,ХИТРИНО,HITRINO,9780
+с.,s.,ХЛЕВЕНЕ,HLEVENE,5579
+с.,s.,ХЛЯБОВО,HLYABOVO,6568
+с.,s.,ХОДЖОВЦИ,HODZHOVTSI,6745
+с.,s.,ХОТАНЦА,HOTANTSA,7054
+с.,s.,ХОТНИЦА,HOTNITSA,5058
+с.,s.,ХОТОВО,HOTOVO,2821
+с.,s.,ХРАБРИНО,HRABRINO,4111
+с.,s.,ХРАБРОВО,HRABROVO,9242
+с.,s.,ХРАБРОВО,HRABROVO,9618
+с.,s.,ХРАБЪРСКО,HRABARSKO,2224
+с.,s.,ХРАСНА,HRASNA,2824
+с.,s.,ХРАСТОВО,HRASTOVO,6929
+с.,s.,ХРИСТИЯНОВО,HRISTIYANOVO,6072
+с.,s.,ХРИСТО ДАНОВО,HRISTO DANOVO,4339
+с.,s.,ХРИСТОВЦИ,HRISTOVTSI,5070
+с.,s.,ХРИСТОВЦИ,HRISTOVTSI,5365
+с.,s.,ХРИЩЕНИ,HRISHTENI,6050
+с.,s.,ХРОМИЦА,HROMITSA,6782
+с.,s.,ХУБАВЕНЕ,HUBAVENE,3135
+с.,s.,ХУМА,HUMA,7457
+с.,s.,ХУХЛА,HUHLA,6571
+с.,s.,ХЪНЕВЦИ,HANEVTSI,5082
+с.,s.,ХЪРЛЕЦ,HARLETS,3329
+с.,s.,ХЪРСОВО,HARSOVO,2819
+с.,s.,ХЪРСОВО,HARSOVO,7451
+с.,s.,ХЪРСОВО,HARSOVO,9937
+с.,s.,ЦАКОНИЦА,TSAKONITSA,3152
+с.,s.,ЦАЛАПИЦА,TSALAPITSA,4218
+с.,s.,ЦАНИ ГИНЧЕВО,TSANI GINCHEVO,9957
+с.,s.,ЦАПАРЕВО,TSAPAREVO,2834
+с.,s.,ЦАР АСЕН,TSAR ASEN,4422
+с.,s.,ЦАР АСЕН,TSAR ASEN,7536
+с.,s.,ЦАР АСЕН,TSAR ASEN,7849
+с.,s.,ЦАР КАЛОЯН,TSAR KALOYAN,4126
+с.,s.,ЦАР ПЕТРОВО,TSAR PETROVO,3827
+с.,s.,ЦАР САМУИЛ,TSAR SAMUIL,7640
+с.,s.,ЦАР СИМЕОНОВО,TSAR SIMEONOVO,3745
+с.,s.,ЦАР ШИШМАНОВО,TSAR SHISHMANOVO,3853
+с.,s.,ЦАРАЦОВО,TSARATSOVO,4204
+с.,s.,ЦАРЕВ БРОД,TSAREV BROD,9747
+с.,s.,ЦАРЕВ ДОЛ,TSAREV DOL,7627
+с.,s.,ЦАРЕВА ЛИВАДА,TSAREVA LIVADA,5380
+с.,s.,ЦАРЕВА ПОЛЯНА,TSAREVA POLYANA,6363
+с.,s.,ЦАРЕВЕЦ,TSAREVETS,5282
+с.,s.,ЦАРЕВЕЦ,TSAREVETS,3141
+с.,s.,ЦАРЕВЕЦ,TSAREVETS,6622
+с.,s.,ЦАРЕВЕЦ,TSAREVETS,9367
+с.,s.,ЦАРЕВЦИ,TSAREVTSI,9129
+с.,s.,ЦАРЕВЦИ,TSAREVTSI,7932
+с.,s.,ЦАРИМИР,TSARIMIR,4192
+с.,s.,ЦАРИНО,TSARINO,6893
+с.,s.,ЦАРИЧИНА,TSARICHINA,2236
+с.,s.,ЦАРИЧИНО,TSARICHINO,9614
+с.,s.,ЦАРСКИ ИЗВОР,TSARSKI IZVOR,5174
+с.,s.,ЦАЦАРОВЦИ,TSATSAROVTSI,4992
+с.,s.,ЦАЦАРОВЦИ,TSATSAROVTSI,2220
+с.,s.,ЦВЕКЛЮВЦИ,TSVEKLYUVTSI,5094
+с.,s.,ЦВЕТИНО,TSVETINO,4630
+с.,s.,ЦВЕТКОВА БАРА,TSVETKOVA BARA,3542
+с.,s.,ЦВЕТНИЦА,TSVETNITSA,7763
+с.,s.,ЦВЯТКОВЦИ,TSVYATKOVTSI,5340
+с.,s.,ЦВЯТОВО,TSVYATOVO,6850
+с.,s.,ЦЕГРИЛОВЦИ,TSEGRILOVTSI,2479
+с.,s.,ЦЕЛИНА,TSELINA,6223
+с.,s.,ЦЕНИНО,TSENINO,8916
+с.,s.,ЦЕНОВИЧ,TSENOVICH,7575
+с.,s.,ЦЕНОВО,TSENOVO,7139
+с.,s.,ЦЕНОВО,TSENOVO,6222
+с.,s.,ЦЕПЕРАНИТЕ,TSEPERANITE,5035
+с.,s.,ЦЕРЕТЕЛЕВО,TSERETELEVO,4189
+с.,s.,ЦЕРЕЦЕЛ,TSERETSEL,2286
+с.,s.,ЦЕРКОВСКИ,TSERKOVSKI,8472
+с.,s.,ЦЕРОВА КОРИЯ,TSEROVA KORIA,5047
+с.,s.,ЦЕРОВЕЦ,TSEROVETS,7083
+с.,s.,ЦЕРОВИЦА,TSEROVITSA,2567
+с.,s.,ЦЕРОВИЩЕ,TSEROVISHTE,7922
+с.,s.,ЦЕРОВО,TSEROVO,2722
+с.,s.,ЦЕРОВО,TSEROVO,4465
+с.,s.,ЦЕРОВО,TSEROVO,2287
+с.,s.,ЦИКЛОВО,TSIKLOVO,2666
+с.,s.,ЦИРКА,TSIRKA,4939
+с.,s.,ЦОНЕВО,TSONEVO,9261
+с.,s.,ЦОНКОВЦИ,TSONKOVTSI,5035
+с.,s.,ЦРЕШНОВО,TSRESHNOVO,2567
+с.,s.,ЦРЪКЛЕВЦИ,TSRAKLEVTSI,2205
+с.,s.,ЦРЪНЧА,TSRANCHA,4837
+с.,s.,ЦРЪНЧА,TSRANCHA,4419
+с.,s.,ЦЪРВАРИЦА,TSARVARITSA,2580
+с.,s.,ЦЪРВЕНА ЯБЪЛКА,TSARVENA YABALKA,2576
+с.,s.,ЦЪРВЕНДОЛ,TSARVENDOL,2567
+с.,s.,ЦЪРВЕНЯНО,TSARVENYANO,2542
+с.,s.,ЦЪРВИЩЕ,TSARVISHTE,2624
+с.,s.,ЦЪРКВА,TSARKVA,9631
+с.,s.,ЦЪРКВИЦА,TSARKVITSA,6844
+с.,s.,ЦЪРКВИЦА,TSARKVITSA,9939
+с.,s.,ЦЪРКВИЩЕ,TSARKVISHTE,2080
+с.,s.,ЧАВДАР,CHAVDAR,2084
+с.,s.,ЧАВДАР,CHAVDAR,4829
+с.,s.,ЧАВДАРЦИ,CHAVDARTSI,5559
+с.,s.,ЧАВДАРЦИ,CHAVDARTSI,5084
+с.,s.,ЧАВЕИ,CHAVEI,5345
+с.,s.,ЧАВКА,CHAVKA,6880
+с.,s.,ЧАЙКА,CHAYKA,9277
+с.,s.,ЧАЙКА,CHAYKA,6820
+с.,s.,ЧАКАЛАРОВО,CHAKALAROVO,6870
+с.,s.,ЧАКАЛИ,CHAKALI,5099
+с.,s.,ЧАКАЛИТЕ,CHAKALITE,5365
+с.,s.,ЧАКАЛЦИ,CHAKALTSI,6850
+с.,s.,ЧАЛ,CHAL,6947
+с.,s.,ЧАЛА,CHALA,4836
+с.,s.,ЧАЛЪКОВИ,CHALAKOVI,4123
+с.,s.,ЧАМЛА,CHAMLA,4716
+с.,s.,ЧАРГАН,CHARGAN,8628
+с.,s.,ЧАРДА,CHARDA,8692
+с.,s.,ЧАРКОВО,CHARKOVO,5309
+с.,s.,ЧЕГАНЦИ,CHEGANTSI,6744
+с.,s.,ЧЕКАНЕЦ,CHEKANETS,2577
+с.,s.,ЧЕКАНЕЦ,CHEKANETS,2220
+с.,s.,ЧЕКАНЦИ,CHEKANTSI,7961
+с.,s.,ЧЕКАНЧЕВО,CHEKANCHEVO,2122
+с.,s.,ЧЕЛНИК,CHELNIK,8678
+с.,s.,ЧЕЛОПЕК,CHELOPEK,3043
+с.,s.,ЧЕЛОПЕЧ,CHELOPECH,2087
+с.,s.,ЧЕЛОПЕЧЕНЕ,CHELOPECHENE,9664
+с.,s.,ЧЕЛЮСТНИЦА,CHELYUSTNITSA,3465
+с.,s.,ЧЕМИШ,CHEMISH,3477
+с.,s.,ЧЕПИНО,CHEPINO,2436
+с.,s.,ЧЕПИНЦИ,CHEPINTSI,4958
+с.,s.,ЧЕПИНЦИ,CHEPINTSI,1554
+с.,s.,ЧЕПЛЕТЕН,CHEPLETEN,4786
+с.,s.,ЧЕПЪРЛИНЦИ,CHEPARLINTSI,2212
+с.,s.,ЧЕРВЕН,CHERVEN,4252
+с.,s.,ЧЕРВЕН,CHERVEN,7084
+с.,s.,ЧЕРВЕН БРЕГ,CHERVEN BREG,2629
+с.,s.,ЧЕРВЕНА,CHERVENA,5293
+с.,s.,ЧЕРВЕНА ВОДА,CHERVENA VODA,7051
+с.,s.,ЧЕРВЕНА ЛОКВА,CHERVENA LOKVA,5311
+с.,s.,ЧЕРВЕНА МОГИЛА,CHERVENA MOGILA,2408
+с.,s.,ЧЕРВЕНА СКАЛА,CHERVENA SKALA,6781
+с.,s.,ЧЕРВЕНАКОВО,CHERVENAKOVO,8896
+с.,s.,ЧЕРВЕНКОВЦИ,CHERVENKOVTSI,5070
+с.,s.,ЧЕРВЕНЦИ,CHERVENTSI,9298
+с.,s.,ЧЕРГАНОВО,CHERGANOVO,6139
+с.,s.,ЧЕРЕНЧА,CHERENCHA,9799
+с.,s.,ЧЕРЕПОВО,CHEREPOVO,6462
+с.,s.,ЧЕРЕША,CHERESHA,8577
+с.,s.,ЧЕРЕШИЦА,CHERESHITSA,6672
+с.,s.,ЧЕРЕШКА,CHERESHKA,6841
+с.,s.,ЧЕРЕШКИТЕ,CHERESHKITE,4771
+с.,s.,ЧЕРЕШНИЦА,CHERESHNITSA,2824
+с.,s.,ЧЕРЕШОВИЦА,CHERESHOVITSA,3524
+с.,s.,ЧЕРЕШОВО,CHERESHOVO,2787
+с.,s.,ЧЕРЕШОВО,CHERESHOVO,7066
+с.,s.,ЧЕРЕШОВО,CHERESHOVO,4772
+с.,s.,ЧЕРЕШОВСКА РЕКА,CHERESHOVSKA REKA,4773
+с.,s.,ЧЕРКАСКИ,CHERKASKI,3533
+с.,s.,ЧЕРКОВИЦА,CHERKOVITSA,5951
+с.,s.,ЧЕРКОВИЩЕ,CHERKOVISHTE,2072
+с.,s.,ЧЕРКОВНА,CHERKOVNA,9232
+с.,s.,ЧЕРКОВНА,CHERKOVNA,7252
+с.,s.,ЧЕРКОВНА,CHERKOVNA,7656
+с.,s.,ЧЕРКОВНА,CHERKOVNA,7781
+с.,s.,ЧЕРКОВО,CHERKOVO,8478
+с.,s.,ЧЕРНА,CHERNA,9417
+с.,s.,ЧЕРНА,CHERNA,9773
+с.,s.,ЧЕРНА ВОДА,CHERNA VODA,7966
+с.,s.,ЧЕРНА ГОРА,CHERNA GORA,6258
+с.,s.,ЧЕРНА ГОРА,CHERNA GORA,2340
+с.,s.,ЧЕРНА МЕСТА,CHERNA MESTA,2789
+с.,s.,ЧЕРНА МОГИЛА,CHERNA MOGILA,8527
+с.,s.,ЧЕРНА МОГИЛА,CHERNA MOGILA,6471
+с.,s.,ЧЕРНА НИВА,CHERNA NIVA,6692
+с.,s.,ЧЕРНА СКАЛА,CHERNA SKALA,6626
+с.,s.,ЧЕРНЕВО,CHERNEVO,9174
+с.,s.,ЧЕРНЕВЦИ,CHERNEVTSI,5349
+с.,s.,ЧЕРНИ БРЯГ,CHERNI BRYAG,7973
+с.,s.,ЧЕРНИ ВИТ,CHERNI VIT,5725
+с.,s.,ЧЕРНИ ВРЪХ,CHERNI VRAH,8122
+с.,s.,ЧЕРНИ ВРЪХ,CHERNI VRAH,3649
+с.,s.,ЧЕРНИ ВРЪХ,CHERNI VRAH,9827
+с.,s.,ЧЕРНИ ДЯЛ,CHERNI DYAL,5084
+с.,s.,ЧЕРНИ ОСЪМ,CHERNI OSAM,5620
+с.,s.,ЧЕРНИ РИД,CHERNI RID,6598
+с.,s.,ЧЕРНИГОВО,CHERNIGOVO,6778
+с.,s.,ЧЕРНИК,CHERNIK,7651
+с.,s.,ЧЕРНИЦА,CHERNITSA,8468
+с.,s.,ЧЕРНИЧЕ,CHERNICHE,2741
+с.,s.,ЧЕРНИЧЕВО,CHERNICHEVO,6954
+с.,s.,ЧЕРНИЧЕВО,CHERNICHEVO,4181
+с.,s.,ЧЕРНИЧИНО,CHERNICHINO,6581
+с.,s.,ЧЕРНО ПОЛЕ,CHERNO POLE,3922
+с.,s.,ЧЕРНОВРЪХ,CHERNOVRAH,5365
+с.,s.,ЧЕРНОГЛАВЦИ,CHERNOGLAVTSI,9778
+с.,s.,ЧЕРНОГОР,CHERNOGOR,7614
+с.,s.,ЧЕРНОГОРОВО,CHERNOGOROVO,4455
+с.,s.,ЧЕРНОГОРОВО,CHERNOGOROVO,6411
+с.,s.,ЧЕРНОГРАД,CHERNOGRAD,8545
+с.,s.,ЧЕРНОДЪБ,CHERNODAB,6524
+с.,s.,ЧЕРНОЗЕМ,CHERNOZEM,8739
+с.,s.,ЧЕРНОЗЕМЕН,CHERNOZEMEN,4168
+с.,s.,ЧЕРНОКАПЦИ,CHERNOKAPTSI,7921
+с.,s.,ЧЕРНОЛИК,CHERNOLIK,7693
+с.,s.,ЧЕРНОМОРЦИ,CHERNOMORTSI,9678
+с.,s.,ЧЕРНООК,CHERNOOK,9259
+с.,s.,ЧЕРНООКИ,CHERNOOKI,6946
+с.,s.,ЧЕРНООКОВО,CHERNOOKOVO,9532
+с.,s.,ЧЕРНООКОВО,CHERNOOKOVO,9873
+с.,s.,ЧЕРНООЧЕНЕ,CHERNOOCHENE,6701
+с.,s.,ЧЕРНЬОВО,CHERNYOVO,2067
+с.,s.,ЧЕРНЬОВЦИ,CHERNYOVTSI,6670
+с.,s.,ЧЕСТИМЕНСКО,CHESTIMENSKO,9469
+с.,s.,ЧЕТИРЦИ,CHETIRTSI,2598
+с.,s.,ЧЕТРОКА,CHETROKA,4241
+с.,s.,ЧЕХЛАРЕ,CHEHLARE,4159
+с.,s.,ЧЕШЛЯНЦИ,CHESHLYANTSI,2556
+с.,s.,ЧЕШМА,CHESHMA,5077
+с.,s.,ЧЕШНЕГИРОВО,CHESHNEGIROVO,4121
+с.,s.,ЧИБАОВЦИ,CHIBAOVTSI,2236
+с.,s.,ЧИЛИК,CHILIK,6625
+с.,s.,ЧИЛНОВ,CHILNOV,7162
+с.,s.,ЧИНТУЛОВО,CHINTULOVO,8858
+с.,s.,ЧИРЕН,CHIREN,3050
+с.,s.,ЧИСТОВО,CHISTOVO,5088
+с.,s.,ЧИТАКОВЦИ,CHITAKOVTSI,5300
+с.,s.,ЧИФЛИК,CHIFLIK,3912
+с.,s.,ЧИФЛИК,CHIFLIK,6677
+с.,s.,ЧИФЛИК,CHIFLIK,5661
+с.,s.,ЧИЧЕВО,CHICHEVO,6869
+с.,s.,ЧИЧИЛ,CHICHIL,3819
+с.,s.,ЧОБА,CHOBA,4161
+с.,s.,ЧОБАНКА,CHOBANKA,6836
+с.,s.,ЧОКМАНОВО,CHOKMANOVO,4760
+с.,s.,ЧОКОБА,CHOKOBA,8887
+с.,s.,ЧОЛАКОВА,CHOLAKOVA,4636
+с.,s.,ЧОМАКОВО,CHOMAKOVO,6800
+с.,s.,ЧОМАКОВЦИ,CHOMAKOVTSI,5989
+с.,s.,ЧОРБАДЖИЙСКО,CHORBADZHIYSKO,6890
+с.,s.,ЧОРУЛ,CHORUL,2215
+с.,s.,ЧУБРА,CHUBRA,8461
+с.,s.,ЧУБРИКА,CHUBRIKA,6786
+с.,s.,ЧУДИНЦИ,CHUDINTSI,2562
+с.,s.,ЧУДОМИР,CHUDOMIR,7284
+с.,s.,ЧУЙПЕТЛОВО,CHUYPETLOVO,2346
+с.,s.,ЧУКАРКА,CHUKARKA,8529
+с.,s.,ЧУКАРОВО,CHUKAROVO,6560
+с.,s.,ЧУКАТА,CHUKATA,5088
+с.,s.,ЧУКАТА,CHUKATA,4245
+с.,s.,ЧУКИЛИТЕ,CHUKILITE,5304
+с.,s.,ЧУКОВЕЗЕР,CHUKOVEZER,2209
+с.,s.,ЧУКОВЕЦ,CHUKOVETS,2425
+с.,s.,ЧУКОВЕЦ,CHUKOVETS,7537
+с.,s.,ЧУКОВО,CHUKOVO,5370
+с.,s.,ЧУКОВО,CHUKOVO,6818
+с.,s.,ЧУПРЕНЕ,CHUPRENE,3950
+с.,s.,ЧУРЕК,CHUREK,2126
+с.,s.,ЧУРЕН,CHUREN,4226
+с.,s.,ЧУРИЛОВО,CHURILOVO,2885
+с.,s.,ЧУРИЧЕНИ,CHURICHENI,2891
+с.,s.,ЧУРКА,CHURKA,4915
+с.,s.,ЧУРУКОВО,CHURUKOVO,4823
+с.,s.,ЧУЧУЛИГА,CHUCHULIGA,6572
+с.,s.,ЧУЧУЛИГОВО,CHUCHULIGOVO,2865
+с.,s.,ЧУЧУР,CHUCHUR,4796
+с.,s.,ШАНОВО,SHANOVO,6169
+с.,s.,ШАРАНИ,SHARANI,5300
+с.,s.,ШАРЕНСКА,SHARENSKA,4916
+с.,s.,ШАРКОВО,SHARKOVO,8753
+с.,s.,ШАТРОВО,SHATROVO,2684
+с.,s.,ШЕЙНОВО,SHEYNOVO,6144
+с.,s.,ШЕМШЕВО,SHEMSHEVO,5027
+с.,s.,ШЕРЕМЕТЯ,SHEREMETYA,5034
+с.,s.,ШИВАРОВО,SHIVAROVO,8559
+с.,s.,ШИЛИВЕРИ,SHILIVERI,5094
+с.,s.,ШИЛКОВЦИ,SHILKOVTSI,5087
+с.,s.,ШИПИКОВА МАХАЛА,SHIPIKOVA MAHALA,3836
+с.,s.,ШИПКОВИЦА,SHIPKOVITSA,2493
+с.,s.,ШИПКОВО,SHIPKOVO,5663
+с.,s.,ШИПОК,SHIPOK,6865
+с.,s.,ШИПОТ,SHIPOT,3744
+с.,s.,ШИПОЧАНЕ,SHIPOCHANE,2015
+с.,s.,ШИПОЧАНО,SHIPOCHANO,2552
+с.,s.,ШИПЧЕНИТЕ,SHIPCHENITE,5344
+с.,s.,ШИРОКА ЛЪКА,SHIROKA LAKA,4710
+с.,s.,ШИРОКА ПОЛЯНА,SHIROKA POLYANA,6365
+с.,s.,ШИРОКИ ДОЛ,SHIROKI DOL,2013
+с.,s.,ШИРОКО ПОЛЕ,SHIROKO POLE,6650
+с.,s.,ШИРОКОВО,SHIROKOVO,7159
+с.,s.,ШИШЕНЦИ,SHISHENTSI,3834
+с.,s.,ШИШКОВИЦА,SHISHKOVITSA,7971
+с.,s.,ШИШКОВЦИ,SHISHKOVTSI,2553
+с.,s.,ШИШМАНОВО,SHISHMANOVO,6458
+с.,s.,ШИШМАНЦИ,SHISHMANTSI,4133
+с.,s.,ШИЯКОВО,SHIYAKOVO,5962
+с.,s.,ШКОРПИЛОВЦИ,SHKORPILOVTSI,9112
+с.,s.,ШОДЕКОВЦИ,SHODEKOVTSI,5053
+с.,s.,ШОПИТЕ,SHOPITE,5459
+с.,s.,ШОПЦИ,SHOPTSI,6883
+с.,s.,ШУБЕЦИ,SHUBETSI,5097
+с.,s.,ШУМА,SHUMA,2252
+с.,s.,ШУМАТА,SHUMATA,5468
+с.,s.,ШУМЕНЦИ,SHUMENTSI,7639
+с.,s.,ШУМНАТИЦА,SHUMNATITSA,6888
+с.,s.,ШУШНЯ,SHUSHNYA,5380
+с.,s.,ЩЕРНА,SHTERNA,6842
+с.,s.,ЩИПСКО,SHTIPSKO,9283
+с.,s.,ЩИТ,SHTIT,6528
+с.,s.,ЩРЪКЛЕВО,SHTRAKLEVO,7078
+с.,s.,ЩЪРКОВО,SHTARKOVO,4461
+с.,s.,ЪГЛЕН,AGLEN,5791
+с.,s.,ЮГОВО,YUGOVO,4241
+с.,s.,ЮДЕЛНИК,YUDELNIK,7061
+с.,s.,ЮЛИЕВО,YULIEVO,6168
+с.,s.,ЮНАК,YUNAK,9138
+с.,s.,ЮНАЦИ,YUNATSI,6800
+с.,s.,ЮНАЦИТЕ,YUNATSITE,4420
+с.,s.,ЮНДОЛА,YUNDOLA,4629
+с.,s.,ЮНЕЦ,YUNETS,9109
+с.,s.,ЮПЕР,YUPER,7338
+с.,s.,ЮРУКОВО,YURUKOVO,2796
+с.,s.,ЯБЛАНИЦА,YABLANITSA,2298
+с.,s.,ЯБЛАНОВО,YABLANOVO,8989
+с.,s.,ЯБЪЛКОВЕЦ,YABALKOVETS,6787
+с.,s.,ЯБЪЛКОВО,YABALKOVO,2544
+с.,s.,ЯБЪЛКОВО,YABALKOVO,6440
+с.,s.,ЯБЪЛКОВЦИ,YABALKOVTSI,5350
+с.,s.,ЯБЪЛЧЕВО,YABALCHEVO,8542
+с.,s.,ЯБЪЛЧЕНИ,YABALCHENI,6715
+с.,s.,ЯВОР,YAVOR,5350
+с.,s.,ЯВОРЕЦ,YAVORETS,5334
+с.,s.,ЯВОРНИЦА,YAVORNITSA,2896
+с.,s.,ЯВОРОВЕЦ,YAVOROVETS,6179
+с.,s.,ЯВОРОВО,YAVOROVO,6696
+с.,s.,ЯВОРОВО,YAVOROVO,6240
+с.,s.,ЯВРОВО,YAVROVO,4258
+с.,s.,ЯГНИЛО,YAGNILO,9231
+с.,s.,ЯГОДА,YAGODA,6167
+с.,s.,ЯГОДИНА,YAGODINA,4835
+с.,s.,ЯГОДОВО,YAGODOVO,3537
+с.,s.,ЯГОДОВО,YAGODOVO,4113
+с.,s.,ЯЗДАЧ,YAZDACH,6229
+с.,s.,ЯЗОВЕЦ,YAZOVETS,7991
+с.,s.,ЯКИМ ГРУЕВО,YAKIM GRUEVO,7443
+с.,s.,ЯКИМОВО,YAKIMOVO,3640
+с.,s.,ЯКОВИЦА,YAKOVITSA,6870
+с.,s.,ЯКОВО,YAKOVO,2875
+с.,s.,ЯКОВЦИ,YAKOVTSI,5081
+с.,s.,ЯЛБОТИНА,YALBOTINA,2220
+с.,s.,ЯЛОВО,YALOVO,5056
+с.,s.,ЯМИНО,YAMINO,6854
+с.,s.,ЯМНА,YAMNA,2183
+с.,s.,ЯНА,YANA,1805
+с.,s.,ЯНИНО,YANINO,6865
+с.,s.,ЯНКОВО,YANKOVO,9823
+с.,s.,ЯНКОВЦИ,YANKOVTSI,5345
+с.,s.,ЯНОВО,YANOVO,2816
+с.,s.,ЯНТРА,YANTRA,5135
+с.,s.,ЯНТРА,YANTRA,5374
+с.,s.,ЯНЬОВЕЦ,YANYOVETS,3949
+с.,s.,ЯРДЖИЛОВЦИ,YARDZHILOVTSI,2355
+с.,s.,ЯРЕБИЦА,YAREBITSA,6732
+с.,s.,ЯРЕБИЦА,YAREBITSA,7691
+с.,s.,ЯРЕБИЧНА,YAREBICHNA,9158
+с.,s.,ЯРЕБИЧНО,YAREBICHNO,7998
+с.,s.,ЯРЕБКОВИЦА,YAREBKOVITSA,2023
+с.,s.,ЯРЛОВИЦА,YARLOVITSA,3799
+с.,s.,ЯРЛОВО,YARLOVO,2029
+с.,s.,ЯРЛОВЦИ,YARLOVTSI,2481
+с.,s.,ЯРОСЛАВЦИ,YAROSLAVTSI,2376
+с.,s.,ЯСЕН,YASEN,3775
+с.,s.,ЯСЕН,YASEN,5850
+с.,s.,ЯСЕНИТЕ,YASENITE,5335
+с.,s.,ЯСЕНКОВО,YASENKOVO,9777
+с.,s.,ЯСЕНОВЕЦ,YASENOVETS,7250
+с.,s.,ЯСЕНОВО,YASENOVO,8569
+с.,s.,ЯСЕНОВО,YASENOVO,6147
+с.,s.,ЯСНА ПОЛЯНА,YASNA POLYANA,8147
+с.,s.,ЯСНО ПОЛЕ,YASNO POLE,4139
+с.,s.,ЯСТРЕБ,YASTREB,6687
+с.,s.,ЯСТРЕБИНО,YASTREBINO,7975
+с.,s.,ЯСТРЕБНА,YASTREBNA,7664
+с.,s.,ЯСТРЕБОВО,YASTREBOVO,7073
+с.,s.,ЯСТРЕБОВО,YASTREBOVO,6056
+с.,s.,ЯХИНОВО,YAHINOVO,2622
+с.ман.,s.man.,КЛИСУРСКИ МАНАСТИР,KLISURSKI MANASTIR,3543
+с.ман.,s.man.,РИЛСКИ МАНАСТИР,RILSKI MANASTIR,2643
+т.ц.,t.ts.,АЛЕКО,ALEKO,

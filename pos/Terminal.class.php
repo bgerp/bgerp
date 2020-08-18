@@ -51,7 +51,6 @@ class pos_Terminal extends peripheral_Terminal
     protected static $forbiddenOperationOnReceiptsWithPayment = array('quantity', 'add', 'text');
     
     
-    
     /**
      * Кои операции са забранени за сторниращите бележки
      */
@@ -63,6 +62,7 @@ class pos_Terminal extends peripheral_Terminal
      */
     protected static $operationShortcuts = 'operation-add=Ctrl A,operation-payment=Ctrl Z,operation-quantity=Ctrl S,operation-text=Ctrl E,operation-contragent=Ctrl K,operation-receipts=Ctrl B,enlarge=F2,print=Ctrl P,keyboard=Ctrl M,exit=Ctrl Q,reject=Ctrl O,help=F1,delete=Ctrl O,revert=Ctrl O';
 
+    
     /**
      * Кои са разрешените операции
      */
