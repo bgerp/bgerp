@@ -65,12 +65,17 @@ class speedy_plg_BillOfLading extends core_Plugin
                 followRetUrl(null, $connectResult->errorMsg, 'error');
             }
             
+            $cacheArr = core_Permanent::get(self::getUserDataCacheKey($rec->folderId, $adapter));
+            
             // Подготовка на формата
-            $form = self::getBillOfLadingForm($mvc, $rec, $adapter);
+            $form = self::getBillOfLadingForm($mvc, $rec, $adapter, $cacheArr);
             
             $senderObjects = $adapter->getSenderObjects();
             $form->FLD('senderClientId', 'varchar', 'after=senderName,caption=Подател->Обект,hint=Адресът е настроен в профика в Speedy');
             $form->setOptions('senderClientId', $senderObjects);
+            if(array_key_exists($cacheArr['senderClientId'], $senderObjects)){
+                $form->setDefault('senderClientId', $cacheArr['senderClientId']);
+            }
             $form->setDefault('senderClientId', $adapter->getDefaultClientId());
             
             $form->input();
@@ -123,11 +128,15 @@ class speedy_plg_BillOfLading extends core_Plugin
                             $form->info = $tpl;
                             core_Statuses::newStatus('Цената е изчислена');
                         } catch(ServerException $e){
-                            $mvc->logErr("Проблем при изчисление на цената на товарителницата", $id);
-                            $mvc->logErr($e->getMessage(), $id);
-                            $fields = null;
-                            $msg = $adapter->handleException($e, $fields);
+                            $fields = $isHandled = null;
+                            $msg = $adapter->handleException($e, $fields, $isHandled);
                             $form->setError($fields, $msg);
+                            
+                            if(!$isHandled){
+                                reportException($e);
+                                $mvc->logErr("Проблем при изчисление на цената на товарителницата", $id);
+                                $mvc->logErr($e->getMessage(), $id);
+                            }
                         }
                     } else {
                         
@@ -135,11 +144,15 @@ class speedy_plg_BillOfLading extends core_Plugin
                         try{
                             $bolId = $adapter->getBol($form->rec);
                         } catch(ServerException $e){
-                            $mvc->logErr("Проблем при генериране на товарителница", $id);
-                            $mvc->logErr($e->getMessage(), $id);
-                            $fields = null;
-                            $msg = $adapter->handleException($e, $fields);
+                            $isHandled = $fields = null;
+                            $msg = $adapter->handleException($e, $fields, $isHandled);
                             $form->setError($fields, $msg);
+                            
+                            if(!$isHandled){
+                                reportException($e);
+                                $mvc->logErr("Проблем при генериране на товарителница", $id);
+                                $mvc->logErr($e->getMessage(), $id);
+                            }
                         }
                         
                         // Записване на товарителницата като PDF, ако е създадеба
@@ -159,6 +172,11 @@ class speedy_plg_BillOfLading extends core_Plugin
                         
                         if(!$form->gotErrors() && !empty($bolId)){
                             $mvc->logWrite("Генерирана товарителница на Speedy", $id);
+                            
+                            // Кеш на последно избраните стойностти
+                            $cacheArr = array('senderClientId' => $fRec->senderClientId, 'service' => $fRec->service);
+                            core_Permanent::set(self::getUserDataCacheKey($rec->folderId, $adapter), $cacheArr, 4320);
+                            
                             followRetUrl(null, "Успешно генерирана товарителница|*: №{$bolId}");
                         }
                     }
@@ -181,6 +199,23 @@ class speedy_plg_BillOfLading extends core_Plugin
     
     
     /**
+     * Какъв е ключа на потребителския кеш
+     * 
+     * @param int $folderId
+     * @param speedy_Adapter $adapter
+     * 
+     * @return string $key
+     */
+    private static function getUserDataCacheKey($folderId, speedy_Adapter $adapter)
+    {
+        $cu = core_Users::getCurrent('id', false);
+        $key = "speedy_{$folderId}_{$cu}_{$adapter->getAccountName()}";
+       
+        return $key;
+    }
+    
+    
+    /**
      * Подготвя формата за товарителницата
      * 
      * @param core_Mvc $mvc
@@ -189,7 +224,7 @@ class speedy_plg_BillOfLading extends core_Plugin
      * 
      * @return core_Form
      */
-    private static function getBillOfLadingForm($mvc, $documentRec, $adapter)
+    private static function getBillOfLadingForm($mvc, $documentRec, $adapter, $cacheArr)
     {
         $form = cls::get('core_Form');
         $form->class = 'speedyBillOfLading';
@@ -420,14 +455,22 @@ class speedy_plg_BillOfLading extends core_Plugin
            try{
                 $serviceOptions = $adapter->getServicesBySites($form->rec->receiverCountryId, $form->rec->receiverPlace, $form->rec->receiverPCode, $form->rec->receiverSpeedyOffice);
            } catch(ServerException $e){
-               $fields = null;
-               $msg = $adapter->handleException($e, $fields);
-               $form->setError($fields, $msg);
+               $isHandled = $errorFields = null;
+               $msg = $adapter->handleException($e, $errorFields, $isHandled);
+               $form->setError($errorFields, $msg);
+               
+               if(!$isHandled){
+                   reportException($e);
+                   $mvc->logErr($e->getMessage(), $form->rec->id);
+               }
            }
         }
         
         if(countR($serviceOptions)){
             $form->setOptions('service', $serviceOptions);
+            if(array_key_exists($cacheArr['service'], $serviceOptions)){
+                $form->setDefault('service', $cacheArr['service']);
+            }
             $form->setDefault('service', key($serviceOptions));
             $form->input('service', 'silent');
         } else {
@@ -447,9 +490,15 @@ class speedy_plg_BillOfLading extends core_Plugin
                 $form->setDefault('date', key($takingDates));
                 
             } catch(ServerException $e){
+                $isHandled = $errorFields = null;
                 $serviceOptions = array();
-                $msg = $adapter->handleException($e);
-                $form->setError('receiverCountryId,receiverPCode', $msg);
+                $msg = $adapter->handleException($e, $errorFields, $isHandled);
+                $form->setError($errorFields, $msg);
+                
+                if(!$isHandled){
+                    reportException($e);
+                    $mvc->logErr($e->getMessage(), $form->rec->id);
+                }
             }
         }
         

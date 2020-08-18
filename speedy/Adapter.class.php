@@ -54,6 +54,12 @@ class speedy_Adapter {
     
     
     /**
+     * Името на акаунта
+     */
+    private $accountName;
+    
+    
+    /**
      * Свързаните клиенти
      */
     private $services = array();
@@ -94,7 +100,7 @@ class speedy_Adapter {
             $this->eps = new EPSFacade(new EPSSOAPInterfaceImpl(), $userName,  $password);
             $this->resultLogin = $this->eps->getResultLogin();
             $this->contractClients = $this->eps->listContractClients();
-            
+            $this->accountName = $userName;
         } catch (ServerException $e){
             reportException($e);
             
@@ -112,7 +118,7 @@ class speedy_Adapter {
      * @return int
      */
     public function getDefaultClientId()
-    {
+    {//bp($this->resultLogin);
         return $this->resultLogin->getClientId();
     }
     
@@ -223,9 +229,9 @@ class speedy_Adapter {
         $Address = $senderClientData->getAddress();
         $objectName = $senderClientData->getObjectName();
         
-        $res = (!empty($objectName) ? "{$objectName}: " : "") . $Address->getPostCode() . " " . $Address->getSiteName() . " " . $Address->getStreetType() . " " . $Address->getStreetName() . " " . $Address->getStreetNo() . " " . $Address->getAddressNote();
+        $res = (!empty($objectName) ? "{$objectName}: " : "") . $Address->getPostCode() . " " . $Address->getSiteName() . " " . $Address->getStreetType() . " " . $Address->getStreetName() . " " . $Address->getStreetNo();
         if($quarterName = $Address->getQuarterName()){
-            $res .= " {$quarterName}";
+            //$res .= " {$quarterName}";
         }
         
         return $res;
@@ -622,11 +628,15 @@ class speedy_Adapter {
      * Обработва изникнало изключение
      * 
      * @param ServerException $e
+     * @param string $fields
+     * @param boolean|null $isHandled
+     * 
      * @return string $errorMsg
      */
-    public function handleException(ServerException $e, &$fields)
+    public function handleException(ServerException $e, &$fields, &$isHandled = null)
     {
         $fields = 'receiverPhone';
+        $isHandled = true;
         $errorMsg = $e->getMessage();
         
         if(strpos($errorMsg, '[ERR_012]') !== false){
@@ -636,7 +646,7 @@ class speedy_Adapter {
             $errorMsg = 'Избраната услуга непозволява качване до етаж';
             $fields = 'service,floorNum';
         } elseif(strpos($errorMsg, '[INVALID_PHONE_NUMBER') !== false){
-            $errorMsg = 'Невалиден телефонен номер на получатек';
+            $errorMsg = 'Невалиден телефонен номер на получател';
             $fields = 'receiverPhone';
         } elseif(strpos($errorMsg, '[INVALID_BACK_DOCUMENT_REQUEST') !== false || strpos($errorMsg, 'INVALID_BACK_RECEIPT_REQUEST') !== false){
             $errorMsg = 'Не може да са избрани документи/разписка за връщане, при доставка до Автомат';
@@ -659,8 +669,24 @@ class speedy_Adapter {
         } elseif(strpos($errorMsg, '[INVALID_OPTIONS_BEFORE_PAYMENT, Option "Test before delivery" with delivery to address is not allowed for selected service.') !== false){
             $errorMsg = 'Опцията за тестване преди плащане не е налична за избраната услуга';
             $fields = 'service,options';
+        } elseif(strpos($errorMsg, '[MISSING_REQUIRED_VALUE_PARCELS, Pallet services require first parcel info to be provided') !== false) {
+            $errorMsg = 'Избраната услуга изисква да е подадена информация за първия палетите';
+            $fields = 'service,parcelInfo';
+        } else {
+            $isHandled = false;
         }
         
         return $errorMsg;
+    }
+    
+    
+    /**
+     * Кое е името на акаунта
+     * 
+     * @return string
+     */
+    public function getAccountName()
+    {
+        return $this->accountName;
     }
 }
