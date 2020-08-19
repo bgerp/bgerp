@@ -2155,7 +2155,7 @@ class pos_Terminal extends peripheral_Terminal
         $amountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($rec->total);
         if($rec->change < 0 && $rec->paid){
             $changedVerbal = core_Type::getByName('double(decimals=2)')->toVerbal(abs($rec->change));
-            $amountVerbal .= "&nbsp;<span class='receiptResultChangeAmount'>{$changedVerbal}</span>";
+            $amountChangedVerbal = "<span class='receiptResultChangeAmount'>{$changedVerbal}</span>";
         }
         
         if(isset($rec->returnedTotal)){
@@ -2163,7 +2163,7 @@ class pos_Terminal extends peripheral_Terminal
             $amountVerbal .= " <span class='receiptResultReturnedAmount'>(-{$returnedTotalVerbal})</span>";
         } elseif(isset($rec->revertId)){
             $symbol = html_entity_decode('&#8630;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
-            $amountVerbal = "{$symbol}&nbsp;<span class='receiptResultReturnedAmount'>{$amountVerbal}</span>";
+            $amountVerbal = "{$symbol} <span class='receiptResultReturnedAmount'>{$amountVerbal}</span>";
         }
         
         $num = pos_Receipts::getReceiptShortNum($rec->id);
@@ -2173,7 +2173,7 @@ class pos_Terminal extends peripheral_Terminal
         $contragentName = str::limitLen($contragentName, 18);
         $num .= "/{$contragentName}";
         
-        $title = "{$num}<div class='nowrap'><span class='spanDate'>{$date}</span> <span class='receiptResultAmount'>{$amountVerbal}</span></div>";
+        $title = "{$num}<div class='nowrap'><span class='spanDate'>{$date}</span> <span class='receiptResultAmount'>{$amountVerbal}</span>{$amountChangedVerbal}</div>";
        
         return $title;
     }
