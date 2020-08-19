@@ -323,14 +323,7 @@ class speedy_plg_BillOfLading extends core_Plugin
             if(core_Packs::isInstalled('eshop')){
                 if($cartRec = eshop_Carts::fetch("#saleId = {$documentRec->id}")){
                     $toPerson = $cartRec->personNames;
-                    $form->setDefault('receiverPhone', $cartRec->tel);
-                    
-                    $form->setDefault('receiverCountryId', $cartRec->deliveryCountry);
-                    if($rec->receiverCountryId == $cartRec->deliveryCountry){
-                        $form->setDefault('receiverPlace', $cartRec->deliveryPlace);
-                        $form->setDefault('receiverAddress', $cartRec->deliveryAddress);
-                        $form->setDefault('receiverPCode', $cartRec->deliveryPCode);
-                    }
+                    self::setDefaultsFromCart($form, $cartRec);
                 }
             }
             
@@ -362,14 +355,6 @@ class speedy_plg_BillOfLading extends core_Plugin
             $paymentType = $firstDocument->fetchField('paymentMethodId');
             $amountCod = ($documentRec->chargeVat == 'separate') ? $documentRec->amountDelivered + $documentRec->amountDeliveredVat : $documentRec->amountDelivered;
         
-            if(core_Packs::isInstalled('eshop')){
-                if($cartRec = eshop_Carts::fetch("#saleId = {$firstDocument->that}")){
-                    if(!empty($cartRec->instruction)){
-                        $form->setDefault('receiverNotes', $cartRec->instruction);
-                    }
-                }
-            }
-            
             if($documentRec->locationId){
                 $locationRec = crm_Locations::fetch($documentRec->locationId, 'mol,tel');
                 if(!empty($locationRec->mol)){
@@ -382,10 +367,11 @@ class speedy_plg_BillOfLading extends core_Plugin
                 $toPerson =  $documentRec->person;
                 $form->setDefault('receiverPhone', $documentRec->tel);
             } elseif($firstDocument->isInstanceOf('sales_Sales')){
+                
                 if(core_Packs::isInstalled('eshop')){
-                    if($cartRec = eshop_Carts::fetch("#saleId = {$firstDocument->that}", 'personNames,tel')){
+                    if($cartRec = eshop_Carts::fetch("#saleId = {$firstDocument->that}")){
+                        self::setDefaultsFromCart($form, $cartRec);
                         $toPerson = $cartRec->personNames;
-                        $form->setDefault('receiverPhone', $cartRec->tel);
                     }
                 }
             }
@@ -522,6 +508,26 @@ class speedy_plg_BillOfLading extends core_Plugin
         }
         
         return $form;
+    }
+    
+    
+    /**
+     * Дефолти от количката
+     * 
+     * @param core_Form $form
+     * @param stdClass $cartRec
+     * @return void
+     */
+    private static function setDefaultsFromCart($form, $cartRec)
+    {
+        $form->setDefault('receiverPhone', $cartRec->tel);
+        $form->setDefault('receiverNotes', $cartRec->instruction);
+        $form->setDefault('receiverCountryId', $cartRec->deliveryCountry);
+        if($form->rec->receiverCountryId == $cartRec->deliveryCountry){
+            $form->setDefault('receiverPlace', $cartRec->deliveryPlace);
+            $form->setDefault('receiverAddress', $cartRec->deliveryAddress);
+            $form->setDefault('receiverPCode', $cartRec->deliveryPCode);
+        }
     }
     
     
