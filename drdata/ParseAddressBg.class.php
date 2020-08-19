@@ -104,7 +104,7 @@ class drdata_ParseAddressBg extends core_Manager
     /**
      * Тестова функция
      */
-   /* public function act_Test()
+ public function act_Test()
     {
         requireRole('debug');
         $data = file_get_contents('C:/test/Addresses.txt');
@@ -122,7 +122,7 @@ class drdata_ParseAddressBg extends core_Manager
         }
         
         bp($res);
-    } */
+    }  
     
     
     /**
@@ -386,6 +386,19 @@ class drdata_ParseAddressBg extends core_Manager
         
         $all = $place = $addr = '';
         
+        if($parts['гр.'] == $parts['обл.']) {
+            unset($parts['обл.']);
+        }
+
+        if($parts['гр.'] == $parts['общ.']) {
+            unset($parts['общ.']);
+        }
+
+        if(isset($parts['гр.']) && isset($parts['c.']) && !isset($parts['общ.'])) {
+            $parts['общ.'] = $parts['гр.'];
+            unset($parts['гр.']);
+        }
+
         foreach ($parts as $k => &$v) {
             $v = trim($v, ' ,.-');
             if (is_numeric($k)) {
@@ -396,13 +409,14 @@ class drdata_ParseAddressBg extends core_Manager
             }
             
             $all .= $p;
-            if ($k === 'c.' || $k === 'гр.' || $k === 'общ.' || $k === 'общ.') {
+            if ($k === 'c.' || $k === 'гр.' || $k === 'общ.' || $k === 'обл.') {
                 $place .= $p;
             } elseif ($k !== 'п.код') {
                 $addr .= $p;
             }
         }
         
+
         $parts['place'] = trim($place, ', ');
         $parts['addr'] = trim($addr, ', ');
         $parts['all'] = trim($all, ', ');
