@@ -118,6 +118,13 @@ class sales_StatisticData extends core_Manager
     }
     
     
+    function act_Test()
+    {
+        requireRole('debug');
+        $this->cron_GatherSalesData();
+    }
+    
+    
     /**
      * Събиране на статистическата информация по разписание
      */
