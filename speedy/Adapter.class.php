@@ -118,7 +118,7 @@ class speedy_Adapter {
      * @return int
      */
     public function getDefaultClientId()
-    {//bp($this->resultLogin);
+    {
         return $this->resultLogin->getClientId();
     }
     
@@ -506,7 +506,7 @@ class speedy_Adapter {
         } else {
             $picking->setSenderId($rec->senderClientId);
         }
-        
+       
         $picking->setDocuments($pickingData->documents);
         $picking->setPalletized($pickingData->palletized);
         $picking->setFragile($pickingData->fragile);
@@ -514,6 +514,14 @@ class speedy_Adapter {
         $picking->setPayerType($pickingData->payerType);
         $picking->setPayerTypePackings($pickingData->payerTypePackings);
         $picking->setTakingDate($pickingData->takingDate);
+        
+        if($pickingData->payerType == 2){
+            $picking->setPayerRefId($rec->thirdPayerRefId);
+        }
+        
+        if($pickingData->payerTypePackings == 2){
+            $picking->setPayerRefPackingsId($rec->thirdPayerRefId);
+        }
         
         // Информация за съдържанието и наложения платеж и обявената стойност
         $codOptions = type_Set::toArray($rec->codType);
@@ -527,6 +535,9 @@ class speedy_Adapter {
         
         $picking->setAmountInsuranceBase($pickingData->amountInsurance);
         $picking->setPayerTypeInsurance($pickingData->insurancePayer);
+        if($pickingData->insurancePayer == 2){
+            $picking->setPayerRefInsuranceId($rec->thirdPayerRefId);
+        }
         
         // Задаване на опции преди плащане, ако има
         if(in_array($rec->options, array('test', 'open'))){
