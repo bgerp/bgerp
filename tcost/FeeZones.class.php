@@ -458,6 +458,10 @@ class tcost_FeeZones extends core_Master
                 $block = new core_ET(tr("|*<!--ET_BEGIN freeDelivery--><div>{$string} <b style='font-size:1.1em'>[#freeDelivery#]</b>.</div><!--ET_END freeDelivery-->"));
             }
             
+            if($deliveryAmount < 0){
+                wp($delivery, $cartRec, $settings->freeDelivery);
+            }
+            
             $cartRow->freeDelivery = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
             $cartRow->freeDelivery = currency_Currencies::decorate($cartRow->freeDelivery, $settings->currencyId);
             
