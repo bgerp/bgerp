@@ -14,6 +14,12 @@ defIfNot('SALES_DEFAULT_VALIDITY_OF_QUOTATION', '2592000');
 
 
 /**
+ * Сумиране на статистически данни
+ */
+defIfNot('SALES_STATISTIC_DATA_FOR_THE_LAST',  6 * core_DateTime::SECONDS_IN_MONTH);
+
+
+/**
  * Начален номер на фактурите
  */
 defIfNot('SALE_INV_MIN_NUMBER1', '1');
@@ -327,6 +333,11 @@ class sales_Setup extends core_ProtoSetup
             'enum(none=Няма,form=Форма за оферта,addProduct=Добавяне на артикул,createProduct=Създаване на артикул)',
             'mandatory,caption=Действие на бързите бутони в папките->Оферта,customizeBy=ceo|sales',
         ),
+        
+        'SALES_STATISTIC_DATA_FOR_THE_LAST' => array(
+            'time',
+            'caption=Статистически данни за продажба->Време назад'
+        ),
     );
     
     
@@ -406,8 +417,16 @@ class sales_Setup extends core_ProtoSetup
             'offset' => 190,
             'period' => 1440,
             'timeLimit' => 360
+        ), 
+        array(
+            'systemId' => 'Gather Sale Statistic',
+            'description' => 'Изчисляване на статистическите данни за продажбите',
+            'controller' => 'sales_StatisticData',
+            'action' => 'GatherSalesData',
+            'offset' => 190,
+            'period' => core_DateTime::SECONDS_IN_MONTH / 60,
+            'timeLimit' => 500
         )
-    
     );
     
     
