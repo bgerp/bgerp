@@ -81,6 +81,9 @@ class sales_StatisticData extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
+        $time = sales_Setup::get('STATISTIC_DATA_FOR_THE_LAST');
+        $data->title = 'Статистически данни на продажбите за последните|* <b class="green">' . core_Type::getByName('time')->toVerbal($time) . "</b>";
+        
         $data->listFilter->showFields = 'productId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -160,14 +163,6 @@ class sales_StatisticData extends core_Manager
     }
     
     
-    public function act_Test()
-    {
-        requireRole('debug');
-        
-        $this->cron_GatherSalesData();
-    }
-    
-    
     /**
      * Връща статистическа информация за продажбите
      * 
@@ -175,6 +170,9 @@ class sales_StatisticData extends core_Manager
      */
     public function getSaleStatistic($onlyOnlineSales = false)
     {
+        $time = sales_Setup::get('STATISTIC_DATA_FOR_THE_LAST');
+        $valiorFrom = dt::verbal2mysql(dt::addSecs(-1 * $time), false);
+        
         $deltaQuery = sales_PrimeCostByDocument::getQuery();
         $deltaQuery->XPR('count', 'int', 'count(#id)');
         $deltaQuery->XPR('sumQuantity', 'int', 'SUM(#quantity)');
@@ -182,8 +180,11 @@ class sales_StatisticData extends core_Manager
         $deltaQuery->where("#sellCost IS NOT NULL AND (#state = 'active' OR #state = 'closed') AND #isPublic = 'yes'");
         $deltaQuery->groupBy('productId,storeId');
         $deltaQuery->orderBy("count", 'DESC');
-        $deltaQuery->limit(200);
+        $deltaQuery->where("#valior >= '{$valiorFrom}'");
         $deltaQuery->show('productId,storeId,sumQuantity,sumAmount,count');
+        
+        $count = $deltaQuery->count();
+        core_App::setTimeLimit($count * 0.4, false, 200);
         
         if($onlyOnlineSales){
             $cartQuery = eshop_Carts::getQuery();

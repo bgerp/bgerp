@@ -65,13 +65,24 @@ class speedy_plg_BillOfLading extends core_Plugin
                 followRetUrl(null, $connectResult->errorMsg, 'error');
             }
             
+            $cacheArr = core_Permanent::get(self::getUserDataCacheKey($rec->folderId, $adapter));
+            
             // Подготовка на формата
-            $form = self::getBillOfLadingForm($mvc, $rec, $adapter);
+            $form = self::getBillOfLadingForm($mvc, $rec, $adapter, $cacheArr);
             
             $senderObjects = $adapter->getSenderObjects();
             $form->FLD('senderClientId', 'varchar', 'after=senderName,caption=Подател->Обект,hint=Адресът е настроен в профика в Speedy');
             $form->setOptions('senderClientId', $senderObjects);
+            if(array_key_exists($cacheArr['senderClientId'], $senderObjects)){
+                $form->setDefault('senderClientId', $cacheArr['senderClientId']);
+            }
             $form->setDefault('senderClientId', $adapter->getDefaultClientId());
+            
+            if($form->rec->payer == 'third'){
+                $form->setField('thirdPayerRefId', 'input');
+                $form->setOptions('thirdPayerRefId', $senderObjects);
+                $form->setDefault('thirdPayerRefId', $rec->senderClientId);
+            }
             
             $form->input();
             
@@ -116,40 +127,70 @@ class speedy_plg_BillOfLading extends core_Plugin
                 
                 if(!$form->gotErrors()){
                     
-                    // Опит за създаване на товарителница
-                    try{
-                        $bolId = $adapter->getBol($form->rec);
-                    } catch(ServerException $e){
-                        $mvc->logErr("Проблем при генериране на товарителница", $id);
-                        $mvc->logErr($e->getMessage(), $id);
-                        $fields = null;
-                        $msg = $adapter->handleException($e, $fields);
-                        $form->setError($fields, $msg);
-                    }
-                    
-                    // Записване на товарителницата като PDF, ако е създадеба
-                    if(!$form->gotErrors() && !empty($bolId)){
+                    // Ако само ще се калкулира
+                    if($form->cmd == 'calc'){
                         try{
-                            $bolFh = $adapter->getBolPdf($bolId);
-                            $fileId = fileman::fetchByFh($bolFh, 'id');
-                            doc_Linked::add($rec->containerId, $fileId, 'doc', 'file', 'Товарителница');
-                            
+                            $tpl = $adapter->calculate($form->rec);
+                            $form->info = $tpl;
+                            core_Statuses::newStatus('Цената е изчислена');
                         } catch(ServerException $e){
-                            reportException($e);
-                            $mvc->logErr("Проблем при генериране на PDF на товарителница", $id);
-                            $mvc->logErr($e->getMessage(), $id);
-                            core_Statuses::newStatus('Проблем при генериране на PDF на товарителница', 'error');
+                            $fields = $isHandled = null;
+                            $msg = $adapter->handleException($e, $fields, $isHandled);
+                            $form->setError($fields, $msg);
+                            
+                            if(!$isHandled){
+                                reportException($e);
+                                $mvc->logErr("Проблем при изчисление на цената на товарителницата", $id);
+                                $mvc->logErr($e->getMessage(), $id);
+                            }
+                        }
+                    } else {
+                        
+                        // Опит за създаване на товарителница
+                        try{
+                            $bolId = $adapter->getBol($form->rec);
+                        } catch(ServerException $e){
+                            $isHandled = $fields = null;
+                            $msg = $adapter->handleException($e, $fields, $isHandled);
+                            $form->setError($fields, $msg);
+                            
+                            if(!$isHandled){
+                                reportException($e);
+                                $mvc->logErr("Проблем при генериране на товарителница", $id);
+                                $mvc->logErr($e->getMessage(), $id);
+                            }
+                        }
+                        
+                        // Записване на товарителницата като PDF, ако е създадеба
+                        if(!$form->gotErrors() && !empty($bolId)){
+                            try{
+                                $bolFh = $adapter->getBolPdf($bolId);
+                                $fileId = fileman::fetchByFh($bolFh, 'id');
+                                doc_Linked::add($rec->containerId, $fileId, 'doc', 'file', 'Товарителница');
+                                
+                            } catch(ServerException $e){
+                                reportException($e);
+                                $mvc->logErr("Проблем при генериране на PDF на товарителница", $id);
+                                $mvc->logErr($e->getMessage(), $id);
+                                core_Statuses::newStatus('Проблем при генериране на PDF на товарителница', 'error');
+                            }
+                        }
+                        
+                        if(!$form->gotErrors() && !empty($bolId)){
+                            $mvc->logWrite("Генерирана товарителница на Speedy", $id);
+                            
+                            // Кеш на последно избраните стойностти
+                            $cacheArr = array('senderClientId' => $fRec->senderClientId, 'service' => $fRec->service);
+                            core_Permanent::set(self::getUserDataCacheKey($rec->folderId, $adapter), $cacheArr, 4320);
+                            
+                            followRetUrl(null, "Успешно генерирана товарителница|*: №{$bolId}");
                         }
                     }
-                }
-                
-                if(!$form->gotErrors() && !empty($bolId)){
-                    $mvc->logWrite("Генерирана товарителница на Speedy", $id);
-                    followRetUrl(null, "Успешно генерирана товарителница|*: №{$bolId}");
                 }
             }
             
             $form->toolbar->addSbBtn('Изпращане', 'save', 'ef_icon = img/16/speedy.png, title = Изпращане на товарителницата,id=save');
+            $form->toolbar->addSbBtn('Изчисли', 'calc', 'ef_icon = img/16/calculator.png, title = Изчисляване на на товарителницата');
             $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
             
             // Записваме, че потребителя е разглеждал този списък
@@ -164,6 +205,23 @@ class speedy_plg_BillOfLading extends core_Plugin
     
     
     /**
+     * Какъв е ключа на потребителския кеш
+     * 
+     * @param int $folderId
+     * @param speedy_Adapter $adapter
+     * 
+     * @return string $key
+     */
+    private static function getUserDataCacheKey($folderId, speedy_Adapter $adapter)
+    {
+        $cu = core_Users::getCurrent('id', false);
+        $key = "speedy_{$folderId}_{$cu}_{$adapter->getAccountName()}";
+       
+        return $key;
+    }
+    
+    
+    /**
      * Подготвя формата за товарителницата
      * 
      * @param core_Mvc $mvc
@@ -172,7 +230,7 @@ class speedy_plg_BillOfLading extends core_Plugin
      * 
      * @return core_Form
      */
-    private static function getBillOfLadingForm($mvc, $documentRec, $adapter)
+    private static function getBillOfLadingForm($mvc, $documentRec, $adapter, $cacheArr)
     {
         $form = cls::get('core_Form');
         $form->class = 'speedyBillOfLading';
@@ -204,12 +262,14 @@ class speedy_plg_BillOfLading extends core_Plugin
         $form->FLD('service', 'varchar', 'caption=Описание на пратката->Услуга,mandatory,removeAndRefreshForm=date,silent');
         $form->FLD('date', 'varchar', 'caption=Описание на пратката->Изпращане на,mandatory');
         
-        $form->FLD('payer', 'enum(sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец,mandatory');
-        $form->FLD('payerPackaging', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец опаковка,mandatory');
+        $form->FLD('payer', 'enum(sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец,mandatory,silent,removeAndRefreshForm=thirdPayerRefId');
+        $form->FLD('thirdPayerRefId', 'int', 'caption=Описание на пратката->Платец Офис,input=none');
+        
+        $form->FLD('payerPackaging', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател)', 'caption=Описание на пратката->Платец опаковка,mandatory');
         
         $form->FLD('isDocuments', 'enum(no=Не,yes=Да)', 'caption=Описание на пратката->Документи,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer|palletCount,maxRadio=2');
         $form->FLD('palletCount', 'int(min=0,Max=10)', 'caption=Описание на пратката->Бр. пакети');
-        $form->FLD("parcelInfo", "table(columns=width|depth|height|weight|num,captions=Ширина|Дълбочина|Височина|Тегло|№ на опаковка,validate=speedy_plg_BillOfLading::validatePallets)", 'caption=Описание на пратката->Палети,after=palletCount');
+        $form->FLD("parcelInfo", "table(columns=width|depth|height|weight,captions=Ширина|Дълбочина|Височина|Тегло,validate=speedy_plg_BillOfLading::validatePallets)", 'caption=Описание на пратката->Палети,after=palletCount');
         $form->FLD('content', 'varchar', 'caption=Описание на пратката->Съдържание,mandatory,recently');
         $form->FLD('packaging', 'varchar', 'caption=Описание на пратката->Опаковка,mandatory,recently');
         $form->FLD('totalWeight', 'double(min=0,max=50)', 'caption=Описание на пратката->Общо тегло,unit=кг (Макс: 50)');
@@ -219,12 +279,12 @@ class speedy_plg_BillOfLading extends core_Plugin
         $form->FLD('codType', 'set(post=Като паричен превод,including=Вкл. цената на куриерска услуга в НП)', 'caption=Описание на пратката->Вид,after=amountCODBase,input=none');
         
         $form->FLD('amountInsurance', 'double', 'caption=Описание на пратката->Обявена стойност,unit=BGN,silent,removeAndRefreshForm=insurancePayer|isFragile');
-        $form->FLD('insurancePayer', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец обявена ст.,input=none');
+        $form->FLD('insurancePayer', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател)', 'caption=Описание на пратката->Платец обявена ст.,input=none');
         $form->FLD('isFragile', 'enum(no=Не,yes=Да)', 'caption=Описание на пратката->Чупливост,input=none,maxRadio=2');
         
         $form->FLD('options', 'enum(no=Няма,open=Отваряне,test=Тест)', 'caption=Описание на пратката->Преди получаване/плащане,silent,removeAndRefreshForm=returnServiceId|returnPayer,maxRadio=3');
         $form->FLD('returnServiceId', 'varchar', 'caption=Описание на пратката->Услуга за връщане,input=none,after=options');
-        $form->FLD('returnPayer', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец на връщането,input=none,after=returnServiceId');
+        $form->FLD('returnPayer', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател)', 'caption=Описание на пратката->Платец на връщането,input=none,after=returnServiceId');
         $form->FLD('backRequest', 'set(document=Документи,receipt=Разписка)', 'caption=Заявка за обратни документи->Избор');
        
         $Cover = doc_Folders::getCover($documentRec->folderId);
@@ -265,7 +325,6 @@ class speedy_plg_BillOfLading extends core_Plugin
                     $toPerson = $cartRec->personNames;
                     $form->setDefault('receiverPhone', $cartRec->tel);
                     
-                    
                     $form->setDefault('receiverCountryId', $cartRec->deliveryCountry);
                     if($rec->receiverCountryId == $cartRec->deliveryCountry){
                         $form->setDefault('receiverPlace', $cartRec->deliveryPlace);
@@ -303,6 +362,14 @@ class speedy_plg_BillOfLading extends core_Plugin
             $paymentType = $firstDocument->fetchField('paymentMethodId');
             $amountCod = ($documentRec->chargeVat == 'separate') ? $documentRec->amountDelivered + $documentRec->amountDeliveredVat : $documentRec->amountDelivered;
         
+            if(core_Packs::isInstalled('eshop')){
+                if($cartRec = eshop_Carts::fetch("#saleId = {$firstDocument->that}")){
+                    if(!empty($cartRec->instruction)){
+                        $form->setDefault('receiverNotes', $cartRec->instruction);
+                    }
+                }
+            }
+            
             if($documentRec->locationId){
                 $locationRec = crm_Locations::fetch($documentRec->locationId, 'mol,tel');
                 if(!empty($locationRec->mol)){
@@ -329,6 +396,11 @@ class speedy_plg_BillOfLading extends core_Plugin
             $toPerson = $Cover->fetchField('name');
             $form->setDefault('receiverPhone', $Cover->fetchField('tel'));
         }
+        
+        if($rec->payer == 'third'){
+            $form->setField('thirdPayerRefId', 'input');
+        }
+        
         
         if($rec->isPrivatePerson == 'yes'){
             $form->setDefault('receiverName', $toPerson);
@@ -396,14 +468,22 @@ class speedy_plg_BillOfLading extends core_Plugin
            try{
                 $serviceOptions = $adapter->getServicesBySites($form->rec->receiverCountryId, $form->rec->receiverPlace, $form->rec->receiverPCode, $form->rec->receiverSpeedyOffice);
            } catch(ServerException $e){
-               $fields = null;
-               $msg = $adapter->handleException($e, $fields);
-               $form->setError($fields, $msg);
+               $isHandled = $errorFields = null;
+               $msg = $adapter->handleException($e, $errorFields, $isHandled);
+               $form->setError($errorFields, $msg);
+               
+               if(!$isHandled){
+                   reportException($e);
+                   $mvc->logErr($e->getMessage(), $form->rec->id);
+               }
            }
         }
         
         if(countR($serviceOptions)){
             $form->setOptions('service', $serviceOptions);
+            if(array_key_exists($cacheArr['service'], $serviceOptions)){
+                $form->setDefault('service', $cacheArr['service']);
+            }
             $form->setDefault('service', key($serviceOptions));
             $form->input('service', 'silent');
         } else {
@@ -423,9 +503,15 @@ class speedy_plg_BillOfLading extends core_Plugin
                 $form->setDefault('date', key($takingDates));
                 
             } catch(ServerException $e){
+                $isHandled = $errorFields = null;
                 $serviceOptions = array();
-                $msg = $adapter->handleException($e);
-                $form->setError('receiverCountryId,receiverPCode', $msg);
+                $msg = $adapter->handleException($e, $errorFields, $isHandled);
+                $form->setError($errorFields, $msg);
+                
+                if(!$isHandled){
+                    reportException($e);
+                    $mvc->logErr($e->getMessage(), $form->rec->id);
+                }
             }
         }
         
@@ -455,7 +541,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         $Double = core_Type::getByName('double');
        
         foreach($TableArr as $i => $obj){
-            foreach (array('weight', 'depth', 'height', 'width', 'num') as $field){
+            foreach (array('weight', 'depth', 'height', 'width') as $field){
                 if(!empty($obj->{$field})){
                     if(!$Double->fromVerbal($obj->{$field}) || $obj->{$field} < 0){
                         $error[] = 'Невалидни числа';
