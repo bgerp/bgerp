@@ -118,7 +118,21 @@ class sales_StatisticData extends core_Manager
     }
     
     
-    function act_Test()
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        if (haveRole('debug')) {
+            $data->toolbar->addBtn('Обновяване', array($mvc, 'GatherSalesData', 'ret_url' => true), null, 'ef_icon = img/16/arrow_refresh.png,title=Обновяване на статистическите данни');
+        }
+    }
+    
+    
+    /**
+     * Екшън за обновяване на статистическите данн
+     */
+    function act_GatherSalesData()
     {
         requireRole('debug');
         $this->cron_GatherSalesData();

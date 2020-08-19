@@ -362,7 +362,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_ProductRelations',
         'sales_StatisticData',
         'migrate::updateStoreIdInDeltas2',
-        'migrate::updateSaleStatistic',
+        'migrate::updateSaleStatistic1',
     );
     
     
@@ -609,7 +609,7 @@ class sales_Setup extends core_ProtoSetup
     /**
      * Обновяване на статистическите данни
      */
-    public function updateSaleStatistic()
+    public function updateSaleStatistic1()
     {
         $Statistic = cls::get('sales_StatisticData');
         $Statistic->setupMvc();
