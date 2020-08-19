@@ -2153,6 +2153,11 @@ class pos_Terminal extends peripheral_Terminal
         $date = "<span class='timeSpan' style=\"color:#{$color}\">{$date}</span>";
         
         $amountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($rec->total);
+        if($rec->change < 0 && $rec->paid){
+            $changedVerbal = core_Type::getByName('double(decimals=2)')->toVerbal(abs($rec->change));
+            $amountVerbal .= "&nbsp;<span class='receiptResultChangeAmount'>{$changedVerbal}</span>";
+        }
+        
         if(isset($rec->returnedTotal)){
             $returnedTotalVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($rec->returnedTotal);
             $amountVerbal .= " <span class='receiptResultReturnedAmount'>(-{$returnedTotalVerbal})</span>";
@@ -2162,7 +2167,9 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $num = pos_Receipts::getReceiptShortNum($rec->id);
-        $contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
+        
+        $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
+        $contragentName = ($rec->contragentClass == crm_Persons::getClassId() && $defaultContragentId == $rec->contragentObjectId) ? pos_Points::getVerbal($rec->pointId, 'name') : cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
         $contragentName = str::limitLen($contragentName, 18);
         $num .= "/{$contragentName}";
         
