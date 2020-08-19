@@ -386,21 +386,23 @@ class blast_BlockedEmails extends core_Manager
             $rec->state = 'ok';
         }
         
-        if (!isset($rec->lastSent)) {
-            $rec->lastSent = dt::now();
-        }
-        
-        if ($rec->state == 'error') {
-            $rec->checkPoint--;
-            
-            if ($rec->checkPoint < 0 || !(isset($rec->checkPoint))) {
-                $rec->checkPoint = 0;
+        if (!Mode::is('importing')) {
+            if (!isset($rec->lastSent)) {
+                $rec->lastSent = dt::now();
             }
-        } elseif ($rec->state == 'ok') {
-            $rec->checkPoint++;
             
-            if ($rec->checkPoint > 5) {
-                $rec->checkPoint = 5;
+            if ($rec->state == 'error') {
+                $rec->checkPoint--;
+                
+                if ($rec->checkPoint < 0 || !(isset($rec->checkPoint))) {
+                    $rec->checkPoint = 0;
+                }
+            } elseif ($rec->state == 'ok') {
+                $rec->checkPoint++;
+                
+                if ($rec->checkPoint > 5) {
+                    $rec->checkPoint = 5;
+                }
             }
         }
     }
