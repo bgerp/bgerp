@@ -7,7 +7,6 @@ var searchTimeout;
 var addedProduct;
 
 function posActions() {
-
 	calculateWidth();
 	activeInput = false;
 	$(document.body).on('input', "input[name=ean]", function(e){
@@ -1284,6 +1283,15 @@ function openCurrentPosTab() {
 }
 
 /**
+ * Редува два спана с цени
+ */
+function changePriceSpans(){
+	setInterval(function (){
+		$('.pos-notes .prices span').toggleClass('hidden');
+	}, 1000);
+}
+
+/**
  * Извършва подадената операция
  */
 function doOperation(operation, selectedRecId, forceSubmit) {
@@ -1410,15 +1418,11 @@ function triggerSearchInput(element, timeoutTime)
 		}
 		
 		if(activeTab.length){
-			console.log(activeTab);
-			
 			var id = activeTab.attr("data-id");
 			if(activeTab.parent().hasClass('receipts')){
 				params.selectedReceiptFilter = id;
 			} else {
 				params.selectedProductGroupId = id;
-				
-				console.log(params);
 			}
 		}
 		processUrl(url, params);

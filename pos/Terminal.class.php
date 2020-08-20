@@ -2122,6 +2122,8 @@ class pos_Terminal extends peripheral_Terminal
         $tpl->prepend("<div class='withTabs'>");
         $tpl->append("</div>");
         $tpl->removeBlocksAndPlaces();
+
+        jquery_Jquery::run($tpl, "changePriceSpans();");
         
         return $tpl;
     }
@@ -2141,31 +2143,35 @@ class pos_Terminal extends peripheral_Terminal
         $date = dt::mysql2verbal($rec->createdOn, $mask);
         $color = dt::getColorByTime($rec->createdOn);
         $date = "<span class='timeSpan' style=\"color:#{$color}\">{$date}</span>";
-        
+
+
+        if($rec->change < 0 && $rec->paid){
+            $changedVerbal = core_Type::getByName('double(decimals=2)')->toVerbal(abs($rec->change));
+            $amountVerbalInner = "<span class='prices'><span class='receiptResultAmount'>" .core_Type::getByName('double(decimals=2)')->toVerbal($rec->total) . "</span>";
+            $amountVerbalInner .= "<span class='receiptResultChangeAmount hidden'>{$changedVerbal}</span></span>";
+            $amountVerbal = "";
+        } else {
+            $amountVerbal = "<span class='receiptResultAmount'>" .core_Type::getByName('double(decimals=2)')->toVerbal($rec->total) . "</span>";
+        }
+
+        if(isset($rec->returnedTotal)){
+            $returnedTotalVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($rec->returnedTotal);
+            $amountVerbal .= " <span class='receiptResultReturnedAmount'>(-{$returnedTotalVerbal})</span>";
+
+        } elseif(isset($rec->revertId)){
+            $symbol = html_entity_decode('&#8630;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
+            $amountVerbal .= " <span class='receiptResultReturnedAmount'>{$symbol}{$amountVerbal}</span>";
+        }
+
         $num = pos_Receipts::getReceiptShortNum($rec->id);
+
         $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
         $contragentName = ($rec->contragentClass == crm_Persons::getClassId() && $defaultContragentId == $rec->contragentObjectId) ? pos_Points::getVerbal($rec->pointId, 'name') : cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
         $contragentName = str::limitLen($contragentName, 18);
         $num .= "/{$contragentName}";
-        
-        $titleObj = (object)array('date' => $date);
-        $titleObj->num = $num;
-        $titleObj->amount = core_Type::getByName('double(decimals=2)')->toVerbal($rec->total);
-        if($rec->change < 0 && $rec->paid){
-            $titleObj->amountToPay = core_Type::getByName('double(decimals=2)')->toVerbal(abs($rec->change));
-        }
-        if(isset($rec->returnedTotal)){
-            $returnedTotalVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($rec->returnedTotal);
-            $titleObj->amountReturned = $returnedTotalVerbal;
-        } elseif(isset($rec->revertId)){
-            $symbol = html_entity_decode('&#8630;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
-            $titleObj->amount = "{$symbol} <span class='receiptResultReturnedAmount'>{$titleObj->amount}</span>";
-        }
-        
-        $titleTpl = new core_ET("<span class='receiptTitle'>[#num#]</span><span class='spanDate'>[#date#]</span><!--ET_BEGIN amount--><span class='receiptResultAmount'>[#amount#]</span><!--ET_END amount--><!--ET_BEGIN amountToPay--><span class='receiptAmountToPay'>[#amountToPay#]</span><!--ET_END amountToPay--><!--ET_BEGIN amountReturned--><span class='receiptResultReturnedAmount'>[#amountReturned#]</span><!--ET_END amountReturned-->");
-        $titleTpl->placeObject($titleObj);
-        $title = $titleTpl->getContent();
-        
+
+        $title = "{$num}<div class='nowrap'><span class='spanDate'>{$date}</span>  {$amountVerbalInner}<span class='otherPrice'> {$amountVerbal}</span></div>";
+
         return $title;
     }
     
