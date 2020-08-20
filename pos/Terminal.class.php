@@ -2168,7 +2168,7 @@ class pos_Terminal extends peripheral_Terminal
         $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
         $contragentName = ($rec->contragentClass == crm_Persons::getClassId() && $defaultContragentId == $rec->contragentObjectId) ? pos_Points::getVerbal($rec->pointId, 'name') : cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
         $contragentName = str::limitLen($contragentName, 18);
-        $num .= "/{$contragentName}";
+        $num .= " / {$contragentName}";
 
         $title = "{$num}<div class='nowrap'><span class='spanDate'>{$date}</span>  {$amountVerbalInner}<span class='otherPrice'> {$amountVerbal}</span></div>";
 
