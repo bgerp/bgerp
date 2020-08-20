@@ -28,7 +28,7 @@ class ztm_Registers extends core_Master
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ztm, ceo';
+    public $canAdd = 'no_one';
     
     
     /**
@@ -39,9 +39,7 @@ class ztm_Registers extends core_Master
     /**
      * Кой има право да го изтрие?
      */
-    public $canDelete = 'no_one';
-    public $canReject = 'ztm, ceo';
-    public $canRestore = 'ztm, ceo';
+    public $canDelete = 'ztm, ceo';
     
     
     /**
@@ -184,14 +182,14 @@ class ztm_Registers extends core_Master
         
         if(in_array($type, array('int', 'float', 'int|float'))){
             $Double = core_Type::getByName('double');
-            if(!$Double->fromVerbal($extValue)){
-               
+            if($Double->fromVerbal($extValue) === false){
+                
                 throw new core_exception_Expect('Въведената стойност не е число|*!', 'Несъответствие');
             }
         }
         
         // Записва стойността в помощния модел при нужда
-        if(in_array($type, array('json'))){
+        if($type == 'json' || ($type == 'str' && strlen($extValue) > 32)){
             $hash = md5(serialize($extValue));
             $value = $hash;
             
@@ -207,5 +205,18 @@ class ztm_Registers extends core_Master
         }
         
         return $value;
+    }
+    
+    
+    /**
+     * След изтриване на запис
+     */
+    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        // Ако изтриваме етап, изтриваме всичките редове от този етап
+        foreach ($query->getDeletedRecs() as $rec) {
+            ztm_RegisterValues::delete("#registerId = {$rec->id}");
+            ztm_ProfileDetails::delete("#registerId = {$rec->id}");
+        }
     }
 }

@@ -44,13 +44,13 @@ class ztm_RegisterValues extends core_Manager
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ztm, ceo';
+    public $canAdd = 'no_one';
     
     
     /**
-     * Кой има право да пише?
+     * Кой може да изтрива
      */
-    public $canWrite = 'ztm, ceo';
+    public $canDelete = 'no_one';
     
     
     /**
@@ -334,12 +334,25 @@ class ztm_RegisterValues extends core_Manager
         
         $lastSync = '2018-01-01 10:00:00';
         
+        $deviceRec = ztm_Devices::fetch(5);
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         $regArr = (array)json_decode($r);
         
       
         
         
-        $deviceRec = ztm_Devices::fetch(4);
+        
         $synced = $this->sync($regArr, $deviceRec->id, $lastSync);
         
         
@@ -420,8 +433,8 @@ class ztm_RegisterValues extends core_Manager
             $syncedArray[$obj1->name] = $obj1->value;
         }
         
-        foreach ($unknownRegisters as $unknownRegister){
-            log_System::logErr("Неразпознат ZTM регистър: '{$unknownRegister}'");
+        foreach ($unknownRegisters as $unknownRegisterObj){
+            log_System::logErr("Неразпознат ZTM регистър: '{$unknownRegisterObj->name}' : '{$unknownRegisterObj->value}'");
         }
         
         // Отключване на синхронизацията
@@ -451,7 +464,7 @@ class ztm_RegisterValues extends core_Manager
                         $expandedRegArr[$registerRec->id] = (object)array('name' => $name, 'value' => $value, 'deviceId' => $deviceId, 'registerId' => $registerRec->id, 'priority' => $registerRec->priority);
                     }
                 } else {
-                    $unknownRegisters[] = $name;
+                    $unknownRegisters[] = (object)array('name' => $name, 'value' => $value);
                 }
             }
         }
@@ -499,29 +512,39 @@ class ztm_RegisterValues extends core_Manager
         expect($deviceRec = ztm_Devices::getRecForToken($token), $token);
         ztm_Devices::updateSyncTime($token);
         
+        // Добавяне на дефолтните стойностти към таблицата с регистрите, ако няма за тях
+        $now = dt::now();
+        $ourRegisters = self::grab($deviceRec);
+        $defaultArr = ztm_Profiles::getDefaultRegisterValues($deviceRec);
+        foreach ($defaultArr as $dRegKey => $dRegValue){
+            if(!array_key_exists($dRegKey, $ourRegisters)){
+                try{
+                    ztm_RegisterValues::set($deviceRec->id, $dRegKey, $dRegValue, $now);
+                } catch(core_exception_Expect $e){
+                    log_System::logErr("Невалидна стойност за числов регистър: '{$dRegKey}' - {$dRegValue}");
+                }
+            }
+        }
+        
         try{
-            if(empty($lastSync)){
-                
-                // При първоначална сихронизация, се подават дефолтните данни
-                $result = ztm_Profiles::getDefaultResponse($deviceRec->profileId);
-            
-            } else {
-                $regArr = array();
-                $registers = Request::get('registers');
-                if(!empty($registers)){
-                    if(is_scalar($registers)){
-                        if(str::isJson($registers)){
-                            $regArr = (array)json_decode($registers);
-                        } else {
-                            $regArr = arr::make($registers, true);
-                        }
+            $regArr = array();
+            $registers = Request::get('registers');
+            if(!empty($registers)){
+                if(is_scalar($registers)){
+                    if(str::isJson($registers)){
+                        $regArr = (array)json_decode($registers);
                     }
                 }
-                
-                // Синхронизране на данните от устройството с тези от системата
-                $lastSync = dt::timestamp2Mysql($lastSync);
-                $result = $this->sync($regArr, $deviceRec->id, $lastSync);
             }
+            
+            if(!countR($regArr)){
+                log_System::logErr("Невалидни стойности на 'registers': '{$registers}'");
+            }
+            
+            // Синхронизране на данните от устройството с тези от системата
+            $lastSync = (empty($lastSync)) ? $now : dt::timestamp2Mysql($lastSync);
+            $result = $this->sync($regArr, $deviceRec->id, $lastSync);
+            
         } catch(core_exception_Expect $e){
             $result = Request::get('registers');
             reportException($e);
@@ -590,7 +613,7 @@ class ztm_RegisterValues extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         // Бутон за изчистване на всички
         if (haveRole('debug')) {

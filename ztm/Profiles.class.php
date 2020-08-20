@@ -116,12 +116,12 @@ class ztm_Profiles extends core_Master
      * 
      * @return stdClass $res
      */
-    public static function getDefaultResponse($profileId)
+    public static function getDefaultRegisterValues($profileId)
     {
         $dArr = array();
         $dQuery = ztm_ProfileDetails::getQuery();
         $dQuery->EXT('type', 'ztm_Registers', 'externalName=type,externalKey=registerId');
-        $dQuery->where("#profileId = {$profileId}");
+        $dQuery->where("#profileId = '{$profileId}'");
         $dQuery->show('registerId,value,type');
         while($dRec = $dQuery->fetch()){
             if(in_array($dRec->type, array('int', 'int/float', 'float')) == 'int'){
@@ -143,7 +143,7 @@ class ztm_Profiles extends core_Master
                 $default = $dArr[$rec->id];
             }
             
-            $res[$rec->name] = $default;
+            $res[$rec->id] = $default;
         }
         
         return (object)$res;
