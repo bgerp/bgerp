@@ -574,7 +574,6 @@ function calculateWidth(){
 			$('#result-holder').css('padding', '0');
 			$('#result-holder').css('overflow-y', 'visible');
 
-			$('#result-holder').css('margin-top', tabsFix - 41);
 			$('#result-holder .withTabs').css('height',winHeight - headerHeight - tabsFix - 22);
 			$('#result-holder .tabs, #result-holder').css('width', winWidth - $('#single-receipt-holder').width());
 		} else {
