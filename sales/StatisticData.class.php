@@ -57,7 +57,7 @@ class sales_StatisticData extends core_Manager
     /**
      * Полета, които се виждат
      */
-    public $listFields = 'productId,key,count,quantity,amount';
+    public $listFields = 'id,productId,key,count,quantity,amount';
     
     
     /**
