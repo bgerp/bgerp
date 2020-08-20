@@ -1359,7 +1359,6 @@ function render_toggleAddedProductFlag(data)
  */
 function activateTab(element, timeOut)
 {
-	var id = element.attr('data-content');
 	$('.tabHolder li').removeClass('active');
 	element.addClass('active');
 	
