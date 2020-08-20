@@ -106,7 +106,7 @@ class speedy_Setup extends core_ProtoSetup
             'description' => 'Обновяване на офисите на Speedy',
             'controller' => 'speedy_Offices',
             'action' => 'UpdateOffices',
-            'period' => 10080,
+            'period' => 1440,
             'offset' => 120,
             'timeLimit' => 200
         ),
