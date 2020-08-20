@@ -136,6 +136,9 @@ class sales_StatisticData extends core_Manager
     {
         requireRole('debug');
         $this->cron_GatherSalesData();
+        core_Statuses::newStatus('Данните са опреснени');
+        
+        followRetUrl();
     }
     
     
