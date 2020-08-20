@@ -362,7 +362,6 @@ class sales_Setup extends core_ProtoSetup
         'sales_ProductRelations',
         'sales_StatisticData',
         'migrate::updateStoreIdInDeltas2',
-        'migrate::updateSaleStatistic1',
     );
     
     
@@ -603,16 +602,5 @@ class sales_Setup extends core_ProtoSetup
         
         $query = "UPDATE {$Deltas->dbTableName} JOIN {$Products->dbTableName} ON {$Products->dbTableName}.id = {$Deltas->dbTableName}.{$productCol} JOIN {$Containers->dbTableName} ON {$Deltas->dbTableName}.{$containerCol} = {$Containers->dbTableName}.id RIGHT JOIN {$Receipts->dbTableName} ON {$Receipts->dbTableName}.id = {$Containers->dbTableName}.{$docIdCol} SET {$Deltas->dbTableName}.{$storeCol} = {$Receipts->dbTableName}.{$storeCol} WHERE {$Containers->dbTableName}.{$docClassCol} = {$storeReceiptsClassId} AND {$Products->dbTableName}.{$canStoreCol} = 'yes' AND {$Deltas->dbTableName}.{$storeCol} IS NULL";
         $Deltas->db->query($query);
-    }
-    
-    
-    /**
-     * Обновяване на статистическите данни
-     */
-    public function updateSaleStatistic1()
-    {
-        $Statistic = cls::get('sales_StatisticData');
-        $Statistic->setupMvc();
-        $Statistic->cron_GatherSalesData();
     }
 }
