@@ -157,10 +157,9 @@ function posActions() {
 	 * При клик на таба
 	 */
 	$(document.body).on('click', ".tabHolder li", function() {
-			activateTab($(this), 0);
-			sessionStorage.setItem('selectedTab', $(this).attr('id'));
-			startNavigation();
-
+		activateTab($(this), 0);
+		sessionStorage.setItem('selectedTab', $(this).attr('id'));
+		startNavigation();
 	});
 
 	$(document.body).on('change', "select.tabHolder", function() {
@@ -1279,16 +1278,8 @@ function getSelectedRowId() {
 }
 
 function openCurrentPosTab() {
-	if($('.tabHolder .noajaxtabs').length) {
-		var activeTab =  $('.tabHolder .noajaxtabs:first').addClass('active');
-		var currentTabContent = $(activeTab).attr('data-content');
-
-		$("#" + currentTabContent).show();
-		sessionStorage.removeItem('focusedOffset');
-	} else {
-		var activeTab = sessionStorage.getItem('selectedTab')
-		$(".tabHolder  option#" + activeTab ).attr("selected", "selected");
-	}
+	var activeTab = sessionStorage.getItem('selectedTab')
+	$(".tabHolder  option#" + activeTab ).attr("selected", "selected");
 	startNavigation();
 }
 
@@ -1371,12 +1362,8 @@ function activateTab(element, timeOut)
 	var id = element.attr('data-content');
 	$('.tabHolder li').removeClass('active');
 	element.addClass('active');
-	// да се скриват и показват само табовете на бележките
-	if(element.hasClass('noajaxtabs')){
-		$("#" + id).show().siblings().hide();
-	} else {
-		triggerSearchInput($(".large-field"), timeOut);
-	}
+	
+	triggerSearchInput($(".large-field"), timeOut);
 }
 
 
@@ -1421,11 +1408,19 @@ function triggerSearchInput(element, timeoutTime)
 			var activeTab = $(".tabHolder li.active");
 		} else {
 			var activeTab = $('.tabHolder option:selected');
-
 		}
+		
 		if(activeTab.length){
+			console.log(activeTab);
+			
 			var id = activeTab.attr("data-id");
-			params.selectedProductGroupId = id;
+			if(activeTab.parent().hasClass('receipts')){
+				params.selectedReceiptFilter = id;
+			} else {
+				params.selectedProductGroupId = id;
+				
+				console.log(params);
+			}
 		}
 		processUrl(url, params);
 
