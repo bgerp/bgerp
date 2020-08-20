@@ -2110,13 +2110,13 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         if(countR($rows)){
-            $tpl->append("<div class='content'><div class='grid'>");
+            $tpl->append("<div class='contentHolderResults'><div class='grid'>");
             foreach ($rows as $receiptBtn){
                 $tpl->append($receiptBtn);
             }
             $tpl->append("</div></div>");
         } else {
-            $tpl->append("<div class='content'><div class='noFoundInGroup'>" . tr("Няма намерени бележки") . "</div></div>");
+            $tpl->append("<div class='contentHolderResults'><div class='noFoundInGroup'>" . tr("Няма намерени бележки") . "</div></div>");
         }
         
         $tpl->prepend("<div class='withTabs'>");
