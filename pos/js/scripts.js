@@ -569,11 +569,13 @@ function calculateWidth(){
 		$('.scrolling-vertical').css('height',receiptHeight);
 
 		var headerHeight = $('.headerContent').outerHeight();
-		if($('#result-holder .withTabs:visible').length) {
+		if($('#result-holder .withTabs').length) {
 			var tabsFix = $('.withTabs .tabs').height();
 			$('#result-holder').css('padding', '0');
 			$('#result-holder').css('overflow-y', 'visible');
 
+			$('#result-holder .withTabs').css('position', "relative");
+			$('#result-holder .withTabs').css('top', tabsFix - 41);
 			$('#result-holder .withTabs').css('height',winHeight - headerHeight - tabsFix - 22);
 			$('#result-holder .tabs, #result-holder').css('width', winWidth - $('#single-receipt-holder').width());
 		} else {
