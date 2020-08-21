@@ -118,10 +118,12 @@ class ztm_Profiles extends core_Master
      */
     public static function getDefaultRegisterValues($profileId)
     {
+        $profileRec = self::fetchRec($profileId);
+        
         $dArr = array();
         $dQuery = ztm_ProfileDetails::getQuery();
         $dQuery->EXT('type', 'ztm_Registers', 'externalName=type,externalKey=registerId');
-        $dQuery->where("#profileId = '{$profileId}'");
+        $dQuery->where("#profileId = '{$profileRec->id}'");
         $dQuery->show('registerId,value,type');
         while($dRec = $dQuery->fetch()){
             if(in_array($dRec->type, array('int', 'int/float', 'float')) == 'int'){
