@@ -580,7 +580,7 @@ class speedy_plg_BillOfLading extends core_Plugin
                 if($mvc instanceof sales_Sales){
                     $actions = type_Set::toArray($rec->contoActions);
                     if (!isset($actions['ship'])) {
-                       // $requiredRoles = 'no_one';
+                        $requiredRoles = 'no_one';
                     }
                 }
             }

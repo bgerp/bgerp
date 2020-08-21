@@ -2188,7 +2188,7 @@ abstract class deals_DealMaster extends deals_DealBase
         } elseif(is_object($parsedAddress)) {
             $res["{$contrPart}Country"] = $parsedAddress->countryId;
             $res["{$contrPart}PCode"] = $parsedAddress->pCode;
-        } elseif(is_object($cartRec)) {
+        } elseif(is_object($cartRec)) {bp($cartRec);
             $res["{$contrPart}PCode"] = !empty($cartRec->deliveryPCode) ? $cartRec->deliveryPCode : null;
             $res["{$contrPart}Place"] = !empty($cartRec->deliveryPlace) ? $cartRec->deliveryPlace : null;
             $res["{$contrPart}Address"] = !empty($cartRec->deliveryAddress) ? $cartRec->deliveryAddress : null;

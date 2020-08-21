@@ -681,6 +681,7 @@ abstract class store_DocumentMaster extends core_Master
         $res["{$contrPart}Country"] = drdata_Countries::fetchField($contragentCountryId, 'commonName');
         $res["{$contrPart}Company"] = $contragentData->company;
         if (isset($rec->locationId)) {
+            $res["{$contrPart}Country"] = !empty($contragentLocation->countryId) ? $contragentLocation->countryId : null;
             $res["{$contrPart}PCode"] = !empty($contragentLocation->pCode) ? $contragentLocation->pCode : null;
             $res["{$contrPart}Place"] = !empty($contragentLocation->place) ? $contragentLocation->place : null;
             $res["{$contrPart}Address"] = !empty($contragentLocation->address) ? $contragentLocation->address : null;
