@@ -2114,6 +2114,8 @@ abstract class deals_DealMaster extends deals_DealBase
      *  	string|NULL   ['toAddress']    - адрес за разтоварване
      *   	string|NULL   ['toCompany']    - фирма
      *   	string|NULL   ['toPerson']     - лице
+     *      string|NULL   ['toPersonPhones'] - телефон на лицето
+     *      string|NULL   ['instructions'] - инструкции
      * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
      * 		text|NULL 	  ['conditions']   - други условия
      *		varchar|NULL  ['ourReff']      - наш реф
@@ -2168,19 +2170,36 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $parsedAddress = drdata_Address::parsePlace($rec->deliveryAdress);
         
+        $cartRec = ($this instanceof sales_Sales && core_Packs::isInstalled('eshop')) ? eshop_Carts::fetch("#saleId = {$rec->id}") : null;
+        if(is_object($cartRec)){
+            $res["{$contrPart}Person"] = !empty($cartRec->personNames) ? $cartRec->personNames : null;
+            $res["{$contrPart}PersonPhones"] = !empty($cartRec->tel) ? $cartRec->tel : null;
+        }
+        
         if (isset($contragentLocation)) {
+            $res["{$contrPart}Country"] = !empty($contragentLocation->countryId) ? $contragentLocation->countryId : null;
             $res["{$contrPart}PCode"] = !empty($contragentLocation->pCode) ? $contragentLocation->pCode : null;
             $res["{$contrPart}Place"] = !empty($contragentLocation->place) ? $contragentLocation->place : null;
             $res["{$contrPart}Address"] = !empty($contragentLocation->address) ? $contragentLocation->address : null;
-            $res["{$contrPart}Person"] = !empty($contragentLocation->mol) ? $contragentLocation->mol : null;
+            if(!empty($contragentLocation->mol) || !empty($contragentLocation->tel)){
+                $res["{$contrPart}Person"] = !empty($contragentLocation->mol) ? $contragentLocation->mol : null;
+                $res["{$contrPart}PersonPhones"] = !empty($contragentLocation->tel) ? $contragentLocation->tel : null;
+            }
         } elseif(is_object($parsedAddress)) {
             $res["{$contrPart}Country"] = $parsedAddress->countryId;
             $res["{$contrPart}PCode"] = $parsedAddress->pCode;
+        } elseif(is_object($cartRec)) {
+            $res["{$contrPart}PCode"] = !empty($cartRec->deliveryPCode) ? $cartRec->deliveryPCode : null;
+            $res["{$contrPart}Place"] = !empty($cartRec->deliveryPlace) ? $cartRec->deliveryPlace : null;
+            $res["{$contrPart}Address"] = !empty($cartRec->deliveryAddress) ? $cartRec->deliveryAddress : null;
+            $res["{$contrPart}Country"] = !empty($cartRec->deliveryCountry) ? $cartRec->deliveryCountry : null;
+            $res["instructions"] = !empty($cartRec->instructions) ? $cartRec->instructions : null;
         } else {
             $res["{$contrPart}PCode"] = !empty($contragentData->pCode) ? $contragentData->pCode : null;
             $res["{$contrPart}Place"] = !empty($contragentData->place) ? $contragentData->place : null;
             $res["{$contrPart}Address"] = !empty($contragentData->pAddress) ? $contragentData->pAddress : (($contragentData->address) ? $contragentData->address : null);
             $res["{$contrPart}Person"] = !empty($contragentData->person) ? $contragentData->person : null;
+            $res["{$contrPart}PersonPhones"] = $contragentData->pTel;
         }
         
         $delTime = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : (!empty($rec->deliveryTermTime) ?  dt::addSecs($rec->deliveryTermTime, $rec->valior) : null);

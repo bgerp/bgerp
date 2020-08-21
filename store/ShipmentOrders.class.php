@@ -464,9 +464,11 @@ class store_ShipmentOrders extends store_DocumentMaster
      *  	string|NULL   ['toAddress']    - адрес за разтоварване
      *   	string|NULL   ['toCompany']    - фирма
      *   	string|NULL   ['toPerson']     - лице
+     *      string|NULL   ['toPersonPhones'] - телефон на лицето
+     *      string|NULL   ['instructions'] - инструкции
      * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
      * 		text|NULL 	  ['conditions']   - други условия
-     * 		varchar|NULL  ['ourReff']      - наш реф
+     *		varchar|NULL  ['ourReff']      - наш реф
      * 		double|NULL   ['totalWeight']  - общо тегло
      * 		double|NULL   ['totalVolume']  - общ обем
      */
@@ -481,10 +483,24 @@ class store_ShipmentOrders extends store_DocumentMaster
             $res['toPCode'] = !empty($rec->pCode) ? $rec->pCode : null;
             $res['toPlace'] = !empty($rec->place) ? $rec->place : null;
             $res['toAddress'] = !empty($rec->address) ? $rec->address : null;
+            
+            $res['toCompany'] = !empty($rec->company) ? $rec->company : $res['toCompany'];
+            $res['toPerson'] = !empty($rec->person) ? $rec->person : $res['toPerson'];
+            
+        } elseif(empty($rec->locationId) && $rec->isReverse == 'no'){
+            if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
+                $firstDocumentLogisticData = $firstDocument->getLogisticData();
+                
+                $res['toCountry'] = $firstDocumentLogisticData['toCountry'];
+                $res['toPCode'] = $firstDocumentLogisticData['toPCode'];
+                $res['toPlace'] = $firstDocumentLogisticData['toPlace'];
+                $res['toAddress'] = $firstDocumentLogisticData['toAddress'];
+                $res['instructions'] = $firstDocumentLogisticData['instructions'];
+                $res['toCompany'] = $firstDocumentLogisticData['toCompany'];
+                $res['toPerson'] = $firstDocumentLogisticData['toPerson'];
+                $res['toPersonPhones'] = $firstDocumentLogisticData['toPersonPhones'];
+            }
         }
-        
-        $res['toCompany'] = !empty($rec->company) ? $rec->company : $res['toCompany'];
-        $res['toPerson'] = !empty($rec->person) ? $rec->person : $res['toPerson'];
         
         unset($res['deliveryTime']);
         $res['loadingTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : $rec->valior . ' ' . bgerp_Setup::get('START_OF_WORKING_DAY');

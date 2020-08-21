@@ -88,7 +88,7 @@ class speedy_plg_BillOfLading extends core_Plugin
             
             if($form->isSubmitted()){
                 $fRec = $form->rec;
-                
+               
                 if(empty($fRec->receiverSpeedyOffice) && (mb_strlen($fRec->receiverAddress) < 5 || is_numeric($fRec->receiverAddress))){
                     $form->setError('receiverAddress', 'Адреса трябва да е поне от 5 символа и да съдържа буква');
                 }
@@ -319,24 +319,6 @@ class speedy_plg_BillOfLading extends core_Plugin
                     }
                 }
             }
-           
-            if(core_Packs::isInstalled('eshop')){
-                if($cartRec = eshop_Carts::fetch("#saleId = {$documentRec->id}")){
-                    $toPerson = $cartRec->personNames;
-                    self::setDefaultsFromCart($form, $cartRec);
-                }
-            }
-            
-            if(empty($cartRec) && $documentRec->deliveryLocationId){
-                $locationRec = crm_Locations::fetch($documentRec->deliveryLocationId, 'mol,tel');
-                if(!empty($locationRec->mol)){
-                    $toPerson = $locationRec->mol;
-                }
-                
-                if(!empty($locationRec->tel)){
-                    $form->setDefault('receiverPhone', $locationRec->tel);
-                }
-            }
             
         } elseif($mvc instanceof store_DocumentMaster){
             $firstDocument = doc_Threads::getFirstDocument($documentRec->threadId);
@@ -354,27 +336,17 @@ class speedy_plg_BillOfLading extends core_Plugin
             
             $paymentType = $firstDocument->fetchField('paymentMethodId');
             $amountCod = ($documentRec->chargeVat == 'separate') ? $documentRec->amountDelivered + $documentRec->amountDeliveredVat : $documentRec->amountDelivered;
+        }
         
-            if($documentRec->locationId){
-                $locationRec = crm_Locations::fetch($documentRec->locationId, 'mol,tel');
-                if(!empty($locationRec->mol)){
-                    $toPerson = $locationRec->mol;
-                }
-                if(!empty($locationRec->tel)){
-                    $form->setDefault('receiverPhone', $locationRec->tel);
-                }
-            } elseif(!empty($documentRec->tel)){
-                $toPerson =  $documentRec->person;
-                $form->setDefault('receiverPhone', $documentRec->tel);
-            } elseif($firstDocument->isInstanceOf('sales_Sales')){
-                
-                if(core_Packs::isInstalled('eshop')){
-                    if($cartRec = eshop_Carts::fetch("#saleId = {$firstDocument->that}")){
-                        self::setDefaultsFromCart($form, $cartRec);
-                        $toPerson = $cartRec->personNames;
-                    }
-                }
-            }
+        $form->setDefault('receiverPhone', $logisticData['toPersonPhones']);
+        $form->setDefault('receiverNotes', $logisticData['instructions']);
+        $form->setDefault('receiverCountryId', $logisticData['toCountry']);
+        $toPerson = $logisticData['toPerson'];
+        
+        if($form->rec->receiverCountryId == $logisticData['toCountry']){
+            $form->setDefault('receiverPlace', $logisticData['toPlace']);
+            $form->setDefault('receiverAddress', $logisticData['toAddress']);
+            $form->setDefault('receiverPCode', $logisticData['toPCode']);
         }
         
         $amountCod = round($amountCod, 2);
@@ -608,7 +580,7 @@ class speedy_plg_BillOfLading extends core_Plugin
                 if($mvc instanceof sales_Sales){
                     $actions = type_Set::toArray($rec->contoActions);
                     if (!isset($actions['ship'])) {
-                        $requiredRoles = 'no_one';
+                       // $requiredRoles = 'no_one';
                     }
                 }
             }
