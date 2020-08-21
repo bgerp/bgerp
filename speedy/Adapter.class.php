@@ -686,6 +686,9 @@ class speedy_Adapter {
         } elseif(strpos($errorMsg, '[MISSING_REQUIRED_VALUE_PARCELS, Pallet services require first parcel info to be provided') !== false) {
             $errorMsg = 'Избраната услуга изисква да е подадена информация за първия палетите';
             $fields = 'service,parcelInfo';
+        } elseif(strpos($errorMsg, '[INVALID_OPTIONS_BEFORE_PAYMENT, Options before payment are not allowed for shipments with APT') !== false){
+            $errorMsg = 'При доставка до автомат не може да са избрани опции преди получаване/плащане';
+            $fields = 'receiverSpeedyOffice,options';
         } else {
             $isHandled = false;
         }

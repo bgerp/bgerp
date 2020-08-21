@@ -305,6 +305,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         }
         
         $logisticData = $mvc->getLogisticData($documentRec);
+        $logisticData['toCountry'] = !is_numeric($logisticData['toCountry']) ? drdata_Countries::getIdByName($logisticData['toCountry']) : $logisticData['toCountry'];
         $toPerson = null;
        
         if($mvc instanceof sales_Sales){
