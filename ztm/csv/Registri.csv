@@ -1,176 +1,132 @@
-ac.enabled,bool,,Access Control,system,yes,Plugin enabled
+ac.enabled,bool,,Access Control,system,no,Plugin enabled
 ac.allowed_attendees,json,,Access Control,system,"[{'card_id': '445E6046010080FF', 'pin': '159753', 'valid_until': '1595322860'}]",Allowed attendees
-ac.nearby_attendees,json,,Access Control,system,[],
-ac.entry_reader.enabled,bool,,Access Control,system,yes,Card reader enabled
-ac.entry_reader.vendor,str,,Access Control,system,TERACOM,Card reader vendor
-ac.entry_reader.model,str,,Access Control,system,act230,Card reader model
-ac.entry_reader.port.baudrate,int,,Access Control,system,9600,Card reader port baud rate
-ac.entry_reader.port.name,str,,Access Control,system,COM5,Card reader port name
-ac.entry_reader.serial_number,str,,Access Control,system,2897,Card reader serial number
-ac.exit_reader.enabled,bool,,Access Control,system,yes,Card reader enabled
-ac.exit_reader.vendor,str,,Access Control,system,TERACOM,Card reader vendor
-ac.exit_reader.model,str,,Access Control,system,act230,Card reader model
-ac.exit_reader.port.baudrate,int,,Access Control,system,9600,Card reader port baud rate
-ac.exit_reader.port.name,str,,Access Control,system,COM11,Card reader port name
-ac.exit_reader.serial_number,str,,Access Control,system,2911,Card reader serial number
-ac.exit_button.input,str,,Access Control,system,DI8,Exit button input
-ac.lock_mechanism.output,str,,Access Control,system,DO1,Lock mechanism output
-ac.time_to_open,int/float,,Access Control,system,2,Lock mechanism time to open
-ac.door_closed.input,str,,Access Control,system,DI2,Door closed input
-ac.entry_reader2.enabled,str,,Access Control,system,no,Card reader enabled
-ac.entry_reader2.vendor,str,,Access Control,system,TERACOM,Card reader vendor
-ac.entry_reader2.model,str,,Access Control,system,act230,Card reader model
-ac.entry_reader2.port.baudrate,int,,Access Control,system,9600,Card reader port baud rate
-ac.entry_reader2.port.name,str,,Access Control,system,COM5,Card reader port name
-ac.entry_reader2.serial_number,str,,Access Control,system,2897,Card reader serial number
-ac.exit_reader2.enabled,str,,Access Control,system,no,Card reader enabled
-ac.exit_reader2.vendor,str,,Access Control,system,TERACOM,Card reader vendor
-ac.exit_reader2.model,str,,Access Control,system,act230,Card reader model
-ac.exit_reader2.port.baudrate,int,,Access Control,system,9600,Card reader port baud rate
-ac.exit_reader2.port.name,str,,Access Control,system,COM11,Card reader port name
-ac.exit_reader2.serial_number,str,,Access Control,system,2911,Card reader serial number
-ac.exit_button2.input,str,,Access Control,system,off,Exit button input
-ac.lock_mechanism2.output,str,,Access Control,system,off,Lock mechanism output
-ac.time_to_open2,int/float,,Access Control,system,2,Lock mechanism time to open
-ac.door_closed2.input,str,,Access Control,system,off,Door closed input
-ac.pir.input,str,,Access Control,system,DI0,PIR sensor input
-ac.pir2.input,str,,Access Control,system,off,PIR sensor input
-ac.window_closed.input,str,,Access Control,system,DI3,Window closed input
-ac.window_closed2.input,str,,Access Control,system,off,Window closed input
-ac.last30_attendees,json,,Access Control,device,[],Last 30 attendees
-ac.next_attendance,int/float,,Access Control,device,0,Next attendance
-ac.zone_occupied,int,,Access Control,device,0,zone_occupied
-ac.door_closed.state,int,,Access Control,device,0,Door closed flag
-ac.door_closed2.state,int,,Access Control,device,0,Door closed flag
-ac.pir.state,int,,Access Control,device,0,PIR sensor flag
-ac.pir2.state,int,,Access Control,device,0,PIR sensor flag
-ac.window_closed.state,int,,Access Control,device,0,Window closed flag
-ac.window_closed2.state,int,,Access Control,device,0,Window closed flag
-at.enabled,int,,Anti Tampering,system,0,Enabled
-at.input,str,,Anti Tampering,system,DI1,Signal input
-at.state,int,,Anti Tampering,device,0,State
-blinds.enabled,int,,blinds,system,0,Enabled
-blinds.input_fb,str,,blinds,system,AI1,Feedback input
-blinds.output_ccw,str,,blinds,system,DO0,CCW output
-blinds.output_cw,str,,blinds,system,DO1,CW output
-blinds.position,int,,blinds,system,0,Position
-blinds.sun.azimuth.mou,str,,blinds,system,deg,Sun azimuth MOU
-blinds.sun.azimuth.value,float,,blinds,system,223.0418142258,Sun azimuth value
-blinds.sun.elevation.mou,str,,blinds,system,deg,Sun elevation MOU
-blinds.sun.elevation.value,float,,blinds,system,41.592762155,Sun elevation value
-monitoring.cw.input,str,,monitoring,system,DI6,Cold water input flow meter
-monitoring.cw.tpl,int/float,,monitoring,system,1,Cold water tics per liter
-monitoring.hw.input,str,,monitoring,system,DI7,Hot water input flow meter
-monitoring.hw.tpl,int/float,,monitoring,system,1,Hot water tics per liter
-monitoring.pa.uart,int,,monitoring,system,2,EVOK UART Index
-monitoring.pa.model,str,,monitoring,system,SDM630,Model of the power analyser
-monitoring.pa.vendor,str,,monitoring,system,Eastron,Vendor of the power analyser
-monitoring.pa.dev_id,int,,monitoring,system,3,EVOK Device index
-monitoring.enabled,bool,,monitoring,system,yes,Enabled
-monitoring.info_message,str,,monitoring,device,"[{'hvac.air_temp_upper.circuit': '28FF2B70C11604B7'}, {'hvac.loop1.temp.circuit': '28FF2B70C11604B7'}, {'hc.tank_temp.circuit': '28FF2B70C11604B7'}]","Info, similar resource detected description"
-monitoring.warning_message,str,,monitoring,device,,"Warning, similar resource description"
-monitoring.error_message,str,,monitoring,device,"[{'ac.lock_mechanism.output': 'DO1'}, {'blinds.output_cw': 'DO1'}]","Error, similar resource conflict description"
-monitoring.clear_errors,int,,monitoring,device,0,Clear last messages in the registers below
-monitoring.cw.value,int/float,,monitoring,device,0,Cold water liters consumed
-monitoring.cw.leak,int/float,,monitoring,device,0,Cold water liters leaks
-monitoring.hw.value,int/float,,monitoring,device,0,Hot water liters consumed
-monitoring.hw.leak,int/float,,monitoring,device,0,Hot water liters leaks
-monitoring.pa.l1,str,,monitoring,device,"{""Current"": 1.557, ""ExportActiveEnergy"": 95.845, ""ApparentPower"": 80.909}",Structure of electrical characteristics for LINE 1
-monitoring.pa.l2,str,,monitoring,device,"{""Current"": 0.0, ""ExportActiveEnergy"": 0.0, ""ApparentPower"": 0.0}",Structure of electrical characteristics for LINE 2
-monitoring.pa.l3,str,,monitoring,device,"{""Current"": 0.0, ""ExportActiveEnergy"": 0.0, ""ApparentPower"": 0.0}",Structure of electrical characteristics for LINE 3
-env.is_empty_timeout,int/float,,Environment,system,3600,Is empty time out [s]
-env.temp.actual,int/float,,Environment,system,29,Actual outside temperature [C]
-env.temp.a6,int/float,,Environment,system,30,Actual outside temperature for 6 hours [C]
-env.temp.min24,int/float,,Environment,system,27,Minimum outside temperature for 24 hours [C]
-env.temp.max24,int/float,,Environment,system,36,Maximum outside temperature for 24 hours [C]
-env.rh,int/float,,Environment,system,60,Actual outside relative humidity [%]
-env.wind.actual,int/float,,Environment,system,3,Actual wind [m/sec]
-env.wind.max12,int/float,,Environment,system,6,Maximum wind for 12 hours [m/sec]
-env.light,int/float,,Environment,system,1000,Outside light [lux]
-env.enabled,bool,,Environment,system,yes,Enabled
-env.energy,int/float,,Environment,system,0,Energy mode of the building
-env.emergency,int/float,,Environment,system,0,Emergency flags of the building
-env.sunpos.enabled,str,,Environment,system,no,Enable software calculation of the sun position
-env.is_empty,int/float,,Environment,device,0,Is empty flag.
-hvac.adjust_temp,int,,hvac,system,0,Adjust temperature.
-hvac.air_temp_cent.circuit,str,,hvac,system,28FFFCD0001703AE,Air temp sensor central circuit.
-hvac.air_temp_cent.dev,str,,hvac,system,temp,Air temp sensor central device.
-hvac.air_temp_cent.enabled,int,,hvac,system,1,Air temp sensor central enabled.
-hvac.air_temp_cent.type,str,,hvac,system,DS18B20,Air temp sensor central type.
-hvac.air_temp_lower.circuit,str,,hvac,system,28FFC4EE00170349,Air temp sensor lower circuit
-hvac.air_temp_lower.dev,str,,hvac,system,temp,Air temp sensor lower device
-hvac.air_temp_lower.enabled,int,,hvac,system,1,Air temp sensor lower enabled
-hvac.air_temp_lower.type,str,,hvac,system,DS18B20,Air temp sensor lower type
-hvac.air_temp_upper.circuit,str,,hvac,system,28FF2B70C11604B7,Air temp sensor upper circuit
-hvac.air_temp_upper.dev,str,,hvac,system,temp,Air temp sensor upper device
-hvac.air_temp_upper.enabled,int,,hvac,system,1,Air temp sensor upper enabled
-hvac.air_temp_upper.type,str,,hvac,system,DS18B20,Air temp sensor upper type
-hvac.convector.enabled,int,,hvac,system,1,Convector enabled.
-hvac.convector.stage_1.output,str,,hvac,system,RO0,Convector stage 1 output
-hvac.convector.stage_2.output,str,,hvac,system,RO1,Convector stage 2 output
-hvac.convector.stage_3.output,str,,hvac,system,RO2,Convector stage 3 output
-hvac.convector.vendor,str,,hvac,system,silpa,Convector model
-hvac.delta_time,int,,hvac,system,5,Measuring delta time
-hvac.enabled,int,,hvac,system,0,Enabled
-hvac.goal_building_temp,int,,hvac,system,20,Goal of the building temperature
-hvac.loop1.cnt.enabled,int,,hvac,system,1,"Loop 1, water flow meter enabled"
-hvac.loop1.cnt.input,str,,hvac,system,DI4,"Loop 1, water flow meter signal input"
-hvac.loop1.cnt.tpl,int,,hvac,system,1,"Loop 1, water flow meter ticks per liter scale"
-hvac.loop1.fan.enabled,int,,hvac,system,1,"Loop 1, fan enabled"
-hvac.loop1.fan.max_speed,int,,hvac,system,30,"Loop 1, fan maximum speed [%]"
-hvac.loop1.fan.min_speed,int,,hvac,system,0,"Loop 1, fan minimum speed [%]"
-hvac.loop1.fan.output,str,,hvac,system,AO3,"Loop 1, fan analog output"
-hvac.loop1.fan.vendor,str,,hvac,system,HangzhouAirflowElectricApplications,"Loop 1, fan vendor"
-hvac.loop1.temp.circuit,str,,hvac,system,28FF2B70C11604B7,"Loop 1, temperature sensor circuit"
-hvac.loop1.temp.dev,str,,hvac,system,temp,"Loop 1, temperature sensor device"
-hvac.loop1.temp.enabled,int,,hvac,system,1,"Loop 1, temperature sensor enabled"
-hvac.loop1.temp.type,str,,hvac,system,DS18B20,"Loop 1, temperature sensor type"
-hvac.loop1.valve.enabled,int,,hvac,system,1,"Loop 1, valve enabled"
-hvac.loop1.valve.feedback,str,,hvac,system,AI1,"Loop 1, valve feed back input"
-hvac.loop1.valve.max_pos,int,,hvac,system,100,"Loop 1, valve maximum position"
-hvac.loop1.valve.min_pos,int,,hvac,system,0,"Loop 1, valve minimum position"
-hvac.loop1.valve.output,str,,hvac,system,RO4,"Loop 1, valve output"
-hvac.loop1.valve.vendor,str,,hvac,system,TONHE,"Loop 1, valve vendor"
-hvac.loop2.cnt.enabled,int,,hvac,system,1,"Loop 2, water flow meter enabled"
-hvac.loop2.cnt.input,str,,hvac,system,DI5,"Loop 2, water flow meter signal input"
-hvac.loop2.cnt.tpl,int,,hvac,system,1,"Loop 2, water flow meter ticks per liter scale"
-hvac.loop2.fan.enabled,int,,hvac,system,1,"Loop 2, fan enabled"
-hvac.loop2.fan.max_speed,int,,hvac,system,30,"Loop 2, fan maximum speed [%]"
-hvac.loop2.fan.min_speed,int,,hvac,system,0,"Loop 2, fan minimum speed [%]"
-hvac.loop2.fan.output,str,,hvac,system,AO4,"Loop 2, fan analog output"
-hvac.loop2.fan.vendor,str,,hvac,system,HangzhouAirflowElectricApplications,"Loop 2, fan vendor"
-hvac.loop2.temp.circuit,str,,hvac,system,28FFC4EE00170349,"Loop 2, temperature sensor circuit"
-hvac.loop2.temp.dev,str,,hvac,system,temp,"Loop 2, temperature sensor device"
-hvac.loop2.temp.enabled,int,,hvac,system,1,"Loop 2, temperature sensor enabled"
-hvac.loop2.temp.type,str,,hvac,system,DS18B20,"Loop 2, temperature sensor type"
-hvac.loop2.valve.enabled,int,,hvac,system,1,"Loop 2, valve enabled"
-hvac.loop2.valve.feedback,str,,hvac,system,AI2,"Loop 2, valve feed back input"
-hvac.loop2.valve.max_pos,int,,hvac,system,100,"Loop 2, valve maximum position"
-hvac.loop2.valve.min_pos,int,,hvac,system,0,"Loop 2, valve minimum position"
-hvac.loop2.valve.output,str,,hvac,system,RO3,"Loop 2, valve output"
-hvac.loop2.valve.vendor,str,,hvac,system,TONHE,"Loop 2, valve vendor"
-hvac.temp.actual,int,,hvac,system,null,Actual temperature
-hvac.temp.max,int,,hvac,system,30,Maximum achievable
-hvac.temp.min,int,,hvac,system,20,Minimum achievable
-hvac.thermal_force_limit,int,,hvac,system,100,Thermal force limit
-hvac.thermal_mode,int,,hvac,system,2,Thermal mode
-hvac.update_rate,int,,hvac,system,3,Update rate of the plugin
-light.enabled,int,,light,system,0,Enabled
-light.max,int,,light,system,10000,Maximum limit
-light.min,int,,light,system,800,Minimum limit
-light.sensor.circuit,str,,light,system,26607314020000F8,Sensor circuit
-light.sensor.dev,str,,light,system,1wdevice,Sensor device
-light.sensor.enabled,int,,light,system,1,Sensor enabled
-light.v1.output,str,,light,system,AO1,Analog output 1
-light.v2.output,str,,light,system,AO2,Analog output 2
-sys.sl.output,str,,system,system,LED0,System activity LED output
-sys.sl.blink_time,int/float,,system,system,1,LEd blink time
-sys.enabled,bool,,system,system,yes,Enabled
-sys.ram.current,int/float,,system,device,0,Current consumed RAM
-sys.ram.peak,int/float,,system,device,0,Maximum consumed RAM
-sys.time.usage,int/float,,system,device,0,Application cycle time.
-wt.enabled,int,,WDT Tablet,system,0,ASK
-wt.output,str,,WDT Tablet,system,DO3,ASK
-wt.pulse_time,int,,WDT Tablet,system,10,ASK
-wt.reset,int,,WDT Tablet,system,0,ASK
-wt.state,int,,WDT Tablet,device,0,ASK
+ac.nearby_attendees,json,,Access Control,system,"[{'card_id': '445E6046010080FF', 'ts': '1595322860'}]",Nearby attendees
+ac.last_minute_attendees,json,,Access Control,system,"[{'card_id': '445E6046010080FF', 'ts': '1595322860', 'reader_id': '2911'}]",Last minute attendee
+ac.next_attendance,int,,Access Control,system,0,Next attendance
+ac.zone_occupied,int,,Access Control,system,0,Zone occupied flag
+ac.entry_reader_1.enabled,str,,Access Control,system,TERACOM/act230/2897,Card reader enabled
+ac.entry_reader_1.port.baudrate,int,,Access Control,system,9600,Card reader port baud rate
+ac.entry_reader_1.port.name,str,,Access Control,system,COM5,Card reader port name
+ac.exit_reader_1.enabled,str,,Access Control,system,TERACOM/act230/2911,Card reader enabled
+ac.exit_reader_1.port.baudrate,int,,Access Control,system,9600,Card reader 1 port baud rate
+ac.exit_reader_1.port.name,str,,Access Control,system,COM11,Card reader 1 port name
+ac.exit_button_1.input,str,,Access Control,system,off,Exit button 1 input
+ac.lock_mechanism_1.output,str,,Access Control,system,off,Lock mechanism output
+ac.time_to_open_1,int,,Access Control,system,10,Lock mechanism time to open
+ac.door_closed_1.input,str,,Access Control,system,off,Door closed input
+ac.door_closed_1.state,int,,Access Control,system,False,Door closed input state
+ac.entry_reader_2.enabled,str,,Access Control,system,TERACOM/act230/2897,Card reader settings
+ac.entry_reader_2.port.baudrate,int,,Access Control,system,9600,Card reader port baud rate
+ac.entry_reader_2.port.name,str,,Access Control,system,COM5,Card reader port name
+ac.exit_reader_2.enabled,str,,Access Control,system,TERACOM/act230/2911,Card reader settings
+ac.exit_reader_2.port.baudrate,int,,Access Control,system,9600,Card reader port baud rate
+ac.exit_reader_2.port.name,str,,Access Control,system,COM11,Card reader port name
+ac.exit_button_2.input,str,,Access Control,system,off,Exit button 2 input
+ac.lock_mechanism_2.output,str,,Access Control,system,off,Lock 2 mechanism output
+ac.time_to_open_2,int,,Access Control,system,10,Lock 2 mechanism time to open
+ac.door_closed_2.input,str,,Access Control,system,off,Door 2 closed input
+ac.door_closed_2.state,int,,Access Control,system,False,Door 2 closed input state
+ac.pir_1.input,str,,Access Control,system,off,PIR 1 sensor input
+ac.pir_1.state,int,,Access Control,system,False,PIR 1 sensor input state
+ac.pir_2.input,str,,Access Control,system,off,PIR 2 sensor input
+ac.pir_2.state,int,,Access Control,system,False,PIR 2 sensor input state
+ac.window_closed_1.input,str,,Access Control,system,off,Window 1 closed input
+ac.window_closed_1.state,int,,Access Control,system,False,Window 1 closed input state
+ac.window_closed_2.input,str,,Access Control,system,off,Window 2 closed input
+ac.window_closed_2.state,int,,Access Control,system,False,Window 2 closed input state
+blinds.sun.azimuth.value,int,,Blinds,system,0,Sun azimuth value
+blinds.sun.azimuth.mou,str,,Blinds,system,deg,MOU
+blinds.sun.elevation.value,int,,Blinds,system,0,Sun elevation value
+blinds.sun.elevation.mou,str,,Blinds,system,deg,MOU
+blinds.input_fb,str,,Blinds,system,AI0,Feedback input
+blinds.output_ccw,str,,Blinds,system,DO0,CCW output
+blinds.output_cw,str,,Blinds,system,DO1,CW output
+blinds.position,int,,Blinds,system,0,Position
+blinds.enabled,bool,,Blinds,system,no,Plugin enabled
+monitoring.cw.input,str,,Monitoring,system,off,Cold water input flow meter
+monitoring.cw.tpl,int,,Monitoring,system,1,Cold water tics per liter
+monitoring.cw.value,int,,Monitoring,system,0,Cold water liters
+monitoring.cw.leak,int,,Monitoring,system,1,Cold water leaked liters
+monitoring.hw.input,str,,Monitoring,system,off,Hot water input flow meter
+monitoring.hw.tpl,int,,Monitoring,system,1,Hot water tics per liter
+monitoring.hw.value,int,,Monitoring,system,0,Hot water liters
+monitoring.hw.leak,int,,Monitoring,system,1,Hot water leaked liters
+monitoring.pa.settings,str,,Monitoring,system,mb-rtu/Eastron/SDM630/2/3,Power analyser settings
+monitoring.pa.l1,json,,Monitoring,system,"[]",Power analyser L1 parameters
+monitoring.pa.l2,json,,Monitoring,system,"[]",Power analyser L2 parameters
+monitoring.pa.l3,json,,Monitoring,system,"[]",Power analyser L3 parameters
+monitoring.enabled,bool,,Monitoring,system,no,Plugin enabled
+env.is_empty,int,,Environment,system,1,Is empty flag
+env.is_empty_timeout,int,,Environment,system,3600,Is empty time out [s]
+env.temp.actual,int,,Environment,system,29,Actual outside temperature [C]
+env.temp.a6,int,,Environment,system,30,Actual outside temperature for 6 hours [C]
+env.temp.min24,int,,Environment,system,20,Minimum outside temperature for 24 hours [C]
+env.temp.max24,int,,Environment,system,36,Maximum outside temperature for 24 hours [C]
+env.rh,int,,Environment,system,60,Actual outside relative humidity [%]
+env.wind.actual,int,,Environment,system,3,Actual wind [m/sec]
+env.wind.max12,int,,Environment,system,6,Maximum wind for 12 hours [m/sec]
+env.light,int,,Environment,system,1000,Outside light [lux]
+env.energy,int,,Environment,system,0,Energy mode of the building
+env.emergency,int,,Environment,system,0,Emergency flags of the building
+env.sunpos.enabled,bool,,Environment,system,no,Enable software calculation of the sun position
+env.enabled,bool,,Environment,system,no,Plugin enabled
+hvac.adjust_temp,int,,HVAC,system,0,Adjust temperature
+hvac.air_temp_cent.settings,str,,HVAC,system,temp/DS18B20/28FFFCD0001703AE,Air temperature sensor center settings
+hvac.air_temp_lower.settings,str,,HVAC,system,temp/DS18B20/28FFC4EE00170349,Air temperature sensor lower settings
+hvac.air_temp_upper.settings,str,,HVAC,system,temp/DS18B20/28FF2B70C11604B7,Air temperature sensor upper settings
+hvac.convector.settings,str,,HVAC,system,silpa/klimafan,Convector settings
+hvac.convector.stage_1.output,str,,HVAC,system,RO0,Convector stage 1 output
+hvac.convector.stage_2.output,str,,HVAC,system,RO1,Convector stage 2 output
+hvac.convector.stage_3.output,str,,HVAC,system,RO2,Convector stage 3 output
+hvac.delta_time,int,,HVAC,system,5,Measuring delta time
+hvac.enabled,bool,,HVAC,system,no,Plugin enabled
+hvac.goal_building_temp,int,,HVAC,system,20,Goal of the building temperature
+hvac.loop1.cnt.tpl,int,,HVAC,system,1,Loop 1 water flow meter ticks per liter scale
+hvac.loop1.cnt.input,str,,HVAC,system,DI4,Loop 1 water flow meter signal input
+hvac.loop1.fan.settings,str,,HVAC,system,HangzhouAirflowElectricApplications/f3p146ec072600,Loop 1 fan settings
+hvac.loop1.fan.output,str,,HVAC,system,AO3,Loop 1 fan output
+hvac.loop1.fan.min_speed,int,,HVAC,system,0,Loop 1 fan minimum speed [%]
+hvac.loop1.fan.max_speed,int,,HVAC,system,30,Loop 1 fan maximum speed [%]
+hvac.loop1.temp.settings,str,,HVAC,system,temp/DS18B20/28FF2B70C11604B7,Loop 1 temperature sensor settings
+hvac.loop1.valve.settings,str,,HVAC,system,TONHE/a20m15b2c,Loop 1 valve settings
+hvac.loop1.valve.output,str,,HVAC,system,RO4,Loop 1 valve output
+hvac.loop1.valve.feedback,str,,HVAC,system,AI1,Loop 1 valve feedback
+hvac.loop1.valve.max_pos,int,,HVAC,system,100,Loop 1 valve maximum position
+hvac.loop1.valve.min_pos,int,,HVAC,system,0,Loop 1 valve minimum position
+hvac.loop2.cnt.tpl,int,,HVAC,system,1,Loop 2 water flow meter ticks per liter scale
+hvac.loop2.cnt.input,str,,HVAC,system,DI5,Loop 1 water flow meter signal input
+hvac.loop2.fan.settings,str,,HVAC,system,HangzhouAirflowElectricApplications/f3p146ec072600,Loop 2 fan settings
+hvac.loop2.fan.output,str,,HVAC,system,AO4,Loop 2 fan output
+hvac.loop2.fan.min_speed,int,,HVAC,system,0,Loop 2 fan minimum speed [%]
+hvac.loop2.fan.max_speed,int,,HVAC,system,30,Loop 2 fan maximum speed [%]
+hvac.loop2.temp.settings,str,,HVAC,system,temp/DS18B20/28FFC4EE00170349,Loop 2 temperature sensor settings
+hvac.loop2.valve.settings,str,,HVAC,system,TONHE/a20m15b2c,Loop 2 valve settings
+hvac.loop2.valve.output,str,,HVAC,system,RO3,Loop 2 valve output
+hvac.loop2.valve.feedback,str,,HVAC,system,AI2,Loop 2 valve feedback
+hvac.loop2.valve.max_pos,int,,HVAC,system,100,Loop 2 valve maximum position
+hvac.loop2.valve.min_pos,int,,HVAC,system,0,Loop 2 valve minimum position
+hvac.temp.actual,None,,HVAC,system,None,Actual temperature
+hvac.temp.max,int,,HVAC,system,30,Maximum achievable
+hvac.temp.min,int,,HVAC,system,20,Minimum achievable
+hvac.thermal_force_limit,int,,HVAC,system,100,Thermal force limit
+hvac.thermal_mode,int,,HVAC,system,2,Thermal mode
+hvac.update_rate,int,,HVAC,system,3,Update rate of the plugin
+light.min,int,,Light,system,800,Minimum limit
+light.max,int,,Light,system,10000,Maximum limit
+light.v1.output,str,,Light,system,AO1,Analog output 1
+light.v2.output,str,,Light,system,AO2,Analog output 2
+light.sensor.settings,str,,Light,system,1wdevice/26607314020000F8,Sensor settings
+light.enabled,bool,,Light,system,no,Plugin enabled
+sys.last_minute_errs,str,,System,system,Last minute error,
+sys.ram.current,int,,System,system,0,Current consumed RAM
+sys.ram.peak,int,,System,system,0,Peek of consumed RAM
+sys.time.usage,int,,System,system,0,Application time cycle
+sys.sl.output,str,,System,system,LED0,Status LED
+sys.sl.blink_time,int,,System,system,1,Blink time
+sys.at.input,str,,System,system,DI1,Anti tamper
+sys.at.state,int,,System,system,False,Anti tampering state
+sys.col.info_message,str,,System,system,,Collision info message
+sys.col.warning_message,str,,System,system,,Collision warning message
+sys.col.error_message,str,,System,system,,
+sys.col.clear_errors,int,,System,system,0,Collision error message
+sys.enabled,bool,,System,system,no,Plugin enabled

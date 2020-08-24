@@ -85,9 +85,6 @@ class ztm_Registers extends core_Master
      */
     public function loadSetupData()
     {
-        if($this->getQuery()->count()){
-            return;
-        }
         $file = 'ztm/csv/Registri.csv';
         
         $fields = array(
@@ -100,7 +97,7 @@ class ztm_Registers extends core_Master
             6 => 'description',
         );
         
-        $cntObj = csv_Lib::importOnce($this, $file, $fields);
+        $cntObj = csv_Lib::importOnceFromZero($this, $file, $fields);
         $res = $cntObj->html;
         
         return $res;
