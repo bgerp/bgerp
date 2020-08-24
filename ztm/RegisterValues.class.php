@@ -597,8 +597,12 @@ class ztm_RegisterValues extends core_Manager
     {
         $value = ztm_LongValues::getValueByHash($rec->value);
         $Type = ztm_Registers::getOurType($rec->registerId, false);
+        if(($Type instanceof type_Double || $Type instanceof type_Int) && !is_numeric($value)){
+            $row->value = ht::createHint($row->value, 'Стойността е с променен тип', 'error');
+        } else {
+            $row->value = $Type->toVerbal($value);
+        }
         
-        $row->value = $Type->toVerbal($value);
         $row->deviceId = ztm_Devices::getHyperlink($rec->deviceId, true);
         
         if($description = ztm_Registers::fetchField($rec->registerId, 'description')){
