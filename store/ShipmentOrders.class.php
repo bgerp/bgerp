@@ -397,13 +397,47 @@ class store_ShipmentOrders extends store_DocumentMaster
      *
      * @return string - тялото на имейла
      */
-    public function getDefaultEmailBody($id, $forward = false)
+    public function getDefaultEmailBody_($id, $forward = false)
     {
+        $rec = $this->fetchRec($id);
         $handle = $this->getHandle($id);
         $tpl = new ET(tr('Моля запознайте се с нашето експедиционно нареждане') . ': #[#handle#]');
-        $tpl->append($handle, 'handle');
+        $tpl->replace($handle, 'handle');
+       
+        if($rec->isReverse == 'no'){
+            
+            // Кои са фактурите в нишката
+            $invoiceArr = deals_Helper::getInvoicesInThread($rec->threadId);
+            if(countR($invoiceArr)){
+                $dQuery = store_ShipmentOrderDetails::getQuery();
+                $dQuery->where("#shipmentId = {$rec->id}");
+                $dQuery->show('productId');
+                $products = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
+                
+                $invoiceArr = array_keys($invoiceArr);
+                foreach ($invoiceArr as $invoiceContainerId){
+                    $InvoiceRef = doc_Containers::getDocument($invoiceContainerId);
+                    $InvoiceDetail = cls::get($InvoiceRef->mainDetail);
+                    $iQuery = $InvoiceDetail->getQuery();
+                    $iQuery->where("#{$InvoiceDetail->masterKey} = {$InvoiceRef->that}");
+                    $iQuery->show('productId');
+                    $invoiceProducts = arr::extractValuesFromArray($iQuery->fetchAll(), 'productId');
+                    
+                    // Ако има фактура със същите артикули, като ЕН-то ще се покаже към имейла
+                    $diff1 = countR(array_diff_key($products, $invoiceProducts));
+                    $diff2 = countR(array_diff_key($invoiceProducts, $products));
+                   
+                    if(empty($diff1) && empty($diff2)){
+                        $iTpl = new ET(tr("|*\n|Моля, запознайте се с приложената фактура") . ': #[#handle#]');
+                        $iTpl->replace($InvoiceRef->getHandle(), 'handle');
+                        $tpl->append($iTpl);
+                        break;
+                    }
+                }
+            }
+        }
         
-        return $tpl->getContent();
+        return $tpl;
     }
     
     

@@ -35,6 +35,7 @@ class drdata_Wrapper extends plg_ProtoWrapper
         
         if(core_Packs::isInstalled('speedy')){
             $this->TAB('speedy_Offices', 'Speedy', 'admin');
+            $this->TAB('speedy_BillOfLadings', 'Speedy товарителници', 'admin');
         }
         
         $this->title = 'Адресни данни';
