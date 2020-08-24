@@ -1109,12 +1109,13 @@ class eshop_Carts extends core_Master
         if($expectedDeliveryText = self::getExpectedDeliveryText($rec, $settings)){
             $body->replace($expectedDeliveryText, 'EXPECTED_DELIVERY');
         }
-        
+        drdata_VatType::
         // Името на 'Моята фирма' във футъра
         $companyName = tr(crm_Companies::fetchOwnCompany()->company);
         $body->replace($companyName, 'COMPANY_NAME');
         
         if($rec->makeInvoice != 'none'){
+            Mode::push('text', 'plain');
             $body->replace(self::getVerbal($rec, 'invoiceNames'), 'invoiceNames');
             if(!empty($rec->invoiceVatNo)){
                 $body->replace(tr('ДДС №|*: ') . self::getVerbal($rec, 'invoiceVatNo'), 'invoiceVatNo');
@@ -1129,6 +1130,7 @@ class eshop_Carts extends core_Master
             $body->replace(self::getVerbal($rec, 'invoicePCode'), 'invoicePCode');
             $body->replace(self::getVerbal($rec, 'invoicePlace'), 'invoicePlace');
             $body->replace(self::getVerbal($rec, 'invoiceAddress'), 'invoiceAddress');
+            Mode::pop('text');
         }
         
         $body = core_Type::getByName('richtext')->fromVerbal($body->getContent());
