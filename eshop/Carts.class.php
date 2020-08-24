@@ -1109,7 +1109,7 @@ class eshop_Carts extends core_Master
         if($expectedDeliveryText = self::getExpectedDeliveryText($rec, $settings)){
             $body->replace($expectedDeliveryText, 'EXPECTED_DELIVERY');
         }
-        drdata_VatType::
+        
         // Името на 'Моята фирма' във футъра
         $companyName = tr(crm_Companies::fetchOwnCompany()->company);
         $body->replace($companyName, 'COMPANY_NAME');
