@@ -74,7 +74,7 @@ class speedy_Setup extends core_ProtoSetup
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    public $managers = array('speedy_Offices');
+    public $managers = array('speedy_Offices', 'speedy_BillOfLadings');
     
     
     /**

@@ -145,10 +145,11 @@ class speedy_plg_BillOfLading extends core_Plugin
                             }
                         }
                     } else {
+                        $picking = null;
                         
                         // Опит за създаване на товарителница
                         try{
-                            $bolId = $adapter->getBol($form->rec);
+                            $bolId = $adapter->getBol($form->rec, $picking);
                         } catch(ServerException $e){
                             $isHandled = $fields = null;
                             $msg = $adapter->handleException($e, $fields, $isHandled);
@@ -163,10 +164,13 @@ class speedy_plg_BillOfLading extends core_Plugin
                         
                         // Записване на товарителницата като PDF, ако е създадеба
                         if(!$form->gotErrors() && !empty($bolId)){
+                            $bolRec = (object)array('containerId' => $rec->containerId, 'number' => $bolId, 'takingDate' => $picking->getTakingDate());
+                            
                             try{
                                 $bolFh = $adapter->getBolPdf($bolId);
                                 $fileId = fileman::fetchByFh($bolFh, 'id');
                                 doc_Linked::add($rec->containerId, $fileId, 'doc', 'file', 'Товарителница');
+                                $bolRec->file = $bolFh;
                                 
                             } catch(ServerException $e){
                                 reportException($e);
@@ -175,13 +179,17 @@ class speedy_plg_BillOfLading extends core_Plugin
                                 core_Statuses::newStatus('Проблем при генериране на PDF на товарителница', 'error');
                             }
                         }
-                        
+                       
                         if(!$form->gotErrors() && !empty($bolId)){
                             $mvc->logWrite("Генерирана товарителница на Speedy", $id);
                             
                             // Кеш на последно избраните стойностти
                             $cacheArr = array('senderClientId' => $fRec->senderClientId, 'service' => $fRec->service);
                             core_Permanent::set(self::getUserDataCacheKey($rec->folderId, $adapter), $cacheArr, 4320);
+                            
+                            if(is_object($bolRec)){
+                                speedy_BillOfLadings::save($bolRec);
+                            }
                             
                             followRetUrl(null, "Успешно генерирана товарителница|*: №{$bolId}");
                         }
@@ -586,5 +594,48 @@ class speedy_plg_BillOfLading extends core_Plugin
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Връща тялото на имейла генериран от документа
+     */
+    public function on_AfterGetDefaultEmailBody($mvc, &$tpl, $id, $isForwarding = false)
+    {
+        if($mvc instanceof store_ShipmentOrders){
+            $rec = $mvc->fetchRec($id);
+            $spQuery = speedy_BillOfLadings::getQuery();
+            $spQuery->where("#containerId = {$rec->containerId}");
+            $spQuery->orderBy('id', 'DESC');
+            $spQuery->limit(1);
+            if($foundRec = $spQuery->fetch()){
+                $date = dt::mysql2verbal($foundRec->takingDate, 'd.m.Y');
+                
+                $bolTpl = new ET(tr("|*\n|Вашата пратка е подготвена за изпращане на|* [#date#] |с товарителница|* [#number#].\n|Може да проследите получаването ѝ от тук|*: https://www.speedy.bg/bg/track-shipment"));
+                $bolTpl->replace($foundRec->number, 'number');
+                $bolTpl->replace($date, 'date');
+                $tpl->append($bolTpl);
+            }
+        }
+    }
+    
+    
+    /**
+     * Връща тялото на имейла генериран от документа
+     *
+     * @see email_DocumentIntf
+     *
+     * @param int  $id      - ид на документа
+     * @param bool $forward
+     *
+     * @return string - тялото на имейла
+     */
+    public function getDefaultEmailBody_222($id, $forward = false)
+    {
+        $handle = $this->getHandle($id);
+        $tpl = new ET(tr('Моля запознайте се с нашето нареждане разписка') . ': #[#handle#]');
+        $tpl->append($handle, 'handle');
+        
+        return $tpl;
     }
 }

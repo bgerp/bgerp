@@ -366,11 +366,12 @@ class speedy_Adapter {
      * Генерира товарителница в услугата на Speedy
      *
      * @param stdClass $rec - данни за товавителница
+     * @param ParamPicking $picking
      * @throws ServerException
      *
      * @return int $bolId - ид-то на товарителницата
      */
-    public function getBol($rec)
+    public function getBol($rec, &$picking)
     {
         $picking = $this->generatePicking($rec, false);
         
