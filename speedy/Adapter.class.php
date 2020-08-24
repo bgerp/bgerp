@@ -654,7 +654,10 @@ class speedy_Adapter {
         $isHandled = true;
         $errorMsg = $e->getMessage();
         
-        if(strpos($errorMsg, '[ERR_012]') !== false){
+        if(strpos($errorMsg, "[ERR_012] Invalid post code for RECEIVER") !== false){
+            $errorMsg = 'Има разминаване между държавата и мястото в базата на Speedy';
+            $fields = 'receiverPCode,receiverPlace';
+        } elseif(strpos($errorMsg, '[ERR_012]') !== false){
             $errorMsg = 'Има разминаване между държавата и мястото в базата на Speedy';
             $fields = 'receiverCountryId,receiverPlace,receiverAddress';
         } elseif(strpos($errorMsg, 'Delivery to floor not allowed for service') !== false){

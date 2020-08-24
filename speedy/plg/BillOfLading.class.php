@@ -439,6 +439,12 @@ class speedy_plg_BillOfLading extends core_Plugin
                $msg = $adapter->handleException($e, $errorFields, $isHandled);
                $form->setError($errorFields, $msg);
                
+               // хак да се покажат стойностите
+               $fields = arr::make($errorFields, true);
+               foreach ($fields as $fld){
+                   Request::push(array($fld => $form->rec->{$fld}));
+               }
+               
                if(!$isHandled){
                    reportException($e);
                    $mvc->logErr($e->getMessage(), $form->rec->id);
