@@ -610,14 +610,12 @@ class speedy_plg_BillOfLading extends core_Plugin
     {
         if($mvc instanceof store_ShipmentOrders){
             $rec = $mvc->fetchRec($id);
-            $spQuery = speedy_BillOfLadings::getQuery();
-            $spQuery->where("#containerId = {$rec->containerId}");
-            $spQuery->orderBy('id', 'DESC');
-            $spQuery->limit(1);
-            if($foundRec = $spQuery->fetch()){
+           
+            if($foundRec = self::getLastBolRec($rec->containerId)){
+                $url = self::getTrackingUrl($foundRec->number);
                 $date = dt::mysql2verbal($foundRec->takingDate, 'd.m.Y');
-                
-                $bolTpl = new ET(tr("|*\n|Вашата пратка е подготвена за изпращане на|* [#date#] |с товарителница|* [#number#].\n|Може да проследите получаването ѝ от тук|*: https://www.speedy.bg/bg/track-shipment"));
+                $bolTpl = new ET(tr("|*\n|Вашата пратка е подготвена за изпращане на|* [#date#] |с товарителница|* [#number#].\n|Може да проследите получаването ѝ от тук|*: [#URL#]"));
+                $bolTpl->replace($url, 'URL');
                 $bolTpl->replace($foundRec->number, 'number');
                 $bolTpl->replace($date, 'date');
                 $tpl->append($bolTpl);
@@ -626,22 +624,49 @@ class speedy_plg_BillOfLading extends core_Plugin
     }
     
     
-    /**
-     * Връща тялото на имейла генериран от документа
-     *
-     * @see email_DocumentIntf
-     *
-     * @param int  $id      - ид на документа
-     * @param bool $forward
-     *
-     * @return string - тялото на имейла
-     */
-    public function getDefaultEmailBody_222($id, $forward = false)
+    private static function getTrackingUrl($number)
     {
-        $handle = $this->getHandle($id);
-        $tpl = new ET(tr('Моля запознайте се с нашето нареждане разписка') . ': #[#handle#]');
-        $tpl->append($handle, 'handle');
+        $urlTpl = new core_ET(speedy_Setup::get('TRACKING_URL'));
+        $urlTpl->replace($number, 'NUM');
         
-        return $tpl;
+        return $urlTpl->getContent();
+    }
+    
+    
+    /**
+     * Връща коя е последната товарителница издадена към документа
+     * 
+     * @param int $containerId
+     * 
+     * @return stdClass|false
+     */
+    private static function getLastBolRec($containerId)
+    {
+        $spQuery = speedy_BillOfLadings::getQuery();
+        $spQuery->where("#containerId = {$containerId}");
+        $spQuery->orderBy('id', 'DESC');
+        $spQuery->limit(1);
+        
+        return $spQuery->fetch();
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if($mvc instanceof store_ShipmentOrders){
+            if(isset($fields['-single'])){
+                if($bolRec = self::getLastBolRec($rec->containerId)){
+                    $bolId = ht::createLinkRef($bolRec->number, self::getTrackingUrl($bolRec->number));
+                    $row->note .= tr("|* <span class='quiet'>|Товарителница|*:</span> {$bolId}");
+                }
+            }
+        }
     }
 }
