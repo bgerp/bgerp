@@ -670,6 +670,7 @@ class core_Cron extends core_Manager
         if (!isset($rec->offset)) {
             if ($rec->period > 1) {
                 $rec->offset = rand(0, $rec->period - 1);
+                $rec->isRandOffset = true;
             } else {
                 $rec->offset = 0;
             }
@@ -708,7 +709,7 @@ class core_Cron extends core_Manager
                                   $rec->action != $exRec->action);
             if ($exRec->modifiedBy == -1 || !$exRec->modifiedBy) {
                 // Ако не е редактиран и има промени го обновяваме
-                if ($systemDataChanged || $rec->period != $exRec->period || (($rec->offset != $exRec->offset) && (!$rec->isRandOffset)) ||
+                if ($systemDataChanged || floor($rec->period) != $exRec->period || ((floor($rec->offset) != $exRec->offset) && (!$rec->isRandOffset)) ||
                       floor($rec->delay) != floor($exRec->delay) ||
                       $rec->timeLimit != $exRec->timeLimit
                     ) {
