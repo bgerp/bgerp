@@ -693,6 +693,9 @@ class speedy_Adapter {
         } elseif(strpos($errorMsg, '[INVALID_OPTIONS_BEFORE_PAYMENT, Options before payment are not allowed for shipments with APT') !== false){
             $errorMsg = 'При доставка до автомат не може да са избрани опции преди получаване/плащане';
             $fields = 'receiverSpeedyOffice,options';
+        } elseif(strpos($errorMsg, '[WEIGHT_NOT_IN_RANGE, Weight not in range for service') !== false){
+            $errorMsg = 'Теглото не е в границите за избраната услуга';
+            $fields = 'totalWeight,service';
         } else {
             $isHandled = false;
         }
