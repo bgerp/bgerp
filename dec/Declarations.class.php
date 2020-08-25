@@ -380,8 +380,6 @@ class dec_Declarations extends core_Master
             $Richtext = cls::get('type_Richtext');
             $row->note = $Richtext->toVerbal($rec->note);
         }
-        
-        core_Lg::pop($rec->tplLang);
     }
     
     
