@@ -520,11 +520,11 @@ class store_ShipmentOrders extends store_DocumentMaster
             
             $res['toCompany'] = !empty($rec->company) ? $rec->company : $res['toCompany'];
             $res['toPerson'] = !empty($rec->person) ? $rec->person : $res['toPerson'];
+            $res['toPersonPhones'] = !empty($rec->tel) ? $rec->tel : $res['toPersonPhones'];
             
         } elseif(empty($rec->locationId) && $rec->isReverse == 'no'){
             if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
                 $firstDocumentLogisticData = $firstDocument->getLogisticData();
-               
                 $res['toCountry'] = $firstDocumentLogisticData['toCountry'];
                 $res['toPCode'] = $firstDocumentLogisticData['toPCode'];
                 $res['toPlace'] = $firstDocumentLogisticData['toPlace'];
