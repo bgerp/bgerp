@@ -54,7 +54,7 @@ class speedy_BillOfLadings extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-     public $listFields = "containerId,number,takingDate,file,createdOn,createdBy";
+     public $listFields = "id,containerId,number,takingDate,file,createdOn,createdBy";
     
     
     /**
@@ -64,7 +64,7 @@ class speedy_BillOfLadings extends core_Manager
     {
         $this->FLD('containerId', 'key(mvc=doc_Containers,select=id)', 'caption=Документ');
         $this->FLD('number', 'varchar', 'caption=Товарителница');
-        $this->FLD('takingDate', 'datetime', 'caption=Дата');
+        $this->FLD('takingDate', 'datetime(format=smartTime)', 'caption=Дата');
         $this->FLD('file', 'fileman_FileType(bucket=billOfLadings)', 'caption=Файл');
         
         $this->setDbIndex('containerId');
