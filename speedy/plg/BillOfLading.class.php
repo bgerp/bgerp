@@ -333,7 +333,7 @@ class speedy_plg_BillOfLading extends core_Plugin
             $firstDocument = doc_Threads::getFirstDocument($documentRec->threadId);
             $deliveryTermId = $firstDocument->fetchField('deliveryTermId');
             
-            if($deliveryTermId){
+            if($deliveryTermId && empty($documentRec->locationId) && empty($documentRec->tel)){
                 if($DeliveryCalc = cond_DeliveryTerms::getTransportCalculator($deliveryTermId)){
                     if($form->cmd != 'refresh' && $form->cmd != 'save' && $DeliveryCalc->class instanceof speedy_interface_DeliveryToOffice){
                         $deliveryData = $firstDocument->fetchField('deliveryData');
