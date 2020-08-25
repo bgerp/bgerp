@@ -163,6 +163,7 @@ class blogm_Setup extends core_ProtoSetup
         $rec->action = 'deleteSPAM';
         $rec->period = 24;
         $rec->offset = rand(1, 23);
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 50;
         $html .= core_Cron::addOnce($rec);

@@ -881,6 +881,7 @@ class log_Data extends core_Manager
         $rec->action = 'DeleteOldRecords';
         $rec->period = 24 * 60;
         $rec->offset = rand(1320, 1439); // ot 22h до 24h
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 400;
         $res .= core_Cron::addOnce($rec);

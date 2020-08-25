@@ -708,7 +708,7 @@ class core_Cron extends core_Manager
                                   $rec->action != $exRec->action);
             if ($exRec->modifiedBy == -1 || !$exRec->modifiedBy) {
                 // Ако не е редактиран и има промени го обновяваме
-                if ($systemDataChanged || $rec->period != $exRec->period ||
+                if ($systemDataChanged || $rec->period != $exRec->period || (($rec->offset != $exRec->offset) && (!$rec->isRandOffset)) ||
                       floor($rec->delay) != floor($exRec->delay) ||
                       $rec->timeLimit != $exRec->timeLimit
                     ) {
@@ -891,6 +891,8 @@ class core_Cron extends core_Manager
      */
     public function act_Watchdog()
     {
+        core_App::shutdown(false);
+        
         set_time_limit(90);
         core_App::flushAndClose(false);
         

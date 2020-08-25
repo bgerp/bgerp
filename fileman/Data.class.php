@@ -526,6 +526,7 @@ class fileman_Data extends core_Manager
         $rec->action = 'ProcessFiles';
         $rec->period = 3;
         $rec->offset = rand(0, 2);
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 100;
         
