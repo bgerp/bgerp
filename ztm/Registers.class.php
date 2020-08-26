@@ -176,12 +176,16 @@ class ztm_Registers extends core_Master
     public static function recordValue($registerId, $extValue)
     {
         $type = ztm_Registers::fetchField($registerId, 'type');
-        
-        if(in_array($type, array('int', 'float', 'int|float'))){
+      
+        if(is_object($extValue) || is_array($extValue)){
+            $showValue = ht::mixedToHtml($extValue);
+            
+            throw new core_exception_Expect("Въведената стойност '{$showValue}' не е скаларна|*!", 'Несъответствие');
+        } elseif(in_array($type, array('int', 'float'))){
             $Double = core_Type::getByName('double');
             if($Double->fromVerbal($extValue) === false){
                 
-                throw new core_exception_Expect('Въведената стойност не е число|*!', 'Несъответствие');
+                throw new core_exception_Expect("Въведената стойност '{$extValue}' трябва да е число|*!", 'Несъответствие');
             }
         }
         

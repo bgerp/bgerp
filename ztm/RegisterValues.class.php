@@ -521,7 +521,8 @@ class ztm_RegisterValues extends core_Manager
                 try{
                     ztm_RegisterValues::set($deviceRec->id, $dRegKey, $dRegValue, $now);
                 } catch(core_exception_Expect $e){
-                    log_System::logErr("Невалидна стойност за числов регистър: '{$dRegKey}' - {$dRegValue}");
+                    $errMsh = $e->getMessage();
+                    log_System::logErr("register:{$dRegKey} - {$errMsh}");
                 }
             }
         }
