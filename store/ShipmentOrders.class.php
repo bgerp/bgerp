@@ -206,7 +206,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Стратегии за дефолт стойностти
      */
-    public static $defaultStrategies = array('template' => 'defMethod|lastDocUser|lastDoc|lastDocSameCountry');
+    public static $defaultStrategies = array('template' => 'customMethod|lastDocUser|lastDoc|lastDocSameCountry|defMethod');
     
     
     /**
@@ -233,13 +233,17 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     /**
      * Метод по подразбиране за намиране на дефолт шаблона
+     * 
+     * @param stdClass $rec
+     * @see cond_plg_DefaultValues
      */
-    public function getDefaultTemplate_($rec)
+    public function getCustomDefaultTemplate($rec)
     {
         if(core_Packs::isInstalled('eshop')){
             if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
                 if($firstDocument->isInstanceOf('sales_Sales')){
-                    if(eshop_Carts::fetchField("#saleId = {$firstDocument->that}")){
+                    if($c = eshop_Carts::fetchField("#saleId = {$firstDocument->that}")){
+                        
                         $templateId = doc_TplManager::fetchField("#name = 'Експедиционно нареждане с цени (Онлайн поръчка)' AND #docClassId = {$this->getClassId()}");
                         
                         return $templateId;
