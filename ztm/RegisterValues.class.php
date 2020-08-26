@@ -618,7 +618,7 @@ class ztm_RegisterValues extends core_Manager
             $row->ROW_ATTR['class'] = 'state-draft';
             $row->value = ht::createHint($row->value, 'Стойността е дефолтна за устройството', 'notice', true);
         } else {
-            $row->ROW_ATTR['class'] = 'state-waiting';
+            $row->ROW_ATTR['class'] = 'state-template';
         }
         
         $row->deviceId = ztm_Devices::getHyperlink($rec->deviceId, true);
