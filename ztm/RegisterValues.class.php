@@ -67,7 +67,7 @@ class ztm_RegisterValues extends core_Manager
         $this->FLD('deviceId', 'key(mvc=ztm_Devices, select=name)','caption=Устройство,mandatory');
         $this->FLD('registerId', 'key(mvc=ztm_Registers, select=name,allowEmpty)','caption=Регистър,mandatory,removeAndRefreshForm=value|extValue,silent');
         $this->FLD('value', 'varchar(32)','caption=Стойност,input=none');
-        $this->FLD('updatedOn', 'datetime(format=smartTime)','caption=Обновено на');
+        $this->FLD('updatedOn', 'datetime(format=smartTime)','caption=Обновено на,input=none');
         
         $this->setDbUnique('deviceId,registerId');
     }
@@ -582,6 +582,7 @@ class ztm_RegisterValues extends core_Manager
     {
         if($rec->_skip !== true){
             $rec->value = ztm_Registers::recordValue($rec->registerId, $rec->extValue);
+            $rec->updatedOn = dt::now();
         }
     }
     
