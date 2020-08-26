@@ -818,7 +818,7 @@ body {
 .search-options .menu-holder a {
   padding: 3px; }
 
-.divider {
+.menuDivider {
   height: 1px;
   margin: 3px 0;
   overflow: hidden;

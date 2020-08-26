@@ -1359,6 +1359,7 @@ class log_Debug extends core_Manager
         $rec->action = 'clearOldDebugFiles';
         $rec->period = 24 * 60;
         $rec->offset = rand(60, 180); // от 1h до 3h
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 600;
         $res .= core_Cron::addOnce($rec);

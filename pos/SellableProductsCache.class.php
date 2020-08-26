@@ -173,17 +173,21 @@ class pos_SellableProductsCache extends core_Master
      */
     public static function getPosStatisticData()
     {
+        $time = sales_Setup::get('STATISTIC_DATA_FOR_THE_LAST');
+        $valiorFrom = dt::verbal2mysql(dt::addSecs(-1 * $time), false);
+        
         // За всяка бележка, намират се най-продаваните 100 артикула
         $receiptQuery = pos_ReceiptDetails::getQuery();
         $receiptQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
         $receiptQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         $receiptQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         $receiptQuery->EXT('pointId', 'pos_Receipts', 'externalName=pointId,externalKey=receiptId');
-        $receiptQuery->where("#state != 'draft' && #state != 'rejected' AND #isPublic = 'yes'");
+        $receiptQuery->EXT('valior', 'pos_Receipts', 'externalName=valior,externalKey=receiptId');
+        $receiptQuery->where("#state != 'draft' && #state != 'rejected' AND #isPublic = 'yes' AND #valior >= '{$valiorFrom}'");
         $receiptQuery->show('productId,quantity,amount,canStore,pointId');
         
         $count = $receiptQuery->count();
-        core_App::setTimeLimit($count * 0.3, false, 200);
+        core_App::setTimeLimit($count * 0.4, false, 200);
         
         $res = array();
         while ($receiptRec = $receiptQuery->fetch()){
@@ -199,7 +203,6 @@ class pos_SellableProductsCache extends core_Master
         }
         
         arr::sortObjects($res, 'count', 'desc');
-        $res = array_slice($res, 0, 200);
        
         return $res;
     }

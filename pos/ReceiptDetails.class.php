@@ -588,7 +588,7 @@ class pos_ReceiptDetails extends core_Detail
                 expect(false, $error);
             }
             expect(!(!empty($receiptRec->revertId) && ($receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT) && abs($originProductRec->quantity) < abs($rec->quantity)), "Количеството е по-голямо от продаденото|* " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
-            
+            $rec->param = cat_Products::getVat($rec->productId, dt::now());
             
             $this->save($rec);
             $success = true;
@@ -852,7 +852,6 @@ class pos_ReceiptDetails extends core_Detail
         
         $rec->discountPercent = $price->discount;
         $rec->price = $price->price * $perPack;
-        $rec->param = cat_Products::getVat($rec->productId, $receiptRec->valior);
         $rec->amount = $rec->price * $rec->quantity;
         $rec->_canStore = $productRec->canStore;
     }

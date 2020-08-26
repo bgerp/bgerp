@@ -473,6 +473,7 @@ class fconv_Remote extends core_Manager
         $rec->action = 'deleteOldDir';
         $rec->period = 1440; // 24h;
         $rec->offset = rand(60, 240); // от 2 до 3h;
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $res .= core_Cron::addOnce($rec);
