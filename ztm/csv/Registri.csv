@@ -1,6 +1,6 @@
 ac.enabled,bool,,Access Control,system,no,Plugin enabled
-ac.allowed_attendees,json,,Access Control,system,"[{'card_id': '445E6046010080FF', 'pin': '159753', 'valid_until': '1595322860'}]",Allowed attendees
-ac.nearby_attendees,json,,Access Control,system,"[{'card_id': '445E6046010080FF', 'ts': '1595322860'}]",Nearby attendees
+ac.allowed_attendees,json,,Access Control,system,"[]",Allowed attendees
+ac.nearby_attendees,json,,Access Control,system,"[]",Nearby attendees
 ac.last_minute_attendees,json,,Access Control,device,"[]",Last minute attendee
 ac.next_attendance,int,,Access Control,device,0,Next attendance
 ac.zone_occupied,int,,Access Control,device,0,Zone occupied flag
@@ -118,9 +118,9 @@ light.v2.output,str,,Light,system,AO2,Analog output 2
 light.sensor.settings,str,,Light,system,1wdevice/26607314020000F8,Sensor settings
 light.enabled,bool,,Light,system,no,Plugin enabled
 sys.last_minute_errs,str,,System,device,Last minute error,
-sys.ram.current,int,,System,device,0,Current consumed RAM
-sys.ram.peak,int,,System,device,0,Peek of consumed RAM
-sys.time.usage,int,,System,device,0,Application time cycle
+sys.ram.current,int,,System,device,3548,Current consumed RAM
+sys.ram.peak,int,,System,device,5310,Peek of consumed RAM
+sys.time.usage,float/int,,System,device,0.006,Application time cycle
 sys.sl.output,str,,System,system,LED0,Status LED
 sys.sl.blink_time,int,,System,system,1,Blink time
 sys.at.input,str,,System,system,DI1,Anti tamper
