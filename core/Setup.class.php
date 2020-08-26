@@ -372,9 +372,9 @@ class core_Setup extends core_ProtoSetup
         
         'CORE_LOGIN_LOG_FIRST_LOGIN_DAYS_LIMIT' => array('time(suggestions=1 седмица|2 седмици|1 месец|2 месеца)', 'caption=Колко време назад да се търси в лога за first_login->Време'),
         
-        'CORE_STOP_BLOCKING_LOGIN_PERIOD' => array('time(suggestions=1 седмица|2 седмици|1 месец|2 месеца)', 'caption=Спиране на блокирането|*&#44; |ако има дублиране от различни устройсва->Време'),
+        'CORE_STOP_BLOCKING_LOGIN_PERIOD' => array('time(suggestions=1 седмица|2 седмици|1 месец|2 месеца)', 'caption=Спиране на блокирането|*&#44; |ако има дублиране от различни устройства->Време'),
         
-        'CORE_STOP_BLOCKING_LOGIN_COUNT' => array('int', 'caption=Спиране на блокирането|*&#44; |ако има дублиране от различни устройсва->Брой'),
+        'CORE_STOP_BLOCKING_LOGIN_COUNT' => array('int', 'caption=Спиране на блокирането|*&#44; |ако има дублиране от различни устройства->Брой'),
         
         'CORE_COOKIE_LIFETIME' => array('time(suggestions=1 месец|2 месеца|3 месеца|1 година)', 'caption=Време на живот на кукитата->Време'),
         
