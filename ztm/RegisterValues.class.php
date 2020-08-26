@@ -26,7 +26,7 @@ class ztm_RegisterValues extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, ztm_Wrapper, plg_Modified';
+    public $loadList = 'plg_RowTools2, ztm_Wrapper, plg_Modified, plg_Sorting';
     
     
     /**
@@ -83,6 +83,9 @@ class ztm_RegisterValues extends core_Manager
         $data->listFilter->showFields = 'deviceId,registerId';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
+        $data->query->EXT('deviceState', 'ztm_Devices', 'externalName=state,externalKey=deviceId');
+        $data->query->where("#deviceState = 'active'");
+        $data->query->orderBy("updatedOn", "DESC");
         
         if ($data->listFilter->isSubmitted()) {
             if ($deviceId = $data->listFilter->rec->deviceId) {
