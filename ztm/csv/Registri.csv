@@ -1,9 +1,9 @@
 ac.enabled,bool,,Access Control,system,no,Plugin enabled
 ac.allowed_attendees,json,,Access Control,system,"[{'card_id': '445E6046010080FF', 'pin': '159753', 'valid_until': '1595322860'}]",Allowed attendees
 ac.nearby_attendees,json,,Access Control,system,"[{'card_id': '445E6046010080FF', 'ts': '1595322860'}]",Nearby attendees
-ac.last_minute_attendees,json,,Access Control,system,"[{'card_id': '445E6046010080FF', 'ts': '1595322860', 'reader_id': '2911'}]",Last minute attendee
-ac.next_attendance,int,,Access Control,system,0,Next attendance
-ac.zone_occupied,int,,Access Control,system,0,Zone occupied flag
+ac.last_minute_attendees,json,,Access Control,device,"[]",Last minute attendee
+ac.next_attendance,int,,Access Control,device,0,Next attendance
+ac.zone_occupied,int,,Access Control,device,0,Zone occupied flag
 ac.entry_reader_1.enabled,str,,Access Control,system,TERACOM/act230/2897,Card reader enabled
 ac.entry_reader_1.port.baudrate,int,,Access Control,system,9600,Card reader port baud rate
 ac.entry_reader_1.port.name,str,,Access Control,system,COM5,Card reader port name
@@ -14,7 +14,7 @@ ac.exit_button_1.input,str,,Access Control,system,off,Exit button 1 input
 ac.lock_mechanism_1.output,str,,Access Control,system,off,Lock mechanism output
 ac.time_to_open_1,int,,Access Control,system,10,Lock mechanism time to open
 ac.door_closed_1.input,str,,Access Control,system,off,Door closed input
-ac.door_closed_1.state,int,,Access Control,system,False,Door closed input state
+ac.door_closed_1.state,int,,Access Control,device,False,Door closed input state
 ac.entry_reader_2.enabled,str,,Access Control,system,TERACOM/act230/2897,Card reader settings
 ac.entry_reader_2.port.baudrate,int,,Access Control,system,9600,Card reader port baud rate
 ac.entry_reader_2.port.name,str,,Access Control,system,COM5,Card reader port name
@@ -25,15 +25,15 @@ ac.exit_button_2.input,str,,Access Control,system,off,Exit button 2 input
 ac.lock_mechanism_2.output,str,,Access Control,system,off,Lock 2 mechanism output
 ac.time_to_open_2,int,,Access Control,system,10,Lock 2 mechanism time to open
 ac.door_closed_2.input,str,,Access Control,system,off,Door 2 closed input
-ac.door_closed_2.state,int,,Access Control,system,False,Door 2 closed input state
+ac.door_closed_2.state,int,,Access Control,device,False,Door 2 closed input state
 ac.pir_1.input,str,,Access Control,system,off,PIR 1 sensor input
-ac.pir_1.state,int,,Access Control,system,False,PIR 1 sensor input state
+ac.pir_1.state,int,,Access Control,device,False,PIR 1 sensor input state
 ac.pir_2.input,str,,Access Control,system,off,PIR 2 sensor input
-ac.pir_2.state,int,,Access Control,system,False,PIR 2 sensor input state
+ac.pir_2.state,int,,Access Control,device,False,PIR 2 sensor input state
 ac.window_closed_1.input,str,,Access Control,system,off,Window 1 closed input
-ac.window_closed_1.state,int,,Access Control,system,False,Window 1 closed input state
+ac.window_closed_1.state,int,,Access Control,device,False,Window 1 closed input state
 ac.window_closed_2.input,str,,Access Control,system,off,Window 2 closed input
-ac.window_closed_2.state,int,,Access Control,system,False,Window 2 closed input state
+ac.window_closed_2.state,int,,Access Control,device,False,Window 2 closed input state
 blinds.sun.azimuth.value,int,,Blinds,system,0,Sun azimuth value
 blinds.sun.azimuth.mou,str,,Blinds,system,deg,MOU
 blinds.sun.elevation.value,int,,Blinds,system,0,Sun elevation value
@@ -45,18 +45,18 @@ blinds.position,int,,Blinds,system,0,Position
 blinds.enabled,bool,,Blinds,system,no,Plugin enabled
 monitoring.cw.input,str,,Monitoring,system,off,Cold water input flow meter
 monitoring.cw.tpl,int,,Monitoring,system,1,Cold water tics per liter
-monitoring.cw.value,int,,Monitoring,system,0,Cold water liters
-monitoring.cw.leak,int,,Monitoring,system,1,Cold water leaked liters
+monitoring.cw.value,int,,Monitoring,device,0,Cold water liters
+monitoring.cw.leak,int,,Monitoring,device,1,Cold water leaked liters
 monitoring.hw.input,str,,Monitoring,system,off,Hot water input flow meter
 monitoring.hw.tpl,int,,Monitoring,system,1,Hot water tics per liter
-monitoring.hw.value,int,,Monitoring,system,0,Hot water liters
-monitoring.hw.leak,int,,Monitoring,system,1,Hot water leaked liters
+monitoring.hw.value,int,,Monitoring,device,0,Hot water liters
+monitoring.hw.leak,int,,Monitoring,device,1,Hot water leaked liters
 monitoring.pa.settings,str,,Monitoring,system,mb-rtu/Eastron/SDM630/2/3,Power analyser settings
-monitoring.pa.l1,json,,Monitoring,system,"[]",Power analyser L1 parameters
-monitoring.pa.l2,json,,Monitoring,system,"[]",Power analyser L2 parameters
-monitoring.pa.l3,json,,Monitoring,system,"[]",Power analyser L3 parameters
+monitoring.pa.l1,json,,Monitoring,device,"[]",Power analyser L1 parameters
+monitoring.pa.l2,json,,Monitoring,device,"[]",Power analyser L2 parameters
+monitoring.pa.l3,json,,Monitoring,device,"[]",Power analyser L3 parameters
 monitoring.enabled,bool,,Monitoring,system,no,Plugin enabled
-env.is_empty,int,,Environment,system,1,Is empty flag
+env.is_empty,int,,Environment,device,1,Is empty flag
 env.is_empty_timeout,int,,Environment,system,3600,Is empty time out [s]
 env.temp.actual,int,,Environment,system,29,Actual outside temperature [C]
 env.temp.a6,int,,Environment,system,30,Actual outside temperature for 6 hours [C]
@@ -117,16 +117,16 @@ light.v1.output,str,,Light,system,AO1,Analog output 1
 light.v2.output,str,,Light,system,AO2,Analog output 2
 light.sensor.settings,str,,Light,system,1wdevice/26607314020000F8,Sensor settings
 light.enabled,bool,,Light,system,no,Plugin enabled
-sys.last_minute_errs,str,,System,system,Last minute error,
-sys.ram.current,int,,System,system,0,Current consumed RAM
-sys.ram.peak,int,,System,system,0,Peek of consumed RAM
-sys.time.usage,int,,System,system,0,Application time cycle
+sys.last_minute_errs,str,,System,device,Last minute error,
+sys.ram.current,int,,System,device,0,Current consumed RAM
+sys.ram.peak,int,,System,device,0,Peek of consumed RAM
+sys.time.usage,int,,System,device,0,Application time cycle
 sys.sl.output,str,,System,system,LED0,Status LED
 sys.sl.blink_time,int,,System,system,1,Blink time
 sys.at.input,str,,System,system,DI1,Anti tamper
-sys.at.state,int,,System,system,False,Anti tampering state
-sys.col.info_message,str,,System,system,,Collision info message
-sys.col.warning_message,str,,System,system,,Collision warning message
-sys.col.error_message,str,,System,system,,
+sys.at.state,int,,System,device,False,Anti tampering state
+sys.col.info_message,str,,System,device,,Collision info message
+sys.col.warning_message,str,,System,device,,Collision warning message
+sys.col.error_message,str,,System,device,,
 sys.col.clear_errors,int,,System,system,0,Collision error message
 sys.enabled,bool,,System,system,no,Plugin enabled
