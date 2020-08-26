@@ -5839,7 +5839,11 @@ only screen and (max-width: 360px) {
     width: 100%; }
 
   .wide .app-name {
-    font-size: 3em; } }
+    font-size: 3em; }
+
+  .narrow .antetkaCell {
+    white-space: normal;
+    max-width: 230px !important; } }
 
 @media handheld,
 only screen and (max-width: 320px) {

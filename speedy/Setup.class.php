@@ -2,9 +2,15 @@
 
 
 /**
- * Време на бездействие на таба, преди което съобщението ще се маркира, като прочетено
+ * Урл към намиране на адреса на офиса
  */
 defIfNot('SPEEDY_OFFICE_LOCATOR_URL', "https://www.speedy.bg/speedy_office_locator_widget/googleMaps.php?lang=bg&id=[#NUM#]&src=sws");
+
+
+/**
+ * Урл за онлайн проследяване на пратката
+ */
+defIfNot('SPEEDY_TRACKING_URL', "https://www.speedy.bg/bg/track-shipment?shipmentNumber=[#NUM#]");
 
 
 /**
@@ -74,7 +80,7 @@ class speedy_Setup extends core_ProtoSetup
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    public $managers = array('speedy_Offices');
+    public $managers = array('speedy_Offices', 'speedy_BillOfLadings');
     
     
     /**
@@ -106,7 +112,7 @@ class speedy_Setup extends core_ProtoSetup
             'description' => 'Обновяване на офисите на Speedy',
             'controller' => 'speedy_Offices',
             'action' => 'UpdateOffices',
-            'period' => 10080,
+            'period' => 1440,
             'offset' => 120,
             'timeLimit' => 200
         ),
@@ -117,10 +123,11 @@ class speedy_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'SPEEDY_OFFICE_LOCATOR_URL' => array('varchar', 'caption=Локатор на офис'),
         'SPEEDY_DEFAULT_ACCOUNT_USERNAME' => array('varchar','caption=Акаунт в сайта на Speedy->Потребител,customizeBy=speedy|ceo'),
         'SPEEDY_DEFAULT_ACCOUNT_PASSWORD' => array('password', 'caption=Акаунт в сайта на Speedy->Парола,customizeBy=speedy|ceo'),
         'SPEEDY_CLIENT_LIBRARY_VERSION' => array('enum(3.5.4)','caption=Клиентска библиотека->Версия'),
+        'SPEEDY_OFFICE_LOCATOR_URL' => array('varchar', 'caption=URL->Локатор на офис'),
+        'SPEEDY_TRACKING_URL' => array('varchar', 'caption=URL->Проследяване на пратка'),
     );
     
     

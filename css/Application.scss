@@ -2097,6 +2097,7 @@ a.tOld {
 	   margin: 1px 0;
 	 }
 }
+
 .stamp{
 	color: #b00;
 	border: 1px dotted #b00;
@@ -6602,6 +6603,10 @@ body.narrow {
 	}
 	.wide .app-name {
          font-size: 3em;
+	}
+	.narrow .antetkaCell {
+		white-space: normal;
+		max-width: 230px !important;
 	}
 }
 

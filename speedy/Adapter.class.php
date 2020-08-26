@@ -366,11 +366,12 @@ class speedy_Adapter {
      * Генерира товарителница в услугата на Speedy
      *
      * @param stdClass $rec - данни за товавителница
+     * @param ParamPicking $picking
      * @throws ServerException
      *
      * @return int $bolId - ид-то на товарителницата
      */
-    public function getBol($rec)
+    public function getBol($rec, &$picking)
     {
         $picking = $this->generatePicking($rec, false);
         
@@ -653,7 +654,10 @@ class speedy_Adapter {
         $isHandled = true;
         $errorMsg = $e->getMessage();
         
-        if(strpos($errorMsg, '[ERR_012]') !== false){
+        if(strpos($errorMsg, "[ERR_012] Invalid post code for RECEIVER") !== false){
+            $errorMsg = 'Има разминаване между държавата и мястото в базата на Speedy';
+            $fields = 'receiverPCode,receiverPlace';
+        } elseif(strpos($errorMsg, '[ERR_012]') !== false){
             $errorMsg = 'Има разминаване между държавата и мястото в базата на Speedy';
             $fields = 'receiverCountryId,receiverPlace,receiverAddress';
         } elseif(strpos($errorMsg, 'Delivery to floor not allowed for service') !== false){
@@ -686,6 +690,12 @@ class speedy_Adapter {
         } elseif(strpos($errorMsg, '[MISSING_REQUIRED_VALUE_PARCELS, Pallet services require first parcel info to be provided') !== false) {
             $errorMsg = 'Избраната услуга изисква да е подадена информация за първия палетите';
             $fields = 'service,parcelInfo';
+        } elseif(strpos($errorMsg, '[INVALID_OPTIONS_BEFORE_PAYMENT, Options before payment are not allowed for shipments with APT') !== false){
+            $errorMsg = 'При доставка до автомат не може да са избрани опции преди получаване/плащане';
+            $fields = 'receiverSpeedyOffice,options';
+        } elseif(strpos($errorMsg, '[WEIGHT_NOT_IN_RANGE, Weight not in range for service') !== false){
+            $errorMsg = 'Теглото не е в границите за избраната услуга';
+            $fields = 'totalWeight,service';
         } else {
             $isHandled = false;
         }

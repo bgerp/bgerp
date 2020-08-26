@@ -427,6 +427,7 @@ class bgerp_Setup extends core_ProtoSetup
         $rec->period = 24 * 60;
         $rec->timeLimit = 50;
         $rec->offset = mt_rand(0, 300);
+        $rec->isRandOffset = true;
         $html .= core_Cron::addOnce($rec);
         
         $rec = new stdClass();
@@ -437,6 +438,7 @@ class bgerp_Setup extends core_ProtoSetup
         $rec->period = 24 * 60;
         $rec->timeLimit = 50;
         $rec->offset = mt_rand(0, 300);
+        $rec->isRandOffset = true;
         $html .= core_Cron::addOnce($rec);
         
         
