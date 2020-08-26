@@ -120,7 +120,7 @@ class ztm_Registers extends core_Master
                 $ourType = 'Int';
                 break;
             case 'float':
-                $ourType = 'Double';
+                $ourType = 'Double(smartRound)';
             case 'bool':
                 $ourType = 'enum(yes=Да,no=Не)';
                 break;
@@ -128,7 +128,7 @@ class ztm_Registers extends core_Master
                 $ourType = 'varchar';
                 break;
             case 'int/float':
-                $ourType = 'Double';
+                $ourType = 'Double(smartRound)';
                 break;
             default:
                 $ourType = 'text';

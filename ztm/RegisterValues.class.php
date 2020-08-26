@@ -85,7 +85,7 @@ class ztm_RegisterValues extends core_Manager
         $data->listFilter->input();
         $data->query->EXT('deviceState', 'ztm_Devices', 'externalName=state,externalKey=deviceId');
         $data->query->where("#deviceState = 'active'");
-        $data->query->orderBy("updatedOn", "DESC");
+        $data->query->orderBy("updatedOn,id", "DESC");
         
         if ($data->listFilter->isSubmitted()) {
             if ($deviceId = $data->listFilter->rec->deviceId) {
@@ -606,6 +606,19 @@ class ztm_RegisterValues extends core_Manager
             $row->value = ht::createHint($row->value, 'Стойността е с променен тип', 'error');
         } else {
             $row->value = $Type->toVerbal($value);
+        }
+        
+        $profileId = ztm_Devices::fetchField($rec->deviceId, 'profileId');
+        $profileValue = ztm_ProfileDetails::fetchField("#profileId = {$profileId}", 'value');
+        $defaultValue = ztm_Registers::fetchField($rec->registerId, 'default');
+        if($profileValue == $value){
+            $row->ROW_ATTR['class'] = 'state-pending';
+            $row->value = ht::createHint($row->value, 'Стойността идва от профила', 'notice', true);
+        } elseif($defaultValue == $value){
+            $row->ROW_ATTR['class'] = 'state-draft';
+            $row->value = ht::createHint($row->value, 'Стойността е дефолтна за устройството', 'notice', true);
+        } else {
+            $row->ROW_ATTR['class'] = 'state-waiting';
         }
         
         $row->deviceId = ztm_Devices::getHyperlink($rec->deviceId, true);
