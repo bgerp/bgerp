@@ -17,7 +17,7 @@ class ztm_Devices extends core_Master
     /**
      * Заглавие на модела
      */
-    public $title = 'Устройсва';
+    public $title = 'Устройства';
     public $singleTitle = 'Устройсво';
     
     
@@ -202,11 +202,14 @@ class ztm_Devices extends core_Master
     function act_Register()
     {
         $ident = Request::get('serial_number');
+        $bgerpId = Request::get('bgerp_id');
         
         expect($ident);
         
+        $uniqId = getBGERPUniqId();
+        
         // Ако има активен запис
-        if ($this->getToken($ident)) {
+        if ($bgerpId && ($bgerpId == $uniqId) && $this->getToken($ident)) {
             header('HTTP/1.1 423');
             header('Status: 423');
             
@@ -214,7 +217,7 @@ class ztm_Devices extends core_Master
         }
         
         // Ако има запис, но все още не е активиран
-        if ($this->getToken($ident, false)) {
+        if ($bgerpId && ($bgerpId == $uniqId) && $this->getToken($ident, false)) {
             header('HTTP/1.1 403');
             header('Status: 403');
             
@@ -226,15 +229,14 @@ class ztm_Devices extends core_Master
         $rec->model = Request::get('model');
         $rec->state = 'draft';
         $rec->ip = core_Users::getRealIpAddr();
-//         $rec->lastSync = dt::now();
         $rec->token = str::getRand(str_repeat('*', 16));
         $rec->configTime = Request::get('config_time', 'int');
         
-        $this->save($rec);
+        expect($this->save($rec));
         
         $res = new stdClass();
         $res->token = $rec->token;
-        $res->bgerp_id = getBGERPUniqId();
+        $res->bgerp_id = $uniqId;
         
         core_App::outputJson($res);
     }
