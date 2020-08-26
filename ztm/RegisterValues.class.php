@@ -542,7 +542,7 @@ class ztm_RegisterValues extends core_Manager
             }
             
             // Синхронизране на данните от устройството с тези от системата
-            $lastSync = (empty($lastSync)) ? $now : dt::timestamp2Mysql($lastSync);
+            $lastSync = (empty($lastSync)) ? null : dt::timestamp2Mysql($lastSync);
             $result = $this->sync($regArr, $deviceRec->id, $lastSync);
             
         } catch(core_exception_Expect $e){
