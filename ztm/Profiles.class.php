@@ -126,7 +126,7 @@ class ztm_Profiles extends core_Master
         $dQuery->where("#profileId = '{$profileRec->id}'");
         $dQuery->show('registerId,value,type');
         while($dRec = $dQuery->fetch()){
-            if(in_array($dRec->type, array('int', 'int/float', 'float')) == 'int'){
+            if(in_array($dRec->type, array('int', 'float')) == 'int'){
                 $dRec->value = (float)$dRec->value;
             }
             $dArr[$dRec->registerId] = $dRec->value;
@@ -136,7 +136,7 @@ class ztm_Profiles extends core_Master
         $query = ztm_Registers::getQuery();
         
         while($rec = $query->fetch()){
-            if(in_array($rec->type, array('int', 'int/float', 'float')) == 'int'){
+            if(in_array($rec->type, array('int', 'float')) == 'int'){
                 $rec->default = (float)$rec->default;
             }
             
