@@ -435,7 +435,7 @@ class ztm_RegisterValues extends core_Manager
                 ztm_RegisterValues::set($deviceId, $obj->registerId, $obj->value, $lastSync);
                 $syncedArray[$obj->name] = $obj->value;
             } catch(core_exception_Expect $e){
-                log_System::logErr("Невалидна стойност за числов регистър: '{$obj->name}' - {$obj->value}");
+                log_System::logErr("'{$obj->name}': {$e->getMessage()}");
             }
         }
        
