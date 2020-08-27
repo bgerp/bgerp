@@ -620,9 +620,7 @@ class ztm_RegisterValues extends core_Manager
         if($profileId = ztm_Devices::fetchField($rec->deviceId, 'profileId')){
             $profileValue = ztm_ProfileDetails::fetchField("#profileId = {$profileId}", 'value');
             $profileValue = ztm_LongValues::getValueByHash($profileValue);
-            
         }
-       
         $defaultValue = ztm_Registers::fetchField($rec->registerId, 'default');
         
         if(isset($profileValue) && $profileValue == $value){

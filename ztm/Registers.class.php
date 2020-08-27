@@ -121,6 +121,7 @@ class ztm_Registers extends core_Master
                 break;
             case 'float':
                 $ourType = 'Double(smartRound)';
+                break;
             case 'bool':
                 $ourType = 'enum(yes=Да,no=Не)';
                 break;
