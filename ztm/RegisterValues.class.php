@@ -418,30 +418,19 @@ class ztm_RegisterValues extends core_Manager
         
         // Извлича нашите регистри обновени след $lastSyncMin, махайки тези, които са приоритетно от устройството
         $ourRegisters = self::grab($deviceRec, $lastSyncMin);
-        
         foreach ($ourRegisters as $k => $ourReg){
             if($ourReg->priority == 'device'){
                 unset($ourRegisters[$k]);
             }
         }
         
-        // Кои стойностти от нашите не са променени
-        $notChangedValues = array_diff_key($ourRegisters, $expandedRegArr);
-        
-        // Записване на новите стойностти, върнати от устройството
-        $syncedArray = array();
+        // Записване на новите стойностти, върнати от устройството с приоритет 'device' или 'time'
         foreach ($expandedRegArr as $obj){
             try{
                 ztm_RegisterValues::set($deviceId, $obj->registerId, $obj->value, $lastSync);
-                $syncedArray[$obj->name] = $obj->value;
             } catch(core_exception_Expect $e){
                 log_System::logErr("'{$obj->name}': {$e->getMessage()}");
             }
-        }
-       
-        // Тези, които няма да се обновяват ги връщаме към резултата
-        foreach ($notChangedValues as $obj1){
-            $syncedArray[$obj1->name] = $obj1->value;
         }
         
         foreach ($unknownRegisters as $unknownRegisterObj){
@@ -452,7 +441,7 @@ class ztm_RegisterValues extends core_Manager
         //core_Locks::release("ZTM_SYNC_DEVICE_{$deviceRec->id}");
         
         // Връщане на синхронизирания масив
-        return (object)$syncedArray;
+        return (object)$ourRegisters;
     }
     
     
