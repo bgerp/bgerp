@@ -360,38 +360,20 @@ abstract class deals_InvoiceMaster extends core_Master
         expect($invArr['type'] == 'invoice');
         
         if ($invArr['type'] != 'dc_note') {
-            $show = true;
-            if (isset($form->rec->id)) {
-                $Detail = cls::get($this->mainDetail);
-                $dQuery = $Detail->getQuery();
-                $dQuery->where("#invoiceId = {$form->rec->id}");
-                
-                if ($dQuery->count()) {
-                    $show = false;
-                }
-            }
-            
-            if ($show === true) {
-                $cache = $this->getInvoiceDetailedInfo($form->rec->originId);
-                
-                if (countR($cache->vats) == 1) {
-                    $form->setField('changeAmount', "unit={$invArr['currencyId']} без ДДС");
-                    $form->setField('changeAmount', 'input,caption=Задаване на увеличение/намаление на фактура->Промяна');
-                    $form->setField('dcReason', 'input,caption=Задаване на увеличение/намаление на фактура->Пояснение');
-                    $form->rec->changeAmountVat = key($cache->vats);
-                    
-                    $min = $invArr['dealValue'] / (($invArr['displayRate']) ? $invArr['displayRate'] : $invArr['rate']);
-                    $min = round($min, 2);
-                    
-                    $form->setFieldTypeParams('changeAmount', array('min' => -1 * $min));
-                    
-                    if ($invArr['dpOperation'] == 'accrued') {
-                        
-                        // Ако е известие към авансова ф-ра поставяме за дефолт сумата на фактурата
-                        $form->setField('dcReason', 'input');
-                        $form->setField('changeAmount', "caption=Промяна на авансово плащане|*->|Аванс|*,mandatory");
-                        $form->setField('dcReason', 'input,caption=Промяна на авансово плащане|*->Пояснение');
-                    }
+            $cache = $this->getInvoiceDetailedInfo($form->rec->originId);
+            if (countR($cache->vats) == 1) {
+                $form->setField('changeAmount', "unit={$invArr['currencyId']} без ДДС");
+                $form->setField('changeAmount', 'input,caption=Задаване на увеличение/намаление на фактура->Промяна');
+                $form->setField('dcReason', 'input,caption=Задаване на увеличение/намаление на фактура->Пояснение');
+                $form->rec->changeAmountVat = key($cache->vats);
+                $min = $invArr['dealValue'] / (($invArr['displayRate']) ? $invArr['displayRate'] : $invArr['rate']);
+                $min = round($min, 2);
+                $form->setFieldTypeParams('changeAmount', array('min' => -1 * $min));
+                if ($invArr['dpOperation'] == 'accrued') {
+                    // Ако е известие към авансова ф-ра поставяме за дефолт сумата на фактурата
+                    $form->setField('dcReason', 'input');
+                    $form->setField('changeAmount', "caption=Промяна на авансово плащане|*->|Аванс|*,mandatory");
+                    $form->setField('dcReason', 'input,caption=Промяна на авансово плащане|*->Пояснение');
                 }
             }
         }
@@ -571,6 +553,13 @@ abstract class deals_InvoiceMaster extends core_Master
         
         // Ако е ДИ или КИ и има зададена сума не зареждаме нищо
         if ($rec->type != 'invoice' && isset($rec->changeAmount)) {
+            
+            // Изтриване на детайлите на известието, ако е въведена сума на известието
+            $Detail = cls::get($mvc->mainDetail);
+            $deletedCount = $Detail->delete("#{$Detail->masterKey} = {$rec->id}");
+            if($deletedCount > 0){
+                unset($mvc->updateQueue[$rec->id]);
+            }
             
             return;
         }
@@ -815,6 +804,13 @@ abstract class deals_InvoiceMaster extends core_Master
                         $form->setError('changeAmount', 'Не може да се създаде известие с нулева стойност');
                         
                         return;
+                    }
+                    
+                    if(isset($rec->id)){
+                        $Detail = cls::get($mvc->mainDetail);
+                        if($dCount = $Detail->count("#{$Detail->masterKey} = {$rec->id}")){
+                            $form->setWarning('changeAmount', "Към известието има|* <b>{$dCount}</b> |редове. Те ще бъдат изтрити ако оставите конкретна сума|*");
+                        }
                     }
                 }
                 
