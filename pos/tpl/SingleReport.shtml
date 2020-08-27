@@ -16,6 +16,7 @@
                         	<br>|Точка|*: [#pointId#]
                         	<br>|Каса|*: [#caseId#]
                         	<br>|Търговец|*: [#dealerId#]
+                        	<br>|ДДС|*: <span class='cCode'>[#chargeVat#]</span>
                         	<!--ET_BEGIN baseAccountId-->
                         	<br>|Начално салдо|*: [#baseAmountType#] <b>[#baseAmount#]</b> <span class='cCode'>[#bCurrencyId#]</span>
 		        			<br>|От|*: [#baseAccountId#]

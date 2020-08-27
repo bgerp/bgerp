@@ -65,8 +65,8 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             
             $entries = array_merge($entries, $this->getPaymentPart($rec, $paymentsArr, $posRec));
             
-            // Начисляване на ддс ако има
-            if (count($totalVat)) {
+            // Начисляване на ддс ако има и е разрешено
+            if (count($totalVat) && $rec->chargeVat != 'no') {
                 $entries = array_merge($entries, $this->getVatPart($rec, $totalVat, $posRec));
             }
         }
