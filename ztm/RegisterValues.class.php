@@ -78,6 +78,14 @@ class ztm_RegisterValues extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
+        $deviceOptions = array();
+        $dQuery = ztm_Devices::getQuery();
+        $dQuery->where("#state = 'active'");
+        while($dRec = $dQuery->fetch()){
+            $deviceOptions[$dRec->id] = ztm_Devices::getRecTitle($dRec);
+        }
+        
+        $data->listFilter->setOptions('deviceId', $deviceOptions);
         $data->listFilter->setFieldTypeParams('deviceId', array('allowEmpty' => 'allowEmpty'));
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'deviceId,registerId';
