@@ -965,7 +965,9 @@ class pos_ReceiptDetails extends core_Detail
                 $obj->storeId = $rec->storeId;
                 $obj->param = $rec->param;
                 $obj->batch = $rec->batch;
-                $rec->amount = $sign * ($rec->amount);
+                if($rec->amount > 0){
+                    $rec->amount = $sign * ($rec->amount);
+                }
             } else {
                 if (!$rec->amount) {
                     continue;
