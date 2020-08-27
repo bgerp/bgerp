@@ -188,7 +188,7 @@ class cal_Calendar extends core_Master
      */
     public static function updateEvents($events, $fromDate, $toDate, $prefix, $onlyDel = false)
     {
-        if (!preg_match('/^[A-Z]+\-[0-9]*$/', $prefix)) {
+        if (!preg_match('/^[A-Z]+\-[0-9A-Za-z]*$/', $prefix)) {
             wp('Лоши символи за префикс', $prefix);
         }
         
