@@ -616,10 +616,16 @@ class ztm_RegisterValues extends core_Manager
             $row->value = $Type->toVerbal($value);
         }
         
-        $profileId = ztm_Devices::fetchField($rec->deviceId, 'profileId');
-        $profileValue = ztm_ProfileDetails::fetchField("#profileId = {$profileId}", 'value');
+        $profileValue = null;
+        if($profileId = ztm_Devices::fetchField($rec->deviceId, 'profileId')){
+            $profileValue = ztm_ProfileDetails::fetchField("#profileId = {$profileId}", 'value');
+            $profileValue = ztm_LongValues::getValueByHash($profileValue);
+            
+        }
+       
         $defaultValue = ztm_Registers::fetchField($rec->registerId, 'default');
-        if($profileValue == $value){
+        
+        if(isset($profileValue) && $profileValue == $value){
             $row->ROW_ATTR['class'] = 'state-pending';
             $row->value = ht::createHint($row->value, 'Стойността идва от профила', 'notice', true);
         } elseif($defaultValue == $value){
