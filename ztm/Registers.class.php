@@ -178,7 +178,8 @@ class ztm_Registers extends core_Master
         $type = ztm_Registers::fetchField($registerId, 'type');
       
         if(is_object($extValue) || is_array($extValue)){
-            $showValue = ht::mixedToHtml($extValue);
+            wp($extValue);
+            $showValue = serialize($extValue);
             
             throw new core_exception_Expect("Въведената стойност '{$showValue}' не е скаларна|*!", 'Несъответствие');
         } elseif(in_array($type, array('int', 'float'))){
