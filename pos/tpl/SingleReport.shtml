@@ -11,8 +11,7 @@
                     </tr>
                     <tr>
                     	<td class = 'nowrap' style='font-size:0.9em;vertical-align:top;text-align:left;font-weight: normal'>
-                        	|От|*: [#from#]
-                        	<br>|До|*: [#to#]
+                        	|Вальор|*: [#valior#]
                         	<br>|Точка|*: [#pointId#]
                         	<br>|Каса|*: [#caseId#]
                         	<br>|Търговец|*: [#dealerId#]
@@ -27,11 +26,14 @@
 
                         </td>
                         <td style='font-size:0.8em;vertical-align:top;text-align:left'>
-						     <!--ET_BEGIN ROW-->
+                       		<!--ET_BEGIN ROW-->
 								[#ROW#]
 						     	<span style='font-weight:normal'>[#receiptBy#]: [#receiptTotal#] <span class='cCode'>[#baseCurrency#]</span></span>
 						     <!--ET_END ROW-->
-						     <div style='font-weight:normal'><hr></div><div style='font-weight:normal;font-size: 0.9em;'>[#receiptIds#]</div>
+						     <div style='font-weight:normal'><hr>
+						      <div>|Бележки от|*: [#from#] - [#to#]</div>
+						     </div>
+						     <div style='font-weight:normal;font-size: 0.9em;'>[#receiptIds#]</div>
                         </td>
                     </tr>
                 </table>
