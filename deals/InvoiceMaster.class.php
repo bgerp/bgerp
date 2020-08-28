@@ -809,7 +809,7 @@ abstract class deals_InvoiceMaster extends core_Master
                     if(isset($rec->id)){
                         $Detail = cls::get($mvc->mainDetail);
                         if($dCount = $Detail->count("#{$Detail->masterKey} = {$rec->id}")){
-                            $form->setWarning('changeAmount', "Към известието има|* <b>{$dCount}</b> |редове. Те ще бъдат изтрити ако оставите конкретна сума|*");
+                            $form->setWarning('changeAmount', "Към известието има|* <b>{$dCount}</b> |ред/а. Те ще бъдат изтрити ако оставите конкретна сума|*.");
                         }
                     }
                 }
