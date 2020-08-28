@@ -175,17 +175,26 @@ class ztm_Registers extends core_Master
     {
         $type = ztm_Registers::fetchField($registerId, 'type');
       
-        if(is_object($extValue) || is_array($extValue)){
-            wp($extValue);
-            $showValue = serialize($extValue);
+        if($type == 'json'){
             
-            throw new core_exception_Expect("Въведената стойност '{$showValue}' не е скаларна|*!", 'Несъответствие');
+            // Ако типа е json, но стойността не е подсигуряваме се да е json
+            $extValue = (str::isJson($extValue)) ? $extValue : json_encode($extValue);
         } elseif(in_array($type, array('int', 'float'))){
+            
+            // Ако е число, проверка дали е подадена валидна числова стойност
             $Double = core_Type::getByName('double');
             if($Double->fromVerbal($extValue) === false){
                 
                 throw new core_exception_Expect("Въведената стойност '{$extValue}' трябва да е число|*!", 'Несъответствие');
             }
+        }
+        
+        // Не бива до тук да стигат нескаларни стойностти
+        if(!is_scalar($extValue)) {
+            wp($extValue, $registerId, $type);
+            $extValue = serialize($extValue);
+            
+            throw new core_exception_Expect("Въведената стойност '{$extValue}' не е скаларна|*!", 'Несъответствие');
         }
         
         // Записва стойността в помощния модел при нужда
