@@ -211,6 +211,10 @@ class drdata_ParseAddressBg extends core_Manager
                     $parts[$p1] = $matches[1] . ' ' . $matches[2];
                 }
             }
+
+            if ($p1 == 'ул.' || $p1 == 'бул.' || $p1 == 'пл.' || $p1 == 'ж.к.') {
+                $parts[$p1] = trim(str_replace(array('"', '-', '  ', '  '), array(' ', ' ', ' ', ' '), $parts[$p1]));
+            }
             
             if ($p1 == 'гр.' || $p1 == 'с.') {
                 if ($b = self::getBestMatch($parts[$p1], $dict)) {
@@ -253,8 +257,8 @@ class drdata_ParseAddressBg extends core_Manager
         } elseif (!isset($parts['п.код']) && preg_match('/^([0-9]{4})([^0-9]|)/', $p, $matches)) {
             $parts['п.код'] = $matches[1];
             $p = trim(substr($p, 4));
-        } elseif (!isset($parts['ж.к.']) && preg_match("/((младост|люлин|надежда|обеля|връбница|зона б|сторгозия|дружба|красно Село) ?[ \-] ?[0-9]{0,2})/ui", $p, $matches)) {
-            $parts['ж.к.'] = $matches[1];
+        } elseif (!isset($parts['ж.к.']) && preg_match("/(\"?(младост|люлин|надежда|обеля|връбница|зона б|сторгозия|дружба|красно село)\"? ?[ \-]? ?[0-9]{0,2})/ui", $p, $matches)) {
+            $parts['ж.к.'] = $matches[2] . ' ' . $matches[3];
             $p = trim(substr($p, strlen($matches[1])));
         } elseif (!isset($parts['ул.']) && !isset($parts['бул.']) && preg_match('/^\\"?([a-zа-я\. ]{3,64})\\"?[ \-]{1,3}([0-9]{1,3}( ?[\-\/] ?[0-9]{1,3}|)[a-zа-я]?)$/iu', $p, $matches)) {
             $parts['ул.'] = $matches[1] . ' ' . $matches[2];
@@ -279,7 +283,8 @@ class drdata_ParseAddressBg extends core_Manager
     public static function parse($str)
     {
         static $dict;
-        
+        // $str = 'София, ж.к. "Младост"2 бл.521 вх.2 ет. 4';
+
         if (!$dict) {
             $dict = core_Cache::get('ParseAddress', 'Dictionary1');
             if (!$dict) {
