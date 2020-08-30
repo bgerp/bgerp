@@ -161,7 +161,8 @@ class cms_Content extends core_Manager
         $lang = self::getLang();
         
         $res = new ET(getFileContent('cms/themes/default/LangSelect.shtml'));
-        
+        $res->prepend("\n<meta name=\"robots\" content=\"noindex\">", 'HEAD');
+
         $s = $res->getBlock('SELECTOR');
         
         foreach ($langsArr as $lg) {
