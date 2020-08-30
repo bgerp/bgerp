@@ -784,13 +784,12 @@ class cms_Content extends core_Manager
         return $fileSrc;
     }
     
-    
-    public static function renderSearchResults($menuId, $q)
+
+    /**
+     * Рендира резултатите отговарящи на търсенето във външната част
+     */
+    public static function renderSearchResults($menuId, $q, $oQ = null)
     {
-        //$q = Request::get('q');
-        //$menuId = Request::get('menuId', 'int');
-        
-        
         $query = self::getQuery();
         $query->orderBy('order');
         
@@ -803,13 +802,12 @@ class cms_Content extends core_Manager
         
         $query->where("(#domainId = {$domainId} OR #sharedDomains LIKE '%|{$domainId}|%') AND #id != {$menuId}");
         
-        $res = array();
-        
+        $html = '';
+
         do {
             if (!$rec->source || !cls::load($rec->source, true)) {
                 continue;
             }
-            expect($rec->source);
             
             $cls = cls::get($rec->source);
             
@@ -839,11 +837,90 @@ class cms_Content extends core_Manager
             }
         } while ($rec = $query->fetch());
         
-        $res = new ET("<h1>Търсене на \"<strong style='color:green'>" . type_Varchar::escape($q) . "</strong>\"</h1><div style='padding:0px;' class='results'>[#1#]</div>", $html);
+        if($html) {
+            if(!isset($oQ)) {
+                $html = new ET("<h3>" . tr('Търсене на') . " \"<strong style='color:green'>" . type_Varchar::escape($q) . "</strong>\"</h3><div style='padding:0px;' class='results'>[#1#]</div>", $html);
+            } else {
+                $html = new ET("<h3>" . tr('При търсене на') . " \"<strong style='color:green'>" . type_Varchar::escape($oQ) . "</strong>\" " . tr('не бяха открити точни резултати, затова са показани приблизителни') . ":</h3><div style='padding:0px;' class='results'>[#1#]</div>", $html);
+            }
+            plg_Search::highlight($html, $q, 'results');
+        } else {
+            if(!isset($oQ)) {
+                // Правим опит да подобрим заявката
+                if($nQ = self::reduceSearch($q)) {
+                    $html = self::renderSearchResults($menuId, $nQ, $q);
+                }
+            }
+            
+            if(empty($html)) {
+                $html = new ET("<h1>". tr('При търсене на') . " \"<strong style='color:green'>" . type_Varchar::escape(strlen($oQ) ? $oQ : $q) . "</strong>\" " . tr('не бяха открити резултати') . "</h1>");
+            }
+        }
+                
+        return  $html;
+    }
+
+
+    /**
+     * Редуцира заявка за търсене, като същевременно се опитва да оправи правописа на думите
+     */
+    public static function reduceSearch($q) 
+    {
+        $domainId = cms_Domains::getPublicDomain('id');
         
-        plg_Search::highlight($res, $q, 'results');
-        
-        return  $res;
+        $query = self::getQuery();
+        $query->where("(#domainId = {$domainId} OR #sharedDomains LIKE '%|{$domainId}|%')");
+        $kArr = array();
+        while ($rec = $query->fetch()) {
+            if (!$rec->source || !cls::load($rec->source, true)) {
+                continue;
+            }
+             
+            $cls = cls::get($rec->source);
+            
+            if (cls::existsMethod($cls, 'getAllSearchKeywords')) {
+                $kArr = $kArr + $cls::getAllSearchKeywords($rec->id);
+            }
+        }
+
+        $q = plg_Search::normalizeText($q);
+        $qArr = explode(' ', trim($q));
+        $resArr = array();
+
+        foreach($qArr as $w) {
+            if(isset($kArr[$w])) {
+                $resArr[] = $w;
+                continue;
+            } elseif(strlen($w) > 3) {
+                $min = max(3, strlen($w)-1);
+                $max = strlen($w) + 2;
+                $bestD = 1;
+                $bestW = '';
+    
+                foreach($kArr as $kw => $dummy) {
+                    if($kw{0} != $w{0}) continue;
+                    $len = strlen($kw);
+                    if($len >= $min && $len <= $max) {
+                        $d = levenshtein($w, $kw) / $len;
+                        if($d < 0.15 && $d < $bestD) {
+                            $bestD = $d;
+                            $bestW = $kw;
+                        }
+                    }
+                }
+                if($bestW) {
+                    $resArr[] = $bestW;
+                }
+            }
+        }
+
+        $res = null;
+
+        if(count($resArr)) {
+            $res = implode(' ', $resArr);
+        }
+
+        return $res;
     }
     
     
