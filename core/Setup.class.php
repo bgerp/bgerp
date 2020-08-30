@@ -372,9 +372,9 @@ class core_Setup extends core_ProtoSetup
         
         'CORE_LOGIN_LOG_FIRST_LOGIN_DAYS_LIMIT' => array('time(suggestions=1 седмица|2 седмици|1 месец|2 месеца)', 'caption=Колко време назад да се търси в лога за first_login->Време'),
         
-        'CORE_STOP_BLOCKING_LOGIN_PERIOD' => array('time(suggestions=1 седмица|2 седмици|1 месец|2 месеца)', 'caption=Спиране на блокирането|*&#44; |ако има дублиране от различни устройсва->Време'),
+        'CORE_STOP_BLOCKING_LOGIN_PERIOD' => array('time(suggestions=1 седмица|2 седмици|1 месец|2 месеца)', 'caption=Спиране на блокирането|*&#44; |ако има дублиране от различни устройства->Време'),
         
-        'CORE_STOP_BLOCKING_LOGIN_COUNT' => array('int', 'caption=Спиране на блокирането|*&#44; |ако има дублиране от различни устройсва->Брой'),
+        'CORE_STOP_BLOCKING_LOGIN_COUNT' => array('int', 'caption=Спиране на блокирането|*&#44; |ако има дублиране от различни устройства->Брой'),
         
         'CORE_COOKIE_LIFETIME' => array('time(suggestions=1 месец|2 месеца|3 месеца|1 година)', 'caption=Време на живот на кукитата->Време'),
         
@@ -500,6 +500,7 @@ class core_Setup extends core_ProtoSetup
         $rec->action = 'DeleteExpiredData';
         $rec->period = 24 * 60;
         $rec->offset = rand(60, 180); // от 1h до 3h
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
@@ -512,6 +513,7 @@ class core_Setup extends core_ProtoSetup
         $rec->action = 'DeleteExpiredLinks';
         $rec->period = 60;
         $rec->offset = mt_rand(0, 40);
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
@@ -524,6 +526,7 @@ class core_Setup extends core_ProtoSetup
         $rec->action = 'checkForUpdates';
         $rec->period = 24 * 60;
         $rec->offset = mt_rand(8 * 60, 12 * 60);
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 300;
         $html .= core_Cron::addOnce($rec);
@@ -536,6 +539,7 @@ class core_Setup extends core_ProtoSetup
         $rec->action = 'DeleteExpiredPermData';
         $rec->period = 24 * 60;
         $rec->offset = rand(60, 180); // от 1h до 3h
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
@@ -615,6 +619,7 @@ class core_Setup extends core_ProtoSetup
         $rec->action = 'clearOldFiles';
         $rec->period = 60;
         $rec->offset = mt_rand(0, 40);
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 120;
         $res .= core_Cron::addOnce($rec);

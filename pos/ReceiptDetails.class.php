@@ -588,7 +588,7 @@ class pos_ReceiptDetails extends core_Detail
                 expect(false, $error);
             }
             expect(!(!empty($receiptRec->revertId) && ($receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT) && abs($originProductRec->quantity) < abs($rec->quantity)), "Количеството е по-голямо от продаденото|* " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
-            
+            $rec->param = cat_Products::getVat($rec->productId, dt::now());
             
             $this->save($rec);
             $success = true;
@@ -852,7 +852,6 @@ class pos_ReceiptDetails extends core_Detail
         
         $rec->discountPercent = $price->discount;
         $rec->price = $price->price * $perPack;
-        $rec->param = cat_Products::getVat($rec->productId, $receiptRec->valior);
         $rec->amount = $rec->price * $rec->quantity;
         $rec->_canStore = $productRec->canStore;
     }
@@ -947,12 +946,14 @@ class pos_ReceiptDetails extends core_Detail
         
         $result = array();
         $query = static::getQuery();
+        $query->EXT('revertId', 'pos_Receipts', 'externalName=revertId,externalKey=receiptId');
         $query->EXT('contragentClsId', 'pos_Receipts', 'externalName=contragentClass,externalKey=receiptId');
         $query->EXT('contragentId', 'pos_Receipts', 'externalName=contragentObjectId,externalKey=receiptId');
         $query->where("#receiptId = {$receiptId}");
         $query->where("#action LIKE '%sale%' || #action LIKE '%payment%'");
         
         while ($rec = $query->fetch()) {
+            $sign = isset($rec->revertId) ? -1 : 1;
             $obj = new stdClass();
             if ($rec->productId) {
                 $obj->action = 'sale';
@@ -964,6 +965,9 @@ class pos_ReceiptDetails extends core_Detail
                 $obj->storeId = $rec->storeId;
                 $obj->param = $rec->param;
                 $obj->batch = $rec->batch;
+                if($rec->amount > 0){
+                    $rec->amount = $sign * ($rec->amount);
+                }
             } else {
                 if (!$rec->amount) {
                     continue;
@@ -981,7 +985,7 @@ class pos_ReceiptDetails extends core_Detail
             $obj->contragentClassId = $rec->contragentClsId;
             $obj->contragentId = $rec->contragentId;
             $obj->quantity = $rec->quantity;
-            $obj->amount = ($rec->amount) * (1 - $rec->discountPercent);
+            $obj->amount = $rec->amount * (1 - $rec->discountPercent);
             $obj->date = $masterRec->createdOn;
             
             $result[] = $obj;

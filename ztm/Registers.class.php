@@ -28,7 +28,7 @@ class ztm_Registers extends core_Master
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ztm, ceo';
+    public $canAdd = 'no_one';
     
     
     /**
@@ -39,9 +39,7 @@ class ztm_Registers extends core_Master
     /**
      * Кой има право да го изтрие?
      */
-    public $canDelete = 'no_one';
-    public $canReject = 'ztm, ceo';
-    public $canRestore = 'ztm, ceo';
+    public $canDelete = 'ztm, ceo';
     
     
     /**
@@ -71,7 +69,7 @@ class ztm_Registers extends core_Master
     protected function description()
     {
         $this->FLD('name', 'varchar(32)', 'caption=Име');
-        $this->FLD('type', 'enum(int,bool,float,str,json,int/float)', 'caption=Тип');
+        $this->FLD('type', 'enum(int,bool,float,str,json)', 'caption=Тип');
         $this->FLD('range', 'text', 'caption=Диапазон');
         $this->FLD('plugin', 'varchar(32)', 'caption=Модул');
         $this->FLD('priority', 'enum(system, device, global, time)', 'caption=Приоритет за вземане на стойност');
@@ -87,9 +85,6 @@ class ztm_Registers extends core_Master
      */
     public function loadSetupData()
     {
-        if($this->getQuery()->count()){
-            return;
-        }
         $file = 'ztm/csv/Registri.csv';
         
         $fields = array(
@@ -102,7 +97,7 @@ class ztm_Registers extends core_Master
             6 => 'description',
         );
         
-        $cntObj = csv_Lib::importOnce($this, $file, $fields);
+        $cntObj = csv_Lib::importOnceFromZero($this, $file, $fields);
         $res = $cntObj->html;
         
         return $res;
@@ -125,15 +120,13 @@ class ztm_Registers extends core_Master
                 $ourType = 'Int';
                 break;
             case 'float':
-                $ourType = 'Double';
+                $ourType = 'Double(smartRound)';
+                break;
             case 'bool':
                 $ourType = 'enum(yes=Да,no=Не)';
                 break;
             case 'str':
                 $ourType = 'varchar';
-                break;
-            case 'int/float':
-                $ourType = 'Double';
                 break;
             default:
                 $ourType = 'text';
@@ -181,24 +174,37 @@ class ztm_Registers extends core_Master
     public static function recordValue($registerId, $extValue)
     {
         $type = ztm_Registers::fetchField($registerId, 'type');
-        
-        if(in_array($type, array('int', 'float', 'int|float'))){
+      
+        if($type == 'json'){
+            
+            // Ако типа е json, но стойността не е подсигуряваме се да е json
+            $extValue = (str::isJson($extValue)) ? $extValue : json_encode($extValue);
+        } elseif(in_array($type, array('int', 'float'))){
+            
+            // Ако е число, проверка дали е подадена валидна числова стойност
             $Double = core_Type::getByName('double');
-            if(!$Double->fromVerbal($extValue)){
-               
-                throw new core_exception_Expect('Въведената стойност не е число|*!', 'Несъответствие');
+            if($Double->fromVerbal($extValue) === false){
+                
+                throw new core_exception_Expect("Въведената стойност '{$extValue}' трябва да е число|*!", 'Несъответствие');
             }
         }
         
+        // Не бива до тук да стигат нескаларни стойностти
+        if(!is_scalar($extValue)) {
+            wp($extValue, $registerId, $type);
+            $extValue = serialize($extValue);
+            
+            throw new core_exception_Expect("Въведената стойност '{$extValue}' не е скаларна|*!", 'Несъответствие');
+        }
+        
         // Записва стойността в помощния модел при нужда
-        if(in_array($type, array('json'))){
+        if($type == 'json' || ($type == 'str' && strlen($extValue) > 32)){
             $hash = md5(serialize($extValue));
             $value = $hash;
             
             $existingValue = ztm_LongValues::fetchField("#hash = '{$hash}'", 'value');
             if(!isset($existingValue)){
-                $valueToSave = (is_array($extValue) || is_object($extValue)) ? json_encode($extValue) : $extValue;
-                $longRec = (object)array('hash' => $hash, 'value' => $valueToSave);
+                $longRec = (object)array('hash' => $hash, 'value' => $extValue);
                 
                 ztm_LongValues::save($longRec);
             }
@@ -207,5 +213,18 @@ class ztm_Registers extends core_Master
         }
         
         return $value;
+    }
+    
+    
+    /**
+     * След изтриване на запис
+     */
+    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        // Ако изтриваме етап, изтриваме всичките редове от този етап
+        foreach ($query->getDeletedRecs() as $rec) {
+            ztm_RegisterValues::delete("#registerId = {$rec->id}");
+            ztm_ProfileDetails::delete("#registerId = {$rec->id}");
+        }
     }
 }

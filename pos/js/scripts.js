@@ -7,7 +7,6 @@ var searchTimeout;
 var addedProduct;
 
 function posActions() {
-
 	calculateWidth();
 	activeInput = false;
 	$(document.body).on('input', "input[name=ean]", function(e){
@@ -157,10 +156,9 @@ function posActions() {
 	 * При клик на таба
 	 */
 	$(document.body).on('click', ".tabHolder li", function() {
-			activateTab($(this), 0);
-			sessionStorage.setItem('selectedTab', $(this).attr('id'));
-			startNavigation();
-
+		activateTab($(this), 0);
+		sessionStorage.setItem('selectedTab', $(this).attr('id'));
+		startNavigation();
 	});
 
 	$(document.body).on('change', "select.tabHolder", function() {
@@ -571,12 +569,13 @@ function calculateWidth(){
 		$('.scrolling-vertical').css('height',receiptHeight);
 
 		var headerHeight = $('.headerContent').outerHeight();
-		if($('#result-holder .withTabs:visible').length) {
+		if($('#result-holder .withTabs').length) {
 			var tabsFix = $('.withTabs .tabs').height();
 			$('#result-holder').css('padding', '0');
 			$('#result-holder').css('overflow-y', 'visible');
 
-			$('#result-holder').css('margin-top', tabsFix - 41);
+			$('#result-holder .withTabs').css('position', "relative");
+			$('#result-holder .withTabs').css('top', tabsFix - 41);
 			$('#result-holder .withTabs').css('height',winHeight - headerHeight - tabsFix - 22);
 			$('#result-holder .tabs, #result-holder').css('width', winWidth - $('#single-receipt-holder').width());
 		} else {
@@ -1279,17 +1278,18 @@ function getSelectedRowId() {
 }
 
 function openCurrentPosTab() {
-	if($('.tabHolder .noajaxtabs').length) {
-		var activeTab =  $('.tabHolder .noajaxtabs:first').addClass('active');
-		var currentTabContent = $(activeTab).attr('data-content');
-
-		$("#" + currentTabContent).show();
-		sessionStorage.removeItem('focusedOffset');
-	} else {
-		var activeTab = sessionStorage.getItem('selectedTab')
-		$(".tabHolder  option#" + activeTab ).attr("selected", "selected");
-	}
+	var activeTab = sessionStorage.getItem('selectedTab')
+	$(".tabHolder  option#" + activeTab ).attr("selected", "selected");
 	startNavigation();
+}
+
+/**
+ * Редува два спана с цени
+ */
+function changePriceSpans(){
+	setInterval(function (){
+		$('.pos-notes .prices span').toggleClass('hidden');
+	}, 1000);
 }
 
 /**
@@ -1368,15 +1368,10 @@ function render_toggleAddedProductFlag(data)
  */
 function activateTab(element, timeOut)
 {
-	var id = element.attr('data-content');
 	$('.tabHolder li').removeClass('active');
 	element.addClass('active');
-	// да се скриват и показват само табовете на бележките
-	if(element.hasClass('noajaxtabs')){
-		$("#" + id).show().siblings().hide();
-	} else {
-		triggerSearchInput($(".large-field"), timeOut);
-	}
+	
+	triggerSearchInput($(".large-field"), timeOut);
 }
 
 
@@ -1421,11 +1416,15 @@ function triggerSearchInput(element, timeoutTime)
 			var activeTab = $(".tabHolder li.active");
 		} else {
 			var activeTab = $('.tabHolder option:selected');
-
 		}
+		
 		if(activeTab.length){
 			var id = activeTab.attr("data-id");
-			params.selectedProductGroupId = id;
+			if(activeTab.parent().hasClass('receipts')){
+				params.selectedReceiptFilter = id;
+			} else {
+				params.selectedProductGroupId = id;
+			}
 		}
 		processUrl(url, params);
 

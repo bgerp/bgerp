@@ -2992,6 +2992,7 @@ class doc_Containers extends core_Manager
         $rec->action = 'notifyForIncompleteDoc';
         $rec->period = 60;
         $rec->offset = mt_rand(0, 40);
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $res .= core_Cron::addOnce($rec);
@@ -3004,6 +3005,7 @@ class doc_Containers extends core_Manager
         $rec1->action = 'notifyDraftBusinessDoc';
         $rec1->period = 43200;
         $rec1->offset = rand(4260, 4380); // от 71h до 73h
+        $rec1->isRandOffset = true;
         $rec1->delay = 0;
         $rec1->timeLimit = 200;
         $res .= core_Cron::addOnce($rec1);

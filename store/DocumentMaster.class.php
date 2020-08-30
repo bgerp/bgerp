@@ -628,9 +628,11 @@ abstract class store_DocumentMaster extends core_Master
      *  	string|NULL   ['toAddress']    - адрес за разтоварване
      *   	string|NULL   ['toCompany']    - фирма
      *   	string|NULL   ['toPerson']     - лице
+     *      string|NULL   ['toPersonPhones'] - телефон на лицето
+     *      string|NULL   ['instructions'] - инструкции
      * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
      * 		text|NULL 	  ['conditions']   - други условия
-     * 		varchar|NULL  ['ourReff']      - наш реф
+     *		varchar|NULL  ['ourReff']      - наш реф
      * 		double|NULL   ['totalWeight']  - общо тегло
      * 		double|NULL   ['totalVolume']  - общ обем
      */
@@ -679,10 +681,12 @@ abstract class store_DocumentMaster extends core_Master
         $res["{$contrPart}Country"] = drdata_Countries::fetchField($contragentCountryId, 'commonName');
         $res["{$contrPart}Company"] = $contragentData->company;
         if (isset($rec->locationId)) {
+            $res["{$contrPart}Country"] = !empty($contragentLocation->countryId) ? $contragentLocation->countryId : null;
             $res["{$contrPart}PCode"] = !empty($contragentLocation->pCode) ? $contragentLocation->pCode : null;
             $res["{$contrPart}Place"] = !empty($contragentLocation->place) ? $contragentLocation->place : null;
             $res["{$contrPart}Address"] = !empty($contragentLocation->address) ? $contragentLocation->address : null;
             $res["{$contrPart}Person"] = !empty($contragentLocation->mol) ? $contragentLocation->mol : null;
+            $res["{$contrPart}PersonPhones"] = !empty($contragentLocation->tel) ? $contragentLocation->tel : null;
         } else {
             $res["{$contrPart}PCode"] = !empty($contragentData->pCode) ? $contragentData->pCode : null;
             $res["{$contrPart}Place"] = !empty($contragentData->place) ? $contragentData->place : null;

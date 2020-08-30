@@ -602,6 +602,7 @@ class drdata_Vats extends core_Manager
         $rec->action = 'checkVats';
         $rec->period = 10;
         $rec->offset = rand(0, 8);
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $res .= core_Cron::addOnce($rec);

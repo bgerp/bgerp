@@ -656,7 +656,9 @@ class pos_Terminal extends peripheral_Terminal
         expect($rec = pos_Receipts::fetch($id));
         expect($operation = Request::get('operation', "enum(" . self::$operationsArr . ")"));
         $refreshPanel = Request::get('refreshPanel', 'varchar');
-        $selectedProductGroupId = Request::get('selectedProductGroupId', 'int');
+        $selectedProductGroupId = Request::get('selectedProductGroupId', 'varchar');
+        $selectedReceiptFilter = Request::get('selectedReceiptFilter', 'varchar');
+        
         $refreshPanel = ($refreshPanel == 'no') ? false : true;
         pos_Receipts::requireRightFor('terminal', $rec);
         
@@ -667,11 +669,12 @@ class pos_Terminal extends peripheral_Terminal
         if(!is_object($selectedRec)){
             $selectedRecId = pos_ReceiptDetails::getLastRec($id)->id;
         }
-        
+       
         $string = Request::get('search', 'varchar');
         Mode::setPermanent("currentOperation{$id}", $operation);
         Mode::setPermanent("currentSearchString{$id}", $string);
         Mode::setPermanent("currentSelectedGroup{$id}", $selectedProductGroupId);
+        Mode::setPermanent("currentSelectedReceiptFilter{$id}", $selectedReceiptFilter);
         
         return static::returnAjaxResponse($rec->id, $selectedRecId, true, false, $refreshPanel, true, null);
     }
@@ -1670,79 +1673,62 @@ class pos_Terminal extends peripheral_Terminal
         $data->searchString = $searchString;
         $data->searchStringPure = $string;
         $rec->_selectedGroupId = Mode::get("currentSelectedGroup{$rec->id}");
+        $rec->_selectedGroupId = (!empty($rec->_selectedGroupId)) ? $rec->_selectedGroupId : 'all';
         
-        $res = array();
-        $res['products'] = (object)array('rows' => $this->prepareProductTable($rec, $string), 'placeholder' => 'BLOCK2');
-        if(isset($selectedRec->productId) && !empty($settings->maxSearchProductRelations)){
-            $res['similar'] = (object)array('rows' => $this->prepareResultSimilarProducts($rec, $selectedRec, $string), 'placeholder' => 'BLOCK1');
-        }
-        if(!empty($settings->maxSearchProductInLastSales)){
-            $res['contragent'] = (object)array('rows' => $this->prepareContragentProducts($rec, $string), 'placeholder' => 'BLOCK3');
-        }
-        
+        $productRows = $this->prepareProductTable($rec, $string, $selectedRec);
         $tpl = new core_ET(tr("|*<!--ET_BEGIN GROUP_TAB-->[#GROUP_TAB#]<!--ET_END GROUP_TAB-->
                                  <div class='contentHolderResults'>
-                                    [#BLOCK2#]
-                                    <!--ET_BEGIN BLOCK1--><div class='divider'>|Свързани артикули|*</div>
-                                    [#BLOCK1#]<!--ET_END BLOCK1-->
-                                    <!--ET_BEGIN BLOCK3--><div class='divider'>|Списък от предишни продажби|*</div>
-                                    [#BLOCK3#]<!--ET_END BLOCK3-->
+                                    [#BLOCK#]
                                  </div>"));
         
         $groupsTable = type_Table::toArray($settings->productGroups);
-        
-        // Ако има групи на артикулите
-        if(countR($groupsTable)){
-            $groups = arr::extractValuesFromArray($groupsTable, 'groupId');
+        $groups = arr::extractValuesFromArray($groupsTable, 'groupId');
+        $groupTabArr = array('all' => tr('Всички'));
+        Mode::push('treeShortName', true);
+        foreach ($groups as $groupId){
+            $groupTabArr[$groupId] = cat_Groups::getVerbal($groupId, 'name');
+        }
+        Mode::pop('treeShortName');
+        $groupTabArr['similar'] = tr('Свързани');
+        if (Mode::get('screenMode') == 'narrow' && countR($groupsTable) > 3) {
+            $resultTpl = new core_ET("<div class='tabs productTabs'><select style='width: 90%' class='tabHolder'>[#TAB#]</select></div>");
+        } else {
+            $resultTpl = new core_ET("<div class='tabs productTabs'><ul class='tabHolder'>[#TAB#]</ul></div>");
+        }
+       
+        foreach ($groupTabArr as $groupId => $groupName){
+            $active = ($rec->_selectedGroupId == $groupId) ? 'active' : '';
+           
+            $tabTitle = tr("Избор на група|*: \"{$groupName}\"");
             if (Mode::get('screenMode') == 'narrow' && countR($groupsTable) > 3) {
-                $resultTpl = new core_ET("<div class='tabs productTabs'><select style='width: 90%' class='tabHolder'>[#TAB#]</select></div>");
+                $tab = "<option id='group{$groupId}' data-id = '{$groupId}'>{$groupName}</option>";
             } else {
-                $resultTpl = new core_ET("<div class='tabs productTabs'><ul class='tabHolder'>[#TAB#]</ul></div>");
-            }
-            $groups = array('all' => null) + $groups;
-            foreach ($groups as $groupId){
-                $active = ($rec->_selectedGroupId == $groupId) ? 'active' : '';
-                Mode::push('treeShortName', true);
-                $groupName = (isset($groupId)) ? cat_Groups::getVerbal($groupId, 'name') : tr("Всички");
-                Mode::pop('treeShortName');
-                $tabTitle = tr("Избор на група|*: \"{$groupName}\"");
-                if (Mode::get('screenMode') == 'narrow' && countR($groupsTable) > 3) {
-                    $tab = "<option id='group{$groupId}' data-id = '{$groupId}'>{$groupName}</option>";
-                } else {
-                    $tab = "<li id='group{$groupId}' data-id = '{$groupId}' class='selectable {$active}' title='{$tabTitle}'>{$groupName}</li>";
-                }
-
-                $resultTpl->append($tab, "TAB");
+                $tab = "<li id='group{$groupId}' data-id = '{$groupId}' class='selectable {$active}' title='{$tabTitle}'>{$groupName}</li>";
             }
             
-            $tpl->append($resultTpl, 'GROUP_TAB');
+            $resultTpl->append($tab, "TAB");
         }
-        
+        $tpl->append($resultTpl, 'GROUP_TAB');
+       
         $block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PRODUCTS_RESULT');
-        $count = 0;
-        foreach ($res as $key => $obj){
-            $countRows = countR($obj->rows);
-            if($countRows){
-                $pTpl = new core_ET("<div class='grid'>[#RES#]</div>");
-                
-                foreach ($obj->rows as $row){
-                    $row->elementId = "{$key}{$rec->_selectedGroupId}{$row->id}";
-                    $bTpl = clone $block;
-                    $bTpl->placeObject($row);
-                    $bTpl->removeBlocksAndPlaces();
-                    $pTpl->append($bTpl, 'RES');
-                    $count++;
-                }
-                
-                $pTpl->removeBlocksAndPlaces();
-                $tpl->append($pTpl, $obj->placeholder);
-            } elseif($key == 'products'){
-                $tpl->append('<div class="noFoundInGroup">' . tr("Няма намерени артикули") . '</div>', $obj->placeholder);
+        $countRows = countR($productRows);
+        if($countRows){
+            $pTpl = new core_ET("<div class='grid'>[#RES#]</div>");
+            foreach ($productRows as $row){
+                $row->elementId = "{$rec->_selectedGroupId}{$row->id}";
+                $bTpl = clone $block;
+                $bTpl->placeObject($row);
+                $bTpl->removeBlocksAndPlaces();
+                $pTpl->append($bTpl, 'RES');
             }
+            
+            $pTpl->removeBlocksAndPlaces();
+            $tpl->append($pTpl, 'BLOCK');
+        } else {
+            $tpl->append('<div class="noFoundInGroup">' . tr("Няма намерени артикули") . '</div>', 'BLOCK');
         }
         
-        $holderClass = (empty($tab)) ? "noTabs" : "withTabs";
-        $tpl->prepend("<div class='{$holderClass}'>");
+        $tpl->prepend("<div class='withTabs'>");
         $tpl->append("</div>");
         
         return $tpl;
@@ -1750,83 +1736,47 @@ class pos_Terminal extends peripheral_Terminal
     
     
     /**
-     * Връща последно продаваните артикули на контрагента
-     *
+     * Връща свързаните артикули с избрания
+     * 
      * @return array
      */
-    private function prepareContragentProducts($rec, $string)
+    private function getSuggestedProductIds($rec, $selectedRec)
     {
-        $products = array();
-        if($listId = cond_Parameters::getParameter($rec->contragentClass, $rec->contragentObjectId, 'salesList')){
-            $maxSearchProductInLastSales = pos_Points::getSettings($rec->pointId, 'maxSearchProductInLastSales');
-            $productsInList = arr::extractValuesFromArray(cat_Listings::getAll($listId, null, $maxSearchProductInLastSales), 'productId');
-            if(is_array($productsInList)){
-                foreach ($productsInList as $productId){
-                    $pRec = cat_Products::fetch($productId, 'name,isPublic,nameEn,code,canStore,measureId,groups,canSell');
-                
-                    if(empty($rec->_selectedGroupId) || keylist::isIn($rec->_selectedGroupId, $pRec->groups)){
-                        $products[$productId] = $pRec;
-                    }
+        $suggestedArr = array();
+        if(isset($selectedRec->productId)){
+            $suggestedArr = sales_ProductRelations::fetchField("#productId = {$selectedRec->productId}", 'data');
+            $suggestedArr = arr::make($suggestedArr);
+            
+            if($listId = cond_Parameters::getParameter($rec->contragentClass, $rec->contragentObjectId, 'salesList')){
+                $productsInList = arr::extractValuesFromArray(cat_Listings::getAll($listId, 'productId'));
+                if(is_array($productsInList)){
+                    $suggestedArr += $productsInList;
                 }
             }
         }
         
-        return $this->prepareProductResultRows($products, $rec);
-    }
-    
-    
-    /**
-     * Връща избрания артикул от реда и свързаните с него артикули
-     * 
-     * @return array
-     */
-    private function prepareResultSimilarProducts($rec, $selectedRec, $string)
-    {
-        $productRelations = array();
-        $maxSearchProductRelations = pos_Points::getSettings($rec->pointId)->maxSearchProductRelations;
         
-        if(empty($maxSearchProductRelations)) {
-            
-            return $productRelations;
-        }
-        
-        $products = array($selectedRec->productId => cat_Products::fetch($selectedRec->productId, 'name,isPublic,nameEn,code,canStore,measureId,canSell'));
-        $products[$selectedRec->productId]->packId = $selectedRec->value;
-        $similarProducts = sales_ProductRelations::fetchField("#productId = {$selectedRec->productId}", 'data');
-       
-        if(is_array($similarProducts)){
-            $productRelations = array_keys($similarProducts);
-            $productRelations = array_slice($productRelations, 0, $maxSearchProductRelations);
-        }
-        
-        foreach ($productRelations as $productId){
-            $pRec = cat_Products::fetch($productId, 'name,isPublic,nameEn,code,canStore,measureId,canSell,groups');
-            
-            if(empty($rec->_selectedGroupId) || keylist::isIn($rec->_selectedGroupId, $pRec->groups)){
-                 $products[$productId] = $pRec;
-            }
-        }
-        
-        return $this->prepareProductResultRows($products, $rec);
+        return $suggestedArr;
     }
     
     
     /**
      * Подготвя данните от резултатите за търсене
      */
-    private function prepareProductTable($rec, $searchString)
+    private function prepareProductTable($rec, $searchString, $selectedRec)
     {
         $result = core_Cache::get('pos_Terminal', "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}_{$rec->_selectedGroupId}");
         
-        //$result = false;
-        
         $settings = pos_Points::getSettings($rec->pointId);
         if(!is_array($result)){
+            $similarProducts = $this->getSuggestedProductIds($rec, $selectedRec);
             
             $count = 0;
             $sellable = array();
             $searchStringPure = plg_Search::normalizeText($searchString);
+            $pointRec = pos_Points::fetch($rec->pointId);
             
+            // Заявка към продаваемите артикули с цени
             $pQuery = pos_SellableProductsCache::getQuery();
             $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
             $pQuery->EXT('measureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
@@ -1835,25 +1785,45 @@ class pos_Terminal extends peripheral_Terminal
             $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
             $pQuery->EXT('nameEn', 'cat_Products', 'externalName=nameEn,externalKey=productId');
             $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
+            
             $pQuery->where("#priceListId = {$settings->policyId}");
             $pQuery->show('productId,name,nameEn,code,canStore,measureId,canSell,string,searchKeywords');
             
-            // Ако не се търси подробно артикул, се показват тези от любими
+            // Ако не е посочен стринг се показват най-продаваните артикули
             if(empty($searchString)){
-                $groups = type_Table::toArray(pos_Points::getSettings($rec->pointId, 'productGroups'));
-                
-                if(countR($groups)){
-                    $pQuery->limit($settings->maxSearchProducts);
-                    $pQuery->orderBy('code,name', 'ASC');
-                    
-                    $groups = arr::extractValuesFromArray($groups, 'groupId');
-                    $pQuery->likeKeylist('groups', $groups);
-                    if(!empty($rec->_selectedGroupId)){
-                        $pQuery->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
+                if($rec->_selectedGroupId == 'similar'){
+                    if(countR($similarProducts)){
+                        $pQuery->in('productId', $similarProducts);
+                    } else {
+                        $pQuery->where("1=2");
                     }
+                } elseif(is_numeric($rec->_selectedGroupId)){
+                    $pQuery->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
+                }
+                
+                $cloneQuery = clone $pQuery;
+                
+                // Намиране на най-продаваните артикули в ПОС-а
+                $pQuery->EXT('quantity', 'sales_StatisticData', 'externalName=quantity,remoteKey=productId,externalFieldName=productId');
+                $pQuery->EXT('key', 'sales_StatisticData', 'externalName=key,remoteKey=productId,externalFieldName=productId');
+                $pQuery->where("#key='pos|{$pointRec->storeId}'");
+                $pQuery->orderBy('quantity', 'DESC');
+                $pQuery->limit($settings->maxSearchProducts);
+                
+                // Добавят се към резултатите
+                while ($pRec = $pQuery->fetch()){
+                    $sellable[$pRec->productId] = $pRec;
+                }
+                
+                // Ако Броя на намерените е по-малък от търсения, допълваме с продаваемите, за които няма данни да са продавани
+                $mostSelledCount = countR($sellable);
+                if($mostSelledCount < $settings->maxSearchProducts){
+                    $cloneQuery->notIn('productId', array_keys($sellable));
+                    $cloneQuery->orderBy('code', 'ASC');
+                    $cloneQuery->limit($settings->maxSearchProducts - $mostSelledCount);
                     
-                    while($pRec = $pQuery->fetch()){
-                        $sellable[$pRec->productId] = $pRec;
+                    while ($pRec1 = $cloneQuery->fetch()){
+                        $sellable[$pRec1->productId] = $pRec1;
                     }
                 }
             } else {
@@ -1862,11 +1832,17 @@ class pos_Terminal extends peripheral_Terminal
                 
                 // Ако има артикул, чийто код отговаря точно на стринга, той е най-отгоре
                 $foundRec = cat_Products::getByCode($searchString);
-                
                 if(isset($foundRec->productId)){
                     $cloneQuery = clone $pQuery;
                     $cloneQuery->where("#productId = {$foundRec->productId}");
-                    if(!empty($rec->_selectedGroupId)){
+                    
+                    if($rec->_selectedGroupId == 'similar'){
+                        if(countR($cloneQuery)){
+                            $pQuery->in('productId', $similarProducts);
+                        } else {
+                            $pQuery->where("1=2");
+                        }
+                    } elseif(is_numeric($rec->_selectedGroupId)){
                         $cloneQuery->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
                     }
                     
@@ -1875,7 +1851,7 @@ class pos_Terminal extends peripheral_Terminal
                         $count++;
                     }
                 }
-                
+               
                 // След това се добавят артикулите, които съдържат стринга в името и/или кода си
                 $pQuery1 = clone $pQuery;
                 $pQuery1->orderBy('code,name', 'ASC');
@@ -1886,10 +1862,16 @@ class pos_Terminal extends peripheral_Terminal
                 $searchString = plg_Search::normalizeText($searchString);
                 $pQuery1->where("LOCATE ('{$searchString}', #string)");
                 plg_Search::applySearch($searchString, $pQuery1);
-                if(!empty($rec->_selectedGroupId)){
+                
+                if($rec->_selectedGroupId == 'similar'){
+                    if(countR($cloneQuery)){
+                        $pQuery1->in('productId', $similarProducts);
+                    } else {
+                        $pQuery1->where("1=2");
+                    }
+                } elseif(is_numeric($rec->_selectedGroupId)){
                     $pQuery1->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
                 }
-                
                 $pQuery1->limit($settings->maxSearchProducts);
                 
                 while($pRec1 = $pQuery1->fetch()){
@@ -1904,7 +1886,14 @@ class pos_Terminal extends peripheral_Terminal
                     $notInKeys = array_keys($sellable);
                     $pQuery2 = clone $pQuery;
                     $pQuery2->limit($settings->maxSearchProducts);
-                    if(!empty($rec->_selectedGroupId)){
+                    
+                    if($rec->_selectedGroupId == 'similar'){
+                        if(countR($similarProducts)){
+                            $pQuery2->in('productId', $similarProducts);
+                        } else {
+                            $pQuery2->where("1=2");
+                        }
+                    } elseif(is_numeric($rec->_selectedGroupId)){
                         $pQuery2->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
                     }
                     
@@ -1971,7 +1960,7 @@ class pos_Terminal extends peripheral_Terminal
             
             $packQuantity = cat_products_Packagings::getPack($id, $packId, 'quantity');
             $perPack = (!empty($packQuantity)) ? $packQuantity : 1;
-            $price = $Policy->getPriceByList($listId, $id, $packId, 1, null, 1, 'yes');
+            $price = $Policy->getPriceByList($listId, $id, $packId, 1, dt::now(), 1, 'no');
             
             // Обръщаме реда във вербален вид
             $res[$id] = new stdClass();;
@@ -2048,7 +2037,7 @@ class pos_Terminal extends peripheral_Terminal
     
     
     /**
-     * Рендиране на таба с черновите
+     * Рендиране на таба с бележките
      *
      * @param stdClass $rec - записа на бележката
      * @param string $string - въведения стринг за търсене
@@ -2059,80 +2048,83 @@ class pos_Terminal extends peripheral_Terminal
     private function renderResultReceipts($rec, $string, $selectedRec)
     {
         $rec = $this->fetchRec($rec);
+        $rec->_selectedReceiptFilter = Mode::get("currentSelectedReceiptFilter{$rec->id}");
+        $rec->_selectedReceiptFilter = (!empty($rec->_selectedReceiptFilter)) ? $rec->_selectedReceiptFilter : 'draft';
         
         $string = plg_Search::normalizeText($string);
         $maxSearchReceipts = pos_Points::getSettings($rec->pointId, 'maxSearchReceipts');
        
+        if (Mode::get('screenMode') == 'narrow') {
+            $tpl = new core_ET("<div class='tabs receiptTabs'><select style='width: 90%' class='tabHolder receipts'>[#TAB#]</select></div>");
+        } else {
+            $tpl = new core_ET("<div class='tabs receiptTabs'><ul class='tabHolder receipts'>[#TAB#]</ul></div>");
+        }
+        
+        $tabArr = array('draft' => tr('Чернови'), 'paid' => tr('Платени'), 'waiting' => tr('Чакащи'), 'closed' => tr('Приключени'), 'transfered' => tr('Прехвърлени'), 'rejected' => tr('Оттеглени'));
+        foreach ($tabArr as $tabValue => $tabCaption){
+            $active = ($rec->_selectedReceiptFilter == $tabValue) ? 'active' : '';
+            
+            $tabTitle = tr("Избор на|*: \"{$tabCaption}\"");
+            if (Mode::get('screenMode') == 'narrow') {
+                $tab = "<option id='group{$tabValue}' data-id = '{$tabValue}'>{$tabCaption}</option>";
+            } else {
+                $tab = "<li id='group{$tabValue}' data-id = '{$tabValue}' class='selectable {$active}' title='{$tabTitle}'>{$tabCaption}</li>";
+            }
+            
+            $tpl->append($tab, "TAB");
+        }
+        
         // Намираме всички чернови бележки и ги добавяме като линк
         $query = pos_Receipts::getQuery();
         $query->XPR('createdDate', 'date', 'DATE(#createdOn)');
         $query->orderBy("#createdDate,#id", 'DESC');
-        $query->limit(5 * $maxSearchReceipts);
+        $query->limit($maxSearchReceipts);
         if(!empty($string)){
             plg_Search::applySearch($string, $query);
         }
         
-        $tpl = new core_ET("<div class='tabs'><ul class='tabHolder'>[#TAB#]</ul></div><div class='contentHolder'>");
-        
-        // Групиране на записите по дата
-        $arr = array('draft' => array('caption' => 'Чернови', 'receipts' => new core_ET(""), 'count' => 0),
-                      'paid' => array('caption' => 'Платени', 'receipts' => new core_ET(""), 'count' => 0),
-                      'closed' => array('caption' => 'Чакащи', 'receipts' => new core_ET(""), 'count' => 0),
-                      'transfered' => array('caption' => 'Прехвърлени', 'receipts' => new core_ET(""), 'count' => 0),
-                      'rejected' => array('caption' => 'Оттеглени', 'receipts' => new core_ET(""), 'count' => 0));
+        if(in_array($rec->_selectedReceiptFilter, array('draft', 'waiting', 'closed', 'rejected'))){
+            $query->where("#state = '{$rec->_selectedReceiptFilter}'");
+        } elseif($rec->_selectedReceiptFilter == 'transfered'){
+            $query->where("#transferedIn IS NOT NULL");
+        } elseif($rec->_selectedReceiptFilter == 'paid'){
+            $query->where("#paid IS NOT NULL AND #paid != 0 AND (#state != 'closed' && #state != 'rejected')");
+        }
         
         $disabledClass = (pos_Receipts::haveRightFor('add')) ? 'navigable' : 'disabledBtn';
         $addUrl = (pos_Receipts::haveRightFor('add')) ? array('pos_Receipts', 'new') : array();
         
-        $row = ht::createLink('+ Нова бележка', $addUrl, null, array('id' => "receiptnew", 'class' => "pos-notes posBtns {$disabledClass}", 'title' => 'Създаване на нова бележка'));
-        $arr['draft']['receipts']->append($row);
-        $arr['draft']['count']++;
+        $rows = array();
+        if($rec->_selectedReceiptFilter == 'draft'){
+            $rows[] = ht::createLink('+ Нова бележка', $addUrl, null, array('id' => "receiptnew", 'class' => "pos-notes posBtns {$disabledClass}", 'title' => 'Създаване на нова бележка'));
+        }
         
-        while ($receiptRec = $query->fetch()) {
-            $key = $receiptRec->state;
-            if(isset($receiptRec->transferedIn)){
-                $key = 'transfered';
-            } elseif($receiptRec->paid && $receiptRec->state != 'closed'){
-                $key = 'paid';
-            } elseif($receiptRec->state == 'waiting'){
-                $key = 'closed';
-            }
-            
+        while($receiptRec = $query->fetch()){
             $openUrl = (pos_Receipts::haveRightFor('terminal', $receiptRec->id)) ? array('pos_Terminal', 'open', 'receiptId' => $receiptRec->id, 'opened' => true) : array();
             $class = (count($openUrl)) ? ' navigable' : ' disabledBtn';
             $class .= ($receiptRec->id == $rec->id) ? ' currentReceipt' : '';
             
             $btnTitle = self::getReceiptTitle($receiptRec);
             $btnTitle = ($rec->pointId != $receiptRec->pointId) ? ht::createHint($btnTitle, "Бележката е от друг POS") : $btnTitle;
-            $row = ht::createLink($btnTitle, $openUrl, null, array('id' => "receipt{$receiptRec->id}", 'class' => "pos-notes posBtns {$class} state-{$receiptRec->state} enlargable", 'title' => 'Отваряне на бележката', 'data-enlarge-object-id' => $receiptRec->id, 'data-enlarge-class-id' => pos_Receipts::getClassId(), 'data-modal-title' => strip_tags(pos_Receipts::getRecTitle($receiptRec))));
-            
-            if($arr[$key]['count'] < $maxSearchReceipts){
-                $arr[$key]['receipts']->append($row);
-                $arr[$key]['count']++;
-            }
+            $rows[] = ht::createLink($btnTitle, $openUrl, null, array('id' => "receipt{$receiptRec->id}", 'class' => "pos-notes posBtns {$class} state-{$receiptRec->state} enlargable", 'title' => 'Отваряне на бележката', 'data-enlarge-object-id' => $receiptRec->id, 'data-enlarge-class-id' => pos_Receipts::getClassId(), 'data-modal-title' => strip_tags(pos_Receipts::getRecTitle($receiptRec))));
         }
         
-        foreach ($arr as $key => $element){
-            $contentId = "content{$key}";
-            $tab = "<li class='selectable noajaxtabs' data-content = '{$contentId}'>{$element['caption']}</li>";
-            $tpl->append($tab, "TAB");
-            
-            if($element['count']){
-                $element['receipts']->prepend("<div class='content' id='{$contentId}'><div class='grid'>");
-                $element['receipts']->append("</div></div>");
-                $element['receipts']->removeBlocksAndPlaces();
-                $tpl->append($element['receipts']);
-            } else {
-                $tpl->append("<div class='content' id='{$contentId}'><div class='noFoundInGroup'>" . tr("Няма намерени бележки") . "</div></div>");
+        if(countR($rows)){
+            $tpl->append("<div class='contentHolderResults'><div class='grid'>");
+            foreach ($rows as $receiptBtn){
+                $tpl->append($receiptBtn);
             }
+            $tpl->append("</div></div>");
+        } else {
+            $tpl->append("<div class='contentHolderResults'><div class='noFoundInGroup'>" . tr("Няма намерени бележки") . "</div></div>");
         }
         
-        $tpl->append('</div>');
         $tpl->prepend("<div class='withTabs'>");
         $tpl->append("</div>");
-        
         $tpl->removeBlocksAndPlaces();
-       
+
+        jquery_Jquery::run($tpl, "changePriceSpans();");
+        
         return $tpl;
     }
     
@@ -2151,23 +2143,35 @@ class pos_Terminal extends peripheral_Terminal
         $date = dt::mysql2verbal($rec->createdOn, $mask);
         $color = dt::getColorByTime($rec->createdOn);
         $date = "<span class='timeSpan' style=\"color:#{$color}\">{$date}</span>";
-        
-        $amountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($rec->total);
+
+
+        if($rec->change < 0 && $rec->paid){
+            $changedVerbal = core_Type::getByName('double(decimals=2)')->toVerbal(abs($rec->change));
+            $amountVerbalInner = "<span class='prices'><span class='receiptResultAmount'>" .core_Type::getByName('double(decimals=2)')->toVerbal($rec->total) . "</span>";
+            $amountVerbalInner .= "<span class='receiptResultChangeAmount hidden'>{$changedVerbal}</span></span>";
+            $amountVerbal = "";
+        } else {
+            $amountVerbal = "<span class='receiptResultAmount'>" .core_Type::getByName('double(decimals=2)')->toVerbal($rec->total) . "</span>";
+        }
+
         if(isset($rec->returnedTotal)){
             $returnedTotalVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($rec->returnedTotal);
             $amountVerbal .= " <span class='receiptResultReturnedAmount'>(-{$returnedTotalVerbal})</span>";
+
         } elseif(isset($rec->revertId)){
             $symbol = html_entity_decode('&#8630;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
-            $amountVerbal = "{$symbol}&nbsp;<span class='receiptResultReturnedAmount'>{$amountVerbal}</span>";
+            $amountVerbal .= " <span class='receiptResultReturnedAmount'>{$symbol}{$amountVerbal}</span>";
         }
-        
+
         $num = pos_Receipts::getReceiptShortNum($rec->id);
-        $contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
+
+        $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
+        $contragentName = ($rec->contragentClass == crm_Persons::getClassId() && $defaultContragentId == $rec->contragentObjectId) ? pos_Points::getVerbal($rec->pointId, 'name') : cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
         $contragentName = str::limitLen($contragentName, 18);
-        $num .= "/{$contragentName}";
-        
-        $title = "{$num}<div class='nowrap'><span class='spanDate'>{$date}</span> <span class='receiptResultAmount'>{$amountVerbal}</span></div>";
-       
+        $num .= " / {$contragentName}";
+
+        $title = "{$num}<div class='nowrap'><span class='spanDate'>{$date}</span>  {$amountVerbalInner}<span class='otherPrice'> {$amountVerbal}</span></div>";
+
         return $title;
     }
     

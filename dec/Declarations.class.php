@@ -48,8 +48,8 @@ class dec_Declarations extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'sales_Wrapper, bgerp_plg_Blank, recently_Plugin, doc_ActivatePlg, plg_Printing, cond_plg_DefaultValues, 
-    				 plg_RowTools2, doc_DocumentIntf, doc_DocumentPlg, doc_EmailCreatePlg ,doc_plg_TplManager';
+    public $loadList = 'sales_Wrapper, doc_plg_TplManager, bgerp_plg_Blank, recently_Plugin, doc_ActivatePlg, plg_Printing, cond_plg_DefaultValues, 
+    				 plg_RowTools2, doc_DocumentIntf, doc_DocumentPlg, doc_EmailCreatePlg';
     
     
     /**
@@ -381,7 +381,7 @@ class dec_Declarations extends core_Master
             $row->note = $Richtext->toVerbal($rec->note);
         }
         
-        core_Lg::pop($rec->tplLang);
+        core_Lg::pop();
     }
     
     

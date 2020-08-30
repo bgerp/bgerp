@@ -166,6 +166,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         
         // Фактури ПРОДАЖБИ
         if ($rec->typeOfInvoice == 'out') {
+            
             $sRecs = array();
             $sRecsAll = array();
             $isRec = array();
@@ -234,7 +235,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             while ($sale = $salesQuery->fetch()) {
                 if ($sale->closedDocuments != '') {
                     
-                    //Масив със затварящи документи
+                    //Масив със затворени договори чрез обединяване
                     foreach ((keylist::toArray($sale->closedDocuments)) as $v) {
                         $salesUN[$v] = ($v);
                     }
@@ -259,6 +260,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
             
             while ($salesInvoice = $invQuery->fetch()) {
+                
+                
                 $firstDocument = doc_Threads::getFirstDocument($salesInvoice->threadId);
                 
                 $firstDocumentArr[$salesInvoice->threadId] = $firstDocument->that;
@@ -273,14 +276,18 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                         $unitedCheck = in_array($className::fetchField($firstDocument->that), $salesUN);
                     }
                     
+                    
+                    //Ако продажбата е приключена с друг договор фактурите от тази сделка остават в справката, ако е приключена
+                    //по друг начин сделката се прескача.
                     if (($className::fetchField($firstDocument->that, 'state') == 'closed') &&
                         ($className::fetchField($firstDocument->that, 'closedOn') <= $rec->checkDate) &&
                         ! $unitedCheck) {
                         continue;
                     }
                 }
-                $threadsId[$salesInvoice->threadId] = $salesInvoice->threadId;
                 
+                $threadsId[$salesInvoice->threadId] = $salesInvoice->threadId;
+               
                 // Когато е избрано ВСИЧКИ в полето плащане
                 if ($rec->unpaid == 'all') {
                     
@@ -379,7 +386,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             }
                             
                             if (($invDiff) > 0) {
-                                $salesInvoiceNotPaid = ($invDiff);
+                                $salesInvoiceNotPaid = $invDiff;
                             }
                             
                             if (($invAmount - $invPayout) < 0) {
@@ -392,6 +399,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             }
                             
                             // Масив с данни за сумите от фактурите  обединени по контрагенти
+                            if (! array_key_exists($iRec->id, $sRecs)) {
                             if (! array_key_exists($iRec->contragentName, $totalInvoiceContragent)) {
                                 $totalInvoiceContragent[$iRec->contragentName] = (object) array(
                                     'totalInvoiceValue' => $paydocs->amount,                            //общо стойност на фактурите за контрагента
@@ -408,6 +416,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 $obj->totalInvoiceNotPaid += $salesInvoiceNotPaid;
                                 $obj->totalInvoiceOverPaid += $salesInvoiceOverPaid;
                                 $obj->totalInvoiceOverDue += $salesInvoiceOverDue;
+                            }
                             }
                             
                             // масива с фактурите за показване
@@ -789,7 +798,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $rec->totalInvoiceOverPaidAll += $v -> totalInvoiceOverPaid;
             $rec->totalInvoiceOverDueAll += $v -> totalInvoiceOverDue;
         }
-        
+       
         return $recs;
     }
     

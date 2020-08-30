@@ -731,13 +731,13 @@ class doc_FolderPlg extends core_Plugin
                     // За всеки документ който може да се създаде от бърз бутон
                     foreach ($buttons as $obj) {
                         $Cls = cls::get($obj->class);
-                        
                         if ($Cls->haveRightFor('add', (object) array('folderId' => $mvc->forceCoverAndFolder($rec->id, false)))) {
-                            $url = array($mvc, 'forcedocumentinfolder', 'id' => $rec->id, 'documentClassId' => $Cls->getClassId(), 'ret_url' => true);
+                            
                             
                             // Добавяме го в rowToolbar-а
+                            $url = array($mvc, 'forcedocumentinfolder', 'id' => $rec->id, 'documentClassId' => $Cls->getClassId(), 'ret_url' => true);
                             core_RowToolbar::createIfNotExists($row->_rowTools);
-                            $row->_rowTools->addLink($Cls->singleTitle, $url, "ef_icon = {$Cls->singleIcon},order=18,title=Създаване на " . mb_strtolower($Cls->singleTitle));
+                            $row->_rowTools->addLink($obj->caption, $url, "ef_icon = {$Cls->singleIcon},order=18,title=Създаване на " . mb_strtolower($Cls->singleTitle));
                         }
                     }
                 }

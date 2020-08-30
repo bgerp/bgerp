@@ -88,7 +88,7 @@ class speedy_plg_BillOfLading extends core_Plugin
             
             if($form->isSubmitted()){
                 $fRec = $form->rec;
-                
+               
                 if(empty($fRec->receiverSpeedyOffice) && (mb_strlen($fRec->receiverAddress) < 5 || is_numeric($fRec->receiverAddress))){
                     $form->setError('receiverAddress', 'Адреса трябва да е поне от 5 символа и да съдържа буква');
                 }
@@ -145,10 +145,11 @@ class speedy_plg_BillOfLading extends core_Plugin
                             }
                         }
                     } else {
+                        $picking = null;
                         
                         // Опит за създаване на товарителница
                         try{
-                            $bolId = $adapter->getBol($form->rec);
+                            $bolId = $adapter->getBol($form->rec, $picking);
                         } catch(ServerException $e){
                             $isHandled = $fields = null;
                             $msg = $adapter->handleException($e, $fields, $isHandled);
@@ -163,10 +164,13 @@ class speedy_plg_BillOfLading extends core_Plugin
                         
                         // Записване на товарителницата като PDF, ако е създадеба
                         if(!$form->gotErrors() && !empty($bolId)){
+                            $bolRec = (object)array('containerId' => $rec->containerId, 'number' => $bolId, 'takingDate' => $picking->getTakingDate());
+                            
                             try{
                                 $bolFh = $adapter->getBolPdf($bolId);
                                 $fileId = fileman::fetchByFh($bolFh, 'id');
                                 doc_Linked::add($rec->containerId, $fileId, 'doc', 'file', 'Товарителница');
+                                $bolRec->file = $bolFh;
                                 
                             } catch(ServerException $e){
                                 reportException($e);
@@ -175,13 +179,17 @@ class speedy_plg_BillOfLading extends core_Plugin
                                 core_Statuses::newStatus('Проблем при генериране на PDF на товарителница', 'error');
                             }
                         }
-                        
+                       
                         if(!$form->gotErrors() && !empty($bolId)){
                             $mvc->logWrite("Генерирана товарителница на Speedy", $id);
                             
                             // Кеш на последно избраните стойностти
                             $cacheArr = array('senderClientId' => $fRec->senderClientId, 'service' => $fRec->service);
                             core_Permanent::set(self::getUserDataCacheKey($rec->folderId, $adapter), $cacheArr, 4320);
+                            
+                            if(is_object($bolRec)){
+                                speedy_BillOfLadings::save($bolRec);
+                            }
                             
                             followRetUrl(null, "Успешно генерирана товарителница|*: №{$bolId}");
                         }
@@ -272,7 +280,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         $form->FLD("parcelInfo", "table(columns=width|depth|height|weight,captions=Ширина|Дълбочина|Височина|Тегло,validate=speedy_plg_BillOfLading::validatePallets)", 'caption=Описание на пратката->Палети,after=palletCount');
         $form->FLD('content', 'varchar', 'caption=Описание на пратката->Съдържание,mandatory,recently');
         $form->FLD('packaging', 'varchar', 'caption=Описание на пратката->Опаковка,mandatory,recently');
-        $form->FLD('totalWeight', 'double(min=0,max=50)', 'caption=Описание на пратката->Общо тегло,unit=кг (Макс: 50)');
+        $form->FLD('totalWeight', 'double(min=0)', 'caption=Описание на пратката->Общо тегло,unit=кг');
         $form->FLD('isPaletize', 'enum(no=Не,yes=Да)', 'caption=Описание на пратката->Палетизиране,maxRadio=2');
         
         $form->FLD('amountCODBase', 'double(min=0)', 'caption=Описание на пратката->Наложен платеж,unit=BGN,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer');
@@ -305,6 +313,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         }
         
         $logisticData = $mvc->getLogisticData($documentRec);
+        $logisticData['toCountry'] = !is_numeric($logisticData['toCountry']) ? drdata_Countries::getIdByName($logisticData['toCountry']) : $logisticData['toCountry'];
         $toPerson = null;
        
         if($mvc instanceof sales_Sales){
@@ -319,37 +328,12 @@ class speedy_plg_BillOfLading extends core_Plugin
                     }
                 }
             }
-           
-            if(core_Packs::isInstalled('eshop')){
-                if($cartRec = eshop_Carts::fetch("#saleId = {$documentRec->id}")){
-                    $toPerson = $cartRec->personNames;
-                    $form->setDefault('receiverPhone', $cartRec->tel);
-                    
-                    $form->setDefault('receiverCountryId', $cartRec->deliveryCountry);
-                    if($rec->receiverCountryId == $cartRec->deliveryCountry){
-                        $form->setDefault('receiverPlace', $cartRec->deliveryPlace);
-                        $form->setDefault('receiverAddress', $cartRec->deliveryAddress);
-                        $form->setDefault('receiverPCode', $cartRec->deliveryPCode);
-                    }
-                }
-            }
-            
-            if(empty($cartRec) && $documentRec->deliveryLocationId){
-                $locationRec = crm_Locations::fetch($documentRec->deliveryLocationId, 'mol,tel');
-                if(!empty($locationRec->mol)){
-                    $toPerson = $locationRec->mol;
-                }
-                
-                if(!empty($locationRec->tel)){
-                    $form->setDefault('receiverPhone', $locationRec->tel);
-                }
-            }
             
         } elseif($mvc instanceof store_DocumentMaster){
             $firstDocument = doc_Threads::getFirstDocument($documentRec->threadId);
             $deliveryTermId = $firstDocument->fetchField('deliveryTermId');
             
-            if($deliveryTermId){
+            if($deliveryTermId && empty($documentRec->locationId) && empty($documentRec->tel)){
                 if($DeliveryCalc = cond_DeliveryTerms::getTransportCalculator($deliveryTermId)){
                     if($form->cmd != 'refresh' && $form->cmd != 'save' && $DeliveryCalc->class instanceof speedy_interface_DeliveryToOffice){
                         $deliveryData = $firstDocument->fetchField('deliveryData');
@@ -361,34 +345,17 @@ class speedy_plg_BillOfLading extends core_Plugin
             
             $paymentType = $firstDocument->fetchField('paymentMethodId');
             $amountCod = ($documentRec->chargeVat == 'separate') ? $documentRec->amountDelivered + $documentRec->amountDeliveredVat : $documentRec->amountDelivered;
+        }
         
-            if(core_Packs::isInstalled('eshop')){
-                if($cartRec = eshop_Carts::fetch("#saleId = {$firstDocument->that}")){
-                    if(!empty($cartRec->instruction)){
-                        $form->setDefault('receiverNotes', $cartRec->instruction);
-                    }
-                }
-            }
-            
-            if($documentRec->locationId){
-                $locationRec = crm_Locations::fetch($documentRec->locationId, 'mol,tel');
-                if(!empty($locationRec->mol)){
-                    $toPerson = $locationRec->mol;
-                }
-                if(!empty($locationRec->tel)){
-                    $form->setDefault('receiverPhone', $locationRec->tel);
-                }
-            } elseif(!empty($documentRec->tel)){
-                $toPerson =  $documentRec->person;
-                $form->setDefault('receiverPhone', $documentRec->tel);
-            } elseif($firstDocument->isInstanceOf('sales_Sales')){
-                if(core_Packs::isInstalled('eshop')){
-                    if($cartRec = eshop_Carts::fetch("#saleId = {$firstDocument->that}", 'personNames,tel')){
-                        $toPerson = $cartRec->personNames;
-                        $form->setDefault('receiverPhone', $cartRec->tel);
-                    }
-                }
-            }
+        $form->setDefault('receiverPhone', $logisticData['toPersonPhones']);
+        $form->setDefault('receiverNotes', $logisticData['instructions']);
+        $form->setDefault('receiverCountryId', $logisticData['toCountry']);
+        $toPerson = $logisticData['toPerson'];
+        
+        if($form->rec->receiverCountryId == $logisticData['toCountry']){
+            $form->setDefault('receiverPlace', $logisticData['toPlace']);
+            $form->setDefault('receiverAddress', $logisticData['toAddress']);
+            $form->setDefault('receiverPCode', $logisticData['toPCode']);
         }
         
         $amountCod = round($amountCod, 2);
@@ -472,6 +439,12 @@ class speedy_plg_BillOfLading extends core_Plugin
                $msg = $adapter->handleException($e, $errorFields, $isHandled);
                $form->setError($errorFields, $msg);
                
+               // хак да се покажат стойностите
+               $fields = arr::make($errorFields, true);
+               foreach ($fields as $fld){
+                   Request::push(array($fld => $form->rec->{$fld}));
+               }
+               
                if(!$isHandled){
                    reportException($e);
                    $mvc->logErr($e->getMessage(), $form->rec->id);
@@ -522,6 +495,26 @@ class speedy_plg_BillOfLading extends core_Plugin
         }
         
         return $form;
+    }
+    
+    
+    /**
+     * Дефолти от количката
+     * 
+     * @param core_Form $form
+     * @param stdClass $cartRec
+     * @return void
+     */
+    private static function setDefaultsFromCart($form, $cartRec)
+    {
+        $form->setDefault('receiverPhone', $cartRec->tel);
+        $form->setDefault('receiverNotes', $cartRec->instruction);
+        $form->setDefault('receiverCountryId', $cartRec->deliveryCountry);
+        if($form->rec->receiverCountryId == $cartRec->deliveryCountry){
+            $form->setDefault('receiverPlace', $cartRec->deliveryPlace);
+            $form->setDefault('receiverAddress', $cartRec->deliveryAddress);
+            $form->setDefault('receiverPCode', $cartRec->deliveryPCode);
+        }
     }
     
     
@@ -604,6 +597,74 @@ class speedy_plg_BillOfLading extends core_Plugin
                     if (!isset($actions['ship'])) {
                         $requiredRoles = 'no_one';
                     }
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * Връща тялото на имейла генериран от документа
+     */
+    public function on_AfterGetDefaultEmailBody($mvc, &$tpl, $id, $isForwarding = false)
+    {
+        if($mvc instanceof store_ShipmentOrders){
+            $rec = $mvc->fetchRec($id);
+           
+            if($foundRec = self::getLastBolRec($rec->containerId)){
+                $url = self::getTrackingUrl($foundRec->number);
+                $date = dt::mysql2verbal($foundRec->takingDate, 'd.m.Y');
+                $bolTpl = new ET(tr("|*\n|Вашата пратка е подготвена за изпращане на|* [#date#] |с товарителница|* [#number#].\n|Може да проследите получаването ѝ от тук|*: [#URL#]"));
+                $bolTpl->replace($url, 'URL');
+                $bolTpl->replace($foundRec->number, 'number');
+                $bolTpl->replace($date, 'date');
+                $tpl->append($bolTpl);
+            }
+        }
+    }
+    
+    
+    private static function getTrackingUrl($number)
+    {
+        $urlTpl = new core_ET(speedy_Setup::get('TRACKING_URL'));
+        $urlTpl->replace($number, 'NUM');
+        
+        return $urlTpl->getContent();
+    }
+    
+    
+    /**
+     * Връща коя е последната товарителница издадена към документа
+     * 
+     * @param int $containerId
+     * 
+     * @return stdClass|false
+     */
+    private static function getLastBolRec($containerId)
+    {
+        $spQuery = speedy_BillOfLadings::getQuery();
+        $spQuery->where("#containerId = {$containerId}");
+        $spQuery->orderBy('id', 'DESC');
+        $spQuery->limit(1);
+        
+        return $spQuery->fetch();
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if($mvc instanceof store_ShipmentOrders){
+            if(isset($fields['-single'])){
+                if($bolRec = self::getLastBolRec($rec->containerId)){
+                    $bolId = ht::createLinkRef($bolRec->number, self::getTrackingUrl($bolRec->number));
+                    $row->note .= tr("|* <span class='quiet'>|Товарителница|*:</span> {$bolId}");
                 }
             }
         }

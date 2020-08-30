@@ -1115,6 +1115,7 @@ class eshop_Carts extends core_Master
         $body->replace($companyName, 'COMPANY_NAME');
         
         if($rec->makeInvoice != 'none'){
+            Mode::push('text', 'plain');
             $body->replace(self::getVerbal($rec, 'invoiceNames'), 'invoiceNames');
             if(!empty($rec->invoiceVatNo)){
                 $body->replace(tr('ДДС №|*: ') . self::getVerbal($rec, 'invoiceVatNo'), 'invoiceVatNo');
@@ -1129,12 +1130,13 @@ class eshop_Carts extends core_Master
             $body->replace(self::getVerbal($rec, 'invoicePCode'), 'invoicePCode');
             $body->replace(self::getVerbal($rec, 'invoicePlace'), 'invoicePlace');
             $body->replace(self::getVerbal($rec, 'invoiceAddress'), 'invoiceAddress');
+            Mode::pop('text');
         }
         
         $body = core_Type::getByName('richtext')->fromVerbal($body->getContent());
         
         // Подготовка на имейла
-        $emailRec = (object) array('subject' => tr('Онлайн поръчка') . " №{$rec->id}",
+        $emailRec = (object) array('subject' => tr('Онлайн поръчка') . " #{$rec->id}",
             'body' => $body,
             'folderId' => $saleRec->folderId,
             'originId' => $saleRec->containerId,

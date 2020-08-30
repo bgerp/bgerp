@@ -34,7 +34,8 @@ class drdata_Wrapper extends plg_ProtoWrapper
         $this->TAB('drdata_PhoneCache', 'T. Кеш', 'debug');
         
         if(core_Packs::isInstalled('speedy')){
-            $this->TAB('speedy_Offices', 'Speedy', 'admin');
+            $this->TAB('speedy_Offices', 'Speedy->Офиси', 'admin');
+            $this->TAB('speedy_BillOfLadings', 'Speedy->Товарителници', 'admin');
         }
         
         $this->title = 'Адресни данни';

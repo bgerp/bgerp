@@ -116,15 +116,17 @@ class ztm_Profiles extends core_Master
      * 
      * @return stdClass $res
      */
-    public static function getDefaultResponse($profileId)
+    public static function getDefaultRegisterValues($profileId)
     {
+        $profileRec = self::fetchRec($profileId);
+        
         $dArr = array();
         $dQuery = ztm_ProfileDetails::getQuery();
         $dQuery->EXT('type', 'ztm_Registers', 'externalName=type,externalKey=registerId');
-        $dQuery->where("#profileId = {$profileId}");
+        $dQuery->where("#profileId = '{$profileRec->id}'");
         $dQuery->show('registerId,value,type');
         while($dRec = $dQuery->fetch()){
-            if(in_array($dRec->type, array('int', 'int/float', 'float')) == 'int'){
+            if(in_array($dRec->type, array('int', 'float')) == 'int'){
                 $dRec->value = (float)$dRec->value;
             }
             $dArr[$dRec->registerId] = $dRec->value;
@@ -134,7 +136,7 @@ class ztm_Profiles extends core_Master
         $query = ztm_Registers::getQuery();
         
         while($rec = $query->fetch()){
-            if(in_array($rec->type, array('int', 'int/float', 'float')) == 'int'){
+            if(in_array($rec->type, array('int', 'float')) == 'int'){
                 $rec->default = (float)$rec->default;
             }
             
@@ -143,7 +145,7 @@ class ztm_Profiles extends core_Master
                 $default = $dArr[$rec->id];
             }
             
-            $res[$rec->name] = $default;
+            $res[$rec->id] = $default;
         }
         
         return (object)$res;
