@@ -699,6 +699,9 @@ class speedy_Adapter {
         } elseif(strpos($errorMsg, '[WEIGHT_NOT_IN_RANGE, Weight not in range for service') !== false){
             $errorMsg = 'Теглото не е в границите за избраната услуга';
             $fields = 'totalWeight,service';
+        } elseif(strpos($errorMsg, 'NON_ACTIVE_OFFICE_TBC') !== false){
+            $errorMsg = 'Офисът не е активен';
+            $fields = 'receiverSpeedyOffice';
         } else {
             $isHandled = false;
         }
