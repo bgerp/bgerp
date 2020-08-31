@@ -155,10 +155,23 @@
                <td style='width:150px'><span class="title-style nowrap">|Условие|*:</span></td>
                <td>[#termId#]</td>
             </tr>
+            
+            <!--ET_BEGIN DELIVERY_ADDRESS-->
+            [#DELIVERY_ADDRESS#]
             <tr>
                <td style='width:150px'><span class="title-style nowrap">|Доставка|*:</span></td>
                <td>[#deliveryCountry#], [#deliveryPCode#] [#deliveryPlace#], [#deliveryAddress#]</td>
             </tr>
+            <!--ET_END DELIVERY_ADDRESS-->
+            
+            <!--ET_BEGIN DELIVERY_DATA_VALUE-->
+            <tr>
+               <td style='width:150px'><span class="title-style nowrap">[#DELIVERY_DATA_CAPTION#]:</span></td>
+               <td> [#DELIVERY_DATA_VALUE#]</td>
+            </tr>
+            <!--ET_END DELIVERY_DATA_VALUE-->
+            [#DELIVERY_BLOCK#]
+            
             <!--ET_END deliveryInfo-->
             <!--ET_BEGIN deliveryTime-->
             <tr>
