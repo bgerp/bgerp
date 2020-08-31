@@ -375,6 +375,9 @@ class doc_SharablePlg extends core_Plugin
             }
         }
         
+        $cu = core_Users::getCurrent();
+        unset($shareUsers[$cu]);
+        
         return $shareUsers;
     }
     
