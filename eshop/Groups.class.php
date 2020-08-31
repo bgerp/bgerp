@@ -759,6 +759,8 @@ class eshop_Groups extends core_Master
         $query = self::getQuery();
         
         $query->where("#menuId = {$menuId} AND #state = 'active'");
+                
+
         $groups = array();
         while ($rec = $query->fetch()) {
             $groups[$rec->id] = $rec->id;
@@ -767,6 +769,7 @@ class eshop_Groups extends core_Master
         if (!empty($groups)) {
             $queryM = eshop_Products::getQuery();
             $queryM->where("#state = 'active'");
+            $queryM->orderBy('createdOn=DESC');
             $queryM->where('#groupId IN (' . implode(',', $groups) . ')');
             $queryM->limit($maxResults);
             
@@ -806,6 +809,51 @@ class eshop_Groups extends core_Master
         }
         
         return $res;
+    }
+
+
+    /**
+     * Добавя ключовите думи от обектите в менюто към масива
+     */
+    public static function getAllSearchKeywords($menuId)
+    {
+        if(!($kArr = core_Cache::get('AllKeywordsPerMenu', $menuId))) {
+            $kArr = array();
+
+            $query = self::getQuery();
+            
+            $text = '';
+            
+            $gArr = array();
+            while($rec = $query->fetch("#menuId = {$menuId} AND #state = 'active'")) {
+                $gArr[] = $rec->id;
+                $text .= ' ' . $rec->name . ' ' . $rec->seoKeywords;
+            }
+
+            $groups = implode(',', $gArr);
+            
+
+            if($groups) {
+                $pQuery = eshop_Products::getQuery();
+                while($pRec = $pQuery->fetch("#state = 'active' AND #groupId IN ({$groups})")) {
+                    $text .= ' ' . $pRec->searchKeywords;
+                }
+            }
+
+            if($text) {
+                $text = plg_Search::normalizeText($text);
+                $wArr = explode(' ', $text);
+                foreach($wArr as $w) {
+                    if(strlen($w) > 3) {
+                        $kArr[$w] = true;
+                    }
+                }
+            }
+
+            core_Cache::set('AllKeywordsPerMenu', $menuId, $kArr, 48*60, 'eshop_Groups,eshop_Products');
+        }
+ 
+        return $kArr;
     }
     
     
