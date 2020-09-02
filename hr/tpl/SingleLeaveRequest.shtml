@@ -42,9 +42,9 @@
 <br>
 
 <h3 class="centered" style="font-size:16pt">|М О Л Б А|* </h3>
-<!--ET_BEGIN created-->
+<!--ET_BEGIN createdDate-->
 <p class="centered">№ [#id#] / [#createdDate#] |г|*.</p>
-<!--ET_END created-->
+<!--ET_END createdDate-->
 
 <br><br>
 
@@ -65,9 +65,9 @@
 
 <table style='width:100%;'>
     <tr>
-        <!--ET_BEGIN date-->
+        <!--ET_BEGIN createdDate-->
         <td>|Дата|*: [#createdDate#] |г|*.</td>
-        <!--ET_END date-->
+        <!--ET_END createdDate-->
         <td> </td>
         <td class='aright'>|Подпис|*: ............................</td>
     </tr>
