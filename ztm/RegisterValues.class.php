@@ -253,7 +253,7 @@ class ztm_RegisterValues extends core_Manager
             foreach ($arr as $name => $value){
                 $registerRec = ztm_Registers::fetch(array("#name = '[#1#]'", $name), 'priority,id,state');
                 if (($registerRec) && ($registerRec->state == 'active')) {
-                    if ($registerRec->priority == 'system') {
+                    if ($registerRec->priority != 'system') {
                         $expandedRegArr[$registerRec->id] = (object)array('name' => $name, 'value' => $value, 'deviceId' => $deviceId, 'registerId' => $registerRec->id, 'priority' => $registerRec->priority);
                     } else {
                         self::logErr("Получен регистър {$name} с приоритет {$registerRec->priority}");
@@ -301,7 +301,7 @@ class ztm_RegisterValues extends core_Manager
         $token = Request::get('token');
         $lastSync = Request::get('last_sync');
        
-        log_System::logDebug(serialize(Request::$vars));
+        log_System::logDebug('Registers: ' . Request::get('registers'));
         
         // Кое е устройството
         expect($deviceRec = ztm_Devices::getRecForToken($token), $token);
@@ -343,6 +343,10 @@ class ztm_RegisterValues extends core_Manager
         } catch(core_exception_Expect $e){
             $result = Request::get('registers');
             reportException($e);
+        }
+        
+        if ((array)$result) {
+            log_System::logDebug('Result: ' . serialize($result));
         }
         
         // Връщане на резултатния обект
