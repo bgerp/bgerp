@@ -65,9 +65,9 @@
 
 <table style='width:100%;'>
     <tr>
-        <!--ET_BEGIN createdDate-->
+        <!--ET_BEGIN createdDateFooter-->
         <td>|Дата|*: [#createdDate#] |г|*.</td>
-        <!--ET_END createdDate-->
+        <!--ET_END createdDateFooter-->
         <td> </td>
         <td class='aright'>|Подпис|*: ............................</td>
     </tr>
