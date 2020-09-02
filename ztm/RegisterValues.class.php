@@ -253,8 +253,10 @@ class ztm_RegisterValues extends core_Manager
             foreach ($arr as $name => $value){
                 $registerRec = ztm_Registers::fetch(array("#name = '[#1#]'", $name), 'priority,id,state');
                 if (($registerRec) && ($registerRec->state == 'active')) {
-                    if (in_array($registerRec->priority, array('device', 'time'))) {
+                    if ($registerRec->priority == 'system') {
                         $expandedRegArr[$registerRec->id] = (object)array('name' => $name, 'value' => $value, 'deviceId' => $deviceId, 'registerId' => $registerRec->id, 'priority' => $registerRec->priority);
+                    } else {
+                        self::logErr("Получен регистър {$name} с приоритет {$registerRec->priority}");
                     }
                 } else {
                     $unknownRegisters[] = (object)array('name' => $name, 'value' => $value);
