@@ -146,12 +146,12 @@ class ztm_RegisterValues extends core_Manager
     {
         $now = dt::now();
         $time = isset($time) ? $time : $now;
-       
+        
         expect(ztm_Devices::fetchRec($deviceId), "Няма такова устройство");
         $rRec = ztm_Registers::fetchRec($registerId);
         expect($rRec, "Няма такъв регистър");
         if ($checkState) {
-            expect($rRec == 'active', "Няма такъв активен регистър");
+            expect($rRec->state == 'active', "Няма такъв активен регистър");
         }
         expect($time <= $now, 'Не може да се зададе бъдеще време');
         $rec = (object)array('deviceId' => $deviceId, 'registerId' => $registerId, 'updatedOn' => $time, 'value' => $value);
@@ -207,6 +207,7 @@ class ztm_RegisterValues extends core_Manager
         
         // Извлича нашите регистри обновени след $lastSyncMin, махайки тези, които са приоритетно от устройството
         $ourRegisters = self::grab($deviceRec, $lastSyncMin);
+        
         $resultArr = array();
         foreach ($ourRegisters as $ourReg){
             if($ourReg->priority != 'device'){
@@ -250,8 +251,9 @@ class ztm_RegisterValues extends core_Manager
     {
         if(is_array($arr)){
             foreach ($arr as $name => $value){
-                if($registerRec = ztm_Registers::fetch(array("#name = '[#1#]'", $name), 'priority,id') && ($registerRec->state == 'active')){
-                    if(in_array($registerRec->priority, array('device', 'time'))){
+                $registerRec = ztm_Registers::fetch(array("#name = '[#1#]'", $name), 'priority,id,state');
+                if (($registerRec) && ($registerRec->state == 'active')) {
+                    if (in_array($registerRec->priority, array('device', 'time'))) {
                         $expandedRegArr[$registerRec->id] = (object)array('name' => $name, 'value' => $value, 'deviceId' => $deviceId, 'registerId' => $registerRec->id, 'priority' => $registerRec->priority);
                     }
                 } else {
@@ -336,7 +338,6 @@ class ztm_RegisterValues extends core_Manager
             // Синхронизране на данните от устройството с тези от системата
             $lastSync = (empty($lastSync)) ? null : dt::timestamp2Mysql($lastSync);
             $result = $this->sync($regArr, $deviceRec->id, $lastSync);
-            
         } catch(core_exception_Expect $e){
             $result = Request::get('registers');
             reportException($e);
@@ -419,6 +420,25 @@ class ztm_RegisterValues extends core_Manager
         
         if($description = ztm_Registers::fetchField($rec->registerId, 'description')){
             $row->registerId = ht::createHint($row->registerId, $description);
+        }
+    }
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string   $requiredRoles
+     * @param string   $action
+     * @param stdClass $rec
+     * @param int      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'edit' && $rec) {
+            $rRec = ztm_Registers::fetch($rec->registerId);
+            if ($rRec->priority == 'device') {
+                $requiredRoles = 'no_one';
+            }
         }
     }
     
