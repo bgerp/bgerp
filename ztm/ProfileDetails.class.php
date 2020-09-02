@@ -109,6 +109,11 @@ class ztm_ProfileDetails extends core_Detail
     {
         $form = $data->form;
         ztm_Registers::extendAddForm($form);
+        
+        if ($form->rec->registerId) {
+            $rRec = ztm_Registers::fetch($form->rec->registerId);
+            $form->setDefault('extValue', $rRec->default);
+        }
     }
     
     

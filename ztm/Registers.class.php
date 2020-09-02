@@ -162,9 +162,6 @@ class ztm_Registers extends core_Master
             $form->FLD('extValue', ztm_Registers::getOurType($rec->{$registerFld}), 'caption=Стойност,mandatory,class=w50');
             $rRec = ztm_Registers::fetch($rec->{$registerFld});
             
-            $rRec = ztm_Registers::fetch($form->rec->registerId);
-            $form->setDefault('extValue', $rRec->default);
-            
             if (trim($rRec->range)) {
                 if (strpos($rRec->range, '/') !== false) {
                     list($min, $max) = explode('/', $rRec->range);
