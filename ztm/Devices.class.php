@@ -277,6 +277,19 @@ class ztm_Devices extends core_Master
     
     
     /**
+     * След като е готово вербалното представяне
+     */
+    public static function on_AfterGetVerbal($mvc, &$res, $rec, $part)
+    {
+        if ($part == 'name') {
+            if (!$rec->name) {
+                $res = $mvc->getRecTitle($rec);
+            }
+        }
+    }
+    
+    
+    /**
      * След подготовка на формата за добавяне/редакция
      */
     protected static function on_AfterPrepareEditForm($mvc, $data)

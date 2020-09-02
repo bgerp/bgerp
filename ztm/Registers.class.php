@@ -159,8 +159,24 @@ class ztm_Registers extends core_Master
         $rec = &$form->rec;
         
         if (isset($rec->{$registerFld})) {
-            $form->FLD('extValue', ztm_Registers::getOurType($rec->{$registerFld}), 'caption=Стойност,mandatory');
-            $form->rec->_type = ztm_Registers::fetchField($rec->{$registerFld}, 'type');
+            $form->FLD('extValue', ztm_Registers::getOurType($rec->{$registerFld}), 'caption=Стойност,mandatory,class=w50');
+            $rRec = ztm_Registers::fetch($rec->{$registerFld});
+            
+            if (trim($rRec->range)) {
+                if (strpos($rRec->range, '/') !== false) {
+                    list($min, $max) = explode('/', $rRec->range);
+                    if (strlen($min)) {
+                        $form->fields['extValue']->type->params['min'] = $min;
+                    }
+                    if (strlen($max)) {
+                        $form->fields['extValue']->type->params['max'] = $max;
+                    }
+                } else {
+                    $sArr = explode(',', $rRec->range);
+                    $sArr = arr::make($sArr, true);
+                    $form->setOptions('extValue' , $sArr);
+                }
+            }
             
             if (!empty($rec->{$valueFld})) {
                 $value = ztm_LongValues::getValueByHash($rec->{$valueFld});
