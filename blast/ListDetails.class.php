@@ -596,14 +596,16 @@ class blast_ListDetails extends doc_Detail
         $exp->rule('#csvData', 'getFileContentCsv(#csvFile)');
         
         $exp->rule('#csvColumnsCnt', 'count(getCsvColNames(#csvData,#delimiter,#enclosure))');
-        $exp->WARNING(tr('Възможен е проблем с формата на CSV данните, защото е открита само една колона'), '#csvColumnsCnt == 2 && #listColumns > 1');
+        $exp->ERROR(tr('В CSV-източника са открити по-малко колони от колкото са необходими за този списък'), '(#csvColumnsCnt-1) != #listColumns');
         $exp->ERROR(tr('Има проблем с формата на CSV данните') . '. <br>' . tr('Моля проверете дали правилно сте въвели данните и разделителя'), '#csvColumnsCnt < 2');
         
         $exp->rule('#csvAnalize', 'csvanalize(#csvData)', "is_string(#csvData)");
-        $exp->DEF('#delimiter=Разделител', 'varchar(1,size=1)', 'mandatory');
-        $exp->SUGGESTIONS('#delimiter', array(',' => ',', ';' => ';', ':' => ':', '|' => '|', 'tab=>[tab]'));
-        $exp->ASSUME('#delimiter', '#csvAnalize[1] == "' . "\t" . '" ? "tab" : #csvAnalize[1]');
-        
+        $exp->DEF('#delimiter=Разделител', 'varchar(,size=1)');
+        $exp->DEF('#delimiterAsk=Разделител', 'varchar(,size=5)', 'mandatory');
+        $exp->SUGGESTIONS('#delimiterAsk', array('' => '', ',' => ',', ';' => ';', ':' => ':', '|' => '|', '[tab]' => '[tab]'));
+        $exp->ASSUME('#delimiterAsk', '#csvAnalize[1] == "' . "\t" . '" ? "[tab]" : #csvAnalize[1]');
+        $exp->rule('#delimiter', "#delimiterAsk == '[tab]' ? '" . "\t" . "' : #delimiterAsk");
+
         $exp->DEF('#enclosure=Ограждане', 'varchar(1,size=1)', array('value' => '"'), 'mandatory');
         $exp->SUGGESTIONS('#enclosure', array('"' => '"', '\'' => '\''));
         $exp->ASSUME('#enclosure', '#csvAnalize[2]');
@@ -611,7 +613,7 @@ class blast_ListDetails extends doc_Detail
         $exp->DEF('#firstRow=Първи ред', 'enum(columnNames=Имена на колони,data=Данни)', 'mandatory');
         $exp->ASSUME('#firstRow', '#csvAnalize[3]');
 
-        $exp->question('#delimiter,#enclosure,#firstRow', tr('Посочете формата на CSV данните') . ':', '#csvData', 'title=' . tr('Уточняване на разделителя и ограждането'));
+        $exp->question('#delimiterAsk,#enclosure,#firstRow', tr('Посочете формата на CSV данните') . ':', '#csvData', 'title=' . tr('Уточняване на разделителя и ограждането'));
         
         setIfNot($listId, Request::get('listId', 'int'), $exp->getValue('listId'));
         
@@ -622,7 +624,7 @@ class blast_ListDetails extends doc_Detail
         
         $listRec = blast_Lists::fetch($listId);
         $fieldsArr = $this->getFncFieldsArr($listRec->allFields);
-        
+   
         foreach ($fieldsArr as $name => $caption) {
             $exp->DEF("#col{$name}={$caption}", 'int', 'mandatory');
             $exp->OPTIONS("#col{$name}", 'getCsvColNames(#csvData,#delimiter,#enclosure, NULL, FALSE)');
@@ -638,7 +640,7 @@ class blast_ListDetails extends doc_Detail
         $exp->rule('#listColumns', count($fieldsArr));
 
         
-        $exp->DEF('#priority=Приоритет', 'enum(update=Новите данни да обновят съществуващите,data=Съществуващите данни да се запазят)', 'mandatory');
+        $exp->DEF('#priority=Приоритет', 'enum(data=Съществуващите данни да се запазят,update=Новите данни да обновят съществуващите)', 'mandatory');
         $exp->rule('#priority', '"data"', $listRec->contactsCnt ? "0" : "1");
 
         $exp->question('#priority', tr('Какъв да бъде приоритета в случай, че има нов контакт с дублирано съдържание на полето') . " <span class=\"green\">'" . $fieldsArr[$listRec->keyField] . "'</span> ?", true, 'title=' . tr('Приоритет на данните'));
@@ -984,6 +986,11 @@ class blast_ListDetails extends doc_Detail
                     return $id + 1;
                 }
                 if (strpos($nameC, $valC) !== false || strpos($valC, $nameC) !== false) {
+                    
+                    return $id + 1;
+                }
+ 
+                if (type_Email::isValidEmail($valC) &&  $nameC == 'email') {
                     
                     return $id + 1;
                 }
