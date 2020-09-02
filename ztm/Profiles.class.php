@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Master на профили в Zontromat
  *
@@ -123,8 +125,11 @@ class ztm_Profiles extends core_Master
         $dArr = array();
         $dQuery = ztm_ProfileDetails::getQuery();
         $dQuery->EXT('type', 'ztm_Registers', 'externalName=type,externalKey=registerId');
+        $dQuery->EXT('rState', 'ztm_Registers', 'externalName=state,externalKey=registerId');
         $dQuery->where("#profileId = '{$profileRec->id}'");
+        $dQuery->where("#rState = 'active'");
         $dQuery->show('registerId,value,type');
+        
         while($dRec = $dQuery->fetch()){
             if(in_array($dRec->type, array('int', 'float')) == 'int'){
                 $dRec->value = (float)$dRec->value;
@@ -134,6 +139,7 @@ class ztm_Profiles extends core_Master
         
         $res = array();
         $query = ztm_Registers::getQuery();
+        $query->where("#state = 'active'");
         
         while($rec = $query->fetch()){
             if(in_array($rec->type, array('int', 'float')) == 'int'){
@@ -149,5 +155,24 @@ class ztm_Profiles extends core_Master
         }
         
         return (object)$res;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string   $requiredRoles
+     * @param string   $action
+     * @param stdClass $rec
+     * @param int      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($rec && (($action == 'delete') || ($action == 'reject'))) {
+            if (ztm_Devices::fetch(array("#state = 'active' && #profileId = '[#1#]'", $rec->id))) {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 }

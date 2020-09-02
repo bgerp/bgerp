@@ -138,18 +138,22 @@ class ztm_RegisterValues extends core_Manager
      * @param mixed $value          - стойност
      * @param datetime|null $time   - време 
      * @param boolean $forceUpdate  - форсирано обновяване 
+     * @param boolean $checkState   - обновява само активните регистри
      * 
      * @return null|stdClass $rec  - сетнатия запис или null, ако не е обновен
      */
-    public static function set($deviceId, $registerId, $value, $time = null, $forceUpdate = false)
+    public static function set($deviceId, $registerId, $value, $time = null, $forceUpdate = false, $checkState = true)
     {
         $now = dt::now();
         $time = isset($time) ? $time : $now;
        
         expect(ztm_Devices::fetchRec($deviceId), "Няма такова устройство");
-        expect(ztm_Registers::fetchRec($registerId), "Няма такъв регистър");
+        $rRec = ztm_Registers::fetchRec($registerId);
+        expect($rRec, "Няма такъв регистър");
+        if ($checkState) {
+            expect($rRec == 'active', "Няма такъв активен регистър");
+        }
         expect($time <= $now, 'Не може да се зададе бъдеще време');
-        
         $rec = (object)array('deviceId' => $deviceId, 'registerId' => $registerId, 'updatedOn' => $time, 'value' => $value);
         $exRec = self::fetch("#deviceId = '{$deviceId}' AND #registerId = '{$registerId}'");
         if(is_object($exRec)){
@@ -215,12 +219,13 @@ class ztm_RegisterValues extends core_Manager
             try{
                 ztm_RegisterValues::set($deviceId, $obj->registerId, $obj->value, $lastSync);
             } catch(core_exception_Expect $e){
-                log_System::logErr("'{$obj->name}': {$e->getMessage()}");
+                $dump = $e->getDump();
+                $this->logErr("'{$obj->name}': {$dump[0]}");
             }
         }
         
         foreach ($unknownRegisters as $unknownRegisterObj){
-            log_System::logErr("Неразпознат ZTM регистър: '{$unknownRegisterObj->name}' : '{$unknownRegisterObj->value}'");
+            $this->logErr("Неразпознат ZTM регистър: '{$unknownRegisterObj->name}' : '{$unknownRegisterObj->value}'");
         }
         
         // Отключване на синхронизацията
@@ -245,7 +250,7 @@ class ztm_RegisterValues extends core_Manager
     {
         if(is_array($arr)){
             foreach ($arr as $name => $value){
-                if($registerRec = ztm_Registers::fetch(array("#name = '[#1#]'", $name), 'priority,id')){
+                if($registerRec = ztm_Registers::fetch(array("#name = '[#1#]'", $name), 'priority,id') && ($registerRec->state == 'active')){
                     if(in_array($registerRec->priority, array('device', 'time'))){
                         $expandedRegArr[$registerRec->id] = (object)array('name' => $name, 'value' => $value, 'deviceId' => $deviceId, 'registerId' => $registerRec->id, 'priority' => $registerRec->priority);
                     }
@@ -301,14 +306,14 @@ class ztm_RegisterValues extends core_Manager
         // Добавяне на дефолтните стойностти към таблицата с регистрите, ако няма за тях
         $now = dt::now();
         $ourRegisters = self::grab($deviceRec);
-        $defaultArr = ztm_Profiles::getDefaultRegisterValues($deviceRec);
+        $defaultArr = ztm_Profiles::getDefaultRegisterValues($deviceRec->profileId);
         foreach ($defaultArr as $dRegKey => $dRegValue){
             if(!array_key_exists($dRegKey, $ourRegisters)){
                 try{
-                    ztm_RegisterValues::set($deviceRec->id, $dRegKey, $dRegValue, $now);
+                    ztm_RegisterValues::set($deviceRec->id, $dRegKey, $dRegValue, $now, false, false);
                 } catch(core_exception_Expect $e){
-                    $errMsh = $e->getMessage();
-                    log_System::logErr("register:{$dRegKey} - {$errMsh}");
+                    $dump = $e->getDump();
+                    $this->logErr("register: {$dRegKey} - {$dump[0]}");
                 }
             }
         }
@@ -325,7 +330,7 @@ class ztm_RegisterValues extends core_Manager
             }
             
             if(!countR($regArr)){
-                log_System::logErr("Невалидни стойности на 'registers': '{$registers}'");
+                $this->logErr("Невалидни стойности на 'registers': '{$registers}'");
             }
             
             // Синхронизране на данните от устройството с тези от системата

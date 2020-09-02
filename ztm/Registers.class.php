@@ -162,6 +162,9 @@ class ztm_Registers extends core_Master
             $form->FLD('extValue', ztm_Registers::getOurType($rec->{$registerFld}), 'caption=Стойност,mandatory,class=w50');
             $rRec = ztm_Registers::fetch($rec->{$registerFld});
             
+            $rRec = ztm_Registers::fetch($form->rec->registerId);
+            $form->setDefault('extValue', $rRec->default);
+            
             if (trim($rRec->range)) {
                 if (strpos($rRec->range, '/') !== false) {
                     list($min, $max) = explode('/', $rRec->range);
@@ -261,6 +264,23 @@ class ztm_Registers extends core_Master
     {
         setIfNot($mvc->activeRegistersArr, array());
         $mvc->activeRegistersArr[$rec->id] = $rec->id;
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
+     * @param int          $id      Първичния ключ на направения запис
+     * @param stdClass     $rec     Всички полета, които току-що са били записани
+     * @param string|array $fields  Имена на полетата, които sa записани
+     * @param string       $mode    Режим на записа: replace, ignore
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        if (isset($rec->state) && $rec->state != 'active') {
+            ztm_RegisterValues::delete(array("#registerId = '[#1#]'", $rec->id));
+        }
     }
     
     
