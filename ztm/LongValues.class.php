@@ -39,13 +39,13 @@ class ztm_LongValues extends core_Manager
     /**
      * Кой има право да изтрива?
      */
-    public $canDelete = 'debug';
+    public $canDelete = 'no_one';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'debug';
+    public $canEdit = 'no_one';
     
     
     /**

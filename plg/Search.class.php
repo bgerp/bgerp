@@ -745,8 +745,6 @@ class plg_Search extends core_Plugin
             
             return ;
         }
-        $callOn = dt::addSecs(55);
-        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', $clsName, $callOn);
         
         $query->orderBy('id', 'DESC');
         
@@ -790,21 +788,18 @@ class plg_Search extends core_Plugin
             }
         } catch (Exception $e) {
             reportException($e);
-            if (is_null($lastId)) {
-                
-                return ;
-            }
         } catch (Throwable  $e) {
             reportException($e);
-            if (is_null($lastId)) {
-                
-                return ;
-            }
         }
+        
+        $callOn = dt::addSecs(55);
+        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', $clsName, $callOn);
         
         $clsInst->logDebug('Регенерирани ключови думи до id=' . $lastId);
         
-        core_Permanent::set($pKey, $lastId, 1000);
+        if (!is_null($lastId)) {
+            core_Permanent::set($pKey, $lastId, 1000);
+        }
     }
     
     
