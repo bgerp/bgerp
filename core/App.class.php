@@ -1111,6 +1111,9 @@ class core_App
         
         if ($absolute) {
             $s = empty($_SERVER['HTTPS']) ? '' : ($_SERVER['HTTPS'] == 'on') ? 's' : '';
+            if (!$s && (EF_HTTPS == 'MANDATORY')) {
+                $s = 's';
+            }
             $slashPos = strpos($_SERVER['SERVER_PROTOCOL'], '/');
             $protocol = substr(strtolower($_SERVER['SERVER_PROTOCOL']), 0, $slashPos) . $s;
             
