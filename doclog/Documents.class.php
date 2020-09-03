@@ -2133,7 +2133,7 @@ class doclog_Documents extends core_Manager
         $mvc::removeHistoryFromCache($rec->threadId);
 
         try {
-            if (($mvc->stopRiskIpNotfications !== true) && $rec->containerId) {
+            if ($rec->containerId) {
                 
                 $doc = doc_Containers::getDocument($rec->containerId);
                 
