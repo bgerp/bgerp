@@ -41,8 +41,8 @@
                                             
                                             <!--ET_BEGIN additionalMeasureId-->
                                             <tr>
-                                                <td class='quiet'>|Втора мярка|*:</td>
-                                                <td style='color:blue'><i>[#additionalMeasureQuantity#] [#additionalMeasureId#]</i></td>
+                                                <td class='quiet' style="width: 1%>|Втора мярка|*:</td>
+                                                <td style='color:darkblue'><i>[#additionalMeasureQuantity#] [#additionalMeasureId#]</i></td>
                                             </tr>
                                             <!--ET_END additionalMeasureId-->
                                         </table>
