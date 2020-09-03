@@ -177,6 +177,7 @@ class price_Setup extends core_ProtoSetup
         
         $Costs = cls::get('price_ProductCosts');
         $Costs->setupMvc();
+        $Costs->truncate();
         
         $datetime = dt::addMonths(-1 * 12); 
         price_ProductCosts::saveCalcedCosts($datetime);
