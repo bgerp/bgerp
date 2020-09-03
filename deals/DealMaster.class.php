@@ -2193,7 +2193,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $res["{$contrPart}Place"] = !empty($cartRec->deliveryPlace) ? $cartRec->deliveryPlace : null;
             $res["{$contrPart}Address"] = !empty($cartRec->deliveryAddress) ? $cartRec->deliveryAddress : null;
             $res["{$contrPart}Country"] = !empty($cartRec->deliveryCountry) ? $cartRec->deliveryCountry : null;
-            $res["instructions"] = !empty($cartRec->instructions) ? $cartRec->instructions : null;
+            $res["instructions"] = !empty($cartRec->instruction) ? $cartRec->instruction : null;
         } else {
             $res["{$contrPart}PCode"] = !empty($contragentData->pCode) ? $contragentData->pCode : null;
             $res["{$contrPart}Place"] = !empty($contragentData->place) ? $contragentData->place : null;

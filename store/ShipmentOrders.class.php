@@ -529,6 +529,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         } elseif(empty($rec->locationId) && $rec->isReverse == 'no'){
             if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
                 $firstDocumentLogisticData = $firstDocument->getLogisticData();
+                
                 $res['toCountry'] = $firstDocumentLogisticData['toCountry'];
                 $res['toPCode'] = $firstDocumentLogisticData['toPCode'];
                 $res['toPlace'] = $firstDocumentLogisticData['toPlace'];
@@ -537,6 +538,7 @@ class store_ShipmentOrders extends store_DocumentMaster
                 $res['toCompany'] = $firstDocumentLogisticData['toCompany'];
                 $res['toPerson'] = $firstDocumentLogisticData['toPerson'];
                 $res['toPersonPhones'] = $firstDocumentLogisticData['toPersonPhones'];
+                $res['instructions'] = $firstDocumentLogisticData['instructions'];
             }
         }
         
