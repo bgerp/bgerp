@@ -31,7 +31,7 @@ class price_Updates extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, price_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools2, price_Wrapper';
     
     
     /**

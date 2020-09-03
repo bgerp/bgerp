@@ -313,7 +313,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         }
         
         $logisticData = $mvc->getLogisticData($documentRec);
-        $logisticData['toCountry'] = !is_numeric($logisticData['toCountry']) ? drdata_Countries::getIdByName($logisticData['toCountry']) : $logisticData['toCountry'];
+        $logisticCountryId = drdata_Countries::getIdByName($logisticData['toCountry']);
         $toPerson = null;
       
         if($mvc instanceof sales_Sales){
@@ -349,10 +349,10 @@ class speedy_plg_BillOfLading extends core_Plugin
         
         $form->setDefault('receiverPhone', $logisticData['toPersonPhones']);
         $form->setDefault('receiverNotes', $logisticData['instructions']);
-        $form->setDefault('receiverCountryId', $logisticData['toCountry']);
+        $form->setDefault('receiverCountryId', $logisticCountryId);
         $toPerson = $logisticData['toPerson'];
         
-        if($form->rec->receiverCountryId == $logisticData['toCountry']){
+        if($form->rec->receiverCountryId == $logisticCountryId){
             $form->setDefault('receiverPlace', $logisticData['toPlace']);
             $form->setDefault('receiverAddress', $logisticData['toAddress']);
             $form->setDefault('receiverPCode', $logisticData['toPCode']);
@@ -409,9 +409,7 @@ class speedy_plg_BillOfLading extends core_Plugin
             $form->setField('receiverPerson', 'input=none');
         }
         
-        $receiverCountryId = drdata_Countries::getIdByName($logisticData['toCountry']);
         $form->setDefault('payerPackaging', 'same');
-        
         $profile = crm_Profiles::getProfile();
         $phones = drdata_PhoneType::toArray($profile->tel);
         $phone = $phones[0]->original;
@@ -421,9 +419,9 @@ class speedy_plg_BillOfLading extends core_Plugin
         $form->setDefault('totalWeight', $logisticData['totalWeight']);
         
         if(!isset($rec->receiverSpeedyOffice)){
-            $form->setDefault('receiverCountryId', drdata_Countries::getIdByName($logisticData['toCountry']));
+            $form->setDefault('receiverCountryId', drdata_Countries::getIdByName($logisticCountryId));
             
-            if($rec->receiverCountryId == $receiverCountryId){
+            if($rec->receiverCountryId == $logisticCountryId){
                 $form->setDefault('receiverPlace', $logisticData['toPlace']);
                 $form->setDefault('receiverAddress', $logisticData['toAddress']);
                 $form->setDefault('receiverPCode', $logisticData['toPCode']);
