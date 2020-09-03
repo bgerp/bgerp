@@ -71,7 +71,7 @@ class speedy_plg_BillOfLading extends core_Plugin
             $form = self::getBillOfLadingForm($mvc, $rec, $adapter, $cacheArr);
             
             $senderObjects = $adapter->getSenderObjects();
-            $form->FLD('senderClientId', 'varchar', 'after=senderName,caption=Подател->Обект,hint=Адресът е настроен в профика в Speedy');
+            $form->FLD('senderClientId', 'varchar', 'after=senderName,caption=Подател->Обект');
             $form->setOptions('senderClientId', $senderObjects);
             if(array_key_exists($cacheArr['senderClientId'], $senderObjects)){
                 $form->setDefault('senderClientId', $cacheArr['senderClientId']);
@@ -315,7 +315,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         $logisticData = $mvc->getLogisticData($documentRec);
         $logisticData['toCountry'] = !is_numeric($logisticData['toCountry']) ? drdata_Countries::getIdByName($logisticData['toCountry']) : $logisticData['toCountry'];
         $toPerson = null;
-       
+      
         if($mvc instanceof sales_Sales){
             $paymentType = $documentRec->paymentMethodId;
             $amountCod = $documentRec->amountDeal;
