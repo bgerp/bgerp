@@ -169,6 +169,9 @@ class cat_products_PriceDetails extends core_Manager
                 $arr = array('manual' => tr('Ръчно'), 'nextDay' => tr('Дневно'), 'nextWeek' => tr('Седмично'), 'nextMonth' => tr('Месечно'), 'now' => tr('Ежечасово'));
                 $tpl = new core_ET(tr('|*<b>[#updateMode#]</b> |обновяване на себестойността, последователно по|* [#type#]  <!--ET_BEGIN surcharge-->|с надценка|* <b>[#surcharge#]</b><!--ET_END surcharge-->[#tools#]'));
                 
+                core_RowToolbar::createIfNotExists($uRow->_rowTools);
+                $tools = $uRow->_rowTools->renderHtml(2);
+                
                 $type = '';
                 foreach (array($uRow->sourceClass1, $uRow->sourceClass2, $uRow->sourceClass3) as $cost) {
                     if (isset($cost)) {
@@ -178,7 +181,7 @@ class cat_products_PriceDetails extends core_Manager
                 
                 $type = rtrim($type, ', ');
                 $tpl->append($arr[$uRec->updateMode], 'updateMode');
-                $tpl->append($uRow->tools, 'tools');
+                $tpl->append($tools, 'tools');
                 $surcharge = $uRow->costAdd;
                 if(!empty($uRec->costAddAmount)){
                     $surcharge .= ((!empty($surcharge)) ? tr('|* |и|* ') : '') . $uRow->costAddAmount . " BGN";
