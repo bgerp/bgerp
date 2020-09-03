@@ -865,7 +865,7 @@ class planning_Jobs extends core_Master
             if(is_object($sumAdditionalMeasure)){
                 $additionalQuantityVerbal  = $Double->toVerbal($sumAdditionalMeasure->sumSecondMeasure);
                 $additionalMeasureName = cat_UoM::getShortName($sumAdditionalMeasure->secondMeasureId);
-                $row->quantityProduced = "{$row->quantityProduced} <span style='font-size:14px;font-style:italic;font-weight:bold;'>(<span style='color:darkblue'>{$additionalQuantityVerbal} {$additionalMeasureName}</span>) </span>";
+                $row->quantityProduced = "{$row->quantityProduced} <span style='font-size:16px;font-style:italic;font-weight:bold;'>(<span style='color:darkblue'>{$additionalQuantityVerbal} {$additionalMeasureName}</span>) </span>";
             }
         }
         
