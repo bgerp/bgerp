@@ -746,17 +746,6 @@ class planning_Jobs extends core_Master
         $rec->quantityToProduce = $rec->packQuantity - (($rec->quantityFromTasks) ? $rec->quantityFromTasks : $rec->quantityProduced);
         $row->quantityToProduce = $Double->toVerbal($rec->quantityToProduce);
         
-        /*if(is_array($rec->quantityProducedInOtherMeasures)){
-            $producedInfoArr = array();
-            foreach ($rec->quantityProducedInOtherMeasures as $additionalMeasureId => $additionalQuantity){
-                $additionalQuantityVerbal  = $Double->toVerbal($additionalQuantity);
-                $additionalMeasureName = cat_UoM::getShortName($additionalMeasureId);
-                $producedInfoArr[] = "{$additionalQuantityVerbal} {$additionalMeasureName}";
-            }
-            
-            $row->producedInfo = implode(" + ", $producedInfoArr);
-        }*/
-        
         foreach (array('quantityNotStored', 'quantityToProduce') as $fld) {
             if ($rec->{$fld} < 0) {
                 $row->{$fld} = "<span class='red'>{$row->{$fld}}</span>";
@@ -870,6 +859,14 @@ class planning_Jobs extends core_Master
             if (isset($rec->storeId)) {
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             }
+            
+            
+            $sumAdditionalMeasure = $mvc->sumAdditionalMeasure($rec);
+            if(is_object($sumAdditionalMeasure)){
+                $additionalQuantityVerbal  = $Double->toVerbal($sumAdditionalMeasure->sumSecondMeasure);
+                $additionalMeasureName = cat_UoM::getShortName($sumAdditionalMeasure->secondMeasureId);
+                $row->quantityProduced = "{$row->quantityProduced} <span style='font-weight:normal;'>(<span style='color:blue'>{$additionalQuantityVerbal} {$additionalMeasureName}</span>) </span>";
+            }
         }
         
         if(!empty($rec->quantityFromTasks)){
@@ -882,6 +879,31 @@ class planning_Jobs extends core_Master
         }
     }
     
+    
+    /**
+     * Сумиране на втората мярка
+     * 
+     * @param stdClass $rec
+     * @return false|stdClass $res
+     */
+    private function sumAdditionalMeasure($rec)
+    {
+        $res = (object)array('secondMeasures' => array());
+        $noteQuery = self::getJobProductionNotesQuery($rec);
+        while($noteRec = $noteQuery->fetch()){
+            if(empty($noteRec->additionalMeasureQuantity)) return false;
+            
+            $res->sumSecondMeasure += $noteRec->additionalMeasureQuantity;
+            $res->secondMeasures[$noteRec->additionalMeasureId] = $noteRec->additionalMeasureId;
+        }
+        
+        if(countR($res->secondMeasures) != 1) return false;
+        
+        $res->secondMeasureId = key($res->secondMeasures);
+        
+        return $res;
+        
+    }
     
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
@@ -1105,6 +1127,32 @@ class planning_Jobs extends core_Master
     
     
     /**
+     * Връща заявка към протоколите за производство на произведения артикул
+     * 
+     * @param stdClass $rec
+     * @return core_Query $noteQuery
+     */
+    private static function getJobProductionNotesQuery($rec)
+    {
+        $rec = static::fetchRec($rec);
+        
+        // Всички задачи за производството на артикула от заданието
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->where("#originId = {$rec->containerId} AND #state != 'draft' AND #state != 'rejected'");
+        $tQuery->show('containerId');
+        $containerIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'containerId');
+        $containerIds[$rec->containerId] = $rec->containerId;
+        
+        $noteQuery = planning_DirectProductionNote::getQuery();
+        $noteQuery->in("originId", $containerIds);
+        $noteQuery->where("#state = 'active' AND #productId = {$rec->productId}");
+        $noteQuery->show('quantity,additionalMeasureId,additionalMeasureQuantity');
+        
+        return $noteQuery;
+    }
+    
+    
+    /**
      * Преизчисляваме какво количество е произведено по заданието
      *
      * @param int $containerId - ид на запис
@@ -1114,33 +1162,10 @@ class planning_Jobs extends core_Master
     public static function updateProducedQuantity($containerId)
     {
         $rec = static::fetch("#containerId = {$containerId}");
+        $noteQuery = self::getJobProductionNotesQuery($rec);
+        $totalQuantity = arr::sumValuesArray($noteQuery->fetchAll(), 'quantity');
+        $rec->quantityProduced = empty($totalQuantity) ? 0 : $totalQuantity;
         
-        // Всички задачи за производството на артикула от заданието
-        $tQuery = planning_Tasks::getQuery();
-        $tQuery->where("#originId = {$rec->containerId} AND #state != 'draft' AND #state != 'rejected'");
-        $tQuery->show('containerId');
-        $containerIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'containerId');
-        $containerIds[$rec->containerId] = $rec->containerId;
-        $measureId = cat_Products::fetchField($rec->productId, 'measureId');
-        
-        // Взимаме к-та на произведените артикули по заданието в протокола за производство
-        $totalQuantity = 0;
-        //$additionalMeasures = array();
-        $directProdQuery = planning_DirectProductionNote::getQuery();
-        $directProdQuery->in("originId", $containerIds);
-        $directProdQuery->where("#state = 'active' AND #productId = {$rec->productId}");
-        $directProdQuery->show('quantity,additionalMeasureId,additionalMeasureQuantity');
-        
-        while($protocolRec = $directProdQuery->fetch()){
-            $totalQuantity += $protocolRec->quantity;
-            if(!empty($protocolRec->additionalMeasureId) && $measureId != $protocolRec->additionalMeasureId){
-                //$additionalMeasures[$protocolRec->additionalMeasureId] += $protocolRec->additionalMeasureQuantity;
-            }
-        }
-        
-        // Обновяваме произведеното к-то по заданието
-        $rec->quantityProduced = $totalQuantity;
-        //$rec->quantityProducedInOtherMeasures = $additionalMeasures;
         self::save($rec, 'quantityProduced');
     }
     
