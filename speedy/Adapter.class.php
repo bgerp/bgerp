@@ -708,14 +708,10 @@ class speedy_Adapter {
         } elseif(strpos($errorMsg, '[WEIGHT_NOT_IN_RANGE, Invalid weight for service. Allowed values are between 0.0kg and 50.0kg') !== false){
             $errorMsg = 'Разрешеното тегло за услугата е между 0 и 50 кг';
             $fields = 'totalWeight,service';
-<<<<<<< HEAD
-        } elseif(strpos($errorMsg, '[WEIGHT_NOT_IN_RANGE, Weight not in range for service') !== false){
-=======
         } elseif(strpos($errorMsg, '[WEIGHT_NOT_IN_RANGE, Invalid weight for service. Allowed values are between 0.0kg and 50.0kg') !== false){
             $errorMsg = 'Разрешеното тегло за услугата е между 0 и 50 кг';
             $fields = 'totalWeight,service';
         } elseif(strpos($errorMsg, 'WEIGHT_NOT_IN_RANGE, Invalid average weight for service. Allowed values are between 0.0kg and 50.0kg') !== false){
->>>>>>> refs/remotes/origin/dev
             $errorMsg = 'Теглото не е в границите за избраната услуга';
             $fields = 'totalWeight,service';
         } elseif(strpos($errorMsg, 'NON_ACTIVE_OFFICE_TBC') !== false){
