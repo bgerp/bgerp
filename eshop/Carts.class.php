@@ -1122,7 +1122,7 @@ class eshop_Carts extends core_Master
             }
             
             if(!empty($rec->invoiceUicNo)){
-                $prefix = ($rec->makeInvoice == 'person') ? tr('ЕГН|*: ') : tr('ЕИК|*": ');
+                $prefix = ($rec->makeInvoice == 'person') ? tr('ЕГН|*: ') : tr('ЕИК|*: ');
                 $body->replace($prefix . self::getVerbal($rec, 'invoiceUicNo'), 'invoiceUicNo');
             }
             
@@ -1462,16 +1462,7 @@ class eshop_Carts extends core_Master
             $tpl->append('borderTop', 'BORDER_CLASS');
         }
         
-        if ($Driver = cond_DeliveryTerms::getTransportCalculator($rec->termId)) {
-            $deliveryDataArr = $Driver->getVerbalDeliveryData($rec->termId, $rec->deliveryData, get_called_class());
-            foreach ($deliveryDataArr as $delObj){
-                $block = $tpl->getBlock('DELIVERY_DATA_VALUE');
-                $block->append($delObj->caption, 'DELIVERY_DATA_CAPTION');
-                $block->append($delObj->value, 'DELIVERY_DATA_VALUE');
-                $block->removeBlocksAndPlaces();
-                $tpl->append($block, 'DELIVERY_BLOCK');
-            }
-        }
+        self::renderDeliveryData($rec, $tpl);
         
         return $tpl;
     }
@@ -2437,7 +2428,6 @@ class eshop_Carts extends core_Master
         $now = dt::now();
         $query = self::getQuery();
         $query->where("#state = 'draft' OR #state = '' OR #state IS NULL");
-        $query->where("#productCount != 0");
         
         // За всяка
         while ($rec = $query->fetch()) {
@@ -2449,7 +2439,7 @@ class eshop_Carts extends core_Master
             if ($endOfLife <= $now) {
                 self::delete($rec->id);
                 $isDeleted = true;
-            } elseif (!empty($rec->email) && $timeToNotifyBeforeDeletion <= $now) {
+            } elseif (!empty($rec->email) && $timeToNotifyBeforeDeletion <= $now && $rec->productCount != 0) {
                 
                 // Ако не е изпращан нотифициращ имейл за забравена поръчка, изпраща се
                 $isNotified = core_Permanent::get("eshopCartsNotify{$rec->id}");
@@ -2713,5 +2703,36 @@ class eshop_Carts extends core_Master
         Request::removeProtected('accessToken');
         
         return $url;
+    }
+    
+    
+    /**
+     * Рендира допълнителната информация за доставката
+     * 
+     * @param stdClass $rec
+     * @param core_ET $tpl
+     * @return void
+     */
+    private static function renderDeliveryData($rec, &$tpl)
+    {
+        if ($Driver = cond_DeliveryTerms::getTransportCalculator($rec->termId)) {
+            $deliveryDataArr = $Driver->getVerbalDeliveryData($rec->termId, $rec->deliveryData, get_called_class());
+            foreach ($deliveryDataArr as $delObj){
+                $block = $tpl->getBlock('DELIVERY_DATA_VALUE');
+                $block->append($delObj->caption, 'DELIVERY_DATA_CAPTION');
+                $block->append($delObj->value, 'DELIVERY_DATA_VALUE');
+                $block->removeBlocksAndPlaces();
+                $tpl->append($block, 'DELIVERY_BLOCK');
+            }
+        }
+    }
+    
+    
+    /**
+     * След рендиране на единичния изглед
+     */
+    protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+        $mvc->renderDeliveryData($data->rec, $tpl);
     }
 }

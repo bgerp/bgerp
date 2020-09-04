@@ -2177,7 +2177,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         if (isset($contragentLocation)) {
-            $res["{$contrPart}Country"] = !empty($contragentLocation->countryId) ? $contragentLocation->countryId : null;
+            $res["{$contrPart}Country"] = !empty($contragentLocation->countryId) ? drdata_Countries::fetchField($contragentLocation->countryId, 'commonName') : null;
             $res["{$contrPart}PCode"] = !empty($contragentLocation->pCode) ? $contragentLocation->pCode : null;
             $res["{$contrPart}Place"] = !empty($contragentLocation->place) ? $contragentLocation->place : null;
             $res["{$contrPart}Address"] = !empty($contragentLocation->address) ? $contragentLocation->address : null;
@@ -2186,14 +2186,16 @@ abstract class deals_DealMaster extends deals_DealBase
                 $res["{$contrPart}PersonPhones"] = !empty($contragentLocation->tel) ? $contragentLocation->tel : null;
             }
         } elseif(is_object($parsedAddress)) {
-            $res["{$contrPart}Country"] = $parsedAddress->countryId;
+            $parsedCountryName = is_numeric($parsedAddress->countryId) ? drdata_Countries::fetchField($parsedAddress->countryId, 'commonName') : $parsedAddress->countryId;
+            $res["{$contrPart}Country"] = !empty($parsedCountryName) ? $parsedCountryName : null;
             $res["{$contrPart}PCode"] = $parsedAddress->pCode;
         } elseif(is_object($cartRec)) {
             $res["{$contrPart}PCode"] = !empty($cartRec->deliveryPCode) ? $cartRec->deliveryPCode : null;
             $res["{$contrPart}Place"] = !empty($cartRec->deliveryPlace) ? $cartRec->deliveryPlace : null;
             $res["{$contrPart}Address"] = !empty($cartRec->deliveryAddress) ? $cartRec->deliveryAddress : null;
-            $res["{$contrPart}Country"] = !empty($cartRec->deliveryCountry) ? $cartRec->deliveryCountry : null;
-            $res["instructions"] = !empty($cartRec->instructions) ? $cartRec->instructions : null;
+            
+            $res["{$contrPart}Country"] = !empty($cartRec->deliveryCountry) ? drdata_Countries::fetchField($cartRec->deliveryCountry, 'commonName') : null;
+            $res["instructions"] = !empty($cartRec->instruction) ? $cartRec->instruction : null;
         } else {
             $res["{$contrPart}PCode"] = !empty($contragentData->pCode) ? $contragentData->pCode : null;
             $res["{$contrPart}Place"] = !empty($contragentData->place) ? $contragentData->place : null;

@@ -1058,6 +1058,8 @@ class core_Users extends core_Manager
                 $layout->append($form->renderHtml($form->InputFields, $inputs), 'FORM');
                 
                 $layout->prepend(tr('Вход') . ' « ', 'PAGE_TITLE');
+                $layout->prepend("\n<meta name=\"robots\" content=\"noindex\">", 'HEAD');
+
                 if (EF_USERS_HASH_FACTOR > 0) {
                     $layout->push('js/login.js', 'JS');
                 } else {

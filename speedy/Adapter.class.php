@@ -228,11 +228,7 @@ class speedy_Adapter {
         $senderClientData = $this->eps->getClientById($clientId);
         $Address = $senderClientData->getAddress();
         $objectName = $senderClientData->getObjectName();
-        
         $res = (!empty($objectName) ? "{$objectName}: " : "") . $Address->getPostCode() . " " . $Address->getSiteName() . " " . $Address->getStreetType() . " " . $Address->getStreetName() . " " . $Address->getStreetNo();
-        if($quarterName = $Address->getQuarterName()){
-            //$res .= " {$quarterName}";
-        }
         
         return $res;
     }
@@ -381,6 +377,8 @@ class speedy_Adapter {
         $firstParcel = $parcels[0];
         $bolId = $firstParcel->getParcelId();
         
+        
+        
         return $bolId;
     }
     
@@ -416,6 +414,11 @@ class speedy_Adapter {
         
         $pickingData->returnServiceId = ($rec->returnServiceId == 'same') ? $pickingData->serviceTypeId : $rec->returnServiceId;
         $pickingData->returnPayer = ($rec->returnPayer == 'same') ? $pickingData->payerType : (($rec->returnPayer == 'sender') ? ParamCalculation::PAYER_TYPE_SENDER : (($rec->returnPayer == 'receiver') ? ParamCalculation::PAYER_TYPE_RECEIVER : ParamCalculation::PAYER_TYPE_THIRD_PARTY));
+        
+        if(!empty($rec->wrappingReturnQuantity)){
+            $pickingData->wrappingReturnServiceId = $rec->wrappingReturnServiceId;
+            $pickingData->wrappingReturnQuantity = $rec->wrappingReturnQuantity;
+        }
         
         if($pickingData->amountInsurance){
             setIfNot($rec->insurancePayer, 'same');
@@ -605,6 +608,15 @@ class speedy_Adapter {
             $picking->setParcels($parcelsArray);
         }
         
+        if($picking instanceof ParamPicking){
+            if(isset($pickingData->wrappingReturnServiceId)){
+                $returnServiceRequest = new ParamReturnServiceRequest();
+                $returnServiceRequest->setParcelsCount($pickingData->wrappingReturnQuantity);
+                $returnServiceRequest->setServiceTypeId($pickingData->wrappingReturnServiceId);
+                $picking->setRetServicesRequest($returnServiceRequest);
+            }
+        }
+        
         return $picking;
     }
     
@@ -688,14 +700,32 @@ class speedy_Adapter {
             $errorMsg = 'Опцията за тестване преди плащане не е налична за избраната услуга';
             $fields = 'service,options';
         } elseif(strpos($errorMsg, '[MISSING_REQUIRED_VALUE_PARCELS, Pallet services require first parcel info to be provided') !== false) {
-            $errorMsg = 'Избраната услуга изисква да е подадена информация за първия палетите';
+            $errorMsg = 'Палетната услуга, изисква да е въведена информация за палетите';
             $fields = 'service,parcelInfo';
         } elseif(strpos($errorMsg, '[INVALID_OPTIONS_BEFORE_PAYMENT, Options before payment are not allowed for shipments with APT') !== false){
             $errorMsg = 'При доставка до автомат не може да са избрани опции преди получаване/плащане';
             $fields = 'receiverSpeedyOffice,options';
-        } elseif(strpos($errorMsg, '[WEIGHT_NOT_IN_RANGE, Weight not in range for service') !== false){
+        } elseif(strpos($errorMsg, '[WEIGHT_NOT_IN_RANGE, Invalid weight for service. Allowed values are between 0.0kg and 50.0kg') !== false){
+            $errorMsg = 'Разрешеното тегло за услугата е между 0 и 50 кг';
+            $fields = 'totalWeight,service';
+        } elseif(strpos($errorMsg, '[WEIGHT_NOT_IN_RANGE, Invalid weight for service. Allowed values are between 0.0kg and 50.0kg') !== false){
+            $errorMsg = 'Разрешеното тегло за услугата е между 0 и 50 кг';
+            $fields = 'totalWeight,service';
+        } elseif(strpos($errorMsg, 'WEIGHT_NOT_IN_RANGE, Invalid average weight for service. Allowed values are between 0.0kg and 50.0kg') !== false){
             $errorMsg = 'Теглото не е в границите за избраната услуга';
             $fields = 'totalWeight,service';
+        } elseif(strpos($errorMsg, 'NON_ACTIVE_OFFICE_TBC') !== false){
+            $errorMsg = 'Офисът не е активен';
+            $fields = 'receiverSpeedyOffice';
+        } elseif(strpos($errorMsg, 'INVALID_RETURN_SERVICE_REQUEST, Return wrapping service not allowed') !== false){
+            $errorMsg = 'Избраната услуга, не позволява връщане на амбалаж';
+            $fields = 'service,wrappingReturnQuantity';
+        } elseif(strpos($errorMsg, 'INVALID_RETURN_SERVICE_REQUEST, Invalid return wrapping number of parcels') !== false){
+            $errorMsg = 'Посочения брой амбалаж за връщане, не трябва да е по-голям от общия брой палети';
+            $fields = 'service,wrappingReturnQuantity';
+        } elseif(strpos($errorMsg, 'pallets EUR 80x120 are requested') !== false){
+            $errorMsg = 'Въведения брой европалети за връщане, е по-голям от описаните такива';
+            $fields = 'parcelInfo,wrappingReturnQuantity';
         } else {
             $isHandled = false;
         }

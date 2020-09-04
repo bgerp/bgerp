@@ -2793,7 +2793,40 @@ class cal_Tasks extends embed_Manager
         if (($state == 'stopped') || ($state == 'closed')) {
             $rec->timeClosed = dt::now();
             self::save($rec, 'timeClosed');
+            
+            if ($mvc->checkForCloseThread($rec->threadId, $rec->containerId)) {
+                $tRec = doc_Threads::fetch($rec->threadId);
+                $tRec->state = 'closed';
+                doc_Threads::save($tRec, 'state');
+            }
         }
+    }
+    
+    
+    /**
+     * Проверява дали нишката може да се затвори
+     * 
+     * @param integer $threadId
+     * @param integer $containerId
+     * 
+     * @return boolean
+     */
+    public static function checkForCloseThread($threadId, $containerId)
+    {
+        if ($threadId) {
+            $tRec = doc_Threads::fetch($threadId);
+            
+            // Да няма входящ имейл в нишката
+            if (!email_Incomings::fetch(array("#threadId = '[#1#]' AND #state != 'rejected'", $threadId))) {
+                // Ако няма други задачи
+                if (!cal_Tasks::fetch(array("#containerId != [#1#] AND #threadId = '[#2#]' AND #state != 'rejected' AND #state != 'closed' AND #state != 'stopped' AND #state != 'draft'", $containerId, $threadId))) {
+                    
+                    return true;
+                }
+            }
+        }
+        
+        return false;
     }
     
     

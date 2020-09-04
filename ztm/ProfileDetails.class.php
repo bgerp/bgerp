@@ -81,12 +81,18 @@ class ztm_ProfileDetails extends core_Detail
     
     
     /**
+     * Кои полета да се извличат при изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'registerId, profileId, value';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     protected function description()
     {
         $this->FLD('profileId','key(mvc=ztm_Profiles, select=name)','caption=Профил,mandatory,smartCenter');
-        $this->FLD('registerId','key(mvc=ztm_Registers, select=name, allowEmpty)','caption=Регистър,removeAndRefreshForm=value|extValue,silent');
+        $this->FLD('registerId','key(mvc=ztm_Registers, select=name, allowEmpty, where=#scope !\\= \\\'device\\\')','caption=Регистър,removeAndRefreshForm=value|extValue,silent,mandatory');
         $this->FLD('value', 'varchar(32)', 'caption=Стойност,input=none');
         
         $this->setDbUnique('profileId, registerId');
@@ -103,6 +109,11 @@ class ztm_ProfileDetails extends core_Detail
     {
         $form = $data->form;
         ztm_Registers::extendAddForm($form);
+        
+        if ($form->rec->registerId) {
+            $rRec = ztm_Registers::fetch($form->rec->registerId);
+            $form->setDefault('extValue', $rRec->default);
+        }
     }
     
     
@@ -118,6 +129,85 @@ class ztm_ProfileDetails extends core_Detail
     protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
         $rec->value = ztm_Registers::recordValue($rec->registerId, $rec->extValue);
+        
+        if ($rec->id) {
+            $oRec = $mvc->fetch($rec->id);
+            
+            // Ако променяме стойността
+            if ($rec->value != $oRec->value) {
+                $rec->__changeValues = true;
+                $rec->__oldVal = $oRec->value;
+            }
+        } else {
+            $rec->__changeValues = true;
+            $rec->__oldVal = $rec->value;
+        }
+    }
+    
+    
+    /**
+    * Извиква се след успешен запис в модела
+    *
+    * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
+    * @param int          $id      Първичния ключ на направения запис
+    * @param stdClass     $rec     Всички полета, които току-що са били записани
+    * @param string|array $fields  Имена на полетата, които sa записани
+    * @param string       $mode    Режим на записа: replace, ignore
+    */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        if ($rec->__changeValues) {
+            $mvc->changeValues($rec);
+        }
+    }
+    
+    
+    /**
+     * Ако се променя стойността на някой регистър
+     * Дефолтно, ако е зададено в профила или в регистрите
+     * Да използва новата стойност
+     * 
+     * @param stdClass $rec
+     */
+    public function changeValues($rec, $useDef = false)
+    {
+        $rRec = ztm_Registers::fetch($rec->registerId);
+        
+        $dQuery = ztm_Devices::getQuery();
+        $dQuery->where(array("#profileId = '[#1#]'", $rec->profileId));
+        $dQuery->show('id');
+        while ($dRec = $dQuery->fetch()) {
+            $dArr[$dRec->id] = $dRec->id;
+        }
+        
+        $vQuery = ztm_RegisterValues::getQuery();
+        $vQuery->in('deviceId', $dArr);
+        $vQuery->where(array("#value = '[#1#]'", $rRec->default));
+        $vQuery->orWhere(array("#value = '[#1#]'", $rec->__oldVal));
+        
+        while ($vRec = $vQuery->fetch()) {
+            if ($useDef) {
+                $val = $rRec->default;
+            } else {
+                $val = $rec->value;
+            }
+            
+            $vRec->value = $val;
+            $vRec->extValue = $val;
+            ztm_RegisterValues::save($vRec, 'value, modifiedOn, modifiedBy, updatedOn');
+        }
+    }
+    
+    
+    /**
+     * След изтриване на запис
+     */
+    static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        foreach ($query->getDeletedRecs() as $rec) {
+            $rec->__oldVal = $rec->value;
+            $mvc->changeValues($rec, true);
+        }
     }
     
     
@@ -137,6 +227,34 @@ class ztm_ProfileDetails extends core_Detail
         
         if($description = ztm_Registers::fetchField($rec->registerId, 'description')){
             $row->registerId = ht::createHint($row->registerId, $description);
+        }
+        
+        $rRec = ztm_Registers::fetch($rec->registerId);
+        if ($rRec->state != 'active') {
+            $row->ROW_ATTR['class'] = 'state-rejected';
+        } else {
+            $row->ROW_ATTR['class'] = 'state-active';
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string   $requiredRoles
+     * @param string   $action
+     * @param stdClass $rec
+     * @param int      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($rec && ($action == 'edit')) {
+            
+            $rRec = ztm_Registers::fetch($rec->registerId);
+            if (($rRec->state != 'active') || ($rRec->scope == 'device')) {
+                $requiredRoles = 'no_one';
+            }
         }
     }
 }

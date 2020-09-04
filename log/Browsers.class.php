@@ -107,7 +107,7 @@ class log_Browsers extends core_Master
     /**
      * Поле в което да се показва иконата за единичен изглед
      */
-    public $rowToolsSingleField = 'brid';
+    public $rowToolsSingleField = 'id';
     
     
     /**

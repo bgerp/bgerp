@@ -1592,7 +1592,7 @@ class eshop_Products extends core_Master
         foreach ($r as $epId => $near) {
             $rec = self::fetch($epId);
             
-            if ($rec) {
+            if ($rec && ($rec->nearProducts != $near)) {
                 $rec->nearProducts = $near;
                 self::save($rec, 'nearProducts');
             }

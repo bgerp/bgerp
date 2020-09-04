@@ -2134,54 +2134,59 @@ class doclog_Documents extends core_Manager
 
         try {
             if ($rec->containerId) {
-                $sendEmailsArr = doclog_Documents::getSendEmails(null, $rec->mid);
                 
-                $emailsTld = type_Emails::getCountryFromTld($sendEmailsArr, 'letterCode2');
+                $doc = doc_Containers::getDocument($rec->containerId);
                 
-                $folderId = doc_Containers::fetchField($rec->containerId, 'folderId');
-                
-                $viewIp = doclog_Documents::getViewIp(null, null, $rec->mid);
-                
-                $badIpArr = email_Incomings::getBadIpArr($viewIp, $folderId, $emailsTld);
-                
-                if (!empty($badIpArr)) {
-                    if (empty($sendEmailsArr)) {
-                        $errStr = '|Документът е видян от потребител в рискова зона|*: ';
-                    } else {
-                        $errStr = '|Документът изпратен до|* ' . type_Emails::fromArray($sendEmailsArr) . ' |е видян от потребител в рискова зона|*: ';
-                    }
-                    $countryName = '';
-                    $cCodeArr = array();
-                    foreach ($badIpArr as $ip => $countryCode) {
-                        if (isset($cCodeArr[$countryCode])) {
-                            continue;
-                        }
-                        $errStr .= ($countryName) ? ', ' : '';
-                        $countryName = drdata_Countries::getCountryName($countryCode);
-                        $errStr .= $countryName;
-                        $cCodeArr[$countryCode] = true;
-                    }
+                if ($doc && ($doc->instance->stopRiskIpNotfications !== true)) {
+                    $sendEmailsArr = doclog_Documents::getSendEmails(null, $rec->mid);
                     
-                    $userId = $rec->createdBy;
-                    if (($userId <= 0) || !haveRole('powerUser', $userId)) {
-                        $cRec = doc_Containers::fetch($rec->containerId);
-                        $userId = $cRec->activatedBy;
+                    $emailsTld = type_Emails::getCountryFromTld($sendEmailsArr, 'letterCode2');
+                    
+                    $folderId = doc_Containers::fetchField($rec->containerId, 'folderId');
+                    
+                    $viewIp = doclog_Documents::getViewIp(null, null, $rec->mid);
+                    
+                    $badIpArr = email_Incomings::getBadIpArr($viewIp, $folderId, $emailsTld);
+                    
+                    if (!empty($badIpArr)) {
+                        if (empty($sendEmailsArr)) {
+                            $errStr = '|Документът е видян от потребител в рискова зона|*: ';
+                        } else {
+                            $errStr = '|Документът изпратен до|* ' . type_Emails::fromArray($sendEmailsArr) . ' |е видян от потребител в рискова зона|*: ';
+                        }
+                        $countryName = '';
+                        $cCodeArr = array();
+                        foreach ($badIpArr as $ip => $countryCode) {
+                            if (isset($cCodeArr[$countryCode])) {
+                                continue;
+                            }
+                            $errStr .= ($countryName) ? ', ' : '';
+                            $countryName = drdata_Countries::getCountryName($countryCode);
+                            $errStr .= $countryName;
+                            $cCodeArr[$countryCode] = true;
+                        }
+                        
+                        $userId = $rec->createdBy;
                         if (($userId <= 0) || !haveRole('powerUser', $userId)) {
-                            $userId = $cRec->createdBy;
+                            $cRec = doc_Containers::fetch($rec->containerId);
+                            $userId = $cRec->activatedBy;
+                            if (($userId <= 0) || !haveRole('powerUser', $userId)) {
+                                $userId = $cRec->createdBy;
+                            }
                         }
-                    }
-                    
-                    $kKey = md5($errStr . '|' . $userId . '|' . $rec->containerId . '|' . $rec->mid);
-                    $keyVal = core_Permanent::get($kKey);
-                    if (!isset($keyVal)) {
-                        core_Permanent::set($kKey, true, 10000);
                         
-                        $mvc->logWarning(tr($errStr), $rec->id);
-                        doc_Containers::logErr(tr($errStr), $rec->containerId);
-                        
-                        if (($userId > 0) && haveRole('powerUser', $userId)) {
-                            $doc = doc_Containers::getDocument($rec->containerId);
-                            bgerp_Notifications::add($errStr, array($doc->instance, 'single', $doc->that), $userId);
+                        $kKey = md5($errStr . '|' . $userId . '|' . $rec->containerId . '|' . $rec->mid);
+                        $keyVal = core_Permanent::get($kKey);
+                        if (!isset($keyVal)) {
+                            core_Permanent::set($kKey, true, 10000);
+                            
+                            $mvc->logWarning(tr($errStr), $rec->id);
+                            doc_Containers::logErr(tr($errStr), $rec->containerId);
+                            
+                            if (($userId > 0) && haveRole('powerUser', $userId)) {
+                                $doc = doc_Containers::getDocument($rec->containerId);
+                                bgerp_Notifications::add($errStr, array($doc->instance, 'single', $doc->that), $userId);
+                            }
                         }
                     }
                 }

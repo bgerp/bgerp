@@ -432,6 +432,11 @@ class acc_Balances extends core_Master
             return;
         }
         
+        $data = new stdClass();
+        if($oldLastBalance = acc_Balances::getLastBalance()){
+            $data->oldLastBalance = clone $oldLastBalance;
+        }
+        
         // Обикаляме всички активни и чакъщи периоди от по-старите, към по-новите
         // Ако периода се нуждае от прекалкулиране - правим го
         // Ако прекалкулирането се извършва в текущия период, то изисляваме баланса
@@ -462,9 +467,11 @@ class acc_Balances extends core_Master
         
         // Освобождаваме заключването на процеса
         core_Locks::release($lockKey);
+        core_Debug::stopTimer('recalcBalance');
         
         // Пораждаме събитие, че баланса е бил преизчислен
-        $data = new stdClass();
+        $data->lastBalance = acc_Balances::getLastBalance();
+        
         $this->invoke('AfterRecalcBalances', array($data));
     }
     
@@ -562,7 +569,6 @@ class acc_Balances extends core_Master
         // Подреждаме ги по последно калкулиране и по начална дата в обратен ред
         $query->where('#periodId IS NOT NULL');
         $query->orderBy('#toDate', 'DESC');
-        
         $today = dt::today();
         $query->where("#fromDate <= '{$today}' AND #toDate >= '{$today}'");
         

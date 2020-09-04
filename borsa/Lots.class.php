@@ -106,7 +106,7 @@ class borsa_Lots extends core_Master
      * 
      * @var string
      */
-    public $listFields = 'productId, periodType, basePrice, quantity, priceChange, canConfirm, formInfo, formInfoEn, modifiedOn, modifiedBy, state';
+    public $listFields = 'productId, periodType, basePrice, priceChange, canConfirm, formInfo, formInfoEn, modifiedOn, modifiedBy, state';
     
     
     /**

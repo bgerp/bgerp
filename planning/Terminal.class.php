@@ -429,7 +429,7 @@ class planning_Terminal extends peripheral_Terminal
         $form->FLD('productId', 'key(mvc=cat_Products,select=name)', 'class=w100,input=hidden,silent');
         $form->FLD('type', 'enum(input=Влагане,production=Произв.,waste=Отпадък)', 'elementId=typeSelect,input=hidden,silent,removeAndRefreshForm=productId|weight|serial,caption=Действие,class=w100');
         $form->FLD('serial', 'varchar(32)', 'autocomplete=off,placeholder=№,class=w100 serialField');
-        $form->FLD('quantity', 'double(Min=0)', 'class=w100 quantityField,placeholder=К-во');
+        $form->FLD('quantity', 'double(Min=0)', 'class=w100 quantityField,placeholder=К-во', array('attr' => array('value' => Mode::get("lastQuantity"))));
         $form->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
         $form->FLD('weight', 'double(Min=0)', "class=w100 weightField{$mandatoryClass},placeholder=Тегло|* (|кг|*)");
         $form->FLD('employees', 'keylist(mvc=crm_Persons,select=id,select2MinItems=100,columns=3)', 'elementId=employeeSelect,placeholder=Оператори,class=w100');
@@ -491,7 +491,7 @@ class planning_Terminal extends peripheral_Terminal
         } else {
             $sendAttr['class'] .= ' disabled';
         }
-        $sendBtn = ht::createFnBtn("Изпълнение|* " . html_entity_decode('&#x23CE;'), null, null, $sendAttr);
+        $sendBtn = ht::createFnBtn("Въвеждане|* " . html_entity_decode('&#x23CE;'), null, null, $sendAttr);
         
         $form->fieldsLayout->append($sendBtn, 'SEND_BTN');
         $numpadBtn = ht::createFnBtn('', null, null, array('class' => "planning-terminal-numpad", 'id' => 'numPadBtn', 'title' => 'Отваряне на клавиатура', 'ef_icon' =>'img/16/numpad.png'));
@@ -752,7 +752,6 @@ class planning_Terminal extends peripheral_Terminal
                 'employees' => Request::get('employees'),
                 'fixedAsset' => Request::get('fixedAsset'),
                 'weight' => Request::get('weight'),
-                'weight' => Request::get('weight'),
                 'serial' => $serial,
             );
             
@@ -761,6 +760,7 @@ class planning_Terminal extends peripheral_Terminal
             $dRec = $Details::add($params['taskId'], $params);
             $Details->logInAct('Създаване на детайл от терминала', $dRec);
             Mode::setPermanent("terminalLastRec{$rec->id}", $dRec->id);
+            Mode::set("lastQuantity", $params['quantity']); file_put_contents('debug.txt', $params['quantity'] . "\n");
             
             if(isset($dRec->_rejectId) || !Request::get('ajax_mode')){
                 
@@ -787,7 +787,7 @@ class planning_Terminal extends peripheral_Terminal
     {
         expect($id = Request::get('id', 'int'));
         expect($rec = planning_Points::fetch($id));
-        
+
         if(!planning_Points::haveRightFor('openterminal') || !planning_Points::haveRightFor('openterminal', $rec)){
             $msg = null;
             $url = $this->getRedirectUrlAfterProblemIsFound($rec, $msg);
