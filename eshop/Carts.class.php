@@ -1122,7 +1122,7 @@ class eshop_Carts extends core_Master
             }
             
             if(!empty($rec->invoiceUicNo)){
-                $prefix = ($rec->makeInvoice == 'person') ? tr('ЕГН|*: ') : tr('ЕИК|*": ');
+                $prefix = ($rec->makeInvoice == 'person') ? tr('ЕГН|*: ') : tr('ЕИК|*: ');
                 $body->replace($prefix . self::getVerbal($rec, 'invoiceUicNo'), 'invoiceUicNo');
             }
             
