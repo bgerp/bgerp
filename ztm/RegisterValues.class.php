@@ -65,7 +65,7 @@ class ztm_RegisterValues extends core_Manager
     public function description()
     {
         $this->FLD('deviceId', 'key(mvc=ztm_Devices, select=name)','caption=Устройство,mandatory');
-        $this->FLD('registerId', 'key(mvc=ztm_Registers, select=name,allowEmpty)','caption=Регистър,mandatory,removeAndRefreshForm=value|extValue,silent');
+        $this->FLD('registerId', 'key(mvc=ztm_Registers, select=name,allowEmpty)','caption=Регистър,mandatory,removeAndRefreshForm=value|extValue,silent, refreshForm');
         $this->FLD('value', 'varchar(32)','caption=Стойност,input=none');
         $this->FLD('updatedOn', 'datetime(format=smartTime)','caption=Обновено на,input=none');
         
