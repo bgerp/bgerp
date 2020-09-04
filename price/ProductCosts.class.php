@@ -164,6 +164,28 @@ class price_ProductCosts extends core_Manager
         // Кои пера са участвали в дебитирането на склада в последните 3 месеца
         $res = array();
         
+        $pQuery = purchase_PurchasesDetails::getQuery();
+        $pQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+        $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $pQuery->EXT('activatedOn', 'purchase_Purchases', 'externalName=activatedOn,externalKey=requestId');
+        $pQuery->EXT('documentModifiedOn', 'purchase_Purchases', 'externalName=modifiedOn,externalKey=requestId');
+        $pQuery->EXT('state', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
+        $pQuery->where("((#state = 'active' || #state = 'closed') AND #activatedOn >= '{$beforeDate}') OR (#state = 'rejected' AND #activatedOn IS NOT NULL AND #documentModifiedOn >= '{$beforeDate}')");
+        $pQuery->where("#canStore = 'yes' AND #isPublic = 'yes'");
+        $pQuery->show('productId');
+        $res += arr::extractValuesFromArray($pQuery->fetchAll(), 'productId');
+        
+        $bQuery = cat_BomDetails::getQuery();
+        $bQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=resourceId');
+        $bQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=resourceId');
+        $bQuery->EXT('activatedOn', 'purchase_Purchases', 'externalName=activatedOn,externalKey=bomId');
+        $bQuery->EXT('documentModifiedOn', 'purchase_Purchases', 'externalName=modifiedOn,externalKey=bomId');
+        $bQuery->EXT('state', 'purchase_Purchases', 'externalName=state,externalKey=bomId');
+        $bQuery->where("((#state = 'active' || #state = 'closed') AND #activatedOn >= '{$beforeDate}') OR (#state = 'rejected' AND #activatedOn IS NOT NULL AND #documentModifiedOn >= '{$beforeDate}')");
+        $bQuery->show('resourceId');
+        $bQuery->where("#canStore = 'yes' AND #isPublic = 'yes'");
+        $res += arr::extractValuesFromArray($bQuery->fetchAll(), 'resourceId');
+        
         $jQuery = acc_JournalDetails::getQuery();
         $jQuery->EXT('valior', 'acc_Journal', 'externalKey=journalId');
         $jQuery->EXT('journalCreatedOn', 'acc_Journal', 'externalName=createdOn,externalKey=journalId');
@@ -187,30 +209,9 @@ class price_ProductCosts extends core_Manager
             $iQuery->where("#isPublic = 'yes' AND #canStore = 'yes' AND #productState = 'active' AND (#canBuy = 'yes' OR #canManifacture = 'yes' OR #canSell = 'yes')");
             $iQuery->in("id", $itemsWithMovement);
             $iQuery->show('id,objectId');
+            $iQuery->notIn('objectId', $res);
             $res = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
         }
-        
-        $pQuery = purchase_PurchasesDetails::getQuery();
-        $pQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
-        $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-        $pQuery->EXT('activatedOn', 'purchase_Purchases', 'externalName=activatedOn,externalKey=requestId');
-        $pQuery->EXT('documentModifiedOn', 'purchase_Purchases', 'externalName=modifiedOn,externalKey=requestId');
-        $pQuery->EXT('state', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
-        $pQuery->where("((#state = 'active' || #state = 'closed') AND #activatedOn >= '{$beforeDate}') OR (#state = 'rejected' AND #activatedOn IS NOT NULL AND #documentModifiedOn >= '{$beforeDate}')");
-        $pQuery->where("#canStore = 'yes' AND #isPublic = 'yes'");
-        $pQuery->show('productId');
-        $res += arr::extractValuesFromArray($pQuery->fetchAll(), 'productId');
-        
-        $bQuery = cat_BomDetails::getQuery();
-        $bQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=resourceId');
-        $bQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=resourceId');
-        $bQuery->EXT('activatedOn', 'purchase_Purchases', 'externalName=activatedOn,externalKey=bomId');
-        $bQuery->EXT('documentModifiedOn', 'purchase_Purchases', 'externalName=modifiedOn,externalKey=bomId');
-        $bQuery->EXT('state', 'purchase_Purchases', 'externalName=state,externalKey=bomId');
-        $bQuery->where("((#state = 'active' || #state = 'closed') AND #activatedOn >= '{$beforeDate}') OR (#state = 'rejected' AND #activatedOn IS NOT NULL AND #documentModifiedOn >= '{$beforeDate}')");
-        $bQuery->show('resourceId');
-        $bQuery->where("#canStore = 'yes' AND #isPublic = 'yes'");
-        $res += arr::extractValuesFromArray($bQuery->fetchAll(), 'resourceId');
         
         return $res;
     }
