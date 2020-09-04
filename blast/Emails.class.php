@@ -29,6 +29,11 @@ class blast_Emails extends core_Master
      */
     public $defaultFolder = 'Циркулярни имейли';
     
+    /**
+     * Спиране на известията за виждане от рискова зона
+     */
+    public $stopRiskIpNotfications = true;
+    
     
     /**
      * Заглавие на таблицата

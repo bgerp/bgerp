@@ -726,6 +726,7 @@ class pos_Receipts extends core_Master
     {
         $data->rows = array();
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 20));
+        $data->count = 0;
         
         $query = $this->getQuery();
         $query->where("#pointId = {$data->masterId}");
@@ -768,7 +769,7 @@ class pos_Receipts extends core_Master
         $tpl = new ET('');
         
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-        $tpl->append(tr('Чакащи бележки') . "({$data->count})", 'title');
+        $tpl->append(tr('Чакащи бележки') . " ({$data->count})", 'title');
         $fieldset = new core_FieldSet();
         $fieldset->FLD('name', 'varchar', 'smartcenter,tdClass=leftCol');
         $fieldset->FLD('total', 'double', 'smartcenter');

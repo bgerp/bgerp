@@ -2914,3 +2914,8 @@ en,Ваш №,Your No
 en,Фактуриран аванс,Downpayment invoiced
 en,Аванс за приспадане,For deduction
 en,По банков път,Bank payment
+en,"Търсене на","Searching for"
+en,"При търсене на","Your search for"
+en,"не бяха открити точни резултати, затова са показани приблизителни","did not return an exact result, so estimates are shown"
+en,"не бяха открити резултати","did not return any result"
+еn,В CSV-източника са открити по-малко колони от колкото са необходими за този списък,Fewer columns were found in the CSV source than are needed for this list

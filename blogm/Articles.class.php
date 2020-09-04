@@ -1127,6 +1127,52 @@ class blogm_Articles extends core_Master
         return $res;
     }
     
+
+    /**
+     * Добавя ключовите думи от обектите в менюто към масива
+     */
+    public static function getAllSearchKeywords($menuId)
+    {
+        if(!($kArr = core_Cache::get('AllKeywordsPerMenu', $menuId))) {
+            $kArr = array();
+
+            $text = '';
+            
+            $cRec = cms_Content::fetch($menuId);
+        
+            $gQuery = blogm_Categories::getQuery();
+            $groupsArr = array();
+            while ($gRec = $gQuery->fetch("#domainId = {$cRec->domainId}")) {
+                $groupsArr[$gRec->id] = $gRec;
+            }
+     
+            if(count($groupsArr)) {
+
+                $query = self::getQuery();
+                $query->where("#state = 'active'");
+                $query->likeKeylist('categories', keylist::fromArray($groupsArr));
+                $rt = cls::get('type_RichText');
+ 
+                while($rec = $query->fetch()) { $d[] = $rec;
+                     $text .= ' ' . searchKeywords;
+                }
+            }
+ 
+            if($text) {
+                $text = plg_Search::normalizeText($text);
+                $wArr = explode(' ', $text);
+                foreach($wArr as $w) {
+                    if(strlen($w) > 3) {
+                        $kArr[$w] = true;
+                    }
+                }
+            }
+            
+            core_Cache::set('AllKeywordsPerMenu', $menuId, $kArr, 48*60, 'blogm_Articles');
+        }
+ ;
+        return $kArr;
+    }
     
     /**
      * След рендиране на синъл изгледа

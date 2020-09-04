@@ -47,7 +47,7 @@ class page_Html extends core_ET
             "<!--ET_BEGIN STYLES-->\n<style type=\"text/css\">[#STYLES#]\n</style><!--ET_END STYLES-->" .
             '<!--ET_BEGIN HEAD-->[#HEAD#]<!--ET_END HEAD-->' .
             "\n</head>" .
-            "\n<body<!--ET_BEGIN ON_LOAD--> onload=\"[#ON_LOAD#]\"<!--ET_END ON_LOAD--> id= \"{$bodyId}\" class=\"{$bodyClass} [#BODY_CLASS_NAME#]\">" .
+            "\n<body<!--ET_BEGIN ON_LOAD--> onload=\"[#ON_LOAD#]\"<!--ET_END ON_LOAD--> id=\"{$bodyId}\" class=\"{$bodyClass} [#BODY_CLASS_NAME#]\">" .
             '<!--ET_BEGIN PAGE_CONTENT-->[#PAGE_CONTENT#]<!--ET_END PAGE_CONTENT-->' .
             $loadJS .
             '<!--ET_BEGIN BROWSER_DETECT-->[#BROWSER_DETECT#]<!--ET_END BROWSER_DETECT-->' .

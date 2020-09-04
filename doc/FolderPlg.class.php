@@ -737,7 +737,8 @@ class doc_FolderPlg extends core_Plugin
                             // Добавяме го в rowToolbar-а
                             $url = array($mvc, 'forcedocumentinfolder', 'id' => $rec->id, 'documentClassId' => $Cls->getClassId(), 'ret_url' => true);
                             core_RowToolbar::createIfNotExists($row->_rowTools);
-                            $row->_rowTools->addLink($obj->caption, $url, "ef_icon = {$Cls->singleIcon},order=18,title=Създаване на " . mb_strtolower($Cls->singleTitle));
+                            $title = $obj->caption ? $obj->caption : $Cls->singleTitle;
+                            $row->_rowTools->addLink($title, $url, "ef_icon = {$Cls->singleIcon},order=18,title=Създаване на " . mb_strtolower($Cls->singleTitle));
                         }
                     }
                 }

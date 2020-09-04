@@ -683,6 +683,39 @@ class cms_Articles extends core_Master
         
         return $res;
     }
+
+
+    /**
+     * Добавя ключовите думи от обектите в менюто към масива
+     */
+    public static function getAllSearchKeywords($menuId)
+    {
+        if(!($kArr = core_Cache::get('AllKeywordsPerMenu', $menuId))) {
+            $kArr = array();
+
+            $text = '';
+            
+            $query = self::getQuery();
+            $query->where("#state = 'active' AND #menuId = {$menuId}");
+            while($rec = $query->fetch()) {
+                $text .= ' ' . $rec->searchKeywords;
+            }
+ 
+            if($text) {
+                $text = plg_Search::normalizeText($text);
+                $wArr = explode(' ', $text);
+                foreach($wArr as $w) {
+                    if(strlen($w) > 3) {
+                        $kArr[$w] = true;
+                    }
+                }
+            }
+            
+            core_Cache::set('AllKeywordsPerMenu', $menuId, $kArr, 48*60, 'blogm_Articles');
+        }
+ 
+        return $kArr;
+    }
     
     
     /**

@@ -846,24 +846,26 @@ class csv_Lib
                 
                 if (strlen(trim($c0)) == 0) {
                     $fr += -1;
+                } elseif (preg_match('/@/', $c0)) {
+                    $fr += -1.5;
+                } elseif (preg_match('/^[0-9]+$/', $c0)) {
+                    $fr += -1.5;
                 } elseif (preg_match('/[0-9]/', $c0)) {
                     $fr += -0.5;
-                } elseif (preg_match('/@/', $c0)) {
-                    $fr += -1;
                 } elseif (preg_match("/[0-9\@]/", $c1)) {
-                    ++$fr;
+                    $fr += 0.75;
                 }
                 
                 if (strlen($c0)) {
                     if ("{$c0}" === "{$c1}") {
                         $fr += -1;
                     } elseif ("{$c1}" === "{$c2}") {
-                        $fr += 0.5;
+                        $fr += 0.5; 
                     }
                 }
             }
         }
-        
+
         return array($fp, $delimiter, $enclosure, $fr > 0 ? 'columnNames' : 'data');
     }
     
