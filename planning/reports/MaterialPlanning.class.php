@@ -281,7 +281,8 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         $row->week = 'Седмица: '.$week;
         
         if (isset($dRec->materialId)) {
-            $row->materialId = cat_Products::getLinkToSingle_($dRec->materialId, 'name').'/'.$dRec->materialId;
+            $row->materialId = cat_Products::getLinkToSingle_($dRec->materialId, 'name').' / '.
+                               cat_Products::fetchField("$dRec->materialId",'code');
         }
         $marker = 0;
         foreach ($dRec->originDoc as $originDoc) {
