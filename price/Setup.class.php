@@ -128,7 +128,7 @@ class price_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'price_reports_PriceList,price_AutoDiscounts,price_interface_AverageCostPricePolicyImpl,price_interface_LastAccCostPolicyImpl,price_interface_LastActiveDeliveryCostPolicyImpl,price_interface_LastDeliveryCostPolicyImpl,price_interface_LastActiveBomCostPolicy,price_interface_AverageCostStorePricePolicyImpl';
+    public $defClasses = 'price_reports_PriceList,price_AutoDiscounts,price_interface_AverageCostPricePolicyImpl,price_interface_LastAccCostPolicyImpl,price_interface_LastActiveDeliveryCostPolicyImpl,price_interface_LastDeliveryCostPolicyImpl,price_interface_LastActiveBomCostPolicy';
 
     
     
@@ -148,7 +148,7 @@ class price_Setup extends core_ProtoSetup
         core_Classes::add('price_interface_AverageCostPricePolicyImpl');
         core_Classes::add('price_interface_LastActiveBomCostPolicy');
         core_Classes::add('price_interface_LastDeliveryCostPolicyImpl');
-        core_Classes::add('price_interface_AverageCostStorePricePolicyImpl');
+        //core_Classes::add('price_interface_AverageCostStorePricePolicyImpl');
         
         $map = array('accCost' => price_interface_LastAccCostPolicyImpl::getClassId(), 
                      'activeDelivery' => price_interface_LastActiveDeliveryCostPolicyImpl::getClassId(), 
