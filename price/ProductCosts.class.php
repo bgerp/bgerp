@@ -210,7 +210,7 @@ class price_ProductCosts extends core_Manager
             $iQuery->in("id", $itemsWithMovement);
             $iQuery->show('id,objectId');
             $iQuery->notIn('objectId', $res);
-            $res = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
+            $res += arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
         }
         
         return $res;
