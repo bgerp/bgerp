@@ -172,9 +172,12 @@ class ztm_Registers extends core_Master
                         $form->fields['extValue']->type->params['max'] = $max;
                     }
                 } else {
-                    $sArr = explode(',', $rRec->range);
-                    $sArr = arr::make($sArr, true);
-                    $form->setOptions('extValue' , $sArr);
+                    $type = ztm_Registers::fetchField($rec->{$registerFld}, 'type');
+                    if ($type != 'bool') {
+                        $sArr = explode(',', $rRec->range);
+                        $sArr = arr::make($sArr, true);
+                        $form->setOptions('extValue' , $sArr);
+                    }
                 }
             }
             
