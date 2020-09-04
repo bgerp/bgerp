@@ -82,6 +82,8 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         } else {
             $fieldset->FLD('groups', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,placeholder = Всички,after=to,single=none');
         }
+        
+        $fieldset->FLD('period', 'enum(all=Общо за периода,byweek=По седмици)', 'caption=Показване,after=groups,silent');
     }
     
     
@@ -113,6 +115,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         $rec = $form->rec;
         
         $form->setDefault('weeks', 8);
+        $form->setDefault('period', 'weeks');
     }
     
     
@@ -126,7 +129,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        $recs = array();
+        $recs = $totalQuantity = array();
         $today = dt::today();
         
         $thisWeek = date('W', strtotime($today));
@@ -175,6 +178,8 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
             
             $materialsArr = cat_Products::getMaterialsForProduction($jobsRec->productId, $quantityRemaining);
             
+            $totalmaterialQuantiry = 0;
+            
             if (!empty($materialsArr)) {
                 foreach ($materialsArr as $val) {
                     $matRec = cat_Products::fetch($val[productId]);
@@ -203,6 +208,8 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                     
                     $recsKey = $week .' | '.$val[productId];
                     
+                    $totalmaterialQuantiry += $val[quantity];
+                    
                     // Запис в масива
                     if (!array_key_exists($recsKey, $recs)) {
                         $recs[$recsKey] = (object) array(
@@ -224,12 +231,29 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                         $obj->materialQuantiry += $val[quantity];
                         array_push($obj->originDoc, $doc);
                     }
+                    
+                    
+                    if (!array_key_exists($val[productId], $totalQuantity)) {
+                        $totalQuantity[$val[productId]] = (object) array(
+                            
+                            'materialId' => $val[productId],
+                            'materialQuantiry' => $val[quantity],
+                        
+                        );
+                    } else {
+                        $obj = &$totalQuantity[$val[productId]];
+                        
+                        $obj->materialQuantiry += $val[quantity];
+                    }
                 }
             }
         }
         
-        
         arr::sortObjects($recs, 'week');
+        
+        if ($rec->period == 'all') {
+            $recs = $totalQuantity;
+        }
         
         return $recs;
     }
@@ -247,12 +271,18 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         
-        $fld->FLD('materialId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-        $fld->FLD('docs', 'varchar', 'smartCenter,caption=@Задания');
-        
-        $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
-        
-        $fld->FLD('materialQuantiry', 'double(smartRound,decimals=2)', 'smartCenter,caption=Необходимо Количество');
+        if ($rec->period == 'byweek') {
+            $fld->FLD('materialId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+            $fld->FLD('docs', 'varchar', 'smartCenter,caption=@Задания');
+            
+            $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
+            
+            $fld->FLD('materialQuantiry', 'double(smartRound,decimals=2)', 'smartCenter,caption=Необходимо Количество');
+        } else {
+            $fld->FLD('materialId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+            $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('materialQuantiry', 'double(smartRound,decimals=2)', 'smartCenter,caption=Необходимо Количество');
+        }
         
         return $fld;
     }
@@ -282,29 +312,31 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         
         if (isset($dRec->materialId)) {
             $row->materialId = cat_Products::getLinkToSingle_($dRec->materialId, 'name').' / '.
-                               cat_Products::fetchField("$dRec->materialId",'code');
-        }
-        $marker = 0;
-        foreach ($dRec->originDoc as $originDoc) {
-            $marker++;
-            
-            list($docClassName, $doc) = explode('|', $originDoc);
-            $docRec = $docClassName::fetch($doc);
-            
-            $docContainer = $docRec->containerId;
-            
-            $Document = doc_Containers::getDocument($docContainer);
-            $handle = ($docClassName != 'planning_Jobs') ? 'VJ-'.$Document->getHandle() : $Document->getHandle();
-            
-            $singleUrl = $Document->getUrlWithAccess($Document->getInstance(), $originDoc);
-            
-            $row->docs .= ht::createLink("#{$handle}", $singleUrl);
-            
-            if ((countR(($dRec->originDoc)) - $marker) != 0) {
-                $row->docs .= ', ';
-            }
+                               cat_Products::fetchField("{$dRec->materialId}", 'code');
         }
         
+        if (isset($dRec->originDoc)) {
+            $marker = 0;
+            foreach ($dRec->originDoc as $originDoc) {
+                $marker++;
+                
+                list($docClassName, $doc) = explode('|', $originDoc);
+                $docRec = $docClassName::fetch($doc);
+                
+                $docContainer = $docRec->containerId;
+                
+                $Document = doc_Containers::getDocument($docContainer);
+                $handle = ($docClassName != 'planning_Jobs') ? 'VJ-'.$Document->getHandle() : $Document->getHandle();
+                
+                $singleUrl = $Document->getUrlWithAccess($Document->getInstance(), $originDoc);
+                
+                $row->docs .= ht::createLink("#{$handle}", $singleUrl);
+                
+                if ((countR(($dRec->originDoc)) - $marker) != 0) {
+                    $row->docs .= ', ';
+                }
+            }
+        }
         $row->measure = cat_UoM::fetchField(cat_Products::fetch($dRec->materialId)->measureId, 'shortName');
         
         
@@ -348,6 +380,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                 <small><div><!--ET_BEGIN groups-->|Групи продукти|*: [#groups#]<!--ET_END groups--></div></small>
+                                <small><div><!--ET_BEGIN totalmaterialQuantiry-->|Общо тегло|*: <b>[#totalmaterialQuantiry#] кг.</b><!--ET_END totalmaterialQuantiry--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
         
         
@@ -399,7 +432,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         //Активни договори за продажба със срок за доставка към края на избаните седници
         $sQuery = sales_SalesDetails::getQuery();
         
-        $sQuery->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId'); 
+        $sQuery->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
         
         $sQuery->where("#state = 'active'");
         
@@ -414,13 +447,13 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         
         
         $salesIdArr = arr::extractValuesFromArray($sQuery->fetchAll(), 'saleId');
-         
+        
         //Задания за производство към договорите за този период $jobsArr
         $jobsQuery = planning_Jobs::getQuery();
         $jobsQuery->where("#state != 'rejected' AND #state != 'draft'");
         $jobsQuery->in('saleId', $salesIdArr);
         $jobsQuery->show('saleId,productId,quantityInPack,quantity');
-       
+        
         $jobsArr = array();
         while ($jobRec = $jobsQuery->fetch()) {
             $key = $jobRec->saleId.'|'.$jobRec->productId;
@@ -440,7 +473,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                 $obj->quantity += $quantity;
             }
         }
-       
+        
         //Създаване на виртуални задания за производство
         //Договорените количества от активните договори минус заявените количества
         //за производство в задания към тези договори
@@ -460,7 +493,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                     continue;
                 }
             }
-           
+            
             $vKey = $sDetRec->saleId.'|'.$sDetRec->productId;
             
             $quantity = $sDetRec->quantity * $sDetRec->quantityInPack - $jobsArr[$vKey]->quantity;
@@ -491,7 +524,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                 $obj->quantity += $quantity;
             }
         }
-       
+        
         return $vJobsArr;
     }
 }
