@@ -68,7 +68,7 @@ class ztm_Registers extends core_Master
      *
      * @var string
      */
-    public $listFields = 'id, name, type, range, plugin, priority, default, description';
+    public $listFields = 'id, name, type, range, plugin, scope, default, description';
     
     
     /**
@@ -80,7 +80,7 @@ class ztm_Registers extends core_Master
         $this->FLD('type', 'enum(int,bool,float,str,json)', 'caption=Тип');
         $this->FLD('range', 'text', 'caption=Диапазон');
         $this->FLD('plugin', 'varchar(32)', 'caption=Модул');
-        $this->FLD('priority', 'enum(system, device, global, time)', 'caption=Приоритет за вземане на стойност');
+        $this->FLD('scope', 'enum(system=Система, device=Устройство, global=Глобално, both=И двете)', 'caption=Обхват, oldFieldName=priority');
         $this->FLD('default', 'text', 'caption=Дефолтна стойност');
         $this->FLD('description', 'text', 'caption=Описание на регистъра');
         
@@ -100,7 +100,7 @@ class ztm_Registers extends core_Master
             1 => 'type',
             2 => 'range',
             3 => 'plugin',
-            4 => 'priority',
+            4 => 'scope',
             5 => 'default',
             6 => 'description',
         );

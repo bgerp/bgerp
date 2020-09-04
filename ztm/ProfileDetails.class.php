@@ -92,7 +92,7 @@ class ztm_ProfileDetails extends core_Detail
     protected function description()
     {
         $this->FLD('profileId','key(mvc=ztm_Profiles, select=name)','caption=Профил,mandatory,smartCenter');
-        $this->FLD('registerId','key(mvc=ztm_Registers, select=name, allowEmpty, where=#priority !\\= \\\'device\\\')','caption=Регистър,removeAndRefreshForm=value|extValue,silent,mandatory');
+        $this->FLD('registerId','key(mvc=ztm_Registers, select=name, allowEmpty, where=#scope !\\= \\\'device\\\')','caption=Регистър,removeAndRefreshForm=value|extValue,silent,mandatory');
         $this->FLD('value', 'varchar(32)', 'caption=Стойност,input=none');
         
         $this->setDbUnique('profileId, registerId');
@@ -252,7 +252,7 @@ class ztm_ProfileDetails extends core_Detail
         if ($rec && ($action == 'edit')) {
             
             $rRec = ztm_Registers::fetch($rec->registerId);
-            if (($rRec->state != 'active') || ($rRec->priority == 'device')) {
+            if (($rRec->state != 'active') || ($rRec->scope == 'device')) {
                 $requiredRoles = 'no_one';
             }
         }

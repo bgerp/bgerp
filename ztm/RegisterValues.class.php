@@ -127,8 +127,8 @@ class ztm_RegisterValues extends core_Manager
         if($rec = self::fetch("#deviceId = '{$deviceId}' AND #registerId = '{$registerId}'")){
             
             // Разпъва стойността и добавя името и приоритета
-            $registerRec = ztm_Registers::fetch($registerId, 'priority,name,type');
-            $rec->priority = $registerRec->priority;
+            $registerRec = ztm_Registers::fetch($registerId, 'scope,name,type');
+            $rec->scope = $registerRec->scope;
             $rec->name = $registerRec->name;
             $rec->value = ztm_LongValues::getValueByHash($rec->value);
         }
@@ -186,8 +186,8 @@ class ztm_RegisterValues extends core_Manager
      * 
      * 1. Заключва синхронизацията
      * 2. $lastSync= min($lastSync, $deviceRec->lastSync) - взема по-старото време от полученото (от контролера) и пазаното в bgERP
-     * 3. Взема всички регистри от модела, които са променяни след $lastSync и премахва от тях тези за които priority==device
-     * 4. Нанася $regArr върху вътрешното състояние, като взема само регистрите с priority==device и този с priority=time и имащи по-голям таймстамп
+     * 3. Взема всички регистри от модела, които са променяни след $lastSync и премахва от тях тези за които scope==device
+     * 4. Нанася $regArr върху вътрешното състояние, като взема само регистрите с scope==device и този с scope=both и имащи по-голям таймстамп
      * 5. Връща получения в 3 масив
      * 
      * @param array $regArr      - масив върнат от устройството
@@ -217,12 +217,12 @@ class ztm_RegisterValues extends core_Manager
         
         $resultArr = array();
         foreach ($ourRegisters as $ourReg){
-            if($ourReg->priority != 'device'){
+            if($ourReg->scope != 'device'){
                 $resultArr[$ourReg->name] = $ourReg->value;
             }
         }
         
-        // Записване на новите стойностти, върнати от устройството с приоритет 'device' или 'time'
+        // Записване на новите стойностти, върнати от устройството с приоритет 'device' или 'both'
         foreach ($expandedRegArr as $obj){
             try{
                 ztm_RegisterValues::set($deviceId, $obj->registerId, $obj->value, $lastSync);
@@ -258,12 +258,12 @@ class ztm_RegisterValues extends core_Manager
     {
         if(is_array($arr)){
             foreach ($arr as $name => $value){
-                $registerRec = ztm_Registers::fetch(array("#name = '[#1#]'", $name), 'priority,id,state');
+                $registerRec = ztm_Registers::fetch(array("#name = '[#1#]'", $name), 'scope,id,state');
                 if (($registerRec) && ($registerRec->state == 'active')) {
-                    if ($registerRec->priority != 'system') {
-                        $expandedRegArr[$registerRec->id] = (object)array('name' => $name, 'value' => $value, 'deviceId' => $deviceId, 'registerId' => $registerRec->id, 'priority' => $registerRec->priority);
+                    if ($registerRec->scope != 'system') {
+                        $expandedRegArr[$registerRec->id] = (object)array('name' => $name, 'value' => $value, 'deviceId' => $deviceId, 'registerId' => $registerRec->id, 'scope' => $registerRec->scope);
                     } else {
-                        self::logErr("Получен регистър {$name} с приоритет {$registerRec->priority}");
+                        self::logErr("Получен регистър {$name} с приоритет {$registerRec->scope}");
                     }
                 } else {
                     $unknownRegisters[] = (object)array('name' => $name, 'value' => $value);
@@ -293,7 +293,7 @@ class ztm_RegisterValues extends core_Manager
         $res = array();
         while($rec = $query->fetch()){
             $extRec = self::get($deviceRec->id, $rec->registerId);
-            $res[$rec->registerId] = (object)array('deviceId' => $deviceRec->id, "name" => $extRec->name, 'registerId' => $rec->registerId, 'value' => $extRec->value, 'priority' => $extRec->priority);
+            $res[$rec->registerId] = (object)array('deviceId' => $deviceRec->id, "name" => $extRec->name, 'registerId' => $rec->registerId, 'value' => $extRec->value, 'scope' => $extRec->scope);
         }
         
         return $res;
@@ -449,7 +449,7 @@ class ztm_RegisterValues extends core_Manager
     {
         if ($action == 'edit' && $rec) {
             $rRec = ztm_Registers::fetch($rec->registerId);
-            if ($rRec->priority == 'device') {
+            if ($rRec->scope == 'device') {
                 $requiredRoles = 'no_one';
             }
         }
