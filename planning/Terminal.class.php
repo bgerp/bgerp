@@ -491,7 +491,7 @@ class planning_Terminal extends peripheral_Terminal
         } else {
             $sendAttr['class'] .= ' disabled';
         }
-        $sendBtn = ht::createFnBtn("Изпълнение|* " . html_entity_decode('&#x23CE;'), null, null, $sendAttr);
+        $sendBtn = ht::createFnBtn("Въвеждане|* " . html_entity_decode('&#x23CE;'), null, null, $sendAttr);
         
         $form->fieldsLayout->append($sendBtn, 'SEND_BTN');
         $numpadBtn = ht::createFnBtn('', null, null, array('class' => "planning-terminal-numpad", 'id' => 'numPadBtn', 'title' => 'Отваряне на клавиатура', 'ef_icon' =>'img/16/numpad.png'));
