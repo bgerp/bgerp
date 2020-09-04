@@ -68,7 +68,7 @@ class price_Setup extends core_ProtoSetup
             'description' => 'Обновяване на себестойностите',
             'controller' => 'price_Updates',
             'action' => 'Updateprimecosts',
-            'period' => 60,
+            'period' => 5,
             'timeLimit' => 360,
         ),
         array(
@@ -148,7 +148,6 @@ class price_Setup extends core_ProtoSetup
         core_Classes::add('price_interface_AverageCostPricePolicyImpl');
         core_Classes::add('price_interface_LastActiveBomCostPolicy');
         core_Classes::add('price_interface_LastDeliveryCostPolicyImpl');
-        //core_Classes::add('price_interface_AverageCostStorePricePolicyImpl');
         
         $map = array('accCost' => price_interface_LastAccCostPolicyImpl::getClassId(), 
                      'activeDelivery' => price_interface_LastActiveDeliveryCostPolicyImpl::getClassId(), 

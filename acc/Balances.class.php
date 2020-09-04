@@ -554,11 +554,6 @@ class acc_Balances extends core_Master
     public static function on_AfterRecalcBalances(acc_Balances $mvc, &$data)
     {
         acc_Journal::clearDrafts();
-        $lastCalculated = $data->oldLastBalance->lastCalculate;
-        if(!empty($lastCalculated)){
-            log_System::logDebug("RECALC CACHE PRICES '{$lastCalculated}'");
-            price_ProductCosts::saveCalcedCosts($lastCalculated);
-        }
     }
     
     
