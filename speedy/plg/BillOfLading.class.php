@@ -150,7 +150,11 @@ class speedy_plg_BillOfLading extends core_Plugin
                         // Опит за създаване на товарителница
                         try{
                             $bolId = $adapter->getBol($form->rec, $picking);
+                            
                         } catch(ServerException $e){
+                            bp($e, $picking);
+                            
+                            
                             $isHandled = $fields = null;
                             $msg = $adapter->handleException($e, $fields, $isHandled);
                             $form->setError($fields, $msg);
@@ -245,6 +249,9 @@ class speedy_plg_BillOfLading extends core_Plugin
         
         $rec = &$form->rec;
         $form->title = 'Попълване на товарителница за Speedy към|* ' . $mvc->getFormTitleLink($documentRec);
+        
+        $form->FLD('accountName', 'varchar', 'caption=Подател->Акаунт');
+        $form->setReadOnly('accountName', speedy_Setup::get('DEFAULT_ACCOUNT_USERNAME'));
         
         $form->FLD('senderPhone', 'drdata_PhoneType(type=tel,unrecognized=error)', 'caption=Подател->Телефон,mandatory');
         $form->FLD('senderName', 'varchar', 'caption=Подател->Фирма/Име,mandatory');
