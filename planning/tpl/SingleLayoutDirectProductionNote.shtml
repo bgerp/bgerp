@@ -41,7 +41,7 @@
                                             
                                             <!--ET_BEGIN additionalMeasureId-->
                                             <tr>
-                                                <td class='quiet' style='white-space: nowrap;'>|Втора мярка|*:</td>
+                                                <td class='quiet nowrap'>|Втора мярка|*:</td>
                                                 <td style='color:darkblue'><i>[#additionalMeasureQuantity#] [#additionalMeasureId#]</i></td>
                                             </tr>
                                             <!--ET_END additionalMeasureId-->
