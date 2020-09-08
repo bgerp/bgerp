@@ -13,7 +13,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- 
+ *
  * @title     Профили в Zontromat
  */
 class ztm_Profiles extends core_Master
@@ -80,7 +80,8 @@ class ztm_Profiles extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'ztm_ProfileDetails';    
+    public $details = 'ztm_ProfileDetails';
+    
     
     /**
      * Плъгини за зареждане
@@ -115,7 +116,7 @@ class ztm_Profiles extends core_Master
      * Връща първоначалния отговор
      *
      * @param int $profileId
-     * 
+     *
      * @return stdClass $res
      */
     public static function getDefaultRegisterValues($profileId)
@@ -130,9 +131,9 @@ class ztm_Profiles extends core_Master
         $dQuery->where("#rState = 'active'");
         $dQuery->show('registerId,value,type');
         
-        while($dRec = $dQuery->fetch()){
-            if(in_array($dRec->type, array('int', 'float')) == 'int'){
-                $dRec->value = (float)$dRec->value;
+        while ($dRec = $dQuery->fetch()) {
+            if (in_array($dRec->type, array('int', 'float')) == 'int') {
+                $dRec->value = (float) $dRec->value;
             }
             $dArr[$dRec->registerId] = $dRec->value;
         }
@@ -141,20 +142,20 @@ class ztm_Profiles extends core_Master
         $query = ztm_Registers::getQuery();
         $query->where("#state = 'active'");
         
-        while($rec = $query->fetch()){
-            if(in_array($rec->type, array('int', 'float')) == 'int'){
-                $rec->default = (float)$rec->default;
+        while ($rec = $query->fetch()) {
+            if (in_array($rec->type, array('int', 'float')) == 'int') {
+                $rec->default = (float) $rec->default;
             }
             
             $default = $rec->default;
-            if(array_key_exists($rec->id, $dArr)){
+            if (array_key_exists($rec->id, $dArr)) {
                 $default = $dArr[$rec->id];
             }
             
             $res[$rec->id] = $default;
         }
         
-        return (object)$res;
+        return (object) $res;
     }
     
     

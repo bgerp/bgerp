@@ -13,13 +13,11 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- 
+ *
  * @title     Детайл на профил в Zontromat
  */
 class ztm_ProfileDetails extends core_Detail
 {
-    
-    
     /**
      * Заглавие на модела
      */
@@ -91,8 +89,8 @@ class ztm_ProfileDetails extends core_Detail
      */
     protected function description()
     {
-        $this->FLD('profileId','key(mvc=ztm_Profiles, select=name)','caption=Профил,mandatory,smartCenter');
-        $this->FLD('registerId','key(mvc=ztm_Registers, select=name, allowEmpty, where=#scope !\\= \\\'device\\\')','caption=Регистър,removeAndRefreshForm=value|extValue,silent,mandatory');
+        $this->FLD('profileId', 'key(mvc=ztm_Profiles, select=name)', 'caption=Профил,mandatory,smartCenter');
+        $this->FLD('registerId', 'key(mvc=ztm_Registers, select=name, allowEmpty, where=#scope !\\= \\\'device\\\')', 'caption=Регистър,removeAndRefreshForm=value|extValue,silent,mandatory');
         $this->FLD('value', 'varchar(32)', 'caption=Стойност,input=none');
         
         $this->setDbUnique('profileId, registerId');
@@ -120,11 +118,11 @@ class ztm_ProfileDetails extends core_Detail
     /**
      * Извиква се преди запис в модела
      *
-     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
-     * @param int          $id      Тук се връща първичния ключ на записа, след като бъде направен
-     * @param stdClass     $rec     Съдържащ стойностите, които трябва да бъдат записани
-     * @param string|array $fields  Имена на полетата, които трябва да бъдат записани
-     * @param string       $mode    Режим на записа: replace, ignore
+     * @param core_Mvc     $mvc    Мениджър, в който възниква събитието
+     * @param int          $id     Тук се връща първичния ключ на записа, след като бъде направен
+     * @param stdClass     $rec    Съдържащ стойностите, които трябва да бъдат записани
+     * @param string|array $fields Имена на полетата, които трябва да бъдат записани
+     * @param string       $mode   Режим на записа: replace, ignore
      */
     protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
@@ -146,14 +144,14 @@ class ztm_ProfileDetails extends core_Detail
     
     
     /**
-    * Извиква се след успешен запис в модела
-    *
-    * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
-    * @param int          $id      Първичния ключ на направения запис
-    * @param stdClass     $rec     Всички полета, които току-що са били записани
-    * @param string|array $fields  Имена на полетата, които sa записани
-    * @param string       $mode    Режим на записа: replace, ignore
-    */
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc     $mvc    Мениджър, в който възниква събитието
+     * @param int          $id     Първичния ключ на направения запис
+     * @param stdClass     $rec    Всички полета, които току-що са били записани
+     * @param string|array $fields Имена на полетата, които sa записани
+     * @param string       $mode   Режим на записа: replace, ignore
+     */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
         if ($rec->__changeValues) {
@@ -166,7 +164,7 @@ class ztm_ProfileDetails extends core_Detail
      * Ако се променя стойността на някой регистър
      * Дефолтно, ако е зададено в профила или в регистрите
      * Да използва новата стойност
-     * 
+     *
      * @param stdClass $rec
      */
     public function changeValues($rec, $useDef = false)
@@ -202,7 +200,7 @@ class ztm_ProfileDetails extends core_Detail
     /**
      * След изтриване на запис
      */
-    static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
     {
         foreach ($query->getDeletedRecs() as $rec) {
             $rec->__oldVal = $rec->value;
@@ -225,7 +223,7 @@ class ztm_ProfileDetails extends core_Detail
         $Type = ztm_Registers::getOurType($rec->registerId, false);
         $row->value = $Type->toVerbal($value);
         
-        if($description = ztm_Registers::fetchField($rec->registerId, 'description')){
+        if ($description = ztm_Registers::fetchField($rec->registerId, 'description')) {
             $row->registerId = ht::createHint($row->registerId, $description);
         }
         
@@ -250,7 +248,6 @@ class ztm_ProfileDetails extends core_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($rec && ($action == 'edit')) {
-            
             $rRec = ztm_Registers::fetch($rec->registerId);
             if (($rRec->state != 'active') || ($rRec->scope == 'device')) {
                 $requiredRoles = 'no_one';

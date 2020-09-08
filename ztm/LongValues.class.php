@@ -16,8 +16,6 @@
  */
 class ztm_LongValues extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -74,8 +72,9 @@ class ztm_LongValues extends core_Manager
     
     /**
      * Връща стойността при нужда
-     * 
+     *
      * @param mixed $var
+     *
      * @return mixed
      */
     public static function getValueByHash($var)

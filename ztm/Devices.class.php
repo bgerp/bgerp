@@ -1,7 +1,7 @@
 <?php 
 
 /**
- * 
+ *
  *
  * @category  bgerp
  * @package   ztm
@@ -75,6 +75,7 @@ class ztm_Devices extends core_Master
      */
     public $closedState = 'draft';
     
+    
     /**
      * Плъгини за зареждане
      */
@@ -82,7 +83,7 @@ class ztm_Devices extends core_Master
     
     
     /**
-     * 
+     *
      * @var string
      */
     public $listFields = 'name, profileId, ident, model, ip, lastSync, state, configTime, modifiedOn, modifiedBy';
@@ -94,9 +95,6 @@ class ztm_Devices extends core_Master
     public $rowToolsSingleField = 'name';
     
     
-    /**
-     * 
-     */
     public function description()
     {
         $this->FLD('ident', 'varchar(32)', 'caption=Идентификатор');
@@ -115,10 +113,10 @@ class ztm_Devices extends core_Master
     
     /**
      * Връща записа за този токен
-     * 
+     *
      * @param string $token
-     * @param boolean $onlyActive
-     * 
+     * @param bool   $onlyActive
+     *
      * @return false|stdClass
      */
     public static function getRecForToken($token, $onlyActive = true)
@@ -144,7 +142,7 @@ class ztm_Devices extends core_Master
     
     /**
      * Обновява времето на синхронизиране
-     * 
+     *
      * @param string $token
      */
     public static function updateSyncTime($token)
@@ -163,7 +161,7 @@ class ztm_Devices extends core_Master
      *
      *
      * @param string $ident
-     * @param boolean $active
+     * @param bool   $active
      *
      * @return string|null
      */
@@ -186,7 +184,7 @@ class ztm_Devices extends core_Master
      *
      * @param string $ident
      *
-     * @return boolean
+     * @return bool
      */
     public static function checkIsUniq($ident)
     {
@@ -196,10 +194,7 @@ class ztm_Devices extends core_Master
     }
     
     
-    /**
-     * 
-     */
-    function act_Register()
+    public function act_Register()
     {
         $ident = Request::get('serial_number');
         $bgerpId = Request::get('bgerp_id');
@@ -208,18 +203,18 @@ class ztm_Devices extends core_Master
         
         $uniqId = getBGERPUniqId();
         
-        // Ако има активен запис
-        if ($bgerpId && ($bgerpId == $uniqId) && $this->getToken($ident)) {
-            header('HTTP/1.1 423');
-            header('Status: 423');
-            
-            shutdown();
-        }
-        
         // Ако има запис, но все още не е активиран
         if ($bgerpId && ($bgerpId == $uniqId) && $this->getToken($ident, false)) {
             header('HTTP/1.1 403');
             header('Status: 403');
+            
+            shutdown();
+        }
+        
+        // Ако има активен запис
+        if ($bgerpId && ($bgerpId == $uniqId) && $this->getToken($ident)) {
+            header('HTTP/1.1 423');
+            header('Status: 423');
             
             shutdown();
         }
@@ -250,7 +245,6 @@ class ztm_Devices extends core_Master
         $rec = $mvc->fetchRec($id);
         
         if (!$mvc->checkIsUniq($rec->ident)) {
-            
             core_Statuses::newStatus('|Не може да се възстанови, поради дублиране на устройство');
             
             return false;
@@ -270,7 +264,7 @@ class ztm_Devices extends core_Master
         $row->configTime = dt::timestamp2Mysql($rec->configTime);
         $row->configTime = dt::mysql2verbal($row->configTime, 'smartTime');
         
-        if(isset($rec->profileId)){
+        if (isset($rec->profileId)) {
             $row->profileId = ztm_Profiles::getHyperlink($rec->profileId, true);
         }
     }
