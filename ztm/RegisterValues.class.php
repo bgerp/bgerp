@@ -324,7 +324,7 @@ class ztm_RegisterValues extends core_Manager
         // Кое е устройството
         expect($deviceRec = ztm_Devices::getRecForToken($token), $token);
         
-        $this->logDebug('Registers: ' . Request::get('registers'), $deviceRec);
+        ztm_Devices::logDebug('Registers: ' . Request::get('registers'), $deviceRec);
         
         ztm_Devices::updateSyncTime($token);
         
@@ -369,7 +369,7 @@ class ztm_RegisterValues extends core_Manager
         }
         
         if ((array) $result) {
-            $this->logDebug('Results: ' . serialize($result), $deviceRec);
+            ztm_Devices::logDebug('Results: ' . serialize($result), $deviceRec);
         }
         
         // Връщане на резултатния обект
