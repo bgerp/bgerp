@@ -596,7 +596,7 @@ class blast_ListDetails extends doc_Detail
         $exp->rule('#csvData', 'getFileContentCsv(#csvFile)');
         
         $exp->rule('#csvColumnsCnt', 'count(getCsvColNames(#csvData,#delimiter,#enclosure))');
-        $exp->ERROR(tr('В CSV-източника са открити по-малко колони от колкото са необходими за този списък'), '(#csvColumnsCnt-1) != #listColumns');
+        $exp->ERROR(tr('В CSV-източника са открити по-малко колони от колкото са необходими за този списък'), '(#csvColumnsCnt-1) < #listColumns');
         $exp->ERROR(tr('Има проблем с формата на CSV данните') . '. <br>' . tr('Моля проверете дали правилно сте въвели данните и разделителя'), '#csvColumnsCnt < 2');
         
         $exp->rule('#csvAnalize', 'csvanalize(#csvData)', "is_string(#csvData)");
