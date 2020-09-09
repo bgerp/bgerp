@@ -118,7 +118,10 @@ class store_iface_ShipmentLabelImpl
         
         $rec = $this->class->fetchRec($id);
         $logisticData = $this->class->getLogisticData($rec);
-        $destination = trim("{$logisticData['toPCode']} {$logisticData['toPlace']}, {$logisticData['toCountry']}");
+        $countryName = is_numeric($logisticData['toCountry']) ? drdata_Countries::getTitleById($logisticData['toCountry']) : $logisticData['toCountry'];
+        $logisticData['toPlace'] = transliterate($logisticData['toPlace']);
+       
+        $destination = trim("{$logisticData['toPCode']} {$logisticData['toPlace']}, {$countryName}");
         $date = dt::mysql2verbal(dt::today(), 'd/m/y');
         
         $arr = array();

@@ -36,7 +36,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         
         // Бутон за Товарителница
         if ($mvc->haveRightFor('makebilloflading', $rec)) {
-            $data->toolbar->addBtn('Speedy', array($mvc, 'makebilloflading', 'documentId' => $rec->id, 'ret_url' => true), "id=btnSpeedy", 'ef_icon = img/16/speedy.png,title=Изпращане на товарителница към Speedy');
+            $data->toolbar->addBtn('Speedy', array($mvc, 'makebilloflading', 'documentId' => $rec->id, 'ret_url' => true), "id=btnSpeedy", 'ef_icon = img/16/speedy.png,title=Попълване на товарителница за Speedy');
         }
     }
     
@@ -71,7 +71,7 @@ class speedy_plg_BillOfLading extends core_Plugin
             $form = self::getBillOfLadingForm($mvc, $rec, $adapter, $cacheArr);
             
             $senderObjects = $adapter->getSenderObjects();
-            $form->FLD('senderClientId', 'varchar', 'after=senderName,caption=Подател->Обект,hint=Адресът е настроен в профика в Speedy');
+            $form->FLD('senderClientId', 'varchar', 'after=senderName,caption=Подател->Обект');
             $form->setOptions('senderClientId', $senderObjects);
             if(array_key_exists($cacheArr['senderClientId'], $senderObjects)){
                 $form->setDefault('senderClientId', $cacheArr['senderClientId']);
@@ -150,7 +150,9 @@ class speedy_plg_BillOfLading extends core_Plugin
                         // Опит за създаване на товарителница
                         try{
                             $bolId = $adapter->getBol($form->rec, $picking);
+                            
                         } catch(ServerException $e){
+                            
                             $isHandled = $fields = null;
                             $msg = $adapter->handleException($e, $fields, $isHandled);
                             $form->setError($fields, $msg);
@@ -246,6 +248,9 @@ class speedy_plg_BillOfLading extends core_Plugin
         $rec = &$form->rec;
         $form->title = 'Попълване на товарителница за Speedy към|* ' . $mvc->getFormTitleLink($documentRec);
         
+        $form->FLD('accountName', 'varchar', 'caption=Подател->Акаунт');
+        $form->setReadOnly('accountName', speedy_Setup::get('DEFAULT_ACCOUNT_USERNAME'));
+        
         $form->FLD('senderPhone', 'drdata_PhoneType(type=tel,unrecognized=error)', 'caption=Подател->Телефон,mandatory');
         $form->FLD('senderName', 'varchar', 'caption=Подател->Фирма/Име,mandatory');
         $form->FLD('senderNotes', 'text(rows=2)', 'caption=Подател->Уточнение');
@@ -272,7 +277,6 @@ class speedy_plg_BillOfLading extends core_Plugin
         
         $form->FLD('payer', 'enum(sender=1.Подател,receiver=2.Получател,third=3.Фирмен обект)', 'caption=Описание на пратката->Платец,mandatory,silent,removeAndRefreshForm=thirdPayerRefId');
         $form->FLD('thirdPayerRefId', 'int', 'caption=Описание на пратката->Платец Офис,input=none');
-        
         $form->FLD('payerPackaging', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател)', 'caption=Описание на пратката->Платец опаковка,mandatory');
         
         $form->FLD('isDocuments', 'enum(no=Не,yes=Да)', 'caption=Описание на пратката->Документи,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer|palletCount,maxRadio=2');
@@ -294,28 +298,30 @@ class speedy_plg_BillOfLading extends core_Plugin
         $form->FLD('returnServiceId', 'varchar', 'caption=Описание на пратката->Услуга за връщане,input=none,after=options');
         $form->FLD('returnPayer', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател)', 'caption=Описание на пратката->Платец на връщането,input=none,after=returnServiceId');
         $form->FLD('backRequest', 'set(document=Документи,receipt=Разписка)', 'caption=Заявка за обратни документи->Избор');
-       
+        
+        $form->FLD('wrappingReturnServiceId', 'enum(601=Европалет,605=Нестандартен палет)', 'caption=Заявка за обратен амбалаж->Палет,autohide');
+        $form->FLD('wrappingReturnQuantity', 'int(min=0)', 'caption=Заявка за обратен амбалаж->К-во,autohide,inlineTo=wrappingReturnServiceId');
+        
         $Cover = doc_Folders::getCover($documentRec->folderId);
         $isPrivatePerson = ($Cover->haveInterface('crm_PersonAccRegIntf')) ? 'yes' : 'no';
         $form->setDefault('isPrivatePerson', $isPrivatePerson);
         $form->setDefault('isDocuments', 'no');
         $form->setDefault('isPaletize', 'no');
-        
+        $form->setFieldTypeParams('parcelInfo', array('width_sgt' => '80=80,100=100,120=120,150=150,175=175,200=200', 'depth_sgt' => '60=60,120=120'));
         $form->input(null, 'silent');
         
         if($rec->isDocuments == 'yes'){
             $form->setField('amountInsurance', 'input=none');
             $form->setField('isFragile', 'input=none');
             $form->setField('insurancePayer', 'input=none');
-            
             $form->setField('palletCount', 'input=hidden');
             $form->setDefault('palletCount', 1);
         }
         
         $logisticData = $mvc->getLogisticData($documentRec);
-        $logisticData['toCountry'] = !is_numeric($logisticData['toCountry']) ? drdata_Countries::getIdByName($logisticData['toCountry']) : $logisticData['toCountry'];
+        $logisticCountryId = drdata_Countries::getIdByName($logisticData['toCountry']);
         $toPerson = null;
-       
+      
         if($mvc instanceof sales_Sales){
             $paymentType = $documentRec->paymentMethodId;
             $amountCod = $documentRec->amountDeal;
@@ -349,10 +355,10 @@ class speedy_plg_BillOfLading extends core_Plugin
         
         $form->setDefault('receiverPhone', $logisticData['toPersonPhones']);
         $form->setDefault('receiverNotes', $logisticData['instructions']);
-        $form->setDefault('receiverCountryId', $logisticData['toCountry']);
+        $form->setDefault('receiverCountryId', $logisticCountryId);
         $toPerson = $logisticData['toPerson'];
         
-        if($form->rec->receiverCountryId == $logisticData['toCountry']){
+        if($form->rec->receiverCountryId == $logisticCountryId){
             $form->setDefault('receiverPlace', $logisticData['toPlace']);
             $form->setDefault('receiverAddress', $logisticData['toAddress']);
             $form->setDefault('receiverPCode', $logisticData['toPCode']);
@@ -409,9 +415,7 @@ class speedy_plg_BillOfLading extends core_Plugin
             $form->setField('receiverPerson', 'input=none');
         }
         
-        $receiverCountryId = drdata_Countries::getIdByName($logisticData['toCountry']);
         $form->setDefault('payerPackaging', 'same');
-        
         $profile = crm_Profiles::getProfile();
         $phones = drdata_PhoneType::toArray($profile->tel);
         $phone = $phones[0]->original;
@@ -421,9 +425,9 @@ class speedy_plg_BillOfLading extends core_Plugin
         $form->setDefault('totalWeight', $logisticData['totalWeight']);
         
         if(!isset($rec->receiverSpeedyOffice)){
-            $form->setDefault('receiverCountryId', drdata_Countries::getIdByName($logisticData['toCountry']));
+            $form->setDefault('receiverCountryId', drdata_Countries::getIdByName($logisticCountryId));
             
-            if($rec->receiverCountryId == $receiverCountryId){
+            if($rec->receiverCountryId == $logisticCountryId){
                 $form->setDefault('receiverPlace', $logisticData['toPlace']);
                 $form->setDefault('receiverAddress', $logisticData['toAddress']);
                 $form->setDefault('receiverPCode', $logisticData['toPCode']);

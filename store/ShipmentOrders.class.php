@@ -525,7 +525,6 @@ class store_ShipmentOrders extends store_DocumentMaster
             $res['toCompany'] = !empty($rec->company) ? $rec->company : $res['toCompany'];
             $res['toPerson'] = !empty($rec->person) ? $rec->person : $res['toPerson'];
             $res['toPersonPhones'] = !empty($rec->tel) ? $rec->tel : $res['toPersonPhones'];
-            
         } elseif(empty($rec->locationId) && $rec->isReverse == 'no'){
             if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
                 $firstDocumentLogisticData = $firstDocument->getLogisticData();
@@ -537,6 +536,7 @@ class store_ShipmentOrders extends store_DocumentMaster
                 $res['toCompany'] = $firstDocumentLogisticData['toCompany'];
                 $res['toPerson'] = $firstDocumentLogisticData['toPerson'];
                 $res['toPersonPhones'] = $firstDocumentLogisticData['toPersonPhones'];
+                $res['instructions'] = $firstDocumentLogisticData['instructions'];
             }
         }
         
@@ -613,9 +613,11 @@ class store_ShipmentOrders extends store_DocumentMaster
                 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
                 $deliveryTermId = $firstDoc->fetchField('deliveryTermId');
                 
+                $cmrRow = 2;
                 if ((isset($deliveryTermId) && strpos(cond_DeliveryTerms::fetchField($deliveryTermId, 'properties'), 'cmr') !== FALSE) || trans_Setup::get('CMR_SHOW_BTN') == 'yes') {
-                    $data->toolbar->addBtn('ЧМР', array('trans_Cmrs', 'add', 'originId' => $rec->containerId, 'ret_url' => true), 'title=Създаване на ЧМР към експедиционното нареждане,ef_icon=img/16/lorry_add.png');
+                    $cmrRow = 1;
                 }
+                $data->toolbar->addBtn('ЧМР', array('trans_Cmrs', 'add', 'originId' => $rec->containerId, 'ret_url' => true), "title=Създаване на ЧМР към експедиционното нареждане,ef_icon=img/16/lorry_add.png,row={$cmrRow}");
             }
         }
         

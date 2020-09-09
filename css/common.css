@@ -713,6 +713,9 @@ input[type=radio] {
   margin: 2px 3px 3px 4px;
   vertical-align: middle; }
 
+img {
+  color: rgba(0, 0, 0, 0); }
+
 input[type=radio] + label,
 input[type=checkbox] + label {
   color: #888888;

@@ -68,7 +68,7 @@ class ztm_Registers extends core_Master
      *
      * @var string
      */
-    public $listFields = 'id, name, type, range, plugin, priority, default, description';
+    public $listFields = 'id, name, type, range, plugin, scope, default, description';
     
     
     /**
@@ -80,7 +80,7 @@ class ztm_Registers extends core_Master
         $this->FLD('type', 'enum(int,bool,float,str,json)', 'caption=Тип');
         $this->FLD('range', 'text', 'caption=Диапазон');
         $this->FLD('plugin', 'varchar(32)', 'caption=Модул');
-        $this->FLD('priority', 'enum(system, device, global, time)', 'caption=Приоритет за вземане на стойност');
+        $this->FLD('scope', 'enum(system=Система, device=Устройство, global=Глобално, both=И двете)', 'caption=Обхват, oldFieldName=priority');
         $this->FLD('default', 'text', 'caption=Дефолтна стойност');
         $this->FLD('description', 'text', 'caption=Описание на регистъра');
         
@@ -93,19 +93,17 @@ class ztm_Registers extends core_Master
      */
     public function loadSetupData()
     {
-        $file = 'ztm/csv/Registri.csv';
+//         $fields = array(
+//             0 => 'name',
+//             1 => 'type',
+//             2 => 'range',
+//             3 => 'plugin',
+//             4 => 'scope',
+//             5 => 'default',
+//             6 => 'description',
+//         );
         
-        $fields = array(
-            0 => 'name',
-            1 => 'type',
-            2 => 'range',
-            3 => 'plugin',
-            4 => 'priority',
-            5 => 'default',
-            6 => 'description',
-        );
-        
-        $cntObj = csv_Lib::importOnce($this, $file, $fields);
+        $cntObj = csv_Lib::importOnce($this, 'ztm/csv/Registri.csv', array(), array(), array('escape' => '"'));
         $res = $cntObj->html;
         
         return $res;
@@ -131,7 +129,7 @@ class ztm_Registers extends core_Master
                 $ourType = 'Double(smartRound)';
                 break;
             case 'bool':
-                $ourType = 'enum(yes=Да,no=Не)';
+                $ourType = 'enum(true=Да,false=Не)';
                 break;
             case 'str':
                 $ourType = 'varchar';
@@ -172,9 +170,12 @@ class ztm_Registers extends core_Master
                         $form->fields['extValue']->type->params['max'] = $max;
                     }
                 } else {
-                    $sArr = explode(',', $rRec->range);
-                    $sArr = arr::make($sArr, true);
-                    $form->setOptions('extValue' , $sArr);
+                    $type = ztm_Registers::fetchField($rec->{$registerFld}, 'type');
+                    if ($type != 'bool') {
+                        $sArr = explode('|', $rRec->range);
+                        $sArr = arr::make($sArr, true);
+                        $form->setOptions('extValue', $sArr);
+                    }
                 }
             }
             
@@ -235,27 +236,39 @@ class ztm_Registers extends core_Master
             $value = $extValue;
         }
         
+        if ($type == 'bool') {
+            
+            if (!is_string($value)) {
+                if ($value) {
+                    $value = 'true';
+                } else {
+                    $value = 'false';
+                }
+            }
+        }
+        
         return $value;
     }
     
     
     /**
      * Преди импортиране на запис
-     * 
+     *
      * @param ztm_Registers $mvc
-     * @param stdClass $rec
+     * @param stdClass      $rec
      */
     public static function on_BeforeImportRec($mvc, &$rec)
     {
+//         $rec->default = trim($rec->default, '"');
         $rec->state = 'active';
     }
     
     
     /**
      * След импортиране на запис
-     * 
+     *
      * @param ztm_Registers $mvc
-     * @param stdClass $rec
+     * @param stdClass      $rec
      */
     public function on_AfterImportRec($mvc, $rec)
     {
@@ -265,8 +278,25 @@ class ztm_Registers extends core_Master
     
     
     /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc     $mvc    Мениджър, в който възниква събитието
+     * @param int          $id     Първичния ключ на направения запис
+     * @param stdClass     $rec    Всички полета, които току-що са били записани
+     * @param string|array $fields Имена на полетата, които sa записани
+     * @param string       $mode   Режим на записа: replace, ignore
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        if (isset($rec->state) && $rec->state != 'active') {
+            ztm_RegisterValues::delete(array("#registerId = '[#1#]'", $rec->id));
+        }
+    }
+    
+    
+    /**
      * След приключване на процесите
-     * 
+     *
      * @param ztm_Registers $mvc
      */
     public static function on_Shutdown($mvc)

@@ -707,6 +707,10 @@ select.combo {
 	vertical-align: middle;
 }
 
+img {
+	color:transparent;
+}
+
 input[type=radio] + label, input[type=checkbox] + label {
 	color: $quiet-gray;
 	background-color: transparent !important;

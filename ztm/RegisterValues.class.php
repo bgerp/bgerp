@@ -16,7 +16,6 @@
  */
 class ztm_RegisterValues extends core_Manager
 {
-    
     /**
      * Заглавие
      */
@@ -26,7 +25,15 @@ class ztm_RegisterValues extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, ztm_Wrapper, plg_Modified, plg_Sorting';
+    public $loadList = 'plg_RowTools2, ztm_Wrapper, plg_Modified, plg_Sorting, plg_RefreshRows';
+    
+    
+    /**
+     * През колко време да се обновява по AJAX, ако има промяна
+     *
+     * @see plg_RefreshRows
+     */
+    public $refreshRowsTime = 5000;
     
     
     /**
@@ -64,10 +71,10 @@ class ztm_RegisterValues extends core_Manager
      */
     public function description()
     {
-        $this->FLD('deviceId', 'key(mvc=ztm_Devices, select=name)','caption=Устройство,mandatory');
-        $this->FLD('registerId', 'key(mvc=ztm_Registers, select=name,allowEmpty)','caption=Регистър,mandatory,removeAndRefreshForm=value|extValue,silent');
-        $this->FLD('value', 'varchar(32)','caption=Стойност,input=none');
-        $this->FLD('updatedOn', 'datetime(format=smartTime)','caption=Обновено на,input=none');
+        $this->FLD('deviceId', 'key(mvc=ztm_Devices, select=name)', 'caption=Устройство,mandatory');
+        $this->FLD('registerId', 'key(mvc=ztm_Registers, select=name,allowEmpty)', 'caption=Регистър,mandatory,removeAndRefreshForm=value|extValue,silent, refreshForm');
+        $this->FLD('value', 'varchar(32)', 'caption=Стойност,input=none');
+        $this->FLD('updatedOn', 'datetime(format=smartTime)', 'caption=Обновено на,input=none');
         
         $this->setDbUnique('deviceId,registerId');
     }
@@ -81,7 +88,7 @@ class ztm_RegisterValues extends core_Manager
         $deviceOptions = array();
         $dQuery = ztm_Devices::getQuery();
         $dQuery->where("#state = 'active'");
-        while($dRec = $dQuery->fetch()){
+        while ($dRec = $dQuery->fetch()) {
             $deviceOptions[$dRec->id] = ztm_Devices::getRecTitle($dRec);
         }
         
@@ -93,7 +100,7 @@ class ztm_RegisterValues extends core_Manager
         $data->listFilter->input();
         $data->query->EXT('deviceState', 'ztm_Devices', 'externalName=state,externalKey=deviceId');
         $data->query->where("#deviceState = 'active'");
-        $data->query->orderBy("updatedOn,id", "DESC");
+        $data->query->orderBy('updatedOn,id', 'DESC');
         
         if ($data->listFilter->isSubmitted()) {
             if ($deviceId = $data->listFilter->rec->deviceId) {
@@ -109,20 +116,33 @@ class ztm_RegisterValues extends core_Manager
     
     /**
      * Извлича стойността на дадения регистър
-     * 
-     * @param int $deviceId       - ид на устройство
-     * @param int $registerId     - ид на вид регистър
-     * 
+     *
+     * @param int $deviceId   - ид на устройство
+     * @param int $registerId - ид на вид регистър
+     *
      * @return stdClass|null $rec - записа на регистъра, null ако няма
      */
     public static function get($deviceId, $registerId)
     {
-        if($rec = self::fetch("#deviceId = '{$deviceId}' AND #registerId = '{$registerId}'")){
+        if ($rec = self::fetch("#deviceId = '{$deviceId}' AND #registerId = '{$registerId}'")) {
             
             // Разпъва стойността и добавя името и приоритета
-            $registerRec = ztm_Registers::fetch($registerId, 'priority,name,type');
-            $rec->priority = $registerRec->priority;
+            $registerRec = ztm_Registers::fetch($registerId, 'scope,name,type');
+            $rec->scope = $registerRec->scope;
             $rec->name = $registerRec->name;
+            
+            // За да връщаме bool, вместо стринг
+            // Може и без него
+//             if ($registerRec->type == 'bool') {
+//                 if (is_string($rec->value)) {
+//                     if ($rec->value == 'false') {
+//                         $rec->value = false;
+//                     } elseif ($rec->value == 'true') {
+//                         $rec->value = true;
+//                     }
+//                 }
+//             }
+            
             $rec->value = ztm_LongValues::getValueByHash($rec->value);
         }
         
@@ -132,35 +152,39 @@ class ztm_RegisterValues extends core_Manager
     
     /**
      * Задава стойност на регистъра
-     * 
-     * @param int $deviceId         - ид на устройство
-     * @param int $registerId       - ид на регистър
-     * @param mixed $value          - стойност
-     * @param datetime|null $time   - време 
-     * @param boolean $forceUpdate  - форсирано обновяване 
-     * 
+     *
+     * @param int           $deviceId    - ид на устройство
+     * @param int           $registerId  - ид на регистър
+     * @param mixed         $value       - стойност
+     * @param datetime|null $time        - време
+     * @param bool          $forceUpdate - форсирано обновяване
+     * @param bool          $checkState  - обновява само активните регистри
+     *
      * @return null|stdClass $rec  - сетнатия запис или null, ако не е обновен
      */
-    public static function set($deviceId, $registerId, $value, $time = null, $forceUpdate = false)
+    public static function set($deviceId, $registerId, $value, $time = null, $forceUpdate = false, $checkState = true)
     {
         $now = dt::now();
         $time = isset($time) ? $time : $now;
-       
-        expect(ztm_Devices::fetchRec($deviceId), "Няма такова устройство");
-        expect(ztm_Registers::fetchRec($registerId), "Няма такъв регистър");
-        expect($time <= $now, 'Не може да се зададе бъдеще време');
         
-        $rec = (object)array('deviceId' => $deviceId, 'registerId' => $registerId, 'updatedOn' => $time, 'value' => $value);
+        expect(ztm_Devices::fetchRec($deviceId), 'Няма такова устройство');
+        $rRec = ztm_Registers::fetchRec($registerId);
+        expect($rRec, 'Няма такъв регистър');
+        if ($checkState) {
+            expect($rRec->state == 'active', 'Няма такъв активен регистър');
+        }
+        expect($time <= $now, 'Не може да се зададе бъдеще време');
+        $rec = (object) array('deviceId' => $deviceId, 'registerId' => $registerId, 'updatedOn' => $time, 'value' => $value);
         $exRec = self::fetch("#deviceId = '{$deviceId}' AND #registerId = '{$registerId}'");
-        if(is_object($exRec)){
-            if($forceUpdate === false && $exRec->updatedOn > $time) {
+        if (is_object($exRec)) {
+            if ($forceUpdate === false && $exRec->updatedOn > $time) {
                 
-                return null;
+                return;
             }
             
             $rec->id = $exRec->id;
         }
-       
+        
         $rec->value = ztm_Registers::recordValue($registerId, $rec->value);
         
         $rec->_skip = true;
@@ -172,17 +196,17 @@ class ztm_RegisterValues extends core_Manager
     
     /**
      * Синхронизация на вътрешните ни данни за регистрите с тези от устройството
-     * 
+     *
      * 1. Заключва синхронизацията
      * 2. $lastSync= min($lastSync, $deviceRec->lastSync) - взема по-старото време от полученото (от контролера) и пазаното в bgERP
-     * 3. Взема всички регистри от модела, които са променяни след $lastSync и премахва от тях тези за които priority==device
-     * 4. Нанася $regArr върху вътрешното състояние, като взема само регистрите с priority==device и този с priority=time и имащи по-голям таймстамп
+     * 3. Взема всички регистри от модела, които са променяни след $lastSync и премахва от тях тези за които scope==device
+     * 4. Нанася $regArr върху вътрешното състояние, като взема само регистрите с scope==device и този с scope=both и имащи по-голям таймстамп
      * 5. Връща получения в 3 масив
-     * 
-     * @param array $regArr      - масив върнат от устройството
+     *
+     * @param array    $regArr   - масив върнат от устройството
      * @param stdClass $deviceId - ид на устройство
      * @param datetime $lastSync - обновени след, коя дата
-     * 
+     *
      * @return stdClass $syncedArray
      */
     public function sync($regArr, $deviceId, $lastSync)
@@ -191,7 +215,7 @@ class ztm_RegisterValues extends core_Manager
         
         // Заключване на синхронизацията
         //if(!core_Locks::get("ZTM_SYNC_DEVICE_{$deviceRec->id}")){
-           // $this->logNotice('Синхронизирането на устройството е вече заключено');
+        // $this->logNotice('Синхронизирането на устройството е вече заключено');
         //}
         
         // След кое, време ще обновяваме записите
@@ -203,54 +227,59 @@ class ztm_RegisterValues extends core_Manager
         
         // Извлича нашите регистри обновени след $lastSyncMin, махайки тези, които са приоритетно от устройството
         $ourRegisters = self::grab($deviceRec, $lastSyncMin);
+        
         $resultArr = array();
-        foreach ($ourRegisters as $ourReg){
-            if($ourReg->priority != 'device'){
+        foreach ($ourRegisters as $ourReg) {
+            if ($ourReg->scope != 'device') {
                 $resultArr[$ourReg->name] = $ourReg->value;
             }
         }
         
-        // Записване на новите стойностти, върнати от устройството с приоритет 'device' или 'time'
-        foreach ($expandedRegArr as $obj){
-            try{
+        // Записване на новите стойностти, върнати от устройството с приоритет 'device' или 'both'
+        foreach ($expandedRegArr as $obj) {
+            try {
                 ztm_RegisterValues::set($deviceId, $obj->registerId, $obj->value, $lastSync);
-            } catch(core_exception_Expect $e){
-                log_System::logErr("'{$obj->name}': {$e->getMessage()}");
+            } catch (core_exception_Expect $e) {
+                $dump = $e->getDump();
+                $this->logErr("'{$obj->name}': {$dump[0]}");
             }
         }
         
-        foreach ($unknownRegisters as $unknownRegisterObj){
-            log_System::logErr("Неразпознат ZTM регистър: '{$unknownRegisterObj->name}' : '{$unknownRegisterObj->value}'");
+        foreach ($unknownRegisters as $unknownRegisterObj) {
+            $this->logErr("Неразпознат ZTM регистър: '{$unknownRegisterObj->name}' : '{$unknownRegisterObj->value}'");
         }
         
         // Отключване на синхронизацията
         //core_Locks::release("ZTM_SYNC_DEVICE_{$deviceRec->id}");
-       
+        
         // Връщане на синхронизирания масив
-        return (object)$resultArr;
+        return (object) $resultArr;
     }
     
     
     /**
      * Обработва подадения входящ масив
-     * 
-     * @param array $arr                - подадения масив
-     * @param int $deviceId             - ид на устройство
-     * @param array $expandedRegArr     - масив с намерените регистри при нас
-     * @param array $unknownRegisters  - масив с регистрите, които не са намерени
-     * 
+     *
+     * @param array $arr              - подадения масив
+     * @param int   $deviceId         - ид на устройство
+     * @param array $expandedRegArr   - масив с намерените регистри при нас
+     * @param array $unknownRegisters - масив с регистрите, които не са намерени
+     *
      * @return void
      */
     private static function processRegArr($arr, $deviceId, &$expandedRegArr, &$unknownRegisters)
     {
-        if(is_array($arr)){
-            foreach ($arr as $name => $value){
-                if($registerRec = ztm_Registers::fetch(array("#name = '[#1#]'", $name), 'priority,id')){
-                    if(in_array($registerRec->priority, array('device', 'time'))){
-                        $expandedRegArr[$registerRec->id] = (object)array('name' => $name, 'value' => $value, 'deviceId' => $deviceId, 'registerId' => $registerRec->id, 'priority' => $registerRec->priority);
+        if (is_array($arr)) {
+            foreach ($arr as $name => $value) {
+                $registerRec = ztm_Registers::fetch(array("#name = '[#1#]'", $name), 'scope,id,state');
+                if (($registerRec) && ($registerRec->state == 'active')) {
+                    if ($registerRec->scope != 'system') {
+                        $expandedRegArr[$registerRec->id] = (object) array('name' => $name, 'value' => $value, 'deviceId' => $deviceId, 'registerId' => $registerRec->id, 'scope' => $registerRec->scope);
+                    } else {
+                        self::logErr("Получен регистър {$name} с приоритет {$registerRec->scope}");
                     }
                 } else {
-                    $unknownRegisters[] = (object)array('name' => $name, 'value' => $value);
+                    $unknownRegisters[] = (object) array('name' => $name, 'value' => $value);
                 }
             }
         }
@@ -260,7 +289,7 @@ class ztm_RegisterValues extends core_Manager
     /**
      * Извлича регистрите за устройството, обновени след определена дата
      *
-     * @param int $deviceId               - ид на устройство
+     * @param int           $deviceId     - ид на устройство
      * @param datetime|null $updatedAfter - обновени след дата
      *
      * @return array $res                 - масив от намерените регистри
@@ -270,14 +299,14 @@ class ztm_RegisterValues extends core_Manager
         $deviceRec = ztm_Devices::fetchRec($deviceId);
         $query = self::getQuery();
         $query->where("#deviceId = '{$deviceRec->id}'");
-        if(isset($updatedAfter)){
+        if (isset($updatedAfter)) {
             $query->where("#updatedOn >= '{$updatedAfter}'");
         }
         
         $res = array();
-        while($rec = $query->fetch()){
+        while ($rec = $query->fetch()) {
             $extRec = self::get($deviceRec->id, $rec->registerId);
-            $res[$rec->registerId] = (object)array('deviceId' => $deviceRec->id, "name" => $extRec->name, 'registerId' => $rec->registerId, 'value' => $extRec->value, 'priority' => $extRec->priority);
+            $res[$rec->registerId] = (object) array('deviceId' => $deviceRec->id, 'name' => $extRec->name, 'registerId' => $rec->registerId, 'value' => $extRec->value, 'scope' => $extRec->scope);
         }
         
         return $res;
@@ -291,50 +320,54 @@ class ztm_RegisterValues extends core_Manager
     {
         $token = Request::get('token');
         $lastSync = Request::get('last_sync');
-       
-        log_System::logDebug(serialize(Request::$vars));
         
         // Кое е устройството
         expect($deviceRec = ztm_Devices::getRecForToken($token), $token);
+        
+        $this->logDebug('Registers: ' . Request::get('registers'), $deviceRec);
+        
         ztm_Devices::updateSyncTime($token);
         
         // Добавяне на дефолтните стойностти към таблицата с регистрите, ако няма за тях
         $now = dt::now();
         $ourRegisters = self::grab($deviceRec);
-        $defaultArr = ztm_Profiles::getDefaultRegisterValues($deviceRec);
-        foreach ($defaultArr as $dRegKey => $dRegValue){
-            if(!array_key_exists($dRegKey, $ourRegisters)){
-                try{
-                    ztm_RegisterValues::set($deviceRec->id, $dRegKey, $dRegValue, $now);
-                } catch(core_exception_Expect $e){
-                    $errMsh = $e->getMessage();
-                    log_System::logErr("register:{$dRegKey} - {$errMsh}");
+        $defaultArr = ztm_Profiles::getDefaultRegisterValues($deviceRec->profileId);
+        foreach ($defaultArr as $dRegKey => $dRegValue) {
+            if (!array_key_exists($dRegKey, $ourRegisters)) {
+                try {
+                    ztm_RegisterValues::set($deviceRec->id, $dRegKey, $dRegValue, $now, false, false);
+                } catch (core_exception_Expect $e) {
+                    $dump = $e->getDump();
+                    $this->logErr("register: {$dRegKey} - {$dump[0]}");
                 }
             }
         }
         
-        try{
+        try {
             $regArr = array();
             $registers = Request::get('registers');
-            if(!empty($registers)){
-                if(is_scalar($registers)){
-                    if(str::isJson($registers)){
-                        $regArr = (array)json_decode($registers);
+            if (!empty($registers)) {
+                if (is_scalar($registers)) {
+                    if (str::isJson($registers)) {
+                        $regArr = (array) json_decode($registers);
                     }
                 }
             }
             
-            if(!countR($regArr)){
-                log_System::logErr("Невалидни стойности на 'registers': '{$registers}'");
+            if (!countR($regArr)) {
+                $this->logErr("Невалидни стойности на 'registers': '{$registers}'");
             }
             
             // Синхронизране на данните от устройството с тези от системата
             $lastSync = (empty($lastSync)) ? null : dt::timestamp2Mysql($lastSync);
             $result = $this->sync($regArr, $deviceRec->id, $lastSync);
-            
-        } catch(core_exception_Expect $e){
+        } catch (core_exception_Expect $e) {
             $result = Request::get('registers');
             reportException($e);
+        }
+        
+        if ((array) $result) {
+            $this->logDebug('Results: ' . serialize($result), $deviceRec);
         }
         
         // Връщане на резултатния обект
@@ -361,15 +394,15 @@ class ztm_RegisterValues extends core_Manager
     /**
      * Извиква се преди запис в модела
      *
-     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
-     * @param int          $id      Тук се връща първичния ключ на записа, след като бъде направен
-     * @param stdClass     $rec     Съдържащ стойностите, които трябва да бъдат записани
-     * @param string|array $fields  Имена на полетата, които трябва да бъдат записани
-     * @param string       $mode    Режим на записа: replace, ignore
+     * @param core_Mvc     $mvc    Мениджър, в който възниква събитието
+     * @param int          $id     Тук се връща първичния ключ на записа, след като бъде направен
+     * @param stdClass     $rec    Съдържащ стойностите, които трябва да бъдат записани
+     * @param string|array $fields Имена на полетата, които трябва да бъдат записани
+     * @param string       $mode   Режим на записа: replace, ignore
      */
     protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if($rec->_skip !== true){
+        if ($rec->_skip !== true) {
             $rec->value = ztm_Registers::recordValue($rec->registerId, $rec->extValue);
             $rec->updatedOn = dt::now();
         }
@@ -387,23 +420,23 @@ class ztm_RegisterValues extends core_Manager
     {
         $value = ztm_LongValues::getValueByHash($rec->value);
         $Type = ztm_Registers::getOurType($rec->registerId, false);
-        if(($Type instanceof type_Double || $Type instanceof type_Int) && !is_numeric($value)){
+        if (($Type instanceof type_Double || $Type instanceof type_Int) && !is_numeric($value)) {
             $row->value = ht::createHint($row->value, 'Стойността е с променен тип', 'error');
         } else {
             $row->value = $Type->toVerbal($value);
         }
         
         $profileValue = null;
-        if($profileId = ztm_Devices::fetchField($rec->deviceId, 'profileId')){
+        if ($profileId = ztm_Devices::fetchField($rec->deviceId, 'profileId')) {
             $profileValue = ztm_ProfileDetails::fetchField("#profileId = {$profileId}", 'value');
             $profileValue = ztm_LongValues::getValueByHash($profileValue);
         }
         $defaultValue = ztm_Registers::fetchField($rec->registerId, 'default');
         
-        if(isset($profileValue) && $profileValue == $value){
+        if (isset($profileValue) && $profileValue == $value) {
             $row->ROW_ATTR['class'] = 'state-pending';
             $row->value = ht::createHint($row->value, 'Стойността идва от профила', 'notice', true);
-        } elseif($defaultValue == $value){
+        } elseif ($defaultValue == $value) {
             $row->ROW_ATTR['class'] = 'state-draft';
             $row->value = ht::createHint($row->value, 'Стойността е дефолтна за устройството', 'notice', true);
         } else {
@@ -412,8 +445,28 @@ class ztm_RegisterValues extends core_Manager
         
         $row->deviceId = ztm_Devices::getHyperlink($rec->deviceId, true);
         
-        if($description = ztm_Registers::fetchField($rec->registerId, 'description')){
+        if ($description = ztm_Registers::fetchField($rec->registerId, 'description')) {
             $row->registerId = ht::createHint($row->registerId, $description);
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string   $requiredRoles
+     * @param string   $action
+     * @param stdClass $rec
+     * @param int      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'edit' && $rec) {
+            $rRec = ztm_Registers::fetch($rec->registerId);
+            if ($rRec->scope == 'device') {
+                $requiredRoles = 'no_one';
+            }
         }
     }
     

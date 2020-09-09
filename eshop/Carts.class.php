@@ -1122,7 +1122,7 @@ class eshop_Carts extends core_Master
             }
             
             if(!empty($rec->invoiceUicNo)){
-                $prefix = ($rec->makeInvoice == 'person') ? tr('ЕГН|*: ') : tr('ЕИК|*": ');
+                $prefix = ($rec->makeInvoice == 'person') ? tr('ЕГН|*: ') : tr('ЕИК|*: ');
                 $body->replace($prefix . self::getVerbal($rec, 'invoiceUicNo'), 'invoiceUicNo');
             }
             
@@ -2428,7 +2428,6 @@ class eshop_Carts extends core_Master
         $now = dt::now();
         $query = self::getQuery();
         $query->where("#state = 'draft' OR #state = '' OR #state IS NULL");
-        $query->where("#productCount != 0");
         
         // За всяка
         while ($rec = $query->fetch()) {
@@ -2440,7 +2439,7 @@ class eshop_Carts extends core_Master
             if ($endOfLife <= $now) {
                 self::delete($rec->id);
                 $isDeleted = true;
-            } elseif (!empty($rec->email) && $timeToNotifyBeforeDeletion <= $now) {
+            } elseif (!empty($rec->email) && $timeToNotifyBeforeDeletion <= $now && $rec->productCount != 0) {
                 
                 // Ако не е изпращан нотифициращ имейл за забравена поръчка, изпраща се
                 $isNotified = core_Permanent::get("eshopCartsNotify{$rec->id}");
