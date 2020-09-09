@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Клас 'ztm_Plugin'
  *
@@ -25,7 +26,7 @@ class ztm_Setup extends core_ProtoSetup
      */
     public $startCtr = 'ztm_Adapter';
     
-
+    
     /**
      * Описание на модула
      */
@@ -36,7 +37,7 @@ class ztm_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = array(
-            array('ztm'),
+        array('ztm'),
     );
     
     
@@ -52,11 +53,11 @@ class ztm_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'ztm_Devices',
-            'ztm_Registers',
-            'ztm_RegisterValues',
-            'ztm_LongValues',
-            'ztm_Profiles',
-            'ztm_ProfileDetails',
+        'ztm_Devices',
+        'ztm_Registers',
+        'ztm_RegisterValues',
+        'ztm_LongValues',
+        'ztm_Profiles',
+        'ztm_ProfileDetails',
     );
 }

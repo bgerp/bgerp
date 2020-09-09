@@ -1,62 +1,67 @@
-ac.enabled,bool,"yes,no",Access Control,system,no,Plugin enabled
-ac.allowed_attendees,json,,Access Control,system,"[]",Allowed attendees
-ac.nearby_attendees,json,,Access Control,system,"[]",Nearby attendees
-ac.last_minute_attendees,json,,Access Control,device,"[]",Last minute attendee
+name,type,range,plugin,scope,default,description
+ac.enabled,bool,true|false,Access Control,system,false,Plugin enabled
+ac.allowed_attendees,json,,Access Control,system,"""[]""",Allowed attendees
+ac.nearby_attendees,json,,Access Control,system,"""[]""",Nearby attendees
+ac.last_minute_attendees,json,,Access Control,device,"""[]""",Last minute attendee
 ac.next_attendance,float,0.0/,Access Control,device,0.0,Next attendance
-ac.zone_occupied,bool,"True,False",Access Control,device,False,Zone occupied flag
-ac.entry_reader_1.enabled,str,"yes,no",Access Control,system,TERACOM/act230/2897,Card reader enabled
-ac.entry_reader_1.port.baudrate,int,"300,600,1200,2400,4800,9600,19200,38400,57600,115200",Access Control,system,9600,Card reader port baud rate
+ac.zone_occupied,bool,true|false,Access Control,device,false,Zone occupied flag
+ac.entry_reader_1.enabled,str,,Access Control,system,TERACOM/act230/2897,Card reader enabled
+ac.entry_reader_1.port.baudrate,int,300|600|1200|2400|4800|9600|19200|38400|57600|115200,Access Control,system,9600,Card reader port baud rate
 ac.entry_reader_1.port.name,str,,Access Control,system,COM5,Card reader port name
-ac.exit_reader_1.enabled,str,"yes,no",Access Control,system,TERACOM/act230/2911,Card reader enabled
-ac.exit_reader_1.port.baudrate,int,"300,600,1200,2400,4800,9600,19200,38400,57600,115200",Access Control,system,9600,Card reader 1 port baud rate
+ac.exit_reader_1.enabled,str,,Access Control,system,TERACOM/act230/2911,Card reader enabled
+ac.exit_reader_1.port.baudrate,int,300|600|1200|2400|4800|9600|19200|38400|57600|115200,Access Control,system,9600,Card reader 1 port baud rate
 ac.exit_reader_1.port.name,str,,Access Control,system,COM11,Card reader 1 port name
-ac.exit_button_1.input,str,"off,DI0,DI1,DI2,DI3,DI4,DI5,DI6,DI7,DI8",Access Control,system,off,Exit button 1 input
-ac.lock_mechanism_1.output,str,"off,DO0,DO1,DO2,DO3,DO4,DO5,DO6,DO7,DO8",Access Control,system,off,Lock mechanism output
+ac.exit_button_1.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8,Access Control,system,off,Exit button 1 input
+ac.lock_mechanism_1.output,str,off|DO0|DO1|DO2|DO3|DO4|DO5|DO6|DO7|DO8,Access Control,system,off,Lock mechanism output
 ac.time_to_open_1,int,0/60,Access Control,system,10,Lock mechanism time to open [s]
-ac.door_closed_1.input,str,"off,DI0,DI1,DI2,DI3,DI4,DI5,DI6,DI7,DI8",Access Control,system,off,Door closed input
-ac.door_closed_1.state,bool,"True,False",Access Control,device,False,Door closed input state
+ac.door_closed_1.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8,Access Control,system,off,Door closed input
+ac.door_closed_1.state,bool,true|false,Access Control,device,false,Door closed input state
 ac.entry_reader_2.enabled,str,,Access Control,system,TERACOM/act230/2897,Card reader settings
-ac.entry_reader_2.port.baudrate,int,"300,600,1200,2400,4800,9600,19200,38400,57600,115200",Access Control,system,9600,Card reader port baud rate
+ac.entry_reader_2.port.baudrate,int,300|600|1200|2400|4800|9600|19200|38400|57600|115200,Access Control,system,9600,Card reader port baud rate
 ac.entry_reader_2.port.name,str,,Access Control,system,COM5,Card reader port name
 ac.exit_reader_2.enabled,str,,Access Control,system,TERACOM/act230/2911,Card reader settings
-ac.exit_reader_2.port.baudrate,int,"300,600,1200,2400,4800,9600,19200,38400,57600,115200",Access Control,system,9600,Card reader port baud rate
+ac.exit_reader_2.port.baudrate,int,300|600|1200|2400|4800|9600|19200|38400|57600|115200,Access Control,system,9600,Card reader port baud rate
 ac.exit_reader_2.port.name,str,,Access Control,system,COM11,Card reader port name
-ac.exit_button_2.input,str,"off,DI0,DI1,DI2,DI3,DI4,DI5,DI6,DI7,DI8",Access Control,system,off,Exit button 2 input
-ac.lock_mechanism_2.output,str,"off,DO0,DO1,DO2,DO3,DO4,DO5,DO6,DO7,DO8",Access Control,system,off,Lock 2 mechanism output
+ac.exit_button_2.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8,Access Control,system,off,Exit button 2 input
+ac.lock_mechanism_2.output,str,off|DO0|DO1|DO2|DO3|DO4|DO5|DO6|DO7|DO8,Access Control,system,off,Lock 2 mechanism output
 ac.time_to_open_2,int,0/60,Access Control,system,10,Lock 2 mechanism time to open
-ac.door_closed_2.input,str,"off,DI0,DI1,DI2,DI3,DI4,DI5,DI6,DI7,DI8",Access Control,system,off,Door 2 closed input
-ac.door_closed_2.state,bool,"True,False",Access Control,device,False,Door 2 closed input state
-ac.pir_1.input,str,"off,DI0,DI1,DI2,DI3,DI4,DI5,DI6,DI7,DI8",Access Control,system,off,PIR 1 sensor input
-ac.pir_1.state,bool,"True,False",Access Control,device,False,PIR 1 sensor input state
-ac.pir_2.input,str,"off,DI0,DI1,DI2,DI3,DI4,DI5,DI6,DI7,DI8",Access Control,system,off,PIR 2 sensor input
-ac.pir_2.state,bool,"True,False",Access Control,device,False,PIR 2 sensor input state
-ac.window_closed_1.input,str,"off,DI0,DI1,DI2,DI3,DI4,DI5,DI6,DI7,DI8",Access Control,system,off,Window 1 closed input
-ac.window_closed_1.state,bool,"True,False",Access Control,device,False,Window 1 closed input state
-ac.window_closed_2.input,str,"off,DI0,DI1,DI2,DI3,DI4,DI5,DI6,DI7,DI8",Access Control,system,off,Window 2 closed input
-ac.window_closed_2.state,bool,"True,False",Access Control,device,False,Window 2 closed input state
+ac.door_closed_2.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8,Access Control,system,off,Door 2 closed input
+ac.door_closed_2.state,bool,true|false,Access Control,device,false,Door 2 closed input state
+ac.pir_1.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8,Access Control,system,off,PIR 1 sensor input
+ac.pir_1.state,bool,true|false,Access Control,device,false,PIR 1 sensor input state
+ac.pir_2.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8,Access Control,system,off,PIR 2 sensor input
+ac.pir_2.state,bool,true|false,Access Control,device,false,PIR 2 sensor input state
+ac.window_closed_1.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8,Access Control,system,off,Window 1 closed input
+ac.window_closed_1.state,bool,true|false,Access Control,device,false,Window 1 closed input state
+ac.window_closed_2.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8,Access Control,system,off,Window 2 closed input
+ac.window_closed_2.state,bool,true|false,Access Control,device,false,Window 2 closed input state
+ac.door_window_blind_1.output,str,off|DO0|DO1|DO2|DO3|DO4|DO5|DO6|DO7|DO8,Access Control,system,off,Door window blind 1 output
+ac.door_window_blind_1.value,bool,true|false,Access Control,device,false,Door window blind 1 value
+ac.door_window_blind_2.output,str,off|DO0|DO1|DO2|DO3|DO4|DO5|DO6|DO7|DO8,Access Control,system,off,Door window blind 2 output
+ac.door_window_blind_2.value,bool,true|false,Access Control,device,false,Door window blind 2 value
 blinds.sun.azimuth.value,float,0.0/180.0,Blinds,system,0.0,Sun azimuth value
-blinds.sun.azimuth.mou,str,"deg,rad",Blinds,system,deg,MOU
+blinds.sun.azimuth.mou,str,deg|rad,Blinds,system,deg,MOU
 blinds.sun.elevation.value,float,0.0/180.0,Blinds,system,0.0,Sun elevation value
-blinds.sun.elevation.mou,str,"deg,rad",Blinds,system,deg,MOU
-blinds.input_fb,str,"off,DI0,DI1,DI2,DI3,DI4,DI5,DI6,DI7,DI8,AI0,AI1,AI2,AI3,AI4,AI5,AI6,AI7,AI8",Blinds,system,AI0,Feedback input
-blinds.output_ccw,str,"off,DO0,DO1,DO2,DO3,DO4,DO5,DO6,DO7,DO8",Blinds,system,DO0,CCW output
-blinds.output_cw,str,"off,DO0,DO1,DO2,DO3,DO4,DO5,DO6,DO7,DO8",Blinds,system,DO1,CW output
+blinds.sun.elevation.mou,str,deg|rad,Blinds,system,deg,MOU
+blinds.input_fb,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8|AI0|AI1|AI2|AI3|AI4|AI5|AI6|AI7|AI8,Blinds,system,AI0,Feedback input
+blinds.output_ccw,str,off|DO0|DO1|DO2|DO3|DO4|DO5|DO6|DO7|DO8,Blinds,system,DO0,CCW output
+blinds.output_cw,str,off|DO0|DO1|DO2|DO3|DO4|DO5|DO6|DO7|DO8,Blinds,system,DO1,CW output
 blinds.position,float,0.0/180.0,Blinds,system,0.0,Position
-blinds.enabled,bool,"yes,no",Blinds,system,no,Plugin enabled
-monitoring.cw.input,str,"off,DI0,DI1,DI2,DI3,DI4,DI5,DI6,DI7,DI8",Monitoring,system,off,Cold water input flow meter
+blinds.enabled,bool,true|false,Blinds,system,false,Plugin enabled
+monitoring.cw.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8,Monitoring,system,off,Cold water input flow meter
 monitoring.cw.tpl,float,0.0/,Monitoring,system,1.0,Cold water tics per liter
 monitoring.cw.value,float,0.0/,Monitoring,device,0.0,Cold water liters
 monitoring.cw.leak,float,0.0/,Monitoring,device,1.0,Cold water leaked liters
-monitoring.hw.input,str,"off,DI0,DI1,DI2,DI3,DI4,DI5,DI6,DI7,DI8",Monitoring,system,off,Hot water input flow meter
+monitoring.hw.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8,Monitoring,system,off,Hot water input flow meter
 monitoring.hw.tpl,float,0.0/,Monitoring,system,1.0,Hot water tics per liter
 monitoring.hw.value,float,0.0/,Monitoring,device,0.0,Hot water liters
 monitoring.hw.leak,float,0.0/,Monitoring,device,1.0,Hot water leaked liters
 monitoring.pa.settings,str,,Monitoring,system,mb-rtu/Eastron/SDM630/2/3,Power analyser settings
-monitoring.pa.l1,json,,Monitoring,device,"[]",Power analyser L1 parameters
-monitoring.pa.l2,json,,Monitoring,device,"[]",Power analyser L2 parameters
-monitoring.pa.l3,json,,Monitoring,device,"[]",Power analyser L3 parameters
-monitoring.enabled,bool,"yes,no",Monitoring,system,no,Plugin enabled
-env.is_empty,int,"0,1",Environment,device,1,Is empty flag
+monitoring.pa.l1,json,,Monitoring,device,"""[]""",Power analyser L1 parameters
+monitoring.pa.l2,json,,Monitoring,device,"""[]""",Power analyser L2 parameters
+monitoring.pa.l3,json,,Monitoring,device,"""[]""",Power analyser L3 parameters
+monitoring.enabled,bool,true|false,Monitoring,system,false,Plugin enabled
+env.is_empty,int,0/1,Environment,device,1,Is empty flag
 env.is_empty_timeout,int,0/,Environment,system,3600,Is empty time out [s]
 env.temp.actual,float,-50/50,Environment,system,29.0,Actual outside temperature [C]
 env.temp.a6,float,-50/50,Environment,system,30.0,Actual outside temperature for 6 hours [C]
@@ -68,65 +73,65 @@ env.wind.max12,float,0.0/,Environment,system,6.0,Maximum wind for 12 hours [m/se
 env.light,float,0.0/,Environment,system,1000.0,Outside light [lux]
 env.energy,int,,Environment,system,0,Energy mode of the building
 env.emergency,int,,Environment,system,0,Emergency flags of the building
-env.sunpos.enabled,bool,"yes,no",Environment,system,no,Enable software calculation of the sun position
-env.enabled,bool,"yes,no",Environment,system,no,Plugin enabled
-hvac.adjust_temp,float,,HVAC,system,0.0,Adjust temperature
+env.sunpos.enabled,bool,true|false,Environment,system,false,Enable software calculation of the sun position
+env.enabled,bool,true|false,Environment,system,false,Plugin enabled
+hvac.adjust_temp,float,-50.0/50.0,HVAC,system,0.0,Adjust temperature
 hvac.air_temp_cent.settings,str,,HVAC,system,temp/DS18B20/28FFFCD0001703AE,Air temperature sensor center settings
 hvac.air_temp_lower.settings,str,,HVAC,system,temp/DS18B20/28FFC4EE00170349,Air temperature sensor lower settings
 hvac.air_temp_upper.settings,str,,HVAC,system,temp/DS18B20/28FF2B70C11604B7,Air temperature sensor upper settings
 hvac.convector.settings,str,,HVAC,system,silpa/klimafan,Convector settings
-hvac.convector.stage_1.output,str,"off,RO0,RO1,RO2,RO3,RO4,RO5,RO6,RO7,RO8",HVAC,system,RO0,Convector stage 1 output
-hvac.convector.stage_2.output,str,"off,RO0,RO1,RO2,RO3,RO4,RO5,RO6,RO7,RO8",HVAC,system,RO1,Convector stage 2 output
-hvac.convector.stage_3.output,str,"off,RO0,RO1,RO2,RO3,RO4,RO5,RO6,RO7,RO8",HVAC,system,RO2,Convector stage 3 output
+hvac.convector.stage_1.output,str,off|RO0|RO1|RO2|RO3|RO4|RO5|RO6|RO7|RO8,HVAC,system,RO0,Convector stage 1 output
+hvac.convector.stage_2.output,str,off|RO0|RO1|RO2|RO3|RO4|RO5|RO6|RO7|RO8,HVAC,system,RO1,Convector stage 2 output
+hvac.convector.stage_3.output,str,off|RO0|RO1|RO2|RO3|RO4|RO5|RO6|RO7|RO8,HVAC,system,RO2,Convector stage 3 output
 hvac.delta_time,float,0.0/,HVAC,system,5.0,Measuring delta time
-hvac.enabled,bool,"yes,no",HVAC,system,no,Plugin enabled
+hvac.enabled,bool,true|false,HVAC,system,false,Plugin enabled
 hvac.goal_building_temp,float,-50.0/50.0,HVAC,system,20.0,Goal of the building temperature
 hvac.loop1.cnt.tpl,float,0.0/,HVAC,system,1.0,Loop 1 water flow meter ticks per liter scale
-hvac.loop1.cnt.input,str,"off,DI0,DI1,DI2,DI3,DI4,DI5,DI6,DI7,DI8",HVAC,system,DI4,Loop 1 water flow meter signal input
+hvac.loop1.cnt.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8,HVAC,system,DI4,Loop 1 water flow meter signal input
 hvac.loop1.fan.settings,str,,HVAC,system,HangzhouAirflowElectricApplications/f3p146ec072600,Loop 1 fan settings
-hvac.loop1.fan.output,str,"off,AI0,AI1,AI2,AI3,AI4,AI5,AI6,AI7,AI8",HVAC,system,AO3,Loop 1 fan output
+hvac.loop1.fan.output,str,off|AI0|AI1|AI2|AI3|AI4|AI5|AI6|AI7|AI8,HVAC,system,AO3,Loop 1 fan output
 hvac.loop1.fan.min_speed,float,0.0/100.0,HVAC,system,0.0,Loop 1 fan minimum speed [%]
 hvac.loop1.fan.max_speed,float,0.0/100.0,HVAC,system,30.0,Loop 1 fan maximum speed [%]
 hvac.loop1.temp.settings,str,,HVAC,system,temp/DS18B20/28FF2B70C11604B7,Loop 1 temperature sensor settings
 hvac.loop1.valve.settings,str,,HVAC,system,TONHE/a20m15b2c,Loop 1 valve settings
-hvac.loop1.valve.output,str,"off,RO0,RO1,RO2,RO3,RO4,RO5,RO6,RO7,RO8",HVAC,system,RO4,Loop 1 valve output
-hvac.loop1.valve.feedback,str,"off,AI0,AI1,AI2,AI3,AI4,AI5,AI6,AI7,AI8",HVAC,system,AI1,Loop 1 valve feedback
+hvac.loop1.valve.output,str,off|RO0|RO1|RO2|RO3|RO4|RO5|RO6|RO7|RO8,HVAC,system,RO4,Loop 1 valve output
+hvac.loop1.valve.feedback,str,off|AI0|AI1|AI2|AI3|AI4|AI5|AI6|AI7|AI8,HVAC,system,AI1,Loop 1 valve feedback
 hvac.loop1.valve.max_pos,float,0.0/100.0,HVAC,system,100.0,Loop 1 valve maximum position
 hvac.loop1.valve.min_pos,float,0.0/100.0,HVAC,system,0.0,Loop 1 valve minimum position
 hvac.loop2.cnt.tpl,float,0.0/,HVAC,system,1.0,Loop 2 water flow meter ticks per liter scale
-hvac.loop2.cnt.input,str,"off,DI0,DI1,DI2,DI3,DI4,DI5,DI6,DI7,DI8",HVAC,system,DI5,Loop 1 water flow meter signal input
+hvac.loop2.cnt.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8,HVAC,system,DI5,Loop 1 water flow meter signal input
 hvac.loop2.fan.settings,str,,HVAC,system,HangzhouAirflowElectricApplications/f3p146ec072600,Loop 2 fan settings
-hvac.loop2.fan.output,str,"off,AO0,AO1,AO2,AO3,AO4,AO5,AO6,AO7,AO8",HVAC,system,AO4,Loop 2 fan output
+hvac.loop2.fan.output,str,off|AO0|AO1|AO2|AO3|AO4|AO5|AO6|AO7|AO8,HVAC,system,AO4,Loop 2 fan output
 hvac.loop2.fan.min_speed,float,0.0/100.0,HVAC,system,0.0,Loop 2 fan minimum speed [%]
 hvac.loop2.fan.max_speed,float,0.0/100.0,HVAC,system,30.0,Loop 2 fan maximum speed [%]
 hvac.loop2.temp.settings,str,,HVAC,system,temp/DS18B20/28FFC4EE00170349,Loop 2 temperature sensor settings
 hvac.loop2.valve.settings,str,,HVAC,system,TONHE/a20m15b2c,Loop 2 valve settings
-hvac.loop2.valve.output,str,"off,RO0,RO1,RO2,RO3,RO4,RO5,RO6,RO7,RO8",HVAC,system,RO3,Loop 2 valve output
-hvac.loop2.valve.feedback,str,"off,AI0,AI1,AI2,AI3,AI4,AI5,AI6,AI7,AI8",HVAC,system,AI2,Loop 2 valve feedback
+hvac.loop2.valve.output,str,off|RO0|RO1|RO2|RO3|RO4|RO5|RO6|RO7|RO8,HVAC,system,RO3,Loop 2 valve output
+hvac.loop2.valve.feedback,str,off|AI0|AI1|AI2|AI3|AI4|AI5|AI6|AI7|AI8,HVAC,system,AI2,Loop 2 valve feedback
 hvac.loop2.valve.max_pos,float,0.0/100.0,HVAC,system,100.0,Loop 2 valve maximum position
 hvac.loop2.valve.min_pos,float,0.0/100.0,HVAC,system,0.0,Loop 2 valve minimum position
 hvac.temp.actual,float,-50.0/50.0,HVAC,system,0.0,Actual temperature
 hvac.temp.max,float,-50.0/50.0,HVAC,system,30.0,Maximum achievable
 hvac.temp.min,float,-50.0/50.0,HVAC,system,20.0,Minimum achievable
 hvac.thermal_force_limit,float,0.0/100.0,HVAC,system,100.0,Thermal force limit
-hvac.thermal_mode,int,"1,2,3,4",HVAC,system,2,Thermal mode
+hvac.thermal_mode,int,1|2|3|4,HVAC,system,2,Thermal mode
 hvac.update_rate,float,0.0/,HVAC,system,3.0,Update rate of the plugin [s]
-light.min,float,,Light,system,800.0,Minimum limit
-light.max,float,,Light,system,10000.0,Maximum limit
-light.v1.output,str,,Light,system,AO1,Analog output 1
-light.v2.output,str,,Light,system,AO2,Analog output 2
+light.min,float,0.0/10000.0,Light,system,800.0,Minimum limit
+light.max,float,0.0/10000.0,Light,system,10000.0,Maximum limit
+light.v1.output,str,off|AO0|AO1|AO2|AO3|AO4|AO5|AO6|AO7|AO8,Light,system,AO1,Analog output 1
+light.v2.output,str,off|AO0|AO1|AO2|AO3|AO4|AO5|AO6|AO7|AO8,Light,system,AO2,Analog output 2
 light.sensor.settings,str,,Light,system,1wdevice/26607314020000F8,Sensor settings
-light.enabled,bool,,Light,system,no,Plugin enabled
-sys.last_minute_errs,json,,System,device,"[]",Last minute error
-sys.ram.current,int,0/,System,device,3548,Current consumed RAM
-sys.ram.peak,int,0/,System,device,5310,Peek of consumed RAM
-sys.time.usage,float,0.0/,System,device,0.004,Application time cycle
-sys.sl.output,str,"off,LED0,LED1,LED2,LED3",System,system,LED0,Status LED
+light.enabled,bool,true|false,Light,system,false,Plugin enabled
+sys.last_minute_errs,json,,System,device,"""[]""",Last minute error
+sys.ram.current,int,0/,System,device,0,Current consumed RAM
+sys.ram.peak,int,0/,System,device,0,Peek of consumed RAM
+sys.time.usage,float,0.0/,System,device,0.0,Application time cycle
+sys.sl.output,str,off|LED0|LED1|LED2|LED3,System,system,LED0,Status LED
 sys.sl.blink_time,float,0.0/,System,system,1.0,Blink time
-sys.at.input,str,"off,DI0,DI1,DI2,DI3,DI4,DI5,DI6,DI7,DI8",System,system,DI1,Anti tamper
-sys.at.state,bool,"True,False",System,device,False,Anti tampering state
-sys.col.info_message,json,,System,device,{},Collision info message
-sys.col.warning_message,json,,System,device,{},Collision warning message
-sys.col.error_message,json,,System,device,{},Collision error message
-sys.col.clear_errors,int,"0,1",System,system,0,Clear messages
-sys.enabled,bool,"yes,no",System,system,no,Plugin enabled
+sys.at.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8,System,system,DI1,Anti tamper
+sys.at.state,bool,true|false,System,device,false,Anti tampering state
+sys.col.info_message,json,,System,device,"""{}""",Collision info message
+sys.col.warning_message,json,,System,device,"""{}""",Collision warning message
+sys.col.error_message,json,,System,device,"""{}""",Collision error message
+sys.col.clear_errors,int,0|1,System,system,0,Clear messages
+sys.enabled,bool,true|false,System,system,false,Plugin enabled

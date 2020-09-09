@@ -148,13 +148,13 @@ class cms_Domains extends core_Embedder
      */
     public $listFields = 'domain,lang,theme,createdOn,createdBy';
     
-
+    
     /**
      * Възможна ли е смяната на вече избран драйвер?
      */
     public $allowDriverChange = true;
-
-
+    
+    
     /**
      * Описание на модела
      */
@@ -185,7 +185,7 @@ class cms_Domains extends core_Embedder
         
         // Съгласие с ОУ
         $this->FLD('mandatoryAgreeText', 'richtext(rows=1)', 'caption=Задължителен текст за съгласие->Текст,autohide');
-
+        
         // SEO Заглавие
         $this->FLD('seoTitle', 'varchar(15)', 'caption=SEO->Title,autohide');
         
@@ -312,13 +312,19 @@ class cms_Domains extends core_Embedder
         $rec = self::fetch($id);
         
         // Задаваме действителния домейн, на който е намерен този
-        $rec->actualDomain = strtolower(trim($_SERVER['SERVER_NAME']));
+        $rec->actualDomain = 'wqeqwe'; //strtolower(trim($_SERVER['SERVER_NAME']));
         
-        if($rec->domain != $rec->actualDomain && $rec->domain != 'localhost' && $rec->actualDomain != 'localhost' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        if(defined('BGERP_ABSOLUTE_HTTP_HOST')) {
+            $host = parse_url(BGERP_ABSOLUTE_HTTP_HOST, PHP_URL_HOST);
+        } else {
+            $host = $rec->domain;
+        }
+        
+        if(($host != $rec->actualDomain) && $host != 'localhost' && $rec->actualDomain != 'localhost' && $_SERVER['REQUEST_METHOD'] === 'GET') {
             $url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-            $newUrl = core_Url::change($url, array(), $rec->domain);
+            $newUrl = core_Url::change($url, array(), $host);
             
-            redirect($newUrl);
+            redirect($newUrl, false, null,'notice', true);
         }
         
         Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $rec);
@@ -374,6 +380,7 @@ class cms_Domains extends core_Embedder
         }
         
         $langParse = array();
+        
         // Парсираме Accept-Language съгласно:
         // http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.4
         preg_match_all(
@@ -647,7 +654,7 @@ class cms_Domains extends core_Embedder
         }
         
         $fiContent = null;
- 
+        
         // favicon.ico
         if($rec->favicon) {
             $iconContent = $fiContent = fileman_Files::getContent($rec->favicon);
@@ -657,11 +664,11 @@ class cms_Domains extends core_Embedder
             $iconContent = getFileContent('img/favicon.png');
             $fiContent = getFileContent('img/favicon.ico');
         }
-
+        
         if(core_Webroot::isExists('android-chrome-512x512.png', $id)) {
             $iconContent = core_Webroot::getContents('android-chrome-512x512.png', $id);
         }
-
+        
         if($iconContent) {
             core_Webroot::register($iconContent, '', 'favicon.png', $id);
         }

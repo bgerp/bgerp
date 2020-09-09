@@ -781,10 +781,10 @@ class eshop_Products extends core_Master
         $data->row = $this->recToVerbal($data->rec, $fields);
         
         $hasImage = false;
-        foreach (array('image', 'image2', 'image3', 'image4', 'image5') as $i => $imgFld){
+        foreach (array('image', 'image2', 'image3', 'image4', 'image5') as $i => $imgFld) {
             if (!empty($data->rec->{$imgFld})) {
                 $path = fileman::fetchByFh($data->rec->{$imgFld}, 'path');
-                if(file_exists($path)){
+                if (file_exists($path)) {
                     $data->row->{$imgFld} = fancybox_Fancybox::getImage($data->rec->{$imgFld}, array(160, 160), array(800, 800), $data->row->name . " {$i}", array('class' => 'product-image'));
                     $hasImage = true;
                 } else {
@@ -793,7 +793,7 @@ class eshop_Products extends core_Master
             }
         }
         
-        if($hasImage === false){
+        if ($hasImage === false) {
             $data->row->image = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') . '.png'), 120, 120, 'path');
             $data->row->image = $data->row->image->createImg(array('width' => 160, 'height' => 160, 'class' => 'product-image'));
         }
@@ -1130,7 +1130,7 @@ class eshop_Products extends core_Master
     /**
      * Връзка на артикул към е-артикул
      */
-    public function act_linktoeshop()
+    public function act_LinkToEshop()
     {
         // Проверки
         $this->requireRightFor('linktoeshop');
@@ -1602,7 +1602,7 @@ class eshop_Products extends core_Master
     
     /**
      * Кои продукти са използвани в Е-маг
-     * 
+     *
      * @return array $eProductArr
      */
     public static function getProductsInEshop()

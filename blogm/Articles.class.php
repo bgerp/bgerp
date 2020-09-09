@@ -397,7 +397,7 @@ class blogm_Articles extends core_Master
         // Подготвяме SEO данните
         $rec = clone($data->rec);
         cms_Content::prepareSeo($rec, array('seoTitle' => $rec->title, 'seoDescription' => $rec->body));
-
+        
         // Рендираме статията във вид за публично разглеждане
         $tpl = $this->renderArticle($data, $layout);
         
@@ -469,9 +469,9 @@ class blogm_Articles extends core_Master
     {
         // Поставяме данните от реда
         $layout->placeObject($data->row);
-
+        
         $layout->append($this->getPrevNextLink($data->rec), 'prevNextLinks');
-
+        
         $layout = blogm_Comments::renderComments($data, $layout);
         
         // Рендираме тулбара за споделяне
@@ -483,50 +483,49 @@ class blogm_Articles extends core_Master
         
         return $layout;
     }
-
-
+    
+    
     /**
      * Връща линкове за предишен и/или следващ постинг от същите категории
      */
     public function getPrevNextLink($rec)
-    {   
+    {
         $res = '';
-
-        if($rec->categories) {
-
+        
+        if ($rec->categories) {
             $query = self::getQuery();
             
-            $query->orderBy("#publishedOn");
-
+            $query->orderBy('#publishedOn');
+            
             $query->likeKeylist('categories', $rec->categories);
-
+            
             $selected = false;
             $prev = $next = null;
             $now = dt::now();
-
-            while($r = $query->fetch("#state = 'active' AND IF(#publishedOn IS NULL OR #publishedOn = '', #createdOn, #publishedOn)  <= '{$now}'")) {  
-                if($r->id == $rec->id) {
+            
+            while ($r = $query->fetch("#state = 'active' AND IF(#publishedOn IS NULL OR #publishedOn = '', #createdOn, #publishedOn)  <= '{$now}'")) {
+                if ($r->id == $rec->id) {
                     $flagSelected = true;
-                } elseif(strlen($r->body)) {
-                    if(!$flagSelected) {
+                } elseif (strlen($r->body)) {
+                    if (!$flagSelected) {
                         $prev = $r;
                     }
-                    if($flagSelected && !$next) {
+                    if ($flagSelected && !$next) {
                         $next = $r;
                     }
                 }
             }
-          
+            
             // Линкове за следваща/предишна статия
             $prevLink = $nextLink = '';
-            if($prev) {
+            if ($prev) {
                 $prevLink = ht::createLink('«&nbsp;' . $prev->title, self::getUrl($prev));
             }
-            if($next) {
+            if ($next) {
                 $nextLink = ht::createLink($next->title . '&nbsp;»', self::getUrl($next));
             }
- 
-            if($prevLink || $nextLink) {
+            
+            if ($prevLink || $nextLink) {
                 $res = "<div class='prevNextNav'><div style='float:left;margin-right:5px;'>{$prevLink}</div><div style='float:right;margin-left:5px;'>{$nextLink}</div></div>";
             }
         }
@@ -609,7 +608,7 @@ class blogm_Articles extends core_Master
         // Подготвяме seo параметрите
         $rec = new stdClass();
         cms_Content::prepareSeo($rec, array('seoTitle' => $data->title));
-
+        
         // Рендираме списъка
         $tpl = $this->renderBrowse($data);
         
@@ -928,7 +927,7 @@ class blogm_Articles extends core_Master
     /**
      * Имплементиране на интерфейсния метод getItems от cms_FeedsSourceIntf
      *
-     * @param int  $itemsCnt
+     * @param int    $itemsCnt
      * @param string $lg
      *
      * @return array
@@ -1127,52 +1126,48 @@ class blogm_Articles extends core_Master
         return $res;
     }
     
-
+    
     /**
      * Добавя ключовите думи от обектите в менюто към масива
      */
     public static function getAllSearchKeywords($menuId)
     {
-        if(!($kArr = core_Cache::get('AllKeywordsPerMenu', $menuId))) {
-            $kArr = array();
-
-            $text = '';
-            
-            $cRec = cms_Content::fetch($menuId);
+        $kArr = array();
         
-            $gQuery = blogm_Categories::getQuery();
-            $groupsArr = array();
-            while ($gRec = $gQuery->fetch("#domainId = {$cRec->domainId}")) {
-                $groupsArr[$gRec->id] = $gRec;
-            }
-     
-            if(count($groupsArr)) {
-
-                $query = self::getQuery();
-                $query->where("#state = 'active'");
-                $query->likeKeylist('categories', keylist::fromArray($groupsArr));
-                $rt = cls::get('type_RichText');
- 
-                while($rec = $query->fetch()) { $d[] = $rec;
-                     $text .= ' ' . searchKeywords;
-                }
-            }
- 
-            if($text) {
-                $text = plg_Search::normalizeText($text);
-                $wArr = explode(' ', $text);
-                foreach($wArr as $w) {
-                    if(strlen($w) > 3) {
-                        $kArr[$w] = true;
-                    }
-                }
-            }
-            
-            core_Cache::set('AllKeywordsPerMenu', $menuId, $kArr, 48*60, 'blogm_Articles');
+        $text = '';
+        
+        $cRec = cms_Content::fetch($menuId);
+        
+        $gQuery = blogm_Categories::getQuery();
+        $groupsArr = array();
+        while ($gRec = $gQuery->fetch("#domainId = {$cRec->domainId}")) {
+            $groupsArr[$gRec->id] = $gRec;
         }
- ;
+        
+        if (count($groupsArr)) {
+            $query = self::getQuery();
+            $query->where("#state = 'active'");
+            $query->likeKeylist('categories', keylist::fromArray($groupsArr));
+            $rt = cls::get('type_RichText');
+            
+            while ($rec = $query->fetch()) {
+                $text .= ' ' . $rec->searchKeywords;
+            }
+        }
+        
+        if ($text) {
+            $text = strtolower(str::canonize($text, ' '));
+            $wArr = explode(' ', $text);
+            foreach ($wArr as $w) {
+                if (strlen($w) > 3) {
+                    $kArr[$w] = true;
+                }
+            }
+        }
+        
         return $kArr;
     }
+    
     
     /**
      * След рендиране на синъл изгледа

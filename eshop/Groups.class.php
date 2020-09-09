@@ -234,8 +234,8 @@ class eshop_Groups extends core_Master
                 $row->_rowTools->addLink('Преглед', self::getUrl($rec), 'alwaysShow,ef_icon=img/16/monitor.png,title=Преглед във външната част');
             }
             
-            if($rec->_isShared == 'yes'){
-                $row->name = ht::createHint($row->name, "Групата е споделена към менюто", 'notice', false);
+            if ($rec->_isShared == 'yes') {
+                $row->name = ht::createHint($row->name, 'Групата е споделена към менюто', 'notice', false);
                 $otherDomainId = cms_Content::fetchField($rec->menuId, 'domainId');
                 $otherDomainName = cms_Domains::getTitleById($otherDomainId);
                 $row->menuId .= " [<span style='color:green'>{$otherDomainName}</span>]";
@@ -246,12 +246,12 @@ class eshop_Groups extends core_Master
             $row->productCnt = ht::createLinkRef($row->productCnt, array('eshop_Products', 'list', 'groupId' => $rec->id));
         }
         
-        foreach (array('showPacks', 'showParams') as $fld){
+        foreach (array('showPacks', 'showParams') as $fld) {
             $hint = null;
             $showPacks = eshop_Products::getSettingField(null, $rec->id, $fld, $hint);
-            if(countR($showPacks)){
+            if (countR($showPacks)) {
                 $row->{$fld} = $mvc->getFieldType($fld)->toVerbal(keylist::fromArray($showPacks));
-                if(!empty($hint)){
+                if (!empty($hint)) {
                     $row->{$fld} = ht::createHint($row->{$fld}, $hint, 'notice', false);
                 }
             }
@@ -340,8 +340,9 @@ class eshop_Groups extends core_Master
         
         // Премахва зададения временно текущ език
         core_Lg::pop();
-
-        $layout->push("css/no-sass.css", "CSS");
+        
+        $layout->push('css/no-sass.css', 'CSS');
+        
         return $layout;
     }
     
@@ -381,7 +382,7 @@ class eshop_Groups extends core_Master
             return $this->act_ShowAll();
         }
         expect($groupRec = self::fetch($data->groupId));
-        if(!($data->menuId = Request::get('cMenuId', 'int')) || ($groupRec->menuId != $data->menuId && strpos($groupRec->sharedMenus, "|{$data->menuId}|") === false)) {
+        if (!($data->menuId = Request::get('cMenuId', 'int')) || ($groupRec->menuId != $data->menuId && strpos($groupRec->sharedMenus, "|{$data->menuId}|") === false)) {
             $data->menuId = cms_Content::getMainMenuId($groupRec->menuId, $groupRec->sharedMenus);
         }
         
@@ -409,8 +410,9 @@ class eshop_Groups extends core_Master
         
         // Премахва зададения временно текущ език
         core_Lg::pop();
-
-        $layout->push("css/no-sass.css", "CSS");
+        
+        $layout->push('css/no-sass.css', 'CSS');
+        
         return $layout;
     }
     
@@ -432,7 +434,7 @@ class eshop_Groups extends core_Master
     {
         $query = self::getQuery();
         self::setOrder($query, $data->menuId);
-
+        
         if ($groupId) {
             $query->where("#state = 'active' AND #saoParentId = {$groupId} AND (#menuId = {$data->menuId} OR LOCATE('|{$data->menuId}|', #sharedMenus))");
         } else {
@@ -440,7 +442,6 @@ class eshop_Groups extends core_Master
         }
         
         while ($rec = $query->fetch()) {
-            
             if ($rec->menuId != $data->menuId) {
                 $rec->altMenuId = $data->menuId;
             }
@@ -489,12 +490,12 @@ class eshop_Groups extends core_Master
         $currentDomainId = cms_Domains::getCurrent();
         $cQuery = cms_Content::getQuery();
         $cQuery->XPR('_domainOrder', 'int', "(CASE #domainId WHEN {$currentDomainId} THEN 1 ELSE 2 END)");
-        $cQuery->orderBy("_domainOrder", 'ASC');
+        $cQuery->orderBy('_domainOrder', 'ASC');
         
         $classId = core_Classes::getId($mvc->className);
         while ($rec = $cQuery->fetch("#source = {$classId} AND #state = 'active'")) {
             $menuName = cms_Content::getVerbal($rec, 'menu');
-            if($rec->domainId != $currentDomainId){
+            if ($rec->domainId != $currentDomainId) {
                 $domainName = cms_Content::getVerbal($rec, 'domainId');
                 $menuName .= " [{$domainName}]";
             }
@@ -759,8 +760,8 @@ class eshop_Groups extends core_Master
         $query = self::getQuery();
         
         $query->where("#menuId = {$menuId} AND #state = 'active'");
-                
-
+        
+        
         $groups = array();
         while ($rec = $query->fetch()) {
             $groups[$rec->id] = $rec->id;
@@ -810,49 +811,44 @@ class eshop_Groups extends core_Master
         
         return $res;
     }
-
-
+    
+    
     /**
      * Добавя ключовите думи от обектите в менюто към масива
      */
     public static function getAllSearchKeywords($menuId)
     {
-        if(!($kArr = core_Cache::get('AllKeywordsPerMenu', $menuId))) {
-            $kArr = array();
-
-            $query = self::getQuery();
-            
-            $text = '';
-            
-            $gArr = array();
-            while($rec = $query->fetch("#menuId = {$menuId} AND #state = 'active'")) {
-                $gArr[] = $rec->id;
-                $text .= ' ' . $rec->name . ' ' . $rec->seoKeywords;
-            }
-
-            $groups = implode(',', $gArr);
-            
-
-            if($groups) {
-                $pQuery = eshop_Products::getQuery();
-                while($pRec = $pQuery->fetch("#state = 'active' AND #groupId IN ({$groups})")) {
-                    $text .= ' ' . $pRec->searchKeywords;
-                }
-            }
-
-            if($text) {
-                $text = plg_Search::normalizeText($text);
-                $wArr = explode(' ', $text);
-                foreach($wArr as $w) {
-                    if(strlen($w) > 3) {
-                        $kArr[$w] = true;
-                    }
-                }
-            }
-
-            core_Cache::set('AllKeywordsPerMenu', $menuId, $kArr, 48*60, 'eshop_Groups,eshop_Products');
+        $kArr = array();
+        
+        $query = self::getQuery();
+        
+        $text = '';
+        
+        $gArr = array();
+        while ($rec = $query->fetch("#menuId = {$menuId} AND #state = 'active'")) {
+            $gArr[] = $rec->id;
+            $text .= ' ' . $rec->name . ' ' . $rec->seoKeywords;
         }
- 
+        
+        $groups = implode(',', $gArr);
+        
+        if ($groups) {
+            $pQuery = eshop_Products::getQuery();
+            while ($pRec = $pQuery->fetch("#state = 'active' AND #groupId IN ({$groups})")) {
+                $text .= ' ' . $pRec->searchKeywords;
+            }
+        }
+        
+        if ($text) {
+            $text = strtolower(str::canonize($text, ' '));
+            $wArr = explode(' ', $text);
+            foreach ($wArr as $w) {
+                if (strlen($w) > 3) {
+                    $kArr[$w] = true;
+                }
+            }
+        }
+        
         return $kArr;
     }
     
