@@ -331,14 +331,16 @@ class ztm_RegisterValues extends core_Manager
         // Добавяне на дефолтните стойностти към таблицата с регистрите, ако няма за тях
         $now = dt::now();
         $ourRegisters = self::grab($deviceRec);
-        $defaultArr = ztm_Profiles::getDefaultRegisterValues($deviceRec->profileId);
-        foreach ($defaultArr as $dRegKey => $dRegValue) {
-            if (!array_key_exists($dRegKey, $ourRegisters)) {
-                try {
-                    ztm_RegisterValues::set($deviceRec->id, $dRegKey, $dRegValue, $now, false, false);
-                } catch (core_exception_Expect $e) {
-                    $dump = $e->getDump();
-                    $this->logErr("register: {$dRegKey} - {$dump[0]}");
+        if ($deviceRec->profileId) {
+            $defaultArr = ztm_Profiles::getDefaultRegisterValues($deviceRec->profileId);
+            foreach ($defaultArr as $dRegKey => $dRegValue) {
+                if (!array_key_exists($dRegKey, $ourRegisters)) {
+                    try {
+                        ztm_RegisterValues::set($deviceRec->id, $dRegKey, $dRegValue, $now, false, false);
+                    } catch (core_exception_Expect $e) {
+                        $dump = $e->getDump();
+                        $this->logErr("register: {$dRegKey} - {$dump[0]}");
+                    }
                 }
             }
         }
