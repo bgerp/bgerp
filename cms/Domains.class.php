@@ -312,7 +312,7 @@ class cms_Domains extends core_Embedder
         $rec = self::fetch($id);
         
         // Задаваме действителния домейн, на който е намерен този
-        $rec->actualDomain = 'wqeqwe'; //strtolower(trim($_SERVER['SERVER_NAME']));
+        $rec->actualDomain = strtolower(trim($_SERVER['SERVER_NAME']));
         
         if(defined('BGERP_ABSOLUTE_HTTP_HOST')) {
             $host = parse_url(BGERP_ABSOLUTE_HTTP_HOST, PHP_URL_HOST);
