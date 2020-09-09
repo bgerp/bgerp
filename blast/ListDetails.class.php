@@ -366,7 +366,14 @@ class blast_ListDetails extends doc_Detail
         $listFields = blast_ListDetails::getFncFieldsArr($allFields->allFields);
         
         while ($fRec = $query->fetch()) {
-            $data[] = (object) unserialize($fRec->data);
+            $dObj = (object) unserialize($fRec->data);
+            
+            if (blast_BlockedEmails::isBlocked($dObj->email)) {
+                
+                continue;
+            }
+            
+            $data[] = $dObj;
         }
         
         $csv = csv_Lib::createCsv($data, $fieldSet, $listFields);
