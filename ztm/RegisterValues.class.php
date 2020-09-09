@@ -131,19 +131,25 @@ class ztm_RegisterValues extends core_Manager
             $rec->scope = $registerRec->scope;
             $rec->name = $registerRec->name;
             
-            // За да връщаме bool, вместо стринг
-            // Може и без него
-//             if ($registerRec->type == 'bool') {
-//                 if (is_string($rec->value)) {
-//                     if ($rec->value == 'false') {
-//                         $rec->value = false;
-//                     } elseif ($rec->value == 'true') {
-//                         $rec->value = true;
-//                     }
-//                 }
-//             }
-            
             $rec->value = ztm_LongValues::getValueByHash($rec->value);
+            
+            if ($registerRec->type == 'bool') {
+                if (is_string($rec->value)) {
+                    if ($rec->value == 'false') {
+                        $rec->value = false;
+                    } elseif ($rec->value == 'true') {
+                        $rec->value = true;
+                    }
+                }
+            }
+            
+            if ($registerRec->type == 'int') {
+                $rec->value = intval($rec->value);
+            }
+            
+            if ($registerRec->type == 'float') {
+                $rec->value = floatval($rec->value);
+            }
         }
         
         return $rec;
