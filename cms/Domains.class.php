@@ -312,7 +312,7 @@ class cms_Domains extends core_Embedder
         $rec = self::fetch($id);
         
         // Задаваме действителния домейн, на който е намерен този
-        $rec->actualDomain = 'wqeqwe'; //strtolower(trim($_SERVER['SERVER_NAME']));
+        $rec->actualDomain = strtolower(trim($_SERVER['SERVER_NAME']));
         
         if(defined('BGERP_ABSOLUTE_HTTP_HOST')) {
             $host = parse_url(BGERP_ABSOLUTE_HTTP_HOST, PHP_URL_HOST);
@@ -324,7 +324,7 @@ class cms_Domains extends core_Embedder
             $url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
             $newUrl = core_Url::change($url, array(), $host);
             
-           // redirect($newUrl, false, null,'notice', true);
+            redirect($newUrl, false, null,'notice', true);
         }
         
         Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $rec);
