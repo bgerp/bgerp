@@ -122,7 +122,7 @@ class core_App
     public static function processUrl()
     {
         $q = array();
-       
+        
         // Подготвяме виртуалното URL
         if (!empty($_GET['virtual_url'])) {
             $dir = dirname($_SERVER['SCRIPT_NAME']);
@@ -141,14 +141,14 @@ class core_App
                 $_GET['virtual_url'] = rtrim(substr($_GET['virtual_url'], 0, $pos + 1), '?/') . '/';
             }
         }
-     
+        
         // Опитваме се да извлечем името на модула
         // Ако имаме виртуално URL - изпращаме заявката към него
         if (!empty($_GET['virtual_url'])) {
             
             // Ако виртуалното URL не завършва на'/', редиректваме към адрес, който завършва
             $vUrl = explode('/', $_GET['virtual_url']);
-               
+            
             // Премахваме последният елемент
             $cnt = count($vUrl);
             
@@ -167,7 +167,7 @@ class core_App
             if (defined('EF_ACT_NAME')) {
                 $q['Act'] = EF_ACT_NAME;
             }
-             
+            
             foreach ($vUrl as $id => $prm) {
                 // Определяме случая, когато заявката е за браузърен ресурс
                 if ($id == 0 && $prm == EF_SBF) {
@@ -506,18 +506,17 @@ class core_App
         if (!headers_sent()) {
             header('Connection: close');
             if ($_SERVER['REQUEST_METHOD'] != 'HEAD' && $output) {
-                $supportsGzip = strpos( $_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip' ) !== false;
-                if ( $supportsGzip && strlen($content) > 1000) {
+                $supportsGzip = strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false;
+                if ($supportsGzip && strlen($content) > 1000) {
                     $content = gzencode($content);
                     header('Content-Encoding: gzip');
                 }
                 $len = strlen($content);
                 header("Content-Length: ${len}");
-
             } else {
                 if ($_SERVER['REQUEST_METHOD'] != 'HEAD') {
                     header('Content-Length: 2');
-                    header("Content-Encoding: none");
+                    header('Content-Encoding: none');
                     $content = 'OK';
                     $len = 2;
                     $output = true;
@@ -602,7 +601,7 @@ class core_App
      * Редиректва браузъра към посоченото URL
      * Добавя сесийния идентификатор, ако е необходимо
      */
-    public static function redirect($url, $absolute = false, $msg = null, $type = 'notice')
+    public static function redirect($url, $absolute = false, $msg = null, $type = 'notice', $permanent = false)
     {
         // Очакваме най-много три символа (BOM) в буфера
         expect(ob_get_length() <= 3, array(ob_get_length(), ob_get_contents()));
@@ -648,7 +647,7 @@ class core_App
         header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
         header('Expires: 0'); // Proxies.
         
-        header("Location: ${url}", true, 302);
+        header("Location: ${url}", true, $permanent ? 301 : 302);
         
         static::shutdown(false);
     }
@@ -1126,7 +1125,7 @@ class core_App
             }
             
             if ($domain = Mode::get('BGERP_CURRENT_DOMAIN')) {
-                $boot = $protocol . '://' . $auth . $domain . $dirName; 
+                $boot = $protocol . '://' . $auth . $domain . $dirName;
             } elseif (core_Url::isValidTld($domain = $_SERVER['HTTP_HOST'])) {
                 $boot = $protocol . '://' . $auth . $domain . $dirName;
             } elseif (defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
