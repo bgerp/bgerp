@@ -2,8 +2,8 @@
 
 
 /**
- * 
- * 
+ *
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3

@@ -8,7 +8,7 @@
                         <table class="innerTable border-table paddingCells">
                             <tbody>
                                 <tr>
-                                    <td class="cell centered" rowspan='4' style='width:30%;'>
+                                    <td class="cell centered" rowspan='3' style='width:30%;'>
                                         <div class="document-title">|протокол за производство|*</div>
                                         <div class='small'>( <i> [#subTitle#] </i> )</div>
                                         <div style="padding-top:5px;">
@@ -25,9 +25,14 @@
                                     <td class="cell">
                                         <table class='no-border'>
                                             <tr>
-                                                <td colspan='2'>[#addBatchBtn#] <b style="font-size: 1.1em">[#productId#]</b> [#batch#]</td>
+                                                <td>[#addBatchBtn#] <b style="font-size: 1.1em">[#productId#]</b> [#batch#]</td>
                                             </tr>
-
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <table class='no-border'>
                                             <!--ET_BEGIN expenseItemId-->
                                             <tr>
                                                 <td class='quiet'>|Разход за|*:</td>
@@ -38,7 +43,7 @@
                                                 <td class='quiet' style="width: 1%">|Количество|*:</td>
                                                 <td><b style="font-size: 1.1em">[#packQuantity#] [#packagingId#]</b></td>
                                             </tr>
-                                            
+
                                             <!--ET_BEGIN additionalMeasureId-->
                                             <tr>
                                                 <td class='quiet nowrap'>|Втора мярка|*:</td>
@@ -47,8 +52,6 @@
                                             <!--ET_END additionalMeasureId-->
                                         </table>
                                     </td>
-                                </tr>
-                                <tr>
                                 </tr>
                             </tbody>
                         </table>

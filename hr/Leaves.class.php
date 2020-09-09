@@ -759,7 +759,7 @@ class hr_Leaves extends core_Master
         } else {
             $tpl->removeBlock('on');
         }
-        
+
         if ($data->rec->state == 'closed') {
             $row = new stdClass();
             $rowTpl = $tpl->getBlock('decline');
@@ -773,6 +773,10 @@ class hr_Leaves extends core_Master
                 if (!Mode::isReadOnly()) {
                     $row->modifiedBy = crm_Profiles::createLink($data->rec->modifiedBy, $row->modifiedBy);
                 }
+            }
+            
+            if (Mode::is('printing') || Mode::is('text', 'xhtml')) {
+                $row->modifiedOn = dt::mysql2verbal(dt::addDays(-1, $data->rec->leaveFrom), 'd.m.Y');
             }
             
             $rowTpl->placeObject($row);
@@ -792,34 +796,46 @@ class hr_Leaves extends core_Master
         
         // Ако ще разпечатваме или ще отворим сингъла от qr-код
         if (Mode::is('printing') || Mode::is('text', 'xhtml')) {
-           // ако началната дата на отпуската е по-малка от дата на създаване на документа
-           // искаме датите на създаване и одобряване да са преди началната дата
+            // ако началната дата на отпуската е по-малка от дата на създаване на документа
+            // искаме датите на създаване и одобряване да са преди началната дата
             if($leaveFromTs <= $createdOnTs) {
+  
+                if($data->rec->state == 'active'){
 
-                // заменяме датат на одобрено
-                $row = new stdClass();
-                $rowTpl = $tpl->getBlock('activatedBy');
-                $row->activatedOn = dt::mysql2verbal(dt::addDays(-1, $data->rec->leaveFrom), 'd.m.Y');
-                $rowTpl->placeObject($row);
-                $rowTpl->removeBlocks();
-                $rowTpl->append2master();
-                
-                // заменяме датат на молбата
-                $row1 = new stdClass();
-                $rowTpl1 = $tpl->getBlock('createdDate');
-                $row1->createdDate = dt::mysql2verbal(dt::addDays(-2, $data->rec->leaveFrom), 'd.m.Y');
-                $rowTpl1->placeObject($row1);
-                $rowTpl1->removeBlocks();
-                $rowTpl1->append2master();
-                
-                // заменяме датат на документа
-                $row2 = new stdClass();
-                $rowTpl2 = $tpl->getBlock('createdDateFooter');
-                $row2->createdDate = dt::mysql2verbal(dt::addDays(-2, $data->rec->leaveFrom), 'd.m.Y');
-                $rowTpl2->placeObject($row1);
-                $rowTpl2->removeBlocks();
-                $rowTpl2->append2master();
-            }          
+                    // заменяме датат на одобрено
+                    $row = new stdClass();
+                    $rowTpl = $tpl->getBlock('activatedBy');
+                    $row->activatedOn = dt::mysql2verbal(dt::addDays(-1, $data->rec->leaveFrom), 'd.m.Y');
+                    
+                    // кой е одобрил
+                    if (isset($data->rec->activatedBy)) {
+                        $row->activatedBy = core_Users::getVerbal($data->rec->activatedBy, 'names');
+                        if (!Mode::isReadOnly()) {
+                            $row->activatedBy = crm_Profiles::createLink($data->rec->activatedBy, $row->activatedBy);
+                        }
+                    }
+                    
+                    $rowTpl->placeObject($row);
+                    $rowTpl->removeBlocks();
+                    $rowTpl->append2master();
+                }
+
+                    // заменяме датат на молбата
+                    $row1 = new stdClass();
+                    $rowTpl1 = $tpl->getBlock('createdDate');
+                    $row1->createdDate = dt::mysql2verbal(dt::addDays(-2, $data->rec->leaveFrom), 'd.m.Y');
+                    $rowTpl1->placeObject($row1);
+                    $rowTpl1->removeBlocks();
+                    $rowTpl1->append2master();
+                    
+                    // заменяме датат на документа
+                    $row2 = new stdClass();
+                    $rowTpl2 = $tpl->getBlock('createdDateFooter');
+                    $row2->createdDate = dt::mysql2verbal(dt::addDays(-2, $data->rec->leaveFrom), 'd.m.Y');
+                    $rowTpl2->placeObject($row1);
+                    $rowTpl2->removeBlocks();
+                    $rowTpl2->append2master();
+            }
         }
     }
     
