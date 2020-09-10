@@ -365,6 +365,8 @@ class blast_ListDetails extends doc_Detail
         
         $listFields = blast_ListDetails::getFncFieldsArr($allFields->allFields);
         
+        $data = array();
+        
         while ($fRec = $query->fetch()) {
             $dObj = (object) unserialize($fRec->data);
             
