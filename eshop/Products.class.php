@@ -342,27 +342,7 @@ class eshop_Products extends core_Master
         $row->groupId = eshop_Groups::getHyperlink($rec->groupId, true);
         
         if (is_array($rec->nearProducts) && (isset($fields['-single']) || isset($fields['-external']))) {
-            $nearProductsData = $mvc->getNearProductsBlock($rec);
-            $row->nearProducts = '';
-            
-            // Показване на линковете към свързаните артикули
-            if (countR($nearProductsData->products)) {
-                foreach ($nearProductsData->products as $productLink) {
-                    $row->nearProducts .= "<li>{$productLink}</li>";
-                }
-                
-                $row->nearProducts = '<p  style="margin-bottom: 5px;">' . tr('Вижте също') . ':</p><ul style="margin-top: 0px;">' . $row->nearProducts . '</ul>';
-            }
-            
-            // Показване на изображениятя линковете към свързаните артикули
-            if (countR($nearProductsData->images)) {
-                $row->nearProductImages = '';
-                foreach ($nearProductsData->images as $productImageLink) {
-                    $row->nearProductImages .= "<li>{$productImageLink}</li>";
-                }
-                
-                $row->nearProductImages = "<ul class='eshopNearProductImageHolder'>{$row->nearProductImages}</ul>";
-            }
+            $row->nearRows = $mvc->prepareNearProducts($rec);
         }
     }
     
@@ -371,17 +351,16 @@ class eshop_Products extends core_Master
      * Връща данните за свързаните артикули, за показване във външната час
      *
      * @param stdClass $rec - запис
-     *
-     * @return stdClass $data - върнати данни
+     * @return array $rows - записи
      */
-    private function getNearProductsBlock($rec)
+    private function prepareNearProducts($rec)
     {
-        $data = (object) array('products' => array(), 'images' => array());
+        $rows = array();
         
         // Ако няма свързани артикули, се връща празен обект
         if (!is_array($rec->nearProducts)) {
             
-            return $data;
+            return $rows;
         }
         
         // За всеки свързан
@@ -389,28 +368,25 @@ class eshop_Products extends core_Master
         foreach ($nearProducts as $productId) {
             
             // Ако е затворен, се пропуска
-            $productRec = eshop_Products::fetch($productId, 'image,image2,image3,image4,image5,state');
-            if ($productRec->state == 'closed') {
-                continue;
+            $productRec = eshop_Products::fetch($productId);
+            if ($productRec->state == 'closed') continue;
+            
+            $row = new stdClass();  
+            $productUrl = self::getUrl($productRec);
+            $productTitle = eshop_Products::getTitleById($productId);
+            $row->nearLink = ht::createLink($productTitle, $productUrl);
+            
+            // Ако има се показва тъмбнейл, към него
+            $thumb = static::getProductThumb($productRec, 300, 300);
+            if (isset($thumb)) {
+                $thumbHtml = $thumb->createImg(array('class' => 'eshopNearProductThumb', 'title' => $productTitle))->getContent();
+                $row->nearThumb = ht::createLink($thumbHtml, $productUrl);
             }
             
-            // Показване на линковете към артикула
-            $prodRec = self::fetch($productId);
-            if ($prodRec) {
-                $productUrl = self::getUrl($prodRec);
-                $productTitle = eshop_Products::getTitleById($productId);
-                $data->products[$productId] = ht::createLink($productTitle, $productUrl)->getContent();
-                
-                // Ако има се показва тъмбнейл, към него
-                $thumb = static::getProductThumb($productRec, 300, 300);
-                if (isset($thumb)) {
-                    $thumbHtml = $thumb->createImg(array('class' => 'eshopNearProductThumb', 'title' => $productTitle))->getContent();
-                    $data->images[$productId] = ht::createLink($thumbHtml, $productUrl);
-                }
-            }
+            $rows[$productId] = $row;
         }
         
-        return $data;
+        return $rows;
     }
     
     
@@ -896,6 +872,16 @@ class eshop_Products extends core_Master
         
         if (is_array($data->detailData->rows) && countR($data->detailData->rows)) {
             $tpl->replace(eshop_ProductDetails::renderExternal($data->detailData), 'PRODUCT_OPT');
+        }
+        
+        // Рендиране на свързаните артикули
+        if (is_array($data->row->nearRows)){
+            foreach ($data->row->nearRows as $nearRow){
+                $block = clone $tpl->getBlock('nearLink');
+                $block->placeObject($nearRow);
+                $block->removeBlocksAndPlaces();
+                $tpl->append($block, 'NEAR_ROWS');
+            }
         }
         
         return $tpl;
