@@ -42,6 +42,7 @@ class sales_TransportValues extends core_Manager
         'currencyId' => 'currencyId',
         'countryId' => 'countryId',
         'deliveryData' => 'deliveryData',
+        'deliveryCalcTransport' => 'deliveryCalcTransport',
     );
     
     
@@ -561,6 +562,12 @@ class sales_TransportValues extends core_Manager
      */
     public static function getCostArray($deliveryTermId, $contragentClassId, $contragentId, $productId, $packagingId, $quantity, $deliveryLocationId, $countryId = null, $pCode = null, $params = array())
     {
+        //  Ако изрично е забранено начисляване не се начислява
+        if($params['deliveryCalcTransport'] == 'no') {
+            
+            return;
+        }
+        
         // Ако може да се изчислява скрит транспорт
         if (!cond_DeliveryTerms::canCalcHiddenCost($deliveryTermId, $productId)) {
             
@@ -715,6 +722,7 @@ class sales_TransportValues extends core_Manager
         
         // Колко е очаквания транспорт
         $deliveryData = is_array($masterRec->{$map['deliveryData']}) ? $masterRec->{$map['deliveryData']} : array();
+        $deliveryData['deliveryCalcTransport'] = $masterRec->{$map['deliveryCalcTransport']};
         $feeArr = self::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $masterRec->{$map['deliveryLocationId']}, $countryId, $PCode, $deliveryData);
         
         // Ако има такъв към цената се добавя
