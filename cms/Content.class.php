@@ -869,16 +869,30 @@ class cms_Content extends core_Manager
         $domainId = cms_Domains::getPublicDomain('id');
         
         $kArr = self::getAllKeywords($domainId);
-        
-        $q = plg_Search::normalizeText($q);
-        $qArr = explode(' ', trim($q));
+        $q = str::utf2ascii($q);
+        $iConvStr = @iconv('UTF-8', 'ASCII//TRANSLIT', $q);
+        if (isset($iConvStr)) {
+            $q = $iConvStr;
+        }
+
+        $qArr = plg_Search::parseQuery($q);
+
         $resArr = array();
-        
-        foreach ($qArr as $w) {
-            if (isset($kArr[$w])) {
+        $flag = false;
+ 
+        foreach ($qArr as &$w) {
+            if($w{0} == '-') {
                 $resArr[] = $w;
                 continue;
-            } elseif (strlen($w) > 3) {
+            } elseif($w{0} == '"') {
+                $flag = true;
+                $resArr[] = $w . '"';
+                continue;
+            } elseif (isset($kArr[$w])) {
+                $flag = true;
+                $resArr[] = $w;
+                continue;
+            } elseif (strlen($w) > 3) { ;
                 $len = strlen($w);
                 $min = max(3, $len - 1);
                 $max = $len + 2;
@@ -894,20 +908,22 @@ class cms_Content extends core_Manager
                                 $bestW = $kw;
                             }
                         }
-                        if ($bestW) {
-                            $resArr[] = $bestW;
-                        }
                     }
+                }
+
+                if ($bestW) {
+                    $resArr[] = $bestW;
+                    $flag = true;
                 }
             }
         }
-        
+    
         $res = null;
         
-        if (count($resArr)) {
+        if (count($resArr) && $flag) {
             $res = implode(' ', $resArr);
         }
-        
+
         return $res;
     }
     
