@@ -378,11 +378,12 @@ class eshop_Products extends core_Master
             
             // Ако има се показва тъмбнейл, към него
             $thumb = static::getProductThumb($productRec, 300, 300);
-            if (isset($thumb)) {
-                $thumbHtml = $thumb->createImg(array('class' => 'eshopNearProductThumb', 'title' => $productTitle))->getContent();
-                $row->nearThumb = ht::createLink($thumbHtml, $productUrl);
+            if (empty($thumb)) {
+                $thumb = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') .'.png'), 300, 300, 'path');
             }
             
+            $thumbHtml = $thumb->createImg(array('class' => 'eshopNearProductThumb', 'title' => $productTitle))->getContent();
+            $row->nearThumb = ht::createLink($thumbHtml, $productUrl);
             $rows[$productId] = $row;
         }
         
