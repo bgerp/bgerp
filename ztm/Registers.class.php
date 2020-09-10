@@ -93,6 +93,16 @@ class ztm_Registers extends core_Master
      */
     public function loadSetupData()
     {
+        $csv = @file_get_contents('https://raw.githubusercontent.com/bgerp/ztm/master/registers.csv');
+        
+        if (trim($csv)) {
+            if ($fPath = getFullPath('ztm/csv/Registri.csv')) {
+                if (md5($csv) != md5(@file_get_contents($fPath))) {
+                    @file_put_contents($fPath, $csv);
+                }
+            }
+        }
+        
 //         $fields = array(
 //             0 => 'name',
 //             1 => 'type',
