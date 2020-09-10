@@ -1,0 +1,10 @@
+<!--ET_BEGIN NEAR_ROWS-->
+<div class="productsHolder">
+[#NEAR_ROWS#]
+<!--ET_BEGIN nearLink-->
+	<div class="productBox">[#nearLink#]
+	<!--ET_BEGIN nearThumb-->[#nearThumb#]<!--ET_END nearThumb-->
+	</div>
+<!--ET_END nearLink-->
+</div>
+<!--ET_END NEAR_ROWS-->			

@@ -25,14 +25,6 @@
 		[#AFTER_PRODUCTS#]
 		[#longInfo#]
 
-        <!--ET_BEGIN NEAR_ROWS-->
-		<p style = "margin-bottom: 5px;">|Вижте също|*</p>
-		<ul style="margin-top: 0px;">
-			[#NEAR_ROWS#]
-			<!--ET_BEGIN nearLink-->
-			<li><!--ET_BEGIN nearThumb-->[#nearThumb#]<!--ET_END nearThumb--> [#nearLink#]</li>
-			<!--ET_END nearLink-->
-		</ul>
-		<!--ET_END NEAR_ROWS-->
+        [#eshop/tpl/NearProducts.shtml#]
 	</div>
 </div>

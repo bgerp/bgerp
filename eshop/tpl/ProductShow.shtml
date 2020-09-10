@@ -32,17 +32,7 @@
 		[#AFTER_PRODUCTS#]
 		[#longInfo#]
 
-			<div class="productsHolder">
-				<!--ET_BEGIN NEAR_ROWS-->
-					[#NEAR_ROWS#]
-					<!--ET_BEGIN nearLink-->
-					<div class="productBox">
-						[#nearLink#]
-						<!--ET_BEGIN nearThumb-->[#nearThumb#]<!--ET_END nearThumb-->
-					</div>
-					<!--ET_END nearLink-->
-				<!--ET_END NEAR_ROWS-->
-			</div>
+		[#eshop/tpl/NearProducts.shtml#]
 		</div>
 	</div>
 	<div class="clearfix21"></div>
