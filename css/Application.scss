@@ -4402,7 +4402,7 @@ table .eshop-btn {
 }
 .cms-row h1 {
     margin-top: 0;
-    margin-left: -2px;
+    margin-left: 0px;
 }
 
 .richtext h1, .richtext h2, .richtext h3 {
@@ -5823,7 +5823,9 @@ div.location.public {
 .eshop-product .richtext ul{
 	margin-bottom: 10px;
 }
-
+.eshop-product .productBtn {
+	font-weight: bold;
+}
 .eshop-product-labels .info {
     @include border-radius(3px);
 	padding: 4px;
@@ -5843,7 +5845,9 @@ div.location.public {
 	background-color:#e6e6e6;
     @include border-radius(3px);
 }
-
+.narrow .inqRow {
+	margin-top: 10px;
+}
 .wide .eshop-product-images {
 	width:30%;
 	height:100%;

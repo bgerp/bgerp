@@ -11,8 +11,8 @@
 	</div>
 	<div class="vtop" style='padding-left:2%;float:right;width:74%'>
 		<div class='eshop-product-labels'>
-			<!--ET_BEGIN code--><span><b>|Код|*: [#code#]</b></span><!--ET_END code-->
-            <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--> [#coInquiry#]
+			<!--ET_BEGIN code--><span style="margin-right: 15px;"><b>|Код|*: [#code#]</b></span><!--ET_END code-->
+			[#coInquiry#]<!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*' >|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq-->
 			<div class="clearfix21"></div>
 		</div>
 

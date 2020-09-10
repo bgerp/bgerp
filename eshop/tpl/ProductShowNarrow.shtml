@@ -4,7 +4,8 @@
 	<div class='eshop-product-navigation'>[#productPath#]</div>
 	<div class='eshop-product-labels' style="margin-bottom: 10px;">
 		<!--ET_BEGIN code--><span><b>|Код|*: [#code#]</b></span><!--ET_END code-->
-		<!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--> [#coInquiry#]
+		<div class="inqRow">[#coInquiry#] <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--></div>
+
 	</div>
 	<div class="eshop-product-images">
 		[#image#]
@@ -23,7 +24,7 @@
 		<br>
 		[#AFTER_PRODUCTS#]
 		[#longInfo#]
-		
+
         <!--ET_BEGIN NEAR_ROWS-->
 		<p style = "margin-bottom: 5px;">|Вижте също|*</p>
 		<ul style="margin-top: 0px;">
