@@ -437,7 +437,9 @@ class planning_plg_StateManager extends core_Plugin
         
         if ($rec->state == 'stopped' || $rec->state == 'closed') {
             $tpl = new ET(' ' . tr('от|* [#user#] |на|* [#date#]'));
+            
             $dateChanged = ($rec->state == 'closed') ? $rec->timeClosed : $rec->modifiedOn;
+            setIfNot($dateChanged, $rec->modifiedOn);
             $row->state .= $tpl->placeArray(array('user' => $row->modifiedBy, 'date' => dt::mysql2Verbal($dateChanged)));
         }
     }
