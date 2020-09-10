@@ -1207,6 +1207,7 @@ class sales_Sales extends deals_DealMaster
                 $row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);
             }
             
+            core_Lg::pop();
             $row->transportCurrencyId = $row->currencyId;
             $hiddenTransportCost = sales_TransportValues::calcInDocument($mvc, $rec->id);
             $expectedTransportCost = $mvc->getExpectedTransportCost($rec);
@@ -1226,10 +1227,11 @@ class sales_Sales extends deals_DealMaster
                     $packPrice = $leftTransportCost * $rec->currencyRate;
                     
                     $url = array('sales_SalesDetails', 'add', 'saleId' => $rec->id,'productId' => $transportId, 'packPrice' => $packPrice, 'ret_url' => true);
-                    $link = ht::createLink('Добавяне', $url, false, array('ef_icon' => 'img/16/lorry_go.png', 'style' => 'font-weight:normal;font-size: 0.8em', 'title' => 'Добавяне на допълнителен транспорт'));
+                    $link = ht::createLink(tr('Добавяне'), $url, false, array('ef_icon' => 'img/16/lorry_go.png', 'style' => 'font-weight:normal;font-size: 0.8em', 'title' => 'Добавяне на допълнителен транспорт'));
                     $row->btnTransport = $link->getContent();
                 }
             }
+            core_Lg::push($rec->tplLang);
         } else if (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $row->title = "<b>" . $row->title . "</b>";
             $row->title .= "  «  " . $row->folderId;

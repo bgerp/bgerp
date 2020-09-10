@@ -396,18 +396,23 @@ class sales_TransportValues extends core_Manager
      * @param mixed $docClass - клас на документа
      * @param int   $docId    - ид на документа
      *
-     * @return float $count  - общо начислени разходи
+     * @return double|null $count  - общо начислен транспорт, null ако няма да се изчислява
      */
     public static function calcInDocument($docClass, $docId)
     {
+        $Class = cls::get($docClass);
+        $calcCost = $Class->fetchField($docId, 'deliveryCalcTransport');
+        if($calcCost == 'no'){
+            
+            return null;
+        }
+        
         $count = 0;
-        $classId = cls::get($docClass)->getClassId();
-        $isQuote = ($classId == sales_Quotations::getClassId());
-        
+        $isQuote = ($Class instanceof sales_Quotations);
         $query = self::getQuery();
-        $query->where("#docClassId = {$classId} AND #docId = {$docId}");
-        
+        $query->where("#docClassId = {$Class->getClassId()} AND #docId = {$docId}");
         $query->where('#fee > 0');
+        
         while ($rec = $query->fetch()) {
             if ($isQuote === true) {
                 $dRec = sales_QuotationsDetails::fetch($rec->recId, 'price,optional');
@@ -606,6 +611,11 @@ class sales_TransportValues extends core_Manager
             $expectedTransportCost = 0;
         }
         
+        if(is_null($hiddenTransportCost)){
+            unset($vars[0]);
+            $row->hiddenTransportCost = "<span class='quiet'>" . tr('Изключен') . "</span>";
+        }
+        
         $Double = core_Type::getByName('double(decimals=2)');
         foreach ($vars as $fld) {
             if($currencyRate){
@@ -622,7 +632,6 @@ class sales_TransportValues extends core_Manager
         $row->leftTransportCost = $Double->toVerbal($leftTransportCost);
         $leftTransportCost = round($leftTransportCost, 2);
         $class = ($leftTransportCost > 0) ? 'green' : (($leftTransportCost < 0) ? 'red' : 'quiet');
-        
         $row->leftTransportCost = "<span class='{$class}'>{$row->leftTransportCost}</span>";
     }
     
