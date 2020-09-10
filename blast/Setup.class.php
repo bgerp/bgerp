@@ -139,6 +139,7 @@ class blast_Setup extends core_ProtoSetup
         'blast_ListDetails',
         'blast_Emails',
         'blast_BlockedEmails',
+        'blast_BlockedDomains',
         'blast_Letters',
         'blast_LetterDetails',
         'blast_EmailSend',

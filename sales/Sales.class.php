@@ -328,6 +328,7 @@ class sales_Sales extends deals_DealMaster
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Цени,notChangeableByContractor');
         $this->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане->Начин,before=accountId,after=paymentMethodId');
+        $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=none,caption=Доставка->Начисляване,after=deliveryTermId');
         $this->setField('shipmentStoreId', 'salecondSysId=defaultStoreSale');
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
         $this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale,removeAndRefreshForm=paymentType,silent');
@@ -436,6 +437,7 @@ class sales_Sales extends deals_DealMaster
                     if (cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost') == 'yes') {
                         $form->setReadOnly('deliveryAdress');
                         $form->setReadOnly('deliveryLocationId');
+                        $form->setReadOnly('deliveryCalcTransport');
                     }
                 }
             }
@@ -464,6 +466,15 @@ class sales_Sales extends deals_DealMaster
         if(isset($rec->paymentMethodId) && (!isset($rec->id) || $form->cmd == 'refresh')){
             $type = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
             $form->setDefault('paymentType', $type);
+        }
+        
+        // Възможност за ръчна смяна на режима на начисляването на скрития транспорт
+        if(isset($rec->deliveryTermId)){
+            if(cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)){
+                $calcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
+                $form->setField('deliveryCalcTransport', 'input');
+                $form->setDefault('deliveryCalcTransport', $calcCost);
+            }
         }
     }
     

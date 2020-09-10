@@ -18,7 +18,7 @@ class blast_BlockedEmails extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Адреси, на които не се изпращат циркулярни имейли';
+    public $title = 'Имейли, на които не се изпращат циркулярни имейли';
     
     
     /**
@@ -67,6 +67,12 @@ class blast_BlockedEmails extends core_Manager
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     public $oldClassName = 'blast_Blocked';
+    
+    
+    /**
+     * Стойност по подразбиране при импортиране на csv
+     */
+    public $expOnExist = 'update';
     
     
     /**
@@ -154,6 +160,11 @@ class blast_BlockedEmails extends core_Manager
     public static function isBlocked($email)
     {
         if (self::fetch(array("#email = '[#1#]' AND (#state = 'blocked' OR (#state = 'error' AND #checkPoint = 0))", $email))) {
+            
+            return true;
+        }
+        
+        if (blast_BlockedDomains::isBlocked($email)) {
             
             return true;
         }
@@ -314,7 +325,12 @@ class blast_BlockedEmails extends core_Manager
         
         if (!$rec) {
             
-            return;
+            return ;
+        }
+        
+        if (blast_BlockedDomains::isBlocked($email)) {
+            
+            return 'blocked';
         }
         
         return $rec->state;

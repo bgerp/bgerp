@@ -930,8 +930,6 @@ class doc_Threads extends core_Manager
             default:
             case 'open':
             case 'mine':
-                $query->XPR('isOpened', 'int', "IF(#state = 'opened', 0, 1)");
-                $query->orderBy("#isOpened,#state=ASC,#{$lastFieldName}=DESC,#id=DESC");
                 if ($filter->order == 'mine') {
                     if ($cu = core_Users::getCurrent()) {
                         $tList = array();
@@ -1004,8 +1002,14 @@ class doc_Threads extends core_Manager
                         } else {
                             $query->where('1 = 2');
                         }
+                        
+                        $query->XPR('createdByOrder', 'int', "IF(#createdBy = '{$cu}', 1, 0)");
+                        $query->orderBy('createdByOrder', 'DESC');
                     }
                 }
+                
+                $query->XPR('isOpened', 'int', "IF(#state = 'opened', 0, 1)");
+                $query->orderBy("#isOpened,#state=ASC,#{$lastFieldName}=DESC,#id=DESC");
                 break;
             case 'recent':
                 $query->orderBy("#{$lastFieldName}=DESC,#id=DESC");

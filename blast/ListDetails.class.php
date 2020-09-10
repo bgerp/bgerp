@@ -365,8 +365,17 @@ class blast_ListDetails extends doc_Detail
         
         $listFields = blast_ListDetails::getFncFieldsArr($allFields->allFields);
         
+        $data = array();
+        
         while ($fRec = $query->fetch()) {
-            $data[] = (object) unserialize($fRec->data);
+            $dObj = (object) unserialize($fRec->data);
+            
+            if (blast_BlockedEmails::isBlocked($dObj->email)) {
+                
+                continue;
+            }
+            
+            $data[] = $dObj;
         }
         
         $csv = csv_Lib::createCsv($data, $fieldSet, $listFields);
@@ -531,6 +540,8 @@ class blast_ListDetails extends doc_Detail
         
         $exp->functions['getcsvcolnames'] = 'blast_ListDetails::getCsvColNames';
         $exp->functions['getcountriesfromgroup'] = 'blast_ListDetails::getCountriesFromGroup';
+        $exp->functions['getdocumenttypes'] = 'blast_ListDetails::getDocumentTypes';
+        $exp->functions['getdocumenttypesassume'] = 'blast_ListDetails::getDocumentTypesAssume';
         $exp->functions['getfilecontentcsv'] = 'blast_ListDetails::getFileContent';
         $exp->functions['getcsvcolumnscnt'] = 'blast_ListDetails::getCsvColumnsCnt';
         $exp->functions['importcsvfromcontacts'] = 'blast_ListDetails::importCsvFromContacts';
@@ -567,7 +578,9 @@ class blast_ListDetails extends doc_Detail
         $exp->SUGGESTIONS('#countriesExclude', 'getCountriesFromGroup(#companiesGroup)');
         $exp->SUGGESTIONS('#countriesExclude', 'getCountriesFromGroup(#personsGroup, "crm_Persons")');
         
-        $exp->DEF('#documentType=Вид', 'enum(,sales=Продажби, quotations=Оферти, inquiries=Запитвания)', 'placeholder=Всички, notNull');
+        $exp->DEF('#documentType=Вид', 'keylist(mvc=core_Classes, select=title)', 'placeholder=Всички, notNull');
+        $exp->SUGGESTIONS('#documentType', 'getDocumentTypes()');
+        $exp->ASSUME('#documentType', 'getDocumentTypesAssume()');
         $exp->DEF('#catGroups=Продуктови групи', 'keylist(mvc=cat_Groups,select=name, allowEmpty)', 'placeholder=Всички, notNull');
         $exp->DEF('#contragentType=Вид контрагент', 'enum(,crm_Companies=Фирми,crm_Persons=Лица)', 'placeholder=Всички, notNull');
         $exp->DEF('#docFrom=Период->От', 'date', 'notNull');
@@ -880,6 +893,44 @@ class blast_ListDetails extends doc_Detail
     
     
     /**
+     * Връща масив с документите, за вид при импорт
+     * 
+     * @return array
+     */
+    public static function getDocumentTypes()
+    {
+        $resArr = array();
+        
+        foreach (array('sales_Sales', 'sales_Quotations', 'marketing_Inquiries2', 'purchase_Purchases') as $cName) {
+            $inst = cls::get($cName);
+            $cId = $inst->getClassId();
+            $resArr[$cId] = tr($inst->singleTitle);
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща документите по подразбиране за импорт
+     * 
+     * @return string
+     */
+    public static function getDocumentTypesAssume()
+    {
+        $resArr = array();
+        
+        foreach (array('sales_Sales', 'sales_Quotations', 'marketing_Inquiries2') as $cName) {
+            $inst = cls::get($cName);
+            $cId = $inst->getClassId();
+            $resArr[$cId] = $cId;
+        }
+        
+        return type_Keylist::fromArray($resArr);
+    }
+    
+    
+    /**
      * Връща масив с всички държави използвани в съотвения клас и група
      *
      * @param int    $groupId
@@ -1028,10 +1079,9 @@ class blast_ListDetails extends doc_Detail
         
         // Ако е празна стойност, тогава се връщат всички
         $documentTypeArr = arr::make($documentType);
-        if (empty($documentType)) {
-            $documentTypeArr[] = 'sales';
-            $documentTypeArr[] = 'quotations';
-            $documentTypeArr[] = 'inquiries';
+        
+        if (empty($documentTypeArr)) {
+            $documentTypeArr = array_keys(self::getDocumentTypes());
         }
         
         $csvArr = array();
@@ -1042,12 +1092,18 @@ class blast_ListDetails extends doc_Detail
         $allEmailArr = array();
         
         foreach ($documentTypeArr as $docType) {
+            $docType = cls::get($docType)->className;
             $getFromNextEmail = false;
-            if ($docType == 'sales' || $docType == 'quotations') {
+            
+            if ($docType == 'sales_Sales' || $docType == 'sales_Quotations' || $docType == 'purchase_Purchases') {
                 $getFromNextEmail = true;
                 
-                $docDetails = ($docType == 'sales') ? 'sales_SalesDetails' : 'sales_QuotationsDetails';
-                $masterClass = ($docType == 'sales') ? 'sales_Sales' : 'sales_Quotations';
+                $masterClass = $docType;
+                if ($docType == 'purchase_Purchases') {
+                    $docDetails = 'purchase_PurchasesDetails';
+                } else {
+                    $docDetails = ($docType == 'sales_Sales') ? 'sales_SalesDetails' : 'sales_QuotationsDetails';
+                }
             }
             
             // Ако данните ще се определят от следващия изпратен имейл или папката
@@ -1078,7 +1134,7 @@ class blast_ListDetails extends doc_Detail
                 
                 // Филтрираме по държави
                 if ($countriesInclude || $countriesExlude) {
-                    if ($docType == 'quotations') {
+                    if ($docType == 'sales_Quotations') {
                         $query->EXT('contragentCountryId', $masterClass, "externalName=contragentCountryId,externalKey={$docDetailsInst->masterKey}");
                         
                         if ($countriesInclude) {
@@ -1104,7 +1160,7 @@ class blast_ListDetails extends doc_Detail
                         $query->where(array("#masterCreatedOn <= '[#1#]'", $docTo . ' 23:59:59'));
                     }
                 }
-                if ($docType == 'quotations') {
+                if ($docType == 'sales_Quotations') {
                     $query->EXT('email', $masterClass, "externalName=email,externalKey={$docDetailsInst->masterKey}");
                 }
                 
@@ -1115,7 +1171,7 @@ class blast_ListDetails extends doc_Detail
                     $name = '';
                     
                     // Ако е продажба, филтрирам по държава, ако е зададено, защото не е направено със заявката
-                    if (($docType == 'sales') && (($countriesInclude || $countriesExlude))) {
+                    if (($docType == 'sales_Sales') && (($countriesInclude || $countriesExlude))) {
                         $contragentCountry = cls::get($rec->contragentClassId)->fetchField($rec->contragentId, 'country');
                         
                         if ($countriesInclude) {

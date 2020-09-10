@@ -399,8 +399,11 @@ abstract class bgerp_ProtoParam extends embed_Manager
         if (($driverClass instanceof cond_type_Text) && mb_strlen($value) > 90) {
             $bHtml = mb_strcut($value, 0, 90);
             
-            $value = $bHtml . "\n[hide=" . tr('Вижте още') . ']' . $value . '[/hide]';
-            $value = cls::get('type_Richtext')->toVerbal($value);
+            $title = tr('Вижте още');
+            $id = md5($value);
+            $value = "{$bHtml} . <br><a href=\"javascript:toggleDisplay('{$id}')\"  class= 'more-btn linkWithIcon nojs' style=\"font-weight:bold; background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\"
+                   >{$title}</a><div class='clearfix21 richtextHide' id='{$id}'>{$value}</div>";
+            $value = cls::get('type_Html')->toVerbal($value);
         }
         
         return $value;

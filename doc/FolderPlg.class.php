@@ -693,7 +693,7 @@ class doc_FolderPlg extends core_Plugin
         
         // Подготовка на линк към папката (или създаване на нова) на корицата
         if ($fField = $mvc->listFieldForFolderLink) {
-            $folderTitle = $mvc->getFolderTitle($rec->id);
+            $folderTitle = $mvc->getFolderTitle($rec->id, false);
             
             if ($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {
                 if (doc_Folders::haveRightFor('single', $rec->folderId) && !$currUrl['Rejected']) {

@@ -760,7 +760,7 @@ class planning_Terminal extends peripheral_Terminal
             $dRec = $Details::add($params['taskId'], $params);
             $Details->logInAct('Създаване на детайл от терминала', $dRec);
             Mode::setPermanent("terminalLastRec{$rec->id}", $dRec->id);
-            Mode::set("lastQuantity", $params['quantity']); file_put_contents('debug.txt', $params['quantity'] . "\n");
+            Mode::setPermanent("lastQuantity", $params['quantity']); file_put_contents('debug.txt', $params['quantity'] . "\n");
             
             if(isset($dRec->_rejectId) || !Request::get('ajax_mode')){
                 
