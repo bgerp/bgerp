@@ -3737,6 +3737,29 @@ table .eshop-btn {
   margin: 5px 0;
   font-size: 0.7em; }
 
+.productsHolder {
+  padding: 5px; }
+
+.productBox {
+  text-align: center;
+  display: block;
+  padding: 10px;
+  box-sizing: border-box;
+  box-shadow: 0 1px 5px -1px rgba(0, 0, 0, 0.3); }
+  .productBox .productImage {
+    width: 180px;
+    height: 180px;
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center; }
+    .productBox .productImage img {
+      max-width: 180px;
+      height: auto; }
+  .productBox .productName {
+    display: block;
+    color: #333333;
+    margin-top: 10px; }
+
 .narrow .articles-navigation {
   background-color: #cccccc;
   padding: 5px;

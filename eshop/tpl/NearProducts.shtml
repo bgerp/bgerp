@@ -3,8 +3,9 @@
 [#NEAR_ROWS#]
 <!--ET_BEGIN nearLink-->
 	<div class="productBox">
-		[#nearLink#]
+
 		[#nearThumb#]
+		[#nearLink#]
 	</div>
 <!--ET_END nearLink-->
 </div>

@@ -1,3 +1,4 @@
+
 /*общи функции и параметри*/
 $blue: #048;
 $dark-blue: #036;
@@ -4379,7 +4380,32 @@ table .eshop-btn {
 	margin:5px 0;
 	font-size:0.7em;
 }
-
+.productsHolder {
+	padding: 5px;
+}
+.productBox {
+	text-align: center;
+	display: block;
+	padding: 10px;
+	box-sizing: border-box;
+	box-shadow: 0 1px 5px -1px rgba(0,0,0,.3);
+	.productImage {
+		width: 180px;
+		height: 180px;
+		display: table-cell;
+		vertical-align: middle;
+		text-align: center;
+		img {
+			max-width: 180px;
+			height: auto;
+		}
+	}
+	.productName {
+		display: block;
+		color: #333;
+		margin-top: 10px;
+	}
+}
 .narrow .articles-navigation {
 	background-color: #ccc;
 	padding: 5px;

@@ -374,16 +374,16 @@ class eshop_Products extends core_Master
             $row = new stdClass();  
             $productUrl = self::getUrl($productRec);
             $productTitle = eshop_Products::getTitleById($productId);
-            $row->nearLink = ht::createLink($productTitle, $productUrl);
+            $row->nearLink = ht::createLink($productTitle, $productUrl, null, 'class=productName');
             
             // Ако има се показва тъмбнейл, към него
-            $thumb = static::getProductThumb($productRec, 300, 300);
+            $thumb = static::getProductThumb($productRec, 200, 200);
             if (empty($thumb)) {
                 $thumb = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') .'.png'), 300, 300, 'path');
             }
             
             $thumbHtml = $thumb->createImg(array('class' => 'eshopNearProductThumb', 'title' => $productTitle))->getContent();
-            $row->nearThumb = ht::createLink($thumbHtml, $productUrl);
+            $row->nearThumb = ht::createLink($thumbHtml, $productUrl, null, 'class=productImage');
             $rows[$productId] = $row;
         }
         
@@ -484,7 +484,7 @@ class eshop_Products extends core_Master
         if (countR($imageArr)) {
             $tact = abs(crc32($rec->id . round(time() / (24 * 60 * 60 + 537)))) % countR($imageArr);
             $image = $imageArr[$tact];
-            $thumb = new thumb_Img($image, 120, 120);
+            $thumb = new thumb_Img($image, $width, $height);
             
             return $thumb;
         }
@@ -870,7 +870,8 @@ class eshop_Products extends core_Master
             $tpl = getTplFromFile('eshop/tpl/ProductShowNarrow.shtml');
         }
         $tpl->placeObject($data->row);
-        
+
+        $tpl->push("css/no-sass.css", "CSS");
         if (is_array($data->detailData->rows) && countR($data->detailData->rows)) {
             $tpl->replace(eshop_ProductDetails::renderExternal($data->detailData), 'PRODUCT_OPT');
         }
