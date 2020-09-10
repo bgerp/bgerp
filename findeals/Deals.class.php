@@ -913,7 +913,7 @@ class findeals_Deals extends deals_DealBase
             $contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId, false);
             $result = (object) array(
                 'num' => $objectId . ' ' . mb_strtolower($self->abbr),
-                'title' => static::getRecTitle($rec),
+                'title' => static::getRecTitle($rec, false),
                 'features' => array('Контрагент' => $contragentName)
             );
         }

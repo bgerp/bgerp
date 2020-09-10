@@ -191,9 +191,7 @@ class acc_Items extends core_Manager
             $rec->title = tr($rec->title);
         }
         
-        $title = $mvc->getVerbal($rec, 'title');
-        $num = $mvc->getVerbal($rec, 'num');
-        $rec->titleLink = $title . " (${num})";
+        $rec->titleLink = $rec->title . " ({$rec->num})";
     }
     
     

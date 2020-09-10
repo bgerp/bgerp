@@ -830,10 +830,10 @@ abstract class deals_DealMaster extends deals_DealBase
             $contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId, false);
             $result = (object) array(
                 'num' => $objectId . ' ' . mb_strtolower($self->abbr),
-                'title' => $self::getRecTitle($objectId),
+                'title' => $self::getRecTitle($objectId, false),
                 'features' => array('Контрагент' => $contragentName)
             );
-            
+            //bp($result);
             if ($rec->dealerId) {
                 $caption = $self->getField('dealerId')->caption;
                 list(, $featName) = explode('->', $caption);
