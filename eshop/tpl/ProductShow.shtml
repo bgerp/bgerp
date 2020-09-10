@@ -11,8 +11,8 @@
 	</div>
 	<div class="vtop" style='padding-left:2%;float:right;width:74%'>
 		<div class='eshop-product-labels'>
-			<!--ET_BEGIN code--><span><b>|Код|*: [#code#]</b></span><!--ET_END code-->
-            <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--> [#coInquiry#]
+			<!--ET_BEGIN code--><span style="margin-right: 15px;"><b>|Код|*: [#code#]</b></span><!--ET_END code-->
+			[#coInquiry#]<!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*' >|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq-->
 			<div class="clearfix21"></div>
 		</div>
 
@@ -31,16 +31,18 @@
 		<div style="padding: 10px 0;">
 		[#AFTER_PRODUCTS#]
 		[#longInfo#]
-		
-		<!--ET_BEGIN NEAR_ROWS-->
-		<p style = "margin-bottom: 5px;">|Вижте също|*</p>
-		<ul style="margin-top: 0px;">
-			[#NEAR_ROWS#]
-			<!--ET_BEGIN nearLink-->
-			<li><!--ET_BEGIN nearThumb-->[#nearThumb#]<!--ET_END nearThumb--> [#nearLink#]</li>
-			<!--ET_END nearLink-->
-		</ul>
-		<!--ET_END NEAR_ROWS-->
+
+			<div class="productsHolder">
+				<!--ET_BEGIN NEAR_ROWS-->
+					[#NEAR_ROWS#]
+					<!--ET_BEGIN nearLink-->
+					<div class="productBox">
+						[#nearLink#]
+						<!--ET_BEGIN nearThumb-->[#nearThumb#]<!--ET_END nearThumb-->
+					</div>
+					<!--ET_END nearLink-->
+				<!--ET_END NEAR_ROWS-->
+			</div>
 		</div>
 	</div>
 	<div class="clearfix21"></div>
