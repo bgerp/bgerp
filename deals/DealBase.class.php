@@ -244,7 +244,7 @@ abstract class deals_DealBase extends core_Master
         $dealQuery->where("#closedDocuments = ''");
         
         while ($dealRec = $dealQuery->fetch()) {
-            $title = $this->getRecTitle($dealRec) . ' / ' . (($this->valiorFld) ? $this->getVerbal($dealRec, $this->valiorFld) : '');
+            $title = $this->getRecTitle($dealRec, false) . ' / ' . (($this->valiorFld) ? $this->getVerbal($dealRec, $this->valiorFld) : '');
             $docs[$dealRec->id] = $title;
         }
         
