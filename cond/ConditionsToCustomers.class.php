@@ -204,7 +204,7 @@ class cond_ConditionsToCustomers extends core_Manager
                 $dRow = cond_Countries::recToVerbal($dRec);
                 
                 
-                $dRow->value = ht::createHint($dRow->value, "Стойността е по подразбиране за контрагентите от|* \"{$cData->country}\"", 'notice', true, 'width=12px,height=12px');
+                $dRow->value = ht::createHint($dRow->value, "Стойност по подразбиране за контрагенти от|* \"{$cData->country}\"", 'notice', true, 'width=12px,height=12px');
                 unset($dRow->_rowTools);
                 
                 $data->rows[$dRec->conditionId] = $dRow;
