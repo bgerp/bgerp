@@ -411,7 +411,8 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Избраната валута съответства ли на дефолтната
         $defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
-        if ($defCurrency != $rec->currencyId) {
+        $currencyState = currency_Currencies::fetchField("#code = '{$defCurrency}'", 'state');
+        if ($defCurrency != $rec->currencyId && $currencyState == 'active') {
             $form->setWarning('currencyId', "Избрана e различна валута от очакваната|* <b>{$defCurrency}</b>");
         }
         
@@ -833,7 +834,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 'title' => $self::getRecTitle($objectId, false),
                 'features' => array('Контрагент' => $contragentName)
             );
-            //bp($result);
+            
             if ($rec->dealerId) {
                 $caption = $self->getField('dealerId')->caption;
                 list(, $featName) = explode('->', $caption);

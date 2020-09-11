@@ -484,7 +484,8 @@ class sales_Quotations extends core_Master
             
             // Избраната валута съответства ли на дефолтната
             $defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
-            if ($defCurrency != $rec->currencyId) {
+            $currencyState = currency_Currencies::fetchField("#code = '{$defCurrency}'", 'state');
+            if ($defCurrency != $rec->currencyId && $currencyState != 'active') {
                 $form->setWarning('currencyId', "Избрана e различна валута от очакваната|* <b>{$defCurrency}</b>");
             }
             
