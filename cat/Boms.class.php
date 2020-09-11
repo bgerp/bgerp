@@ -383,7 +383,7 @@ class cat_Boms extends core_Master
      * @param mixed      $res
      * @param int|object $id  първичен ключ или запис на $mvc
      */
-    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    protected static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
         
@@ -398,11 +398,11 @@ class cat_Boms extends core_Master
      */
     protected function on_AfterChangeState($mvc, $rec, $state)
     {
-        if ($state == 'closed') {
-            $rec = $mvc->fetchRec($rec);
-            if($rec->brState == 'active'){
-                static::$stoppedActiveBoms[$rec->id] = $rec;
-            }
+        $rec = $mvc->fetchRec($rec);
+        if ($state == 'closed' && $rec->brState == 'active') {
+            static::$stoppedActiveBoms[$rec->id] = $rec;
+        } elseif($state == 'active' && $rec->brState == 'closed'){
+            static::$activatedBoms[$rec->id] = $rec;
         }
     }
     
@@ -414,7 +414,7 @@ class cat_Boms extends core_Master
      * @param mixed      $res
      * @param int|object $id  първичен ключ или запис на $mvc
      */
-    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    protected static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
         if($rec->state == 'active'){
