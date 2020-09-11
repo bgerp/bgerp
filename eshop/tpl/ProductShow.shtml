@@ -32,7 +32,6 @@
 		[#AFTER_PRODUCTS#]
 		[#longInfo#]
 
-		<h4 style="">|Вижте също|:</h4>
 		[#eshop/tpl/NearProducts.shtml#]
 		</div>
 	</div>
