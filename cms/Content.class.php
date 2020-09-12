@@ -829,7 +829,7 @@ class cms_Content extends core_Manager
                     foreach ($res as $o) {
                         if (isset($o->img)) {
                             $img = $o->img->createImg(array('class' => 'eshop-product-image'));
-                            $html .= "<div><div style='display:inline-block;vertical-align: middle;padding:5px;'>" . ht::createLink($img, $o->url) . "</div><div style='display:inline-block;vertical-align: middle;padding:5px;'>" . ht::createLink($o->title, $o->url) . '</div></div>';
+                            $html .= "<div style='white-space: nowrap;'><div style='display:inline-block;vertical-align: middle;padding:5px;'>" . ht::createLink($img, $o->url) . "</div><div style='display:inline-block;vertical-align: middle;padding:5px;white-space: break-space;'>" . ht::createLink($o->title, $o->url) . '</div></div>';
                         } else {
                             $html .= "<li style='font-size:1.2em; margin:5px;' >" . ht::createLink($o->title, $o->url) . '</li>';
                         }
