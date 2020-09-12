@@ -351,6 +351,7 @@ class eshop_Products extends core_Master
      * Връща данните за свързаните артикули, за показване във външната час
      *
      * @param stdClass $rec - запис
+     *
      * @return array $rows - записи
      */
     private function prepareNearProducts($rec)
@@ -369,9 +370,11 @@ class eshop_Products extends core_Master
             
             // Ако е затворен, се пропуска
             $productRec = eshop_Products::fetch($productId);
-            if ($productRec->state == 'closed') continue;
+            if ($productRec->state == 'closed') {
+                continue;
+            }
             
-            $row = new stdClass();  
+            $row = new stdClass();
             $productUrl = self::getUrl($productRec);
             $productTitle = eshop_Products::getTitleById($productId);
             $row->nearLink = ht::createLink($productTitle, $productUrl, null, 'class=productName');
@@ -485,9 +488,11 @@ class eshop_Products extends core_Master
             $tact = abs(crc32($rec->id . round(time() / (24 * 60 * 60 + 537)))) % countR($imageArr);
             $image = $imageArr[$tact];
             $thumb = new thumb_Img($image, $width, $height);
-            
-            return $thumb;
+        } else {
+            $thumb = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') .'.png'), $width, $height, 'path');
         }
+        
+        return $thumb;
     }
     
     
@@ -514,9 +519,7 @@ class eshop_Products extends core_Master
             
             // Показване на тъмбнейл на артикула
             $thumb = static::getProductThumb($pRec);
-            if (empty($thumb)) {
-                $thumb = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') .'.png'), 120, 120, 'path');
-            }
+            
             $pRow->image = $thumb->createImg(array('class' => 'eshop-product-image'));
             
             if ($pRec->saleState == 'single') {
@@ -870,15 +873,15 @@ class eshop_Products extends core_Master
             $tpl = getTplFromFile('eshop/tpl/ProductShowNarrow.shtml');
         }
         $tpl->placeObject($data->row);
-
-        $tpl->push("css/no-sass.css", "CSS");
+        
+        $tpl->push('css/no-sass.css', 'CSS');
         if (is_array($data->detailData->rows) && countR($data->detailData->rows)) {
             $tpl->replace(eshop_ProductDetails::renderExternal($data->detailData), 'PRODUCT_OPT');
         }
         
         // Рендиране на свързаните артикули
-        if (is_array($data->row->nearRows)){
-            foreach ($data->row->nearRows as $nearRow){
+        if (is_array($data->row->nearRows)) {
+            foreach ($data->row->nearRows as $nearRow) {
                 $block = clone $tpl->getBlock('nearLink');
                 $block->placeObject($nearRow);
                 $block->removeBlocksAndPlaces();
