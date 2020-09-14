@@ -4390,20 +4390,39 @@ table .eshop-btn {
 	box-sizing: border-box;
 	box-shadow: 0 1px 5px -1px rgba(0,0,0,.3);
 	.productImage {
-		width: 180px;
+		width: 100%;
 		height: 180px;
-		display: table-cell;
-		vertical-align: middle;
-		text-align: center;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		margin-bottom: 10px;
 		img {
 			max-width: 180px;
 			height: auto;
+			-webkit-transform: scale(1);
+			transform: scale(1);
+			-webkit-transition: .3s ease-in-out;
+			transition: .3s ease-in-out;
+		}
+		&:hover img{
+			-webkit-transform: scale(1.2);
+			transform: scale(1.2);
 		}
 	}
 	.productName {
-		display: block;
-		color: #333;
-		margin-top: 10px;
+		background: linear-gradient( to bottom, #334 0%, #334 100% );
+		background-position: 0 100%;
+		background-repeat: repeat-x;
+		background-size: 2px 2px;
+		color: #000;
+		text-decoration: none;
+		-webkit-transition: all .2s;
+		transition: all .2s;
+		padding: 0 2px;
+		&:hover {
+			background-size: 4px 50px;
+			color: #fff !important;
+		}
 	}
 }
 .narrow .articles-navigation {

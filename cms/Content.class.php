@@ -827,7 +827,12 @@ class cms_Content extends core_Manager
                     $html .= "<h2><strong style='color:green'>" . type_Varchar::escape($rec->title ? $rec->title : $rec->menu) . $domainName . '</strong></h2>';
                     $html .= '<ul>';
                     foreach ($res as $o) {
-                        $html .= "<li style='font-size:1.2em; margin:5px;' >" . ht::createLink($o->title, $o->url) . '</li>';
+                        if (isset($o->img)) {
+                            $img = $o->img->createImg(array('class' => 'eshop-product-image'));
+                            $html .= "<div style='white-space: nowrap;'><div style='display:inline-block;vertical-align: middle;padding:5px;'>" . ht::createLink($img, $o->url) . "</div><div style='display:inline-block;vertical-align: middle;padding:5px;white-space: break-spaces;'>" . ht::createLink($o->title, $o->url) . '</div></div>';
+                        } else {
+                            $html .= "<li style='font-size:1.2em; margin:5px;' >" . ht::createLink($o->title, $o->url) . '</li>';
+                        }
                     }
                     $html .= '</ul>';
                     if ($rec->domainId != $domainId) {
@@ -874,17 +879,17 @@ class cms_Content extends core_Manager
         if (isset($iConvStr)) {
             $q = $iConvStr;
         }
-
+        
         $qArr = plg_Search::parseQuery($q);
-
+        
         $resArr = array();
         $flag = false;
- 
+        
         foreach ($qArr as &$w) {
-            if($w{0} == '-') {
+            if ($w{0} == '-') {
                 $resArr[] = $w;
                 continue;
-            } elseif($w{0} == '"') {
+            } elseif ($w{0} == '"') {
                 $flag = true;
                 $resArr[] = $w . '"';
                 continue;
@@ -892,7 +897,7 @@ class cms_Content extends core_Manager
                 $flag = true;
                 $resArr[] = $w;
                 continue;
-            } elseif (strlen($w) > 3) { ;
+            } elseif (strlen($w) > 3) {
                 $len = strlen($w);
                 $min = max(3, $len - 1);
                 $max = $len + 2;
@@ -910,20 +915,20 @@ class cms_Content extends core_Manager
                         }
                     }
                 }
-
+                
                 if ($bestW) {
                     $resArr[] = $bestW;
                     $flag = true;
                 }
             }
         }
-    
+        
         $res = null;
         
         if (count($resArr) && $flag) {
             $res = implode(' ', $resArr);
         }
-
+        
         return $res;
     }
     

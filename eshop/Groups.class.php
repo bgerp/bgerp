@@ -781,7 +781,7 @@ class eshop_Groups extends core_Master
                 $url = eshop_Products::getUrl($r);
                 $url['q'] = $q;
                 
-                $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
+                $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url, 'img' => eshop_Products::getProductThumb($r, 60, 60));
             }
             
             if (countR($res) < $maxResults) {
@@ -792,7 +792,7 @@ class eshop_Groups extends core_Master
                     $url = eshop_Products::getUrl($r);
                     $url['q'] = $q;
                     
-                    $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
+                    $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url, 'img' => eshop_Products::getProductThumb($r, 60, 60));
                 }
             }
             
@@ -804,7 +804,7 @@ class eshop_Groups extends core_Master
                     $url = eshop_Products::getUrl($r);
                     $url['q'] = $q;
                     
-                    $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
+                    $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url, 'img' => eshop_Products::getProductThumb($r, 60, 60));
                 }
             }
         }
