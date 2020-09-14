@@ -415,6 +415,13 @@ class speedy_Adapter {
         $pickingData->returnServiceId = ($rec->returnServiceId == 'same') ? $pickingData->serviceTypeId : $rec->returnServiceId;
         $pickingData->returnPayer = ($rec->returnPayer == 'same') ? $pickingData->payerType : (($rec->returnPayer == 'sender') ? ParamCalculation::PAYER_TYPE_SENDER : (($rec->returnPayer == 'receiver') ? ParamCalculation::PAYER_TYPE_RECEIVER : ParamCalculation::PAYER_TYPE_THIRD_PARTY));
         
+        if(!empty($rec->returnShipmentWrappingServiceId)){
+            $pickingData->returnShipmentWrappingServiceId = $rec->returnShipmentWrappingServiceId;
+            $pickingData->returnShipmentParcelCount = $rec->returnShipmentParcelCount;
+            $pickingData->returnShipmentAmountInsurance = $rec->returnShipmentAmountInsurance;
+            $pickingData->returnShipmentIsFragile = $rec->returnShipmentIsFragile;
+        }
+        
         if(!empty($rec->wrappingReturnQuantity)){
             $pickingData->wrappingReturnServiceId = $rec->wrappingReturnServiceId;
             $pickingData->wrappingReturnQuantity = $rec->wrappingReturnQuantity;
@@ -615,6 +622,20 @@ class speedy_Adapter {
                 $returnServiceRequest->setServiceTypeId($pickingData->wrappingReturnServiceId);
                 $picking->setRetServicesRequest($returnServiceRequest);
             }
+            
+            if(!empty($pickingData->returnShipmentWrappingServiceId)){
+                $returnShipmentServiceRequest = new ParamReturnShipmentRequest();
+                $returnShipmentServiceRequest->setParcelsCount($pickingData->returnShipmentParcelCount);
+                $returnShipmentServiceRequest->setServiceTypeId($pickingData->returnShipmentWrappingServiceId);
+                
+                if(isset($pickingData->returnShipmentAmountInsurance)){
+                    $fragile = ($pickingData->returnShipmentIsFragile == 'yes') ? true : false;
+                    $returnShipmentServiceRequest->setFragile($fragile);
+                    $returnShipmentServiceRequest->setAmountInsuranceBase($pickingData->returnShipmentAmountInsurance);
+                }
+                
+                $picking->setRetShipmentRequest($returnShipmentServiceRequest);
+            }
         }
         
         return $picking;
@@ -726,6 +747,15 @@ class speedy_Adapter {
         } elseif(strpos($errorMsg, 'pallets EUR 80x120 are requested') !== false){
             $errorMsg = 'Въведения брой европалети за връщане, е по-голям от описаните такива';
             $fields = 'parcelInfo,wrappingReturnQuantity';
+        } elseif(strpos($errorMsg, '[INVALID_RETURN_SHIPMENT_REQUEST, Return shipment not allowed for selected service') !== false){
+            $errorMsg = 'Заявката за обратна пратка не поддържа избраната услуга';
+            $fields = 'returnShipmentWrappingServiceId';
+        } elseif(strpos($errorMsg, 'COMMON_ERROR, Return shipment: Number of parcels is out of range for selected service. Allowed values are between [1, 10]') !== false){
+            $errorMsg = 'Броя пакети за обратна пратка, трябва да е между 1 и 10';
+            $fields = 'returnShipmentParcelCount';
+        } elseif(strpos($errorMsg, '[COMMON_ERROR, Return shipment: Number of parcels is out of range for selected service. Allowed values are between [1, 6]') !== false){
+            $errorMsg = 'Броя пакети за обратна пратка, трябва да е между 1 и 6';
+            $fields = 'returnShipmentParcelCount';
         } else {
             $isHandled = false;
         }
