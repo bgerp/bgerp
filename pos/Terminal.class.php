@@ -670,13 +670,20 @@ class pos_Terminal extends peripheral_Terminal
             $selectedRecId = pos_ReceiptDetails::getLastRec($id)->id;
         }
        
+        $oldSearchString = Mode::get("currentSearchString{$id}");
         $string = Request::get('search', 'varchar');
+        
         Mode::setPermanent("currentOperation{$id}", $operation);
         Mode::setPermanent("currentSearchString{$id}", $string);
         Mode::setPermanent("currentSelectedGroup{$id}", $selectedProductGroupId);
         Mode::setPermanent("currentSelectedReceiptFilter{$id}", $selectedReceiptFilter);
         
-        return static::returnAjaxResponse($rec->id, $selectedRecId, true, false, $refreshPanel, true, null);
+        $refreshResults = true;
+        if($oldSearchString == $string){
+            $refreshResults = false;
+        }
+        
+        return static::returnAjaxResponse($rec->id, $selectedRecId, true, false, $refreshPanel, $refreshResults, null);
     }
     
     
