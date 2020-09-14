@@ -399,8 +399,20 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         }
         
         
-        if ((isset($data->rec->storeId))) {
-            $fieldTpl->append('<b>'. store_Stores::getTitleById($data->rec->storeId) .'</b>', 'storeId');
+        if (isset($data->rec->storeId)) {
+            foreach (type_Keylist::toArray($data->rec->storeId) as $store) {
+                $marker++;
+                
+                $storeIdVerb .= (store_Stores::getTitleById($store));
+                
+                if ((countR(type_Keylist::toArray($data->rec->storeId))) - $marker != 0) {
+                    $storeIdVerb .= ', ';
+                }
+            }
+            
+            $fieldTpl->append('<b>' . $storeIdVerb . '</b>', 'storeId');
+        } else {
+            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'storeId');
         }
         
         if ((isset($data->rec->products))) {
