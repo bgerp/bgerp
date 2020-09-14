@@ -1012,4 +1012,18 @@ class store_InventoryNotes extends core_Master
         
         followRetUrl('Всички артикули с невъведени количества са нулирани');
     }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = true)
+    {
+        $mvc = cls::get(get_called_class());
+        $rec = static::fetchRec($rec);
+        $handle = $mvc->getHandle($rec);
+        $title = "{$handle} / " . store_Stores::getTitleById($rec->storeId, false);
+         
+        return $title;
+    }
 }
