@@ -74,7 +74,7 @@ function posActions() {
 			disableOrEnableCurrencyBtn();
 		}
 		
-		triggerSearchInput($(this), searchTimeout);
+		triggerSearchInput($(this), searchTimeout, true);
 	});
 
 
@@ -144,7 +144,7 @@ function posActions() {
 		if (currentAttrValue == "ENTER") {
 			$('.select-input-pos').val($('.keyboardText').val());
 			$('.ui-dialog-titlebar-close').click();
-			triggerSearchInput($(".large-field"), 0);
+			triggerSearchInput($(".large-field"), 0, true);
 			activeInput = true;
 		} else {
 			inputChars($('.keyboardText'), currentAttrValue);
@@ -1371,14 +1371,14 @@ function activateTab(element, timeOut)
 	$('.tabHolder li').removeClass('active');
 	element.addClass('active');
 	
-	triggerSearchInput($(".large-field"), timeOut);
+	triggerSearchInput($(".large-field"), timeOut, false);
 }
 
 
 /*
  * Търси по инпута ако може
  */
-function triggerSearchInput(element, timeoutTime)
+function triggerSearchInput(element, timeoutTime, keyupTriggered)
 {
 	// След всяко натискане на бутон изчистваме времето на изчакване
 	clearTimeout(timeout);
@@ -1426,6 +1426,11 @@ function triggerSearchInput(element, timeoutTime)
 				params.selectedProductGroupId = id;
 			}
 		}
+		
+		if(keyupTriggered){
+			params.keyupTriggered = 'yes';
+		}
+		
 		processUrl(url, params);
 
 	}, timeoutTime);

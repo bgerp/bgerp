@@ -656,6 +656,8 @@ class pos_Terminal extends peripheral_Terminal
         expect($rec = pos_Receipts::fetch($id));
         expect($operation = Request::get('operation', "enum(" . self::$operationsArr . ")"));
         $refreshPanel = Request::get('refreshPanel', 'varchar');
+        $keyupTriggered = Request::get('keyupTriggered', 'varchar');
+        
         $selectedProductGroupId = Request::get('selectedProductGroupId', 'varchar');
         $selectedReceiptFilter = Request::get('selectedReceiptFilter', 'varchar');
         
@@ -679,7 +681,7 @@ class pos_Terminal extends peripheral_Terminal
         Mode::setPermanent("currentSelectedReceiptFilter{$id}", $selectedReceiptFilter);
         
         $refreshResults = true;
-        if($oldSearchString == $string){
+        if($keyupTriggered == 'yes' && $oldSearchString == $string){
             $refreshResults = false;
         }
         
