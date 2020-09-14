@@ -95,7 +95,7 @@ class store_InventoryNotes extends core_Master
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper,plg_Clone,acc_plg_Contable,
                         doc_DocumentPlg,purchase_plg_ExtractPurchasesData,
-                        plg_Printing, acc_plg_DocumentSummary, plg_Search,bgerp_plg_Blank';
+                        plg_Printing, acc_plg_DocumentSummary, deals_plg_SaveValiorOnActivation, plg_Search,bgerp_plg_Blank';
     
     
     /**
@@ -277,7 +277,6 @@ class store_InventoryNotes extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        $form->setDefault('valior', dt::today());
         
         $form->setDefault('storeId', doc_Folders::fetchCoverId($form->rec->folderId));
         $form->setReadOnly('storeId');
@@ -680,7 +679,6 @@ class store_InventoryNotes extends core_Master
                 
                 // Трием само тези, които нямат въведено количество
                 $sRec = store_InventoryNoteSummary::fetch($deleteId, 'productId,quantity,createdBy');
-                
                 if (!isset($sRec->quantity) && ($sRec->createdBy == core_Users::SYSTEM_USER || empty($sRec->createdBy))) {
                     $deleted++;
                     store_InventoryNoteSummary::delete($deleteId);
@@ -688,17 +686,7 @@ class store_InventoryNotes extends core_Master
             }
         }
         
-        // Дебъг информация
-        if (haveRole('debug')) {
-            core_Statuses::newStatus('Данните са синхронизирани');
-            if ($deleted) {
-                core_Statuses::newStatus("Изтрити са {$deleted} реда");
-            }
-            
-            if ($added = countR($syncedArr['insert'])) {
-                core_Statuses::newStatus("Добавени са {$added} реда");
-            }
-        }
+        self::logWrite('Синхронизиране на данните', $rec->id);
     }
     
     
