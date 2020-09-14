@@ -4425,6 +4425,25 @@ table .eshop-btn {
 		}
 	}
 }
+.narrow .results ul {
+	padding-left: 0;
+}
+
+.searchResult {
+	width: 100%;
+	td{
+		vertical-align: middle;
+		padding:5px;
+	}
+	.searchImg {
+		width: 70px;
+		text-align: center;
+	}
+}
+
+.narrow .searchResult td{
+	padding: 0 2px 2px;
+}
 .narrow .articles-navigation {
 	background-color: #ccc;
 	padding: 5px;

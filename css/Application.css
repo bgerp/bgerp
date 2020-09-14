@@ -3777,6 +3777,21 @@ table .eshop-btn {
       background-size: 4px 50px;
       color: white !important; }
 
+.narrow .results ul {
+  padding-left: 0; }
+
+.searchResult {
+  width: 100%; }
+  .searchResult td {
+    vertical-align: middle;
+    padding: 5px; }
+  .searchResult .searchImg {
+    width: 70px;
+    text-align: center; }
+
+.narrow .searchResult td {
+  padding: 0 2px 2px; }
+
 .narrow .articles-navigation {
   background-color: #cccccc;
   padding: 5px;

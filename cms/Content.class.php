@@ -825,16 +825,22 @@ class cms_Content extends core_Manager
                     }
                     
                     $html .= "<h2><strong style='color:green'>" . type_Varchar::escape($rec->title ? $rec->title : $rec->menu) . $domainName . '</strong></h2>';
-                    $html .= '<ul>';
+                    $elements = "";
+
                     foreach ($res as $o) {
                         if (isset($o->img)) {
+                            $prefix = "<table class='searchResult'>";
+                            $suffix = "</table>";
                             $img = $o->img->createImg(array('class' => 'eshop-product-image'));
-                            $html .= "<div style='white-space: nowrap;'><div style='display:inline-block;vertical-align: middle;padding:5px;'>" . ht::createLink($img, $o->url) . "</div><div style='display:inline-block;vertical-align: middle;padding:5px;white-space: break-spaces;'>" . ht::createLink($o->title, $o->url) . '</div></div>';
+                            $elements .= "<tr><td class='searchImg'>" . ht::createLink($img, $o->url) . "</td><td class='searchName'>" . ht::createLink($o->title, $o->url, false, array('class'=>"searchName")) . '</td> </tr>';
+
                         } else {
-                            $html .= "<li style='font-size:1.2em; margin:5px;' >" . ht::createLink($o->title, $o->url) . '</li>';
+                            $prefix = "<ul>";
+                            $suffix = "</ul>";
+                            $elements .= "<li style='font-size:1.2em; margin:5px;' >" . ht::createLink($o->title, $o->url) . '</li>';
                         }
                     }
-                    $html .= '</ul>';
+                    $html .= $prefix . $elements . $suffix;
                     if ($rec->domainId != $domainId) {
                         Mode::pop('BGERP_CURRENT_DOMAIN');
                     }
