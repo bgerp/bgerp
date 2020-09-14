@@ -684,79 +684,23 @@ class speedy_Adapter {
     public function handleException(ServerException $e, &$fields, &$isHandled = null)
     {
         $fields = 'receiverPhone';
-        $isHandled = true;
         $errorMsg = $e->getMessage();
         
-        if(strpos($errorMsg, "[ERR_012] Invalid post code for RECEIVER") !== false){
-            $errorMsg = 'Има разминаване между държавата и мястото в базата на Speedy';
-            $fields = 'receiverPCode,receiverPlace';
-        } elseif(strpos($errorMsg, '[ERR_012]') !== false){
-            $errorMsg = 'Има разминаване между държавата и мястото в базата на Speedy';
-            $fields = 'receiverCountryId,receiverPlace,receiverAddress';
-        } elseif(strpos($errorMsg, 'Delivery to floor not allowed for service') !== false){
-            $errorMsg = 'Избраната услуга непозволява качване до етаж';
-            $fields = 'service,floorNum';
-        } elseif(strpos($errorMsg, '[INVALID_PHONE_NUMBER') !== false){
-            $errorMsg = 'Невалиден телефонен номер на получател';
-            $fields = 'receiverPhone';
-        } elseif(strpos($errorMsg, '[INVALID_BACK_DOCUMENT_REQUEST') !== false || strpos($errorMsg, 'INVALID_BACK_RECEIPT_REQUEST') !== false){
-            $errorMsg = 'Не може да са избрани документи/разписка за връщане, при доставка до Автомат';
-            $fields = 'receiverSpeedyOffice,backRequest';
-        } elseif(strpos($errorMsg, '[INVALID_RECEIVER_MOBILE_PHONE_NUMBER_FOR_APT_TBC') !== false){
-            $errorMsg = 'Неразпознат телефонен номер';
-            $fields = 'receiverSpeedyOffice,receiverPhone';
-        } elseif(strpos($errorMsg, 'COMMON_ERROR, [ERR_010] Pickings without COD') !== false){
-            $errorMsg = 'Не може пощенския паричен превод да е включен в цената на наложения платеж';
-            $fields = 'codType';
-        } elseif(strpos($errorMsg, "[COMMON_ERROR, [ERR_011] 'PayerTypeInsurance'  MUST be set") !== false){
-            $errorMsg = 'При обявената стойност, трябва да има избран платец на обявената стойност';
-            $fields = 'insurancePayer,amountInsurance';
-        } elseif(strpos($errorMsg, "[INVALID_PARCELS_INFO, Wrong sequential numbers") !== false){
-            $errorMsg = 'Грешна последователност на палетите';
-            $fields = 'parcelInfo';
-        } elseif(strpos($errorMsg, '[INVALID_OPTIONS_BEFORE_PAYMENT, Option "Open before payment" with delivery to address is not allowed for selected service') !== false){
-            $errorMsg = 'Опцията за отваряне преди плащане не е налична за избраната услуга';
-            $fields = 'service,options';
-        } elseif(strpos($errorMsg, '[INVALID_OPTIONS_BEFORE_PAYMENT, Option "Test before delivery" with delivery to address is not allowed for selected service.') !== false){
-            $errorMsg = 'Опцията за тестване преди плащане не е налична за избраната услуга';
-            $fields = 'service,options';
-        } elseif(strpos($errorMsg, '[MISSING_REQUIRED_VALUE_PARCELS, Pallet services require first parcel info to be provided') !== false) {
-            $errorMsg = 'Палетната услуга, изисква да е въведена информация за палетите';
-            $fields = 'service,parcelInfo';
-        } elseif(strpos($errorMsg, '[INVALID_OPTIONS_BEFORE_PAYMENT, Options before payment are not allowed for shipments with APT') !== false){
-            $errorMsg = 'При доставка до автомат не може да са избрани опции преди получаване/плащане';
-            $fields = 'receiverSpeedyOffice,options';
-        } elseif(strpos($errorMsg, '[WEIGHT_NOT_IN_RANGE, Invalid weight for service. Allowed values are between 0.0kg and 50.0kg') !== false){
-            $errorMsg = 'Разрешеното тегло за услугата е между 0 и 50 кг';
-            $fields = 'totalWeight,service';
-        } elseif(strpos($errorMsg, '[WEIGHT_NOT_IN_RANGE, Invalid weight for service. Allowed values are between 0.0kg and 50.0kg') !== false){
-            $errorMsg = 'Разрешеното тегло за услугата е между 0 и 50 кг';
-            $fields = 'totalWeight,service';
-        } elseif(strpos($errorMsg, 'WEIGHT_NOT_IN_RANGE, Invalid average weight for service. Allowed values are between 0.0kg and 50.0kg') !== false){
-            $errorMsg = 'Теглото не е в границите за избраната услуга';
-            $fields = 'totalWeight,service';
-        } elseif(strpos($errorMsg, 'NON_ACTIVE_OFFICE_TBC') !== false){
-            $errorMsg = 'Офисът не е активен';
-            $fields = 'receiverSpeedyOffice';
-        } elseif(strpos($errorMsg, 'INVALID_RETURN_SERVICE_REQUEST, Return wrapping service not allowed') !== false){
-            $errorMsg = 'Избраната услуга, не позволява връщане на амбалаж';
-            $fields = 'service,wrappingReturnQuantity';
-        } elseif(strpos($errorMsg, 'INVALID_RETURN_SERVICE_REQUEST, Invalid return wrapping number of parcels') !== false){
-            $errorMsg = 'Посочения брой амбалаж за връщане, не трябва да е по-голям от общия брой палети';
-            $fields = 'service,wrappingReturnQuantity';
-        } elseif(strpos($errorMsg, 'pallets EUR 80x120 are requested') !== false){
-            $errorMsg = 'Въведения брой европалети за връщане, е по-голям от описаните такива';
-            $fields = 'parcelInfo,wrappingReturnQuantity';
-        } elseif(strpos($errorMsg, '[INVALID_RETURN_SHIPMENT_REQUEST, Return shipment not allowed for selected service') !== false){
-            $errorMsg = 'Заявката за обратна пратка не поддържа избраната услуга';
-            $fields = 'returnShipmentWrappingServiceId';
-        } elseif(strpos($errorMsg, 'COMMON_ERROR, Return shipment: Number of parcels is out of range for selected service. Allowed values are between [1, 10]') !== false){
-            $errorMsg = 'Броя пакети за обратна пратка, трябва да е между 1 и 10';
-            $fields = 'returnShipmentParcelCount';
-        } elseif(strpos($errorMsg, '[COMMON_ERROR, Return shipment: Number of parcels is out of range for selected service. Allowed values are between [1, 6]') !== false){
-            $errorMsg = 'Броя пакети за обратна пратка, трябва да е между 1 и 6';
-            $fields = 'returnShipmentParcelCount';
-        } else {
+        $path = getFullPath('speedy/data/ErrorsVerbal.csv');
+        $csv = csv_Lib::getCsvRowsFromFile(file_get_contents($path), array('firstRow' => false, 'delimiter' => ','));
+        $rows = $csv['data'];
+        
+        if(is_array($rows)){
+            foreach ($rows as $errorMap){
+                if(strpos($errorMsg, $errorMap[1]) !== false){
+                    $errorMsg = $errorMap[2];
+                    $fields = $errorMap[3];
+                    $isHandled = true;
+                }
+            }
+        }
+        
+        if($isHandled !== true){
             $isHandled = false;
         }
         
