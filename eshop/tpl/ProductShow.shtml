@@ -31,9 +31,8 @@
 		<div style="padding: 10px 0;">
 		[#AFTER_PRODUCTS#]
 		[#longInfo#]
-
-		[#eshop/tpl/NearProducts.shtml#]
 		</div>
 	</div>
 	<div class="clearfix21"></div>
+	[#eshop/tpl/NearProducts.shtml#]
 </div>
