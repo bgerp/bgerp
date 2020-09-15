@@ -4425,6 +4425,17 @@ table .eshop-btn {
 		}
 	}
 }
+.smallThumbs {
+	.productImage {
+		height: 120px;
+		img {
+			max-width: 110px;
+		}
+	}
+	.productName {
+		font-size: 0.9em !important;
+	}
+}
 .narrow .results ul {
 	padding-left: 0;
 }

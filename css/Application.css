@@ -3777,6 +3777,13 @@ table .eshop-btn {
       background-size: 4px 50px;
       color: white !important; }
 
+  .smallThumbs .productImage {
+    height: 120px; }
+    .smallThumbs .productImage img {
+      max-width: 110px; }
+  .smallThumbs .productName {
+    font-size: 0.9em !important; }
+
 .narrow .results ul {
   padding-left: 0; }
 
