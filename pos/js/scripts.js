@@ -1077,6 +1077,9 @@ function startNavigation() {
 			$('#' + focused ).addClass('selected');
 		}
 		$('#result-holder .navigable:visible').keynav();
+		if (!isItVisible($('.navigable.selected'))) {
+			$('.navigable.selected')[0].scrollIntoView();
+		}
 	}
 }
 
