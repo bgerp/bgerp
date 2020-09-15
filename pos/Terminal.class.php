@@ -1228,7 +1228,7 @@ class pos_Terminal extends peripheral_Terminal
             }
             
             $removeImg = ht::createImg(array('path' => 'pos/img/stop.png'));
-            $removeBtnBody = new core_ET(tr("|*[#IMG#]|Премахване|*"));
+            $removeBtnBody = new core_ET(tr("|*[#IMG#]|Отмяна|*"));
             $removeBtnBody->replace($removeImg, 'IMG');
             $divAttr['class'] .= " imgDiv";
             $holderDiv = ht::createElement('div', $divAttr, $removeBtnBody, true);
