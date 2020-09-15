@@ -446,6 +446,26 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
+     * Връща дефолтния имейл за изпращане
+     *
+     * @return string - тялото на имейла
+     */
+    public function getDefaultEmailTo_($id, $forward = false)
+    {
+        if(core_Packs::isInstalled('eshop')){
+            $rec = $this->fetchRec($id);
+            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+            if($firstDoc->isInstanceOf('sales_Sales')){
+                if($cartRec = eshop_Carts::fetch("#saleId = {$firstDoc->that}", 'email')){
+                    
+                    return $cartRec->email;
+                }
+            }
+        }
+    }
+    
+    
+    /**
      * Зарежда шаблоните на продажбата в doc_TplManager
      */
     protected function setTemplates(&$res)
