@@ -322,7 +322,7 @@ class cms_Domains extends core_Embedder
         
         $newHost = ($rec->domain == 'localhost') ? $mainHost : $rec->domain;
         
-        if(($mainHost != $rec->actualDomain) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        if(($newHost != $rec->actualDomain) && $_SERVER['REQUEST_METHOD'] === 'GET') {
             $url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
             $newUrl = core_Url::change($url, array(), $newHost);
             
