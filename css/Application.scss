@@ -4389,6 +4389,14 @@ table .eshop-btn {
 	padding: 10px;
 	box-sizing: border-box;
 	box-shadow: 0 1px 5px -1px rgba(0,0,0,.3);
+	-webkit-transform: scale(1);
+	transform: scale(1);
+	-webkit-transition: all .3s ease-in-out;
+	transition: all .3s ease-in-out;
+	&:hover {
+		-webkit-transform: scale(1.15);
+		transform: scale(1.15);
+	}
 	.productImage {
 		width: 100%;
 		height: 180px;
@@ -4396,18 +4404,13 @@ table .eshop-btn {
 		justify-content: center;
 		align-items: center;
 		margin-bottom: 10px;
+
 		img {
 			max-width: 180px;
 			height: auto;
-			-webkit-transform: scale(1);
-			transform: scale(1);
-			-webkit-transition: .3s ease-in-out;
-			transition: .3s ease-in-out;
+
 		}
-		&:hover img{
-			-webkit-transform: scale(1.2);
-			transform: scale(1.2);
-		}
+
 	}
 	.productName {
 		background: linear-gradient( to bottom, #334 0%, #334 100% );
