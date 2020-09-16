@@ -328,6 +328,7 @@ class sales_Sales extends deals_DealMaster
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Цени,notChangeableByContractor');
         $this->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане->Начин,before=accountId,after=paymentMethodId');
+        $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=none,caption=Доставка->Начисляване,after=deliveryTermId');
         $this->setField('shipmentStoreId', 'salecondSysId=defaultStoreSale');
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
         $this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale,removeAndRefreshForm=paymentType,silent');
@@ -433,6 +434,7 @@ class sales_Sales extends deals_DealMaster
                 
                 // И условието на доставка е със скрито начисляване, не може да се сменя локацията и условието на доставка
                 if (isset($rec->deliveryTermId)) {
+                    $form->setReadOnly('deliveryCalcTransport');
                     if (cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost') == 'yes') {
                         $form->setReadOnly('deliveryAdress');
                         $form->setReadOnly('deliveryLocationId');
@@ -464,6 +466,15 @@ class sales_Sales extends deals_DealMaster
         if(isset($rec->paymentMethodId) && (!isset($rec->id) || $form->cmd == 'refresh')){
             $type = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
             $form->setDefault('paymentType', $type);
+        }
+        
+        // Възможност за ръчна смяна на режима на начисляването на скрития транспорт
+        if(isset($rec->deliveryTermId)){
+            if(cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)){
+                $calcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
+                $form->setField('deliveryCalcTransport', 'input');
+                $form->setDefault('deliveryCalcTransport', $calcCost);
+            }
         }
     }
     
@@ -1196,6 +1207,7 @@ class sales_Sales extends deals_DealMaster
                 $row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);
             }
             
+            core_Lg::pop();
             $row->transportCurrencyId = $row->currencyId;
             $hiddenTransportCost = sales_TransportValues::calcInDocument($mvc, $rec->id);
             $expectedTransportCost = $mvc->getExpectedTransportCost($rec);
@@ -1215,10 +1227,11 @@ class sales_Sales extends deals_DealMaster
                     $packPrice = $leftTransportCost * $rec->currencyRate;
                     
                     $url = array('sales_SalesDetails', 'add', 'saleId' => $rec->id,'productId' => $transportId, 'packPrice' => $packPrice, 'ret_url' => true);
-                    $link = ht::createLink('Добавяне', $url, false, array('ef_icon' => 'img/16/lorry_go.png', 'style' => 'font-weight:normal;font-size: 0.8em', 'title' => 'Добавяне на допълнителен транспорт'));
+                    $link = ht::createLink(tr('Добавяне'), $url, false, array('ef_icon' => 'img/16/lorry_go.png', 'style' => 'font-weight:normal;font-size: 0.8em', 'title' => 'Добавяне на допълнителен транспорт'));
                     $row->btnTransport = $link->getContent();
                 }
             }
+            core_Lg::push($rec->tplLang);
         } else if (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $row->title = "<b>" . $row->title . "</b>";
             $row->title .= "  «  " . $row->folderId;

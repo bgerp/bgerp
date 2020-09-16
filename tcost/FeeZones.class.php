@@ -123,7 +123,7 @@ class tcost_FeeZones extends core_Master
     {
         $this->FLD('name', 'varchar(16)', 'caption=Зона, mandatory');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms, select = codeName)', 'caption=Условие на доставка, mandatory');
-        $this->FLD('deliveryTime', 'time(uom=days)', 'caption=Доставка,recently,smartCenter');
+        $this->FLD('deliveryTime', 'time(uom=days)', 'caption=Срок на доставка,recently,smartCenter');
         
         $this->FLD('addTax', 'double', 'caption=Надценки->Твърда, autohide');
         $this->FLD('addPerKg', 'double', 'caption=Надценки->За кг, autohide');
@@ -501,5 +501,14 @@ class tcost_FeeZones extends core_Master
     public function canSelectInEshop(&$rec, $cu = null)
     {
         return true;
+    }
+    
+    
+    /**
+     * След вербализиране на записа
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        $row->deliveryTermId = cond_DeliveryTerms::getHyperlink($rec->deliveryTermId, true);
     }
 }

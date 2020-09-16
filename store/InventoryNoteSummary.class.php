@@ -459,6 +459,11 @@ class store_InventoryNoteSummary extends doc_Detail
         $data->listFilter->showFields = 'search';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->input();
+        
+        // При активен протокол не се показват непроменяните редове
+        if($data->masterData->rec->state == 'active'){
+            $data->query->where('#quantity IS NOT NULL');
+        }
     }
     
     

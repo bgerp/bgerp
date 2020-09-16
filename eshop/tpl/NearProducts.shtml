@@ -1,0 +1,12 @@
+<!--ET_BEGIN NEAR_ROWS-->
+<h4 style="">|Вижте също|*:</h4>
+<div class="productsHolder smallThumbs">
+[#NEAR_ROWS#]
+<!--ET_BEGIN nearLink-->
+	<div class="productBox">
+		[#nearThumb#]
+		[#nearLink#]
+	</div>
+<!--ET_END nearLink-->
+</div>
+<!--ET_END NEAR_ROWS-->			

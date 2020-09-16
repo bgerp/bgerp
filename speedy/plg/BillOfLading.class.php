@@ -302,6 +302,11 @@ class speedy_plg_BillOfLading extends core_Plugin
         $form->FLD('wrappingReturnServiceId', 'enum(601=Европалет,605=Нестандартен палет)', 'caption=Заявка за обратен амбалаж->Палет,autohide');
         $form->FLD('wrappingReturnQuantity', 'int(min=0)', 'caption=Заявка за обратен амбалаж->К-во,autohide,inlineTo=wrappingReturnServiceId');
         
+        $form->FLD('returnShipmentWrappingServiceId', 'varchar', 'caption=Заявка за обратна пратка->Услуга,autohide');
+        $form->FLD('returnShipmentParcelCount', 'int(min=0)', 'caption=Заявка за обратна пратка->Брой пакети,autohide');
+        $form->FLD('returnShipmentAmountInsurance', 'double(min=0)', 'caption=Заявка за обратна пратка->Обявена стойност,autohide,unit=BGN');
+        $form->FLD('returnShipmentIsFragile', 'enum(no=Не,yes=Да)', 'caption=Заявка за обратна пратка->Чупливост,autohide,maxRadio=2');
+        
         $Cover = doc_Folders::getCover($documentRec->folderId);
         $isPrivatePerson = ($Cover->haveInterface('crm_PersonAccRegIntf')) ? 'yes' : 'no';
         $form->setDefault('isPrivatePerson', $isPrivatePerson);
@@ -403,6 +408,7 @@ class speedy_plg_BillOfLading extends core_Plugin
             $form->setField('codType', 'input');
             $form->setSuggestions('amountInsurance', array('' => '', "{$amountCod}" => $amountCod));
         }
+        $form->setDefault('returnShipmentIsFragile', 'no');
         
         if(isset($rec->amountInsurance)){
             $form->setField('isFragile', 'input');
@@ -463,10 +469,13 @@ class speedy_plg_BillOfLading extends core_Plugin
             }
             $form->setDefault('service', key($serviceOptions));
             $form->input('service', 'silent');
+            
+            $form->setOptions('returnShipmentWrappingServiceId', array('' => '') + $serviceOptions);
         } else {
             $form->setError('service', 'Няма налична услуга за доставка');
             $form->rec->service = null;
             $form->setReadOnly('service');
+            $form->setReadOnly('returnShipmentWrappingServiceId');
         }
         $form->input('service', 'silent');
         

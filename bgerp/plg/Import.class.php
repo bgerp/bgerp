@@ -211,6 +211,11 @@ class bgerp_plg_Import extends core_Plugin
         $exp->DEF('#firstRow=Първи ред', 'enum(columnNames=Имена на колони,data=Данни)', 'mandatory');
         $exp->DEF('#onExist=При съвпадение', 'enum(skip=Пропускане, update=Обновяване, duplicate=Дублиране)', 'mandatory');
         
+        
+        if ($exp->mvc->expOnExist) {
+            $exp->ASSUME('#onExist', '"' . $exp->mvc->expOnExist . '"');
+        }
+        
         // Проверка дали броя на колоните отговаря навсякъде
         $exp->rule('#csvColumnsCnt', 'count(getCsvColNames(#csvData,#delimiter,#enclosure, 0, 1))');
         $exp->WARNING(tr('Възможен е проблем с формата на CSV данните, защото е открита само една колона'), '#csvColumnsCnt == 1');

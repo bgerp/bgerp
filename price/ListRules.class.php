@@ -714,7 +714,7 @@ class price_ListRules extends core_Detail
                 $vat = isset($rec->vat) ? $rec->vat : $masterRec->vat;
                 $vat = ($vat == 'yes') ? 'с ДДС' : 'без ДДС';
                 
-                $row->rule = tr("|*{$price} {$currency} |{$vat}|*");
+                $row->rule = tr("|*{$price} <span class='cCode'>{$currency}</span> |{$vat}|*");
                 break;
         }
         
