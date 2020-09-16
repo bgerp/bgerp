@@ -324,7 +324,7 @@ class cms_Domains extends core_Embedder
         
         if(($mainHost != $rec->actualDomain) && $_SERVER['REQUEST_METHOD'] === 'GET') {
             $url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-            $newUrl = core_Url::change($url, array(), $host);
+            $newUrl = core_Url::change($url, array(), $newHost);
             
             redirect($newUrl, false, null,'notice', true);
         }
