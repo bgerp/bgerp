@@ -315,7 +315,7 @@ class cms_Domains extends core_Embedder
         $rec->actualDomain = strtolower(trim($_SERVER['SERVER_NAME']));
         
         if(defined('BGERP_ABSOLUTE_HTTP_HOST')) {
-            $mainHost = parse_url(BGERP_ABSOLUTE_HTTP_HOST, PHP_URL_HOST);
+            $mainHost = BGERP_ABSOLUTE_HTTP_HOST;
         } else {
             $mainHost = $rec->actualDomain;
         }
@@ -326,7 +326,7 @@ class cms_Domains extends core_Embedder
             $url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
             $newUrl = core_Url::change($url, array(), $host);
             
-           // redirect($newUrl, false, null,'notice', true);
+            redirect($newUrl, false, null,'notice', true);
         }
         
         Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $rec);
