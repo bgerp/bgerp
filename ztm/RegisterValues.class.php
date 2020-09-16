@@ -131,19 +131,25 @@ class ztm_RegisterValues extends core_Manager
             $rec->scope = $registerRec->scope;
             $rec->name = $registerRec->name;
             
-            // За да връщаме bool, вместо стринг
-            // Може и без него
-//             if ($registerRec->type == 'bool') {
-//                 if (is_string($rec->value)) {
-//                     if ($rec->value == 'false') {
-//                         $rec->value = false;
-//                     } elseif ($rec->value == 'true') {
-//                         $rec->value = true;
-//                     }
-//                 }
-//             }
-            
             $rec->value = ztm_LongValues::getValueByHash($rec->value);
+            
+            if ($registerRec->type == 'bool') {
+                if (is_string($rec->value)) {
+                    if ($rec->value == 'false') {
+                        $rec->value = false;
+                    } elseif ($rec->value == 'true') {
+                        $rec->value = true;
+                    }
+                }
+            }
+            
+            if ($registerRec->type == 'int') {
+                $rec->value = intval($rec->value);
+            }
+            
+            if ($registerRec->type == 'float') {
+                $rec->value = floatval($rec->value);
+            }
         }
         
         return $rec;
@@ -324,21 +330,23 @@ class ztm_RegisterValues extends core_Manager
         // Кое е устройството
         expect($deviceRec = ztm_Devices::getRecForToken($token), $token);
         
-        $this->logDebug('Registers: ' . Request::get('registers'), $deviceRec);
+        ztm_Devices::logDebug('Registers: ' . Request::get('registers'), $deviceRec);
         
         ztm_Devices::updateSyncTime($token);
         
         // Добавяне на дефолтните стойностти към таблицата с регистрите, ако няма за тях
         $now = dt::now();
         $ourRegisters = self::grab($deviceRec);
-        $defaultArr = ztm_Profiles::getDefaultRegisterValues($deviceRec->profileId);
-        foreach ($defaultArr as $dRegKey => $dRegValue) {
-            if (!array_key_exists($dRegKey, $ourRegisters)) {
-                try {
-                    ztm_RegisterValues::set($deviceRec->id, $dRegKey, $dRegValue, $now, false, false);
-                } catch (core_exception_Expect $e) {
-                    $dump = $e->getDump();
-                    $this->logErr("register: {$dRegKey} - {$dump[0]}");
+        if ($deviceRec->profileId) {
+            $defaultArr = ztm_Profiles::getDefaultRegisterValues($deviceRec->profileId);
+            foreach ($defaultArr as $dRegKey => $dRegValue) {
+                if (!array_key_exists($dRegKey, $ourRegisters)) {
+                    try {
+                        ztm_RegisterValues::set($deviceRec->id, $dRegKey, $dRegValue, $now, false, false);
+                    } catch (core_exception_Expect $e) {
+                        $dump = $e->getDump();
+                        $this->logErr("register: {$dRegKey} - {$dump[0]}");
+                    }
                 }
             }
         }
@@ -367,7 +375,7 @@ class ztm_RegisterValues extends core_Manager
         }
         
         if ((array) $result) {
-            $this->logDebug('Results: ' . serialize($result), $deviceRec);
+            ztm_Devices::logDebug('Results: ' . serialize($result), $deviceRec);
         }
         
         // Връщане на резултатния обект

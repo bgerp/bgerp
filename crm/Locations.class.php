@@ -139,6 +139,23 @@ class crm_Locations extends core_Master
     
     
     /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        // Думите за търсене са името на документа-основания
+        $Contragent = new core_ObjectReference($rec->contragentCls, $rec->contragentId);
+        $cData = $Contragent->getContragentData();
+        
+        foreach (array('company', 'vatNo', 'person', 'uicId', 'pTel', 'tel') as $cField){
+            if(!empty($cData->{$cField})) {
+                $res .= ' ' . plg_Search::normalizeText($cData->{$cField});
+            }
+        }
+    }
+    
+    
+    /**
      * Обновява или добавя локация към контрагента
      *
      * @param int         $contragentClassId - Клас на контрагента

@@ -1399,7 +1399,7 @@ class planning_Jobs extends core_Master
         $query = self::getQuery();
         $query->where("#state = 'active' || #state = 'closed' || #state = 'wakeup' || (#state = 'rejected' && (#brState = 'active' || #brState = 'closed'))");
         $query->where("#modifiedOn >= '{$timeline}'");
-        $query->show('activatedBy,activatedOn,state,createdBy,productId');
+        $query->show('activatedBy,activatedOn,modifiedOn,state,createdBy,productId');
         
         while ($rec = $query->fetch()) {
             $activatedBy = isset($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
@@ -1408,9 +1408,11 @@ class planning_Jobs extends core_Master
             }
             $personId = crm_Profiles::fetchField("#userId = {$activatedBy}", 'personId');
             $classId = planning_Jobs::getClassId();
-            $date = dt::verbal2mysql($rec->activatedOn, false);
-            $isRejected = ($rec->state == 'rejected');
             
+            setIfNot($rec->activatedOn, $rec->modifiedOn);
+            $date = dt::verbal2mysql($rec->activatedOn, false);
+            
+            $isRejected = ($rec->state == 'rejected');
             hr_Indicators::addIndicatorToArray($result, $date, $personId, $rec->id, $classId, $iRec->id, 1, $isRejected);
             
             if ($Driver = cat_Products::getDriver($rec->productId)) {

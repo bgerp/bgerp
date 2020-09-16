@@ -234,7 +234,8 @@ class sales_Quotations extends core_Master
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate');
         $this->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
         $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Плащане->ДДС,oldFieldName=vat');
-        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale,silent,removeAndRefreshForm=deliveryData|deliveryPlaceId|deliveryAdress');
+        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale,silent,removeAndRefreshForm=deliveryData|deliveryPlaceId|deliveryAdress|deliveryCalcTransport');
+        $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=none,caption=Доставка->Начисляване,after=deliveryTermId');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Обект,hint=Изберете обект');
         $this->FLD('deliveryAdress', 'varchar', 'caption=Доставка->Място');
         $this->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до');
@@ -302,7 +303,7 @@ class sales_Quotations extends core_Master
         
         if (isset($form->rec->id)) {
             if ($mvc->sales_QuotationsDetails->fetch("#quotationId = {$form->rec->id}")) {
-                foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId', 'deliveryPlaceId', 'deliveryAdress') as $fld) {
+                foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId', 'deliveryPlaceId', 'deliveryAdress', 'deliveryCalcTransport') as $fld) {
                     $form->setReadOnly($fld);
                 }
             }
@@ -334,6 +335,12 @@ class sales_Quotations extends core_Master
         
         $form->input('deliveryTermId');
         if(isset($rec->deliveryTermId)){
+            if(cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)){
+                $calcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
+                $form->setField('deliveryCalcTransport', 'input');
+                $form->setDefault('deliveryCalcTransport', $calcCost);
+            }
+            
             cond_DeliveryTerms::prepareDocumentForm($rec->deliveryTermId, $form, $mvc);
         }
         
@@ -477,7 +484,8 @@ class sales_Quotations extends core_Master
             
             // Избраната валута съответства ли на дефолтната
             $defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
-            if ($defCurrency != $rec->currencyId) {
+            $currencyState = currency_Currencies::fetchField("#code = '{$defCurrency}'", 'state');
+            if ($defCurrency != $rec->currencyId && $currencyState != 'active') {
                 $form->setWarning('currencyId', "Избрана e различна валута от очакваната|* <b>{$defCurrency}</b>");
             }
             

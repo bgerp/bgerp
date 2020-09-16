@@ -7,3 +7,12 @@
 .wide .eshop-product-list-holder .eshop-product-list {
     margin-top: 0;
 }
+
+.productsHolder {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    display: grid;
+    grid-gap: 1rem;
+}
+.smallThumbs.productsHolder {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}

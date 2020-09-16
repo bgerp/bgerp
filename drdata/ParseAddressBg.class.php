@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Парсиране на български пощенски адреси
  *
@@ -104,7 +105,7 @@ class drdata_ParseAddressBg extends core_Manager
     /**
      * Тестова функция
      */
- public function act_Test()
+    public function act_Test()
     {
         requireRole('debug');
         $data = file_get_contents('C:/test/Addresses.txt');
@@ -116,13 +117,13 @@ class drdata_ParseAddressBg extends core_Manager
                 continue;
             }
             
-            $nAddress = self::parse($address, $dict);
+            $nAddress = self::parse($address);
             
             $res[$address] = $nAddress;
         }
         
         bp($res);
-    }  
+    }
     
     
     /**
@@ -199,10 +200,12 @@ class drdata_ParseAddressBg extends core_Manager
     public static function eatPart($p, array &$parts, $dict)
     {
         $p = trim($p);
+        
+        
         $org = $p;
         
         // Опитваме се да извлечем познати части на адреса
-        if (preg_match("/^(гр\.|c\.|ул\.|бул\.|пл.|ж\.к\.|бл\.|вх\.|ет\.|ап\.|обл\.|общ\.|кв.|офис|хотел|сграда|местност|р-н|в.с.|к.м.|лет.|с.ман.|т.ц.|ПК|п.код) ?(.+$)/u", $p, $matches)) {
+        if (preg_match("/^(гр\.|с\.|ул\.|бул\.|пл.|ж\.к\.|бл\.|вх\.|ет\.|ап\.|обл\.|общ\.|кв.|офис|хотел|сграда|местност|р-н|в.с.|к.м.|лет.|с.ман.|т.ц.|ПК|п.код) ?(.+$)/u", $p, $matches)) {
             $parts[$p1 = $matches[1]] = trim(substr($p, strlen($matches[1])));
             
             // Нормализиране на уличен адрес
@@ -211,9 +214,9 @@ class drdata_ParseAddressBg extends core_Manager
                     $parts[$p1] = $matches[1] . ' ' . $matches[2];
                 }
             }
-
+            
             if ($p1 == 'ул.' || $p1 == 'бул.' || $p1 == 'пл.' || $p1 == 'ж.к.') {
-                $parts[$p1] = trim(str_replace(array('"', '-', '  ', '  '), array(' ', ' ', ' ', ' '), $parts[$p1]));
+                $parts[$p1] = trim(str_replace(array('"', '  ', '  '), array(' ',  ' ', ' '), $parts[$p1]));
             }
             
             if ($p1 == 'гр.' || $p1 == 'с.') {
@@ -228,13 +231,13 @@ class drdata_ParseAddressBg extends core_Manager
             $p = '';
         
         // Ако започва със С. и след това има село, то изяждаме селото
-        } elseif (!isset($parts['c.']) && !isset($parts['гр.']) && substr($p, 0, 2) == 'C.') {
+        } elseif (!isset($parts['с.']) && !isset($parts['гр.']) && substr($p, 0, 2) == 'С.') {
             $p1 = substr($p, 2);
             if ($b = self::getBestMatch($p1, $dict)) {
-                if ($b[2] == 'c.') {
-                    $match = 'C. ' . $b[1];
+                if ($b[2] == 'с.') {
+                    $match = 'С. ' . $b[1];
                     $p = trim(substr($p, strlen($b[1]) + 3));
-                    $parts['c.'] = $b[3];
+                    $parts['с.'] = $b[3];
                 }
             }
             
@@ -283,23 +286,30 @@ class drdata_ParseAddressBg extends core_Manager
     public static function parse($str)
     {
         static $dict;
-        // $str = 'София, ж.к. "Младост"2 бл.521 вх.2 ет. 4';
-
+        
         if (!$dict) {
-            $dict = core_Cache::get('ParseAddress', 'Dictionary1');
+            $dict = core_Cache::get('ParseAddress', 'Dictionary');
             if (!$dict) {
                 $dict = self::prepareDict();
-                core_Cache::set('ParseAddress', 'Dictionary1', $dict, isDebug() ? 100 : 10000);
+                core_Cache::set('ParseAddress', 'Dictionary', $dict, isDebug() ? 100 : 10000);
             }
         }
         
         // Форматиране на препинателни знаци
-        $str = ' ' . trim(str_replace(array('№', '”', '„', '.', ',', ';', ':', '  ', '  ', ', ,'), array(' №', '"', '"', '. ', ', ', '; ', ': ', ' ', ' ', ', '), $str)) . ' ';
+        $str = ' ' . trim(str_replace(array('№', '”', '„', '“', '.', ',', ';', ':', '  ', '  ', ', ,'), array(' №', '"', '"', '"', '. ', ', ', '; ', ': ', ' ', ' ', ', '), $str)) . ' ';
         
         // Грешно изписани начала на думи с латински букви
-        $str = preg_replace_callback('/([^a-zа-я][aeotkm][а-я]{1,30}[^a-zа-я])/iu', function ($a) {
+        $str = preg_replace_callback('/([^a-zа-я][AaBCcEeHKMOoPpXxYyT][\. ]{0,2}[а-я])/iu', function ($a) {
+            $r = str_ireplace(
+                
+                array('A', 'a', 'B', 'C', 'c', 'E', 'e', 'H', 'K', 'M', 'O', 'o', 'P', 'p', 'X', 'x', 'Y', 'y', 'T'),
+                array('А', 'а', 'В', 'С', 'с', 'Е', 'е', 'Н', 'К', 'М', 'О', 'о', 'Р', 'р', 'Х', 'х', 'У', 'у', 'Т'),
+                
+                $a[1]
             
-            return  str_ireplace(array('a', 'e', 'o', 't', 'k', 'm'), array('А', 'Е', 'О', 'Т', 'К', 'М'), $a[1]);
+            );
+            
+            return $r;
         }, $str);
         
         // Грешна употреба на З вместо 3
@@ -324,7 +334,7 @@ class drdata_ParseAddressBg extends core_Manager
         $str = preg_replace("/[^a-zа-я](ул|улица|ul|ulitsa|u-tsa|у-ца) ?\.? /iu", ', ул.', $str);
         $str = preg_replace("/[^a-zа-я](бул|булевард|bul) ?\.? /iu", ', бул.', $str);
         $str = preg_replace("/[^a-zа-я](гр|gr|\, град|^ град|\, grad|^ grad) ?\.? /iu", ', гр.', $str);
-        $str = preg_replace("/^ ?(c\.?|С\.|s.) /iu", ', c.', $str);
+        $str = preg_replace("/^ ?(c\.?|С\.|s.) /iu", ', с.', $str);
         $str = preg_replace("/[^a-zа-я](кв|к-л|kv) ?\.? /iu", ', кв.', $str);
         $str = preg_replace("/[^a-zа-я](общ|община|об|ob|obsht|obshtina) ?\.? /iu", ', общ.', $str);
         $str = preg_replace("/[^a-zа-я](бл|bl) ?\.? /iu", ', бл.', $str);
@@ -353,7 +363,7 @@ class drdata_ParseAddressBg extends core_Manager
         }, $str);
         
         // Думи, които трябва да са с малки букви
-        $str = preg_replace_callback("/([^a-zа-я])(инж\.?|проф\.?|пор\.?|акад\.?|ген\.?|д-р\.?|м-р\.?|в\/у|и)( )/iu", function ($a) {
+        $str = preg_replace_callback("/([^a-zа-я])(инж|проф|пор|акад|арх|ген|д-р|к-с|м-р|в\/у|и)([ \.])/iu", function ($a) {
             
             return  $a[1] . mb_strtolower($a[2]) . $a[3];
         }, $str);
@@ -391,19 +401,19 @@ class drdata_ParseAddressBg extends core_Manager
         
         $all = $place = $addr = '';
         
-        if($parts['гр.'] == $parts['обл.']) {
+        if ($parts['гр.'] == $parts['обл.']) {
             unset($parts['обл.']);
         }
-
-        if($parts['гр.'] == $parts['общ.']) {
+        
+        if ($parts['гр.'] == $parts['общ.']) {
             unset($parts['общ.']);
         }
-
-        if(isset($parts['гр.']) && isset($parts['c.']) && !isset($parts['общ.'])) {
+        
+        if (isset($parts['гр.'], $parts['с.']) && !isset($parts['общ.'])) {
             $parts['общ.'] = $parts['гр.'];
             unset($parts['гр.']);
         }
-
+        
         foreach ($parts as $k => &$v) {
             $v = trim($v, ' ,.-');
             if (is_numeric($k)) {
@@ -414,18 +424,17 @@ class drdata_ParseAddressBg extends core_Manager
             }
             
             $all .= $p;
-            if ($k === 'c.' || $k === 'гр.' || $k === 'общ.' || $k === 'обл.') {
+            if ($k === 'с.' || $k === 'гр.' || $k === 'общ.' || $k === 'обл.') {
                 $place .= $p;
             } elseif ($k !== 'п.код') {
                 $addr .= $p;
             }
         }
         
-
         $parts['place'] = trim($place, ', ');
         $parts['addr'] = trim($addr, ', ');
         $parts['all'] = trim($all, ', ');
-                
+        
         return $parts;
     }
 }

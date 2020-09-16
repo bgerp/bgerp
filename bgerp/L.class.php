@@ -229,7 +229,7 @@ class bgerp_L extends core_Manager
             // на тези по същество вътрешни, но достъпни без парола страници.
             $html->append("\n" . '<meta name="robots" content="noindex, nofollow">', 'HEAD');
 
-            $html->append("<div class='docToolbar'>");
+            $html->append("<div class='docToolbar noMediaPrint'>");
             // Ако има потребител с такъв имейл и не е логнат, показваме линк за логване
             if (($options['to'] || $options['cc']) && !haveRole('user')) {
                 $emailsStr = $options['to'];

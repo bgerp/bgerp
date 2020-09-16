@@ -656,6 +656,8 @@ class pos_Terminal extends peripheral_Terminal
         expect($rec = pos_Receipts::fetch($id));
         expect($operation = Request::get('operation', "enum(" . self::$operationsArr . ")"));
         $refreshPanel = Request::get('refreshPanel', 'varchar');
+        $keyupTriggered = Request::get('keyupTriggered', 'varchar');
+        
         $selectedProductGroupId = Request::get('selectedProductGroupId', 'varchar');
         $selectedReceiptFilter = Request::get('selectedReceiptFilter', 'varchar');
         
@@ -670,13 +672,20 @@ class pos_Terminal extends peripheral_Terminal
             $selectedRecId = pos_ReceiptDetails::getLastRec($id)->id;
         }
        
+        $oldSearchString = Mode::get("currentSearchString{$id}");
         $string = Request::get('search', 'varchar');
+        
         Mode::setPermanent("currentOperation{$id}", $operation);
         Mode::setPermanent("currentSearchString{$id}", $string);
         Mode::setPermanent("currentSelectedGroup{$id}", $selectedProductGroupId);
         Mode::setPermanent("currentSelectedReceiptFilter{$id}", $selectedReceiptFilter);
         
-        return static::returnAjaxResponse($rec->id, $selectedRecId, true, false, $refreshPanel, true, null);
+        $refreshResults = true;
+        if($keyupTriggered == 'yes' && $oldSearchString == $string){
+            $refreshResults = false;
+        }
+        
+        return static::returnAjaxResponse($rec->id, $selectedRecId, true, false, $refreshPanel, $refreshResults, null);
     }
     
     
@@ -1219,7 +1228,7 @@ class pos_Terminal extends peripheral_Terminal
             }
             
             $removeImg = ht::createImg(array('path' => 'pos/img/stop.png'));
-            $removeBtnBody = new core_ET(tr("|*[#IMG#]|Премахване|*"));
+            $removeBtnBody = new core_ET(tr("|*[#IMG#]|Отмяна|*"));
             $removeBtnBody->replace($removeImg, 'IMG');
             $divAttr['class'] .= " imgDiv";
             $holderDiv = ht::createElement('div', $divAttr, $removeBtnBody, true);

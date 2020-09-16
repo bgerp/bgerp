@@ -57,14 +57,14 @@ function initElements() {
 	if($('body').hasClass('narrow')){
 		if(viewportWidth <= 800) {
 			setViewportWidth(viewportWidth);
-	        $(window).resize( function() {
-	            viewportWidth = $(window).width();
+			$(window).smartresize(function(){
+				viewportWidth = $(window).width();
 	            setViewportWidth(viewportWidth);
 	        });
 		}
 	} else {
-		$(window).resize( function() {
-            setMaxWidth(viewportWidth);
+		$(window).smartresize(function(){
+			setMaxWidth(viewportWidth);
         });
 	}
 	// за всяко кликане на линк, ще променяме бисквитката

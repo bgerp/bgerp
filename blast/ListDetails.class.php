@@ -365,8 +365,17 @@ class blast_ListDetails extends doc_Detail
         
         $listFields = blast_ListDetails::getFncFieldsArr($allFields->allFields);
         
+        $data = array();
+        
         while ($fRec = $query->fetch()) {
-            $data[] = (object) unserialize($fRec->data);
+            $dObj = (object) unserialize($fRec->data);
+            
+            if (blast_BlockedEmails::isBlocked($dObj->email)) {
+                
+                continue;
+            }
+            
+            $data[] = $dObj;
         }
         
         $csv = csv_Lib::createCsv($data, $fieldSet, $listFields);
@@ -531,13 +540,15 @@ class blast_ListDetails extends doc_Detail
         
         $exp->functions['getcsvcolnames'] = 'blast_ListDetails::getCsvColNames';
         $exp->functions['getcountriesfromgroup'] = 'blast_ListDetails::getCountriesFromGroup';
+        $exp->functions['getdocumenttypes'] = 'blast_ListDetails::getDocumentTypes';
+        $exp->functions['getdocumenttypesassume'] = 'blast_ListDetails::getDocumentTypesAssume';
         $exp->functions['getfilecontentcsv'] = 'blast_ListDetails::getFileContent';
         $exp->functions['getcsvcolumnscnt'] = 'blast_ListDetails::getCsvColumnsCnt';
         $exp->functions['importcsvfromcontacts'] = 'blast_ListDetails::importCsvFromContacts';
         $exp->functions['importcsvfromdocuments'] = 'blast_ListDetails::importCsvFromDocuments';
         $exp->functions['importcsvfromlists'] = 'blast_Lists::importCsvFromLists';
         $exp->functions['csvanalize'] = 'blast_ListDetails::csvAnalize';
-
+        
         $exp->DEF('#listId', 'int', 'fromRequest');
         
         $exp->DEF('#source=Източник', 'enum(csv=Copy&Paste на CSV данни, 
@@ -567,7 +578,9 @@ class blast_ListDetails extends doc_Detail
         $exp->SUGGESTIONS('#countriesExclude', 'getCountriesFromGroup(#companiesGroup)');
         $exp->SUGGESTIONS('#countriesExclude', 'getCountriesFromGroup(#personsGroup, "crm_Persons")');
         
-        $exp->DEF('#documentType=Вид', 'enum(,sales=Продажби, quotations=Оферти, inquiries=Запитвания)', 'placeholder=Всички, notNull');
+        $exp->DEF('#documentType=Вид', 'keylist(mvc=core_Classes, select=title)', 'placeholder=Всички, notNull');
+        $exp->SUGGESTIONS('#documentType', 'getDocumentTypes()');
+        $exp->ASSUME('#documentType', 'getDocumentTypesAssume()');
         $exp->DEF('#catGroups=Продуктови групи', 'keylist(mvc=cat_Groups,select=name, allowEmpty)', 'placeholder=Всички, notNull');
         $exp->DEF('#contragentType=Вид контрагент', 'enum(,crm_Companies=Фирми,crm_Persons=Лица)', 'placeholder=Всички, notNull');
         $exp->DEF('#docFrom=Период->От', 'date', 'notNull');
@@ -578,6 +591,7 @@ class blast_ListDetails extends doc_Detail
         $exp->question('#documentType,#catGroups,#countriesInclude,#countriesExclude,#contragentType,#docFrom,#docTo', tr('Избор на вид документ') . ':', "#source == 'document'", 'title=' . tr('Избор на вид документ'));
         
         $exp->rule('#delimiter', "','", "#source == 'groupPersons' || #source == 'groupCompanies' || #source == 'document' || #source == 'blastList'");
+        $exp->rule('#delimiterAsk', '#delimiter');
         $exp->rule('#enclosure', "'\"'", "#source == 'groupPersons' || #source == 'groupCompanies' || #source == 'document' || #source == 'blastList'");
         $exp->rule('#firstRow', "'columnNames'", "#source == 'groupPersons' || #source == 'groupCompanies' || #source == 'document' || #source == 'blastList'");
         
@@ -599,20 +613,20 @@ class blast_ListDetails extends doc_Detail
         $exp->ERROR(tr('В CSV-източника са открити по-малко колони от колкото са необходими за този списък'), '(#csvColumnsCnt-1) < #listColumns');
         $exp->ERROR(tr('Има проблем с формата на CSV данните') . '. <br>' . tr('Моля проверете дали правилно сте въвели данните и разделителя'), '#csvColumnsCnt < 2');
         
-        $exp->rule('#csvAnalize', 'csvanalize(#csvData)', "is_string(#csvData)");
+        $exp->rule('#csvAnalize', 'csvanalize(#csvData)', 'is_string(#csvData)');
         $exp->DEF('#delimiter=Разделител', 'varchar(,size=1)');
         $exp->DEF('#delimiterAsk=Разделител', 'varchar(,size=5)', 'mandatory');
         $exp->SUGGESTIONS('#delimiterAsk', array('' => '', ',' => ',', ';' => ';', ':' => ':', '|' => '|', '[tab]' => '[tab]'));
         $exp->ASSUME('#delimiterAsk', '#csvAnalize[1] == "' . "\t" . '" ? "[tab]" : #csvAnalize[1]');
         $exp->rule('#delimiter', "#delimiterAsk == '[tab]' ? '" . "\t" . "' : #delimiterAsk");
-
+        
         $exp->DEF('#enclosure=Ограждане', 'varchar(1,size=1)', array('value' => '"'), 'mandatory');
         $exp->SUGGESTIONS('#enclosure', array('"' => '"', '\'' => '\''));
         $exp->ASSUME('#enclosure', '#csvAnalize[2]');
-
+        
         $exp->DEF('#firstRow=Първи ред', 'enum(columnNames=Имена на колони,data=Данни)', 'mandatory');
         $exp->ASSUME('#firstRow', '#csvAnalize[3]');
-
+        
         $exp->question('#delimiterAsk,#enclosure,#firstRow', tr('Посочете формата на CSV данните') . ':', '#csvData', 'title=' . tr('Уточняване на разделителя и ограждането'));
         
         setIfNot($listId, Request::get('listId', 'int'), $exp->getValue('listId'));
@@ -624,7 +638,7 @@ class blast_ListDetails extends doc_Detail
         
         $listRec = blast_Lists::fetch($listId);
         $fieldsArr = $this->getFncFieldsArr($listRec->allFields);
-   
+        
         foreach ($fieldsArr as $name => $caption) {
             $exp->DEF("#col{$name}={$caption}", 'int', 'mandatory');
             $exp->OPTIONS("#col{$name}", 'getCsvColNames(#csvData,#delimiter,#enclosure, NULL, FALSE)');
@@ -636,13 +650,13 @@ class blast_ListDetails extends doc_Detail
             
             $qFields .= ($qFields ? ',' : '') . "#col{$name}";
         }
-
+        
         $exp->rule('#listColumns', count($fieldsArr));
-
+        
         
         $exp->DEF('#priority=Приоритет', 'enum(data=Съществуващите данни да се запазят,update=Новите данни да обновят съществуващите)', 'mandatory');
-        $exp->rule('#priority', '"data"', $listRec->contactsCnt ? "0" : "1");
-
+        $exp->rule('#priority', '"data"', $listRec->contactsCnt ? '0' : '1');
+        
         $exp->question('#priority', tr('Какъв да бъде приоритета в случай, че има нов контакт с дублирано съдържание на полето') . " <span class=\"green\">'" . $fieldsArr[$listRec->keyField] . "'</span> ?", true, 'title=' . tr('Приоритет на данните'));
         
         $exp->question($qFields, tr('Въведете съответстващите полета') . ':', true, 'title=' . tr('Съответствие между полетата на източника и списъка'));
@@ -760,15 +774,14 @@ class blast_ListDetails extends doc_Detail
         
         return $res;
     }
-
-
+    
+    
     /**
      * Анализ на csv данни за откриване на разделител, оградител и първи ред
      */
     public static function csvAnalize($data)
     {
         return csv_Lib::analyze($data);
-
     }
     
     
@@ -849,8 +862,8 @@ class blast_ListDetails extends doc_Detail
         
         return $csv;
     }
-
-
+    
+    
     /**
      * Извежда списък с всички под-нива на дадената група, включително и нея
      */
@@ -861,12 +874,12 @@ class blast_ListDetails extends doc_Detail
         $res[$groupId] = $groupId;
         $flag = true;
         $gRecs = $gQuery->fetchAll();
-        while($flag) {
+        while ($flag) {
             $flag = false;
-           
-            foreach($gRecs as $r) {
-                if(isset($res[$r->parentId])) {
-                    if(!isset($res[$r->id])) {
+            
+            foreach ($gRecs as $r) {
+                if (isset($res[$r->parentId])) {
+                    if (!isset($res[$r->id])) {
                         $res[$r->id] = $r->id;
                         $flag = true;
                     }
@@ -874,8 +887,46 @@ class blast_ListDetails extends doc_Detail
             }
         }
         $res = keylist::fromArray($res);
-
+        
         return $res;
+    }
+    
+    
+    /**
+     * Връща масив с документите, за вид при импорт
+     * 
+     * @return array
+     */
+    public static function getDocumentTypes()
+    {
+        $resArr = array();
+        
+        foreach (array('sales_Sales', 'sales_Quotations', 'marketing_Inquiries2', 'purchase_Purchases') as $cName) {
+            $inst = cls::get($cName);
+            $cId = $inst->getClassId();
+            $resArr[$cId] = tr($inst->singleTitle);
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща документите по подразбиране за импорт
+     * 
+     * @return string
+     */
+    public static function getDocumentTypesAssume()
+    {
+        $resArr = array();
+        
+        foreach (array('sales_Sales', 'sales_Quotations', 'marketing_Inquiries2') as $cName) {
+            $inst = cls::get($cName);
+            $cId = $inst->getClassId();
+            $resArr[$cId] = $cId;
+        }
+        
+        return type_Keylist::fromArray($resArr);
     }
     
     
@@ -897,10 +948,10 @@ class blast_ListDetails extends doc_Detail
             
             return $resArr[$hash];
         }
-         
+        
         $cQuery = $class::getQuery();
         $groupId = self::expandTree($groupId);
-
+        
         $cQuery->likeKeylist('groupList', $groupId);
         
         $cQuery->groupBy('country');
@@ -989,8 +1040,8 @@ class blast_ListDetails extends doc_Detail
                     
                     return $id + 1;
                 }
- 
-                if (type_Email::isValidEmail($valC) &&  $nameC == 'email') {
+                
+                if (type_Email::isValidEmail($valC) && $nameC == 'email') {
                     
                     return $id + 1;
                 }
@@ -1028,10 +1079,9 @@ class blast_ListDetails extends doc_Detail
         
         // Ако е празна стойност, тогава се връщат всички
         $documentTypeArr = arr::make($documentType);
-        if (empty($documentType)) {
-            $documentTypeArr[] = 'sales';
-            $documentTypeArr[] = 'quotations';
-            $documentTypeArr[] = 'inquiries';
+        
+        if (empty($documentTypeArr)) {
+            $documentTypeArr = array_keys(self::getDocumentTypes());
         }
         
         $csvArr = array();
@@ -1042,12 +1092,18 @@ class blast_ListDetails extends doc_Detail
         $allEmailArr = array();
         
         foreach ($documentTypeArr as $docType) {
+            $docType = cls::get($docType)->className;
             $getFromNextEmail = false;
-            if ($docType == 'sales' || $docType == 'quotations') {
+            
+            if ($docType == 'sales_Sales' || $docType == 'sales_Quotations' || $docType == 'purchase_Purchases') {
                 $getFromNextEmail = true;
                 
-                $docDetails = ($docType == 'sales') ? 'sales_SalesDetails' : 'sales_QuotationsDetails';
-                $masterClass = ($docType == 'sales') ? 'sales_Sales' : 'sales_Quotations';
+                $masterClass = $docType;
+                if ($docType == 'purchase_Purchases') {
+                    $docDetails = 'purchase_PurchasesDetails';
+                } else {
+                    $docDetails = ($docType == 'sales_Sales') ? 'sales_SalesDetails' : 'sales_QuotationsDetails';
+                }
             }
             
             // Ако данните ще се определят от следващия изпратен имейл или папката
@@ -1078,7 +1134,7 @@ class blast_ListDetails extends doc_Detail
                 
                 // Филтрираме по държави
                 if ($countriesInclude || $countriesExlude) {
-                    if ($docType == 'quotations') {
+                    if ($docType == 'sales_Quotations') {
                         $query->EXT('contragentCountryId', $masterClass, "externalName=contragentCountryId,externalKey={$docDetailsInst->masterKey}");
                         
                         if ($countriesInclude) {
@@ -1104,7 +1160,7 @@ class blast_ListDetails extends doc_Detail
                         $query->where(array("#masterCreatedOn <= '[#1#]'", $docTo . ' 23:59:59'));
                     }
                 }
-                if ($docType == 'quotations') {
+                if ($docType == 'sales_Quotations') {
                     $query->EXT('email', $masterClass, "externalName=email,externalKey={$docDetailsInst->masterKey}");
                 }
                 
@@ -1115,7 +1171,7 @@ class blast_ListDetails extends doc_Detail
                     $name = '';
                     
                     // Ако е продажба, филтрирам по държава, ако е зададено, защото не е направено със заявката
-                    if (($docType == 'sales') && (($countriesInclude || $countriesExlude))) {
+                    if (($docType == 'sales_Sales') && (($countriesInclude || $countriesExlude))) {
                         $contragentCountry = cls::get($rec->contragentClassId)->fetchField($rec->contragentId, 'country');
                         
                         if ($countriesInclude) {
@@ -1257,7 +1313,7 @@ class blast_ListDetails extends doc_Detail
                 if ($groupIds) {
                     $groupIdsArr = type_Keylist::toArray($groupIds);
                     if (!empty($groupIdsArr)) {
-                        $catGroupsWhere = "";
+                        $catGroupsWhere = '';
                         foreach ($groupIdsArr as $gId) {
                             $catGroupsWhere .= ($catGroupsWhere ? ' OR ' : '') . "LOCATE('|{$gId}|', #groups)";
                         }
@@ -1276,7 +1332,9 @@ class blast_ListDetails extends doc_Detail
                     
                     // Гледаме дали е в някоя група от зададените
                     if ($catGroupsWhere) {
-                        if (!cat_Products::fetch("(#originId = '{$rec->containerId}') AND ({$catGroupsWhere})")) continue;
+                        if (!cat_Products::fetch("(#originId = '{$rec->containerId}') AND ({$catGroupsWhere})")) {
+                            continue;
+                        }
                     }
                     
                     $allEmailArr[$email] = $email;
@@ -1324,7 +1382,7 @@ class blast_ListDetails extends doc_Detail
         $groupId = self::expandTree($groupId);
         $cQuery->where("#state != 'rejected'");
         $cQuery->likeKeylist('groupList', $groupId);
-
+        
         if ($inChargeUsers) {
             $cQuery->in('inCharge', $inChargeUsers);
         }

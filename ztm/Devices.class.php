@@ -306,4 +306,40 @@ class ztm_Devices extends core_Master
     {
         $data->query->orderBy('createdOn', 'DESC');
     }
+    
+    
+    /**
+     * 
+     * @param ztm_Devices $mvc
+     * @param stdClass $rec
+     * @param string $newState
+     */
+    protected static function on_AfterChangeState(core_Mvc $mvc, &$rec, &$newState)
+    {
+        if ($newState == 'active') {
+            $saveArr = array();
+            if (!$rec->name) {
+                unset($rec->name);
+                $rec->name = $mvc->getRecTitle($rec);
+                $saveArr['name'] = 'name';
+            }
+            
+            if (!$rec->profileId) {
+                $pQuery = ztm_Profiles::getQuery();
+                $pQuery->where("#state = 'active'");
+                $pQuery->limit(1);
+                $pQuery->orderBy('createdOn', 'DESC');
+                $pQuery->show('id');
+                $pRec = $pQuery->fetch();
+                    
+                $rec->profileId = $pRec->id;
+                
+                $saveArr['profileId'] = 'profileId';
+            }
+            
+            if (!empty($saveArr)) {
+                $mvc->save($rec, implode(', ', $saveArr));
+            }
+        }
+    }
 }

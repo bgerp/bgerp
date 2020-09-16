@@ -43,4 +43,18 @@ class email_DocumentIntf extends doc_DocumentIntf
     {
         return $this->class->getDefaultEmailSubject($id, $forward = false);
     }
+    
+    
+    /**
+     * Какъв е дефолтния имейл за изпращане
+     *
+     * @param int  $id      - ид на документа
+     * @param bool $forward
+     *
+     * @return string
+     */
+    public function getDefaultEmailTo($id, $forward = false)
+    {
+        return $this->class->getDefaultEmailTo($id, $forward = false);
+    }
 }

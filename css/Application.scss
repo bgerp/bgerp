@@ -1,3 +1,4 @@
+
 /*общи функции и параметри*/
 $blue: #048;
 $dark-blue: #036;
@@ -4379,7 +4380,84 @@ table .eshop-btn {
 	margin:5px 0;
 	font-size:0.7em;
 }
+.productsHolder {
+	padding: 5px;
+}
+.productBox {
+	text-align: center;
+	display: block;
+	padding: 10px;
+	box-sizing: border-box;
+	box-shadow: 0 1px 5px -1px rgba(0,0,0,.3);
+	-webkit-transform: scale(1);
+	transform: scale(1);
+	-webkit-transition: all .3s ease-in-out;
+	transition: all .3s ease-in-out;
+	&:hover {
+		-webkit-transform: scale(1.15);
+		transform: scale(1.15);
+	}
+	.productImage {
+		width: 100%;
+		height: 180px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		margin-bottom: 10px;
 
+		img {
+			max-width: 180px;
+			height: auto;
+
+		}
+
+	}
+	.productName {
+		background: linear-gradient( to bottom, #334 0%, #334 100% );
+		background-position: 0 100%;
+		background-repeat: repeat-x;
+		background-size: 2px 2px;
+		color: #000;
+		text-decoration: none;
+		-webkit-transition: all .2s;
+		transition: all .2s;
+		padding: 0 2px;
+		&:hover {
+			background-size: 4px 50px;
+			color: #fff !important;
+		}
+	}
+}
+.smallThumbs {
+	.productImage {
+		height: 120px;
+		img {
+			max-width: 110px;
+		}
+	}
+	.productName {
+		font-size: 0.9em !important;
+	}
+}
+.narrow .results ul {
+	padding-left: 0;
+}
+
+.searchResult {
+	width: 100%;
+	td{
+		vertical-align: middle;
+		padding:5px;
+	}
+	.searchImg {
+		width: 70px;
+		text-align: center;
+	}
+}
+
+.narrow .searchResult td{
+	padding: 0 2px 2px;
+}
 .narrow .articles-navigation {
 	background-color: #ccc;
 	padding: 5px;
@@ -4402,7 +4480,7 @@ table .eshop-btn {
 }
 .cms-row h1 {
     margin-top: 0;
-    margin-left: -2px;
+    margin-left: 0px;
 }
 
 .richtext h1, .richtext h2, .richtext h3 {
@@ -5823,7 +5901,9 @@ div.location.public {
 .eshop-product .richtext ul{
 	margin-bottom: 10px;
 }
-
+.eshop-product .productBtn {
+	font-weight: bold;
+}
 .eshop-product-labels .info {
     @include border-radius(3px);
 	padding: 4px;
@@ -5843,7 +5923,9 @@ div.location.public {
 	background-color:#e6e6e6;
     @include border-radius(3px);
 }
-
+.narrow .inqRow {
+	margin-top: 10px;
+}
 .wide .eshop-product-images {
 	width:30%;
 	height:100%;

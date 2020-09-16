@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -25,7 +25,7 @@ class price_Updates extends core_Manager
     /**
      * Единично заглавие
      */
-    public $singleTitle = 'Обновяване на себестойностите';
+    public $singleTitle = 'Правило за обновяване на себестойностите';
     
     
     /**

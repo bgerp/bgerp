@@ -215,7 +215,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('contragentId', 'int', 'input=hidden');
         
         // Доставка
-        $mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,notChangeableByContractor,removeAndRefreshForm=deliveryLocationId|deliveryAdress|deliveryData,silent');
+        $mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,notChangeableByContractor,removeAndRefreshForm=deliveryLocationId|deliveryAdress|deliveryData|deliveryCalcTransport,silent');
         $mvc->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Доставка->До,silent,class=contactData'); // обект, където да бъде доставено (allowEmpty)
         $mvc->FLD('deliveryAdress', 'varchar', 'caption=Доставка->Място,notChangeableByContractor');
         $mvc->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до,notChangeableByContractor'); // до кога трябва да бъде доставено
@@ -411,7 +411,8 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Избраната валута съответства ли на дефолтната
         $defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
-        if ($defCurrency != $rec->currencyId) {
+        $currencyState = currency_Currencies::fetchField("#code = '{$defCurrency}'", 'state');
+        if ($defCurrency != $rec->currencyId && $currencyState == 'active') {
             $form->setWarning('currencyId', "Избрана e различна валута от очакваната|* <b>{$defCurrency}</b>");
         }
         
@@ -830,7 +831,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId, false);
             $result = (object) array(
                 'num' => $objectId . ' ' . mb_strtolower($self->abbr),
-                'title' => $self::getRecTitle($objectId),
+                'title' => $self::getRecTitle($objectId, false),
                 'features' => array('Контрагент' => $contragentName)
             );
             

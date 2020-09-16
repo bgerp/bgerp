@@ -80,18 +80,20 @@ class core_Os
     /**
      * @todo Чака за документация...
      */
-    public function getTempFile($uniqId)
+    public static function getTempFile($uniqId, $ext = 'out')
     {
-        return EF_TEMP_PATH . '\\' . $uniqId . '.out';
+        
+        return EF_TEMP_PATH . '/' . $uniqId . ".{$ext}";
     }
     
     
     /**
      * @todo Чака за документация...
      */
-    public function getErrorFile($uniqId)
+    public static function getErrorFile($uniqId)
     {
-        return EF_TEMP_PATH . '\\' . $uniqId . '.err';
+        
+        return self::getTempFile($uniqId, 'err');
     }
     
     
