@@ -315,7 +315,7 @@ class cms_Domains extends core_Embedder
         $rec->actualDomain = strtolower(trim($_SERVER['SERVER_NAME']));
         
         if(defined('BGERP_ABSOLUTE_HTTP_HOST')) {
-            $mainHost = parse_url(BGERP_ABSOLUTE_HTTP_HOST, PHP_URL_HOST);
+            $mainHost = BGERP_ABSOLUTE_HTTP_HOST;
         } else {
             $mainHost = $rec->actualDomain;
         }
