@@ -11,7 +11,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -139,12 +139,6 @@ class store_ConsignmentProtocols extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'valior,folderId,note';
-    
-    
-    /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    public $rowToolsSingleField = 'title';
     
     
     /**
@@ -580,5 +574,38 @@ class store_ConsignmentProtocols extends core_Master
         $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->storeId, $rec->state);
         
         return $warning;
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = true)
+    {
+        $mvc = cls::get(get_called_class());
+        
+        $rec = static::fetchRec($rec);
+        $abbr = $mvc->abbr;
+        $abbr{0} = strtoupper($abbr{0});
+        
+        if (isset($rec->contragentClassId, $rec->contragentId)) {
+            $Crm = cls::get($rec->contragentClassId);
+            $cRec = $Crm->getContragentData($rec->contragentId);
+            $contragent = str::limitLen($cRec->person ? $cRec->person : $cRec->company, 16);
+        } else {
+            $contragent = tr('Проблем при показването');
+        }
+        
+        if ($escaped) {
+            $contragent = type_Varchar::escape($contragent);
+        }
+        
+        $title = "{$abbr}{$rec->id}";
+        if(!empty($rec->valior)){
+            $title .= "/" . dt::mysql2verbal($rec->valior, 'd.m.Y');
+        }
+        $title .= "/{$contragent}";
+        
+        return $title;
     }
 }

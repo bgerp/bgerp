@@ -315,16 +315,16 @@ class cms_Domains extends core_Embedder
         $rec->actualDomain = strtolower(trim($_SERVER['SERVER_NAME']));
         
         if(defined('BGERP_ABSOLUTE_HTTP_HOST')) {
-            $mainHost = parse_url(BGERP_ABSOLUTE_HTTP_HOST, PHP_URL_HOST);
+            $mainHost = BGERP_ABSOLUTE_HTTP_HOST;
         } else {
             $mainHost = $rec->actualDomain;
         }
         
         $newHost = ($rec->domain == 'localhost') ? $mainHost : $rec->domain;
         
-        if(($mainHost != $rec->actualDomain) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        if(($newHost != $rec->actualDomain) && $_SERVER['REQUEST_METHOD'] === 'GET') {
             $url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-            $newUrl = core_Url::change($url, array(), $host);
+            $newUrl = core_Url::change($url, array(), $newHost);
             
             redirect($newUrl, false, null,'notice', true);
         }

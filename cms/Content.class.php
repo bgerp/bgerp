@@ -800,19 +800,19 @@ class cms_Content extends core_Manager
             $domainId = cms_Domains::getPublicDomain('id');
         }
         
-        $query->where("(#domainId = {$domainId} OR #sharedDomains LIKE '%|{$domainId}|%') AND #id != {$menuId}");
-        
+        $query->where("(#domainId = {$domainId} OR #sharedDomains LIKE '%|{$domainId}|%') AND #id != {$menuId} AND #source IS NOT NULL");
+        $query->orderBy('id', 'ASC');
         $html = '';
         
         do {
-            if (!$rec->source || !cls::load($rec->source, true)) {
+            if (!cls::load($rec->source, true)) {
                 continue;
             }
             
             $cls = cls::get($rec->source);
-            
             if (cls::existsMethod($cls, 'getSearchResults')) {
                 $res = $cls->getSearchResults($rec->id, $q);
+                
                 if (countR($res)) {
                     $domainName = '';
                     if ($rec->domainId != $domainId) {
@@ -825,16 +825,25 @@ class cms_Content extends core_Manager
                     }
                     
                     $html .= "<h2><strong style='color:green'>" . type_Varchar::escape($rec->title ? $rec->title : $rec->menu) . $domainName . '</strong></h2>';
-                    $html .= '<ul>';
+                    $itemsInTable = $itemsInUl = '';
+                    
                     foreach ($res as $o) {
-                        if (isset($o->img)) {
+                        if (isset($o->img) && $o->img instanceof thumb_Img) {
                             $img = $o->img->createImg(array('class' => 'eshop-product-image'));
-                            $html .= "<div style='white-space: nowrap;'><div style='display:inline-block;vertical-align: middle;padding:5px;'>" . ht::createLink($img, $o->url) . "</div><div style='display:inline-block;vertical-align: middle;padding:5px;white-space: break-spaces;'>" . ht::createLink($o->title, $o->url) . '</div></div>';
+                            $itemsInTable .= "<tr><td class='searchImg'>" . ht::createLink($img, $o->url) . "</td><td class='searchName'>" . ht::createLink($o->title, $o->url, false, array('class'=>"searchName")) . '</td> </tr>';
                         } else {
-                            $html .= "<li style='font-size:1.2em; margin:5px;' >" . ht::createLink($o->title, $o->url) . '</li>';
+                            $itemsInUl .= "<li style='font-size:1.2em; margin:5px;' >" . ht::createLink($o->title, $o->url) . '</li>';
                         }
                     }
-                    $html .= '</ul>';
+                    
+                    if(!empty($itemsInUl)){
+                        $html .= "<ul>{$itemsInUl}</ul>";
+                    }
+                    
+                    if(!empty($itemsInTable)){
+                        $html .= "<table class='searchResult'>{$itemsInTable}</table>";
+                    }
+                    
                     if ($rec->domainId != $domainId) {
                         Mode::pop('BGERP_CURRENT_DOMAIN');
                     }
