@@ -3778,9 +3778,11 @@ table .eshop-btn {
       color: white !important; }
 
   .smallThumbs .productImage {
-    height: 120px; }
+    height: 120px;
+    overflow: hidden; }
     .smallThumbs .productImage img {
-      max-width: 110px; }
+      max-width: 110px;
+      height: auto; }
   .smallThumbs .productName {
     font-size: 0.9em !important; }
 
