@@ -263,10 +263,14 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             //Себестойност на артикула
             if ($rec->selfPrice == 'manager') {
                 $val->selfPrice = cat_Products::getPrimeCost($key, null, $val->blQuantity, $date);
+                $val->amount = $val->selfPrice * $val->blQuantity;
+                continue;
             } else {
                 $val->selfPrice = $val->blQuantity ? $val->blAmount / $val->blQuantity : null;
+                $val->amount = $val->selfPrice * $val->blQuantity;
+                continue;
             }
-            $val->amount = $val->selfPrice * $val->blQuantity;
+            
         }
         
         arr::sortObjects($recs, 'productName', 'ASC', 'stri');
