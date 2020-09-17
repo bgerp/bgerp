@@ -761,7 +761,6 @@ class eshop_Groups extends core_Master
         
         $query->where("#menuId = {$menuId} AND #state = 'active'");
         
-        
         $groups = array();
         while ($rec = $query->fetch()) {
             $groups[$rec->id] = $rec->id;
@@ -770,42 +769,42 @@ class eshop_Groups extends core_Master
         if (!empty($groups)) {
             $queryM = eshop_Products::getQuery();
             $queryM->where("#state = 'active'");
-            $queryM->orderBy('createdOn=DESC');
             $queryM->where('#groupId IN (' . implode(',', $groups) . ')');
+            
+            $eshopClassId = eshop_Products::getClassId();
+            $queryM->EXT('rating', 'sales_ProductRatings', array('externalName' => 'value', 'onCond' => "#sales_ProductRatings.classId = {$eshopClassId} AND #sales_ProductRatings.objectId = #id", 'join' => 'right'));
+            $queryM->orderBy('rating,createdOn', 'DESC');
             $queryM->limit($maxResults);
             
+            $recs = array();
             $query = clone($queryM);
             plg_Search::applySearch($q, $query, null, 5, 64);
-            while ($r = $query->fetch()) {
-                $title = tr($r->name);
-                $url = eshop_Products::getUrl($r);
-                $url['q'] = $q;
-                
-                $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url, 'img' => eshop_Products::getProductThumb($r, 60, 60));
-            }
+            $recs += $query->fetchAll();
+            
             
             if (countR($res) < $maxResults) {
                 $query = clone($queryM);
                 plg_Search::applySearch($q, $query, null, 9);
-                while ($r = $query->fetch()) {
-                    $title = tr($r->name);
-                    $url = eshop_Products::getUrl($r);
-                    $url['q'] = $q;
-                    
-                    $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url, 'img' => eshop_Products::getProductThumb($r, 60, 60));
-                }
+                $recs += $query->fetchAll();
             }
             
             if (countR($res) < $maxResults) {
                 $query = clone($queryM);
                 plg_Search::applySearch($q, $query, null, 3);
-                while ($r = $query->fetch()) {
-                    $title = tr($r->name);
-                    $url = eshop_Products::getUrl($r);
-                    $url['q'] = $q;
-                    
-                    $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url, 'img' => eshop_Products::getProductThumb($r, 60, 60));
+                $recs += $query->fetchAll();
+            }
+            
+            foreach ($recs as $r) {
+                $title = tr($r->name);
+                $url = eshop_Products::getUrl($r);
+                $url['q'] = $q;
+                
+                if(haveRole('debug')){
+                    $rating = empty($r->rating) ? tr("n / a") : $r->rating;
+                    $title = ht::createHint($title, "Рейтинг:|* {$rating}");
                 }
+                
+                $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url, 'img' => eshop_Products::getProductThumb($r, 60, 60));
             }
         }
         

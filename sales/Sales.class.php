@@ -41,7 +41,7 @@ class sales_Sales extends deals_DealMaster
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf,
                           acc_TransactionSourceIntf=sales_transaction_Sale,
-                          bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf, 
+                          bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf,sales_RatingsSourceIntf, 
                           acc_RegisterIntf,deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf,hr_IndicatorsSourceIntf';
     
     
@@ -1709,5 +1709,45 @@ class sales_Sales extends deals_DealMaster
             // Вика се пак да се преизчислят кеш полетата наново след въведената отстъпка
             parent::updateMaster_($id);
         }
+    }
+    
+    
+    /**
+     * Подготовка на рейтингите за продажба на артикулите
+     * @see sales_RatingsSourceIntf
+     *
+     * @return array $res - масив с обекти за върнатите данни
+     *                 o objectClassId - ид на клас на обект
+     *                 o objectId      - ид на обект
+     *                 o classId       - текущия клас
+     *                 o key           - ключ
+     *                 o value         - стойност
+     */
+    public function getSaleRatingsData()
+    {
+        $time = sales_Setup::get('STATISTIC_DATA_FOR_THE_LAST');
+        $valiorFrom = dt::verbal2mysql(dt::addSecs(-1 * $time), false);
+        
+        $deltaQuery = sales_PrimeCostByDocument::getQuery();
+        $deltaQuery->where("#sellCost IS NOT NULL AND (#state = 'active' OR #state = 'closed') AND #isPublic = 'yes'");
+        $deltaQuery->where("#valior >= '{$valiorFrom}'");
+        $deltaQuery->show('productId,storeId');
+        
+        $res = array();
+        $count = $deltaQuery->count();
+        core_App::setTimeLimit($count * 0.4, false, 200);
+        while ($dRec = $deltaQuery->fetch()){
+            if(!array_key_exists("{$dRec->productId}|{$dRec->storeId}", $res)){
+                $res["{$dRec->productId}|{$dRec->storeId}"] = (object)array('classId'       => $this->getClassId(), 
+                                                                            'objectClassId' => cat_Products::getClassId(),
+                                                                            'objectId'      => $dRec->productId, 
+                                                                            'key'           => $dRec->storeId,
+                                                                            'value'         => 0,);
+            }
+            
+            $res["{$dRec->productId}|{$dRec->storeId}"]->value += 10;
+        }
+        
+        return $res;
     }
 }

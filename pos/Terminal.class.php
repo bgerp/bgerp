@@ -1783,7 +1783,6 @@ class pos_Terminal extends peripheral_Terminal
             $count = 0;
             $sellable = array();
             $searchStringPure = plg_Search::normalizeText($searchString);
-            $pointRec = pos_Points::fetch($rec->pointId);
             
             // Заявка към продаваемите артикули с цени
             $pQuery = pos_SellableProductsCache::getQuery();
@@ -1794,7 +1793,6 @@ class pos_Terminal extends peripheral_Terminal
             $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
             $pQuery->EXT('nameEn', 'cat_Products', 'externalName=nameEn,externalKey=productId');
             $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
-            
             $pQuery->where("#priceListId = {$settings->policyId}");
             $pQuery->show('productId,name,nameEn,code,canStore,measureId,canSell,string,searchKeywords');
             
@@ -1810,30 +1808,15 @@ class pos_Terminal extends peripheral_Terminal
                     $pQuery->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
                 }
                 
-                $cloneQuery = clone $pQuery;
-                
-                // Намиране на най-продаваните артикули в ПОС-а
-                $pQuery->EXT('quantity', 'sales_StatisticData', 'externalName=quantity,remoteKey=productId,externalFieldName=productId');
-                $pQuery->EXT('key', 'sales_StatisticData', 'externalName=key,remoteKey=productId,externalFieldName=productId');
-                $pQuery->where("#key='pos|{$pointRec->storeId}'");
-                $pQuery->orderBy('quantity', 'DESC');
+                $receiptClassId = pos_Receipts::getClassId();
+                $pQuery->EXT('rating', 'sales_ProductRatings', array('externalName' => 'value', 'onCond' => "#sales_ProductRatings.classId = {$receiptClassId} AND #sales_ProductRatings.objectId = #productId", 'join' => 'right'));
                 $pQuery->limit($settings->maxSearchProducts);
+                $pQuery->show('productId,name,nameEn,code,canStore,measureId,canSell,string,searchKeywords,rating');
+                $pQuery->orderBy('rating', 'DESC');
                 
                 // Добавят се към резултатите
                 while ($pRec = $pQuery->fetch()){
                     $sellable[$pRec->productId] = $pRec;
-                }
-                
-                // Ако Броя на намерените е по-малък от търсения, допълваме с продаваемите, за които няма данни да са продавани
-                $mostSelledCount = countR($sellable);
-                if($mostSelledCount < $settings->maxSearchProducts){
-                    $cloneQuery->notIn('productId', array_keys($sellable));
-                    $cloneQuery->orderBy('code', 'ASC');
-                    $cloneQuery->limit($settings->maxSearchProducts - $mostSelledCount);
-                    
-                    while ($pRec1 = $cloneQuery->fetch()){
-                        $sellable[$pRec1->productId] = $pRec1;
-                    }
                 }
             } else {
                 $count = 0;

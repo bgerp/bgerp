@@ -109,6 +109,12 @@ defIfNot('POS_TOP_100_PERIOD', 86400);
 defIfNot('POS_CRON_CACHE_SELLABLE_PERIOD', 3600);
 
 
+/**
+ * Сумиране на рейтингите
+ */
+defIfNot('POS_RATINGS_DATA_FOR_THE_LAST',  6 * core_DateTime::SECONDS_IN_MONTH);
+
+
 
 /**
  * Модул "Точки на продажба" - инсталиране/деинсталиране
@@ -177,6 +183,7 @@ class pos_Setup extends core_ProtoSetup
         'POS_TERMINAL_DELETE_SOUND' => array('enum(crash=Изтриване (1),delete1=Изтриване (2),filedelete=Изтриване (3))', 'caption=Звуци в терминала->Изтриване'),
         'POS_TOP_100_PERIOD' => array('time', 'caption=Време за изпълнение на периодичните процеси->Top 100'),
         'POS_CRON_CACHE_SELLABLE_PERIOD' => array('time', 'caption=Време за изпълнение на периодичните процеси->Кеш на продаваемите артикули'),
+        'POS_RATINGS_DATA_FOR_THE_LAST' => array('time', 'caption=Изчисляване на рейтинги за продажба->Време назад'),
     );
     
     

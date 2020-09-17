@@ -164,46 +164,4 @@ class pos_SellableProductsCache extends core_Master
             }
         }
     }
-    
-    
-    /**
-     * Връща статистическа информация за пос продажбите
-     *
-     * @return array $res
-     */
-    public static function getPosStatisticData()
-    {
-        $time = sales_Setup::get('STATISTIC_DATA_FOR_THE_LAST');
-        $valiorFrom = dt::verbal2mysql(dt::addSecs(-1 * $time), false);
-        
-        // За всяка бележка, намират се най-продаваните 100 артикула
-        $receiptQuery = pos_ReceiptDetails::getQuery();
-        $receiptQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
-        $receiptQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
-        $receiptQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-        $receiptQuery->EXT('pointId', 'pos_Receipts', 'externalName=pointId,externalKey=receiptId');
-        $receiptQuery->EXT('valior', 'pos_Receipts', 'externalName=valior,externalKey=receiptId');
-        $receiptQuery->where("#state != 'draft' && #state != 'rejected' AND #isPublic = 'yes' AND #valior >= '{$valiorFrom}'");
-        $receiptQuery->show('productId,quantity,amount,canStore,pointId');
-        
-        $count = $receiptQuery->count();
-        core_App::setTimeLimit($count * 0.4, false, 200);
-        
-        $res = array();
-        while ($receiptRec = $receiptQuery->fetch()){
-            $storeId = pos_Points::fetchField($receiptRec->pointId, 'storeId');
-            $key = "{$storeId}|{$receiptRec->productId}";
-            if(!array_key_exists($key, $res)){
-                $res[$key] = (object)array('productId' => $receiptRec->productId, 'storeId' => $storeId, 'sumQuantity' => 0, 'sumAmount' => 0, 'count' => 0);
-                
-            }
-            $res[$key]->count++;
-            $res[$key]->sumQuantity += $receiptRec->quantity;
-            $res[$key]->sumAmount += $receiptRec->amount;
-        }
-        
-        arr::sortObjects($res, 'count', 'desc');
-       
-        return $res;
-    }
 }

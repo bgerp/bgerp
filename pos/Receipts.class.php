@@ -41,6 +41,12 @@ class pos_Receipts extends core_Master
     
     
     /**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'sales_RatingsSourceIntf';
+    
+    
+    /**
      * Детайли на бележката
      */
     public $details = 'pos_ReceiptDetails';
@@ -1013,5 +1019,76 @@ class pos_Receipts extends core_Master
         }
         
         return true;
+    }
+    
+    
+    /**
+     * Подготовка на рейтингите за продажба на артикулите
+     * @see sales_RatingsSourceIntf
+     *
+     * @return array $res - масив с обекти за върнатите данни
+     *                 o objectClassId - ид на клас на обект
+     *                 o objectId      - ид на обект
+     *                 o classId       - текущия клас
+     *                 o key           - ключ
+     *                 o value         - стойност
+     */
+    public function getSaleRatingsData()
+    {
+        $time = pos_Setup::get('RATINGS_DATA_FOR_THE_LAST');
+        $valiorFrom = dt::verbal2mysql(dt::addSecs(-1 * $time), false);
+        
+        // За всяка бележка, намират се най-продаваните 100 артикула
+        $receiptQuery = pos_ReceiptDetails::getQuery();
+        $receiptQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
+        $receiptQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+        $receiptQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $receiptQuery->EXT('pointId', 'pos_Receipts', 'externalName=pointId,externalKey=receiptId');
+        $receiptQuery->EXT('valior', 'pos_Receipts', 'externalName=valior,externalKey=receiptId');
+        $receiptQuery->where("#state != 'draft' && #state != 'rejected' AND #isPublic = 'yes' AND #valior >= '{$valiorFrom}' AND #productId IS NOT NULL");
+        $receiptQuery->show('productId,pointId');
+        
+        $count = $receiptQuery->count();
+        core_App::setTimeLimit($count * 0.4, false, 200);
+        
+        $res = $productsInReceipts = array();
+        while ($receiptRec = $receiptQuery->fetch()){
+            $storeId = pos_Points::fetchField($receiptRec->pointId, 'storeId');
+            
+            // Артикулите срещани в бележките ще имат по висок рейтинг
+            if(!array_key_exists("{$receiptRec->productId}|{$storeId}", $res)){
+                $res["{$receiptRec->productId}|{$storeId}"] = (object)array('classId'       => $this->getClassId(),
+                                                                            'objectClassId' => cat_Products::getClassId(),
+                                                                            'objectId'      => $receiptRec->productId,
+                                                                            'key'           => $storeId,
+                                                                            'value'         => 0,);
+            }
+            $res["{$receiptRec->productId}|{$storeId}"]->value += 1000;
+            $productsInReceipts[$receiptRec->productId] = $receiptRec->productId;
+        }
+        
+        // Ако има артикули в бележките изчисляват се и техните рейтинги от продажбите
+        if(countR($productsInReceipts)){
+            $deltaQuery = sales_PrimeCostByDocument::getQuery();
+            $deltaQuery->where("#sellCost IS NOT NULL AND (#state = 'active' OR #state = 'closed') AND #isPublic = 'yes'");
+            $deltaQuery->where("#valior >= '{$valiorFrom}'");
+            $deltaQuery->show('productId,storeId');
+            $deltaQuery->in('productId', $productsInReceipts);
+            
+            // Ако артикула се среща и в експедиционен документ е с по-малка тежест
+            while ($deltaRec = $deltaQuery->fetch()){
+                if(!array_key_exists("{$deltaRec->productId}|{$deltaRec->storeId}", $res)){
+                    $res["{$deltaRec->productId}|{$deltaRec->storeId}"] = (object)array('classId'       => $this->getClassId(),
+                                                                                        'objectClassId' => cat_Products::getClassId(),
+                                                                                        'objectId'      => $receiptRec->productId,
+                                                                                        'key'           => $deltaRec->storeId,
+                                                                                        'value'         => 0,);
+                }
+                
+                $res["{$deltaRec->productId}|{$deltaRec->storeId}"]->value += 1;
+            }
+        }
+        
+        return $res;
     }
 }

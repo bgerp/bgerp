@@ -43,7 +43,7 @@ class eshop_Products extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'marketing_InquirySourceIntf';
+    public $interfaces = 'marketing_InquirySourceIntf,sales_RatingsSourceIntf';
     
     
     /**
@@ -1603,5 +1603,118 @@ class eshop_Products extends core_Master
         $eProductArr = arr::extractValuesFromArray($query->fetchAll(), 'productId');
         
         return $eProductArr;
+    }
+    
+    
+    /**
+     * Подготовка на рейтингите за продажба на артикулите
+     * @see sales_RatingsSourceIntf
+     *
+     * @return array $res - масив с обекти за върнатите данни
+     *                 o objectClassId - ид на клас на обект
+     *                 o objectId      - ид на обект
+     *                 o classId       - текущия клас
+     *                 o key           - ключ
+     *                 o value         - стойност
+     */
+    public function getSaleRatingsData()
+    {
+        $res = array();
+        
+        // Съответствие м/у артикулите и е-артикулите
+        $details = array();
+        $dQuery = eshop_ProductDetails::getQuery();
+        $dQuery->EXT('groupId', 'eshop_Products', 'externalName=groupId,externalKey=eshopProductId');
+        $dQuery->EXT('stateE', 'eshop_Products', 'externalName=state,externalKey=eshopProductId');
+        $dQuery->where("#stateE = 'active'");
+        while($dRec = $dQuery->fetch()){
+            $domainId = self::getDomainId($dRec->eshopProductId);
+            $details[$dRec->productId][$domainId] = $dRec->eshopProductId;
+        }
+        
+        if(!countR($details)) {
+            
+            return $res;
+        }
+        
+        $topRating = eshop_Setup::get('RATINGS_DATA_TOP_WEIGHT');
+        $middleRating = eshop_Setup::get('RATINGS_DATA_MIDDLE_WEIGHT');
+        $valiorFromTime = eshop_Setup::get('RATINGS_DATA_BOTTOM_WEIGHT');
+        
+        $secondsInYear = 12 * dt::SECONDS_IN_MONTH;
+        $topRatingValior = dt::verbal2mysql(dt::addSecs(-1 * $topRating), false);
+        $topRatingValue = max(round($secondsInYear / $topRating), 1);
+        $middleRatingValue = max(round($secondsInYear / $middleRating), 1);
+        $bottomRatingValue = max(round($secondsInYear / $valiorFromTime), 1);
+        
+        $middleRatingValior = dt::verbal2mysql(dt::addSecs(-1 * $middleRating), false);
+        $valiorFrom = dt::verbal2mysql(dt::addSecs(-1 * $valiorFromTime), false);
+        
+        // Подготовка на заявката за продажбите
+        $deltaQuery = sales_PrimeCostByDocument::getQuery();
+        $deltaQuery->where("#sellCost IS NOT NULL AND (#state = 'active' OR #state = 'closed') AND #isPublic = 'yes'");
+        $deltaQuery->where("#valior >= '{$valiorFrom}'");
+        $deltaQuery->show('productId,threadId,valior');
+        
+        $count = $deltaQuery->count();
+        core_App::setTimeLimit($count * 0.4, false, 200);
+        
+        // Кои са нишките на онлайн продажби
+        $cartQuery = eshop_Carts::getQuery();
+        $cartQuery->EXT('threadId', 'sales_Sales', 'externalName=threadId,externalKey=saleId');
+        $cartQuery->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
+        $cartQuery->where("#saleId IS NOT NULL AND #valior >= '{$valiorFrom}'");
+        $cartQuery->show('threadId, domainId');
+        $onlineSaleThreads = array();
+        array_walk($cartQuery->fetchAll(), function ($a) use (&$onlineSaleThreads) {$onlineSaleThreads[$a->threadId] = $a->domainId;});
+        
+        while ($dRec = $deltaQuery->fetch()){
+             
+            // Ако реда е в онлайн продажба
+            if(array_key_exists($dRec->threadId, $onlineSaleThreads)){
+                
+                // Кой е-артикул съответства на този артикул и домейнт
+                $eshopProductId = $details[$dRec->productId][$onlineSaleThreads[$dRec->threadId]];
+                
+                // Ако има такъв
+                if($eshopProductId){
+                    
+                    if(!array_key_exists($eshopProductId, $res)){
+                        $res[$eshopProductId] = (object)array('classId'       => $this->getClassId(),
+                            'objectClassId' => self::getClassId(),
+                            'objectId'      => $eshopProductId,
+                            'key'           => $onlineSaleThreads[$dRec->threadId],
+                            'value'         => 0,);
+                    }
+                    
+                    // Изчисляване на рейтинга му
+                    $rating = ($dRec->valior < $middleRatingValior) ? $bottomRatingValue : (($dRec->valior < $topRatingValior) ? $middleRatingValue : $topRatingValue);
+                    $res[$eshopProductId]->value += 1000 * $rating;
+                }
+            }
+            
+            // Проверява се във кои други домейни се среща този артикул
+            if(array_key_exists($dRec->productId, $details)){
+                
+                // Ако се среща в поне един домейн
+                $productInDomains =  $details[$dRec->productId];
+                if(is_array($productInDomains)){
+                    foreach ($productInDomains as $pDomainId => $eshopProductId){
+                        if(!array_key_exists($eshopProductId, $res)){
+                            $res[$eshopProductId] = (object)array('classId'       => $this->getClassId(),
+                                                                  'objectClassId' => self::getClassId(),
+                                                                  'objectId'      => $eshopProductId,
+                                                                  'key'           => $pDomainId,
+                                                                  'value'         => 0,);
+                        }
+                        
+                        // Добавя се с по-малка тежест
+                        $res[$eshopProductId]->value += 1;
+                    }
+                }
+            }
+        }
+        
+        return $res;
     }
 }

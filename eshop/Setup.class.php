@@ -56,6 +56,24 @@ defIfNot('ESHOP_PRODUCTS_PER_PAGE', '20');
 
 
 /**
+ * Сумиране на рейтингите най-голяма тежест
+ */
+defIfNot('ESHOP_RATINGS_DATA_TOP_WEIGHT',  1 * core_DateTime::SECONDS_IN_MONTH);
+
+
+/**
+ * Сумиране на рейтингите средна тежест
+ */
+defIfNot('ESHOP_RATINGS_DATA_MIDDLE_WEIGHT',  3 * core_DateTime::SECONDS_IN_MONTH);
+
+
+/**
+ * Сумиране на рейтингите най-малка тежест
+ */
+defIfNot('ESHOP_RATINGS_DATA_BOTTOM_WEIGHT',  12 * core_DateTime::SECONDS_IN_MONTH);
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -144,6 +162,10 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_MANDATORY_CONTACT_FIELDS' => array('enum(company=Фирма,person=Лице,both=Двете)', 'caption=Задължителни контактни данни за количката->Поле'),
         'ESHOP_CART_ACCESS_SALT' => array('varchar', 'caption=Даване на достъп за присвояване на количка->Сол'),
         'ESHOP_PRODUCTS_PER_PAGE' => array('int(Min=0)', 'caption=Брой артикули на страница в групата->Брой'),
+    
+        'ESHOP_RATINGS_DATA_TOP_WEIGHT' => array('time', 'caption=Изчисляване на рейтинги за продажба->Най-висок рейтинг назад'),
+        'ESHOP_RATINGS_DATA_MIDDLE_WEIGHT' => array('time', 'caption=Изчисляване на рейтинги за продажба->Среден рейтинг назад'),
+        'ESHOP_RATINGS_DATA_BOTTOM_WEIGHT' => array('time', 'caption=Изчисляване на рейтинги за продажба->Изчисляване от'),
     );
     
     
