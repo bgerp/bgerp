@@ -3767,7 +3767,7 @@ table .eshop-btn {
     background: linear-gradient(to bottom, #333344 0%, #333344 100%);
     background-position: 0 100%;
     background-repeat: repeat-x;
-    background-size: 2px 2px;
+    background-size: 0px 0px;
     color: black;
     text-decoration: none;
     -webkit-transition: all 0.2s;
