@@ -1637,17 +1637,7 @@ class eshop_Products extends core_Master
             return $res;
         }
         
-        $topRating = eshop_Setup::get('RATINGS_DATA_TOP_WEIGHT');
-        $middleRating = eshop_Setup::get('RATINGS_DATA_MIDDLE_WEIGHT');
-        $valiorFromTime = eshop_Setup::get('RATINGS_DATA_BOTTOM_WEIGHT');
-        
-        $secondsInYear = 12 * dt::SECONDS_IN_MONTH;
-        $topRatingValior = dt::verbal2mysql(dt::addSecs(-1 * $topRating), false);
-        $topRatingValue = max(round($secondsInYear / $topRating), 1);
-        $middleRatingValue = max(round($secondsInYear / $middleRating), 1);
-        $bottomRatingValue = max(round($secondsInYear / $valiorFromTime), 1);
-        
-        $middleRatingValior = dt::verbal2mysql(dt::addSecs(-1 * $middleRating), false);
+        $valiorFromTime = eshop_Setup::get('RATINGS_OLDER_THEN');
         $valiorFrom = dt::verbal2mysql(dt::addSecs(-1 * $valiorFromTime), false);
         
         // Подготовка на заявката за продажбите
@@ -1688,7 +1678,8 @@ class eshop_Products extends core_Master
                     }
                     
                     // Изчисляване на рейтинга му
-                    $rating = ($dRec->valior < $middleRatingValior) ? $bottomRatingValue : (($dRec->valior < $topRatingValior) ? $middleRatingValue : $topRatingValue);
+                    $monthsBetween = countR(dt::getMonthsBetween($dRec->valior));
+                    $rating = round(12 / $monthsBetween);
                     $res[$eshopProductId]->value += 1000 * $rating;
                 }
             }
