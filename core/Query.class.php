@@ -1142,7 +1142,9 @@ class core_Query extends core_FieldSet
         if (isset($this->onCond)) {
             $tables = rtrim($tables, ',') . "\n  ";
             if ($this->join) {
-                $tables .= strtoupper($this->join);
+                $join = strtoupper($this->join);
+                expect(in_array($join, array("RIGHT", "LEFT", "OUTER", "INNER")), $join);
+                $tables .= $join;
             }
             $tables .= ' JOIN `' . $this->mvc->dbTableName . '` ON';
             $tables .= "\n    " . $this->expr2mysql($this->onCond);
