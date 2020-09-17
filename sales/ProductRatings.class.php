@@ -63,7 +63,7 @@ class sales_ProductRatings extends core_Manager
     /**
      * Полета, които се виждат
      */
-    public $listFields = 'id,objectId,classId,key,value,updatedOn';
+    public $listFields = 'id,objectId=Обект,classId,key,value,updatedOn';
     
     
     /**

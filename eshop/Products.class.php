@@ -49,7 +49,7 @@ class eshop_Products extends core_Master
     /**
      * Икона за единичен изглед
      */
-    public $singleIcon = 'img/16/wooden-box.png';
+    public $singleIcon = 'img/16/globe.png';
     
     
     /**
