@@ -574,8 +574,8 @@ class sales_TransportValues extends core_Manager
         }
         
         // Ако може да се изчислява скрит транспорт
-        if (!cond_DeliveryTerms::canCalcHiddenCost($deliveryTermId, $productId)) {
-            
+        if (empty($params['deliveryCalcTransport']) && !cond_DeliveryTerms::canCalcHiddenCost($deliveryTermId, $productId)) {
+           
             return;
         }
         
@@ -732,6 +732,7 @@ class sales_TransportValues extends core_Manager
         // Колко е очаквания транспорт
         $deliveryData = is_array($masterRec->{$map['deliveryData']}) ? $masterRec->{$map['deliveryData']} : array();
         $deliveryData['deliveryCalcTransport'] = $masterRec->{$map['deliveryCalcTransport']};
+        
         $feeArr = self::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $masterRec->{$map['deliveryLocationId']}, $countryId, $PCode, $deliveryData);
         
         // Ако има такъв към цената се добавя
