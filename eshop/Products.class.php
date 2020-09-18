@@ -1653,17 +1653,23 @@ class eshop_Products extends core_Master
         
         $count = $deltaQuery->count();
         core_App::setTimeLimit($count * 0.4, false, 200);
+        $deltaRecs = $deltaQuery->fetchAll();
+        $deltaThreads = arr::extractValuesFromArray($deltaRecs, 'threadId');
         
         // Кои са нишките на онлайн продажби
-        $cartQuery = eshop_Carts::getQuery();
-        $cartQuery->EXT('threadId', 'sales_Sales', 'externalName=threadId,externalKey=saleId');
-        $cartQuery->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
-        $cartQuery->where("#saleId IS NOT NULL AND #valior >= '{$valiorFrom}'");
-        $cartQuery->show('threadId, domainId');
         $onlineSaleThreads = array();
-        array_walk($cartQuery->fetchAll(), function ($a) use (&$onlineSaleThreads) {$onlineSaleThreads[$a->threadId] = $a->domainId;});
+        if(countR($deltaThreads)){
+            $cartQuery = eshop_Carts::getQuery();
+            $cartQuery->EXT('threadId', 'sales_Sales', 'externalName=threadId,externalKey=saleId');
+            $cartQuery->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
+            $cartQuery->where("#saleId IS NOT NULL AND #state != 'rejected'");
+            $cartQuery->in('threadId', $deltaThreads);
+            $cartQuery->show('threadId, domainId');
+            
+            array_walk($cartQuery->fetchAll(), function ($a) use (&$onlineSaleThreads) {$onlineSaleThreads[$a->threadId] = $a->domainId;});
+        }
         
-        while ($dRec = $deltaQuery->fetch()){
+        foreach ($deltaRecs as $dRec){
              
             // Ако реда е в онлайн продажба
             if(array_key_exists($dRec->threadId, $onlineSaleThreads)){
