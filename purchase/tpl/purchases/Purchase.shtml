@@ -117,7 +117,9 @@
                             <!--ET_END notes-->
                             <!--ET_BEGIN deliveryBlock-->
                             [#deliveryBlock#]
+                            <!--ET_BEGIN deliveryTermId-->
                             <li>|Доставка|*: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> |до|* [#deliveryTime#]<!--ET_END deliveryTime--></li>
+                            <!--ET_END deliveryTermId-->
                             <!--ET_END deliveryBlock-->
                             <!--ET_BEGIN deliveryTermTime-->
                             <li>|Срок за доставка|* [#deliveryTermTime#] |след стартиране на договора|*</li>

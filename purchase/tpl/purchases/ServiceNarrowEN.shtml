@@ -118,7 +118,9 @@
 	                            <!--ET_END notes-->
 	                            <!--ET_BEGIN deliveryBlock-->
 	                            [#deliveryBlock#]
+	                            <!--ET_BEGIN deliveryTermId-->
 	                            <li>Delivery: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> till [#deliveryTime#]<!--ET_END deliveryTime--></li>
+	                            <!--ET_END deliveryTermId-->
 	                            <!--ET_END deliveryBlock-->
 	                            <!--ET_BEGIN deliveryTermTime-->
                             	<li>Delivery time up to [#deliveryTermTime#] after starting the order</li>
