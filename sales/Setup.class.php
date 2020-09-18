@@ -417,11 +417,11 @@ class sales_Setup extends core_ProtoSetup
         ), 
         array(
             'systemId' => 'Gather Sale Statistic',
-            'description' => 'Изчисляване на статистическите данни за продажбите',
+            'description' => 'Изчисляване на рейтинги на артикулите в продажбите',
             'controller' => 'sales_ProductRatings',
-            'action' => 'GatherSalesData',
+            'action' => 'CalcRating',
             'offset' => 190,
-            'period' => core_DateTime::SECONDS_IN_MONTH / 60,
+            'period' => 1440,
             'timeLimit' => 500
         )
     );

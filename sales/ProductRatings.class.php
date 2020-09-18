@@ -127,7 +127,7 @@ class sales_ProductRatings extends core_Manager
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         if (haveRole('debug')) {
-            $data->toolbar->addBtn('Обновяване', array($mvc, 'GatherSalesData', 'ret_url' => true), null, 'ef_icon = img/16/arrow_refresh.png,title=Обновяване на статистическите данни');
+            $data->toolbar->addBtn('Обновяване', array($mvc, 'CalcRating', 'ret_url' => true), null, 'ef_icon = img/16/arrow_refresh.png,title=Обновяване на статистическите данни');
         }
     }
     
@@ -135,10 +135,10 @@ class sales_ProductRatings extends core_Manager
     /**
      * Екшън за обновяване на статистическите данн
      */
-    function act_GatherSalesData()
+    function act_CalcRating()
     {
         requireRole('debug');
-        $this->cron_GatherSalesData();
+        $this->cron_CalcRating();
         core_Statuses::newStatus('Данните са обновени');
         
         followRetUrl();
@@ -146,9 +146,9 @@ class sales_ProductRatings extends core_Manager
     
     
     /**
-     * Събиране на статистическата информация по разписание
+     * Изчисление на рейтингите на продажба на артикулите
      */
-    public function cron_GatherSalesData()
+    public function cron_CalcRating()
     {
         $exPosQuery = self::getQuery();
         $exRecs = $exPosQuery->fetchAll();

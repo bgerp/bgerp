@@ -1045,7 +1045,8 @@ class pos_Receipts extends core_Master
         $receiptQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         $receiptQuery->EXT('pointId', 'pos_Receipts', 'externalName=pointId,externalKey=receiptId');
         $receiptQuery->EXT('valior', 'pos_Receipts', 'externalName=valior,externalKey=receiptId');
-        $receiptQuery->where("#state != 'draft' && #state != 'rejected' AND #isPublic = 'yes' AND #valior >= '{$valiorFrom}' AND #productId IS NOT NULL");
+        $receiptQuery->EXT('revertId', 'pos_Receipts', 'externalName=revertId,externalKey=receiptId');
+        $receiptQuery->where("#state != 'draft' && #state != 'rejected' AND #revertId IS NULL AND #isPublic = 'yes' AND #valior >= '{$valiorFrom}' AND #productId IS NOT NULL");
         $receiptQuery->show('productId,pointId');
         
         $count = $receiptQuery->count();
