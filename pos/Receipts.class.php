@@ -1051,7 +1051,7 @@ class pos_Receipts extends core_Master
         $count = $receiptQuery->count();
         core_App::setTimeLimit($count * 0.4, false, 200);
         
-        $res = $productsInReceipts = array();
+        $res = array();
         while ($receiptRec = $receiptQuery->fetch()){
             $storeId = pos_Points::fetchField($receiptRec->pointId, 'storeId');
             
@@ -1063,31 +1063,29 @@ class pos_Receipts extends core_Master
                                                                             'key'           => $storeId,
                                                                             'value'         => 0,);
             }
-            $res["{$receiptRec->productId}|{$storeId}"]->value += 1000;
-            $productsInReceipts[$receiptRec->productId] = $receiptRec->productId;
+            $res["{$receiptRec->productId}|{$storeId}"]->value += 100;
         }
         
         // Ако има артикули в бележките изчисляват се и техните рейтинги от продажбите
-        if(countR($productsInReceipts)){
-            $deltaQuery = sales_PrimeCostByDocument::getQuery();
-            $deltaQuery->where("#sellCost IS NOT NULL AND (#state = 'active' OR #state = 'closed') AND #isPublic = 'yes'");
-            $deltaQuery->where("#valior >= '{$valiorFrom}'");
-            $deltaQuery->show('productId,storeId');
-            $deltaQuery->in('productId', $productsInReceipts);
-            
-            // Ако артикула се среща и в експедиционен документ е с по-малка тежест
-            while ($deltaRec = $deltaQuery->fetch()){
-                if(!array_key_exists("{$deltaRec->productId}|{$deltaRec->storeId}", $res)){
-                    $res["{$deltaRec->productId}|{$deltaRec->storeId}"] = (object)array('classId'       => $this->getClassId(),
-                                                                                        'objectClassId' => cat_Products::getClassId(),
-                                                                                        'objectId'      => $receiptRec->productId,
-                                                                                        'key'           => $deltaRec->storeId,
-                                                                                        'value'         => 0,);
-                }
-                
-                $res["{$deltaRec->productId}|{$deltaRec->storeId}"]->value += 1;
+        $deltaQuery = sales_PrimeCostByDocument::getQuery();
+        $deltaQuery->where("#sellCost IS NOT NULL AND (#state = 'active' OR #state = 'closed') AND #isPublic = 'yes'");
+        $deltaQuery->where("#valior >= '{$valiorFrom}'");
+        $deltaQuery->show('productId,storeId');
+        
+        // Ако артикула се среща и в експедиционен документ е с по-малка тежест
+        while ($deltaRec = $deltaQuery->fetch()){
+            if(!array_key_exists("{$deltaRec->productId}|{$deltaRec->storeId}", $res)){
+                $res["{$deltaRec->productId}|{$deltaRec->storeId}"] = (object)array('classId'       => $this->getClassId(),
+                                                                                    'objectClassId' => cat_Products::getClassId(),
+                                                                                    'objectId'      => $deltaRec->productId,
+                                                                                    'key'           => $deltaRec->storeId,
+                                                                                    'value'         => 0,);
             }
+            
+            $res["{$deltaRec->productId}|{$deltaRec->storeId}"]->value += 1;
         }
+        
+        $res = array_values($res);
         
         return $res;
     }

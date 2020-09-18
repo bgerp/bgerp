@@ -1731,7 +1731,8 @@ class sales_Sales extends deals_DealMaster
         $deltaQuery = sales_PrimeCostByDocument::getQuery();
         $deltaQuery->where("#sellCost IS NOT NULL AND (#state = 'active' OR #state = 'closed') AND #isPublic = 'yes'");
         $deltaQuery->where("#valior >= '{$valiorFrom}'");
-        $deltaQuery->show('productId,storeId');
+        $deltaQuery->show('productId,storeId,detailClassId');
+        $receiptClassId = pos_Reports::getClassId();
         
         $res = array();
         $count = $deltaQuery->count();
@@ -1745,8 +1746,12 @@ class sales_Sales extends deals_DealMaster
                                                                             'value'         => 0,);
             }
             
-            $res["{$dRec->productId}|{$dRec->storeId}"]->value += 10;
+            $rating = ($dRec->detailClassId == $receiptClassId) ? 1 : 10;
+           
+            $res["{$dRec->productId}|{$dRec->storeId}"]->value += $rating;
         }
+        
+        $res = array_values($res);
         
         return $res;
     }

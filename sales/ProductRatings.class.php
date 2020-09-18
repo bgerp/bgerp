@@ -153,6 +153,8 @@ class sales_ProductRatings extends core_Manager
         $exPosQuery = self::getQuery();
         $exRecs = $exPosQuery->fetchAll();
         
+        //$this->truncate();
+        
         $newRecs = array();
         $Sources = core_Classes::getOptionsByInterface('sales_RatingsSourceIntf');
         foreach ($Sources as $source){

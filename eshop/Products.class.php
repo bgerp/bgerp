@@ -31,7 +31,7 @@ class eshop_Products extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code,name,groupId=Група,saleState,state';
+    public $listFields = 'code,name,dCount=Опции,groupId=Група,saleState,state';
     
     
     /**
@@ -337,6 +337,11 @@ class eshop_Products extends core_Master
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $row->_rowTools->addLink('Преглед', self::getUrl($rec), 'alwaysShow,ef_icon=img/16/monitor.png,title=Преглед във външната част');
             }
+            
+            $dCount = eshop_ProductDetails::count("#eshopProductId = {$rec->id}");
+            
+            $row->dCount = core_Type::getByName('int')->toVerbal($dCount);
+            $row->dCount = ht::styleNumber($row->dCount, $dCount);
         }
         
         $row->groupId = eshop_Groups::getHyperlink($rec->groupId, true);
@@ -1680,7 +1685,7 @@ class eshop_Products extends core_Master
                     // Изчисляване на рейтинга му
                     $monthsBetween = countR(dt::getMonthsBetween($dRec->valior));
                     $rating = round(12 / $monthsBetween);
-                    $res[$eshopProductId]->value += 1000 * $rating;
+                    $res[$eshopProductId]->value += 100 * $rating;
                 }
             }
             
@@ -1705,6 +1710,8 @@ class eshop_Products extends core_Master
                 }
             }
         }
+        
+        $res = array_values($res);
         
         return $res;
     }
