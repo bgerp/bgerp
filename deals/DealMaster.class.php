@@ -1078,15 +1078,13 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             
             core_Lg::push($rec->tplLang);
-            $deliveryAdress = '';
+            $row->deliveryAdress = null;
             if (!empty($rec->deliveryAdress)) {
-                $deliveryAdress .= $mvc->getFieldType('deliveryAdress')->toVerbal($rec->deliveryAdress);
+                $deliveryAdress = $mvc->getFieldType('deliveryAdress')->toVerbal($rec->deliveryAdress);
             } else {
-                if (isset($rec->deliveryTermId)) {
-                    $deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $rec->deliveryData, $mvc);
-                }
+                $deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $rec->deliveryData, $mvc);
             }
-            
+           
             if (isset($rec->deliveryTermId) && !Mode::isReadOnly()) {
                 $row->deliveryTermId = ht::createLink($row->deliveryTermId, cond_DeliveryTerms::getSingleUrlArray($rec->deliveryTermId));
             }
@@ -1096,7 +1094,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 $deliveryAdress = $deliveryAdress1 . $deliveryAdress;
                 $row->deliveryTermId = $deliveryAdress;
             }
-            
+           
             // Подготовка на имената на моята фирма и контрагента
             $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
             $row = (object) ((array) $row + (array) $headerInfo);
