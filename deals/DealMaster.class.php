@@ -1091,7 +1091,7 @@ abstract class deals_DealMaster extends deals_DealBase
             
             if (!empty($deliveryAdress)) {
                 if(!isset($rec->deliveryTermId)){
-                    $row->deliveryBlock .= "<li>" . tr('Адрес на локация') . " : {$deliveryAdress}</li>";
+                    $row->deliveryBlock .= "<li>" . tr('За адрес') . ": {$deliveryAdress}</li>";
                 } else {
                     $deliveryAdress1 = (isset($rec->deliveryTermId)) ? ($row->deliveryTermId . ', ') : '';
                     $deliveryAdress = $deliveryAdress1 . $deliveryAdress;
