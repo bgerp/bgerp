@@ -358,7 +358,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_ProductRelations',
         'sales_ProductRatings',
         'migrate::updateStoreIdInDeltas2',
-        'migrate::truncateRatings1',
+        'migrate::truncateRatings2',
     );
     
     
@@ -556,7 +556,7 @@ class sales_Setup extends core_ProtoSetup
     /**
      * Обновява рейтингите
      */
-    public function truncateRatings1()
+    public function truncateRatings2()
     {
         $Ratings = cls::get('sales_ProductRatings');
         $Ratings->setupMvc();
