@@ -1768,10 +1768,24 @@ class sales_Sales extends deals_DealMaster
      */
     public static function getContragentData($id)
     {
-        if (core_Packs::isInstalled('eshop') && (self::fetchRec($id))) {
+        if (core_Packs::isInstalled('eshop') && ($rec = self::fetchRec($id))) {
             
-            if($cartRec = eshop_Carts::fetch("#saleId = {$id}")){
+            if ($cartRec = eshop_Carts::fetch("#saleId = {$id}")){
                 $contrData = new stdClass();
+                
+                if ($rec->folderId) {
+                    $Cover = doc_Folders::getCover($rec->folderId);
+                    
+                    if ($Cover->haveInterface('doc_ContragentDataIntf')) {
+                        $cData = $Cover->getContragentData($Cover->that);
+                        
+                        if ($cData->company) {
+                            $contrData->company = $cData->company;
+                            $contrData->companyId = $cData->companyId;
+                            $contrData->tel = $cData->tel;
+                        }
+                    }
+                }
                 
                 $contrData->person = $cartRec->personNames;
                 $contrData->pTel = $cartRec->tel;
