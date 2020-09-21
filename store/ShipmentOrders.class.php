@@ -493,9 +493,8 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public static function getContragentData($id)
     {
-        
         if(core_Packs::isInstalled('eshop')){
-            $rec = $this->fetchRec($id);
+            $rec = self::fetchRec($id);
             
             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
             if($firstDoc->isInstanceOf('sales_Sales')){
