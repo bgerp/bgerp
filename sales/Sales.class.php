@@ -42,7 +42,7 @@ class sales_Sales extends deals_DealMaster
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf,
                           acc_TransactionSourceIntf=sales_transaction_Sale,
                           bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf,sales_RatingsSourceIntf, 
-                          acc_RegisterIntf,deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf,hr_IndicatorsSourceIntf';
+                          acc_RegisterIntf,deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf,hr_IndicatorsSourceIntf,doc_ContragentDataIntf';
     
     
     /**
@@ -1774,8 +1774,8 @@ class sales_Sales extends deals_DealMaster
                 $contrData = new stdClass();
                 
                 $contrData->person = $cartRec->personNames;
-                $contrData->tel = $cartRec->tel;
-                $contrData->country = $cartRec->country;
+                $contrData->pTel = $cartRec->tel;
+                $contrData->countryId = $cartRec->country;
                 
                 if ($cartRec->deliveryAddress) {
                     $contrData->pCode = $cartRec->deliveryPCode;

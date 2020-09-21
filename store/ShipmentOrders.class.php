@@ -36,7 +36,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf,
-                          acc_TransactionSourceIntf=store_transaction_ShipmentOrder, bgerp_DealIntf,trans_LogisticDataIntf,label_SequenceIntf=store_iface_ShipmentLabelImpl,deals_InvoiceSourceIntf';
+                          acc_TransactionSourceIntf=store_transaction_ShipmentOrder, bgerp_DealIntf,trans_LogisticDataIntf,label_SequenceIntf=store_iface_ShipmentLabelImpl,deals_InvoiceSourceIntf, doc_ContragentDataIntf';
     
     
     /**
@@ -493,15 +493,36 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public static function getContragentData($id)
     {
-        if(core_Packs::isInstalled('eshop')){
-            $rec = self::fetchRec($id);
-            
+        $rec = self::fetchRec($id);
+        
+        $contragentData = new stdClass();
+        
+        if ($rec->company) {
+            $contragentData->company = $rec->company;
+            $contragentData->person = $rec->person;
+            $contragentData->pTel = $rec->tel;
+            $contragentData->countryId = $rec->country;
+            $contragentData->pCode = $rec->pCode;
+            $contragentData->place = $rec->place;
+            $contragentData->address = $rec->address;
+        }
+        
+        if (core_Packs::isInstalled('eshop')) {
             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
             if ($firstDoc->isInstanceOf('sales_Sales')) {
                 
-                return $firstDoc->getContragentData($firstDoc->that);
+                $sContragentData = $firstDoc->getContragentData($firstDoc->that);
+                
+                if (!(array)$contragentData) {
+                    
+                    return $sContragentData;
+                }
+                
+                $contragentData->email = $sContragentData->email;
             }
         }
+        
+        return $contragentData;
     }
     
     
