@@ -72,14 +72,26 @@ class bulmar_BankDocumentExport extends core_Manager
         $query->orderBy('id', 'DESC');
         $recs = $query->fetchAll();
        
-        if (!countR($recs)) {
+        $nonCashRecs = array();
+        if($this->mvc instanceof bank_IncomeDocuments){
+            
+            $cQuery = cash_InternalMoneyTransfer::getQuery();
+            $cQuery->EXT('sourceClassId', 'doc_Containers', 'externalName=docClass,externalKey=sourceId');
+            $cQuery->where("#state = 'active' AND #operationSysId = 'nonecash2bank' AND #sourceId IS NOT NULL AND #sourceClassId = " . cash_Pko::getClassId());
+            
+            $cQuery->in('debitBank', $ownAccounts);
+            $cQuery->between('valior', $filter->from, $filter->to);
+            $nonCashRecs = $cQuery->fetchAll();
+        }
+        
+        if (!countR($recs) && !countR($nonCashRecs)) {
             $title = mb_strtolower($this->mvc->title);
             core_Statuses::newStatus("Няма налични {$title} за експортиране");
             
             return;
         }
         
-        $data = $this->prepareExportData($recs);
+        $data = $this->prepareExportData($recs, $nonCashRecs);
         
         if(countR($data->error)){
             $msg = implode(', ', $data->error);
@@ -126,7 +138,7 @@ class bulmar_BankDocumentExport extends core_Manager
      *
      * @return stdClass $data - подготвените данни
      */
-    private function prepareExportData($recs)
+    private function prepareExportData($recs, $nonCashRecs)
     {
         $data = new stdClass();
         
@@ -134,24 +146,82 @@ class bulmar_BankDocumentExport extends core_Manager
         $data->recs = $data->error = array();
         
         $count = 0;
-        foreach ($recs as $rec) {
-            $count++;
-            $newRec = $this->prepareRec($rec, $count);
-            
-            $accountId = null;
-            $ownAccountId = $newRec->accountId;
-            array_walk($data->static->mapAccounts, function($a) use ($ownAccountId, &$accountId) {if($a->ownAccountId == $ownAccountId) {$accountId = $a->itemId;}});
-            
-            if($accountId){
-                $newRec->accountId = $accountId;
-                $data->recs[$rec->id] = $newRec;
-            } else {
-                $data->error[$ownAccountId] = bank_OwnAccounts::getTitleById($ownAccountId);
+       
+        foreach (array('recs' => $recs, 'nonCashRecs' => $nonCashRecs) as $key => $arr){
+            foreach ($arr as $rec) {
+                $count++;
+                $newRec = ($key == 'recs') ? $this->prepareRec($rec, $count) : $this->prepareNoncashRec($rec, $count);
+                if(!is_object($newRec)) continue;
+                
+                $accountId = null;
+                $ownAccountId = $newRec->accountId;
+                array_walk($data->static->mapAccounts, function($a) use ($ownAccountId, &$accountId) {if($a->ownAccountId == $ownAccountId) {$accountId = $a->itemId;}});
+                
+                if($accountId){
+                    $newRec->accountId = $accountId;
+                    $data->recs[$rec->containerId] = $newRec;
+                } else {
+                    $data->error[$ownAccountId] = bank_OwnAccounts::getTitleById($ownAccountId);
+                }
             }
         }
         
+        
         return $data;
     }
+    
+    
+    /**
+     * Подготовка на данните за инкасирано безналично плащане
+     */
+    private function prepareNoncashRec($rec, $count)
+    {
+        $nRec = new stdClass();
+        
+        $amount = $rec->amount;
+        
+        $nRec->id = $rec->id . "003";
+        $nRec->num = $count;
+        $nRec->amount = $amount;
+        $nRec->valior = $rec->valior;
+        $nRec->endDate =  dt::getLastDayOfMonth($nRec->valior);
+        $nRec->valior = dt::mysql2verbal($nRec->valior, 'd.m.Y');
+        $nRec->endDate = dt::mysql2verbal($nRec->endDate, 'd.m.Y');
+        
+        $nRec->reason = $nRec->contragentName = null;
+        $nRec->accountId = $rec->debitBank;
+        
+        if($rec->sourceId){
+            if($Source = doc_Containers::getDocument($rec->sourceId)){
+                
+                if($Source->isInstanceOf('cash_Pko')){
+                    $sourceRec = $Source->fetch();
+                    
+                    if($sourceRec->fromContainerId){
+                        if($Document = doc_Containers::getDocument($sourceRec->fromContainerId)){
+                            if($Document->isInstanceOf('deals_InvoiceMaster')){
+                                $invoiceDate = $Document->fetchField('date');
+                                $invoiceDate = dt::mysql2verbal($invoiceDate, 'd.m.Y');
+                                
+                                $nRec->reason .= "#" . str_pad($Document->fetchField('number'), 10, '0', STR_PAD_LEFT) . "/" . $invoiceDate;
+                                $nRec->contragentName = cls::get($sourceRec->contragentClassId)->getVerbal($sourceRec->contragentId, 'name');
+                            
+                                $cData = cls::get($sourceRec->contragentClassId)->getContragentData($sourceRec->contragentId);
+                                $nRec->EIC = ($cData->vatNo) ? $cData->vatNo : $cData->uicId;
+                                $Vats = cls::get('drdata_Vats');
+                                $nRec->EIC = $Vats->canonize($nRec->EIC);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        $nRec->type = !empty($nRec->reason) ? 'creditClient' : 'creditUnknown';
+       
+        return $nRec;
+    }
+    
     
     
     /**
