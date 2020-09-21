@@ -1782,7 +1782,9 @@ class sales_Sales extends deals_DealMaster
                         if ($cData->company) {
                             $contrData->company = $cData->company;
                             $contrData->companyId = $cData->companyId;
-                            $contrData->tel = $cData->tel;
+                            if (!$cartRec->tel) {
+                                $contrData->tel = $cData->tel;
+                            }
                         }
                     }
                 }
