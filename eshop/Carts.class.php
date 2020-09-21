@@ -1527,10 +1527,12 @@ class eshop_Carts extends core_Master
                 $row->deliveryAmount = $deliveryAmountV;
             }
         }
-        
-        $row->amount = $Double->toVerbal($amountWithoutDelivery);
-        $row->amount = currency_Currencies::decorate($row->amount, $settings->currencyId);
-        $row->amountCurrencyId = $row->currencyId;
+       
+        if(round($rec->total, 4) != round($amountWithoutDelivery, 4) || $rec->freeDelivery == 'yes'){
+            $row->amount = $Double->toVerbal($amountWithoutDelivery);
+            $row->amount = currency_Currencies::decorate($row->amount, $settings->currencyId);
+            $row->amountCurrencyId = $row->currencyId;
+        }
         
         if ($settings->chargeVat != 'yes') {
             $row->totalVat = $Double->toVerbal($vatAmount);
