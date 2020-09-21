@@ -93,7 +93,7 @@
 	                    <li><b class='red'>[#deliveryError#]</b></li>
 	                    <!--ET_END deliveryError-->
 				        <!--ET_BEGIN deliveryPlaceId-->
-				        <li>Delivery place: [#deliveryPlaceId#]</li>
+				        <li>[#deliveryPlaceCaption#]: [#deliveryPlaceId#]</li>
 				        <!--ET_END deliveryPlaceId-->
 				        <!--ET_BEGIN others-->
 				        [#others#]

@@ -624,7 +624,7 @@ class sales_Quotations extends core_Master
                     $row->{"mycompany{$fld}"} = transliterate(tr($row->{"mycompany{$fld}"}));
                 }
             }
-            
+           
             if ($rec->currencyRate == 1) {
                 unset($row->currencyRate);
             }
@@ -671,14 +671,18 @@ class sales_Quotations extends core_Master
                 $deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, null, $placeId, $rec->deliveryData, $mvc);
             }
             
+            $locationId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null; 
+            
             if(isset($rec->deliveryTermId) && !Mode::isReadOnly()){
                 $row->deliveryTermId = ht::createLink($row->deliveryTermId, cond_DeliveryTerms::getSingleUrlArray($rec->deliveryTermId));
             }
             
             if (!empty($deliveryAdress)) {
-                $deliveryAdress1 = (isset($rec->deliveryTermId)) ? ($row->deliveryTermId . ', ') : '';
-                $deliveryAdress = $deliveryAdress1 . $deliveryAdress;
-                $row->deliveryTermId = $deliveryAdress;
+                if(isset($rec->deliveryTermId)){
+                    $row->deliveryTermId = "{$row->deliveryTermId}, {$deliveryAdress}";
+                } else {
+                    $row->deliveryPlaceId = $deliveryAdress;
+                }
             }
             
             if (!empty($profRec)) {
@@ -725,10 +729,14 @@ class sales_Quotations extends core_Master
             }
             
             if (isset($rec->deliveryTermId)) {
-                $locationId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null; 
+                
                 if (sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $locationId)) {
                    $row->deliveryError = tr('За транспортните разходи, моля свържете се с представител на фирмата');
                 }
+            }
+            
+            if(!empty($row->deliveryPlaceId)){
+                $row->deliveryPlaceCaption = isset($rec->deliveryTermId) ? tr('Място на доставка') : tr('За адрес');
             }
             
             if (empty($rec->deliveryTime) && empty($rec->deliveryTermTime)) {
