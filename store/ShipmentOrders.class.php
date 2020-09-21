@@ -497,7 +497,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         
         $contragentData = new stdClass();
         
-        if ($rec->company) {
+        if ($rec->company || $rec->person) {
             $contragentData->company = $rec->company;
             $contragentData->person = $rec->person;
             $contragentData->pTel = $rec->tel;
