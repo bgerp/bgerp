@@ -151,7 +151,6 @@ class bulmar_BankDocumentExport extends core_Manager
             foreach ($arr as $rec) {
                 $count++;
                 $newRec = ($key == 'recs') ? $this->prepareRec($rec, $count) : $this->prepareNoncashRec($rec, $count);
-                if(!is_object($newRec)) continue;
                 
                 $accountId = null;
                 $ownAccountId = $newRec->accountId;
