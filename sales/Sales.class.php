@@ -1755,4 +1755,42 @@ class sales_Sales extends deals_DealMaster
         
         return $res;
     }
+    
+    
+    /**
+     * Интерфейсен метод
+     *
+     * @param int $id
+     *
+     * @return object
+     *
+     * @see doc_ContragentDataIntf
+     */
+    public static function getContragentData($id)
+    {
+        if (core_Packs::isInstalled('eshop') && (self::fetchRec($id))) {
+            
+            if($cartRec = eshop_Carts::fetch("#saleId = {$id}")){
+                $contrData = new stdClass();
+                
+                $contrData->person = $cartRec->personNames;
+                $contrData->tel = $cartRec->tel;
+                $contrData->country = $cartRec->country;
+                
+                if ($cartRec->deliveryAddress) {
+                    $contrData->pCode = $cartRec->deliveryPCode;
+                    $contrData->place = $cartRec->deliveryPlace;
+                    $contrData->address = $cartRec->deliveryAddress;
+                } else {
+                    $contrData->pCode = $cartRec->invoicePCode;
+                    $contrData->place = $cartRec->invoicePlace;
+                    $contrData->address = $cartRec->invoiceAddress;
+                }
+                
+                $contrData->email = $cartRec->email;
+                
+                return $contrData;
+            }
+        }
+    }
 }

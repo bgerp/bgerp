@@ -497,29 +497,9 @@ class store_ShipmentOrders extends store_DocumentMaster
             $rec = self::fetchRec($id);
             
             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-            if($firstDoc->isInstanceOf('sales_Sales')){
-                if($cartRec = eshop_Carts::fetch("#saleId = {$firstDoc->that}")){
-                    
-                    $contrData = new stdClass();
-                    
-                    $contrData->person = $cartRec->personNames;
-                    $contrData->tel = $cartRec->tel;
-                    $contrData->country = $cartRec->country;
-                    
-                    if ($cartRec->deliveryAddress) {
-                        $contrData->pCode = $cartRec->deliveryPCode;
-                        $contrData->place = $cartRec->deliveryPlace;
-                        $contrData->address = $cartRec->deliveryAddress;
-                    } else {
-                        $contrData->pCode = $cartRec->invoicePCode;
-                        $contrData->place = $cartRec->invoicePlace;
-                        $contrData->address = $cartRec->invoiceAddress;
-                    }
-                    
-                    $contrData->email = $cartRec->email;
-                    
-                    return $contrData;
-                }
+            if ($firstDoc->isInstanceOf('sales_Sales')) {
+                
+                return $firstDoc->getContragentData($firstDoc->that);
             }
         }
     }
