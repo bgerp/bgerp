@@ -1071,9 +1071,10 @@ class pos_Receipts extends core_Master
         $deltaQuery = sales_PrimeCostByDocument::getQuery();
         $deltaQuery->where("#sellCost IS NOT NULL AND (#state = 'active' OR #state = 'closed') AND #isPublic = 'yes'");
         $deltaQuery->where("#valior >= '{$valiorFrom}'");
-        $deltaQuery->show('productId,storeId');
+        $deltaQuery->show('productId,storeId,detailClassId');
         
         // Ако артикула се среща и в експедиционен документ е с по-малка тежест
+        $reportClassId = pos_Reports::getClassId();
         while ($deltaRec = $deltaQuery->fetch()){
             if(!array_key_exists("{$deltaRec->productId}|{$deltaRec->storeId}", $res)){
                 $res["{$deltaRec->productId}|{$deltaRec->storeId}"] = (object)array('classId'       => $this->getClassId(),
@@ -1083,7 +1084,8 @@ class pos_Receipts extends core_Master
                                                                                     'value'         => 0,);
             }
             
-            $res["{$deltaRec->productId}|{$deltaRec->storeId}"]->value += 1;
+            $rating = ($deltaRec->detailClassId == $reportClassId) ? 150 : 1;
+            $res["{$deltaRec->productId}|{$deltaRec->storeId}"]->value += $rating;
         }
         
         $res = array_values($res);
