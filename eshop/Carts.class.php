@@ -1836,7 +1836,7 @@ class eshop_Carts extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if ($rec->userId){
-            $row->userId = core_Users::getNick($rec->userId)."</br>";
+            $row->userId = crm_Profiles::createLink($rec->userId) . "</br>";
         }
         
         $settings = cms_Domains::getSettings($rec->domainId);
