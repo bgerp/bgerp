@@ -818,7 +818,8 @@ class callcenter_Numbers extends core_Manager
         // Вземаме всички записи за потребителите
         $Person = cls::get('crm_Persons');
         $pQuery = $Person->getQuery();
-        $pQuery->where('1=1');
+        $pQuery->orderBy('state');
+        $pQuery->orderBy('createdOn');
         
         // Обхождаме резултатите
         while ($pRec = $pQuery->fetch()) {
@@ -836,7 +837,8 @@ class callcenter_Numbers extends core_Manager
         // Вземаме всички записи за фирмите
         $Company = cls::get('crm_Companies');
         $cQuery = $Company->getQuery();
-        $cQuery->where('1=1');
+        $cQuery->orderBy('state');
+        $cQuery->orderBy('createdOn');
         
         // Обхождаме резултатите
         while ($cRec = $cQuery->fetch()) {
