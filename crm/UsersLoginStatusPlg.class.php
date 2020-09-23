@@ -71,7 +71,7 @@ class crm_UsersLoginStatusPlg extends core_Plugin
                     unset($inst->fields[$fName]);
                 }
             }
-            crm_Profiles::fetch(array("#userId = '[#1#]'", $rec->id));
+            crm_Profiles::delete(array("#userId = '[#1#]'", $rec->id));
         }
     }
 }
