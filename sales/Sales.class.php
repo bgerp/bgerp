@@ -1813,4 +1813,27 @@ class sales_Sales extends deals_DealMaster
             }
         }
     }
+    
+    
+    /**
+     * След извличане на опциите за филтър по тип
+     */
+    protected static function on_AfterGetListFilterTypeOptions($mvc, &$res, $data)
+    {
+        if(core_Packs::isInstalled('eshop')){
+            $res['onlineSale'] = 'Онлайн продажби';
+        }
+    }
+    
+    
+    /**
+     * Филтриране на листовия изглед по тип
+     */
+    protected function on_AfterFilterListFilterByOption($mvc, &$res, $option, &$query)
+    {
+        if($option == 'onlineSale'){
+            $query->EXT('cartId', 'eshop_Carts', 'externalName=id,remoteKey=saleId');
+            $query->where('#cartId IS NOT NULL');
+        }
+    }
 }
