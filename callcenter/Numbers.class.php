@@ -819,7 +819,7 @@ class callcenter_Numbers extends core_Manager
         $Person = cls::get('crm_Persons');
         $pQuery = $Person->getQuery();
         $pQuery->orderBy('state', 'DESC');
-        $pQuery->orderBy('createdOn');
+        $pQuery->orderBy('modifiedOn');
         
         // Обхождаме резултатите
         while ($pRec = $pQuery->fetch()) {
@@ -838,7 +838,7 @@ class callcenter_Numbers extends core_Manager
         $Company = cls::get('crm_Companies');
         $cQuery = $Company->getQuery();
         $cQuery->orderBy('state', 'DESC');
-        $cQuery->orderBy('createdOn');
+        $cQuery->orderBy('modifiedOn');
         
         // Обхождаме резултатите
         while ($cRec = $cQuery->fetch()) {
