@@ -56,4 +56,23 @@ class crm_UsersLoginStatusPlg extends core_Plugin
             $row->_rowTools->addLink('Профил', crm_Profiles::getUrl($id), 'ef_icon=img/16/user-profile.png');
         }
     }
+    
+    
+    /**
+     * След изтриване на запис
+     */
+    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        // След изтриване на потребителя, да се изтрие и профила
+        foreach ($query->getDeletedRecs() as $rec) {
+            $inst = cls::get('crm_Profiles');
+            foreach ($inst->fields as $fName => $fKey) {
+                if ($fKey->kind != 'FLD') {
+                    unset($inst->fields[$fName]);
+                }
+            }
+            crm_Profiles::fetch(array("#userId = '[#1#]'", $rec->id));
+        }
+    }
 }
+    
