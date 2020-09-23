@@ -21,7 +21,7 @@ class trans_Cmrs extends core_Master
     /**
      * Заглавие
      */
-    public $title = 'Товарителници';
+    public $title = 'ЧМР-та';
     
     
     /**
@@ -69,13 +69,13 @@ class trans_Cmrs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'cmrNumber=ЧМР №,title=Товарителница, originId=Експедиция, folderId, state,createdOn, createdBy';
+    public $listFields = 'cmrNumber=ЧМР №,title=ЧМР, originId=Експедиция, folderId, state,createdOn, createdBy';
     
     
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Товарителница';
+    public $singleTitle = 'ЧМР';
     
     
     /**
