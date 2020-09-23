@@ -954,7 +954,7 @@ class sales_QuotationsDetails extends doc_Detail
             $fee = sales_TransportValues::get($mvc->Master, $rec->quotationId, $rec->id);
             
             $vat = cat_Products::getVat($rec->productId, $masterRec->date);
-            $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $fee->explain);
+            $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $masterRec->currencyId, $fee->explain);
         
             if(isset($rec->vatPackPrice) && $data->renderVatPriceInRec){
                 $row->vatPackPrice = $mvc->getFieldType('vatPackPrice')->toVerbal($rec->vatPackPrice);
