@@ -434,7 +434,11 @@ class sales_Sales extends deals_DealMaster
                 
                 // И условието на доставка е със скрито начисляване, не може да се сменя локацията и условието на доставка
                 if (isset($rec->deliveryTermId)) {
-                    $form->setReadOnly('deliveryCalcTransport');
+                    $calcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
+                    if(empty($rec->deliveryCalcTransport)){
+                        $form->setReadOnly('deliveryCalcTransport', $calcCost);
+                    }
+                   
                     if (cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost') == 'yes') {
                         $form->setReadOnly('deliveryAdress');
                         $form->setReadOnly('deliveryLocationId');

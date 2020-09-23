@@ -1507,23 +1507,24 @@ class sales_Quotations extends core_Master
      * @param int   $date            - дата
      * @param array $fields          - стойности на полетата на сделката
      *
-     *   o $fields['originId']        - вальор (ако няма е текущата дата)
-     *   o $fields['reff']            - вашия реф на продажбата
-     *   o $fields['currencyCode']    - код на валута (ако няма е основната за периода)
-     * 	 o $fields['rate']            - курс към валутата (ако няма е този към основната валута)
-     * 	 o $fields['paymentMethodId'] - ид на платежен метод (Ако няма е плащане в брой, @see cond_PaymentMethods)
-     * 	 o $fields['chargeVat']       - да се начислява ли ДДС - yes=Да, separate=Отделен ред за ДДС, exempt=Освободено,no=Без начисляване(ако няма, се определя според контрагента)
-     * 	 o $fields['deliveryTermId']  - ид на метод на доставка (@see cond_DeliveryTerms)
-     * 	 o $fields['validFor']        - срок на годност
-     *   o $fields['company']         - фирма
-     *   o $fields['person']          - лице
-     *   o $fields['email']           - имейли
-     *   o $fields['tel']             - телефон
-     *   o $fields['fax']             - факс
-     *   o $fields['pCode']           - пощенски код
-     *   o $fields['place']           - град
-     *   o $fields['address']         - адрес
-     *   o $fields['deliveryAdress']  - адрес за доставка
+     *   o $fields['originId']              - вальор (ако няма е текущата дата)
+     *   o $fields['reff']                  - вашия реф на продажбата
+     *   o $fields['currencyCode']          - код на валута (ако няма е основната за периода)
+     * 	 o $fields['rate']                  - курс към валутата (ако няма е този към основната валута)
+     * 	 o $fields['paymentMethodId']       - ид на платежен метод (Ако няма е плащане в брой, @see cond_PaymentMethods)
+     * 	 o $fields['chargeVat']             - да се начислява ли ДДС - yes=Да, separate=Отделен ред за ДДС, exempt=Освободено,no=Без начисляване(ако няма, се определя според контрагента)
+     * 	 o $fields['deliveryTermId']        - ид на метод на доставка (@see cond_DeliveryTerms)
+     *   o $fields['deliveryCalcTransport'] - дали да се начислява скрит или явен транспорт (@see cond_DeliveryTerms)
+     * 	 o $fields['validFor']              - срок на годност
+     *   o $fields['company']               - фирма
+     *   o $fields['person']                - лице
+     *   o $fields['email']                 - имейли
+     *   o $fields['tel']                   - телефон
+     *   o $fields['fax']                   - факс
+     *   o $fields['pCode']                 - пощенски код
+     *   o $fields['place']                 - град
+     *   o $fields['address']               - адрес
+     *   o $fields['deliveryAdress']        - адрес за доставка
      *
      * @return mixed - ид на запис или FALSE
      */
@@ -1615,6 +1616,12 @@ class sales_Quotations extends core_Master
         $newRec->contragentCountryId = (isset($fields['countryId'])) ? $fields['countryId'] : $data->countryId;
         expect(drdata_Countries::fetch($newRec->contragentCountryId), 'Невалидна държава');
         $newRec->template = self::getDefaultTemplate($newRec);
+        
+        if(isset($newRec->deliveryTermId)){
+            if(cond_DeliveryTerms::getTransportCalculator($newRec->deliveryTermId)){
+                $newRec->deliveryCalcTransport = isset($fields['deliveryCalcTransport']) ? $fields['deliveryCalcTransport'] : cond_DeliveryTerms::fetchField($newRec->deliveryTermId, 'calcCost');
+            }
+        }
         
         // Създаване на запис
         self::route($newRec);

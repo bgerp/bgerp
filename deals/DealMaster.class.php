@@ -1621,27 +1621,28 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param int   $contragentId    - ид на контрагента
      * @param array $fields          - стойности на полетата на сделката
      *
-     * 		o $fields['valior']             -  вальор (ако няма е текущата дата)
-     * 		o $fields['reff']               -  вашия реф на продажбата
-     * 		o $fields['currencyId']         -  код на валута (ако няма е основната за периода)
-     * 		o $fields['currencyRate']       -  курс към валутата (ако няма е този към основната валута)
-     * 		o $fields['paymentMethodId']    -  ид на платежен метод (Ако няма е плащане в брой, @see cond_PaymentMethods)
-     * 		o $fields['chargeVat']          -  да се начислява ли ДДС - yes=Да, separate=Отделен ред за ДДС, exempt=Освободено,no=Без начисляване(ако няма, се определя според контрагента)
-     * 		o $fields['shipmentStoreId']    -  ид на склад (@see store_Stores)
-     * 		o $fields['deliveryTermId']     -  ид на метод на доставка (@see cond_DeliveryTerms)
-     * 		o $fields['deliveryLocationId'] -  ид на локация за доставка (@see crm_Locations)
-     * 		o $fields['deliveryTime']       -  дата на доставка
-     *      o $fields['deliveryData']       -  други данни за доставка
-     * 		o $fields['dealerId']           -  ид на потребител търговец
-     * 		o $fields['initiatorId']        -  ид на потребител инициатора (ако няма е отговорника на контрагента)
-     * 		o $fields['caseId']             -  ид на каса (@see cash_Cases)
-     * 		o $fields['note'] 				-  бележки за сделката
-     * 		o $fields['originId'] 			-  източник на документа
-     *		o $fields['makeInvoice'] 		-  изисквали се фактура или не (yes = Да, no = Не), По дефолт 'yes'
-     *		o $fields['template'] 		    -  бележки за сделката
-     *      o $fields['receiptId']          -  информативно от коя бележка е
-     *      o $fields['onlineSale']         -  дали е онлайн продажба
-     *      o $fields['priceListId']        -  ценова политика
+     * 		o $fields['valior']                - вальор (ако няма е текущата дата)
+     * 		o $fields['reff']                  - вашия реф на продажбата
+     * 		o $fields['currencyId']            - код на валута (ако няма е основната за периода)
+     * 		o $fields['currencyRate']          - курс към валутата (ако няма е този към основната валута)
+     * 		o $fields['paymentMethodId']       - ид на платежен метод (Ако няма е плащане в брой, @see cond_PaymentMethods)
+     * 		o $fields['chargeVat']             - да се начислява ли ДДС - yes=Да, separate=Отделен ред за ДДС, exempt=Освободено,no=Без начисляване(ако няма, се определя според контрагента)
+     * 		o $fields['shipmentStoreId']       - ид на склад (@see store_Stores)
+     * 		o $fields['deliveryTermId']        - ид на метод на доставка (@see cond_DeliveryTerms)
+     *  	o $fields['deliveryCalcTransport'] - дали да се начислява скрит транспорт, ако условието е такова (само за продажба)
+     * 		o $fields['deliveryLocationId']    - ид на локация за доставка (@see crm_Locations)
+     * 		o $fields['deliveryTime']          - дата на доставка
+     *      o $fields['deliveryData']          - други данни за доставка
+     * 		o $fields['dealerId']              - ид на потребител търговец
+     * 		o $fields['initiatorId']           - ид на потребител инициатора (ако няма е отговорника на контрагента)
+     * 		o $fields['caseId']                - ид на каса (@see cash_Cases)
+     * 		o $fields['note'] 				   - бележки за сделката
+     * 		o $fields['originId'] 			   - източник на документа
+     *		o $fields['makeInvoice'] 		   - изисквали се фактура или не (yes = Да, no = Не), По дефолт 'yes'
+     *		o $fields['template'] 		       - бележки за сделката
+     *      o $fields['receiptId']             - информативно от коя бележка е
+     *      o $fields['onlineSale']            - дали е онлайн продажба
+     *      o $fields['priceListId']           - ценова политика
      *      
      *      
      *
@@ -1663,6 +1664,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $allowedFields['receiptId'] = true;
         $allowedFields['onlineSale'] = true;
         $allowedFields['deliveryData'] = true;
+        $allowedFields['deliveryCalcTransport'] = true;
         
         // Проверяваме подадените полета дали са позволени
         if (countR($fields)) {
@@ -1721,13 +1723,14 @@ abstract class deals_DealMaster extends deals_DealBase
             $fields['currencyRate'] = currency_CurrencyRates::getRate($fields['currencyRate'], $fields['currencyId'], null);
             expect($fields['currencyRate']);
         }
-        
+       
         // Ако няма платежен план, това е плащане в брой
-        $paymentSysId = (get_called_class() == 'sales_Sales') ? 'paymentMethodSale' : 'paymentMethodPurchase';
+        $paymentSysId = ($me instanceof sales_Sales) ? 'paymentMethodSale' : 'paymentMethodPurchase';
         $fields['paymentMethodId'] = (empty($fields['paymentMethodId'])) ? cond_Parameters::getParameter($contragentClass, $contragentId, $paymentSysId) : $fields['paymentMethodId'];
         
-        $termSysId = (get_called_class() == 'sales_Sales') ? 'deliveryTermSale' : 'deliveryTermPurchase';
+        $termSysId = ($me instanceof sales_Sales) ? 'deliveryTermSale' : 'deliveryTermPurchase';
         $fields['deliveryTermId'] = (empty($fields['deliveryTermId'])) ? cond_Parameters::getParameter($contragentClass, $contragentId, $termSysId) : $fields['deliveryTermId'];
+        
         
         // Ако не е подадено да се начислявали ддс, определяме от контрагента
         if (empty($fields['chargeVat'])) {
@@ -1743,7 +1746,13 @@ abstract class deals_DealMaster extends deals_DealBase
         $fields['paymentState'] = 'pending';
         
         // Опиваме се да запишем мастъра на сделката
-        $rec = (object) $fields;
+        $rec = (object)$fields;
+        
+        if($me instanceof sales_Sales && isset($fields['deliveryTermId'])){
+            if(cond_DeliveryTerms::getTransportCalculator($fields['deliveryTermId'])){
+                $rec->deliveryCalcTransport = isset($fields['deliveryCalcTransport']) ? $fields['deliveryCalcTransport'] : cond_DeliveryTerms::fetchField($fields['deliveryTermId'], 'calcCost');
+            }
+        }
         
         if ($fields['onlineSale'] === true) {
             $rec->_onlineSale = true;
@@ -1752,7 +1761,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if (isset($fields['receiptId'])) {
             $rec->_receiptId = $fields['receiptId'];
         }
-       
+        
         if ($id = $me->save($rec)) {
             doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, core_Users::getCurrent());
            
