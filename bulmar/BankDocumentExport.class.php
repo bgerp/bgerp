@@ -43,6 +43,11 @@ class bulmar_BankDocumentExport extends core_Manager
     {
         $form->FLD('from', 'date', 'caption=От,mandatory');
         $form->FLD('to', 'date', 'caption=До,mandatory');
+        
+        if($this->mvc instanceof bank_IncomeDocuments){
+            $form->FLD('exportNonCash', 'enum(yes=Да,no=Не)', 'caption=Експортиране на инкасинарене на безналични плащания като плащане от клиент->Избор,mandatory,maxRadio=2');
+            $form->setDefault('exportNonCash', 'yes');
+        }
     }
     
     
@@ -74,14 +79,15 @@ class bulmar_BankDocumentExport extends core_Manager
        
         $nonCashRecs = array();
         if($this->mvc instanceof bank_IncomeDocuments){
-            
-            $cQuery = cash_InternalMoneyTransfer::getQuery();
-            $cQuery->EXT('sourceClassId', 'doc_Containers', 'externalName=docClass,externalKey=sourceId');
-            $cQuery->where("#state = 'active' AND #operationSysId = 'nonecash2bank' AND #sourceId IS NOT NULL AND #sourceClassId = " . cash_Pko::getClassId());
-            
-            $cQuery->in('debitBank', $ownAccounts);
-            $cQuery->between('valior', $filter->from, $filter->to);
-            $nonCashRecs = $cQuery->fetchAll();
+            if($filter->exportNonCash == 'yes'){
+                $cQuery = cash_InternalMoneyTransfer::getQuery();
+                $cQuery->EXT('sourceClassId', 'doc_Containers', 'externalName=docClass,externalKey=sourceId');
+                $cQuery->where("#state = 'active' AND #operationSysId = 'nonecash2bank' AND #sourceId IS NOT NULL AND #sourceClassId = " . cash_Pko::getClassId());
+                
+                $cQuery->in('debitBank', $ownAccounts);
+                $cQuery->between('valior', $filter->from, $filter->to);
+                $nonCashRecs = $cQuery->fetchAll();
+            }
         }
         
         if (!countR($recs) && !countR($nonCashRecs)) {
