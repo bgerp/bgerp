@@ -506,7 +506,7 @@ class pos_ReceiptDetails extends core_Detail
                 return core_Request::forward($forwardUrl);
             }
             
-            expect($rec->productId, 'Няма такъв продукт в системата|*!');
+            expect($rec->productId, 'Няма такъв продукт в системата|*!', $rec);
             expect($rec->notSellable !== true, 'Артикулът е спрян от продажба|*!');
             
             // Ако няма цена
