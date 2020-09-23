@@ -171,9 +171,7 @@ class callcenter_AdditionalNumbersPlg extends core_Plugin
             }
         }
         
-        if (!empty($numbersArr)) {
-            $res = callcenter_Numbers::addNumbers($numbersArr, $mvc->getClassId(), $rec->id, $rec->country);
-        }
+        $res = callcenter_Numbers::addNumbers($numbersArr, $mvc->getClassId(), $rec->id, $rec->country);
     }
     
     
