@@ -790,7 +790,6 @@ class pos_Receipts extends core_Master
         $tpl->append(tr('Чакащи бележки') . " ({$data->count})", 'title');
         $fieldset = new core_FieldSet();
         
-        $fieldset->FLD('_rowTools', 'varchar', 'tdClass=accToolsCell');
         $fieldset->FLD('num', 'varchar', 'tdClass=leftCol');
         $fieldset->FLD('contragentId', 'varchar', 'tdClass=leftCol');
         $fieldset->FLD('total', 'double', 'smartcenter');
