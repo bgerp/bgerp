@@ -263,7 +263,7 @@ class crm_ext_ContragentInfo extends core_manager
      */
     private static function getFirstDates($contragentClassId)
     {
-        $res = array();
+        $res = array('sales' => array(), 'purchases' => array());
         
         foreach (array('sales' => 'sales_Sales', 'purchases' => 'purchase_Purchases') as $key => $Class){
             $dQuery = $Class::getQuery();
