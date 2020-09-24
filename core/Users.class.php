@@ -185,6 +185,12 @@ class core_Users extends core_Manager
     
     
     /**
+     * Кои полета да се извличат при изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'id';
+    
+    
+    /**
      * Описание на полетата на модела
      */
     public function description()

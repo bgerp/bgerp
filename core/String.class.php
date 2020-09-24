@@ -408,7 +408,7 @@ class core_String
             }
             
             if ($isName) {
-                if (($c >= 'a' && $c <= 'z') || ($c >= 'A' && $c <= 'Z') || ($c >= '0' && $c <= '9') || $c == '_') {
+                if (($c >= 'a' && $c <= 'z') || ($c >= 'A' && $c <= 'Z') || ($c >= '0' && $c <= '9') || $c == '_' || $c == '.') {
                     $name .= $c;
                     continue;
                 }
@@ -1363,34 +1363,34 @@ class core_String
                             && ((self::isConsonent($char)) || (self::isVowel($char)))) {
                                 
                                 // Вдигаме влага за добавяне на хифенация
-                                $addHyphen = true;
-                            }
-                            
-                            // Ако флага все още не е вдигнат
-                            if (!$addHyphen) {
+                $addHyphen = true;
+            }
+            
+            // Ако флага все още не е вдигнат
+            if (!$addHyphen) {
                                 
                                 // Ако брояча е над втория допустим праг, задължително вдигаме флага
-                                if ($i > $maxLen) {
+                if ($i > $maxLen) {
                                     
                                     // Вдигаме влага за добавяне на хифенация
-                                    $addHyphen = true;
-                                }
-                            }
-                            
-                            // Ако флага е вдигнат
-                            if ($addHyphen) {
-                                //                $resStr .= "&#173;" . $char; // Знак за softHyphne
-                                $resStr .= $hyphenStr . $char;
-                                
-                                // Нулираме брояча
-                                $i = 0;
-                            } else {
+                    $addHyphen = true;
+                }
+            }
+            
+            // Ако флага е вдигнат
+            if ($addHyphen) {
+                //                $resStr .= "&#173;" . $char; // Знак за softHyphne
+                $resStr .= $hyphenStr . $char;
+                
+                // Нулираме брояча
+                $i = 0;
+            } else {
                                 
                                 // Добавяме символа
-                                $resStr .= $currChar;
-                            }
-                            
-                            continue;
+                $resStr .= $currChar;
+            }
+            
+            continue;
         }
         
         return $resStr;
@@ -1399,8 +1399,9 @@ class core_String
     
     /**
      * Дали стринга съдържа само цифри
-     * 
+     *
      * @param string $value
+     *
      * @return int|false
      */
     public static function containOnlyDigits($value)
@@ -1413,10 +1414,11 @@ class core_String
     
     /**
      * Дали последния символ на стринга е търсения
-     * 
+     *
      * @param string $haystack
      * @param string $needle
-     * @return boolean
+     *
+     * @return bool
      */
     public static function endsWith($haystack, $needle)
     {
@@ -1430,11 +1432,12 @@ class core_String
      * Дали подадения стринг е json
      *
      * @param string $string
-     * @return boolean
+     *
+     * @return bool
      */
     public static function isJson($string)
     {
-        if(!is_scalar($string)) {
+        if (!is_scalar($string)) {
             
             return false;
         }

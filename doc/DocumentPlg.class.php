@@ -3015,16 +3015,6 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * Връща дефолтния имейл за изпращане
-     *
-     * @see email_DocumentIntf
-     */
-    public function on_AfterGetDefaultEmailTo($mvc, $data, $id, $isForwarding = false)
-    {
-    }
-    
-    
-    /**
      * Връща заглавието на имейла
      *
      * @param core_Mvc    $mvc

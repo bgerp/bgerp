@@ -124,9 +124,11 @@
                             <li>[#cartId#]</li>
                             <!--ET_END cartId-->
                             <!--ET_BEGIN deliveryBlock-->
+                            <!--ET_BEGIN deliveryTermId-->
                             <li>
                                 Delivery: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> till [#deliveryTime#]<!--ET_END deliveryTime-->
                             </li>
+                            <!--ET_END deliveryTermId-->
                             [#deliveryBlock#]
                             <!--ET_END deliveryBlock-->
                             <!--ET_BEGIN deliveryTermTime-->

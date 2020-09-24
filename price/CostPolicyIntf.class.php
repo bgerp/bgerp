@@ -50,18 +50,4 @@ class price_CostPolicyIntf
     {
        return $this->class->calcCosts($affectedProducts);
     }
-    
-    
-    /**
-     * Разрешена ли е редакцията на цената от политиката
-     *
-     * @param int $productId
-     * @param int|null $userId
-     *
-     * @return boolean
-     */
-    public function canEditPrice($productId, $userId = null)
-    {
-        return $this->class->canEditPrice($productId, $userId);
-    }
 }

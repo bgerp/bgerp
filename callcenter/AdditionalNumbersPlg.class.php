@@ -140,14 +140,38 @@ class callcenter_AdditionalNumbersPlg extends core_Plugin
                 continue;
             }
             
-            $sNumArr[$nName][$rec->{$fName}] = $rec->{$fName};
+            if (strpos($fName, 'additional') === 0) {
+                
+                $phoneParams = array();
+                if ($rec->country) {
+                    $phoneParams['countryPhoneCode'] = drdata_Countries::fetchField($rec->country, 'telCode');
+                }
+                $numberDetArr = drdata_PhoneType::toArray($rec->{$fName}, $phoneParams);
+                
+                $addNumber = '';
+                foreach ($numberDetArr as $numberDetObj) {
+                    $numStr = drdata_PhoneType::getNumStrFromObj($numberDetObj);
+                    
+                    // Този номер вече е бил добавен към потребител
+                    if (callcenter_Numbers::fetch(array("#number = '[#1#]' AND (( #classId != '[#2#]' AND #contragentId != '[#3#]') OR (#classId = '[#2#]' AND #contragentId != '[#3#]'))", $numStr, $mvc->getClassId(), $rec->id))) {
+                        
+                        continue ;
+                    }
+                    
+                    $addNumber .= $addNumber ? ', ' : '';
+                    $addNumber .= $numStr;
+                }
+            } else {
+                $addNumber = $rec->{$fName};
+            }
             
-            $numbersArr[$nName][] = $rec->{$fName};
+            if ($addNumber) {
+                $sNumArr[$nName][$addNumber] = $addNumber;
+                $numbersArr[$nName][] = $addNumber;
+            }
         }
         
-        if (!empty($numbersArr)) {
-            $res = callcenter_Numbers::addNumbers($numbersArr, $mvc->getClassId(), $rec->id, $rec->country);
-        }
+        $res = callcenter_Numbers::addNumbers($numbersArr, $mvc->getClassId(), $rec->id, $rec->country);
     }
     
     

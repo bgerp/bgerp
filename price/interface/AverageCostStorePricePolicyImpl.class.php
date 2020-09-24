@@ -19,15 +19,6 @@
 class price_interface_AverageCostStorePricePolicyImpl extends price_interface_BaseCostPolicy
 {
     
-    
-    /**
-     * Може ли кешираната цена да бъде редактирана от потребителя
-     *
-     * @var boolean
-     */
-    protected $canEditPrice = true;
-    
-    
     /**
      * Интерфейси които имплементира
      */

@@ -333,11 +333,7 @@ class sales_Setup extends core_ProtoSetup
             'enum(none=Няма,form=Форма за оферта,addProduct=Добавяне на артикул,createProduct=Създаване на артикул)',
             'mandatory,caption=Действие на бързите бутони в папките->Оферта,customizeBy=ceo|sales',
         ),
-        
-        'SALES_STATISTIC_DATA_FOR_THE_LAST' => array(
-            'time',
-            'caption=Статистически данни за продажба->Време назад'
-        ),
+        'SALES_STATISTIC_DATA_FOR_THE_LAST' => array('time', 'caption=Изчисляване на рейтинги за продажба->Време назад'),
     );
     
     
@@ -360,8 +356,9 @@ class sales_Setup extends core_ProtoSetup
         'sales_PrimeCostByDocument',
         'sales_TransportValues',
         'sales_ProductRelations',
-        'sales_StatisticData',
+        'sales_ProductRatings',
         'migrate::updateStoreIdInDeltas2',
+        'migrate::truncateRatings2',
     );
     
     
@@ -419,11 +416,11 @@ class sales_Setup extends core_ProtoSetup
         ), 
         array(
             'systemId' => 'Gather Sale Statistic',
-            'description' => 'Изчисляване на статистическите данни за продажбите',
-            'controller' => 'sales_StatisticData',
-            'action' => 'GatherSalesData',
+            'description' => 'Изчисляване на рейтинги на артикулите в продажбите',
+            'controller' => 'sales_ProductRatings',
+            'action' => 'CalcRating',
             'offset' => 190,
-            'period' => core_DateTime::SECONDS_IN_MONTH / 60,
+            'period' => 1440,
             'timeLimit' => 500
         )
     );
@@ -552,6 +549,18 @@ class sales_Setup extends core_ProtoSetup
         if($query->count()){
             cond_Ranges::add('sales_Invoices', 2000000, 2999999, null, 'acc,ceo', 2, false);
         }
+    }
+    
+    
+    /**
+     * Обновява рейтингите
+     */
+    public function truncateRatings2()
+    {
+        $Ratings = cls::get('sales_ProductRatings');
+        $Ratings->setupMvc();
+        
+        $Ratings->truncate();
     }
     
     

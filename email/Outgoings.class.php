@@ -1595,15 +1595,6 @@ class email_Outgoings extends core_Master
         $faxTo = Request::get('faxto');
         $emailTo = Request::get('emailto');
         
-        if(isset($rec->originId)){
-            $oDoc = doc_Containers::getDocument($rec->originId);
-            if($oDoc->haveInterface('email_DocumentIntf')) {
-                if($defaultEmailFrinOrigin = $oDoc->getDefaultEmailTo($isForwarding)){
-                    setIfNot($emailTo, $defaultEmailFrinOrigin);
-                }
-            }
-        }
-        
         $emailTo = str_replace(email_ToLinkPlg::AT_ESCAPE, '@', $emailTo);
         $emailTo = str_replace('mailto:', '', $emailTo);
         

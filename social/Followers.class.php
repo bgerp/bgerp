@@ -146,7 +146,7 @@ class social_Followers extends core_Master
         if ($rec) {
             if (core_Packs::fetch("#name = 'vislog'") &&
                vislog_History::add('Последване в ' . $rec->title)) {
-                if (Mode::is('javascript', 'yes') && !log_Browsers::detectBot()) {
+                if (!Mode::is('javascript', 'no') && !log_Browsers::detectBot()) {
                    
                    // Увеличаване на брояча на споделянията
                     $rec->followersCnt++;

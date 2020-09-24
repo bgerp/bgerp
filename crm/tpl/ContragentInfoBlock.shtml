@@ -7,8 +7,16 @@
 [#totalDealsBlock#]
 <div class="richtext">|Общо продажби|*: [#totalDealsCount#] |за|* [#totalDealsAmount#]</div>
 <!--ET_END totalDealsBlock-->
-
 <!--ET_BEGIN overdueDealsBlock-->
 [#overdueDealsBlock#]
 <div class="richtext" style='background-color:red;color:white;padding:2px;'>|Просрочени|*: [#overdueDealsCount#] |за|* [#overdueDealsAmount#]</div>
 <!--ET_END overdueDealsBlock-->
+<!--ET_BEGIN supplierSince-->
+<div class="richtext">
+|Доставчик от|*: <b>[#supplierSince#]</b>
+</div>
+<!--ET_END supplierSince-->
+<!--ET_BEGIN totalPurchasesBlock-->
+[#totalPurchasesBlock#]
+<div class="richtext">|Общо покупки|*: [#totalPurchaseCount#] |за|* [#totalPurchaseAmount#]</div>
+<!--ET_END totalPurchasesBlock-->

@@ -976,7 +976,7 @@ if ($step == 5) {
     $localRelativUrl = substr($localUrl, strlen($pURL['scheme'] . '://' . $pURL['host']));
     
     $jsStart = "<script>
-    
+
     function httpGet(theUrl)
     {
     var xmlHttp = new XMLHttpRequest();
@@ -1032,10 +1032,8 @@ if ($step == 'setup') {
         var objDiv = document.getElementById('setupLog');
         if ((objDiv.scrollTop+objDiv.offsetHeight) < objDiv.scrollHeight && mouseDown == 0)
         {
-           objDiv.scrollTop+=5;
-           
+           objDiv.scrollTop+=objDiv.scrollHeight/500;
         }
-        
     }
     var handle=setInterval('scroll()', 4);
     </script>

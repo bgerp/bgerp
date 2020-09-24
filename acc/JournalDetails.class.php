@@ -280,15 +280,17 @@ class acc_JournalDetails extends core_Detail
         }
         
         // Проверка на останалите параметри от 1 до 3
+        
         foreach (range(1, 3) as $i) {
             $var = ${"items{$i}"};
+            $c = 1;
             
             if (!$var) {
                 if ($strict) {
                     
-                    // Ако търсенето е стриктно и стойността на перото е NULL се търси за запис с NULl
-                    $query->where("#debitItem{$i} IS NULL");
-                    $query->orWhere("#creditItem{$i} IS NULL");
+                    $or = ($c == 1) ? false : true;
+                    $query->where("#debitItem{$i} IS NULL OR #creditItem{$i} IS NULL", $or);
+                    $c++;
                 }
                 continue;
             }
@@ -297,8 +299,9 @@ class acc_JournalDetails extends core_Detail
             
             // За перата се изисква поне едно от тях да е на текущата позиция
             foreach ($varArr as $itemId) {
-                $query->where("#debitItem{$i} = {$itemId}");
-                $query->orWhere("#creditItem{$i} = {$itemId}");
+                $or = ($c == 1) ? false : true;
+                $query->where("#debitItem{$i} = {$itemId} OR #creditItem{$i} = {$itemId}", $or);
+                $c++;
             }
         }
     }

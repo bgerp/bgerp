@@ -34,7 +34,7 @@ class sales_Wrapper extends plg_ProtoWrapper
         $this->TAB('sales_PrimeCostByDocument', 'Дебъг->Делти', 'admin,ceo,debug');
         $this->TAB('sales_TransportValues', 'Дебъг->Навла', 'debug');
         $this->TAB('sales_ProductRelations', 'Дебъг->Сходни продукти', 'debug');
-        $this->TAB('sales_StatisticData', 'Дебъг->Статистически данни', 'debug');
+        $this->TAB('sales_ProductRatings', 'Дебъг->Продуктови рейтинги', 'debug');
         
         $this->title = 'Продажби « Търговия';
         Mode::set('menuPage', 'Търговия:Продажби');
