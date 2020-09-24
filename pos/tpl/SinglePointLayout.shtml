@@ -1,4 +1,4 @@
-<div class="singleView pos_Receipts_SingleView">
+<div class="singleView">
 [#SingleToolbar#]
 <div>
 	<div class="folder-cover [#STATE_CLASS#]">

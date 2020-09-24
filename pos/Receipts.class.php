@@ -770,7 +770,6 @@ class pos_Receipts extends core_Master
             
             $data->rows[$rec->id]->total = ht::styleNumber($data->rows[$rec->id]->total,  $rec->total);
             $data->rows[$rec->id]->total .= " <span class='cCode'>{$baseCurrencyCode}</span>";
-            
             $data->rows[$rec->id]->num = $num;
         }
     }
@@ -791,7 +790,6 @@ class pos_Receipts extends core_Master
         $tpl->append(tr('Чакащи бележки') . " ({$data->count})", 'title');
         $fieldset = new core_FieldSet();
         
-        
         $fieldset->FLD('_rowTools', 'varchar', 'tdClass=accToolsCell');
         $fieldset->FLD('num', 'varchar', 'tdClass=leftCol');
         $fieldset->FLD('contragentId', 'varchar', 'tdClass=leftCol');
@@ -799,8 +797,9 @@ class pos_Receipts extends core_Master
         
         $table = cls::get('core_TableView', array('mvc' => $fieldset));
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
-        
+        $table->tableClass = 'listTable receiptsInSingle';
         $details = $table->get($data->rows, $data->listFields);
+        
         $tpl->append($details, 'content');
         if (isset($data->Pager)) {
             $tpl->append($data->Pager->getHtml(), 'content');
