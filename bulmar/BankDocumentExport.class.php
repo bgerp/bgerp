@@ -300,7 +300,8 @@ class bulmar_BankDocumentExport extends core_Manager
         $staticData->mapAccounts = type_Table::toArray($conf->BULMAR_BANK_DOCUMENT_OWN_ACCOUNT_MAP);
         
         $myCompany = crm_Companies::fetchOwnCompany();
-        $staticData->OWN_COMPANY_BULSTAT = str_replace('BG', '', $myCompany->vatNo);
+        $num = (!empty($myCompany->vatNo)) ? str_replace('BG', '', $myCompany->vatNo) : $myCompany->uicId;
+        $staticData->OWN_COMPANY_BULSTAT = $num;
         
         return $staticData;
     }
