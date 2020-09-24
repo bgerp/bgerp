@@ -85,7 +85,7 @@ class sales_TransportValues extends core_Manager
     /**
      * Полета, които се виждат
      */
-    public $listFields = 'docId,recId,fee,deliveryTime,explain';
+    public $listFields = 'id,docId,recId,fee,deliveryTime,explain';
     
     
     /**
