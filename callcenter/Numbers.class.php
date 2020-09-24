@@ -815,6 +815,8 @@ class callcenter_Numbers extends core_Manager
         
         core_App::setTimeLimit('600');
         
+        $this->logDebug('Начало на обновяването на номерата');
+        
         // Вземаме всички записи за потребителите
         $Person = cls::get('crm_Persons');
         $pQuery = $Person->getQuery();
@@ -834,6 +836,8 @@ class callcenter_Numbers extends core_Manager
             $delNums += $pRecArr['deleted'];
         }
         
+        $this->logDebug('Край на обновяването на номерата за лицата');
+        
         // Вземаме всички записи за фирмите
         $Company = cls::get('crm_Companies');
         $cQuery = $Company->getQuery();
@@ -852,6 +856,8 @@ class callcenter_Numbers extends core_Manager
             // Броя на изтритите номера
             $delNums += $cRecArr['deleted'];
         }
+        
+        $this->logDebug('Край на обновяването на номерата за фирмите');
         
         // Ако има записани номера, добавяме съответния текст в резултата
         if ($savedNums) {
