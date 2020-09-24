@@ -276,10 +276,12 @@ class callcenter_Fax extends core_Manager
         
         // Обхождаме резултатите
         while ($rec = $query->fetch()) {
-            $rec->faxNumData = $nRecArr[0]->id;
-            
-            // Записваме
-            static::save($rec);
+            if ($rec->faxNumData != $nRecArr[0]->id) {
+                $rec->faxNumData = $nRecArr[0]->id;
+                
+                // Записваме
+                static::save($rec);
+            }
         }
     }
 }
