@@ -1739,7 +1739,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         // Ако не е подадена дата, това е сегашната
-        $fields['valior'] = (empty($fields['valior'])) ? dt::today() : $fields['valior'];
+        $fields['valior'] = (empty($fields['valior'])) ? null : $fields['valior'];
         
         // Записваме данните на контрагента
         $fields['contragentClassId'] = $contragentClass->getClassId();
