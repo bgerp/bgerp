@@ -25,7 +25,7 @@ class pos_Receipts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary, plg_Printing, plg_State, pos_Wrapper, cat_plg_AddSearchKeywords, plg_Search, plg_Sorting, plg_Modified';
+    public $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary, plg_Printing, plg_State, pos_Wrapper, cat_plg_AddSearchKeywords, plg_Search, plg_Sorting, plg_Modified,plg_RowTools2';
     
     
     /**
@@ -37,7 +37,7 @@ class pos_Receipts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, createdOn, modifiedOn, valior, title=Бележка, pointId=Точка, contragentName, total, paid, change, state, revertId, returnedTotal';
+    public $listFields = 'id, createdOn, modifiedOn, valior, title=Бележка, pointId=Точка, contragentName, productCount, total, paid, change, state, revertId, returnedTotal';
     
     
     /**
@@ -179,6 +179,7 @@ class pos_Receipts extends core_Master
         $this->FLD('transferedIn', 'key(mvc=sales_Sales)', 'input=none');
         $this->FLD('revertId', 'int', 'input=none,caption=Сторнира');
         $this->FLD('returnedTotal', 'double(decimals=2)', 'caption=Сторнирано, input=none');
+        $this->FNC('productCount', 'int', 'caption=Артикули');
         
         $this->setDbIndex('valior');
         $this->setDbIndex('revertId');
@@ -373,6 +374,7 @@ class pos_Receipts extends core_Master
         $row->createdBy = ht::createLink(core_Users::recToVerbal($cu)->nick, crm_Profiles::getUrl($rec->createdBy));
         $row->pointId = pos_Points::getHyperLink($rec->pointId, true);
         $row->time = dt::mysql2verbal(dt::now(), 'H:i');
+        $row->productCount = $mvc->getProducts($rec->id, true);
         
         if(isset($rec->contragentLocationId)){
             $row->contragentLocationId = crm_Locations::getHyperlink($rec->contragentLocationId);
@@ -408,33 +410,39 @@ class pos_Receipts extends core_Master
      * Извлича информацията за всички продукти които са продадени чрез
      * тази бележки, във вид подходящ за контирането
      *
-     * @param int id - ид на бележката
+     * @param int id         - ид на бележката
+     * @param boolean $count - дали да е само броя
+     *
      *
      * @return mixed $products - Масив от продукти
      */
-    public static function getProducts($id)
+    public static function getProducts($id, $count = false)
     {
         expect($rec = static::fetch($id), 'Несъществуваща бележка');
-        $products = array();
         
         $query = pos_ReceiptDetails::getQuery();
         $query->where("#receiptId = {$id}");
         $query->where('#quantity != 0');
         $query->where("#action LIKE '%sale%'");
         $query->orderBy('id', 'ASC');
-       
+        
+        if($count){
+            
+            return $query->count();
+        }
+        
+        $products = array();
         while ($rec = $query->fetch()) {
             $info = cat_Products::getProductInfo($rec->productId);
             $quantityInPack = ($info->packagings[$rec->value]) ? $info->packagings[$rec->value]->quantity : 1;
             
-            $products[] = (object) array(
-                'productId' => $rec->productId,
-                'price' => $rec->price / $quantityInPack,
-                'packagingId' => $rec->value,
-                'text'       => $rec->text,
-                'vatPrice' => $rec->price * $rec->param,
-                'discount' => $rec->discountPercent,
-                'quantity' => $rec->quantity);
+            $products[] = (object) array('productId'   => $rec->productId,
+                                         'price'       => $rec->price / $quantityInPack,
+                                         'packagingId' => $rec->value,
+                                         'text'        => $rec->text,
+                                         'vatPrice'    => $rec->price * $rec->param,
+                                         'discount'    => $rec->discountPercent,
+                                         'quantity'    => $rec->quantity);
         }
         
         
@@ -737,18 +745,21 @@ class pos_Receipts extends core_Master
         $query = $this->getQuery();
         $query->where("#pointId = {$data->masterId}");
         $query->where("#state = 'waiting' OR #state = 'draft'");
-        $query->orderBy('#state,#total', 'DESC');
+        $query->orderBy('#state=ASC,id=DESC');
         if ($count = $query->count()) {
             $data->count = core_Type::getByName('int')->toVerbal($count);
         }
         
-        $currencyCode = acc_Periods::getBaseCurrencyCode();
+        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
+        
+        $fields = $this->selectFields();
+        $fields['-list'] = true;
+        $data->listFields = arr::make("num=Бележка,productCount=Артикули,contragentId=Клиент,total=Сума");
         
         $data->Pager->setLimit($query);
         while ($rec = $query->fetch()) {
-            $total = core_Type::getByName('double(decimals=2)')->toVerbal($rec->total);
+            $data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
             $num = self::getRecTitle($rec);
-            
             if (!Mode::isReadOnly()) {
                 if ($this->haveRightFor('terminal', $rec)) {
                     $num = ht::createLink($num, array('pos_Terminal', 'open', 'receiptId' => $rec->id), false, 'title=Довършване на бележката,ef_icon=img/16/cash-register.png');
@@ -757,8 +768,10 @@ class pos_Receipts extends core_Master
                 }
             }
             
-            $data->rows[$rec->id] = (object)array('name' => $num, 'total' => "{$total} {$currencyCode}");
-            $data->rows[$rec->id]->ROW_ATTR['class'] = ($rec->state == 'draft') ? 'state-draft' : 'state-waiting';
+            $data->rows[$rec->id]->total = ht::styleNumber($data->rows[$rec->id]->total,  $rec->total);
+            $data->rows[$rec->id]->total .= " <span class='cCode'>{$baseCurrencyCode}</span>";
+            
+            $data->rows[$rec->id]->num = $num;
         }
     }
     
@@ -777,12 +790,17 @@ class pos_Receipts extends core_Master
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $tpl->append(tr('Чакащи бележки') . " ({$data->count})", 'title');
         $fieldset = new core_FieldSet();
-        $fieldset->FLD('name', 'varchar', 'smartcenter,tdClass=leftCol');
+        
+        
+        $fieldset->FLD('_rowTools', 'varchar', 'tdClass=accToolsCell');
+        $fieldset->FLD('num', 'varchar', 'tdClass=leftCol');
+        $fieldset->FLD('contragentId', 'varchar', 'tdClass=leftCol');
         $fieldset->FLD('total', 'double', 'smartcenter');
         
         $table = cls::get('core_TableView', array('mvc' => $fieldset));
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
-        $details = $table->get($data->rows, 'name=Бележка,total=Сума');
+        
+        $details = $table->get($data->rows, $data->listFields);
         $tpl->append($details, 'content');
         if (isset($data->Pager)) {
             $tpl->append($data->Pager->getHtml(), 'content');
