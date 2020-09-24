@@ -85,7 +85,7 @@ class sales_TransportValues extends core_Manager
     /**
      * Полета, които се виждат
      */
-    public $listFields = 'docId,recId,fee,deliveryTime,explain';
+    public $listFields = 'id,docId,recId,fee,deliveryTime,explain';
     
     
     /**
@@ -431,15 +431,17 @@ class sales_TransportValues extends core_Manager
     /**
      * Показване на хинт при изчисление на цена
      *
-     * @param string $amountRow    - вербалната сума на реда
-     * @param float  $amountFee    - вербалната транспортна такса
-     * @param float  $vat          - процент ДДС
-     * @param float  $currencyRate - валутен курс
+     * @param string $amountRow     - вербалната сума на реда
+     * @param double  $amountFee    - вербалната транспортна такса
+     * @param double  $vat          - процент ДДС
+     * @param double  $currencyRate - валутен курс
+     * @param double  $currencyId   - валута
+     * 
      * @param string $chargeVat    - режим на ДДС
      *
      * @return core_ET|string $amountRow  - сумата на реда с хинт
      */
-    public static function getAmountHint($amountRow, $amountFee, $vat, $currencyRate, $chargeVat, $explain = null)
+    public static function getAmountHint($amountRow, $amountFee, $vat, $currencyRate, $chargeVat, $currencyId, $explain = null)
     {
         if (!haveRole('powerUser') || !isset($amountRow)) {
             
@@ -460,7 +462,7 @@ class sales_TransportValues extends core_Manager
         } elseif (isset($amountFee)) {
             $amountFee = deals_Helper::getDisplayPrice($amountFee, $vat, $currencyRate, $chargeVat);
             $amountFee = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($amountFee);
-            $hint = "Транспорт|*: {$amountFee}";
+            $hint = "Транспорт|*: {$amountFee} {$currencyId}";
             
             if (!empty($explain) && haveRole('admin,tcost')){
                 $hint .= "<br>" . $explain;
@@ -574,8 +576,8 @@ class sales_TransportValues extends core_Manager
         }
         
         // Ако може да се изчислява скрит транспорт
-        if (!cond_DeliveryTerms::canCalcHiddenCost($deliveryTermId, $productId)) {
-            
+        if ($params['deliveryCalcTransport'] != 'yes' && !cond_DeliveryTerms::canCalcHiddenCost($deliveryTermId, $productId)) {
+           
             return;
         }
         
@@ -732,6 +734,7 @@ class sales_TransportValues extends core_Manager
         // Колко е очаквания транспорт
         $deliveryData = is_array($masterRec->{$map['deliveryData']}) ? $masterRec->{$map['deliveryData']} : array();
         $deliveryData['deliveryCalcTransport'] = $masterRec->{$map['deliveryCalcTransport']};
+        
         $feeArr = self::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $masterRec->{$map['deliveryLocationId']}, $countryId, $PCode, $deliveryData);
         
         // Ако има такъв към цената се добавя

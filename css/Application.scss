@@ -4408,7 +4408,6 @@ table .eshop-btn {
 		img {
 			max-width: 180px;
 			height: auto;
-
 		}
 
 	}
@@ -4416,7 +4415,7 @@ table .eshop-btn {
 		background: linear-gradient( to bottom, #334 0%, #334 100% );
 		background-position: 0 100%;
 		background-repeat: repeat-x;
-		background-size: 2px 2px;
+		background-size: 0px 0px;
 		color: #000;
 		text-decoration: none;
 		-webkit-transition: all .2s;
@@ -4431,8 +4430,10 @@ table .eshop-btn {
 .smallThumbs {
 	.productImage {
 		height: 120px;
+		overflow: hidden;
 		img {
 			max-width: 110px;
+			height: auto;
 		}
 	}
 	.productName {

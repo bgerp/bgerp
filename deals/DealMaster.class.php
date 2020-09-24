@@ -438,12 +438,112 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
     /**
+     * Връща опциите за филтър на сделките
+     * 
+     * @param stdClass $data
+     * 
+     * @return array $options
+     */
+    protected function getListFilterTypeOptions_($data)
+    {
+        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки');
+    
+        return $options;
+    }
+    
+    
+    /**
+     * Филтър на заявката по-избрания тип
+     * 
+     * @param string $option
+     * @param core_Query $query
+     * 
+     * @return void
+     */
+    protected function filterListFilterByOption_($option, &$query)
+    {
+        switch ($option) {
+            case 'clAndAct':
+                $query->where("#state = 'active' OR #state = 'closed'");
+                break;
+            case 'all':
+                break;
+            case 'pending':
+                $query->where("#state = 'pending'");
+                break;
+            case 'draft':
+                $query->where("#state = 'draft'");
+                break;
+            case 'active':
+                $query->where("#state = 'active'");
+                break;
+            case 'closed':
+                $query->where("#state = 'closed'");
+                break;
+            case 'paid':
+                $query->where("#paymentState = 'paid' OR #paymentState = 'repaid'");
+                $query->where("#state = 'active' OR #state = 'closed'");
+                break;
+            case 'invoiced':
+                $query->where('#invRound >= #deliveredRound AND #invRound >= 0.05');
+                $query->where("#state = 'active' OR #state = 'closed'");
+                break;
+            case 'notInvoiced':
+                $query->where('(#deliveredRound - #invRound) > 0.05');
+                $query->where("#state = 'active' OR #state = 'closed'");
+                break;
+            case 'notInvoicedActive':
+                $query->where("(#deliveredRound - #invRound) > 0.05 AND #state = 'active'");
+                break;
+            case 'invoiceDownpaymentToDeduct':
+                $query->where('#invoicedDownpaymentToDeductRound > 0.01');
+                $query->where("#state = 'active' OR #state = 'closed'");
+                break;
+            case 'overdue':
+                $query->where("#paymentState = 'overdue'");
+                break;
+            case 'delivered':
+                $query->where('#deliveredRound >= #dealRound');
+                $query->where("#state = 'active' OR #state = 'closed'");
+                break;
+            case 'undelivered':
+                $query->where('#deliveredRound < #dealRound OR #deliveredRound IS NULL');
+                $query->where("#state = 'active'");
+                break;
+            case 'unpaid':
+                $query->where('#paidRound < #deliveredRound OR #paidRound IS NULL');
+                $query->where("#state = 'active'");
+                break;
+            case 'closedWith':
+                $closedDealsArr = $this->getDealsClosedWithOtherDeals();
+                $query->where("#state = 'closed'");
+                if (countR($closedDealsArr)) {
+                    $query->in('id', $closedDealsArr);
+                } else {
+                    $query->where('1=2');
+                }
+                break;
+            case 'unionDeals':
+                $query->where("#state = 'active' OR #state = 'closed'");
+                $query->where("#closedDocuments != '' AND #closedDocuments IS NOT NULL");
+                break;
+            case 'notUnionDeals':
+                $query->where("#state = 'active' OR #state = 'closed'");
+                $query->where("#closedDocuments IS NULL OR #closedDocuments = ''");
+                break;
+        }
+    }
+    
+    
+    /**
      * Филтър на продажбите
      */
     public static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
         if (!Request::get('Rejected', 'int')) {
-            $data->listFilter->FNC('type', 'enum(all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки)', 'caption=Състояние,refreshForm');
+            $fType = cls::get('type_Enum', array('options' => $mvc->getListFilterTypeOptions($data)));
+            $data->listFilter->FNC('type', 'varchar', 'caption=Състояние,refreshForm');
+            $data->listFilter->setFieldType('type', $fType);
             $data->listFilter->setDefault('type', 'active');
             $data->listFilter->showFields .= ',type';
         }
@@ -469,76 +569,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             
             if ($filter->type) {
-                switch ($filter->type) {
-                    case 'clAndAct':
-                        $data->query->where("#state = 'active' OR #state = 'closed'");
-                        break;
-                    case 'all':
-                        break;
-                    case 'pending':
-                        $data->query->where("#state = 'pending'");
-                        break;
-                    case 'draft':
-                        $data->query->where("#state = 'draft'");
-                        break;
-                    case 'active':
-                        $data->query->where("#state = 'active'");
-                        break;
-                    case 'closed':
-                        $data->query->where("#state = 'closed'");
-                        break;
-                    case 'paid':
-                        $data->query->where("#paymentState = 'paid' OR #paymentState = 'repaid'");
-                        $data->query->where("#state = 'active' OR #state = 'closed'");
-                        break;
-                    case 'invoiced':
-                        $data->query->where('#invRound >= #deliveredRound AND #invRound >= 0.05');
-                        $data->query->where("#state = 'active' OR #state = 'closed'");
-                        break;
-                    case 'notInvoiced':
-                        $data->query->where('(#deliveredRound - #invRound) > 0.05');
-                        $data->query->where("#state = 'active' OR #state = 'closed'");
-                        break;
-                    case 'notInvoicedActive':
-                        $data->query->where("(#deliveredRound - #invRound) > 0.05 AND #state = 'active'");
-                        break;
-                    case 'invoiceDownpaymentToDeduct':
-                        $data->query->where('#invoicedDownpaymentToDeductRound > 0.01');
-                        $data->query->where("#state = 'active' OR #state = 'closed'");
-                        break;
-                    case 'overdue':
-                        $data->query->where("#paymentState = 'overdue'");
-                        break;
-                    case 'delivered':
-                        $data->query->where('#deliveredRound >= #dealRound');
-                        $data->query->where("#state = 'active' OR #state = 'closed'");
-                        break;
-                    case 'undelivered':
-                        $data->query->where('#deliveredRound < #dealRound OR #deliveredRound IS NULL');
-                        $data->query->where("#state = 'active'");
-                        break;
-                    case 'unpaid':
-                        $data->query->where('#paidRound < #deliveredRound OR #paidRound IS NULL');
-                        $data->query->where("#state = 'active'");
-                        break;
-                    case 'closedWith':
-                        $closedDealsArr = $mvc->getDealsClosedWithOtherDeals();
-                        $data->query->where("#state = 'closed'");
-                        if (countR($closedDealsArr)) {
-                            $data->query->in('id', $closedDealsArr);
-                        } else {
-                            $data->query->where('1=2');
-                        }
-                        break;
-                    case 'unionDeals':
-                        $data->query->where("#state = 'active' OR #state = 'closed'");
-                        $data->query->where("#closedDocuments != '' AND #closedDocuments IS NOT NULL");
-                        break;
-                    case 'notUnionDeals':
-                        $data->query->where("#state = 'active' OR #state = 'closed'");
-                        $data->query->where("#closedDocuments IS NULL OR #closedDocuments = ''");
-                        break;
-                }
+                $mvc->filterListFilterByOption($filter->type, $data->query);
                 
                 if(!in_array($filter->type, array('draft', 'pending', 'all'))){
                     $data->query->orderBy('activatedOn', 'DESC');
@@ -1078,25 +1109,27 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             
             core_Lg::push($rec->tplLang);
-            $deliveryAdress = '';
+            $row->deliveryAdress = null;
             if (!empty($rec->deliveryAdress)) {
-                $deliveryAdress .= $mvc->getFieldType('deliveryAdress')->toVerbal($rec->deliveryAdress);
+                $deliveryAdress = $mvc->getFieldType('deliveryAdress')->toVerbal($rec->deliveryAdress);
             } else {
-                if (isset($rec->deliveryTermId)) {
-                    $deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $rec->deliveryData, $mvc);
-                }
+                $deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $rec->deliveryData, $mvc);
             }
-            
+           
             if (isset($rec->deliveryTermId) && !Mode::isReadOnly()) {
                 $row->deliveryTermId = ht::createLink($row->deliveryTermId, cond_DeliveryTerms::getSingleUrlArray($rec->deliveryTermId));
             }
             
             if (!empty($deliveryAdress)) {
-                $deliveryAdress1 = (isset($rec->deliveryTermId)) ? ($row->deliveryTermId . ', ') : '';
-                $deliveryAdress = $deliveryAdress1 . $deliveryAdress;
-                $row->deliveryTermId = $deliveryAdress;
+                if(!isset($rec->deliveryTermId)){
+                    $row->deliveryBlock .= "<li>" . tr('За адрес') . ": {$deliveryAdress}</li>";
+                } else {
+                    $deliveryAdress1 = (isset($rec->deliveryTermId)) ? ($row->deliveryTermId . ', ') : '';
+                    $deliveryAdress = $deliveryAdress1 . $deliveryAdress;
+                    $row->deliveryTermId = $deliveryAdress;
+                }
             }
-            
+           
             // Подготовка на имената на моята фирма и контрагента
             $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
             $row = (object) ((array) $row + (array) $headerInfo);
@@ -1619,27 +1652,28 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param int   $contragentId    - ид на контрагента
      * @param array $fields          - стойности на полетата на сделката
      *
-     * 		o $fields['valior']             -  вальор (ако няма е текущата дата)
-     * 		o $fields['reff']               -  вашия реф на продажбата
-     * 		o $fields['currencyId']         -  код на валута (ако няма е основната за периода)
-     * 		o $fields['currencyRate']       -  курс към валутата (ако няма е този към основната валута)
-     * 		o $fields['paymentMethodId']    -  ид на платежен метод (Ако няма е плащане в брой, @see cond_PaymentMethods)
-     * 		o $fields['chargeVat']          -  да се начислява ли ДДС - yes=Да, separate=Отделен ред за ДДС, exempt=Освободено,no=Без начисляване(ако няма, се определя според контрагента)
-     * 		o $fields['shipmentStoreId']    -  ид на склад (@see store_Stores)
-     * 		o $fields['deliveryTermId']     -  ид на метод на доставка (@see cond_DeliveryTerms)
-     * 		o $fields['deliveryLocationId'] -  ид на локация за доставка (@see crm_Locations)
-     * 		o $fields['deliveryTime']       -  дата на доставка
-     *      o $fields['deliveryData']       -  други данни за доставка
-     * 		o $fields['dealerId']           -  ид на потребител търговец
-     * 		o $fields['initiatorId']        -  ид на потребител инициатора (ако няма е отговорника на контрагента)
-     * 		o $fields['caseId']             -  ид на каса (@see cash_Cases)
-     * 		o $fields['note'] 				-  бележки за сделката
-     * 		o $fields['originId'] 			-  източник на документа
-     *		o $fields['makeInvoice'] 		-  изисквали се фактура или не (yes = Да, no = Не), По дефолт 'yes'
-     *		o $fields['template'] 		    -  бележки за сделката
-     *      o $fields['receiptId']          -  информативно от коя бележка е
-     *      o $fields['onlineSale']         -  дали е онлайн продажба
-     *      o $fields['priceListId']        -  ценова политика
+     * 		o $fields['valior']                - вальор (ако няма е текущата дата)
+     * 		o $fields['reff']                  - вашия реф на продажбата
+     * 		o $fields['currencyId']            - код на валута (ако няма е основната за периода)
+     * 		o $fields['currencyRate']          - курс към валутата (ако няма е този към основната валута)
+     * 		o $fields['paymentMethodId']       - ид на платежен метод (Ако няма е плащане в брой, @see cond_PaymentMethods)
+     * 		o $fields['chargeVat']             - да се начислява ли ДДС - yes=Да, separate=Отделен ред за ДДС, exempt=Освободено,no=Без начисляване(ако няма, се определя според контрагента)
+     * 		o $fields['shipmentStoreId']       - ид на склад (@see store_Stores)
+     * 		o $fields['deliveryTermId']        - ид на метод на доставка (@see cond_DeliveryTerms)
+     *  	o $fields['deliveryCalcTransport'] - дали да се начислява скрит транспорт, ако условието е такова (само за продажба)
+     * 		o $fields['deliveryLocationId']    - ид на локация за доставка (@see crm_Locations)
+     * 		o $fields['deliveryTime']          - дата на доставка
+     *      o $fields['deliveryData']          - други данни за доставка
+     * 		o $fields['dealerId']              - ид на потребител търговец
+     * 		o $fields['initiatorId']           - ид на потребител инициатора (ако няма е отговорника на контрагента)
+     * 		o $fields['caseId']                - ид на каса (@see cash_Cases)
+     * 		o $fields['note'] 				   - бележки за сделката
+     * 		o $fields['originId'] 			   - източник на документа
+     *		o $fields['makeInvoice'] 		   - изисквали се фактура или не (yes = Да, no = Не), По дефолт 'yes'
+     *		o $fields['template'] 		       - бележки за сделката
+     *      o $fields['receiptId']             - информативно от коя бележка е
+     *      o $fields['onlineSale']            - дали е онлайн продажба
+     *      o $fields['priceListId']           - ценова политика
      *      
      *      
      *
@@ -1661,6 +1695,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $allowedFields['receiptId'] = true;
         $allowedFields['onlineSale'] = true;
         $allowedFields['deliveryData'] = true;
+        $allowedFields['deliveryCalcTransport'] = true;
         
         // Проверяваме подадените полета дали са позволени
         if (countR($fields)) {
@@ -1704,7 +1739,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         // Ако не е подадена дата, това е сегашната
-        $fields['valior'] = (empty($fields['valior'])) ? dt::today() : $fields['valior'];
+        $fields['valior'] = (empty($fields['valior'])) ? null : $fields['valior'];
         
         // Записваме данните на контрагента
         $fields['contragentClassId'] = $contragentClass->getClassId();
@@ -1719,13 +1754,14 @@ abstract class deals_DealMaster extends deals_DealBase
             $fields['currencyRate'] = currency_CurrencyRates::getRate($fields['currencyRate'], $fields['currencyId'], null);
             expect($fields['currencyRate']);
         }
-        
+       
         // Ако няма платежен план, това е плащане в брой
-        $paymentSysId = (get_called_class() == 'sales_Sales') ? 'paymentMethodSale' : 'paymentMethodPurchase';
+        $paymentSysId = ($me instanceof sales_Sales) ? 'paymentMethodSale' : 'paymentMethodPurchase';
         $fields['paymentMethodId'] = (empty($fields['paymentMethodId'])) ? cond_Parameters::getParameter($contragentClass, $contragentId, $paymentSysId) : $fields['paymentMethodId'];
         
-        $termSysId = (get_called_class() == 'sales_Sales') ? 'deliveryTermSale' : 'deliveryTermPurchase';
+        $termSysId = ($me instanceof sales_Sales) ? 'deliveryTermSale' : 'deliveryTermPurchase';
         $fields['deliveryTermId'] = (empty($fields['deliveryTermId'])) ? cond_Parameters::getParameter($contragentClass, $contragentId, $termSysId) : $fields['deliveryTermId'];
+        
         
         // Ако не е подадено да се начислявали ддс, определяме от контрагента
         if (empty($fields['chargeVat'])) {
@@ -1741,7 +1777,13 @@ abstract class deals_DealMaster extends deals_DealBase
         $fields['paymentState'] = 'pending';
         
         // Опиваме се да запишем мастъра на сделката
-        $rec = (object) $fields;
+        $rec = (object)$fields;
+        
+        if($me instanceof sales_Sales && isset($fields['deliveryTermId'])){
+            if(cond_DeliveryTerms::getTransportCalculator($fields['deliveryTermId'])){
+                $rec->deliveryCalcTransport = isset($fields['deliveryCalcTransport']) ? $fields['deliveryCalcTransport'] : cond_DeliveryTerms::fetchField($fields['deliveryTermId'], 'calcCost');
+            }
+        }
         
         if ($fields['onlineSale'] === true) {
             $rec->_onlineSale = true;
@@ -1750,7 +1792,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if (isset($fields['receiptId'])) {
             $rec->_receiptId = $fields['receiptId'];
         }
-       
+        
         if ($id = $me->save($rec)) {
             doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, core_Users::getCurrent());
            

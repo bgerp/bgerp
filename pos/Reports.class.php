@@ -9,7 +9,7 @@
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -582,6 +582,54 @@ class pos_Reports extends core_Master
         
         // Еднократно оттегляме всички празни чернови бележки
         $mvc->rejectEmptyReceipts($rec);
+    }
+    
+    
+    /**
+     * Маркира използваните артикули
+     */
+    private function markUsedProducts($rec, $remove = false)
+    {
+        // Записа се извлича наново, защото поради някаква причина при оттегляне е непълен
+        $id = is_object($rec) ? $rec->id : $rec;
+        $rec = $this->fetch($id, '*', false);
+       
+        if(countR($rec->details['receiptDetails'])){
+            $affectedProducts = array();
+            array_walk($rec->details['receiptDetails'], function ($a) use (&$affectedProducts){if($a->action == 'sale') {$affectedProducts[$a->value] = $a->value;}});
+            
+            // Ако има намерени продадени артикули се маркират/демаркират като използвани
+            if(countR($affectedProducts)){
+                foreach ($affectedProducts as $productId){
+                    $pContainerId = cat_Products::fetchField($productId, 'containerId');
+                    if($remove){
+                        doclog_Used::remove($rec->containerId, $pContainerId);
+                    } else {
+                        doclog_Used::add($rec->containerId, $pContainerId);
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * Функция, която се извиква след активирането на документа
+     */
+    protected static function on_AfterActivation($mvc, &$rec)
+    {
+        // След контиране се маркират използваните артикули
+        $mvc->markUsedProducts($rec);
+    }
+    
+    
+    /**
+     * Изпълнява се преди оттеглянето на документа
+     */
+    protected static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+        // След оттегляне се махат използванията на артикулите
+        $mvc->markUsedProducts($id, true);
     }
     
     

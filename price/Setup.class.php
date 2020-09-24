@@ -138,6 +138,11 @@ class price_Setup extends core_ProtoSetup
     public function migrateUpdates()
     {
         $Updates = cls::get('price_Updates');
+        
+        $Costs = cls::get('price_ProductCosts');
+        $Costs->setupMvc();
+        $Costs->truncate();
+        
         if(!$Updates->count()){
             
             return;
@@ -173,10 +178,6 @@ class price_Setup extends core_ProtoSetup
         if(countR($res)){
             $Updates->saveArray($res, 'id,sourceClass1,sourceClass2,sourceClass3');
         }
-        
-        $Costs = cls::get('price_ProductCosts');
-        $Costs->setupMvc();
-        $Costs->truncate();
         
         $datetime = dt::addMonths(-1 * 12); 
         price_ProductCosts::saveCalcedCosts($datetime);

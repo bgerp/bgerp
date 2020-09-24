@@ -300,8 +300,16 @@ class cond_DeliveryTerms extends core_Master
      */
     public static function addDeliveryTermLocation($deliveryCode, $contragentClassId, $contragentId, $storeId, $locationId, $deliveryData, $document)
     {
-        $adress = '';
+        $adress = null;
         $isSale = ($document instanceof sales_Sales || $document instanceof sales_Quotations);
+        if(empty($deliveryCode)){
+            if(!empty($locationId)){
+                $adress = crm_Locations::getAddress($locationId, true);
+            }
+          
+            return $adress;
+        }
+        
         expect($rec = self::fetch(array('[#1#]', $deliveryCode)));
         
         if (($rec->address == 'supplier' && $isSale === true) || ($rec->address == 'receiver' && $isSale === false)) {

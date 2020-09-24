@@ -98,15 +98,15 @@ defIfNot('POS_TERMINAL_SEARCH_SECONDS', 2000);
 
 
 /**
- *  Време на изпълнение на периодичния процес за обновяване на Top 100
- */
-defIfNot('POS_TOP_100_PERIOD', 86400);
-
-
-/**
  *  Време на изпълнение на периодичния процес за обновяване на продаваемите артикули
  */
 defIfNot('POS_CRON_CACHE_SELLABLE_PERIOD', 3600);
+
+
+/**
+ * Сумиране на рейтингите
+ */
+defIfNot('POS_RATINGS_DATA_FOR_THE_LAST',  6 * core_DateTime::SECONDS_IN_MONTH);
 
 
 
@@ -175,8 +175,8 @@ class pos_Setup extends core_ProtoSetup
         'POS_TERMINAL_ADD_SOUND' => array('enum(click=Клик (1),mouseclick=Клик (2),tap=Клик (3),terminal=Скенер (1),terminal2=Скенер (2))', 'caption=Звуци в терминала->Добавяне'),
         'POS_TERMINAL_EDIT_SOUND' => array('enum(click=Клик (1),mouseclick=Клик (2),tap=Клик (3),terminal=Скенер (1),terminal2=Скенер (2))', 'caption=Звуци в терминала->Редактиране'),
         'POS_TERMINAL_DELETE_SOUND' => array('enum(crash=Изтриване (1),delete1=Изтриване (2),filedelete=Изтриване (3))', 'caption=Звуци в терминала->Изтриване'),
-        'POS_TOP_100_PERIOD' => array('time', 'caption=Време за изпълнение на периодичните процеси->Top 100'),
         'POS_CRON_CACHE_SELLABLE_PERIOD' => array('time', 'caption=Време за изпълнение на периодичните процеси->Кеш на продаваемите артикули'),
+        'POS_RATINGS_DATA_FOR_THE_LAST' => array('time', 'caption=Изчисляване на рейтинги за продажба->Време назад'),
     );
     
     
@@ -223,17 +223,6 @@ class pos_Setup extends core_ProtoSetup
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('pos_ProductsImages', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '6MB', 'user', 'every_one');
-        
-        // Залагаме в cron
-        $rec = new stdClass();
-        $rec->systemId = 'Update Pos Top 100';
-        $rec->description = 'Обновява най-продаваните артикули';
-        $rec->controller = 'pos_Setup';
-        $rec->action = 'UpdatePosTop100';
-        $rec->period = static::get('TOP_100_PERIOD') / 60;
-        $rec->offset = 120;
-        $rec->timeLimit = 200;
-        $html .= core_Cron::addOnce($rec);
         
         // Залагаме в cron
         $rec = new stdClass();
@@ -352,67 +341,5 @@ class pos_Setup extends core_ProtoSetup
     public function cron_UpdateStatistic()
     {
         pos_ReceiptDetails::getMostUsedTexts(24, true);
-    }
-    
-    
-    /**
-     * Обновява статистическите данни в POS-а
-     */
-    public function cron_UpdatePosTop100()
-    {
-        // Кои са POS групите
-        $topGroupId = cat_Groups::fetch("#sysId = 'topPos100'")->id;
-        $topGroupFatherId = cat_Groups::fetch("#sysId = 'posProducts'")->id;
-        
-        // За всяка бележка, намират се най-продаваните 100 артикула
-        $receiptQuery = pos_ReceiptDetails::getQuery();
-        $receiptQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
-        $receiptQuery->EXT('groupsInput', 'cat_Products', 'externalName=groupsInput,externalKey=productId');
-        $receiptQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
-        $receiptQuery->XPR('count', 'int', 'count(#id)');
-        $receiptQuery->where("#state != 'draft' && #state != 'rejected'");
-        $receiptQuery->show('productId,groups,groupsInput');
-        $receiptQuery->groupBy('productId');
-        $receiptQuery->orderBy("count", 'DESC');
-        $receiptQuery->limit(100);
-        
-        // Те ще се добавят в групата за Топ 100 най-продавани
-        $products = $existingProducts = $topKeys = array();
-        while($receiptRec = $receiptQuery->fetch()){
-            $topKeys[$receiptRec->productId] = $receiptRec->productId;
-            if(keylist::isIn($topGroupId, $receiptRec->group)) continue;
-            
-            $receiptRec->groupsInput = keylist::addKey($receiptRec->groupsInput, $topGroupId);
-            $receiptRec->groups = keylist::addKey($receiptRec->groups, $topGroupId);
-            $receiptRec->groups = keylist::addKey($receiptRec->groups, $topGroupFatherId);
-            $products[$receiptRec->productId] = (object)array('id' => $receiptRec->productId, 'groups' => $receiptRec->groups, 'groupsInput' => $receiptRec->groupsInput);
-        }
-        
-        // Ако има артикули, които са в тази група, но вече не влизат в Топ 100 те се махат
-        $pQuery = cat_Products::getQuery();
-        $pQuery->where("#groups LIKE '%|{$topGroupId}|%'");
-        $pQuery->show('id,groups,groupsInput');
-        if(countR($products)){
-            $pQuery->notIn("id", array_keys($topKeys));
-        }
-        
-        while($pRec = $pQuery->fetch()){
-            $pRec->groupsInput = keylist::removeKey($pRec->groupsInput, $topGroupId);
-            $pRec->groupsInput = !empty($pRec->groupsInput) ? $pRec->groupsInput : null;
-            $pRec->groups = keylist::removeKey($pRec->groups, $topGroupId);
-            $pRec->groups = keylist::removeKey($pRec->groups, $topGroupFatherId);
-            $pRec->groups = !empty($pRec->groups) ? $pRec->groups : null;
-            $existingProducts[$pRec->id] = $pRec;
-        }
-        
-        // Записване на най-продаваните артикули
-        $Products = cls::get('cat_Products');
-        if(countR($products)){
-            $Products->saveArray($products, 'id,groups,groupsInput');
-        }
-        
-        if(countR($existingProducts)){
-            $Products->saveArray($existingProducts, 'id,groups,groupsInput');
-        }
     }
 }

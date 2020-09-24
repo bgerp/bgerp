@@ -76,7 +76,7 @@ class eshop_driver_BankPayment extends core_BaseClass
 
         $poLink = "[file={$data->PO_HND}][/file]";
         $txt .= "|Може да свалите попълнено платежно нареждане|*: {$poLink}.\n";
-        $txt .= "\n|Поръчката ще бъде изпълнена след получаване на плащането|*.";
+        $txt .= "|Поръчката ще бъде изпълнена след получаване на плащането|*.\n";
         
         return tr($txt);
     }

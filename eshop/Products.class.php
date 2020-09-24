@@ -31,7 +31,7 @@ class eshop_Products extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code,name,groupId=Група,saleState,state';
+    public $listFields = 'code,name=Е-артикул,dCount=Опции,groupId=Група,saleState,state';
     
     
     /**
@@ -43,13 +43,13 @@ class eshop_Products extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'marketing_InquirySourceIntf';
+    public $interfaces = 'marketing_InquirySourceIntf,sales_RatingsSourceIntf';
     
     
     /**
      * Икона за единичен изглед
      */
-    public $singleIcon = 'img/16/wooden-box.png';
+    public $singleIcon = 'img/16/globe.png';
     
     
     /**
@@ -337,6 +337,11 @@ class eshop_Products extends core_Master
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $row->_rowTools->addLink('Преглед', self::getUrl($rec), 'alwaysShow,ef_icon=img/16/monitor.png,title=Преглед във външната част');
             }
+            
+            $dCount = eshop_ProductDetails::count("#eshopProductId = {$rec->id}");
+            
+            $row->dCount = core_Type::getByName('int')->toVerbal($dCount);
+            $row->dCount = ht::styleNumber($row->dCount, $dCount);
         }
         
         $row->groupId = eshop_Groups::getHyperlink($rec->groupId, true);
@@ -1603,5 +1608,117 @@ class eshop_Products extends core_Master
         $eProductArr = arr::extractValuesFromArray($query->fetchAll(), 'productId');
         
         return $eProductArr;
+    }
+    
+    
+    /**
+     * Подготовка на рейтингите за продажба на артикулите
+     * @see sales_RatingsSourceIntf
+     *
+     * @return array $res - масив с обекти за върнатите данни
+     *                 o objectClassId - ид на клас на обект
+     *                 o objectId      - ид на обект
+     *                 o classId       - текущия клас
+     *                 o key           - ключ
+     *                 o value         - стойност
+     */
+    public function getSaleRatingsData()
+    {
+        $res = array();
+        
+        // Съответствие м/у артикулите и е-артикулите
+        $details = array();
+        $dQuery = eshop_ProductDetails::getQuery();
+        $dQuery->EXT('groupId', 'eshop_Products', 'externalName=groupId,externalKey=eshopProductId');
+        $dQuery->EXT('stateE', 'eshop_Products', 'externalName=state,externalKey=eshopProductId');
+        $dQuery->where("#stateE = 'active'");
+        while($dRec = $dQuery->fetch()){
+            $domainId = self::getDomainId($dRec->eshopProductId);
+            $details[$dRec->productId][$domainId] = $dRec->eshopProductId;
+        }
+        
+        if(!countR($details)) {
+            
+            return $res;
+        }
+        
+        $valiorFromTime = eshop_Setup::get('RATINGS_OLDER_THEN');
+        $valiorFrom = dt::verbal2mysql(dt::addSecs(-1 * $valiorFromTime), false);
+        
+        // Подготовка на заявката за продажбите
+        $deltaQuery = sales_PrimeCostByDocument::getQuery();
+        $deltaQuery->where("#sellCost IS NOT NULL AND (#state = 'active' OR #state = 'closed') AND #isPublic = 'yes'");
+        $deltaQuery->where("#valior >= '{$valiorFrom}'");
+        $deltaQuery->show('productId,threadId,valior');
+        
+        $count = $deltaQuery->count();
+        core_App::setTimeLimit($count * 0.4, false, 200);
+        $deltaRecs = $deltaQuery->fetchAll();
+        $deltaThreads = arr::extractValuesFromArray($deltaRecs, 'threadId');
+        
+        // Кои са нишките на онлайн продажби
+        $onlineSaleThreads = array();
+        if(countR($deltaThreads)){
+            $cartQuery = eshop_Carts::getQuery();
+            $cartQuery->EXT('threadId', 'sales_Sales', 'externalName=threadId,externalKey=saleId');
+            $cartQuery->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
+            $cartQuery->where("#saleId IS NOT NULL AND #state != 'rejected'");
+            $cartQuery->in('threadId', $deltaThreads);
+            $cartQuery->show('threadId, domainId');
+            
+            array_walk($cartQuery->fetchAll(), function ($a) use (&$onlineSaleThreads) {$onlineSaleThreads[$a->threadId] = $a->domainId;});
+        }
+        
+        foreach ($deltaRecs as $dRec){
+             
+            // Ако реда е в онлайн продажба
+            if(array_key_exists($dRec->threadId, $onlineSaleThreads)){
+                
+                // Кой е-артикул съответства на този артикул и домейнт
+                $eshopProductId = $details[$dRec->productId][$onlineSaleThreads[$dRec->threadId]];
+                
+                // Ако има такъв
+                if($eshopProductId){
+                    
+                    if(!array_key_exists($eshopProductId, $res)){
+                        $res[$eshopProductId] = (object)array('classId'       => $this->getClassId(),
+                            'objectClassId' => self::getClassId(),
+                            'objectId'      => $eshopProductId,
+                            'key'           => $onlineSaleThreads[$dRec->threadId],
+                            'value'         => 0,);
+                    }
+                    
+                    // Изчисляване на рейтинга му
+                    $monthsBetween = countR(dt::getMonthsBetween($dRec->valior));
+                    $rating = round(12 / $monthsBetween);
+                    $res[$eshopProductId]->value += 100 * $rating;
+                }
+            }
+            
+            // Проверява се във кои други домейни се среща този артикул
+            if(array_key_exists($dRec->productId, $details)){
+                
+                // Ако се среща в поне един домейн
+                $productInDomains =  $details[$dRec->productId];
+                if(is_array($productInDomains)){
+                    foreach ($productInDomains as $pDomainId => $eshopProductId){
+                        if(!array_key_exists($eshopProductId, $res)){
+                            $res[$eshopProductId] = (object)array('classId'       => $this->getClassId(),
+                                                                  'objectClassId' => self::getClassId(),
+                                                                  'objectId'      => $eshopProductId,
+                                                                  'key'           => $pDomainId,
+                                                                  'value'         => 0,);
+                        }
+                        
+                        // Добавя се с по-малка тежест
+                        $res[$eshopProductId]->value += 1;
+                    }
+                }
+            }
+        }
+        
+        $res = array_values($res);
+        
+        return $res;
     }
 }

@@ -830,9 +830,18 @@ class cms_Content extends core_Manager
                     foreach ($res as $o) {
                         if (isset($o->img) && $o->img instanceof thumb_Img) {
                             $img = $o->img->createImg(array('class' => 'eshop-product-image'));
-                            $itemsInTable .= "<tr><td class='searchImg'>" . ht::createLink($img, $o->url) . "</td><td class='searchName'>" . ht::createLink($o->title, $o->url, false, array('class'=>"searchName")) . '</td> </tr>';
+                            $titleLink = ht::createLink($o->title, $o->url, false, array('class'=>"searchName"));
+                            if(haveRole('debug') && isset($o->rating)){
+                                $titleLink = ht::createHint($titleLink, "Рейтинг|*: {$o->rating}");
+                            }
+                            $itemsInTable .= "<tr><td class='searchImg'>" . ht::createLink($img, $o->url) . "</td><td class='searchName'>" . $titleLink . '</td> </tr>';
                         } else {
-                            $itemsInUl .= "<li style='font-size:1.2em; margin:5px;' >" . ht::createLink($o->title, $o->url) . '</li>';
+                            $titleLink = ht::createLink($o->title, $o->url);
+                            if(haveRole('debug') && isset($o->rating)){
+                                $titleLink = ht::createHint($titleLink, "Рейтинг|*: {$o->rating}");
+                            }
+                            
+                            $itemsInUl .= "<li style='font-size:1.2em; margin:5px;' >" . $titleLink . '</li>';
                         }
                     }
                     

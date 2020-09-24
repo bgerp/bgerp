@@ -491,6 +491,11 @@ class cat_Boms extends core_Master
             $productId = (isset($rec->productId)) ? $rec->productId : $mvc->fetchField($rec->id, 'productId');
             cat_Products::touchRec($productId);
         }
+        
+        //@todo да се махне след като се провери дали някой не записва документа докато е активен
+        if(isset($rec->state) && $rec->state == $rec->brState && $rec->state != 'draft'){
+            wp($rec);
+        }
     }
     
     

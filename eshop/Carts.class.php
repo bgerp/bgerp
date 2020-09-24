@@ -862,6 +862,7 @@ class eshop_Carts extends core_Master
             'deliveryLocationId' => $rec->locationId,
             'deliveryData' => $rec->deliveryData,
             'onlineSale' => true,
+            'deliveryCalcTransport' => 'no',
         );
         
         // Коя е ценовата политика
@@ -1527,10 +1528,12 @@ class eshop_Carts extends core_Master
                 $row->deliveryAmount = $deliveryAmountV;
             }
         }
-        
-        $row->amount = $Double->toVerbal($amountWithoutDelivery);
-        $row->amount = currency_Currencies::decorate($row->amount, $settings->currencyId);
-        $row->amountCurrencyId = $row->currencyId;
+       
+        if(round($rec->total, 4) != round($amountWithoutDelivery, 4) || $rec->freeDelivery == 'yes'){
+            $row->amount = $Double->toVerbal($amountWithoutDelivery);
+            $row->amount = currency_Currencies::decorate($row->amount, $settings->currencyId);
+            $row->amountCurrencyId = $row->currencyId;
+        }
         
         if ($settings->chargeVat != 'yes') {
             $row->totalVat = $Double->toVerbal($vatAmount);
@@ -1833,7 +1836,7 @@ class eshop_Carts extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if ($rec->userId){
-            $row->userId = core_Users::getNick($rec->userId)."</br>";
+            $row->userId = crm_Profiles::createLink($rec->userId) . "</br>";
         }
         
         $settings = cms_Domains::getSettings($rec->domainId);

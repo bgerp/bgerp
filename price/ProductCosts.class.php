@@ -83,27 +83,6 @@ class price_ProductCosts extends core_Manager
     
     
     /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     *
-        
-     * @param core_Mvc $mvc
-     * @param string   $requiredRoles
-     * @param string   $action
-     * @param stdClass $rec
-     * @param int      $userId
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
-    {
-        if($action == 'edit' && isset($rec)){
-            $Source = cls::get($rec->classId);
-            if(!$Source->canEditPrice($rec->productId, $userId)){
-                $requiredRoles = 'no_one';
-            }
-        }
-    }
-    
-    
-    /**
      * След преобразуване на записа в четим за хора вид.
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
@@ -161,9 +140,9 @@ class price_ProductCosts extends core_Manager
      */
     public static function getAffectedProducts($beforeDate)
     {
-        // Кои пера са участвали в дебитирането на склада в последните 3 месеца
         $res = array();
         
+        // Участват артикулите в активирани или оттеглени активни покупки, след посочената дата
         $pQuery = purchase_PurchasesDetails::getQuery();
         $pQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
@@ -175,6 +154,7 @@ class price_ProductCosts extends core_Manager
         $pQuery->show('productId');
         $res += arr::extractValuesFromArray($pQuery->fetchAll(), 'productId');
         
+        // + артикулите в активните или оттеглени активни рецепти, след посочената дата
         $bQuery = cat_BomDetails::getQuery();
         $bQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=resourceId');
         $bQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=resourceId');
@@ -186,18 +166,28 @@ class price_ProductCosts extends core_Manager
         $bQuery->where("#canStore = 'yes' AND #isPublic = 'yes'");
         $res += arr::extractValuesFromArray($bQuery->fetchAll(), 'resourceId');
         
+        $storeAccId = acc_Accounts::getRecBySystemId('321')->id;
+        
         $jQuery = acc_JournalDetails::getQuery();
         $jQuery->EXT('valior', 'acc_Journal', 'externalKey=journalId');
         $jQuery->EXT('journalCreatedOn', 'acc_Journal', 'externalName=createdOn,externalKey=journalId');
-        $storeAccId = acc_Accounts::getRecBySystemId('321')->id;
+        $jQuery2 = clone $jQuery;
+        
+        // Кои пера на артикули са участвали в дебитирането на склад след посочената дата
         $jQuery->where("#debitAccId = {$storeAccId} AND #journalCreatedOn >= '{$beforeDate}'");
         $jQuery->show('debitItem2');
         $jQuery->groupBy('debitItem2');
         $itemsWithMovement = arr::extractValuesFromArray($jQuery->fetchAll(), 'debitItem2');
         
-        // Кои ид-та на артикули, съответстват на тези пера
+        // Кои пера на артикули са участвали в кредитирането на склад след посочената дата
+        $jQuery2->where("#creditAccId = {$storeAccId} AND #journalCreatedOn >= '{$beforeDate}'");
+        $jQuery2->show('creditItem2');
+        $jQuery2->groupBy('creditItem2');
+        $itemsWithMovement += arr::extractValuesFromArray($jQuery->fetchAll(), 'creditItem2');
+        
         if(countR($itemsWithMovement)){
             
+            // + атикулите, чиито пера са участвали в дебитирането или кредитирането на склад
             $iQuery = acc_Items::getQuery();
             $iQuery->EXT('productState', 'cat_Products', 'externalName=state,externalKey=objectId');
             $iQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=objectId');

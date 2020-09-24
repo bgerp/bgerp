@@ -85,7 +85,7 @@ class sales_PrimeCostByDocument extends core_Manager
         $this->FLD('detailClassId', 'class(interface=core_ManagerIntf)', 'caption=Детайл,mandatory');
         $this->FLD('detailRecId', 'int', 'caption=Ред от детайл,mandatory, tdClass=leftCol');
         $this->FLD('containerId', 'int', 'caption=Документ,mandatory');
-        $this->FLD('productId', 'int', 'caption=Артикул,mandatory, tdClass=productCell leftCol wrap');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=10,forceAjax)', 'caption=Артикул,mandatory, tdClass=productCell leftCol wrap');
         $this->FLD('quantity', 'double', 'caption=Количество,mandatory');
         $this->FLD('sellCost', 'double', 'caption=Цени->Продажна,mandatory');
         $this->FLD('primeCost', 'double', 'caption=Цени->Себестойност,mandatory');
@@ -676,7 +676,7 @@ class sales_PrimeCostByDocument extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->FLD('documentId', 'varchar', 'caption=Документ или контейнер, silent');
-        $data->listFilter->showFields = 'documentId';
+        $data->listFilter->showFields = 'documentId,productId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input(null, 'silent');
@@ -684,6 +684,10 @@ class sales_PrimeCostByDocument extends core_Manager
         $data->query->orderBy('valior', 'DESC');
         
         if ($rec = $data->listFilter->rec) {
+            if (!empty($rec->productId)){
+                $data->query->where("#productId={$rec->productId}");
+            }
+            
             if (!empty($rec->documentId)) {
                 
                 // Търсене и на последващите документи

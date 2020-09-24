@@ -67,7 +67,7 @@ class eshop_plg_ProductSync extends core_Plugin
         if ($domainId = cms_Domains::getCurrent('id', false)) {
             if ($eshopProductId = eshop_Products::getByProductId($data->rec->id, $domainId)) {
                 if (eshop_Products::haveRightFor('single', $eshopProductId)) {
-                    $data->toolbar->addBtn('E-артикул', array('eshop_Products', 'single', $eshopProductId, 'ret_url' => true), 'ef_icon = img/16/domain_names_advanced.png,title=Към е-артикула');
+                    $data->toolbar->addBtn('E-артикул', array('eshop_Products', 'single', $eshopProductId, 'ret_url' => true), 'ef_icon = img/16/globe.png,title=Към е-артикула');
                 }
             }
         }

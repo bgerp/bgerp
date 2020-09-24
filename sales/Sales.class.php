@@ -41,8 +41,8 @@ class sales_Sales extends deals_DealMaster
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf,
                           acc_TransactionSourceIntf=sales_transaction_Sale,
-                          bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf, 
-                          acc_RegisterIntf,deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf,hr_IndicatorsSourceIntf';
+                          bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf,sales_RatingsSourceIntf, 
+                          acc_RegisterIntf,deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf,hr_IndicatorsSourceIntf,doc_ContragentDataIntf';
     
     
     /**
@@ -434,7 +434,11 @@ class sales_Sales extends deals_DealMaster
                 
                 // И условието на доставка е със скрито начисляване, не може да се сменя локацията и условието на доставка
                 if (isset($rec->deliveryTermId)) {
-                    $form->setReadOnly('deliveryCalcTransport');
+                    $calcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
+                    if(empty($rec->deliveryCalcTransport)){
+                        $form->setReadOnly('deliveryCalcTransport', $calcCost);
+                    }
+                   
                     if (cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost') == 'yes') {
                         $form->setReadOnly('deliveryAdress');
                         $form->setReadOnly('deliveryLocationId');
@@ -1708,6 +1712,128 @@ class sales_Sales extends deals_DealMaster
             
             // Вика се пак да се преизчислят кеш полетата наново след въведената отстъпка
             parent::updateMaster_($id);
+        }
+    }
+    
+    
+    /**
+     * Подготовка на рейтингите за продажба на артикулите
+     * @see sales_RatingsSourceIntf
+     *
+     * @return array $res - масив с обекти за върнатите данни
+     *                 o objectClassId - ид на клас на обект
+     *                 o objectId      - ид на обект
+     *                 o classId       - текущия клас
+     *                 o key           - ключ
+     *                 o value         - стойност
+     */
+    public function getSaleRatingsData()
+    {
+        $time = sales_Setup::get('STATISTIC_DATA_FOR_THE_LAST');
+        $valiorFrom = dt::verbal2mysql(dt::addSecs(-1 * $time), false);
+        
+        $deltaQuery = sales_PrimeCostByDocument::getQuery();
+        $deltaQuery->where("#sellCost IS NOT NULL AND (#state = 'active' OR #state = 'closed') AND #isPublic = 'yes'");
+        $deltaQuery->where("#valior >= '{$valiorFrom}'");
+        $deltaQuery->show('productId,storeId,detailClassId');
+        $receiptClassId = pos_Reports::getClassId();
+        
+        $res = array();
+        $count = $deltaQuery->count();
+        core_App::setTimeLimit($count * 0.4, false, 200);
+        while ($dRec = $deltaQuery->fetch()){
+            if(!array_key_exists("{$dRec->productId}|{$dRec->storeId}", $res)){
+                $res["{$dRec->productId}|{$dRec->storeId}"] = (object)array('classId'       => $this->getClassId(), 
+                                                                            'objectClassId' => cat_Products::getClassId(),
+                                                                            'objectId'      => $dRec->productId, 
+                                                                            'key'           => $dRec->storeId,
+                                                                            'value'         => 0,);
+            }
+            
+            $rating = ($dRec->detailClassId == $receiptClassId) ? 1 : 10;
+           
+            $res["{$dRec->productId}|{$dRec->storeId}"]->value += $rating;
+        }
+        
+        $res = array_values($res);
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Интерфейсен метод
+     *
+     * @param int $id
+     *
+     * @return object
+     *
+     * @see doc_ContragentDataIntf
+     */
+    public static function getContragentData($id)
+    {
+        if (core_Packs::isInstalled('eshop') && ($rec = self::fetchRec($id))) {
+            
+            if ($cartRec = eshop_Carts::fetch("#saleId = {$id}")){
+                $contrData = new stdClass();
+                
+                if ($rec->folderId) {
+                    $Cover = doc_Folders::getCover($rec->folderId);
+                    
+                    if ($Cover->haveInterface('doc_ContragentDataIntf')) {
+                        $cData = $Cover->getContragentData($Cover->that);
+                        
+                        if ($cData->company) {
+                            $contrData->company = $cData->company;
+                            $contrData->companyId = $cData->companyId;
+                            if (!$cartRec->tel) {
+                                $contrData->tel = $cData->tel;
+                            }
+                        }
+                    }
+                }
+                
+                $contrData->person = $cartRec->personNames;
+                $contrData->pTel = $cartRec->tel;
+                $contrData->countryId = $cartRec->country;
+                
+                if ($cartRec->deliveryAddress) {
+                    $contrData->pCode = $cartRec->deliveryPCode;
+                    $contrData->place = $cartRec->deliveryPlace;
+                    $contrData->address = $cartRec->deliveryAddress;
+                } else {
+                    $contrData->pCode = $cartRec->invoicePCode;
+                    $contrData->place = $cartRec->invoicePlace;
+                    $contrData->address = $cartRec->invoiceAddress;
+                }
+                
+                $contrData->email = $cartRec->email;
+                
+                return $contrData;
+            }
+        }
+    }
+    
+    
+    /**
+     * След извличане на опциите за филтър по тип
+     */
+    protected static function on_AfterGetListFilterTypeOptions($mvc, &$res, $data)
+    {
+        if(core_Packs::isInstalled('eshop')){
+            $res['onlineSale'] = 'Онлайн продажби';
+        }
+    }
+    
+    
+    /**
+     * Филтриране на листовия изглед по тип
+     */
+    protected function on_AfterFilterListFilterByOption($mvc, &$res, $option, &$query)
+    {
+        if($option == 'onlineSale'){
+            $query->EXT('cartId', 'eshop_Carts', 'externalName=id,remoteKey=saleId');
+            $query->where('#cartId IS NOT NULL');
         }
     }
 }

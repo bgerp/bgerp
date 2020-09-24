@@ -327,7 +327,8 @@ class bulmar_InvoiceExport extends core_Manager
         $staticData->creditAdvance = $conf->BULMAR_INV_CREDIT_AV;
         
         $myCompany = crm_Companies::fetchOwnCompany();
-        $staticData->OWN_COMPANY_BULSTAT = str_replace('BG', '', $myCompany->vatNo);
+        $num = (!empty($myCompany->vatNo)) ? str_replace('BG', '', $myCompany->vatNo) : $myCompany->uicId;
+        $staticData->OWN_COMPANY_BULSTAT = $num;
         
         return $staticData;
     }
