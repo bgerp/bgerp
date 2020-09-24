@@ -153,7 +153,7 @@ class callcenter_AdditionalNumbersPlg extends core_Plugin
                     $numStr = drdata_PhoneType::getNumStrFromObj($numberDetObj);
                     
                     // Този номер вече е бил добавен към потребител
-                    if (callcenter_Numbers::fetch(array("#number = '[#1#]' AND #classId != '[#2#]' AND #contragentId != '[#3#]'", $numStr, $mvc->getClassId(), $rec->id))) {
+                    if (callcenter_Numbers::fetch(array("#number = '[#1#]' AND (( #classId != '[#2#]' AND #contragentId != '[#3#]') OR (#classId = '[#2#]' AND #contragentId != '[#3#]'))", $numStr, $mvc->getClassId(), $rec->id))) {
                         
                         continue ;
                     }
