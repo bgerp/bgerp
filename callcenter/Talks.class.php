@@ -843,7 +843,6 @@ class callcenter_Talks extends core_Master
      */
     public function act_RegisterCall()
     {
-        shutdown();
         $conf = core_Packs::getConfig('callcenter');
         
         $url = toUrl(getCurrentUrl());
@@ -1038,7 +1037,6 @@ class callcenter_Talks extends core_Master
      */
     public function act_RegisterEndCall()
     {
-        shutdown();
         $conf = core_Packs::getConfig('callcenter');
         
         $url = toUrl(getCurrentUrl());
