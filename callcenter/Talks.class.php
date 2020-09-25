@@ -375,10 +375,10 @@ class callcenter_Talks extends core_Master
                 $retUrl = array($this, 'single', $id);
             }
             
-            $this->logWrite('Архивиране на обаждане', $id);
-            
             return new Redirect($retUrl, '|Грешка при архивиране на обаждането', 'error');
         }
+        
+        $this->logWrite('Архивиране на обаждане', $id);
         
         return new Redirect(array('fileman_Files', 'single', $fh), '|Успешно архивирахте обаждането');
     }
