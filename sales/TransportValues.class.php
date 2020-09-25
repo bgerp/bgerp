@@ -570,7 +570,7 @@ class sales_TransportValues extends core_Manager
     public static function getCostArray($deliveryTermId, $contragentClassId, $contragentId, $productId, $packagingId, $quantity, $deliveryLocationId, $countryId = null, $pCode = null, $params = array())
     {
         //  Ако изрично е забранено начисляване не се начислява
-        if($params['deliveryCalcTransport'] == 'no') {
+        if($params['deliveryCalcTransport'] == 'no' || empty($productId)) {
             
             return;
         }
