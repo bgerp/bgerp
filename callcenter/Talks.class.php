@@ -570,15 +570,21 @@ class callcenter_Talks extends core_Master
             $internalNum = $toNum;
         }
         
-        $cRecArr = callcenter_Numbers::getRecForNum($externalNum);
+        $dRecArr = callcenter_Numbers::getRecForNum($internalNum, 'internal', true);
         
-        if ($cRecArr[0]) {
-            $nRec->externalData = $cRecArr[0]->id;
+        // Ако няма да се записват разговорите, когата няма регистриран потребител към номера
+        if (!$dRecArr && (callcenter_Setup::get('SAVE_CALLS_FOR_NON_EXIST_INTERNAL_NUMS') == 'no')) {
+            
+            return ;
         }
         
-        $dRecArr = callcenter_Numbers::getRecForNum($internalNum, 'internal', true);
         foreach ((array) $dRecArr as $dRec) {
             $nRec->internalData = type_Keylist::addKey($nRec->internalData, $dRec->id);
+        }
+        
+        $cRecArr = callcenter_Numbers::getRecForNum($externalNum);
+        if ($cRecArr[0]) {
+            $nRec->externalData = $cRecArr[0]->id;
         }
         
         $nRec->externalNum = drdata_PhoneType::getNumberStr($externalNum, 0);
@@ -837,6 +843,7 @@ class callcenter_Talks extends core_Master
      */
     public function act_RegisterCall()
     {
+        shutdown();
         $conf = core_Packs::getConfig('callcenter');
         
         $url = toUrl(getCurrentUrl());
@@ -1031,6 +1038,7 @@ class callcenter_Talks extends core_Master
      */
     public function act_RegisterEndCall()
     {
+        shutdown();
         $conf = core_Packs::getConfig('callcenter');
         
         $url = toUrl(getCurrentUrl());
