@@ -69,6 +69,12 @@ class planning_ProductionNotes extends planning_ProductionDocument
     
     
     /**
+     * Да не се регенерират ключовите думи
+     */
+    public $repairSerchKeywords = false;
+    
+    
+    /**
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,planning';
