@@ -1625,11 +1625,53 @@ class eshop_Products extends core_Master
     public function getSaleRatingsData()
     {
         $res = array();
+        $productClassId = self::getClassId();
+        $classId = $this->getClassId();
+        
+        // От коя дата ще се филтрират записите
+        $valiorFromTime = eshop_Setup::get('RATINGS_OLDER_THEN');
+        $valiorFrom = dt::verbal2mysql(dt::addSecs(-1 * $valiorFromTime), false);
+        
+        // Има ли е-артикули с избран драйвер за запитване?
+        $eProductQuery = eshop_Products::getQuery();
+        $eProductQuery->where("#state = 'active' AND #coDriver IS NOT NULL");
+        $eProductQuery->show('id,coDriver,name');
+        $eProductArr = $eProductQuery->fetchAll();
+        
+        // Ако има ще се начисляват рейтинги
+        if(countR($eProductArr)){
+            $powerUsers = core_Users::getByRole('powerUser');
+            if(countR($powerUsers)){
+                
+                // Имали запитвания създадени от не powerUsers
+                $mQuery = marketing_Inquiries2::getQuery();
+                $mQuery->where("#state = 'active'");
+                $mQuery->notIn('createdBy', $powerUsers);
+                $mQuery->where("#createdOn >= '{$valiorFrom}'");
+                $mQuery->show('id,createdBy,innerClass,title');
+                $inquieriesArr = $mQuery->fetchAll();
+                
+                // Ако има, ще се начисляват рейтинги на е-артикулите
+                if(countR($inquieriesArr)){
+                    foreach($inquieriesArr as $inqRec){
+                        
+                        // От е-артикулите, се намират тези, които са със същия продуктов драйвер като запитването
+                        $foundEproducts = array_filter($eProductArr, function($a) use ($inqRec) { return $a->coDriver == $inqRec->innerClass; });
+                        foreach ($foundEproducts as $foundEproduct){
+                            $rating = ($foundEproduct->name == $inqRec->name) ? 3 : 1;
+                            $rating = 100 * $rating;
+                            
+                            $domainId = self::getDomainId($foundEproduct->id);
+                            sales_ProductRatings::addRatingToObject($res, $foundEproduct->id, $classId, $productClassId, $foundEproduct->id, $domainId, $rating);
+                        }
+                    }
+                }
+            }
+        }
         
         // Съответствие м/у артикулите и е-артикулите
         $details = array();
         $dQuery = eshop_ProductDetails::getQuery();
-        $dQuery->EXT('groupId', 'eshop_Products', 'externalName=groupId,externalKey=eshopProductId');
         $dQuery->EXT('stateE', 'eshop_Products', 'externalName=state,externalKey=eshopProductId');
         $dQuery->where("#stateE = 'active'");
         while($dRec = $dQuery->fetch()){
@@ -1641,9 +1683,6 @@ class eshop_Products extends core_Master
             
             return $res;
         }
-        
-        $valiorFromTime = eshop_Setup::get('RATINGS_OLDER_THEN');
-        $valiorFrom = dt::verbal2mysql(dt::addSecs(-1 * $valiorFromTime), false);
         
         // Подготовка на заявката за продажбите
         $deltaQuery = sales_PrimeCostByDocument::getQuery();
@@ -1674,24 +1713,18 @@ class eshop_Products extends core_Master
             // Ако реда е в онлайн продажба
             if(array_key_exists($dRec->threadId, $onlineSaleThreads)){
                 
-                // Кой е-артикул съответства на този артикул и домейнт
+                // Кой е-артикул съответства на този артикул и домейнат
                 $eshopProductId = $details[$dRec->productId][$onlineSaleThreads[$dRec->threadId]];
                 
                 // Ако има такъв
                 if($eshopProductId){
                     
-                    if(!array_key_exists($eshopProductId, $res)){
-                        $res[$eshopProductId] = (object)array('classId'       => $this->getClassId(),
-                            'objectClassId' => self::getClassId(),
-                            'objectId'      => $eshopProductId,
-                            'key'           => $onlineSaleThreads[$dRec->threadId],
-                            'value'         => 0,);
-                    }
-                    
-                    // Изчисляване на рейтинга му
+                    // Добавя се с по-голяма тежест, спрямо разстоянието от вальора до сега
                     $monthsBetween = countR(dt::getMonthsBetween($dRec->valior));
                     $rating = round(12 / $monthsBetween);
-                    $res[$eshopProductId]->value += 100 * $rating;
+                    $rating = 100 * $rating;
+                    
+                    sales_ProductRatings::addRatingToObject($res, $eshopProductId, $classId, $productClassId, $eshopProductId, $onlineSaleThreads[$dRec->threadId], $rating);
                 }
             }
             
@@ -1701,22 +1734,15 @@ class eshop_Products extends core_Master
                 // Ако се среща в поне един домейн
                 $productInDomains =  $details[$dRec->productId];
                 if(is_array($productInDomains)){
+                    
+                    // За всяко срещане се добавя с по-една тежест
                     foreach ($productInDomains as $pDomainId => $eshopProductId){
-                        if(!array_key_exists($eshopProductId, $res)){
-                            $res[$eshopProductId] = (object)array('classId'       => $this->getClassId(),
-                                                                  'objectClassId' => self::getClassId(),
-                                                                  'objectId'      => $eshopProductId,
-                                                                  'key'           => $pDomainId,
-                                                                  'value'         => 0,);
-                        }
-                        
-                        // Добавя се с по-малка тежест
-                        $res[$eshopProductId]->value += 1;
+                        sales_ProductRatings::addRatingToObject($res, $eshopProductId, $classId, $productClassId, $eshopProductId, $pDomainId, 1);
                     }
                 }
             }
         }
-        
+       
         $res = array_values($res);
         
         return $res;

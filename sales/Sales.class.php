@@ -1737,22 +1737,17 @@ class sales_Sales extends deals_DealMaster
         $deltaQuery->where("#valior >= '{$valiorFrom}'");
         $deltaQuery->show('productId,storeId,detailClassId');
         $receiptClassId = pos_Reports::getClassId();
+        $classId = $this->getClassId();
+        $objectClassId = cat_Products::getClassId();
         
         $res = array();
         $count = $deltaQuery->count();
         core_App::setTimeLimit($count * 0.4, false, 200);
         while ($dRec = $deltaQuery->fetch()){
-            if(!array_key_exists("{$dRec->productId}|{$dRec->storeId}", $res)){
-                $res["{$dRec->productId}|{$dRec->storeId}"] = (object)array('classId'       => $this->getClassId(), 
-                                                                            'objectClassId' => cat_Products::getClassId(),
-                                                                            'objectId'      => $dRec->productId, 
-                                                                            'key'           => $dRec->storeId,
-                                                                            'value'         => 0,);
-            }
-            
             $rating = ($dRec->detailClassId == $receiptClassId) ? 1 : 10;
-           
-            $res["{$dRec->productId}|{$dRec->storeId}"]->value += $rating;
+            
+            $index = "{$dRec->productId}|{$dRec->storeId}";
+            sales_ProductRatings::addRatingToObject($res, $index, $classId, $objectClassId, $dRec->productId, $dRec->storeId, $rating);
         }
         
         $res = array_values($res);
