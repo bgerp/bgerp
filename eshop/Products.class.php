@@ -1658,7 +1658,7 @@ class eshop_Products extends core_Master
                         // От е-артикулите, се намират тези, които са със същия продуктов драйвер като запитването
                         $foundEproducts = array_filter($eProductArr, function($a) use ($inqRec) { return $a->coDriver == $inqRec->innerClass; });
                         foreach ($foundEproducts as $foundEproduct){
-                            $rating = ($foundEproduct->name == $inqRec->name) ? 3 : 1;
+                            $rating = ($foundEproduct->name == $inqRec->title) ? 3 : 1;
                             $rating = 100 * $rating;
                             
                             $domainId = self::getDomainId($foundEproduct->id);
