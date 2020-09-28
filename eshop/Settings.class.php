@@ -203,6 +203,9 @@ class eshop_Settings extends core_Master
         $this->FLD('freeDeliveryByBus', 'double(min=0)', 'caption=Безплатна доставка->За маршрут');
         $this->FLD('expectedDeliveryText', 'text(rows=3)', 'caption=Текст за очаквана доставка->Текст');
         
+        $this->FLD('defaultMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Дефолти за анонимни потребители->Плащане');
+        $this->FLD('defaultTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Дефолти за анонимни потребители->Доставка');
+        
         $this->FLD('dealerId', 'user(roles=sales|ceo,allowEmpty,rolesForAll=eshop|ceo|admin,rolesForTeam=eshop|ceo|admin)', 'caption=Продажби създадени от онлайн магазина->Търговец');
         
         $this->setDbIndex('classId, objectId');
@@ -245,6 +248,17 @@ class eshop_Settings extends core_Master
                     $receiverTerms = implode(", ", $receiverTerms);
                     $form->setError('terms,locationIsMandatory', "При задължителна локация за партньор, в условията на доставка трябва да има поне едно условие с адрес на получаване локацията на получателя като|*: <b>{$receiverTerms}</b>");
                 }
+            }
+            
+            $terms = keylist::toArray($rec->terms);
+            $payments = keylist::toArray($rec->payments);
+            
+            if(isset($rec->defaultTermId) && !isset($terms[$rec->defaultTermId])){
+                $form->setError('defaultTermId,terms', "Дефолтното условие не е избрано сред разрешените в домейна");
+            }
+            
+            if(isset($rec->defaultMethodId) && !isset($payments[$rec->defaultMethodId])){
+                $form->setError('defaultMethodId,payments', "Дефолтният метод не е избран сред разрешените в домейна");
             }
         }
     }
@@ -462,7 +476,7 @@ class eshop_Settings extends core_Master
                 $settingRec->partnerTerms = $settingRec->terms;
             }
         }
-        
+        //bp($settingRec);
         return $settingRec;
     }
     

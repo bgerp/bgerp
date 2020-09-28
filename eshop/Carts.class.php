@@ -2239,6 +2239,9 @@ class eshop_Carts extends core_Master
             if ($defaultPaymentId && !array_key_exists($defaultPaymentId, $paymentMethods)) {
                 $paymentMethods[$defaultPaymentId] = tr(cond_PaymentMethods::getVerbal($defaultPaymentId, 'name'));
             }
+        } else {
+            $form->setDefault('paymentId', $settings->defaultMethodId);
+            $form->setDefault('termId', $settings->defaultTermId);
         }
         
         $originalRec = static::fetch($form->rec->id, '*', false);
