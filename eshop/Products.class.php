@@ -1650,7 +1650,7 @@ class eshop_Products extends core_Master
                 $mQuery->where("#createdOn >= '{$valiorFrom}'");
                 $mQuery->show('id,createdBy,innerClass,title,sourceClassId,sourceId');
                 $inquieriesArr = $mQuery->fetchAll();
-                bp($inquieriesArr);
+                
                 // Ако има, ще се начисляват рейтинги на е-артикулите
                 if(countR($inquieriesArr)){
                     foreach($inquieriesArr as $inqRec){
