@@ -1,6 +1,6 @@
 .document {
-  max-width: 700px !important;
-  min-width: 200px !important;
+  max-width: 840px !important;
+  min-width: 300px !important;
   width: 100% !important;
   border: none;
   padding: 0;
@@ -11,7 +11,7 @@
   margin-bottom: 10mm;
 }
 .blankImage img {
-  width: 650px;
+  width: 750px;
   padding-bottom: 0;
   display: inline!important;
   vertical-align: bottom;
@@ -24,6 +24,6 @@ div.richtextHide {
 }
 
 .qrcode img, .blankImage img {
-  height: 50px !important;
+  height: 87px !important;
   width: auto;
 }
