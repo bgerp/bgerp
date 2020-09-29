@@ -7118,6 +7118,11 @@ body.narrow {
         min-width: 0;
         max-width: 840px;
     }
+	.reportHolder .listTable tr td {
+		break-inside: avoid;
+		page-break-inside: avoid;
+
+	}
     .external .docBgIcon{
        background-image: none !important;
        padding-left: 0 !important;
