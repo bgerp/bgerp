@@ -299,7 +299,7 @@ class email_Outgoings extends core_Master
         $tpl = $data->form->renderHtml();
         
         // Добавяме превю на имейла, който ще изпратим
-        $preview = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Изходящ имейл') . "</b></div><div class='scrolling-holder'><div class='document'> [#EMAIL_HTML#]</div><pre class=\"document\" style=\"width:95%; white-space: pre-wrap;\">[#EMAIL_TEXT#]</pre></div></div>");
+        $preview = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Изходящ имейл') . "</b></div><div class='scrolling-holder'>[#EMAIL_HTML#]<pre class=\"document\" style=\"width:95%; white-space: pre-wrap;\">[#EMAIL_TEXT#]</pre></div></div>");
         
         $preview->append($this->getEmailHtml($data->rec, $lg), 'EMAIL_HTML');
         $preview->append(core_Type::escape(core_ET::unEscape($this->getEmailText($data->rec, $lg))), 'EMAIL_TEXT');
@@ -2556,10 +2556,7 @@ class email_Outgoings extends core_Master
         }
         
         $tpl = getTplFromFile($tpl);
-        if(Mode::is('printing')) {
-            $tpl->prepend("<div class='printing'> <div class='document'>");
-            $tpl->append("</div></div>");
-        }
+
         if ($data->lg && (Mode::is('printing') || Mode::is('text', 'xhtml'))) {
             core_Lg::pop();
         }

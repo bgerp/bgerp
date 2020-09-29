@@ -1,6 +1,9 @@
-.document-email {
+.document {
   max-width: 500px !important;
+  min-width: 200px !important;
   width: 100% !important;
+  border: none;
+  padding: 0;
 }
 .labelBreak {
   page-break-after: auto;
