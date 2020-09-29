@@ -820,10 +820,11 @@ class eshop_Products extends core_Master
         
         // Навигация до артикула
         $data->row->productPath = $menuLink . ' » ' . $groupLink;
+        $uniqueProductsArr = arr::extractValuesFromArray($data->detailData->recs, 'productId');
         
         if ($data->rec->saleState == 'closed') {
             $data->row->STATE_EXTERNAL = "<span class='option-not-in-stock' style='font-size:0.9em !important'>" . tr('Този продукт вече не се предлага') . '</span>';
-        } elseif (countR($data->detailData->rows) == 1 && !empty($data->detailData->rows[0]->saleInfo)) {
+        } elseif (countR($uniqueProductsArr) == 1 && !empty($data->detailData->rows[0]->saleInfo)) {
             $data->row->STATE_EXTERNAL = $data->detailData->rows[0]->saleInfo;
         }
     }
