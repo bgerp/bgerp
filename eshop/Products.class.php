@@ -1648,9 +1648,9 @@ class eshop_Products extends core_Master
                 $mQuery->where("#state = 'active'");
                 $mQuery->notIn('createdBy', $powerUsers);
                 $mQuery->where("#createdOn >= '{$valiorFrom}'");
-                $mQuery->show('id,createdBy,innerClass,title');
+                $mQuery->show('id,createdBy,innerClass,title,sourceClassId,sourceId');
                 $inquieriesArr = $mQuery->fetchAll();
-                
+                bp($inquieriesArr);
                 // Ако има, ще се начисляват рейтинги на е-артикулите
                 if(countR($inquieriesArr)){
                     foreach($inquieriesArr as $inqRec){
@@ -1658,7 +1658,7 @@ class eshop_Products extends core_Master
                         // От е-артикулите, се намират тези, които са със същия продуктов драйвер като запитването
                         $foundEproducts = array_filter($eProductArr, function($a) use ($inqRec) { return $a->coDriver == $inqRec->innerClass; });
                         foreach ($foundEproducts as $foundEproduct){
-                            $rating = ($foundEproduct->name == $inqRec->title) ? 3 : 1;
+                            $rating = ($inqRec->sourceClassId == $classId && $inqRec->sourceId == $foundEproduct->id) ? 3 : 1;
                             $rating = 100 * $rating;
                             
                             $domainId = self::getDomainId($foundEproduct->id);
