@@ -22,7 +22,9 @@
 div.richtextHide {
   display:block !important;
 }
-
+.blankImage, .qr {
+  vertical-align: bottom !important;
+}
 .qrcode img, .blankImage img {
   height: 87px !important;
   width: auto;
