@@ -2530,6 +2530,7 @@ class crm_Companies extends core_Master
      * Извличане на данните на фирмата според зададения източник
      * 
      * @param string $string - ЕИК или Ват номер
+     * 
      * @return false|stdClass - обект с данни или false, ако не намери нищо
      *          o name    - име
      *          o country - ид на държава
@@ -2541,72 +2542,34 @@ class crm_Companies extends core_Master
     {
         $data = false;
         $source = crm_Setup::get('REGISTRY_SOURCE');
-       
+        $sourceArr = type_Set::toArray($source);
+     
         // Нормализиране на стринга
         $string = str::removeWhiteSpace($string);
         $string = strtoupper($string);
         
-        switch($source){
+        // Ако е избран търговски регистър, и е въведен български ЕИК или ДДС номер, взимат се данните от търговския регистър
+        if(isset($sourceArr['bgregistry'])){
+            $brraString = (drdata_Vats::isHaveVatPrefix($string)) ? drdata_Vats::getUicByVatNo($string) : $string;
+            $data = drdata_Vats::getFromBrra($brraString);
+        }
             
-            // Ако източника е VIES
-            case 'vies':
+        // Ако няма да се връщат или не са намерени данни от търговския регистър
+        if($data === false){
+            
+            // Взимат се от VIES, ако е избрано
+            if(isset($sourceArr['vies'])){
                 
-                // Ако не е ват номер но е валиден български ЕИК добавяме BG - услугата работи само с ДДС номер
+                // Ако е валиден български ЕИК добавя му се BG отпред
                 if(!drdata_Vats::isHaveVatPrefix($string)){
                     if(drdata_Vats::isBulstat($string)){
                         $string = "BG{$string}";
                     }
                 }
                 
-                // Проверка дали е валиден ват номер
-                list($status, , $name, $address) = cls::get('drdata_Vats')->checkStatus($string);
-                if($status == 'valid'){
-                    
-                    // Ако е валиден извлича се името
-                    $data = new stdClass();
-                    $data->name = $name;
-                    $countryCode = substr($string, 0, 2);
-                    $data->country = drdata_Countries::fetchField(array("#letterCode2 = '[#1#]'", $countryCode), 'id');
-                    
-                    // Ако фирмата е от България, прави се опит за парсиране на български адрес
-                    if($countryCode == 'BG'){
-                        $parsedAddress = drdata_ParseAddressBg::parse($address);
-                        foreach (array('pCode' => 'п.код', 'place' => 'place', 'address' => 'addr') as $fld => $key){
-                            if(!empty($parsedAddress[$key])){
-                                $data->{$fld} = $parsedAddress[$key];
-                            }
-                        }
-                        
-                        if(!empty($data->place)){
-                            $data->place = trim(str_replace('гр.', '', $data->place));
-                        }
-                    }
-                }
-                
-                break;
-            // Ако ще се извлича от търговския регистър
-            case 'bgregistry':
-                
-                // Ако е ДДС номер извлича се ЕИК-то, улугата работи само с ЕИК
-                if(drdata_Vats::isHaveVatPrefix($string)){
-                    $string = drdata_Vats::getUicByVatNo($string);
-                }
-                
-                // Ако е валиден български ЕИК, прави се опит за извличане от търговския регистър
-                if(drdata_Vats::isBulstat($string)){
-                    $registryContent = @file_get_contents("https://portal.registryagency.bg/CR/api/Deeds/{$string}");
-                    $result = json_decode($registryContent);
-                    
-                    // Ако е намерена фирма, извлича се
-                    if(!empty($result->fullName)){
-                        $data = new stdClass();
-                        $data->name = $result->fullName;
-                        $data->country = drdata_Countries::fetchField("#letterCode2 = 'BG'", 'id');
-                    }
-                }
-                break;
-            default:
-                break;
+                // Връщане на данните от VIES - ако са намерени
+                $data = drdata_Vats::getFromVies($string);
+            }
         }
         
         // Ако има намерени данни
@@ -2624,7 +2587,7 @@ class crm_Companies extends core_Master
                 $data->name = str_replace(" " . str::mbUcfirst($specialPart),  " " . mb_strtoupper($specialPart), $data->name);
             }
         }
-        
+       
         // Връщане на данните, ако са извлечени
         return $data;
     }

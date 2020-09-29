@@ -613,4 +613,80 @@ class drdata_Vats extends core_Manager
         $rec->timeLimit = 200;
         $res .= core_Cron::addOnce($rec);
     }
+    
+    
+    /**
+     * Връща данните от търговския регистър по зададения БГ ддс номер или ЕИК
+     * 
+     * @param string $eik - ЕИК номер
+     * @return false|stdClass - обект с данни или false, ако не намери нищо
+     *          o name    - име
+     *          o country - ид на държава
+     *          o pCode   - пощенски код
+     *          o place   - населено място
+     *          o address - адрес
+     */
+    public static function getFromBrra($eik)
+    {
+        // Ако е валиден български ЕИК, прави се опит за извличане от търговския регистър
+        if(drdata_Vats::isBulstat($eik)){
+            $registryContent = @file_get_contents("https://portal.registryagency.bg/CR/api/Deeds/{$eik}");
+            $result = json_decode($registryContent);
+            
+            // Ако е намерена фирма, извлича се
+            if(!empty($result->fullName)){
+                $data = new stdClass();
+                $data->name = $result->fullName;
+                $data->country = drdata_Countries::fetchField("#letterCode2 = 'BG'", 'id');
+            
+                return $data;
+            }
+        }
+        
+        return false;
+    }
+    
+    
+    /**
+     * Връща данните от VIES
+     *
+     * @param string $string - ват номер
+     * @return false|stdClass - обект с данни или false, ако не намери нищо
+     *          o name    - име
+     *          o country - ид на държава
+     *          o pCode   - пощенски код
+     *          o place   - населено място
+     *          o address - адрес
+     */
+    public static function getFromVies($vat)
+    {
+        // Проверка дали е валиден ват номер
+        list($status, , $name, $address) = cls::get('drdata_Vats')->checkStatus($vat);
+        if($status == 'valid'){
+            
+            // Ако е валиден извлича се името
+            $data = new stdClass();
+            $data->name = $name;
+            $countryCode = substr($vat, 0, 2);
+            $data->country = drdata_Countries::fetchField(array("#letterCode2 = '[#1#]'", $countryCode), 'id');
+            
+            // Ако фирмата е от България, прави се опит за парсиране на български адрес
+            if($countryCode == 'BG'){
+                $parsedAddress = drdata_ParseAddressBg::parse($address);
+                foreach (array('pCode' => 'п.код', 'place' => 'place', 'address' => 'addr') as $fld => $key){
+                    if(!empty($parsedAddress[$key])){
+                        $data->{$fld} = $parsedAddress[$key];
+                    }
+                }
+                
+                if(!empty($data->place)){
+                    $data->place = trim(str_replace('гр.', '', $data->place));
+                }
+            }
+            
+            return $data;
+        }
+        
+        return false;
+    }
 }

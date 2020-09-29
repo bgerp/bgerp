@@ -89,7 +89,7 @@ class crm_Setup extends core_ProtoSetup
     public $configDescription = array(
         
         'CRM_VISIBLE_NKID' => array('enum(none=Не показвай, yes=Покажи)', 'caption=Класификация на икономическите дейности->НКИД'),
-        'CRM_REGISTRY_SOURCE' => array('enum(none=Изключено,vies=VIES,bgregistry=Търговски регистър)', 'caption=Извличане и попълване на данни->Регистри'),
+        'CRM_REGISTRY_SOURCE' => array('set(vies=VIES,bgregistry=Търговски регистър)', 'caption=Извличане и попълване на данни->Регистри'),
     );
     
     
