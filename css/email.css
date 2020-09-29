@@ -1,9 +1,25 @@
 .document {
-  border: none !important;
-  padding: 10px !important;
-  width: 840px;
-  max-width: auto; }
-
+  max-width: 500px !important;
+  min-width: 200px !important;
+  width: 100% !important;
+  border: none;
+  padding: 0;
+}
+.labelBreak {
+  page-break-after: auto;
+  page-break-inside: avoid;
+  margin-bottom: 10mm;
+}
+.blankImage img {
+  max-width: 500px !important;
+  width: 100% !important;
+  padding-bottom: 0;
+  display: inline!important;
+  vertical-align: bottom;
+  border: 0;
+  height: auto;
+  outline: none;
+}
 div.richtextHide {
-  display: block !important; }
-
+  display:block !important;
+}

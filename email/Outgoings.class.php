@@ -2556,7 +2556,7 @@ class email_Outgoings extends core_Master
         }
         
         $tpl = getTplFromFile($tpl);
-        
+
         if ($data->lg && (Mode::is('printing') || Mode::is('text', 'xhtml'))) {
             core_Lg::pop();
         }
