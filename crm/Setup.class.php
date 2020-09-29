@@ -25,6 +25,11 @@ defIfNot('BGERP_OWN_COMPANY_ID', 1);
 defIfNot('CRM_VISIBLE_NKID', 'none');
 
 
+/**
+ * Регистри за попълване на данни на фирми
+ */
+defIfNot('CRM_REGISTRY_SOURCE', 'vies');
+
 
 /**
  * Клас 'crm_Setup' -
@@ -34,7 +39,7 @@ defIfNot('CRM_VISIBLE_NKID', 'none');
  * @package   crm
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -84,6 +89,7 @@ class crm_Setup extends core_ProtoSetup
     public $configDescription = array(
         
         'CRM_VISIBLE_NKID' => array('enum(none=Не показвай, yes=Покажи)', 'caption=Класификация на икономическите дейности->НКИД'),
+        'CRM_REGISTRY_SOURCE' => array('enum(none=Изключено,vies=VIES,bgregistry=Търговски регистър)', 'caption=Извличане и попълване на данни->Регистри'),
     );
     
     

@@ -497,7 +497,7 @@ class crm_Companies extends core_Master
     {
         $form = $data->form;
         
-        if (empty($form->rec->id)) {
+        if (empty($form->rec->name)) {
             $form->setField('vatId', 'removeAndRefreshForm=name|address');
             
             // Слагаме Default за поле 'country'
@@ -505,13 +505,16 @@ class crm_Companies extends core_Master
             $form->setDefault('country', $myCompany->countryId);
            
             if(empty($form->rec->name)){
+                $cDataSource = !empty($form->rec->vatId) ? $form->rec->vatId : $form->rec->uicId;
                 
                 // Ако не е въведено име, но има валиден ват попълват се адресните данни от него
-                if(!empty($form->rec->vatId)){
-                    list($status, , $name, $address) = cls::get('drdata_Vats')->checkStatus($form->rec->vatId);
-                    if($status == 'valid' && !empty($name)){
-                        $form->setDefault('name', $name);
-                        $form->setDefault('address', $address);
+                if(!empty($cDataSource)){
+                    if($cData = self::getCompanyDataFromString($cDataSource)){
+                        foreach (array('name', 'country', 'pCode', 'place', 'address') as $cFld){
+                            if(!empty($cData->{$cFld})){
+                                $form->setDefault($cFld, $cData->{$cFld});
+                            }
+                        }
                     }
                 }
             }
@@ -2520,5 +2523,109 @@ class crm_Companies extends core_Master
         if (countR($saveFields)) {
             self::save($rec, $saveFields);
         }
+    }
+    
+    
+    /**
+     * Извличане на данните на фирмата според зададения източник
+     * 
+     * @param string $string - ЕИК или Ват номер
+     * @return false|stdClass - обект с данни или false, ако не намери нищо
+     *          o name    - име
+     *          o country - ид на държава
+     *          o pCode   - пощенски код
+     *          o place   - населено място
+     *          o address - адрес
+     */
+    public static function getCompanyDataFromString($string)
+    {
+        $data = false;
+        $source = crm_Setup::get('REGISTRY_SOURCE');
+       
+        // Нормализиране на стринга
+        $string = str::removeWhiteSpace($string);
+        $string = strtoupper($string);
+        
+        switch($source){
+            
+            // Ако източника е VIES
+            case 'vies':
+                
+                // Ако не е ват номер но е валиден български ЕИК добавяме BG - услугата работи само с ДДС номер
+                if(!drdata_Vats::isHaveVatPrefix($string)){
+                    if(drdata_Vats::isBulstat($string)){
+                        $string = "BG{$string}";
+                    }
+                }
+                
+                // Проверка дали е валиден ват номер
+                list($status, , $name, $address) = cls::get('drdata_Vats')->checkStatus($string);
+                if($status == 'valid'){
+                    
+                    // Ако е валиден извлича се името
+                    $data = new stdClass();
+                    $data->name = $name;
+                    $countryCode = substr($string, 0, 2);
+                    $data->country = drdata_Countries::fetchField(array("#letterCode2 = '[#1#]'", $countryCode), 'id');
+                    
+                    // Ако фирмата е от България, прави се опит за парсиране на български адрес
+                    if($countryCode == 'BG'){
+                        $parsedAddress = drdata_ParseAddressBg::parse($address);
+                        foreach (array('pCode' => 'п.код', 'place' => 'place', 'address' => 'addr') as $fld => $key){
+                            if(!empty($parsedAddress[$key])){
+                                $data->{$fld} = $parsedAddress[$key];
+                            }
+                        }
+                        
+                        if(!empty($data->place)){
+                            $data->place = trim(str_replace('гр.', '', $data->place));
+                        }
+                    }
+                }
+                
+                break;
+            // Ако ще се извлича от търговския регистър
+            case 'bgregistry':
+                
+                // Ако е ДДС номер извлича се ЕИК-то, улугата работи само с ЕИК
+                if(drdata_Vats::isHaveVatPrefix($string)){
+                    $string = drdata_Vats::getUicByVatNo($string);
+                }
+                
+                // Ако е валиден български ЕИК, прави се опит за извличане от търговския регистър
+                if(drdata_Vats::isBulstat($string)){
+                    $registryContent = @file_get_contents("https://portal.registryagency.bg/CR/api/Deeds/{$string}");
+                    $result = json_decode($registryContent);
+                    
+                    // Ако е намерена фирма, извлича се
+                    if(!empty($result->fullName)){
+                        $data = new stdClass();
+                        $data->name = $result->fullName;
+                        $data->country = drdata_Countries::fetchField("#letterCode2 = 'BG'", 'id');
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+        
+        // Ако има намерени данни
+        if(is_object($data)){
+            
+            // Нормализиране на името на фирмата
+            $data->name = str_replace('"', "", $data->name);
+            $data->name = str_replace("'", "", $data->name);
+            $data->name = mb_strtolower(str::removeWhiteSpace($data->name, " "));
+            $data->name = str::toUpperAfter($data->name, " ");
+            $data->name = trim($data->name);
+            
+            // Специалните думи се капитализират
+            foreach (array('оод', 'еоод', 'ад', 'ltd') as $specialPart){
+                $data->name = str_replace(" " . str::mbUcfirst($specialPart),  " " . mb_strtoupper($specialPart), $data->name);
+            }
+        }
+        
+        // Връщане на данните, ако са извлечени
+        return $data;
     }
 }
