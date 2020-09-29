@@ -173,7 +173,7 @@ class deals_plg_DpInvoice extends core_Plugin
             if ((!empty($accruedProformaRec) && empty($hasDeductedProforma)) || !empty($actualDp)) {
                 
                 //$dpAmount = (($accruedProformaRec->dealValue - $accruedProformaRec->discountAmount)+ $accruedProformaRec->vatAmount);
-                $dpAmount = core_Math::roundNumber($actualDp);
+                $dpAmount = round($actualDp, 6);
                 $dpOperation = 'deducted';
                 $flag = false;
             } else {
