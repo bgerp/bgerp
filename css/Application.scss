@@ -1699,6 +1699,12 @@ a.tOld {
 	opacity: 0.6;
 	font-size: 0.9em;
 }
+.document .reportHolder {
+	th {
+		font-size: 0.8em;
+		white-space: normal !important;
+	}
+}
 
 .CVTable {
 	font-family: Arial, Helvetica;
