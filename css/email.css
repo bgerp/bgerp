@@ -24,7 +24,7 @@ div.richtextHide {
 }
 .qr img {
   position: relative;
-  top: 2px;
+  top: 4px;
 }
 .qrcode img, .blankImage img {
   height: 87px !important;
