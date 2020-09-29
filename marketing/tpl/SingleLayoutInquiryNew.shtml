@@ -131,6 +131,13 @@
                 <td>|Създаване|*</td>
                 <td>[#time#]</td>
             </tr>
+            
+            <!--ET_BEGIN sourceId-->
+            <tr>
+                <td>|Източник|*</td>
+                <td>[#sourceId#]</td>
+            </tr>
+            <!--ET_END sourceId-->
         </table>
     </div>
     <!--ET_END brid-->

@@ -120,6 +120,7 @@ class eshop_Setup extends core_ProtoSetup
         'eshop_Carts',
         'eshop_CartDetails',
         'migrate::addOnlineClientsGroup',
+        'migrate::updateInquiries',
     );
     
     
@@ -256,6 +257,55 @@ class eshop_Setup extends core_ProtoSetup
             } catch(core_exception_Expect $e){
                 
             }
+        }
+    }
+    
+    
+    /**
+     * Обновяване на запитванията
+     */
+    public function updateInquiries()
+    {
+        $Products = cls::get('eshop_Products');
+        $Products->setupMvc();
+        
+        $Inquiries = cls::get('marketing_Inquiries2');
+        $Inquiries->setupMvc();
+        
+        if(!$Products->count("#coDriver IS NOT NULL") || !$Inquiries->count()){
+            
+            return;
+        }
+          
+        $map = array();
+        $eQuery = $Products->getQuery();
+        $eQuery->where("#coDriver IS NOT NULL");
+        $eQuery->XPR('nameLower', 'double', 'LOWER(#name)');
+        $eQuery->show('coDriver,nameLower');
+        while($eRec = $eQuery->fetch()){
+            $map["{$eRec->coDriver}|{$eRec->nameLower}"] = $eRec->id;
+        }
+        
+        $iQuery = $Inquiries->getQuery();
+        $iQuery->XPR('titleLower', 'double', 'LOWER(#title)');
+        $iQuery->where("#sourceClassId IS NULL AND #sourceId IS NULL AND #state = 'active' AND #createdBy = 0");
+        $iQuery->show('titleLower,innerClass');
+        $iQuery->orderBy('id', 'DESC');
+        $count = $iQuery->count();
+        
+        $productsClassId = $Products->getClassId();
+        core_App::setTimeLimit(0.4 * $count, 400);
+        
+        $save = array();
+        while($iRec = $iQuery->fetch()){
+            $sourceId = $map["{$iRec->innerClass}|{$iRec->titleLower}"];
+            if(isset($sourceId)){
+                $save[] = (object)array('sourceClassId' => $productsClassId, 'sourceId' =>$sourceId, 'id' => $iRec->id);
+            }
+        }
+       
+        if(countR($save)){
+            $Inquiries->saveArray($save, 'id,sourceClassId,sourceId');
         }
     }
 }
