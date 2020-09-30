@@ -702,6 +702,7 @@ class drdata_Vats extends core_Manager
             $data->name = $name;
             $countryCode = substr($vat, 0, 2);
             $data->country = drdata_Countries::fetchField(array("#letterCode2 = '[#1#]'", $countryCode), 'id');
+            $address = str::removeWhiteSpace($address, " ");
             
             // Ако фирмата е от България, прави се опит за парсиране на български адрес
             if($countryCode == 'BG'){
@@ -715,6 +716,8 @@ class drdata_Vats extends core_Manager
                 if(!empty($data->place)){
                     $data->place = trim(str_replace('гр.', '', $data->place));
                 }
+            } else {
+                $data->address = $address;
             }
             
             return $data;

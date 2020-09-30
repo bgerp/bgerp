@@ -500,17 +500,14 @@ class crm_Companies extends core_Master
         if (empty($form->rec->name)) {
             $form->setField('vatId', 'removeAndRefreshForm=name|address');
             
-            // Слагаме Default за поле 'country'
-            $myCompany = self::fetchOwnCompany();
-            $form->setDefault('country', $myCompany->countryId);
-           
             if(empty($form->rec->name)){
                 $cDataSource = !empty($form->rec->vatId) ? $form->rec->vatId : $form->rec->uicId;
                 
                 // Ако не е въведено име, но има валиден ват попълват се адресните данни от него
                 if(!empty($cDataSource)){
                     if($cData = self::getCompanyDataFromString($cDataSource)){
-                        foreach (array('name', 'country', 'pCode', 'place', 'address', 'vatId') as $cFld){
+                        
+                        foreach (array('name', 'country', 'pCode', 'place', 'address', 'vatId', 'uicId') as $cFld){
                             if(!empty($cData->{$cFld})){
                                 $form->setDefault($cFld, $cData->{$cFld});
                             }
@@ -518,6 +515,10 @@ class crm_Companies extends core_Master
                     }
                 }
             }
+            
+            // Дефолтната държава е същата, като на "Моята фирма"
+            $myCompany = self::fetchOwnCompany();
+            $form->setDefault('country', $myCompany->countryId);
         }
         
         // Ако сме в тесен режим
@@ -2537,6 +2538,8 @@ class crm_Companies extends core_Master
      *          o pCode   - пощенски код
      *          o place   - населено място
      *          o address - адрес
+     *          o uicId   - ДДС номер (ако име)
+     *          o vatId   - ЕИК (ако има)
      */
     public static function getCompanyDataFromString($string)
     {
@@ -2555,9 +2558,12 @@ class crm_Companies extends core_Master
             
             // Ако има данни в търговския регистър
             if(is_object($data)){
-                list($status) = cls::get('drdata_Vats')->checkStatus("BG{$brraString}");
+                if(drdata_Vats::isHaveVatPrefix($string)){
+                    $data->uicId = $brraString;
+                }
                 
                 // и има валиден ДДС номер, ще се върне и ДДС номерът
+                list($status) = cls::get('drdata_Vats')->checkStatus("BG{$brraString}");
                 if($status == 'valid'){
                     $data->vatId = "BG{$brraString}";
                 }
