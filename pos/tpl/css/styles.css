@@ -657,7 +657,7 @@ select.tabHolder {
   box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.25), 2px 2px 2px rgba(0, 0, 0, 0.2); }
 
 .narrow .large-field {
-  height: 1.8em; }
+  height: 1.6em !important; }
 
 .pos-photo-field {
   width: 64px;
