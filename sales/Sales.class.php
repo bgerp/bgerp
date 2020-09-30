@@ -1168,10 +1168,10 @@ class sales_Sales extends deals_DealMaster
             if ($cartRec = eshop_Carts::fetch("#saleId = {$rec->id}", 'id,domainId,personNames,tel,email')) {
                 $cartRow = eshop_Carts::recToVerbal($cartRec, 'domainId,personNames,tel,email');
                 $row->cartId = eshop_Carts::getHyperlink($cartRec->id, true);
-                $row->domainId = $cartRow->domainId;
-                $row->personNames = $cartRow->personNames;
-                $row->tel = $cartRow->tel;
-                $row->email = $cartRow->email;
+                $row->cartDomainId = $cartRow->domainId;
+                $row->cartPersonnames = $cartRow->personNames;
+                $row->cartTel = $cartRow->tel;
+                $row->cartEmail = $cartRow->email;
             }
         }
         

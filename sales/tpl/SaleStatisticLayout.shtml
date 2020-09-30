@@ -61,21 +61,21 @@
                   <span style='font-weight:normal'>|Кошница|*</span>: [#cartId#]<br>
                   <!--ET_END cartId-->
                   
-                  <!--ET_BEGIN personNames-->
-                  <span style='font-weight:normal'>|Имена|*</span>: [#personNames#]<br>
-                  <!--ET_END personNames-->
+                  <!--ET_BEGIN cartPersonnames-->
+                  <span style='font-weight:normal'>|Имена|*</span>: [#cartPersonnames#]<br>
+                  <!--ET_END cartPersonnames-->
                   
-                  <!--ET_BEGIN tel-->
-                  <span style='font-weight:normal'>|Тел|*.</span>: [#tel#]<br>
-                  <!--ET_END tel-->
+                  <!--ET_BEGIN cartTel-->
+                  <span style='font-weight:normal'>|Тел|*.</span>: [#cartTel#]<br>
+                  <!--ET_END cartTel-->
                   
-                  <!--ET_BEGIN email-->
-                  <span style='font-weight:normal'>|Имейл|*</span>: [#email#]<br>
-                  <!--ET_END email-->
+                  <!--ET_BEGIN cartEmail-->
+                  <span style='font-weight:normal'>|Имейл|*</span>: [#cartEmail#]<br>
+                  <!--ET_END cartEmail-->
                   
-                  <!--ET_BEGIN domainId-->
-                  <span style='font-weight:normal'>|Домейн|*</span>: [#domainId#]<br>
-                  <!--ET_END domainId-->
+                  <!--ET_BEGIN cartDomainId-->
+                  <span style='font-weight:normal'>|Домейн|*</span>: [#cartDomainId#]<br>
+                  <!--ET_END cartDomainId-->
               </td>
            </tr>
            <tr>
