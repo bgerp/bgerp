@@ -1210,7 +1210,10 @@ only screen and (max-width: 360px) {
     padding: 6px !important; }
     .operationHolder img {
       width: 32px !important;
-      height: 32px !important; } }
+      height: 32px !important; }
+
+  .receiptRow .receiptProduct {
+    font-size: 1em !important; } }
 
 @media handheld,
 only screen and (max-width: 320px) {
