@@ -127,9 +127,6 @@
                             <!--ET_BEGIN closedDocuments-->
                             <li>|Обединява|*: [#closedDocuments#]</li>
                             <!--ET_END closedDocuments-->
-                            <!--ET_BEGIN cartId-->
-                            <li>[#cartId#]</li>
-                            <!--ET_END cartId-->
                             <!--ET_BEGIN deliveryBlock-->
                             <!--ET_BEGIN deliveryTermId-->
                             <li>

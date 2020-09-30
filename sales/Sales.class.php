@@ -1164,14 +1164,18 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        core_Lg::push($rec->tplLang);
-        
-        if (core_Packs::isInstalled('eshop')) {
-            if ($cartRec = eshop_Carts::fetch("#saleId = {$rec->id}", 'id,domainId')) {
-                $row->cartId = (Mode::isReadOnly()) ? eshop_Carts::getRecTitle($cartRec) : eshop_Carts::getHyperlink($cartRec->id, true);
-                $row->domainId = cms_Domains::getVerbal($cartRec->domainId, 'domain');
+        if (core_Packs::isInstalled('eshop') && isset($fields['-single'])) {
+            if ($cartRec = eshop_Carts::fetch("#saleId = {$rec->id}", 'id,domainId,personNames,tel,email')) {
+                $cartRow = eshop_Carts::recToVerbal($cartRec, 'domainId,personNames,tel,email');
+                $row->cartId = eshop_Carts::getHyperlink($cartRec->id, true);
+                $row->domainId = $cartRow->domainId;
+                $row->personNames = $cartRow->personNames;
+                $row->tel = $cartRow->tel;
+                $row->email = $cartRow->email;
             }
         }
+        
+        core_Lg::push($rec->tplLang);
         
         if (isset($rec->bankAccountId)) {
             if (!Mode::isReadOnly()) {

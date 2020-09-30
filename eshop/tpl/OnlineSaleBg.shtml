@@ -126,9 +126,6 @@
                             <!--ET_BEGIN noVat-->
                             <li>|Цените са без ДДС|*[#noVat#]</li>
                             <!--ET_END noVat-->
-                            <!--ET_BEGIN cartId-->
-                            <li>[#cartId#]</li>
-                            <!--ET_END cartId-->
                             <!--ET_BEGIN closedDocuments-->
                             <li>|Обединява|*: [#closedDocuments#]</li>
                             <!--ET_END closedDocuments-->

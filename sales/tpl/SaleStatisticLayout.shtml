@@ -53,8 +53,29 @@
                   <span style='font-weight:normal'>|Към|*</span>: [#originId#]<br>
                   <!--ET_END originId-->
                   <!--ET_BEGIN priceListId-->
-                  <span style='font-weight:normal'>|Цени|*</span>: [#priceListId#]
+                  <span style='font-weight:normal'>|Цени|*</span>: [#priceListId#]<br>
                   <!--ET_END priceListId-->
+                  
+                  <!--ET_BEGIN cartId-->
+                  <hr />
+                  <span style='font-weight:normal'>|Кошница|*</span>: [#cartId#]<br>
+                  <!--ET_END cartId-->
+                  
+                  <!--ET_BEGIN personNames-->
+                  <span style='font-weight:normal'>|Имена|*</span>: [#personNames#]<br>
+                  <!--ET_END personNames-->
+                  
+                  <!--ET_BEGIN tel-->
+                  <span style='font-weight:normal'>|Тел|*.</span>: [#tel#]<br>
+                  <!--ET_END tel-->
+                  
+                  <!--ET_BEGIN email-->
+                  <span style='font-weight:normal'>|Имейл|*</span>: [#email#]<br>
+                  <!--ET_END email-->
+                  
+                  <!--ET_BEGIN domainId-->
+                  <span style='font-weight:normal'>|Домейн|*</span>: [#domainId#]<br>
+                  <!--ET_END domainId-->
               </td>
            </tr>
            <tr>
