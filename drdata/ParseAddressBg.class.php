@@ -130,7 +130,7 @@ class drdata_ParseAddressBg extends core_Manager
     /**
      * Връща вариациите и подфразите на дадена фраза в каноничен вид
      */
-    public function getVariations($str)
+    public static function getVariations($str)
     {
         $str = trim($str);
         
@@ -153,7 +153,7 @@ class drdata_ParseAddressBg extends core_Manager
     /**
      * Връща най-добрия резултат от речника за подмножествата на дадена фраза
      */
-    public function getBestMatch($str, $dict)
+    public static function getBestMatch($str, $dict)
     {
         $vars = self::getVariations($str);
         
