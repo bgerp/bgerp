@@ -37,7 +37,7 @@ class eshop_Carts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_Rejected, plg_Modified,acc_plg_DocumentSummary,plg_Sorting';
+    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_Rejected, plg_Modified,acc_plg_DocumentSummary,plg_Sorting,plg_Printing';
     
     
     /**
@@ -1840,7 +1840,7 @@ class eshop_Carts extends core_Master
         }
         
         $settings = cms_Domains::getSettings($rec->domainId);
-        $row->userId .=type_Ip::decorateIp($rec->ip, $rec->createdOn)."</br>" .log_Browsers::getLink($rec->brid);
+        $row->userId .= type_Ip::decorateIp($rec->ip, $rec->createdOn)."</br>" .log_Browsers::getLink($rec->brid);
         $row->ROW_ATTR['class'] = "state-{$rec->state}";
         $row->STATE_CLASS = $row->ROW_ATTR['class'];
         $row->domainId = cms_Domains::getHyperlink($rec->domainId);
@@ -1888,7 +1888,9 @@ class eshop_Carts extends core_Master
         if (isset($rec->saleId)) {
             $saleState = sales_Sales::fetchField($rec->saleId, 'state');
             $row->saleId = sales_Sales::getHyperlink($rec->saleId, true);
-            $row->saleId = "<span class='state-{$saleState} document-handler'>{$row->saleId}</span>";
+            if(!Mode::isReadOnly()){
+                $row->saleId = "<span class='state-{$saleState} document-handler'>{$row->saleId}</span>";
+            }
         }
         
         if (isset($rec->termId) && !isset($fields['-external'])) {
