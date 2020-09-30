@@ -649,11 +649,25 @@ class drdata_Vats extends core_Manager
                         if(!empty($addressHtml)){
                             $addressHtml = str_replace('<br />', " ", $addressHtml);
                             $address = strip_tags(str_replace('<br/>', " ", $addressHtml));
-                            $parsedAddress = drdata_ParseAddressBg::parse($address);
                             
-                            foreach (array('pCode' => 'п.код', 'address' => 'ул.', 'place' => 'place') as $fld => $k){
+                            $shortAddress = $address;
+                            $shortAddress = str_replace('бул./ул.', "ул.", $shortAddress);
+                            $cutPos1 = mb_strpos($shortAddress, "Населено място");
+                            if($cutPos1 !== false){
+                                $shortAddress = mb_substr($shortAddress, $cutPos1);
+                                $shortAddress = str_replace('Населено място: ', "", $shortAddress);
+                            }
+                            $cutPos2 = mb_strpos($shortAddress, "Телефон:");
+                            if($cutPos2 !== false){
+                                $shortAddress = mb_substr($shortAddress, 0, $cutPos2);
+                            }
+                            
+                            $parsedAddress = drdata_ParseAddressBg::parse($shortAddress);
+                            foreach (array('pCode' => 'п.код', 'address' => 'ул.') as $fld => $k){
                                 $data->{$fld} = $parsedAddress[$k];
                             }
+                            
+                            $data->place = isset($parsedAddress['гр.']) ? $parsedAddress['гр.'] : $parsedAddress['place'];
                         }
                     }
                 }
