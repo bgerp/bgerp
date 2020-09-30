@@ -2587,28 +2587,4 @@ class crm_Companies extends core_Master
         // Връщане на данните, ако са извлечени
         return $data;
     }
-    
-    
-    function act_Test()
-    {
-        $eik = '117683644';
-        $registryContent = @file_get_contents("https://portal.registryagency.bg/CR/api/Deeds/{$eik}");
-        $result = json_decode($registryContent);
-        
-        if(is_array($result->sections[0]->subDeeds[0]->groups[0]->fields)){
-            $foundAddress = array_filter($result->sections[0]->subDeeds[0]->groups[0]->fields, function ($a) {return $a->nameCode == 'CR_F_5_L';});
-            if(countR($foundAddress)){
-                $foundAddress = array_values($foundAddress);
-                $addressHtml = $foundAddress[0]->htmlData;
-                
-                if(!empty($addressHtml)){
-                    $addressHtml = str_replace('<br />', " ", $addressHtml);
-                    $address = strip_tags(str_replace('<br/>', " ", $addressHtml));
-                    $parsedAddress = drdata_ParseAddressBg::parse($address);
-                }
-            }
-        }
-        
-        bp($eik, $address, $parsedAddress, $addressHtml = $result->sections[0]->subDeeds[0]->groups[0]->fields);
-    }
 }
