@@ -341,10 +341,11 @@ class cal_Progresses extends core_Mvc
         
         $query = doc_Comments::getQuery();
         $query->where(array("#originId = '[#1#]'", $originId));
+        $query->where(array("#driverClass = '[#1#]'", self::getClassId()));
         $query->where("#state != 'rejected'");
         $query->where("#state != 'draft'");
         $query->limit(1);
-        $query->show('driverRec');
+        
         $query->orderBy('activatedOn', 'DESC');
         
         $rec = $query->fetch();
