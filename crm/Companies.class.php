@@ -510,7 +510,7 @@ class crm_Companies extends core_Master
                 // Ако не е въведено име, но има валиден ват попълват се адресните данни от него
                 if(!empty($cDataSource)){
                     if($cData = self::getCompanyDataFromString($cDataSource)){
-                        foreach (array('name', 'country', 'pCode', 'place', 'address') as $cFld){
+                        foreach (array('name', 'country', 'pCode', 'place', 'address', 'vatId') as $cFld){
                             if(!empty($cData->{$cFld})){
                                 $form->setDefault($cFld, $cData->{$cFld});
                             }
@@ -2552,6 +2552,16 @@ class crm_Companies extends core_Master
         if($useBrra){
             $brraString = (drdata_Vats::isHaveVatPrefix($string)) ? drdata_Vats::getUicByVatNo($string) : $string;
             $data = drdata_Vats::getFromBrra($brraString);
+            
+            // Ако има данни в търговския регистър
+            if(is_object($data)){
+                list($status) = cls::get('drdata_Vats')->checkStatus("BG{$brraString}");
+                
+                // и има валиден ДДС номер, ще се върне и ДДС номерът
+                if($status == 'valid'){
+                    $data->vatId = "BG{$brraString}";
+                }
+            }
         }
             
         // Ако няма да се връщат или не са намерени данни от търговския регистър, взимат се от VIES, ако е избрано
