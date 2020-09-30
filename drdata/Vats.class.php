@@ -640,14 +640,21 @@ class drdata_Vats extends core_Manager
                 $data->name = $result->fullName;
                 $data->country = drdata_Countries::fetchField("#letterCode2 = 'BG'", 'id');
             
-                $addressHtml = $result->sections[0]->subDeeds[0]->groups[0]->fields[4]->htmlData;
-                if(!empty($addressHtml)){
-                    $addressHtml = str_replace('<br />', " ", $addressHtml);
-                    $address = strip_tags(str_replace('<br/>', " ", $addressHtml));
-                    
-                    $parsedAddress = drdata_ParseAddressBg::parse($address);
-                    foreach (array('pCode' => 'п.код', 'address' => 'ул.', 'place' => 'place') as $fld => $k){
-                        $data->{$fld} = $parsedAddress[$k];
+                if(is_array($result->sections[0]->subDeeds[0]->groups[0]->fields)){
+                    $foundAddress = array_filter($result->sections[0]->subDeeds[0]->groups[0]->fields, function ($a) {return $a->nameCode == 'CR_F_5_L';});
+                    if(countR($foundAddress) == 1){
+                        $foundAddress = array_values($foundAddress);
+                        $addressHtml = $foundAddress[0]->htmlData;
+                        
+                        if(!empty($addressHtml)){
+                            $addressHtml = str_replace('<br />', " ", $addressHtml);
+                            $address = strip_tags(str_replace('<br/>', " ", $addressHtml));
+                            $parsedAddress = drdata_ParseAddressBg::parse($address);
+                            
+                            foreach (array('pCode' => 'п.код', 'address' => 'ул.', 'place' => 'place') as $fld => $k){
+                                $data->{$fld} = $parsedAddress[$k];
+                            }
+                        }
                     }
                 }
                 
