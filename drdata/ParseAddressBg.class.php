@@ -66,7 +66,7 @@ class drdata_ParseAddressBg extends core_Manager
     /**
      * Добавя място в речника
      */
-    public function pushPlace(&$arr, $place, $name)
+    public static function pushPlace(&$arr, $place, $name)
     {
         $arr[$place] = $name;
     }
