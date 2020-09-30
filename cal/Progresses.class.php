@@ -345,7 +345,7 @@ class cal_Progresses extends core_Mvc
         $query->where("#state != 'rejected'");
         $query->where("#state != 'draft'");
         $query->limit(1);
-        
+        $query->show('driverRec');
         $query->orderBy('activatedOn', 'DESC');
         
         $rec = $query->fetch();
