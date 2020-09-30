@@ -26,9 +26,15 @@ defIfNot('CRM_VISIBLE_NKID', 'none');
 
 
 /**
- * Регистри за попълване на данни на фирми
+ * Използване на регистър VIES за търсене на фирми
  */
-defIfNot('CRM_REGISTRY_SOURCE', 'vies');
+defIfNot('CRM_REGISTRY_USE_VIES', 'yes');
+
+
+/**
+ * Използване на Търговския регистър за търсене на фирми
+ */
+defIfNot('CRM_REGISTRY_USE_BRRA', 'yes');
 
 
 /**
@@ -87,9 +93,9 @@ class crm_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        
         'CRM_VISIBLE_NKID' => array('enum(none=Не показвай, yes=Покажи)', 'caption=Класификация на икономическите дейности->НКИД'),
-        'CRM_REGISTRY_SOURCE' => array('set(vies=VIES,bgregistry=Търговски регистър)', 'caption=Извличане и попълване на данни->Регистри'),
+        'CRM_REGISTRY_USE_BRRA' => array('enum(yes=Включено,ne=Изключено)', 'caption=Извличане и попълване на данни->Търговски регистър'),
+        'CRM_REGISTRY_USE_VIES' => array('enum(yes=Включено,ne=Изключено)', 'caption=Извличане и попълване на данни->VIES'),
     );
     
     

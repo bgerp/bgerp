@@ -2541,35 +2541,31 @@ class crm_Companies extends core_Master
     public static function getCompanyDataFromString($string)
     {
         $data = false;
-        $source = crm_Setup::get('REGISTRY_SOURCE');
-        $sourceArr = type_Set::toArray($source);
-     
+        $useVies = crm_Setup::get('REGISTRY_USE_VIES') == 'yes';
+        $useBrra = crm_Setup::get('REGISTRY_USE_BRRA') == 'yes';
+        
         // Нормализиране на стринга
         $string = str::removeWhiteSpace($string);
         $string = strtoupper($string);
         
         // Ако е избран търговски регистър, и е въведен български ЕИК или ДДС номер, взимат се данните от търговския регистър
-        if(isset($sourceArr['bgregistry'])){
+        if($useBrra){
             $brraString = (drdata_Vats::isHaveVatPrefix($string)) ? drdata_Vats::getUicByVatNo($string) : $string;
             $data = drdata_Vats::getFromBrra($brraString);
         }
             
-        // Ако няма да се връщат или не са намерени данни от търговския регистър
-        if($data === false){
+        // Ако няма да се връщат или не са намерени данни от търговския регистър, взимат се от VIES, ако е избрано
+        if($data === false && $useVies){
             
-            // Взимат се от VIES, ако е избрано
-            if(isset($sourceArr['vies'])){
-                
-                // Ако е валиден български ЕИК добавя му се BG отпред
-                if(!drdata_Vats::isHaveVatPrefix($string)){
-                    if(drdata_Vats::isBulstat($string)){
-                        $string = "BG{$string}";
-                    }
+            // Ако е валиден български ЕИК добавя му се BG отпред
+            if(!drdata_Vats::isHaveVatPrefix($string)){
+                if(drdata_Vats::isBulstat($string)){
+                    $string = "BG{$string}";
                 }
-                
-                // Връщане на данните от VIES - ако са намерени
-                $data = drdata_Vats::getFromVies($string);
             }
+            
+            // Връщане на данните от VIES - ако са намерени
+            $data = drdata_Vats::getFromVies($string);
         }
         
         // Ако има намерени данни
