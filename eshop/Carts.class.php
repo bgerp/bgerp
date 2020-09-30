@@ -863,6 +863,7 @@ class eshop_Carts extends core_Master
             'deliveryData' => $rec->deliveryData,
             'onlineSale' => true,
             'deliveryCalcTransport' => 'no',
+            'note' => tr("Поръчка") . " #{$rec->id}",
         );
         
         // Коя е ценовата политика
