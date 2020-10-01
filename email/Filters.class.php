@@ -94,8 +94,8 @@ class email_Filters extends core_Manager
         $this->FLD('email', 'varchar', 'caption=Условие->Изпращач', array('attr' => array('style' => 'width: 350px;')));
         $this->FLD('subject', 'varchar', 'caption=Условие->Относно', array('attr' => array('style' => 'width: 350px;')));
         $this->FLD('body', 'varchar', 'caption=Условие->Текст', array('attr' => array('style' => 'width: 350px;')));
-        $this->FLD('action', 'enum(email=Рутиране по първи външен имейл,folder=Преместване в папка)', 'value=email,caption=Действие->Действие,maxRadio=4,columns=1,notNull');
-        $this->FLD('folderId', 'key(mvc=doc_Folders, select=title, allowEmpty, where=#state !\\= \\\'rejected\\\')', 'caption=Действие->Папка');
+        $this->FLD('action', 'enum(email=Рутиране по първи външен имейл,folder=Преместване в папка)', 'value=email,caption=Действие->Действие,maxRadio=4,columns=1,notNull,removeAndRefreshForm=folderId, silent');
+        $this->FLD('folderId', 'key(mvc=doc_Folders, select=title, allowEmpty, where=#state !\\= \\\'rejected\\\')', 'caption=Действие->Папка, input=none');
         $this->FLD('note', 'text', 'caption=@Забележка', array('attr' => array('style' => 'width: 100%;', 'rows' => 4)));
         
         $this->setDbUnique('systemId');
@@ -139,6 +139,20 @@ class email_Filters extends core_Manager
         }
         
         return $rec->folderId;
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        if ($data->form->rec->action == 'folder') {
+            $data->form->setField('folderId', 'input=input');
+        }
     }
     
     
