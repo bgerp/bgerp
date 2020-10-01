@@ -33,11 +33,12 @@
                 </div>
                 <!--ET_END contragentAddress-->
                 <!--ET_END contragentName-->
-                <!--ET_BEGIN vatId-->
-                <div>Vat Id:<br>
-                    [#vatId#]
-                </div>
-                <!--ET_END vatId-->
+                <!--ET_BEGIN vatNo-->
+                <div><small>VAT ID:</small> <span class="bigData" style="padding-left:5px;">[#vatNo#]</span></div>
+                <!--ET_END vatNo-->
+                <!--ET_BEGIN contragentUicId-->
+                <div><small class="quiet">Tax ID:</small> <span class="bigData" style="padding-left:5px;"> [#contragentUicId#]</span></div>
+                <!--ET_END contragentUicId-->
             </td>
         </tr>
         <tr>
@@ -57,6 +58,12 @@
                     [#MyAddress#]
                 </div>
                 <!--ET_END MyAddress-->
+                <!--ET_BEGIN MyCompanyVatNo-->
+                <div><small>VAT ID:</small> <span class="bigData" style="padding-left:5px;">[#MyCompanyVatNo#]</span></div>
+                <!--ET_END MyCompanyVatNo-->
+                <!--ET_BEGIN uicId-->
+                <div><small>Tax ID:</small> <span class="bigData" style="padding-left:5px;">[#uicId#]</span></div>
+                <!--ET_END uicId-->
                 <!--ET_END MyCompany-->
                 <!--ET_BEGIN shipmentStoreId-->
                 <hr style="margin: 3px 0 1px;">
