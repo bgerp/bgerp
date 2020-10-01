@@ -80,6 +80,7 @@ class sales_ProductRatings extends core_Manager
         $this->FLD('updatedOn', 'datetime(format=smartTime)', 'caption=Обновено на,mandatory');
         
         $this->setDbIndex('classId');
+        $this->setDbIndex('classId,objectClassId,objectId');
     }
     
     
