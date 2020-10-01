@@ -258,7 +258,7 @@ class drdata_Vats extends core_Manager
         if (!$res && !$this->checkSyntax($vat)) {
             $res = self::statusSyntax;
         }
-        
+      
         if (!$res) {
             // Конвериране на български 13-цифрени данъчни номера към 9-цифрени
             if ((strpos($vat, 'BG')) === 0 && (strlen($vat) == 15)) {
@@ -338,7 +338,7 @@ class drdata_Vats extends core_Manager
      *
      * @return int -1 if country not included OR 1 if the VAT Num matches for the country OR 0 if no match
      */
-    public function checkSyntax($vat)
+    public function checkSyntax(&$vat)
     {
         switch (strtoupper(substr($vat, 0, 2))) {
             case 'AT':
@@ -348,6 +348,10 @@ class drdata_Vats extends core_Manager
                 $regex = '/^BE[0]{0,1}[0-9]{9}$/i';
                 break;
             case 'BG':
+                if(strlen($vat) == 15){
+                    $vat = substr($vat, 0, 11);
+                }
+                
                 $regex = '/^BG[0-9]{9,10}$/i';
                 break;
             case 'CY':
@@ -484,6 +488,8 @@ class drdata_Vats extends core_Manager
                 return $lastDigit == $c;
                 
             case 13:
+                
+               
                 $v1 = array(2, 7, 3, 5);
                 $v2 = array(4, 9, 5, 7);
                 
@@ -602,6 +608,7 @@ class drdata_Vats extends core_Manager
         $rec->action = 'checkVats';
         $rec->period = 10;
         $rec->offset = rand(0, 8);
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $res .= core_Cron::addOnce($rec);

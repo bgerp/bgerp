@@ -788,8 +788,35 @@ select.tabHolder {
 .receiptResultReturnedAmount {
   color: red; }
 
-.receiptResultAmount {
+.prices {
   margin-left: 15px; }
+
+.receiptResultChangeAmount {
+  color: #8c1919; }
+
+.spanDate {
+  display: inline-block;
+  height: 20px; }
+
+.otherPrice {
+  display: inline-block;
+  margin-left: 10px; }
+
+.prices {
+  text-align: right;
+  display: inline-block;
+  min-width: 60px;
+  margin-left: 10px;
+  height: 14px;
+  position: relative; }
+  .prices .receiptResultAmount,
+  .prices .receiptResultChangeAmount {
+    position: absolute;
+    right: 0;
+    top: 0; }
+
+.hidden {
+  display: none !important; }
 
 .storeQuantityInStock {
   font-size: 0.9em; }

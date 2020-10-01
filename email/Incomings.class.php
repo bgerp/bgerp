@@ -27,8 +27,9 @@ class email_Incomings extends core_Master
      * HK - Hong Kong
      * BO - Bolivia
      * NP - Nepal
+     * IN - India
      */
-    public static $riskIpArr = array('GH', 'NG', 'VN', 'SN', 'SL', 'HK', 'BO', 'NP');
+    public static $riskIpArr = array('GH', 'NG', 'VN', 'SN', 'SL', 'HK', 'BO', 'NP', 'IN');
     
     
     /**
@@ -1750,6 +1751,7 @@ class email_Incomings extends core_Master
         $rec->action = 'UpdatePublicDomains';
         $rec->period = 1440; // 24h
         $rec->offset = rand(120, 180); // от 2 до 3h
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 100;
         $res .= core_Cron::addOnce($rec);
@@ -1761,6 +1763,7 @@ class email_Incomings extends core_Master
         $rec->action = 'trainSpas';
         $rec->period = 60;
         $rec->offset = rand(0, 59);
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 250;
         $res .= core_Cron::addOnce($rec);
@@ -1773,6 +1776,7 @@ class email_Incomings extends core_Master
         $rec->action = 'ExtractPhoneNumbers';
         $rec->period = 60;
         $rec->offset = rand(0, 59);
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 250;
         $res .= core_Cron::addOnce($rec);

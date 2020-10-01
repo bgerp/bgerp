@@ -123,9 +123,11 @@ class bgerp_plg_Import extends core_Plugin
                     core_App::setTimeLimit(countR($rows)/10 + 10);
                     ini_set('memory_limit', '2048M');
                     core_Debug::$isLogging = false;
-
+                    
+                    Mode::push('importing', 'true');
                     // Импортиране на данните от масива в зададените полета
                     $msg = $Driver->import($rows, $fields);
+                    Mode::pop('importing');
                     Mode::pop('onExist');
                     
                     // Редирект кум лист изгледа на мениджъра в който се импортира
@@ -208,6 +210,11 @@ class bgerp_plg_Import extends core_Plugin
         $exp->SUGGESTIONS('#enclosure', array('' => '', '"' => '"', '\'' => '\''));
         $exp->DEF('#firstRow=Първи ред', 'enum(columnNames=Имена на колони,data=Данни)', 'mandatory');
         $exp->DEF('#onExist=При съвпадение', 'enum(skip=Пропускане, update=Обновяване, duplicate=Дублиране)', 'mandatory');
+        
+        
+        if ($exp->mvc->expOnExist) {
+            $exp->ASSUME('#onExist', '"' . $exp->mvc->expOnExist . '"');
+        }
         
         // Проверка дали броя на колоните отговаря навсякъде
         $exp->rule('#csvColumnsCnt', 'count(getCsvColNames(#csvData,#delimiter,#enclosure, 0, 1))');

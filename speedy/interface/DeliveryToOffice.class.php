@@ -102,9 +102,12 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
             $form->setField('deliveryPlace', 'input=hidden');
             $form->setField('deliveryAddress', 'input=hidden');
             $form->setField('locationId', 'input=none');
+            unset($form->rec->locationId);
         } elseif($Document instanceof sales_Sales){
             $form->setField('deliveryLocationId', 'input=hidden');
             $form->setField('deliveryAdress', 'input=hidden');
+            $form->setField('deliveryCalcTransport', 'input=none');
+            unset($form->rec->deliveryCalcTransport);
         } elseif($Document instanceof sales_Quotations){
             $form->setField('deliveryAdress', 'input=hidden');
             $form->setField('deliveryPlaceId', 'input=hidden');

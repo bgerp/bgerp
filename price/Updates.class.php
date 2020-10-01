@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -25,26 +25,19 @@ class price_Updates extends core_Manager
     /**
      * Единично заглавие
      */
-    public $singleTitle = 'Обновяване на себестойностите';
+    public $singleTitle = 'Правило за обновяване на себестойностите';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, price_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools2, price_Wrapper';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, name=Правило,costSource1,costSource2,costSource3,costAdd,costValue=Себестойност->Сума,updateMode=Себестойност->Обновяване';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
-    
+    public $listFields = 'id, name=Правило,sourceClass1,sourceClass2,sourceClass3,costAdd,costValue=Себестойност->Сума,updateMode=Себестойност->Обновяване';
     
     /**
      * Кой може да го промени?
@@ -83,27 +76,17 @@ class price_Updates extends core_Manager
     {
         $this->FLD('objectId', 'int', 'caption=Обект,silent,mandatory');
         $this->FLD('type', 'enum(category,product)', 'caption=Обект вид,input=hidden,silent,mandatory');
-        $this->FLD('costSource1', 'enum(,accCost=Складова,
-    									lastDelivery=Последна доставка (+разходи),
-    									activeDelivery=Текуща поръчка,
-    									lastQuote=Последна оферта,
-    									bom=Последна рецепта,average=Средна доставна за наличното)', 'caption=Източник 1,mandatory');
-        $this->FLD('costSource2', 'enum(,accCost=Складова,
-    									lastDelivery=Последна доставка (+разходи),
-    									activeDelivery=Текуща поръчка,
-    									lastQuote=Последна оферта,
-    									bom=Последна рецепта,average=Средна доставна за наличното)', 'caption=Източник 2');
-        $this->FLD('costSource3', 'enum(,accCost=Складова,
-    									lastDelivery=Последна доставка (+разходи),
-    									activeDelivery=Текуща поръчка,
-    									lastQuote=Последна оферта,
-    									bom=Последна рецепта,average=Средна доставна за наличното)', 'caption=Източник 3');
+        
+        $this->FLD('sourceClass1', 'class(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Източник 1, mandatory');
+        $this->FLD('sourceClass2', 'class(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Източник 2');
+        $this->FLD('sourceClass3', 'class(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Източник 3');
+        
         $this->FLD('costAdd', 'percent(Min=0,max=1)', 'caption=Добавка');
         $this->FLD('costAddAmount', 'double(Min=0,decimals=2)', "caption=Добавка|* (|Сума|*),unit=|*BGN (|добавя се твърдо|*)");
         $this->FLD('minChange', 'percent(min=0,max=1)', 'caption=Мин. промяна');
         
         $this->FLD('costValue', 'double', 'input=none,caption=Себестойност');
-        $this->FLD('updateMode', 'enum(manual=Ръчно,now=Ежечасно,nextDay=Следващия ден,nextWeek=Следващата седмица,nextMonth=Следващия месец)', 'caption=Обновяване');
+        $this->FLD('updateMode', 'enum(manual=Ръчно,now=Ежечасово,nextDay=Следващия ден,nextWeek=Следващата седмица,nextMonth=Следващия месец)', 'caption=Обновяване');
         
         $this->setDbUnique('objectId,type');
     }
@@ -116,6 +99,7 @@ class price_Updates extends core_Manager
     {
         $form = &$data->form;
         $rec = &$form->rec;
+        $form->setDefault('updateMode', 'now');
         
         Mode::push('text', 'plain');
         $form->setField("minChange", "placeholder=" . core_Type::getByName('percent')->toVerbal(price_Setup::get('MIN_CHANGE_UPDATE_PRIME_COST')));
@@ -152,23 +136,23 @@ class price_Updates extends core_Manager
     {
         $rec = &$form->rec;
         if ($form->isSubmitted()) {
-            $rec->costSource2 = (!$rec->costSource2) ? null : $rec->costSource2;
-            $rec->costSource3 = (!$rec->costSource3) ? null : $rec->costSource3;
+            $rec->sourceClass2 = (!$rec->sourceClass2) ? null : $rec->sourceClass2;
+            $rec->sourceClass3 = (!$rec->sourceClass3) ? null : $rec->sourceClass3;
             
             $error = false;
-            if ($rec->costSource1 == $rec->costSource2 || $rec->costSource1 == $rec->costSource3) {
+            if ($rec->sourceClass1 == $rec->sourceClass2 || $rec->sourceClass1 == $rec->sourceClass3) {
                 $error = true;
             }
-            if (isset($rec->costSource2) && ($rec->costSource2 == $rec->costSource1 || $rec->costSource2 == $rec->costSource3)) {
+            if (isset($rec->sourceClass2) && ($rec->sourceClass2 == $rec->sourceClass1 || $rec->sourceClass2 == $rec->sourceClass3)) {
                 $error = true;
             }
-            if (isset($rec->costSource3) && ($rec->costSource3 == $rec->costSource1 || $rec->costSource3 == $rec->costSource2)) {
+            if (isset($rec->sourceClass3) && ($rec->sourceClass3 == $rec->sourceClass1 || $rec->sourceClass3 == $rec->sourceClass2)) {
                 $error = true;
             }
             
             // Ако източниците се повтарят, сетваме грешка във формата
             if ($error === true) {
-                $form->setError('costSource1,costSource2,costSource3', 'Стойностите се повтарят');
+                $form->setError('sourceClass1,sourceClass2,sourceClass3', 'Източниците, не може да се повтарят');
             }
             
             // Попълваме скритите полета с данните от функционалните
@@ -204,6 +188,12 @@ class price_Updates extends core_Manager
             if ($mvc->haveRightFor('saveprimecost', $rec)) {
                 $row->updateMode = ht::createBtn('Обнови', array($mvc, 'saveprimecost', $rec->id, 'ret_url' => true), '|Сигурни ли сте, че искате да обновите себестойностите на всички артикули в категорията|*?', false, 'ef_icon=img/16/arrow_refresh.png,title=Ръчно обновяване на себестойностите');
                 $row->updateMode = "<span style='float:right'>{$row->updateMode}</span>";
+            }
+        }
+        
+        foreach (array('sourceClass1', 'sourceClass2', 'sourceClass3') as $fld){
+            if(!empty($rec->{$fld})){
+                $row->{$fld} = cls::get($rec->{$fld})->getName(true);
             }
         }
         
@@ -267,7 +257,7 @@ class price_Updates extends core_Manager
         $this->savePrimeCost($rec);
         
         // Редирект към списъчния изглед
-        return followRetUrl(null, 'Себестойностите са обновени успешно');
+        return followRetUrl(null, 'Себестойността е променена успешно');
     }
     
     
@@ -289,7 +279,6 @@ class price_Updates extends core_Manager
             
             // Ако е категория, всички артикули в папката на категорията
             $folderId = cat_Categories::fetchField($rec->objectId, 'folderId');
-            
             $pQuery = cat_Products::getQuery();
             $pQuery->where("#folderId = {$folderId}");
             $pQuery->show('id');
@@ -329,18 +318,18 @@ class price_Updates extends core_Manager
         foreach ($products as $productId) {
             $pRec = cat_Products::fetch($productId);
             
-            // Обновяваме себестойностите само ако артикула е складируем,публичен,активен, купуваем или производим
+            // Обновяване на себестойностите само ако артикула е складируем, публичен, активен, купуваем или производим
             if ($pRec->state != 'active' || $pRec->canStore != 'yes' || $pRec->isPublic != 'yes' || !($pRec->canBuy == 'yes' || $pRec->canManifacture == 'yes')) {
                 continue;
             }
             
-            // Опитваме се да му изчислим себестойността според източниците
-            $primeCost = self::getPrimeCost($productId, $rec->costSource1, $rec->costSource2, $rec->costSource3, $rec->costAdd);
+            // Опит за изчисление на себестойността според източниците
+            $primeCost = self::getPrimeCost($productId, $rec->sourceClass1, $rec->sourceClass2, $rec->sourceClass3, $rec->costAdd);
             
-            // Намираме старата му себестойност (ако има)
+            // Намира се старата му себестойност (ако има)
             $oldPrimeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId);
             
-            // Ако имаме изчислена себестойност
+            // Ако има изчислена себестойност
             if ($primeCost) {
                 
                 // Добавяме надценката, ако има
@@ -360,7 +349,7 @@ class price_Updates extends core_Manager
                         self::save($rec, 'costValue');
                     }
                     
-                    // Ако е указано, обновяваме я в ценовите политики
+                    // Ако е указано, обновява се в ценовите политики
                     if ($saveInPriceList === true) {
                         
                         // Записваме новата себестойност на продукта
@@ -414,21 +403,20 @@ class price_Updates extends core_Manager
     /**
      * Намира себестойността на един артикул, според зададените приоритети
      *
-     * @param int                                                    $productId   - ид на артикул
-     * @param string      $costSource1 - първи източник
-     * @param string|NULL $costSource2 - втори източник
-     * @param string|NULL $costSource3 - трети източник
-     * @param float                                                  $costAdd     - процент надценка
+     * @param int         $productId    - ид на артикул
+     * @param string      $sourceClass1 - първи източник
+     * @param string|NULL $sourceClass2 - втори източник
+     * @param string|NULL $sourceClass3 - трети източник
+     * @param float       $costAdd      - процент надценка
      *
      * @return float|FALSE $price - намерената себестойност или FALSE ако няма
      */
-    public static function getPrimeCost($productId, $costSource1, $costSource2 = null, $costSource3 = null, $costAdd = null)
+    public static function getPrimeCost($productId, $sourceClass1, $sourceClass2 = null, $sourceClass3 = null, $costAdd = null)
     {
-        $sources = array($costSource1, $costSource2, $costSource3);
+        $sources = array($sourceClass1, $sourceClass2, $sourceClass3);
         foreach ($sources as $source) {
             if (isset($source)) {
                 $price = price_ProductCosts::getPrice($productId, $source);
-                
                 if (isset($price)) {
                     
                     return $price;
@@ -456,10 +444,14 @@ class price_Updates extends core_Manager
     public function cron_Updateprimecosts()
     {
         core_App::setTimeLimit(1200);
+       
+        $cronRec = core_Cron::getRecForSystemId("Update primecosts"); 
+        $cronPeriod = $cronRec->period * 60;
+        $datetime = dt::addSecs(-1 * $cronPeriod);
         
-        // Обновяваме кеширането на себестойностите
-        cls::get('price_ProductCosts')->cron_CachePrices();
-        
+        // Обновяване на себестойностите на всички засегнати артикули от предишното време на обновяване
+        price_ProductCosts::saveCalcedCosts($datetime);
+       
         // Взимаме всички записи
         $now = dt::now();
         $query = $this->getQuery();
@@ -587,7 +579,7 @@ class price_Updates extends core_Manager
     {
         // Рендираме таблицата
         $table = cls::get('core_TableView', array('mvc' => cls::get('price_Updates')));
-        $fields = 'tools=Пулт,costSource1=Източник->Първи,costSource2=Източник->Втори,costSource3=Източник->Трети,costAdd=Добавка,costValue=Стойност,updateMode=Обновяване,createdOn=Създаване->На,createdBy=Създаване->От';
+        $fields = 'tools=Пулт,sourceClass1=Източник->Първи,sourceClass2=Източник->Втори,sourceClass3=Източник->Трети,costAdd=Добавка,costValue=Стойност,updateMode=Обновяване,createdOn=Създаване->На,createdBy=Създаване->От';
         $fields = core_TableView::filterEmptyColumns($data->rows, $fields, 'costAdd');
         $details = $table->get($data->rows, $fields);
         

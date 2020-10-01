@@ -31,7 +31,7 @@ class eshop_Products extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code,name,groupId=Група,saleState,state';
+    public $listFields = 'code,name=Е-артикул,dCount=Опции,groupId=Група,saleState,state';
     
     
     /**
@@ -43,13 +43,13 @@ class eshop_Products extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'marketing_InquirySourceIntf';
+    public $interfaces = 'marketing_InquirySourceIntf,sales_RatingsSourceIntf';
     
     
     /**
      * Икона за единичен изглед
      */
-    public $singleIcon = 'img/16/wooden-box.png';
+    public $singleIcon = 'img/16/globe.png';
     
     
     /**
@@ -337,32 +337,17 @@ class eshop_Products extends core_Master
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $row->_rowTools->addLink('Преглед', self::getUrl($rec), 'alwaysShow,ef_icon=img/16/monitor.png,title=Преглед във външната част');
             }
+            
+            $dCount = eshop_ProductDetails::count("#eshopProductId = {$rec->id}");
+            
+            $row->dCount = core_Type::getByName('int')->toVerbal($dCount);
+            $row->dCount = ht::styleNumber($row->dCount, $dCount);
         }
         
         $row->groupId = eshop_Groups::getHyperlink($rec->groupId, true);
         
         if (is_array($rec->nearProducts) && (isset($fields['-single']) || isset($fields['-external']))) {
-            $nearProductsData = $mvc->getNearProductsBlock($rec);
-            $row->nearProducts = '';
-            
-            // Показване на линковете към свързаните артикули
-            if (countR($nearProductsData->products)) {
-                foreach ($nearProductsData->products as $productLink) {
-                    $row->nearProducts .= "<li>{$productLink}</li>";
-                }
-                
-                $row->nearProducts = '<p  style="margin-bottom: 5px;">' . tr('Вижте също') . ':</p><ul style="margin-top: 0px;">' . $row->nearProducts . '</ul>';
-            }
-            
-            // Показване на изображениятя линковете към свързаните артикули
-            if (countR($nearProductsData->images)) {
-                $row->nearProductImages = '';
-                foreach ($nearProductsData->images as $productImageLink) {
-                    $row->nearProductImages .= "<li>{$productImageLink}</li>";
-                }
-                
-                $row->nearProductImages = "<ul class='eshopNearProductImageHolder'>{$row->nearProductImages}</ul>";
-            }
+            $row->nearRows = $mvc->prepareNearProducts($rec);
         }
     }
     
@@ -372,16 +357,16 @@ class eshop_Products extends core_Master
      *
      * @param stdClass $rec - запис
      *
-     * @return stdClass $data - върнати данни
+     * @return array $rows - записи
      */
-    private function getNearProductsBlock($rec)
+    private function prepareNearProducts($rec)
     {
-        $data = (object) array('products' => array(), 'images' => array());
+        $rows = array();
         
         // Ако няма свързани артикули, се връща празен обект
         if (!is_array($rec->nearProducts)) {
             
-            return $data;
+            return $rows;
         }
         
         // За всеки свързан
@@ -389,28 +374,28 @@ class eshop_Products extends core_Master
         foreach ($nearProducts as $productId) {
             
             // Ако е затворен, се пропуска
-            $productRec = eshop_Products::fetch($productId, 'image,image2,image3,image4,image5,state');
+            $productRec = eshop_Products::fetch($productId);
             if ($productRec->state == 'closed') {
                 continue;
             }
             
-            // Показване на линковете към артикула
-            $prodRec = self::fetch($productId);
-            if ($prodRec) {
-                $productUrl = self::getUrl($prodRec);
-                $productTitle = eshop_Products::getTitleById($productId);
-                $data->products[$productId] = ht::createLink($productTitle, $productUrl)->getContent();
-                
-                // Ако има се показва тъмбнейл, към него
-                $thumb = static::getProductThumb($productRec, 300, 300);
-                if (isset($thumb)) {
-                    $thumbHtml = $thumb->createImg(array('class' => 'eshopNearProductThumb', 'title' => $productTitle))->getContent();
-                    $data->images[$productId] = ht::createLink($thumbHtml, $productUrl);
-                }
+            $row = new stdClass();
+            $productUrl = self::getUrl($productRec);
+            $productTitle = eshop_Products::getTitleById($productId);
+            $row->nearLink = ht::createLink($productTitle, $productUrl, null, 'class=productName');
+            
+            // Ако има се показва тъмбнейл, към него
+            $thumb = static::getProductThumb($productRec, 200, 200);
+            if (empty($thumb)) {
+                $thumb = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') .'.png'), 300, 300, 'path');
             }
+            
+            $thumbHtml = $thumb->createImg(array('class' => 'eshopNearProductThumb', 'title' => $productTitle))->getContent();
+            $row->nearThumb = ht::createLink($thumbHtml, $productUrl, null, 'class=productImage');
+            $rows[$productId] = $row;
         }
         
-        return $data;
+        return $rows;
     }
     
     
@@ -507,10 +492,12 @@ class eshop_Products extends core_Master
         if (countR($imageArr)) {
             $tact = abs(crc32($rec->id . round(time() / (24 * 60 * 60 + 537)))) % countR($imageArr);
             $image = $imageArr[$tact];
-            $thumb = new thumb_Img($image, 120, 120);
-            
-            return $thumb;
+            $thumb = new thumb_Img($image, $width, $height);
+        } else {
+            $thumb = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') .'.png'), $width, $height, 'path');
         }
+        
+        return $thumb;
     }
     
     
@@ -537,9 +524,7 @@ class eshop_Products extends core_Master
             
             // Показване на тъмбнейл на артикула
             $thumb = static::getProductThumb($pRec);
-            if (empty($thumb)) {
-                $thumb = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') .'.png'), 120, 120, 'path');
-            }
+            
             $pRow->image = $thumb->createImg(array('class' => 'eshop-product-image'));
             
             if ($pRec->saleState == 'single') {
@@ -781,10 +766,10 @@ class eshop_Products extends core_Master
         $data->row = $this->recToVerbal($data->rec, $fields);
         
         $hasImage = false;
-        foreach (array('image', 'image2', 'image3', 'image4', 'image5') as $i => $imgFld){
+        foreach (array('image', 'image2', 'image3', 'image4', 'image5') as $i => $imgFld) {
             if (!empty($data->rec->{$imgFld})) {
                 $path = fileman::fetchByFh($data->rec->{$imgFld}, 'path');
-                if(file_exists($path)){
+                if (file_exists($path)) {
                     $data->row->{$imgFld} = fancybox_Fancybox::getImage($data->rec->{$imgFld}, array(160, 160), array(800, 800), $data->row->name . " {$i}", array('class' => 'product-image'));
                     $hasImage = true;
                 } else {
@@ -793,7 +778,7 @@ class eshop_Products extends core_Master
             }
         }
         
-        if($hasImage === false){
+        if ($hasImage === false) {
             $data->row->image = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') . '.png'), 120, 120, 'path');
             $data->row->image = $data->row->image->createImg(array('width' => 160, 'height' => 160, 'class' => 'product-image'));
         }
@@ -894,8 +879,19 @@ class eshop_Products extends core_Master
         }
         $tpl->placeObject($data->row);
         
+        $tpl->push('css/no-sass.css', 'CSS');
         if (is_array($data->detailData->rows) && countR($data->detailData->rows)) {
             $tpl->replace(eshop_ProductDetails::renderExternal($data->detailData), 'PRODUCT_OPT');
+        }
+        
+        // Рендиране на свързаните артикули
+        if (is_array($data->row->nearRows)) {
+            foreach ($data->row->nearRows as $nearRow) {
+                $block = clone $tpl->getBlock('nearLink');
+                $block->placeObject($nearRow);
+                $block->removeBlocksAndPlaces();
+                $tpl->append($block, 'NEAR_ROWS');
+            }
         }
         
         return $tpl;
@@ -1130,7 +1126,7 @@ class eshop_Products extends core_Master
     /**
      * Връзка на артикул към е-артикул
      */
-    public function act_linktoeshop()
+    public function act_LinkToEshop()
     {
         // Проверки
         $this->requireRightFor('linktoeshop');
@@ -1592,7 +1588,7 @@ class eshop_Products extends core_Master
         foreach ($r as $epId => $near) {
             $rec = self::fetch($epId);
             
-            if ($rec) {
+            if ($rec && ($rec->nearProducts != $near)) {
                 $rec->nearProducts = $near;
                 self::save($rec, 'nearProducts');
             }
@@ -1602,7 +1598,7 @@ class eshop_Products extends core_Master
     
     /**
      * Кои продукти са използвани в Е-маг
-     * 
+     *
      * @return array $eProductArr
      */
     public static function getProductsInEshop()
@@ -1612,5 +1608,117 @@ class eshop_Products extends core_Master
         $eProductArr = arr::extractValuesFromArray($query->fetchAll(), 'productId');
         
         return $eProductArr;
+    }
+    
+    
+    /**
+     * Подготовка на рейтингите за продажба на артикулите
+     * @see sales_RatingsSourceIntf
+     *
+     * @return array $res - масив с обекти за върнатите данни
+     *                 o objectClassId - ид на клас на обект
+     *                 o objectId      - ид на обект
+     *                 o classId       - текущия клас
+     *                 o key           - ключ
+     *                 o value         - стойност
+     */
+    public function getSaleRatingsData()
+    {
+        $res = array();
+        
+        // Съответствие м/у артикулите и е-артикулите
+        $details = array();
+        $dQuery = eshop_ProductDetails::getQuery();
+        $dQuery->EXT('groupId', 'eshop_Products', 'externalName=groupId,externalKey=eshopProductId');
+        $dQuery->EXT('stateE', 'eshop_Products', 'externalName=state,externalKey=eshopProductId');
+        $dQuery->where("#stateE = 'active'");
+        while($dRec = $dQuery->fetch()){
+            $domainId = self::getDomainId($dRec->eshopProductId);
+            $details[$dRec->productId][$domainId] = $dRec->eshopProductId;
+        }
+        
+        if(!countR($details)) {
+            
+            return $res;
+        }
+        
+        $valiorFromTime = eshop_Setup::get('RATINGS_OLDER_THEN');
+        $valiorFrom = dt::verbal2mysql(dt::addSecs(-1 * $valiorFromTime), false);
+        
+        // Подготовка на заявката за продажбите
+        $deltaQuery = sales_PrimeCostByDocument::getQuery();
+        $deltaQuery->where("#sellCost IS NOT NULL AND (#state = 'active' OR #state = 'closed') AND #isPublic = 'yes'");
+        $deltaQuery->where("#valior >= '{$valiorFrom}'");
+        $deltaQuery->show('productId,threadId,valior');
+        
+        $count = $deltaQuery->count();
+        core_App::setTimeLimit($count * 0.4, false, 200);
+        $deltaRecs = $deltaQuery->fetchAll();
+        $deltaThreads = arr::extractValuesFromArray($deltaRecs, 'threadId');
+        
+        // Кои са нишките на онлайн продажби
+        $onlineSaleThreads = array();
+        if(countR($deltaThreads)){
+            $cartQuery = eshop_Carts::getQuery();
+            $cartQuery->EXT('threadId', 'sales_Sales', 'externalName=threadId,externalKey=saleId');
+            $cartQuery->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
+            $cartQuery->where("#saleId IS NOT NULL AND #state != 'rejected'");
+            $cartQuery->in('threadId', $deltaThreads);
+            $cartQuery->show('threadId, domainId');
+            
+            array_walk($cartQuery->fetchAll(), function ($a) use (&$onlineSaleThreads) {$onlineSaleThreads[$a->threadId] = $a->domainId;});
+        }
+        
+        foreach ($deltaRecs as $dRec){
+             
+            // Ако реда е в онлайн продажба
+            if(array_key_exists($dRec->threadId, $onlineSaleThreads)){
+                
+                // Кой е-артикул съответства на този артикул и домейнт
+                $eshopProductId = $details[$dRec->productId][$onlineSaleThreads[$dRec->threadId]];
+                
+                // Ако има такъв
+                if($eshopProductId){
+                    
+                    if(!array_key_exists($eshopProductId, $res)){
+                        $res[$eshopProductId] = (object)array('classId'       => $this->getClassId(),
+                            'objectClassId' => self::getClassId(),
+                            'objectId'      => $eshopProductId,
+                            'key'           => $onlineSaleThreads[$dRec->threadId],
+                            'value'         => 0,);
+                    }
+                    
+                    // Изчисляване на рейтинга му
+                    $monthsBetween = countR(dt::getMonthsBetween($dRec->valior));
+                    $rating = round(12 / $monthsBetween);
+                    $res[$eshopProductId]->value += 100 * $rating;
+                }
+            }
+            
+            // Проверява се във кои други домейни се среща този артикул
+            if(array_key_exists($dRec->productId, $details)){
+                
+                // Ако се среща в поне един домейн
+                $productInDomains =  $details[$dRec->productId];
+                if(is_array($productInDomains)){
+                    foreach ($productInDomains as $pDomainId => $eshopProductId){
+                        if(!array_key_exists($eshopProductId, $res)){
+                            $res[$eshopProductId] = (object)array('classId'       => $this->getClassId(),
+                                                                  'objectClassId' => self::getClassId(),
+                                                                  'objectId'      => $eshopProductId,
+                                                                  'key'           => $pDomainId,
+                                                                  'value'         => 0,);
+                        }
+                        
+                        // Добавя се с по-малка тежест
+                        $res[$eshopProductId]->value += 1;
+                    }
+                }
+            }
+        }
+        
+        $res = array_values($res);
+        
+        return $res;
     }
 }

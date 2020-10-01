@@ -300,7 +300,7 @@ class doc_SharablePlg extends core_Plugin
         // Добавяме раздел със споделените в папката
         $shareUsersArr = self::getShareUsersArr($form->rec);
         if (!empty($shareUsersArr)) {
-            $title = "|От папка|* " . '"' . str::limitLen(doc_Folders::getVerbal($form->rec->folderId, 'title'), 72) . '"';
+            $title = "От папката";
             $form->fields['sharedUsers']->type->userOtherGroup = array(-1 => (object) array('suggName' => 'doc', 'title' => $title, 'attr' => array('class' => 'team'), 'group' => true, 'autoOpen' => true, 'suggArr' => $shareUsersArr));
         }
     }
@@ -374,6 +374,9 @@ class doc_SharablePlg extends core_Plugin
                 }
             }
         }
+        
+        $cu = core_Users::getCurrent();
+        unset($shareUsers[$cu]);
         
         return $shareUsers;
     }

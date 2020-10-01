@@ -235,10 +235,13 @@ class plg_State2 extends core_Plugin
             $rec->state = ($rec->state == $this->activeState ? $this->closedState : $this->activeState);
             
             $act = '';
+            $actState = '';
             if ($rec->state == $this->activeState) {
                 $act = 'Активиране';
+                $actState = $rec->state;
             } elseif ($rec->state == $this->closedState) {
                 $act = 'Затваряне';
+                $actState = $rec->state;
             }
             
             if ($act) {
@@ -250,7 +253,15 @@ class plg_State2 extends core_Plugin
                 $updateFields = 'state,modifiedOn,modifiedBy';
             }
             
+            if ($actState) {
+                $mvc->invoke('BeforeChangeState', array($rec, $actState));
+            }
+            
             $mvc->save($rec, $updateFields);
+            
+            if ($actState) {
+                $mvc->invoke('AfterChangeState', array($rec, $actState));
+            }
         }
         
         $content = new Redirect($retUrl);

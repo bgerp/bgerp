@@ -16,11 +16,12 @@
  *
  * lastDocUser        - Последния активен документ в папката от потребителя
  * lastDoc 		      - Последния активен документ в папката
- * lastDocSameCountry  - Последния активен документ в папка на клиент от същата държава
- * defMethod	      - Дефолт метод с име "getDefault{$name}"
+ * lastDocSameCountry - Последния активен документ в папка на клиент от същата държава
+ * defMethod	      - Дефолт метод с име "getDefault{$name}", има реализация по подразбиране
  * clientData	      - От контрагент интерфейса
  * clientCondition    - От дефолт търговско условие
  * coverMethod	      - Метод от корицата с име "getDefault{$name}"
+ * customMethod	      - Дефолт метод за частен случай
  *
  * -------------------------------------------------------------
  *
@@ -28,7 +29,7 @@
  * @package   cond
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -110,7 +111,6 @@ class cond_plg_DefaultValues extends core_Plugin
                 // За всяко поле със стратегия, му се намира стойността
                 foreach ($mvc::$defaultStrategies as $name => $strat) {
                     $value = self::getDefValue($mvc, $rec, $name, $strat);
-                    
                     if ($form->cmd != 'refresh') {
                         $form->setDefault($name, $value);
                     }
@@ -152,7 +152,7 @@ class cond_plg_DefaultValues extends core_Plugin
     {
         $strat = keylist::toArray($strat);
         if (countR($strat)) {
-            
+           
             // За всяка от стратегиите
             foreach ($strat as $str) {
                 $methodName = "getFrom{$str}";
@@ -177,8 +177,6 @@ class cond_plg_DefaultValues extends core_Plugin
                 }
             }
         }
-        
-        // Ако никоя от стратегиите не намери валидна стойност
     }
     
     
@@ -277,6 +275,20 @@ class cond_plg_DefaultValues extends core_Plugin
     private static function getFromDefMethod(core_Mvc $mvc, $rec, $name)
     {
         $name = "getDefault{$name}";
+        
+        if (cls::existsMethod($mvc, $name)) {
+            
+           return $mvc->$name($rec);
+        }
+    }
+    
+    
+    /**
+     * Връща стойността според кустом дефолтен метод в мениджъра
+     */
+    private static function getFromCustomMethod(core_Mvc $mvc, $rec, $name)
+    {
+        $name = "getCustomDefault{$name}";
         
         if (cls::existsMethod($mvc, $name)) {
             

@@ -43,7 +43,7 @@ class eshop_CartDetails extends core_Detail
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'eshopProductId=Артикул в е-мага,productId,packagingId,packQuantity,finalPrice=Цена,amount=Сума';
+    public $listFields = 'eshopProductId=Е-артикул,productId,packagingId,packQuantity,finalPrice=Цена,amount=Сума';
     
     
     /**
@@ -187,7 +187,7 @@ class eshop_CartDetails extends core_Detail
     protected static function on_AfterRenderWrapping(core_Manager $mvc, &$res, &$tpl = null, $data = null)
     {
         if (isset($data->form->rec->external)) {
-            $tpl->prepend("\n<meta name=\"robots\" content=\"nofollow\">", 'HEAD');
+            $tpl->prepend("\n<meta name=\"robots\" content=\"nofollow,noindex\">", 'HEAD');
         }
     }
     

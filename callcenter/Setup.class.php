@@ -56,6 +56,12 @@ defIfNot('CALLCENTER_SAVE_OUTGOING_CALLS', 'no');
 
 
 /**
+ * Записване на обажданията към нерегистрирани вътрешни номера
+ */
+defIfNot('CALLCENTER_SAVE_CALLS_FOR_NON_EXIST_INTERNAL_NUMS', 'yes');
+
+
+/**
  * Максимална дълбина на вътрешните номера
  */
 defIfNot('CALLCENTER_MAX_INTERNAL_NUM_LENGTH', 6);
@@ -125,6 +131,7 @@ class callcenter_Setup extends core_ProtoSetup
             
         'CALLCENTER_SAVE_INNTERNAL_CALLS' => array('enum(no=Не,yes=Да)', 'caption=Записване на вътрешните обаждания->Избор'),
         'CALLCENTER_SAVE_OUTGOING_CALLS' => array('enum(no=Не,yes=Да)', 'caption=Записване на изходящите обаждания->Избор'),
+        'CALLCENTER_SAVE_CALLS_FOR_NON_EXIST_INTERNAL_NUMS' => array('enum(yes=Да,no=Не)', 'caption=Записване на обажданията към нерегистрирани вътрешни номера->Избор'),
             
         'CALLCENTER_SMS_SERVICE' => array('class(interface=callcenter_SentSMSIntf, select=title, allowEmpty)', 'caption=Изпращане на SMS->Услуга'),
         'CALLCENTER_SMS_SENDER' => array('varchar', 'caption=Изпращане на SMS->Изпращач'),

@@ -9,7 +9,7 @@
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -136,13 +136,14 @@ class pos_Reports extends core_Master
     public function description()
     {
         $this->FLD('pointId', 'key(mvc=pos_Points, select=name)', 'caption=Точка, width=9em, mandatory,silent');
+        $this->FLD('valior', 'date', 'caption=Вальор');
         $this->FLD('paid', 'double(decimals=2)', 'caption=Сума->Платено, input=none, value=0, summary=amount');
         $this->FLD('total', 'double(decimals=2)', 'caption=Сума->Продадено, input=none, value=0, summary=amount');
         $this->FLD('state', 'enum(draft=Чернова,active=Активиран,rejected=Оттеглена,closed=Приключен,stopped=Спряно)', 'caption=Състояние,input=none,width=8em');
         $this->FLD('details', 'blob(serialize,compress)', 'caption=Данни,input=none');
         $this->FLD('closedOn', 'datetime', 'input=none');
-        
         $this->FLD('dealerId', "user(roles=ceo|sales|pos,allowEmpty)", 'caption=Търговец,mandatory');
+        $this->FLD('chargeVat', 'enum(yes=Начисляване,no=Без начисляване)', 'caption=Допълнително->ДДС,notNull,value=yes');
     }
     
     
@@ -152,6 +153,7 @@ class pos_Reports extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $data->form->setReadOnly('pointId');
+        $data->form->setField('valior', "placeholder=" . dt::mysql2verbal(dt::today(), 'd.m.Y'));
         
         if(haveRole('pos,sales')){
             $data->form->setDefault('dealerId', core_Users::getCurrent());
@@ -405,9 +407,9 @@ class pos_Reports extends core_Master
     {
         $row = new stdClass();
         
-        $double = core_Type::getByName('double(decimals=2)');
+        $Double = core_Type::getByName('double(decimals=2)');
         $currencyCode = acc_Periods::getBaseCurrencyCode($obj->date);
-        $row->quantity = "<span style='float:right'>" . $double->toVerbal($obj->quantity) . '</span>';
+        $row->quantity = "<span style='float:right'>{$Double->toVerbal($obj->quantity)}</span>";
         if ($obj->action == 'sale') {
             
             // Ако детайла е продажба
@@ -421,6 +423,7 @@ class pos_Reports extends core_Master
             
             $row->value = cat_Products::getHyperlink($obj->value, true);
             $obj->amount *= 1 + $obj->param;
+            
             
             if(core_Packs::isInstalled('batch')){
                 $batchDef = batch_Defs::getBatchDef($obj->value);
@@ -448,7 +451,13 @@ class pos_Reports extends core_Master
         }
         
         $row->value = "<span style='white-space:nowrap;'>{$row->value}</span>";
-        $row->amount = "<span style='float:right'>" . $double->toVerbal($obj->amount) . '</span>';
+        $amount = $Double->toVerbal($obj->amount);
+        if(isset($obj->param)){
+            $amountHint = tr('ДДС') . ": " . core_Type::getByName('percent')->toVerbal($obj->param);
+            $amount = ht::createHint($amount, $amountHint);
+        }
+        
+        $row->amount = "<span style='float:right'>{$amount}</span>";
         $row->contragentId = cls::get($obj->contragentClassId)->getHyperlink($obj->contragentId, true);
         
         return $row;
@@ -526,7 +535,7 @@ class pos_Reports extends core_Master
             $data = pos_ReceiptDetails::fetchReportData($rec->id);
             
             foreach ($data as $obj) {
-                $indexArr = array($obj->action, $obj->pack, $obj->contragentClassId, $obj->contragentId, $obj->value);
+                $indexArr = array($obj->action, $obj->pack, $obj->contragentClassId, $obj->contragentId, $obj->value, $obj->param);
                 if(core_Packs::isInstalled('batch')){
                     $indexArr[] = str_replace('|', '>', $obj->batch);
                 }
@@ -573,6 +582,54 @@ class pos_Reports extends core_Master
         
         // Еднократно оттегляме всички празни чернови бележки
         $mvc->rejectEmptyReceipts($rec);
+    }
+    
+    
+    /**
+     * Маркира използваните артикули
+     */
+    private function markUsedProducts($rec, $remove = false)
+    {
+        // Записа се извлича наново, защото поради някаква причина при оттегляне е непълен
+        $id = is_object($rec) ? $rec->id : $rec;
+        $rec = $this->fetch($id, '*', false);
+       
+        if(countR($rec->details['receiptDetails'])){
+            $affectedProducts = array();
+            array_walk($rec->details['receiptDetails'], function ($a) use (&$affectedProducts){if($a->action == 'sale') {$affectedProducts[$a->value] = $a->value;}});
+            
+            // Ако има намерени продадени артикули се маркират/демаркират като използвани
+            if(countR($affectedProducts)){
+                foreach ($affectedProducts as $productId){
+                    $pContainerId = cat_Products::fetchField($productId, 'containerId');
+                    if($remove){
+                        doclog_Used::remove($rec->containerId, $pContainerId);
+                    } else {
+                        doclog_Used::add($rec->containerId, $pContainerId);
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * Функция, която се извиква след активирането на документа
+     */
+    protected static function on_AfterActivation($mvc, &$rec)
+    {
+        // След контиране се маркират използваните артикули
+        $mvc->markUsedProducts($rec);
+    }
+    
+    
+    /**
+     * Изпълнява се преди оттеглянето на документа
+     */
+    protected static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+        // След оттегляне се махат използванията на артикулите
+        $mvc->markUsedProducts($id, true);
     }
     
     
@@ -703,7 +760,7 @@ class pos_Reports extends core_Master
         if ($rec = self::fetch($objectId)) {
             $result = (object) array(
                 'num' => $objectId . ' ' . mb_strtolower($self->abbr),
-                'title' => static::getRecTitle($rec),
+                'title' => static::getRecTitle($rec, false),
             );
         }
         

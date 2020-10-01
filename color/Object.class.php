@@ -120,15 +120,21 @@ class color_Object
     /**
      * Намира дистанцията между между текущия и посочения цвят
      */
-    public function getDistance($color)
+    public function getDistance($color, $baseColor = null)
     {
         if (is_scalar($color)) {
             $color = new color_Object($color);
         }
         
-        return sqrt(($color->r - $this->r) * ($color->r - $this->r) +
-            ($color->g - $this->g) * ($color->g - $this->g) +
-            ($color->b - $this->b) * ($color->b - $this->b));
+        if ($baseColor) {
+            $bColor = new color_Object($baseColor);
+        } else {
+            $bColor = $this;
+        }
+        
+        return sqrt((($color->r - $bColor->r) * ($color->r - $bColor->r) +
+            ($color->g - $bColor->g) * ($color->g - $bColor->g) +
+            ($color->b - $bColor->b) * ($color->b - $bColor->b)) / 3);
     }
     
     

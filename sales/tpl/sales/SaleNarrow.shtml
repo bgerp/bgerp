@@ -131,10 +131,12 @@
                     <li>|Обединява|*: [#closedDocuments#]</li>
                     <!--ET_END closedDocuments-->
                     <!--ET_BEGIN deliveryBlock-->
+                    <!--ET_BEGIN deliveryTermId-->
                     <li>
                         |Доставка|*: [#deliveryTermId#]
                         <!--ET_BEGIN deliveryTime-->|до|* [#deliveryTime#]<!--ET_END deliveryTime-->
                     </li>
+                    <!--ET_END deliveryTermId-->
                     [#deliveryBlock#]
                     <!--ET_END deliveryBlock-->
                     <!--ET_BEGIN deliveryTermTime-->

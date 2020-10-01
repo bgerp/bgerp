@@ -68,7 +68,7 @@ class price_Setup extends core_ProtoSetup
             'description' => 'Обновяване на себестойностите',
             'controller' => 'price_Updates',
             'action' => 'Updateprimecosts',
-            'period' => 60,
+            'period' => 5,
             'timeLimit' => 360,
         ),
         array(
@@ -94,6 +94,7 @@ class price_Setup extends core_ProtoSetup
         'price_ProductCosts',
         'price_Updates',
         'price_Cache',
+        'migrate::migrateUpdates'
     );
     
     
@@ -127,5 +128,58 @@ class price_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'price_reports_PriceList,price_AutoDiscounts';
+    public $defClasses = 'price_reports_PriceList,price_AutoDiscounts,price_interface_AverageCostPricePolicyImpl,price_interface_LastAccCostPolicyImpl,price_interface_LastActiveDeliveryCostPolicyImpl,price_interface_LastDeliveryCostPolicyImpl,price_interface_LastActiveBomCostPolicy';
+
+    
+    
+    /**
+     * Миграция на правилата за обновяване на себестойности
+     */
+    public function migrateUpdates()
+    {
+        $Updates = cls::get('price_Updates');
+        
+        $Costs = cls::get('price_ProductCosts');
+        $Costs->setupMvc();
+        $Costs->truncate();
+        
+        if(!$Updates->count()){
+            
+            return;
+        }
+        
+        core_Classes::add('price_interface_LastAccCostPolicyImpl');
+        core_Classes::add('price_interface_LastActiveDeliveryCostPolicyImpl');
+        core_Classes::add('price_interface_AverageCostPricePolicyImpl');
+        core_Classes::add('price_interface_LastActiveBomCostPolicy');
+        core_Classes::add('price_interface_LastDeliveryCostPolicyImpl');
+        
+        $map = array('accCost' => price_interface_LastAccCostPolicyImpl::getClassId(), 
+                     'activeDelivery' => price_interface_LastActiveDeliveryCostPolicyImpl::getClassId(), 
+                     'average' => price_interface_AverageCostPricePolicyImpl::getClassId(), 
+                     'bom' => price_interface_LastActiveBomCostPolicy::getClassId(),
+                     'lastQuote' => null,
+                     'lastDelivery' => price_interface_LastDeliveryCostPolicyImpl::getClassId());
+        
+        $res = array();
+        $query = $Updates->getQuery();
+        $query->FLD('costSource1', 'enum(,accCost,lastDelivery,activeDelivery,lastQuote,bom,average)');
+        $query->FLD('costSource2', 'enum(,accCost,lastDelivery,activeDelivery,lastQuote,bom,average)');
+        $query->FLD('costSource3', 'enum(,accCost,lastDelivery,activeDelivery,lastQuote,bom,average)');
+        $query->show('costSource1,costSource2,costSource3');
+        
+        while($rec = $query->fetch()){
+            $rec->sourceClass1 = (!empty($rec->costSource1)) ? $map[$rec->costSource1] : null;
+            $rec->sourceClass2 = (!empty($rec->costSource2)) ? $map[$rec->costSource2] : null;
+            $rec->sourceClass3 = (!empty($rec->costSource3)) ? $map[$rec->costSource3] : null;
+            $res[$rec->id] = $rec;
+        }
+        
+        if(countR($res)){
+            $Updates->saveArray($res, 'id,sourceClass1,sourceClass2,sourceClass3');
+        }
+        
+        $datetime = dt::addMonths(-1 * 12); 
+        price_ProductCosts::saveCalcedCosts($datetime);
+    }
 }

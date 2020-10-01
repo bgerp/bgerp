@@ -161,6 +161,7 @@ class cms_Content extends core_Manager
         $lang = self::getLang();
         
         $res = new ET(getFileContent('cms/themes/default/LangSelect.shtml'));
+        $res->prepend("\n<meta name=\"robots\" content=\"noindex\">", 'HEAD');
         
         $s = $res->getBlock('SELECTOR');
         
@@ -784,12 +785,11 @@ class cms_Content extends core_Manager
     }
     
     
-    public static function renderSearchResults($menuId, $q)
+    /**
+     * Рендира резултатите отговарящи на търсенето във външната част
+     */
+    public static function renderSearchResults($menuId, $q, $oQ = null)
     {
-        //$q = Request::get('q');
-        //$menuId = Request::get('menuId', 'int');
-        
-        
         $query = self::getQuery();
         $query->orderBy('order');
         
@@ -800,20 +800,19 @@ class cms_Content extends core_Manager
             $domainId = cms_Domains::getPublicDomain('id');
         }
         
-        $query->where("(#domainId = {$domainId} OR #sharedDomains LIKE '%|{$domainId}|%') AND #id != {$menuId}");
-        
-        $res = array();
+        $query->where("(#domainId = {$domainId} OR #sharedDomains LIKE '%|{$domainId}|%') AND #id != {$menuId} AND #source IS NOT NULL");
+        $query->orderBy('id', 'ASC');
+        $html = '';
         
         do {
-            if (!$rec->source || !cls::load($rec->source, true)) {
+            if (!cls::load($rec->source, true)) {
                 continue;
             }
-            expect($rec->source);
             
             $cls = cls::get($rec->source);
-            
             if (cls::existsMethod($cls, 'getSearchResults')) {
                 $res = $cls->getSearchResults($rec->id, $q);
+                
                 if (countR($res)) {
                     $domainName = '';
                     if ($rec->domainId != $domainId) {
@@ -826,11 +825,34 @@ class cms_Content extends core_Manager
                     }
                     
                     $html .= "<h2><strong style='color:green'>" . type_Varchar::escape($rec->title ? $rec->title : $rec->menu) . $domainName . '</strong></h2>';
-                    $html .= '<ul>';
+                    $itemsInTable = $itemsInUl = '';
+                    
                     foreach ($res as $o) {
-                        $html .= "<li style='font-size:1.2em; margin:5px;' >" . ht::createLink($o->title, $o->url) . '</li>';
+                        if (isset($o->img) && $o->img instanceof thumb_Img) {
+                            $img = $o->img->createImg(array('class' => 'eshop-product-image'));
+                            $titleLink = ht::createLink($o->title, $o->url, false, array('class'=>"searchName"));
+                            if(haveRole('debug') && isset($o->rating)){
+                                $titleLink = ht::createHint($titleLink, "Рейтинг|*: {$o->rating}");
+                            }
+                            $itemsInTable .= "<tr><td class='searchImg'>" . ht::createLink($img, $o->url) . "</td><td class='searchName'>" . $titleLink . '</td> </tr>';
+                        } else {
+                            $titleLink = ht::createLink($o->title, $o->url);
+                            if(haveRole('debug') && isset($o->rating)){
+                                $titleLink = ht::createHint($titleLink, "Рейтинг|*: {$o->rating}");
+                            }
+                            
+                            $itemsInUl .= "<li style='font-size:1.2em; margin:5px;' >" . $titleLink . '</li>';
+                        }
                     }
-                    $html .= '</ul>';
+                    
+                    if(!empty($itemsInUl)){
+                        $html .= "<ul>{$itemsInUl}</ul>";
+                    }
+                    
+                    if(!empty($itemsInTable)){
+                        $html .= "<table class='searchResult'>{$itemsInTable}</table>";
+                    }
+                    
                     if ($rec->domainId != $domainId) {
                         Mode::pop('BGERP_CURRENT_DOMAIN');
                     }
@@ -838,11 +860,125 @@ class cms_Content extends core_Manager
             }
         } while ($rec = $query->fetch());
         
-        $res = new ET("<h1>Търсене на \"<strong style='color:green'>" . type_Varchar::escape($q) . "</strong>\"</h1><div style='padding:0px;' class='results'>[#1#]</div>", $html);
+        if ($html) {
+            if (!isset($oQ)) {
+                $html = new ET('<h3>' . tr('Търсене на') . " \"<strong style='color:green'>" . type_Varchar::escape($q) . "</strong>\"</h3><div style='padding:0px;' class='results'>[#1#]</div>", $html);
+            } else {
+                $html = new ET('<h3>' . tr('При търсене на') . " \"<strong style='color:green'>" . type_Varchar::escape($oQ) . '</strong>" ' . tr('не бяха открити точни резултати, затова са показани приблизителни') . ":</h3><div style='padding:0px;' class='results'>[#1#]</div>", $html);
+            }
+            plg_Search::highlight($html, $q, 'results');
+        } else {
+            if (!isset($oQ)) {
+                // Правим опит да подобрим заявката
+                if ($nQ = self::reduceSearch($q)) {
+                    $html = self::renderSearchResults($menuId, $nQ, $q);
+                }
+            }
+            
+            if (empty($html)) {
+                $html = new ET('<h1>'. tr('При търсене на') . " \"<strong style='color:green'>" . type_Varchar::escape(strlen($oQ) ? $oQ : $q) . '</strong>" ' . tr('не бяха открити резултати') . '</h1>');
+            }
+        }
         
-        plg_Search::highlight($res, $q, 'results');
+        return  $html;
+    }
+    
+    
+    /**
+     * Редуцира заявка за търсене, като същевременно се опитва да оправи правописа на думите
+     */
+    public static function reduceSearch($q)
+    {
+        $domainId = cms_Domains::getPublicDomain('id');
         
-        return  $res;
+        $kArr = self::getAllKeywords($domainId);
+        $q = str::utf2ascii($q);
+        $iConvStr = @iconv('UTF-8', 'ASCII//TRANSLIT', $q);
+        if (isset($iConvStr)) {
+            $q = $iConvStr;
+        }
+        
+        $qArr = plg_Search::parseQuery($q);
+        
+        $resArr = array();
+        $flag = false;
+        
+        foreach ($qArr as &$w) {
+            if ($w{0} == '-') {
+                $resArr[] = $w;
+                continue;
+            } elseif ($w{0} == '"') {
+                $flag = true;
+                $resArr[] = $w . '"';
+                continue;
+            } elseif (isset($kArr[$w])) {
+                $flag = true;
+                $resArr[] = $w;
+                continue;
+            } elseif (strlen($w) > 3) {
+                $len = strlen($w);
+                $min = max(3, $len - 1);
+                $max = $len + 2;
+                $bestD = 1;
+                $bestW = '';
+                
+                for ($i = $min; $i <= $max; $i++) {
+                    if (is_array($kArr[$w{0}][$i])) {
+                        foreach ($kArr[$w{0}][$i] as $kw) {
+                            $d = levenshtein($w, $kw) / $i;
+                            if ($d < 0.20 && $d < $bestD) {
+                                $bestD = $d;
+                                $bestW = $kw;
+                            }
+                        }
+                    }
+                }
+                
+                if ($bestW) {
+                    $resArr[] = $bestW;
+                    $flag = true;
+                }
+            }
+        }
+        
+        $res = null;
+        
+        if (count($resArr) && $flag) {
+            $res = implode(' ', $resArr);
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Връща масив с подредени всички ключови думи от външната част
+     */
+    public static function getAllKeywords($domainId)
+    {
+        if (!($kArr = core_Cache::get('AllCmsKeywords', $domainId))) {
+            $query = self::getQuery();
+            $query->where("(#domainId = {$domainId} OR #sharedDomains LIKE '%|{$domainId}|%')");
+            $kArr = array();
+            while ($rec = $query->fetch()) {
+                if (!$rec->source || !cls::load($rec->source, true)) {
+                    continue;
+                }
+                
+                $cls = cls::get($rec->source);
+                
+                if (cls::existsMethod($cls, 'getAllSearchKeywords')) {
+                    $newWords = $cls::getAllSearchKeywords($rec->id);
+                    foreach ($newWords as $w => $bool) {
+                        $kArr[$w{0}][strlen($w)][] = $w;
+                    }
+                }
+            }
+            
+            core_Cache::set('AllCmsKeywords', $domainId, $kArr, 12 * 60, 'eshop_Groups,eshop_Products,blogm_Articles,cms_Articles');
+        }
+        
+        return $kArr;
     }
     
     

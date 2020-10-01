@@ -1,7 +1,7 @@
 <?php 
 
 /**
- * 
+ *
  *
  * @category  bgerp
  * @package   ztm
@@ -14,13 +14,11 @@
  */
 class ztm_Index extends core_Mvc
 {
-    
     /**
      * Екшън за регистриране на устройство
      */
     public function act_Register()
     {
-        
         return Request::forward(array('Ctr' => 'ztm_Devices', 'Act' => 'Register'));
     }
     
@@ -30,7 +28,6 @@ class ztm_Index extends core_Mvc
      */
     public function act_Sync()
     {
-        
         return Request::forward(array('Ctr' => 'ztm_RegisterValues', 'Act' => 'Sync'));
     }
 }

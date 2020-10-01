@@ -36,7 +36,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf,
-                          acc_TransactionSourceIntf=store_transaction_ShipmentOrder, bgerp_DealIntf,trans_LogisticDataIntf,label_SequenceIntf=store_iface_ShipmentLabelImpl,deals_InvoiceSourceIntf';
+                          acc_TransactionSourceIntf=store_transaction_ShipmentOrder, bgerp_DealIntf,trans_LogisticDataIntf,label_SequenceIntf=store_iface_ShipmentLabelImpl,deals_InvoiceSourceIntf, doc_ContragentDataIntf';
     
     
     /**
@@ -206,7 +206,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Стратегии за дефолт стойностти
      */
-    public static $defaultStrategies = array('template' => 'defMethod|lastDocUser|lastDoc|lastDocSameCountry');
+    public static $defaultStrategies = array('template' => 'customMethod|lastDocUser|lastDoc|lastDocSameCountry|defMethod');
     
     
     /**
@@ -233,13 +233,17 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     /**
      * Метод по подразбиране за намиране на дефолт шаблона
+     * 
+     * @param stdClass $rec
+     * @see cond_plg_DefaultValues
      */
-    public function getDefaultTemplate_($rec)
+    public function getCustomDefaultTemplate($rec)
     {
         if(core_Packs::isInstalled('eshop')){
             if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
                 if($firstDocument->isInstanceOf('sales_Sales')){
-                    if(eshop_Carts::fetchField("#saleId = {$firstDocument->that}")){
+                    if($c = eshop_Carts::fetchField("#saleId = {$firstDocument->that}")){
+                        
                         $templateId = doc_TplManager::fetchField("#name = 'Експедиционно нареждане с цени (Онлайн поръчка)' AND #docClassId = {$this->getClassId()}");
                         
                         return $templateId;
@@ -397,13 +401,47 @@ class store_ShipmentOrders extends store_DocumentMaster
      *
      * @return string - тялото на имейла
      */
-    public function getDefaultEmailBody($id, $forward = false)
+    public function getDefaultEmailBody_($id, $forward = false)
     {
+        $rec = $this->fetchRec($id);
         $handle = $this->getHandle($id);
         $tpl = new ET(tr('Моля запознайте се с нашето експедиционно нареждане') . ': #[#handle#]');
-        $tpl->append($handle, 'handle');
+        $tpl->replace($handle, 'handle');
+       
+        if($rec->isReverse == 'no'){
+            
+            // Кои са фактурите в нишката
+            $invoiceArr = deals_Helper::getInvoicesInThread($rec->threadId);
+            if(countR($invoiceArr)){
+                $dQuery = store_ShipmentOrderDetails::getQuery();
+                $dQuery->where("#shipmentId = {$rec->id}");
+                $dQuery->show('productId');
+                $products = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
+                
+                $invoiceArr = array_keys($invoiceArr);
+                foreach ($invoiceArr as $invoiceContainerId){
+                    $InvoiceRef = doc_Containers::getDocument($invoiceContainerId);
+                    $InvoiceDetail = cls::get($InvoiceRef->mainDetail);
+                    $iQuery = $InvoiceDetail->getQuery();
+                    $iQuery->where("#{$InvoiceDetail->masterKey} = {$InvoiceRef->that}");
+                    $iQuery->show('productId');
+                    $invoiceProducts = arr::extractValuesFromArray($iQuery->fetchAll(), 'productId');
+                    
+                    // Ако има фактура със същите артикули, като ЕН-то ще се покаже към имейла
+                    $diff1 = countR(array_diff_key($products, $invoiceProducts));
+                    $diff2 = countR(array_diff_key($invoiceProducts, $products));
+                   
+                    if(empty($diff1) && empty($diff2)){
+                        $iTpl = new ET(tr("|*\n|Моля, запознайте се с приложената фактура") . ': #[#handle#]');
+                        $iTpl->replace($InvoiceRef->getHandle(), 'handle');
+                        $tpl->append($iTpl);
+                        break;
+                    }
+                }
+            }
+        }
         
-        return $tpl->getContent();
+        return $tpl;
     }
     
     
@@ -445,6 +483,50 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
+     * Интерфейсен метод
+     *
+     * @param int $id
+     *
+     * @return object
+     *
+     * @see doc_ContragentDataIntf
+     */
+    public static function getContragentData($id)
+    {
+        $rec = self::fetchRec($id);
+        
+        $contragentData = new stdClass();
+        
+        if ($rec->company || $rec->person) {
+            $contragentData->company = $rec->company;
+            $contragentData->person = $rec->person;
+            $contragentData->pTel = $rec->tel;
+            $contragentData->countryId = $rec->country;
+            $contragentData->pCode = $rec->pCode;
+            $contragentData->place = $rec->place;
+            $contragentData->address = $rec->address;
+        }
+        
+        if (core_Packs::isInstalled('eshop')) {
+            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+            if ($firstDoc->isInstanceOf('sales_Sales')) {
+                
+                $sContragentData = $firstDoc->getContragentData($firstDoc->that);
+                
+                if (!(array)$contragentData) {
+                    
+                    return $sContragentData;
+                }
+                
+                $contragentData->email = $sContragentData->email;
+            }
+        }
+        
+        return $contragentData;
+    }
+    
+    
+    /**
      * Информация за логистичните данни
      *
      * @param mixed $rec - ид или запис на документ
@@ -464,9 +546,11 @@ class store_ShipmentOrders extends store_DocumentMaster
      *  	string|NULL   ['toAddress']    - адрес за разтоварване
      *   	string|NULL   ['toCompany']    - фирма
      *   	string|NULL   ['toPerson']     - лице
+     *      string|NULL   ['toPersonPhones'] - телефон на лицето
+     *      string|NULL   ['instructions'] - инструкции
      * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
      * 		text|NULL 	  ['conditions']   - други условия
-     * 		varchar|NULL  ['ourReff']      - наш реф
+     *		varchar|NULL  ['ourReff']      - наш реф
      * 		double|NULL   ['totalWeight']  - общо тегло
      * 		double|NULL   ['totalVolume']  - общ обем
      */
@@ -481,10 +565,24 @@ class store_ShipmentOrders extends store_DocumentMaster
             $res['toPCode'] = !empty($rec->pCode) ? $rec->pCode : null;
             $res['toPlace'] = !empty($rec->place) ? $rec->place : null;
             $res['toAddress'] = !empty($rec->address) ? $rec->address : null;
+            
+            $res['toCompany'] = !empty($rec->company) ? $rec->company : $res['toCompany'];
+            $res['toPerson'] = !empty($rec->person) ? $rec->person : $res['toPerson'];
+            $res['toPersonPhones'] = !empty($rec->tel) ? $rec->tel : $res['toPersonPhones'];
+        } elseif(empty($rec->locationId) && $rec->isReverse == 'no'){
+            if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
+                $firstDocumentLogisticData = $firstDocument->getLogisticData();
+                $res['toCountry'] = $firstDocumentLogisticData['toCountry'];
+                $res['toPCode'] = $firstDocumentLogisticData['toPCode'];
+                $res['toPlace'] = $firstDocumentLogisticData['toPlace'];
+                $res['toAddress'] = $firstDocumentLogisticData['toAddress'];
+                $res['instructions'] = $firstDocumentLogisticData['instructions'];
+                $res['toCompany'] = $firstDocumentLogisticData['toCompany'];
+                $res['toPerson'] = $firstDocumentLogisticData['toPerson'];
+                $res['toPersonPhones'] = $firstDocumentLogisticData['toPersonPhones'];
+                $res['instructions'] = $firstDocumentLogisticData['instructions'];
+            }
         }
-        
-        $res['toCompany'] = !empty($rec->company) ? $rec->company : $res['toCompany'];
-        $res['toPerson'] = !empty($rec->person) ? $rec->person : $res['toPerson'];
         
         unset($res['deliveryTime']);
         $res['loadingTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : $rec->valior . ' ' . bgerp_Setup::get('START_OF_WORKING_DAY');
@@ -559,9 +657,11 @@ class store_ShipmentOrders extends store_DocumentMaster
                 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
                 $deliveryTermId = $firstDoc->fetchField('deliveryTermId');
                 
+                $cmrRow = 2;
                 if ((isset($deliveryTermId) && strpos(cond_DeliveryTerms::fetchField($deliveryTermId, 'properties'), 'cmr') !== FALSE) || trans_Setup::get('CMR_SHOW_BTN') == 'yes') {
-                    $data->toolbar->addBtn('ЧМР', array('trans_Cmrs', 'add', 'originId' => $rec->containerId, 'ret_url' => true), 'title=Създаване на ЧМР към експедиционното нареждане,ef_icon=img/16/lorry_add.png');
+                    $cmrRow = 1;
                 }
+                $data->toolbar->addBtn('ЧМР', array('trans_Cmrs', 'add', 'originId' => $rec->containerId, 'ret_url' => true), "title=Създаване на ЧМР към експедиционното нареждане,ef_icon=img/16/lorry_add.png,row={$cmrRow}");
             }
         }
         

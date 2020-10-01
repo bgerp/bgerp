@@ -54,6 +54,12 @@ class speedy_Adapter {
     
     
     /**
+     * Името на акаунта
+     */
+    private $accountName;
+    
+    
+    /**
      * Свързаните клиенти
      */
     private $services = array();
@@ -94,7 +100,7 @@ class speedy_Adapter {
             $this->eps = new EPSFacade(new EPSSOAPInterfaceImpl(), $userName,  $password);
             $this->resultLogin = $this->eps->getResultLogin();
             $this->contractClients = $this->eps->listContractClients();
-            
+            $this->accountName = $userName;
         } catch (ServerException $e){
             reportException($e);
             
@@ -222,11 +228,7 @@ class speedy_Adapter {
         $senderClientData = $this->eps->getClientById($clientId);
         $Address = $senderClientData->getAddress();
         $objectName = $senderClientData->getObjectName();
-        
-        $res = (!empty($objectName) ? "{$objectName}: " : "") . $Address->getPostCode() . " " . $Address->getSiteName() . " " . $Address->getStreetType() . " " . $Address->getStreetName() . " " . $Address->getStreetNo() . " " . $Address->getAddressNote();
-        if($quarterName = $Address->getQuarterName()){
-            $res .= " {$quarterName}";
-        }
+        $res = (!empty($objectName) ? "{$objectName}: " : "") . $Address->getPostCode() . " " . $Address->getSiteName() . " " . $Address->getStreetType() . " " . $Address->getStreetName() . " " . $Address->getStreetNo();
         
         return $res;
     }
@@ -336,14 +338,17 @@ class speedy_Adapter {
         
         $Double = core_Type::getByName('double(decimals=2)');
         $row = new stdClass();
-        $row->deadlineDelivery = dt::mysql2verbal($calculated->getDeadlineDelivery());
+        $row->deadlineDelivery = dt::mysql2verbal($calculated->getDeadlineDelivery(), 'd.m.Y H:i:s');
         
         foreach (arr::make('net,addrPickupSurcharge,addrDeliverySurcharge,discPcntFixed,discPcntAdditional,pcntFuelSurcharge,nonStdDeliveryDateSurcharge,tro,islandSurcharge,testBeforePayment,tollSurcharge,heavyPackageFee,codPremium,insurancePremium,vat,total') as $fld){
             $value = $Amounts->{"get{$fld}"}();
             $valueVerbal = $Double->toVerbal($value);
+            $valueVerbal = ht::styleNumber($valueVerbal, $value);
             $row->{$fld} = $valueVerbal;
         }
         
+        $row->net = currency_Currencies::decorate($row->net);
+        $row->total = currency_Currencies::decorate($row->total);
         $row->totalNoVat = $Double->toVerbal($Amounts->getTotal() - $Amounts->getVat());
         
         $tpl = getTplFromFile('speedy/tpl/CalculatedAmounts.shtml');
@@ -357,11 +362,12 @@ class speedy_Adapter {
      * Генерира товарителница в услугата на Speedy
      *
      * @param stdClass $rec - данни за товавителница
+     * @param ParamPicking $picking
      * @throws ServerException
      *
      * @return int $bolId - ид-то на товарителницата
      */
-    public function getBol($rec)
+    public function getBol($rec, &$picking)
     {
         $picking = $this->generatePicking($rec, false);
         
@@ -370,6 +376,8 @@ class speedy_Adapter {
         $parcels = $resultBOL->getGeneratedParcels();
         $firstParcel = $parcels[0];
         $bolId = $firstParcel->getParcelId();
+        
+        
         
         return $bolId;
     }
@@ -406,6 +414,18 @@ class speedy_Adapter {
         
         $pickingData->returnServiceId = ($rec->returnServiceId == 'same') ? $pickingData->serviceTypeId : $rec->returnServiceId;
         $pickingData->returnPayer = ($rec->returnPayer == 'same') ? $pickingData->payerType : (($rec->returnPayer == 'sender') ? ParamCalculation::PAYER_TYPE_SENDER : (($rec->returnPayer == 'receiver') ? ParamCalculation::PAYER_TYPE_RECEIVER : ParamCalculation::PAYER_TYPE_THIRD_PARTY));
+        
+        if(!empty($rec->returnShipmentWrappingServiceId)){
+            $pickingData->returnShipmentWrappingServiceId = $rec->returnShipmentWrappingServiceId;
+            $pickingData->returnShipmentParcelCount = $rec->returnShipmentParcelCount;
+            $pickingData->returnShipmentAmountInsurance = $rec->returnShipmentAmountInsurance;
+            $pickingData->returnShipmentIsFragile = $rec->returnShipmentIsFragile;
+        }
+        
+        if(!empty($rec->wrappingReturnQuantity)){
+            $pickingData->wrappingReturnServiceId = $rec->wrappingReturnServiceId;
+            $pickingData->wrappingReturnQuantity = $rec->wrappingReturnQuantity;
+        }
         
         if($pickingData->amountInsurance){
             setIfNot($rec->insurancePayer, 'same');
@@ -497,7 +517,7 @@ class speedy_Adapter {
         } else {
             $picking->setSenderId($rec->senderClientId);
         }
-        
+       
         $picking->setDocuments($pickingData->documents);
         $picking->setPalletized($pickingData->palletized);
         $picking->setFragile($pickingData->fragile);
@@ -505,6 +525,14 @@ class speedy_Adapter {
         $picking->setPayerType($pickingData->payerType);
         $picking->setPayerTypePackings($pickingData->payerTypePackings);
         $picking->setTakingDate($pickingData->takingDate);
+        
+        if($pickingData->payerType == 2){
+            $picking->setPayerRefId($rec->thirdPayerRefId);
+        }
+        
+        if($pickingData->payerTypePackings == 2){
+            $picking->setPayerRefPackingsId($rec->thirdPayerRefId);
+        }
         
         // Информация за съдържанието и наложения платеж и обявената стойност
         $codOptions = type_Set::toArray($rec->codType);
@@ -518,6 +546,9 @@ class speedy_Adapter {
         
         $picking->setAmountInsuranceBase($pickingData->amountInsurance);
         $picking->setPayerTypeInsurance($pickingData->insurancePayer);
+        if($pickingData->insurancePayer == 2){
+            $picking->setPayerRefInsuranceId($rec->thirdPayerRefId);
+        }
         
         // Задаване на опции преди плащане, ако има
         if(in_array($rec->options, array('test', 'open'))){
@@ -584,6 +615,29 @@ class speedy_Adapter {
             $picking->setParcels($parcelsArray);
         }
         
+        if($picking instanceof ParamPicking){
+            if(isset($pickingData->wrappingReturnServiceId)){
+                $returnServiceRequest = new ParamReturnServiceRequest();
+                $returnServiceRequest->setParcelsCount($pickingData->wrappingReturnQuantity);
+                $returnServiceRequest->setServiceTypeId($pickingData->wrappingReturnServiceId);
+                $picking->setRetServicesRequest($returnServiceRequest);
+            }
+            
+            if(!empty($pickingData->returnShipmentWrappingServiceId)){
+                $returnShipmentServiceRequest = new ParamReturnShipmentRequest();
+                $returnShipmentServiceRequest->setParcelsCount($pickingData->returnShipmentParcelCount);
+                $returnShipmentServiceRequest->setServiceTypeId($pickingData->returnShipmentWrappingServiceId);
+                
+                if(isset($pickingData->returnShipmentAmountInsurance)){
+                    $fragile = ($pickingData->returnShipmentIsFragile == 'yes') ? true : false;
+                    $returnShipmentServiceRequest->setFragile($fragile);
+                    $returnShipmentServiceRequest->setAmountInsuranceBase($pickingData->returnShipmentAmountInsurance);
+                }
+                
+                $picking->setRetShipmentRequest($returnShipmentServiceRequest);
+            }
+        }
+        
         return $picking;
     }
     
@@ -622,45 +676,45 @@ class speedy_Adapter {
      * Обработва изникнало изключение
      * 
      * @param ServerException $e
+     * @param string $fields
+     * @param boolean|null $isHandled
+     * 
      * @return string $errorMsg
      */
-    public function handleException(ServerException $e, &$fields)
+    public function handleException(ServerException $e, &$fields, &$isHandled = null)
     {
         $fields = 'receiverPhone';
         $errorMsg = $e->getMessage();
         
-        if(strpos($errorMsg, '[ERR_012]') !== false){
-            $errorMsg = 'Има разминаване между държавата и мястото в базата на Speedy';
-            $fields = 'receiverCountryId,receiverPlace,receiverAddress';
-        } elseif(strpos($errorMsg, 'Delivery to floor not allowed for service') !== false){
-            $errorMsg = 'Избраната услуга непозволява качване до етаж';
-            $fields = 'service,floorNum';
-        } elseif(strpos($errorMsg, '[INVALID_PHONE_NUMBER') !== false){
-            $errorMsg = 'Невалиден телефонен номер на получатек';
-            $fields = 'receiverPhone';
-        } elseif(strpos($errorMsg, '[INVALID_BACK_DOCUMENT_REQUEST') !== false || strpos($errorMsg, 'INVALID_BACK_RECEIPT_REQUEST') !== false){
-            $errorMsg = 'Не може да са избрани документи/разписка за връщане, при доставка до Автомат';
-            $fields = 'receiverSpeedyOffice,backRequest';
-        } elseif(strpos($errorMsg, '[INVALID_RECEIVER_MOBILE_PHONE_NUMBER_FOR_APT_TBC') !== false){
-            $errorMsg = 'Неразпознат телефонен номер';
-            $fields = 'receiverSpeedyOffice,receiverPhone';
-        } elseif(strpos($errorMsg, 'COMMON_ERROR, [ERR_010] Pickings without COD') !== false){
-            $errorMsg = 'Не може пощенския паричен превод да е включен в цената на наложения платеж';
-            $fields = 'codType';
-        } elseif(strpos($errorMsg, "[COMMON_ERROR, [ERR_011] 'PayerTypeInsurance'  MUST be set") !== false){
-            $errorMsg = 'При обявената стойност, трябва да има избран платец на обявената стойност';
-            $fields = 'insurancePayer,amountInsurance';
-        } elseif(strpos($errorMsg, "[INVALID_PARCELS_INFO, Wrong sequential numbers") !== false){
-            $errorMsg = 'Грешна последователност на палетите';
-            $fields = 'parcelInfo';
-        } elseif(strpos($errorMsg, '[INVALID_OPTIONS_BEFORE_PAYMENT, Option "Open before payment" with delivery to address is not allowed for selected service') !== false){
-            $errorMsg = 'Опцията за отваряне преди плащане не е налична за избраната услуга';
-            $fields = 'service,options';
-        } elseif(strpos($errorMsg, '[INVALID_OPTIONS_BEFORE_PAYMENT, Option "Test before delivery" with delivery to address is not allowed for selected service.') !== false){
-            $errorMsg = 'Опцията за тестване преди плащане не е налична за избраната услуга';
-            $fields = 'service,options';
+        $path = getFullPath('speedy/data/ErrorsVerbal.csv');
+        $csv = csv_Lib::getCsvRowsFromFile(file_get_contents($path), array('firstRow' => false, 'delimiter' => ','));
+        $rows = $csv['data'];
+        
+        if(is_array($rows)){
+            foreach ($rows as $errorMap){
+                if(strpos($errorMsg, $errorMap[1]) !== false){
+                    $errorMsg = $errorMap[2];
+                    $fields = $errorMap[3];
+                    $isHandled = true;
+                }
+            }
+        }
+        
+        if($isHandled !== true){
+            $isHandled = false;
         }
         
         return $errorMsg;
+    }
+    
+    
+    /**
+     * Кое е името на акаунта
+     * 
+     * @return string
+     */
+    public function getAccountName()
+    {
+        return $this->accountName;
     }
 }

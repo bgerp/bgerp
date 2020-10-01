@@ -862,6 +862,7 @@ class eshop_Carts extends core_Master
             'deliveryLocationId' => $rec->locationId,
             'deliveryData' => $rec->deliveryData,
             'onlineSale' => true,
+            'deliveryCalcTransport' => 'no',
         );
         
         // Коя е ценовата политика
@@ -1115,13 +1116,14 @@ class eshop_Carts extends core_Master
         $body->replace($companyName, 'COMPANY_NAME');
         
         if($rec->makeInvoice != 'none'){
+            Mode::push('text', 'plain');
             $body->replace(self::getVerbal($rec, 'invoiceNames'), 'invoiceNames');
             if(!empty($rec->invoiceVatNo)){
                 $body->replace(tr('ДДС №|*: ') . self::getVerbal($rec, 'invoiceVatNo'), 'invoiceVatNo');
             }
             
             if(!empty($rec->invoiceUicNo)){
-                $prefix = ($rec->makeInvoice == 'person') ? tr('ЕГН|*: ') : tr('ЕИК|*": ');
+                $prefix = ($rec->makeInvoice == 'person') ? tr('ЕГН|*: ') : tr('ЕИК|*: ');
                 $body->replace($prefix . self::getVerbal($rec, 'invoiceUicNo'), 'invoiceUicNo');
             }
             
@@ -1129,12 +1131,13 @@ class eshop_Carts extends core_Master
             $body->replace(self::getVerbal($rec, 'invoicePCode'), 'invoicePCode');
             $body->replace(self::getVerbal($rec, 'invoicePlace'), 'invoicePlace');
             $body->replace(self::getVerbal($rec, 'invoiceAddress'), 'invoiceAddress');
+            Mode::pop('text');
         }
         
         $body = core_Type::getByName('richtext')->fromVerbal($body->getContent());
         
         // Подготовка на имейла
-        $emailRec = (object) array('subject' => tr('Онлайн поръчка') . " №{$rec->id}",
+        $emailRec = (object) array('subject' => tr('Онлайн поръчка') . " #{$rec->id}",
             'body' => $body,
             'folderId' => $saleRec->folderId,
             'originId' => $saleRec->containerId,
@@ -1460,16 +1463,7 @@ class eshop_Carts extends core_Master
             $tpl->append('borderTop', 'BORDER_CLASS');
         }
         
-        if ($Driver = cond_DeliveryTerms::getTransportCalculator($rec->termId)) {
-            $deliveryDataArr = $Driver->getVerbalDeliveryData($rec->termId, $rec->deliveryData, get_called_class());
-            foreach ($deliveryDataArr as $delObj){
-                $block = $tpl->getBlock('DELIVERY_DATA_VALUE');
-                $block->append($delObj->caption, 'DELIVERY_DATA_CAPTION');
-                $block->append($delObj->value, 'DELIVERY_DATA_VALUE');
-                $block->removeBlocksAndPlaces();
-                $tpl->append($block, 'DELIVERY_BLOCK');
-            }
-        }
+        self::renderDeliveryData($rec, $tpl);
         
         return $tpl;
     }
@@ -1534,10 +1528,12 @@ class eshop_Carts extends core_Master
                 $row->deliveryAmount = $deliveryAmountV;
             }
         }
-        
-        $row->amount = $Double->toVerbal($amountWithoutDelivery);
-        $row->amount = currency_Currencies::decorate($row->amount, $settings->currencyId);
-        $row->amountCurrencyId = $row->currencyId;
+       
+        if(round($rec->total, 4) != round($amountWithoutDelivery, 4) || $rec->freeDelivery == 'yes'){
+            $row->amount = $Double->toVerbal($amountWithoutDelivery);
+            $row->amount = currency_Currencies::decorate($row->amount, $settings->currencyId);
+            $row->amountCurrencyId = $row->currencyId;
+        }
         
         if ($settings->chargeVat != 'yes') {
             $row->totalVat = $Double->toVerbal($vatAmount);
@@ -1840,7 +1836,7 @@ class eshop_Carts extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if ($rec->userId){
-            $row->userId = core_Users::getNick($rec->userId)."</br>";
+            $row->userId = crm_Profiles::createLink($rec->userId) . "</br>";
         }
         
         $settings = cms_Domains::getSettings($rec->domainId);
@@ -2435,7 +2431,6 @@ class eshop_Carts extends core_Master
         $now = dt::now();
         $query = self::getQuery();
         $query->where("#state = 'draft' OR #state = '' OR #state IS NULL");
-        $query->where("#productCount != 0");
         
         // За всяка
         while ($rec = $query->fetch()) {
@@ -2447,7 +2442,7 @@ class eshop_Carts extends core_Master
             if ($endOfLife <= $now) {
                 self::delete($rec->id);
                 $isDeleted = true;
-            } elseif (!empty($rec->email) && $timeToNotifyBeforeDeletion <= $now) {
+            } elseif (!empty($rec->email) && $timeToNotifyBeforeDeletion <= $now && $rec->productCount != 0) {
                 
                 // Ако не е изпращан нотифициращ имейл за забравена поръчка, изпраща се
                 $isNotified = core_Permanent::get("eshopCartsNotify{$rec->id}");
@@ -2711,5 +2706,36 @@ class eshop_Carts extends core_Master
         Request::removeProtected('accessToken');
         
         return $url;
+    }
+    
+    
+    /**
+     * Рендира допълнителната информация за доставката
+     * 
+     * @param stdClass $rec
+     * @param core_ET $tpl
+     * @return void
+     */
+    private static function renderDeliveryData($rec, &$tpl)
+    {
+        if ($Driver = cond_DeliveryTerms::getTransportCalculator($rec->termId)) {
+            $deliveryDataArr = $Driver->getVerbalDeliveryData($rec->termId, $rec->deliveryData, get_called_class());
+            foreach ($deliveryDataArr as $delObj){
+                $block = $tpl->getBlock('DELIVERY_DATA_VALUE');
+                $block->append($delObj->caption, 'DELIVERY_DATA_CAPTION');
+                $block->append($delObj->value, 'DELIVERY_DATA_VALUE');
+                $block->removeBlocksAndPlaces();
+                $tpl->append($block, 'DELIVERY_BLOCK');
+            }
+        }
+    }
+    
+    
+    /**
+     * След рендиране на единичния изглед
+     */
+    protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+        $mvc->renderDeliveryData($data->rec, $tpl);
     }
 }

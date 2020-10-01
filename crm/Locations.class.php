@@ -139,6 +139,23 @@ class crm_Locations extends core_Master
     
     
     /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        // Думите за търсене са името на документа-основания
+        $Contragent = new core_ObjectReference($rec->contragentCls, $rec->contragentId);
+        $cData = $Contragent->getContragentData();
+        
+        foreach (array('company', 'vatNo', 'person', 'uicId', 'pTel', 'tel') as $cField){
+            if(!empty($cData->{$cField})) {
+                $res .= ' ' . plg_Search::normalizeText($cData->{$cField});
+            }
+        }
+    }
+    
+    
+    /**
      * Обновява или добавя локация към контрагента
      *
      * @param int         $contragentClassId - Клас на контрагента
@@ -468,11 +485,14 @@ class crm_Locations extends core_Master
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         
         $tpl->append(tr('Локации'), 'title');
-        
-        if (countR($data->rows)) {
+        $count = countR($data->rows);
+        if ($count) {
+            $divider = ($count == 1) ? '' : "<hr>";
             foreach ($data->rows as $id => $row) {
+                $row->fullAddress = static::getAddress($id);
+                
                 core_RowToolbar::createIfNotExists($row->_rowTools);
-                $block = new ET('<div>[#title#], [#type#]<!--ET_BEGIN tel-->, ' . tr('тел') . ': [#tel#]<!--ET_END tel--><!--ET_BEGIN email-->, ' . tr('имейл') . ": [#email#]<!--ET_END email--> <span style='position:relative;top:4px'>[#tools#]</span></div>");
+                $block = new ET('<div>[#title#], [#type#]<!--ET_BEGIN tel-->, ' . tr('тел') . ': [#tel#]<!--ET_END tel--><!--ET_BEGIN email-->, ' . tr('имейл') . ": [#email#]<!--ET_END email--> <span style='position:relative;top:4px'>[#tools#]</span></div><!--ET_BEGIN fullAddress--><div style='padding-left:20px'>[#fullAddress#]</div><!--ET_END fullAddress-->{$divider}");
                 $block->placeObject($row);
                 $block->append($row->_rowTools->renderHtml(), 'tools');
                 $block->removeBlocks();

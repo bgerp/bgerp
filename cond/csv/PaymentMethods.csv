@@ -1,4 +1,4 @@
-COD,В брой при получаване||Cash on delivery,0,0,1,invDate,86400,,,cash
+COD,При получаване||Cash on delivery,0,0,1,invDate,86400,,,cash
 Net3,До 3 дни след фактуриране,,,,invDate,259200,,,bank
 Net7,До 7 дни след фактуриране,,,,invDate,604800,,,bank
 Net10,До 10 дни след фактуриране,,,,invDate,864000,,,bank

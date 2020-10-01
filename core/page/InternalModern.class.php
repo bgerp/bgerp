@@ -178,7 +178,7 @@ class core_page_InternalModern extends core_page_Active
                                                 [#ABOUT_BTN#]
                                                 [#DEBUG_BTN#]
                                                 [#PROFILE_MENU_ITEM#]
-                                                <div class='divider'></div>
+                                                <div class='menuDivider'></div>
                                                 [#SIGN_OUT#]
                                             </div>
                                         </div>

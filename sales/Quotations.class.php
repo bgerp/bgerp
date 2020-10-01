@@ -234,7 +234,8 @@ class sales_Quotations extends core_Master
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate');
         $this->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
         $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Плащане->ДДС,oldFieldName=vat');
-        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale,silent,removeAndRefreshForm=deliveryData|deliveryPlaceId|deliveryAdress');
+        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale,silent,removeAndRefreshForm=deliveryData|deliveryPlaceId|deliveryAdress|deliveryCalcTransport');
+        $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=none,caption=Доставка->Начисляване,after=deliveryTermId');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Обект,hint=Изберете обект');
         $this->FLD('deliveryAdress', 'varchar', 'caption=Доставка->Място');
         $this->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до');
@@ -302,7 +303,7 @@ class sales_Quotations extends core_Master
         
         if (isset($form->rec->id)) {
             if ($mvc->sales_QuotationsDetails->fetch("#quotationId = {$form->rec->id}")) {
-                foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId', 'deliveryPlaceId', 'deliveryAdress') as $fld) {
+                foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId', 'deliveryPlaceId', 'deliveryAdress', 'deliveryCalcTransport') as $fld) {
                     $form->setReadOnly($fld);
                 }
             }
@@ -334,6 +335,12 @@ class sales_Quotations extends core_Master
         
         $form->input('deliveryTermId');
         if(isset($rec->deliveryTermId)){
+            if(cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)){
+                $calcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
+                $form->setField('deliveryCalcTransport', 'input');
+                $form->setDefault('deliveryCalcTransport', $calcCost);
+            }
+            
             cond_DeliveryTerms::prepareDocumentForm($rec->deliveryTermId, $form, $mvc);
         }
         
@@ -477,7 +484,8 @@ class sales_Quotations extends core_Master
             
             // Избраната валута съответства ли на дефолтната
             $defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
-            if ($defCurrency != $rec->currencyId) {
+            $currencyState = currency_Currencies::fetchField("#code = '{$defCurrency}'", 'state');
+            if ($defCurrency != $rec->currencyId && $currencyState != 'active') {
                 $form->setWarning('currencyId', "Избрана e различна валута от очакваната|* <b>{$defCurrency}</b>");
             }
             
@@ -616,7 +624,7 @@ class sales_Quotations extends core_Master
                     $row->{"mycompany{$fld}"} = transliterate(tr($row->{"mycompany{$fld}"}));
                 }
             }
-            
+           
             if ($rec->currencyRate == 1) {
                 unset($row->currencyRate);
             }
@@ -659,20 +667,22 @@ class sales_Quotations extends core_Master
             if (!empty($rec->deliveryAdress)) {
                 $deliveryAdress .= $mvc->getFieldType('deliveryAdress')->toVerbal($rec->deliveryAdress);
             } else {
-                if (isset($rec->deliveryTermId)) {
-                    $placeId = ($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
-                    $deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, null, $placeId, $rec->deliveryData, $mvc);
-                }
+                $placeId = ($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
+                $deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, null, $placeId, $rec->deliveryData, $mvc);
             }
+            
+            $locationId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null; 
             
             if(isset($rec->deliveryTermId) && !Mode::isReadOnly()){
                 $row->deliveryTermId = ht::createLink($row->deliveryTermId, cond_DeliveryTerms::getSingleUrlArray($rec->deliveryTermId));
             }
             
             if (!empty($deliveryAdress)) {
-                $deliveryAdress1 = (isset($rec->deliveryTermId)) ? ($row->deliveryTermId . ', ') : '';
-                $deliveryAdress = $deliveryAdress1 . $deliveryAdress;
-                $row->deliveryTermId = $deliveryAdress;
+                if(isset($rec->deliveryTermId)){
+                    $row->deliveryTermId = "{$row->deliveryTermId}, {$deliveryAdress}";
+                } else {
+                    $row->deliveryPlaceId = $deliveryAdress;
+                }
             }
             
             if (!empty($profRec)) {
@@ -719,10 +729,14 @@ class sales_Quotations extends core_Master
             }
             
             if (isset($rec->deliveryTermId)) {
-                $locationId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null; 
+                
                 if (sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $locationId)) {
                    $row->deliveryError = tr('За транспортните разходи, моля свържете се с представител на фирмата');
                 }
+            }
+            
+            if(!empty($row->deliveryPlaceId)){
+                $row->deliveryPlaceCaption = isset($rec->deliveryTermId) ? tr('Място на доставка') : tr('За адрес');
             }
             
             if (empty($rec->deliveryTime) && empty($rec->deliveryTermTime)) {
@@ -1493,23 +1507,24 @@ class sales_Quotations extends core_Master
      * @param int   $date            - дата
      * @param array $fields          - стойности на полетата на сделката
      *
-     *   o $fields['originId']        - вальор (ако няма е текущата дата)
-     *   o $fields['reff']            - вашия реф на продажбата
-     *   o $fields['currencyCode']    - код на валута (ако няма е основната за периода)
-     * 	 o $fields['rate']            - курс към валутата (ако няма е този към основната валута)
-     * 	 o $fields['paymentMethodId'] - ид на платежен метод (Ако няма е плащане в брой, @see cond_PaymentMethods)
-     * 	 o $fields['chargeVat']       - да се начислява ли ДДС - yes=Да, separate=Отделен ред за ДДС, exempt=Освободено,no=Без начисляване(ако няма, се определя според контрагента)
-     * 	 o $fields['deliveryTermId']  - ид на метод на доставка (@see cond_DeliveryTerms)
-     * 	 o $fields['validFor']        - срок на годност
-     *   o $fields['company']         - фирма
-     *   o $fields['person']          - лице
-     *   o $fields['email']           - имейли
-     *   o $fields['tel']             - телефон
-     *   o $fields['fax']             - факс
-     *   o $fields['pCode']           - пощенски код
-     *   o $fields['place']           - град
-     *   o $fields['address']         - адрес
-     *   o $fields['deliveryAdress']  - адрес за доставка
+     *   o $fields['originId']              - вальор (ако няма е текущата дата)
+     *   o $fields['reff']                  - вашия реф на продажбата
+     *   o $fields['currencyCode']          - код на валута (ако няма е основната за периода)
+     * 	 o $fields['rate']                  - курс към валутата (ако няма е този към основната валута)
+     * 	 o $fields['paymentMethodId']       - ид на платежен метод (Ако няма е плащане в брой, @see cond_PaymentMethods)
+     * 	 o $fields['chargeVat']             - да се начислява ли ДДС - yes=Да, separate=Отделен ред за ДДС, exempt=Освободено,no=Без начисляване(ако няма, се определя според контрагента)
+     * 	 o $fields['deliveryTermId']        - ид на метод на доставка (@see cond_DeliveryTerms)
+     *   o $fields['deliveryCalcTransport'] - дали да се начислява скрит или явен транспорт (@see cond_DeliveryTerms)
+     * 	 o $fields['validFor']              - срок на годност
+     *   o $fields['company']               - фирма
+     *   o $fields['person']                - лице
+     *   o $fields['email']                 - имейли
+     *   o $fields['tel']                   - телефон
+     *   o $fields['fax']                   - факс
+     *   o $fields['pCode']                 - пощенски код
+     *   o $fields['place']                 - град
+     *   o $fields['address']               - адрес
+     *   o $fields['deliveryAdress']        - адрес за доставка
      *
      * @return mixed - ид на запис или FALSE
      */
@@ -1601,6 +1616,12 @@ class sales_Quotations extends core_Master
         $newRec->contragentCountryId = (isset($fields['countryId'])) ? $fields['countryId'] : $data->countryId;
         expect(drdata_Countries::fetch($newRec->contragentCountryId), 'Невалидна държава');
         $newRec->template = self::getDefaultTemplate($newRec);
+        
+        if(isset($newRec->deliveryTermId)){
+            if(cond_DeliveryTerms::getTransportCalculator($newRec->deliveryTermId)){
+                $newRec->deliveryCalcTransport = isset($fields['deliveryCalcTransport']) ? $fields['deliveryCalcTransport'] : cond_DeliveryTerms::fetchField($newRec->deliveryTermId, 'calcCost');
+            }
+        }
         
         // Създаване на запис
         self::route($newRec);

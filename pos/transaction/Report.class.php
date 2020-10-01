@@ -43,7 +43,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         if(!Mode::is('recontoTransaction')){
             $this->class->extractData($rec);
         }
-        
+       // bp($rec->details['receiptDetails']);
         if (count($rec->details['receiptDetails'])) {
             foreach ($rec->details['receiptDetails'] as $dRec) {
                 if ($dRec->action == 'sale') {
@@ -65,15 +65,17 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             
             $entries = array_merge($entries, $this->getPaymentPart($rec, $paymentsArr, $posRec));
             
-            // Начисляване на ддс ако има
-            if (count($totalVat)) {
+            // Начисляване на ддс ако има и е разрешено
+            if (count($totalVat) && $rec->chargeVat != 'no') {
                 $entries = array_merge($entries, $this->getVatPart($rec, $totalVat, $posRec));
             }
         }
         
+        $rec->valior = !empty($rec->valior) ? $rec->valior : dt::verbal2mysql($rec->createdOn);
+        
         $transaction = (object) array(
             'reason' => 'Отчет за POS продажба №' . $rec->id,
-            'valior' => dt::verbal2mysql($rec->createdOn, false),
+            'valior' => $rec->valior,
             'totalAmount' => $this->totalAmount,
             'entries' => $entries,
         );
@@ -120,6 +122,10 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
       
         foreach ($products as $product) {
             $product->totalQuantity = round($product->quantity * $product->quantityInPack, 2);
+            if($rec->chargeVat == 'no'){
+                $product->amount *= (1 + $product->param);
+            }
+            
             $totalAmount = currency_Currencies::round($product->amount);
             if ($product->param) {
                 $totalVat[$product->contragentClassId .'|'. $product->contragentId] += $product->param * $product->amount;

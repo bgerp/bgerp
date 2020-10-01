@@ -448,9 +448,13 @@ class callcenter_Talks extends core_Master
         
         // Обхождаме резултатите
         while ($rec = $query->fetch()) {
+            $mustSave = false;
             
-            // Ако номера на позвъняващия отговара
+            // Ако номера на позвъняващия отговаря
             if ($rec->externalNum == $numStr) {
+                if ($rec->externalData != $nRecArr[0]->id) {
+                    $mustSave = true;
+                }
                 
                 // Променяме данните
                 $rec->externalData = $nRecArr[0]->id;
@@ -471,27 +475,33 @@ class callcenter_Talks extends core_Master
                     }
                 }
                 
+                $nArrKeys = type_Keylist::fromArray($numIdArr);
+                if ($rec->internalData != $nArrKeys) {
+                    $mustSave = true;
+                }
+                
                 // Променяме данните
-                $rec->internalData = type_Keylist::fromArray($numIdArr);
+                $rec->internalData = $nArrKeys;
             }
             
-            // Записваме
-            static::save($rec);
+            if ($mustSave) {
+                static::save($rec);
+            }
         }
     }
     
     
     /**
      * Регистрира начало на разговор
-     * 
-     * @param string $uniqId
-     * @param string $fromNum
-     * @param string $toNum
-     * @param integer $time
-     * @param boolean $isOutgoing
+     *
+     * @param string      $uniqId
+     * @param string      $fromNum
+     * @param string      $toNum
+     * @param int         $time
+     * @param bool        $isOutgoing
      * @param null|string $destUniqId
-     * 
-     * @return null|boolean
+     *
+     * @return null|bool
      */
     public static function registerBeginCall($uniqId, $fromNum, $toNum, $time, $isOutgoing = false, $destUniqId = null)
     {
@@ -528,7 +538,7 @@ class callcenter_Talks extends core_Master
             if ($tLen > $fLen) {
                 setIfNot($isOutgoing, true);
             }
-        } 
+        }
         if (!empty($fNumArr) && !empty($tNumArr)) {
             $isInternalTalk = true;
         }
@@ -560,15 +570,21 @@ class callcenter_Talks extends core_Master
             $internalNum = $toNum;
         }
         
-        $cRecArr = callcenter_Numbers::getRecForNum($externalNum);
+        $dRecArr = callcenter_Numbers::getRecForNum($internalNum, 'internal', true);
         
-        if ($cRecArr[0]) {
-            $nRec->externalData = $cRecArr[0]->id;
+        // Ако няма да се записват разговорите, когата няма регистриран потребител към номера
+        if (!$dRecArr && (callcenter_Setup::get('SAVE_CALLS_FOR_NON_EXIST_INTERNAL_NUMS') == 'no')) {
+            
+            return ;
         }
         
-        $dRecArr = callcenter_Numbers::getRecForNum($internalNum, 'internal', true);
         foreach ((array) $dRecArr as $dRec) {
             $nRec->internalData = type_Keylist::addKey($nRec->internalData, $dRec->id);
+        }
+        
+        $cRecArr = callcenter_Numbers::getRecForNum($externalNum);
+        if ($cRecArr[0]) {
+            $nRec->externalData = $cRecArr[0]->id;
         }
         
         $nRec->externalNum = drdata_PhoneType::getNumberStr($externalNum, 0);
@@ -588,7 +604,6 @@ class callcenter_Talks extends core_Master
                 
                 // Предпазване от дублиране
                 if ($nRec->startTime == $oRec->startTime) {
-                    
                     break;
                 }
                 
@@ -607,7 +622,6 @@ class callcenter_Talks extends core_Master
         
         // Нотифицираме потребителя, за входящото обаждане
         if (!$isOutgoing) {
-            
             if (!$cRecArr[0]) {
                 $externalData = $externalNum;
             } else {
@@ -623,11 +637,11 @@ class callcenter_Talks extends core_Master
     
     /**
      * Регистрира връзка между две обаждания
-     * 
+     *
      * @param string $uniqId1
      * @param string $uniqId2
-     * 
-     * @return null|boolean
+     *
+     * @return null|bool
      */
     public static function registerBridge($uniqId1, $uniqId2)
     {
@@ -680,10 +694,11 @@ class callcenter_Talks extends core_Master
     
     /**
      * Регистрира разговора като отговорен
-     * 
+     *
      * @param string $uniqId
-     * @param integer $time
-     * @return boolean
+     * @param int    $time
+     *
+     * @return bool
      */
     public static function registerAnswer($uniqId, $time)
     {
@@ -710,15 +725,14 @@ class callcenter_Talks extends core_Master
     }
     
     
-    
     /**
      * Регистрира край на разговора
-     * 
+     *
      * @param string $uniqId
      * @param string $dialStatus
-     * @param integer $time
-     * 
-     * @return boolean|null
+     * @param int    $time
+     *
+     * @return bool|null
      */
     public static function registerEndCall($uniqId, $dialStatus, $time)
     {
@@ -751,19 +765,19 @@ class callcenter_Talks extends core_Master
                 case ('noanswer'):
                     $rec->dialStatus = 'NO ANSWER';
                     break;
-                    
+                
                 case ('cancel'):
                     $rec->dialStatus = 'FAILED';
                     break;
-                    
+                
                 case ('answer'):
                     $rec->dialStatus = 'ANSWERED';
                     break;
-                    
+                
                 case ('busy'):
                     $rec->dialStatus = 'BUSY';
                     break;
-                    
+                
                 default:
                     $rec->dialStatus = 'UNKNOWN';
                     break;
@@ -787,9 +801,9 @@ class callcenter_Talks extends core_Master
     /**
      * Помощна фунцкия, която подготвя времето
      * Ако има разминава, записва в лога
-     * 
-     * @param integer $timestamp
-     * 
+     *
+     * @param int $timestamp
+     *
      * @return string
      */
     public static function prepareTime($timestamp)
@@ -1334,9 +1348,9 @@ class callcenter_Talks extends core_Master
         
         if ($dialStatus !== false) {
             if (!isset($dialStatus)) {
-                $query->where("#dialStatus IS NULL");
+                $query->where('#dialStatus IS NULL');
             } else {
-                $query->where(array("#dialStatus = [#1#]", $dialStatus));
+                $query->where(array('#dialStatus = [#1#]', $dialStatus));
             }
         }
         
@@ -1600,8 +1614,8 @@ class callcenter_Talks extends core_Master
      * Записва грешките в масива в лога
      *
      * @param array  $errArr
-     * @param int $id
-     * @param string    $url
+     * @param int    $id
+     * @param string $url
      */
     public static function errToLog($errArr, $id = false, $url = false)
     {
@@ -1651,8 +1665,8 @@ class callcenter_Talks extends core_Master
     
     /**
      * Проверява списъка с позволените IP-та
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
     public static function isAuthorizedIp()
     {
@@ -2032,7 +2046,7 @@ class callcenter_Talks extends core_Master
      *
      *
      * @param core_Mvc $mvc
-     * @param mixed $res
+     * @param mixed    $res
      * @param stdClass $data
      */
     public static function on_AfterPrepareListSummary($mvc, &$res, &$data)
@@ -2043,6 +2057,7 @@ class callcenter_Talks extends core_Master
             return ;
         }
         $stat = array();
+        
         // Обхождаме всички клонирани записи
         while ($rec = $data->listSummary->query->fetch()) {
             
@@ -2094,7 +2109,7 @@ class callcenter_Talks extends core_Master
      *
      *
      * @param core_Mvc $mvc
-     * @param core_ET $tpl
+     * @param core_ET  $tpl
      * @param stdClass $data
      */
     public static function on_AfterRenderListSummary($mvc, &$tpl, &$data)

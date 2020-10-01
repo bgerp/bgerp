@@ -1,7 +1,7 @@
 <?php 
 
 /**
- * 
+ *
  *
  * @category  bgerp
  * @package   ztm
@@ -17,7 +17,7 @@ class ztm_Devices extends core_Master
     /**
      * Заглавие на модела
      */
-    public $title = 'Устройсва';
+    public $title = 'Устройства';
     public $singleTitle = 'Устройсво';
     
     
@@ -75,6 +75,7 @@ class ztm_Devices extends core_Master
      */
     public $closedState = 'draft';
     
+    
     /**
      * Плъгини за зареждане
      */
@@ -82,7 +83,7 @@ class ztm_Devices extends core_Master
     
     
     /**
-     * 
+     *
      * @var string
      */
     public $listFields = 'name, profileId, ident, model, ip, lastSync, state, configTime, modifiedOn, modifiedBy';
@@ -94,9 +95,6 @@ class ztm_Devices extends core_Master
     public $rowToolsSingleField = 'name';
     
     
-    /**
-     * 
-     */
     public function description()
     {
         $this->FLD('ident', 'varchar(32)', 'caption=Идентификатор');
@@ -115,10 +113,10 @@ class ztm_Devices extends core_Master
     
     /**
      * Връща записа за този токен
-     * 
+     *
      * @param string $token
-     * @param boolean $onlyActive
-     * 
+     * @param bool   $onlyActive
+     *
      * @return false|stdClass
      */
     public static function getRecForToken($token, $onlyActive = true)
@@ -144,7 +142,7 @@ class ztm_Devices extends core_Master
     
     /**
      * Обновява времето на синхронизиране
-     * 
+     *
      * @param string $token
      */
     public static function updateSyncTime($token)
@@ -163,7 +161,7 @@ class ztm_Devices extends core_Master
      *
      *
      * @param string $ident
-     * @param boolean $active
+     * @param bool   $active
      *
      * @return string|null
      */
@@ -186,7 +184,7 @@ class ztm_Devices extends core_Master
      *
      * @param string $ident
      *
-     * @return boolean
+     * @return bool
      */
     public static function checkIsUniq($ident)
     {
@@ -196,27 +194,27 @@ class ztm_Devices extends core_Master
     }
     
     
-    /**
-     * 
-     */
-    function act_Register()
+    public function act_Register()
     {
         $ident = Request::get('serial_number');
+        $bgerpId = Request::get('bgerp_id');
         
         expect($ident);
         
-        // Ако има активен запис
-        if ($this->getToken($ident)) {
-            header('HTTP/1.1 423');
-            header('Status: 423');
+        $uniqId = getBGERPUniqId();
+        
+        // Ако има запис, но все още не е активиран
+        if ($bgerpId && ($bgerpId == $uniqId) && $this->getToken($ident, false)) {
+            header('HTTP/1.1 403');
+            header('Status: 403');
             
             shutdown();
         }
         
-        // Ако има запис, но все още не е активиран
-        if ($this->getToken($ident, false)) {
-            header('HTTP/1.1 403');
-            header('Status: 403');
+        // Ако има активен запис
+        if ($bgerpId && ($bgerpId == $uniqId) && $this->getToken($ident)) {
+            header('HTTP/1.1 423');
+            header('Status: 423');
             
             shutdown();
         }
@@ -226,15 +224,14 @@ class ztm_Devices extends core_Master
         $rec->model = Request::get('model');
         $rec->state = 'draft';
         $rec->ip = core_Users::getRealIpAddr();
-//         $rec->lastSync = dt::now();
         $rec->token = str::getRand(str_repeat('*', 16));
         $rec->configTime = Request::get('config_time', 'int');
         
-        $this->save($rec);
+        expect($this->save($rec));
         
         $res = new stdClass();
         $res->token = $rec->token;
-        $res->bgerp_id = getBGERPUniqId();
+        $res->bgerp_id = $uniqId;
         
         core_App::outputJson($res);
     }
@@ -248,7 +245,6 @@ class ztm_Devices extends core_Master
         $rec = $mvc->fetchRec($id);
         
         if (!$mvc->checkIsUniq($rec->ident)) {
-            
             core_Statuses::newStatus('|Не може да се възстанови, поради дублиране на устройство');
             
             return false;
@@ -268,8 +264,21 @@ class ztm_Devices extends core_Master
         $row->configTime = dt::timestamp2Mysql($rec->configTime);
         $row->configTime = dt::mysql2verbal($row->configTime, 'smartTime');
         
-        if(isset($rec->profileId)){
+        if (isset($rec->profileId)) {
             $row->profileId = ztm_Profiles::getHyperlink($rec->profileId, true);
+        }
+    }
+    
+    
+    /**
+     * След като е готово вербалното представяне
+     */
+    public static function on_AfterGetVerbal($mvc, &$res, $rec, $part)
+    {
+        if ($part == 'name') {
+            if (!$rec->name) {
+                $res = $mvc->getRecTitle($rec);
+            }
         }
     }
     
@@ -296,5 +305,41 @@ class ztm_Devices extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('createdOn', 'DESC');
+    }
+    
+    
+    /**
+     * 
+     * @param ztm_Devices $mvc
+     * @param stdClass $rec
+     * @param string $newState
+     */
+    protected static function on_AfterChangeState(core_Mvc $mvc, &$rec, &$newState)
+    {
+        if ($newState == 'active') {
+            $saveArr = array();
+            if (!$rec->name) {
+                unset($rec->name);
+                $rec->name = $mvc->getRecTitle($rec);
+                $saveArr['name'] = 'name';
+            }
+            
+            if (!$rec->profileId) {
+                $pQuery = ztm_Profiles::getQuery();
+                $pQuery->where("#state = 'active'");
+                $pQuery->limit(1);
+                $pQuery->orderBy('createdOn', 'DESC');
+                $pQuery->show('id');
+                $pRec = $pQuery->fetch();
+                    
+                $rec->profileId = $pRec->id;
+                
+                $saveArr['profileId'] = 'profileId';
+            }
+            
+            if (!empty($saveArr)) {
+                $mvc->save($rec, implode(', ', $saveArr));
+            }
+        }
     }
 }

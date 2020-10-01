@@ -178,6 +178,14 @@ class support_TaskType extends core_Mvc
     public static function on_AfterGetThreadState($Driver, $mvc, &$res, $id)
     {
         $res = 'opened';
+        
+        $rec = $mvc->fetchRec($id);
+        
+        if (($rec->state != 'active') && ($rec->state != 'waiting') && ($rec->state != 'pending')) {
+            if (cal_Tasks::checkForCloseThread($rec->threadId, $rec->containerId)) {
+                $res = 'closed';
+            }
+        }
     }
     
     
