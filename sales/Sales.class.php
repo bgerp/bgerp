@@ -160,7 +160,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полета свързани с цени
      */
-    public $priceFields = 'amountDeal,amountDelivered,amountPaid,amountInvoiced,amountToPay,amountToDeliver,amountToInvoice';
+    public $priceFields = 'amountDeal,amountBl,expectedTransportCost,visibleTransportCost,hiddenTransportCost,leftTransportCost,amountDelivered,amountPaid,amountInvoiced,amountToPay,amountToDeliver,amountToInvoice';
     
     
     /**
