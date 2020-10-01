@@ -38,11 +38,16 @@
                     </div>
                     <!--ET_END contragentAddress-->
                     <!--ET_END contragentName-->
-                    <!--ET_BEGIN vatId-->
-                    <div>|ДДС|* №:<br>
-                        [#vatId#]
+                    <!--ET_BEGIN vatNo-->
+                    <div>ЗДДС&nbsp;№:<br>
+                        [#vatNo#]
                     </div>
-                    <!--ET_END vatId-->
+                    <!--ET_END vatNo-->
+                    <!--ET_BEGIN contragentUicId-->
+                    <div>ЕИК:<br>
+                        [#contragentUicId#]
+                    </div>
+                    <!--ET_END contragentUicId-->
                     <!--ET_BEGIN deliveryLocationId-->
                     <hr style="margin: 3px 0 1px;">
                     <div>
@@ -58,6 +63,18 @@
                         [#MyAddress#]
                     </div>
                     <!--ET_END MyAddress-->
+                    
+                    <!--ET_BEGIN MyCompanyVatNo-->
+                    <div>ЗДДС&nbsp;№:<br>
+                        [#MyCompanyVatNo#]
+                    </div>
+                    <!--ET_END MyCompanyVatNo-->
+                    <!--ET_BEGIN uicId-->
+                    <div>ЕИК:<br>
+                        [#uicId#]
+                    </div>
+                    <!--ET_END uicId-->
+                    
                     <!--ET_END MyCompany-->
                     <!--ET_BEGIN shipmentStoreId-->
                     <hr style="margin: 3px 0 1px;">

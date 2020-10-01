@@ -926,6 +926,7 @@ abstract class deals_Helper
             $res['inlineContragentName'] = $res['contragentName'];
             
             $res['vatNo'] = $cData->vatNo;
+            $res['contragentUicId'] = $cData->uicId;
         } elseif (isset($contragentName)) {
             $res['contragentName'] = $contragentName;
         }
