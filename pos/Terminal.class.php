@@ -1798,9 +1798,6 @@ class pos_Terminal extends peripheral_Terminal
             
             // Ако не е посочен стринг се показват най-продаваните артикули
             if(empty($searchString)){
-                $pQuery = pos_SellableProductsCache::getQuery();
-                $pQuery->where("#priceListId = {$settings->policyId}");
-                
                 if($rec->_selectedGroupId == 'similar'){
                     if(countR($similarProducts)){
                         $pQuery->in('productId', $similarProducts);
@@ -1808,30 +1805,17 @@ class pos_Terminal extends peripheral_Terminal
                         $pQuery->where("1=2");
                     }
                 } elseif(is_numeric($rec->_selectedGroupId)){
-                    $prodQuery = cat_Products::getQuery();
-                    $prodQuery->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
-                    $prodQuery->show('id');
-                    $productsInGroup = arr::extractValuesFromArray($prodQuery->fetchAll(), 'id');
-                    if(countR($productsInGroup)){
-                        $pQuery->in('productId', $productsInGroup);
-                    } else {
-                        $pQuery->where("1=2");
-                    }
+                    $pQuery->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
                 }
                 
                 $receiptClassId = pos_Receipts::getClassId();
                 $pQuery->EXT('rating', 'sales_ProductRatings', array('externalName' => 'value', 'onCond' => "#sales_ProductRatings.classId = {$receiptClassId} AND #sales_ProductRatings.objectId = #productId", 'join' => 'right'));
                 $pQuery->limit($settings->maxSearchProducts);
+                $pQuery->show('productId,name,nameEn,code,canStore,measureId,canSell,string,searchKeywords,rating');
                 $pQuery->orderBy('rating', 'DESC');
-                $pQuery->show('productId,rating');
-                $foundProducts = $pQuery->fetchAll();
                 
-                foreach ($foundProducts as $pRec){
-                    $extProd = cat_Products::fetch($pRec->productId, 'name,nameEn,code,canStore,measureId,canSell');
-                    foreach (array('name','nameEn','code', 'canStore', 'measureId', 'canSell') as $extFld){
-                        $pRec->{$extFld} = $extProd->{$extFld};
-                    }
-                    
+                // Добавят се към резултатите
+                while ($pRec = $pQuery->fetch()){
                     $sellable[$pRec->productId] = $pRec;
                 }
             } else {
