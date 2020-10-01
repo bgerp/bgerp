@@ -498,7 +498,7 @@ class crm_Companies extends core_Master
         $form = $data->form;
         
         if (empty($form->rec->name)) {
-            $form->setField('vatId', 'removeAndRefreshForm=name|address');
+            $form->setField('vatId', 'removeAndRefreshForm=name|address|pCode|country');
             
             if(empty($form->rec->name)){
                 $cDataSource = !empty($form->rec->vatId) ? $form->rec->vatId : $form->rec->uicId;
