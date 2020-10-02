@@ -158,7 +158,7 @@ class eshop_Products extends core_Master
         // Запитване за нестандартен продукт
         $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams|proto|measureId,silent');
         $this->FLD('proto', 'keylist(mvc=cat_Products,allowEmpty,select=name,select2MinItems=100)', 'caption=Запитване->Прототип,input=hidden,silent,placeholder=Популярни продукти');
-        $this->FLD('coMoq', 'double', 'caption=Запитване->МКП,hint=Минимално количество за поръчка');
+        $this->FLD('coMoq', 'double', 'caption=Запитване->МКП,hint=Минимално количество за поръчка,silent');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,tdClass=centerCol');
         $this->FLD('quantityCount', 'enum(,3=3 количества,2=2 количества,1=1 количество)', 'caption=Запитване->Количества,placeholder=Без количество');
         $this->FLD('saleState', 'enum(single=Единичен,multi=Избор,closed=Стар артикул,empty=Без опции)', 'caption=Тип,input=none,notNull,value=empty');
@@ -225,6 +225,10 @@ class eshop_Products extends core_Master
             if (countR($protoProducts)) {
                 $form->setField('proto', 'input');
                 $form->setSuggestions('proto', $protoProducts);
+                
+                if($protoId = Request::get('protoId', 'int')){
+                    $form->setDefault('proto', keylist::addKey('', $protoId));
+                }
             }
             
             // Ако мярката идва от драйвера
@@ -243,7 +247,7 @@ class eshop_Products extends core_Master
             $menuId = eshop_Groups::fetchField($rec->groupId, 'menuId');
             
             if (strlen($rec->code) && ($query->fetch(array("#code = '[#1#]' AND #menuId = '[#2#]'", $rec->code, $menuId)))) {
-                $form->setError('code', 'Вече има продукт със същия код|*: <strong>' . $mvc->getVerbal($rec, 'name') . '</strong>');
+                $form->setError('code', 'Вече има продукт със същия код|*: <strong>' . eshop_Products::getHyperlink($rec, true) . '</strong>');
             }
         }
     }
@@ -984,6 +988,7 @@ class eshop_Products extends core_Master
             $name = core_Classes::fetchField($form->rec->coDriver, 'title');
             $driverOptions[$form->rec->coDriver] = core_Classes::translateClassName($name);
         }
+        
         $form->setOptions('coDriver', $driverOptions);
         
         $form->FNC('productId', 'int', 'caption=Артикул,silent,input=hidden');
@@ -1046,9 +1051,13 @@ class eshop_Products extends core_Master
     protected static function on_AfterCreate($mvc, $rec)
     {
         if (isset($rec->productId)) {
-            $packagings = !empty($rec->packagings) ? $rec->packagings : keylist::addKey('', cat_Products::fetchField($rec->productId, 'measureId'));
-            $dRec = (object) array('productId' => $rec->productId, 'packagings' => $packagings, 'eshopProductId' => $rec->id);
-            eshop_ProductDetails::save($dRec);
+            $pState = cat_Products::fetch($rec->productId, 'state');
+            
+            if($pState != 'template'){
+                $packagings = !empty($rec->packagings) ? $rec->packagings : keylist::addKey('', cat_Products::fetchField($rec->productId, 'measureId'));
+                $dRec = (object) array('productId' => $rec->productId, 'packagings' => $packagings, 'eshopProductId' => $rec->id);
+                eshop_ProductDetails::save($dRec);
+            }
         }
     }
     
@@ -1132,35 +1141,36 @@ class eshop_Products extends core_Master
         // Проверки
         $this->requireRightFor('linktoeshop');
         expect($productId = Request::get('productId', 'int'));
-        expect(cat_Products::fetch($productId, 'canStore,measureId'));
-        
-        // Редирект ако потребителя се върна с бутона 'НАЗАД'
-        if (eshop_ProductDetails::isTheProductAlreadyInTheSameDomain($productId, cms_Domains::getPublicDomain()->id)) {
-            redirect(array('cat_Products', 'single', $productId));
-        }
-        
+        expect($pRec = cat_Products::fetch($productId, 'canStore,measureId,state,innerClass'));
         $this->requireRightFor('linktoeshop', (object) array('productId' => $productId));
-        
-        // Форсиране на домейн
-        $domainId = cms_Domains::getCurrent();
         
         // Подготовка на формата
         $form = cls::get('core_Form');
         $form->title = 'Листване в е-магазина|* ' . cls::get('cat_Products')->getFormTitleLink($productId);
-        $form->info = tr('Домейн') . ': ' . cms_Domains::getHyperlink($domainId, true);
+        
+        $form->FLD('domainId', 'key(mvc=cms_Domains,select=titleExt)', 'caption=Домейн,mandatory,silent,removeAndRefreshForm=eshopProductId|packagings');
+        $form->setDefault('domainId', cms_Domains::getCurrent());
+        
         $form->FLD('eshopProductId', 'varchar', 'caption=Добавяне към,placeholder=Нов е-артикул');
-        $form->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковка,mandatory');
         $form->FLD('productId', 'int', 'caption=Артикул,mandatory,silent,input=hidden');
         $form->input(null, 'silent');
         
-        // Добавяне на наличните опаковки
-        $packs = cat_Products::getPacks($productId);
-        $form->setSuggestions('packagings', $packs);
-        $form->setDefault('packagings', keylist::addKey('', key($packs)));
+        if($pRec->state != 'template'){
+            
+            // Добавяне на наличните опаковки
+            $form->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковка,mandatory');
+            $packs = cat_Products::getPacks($productId);
+            $form->setSuggestions('packagings', $packs);
+            $form->setDefault('packagings', keylist::addKey('', key($packs)));
+        }
         
-        // Наличните е-артикули в домейна
-        $productOptions = eshop_Products::getInDomain($domainId);
-        $form->setOptions('eshopProductId', array('' => '') + $productOptions);
+        if(isset($form->rec->domainId)){
+            
+            // Наличните е-артикули в домейна
+            $productOptions = eshop_Products::getInDomain($form->rec->domainId, true);
+            $form->setOptions('eshopProductId', array('' => '') + $productOptions); 
+        }
+        
         $form->input();
         
         // Изпращане на формата
@@ -1169,22 +1179,33 @@ class eshop_Products extends core_Master
             
             if (empty($formRec->eshopProductId)) {
                 if (eshop_Products::haveRightFor('add', (object) array('productId' => $productId))) {
+                    cms_Domains::selectCurrent($formRec->domainId);
                     
-                    return redirect(array($this, 'add', 'productId' => $productId, 'packagings' => keylist::toArray($formRec->packagings)));
+                    $url = array($this, 'add', 'productId' => $productId, 'packagings' => keylist::toArray($formRec->packagings));
+                    if($pRec->state == 'template'){
+                        unset($url['packagings']);
+                        $url['coDriver'] = $pRec->innerClass;
+                        $url['protoId'] = $pRec->id;
+                        $url['coMoq'] = cat_Products::getMoq($pRec->id);
+                    }
+                    
+                    return redirect($url);
                 }
                 
                 return followRetUrl(null, 'Нямате права да свързвате артикула');
             }
             
-            $thisDomainId = eshop_Products::getDomainId($formRec->eshopProductId);
-            
-            if (eshop_ProductDetails::isTheProductAlreadyInTheSameDomain($formRec->productId, $thisDomainId)) {
-                $form->setError('eshopProductId', 'Артикулът вече е свързан с е-магазина на текущия домейн');
+            if($pRec->state == 'template'){
+                $eProductRec = $this->fetch($formRec->eshopProductId);
+                $eProductRec->coDriver = $pRec->innerClass;
+                $eProductRec->proto = keylist::addKey('', $pRec->id);
+                $eProductRec->coMoq = cat_Products::getMoq($pRec->id);
+                $this->save($eProductRec, 'coDriver,proto,coMoq');
             } else {
                 eshop_ProductDetails::save($formRec);
-                
-                return redirect(array(eshop_Products, 'single', $formRec->eshopProductId), false, 'Артикулът е свързан с онлайн магазина');
             }
+            
+            return redirect(array($this, 'single', $formRec->eshopProductId), false, 'Артикулът е свързан с онлайн магазина');
         }
         
         // Добавяне на бутони
@@ -1204,62 +1225,13 @@ class eshop_Products extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if (($action == 'add' || $action == 'linktoeshop') && isset($rec->productId)) {
-            if (!self::canLinkProduct($rec->productId)) {
-                $requiredRoles = 'no_one';
-            } elseif (eshop_ProductDetails::isTheProductAlreadyInTheSameDomain($rec->productId, cms_Domains::getPublicDomain()->id)) {
-                $requiredRoles = 'no_one';
-            }
-        }
-        
-        if (($action == 'linktoeshop' || $action == 'vieweproduct') && isset($rec)) {
-            if (empty($rec->productId)) {
-                $requiredRoles = 'no_one';
-            } elseif (!cms_Domains::haveRightFor('select')) {
+        if ($action == 'linktoeshop' && isset($rec->productId)) {
+            $pRec = cat_Products::fetch($rec->productId, 'isPublic,canSell,state');
+            
+            if($pRec->isPublic != 'yes' || !in_array($pRec->state, array('active', 'template')) || $pRec->canSell != 'yes'){
                 $requiredRoles = 'no_one';
             }
         }
-    }
-    
-    
-    /**
-     * Кой е-артикул отговаря на артикула от домейна
-     *
-     * @param int      $productId - артикул
-     * @param int|NULL $domainId  - ид на домейн или NULL за текущия
-     *
-     * @return int|NULL - намерения е-артикул
-     */
-    public static function getByProductId($productId, $domainId = null)
-    {
-        $domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain();
-        $groups = array_keys(eshop_Groups::getByDomain($domainId));
-        
-        $dQuery = eshop_ProductDetails::getQuery();
-        $dQuery->where("#productId = {$productId}");
-        $dQuery->EXT('groupId', 'eshop_Products', 'externalName=groupId,externalKey=eshopProductId');
-        $dQuery->in('groupId', $groups);
-        $dQuery->show('eshopProductId');
-        
-        $id = $dQuery->fetch()->eshopProductId;
-        
-        return $id;
-    }
-    
-    
-    /**
-     * Може ли артикула да се връзва към е-артикул
-     *
-     * @param int $productId - артикул
-     *
-     * @return bool $res  - може ли артикула да се връзва към е-артикул
-     */
-    public static function canLinkProduct($productId)
-    {
-        $productRec = cat_Products::fetch($productId, 'canSell,isPublic,nameEn,state');
-        $res = ($productRec->state != 'closed' && $productRec->state != 'rejected' && $productRec->state != 'template' && $productRec->isPublic == 'yes' && $productRec->canSell == 'yes' && $productRec->generic != 'yes');
-        
-        return $res;
     }
     
     
@@ -1280,10 +1252,10 @@ class eshop_Products extends core_Master
      * Връща е-артикулите в подадения домейн
      *
      * @param int|NULL $domainId - ид на домейн
-     *
+     * @param boolean $withoutDriver - дали да са само тези без драйвер
      * @return array $products   - наличните артикули
      */
-    public static function getInDomain($domainId = null)
+    public static function getInDomain($domainId = null, $withoutDriver = false)
     {
         $products = array();
         $domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
@@ -1296,6 +1268,10 @@ class eshop_Products extends core_Master
         
         $query = self::getQuery();
         $query->in('groupId', $groups);
+        if($withoutDriver){
+            $query->where("#coDriver IS NULL");
+        }
+        
         while ($rec = $query->fetch()) {
             $products[$rec->id] = self::getTitleById($rec->id, false);
         }
