@@ -4220,6 +4220,10 @@ table .eshop-btn {
   background: #eeeeee;
   border-radius: 3px; }
 
+.debug {
+  background-color: #ffffb3;
+  padding: 2px 0; }
+
 /*
  * стилове за блог
  */
