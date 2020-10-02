@@ -494,7 +494,7 @@ class cat_Boms extends core_Master
         
         //@todo да се махне след като се провери дали някой не записва документа докато е активен
         if(isset($rec->state) && $rec->state == $rec->brState && $rec->state != 'draft'){
-            wp($rec);
+            wp('cat_Boms::afterSaveActive', $rec);
         }
     }
     
@@ -1695,5 +1695,25 @@ class cat_Boms extends core_Master
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Обновява modified стойностите
+     *
+     * @param core_Master $mvc
+     * @param bool|NULL   $res
+     * @param int         $id
+     */
+    public static function on_AfterTouchRec($mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        
+        if ($rec) {
+            if ($rec->state == 'rejected') {
+                // @todo - премахване след ремонт
+                wp('cat_Boms::afterTouchRejected', $res, $rec);
+            }
+        }
     }
 }
