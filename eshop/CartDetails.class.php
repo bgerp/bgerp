@@ -67,7 +67,7 @@ class eshop_CartDetails extends core_Detail
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'every_one';
+    public $canAdd = 'eshop,ceo';
     
     
     /**
@@ -137,12 +137,6 @@ class eshop_CartDetails extends core_Detail
         $form = &$data->form;
         $rec = $form->rec;
         
-        if (isset($rec->external)) {
-            Mode::set('wrapper', 'cms_page_External');
-            $lang = cms_Domains::getPublicDomain('lang');
-            core_Lg::push($lang);
-            vislog_History::add("Ръчно добавяне на артикул в количка");
-        }
         
         $form->FNC('displayPrice', 'double', 'caption=Цена, input=none');
         $productOptions = eshop_ProductDetails::getAvailableProducts();
@@ -188,17 +182,6 @@ class eshop_CartDetails extends core_Detail
     {
         if (isset($data->form->rec->external)) {
             $tpl->prepend("\n<meta name=\"robots\" content=\"nofollow,noindex\">", 'HEAD');
-        }
-    }
-    
-    
-    /**
-     * След подготовката на заглавието на формата
-     */
-    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
-    {
-        if (isset($data->form->rec->external)) {
-            $data->form->title = 'Добавяне на артикул в|* ' . mb_strtolower(eshop_Carts::getCartDisplayName());
         }
     }
     

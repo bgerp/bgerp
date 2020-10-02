@@ -1574,13 +1574,6 @@ class eshop_Carts extends core_Master
         $wideSpan = '<span>|</span>';
         
         $settings = cms_Domains::getSettings($rec->domainId);
-        
-        if ($settings->enableCartAddBtn != 'no' && eshop_CartDetails::haveRightFor('add', (object) array('cartId' => $rec->id, 'domainId' => $rec->domainId))) {
-            $addUrl = array('eshop_CartDetails', 'add', 'cartId' => $rec->id, 'external' => true, 'ret_url' => true);
-            $btn = ht::createLink(tr('Добавяне'), $addUrl, null, 'title=Добавяне на нов артикул,class=eshop-link,ef_icon=img/16/add1-16.png,rel=nofollow');
-            $tpl->append($wideSpan . $btn, 'CART_TOOLBAR_TOP');
-        }
-        
         if (!empty($rec->productCount) && eshop_CartDetails::haveRightFor('removeexternal', (object) array('cartId' => $rec->id))) {
             $emptyUrl = array('eshop_CartDetails', 'removeexternal', 'cartId' => $rec->id, 'ret_url' => $shopUrl);
             $btn = ht::createLink(tr('Изчистване'), $emptyUrl, 'Сигурни ли сте, че искате да изтриете артикулите?', 'title=Премахване на всички артикули,class=eshop-link,ef_icon=img/16/deletered.png,rel=nofollow');
