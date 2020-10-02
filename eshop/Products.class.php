@@ -1653,7 +1653,7 @@ class eshop_Products extends core_Master
         $dQuery->where("#stateE = 'active'");
         while($dRec = $dQuery->fetch()){
             $domainId = self::getDomainId($dRec->eshopProductId);
-            $details[$dRec->productId][$domainId] = $dRec->eshopProductId;
+            $details[$dRec->productId][$domainId][] = $dRec->eshopProductId;
         }
         
         if(!countR($details)) {
@@ -1689,22 +1689,24 @@ class eshop_Products extends core_Master
              
             // Ако реда е в онлайн продажба
             if(array_key_exists($dRec->threadId, $onlineSaleThreads)){
-                
+                //bp($onlineSaleThreads, $deltaRecs);
                 // Кой е-артикул съответства на този артикул и домейнат
-                $eshopProductId = $details[$dRec->productId][$onlineSaleThreads[$dRec->threadId]];
-                
+                $eshopProducts = $details[$dRec->productId][$onlineSaleThreads[$dRec->threadId]];
+               
                 // Ако има такъв
-                if($eshopProductId){
-                    
-                    // Добавя се с по-голяма тежест, спрямо разстоянието от вальора до сега
+                if(countR($eshopProducts)){
                     $monthsBetween = countR(dt::getMonthsBetween($dRec->valior));
                     $rating = round(12 / $monthsBetween);
                     $rating = 100 * $rating;
                     
-                    sales_ProductRatings::addRatingToObject($res, $eshopProductId, $classId, $productClassId, $eshopProductId, $onlineSaleThreads[$dRec->threadId], $rating);
+                    foreach ($eshopProducts as $eshopProductId){
+                        
+                        // Добавя се с по-голяма тежест, спрямо разстоянието от вальора до сега
+                        sales_ProductRatings::addRatingToObject($res, $eshopProductId, $classId, $productClassId, $eshopProductId, $onlineSaleThreads[$dRec->threadId], $rating);
+                    }
                 }
             }
-            
+           
             // Проверява се във кои други домейни се среща този артикул
             if(array_key_exists($dRec->productId, $details)){
                 
@@ -1713,8 +1715,10 @@ class eshop_Products extends core_Master
                 if(is_array($productInDomains)){
                     
                     // За всяко срещане се добавя с по-една тежест
-                    foreach ($productInDomains as $pDomainId => $eshopProductId){
-                        sales_ProductRatings::addRatingToObject($res, $eshopProductId, $classId, $productClassId, $eshopProductId, $pDomainId, 1);
+                    foreach ($productInDomains as $pDomainId => $eshopProducts){
+                        foreach ($eshopProducts as $eshopProductId){
+                            sales_ProductRatings::addRatingToObject($res, $eshopProductId, $classId, $productClassId, $eshopProductId, $pDomainId, 1);
+                        }
                     }
                 }
             }
