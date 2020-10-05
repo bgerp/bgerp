@@ -4486,7 +4486,12 @@ class doc_DocumentPlg extends core_Plugin
     public static function on_AfterUpdateDetail(core_Master $mvc, $id, core_Manager $detailMvc)
     {
         // Обновява modified полетата
-        $mvc->touchRec($id);
+        $num = is_numeric($id) ? $id : $id->id;
+        
+        // Ако не е мутнато докосването, да се изпълни
+        if(Mode::get("touchRec{$num}") !== false){
+            $mvc->touchRec($id);
+        }
     }
     
     
