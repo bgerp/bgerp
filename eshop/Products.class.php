@@ -155,8 +155,8 @@ class eshop_Products extends core_Master
         $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Описание->Опаковки/Мерки');
         $this->FLD('nearProducts', 'blob(serialize)', 'caption=Описание->Виж също,input=none');
         
-        $this->FLD('orderByParam', 'varchar', 'caption=Подредба на артикулите->Параметър');
-        $this->FLD('orderByDir', 'enum(asc=Възходящо,desc=Низходящо)', 'caption=Подредба на артикулите->Посока');
+        $this->FLD('orderByParam', 'varchar', 'caption=Подредба на детайла във външната част->Параметър');
+        $this->FLD('orderByDir', 'enum(asc=Възходящо,desc=Низходящо)', 'caption=Подредба на детайла във външната част->Посока');
         
         // Запитване за нестандартен продукт
         $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams|proto|measureId,silent');
