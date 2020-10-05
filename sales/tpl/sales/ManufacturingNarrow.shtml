@@ -37,7 +37,7 @@
                 <div><small> ЗДДС&nbsp;№:</small> <span class="bigData" style="padding-left:5px;">[#vatNo#]</span></div>
                 <!--ET_END vatNo-->
                 <!--ET_BEGIN contragentUicId-->
-                <div><small>ЕИК:</small> <span class="bigData" style="padding-left:5px;"> [#contragentUicId#]</span></div>
+                <div><small>[#contragentUicCaption#]:</small> <span class="bigData" style="padding-left:5px;"> [#contragentUicId#]</span></div>
                 <!--ET_END contragentUicId-->
             </td>
         </tr>

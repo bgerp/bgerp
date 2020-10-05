@@ -37,7 +37,7 @@
                     <div><small>VAT ID:</small> <span class="bigData" style="padding-left:5px;">[#vatNo#]</span></div>
                     <!--ET_END vatNo-->
                     <!--ET_BEGIN contragentUicId-->
-                    <div><small>Tax ID:</small> <span class="bigData" style="padding-left:5px;"> [#contragentUicId#]</span></div>
+                    <div><small>[#contragentUicCaption#]:</small> <span class="bigData" style="padding-left:5px;"> [#contragentUicId#]</span></div>
                     <!--ET_END contragentUicId-->
                     <!--ET_BEGIN deliveryLocationId-->
                     <hr style="margin: 3px 0 1px;">

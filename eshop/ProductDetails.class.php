@@ -253,7 +253,27 @@ class eshop_ProductDetails extends core_Detail
         $data->optionsProductsCount = $query->count();
         $data->commonParams = eshop_Products::getCommonParams($data->rec->id);
         
-        while ($rec = $query->fetch()) {
+        $orderByParam = isset($data->rec->orderByParam) ? $data->rec->orderByParam : '_code';
+        $orderByDir = isset($data->rec->orderByDir) ? $data->rec->orderByDir : 'asc';
+        
+        $recs =  $query->fetchAll();
+        array_walk($recs, function (&$a) use ($orderByParam) {
+            if($orderByParam == '_code'){
+                $a->orderField = cat_products::getVerbal($a->productId, 'code');
+            } elseif($orderByParam == '_title'){
+                $a->orderField = (!empty($a->title)) ? $a->title : cat_Products::fetchField($a->productId, 'name');
+                $a->orderField = mb_strtolower($a->orderField);
+            } else{
+                $value = cat_Products::getParams($a->productId, $orderByParam);
+                if(isset($value)){
+                    $a->orderField = $value;
+                }
+            }
+        });
+        
+        arr::sortObjects($recs, 'orderField', $orderByDir, 'natural');
+        
+        foreach ($recs as $rec){
             $newRec = (object) array('eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'title' => $rec->title, 'deliveryTime' => $rec->deliveryTime);
             
             $packagings = keylist::toArray($rec->packagings);
@@ -281,17 +301,8 @@ class eshop_ProductDetails extends core_Detail
                 $i++;
             }
         }
-        
+       
         if (countR($data->rows)) {
-            uasort($data->rows, function ($obj1, $obj2) {
-                if ($obj1->orderCode == $obj2->orderCode) {
-                    
-                    return $obj1->orderPrice > $obj2->orderPrice;
-                }
-                
-                return strnatcmp($obj1->orderCode, $obj2->orderCode);
-            });
-            
             $prev = null;
             foreach ($data->rows as &$row1) {
                 if (isset($prev) && $prev == $row1->orderCode) {

@@ -903,7 +903,7 @@ abstract class deals_Helper
     public static function getDocumentHeaderInfo($contragentClass, $contragentId, $contragentName = null)
     {
         $res = array();
-        
+       
         // Данните на 'Моята фирма'
         $ownCompanyData = crm_Companies::fetchOwnCompany();
         
@@ -927,6 +927,9 @@ abstract class deals_Helper
             
             $res['vatNo'] = $cData->vatNo;
             $res['contragentUicId'] = $cData->uicId;
+            if(!empty($cData->uicId)){
+                $res['contragentUicCaption'] = ($ContragentClass instanceof crm_Companies) ? tr('ЕИК||Tax ID') : tr("ЕГН||Personal №");
+            }
         } elseif (isset($contragentName)) {
             $res['contragentName'] = $contragentName;
         }

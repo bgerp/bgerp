@@ -518,6 +518,8 @@ class cat_Boms extends core_Master
             }
         }
         
+        doc_DocumentCache::cacheInvalidation($rec->containerId);
+        
         return $this->save_($rec, 'modifiedOn,modifiedBy,searchKeywords');
     }
     
@@ -1301,7 +1303,9 @@ class cat_Boms extends core_Master
                     $rec->primeCost = $primeCost;
                     $rec->params = $params1;
                     
+                    Mode::push("touchRec{$rec->bomId}", false);
                     cls::get('cat_BomDetails')->save_($rec, 'primeCost,params');
+                    Mode::pop("touchRec{$rec->bomId}");
                 }
             }
         } else {
@@ -1352,7 +1356,10 @@ class cat_Boms extends core_Master
                 
                 if (serialize($rec->params) != serialize($params1)) {
                     $rec->params = $params1;
+                    
+                    Mode::push("touchRec{$rec->bomId}", true);
                     cls::get('cat_BomDetails')->save_($rec, 'params');
+                    Mode::pop("touchRec{$rec->bomId}");
                 }
             }
         }
@@ -1711,6 +1718,8 @@ class cat_Boms extends core_Master
         
         if ($rec) {
             if ($rec->state == 'rejected') {
+                core_Statuses::newStatus('love');
+                
                 // @todo - премахване след ремонт
                 wp('cat_Boms::afterTouchRejected', $res, $rec);
             }
