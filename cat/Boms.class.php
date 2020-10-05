@@ -492,7 +492,7 @@ class cat_Boms extends core_Master
             cat_Products::touchRec($productId);
         }
         
-        //@todo да се махне след като се провери дали някой не записва документа докато е активен
+        // @todo да се махне след като се провери дали някой не записва документа докато е активен
         if(isset($rec->state) && $rec->state == $rec->brState && $rec->state != 'draft'){
             wp('cat_Boms::afterSaveActive', $rec);
         }
@@ -1718,8 +1718,6 @@ class cat_Boms extends core_Master
         
         if ($rec) {
             if ($rec->state == 'rejected') {
-                core_Statuses::newStatus('love');
-                
                 // @todo - премахване след ремонт
                 wp('cat_Boms::afterTouchRejected', $res, $rec);
             }
