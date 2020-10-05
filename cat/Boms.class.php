@@ -518,6 +518,8 @@ class cat_Boms extends core_Master
             }
         }
         
+        doc_DocumentCache::cacheInvalidation($rec->containerId);
+        
         return $this->save_($rec, 'modifiedOn,modifiedBy,searchKeywords');
     }
     
