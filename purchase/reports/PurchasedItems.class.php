@@ -619,7 +619,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 
                 $tempArr[$v->productId] = $v;
                 
-                $tempArr[$v->productId]->group = $grArr; //Оставяме в записа за артикула само групите които са избрани
+                $tempArr[$v->productId]->group = $grArr; //Оставяме в записаСтойност" за артикула само групите които са избрани
                 
                 //изчислява ОБЩА стойност на всички артикули закупени
                 //през текущ, предходен период и предходна година за ВСИЧКИ избрани групи
@@ -736,9 +736,9 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             if ($rec->orderBy == 'changeAmount') {
                 $orderBy = $changeAmount;
             }
-            $key=key($recs);
-            if(property_exists($recs[$key],$orderBy)){
-                arr::sortObjects($recs, $orderBy, 'DESC', $typeOrder); 
+            $key = key($recs);
+            if (property_exists($recs[$key], $orderBy)) {
+                arr::sortObjects($recs, $orderBy, 'DESC', $typeOrder);
             }
         }
         
@@ -779,13 +779,13 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             
             //Когато има сравнение
             if ($rec->compare != 'no') {
-                $fld->FLD('quantity', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Покупки");
-                $fld->FLD('amount', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Стойност");
+                $fld->FLD('quantity', 'varchar', "smartCenter,caption={$name1}->Покупки");
+                $fld->FLD('amount', 'varchar', "smartCenter,caption={$name1}->Стойност");
                 
-                $fld->FLD('quantityCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Покупки,tdClass=newCol");
-                $fld->FLD('amountCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Стойност,tdClass=newCol");
+                $fld->FLD('quantityCompare', 'varchar', "smartCenter,caption={$name2}->Покупки,tdClass=newCol");
+                $fld->FLD('amountCompare', 'varchar', "smartCenter,caption={$name2}->Стойност,tdClass=newCol");
                 
-                $fld->FLD('changePurchases', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна-> Стойност');
+                $fld->FLD('changePurchases', 'varchar', 'smartCenter,caption=Промяна-> Стойност');
             } else {
                     
                     //Когато е без сравнение
@@ -800,16 +800,16 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 //Когато има сравнение
             if ($rec->compare != 'no') {
                 $fld->FLD('group', 'varchar', 'caption=Група');
-                $fld->FLD('amount', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Стойност");
+                $fld->FLD('amount', 'varchar', "smartCenter,caption={$name1}->Стойност");
                 
-                $fld->FLD('amountCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}-> Стойност,tdClass=newCol");
+                $fld->FLD('amountCompare', 'varchar', "smartCenter,caption={$name2}-> Стойност,tdClass=newCol");
                 
-                $fld->FLD('changePurchases', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Стойност');
+                $fld->FLD('changePurchases', 'varchar', 'smartCenter,caption=Промяна->Стойност');
             } else {
                     
                     //Когато е без сравнение
                 $fld->FLD('group', 'varchar', 'caption=Група');
-                $fld->FLD('amount', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Стойност");
+                $fld->FLD('amount', 'varchar', "smartCenter,caption={$name1}->Стойност");
             }
         }
         
@@ -1167,7 +1167,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
         
-        
+        //Ако имаме избрано показване "ГРУПИРАНО"
         if ($rec->grouping == 'grouped') {
             if (is_numeric($dRec->group)) {
                 $groupName = cat_Groups::getVerbal($dRec->group, 'name');
@@ -1176,6 +1176,32 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 $res->group = 'Без група';
             }
         }
+        
+        
+        $res->amount = $Double->toVerbal($dRec->amount);
+        
+        if ($rec->compare != 'no') {
+            if ($rec->compare == 'previous') {
+                $res->amountCompare = $Double->toVerbal($dRec->groupAmountPrevious);
+                
+                $res->changePurchases = $Double->toVerbal($dRec->changeGroupAmountPrevious);
+            }
+            
+            if ($rec->compare == 'year') {
+                $res->amountCompare = '<b>' . $Double->toVerbal($dRec->groupAmountLastYear) . '</b>';
+                
+                
+                $res->changePurchases = '<b>'. $Double->toVerbal($dRec->changeGroupAmountLastYear) . '</b>';
+            }
+            
+            if ($rec->compare == 'checked') {
+                $res->amountCompare = '<b>' . $Double->toVerbal($dRec->groupAmountCheckedPeriod) . '</b>';
+                
+                
+                $res->changePurchases = '<b>'. $Double->toVerbal($dRec->changeGroupAmountCheckedPeriod) . '</b>';
+            }
+        }
+        
         
         if ($rec->grouping == 'art') {
             if ($rec->compare != 'no') {
