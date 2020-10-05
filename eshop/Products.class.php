@@ -788,11 +788,11 @@ class eshop_Products extends core_Master
         }
         
         if (self::haveRightFor('single', $data->rec)) {
-            $data->row->singleLink = ht::createLink('', array('eshop_Products', 'single', $data->rec->id, 'ret_url' => true), false, "ef_icon={$this->singleIcon},height=16px,width;16px");
+            $data->row->singleLink = ht::createLink('', array('eshop_Products', 'single', $data->rec->id, 'ret_url' => true), false, "ef_icon={$this->singleIcon},height=16px,width;16px,title=Разглеждане на Е-артикула");
         }
         
         if (self::haveRightFor('edit', $data->rec)) {
-            $data->row->editLink = ht::createLink('', array('eshop_Products', 'edit', $data->rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit.png,height=16px,width;16px');
+            $data->row->editLink = ht::createLink('', array('eshop_Products', 'edit', $data->rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit.png,height=16px,width;16px,title=Редактиране на Е-артикула');
         }
         
         Mode::set('SOC_TITLE', $data->row->name);

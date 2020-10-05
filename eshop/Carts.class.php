@@ -1968,13 +1968,6 @@ class eshop_Carts extends core_Master
         
         $form->input(null, 'silent');
         
-        if(empty($form->rec->termId)){
-            $form->setField('deliveryCountry', 'input=hidden');
-            $form->setField('deliveryPCode', 'input=hidden');
-            $form->setField('deliveryPlace', 'input=hidden');
-            $form->setField('deliveryAddress', 'input=hidden');
-        }
-        
         $cu = core_Users::getCurrent('id', false);
         if (isset($cu) && $form->rec->makeInvoice != 'none') {
             $profileRec = crm_Profiles::getProfile($cu);
@@ -1984,6 +1977,13 @@ class eshop_Carts extends core_Master
         }
         
         self::setDefaultsFromFolder($form, $form->rec->saleFolderId);
+        
+        if(empty($form->rec->termId)){
+            $form->setField('deliveryCountry', 'input=hidden');
+            $form->setField('deliveryPCode', 'input=hidden');
+            $form->setField('deliveryPlace', 'input=hidden');
+            $form->setField('deliveryAddress', 'input=hidden');
+        }
         
         $form->setOptions('country', drdata_Countries::getOptionsArr($form->countries));
         if (countR($form->countries) == 1) {
