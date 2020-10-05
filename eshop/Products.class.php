@@ -155,6 +155,9 @@ class eshop_Products extends core_Master
         $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Описание->Опаковки/Мерки');
         $this->FLD('nearProducts', 'blob(serialize)', 'caption=Описание->Виж също,input=none');
         
+        $this->FLD('orderByParam', 'varchar', 'caption=Подредба на артикулите->Параметър');
+        $this->FLD('orderByDir', 'enum(asc=Възходящо,desc=Низходящо)', 'caption=Подредба на артикулите->Посока');
+        
         // Запитване за нестандартен продукт
         $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams|proto|measureId,silent');
         $this->FLD('proto', 'keylist(mvc=cat_Products,allowEmpty,select=name,select2MinItems=100)', 'caption=Запитване->Прототип,input=hidden,silent,placeholder=Популярни продукти');
@@ -1014,6 +1017,15 @@ class eshop_Products extends core_Master
         if (isset($form->rec->productId)) {
             $mvc->setDefaultsFromProductId($form);
         }
+        
+        // Добавяне на параметрите, като опции за подреждане
+        $orderByParamOptions = array('_code' => tr('Код'), '_title' => tr('Заглавие'));
+        $activeParams = cat_Params::makeArray4Select("#typeExt", "#state = 'active'");
+        if(countR($activeParams)){
+            $orderByParamOptions['g'] = (object) array('title' => tr('Параметри'), 'group' => true,);
+            $orderByParamOptions += $activeParams;
+        }
+        $form->setOptions('orderByParam', $orderByParamOptions);
     }
     
     
