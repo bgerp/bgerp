@@ -1167,7 +1167,7 @@ class eshop_Products extends core_Master
         if(isset($form->rec->domainId)){
             
             // Наличните е-артикули в домейна
-            $productOptions = eshop_Products::getInDomain($form->rec->domainId, true);
+            $productOptions = eshop_Products::getInDomain($form->rec->domainId, $pRec->innerClass);
             $form->setOptions('eshopProductId', array('' => '') + $productOptions); 
         }
         
@@ -1197,8 +1197,11 @@ class eshop_Products extends core_Master
             
             if($pRec->state == 'template'){
                 $eProductRec = $this->fetch($formRec->eshopProductId);
-                $eProductRec->coDriver = $pRec->innerClass;
-                $eProductRec->proto = keylist::addKey('', $pRec->id);
+                if(!isset($eProductRec->coDriver)){
+                    $eProductRec->coDriver = $pRec->innerClass;
+                }
+                
+                $eProductRec->proto = keylist::addKey($eProductRec->proto, $pRec->id);
                 $eProductRec->coMoq = cat_Products::getMoq($pRec->id);
                 $this->save($eProductRec, 'coDriver,proto,coMoq');
             } else {
@@ -1252,10 +1255,10 @@ class eshop_Products extends core_Master
      * Връща е-артикулите в подадения домейн
      *
      * @param int|NULL $domainId - ид на домейн
-     * @param boolean $withoutDriver - дали да са само тези без драйвер
+     * @param null|int $withDriver - само тези с избран драйвер или без драйвер
      * @return array $products   - наличните артикули
      */
-    public static function getInDomain($domainId = null, $withoutDriver = false)
+    public static function getInDomain($domainId = null, $withDriver = null)
     {
         $products = array();
         $domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
@@ -1268,8 +1271,8 @@ class eshop_Products extends core_Master
         
         $query = self::getQuery();
         $query->in('groupId', $groups);
-        if($withoutDriver){
-            $query->where("#coDriver IS NULL");
+        if($withDriver){
+            $query->where("#coDriver IS NULL OR #coDriver = '{$withDriver}'");
         }
         
         while ($rec = $query->fetch()) {
