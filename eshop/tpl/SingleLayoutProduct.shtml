@@ -1,4 +1,4 @@
-<div class="singleView">
+<div class="singleView eshopProduct">
    [#SingleToolbar#]
    <h2 class="block_title [#STATE_CLASS#]" style='padding:5px'>[#SingleIcon#] |Е-артикул|*: <b style="color:green;display:inline-block;word-break:break-all">[[#code#]] [#name#]</b></h2>
    <fieldset class="detail-info">
@@ -88,7 +88,7 @@
    <!--ET_BEGIN info-->
    <fieldset class="detail-info">
       <legend class="groupTitle">|Кратко описание|*</legend>
-      <div class="groupList"'>
+      <div class="groupList">
          [#info#]
       </div>
   </fieldset>
@@ -97,7 +97,7 @@
    <!--ET_BEGIN longInfo-->
    <fieldset class="detail-info">
       <legend class="groupTitle">|Разширено описание|*</legend>
-      <div class="groupList"'>
+      <div class="groupList">
          [#longInfo#]
       </div>
   </fieldset>

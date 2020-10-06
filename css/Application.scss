@@ -5873,7 +5873,13 @@ div.location.public {
 		}
 	}
 }
-
+.eshopProduct {
+	max-width: 800px;
+	.title-style {
+		text-align: right;
+		padding-right: 10px;
+	}
+}
 .narrow .externalPage #maincontent.hasLogoutBlock {
 	padding-top: 29px !important;
 }

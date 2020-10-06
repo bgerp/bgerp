@@ -5150,6 +5150,12 @@ div.location.public {
       max-width: 100%;
       max-height: 220px; }
 
+.eshopProduct {
+  max-width: 800px; }
+  .eshopProduct .title-style {
+    text-align: right;
+    padding-right: 10px; }
+
 .narrow .externalPage #maincontent.hasLogoutBlock {
   padding-top: 29px !important; }
 
