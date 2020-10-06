@@ -302,7 +302,7 @@ class price_ListRules extends core_Detail
     public static function getPrice($listId, $productId, $packagingId = null, $datetime = null, &$validFrom = null, $isFirstCall = true)
     {
         $datetime = price_ListToCustomers::canonizeTime($datetime);
-        $canUseCache = ($datetime == price_ListToCustomers::canonizeTime());
+        $canUseCache = 0; // ($datetime == price_ListToCustomers::canonizeTime());
         
         if ((!$canUseCache) || ($price = price_Cache::getPrice($listId, $productId)) === null) {
             $query = self::getQuery();
@@ -322,7 +322,7 @@ class price_ListRules extends core_Detail
             $query->limit(1);
             
             $rec = $query->fetch();
-            $listRec = price_Lists::fetch($listId, 'title,parent,vat,defaultSurcharge,significantDigits,minDecimals');
+            $listRec = price_Lists::fetch($listId, 'title,parent,vat,defaultSurcharge,significantDigits,minDecimals,currency');
             $round = true;
             
             if ($rec) {
@@ -369,22 +369,22 @@ class price_ListRules extends core_Detail
                     }
                 }
             }
-            
+
             // Ако има цена
             if (isset($price)) {
-                if ($listRec->vat == 'yes' && $isFirstCall) {  
-                    $vat = cat_Products::getVat($productId, $datetime);
-                    $round = false;
-                    $price = $price * (1 + $vat);
-                    $price = price_Lists::roundPrice($listRec, $price);  
-                    $price = $price / (1 + $vat); 
+                $vat = $rate = 1;
+                if($isFirstCall) {
+                    if ($listRec->vat == 'yes') {
+                         $vat = 1 + cat_Products::getVat($productId, $datetime);
+                    }
+                    $rate = 1 / currency_CurrencyRates::getRate(null, $listRec->currency, null);
                 }
 
-                // Ако има указано закръгляне на ценоразписа, закръгляме
-                if ($round === true) {
-                    $price = price_Lists::roundPrice($listRec, $price);
-                }
-                
+                $price = $price * $vat * $rate;
+                $price = price_Lists::roundPrice($listRec, $price);  
+                $price = $price / ($vat * $rate); 
+    
+               
                 if ($canUseCache) {
                     price_Cache::setPrice($price, $listId, $productId);
                 }
