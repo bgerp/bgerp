@@ -358,6 +358,7 @@ class eshop_Products extends core_Master
         }
         
         $row->groupId = eshop_Groups::getHyperlink($rec->groupId, true);
+        $row->domainId = cms_Domains::getHyperlink($rec->domainId, true);
         
         if (is_array($rec->nearProducts) && (isset($fields['-single']) || isset($fields['-external']))) {
             $row->nearRows = $mvc->prepareNearProducts($rec);
@@ -1266,19 +1267,6 @@ class eshop_Products extends core_Master
     
     
     /**
-     * Връща домейн ид-то на артикула от е-магазина
-     *
-     * @param int $id
-     *
-     * @return int
-     */
-    public static function getDomainId($id)
-    {
-        return cms_Content::fetchField(eshop_Groups::fetchField(eshop_Products::fetchField($id, 'groupId'), 'menuId'), 'domainId');
-    }
-    
-    
-    /**
      * Връща е-артикулите в подадения домейн
      *
      * @param int|NULL $domainId - ид на домейн
@@ -1642,7 +1630,7 @@ class eshop_Products extends core_Master
         // Има ли е-артикули с избран драйвер за запитване?
         $eProductQuery = eshop_Products::getQuery();
         $eProductQuery->where("#state = 'active' AND #coDriver IS NOT NULL");
-        $eProductQuery->show('id,coDriver,name');
+        $eProductQuery->show('id,coDriver,name,domainId');
         $eProductArr = $eProductQuery->fetchAll();
         
         // Ако има ще се начисляват рейтинги
@@ -1663,13 +1651,12 @@ class eshop_Products extends core_Master
                     foreach($inquieriesArr as $inqRec){
                         
                         // От е-артикулите, се намират тези, които са със същия продуктов драйвер като запитването
-                        $foundEproducts = array_filter($eProductArr, function($a) use ($inqRec) { return $a->coDriver == $inqRec->innerClass; });
+                        $foundEproducts = array_filter($eProductArr, function($a) use ($inqRec) { return $a->coDriver == $inqRec->innerClass;});
                         foreach ($foundEproducts as $foundEproduct){
                             $rating = ($inqRec->sourceClassId == $classId && $inqRec->sourceId == $foundEproduct->id) ? 3 : 1;
                             $rating = 100 * $rating;
                             
-                            $domainId = self::getDomainId($foundEproduct->id);
-                            sales_ProductRatings::addRatingToObject($res, $foundEproduct->id, $classId, $productClassId, $foundEproduct->id, $domainId, $rating);
+                            sales_ProductRatings::addRatingToObject($res, $foundEproduct->id, $classId, $productClassId, $foundEproduct->id, $foundEproduct->domainId, $rating);
                         }
                     }
                 }
@@ -1680,10 +1667,10 @@ class eshop_Products extends core_Master
         $details = array();
         $dQuery = eshop_ProductDetails::getQuery();
         $dQuery->EXT('stateE', 'eshop_Products', 'externalName=state,externalKey=eshopProductId');
+        $dQuery->EXT('domainId', 'eshop_Products', 'externalName=domainId,externalKey=eshopProductId');
         $dQuery->where("#stateE = 'active'");
         while($dRec = $dQuery->fetch()){
-            $domainId = self::getDomainId($dRec->eshopProductId);
-            $details[$dRec->productId][$domainId][] = $dRec->eshopProductId;
+            $details[$dRec->productId][$dRec->domainId][] = $dRec->eshopProductId;
         }
         
         if(!countR($details)) {
@@ -1753,7 +1740,7 @@ class eshop_Products extends core_Master
                 }
             }
         }
-       
+        
         $res = array_values($res);
         
         return $res;

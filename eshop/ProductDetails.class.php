@@ -635,7 +635,7 @@ class eshop_ProductDetails extends core_Detail
             while($rec = $query->fetch()){
                 $data->recs[$rec->id] = $rec;
                 $row = eshop_Products::recToVerbal($rec);
-                $row->domainId = cms_Domains::getHyperlink(eshop_Products::getDomainId($rec->id), true);
+                $row->domainId = cms_Domains::getHyperlink($rec->domainId, true);
                 $row->quantityCount = !empty($rec->quantityCount) ? $row->quantityCount : tr('Без');
                 $data->rows[$rec->id] = $row;
             }
@@ -654,7 +654,7 @@ class eshop_ProductDetails extends core_Detail
                 $data->recs[$rec->id] = $rec;
                 $row = eshop_ProductDetails::recToVerbal($rec);
                 $row->created = tr("|*{$row->createdBy} |на|* {$row->createdOn}");
-                $row->domainId = cms_Domains::getHyperlink(eshop_Products::getDomainId($rec->eshopProductId), true);
+                $row->domainId = cms_Domains::getHyperlink(eshop_Products::fetchField($rec->eshopProductId, 'domainId'), true);
                 $row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, true);
                 $row->ROW_ATTR['class'] = 'state-active';
                 $data->rows[$rec->id] = $row;
