@@ -227,7 +227,31 @@ class eshop_ProductDetails extends core_Detail
             if (!self::getPublicDisplayPrice($rec->productId)) {
                 $row->productId = ht::createHint($row->productId, 'Артикулът няма цена', 'warning');
             }
+            
+            $row->title = static::getDisplayTitle($rec);
+            if(empty($rec->title)){
+                $row->title = ht::createHint("<span style='color:blue'>{$row->title}</span>", 'Заглавието е динамично определено');
+            }
         }
+    }
+    
+    
+    /**
+     * С какво заглавие ще се показва артикула
+     * 
+     * @param stdClass $rec
+     * @return string $title
+     */
+    private static function getDisplayTitle($rec)
+    {
+        $titleParamId = eshop_Products::fetchField($rec->eshopProductId, 'titleParamId');
+        $title = !empty($rec->title) ? $rec->title : (!empty($titleParamId) ? cat_Products::getParams($rec->productId, $titleParamId) : null);
+       
+        if(!isset($title) || $title === false){
+            $title = cat_Products::fetchField($rec->productId, 'name');
+        }
+        
+        return $title;
     }
     
     
@@ -257,11 +281,13 @@ class eshop_ProductDetails extends core_Detail
         $orderByDir = isset($data->rec->orderByDir) ? $data->rec->orderByDir : 'asc';
         
         $recs =  $query->fetchAll();
+        
+        // Подготовка на полето, по което ще се сортира
         array_walk($recs, function (&$a) use ($orderByParam) {
             if($orderByParam == '_code'){
                 $a->orderField = cat_products::getVerbal($a->productId, 'code');
             } elseif($orderByParam == '_title'){
-                $a->orderField = (!empty($a->title)) ? $a->title : cat_Products::fetchField($a->productId, 'name');
+                $a->orderField = static::getDisplayTitle($a);
                 $a->orderField = mb_strtolower($a->orderField);
             } else{
                 $value = cat_Products::getParams($a->productId, $orderByParam);
@@ -271,7 +297,8 @@ class eshop_ProductDetails extends core_Detail
             }
         });
         
-        arr::sortObjects($recs, 'orderField', $orderByDir, 'natural');
+        // Сортиране на резултатите
+        arr::sortObjects($recs, 'orderField', $orderByDir, 'str');
         
         foreach ($recs as $rec){
             $newRec = (object) array('eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'title' => $rec->title, 'deliveryTime' => $rec->deliveryTime);
@@ -337,7 +364,7 @@ class eshop_ProductDetails extends core_Detail
     {
         $settings = cms_Domains::getSettings();
         $row = new stdClass();
-        $row->productId = (empty($rec->title)) ? cat_Products::getVerbal($rec->productId, 'name') : core_Type::getByName('varchar')->toVerbal($rec->title);
+        $row->productId = static::getDisplayTitle($rec);
         $fullCode = cat_products::getVerbal($rec->productId, 'code');
         $row->code = substr($fullCode, 0, 10);
         $row->code = "<span title={$fullCode}>{$row->code}</span>";
@@ -370,6 +397,7 @@ class eshop_ProductDetails extends core_Detail
         $addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
         $class = ($rec->_listView === true) ? 'group-row' : '';
         
+        // Подготовка на бутона за купуване
         if($showCartBtn === true){
             if (!empty($catalogPriceInfo->discount)) {
                 $style = ($rec->_listView === true) ? 'style="display:inline-block;font-weight:normal"' : '';
