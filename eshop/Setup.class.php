@@ -121,6 +121,7 @@ class eshop_Setup extends core_ProtoSetup
         'eshop_CartDetails',
         'migrate::addOnlineClientsGroup',
         'migrate::updateInquiries',
+        'migrate::updateDomainIds',
     );
     
     
@@ -306,6 +307,38 @@ class eshop_Setup extends core_ProtoSetup
        
         if(countR($save)){
             $Inquiries->saveArray($save, 'id,sourceClassId,sourceId');
+        }
+    }
+    
+    
+    /**
+     * Обновява домейните на артикулите
+     */
+    public function updateDomainIds()
+    {
+        $Products = cls::get('eshop_Products');
+        $Products->setupMvc();
+        
+        $query = $Products->getQuery();
+        $query->where("#domainId IS NULL");
+        $query->show('id,groupId');
+        if(!$query->count()){
+            
+            return;
+        }
+        
+        $update = array();
+        while ($rec = $query->fetch()){
+            if($rec->groupId){
+                if($rec->domainId = cms_Content::fetchField(eshop_Groups::fetchField($rec->groupId, 'menuId'), 'domainId')){
+                    $update[$rec->id] = $rec;
+                }
+            }
+            
+        }
+        
+        if(countR($update)){
+            $Products->saveArray($update, 'id,domainId');
         }
     }
 }

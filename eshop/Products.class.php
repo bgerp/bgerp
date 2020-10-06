@@ -166,6 +166,7 @@ class eshop_Products extends core_Master
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,tdClass=centerCol');
         $this->FLD('quantityCount', 'enum(,3=3 количества,2=2 количества,1=1 количество)', 'caption=Запитване->Количества,placeholder=Без количество');
         $this->FLD('saleState', 'enum(single=Единичен,multi=Избор,closed=Стар артикул,empty=Без опции)', 'caption=Тип,input=none,notNull,value=empty');
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,input=none');
         
         $this->setDbIndex('groupId');
     }
@@ -252,6 +253,10 @@ class eshop_Products extends core_Master
             
             if (strlen($rec->code) && ($query->fetch(array("#code = '[#1#]' AND #menuId = '[#2#]'", $rec->code, $menuId)))) {
                 $form->setError('code', 'Вече има продукт със същия код|*: <strong>' . eshop_Products::getHyperlink($rec, true) . '</strong>');
+            }
+            
+            if(!$form->gotErrors()){
+                $rec->domainId = cms_Content::fetchField($menuId, 'domainId');
             }
         }
     }
@@ -1714,7 +1719,7 @@ class eshop_Products extends core_Master
              
             // Ако реда е в онлайн продажба
             if(array_key_exists($dRec->threadId, $onlineSaleThreads)){
-                //bp($onlineSaleThreads, $deltaRecs);
+                
                 // Кой е-артикул съответства на този артикул и домейнат
                 $eshopProducts = $details[$dRec->productId][$onlineSaleThreads[$dRec->threadId]];
                
