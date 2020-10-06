@@ -226,7 +226,7 @@ class doc_Linked extends core_Manager
             
             if ($row = $me->recToVerbal($rec)) {
                 core_RowToolbar::createIfNotExists($row->_rowTools);
-                $row->_rowTools->addLink('Връзка', $linkUrl, "ef_icon={$icon}, title=Отваряне на връзката");
+                $row->_rowTools->addLink('Разглеждане', $linkUrl, "ef_icon={$icon}, title=Отваряне на връзката");
                 $rowArr[$id]['_rowTools'] = $row->_rowTools->renderHtml();
                 
                 $rowArr[$id]['ROW_ATTR'] = $row->ROW_ATTR;
