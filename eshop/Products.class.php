@@ -131,6 +131,12 @@ class eshop_Products extends core_Master
     
     
     /**
+     * Нов темплейт за показване
+     */
+    public $singleLayoutFile = 'eshop/tpl/SingleLayoutProduct.shtml';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
@@ -306,9 +312,10 @@ class eshop_Products extends core_Master
         
         // Определяме, ако има мярката на продукта
         $uom = cat_UoM::getShortName($uomId);
+        $row->SingleIcon = ht::createElement('img', array('src' => sbf($mvc->getSingleIcon($rec->id), ''), 'alt' => ''));
         
         if ($rec->coMoq) {
-            $row->coMoq = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($rec->coMoq);
+            $row->coMoq = core_Type::getByName('double(smartRound)')->toVerbal($rec->coMoq);
             if ($uom) {
                 $row->coMoq .= '&nbsp;' . $uom;
             }
@@ -333,6 +340,7 @@ class eshop_Products extends core_Master
         }
         
         if (isset($fields['-single'])) {
+            $row->orderByParam = ($rec->orderByParam == '_code') ? tr('Код') : (($rec->orderByParam == '_title') ? tr('Заглавие') : $rов->orderByParam);
             foreach (array('showPacks', 'showParams') as $fld) {
                 $hint = null;
                 $showPacks = eshop_Products::getSettingField($rec->id, null, $fld, $hint);
@@ -360,8 +368,14 @@ class eshop_Products extends core_Master
         $row->groupId = eshop_Groups::getHyperlink($rec->groupId, true);
         $row->domainId = cms_Domains::getHyperlink($rec->domainId, true);
         
-        if (is_array($rec->nearProducts) && (isset($fields['-single']) || isset($fields['-external']))) {
-            $row->nearRows = $mvc->prepareNearProducts($rec);
+        if (is_array($rec->nearProducts)) {
+            if(isset($fields['-external'])){
+                $row->nearRows = $mvc->prepareNearProducts($rec);
+            } else {
+                $linkArr = array();
+                array_walk($rec->nearProducts, function ($a) use (&$linkArr){$linkArr[] = cat_Products::getHyperlink($a, true)->getContent();});
+                $row->nearProducts = implode(', ', $linkArr);
+            }
         }
     }
     
