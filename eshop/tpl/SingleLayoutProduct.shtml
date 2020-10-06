@@ -144,9 +144,11 @@
       </table>
       </div>
   </fieldset>
-   
+
+    <!--ET_BEGIN PARAMS-->
    <fieldset class="detail-info">
       <legend class="groupTitle">|Показване на опциите във външната част|*</legend>
+       [#PARAMS#]
       <div class="groupList">
       	<table class="noBorder" style='width:99%'>
          	<!--ET_BEGIN showParams-->
@@ -186,7 +188,8 @@
       </table>
       </div>
   </fieldset>
-   
+    <!--ET_END PARAMS-->
+
    <fieldset class="detail-info">
       <legend class="groupTitle">|SEO и структура|*</legend>
       <div class="groupList">
