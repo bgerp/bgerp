@@ -1178,9 +1178,10 @@ class eshop_Products extends core_Master
         }
         
         if(isset($form->rec->domainId)){
-            
             // Наличните е-артикули в домейна
-            $productOptions = eshop_Products::getInDomain($form->rec->domainId, $pRec->innerClass);
+            $filterByDriver = ($pRec->state == 'template') ? $pRec->innerClass : null;
+            
+            $productOptions = eshop_Products::getInDomain($form->rec->domainId, $filterByDriver);
             $form->setOptions('eshopProductId', array('' => '') + $productOptions); 
         }
         
@@ -1218,10 +1219,18 @@ class eshop_Products extends core_Master
                 $eProductRec->coMoq = cat_Products::getMoq($pRec->id);
                 $this->save($eProductRec, 'coDriver,proto,coMoq');
             } else {
-                eshop_ProductDetails::save($formRec);
+                $fields = $exRec = null;
+                if (!cls::get('eshop_ProductDetails')->isUnique($formRec, $fields, $exRec)) {
+                    $form->setError('eshopProductId' , 'Артикулът вече е публикуван в избрания е-артикул');
+                } else {
+                    eshop_ProductDetails::save($formRec);
+                }
             }
             
-            return redirect(array($this, 'single', $formRec->eshopProductId), false, 'Артикулът е свързан с онлайн магазина');
+            if(!$form->gotErrors()){
+                
+                return redirect(array($this, 'single', $formRec->eshopProductId), false, 'Артикулът е свързан с онлайн магазина');
+            }
         }
         
         // Добавяне на бутони
