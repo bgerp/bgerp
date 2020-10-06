@@ -19,15 +19,6 @@
 abstract class price_interface_BaseCostPolicy extends core_BaseClass
 {
     
-    
-    /**
-     * Може ли кешираната цена да бъде редактирана от потребителя
-     * 
-     * @var boolean
-     */
-    protected $canEditPrice = false;
-    
-    
     /**
      * Изчислява себестойностите на засегнатите артикули
      *
@@ -139,20 +130,6 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
         }
         
         return $result;
-    }
-    
-    
-    /**
-     * Разрешена ли е редакцията на цената от политиката
-     * 
-     * @param int $productId
-     * @param int|null $userId
-     * 
-     * @return boolean
-     */
-    public function canEditPrice($productId, $userId = null)
-    {
-        return $this->canEditPrice;
     }
     
     

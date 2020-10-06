@@ -220,8 +220,17 @@ class hr_Indicators extends core_Manager
         foreach ($docArr as $class) {
             $sMvc = cls::get($class);
             
-            // Взимаме връщания масив от интерфейсния метод
-            $data = $sMvc->getIndicatorValues($timeline);
+            try{
+                // Взимаме връщания масив от интерфейсния метод
+                $data = $sMvc->getIndicatorValues($timeline);
+                
+            } catch(core_exception_Expect $e){
+                reportException($e);
+                hr_Indicators::logWarning("Грешка при подготвяне на индикаторите за: {$sMvc->className}");
+                
+                continue;
+            }
+            
             
             if (is_array($data) && countR($data)) {
                 

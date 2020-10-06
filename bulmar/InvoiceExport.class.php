@@ -225,6 +225,20 @@ class bulmar_InvoiceExport extends core_Manager
         
         if ($rec->paymentType == 'cash') {
             $nRec->amountPaid = $nRec->amount;
+            
+            // Ако към ф-та има ПКО и ВКТ за инкасиране на банково плащане да не се води като платена в брой
+            $pkoQuery = cash_Pko::getQuery();
+            $pkoQuery->where("#state = 'active' AND #fromContainerId = {$rec->containerId}");
+            $pkoQuery->show('containerId');
+            $pkos = arr::extractValuesFromArray($pkoQuery->fetchAll(), 'containerId');
+            if(countR($pkos)){
+                $cQuery = cash_InternalMoneyTransfer::getQuery();
+                $cQuery->where("#state = 'active' AND #operationSysId = 'nonecash2bank'");
+                $cQuery->in('sourceId', $pkos);
+                if($cQuery->count()){
+                    unset($nRec->amountPaid);
+                }
+            }
         }
         
         if(round($nRec->productsAmount + $nRec->servicesAmount, 2) != round($nRec->baseAmount, 2)){
@@ -327,7 +341,8 @@ class bulmar_InvoiceExport extends core_Manager
         $staticData->creditAdvance = $conf->BULMAR_INV_CREDIT_AV;
         
         $myCompany = crm_Companies::fetchOwnCompany();
-        $staticData->OWN_COMPANY_BULSTAT = str_replace('BG', '', $myCompany->vatNo);
+        $num = (!empty($myCompany->vatNo)) ? str_replace('BG', '', $myCompany->vatNo) : $myCompany->uicId;
+        $staticData->OWN_COMPANY_BULSTAT = $num;
         
         return $staticData;
     }

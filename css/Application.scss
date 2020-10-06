@@ -1699,6 +1699,12 @@ a.tOld {
 	opacity: 0.6;
 	font-size: 0.9em;
 }
+.document .reportHolder {
+	th {
+		font-size: 0.8em;
+		white-space: normal !important;
+	}
+}
 
 .CVTable {
 	font-family: Arial, Helvetica;
@@ -4853,6 +4859,11 @@ table .eshop-btn {
 	border-radius: 3px;
 }
 
+.debug {
+	background-color: #ffffb3;
+	padding: 2px 0;
+}
+
 /*стилове за блог*/
 #blog-article-details .listTable th {
 	display: none;
@@ -5862,7 +5873,13 @@ div.location.public {
 		}
 	}
 }
-
+.eshopProduct {
+	max-width: 800px;
+	.title-style {
+		text-align: right;
+		padding-right: 10px;
+	}
+}
 .narrow .externalPage #maincontent.hasLogoutBlock {
 	padding-top: 29px !important;
 }
@@ -7112,6 +7129,11 @@ body.narrow {
         min-width: 0;
         max-width: 840px;
     }
+	.reportHolder .listTable tr td {
+		break-inside: avoid;
+		page-break-inside: avoid;
+
+	}
     .external .docBgIcon{
        background-image: none !important;
        padding-left: 0 !important;

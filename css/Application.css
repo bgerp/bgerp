@@ -1453,6 +1453,10 @@ a.tOld {
   opacity: 0.6;
   font-size: 0.9em; }
 
+  .document .reportHolder th {
+    font-size: 0.8em;
+    white-space: normal !important; }
+
 .CVTable {
   font-family: Arial, Helvetica;
   width: 100%; }
@@ -4216,6 +4220,10 @@ table .eshop-btn {
   background: #eeeeee;
   border-radius: 3px; }
 
+.debug {
+  background-color: #ffffb3;
+  padding: 2px 0; }
+
 /*
  * стилове за блог
  */
@@ -5141,6 +5149,12 @@ div.location.public {
     .eshop-group-button .eshop-group-button-img a img {
       max-width: 100%;
       max-height: 220px; }
+
+.eshopProduct {
+  max-width: 800px; }
+  .eshopProduct .title-style {
+    text-align: right;
+    padding-right: 10px; }
 
 .narrow .externalPage #maincontent.hasLogoutBlock {
   padding-top: 29px !important; }
@@ -6286,6 +6300,10 @@ only screen and (max-width: 320px) {
     float: none;
     min-width: 0;
     max-width: 840px; }
+
+  .reportHolder .listTable tr td {
+    break-inside: avoid;
+    page-break-inside: avoid; }
 
   .external .docBgIcon {
     background-image: none !important;

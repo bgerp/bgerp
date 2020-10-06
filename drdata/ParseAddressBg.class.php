@@ -18,11 +18,12 @@ class drdata_ParseAddressBg extends core_Manager
     /**
      * Подготва речника
      */
-    private function prepareDict()
+    private static function prepareDict()
     {
         $csvData = file_get_contents(getFullPath('drdata/data/CITIES.csv'));
         $data = csv_Lib::getCsvRows($csvData, ',', ',', 'data');
         
+        $res = array();
         foreach ($data as $r) {
             $r[3] = mb_convert_case($r[3], MB_CASE_TITLE);
             self::pushPlace($res[$r[1]], $place = strtolower(str::utf2ascii($r[3])), $r[3]);
@@ -65,7 +66,7 @@ class drdata_ParseAddressBg extends core_Manager
     /**
      * Добавя място в речника
      */
-    public function pushPlace(&$arr, $place, $name)
+    public static function pushPlace(&$arr, $place, $name)
     {
         $arr[$place] = $name;
     }
@@ -129,7 +130,7 @@ class drdata_ParseAddressBg extends core_Manager
     /**
      * Връща вариациите и подфразите на дадена фраза в каноничен вид
      */
-    public function getVariations($str)
+    public static function getVariations($str)
     {
         $str = trim($str);
         
@@ -152,7 +153,7 @@ class drdata_ParseAddressBg extends core_Manager
     /**
      * Връща най-добрия резултат от речника за подмножествата на дадена фраза
      */
-    public function getBestMatch($str, $dict)
+    public static function getBestMatch($str, $dict)
     {
         $vars = self::getVariations($str);
         

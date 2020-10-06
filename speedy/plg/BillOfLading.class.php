@@ -398,7 +398,7 @@ class speedy_plg_BillOfLading extends core_Plugin
             }
         }
         
-        if(isset($paymentType) && cond_PaymentMethods::isCOD($paymentType)){
+        if(isset($paymentType) && (cond_PaymentMethods::isCOD($paymentType) || cond_PaymentMethods::fetchField($paymentType, 'type') == 'postal')){
             $form->setDefault('amountCODBase', round($amountCod, 2));
         }
         

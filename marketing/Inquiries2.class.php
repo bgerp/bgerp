@@ -68,7 +68,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Заглавие, personNames, company, email, folderId, createdOn, createdBy';
+    public $listFields = 'title=Заглавие, personNames, company, email, folderId, sourceId=Източник, createdOn, createdBy';
     
     
     /**
@@ -242,12 +242,15 @@ class marketing_Inquiries2 extends embed_Manager
         $this->FLD('ip', 'varchar', 'caption=Ип,input=none');
         $this->FLD('browser', 'varchar(80)', 'caption=UA String,input=none');
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
+        $this->FLD('sourceClassId', 'class(interface=marketing_InquirySourceIntf)', 'caption=Източник клас,input=none');
+        $this->FLD('sourceId', 'int', 'caption=Източник id,input=none,tdClass=leftCol');
         
         if (!acc_plg_DocumentSummary::$rolesAllMap[$this->className]) {
             acc_plg_DocumentSummary::$rolesAllMap[$this->className] = $this->filterRolesForAll;
         }
         
         $this->setDbIndex('proto');
+        $this->setDbIndex('createdOn');
     }
     
     
@@ -451,6 +454,13 @@ class marketing_Inquiries2 extends embed_Manager
             $attr['class'] = 'linkWithIcon';
             $attr['style'] = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
             $row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), null, $attr);
+        }
+        
+        if(isset($rec->sourceClassId)){
+            if(cls::load($rec->sourceClassId, true)){
+                $Source = cls::get($rec->sourceClassId);
+                $row->sourceId = ($Source instanceof core_Master) ? $Source->getHyperlink($rec->sourceId, true) : $Source->getTitleById($rec->sourceId);
+            }
         }
         
         $measureId = $mvc->getDefaultMeasureId($rec);
@@ -886,6 +896,8 @@ class marketing_Inquiries2 extends embed_Manager
         asort($proto);
         
         $form = $this->prepareForm($drvId);
+        $form->setDefault('sourceClassId', $classId);
+        $form->setDefault('sourceId', $objectId);
         
         // Рефрешване на формата ако потребителя се логне докато е в нея
         cms_Helper::setLoginInfoIfNeeded($form);
@@ -994,6 +1006,11 @@ class marketing_Inquiries2 extends embed_Manager
                         }
                         log_Browsers::setVars($userData);
                     }
+                    
+                    
+                    
+                   // bp($rec);
+                    
                     
                     $id = $this->save($rec);
                     doc_Threads::doUpdateThread($rec->threadId);

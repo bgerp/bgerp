@@ -83,27 +83,6 @@ class price_ProductCosts extends core_Manager
     
     
     /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     *
-        
-     * @param core_Mvc $mvc
-     * @param string   $requiredRoles
-     * @param string   $action
-     * @param stdClass $rec
-     * @param int      $userId
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
-    {
-        if($action == 'edit' && isset($rec)){
-            $Source = cls::get($rec->classId);
-            if(!$Source->canEditPrice($rec->productId, $userId)){
-                $requiredRoles = 'no_one';
-            }
-        }
-    }
-    
-    
-    /**
      * След преобразуване на записа в четим за хора вид.
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)

@@ -519,18 +519,18 @@ class cat_Categories extends core_Master
         
         if(isset($metasArr['generic'])) {
              if(isset($metasArr['canBuy']) || isset($metasArr['canSell']) || isset($metasArr['fixedAsset']) || isset($metasArr['canManifacture'])){
-                $error = "Генеричният артикул не може да е Продаваем, Купуваем, Производим или ДА";
+                $error = "Генеричният артикул не може да е Продаваем, Купуваем, Производим или ДА|*";
              } elseif(!isset($metasArr['canConvert'])){
-                 $error = "Генеричният артикул трябва да е и Вложим";
+                 $error = "Генеричният артикул трябва да е и Вложим|*!";
              } elseif(isset($productId) && !haveRole('debug')){
                 $exMeta = type_Set::toArray(cat_Products::fetchField($productId, 'meta'));
                 if(!isset($exMeta['generic'])){
-                    $error = "Съществуващ артикул не може да става генеричен";
+                    $error = "Съществуващ артикул не може да става генеричен|*!";
                 }
             }
         } elseif(isset($productId)) {
             if(isset($exMeta['generic'])){
-                $error = "Артикул създаден като генеричен, не може да се променя на негенеричен";
+                $error = "Артикул създаден като генеричен, не може да се променя на негенеричен|*!";
             }
         }
         
@@ -539,11 +539,17 @@ class cat_Categories extends core_Master
             if(isset($genericProductId)){
                 $genericMeta = type_Set::toArray(cat_Products::fetchField($genericProductId, 'meta'));
                 if(!isset($metasArr['canConvert'])){
-                    $error = "Артикулът има избран генеричен. Трябва да остане вложим";
+                    $error = "Артикулът има избран генеричен. Трябва да остане вложим|*!";
                 } elseif(isset($metasArr['canStore']) && !isset($genericMeta['canStore'])){
-                    $error = "Артикулът има избран генеричен. Трябва да остане НЕ складируем";
+                    $error = "Артикулът има избран генеричен. Трябва да остане НЕ складируем|*!";
                 } elseif(!isset($metasArr['canStore']) && isset($genericMeta['canStore'])){
-                    $error = "Артикулът има избран генеричен. Трябва да остане Складируем";
+                    $error = "Артикулът има избран генеричен. Трябва да остане Складируем|*!";
+                }
+            }
+            
+            if(core_Packs::isInstalled('eshop')){
+                if(!isset($metasArr['canSell']) && eshop_ProductDetails::count("#productId = {$productId}")){
+                    $error = "Артикулът се използва е Е-маг. Трябва да остане продаваем|*!";
                 }
             }
         }

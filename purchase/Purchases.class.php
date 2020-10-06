@@ -149,7 +149,7 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Полета свързани с цени
      */
-    public $priceFields = 'amountDeal,amountDelivered,amountPaid,amountInvoiced,amountToPay,amountToDeliver,amountToInvoice';
+    public $priceFields = 'amountDeal,amountDelivered,amountPaid,amountInvoiced,amountBl,amountToPay,amountToDeliver,amountToInvoice';
     
     
     /**

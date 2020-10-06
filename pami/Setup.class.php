@@ -120,9 +120,9 @@ class pami_Setup extends core_ProtoSetup
         'PAMI_USER' => array('varchar(64)', 'mandatory, mandatory, caption=Данни за връзка с PAMI->Потребител'),
         'PAMI_PASS' => array('password', 'mandatory,caption=Данни за връзка с PAMI->Парола'),
         'PAMI_LOG_KEY' => array('password', 'caption=Ключ за връзка->Парола'),
-        'PAMI_LOG_KEEP_DAYS' => array('int(min=0)', 'mandatory, caption=Живот за логовете->Дни'),
-        'PAMI_LOG_URL' => array('varchar', 'caption=mandatory, URL за логване->URL'),
-        'PAMI_SAVE_TO_LOG' => array('enum(yes=Да,no=Не)', 'mandatory, caption=Дали да се записва в лога->Избор'),
+        'PAMI_LOG_KEEP_DAYS' => array('int(min=0)', 'caption=Живот на логовете->Дни'),
+        'PAMI_LOG_URL' => array('varchar', 'caption=URL за логване->URL'),
+        'PAMI_SAVE_TO_LOG' => array('enum(yes=Да,no=Не)', 'caption=Дали да се записва в лога->Избор'),
         'PAMI_PID' => array('varchar(readonly)', 'caption=PID на процеса за слушане->PID,readonly'),
     );
     

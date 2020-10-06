@@ -5,23 +5,23 @@ ac.nearby_attendees,json,,Access Control,system,"""[]""",Nearby attendees
 ac.last_minute_attendees,json,,Access Control,device,"""[]""",Last minute attendee
 ac.next_attendance,float,0.0/,Access Control,device,0.0,Next attendance
 ac.zone_occupied,bool,true|false,Access Control,device,false,Zone occupied flag
-ac.entry_reader_1.enabled,str,,Access Control,system,TERACOM/act230/2897,Card reader enabled
+ac.entry_reader_1.enabled,str,,Access Control,system,TERACOM/act230/2911,Card reader enabled
 ac.entry_reader_1.port.baudrate,int,300|600|1200|2400|4800|9600|19200|38400|57600|115200,Access Control,system,9600,Card reader port baud rate
-ac.entry_reader_1.port.name,str,,Access Control,system,COM5,Card reader port name
-ac.exit_reader_1.enabled,str,,Access Control,system,TERACOM/act230/2911,Card reader enabled
+ac.entry_reader_1.port.name,str,,Access Control,system,COM11,Card reader port name
+ac.exit_reader_1.enabled,str,,Access Control,system,TERACOM/act230/2897,Card reader enabled
 ac.exit_reader_1.port.baudrate,int,300|600|1200|2400|4800|9600|19200|38400|57600|115200,Access Control,system,9600,Card reader 1 port baud rate
-ac.exit_reader_1.port.name,str,,Access Control,system,COM11,Card reader 1 port name
+ac.exit_reader_1.port.name,str,,Access Control,system,COM5,Card reader 1 port name
 ac.exit_button_1.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8,Access Control,system,off,Exit button 1 input
 ac.lock_mechanism_1.output,str,off|DO0|DO1|DO2|DO3|DO4|DO5|DO6|DO7|DO8,Access Control,system,off,Lock mechanism output
 ac.time_to_open_1,int,0/60,Access Control,system,10,Lock mechanism time to open [s]
 ac.door_closed_1.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8,Access Control,system,off,Door closed input
 ac.door_closed_1.state,bool,true|false,Access Control,device,false,Door closed input state
-ac.entry_reader_2.enabled,str,,Access Control,system,TERACOM/act230/2897,Card reader settings
+ac.entry_reader_2.enabled,str,,Access Control,system,TERACOM/act230/2468,Card reader settings
 ac.entry_reader_2.port.baudrate,int,300|600|1200|2400|4800|9600|19200|38400|57600|115200,Access Control,system,9600,Card reader port baud rate
-ac.entry_reader_2.port.name,str,,Access Control,system,COM5,Card reader port name
-ac.exit_reader_2.enabled,str,,Access Control,system,TERACOM/act230/2911,Card reader settings
+ac.entry_reader_2.port.name,str,,Access Control,system,COM9,Card reader port name
+ac.exit_reader_2.enabled,str,,Access Control,system,TERACOM/act230/1208,Card reader settings
 ac.exit_reader_2.port.baudrate,int,300|600|1200|2400|4800|9600|19200|38400|57600|115200,Access Control,system,9600,Card reader port baud rate
-ac.exit_reader_2.port.name,str,,Access Control,system,COM11,Card reader port name
+ac.exit_reader_2.port.name,str,,Access Control,system,COM8,Card reader port name
 ac.exit_button_2.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8,Access Control,system,off,Exit button 2 input
 ac.lock_mechanism_2.output,str,off|DO0|DO1|DO2|DO3|DO4|DO5|DO6|DO7|DO8,Access Control,system,off,Lock 2 mechanism output
 ac.time_to_open_2,int,0/60,Access Control,system,10,Lock 2 mechanism time to open
@@ -135,3 +135,6 @@ sys.col.warning_message,json,,System,device,"""{}""",Collision warning message
 sys.col.error_message,json,,System,device,"""{}""",Collision error message
 sys.col.clear_errors,int,0|1,System,system,0,Clear messages
 sys.enabled,bool,true|false,System,system,false,Plugin enabled
+sys.col.info_message.enable,bool,true|false,System,system,true,Enable info messages
+sys.col.warning_message.enable,bool,true|false,System,system,true,Enable warning messages
+sys.col.error_message.enable,bool,true|false,System,system,true,Enable error messages

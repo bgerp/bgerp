@@ -211,7 +211,7 @@ class batch_Movements extends core_Detail
             }
             
             if (!empty($fRec->batch)) {
-                $data->query->where("#batch LIKE '{$fRec->batch}%'");
+                $data->query->where("#batch LIKE '%{$fRec->batch}%'");
             }
             
             if (isset($fRec->action) && $fRec->action != 'all') {

@@ -84,6 +84,7 @@ class sales_ProductRatings extends core_Manager
         $this->FLD('updatedOn', 'datetime(format=smartTime)', 'caption=Обновено на,mandatory');
         
         $this->setDbIndex('classId');
+        $this->setDbIndex('objectId,classId,objectClassId');
     }
     
     
@@ -180,5 +181,33 @@ class sales_ProductRatings extends core_Manager
                 self::delete($deleteId);
             }
         }
+    }
+    
+    
+    /**
+     * Добавя рейтинг към масив с резултати
+     * 
+     * @param stdClass $res
+     * @param string $index
+     * @param int $classId
+     * @param int $objectClassId
+     * @param int $objectId
+     * @param string $key
+     * @param double $rating
+     * 
+     * @return void
+     */
+    public static function addRatingToObject(&$res, $index, $classId, $objectClassId, $objectId, $key, $rating)
+    {
+        // За всеки е-артикул ще се начислява рейтинг
+        if(!array_key_exists($index, $res)){
+            $res[$index] = (object)array('classId'       => $classId,
+                                         'objectClassId' => $objectClassId,
+                                         'objectId'      => $objectId,
+                                         'key'           => $key,
+                                         'value'         => 0,);
+        }
+        
+        $res[$index]->value += $rating;
     }
 }

@@ -657,7 +657,7 @@ select.tabHolder {
   box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.25), 2px 2px 2px rgba(0, 0, 0, 0.2); }
 
 .narrow .large-field {
-  height: 1.8em; }
+  height: 1.6em !important; }
 
 .pos-photo-field {
   width: 64px;
@@ -977,7 +977,7 @@ only screen and (max-width: 1300px) {
   .numPad {
     width: 50px !important;
     height: 50px !important;
-    margin: 8px 0 8px 18px; }
+    margin: 8px 0 8px 18px !important; }
 
   .operationHolder {
     width: 58px !important;
@@ -997,9 +997,9 @@ only screen and (max-width: 1200px) {
   .headerContent {
     font-size: 0.75em !important; }
     .headerContent .fleft {
-      width: 54%; }
+      width: 48%; }
     .headerContent .fright {
-      width: 46%; }
+      width: 52%; }
       .headerContent .fright span {
         float: right; }
     .headerContent span {
@@ -1091,7 +1091,7 @@ only screen and (max-width: 1024px) {
   .numPad {
     width: 60px !important;
     height: 60px !important;
-    margin: 8px 0 8px 18px; }
+    margin: 8px 0 8px 18px !important; }
 
   .half {
     width: 100%;
@@ -1178,25 +1178,27 @@ only screen and (max-width: 480px) {
     margin: 4px !important;
     width: 48px !important;
     height: 48px !important;
-    padding: 6px !important; } }
+    padding: 6px !important; }
+
+    .headerContent .fleft,
+    .headerContent .fright {
+      width: 100%; } }
 
 @media handheld,
 only screen and (max-width: 360px) {
   .operationHolder {
     margin: 5px !important; }
 
-    .headerContent .fleft,
-    .headerContent .fright {
-      width: 100%; }
     .headerContent .unp,
     .headerContent .headerAppName {
       float: right !important; }
-    .headerContent .pointId,
     .headerContent .headerUserNick {
-      float: left !important;
-      width: 30%; }
+      width: 26%;
+      float: left !important; }
     .headerContent .pointId {
-      width: 25%; }
+      width: 37%;
+      margin: 0 0 0 10px !important;
+      float: left !important; }
 
   .companyName {
     display: block; }
@@ -1208,12 +1210,15 @@ only screen and (max-width: 360px) {
     padding: 6px !important; }
     .operationHolder img {
       width: 32px !important;
-      height: 32px !important; } }
+      height: 32px !important; }
+
+  .receiptRow .receiptProduct {
+    font-size: 1em !important; } }
 
 @media handheld,
 only screen and (max-width: 320px) {
   .headerContent {
-    font-size: 0.7em !important; }
+    font-size: 0.6em !important; }
 
   .operationHolder {
     margin: 3px !important;

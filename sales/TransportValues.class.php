@@ -85,7 +85,7 @@ class sales_TransportValues extends core_Manager
     /**
      * Полета, които се виждат
      */
-    public $listFields = 'docId,recId,fee,deliveryTime,explain';
+    public $listFields = 'id,docId,recId,fee,deliveryTime,explain';
     
     
     /**
@@ -431,15 +431,17 @@ class sales_TransportValues extends core_Manager
     /**
      * Показване на хинт при изчисление на цена
      *
-     * @param string $amountRow    - вербалната сума на реда
-     * @param float  $amountFee    - вербалната транспортна такса
-     * @param float  $vat          - процент ДДС
-     * @param float  $currencyRate - валутен курс
+     * @param string $amountRow     - вербалната сума на реда
+     * @param double  $amountFee    - вербалната транспортна такса
+     * @param double  $vat          - процент ДДС
+     * @param double  $currencyRate - валутен курс
+     * @param double  $currencyId   - валута
+     * 
      * @param string $chargeVat    - режим на ДДС
      *
      * @return core_ET|string $amountRow  - сумата на реда с хинт
      */
-    public static function getAmountHint($amountRow, $amountFee, $vat, $currencyRate, $chargeVat, $explain = null)
+    public static function getAmountHint($amountRow, $amountFee, $vat, $currencyRate, $chargeVat, $currencyId, $explain = null)
     {
         if (!haveRole('powerUser') || !isset($amountRow)) {
             
@@ -460,7 +462,7 @@ class sales_TransportValues extends core_Manager
         } elseif (isset($amountFee)) {
             $amountFee = deals_Helper::getDisplayPrice($amountFee, $vat, $currencyRate, $chargeVat);
             $amountFee = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($amountFee);
-            $hint = "Транспорт|*: {$amountFee}";
+            $hint = "Транспорт|*: {$amountFee} {$currencyId}";
             
             if (!empty($explain) && haveRole('admin,tcost')){
                 $hint .= "<br>" . $explain;
@@ -568,7 +570,7 @@ class sales_TransportValues extends core_Manager
     public static function getCostArray($deliveryTermId, $contragentClassId, $contragentId, $productId, $packagingId, $quantity, $deliveryLocationId, $countryId = null, $pCode = null, $params = array())
     {
         //  Ако изрично е забранено начисляване не се начислява
-        if($params['deliveryCalcTransport'] == 'no') {
+        if($params['deliveryCalcTransport'] == 'no' || empty($productId)) {
             
             return;
         }

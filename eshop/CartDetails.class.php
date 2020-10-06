@@ -43,7 +43,7 @@ class eshop_CartDetails extends core_Detail
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'eshopProductId=Артикул в е-мага,productId,packagingId,packQuantity,finalPrice=Цена,amount=Сума';
+    public $listFields = 'eshopProductId=Е-артикул,productId,packagingId,packQuantity,finalPrice=Цена,amount=Сума';
     
     
     /**
@@ -67,7 +67,7 @@ class eshop_CartDetails extends core_Detail
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'every_one';
+    public $canAdd = 'eshop,ceo';
     
     
     /**
@@ -137,13 +137,6 @@ class eshop_CartDetails extends core_Detail
         $form = &$data->form;
         $rec = $form->rec;
         
-        if (isset($rec->external)) {
-            Mode::set('wrapper', 'cms_page_External');
-            $lang = cms_Domains::getPublicDomain('lang');
-            core_Lg::push($lang);
-            vislog_History::add("Ръчно добавяне на артикул в количка");
-        }
-        
         $form->FNC('displayPrice', 'double', 'caption=Цена, input=none');
         $productOptions = eshop_ProductDetails::getAvailableProducts();
         
@@ -153,27 +146,31 @@ class eshop_CartDetails extends core_Detail
             $query = self::getQuery();
             $query->where("#cartId = {$rec->cartId}");
             $query->show('productId');
-            $alreadyIn = arr::extractValuesFromArray($query->fetchAll(), 'productId');
+            $alreadyIn = arr::extractValuesFromArray($query->fetchAll(), 'id');
         }
         
         $productOptions = array_diff_key($productOptions, $alreadyIn);
-        $form->setOptions('productId', array('' => '') + $productOptions);
+        $form->FLD('eProductId', 'key(mvc=eshop_ProductDetails)', 'caption=Е-артикул,before=productId,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack');
+        $form->setOptions('eProductId', array('' => '') + $productOptions);
         $form->setField('eshopProductId', 'input=none');
+        $form->setField('productId', 'input=none');
         
         if (countR($productOptions) == 1) {
-            $form->setDefault('productId', key($productOptions));
+            $form->setDefault('eProductId', key($productOptions));
         }
         
-        if (isset($rec->productId)) {
+        $form->input('eProductId', 'silent');
+        if (isset($rec->eProductId)) {
+            $dRec = eshop_ProductDetails::fetch($rec->eProductId);
+            
             $form->setField('packagingId', 'input');
             $form->setField('packQuantity', 'input');
             
-            $eshopRec = eshop_ProductDetails::fetch("#productId = {$rec->productId}", 'packagings,eshopProductId');
-            $packs = cat_Products::getPacks($rec->productId);
-            $form->setDefault('eshopProductId', $eshopRec->eshopProductId);
-            $packsSelected = keylist::toArray($eshopRec->packagings);
+            $packs = cat_Products::getPacks($dRec->productId);
+            $form->setDefault('eshopProductId', $dRec->eshopProductId);
+            $form->setDefault('productId', $dRec->productId);
+            $packsSelected = keylist::toArray($dRec->packagings);
             $packs = array_intersect_key($packs, $packsSelected);
-            
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
             $form->setField('displayPrice', 'input');
@@ -188,17 +185,6 @@ class eshop_CartDetails extends core_Detail
     {
         if (isset($data->form->rec->external)) {
             $tpl->prepend("\n<meta name=\"robots\" content=\"nofollow,noindex\">", 'HEAD');
-        }
-    }
-    
-    
-    /**
-     * След подготовката на заглавието на формата
-     */
-    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
-    {
-        if (isset($data->form->rec->external)) {
-            $data->form->title = 'Добавяне на артикул в|* ' . mb_strtolower(eshop_Carts::getCartDisplayName());
         }
     }
     
@@ -405,7 +391,7 @@ class eshop_CartDetails extends core_Detail
                 $row->_rowTools->addFnLink('Премахване', '', array('ef_icon' => 'img/16/deletered.png', 'title' => 'Премахване на артикул', 'data-cart' => $rec->cartId, 'data-url' => $removeUrl, 'class' => 'remove-from-cart', 'warning' => tr('Наистина ли желаете да премахнете артикула?')));
             }
             
-            $row->productId = eshop_ProductDetails::getPublicProductName($rec->eshopProductId, $rec->productId);
+            $row->productId = eshop_ProductDetails::getPublicProductTitle($rec->eshopProductId, $rec->productId, true);
             $row->packagingId = cat_UoM::getShortName($rec->packagingId);
             
             $quantity = (isset($rec->packQuantity)) ? $rec->packQuantity : 1;

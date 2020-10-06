@@ -77,11 +77,17 @@
 			<!--ET_END SALE_BLOCK-->
 
             <!--ET_BEGIN DELIVERY_BLOCK-->
+               <!--ET_BEGIN termId-->
                <tr>
                   <td colspan = 2>
                      <h4 style="margin: 10px 0 3px;">|Доставка|*</h4>
                   </td>
                </tr>
+               
+               <tr>
+                  <td class="aright">|Начин|*:</td><td> [#termId#]</td>
+               </tr>
+               <!--ET_END termId-->
                
                <!--ET_BEGIN deliveryCountry-->
                <tr>

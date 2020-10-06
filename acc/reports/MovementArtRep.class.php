@@ -31,7 +31,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('from', 'date', 'caption=От,mandatory,after=title');
+        $fieldset->FLD('from', 'date', 'caption=От,after=title');
         $fieldset->FLD('to', 'date', 'caption=До,after=from');
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,after=to,single=none');
     }

@@ -64,12 +64,14 @@ class plg_State2 extends core_Plugin
      * Определя активното и затвореното състояние
      */
     public function getActiveAndClosedState($mvc)
-    {
+    { 
         if ($this->activeState && $this->closedState) {
             
             return;
         }
         $opt = $mvc->getFieldType('state')->options;
+        
+       
         
         if(isset($mvc->activeState)) {
             $this->activeState = $mvc->activeState;
@@ -204,6 +206,28 @@ class plg_State2 extends core_Plugin
                 } else {
                     $row->_rowTools->addLink('Активиране', array($mvc, 'changeState', $rec->id, 'ret_url' => true), "ef_icon=img/16/lightbulb_off.png,title=Активиране на|* {$singleTitle},{$warningToolbar}");
                 }
+            }
+        }
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед
+     */
+    public function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $rec = $data->rec;
+        
+        if ($mvc->haveRightFor('changeState', $rec)) {
+            $this->getActiveAndClosedState($mvc);
+            
+            $singleTitle = mb_strtolower(tr($mvc->singleTitle));
+            $warning = $mvc->getChangeStateWarning($rec);
+            
+            if ($rec->state == $this->activeState) {
+                $data->toolbar->addBtn('Деактивиране', array($mvc, 'changeState', $rec->id, 'ret_url' => true), "ef_icon=img/16/lightbulb.png,title=Деактивиране на|* {$singleTitle},warning={$warning}");
+            } else {
+                $data->toolbar->addBtn('Активиране', array($mvc, 'changeState', $rec->id, 'ret_url' => true), "ef_icon=img/16/lightbulb_off.png,title=Активиране на|* {$singleTitle},warning={$warning}");
             }
         }
     }

@@ -28,13 +28,29 @@ class sass_Converter
      */
     public static function convert($file, $syntax = false, $style = 'nested')
     {
-        if(core_Composer::isInUse()) {
+        $isParsed = false;
+        $baseName = basename($file);
+        
+        if (core_Composer::isInUse()) {
+            $dTimeName = 'sassConvert: ' . $baseName;
+            core_Debug::startTimer($dTimeName);
+            
             // Инстанция на класа
             $parser = new Compiler();
             
-            // Парсираме и връщаме резултата
-            $res = $parser->compile(file_get_contents($file));
-        } else {
+            try {
+                // Парсираме и връщаме резултата
+                $res = $parser->compile(file_get_contents($file));
+                $isParsed = true;
+            } catch (Exception $e) {
+                reportException($e);
+            } catch (Throwable $t) {
+                reportException($t);
+            }
+            core_Debug::stopTimer($dTimeName);
+        }
+        
+        if (!$isParsed) {
             // Опциите
             $options = array(
             'style' => $style,
@@ -49,12 +65,17 @@ class sass_Converter
 
             // Вкарваме файловете необходими за работа с програмата.
             require_once 'phpsass/SassParser.php';
-
+            
+            $dTimeName = 'sassParser: ' . $baseName;
+            core_Debug::startTimer($dTimeName);
+            
             // Инстанция на класа
             $parser = new SassParser($options);
-        
+            
             // Парсираме и връщаме резултата
             $res = $parser->toCss($file);
+            
+            core_Debug::stopTimer($dTimeName);
         }
 
         return $res;

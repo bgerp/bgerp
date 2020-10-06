@@ -53,23 +53,12 @@ class eshop_plg_ProductSync extends core_Plugin
     
     
     /**
-     * След подготовка на тулбара на единичен изглед.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
+     * Изпълнява се след закачане на детайлите
      */
-    public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    public static function on_BeforeAttachDetails(core_Mvc $mvc, &$res, &$details)
     {
-        if (eshop_Products::haveRightFor('linktoeshop', (object) array('productId' => $data->rec->id))) {
-            $data->toolbar->addBtn('E-маг', array('eshop_Products', 'linktoeshop', 'productId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/star_2.png,title=Свързване в Е-маг');
-        }
-        
-        if ($domainId = cms_Domains::getCurrent('id', false)) {
-            if ($eshopProductId = eshop_Products::getByProductId($data->rec->id, $domainId)) {
-                if (eshop_Products::haveRightFor('single', $eshopProductId)) {
-                    $data->toolbar->addBtn('E-артикул', array('eshop_Products', 'single', $eshopProductId, 'ret_url' => true), 'ef_icon = img/16/globe.png,title=Към е-артикула');
-                }
-            }
-        }
+        $details = arr::make($details);
+        $details['eshopProductDetail'] = 'eshop_ProductDetails';
+        $details = arr::fromArray($details);
     }
 }
