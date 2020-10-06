@@ -1291,15 +1291,9 @@ class eshop_Products extends core_Master
     {
         $products = array();
         $domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
-        $groups = eshop_Groups::getByDomain($domainId);
-        if (!countR($groups)) {
-            
-            return $products;
-        }
-        $groups = array_keys($groups);
         
         $query = self::getQuery();
-        $query->in('groupId', $groups);
+        $query->where("#domainId = {$domainId}");
         if($withDriver){
             $query->where("#coDriver IS NULL OR #coDriver = '{$withDriver}'");
         }
