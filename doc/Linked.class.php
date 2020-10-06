@@ -205,6 +205,7 @@ class doc_Linked extends core_Manager
         $me = cls::get(get_called_class());
         
         foreach ($recArr as $id => $rec) {
+            $linkUrl = array();
             $comment = $me->getVerbal($rec, 'comment');
             
             $getUrlWithAccess = false;
@@ -215,21 +216,18 @@ class doc_Linked extends core_Manager
             
             if ($rec->outType == $type && $rec->outVal == $val) {
                 $icon = 'img/16/arrow_right.png';
-                $rowArr[$id]['docLink'] = self::getVerbalLinkForType($rec->inType, $rec->inVal, $comment, $getUrlWithAccess);
+                $rowArr[$id]['docLink'] = self::getVerbalLinkForType($rec->inType, $rec->inVal, $comment, $getUrlWithAccess, $linkUrl);
             } else {
                 $icon = 'img/16/arrow_left.png';
-                $rowArr[$id]['docLink'] = self::getVerbalLinkForType($rec->outType, $rec->outVal, $comment, $getUrlWithAccess);
+                $rowArr[$id]['docLink'] = self::getVerbalLinkForType($rec->outType, $rec->outVal, $comment, $getUrlWithAccess, $linkUrl);
             }
             
             $rowArr[$id]['comment'] = $comment;
             
-            $rowArr[$id]['icon'] = ht::createElement('img', array('src' => sbf($icon, '', Mode::isReadOnly())));
-            $rowArr[$id]['docLink'] = $rowArr[$id]['icon'] . $rowArr[$id]['docLink'];
-            
             if ($row = $me->recToVerbal($rec)) {
-                if ($row->_rowTools instanceof core_RowToolbar) {
-                    $rowArr[$id]['_rowTools'] = $row->_rowTools->renderHtml();
-                }
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+                $row->_rowTools->addLink('Връзка', $linkUrl, "ef_icon={$icon}, title=Отваряне на връзката");
+                $rowArr[$id]['_rowTools'] = $row->_rowTools->renderHtml();
                 
                 $rowArr[$id]['ROW_ATTR'] = $row->ROW_ATTR;
             }
@@ -1544,24 +1542,27 @@ class doc_Linked extends core_Manager
      * @param int         $valId
      * @param NULL|string $comment
      * @param bool        $getUrlWithAccess
+     * @param array       $linkUrl
      *
      * @return string|core_ET
      */
-    protected static function getVerbalLinkForType($type, $valId, &$comment = null, $getUrlWithAccess = false)
+    protected static function getVerbalLinkForType($type, $valId, &$comment = null, $getUrlWithAccess = false, &$linkUrl = array())
     {
         if ($type == 'doc') {
             try{
                 // Документа
                 $doc = doc_Containers::getDocument($valId);
                 
-                $hnd = '#' . $doc->getHandle();
+                $title = $doc->getTitleById();
+                
+                $title = str::limitLen($title, 36);
                 
                 // Полетата на документа във вербален вид
                 $docRow = $doc->getDocumentRow();
                 
-                $url = $doc->getSingleUrlArray();
-                if (empty($url) && ($getUrlWithAccess)) {
-                    $url = $doc->getUrlWithAccess($doc->instance, $doc->that);
+                $linkUrl = $doc->getSingleUrlArray();
+                if (empty($linkUrl) && ($getUrlWithAccess)) {
+                    $linkUrl = $doc->getUrlWithAccess($doc->instance, $doc->that);
                 }
                 
                 // Атрибутеите на линка
@@ -1576,16 +1577,17 @@ class doc_Linked extends core_Manager
                     $attr['style'] = 'text-decoration: line-through; color: #666;';
                 }
             } catch(core_exception_Expect $e){
-                $hnd = "<span class='red'>" . tr('Проблем при показването') . " </span>";
+                $title = "<span class='red'>" . tr('Проблем при показването') . " </span>";
             }
             
             
-            $link = ht::createLink($hnd, $url, null, $attr);
+            $link = ht::createLink($title, $linkUrl, null, $attr);
             
             $folderId = doc_Containers::fetchField($valId, 'folderId');
             if ($folderId && doc_Folders::haveRightFor('single', $folderId)) {
                 $fRec = doc_Folders::fetch($folderId);
-                $link .= ' « ' . doc_Folders::recToVerbal($fRec, 'title')->title;
+                $fRec->title = str::limitLen($fRec->title, 52);
+                $link .= ' « <span class="small">' . doc_Folders::recToVerbal($fRec, 'title')->title . "</span>";
             }
             
             if (!trim($comment)) {
@@ -1598,6 +1600,8 @@ class doc_Linked extends core_Manager
             expect($valId);
             
             $link = $clsInst->getLinkToSingle($valId);
+            
+            $linkUrl = array('fileman_Files', 'single', $valId);
             
             if (!trim($comment)) {
                 $comment = tr('Файл');
