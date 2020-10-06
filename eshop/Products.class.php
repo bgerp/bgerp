@@ -153,7 +153,7 @@ class eshop_Products extends core_Master
         $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Разширено');
         $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Описание->Параметри,optionsFunc=cat_Params::getPublic');
         $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Описание->Опаковки/Мерки');
-        $this->FLD('nearProducts', 'blob(serialize)', 'caption=Описание->Виж също,input=none');
+        $this->FLD('nearProducts', 'blob(serialize)', 'caption=Описание->Виж също,input=none,single=none,column=none');
         
         // Запитване за нестандартен продукт
         $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams|proto|measureId,silent');
@@ -1579,8 +1579,14 @@ class eshop_Products extends core_Master
                     if (is_array($r[$epId])) {
                         arsort($r[$epId]);
                         
-                        $r[$epId] = array_slice($r[$epId], 0, 10, true);
+                        $r[$epId] = array_slice($r[$epId], 0, 12, true);
                     }
+
+                    // Ако продукта има под 12 близки продукта, допълваме с продукти, които са от същите групи,
+                    // не са от съществуващите продукти и са подредени по рейтинг на е-шоп продуктите
+                    // @TODO Да се имплементира
+                    // @TODO 12 да се направи уеб-константа Максимален брой близки продукти. 
+                    // Ако тя е 0, да не се показват близки продукти
                 }
             }
         }
