@@ -65,7 +65,11 @@ class sales_ProductRatings extends core_Manager
      */
     public $listFields = 'id,objectId=Обект,classId,key,value,updatedOn';
     
-    
+    /**
+     * Дали за този модел ще се прави репликация на SQL заявките
+     */
+
+    public $doReplication = false;
     /**
      * Описание на модела (таблицата)
      */
