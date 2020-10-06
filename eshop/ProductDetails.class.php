@@ -101,6 +101,7 @@ class eshop_ProductDetails extends core_Detail
         $this->FLD('state', 'enum(active=Активен,closed=Затворен,rejected=Оттеглен)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('eshopProductId,title');
+        $this->setDbUnique('eshopProductId,productId');
     }
     
     
