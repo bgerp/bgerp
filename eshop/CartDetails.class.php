@@ -391,7 +391,7 @@ class eshop_CartDetails extends core_Detail
                 $row->_rowTools->addFnLink('Премахване', '', array('ef_icon' => 'img/16/deletered.png', 'title' => 'Премахване на артикул', 'data-cart' => $rec->cartId, 'data-url' => $removeUrl, 'class' => 'remove-from-cart', 'warning' => tr('Наистина ли желаете да премахнете артикула?')));
             }
             
-            $row->productId = eshop_ProductDetails::getPublicProductName($rec->eshopProductId, $rec->productId);
+            $row->productId = eshop_ProductDetails::getPublicProductTitle($rec->eshopProductId, $rec->productId, true);
             $row->packagingId = cat_UoM::getShortName($rec->packagingId);
             
             $quantity = (isset($rec->packQuantity)) ? $rec->packQuantity : 1;

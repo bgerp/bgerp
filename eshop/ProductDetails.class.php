@@ -229,30 +229,11 @@ class eshop_ProductDetails extends core_Detail
                 $row->productId = ht::createHint($row->productId, 'Артикулът няма цена', 'warning');
             }
             
-            $row->title = static::getDisplayTitle($rec);
+            $row->title = static::getPublicProductTitle($rec->eshopProductId, $rec->productId);
             if(empty($rec->title)){
                 $row->title = ht::createHint("<span style='color:blue'>{$row->title}</span>", 'Заглавието е динамично определено');
             }
         }
-    }
-    
-    
-    /**
-     * С какво заглавие ще се показва артикула
-     * 
-     * @param stdClass $rec
-     * @return string $title
-     */
-    private static function getDisplayTitle($rec)
-    {
-        $titleParamId = eshop_Products::fetchField($rec->eshopProductId, 'titleParamId');
-        $title = !empty($rec->title) ? $rec->title : (!empty($titleParamId) ? cat_Products::getParams($rec->productId, $titleParamId) : null);
-       
-        if(!isset($title) || $title === false){
-            $title = cat_Products::fetchField($rec->productId, 'name');
-        }
-        
-        return $title;
     }
     
     
@@ -288,7 +269,7 @@ class eshop_ProductDetails extends core_Detail
             if($orderByParam == '_code'){
                 $a->orderField = cat_products::getVerbal($a->productId, 'code');
             } elseif($orderByParam == '_title'){
-                $a->orderField = static::getDisplayTitle($a);
+                $a->orderField = static::getPublicProductTitle($a->eshopProductId, $a->productId);
                 $a->orderField = mb_strtolower($a->orderField);
             } else{
                 $value = cat_Products::getParams($a->productId, $orderByParam);
@@ -365,7 +346,7 @@ class eshop_ProductDetails extends core_Detail
     {
         $settings = cms_Domains::getSettings();
         $row = new stdClass();
-        $row->productId = static::getDisplayTitle($rec);
+        $row->productId = static::getPublicProductTitle($rec->eshopProductId, $rec->productId);
         $fullCode = cat_products::getVerbal($rec->productId, 'code');
         $row->code = substr($fullCode, 0, 10);
         $row->code = "<span title={$fullCode}>{$row->code}</span>";
@@ -575,21 +556,33 @@ class eshop_ProductDetails extends core_Detail
     /**
      * Какво е името на артикула във външната част
      * 
-     * @param int $eProductId     - ид на е-артикул
-     * @param int $productId      - ид на артикул
+     * @param int $eProductId       - ид на е-артикул
+     * @param int $productId        - ид на артикул
+     * @param boolean $showFullName - дали да се показва и името на е-артикула
+     * 
      * @return string $publicName - име за показване
      */
-    public static function getPublicProductName($eProductId, $productId)
+    public static function getPublicProductTitle($eProductId, $productId, $showFullName = false)
     {
-        $publicName = eshop_Products::getVerbal($eProductId, 'name');
-        $optionRec = eshop_ProductDetails::fetch("#eshopProductId = {$eProductId} AND #productId = {$productId}", 'title');
-        $optionName = !empty($optionRec->title) ? eshop_ProductDetails::getVerbal($optionRec, 'title') : cat_Products::getVerbal($productId, 'name');
+        $optionRec = eshop_ProductDetails::fetch("#eshopProductId = {$eProductId} AND #productId = {$productId}");
+        expect($optionRec);
         
-        if($publicName != $optionName){
-            $publicName = "{$publicName}: {$optionName}";
+        $titleParamId = eshop_Products::fetchField($eProductId, 'titleParamId');
+        $title = !empty($optionRec->title) ? $optionRec->title : (!empty($titleParamId) ? cat_Products::getParams($optionRec->productId, $titleParamId) : null);
+        
+        if(!isset($title) || $title === false){
+            $title = cat_Products::fetchField($optionRec->productId, 'name');
         }
         
-        return $publicName;
+        if($showFullName){
+            $eProductName = eshop_Products::getVerbal($eProductId, 'name');
+            
+            if($eProductName != $title){
+                $title = "{$eProductName}: {$title}";
+            }
+        }
+        
+        return $title;
     }
     
     
