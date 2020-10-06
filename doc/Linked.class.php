@@ -1591,7 +1591,7 @@ class doc_Linked extends core_Manager
             }
             
             if (!trim($comment)) {
-                $comment = $docRow->title;
+                $comment = '(#' . $doc->getHandle() . ') ' . $docRow->title;
             }
         } elseif ($type == 'file') {
             $clsInst = cls::get('fileman_Files');
