@@ -1640,9 +1640,6 @@ class eshop_Carts extends core_Master
         
         if(!empty($finBtn) && !empty($rec->personNames) && !empty($rec->productCount)){
             $tpl->append($finBtn, 'CART_TOOLBAR_RIGHT');
-            if ($rec->productCount > 3) {
-                $tpl->append($btn, 'CART_TOOLBAR_TOP_RIGHT');
-            }
         }
     }
     
