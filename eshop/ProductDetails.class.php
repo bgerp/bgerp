@@ -25,13 +25,13 @@ class eshop_ProductDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'eshop_Wrapper, plg_Created, plg_Modified, plg_SaveAndNew, plg_RowTools2, plg_Select, plg_AlignDecimals2';
+    public $loadList = 'eshop_Wrapper, plg_Created, plg_Modified, plg_SaveAndNew, plg_RowTools2, plg_Select, plg_AlignDecimals2, plg_State2';
     
     
     /**
      * Единично заглавие
      */
-    public $singleTitle = 'опция';
+    public $singleTitle = 'Опция';
     
     
     /**
@@ -43,7 +43,7 @@ class eshop_ProductDetails extends core_Detail
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'eshopProductId=Е-артикул,productId,title,packagings=Опаковки/Мерки,deliveryTime,state=Състояние,modifiedOn,modifiedBy';
+    public $listFields = 'eshopProductId=Е-артикул,productId,title,packagings=Опаковки/Мерки,deliveryTime,state=Състояние->Детайл,pState=Състояние->Артикул,modifiedOn,modifiedBy';
     
     
     /**
@@ -94,29 +94,14 @@ class eshop_ProductDetails extends core_Detail
     public function description()
     {
         $this->FLD('eshopProductId', 'key(mvc=eshop_Products,select=name)', 'caption=Е-артикул,mandatory,silent');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=price_ListRules::getSellableProducts,titleFld=name)', 'caption=Артикул,silent,removeAndRefreshForm=packagings,mandatory');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=price_ListRules::getSellableProducts,titleFld=name,onlyPublic)', 'caption=Артикул,silent,removeAndRefreshForm=packagings,mandatory');
         $this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковки/Мерки,mandatory');
         $this->FLD('title', 'varchar(nullIfEmpty)', 'caption=Заглавие');
         $this->FLD('deliveryTime', 'time', 'caption=Доставка до');
-        $this->FLD('state', 'enum(active=Активен,closed=Затворен,rejected=Оттеглен)', 'caption=Състояние,input=none');
+        $this->FLD('state', 'enum(active=Активен,closed=Затворен)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('eshopProductId,title');
         $this->setDbUnique('eshopProductId,productId');
-    }
-    
-    
-    /**
-     * Извиква се преди запис в модела
-     *
-     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
-     * @param int          $id      Тук се връща първичния ключ на записа, след като бъде направен
-     * @param stdClass     $rec     Съдържащ стойностите, които трябва да бъдат записани
-     * @param string|array $fields  Имена на полетата, които трябва да бъдат записани
-     * @param string       $mode    Режим на записа: replace, ignore
-     */
-    protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
-    {
-        $rec->state = cat_Products::fetchField($rec->productId, 'state');
     }
     
     
@@ -224,14 +209,37 @@ class eshop_ProductDetails extends core_Detail
         	$row->ROW_ATTR['class'] = "state-{$rec->state}";
         	$row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, TRUE);
         	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
-        	
-            if (!self::getPublicDisplayPrice($rec->productId)) {
+        	if (!self::getPublicDisplayPrice($rec->productId)) {
                 $row->productId = ht::createHint($row->productId, 'Артикулът няма цена', 'warning');
             }
             
             $row->title = static::getPublicProductTitle($rec->eshopProductId, $rec->productId);
             if(empty($rec->title)){
                 $row->title = ht::createHint("<span style='color:blue'>{$row->title}</span>", 'Заглавието е динамично определено');
+            }
+            
+            $pState = cat_Products::fetchField($rec->productId, 'state');
+            $row->pState = cls::get('cat_Products')->getFieldType('state')->toVerbal($pState);
+            $row->pState = "<span class='state-{$pState} document-handler'>{$row->pState}</span>";
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'changestate' && isset($rec)){
+            $pState = cat_Products::fetchField($rec->productId, 'state');
+            if($pState != 'active'){
+                $requiredRoles = 'no_one';
+            }
+        }
+        
+        if($action == 'delete' && isset($rec)){
+            if(eshop_CartDetails::fetchField("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}")){
+                $requiredRoles = 'no_one';
             }
         }
     }
@@ -520,40 +528,6 @@ class eshop_ProductDetails extends core_Detail
     
     
     /**
-     * Обновява състоянието на детайлите на е-артикула с тези на Артикула
-     *
-     * @param int|stdClass|NULL $productId - ид или запис на артикул
-     *
-     * @return void
-     */
-    public static function syncStatesByProductId($productId = null)
-    {
-        $productId = is_object($productId) ? $productId->id : $productId;
-        
-        $productsWithDetails = array();
-        $dQuery = eshop_ProductDetails::getQuery();
-        if(isset($productId)){
-            $dQuery->where("#productId = {$productId}");
-        }
-        
-        while($dRec = $dQuery->fetch()){
-            $productsWithDetails[$dRec->eshopProductId] = $dRec->eshopProductId;
-            eshop_ProductDetails::save($dRec, 'state');
-        }
-        
-        // Ако се ъпдейтват всички, ще се ъпдейтнат и тези без детайли
-        if(empty($productId) && countR($productsWithDetails)){
-            $Products = cls::get('eshop_Products');
-            $eQuery = $Products->getQuery();
-            $eQuery->notIn('id', $productsWithDetails);
-            while($eRec = $eQuery->fetch()){
-                $Products->updateMaster($eRec);
-            }
-        }
-    }
-    
-    
-    /**
      * Какво е името на артикула във външната част
      * 
      * @param int $eProductId       - ид на е-артикул
@@ -647,7 +621,6 @@ class eshop_ProductDetails extends core_Detail
             // Извличане и вербализиране на записите
             $query = eshop_ProductDetails::getQuery();
             $query->where("#productId = {$data->masterId}");
-            $query->EXT('pState', 'eshop_Products', 'externalName=state,externalKey=eshopProductId');
             $query->orderBy('id', 'DESC');
             
             while($rec = $query->fetch()){
