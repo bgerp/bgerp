@@ -224,6 +224,8 @@ class pami_Setup extends core_ProtoSetup
         
         if (!$ip || !$port || !$scheme || !$user || !$pass) {
             
+            pami_Logs::logNotice('Не са зададени параметри');
+            
             return null;
         }
         
