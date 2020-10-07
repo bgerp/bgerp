@@ -1505,7 +1505,7 @@ class core_Users extends core_Manager
         }
         
         // Ако потребителят е партньор се записва в сесията първата му споделена папка като активна
-        if (core_Packs::isInstalled('colab') && core_Users::isContractor($userRec)) {
+        if ($refresh === false && core_Packs::isInstalled('colab') && core_Users::isContractor($userRec)) {
             colab_Folders::setLastActiveContragentFolder(null, $userRec->id, false);
         }
         
