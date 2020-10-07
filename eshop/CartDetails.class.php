@@ -498,7 +498,7 @@ class eshop_CartDetails extends core_Detail
             cls::get('eshop_Carts')->updateMaster($cartId);
             eshop_Carts::delete($cartId);
             $msg = '|Успешно изчистване|*!';
-            vislog_History::add("Изтриване на количка");
+            vislog_History::add("Изтриване на количката");
         }
         
         core_Statuses::newStatus($msg);

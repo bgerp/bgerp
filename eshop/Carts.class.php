@@ -1182,7 +1182,8 @@ class eshop_Carts extends core_Master
         // Прикачване на прикачените документи
         if (is_array($documents)) {
             $attachedDocs = array();
-            foreach ($documents as $name => $doc) {
+            $documents = array_keys($documents);
+            foreach ($documents as $name) {
                 $attachedDocs[$name] = "{$name}.pdf";
             }
             $options->documentsSet = implode(',', $attachedDocs);
@@ -2029,7 +2030,8 @@ class eshop_Carts extends core_Master
         if (isset($form->rec->makeInvoice) && $form->rec->makeInvoice != 'none') {
             
             // Ако има ф-ра полетата за ф-ра се показват
-            foreach ($invoiceFields as $name => $fld) {
+            $invoiceFields = array_keys($invoiceFields);
+            foreach ($invoiceFields as $name) {
                 $form->setField($name, 'input');
             }
             
@@ -2057,7 +2059,8 @@ class eshop_Carts extends core_Master
                 $form->setReadOnly('invoiceCountry');
             }
         } else {
-            foreach ($invoiceFields as $name => $fld) {
+            $invoiceFields = array_keys($invoiceFields);
+            foreach ($invoiceFields as $name) {
                 $form->setField($name, 'input=none');
             }
         }
