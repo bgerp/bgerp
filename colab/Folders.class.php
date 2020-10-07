@@ -322,12 +322,20 @@ class colab_Folders extends core_Manager
      */
     public static function setLastActiveContragentFolder($folderId = null, $cu = null, $force = true)
     {
+        // Кой е текущия потребител
         $cu = isset($cu) ? $cu : core_Users::getCurrent('id', false);
         if (empty($cu)) {
             
             return;
         }
         
+        // Ако подадения потребител не е контрактор няма да се записва нищо
+        if(!core_Users::isContractor($cu)){
+            
+            return;
+        }
+        
+        // Коя ще е активната папка, ако няма е последно споделената му
         $folderId = isset($folderId) ? $folderId : colab_FolderToPartners::getLastSharedContragentFolder($cu);
         if (empty($folderId)) {
             
@@ -348,6 +356,7 @@ class colab_Folders extends core_Manager
             return;
         }
         
+        // Ако е променена последната му активна папка, записва се новата
         if ($activeFolderId != $folderId) {
             Mode::setPermanent('lastActiveContragentFolder', $folderId);
         }
