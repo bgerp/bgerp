@@ -1372,6 +1372,11 @@ class eshop_Carts extends core_Master
         cms_Domains::setPublicDomain($rec->domainId);
         Mode::set('currentExternalTab', 'eshop_Carts');
         
+        // Ако има записана папка в количката, форсира се
+        if(core_Packs::isInstalled('colab') && isset($rec->saleFolderId)){
+            colab_Folders::setLastActiveContragentFolder($rec->saleFolderId);
+        }
+        
         $tpl = self::renderView($rec);
         
         // Редирект ако количката се е ъпдейтнала
@@ -2152,9 +2157,6 @@ class eshop_Carts extends core_Master
                 $this->updateMaster($rec);
                 core_Lg::pop();
                 eshop_Carts::logWrite("Попълване на данни за поръчката от външната част", $rec->id);
-                if(isset($rec->saleFolderId)){
-                    colab_Folders::setLastActiveContragentFolder($rec->saleFolderId);
-                }
                 
                 return followRetUrl();
             }
