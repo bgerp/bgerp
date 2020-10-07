@@ -432,6 +432,7 @@ class eshop_CartDetails extends core_Detail
             } else {
                 $row->finalPrice = "<span class='red'>N/A</span>";
                 $row->amount = "<span class='red'>N/A</span>";
+                $row->ROW_ATTR['class'] = 'cartErrorRow';
             }
             
             deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
