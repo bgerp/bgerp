@@ -3521,6 +3521,12 @@ table .eshop-btn {
       background: linear-gradient(to bottom, #ea2727 0%, #f44829 100%);
       filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ea2727', endColorstr='#f44829', GradientType=0); }
 
+.cartErrorRow {
+  color: red !important; }
+  .cartErrorRow span,
+  .cartErrorRow div {
+    color: red !important; }
+
 .narrow .eshop-btn {
   padding-left: 10px !important; }
   .narrow .eshop-btn.order-btn {

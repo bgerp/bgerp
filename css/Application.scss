@@ -4140,7 +4140,12 @@ table .eshop-btn {
 		}
 	}
 }
-
+.cartErrorRow {
+	color: red !important;
+	span, div {
+		color: red !important;
+	}
+}
 .narrow .eshop-btn {
 	padding-left: 10px !important;
 	&.order-btn {
