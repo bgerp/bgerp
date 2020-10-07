@@ -293,6 +293,8 @@ class pami_Setup extends core_ProtoSetup
             // За премахване от кеша
             $packName = $this->getPackName();
             unset(static::$conf[$packName]);
+            
+            log_System::add('pami_Setup', "Спиране на процеса", null, 'debug');
         }
         
         return ($res);
