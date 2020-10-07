@@ -444,10 +444,12 @@ class price_ListRules extends core_Detail
         $form = &$data->form;
         $rec = &$form->rec;
         
-        $type = $rec->type;
-        
         $masterRec = price_Lists::fetch($rec->listId);
-        $form->setFieldTypeParams('productId', array('listId' => $masterRec->id));
+        $productFiedlParams = array('listId' => $masterRec->id);
+        if($rec->listId != price_ListRules::PRICE_LIST_COST){
+            $productFiedlParams['onlyPublic'] = true;
+        }
+        $form->setFieldTypeParams('productId', $productFiedlParams);
         
         $masterTitle = $masterRec->title;
         if ($masterRec->parent) {
@@ -455,20 +457,20 @@ class price_ListRules extends core_Detail
             $parentTitle = $parentRec->title;
         }
         
-        if (Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh') {
+        if (Request::get('productId') && $rec->type == 'value' && $form->cmd != 'refresh') {
             $form->setReadOnly('productId');
         }
         
         $form->FNC('targetPrice', 'double(Min=0)', 'caption=Желана цена,after=discount,input');
         
-        if ($type == 'groupDiscount' || $type == 'discount') {
+        if ($rec->type == 'groupDiscount' || $rec->type == 'discount') {
             $calcOpt = array();
             $calcOpt['forward'] = "[{$masterTitle}] = [{$parentTitle}] ± %";
             $calcOpt['reverse'] = "[{$parentTitle}] = [{$masterTitle}] ± %";
             $form->setOptions('calculation', $calcOpt);
         }
         
-        switch ($type) {
+        switch ($rec->type) {
             case 'groupDiscount':
                 $form->setField('productId,price,currency,vat,targetPrice', 'input=none');
                 $data->singleTitle = 'правило за групов марж';
