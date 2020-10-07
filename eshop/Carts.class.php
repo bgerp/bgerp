@@ -1629,7 +1629,7 @@ class eshop_Carts extends core_Master
         if (eshop_Carts::haveRightFor('finalize', $rec)) {
             $finBtn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), 'Сигурни ли сте, че искате да направите поръчката|*!', null, 'title=Завършване на поръчката,class=order-btn eshop-btn,rel=nofollow');
         } elseif(eshop_CartDetails::fetchField("#finalPrice IS NULL")){
-            $finBtn = ht::createErrBtn('Завършване', 'Някои от артикулите, вече са спряни от продажба!', 'title=Завършване на поръчката,class=order-btn eshop-btn eshop-errorBtn,rel=nofollow,ef_icon=none');
+            $finBtn = ht::createErrBtn('Завършване', 'Има проблем с някои артикули!', 'title=Завършване на поръчката,class=order-btn eshop-btn eshop-errorBtn,rel=nofollow,ef_icon=none');
         }
         
         if(!empty($finBtn) && !empty($rec->personNames) && !empty($rec->productCount)){
@@ -1962,12 +1962,12 @@ class eshop_Carts extends core_Master
         $data->action = 'order';
         $this->prepareEditForm($data);
         $data->form->setAction($this, 'order');
-        
+       
         $form = &$data->form;
         $form->title = 'Данни за поръчка';
         $form->countries = $countries;
         cms_Domains::addMandatoryText2Form($form);
-        
+       
         self::prepareOrderForm($form);
         
         // Добавяне на линк за логване, ако от преди се е логвам потребителя
@@ -1982,9 +1982,9 @@ class eshop_Carts extends core_Master
                 $form->rec->makeInvoice = ($form->rec->saleFolderId == $profileRec->folderId) ? 'person' : 'company';
             }
         }
-        
+       
         self::setDefaultsFromFolder($form, $form->rec->saleFolderId);
-        
+       
         if(empty($form->rec->termId)){
             $form->setField('deliveryCountry', 'input=hidden');
             $form->setField('deliveryPCode', 'input=hidden');
@@ -2306,13 +2306,14 @@ class eshop_Carts extends core_Master
         if (isset($folderId)) {
             if ($contragentData = doc_Folders::getContragentData($folderId)) {
                 $invName = ($rec->makeInvoice == 'person') ? $contragentData->person : $contragentData->company;
-                $form->rec->invoiceNames = $invName;
-                $form->rec->invoiceVatNo = $contragentData->vatNo;
-                $form->rec->invoiceUicNo = $contragentData->uicId;
-                $form->rec->invoiceCountry = $contragentData->countryId;
-                $form->rec->invoicePCode = $contragentData->pCode;
-                $form->rec->invoicePlace = $contragentData->place;
-                $form->rec->invoiceAddress = $contragentData->address;
+                
+                $form->setDefault('invoiceNames', $invName);
+                $form->setDefault('invoiceVatNo', $contragentData->vatNo);
+                $form->setDefault('invoiceUicNo', $contragentData->uicId);
+                $form->setDefault('invoiceCountry', $contragentData->countryId);
+                $form->setDefault('invoicePCode', $contragentData->pCode);
+                $form->setDefault('invoicePlace', $contragentData->place);
+                $form->setDefault('invoiceAddress', $contragentData->address);
                 
                 $form->countries[$contragentData->countryId] = $contragentData->countryId;
                 $contragentCover = doc_Folders::getCover($folderId);
