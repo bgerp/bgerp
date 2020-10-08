@@ -109,7 +109,9 @@ class cat_products_Usage extends core_Manager
      */
     private function prepareDocuments($Document, $DocumentDetail, &$data)
     {
-        $data->Document = cls::get($Document);
+        $data->Document = clone cls::get($Document);
+        $data->Document->FNC('title', 'varchar', 'tdClass=leftCol');
+        
         $Detail = cls::get($DocumentDetail);
         
         $data->recs = $data->rows = array();

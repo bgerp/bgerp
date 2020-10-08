@@ -239,7 +239,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $receiptsDetQuery->EXT('threadId', 'store_Receipts', 'externalName=threadId,externalKey=receiptId');
         
         //  $receiptsDetQuery-> in('threadId',$purchasesThreads);
-        
+        $receiptsDetQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         $receiptsDetQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         
         $receiptsDetQuery->EXT('state', 'store_Receipts', 'externalName=state,externalKey=receiptId');
