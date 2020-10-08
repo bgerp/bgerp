@@ -1182,7 +1182,8 @@ class eshop_Carts extends core_Master
         // Прикачване на прикачените документи
         if (is_array($documents)) {
             $attachedDocs = array();
-            foreach ($documents as $name => $doc) {
+            $documents = array_keys($documents);
+            foreach ($documents as $name) {
                 $attachedDocs[$name] = "{$name}.pdf";
             }
             $options->documentsSet = implode(',', $attachedDocs);
@@ -1370,6 +1371,11 @@ class eshop_Carts extends core_Master
         $this->requireRightFor('viewexternal', $rec);
         cms_Domains::setPublicDomain($rec->domainId);
         Mode::set('currentExternalTab', 'eshop_Carts');
+        
+        // Ако има записана папка в количката, форсира се
+        if(core_Packs::isInstalled('colab') && isset($rec->saleFolderId)){
+            colab_Folders::setLastActiveContragentFolder($rec->saleFolderId);
+        }
         
         $tpl = self::renderView($rec);
         
@@ -1625,13 +1631,15 @@ class eshop_Carts extends core_Master
             }
         }
         
+        $finBtn = null;
         if (eshop_Carts::haveRightFor('finalize', $rec)) {
-            $btn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), 'Сигурни ли сте, че искате да направите поръчката|*!', null, 'title=Завършване на поръчката,class=order-btn eshop-btn,rel=nofollow');
-            
-            $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
-            if ($rec->productCount > 3) {
-                $tpl->append($btn, 'CART_TOOLBAR_TOP_RIGHT');
-            }
+            $finBtn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), 'Сигурни ли сте, че искате да направите поръчката|*!', null, 'title=Завършване на поръчката,class=order-btn eshop-btn,rel=nofollow');
+        } elseif(eshop_CartDetails::fetchField("#finalPrice IS NULL")){
+            $finBtn = ht::createErrBtn('Завършване', 'Някои от артикулите, вече са спряни от продажба!', 'title=Завършване на поръчката,class=order-btn eshop-btn eshop-errorBtn,rel=nofollow,ef_icon=none');
+        }
+        
+        if(!empty($finBtn) && !empty($rec->personNames) && !empty($rec->productCount)){
+            $tpl->append($finBtn, 'CART_TOOLBAR_RIGHT');
         }
     }
     
@@ -1789,7 +1797,9 @@ class eshop_Carts extends core_Master
         }
         
         if ($action == 'finalize' && isset($rec)) {
-            if($rec->state != 'draft'){
+            if(eshop_CartDetails::fetchField("#finalPrice IS NULL")){
+                $requiredRoles = 'no_one';
+            } elseif($rec->state != 'draft'){
                 $requiredRoles = 'no_one';
             } elseif (empty($rec->personNames) || empty($rec->productCount)) {
                 $requiredRoles = 'no_one';
@@ -2022,7 +2032,8 @@ class eshop_Carts extends core_Master
         if (isset($form->rec->makeInvoice) && $form->rec->makeInvoice != 'none') {
             
             // Ако има ф-ра полетата за ф-ра се показват
-            foreach ($invoiceFields as $name => $fld) {
+            $invoiceFields = array_keys($invoiceFields);
+            foreach ($invoiceFields as $name) {
                 $form->setField($name, 'input');
             }
             
@@ -2050,7 +2061,8 @@ class eshop_Carts extends core_Master
                 $form->setReadOnly('invoiceCountry');
             }
         } else {
-            foreach ($invoiceFields as $name => $fld) {
+            $invoiceFields = array_keys($invoiceFields);
+            foreach ($invoiceFields as $name) {
                 $form->setField($name, 'input=none');
             }
         }
@@ -2142,9 +2154,6 @@ class eshop_Carts extends core_Master
                 $this->updateMaster($rec);
                 core_Lg::pop();
                 eshop_Carts::logWrite("Попълване на данни за поръчката от външната част", $rec->id);
-                if(isset($rec->saleFolderId)){
-                    colab_Folders::setLastActiveContragentFolder($rec->saleFolderId);
-                }
                 
                 return followRetUrl();
             }

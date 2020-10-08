@@ -3502,6 +3502,30 @@ table .eshop-btn {
     background-color: #0061a7; }
 
 
+  .order-btn.eshop-errorBtn {
+    -moz-box-shadow: inset 0px 1px 0px 0px #ef6145;
+    -webkit-box-shadow: inset 0px 1px 0px 0px #ef6145;
+    box-shadow: inset 0px 1px 0px 0px #ef6145;
+    background: #f44829;
+    background: -moz-linear-gradient(top, #f44829 0%, #ea2727 100%);
+    background: -webkit-linear-gradient(top, #f44829 0%, #ea2727 100%);
+    background: linear-gradient(to bottom, #f44829 0%, #ea2727 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#f44829', endColorstr='#ea2727', GradientType=0); }
+    .order-btn.eshop-errorBtn:hover {
+      background: #ea2727;
+            /*
+       * Old browsers
+       */
+      background: -moz-linear-gradient(top, #ea2727 0%, #f44829 100%);
+      background: -webkit-linear-gradient(top, #ea2727 0%, #f44829 100%);
+      background: linear-gradient(to bottom, #ea2727 0%, #f44829 100%);
+      filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ea2727', endColorstr='#f44829', GradientType=0); }
+
+.cartErrorRow {
+  color: red !important; }
+  .cartErrorRow span,
+  .cartErrorRow div {
+    color: red !important; }
 
 .narrow .eshop-btn {
   padding-left: 10px !important; }

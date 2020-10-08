@@ -9,7 +9,7 @@
  * @package   eshop
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -53,12 +53,6 @@ class eshop_Products extends core_Master
     
     
     /**
-     * Кой има право да променя системните данни?
-     */
-    public $canEditsysdata = 'eshop,ceo';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'eshop,ceo';
@@ -80,12 +74,6 @@ class eshop_Products extends core_Master
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'eshop,ceo';
-    
-    
-    /**
-     * Кой може да качва файлове
-     */
-    public $canWrite = 'eshop,ceo';
     
     
     /**
@@ -1457,10 +1445,10 @@ class eshop_Products extends core_Master
             return;
         }
         
-        $rec->saleState = self::getSaleState($rec->id);
+        $rec->saleState = $this->getSaleState($rec->id);
         
         // Обновяване на модела, за да се преизчислят ключовите думи
-        $this->save($rec);
+        return $this->save($rec);
     }
     
     
@@ -1471,19 +1459,20 @@ class eshop_Products extends core_Master
      *
      * @return string $saleState
      */
-    public static function getSaleState($id)
+    private function getSaleState($id)
     {
         // Всички детайли към опциите
         $dQuery = eshop_ProductDetails::getQuery();
         $dQuery->where("#eshopProductId = {$id}");
-        $dQuery->show('state');
+        $dQuery->EXT('pState', 'cat_Products', 'externalName=state,externalKey=productId');
+        $dQuery->show('state, pState');
         $details = $dQuery->fetchAll();
         
         // Колко опции има и дали сред тях има затворени
         $countNotClosed = $countClosed = 0;
         $count = $dQuery->count();
         array_walk($details, function ($a) use (&$countClosed, &$countNotClosed) {
-            if ($a->state != 'active') {
+            if ($a->state != 'active' || $a->pState != 'active') {
                 $countClosed++;
             } else {
                 $countNotClosed++;

@@ -8,7 +8,7 @@
  * @package   eshop
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -17,12 +17,40 @@
 class eshop_plg_ProductSync extends core_Plugin
 {
     
+    
+    /**
+     * Обновява състоянието на детайлите на е-артикула с тези на Артикула
+     *
+     * @param int $productId - ид или запис на артикул
+     *
+     * @return void
+     */
+    private static function syncStatesByProductId($productId)
+    {
+        $productId = is_object($productId) ? $productId->id : $productId;
+        $pState = cat_Products::fetchField($productId, 'state');
+        
+        $Details = cls::get('eshop_ProductDetails');
+        $dQuery = $Details->getQuery();
+        $dQuery->where("#productId = {$productId}");
+        while($dRec = $dQuery->fetch()){
+            if($dRec->state == 'active' && $pState != 'active'){
+                $dRec->state = 'closed';
+            } elseif($dRec->state == 'closed' && $pState == 'active'){
+                $dRec->state = 'active';
+            }
+            
+            $Details->save_($dRec, 'state');
+        }
+    }
+    
+    
     /**
      * След промяна на състоянието
      */
     public static function on_AfterChangeState($mvc, &$rec, $action)
     {
-        eshop_ProductDetails::syncStatesByProductId($rec->id);
+        self::syncStatesByProductId($rec->id);
     }
     
     
@@ -35,7 +63,7 @@ class eshop_plg_ProductSync extends core_Plugin
      */
     public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
-        eshop_ProductDetails::syncStatesByProductId($id);
+        self::syncStatesByProductId($id);
     }
     
     
@@ -48,7 +76,7 @@ class eshop_plg_ProductSync extends core_Plugin
      */
     public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
     {
-        eshop_ProductDetails::syncStatesByProductId($id);
+        self::syncStatesByProductId($id);
     }
     
     

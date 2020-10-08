@@ -411,23 +411,29 @@ class eshop_CartDetails extends core_Detail
             self::updatePriceInfo($rec, null, true);
             
             $settings = cms_Domains::getSettings();
-            $finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, null, $rec->currencyId, $settings->currencyId);
-            $row->finalPrice = core_Type::getByName('double(smartRound)')->toVerbal($finalPrice);
-            $row->finalPrice = currency_Currencies::decorate($row->finalPrice, $settings->currencyId);
-            
-            if ($rec->oldPrice) { 
-                $difference = round($rec->finalPrice, 2) - round($rec->oldPrice, 2);
-                $caption = ($difference > 0) ? 'увеличена' : 'намалена';
-                $difference = abs($difference);
-                $difference = currency_CurrencyRates::convertAmount($difference, null, $rec->currencyId, $settings->currencyId);
-                $differenceVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($difference);
-                $hint = "Цената е {$caption} с|* {$differenceVerbal} {$settings->currencyId}";
-                $row->finalPrice = ht::createHint($row->finalPrice, $hint, 'warning');
+            if(isset($rec->finalPrice)){
+                $finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, null, $rec->currencyId, $settings->currencyId);
+                $row->finalPrice = core_Type::getByName('double(smartRound)')->toVerbal($finalPrice);
+                $row->finalPrice = currency_Currencies::decorate($row->finalPrice, $settings->currencyId);
+                
+                if ($rec->oldPrice) {
+                    $difference = round($rec->finalPrice, 2) - round($rec->oldPrice, 2);
+                    $caption = ($difference > 0) ? 'увеличена' : 'намалена';
+                    $difference = abs($difference);
+                    $difference = currency_CurrencyRates::convertAmount($difference, null, $rec->currencyId, $settings->currencyId);
+                    $differenceVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($difference);
+                    $hint = "Цената е {$caption} с|* {$differenceVerbal} {$settings->currencyId}";
+                    $row->finalPrice = ht::createHint($row->finalPrice, $hint, 'warning');
+                }
+                
+                $amount = currency_CurrencyRates::convertAmount($rec->amount, null, $rec->currencyId, $settings->currencyId);
+                $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
+                $row->amount = currency_Currencies::decorate($row->amount, $settings->currencyId);
+            } else {
+                $row->finalPrice = "<span class='red'>N/A</span>";
+                $row->amount = "<span class='red'>N/A</span>";
+                $row->ROW_ATTR['class'] = 'cartErrorRow';
             }
-            
-            $amount = currency_CurrencyRates::convertAmount($rec->amount, null, $rec->currencyId, $settings->currencyId);
-            $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
-            $row->amount = currency_Currencies::decorate($row->amount, $settings->currencyId);
             
             deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
             $row->productId .= " <span class='small'>({$row->packagingId})</span>";
@@ -492,7 +498,7 @@ class eshop_CartDetails extends core_Detail
             cls::get('eshop_Carts')->updateMaster($cartId);
             eshop_Carts::delete($cartId);
             $msg = '|Успешно изчистване|*!';
-            vislog_History::add("Изтриване на количка");
+            vislog_History::add("Изтриване на количката");
         }
         
         core_Statuses::newStatus($msg);
@@ -692,14 +698,28 @@ class eshop_CartDetails extends core_Detail
         $toleranceDiff = price_Lists::fetchField($listId, 'discountComparedShowAbove');
         $toleranceDiff = !empty($toleranceDiff) ? $toleranceDiff * 100 : 1;
         
-        // Ако цената е променена, обновява се
-        $update = false;
-        if (!isset($rec->finalPrice) || (isset($rec->finalPrice) && abs(core_Math::diffInPercent($finalPrice, $rec->finalPrice)) > $toleranceDiff)) {
+        if(empty($finalPrice) && is_null($price)){
+            if(is_null($price) && is_null($rec->finalPrice)){
+                
+                return;
+            }
+            
             $rec->oldPrice = $rec->finalPrice;
-            $rec->finalPrice = $finalPrice;
-            $rec->discount = $discount;
-            $rec->amount = $rec->finalPrice * ($rec->quantity / $rec->quantityInPack);
+            $rec->finalPrice = null;
+            $rec->discount = null;
+            $rec->amount = null;
             $update = true;
+        } else {
+           
+            // Ако цената е променена, обновява се
+            $update = false;
+            if (!isset($rec->finalPrice) || (isset($rec->finalPrice) && abs(core_Math::diffInPercent($finalPrice, $rec->finalPrice)) > $toleranceDiff)) {
+                $rec->oldPrice = $rec->finalPrice;
+                $rec->finalPrice = $finalPrice;
+                $rec->discount = $discount;
+                $rec->amount = $rec->finalPrice * ($rec->quantity / $rec->quantityInPack);
+                $update = true;
+            }
         }
         
         if ($update === true && $save === true) {

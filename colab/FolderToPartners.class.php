@@ -798,7 +798,10 @@ class colab_FolderToPartners extends core_Manager
         if ($form->isSubmitted()) {
             if (!$Users->isUnique($form->rec, $fields)) {
                 $loginLink = ht::createLink(tr('тук'), array('core_Users', 'login'));
-                $form->setError($fields, 'Има вече такъв потребител. Ако това сте Вие, може да се логнете от|* ' . $loginLink);
+                
+                $msg = ($fields[0] == 'nick') ? 'Вече има регистриран потребител с този ник. Ако това сте Вие, може да се логнете от': (($fields[0] == 'email') ? 'Вече има регистриран потребител с този имейл. Ако това сте Вие, може да се логнете от' : 'Има вече такъв потребител. Ако това сте Вие, може да се логнете от');
+                $msg = "{$msg}|* " . $loginLink;
+                $form->setError($fields, $msg);
             }
         }
         

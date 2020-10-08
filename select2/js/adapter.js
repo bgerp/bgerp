@@ -11,7 +11,7 @@ function formatSelect2Data(data)
 {
 	var text = data.text;
 	
-	if (!data.element || !data.element.noEscape) {
+	if (!data.gElement || !data.gElement.noEscape) {
 		if (text) {
 			text = getEO().escape(text);
 		}
@@ -27,6 +27,10 @@ function formatSelect2Data(data)
 	
 	if (data.element && data.element.className) {
 		res += ' class=\"' + data.element.className + '\"';
+	} else {
+		if (data.gElement && data.gElement.className) {
+			res += ' class=\"' + data.gElement.className + '\"';
+		}
 	}
 	
 	res += '>' + text + '</span>';
@@ -69,6 +73,10 @@ function getDataAttr(data, attrName)
 	
 	if (data && data.element && data.element.getAttribute) {
 		color = data.element.getAttribute(attrName);
+	} else {
+		if (data && data.gElement && data.gElement.getAttribute) {
+			color = data.gElement.getAttribute(attrName);
+		}
 	}
 	
 	if (!color) {

@@ -53,12 +53,12 @@
                                             <tbody>
                                                 <!--ET_BEGIN contragentVatNo-->
                                                 <tr>
-                                                    <td class="aright"><small>№ |по ЗДДС|* / <i>VAT ID </i>:</small></td>
+                                                    <td class="aright"><small>№ |по ЗДДС|* / <i>VAT ID</i>:</small></td>
                                                     <td><span class="bigData" style='padding-left:5px;'>[#contragentVatNo#]</span></td>
                                                 </tr>
                                                 <!--ET_END contragentVatNo-->
                                                 <tr>
-                                                    <td class="aright"><small>[#contragentUicCaption#] :</small></td>
+                                                    <td class="aright"><small>[#contragentUicCaption#]:</small></td>
                                                     <td> <span class="bigData" style='padding-left:5px;'>[#uicNo#]</span></td>
                                                 </tr>
                                             </tbody>
@@ -69,13 +69,13 @@
                                             <tbody>
                                                 <!--ET_BEGIN MyCompanyVatNo-->
                                                 <tr>
-                                                    <td class="aright"><small>№ |по ЗДДС|* / <i>VAT ID </i>:</small></td>
+                                                    <td class="aright"><small>№ |по ЗДДС|* / <i>VAT ID</i>:</small></td>
                                                     <td><span class="bigData" style='padding-left:5px;'>[#MyCompanyVatNo#]</span></td>
                                                 </tr>
                                                 <!--ET_END MyCompanyVatNo-->
                                                 <!--ET_BEGIN uicId-->
                                                 <tr>
-                                                    <td class="aright"><small>|ЕИК|* / <i>UIC </i>:</small></td>
+                                                    <td class="aright"><small>|ЕИК|* / <i>UIC</i>:</small></td>
                                                     <td><span class="bigData" style='padding-left:5px;'>[#uicId#]</span></td>
                                                 </tr>
                                                 <!--ET_END uicId-->
