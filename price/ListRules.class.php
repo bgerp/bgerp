@@ -377,7 +377,7 @@ class price_ListRules extends core_Detail
                     if ($listRec->vat == 'yes') {
                          $vat = 1 + cat_Products::getVat($productId, $datetime);
                     }
-                    $rate = 1 / currency_CurrencyRates::getRate(null, $listRec->currency, null);
+                    $rate = 1 / currency_CurrencyRates::getRate($datetime, $listRec->currency, null);
                 }
 
                 $price = $price * $vat * $rate;
