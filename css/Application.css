@@ -1955,6 +1955,8 @@ pre.document {
   padding: 2px;
   padding-bottom: 0;
   color: #335533; }
+  .threadSubTitle .quiet {
+    color: #cccccc; }
 
 .narrow .block_title {
   font-size: 1.2em; }
