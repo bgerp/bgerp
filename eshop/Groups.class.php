@@ -799,11 +799,6 @@ class eshop_Groups extends core_Master
                 $url = eshop_Products::getUrl($r);
                 $url['q'] = $q;
                 
-                if(haveRole('debug')){
-                    $rating = empty($r->rating) ? tr("n / a") : $r->rating;
-                    $title = ht::createHint($title, "Рейтинг:|* {$rating}");
-                }
-                
                 $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url, 'img' => eshop_Products::getProductThumb($r, 60, 60));
             }
         }
