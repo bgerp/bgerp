@@ -197,15 +197,4 @@ class ical_Parser extends core_Mvc
         
         return $res;
     }
-    
-    
-    public function act_Test()
-    {
-        $str = file_get_contents('c:/temp/Denmark-Holidays.ics');
-        
-        
-        $events = self::renderEvents($str);
-        
-        return $events;
-    }
 }
