@@ -1356,10 +1356,9 @@ class sales_Sales extends deals_DealMaster
     /**
      * Списък с артикули върху, на които може да им се коригират стойностите
      *
-     * @see acc_AllowArticlesCostCorrectionDocsIntf
-     *
-     * @param mixed $id - ид или запис
-     *
+     * @param mixed $id     - ид или запис
+     * @param mixed $forMvc - за кой мениджър
+     * 
      * @return array $products        - масив с информация за артикули
      *               o productId       - ид на артикул
      *               o name            - име на артикула
@@ -1369,7 +1368,7 @@ class sales_Sales extends deals_DealMaster
      *               o transportWeight - транспортно тегло на артикула
      *               o transportVolume - транспортен обем на артикула
      */
-    public function getCorrectableProducts($id)
+    public function getCorrectableProducts($id, $forMvc)
     {
         $rec = $this->fetchRec($id);
         

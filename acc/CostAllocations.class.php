@@ -339,7 +339,7 @@ class acc_CostAllocations extends core_Manager
                             $errorField = 'allocateBy,chosenProducts';
                             $itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
                             $origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
-                            $rec->productsData = $origin->getCorrectableProducts();
+                            $rec->productsData = $origin->getCorrectableProducts($mvc);
                         } else {
                             $errorField = 'allocateBy';
                             $rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
