@@ -488,31 +488,43 @@ class eshop_CartDetails extends core_Detail
         $id = Request::get('id', 'int');
         $cartId = Request::get('cartId', 'int');
         $this->requireRightFor('removeexternal', (object) array('cartId' => $cartId));
+        $deleteCart = false;
         
         if (isset($id)) {
             $this->delete($id);
+            cls::get('eshop_Carts')->updateMaster($cartId);
             vislog_History::add("Изтриване на артикул от количка");
             $msg = '|Артикулът е премахнат|*!';
+            $dCount = $this->count("#cartId = {$cartId}");
+            
+            if(empty($dCount)){
+                $deleteCart = true;
+                eshop_Carts::delete($cartId);
+                vislog_History::add("Изтриване на количката");
+            }
         } else {
-            $this->delete("#cartId = {$cartId}");
-            cls::get('eshop_Carts')->updateMaster($cartId);
-            eshop_Carts::delete($cartId);
-            $msg = '|Успешно изчистване|*!';
-            vislog_History::add("Изтриване на количката");
+            $deleteCart = true;
         }
         
         core_Statuses::newStatus($msg);
         core_Lg::pop();
         
+        if($deleteCart){
+            $this->delete("#cartId = {$cartId}");
+            cls::get('eshop_Carts')->updateMaster($cartId);
+            eshop_Carts::delete($cartId);
+            vislog_History::add("Изтриване на количката");
+        }
+        
         Mode::set('currentExternalTab', 'eshop_Carts');
         
         // Ако заявката е по ajax
-        if (Request::get('ajax_mode')) {
-            
+        if (Request::get('ajax_mode') && $deleteCart === false) {
+           
             return self::getUpdateCartResponse($cartId);
         }
         
-        return followRetUrl(null, null, $msg);
+        return followRetUrl(null, $msg);
     }
     
     
