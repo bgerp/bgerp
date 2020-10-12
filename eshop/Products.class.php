@@ -871,7 +871,7 @@ class eshop_Products extends core_Master
         // Всички детайли на е-артикула
         if (isset($rec->id)) {
             $dQuery = eshop_ProductDetails::getQuery();
-            $dQuery->where("#eshopProductId = {$rec->id}");
+            $dQuery->where("#eshopProductId = {$rec->id} AND #state = 'active'");
             while ($dRec = $dQuery->fetch()) {
                 
                 // Извличат се параметрите им и се добавят към ключовите думи
@@ -1633,6 +1633,8 @@ class eshop_Products extends core_Master
                 self::save($rec, 'nearProducts');
             }
         }
+        
+        return countR($r);
     }
     
     
