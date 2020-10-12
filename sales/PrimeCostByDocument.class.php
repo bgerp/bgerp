@@ -266,11 +266,12 @@ class sales_PrimeCostByDocument extends core_Manager
             $dQuery->EXT('state', $Master, "externalName=state,externalKey={$Detail->masterKey}");
             $dQuery->EXT('containerId', $Master, "externalName=containerId,externalKey={$Detail->masterKey}");
             $dQuery->EXT('modifiedOn', $Master, "externalName=modifiedOn,externalKey={$Detail->masterKey}");
+            $dQuery->EXT('chargeVat', $Master, "externalName=chargeVat,externalKey={$Detail->masterKey}");
             
             $dQuery->where("#modifiedOn >= '{$timeline}'");
             $dQuery->where("#state != 'draft' AND #state != 'pending' AND #state != 'stopped'");
             
-            $fields = 'modifiedOn,state,containerId,amountDiscount';
+            $fields = 'modifiedOn,state,containerId,amountDiscount,chargeVat';
             if ($Master != 'sales_Sales') {
                 $dQuery->EXT('isReverse', $Master, "externalName=isReverse,externalKey={$Detail->masterKey}");
                 $dQuery->EXT('amountDelivered', $Master, "externalName=amountDelivered,externalKey={$Detail->masterKey}");
@@ -293,7 +294,7 @@ class sales_PrimeCostByDocument extends core_Manager
                     try {
                         $Document = doc_Containers::getDocument($dRec->containerId);
                         $masters[$dRec->containerId] = array($Document, $dRec->state, $dRec->isReverse);
-                        
+                        $masters[$dRec->containerId]['chargeVat'] = $dRec->chargeVat;
                         if($Document->isInstanceOf('sales_Sales')){
                             $masters[$dRec->containerId]['total'] = $dRec->amountDeal;
                         } else {
@@ -315,15 +316,16 @@ class sales_PrimeCostByDocument extends core_Manager
                 $or = true;
             }
         }
-        
+    
         // Добаване и на ПОС отчетите
         $posIds = array();
         $posQuery = pos_Reports::getQuery();
         $posQuery->where("#modifiedOn >= '{$timeline}'");
-        $posQuery->show('modifiedOn,state,containerId,details,total');
+        $posQuery->show('modifiedOn,state,containerId,details,total,chargeVat');
         while ($pRec = $posQuery->fetch()) {
             $masters[$pRec->containerId] = array(doc_Containers::getDocument($pRec->containerId), $pRec->state, null);
             $masters[$pRec->containerId]['total'] = $pRec->total;
+            $masters[$pRec->containerId]['chargeVat'] = $pRec->chargeVat;
             
             foreach ($pRec->details['receiptDetails'] as $pdRec){
                 if($pdRec->action != 'sale') continue;
