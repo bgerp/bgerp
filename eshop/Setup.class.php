@@ -62,6 +62,12 @@ defIfNot('ESHOP_RATINGS_OLDER_THEN',  12 * core_DateTime::SECONDS_IN_MONTH);
 
 
 /**
+ * Максимална бройка свързани артикули
+ */
+defIfNot('ESHOP_MAX_NEAR_PRODUCTS', '12');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -153,6 +159,7 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_CART_ACCESS_SALT' => array('varchar', 'caption=Даване на достъп за присвояване на количка->Сол'),
         'ESHOP_PRODUCTS_PER_PAGE' => array('int(Min=0)', 'caption=Брой артикули на страница в групата->Брой'),
         'ESHOP_RATINGS_OLDER_THEN' => array('time', 'caption=Изчисляване на рейтинги за продажба->Изчисляване от'),
+        'ESHOP_MAX_NEAR_PRODUCTS' => array('int(min=0)', 'caption=Максимален брой свързани артикули->Брой'),
     );
     
     
