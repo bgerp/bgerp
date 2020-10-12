@@ -360,8 +360,9 @@ class eshop_Products extends core_Master
             if(isset($fields['-external'])){
                 $row->nearRows = $mvc->prepareNearProducts($rec);
             } else {
+                $nearProducts = array_keys($rec->nearProducts);
                 $linkArr = array();
-                array_walk($rec->nearProducts, function ($a) use (&$linkArr){$linkArr[] = cat_Products::getHyperlink($a, true)->getContent();});
+                array_walk($nearProducts, function ($a) use (&$linkArr){$linkArr[] = eshop_Products::getHyperlink($a, true)->getContent();});
                 $row->nearProducts = implode(', ', $linkArr);
             }
         }
@@ -655,11 +656,11 @@ class eshop_Products extends core_Master
                 $pTpl = getTplFromFile(Mode::is('screenMode', 'narrow') ? 'eshop/tpl/ProductListGroupNarrow.shtml' : 'eshop/tpl/ProductListGroup.shtml');
                 
                 if ($this->haveRightFor('single', $rec)) {
-                    $row->singleLink = ht::createLink('', array('eshop_Products', 'single', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/wooden-box.png');
+                    $row->singleLink = ht::createLink('', array('eshop_Products', 'single', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/globe.png,title=Разглеждане на Е-артикула');
                 }
                 
                 if ($this->haveRightFor('edit', $rec)) {
-                    $row->editLink = ht::createLink('', array('eshop_Products', 'edit', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit.png');
+                    $row->editLink = ht::createLink('', array('eshop_Products', 'edit', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit.png,title=Редактиране на Е-артикула');
                 }
                 
                 if ($data->groupId != $rec->groupId) {
@@ -1453,6 +1454,22 @@ class eshop_Products extends core_Master
     
     
     /**
+     * Какво предупреждение да се показва на бутона за активиране/деактивиране
+     * 
+     * @param stdClass $rec
+     * 
+     * @return string $msg
+     */
+    public function getChangeStateWarning($rec)
+    {
+        $action = ($rec->state == 'acitve') ? 'активирате' : 'деактивирате';
+        $msg = tr("Наистина ли желаете да {$action} този е-артикул");
+        
+        return $msg;
+    }
+    
+    
+    /**
      * Какво е продажното състояние на артикула
      *
      * @param int $id на е-артоли;а
@@ -1535,26 +1552,33 @@ class eshop_Products extends core_Master
      */
     public static function saveNearProducts()
     {
-        $res = $map = array();
+        $r = $res = $map = array();
         $gQuery = eshop_Groups::getQuery();
+        
+        $maxNearProducts = eshop_Setup::get('MAX_NEAR_PRODUCTS');
+        $classId = static::getClassId();
+        
         while ($gRec = $gQuery->fetch("state = 'active'")) {
             $pQuery = eshop_Products::getQuery();
             while ($pRec = $pQuery->fetch("state = 'active' AND #groupId = {$gRec->id}")) {
                 $dQuery = eshop_ProductDetails::getQuery();
                 $pArr = array();
+                
                 while ($dRec = $dQuery->fetch("#state = 'active' AND #eshopProductId = {$pRec->id}")) {
                     $pArr[] = $dRec->productId;
                     $map[$gRec->menuId][$dRec->productId] = $pRec->id;
                 }
+                
                 if (countR($pArr)) {
                     $res[$gRec->menuId][$pRec->id] = $pArr;
                 }
             }
         }
         
-        $r = array();
         foreach ($res as $menuId => $eshopProducts) {
             foreach ($eshopProducts as $epId => $pArr) {
+                $epRec = eshop_Products::fetch($epId);
+                
                 foreach ($pArr as $pId) {
                     
                     // Вземаме за този продукт близките му
@@ -1567,18 +1591,36 @@ class eshop_Products extends core_Master
                             }
                         }
                     }
+                }
+                
+                if (is_array($r[$epId])) {
+                    arsort($r[$epId]);
                     
-                    if (is_array($r[$epId])) {
-                        arsort($r[$epId]);
-                        
-                        $r[$epId] = array_slice($r[$epId], 0, 12, true);
-                    }
-
-                    // Ако продукта има под 12 близки продукта, допълваме с продукти, които са от същите групи,
+                    // Оставят се първите $maxNearProducts е-артикула
+                    $r[$epId] = array_slice($r[$epId], 0, $maxNearProducts, true);
+                    $count = countR($r[$epId]);
+                    $alreadyIn = array_keys($r[$epId]);
+                    $alreadyIn[] = $epId;
+                    
+                    // Ако продукта има под $maxNearProducts близки продукта, допълваме с продукти, които са от същите групи,
                     // не са от съществуващите продукти и са подредени по рейтинг на е-шоп продуктите
-                    // @TODO Да се имплементира
-                    // @TODO 12 да се направи уеб-константа Максимален брой близки продукти. 
-                    // Ако тя е 0, да не се показват близки продукти
+                    if($count < $maxNearProducts){
+                        
+                        $dQuery = eshop_ProductDetails::getQuery();
+                        $dQuery->EXT('groupId', 'eshop_Products', 'externalName=groupId,externalKey=eshopProductId');
+                        $dQuery->EXT('pState', 'eshop_Products', 'externalName=state,externalKey=eshopProductId');
+                        $dQuery->EXT('rating', 'sales_ProductRatings', array('externalName' => 'value', 'onCond' => "#sales_ProductRatings.classId = {$classId} AND #sales_ProductRatings.objectId = #eshopProductId AND #sales_ProductRatings.objectClassId = {$classId}", 'join' => 'right'));
+                        $dQuery->where("#pState = 'active' AND #groupId = {$epRec->groupId}");
+                        $dQuery->orderBy('rating', 'DESC');
+                        $dQuery->limit($maxNearProducts - $count);
+                        $dQuery->show('eshopProductId,rating,pState');
+                        $dQuery->notIn("eshopProductId", $alreadyIn);
+                       
+                        while($dRec = $dQuery->fetch()){
+                            $weight = (!empty($dRec->rating)) ? $dRec->rating : 0;
+                            $r[$epId][$dRec->eshopProductId] = $weight;
+                        }
+                    }
                 }
             }
         }
