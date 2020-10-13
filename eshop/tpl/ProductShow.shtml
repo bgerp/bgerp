@@ -20,6 +20,10 @@
 		[#STATE_EXTERNAL#]
 		<!--ET_END STATE_EXTERNAL-->
 		
+		<!--ET_BEGIN ONLY_PRODUCT_NAME-->
+		[#ONLY_PRODUCT_NAME#]
+		<!--ET_END ONLY_PRODUCT_NAME-->
+		
 		<div style="padding: 10px 0;">
 		[#info#]
 		</div>

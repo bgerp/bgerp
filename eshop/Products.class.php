@@ -841,8 +841,14 @@ class eshop_Products extends core_Master
         
         if ($data->rec->saleState == 'closed') {
             $data->row->STATE_EXTERNAL = "<span class='option-not-in-stock' style='font-size:0.9em !important'>" . tr('Този продукт вече не се предлага') . '</span>';
-        } elseif (countR($uniqueProductsArr) == 1 && !empty($data->detailData->rows[0]->saleInfo)) {
-            $data->row->STATE_EXTERNAL = $data->detailData->rows[0]->saleInfo;
+        } elseif (countR($uniqueProductsArr) == 1) {
+            if(!empty($data->detailData->rows[0]->saleInfo)){
+                $data->row->STATE_EXTERNAL = $data->detailData->rows[0]->saleInfo;
+            }
+            
+            if($data->row->name != $data->detailData->rows[0]->productId){
+                $data->row->ONLY_PRODUCT_NAME = $data->detailData->rows[0]->productId;
+            }
         }
     }
     
