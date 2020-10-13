@@ -1453,6 +1453,10 @@ a.tOld {
   opacity: 0.6;
   font-size: 0.9em; }
 
+  .document .reportHolder th {
+    font-size: 0.8em;
+    white-space: normal !important; }
+
 .CVTable {
   font-family: Arial, Helvetica;
   width: 100%; }
@@ -1951,6 +1955,8 @@ pre.document {
   padding: 2px;
   padding-bottom: 0;
   color: #335533; }
+  .threadSubTitle .quiet {
+    color: #cccccc; }
 
 .narrow .block_title {
   font-size: 1.2em; }
@@ -3498,6 +3504,30 @@ table .eshop-btn {
     background-color: #0061a7; }
 
 
+  .order-btn.eshop-errorBtn {
+    -moz-box-shadow: inset 0px 1px 0px 0px #ef6145;
+    -webkit-box-shadow: inset 0px 1px 0px 0px #ef6145;
+    box-shadow: inset 0px 1px 0px 0px #ef6145;
+    background: #f44829;
+    background: -moz-linear-gradient(top, #f44829 0%, #ea2727 100%);
+    background: -webkit-linear-gradient(top, #f44829 0%, #ea2727 100%);
+    background: linear-gradient(to bottom, #f44829 0%, #ea2727 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#f44829', endColorstr='#ea2727', GradientType=0); }
+    .order-btn.eshop-errorBtn:hover {
+      background: #ea2727;
+            /*
+       * Old browsers
+       */
+      background: -moz-linear-gradient(top, #ea2727 0%, #f44829 100%);
+      background: -webkit-linear-gradient(top, #ea2727 0%, #f44829 100%);
+      background: linear-gradient(to bottom, #ea2727 0%, #f44829 100%);
+      filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ea2727', endColorstr='#f44829', GradientType=0); }
+
+.cartErrorRow {
+  color: red !important; }
+  .cartErrorRow span,
+  .cartErrorRow div {
+    color: red !important; }
 
 .narrow .eshop-btn {
   padding-left: 10px !important; }
@@ -4215,6 +4245,10 @@ table .eshop-btn {
   border: 1px solid #cccccc;
   background: #eeeeee;
   border-radius: 3px; }
+
+.debug {
+  background-color: #ffffb3;
+  padding: 2px 0; }
 
 /*
  * стилове за блог
@@ -5141,6 +5175,12 @@ div.location.public {
     .eshop-group-button .eshop-group-button-img a img {
       max-width: 100%;
       max-height: 220px; }
+
+.eshopProduct {
+  max-width: 800px; }
+  .eshopProduct .title-style {
+    text-align: right;
+    padding-right: 10px; }
 
 .narrow .externalPage #maincontent.hasLogoutBlock {
   padding-top: 29px !important; }
@@ -6286,6 +6326,10 @@ only screen and (max-width: 320px) {
     float: none;
     min-width: 0;
     max-width: 840px; }
+
+  .reportHolder .listTable tr td {
+    break-inside: avoid;
+    page-break-inside: avoid; }
 
   .external .docBgIcon {
     background-image: none !important;

@@ -27,6 +27,12 @@
                         <div class='address-block'>
                             [#MyAddress#]
                         </div>
+                        <!--ET_BEGIN MyCompanyVatNo-->
+                        <div><small> ЗДДС&nbsp;№:</small> <span class="bigData" style="padding-left:5px;">[#MyCompanyVatNo#]</span></div>
+                        <!--ET_END MyCompanyVatNo-->
+                        <!--ET_BEGIN uicId-->
+                        <div><small>ЕИК:</small> <span class="bigData" style="padding-left:5px;">[#uicId#]</span></div>
+                        <!--ET_END uicId-->
                         <!--ET_BEGIN shipmentStoreId-->
                         <hr style="margin: 3px 0 1px;">
                         <div>
@@ -45,6 +51,12 @@
                             [#contragentCountryId#]
                             <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
                         </div>
+                        <!--ET_BEGIN vatNo-->
+                        <div><small> ЗДДС&nbsp;№:</small> <span class="bigData" style="padding-left:5px;">[#vatNo#]</span></div>
+                        <!--ET_END vatNo-->
+                        <!--ET_BEGIN contragentUicId-->
+                        <div><small>[#contragentUicCaption#]:</small> <span class="bigData" style="padding-left:5px;"> [#contragentUicId#]</span></div>
+                        <!--ET_END contragentUicId-->
                         <!--ET_BEGIN deliveryLocationId-->
                     <hr style="margin: 3px 0 1px;">
                     <div>

@@ -43,7 +43,7 @@ class cat_products_Usage extends core_Manager
         
         // Промяна на таба взависимост дали артикула е стандартен или не
         if ($data->isPublic === true) {
-            if ($data->jobData->notManifacturable === true && !countR($data->jobData->rows)) {
+            if ((($masterRec->state == 'template') || ($data->jobData->notManifacturable === true)) && !countR($data->jobData->rows)) {
                 
                 return;
             }
@@ -109,7 +109,9 @@ class cat_products_Usage extends core_Manager
      */
     private function prepareDocuments($Document, $DocumentDetail, &$data)
     {
-        $data->Document = cls::get($Document);
+        $data->Document = clone cls::get($Document);
+        $data->Document->FNC('title', 'varchar', 'tdClass=leftCol');
+        
         $Detail = cls::get($DocumentDetail);
         
         $data->recs = $data->rows = array();

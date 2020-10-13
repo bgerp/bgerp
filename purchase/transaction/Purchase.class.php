@@ -421,7 +421,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     /**
      * Връща всички експедирани продукти и техните количества по сделката
      */
-    public static function getShippedProducts($jRecs, $id, $accs = '321,302,601,602,60010,60020,60201', $groupByStore = false, $onlySupplier = true)
+    public static function getShippedProducts($jRecs, $id, $accs = '321,302,601,602,60010,60020,60201', $groupByStore = false, $onlySupplier = true, $groupByExpense = false)
     {
         $res = array();
         
@@ -465,6 +465,17 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                             
                             $res[$index]->inStores[$storeItem->objectId]['amount'] += $p->amount;
                             $res[$index]->inStores[$storeItem->objectId]['quantity'] += $p->debitQuantity;
+                        }
+                    }
+                    
+                    if ($groupByExpense === true) {
+                        $expensePositionId = acc_Lists::getPosition(acc_Accounts::fetchField($p->debitAccId, 'systemId'), 'doc_DocumentIntf');
+                        
+                        if ($p->{"debitItem{$expensePositionId}"}) {
+                            $expenseItem = acc_Items::fetch($p->{"debitItem{$expensePositionId}"})->id;
+                            
+                            $res[$index]->expenseItems[$expenseItem]['amount'] += $p->amount;
+                            $res[$index]->expenseItems[$expenseItem]['quantity'] += $p->debitQuantity;
                         }
                     }
                 }

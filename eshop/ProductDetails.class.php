@@ -25,13 +25,13 @@ class eshop_ProductDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'eshop_Wrapper, plg_Created, plg_Modified, plg_SaveAndNew, plg_RowTools2, plg_Select, plg_AlignDecimals2';
+    public $loadList = 'eshop_Wrapper, plg_Created, plg_Modified, plg_SaveAndNew, plg_RowTools2, plg_Select, plg_AlignDecimals2, plg_State2';
     
     
     /**
      * Единично заглавие
      */
-    public $singleTitle = 'опция';
+    public $singleTitle = 'Опция';
     
     
     /**
@@ -43,7 +43,7 @@ class eshop_ProductDetails extends core_Detail
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'eshopProductId=Е-артикул,productId,title,packagings=Опаковки/Мерки,deliveryTime,state=Състояние,modifiedOn,modifiedBy';
+    public $listFields = 'eshopProductId=Е-артикул,productId,title,packagings=Опаковки/Мерки,deliveryTime,state=Състояние->Детайл,pState=Състояние->Артикул,modifiedOn,modifiedBy';
     
     
     /**
@@ -94,28 +94,14 @@ class eshop_ProductDetails extends core_Detail
     public function description()
     {
         $this->FLD('eshopProductId', 'key(mvc=eshop_Products,select=name)', 'caption=Е-артикул,mandatory,silent');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=price_ListRules::getSellableProducts,titleFld=name)', 'caption=Артикул,silent,removeAndRefreshForm=packagings,mandatory');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=price_ListRules::getSellableProducts,titleFld=name,onlyPublic)', 'caption=Артикул,silent,removeAndRefreshForm=packagings,mandatory');
         $this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковки/Мерки,mandatory');
         $this->FLD('title', 'varchar(nullIfEmpty)', 'caption=Заглавие');
         $this->FLD('deliveryTime', 'time', 'caption=Доставка до');
-        $this->FLD('state', 'enum(active=Активен,closed=Затворен,rejected=Оттеглен)', 'caption=Състояние,input=none');
+        $this->FLD('state', 'enum(active=Активен,closed=Затворен)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('eshopProductId,title');
-    }
-    
-    
-    /**
-     * Извиква се преди запис в модела
-     *
-     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
-     * @param int          $id      Тук се връща първичния ключ на записа, след като бъде направен
-     * @param stdClass     $rec     Съдържащ стойностите, които трябва да бъдат записани
-     * @param string|array $fields  Имена на полетата, които трябва да бъдат записани
-     * @param string       $mode    Режим на записа: replace, ignore
-     */
-    protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
-    {
-        $rec->state = cat_Products::fetchField($rec->productId, 'state');
+        $this->setDbUnique('eshopProductId,productId');
     }
     
     
@@ -143,6 +129,9 @@ class eshop_ProductDetails extends core_Detail
         
         if (isset($rec->productId)) {
             $productRec = cat_Products::fetch($rec->productId, 'canStore,measureId');
+            $defaultTitle = eshop_ProductDetails::getPublicProductTitle($rec->eshopProductId, $rec->productId);
+            $form->setField('title', "placeholder={$defaultTitle}");
+            
             if ($productRec->canStore == 'yes') {
                 $packs = cat_Products::getPacks($rec->productId);
                 
@@ -160,47 +149,6 @@ class eshop_ProductDetails extends core_Detail
         } else {
             $form->setField('packagings', 'input=none');
         }
-    }
-    
-    
-    /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     *
-     * @param core_Mvc  $mvc
-     * @param core_Form $form
-     */
-    protected static function on_AfterInputEditForm($mvc, &$form)
-    {
-        $rec = $form->rec;
-        if ($form->isSubmitted()) {
-            $thisDomainId = eshop_Products::getDomainId($rec->eshopProductId);
-            if (self::isTheProductAlreadyInTheSameDomain($rec->productId, $thisDomainId, $rec->id)) {
-                $form->setError('productId', 'Артикулът е вече добавен в същия домейн');
-            }
-        }
-    }
-    
-    
-    /**
-     * Артикулът наличен ли е в подадения домейн
-     *
-     * @param int      $productId - артикул
-     * @param int      $domainId  - домейн
-     * @param int|NULL $id        - запис който да се игнорира
-     *
-     * @return bool - среща ли се артикулът в същия домейн?
-     */
-    public static function isTheProductAlreadyInTheSameDomain($productId, $domainId, $id = null)
-    {
-        $domainIds = array();
-        $query = self::getQuery();
-        $query->where("#productId = {$productId} AND #id != '{$id}'");
-        while ($eRec = $query->fetch()) {
-            $eproductDomainId = eshop_Products::getDomainId($eRec->eshopProductId);
-            $domainIds[$eproductDomainId] = $eproductDomainId;
-        }
-        
-        return array_key_exists($domainId, $domainIds);
     }
     
     
@@ -264,9 +212,37 @@ class eshop_ProductDetails extends core_Detail
         	$row->ROW_ATTR['class'] = "state-{$rec->state}";
         	$row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, TRUE);
         	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
-        	
-            if (!self::getPublicDisplayPrice($rec->productId)) {
+        	if (!self::getPublicDisplayPrice($rec->productId)) {
                 $row->productId = ht::createHint($row->productId, 'Артикулът няма цена', 'warning');
+            }
+            
+            $row->title = static::getPublicProductTitle($rec->eshopProductId, $rec->productId);
+            if(empty($rec->title)){
+                $row->title = ht::createHint("<span style='color:blue'>{$row->title}</span>", 'Заглавието е динамично определено');
+            }
+            
+            $pState = cat_Products::fetchField($rec->productId, 'state');
+            $row->pState = cls::get('cat_Products')->getFieldType('state')->toVerbal($pState);
+            $row->pState = "<span class='state-{$pState} document-handler'>{$row->pState}</span>";
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'changestate' && isset($rec)){
+            $pState = cat_Products::fetchField($rec->productId, 'state');
+            if($pState != 'active'){
+                $requiredRoles = 'no_one';
+            }
+        }
+        
+        if($action == 'delete' && isset($rec)){
+            if(eshop_CartDetails::fetchField("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}")){
+                $requiredRoles = 'no_one';
             }
         }
     }
@@ -294,7 +270,30 @@ class eshop_ProductDetails extends core_Detail
         $data->optionsProductsCount = $query->count();
         $data->commonParams = eshop_Products::getCommonParams($data->rec->id);
         
-        while ($rec = $query->fetch()) {
+        $orderByParam = isset($data->rec->orderByParam) ? $data->rec->orderByParam : '_code';
+        $orderByDir = isset($data->rec->orderByDir) ? $data->rec->orderByDir : 'asc';
+        
+        $recs =  $query->fetchAll();
+        
+        // Подготовка на полето, по което ще се сортира
+        array_walk($recs, function (&$a) use ($orderByParam) {
+            if($orderByParam == '_code'){
+                $a->orderField = cat_products::getVerbal($a->productId, 'code');
+            } elseif($orderByParam == '_title'){
+                $a->orderField = static::getPublicProductTitle($a->eshopProductId, $a->productId);
+                $a->orderField = mb_strtolower($a->orderField);
+            } else{
+                $value = cat_Products::getParams($a->productId, $orderByParam);
+                if(isset($value)){
+                    $a->orderField = $value;
+                }
+            }
+        });
+        
+        // Сортиране на резултатите
+        arr::sortObjects($recs, 'orderField', $orderByDir, 'str');
+        
+        foreach ($recs as $rec){
             $newRec = (object) array('eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'title' => $rec->title, 'deliveryTime' => $rec->deliveryTime);
             
             $packagings = keylist::toArray($rec->packagings);
@@ -322,17 +321,8 @@ class eshop_ProductDetails extends core_Detail
                 $i++;
             }
         }
-        
+       
         if (countR($data->rows)) {
-            uasort($data->rows, function ($obj1, $obj2) {
-                if ($obj1->orderCode == $obj2->orderCode) {
-                    
-                    return $obj1->orderPrice > $obj2->orderPrice;
-                }
-                
-                return strnatcmp($obj1->orderCode, $obj2->orderCode);
-            });
-            
             $prev = null;
             foreach ($data->rows as &$row1) {
                 if (isset($prev) && $prev == $row1->orderCode) {
@@ -367,7 +357,7 @@ class eshop_ProductDetails extends core_Detail
     {
         $settings = cms_Domains::getSettings();
         $row = new stdClass();
-        $row->productId = (empty($rec->title)) ? cat_Products::getVerbal($rec->productId, 'name') : core_Type::getByName('varchar')->toVerbal($rec->title);
+        $row->productId = static::getPublicProductTitle($rec->eshopProductId, $rec->productId);
         $fullCode = cat_products::getVerbal($rec->productId, 'code');
         $row->code = substr($fullCode, 0, 10);
         $row->code = "<span title={$fullCode}>{$row->code}</span>";
@@ -400,6 +390,7 @@ class eshop_ProductDetails extends core_Detail
         $addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
         $class = ($rec->_listView === true) ? 'group-row' : '';
         
+        // Подготовка на бутона за купуване
         if($showCartBtn === true){
             if (!empty($catalogPriceInfo->discount)) {
                 $style = ($rec->_listView === true) ? 'style="display:inline-block;font-weight:normal"' : '';
@@ -523,13 +514,15 @@ class eshop_ProductDetails extends core_Detail
         $query->EXT('groupId', 'eshop_Products', 'externalName=groupId,externalKey=eshopProductId');
         $query->where("#state = 'active'");
         $query->in('groupId', $groups);
-        $query->show('productId,title,state');
+        $query->show('productId,title,eshopProductId');
         
         while ($rec = $query->fetch()) {
             
             // Трябва да имат цени по избраната политика
             if (self::getPublicDisplayPrice($rec->productId, $rec->packagingId)) {
-                $options[$rec->productId] = !empty($rec->title) ? $rec->title : cat_Products::getTitleById($rec->productId, false);
+                $title = eshop_Products::getTitleById($rec->eshopProductId);
+                $title .= ": " .  (!empty($rec->title) ? $rec->title : cat_Products::getTitleById($rec->productId, false));
+                $options[$rec->id] = $title;
             }
         }
         
@@ -538,56 +531,156 @@ class eshop_ProductDetails extends core_Detail
     
     
     /**
-     * Обновява състоянието на детайлите на е-артикула с тези на Артикула
-     *
-     * @param int|stdClass|NULL $productId - ид или запис на артикул
-     *
+     * Какво е името на артикула във външната част
+     * 
+     * @param int $eProductId       - ид на е-артикул
+     * @param int $productId        - ид на артикул
+     * @param boolean $showFullName - дали да се показва и името на е-артикула
+     * 
+     * @return string $publicName - име за показване
+     */
+    public static function getPublicProductTitle($eProductId, $productId, $showFullName = false)
+    {
+        $optionRec = eshop_ProductDetails::fetch("#eshopProductId = {$eProductId} AND #productId = {$productId}");
+        
+        $titleParamId = eshop_Products::fetchField($eProductId, 'titleParamId');
+        $title = !empty($optionRec->title) ? $optionRec->title : (!empty($titleParamId) ? cat_Products::getParams($productId, $titleParamId) : null);
+        if(!isset($title) || $title === false){
+            $title = cat_Products::fetchField($productId, 'name');
+        }
+        
+        if($showFullName){
+            $eProductName = eshop_Products::getVerbal($eProductId, 'name');
+            
+            if($eProductName != $title){
+                $title = "{$eProductName}: {$title}";
+            }
+        }
+        
+        return $title;
+    }
+    
+    
+    /**
+     * Подготвя показването, като детайл на артикулите
+     * 
+     * @param stdClass $data
      * @return void
      */
-    public static function syncStatesByProductId($productId = null)
+    public function prepareEshopProductDetail($data)
     {
-        $productId = is_object($productId) ? $productId->id : $productId;
+        $isTemplate = $data->masterData->rec->state == 'template';
+        $data->isNotOk = ($data->masterData->rec->canSell != 'yes' || $data->masterData->rec->isPublic != 'yes' || !in_array($data->masterData->rec->state, array('active', 'template')));
+        $hasDetail = ($isTemplate) ? eshop_Products::fetch("LOCATE('|{$data->masterId}|', #proto)") : eshop_ProductDetails::fetchField("#productId = {$data->masterId}");
         
-        $productsWithDetails = array();
-        $dQuery = eshop_ProductDetails::getQuery();
-        if(isset($productId)){
-            $dQuery->where("#productId = {$productId}");
+        if(!$hasDetail && $data->isNotOk){
+            $data->hide = true;
+            
+            return;
         }
         
-        while($dRec = $dQuery->fetch()){
-            $productsWithDetails[$dRec->eshopProductId] = $dRec->eshopProductId;
-            eshop_ProductDetails::save($dRec, 'state');
-        }
+        $data->TabCaption = 'Е-маг';
+        $data->Tab = 'top';
         
-        // Ако се ъпдейтват всички, ще се ъпдейтнат и тези без детайли
-        if(empty($productId) && countR($productsWithDetails)){
-            $Products = cls::get('eshop_Products');
-            $eQuery = $Products->getQuery();
-            $eQuery->notIn('id', $productsWithDetails);
-            while($eRec = $eQuery->fetch()){
-                $Products->updateMaster($eRec);
+        // Ако таба е отворен, само тогава да се подготвят данните
+        $Param = core_Request::get($data->masterData->tabTopParam, 'varchar');
+        if($Param != 'eshopProductDetail'){
+            $data->hide = true;
+            
+            if($data->isNotOk){
+                $data->TabCaption = ht::createHint($data->TabCaption, 'Артикулът е бил добавен в Е-маг, но вече не отговаря на условията|*', 'warning');
             }
+            
+            return;
+        }
+        
+        $data->recs = $data->rows = array();
+        $data->listTableMvc = clone $this;
+        
+        // Ако е шаблон
+        if($isTemplate){
+            
+            // Ще се извличат е-артикулите, където той е избран като протоип
+            $data->listFields = arr::make('name=Е-артикул,domainId=Домейн,coMoq=МКП,quantityCount=Количества');
+            $data->info = tr('Артикулът се използва като прототип за запитване в Е-маг');
+            $query = eshop_Products::getQuery();
+            $query->where("LOCATE('|{$data->masterId}|', #proto)");
+            $query->orderBy('id', 'DESC');
+            
+            while($rec = $query->fetch()){
+                $data->recs[$rec->id] = $rec;
+                $row = eshop_Products::recToVerbal($rec);
+                $row->domainId = cms_Domains::getHyperlink($rec->domainId, true);
+                $row->quantityCount = !empty($rec->quantityCount) ? $row->quantityCount : tr('Без');
+                $data->rows[$rec->id] = $row;
+            }
+            
+        } else {
+            $data->listFields = arr::make('eshopProductId=Е-артикул,domainId=Домейн,title=Заглавие,packagings=Опаковки/Мерки,deliveryTime=Доставка,created=Добавено');
+            $data->info = tr('Артикулът може да бъде продаван в Е-маг');
+            
+            // Извличане и вербализиране на записите
+            $query = eshop_ProductDetails::getQuery();
+            $query->where("#productId = {$data->masterId}");
+            $query->orderBy('id', 'DESC');
+            
+            while($rec = $query->fetch()){
+                $data->recs[$rec->id] = $rec;
+                $row = eshop_ProductDetails::recToVerbal($rec);
+                $row->created = tr("|*{$row->createdBy} |на|* {$row->createdOn}");
+                $row->domainId = cms_Domains::getHyperlink(eshop_Products::fetchField($rec->eshopProductId, 'domainId'), true);
+                $row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, true);
+                $row->ROW_ATTR['class'] = 'state-active';
+                $data->rows[$rec->id] = $row;
+            }
+        }
+        
+        // Добавяне на бутон за публикуване в Е-маг
+        if (eshop_Products::haveRightFor('linktoeshop', (object) array('productId' => $data->masterId))) {
+            $linkUrl = array('eshop_Products', 'linktoeshop', 'productId' => $data->masterId, 'ret_url' => true);
+            $data->linkBtn = ht::createLink('', $linkUrl, false, 'ef_icon = img/16/add.png,title=Свързване в Е-маг,style=vertical-align: middle; margin-left:5px;');
         }
     }
     
     
     /**
-     * Какво е името на артикула във външната част
-     * 
-     * @param int $eProductId     - ид на е-артикул
-     * @param int $productId      - ид на артикул
-     * @return string $publicName - име за показване
+     * Рендира показването, като детайл на артикулите
+     *
+     * @param stdClass $data
+     * @return core_ET|null
      */
-    public static function getPublicProductName($eProductId, $productId)
+    public function renderEshopProductDetail($data)
     {
-        $publicName = eshop_Products::getVerbal($eProductId, 'name');
-        $optionRec = eshop_ProductDetails::fetch("#eshopProductId = {$eProductId} AND #productId = {$productId}", 'title');
-        $optionName = !empty($optionRec->title) ? eshop_ProductDetails::getVerbal($optionRec, 'title') : cat_Products::getVerbal($productId, 'name');
-        
-        if($publicName != $optionName){
-            $publicName = "{$publicName}: {$optionName}";
+        if ($data->hide === true) {
+            
+            return;
         }
         
-        return $publicName;
+        $tpl = new ET('');
+        $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+        $tabTitle = tr('Онлайн магазин');
+        if($data->isNotOk){
+            $tabTitle = ht::createHint($tabTitle, 'Артикулът е бил добавен в Е-маг, но вече не отговаря на условията|*', 'warning');
+        }
+        $tpl->append($tabTitle, 'title');
+        
+        $fieldset = new core_FieldSet();
+        $fieldset->FLD('eshopProductId', 'varchar', 'tdClass=leftCol');
+        $fieldset->FLD('name', 'varchar', 'tdClass=leftCol');
+        
+        $table = cls::get('core_TableView', array('mvc' => $fieldset));
+        $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+        
+        // Рендиране на намерените резултати
+        $tpl->append("<div style='margin-bottom:5px'>{$data->info}</div>", 'content');
+        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'title,deliveryTime');
+        $details = $table->get($data->rows, $data->listFields);
+        $tpl->append($details, 'content');
+        
+        if(isset($data->linkBtn)){
+            $tpl->append($data->linkBtn, 'title');
+        }
+        
+        return $tpl;
     }
 }

@@ -1063,45 +1063,40 @@ class pos_Receipts extends core_Master
         $receiptQuery->EXT('valior', 'pos_Receipts', 'externalName=valior,externalKey=receiptId');
         $receiptQuery->EXT('revertId', 'pos_Receipts', 'externalName=revertId,externalKey=receiptId');
         $receiptQuery->where("#state != 'draft' && #state != 'rejected' AND #revertId IS NULL AND #isPublic = 'yes' AND #valior >= '{$valiorFrom}' AND #productId IS NOT NULL");
-        $receiptQuery->show('productId,pointId');
+        $receiptQuery->show('productId,pointId,valior');
         
         $count = $receiptQuery->count();
         core_App::setTimeLimit($count * 0.4, false, 200);
+        $classId = $this->getClassId();
+        $objectClassId = cat_Products::getClassId();
         
         $res = array();
         while ($receiptRec = $receiptQuery->fetch()){
             $storeId = pos_Points::fetchField($receiptRec->pointId, 'storeId');
+            $index = "{$receiptRec->productId}|{$storeId}";
             
-            // Артикулите срещани в бележките ще имат по висок рейтинг
-            if(!array_key_exists("{$receiptRec->productId}|{$storeId}", $res)){
-                $res["{$receiptRec->productId}|{$storeId}"] = (object)array('classId'       => $this->getClassId(),
-                                                                            'objectClassId' => cat_Products::getClassId(),
-                                                                            'objectId'      => $receiptRec->productId,
-                                                                            'key'           => $storeId,
-                                                                            'value'         => 0,);
-            }
-            $res["{$receiptRec->productId}|{$storeId}"]->value += 100;
+            $monthsBetween = countR(dt::getMonthsBetween($receiptRec->valior));
+            $rating = round(12 / $monthsBetween);
+            $rating = 100 * $rating;
+            
+            sales_ProductRatings::addRatingToObject($res, $index, $classId, $objectClassId, $receiptRec->productId, $storeId, $rating);
         }
         
         // Ако има артикули в бележките изчисляват се и техните рейтинги от продажбите
         $deltaQuery = sales_PrimeCostByDocument::getQuery();
         $deltaQuery->where("#sellCost IS NOT NULL AND (#state = 'active' OR #state = 'closed') AND #isPublic = 'yes'");
         $deltaQuery->where("#valior >= '{$valiorFrom}'");
-        $deltaQuery->show('productId,storeId,detailClassId');
+        $deltaQuery->show('productId,storeId,detailClassId,valior');
         
         // Ако артикула се среща и в експедиционен документ е с по-малка тежест
         $reportClassId = pos_Reports::getClassId();
         while ($deltaRec = $deltaQuery->fetch()){
-            if(!array_key_exists("{$deltaRec->productId}|{$deltaRec->storeId}", $res)){
-                $res["{$deltaRec->productId}|{$deltaRec->storeId}"] = (object)array('classId'       => $this->getClassId(),
-                                                                                    'objectClassId' => cat_Products::getClassId(),
-                                                                                    'objectId'      => $deltaRec->productId,
-                                                                                    'key'           => $deltaRec->storeId,
-                                                                                    'value'         => 0,);
-            }
-            
             $rating = ($deltaRec->detailClassId == $reportClassId) ? 150 : 1;
-            $res["{$deltaRec->productId}|{$deltaRec->storeId}"]->value += $rating;
+            $monthsBetween = countR(dt::getMonthsBetween($receiptRec->valior));
+            $rating = $rating * round(12 / $monthsBetween);
+            
+            $index = "{$deltaRec->productId}|{$deltaRec->storeId}";
+            sales_ProductRatings::addRatingToObject($res, $index, $classId, $objectClassId, $deltaRec->productId, $deltaRec->storeId, $rating);
         }
         
         $res = array_values($res);

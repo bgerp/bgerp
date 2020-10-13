@@ -116,10 +116,11 @@ body {
 
 .push_button.small {
     line-height: 26px !important;
-    height: 30px;
+    height: 32px;
     font-size: 0.8em !important;
-    padding: 3px;
-    width: 220px;
+    padding: 3px 20px;
+    width: auto;
+    display: inline-block;
     margin: 20px 2px !important;
 }
 .narrow .push_button.small {

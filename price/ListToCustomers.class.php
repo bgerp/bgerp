@@ -401,7 +401,9 @@ class price_ListToCustomers extends core_Manager
     public function getPriceByList($listId, $productId, $packagingId = null, $quantity = null, $datetime = null, $rate = 1, $chargeVat = 'no')
     {
         $rec = new stdClass();
-        $rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime);
+        $isFirstCall = true;
+        $validFrom = null;
+        $rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime, $validFrom, $isFirstCall, $rate, $chargeVat);
         
         $listRec = price_Lists::fetch($listId);
         
@@ -409,7 +411,7 @@ class price_ListToCustomers extends core_Manager
         if (!empty($listRec->discountCompared)) {
             
             // Намираме цената по тази политика и намираме колко % е отстъпката/надценката
-            $comparePrice = price_ListRules::getPrice($listRec->discountCompared, $productId, $packagingId, $datetime);
+            $comparePrice = price_ListRules::getPrice($listRec->discountCompared, $productId, $packagingId, $datetime, $isFirstCall, $rate, $chargeVat);
             
             if ($comparePrice && isset($rec->price)) {
                 $disc = ($rec->price - $comparePrice) / $comparePrice;

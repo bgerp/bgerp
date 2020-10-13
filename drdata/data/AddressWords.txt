@@ -30,28 +30,17 @@ postadresse:
 postal address:
 postal adress:
 new add:
-
 post code:
 zip code:
-
 best regards:
-
-
-
 city:
-
 company name:
 company:
-
 contact details:
 contact information:
-
 country region:
 coutry:
 firma:
-
-
-
 # Имейл
 company email:
 e-mail:
@@ -70,48 +59,25 @@ mailto:
 mail:
 personal e-mail:
 @:
-
-
 facebook:
-
-
 fran:
 from:
 ftp:
 gesendet:
-
 https:
 inviato:
 ip phone:
 kancelař | office:
-
-
-
 msn:
-
 no:
 para:
 person:
-
-
- 
-
-
-
-
 pozdrav:
 pozdravi ot ekipa na:
 pozdravi:
-
-
-
 salg:
-
-
 skype name:
 skype:
-
-
 # Факс
 telefaks:
 telefax:
@@ -124,8 +90,6 @@ fax(2):
 fax.:
 fax:
 f:
-
-
 # Телефон и факс
 phone fax:
 tel. faks:
@@ -133,15 +97,11 @@ tel faks:
 t f:
 tel fax:
 tel. fax:
-
-
 Телефонна централа
 tel centrale:
 switch:
 switchboard:
 sentralbord:
-
-
 # Директен телефон
 tel direct:
 dir. tel:
@@ -157,8 +117,6 @@ d:
 telp:
 ligne directe:
 please use my direct line:
-
-
 # Мобилен телефон
 personal mobile phone:
 telm.:
@@ -174,8 +132,10 @@ mobilen mobile:
 mobilen telefon:
 mobilen:
 globul:
+telenor:
 gsm:
 mtel:
+a1:
 cellphone:
 ceo mobil:
 m.:
@@ -184,8 +144,6 @@ m.t.:
 m:
 office mobile:
 vivacom:
-
-
 # Телефон
 tel no:
 tel. kom.:
@@ -211,21 +169,15 @@ phones:
 ph:
 p:
 fon:
-
-
 oggetto:
 til:
 till:
 to:
-
-
 vastaanottaja:
 vat:
 verzonden:
-
 visiting address:
 visiting adress:
-
 url adres:
 url:
 visit our website:
@@ -242,4 +194,3 @@ our website:
 see our online catalog:
 internet:
 links:
-

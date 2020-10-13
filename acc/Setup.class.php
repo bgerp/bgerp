@@ -196,7 +196,7 @@ class acc_Setup extends core_ProtoSetup
     public $configDescription = array(
         'ACC_MONEY_TOLERANCE' => array(
             'double(decimals=2)',
-            'caption=Толеранс за допустимо разминаване на суми в основна валута->Сума'
+            'caption=Автоматично приключване на сделка при салдо (в основна валута) под->Сума'
         ),
         'ACC_DETAILED_BALANCE_ROWS' => array(
             'int',

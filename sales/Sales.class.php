@@ -160,7 +160,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полета свързани с цени
      */
-    public $priceFields = 'amountDeal,amountDelivered,amountPaid,amountInvoiced,amountToPay,amountToDeliver,amountToInvoice';
+    public $priceFields = 'amountDeal,amountBl,expectedTransportCost,visibleTransportCost,hiddenTransportCost,leftTransportCost,amountDelivered,amountPaid,amountInvoiced,amountToPay,amountToDeliver,amountToInvoice';
     
     
     /**
@@ -1164,14 +1164,18 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        core_Lg::push($rec->tplLang);
-        
-        if (core_Packs::isInstalled('eshop')) {
-            if ($cartRec = eshop_Carts::fetch("#saleId = {$rec->id}", 'id,domainId')) {
-                $row->cartId = (Mode::isReadOnly()) ? eshop_Carts::getRecTitle($cartRec) : eshop_Carts::getHyperlink($cartRec->id, true);
-                $row->domainId = cms_Domains::getVerbal($cartRec->domainId, 'domain');
+        if (core_Packs::isInstalled('eshop') && isset($fields['-single'])) {
+            if ($cartRec = eshop_Carts::fetch("#saleId = {$rec->id}", 'id,domainId,personNames,tel,email')) {
+                $cartRow = eshop_Carts::recToVerbal($cartRec, 'domainId,personNames,tel,email');
+                $row->cartId = eshop_Carts::getHyperlink($cartRec->id, true);
+                $row->cartDomainId = $cartRow->domainId;
+                $row->cartPersonnames = $cartRow->personNames;
+                $row->cartTel = $cartRow->tel;
+                $row->cartEmail = $cartRow->email;
             }
         }
+        
+        core_Lg::push($rec->tplLang);
         
         if (isset($rec->bankAccountId)) {
             if (!Mode::isReadOnly()) {
@@ -1235,6 +1239,11 @@ class sales_Sales extends deals_DealMaster
                     $row->btnTransport = $link->getContent();
                 }
             }
+            
+            if(!empty($rec->paymentType)){
+                $row->paymentMethodId = "{$row->paymentType}, {$row->paymentMethodId}";
+            }
+            
             core_Lg::push($rec->tplLang);
         } else if (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $row->title = "<b>" . $row->title . "</b>";
@@ -1352,10 +1361,9 @@ class sales_Sales extends deals_DealMaster
     /**
      * Списък с артикули върху, на които може да им се коригират стойностите
      *
-     * @see acc_AllowArticlesCostCorrectionDocsIntf
-     *
-     * @param mixed $id - ид или запис
-     *
+     * @param mixed $id     - ид или запис
+     * @param mixed $forMvc - за кой мениджър
+     * 
      * @return array $products        - масив с информация за артикули
      *               o productId       - ид на артикул
      *               o name            - име на артикула
@@ -1365,7 +1373,7 @@ class sales_Sales extends deals_DealMaster
      *               o transportWeight - транспортно тегло на артикула
      *               o transportVolume - транспортен обем на артикула
      */
-    public function getCorrectableProducts($id)
+    public function getCorrectableProducts($id, $forMvc)
     {
         $rec = $this->fetchRec($id);
         
@@ -1737,22 +1745,17 @@ class sales_Sales extends deals_DealMaster
         $deltaQuery->where("#valior >= '{$valiorFrom}'");
         $deltaQuery->show('productId,storeId,detailClassId');
         $receiptClassId = pos_Reports::getClassId();
+        $classId = $this->getClassId();
+        $objectClassId = cat_Products::getClassId();
         
         $res = array();
         $count = $deltaQuery->count();
         core_App::setTimeLimit($count * 0.4, false, 200);
         while ($dRec = $deltaQuery->fetch()){
-            if(!array_key_exists("{$dRec->productId}|{$dRec->storeId}", $res)){
-                $res["{$dRec->productId}|{$dRec->storeId}"] = (object)array('classId'       => $this->getClassId(), 
-                                                                            'objectClassId' => cat_Products::getClassId(),
-                                                                            'objectId'      => $dRec->productId, 
-                                                                            'key'           => $dRec->storeId,
-                                                                            'value'         => 0,);
-            }
-            
             $rating = ($dRec->detailClassId == $receiptClassId) ? 1 : 10;
-           
-            $res["{$dRec->productId}|{$dRec->storeId}"]->value += $rating;
+            
+            $index = "{$dRec->productId}|{$dRec->storeId}";
+            sales_ProductRatings::addRatingToObject($res, $index, $classId, $objectClassId, $dRec->productId, $dRec->storeId, $rating);
         }
         
         $res = array_values($res);
