@@ -219,7 +219,7 @@ class eshop_Carts extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->listFilter->FNC('domain', 'key(mvc=cms_Domains,select=titleExt,allowEmpty)', 'caption=Домейн,input,refreshForm,placeholder=Всички');
-        $data->listFilter->FNC('type', 'enum(all=Всички,draft=Чернови,active=Активни,empty=Празни,users=От потребител,anonymous=Без потребител,pendingSales=С чакащи продажби)', 'caption=Вид,input,silent,refreshForm');
+        $data->listFilter->FNC('type', 'enum(all=Всички,draft=Чернови,active=Активни,empty=Празни,users=От потребител,anonymous=Без потребител,pendingSales=С продажби на заявка)', 'caption=Вид,input,silent,refreshForm');
         
         $data->listFilter->setDefault('type', 'all');
         $data->listFilter->setDefault('domain', cms_Domains::getCurrent('id', false));
