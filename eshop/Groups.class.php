@@ -23,12 +23,6 @@ class eshop_Groups extends core_Master
     
     
     /**
-     * Страница от менюто
-     */
-    public $pageMenu = 'Каталог';
-    
-    
-    /**
      * Поддържани интерфейси
      */
     public $interfaces = 'cms_SourceIntf';
@@ -187,28 +181,38 @@ class eshop_Groups extends core_Master
         $form->view = 'horizontal';
         
         // Добавяме бутон
+        $domains = cms_Domains::getDomainOptions(false, core_Users::getCurrent());
+        $form->FLD('domainId', 'key(mvc=cms_Domains,select=title)', 'caption=Домейн,silent,autoFilter');
+        if(countR($domains) == 1){
+            $form->setField('domainId', 'input=hidden');
+        } else {
+            $form->setOptions('domainId', $domains);
+        }
+        
+        $form->setDefault('domainId', cms_Domains::getCurrent());
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
-        $form->showFields = 'search, menuId';
+        $form->showFields = 'search, menuId, domainId';
         
-        $form->input('search, menuId', 'silent');
+        $form->input('search, menuId, domainId', 'silent');
         
-        $form->setOptions('menuId', $opt = cms_Content::getMenuOpt($mvc));
-        
+        cms_Domains::selectCurrent($form->rec->domainId);
+        $menuOptions = cms_Content::getMenuOpt($mvc, $form->rec->domainId);
+        $form->setOptions('menuId', $menuOptions);
         $form->setField('menuId', 'refreshForm');
         
-        if (countR($opt) == 0) {
+        if (countR($menuOptions) == 0) {
             redirect(array('cms_Content'), false, '|Моля въведете поне една точка от менюто с източник "Онлайн магазин"');
         }
         
-        if ($form->rec->menuId && !$opt[$form->rec->menuId]) {
-            $form->rec->menuId = key($opt);
+        if ($form->rec->menuId && !$menuOptions[$form->rec->menuId]) {
+            $form->rec->menuId = key($menuOptions);
         }
         
-        if (countR($opt) && !$form->isSubmitted()) {
-            $form->rec->menuId = key($opt);
+        if (countR($menuOptions) && !$form->isSubmitted()) {
+            $form->rec->menuId = key($menuOptions);
         }
         
         if ($form->rec->menuId) {
