@@ -1026,7 +1026,7 @@ class core_Packs extends core_Manager
         if (cls::load($cls, true)) {
             $setup = cls::get($cls);
         } else {
-            error('@Липсваш клас', $cls);
+            error('@Липсващ клас', $cls);
         }
         
         if (!($description = $setup->getConfigDescription())) {
@@ -1093,12 +1093,12 @@ class core_Packs extends core_Manager
         
         if ($form->isSubmitted()) {
             
-            // $data = array();
-            
+            $callOnConfigChange = array();
             foreach ($description as $field => $params) {
+                
                 $sysDefault = defined($field) ? constant($field) : '';
+                $fType = $form->getFieldType($field, false);
                 if ($sysDefault != $form->rec->{$field}) {
-                    $fType = $form->getFieldType($field, false);
                     
                     // Да може да се зададе автоматичната стойност
                     if ((($fType instanceof type_Class) || ($fType instanceof type_Enum) || ($fType instanceof color_Type))
@@ -1110,9 +1110,20 @@ class core_Packs extends core_Manager
                 } else {
                     $data[$field] = '';
                 }
+                
+                // Ако полето има зададена ф-я, която да се вика при промяна на уеб константата
+                $callOnChange = $form->getFieldParam($field, 'callOnChange');
+                if($callOnChange){
+                    
+                    // И стойността на уеб константата е променена
+                    $oldValue = self::getConfigValue($packName, $field);
+                    if($oldValue !== $data[$field]){
+                        $callOnConfigChange[$field] = (object)array('method' => $callOnChange, 'type' => $fType, 'oldValue' => $oldValue, 'newValue' => $data[$field]);
+                    }
+                }
             }
             
-            $id = self::setConfig($packName, $data);
+            self::setConfig($packName, $data);
             
             // Правим запис в лога
             $this->logWrite('Промяна на конфигурацията на пакет', $rec->id);
@@ -1124,6 +1135,14 @@ class core_Packs extends core_Manager
                 $setupClass = $packName . '_Setup';
                 if ($setupClass::INIT_AFTER_CONFIG) {
                     $msg .= '<br>' . $this->setupPack($packName, $rec->version, true, true, false);
+                }
+            }
+            
+            // Ако има заопашено методи, които да се викат при промяна на уеб константа, изпълняват се
+            if(countR($callOnConfigChange)){
+                foreach ($callOnConfigChange as $constData){
+                    $callOn = dt::addSecs(60);
+                    core_CallOnTime::setOnce($this->className, 'callOnChange', $constData, $callOn);
                 }
             }
             
@@ -1147,6 +1166,21 @@ class core_Packs extends core_Manager
         }
         
         return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Метод викащ се след промяна на уеб константа, на която и е зададен метод за викане
+     * 
+     * @param stdClass $data
+     * @return mixed
+     */
+    public function callback_callOnChange($data)
+    {
+        if(isset($data->method)){
+            
+            return call_user_func_array($data->method, array($data->type, $data->oldValue, $data->newValue));
+        }
     }
     
     
