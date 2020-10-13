@@ -1239,6 +1239,11 @@ class sales_Sales extends deals_DealMaster
                     $row->btnTransport = $link->getContent();
                 }
             }
+            
+            if(!empty($rec->paymentType)){
+                $row->paymentMethodId = "{$row->paymentType}, {$row->paymentMethodId}";
+            }
+            
             core_Lg::push($rec->tplLang);
         } else if (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $row->title = "<b>" . $row->title . "</b>";
