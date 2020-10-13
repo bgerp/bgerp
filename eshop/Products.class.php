@@ -459,7 +459,8 @@ class eshop_Products extends core_Master
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         if (haveRole('powerUser') && $data->rec->state != 'closed') {
-            $data->toolbar->addBtn('Преглед', self::getUrl($data->rec), null, 'ef_icon=img/16/monitor.png,title=Преглед във външната част');
+            $title = "Преглед|* [" . cms_Domains::getTitleById($data->rec->domainId) . "]";
+            $data->toolbar->addBtn($title, self::getUrl($data->rec), null, 'ef_icon=img/16/monitor.png,title=Преглед във външната част');
         }
     }
     
