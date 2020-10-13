@@ -389,11 +389,12 @@ class eshop_Products extends core_Master
         
         // За всеки свързан
         $nearProducts = array_keys($rec->nearProducts);
+        
         foreach ($nearProducts as $productId) {
             
             // Ако е затворен, се пропуска
             $productRec = eshop_Products::fetch($productId);
-            if ($productRec->state == 'closed') {
+            if ($productRec->state == 'closed' || $productRec->saleState == 'closed') {
                 continue;
             }
             
