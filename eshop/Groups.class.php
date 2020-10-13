@@ -171,6 +171,46 @@ class eshop_Groups extends core_Master
     
     
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if($form->isSubmitted()){
+            $rec = $form->rec;
+            
+            // Дали в същото меню има група със същото име
+            if(eshop_Groups::fetchField(array("#menuId = {$rec->menuId} && #id != '{$rec->id}' && #name = '[#1#]' COLLATE {$mvc->db->dbCharset}_general_ci", $rec->name))){
+                $form->setError('name', 'В същото основно меню, има група със същото име');
+            }
+            
+            // Ако има споделени менюта
+            if(!empty($rec->sharedMenus)){
+               
+                // Проверка дали в някои от тях има група със същото име
+                $menuesWithSameGroup = array();
+                $arr = keylist::toArray($rec->sharedMenus);
+                foreach ($arr as $menuId){
+                    if(eshop_Groups::fetch(array("#menuId = {$menuId} && #id != '{$rec->id}' && #name = '[#1#]' COLLATE {$mvc->db->dbCharset}_general_ci", $rec->name))){
+                        $title = cms_Content::getVerbal($menuId, 'menu') . " (" . cms_Content::getVerbal($menuId, 'domainId') . ")";
+                        $menuesWithSameGroup[$menuId] = "<b>{$title}</b>";
+                    }
+                }
+                
+                // Ако има група със същото име, сетва се грешка
+                if(countR($menuesWithSameGroup)){
+                    $menuStrings = implode(', ', $menuesWithSameGroup);
+                    $errorMsg = "В следните менюта, има група със същото име|*: {$menuStrings}";
+                    $form->setError('name,sharedMenus', $errorMsg);
+                }
+            }
+        }
+    }
+    
+    
+    /**
      * Изпълнява се след подготовката на формата за филтриране
      */
     protected function on_AfterPrepareListFilter($mvc, $data)
