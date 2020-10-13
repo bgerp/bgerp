@@ -163,6 +163,7 @@ class eshop_Products extends core_Master
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,input=none');
         
         $this->setDbIndex('groupId');
+        $this->setDbIndex('domainId');
     }
     
     
