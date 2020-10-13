@@ -1,6 +1,6 @@
 <div class="singleView eshopProduct">
    [#SingleToolbar#]
-   <h2 class="block_title [#STATE_CLASS#]" style='padding:5px'>[#SingleIcon#] |Е-артикул|*: <b style="color:green;display:inline-block;word-break:break-all">[[#code#]] [#name#]</b></h2>
+   <h2 class="block_title [#STATE_CLASS#]" style='padding:5px'>[#SingleIcon#] |Е-артикул|*: <b style="color:green;display:inline-block;word-break:break-all"><!--ET_BEGIN code-->[[#code#]]<!--ET_END code--> [#name#]</b></h2>
    <fieldset class="detail-info">
       <legend class="groupTitle">|Информация|*</legend>
       <div class="groupList">
