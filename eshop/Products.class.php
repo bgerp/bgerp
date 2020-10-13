@@ -31,7 +31,7 @@ class eshop_Products extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code,name=Е-артикул,dCount=Опции,groupId=Група,saleState,state';
+    public $listFields = 'id,code,name=Е-артикул,dCount=Опции,groupId=Група,saleState,state';
     
     
     /**
@@ -1104,21 +1104,48 @@ class eshop_Products extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->showFields = 'search,groupId';
+        $data->listFilter->showFields = 'search,groupId,domainId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        $rec = $data->listFilter->input(null, 'silent');
         $data->listFilter->setField('groupId', 'autoFilter');
+        $data->listFilter->setField('domainId', 'autoFilter,silent');
+        $data->listFilter->setDefault('domainId', cms_Domains::getCurrent());
+        $data->listFilter->input(null, 'silent');
         
-        if ($rec->groupId) {
-            $data->query->where("#groupId = {$rec->groupId}");
+        // Показване на филтър по домейни
+        $domains = cms_Domains::getDomainOptions(false, core_Users::getCurrent());
+        if(countR($domains) == 1){
+            $data->listFilter->setField('domainId', 'input=hidden');
         } else {
-            $groups = eshop_Groups::getGroupsByDomain();
-            if (countR($groups)) {
-                $groupList = implode(',', array_keys($groups));
-                $data->query->where("#groupId IN ({$groupList})");
-                $data->listFilter->setOptions('groupId', $groups);
+            $data->listFilter->setOptions('domainId', $domains);
+        }
+        
+        // Показване на групите от избрания домейн
+        $groups = eshop_Groups::getGroupsByDomain($data->listFilter->rec->domainId);
+        if(countR($groups)){
+            $data->listFilter->setOptions('groupId', $groups);
+        } else {
+            $data->listFilter->setReadOnly('groupId');
+        }
+        
+        $data->listFilter->input();
+        
+        if($filter = $data->listFilter->rec){
+            
+            // Избрания домейн се записва
+            if(isset($filter->domainId)){
+                cms_Domains::selectCurrent($filter->domainId);
+            }
+            
+            if (isset($filter->groupId)) {
+                $data->query->where("#groupId = {$filter->groupId}");
+            } else {
+                if(countR($groups)){
+                    $data->query->in("groupId", array_keys($groups));
+                } else {
+                    $data->query->where("1=2");
+                }
             }
         }
     }
@@ -1346,10 +1373,12 @@ class eshop_Products extends core_Master
         }
         
         // В краен случай търсим полето в настройките на домейна
-        $domainId = cms_Content::fetchField($groupRec->menuId, 'domainId');
-        $settings = cms_Domains::getSettings($domainId);
-        $res = keylist::isKeylist($settings->{$field}) ? keylist::toArray($settings->{$field}) : arr::make($settings->{$field}, true);
-        $hint = 'Стойността е зададена в настройките на домейна';
+        if($groupRec->menuId){
+            $domainId = cms_Content::fetchField($groupRec->menuId, 'domainId');
+            $settings = cms_Domains::getSettings($domainId);
+            $res = keylist::isKeylist($settings->{$field}) ? keylist::toArray($settings->{$field}) : arr::make($settings->{$field}, true);
+            $hint = 'Стойността е зададена в настройките на домейна';
+        }
         
         return $res;
     }

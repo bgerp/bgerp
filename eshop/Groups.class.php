@@ -117,7 +117,7 @@ class eshop_Groups extends core_Master
      */
     public function description()
     {
-        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Основно,silent,refreshForm');
+        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Основно,silent,refreshForm,mandatory');
         $this->FLD('sharedMenus', 'keylist(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Споделяне в,silent,refreshForm');
         
         $this->FLD('name', 'varchar(64)', 'caption=Група->Наименование, mandatory,width=100%');
@@ -873,13 +873,26 @@ class eshop_Groups extends core_Master
      */
     public static function getGroupsByDomain($domainId = null)
     {
+        $res = array();
         if (!$domainId) {
             $domainId = cms_Domains::getPublicDomain('id');
         }
         
+        // Всички менщта от този домейн
+        $cQuery = cms_Content::getQuery();
+        $cQuery->where("#domainId = {$domainId}");
+        $cQuery->show('id');
+        $menuIds = arr::extractValuesFromArray($cQuery->fetchAll(), 'id');
+        if(!countR($menuIds)){
+            
+            return $res;
+        }
+        
+        // Извличат се всички групи, които са към тези менюта или са споделени в тях
         $query = self::getQuery();
-        $query->EXT('domainId', 'cms_Content', 'externalKey=menuId');
-        $query->where("#domainId = {$domainId} AND #state = 'active'");
+        $query->in("menuId", $menuIds);
+        $query->orLikeKeylist('sharedMenus', $menuIds);
+        $query->show('name');
         
         $res = array();
         while ($rec = $query->fetch()) {
