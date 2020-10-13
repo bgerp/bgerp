@@ -137,21 +137,42 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
             $vatAmount = 0;
             
             foreach ($rec->productsData as $prod) {
-                foreach ($prod->inStores as $storeId => $storeQuantity) {
-                    $storeQuantity = (is_array($storeQuantity)) ? $storeQuantity['quantity'] : $storeQuantity;
-                    $amount = round($prod->allocated * ($storeQuantity / $prod->quantity), 2);
-                    $creditArr['quantity'] = currency_CurrencyRates::convertAmount($amount, $rec->valior, $baseCurrencyCode, $correspondingDoc->fetchField('currencyId'));
-                    $creditArr['quantity'] = $sign * currency_Currencies::round($creditArr['quantity'], $correspondingDoc->fetchField('currencyId'));
-                    
-                    $entries[] = array('amount' => $sign * $amount,
-                        'debit' => array('321',
-                            array('store_Stores', $storeId),
-                            array('cat_Products', $prod->productId),
-                            'quantity' => 0),
-                        'credit' => $creditArr,
-                    );
-                    
-                    $total += $sign * $amount;
+                if(is_array($prod->inStores) && countR($prod->inStores)){
+                    foreach ($prod->inStores as $storeId => $storeQuantity) {
+                        $storeQuantity = (is_array($storeQuantity)) ? $storeQuantity['quantity'] : $storeQuantity;
+                        $amount = round($prod->allocated * ($storeQuantity / $prod->quantity), 2);
+                        $creditArr['quantity'] = currency_CurrencyRates::convertAmount($amount, $rec->valior, $baseCurrencyCode, $correspondingDoc->fetchField('currencyId'));
+                        $creditArr['quantity'] = $sign * currency_Currencies::round($creditArr['quantity'], $correspondingDoc->fetchField('currencyId'));
+                        
+                        $entries[] = array('amount' => $sign * $amount,
+                            'debit' => array('321',
+                                array('store_Stores', $storeId),
+                                array('cat_Products', $prod->productId),
+                                'quantity' => 0),
+                            'credit' => $creditArr,
+                        );
+                        
+                        $total += $sign * $amount;
+                    }
+                } else {
+                    if(is_array($prod->expenseItems) && countR($prod->expenseItems)){
+                        foreach ($prod->expenseItems as $expenseItemId => $expenseData) {
+                            $expenseQuantity = (is_array($expenseData)) ? $expenseData['quantity'] : $expenseData;
+                            $amount = round($prod->allocated * ($expenseQuantity / $prod->quantity), 2);
+                            $creditArr['quantity'] = currency_CurrencyRates::convertAmount($amount, $rec->valior, $baseCurrencyCode, $correspondingDoc->fetchField('currencyId'));
+                            $creditArr['quantity'] = $sign * currency_Currencies::round($creditArr['quantity'], $correspondingDoc->fetchField('currencyId'));
+                            
+                            $entries[] = array('amount' => $sign * $amount,
+                                'debit' => array('60201',
+                                    $expenseItemId,
+                                    array('cat_Products', $prod->productId),
+                                    'quantity' => 0),
+                                'credit' => $creditArr,
+                            );
+                            
+                            $total += $sign * $amount;
+                        }
+                    }
                 }
                 
                 $vatAmount += $prod->allocated * cat_Products::getVat($prod->productId, $rec->valior);

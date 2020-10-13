@@ -33,7 +33,7 @@
         <tr>
             <td class="imageCell">[#img6#]</td>
             <td class="shortcuts"><span>Ctrl + B </span></td>
-            <td class="textShortcut"> - |Преглед на бележките|*</td>
+            <td class="textShortcut"> - |Избор на бележки|*</td>
         </tr>
         <tr>
             <td class="imageCell">[#img7#]</td>
@@ -54,7 +54,7 @@
         <tr>
             <td class="imageCell">[#img12#]</td>
             <td class="shortcuts"><span>Ctrl + O </span></td>
-            <td class="textShortcut"> - |Оттегляне на бележка|*</td>
+            <td class="textShortcut"> - |Оттегляне на бележката|*</td>
         </tr>
         <!--ET_END img12-->
         
@@ -62,7 +62,7 @@
         <tr>
             <td class="imageCell">[#img13#]</td>
             <td class="shortcuts"><span>Ctrl + O </span></td>
-            <td class="textShortcut"> - |Сторниране на бележка|*</td>
+            <td class="textShortcut"> - |Сторниране на бележката|*</td>
         </tr>
         <!--ET_END img13-->
         
@@ -70,7 +70,7 @@
         <tr>
             <td class="imageCell">[#img14#]</td>
             <td class="shortcuts"><span>Ctrl + O </span></td>
-            <td class="textShortcut"> - |Изтриване на бележка|*</td>
+            <td class="textShortcut"> - |Изтриване на бележката|*</td>
         </tr>
         <!--ET_END img14-->
         
@@ -116,7 +116,7 @@
         </tr>
         <tr>
             <td class="shortcuts"><span>20*</span></td>
-            <td class="textShortcut"> - |Промяна на количество|*</td>
+            <td class="textShortcut"> - |Промяна на количеството|*</td>
         </tr>
         <tr>
             <td class="shortcuts"><span>*1.54 </span></td>

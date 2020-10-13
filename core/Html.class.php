@@ -632,7 +632,9 @@ class core_Html
     {
         $attr = arr::make($attr);
         $attr['error'] = $error;
-        $attr['ef_icon'] = 'img/16/error.png';
+        if($attr['ef_icon'] != 'none'){
+            $attr['ef_icon'] = 'img/16/error.png';
+        }
         
         // Url-то се заменя с такова водещо към грешка
         $url = core_Message::getErrorUrl($error, 'page_Error');

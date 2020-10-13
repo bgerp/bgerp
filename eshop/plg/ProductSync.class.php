@@ -8,7 +8,7 @@
  * @package   eshop
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -17,12 +17,40 @@
 class eshop_plg_ProductSync extends core_Plugin
 {
     
+    
+    /**
+     * Обновява състоянието на детайлите на е-артикула с тези на Артикула
+     *
+     * @param int $productId - ид или запис на артикул
+     *
+     * @return void
+     */
+    private static function syncStatesByProductId($productId)
+    {
+        $productId = is_object($productId) ? $productId->id : $productId;
+        $pState = cat_Products::fetchField($productId, 'state');
+        
+        $Details = cls::get('eshop_ProductDetails');
+        $dQuery = $Details->getQuery();
+        $dQuery->where("#productId = {$productId}");
+        while($dRec = $dQuery->fetch()){
+            if($dRec->state == 'active' && $pState != 'active'){
+                $dRec->state = 'closed';
+            } elseif($dRec->state == 'closed' && $pState == 'active'){
+                $dRec->state = 'active';
+            }
+            
+            $Details->save_($dRec, 'state');
+        }
+    }
+    
+    
     /**
      * След промяна на състоянието
      */
     public static function on_AfterChangeState($mvc, &$rec, $action)
     {
-        eshop_ProductDetails::syncStatesByProductId($rec->id);
+        self::syncStatesByProductId($rec->id);
     }
     
     
@@ -35,7 +63,7 @@ class eshop_plg_ProductSync extends core_Plugin
      */
     public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
-        eshop_ProductDetails::syncStatesByProductId($id);
+        self::syncStatesByProductId($id);
     }
     
     
@@ -48,28 +76,17 @@ class eshop_plg_ProductSync extends core_Plugin
      */
     public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
     {
-        eshop_ProductDetails::syncStatesByProductId($id);
+        self::syncStatesByProductId($id);
     }
     
     
     /**
-     * След подготовка на тулбара на единичен изглед.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
+     * Изпълнява се след закачане на детайлите
      */
-    public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    public static function on_BeforeAttachDetails(core_Mvc $mvc, &$res, &$details)
     {
-        if (eshop_Products::haveRightFor('linktoeshop', (object) array('productId' => $data->rec->id))) {
-            $data->toolbar->addBtn('E-маг', array('eshop_Products', 'linktoeshop', 'productId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/star_2.png,title=Свързване в Е-маг');
-        }
-        
-        if ($domainId = cms_Domains::getCurrent('id', false)) {
-            if ($eshopProductId = eshop_Products::getByProductId($data->rec->id, $domainId)) {
-                if (eshop_Products::haveRightFor('single', $eshopProductId)) {
-                    $data->toolbar->addBtn('E-артикул', array('eshop_Products', 'single', $eshopProductId, 'ret_url' => true), 'ef_icon = img/16/globe.png,title=Към е-артикула');
-                }
-            }
-        }
+        $details = arr::make($details);
+        $details['eshopProductDetail'] = 'eshop_ProductDetails';
+        $details = arr::fromArray($details);
     }
 }

@@ -497,24 +497,28 @@ class crm_Companies extends core_Master
     {
         $form = $data->form;
         
-        if (empty($form->rec->id)) {
-            $form->setField('vatId', 'removeAndRefreshForm=name|address');
+        if (empty($form->rec->name)) {
+            $form->setField('vatId', 'removeAndRefreshForm=name|address|pCode|country|place');
             
-            // Слагаме Default за поле 'country'
-            $myCompany = self::fetchOwnCompany();
-            $form->setDefault('country', $myCompany->countryId);
-           
             if(empty($form->rec->name)){
+                $cDataSource = !empty($form->rec->vatId) ? $form->rec->vatId : $form->rec->uicId;
                 
                 // Ако не е въведено име, но има валиден ват попълват се адресните данни от него
-                if(!empty($form->rec->vatId)){
-                    list($status, , $name, $address) = cls::get('drdata_Vats')->checkStatus($form->rec->vatId);
-                    if($status == 'valid' && !empty($name)){
-                        $form->setDefault('name', $name);
-                        $form->setDefault('address', $address);
+                if(!empty($cDataSource)){
+                    if($cData = self::getCompanyDataFromString($cDataSource)){
+                        
+                        foreach (array('name', 'country', 'pCode', 'place', 'address', 'vatId', 'uicId') as $cFld){
+                            if(!empty($cData->{$cFld})){
+                                $form->setDefault($cFld, $cData->{$cFld});
+                            }
+                        }
                     }
                 }
             }
+            
+            // Дефолтната държава е същата, като на "Моята фирма"
+            $myCompany = self::fetchOwnCompany();
+            $form->setDefault('country', $myCompany->countryId);
         }
         
         // Ако сме в тесен режим
@@ -2520,5 +2524,83 @@ class crm_Companies extends core_Master
         if (countR($saveFields)) {
             self::save($rec, $saveFields);
         }
+    }
+    
+    
+    /**
+     * Извличане на данните на фирмата според зададения източник
+     * 
+     * @param string $string - ЕИК или Ват номер
+     * 
+     * @return false|stdClass - обект с данни или false, ако не намери нищо
+     *          o name    - име
+     *          o country - ид на държава
+     *          o pCode   - пощенски код
+     *          o place   - населено място
+     *          o address - адрес
+     *          o uicId   - ДДС номер (ако име)
+     *          o vatId   - ЕИК (ако има)
+     */
+    public static function getCompanyDataFromString($string)
+    {
+        $data = false;
+        $useVies = crm_Setup::get('REGISTRY_USE_VIES') == 'yes';
+        $useBrra = crm_Setup::get('REGISTRY_USE_BRRA') == 'yes';
+        
+        // Нормализиране на стринга
+        $string = str::removeWhiteSpace($string);
+        $string = strtoupper($string);
+        
+        // Ако е избран търговски регистър, и е въведен български ЕИК или ДДС номер, взимат се данните от търговския регистър
+        if($useBrra){
+            $brraString = (drdata_Vats::isHaveVatPrefix($string)) ? drdata_Vats::getUicByVatNo($string) : $string;
+            $data = drdata_Vats::getFromBrra($brraString);
+            
+            // Ако има данни в търговския регистър
+            if(is_object($data)){
+                if(drdata_Vats::isHaveVatPrefix($string)){
+                    $data->uicId = $brraString;
+                }
+                
+                // и има валиден ДДС номер, ще се върне и ДДС номерът
+                list($status) = cls::get('drdata_Vats')->checkStatus("BG{$brraString}");
+                if($status == 'valid'){
+                    $data->vatId = "BG{$brraString}";
+                }
+            }
+        }
+            
+        // Ако няма да се връщат или не са намерени данни от търговския регистър, взимат се от VIES, ако е избрано
+        if($data === false && $useVies){
+            
+            // Ако е валиден български ЕИК добавя му се BG отпред
+            if(!drdata_Vats::isHaveVatPrefix($string)){
+                if(drdata_Vats::isBulstat($string)){
+                    $string = "BG{$string}";
+                }
+            }
+            
+            // Връщане на данните от VIES - ако са намерени
+            $data = drdata_Vats::getFromVies($string);
+        }
+        
+        // Ако има намерени данни
+        if(is_object($data)){
+            
+            // Нормализиране на името на фирмата
+            $data->name = str_replace('"', "", $data->name);
+            $data->name = str_replace("'", "", $data->name);
+            $data->name = mb_strtolower(str::removeWhiteSpace($data->name, " "));
+            $data->name = str::toUpperAfter($data->name, " ");
+            $data->name = trim($data->name);
+            
+            // Специалните думи се капитализират
+            foreach (array('оод', 'еоод', 'ад', 'еад', 'ltd', 'ltd.', 's.r.o', 's.a', 'e.k', 'a.s', 'srl', 'd.o.o', 'cmbh') as $specialPart){
+                $data->name = str_replace(" " . str::mbUcfirst($specialPart),  " " . mb_strtoupper($specialPart), $data->name);
+            }
+        }
+       
+        // Връщане на данните, ако са извлечени
+        return $data;
     }
 }

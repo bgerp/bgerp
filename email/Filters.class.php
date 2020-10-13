@@ -37,7 +37,7 @@ class email_Filters extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_State2, email_Wrapper, plg_RowTools, plg_Clone';
+    public $loadList = 'plg_Created, plg_State2, email_Wrapper, plg_RowTools, plg_Clone, plg_Sorting';
     
     
     /**
@@ -94,8 +94,8 @@ class email_Filters extends core_Manager
         $this->FLD('email', 'varchar', 'caption=Условие->Изпращач', array('attr' => array('style' => 'width: 350px;')));
         $this->FLD('subject', 'varchar', 'caption=Условие->Относно', array('attr' => array('style' => 'width: 350px;')));
         $this->FLD('body', 'varchar', 'caption=Условие->Текст', array('attr' => array('style' => 'width: 350px;')));
-        $this->FLD('action', 'enum(email=Рутиране по първи външен имейл,folder=Преместване в папка)', 'value=email,caption=Действие->Действие,maxRadio=4,columns=1,notNull');
-        $this->FLD('folderId', 'key(mvc=doc_Folders, select=title, allowEmpty, where=#state !\\= \\\'rejected\\\')', 'caption=Действие->Папка');
+        $this->FLD('action', 'enum(email=Рутиране по първи външен имейл,folder=Преместване в папка)', 'value=email,caption=Действие->Действие,maxRadio=4,columns=1,notNull,removeAndRefreshForm=folderId, silent');
+        $this->FLD('folderId', 'key(mvc=doc_Folders, select=title, allowEmpty, where=#state !\\= \\\'rejected\\\')', 'caption=Действие->Папка, input=none');
         $this->FLD('note', 'text', 'caption=@Забележка', array('attr' => array('style' => 'width: 100%;', 'rows' => 4)));
         
         $this->setDbUnique('systemId');
@@ -139,6 +139,20 @@ class email_Filters extends core_Manager
         }
         
         return $rec->folderId;
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        if ($data->form->rec->action == 'folder') {
+            $data->form->setField('folderId', 'input=input');
+        }
     }
     
     
@@ -467,5 +481,21 @@ class email_Filters extends core_Manager
         unset($nRec->createdOn);
         unset($nRec->createdBy);
         unset($nRec->state);
+    }
+    
+    
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return bool
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->query->orderBy('createdOn', 'DESC');
+        $data->query->orderBy('id', 'DESC');
     }
 }

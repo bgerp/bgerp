@@ -132,7 +132,7 @@ class acc_plg_ExpenseAllocation extends core_Plugin
                 if($rec->allocationBy == 'auto'){
                     $itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
                     $origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
-                    $rec->productsData = $origin->getCorrectableProducts();
+                    $rec->productsData = $origin->getCorrectableProducts('acc_CostAllocations');
                 } elseif(isset($rec->chosenProducts)){
                     $rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
                 }

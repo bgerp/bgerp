@@ -36,11 +36,16 @@ class cat_plg_AddSearchKeywords extends core_Plugin
         // Гледа се в детайла на класа (ако има, кои артикули се използват)
         if ($rec->id) {
             if(isset($mvc->mainDetail)){
-                
+               
                 // Намиране на детайлите на документа
                 $Detail = cls::get($mvc->mainDetail);
                 $dQuery = $Detail::getQuery();
                 $dQuery->where("#{$Detail->masterKey} = '{$rec->id}'");
+                
+                if ($Detail->getField('state', false)) {
+                    $dQuery->where("#state != 'rejected' AND #state != 'closed'");
+                }
+                
                 setIfNot($Detail->productFld, 'productId');
                 setIfNot($Detail->notesFld, 'notes');
                 $dQuery->where("#{$Detail->productFld} IS NOT NULL");

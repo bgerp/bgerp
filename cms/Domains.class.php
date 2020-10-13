@@ -761,16 +761,27 @@ class cms_Domains extends core_Embedder
     
     /**
      * Опции от наличните домейни
-     *
-     * @return array $options - опции домейни
+     * 
+     * @param boolean $uniqDomains - уникални домейни
+     * @param int|null $cu         - текущ потребител, ако има
+     * 
+     * @return array $options      - намерените домейни
      */
-    public static function getDomainOptions($uniqDomains = false)
+    public static function getDomainOptions($uniqDomains = false, $cu = null)
     {
         $options = $domains = array();
         $query = self::getQuery();
         while ($rec = $query->fetch()) {
+            if(isset($cu)){
+                if(!self::haveRightFor('select', $rec, $cu)){
+                    
+                    continue;
+                }
+            }
+            
             if($uniqDomains) {
                 if($domains[$rec->domain]) continue;
+                
                 $domains[$rec->domain] = true;
                 $options[$rec->id] = $rec->domain;
             } else {

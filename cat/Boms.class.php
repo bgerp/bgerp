@@ -492,9 +492,9 @@ class cat_Boms extends core_Master
             cat_Products::touchRec($productId);
         }
         
-        //@todo да се махне след като се провери дали някой не записва документа докато е активен
+        // @todo да се махне след като се провери дали някой не записва документа докато е активен
         if(isset($rec->state) && $rec->state == $rec->brState && $rec->state != 'draft'){
-            wp($rec);
+            wp('cat_Boms::afterSaveActive', $rec);
         }
     }
     
@@ -517,6 +517,8 @@ class cat_Boms extends core_Master
                 cat_Products::touchRec($rec->productId);
             }
         }
+        
+        doc_DocumentCache::cacheInvalidation($rec->containerId);
         
         return $this->save_($rec, 'modifiedOn,modifiedBy,searchKeywords');
     }
@@ -1301,7 +1303,9 @@ class cat_Boms extends core_Master
                     $rec->primeCost = $primeCost;
                     $rec->params = $params1;
                     
+                    Mode::push("touchRec{$rec->bomId}", false);
                     cls::get('cat_BomDetails')->save_($rec, 'primeCost,params');
+                    Mode::pop("touchRec{$rec->bomId}");
                 }
             }
         } else {
@@ -1352,7 +1356,10 @@ class cat_Boms extends core_Master
                 
                 if (serialize($rec->params) != serialize($params1)) {
                     $rec->params = $params1;
+                    
+                    Mode::push("touchRec{$rec->bomId}", true);
                     cls::get('cat_BomDetails')->save_($rec, 'params');
+                    Mode::pop("touchRec{$rec->bomId}");
                 }
             }
         }
@@ -1695,5 +1702,25 @@ class cat_Boms extends core_Master
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Обновява modified стойностите
+     *
+     * @param core_Master $mvc
+     * @param bool|NULL   $res
+     * @param int         $id
+     */
+    public static function on_AfterTouchRec($mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        
+        if ($rec) {
+            if ($rec->state == 'rejected') {
+                // @todo - премахване след ремонт
+                wp('cat_Boms::afterTouchRejected', $res, $rec);
+            }
+        }
     }
 }

@@ -1,10 +1,12 @@
 [#INTRODUCTION#]
 
 Благодарим за вашата покупка [#SALE_HANDLER#].
-Плащане: [#PAYMENT_NAME#].<!--ET_BEGIN PAYMENT_TEXT-->
+
+Детайли
+=======
+[b]Плащане[/b]: [#PAYMENT_NAME#]<!--ET_BEGIN PAYMENT_AMOUNT-->, [#PAYMENT_AMOUNT#]<!--ET_END PAYMENT_AMOUNT-->.<!--ET_BEGIN PAYMENT_TEXT-->
 [#PAYMENT_TEXT#]<!--ET_END PAYMENT_TEXT-->
-<!--ET_BEGIN TERM_ID-->Доставка: [#TERM_ID#] [#DELIVERY_COUNTRY#]<!--ET_BEGIN PLACE-->, [#PLACE#]<!--ET_END PLACE--><!--ET_BEGIN ADDRESS-->, [#ADDRESS#]<!--ET_END ADDRESS-->.<!--ET_END TERM_ID-->
-[#MAKE_INVOICE#]<!--ET_BEGIN invoiceNames-->, [#invoiceNames#]<!--ET_END invoiceNames--><!--ET_BEGIN invoiceVatNo-->, [#invoiceVatNo#]<!--ET_END invoiceVatNo--><!--ET_BEGIN invoiceUicNo-->, [#invoiceUicNo#]<!--ET_END invoiceUicNo--><!--ET_BEGIN invoiceCountry-->, [#invoiceCountry#], <!--ET_END invoiceCountry--><!--ET_BEGIN invoicePCode-->[#invoicePCode#] <!--ET_END invoicePCode--><!--ET_BEGIN invoicePlace-->[#invoicePlace#], <!--ET_END invoicePlace--><!--ET_BEGIN invoiceAddress-->[#invoiceAddress#]<!--ET_END invoiceAddress-->.
-<!--ET_BEGIN REGISTER_LINK-->Ако желаете в бъдеще да спестите време при покупки от нашия е-Магазин, моля регистрирайте се от тази [#REGISTER_LINK#], която изтича след 7 дни.<!--ET_END REGISTER_LINK-->
-<!--ET_BEGIN EXPECTED_DELIVERY-->[#EXPECTED_DELIVERY#]<!--ET_END EXPECTED_DELIVERY-->
+<!--ET_BEGIN TERM_ID-->[b]Доставка[/b]: [#TERM_ID#] [#DELIVERY_COUNTRY#]<!--ET_BEGIN PLACE-->, [#PLACE#]<!--ET_END PLACE--><!--ET_BEGIN ADDRESS-->, [#ADDRESS#]<!--ET_END ADDRESS-->.<!--ET_END TERM_ID-->
+[b][#MAKE_INVOICE#][/b]<!--ET_BEGIN invoiceNames-->: [#invoiceNames#]<!--ET_END invoiceNames--><!--ET_BEGIN invoiceVatNo-->, [#invoiceVatNo#]<!--ET_END invoiceVatNo--><!--ET_BEGIN invoiceUicNo-->, [#invoiceUicNo#]<!--ET_END invoiceUicNo--><!--ET_BEGIN invoiceCountry-->, [#invoiceCountry#], <!--ET_END invoiceCountry--><!--ET_BEGIN invoicePCode-->[#invoicePCode#] <!--ET_END invoicePCode--><!--ET_BEGIN invoicePlace-->[#invoicePlace#], <!--ET_END invoicePlace--><!--ET_BEGIN invoiceAddress-->[#invoiceAddress#]<!--ET_END invoiceAddress-->.
+<!--ET_BEGIN REGISTER_LINK-->Ако желаете в бъдеще да спестите време при покупки от нашия е-Магазин, моля регистрирайте се от тази [#REGISTER_LINK#], която изтича след 7 дни.<!--ET_END REGISTER_LINK--><!--ET_BEGIN EXPECTED_DELIVERY-->[#EXPECTED_DELIVERY#]<!--ET_END EXPECTED_DELIVERY-->
 [#FOOTER#]

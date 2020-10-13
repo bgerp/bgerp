@@ -120,9 +120,9 @@ class pami_Setup extends core_ProtoSetup
         'PAMI_USER' => array('varchar(64)', 'mandatory, mandatory, caption=Данни за връзка с PAMI->Потребител'),
         'PAMI_PASS' => array('password', 'mandatory,caption=Данни за връзка с PAMI->Парола'),
         'PAMI_LOG_KEY' => array('password', 'caption=Ключ за връзка->Парола'),
-        'PAMI_LOG_KEEP_DAYS' => array('int(min=0)', 'mandatory, caption=Живот за логовете->Дни'),
-        'PAMI_LOG_URL' => array('varchar', 'caption=mandatory, URL за логване->URL'),
-        'PAMI_SAVE_TO_LOG' => array('enum(yes=Да,no=Не)', 'mandatory, caption=Дали да се записва в лога->Избор'),
+        'PAMI_LOG_KEEP_DAYS' => array('int(min=0)', 'caption=Живот на логовете->Дни'),
+        'PAMI_LOG_URL' => array('varchar', 'caption=URL за логване->URL'),
+        'PAMI_SAVE_TO_LOG' => array('enum(yes=Да,no=Не)', 'caption=Дали да се записва в лога->Избор'),
         'PAMI_PID' => array('varchar(readonly)', 'caption=PID на процеса за слушане->PID,readonly'),
     );
     
@@ -175,11 +175,13 @@ class pami_Setup extends core_ProtoSetup
             $stopped = $this->stop();
             if (isset($stopped)) {
                 $html .= "<li class='green'>Спрян слушач за PAMI - pid={$pid}</li>";
+                log_System::add('pami_Setup', "Спрян слушач за PAMI - от инсталация", null, 'debug');
             }
             
             $pid = $this->start();
             if ($pid) {
                 $html .= "<li class='green'>Стартиран слушач за PAMI - pid={$pid}</li>";
+                log_System::add('pami_Setup', "Стартиран слушач за PAMI - от инсталация", null, 'debug');
             } elseif ($pid === null) {
                 $html .= "<li class='red'>Грешка при пускане на PAMI слушач - не са попълнени данни</li>";
             } else {
@@ -202,9 +204,20 @@ class pami_Setup extends core_ProtoSetup
      */
     public function cron_WatchDog()
     {
-        $pid = $this->start();
+        // В ненатоварено време на случаен принцип, форсираме рестартиране на процеса
+        $h = date('G');
+        $m = date('i');
+        $force = false;
+        if (($h >= 2) && ($h <= 7)) {
+            if ($m == rand(0,60)) {
+                $force = true;
+            }
+        }
+        
+        $pid = $this->start($force);
         if (isset($pid)) {
-            log_System::add('pami_Setup', "Принудително пускане на PAMI с PID={$pid} по крон", null, 'warning');
+            $type = $force ? 'notice' : 'warning';
+            log_System::add('pami_Setup', "Принудително пускане на PAMI с PID={$pid} по крон", null, $type);
         }
     }
     
@@ -224,6 +237,8 @@ class pami_Setup extends core_ProtoSetup
         
         if (!$ip || !$port || !$scheme || !$user || !$pass) {
             
+            log_System::add('pami_Setup', "Не са зададени параметри", null, 'notice');
+            
             return null;
         }
         
@@ -231,6 +246,7 @@ class pami_Setup extends core_ProtoSetup
         if ($force) {
             if ($this->isStarted()) {
                 $this->stop();
+                log_System::add('pami_Setup', "Форсирано спиране", null, 'debug');
             }
         }
         
@@ -246,6 +262,12 @@ class pami_Setup extends core_ProtoSetup
             $pid = @exec(sprintf('%s > /dev/null 2>&1 & echo $!', $cmd));
             
             core_Packs::setConfig('pami', array('PAMI_PID' => $pid, 'PAMI_CMD' => $cmd));
+            
+            if ($force) {
+                log_System::add('pami_Setup', "Форсирано пускане на процеса", null, 'debug');
+            } else {
+                log_System::add('pami_Setup', "Стартиране на процеса", null, 'debug');
+            }
         }
         
         return $pid;
@@ -267,6 +289,12 @@ class pami_Setup extends core_ProtoSetup
             $res = posix_kill($pid, 9);
             
             core_Packs::setConfig('pami', array('PAMI_PID' => ''));
+            
+            // За премахване от кеша
+            $packName = $this->getPackName();
+            unset(static::$conf[$packName]);
+            
+            log_System::add('pami_Setup', "Спиране на процеса", null, 'debug');
         }
         
         return ($res);
@@ -314,7 +342,7 @@ class pami_Setup extends core_ProtoSetup
     public function deinstall()
     {
         // Спираме процеса
-        if (true === $this->Stop()) {
+        if (true === $this->stop()) {
             $res .= "<li class='debug-new'>Успешно спрян процес.</li>";
             $res .= parent::deinstall();
         } else {

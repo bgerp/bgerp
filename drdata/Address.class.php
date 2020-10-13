@@ -106,7 +106,7 @@ class drdata_Address extends core_MVC
      */
     public static function extractMobNumbers($line)
     {
-        preg_match_all("/\b(m|gsm|mobile|mtel|mobiltel|vivacom|vivatel|globul|mob)[^0-9\(\+]{0,4}([\d\(\+][\d\- \,\(\)\.\+\/]{7,27}[\d\)])/", $line, $matches);
+        preg_match_all("/\b(m|gsm|mobile|mtel|mobiltel|vivacom|vivatel|globul|mob|telenor|a1)[^0-9\(\+]{0,4}([\d\(\+][\d\- \,\(\)\.\+\/]{7,27}[\d\)])/", $line, $matches);
         
         return self::filterTel($matches[2]);
     }

@@ -186,7 +186,7 @@ class core_Array
      * @param $field string  Име на полето по което се подрежда
      * @param $dir   string  Посока на подредбата ('asc' или 'desc')
      * @param $mode  string  Типа на сравнението
-     *                о   'native'  - така, както се прави стравнение в PHP с <, >, и ==
+     *                о   'native'  - така, както се прави сравнение в PHP с <, >, и ==
      *                o   'str'     - стрингово сравнение
      *                о   'stri'    - стрингово сравнение без отчитане на кейса
      *                о   'natural' - стрингово сравнение, използвайки natural sorting algorityma
