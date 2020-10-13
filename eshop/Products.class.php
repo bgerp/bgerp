@@ -155,7 +155,7 @@ class eshop_Products extends core_Master
         
         // Запитване за нестандартен продукт
         $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams|proto|measureId,silent');
-        $this->FLD('proto', 'keylist(mvc=cat_Products,allowEmpty,select=name,select2MinItems=100)', 'caption=Запитване->Прототип,input=hidden,silent,placeholder=Популярни продукти');
+        $this->FLD('proto', 'keylist(mvc=cat_Products,allowEmpty,select=name,select2MinItems=100)', 'caption=Запитване->Прототип,input=hidden,silent,placeholder=Популярни артикули');
         $this->FLD('coMoq', 'double', 'caption=Запитване->МКП,hint=Минимално количество за поръчка,silent');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,tdClass=centerCol');
         $this->FLD('quantityCount', 'enum(,3=3 количества,2=2 количества,1=1 количество)', 'caption=Запитване->Количества,placeholder=Без количество');
@@ -465,7 +465,7 @@ class eshop_Products extends core_Master
     
     
     /**
-     * Подготвя информация за всички продукти от активните групи
+     * Подготвя информация за всички артикули от активните групи
      */
     public static function prepareAllProducts($data)
     {
@@ -520,7 +520,7 @@ class eshop_Products extends core_Master
     
     
     /**
-     * Подготвя данните за продуктите от една група
+     * Подготвя данните за артикулите от една група
      */
     public static function prepareGroupList($data)
     {
@@ -611,7 +611,7 @@ class eshop_Products extends core_Master
     
     
     /**
-     * Рендира всички продукти
+     * Рендира всички артикули
      */
     public static function renderAllProducts($data)
     {
@@ -1587,7 +1587,7 @@ class eshop_Products extends core_Master
     
     
     /**
-     * Изчислява подобните продукти
+     * Изчислява подобните артикули
      */
     public static function saveNearProducts()
     {
@@ -1641,8 +1641,8 @@ class eshop_Products extends core_Master
                     $alreadyIn = array_keys($r[$epId]);
                     $alreadyIn[] = $epId;
                     
-                    // Ако продукта има под $maxNearProducts близки продукта, допълваме с продукти, които са от същите групи,
-                    // не са от съществуващите продукти и са подредени по рейтинг на е-шоп продуктите
+                    // Ако продукта има под $maxNearProducts близки продукта, допълваме с артикули, които са от същите групи,
+                    // не са от съществуващите артикули и са подредени по рейтинг на е-шоп артикулите
                     if($count < $maxNearProducts){
                         
                         $dQuery = eshop_ProductDetails::getQuery();
@@ -1678,7 +1678,7 @@ class eshop_Products extends core_Master
     
     
     /**
-     * Кои продукти са използвани в Е-маг
+     * Кои артикули са използвани в Е-маг
      *
      * @return array $eProductArr
      */

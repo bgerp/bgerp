@@ -2,7 +2,7 @@
 
 
 /**
- * Мениджър на групи с продукти.
+ * Мениджър на групи с артикули.
  *
  *
  * @category  bgerp
@@ -37,7 +37,7 @@ class eshop_Groups extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Име,menuId=Меню->Основно,sharedMenus=Меню->Споделяне||Shared,productCnt=Продукти,state=Видимост';
+    public $listFields = 'name=Име,menuId=Меню->Основно,sharedMenus=Меню->Споделяне||Shared,productCnt=Артикули,state=Видимост';
     
     
     /**
@@ -349,7 +349,7 @@ class eshop_Groups extends core_Master
         
         
         if (self::mustShowSideNavigation()) {
-            // Ако имаме поне 4-ри групи продукти
+            // Ако имаме поне 4-ри групи артикули
             $this->prepareNavigation($data);
             $this->prepareAllGroups($data);
             $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
@@ -527,7 +527,7 @@ class eshop_Groups extends core_Master
     
     
     /**
-     * Добавя бутони за разглеждане във витрината на групите с продукти
+     * Добавя бутони за разглеждане във витрината на групите с артикули
      */
     protected function on_AfterPrepareListToolbar($mvc, $data)
     {

@@ -71,7 +71,7 @@ defIfNot('ESHOP_MAX_NEAR_PRODUCTS', '12');
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
- * мениджъри свързани с продуктите
+ * мениджъри свързани с артикулите
  *
  *
  * @category  bgerp
