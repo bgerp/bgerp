@@ -3,10 +3,17 @@
 	<h1 style='font-size:1.5em' class="eshop-name">[#name#] &nbsp;<!--ET_BEGIN singleLink-->[#singleLink#]<!--ET_END singleLink--><!--ET_BEGIN editLink-->[#editLink#]<!--ET_END editLink--></h1>
 	<div class='eshop-product-navigation'>[#productPath#]</div>
 	<div class='eshop-product-labels' style="margin-bottom: 10px;">
-		<!--ET_BEGIN code--><span><b>|Код|*: [#code#]</b></span><!--ET_END code-->
+			<!--ET_BEGIN ONLY_PRODUCT_NAME-->
+			<div style='padding-bottom:5px'><b>[#ONLY_PRODUCT_NAME#]</b></div>
+			<!--ET_END ONLY_PRODUCT_NAME-->
+			<div>
+			<!--ET_BEGIN code--><span><b>|Код|*: [#code#]</b></span><!--ET_END code-->
+			</div>
 		<div class="inqRow">[#coInquiry#] <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--></div>
-
 	</div>
+	<!--ET_BEGIN STATE_EXTERNAL-->
+	<div style='padding-bottom:5px'>[#STATE_EXTERNAL#]</div>
+	<!--ET_END STATE_EXTERNAL-->
 	<div class="eshop-product-images">
 		[#image#]
 		[#image2#]
@@ -14,6 +21,7 @@
 		[#image4#]
 		[#image5#]
 	</div>
+	
 	<!--ET_BEGIN PRODUCT_OPT-->
 	<div class="scrolling-holder" style="margin: 15px 0;">
 		[#PRODUCT_OPT#]
