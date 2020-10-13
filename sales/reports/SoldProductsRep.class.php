@@ -687,7 +687,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $deltaPrevious *= $rate;
                 $primeCostLastYear *= $rate;
                 $deltaLastYear *= $rate;
-                if (!empty($invProd)) {
+                if ($invProd[$id]->invAmount) {
                     $invProd[$id]->invAmount *= $rate;
                 }
             }
