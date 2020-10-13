@@ -159,7 +159,7 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_CART_ACCESS_SALT' => array('varchar', 'caption=Даване на достъп за присвояване на количка->Сол'),
         'ESHOP_PRODUCTS_PER_PAGE' => array('int(Min=0)', 'caption=Брой артикули на страница в групата->Брой'),
         'ESHOP_RATINGS_OLDER_THEN' => array('time', 'caption=Изчисляване на рейтинги за продажба->Изчисляване от'),
-        'ESHOP_MAX_NEAR_PRODUCTS' => array('int(min=0)', 'caption=Максимален брой свързани артикули->Брой'),
+        'ESHOP_MAX_NEAR_PRODUCTS' => array('int(min=0)', 'caption=Максимален брой свързани артикули->Брой,callOnChange=eshop_Setup::updateNearProducts'),
     );
     
     
@@ -347,5 +347,22 @@ class eshop_Setup extends core_ProtoSetup
         if(countR($update)){
             $Products->saveArray($update, 'id,domainId');
         }
+    }
+    
+    
+    /**
+     * Метод изпълняващ се след промяна на константата за брой близки артикули
+     * 
+     * @param core_Type $Type
+     * @param mixed $oldValue
+     * @param mixed $newValue
+     * 
+     * @return string
+     */
+    public static function updateNearProducts($Type, $oldValue, $newValue)
+    {
+        eshop_Products::saveNearProducts();
+        
+        return tr('Преизчисляване на свързаните е-артикули');
     }
 }
