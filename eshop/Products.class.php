@@ -25,13 +25,13 @@ class eshop_Products extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, eshop_Wrapper, plg_State2, cat_plg_AddSearchKeywords, cms_VerbalIdPlg, plg_Search, plg_Sorting, plg_StructureAndOrder,plg_BulSearch';
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, eshop_Wrapper, plg_State2, cms_VerbalIdPlg, cat_plg_AddSearchKeywords, plg_Search, plg_Sorting, plg_StructureAndOrder,plg_BulSearch';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code,name=Е-артикул,dCount=Опции,groupId=Група,saleState,state';
+    public $listFields = 'code,name=Е-артикул,dCount=Опции,groupId=Група,saleState,state,searchKeywords';
     
     
     /**
@@ -872,7 +872,10 @@ class eshop_Products extends core_Master
         if (isset($rec->id)) {
             $dQuery = eshop_ProductDetails::getQuery();
             $dQuery->where("#eshopProductId = {$rec->id} AND #state = 'active'");
+            
             while ($dRec = $dQuery->fetch()) {
+                $pName = eshop_ProductDetails::getPublicProductTitle($rec->id, $dRec->productId);
+                $searchKeywords .= ' ' . plg_Search::normalizeText($pName);
                 
                 // Извличат се параметрите им и се добавят към ключовите думи
                 $params = cat_Products::getParams($dRec->productId, null, true);
