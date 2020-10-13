@@ -96,6 +96,8 @@
   </fieldset>
    <!--ET_END longInfo-->
    
+   <!--ET_BEGIN INQUIRY-->
+   [#INQUIRY#]
    <fieldset class="detail-info">
       <legend class="groupTitle">|Запитване|*</legend>
       <div class="groupList">
@@ -137,6 +139,8 @@
       </table>
       </div>
   </fieldset>
+<!--ET_END INQUIRY-->
+
 
     <!--ET_BEGIN PARAMS-->
    <fieldset class="detail-info">
