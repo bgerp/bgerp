@@ -597,7 +597,7 @@ class eshop_Products extends core_Master
                 }
             } elseif ($pRec->saleState == 'multi') {
                 $pRow->btn = ht::createBtn($settings->addToCartBtn . '...', self::getUrl($pRec->id), false, false, 'title=Избор на артикул,class=productBtn addToCard,ef_icon=img/16/cart_go.png');
-            } elseif ($pRec->saleState == 'closed') {
+            } elseif ($pRec->saleState == 'closed' && empty($pRec->coDriver)) {
                 $pRow->saleInfo = "<span class='option-not-in-stock'>" . mb_strtoupper(tr(('Спрян||Not available'))) . '</span>';
             }
             

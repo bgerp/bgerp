@@ -25,7 +25,7 @@ class eshop_ProductDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'eshop_Wrapper, plg_Created, plg_Modified, plg_SaveAndNew, plg_RowTools2, plg_Select, plg_AlignDecimals2, plg_State2';
+    public $loadList = 'eshop_Wrapper, plg_Created, plg_Modified, plg_SaveAndNew, plg_RowTools2, plg_AlignDecimals2, plg_State2';
     
     
     /**
