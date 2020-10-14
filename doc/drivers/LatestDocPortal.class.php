@@ -212,6 +212,8 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                     $rRec = $rQuery->fetch();
                     $last = $rRec->last;
                     
+                    $cloneQ = null;
+                    
                     // Ако има документ, който е добавен след последното разглеждане на нишката
                     if ($last) {
                         $cloneQ = clone $cQuery;
@@ -228,7 +230,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                     $lRec = $cQuery->fetch();
                     
                     // Ако няма нов документ, линка да сочи към последно модифицирания
-                    if (!$lRec) {
+                    if (!$cloneQ) {
                         $cloneQ->orderBy('modifiedOn', 'DESC');
                         $cloneQ->orderBy('id', 'DESC');
                         $cloneQ->limit(1);
