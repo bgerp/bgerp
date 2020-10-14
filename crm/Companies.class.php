@@ -610,7 +610,6 @@ class crm_Companies extends core_Master
             $changeFieldsArr = unserialize($changeFieldsArr);
             
             if ($changeFieldsArr) {
-                $oRec = clone ($form->rec);
                 
                 $oldValArr = array();
                 foreach ($changeFieldsArr as $fName => $fVal) {
@@ -716,8 +715,6 @@ class crm_Companies extends core_Master
     {
         $similarsArr = array();
         
-        $similarName = $similarVat = false;
-        
         $fieldsArr = array();
         
         $nameL = '#' . mb_strtolower($rec->name) . '#';
@@ -810,8 +807,8 @@ class crm_Companies extends core_Master
         if ($form->isSubmitted()) {
             
             // Проверяваме да няма дублиране на записи
+            $fields = '';
             $resStr = static::getSimilarWarningStr($form->rec, $fields);
-            
             if ($resStr) {
                 $form->setWarning($fields, $resStr);
             }
@@ -905,11 +902,12 @@ class crm_Companies extends core_Master
             }
             
             if (!empty($rec->uicId)) {
+                $msg = $isError = null;
                 crm_Companies::checkUicId($rec->uicId, $rec->country, $msg, $isError);
                 if (!empty($msg)) {
                     $row->uicId = "<span class='red'>{$row->uicId}</span>";
                     $icon = ($isError === true) ? 'error' : 'warning';
-                    $row->uicId = ht::createHint($row->uicId, $msg, 'error');
+                    $row->uicId = ht::createHint($row->uicId, $msg, $icon);
                 }
             }
             
