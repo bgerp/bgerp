@@ -297,6 +297,10 @@ class crm_Companies extends core_Master
         $this->FLD('name', 'varchar(255,ci)', 'caption=Фирма,class=contactData,mandatory,remember=info,silent,export=Csv, translate=user|tr|transliterate');
         $this->FNC('nameList', 'varchar', 'sortingLike=name');
         
+        // Данъчен номер на фирмата
+        $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv,silent');
+        $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv,silent');
+        
         // Адресни данни
         $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,class=contactData,mandatory,export=Csv');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,export=Csv');
@@ -308,10 +312,6 @@ class crm_Companies extends core_Master
         $this->FLD('tel', 'drdata_PhoneType(type=tel,unrecognized=warning)', 'caption=Телефони,class=contactData,silent,export=Csv');
         $this->FLD('fax', 'drdata_PhoneType(type=fax)', 'caption=Факс,class=contactData,silent,export=Csv');
         $this->FLD('website', 'url', 'caption=Web сайт,class=contactData,export=Csv');
-        
-        // Данъчен номер на фирмата
-        $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv,silent');
-        $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv,silent');
         
         // Вземаме конфига
         $visibleNKID = crm_Setup::get('VISIBLE_NKID');
@@ -534,6 +534,7 @@ class crm_Companies extends core_Master
         
         if (empty($form->rec->name)) {
             $form->setField('vatId', 'removeAndRefreshForm=name|address|pCode|country|place');
+            $form->setField('uicId', 'removeAndRefreshForm=name|address|pCode|country|place');
             
             if(empty($form->rec->name)){
                 $cDataSource = !empty($form->rec->vatId) ? $form->rec->vatId : $form->rec->uicId;

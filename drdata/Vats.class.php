@@ -662,6 +662,11 @@ class drdata_Vats extends core_Manager
                                 $shortAddress = mb_substr($shortAddress, 0, $cutPos2);
                             }
                             
+                            $cutPos3 = mb_strpos($shortAddress, "Адрес на електронна поща:");
+                            if($cutPos3 !== false){
+                                $shortAddress = mb_substr($shortAddress, 0, $cutPos3);
+                            }
+                           
                             $parsedAddress = drdata_ParseAddressBg::parse($shortAddress);
                             foreach (array('pCode' => 'п.код', 'address' => 'ул.') as $fld => $k){
                                 $data->{$fld} = $parsedAddress[$k];
