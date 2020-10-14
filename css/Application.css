@@ -3169,6 +3169,9 @@ span.sharing-history-title {
       padding: 4px;
       border-radius: 3px; }
 
+.eshop_ProductDetails .listTable {
+  min-width: 800px; }
+
 .order-info {
   background-color: #f1f1f1;
   border: 1px solid #cccccc;
