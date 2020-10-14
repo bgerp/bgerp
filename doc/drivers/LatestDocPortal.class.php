@@ -230,7 +230,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                     $lRec = $cQuery->fetch();
                     
                     // Ако няма нов документ, линка да сочи към последно модифицирания
-                    if (!$cloneQ) {
+                    if ($cloneQ) {
                         $cloneQ->orderBy('modifiedOn', 'DESC');
                         $cloneQ->orderBy('id', 'DESC');
                         $cloneQ->limit(1);
