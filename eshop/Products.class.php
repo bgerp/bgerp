@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   eshop
  *
- * @author    Milen Georgiev <milen@experta.bg>
+ * @author    Milen Georgiev <milen@experta.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
@@ -79,7 +79,7 @@ class eshop_Products extends core_Master
     /**
      * Кой има право да го изтрие?
      */
-    public $canDelete = 'no_one';
+    public $canDelete = 'eshop,ceo';
     
     
     /**
@@ -394,7 +394,7 @@ class eshop_Products extends core_Master
             
             // Ако е затворен, се пропуска
             $productRec = eshop_Products::fetch($productId);
-            if ($productRec->state == 'closed' || $productRec->saleState == 'closed') {
+            if (!is_object($productRec) || $productRec->state == 'closed' || $productRec->saleState == 'closed') {
                 continue;
             }
             
@@ -1305,6 +1305,37 @@ class eshop_Products extends core_Master
             if($pRec->isPublic != 'yes' || !in_array($pRec->state, array('active', 'template')) || $pRec->canSell != 'yes'){
                 $requiredRoles = 'no_one';
             }
+        }
+        
+        if($action == 'delete' && isset($rec)){
+            if(eshop_CartDetails::fetchField("#eshopProductId = {$rec->id}")){
+                $requiredRoles = 'no_one';
+            } elseif(marketing_Inquiries2::fetchField("#sourceClassId = {$mvc->getClassId()} AND #sourceId = {$rec->id}")){
+                $requiredRoles = 'no_one';
+            }
+        }
+        
+        if($action == 'changestate' && isset($rec)){
+            if($mvc->haveRightFor('delete', $rec)){
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
+    
+    /**
+     * Кои полета ще извличаме, преди изтриване на заявката
+     */
+    public $fetchFieldsBeforeDelete = 'id';
+    
+    
+    /**
+     * След изтриване на запис
+     */
+    public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        // Ако изтриваме етап, изтриваме всичките редове от този етап
+        foreach ($query->getDeletedRecs() as $rec) {
+            eshop_ProductDetails::delete("#eshopProductId = {$rec->id}");
         }
     }
     

@@ -29,6 +29,14 @@ class eshop_ProductDetails extends core_Detail
     
     
     /**
+     * Брой записи на страница
+     *
+     * @var int
+     */
+    public $listItemsPerPage = 30;
+    
+    
+    /**
      * Единично заглавие
      */
     public $singleTitle = 'Опция';
