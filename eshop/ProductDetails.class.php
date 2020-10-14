@@ -290,6 +290,8 @@ class eshop_ProductDetails extends core_Detail
             } elseif($orderByParam == '_title'){
                 $a->orderField = static::getPublicProductTitle($a->eshopProductId, $a->productId);
                 $a->orderField = mb_strtolower($a->orderField);
+            } elseif($orderByParam == '_createdBy'){
+                $a->orderField = $a->createdOn;
             } else{
                 $value = cat_Products::getParams($a->productId, $orderByParam);
                 if(isset($value)){

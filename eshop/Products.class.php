@@ -125,6 +125,12 @@ class eshop_Products extends core_Master
     
     
     /**
+     * Кои полета ще извличаме, преди изтриване на заявката
+     */
+    public $fetchFieldsBeforeDelete = 'id';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
@@ -329,7 +335,8 @@ class eshop_Products extends core_Master
         }
         
         if (isset($fields['-single'])) {
-            $row->orderByParam = ($rec->orderByParam == '_code') ? tr('Код') : (($rec->orderByParam == '_title') ? tr('Заглавие') : $rов->orderByParam);
+            $row->orderByParam = ($rec->orderByParam == '_code') ? tr('Код') : (($rec->orderByParam == '_title') ? tr('Заглавие') : (($rec->orderByParam == '_createdOn') ? tr('Създаване') : $row->orderByParam));
+            
             foreach (array('showPacks', 'showParams') as $fld) {
                 $hint = null;
                 $showPacks = eshop_Products::getSettingField($rec->id, null, $fld, $hint);
@@ -471,18 +478,21 @@ class eshop_Products extends core_Master
      */
     public static function prepareAllProducts($data)
     {
-        $gQuery = eshop_Groups::getQuery();
-        $data->groups = array();
-        $groups = eshop_Groups::getGroupsByDomain();
+        $groups = eshop_Groups::getByDomain();
         if (countR($groups)) {
-            $groupList = implode(',', array_keys($groups));
-            $gQuery->where("#id IN ({$groupList})");
-            while ($gRec = $gQuery->fetch("#state = 'active'")) {
-                $data->groups[$gRec->id] = new stdClass();
-                $data->groups[$gRec->id]->groupId = $gRec->id;
-                $data->groups[$gRec->id]->groupRec = $gRec;
-                self::prepareGroupList($data->groups[$gRec->id]);
-            }
+            
+            return;
+        }
+            
+        $data->groups = array();
+        $gQuery = eshop_Groups::getQuery();
+        $groupList = implode(',', array_keys($groups));
+        $gQuery->where("#id IN ({$groupList})");
+        while ($gRec = $gQuery->fetch("#state = 'active'")) {
+            $data->groups[$gRec->id] = new stdClass();
+            $data->groups[$gRec->id]->groupId = $gRec->id;
+            $data->groups[$gRec->id]->groupRec = $gRec;
+            self::prepareGroupList($data->groups[$gRec->id]);
         }
     }
     
@@ -1033,16 +1043,15 @@ class eshop_Products extends core_Master
         if ($groupId = $form->rec->groupId) {
             unset($groups[$groupId]);
         }
+        
         $form->setSuggestions('sharedInGroups', $groups);
-        
         $form->setOptions('measureId', cat_UoM::getUomOptions());
-        
         if (isset($form->rec->productId)) {
             $mvc->setDefaultsFromProductId($form);
         }
         
         // Добавяне на параметрите, като опции за подреждане
-        $orderByParamOptions = array('_code' => tr('Код'), '_title' => tr('Заглавие'));
+        $orderByParamOptions = array('_code' => tr('Код'), '_title' => tr('Заглавие'), '_createdOn' => tr('Създаване'));
         $activeParams = cat_Params::makeArray4Select("#typeExt", "#state = 'active'");
         if(countR($activeParams)){
             $orderByParamOptions['g'] = (object) array('title' => tr('Параметри'), 'group' => true,);
@@ -1132,13 +1141,12 @@ class eshop_Products extends core_Master
         }
         
         // Показване на групите от избрания домейн
-        $groups = eshop_Groups::getGroupsByDomain($data->listFilter->rec->domainId);
+        $groups = eshop_Groups::getByDomain($data->listFilter->rec->domainId);
         if(countR($groups)){
             $data->listFilter->setOptions('groupId', $groups);
         } else {
             $data->listFilter->setReadOnly('groupId');
         }
-        
         $data->listFilter->input();
         
         if($filter = $data->listFilter->rec){
@@ -1321,11 +1329,6 @@ class eshop_Products extends core_Master
             }
         }
     }
-    
-    /**
-     * Кои полета ще извличаме, преди изтриване на заявката
-     */
-    public $fetchFieldsBeforeDelete = 'id';
     
     
     /**
