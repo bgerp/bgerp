@@ -212,11 +212,16 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                     $rRec = $rQuery->fetch();
                     $last = $rRec->last;
                     
-                    $cloneQ = null;
+                    $cloneQ = clone $cQuery;
+                    
+                    // Ако нишката никога не е виждана
+                    if (!$last) {
+                        $last = doc_Containers::fetchField($tRec->firstContainerId, 'createdOn');
+                        $last = dt::subtractSecs(1, $last);
+                    }
                     
                     // Ако има документ, който е добавен след последното разглеждане на нишката
                     if ($last) {
-                        $cloneQ = clone $cQuery;
                         
                         $cQuery->orderBy('createdOn', 'ASC');
                         $cQuery->orderBy('id', 'ASC');
@@ -230,7 +235,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                     $lRec = $cQuery->fetch();
                     
                     // Ако няма нов документ, линка да сочи към последно модифицирания
-                    if ($cloneQ) {
+                    if (!$lRec) {
                         $cloneQ->orderBy('modifiedOn', 'DESC');
                         $cloneQ->orderBy('id', 'DESC');
                         $cloneQ->limit(1);
