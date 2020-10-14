@@ -6675,10 +6675,8 @@ only screen and (max-width: 320px) {
   .single-thread .document .docStatistic div.alphabet .tab-page .detail-info .logs-type-err td {
     background-color: #fad0d1 !important; }
 
-  .portalNews div {
-    margin: 1px; }
   .portalNews .portalLatestFoldes {
-    margin-top: 5px; }
+    margin-top: 3px; }
   .portalNews .portalLatestThreads {
     display: list-item;
     margin-left: 30px;
