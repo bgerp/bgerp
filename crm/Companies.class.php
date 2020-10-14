@@ -477,12 +477,47 @@ class crm_Companies extends core_Master
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         if ($data->toolbar->removeBtn('btnAdd')) {
-            if ($groupId = $data->listFilter->rec->groupId) {
-                $data->toolbar->addBtn('Нова фирма', array($mvc, 'Add', "groupList[{$groupId}]" => 'on'), 'id=btnAdd', array('ef_icon' => 'img/16/office-building-add.png', 'title' => 'Създаване на нова визитка на фирма'));
+            self::addNewCompanyBtn2Toolbar($data->toolbar, $data->listFilter);
+        }
+    }
+    
+    
+    /**
+     * Добавя бутон за създаване на нова фирма към тулбар, взимайки под внимание филтър
+     * 
+     * @param core_Toolbar $toolbar
+     * @param core_Form $listFilter
+     * 
+     * @return void
+     */
+    public static function addNewCompanyBtn2Toolbar(core_Toolbar &$toolbar,core_Form $listFilter)
+    {
+        $addCompanyUrl = array('crm_Companies', 'add');
+        if($groupId = $listFilter->rec->groupId){
+            $addCompanyUrl["groupList"] = $groupId;
+        }
+        
+        $searchString = $listFilter->rec->search;
+        
+        // Ако има въведен стринг за търсене
+        if(!empty($searchString)){
+            list($status) = cls::get('drdata_Vats')->checkStatus($searchString);
+            if($status == 'valid'){
+                
+                // и е валиден ДДС №, подава се за номер на новата фирма
+                $addCompanyUrl['vatId'] = $searchString;
+            } elseif(type_Int::isInt($searchString) && strlen($searchString) >= 5){
+                
+                // и е дълго число, подава се като нац. № на новата фирма
+                $addCompanyUrl['uicId'] = $searchString;
             } else {
-                $data->toolbar->addBtn('Нова фирма', array($mvc, 'Add'), 'id=btnAdd', array('title' => 'Създаване на нова визитка на фирма', 'ef_icon' => 'img/16/office-building-add.png'));
+                
+                // Ако не е от горните се добавя към името на новата фирма
+                $addCompanyUrl['name'] = $searchString;
             }
         }
+        
+        $toolbar->addBtn('Нова фирма', $addCompanyUrl, 'ef_icon=img/16/office-building-add.png', 'title=Създаване на нова визитка на фирма');
     }
     
     
