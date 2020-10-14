@@ -219,7 +219,7 @@ class eshop_Carts extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->listFilter->FNC('domain', 'key(mvc=cms_Domains,select=titleExt,allowEmpty)', 'caption=Домейн,input,refreshForm,placeholder=Всички');
-        $data->listFilter->FNC('type', 'enum(all=Всички,draft=Чернови,active=Активни,empty=Празни,users=От потребител,anonymous=Без потребител,pendingSales=С чакащи продажби)', 'caption=Вид,input,silent,refreshForm');
+        $data->listFilter->FNC('type', 'enum(all=Всички,draft=Чернови,active=Активни,empty=Празни,users=От потребител,anonymous=Без потребител,pendingSales=С продажби на заявка)', 'caption=Вид,input,silent,refreshForm');
         
         $data->listFilter->setDefault('type', 'all');
         $data->listFilter->setDefault('domain', cms_Domains::getCurrent('id', false));
@@ -1633,9 +1633,9 @@ class eshop_Carts extends core_Master
         
         $finBtn = null;
         if (eshop_Carts::haveRightFor('finalize', $rec)) {
-            $finBtn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), 'Сигурни ли сте, че искате да направите поръчката|*!', null, 'title=Завършване на поръчката,class=order-btn eshop-btn,rel=nofollow');
+            $finBtn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), 'Сигурни ли сте, че искате да поръчате|*?', null, 'title=Завършване на поръчката,class=order-btn eshop-btn,rel=nofollow');
         } elseif(eshop_CartDetails::fetchField("#finalPrice IS NULL")){
-            $finBtn = ht::createErrBtn('Завършване', 'Някои от артикулите, вече са спряни от продажба!', 'title=Завършване на поръчката,class=order-btn eshop-btn eshop-errorBtn,rel=nofollow,ef_icon=none');
+            $finBtn = ht::createErrBtn('Завършване', 'Има проблем с някои от артикулите|*!', 'title=Завършване на поръчката,class=order-btn eshop-btn eshop-errorBtn,rel=nofollow,ef_icon=none');
         }
         
         if(!empty($finBtn) && !empty($rec->personNames) && !empty($rec->productCount)){

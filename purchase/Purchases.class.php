@@ -722,10 +722,9 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Списък с артикули върху, на които може да им се коригират стойностите
      *
-     * @see acc_AllowArticlesCostCorrectionDocsIntf
-     *
-     * @param mixed $id - ид или запис
-     *
+     * @param mixed $id     - ид или запис
+     * @param mixed $forMvc - за кой мениджър
+     * 
      * @return array $products        - масив с информация за артикули
      *               o productId       - ид на артикул
      *               o name            - име на артикула
@@ -735,13 +734,15 @@ class purchase_Purchases extends deals_DealMaster
      *               o transportWeight - транспортно тегло на артикула
      *               o transportVolume - транспортен обем на артикула
      */
-    public function getCorrectableProducts($id)
+    public function getCorrectableProducts($id, $forMvc)
     {
         $rec = $this->fetchRec($id);
+        $ForMvc = cls::get($forMvc);
+        $accounts = ($ForMvc instanceof acc_ValueCorrections) ? '321,60201' : '321';
         
         $products = array();
         $entries = purchase_transaction_Purchase::getEntries($rec->id);
-        $shipped = purchase_transaction_Purchase::getShippedProducts($entries, $rec->id, '321', true);
+        $shipped = purchase_transaction_Purchase::getShippedProducts($entries, $rec->id, $accounts, true, true, true);
         
         if (countR($shipped)) {
             foreach ($shipped as $ship) {

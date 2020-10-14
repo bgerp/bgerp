@@ -402,7 +402,8 @@ class price_ListToCustomers extends core_Manager
     {
         $rec = new stdClass();
         $isFirstCall = true;
-        $rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime, $isFirstCall, $rate, $chargeVat);
+        $validFrom = null;
+        $rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime, $validFrom, $isFirstCall, $rate, $chargeVat);
         
         $listRec = price_Lists::fetch($listId);
         

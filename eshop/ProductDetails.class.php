@@ -129,6 +129,9 @@ class eshop_ProductDetails extends core_Detail
         
         if (isset($rec->productId)) {
             $productRec = cat_Products::fetch($rec->productId, 'canStore,measureId');
+            $defaultTitle = eshop_ProductDetails::getPublicProductTitle($rec->eshopProductId, $rec->productId);
+            $form->setField('title', "placeholder={$defaultTitle}");
+            
             if ($productRec->canStore == 'yes') {
                 $packs = cat_Products::getPacks($rec->productId);
                 
@@ -539,13 +542,11 @@ class eshop_ProductDetails extends core_Detail
     public static function getPublicProductTitle($eProductId, $productId, $showFullName = false)
     {
         $optionRec = eshop_ProductDetails::fetch("#eshopProductId = {$eProductId} AND #productId = {$productId}");
-        expect($optionRec);
         
         $titleParamId = eshop_Products::fetchField($eProductId, 'titleParamId');
-        $title = !empty($optionRec->title) ? $optionRec->title : (!empty($titleParamId) ? cat_Products::getParams($optionRec->productId, $titleParamId) : null);
-        
+        $title = !empty($optionRec->title) ? $optionRec->title : (!empty($titleParamId) ? cat_Products::getParams($productId, $titleParamId) : null);
         if(!isset($title) || $title === false){
-            $title = cat_Products::fetchField($optionRec->productId, 'name');
+            $title = cat_Products::fetchField($productId, 'name');
         }
         
         if($showFullName){

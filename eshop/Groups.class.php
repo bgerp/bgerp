@@ -2,7 +2,7 @@
 
 
 /**
- * Мениджър на групи с продукти.
+ * Мениджър на групи с артикули.
  *
  *
  * @category  bgerp
@@ -23,12 +23,6 @@ class eshop_Groups extends core_Master
     
     
     /**
-     * Страница от менюто
-     */
-    public $pageMenu = 'Каталог';
-    
-    
-    /**
      * Поддържани интерфейси
      */
     public $interfaces = 'cms_SourceIntf';
@@ -43,7 +37,7 @@ class eshop_Groups extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Име,menuId=Меню->Основно,sharedMenus=Меню->Споделяне||Shared,productCnt=Продукти,state=Видимост';
+    public $listFields = 'name=Име,menuId=Меню->Основно,sharedMenus=Меню->Споделяне||Shared,productCnt=Артикули,state=Видимост';
     
     
     /**
@@ -117,7 +111,7 @@ class eshop_Groups extends core_Master
      */
     public function description()
     {
-        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Основно,silent,refreshForm');
+        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Основно,silent,refreshForm,mandatory');
         $this->FLD('sharedMenus', 'keylist(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Споделяне в,silent,refreshForm');
         
         $this->FLD('name', 'varchar(64)', 'caption=Група->Наименование, mandatory,width=100%');
@@ -177,6 +171,46 @@ class eshop_Groups extends core_Master
     
     
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if($form->isSubmitted()){
+            $rec = $form->rec;
+            
+            // Дали в същото меню има група със същото име
+            if(eshop_Groups::fetchField(array("#menuId = {$rec->menuId} && #id != '{$rec->id}' && #name = '[#1#]' COLLATE {$mvc->db->dbCharset}_general_ci", $rec->name))){
+                $form->setError('name', 'В същото основно меню, има група със същото име');
+            }
+            
+            // Ако има споделени менюта
+            if(!empty($rec->sharedMenus)){
+               
+                // Проверка дали в някои от тях има група със същото име
+                $menuesWithSameGroup = array();
+                $arr = keylist::toArray($rec->sharedMenus);
+                foreach ($arr as $menuId){
+                    if(eshop_Groups::fetch(array("#menuId = {$menuId} && #id != '{$rec->id}' && #name = '[#1#]' COLLATE {$mvc->db->dbCharset}_general_ci", $rec->name))){
+                        $title = cms_Content::getVerbal($menuId, 'menu') . " (" . cms_Content::getVerbal($menuId, 'domainId') . ")";
+                        $menuesWithSameGroup[$menuId] = "<b>{$title}</b>";
+                    }
+                }
+                
+                // Ако има група със същото име, сетва се грешка
+                if(countR($menuesWithSameGroup)){
+                    $menuStrings = implode(', ', $menuesWithSameGroup);
+                    $errorMsg = "В следните менюта, има група със същото име|*: {$menuStrings}";
+                    $form->setError('name,sharedMenus', $errorMsg);
+                }
+            }
+        }
+    }
+    
+    
+    /**
      * Изпълнява се след подготовката на формата за филтриране
      */
     protected function on_AfterPrepareListFilter($mvc, $data)
@@ -187,28 +221,38 @@ class eshop_Groups extends core_Master
         $form->view = 'horizontal';
         
         // Добавяме бутон
+        $domains = cms_Domains::getDomainOptions(false, core_Users::getCurrent());
+        $form->FLD('domainId', 'key(mvc=cms_Domains,select=title)', 'caption=Домейн,silent,autoFilter');
+        if(countR($domains) == 1){
+            $form->setField('domainId', 'input=hidden');
+        } else {
+            $form->setOptions('domainId', $domains);
+        }
+        
+        $form->setDefault('domainId', cms_Domains::getCurrent());
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
-        $form->showFields = 'search, menuId';
+        $form->showFields = 'search, menuId, domainId';
         
-        $form->input('search, menuId', 'silent');
+        $form->input('search, menuId, domainId', 'silent');
         
-        $form->setOptions('menuId', $opt = cms_Content::getMenuOpt($mvc));
-        
+        cms_Domains::selectCurrent($form->rec->domainId);
+        $menuOptions = cms_Content::getMenuOpt($mvc, $form->rec->domainId);
+        $form->setOptions('menuId', $menuOptions);
         $form->setField('menuId', 'refreshForm');
         
-        if (countR($opt) == 0) {
+        if (countR($menuOptions) == 0) {
             redirect(array('cms_Content'), false, '|Моля въведете поне една точка от менюто с източник "Онлайн магазин"');
         }
         
-        if ($form->rec->menuId && !$opt[$form->rec->menuId]) {
-            $form->rec->menuId = key($opt);
+        if ($form->rec->menuId && !$menuOptions[$form->rec->menuId]) {
+            $form->rec->menuId = key($menuOptions);
         }
         
-        if (countR($opt) && !$form->isSubmitted()) {
-            $form->rec->menuId = key($opt);
+        if (countR($menuOptions) && !$form->isSubmitted()) {
+            $form->rec->menuId = key($menuOptions);
         }
         
         if ($form->rec->menuId) {
@@ -305,7 +349,7 @@ class eshop_Groups extends core_Master
         
         
         if (self::mustShowSideNavigation()) {
-            // Ако имаме поне 4-ри групи продукти
+            // Ако имаме поне 4-ри групи артикули
             $this->prepareNavigation($data);
             $this->prepareAllGroups($data);
             $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
@@ -483,7 +527,7 @@ class eshop_Groups extends core_Master
     
     
     /**
-     * Добавя бутони за разглеждане във витрината на групите с продукти
+     * Добавя бутони за разглеждане във витрината на групите с артикули
      */
     protected function on_AfterPrepareListToolbar($mvc, $data)
     {
@@ -799,11 +843,6 @@ class eshop_Groups extends core_Master
                 $url = eshop_Products::getUrl($r);
                 $url['q'] = $q;
                 
-                if(haveRole('debug')){
-                    $rating = empty($r->rating) ? tr("n / a") : $r->rating;
-                    $title = ht::createHint($title, "Рейтинг:|* {$rating}");
-                }
-                
                 $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url, 'img' => eshop_Products::getProductThumb($r, 60, 60));
             }
         }
@@ -878,13 +917,26 @@ class eshop_Groups extends core_Master
      */
     public static function getGroupsByDomain($domainId = null)
     {
+        $res = array();
         if (!$domainId) {
             $domainId = cms_Domains::getPublicDomain('id');
         }
         
+        // Всички менщта от този домейн
+        $cQuery = cms_Content::getQuery();
+        $cQuery->where("#domainId = {$domainId}");
+        $cQuery->show('id');
+        $menuIds = arr::extractValuesFromArray($cQuery->fetchAll(), 'id');
+        if(!countR($menuIds)){
+            
+            return $res;
+        }
+        
+        // Извличат се всички групи, които са към тези менюта или са споделени в тях
         $query = self::getQuery();
-        $query->EXT('domainId', 'cms_Content', 'externalKey=menuId');
-        $query->where("#domainId = {$domainId} AND #state = 'active'");
+        $query->in("menuId", $menuIds);
+        $query->orLikeKeylist('sharedMenus', $menuIds);
+        $query->show('name');
         
         $res = array();
         while ($rec = $query->fetch()) {

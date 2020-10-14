@@ -1,6 +1,6 @@
 <div class="singleView eshopProduct">
    [#SingleToolbar#]
-   <h2 class="block_title [#STATE_CLASS#]" style='padding:5px'>[#SingleIcon#] |Е-артикул|*: <b style="color:green;display:inline-block;word-break:break-all">[[#code#]] [#name#]</b></h2>
+   <h2 class="block_title [#STATE_CLASS#]" style='padding:5px'>[#SingleIcon#] |Е-артикул|*: <b style="color:green;display:inline-block;word-break:break-all"><!--ET_BEGIN code-->[[#code#]]<!--ET_END code--> [#name#]</b></h2>
    <fieldset class="detail-info">
       <legend class="groupTitle">|Информация|*</legend>
       <div class="groupList">
@@ -66,13 +66,6 @@
             </tr>
             <!--ET_END saleState-->
             
-            <!--ET_BEGIN nearProducts-->
-            <tr>
-               <td class="title-style" style='width:150px'>|Свързани артикули|*:</td>
-               <td>[#nearProducts#]</td>
-            </tr>
-            <!--ET_END nearProducts-->
-            
             <tr>
                <td class="title-style" style='width:150px'>|Създаване|*:</td>
                <td>[#createdOn#] |от|* [#createdBy#]</td>
@@ -103,6 +96,8 @@
   </fieldset>
    <!--ET_END longInfo-->
    
+   <!--ET_BEGIN INQUIRY-->
+   [#INQUIRY#]
    <fieldset class="detail-info">
       <legend class="groupTitle">|Запитване|*</legend>
       <div class="groupList">
@@ -144,6 +139,8 @@
       </table>
       </div>
   </fieldset>
+<!--ET_END INQUIRY-->
+
 
     <!--ET_BEGIN PARAMS-->
    <fieldset class="detail-info">
@@ -189,6 +186,17 @@
       </div>
   </fieldset>
     <!--ET_END PARAMS-->
+
+	<!--ET_BEGIN nearProducts-->
+   <fieldset class="detail-info">
+      <legend class="groupTitle">|Свързани артикули|*</legend>
+      <div class="groupList">
+         [#nearProducts#]
+      </div>
+  </fieldset>
+   <!--ET_END nearProducts-->
+
+
 
    <fieldset class="detail-info">
       <legend class="groupTitle">|SEO и структура|*</legend>

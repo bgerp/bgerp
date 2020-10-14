@@ -91,7 +91,7 @@
         <tr>
             <td class="topCell vtop" style='width:33%;'>
                 <div class='cellRow'>
-                        <span class='quiet'>Payment: </span><!--ET_BEGIN paymentType-->[#paymentType#], <!--ET_END paymentType-->[#paymentMethodId#]
+                        <span class='quiet'>Payment: </span>[#paymentMethodId#]
                     </div>
                 <!--ET_BEGIN downpayment-->
                 <div class='cellRow'>
