@@ -7567,6 +7567,31 @@ body.narrow {
 	}
 }
 
+.portalNews {
+	div {
+		margin: 2px;
+	}
+	.portalLatestFoldes {
+		margin-top: 5px;
+	}
+	.portalLatestThreads {
+		display: list-item;
+		margin-left: 30px;
+		font-size: 0.95em;
+		background: none !important;
+		a {
+			padding: 2px;
+			display: inline-block;
+		}
+		&.state-opened a{
+			background-color: #bbffcc;
+		}
+	}
+	.tUnsighted {
+		font-weight: bold;
+	}
+}
+
 .document .reportHolder div.tab-control.alphabet div.tab-row .tab{
 	padding: 4px 5px 5px !important;
 	display: inline-block;

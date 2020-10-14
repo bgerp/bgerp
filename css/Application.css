@@ -6675,6 +6675,23 @@ only screen and (max-width: 320px) {
   .single-thread .document .docStatistic div.alphabet .tab-page .detail-info .logs-type-err td {
     background-color: #fad0d1 !important; }
 
+  .portalNews div {
+    margin: 2px; }
+  .portalNews .portalLatestFoldes {
+    margin-top: 5px; }
+  .portalNews .portalLatestThreads {
+    display: list-item;
+    margin-left: 30px;
+    font-size: 0.95em;
+    background: none !important; }
+    .portalNews .portalLatestThreads a {
+      padding: 2px;
+      display: inline-block; }
+    .portalNews .portalLatestThreads.state-opened a {
+      background-color: #bbffcc; }
+  .portalNews .tUnsighted {
+    font-weight: bold; }
+
 .document .reportHolder div.tab-control.alphabet div.tab-row .tab {
   padding: 4px 5px 5px !important;
   display: inline-block;

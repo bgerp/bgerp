@@ -272,7 +272,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
     {
         if (!$data->tpl) {
             
-            $data->tpl = new ET(tr('|*<div class="clearfix21 portal"> <div class="legend">|Най-новото|*</div><div style="text-align: center"> [#LATEST#]</div></div>'));
+            $data->tpl = new ET(tr('|*<div class="clearfix21 portal"> <div class="legend">|Най-новото|*</div><div class="portalNews"> [#LATEST#]</div></div>'));
             
             $data->tpl->replace($data->data->res, 'LATEST');
             
