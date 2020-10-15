@@ -1507,9 +1507,9 @@ class eshop_Products extends core_Master
                         $res[$paramId] = $value;
                     }
                 }
-                
-                static::$cacheParams[$rec->id] = $res;
             }
+            
+            static::$cacheParams[$rec->id] = $res;
         }
         
         return static::$cacheParams[$rec->id];
