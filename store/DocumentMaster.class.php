@@ -1082,10 +1082,20 @@ abstract class store_DocumentMaster extends core_Master
      */
     public function getDefaultLinkedComment($id, $comment)
     {
-        if(empty($comment)){
-            $rec = $this->fetchRec($id);
+        $rec = $this->fetchRec($id);
+        
+        $storeName = $rec->storeId ? store_Stores::getTitleById($rec->storeId) : '';
+        $pattern = preg_quote($storeName, '/');
+        
+        if ($storeName && (!$comment || (!preg_match("/(^|\s)*{$pattern}(\$|\s){1}/iu", $comment)))) {
+            
             $caption = ($this instanceof store_ShipmentOrders) ? (($rec->isReverse == 'no') ? "От склад" : "До склад") : (($rec->isReverse == 'no') ? "От склад" : "До склад");
-            $comment = tr("|{$caption}|*: ") . store_Stores::getTitleById($rec->storeId);
+            
+            if (trim($comment)) {
+                $comment .= '<br>';
+            }
+            
+            $comment .= tr("|{$caption}|*: ") . $storeName;
         }
         
         return $comment;
