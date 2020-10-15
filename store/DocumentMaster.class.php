@@ -1070,4 +1070,24 @@ abstract class store_DocumentMaster extends core_Master
         // Връщаме резултата от записа
         return $id;
     }
+    
+    
+    /**
+     * Връща дефолтен коментар при връзка на документи
+     *
+     * @param integer $id
+     * @param string $comment
+     *
+     * @return string
+     */
+    public function getDefaultLinkedComment($id, $comment)
+    {
+        if(empty($comment)){
+            $rec = $this->fetchRec($id);
+            $caption = ($this instanceof store_ShipmentOrders) ? (($rec->isReverse == 'no') ? "От склад" : "До склад") : (($rec->isReverse == 'no') ? "От склад" : "До склад");
+            $comment = tr("|{$caption}|*: ") . store_Stores::getTitleById($rec->storeId);
+        }
+        
+        return $comment;
+    }
 }
