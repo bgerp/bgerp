@@ -215,23 +215,25 @@ class type_UserList extends type_Keylist
             }
         }
         
-        // Премахваме потребителите от грипите, ако не участват в списъка
-        foreach ($this->userOtherGroup as $gKey => $gVals) {
-            
-            // Ако списъка е празен, скриваме групата
-            $haveRec = false;
-            $key = $gKey . $this->keySep;
-            foreach ($this->suggestions as $sKey => $sVal) {
-                if (strpos($sKey, $key) === 0) {
-                    $haveRec = true;
-                    
-                    break;
+        if (isset($this->userOtherGroup)) {
+            // Премахваме потребителите от грипите, ако не участват в списъка
+            foreach ($this->userOtherGroup as $gKey => $gVals) {
+                
+                // Ако списъка е празен, скриваме групата
+                $haveRec = false;
+                $key = $gKey . $this->keySep;
+                foreach ($this->suggestions as $sKey => $sVal) {
+                    if (strpos($sKey, $key) === 0) {
+                        $haveRec = true;
+                        
+                        break;
+                    }
                 }
-            }
-            
-            if (!$haveRec) {
-                $gName = $gKey . ' ' . $gVals->suggName;
-                unset($this->suggestions[$gName]);
+                
+                if (!$haveRec) {
+                    $gName = $gKey . ' ' . $gVals->suggName;
+                    unset($this->suggestions[$gName]);
+                }
             }
         }
         
