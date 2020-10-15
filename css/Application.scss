@@ -3719,6 +3719,11 @@ fieldset.sharing-history {
 		}
 	}
 }
+
+.eshop_ProductDetails .listTable {
+	min-width: 800px;
+}
+
 .order-info {
 	background-color: #f1f1f1;
 	border: 1px solid #ccc ;
@@ -7559,6 +7564,28 @@ body.narrow {
 	}
 	.logs-type-err td {
 	    background-color: #fad0d1 !important;
+	}
+}
+
+.portalNews {
+	.portalLatestFoldes {
+		margin-top: 3px;
+	}
+	.portalLatestThreads {
+		display: list-item;
+		margin-left: 30px;
+		font-size: 0.95em;
+		background: none !important;
+		a {
+			padding: 2px;
+			display: inline-block;
+		}
+		&.state-opened a{
+			background-color: #bbffcc;
+		}
+	}
+	.tUnsighted {
+		font-weight: bold;
 	}
 }
 

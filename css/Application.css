@@ -3169,6 +3169,9 @@ span.sharing-history-title {
       padding: 4px;
       border-radius: 3px; }
 
+.eshop_ProductDetails .listTable {
+  min-width: 800px; }
+
 .order-info {
   background-color: #f1f1f1;
   border: 1px solid #cccccc;
@@ -6671,6 +6674,21 @@ only screen and (max-width: 320px) {
     background-color: #dff4fa !important; }
   .single-thread .document .docStatistic div.alphabet .tab-page .detail-info .logs-type-err td {
     background-color: #fad0d1 !important; }
+
+  .portalNews .portalLatestFoldes {
+    margin-top: 3px; }
+  .portalNews .portalLatestThreads {
+    display: list-item;
+    margin-left: 30px;
+    font-size: 0.95em;
+    background: none !important; }
+    .portalNews .portalLatestThreads a {
+      padding: 2px;
+      display: inline-block; }
+    .portalNews .portalLatestThreads.state-opened a {
+      background-color: #bbffcc; }
+  .portalNews .tUnsighted {
+    font-weight: bold; }
 
 .document .reportHolder div.tab-control.alphabet div.tab-row .tab {
   padding: 4px 5px 5px !important;

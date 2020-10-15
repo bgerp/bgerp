@@ -140,7 +140,11 @@ class floor_Plans extends core_Master {
         $tpl = new ET("<div style=\"width:{$width}px;height:{$height}px;border:solid 4px #666;  position:relative; display:table;\">[#OBJECTS#]</div>");
         
         jqueryui_Ui::enable($tpl);
-        jquery_Jquery::run($tpl, ' $( ".floor-container" ).draggable({\'stop\': function(event) {console.log(event)}, containment: "floor-container"})');
+        jquery_Jquery::run($tpl, ' $(".floor-object").draggable({"stop": 
+            function(event) {
+                $.post( "/floor_Plans/UpdatePossition",  {objId: event.target.id,  x: $("#"+event.target.id).offset().left,  y:  $("#"+event.target.id).offset().top })
+            }, 
+            containment: "parent"})');
         $tpl->push('floor/css/floorplan.css', 'CSS');
         
         $obects = array();
@@ -155,11 +159,29 @@ class floor_Plans extends core_Master {
             $name = type_Varchar::escape($oRec->name);
 
             $r = round(min($w, $h) * $oRec->round);
-            
-            $tpl->append("<div class='floor-container' style='left:{$x}px;top:{$y}px;width:{$w}px;height:{$h}px;border-radius:{$r}px;'><div class='floor-obj'>{$name}</div></div>", 'OBJECTS');
+            $url = toUrl(array('floor_Objects', 'edit', $oRec->id, 'ret_url' => true));
+            $tpl->append("<div id='{$oRec->id}' class='floor-object' ondblclick='document.location=\"{$url}\"' style='left:{$x}px;top:{$y}px;width:{$w}px;height:{$h}px;border-radius:{$r}px;'><div class='floor-obj'>{$name}</div></div>", 'OBJECTS');
         }
 
         return $tpl;
+    }
+
+
+    /**
+     * Екшън, който обновява позицията на даден елемент
+     */
+    public function act_UpdatePossition()
+    { 
+        $objId = Request::get('objId', 'int');
+ 
+        if($rec = floor_Objects::fetch($objId)) {
+            $this->requireRightfor('edit', $rec);
+            $rec->x = self::fromPix(Request::get('x', 'int'));
+            $rec->y = self::fromPix(Request::get('y', 'int'));
+            floor_Objects::save($rec, 'x,y');
+        }
+
+        die;
     }
 
 
@@ -169,6 +191,16 @@ class floor_Plans extends core_Master {
     private static function toPix($x)
     {
         $y = round($x*40);
+
+        return $y;
+    }
+
+    /**
+     * Конвертиране на пиксели към метри
+     */
+    private static function fromPix($x)
+    {
+        $y = round($x/40, 3);
 
         return $y;
     }

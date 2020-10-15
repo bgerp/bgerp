@@ -104,8 +104,8 @@
       	<table class="noBorder" style='width:99%'>
          	<!--ET_BEGIN coDriver-->
             <tr>
-               <td class="title-style" style='width:150px'>|Драйвер|*:</td>
-               <td>[#coDriver#]</td>
+               <td class="title-style" style='width:150px'>|Страниране|*:</td>
+               <td>[#coDriver#] |продукти на страница|*</td>
             </tr>
             <!--ET_END coDriver-->
             
@@ -195,8 +195,6 @@
       </div>
   </fieldset>
    <!--ET_END nearProducts-->
-
-
 
    <fieldset class="detail-info">
       <legend class="groupTitle">|SEO и структура|*</legend>

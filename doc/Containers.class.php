@@ -564,6 +564,7 @@ class doc_Containers extends core_Manager
         
         // Инвалидиране на кеша
         bgerp_Portal::invalidateCache(null, 'doc_drivers_FolderPortal');
+        bgerp_Portal::invalidateCache(null, 'doc_drivers_LatestDocPortal');
     }
     
     
