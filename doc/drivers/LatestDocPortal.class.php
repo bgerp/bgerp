@@ -88,7 +88,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
         $resData->cacheKey = $this->getCacheKey($dRec, $userId);
         $resData->cacheType = $this->getCacheTypeName($userId);
         
-         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
+        $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
         if (!$resData->tpl) {
             
@@ -169,13 +169,22 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                         $tUnsighted = 'tUnsighted';
                     }
                     
-                    $t = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted}'>" . doc_Containers::getLinkForObject($lRec);
-                    if (--$cnt > 0) {
-                        $t .=  ' + ' . tr('още') . ' ' .  $cnt;
+                    try {
+                        $doc = doc_Containers::getDocument($lRec->id);
+                        $dRow = $doc->getDocumentRow();
+                        $title = $dRow->recTitle ? $dRow->recTitle: $dRow->title;
+                        $title = trim($title);
+                        $title = str::limitLen($title, 50);
+                        $t = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted}'>" . ht::createLink($title, $doc->getSingleUrlArray(), null, array('ef_icon' => $doc->getIcon()));
+                        if (--$cnt > 0) {
+                            $t .=  ' + ' . tr('още') . ' ' .  $cnt;
+                        }
+                        $t .= "</div>";
+                        
+                        $data->res->append($t);
+                    } catch (core_exception_Expect $e) {
+                        continue;
                     }
-                    $t .= "</div>";
-                    
-                    $data->res->append($t);
                 }
             }
             
