@@ -756,8 +756,6 @@ class eshop_CartDetails extends core_Detail
         $commonParams = eshop_Products::getCommonParams($eshopProductId);
         $productParams = cat_Products::getParams($productId, null, true);
         
-        //bp($displayParams, $commonParams, $productParams);
-        
         if($asRichText){
             $pureParams = cat_Products::getParams($productId);
             $fileTypes = array(cond_type_File::getClassId(), cond_type_Image::getClassId());
