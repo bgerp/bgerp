@@ -444,20 +444,20 @@ class eshop_Products extends core_Master
      *               ['quantityCount'] - опционален брой количества
      *               ['moq']           - МКП
      *               ['measureId']     - основна мярка
-     *
+     *               ['url']           - линк
      */
     public function getInquiryData($id)
     {
         $rec = $this->fetchRec($id);
         
         $res = array('title' => $rec->name,
-            'drvId' => $rec->coDriver,
-            'lg' => cms_Content::getLang(),
-            'protos' => $rec->proto,
-            'quantityCount' => empty($rec->quantityCount) ? 0 : $rec->quantityCount,
-            'moq' => $this->getMoq($rec),
-            'measureId' => self::getUomId($rec),
-        
+                     'drvId' => $rec->coDriver,
+                     'lg' => cms_Content::getLang(),
+                     'protos' => $rec->proto,
+                     'quantityCount' => empty($rec->quantityCount) ? 0 : $rec->quantityCount,
+                     'moq' => $this->getMoq($rec),
+                     'measureId' => static::getUomId($rec),
+                     'url' => static::getUrl($rec),
         );
         
         return $res;
