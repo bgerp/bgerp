@@ -302,7 +302,7 @@ class price_ListRules extends core_Detail
     public static function getPrice($listId, $productId, $packagingId = null, $datetime = null, &$validFrom = null, $isFirstCall = true, $rate = 1, $chargeVat = 'no')
     {
         $datetime = price_ListToCustomers::canonizeTime($datetime);
-        $canUseCache = 0; // ($datetime == price_ListToCustomers::canonizeTime());
+        $canUseCache = ($datetime == price_ListToCustomers::canonizeTime());
         
         if ((!$canUseCache) || ($price = price_Cache::getPrice($listId, $productId)) === null) {
             $query = self::getQuery();
