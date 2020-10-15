@@ -679,7 +679,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if ($rec->currency && ($rec->currency != $baseCurrencyId)) {
                 $checkedCurrencyCode = currency_Currencies::getCodeById($rec->currency);
                 
-                $rate = currency_CurrencyRates::getRate($recPrime->valior, null, $checkedCurrencyCode);
+                $rate = currency_CurrencyRates::getRate($rec->lastRefreshed, null, $checkedCurrencyCode);
                 
                 $primeCost *= $rate;
                 $delta *= $rate;
@@ -687,7 +687,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $deltaPrevious *= $rate;
                 $primeCostLastYear *= $rate;
                 $deltaLastYear *= $rate;
-                if (!empty($invProd)) {
+                if ($invProd[$id]->invAmount) {
                     $invProd[$id]->invAmount *= $rate;
                 }
             }

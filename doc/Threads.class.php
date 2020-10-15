@@ -3206,4 +3206,86 @@ class doc_Threads extends core_Manager
         
         return $res;
     }
+    
+    
+    /**
+     * Подготовка на опции за key2
+     */
+    public static function getSelectArr($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    {
+        $query = self::getQuery();
+        
+        if ($params['excludeArr']) {
+            $query->notIn('id', $params['excludeArr']);
+        }
+        
+        $query->orderBy('last=DESC');
+        
+        $viewAccess = false;
+        if ($params['restrictViewAccess'] == 'no') {
+            $viewAccess = true;
+        }
+        
+        $me = cls::get(get_called_class());
+        
+        $me->restrictAccess($query, null, $viewAccess);
+        
+        if (!$includeHiddens) {
+            $query->where("#state != 'rejected'");
+        }
+        
+        if ($params['where']) {
+            $query->where($params['where']);
+        }
+        
+        if (is_array($onlyIds)) {
+            if (!count($onlyIds)) {
+                
+                return array();
+            }
+            
+            $ids = implode(',', $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+            
+            $query->where("#id IN (${ids})");
+        } elseif (ctype_digit("{$onlyIds}")) {
+            $query->where("#id = ${onlyIds}");
+        }
+        
+        if (trim($q)) {
+            $query->EXT('searchKeywords', 'doc_Containers', 'externalKey=firstContainerId, externalName=searchKeywords');
+            plg_Search::applySearch($q, $query);
+        }
+        
+        if (!$limit) {
+            $limit = 10;
+        }
+        $query->limit($limit);
+        
+        $query->show("id, firstDocClass, firstDocId, folderId");
+        
+        $res = array();
+        
+        while ($rec = $query->fetch()) {
+            if (!$rec->firstDocId || !$rec->firstDocClass || !cls::load($rec->firstDocClass, true)) {
+                
+                continue ;
+            }
+            $dClass = cls::get($rec->firstDocClass);
+            
+            $dRow = $dClass->getDocumentRow($rec->firstDocId);
+            
+            $title = $dRow->recTitle ? $dRow->recTitle : $dRow->title;
+            
+            $res[$rec->id] = '#' . $dClass->getHandle($rec->firstDocId);
+            
+            $res[$rec->id] .= ' ' .trim($title);
+            
+            if ($rec->folderId) {
+                $res[$rec->id] .= ' (' . doc_Folders::fetchField($rec->folderId, 'title') . ')';
+            }
+        }
+        
+        return $res;
+    }
 }

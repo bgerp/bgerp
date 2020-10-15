@@ -1,0 +1,157 @@
+<div class="singleView eshopProduct">
+   [#SingleToolbar#]
+   <h2 class="block_title [#STATE_CLASS#]" style='padding:5px'>[#SingleIcon#] |Група|*: <b style="color:green;display:inline-block;word-break:break-all">[#name#]</b></h2>
+   <fieldset class="detail-info">
+      <legend class="groupTitle">|Информация|*</legend>
+      <div class="groupList">
+      		<table class="noBorder" style='width:99%'>
+	         	<!--ET_BEGIN menuId-->
+	            <tr>
+	               <td class="title-style" style='width:150px'>|Основно меню|*:</td>
+	               <td>[#menuId#]</td>
+	            </tr>
+	            <!--ET_END menuId-->
+	            <!--ET_BEGIN sharedMenus-->
+	            <tr>
+	               <td class="title-style" style='width:150px'>|Споделено меню]|*:</td>
+	               <td>[#sharedMenus#]</td>
+	            </tr>
+	            <!--ET_END sharedMenus-->
+	            
+	            <tr>
+	               <td class="title-style" style='width:150px'>|Брой артикули|*:</td>
+	               <td>[#productCnt#]</td>
+	            </tr>
+	            
+	            <!--ET_BEGIN icon-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Малка картинка|*:</td>
+               <td>[#icon#]</td>
+            </tr>
+            <!--ET_END icon-->
+            <!--ET_BEGIN image-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Голяма картинка|*:</td>
+               <td>[#image#]</td>
+            </tr>
+            <!--ET_END image-->
+            
+	            <tr>
+               		<td class="title-style" style='width:150px'>|Създаване|*:</td>
+               		<td>[#createdOn#] |от|* [#createdBy#]</td>
+            	</tr>
+            	<tr>
+               		<td class="title-style" style='width:150px'>|Модифициране|*:</td>
+               		<td>[#modifiedOn#] |от|* [#modifiedBy#]</td>
+            	</tr>
+            </table>
+      </div>
+   </fieldset>
+   
+   <!--ET_BEGIN info-->
+   <fieldset class="detail-info">
+      <legend class="groupTitle">|Описание|*</legend>
+      <div class="groupList">
+         [#info#]
+      </div>
+  </fieldset>
+   <!--ET_END info-->
+   
+   <!--ET_BEGIN ADDITIONAL-->
+   [#ADDITIONAL#]
+   <fieldset class="detail-info">
+      <legend class="groupTitle">|Настройки|*</legend>
+      <div class="groupList">
+      	<table class="noBorder" style='width:99%'>
+         	<!--ET_BEGIN showParams-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Параметри|*:</td>
+               <td>[#showParams#]</td>
+            </tr>
+            <!--ET_END showParams-->
+            <!--ET_BEGIN showPacks-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Опаковки/Мерки|*:</td>
+               <td>[#showPacks#]</td>
+            </tr>
+            <!--ET_END showPacks-->
+            <!--ET_BEGIN showParams-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Параметри|*:</td>
+               <td>[#showParams#]</td>
+            </tr>
+            <!--ET_END showParams-->
+            <!--ET_BEGIN order-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Подредба|*:</td>
+               <td>[#order#]</td>
+            </tr>
+            <!--ET_END order-->
+            <!--ET_BEGIN perPage-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Артикули на страница|*:</td>
+               <td>[#perPage#]</td>
+            </tr>
+            <!--ET_END perPage-->
+        </table>
+        </div>
+        </fieldset>
+   <!--ET_BEGIN ADDITIONAL-->
+ 
+ <fieldset class="detail-info">
+      <legend class="groupTitle">|SEO и структура|*</legend>
+      <div class="groupList">
+      	<table class="noBorder" style='width:99%'>
+         	<!--ET_BEGIN saoPosition-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Положение|*:</td>
+               <td>[#saoPosition#]</td>
+            </tr>
+            <!--ET_END saoPosition-->
+            
+            <!--ET_BEGIN saoRelative-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Спрямо|*:</td>
+               <td>[#saoRelative#]</td>
+            </tr>
+            <!--ET_END saoRelative-->
+            
+            <!--ET_BEGIN vid-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Вербално ID|*:</td>
+               <td>[#vid#]</td>
+            </tr>
+            <!--ET_END vid-->
+            
+            <!--ET_BEGIN seoTitle-->
+            <tr>
+               <td class="title-style" style='width:150px'>Title:</td>
+               <td>[#seoTitle#]</td>
+            </tr>
+            <!--ET_END seoTitle-->
+            
+            <!--ET_BEGIN seoDescription-->
+            <tr>
+               <td class="title-style" style='width:150px'>Description:</td>
+               <td>[#seoDescription#]</td>
+            </tr>
+            <!--ET_END seoDescription-->
+            
+            <!--ET_BEGIN seoKeywords-->
+            <tr>
+               <td class="title-style" style='width:150px'>Keywords:</td>
+               <td>[#seoKeywords#]</td>
+            </tr>
+            <!--ET_END seoKeywords-->
+            
+            <!--ET_BEGIN seoThumb-->
+            <tr>
+               <td class="title-style" style='width:150px'>Илюстрация:</td>
+               <td>[#seoThumb#]</td>
+            </tr>
+            <!--ET_END seoThumb-->
+      </table>
+      </div>
+  </fieldset>
+   
+</div>

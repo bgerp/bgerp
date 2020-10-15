@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   eshop
  *
- * @author    Milen Georgiev <milen@experta.bg>
+ * @author    Milen Georgiev <milen@experta.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
@@ -79,7 +79,7 @@ class eshop_Products extends core_Master
     /**
      * Кой има право да го изтрие?
      */
-    public $canDelete = 'no_one';
+    public $canDelete = 'eshop,ceo';
     
     
     /**
@@ -122,6 +122,12 @@ class eshop_Products extends core_Master
      * Нов темплейт за показване
      */
     public $singleLayoutFile = 'eshop/tpl/SingleLayoutProduct.shtml';
+    
+    
+    /**
+     * Кои полета ще извличаме, преди изтриване на заявката
+     */
+    public $fetchFieldsBeforeDelete = 'id';
     
     
     /**
@@ -329,7 +335,8 @@ class eshop_Products extends core_Master
         }
         
         if (isset($fields['-single'])) {
-            $row->orderByParam = ($rec->orderByParam == '_code') ? tr('Код') : (($rec->orderByParam == '_title') ? tr('Заглавие') : $rов->orderByParam);
+            $row->orderByParam = ($rec->orderByParam == '_code') ? tr('Код') : (($rec->orderByParam == '_title') ? tr('Заглавие') : (($rec->orderByParam == '_createdOn') ? tr('Създаване') : $row->orderByParam));
+            
             foreach (array('showPacks', 'showParams') as $fld) {
                 $hint = null;
                 $showPacks = eshop_Products::getSettingField($rec->id, null, $fld, $hint);
@@ -394,7 +401,7 @@ class eshop_Products extends core_Master
             
             // Ако е затворен, се пропуска
             $productRec = eshop_Products::fetch($productId);
-            if ($productRec->state == 'closed' || $productRec->saleState == 'closed') {
+            if (!is_object($productRec) || $productRec->state == 'closed' || $productRec->saleState == 'closed') {
                 continue;
             }
             
@@ -471,18 +478,21 @@ class eshop_Products extends core_Master
      */
     public static function prepareAllProducts($data)
     {
-        $gQuery = eshop_Groups::getQuery();
-        $data->groups = array();
-        $groups = eshop_Groups::getGroupsByDomain();
+        $groups = eshop_Groups::getByDomain();
         if (countR($groups)) {
-            $groupList = implode(',', array_keys($groups));
-            $gQuery->where("#id IN ({$groupList})");
-            while ($gRec = $gQuery->fetch("#state = 'active'")) {
-                $data->groups[$gRec->id] = new stdClass();
-                $data->groups[$gRec->id]->groupId = $gRec->id;
-                $data->groups[$gRec->id]->groupRec = $gRec;
-                self::prepareGroupList($data->groups[$gRec->id]);
-            }
+            
+            return;
+        }
+            
+        $data->groups = array();
+        $gQuery = eshop_Groups::getQuery();
+        $groupList = implode(',', array_keys($groups));
+        $gQuery->where("#id IN ({$groupList})");
+        while ($gRec = $gQuery->fetch("#state = 'active'")) {
+            $data->groups[$gRec->id] = new stdClass();
+            $data->groups[$gRec->id]->groupId = $gRec->id;
+            $data->groups[$gRec->id]->groupRec = $gRec;
+            self::prepareGroupList($data->groups[$gRec->id]);
         }
     }
     
@@ -597,7 +607,7 @@ class eshop_Products extends core_Master
                 }
             } elseif ($pRec->saleState == 'multi') {
                 $pRow->btn = ht::createBtn($settings->addToCartBtn . '...', self::getUrl($pRec->id), false, false, 'title=Избор на артикул,class=productBtn addToCard,ef_icon=img/16/cart_go.png');
-            } elseif ($pRec->saleState == 'closed') {
+            } elseif ($pRec->saleState == 'closed' && empty($pRec->coDriver)) {
                 $pRow->saleInfo = "<span class='option-not-in-stock'>" . mb_strtoupper(tr(('Спрян||Not available'))) . '</span>';
             }
             
@@ -1033,16 +1043,15 @@ class eshop_Products extends core_Master
         if ($groupId = $form->rec->groupId) {
             unset($groups[$groupId]);
         }
+        
         $form->setSuggestions('sharedInGroups', $groups);
-        
         $form->setOptions('measureId', cat_UoM::getUomOptions());
-        
         if (isset($form->rec->productId)) {
             $mvc->setDefaultsFromProductId($form);
         }
         
         // Добавяне на параметрите, като опции за подреждане
-        $orderByParamOptions = array('_code' => tr('Код'), '_title' => tr('Заглавие'));
+        $orderByParamOptions = array('_code' => tr('Код'), '_title' => tr('Заглавие'), '_createdOn' => tr('Създаване'));
         $activeParams = cat_Params::makeArray4Select("#typeExt", "#state = 'active'");
         if(countR($activeParams)){
             $orderByParamOptions['g'] = (object) array('title' => tr('Параметри'), 'group' => true,);
@@ -1132,13 +1141,12 @@ class eshop_Products extends core_Master
         }
         
         // Показване на групите от избрания домейн
-        $groups = eshop_Groups::getGroupsByDomain($data->listFilter->rec->domainId);
+        $groups = eshop_Groups::getByDomain($data->listFilter->rec->domainId);
         if(countR($groups)){
             $data->listFilter->setOptions('groupId', $groups);
         } else {
             $data->listFilter->setReadOnly('groupId');
         }
-        
         $data->listFilter->input();
         
         if($filter = $data->listFilter->rec){
@@ -1305,6 +1313,32 @@ class eshop_Products extends core_Master
             if($pRec->isPublic != 'yes' || !in_array($pRec->state, array('active', 'template')) || $pRec->canSell != 'yes'){
                 $requiredRoles = 'no_one';
             }
+        }
+        
+        if($action == 'delete' && isset($rec)){
+            if(eshop_CartDetails::fetchField("#eshopProductId = {$rec->id}")){
+                $requiredRoles = 'no_one';
+            } elseif(marketing_Inquiries2::fetchField("#sourceClassId = {$mvc->getClassId()} AND #sourceId = {$rec->id}")){
+                $requiredRoles = 'no_one';
+            }
+        }
+        
+        if($action == 'changestate' && isset($rec)){
+            if($mvc->haveRightFor('delete', $rec)){
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
+    
+    
+    /**
+     * След изтриване на запис
+     */
+    public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        // Ако изтриваме етап, изтриваме всичките редове от този етап
+        foreach ($query->getDeletedRecs() as $rec) {
+            eshop_ProductDetails::delete("#eshopProductId = {$rec->id}");
         }
     }
     

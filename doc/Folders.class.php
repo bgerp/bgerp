@@ -552,50 +552,17 @@ class doc_Folders extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
-        $searchString = $data->listFilter->rec->search;
-        
+        // Добавяне на бутон за новa фирма
         if (crm_Companies::haveRightFor('add')) {
-            $addCompanyUrl = array('crm_Companies', 'add', 'ret_url' => true);
-            
-            // Ако има въведен стринг за търсене
-            if(!empty($searchString)){
-                list($status) = cls::get('drdata_Vats')->checkStatus($searchString);
-                if($status == 'valid'){
-                    
-                    // и е валиден ДДС №, подава се за номер на новата фирма
-                    $addCompanyUrl['vatId'] = $searchString;
-                } elseif(type_Int::isInt($searchString) && strlen($searchString) >= 5){
-                    
-                    // и е дълго число, подава се като нац. № на новата фирма
-                    $addCompanyUrl['uicId'] = $searchString;
-                } else {
-                    
-                    // Ако не е от горните се добавя към името на новата фирма
-                    $addCompanyUrl['name'] = $searchString;
-                }
-            }
-           
-            $data->toolbar->addBtn('Нова фирма', $addCompanyUrl, 'ef_icon=img/16/office-building-add.png', 'title=Създаване на нова визитка на фирма');
+            crm_Companies::addNewCompanyBtn2Toolbar($data->toolbar, $data->listFilter);
         }
         
+        // Добавяне на бутон за ново лице
         if (crm_Persons::haveRightFor('add')) {
-            $addPersonUrl = array('crm_Persons', 'add', 'ret_url' => true);
-            
-            // Ако има въведен стринг за търсене
-            if(!empty($searchString)){
-                
-                // и е валидно ЕГН
-                $egnCheck = cls::get('bglocal_EgnType')->isValid($searchString);
-                if(empty($egnCheck['error'])){
-                    $addPersonUrl['egn'] = $searchString;
-                } else {
-                    $addPersonUrl['name'] = $searchString;
-                }
-            }
-            
-            $data->toolbar->addBtn('Ново лице', $addPersonUrl, 'ef_icon=img/16/vcard-add.png', 'title=Създаване на нова визитка на лице');
+            crm_Persons::addNewPersonBtn2Toolbar($data->toolbar, $data->listFilter);
         }
         
+        // Добавяне на бутон за нов проект
         if (doc_UnsortedFolders::haveRightFor('add')) {
             $data->toolbar->addBtn('Нов проект', array('doc_UnsortedFolders', 'add', 'ret_url' => true), 'ef_icon=img/16/project-archive-add.png', 'title=Създаване на нов проект');
         }
