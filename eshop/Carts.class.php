@@ -2379,6 +2379,11 @@ class eshop_Carts extends core_Master
                 }
                 if ($lastCart = $cQuery->fetch()) {
                     foreach (array('termId', 'deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress', 'locationId') as $field) {
+                        
+                        if($field == 'locationId' && $form->cmd == 'refresh'){
+                            continue;
+                        }
+                        
                         $form->setDefault($field, $lastCart->{$field});
                     }
                 }
