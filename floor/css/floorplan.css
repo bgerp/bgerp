@@ -9,6 +9,10 @@
   background-color:rgb(217, 173, 138);
   cursor: pointer;
 }
+.ui-draggable-dragging {
+    opacity:0.8;
+    z-index:100000;
+}
 .floor-obj {
   display: table-cell;
   vertical-align: middle;
