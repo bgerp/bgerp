@@ -4661,4 +4661,31 @@ class doc_DocumentPlg extends core_Plugin
     {
         $html .= doc_ExpensesSummary::getSummary($containerId);
     }
+    
+    
+    /**
+     * Връща дефолтен коментар при връзка на документи
+     * 
+     * @param core_Master $mvc
+     * @param null|string $res
+     * @param integer $id
+     * @param string $id
+     */
+    public static function on_AfterGetDefaultLinkedComment($mvc, &$res, $id, $comment)
+    {
+        if (isset($res)) {
+            
+            return ;
+        }
+        
+        $comment = trim($comment);
+        
+        if (!$comment) {
+            $rec = $mvc->fetchRec($id);
+            $docRow = $mvc->getDocumentRow($id);
+            $res = '(#' . $mvc->getHandle($id) . ') ' . $docRow->title;
+        } else {
+            $res = $comment;
+        }
+    }
 }
