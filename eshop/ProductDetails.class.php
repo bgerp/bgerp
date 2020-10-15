@@ -25,7 +25,15 @@ class eshop_ProductDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'eshop_Wrapper, plg_Created, plg_Modified, plg_SaveAndNew, plg_RowTools2, plg_Select, plg_AlignDecimals2, plg_State2';
+    public $loadList = 'eshop_Wrapper, plg_Created, plg_Modified, plg_SaveAndNew, plg_RowTools2, plg_AlignDecimals2, plg_State2';
+    
+    
+    /**
+     * Брой записи на страница
+     *
+     * @var int
+     */
+    public $listItemsPerPage = 30;
     
     
     /**
@@ -282,6 +290,8 @@ class eshop_ProductDetails extends core_Detail
             } elseif($orderByParam == '_title'){
                 $a->orderField = static::getPublicProductTitle($a->eshopProductId, $a->productId);
                 $a->orderField = mb_strtolower($a->orderField);
+            } elseif($orderByParam == '_createdBy'){
+                $a->orderField = $a->createdOn;
             } else{
                 $value = cat_Products::getParams($a->productId, $orderByParam);
                 if(isset($value)){
