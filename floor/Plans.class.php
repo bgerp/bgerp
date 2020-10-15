@@ -137,12 +137,12 @@ class floor_Plans extends core_Master {
 
         $width = self::toPix($pRec->width);
         $height = self::toPix($pRec->height);
-        $tpl = new ET("<div style=\"width:{$width}px;height:{$height}px;border:solid 4px #666;  position:relative; display:table;\">[#OBJECTS#]</div>");
+        $tpl = new ET("<div style=\"width:{$width}px;height:{$height}px; outline:solid 4px #666;  margin: 5px;position:relative; display:table;\">[#OBJECTS#]</div>");
         
         jqueryui_Ui::enable($tpl);
         jquery_Jquery::run($tpl, ' $(".floor-object").draggable({"stop": 
             function(event) {
-                $.post( "/floor_Plans/UpdatePossition",  {objId: event.target.id,  x: $("#"+event.target.id).offset().left,  y:  $("#"+event.target.id).offset().top })
+                $.post( "/floor_Plans/UpdatePossition",  {objId: event.target.id,  x: $("#"+event.target.id).offset().left - $("#"+event.target.id).parent().offset().left,  y:  $("#"+event.target.id).offset().top - $("#"+event.target.id).parent().offset().top})
             }, 
             containment: "parent"})');
         $tpl->push('floor/css/floorplan.css', 'CSS');

@@ -756,6 +756,8 @@ class eshop_CartDetails extends core_Detail
         $commonParams = eshop_Products::getCommonParams($eshopProductId);
         $productParams = cat_Products::getParams($productId, null, true);
         
+        //bp($displayParams, $commonParams, $productParams);
+        
         if($asRichText){
             $pureParams = cat_Products::getParams($productId);
             $fileTypes = array(cond_type_File::getClassId(), cond_type_Image::getClassId());
@@ -766,7 +768,7 @@ class eshop_CartDetails extends core_Detail
         
         $arr = array();
         foreach ($diff as $paramId => $value) {
-            $paramRec = cat_Params::fetch($paramId);
+            $paramRec = cat_Params::fetch($paramId, 'driverClass,suffix,name');
             $value = (!empty($paramRec->suffix)) ? $value .  ' ' . tr($paramRec->suffix) : $value;
            
             if($asRichText && in_array($paramRec->driverClass, $fileTypes)){
