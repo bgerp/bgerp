@@ -21,7 +21,7 @@ class pwa_Plugin extends core_Plugin
         $name = 'sw' . crc32(filemtime($serviceWorkerPath)) . '.js';
         $domainId = cms_Domains::fetchField("#domain = 'localhost' AND #lang = 'bg'", 'id');
 
-        if(!core_Webroot::isExists($name, $domainId)) {
+        if (!core_Webroot::isExists($name, $domainId)) {
             $lastServiceWorker = core_Permanent::get('lastServiceWorker' . $domainId);
             if($lastServiceWorker) {
                 core_Webroot::remode($name, $domainId);
@@ -29,10 +29,10 @@ class pwa_Plugin extends core_Plugin
             core_Webroot::register(file_get_contents($serviceWorkerPath), '', $name, $domainId);
         }
 
-        $invoker->appendOnce("\n<script>\n    var serviceWorkerURL = '/{$name}';\n</script>\n", 'HEAD');
-        
         // Ако е активирана опцията за мобилно приложение - манифестираме го
-        if(pwa_Setup::get('ACTIVE') == 'yes' && cms_Domains::getPublicDomain('domain') == 'localhost') {
+        if (pwa_Setup::get('ACTIVE') == 'yes' && cms_Domains::getPublicDomain('domain') == 'localhost') {
+            $invoker->appendOnce("\n<script>\n    var serviceWorkerURL = '/{$name}';\n</script>\n", 'HEAD');
+            
             $cu = (int) core_Users::getCurrent();
             $cu = str::addHash($cu);
             $manifestUrl = toUrl(array('pwa_Manifest', 'Default', 'u' => $cu));
