@@ -278,12 +278,13 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
         
         $tQuery->orderBy('last', 'DESC');
         $tQuery->orderBy('id', 'DESC');
-        $tQuery->show('last, id');
+        $tQuery->show('last, id, firstContainerId');
         $tQuery->limit(1);
         
         if ($tRec = $tQuery->fetch()) {
             $cArr[] = $tRec->id;
             $cArr[] = $tRec->last;
+            $cArr[] = $tRec->firstContainerId;
         }
         
         $tArr = type_Keylist::toArray($dRec->threads);
