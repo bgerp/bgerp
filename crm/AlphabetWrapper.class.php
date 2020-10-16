@@ -54,7 +54,7 @@ class crm_AlphabetWrapper extends core_Plugin
             }
             $tpl = $tabs->renderHtml($content, $selected);
         } else {
-            $tabs2 = cls::get('core_Tabs', array('htmlClass' => 'alphabet', 'maxTabsNarrow' => 1000, 'htmlId' => 'alphabet'));
+            $tabs2 = cls::get('core_Tabs', array('htmlClass' => 'alphabet twoRows', 'maxTabsNarrow' => 1000, 'htmlId' => 'alphabet'));
 
             $letters = arr::make('А,Б,В,Г,Д,Е,Ж,З,И,Й,К,Л,М,Н,О,П,Р,С,Т,У,Ф,Х,Ц,Ч,Ш,Щ,Ъ,Ю,Я', true);
             $lettersEN = arr::make('A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z, 0 - 9', true);
