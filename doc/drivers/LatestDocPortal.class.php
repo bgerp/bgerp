@@ -113,8 +113,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
             $data->res = new ET();
             
             foreach ($resArr as $fId => $tArr) {
-                $f = "<div class='portalLatestFoldes'>" . doc_Folders::getLink($fId) . "</div>";
-                $data->res->append($f);
+                $docRowArr = array();
                 foreach ($tArr as $tId => $tRec) {
                     $tUnsighted = '';
                     $cnt = 0;
@@ -181,9 +180,17 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                         }
                         $t .= "</div>";
                         
-                        $data->res->append($t);
+                        $docRowArr[] = $t;
                     } catch (core_exception_Expect $e) {
                         continue;
+                    }
+                }
+                
+                if (!empty($docRowArr)) {
+                    $data->res->append("<div class='portalLatestFoldes'>" . doc_Folders::getLink($fId) . "</div>");
+                    
+                    foreach ($docRowArr as $dRow) {
+                        $data->res->append($dRow);
                     }
                 }
             }
