@@ -639,7 +639,6 @@ class drdata_Vats extends core_Manager
                 $data = new stdClass();
                 $data->name = $result->fullName;
                 $data->country = drdata_Countries::fetchField("#letterCode2 = 'BG'", 'id');
-                //bp($result);
                 
                 if(is_array($result->sections)){
                     foreach ($result->sections as $section){
@@ -671,8 +670,9 @@ class drdata_Vats extends core_Manager
                                     }
                                     
                                     $parsedAddress = drdata_ParseAddressBg::parse($shortAddress);
+                                    
                                     $data->pCode = $parsedAddress['п.код'];
-                                    $data->address = ($parsedAddress['ул.']) ? $parsedAddress['ул.'] : $parsedAddress['addr'];
+                                    $data->address = $parsedAddress['addr'];
                                     $data->place = isset($parsedAddress['гр.']) ? $parsedAddress['гр.'] : $parsedAddress['place'];
                                 }
                                 
