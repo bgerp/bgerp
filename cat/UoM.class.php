@@ -115,8 +115,8 @@ class cat_UoM extends core_Manager
         $this->FLD('sinonims', 'varchar(255)', 'caption=Синоними');
         $this->FLD('showContents', 'enum(yes=Показване,no=Скриване)', 'caption=Показване в документи->К-во в опаковка,smartCenter');
         $this->FLD('defQuantity', 'double(smartRound)', 'caption=Показване в документи->Дефолтно к-во');
-        $this->FLD('round', 'int', 'caption=Точност->Закръгляне');
-        $this->FLD('roundSignificant', 'int', 'caption=Точност->Значещи цифри');
+        $this->FLD('round', 'int', 'caption=Точност->Дробни цифри (брой)');
+        $this->FLD('roundSignificant', 'int', 'caption=Точност->Значещи цифри (минимум)');
         
         $this->setDbUnique('name');
         $this->setDbUnique('shortName');
