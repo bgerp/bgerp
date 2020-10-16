@@ -639,40 +639,45 @@ class drdata_Vats extends core_Manager
                 $data = new stdClass();
                 $data->name = $result->fullName;
                 $data->country = drdata_Countries::fetchField("#letterCode2 = 'BG'", 'id');
-            
-                if(is_array($result->sections[0]->subDeeds[0]->groups[0]->fields)){
-                    $foundAddress = array_filter($result->sections[0]->subDeeds[0]->groups[0]->fields, function ($a) {return $a->nameCode == 'CR_F_5_L';});
-                    if(countR($foundAddress) == 1){
-                        $foundAddress = array_values($foundAddress);
-                        $addressHtml = $foundAddress[0]->htmlData;
-                        
-                        if(!empty($addressHtml)){
-                            $addressHtml = str_replace('<br />', " ", $addressHtml);
-                            $address = strip_tags(str_replace('<br/>', " ", $addressHtml));
-                            
-                            $shortAddress = $address;
-                            $shortAddress = str_replace('бул./ул.', "ул.", $shortAddress);
-                            $cutPos1 = mb_strpos($shortAddress, "Населено място");
-                            if($cutPos1 !== false){
-                                $shortAddress = mb_substr($shortAddress, $cutPos1);
-                                $shortAddress = str_replace('Населено място: ', "", $shortAddress);
+                //bp($result);
+                
+                if(is_array($result->sections)){
+                    foreach ($result->sections as $section){
+                        if(is_array($section->subDeeds[0]->groups[0]->fields)){
+                            $foundAddress = array_filter($section->subDeeds[0]->groups[0]->fields, function ($a) {return $a->nameCode == 'CR_F_5_L';});
+                            if(countR($foundAddress) == 1){
+                                $foundAddress = array_values($foundAddress);
+                                $addressHtml = $foundAddress[0]->htmlData;
+                                
+                                if(!empty($addressHtml)){
+                                    $addressHtml = str_replace('<br />', " ", $addressHtml);
+                                    $address = strip_tags(str_replace('<br/>', " ", $addressHtml));
+                                    
+                                    $shortAddress = $address;
+                                    $shortAddress = str_replace('бул./ул.', "ул.", $shortAddress);
+                                    $cutPos1 = mb_strpos($shortAddress, "Населено място");
+                                    if($cutPos1 !== false){
+                                        $shortAddress = mb_substr($shortAddress, $cutPos1);
+                                        $shortAddress = str_replace('Населено място: ', "", $shortAddress);
+                                    }
+                                    $cutPos2 = mb_strpos($shortAddress, "Телефон:");
+                                    if($cutPos2 !== false){
+                                        $shortAddress = mb_substr($shortAddress, 0, $cutPos2);
+                                    }
+                                    
+                                    $cutPos3 = mb_strpos($shortAddress, "Адрес на електронна поща:");
+                                    if($cutPos3 !== false){
+                                        $shortAddress = mb_substr($shortAddress, 0, $cutPos3);
+                                    }
+                                    
+                                    $parsedAddress = drdata_ParseAddressBg::parse($shortAddress);
+                                    $data->pCode = $parsedAddress['п.код'];
+                                    $data->address = ($parsedAddress['ул.']) ? $parsedAddress['ул.'] : $parsedAddress['addr'];
+                                    $data->place = isset($parsedAddress['гр.']) ? $parsedAddress['гр.'] : $parsedAddress['place'];
+                                }
+                                
+                                break;
                             }
-                            $cutPos2 = mb_strpos($shortAddress, "Телефон:");
-                            if($cutPos2 !== false){
-                                $shortAddress = mb_substr($shortAddress, 0, $cutPos2);
-                            }
-                            
-                            $cutPos3 = mb_strpos($shortAddress, "Адрес на електронна поща:");
-                            if($cutPos3 !== false){
-                                $shortAddress = mb_substr($shortAddress, 0, $cutPos3);
-                            }
-                           
-                            $parsedAddress = drdata_ParseAddressBg::parse($shortAddress);
-                            foreach (array('pCode' => 'п.код', 'address' => 'ул.') as $fld => $k){
-                                $data->{$fld} = $parsedAddress[$k];
-                            }
-                            
-                            $data->place = isset($parsedAddress['гр.']) ? $parsedAddress['гр.'] : $parsedAddress['place'];
                         }
                     }
                 }
