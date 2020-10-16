@@ -146,8 +146,6 @@ class floor_Plans extends core_Master {
             }, 
             containment: "parent"})');
         $tpl->push('floor/css/floorplan.css', 'CSS');
-        
-        $obects = array();
 
         $query = floor_Objects::getQuery();
         while($oRec = $query->fetch("#planId = {$planId}")) {
@@ -156,11 +154,18 @@ class floor_Plans extends core_Master {
             $h = self::toPix($oRec->height);
             $x = self::toPix($oRec->x);
             $y = self::toPix($oRec->y);
-            $name = type_Varchar::escape($oRec->name);
+            $text = $oRec->text;
+            
+            $borderWidth = $oRec->borderWidth;
+            $borderColor = $oRec->borderColor ? $oRec->borderColor : "#333";
+            $backgroundColor = $oRec->backgroundColor;
+
+            $imgSrc = trim(fileman_Download::getDownloadUrl($oRec->image));
 
             $r = round(min($w, $h) * $oRec->round);
             $url = toUrl(array('floor_Objects', 'edit', $oRec->id, 'ret_url' => true));
-            $tpl->append("<div id='{$oRec->id}' class='floor-object' ondblclick='document.location=\"{$url}\"' style='left:{$x}px;top:{$y}px;width:{$w}px;height:{$h}px;border-radius:{$r}px;'><div class='floor-obj'>{$name}</div></div>", 'OBJECTS');
+            $tpl->append("<div id='{$oRec->id}' class='floor-object' ondblclick='document.location=\"{$url}\"' style='left:{$x}px;top:{$y}px;width:{$w}px;height:{$h}px;border-radius:{$r}px;border: {$borderWidth}px solid {$borderColor}; background-color: {$backgroundColor}; background-image: url(\"{$imgSrc}\"); background-size: {$w}px ''>
+                <div class='floor-obj'>{$text}</div>", 'OBJECTS');
         }
 
         return $tpl;
