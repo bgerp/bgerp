@@ -146,15 +146,18 @@ class floor_Plans extends core_Master {
             }, 
             containment: "parent"})');
         $tpl->push('floor/css/floorplan.css', 'CSS');
-
-        $query = floor_Objects::getQuery();
+        
+        $Floors = cls::get('floor_Objects');
+        
+        $query = $Floors->getQuery();
+        
         while($oRec = $query->fetch("#planId = {$planId}")) {
             
             $w = self::toPix($oRec->width);
             $h = self::toPix($oRec->height);
             $x = self::toPix($oRec->x);
             $y = self::toPix($oRec->y);
-            $text = $oRec->text;
+            $text = $Floors->getVerbal($oRec, 'text');
             
             $borderWidth = $oRec->borderWidth;
             $borderColor = $oRec->borderColor ? $oRec->borderColor : "#333";
