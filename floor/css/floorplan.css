@@ -10,14 +10,7 @@
     opacity:0.8;
     z-index:100000;
 }
-.floor-obj div {
-  position: absolute;
-  width: 100%;
-  height: 500px;
-  left: 0;
-  z-index: -1;
-  top: 0;
-}
+
 .floor-obj {
   display: table-cell;
   vertical-align: middle;
