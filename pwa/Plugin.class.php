@@ -26,7 +26,7 @@ class pwa_Plugin extends core_Plugin
             if($lastServiceWorker) {
                 core_Webroot::remode($name, $domainId);
             }
-            core_Webroot::register(file_get_contents($serviceWorkerPath), '', $name, $domainId);
+            core_Webroot::register(file_get_contents($serviceWorkerPath), 'Expires: {{time_604800}}', $name, $domainId);
         }
 
         // Ако е активирана опцията за мобилно приложение - манифестираме го
