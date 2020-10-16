@@ -156,7 +156,7 @@ class batch_Movements extends core_Detail
         
         $showFields = arr::make('batch,searchType,productId,storeId,action,from,to,selectPeriod,document', true);
         $data->listFilter->showFields = $showFields;
-        $data->listFilter->setField('searchType', 'full');
+        $data->listFilter->setDefault('searchType', 'full');
         
         if (haveRole('batch,ceo')) {
             $data->listFilter->showFields = $showFields;
