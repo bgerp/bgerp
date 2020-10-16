@@ -1633,7 +1633,7 @@ class eshop_Carts extends core_Master
         
         $finBtn = null;
         if (eshop_Carts::haveRightFor('finalize', $rec)) {
-            $finBtn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), 'Сигурни ли сте, че искате да поръчате|*?', null, 'title=Завършване на поръчката,class=order-btn eshop-btn,rel=nofollow');
+            $finBtn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), false, null, 'title=Завършване на поръчката,class=order-btn eshop-btn,rel=nofollow');
         } elseif(eshop_CartDetails::fetchField("#finalPrice IS NULL")){
             $finBtn = ht::createErrBtn('Завършване', 'Има проблем с някои от артикулите|*!', 'title=Завършване на поръчката,class=order-btn eshop-btn eshop-errorBtn,rel=nofollow,ef_icon=none');
         }
