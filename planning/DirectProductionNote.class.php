@@ -610,7 +610,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $dRec->quantityInPack = $resource->quantityInPack;
           
             // Дефолтното к-во ще е разликата между к-та за произведеното до сега и за произведеното в момента
-            $dRec->quantity = core_Math::roundNumber($resource->propQuantity - $bomInfo1['resources'][$index]->propQuantity);
+            $fractionalLen = 0;
+            $significantDigits = cat_UoM::fetchField($dRec->packagingId, 'roundSignificant');
+            $dRec->quantity = core_Math::roundNumber($resource->propQuantity - $bomInfo1['resources'][$index]->propQuantity, $fractionalLen, $significantDigits);
             $dRec->quantityFromBom = $dRec->quantity;
             
             $pInfo = cat_Products::getProductInfo($resource->productId);
