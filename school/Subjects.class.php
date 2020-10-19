@@ -39,7 +39,7 @@ class school_Subjects extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code,name,description,teachers';
+    public $listFields = 'code,title,description,teachers';
     
     
     /**
@@ -81,7 +81,7 @@ class school_Subjects extends core_Master
     /**
      * Хипервръзка към единичния изглед
      */
-    public $rowToolsSingleField = 'name';
+    public $rowToolsSingleField = 'title';
     
 
     /**
@@ -91,6 +91,8 @@ class school_Subjects extends core_Master
     {
         $this->FLD('code', 'varchar(16)', 'caption=Код,mandatory,smartCenter');
         $this->FLD('name', 'varchar(128)', 'caption=Наименование,mandatory');
+        $this->FLD('part', 'varchar(8)', 'caption=Част');
+        $this->FNC('title', 'varchar', 'caption=Заглавие');
         $this->FLD('credits', 'int', 'caption=ECTS кредити,smartCenter');
         $this->FLD('description', 'richtext', 'caption=@Описание');
         $this->FLD('teachers', 'userlist(roles=teacher)', 'caption=Преподаватели');
@@ -99,7 +101,19 @@ class school_Subjects extends core_Master
         $this->FLD('hoursS', 'int', 'caption=Хорариум->Семинари,unit=часа');
         $this->FLD('hoursW', 'int', 'caption=Хорариум->Практика,unit=часа');
         $this->FLD('hoursR', 'int', 'caption=Хорариум->Самоподготовка,unit=часа');
-
+        
+        $this->setDbUnique('code');
+        $this->setDbUnique('name,part');
     }
+
+
+    /**
+     * Изчисляване на `title`
+     */
+    public function on_CalcTitle($mvc, $rec)
+    {
+        $rec->title = $mvc->getVerbal($rec, 'name') . ($rec->part ? ', ' . $mvc->getVerbal($rec, 'part') : '');
+    }
+
     
 }

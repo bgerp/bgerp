@@ -79,6 +79,8 @@ class school_ReqDocuments extends core_Manager
     {
         $this->FLD('name', 'varchar(128)', 'caption=Наименование,mandatory');
         $this->FLD('ext', 'set(pdf,rtf,doc,xls,tiff,jpg,jpeg,png,bmp)', 'caption=Разширения');
+
+        $this->setDbUnique('name');
     }
     
 }

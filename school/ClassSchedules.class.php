@@ -84,7 +84,7 @@ class school_ClassSchedules extends core_Detail
     public function description()
     {
         $this->FLD('classId', 'key(mvc=school_Classes,select=productId)', 'caption=Клас,silent');
-        $this->FLD('subjectId', 'key(mvc=school_Subjects,select=name,allowEmpty)', 'caption=Дисциплина,mandatory,refreshForm,silent');
+        $this->FLD('subjectId', 'key(mvc=school_Subjects,select=title,allowEmpty)', 'caption=Дисциплина,mandatory,refreshForm,silent');
         $this->FLD('activity', 'key(mvc=school_SubjectDetails,select=title)', 'caption=Съдържание,smartCenter,input=hidden');
         $this->FLD('teacher', 'user(roles=teacher,rolesForAll=officer)', 'caption=Преподавател,mandatory,input=hidden');
         $this->FLD('place', 'key(mvc=school_Venues,select=name)', 'caption=Място,mandatory,smartCenter');
@@ -92,6 +92,8 @@ class school_ClassSchedules extends core_Detail
         $this->FLD('start', 'datetime', 'caption=Начало,mandatory');
         $this->FLD('hours', 'float(smartRound,desimals=2)', 'caption=Часове');
         $this->FLD('end', 'datetime', 'caption=Край');
+
+        $this->setDbUnique('start');
     }
 
 

@@ -89,6 +89,8 @@ class school_Venues extends core_Master
         $this->FLD('address', 'varchar(128)', 'caption=Адрес,smartCenter');
         $this->FLD('gpsCoords', 'location_Type(geolocation=mobile)', 'caption=Координати');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Изглед,smartCenter');
+
+        $this->setDbUnique('name');
     }
     
 }
