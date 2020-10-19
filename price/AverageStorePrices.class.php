@@ -140,7 +140,7 @@ class price_AverageStorePrices extends core_Manager
      */
     private static function saveAvgPrices()
     {
-        // Има ли избрани складове за осредняване
+        // Има ли избрани складове за усредняване
         $storesKeylist = price_Setup::get('STORE_AVERAGE_PRICES');
         $storeIds = keylist::toArray($storesKeylist);
         if(!countR($storeIds)){
@@ -168,9 +168,9 @@ class price_AverageStorePrices extends core_Manager
             return;
         }
         
-        core_App::setTimeLimit($count * 0.6, 900);
+        core_App::setTimeLimit($count * 0.7, 900);
         
-        $map = array();
+        $map = $valiorMap = array();
         $productClassId = cat_Products::getClassId();
         $publicProductIdString = implode(',', $publicProductIds);
         
@@ -195,30 +195,29 @@ class price_AverageStorePrices extends core_Manager
         
         while($jRec = $jQuery->fetch()){
             $rec = (object)array('date' => $jRec->maxValior, 'itemId' => $jRec->debitItem2, 'productId' => $map[$jRec->debitItem2]->productId, 'quantity' => 0, 'price' => 0);
-            $toSave[$rec->productId] = $rec;
+            $toSave[$rec->itemId] = $rec;
+            
+            // Записите ще се гръпурат по вальор
+            $valiorMap[$jRec->maxValior][] = $rec->itemId;
         }
         
-        // Сумарното им количество по складовете
-        $pQuery = store_Products::getQuery();
-        $pQuery->where("#quantity >= 0");
-        $pQuery->XPR('sum', 'double', 'SUM(#quantity)');
-        $pQuery->in("productId", $publicProductIds);
-        $pQuery->in("storeId", $storeIds);
-        $pQuery->groupBy('productId,storeId');
-        $pQuery->show('sum,productId,storeId');
-        
-        while($pRec = $pQuery->fetch()){
-            if(array_key_exists($pRec->productId, $toSave)){
-                $toSave[$pRec->productId]->quantity += $pRec->sum;
-            }
-        }
-        
-        // Колко им е средната складова цена
-        $date = dt::today();
-        foreach ($toSave as $obj){
-            $amount = cat_Products::getWacAmountInStore($obj->quantity, $obj->productId, $date, $storeIds);
-            if($obj->quantity){
-                $obj->price = round($amount / $obj->quantity, 6);
+        foreach ($valiorMap as $valior => $pItems){
+            
+            // За всяка уникална дата се смятат к-та на артикулите към нея
+            $Balance = new acc_ActiveShortBalance(array('from' => $valior, 'to' => $valior, 'accs' => '321', false, true, 'item1' => $storeItems, 'item2' => $pItems, 'null'));
+            $bRecs = $Balance->getBalance('321');
+            foreach ($pItems as $iId){
+                
+                // Сумира се количеството в посочените складове
+                $iQuantity = 0;
+                array_walk($bRecs, function ($a) use ($iId, &$iQuantity){if($a->ent2Id == $iId) {$iQuantity += $a->blQuantity;};});
+                $toSave[$iId]->quantity = $iQuantity;
+               
+                // Изчислява се среднопритеглената цена към тази дата за общото количество във посочените складове
+                $amount = cat_Products::getWacAmountInStore($toSave[$iId]->quantity, $toSave[$iId]->productId, $valior, $storeIds);
+                if($toSave[$iId]->quantity){
+                    $toSave[$iId]->price = round($amount / $toSave[$iId]->quantity, 6);
+                }
             }
         }
         
