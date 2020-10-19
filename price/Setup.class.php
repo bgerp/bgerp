@@ -22,7 +22,7 @@ defIfNot('PRICE_MIN_CHANGE_UPDATE_PRIME_COST', '0.03');
 /**
  * Складове, в които да се усреднява цената
  */
-defIfNot('STORE_AVERAGE_PRICES', '');
+defIfNot('STORE_AVERAGE_PRICES', ' ');
 
 
 /**
