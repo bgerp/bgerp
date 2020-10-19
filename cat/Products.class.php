@@ -1055,6 +1055,11 @@ class cat_Products extends embed_Manager
                 'features' => array()
             );
             
+            if(!empty($rec->meta)){
+                $meta = static::getVerbal($rec, 'meta');
+                $result->features += arr::make($meta, true);
+            }
+           
             // Добавяме свойствата от групите, ако има такива
             $groupFeatures = cat_Groups::getFeaturesArray($rec->groups);
             if (countR($groupFeatures)) {
@@ -1065,6 +1070,7 @@ class cat_Products extends embed_Manager
             $result->features = array_merge($Driver->getFeatures($objectId), $result->features);
         }
         
+       // bp($result);
         return $result;
     }
     
