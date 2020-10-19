@@ -150,10 +150,10 @@ class core_Detail extends core_Manager
             $data->listClass = 'listRowsDetail';
         }
         
-        if (!isset($this->currentTab)) {
-            $this->currentTab = $data->masterMvc->title;
+        if (empty($this->currentTab)) {
+            $this->currentTab = $data->masterMvc;
         }
-        
+
         // Рендираме общия лейаут
         $tpl = $this->renderDetailLayout($data);
         
@@ -245,7 +245,11 @@ class core_Detail extends core_Manager
         if (!$data->masterMvc) {
             $data->masterMvc = $this->getMasterMvc($data->form->rec);
         }
-        
+
+        if (empty($this->currentTab)) {
+            $this->currentTab = $data->masterMvc;
+        }
+
         if (!$data->masterKey) {
             $data->masterKey = $this->getMasterKey($data->form->rec);
         }
