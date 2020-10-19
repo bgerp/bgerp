@@ -39,7 +39,7 @@ class school_CourseDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'subjectId,hoursL,hoursE,hoursS,hoursW,hoursR';
+    public $listFields = 'subjectId';
     
     
     /**
@@ -84,7 +84,7 @@ class school_CourseDetails extends core_Detail
     public function description()
     {
         $this->FLD('courseId', 'key(mvc=school_Courses)', 'caption=Курс');
-        $this->FLD('subjectId', 'key(mvc=school_Subjects)', 'caption=Дисциплина');
+        $this->FLD('subjectId', 'key(mvc=school_Subjects,select=title)', 'caption=Дисциплини');
        
       
         $this->setDbUnique('courseId,subjectId');

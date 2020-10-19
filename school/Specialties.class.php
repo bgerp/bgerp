@@ -85,6 +85,9 @@ class school_Specialties extends core_Master
     {
         $this->FLD('code', 'varchar(16)', 'caption=Код,mandatory,smartCenter');
         $this->FLD('name', 'varchar(128)', 'caption=Наименование,mandatory');
+        
+        $this->setDbUnique('code');
+        $this->setDbUnique('name');
     }
     
 }

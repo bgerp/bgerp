@@ -84,7 +84,7 @@ class school_SubjectDetails extends core_Detail
     public function description()
     {
         $this->FNC('title', 'varchar', 'caption=Заглавие');
-        $this->FLD('subjectId', 'key(mvc=school_Subjects)', 'caption=Дисциплина');
+        $this->FLD('subjectId', 'key(mvc=school_Subjects,select=title)', 'caption=Дисциплина');
         $this->FLD('format', 'key(mvc=school_Formats,select=name)', 'caption=Форма,smartCenter');
         $this->FLD('theme', 'varchar(256)', 'caption=Тема,mandatory');
         $this->FLD('hours', 'int', 'caption=Часове');
