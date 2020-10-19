@@ -101,10 +101,20 @@ class plg_ProtoWrapper extends core_Plugin
         
         // Добавяме титлата на страницата
         $tpl->prepend($this->getHtmlPageTitle($invoker, $data) . ' « ', 'PAGE_TITLE');
-        
+    
         // Проверяваме дали текущия таб не е изрично зададен
         if ($isCurrentTabSet = $invoker->currentTab) {
-            $currentTab = $invoker->currentTab;
+            if(is_object($invoker->currentTab)) {
+                $class = cls::getClassName($invoker->currentTab);
+                foreach($this->tabs as $tabName => $obj) { 
+                    if($obj->url['Ctr'] == $class) {
+                        $currentTab = $tabName;
+                        break;
+                    }
+                }
+            } else {
+                $currentTab = $invoker->currentTab;
+            }
         }
         
         $ctr = cls::getClassName(Request::get('Ctr'));
