@@ -485,7 +485,7 @@ class eshop_Products extends core_Master
     public static function prepareAllProducts($data)
     {
         $groups = eshop_Groups::getByDomain();
-        if (countR($groups)) {
+        if (!countR($groups)) {
             
             return;
         }
