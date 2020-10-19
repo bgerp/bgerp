@@ -38,6 +38,9 @@ DEFINE('EF_DB_HOST', 'localhost');
 // Виртуален хост по подразбиране в CMS-a
 DEFINE('BGERP_VHOST', 'localhost');
 
+// Абсолютен път до скрипта за клониране на домейн в CMS-a
+DEFINE('BGERP_CLONE_VHOST_SCRIPT','');
+
 
 /**
  * Секретни ключове, използвани за кодиране в рамките на системата
