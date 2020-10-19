@@ -188,7 +188,7 @@ class acc_strategy_WAC extends acc_strategy_Strategy
             // Ако има баланс преди тази дата
             if (cls::get('acc_Balances')->getBalanceBefore($date)) {
                 
-                // Рекурсирно извикваме същата функция
+                // Рекурсивно се извиква същата функция
                 return self::getAmount($quantity, $newTo, $accSysId, $item1, $item2, $item3, $maxTries, $currentTry);
             }
         }
