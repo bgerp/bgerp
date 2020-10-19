@@ -95,7 +95,7 @@ class school_Subjects extends core_Master
         $this->FNC('title', 'varchar', 'caption=Заглавие');
         $this->FLD('credits', 'int', 'caption=ECTS кредити,smartCenter');
         $this->FLD('description', 'richtext', 'caption=@Описание');
-        $this->FLD('teachers', 'userlist(roles=teacher)', 'caption=Преподаватели');
+        $this->FLD('teachers', 'userList(roles=teacher)', 'caption=Преподаватели');
         $this->FLD('hoursL', 'int', 'caption=Хорариум->Лекции,unit=часа');
         $this->FLD('hoursE', 'int', 'caption=Хорариум->Упражнения,unit=часа');
         $this->FLD('hoursS', 'int', 'caption=Хорариум->Семинари,unit=часа');
