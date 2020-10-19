@@ -305,6 +305,7 @@ class eshop_ProductDetails extends core_Detail
         
         foreach ($recs as $rec){
             $newRec = (object) array('eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'title' => $rec->title, 'deliveryTime' => $rec->deliveryTime);
+            $paramsText = eshop_CartDetails::getUniqueParamsAsText($rec->eshopProductId, $rec->productId);
             
             $packagings = keylist::toArray($rec->packagings);
             $allowedPacks = eshop_Products::getSettingField($rec->eshopProductId, 'null', 'showPacks');
@@ -322,8 +323,8 @@ class eshop_ProductDetails extends core_Detail
                 $clone->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
                 
                 $row = self::getExternalRow($clone);
-                $paramsText = eshop_CartDetails::getUniqueParamsAsText($rec->eshopProductId, $rec->productId);
                 $row->paramsText = $paramsText;
+                
                 $me->invoke('AfterRecToVerbal', array($row, $rec));
                 
                 $data->recs[] = $clone;

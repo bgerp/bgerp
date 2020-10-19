@@ -126,8 +126,6 @@ class type_UserList extends type_Keylist
         
         $haveOpenedGroup = false;
         
-        $allUserOtherGroupArr = array();
-        
         // Попълваме опциите от допълнително зададените
         if (isset($this->userOtherGroup)) {
             foreach ($this->userOtherGroup as $gKey => $gVals) {
@@ -154,8 +152,6 @@ class type_UserList extends type_Keylist
                         if (EF_USSERS_EMAIL_AS_NICK) {
                             $this->suggestions[$key] = html_entity_decode($this->suggestions[$key]);
                         }
-                        
-                        $allUserOtherGroupArr[$uId] = $uId;
                     }
                 }
             }
@@ -206,8 +202,6 @@ class type_UserList extends type_Keylist
                     if (EF_USSERS_EMAIL_AS_NICK) {
                         $this->suggestions[$key] = html_entity_decode($this->suggestions[$key]);
                     }
-                    
-                    unset($allUserOtherGroupArr[$uId]);
                 }
                 
                 if ($uId == core_Users::getCurrent() && !$ids) {
@@ -221,13 +215,9 @@ class type_UserList extends type_Keylist
             }
         }
         
-        // Премахваме потребителите от грипите, ако не участват в списъка
-        if (!empty($allUserOtherGroupArr)) {
+        if (isset($this->userOtherGroup)) {
+            // Премахваме потребителите от грипите, ако не участват в списъка
             foreach ($this->userOtherGroup as $gKey => $gVals) {
-                foreach ($allUserOtherGroupArr as $uId) {
-                    $key = $this->getKey($gKey, $uId);
-                    unset($this->suggestions[$key]);
-                }
                 
                 // Ако списъка е празен, скриваме групата
                 $haveRec = false;
@@ -366,6 +356,7 @@ class type_UserList extends type_Keylist
                     
                     foreach ($this->userOtherGroup as $gName => $gVal) {
                         $key = $this->getKey($gName, $uId);
+                        
                         if ($this->suggestions[$key]) {
                             $nValArr[$key] = $key;
                             $haveMatch = true;

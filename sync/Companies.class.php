@@ -111,6 +111,13 @@ class sync_Companies extends sync_Helper
         foreach ($resArr as $class => $objArr) {
             self::logDebug($class . ': ' . countR($objArr));
             foreach ($objArr as $id => $rec) {
+                if ($class == 'crm_Companies') {
+                    $class = cls::get($class);
+                    
+                    // Полето ЕАН да е уникално
+                    $class->dbIndexes['uicId'] = (object) array('fields' => 'uicId', 'type' => 'UNIQUE');
+                }
+                
                 sync_Map::importRec($class, $id, $resArr, $me, $update);
             }
         }

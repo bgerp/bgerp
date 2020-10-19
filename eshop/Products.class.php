@@ -31,7 +31,7 @@ class eshop_Products extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,code,name=Е-артикул,dCount=Опции,groupId=Група,saleState,state';
+    public $listFields = 'id,code,name=Е-артикул,groupId=Група,saleState,dCount=Опции,state';
     
     
     /**
@@ -80,6 +80,12 @@ class eshop_Products extends core_Master
      * Кой има право да го изтрие?
      */
     public $canDelete = 'eshop,ceo';
+    
+    
+    /**
+     * Работен кеш?
+     */
+    protected static $cacheParams = array();
     
     
     /**
@@ -438,20 +444,20 @@ class eshop_Products extends core_Master
      *               ['quantityCount'] - опционален брой количества
      *               ['moq']           - МКП
      *               ['measureId']     - основна мярка
-     *
+     *               ['url']           - линк
      */
     public function getInquiryData($id)
     {
         $rec = $this->fetchRec($id);
         
         $res = array('title' => $rec->name,
-            'drvId' => $rec->coDriver,
-            'lg' => cms_Content::getLang(),
-            'protos' => $rec->proto,
-            'quantityCount' => empty($rec->quantityCount) ? 0 : $rec->quantityCount,
-            'moq' => $this->getMoq($rec),
-            'measureId' => self::getUomId($rec),
-        
+                     'drvId' => $rec->coDriver,
+                     'lg' => cms_Content::getLang(),
+                     'protos' => $rec->proto,
+                     'quantityCount' => empty($rec->quantityCount) ? 0 : $rec->quantityCount,
+                     'moq' => $this->getMoq($rec),
+                     'measureId' => static::getUomId($rec),
+                     'url' => static::getUrl($rec),
         );
         
         return $res;
@@ -1434,76 +1440,79 @@ class eshop_Products extends core_Master
      *
      * @param int $id
      *
-     * @return array $res
+     * @return array
      */
     public static function getCommonParams($id)
     {
-        $res = $rowParams = $totalParams = array();
         $rec = self::fetchRec($id);
         
-        // Има ли параметри за показване
-        $displayParams = eshop_Products::getSettingField($id, null, 'showParams');
-        if (!countR($displayParams)) {
+        if(!isset(static::$cacheParams[$rec->id])){
+            $res = $rowParams = $totalParams = array();
             
-            return $res;
-        }
-        
-        // Опциите към артикула
-        $displayPacks = eshop_Products::getSettingField($id, null, 'showPacks');
-        $dQuery = eshop_ProductDetails::getQuery();
-        $dQuery->where("#eshopProductId = {$rec->id}");
-        $dQuery->show('productId,packagings');
-        
-        while ($dRec = $dQuery->fetch()) {
-            if (!eshop_ProductDetails::getPublicDisplayPrice($dRec->productId)) {
-                continue;
-            }
-            
-            // Ако нито една от опаковките на артикула няма да се показва, игнорираме го
-            if (countR($displayPacks)) {
-                $packs = keylist::toArray($dRec->packagings);
-                if (!array_intersect_key($packs, $displayPacks)) {
-                    continue;
-                }
-            }
-            
-            // Какви стойности имат избраните параметри
-            $intersect = array();
-            $productParams = cat_Products::getParams($dRec->productId, null, true);
-            foreach ($displayParams as $displayParamId) {
-                $intersect[$displayParamId] = $productParams[$displayParamId];
-            }
-            
-            $totalParams = $totalParams + array_combine(array_keys($intersect), array_keys($intersect));
-            $rowParams[$dRec->productId] = $intersect;
-        }
-        
-        // За всеки от избраните параметри
-        foreach ($totalParams as $paramId) {
-            $isCommon = true;
-            $value = false;
-            
-            foreach ($rowParams as $params) {
-                if ($value === false) {
-                    $value = $params[$paramId];
-                } elseif (trim($value) != trim($params[$paramId])) {
-                    $value = false;
-                    $isCommon = false;
-                }
-            }
-            
-            // Ако всичките записи имат еднаква стойност, значи параметъра е общ
-            if ($isCommon === true && isset($value)) {
-                $paramRow = cat_Params::recToVerbal($paramId, 'suffix');
-                if (!empty($paramRow->suffix)) {
-                    $value .= " {$paramRow->suffix}";
+            // Има ли параметри за показване
+            $displayParams = eshop_Products::getSettingField($id, null, 'showParams');
+            if (countR($displayParams)) {
+                
+                // Опциите към артикула
+                $displayPacks = eshop_Products::getSettingField($id, null, 'showPacks');
+                $dQuery = eshop_ProductDetails::getQuery();
+                $dQuery->where("#eshopProductId = {$rec->id} AND #state = 'active'");
+                $dQuery->show('productId,packagings');
+                
+                while ($dRec = $dQuery->fetch()) {
+                    if (!eshop_ProductDetails::getPublicDisplayPrice($dRec->productId)) {
+                        continue;
+                    }
+                    
+                    // Ако нито една от опаковките на артикула няма да се показва, игнорираме го
+                    if (countR($displayPacks)) {
+                        $packs = keylist::toArray($dRec->packagings);
+                        if (!array_intersect_key($packs, $displayPacks)) {
+                            continue;
+                        }
+                    }
+                    
+                    // Какви стойности имат избраните параметри
+                    $intersect = array();
+                    $productParams = cat_Products::getParams($dRec->productId, null, true);
+                    foreach ($displayParams as $displayParamId) {
+                        $intersect[$displayParamId] = $productParams[$displayParamId];
+                    }
+                    
+                    $totalParams = $totalParams + array_combine(array_keys($intersect), array_keys($intersect));
+                    $rowParams[$dRec->productId] = $intersect;
                 }
                 
-                $res[$paramId] = $value;
+                // За всеки от избраните параметри
+                foreach ($totalParams as $paramId) {
+                    $isCommon = true;
+                    $value = false;
+                    
+                    foreach ($rowParams as $params) {
+                        if ($value === false) {
+                            $value = $params[$paramId];
+                        } elseif (trim($value) != trim($params[$paramId])) {
+                            $value = false;
+                            $isCommon = false;
+                        }
+                    }
+                    
+                    // Ако всичките записи имат еднаква стойност, значи параметъра е общ
+                    if ($isCommon === true && isset($value)) {
+                        $paramRow = cat_Params::recToVerbal($paramId, 'suffix');
+                        if (!empty($paramRow->suffix)) {
+                            $value .= " {$paramRow->suffix}";
+                        }
+                        
+                        $res[$paramId] = $value;
+                    }
+                }
             }
+            
+            static::$cacheParams[$rec->id] = $res;
         }
         
-        return $res;
+        return static::$cacheParams[$rec->id];
     }
     
     

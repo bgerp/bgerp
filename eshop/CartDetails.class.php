@@ -766,7 +766,7 @@ class eshop_CartDetails extends core_Detail
         
         $arr = array();
         foreach ($diff as $paramId => $value) {
-            $paramRec = cat_Params::fetch($paramId);
+            $paramRec = cat_Params::fetch($paramId, 'driverClass,suffix,name');
             $value = (!empty($paramRec->suffix)) ? $value .  ' ' . tr($paramRec->suffix) : $value;
            
             if($asRichText && in_array($paramRec->driverClass, $fileTypes)){

@@ -963,7 +963,11 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         $titleVerbal = $form->getFieldType('title')->toVerbal($title);
-        $form->title = "|Запитване за|* <b>{$titleVerbal}</b>";
+        if(isset($sourceData['url'])){
+            $titleVerbal = ht::createLink($titleVerbal, $sourceData['url']);
+        }
+        
+        $form->title = "|Запитване за|* <b class='inquiryTitleLink'>{$titleVerbal}</b>";
         vislog_History::add('Форма за ' . $form->getFieldType('title')->toVerbal($sourceData['title']));
         
         if (isset($form->rec->title) && !isset($cu)) {

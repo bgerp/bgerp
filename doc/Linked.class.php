@@ -1580,7 +1580,6 @@ class doc_Linked extends core_Manager
                 $title = "<span class='red'>" . tr('Проблем при показването') . " </span>";
             }
             
-            
             $link = ht::createLink($title, $linkUrl, null, $attr);
             
             $folderId = doc_Containers::fetchField($valId, 'folderId');
@@ -1590,9 +1589,7 @@ class doc_Linked extends core_Manager
                 $link .= ' « <span class="small">' . doc_Folders::recToVerbal($fRec, 'title')->title . "</span>";
             }
             
-            if (!trim($comment)) {
-                $comment = '(#' . $doc->getHandle() . ') ' . $docRow->title;
-            }
+            $comment = $doc->getDefaultLinkedComment($comment);
         } elseif ($type == 'file') {
             $clsInst = cls::get('fileman_Files');
             $valId = fileman::idToFh($valId);
@@ -1628,6 +1625,21 @@ class doc_Linked extends core_Manager
             $data->form->setField('outVal', 'input=none');
             $data->form->setField('inType', 'input=none');
             $data->form->setField('inVal', 'input=none');
+        }
+    }
+    
+    
+    /**
+     * Извиква се преди запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int      $id  първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec)
+    {
+        if (!trim($rec->comment)) {
+            
         }
     }
     

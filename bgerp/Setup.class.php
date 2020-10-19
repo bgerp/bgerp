@@ -52,12 +52,6 @@ defIfNot('BGERP_RECENTLY_KEEP_DAYS', 31556952);
 
 
 /**
- * Звуков сигнал при нотификация
- */
-defIfNot('BGERP_SOUND_ON_NOTIFICATION', 'scanner');
-
-
-/**
  * Кога е началото на работния ден
  */
 defIfNot('BGERP_START_OF_WORKING_DAY', '08:00');

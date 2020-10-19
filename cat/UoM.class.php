@@ -79,7 +79,7 @@ class cat_UoM extends core_Manager
     /**
      * Полета за лист изгледа
      */
-    public $listFields = 'id,name,shortName=Съкращение,baseUnitId,sysId=System Id,round=Точност,showContents,defQuantity,state,createdOn,createdBy';
+    public $listFields = 'id,name,shortName=Съкращение,baseUnitId,sysId=System Id,round,roundSignificant,showContents,defQuantity,state,createdOn,createdBy';
     
     
     /**
@@ -115,8 +115,8 @@ class cat_UoM extends core_Manager
         $this->FLD('sinonims', 'varchar(255)', 'caption=Синоними');
         $this->FLD('showContents', 'enum(yes=Показване,no=Скриване)', 'caption=Показване в документи->К-во в опаковка,smartCenter');
         $this->FLD('defQuantity', 'double(smartRound)', 'caption=Показване в документи->Дефолтно к-во');
-        $this->FLD('round', 'int', 'caption=Точност след десетичната запетая->Цифри');
-        
+        $this->FLD('round', 'int', 'caption=Точност->Дробни цифри (брой)');
+        $this->FLD('roundSignificant', 'int', 'caption=Точност->Значещи цифри (минимум)');
         
         $this->setDbUnique('name');
         $this->setDbUnique('shortName');
@@ -468,7 +468,9 @@ class cat_UoM extends core_Manager
             6 => 'sinonims',
             7 => 'round',
             8 => 'type',
-            9 => 'defQuantity');
+            9 => 'defQuantity',
+            10 => 'roundSignificant'
+        );
         
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
         $res .= $cntObj->html;
