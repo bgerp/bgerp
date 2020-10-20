@@ -25,6 +25,17 @@ defIfNot('BGERP_OWN_COMPANY_ID', 1);
 defIfNot('CRM_VISIBLE_NKID', 'none');
 
 
+/**
+ * Използване на регистър VIES за търсене на фирми
+ */
+defIfNot('CRM_REGISTRY_USE_VIES', 'yes');
+
+
+/**
+ * Използване на Търговския регистър за търсене на фирми
+ */
+defIfNot('CRM_REGISTRY_USE_BRRA', 'yes');
+
 
 /**
  * Клас 'crm_Setup' -
@@ -34,7 +45,7 @@ defIfNot('CRM_VISIBLE_NKID', 'none');
  * @package   crm
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -82,8 +93,9 @@ class crm_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        
         'CRM_VISIBLE_NKID' => array('enum(none=Не показвай, yes=Покажи)', 'caption=Класификация на икономическите дейности->НКИД'),
+        'CRM_REGISTRY_USE_BRRA' => array('enum(yes=Включено,ne=Изключено)', 'caption=Извличане и попълване на данни->Търговски регистър'),
+        'CRM_REGISTRY_USE_VIES' => array('enum(yes=Включено,ne=Изключено)', 'caption=Извличане и попълване на данни->VIES'),
     );
     
     

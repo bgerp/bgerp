@@ -2,7 +2,7 @@
 
 
 /**
- * Мениджър на групи с продукти.
+ * Мениджър на групи с артикули.
  *
  *
  * @category  bgerp
@@ -23,12 +23,6 @@ class eshop_Groups extends core_Master
     
     
     /**
-     * Страница от менюто
-     */
-    public $pageMenu = 'Каталог';
-    
-    
-    /**
      * Поддържани интерфейси
      */
     public $interfaces = 'cms_SourceIntf';
@@ -43,13 +37,13 @@ class eshop_Groups extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Име,menuId=Меню->Основно,sharedMenus=Меню->Споделяне||Shared,productCnt=Продукти,state=Видимост';
+    public $listFields = 'name=Име,menuId=Меню->Основно,sharedMenus=Меню->Споделяне||Shared,productCnt=Артикули,state=Видимост';
     
     
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
-    public $searchFields = 'name';
+    public $searchFields = 'name,info';
     
     
     /**
@@ -103,7 +97,7 @@ class eshop_Groups extends core_Master
     /**
      * Кой има право да го изтрие?
      */
-    public $canDelete = 'no_one';
+    public $canDelete = 'eshop,ceo';
     
     
     /**
@@ -113,11 +107,17 @@ class eshop_Groups extends core_Master
     
     
     /**
+     * Нов темплейт за показване
+     */
+    public $singleLayoutFile = 'eshop/tpl/SingleLayoutGroup.shtml';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
     {
-        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Основно,silent,refreshForm');
+        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Основно,silent,refreshForm,mandatory');
         $this->FLD('sharedMenus', 'keylist(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Споделяне в,silent,refreshForm');
         
         $this->FLD('name', 'varchar(64)', 'caption=Група->Наименование, mandatory,width=100%');
@@ -125,7 +125,7 @@ class eshop_Groups extends core_Master
         $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Група->Параметри,optionsFunc=cat_Params::getPublic');
         $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Група->Опаковки/Мерки');
         $this->FLD('order', 'double', 'caption=Подредба,hint=Важи само за менютата, където групата е споделена');
-        $this->FLD('perPage', 'int(Min=0)', 'caption=Страниране,unit=продукта на страница');
+        $this->FLD('perPage', 'int(Min=0)', 'caption=Страниране,unit=артикули на страница');
         $this->FLD('icon', 'fileman_FileType(bucket=eshopImages)', 'caption=Картинка->Малка');
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Картинка->Голяма');
         $this->FLD('productCnt', 'int', 'input=none,single=none');
@@ -177,6 +177,46 @@ class eshop_Groups extends core_Master
     
     
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if($form->isSubmitted()){
+            $rec = $form->rec;
+            
+            // Дали в същото меню има група със същото име
+            if(eshop_Groups::fetchField(array("#menuId = {$rec->menuId} && #id != '{$rec->id}' && #name = '[#1#]' COLLATE {$mvc->db->dbCharset}_general_ci", $rec->name))){
+                $form->setError('name', 'В същото основно меню, има група със същото име');
+            }
+            
+            // Ако има споделени менюта
+            if(!empty($rec->sharedMenus)){
+               
+                // Проверка дали в някои от тях има група със същото име
+                $menuesWithSameGroup = array();
+                $arr = keylist::toArray($rec->sharedMenus);
+                foreach ($arr as $menuId){
+                    if(eshop_Groups::fetch(array("#menuId = {$menuId} && #id != '{$rec->id}' && #name = '[#1#]' COLLATE {$mvc->db->dbCharset}_general_ci", $rec->name))){
+                        $title = cms_Content::getVerbal($menuId, 'menu') . " (" . cms_Content::getVerbal($menuId, 'domainId') . ")";
+                        $menuesWithSameGroup[$menuId] = "<b>{$title}</b>";
+                    }
+                }
+                
+                // Ако има група със същото име, сетва се грешка
+                if(countR($menuesWithSameGroup)){
+                    $menuStrings = implode(', ', $menuesWithSameGroup);
+                    $errorMsg = "В следните менюта, има група със същото име|*: {$menuStrings}";
+                    $form->setError('name,sharedMenus', $errorMsg);
+                }
+            }
+        }
+    }
+    
+    
+    /**
      * Изпълнява се след подготовката на формата за филтриране
      */
     protected function on_AfterPrepareListFilter($mvc, $data)
@@ -187,28 +227,38 @@ class eshop_Groups extends core_Master
         $form->view = 'horizontal';
         
         // Добавяме бутон
+        $domains = cms_Domains::getDomainOptions(false, core_Users::getCurrent());
+        $form->FLD('domainId', 'key(mvc=cms_Domains,select=title)', 'caption=Домейн,silent,autoFilter');
+        if(countR($domains) == 1){
+            $form->setField('domainId', 'input=hidden');
+        } else {
+            $form->setOptions('domainId', $domains);
+        }
+        
+        $form->setDefault('domainId', cms_Domains::getCurrent());
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
-        $form->showFields = 'search, menuId';
+        $form->showFields = 'search, menuId, domainId';
         
-        $form->input('search, menuId', 'silent');
+        $form->input('search, menuId, domainId', 'silent');
         
-        $form->setOptions('menuId', $opt = cms_Content::getMenuOpt($mvc));
-        
+        cms_Domains::selectCurrent($form->rec->domainId);
+        $menuOptions = cms_Content::getMenuOpt($mvc, $form->rec->domainId);
+        $form->setOptions('menuId', $menuOptions);
         $form->setField('menuId', 'refreshForm');
         
-        if (countR($opt) == 0) {
+        if (countR($menuOptions) == 0) {
             redirect(array('cms_Content'), false, '|Моля въведете поне една точка от менюто с източник "Онлайн магазин"');
         }
         
-        if ($form->rec->menuId && !$opt[$form->rec->menuId]) {
-            $form->rec->menuId = key($opt);
+        if ($form->rec->menuId && !$menuOptions[$form->rec->menuId]) {
+            $form->rec->menuId = key($menuOptions);
         }
         
-        if (countR($opt) && !$form->isSubmitted()) {
-            $form->rec->menuId = key($opt);
+        if (countR($menuOptions) && !$form->isSubmitted()) {
+            $form->rec->menuId = key($menuOptions);
         }
         
         if ($form->rec->menuId) {
@@ -240,11 +290,12 @@ class eshop_Groups extends core_Master
                 $otherDomainName = cms_Domains::getTitleById($otherDomainId);
                 $row->menuId .= " [<span style='color:green'>{$otherDomainName}</span>]";
             }
-            
-            $productCnt = eshop_Products::count("#groupId = {$rec->id} OR #sharedInGroups LIKE '%|{$rec->id}|%'");
-            $row->productCnt = $mvc->getFieldType('productCnt')->toVerbal($productCnt);
-            $row->productCnt = ht::createLinkRef($row->productCnt, array('eshop_Products', 'list', 'groupId' => $rec->id));
         }
+        
+        $row->SingleIcon = ht::createElement('img', array('src' => sbf($mvc->getSingleIcon($rec->id), ''), 'alt' => ''));
+        $productCnt = eshop_Products::count("#groupId = {$rec->id} OR #sharedInGroups LIKE '%|{$rec->id}|%'");
+        $row->productCnt = $mvc->getFieldType('productCnt')->toVerbal($productCnt);
+        $row->productCnt = ht::createLinkRef($row->productCnt, array('eshop_Products', 'list', 'groupId' => $rec->id));
         
         foreach (array('showPacks', 'showParams') as $fld) {
             $hint = null;
@@ -270,7 +321,9 @@ class eshop_Groups extends core_Master
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         if (haveRole('powerUser') && $data->rec->state != 'closed') {
-            $data->toolbar->addBtn('Преглед', self::getUrl($data->rec), null, 'ef_icon=img/16/monitor.png,title=Преглед във външната част');
+            $domainName = cms_Domains::getTitleById(cms_Content::fetchField($data->rec->menuId, 'domainId'));
+            $title = "Преглед|* [{$domainName}]";
+            $data->toolbar->addBtn($title, self::getUrl($data->rec), null, 'ef_icon=img/16/monitor.png,title=Преглед във външната част');
         }
     }
     
@@ -305,7 +358,7 @@ class eshop_Groups extends core_Master
         
         
         if (self::mustShowSideNavigation()) {
-            // Ако имаме поне 4-ри групи продукти
+            // Ако имаме поне 4-ри групи артикули
             $this->prepareNavigation($data);
             $this->prepareAllGroups($data);
             $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
@@ -483,7 +536,7 @@ class eshop_Groups extends core_Master
     
     
     /**
-     * Добавя бутони за разглеждане във витрината на групите с продукти
+     * Добавя бутони за разглеждане във витрината на групите с артикули
      */
     protected function on_AfterPrepareListToolbar($mvc, $data)
     {
@@ -799,11 +852,6 @@ class eshop_Groups extends core_Master
                 $url = eshop_Products::getUrl($r);
                 $url['q'] = $q;
                 
-                if(haveRole('debug')){
-                    $rating = empty($r->rating) ? tr("n / a") : $r->rating;
-                    $title = ht::createHint($title, "Рейтинг:|* {$rating}");
-                }
-                
                 $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url, 'img' => eshop_Products::getProductThumb($r, 60, 60));
             }
         }
@@ -874,28 +922,6 @@ class eshop_Groups extends core_Master
     
     
     /**
-     * Връща масив с групите, които оттоварят на посочения или на текущия домейн
-     */
-    public static function getGroupsByDomain($domainId = null)
-    {
-        if (!$domainId) {
-            $domainId = cms_Domains::getPublicDomain('id');
-        }
-        
-        $query = self::getQuery();
-        $query->EXT('domainId', 'cms_Content', 'externalKey=menuId');
-        $query->where("#domainId = {$domainId} AND #state = 'active'");
-        
-        $res = array();
-        while ($rec = $query->fetch()) {
-            $res[$rec->id] = $rec->name;
-        }
-        
-        return $res;
-    }
-    
-    
-    /**
      * Имплементация на метод, необходим за plg_StructureAndOrder
      */
     public function saoCanHaveSublevel($rec, $newRec = null)
@@ -936,33 +962,36 @@ class eshop_Groups extends core_Master
      *
      * @param int|NULL $domainId
      *
-     * @return array $groups
+     * @return array $res
      */
     public static function getByDomain($domainId = null)
     {
-        $groups = array();
-        $domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
-        
-        // Намиране на опциите, които са вързани към артикули от подадения домейн
-        $domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
-        $contentQuery = cms_Content::getQuery();
-        $contentQuery->show('id');
-        $contentQuery->where("#domainId = {$domainId}");
-        $contents = arr::extractValuesFromArray($contentQuery->fetchAll(), 'id');
-        if (!countR($contents)) {
-            
-            return $groups;
-        }
-        
-        $groupQuery = eshop_Groups::getQuery();
-        $groupQuery->show('id,saoLevel');
-        $groupQuery->in('menuId', $contents);
         $me = cls::get(get_called_class());
-        while ($rec = $groupQuery->fetch()) {
-            $groups[$rec->id] = $me->saoGetTitle($rec, eshop_Groups::getTitleById($rec->id, false));
+        $res = array();
+        $domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain('id');
+        
+        // Всички менщта от този домейн
+        $cQuery = cms_Content::getQuery();
+        $cQuery->where("#domainId = {$domainId}");
+        $cQuery->show('id');
+        $menuIds = arr::extractValuesFromArray($cQuery->fetchAll(), 'id');
+        if(!countR($menuIds)){
+            
+            return $res;
         }
         
-        return $groups;
+        // Извличат се всички групи, които са към тези менюта или са споделени в тях
+        $query = self::getQuery();
+        $query->in("menuId", $menuIds);
+        $query->orLikeKeylist('sharedMenus', $menuIds);
+        $query->show('id,name,saoLevel');
+        
+        $res = array();
+        while ($rec = $query->fetch()) {
+            $res[$rec->id] = $me->saoGetTitle($rec, $rec->name);
+        }
+        
+        return $res;
     }
     
     
@@ -1000,5 +1029,41 @@ class eshop_Groups extends core_Master
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Какво предупреждение да се показва на бутона за активиране/деактивиране
+     *
+     * @param stdClass $rec
+     *
+     * @return string $msg
+     */
+    public function getChangeStateWarning($rec)
+    {
+        if(eshop_Products::fetchField("#groupId = {$rec->id} AND #state = 'active'")){
+            $msg = tr("Наистина ли желаете да деактивирате групата|*? |В нея има добавени артикули|*.");
+            
+            return $msg;
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'delete' && isset($rec)){
+            if(eshop_Products::fetchField("#groupId = {$rec->id} OR LOCATE('|{$rec->id}|', #sharedInGroups)")){
+                $requiredRoles = 'no_one';
+            }
+        }
+        
+        if($action == 'changestate' && isset($rec)){
+            if($mvc->haveRightFor('delete', $rec)){
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 }

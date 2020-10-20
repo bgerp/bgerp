@@ -318,15 +318,24 @@ class colab_Folders extends core_Manager
      *
      * @param int|NULL $folderId - папка, ако няма последната спдоелена папка на партньор
      * @param int|NULL $cu       - потребител, ако няма текущия
+     * @param boolean  $force    - форсиране на последната активна папка
      */
-    public static function setLastActiveContragentFolder($folderId = null, $cu = null)
+    public static function setLastActiveContragentFolder($folderId = null, $cu = null, $force = true)
     {
+        // Кой е текущия потребител
         $cu = isset($cu) ? $cu : core_Users::getCurrent('id', false);
         if (empty($cu)) {
             
             return;
         }
         
+        // Ако подадения потребител не е контрактор няма да се записва нищо
+        if(!core_Users::isContractor($cu)){
+            
+            return;
+        }
+        
+        // Коя ще е активната папка, ако няма е последно споделената му
         $folderId = isset($folderId) ? $folderId : colab_FolderToPartners::getLastSharedContragentFolder($cu);
         if (empty($folderId)) {
             
@@ -339,8 +348,16 @@ class colab_Folders extends core_Manager
             return;
         }
         
-        $companyFolderId = core_Mode::get('lastActiveContragentFolder');
-        if ($companyFolderId != $folderId) {
+        $activeFolderId = core_Mode::get('lastActiveContragentFolder');
+        
+        // Ако няма да се форсира, но има запис в сесията не се прави нищо
+        if($force === false && !empty($activeFolderId)){
+            
+            return;
+        }
+        
+        // Ако е променена последната му активна папка, записва се новата
+        if ($activeFolderId != $folderId) {
             Mode::setPermanent('lastActiveContragentFolder', $folderId);
         }
     }

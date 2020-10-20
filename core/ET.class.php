@@ -899,9 +899,16 @@ class core_ET extends core_BaseClass
      */
     public static function loadFilesRecursively($file)
     {
-        $content = getFileContent($file);
-        
-        $content = self::loadFilesRecursivelyFromString($content);
+        try {
+            $content = getFileContent($file);
+            
+            $content = self::loadFilesRecursivelyFromString($content);
+        } catch (core_exception_Expect $e) {
+            reportException($e);
+            
+            $content = new ET($file);
+            
+        }
         
         return $content;
     }

@@ -696,25 +696,31 @@ class bgerp_Portal extends embed_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($rec) {
-            if (($userId != $rec->createdBy) && !haveRole('admin', $userId)) {
+            $cRec = clone $rec;
+            if (!isset($cRec->createdBy) && ($cRec->id)) {
+                $cRec = $mvc->fetch($cRec->id);
+            }
+            
+            if (($userId != $cRec->createdBy) && !haveRole('admin', $userId)) {
+                
                 if (($action == 'edit') || ($action == 'delete')) {
                     $requiredRoles = 'no_one';
                 }
                 
-                if (($action == 'single') && ($rec->createdBy != $userId)) {
-                    if (($rec->userOrRole > 0) && $rec->createdBy > 0) {
+                if (($action == 'single') && ($cRec->createdBy != $userId)) {
+                    if (($cRec->userOrRole > 0) && $cRec->createdBy > 0) {
                         $requiredRoles = 'no_one';
                     }
                 }
                 
                 if (($requiredRoles != 'no_one') && $action == 'cloneuserdata') {
-                    $requiredRoles = $mvc->getRequiredRoles('single', $rec, $userId);
+                    $requiredRoles = $mvc->getRequiredRoles('single', $cRec, $userId);
                 }
             }
             
             // Ако имат "баща", да не може да се изтрие
             if ($action == 'delete') {
-                if ($mvc->fetch(array("#clonedFromId = '[#1#]'", $rec->id))) {
+                if ($mvc->fetch(array("#clonedFromId = '[#1#]'", $cRec->id))) {
                     $requiredRoles = 'no_one';
                 }
             }

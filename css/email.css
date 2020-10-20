@@ -1,9 +1,32 @@
 .document {
-  border: none !important;
-  padding: 10px !important;
-  width: 840px;
-  max-width: auto; }
-
+  max-width: 840px !important;
+  min-width: 300px !important;
+  width: 100% !important;
+  border: none;
+  padding: 0;
+}
+.labelBreak {
+  page-break-after: auto;
+  page-break-inside: avoid;
+  margin-bottom: 10mm;
+}
+.blankImage img {
+  width: 750px;
+  padding-bottom: 0;
+  display: inline!important;
+  vertical-align: bottom;
+  border: 0;
+  height: auto;
+  outline: none;
+}
 div.richtextHide {
-  display: block !important; }
-
+  display:block !important;
+}
+.qr img {
+  position: relative;
+  top: 4px;
+}
+.qrcode img, .blankImage img {
+  height: 87px !important;
+  width: auto;
+}

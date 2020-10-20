@@ -33,11 +33,12 @@
                 </div>
                 <!--ET_END contragentAddress-->
                 <!--ET_END contragentName-->
-                <!--ET_BEGIN vatId-->
-                <div>|ДДС|* №:<br>
-                    [#vatId#]
-                </div>
-                <!--ET_END vatId-->
+                <!--ET_BEGIN vatNo-->
+                <div><small> ЗДДС&nbsp;№:</small> <span class="bigData" style="padding-left:5px;">[#vatNo#]</span></div>
+                <!--ET_END vatNo-->
+                <!--ET_BEGIN contragentUicId-->
+                <div><small>[#contragentUicCaption#]:</small> <span class="bigData" style="padding-left:5px;"> [#contragentUicId#]</span></div>
+                <!--ET_END contragentUicId-->
             </td>
         </tr>
         <tr>
@@ -57,6 +58,12 @@
                     [#MyAddress#]
                 </div>
                 <!--ET_END MyAddress-->
+                <!--ET_BEGIN MyCompanyVatNo-->
+                <div><small> ЗДДС&nbsp;№:</small> <span class="bigData" style="padding-left:5px;">[#MyCompanyVatNo#]</span></div>
+                <!--ET_END MyCompanyVatNo-->
+                <!--ET_BEGIN uicId-->
+                <div><small>ЕИК:</small> <span class="bigData" style="padding-left:5px;">[#uicId#]</span></div>
+                <!--ET_END uicId-->
                 <!--ET_END MyCompany-->
                 <!--ET_BEGIN shipmentStoreId-->
                 <hr style="margin: 3px 0 1px;">
@@ -78,7 +85,7 @@
     <tr>
         <td class="topCell vtop" style='width:33%;'>
             <div class='cellRow'>
-            <span class='quiet'>|Плащане|*: </span><!--ET_BEGIN paymentType-->[#paymentType#], <!--ET_END paymentType-->[#paymentMethodId#]
+            <span class='quiet'>|Плащане|*: </span>[#paymentMethodId#]
             </div>
                     
             <!--ET_BEGIN downpayment-->
@@ -119,9 +126,6 @@
                 <!--ET_BEGIN noVat-->
                 <li>|Цените са без ДДС|*[#noVat#]</li>
                 <!--ET_END noVat-->
-                <!--ET_BEGIN cartId-->
-                <li>[#cartId#]</li>
-                <!--ET_END cartId-->
                 <!--ET_BEGIN closedDocuments-->
                 <li>|Обединява|*: [#closedDocuments#]</li>
                 <!--ET_END closedDocuments-->

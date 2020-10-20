@@ -1095,6 +1095,37 @@ class fileman_Files extends core_Master
     
     
     /**
+     * Помощна фунцкия за ограничаване и подготвяне на името на файла на името на файла
+     * 
+     * @param string $firstName
+     * @param string $ext
+     * @param null|integer $index
+     * @param integer $maxNameLen
+     * 
+     * @return string
+     */
+    protected static function prepareFn($firstName, $ext, $index = null, $maxNameLen = 255)
+    {
+        $eLen = strlen($ext);
+        $len = strlen($firstName) + $eLen;
+        
+        $iLen = 0;
+        $indexStr = '';
+        if (isset($index)) {
+            $indexStr = '_' . $index;
+            $iLen = strlen($indexStr);
+            $len += $iLen;
+        }
+        
+        if (($len) >= $maxNameLen) {
+            $firstName = substr($firstName, 0, $maxNameLen - $eLen - $iLen);
+        }
+        
+        return $firstName . $indexStr . $ext;
+    }
+    
+    
+    /**
      * Връща първото възможно има, подобно на зададеното, така че в този
      * $bucketId да няма повторение на имената
      */
@@ -1114,11 +1145,13 @@ class fileman_Files extends core_Master
             $ext = '';
         }
         
+        $fn = self::prepareFn($firstName, $ext);
+        
         // Двоично търсене за свободно име на файл
         $i = 1;
-        
         while (self::fetchField(array("#name = '[#1#]' AND #bucketId = '{$bucketId}'", $fn), 'id')) {
-            $fn = $firstName . '_' . $i . $ext;
+            $fn = self::prepareFn($firstName, $ext, $i);
+            
             $i = $i * 2;
         }
         
@@ -1129,7 +1162,7 @@ class fileman_Files extends core_Master
             
             do {
                 $i = ($max + $min) / 2;
-                $fn = $firstName . '_' . $i . $ext;
+                $fn = self::prepareFn($firstName, $ext, $i);
                 
                 if (self::fetchField(array("#name = '[#1#]' AND #bucketId = '{$bucketId}'", $fn), 'id')) {
                     $min = $i;
@@ -1140,7 +1173,8 @@ class fileman_Files extends core_Master
             
             $i = $max;
             
-            $fn = $firstName . '_' . $i . $ext;
+            $fn = self::prepareFn($firstName, $ext, $i);
+            
         }
         
         return $fn;

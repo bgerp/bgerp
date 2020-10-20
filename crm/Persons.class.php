@@ -486,12 +486,40 @@ class crm_Persons extends core_Master
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         if ($data->toolbar->removeBtn('btnAdd')) {
-            if ($groupId = $data->listFilter->rec->groupId) {
-                $data->toolbar->addBtn('Ново лице', array('Ctr' => $mvc, 'Act' => 'Add', "groupList[{$groupId}]" => 'on'), 'id=btnAdd', array('ef_icon' => 'img/16/vcard-add.png', 'title' => 'Създаване на нова визитка на лице'));
+            self::addNewPersonBtn2Toolbar($data->toolbar, $data->listFilter);
+        }
+    }
+    
+    
+    /**
+     * Добавя бутон за създаване на ново лице към тулбар, взимайки под внимание филтър
+     *
+     * @param core_Toolbar $toolbar
+     * @param core_Form $listFilter
+     *
+     * @return void
+     */
+    public static function addNewPersonBtn2Toolbar(core_Toolbar &$toolbar,core_Form $listFilter)
+    {
+        $addPersonUrl = array('crm_Persons', 'add', 'ret_url' => true);
+        if($groupId = $listFilter->rec->groupId){
+            $addPersonUrl["groupList"] = $groupId;
+        }
+        $searchString = $listFilter->rec->search;
+        
+        // Ако има въведен стринг за търсене
+        if(!empty($searchString)){
+            
+            // и е валидно ЕГН
+            $egnCheck = cls::get('bglocal_EgnType')->isValid($searchString);
+            if(empty($egnCheck['error'])){
+                $addPersonUrl['egn'] = $searchString;
             } else {
-                $data->toolbar->addBtn('Ново лице', array('Ctr' => $mvc, 'Act' => 'Add'), 'id=btnAdd', array('ef_icon' => 'img/16/vcard-add.png', 'title' => 'Създаване на нова визитка на лице'));
+                $addPersonUrl['name'] = $searchString;
             }
         }
+        
+        $toolbar->addBtn('Ново лице', $addPersonUrl, 'ef_icon=img/16/vcard-add.png', 'title=Създаване на нова визитка на лице');
     }
     
     
@@ -3113,6 +3141,8 @@ class crm_Persons extends core_Master
      *
      * @param int         $folderId  - ид на папка
      * @param string      $name      - име на папката
+     * 
+     * @param string      $vatId     - ДДС №
      * @param string      $egn       - ЕГН
      * @param int         $countryId - ид на държава
      * @param string|NULL $pCode     - п. код
@@ -3121,11 +3151,11 @@ class crm_Persons extends core_Master
      *
      * @return void
      */
-    public static function updateContactDataByFolderId($folderId, $name, $egn, $uicNo, $countryId, $pCode, $place, $address)
+    public static function updateContactDataByFolderId($folderId, $name, $vatId, $egn, $countryId, $pCode, $place, $address)
     {
         $saveFields = array();
         $rec = self::fetch("#folderId = {$folderId}");
-        $arr = array('name' => $name, 'vatId' => $vatId, 'country' => $countryId, 'pCode' => $pCode, 'place' => $place, 'address' => $address);
+        $arr = array('name' => $name, 'vatId' => $vatId, 'country' => $countryId, 'egn' => $egn, 'pCode' => $pCode, 'place' => $place, 'address' => $address);
         
         // Обновяване на зададените полета
         foreach ($arr as $name => $value) {

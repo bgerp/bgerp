@@ -2557,7 +2557,7 @@ class email_Outgoings extends core_Master
         }
         
         $tpl = getTplFromFile($tpl);
-        
+
         if ($data->lg && (Mode::is('printing') || Mode::is('text', 'xhtml'))) {
             core_Lg::pop();
         }
@@ -3158,6 +3158,8 @@ class email_Outgoings extends core_Master
         // Да извлече само достъпните
         crm_Persons::applyAccessQuery($personsQuery);
         
+        $personsQuery->where("#state != 'closed'");
+        
         $personsArr = array();
         
         // Обхождаме всички откити резултати
@@ -3183,6 +3185,8 @@ class email_Outgoings extends core_Master
         
         // Да извлече само достъпните
         crm_Companies::applyAccessQuery($companyQuery);
+        
+        $companyQuery->where("#state != 'closed'");
         
         // Обхождаме всички откити резултати
         while ($companiesRec = $companyQuery->fetch()) {
@@ -3255,6 +3259,11 @@ class email_Outgoings extends core_Master
                 
                 // Изтриваме папката
                 unset($folderId);
+            } else {
+                // Ако няма права за добавяне
+                if (!email_Outgoings::haveRightFor('add', (object)array('folderId' => $folderId))) {
+                    unset($folderId);
+                }
             }
             
             // Препращаме към формата за създаване на имейл

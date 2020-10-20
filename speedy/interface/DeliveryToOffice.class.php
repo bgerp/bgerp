@@ -148,7 +148,9 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
             $officeLocationUrlTpl->replace($officeRec->num, 'NUM');
             
             if($officeRec->state != 'closed'){
-                $officeName = ht::createLinkRef($officeName, $officeLocationUrlTpl->getContent(), false, 'target=_blank');
+                if(!Mode::isReadOnly()){
+                    $officeName = ht::createLinkRef($officeName, $officeLocationUrlTpl->getContent(), false, 'target=_blank');
+                }
             } else {
                 $officeName = ht::createHint($officeName, 'Офисът, вече не е актуален', 'warning');
             }

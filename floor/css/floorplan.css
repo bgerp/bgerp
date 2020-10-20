@@ -1,4 +1,4 @@
-.floor-container {
+.floor-object {
   position: absolute;
   border: 3px solid #73AD21;
   display: table; 
@@ -8,6 +8,10 @@
   background:url('/sbf/bgerp/floor/img/wood2.png');
   background-color:rgb(217, 173, 138);
   cursor: pointer;
+}
+.ui-draggable-dragging {
+    opacity:0.8;
+    z-index:100000;
 }
 .floor-obj {
   display: table-cell;

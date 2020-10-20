@@ -299,7 +299,7 @@ class price_ListRules extends core_Detail
     /**
      * Връща цената за посочения продукт според ценовата политика
      */
-    public static function getPrice($listId, $productId, $packagingId = null, $datetime = null, &$validFrom = null, $isFirstCall = true)
+    public static function getPrice($listId, $productId, $packagingId = null, $datetime = null, &$validFrom = null, $isFirstCall = true, $rate = 1, $chargeVat = 'no')
     {
         $datetime = price_ListToCustomers::canonizeTime($datetime);
         $canUseCache = ($datetime == price_ListToCustomers::canonizeTime());
@@ -322,7 +322,7 @@ class price_ListRules extends core_Detail
             $query->limit(1);
             
             $rec = $query->fetch();
-            $listRec = price_Lists::fetch($listId, 'title,parent,vat,defaultSurcharge,significantDigits,minDecimals');
+            $listRec = price_Lists::fetch($listId, 'title,parent,vat,defaultSurcharge,significantDigits,minDecimals,currency');
             $round = true;
             
             if ($rec) {
@@ -369,22 +369,22 @@ class price_ListRules extends core_Detail
                     }
                 }
             }
-            
+
             // Ако има цена
             if (isset($price)) {
-                if ($listRec->vat == 'yes' && $isFirstCall) {  
-                    $vat = cat_Products::getVat($productId, $datetime);
-                    $round = false;
-                    $price = $price * (1 + $vat);
-                    $price = price_Lists::roundPrice($listRec, $price);  
-                    $price = $price / (1 + $vat); 
+                $vat = $rate = 1;
+                if($isFirstCall) {
+                    if ($listRec->vat == 'yes') {
+                         $vat = 1 + cat_Products::getVat($productId, $datetime);
+                    }
+                    $rate = 1 / currency_CurrencyRates::getRate($datetime, $listRec->currency, null);
                 }
 
-                // Ако има указано закръгляне на ценоразписа, закръгляме
-                if ($round === true) {
-                    $price = price_Lists::roundPrice($listRec, $price);
-                }
-                
+                $price = $price * $vat * $rate;
+                $price = price_Lists::roundPrice($listRec, $price);  
+                $price = $price / ($vat * $rate); 
+    
+               
                 if ($canUseCache) {
                     price_Cache::setPrice($price, $listId, $productId);
                 }
@@ -444,10 +444,12 @@ class price_ListRules extends core_Detail
         $form = &$data->form;
         $rec = &$form->rec;
         
-        $type = $rec->type;
-        
         $masterRec = price_Lists::fetch($rec->listId);
-        $form->setFieldTypeParams('productId', array('listId' => $masterRec->id));
+        $productFiedlParams = array('listId' => $masterRec->id);
+        if($rec->listId != price_ListRules::PRICE_LIST_COST){
+            $productFiedlParams['onlyPublic'] = true;
+        }
+        $form->setFieldTypeParams('productId', $productFiedlParams);
         
         $masterTitle = $masterRec->title;
         if ($masterRec->parent) {
@@ -455,20 +457,20 @@ class price_ListRules extends core_Detail
             $parentTitle = $parentRec->title;
         }
         
-        if (Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh') {
+        if (Request::get('productId') && $rec->type == 'value' && $form->cmd != 'refresh') {
             $form->setReadOnly('productId');
         }
         
         $form->FNC('targetPrice', 'double(Min=0)', 'caption=Желана цена,after=discount,input');
         
-        if ($type == 'groupDiscount' || $type == 'discount') {
+        if ($rec->type == 'groupDiscount' || $rec->type == 'discount') {
             $calcOpt = array();
             $calcOpt['forward'] = "[{$masterTitle}] = [{$parentTitle}] ± %";
             $calcOpt['reverse'] = "[{$parentTitle}] = [{$masterTitle}] ± %";
             $form->setOptions('calculation', $calcOpt);
         }
         
-        switch ($type) {
+        switch ($rec->type) {
             case 'groupDiscount':
                 $form->setField('productId,price,currency,vat,targetPrice', 'input=none');
                 $data->singleTitle = 'правило за групов марж';

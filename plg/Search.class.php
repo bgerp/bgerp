@@ -720,6 +720,12 @@ class plg_Search extends core_Plugin
         
         $clsInst = cls::get($clsName);
         
+        if ($clsInst->repairSerchKeywords === false) {
+            $clsInst->logDebug('За този клас не се регенерират ключови думи');
+            
+            return ;
+        }
+        
         $maxTime = dt::addSecs(40);
         
         $kVal = core_Permanent::get($pKey);

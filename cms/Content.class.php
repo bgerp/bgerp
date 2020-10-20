@@ -891,7 +891,7 @@ class cms_Content extends core_Manager
     {
         $domainId = cms_Domains::getPublicDomain('id');
         
-        $kArr = self::getAllKeywords($domainId);
+        $kArr = self::getAllKeywords($domainId);  
         $q = str::utf2ascii($q);
         $iConvStr = @iconv('UTF-8', 'ASCII//TRANSLIT', $q);
         if (isset($iConvStr)) {
@@ -902,20 +902,64 @@ class cms_Content extends core_Manager
         
         $resArr = array();
         $flag = false;
-        
-        foreach ($qArr as &$w) {
+        $lastW = null;
+
+        foreach ($qArr as $j => &$w) {
+            
+            $f = $w{0};
+            $len = strlen($w);
+            
+            // Отрицателните думи не ги обработваме
             if ($w{0} == '-') {
                 $resArr[] = $w;
+                $lastW = null;
                 continue;
-            } elseif ($w{0} == '"') {
+            }
+           
+            // Фразите не ги обработваме
+            if ($w{0} == '"') {
                 $flag = true;
                 $resArr[] = $w . '"';
+                $lastW = null;
                 continue;
-            } elseif (isset($kArr[$w])) {
+            }
+            
+            // Точни думи
+            if (is_array($kArr[$f][$len]) && in_array($w, $kArr[$f][$len])) {  
                 $flag = true;
                 $resArr[] = $w;
+                $lastW = null;
                 continue;
-            } elseif (strlen($w) > 3) {
+            } 
+            
+            // Разбити на две думи в заявката
+            if (isset($lastW)) {  
+                $dw = $lastW . $w;
+                $df = $dw{0};
+                $dLen = strlen($dw);
+                if(is_array($kArr[$df][$dLen]) && in_array($dw, $kArr[$df][$dLen])) {
+                    $flag = true;
+                    $resArr[] = $dw;
+                    $lastW = null;
+                    continue;
+                }
+            }
+            
+            // Думи съставени от дума и число
+            if(preg_match("/^([a-z]+)([0-9]+)$/", $w, $matches)) {
+                $fw = $matches[1];
+                $fLen = strlen($fw);
+                if(is_array($kArr[$f][$fLen]) && in_array($fw, $kArr[$f][$fLen])) {
+                    $flag = true;
+                    $resArr[] = $fw;
+                    $resArr[] = $matches[2];
+                    $lastW = null;
+                    continue;
+                }
+            }
+            
+            // Размито търсене
+            if ($len > 3) {
                 $len = strlen($w);
                 $min = max(3, $len - 1);
                 $max = $len + 2;
@@ -923,8 +967,8 @@ class cms_Content extends core_Manager
                 $bestW = '';
                 
                 for ($i = $min; $i <= $max; $i++) {
-                    if (is_array($kArr[$w{0}][$i])) {
-                        foreach ($kArr[$w{0}][$i] as $kw) {
+                    if (is_array($kArr[$f][$i])) {
+                        foreach ($kArr[$f][$i] as $kw) {
                             $d = levenshtein($w, $kw) / $i;
                             if ($d < 0.20 && $d < $bestD) {
                                 $bestD = $d;
@@ -937,8 +981,24 @@ class cms_Content extends core_Manager
                 if ($bestW) {
                     $resArr[] = $bestW;
                     $flag = true;
+                    $lastW = null;
+                    continue;
                 }
             }
+ 
+            // Нормализиране на думи с добре познати окончания
+            if(preg_match("/^([a-z]+)(te|to|ta|at|yat|ska)$/", $w, $matches)) {
+                $fw = $matches[1];
+                $fLen = strlen($fw);
+                if(is_array($kArr[$f][$fLen]) && in_array($fw, $kArr[$f][$fLen])) {
+                    $flag = true;
+                    $resArr[] = $fw;
+                    $lastW = null;
+                    continue;
+                }
+            }
+
+            $lastW = $w;   
         }
         
         $res = null;

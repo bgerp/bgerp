@@ -788,7 +788,7 @@ select.tabHolder {
 }
 
 .narrow .large-field{
-    height:1.8em;
+    height:1.6em !important;
 }
 
 .pos-photo-field{
@@ -1145,7 +1145,7 @@ th.revertCaption, td.revertCaption {
 	.numPad {
 		width: 50px !important;
 		height: 50px !important;
-		margin: 8px 0 8px 18px; !important;
+		margin: 8px 0 8px 18px !important;
 	}
 	.operationHolder {
 		width: 58px !important;
@@ -1170,10 +1170,10 @@ th.revertCaption, td.revertCaption {
 	.headerContent {
 		font-size: 0.75em !important;
 		.fleft {
-			width: 54%;
+			width: 48%;
 		}
 		.fright {
-			width: 46%;
+			width: 52%;
 			span {
 				float: right;
 			}
@@ -1274,7 +1274,7 @@ th.revertCaption, td.revertCaption {
 	.numPad {
 		width: 60px !important;
 		height: 60px !important;
-		margin: 8px 0 8px 18px; !important;
+		margin: 8px 0 8px 18px !important;
 	}
 	.half {
 		width: 100%;
@@ -1376,24 +1376,28 @@ th.revertCaption, td.revertCaption {
 		height: 48px !important;
 		padding: 6px !important;
 	}
+	.headerContent {
+		.fleft, .fright {
+			width: 100%;
+		}
+	}
 }
 @media handheld, only screen and (max-width: 360px) {
 	.operationHolder {
 		margin: 5px !important;
 	}
 	.headerContent {
-		.fleft, .fright {
-			width: 100%;
-		}
 		.unp, .headerAppName {
 			float: right !important;
 		}
-		.pointId, .headerUserNick {
+		.headerUserNick {
+			width: 26%;
 			float: left !important;
-			width: 30%;
 		}
 		.pointId {
-			width: 25%;
+			width: 37%;
+			margin: 0 0 0 10px !important;
+			float: left !important;
 		}
 	}
 	.companyName {
@@ -1409,11 +1413,14 @@ th.revertCaption, td.revertCaption {
 			height: 32px !important;
 		}
 	}
+	.receiptRow .receiptProduct {
+		font-size: 1em !important;
+	}
 }
 
 @media handheld, only screen and (max-width: 320px) {
 	.headerContent {
-		font-size: 0.7em !important;
+		font-size: 0.6em !important;
 
 	}
 	.operationHolder {
