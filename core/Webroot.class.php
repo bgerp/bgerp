@@ -101,7 +101,7 @@ class core_Webroot
         
         if (file_exists($path)) {
             // Показваме хедърите
-            $headers = file_get_contents($path . '.headers');
+            $headers = @file_get_contents($path . '.headers');
             $headers = preg_replace_callback('/\{\{(.*?)\}\}/', array(get_called_class(), 'replaceHeaderPattern'), $headers);
             
             $hArr = explode("\n", $headers);
