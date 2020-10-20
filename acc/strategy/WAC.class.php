@@ -94,8 +94,6 @@ class acc_strategy_WAC extends acc_strategy_Strategy
      */
     public static function getAmount($quantity, $date, $accSysId, $item1, $item2, $item3, $maxTries = null, &$currentTry = null)
     {
-        wp($item1);
-        
         // Увеличаваме брояча
         $currentTry++;
         
@@ -114,7 +112,7 @@ class acc_strategy_WAC extends acc_strategy_Strategy
             
             // Поставяме условие за перо на определена позиция само ако е зададено
             // Ако перото е зададено с '*' значи искаме всички записи
-            if (isset($param) && $param != '*') {
+            if (isset($param) && ($param != '*')) {
                 $paramArr = arr::make($param, true);
                 $paramString = implode(',', $paramArr);
                 
