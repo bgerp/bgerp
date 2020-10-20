@@ -94,6 +94,8 @@ class acc_strategy_WAC extends acc_strategy_Strategy
      */
     public static function getAmount($quantity, $date, $accSysId, $item1, $item2, $item3, $maxTries = null, &$currentTry = null)
     {
+        wp($item1);
+        
         // Увеличаваме брояча
         $currentTry++;
         
