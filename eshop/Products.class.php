@@ -31,7 +31,7 @@ class eshop_Products extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,code,name=Е-артикул,dCount=Опции,groupId=Група,saleState,state';
+    public $listFields = 'id,code,name=Е-артикул,groupId=Група,saleState,dCount=Опции,state';
     
     
     /**
@@ -485,7 +485,7 @@ class eshop_Products extends core_Master
     public static function prepareAllProducts($data)
     {
         $groups = eshop_Groups::getByDomain();
-        if (countR($groups)) {
+        if (!countR($groups)) {
             
             return;
         }

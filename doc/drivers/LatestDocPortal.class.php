@@ -22,7 +22,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
     /**
      * Максимален брой блокове, които да могат да се поакзват в портала
      */
-    public $maxCnt;
+    public $maxCnt = 1;
     
     
     /**
@@ -38,16 +38,20 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $eStr = 'enum(';
-        for($i=1;$i<=20;$i++) {
-            $eStr .= $i . ',';
-        }
-        $eStr = rtrim($eStr, ',');
-        $eStr .= ')';
-        
-        $fieldset->FLD('tCnt', $eStr, 'caption=Брой нишки, mandatory, removeAndRefreshForm, mandatory');
-        $fieldset->FLD('threads', 'keylist(mvc=doc_Threads)', 'caption=Нишки, input=none');
-        
+        $fieldset->FLD('tCnt', 'int(min=1, max=25)', 'caption=Брой нишки, mandatory');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param frame2_driver_Proto $Driver
+     * @param embed_Manager       $Embedder
+     * @param stdClass            $data
+     */
+    protected static function on_AfterPrepareEditForm($Driver, embed_Manager $Embedder, &$data)
+    {
+        $data->form->setDefault('tCnt', 20);
     }
     
     
@@ -62,78 +66,6 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
     {
         
         return true;
-    }
-    
-    
-    /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param frame2_driver_Proto $Driver
-     * @param embed_Manager       $Embedder
-     * @param stdClass            $data
-     */
-    protected static function on_AfterPrepareEditForm($Driver, embed_Manager $Embedder, &$data)
-    {
-        $data->form->setDefault('tCnt', 1);
-        
-        $data->form->input('tCnt');
-        
-        if ($data->form->rec->tCnt) {
-            
-            $tArr = array();
-            if (!$data->form->cmd && $data->form->rec->id) {
-                $tArr = type_Keylist::toArray($data->form->rec->threads);
-            }
-            
-            // Показваме функционални полета за попълване на нишки
-            for($i=1; $i<=$data->form->rec->tCnt; $i++) {
-                $tName = $Driver->getThreadFncFieldName($i);
-                $data->form->FNC($tName, 'key2(mvc=doc_Threads, restrictViewAccess=yes, allowEmpty)',"caption=Нишка->№|* {$i}, input");
-                
-                // Ако се редактира и има записи, задаваме ги като по попдразбиране
-                if (!empty($tArr)) {
-                    $data->form->setDefault($tName, array_shift($tArr));
-                }
-            }
-        }
-    }
-    
-    
-    /**
-     * Помощна функция за вземане на името на полето
-     * 
-     * @param integer $i
-     * 
-     * @return string
-     */
-    protected function getThreadFncFieldName($i)
-    {
-        
-        return '_threadId' . $i;
-    }
-    
-    
-    /**
-     * Подготвя групите, в които да бъде вкаран продукта
-     */
-    public static function on_BeforeSave($Driver, &$Embedder, &$id, &$rec, $fields = null)
-    {
-        $tArr = array();
-        
-        // Функционалните полета ги вкарваме в keylist за да се запишат в модела
-        for($i=1; $i<=$rec->tCnt; $i++) {
-            
-            $tName = $Driver->getThreadFncFieldName($i);
-            $tVal = $rec->{$tName};
-            
-            if (!$tVal) {
-                continue;
-            }
-            
-            $tArr[$tVal] = $tVal;
-            
-        }
-        $rec->threads = type_Keylist::fromArray($tArr);
     }
     
     
@@ -153,14 +85,6 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
             expect($userId = core_Users::getCurrent());
         }
         
-        $tArr = type_Keylist::toArray($dRec->threads);
-        
-        foreach ($tArr as $tKey => $tVal) {
-            if (!doc_Threads::haveRightFor('single', $tVal)) {
-                unset($tArr[$tKey]);
-            }
-        }
-        
         $resData->cacheKey = $this->getCacheKey($dRec, $userId);
         $resData->cacheType = $this->getCacheTypeName($userId);
         
@@ -168,19 +92,16 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
         
         if (!$resData->tpl) {
             
+            $tCnt = $dRec->tCnt ? $dRec->tCnt : 20;
+            
             $resData->data = new stdClass();
             
             $tQuery = doc_Threads::getQuery();
-            
-            // Ако няма избрана достъпна нишка, да не показва всичките
-            if (empty($tArr)) {
-                $tQuery->where("1=2");
-            }
-            
-            $tQuery->in('id', $tArr);
-            
+            doc_Threads::restrictAccess($tQuery, $userId);
             $tQuery->orderBy('last', 'DESC');
             $tQuery->orderBy('id', 'DESC');
+            $tQuery->show('id, folderId, firstContainerId, state');
+            $tQuery->limit($tCnt);
             
             $resArr = array();
             while ($tRec = $tQuery->fetch()) {
@@ -192,8 +113,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
             $data->res = new ET();
             
             foreach ($resArr as $fId => $tArr) {
-                $f = "<div class='portalLatestFoldes'>" . doc_Folders::getLink($fId) . "</div>";
-                $data->res->append($f);
+                $docRowArr = array();
                 foreach ($tArr as $tId => $tRec) {
                     $tUnsighted = '';
                     $cnt = 0;
@@ -216,13 +136,17 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                     
                     // Ако нишката никога не е виждана
                     if (!$last) {
-                        $last = doc_Containers::fetchField($tRec->firstContainerId, 'createdOn');
+                        try {
+                            $last = doc_Containers::fetchField($tRec->firstContainerId, 'createdOn');
+                        } catch (core_exception_Expect $e) {
+                            continue;
+                        }
+                        
                         $last = dt::subtractSecs(1, $last);
                     }
                     
                     // Ако има документ, който е добавен след последното разглеждане на нишката
                     if ($last) {
-                        
                         $cQuery->orderBy('createdOn', 'ASC');
                         $cQuery->orderBy('id', 'ASC');
                         $cQuery->where(array("#createdOn > '[#1#]'", $last));
@@ -244,13 +168,30 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                         $tUnsighted = 'tUnsighted';
                     }
                     
-                    $t = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted}'>" . doc_Containers::getLinkForObject($lRec);
-                    if (--$cnt > 0) {
-                        $t .=  ' + ' . tr('още') . ' ' .  $cnt;
+                    try {
+                        $doc = doc_Containers::getDocument($lRec->id);
+                        $dRow = $doc->getDocumentRow();
+                        $title = $dRow->recTitle ? $dRow->recTitle: $dRow->title;
+                        $title = trim($title);
+                        $title = str::limitLen($title, 50);
+                        $t = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted}'>" . ht::createLink($title, $doc->getSingleUrlArray(), null, array('ef_icon' => $doc->getIcon()));
+                        if (--$cnt > 0) {
+                            $t .=  ' + ' . tr('още') . ' ' .  $cnt;
+                        }
+                        $t .= "</div>";
+                        
+                        $docRowArr[] = $t;
+                    } catch (core_exception_Expect $e) {
+                        continue;
                     }
-                    $t .= "</div>";
+                }
+                
+                if (!empty($docRowArr)) {
+                    $data->res->append("<div class='portalLatestFoldes'>" . doc_Folders::getLink($fId) . "</div>");
                     
-                    $data->res->append($t);
+                    foreach ($docRowArr as $dRow) {
+                        $data->res->append($dRow);
+                    }
                 }
             }
             
@@ -332,15 +273,21 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
         
         $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
         
-        $tArr = type_Keylist::toArray($dRec->threads);
+        $tQuery = doc_Threads::getQuery();
+        doc_Threads::restrictAccess($tQuery, $userId);
         
-        foreach ($tArr as $tId) {
-            if (!$tId) {
-                
-                continue;
-            }
-            $cArr[] = doc_Threads::fetchField($tId, 'last');
+        $tQuery->orderBy('last', 'DESC');
+        $tQuery->orderBy('id', 'DESC');
+        $tQuery->show('last, id, firstContainerId');
+        $tQuery->limit(1);
+        
+        if ($tRec = $tQuery->fetch()) {
+            $cArr[] = $tRec->id;
+            $cArr[] = $tRec->last;
+            $cArr[] = $tRec->firstContainerId;
         }
+        
+        $tArr = type_Keylist::toArray($dRec->threads);
         
         return md5(implode('|', $cArr));
     }

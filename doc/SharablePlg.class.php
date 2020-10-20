@@ -53,6 +53,9 @@ class doc_SharablePlg extends core_Plugin
         // Дали да са споделени потребителите от оригиналния документ (ако създателят е един и същи)
         setIfNot($mvc->autoShareOriginShared, true);
         setIfNot($mvc->autoShareOriginCreator, false);
+        
+        $mvc->autoShareFields = arr::make($mvc->autoShareFields, true);
+        $mvc->autoShareFields['sharedUsers'] = 'sharedUsers';
     }
     
     
@@ -463,6 +466,8 @@ class doc_SharablePlg extends core_Plugin
         if ($rec->originId) {
             $document = doc_Containers::getDocument($rec->originId);
             
+            $shareFieldsArr = arr::make($document->autoShareFields, true);
+            
             $dRec = $document->fetch();
             
             $createdBy = null;
@@ -478,10 +483,12 @@ class doc_SharablePlg extends core_Plugin
                 $currUserId = core_Users::getCurrent();
                 if ($createdBy == $currUserId) {
                     if ($mvc->autoShareOriginShared) {
-                        if ($dRec->sharedUsers) {
-                            $sharedArr = type_Keylist::toArray($dRec->sharedUsers);
-                            unset($sharedArr[$currUserId]);
-                            $res['sharedUsers'] += (array) $sharedArr;
+                        foreach ($shareFieldsArr as $sharFName) {
+                            if ($dRec->{$sharFName}) {
+                                $sharedArr = type_Keylist::toArray($dRec->{$sharFName});
+                                unset($sharedArr[$currUserId]);
+                                $res['sharedUsers'] += (array) $sharedArr;
+                            }
                         }
                     }
                 } else {

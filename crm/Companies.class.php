@@ -502,11 +502,12 @@ class crm_Companies extends core_Master
         // Ако има въведен стринг за търсене
         if(!empty($searchString)){
             list($status) = cls::get('drdata_Vats')->checkStatus($searchString);
+            
             if($status == 'valid'){
                 
                 // и е валиден ДДС №, подава се за номер на новата фирма
                 $addCompanyUrl['vatId'] = $searchString;
-            } elseif(type_Int::isInt($searchString) && strlen($searchString) >= 5){
+            } elseif($status == 'bulstat' || (ctype_digit($searchString) && strlen($searchString) >= 5)){
                 
                 // и е дълго число, подава се като нац. № на новата фирма
                 $addCompanyUrl['uicId'] = $searchString;
@@ -2584,7 +2585,7 @@ class crm_Companies extends core_Master
         // Нормализиране на стринга
         $string = str::removeWhiteSpace($string);
         $string = strtoupper($string);
-        
+       
         // Ако е избран търговски регистър, и е въведен български ЕИК или ДДС номер, взимат се данните от търговския регистър
         if($useBrra){
             $brraString = (drdata_Vats::isHaveVatPrefix($string)) ? drdata_Vats::getUicByVatNo($string) : $string;
