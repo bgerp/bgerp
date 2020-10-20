@@ -2794,7 +2794,7 @@ class cat_Products extends embed_Manager
         $maxTry = core_Packs::getConfigValue('cat', 'CAT_WAC_PRICE_PERIOD_LIMIT');
         
         if ($item1 == '*') {
-            $amount = acc_strategy_WAC::getAmount($quantity, $date, '321', "*", $item2, null, $maxTry);
+            $amount = acc_strategy_WAC::getAmount($quantity, $date, '321', null, $item2, null, $maxTry);
         } else {
             $amount = acc_strategy_WAC::getAmount($quantity, $date, '321', $item1, $item2, null, $maxTry);
         }
