@@ -2798,7 +2798,11 @@ class cat_Products extends embed_Manager
             $item1 = '*';
         }
         
-        $amount = acc_strategy_WAC::getAmount($quantity, $date, '321', $item1, $item2, null, $maxTry);
+        if ($item1 == '*') {
+            $amount = acc_strategy_WAC::getAmount($quantity, $date, '321', '*', $item2, null, $maxTry);
+        } else {
+            $amount = acc_strategy_WAC::getAmount($quantity, $date, '321', $item1, $item2, null, $maxTry);
+        }
         
         if (isset($amount)) {
             
