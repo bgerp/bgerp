@@ -146,12 +146,17 @@ class type_UserList extends type_Keylist
                 
                 $this->suggestions[$gName] = $group;
                 foreach ($gVals->suggArr as $uId) {
-                    if ($uRec = $userArr['r'][$uId]) {
-                        $key = $this->getKey($gKey, $uId);
-                        $this->suggestions[$key] = html_entity_decode(core_Users::getVerbal($uRec, 'nick'));
-                        if (EF_USSERS_EMAIL_AS_NICK) {
-                            $this->suggestions[$key] = html_entity_decode($this->suggestions[$key]);
+                    if ($uId > 1) {
+                        if ($uRec = $userArr['r'][$uId]) {
+                            $key = $this->getKey($gKey, $uId);
+                            $this->suggestions[$key] = html_entity_decode(core_Users::getVerbal($uRec, 'nick'));
+                            if (EF_USSERS_EMAIL_AS_NICK) {
+                                $this->suggestions[$key] = html_entity_decode($this->suggestions[$key]);
+                            }
                         }
+                    } else {
+                        $key = $this->getKey($gKey, $uId);
+                        $this->suggestions[$key] = core_Users::fetchField($uId, 'nick');
                     }
                 }
             }
@@ -299,9 +304,11 @@ class type_UserList extends type_Keylist
         $res = '';
         
         foreach ($ids as $id) {
-            if (!($nick = $uar['r'][$id]->nick)) {
-                $res = parent::toVerbal_($value);
-                break;
+            if (strlen($id) && ($id > 1)) {
+                if (!($nick = $uar['r'][$id]->nick)) {
+                    $res = parent::toVerbal_($value);
+                    break;
+                }
             }
             
             $res .= ($res ? ', ' : '') . $nick;
