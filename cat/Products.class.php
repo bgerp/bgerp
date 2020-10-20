@@ -2772,7 +2772,7 @@ class cat_Products extends embed_Manager
      *
      * @return mixed $amount   - сумата или NULL ако няма
      */
-    public static function getWacAmountInStore($quantity, $productId, $date, $stores = null)
+    public static function getWacAmountInStore($quantity, $productId, $date, $stores = array())
     {
         $item2 = acc_Items::fetchItem('cat_Products', $productId)->id;
         if (!$item2) {
@@ -2781,9 +2781,8 @@ class cat_Products extends embed_Manager
         }
         
         $item1 = '*';
-        if (!empty($stores)) {
+        if (is_array($stores) && countR($stores)) {
             $item1 = array();
-            $stores = arr::make($stores, true);
             foreach ($stores as $storeId){
                 $storeItemId = acc_Items::fetchItem('store_Stores', $storeId)->id;
                 $item1[$storeItemId] = $storeItemId;
