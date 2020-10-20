@@ -627,7 +627,7 @@ class type_Keylist extends core_Type
             }
             
             foreach ($value as $id => $val) {
-                if (empty($id) && empty($val)) {
+                if (!strlen($id) && !strlen($val)) {
                     continue;
                 }
                 
