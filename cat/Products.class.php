@@ -1070,7 +1070,6 @@ class cat_Products extends embed_Manager
             $result->features = array_merge($Driver->getFeatures($objectId), $result->features);
         }
         
-       // bp($result);
         return $result;
     }
     
@@ -2769,11 +2768,11 @@ class cat_Products extends embed_Manager
      * @param float    $quantity  - к-во
      * @param int      $productId - ид на артикула
      * @param datetime $date      - към коя дата
-     * @param string   $storeId   - склада
+     * @param string   $stores    - склад или складове или '*' за всички
      *
      * @return mixed $amount   - сумата или NULL ако няма
      */
-    public static function getWacAmountInStore($quantity, $productId, $date, $storeId = null)
+    public static function getWacAmountInStore($quantity, $productId, $date, $stores = null)
     {
         $item2 = acc_Items::fetchItem('cat_Products', $productId)->id;
         if (!$item2) {
@@ -2782,8 +2781,13 @@ class cat_Products extends embed_Manager
         }
         
         $item1 = '*';
-        if (!empty($storeId)) {
-            $item1 = acc_Items::fetchItem('store_Stores', $storeId)->id;
+        if (!empty($stores)) {
+            $item1 = array();
+            $stores = arr::make($stores, true);
+            foreach ($stores as $storeId){
+                $storeItemId = acc_Items::fetchItem('store_Stores', $storeId)->id;
+                $item1[$storeItemId] = $storeItemId;
+            }
         }
         
         // Намираме сумата която струва к-то от артикула в склада

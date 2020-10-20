@@ -499,6 +499,14 @@ class acc_Balances extends core_Master
         
         $rc = true;
         
+        // Ако е указана граница за изчисляването се използва
+        $windowStart = null;
+        $alternateWindow = acc_setup::get('ALTERNATE_WINDOW');
+        if($alternateWindow) {
+            $windowStart = dt::addSecs(-$alternateWindow, null, false);
+            $pQuery->where("#end >= '{$windowStart}'");
+        }
+        
         while ($pRec = $pQuery->fetch()) {
             $rec = new stdClass();
             $rec->fromDate = $pRec->start;

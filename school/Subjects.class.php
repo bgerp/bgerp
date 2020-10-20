@@ -95,7 +95,7 @@ class school_Subjects extends core_Master
         $this->FNC('title', 'varchar', 'caption=Заглавие');
         $this->FLD('credits', 'int', 'caption=ECTS кредити,smartCenter');
         $this->FLD('description', 'richtext', 'caption=@Описание');
-        $this->FLD('teachers', 'userlist(roles=teacher)', 'caption=Преподаватели');
+        $this->FLD('teachers', 'userList(roles=teacher)', 'caption=Преподаватели');
         
         $this->setDbUnique('code');
         $this->setDbUnique('name,part');

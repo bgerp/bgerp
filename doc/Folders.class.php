@@ -671,6 +671,25 @@ class doc_Folders extends core_Master
                             
                             if (empty($otherNotifyArr)) {
                                 $otherNotifyArr = core_Users::getByRole('admin');
+                                
+                                $cu = core_Users::getCurrent();
+                                unset($otherNotifyArr[$cu]);
+                                
+                                $otherNotifyArrC = $otherNotifyArr;
+                                
+                                // Премахваме админите, които са се отказали
+                                $key = doc_Folders::getSettingsKey($rec->id);
+                                $folOpeningNotifications = core_Settings::fetchUsers($key, 'folOpenings');
+                                foreach ((array) $folOpeningNotifications as $uId => $folOpening) {
+                                    if ($folOpening['folOpenings'] == 'no') {
+                                        unset($otherNotifyArrC[$uId]);
+                                    }
+                                }
+                                
+                                // Ако всички админи са се отказали, нотифицираме ги всичките
+                                if (!empty($otherNotifyArrC)) {
+                                    $otherNotifyArr = $otherNotifyArrC;
+                                }
                             }
                             
                             $notifyArr += $otherNotifyArr;
