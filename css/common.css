@@ -2331,7 +2331,13 @@ div.alphabet div.tab-row .tab {
 
 div.alphabet div.tab-page {
   margin: 0;
-  padding: 5px 0 0 0; }
+  padding: 10px 0 0 0; }
+
+div.alphabet.twoRows {
+  margin-top: -10px; }
+  div.alphabet.twoRows div.tab-page {
+    margin: 0;
+    padding: 15px 0 0 0; }
 
 .narrow div.alphabet  div.tab-row {
   float: left;

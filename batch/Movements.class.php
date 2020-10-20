@@ -145,6 +145,7 @@ class batch_Movements extends core_Detail
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
         
         $data->listFilter->FLD('batch', 'varchar(128)', 'caption=Партида,silent');
+        $data->listFilter->FLD('searchType', 'enum(full=Точно съвпадение,notfull=Частично съвпадение)', 'caption=Търсене,silent');
         $data->listFilter->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
         $data->listFilter->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         $data->listFilter->FLD('document', 'varchar(128)', 'silent,caption=Документ,placeholder=Хендлър');
@@ -153,8 +154,10 @@ class batch_Movements extends core_Detail
         $data->listFilter->FLD('from', 'date', 'caption=От,silent');
         $data->listFilter->FLD('to', 'date', 'caption=До,silent');
         
-        $showFields = arr::make('batch,productId,storeId,action,from,to,selectPeriod,document', true);
+        $showFields = arr::make('batch,searchType,productId,storeId,action,from,to,selectPeriod,document', true);
         $data->listFilter->showFields = $showFields;
+        $data->listFilter->setDefault('searchType', 'full');
+        
         if (haveRole('batch,ceo')) {
             $data->listFilter->showFields = $showFields;
         } else {
@@ -211,7 +214,11 @@ class batch_Movements extends core_Detail
             }
             
             if (!empty($fRec->batch)) {
-                $data->query->where("#batch LIKE '%{$fRec->batch}%'");
+                if($fRec->searchType == 'full'){
+                    $data->query->where("#batch = '{$fRec->batch}'");
+                } else {
+                    $data->query->where("#batch LIKE '%{$fRec->batch}%'");
+                }
             }
             
             if (isset($fRec->action) && $fRec->action != 'all') {

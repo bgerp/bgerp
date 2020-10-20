@@ -341,7 +341,7 @@ class bgerp_Portal extends embed_Manager
                     $maxCnt = $inst->class->maxCnt;
                     
                     if (isset($maxCnt)) {
-                        if ($maxCnt >= $dArr[$clsId]) {
+                        if (isset($dArr[$clsId]) && ($maxCnt >= $dArr[$clsId])) {
                             unset($optArr[$clsId]);
                         }
                     }

@@ -46,6 +46,8 @@ class type_Combodate extends type_Varchar
      */
     public function fromVerbal($value)
     {
+        if(empty($value)) return;
+
         if (count($value) == 3) {
             $y = $value[2];
             $m = $value[1];
@@ -279,11 +281,11 @@ class type_Combodate extends type_Varchar
         $min = $this->params['minYear'] ? $this->params['minYear'] : 1900;
         $max = $this->params['maxYear'] ? $this->params['maxYear'] : 2030;
         $cur = date('Y');
-        for ($i = $max; $i > $cur; $i--) {
+        for ($i = $max; $i >= $cur; $i--) {
             $this->years[$i] = $i;
         }
         $this->years[$y] = '';
-        for ($i = $cur; $i >= $min; $i--) {
+        for ($i = $cur; $i > $min; $i--) {
             $this->years[$i] = $i;
         }
     }

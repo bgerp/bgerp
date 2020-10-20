@@ -337,9 +337,9 @@ class core_App
         // На кой бранч от репозиторито е кода?
         defIfNot('BGERP_GIT_BRANCH', 'dev');
         
-        // Ако паметта за скрипта е под 512М я правим на 512М
-        if (core_Os::getBytesFromMemoryLimit() < core_Os::getBytes('512M')) {
-            ini_set('memory_limit', '512M');
+        // Ако паметта за скрипта е под 1024M я правим на 1024M
+        if (core_Os::getBytesFromMemoryLimit() < core_Os::getBytes('1024M')) {
+            ini_set('memory_limit', '1024M');
         }
     }
     

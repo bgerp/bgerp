@@ -84,7 +84,6 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
         $fieldset->FLD('users', 'userList(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Потребители,single=none,mandatory,after=to');
         
         
-        
         //Подредба на резултатите
         $fieldset->FLD('orderBy', 'enum(name=Артикул, code=Код,amount=Стойност,consumedQuantity=Вложено,returnedQuantity=Върнато,total=Общо)', 'caption=Подреждане по,after=groups,single=none');
     }
@@ -116,30 +115,6 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
-        
-//         $form->setDefault('orderBy', 'code');
-//         $suggestions = array();
-//         foreach (keylist::toArray($rec->jobses) as $val){
-            
-//             $suggestions[$val]= planning_Jobs::getTitleById($val);
-//         }
-        
-//         $stateArr = array('active','wakeup');
-        
-//         $jQuery = planning_Jobs::getQuery();
-//         $jQuery->in('state', $stateArr);
-//         $jQuery->show('productId');
-        
-        
-//         while ($jRec = $jQuery->fetch()) {
-//             if (!array_key_exists($jRec->id, $suggestions)) {
-//                 $suggestions[$jRec->id] = planning_Jobs::getTitleById($jRec->id);
-//             }
-//         }
-        
-//         asort($suggestions);
-        
-//         $form->setSuggestions('jobses', $suggestions);
     }
     
     
@@ -153,11 +128,14 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        $recs = array();
-       
+        $recs = $documentsForChech = array();
+        
+        $documentsForChech = keylist::toArray($rec->documents);
+        
+        $query = doc_Containers::getQuery();
+        $query->in('docClass', $documentsForChech);
+        
         return $recs;
-        
-        
     }
     
     
@@ -201,9 +179,6 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
         $Double->params['decimals'] = 2;
         
         $row = new stdClass();
-        
-        
-       
         
         return $row;
     }
@@ -312,5 +287,4 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
     }
-    
 }
