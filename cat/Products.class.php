@@ -2780,6 +2780,7 @@ class cat_Products extends embed_Manager
             return;
         }
         
+        
         $item1 = '*';
         if (is_array($stores) && countR($stores)) {
             $item1 = array();
@@ -2791,6 +2792,12 @@ class cat_Products extends embed_Manager
         
         // Намираме сумата която струва к-то от артикула в склада
         $maxTry = core_Packs::getConfigValue('cat', 'CAT_WAC_PRICE_PERIOD_LIMIT');
+        
+        if(is_array($item1) && in_array('*', $item1)){
+            wp($stores, $item1, $storeItemId);
+            $item1 = '*';
+        }
+        
         $amount = acc_strategy_WAC::getAmount($quantity, $date, '321', $item1, $item2, null, $maxTry);
         
         if (isset($amount)) {
