@@ -167,16 +167,19 @@ class plg_SelectPeriod extends core_Plugin
         $fFEsc = json_encode($fF);
         $fTEsc = json_encode($fT);
         
-        $form->FLD('selectPeriod', 'varchar', 'caption=Период,input,before=from,silent,printListFilter=none', array('attr' => array('onchange' => "spr(this, true, {$fFEsc}, {$fTEsc});")));
+        $form->FLD('selectPeriod', 'varchar', 'refreshForm,caption=Период,input,before=from,silent,printListFilter=none', array('attr' => array('onchange' => "spr(this, true, {$fFEsc}, {$fTEsc});")));
         if (strpos($form->showFields, $fF) !== false) {
             $form->showFields = trim(str_replace(",{$fF},", ",selectPeriod,{$fF},", ',' . $form->showFields . ','), ',');
         } else {
             $form->showFields .= ($form->showFields ? ',' : '') . 'selectPeriod';
         }
         
-        
         $form->input($data->listFilter->showFields, 'silent');
         $rec = $form->rec;
+        
+        if ($rec->selectPeriod == 'select') {
+            $form->showFields .= ",{$fF}, {$fT}";
+        }
         
         $keySel = null;
         if ($rec->selectPeriod && $rec->selectPeriod != 'select') {
@@ -208,11 +211,11 @@ class plg_SelectPeriod extends core_Plugin
         $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
         $fT = $mvc->filterDateTo ? $mvc->filterDateFrom : 'to';
         
-        if ($form->fields[$fF]) {
+        if ($form->fields[$fF] && ($form->rec->selectPeriod != 'select')) {
             $form->setField($fF, array('rowStyle' => 'display:none'));
         }
             
-        if ($form->fields[$fF]) {
+        if ($form->fields[$fF] && ($form->rec->selectPeriod != 'select')) {
             $form->setField($fT, array('rowStyle' => 'display:none'));
         }
         
