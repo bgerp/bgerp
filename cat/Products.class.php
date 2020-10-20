@@ -2793,13 +2793,8 @@ class cat_Products extends embed_Manager
         // Намираме сумата която струва к-то от артикула в склада
         $maxTry = core_Packs::getConfigValue('cat', 'CAT_WAC_PRICE_PERIOD_LIMIT');
         
-        if(is_array($item1) && in_array('*', $item1)){
-            wp($stores, $item1, $storeItemId);
-            $item1 = '*';
-        }
-        
         if ($item1 == '*') {
-            $amount = acc_strategy_WAC::getAmount($quantity, $date, '321', '*', $item2, null, $maxTry);
+            $amount = acc_strategy_WAC::getAmount($quantity, $date, '321', "*", $item2, null, $maxTry);
         } else {
             $amount = acc_strategy_WAC::getAmount($quantity, $date, '321', $item1, $item2, null, $maxTry);
         }
