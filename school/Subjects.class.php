@@ -33,7 +33,7 @@ class school_Subjects extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, school_Wrapper, plg_Sorting, plg_Printing, plg_State2';
+    public $loadList = 'plg_RowTools2, plg_Created, school_Wrapper, plg_Sorting, plg_Printing, plg_State2, plg_SaveAndNew';
     
     
     /**
@@ -96,11 +96,6 @@ class school_Subjects extends core_Master
         $this->FLD('credits', 'int', 'caption=ECTS кредити,smartCenter');
         $this->FLD('description', 'richtext', 'caption=@Описание');
         $this->FLD('teachers', 'userlist(roles=teacher)', 'caption=Преподаватели');
-        $this->FLD('hoursL', 'int', 'caption=Хорариум->Лекции,unit=часа');
-        $this->FLD('hoursE', 'int', 'caption=Хорариум->Упражнения,unit=часа');
-        $this->FLD('hoursS', 'int', 'caption=Хорариум->Семинари,unit=часа');
-        $this->FLD('hoursW', 'int', 'caption=Хорариум->Практика,unit=часа');
-        $this->FLD('hoursR', 'int', 'caption=Хорариум->Самоподготовка,unit=часа');
         
         $this->setDbUnique('code');
         $this->setDbUnique('name,part');

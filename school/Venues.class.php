@@ -33,7 +33,7 @@ class school_Venues extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, school_Wrapper, plg_Sorting, plg_Printing,plg_State2,plg_Rejected';
+    public $loadList = 'plg_RowTools2, plg_Created, school_Wrapper, plg_Sorting, plg_Printing,plg_State2,plg_Rejected, plg_SaveAndNew';
     
     
     /**

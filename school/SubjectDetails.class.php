@@ -33,7 +33,7 @@ class school_SubjectDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, school_Wrapper, plg_Sorting';
+    public $loadList = 'plg_RowTools2, plg_Created, school_Wrapper, plg_Sorting, plg_SaveAndNew';
     
     
     /**
@@ -89,7 +89,7 @@ class school_SubjectDetails extends core_Detail
         $this->FLD('theme', 'varchar(256)', 'caption=Тема,mandatory');
         $this->FLD('hours', 'int', 'caption=Часове');
       
-        $this->setDbUnique('subjectId,theme');
+        $this->setDbUnique('subjectId,theme,format');
     }
 
 
@@ -98,7 +98,7 @@ class school_SubjectDetails extends core_Detail
      */
     public function on_CalcTitle($mvc, $rec)
     {
-        $rec->title = "{$rec->format} \"{$rec->theme}\"";
+        $rec->title = $mvc->getVerbal($rec, 'format') . " \"" . $mvc->getVerbal($rec, 'theme') . "\"";
     }
 
  

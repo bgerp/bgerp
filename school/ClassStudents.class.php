@@ -33,7 +33,7 @@ class school_ClassStudents extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, school_Wrapper, plg_Sorting';
+    public $loadList = 'plg_RowTools2, plg_Created, school_Wrapper, plg_Sorting, plg_SaveAndNew';
     
     
     /**

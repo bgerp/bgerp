@@ -33,7 +33,7 @@ class school_Courses extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, school_Wrapper, plg_Sorting, plg_Printing, plg_Rejected, plg_State2,plg_GroupByField';
+    public $loadList = 'plg_RowTools2, plg_Created, school_Wrapper, plg_Sorting, plg_Printing, plg_Rejected, plg_State2,plg_GroupByField, plg_SaveAndNew';
     
     
     /**
@@ -113,7 +113,7 @@ class school_Courses extends core_Master
      */
     public function on_CalcTitle($mvc, $rec)
     {
-        $rec->title = $mvc->getVerbal($rec, 'specialityId') . ($rec->stageId ? ' (' . $mvc->getVerbal($rec, 'stageId') . ')' : '');
+        $rec->title = $mvc->getVerbal($rec, 'specialityId') . ($rec->stageId ? ', ' . $mvc->getVerbal($rec, 'stageId') : '');
     }
 
 
