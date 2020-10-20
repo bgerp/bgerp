@@ -211,11 +211,11 @@ class plg_SelectPeriod extends core_Plugin
         $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
         $fT = $mvc->filterDateTo ? $mvc->filterDateFrom : 'to';
         
-        if ($form->fields[$fF]) {
+        if ($form->fields[$fF] && ($form->rec->selectPeriod != 'select')) {
             $form->setField($fF, array('rowStyle' => 'display:none'));
         }
             
-        if ($form->fields[$fF]) {
+        if ($form->fields[$fF] && ($form->rec->selectPeriod != 'select')) {
             $form->setField($fT, array('rowStyle' => 'display:none'));
         }
         
