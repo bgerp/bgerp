@@ -745,8 +745,26 @@ div.productImage {
   height: 14px;
   width: 14px;
   display: inline-block;
-  position: relative;
-  top: 2px; }
+  position: relative; }
+
+.color-preview.colorful,
+.colorBox.colorful {
+  background: -webkit-linear-gradient(to bottom right, red, yellow, green, blue) !important;
+    /*
+   * For Safari 5.1 to 6.0
+   */
+  background: -o-linear-gradient(to bottom right, red, yellow, green, blue) !important;
+    /*
+   * For Opera 11.1 to 12.0
+   */
+  background: -moz-linear-gradient(to bottom right, red, yellow, green, blue) !important;
+    /*
+   * For Firefox 3.6 to 15
+   */
+  background: linear-gradient(to bottom right, red, yellow, green, blue) !important;
+    /*
+   * Standard syntax (must be last)
+   */ }
 
 .product-component-stage {
   background-color: #eeeeee;
@@ -1973,6 +1991,8 @@ pre.document {
   font-family: "Courier New", Courier, monospace;
   font-size: 1.1em;
   font-weight: bold; }
+  .bigData.notBold {
+    font-weight: normal !important; }
 
 .narrow .bigData {
   font-family: Verdana;
