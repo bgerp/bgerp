@@ -69,8 +69,8 @@ class price_ProductCosts extends core_Manager
      */
     public function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,input=none');
-        $this->FLD('classId', 'class(interface=price_CostPolicyIntf,select=title)', 'caption=Алгоритъм,input=none');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,onlyPublic)', 'caption=Артикул,input=none');
+        $this->FLD('classId', 'class(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Алгоритъм,input=none');
         $this->FLD('price', 'double', 'caption=Ед. цена,mandatory');
         $this->FLD('accPrice', 'double', 'caption=Ед. сч. цена,input=none');
         $this->FLD('quantity', 'double', 'caption=К-во,input=none');
@@ -341,5 +341,34 @@ class price_ProductCosts extends core_Manager
         $price = static::fetchField("#productId = {$productId} AND #classId = '{$Source->getClassId()}'", 'price');
         
         return $price;
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->showFields = 'productId,classId';
+        $data->listFilter->input();
+        
+        $classOptions = array();
+        $policies = core_Classes::getOptionsByInterface('price_CostPolicyIntf');
+        foreach ($policies as $policyId => $policy){
+            $classOptions[$policyId] = cls::get($policy)->getName(true);
+        }
+        $data->listFilter->setOptions('classId', $classOptions);
+        
+        if($filterRec = $data->listFilter->rec){
+            if(isset($filterRec->productId)){
+                $data->query->where("#productId = {$filterRec->productId}");
+            }
+            if(isset($filterRec->classId)){
+                $data->query->where("#classId = {$filterRec->classId}");
+            }
+        }
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
     }
 }
