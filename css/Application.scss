@@ -6321,8 +6321,8 @@ body.narrow {
 	.wide .app-name {
 		font-size: 7.5em;
 	}
-	.wide #all, .wide #cmsTop, .wide #cmsTop img {
-		border-radius: 0;
+	.wide #all, .wide #cmsTop, .wide #all #cmsTop img {
+		border-radius: 0 !important;
 	}
 	.document {
 		min-width: 40em;

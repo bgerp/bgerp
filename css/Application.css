@@ -5553,8 +5553,8 @@ only screen and (max-width: 1200px) {
 
   .wide #all,
   .wide #cmsTop,
-  .wide #cmsTop img {
-    border-radius: 0; }
+  .wide #all #cmsTop img {
+    border-radius: 0 !important; }
 
   .document {
     min-width: 40em; } }
