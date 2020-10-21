@@ -42,7 +42,7 @@ class price_CostPolicyIntf
      *         ['productId']     - ид на артикул
      *         ['quantity']      - количество
      *         ['price']         - ед. цена
-     *         ['accPrice']      - счетоводна цена
+     *         ['valior']        - вальор
      *         ['sourceClassId'] - ид на класа на източника
      *         ['sourceId']      - ид на източника
      */

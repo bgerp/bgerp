@@ -50,7 +50,7 @@ class price_interface_LastDeliveryCostPolicyImpl extends price_interface_BaseCos
      *         ['productId']     - ид на артикул
      *         ['quantity']      - количество
      *         ['price']         - ед. цена
-     *         ['accPrice']      - счетоводна цена
+     *         ['valior']        - вальор
      *         ['sourceClassId'] - ид на класа на източника
      *         ['sourceId']      - ид на източника
      */
@@ -126,7 +126,7 @@ class price_interface_LastDeliveryCostPolicyImpl extends price_interface_BaseCos
                     $res[$purRec->productId] = (object) array('classId'       => $this->getClassId(), 
                                                               'productId'     => $purRec->productId, 
                                                               'sourceClassId' => $classId, 
-                                                              'accPrice'      => null,
+                                                              'valior'        => null,
                                                               'sourceId'      => $purRec->requestId, 
                                                               'quantity'      => $purRec->quantity, 
                                                               'price'         => $price);

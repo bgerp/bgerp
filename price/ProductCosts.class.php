@@ -37,7 +37,7 @@ class price_ProductCosts extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id=Пулт, productId, classId, price, accPrice, quantity, sourceId=Документ, updatedOn';
+    public $listFields = 'id=Пулт, productId, classId, price, valior, quantity, sourceId=Документ, updatedOn';
     
     
     /**
@@ -76,6 +76,7 @@ class price_ProductCosts extends core_Manager
         $this->FLD('quantity', 'double', 'caption=К-во,input=none');
         $this->FLD('sourceClassId', 'class', 'caption=Документ->Клас,input=none');
         $this->FLD('sourceId', 'varchar', 'caption=Документ->Ид,input=none');
+        $this->FLD('valior', 'date', 'caption=Вальор,input=none');
         $this->FLD('updatedOn', 'datetime(format=smartTime)', 'caption=Обновено на,input=none');
         
         $this->setDbUnique('productId,classId');
@@ -298,13 +299,14 @@ class price_ProductCosts extends core_Manager
         $exQuery = self::getQuery();
         $exQuery->in('productId', $affectedProducts);
         $exRecs = $exQuery->fetchAll();
-        $res = arr::syncArrays($update, $exRecs, 'productId,classId', 'price,quantity,sourceClassId,sourceId,accPrice');
+        $res = arr::syncArrays($update, $exRecs, 'productId,classId', 'price,quantity,sourceClassId,sourceId,valior');
+        
         if(countR($res['insert'])){
             $self->saveArray($res['insert']);
         }
         
         if(countR($res['update'])){
-            $self->saveArray($res['update'], 'id,price,quantity,sourceClassId,sourceId,updatedOn,accPrice');
+            $self->saveArray($res['update'], 'id,price,quantity,sourceClassId,sourceId,updatedOn,valior');
         }
         
         // Изтриване на несрещнатите себестойностти
