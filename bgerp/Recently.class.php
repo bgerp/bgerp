@@ -97,6 +97,7 @@ class bgerp_Recently extends core_Manager
         $this->setDbUnique('type, objectId, userId');
         $this->setDbIndex('userId');
         $this->setDbIndex('last');
+        $this->setDbIndex('threadId, userId');
     }
     
     
