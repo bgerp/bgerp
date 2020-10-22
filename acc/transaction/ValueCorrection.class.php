@@ -171,6 +171,21 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                             );
                             
                             $total += $sign * $amount;
+                            
+                            if(countR($expenseData['allocatedToProducts'])){
+                                $correctionsArr = self::getCorrectionEntries($expenseData['allocatedToProducts'], $prod->productId, $expenseItemId, $sign * $amount, $rec->allocateBy);
+                                foreach ($correctionsArr as &$corArr){
+                                    if($corArr['debit'][0] == 321){
+                                        $corArr['amount'] =  $corArr['credit']['quantity'];
+                                        $corArr['credit']['quantity'] = 0;
+                                        
+                                        $total += $corArr['amount'];
+                                    }
+                                    
+                                }
+                               
+                                $entries = array_merge($entries, $correctionsArr);
+                            }
                         }
                     }
                 }
