@@ -574,13 +574,19 @@ class price_Updates extends core_Manager
     /**
      * Рендиране на таблицата с данните
      */
-    public static function renderUpdateData($data)
+    public function renderUpdateData($data)
     {
-        // Рендираме таблицата
+        $tpl = new core_ET("");
+        
+        // Рендиране на таблицата
         $table = cls::get('core_TableView', array('mvc' => cls::get('price_Updates')));
-        $fields = 'tools=Пулт,sourceClass1=Източник->Първи,sourceClass2=Източник->Втори,sourceClass3=Източник->Трети,costAdd=Добавка,costValue=Стойност,updateMode=Обновяване,createdOn=Създаване->На,createdBy=Създаване->От';
-        $fields = core_TableView::filterEmptyColumns($data->rows, $fields, 'costAdd');
-        $details = $table->get($data->rows, $fields);
+        $data->listFields = arr::make('sourceClass1=Източник->Първи,sourceClass2=Източник->Втори,sourceClass3=Източник->Трети,costAdd=Добавка,costValue=Стойност,updateMode=Обновяване,createdOn=Създаване->На,createdBy=Създаване->От');
+        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'costAdd,costValue');
+        $data->listTableMvc = clone $this;
+        $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+        
+        $details = $table->get($data->rows, $data->listFields);
+        $tpl->append($details);
         
         return $details;
     }
@@ -612,7 +618,7 @@ class price_Updates extends core_Manager
             $ht = ht::createLink('', array($this, 'add', 'type' => $type, 'objectId' => $data->masterId, 'ret_url' => true), false, 'title=Задаване на ново правило,ef_icon=img/16/add.png');
             $tpl->append($ht, 'title');
         }
-        $tpl->append(self::renderUpdateData($data), 'content');
+        $tpl->append($this->renderUpdateData($data), 'content');
         
         // Връщаме шаблона
         return $tpl;
