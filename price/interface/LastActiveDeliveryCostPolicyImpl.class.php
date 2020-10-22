@@ -50,7 +50,7 @@ class price_interface_LastActiveDeliveryCostPolicyImpl extends price_interface_B
      *         ['productId']     - ид на артикул
      *         ['quantity']      - количество
      *         ['price']         - ед. цена
-     *         ['accPrice']      - счетоводна цена
+     *         ['valior']        - вальор
      *         ['sourceClassId'] - ид на класа на източника
      *         ['sourceId']      - ид на източника
      */
@@ -73,7 +73,7 @@ class price_interface_LastActiveDeliveryCostPolicyImpl extends price_interface_B
                                                          'classId'       => $this->getClassId(),
                                                          'sourceClassId' => $classId,
                                                          'sourceId'      => $purRec->requestId,
-                                                         'accPrice'      => null,
+                                                         'valior'        => null,
                                                          'quantity'      => $purRec->quantity,
                                                          'price'         => round($purRec->price, 5));
             };

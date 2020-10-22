@@ -266,6 +266,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         }
         
         $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+        
         if ($rec->contragentCountryId == $bgId) {
             $form->setFieldType('number', core_Type::getByName('bigint(size=10)'));
         }

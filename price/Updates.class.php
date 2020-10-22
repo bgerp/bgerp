@@ -86,7 +86,7 @@ class price_Updates extends core_Manager
         $this->FLD('minChange', 'percent(min=0,max=1)', 'caption=Мин. промяна');
         
         $this->FLD('costValue', 'double', 'input=none,caption=Себестойност');
-        $this->FLD('updateMode', 'enum(manual=Ръчно,now=Ежечасово,nextDay=Следващия ден,nextWeek=Следващата седмица,nextMonth=Следващия месец)', 'caption=Обновяване');
+        $this->FLD('updateMode', 'enum(manual=Ръчно,now=При изчисление,nextDay=Следващия ден,nextWeek=Следващата седмица,nextMonth=Следващия месец)', 'caption=Обновяване');
         
         $this->setDbUnique('objectId,type');
     }
@@ -458,6 +458,7 @@ class price_Updates extends core_Manager
         
         // За всеки
         while ($rec = $query->fetch()) {
+            
             try {
                 // Ако не може да се изпълни, пропускаме го
                 if (!$this->canBeApplied($rec, $now)) {
@@ -490,8 +491,6 @@ class price_Updates extends core_Manager
         switch ($rec->updateMode) {
             case 'manual':
             case 'now':
-                
-                // При ежечасовото условие, изпълняваме го винаги
                 $res = true;
                 break;
             case 'nextDay':
