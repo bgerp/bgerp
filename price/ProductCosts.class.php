@@ -49,7 +49,7 @@ class price_ProductCosts extends core_Manager
     /**
      * Кой може да редактира?
      */
-    public $canEdit = 'cat,ceo';
+    public $canEdit = 'no_one';
     
     
     /**
@@ -349,16 +349,10 @@ class price_ProductCosts extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
+        $data->listFilter->setOptions('classId', price_Updates::getCostPoliciesOptions());
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'productId,classId';
         $data->listFilter->input();
-        
-        $classOptions = array();
-        $policies = core_Classes::getOptionsByInterface('price_CostPolicyIntf');
-        foreach ($policies as $policyId => $policy){
-            $classOptions[$policyId] = cls::get($policy)->getName(true);
-        }
-        $data->listFilter->setOptions('classId', $classOptions);
         
         if($filterRec = $data->listFilter->rec){
             if(isset($filterRec->productId)){

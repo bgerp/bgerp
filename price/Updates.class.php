@@ -93,6 +93,23 @@ class price_Updates extends core_Manager
     
     
     /**
+     * Връща наличните политики за избор
+     * 
+     * @return array $options
+     */
+    public static function getCostPoliciesOptions()
+    {
+        $options = array();
+        $policies = core_Classes::getOptionsByInterface('price_CostPolicyIntf');
+        foreach ($policies as $policyId => $policy){
+            $options[$policyId] = cls::get($policy)->getName(true);
+        }
+        
+        return $options;
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
@@ -104,6 +121,12 @@ class price_Updates extends core_Manager
         Mode::push('text', 'plain');
         $form->setField("minChange", "placeholder=" . core_Type::getByName('percent')->toVerbal(price_Setup::get('MIN_CHANGE_UPDATE_PRIME_COST')));
         Mode::pop('text', 'plain');
+        
+        $policyOptions = self::getCostPoliciesOptions();
+        $form->setOptions('sourceClass1', $policyOptions);
+        $form->setOptions('sourceClass2', $policyOptions);
+        $form->setOptions('sourceClass3', $policyOptions);
+        
         
         if ($rec->type == 'category') {
             $form->setField('objectId', 'caption=Категория');
