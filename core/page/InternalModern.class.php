@@ -50,7 +50,7 @@ class core_page_InternalModern extends core_page_Active
         
         // Хедъри за контрол на кеша
         $this->push('Cache-Control: private, max-age=0', 'HTTP_HEADER');
-        $this->push('Expires: ' . gmdate('D, d M Y H:i:s', time() + 3600) . ' GMT', 'HTTP_HEADER');
+        $this->push('Expires: Sun, 19 Nov 1978 05:00:00 GMT', 'HTTP_HEADER');
         
         // Добавяме допълнителните хедъри
         $aHeadersArr = core_App::getAdditionalHeadersArr();

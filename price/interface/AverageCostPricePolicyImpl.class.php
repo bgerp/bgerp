@@ -50,7 +50,7 @@ class price_interface_AverageCostPricePolicyImpl extends price_interface_BaseCos
      *         ['productId']     - ид на артикул
      *         ['quantity']      - количество
      *         ['price']         - ед. цена
-     *         ['accPrice']      - счетоводна цена
+     *         ['valior']        - вальор
      *         ['sourceClassId'] - ид на класа на източника
      *         ['sourceId']      - ид на източника
      */
@@ -141,7 +141,7 @@ class price_interface_AverageCostPricePolicyImpl extends price_interface_BaseCos
             $res[$productId] = (object) array('price'         => $averageAmount,
                                               'productId'     => $productId, 
                                               'classId'       => $this->getClassId(),
-                                              'accPrice'      => null,
+                                              'valior'        => null,
                                               'sourceClassId' => null,
                                               'sourceId'      => null,
                                               'quantity'      => $accObject->quantity);
