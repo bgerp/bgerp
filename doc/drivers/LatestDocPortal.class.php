@@ -173,6 +173,9 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                         $dRow = $doc->getDocumentRow();
                         $title = $dRow->recTitle ? $dRow->recTitle: $dRow->title;
                         $title = trim($title);
+                        if (!$title) {
+                            $title = '[' . tr('Липсва заглавие') . ']';
+                        }
                         $title = str::limitLen($title, 50);
                         $t = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted}'>" . ht::createLink($title, $doc->getSingleUrlArray(), null, array('ef_icon' => $doc->getIcon()));
                         if (--$cnt > 0) {
