@@ -80,14 +80,6 @@ class marketing_InquiryRouter extends core_Manager
     {
         $inCharge = marketing_Router::getInChargeUser($place, $countryId, $domainId);
         
-        // Ако има папка на лице с този имейл
-        $folderId = marketing_Router::routeByPersonEmail($email, $inCharge);
-        if ($folderId) {
-            $explained = 'Рутиране на лице по личен имейл';
-           
-            return $folderId;
-        }
-        
         foreach (array('vatId' => $vatId, 'egn' => $uicId) as $field => $value){
             if(!empty($value)){
                 $folderId = marketing_Router::routeByUniqueId($value, $field, 'crm_Persons', $inCharge);
@@ -97,6 +89,14 @@ class marketing_InquiryRouter extends core_Manager
                     return $folderId;
                 }
             }
+        }
+        
+        // Ако има папка на лице с този имейл
+        $folderId = marketing_Router::routeByPersonEmail($email, $inCharge);
+        if ($folderId) {
+            $explained = 'Рутиране на лице по личен имейл';
+           
+            return $folderId;
         }
         
         if(!empty($tel)){
@@ -156,15 +156,27 @@ class marketing_InquiryRouter extends core_Manager
         // Дефолтния отговорник
         $inCharge = marketing_Router::getInChargeUser($place, $countryId, $domainId);
         
-        foreach (array('vatId' => $vatId, 'uicId' => $uicId) as $field => $value){
-            if(!empty($value)){
-                $folderId = marketing_Router::routeByUniqueId($value, $field, 'crm_Companies', $inCharge);
-                if ($folderId) {
-                    $explained = "Рутиране на фирма по {$field}";
-                    
-                    return $folderId;
+        // Ако има въведен уникален код на фирма
+        if(!empty($vatId) || !empty($uicId)){
+            
+            // И има вече фирма с него, рутира се към нея
+            foreach (array('vatId' => $vatId, 'uicId' => $uicId) as $field => $value){
+                if(!empty($value)){
+                    $folderId = marketing_Router::routeByUniqueId($value, $field, 'crm_Companies', $inCharge);
+                    if ($folderId) {
+                        $explained = "Рутиране на фирма по {$field}";
+                       
+                        return $folderId;
+                    }
                 }
             }
+            
+            // Ако няма, създава се нова фирма с този уникален номер
+            $folderId = marketing_Router::forceCompanyFolder($company, $email, $countryId, $tel, $pCode, $place, $address, $vatId, $uicId, $inCharge);
+            colab_FolderToPartners::force($folderId);
+            $explained = 'Рутиране към нова папка на фирма според уникален номер';
+            
+            return $folderId;
         }
         
         // Намираме папка на компания с този имейл
