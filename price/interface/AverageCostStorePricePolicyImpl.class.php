@@ -136,7 +136,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
                     $price = round($price, 6);
                     
                     // Ако има сметната цена
-                    if($price && is_object($lastRec)){
+                    if($price){
                         $obj->price = $price;
                         $obj->quantity = $iQuantity;
                         $res[$iMap->productId] = $obj;
