@@ -91,21 +91,24 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
         if (!$resData->tpl) {
-            
             $tCnt = $dRec->tCnt ? $dRec->tCnt : 20;
-            
             $resData->data = new stdClass();
             
             $tQuery = doc_Threads::getQuery();
-            doc_Threads::restrictAccess($tQuery, $userId);
             $tQuery->orderBy('last', 'DESC');
             $tQuery->orderBy('id', 'DESC');
-            $tQuery->show('id, folderId, firstContainerId, state');
-            $tQuery->limit($tCnt);
+            $tQuery->show('id, folderId, firstContainerId, state, folderId, shared');
+            $tQuery->limit(min(20 * $tCnt, 200));
             
             $resArr = array();
             while ($tRec = $tQuery->fetch()) {
+                if (!doc_Threads::haveRightFor('single', $tRec)) {
+                    continue;
+                }
+                
                 $resArr[$tRec->folderId][$tRec->id] = $tRec;
+                
+                if (!--$tCnt) break;
             }
             
             $data = new stdClass();
@@ -277,7 +280,6 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
         $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
         
         $tQuery = doc_Threads::getQuery();
-        doc_Threads::restrictAccess($tQuery, $userId);
         
         $tQuery->orderBy('last', 'DESC');
         $tQuery->orderBy('id', 'DESC');
