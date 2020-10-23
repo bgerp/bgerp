@@ -235,8 +235,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
         $query->show('id');
         $publicProductIds = arr::extractValuesFromArray($query->fetchAll(), 'id');
         
-        $count = countR($publicProductIds);
-        if(!$count){
+        if(!countR($publicProductIds)){
             
             return;
         }
@@ -248,12 +247,24 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
         $query->where("#classId = {$classId}");
         $exRecs = $query->fetchAll();
         
+        // На кои артикули, вече има стойност
         $alreadyCalculatedProductIds = arr::extractValuesFromArray($exRecs, 'productId');
-        core_App::setTimeLimit($count * 0.7, 900);
         
-        $map = $me->getProductItemMap($publicProductIds, $alreadyCalculatedProductIds);
+        // Кои от тях имат избрана такава политика за обновяване
+        $productIdsWithThisPolicyArr = $me->getAffectedTargetedProducts($publicProductIds);
+        $count = countR($productIdsWithThisPolicyArr);
+        
+        if(!$count){
+            
+            return;
+        }
+        
+        core_App::setTimeLimit($count * 0.8, 900);
+        
+        // Мапване на артикулите с перата и намиране на последните им дебити в посочените складове
+        $map = $me->getProductItemMap($productIdsWithThisPolicyArr, $alreadyCalculatedProductIds);
         $dRecs = $me->getLastDebitRecs(array_keys($map), $storeItems);
-        
+       
         $valiorMap = array();
         foreach ($dRecs as $jRec){
             $obj = (object) array('sourceClassId' => null,
