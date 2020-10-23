@@ -101,7 +101,6 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
             $obj = (object) array('sourceClassId' => null,
                                   'sourceId'      => null,
                                   'productId'     => $iMap->productId,
-                                  'accPrice'      => null,
                                   'valior'        => $lastDebitRec->valior,
                                   'quantity'      => $lastDebitRec->debitQuantity,
                                   'price'         => $debitPrice,

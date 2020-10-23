@@ -31,13 +31,13 @@ class price_ProductCosts extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, price_Wrapper';
+    public $loadList = 'plg_RowTools2, price_Wrapper, plg_Sorting';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id=Пулт, productId, classId, price, valior, quantity, sourceId=Документ, updatedOn';
+    public $listFields = 'productId, classId, price, valior, quantity, sourceId=Документ, updatedOn';
     
     
     /**
@@ -49,13 +49,13 @@ class price_ProductCosts extends core_Manager
     /**
      * Кой може да редактира?
      */
-    public $canEdit = 'no_one';
+    public $canEdit = 'debug';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'no_one';
+    public $canDelete = 'debug';
     
     
     /**
@@ -69,15 +69,14 @@ class price_ProductCosts extends core_Manager
      */
     public function description()
     {
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,onlyPublic)', 'caption=Артикул,input=none');
-        $this->FLD('classId', 'class(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Алгоритъм,input=none');
-        $this->FLD('price', 'double', 'caption=Ед. цена,mandatory');
-        $this->FLD('accPrice', 'double', 'caption=Ед. сч. цена,input=none');
-        $this->FLD('quantity', 'double', 'caption=К-во,input=none');
-        $this->FLD('sourceClassId', 'class', 'caption=Документ->Клас,input=none');
-        $this->FLD('sourceId', 'varchar', 'caption=Документ->Ид,input=none');
-        $this->FLD('valior', 'date', 'caption=Вальор,input=none');
-        $this->FLD('updatedOn', 'datetime(format=smartTime)', 'caption=Обновено на,input=none');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,onlyPublic)', 'caption=Артикул,mandatory');
+        $this->FLD('classId', 'class(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Алгоритъм,mandatory');
+        $this->FLD('price', 'double', 'caption=Ед. цена,mandatory,mandatory');
+        $this->FLD('quantity', 'double', 'caption=К-во,input=none,mandatory');
+        $this->FLD('sourceClassId', 'class(allowEmpty)', 'caption=Документ->Клас');
+        $this->FLD('sourceId', 'varchar', 'caption=Документ->Ид');
+        $this->FLD('valior', 'date', 'caption=Вальор');
+        $this->FLD('updatedOn', 'datetime(format=smartTime)', 'caption=Обновено на');
         
         $this->setDbUnique('productId,classId');
     }
