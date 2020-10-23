@@ -119,7 +119,6 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                 $docRowArr = array();
                 foreach ($tArr as $tId => $tRec) {
                     $tUnsighted = '';
-                    $cnt = 0;
                     
                     $cQuery = doc_Containers::getQuery();
                     $cQuery->where(array("#threadId = '[#1#]'", $tId));
@@ -154,8 +153,6 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                         $cQuery->orderBy('id', 'ASC');
                         $cQuery->where(array("#createdOn > '[#1#]'", $last));
                         $cQuery->where("#state != 'draft'");
-                        
-                        $cnt = $cQuery->count();
                         $cQuery->limit(1);
                     }
                     
@@ -180,11 +177,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                             $title = '[' . tr('Липсва заглавие') . ']';
                         }
                         $title = str::limitLen($title, 50);
-                        $t = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted}'>" . ht::createLink($title, $doc->getSingleUrlArray(), null, array('ef_icon' => $doc->getIcon()));
-                        if (--$cnt > 0) {
-                            $t .=  ' + ' . tr('още') . ' ' .  $cnt;
-                        }
-                        $t .= "</div>";
+                        $t = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted}'>" . ht::createLink($title, $doc->getSingleUrlArray(), null, array('ef_icon' => $doc->getIcon())) . "</div>";
                         
                         $docRowArr[] = $t;
                     } catch (core_exception_Expect $e) {
