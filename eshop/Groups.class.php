@@ -1042,9 +1042,8 @@ class eshop_Groups extends core_Master
      */
     public function getChangeStateWarning($rec, $newState)
     {
-        if(eshop_Products::fetchField("#groupId = {$rec->id} AND #state = 'active'")){
+        if($newState == 'closed' && eshop_Products::fetchField("#groupId = {$rec->id} AND #state = 'active'")){
             $msg = tr("Наистина ли желаете да деактивирате групата|*? |В нея има добавени артикули|*.");
-            
             return $msg;
         }
     }

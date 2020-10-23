@@ -74,6 +74,23 @@ class planning_plg_StateManager extends core_Plugin
     
     
     /**
+     * Ще има ли предупреждение при смяна на състоянието
+     */
+    public static function on_AfterGetChangeStateWarning($mvc, &$res, $rec, $newState)
+    {
+        if($newState == 'closed'){
+            $res = 'Сигурни ли сте, че искате да приключите документа|*?';
+        } elseif($newState == 'wakeup'){
+            $res = 'Сигурни ли сте, че искате да събудите документа|*?';
+        } elseif($newState == 'stopped'){
+            $res = 'Сигурни ли сте, че искате да спрете документа|*?';
+        } else {
+            $res = 'Сигурни ли сте, че искате да активирате документа|*?';
+        }
+    }
+    
+    
+    /**
      * След подготовка на тулбара на единичен изглед.
      *
      * @param core_Mvc $mvc
@@ -85,7 +102,8 @@ class planning_plg_StateManager extends core_Plugin
         
         // Добавяне на бутон за приключване
         if ($mvc->haveRightFor('close', $rec)) {
-            $attr = array('ef_icon' => 'img/16/gray-close.png', 'title' => 'Приключване на документа', 'warning' => 'Сигурни ли сте, че искате да приключите документа', 'order' => 30);
+            $warning = $mvc->getChangeStateWarning($rec, 'closed');
+            $attr = array('ef_icon' => 'img/16/gray-close.png', 'title' => 'Приключване на документа', 'warning' => $warning, 'order' => 30);
             $attr['id'] = 'btnClose';
             
             if (isset($mvc->demandReasonChangeState, $mvc->demandReasonChangeState['close'])) {
@@ -103,7 +121,9 @@ class planning_plg_StateManager extends core_Plugin
         
         // Добавяне на бутон за спиране
         if ($mvc->haveRightFor('stop', $rec)) {
-            $attr = array('ef_icon' => 'img/16/control_pause.png', 'title' => 'Спиране на документа','warning' => 'Сигурни ли сте, че искате да спрете документа', 'order' => 30, 'row' => 2);
+            $warning = $mvc->getChangeStateWarning($rec, 'stopped');
+            
+            $attr = array('ef_icon' => 'img/16/control_pause.png', 'title' => 'Спиране на документа', 'warning' => $warning, 'order' => 30, 'row' => 2);
             if (isset($mvc->demandReasonChangeState, $mvc->demandReasonChangeState['stop'])) {
                 unset($attr['warning']);
             }
@@ -113,7 +133,9 @@ class planning_plg_StateManager extends core_Plugin
         
         // Добавяне на бутон за събуждане
         if ($mvc->haveRightFor('wakeup', $rec)) {
-            $attr = array('ef_icon' => 'img/16/lightbulb.png', 'title' => 'Събуждане на документа','warning' => 'Сигурни ли сте, че искате да събудите документа', 'order' => 30, 'row' => 3);
+            $warning = $mvc->getChangeStateWarning($rec, 'wakeup');
+            
+            $attr = array('ef_icon' => 'img/16/lightbulb.png', 'title' => 'Събуждане на документа','warning' => $warning, 'order' => 30, 'row' => 3);
             if (isset($mvc->demandReasonChangeState, $mvc->demandReasonChangeState['wakeup'])) {
                 unset($attr['warning']);
             }
@@ -123,7 +145,9 @@ class planning_plg_StateManager extends core_Plugin
         
         // Добавяне на бутон за активиране от различно от чернова състояние
         if ($mvc->haveRightFor('activateAgain', $rec)) {
-            $attr = array('ef_icon' => 'img/16/control_play.png', 'title' => 'Активиране на документа','warning' => 'Сигурни ли сте, че искате да активирате документа|*?', 'order' => 30);
+            $warning = $mvc->getChangeStateWarning($rec, null);
+            
+            $attr = array('ef_icon' => 'img/16/control_play.png', 'title' => 'Активиране на документа','warning' => $warning, 'order' => 30);
             if (isset($mvc->demandReasonChangeState, $mvc->demandReasonChangeState['activateAgain'])) {
                 unset($attr['warning']);
             }
@@ -133,7 +157,9 @@ class planning_plg_StateManager extends core_Plugin
         
         // Добавяне на бутон запървоначално активиране
         if ($mvc->haveRightFor('activate', $rec)) {
-            $attr = array('ef_icon' => 'img/16/lightning.png', 'title' => 'Активиране на документа', 'warning' => 'Сигурни ли сте, че искате да активирате документа|*?', 'order' => 30, 'id' => 'btnActivate');
+            $warning = $mvc->getChangeStateWarning($rec, 'active');
+            
+            $attr = array('ef_icon' => 'img/16/lightning.png', 'title' => 'Активиране на документа', 'warning' => $warning, 'order' => 30, 'id' => 'btnActivate');
             if (isset($mvc->demandReasonChangeState, $mvc->demandReasonChangeState['activate'])) {
                 unset($attr['warning']);
             }
