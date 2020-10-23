@@ -976,7 +976,7 @@ class core_Manager extends core_Mvc
             $userId = core_Users::getCurrent();
         }
         $key = "{$action}|{$className}|{$id}|{$userId}";
-        if (!isset($rights[$key])) {
+        if (!$id || !isset($rights[$key])) {
             $self = cls::get($className);
             
             // Ако вместо $rec е зададено $id - зареждаме $rec

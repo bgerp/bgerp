@@ -6696,7 +6696,9 @@ only screen and (max-width: 320px) {
     background-color: #fad0d1 !important; }
 
   .portalNews .portalLatestFoldes {
-    margin-top: 3px; }
+    margin-top: 3px;
+    background-color: rgba(100, 100, 100, 0.1);
+    padding: 3px; }
   .portalNews .portalLatestThreads {
     margin-left: 20px;
     font-size: 0.95em;
