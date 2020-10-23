@@ -91,9 +91,11 @@
         <tbody>
             <tr>
                 <td class="topCell vtop" style='width:33%;'>
+                <!--ET_BEGIN paymentMethodId-->
                     <div class='cellRow'>
                         <span class='quiet'>|Плащане|*: </span>[#paymentMethodId#]
                     </div>
+                    <!--ET_END paymentMethodId-->
                     <!--ET_BEGIN downpayment-->
                     <div class='cellRow'>
                         <span class='quiet'>Downpayment:</span> [#downpayment#]

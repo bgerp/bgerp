@@ -482,7 +482,13 @@ class bgerp_Portal extends embed_Manager
         
         $intf = cls::getInterface('bgerp_PortalBlockIntf', $rec->{$this->driverClassField});
         
+        $debugName = 'Portal_' . core_Cls::getClassName($intf->class);
+        core_Debug::startTimer($debugName);
+        
+        $prepareDebugName = 'prepare_' . $debugName;
+        core_Debug::startTimer($prepareDebugName);
         $data = $intf->prepare($rec, $cu);
+        core_Debug::stopTimer($prepareDebugName);
         
         // Добавяме URL за страниране
         if ($rec->__cUrl) {
@@ -493,7 +499,12 @@ class bgerp_Portal extends embed_Manager
             }
         }
         
+        $renderDebugName = 'render_' . $debugName;
+        core_Debug::startTimer($renderDebugName);
         $res = $intf->render($data);
+        core_Debug::stopTimer($renderDebugName);
+        
+        core_Debug::stopTimer($debugName);
         
         return $res;
     }

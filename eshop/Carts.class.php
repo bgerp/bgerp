@@ -2095,7 +2095,7 @@ class eshop_Carts extends core_Master
                 $form->setError('invoiceVatNo,invoiceUicNo', 'Поне едно от полетата трябва да бъде въведено');
             }
             
-            if (!empty($rec->invoiceUicNo)) {
+            if (!empty($rec->invoiceUicNo) && $rec->makeInvoice == 'company') {
                 $msg = $isError = null;
                 crm_Companies::checkUicId($rec->invoiceUicNo, $rec->invoiceCountry, $msg, $isError);
                 if (!empty($msg)) {
