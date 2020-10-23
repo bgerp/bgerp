@@ -2772,7 +2772,7 @@ class cat_Products extends embed_Manager
      *
      * @return mixed $amount   - сумата или NULL ако няма
      */
-    public static function getWacAmountInStore($quantity, $productId, $date, $stores = null)
+    public static function getWacAmountInStore($quantity, $productId, $date, $stores = array())
     {
         $item2 = acc_Items::fetchItem('cat_Products', $productId)->id;
         if (!$item2) {
@@ -2780,10 +2780,10 @@ class cat_Products extends embed_Manager
             return;
         }
         
+        
         $item1 = '*';
-        if (!empty($stores)) {
+        if (is_array($stores) && countR($stores)) {
             $item1 = array();
-            $stores = arr::make($stores, true);
             foreach ($stores as $storeId){
                 $storeItemId = acc_Items::fetchItem('store_Stores', $storeId)->id;
                 $item1[$storeItemId] = $storeItemId;
@@ -2792,6 +2792,7 @@ class cat_Products extends embed_Manager
         
         // Намираме сумата която струва к-то от артикула в склада
         $maxTry = core_Packs::getConfigValue('cat', 'CAT_WAC_PRICE_PERIOD_LIMIT');
+        
         $amount = acc_strategy_WAC::getAmount($quantity, $date, '321', $item1, $item2, null, $maxTry);
         
         if (isset($amount)) {

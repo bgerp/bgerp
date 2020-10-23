@@ -29,6 +29,5 @@ class price_Wrapper extends plg_ProtoWrapper
         $this->TAB('price_Updates', 'Обновяване', 'priceMaster,ceo');
         $this->TAB('price_Cache', 'Дебъг->Кеш', 'debug');
         $this->TAB('price_ProductCosts', 'Дебъг->Изчислени', 'debug');
-        $this->TAB('price_AverageStorePrices', 'Дебъг->Средни складови', 'debug');
     }
 }

@@ -37,7 +37,7 @@ class price_ProductCosts extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id=Пулт, productId, classId, price, accPrice, quantity, sourceId=Документ, updatedOn';
+    public $listFields = 'id=Пулт, productId, classId, price, valior, quantity, sourceId=Документ, updatedOn';
     
     
     /**
@@ -49,7 +49,7 @@ class price_ProductCosts extends core_Manager
     /**
      * Кой може да редактира?
      */
-    public $canEdit = 'cat,ceo';
+    public $canEdit = 'no_one';
     
     
     /**
@@ -69,13 +69,14 @@ class price_ProductCosts extends core_Manager
      */
     public function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,input=none');
-        $this->FLD('classId', 'class(interface=price_CostPolicyIntf,select=title)', 'caption=Алгоритъм,input=none');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,onlyPublic)', 'caption=Артикул,input=none');
+        $this->FLD('classId', 'class(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Алгоритъм,input=none');
         $this->FLD('price', 'double', 'caption=Ед. цена,mandatory');
         $this->FLD('accPrice', 'double', 'caption=Ед. сч. цена,input=none');
         $this->FLD('quantity', 'double', 'caption=К-во,input=none');
         $this->FLD('sourceClassId', 'class', 'caption=Документ->Клас,input=none');
         $this->FLD('sourceId', 'varchar', 'caption=Документ->Ид,input=none');
+        $this->FLD('valior', 'date', 'caption=Вальор,input=none');
         $this->FLD('updatedOn', 'datetime(format=smartTime)', 'caption=Обновено на,input=none');
         
         $this->setDbUnique('productId,classId');
@@ -298,13 +299,14 @@ class price_ProductCosts extends core_Manager
         $exQuery = self::getQuery();
         $exQuery->in('productId', $affectedProducts);
         $exRecs = $exQuery->fetchAll();
-        $res = arr::syncArrays($update, $exRecs, 'productId,classId', 'price,quantity,sourceClassId,sourceId,accPrice');
+        $res = arr::syncArrays($update, $exRecs, 'productId,classId', 'price,quantity,sourceClassId,sourceId,valior');
+        
         if(countR($res['insert'])){
             $self->saveArray($res['insert']);
         }
         
         if(countR($res['update'])){
-            $self->saveArray($res['update'], 'id,price,quantity,sourceClassId,sourceId,updatedOn,accPrice');
+            $self->saveArray($res['update'], 'id,price,quantity,sourceClassId,sourceId,updatedOn,valior');
         }
         
         // Изтриване на несрещнатите себестойностти
@@ -339,5 +341,28 @@ class price_ProductCosts extends core_Manager
         $price = static::fetchField("#productId = {$productId} AND #classId = '{$Source->getClassId()}'", 'price');
         
         return $price;
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->setOptions('classId', price_Updates::getCostPoliciesOptions());
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->showFields = 'productId,classId';
+        $data->listFilter->input();
+        
+        if($filterRec = $data->listFilter->rec){
+            if(isset($filterRec->productId)){
+                $data->query->where("#productId = {$filterRec->productId}");
+            }
+            if(isset($filterRec->classId)){
+                $data->query->where("#classId = {$filterRec->classId}");
+            }
+        }
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
     }
 }

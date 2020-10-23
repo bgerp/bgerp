@@ -112,7 +112,7 @@ class acc_strategy_WAC extends acc_strategy_Strategy
             
             // Поставяме условие за перо на определена позиция само ако е зададено
             // Ако перото е зададено с '*' значи искаме всички записи
-            if (isset($param) && $param != '*') {
+            if (isset($param) && ($param != '*')) {
                 $paramArr = arr::make($param, true);
                 $paramString = implode(',', $paramArr);
                 
@@ -159,7 +159,10 @@ class acc_strategy_WAC extends acc_strategy_Strategy
                 $pos1 = $rec->{"{$type}Item1"};
                 $pos2 = $rec->{"{$type}Item2"};
                 $pos3 = $rec->{"{$type}Item3"};
-                $item1 = arr::make($item1, true);
+                
+                if ($item1 != '*') {
+                    $item1 = arr::make($item1, true);
+                }
                 
                 // Ако страната отговаря точно на аналитичната сметка
                 if ($accId == $accRec->id && ($item1 == '*' || in_array($pos1, $item1)) && ($item2 == '*' || $pos2 == $item2) && ($item3 == '*' || $pos3 == $item3)) {

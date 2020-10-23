@@ -86,9 +86,26 @@ class price_Updates extends core_Manager
         $this->FLD('minChange', 'percent(min=0,max=1)', 'caption=Мин. промяна');
         
         $this->FLD('costValue', 'double', 'input=none,caption=Себестойност');
-        $this->FLD('updateMode', 'enum(manual=Ръчно,now=Ежечасово,nextDay=Следващия ден,nextWeek=Следващата седмица,nextMonth=Следващия месец)', 'caption=Обновяване');
+        $this->FLD('updateMode', 'enum(manual=Ръчно,now=При изчисление,nextDay=Следващия ден,nextWeek=Следващата седмица,nextMonth=Следващия месец)', 'caption=Обновяване');
         
         $this->setDbUnique('objectId,type');
+    }
+    
+    
+    /**
+     * Връща наличните политики за избор
+     * 
+     * @return array $options
+     */
+    public static function getCostPoliciesOptions()
+    {
+        $options = array();
+        $policies = core_Classes::getOptionsByInterface('price_CostPolicyIntf');
+        foreach ($policies as $policyId => $policy){
+            $options[$policyId] = cls::get($policy)->getName(true);
+        }
+        
+        return $options;
     }
     
     
@@ -104,6 +121,12 @@ class price_Updates extends core_Manager
         Mode::push('text', 'plain');
         $form->setField("minChange", "placeholder=" . core_Type::getByName('percent')->toVerbal(price_Setup::get('MIN_CHANGE_UPDATE_PRIME_COST')));
         Mode::pop('text', 'plain');
+        
+        $policyOptions = self::getCostPoliciesOptions();
+        $form->setOptions('sourceClass1', $policyOptions);
+        $form->setOptions('sourceClass2', $policyOptions);
+        $form->setOptions('sourceClass3', $policyOptions);
+        
         
         if ($rec->type == 'category') {
             $form->setField('objectId', 'caption=Категория');
@@ -458,6 +481,7 @@ class price_Updates extends core_Manager
         
         // За всеки
         while ($rec = $query->fetch()) {
+            
             try {
                 // Ако не може да се изпълни, пропускаме го
                 if (!$this->canBeApplied($rec, $now)) {
@@ -490,8 +514,6 @@ class price_Updates extends core_Manager
         switch ($rec->updateMode) {
             case 'manual':
             case 'now':
-                
-                // При ежечасовото условие, изпълняваме го винаги
                 $res = true;
                 break;
             case 'nextDay':
@@ -575,13 +597,19 @@ class price_Updates extends core_Manager
     /**
      * Рендиране на таблицата с данните
      */
-    public static function renderUpdateData($data)
+    public function renderUpdateData($data)
     {
-        // Рендираме таблицата
+        $tpl = new core_ET("");
+        
+        // Рендиране на таблицата
         $table = cls::get('core_TableView', array('mvc' => cls::get('price_Updates')));
-        $fields = 'tools=Пулт,sourceClass1=Източник->Първи,sourceClass2=Източник->Втори,sourceClass3=Източник->Трети,costAdd=Добавка,costValue=Стойност,updateMode=Обновяване,createdOn=Създаване->На,createdBy=Създаване->От';
-        $fields = core_TableView::filterEmptyColumns($data->rows, $fields, 'costAdd');
-        $details = $table->get($data->rows, $fields);
+        $data->listFields = arr::make('sourceClass1=Източник->Първи,sourceClass2=Източник->Втори,sourceClass3=Източник->Трети,costAdd=Добавка,costValue=Стойност,updateMode=Обновяване,createdOn=Създаване->На,createdBy=Създаване->От');
+        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'costAdd,costValue');
+        $data->listTableMvc = clone $this;
+        $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+        
+        $details = $table->get($data->rows, $data->listFields);
+        $tpl->append($details);
         
         return $details;
     }
@@ -613,7 +641,7 @@ class price_Updates extends core_Manager
             $ht = ht::createLink('', array($this, 'add', 'type' => $type, 'objectId' => $data->masterId, 'ret_url' => true), false, 'title=Задаване на ново правило,ef_icon=img/16/add.png');
             $tpl->append($ht, 'title');
         }
-        $tpl->append(self::renderUpdateData($data), 'content');
+        $tpl->append($this->renderUpdateData($data), 'content');
         
         // Връщаме шаблона
         return $tpl;

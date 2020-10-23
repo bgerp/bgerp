@@ -155,6 +155,9 @@ function showTooltip() {
 };
 
 
+/**
+ * действие на дървовидната структура
+ */
 function treeViewAction() {
     if(!$('.searchResult').length) {
         $('.treeView tbody tr').not('.treeLevel0').addClass('hiddenRow closedChildren');
@@ -173,7 +176,9 @@ function treeViewAction() {
     });
 }
 
-
+/**
+ * Задваря децата на елемента от дървовидната структура
+ */
 function closeChildren(id){
     var children = $('tr[data-parentid=' + id + ']') ;
     $(children).each(function() {
@@ -186,6 +191,9 @@ function closeChildren(id){
 }
 
 
+/**
+ * Отваря децата на елемента от дървовидната структура
+ */
 function openChildren(id){
     var children = $('tr[data-parentid=' + id + ']') ;
     $(children).each(function() {
@@ -198,7 +206,9 @@ function openChildren(id){
 }
 
 
-// Функция за лесно селектиране на елементи
+/**
+ * Функция за лесно селектиране на елементи
+  */
 function get$() {
     var elements = new Array();
     for (var i = 0; i < arguments.length; i++) {
@@ -1064,6 +1074,10 @@ function js2php(obj, path, new_path) {
     return post_str.join('&');
 }
 
+
+/**
+ * Подготвя контекстното меню
+ */
 function prepareContextMenu() {
     jQuery.each($('.more-btn'), function(i, val) {
         if($(this).hasClass('nojs')) return;
@@ -1115,6 +1129,10 @@ function prepareContextMenu() {
     });
 }
 
+/**
+ * Запазване на текущия таб
+ * @param lastNotifyTime
+ */
 function openCurrentTab(lastNotifyTime){
     if(!$('body').hasClass('modern-theme') || $('body').hasClass('wide')) return;
     var current;
@@ -1236,7 +1254,12 @@ function hideRichtextEditGroups() {
     return false;
 }
 
-
+/**
+ * Показване/скриване на допълнителните елементи от ричедит опциите
+ * @param id
+ * @param event
+ * @returns {boolean}
+ */
 function toggleRichtextGroups(id, event) {
     if (typeof event == 'undefined') {
         event = window.event;
@@ -1263,6 +1286,12 @@ function toggleRichtextGroups(id, event) {
 
 // id на текущия език
 var currentLangId = 0;
+
+
+/**
+ * Действие на бутона за смяна на език в ричедит
+ * @param obj
+ */
 function prepareLangBtn(obj) {
 
 	var arrayLang= obj.data;
@@ -1444,6 +1473,11 @@ function flashHashDoc(flasher) {
     }
 }
 
+/**
+ * Присвятване на текушия документ (от жълт към прозрачен)
+ * @param docId
+ * @param i
+ */
 function flashDoc(docId, i) {
     var tr = get$(docId);
 
@@ -1531,6 +1565,11 @@ function flashDocInterpolation(docId) {
 }
 
 
+/**
+ * Вряща цвета на фона на дадем елемент
+ * @param el
+ * @returns {string|*}
+ */
 function getBackgroundColor(el) {
     var bgColor = $(el).css('background-color');
 
@@ -1541,6 +1580,11 @@ function getBackgroundColor(el) {
     return rgb2hex(bgColor);
 }
 
+/**
+ * Преобразува rgb цвят към hex
+ * @param rgb
+ * @returns {string|*}
+ */
 function rgb2hex(rgb) {
 
     if (rgb.search("rgb") == -1) {
@@ -1663,6 +1707,11 @@ function setMinHeightExt() {
         setMinHeightExt();
     });
 }
+
+
+/**
+ * Връща ширината на устройството
+ */
 function getWindowWidth() {
 	var winWidth = parseInt($(window).width());
 	// Приемаме, че най-малкият екран е 320px
@@ -1673,6 +1722,9 @@ function getWindowWidth() {
 }
 
 
+/**
+ * Изчислява максималната ширина на формата - маха падинга, менюто и др.
+ */
 function getCalculatedElementWidth() {
 	var winWidth = getWindowWidth();
     // разстояние около формата
@@ -1831,7 +1883,6 @@ function setThreadElemWidth() {
     $('#main-container .doc_Containers table.listTable.listAction > tbody > tr > td').css('maxWidth', threadWidth + 10);
     $('.background-holder .doc_Containers table.listTable > tbody > tr > td').css('maxWidth', threadWidth + 10);
     $('.doc_Containers .scrolling-holder').css('maxWidth', threadWidth + 10);
-
 }
 
 
@@ -1844,24 +1895,13 @@ function setBarcodeHolderWidth(){
 }
 
 
+/**
+ *  При resize задава ширини във форми/нишки
+ */
 function checkForElementWidthChange() {
     $(window).smartresize(function(){
         setFormElementsWidth();
         setThreadElemWidth();
-    });
-}
-
-
-function getAllLiveElements() {
-    $('[data-live]').each(function() {
-        var text = $(this).attr('data-live');
-        var data = text.split("|");
-        var el = $(this);
-        $.each( data, function( key, value ) {
-            var fn = window["live_" + value];
-            if (typeof fn === "function") fn.apply(null, el);
-        });
-
     });
 }
 
@@ -1884,6 +1924,7 @@ function setRicheditWidth(el) {
     var width = parseInt($('.formElement').width());
     $('.formElement textarea').css('width', width);
 }
+
 
 /**
  * Ако имаме 6 бутона в richedit, да излизат в 2 колони
@@ -2422,6 +2463,8 @@ function replaceFormData(frm, data)
     frm.find('#save, #saveAndNew').prop( "disabled", false );
 	frm.find('input, select, textarea').css('cursor', 'default');
 }
+
+
 /**
  * Зарежда подадените JS файлове синхронно
  *
@@ -2541,7 +2584,9 @@ function addLinkOnCopy(text, symbolCount) {
 }
 
 
-
+/**
+ * Приготвяне на контекстно менщ от ajax
+ */
 function prepareContextHtmlFromAjax() {
 
     $( ".ajaxContext").parent().css('position', 'relative');
@@ -2557,8 +2602,6 @@ function prepareContextHtmlFromAjax() {
         $(holder).appendTo('body');
     });
 }
-
-
 
 
 /**
@@ -2584,6 +2627,7 @@ function getContextMenuFromAjax() {
         el.contextMenu('#' + el.attr('data-id'),{triggerOn:'contextmenu', 'sizeStyle': 'context', 'displayAround': 'cursor'});
     });
 }
+
 
 function openAjaxMenu(el) {
 	getEfae().preventRequest = 0;
@@ -2810,7 +2854,6 @@ function smartCenter() {
         $("span.maxwidth:not('.notcentered')").css('display', "block");
         $("span.maxwidth:not('.notcentered')").css('margin', "0 auto");
         $("span.maxwidth:not('.notcentered')").css('text-align', "right");
-
 }
 
 
@@ -5548,7 +5591,9 @@ function syncServiceWorker() {
     }
 }
 
-
+/**
+ * smartresize - намалява събитията на on resize
+ */
 (function($,sr){
 
     // debouncing function from John Hann

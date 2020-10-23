@@ -50,7 +50,7 @@ class price_interface_LastActiveBomCostPolicy extends price_interface_BaseCostPo
      *         ['productId']     - ид на артикул
      *         ['quantity']      - количество
      *         ['price']         - ед. цена
-     *         ['accPrice']      - счетоводна цена
+     *         ['valior']        - вальор
      *         ['sourceClassId'] - ид на класа на източника
      *         ['sourceId']      - ид на източника
      */
@@ -85,7 +85,7 @@ class price_interface_LastActiveBomCostPolicy extends price_interface_BaseCostPo
                                                       'sourceId'      => $bomRec->id,
                                                       'productId'     => $productId,
                                                       'quantity'      => $t,
-                                                      'accPrice'      => null,
+                                                      'valior'        => null,
                                                       'classId'       => $this->getClassId(),
                                                       'price'         => $primeCost);
                 }

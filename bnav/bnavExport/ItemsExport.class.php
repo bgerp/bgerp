@@ -224,7 +224,12 @@
             
         } else {
             
-            $fld->FLD('full', 'varchar', 'caption=Артикул');
+            $fld->FLD('code', 'int', 'caption=Код на стоката');
+            $fld->FLD('name', 'varchar', 'caption=Име на стоката');
+            $fld->FLD('dim', 'varchar', 'caption=Измервана величина');
+            $fld->FLD('measureId', 'varchar', 'caption=Мерна единица');
+            
+            //$fld->FLD('full', 'varchar', 'caption=Артикул');
             
         }
        
@@ -275,10 +280,10 @@
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-        $row->code = $dRec->code;
-        $row->name = $dRec->name;
-        $row->dim = $dRec->dim;
-        $row->measureId = cat_UoM::getShortName($dRec->measureId);
+        $res->code = $dRec->code;
+        $res->name = $dRec->name;
+        $res->dim = $dRec->dim;
+        $res->measureId = cat_UoM::getShortName($dRec->measureId);
         
     }
     

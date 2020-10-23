@@ -166,7 +166,7 @@ class cat_products_PriceDetails extends core_Manager
             $data->updateCostRec = $uRec;
             if (is_object($uRec)) {
                 $uRow = price_Updates::recToVerbal($uRec);
-                $arr = array('manual' => tr('Ръчно'), 'nextDay' => tr('Дневно'), 'nextWeek' => tr('Седмично'), 'nextMonth' => tr('Месечно'), 'now' => tr('Ежечасово'));
+                $arr = array('manual' => tr('Ръчно'), 'nextDay' => tr('Дневно'), 'nextWeek' => tr('Седмично'), 'nextMonth' => tr('Месечно'), 'now' => tr('При изчисление'));
                 $tpl = new core_ET(tr('|*<b>[#updateMode#]</b> |обновяване на себестойността, последователно по|* [#type#]  <!--ET_BEGIN surcharge-->|с надценка|* <b>[#surcharge#]</b><!--ET_END surcharge-->[#tools#]'));
                 
                 core_RowToolbar::createIfNotExists($uRow->_rowTools);

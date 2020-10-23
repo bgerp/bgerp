@@ -100,7 +100,6 @@ class price_Setup extends core_ProtoSetup
         'price_ProductCosts',
         'price_Updates',
         'price_Cache',
-        //'price_AverageStorePrices',
         'migrate::migrateUpdates'
     );
     
@@ -129,7 +128,7 @@ class price_Setup extends core_ProtoSetup
         'PRICE_SIGNIFICANT_DIGITS' => array('int(min=0)', 'caption=Закръгляне в ценовите политики (без себестойност)->Значещи цифри'),
         'PRICE_MIN_DECIMALS' => array('int(min=0)', 'caption=Закръгляне в ценовите политики (без себестойност)->Мин. знаци'),
         'PRICE_MIN_CHANGE_UPDATE_PRIME_COST' => array('percent(min=0,max=1)', 'caption=Автоматично обновяване на себестойностите->Мин. промяна'),
-        'PRICE_STORE_AVERAGE_PRICES' => array('keylist(mvc=store_Stores,select=name)', 'caption=Складове за които да се записва осреднена цена->Избор,callOnChange=price_AverageStorePrices::updateAvgPrices'),
+        'PRICE_STORE_AVERAGE_PRICES' => array('keylist(mvc=store_Stores,select=name)', 'caption=Складове за които да се записва осреднена цена->Избор,callOnChange=price_interface_AverageCostStorePricePolicyImpl::saveAvgPrices'),
     );
     
     
