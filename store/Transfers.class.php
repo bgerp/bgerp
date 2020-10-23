@@ -652,4 +652,28 @@ class store_Transfers extends core_Master
             }
         }
     }
+    
+    
+    /**
+     * Връща дефолтен коментар при връзка на документи
+     *
+     * @param integer $id
+     * @param string $comment
+     *
+     * @return string
+     */
+    public function getDefaultLinkedComment($id, $comment)
+    {
+        $rec = $this->fetchRec($id);
+        $fromStore = store_Stores::getTitleById($rec->fromStore);
+        $toStore = store_Stores::getTitleById($rec->toStore);
+        
+        if (trim($comment)) {
+            $comment .= '<br>';
+        }
+       
+        $comment .= "{$fromStore} » {$toStore}";
+        
+        return $comment;
+    }
 }
