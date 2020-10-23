@@ -176,10 +176,8 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                         if (!$title) {
                             $title = '[' . tr('Липсва заглавие') . ']';
                         }
-                        $title = str::limitLen($title, 50);
-                        $t = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted}'>" . ht::createLink($title, $doc->getSingleUrlArray(), null, array('ef_icon' => $doc->getIcon())) . "</div>";
                         
-                        $docRowArr[] = $t;
+                        $docRowArr[] = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted}'>" . ht::createLink(str::limitLen($title, 50), $doc->getSingleUrlArray(), null, array('ef_icon' => $doc->getIcon())) . "</div>";
                     } catch (core_exception_Expect $e) {
                         continue;
                     }
