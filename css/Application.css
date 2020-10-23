@@ -154,7 +154,7 @@ tr.noHover td:hover {
 .wide #maincontent {
   position: relative;
   padding: 7px;
-  min-height: 600px; }
+  min-height: 400px; }
 
 .narrow #maincontent {
   padding: 5px; }
@@ -5476,7 +5476,7 @@ body.narrow {
   font-size: 0.9em; }
 
 .miniText {
-  font-size: 0.7em;
+  font-size: 0.8em;
   font-weight: bold; }
 
 .cmr-holder {
