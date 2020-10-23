@@ -148,10 +148,11 @@ class plg_State2 extends core_Plugin
      * Ще има ли предупреждение при смяна на състоянието
      *
      * @param stdClass $rec
+     * @param string $newState
      *
      * @return string|FALSE
      */
-    public static function on_AfterGetChangeStateWarning($mvc, &$res, $rec)
+    public static function on_AfterGetChangeStateWarning($mvc, &$res, $rec, $newState)
     {
         if (!isset($res)) {
             $res = false;
@@ -170,12 +171,14 @@ class plg_State2 extends core_Plugin
     {
         $row->STATE_CLASS = "state-{$rec->state}";
         $row->ROW_ATTR['class'] .= " state-{$rec->state}";
-        $warning = $mvc->getChangeStateWarning($rec);
-        $warning = !empty($warning) ? $warning : false;
-        $warningToolbar = !empty($warning) ? "warning={$warning}" : '';
         
         if ($mvc->haveRightFor('changeState', $rec)) {
             $this->getActiveAndClosedState($mvc);
+            
+            $newState = ($rec->state == $this->activeState) ? $this->closedState : $this->activeState;
+            $warning = $mvc->getChangeStateWarning($rec, $newState);
+            $warning = !empty($warning) ? $warning : false;
+            $warningToolbar = !empty($warning) ? "warning={$warning}" : '';
             
             $add = '<img src=' . sbf('img/16/lightbulb_off.png') . " width='16' height='16'>";
             $cancel = '<img src=' . sbf('img/16/lightbulb.png') . " width='16' height='16'>";
@@ -222,7 +225,8 @@ class plg_State2 extends core_Plugin
             $this->getActiveAndClosedState($mvc);
             
             $singleTitle = mb_strtolower(tr($mvc->singleTitle));
-            $warning = $mvc->getChangeStateWarning($rec);
+            $newState = ($rec->state == $this->activeState) ? $this->closedState : $this->activeState;
+            $warning = $mvc->getChangeStateWarning($rec, $newState);
             
             if ($rec->state == $this->activeState) {
                 $data->toolbar->addBtn('Деактивиране', array($mvc, 'changeState', $rec->id, 'ret_url' => true), "ef_icon=img/16/lightbulb.png,title=Деактивиране на|* {$singleTitle},warning={$warning}");

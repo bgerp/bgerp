@@ -1034,12 +1034,13 @@ class eshop_Groups extends core_Master
     
     /**
      * Какво предупреждение да се показва на бутона за активиране/деактивиране
-     *
+     * 
      * @param stdClass $rec
-     *
+     * @param string $newState
+     * 
      * @return string $msg
      */
-    public function getChangeStateWarning($rec)
+    public function getChangeStateWarning($rec, $newState)
     {
         if(eshop_Products::fetchField("#groupId = {$rec->id} AND #state = 'active'")){
             $msg = tr("Наистина ли желаете да деактивирате групата|*? |В нея има добавени артикули|*.");

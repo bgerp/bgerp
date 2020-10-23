@@ -1542,12 +1542,13 @@ class eshop_Products extends core_Master
      * Какво предупреждение да се показва на бутона за активиране/деактивиране
      * 
      * @param stdClass $rec
+     * @param string $newState
      * 
      * @return string $msg
      */
-    public function getChangeStateWarning($rec)
+    public function getChangeStateWarning($rec, $newState)
     {
-        $action = ($rec->state == 'acitve') ? 'активирате' : 'деактивирате';
+        $action = ($newState == 'active') ? 'активирате' : 'деактивирате';
         $msg = tr("Наистина ли желаете да {$action} този е-артикул");
         
         return $msg;
