@@ -91,21 +91,24 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
         if (!$resData->tpl) {
-            
             $tCnt = $dRec->tCnt ? $dRec->tCnt : 20;
-            
             $resData->data = new stdClass();
             
             $tQuery = doc_Threads::getQuery();
-            doc_Threads::restrictAccess($tQuery, $userId);
             $tQuery->orderBy('last', 'DESC');
             $tQuery->orderBy('id', 'DESC');
-            $tQuery->show('id, folderId, firstContainerId, state');
-            $tQuery->limit($tCnt);
+            $tQuery->show('id, folderId, firstContainerId, state, folderId, shared');
+            $tQuery->limit(min(20 * $tCnt, 200));
             
             $resArr = array();
             while ($tRec = $tQuery->fetch()) {
+                if (!doc_Threads::haveRightFor('single', $tRec)) {
+                    continue;
+                }
+                
                 $resArr[$tRec->folderId][$tRec->id] = $tRec;
+                
+                if (!--$tCnt) break;
             }
             
             $data = new stdClass();
@@ -116,7 +119,6 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                 $docRowArr = array();
                 foreach ($tArr as $tId => $tRec) {
                     $tUnsighted = '';
-                    $cnt = 0;
                     
                     $cQuery = doc_Containers::getQuery();
                     $cQuery->where(array("#threadId = '[#1#]'", $tId));
@@ -151,8 +153,6 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                         $cQuery->orderBy('id', 'ASC');
                         $cQuery->where(array("#createdOn > '[#1#]'", $last));
                         $cQuery->where("#state != 'draft'");
-                        
-                        $cnt = $cQuery->count();
                         $cQuery->limit(1);
                     }
                     
@@ -173,14 +173,11 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                         $dRow = $doc->getDocumentRow();
                         $title = $dRow->recTitle ? $dRow->recTitle: $dRow->title;
                         $title = trim($title);
-                        $title = str::limitLen($title, 50);
-                        $t = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted}'>" . ht::createLink($title, $doc->getSingleUrlArray(), null, array('ef_icon' => $doc->getIcon()));
-                        if (--$cnt > 0) {
-                            $t .=  ' + ' . tr('още') . ' ' .  $cnt;
+                        if (!$title) {
+                            $title = '[' . tr('Липсва заглавие') . ']';
                         }
-                        $t .= "</div>";
                         
-                        $docRowArr[] = $t;
+                        $docRowArr[] = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted}'>" . ht::createLink(str::limitLen($title, 50), $doc->getSingleUrlArray(), null, array('ef_icon' => $doc->getIcon())) . "</div>";
                     } catch (core_exception_Expect $e) {
                         continue;
                     }
@@ -274,7 +271,6 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
         $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
         
         $tQuery = doc_Threads::getQuery();
-        doc_Threads::restrictAccess($tQuery, $userId);
         
         $tQuery->orderBy('last', 'DESC');
         $tQuery->orderBy('id', 'DESC');

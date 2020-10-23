@@ -302,15 +302,16 @@ class speedy_Adapter {
      * Кои са наличните услуги за доставка до мястото
      *
      * @param int $pickingId - ид на товарителница
+     * @param int $printerType - вид на принтера
      * @throws ServerException
      *
      * @return string $fh    - хендлър към абсорбираната товарителница в нашата система
      */
-    public function getBolPdf($pickingId)
+    public function getBolPdf($pickingId, $printerType)
     {
         $paramPDF = new ParamPDF();
         $paramPDF->setIds(array(0 => $pickingId));
-        $paramPDF->setType(ParamPDF::PARAM_PDF_TYPE_BOL);
+        $paramPDF->setType($printerType);
         $paramPDF->setIncludeAutoPrintJS(true);
         
         // Save pdf in a file

@@ -60,13 +60,13 @@ class core_String
         
         $text = str_replace($keys, $trans, $text);
         
-        preg_match_all('/[A-Z]{2,3}[a-z]/', $text, $matches);
+        preg_match_all('/[A-Z]{2,3}[a-z]{1,2}([^a-z]|$){1}/', $text, $matches);
         
         foreach ($matches[0] as $upper) {
-            $cap = ucfirst(strtolower($upper));
+            $cap = strtoupper($upper);
             $text = str_replace($upper, $cap, $text);
         }
-
+        
 //         $text = @iconv("UTF-8", "ASCII//TRANSLIT", $text);
         
         return $text;

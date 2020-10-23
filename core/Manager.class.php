@@ -829,7 +829,6 @@ class core_Manager extends core_Mvc
     public function renderListFilter_($data)
     {
         if (!isset($data->listFilter)) {
-            
             return;
         }
         
@@ -849,7 +848,6 @@ class core_Manager extends core_Mvc
     public function renderListPager_($data)
     {
         if ($data->pager) {
-            
             return $data->pager->getHtml();
         }
     }
@@ -893,7 +891,6 @@ class core_Manager extends core_Mvc
     public function renderListTitle_($data)
     {
         if (!empty($data->title)) {
-            
             return new ET("<div class='listTitle'>[#1#]</div>", tr($data->title));
         }
     }
@@ -970,21 +967,29 @@ class core_Manager extends core_Mvc
      */
     public static function haveRightFor($action, $rec = null, $userId = null)
     {
-        $self = cls::get(get_called_class());
-        
-        // Ако вместо $rec е зададено $id - зареждаме $rec
-        if (!is_object($rec) && $rec > 0) {
-            $rec = $self->fetch($rec);
-        }
-        
+        static $rights = array();
+
+        $className = get_called_class();
+        $id = is_object($rec) ? $rec->id : $rec;
         // Ако нямаме зададен потребите - приемаме, че въпроса се отнася за текущия
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
         }
+        $key = "{$action}|{$className}|{$id}|{$userId}";
+        if (!isset($rights[$key])) {
+            $self = cls::get($className);
+            
+            // Ако вместо $rec е зададено $id - зареждаме $rec
+            if (!is_object($rec) && $rec > 0) {
+                $rec = $self->fetch($rec);
+            }
+            
+            $requiredRoles = $self->getRequiredRoles(strtolower($action), $rec, $userId);
         
-        $requiredRoles = $self->getRequiredRoles(strtolower($action), $rec, $userId);
-        
-        return Users::haveRole($requiredRoles, $userId);
+            $rights[$key] = Users::haveRole($requiredRoles, $userId);
+        }
+
+        return $rights[$key];
     }
     
     
@@ -1024,7 +1029,6 @@ class core_Manager extends core_Mvc
     {
         // Приключваме, ако няма права за четене
         if (!$this->haveRightFor('list')) {
-            
             return array(
                 'error' => 'Недостатъчни права за четене на ' . $this->title
             );
@@ -1032,7 +1036,6 @@ class core_Manager extends core_Mvc
         
         // Приключваме, ако класът не представлява модел
         if (countR($this->fields) <= 1) {
-            
             return array(
                 'error' => 'Този клас не е модел: ' . $this->title
             );
@@ -1042,7 +1045,6 @@ class core_Manager extends core_Mvc
         $q = Request::get('q');
         
         if (!$q) {
-            
             return array(
                 'error' => 'Липсва заявка за филтриране'
             );
