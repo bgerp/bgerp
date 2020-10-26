@@ -176,6 +176,12 @@ defIfNot('SALES_NEW_QUOTATION_AUTO_ACTION_BTN', 'form');
 
 
 /**
+ * Политика за предупреждение за минимални цени
+ */
+defIfNot('SALES_MIN_PRICE_POLICY', '');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -334,7 +340,9 @@ class sales_Setup extends core_ProtoSetup
             'mandatory,caption=Действие на бързите бутони в папките->Оферта,customizeBy=ceo|sales',
         ),
         'SALES_STATISTIC_DATA_FOR_THE_LAST' => array('time', 'caption=Изчисляване на рейтинги за продажба->Време назад'),
-    );
+    
+        'SALES_MIN_PRICE_POLICY' => array('key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика за минимални цени->Избор'),
+        );
     
     
     /**

@@ -1838,4 +1838,21 @@ class sales_Sales extends deals_DealMaster
             $query->where('#cartId IS NOT NULL');
         }
     }
+    
+    
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if(deals_Helper::hasProductsBellowMinPrice($mvc, $rec)){
+            
+            $rec->contoActions = '';
+            $mvc->save_($rec, 'contoActions');
+            
+            core_Statuses::newStatus('Продажбата не може да се контира, защото има артикули с продажна цена под минималната|*!', 'error');
+            return false;
+        }
+    }
 }

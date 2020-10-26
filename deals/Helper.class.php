@@ -2050,6 +2050,12 @@ abstract class deals_Helper
     {
         $obj = null;
         
+        $warningType = 'warning';
+        if($minListId = sales_Setup::get('MIN_PRICE_POLICY')){
+            $listId = $minListId;
+            $warningType = 'error';
+        }
+        
         $price = $price * (1 - $discount);
         $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $listId);
         
@@ -2058,28 +2064,60 @@ abstract class deals_Helper
             $toleranceDiff = price_Lists::fetchField($foundPrice->listId, 'discountComparedShowAbove');
         }
         $toleranceDiff = !empty($toleranceDiff) ? $toleranceDiff * 100 : 1;
-        
         $foundPrice = $foundPrice->price * (1 - $foundPrice->discount);
         
         $diff = abs(round($price - $foundPrice, 5));
         $price1Round = round($price, 5);
         $price2Round = round($foundPrice, 5);
        
-        
-        
         if($price2Round){
             $percent = core_Math::diffInPercent($price1Round, $price2Round);
             $diff = abs(core_Math::diffInPercent($price1Round, $price2Round));
             
-            
-            
             if($diff > $toleranceDiff){
                 $obj = array();
-                $obj['hint'] = ($percent < 0) ? 'Крайната цена е над очакваната за клиента' : 'Крайната цена е под очакваната за клиента';
-                $obj['hintType'] = ($percent < 0) ? 'notice' : 'warning';
+                $obj['hint'] = ($percent < 0) ? 'Крайната цена е над очакваната за клиента|*!' : 'Крайната цена е под очакваната за клиента|*!';
+                $obj['hintType'] = ($percent < 0) ? 'notice' : $warningType;
             }
         } 
         
         return $obj;
+    }
+    
+    
+    /**
+     * Има ли в документа артикули с продажба цена под минималната за клиента
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * 
+     * @return boolean
+     */
+    public static function hasProductsBellowMinPrice($mvc, $rec)
+    {
+        $minPolicyId = sales_Setup::get('MIN_PRICE_POLICY');
+        
+        if(isset($mvc->mainDetail) && !empty($minPolicyId)){
+            $rec = $mvc->fetchRec($rec);
+            $Detail = cls::get($mvc->mainDetail);
+            
+            $dQuery = $Detail::getQuery();
+            $dQuery->EXT('isPublic', 'cat_Products', "externalName=isPublic,externalKey={$Detail->productFld}");
+            $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+            
+            while($dRec = $dQuery->fetch()){
+                $price = cls::get('price_ListToCustomers')->getPriceByList($minPolicyId, $dRec->{$Detail->productFld}, $dRec->{$Detail->packagingFld}, $dRec->{$Detail->quantityFld}, $rec->{$mvc->valiorFld}, 1, 'no');
+              
+                if(!is_null($price->price)){
+                    $minPrice = $price->price * (1 - $price->discount);
+                    if(round($dRec->price, 5) < round($minPrice, 5)){
+                        
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        return false;
     }
 }

@@ -115,7 +115,7 @@ class plg_Settings extends core_Plugin
             $rec->{$field} = $value;
             $row->{$field} = $mvc->getVerbal($rec, $field);
             
-            if(isset($inherited->{$field})){
+            if(isset($inherited->{$field}) && isset($row->{$field})){
                 $row->{$field} = ht::createHint($row->{$field}, 'Наследено е от прототипа', 'notice', false);
             }
         }

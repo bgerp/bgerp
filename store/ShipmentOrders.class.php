@@ -739,4 +739,19 @@ class store_ShipmentOrders extends store_DocumentMaster
             }
         }
     }
+    
+    
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        
+        if(deals_Helper::hasProductsBellowMinPrice($mvc, $rec) && $rec->isReverse !== 'yes'){
+            core_Statuses::newStatus('Документа не може да се контира, защото има артикули с продажна цена под минималната|*!', 'error');
+            
+            return false;
+        }
+    }
 }
