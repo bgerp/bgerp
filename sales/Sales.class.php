@@ -1838,4 +1838,35 @@ class sales_Sales extends deals_DealMaster
             $query->where('#cartId IS NOT NULL');
         }
     }
+    
+    
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $minPolicyId = sales_Setup::get('MIN_PRICE_POLICY');
+        if($minPolicyId){
+            
+            $rec = $mvc->fetchRec($id);
+            $dQuery = sales_SalesDetails::getQuery();
+            $dQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+            $dQuery->where("#saleId = {$rec->id}");
+            while($dRec = $dQuery->fetch()){
+                $price = cls::get('price_ListToCustomers')->getPriceByList($minPolicyId, $dRec->productId, $dRec->packagingId, $dRec->quantity, $rec->valior, 1, 'no');
+                
+                if(!is_null($price->price)){
+                    $minPrice = $price->price * (1 - $price->discount);
+                    if(round($dRec->price, 5) < round($minPrice, 5)){
+                        
+                        $rec->contoActions = '';
+                        $mvc->save_($rec, 'contoActions');
+                        
+                        core_Statuses::newStatus('Продажбата не може да се контира, защото има артикули с продажна цена под минималната|*!', 'error');
+                        return false;
+                    }
+                }
+            }
+        }
+    }
 }
