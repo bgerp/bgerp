@@ -17,6 +17,13 @@
  */
 abstract class cat_ProductDriver extends core_BaseClass
 {
+
+    /**
+     * Обект с информация за ембедъра
+     */
+    public $Embedder;
+
+
     /**
      * Кой може да избира драйвъра
      */
