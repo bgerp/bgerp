@@ -2050,8 +2050,11 @@ abstract class deals_Helper
     {
         $obj = null;
         
-        $warningType = sales_Setup::get('MIN_PRICE_POLICY') ? 'error' : 'warning';
-        $listId = isset($listId) ? $listId : sales_Setup::get('MIN_PRICE_POLICY');
+        $warningType = 'warning';
+        if($minListId = sales_Setup::get('MIN_PRICE_POLICY')){
+            $listId = $minListId;
+            $warningType = 'error';
+        }
         
         $price = $price * (1 - $discount);
         $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $listId);
