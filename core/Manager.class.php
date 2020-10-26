@@ -59,13 +59,25 @@ class core_Manager extends core_Mvc
      */
     public static $logKeepDays = 7;
     
+
+    /**
+     * Ке за правата на достъп до обектите
+     */
+    private static $cacheRights = array();
+
+
+    /**
+     * Продължителност на кеширане на правата за достъп до обекти извън хита
+     */
+    public $cacheRightsDuration = 120;
     
+
     /**
      * Кой линк от главното меню на страницата да бъде засветен?
      */
     public $menuPage = false;
     
-    
+
     /**
      * Кой таб-контрол е зареден?
      */
@@ -967,17 +979,28 @@ class core_Manager extends core_Mvc
      */
     public static function haveRightFor($action, $rec = null, $userId = null)
     {
-        static $rights = array();
-
+        static $expiration;
+ 
         $className = get_called_class();
+        $self = cls::get($className);
+
         $id = is_object($rec) ? $rec->id : $rec;
         // Ако нямаме зададен потребите - приемаме, че въпроса се отнася за текущия
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
         }
-        $key = "{$action}|{$className}|{$id}|{$userId}";
-        if (!isset($rights[$key])) {
-            $self = cls::get($className);
+
+        $duration = (int) $self->cacheRightsDuration;
+        $expiration = time() + $duration;
+
+        if ($duration > 0 && $userId > 0 && !isset(self::$cacheRights[$userId])) {
+            self::$cacheRights[$userId] = core_Cache::get('RightsForObject', $userId);
+        }
+
+        $key = crc32("{$className}|{$action}") . "|{$id}";
+ 
+        if (!isset(self::$cacheRights[$userId][$key]) || !isset($id)) {
+            
             
             // Ако вместо $rec е зададено $id - зареждаме $rec
             if (!is_object($rec) && $rec > 0) {
@@ -985,11 +1008,59 @@ class core_Manager extends core_Mvc
             }
             
             $requiredRoles = $self->getRequiredRoles(strtolower($action), $rec, $userId);
-        
-            $rights[$key] = Users::haveRole($requiredRoles, $userId);
+
+            $res = Users::haveRole($requiredRoles, $userId);
+
+            if (!isset($id)) {
+                return $res;
+            }
+            
+            self::$cacheRights[$userId][$key] = $res ? $expiration : 0 - $expiration;
         }
 
-        return $rights[$key];
+        return self::$cacheRights[$userId][$key] > 0;
+    }
+
+
+    /**
+     * Изпълнява се на излизане от хира
+     *
+     * @param acc_Items $mvc
+     */
+    public static function on_Shutdown($mvc)
+    {
+        $time = time();
+        if (count(self::$cacheRights)) {
+            foreach (self::$cacheRights as $userId => $rights) {
+                if ($userId < 1) {
+                    continue;
+                }
+                $exRights = core_Cache::get('RightsForObject', $userId);
+                if (!is_array($exRights)) {
+                    $exRights = array();
+                }
+                if (is_array($rights)) {
+                    foreach ($rights as $key => $d) {
+                        if (isset($exRights) && abs($exRights[$key]) >= abs($d)) {
+                            continue;
+                        }
+                        if (abs($d) < $time) {
+                            continue;
+                        }
+                        $exRights[$key] = $d;
+                    }
+                }
+                foreach ($exRights as $key => $d) {
+                    if (abs($d) <= $time) {
+                        unset($exRights[$key]);
+                    }
+                }
+                if (count($exRights)) {
+                    core_Cache::set('RightsForObject', $userId, $exRights, 120);
+                }
+            }
+        }
+        self::$cacheRights = array();
     }
     
     

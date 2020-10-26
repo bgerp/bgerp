@@ -72,22 +72,22 @@ class thumb_M extends core_Mvc
     /**
      * Изпълнява се на затваряне
      */
-    public function on_Shutdown()
+    public static function on_Shutdown($mvc)
     {
-        if (isset($this->thumb)) {
-            $this->thumb->getUrl('forced');
+        if (isset($mvc->thumb)) {
+            $mvc->thumb->getUrl('forced');
         }
         
-        if (countR($this->forOptimization)) {
+        if (countR($mvc->forOptimization)) {
             $optmizators = arr::make(thumb_Setup::get('OPTIMIZATORS'), true);
             
-            foreach ($this->forOptimization as $path => $type) {
+            foreach ($mvc->forOptimization as $path => $type) {
                 foreach ($optmizators as $o) {
                     list($program, $t) = explode('/', $o);
                     $program = trim($program);
                     $t = trim($t);
                     if ($t == $type) {
-                        $this->execCmd($program, $path);
+                        $mvc->execCmd($program, $path);
                     }
                 }
             }
@@ -110,7 +110,6 @@ class thumb_M extends core_Mvc
         static $hashArr = array();
         $cmdHash = md5($cmd);
         if ($hashArr[$cmdHash]) {
-            
             return ;
         }
         $hashArr[$cmdHash] = $cmd;
