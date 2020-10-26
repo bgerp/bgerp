@@ -1468,35 +1468,38 @@ class core_Form extends core_FieldSet
     /**
      * @todo Чака за документация...
      */
-    public function setReadOnly($name, $value = null)
+    public function setReadOnly($names, $value = null)
     {
-        $field = $this->fields[$name];
+        $fArr = arr::make($names);
         
-        if (!isset($value)) {
-//             if (!isset($this->rec->{$name})) {
-            if (!property_exists($this->rec, $name)) {
-                $value = Request::get($name);
-            } else {
-                $value = $this->rec->{$name};
+        foreach($fArr as $name) {
+            expect($field = $this->fields[$name], $name);
+            
+            if (!isset($value)) {
+                if (!property_exists($this->rec, $name)) {
+                    $value = Request::get($name);
+                } else {
+                    $value = $this->rec->{$name};
+                }
+                $value = empty($value) ? '' : $value;
             }
-            $value = empty($value) ? '' : $value;
+            
+            unset($field->type->params['allowEmpty']);
+            
+            Mode::push('text', 'plain');
+            if (isset($field->type->options[$value])) {
+                $verbal = $field->type->options[$value];
+            } else {
+                $verbal = $field->type->toVerbal($value);
+            }
+            Mode::pop();
+            
+            $this->setOptions($name, array(
+                "{$value}" => $verbal
+            ));
+            
+            $field->type->params['isReadOnly'] = true;
         }
-        
-        unset($field->type->params['allowEmpty']);
-        
-        Mode::push('text', 'plain');
-        if (isset($field->type->options[$value])) {
-            $verbal = $field->type->options[$value];
-        } else {
-            $verbal = $field->type->toVerbal($value);
-        }
-        Mode::pop();
-        
-        $this->setOptions($name, array(
-            "{$value}" => $verbal
-        ));
-        
-        $field->type->params['isReadOnly'] = true;
     }
     
     
