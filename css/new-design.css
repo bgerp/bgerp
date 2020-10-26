@@ -1028,6 +1028,9 @@ a.linkWithIcon {
   line-height: 120%;
   display: inline-block; }
 
+.listTable.smallerText .small .linkWithIcon {
+  height: auto !important; }
+
 .portal-filter .button,
 .portal-filter .button:focus {
   border: none !important;
