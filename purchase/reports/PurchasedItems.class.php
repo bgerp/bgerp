@@ -251,6 +251,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         //Бързи продажби
         $fastPurchasesDetQuery = purchase_PurchasesDetails::getQuery();
         
+        $fastPurchasesDetQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+        
         $fastPurchasesDetQuery->EXT('threadId', 'purchase_Purchases', 'externalName=threadId,externalKey=requestId');
         
         $fastPurchasesDetQuery-> in('threadId', $purchasesFastThreads);

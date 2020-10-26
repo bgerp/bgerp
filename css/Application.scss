@@ -204,7 +204,7 @@ tr.noHover td:hover {
 .wide #maincontent {
 	position: relative;
 	padding: 7px;
-	min-height: 600px;
+	min-height: 400px;
 }
 
 .narrow #maincontent {
@@ -7577,6 +7577,8 @@ body.narrow {
 .portalNews {
 	.portalLatestFoldes {
 		margin-top: 3px;
+		background-color: rgba(100,100,100,0.1);
+		padding: 3px;
 	}
 	.portalLatestThreads {
 		margin-left: 20px;
@@ -7587,7 +7589,7 @@ body.narrow {
 			display: inline-block;
 		}
 		&.state-opened a{
-			background-color: #bbffcc;
+			background-color: rgba(187, 255, 204, 0.6);
 		}
 	}
 	.tUnsighted {

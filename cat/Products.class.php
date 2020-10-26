@@ -3865,20 +3865,19 @@ class cat_Products extends embed_Manager
     
     
     /**
-     * Преди затваряне/отваряне на записа
+     * Ще има ли предупреждение при смяна на състоянието
      *
-     * @param core_Mvc $mvc      - мениджър
-     * @param stdClass $rec      - запис
-     * @param string   $newState - ново състояние
+     * @param stdClass $rec
+     * @param string   $newState
      *
-     * @return mixed
+     * @return string|null $warning
      */
-    protected static function on_BeforeChangeState(core_Mvc $mvc, &$rec, &$newState)
+    public function getChangeStateWarning_($rec, $newState)
     {
-        if ($newState == 'closed' && $mvc->isUsedInActiveDeal($rec)) {
-            core_Statuses::newStatus('Артикулът не може да бъде затворен, докато се използва в активни договори и/или задания', 'error');
+        if ($newState == 'closed' && $this->isUsedInActiveDeal($rec)) {
+            $warning = 'Артикулът се използва в активни договори и/или задания. Сигурни ли сте, че искате да го закриете|*?';
             
-            return false;
+            return $warning;
         }
     }
     

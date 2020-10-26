@@ -64,7 +64,6 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
      */
     public function canSelectDriver($userId = null)
     {
-        
         return true;
     }
     
@@ -108,7 +107,9 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                 
                 $resArr[$tRec->folderId][$tRec->id] = $tRec;
                 
-                if (!--$tCnt) break;
+                if (!--$tCnt) {
+                    break;
+                }
             }
             
             $data = new stdClass();
@@ -119,7 +120,6 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                 $docRowArr = array();
                 foreach ($tArr as $tId => $tRec) {
                     $tUnsighted = '';
-                    $cnt = 0;
                     
                     $cQuery = doc_Containers::getQuery();
                     $cQuery->where(array("#threadId = '[#1#]'", $tId));
@@ -154,8 +154,6 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                         $cQuery->orderBy('id', 'ASC');
                         $cQuery->where(array("#createdOn > '[#1#]'", $last));
                         $cQuery->where("#state != 'draft'");
-                        
-                        $cnt = $cQuery->count();
                         $cQuery->limit(1);
                     }
                     
@@ -179,21 +177,15 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                         if (!$title) {
                             $title = '[' . tr('Липсва заглавие') . ']';
                         }
-                        $title = str::limitLen($title, 50);
-                        $t = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted}'>" . ht::createLink($title, $doc->getSingleUrlArray(), null, array('ef_icon' => $doc->getIcon()));
-                        if (--$cnt > 0) {
-                            $t .=  ' + ' . tr('още') . ' ' .  $cnt;
-                        }
-                        $t .= "</div>";
                         
-                        $docRowArr[] = $t;
+                        $docRowArr[] = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted}'>" . ht::createLink(str::limitLen($title, 50), $doc->getSingleUrlArray(), null, array('ef_icon' => $doc->getIcon())) . '</div>';
                     } catch (core_exception_Expect $e) {
                         continue;
                     }
                 }
                 
                 if (!empty($docRowArr)) {
-                    $data->res->append("<div class='portalLatestFoldes'>" . doc_Folders::getLink($fId) . "</div>");
+                    $data->res->append("<div class='portalLatestFoldes'>" . doc_Folders::getLink($fId) . '</div>');
                     
                     foreach ($docRowArr as $dRow) {
                         $data->res->append($dRow);
@@ -218,7 +210,6 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
     public function render($data)
     {
         if (!$data->tpl) {
-            
             $data->tpl = new ET(tr('|*<div class="clearfix21 portal"> <div class="legend">|Най-новото|*</div><div class="portalNews"> [#LATEST#]</div></div>'));
             
             $data->tpl->replace($data->data->res, 'LATEST');
@@ -241,7 +232,6 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
      */
     public function getBlockTabName($dRec)
     {
-        
         return tr('Най-новото');
     }
     
@@ -249,7 +239,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
     /**
      * Името на стойността за кеша
      *
-     * @param integer $userId
+     * @param int $userId
      *
      * @return string
      */
@@ -267,7 +257,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
      * Помощна функция за вземане на ключа за кеша
      *
      * @param stdClass $dRec
-     * @param null|integer $userId
+     * @param null|int $userId
      *
      * @return string
      */

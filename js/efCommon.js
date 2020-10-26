@@ -1666,36 +1666,37 @@ function isTouchDevice() {
  * Задава минимална височина на контента във външната част
  */
 function setMinHeightExt() {
-
     var clientHeight = document.documentElement.clientHeight;
+
+    // ако сме със старата външна тема изчисляваме височината на съдържанието
     if ($('#cmsTop').length) {
-    	var padding = $('.background-holder').css('padding-top');
-    	var totalPadding = 2 * parseInt(padding);
+        var padding = parseInt($('.background-holder').css('padding-top'));
+        var totalPadding = (padding) ? 2 * padding + 2 : 0;
 
-        var ct = $('#cmsTop').height();
-        var cb = $('#cmsBottom').height();
-        var cm = $('#cmsMenu').height();
+        var ct = parseInt($('#cmsTop').outerHeight());
+        var cb = parseInt($('#cmsBottom').outerHeight());
+        var cm = parseInt($('#cmsMenu').outerHeight());
 
-        var add = 16;
         if ($('body').hasClass('wide')) {
-            add = 28;
+            var add = 16;
+        } else {
+            var add = 47 + parseInt($('.additionalFooter').outerHeight());
         }
 
         if ($('#maincontent').length) {
-            var h = (clientHeight - ct - cb - cm - add);
-            if(totalPadding) {
-            	h = h - totalPadding + 2;
+            var h = (clientHeight - ct - cb - cm - add - totalPadding);
+
+            if (getWindowWidth() > 600 && $('body').hasClass('narrow')) {
+                h -= 3;
             }
-            if($(window).width() > 600 && $('body').hasClass('narrow')){
-            	h -= 3;
-	        }
             if (h > 60) {
-            	$('#maincontent').css('minHeight', h);
+                $('#maincontent').css('minHeight', h);
             }
         }
-    } else if( $('.narrowCenter .headerImg').length){
-        if (getWindowWidth() < 1200 ) {
-            var elHeight = parseInt($('.narrowCenter .headerImg').height());
+    } else if ($('.narrowCenter .headerImg').length) {
+        // в новата тема при мобилен изчисляваме височината на съдържанието
+        if (getWindowWidth() < 1200) {
+            var elHeight = parseInt($('.narrowCenter .headerImg').outerHeight());
             $('.wide .narrowCenter').height(elHeight);
             $('.wide .fadein').height(elHeight);
         } else {
@@ -1703,7 +1704,7 @@ function setMinHeightExt() {
             $('.wide .fadein').height(220);
         }
     }
-    $(window).smartresize(function(){
+    $(window).smartresize(function () {
         setMinHeightExt();
     });
 }

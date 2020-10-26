@@ -184,29 +184,29 @@ class eshop_Groups extends core_Master
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
-        if($form->isSubmitted()){
+        if ($form->isSubmitted()) {
             $rec = $form->rec;
             
             // Дали в същото меню има група със същото име
-            if(eshop_Groups::fetchField(array("#menuId = {$rec->menuId} && #id != '{$rec->id}' && #name = '[#1#]' COLLATE {$mvc->db->dbCharset}_general_ci", $rec->name))){
+            if (eshop_Groups::fetchField(array("#menuId = {$rec->menuId} && #id != '{$rec->id}' && #name = '[#1#]' COLLATE {$mvc->db->dbCharset}_general_ci", $rec->name))) {
                 $form->setError('name', 'В същото основно меню, има група със същото име');
             }
             
             // Ако има споделени менюта
-            if(!empty($rec->sharedMenus)){
+            if (!empty($rec->sharedMenus)) {
                
                 // Проверка дали в някои от тях има група със същото име
                 $menuesWithSameGroup = array();
                 $arr = keylist::toArray($rec->sharedMenus);
-                foreach ($arr as $menuId){
-                    if(eshop_Groups::fetch(array("#menuId = {$menuId} && #id != '{$rec->id}' && #name = '[#1#]' COLLATE {$mvc->db->dbCharset}_general_ci", $rec->name))){
-                        $title = cms_Content::getVerbal($menuId, 'menu') . " (" . cms_Content::getVerbal($menuId, 'domainId') . ")";
+                foreach ($arr as $menuId) {
+                    if (eshop_Groups::fetch(array("#menuId = {$menuId} && #id != '{$rec->id}' && #name = '[#1#]' COLLATE {$mvc->db->dbCharset}_general_ci", $rec->name))) {
+                        $title = cms_Content::getVerbal($menuId, 'menu') . ' (' . cms_Content::getVerbal($menuId, 'domainId') . ')';
                         $menuesWithSameGroup[$menuId] = "<b>{$title}</b>";
                     }
                 }
                 
                 // Ако има група със същото име, сетва се грешка
-                if(countR($menuesWithSameGroup)){
+                if (countR($menuesWithSameGroup)) {
                     $menuStrings = implode(', ', $menuesWithSameGroup);
                     $errorMsg = "В следните менюта, има група със същото име|*: {$menuStrings}";
                     $form->setError('name,sharedMenus', $errorMsg);
@@ -229,7 +229,7 @@ class eshop_Groups extends core_Master
         // Добавяме бутон
         $domains = cms_Domains::getDomainOptions(false, core_Users::getCurrent());
         $form->FLD('domainId', 'key(mvc=cms_Domains,select=title)', 'caption=Домейн,silent,autoFilter');
-        if(countR($domains) == 1){
+        if (countR($domains) == 1) {
             $form->setField('domainId', 'input=hidden');
         } else {
             $form->setOptions('domainId', $domains);
@@ -431,7 +431,6 @@ class eshop_Groups extends core_Master
         $data->groupId = Request::get('id', 'int');
         
         if (!$data->groupId) {
-            
             return $this->act_ShowAll();
         }
         expect($groupRec = self::fetch($data->groupId));
@@ -945,7 +944,6 @@ class eshop_Groups extends core_Master
             $menuId = cms_Content::getDefaultMenuId('eshop_Groups');
         }
         if (!$menuId) {
-            
             return $res;
         }
         $query->where("#menuId = {$menuId}");
@@ -975,14 +973,13 @@ class eshop_Groups extends core_Master
         $cQuery->where("#domainId = {$domainId}");
         $cQuery->show('id');
         $menuIds = arr::extractValuesFromArray($cQuery->fetchAll(), 'id');
-        if(!countR($menuIds)){
-            
+        if (!countR($menuIds)) {
             return $res;
         }
         
         // Извличат се всички групи, които са към тези менюта или са споделени в тях
         $query = self::getQuery();
-        $query->in("menuId", $menuIds);
+        $query->in('menuId', $menuIds);
         $query->orLikeKeylist('sharedMenus', $menuIds);
         $query->show('id,name,saoLevel');
         
@@ -1036,14 +1033,15 @@ class eshop_Groups extends core_Master
      * Какво предупреждение да се показва на бутона за активиране/деактивиране
      *
      * @param stdClass $rec
+     * @param string   $newState
      *
      * @return string $msg
      */
-    public function getChangeStateWarning($rec)
+    public function getChangeStateWarning($rec, $newState)
     {
-        if(eshop_Products::fetchField("#groupId = {$rec->id} AND #state = 'active'")){
-            $msg = tr("Наистина ли желаете да деактивирате групата|*? |В нея има добавени артикули|*.");
-            
+        if ($newState == 'closed' && eshop_Products::fetchField("#groupId = {$rec->id} AND #state = 'active'")) {
+            $msg = tr('Наистина ли желаете да деактивирате групата|*? |В нея има добавени артикули|*.');
+
             return $msg;
         }
     }
@@ -1054,14 +1052,14 @@ class eshop_Groups extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if($action == 'delete' && isset($rec)){
-            if(eshop_Products::fetchField("#groupId = {$rec->id} OR LOCATE('|{$rec->id}|', #sharedInGroups)")){
+        if ($action == 'delete' && isset($rec)) {
+            if (eshop_Products::fetchField("#groupId = {$rec->id} OR LOCATE('|{$rec->id}|', #sharedInGroups)")) {
                 $requiredRoles = 'no_one';
             }
         }
         
-        if($action == 'changestate' && isset($rec)){
-            if($mvc->haveRightFor('delete', $rec)){
+        if ($action == 'changestate' && isset($rec)) {
+            if ($mvc->haveRightFor('delete', $rec)) {
                 $requiredRoles = 'no_one';
             }
         }

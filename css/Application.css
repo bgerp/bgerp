@@ -154,7 +154,7 @@ tr.noHover td:hover {
 .wide #maincontent {
   position: relative;
   padding: 7px;
-  min-height: 600px; }
+  min-height: 400px; }
 
 .narrow #maincontent {
   padding: 5px; }
@@ -6696,7 +6696,9 @@ only screen and (max-width: 320px) {
     background-color: #fad0d1 !important; }
 
   .portalNews .portalLatestFoldes {
-    margin-top: 3px; }
+    margin-top: 3px;
+    background-color: rgba(100, 100, 100, 0.1);
+    padding: 3px; }
   .portalNews .portalLatestThreads {
     margin-left: 20px;
     font-size: 0.95em;
@@ -6705,7 +6707,7 @@ only screen and (max-width: 320px) {
       padding: 2px;
       display: inline-block; }
     .portalNews .portalLatestThreads.state-opened a {
-      background-color: #bbffcc; }
+      background-color: rgba(187, 255, 204, 0.6); }
   .portalNews .tUnsighted {
     font-weight: bold; }
 

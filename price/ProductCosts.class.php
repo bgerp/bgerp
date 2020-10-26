@@ -31,13 +31,13 @@ class price_ProductCosts extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, price_Wrapper';
+    public $loadList = 'plg_RowTools2, price_Wrapper, plg_Sorting';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id=Пулт, productId, classId, price, valior, quantity, sourceId=Документ, updatedOn';
+    public $listFields = 'productId, classId, price, valior, quantity, sourceId=Документ, updatedOn';
     
     
     /**
@@ -49,13 +49,13 @@ class price_ProductCosts extends core_Manager
     /**
      * Кой може да редактира?
      */
-    public $canEdit = 'no_one';
+    public $canEdit = 'debug';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'no_one';
+    public $canDelete = 'debug';
     
     
     /**
@@ -69,15 +69,14 @@ class price_ProductCosts extends core_Manager
      */
     public function description()
     {
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,onlyPublic)', 'caption=Артикул,input=none');
-        $this->FLD('classId', 'class(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Алгоритъм,input=none');
-        $this->FLD('price', 'double', 'caption=Ед. цена,mandatory');
-        $this->FLD('accPrice', 'double', 'caption=Ед. сч. цена,input=none');
-        $this->FLD('quantity', 'double', 'caption=К-во,input=none');
-        $this->FLD('sourceClassId', 'class', 'caption=Документ->Клас,input=none');
-        $this->FLD('sourceId', 'varchar', 'caption=Документ->Ид,input=none');
-        $this->FLD('valior', 'date', 'caption=Вальор,input=none');
-        $this->FLD('updatedOn', 'datetime(format=smartTime)', 'caption=Обновено на,input=none');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,onlyPublic)', 'caption=Артикул,mandatory');
+        $this->FLD('classId', 'class(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Алгоритъм,mandatory');
+        $this->FLD('price', 'double', 'caption=Ед. цена,mandatory,mandatory');
+        $this->FLD('quantity', 'double', 'caption=К-во,input=none,mandatory');
+        $this->FLD('sourceClassId', 'class(allowEmpty)', 'caption=Документ->Клас');
+        $this->FLD('sourceId', 'varchar', 'caption=Документ->Ид');
+        $this->FLD('valior', 'date', 'caption=Вальор');
+        $this->FLD('updatedOn', 'datetime(format=smartTime)', 'caption=Обновено на');
         
         $this->setDbUnique('productId,classId');
     }
@@ -92,11 +91,11 @@ class price_ProductCosts extends core_Manager
         $row->price = price_Lists::roundPrice(price_ListRules::PRICE_LIST_COST, $rec->price, true);
         $row->ROW_ATTR = array('class' => 'state-active');
         
-        if(!empty($rec->sourceId)){
+        if (!empty($rec->sourceId)) {
             $Source = cls::get($rec->sourceClassId);
-            if(cls::haveInterface('doc_DocumentIntf', $Source)){
+            if (cls::haveInterface('doc_DocumentIntf', $Source)) {
                 $row->sourceId = cls::get($rec->sourceClassId)->getLink($rec->sourceId, 0);
-            } elseif($Source instanceof core_Master){
+            } elseif ($Source instanceof core_Master) {
                 $row->sourceId = cls::get($rec->sourceClassId)->getHyperlink($rec->sourceId, true);
             } else {
                 $row->sourceId = cls::get($rec->sourceClassId)->getRecTitle($rec->sourceId);
@@ -117,7 +116,7 @@ class price_ProductCosts extends core_Manager
         $datetime = dt::addSecs(-1 * 60 * 60);
         self::saveCalcedCosts($datetime);
         
-        return followRetUrl(null, "Преизчислени са данните за последния час");
+        return followRetUrl(null, 'Преизчислени са данните за последния час');
     }
     
     
@@ -134,9 +133,9 @@ class price_ProductCosts extends core_Manager
     
     /**
      * Кои стандартни артикули са засегнати  след посочената дата
-     * 
+     *
      * @param datetime $beforeDate
-     * 
+     *
      * @return array $res
      */
     public static function getAffectedProducts($beforeDate)
@@ -186,7 +185,7 @@ class price_ProductCosts extends core_Manager
         $jQuery2->groupBy('creditItem2');
         $itemsWithMovement += arr::extractValuesFromArray($jQuery->fetchAll(), 'creditItem2');
         
-        if(countR($itemsWithMovement)){
+        if (countR($itemsWithMovement)) {
             
             // + атикулите, чиито пера са участвали в дебитирането или кредитирането на склад
             $iQuery = acc_Items::getQuery();
@@ -198,7 +197,7 @@ class price_ProductCosts extends core_Manager
             $iQuery->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=objectId');
             $iQuery->where("#state = 'active' AND #classId= " . cat_Products::getClassId());
             $iQuery->where("#isPublic = 'yes' AND #canStore = 'yes' AND #productState = 'active' AND (#canBuy = 'yes' OR #canManifacture = 'yes' OR #canSell = 'yes')");
-            $iQuery->in("id", $itemsWithMovement);
+            $iQuery->in('id', $itemsWithMovement);
             $iQuery->show('id,objectId');
             $iQuery->notIn('objectId', $res);
             $res += arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
@@ -210,16 +209,16 @@ class price_ProductCosts extends core_Manager
     
     /**
      * Кои са засегнатите политики
-     * 
+     *
      * @param array $affectedProducts
-     * 
+     *
      * @return array $res
      */
     private static function getAffectedPolicies($affectedProducts)
     {
         $res = array();
       
-        if(countR($affectedProducts)){
+        if (countR($affectedProducts)) {
             $categoryClassId = cat_Categories::getClassId();
             $pQuery = cat_Products::getQuery();
             $pQuery->EXT('folderClassId', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
@@ -240,8 +239,8 @@ class price_ProductCosts extends core_Manager
             $uRecs = $uQuery->fetchAll();
            
             array_walk($uRecs, function ($a) use (&$res) {
-                foreach (array('sourceClass1', 'sourceClass2', 'sourceClass3') as $fld){
-                    if(!empty($a->{$fld})){
+                foreach (array('sourceClass1', 'sourceClass2', 'sourceClass3') as $fld) {
+                    if (!empty($a->{$fld})) {
                         $res[$a->{$fld}] = $a->{$fld};
                     }
                 }
@@ -256,7 +255,7 @@ class price_ProductCosts extends core_Manager
      * Обновяване на себестойностите по разписание
      */
     public static function saveCalcedCosts($datetime)
-    {   
+    {
         $self = cls::get(get_called_class());
        
         // Кои са засегнатите артикули
@@ -270,8 +269,7 @@ class price_ProductCosts extends core_Manager
         
         // Кои са засегнатите политики
         $policiesArr = static::getAffectedPolicies($affectedProducts);
-        if(!countR($affectedProducts) || !countR($policiesArr)){
-            
+        if (!countR($affectedProducts) || !countR($policiesArr)) {
             return;
         }
         
@@ -280,8 +278,8 @@ class price_ProductCosts extends core_Manager
        
         // Изчисляване на всяка от засегнатите политики, себестойностите на засегнатите пера
         $update = array();
-        foreach ($policiesArr as $policyId){
-            if(cls::load($policyId, true)){
+        foreach ($policiesArr as $policyId) {
+            if (cls::load($policyId, true)) {
                 $Policy = cls::get($policyId);
                 $calced = $Policy->calcCosts($affectedProducts);
                 $update = array_merge($update, $calced);
@@ -293,7 +291,9 @@ class price_ProductCosts extends core_Manager
         log_System::logDebug("CALC COSTS COUNT[{$count}] - calcTime = {$timer}");
         
         $now = dt::now();
-        array_walk($update, function (&$a) use($now){$a->updatedOn = $now;});
+        array_walk($update, function (&$a) use ($now) {
+            $a->updatedOn = $now;
+        });
         
         // Синхронизиране на новите записи със старите записи на засегнатите пера
         $exQuery = self::getQuery();
@@ -301,26 +301,27 @@ class price_ProductCosts extends core_Manager
         $exRecs = $exQuery->fetchAll();
         $res = arr::syncArrays($update, $exRecs, 'productId,classId', 'price,quantity,sourceClassId,sourceId,valior');
         
-        if(countR($res['insert'])){
+        if (countR($res['insert'])) {
             $self->saveArray($res['insert']);
         }
         
-        if(countR($res['update'])){
+        if (countR($res['update'])) {
             $self->saveArray($res['update'], 'id,price,quantity,sourceClassId,sourceId,updatedOn,valior');
         }
         
         // Изтриване на несрещнатите себестойностти
         if (countR($res['delete'])) {
-            $averageStoreClassId = price_interface_AverageCostPricePolicyImpl::getClassId();
+            $avgDeliveruPolicyId = price_interface_AverageCostPricePolicyImpl::getClassId();
+            $avgStorePolicyId = price_interface_AverageCostStorePricePolicyImpl::getClassId();
+            $skipDeleteArr = array($avgDeliveruPolicyId, $avgStorePolicyId);
             
             $query = self::getQuery();
             $query->in('id', $res['delete']);
-            $query->show('classId');
-            $arr = $query->fetchAll();
-            
-            foreach ($res['delete'] as $id) {
-                if($arr[$id]->classId == $averageStoreClassId) continue;
-                $self->delete($id);
+            $query->notIn('classId', $skipDeleteArr);
+            $query->show('id');
+           
+            while ($delRec = $query->fetch()) {
+                $self->delete($delRec->id);
             }
         }
     }
@@ -329,8 +330,8 @@ class price_ProductCosts extends core_Manager
     /**
      * Намира себестойността на артикула по вида
      *
-     * @param int    $productId - ид на артикула
-     * @param mixed $source     - източник
+     * @param int   $productId - ид на артикула
+     * @param mixed $source    - източник
      *
      * @return float $price     - намерената себестойност
      */
@@ -354,11 +355,11 @@ class price_ProductCosts extends core_Manager
         $data->listFilter->showFields = 'productId,classId';
         $data->listFilter->input();
         
-        if($filterRec = $data->listFilter->rec){
-            if(isset($filterRec->productId)){
+        if ($filterRec = $data->listFilter->rec) {
+            if (isset($filterRec->productId)) {
                 $data->query->where("#productId = {$filterRec->productId}");
             }
-            if(isset($filterRec->classId)){
+            if (isset($filterRec->classId)) {
                 $data->query->where("#classId = {$filterRec->classId}");
             }
         }
