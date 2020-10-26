@@ -2050,6 +2050,7 @@ abstract class deals_Helper
     {
         $obj = null;
         
+        $warningType = sales_Setup::get('MIN_PRICE_POLICY') ? 'error' : 'warning';
         $listId = isset($listId) ? $listId : sales_Setup::get('MIN_PRICE_POLICY');
         
         $price = $price * (1 - $discount);
@@ -2073,10 +2074,47 @@ abstract class deals_Helper
             if($diff > $toleranceDiff){
                 $obj = array();
                 $obj['hint'] = ($percent < 0) ? 'Крайната цена е над очакваната за клиента|*!' : 'Крайната цена е под очакваната за клиента|*!';
-                $obj['hintType'] = ($percent < 0) ? 'notice' : 'warning';
+                $obj['hintType'] = ($percent < 0) ? 'notice' : $warningType;
             }
         } 
         
         return $obj;
+    }
+    
+    
+    /**
+     * Има ли в документа артикули с продажба цена под минималната за клиента
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * 
+     * @return boolean
+     */
+    public static function hasProductsBellowMinPrice($mvc, $rec)
+    {
+        $minPolicyId = sales_Setup::get('MIN_PRICE_POLICY');
+        
+        if(isset($mvc->mainDetail) && isset($minPolicyId)){
+            $rec = $mvc->fetchRec($rec);
+            $Detail = cls::get($mvc->mainDetail);
+            
+            $dQuery = $Detail::getQuery();
+            $dQuery->EXT('isPublic', 'cat_Products', "externalName=isPublic,externalKey={$Detail->productFld}");
+            $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+            
+            while($dRec = $dQuery->fetch()){
+                $price = cls::get('price_ListToCustomers')->getPriceByList($minPolicyId, $dRec->{$Detail->productFld}, $dRec->{$Detail->packagingFld}, $dRec->{$Detail->quantityFld}, $rec->{$mvc->valiorFld}, 1, 'no');
+              
+                if(!is_null($price->price)){
+                    $minPrice = $price->price * (1 - $price->discount);
+                    if(round($dRec->price, 5) < round($minPrice, 5)){
+                        
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        return false;
     }
 }
