@@ -196,6 +196,7 @@ class plg_RowTools2 extends core_Plugin
         }
         
         $mustShow = false;
+        $hasTplPlg = $mvc->hasPlugin('doc_plg_TplManager') || $mvc->hasPlugin('doc_plg_TplManagerDetail');
         
         foreach ($data->rows as $id => &$row) {
             $rec = $data->recs[$id];
@@ -211,7 +212,16 @@ class plg_RowTools2 extends core_Plugin
                     $tools->removeBtn("single{$rec->id}");
                 }
                 
+                if(isset($hasTplPlg) && !empty($rec->tplLang)){
+                    core_Lg::pop($rec->tplLang);
+                }
+                
                 $tools = $tools->renderHtml($mvc->rowToolsMinLinksToShow);
+                
+                if(isset($hasTplPlg) && !empty($rec->tplLang)){
+                    core_Lg::push($rec->tplLang);
+                }
+                
                 if ($tools) {
                     $mustShow = true;
                 }
