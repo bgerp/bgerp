@@ -2050,6 +2050,8 @@ abstract class deals_Helper
     {
         $obj = null;
         
+        $listId = isset($listId) ? $listId : sales_Setup::get('MIN_PRICE_POLICY');
+        
         $price = $price * (1 - $discount);
         $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $listId);
         
@@ -2058,24 +2060,19 @@ abstract class deals_Helper
             $toleranceDiff = price_Lists::fetchField($foundPrice->listId, 'discountComparedShowAbove');
         }
         $toleranceDiff = !empty($toleranceDiff) ? $toleranceDiff * 100 : 1;
-        
         $foundPrice = $foundPrice->price * (1 - $foundPrice->discount);
         
         $diff = abs(round($price - $foundPrice, 5));
         $price1Round = round($price, 5);
         $price2Round = round($foundPrice, 5);
        
-        
-        
         if($price2Round){
             $percent = core_Math::diffInPercent($price1Round, $price2Round);
             $diff = abs(core_Math::diffInPercent($price1Round, $price2Round));
             
-            
-            
             if($diff > $toleranceDiff){
                 $obj = array();
-                $obj['hint'] = ($percent < 0) ? 'Крайната цена е над очакваната за клиента' : 'Крайната цена е под очакваната за клиента';
+                $obj['hint'] = ($percent < 0) ? 'Крайната цена е над очакваната за клиента|*!' : 'Крайната цена е под очакваната за клиента|*!';
                 $obj['hintType'] = ($percent < 0) ? 'notice' : 'warning';
             }
         } 
