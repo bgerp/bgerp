@@ -83,14 +83,35 @@ class school_Venues extends core_Master
      */
     public function description()
     {
+        $this->FLD('type', 'enum(real=Физическа,virtual=Вируална)', 'caption=Тип,refreshForm,silent');
         $this->FLD('name', 'varchar(128)', 'caption=Наименование,mandatory,smartCenter');
         $this->FLD('isFor', 'keylist(mvc=school_Formats,select=name,select2MinItems=20)', 'caption=Използване за,smartCenter');
         $this->FLD('capacity', 'int(min=1)', 'caption=Капацитет,smartCenter,unit=души');
+        $this->FLD('place', 'varchar(64)', 'caption=Място,smartCenter');
+        $this->FLD('url', 'varchar(128)', 'caption=URL,smartCenter,input=none');
         $this->FLD('address', 'varchar(128)', 'caption=Адрес,smartCenter');
         $this->FLD('gpsCoords', 'location_Type(geolocation=mobile)', 'caption=Координати');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Изглед,smartCenter');
 
         $this->setDbUnique('name');
+    }
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = $data->form;
+        $form->input(null, 'silent');
+        $rec  = $form->rec;
+ 
+        if($rec->type == 'virtual') {
+            $form->setField('place,address,gpsCoords,photo', 'input=none');
+            $form->setField('url', 'input');
+        }
     }
     
 }

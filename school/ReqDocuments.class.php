@@ -78,6 +78,7 @@ class school_ReqDocuments extends core_Manager
     public function description()
     {
         $this->FLD('name', 'varchar(128)', 'caption=Наименование,mandatory');
+        $this->FLD('hint', 'text(256)', 'caption=Пояснение');
         $this->FLD('ext', 'set(pdf,rtf,doc,xls,tiff,jpg,jpeg,png,bmp)', 'caption=Разширения');
 
         $this->setDbUnique('name');

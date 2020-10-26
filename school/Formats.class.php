@@ -43,6 +43,14 @@ class school_Formats extends core_Master
     
     
     /**
+     * Кой е основният изглед, към който се редиректва?
+     *
+     * @var string
+     */
+    public $mainView = 'List';
+
+
+    /**
      * Кой има право да чете?
      */
     public $canRead = 'ceo, edu';
@@ -83,6 +91,7 @@ class school_Formats extends core_Master
      */
     public function description()
     {
+        $this->FLD('type', 'enum(training=Обучение,exam=Изпит)', 'caption=Тип');
         $this->FLD('name', 'varchar(128)', 'caption=Наименование,mandatory');
     }
     

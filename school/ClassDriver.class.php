@@ -39,10 +39,19 @@ class school_ClassDriver extends cat_GeneralProductDriver
     {
         parent::addFields($fieldset);
         $fieldset->FLD('courseId', 'key(mvc=school_Courses,select=title)', 'caption=Курс||Course,autohide,after=name');
-        $fieldset->FLD('start', 'combodate(minYear=2020)', 'caption=Начало,autohide,after=courseId');
-        $fieldset->FLD('end', 'combodate(minYear=2020)', 'caption=Край,autohide,after=start');
+        $fieldset->FLD('courseType', 'enum(fullTime=Редовно,partTime=Вечерно,extramural=Задочно,online=Дистанционно)', 'caption=Форма,autohide,after=courseId');
+        $fieldset->FLD('coursePlace', 'varchar(32)', 'caption=Място,autohide,after=type');
+        $fieldset->FLD('courseStart', 'combodate(minYear=2020)', 'caption=Начало,autohide,after=place');
+        $fieldset->FLD('courseEnd', 'combodate(minYear=2020)', 'caption=Край,autohide,after=start');
+        $fieldset->FLD('courseReqDocuments', 'keylist(mvc=school_ReqDocuments,select=name)', 'caption=Документи за записване->Изискуеми');
+        $fieldset->FLD('courseOptDocuments', 'keylist(mvc=school_ReqDocuments,select=name)', 'caption=Документи за записване->Опционални');
 
-        $fieldset->FLD('classId', 'key(mvc=school_Classes,select=id)', 'caption=Клас,input=hidden');
+  //      $fieldset->FLD('courseOptDocuments', 'keylist(mvc=school_ReqDocuments,select=name)', 'caption=Документи за записване->Опционални');
+
+
+
+        $fieldset->FLD('courseClassId', 'key(mvc=school_Classes,select=id)', 'caption=Клас,input=hidden');
+ 
     }
     
     
@@ -55,30 +64,36 @@ class school_ClassDriver extends cat_GeneralProductDriver
      */
     public static function on_AfterPrepareEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$data)
     {
-        if ($data->form->getField('meta', false)) {
-            $data->form->setField('meta', 'input=hidden');
+        $form = $data->form;
+
+        if ($form->getField('meta', false)) {
+            $form->setField('meta', 'input=hidden');
         }
         
-        if ($data->form->getField('measureId', false)) {
-            $data->form->setField('measureId', 'input=hidden');
+        if ($form->getField('measureId', false)) {
+            $form->setField('measureId', 'input=hidden');
         }
         
-        if ($data->form->getField('info', false)) {
-            $data->form->setField('info', 'input=hidden');
+        if ($form->getField('info', false)) {
+            $form->setField('info', 'input=hidden');
         }
         
-        if ($data->form->getField('packQuantity', false)) {
-            $data->form->setField('packQuantity', 'input=hidden');
+        if ($form->getField('packQuantity', false)) {
+            $form->setField('packQuantity', 'input=hidden');
         }
-        if ($data->form->getField('nameEn', false)) {
-            $data->form->setField('nameEn', 'input=hidden');
+        if ($form->getField('nameEn', false)) {
+            $form->setField('nameEn', 'input=hidden');
         }
 
-        if ($data->form->getField('notes', false)) {
-            $data->form->setField('notes', 'input=hidden');
+        if ($form->getField('notes', false)) {
+            $form->setField('notes', 'input=hidden');
         }
-        if ($data->form->getField('infoInt', false)) {
-            $data->form->setField('infoInt', 'input=hidden');
+        if ($form->getField('infoInt', false)) {
+            $form->setField('infoInt', 'input=hidden');
+        }
+
+        if(is_a($Embedder, 'marketing_Inquiries2')) {
+            $form->setReadOnly('courseId,courseType,courseStart,courseEnd,coursePlace');
         }
     }
 
@@ -150,8 +165,8 @@ class school_ClassDriver extends cat_GeneralProductDriver
         $cRec->productId = $rec->id;
         school_Classes::save($cRec);
         if(!is_numeric($rec->classId)) {
-            $rec->classId = $cRec->id;
-            cat_Products::save($rec, 'classId'); // bp(cat_Products::fetch($rec->id));
+            $rec->courseClassId = $cRec->id;
+            cat_Products::save($rec, 'courseClassId'); // bp(cat_Products::fetch($rec->id));
         }
     }
     
