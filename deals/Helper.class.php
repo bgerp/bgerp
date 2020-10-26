@@ -2097,7 +2097,7 @@ abstract class deals_Helper
     {
         $minPolicyId = sales_Setup::get('MIN_PRICE_POLICY');
         
-        if(isset($mvc->mainDetail) && isset($minPolicyId)){
+        if(isset($mvc->mainDetail) && !empty($minPolicyId)){
             $rec = $mvc->fetchRec($rec);
             $Detail = cls::get($mvc->mainDetail);
             
