@@ -1035,7 +1035,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             
             if ($rec->deliveryLocationId) {
-                $row->deliveryLocationId = crm_Locations::getHyperlink($rec->deliveryLocationId);
+                $row->deliveryLocationId = crm_Locations::getHyperlink($rec->deliveryLocationId, true);
             }
             
             if ($rec->deliveryTime) {
@@ -1095,7 +1095,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             
             if (isset($rec->caseId)) {
-                $row->caseId = cash_Cases::getHyperlink($rec->caseId);
+                $row->caseId = cash_Cases::getHyperlink($rec->caseId, true);
             }
             
             core_Lg::push($rec->tplLang);
