@@ -33,12 +33,6 @@
                         <!--ET_BEGIN uicId-->
                         <div><small>Tax ID:</small> <span class="bigData" style="padding-left:5px;">[#uicId#]</span></div>
                         <!--ET_END uicId-->
-                        <!--ET_BEGIN shipmentStoreId-->
-                        <hr style="margin: 3px 0 1px;">
-                        <div>
-                            To store: [#shipmentStoreId#]
-                        </div>
-                        <!--ET_END shipmentStoreId-->
                     </td>
                 </tr>
                 <tr>
@@ -57,12 +51,6 @@
                         <!--ET_BEGIN contragentUicId-->
                         <div><small>[#contragentUicCaption#]:</small> <span class="bigData" style="padding-left:5px;"> [#contragentUicId#]</span></div>
                         <!--ET_END contragentUicId-->
-                        <!--ET_BEGIN deliveryLocationId-->
-                    <hr style="margin: 3px 0 1px;">
-                    <div>
-                        From location: [#deliveryLocationId#]
-                    </div>
-                    <!--ET_END deliveryLocationId-->
                     </td>
                 </tr>
             </tbody>
@@ -101,11 +89,6 @@
                             <span class='quiet'>Bank account: </span>[#bankAccountId#]
                         </div>
                         <!--ET_END bankAccountId-->
-                        <!--ET_BEGIN caseId-->
-                        <div class='cellRow'>
-                            <span class='quiet'>Case: </span>[#caseId#]
-                        </div>
-                        <!--ET_END caseId-->
                     <!--ET_BEGIN purchaseConditions-->
                     [#purchaseConditions#]
                         <div>

@@ -42,12 +42,6 @@
                 <!--ET_BEGIN uicId-->
                 <div><small>ЕИК:</small> <span class="bigData" style="padding-left:5px;">[#uicId#]</span></div>
                 <!--ET_END uicId-->
-                <!--ET_BEGIN shipmentStoreId-->
-                <hr style="margin: 3px 0 1px;">
-                <div>
-                    |До склад|*: [#shipmentStoreId#]
-                </div>
-                <!--ET_END shipmentStoreId-->
             </td>
             <td class="cell">
                 <b>[#contragentName#]</b>
@@ -61,12 +55,6 @@
                 <!--ET_BEGIN contragentUicId-->
                 <div><small>[#contragentUicCaption#]:</small> <span class="bigData" style="padding-left:5px;"> [#contragentUicId#]</span></div>
                 <!--ET_END contragentUicId-->
-                <!--ET_BEGIN deliveryLocationId-->
-                <hr style="margin: 3px 0 1px;">
-                <div>
-                    |От обект|*: [#deliveryLocationId#]
-                </div>
-                <!--ET_END deliveryLocationId-->
             </td>
         </tr>
         <tr>
