@@ -19,7 +19,11 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"><b>|Получател|*</b></td>
+                    <td class="cell custom-header-bg"><b>|Получател|*</b>
+                        <!--ET_BEGIN isPaid-->
+                        <div class='stamp fright'>[#isPaid#]</div>
+                        <!--ET_END isPaid-->
+                    </td>
                 </tr>
                 <tr>
                     <td>
@@ -36,7 +40,10 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"><b>|Доставчик|*</b></td>
+                    <td class="cell custom-header-bg"><b>|Доставчик|*</b>
+                        <!--ET_BEGIN isDelivered-->
+                        <div class='stamp fright'>[#isDelivered#]</div>
+                        <!--ET_END isDelivered--></td>
                 </tr>
                 <tr>
                     <td>
@@ -125,9 +132,6 @@
                         <li>|Общи условия по покупка|*: [#commonCondition#]</li>
                         <!--ET_END commonCondition-->
                     </ol>
-                    <!--ET_BEGIN isDelivered-->
-                    <div class='stamp'>[#isDelivered#]</div>
-                    <!--ET_END isDelivered-->
                 <!--ET_END conditions-->
                 <hr>
                 [#/deals/tpl/DocumentPiceInfo.shtml#]
