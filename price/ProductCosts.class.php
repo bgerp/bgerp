@@ -274,7 +274,6 @@ class price_ProductCosts extends core_Manager
         }
         
         core_App::setTimeLimit($count * 0.6, 60);
-        core_Debug::startTimer('calcCosts');
        
         // Изчисляване на всяка от засегнатите политики, себестойностите на засегнатите пера
         $update = array();
@@ -286,10 +285,6 @@ class price_ProductCosts extends core_Manager
             }
         }
        
-        core_Debug::stopTimer('calcCosts');
-        $timer = round(core_Debug::$timers['calcCosts']->workingTime, 2);
-        log_System::logDebug("CALC COSTS COUNT[{$count}] - calcTime = {$timer}");
-        
         $now = dt::now();
         array_walk($update, function (&$a) use ($now) {
             $a->updatedOn = $now;
