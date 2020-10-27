@@ -167,7 +167,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
             $jQuery->EXT('valior', 'acc_Journal', 'externalKey=journalId');
             $jQuery->XPR('sumDebitQuantity', 'double', 'SUM(#debitQuantity)');
             $jQuery->XPR('sumDebitAmount', 'double', 'SUM(#amount)');
-            $jQuery->where("#debitItem2 = {$itemId} AND #sumDebitQuantity > 0");
+            $jQuery->where("#debitItem2 = {$itemId} AND #sumDebitQuantity >= 0");
             $jQuery->in('debitItem1', $storeItemIds);
             $jQuery->limit(1);
             $jQuery->show('debitItem1,debitItem2,amount,debitQuantity,valior,journalId,sumDebitQuantity,sumDebitAmount');
