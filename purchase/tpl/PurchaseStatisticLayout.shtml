@@ -42,9 +42,9 @@
                   <!--ET_BEGIN dealerId-->
                   <span style='font-weight:normal'>|Търговец|*</span>: [#dealerId#]<br>
                   <!--ET_END dealerId-->
-                  <!--ET_BEGIN shipmentStoreIdTop-->
-                  <span style='font-weight:normal'>|До склад|*</span>: [#shipmentStoreIdTop#]<br>
-                  <!--ET_END shipmentStoreIdTop-->
+                  <!--ET_BEGIN shipmentStoreId-->
+                  <span style='font-weight:normal'>|До склад|*</span>: [#shipmentStoreId#]<br>
+                  <!--ET_END shipmentStoreId-->
                   <!--ET_BEGIN deliveryLocationIdTop-->
                   <span style='font-weight:normal'>|От обект|*</span>: [#deliveryLocationIdTop#]<br>
                   <!--ET_END deliveryLocationIdTop-->
