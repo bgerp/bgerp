@@ -178,7 +178,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
            
             if (is_object($jRec)) {
                 $jRec->debitQuantity = $jRec->sumDebitQuantity;
-                $jRec->sumDebitAmount = $jRec->sumDebitAmount;
+                $jRec->amount = $jRec->sumDebitAmount;
                 unset($jRec->sumDebitQuantity);
                 unset($jRec->sumDebitAmount);
                 
