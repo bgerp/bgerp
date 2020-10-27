@@ -36,12 +36,16 @@
                     <div class='address-block'>
                         [#MyAddress#]
                     </div>
+                    <!--ET_BEGIN vatInfo-->
+                    [#vatInfo#]
+                    <hr style="margin: 3px 0 1px;">
                     <!--ET_BEGIN MyCompanyVatNo-->
-                    <div><small>VAT ID:</small> <span class="bigData" style="padding-left:5px;">[#MyCompanyVatNo#]</span></div>
+                    <div><small>VAT ID:</small> <span class="bigData notBold" style="padding-left:5px;">[#MyCompanyVatNo#]</span></div>
                     <!--ET_END MyCompanyVatNo-->
                     <!--ET_BEGIN uicId-->
-                    <div><small>Tax ID:</small> <span class="bigData" style="padding-left:5px;">[#uicId#]</span></div>
+                    <div><small>Tax ID:</small> <span class="bigData notBold" style="padding-left:5px;">[#uicId#]</span></div>
                     <!--ET_END uicId-->
+                    <!--ET_END vatInfo-->
                 </td>
                 <td class="cell">
                     <b>[#contragentName#]</b>
@@ -49,12 +53,16 @@
                         [#contragentCountryId#]
                         <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
                     </div>
+                    <!--ET_BEGIN contragentVatInfo-->
+                    [#contragentVatInfo#]
+                    <hr style="margin: 3px 0 1px;">
                     <!--ET_BEGIN vatNo-->
-                    <div><small>VAT ID:</small> <span class="bigData" style="padding-left:5px;">[#vatNo#]</span></div>
+                    <div><small>VAT ID:</small> <span class="bigData notBold" style="padding-left:5px;">[#vatNo#]</span></div>
                     <!--ET_END vatNo-->
                     <!--ET_BEGIN contragentUicId-->
-                    <div><small>[#contragentUicCaption#]:</small> <span class="bigData" style="padding-left:5px;"> [#contragentUicId#]</span></div>
+                    <div><small>[#contragentUicCaption#]:</small> <span class="bigData notBold" style="padding-left:5px;"> [#contragentUicId#]</span></div>
                     <!--ET_END contragentUicId-->
+                    <!--ET_END contragentVatInfo-->
                 </td>
             </tr>
         </tbody>
