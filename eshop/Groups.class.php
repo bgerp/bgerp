@@ -405,15 +405,16 @@ class eshop_Groups extends core_Master
      */
     private static function mustShowSideNavigation()
     {
-        $conf = core_Packs::getConfig('eshop');
-        
         $menuId = Mode::get('cMenuId');
         
         if (!$menuId) {
             $menuId = cms_Content::getDefaultMenuId('eshop_Groups');
         }
         
-        return self::count("#state = 'active' AND #menuId = '${menuId}'") >= $conf->ESHOP_MIN_GROUPS_FOR_NAVIGATION;
+        $settings = cms_Domains::getSettings();
+        $showNavigation = ($settings->showNavigation == 'yes');
+       
+        return $showNavigation;
     }
     
     
