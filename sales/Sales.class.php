@@ -1160,7 +1160,7 @@ class sales_Sales extends deals_DealMaster
         if (core_Packs::isInstalled('eshop') && isset($fields['-single'])) {
             if ($cartRec = eshop_Carts::fetch("#saleId = {$rec->id}", 'id,domainId,personNames,tel,email')) {
                 $cartRow = eshop_Carts::recToVerbal($cartRec, 'domainId,personNames,tel,email');
-                $row->cartId = eshop_Carts::getHyperlink($cartRec->id, true);
+                $row->cartId = ht::createLink("№{$cartRec->id}", eshop_Carts::getSingleUrlArray($cartRec->id), false, 'ef_icon=img/16/trolley.png');
                 $row->cartDomainId = $cartRow->domainId;
                 $row->cartPersonnames = $cartRow->personNames;
                 $row->cartTel = $cartRow->tel;
