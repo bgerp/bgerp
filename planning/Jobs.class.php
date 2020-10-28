@@ -758,7 +758,7 @@ class planning_Jobs extends core_Master
         }
         
         if (isset($fields['-list'])) {
-            $row->productId = cat_Products::getHyperlink($rec->productId, true);
+            $row->productId = ($fields['__isDetail']) ? cat_Products::getLink($rec->productId, 0) : cat_Products::getHyperlink($rec->productId, true);
             
             if ($rec->quantityNotStored > 0) {
                 if (planning_DirectProductionNote::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
@@ -772,7 +772,8 @@ class planning_Jobs extends core_Master
         }
         
         if (isset($rec->saleId)) {
-            $row->saleId = sales_Sales::getlink($rec->saleId);
+            
+            $row->saleId = ($fields['__isDetail']) ? sales_Sales::getLink($rec->saleId, 0) : sales_Sales::getLink($rec->saleId);
             $saleRec = sales_Sales::fetch($rec->saleId, 'folderId,deliveryAdress,state');
             $row->saleFolderId = doc_Folders::recToVerbal(doc_Folders::fetch($saleRec->folderId))->title;
             if (!empty($saleRec->deliveryAdress)) {
