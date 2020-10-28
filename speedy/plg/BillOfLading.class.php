@@ -306,7 +306,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         $form->FLD('returnShipmentParcelCount', 'int(min=0)', 'caption=Заявка за обратна пратка->Брой пакети,autohide');
         $form->FLD('returnShipmentAmountInsurance', 'double(min=0)', 'caption=Заявка за обратна пратка->Обявена стойност,autohide,unit=BGN');
         $form->FLD('returnShipmentIsFragile', 'enum(no=Не,yes=Да)', 'caption=Заявка за обратна пратка->Чупливост,autohide,maxRadio=2');
-        $form->FLD('pdfPrinterType', 'enum(10=А4 принтер,20=Етикетен принтер)', 'caption=Печат на PDF->Принтер,autohide');
+        $form->FLD('pdfPrinterType', 'enum(10=BOL (A4),20=labels (A6),25= labels with additional barcode,30=return voucher)', 'caption=Печат на PDF->Принтер,autohide');
         
         $Cover = doc_Folders::getCover($documentRec->folderId);
         $isPrivatePerson = ($Cover->haveInterface('crm_PersonAccRegIntf')) ? 'yes' : 'no';
