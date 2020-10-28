@@ -774,7 +774,9 @@ class purchase_Purchases extends deals_DealMaster
                                         $allocatedArr[$pData->productId]->quantity += $pData->quantity;
                                         $allocatedArr[$pData->productId]->transportWeight += $pData->transportWeight;
                                         $allocatedArr[$pData->productId]->transportVolume += $pData->transportVolume;
-                                        $allocatedArr[$pData->productId]->inStores += $pData->inStores;
+                                        if(is_array($pData->inStores)){
+                                            $allocatedArr[$pData->productId]->inStores += $pData->inStores;
+                                        }
                                     }
                                 }
                             }

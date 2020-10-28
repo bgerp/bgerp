@@ -159,21 +159,29 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
     private function getLastDebitRecs($productItemIds, $storeItemIds)
     {
         $storeAccId = acc_Accounts::getRecBySystemId('321')->id;
-        
+       
         $debitRecs = array();
         foreach ($productItemIds as $itemId) {
             $jQuery = acc_JournalDetails::getQuery();
             $jQuery->where("#debitAccId = {$storeAccId}");
             $jQuery->EXT('valior', 'acc_Journal', 'externalKey=journalId');
-            $jQuery->where("#debitItem2 = {$itemId} AND #debitQuantity > 0");
+            $jQuery->XPR('sumDebitQuantity', 'double', 'SUM(#debitQuantity)');
+            $jQuery->XPR('sumDebitAmount', 'double', 'SUM(#amount)');
+            $jQuery->where("#debitItem2 = {$itemId} AND #sumDebitQuantity >= 0");
             $jQuery->in('debitItem1', $storeItemIds);
             $jQuery->limit(1);
-            $jQuery->show('debitItem1,debitItem2,amount,debitQuantity,valior');
+            $jQuery->show('debitItem1,debitItem2,amount,debitQuantity,valior,journalId,sumDebitQuantity,sumDebitAmount');
             $jQuery->orderBy('valior,id', 'desc');
+            $jQuery->groupBy('journalId');
             
             $jRec = $jQuery->fetch();
-            
+           
             if (is_object($jRec)) {
+                $jRec->debitQuantity = $jRec->sumDebitQuantity;
+                $jRec->amount = $jRec->sumDebitAmount;
+                unset($jRec->sumDebitQuantity);
+                unset($jRec->sumDebitAmount);
+                
                 $debitRecs[$itemId] = $jRec;
             }
         }

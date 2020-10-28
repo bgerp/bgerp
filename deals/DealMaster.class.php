@@ -1035,8 +1035,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             
             if ($rec->deliveryLocationId) {
-                $row->deliveryLocationId = crm_Locations::getHyperlink($rec->deliveryLocationId);
-                $row->deliveryLocationIdTop = $row->deliveryLocationId;
+                $row->deliveryLocationId = crm_Locations::getHyperlink($rec->deliveryLocationId, true);
             }
             
             if ($rec->deliveryTime) {
@@ -1091,21 +1090,12 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             $row->{$fld} = ' ';
             
-            if (!Mode::is('text', 'xhtml') && !Mode::is('printing')) {
-                if ($rec->shipmentStoreId) {
-                    $storeVerbal = store_Stores::getHyperlink($rec->shipmentStoreId, true);
-                    if ($rec->state == 'active' && isset($actions['ship'])) {
-                        $row->shipmentStoreId = $storeVerbal;
-                    } else {
-                        unset($row->shipmentStoreId);
-                    }
-                    
-                    $row->shipmentStoreIdTop = $storeVerbal;
-                }
-                
-                if ($rec->caseId) {
-                    $row->caseId = cash_Cases::getHyperlink($rec->caseId);
-                }
+            if (isset($rec->shipmentStoreId)) {
+                $row->shipmentStoreId = store_Stores::getHyperlink($rec->shipmentStoreId, true);
+            }
+            
+            if (isset($rec->caseId)) {
+                $row->caseId = cash_Cases::getHyperlink($rec->caseId, true);
             }
             
             core_Lg::push($rec->tplLang);
