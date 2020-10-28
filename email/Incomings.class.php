@@ -30,7 +30,7 @@ class email_Incomings extends core_Master
      * IN - India
      * SG - Singapore
      */
-    public static $riskIpArr = array('GH', 'NG', 'VN', 'SN', 'SL', 'HK', 'BO', 'NP', 'IN');
+    public static $riskIpArr = array('GH', 'NG', 'VN', 'SN', 'SL', 'HK', 'BO', 'NP', 'IN', 'SG');
     
     
     /**
