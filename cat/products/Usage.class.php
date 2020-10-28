@@ -269,12 +269,10 @@ class cat_products_Usage extends core_Manager
         while ($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
         }
+        
         if($Driver = cat_Products::getDriver($masterRec)){
             $data->recs += $Driver->getLinkedJobRecs($masterRec->id);
         }
-        
-        
-        
         $data->Pager->itemsCount = countR($data->recs);
         
         foreach ($data->recs as $id => $rec){
