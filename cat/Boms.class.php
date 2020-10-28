@@ -1246,6 +1246,7 @@ class cat_Boms extends core_Master
         // Изчисляваме количеството ако можем
         $rowParams = self::getProductParams($rec->resourceId);
         self::pushParams($params, $rowParams);
+        $doTouchRec = ($rec->state == 'rejected') ? false : true;
         
         $scope = self::getScope($params);
         $rQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $scope);
@@ -1303,7 +1304,7 @@ class cat_Boms extends core_Master
                     $rec->primeCost = $primeCost;
                     $rec->params = $params1;
                     
-                    Mode::push("touchRec{$rec->bomId}", false);
+                    Mode::push("touchRec{$rec->bomId}", $doTouchRec);
                     cls::get('cat_BomDetails')->save_($rec, 'primeCost,params');
                     Mode::pop("touchRec{$rec->bomId}");
                 }
@@ -1326,6 +1327,7 @@ class cat_Boms extends core_Master
             // Намираме кои редове са му детайли
             $query = cat_BomDetails::getQuery();
             $query->where("#parentId = {$rec->id}");
+            $query->EXT('state', 'cat_Boms', 'externalName=state,externalKey=bomId');
             
             // За всеки детайл
             while ($dRec = $query->fetch()) {
@@ -1357,7 +1359,7 @@ class cat_Boms extends core_Master
                 if (serialize($rec->params) != serialize($params1)) {
                     $rec->params = $params1;
                     
-                    Mode::push("touchRec{$rec->bomId}", true);
+                    Mode::push("touchRec{$rec->bomId}", $doTouchRec);
                     cls::get('cat_BomDetails')->save_($rec, 'params');
                     Mode::pop("touchRec{$rec->bomId}");
                 }
@@ -1421,6 +1423,7 @@ class cat_Boms extends core_Master
         $query = cat_BomDetails::getQuery();
         $query->where("#bomId = {$rec->id}");
         $query->where('#parentId IS NULL');
+        $query->EXT('state', 'cat_Boms', 'externalName=state,externalKey=bomId');
         $details = $query->fetchAll();
         
         // Ако изчисляваме цената на рецептата по себестойност, ще кешираме изчислените цени на редовете
