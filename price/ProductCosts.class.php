@@ -155,19 +155,15 @@ class price_ProductCosts extends core_Manager
         $res += arr::extractValuesFromArray($pQuery->fetchAll(), 'productId');
         
         // + артикулите в активните или оттеглени активни рецепти, след посочената дата
-        $bQuery = cat_BomDetails::getQuery();
-        $bQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=resourceId');
-        $bQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=resourceId');
-        $bQuery->EXT('activatedOn', 'purchase_Purchases', 'externalName=activatedOn,externalKey=bomId');
-        $bQuery->EXT('documentModifiedOn', 'purchase_Purchases', 'externalName=modifiedOn,externalKey=bomId');
-        $bQuery->EXT('state', 'purchase_Purchases', 'externalName=state,externalKey=bomId');
-        $bQuery->where("((#state = 'active' || #state = 'closed') AND #activatedOn >= '{$beforeDate}') OR (#state = 'rejected' AND #activatedOn IS NOT NULL AND #documentModifiedOn >= '{$beforeDate}')");
-        $bQuery->show('resourceId');
+        $bQuery = cat_Boms::getQuery();
+        $bQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+        $bQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $bQuery->where("((#state = 'active' || #state = 'closed') AND #activatedOn >= '{$beforeDate}') OR (#state = 'rejected' AND #activatedOn IS NOT NULL AND #modifiedOn >= '{$beforeDate}')");
+        $bQuery->show('productId');
         $bQuery->where("#canStore = 'yes' AND #isPublic = 'yes'");
-        $res += arr::extractValuesFromArray($bQuery->fetchAll(), 'resourceId');
+        $res += arr::extractValuesFromArray($bQuery->fetchAll(), 'productId');
         
         $storeAccId = acc_Accounts::getRecBySystemId('321')->id;
-        
         $jQuery = acc_JournalDetails::getQuery();
         $jQuery->EXT('valior', 'acc_Journal', 'externalKey=journalId');
         $jQuery->EXT('journalCreatedOn', 'acc_Journal', 'externalName=createdOn,externalKey=journalId');
@@ -262,7 +258,7 @@ class price_ProductCosts extends core_Manager
         core_Debug::startTimer('calcAffected');
         $affectedProducts = self::getAffectedProducts($datetime);
         core_Debug::stopTimer('calcAffected');
-       
+        
         $timer = round(core_Debug::$timers['calcAffected']->workingTime, 2);
         $count = countR($affectedProducts);
         log_System::logDebug("CALC AFFECTED[{$count}] = {$timer} FOR '{$datetime}'");
