@@ -772,14 +772,13 @@ class planning_Jobs extends core_Master
         }
         
         if (isset($rec->saleId)) {
-            
             $row->saleId = ($fields['__isDetail']) ? sales_Sales::getLink($rec->saleId, 0) : sales_Sales::getLink($rec->saleId);
             $saleRec = sales_Sales::fetch($rec->saleId, 'folderId,deliveryAdress,state');
             $row->saleFolderId = doc_Folders::recToVerbal(doc_Folders::fetch($saleRec->folderId))->title;
             if (!empty($saleRec->deliveryAdress)) {
                 $row->saleDeliveryAddress = core_Type::getByName('varchar')->toVerbal($saleRec->deliveryAdress);
             }
-            $row->saleId = "<span class='state-{$saleRec->state}'>{$row->saleId}</span>";
+            $row->saleId = "<span class='state-{$saleRec->state} document-handler'>{$row->saleId}</span>";
         }
         
         $row->measureId = cat_UoM::getShortName($rec->packagingId);
