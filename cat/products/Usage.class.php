@@ -180,7 +180,7 @@ class cat_products_Usage extends core_Manager
         
         $data->Document->invoke('BeforeRenderListTable', array($tpl, &$data));
         $data->Document->setFieldType('title', 'varchar');
-        $data->Document->setField('title', array('tdClass' => null));
+        $data->Document->setField('title', array('tdClass' => 'leftCell'));
         
         $table = cls::get('core_TableView', array('mvc' => $data->Document));
         $details = $table->get($data->rows, $data->listFields);
@@ -226,7 +226,7 @@ class cat_products_Usage extends core_Manager
         $data->Jobs->invoke('BeforeRenderListTable', array($tpl, &$data));
         
         $listTableMvc = clone $data->Jobs;
-        $listTableMvc->FLD('title', 'varchar');
+        $listTableMvc->FLD('title', 'varchar', 'tdClass=leftCell');
         
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
         $details = $table->get($data->rows, $data->listFields);
