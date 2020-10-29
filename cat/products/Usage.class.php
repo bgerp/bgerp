@@ -179,6 +179,8 @@ class cat_products_Usage extends core_Manager
         arr::placeInAssocArray($data->listFields, $dateArr, null, 'title');
         
         $data->Document->invoke('BeforeRenderListTable', array($tpl, &$data));
+        $data->Document->setFieldType('title', 'varchar');
+        
         $table = cls::get('core_TableView', array('mvc' => $data->Document));
         $details = $table->get($data->rows, $data->listFields);
         
@@ -223,7 +225,7 @@ class cat_products_Usage extends core_Manager
         $data->Jobs->invoke('BeforeRenderListTable', array($tpl, &$data));
         
         $listTableMvc = clone $data->Jobs;
-        $listTableMvc->FLD('title', 'varchar', 'tdClass=leftCol');
+        $listTableMvc->FLD('title', 'varchar');
         
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
         $details = $table->get($data->rows, $data->listFields);
