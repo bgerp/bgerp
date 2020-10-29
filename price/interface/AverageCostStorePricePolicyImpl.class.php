@@ -96,7 +96,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
                 continue;
             }
             
-            $debitPrice = round($lastDebitRec->amount / $lastDebitRec->debitQuantity, 6);
+            $debitPrice = (!empty($lastDebitRec->debitQuantity)) ? round($lastDebitRec->amount / $lastDebitRec->debitQuantity, 6) : 0;
             
             $obj = (object) array('sourceClassId' => null,
                 'sourceId' => null,

@@ -579,6 +579,9 @@ class cat_Products extends embed_Manager
             if (empty($rec->name)) {
                 if ($Driver = $mvc->getDriver($rec)) {
                     $rec->name = $Driver->getProductTitle($rec);
+                    if(strpos($rec->name, '||') !== false){
+                        list($rec->name, $rec->nameEn) = explode('||', $rec->name);
+                    }
                 }
             }
             

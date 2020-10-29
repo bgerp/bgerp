@@ -158,7 +158,7 @@ class price_ProductCosts extends core_Manager
         $bQuery = cat_Boms::getQuery();
         $bQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         $bQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-        $bQuery->where("((#state = 'active' || #state = 'closed') AND #activatedOn >= '{$beforeDate}') OR (#state = 'rejected' AND #activatedOn IS NOT NULL AND #modifiedOn >= '{$beforeDate}')");
+        $bQuery->where("((#state = 'active' || #state = 'closed') AND #activatedOn >= '{$beforeDate}') OR (#state = 'rejected' AND #activatedOn IS NOT NULL AND #modifiedOn >= '{$beforeDate}') OR (#state = 'active' AND #modifiedOn >= '{$beforeDate}' AND #brState = 'rejected')");
         $bQuery->show('productId');
         $bQuery->where("#canStore = 'yes' AND #isPublic = 'yes'");
         $res += arr::extractValuesFromArray($bQuery->fetchAll(), 'productId');

@@ -326,7 +326,7 @@ class sales_Sales extends deals_DealMaster
         parent::setDealFields($this);
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate,notChangeableByContractor');
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
-        $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Цени,notChangeableByContractor');
+        $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Допълнително->Цени,notChangeableByContractor');
         $this->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане->Начин,before=accountId,after=paymentMethodId');
         $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=none,caption=Доставка->Начисляване,after=deliveryTermId');
         $this->setField('shipmentStoreId', 'salecondSysId=defaultStoreSale');
@@ -1160,7 +1160,7 @@ class sales_Sales extends deals_DealMaster
         if (core_Packs::isInstalled('eshop') && isset($fields['-single'])) {
             if ($cartRec = eshop_Carts::fetch("#saleId = {$rec->id}", 'id,domainId,personNames,tel,email')) {
                 $cartRow = eshop_Carts::recToVerbal($cartRec, 'domainId,personNames,tel,email');
-                $row->cartId = eshop_Carts::getHyperlink($cartRec->id, true);
+                $row->cartId = ht::createLink("№{$cartRec->id}", eshop_Carts::getSingleUrlArray($cartRec->id), false, 'ef_icon=img/16/trolley.png');
                 $row->cartDomainId = $cartRow->domainId;
                 $row->cartPersonnames = $cartRow->personNames;
                 $row->cartTel = $cartRow->tel;

@@ -43,6 +43,12 @@ class core_Detail extends core_Manager
     
     
     /**
+     * Време за кеширане на правата към обекта
+     */
+    public $cacheRightsDuration = 0;
+    
+    
+    /**
      * Изпълнява се след началното установяване на модела
      */
     public static function on_AfterDescription(&$mvc)

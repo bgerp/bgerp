@@ -179,6 +179,9 @@ class cat_products_Usage extends core_Manager
         arr::placeInAssocArray($data->listFields, $dateArr, null, 'title');
         
         $data->Document->invoke('BeforeRenderListTable', array($tpl, &$data));
+        $data->Document->setFieldType('title', 'varchar');
+        $data->Document->setField('title', array('tdClass' => 'leftCell'));
+        
         $table = cls::get('core_TableView', array('mvc' => $data->Document));
         $details = $table->get($data->rows, $data->listFields);
         
@@ -217,12 +220,15 @@ class cat_products_Usage extends core_Manager
             $tpl->append($addBtn, 'title');
         }
         
-        $listFields = arr::make('title=Задание,dueDate=Падеж,saleId=Продажба,packQuantity=Планирано,quantityProduced=Заскладено,packagingId=Мярка');
+        $listFields = arr::make('title=Задание,productId=Артикул,dueDate=Падеж,saleId=Продажба,packQuantity=Планирано,quantityProduced=Заскладено,packagingId=Мярка');
         $listFields = core_TableView::filterEmptyColumns($data->rows, $listFields, 'saleId');
         $data->listFields = $listFields;
-        
         $data->Jobs->invoke('BeforeRenderListTable', array($tpl, &$data));
-        $table = cls::get('core_TableView', array('mvc' => $data->jobData->Jobs));
+        
+        $listTableMvc = clone $data->Jobs;
+        $listTableMvc->FLD('title', 'varchar', 'tdClass=leftCell');
+        
+        $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
         $details = $table->get($data->rows, $data->listFields);
         
         // Ако артикула не е производим, показваме в детайла
@@ -263,11 +269,19 @@ class cat_products_Usage extends core_Manager
         $query = $data->Jobs->getQuery();
         $query->where("#productId = {$data->masterId}");
         $query->where("#state != 'rejected'");
-        $query->orderBy('id,state', 'DESC');
-        $data->Pager->setLimit($query);
         while ($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
-            $data->rows[$rec->id] = $data->Jobs->recToVerbal($rec, $fields);
+        }
+        
+        if($Driver = cat_Products::getDriver($masterRec)){
+            $data->recs += $Driver->getLinkedJobRecs($masterRec->id);
+        }
+        $data->Pager->itemsCount = countR($data->recs);
+        
+        foreach ($data->recs as $id => $rec){
+            if ($data->Pager->isOnPage()) {
+                $data->rows[$id] = $data->Jobs->recToVerbal($rec, $fields);
+            }
         }
         
         if ($masterRec->canManifacture != 'yes' || $masterRec->generic == 'yes') {
