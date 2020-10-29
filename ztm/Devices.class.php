@@ -40,6 +40,13 @@ class ztm_Devices extends core_Master
     
     
     /**
+     * 
+     * @var string
+     */
+    public $details = 'ztm_DeviceCardReadersDetail';
+    
+    
+    /**
      * Кой има право да го види?
      */
     public $canView = 'ztm, ceo';
