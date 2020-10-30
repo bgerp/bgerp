@@ -2102,13 +2102,15 @@ class email_Outgoings extends core_Master
         
         $salutation = null;
         
-        if ($cu > 0) {
-            // Вземаме обръщението
-            $salutation = email_Salutations::get($rec->folderId, $rec->threadId, $rec->email, $cu);
-        }
-        
-        if (!$salutation && ($cu > 0)) {
-            $salutation = email_Salutations::get($rec->folderId, $rec->threadId, $rec->email);
+        if (!trim($headerDataArr['name'])) {
+            if ($cu > 0) {
+                // Вземаме обръщението
+                $salutation = email_Salutations::get($rec->folderId, $rec->threadId, $rec->email, $cu);
+            }
+            
+            if (!$salutation && ($cu > 0)) {
+                $salutation = email_Salutations::get($rec->folderId, $rec->threadId, $rec->email);
+            }
         }
         
         // Ако обръщението не съвпадата с текущия език, да се остави да се определи от системата
