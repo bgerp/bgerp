@@ -414,6 +414,15 @@ class bgerp_drivers_Calendar extends core_BaseClass
         }
         ksort($resArr['now']);
         
+        // Подреждаме събитията по часове
+        foreach ($resArr['now'] as &$rArr) {
+            if (!is_array($rArr) || empty($rArr)) {
+                continue;
+            }
+            
+            ksort($rArr);
+        }
+        
         return $resArr;
     }
     
@@ -524,8 +533,24 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $rToVerb = cal_Tasks::recToVerbal($rec, $f);
         
-        $subTitle = $Tasks->getDocumentRow($rec->id)->subTitle;
-        $subTitle = "<span class='threadSubTitle'> {$subTitle}</span>";
+        $dRow = $Tasks->getDocumentRow($rec->id);
+        
+        $subTitle = "<span class='threadSubTitle'> {$dRow->subTitleNoTime}</span>";
+        
+        if ($dRow->subTitleDateRec) {
+            
+            $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $dRow->subTitleDateRec);
+//             $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $dRow->timeStart);
+//             $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $dRow->expectationTimeEnd);
+//             $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $dRow->expectationTimeStart);
+            
+            $time = dt::mysql2verbal($dRow->subTitleDateRec, 'H:i');
+            if ($time != '00:00') {
+                $rec->title =  $time . ' ' . $rec->title;
+            }
+        } else {
+            $rec->title = $this->removeDateAndHoursFromTitle($rec->title, '1970-01-01 00:00:00');
+        }
         
         $title = str::limitLen(type_Varchar::escape($rec->title), 60, 30, ' ... ', true);
         
@@ -551,6 +576,49 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $rToVerb->title->append($subTitle);
         
         return $rToVerb;
+    }
+    
+    
+    /**
+     * Премахва варииациите на датата и часа от подадения стринг
+     * 
+     * @param string $title
+     * @param datetime $date
+     * 
+     * @return string
+     */
+    protected function removeDateAndHoursFromTitle($title, $date)
+    {
+        $time = dt::mysql2verbal($date, 'H:i');
+        $time = preg_quote($time, '/');
+        
+        $timeN  = dt::mysql2verbal($date, 'G:i');
+        $timeN = preg_quote($timeN, '/');
+        
+        $timeH = dt::mysql2verbal($date, 'H');
+        $timeH = preg_quote($timeH, '/');
+        
+        $timeHN = dt::mysql2verbal($date, 'G');
+        $timeHN = preg_quote($timeHN, '/');
+        
+        $dateA = dt::mysql2verbal($date, 'd.m.y');
+        $dateA = preg_quote($dateA, '/');
+        
+        $dateB = dt::mysql2verbal($date, 'd.m.Y');
+        $dateB = preg_quote($dateB, '/');
+        
+        $t = "\s*(ч\.?|h\.?)";
+        $y = "\s*(г\.?|y\.?|год.?)";
+        $x = "(\s*-\s*)*";
+        
+        $regExp = "/({$x}{$time}{$t}*{$x})|({$x}{$timeN}{$t}*{$x})|({$x}{$timeHN}{$t}+{$x})|({$x}{$dateB}{$y}*{$x})|({$x}{$dateA}[^0-9]{$y}*{$x})/ui";
+        
+        $title = preg_replace($regExp, ' ', $title . ' ');
+        $title = preg_replace('/\s{1,}/u', ' ', $title);
+        
+        $title = trim($title);
+        
+        return $title;
     }
     
     
@@ -597,6 +665,8 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $orderH .= ' ' . ++$i;
             $tRec = $Reminders->recToVerbal($rec, 'title');
             if ($Reminders->haveRightFor('single', $rec)) {
+                
+                $tRec->title = $this->removeDateAndHoursFromTitle($tRec->title, $rec->calcTimeStart);
                 $tRec->title = ' ' . dt::mysql2verbal($rec->calcTimeStart, 'H:i', null, true) . ' ' . $tRec->title;
                 
                 $linkArr = array('ef_icon' => $Reminders->getIcon($rec->id));
