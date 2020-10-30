@@ -166,7 +166,7 @@ class speedy_plg_BillOfLading extends core_Plugin
                         
                         // Записване на товарителницата като PDF, ако е създадеба
                         if(!$form->gotErrors() && countR($bolIds)){
-                            $bolRec = (object)array('containerId' => $rec->containerId, 'number' => $bolId, 'takingDate' => $picking->getTakingDate());
+                            $bolRec = (object)array('containerId' => $rec->containerId, 'number' => $bolIds[0], 'takingDate' => $picking->getTakingDate());
                             
                             try{
                                 $bolFh = $adapter->getBolPdf($bolIds, $form->rec->pdfPrinterType);
