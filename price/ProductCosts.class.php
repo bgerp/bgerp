@@ -113,7 +113,8 @@ class price_ProductCosts extends core_Manager
     public function act_CachePrices()
     {
         expect(haveRole('debug'));
-        $datetime = dt::addSecs(-1 * 60 * 60);
+        $datetime = dt::addSecs(-1 * 60);
+      
         self::saveCalcedCosts($datetime);
         
         return followRetUrl(null, 'Преизчислени са данните за последния час');
@@ -241,6 +242,16 @@ class price_ProductCosts extends core_Manager
                     }
                 }
             });
+            
+            // Пропускат се политиките, които ще се изчисляват сами
+            foreach ($res as $k => $policyId){
+                if (cls::load($policyId, true)) {
+                    $Interface = cls::getInterface('price_CostPolicyIntf', $policyId);
+                    if($Interface->hasSeparateCalcProcess()){
+                        unset($res[$k]);
+                    }
+                }
+            }
         }
         
         return $res;
@@ -255,13 +266,8 @@ class price_ProductCosts extends core_Manager
         $self = cls::get(get_called_class());
        
         // Кои са засегнатите артикули
-        core_Debug::startTimer('calcAffected');
         $affectedProducts = self::getAffectedProducts($datetime);
-        core_Debug::stopTimer('calcAffected');
-        
-        $timer = round(core_Debug::$timers['calcAffected']->workingTime, 2);
         $count = countR($affectedProducts);
-        log_System::logDebug("CALC AFFECTED[{$count}] = {$timer} FOR '{$datetime}'");
         
         // Кои са засегнатите политики
         $policiesArr = static::getAffectedPolicies($affectedProducts);
@@ -274,9 +280,10 @@ class price_ProductCosts extends core_Manager
         // Изчисляване на всяка от засегнатите политики, себестойностите на засегнатите пера
         $update = array();
         foreach ($policiesArr as $policyId) {
+            
             if (cls::load($policyId, true)) {
-                $Policy = cls::get($policyId);
-                $calced = $Policy->calcCosts($affectedProducts);
+                $Interface = cls::getInterface('price_CostPolicyIntf', $policyId);
+                $calced = $Interface->calcCosts($affectedProducts);
                 $update = array_merge($update, $calced);
             }
         }
@@ -304,7 +311,8 @@ class price_ProductCosts extends core_Manager
         if (countR($res['delete'])) {
             $avgDeliveruPolicyId = price_interface_AverageCostPricePolicyImpl::getClassId();
             $avgStorePolicyId = price_interface_AverageCostStorePricePolicyImpl::getClassId();
-            $skipDeleteArr = array($avgDeliveruPolicyId, $avgStorePolicyId);
+            $bomPolicyId = price_interface_LastActiveBomCostPolicy::getClassId();
+            $skipDeleteArr = array($avgDeliveruPolicyId, $avgStorePolicyId, $bomPolicyId);
             
             $query = self::getQuery();
             $query->in('id', $res['delete']);

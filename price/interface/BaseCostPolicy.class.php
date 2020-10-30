@@ -148,6 +148,17 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
      *         ['sourceId']      - ид на източника
      */
     abstract public function getCosts($affectedTargetedProducts);
+    
+    
+    /**
+     * Дали има самостоятелен крон процес за изчисление
+     *
+     * @return boolean
+     */
+    public function hasSeparateCalcProcess()
+    {
+        return false;
+    }
 }
 
 

@@ -86,6 +86,15 @@ class price_Setup extends core_ProtoSetup
             'offset' => 77,
             'timeLimit' => 10
         ),
+        
+        array(
+            'systemId' => 'Update bom costs',
+            'description' => 'Обновяване на кешираните цени по рецепти',
+            'controller' => 'price_interface_LastActiveBomCostPolicy',
+            'action' => 'updateCachedBoms',
+            'period' => 11,
+            'timeLimit' => 360,
+        ),
     );
     
     
