@@ -163,14 +163,30 @@ class cat_products_PriceDetails extends core_Manager
         // Само за публичните показваме правилото за обновяване
         if ($data->masterData->rec->isPublic == 'yes') {
             $uRec = price_Updates::fetch("#type = 'product' AND #objectId = {$data->masterId}");
+            
+            if(!is_object($uRec)){
+                $Cover = doc_Folders::getCover($data->masterData->rec->folderId);
+                if($Cover->isInstanceOf('cat_Categories')){
+                    if($uRec = price_Updates::fetch("#type = 'category' AND #objectId = {$Cover->that}")){
+                        $uRec->_fromCategory = true;
+                    }
+                }
+            }
+            
             $data->updateCostRec = $uRec;
+          
             if (is_object($uRec)) {
                 $uRow = price_Updates::recToVerbal($uRec);
                 $arr = array('manual' => tr('Ръчно'), 'nextDay' => tr('Дневно'), 'nextWeek' => tr('Седмично'), 'nextMonth' => tr('Месечно'), 'now' => tr('При изчисление'));
-                $tpl = new core_ET(tr('|*<b>[#updateMode#]</b> |обновяване на себестойността, последователно по|* [#type#]  <!--ET_BEGIN surcharge-->|с надценка|* <b>[#surcharge#]</b><!--ET_END surcharge-->[#tools#]'));
                 
-                core_RowToolbar::createIfNotExists($uRow->_rowTools);
-                $tools = $uRow->_rowTools->renderHtml(2);
+                $fromCategoryStr = 'От категорията|* ';
+                if(!$uRec->_fromCategory){
+                    $fromCategoryStr = '';
+                    core_RowToolbar::createIfNotExists($uRow->_rowTools);
+                    $tools = $uRow->_rowTools->renderHtml(2);
+                }
+                
+                $tpl = new core_ET(tr("{$fromCategoryStr}|*<b>[#updateMode#]</b> |обновяване на себестойността, последователно по|* [#type#]  <!--ET_BEGIN surcharge-->|с надценка|* <b>[#surcharge#]</b><!--ET_END surcharge-->[#tools#]"));
                 
                 $type = '';
                 foreach (array($uRow->sourceClass1, $uRow->sourceClass2, $uRow->sourceClass3) as $cost) {
@@ -191,6 +207,12 @@ class cat_products_PriceDetails extends core_Manager
                 }
                 
                 $tpl->append($type, 'type');
+                
+                if($uRec->_fromCategory){
+                    $tpl->prepend("<span class='quiet'>");
+                    $tpl->append("</span>");
+                }
+                
                 $data->afterRow = $tpl;
             }
         }
@@ -318,7 +340,6 @@ class cat_products_PriceDetails extends core_Manager
         $fieldSet->FLD('buttons', 'varchar', 'smartCenter');
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
         
-        
         // Рендираме информацията за себестойностите
         $table = cls::get('core_TableView', array('mvc' => $fieldSet));
         
@@ -329,15 +350,32 @@ class cat_products_PriceDetails extends core_Manager
         
         // Рендираме правилото за обновяване само при нужда
         if ($data->masterData->rec->isPublic == 'yes') {
-            if (isset($data->afterRow) && price_Updates::haveRightFor('edit', $data->updateCostRec)) {
+            if(isset($data->afterRow)){
                 $afterRowTpl = new core_ET("<tr><td colspan={$colspan}>[#1#][#button#]</td></tr>");
                 $afterRowTpl->append($data->afterRow, '1');
-            } elseif(empty($data->updateCostRec)) {
+            } else {
                 $afterRowTpl = new core_ET("<tr><td colspan={$colspan}>[#1#][#button#]</td></tr>");
                 $afterRowTpl->append(tr('Няма зададено правило за обновяване на себестойност'), '1');
+            }
+            
+            if (price_Updates::haveRightFor('add', (object) array('type' => 'product', 'objectId' => $data->masterId))) {
+                $afterRowTpl->append(ht::createLink('Задаване', array('price_Updates', 'add', 'type' => 'product', 'objectId' => $data->masterId, 'ret_url' => true), false, 'title=Създаване на ново правило за обновяване,ef_icon=img/16/arrow_refresh.png'), 'button');
+            }
+            
+            
+            
+            
+            if (isset($data->afterRow) && (!$data->updateCostRec->_fromCategory && price_Updates::haveRightFor('edit', $data->updateCostRec))) {
+                //bp();
                 
+            } else {//bp();
+                //$afterRowTpl = new core_ET("<tr><td colspan={$colspan}>[#1#][#button#]</td></tr>");
+                if(empty($data->updateCostRec)){
+                   // $afterRowTpl->append(tr('Няма зададено правило за обновяване на себестойност'), '1');
+                }
+               
                 if (price_Updates::haveRightFor('add', (object) array('type' => 'product', 'objectId' => $data->masterId))) {
-                    $afterRowTpl->append(ht::createLink('Задаване', array('price_Updates', 'add', 'type' => 'product', 'objectId' => $data->masterId, 'ret_url' => true), false, 'title=Създаване на ново правило за обновяване,ef_icon=img/16/arrow_refresh.png'), 'button');
+                    //$afterRowTpl->append(ht::createLink('Задаване', array('price_Updates', 'add', 'type' => 'product', 'objectId' => $data->masterId, 'ret_url' => true), false, 'title=Създаване на ново правило за обновяване,ef_icon=img/16/arrow_refresh.png'), 'button');
                 }
             }
             $primeCostTpl->append($afterRowTpl, 'ROW_AFTER');
