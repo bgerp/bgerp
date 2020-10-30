@@ -3,11 +3,11 @@
 DEFINE('CORE_ERROR_REPORTING_LEVEL', E_ALL & ~E_NOTICE & ~E_DEPRECATED);
 error_reporting(CORE_ERROR_REPORTING_LEVEL);
 
-// Път за записване на дебъг информация
+// Път за записване на дебъг информация от всеки хит
 // DEFINE('DEBUG_FATAL_ERRORS_PATH', '/tmp/bgerp/debug');
 
 // Път за записване на изключенията и грешките
-# DEFINE('DEBUG_FATAL_ERRORS_FILE', '/tmp/bgerp/errors');
+// DEFINE('EF_DEBUG_LOG_PATH', '/tmp/bgerp/errors');
 
 // Дали да са включени финкциите за дебъг и настройка
 DEFINE('EF_DEBUG', "localhost,127.0.0.1,::1");
