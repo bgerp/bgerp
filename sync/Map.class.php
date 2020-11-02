@@ -131,6 +131,7 @@ class sync_Map extends core_Manager
                     $dType = $Driver->getType($rec->paramId);
                     if ($dType && ($dType instanceof fileman_FileType)) {
                         try {
+                            self::exportRec('cat_Params', $rec->paramId, $res, $controller);
                             $rec->__paramValue = fileman_Download::getDownloadUrl($rec->paramValue);
                         } catch (core_exception_Expect $e) {
                             $rec->paramValue = null;
@@ -495,8 +496,11 @@ class sync_Map extends core_Manager
                 $cParamId = self::importRec('cat_Params', $rec->paramId, $res, $controller, $update);
                 
                 $cParRec = cat_Params::fetch($cParamId);
+                
+                bp($cParRec, $cParamId);
                 if ($cParRec) {
                     $Driver = cat_Params::getDriver($cParamId);
+                    
                     if ($Driver) {
                         $dType = $Driver->getType($cParamId);
                         if ($dType && ($dType instanceof fileman_FileType)) {
