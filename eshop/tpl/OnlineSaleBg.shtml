@@ -85,34 +85,32 @@
     <table class="innerTable footer-notes paddingCells" style='width:100%;'>
         <tbody>
             <tr>
-                <td class="topCell vtop" style='width:33%;'>
-                    <!--ET_BEGIN paymentMethodId-->
-                    <div class='cellRow'>
-                        <span class='quiet'>|Плащане|*: </span>[#paymentMethodId#]
-                    </div>
-                    <!--ET_END paymentMethodId-->
-                    <!--ET_BEGIN downpayment-->
-                    <div class='cellRow'>
-                        <span class='quiet'>|Авансово|*:</span> [#downpayment#]
-                    </div>
-                    <!--ET_END downpayment-->
-                    <!--ET_BEGIN currencyCode-->
-                    <div class='cellRow'>
-                        <span class='quiet'>|Валута|*: </span>[#currencyCode#]
-                    </div>
-                    <!--ET_END currencyCode-->
-                    <!--ET_BEGIN bankAccountId-->
+                <td class="topCell vtop" style='width:66%;'>
+
+                <!--ET_BEGIN paymentMethodId-->
+                <div class='cellRow'>
+                    <span class='quiet'>|Плащане|*: </span>[#paymentMethodId#]
+                </div>
+                <!--ET_END paymentMethodId-->
+                <!--ET_BEGIN downpayment-->
+                <div class='cellRow'>
+                    <span class='quiet'>|Авансово|*:</span> [#downpayment#]
+                </div>
+                <!--ET_END downpayment-->
+                <!--ET_BEGIN currencyCode-->
+                <div class='cellRow'>
+                    <span class='quiet'>|Валута|*: </span>[#currencyCode#]
+                </div>
+                <!--ET_END currencyCode-->
+                <!--ET_BEGIN bankAccountId-->
+                <hr>
+                <div class='cellRow'>
+                    <span class='quiet'>|Банк. с-ка|*: </span>[#bankAccountId#]<!--ET_BEGIN bank-->,<div>
+                    [#bank#]<!--ET_END bank--><!--ET_BEGIN bic-->, <span class="nowrap">BIC: [#bic#]</span><!--ET_END bic--></div>
+                </div>
+                <!--ET_END bankAccountId-->
+                [#ADDITIONAL_BLOCK#]
                     <hr>
-                    <div class='cellRow'>
-                        <span class='quiet'>|Банк. с-ка|*: </span>[#bankAccountId#]<!--ET_BEGIN bank-->,<div>
-                        [#bank#]<!--ET_END bank--><!--ET_BEGIN bic-->, <span class="nowrap">BIC: [#bic#]</span><!--ET_END bic--></div>
-                    </div>
-                    <!--ET_END bankAccountId-->
-                    [#ADDITIONAL_BLOCK#]
-                </td>
-                <!--ET_BEGIN conditions-->
-                [#conditions#]
-                <td class="topCell first vtop" rowspan="2">
                     <div>
                         <b>|Условия|*:</b>
                         <ol style = 'margin-top:1px'>
@@ -154,34 +152,8 @@
                     [#/deals/tpl/DocumentPiceInfo.shtml#]
                 </td>
             </tr>
-            <tr>
-                <td>
-                    <table class='signature-table' style='width:1%;'>
-                        <tr>
-                            <td class="nowrap" style='width:1%;'>|За получателя|*:  </td>
-                            <td></td>
-                        </tr>
-                        <tr>
-                            <td></td>
-                            <td><span class="sign_names nowrap">[#responsible#]</span></td>
-                        </tr>
-                    </table>
-                </td>
-                <td>
-                    <table style='width:1%' class='fright signature-table'>
-                        <tr>
-                            <td class="nowrap" style='width:1%;'>|За доставчика|*:  </td>
-                            <td></td>
-                        </tr>
-                        <tr>
-                            <td></td>
-                            <td><span class="sign_names nowrap"><!--ET_BEGIN domainId-->/ [#domainId#] /<!--ET_END domainId--></span></td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
             <tr class='footerDocInfo'>
-                <td colspan="3">
+                <td colspan="2">
                     <div class='aright'>|Документът е създаден чрез системата|* <b><a href='http://bgerp.com'>bgERP</a></b></div>
                 </td>
             </tr>
