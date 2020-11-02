@@ -23,12 +23,6 @@ class cat_Categories extends core_Master
     
     
     /**
-     * Детайли
-     */
-    public $details = 'updates=price_Updates';
-    
-    
-    /**
      * Заглавие
      */
     public $title = 'Категории на артикулите';
@@ -243,6 +237,17 @@ class cat_Categories extends core_Master
         if ($fields['-single']) {
             if ($rec->useAsProto == 'yes') {
                 $row->protoFolder = tr('Всички артикули в папката са шаблони');
+            }
+            
+            $uRec = price_Updates::fetch("#type = 'category' AND #objectId = {$rec->id}");
+            if(is_object($uRec)){
+                $row->updateCostsInfo = price_Updates::getUpdateTpl($uRec);
+            } else {
+                $row->updateCostsInfo = tr('Все още няма зададени правила за обновяване');
+            }
+            
+            if (price_Updates::haveRightFor('add', (object) array('type' => 'category', 'objectId' => $rec->id))) {
+                $row->updateCostBtn = ht::createLink('', array('price_Updates', 'add', 'type' => 'category', 'objectId' => $rec->id, 'ret_url' => true), false, 'title=Създаване на ново правило за обновяване,ef_icon=img/16/add.png');
             }
         }
     }
