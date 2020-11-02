@@ -977,7 +977,7 @@ class core_Form extends core_FieldSet
                     list($group, $en) = explode('||', $captionArr[0]);
 
                     if ($fsArr[$fsId] == $group) {
-                        $fsRow = '';
+                        $fsRow = " [#FS_ROW{$fsId}#]";
                         $fsHead = '';
                         $headerRow = '';
                     } else {
