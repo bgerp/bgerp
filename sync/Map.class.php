@@ -133,6 +133,7 @@ class sync_Map extends core_Manager
                         try {
                             self::exportRec('cat_Params', $rec->paramId, $res, $controller);
                             $rec->__paramValue = fileman_Download::getDownloadUrl($rec->paramValue);
+                            $rec->__paramId = $rec->paramId;
                         } catch (core_exception_Expect $e) {
                             $rec->paramValue = null;
                         }
@@ -492,8 +493,8 @@ class sync_Map extends core_Manager
         
         // Фикс, ако е параметъра е файл
         if ($rec->__paramValue) {
-            if (($mvc->className == 'cat_products_Params') && ($rec->paramId)) {
-                $cParamId = self::importRec('cat_Params', $rec->paramId, $res, $controller, $update);
+            if (($mvc->className == 'cat_products_Params') && ($rec->__paramId)) {
+                $cParamId = self::importRec('cat_Params', $rec->__paramId, $res, $controller, $update);
                 
                 $cParRec = cat_Params::fetch($cParamId);
                 
@@ -506,6 +507,7 @@ class sync_Map extends core_Manager
                             if ($file = @file_get_contents($rec->__paramValue)) {
                                 $rec->paramValue = fileman::absorbStr($file, $dType->params['bucket'], basename($rec->__paramValue));
                                 unset($rec->__paramValue);
+                                unset($rec->__paramId);
                             }
                         }
                     }
