@@ -127,7 +127,6 @@ class price_Updates extends core_Manager
         $form->setOptions('sourceClass2', $policyOptions);
         $form->setOptions('sourceClass3', $policyOptions);
         
-        
         if ($rec->type == 'category') {
             $form->setField('objectId', 'caption=Категория');
             $form->setOptions('objectId', array($rec->objectId => cat_Categories::getTitleById($rec->objectId)));
@@ -347,7 +346,7 @@ class price_Updates extends core_Manager
             }
             
             // Опит за изчисление на себестойността според източниците
-            $primeCost = self::getPrimeCost($productId, $rec->sourceClass1, $rec->sourceClass2, $rec->sourceClass3, $rec->costAdd);
+            $primeCost = $this->getPrimeCost($productId, $rec->sourceClass1, $rec->sourceClass2, $rec->sourceClass3, $rec->costAdd);
             
             // Намира се старата му себестойност (ако има)
             $oldPrimeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId);
@@ -434,7 +433,7 @@ class price_Updates extends core_Manager
      *
      * @return float|FALSE $price - намерената себестойност или FALSE ако няма
      */
-    public static function getPrimeCost($productId, $sourceClass1, $sourceClass2 = null, $sourceClass3 = null, $costAdd = null)
+    private function getPrimeCost($productId, $sourceClass1, $sourceClass2 = null, $sourceClass3 = null, $costAdd = null)
     {
         $sources = array($sourceClass1, $sourceClass2, $sourceClass3);
         foreach ($sources as $source) {
@@ -558,27 +557,6 @@ class price_Updates extends core_Manager
     
     
     /**
-     * Подготовка на данните
-     */
-    public static function prepareUpdateData(&$data)
-    {
-        $data->rows = $data->recs = array();
-        
-        // Извличаме записа за артикула
-        $query = self::getQuery();
-        $type = ($data->masterMvc instanceof cat_Categories) ? 'category' : 'product';
-        $query->where("#type = '{$type}'");
-        $query->where("#objectId = {$data->masterId}");
-        
-        // За всеки запис (може да е максимум един)
-        while ($rec = $query->fetch()) {
-            $data->recs[$rec->id] = $rec;
-            $data->rows[$rec->id] = self::recToVerbal($rec);
-        }
-    }
-    
-    
-    /**
      * Подготовка на себестойностите
      *
      * @param stdClass $data
@@ -589,29 +567,19 @@ class price_Updates extends core_Manager
     {   
         // Как да се казва таба
         $data->TabCaption = 'Обновяване';
+        $data->rows = $data->recs = array();
         
-        self::prepareUpdateData($data);
-    }
-    
-    
-    /**
-     * Рендиране на таблицата с данните
-     */
-    public function renderUpdateData($data)
-    {
-        $tpl = new core_ET("");
+        // Извличаме записа за артикула
+        $query = $this->getQuery();
+        $type = ($data->masterMvc instanceof cat_Categories) ? 'category' : 'product';
+        $query->where("#type = '{$type}'");
+        $query->where("#objectId = {$data->masterId}");
         
-        // Рендиране на таблицата
-        $table = cls::get('core_TableView', array('mvc' => cls::get('price_Updates')));
-        $data->listFields = arr::make('sourceClass1=Източник->Първи,sourceClass2=Източник->Втори,sourceClass3=Източник->Трети,costAdd=Добавка,costValue=Стойност,updateMode=Обновяване,createdOn=Създаване->На,createdBy=Създаване->От');
-        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'costAdd,costValue');
-        $data->listTableMvc = clone $this;
-        $this->invoke('BeforeRenderListTable', array($tpl, &$data));
-        
-        $details = $table->get($data->rows, $data->listFields);
-        $tpl->append($details);
-        
-        return $details;
+        // За всеки запис (може да е максимум един)
+        while ($rec = $query->fetch()) {
+            $data->recs[$rec->id] = $rec;
+            $data->rows[$rec->id] = $this->recToVerbal($rec);
+        }
     }
     
     
@@ -641,7 +609,18 @@ class price_Updates extends core_Manager
             $ht = ht::createLink('', array($this, 'add', 'type' => $type, 'objectId' => $data->masterId, 'ret_url' => true), false, 'title=Задаване на ново правило,ef_icon=img/16/add.png');
             $tpl->append($ht, 'title');
         }
-        $tpl->append($this->renderUpdateData($data), 'content');
+        
+        // Рендиране на таблицата
+        $contentTpl = new core_ET("");
+        $table = cls::get('core_TableView', array('mvc' => cls::get('price_Updates')));
+        $data->listFields = arr::make('sourceClass1=Източник->Първи,sourceClass2=Източник->Втори,sourceClass3=Източник->Трети,costAdd=Добавка,costValue=Стойност,updateMode=Обновяване,createdOn=Създаване->На,createdBy=Създаване->От');
+        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'costAdd,costValue');
+        $data->listTableMvc = clone $this;
+        $this->invoke('BeforeRenderListTable', array($contentTpl, &$data));
+        
+        $details = $table->get($data->rows, $data->listFields);
+        $contentTpl->append($details);
+        $tpl->append($contentTpl, 'content');
         
         // Връщаме шаблона
         return $tpl;

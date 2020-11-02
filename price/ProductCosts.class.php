@@ -139,7 +139,7 @@ class price_ProductCosts extends core_Manager
      *
      * @return array $res
      */
-    public static function getAffectedProducts($beforeDate)
+    private static function getAffectedProducts($beforeDate)
     {
         $res = array();
         
@@ -337,8 +337,12 @@ class price_ProductCosts extends core_Manager
     public static function getPrice($productId, $source)
     {
         expect($productId);
-        $Source = cls::get($source);
-        $price = static::fetchField("#productId = {$productId} AND #classId = '{$Source->getClassId()}'", 'price');
+        
+        $price = null;
+        if(cls::load($source, true)){
+            $Source = cls::get($source);
+            $price = static::fetchField("#productId = {$productId} AND #classId = '{$Source->getClassId()}'", 'price');
+        }
         
         return $price;
     }
