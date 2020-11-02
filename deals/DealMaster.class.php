@@ -225,7 +225,8 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Доставка->От склад,notChangeableByContractor'); // наш склад, от където се експедира стоката
         
         // Плащане
-        $mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Метод,notChangeableByContractor');
+        $mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Метод,notChangeableByContractor,removeAndRefreshForm=paymentType,silent');
+        $mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане->Начин');
         $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate,notChangeableByContractor');
         $mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
         $mvc->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса,notChangeableByContractor');
@@ -271,6 +272,11 @@ abstract class deals_DealMaster extends deals_DealBase
         if (!$form->getFieldTypeParam('deliveryLocationId', 'isReadOnly')) {
             $locations = array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
             $form->setOptions('deliveryLocationId', $locations);
+        }
+        
+        if (isset($rec->paymentMethodId) && (!isset($rec->id) || $form->cmd == 'refresh')) {
+            $type = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
+            $form->setDefault('paymentType', $type);
         }
         
         if ($rec->id) {
@@ -1152,6 +1158,10 @@ abstract class deals_DealMaster extends deals_DealBase
             
             if ($rec->makeInvoice == 'no') {
                 $row->amountToInvoice = "<span style='font-size:0.7em'>" . tr('без фактуриране') . '</span>';
+            }
+            
+            if (!empty($rec->paymentType)) {
+                $row->paymentMethodId = "{$row->paymentType}, {$row->paymentMethodId}";
             }
             
             core_Lg::pop();

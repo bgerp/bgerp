@@ -327,11 +327,10 @@ class sales_Sales extends deals_DealMaster
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate,notChangeableByContractor');
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Допълнително->Цени,notChangeableByContractor');
-        $this->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане->Начин,before=accountId,after=paymentMethodId');
         $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=none,caption=Доставка->Начисляване,after=deliveryTermId');
         $this->setField('shipmentStoreId', 'salecondSysId=defaultStoreSale');
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
-        $this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale,removeAndRefreshForm=paymentType,silent');
+        $this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale');
     }
     
     
@@ -461,11 +460,6 @@ class sales_Sales extends deals_DealMaster
             if ($listId = price_ListToCustomers::getListForCustomer($form->rec->contragentClassId, $form->rec->contragentId)) {
                 $form->setField('priceListId', 'placeholder=' . price_Lists::getTitleById($listId));
             }
-        }
-        
-        if (isset($rec->paymentMethodId) && (!isset($rec->id) || $form->cmd == 'refresh')) {
-            $type = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
-            $form->setDefault('paymentType', $type);
         }
         
         // Възможност за ръчна смяна на режима на начисляването на скрития транспорт
@@ -1231,10 +1225,6 @@ class sales_Sales extends deals_DealMaster
                     $link = ht::createLink(tr('Добавяне'), $url, false, array('ef_icon' => 'img/16/lorry_go.png', 'style' => 'font-weight:normal;font-size: 0.8em', 'title' => 'Добавяне на допълнителен транспорт'));
                     $row->btnTransport = $link->getContent();
                 }
-            }
-            
-            if (!empty($rec->paymentType)) {
-                $row->paymentMethodId = "{$row->paymentType}, {$row->paymentMethodId}";
             }
             
             core_Lg::push($rec->tplLang);
