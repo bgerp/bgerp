@@ -497,7 +497,6 @@ class sync_Map extends core_Manager
                 
                 $cParRec = cat_Params::fetch($cParamId);
                 
-                bp($cParRec, $cParamId);
                 if ($cParRec) {
                     $Driver = cat_Params::getDriver($cParamId);
                     
