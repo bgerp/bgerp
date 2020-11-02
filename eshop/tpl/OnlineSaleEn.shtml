@@ -89,7 +89,7 @@
             <tr>
 
                 [#conditions#]
-                <td class="topCell first vtop" rowspan="2">
+                <td class="topCell first vtop">
                     <!--ET_BEGIN paymentMethodId-->
                     <div class='cellRow'>
                         <span class='quiet'>Payment method: </span>
