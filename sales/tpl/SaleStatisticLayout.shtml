@@ -60,27 +60,6 @@
                   <!--ET_BEGIN priceListId-->
                   <span style='font-weight:normal'>|Цени|*</span>: [#priceListId#]<br>
                   <!--ET_END priceListId-->
-                  
-                  <!--ET_BEGIN cartId-->
-                  <hr />
-                  <span style='font-weight:normal'>|Кошница|*</span>: [#cartId#]<br>
-                  <!--ET_END cartId-->
-                  
-                  <!--ET_BEGIN cartPersonnames-->
-                  <span style='font-weight:normal'>|Имена|*</span>: [#cartPersonnames#]<br>
-                  <!--ET_END cartPersonnames-->
-                  
-                  <!--ET_BEGIN cartTel-->
-                  <span style='font-weight:normal'>|Тел|*.</span>: [#cartTel#]<br>
-                  <!--ET_END cartTel-->
-                  
-                  <!--ET_BEGIN cartEmail-->
-                  <span style='font-weight:normal'>|Имейл|*</span>: [#cartEmail#]<br>
-                  <!--ET_END cartEmail-->
-                  
-                  <!--ET_BEGIN cartDomainId-->
-                  <span style='font-weight:normal'>|Домейн|*</span>: [#cartDomainId#]<br>
-                  <!--ET_END cartDomainId-->
               </td>
            </tr>
            <tr>
@@ -104,12 +83,33 @@
           <!--ET_END INVOICE_DOWNPAYMENT_DEDUCTED_TH-->
           
           </tr>
-          <tr>
-            <td>[#amountBl#]</td>
-            <td>[#amountToDeliver#]</td>
-            <td>[#amountToPay#]</td>
-            <td>[#amountToInvoice#]</td>
-            
+           <tr>
+               <td>[#amountBl#]</td>
+               <td>[#amountToDeliver#]</td>
+               <td>[#amountToPay#]</td>
+               <td>[#amountToInvoice#]</td>
+           </tr>
+           <!--ET_BEGIN cartInfo-->
+           [#cartInfo#]
+           <tr>
+               <td colspan="5" style="border:none; padding: 4px 5px 5px;"></td>
+           </tr>
+           <tr>
+               <td class = 'sum-th'>|Кошница|*</td>
+               <td class = 'sum-th'>|Имена|*</td>
+               <td class = 'sum-th'>|Телефон|*</td>
+               <td class = 'sum-th'>|Имейл|*</td>
+               <td class = 'sum-th'>|Домейн|*</td>
+           </tr>
+           <tr style="font-size: 0.6em">
+               <td>[#cartId#]</td>
+               <td>[#cartPersonnames#]</td>
+               <td>[#cartTel#]</td>
+               <td>[#cartEmail#]</td>
+               <td>[#cartDomainId#]</td>
+           </tr>
+           <!--ET_END cartInfo-->
+           <tr>
             <!--ET_BEGIN INVOICE_DOWNPAYMENT_DEDUCTED_TD-->
             <td>[#amountInvoicedDownpaymentToDeduct#]</td>
             <!--ET_END INVOICE_DOWNPAYMENT_DEDUCTED_TD-->
