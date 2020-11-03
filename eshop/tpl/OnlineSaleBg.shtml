@@ -147,7 +147,6 @@
                         </ol>
                     </div>
                 </td>
-                <!--ET_END conditions-->
                 <td class="topCell aright vtop" style='width:33%;'>
                     [#/deals/tpl/DocumentPiceInfo.shtml#]
                 </td>
