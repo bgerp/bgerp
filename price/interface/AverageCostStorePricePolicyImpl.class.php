@@ -159,12 +159,14 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
     private function getLastDebitRecs($productItemIds, $storeItemIds)
     {
         $storeAccId = acc_Accounts::getRecBySystemId('321')->id;
+        $lastCalcedDebitTime = core_Permanent::get('lastCalcedDebitTime');
        
         $debitRecs = array();
         foreach ($productItemIds as $itemId) {
             $jQuery = acc_JournalDetails::getQuery();
             $jQuery->where("#debitAccId = {$storeAccId}");
             $jQuery->EXT('valior', 'acc_Journal', 'externalKey=journalId');
+            $jQuery->EXT('journalCreatedOn', 'acc_Journal', 'externalKey=journalId,externalName=createdOn');
             $jQuery->XPR('sumDebitQuantity', 'double', 'SUM(#debitQuantity)');
             $jQuery->XPR('sumDebitAmount', 'double', 'SUM(#amount)');
             $jQuery->where("#debitItem2 = {$itemId} AND #sumDebitQuantity >= 0");
@@ -172,7 +174,11 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
             $jQuery->limit(1);
             $jQuery->show('debitItem1,debitItem2,amount,debitQuantity,valior,journalId,sumDebitQuantity,sumDebitAmount');
             $jQuery->orderBy('valior,id', 'desc');
-            $jQuery->groupBy('journalId');
+            if(empty($lastCalcedDebitTime)){
+                $jQuery->groupBy('journalId');
+            } else { 
+                $jQuery->where("#journalCreatedOn >= '{$lastCalcedDebitTime}'");
+            }
             
             $jRec = $jQuery->fetch();
            
@@ -185,6 +191,9 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
                 $debitRecs[$itemId] = $jRec;
             }
         }
+        
+        $lastCalcedDebitTime = dt::now();
+        core_Permanent::set('lastCalcedDebitTime', $lastCalcedDebitTime, core_Permanent::IMMORTAL_VALUE);
         
         return $debitRecs;
     }
