@@ -92,13 +92,117 @@ class acs_Permissions extends core_Master
     
     /**
      * Временен тестов екшън
+     * 
+     * @todo - премахване
      */
     function act_Test()
     {
         requireRole('admin');
         requireRole('debug');
         
-        bp($this->getRelationsMap('card'), $this->getRelationsMap('zone'));
+        $res = "";
+        
+        $query = self::getQuery();
+        $query->groupBy('cardId');
+        $query->orderBy('createdOn', 'DESC');
+        $zones = '';
+        $cArr = array();
+        while ($rec = $query->fetch()) {
+            $cArr[$rec->cardId] = $rec->cardId;
+            $zones = type_Keylist::merge($zones, $rec->zones);
+        }
+        
+        $zArr = type_Keylist::toArray($zones);
+        foreach ($cArr as $cId) {
+            $res .= "<li style='color: black;'>{$cId}</li>";
+            foreach ($zArr as $zId) {
+                $styleColor = 'red';
+                
+                if ($this->isCardHaveAccessToZone($cId, $zId)) {
+                    $styleColor = 'green';
+                }
+                
+                $zones = acs_Zones::getVerbal($zId, 'name');
+                
+                $res .= "<li style='color: {$styleColor};'>zoneId: {$zId}|{$zones} </li>";
+            }
+        }
+        
+        echo $res;
+        
+        echo "<pre>";
+        var_dump($this->getRelationsMap('card'));
+        var_dump($this->getRelationsMap('zone'));
+        
+        shutdown();
+    }
+    
+    
+    /**
+     * Проверява дали за подадено време, съответната карта има достъп до зоната
+     * 
+     * @param string  $cardId
+     * @param integer $zoneId
+     * @param integer $timestamp
+     * 
+     * @return boolean
+     */
+    public static function isCardHaveAccessToZone($cardId, $zoneId, $timestamp = null)
+    {
+        $mArr = self::getAllowedZonesForCard($cardId);
+        
+        if (empty($mArr)) {
+            
+            return false;
+        }
+        
+        if (!isset($mArr[$zoneId])) {
+            
+            return false;
+        }
+        
+        $t = $mArr[$zoneId];
+        
+        if (!isset($timestamp)) {
+            $timestamp = dt::mysql2timestamp();
+        }
+        
+        if ($t >= $timestamp) {
+            
+            return true;
+        }
+        
+        return false;
+    }
+    
+    
+    /**
+     * Връща зоните до които има достъп съответната карта
+     * 
+     * @param string $cardId
+     * 
+     * @return array
+     */
+    public static function getAllowedZonesForCard($cardId)
+    {
+        $mapArr = self::getRelationsMapForCards();
+        
+        return (array) $mapArr[$cardId];
+    }
+    
+    
+    /**
+     * Връща каритите, които имат достъп до съответната зона
+     * 
+     * @param integer $zoneId
+     * 
+     * @return array
+     */
+    public static function getAllowedCardsForZone($zoneId)
+    {
+        $mapArr = self::getRelationsMapForZones();
+        
+        return (array)$mapArr[$zoneId];
     }
     
     
