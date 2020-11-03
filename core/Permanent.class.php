@@ -74,7 +74,7 @@ class core_Permanent extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created,plg_SystemWrapper';
+    public $loadList = 'plg_Created,plg_SystemWrapper,plg_Sorting';
     
     
     /**
