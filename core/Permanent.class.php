@@ -21,7 +21,7 @@ defIfNot('CORE_PERMANENT_PREFIX_SALT', md5(EF_SALT . '_CORE_PERM'));
  * @package   core
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -78,6 +78,12 @@ class core_Permanent extends core_Manager
     
     
     /**
+     * Стойност, при която кеша няма да бъде автоматично изтрит
+     */
+    const IMMORTAL_VALUE = 0;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -100,8 +106,10 @@ class core_Permanent extends core_Manager
         expect(is_numeric($lifetime));
         expect(!is_null($data));
         
-        // Колко е живота на кеша
-        $lifetime = time() + ($lifetime * 60);
+        // Колко е живота на кеша (освен ако не е завинаги)
+        if($lifetime != self::IMMORTAL_VALUE){
+            $lifetime = time() + ($lifetime * 60);
+        }
         
         // Подготовка на записа
         $rec = (object) array('key' => $key, 'data' => (object) array('value' => $data), 'lifetime' => $lifetime);
@@ -143,7 +151,7 @@ class core_Permanent extends core_Manager
         }
         
         // Ако живота е изтекъл се изтрива записа, вместо да се връща-
-        if ($rec->lifetime < time()) {
+        if ($rec->lifetime != self::IMMORTAL_VALUE && $rec->lifetime < time()) {
             self::delete($rec->id);
             Debug::log("PERMANENT_CACHE::delete {$key} - expired");
             
@@ -169,6 +177,7 @@ class core_Permanent extends core_Manager
     public static function remove($key, $likeKey = false)
     {
         $key = self::getKey($key);
+        
         if ($likeKey) {
             self::delete(array("#key LIKE '[#1#]%'", "{$key}"));
         } else {
@@ -201,9 +210,20 @@ class core_Permanent extends core_Manager
      */
     public function cron_DeleteExpiredPermData()
     {
-        $deletedRecs = $this->delete('#lifetime < ' . time());
+        $deletedRecs = $this->delete("#lifetime != '" . self::IMMORTAL_VALUE . "' AND #lifetime < " . time());
         $msg = "Лог: <b style='color:blue;'>{$deletedRecs}</b> постоянни записа с изтекъл срок бяха изтрити";
         
         return $msg;
+    }
+    
+    
+    /**
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     */
+    protected static function on_AfterRecToVerbal(&$mvc, &$row, &$rec, $fields = array())
+    {
+        if($rec->lifetime == self::IMMORTAL_VALUE){
+            $row->lifetime = tr("Без лимит");
+        }
     }
 }
