@@ -7498,6 +7498,15 @@ body.narrow {
     }
 }
 
+.sale-summary .cartStatistic .sum-th {
+	background: #c1c1c1;
+	color: #333;
+}
+
+.cartStatistic td {
+	border-color: #888 !important;
+}
+
 .narrow .sale-summary td .quiet{
     font-size: 0.8em;
 }
