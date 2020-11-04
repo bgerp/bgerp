@@ -61,4 +61,17 @@ class price_CostPolicyIntf
     {
         return $this->class->hasSeparateCalcProcess();
     }
+    
+    
+    /**
+     * Кои са засегнатите артикули за тази дата
+     * 
+     * @return datetime $datetime
+     * 
+     * @return array
+     */
+    public function getAffectedProducts($datetime)
+    {
+        return $this->class->getAffectedProducts($datetime);
+    }
 }

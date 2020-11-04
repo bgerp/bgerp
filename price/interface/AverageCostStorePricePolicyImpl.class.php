@@ -62,19 +62,12 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
             return $res;
         }
         
-        // Има ли избрани складове за усредняване
-        $storesKeylist = price_Setup::get('STORE_AVERAGE_PRICES');
-        $storeIds = keylist::toArray($storesKeylist);
+        $storeData = $this->getStoreInfo();
+        $storeIds = $storeData['storeIds'];
+        $storeItems = $storeData['storeItemIds'];
         
         if (!countR($storeIds)) {
             return $res;
-        }
-        
-        // Ако има, кои са техните пера
-        $storeItems = array();
-        foreach ($storeIds as $storeId) {
-            $storeItemId = acc_Items::fetchItem('store_Stores', $storeId)->id;
-            $storeItems[$storeItemId] = $storeItemId;
         }
         
         $map = $this->getProductItemMap($affectedTargetedProducts);
@@ -237,23 +230,39 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
     
     
     /**
+     * Помощна ф-я за избраните в настройките складове
+     * 
+     * @return array $res
+     */
+    private function getStoreInfo()
+    {
+        $res = array('storeItemIds' => array());
+        $storesKeylist = price_Setup::get('STORE_AVERAGE_PRICES');
+        $res['storeIds'] = keylist::toArray($storesKeylist);
+        
+        foreach ($res['storeIds'] as $storeId) {
+            $storeItemId = acc_Items::fetchItem('store_Stores', $storeId)->id;
+            $res['storeItemIds'][$storeItemId] = $storeItemId;
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
      * Запис за цените в модела
      */
     public static function saveAvgPrices($Type, $oldValue, $newValue)
     {
         // Има ли избрани складове за усредняване
         $me = cls::get(get_called_class());
-        $storesKeylist = price_Setup::get('STORE_AVERAGE_PRICES');
-        $storeIds = keylist::toArray($storesKeylist);
+        
+        $storeData = $me->getStoreInfo();
+        $storeIds = $storeData['storeIds'];
+        $storeItems = $storeData['storeItemIds'];
+        
         if (!countR($storeIds)) {
             return;
-        }
-        
-        // Ако има, кои са техните пера
-        $storeItems = array();
-        foreach ($storeIds as $storeId) {
-            $storeItemId = acc_Items::fetchItem('store_Stores', $storeId)->id;
-            $storeItems[$storeItemId] = $storeItemId;
         }
         
         // Има ли стандартни артикули
@@ -339,5 +348,26 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
         
         $ProductCache = cls::get('price_ProductCosts');
         $ProductCache->saveArray($toSave);
+    }
+    
+    
+    /**
+     * Дали има самостоятелен крон процес за изчисление
+     *
+     * @return datetime $datetime
+     *
+     * @return array
+     */
+    public function getAffectedProducts($datetime)
+    {
+        $affected = array();
+        
+        // Ако има избрани складове, гледа се има ли дебити в тях
+        $storeData = $this->getStoreInfo();
+        if(countR($storeData['storeItemIds'])){
+            $affected = parent::getAffectedProductWithStoreMovement($datetime, 'debit', $storeData['storeItemIds']);
+        }
+        
+        return $affected;
     }
 }
