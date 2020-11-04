@@ -17,7 +17,14 @@ class ztm_DeviceCardReadersDetail extends core_Detail
     /**
      * Заглавие на модела
      */
-    public $title = 'Карти за достъп';
+    public $title = 'Четец на карти';
+    
+    
+    /**
+     * 
+     * @var string
+     */
+    public $singleTitle = 'Четец на карти';
     
     
     /**
@@ -160,7 +167,7 @@ class ztm_DeviceCardReadersDetail extends core_Detail
      * 
      * @param string $name
      * 
-     * @return false|stdObject
+     * @return false|stdClass
      */
     protected function getRecFromName($name)
     {
