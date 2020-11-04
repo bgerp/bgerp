@@ -372,6 +372,38 @@ class acs_Permissions extends core_Master
     
     
     /**
+     * Връща последния собственик на картата за съответното врме
+     * 
+     * @param string  $cardId
+     * @param integer $timestamp
+     */
+    public static function getCardHolder($cardId, $timestamp = null)
+    {
+        if (!isset($timestamp)) {
+            $timestamp = dt::mysql2timestamp();
+        }
+        
+        $query = self::getQuery();
+        $query->where(array("#cardId = '[#1#]'", $cardId));
+        $dTime = dt::timestamp2Mysql($timestamp);
+        $query->where(array("#activatedOn <= '[#1#]'", $dTime));
+        $query->where(array("#createdOn <= '[#1#]'", $dTime));
+        $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 ELSE 2 END)");
+        $query->orderBy('#orderByState=ASC');
+        
+        $query->orderBy('activatedOn', 'DESC');
+        
+        $query->limit(1);
+        
+        $query->show('personId, companyId');
+        
+        $rec = $query->fetch();
+        
+        return array('companyId' => $rec->companyId, 'personId' => $rec->personId);
+    }
+    
+    
+    /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
      * @param acs_Permissions  $mvc

@@ -64,18 +64,82 @@ class acs_Logs extends core_Manager
     
     
     /**
+     * 
+     * @var string
+     */
+    protected $allowedTypes = 'allowed=Разрешен достъп,denied=Забранен достъп,movement=Движение в зоната,empty=Зоната е празна,
+                                openedDoor=Отворена врата,closedDoor=Затворена врата,openedWindow=Отворен прозорец, closedWindow=Затворен прозорец,
+                                floor=Наводнение,fire=Пожар,unknnown=Непознат';
+    
+    /**
      * Описание на модела
      */
     public function description()
     {
-        $this->FLD('time', 'datetime', 'caption=Време');
-        $this->FLD('companyId', 'key(mvc=crm_Companies, select=name, allowEmpty)', 'caption=Фирма, refreshForm');
-        $this->FLD('personId', 'key(mvc=crm_Persons, select=name, allowEmpty)', 'caption=Лице, refreshForm');
-        $this->FLD('cardId', 'int', 'caption=Карта, refreshForm'); //@todo
-        $this->FLD('zoneId', 'key(mvc=acs_Zones, select=name, allowEmpty)', 'caption=Зона, refreshForm');
-        $this->FLD('type', 'enum(,allowed=Разрешен достъп,denied=Забранен достъп,movement=Движение в зоната,empty=Зоната е празна,
-                                openedDoor=Отворена врата,closedDoor=Затворена врата,openedWindow=Отворен прозорец, closedWindow=Затворен прозорец,
-                                floor=Наводнение,fire=Пожар)', 'caption=Вид, refreshForm');
+        $this->FLD('time', 'datetime(format=smartTime)', 'caption=Време');
+        $this->FLD('companyId', 'key(mvc=crm_Companies, select=name, allowEmpty)', 'caption=Фирма');
+        $this->FLD('personId', 'key(mvc=crm_Persons, select=name, allowEmpty)', 'caption=Лице');
+        $this->FLD('cardId', 'varchar', 'caption=Карта, refreshForm'); //@todo
+        $this->FLD('zoneId', 'key(mvc=acs_Zones, select=name, allowEmpty)', 'caption=Зона');
+        $this->FLD('type', 'enum(,' .$this->allowedTypes . ')', 'caption=Вид');
+        
+        $this->setDbIndex('time');
+        $this->setDbIndex('companyId');
+        $this->setDbIndex('personId');
+        $this->setDbIndex('cardId');
+        $this->setDbIndex('zoneId');
+        $this->setDbIndex('type');
+    }
+    
+    
+    /**
+     * Добавя запис в лога
+     * 
+     * @param string  $cardId
+     * @param integer $zoneId
+     * @param string  $type
+     * @param integer $timestamp
+     * @param integer $companyId
+     * @param integer $personId
+     */
+    public static function add($cardId, $zoneId, $type, $timestamp = null, $companyId = null, $personId = null)
+    {
+        $me = cls::get(get_called_class());
+        
+        $allowedTypeArr = arr::make($me->allowedTypes);
+        
+        if (!isset($allowedTypeArr[$type])) {
+            wp($allowedTypeArr, $type);
+            $type = 'unknnown';
+        }
+        
+        if (!isset($timestamp)) {
+            $timestamp = dt::mysql2timestamp();
+        }
+        
+        // Ако не е подадена фирма или лице
+        // Опитваме се да определим последния картодържател за подаденото време
+        if (!isset($companyId) && !isset($personId)) {
+            $cardHolderArr = acs_Permissions::getCardHolder($cardId, $timestamp);
+            $companyId = $cardHolderArr['companyId'];
+            $personId = $cardHolderArr['personId'];
+        }
+        
+        $rec = new stdClass();
+        $rec->time = dt::timestamp2Mysql($timestamp);
+        $rec->companyId = $companyId;
+        $rec->personId = $personId;
+        $rec->cardId = $cardId;
+        $rec->zoneId = $zoneId;
+        $rec->type = $type;
+        
+        self::save($rec);
+        
+        if (!isset($companyId) && !isset($personId)) {
+            self::logErr('Карта "' . $cardId . '" без собственик в зона "' . acs_Zones::getVerbal($zoneId, 'nameLoc') . '" с действие ' . mb_strtolower($allowedTypeArr[$type]), $rec->id);
+        }
+        
+        return $rec->id;
     }
     
     
@@ -132,5 +196,14 @@ class acs_Logs extends core_Manager
                 $data->query->where(array("#{$fName} = '[#1#]'", $rec->{$fName}));
             }
         }
+    }
+    
+    
+    /**
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     */
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
+    {
+        $row->ROW_ATTR['class'] = "type-{$rec->type}";
     }
 }
