@@ -113,7 +113,7 @@ class price_ProductCosts extends core_Manager
     public function act_CachePrices()
     {
         expect(haveRole('debug'));
-        $datetime = dt::addSecs(-1 * 60);
+        $datetime = dt::addSecs(-1 * 60 * 60);
       
         self::saveCalcedCosts($datetime);
         
