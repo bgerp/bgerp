@@ -151,15 +151,21 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
     /**
      * Последните дебити на артикулите
      *
-     * @param array $productItemIds - пера на артикули
-     * @param array $storeItemIds   - пера на складове
+     * @param array $productItemIds   - пера на артикули
+     * @param array $storeItemIds     - пера на складове
+     * @param boolean $useCachedDate  - използване на кешираната дата
      *
      * @return array $debitRecs
      */
-    private function getLastDebitRecs($productItemIds, $storeItemIds)
+    private function getLastDebitRecs($productItemIds, $storeItemIds, $useCachedDate = false)
     {
         $storeAccId = acc_Accounts::getRecBySystemId('321')->id;
-        $lastCalcedDebitTime = core_Permanent::get('lastCalcedDebitTime');
+        
+        // Дали да се използва кешираната дата
+        $lastCalcedDebitTime = null;
+        if($useCachedDate){
+            $lastCalcedDebitTime = core_Permanent::get('lastCalcedDebitTime');
+        }
         
         $debitRecs = array();
         foreach ($productItemIds as $itemId) {
@@ -283,7 +289,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
         
         // Мапване на артикулите с перата и намиране на последните им дебити в посочените складове
         $map = $me->getProductItemMap($productIdsWithThisPolicyArr, $alreadyCalculatedProductIds);
-        $dRecs = $me->getLastDebitRecs(array_keys($map), $storeItems);
+        $dRecs = $me->getLastDebitRecs(array_keys($map), $storeItems, false);
        
         $valiorMap = array();
         foreach ($dRecs as $jRec) {
