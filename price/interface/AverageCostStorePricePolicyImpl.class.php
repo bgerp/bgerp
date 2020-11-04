@@ -160,19 +160,20 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
     {
         $storeAccId = acc_Accounts::getRecBySystemId('321')->id;
         $lastCalcedDebitTime = core_Permanent::get('lastCalcedDebitTime');
-       
+        
         $debitRecs = array();
         foreach ($productItemIds as $itemId) {
             $jQuery = acc_JournalDetails::getQuery();
             $jQuery->where("#debitAccId = {$storeAccId}");
             $jQuery->EXT('valior', 'acc_Journal', 'externalKey=journalId');
             $jQuery->EXT('journalCreatedOn', 'acc_Journal', 'externalKey=journalId,externalName=createdOn');
+            $jQuery->XPR('maxValior', 'double', 'MAX(#valior)');
             $jQuery->XPR('sumDebitQuantity', 'double', 'SUM(#debitQuantity)');
             $jQuery->XPR('sumDebitAmount', 'double', 'SUM(#amount)');
-            $jQuery->where("#debitItem2 = {$itemId} AND #sumDebitQuantity >= 0");
+            $jQuery->where("#debitItem2 = {$itemId} AND #debitQuantity >= 0");
             $jQuery->in('debitItem1', $storeItemIds);
-            $jQuery->limit(1);
-            $jQuery->show('debitItem1,debitItem2,amount,debitQuantity,valior,journalId,sumDebitQuantity,sumDebitAmount');
+            
+            $jQuery->show('debitItem1,debitItem2,amount,debitQuantity,valior,journalId,sumDebitQuantity,sumDebitAmount,maxValior');
             $jQuery->orderBy('valior,id', 'desc');
             if(empty($lastCalcedDebitTime)){
                 $jQuery->groupBy('journalId');
@@ -185,13 +186,16 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
             if (is_object($jRec)) {
                 $jRec->debitQuantity = $jRec->sumDebitQuantity;
                 $jRec->amount = $jRec->sumDebitAmount;
+                $jRec->valior = $jRec->maxValior;
+                
                 unset($jRec->sumDebitQuantity);
                 unset($jRec->sumDebitAmount);
+                unset($jRec->maxValior);
                 
                 $debitRecs[$itemId] = $jRec;
             }
         }
-        
+
         $lastCalcedDebitTime = dt::now();
         core_Permanent::set('lastCalcedDebitTime', $lastCalcedDebitTime, core_Permanent::IMMORTAL_VALUE);
         
