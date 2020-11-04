@@ -77,8 +77,8 @@ class acs_Permissions extends core_Master
         $this->FLD('cardType', 'enum(card=Карта, bracelet=Гривна, phone=Телефон, chip=Чип)', 'caption=Тип на карта');
         $this->FLD('zones', 'keylist(mvc=acs_Zones, select=nameLoc)', 'caption=Зони');
         $this->FLD('scheduleId', 'int', 'caption=График'); //@todo
-        $this->FLD('duration', 'int', 'caption=Продължителност');
-        $this->FLD('expiredOn', 'datetime', 'caption=Изтекло на, input=none');
+        $this->FLD('duration', 'time', 'caption=Продължителност');
+        $this->FLD('expiredOn', 'datetime', 'caption=Изтича на');
         $this->FLD('activatedOn', 'datetime', 'caption=Активирано на, input=none');
         $this->FLD('state', 'enum(,pending=Заявка,active=Активен,closed=Закрит,rejected=Оттеглен)','caption=Състояние,column=none,input=none,smartCenter, refreshForm');
         
@@ -240,7 +240,7 @@ class acs_Permissions extends core_Master
         // Ако го има в кеша - използваме го
         $resArr = core_Cache::get($cacheType, $cacheHandler, null, $depends);
         
-        if ($resArr !== false) {
+        if (isset($resArr) && ($resArr !== false)) {
             
             return $resArr;
         }
@@ -257,8 +257,13 @@ class acs_Permissions extends core_Master
             
             // Времето за инвалидиране на кеша - най-малката стойност от масива
             setIfNot($minActiveTime, $nActiveTime['activeUntil']);
-            $minActiveTime = min($minActiveTime, $nActiveTime['activeUntil']);
-            $minActiveTime = min($minActiveTime, $nActiveTime['activeFrom']);
+            if (isset($nActiveTime['activeUntil'])) {
+                $minActiveTime = min($minActiveTime, $nActiveTime['activeUntil']);
+            }
+            
+            if (isset($nActiveTime['activeFrom'])) {
+                $minActiveTime = min($minActiveTime, $nActiveTime['activeFrom']);
+            }
             
             $zArr = type_Keylist::toArray($rec->zones);
             
@@ -427,6 +432,28 @@ class acs_Permissions extends core_Master
         
         if ($form->isSubmitted() && !$form->rec->id) {
             $rec->state = 'active';
+            $rec->activatedOn = dt::now();
+        }
+        
+        if ($form->isSubmitted()) {
+            if ((!$form->rec->duration && !$form->rec->expiredOn) || 
+                ($form->rec->duration && $form->rec->expiredOn)) {
+                $form->setError('duration, expiredOn', 'Трябва да попълните едно от полетата');
+            }
+        }
+        
+        if ($form->isSubmitted()) {
+            if ($form->rec->duration) {
+                if ($form->rec->duration <= 0) {
+                    $form->setError('duration', 'Не може да е отрицателно време');
+                }
+            }
+            
+            if ($form->rec->expiredOn) {
+                if ($form->rec->expiredOn <= dt::now()) {
+                    $form->setError('expiredOn', 'Не може да е в миналото');
+                }
+            }
         }
     }
     
@@ -546,13 +573,16 @@ class acs_Permissions extends core_Master
         
         // @todo $rec->scheduleId
         
-        // duration + activatedOn
+        if ($rec->expiredOn) {
+            $timestamp = dt::mysql2timestamp($rec->expiredOn);
+        }
         
-        // expiredOn ?
+        if ($rec->duration) {
+            $timestamp = dt::mysql2timestamp($rec->activatedOn) + $rec->duration;
+        }
         
-        
-        $res['activeUntil'] = dt::mysql2timestamp(dt::addSecs(1000 + $rec->id + rand(1,111)));
-        $res['activeFrom'] = dt::mysql2timestamp(dt::addSecs(10000 + $rec->id + rand(1,111)));
+        $res['activeUntil'] = $timestamp;
+        $res['activeFrom'] = $timestamp;
         
         return $res;
     }
