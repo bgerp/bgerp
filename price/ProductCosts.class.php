@@ -94,11 +94,18 @@ class price_ProductCosts extends core_Manager
         if (!empty($rec->sourceId)) {
             $Source = cls::get($rec->sourceClassId);
             if (cls::haveInterface('doc_DocumentIntf', $Source)) {
-                $row->sourceId = cls::get($rec->sourceClassId)->getLink($rec->sourceId, 0);
+                $row->sourceId = $Source->getLink($rec->sourceId, 0);
             } elseif ($Source instanceof core_Master) {
-                $row->sourceId = cls::get($rec->sourceClassId)->getHyperlink($rec->sourceId, true);
+                $row->sourceId = $Source->getHyperlink($rec->sourceId, true);
             } else {
-                $row->sourceId = cls::get($rec->sourceClassId)->getRecTitle($rec->sourceId);
+                $row->sourceId = $Source->getRecTitle($rec->sourceId);
+            }
+            
+            if($Source->getField('state', false)){
+                $sState = $Source->fetchField($rec->sourceId, 'state');
+                if($sState == 'rejected'){
+                    $row->sourceId = "<span class= 'state-{$sState} document-handler'>{$row->sourceId}</span>";
+                }
             }
         }
         
@@ -164,7 +171,7 @@ class price_ProductCosts extends core_Manager
         }
         
         if(!countR($update)){
-            
+           
             return;
         }
         
@@ -185,24 +192,6 @@ class price_ProductCosts extends core_Manager
         
         if (countR($res['update'])) {
             $self->saveArray($res['update'], 'id,price,quantity,sourceClassId,sourceId,updatedOn,valior');
-        }
-        
-        // Изтриване на несрещнатите себестойностти
-        if (countR($res['delete'])) {
-            
-            $avgDeliveruPolicyId = price_interface_AverageCostPricePolicyImpl::getClassId();
-            $avgStorePolicyId = price_interface_AverageCostStorePricePolicyImpl::getClassId();
-            $bomPolicyId = price_interface_LastActiveBomCostPolicy::getClassId();
-            $skipDeleteArr = array($avgDeliveruPolicyId, $avgStorePolicyId, $bomPolicyId);
-            
-            $query = self::getQuery();
-            $query->in('id', $res['delete']);
-            $query->notIn('classId', $skipDeleteArr);
-            $query->show('id');
-           
-            while ($delRec = $query->fetch()) {
-                $self->delete($delRec->id);
-            }
         }
     }
     
