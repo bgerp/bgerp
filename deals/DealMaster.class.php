@@ -412,13 +412,17 @@ abstract class deals_DealMaster extends deals_DealBase
         // Избрания ДДС режим съответства ли на дефолтния
         $defVat = $mvc->getDefaultChargeVat($rec);
         if ($vatWarning = deals_Helper::getVatWarning($defVat, $rec->chargeVat)) {
-            $form->setWarning('chargeVat', $vatWarning);
+            $isCurrencyReadOnly = $form->getFieldTypeParam('currencyId', 'isReadOnly');
+            if(!$isCurrencyReadOnly){
+                $form->setWarning('chargeVat', $vatWarning);
+            }
         }
         
         // Избраната валута съответства ли на дефолтната
         $defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
         $currencyState = currency_Currencies::fetchField("#code = '{$defCurrency}'", 'state');
-        if ($defCurrency != $rec->currencyId && $currencyState == 'active') {
+        $isCurrencyReadOnly = $form->getFieldTypeParam('currencyId', 'isReadOnly');
+        if ($defCurrency != $rec->currencyId && $currencyState == 'active' && !$isCurrencyReadOnly) {
             $form->setWarning('currencyId', "Избрана e различна валута от очакваната|* <b>{$defCurrency}</b>");
         }
         
