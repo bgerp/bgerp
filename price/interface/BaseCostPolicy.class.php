@@ -181,6 +181,7 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
         expect(in_array($type, array('debit', 'credit', 'all')));
         $itemsWithMovement = $res = array();
         $key = "{$beforeDate}|{$type}|" . implode('-', $storeItems);
+        $beforeShortDate = dt::verbal2mysql($beforeDate, false);
         
         if(!array_key_exists($key, static::$itemCache)){
             
@@ -191,7 +192,7 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
             $jQuery2 = clone $jQuery;
             
             if($type == 'all' || $type == 'debit'){
-                $where = "#debitAccId = {$storeAccId} AND #journalCreatedOn >= '{$beforeDate}' AND #valior >= '{$beforeDate}'";
+                $where = "#debitAccId = {$storeAccId} AND #journalCreatedOn >= '{$beforeDate}' AND #valior >= '{$beforeShortDate}'";
                 if($type == 'debit'){
                     $where .= " AND #debitQuantity >= 0";
                 }
@@ -211,7 +212,7 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
             
             // Кои пера на артикули са участвали в кредитирането на склад след посочената дата
             if($type == 'all' || $type == 'credit'){
-                $where = "#creditAccId = {$storeAccId} AND #journalCreatedOn >= '{$beforeDate}' AND #valior >= '{$beforeDate}'";
+                $where = "#creditAccId = {$storeAccId} AND #journalCreatedOn >= '{$beforeDate}' AND #valior >= '{$beforeShortDate}'";
                 if($type == 'credit'){
                     $where .= " AND #creditQuantity >= 0";
                 }
