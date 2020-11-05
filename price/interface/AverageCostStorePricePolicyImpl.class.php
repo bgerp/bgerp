@@ -150,7 +150,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
      *
      * @return array $debitRecs
      */
-    private function getLastDebitRecs($productItemIds, $storeItemIds, $useCachedDate = false)
+    private function getLastDebitRecs($productItemIds, $storeItemIds, $useCachedDate = true)
     {
         $storeAccId = acc_Accounts::getRecBySystemId('321')->id;
         
