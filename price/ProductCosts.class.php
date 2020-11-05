@@ -189,6 +189,7 @@ class price_ProductCosts extends core_Manager
         
         // Изтриване на несрещнатите себестойностти
         if (countR($res['delete'])) {
+            
             $avgDeliveruPolicyId = price_interface_AverageCostPricePolicyImpl::getClassId();
             $avgStorePolicyId = price_interface_AverageCostStorePricePolicyImpl::getClassId();
             $bomPolicyId = price_interface_LastActiveBomCostPolicy::getClassId();

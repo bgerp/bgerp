@@ -148,17 +148,12 @@ class price_interface_LastDeliveryCostPolicyImpl extends price_interface_BaseCos
      */
     public function getAffectedProducts($datetime)
     {
-        // Участват артикулите в активирани или оттеглени активни покупки, след посочената дата
-        $pQuery = purchase_PurchasesDetails::getQuery();
-        $pQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
-        $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-        $pQuery->EXT('activatedOn', 'purchase_Purchases', 'externalName=activatedOn,externalKey=requestId');
-        $pQuery->EXT('documentModifiedOn', 'purchase_Purchases', 'externalName=modifiedOn,externalKey=requestId');
-        $pQuery->EXT('state', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
-        $pQuery->where("((#state = 'active' || #state = 'closed') AND #activatedOn >= '{$datetime}') OR (#state = 'rejected' AND #activatedOn IS NOT NULL AND #documentModifiedOn >= '{$datetime}')");
-        $pQuery->where("#canStore = 'yes' AND #isPublic = 'yes'");
-        $pQuery->show('productId');
-        $affected = arr::extractValuesFromArray($pQuery->fetchAll(), 'productId');
+        // Афектираните артикули са тези с дебит в склада
+        $affected = parent::getAffectedProductWithStoreMovement($datetime, 'debit');
+        
+        // И тези с активирани/оттеглени покупки
+        $affected1 = cls::get('price_interface_LastActiveDeliveryCostPolicyImpl')->getAffectedProducts($datetime);
+        $affected += $affected1;
         
         return $affected;
     }
