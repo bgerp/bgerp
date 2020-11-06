@@ -252,16 +252,26 @@ class acs_Permissions extends core_Master
         
         $persCompArr = $cardPersArr =  $cardCompArr = array();
         
+        $nTimestamp = dt::mysql2timestamp();
+        
         while ($rec = $query->fetch()) {
             $nActiveTime = self::getNextActiveTime($rec);
             
-            // Времето за инвалидиране на кеша - най-малката стойност от масива
-            setIfNot($minActiveTime, $nActiveTime['activeUntil']);
-            if (isset($nActiveTime['activeUntil'])) {
+            if ($nTimestamp < $nActiveTime['activeUntil']) {
+                // Времето за инвалидиране на кеша - най-малката стойност от масива
+                setIfNot($minActiveTime, $nActiveTime['activeUntil']);
+            }
+            
+            if ($nTimestamp < $nActiveTime['activeFrom']) {
+                // Времето за инвалидиране на кеша - най-малката стойност от масива
+                setIfNot($minActiveTime, $nActiveTime['activeFrom']);
+            }
+            
+            if (isset($nActiveTime['activeUntil']) && ($nTimestamp < $nActiveTime['activeUntil'])) {
                 $minActiveTime = min($minActiveTime, $nActiveTime['activeUntil']);
             }
             
-            if (isset($nActiveTime['activeFrom'])) {
+            if (isset($nActiveTime['activeFrom']) && ($nTimestamp < $nActiveTime['activeFrom'])) {
                 $minActiveTime = min($minActiveTime, $nActiveTime['activeFrom']);
             }
             
@@ -326,7 +336,7 @@ class acs_Permissions extends core_Master
         // Резултатния масив го записваме в кеша
         $keepMinutes = 0;
         if ($minActiveTime) {
-            $keepMinutes = $minActiveTime - dt::mysql2timestamp();
+            $keepMinutes = $minActiveTime - $nTimestamp;
             if ($keepMinutes > 60) {
                 $keepMinutes = intval($keepMinutes / 60);
                 $keepMinutes--;
