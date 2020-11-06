@@ -1463,10 +1463,24 @@ function SetWithCheckedButton() {
     }
 }
 
+
+/**
+ * Премахва символите от края на стринга
+ * 
+ * @param hash
+ */
+function clearHashStr(hash)
+{
+	
+	return hash.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]*$/gi, '');
+}
+
 function flashHashDoc(flasher) {
     var h = window.location.hash.substr(1);
+    
     if (h) {
-        if (!flasher) {
+    	h = clearHashStr(h);
+        if (h && !flasher) {
             flasher = flashDoc;
         }
         flasher(h);

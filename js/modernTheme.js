@@ -466,12 +466,15 @@ function scrollToElem(docId) {
  * */
 function scrollToHash(){
 	var hash = window.location.hash;
+	hash = clearHashStr(hash);
+	
 	if($(hash).length) {
         setTimeout(function() {
 			var scrollTo = parseInt($(hash).offset().top) - 70;
 			if (scrollTo < 400) {
 				scrollTo = 0;
 			}
+			
 			$('html, body').scrollTop(scrollTo);
 		}, 1);
 	}
