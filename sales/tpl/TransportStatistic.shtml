@@ -2,7 +2,7 @@
         <div class='sale-summary'>
             <table class='paddingCells' style='margin-bottom:10px;width:100%;margin-top:10px'>
                <tr>
-                 <td class='sum-th'>|Очакван транспорт|*, [#transportCurrencyId#] |без ДДС|*</td>
+                   <td class='sum-th'><b>|Очакван транспорт|*, [#transportCurrencyId#] |без ДДС|*</b></td>
                  <td class='sum-th'>|Скрит транспорт|*, [#transportCurrencyId#] |без ДДС|*</td>
                  <td class='sum-th'>|Явен транспорт|*, [#transportCurrencyId#] |без ДДС|*</td>
                  <td class='sum-th'>|Остатък|*, [#transportCurrencyId#] |без ДДС|*</td>

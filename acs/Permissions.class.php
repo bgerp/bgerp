@@ -77,8 +77,8 @@ class acs_Permissions extends core_Master
         $this->FLD('cardType', 'enum(card=Карта, bracelet=Гривна, phone=Телефон, chip=Чип)', 'caption=Тип на карта');
         $this->FLD('zones', 'keylist(mvc=acs_Zones, select=nameLoc)', 'caption=Зони');
         $this->FLD('scheduleId', 'int', 'caption=График'); //@todo
-        $this->FLD('duration', 'int', 'caption=Продължителност');
-        $this->FLD('expiredOn', 'datetime', 'caption=Изтекло на, input=none');
+        $this->FLD('duration', 'time', 'caption=Продължителност');
+        $this->FLD('expiredOn', 'datetime', 'caption=Изтича на');
         $this->FLD('activatedOn', 'datetime', 'caption=Активирано на, input=none');
         $this->FLD('state', 'enum(,pending=Заявка,active=Активен,closed=Закрит,rejected=Оттеглен)','caption=Състояние,column=none,input=none,smartCenter, refreshForm');
         
@@ -92,13 +92,117 @@ class acs_Permissions extends core_Master
     
     /**
      * Временен тестов екшън
+     * 
+     * @todo - премахване
      */
     function act_Test()
     {
         requireRole('admin');
         requireRole('debug');
         
-        bp($this->getRelationsMap('card'), $this->getRelationsMap('zone'));
+        $res = "";
+        
+        $query = self::getQuery();
+        $query->groupBy('cardId');
+        $query->orderBy('createdOn', 'DESC');
+        $zones = '';
+        $cArr = array();
+        while ($rec = $query->fetch()) {
+            $cArr[$rec->cardId] = $rec->cardId;
+            $zones = type_Keylist::merge($zones, $rec->zones);
+        }
+        
+        $zArr = type_Keylist::toArray($zones);
+        foreach ($cArr as $cId) {
+            $res .= "<li style='color: black;'>{$cId}</li>";
+            foreach ($zArr as $zId) {
+                $styleColor = 'red';
+                
+                if ($this->isCardHaveAccessToZone($cId, $zId)) {
+                    $styleColor = 'green';
+                }
+                
+                $zones = acs_Zones::getVerbal($zId, 'name');
+                
+                $res .= "<li style='color: {$styleColor};'>zoneId: {$zId}|{$zones} </li>";
+            }
+        }
+        
+        echo $res;
+        
+        echo "<pre>";
+        var_dump($this->getRelationsMap('card'));
+        var_dump($this->getRelationsMap('zone'));
+        
+        shutdown();
+    }
+    
+    
+    /**
+     * Проверява дали за подадено време, съответната карта има достъп до зоната
+     * 
+     * @param string  $cardId
+     * @param integer $zoneId
+     * @param integer $timestamp
+     * 
+     * @return boolean
+     */
+    public static function isCardHaveAccessToZone($cardId, $zoneId, $timestamp = null)
+    {
+        $mArr = self::getAllowedZonesForCard($cardId);
+        
+        if (empty($mArr)) {
+            
+            return false;
+        }
+        
+        if (!isset($mArr[$zoneId])) {
+            
+            return false;
+        }
+        
+        $t = $mArr[$zoneId];
+        
+        if (!isset($timestamp)) {
+            $timestamp = dt::mysql2timestamp();
+        }
+        
+        if ($t >= $timestamp) {
+            
+            return true;
+        }
+        
+        return false;
+    }
+    
+    
+    /**
+     * Връща зоните до които има достъп съответната карта
+     * 
+     * @param string $cardId
+     * 
+     * @return array
+     */
+    public static function getAllowedZonesForCard($cardId)
+    {
+        $mapArr = self::getRelationsMapForCards();
+        
+        return (array) $mapArr[$cardId];
+    }
+    
+    
+    /**
+     * Връща каритите, които имат достъп до съответната зона
+     * 
+     * @param integer $zoneId
+     * 
+     * @return array
+     */
+    public static function getAllowedCardsForZone($zoneId)
+    {
+        $mapArr = self::getRelationsMapForZones();
+        
+        return (array)$mapArr[$zoneId];
     }
     
     
@@ -136,7 +240,7 @@ class acs_Permissions extends core_Master
         // Ако го има в кеша - използваме го
         $resArr = core_Cache::get($cacheType, $cacheHandler, null, $depends);
         
-        if ($resArr !== false) {
+        if (isset($resArr) && ($resArr !== false)) {
             
             return $resArr;
         }
@@ -148,13 +252,28 @@ class acs_Permissions extends core_Master
         
         $persCompArr = $cardPersArr =  $cardCompArr = array();
         
+        $nTimestamp = dt::mysql2timestamp();
+        
         while ($rec = $query->fetch()) {
             $nActiveTime = self::getNextActiveTime($rec);
             
-            // Времето за инвалидиране на кеша - най-малката стойност от масива
-            setIfNot($minActiveTime, $nActiveTime['activeUntil']);
-            $minActiveTime = min($minActiveTime, $nActiveTime['activeUntil']);
-            $minActiveTime = min($minActiveTime, $nActiveTime['activeFrom']);
+            if ($nTimestamp < $nActiveTime['activeUntil']) {
+                // Времето за инвалидиране на кеша - най-малката стойност от масива
+                setIfNot($minActiveTime, $nActiveTime['activeUntil']);
+            }
+            
+            if ($nTimestamp < $nActiveTime['activeFrom']) {
+                // Времето за инвалидиране на кеша - най-малката стойност от масива
+                setIfNot($minActiveTime, $nActiveTime['activeFrom']);
+            }
+            
+            if (isset($nActiveTime['activeUntil']) && ($nTimestamp < $nActiveTime['activeUntil'])) {
+                $minActiveTime = min($minActiveTime, $nActiveTime['activeUntil']);
+            }
+            
+            if (isset($nActiveTime['activeFrom']) && ($nTimestamp < $nActiveTime['activeFrom'])) {
+                $minActiveTime = min($minActiveTime, $nActiveTime['activeFrom']);
+            }
             
             $zArr = type_Keylist::toArray($rec->zones);
             
@@ -217,7 +336,7 @@ class acs_Permissions extends core_Master
         // Резултатния масив го записваме в кеша
         $keepMinutes = 0;
         if ($minActiveTime) {
-            $keepMinutes = $minActiveTime - dt::mysql2timestamp();
+            $keepMinutes = $minActiveTime - $nTimestamp;
             if ($keepMinutes > 60) {
                 $keepMinutes = intval($keepMinutes / 60);
                 $keepMinutes--;
@@ -259,6 +378,38 @@ class acs_Permissions extends core_Master
         }
         
         return $zonesArr;
+    }
+    
+    
+    /**
+     * Връща последния собственик на картата за съответното врме
+     * 
+     * @param string  $cardId
+     * @param integer $timestamp
+     */
+    public static function getCardHolder($cardId, $timestamp = null)
+    {
+        if (!isset($timestamp)) {
+            $timestamp = dt::mysql2timestamp();
+        }
+        
+        $query = self::getQuery();
+        $query->where(array("#cardId = '[#1#]'", $cardId));
+        $dTime = dt::timestamp2Mysql($timestamp);
+        $query->where(array("#activatedOn <= '[#1#]'", $dTime));
+        $query->where(array("#createdOn <= '[#1#]'", $dTime));
+        $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 ELSE 2 END)");
+        $query->orderBy('#orderByState=ASC');
+        
+        $query->orderBy('activatedOn', 'DESC');
+        
+        $query->limit(1);
+        
+        $query->show('personId, companyId');
+        
+        $rec = $query->fetch();
+        
+        return array('companyId' => $rec->companyId, 'personId' => $rec->personId);
     }
     
     
@@ -323,6 +474,28 @@ class acs_Permissions extends core_Master
         
         if ($form->isSubmitted() && !$form->rec->id) {
             $rec->state = 'active';
+            $rec->activatedOn = dt::now();
+        }
+        
+        if ($form->isSubmitted()) {
+            if ((!$form->rec->duration && !$form->rec->expiredOn) || 
+                ($form->rec->duration && $form->rec->expiredOn)) {
+                $form->setError('duration, expiredOn', 'Трябва да попълните едно от полетата');
+            }
+        }
+        
+        if ($form->isSubmitted()) {
+            if ($form->rec->duration) {
+                if ($form->rec->duration <= 0) {
+                    $form->setError('duration', 'Не може да е отрицателно време');
+                }
+            }
+            
+            if ($form->rec->expiredOn) {
+                if ($form->rec->expiredOn <= dt::now()) {
+                    $form->setError('expiredOn', 'Не може да е в миналото');
+                }
+            }
         }
     }
     
@@ -442,13 +615,16 @@ class acs_Permissions extends core_Master
         
         // @todo $rec->scheduleId
         
-        // duration + activatedOn
+        if ($rec->expiredOn) {
+            $timestamp = dt::mysql2timestamp($rec->expiredOn);
+        }
         
-        // expiredOn ?
+        if ($rec->duration) {
+            $timestamp = dt::mysql2timestamp($rec->activatedOn) + $rec->duration;
+        }
         
-        
-        $res['activeUntil'] = dt::mysql2timestamp(dt::addSecs(1000 + $rec->id + rand(1,111)));
-        $res['activeFrom'] = dt::mysql2timestamp(dt::addSecs(10000 + $rec->id + rand(1,111)));
+        $res['activeUntil'] = $timestamp;
+        $res['activeFrom'] = $timestamp;
         
         return $res;
     }

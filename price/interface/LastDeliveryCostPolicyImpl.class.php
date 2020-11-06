@@ -137,7 +137,24 @@ class price_interface_LastDeliveryCostPolicyImpl extends price_interface_BaseCos
         // Връщаме намерените последни цени
         return $res;
     }
+   
+    
+    /**
+     * Дали има самостоятелен крон процес за изчисление
+     *
+     * @return datetime $datetime
+     *
+     * @return array
+     */
+    public function getAffectedProducts($datetime)
+    {
+        // Афектираните артикули са тези с дебит в склада
+        $affected = parent::getAffectedProductWithStoreMovement($datetime, 'debit');
+        
+        // И тези с активирани/оттеглени покупки
+        $affected1 = cls::get('price_interface_LastActiveDeliveryCostPolicyImpl')->getAffectedProducts($datetime);
+        $affected += $affected1;
+        
+        return $affected;
+    }
 }
-
-
-

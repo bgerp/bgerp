@@ -62,19 +62,12 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
             return $res;
         }
         
-        // Има ли избрани складове за усредняване
-        $storesKeylist = price_Setup::get('STORE_AVERAGE_PRICES');
-        $storeIds = keylist::toArray($storesKeylist);
+        $storeData = $this->getStoreInfo();
+        $storeIds = $storeData['storeIds'];
+        $storeItems = $storeData['storeItemIds'];
         
         if (!countR($storeIds)) {
             return $res;
-        }
-        
-        // Ако има, кои са техните пера
-        $storeItems = array();
-        foreach ($storeIds as $storeId) {
-            $storeItemId = acc_Items::fetchItem('store_Stores', $storeId)->id;
-            $storeItems[$storeItemId] = $storeItemId;
         }
         
         $map = $this->getProductItemMap($affectedTargetedProducts);
@@ -97,6 +90,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
             }
             
             $debitPrice = (!empty($lastDebitRec->debitQuantity)) ? round($lastDebitRec->amount / $lastDebitRec->debitQuantity, 6) : 0;
+            $lastDebitRec->valior = dt::today();
             
             $obj = (object) array('sourceClassId' => null,
                 'sourceId' => null,
@@ -151,40 +145,59 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
     /**
      * Последните дебити на артикулите
      *
-     * @param array $productItemIds - пера на артикули
-     * @param array $storeItemIds   - пера на складове
+     * @param array $productItemIds   - пера на артикули
+     * @param array $storeItemIds     - пера на складове
+     * @param boolean $useCachedDate  - използване на кешираната дата
      *
      * @return array $debitRecs
      */
-    private function getLastDebitRecs($productItemIds, $storeItemIds)
+    private function getLastDebitRecs($productItemIds, $storeItemIds, $useCachedDate = true)
     {
         $storeAccId = acc_Accounts::getRecBySystemId('321')->id;
-       
+        
+        // Дали да се използва кешираната дата
+        $lastCalcedDebitTime = null;
+        if($useCachedDate){
+            $lastCalcedDebitTime = core_Permanent::get('lastCalcedDebitTime');
+        }
+        
         $debitRecs = array();
         foreach ($productItemIds as $itemId) {
             $jQuery = acc_JournalDetails::getQuery();
             $jQuery->where("#debitAccId = {$storeAccId}");
             $jQuery->EXT('valior', 'acc_Journal', 'externalKey=journalId');
+            $jQuery->EXT('journalCreatedOn', 'acc_Journal', 'externalKey=journalId,externalName=createdOn');
+            $jQuery->XPR('maxValior', 'double', 'MAX(#valior)');
             $jQuery->XPR('sumDebitQuantity', 'double', 'SUM(#debitQuantity)');
             $jQuery->XPR('sumDebitAmount', 'double', 'SUM(#amount)');
-            $jQuery->where("#debitItem2 = {$itemId} AND #sumDebitQuantity >= 0");
+            $jQuery->where("#debitItem2 = {$itemId} AND #debitQuantity >= 0");
             $jQuery->in('debitItem1', $storeItemIds);
-            $jQuery->limit(1);
-            $jQuery->show('debitItem1,debitItem2,amount,debitQuantity,valior,journalId,sumDebitQuantity,sumDebitAmount');
+            
+            $jQuery->show('debitItem1,debitItem2,amount,debitQuantity,valior,journalId,sumDebitQuantity,sumDebitAmount,maxValior');
             $jQuery->orderBy('valior,id', 'desc');
-            $jQuery->groupBy('journalId');
+            if(empty($lastCalcedDebitTime)){
+                $jQuery->groupBy('journalId');
+            } else { 
+                $jQuery->where("#journalCreatedOn >= '{$lastCalcedDebitTime}'");
+            }
             
             $jRec = $jQuery->fetch();
            
             if (is_object($jRec)) {
                 $jRec->debitQuantity = $jRec->sumDebitQuantity;
                 $jRec->amount = $jRec->sumDebitAmount;
+                $jRec->valior = $jRec->maxValior;
+                
                 unset($jRec->sumDebitQuantity);
                 unset($jRec->sumDebitAmount);
+                unset($jRec->maxValior);
                 
                 $debitRecs[$itemId] = $jRec;
             }
         }
+
+        $lastCalcedDebitTime = dt::now();
+        core_Permanent::set('lastCalcedDebitTime', $lastCalcedDebitTime, core_Permanent::IMMORTAL_VALUE);
         
         return $debitRecs;
     }
@@ -218,23 +231,39 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
     
     
     /**
+     * Помощна ф-я за избраните в настройките складове
+     * 
+     * @return array $res
+     */
+    private function getStoreInfo()
+    {
+        $res = array('storeItemIds' => array());
+        $storesKeylist = price_Setup::get('STORE_AVERAGE_PRICES');
+        $res['storeIds'] = keylist::toArray($storesKeylist);
+        
+        foreach ($res['storeIds'] as $storeId) {
+            $storeItemId = acc_Items::fetchItem('store_Stores', $storeId)->id;
+            $res['storeItemIds'][$storeItemId] = $storeItemId;
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
      * Запис за цените в модела
      */
     public static function saveAvgPrices($Type, $oldValue, $newValue)
     {
         // Има ли избрани складове за усредняване
         $me = cls::get(get_called_class());
-        $storesKeylist = price_Setup::get('STORE_AVERAGE_PRICES');
-        $storeIds = keylist::toArray($storesKeylist);
+        
+        $storeData = $me->getStoreInfo();
+        $storeIds = $storeData['storeIds'];
+        $storeItems = $storeData['storeItemIds'];
+        
         if (!countR($storeIds)) {
             return;
-        }
-        
-        // Ако има, кои са техните пера
-        $storeItems = array();
-        foreach ($storeIds as $storeId) {
-            $storeItemId = acc_Items::fetchItem('store_Stores', $storeId)->id;
-            $storeItems[$storeItemId] = $storeItemId;
         }
         
         // Има ли стандартни артикули
@@ -270,7 +299,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
         
         // Мапване на артикулите с перата и намиране на последните им дебити в посочените складове
         $map = $me->getProductItemMap($productIdsWithThisPolicyArr, $alreadyCalculatedProductIds);
-        $dRecs = $me->getLastDebitRecs(array_keys($map), $storeItems);
+        $dRecs = $me->getLastDebitRecs(array_keys($map), $storeItems, false);
        
         $valiorMap = array();
         foreach ($dRecs as $jRec) {
@@ -320,5 +349,26 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
         
         $ProductCache = cls::get('price_ProductCosts');
         $ProductCache->saveArray($toSave);
+    }
+    
+    
+    /**
+     * Дали има самостоятелен крон процес за изчисление
+     *
+     * @return datetime $datetime
+     *
+     * @return array
+     */
+    public function getAffectedProducts($datetime)
+    {
+        $affected = array();
+        
+        // Ако има избрани складове, гледа се има ли дебити в тях
+        $storeData = $this->getStoreInfo();
+        if(countR($storeData['storeItemIds'])){
+            $affected = parent::getAffectedProductWithStoreMovement($datetime, 'debit', $storeData['storeItemIds']);
+        }
+        
+        return $affected;
     }
 }

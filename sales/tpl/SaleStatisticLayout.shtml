@@ -3,7 +3,7 @@
        <table class='paddingCells' style='margin-bottom:10px;width:100%;'>
           <tr>
              <td class = 'sum-th'>
-                 |Поръчано|*, [#currencyId#]
+                 <b>|Поръчано|*, [#currencyId#]</b>
              </td>
              <td class = 'sum-th'>
                  |Доставено|*, [#currencyId#]
@@ -94,14 +94,14 @@
            <tr>
                <td colspan="5" style="border:none; padding: 4px 5px 5px;"></td>
            </tr>
-           <tr>
-               <td class = 'sum-th'>|Кошница|*</td>
+           <tr class="cartStatistic">
+               <td class = 'sum-th'><b>|Кошница|*</b></td>
                <td class = 'sum-th'>|Имена|*</td>
                <td class = 'sum-th'>|Телефон|*</td>
                <td class = 'sum-th'>|Имейл|*</td>
                <td class = 'sum-th'>|Домейн|*</td>
            </tr>
-           <tr style="font-size: 0.6em">
+           <tr style="font-size: 0.6em" class="cartStatistic">
                <td>[#cartId#]</td>
                <td>[#cartPersonnames#]</td>
                <td>[#cartTel#]</td>
