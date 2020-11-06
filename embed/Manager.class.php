@@ -480,4 +480,29 @@ abstract class embed_Manager extends core_Master
         
         return $Driver->getClassId() == $check->getClassId();
     }
+    
+    
+    /**
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
+     */
+    public function prepareSingle_($data)
+    {
+        if($Driver = $this->getDriver($data->rec)){
+            
+            // Ако драйвера има метод за закачане на детайли
+            if(method_exists($Driver, 'getDetails')){
+                if (empty($data->details) && isset($this->details)) {
+                    $data->details = arr::make($this->details);
+                }
+                
+                // Добавят се детайлите от драйвера
+                $driverDetails = $Driver->getDetails($data->rec);
+                $data->details = array_merge($data->details, $driverDetails);
+            }
+        }
+        
+        parent::prepareSingle_($data);
+        
+        return $data;
+    }
 }
