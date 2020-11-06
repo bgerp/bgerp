@@ -269,9 +269,8 @@ class sales_Services extends deals_ServiceMaster
         $rec = $data->rec;
         
         if ($rec->isReverse == 'no') {
-            
             if ($rec->state == 'active') {
-                if(cash_Pko::haveRightFor('add', (object)array('originId' => $rec->containerId, 'threadId' => $rec->threadId))){
+                if (cash_Pko::haveRightFor('add', (object) array('originId' => $rec->containerId, 'threadId' => $rec->threadId))) {
                     $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов документ');
                 }
             }
@@ -315,6 +314,21 @@ class sales_Services extends deals_ServiceMaster
     {
         if (empty($rec->originId)) {
             $rec->originId = doc_Threads::getFirstContainerId($rec->threadId);
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        
+        if (deals_Helper::hasProductsBellowMinPrice($mvc, $rec) && $rec->isReverse !== 'yes') {
+            core_Statuses::newStatus('Документа не може да се контира, защото има артикули с продажна цена под минималната|*!', 'error');
+            
+            return false;
         }
     }
 }

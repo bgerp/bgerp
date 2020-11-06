@@ -75,12 +75,6 @@
                 <!--ET_END vatInfo-->
 
                 <!--ET_END MyCompany-->
-                <!--ET_BEGIN shipmentStoreId-->
-                <hr style="margin: 3px 0 1px;">
-                <div>
-                    From store: [#shipmentStoreId#]
-                </div>
-                <!--ET_END shipmentStoreId-->
             </td>
         </tr>
         </tbody>
@@ -116,12 +110,6 @@
                 [#bank#]<!--ET_END bank--><!--ET_BEGIN bic-->, <span class="nowrap">BIC: [#bic#]</span><!--ET_END bic--></div>
             </div>
             <!--ET_END bankAccountId-->
-            <!--ET_BEGIN caseId-->
-            <hr>
-            <div class='cellRow'>
-                <span class='quiet'>Case: </span>[#caseId#]
-            </div>
-            <!--ET_END caseId-->
             [#ADDITIONAL_BLOCK#]
             <hr>
             <!--ET_BEGIN conditions-->

@@ -91,14 +91,21 @@ class price_ProductCosts extends core_Manager
         $row->price = price_Lists::roundPrice(price_ListRules::PRICE_LIST_COST, $rec->price, true);
         $row->ROW_ATTR = array('class' => 'state-active');
         
-        if(!empty($rec->sourceId)){
+        if (!empty($rec->sourceId)) {
             $Source = cls::get($rec->sourceClassId);
-            if(cls::haveInterface('doc_DocumentIntf', $Source)){
-                $row->sourceId = cls::get($rec->sourceClassId)->getLink($rec->sourceId, 0);
-            } elseif($Source instanceof core_Master){
-                $row->sourceId = cls::get($rec->sourceClassId)->getHyperlink($rec->sourceId, true);
+            if (cls::haveInterface('doc_DocumentIntf', $Source)) {
+                $row->sourceId = $Source->getLink($rec->sourceId, 0);
+            } elseif ($Source instanceof core_Master) {
+                $row->sourceId = $Source->getHyperlink($rec->sourceId, true);
             } else {
-                $row->sourceId = cls::get($rec->sourceClassId)->getRecTitle($rec->sourceId);
+                $row->sourceId = $Source->getRecTitle($rec->sourceId);
+            }
+            
+            if($Source->getField('state', false)){
+                $sState = $Source->fetchField($rec->sourceId, 'state');
+                if($sState == 'rejected'){
+                    $row->sourceId = "<span class= 'state-{$sState} document-handler'>{$row->sourceId}</span>";
+                }
             }
         }
         
@@ -113,10 +120,11 @@ class price_ProductCosts extends core_Manager
     public function act_CachePrices()
     {
         expect(haveRole('debug'));
-        $datetime = dt::addSecs(-1 * 60 * 60);
+        $datetime = dt::addSecs(-1 * 60);
+        
         self::saveCalcedCosts($datetime);
         
-        return followRetUrl(null, "Преизчислени са данните за последния час");
+        return followRetUrl(null, 'Преизчислени са данните за последния час');
     }
     
     
@@ -132,209 +140,79 @@ class price_ProductCosts extends core_Manager
     
     
     /**
-     * Кои стандартни артикули са засегнати  след посочената дата
-     * 
-     * @param datetime $beforeDate
-     * 
-     * @return array $res
-     */
-    public static function getAffectedProducts($beforeDate)
-    {
-        $res = array();
-        
-        // Участват артикулите в активирани или оттеглени активни покупки, след посочената дата
-        $pQuery = purchase_PurchasesDetails::getQuery();
-        $pQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
-        $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-        $pQuery->EXT('activatedOn', 'purchase_Purchases', 'externalName=activatedOn,externalKey=requestId');
-        $pQuery->EXT('documentModifiedOn', 'purchase_Purchases', 'externalName=modifiedOn,externalKey=requestId');
-        $pQuery->EXT('state', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
-        $pQuery->where("((#state = 'active' || #state = 'closed') AND #activatedOn >= '{$beforeDate}') OR (#state = 'rejected' AND #activatedOn IS NOT NULL AND #documentModifiedOn >= '{$beforeDate}')");
-        $pQuery->where("#canStore = 'yes' AND #isPublic = 'yes'");
-        $pQuery->show('productId');
-        $res += arr::extractValuesFromArray($pQuery->fetchAll(), 'productId');
-        
-        // + артикулите в активните или оттеглени активни рецепти, след посочената дата
-        $bQuery = cat_Boms::getQuery();
-        $bQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
-        $bQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-        $bQuery->where("((#state = 'active' || #state = 'closed') AND #activatedOn >= '{$beforeDate}') OR (#state = 'rejected' AND #activatedOn IS NOT NULL AND #modifiedOn >= '{$beforeDate}') OR (#state = 'active' AND #modifiedOn >= '{$beforeDate}' AND #brState = 'rejected')");
-        $bQuery->show('productId');
-        $bQuery->where("#canStore = 'yes' AND #isPublic = 'yes'");
-        $res += arr::extractValuesFromArray($bQuery->fetchAll(), 'productId');
-        
-        $storeAccId = acc_Accounts::getRecBySystemId('321')->id;
-        $jQuery = acc_JournalDetails::getQuery();
-        $jQuery->EXT('valior', 'acc_Journal', 'externalKey=journalId');
-        $jQuery->EXT('journalCreatedOn', 'acc_Journal', 'externalName=createdOn,externalKey=journalId');
-        $jQuery2 = clone $jQuery;
-        
-        // Кои пера на артикули са участвали в дебитирането на склад след посочената дата
-        $jQuery->where("#debitAccId = {$storeAccId} AND #journalCreatedOn >= '{$beforeDate}'");
-        $jQuery->show('debitItem2');
-        $jQuery->groupBy('debitItem2');
-        $itemsWithMovement = arr::extractValuesFromArray($jQuery->fetchAll(), 'debitItem2');
-        
-        // Кои пера на артикули са участвали в кредитирането на склад след посочената дата
-        $jQuery2->where("#creditAccId = {$storeAccId} AND #journalCreatedOn >= '{$beforeDate}'");
-        $jQuery2->show('creditItem2');
-        $jQuery2->groupBy('creditItem2');
-        $itemsWithMovement += arr::extractValuesFromArray($jQuery->fetchAll(), 'creditItem2');
-        
-        if(countR($itemsWithMovement)){
-            
-            // + атикулите, чиито пера са участвали в дебитирането или кредитирането на склад
-            $iQuery = acc_Items::getQuery();
-            $iQuery->EXT('productState', 'cat_Products', 'externalName=state,externalKey=objectId');
-            $iQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=objectId');
-            $iQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=objectId');
-            $iQuery->EXT('canSell', 'cat_Products', 'externalName=canStore,externalKey=objectId');
-            $iQuery->EXT('canBuy', 'cat_Products', 'externalName=canBuy,externalKey=objectId');
-            $iQuery->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=objectId');
-            $iQuery->where("#state = 'active' AND #classId= " . cat_Products::getClassId());
-            $iQuery->where("#isPublic = 'yes' AND #canStore = 'yes' AND #productState = 'active' AND (#canBuy = 'yes' OR #canManifacture = 'yes' OR #canSell = 'yes')");
-            $iQuery->in("id", $itemsWithMovement);
-            $iQuery->show('id,objectId');
-            $iQuery->notIn('objectId', $res);
-            $res += arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
-        }
-        
-        return $res;
-    }
-    
-    
-    /**
-     * Кои са засегнатите политики
-     * 
-     * @param array $affectedProducts
-     * 
-     * @return array $res
-     */
-    private static function getAffectedPolicies($affectedProducts)
-    {
-        $res = array();
-      
-        if(countR($affectedProducts)){
-            $categoryClassId = cat_Categories::getClassId();
-            $pQuery = cat_Products::getQuery();
-            $pQuery->EXT('folderClassId', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
-            $pQuery->EXT('folderCoverId', 'doc_Folders', 'externalName=coverId,externalKey=folderId');
-            $pQuery->where("#folderClassId = {$categoryClassId}");
-            $pQuery->show('folderCoverId');
-            $pQuery->in('id', $affectedProducts);
-            $categoryIds = arr::extractValuesFromArray($pQuery->fetchAll(), 'folderCoverId');
-            
-            $uQuery = price_Updates::getQuery();
-            $affectedProductImploded = implode(',', $affectedProducts);
-            $uQuery->where("#type = 'product' AND #objectId IN ({$affectedProductImploded})");
-            
-            $categoryImploded = implode(',', $categoryIds);
-            $uQuery->orWhere("#type = 'category' AND #objectId IN ({$categoryImploded})");
-            $uQuery->show('sourceClass1,sourceClass2,sourceClass3');
-            
-            $uRecs = $uQuery->fetchAll();
-           
-            array_walk($uRecs, function ($a) use (&$res) {
-                foreach (array('sourceClass1', 'sourceClass2', 'sourceClass3') as $fld){
-                    if(!empty($a->{$fld})){
-                        $res[$a->{$fld}] = $a->{$fld};
-                    }
-                }
-            });
-        }
-        
-        return $res;
-    }
-    
-    
-    /**
      * Обновяване на себестойностите по разписание
      */
     public static function saveCalcedCosts($datetime)
-    {   
+    {
         $self = cls::get(get_called_class());
-       
-        // Кои са засегнатите артикули
-        core_Debug::startTimer('calcAffected');
-        $affectedProducts = self::getAffectedProducts($datetime);
-        core_Debug::stopTimer('calcAffected');
+        $PolicyOptions = core_Classes::getOptionsByInterface('price_CostPolicyIntf');
         
-        $timer = round(core_Debug::$timers['calcAffected']->workingTime, 2);
-        $count = countR($affectedProducts);
-        log_System::logDebug("CALC AFFECTED[{$count}] = {$timer} FOR '{$datetime}'");
+        // Изчисляване на всяка от засегнатите политики, себестойностите на засегнатите пера
+        $update = array();
+        foreach ($PolicyOptions as $policyId) {
+            if (cls::load($policyId, true)) {
+                
+                // Ако няма отделен крон процес
+                $Interface = cls::getInterface('price_CostPolicyIntf', $policyId);
+                if($Interface->hasSeparateCalcProcess()) continue;
+                
+                // Кои са засегнатите артикули, касаещи политиката
+                $affectedProducts = $Interface->getAffectedProducts($datetime);
+                
+                // Ако има такива, ще се прави опит за изчисляване на себестойносттите
+                $count = countR($affectedProducts);
+                if($count){
+                    
+                    core_App::setTimeLimit($count * 0.5, 60);
+                    $calced = $Interface->calcCosts($affectedProducts);
+                    $update = array_merge($update, $calced);
+                }
+            }
+        }
         
-        // Кои са засегнатите политики
-        $policiesArr = static::getAffectedPolicies($affectedProducts);
-        if(!countR($affectedProducts) || !countR($policiesArr)){
+        if(!countR($update)){
             
             return;
         }
         
-        core_App::setTimeLimit($count * 0.6, 60);
-        core_Debug::startTimer('calcCosts');
-       
-        // Изчисляване на всяка от засегнатите политики, себестойностите на засегнатите пера
-        $update = array();
-        foreach ($policiesArr as $policyId){
-            if(cls::load($policyId, true)){
-                $Policy = cls::get($policyId);
-                $calced = $Policy->calcCosts($affectedProducts);
-                $update = array_merge($update, $calced);
-            }
-        }
-       
-        core_Debug::stopTimer('calcCosts');
-        $timer = round(core_Debug::$timers['calcCosts']->workingTime, 2);
-        log_System::logDebug("CALC COSTS COUNT[{$count}] - calcTime = {$timer}");
-        
         $now = dt::now();
-        array_walk($update, function (&$a) use($now){$a->updatedOn = $now;});
-        
-        // Синхронизиране на новите записи със старите записи на засегнатите пера
-        $exQuery = self::getQuery();
-        $exQuery->in('productId', $affectedProducts);
-        $exRecs = $exQuery->fetchAll();
-        $res = arr::syncArrays($update, $exRecs, 'productId,classId', 'price,quantity,sourceClassId,sourceId,valior');
-        
-        if(countR($res['insert'])){
-            $self->saveArray($res['insert']);
-        }
-        
-        if(countR($res['update'])){
-            $self->saveArray($res['update'], 'id,price,quantity,sourceClassId,sourceId,updatedOn,valior');
-        }
-        
-        // Изтриване на несрещнатите себестойностти
-        if (countR($res['delete'])) {
-            $avgDeliveruPolicyId = price_interface_AverageCostPricePolicyImpl::getClassId();
-            $avgStorePolicyId = price_interface_AverageCostStorePricePolicyImpl::getClassId();
-            $skipDeleteArr = array($avgDeliveruPolicyId, $avgStorePolicyId);
+        array_walk($update, function (&$a) use ($now) {
+            $a->updatedOn = $now;
+        });
             
-            $query = self::getQuery();
-            $query->in('id', $res['delete']);
-            $query->notIn('classId', $skipDeleteArr);
-            $query->show('id');
-           
-            while($delRec = $query->fetch()){
-                $self->delete($delRec->id);
+            // Синхронизиране на новите записи със старите записи на засегнатите пера
+            $exQuery = self::getQuery();
+            $exQuery->in('productId', $affectedProducts);
+            $exRecs = $exQuery->fetchAll();
+            $res = arr::syncArrays($update, $exRecs, 'productId,classId', 'price,quantity,sourceClassId,sourceId,valior');
+            
+            if (countR($res['insert'])) {
+                $self->saveArray($res['insert']);
             }
-        }
+            
+            if (countR($res['update'])) {
+                $self->saveArray($res['update'], 'id,price,quantity,sourceClassId,sourceId,updatedOn,valior');
+            }
     }
     
     
     /**
      * Намира себестойността на артикула по вида
      *
-     * @param int    $productId - ид на артикула
-     * @param mixed $source     - източник
+     * @param int   $productId - ид на артикула
+     * @param mixed $source    - източник
      *
      * @return float $price     - намерената себестойност
      */
     public static function getPrice($productId, $source)
     {
         expect($productId);
-        $Source = cls::get($source);
-        $price = static::fetchField("#productId = {$productId} AND #classId = '{$Source->getClassId()}'", 'price');
+        
+        $price = null;
+        if(cls::load($source, true)){
+            $Source = cls::get($source);
+            $price = static::fetchField("#productId = {$productId} AND #classId = '{$Source->getClassId()}'", 'price');
+        }
         
         return $price;
     }
@@ -350,11 +228,11 @@ class price_ProductCosts extends core_Manager
         $data->listFilter->showFields = 'productId,classId';
         $data->listFilter->input();
         
-        if($filterRec = $data->listFilter->rec){
-            if(isset($filterRec->productId)){
+        if ($filterRec = $data->listFilter->rec) {
+            if (isset($filterRec->productId)) {
                 $data->query->where("#productId = {$filterRec->productId}");
             }
-            if(isset($filterRec->classId)){
+            if (isset($filterRec->classId)) {
                 $data->query->where("#classId = {$filterRec->classId}");
             }
         }

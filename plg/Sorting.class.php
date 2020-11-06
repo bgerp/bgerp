@@ -35,8 +35,8 @@ class plg_Sorting extends core_Plugin
         }
         
         $data->listFields = arr::make($data->listFields, true);
-        if(!is_object($data->plg_Sorting)){
-            $data->plg_Sorting = (object)array('fields' => array());
+        if (!is_object($data->plg_Sorting)) {
+            $data->plg_Sorting = (object) array('fields' => array());
         }
         
         if (countR($data->listFields)) {
@@ -113,7 +113,6 @@ class plg_Sorting extends core_Plugin
             
             // Ако сме в режим принтиране не правим нищо
             if (Mode::is('printing') || Mode::is('pdf') || Mode::is('text', 'xhtml')) {
-                
                 return;
             }
             
@@ -123,22 +122,41 @@ class plg_Sorting extends core_Plugin
                 if (!$data->listFields[$field]) {
                     continue;
                 }
-                
-                switch ($direction) {
-                    case 'none':
-                        $img = 'img/icon_sort.gif';
-                        $sort = $field . '|up';
-                        break;
-                    case 'up':
-                        $img = 'img/icon_sort_up.gif';
-                        $sort = $field . '|down';
-                        break;
-                    case 'down':
-                        $img = 'img/icon_sort_down.gif';
-                        $sort = $field . '|none';
-                        break;
-                    default:
-                    expect(false, $direction);
+
+                if (is_a($mvc->fields[$field]->type, 'type_Double') || is_a($mvc->fields[$field]->type, 'type_Int') || is_a($mvc->fields[$field]->type, 'type_Date')) {
+                    switch ($direction) {
+                        case 'none':
+                            $img = 'img/icon_sort.gif';
+                            $sort = $field . '|down';
+                            break;
+                        case 'up':
+                            $img = 'img/icon_sort_up.gif';
+                            $sort = $field . '|none';
+                            break;
+                        case 'down':
+                            $img = 'img/icon_sort_down.gif';
+                            $sort = $field . '|up';
+                            break;
+                        default:
+                        expect(false, $direction);
+                    }
+                } else {
+                    switch ($direction) {
+                        case 'none':
+                            $img = 'img/icon_sort.gif';
+                            $sort = $field . '|up';
+                            break;
+                        case 'up':
+                            $img = 'img/icon_sort_up.gif';
+                            $sort = $field . '|down';
+                            break;
+                        case 'down':
+                            $img = 'img/icon_sort_down.gif';
+                            $sort = $field . '|none';
+                            break;
+                        default:
+                        expect(false, $direction);
+                    }
                 }
                 
                 $fArr = explode('->', $data->listFields[$field]);

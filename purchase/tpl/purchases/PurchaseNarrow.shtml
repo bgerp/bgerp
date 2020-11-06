@@ -19,7 +19,11 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"><b>|Получател|*</b></td>
+                    <td class="cell custom-header-bg"><b>|Получател|*</b>
+                        <!--ET_BEGIN isPaid-->
+                        <div class='stamp fright'>[#isPaid#]</div>
+                        <!--ET_END isPaid-->
+                    </td>
                 </tr>
                 <tr>
                     <td>
@@ -27,22 +31,23 @@
                         <div class='address-block'>
                             [#MyAddress#]
                         </div>
+                        <!--ET_BEGIN vatInfo-->
+                        [#vatInfo#]
+                        <hr style="margin: 3px 0 1px;">
                         <!--ET_BEGIN MyCompanyVatNo-->
-                        <div><small> ЗДДС&nbsp;№:</small> <span class="bigData" style="padding-left:5px;">[#MyCompanyVatNo#]</span></div>
+                        <div><small>ЗДДС&nbsp;№:</small> <span class="bigData notBold" style="padding-left:5px;">[#MyCompanyVatNo#]</span></div>
                         <!--ET_END MyCompanyVatNo-->
                         <!--ET_BEGIN uicId-->
-                        <div><small>ЕИК:</small> <span class="bigData" style="padding-left:5px;">[#uicId#]</span></div>
+                        <div><small>ЕИК:</small> <span class="bigData notBold" style="padding-left:5px;">[#uicId#]</span></div>
                         <!--ET_END uicId-->
-                        <!--ET_BEGIN shipmentStoreId-->
-                        <hr style="margin: 3px 0 1px;">
-                        <div>
-                            |До склад|*: [#shipmentStoreId#]
-                        </div>
-                        <!--ET_END shipmentStoreId-->
+                        <!--ET_END vatInfo-->
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"><b>|Доставчик|*</b></td>
+                    <td class="cell custom-header-bg"><b>|Доставчик|*</b>
+                        <!--ET_BEGIN isDelivered-->
+                        <div class='stamp fright'>[#isDelivered#]</div>
+                        <!--ET_END isDelivered--></td>
                 </tr>
                 <tr>
                     <td>
@@ -50,19 +55,17 @@
 	                    <div class='address-block'>
 	                        [#contragentCountryId#]
 	                        <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+                            <!--ET_BEGIN contragentVatInfo-->
+                            [#contragentVatInfo#]
+                            <hr style="margin: 3px 0 1px;">
                             <!--ET_BEGIN vatNo-->
-                            <div><small> ЗДДС&nbsp;№:</small> <span class="bigData" style="padding-left:5px;">[#vatNo#]</span></div>
+                            <div><small>ЗДДС&nbsp;№:</small> <span class="bigData notBold" style="padding-left:5px;">[#vatNo#]</span></div>
                             <!--ET_END vatNo-->
                             <!--ET_BEGIN contragentUicId-->
-                            <div><small>[#contragentUicCaption#]:</small> <span class="bigData" style="padding-left:5px;"> [#contragentUicId#]</span></div>
+                            <div><small>[#contragentUicCaption#]:</small> <span class="bigData notBold" style="padding-left:5px;"> [#contragentUicId#]</span></div>
                             <!--ET_END contragentUicId-->
+                            <!--ET_END contragentVatInfo-->
 	                    </div>
-	                    <!--ET_BEGIN deliveryLocationId-->
-                    <hr style="margin: 3px 0 1px;">
-                    <div>
-                        |От обект|*: [#deliveryLocationId#]
-                    </div>
-                    <!--ET_END deliveryLocationId-->
                     </td>
                 </tr>
             </tbody>
@@ -102,14 +105,6 @@
                     <span class='quiet'>|Банк. с-ка|*: </span>[#bankAccountId#]
                 </div>
                 <!--ET_END bankAccountId-->
-                <!--ET_BEGIN caseId-->
-                <div class='cellRow'>
-                    <span class='quiet'>|Каса|*: </span>[#caseId#]
-                    <!--ET_BEGIN isPaid-->
-                    <div class='stamp'>[#isPaid#]</div>
-                    <!--ET_END isPaid-->
-                </div>
-                <!--ET_END caseId-->
                 <hr>
             <!--ET_BEGIN conditions-->
             [#conditions#]
@@ -145,9 +140,6 @@
                         <li>|Общи условия по покупка|*: [#commonCondition#]</li>
                         <!--ET_END commonCondition-->
                     </ol>
-                    <!--ET_BEGIN isDelivered-->
-                    <div class='stamp'>[#isDelivered#]</div>
-                    <!--ET_END isDelivered-->
                 <!--ET_END conditions-->
                 <hr>
                 [#/deals/tpl/DocumentPiceInfo.shtml#]

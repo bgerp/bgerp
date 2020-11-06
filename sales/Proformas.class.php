@@ -274,12 +274,18 @@ class sales_Proformas extends deals_InvoiceMaster
         
         parent::beforeInvoiceSave($rec);
         
+        // Кой е следващия най-голям номер
         $number = (isset($rec->number)) ? $rec->number : ((isset($rec->id) ? $mvc->fetchField($rec->id, 'number') : 0));
         if (empty($number)) {
             $query = $mvc->getQuery();
             $query->XPR('maxNumber', 'int', 'MAX(#number)');
             $number = $query->fetch()->maxNumber;
-            ++$number;
+            $number += 1;
+            
+            while(self::fetchField("#number = '{$number}'")){
+                $number += 1;
+            }
+            
             $rec->number = $number;
         }
     }

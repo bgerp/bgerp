@@ -93,6 +93,8 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $fieldset->FLD('products', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Филтри->Артикули,placeholder=Всички,after=group,single=none,class=w100');
         $fieldset->FLD('availability', 'enum(Всички=Всички, Налични=Налични,Отрицателни=Отрицателни)', 'notNull,caption=Филтри->Наличност,maxRadio=3,columns=3,after=products,single=none');
         
+        $fieldset->FLD('orderBy', 'enum(productName=Артикул,code=Код,amount=Стойност)', 'caption=Филтри->Подреди по,maxRadio=3,columns=3,after=availability,silent');
+        
         $fieldset->FNC('totalProducts', 'int', 'input=none,single=none');
     }
     
@@ -126,6 +128,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         
         $form->setDefault('selfPrices', 'balance');
         $form->setDefault('availability', 'Всички');
+        $form->setDefault('orderBy', 'name');
     }
     
     
@@ -160,104 +163,103 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $bRecs = $Balance->getBalance('321');
         
         
+        foreach ($bRecs as $item) {
+            $blQuantity = 0;
+            $iRec = acc_Items::fetch($item->ent2Id);
+            $id = $iRec->objectId;
             
-            foreach ($bRecs as $item) {$blQuantity = 0;
-                $iRec = acc_Items::fetch($item->ent2Id);
-                $id = $iRec->objectId;
-                
-                
-                //Филтър по групи артикули
-                if (isset($rec->group)) {
-                    $checkGdroupsArr = keylist::toArray($rec->group);
-                    if (!keylist::isIn($checkGdroupsArr, cat_Products::fetch($iRec->objectId)->groups)) {
-                        continue;
-                    }
-                }
-                
-                //Код на продукта
-                list($productCode) = explode(' ', $iRec->num);
-                
-                //Продукт ID
-                $productId = $iRec->objectId;
-                
-                //Име на продукта
-                $productName = $iRec->title;
-                
-                
-                //Количество в началото на периода
-                $baseQuantity = $item->baseQuantity;
-                
-                //Стойност в началото на периода
-                $baseAmount = $item->baseAmount;
-                
-                //Дебит оборот количество
-                $debitQuantity = $item->debitQuantity;
-                
-                //Дебит оборот стойност
-                $debitAmount = $item->debitAmount;
-                
-                //Кредит оборот количество
-                $creditQuantity = $item->creditQuantity;
-                
-                //Кредит оборот стойност
-                $creditAmount = $item->creditAmount;
-                
-                //Количество в края на периода
-                $blQuantity = $item->blQuantity;
-                
-                if (($rec->availability == 'Налични') && $blQuantity < 0) {
+            
+            //Филтър по групи артикули
+            if (isset($rec->group)) {
+                $checkGdroupsArr = keylist::toArray($rec->group);
+                if (!keylist::isIn($checkGdroupsArr, cat_Products::fetch($iRec->objectId)->groups)) {
                     continue;
-                }
-                if ($rec->availability == 'Отрицателни' && $blQuantity >= 0) {
-                    continue;
-                }
-                
-                
-                
-                //Стойност в края на периода
-                $blAmount = $item->blAmount;
-                
-                // добавя в масива
-                if (!array_key_exists($id, $recs)) {
-                    $recs[$id] = (object) array(
-                        
-                        'productId' => $productId,
-                        'code' => $productCode,
-                        'productName' => $productName,
-                        
-                        'selfPrice' => '',
-                        'amount' => '',
-                        
-                        'baseQuantity' => $baseQuantity,
-                        'baseAmount' => $baseAmount,
-                        
-                        'debitQuantity' => $debitQuantity,
-                        'debitAmount' => $debitAmount,
-                        
-                        'creditQuantity' => $creditQuantity,
-                        'creditAmount' => $creditAmount,
-                        
-                        'blQuantity' => $blQuantity,
-                        'blAmount' => $blAmount,
-                    
-                    );
-                } else {
-                    $obj = &$recs[$id];
-                    
-                    $obj->baseQuantity += $baseQuantity;
-                    $obj->baseAmount += $baseAmount;
-                    
-                    $obj->debitQuantity += $debitQuantity;
-                    $obj->debitAmount += $debitAmount;
-                    
-                    $obj->creditQuantity += $creditQuantity;
-                    $obj->creditAmount += $creditAmount;
-                    
-                    $obj->blQuantity += $blQuantity;
-                    $obj->blAmount += $blAmount;
                 }
             }
-      
+            
+            //Код на продукта
+            list($productCode) = explode(' ', $iRec->num);
+            
+            //Продукт ID
+            $productId = $iRec->objectId;
+            
+            //Име на продукта
+            $productName = $iRec->title;
+            
+            
+            //Количество в началото на периода
+            $baseQuantity = $item->baseQuantity;
+            
+            //Стойност в началото на периода
+            $baseAmount = $item->baseAmount;
+            
+            //Дебит оборот количество
+            $debitQuantity = $item->debitQuantity;
+            
+            //Дебит оборот стойност
+            $debitAmount = $item->debitAmount;
+            
+            //Кредит оборот количество
+            $creditQuantity = $item->creditQuantity;
+            
+            //Кредит оборот стойност
+            $creditAmount = $item->creditAmount;
+            
+            //Количество в края на периода
+            $blQuantity = $item->blQuantity;
+            
+            if (($rec->availability == 'Налични') && $blQuantity < 0) {
+                continue;
+            }
+            if ($rec->availability == 'Отрицателни' && $blQuantity >= 0) {
+                continue;
+            }
+            
+            
+            //Стойност в края на периода
+            $blAmount = $item->blAmount;
+            
+            // добавя в масива
+            if (!array_key_exists($id, $recs)) {
+                $recs[$id] = (object) array(
+                    
+                    'productId' => $productId,
+                    'code' => $productCode,
+                    'productName' => $productName,
+                    
+                    'selfPrice' => '',
+                    'amount' => '',
+                    
+                    'baseQuantity' => $baseQuantity,
+                    'baseAmount' => $baseAmount,
+                    
+                    'debitQuantity' => $debitQuantity,
+                    'debitAmount' => $debitAmount,
+                    
+                    'creditQuantity' => $creditQuantity,
+                    'creditAmount' => $creditAmount,
+                    
+                    'blQuantity' => $blQuantity,
+                    'blAmount' => $blAmount,
+                
+                );
+            } else {
+                $obj = &$recs[$id];
+                
+                $obj->baseQuantity += $baseQuantity;
+                $obj->baseAmount += $baseAmount;
+                
+                $obj->debitQuantity += $debitQuantity;
+                $obj->debitAmount += $debitAmount;
+                
+                $obj->creditQuantity += $creditQuantity;
+                $obj->creditAmount += $creditAmount;
+                
+                $obj->blQuantity += $blQuantity;
+                $obj->blAmount += $blAmount;
+            }
+        }
+        
         foreach ($recs as $key => $val) {
             
             //Себестойност на артикула
@@ -265,12 +267,15 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                 $val->selfPrice = cat_Products::getPrimeCost($key, null, $val->blQuantity, $date);
             } else {
                 $val->selfPrice = $val->blQuantity ? $val->blAmount / $val->blQuantity : null;
-                
             }
             $val->amount = $val->selfPrice * $val->blQuantity;
         }
         
-        arr::sortObjects($recs, 'productName', 'ASC', 'stri');
+        if (!is_null($recs) && $rec->orderBy) {
+            arr::sortObjects($recs, $rec->orderBy, 'asc');
+        }
+        
+        //arr::sortObjects($recs, 'productName', 'ASC', 'stri');
         
         $rec->totalProducts = (count($recs));
         
@@ -340,8 +345,8 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             $row->selfPrice = ht::styleNumber($row->selfPrice, $dRec->selfPrice);
         }
         
-        $row->amount = $Double->toVerbal($dRec->selfPrice * $dRec->blQuantity);
-        $row->amount = ht::styleNumber($row->amount, $dRec->selfPrice * $dRec->blQuantity);
+        $row->amount = $Double->toVerbal($dRec->amount);
+        $row->amount = ht::styleNumber($row->amount, $dRec->amount);
         
         return $row;
     }

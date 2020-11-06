@@ -19,7 +19,11 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"><b>Receiver</b></td>
+                    <td class="cell custom-header-bg"><b>Receiver</b>
+                        <!--ET_BEGIN isPaid-->
+                        <div class='stamp fright'>[#isPaid#]</div>
+                        <!--ET_END isPaid-->
+                    </td>
                 </tr>
                 <tr>
                     <td>
@@ -27,22 +31,23 @@
                         <div class='address-block'>
                             [#MyAddress#]
                         </div>
+                        <!--ET_BEGIN vatInfo-->
+                        [#vatInfo#]
+                        <hr style="margin: 3px 0 1px;">
                         <!--ET_BEGIN MyCompanyVatNo-->
-                        <div><small>VAT ID:</small> <span class="bigData" style="padding-left:5px;">[#MyCompanyVatNo#]</span></div>
+                        <div><small>VAT ID:</small> <span class="bigData notBold" style="padding-left:5px;">[#MyCompanyVatNo#]</span></div>
                         <!--ET_END MyCompanyVatNo-->
                         <!--ET_BEGIN uicId-->
-                        <div><small>Tax ID:</small> <span class="bigData" style="padding-left:5px;">[#uicId#]</span></div>
+                        <div><small>Tax ID:</small> <span class="bigData notBold" style="padding-left:5px;">[#uicId#]</span></div>
                         <!--ET_END uicId-->
-                        <!--ET_BEGIN shipmentStoreId-->
-                        <hr style="margin: 3px 0 1px;">
-                        <div>
-                            To store: [#shipmentStoreId#]
-                        </div>
-                        <!--ET_END shipmentStoreId-->
+                        <!--ET_END vatInfo-->
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"><b>Supplier</b></td>
+                    <td class="cell custom-header-bg"><b>Supplier</b>
+                        <!--ET_BEGIN isDelivered-->
+                        <div class='stamp fright'>[#isDelivered#]</div>
+                        <!--ET_END isDelivered--></td>
                 </tr>
                 <tr>
                     <td>
@@ -51,18 +56,16 @@
                             [#contragentCountryId#]
                             <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
                         </div>
+                        <!--ET_BEGIN contragentVatInfo-->
+                        [#contragentVatInfo#]
+                        <hr style="margin: 3px 0 1px;">
                         <!--ET_BEGIN vatNo-->
-                        <div><small>VAT ID:</small> <span class="bigData" style="padding-left:5px;">[#vatNo#]</span></div>
+                        <div><small>VAT ID:</small> <span class="bigData notBold" style="padding-left:5px;">[#vatNo#]</span></div>
                         <!--ET_END vatNo-->
                         <!--ET_BEGIN contragentUicId-->
-                        <div><small>[#contragentUicCaption#]:</small> <span class="bigData" style="padding-left:5px;"> [#contragentUicId#]</span></div>
+                        <div><small>[#contragentUicCaption#]:</small> <span class="bigData notBold" style="padding-left:5px;"> [#contragentUicId#]</span></div>
                         <!--ET_END contragentUicId-->
-                        <!--ET_BEGIN deliveryLocationId-->
-                    <hr style="margin: 3px 0 1px;">
-                    <div>
-                        From location: [#deliveryLocationId#]
-                    </div>
-                    <!--ET_END deliveryLocationId-->
+                        <!--ET_END contragentVatInfo-->
                     </td>
                 </tr>
             </tbody>
@@ -102,11 +105,6 @@
 	                        <span class='quiet'>Bank account: </span>[#bankAccountId#]
 	                    </div>
 	                    <!--ET_END bankAccountId-->
-	                    <!--ET_BEGIN caseId-->
-	                    <div class='cellRow'>
-	                        <span class='quiet'>Case: </span>[#caseId#]
-	                    </div>
-	                    <!--ET_END caseId-->
 	                <!--ET_BEGIN purchaseConditions-->
 	                [#purchaseConditions#]
 	                    <div>

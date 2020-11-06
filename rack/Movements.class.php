@@ -1361,6 +1361,8 @@ class rack_Movements extends core_Manager
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
         $productName = ' ' . plg_Search::normalizeText(cat_Products::getTitleById($rec->productId));
+        $productName .= " {$rec->productId}";
+        
         $res = ' ' . $res . ' ' . $productName;
     }
     
