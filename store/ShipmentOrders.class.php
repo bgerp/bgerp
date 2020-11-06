@@ -233,17 +233,17 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     /**
      * Метод по подразбиране за намиране на дефолт шаблона
-     * 
+     *
      * @param stdClass $rec
+     *
      * @see cond_plg_DefaultValues
      */
     public function getCustomDefaultTemplate($rec)
     {
-        if(core_Packs::isInstalled('eshop')){
-            if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
-                if($firstDocument->isInstanceOf('sales_Sales')){
-                    if($c = eshop_Carts::fetchField("#saleId = {$firstDocument->that}")){
-                        
+        if (core_Packs::isInstalled('eshop')) {
+            if ($firstDocument = doc_Threads::getFirstDocument($rec->threadId)) {
+                if ($firstDocument->isInstanceOf('sales_Sales')) {
+                    if ($c = eshop_Carts::fetchField("#saleId = {$firstDocument->that}")) {
                         $templateId = doc_TplManager::fetchField("#name = 'Експедиционно нареждане с цени (Онлайн поръчка)' AND #docClassId = {$this->getClassId()}");
                         
                         return $templateId;
@@ -307,7 +307,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         }
         
         if ($row->pCode) {
-            $row->deliveryTo .= (($row->deliveryTo) ? ", " : "") . $row->pCode;
+            $row->deliveryTo .= (($row->deliveryTo) ? ', ' : '') . $row->pCode;
         }
         
         if ($row->pCode) {
@@ -347,13 +347,13 @@ class store_ShipmentOrders extends store_DocumentMaster
             }
             $row->toCompany = $logisticData['toCompany'];
             
-            if($rec->state != 'pending'){
+            if ($rec->state != 'pending') {
                 unset($row->storeReadiness);
             } else {
                 $row->storeReadiness = isset($row->storeReadiness) ? $row->storeReadiness : "<b class='quiet'>N/A</b>";
             }
             
-            if(Mode::isReadOnly()){
+            if (Mode::isReadOnly()) {
                 unset($row->storeReadiness, $row->zoneReadiness);
             }
         }
@@ -408,18 +408,18 @@ class store_ShipmentOrders extends store_DocumentMaster
         $tpl = new ET(tr('Моля запознайте се с нашето експедиционно нареждане') . ': #[#handle#]');
         $tpl->replace($handle, 'handle');
        
-        if($rec->isReverse == 'no'){
+        if ($rec->isReverse == 'no') {
             
             // Кои са фактурите в нишката
             $invoiceArr = deals_Helper::getInvoicesInThread($rec->threadId);
-            if(countR($invoiceArr)){
+            if (countR($invoiceArr)) {
                 $dQuery = store_ShipmentOrderDetails::getQuery();
                 $dQuery->where("#shipmentId = {$rec->id}");
                 $dQuery->show('productId');
                 $products = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
                 
                 $invoiceArr = array_keys($invoiceArr);
-                foreach ($invoiceArr as $invoiceContainerId){
+                foreach ($invoiceArr as $invoiceContainerId) {
                     $InvoiceRef = doc_Containers::getDocument($invoiceContainerId);
                     $InvoiceDetail = cls::get($InvoiceRef->mainDetail);
                     $iQuery = $InvoiceDetail->getQuery();
@@ -431,7 +431,7 @@ class store_ShipmentOrders extends store_DocumentMaster
                     $diff1 = countR(array_diff_key($products, $invoiceProducts));
                     $diff2 = countR(array_diff_key($invoiceProducts, $products));
                    
-                    if(empty($diff1) && empty($diff2)){
+                    if (empty($diff1) && empty($diff2)) {
                         $iTpl = new ET(tr("|*\n|Моля, запознайте се с приложената фактура") . ': #[#handle#]');
                         $iTpl->replace($InvoiceRef->getHandle(), 'handle');
                         $tpl->append($iTpl);
@@ -510,11 +510,9 @@ class store_ShipmentOrders extends store_DocumentMaster
         if (core_Packs::isInstalled('eshop')) {
             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
             if ($firstDoc->isInstanceOf('sales_Sales')) {
-                
                 $sContragentData = $firstDoc->getContragentData($firstDoc->that);
                 
-                if (!(array)$contragentData) {
-                    
+                if (!(array) $contragentData) {
                     return $sContragentData;
                 }
                 
@@ -569,8 +567,8 @@ class store_ShipmentOrders extends store_DocumentMaster
             $res['toCompany'] = !empty($rec->company) ? $rec->company : $res['toCompany'];
             $res['toPerson'] = !empty($rec->person) ? $rec->person : $res['toPerson'];
             $res['toPersonPhones'] = !empty($rec->tel) ? $rec->tel : $res['toPersonPhones'];
-        } elseif(empty($rec->locationId) && $rec->isReverse == 'no'){
-            if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
+        } elseif (empty($rec->locationId) && $rec->isReverse == 'no') {
+            if ($firstDocument = doc_Threads::getFirstDocument($rec->threadId)) {
                 $firstDocumentLogisticData = $firstDocument->getLogisticData();
                 $res['toCountry'] = $firstDocumentLogisticData['toCountry'];
                 $res['toPCode'] = $firstDocumentLogisticData['toPCode'];
@@ -658,7 +656,7 @@ class store_ShipmentOrders extends store_DocumentMaster
                 $deliveryTermId = $firstDoc->fetchField('deliveryTermId');
                 
                 $cmrRow = 2;
-                if ((isset($deliveryTermId) && strpos(cond_DeliveryTerms::fetchField($deliveryTermId, 'properties'), 'cmr') !== FALSE) || trans_Setup::get('CMR_SHOW_BTN') == 'yes') {
+                if ((isset($deliveryTermId) && strpos(cond_DeliveryTerms::fetchField($deliveryTermId, 'properties'), 'cmr') !== false) || trans_Setup::get('CMR_SHOW_BTN') == 'yes') {
                     $cmrRow = 1;
                 }
                 $data->toolbar->addBtn('ЧМР', array('trans_Cmrs', 'add', 'originId' => $rec->containerId, 'ret_url' => true), "title=Създаване на ЧМР към експедиционното нареждане,ef_icon=img/16/lorry_add.png,row={$cmrRow}");
@@ -666,9 +664,9 @@ class store_ShipmentOrders extends store_DocumentMaster
         }
         
         if (in_array($rec->state, array('active', 'pending')) && $rec->isReverse == 'no') {
-             if(cash_Pko::haveRightFor('add', (object)array('originId' => $rec->containerId, 'threadId' => $rec->threadId))){
-                 $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов документ');
-             }
+            if (cash_Pko::haveRightFor('add', (object) array('originId' => $rec->containerId, 'threadId' => $rec->threadId))) {
+                $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов документ');
+            }
         }
     }
     
@@ -695,8 +693,8 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
-    * Извиква се преди подготовката на колоните
-    */
+     * Извиква се преди подготовката на колоните
+     */
     public static function on_BeforePrepareListFields($mvc, &$res, $data)
     {
         if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
@@ -711,8 +709,8 @@ class store_ShipmentOrders extends store_DocumentMaster
     protected static function on_AfterGetDocNameInRichtext($mvc, &$docName, $id)
     {
         $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
-        if(isset($indicator)){
-            if($docName instanceof core_ET){
+        if (isset($indicator)) {
+            if ($docName instanceof core_ET) {
                 $docName->append($indicator);
             } else {
                 $docName .= $indicator;
@@ -726,11 +724,10 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     protected function on_AfterGetLink($mvc, &$link, $id, $maxLength = false, $attr = array())
     {
-        
         $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
         
-        if(isset($indicator)){
-            if($link instanceof core_ET){
+        if (isset($indicator)) {
+            if ($link instanceof core_ET) {
                 $link->append($indicator);
                 $link->removeBlocks();
                 $link->removePlaces();
@@ -748,7 +745,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     {
         $rec = $mvc->fetchRec($id);
         
-        if(deals_Helper::hasProductsBellowMinPrice($mvc, $rec) && $rec->isReverse !== 'yes'){
+        if (deals_Helper::hasProductsBellowMinPrice($mvc, $rec) && $rec->isReverse !== 'yes') {
             core_Statuses::newStatus('Документа не може да се контира, защото има артикули с продажна цена под минималната|*!', 'error');
             
             return false;

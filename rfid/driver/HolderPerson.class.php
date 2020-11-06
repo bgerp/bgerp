@@ -2,7 +2,7 @@
 
 
 /**
- * Интерфейс за IP RFID рийдър
+ * Лица картодържатели
  *
  *
  * @category  bgerp
@@ -13,10 +13,11 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Драйвер на RFID четец
+ * @title     Драйвер на притежатели на RFID номер
  */
-class rfid_driver_HolderPerson extends core_BaseClass
+class rfid_driver_HolderPerson
 {
+    
     /**
      * Задължителен интерфейс, който фигурите трябва да имат
      */
@@ -33,7 +34,7 @@ class rfid_driver_HolderPerson extends core_BaseClass
      * Допълва дадената форма с параметрите на фигурата
      * Връща масив от имената на параметрите
      */
-    public static function addFields(&$form)
+    public function addFields(core_Form &$form)
     {
         $form->FLD('holderId', 'key(mvc=crm_Persons, select=name, allowEmpty)', 'caption=Лице,mandatory,silent,after=tag');
     }
@@ -47,9 +48,21 @@ class rfid_driver_HolderPerson extends core_BaseClass
      * @param stdClass            $rec
      * @param array               $fields
      */
-    protected static function on_AfterRecToVerbal($Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
+    protected function on_AfterRecToVerbal($Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
         $row->driverClass = crm_Persons::getLinkToSingle($rec->holderId, 'name');
     }
-
+    
+    /**
+     * Може ли вградения обект да се избере
+     *
+     * @param NULL|int $userId
+     *
+     * @return bool
+     */
+    public function canSelectDriver($userId = null)
+    {
+        
+        return true;
+    }
 }

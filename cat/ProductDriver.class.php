@@ -914,4 +914,17 @@ abstract class cat_ProductDriver extends core_BaseClass
         
         return $res;
     }
+    
+    
+    /**
+     * Кои са свързаните задания за други артикули с този артикул
+     * 
+     * @param mixed $rec
+     * 
+     * @return array 
+     */
+    public function getLinkedJobRecs($id)
+    {
+        return array();
+    }
 }

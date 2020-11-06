@@ -35,12 +35,6 @@
             <div><small>[#contragentUicCaption#]:</small> <span class="bigData notBold" style="padding-left:5px;"> [#contragentUicId#]</span></div>
             <!--ET_END contragentUicId-->
             <!--ET_END contragentVatInfo-->
-            <!--ET_BEGIN deliveryLocationId-->
-            <hr style="margin: 3px 0 1px;">
-            <div>
-                |От обект|*: [#deliveryLocationId#]
-            </div>
-            <!--ET_END deliveryLocationId-->
         </td>
     </tr>
     <tr>
@@ -62,13 +56,6 @@
             <div><small>ЕИК:</small> <span class="bigData notBold" style="padding-left:5px;">[#uicId#]</span></div>
             <!--ET_END uicId-->
             <!--ET_END vatInfo-->
-
-            <!--ET_BEGIN shipmentStoreId-->
-            <hr style="margin: 3px 0 1px;">
-            <div>
-                |До склад|*: [#shipmentStoreId#]
-            </div>
-            <!--ET_END shipmentStoreId-->
         </td>
     </tr>
     <tr>

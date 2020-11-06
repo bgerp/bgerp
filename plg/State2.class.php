@@ -64,16 +64,15 @@ class plg_State2 extends core_Plugin
      * Определя активното и затвореното състояние
      */
     public function getActiveAndClosedState($mvc)
-    { 
+    {
         if ($this->activeState && $this->closedState) {
-            
             return;
         }
         $opt = $mvc->getFieldType('state')->options;
         
        
         
-        if(isset($mvc->activeState)) {
+        if (isset($mvc->activeState)) {
             $this->activeState = $mvc->activeState;
         } else {
             foreach ($this->castToActive as $state) {
@@ -84,7 +83,7 @@ class plg_State2 extends core_Plugin
             }
         }
 
-        if(isset($mvc->closedState)) {
+        if (isset($mvc->closedState)) {
             $this->closedState = $mvc->closedState;
         } else {
             foreach ($this->castToClosed as $state) {
@@ -119,13 +118,13 @@ class plg_State2 extends core_Plugin
     public static function on_BeforeImportRec($mvc, &$rec)
     {
         // Ако мениджъра иска да се запазят старите състояния на импортираните записи
-        if($mvc->updateExistingStateOnImport === false){
+        if ($mvc->updateExistingStateOnImport === false) {
             
             // Ако записа е вече съществуващ взима се текущото състояние от базата
             // взима се тук за да може като стигне on_BeforeSave да не подмени състоянието с активно
             $conflictFields = array();
             $exRec = null;
-            if(!$mvc->isUnique($rec, $conflictFields, $exRec)){
+            if (!$mvc->isUnique($rec, $conflictFields, $exRec)) {
                 $rec->state = $mvc->fetchField($exRec->id, 'state', false);
             }
         }
@@ -148,7 +147,7 @@ class plg_State2 extends core_Plugin
      * Ще има ли предупреждение при смяна на състоянието
      *
      * @param stdClass $rec
-     * @param string $newState
+     * @param string   $newState
      *
      * @return string|FALSE
      */
@@ -243,7 +242,6 @@ class plg_State2 extends core_Plugin
     public function on_BeforeAction($mvc, &$content, &$act)
     {
         if ($act != 'changestate') {
-            
             return;
         }
         
@@ -277,7 +275,7 @@ class plg_State2 extends core_Plugin
             }
             
             $updateFields = 'state';
-            if($mvc->hasPlugin('plg_Modified')){
+            if ($mvc->hasPlugin('plg_Modified')) {
                 $updateFields = 'state,modifiedOn,modifiedBy';
             }
             

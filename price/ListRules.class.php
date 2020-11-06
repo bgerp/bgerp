@@ -636,9 +636,7 @@ class price_ListRules extends core_Detail
         }
         
         if (($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->listId)) {
-            $folderId = price_Lists::fetchField($rec->listId, 'folderId');
-            
-            if (!price_Lists::haveRightFor('edit', (object) array('id' => $rec->listId, 'folderId' => $folderId))) {
+            if (!price_Lists::haveRightFor('edit', $rec->listId)) {
                 $requiredRoles = 'no_one';
             }
         }

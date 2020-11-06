@@ -86,6 +86,15 @@ class price_Setup extends core_ProtoSetup
             'offset' => 77,
             'timeLimit' => 10
         ),
+        
+        array(
+            'systemId' => 'Update bom costs',
+            'description' => 'Обновяване на кешираните цени по рецепти',
+            'controller' => 'price_interface_LastActiveBomCostPolicy',
+            'action' => 'updateCachedBoms',
+            'period' => 11,
+            'timeLimit' => 360,
+        ),
     );
     
     
@@ -135,7 +144,7 @@ class price_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'price_reports_PriceList,price_AutoDiscounts,price_interface_AverageCostPricePolicyImpl,price_interface_LastAccCostPolicyImpl,price_interface_LastActiveDeliveryCostPolicyImpl,price_interface_LastDeliveryCostPolicyImpl,price_interface_LastActiveBomCostPolicy';
+    public $defClasses = 'price_reports_PriceList,price_AutoDiscounts,price_interface_AverageCostPricePolicyImpl,price_interface_LastAccCostPolicyImpl,price_interface_LastActiveDeliveryCostPolicyImpl,price_interface_LastDeliveryCostPolicyImpl,price_interface_LastActiveBomCostPolicy,price_interface_AverageCostStorePricePolicyImpl';
 
     
     

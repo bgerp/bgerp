@@ -72,6 +72,12 @@ class price_Lists extends core_Master
     
     
     /**
+     * Кой може да редактира системните данни
+     */
+    public $canEditsysdata = 'price,sales,ceo';
+    
+    
+    /**
      * Кой може да променя типа на политиката?
      */
     public $canChangepublic = 'priceMaster,ceo';

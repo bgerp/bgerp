@@ -78,11 +78,11 @@ class planning_plg_StateManager extends core_Plugin
      */
     public static function on_AfterGetChangeStateWarning($mvc, &$res, $rec, $newState)
     {
-        if($newState == 'closed'){
+        if ($newState == 'closed') {
             $res = 'Сигурни ли сте, че искате да приключите документа|*?';
-        } elseif($newState == 'wakeup'){
+        } elseif ($newState == 'wakeup') {
             $res = 'Сигурни ли сте, че искате да събудите документа|*?';
-        } elseif($newState == 'stopped'){
+        } elseif ($newState == 'stopped') {
             $res = 'Сигурни ли сте, че искате да спрете документа|*?';
         } else {
             $res = 'Сигурни ли сте, че искате да активирате документа|*?';
@@ -365,7 +365,6 @@ class planning_plg_StateManager extends core_Plugin
             }
             
             if (empty($notifyArr)) {
-                
                 return ;
             }
             
@@ -421,9 +420,9 @@ class planning_plg_StateManager extends core_Plugin
     /**
      * Подготовка на формата за добавяне на основание към смяната на състоянието
      *
-     * @param core_Mvc  $mvc
-     * @param string    $action
-     * @param stdClass  $rec
+     * @param core_Mvc $mvc
+     * @param string   $action
+     * @param stdClass $rec
      *
      * @return core_Form $res
      */

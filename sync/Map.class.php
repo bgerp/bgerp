@@ -122,7 +122,26 @@ class sync_Map extends core_Manager
             }
         }
         
-
+        // Фикс, ако е параметъра е файл
+        if (($mvc->className == 'cat_products_Params') && ($rec->paramId)) {
+            $cParRec = cat_Params::fetch($rec->paramId);
+            if ($cParRec) {
+                $Driver = cat_Params::getDriver($rec->paramId);
+                if ($Driver) {
+                    $dType = $Driver->getType($rec->paramId);
+                    if ($dType && ($dType instanceof fileman_FileType)) {
+                        try {
+                            self::exportRec('cat_Params', $rec->paramId, $res, $controller);
+                            $rec->__paramValue = fileman_Download::getDownloadUrl($rec->paramValue);
+                            $rec->__paramId = $rec->paramId;
+                        } catch (core_exception_Expect $e) {
+                            $rec->paramValue = null;
+                        }
+                    }
+                }
+            }
+        }
+        
         $fields = $mvc->selectFields("#kind == 'FLD'");
         foreach ($fields as $name => $fRec) {
             foreach (array($mvc->className . '::' . $name, '*::' . $name) as $fKey) {
@@ -469,6 +488,30 @@ class sync_Map extends core_Manager
         if($rec->_personId) {
             if ($pId = self::importRec('crm_Persons', $rec->_personId, $res, $controller, $update)) {
                 $rec->folderId = crm_Persons::forceCoverAndFolder($pId);
+            }
+        }
+        
+        // Фикс, ако е параметъра е файл
+        if ($rec->__paramValue) {
+            if (($mvc->className == 'cat_products_Params') && ($rec->__paramId)) {
+                $cParamId = self::importRec('cat_Params', $rec->__paramId, $res, $controller, $update);
+                
+                $cParRec = cat_Params::fetch($cParamId);
+                
+                if ($cParRec) {
+                    $Driver = cat_Params::getDriver($cParamId);
+                    
+                    if ($Driver) {
+                        $dType = $Driver->getType($cParamId);
+                        if ($dType && ($dType instanceof fileman_FileType)) {
+                            if ($file = @file_get_contents($rec->__paramValue)) {
+                                $rec->paramValue = fileman::absorbStr($file, $dType->params['bucket'], basename($rec->__paramValue));
+                                unset($rec->__paramValue);
+                                unset($rec->__paramId);
+                            }
+                        }
+                    }
+                }
             }
         }
         

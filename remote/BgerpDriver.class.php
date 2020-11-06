@@ -207,7 +207,6 @@ class remote_BgerpDriver extends core_Mvc
         
         if (!core_Packs::isInstalled('remote')) {
             if (haveRole('admin')) {
-                
                 return new Redirect(array('core_Packs', 'search' => 'remote'), 'За оторизиране на отдалечена bgERP система, трябва да бъде инсталиран пакета `remote`', 'error');
             }
             
@@ -439,7 +438,7 @@ class remote_BgerpDriver extends core_Mvc
     /**
      * Извиква се на on_Shutdown и обновява състоянието на нотификлациите
      */
-    public function on_Shutdown()
+    public static function on_Shutdown($mvc)
     {
         $me = cls::get('remote_BgerpDriver');
         if ($me->cronUpdate) {
@@ -508,7 +507,6 @@ class remote_BgerpDriver extends core_Mvc
         
         // Невалиден $token, ако времевата компонента не е по-голяма от 0
         if (!($t > 0)) {
-            
             return false;
         }
         
@@ -517,13 +515,11 @@ class remote_BgerpDriver extends core_Mvc
          * Невалиден $token, ако случайната част не отговаря на дължината на шаблона
          */
         if (strlen($r) != strlen(self::TOKEN_RAND_PATTERN)) {
-            
             return false;
         }
         
         // Невалиден $token, ако между времето на издаване и използване има повече от MAX_TOKEN_DEVIATION минути
         if (abs($t * 60 - time()) > self::MAX_TOKEN_DEVIATION_TIME) {
-            
             return false;
         }
         
@@ -575,14 +571,12 @@ class remote_BgerpDriver extends core_Mvc
         $params = core_Crypt::decodeVar($encodedParams, $key, 'json');
         
         if (!is_array($params)) {
-            
             return false;
         }
         
         $expiryDate = self::getTokenExpiry($params['_token']);
         
         if (!$expiryDate) {
-            
             return false;
         }
         
