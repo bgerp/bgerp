@@ -479,6 +479,7 @@ class purchase_Purchases extends deals_DealMaster
         $result->setIfNot('deliveryTerm', $rec->deliveryTermId);
         $result->setIfNot('storeId', $rec->shipmentStoreId);
         $result->setIfNot('paymentMethodId', $rec->paymentMethodId);
+        $result->setIfNot('paymentType', $rec->paymentType);
         $result->setIfNot('caseId', $rec->caseId);
         $result->setIfNot('bankAccountId', bank_Accounts::fetchField(array("#iban = '[#1#]'", $rec->bankAccountId), 'id'));
         
@@ -774,7 +775,9 @@ class purchase_Purchases extends deals_DealMaster
                                         $allocatedArr[$pData->productId]->quantity += $pData->quantity;
                                         $allocatedArr[$pData->productId]->transportWeight += $pData->transportWeight;
                                         $allocatedArr[$pData->productId]->transportVolume += $pData->transportVolume;
-                                        $allocatedArr[$pData->productId]->inStores += $pData->inStores;
+                                        if(is_array($pData->inStores)){
+                                            $allocatedArr[$pData->productId]->inStores += $pData->inStores;
+                                        }
                                     }
                                 }
                             }

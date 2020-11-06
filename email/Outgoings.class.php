@@ -2128,6 +2128,12 @@ class email_Outgoings extends core_Master
             }
         }
         
+        if ($salutation && trim($headerDataArr['name'])) {
+            if (mb_stripos($salutation, $headerDataArr['name']) === false) {
+                $salutation = '';
+            }
+        }
+        
         // Ако сме открили обръщение използваме него
         if ($salutation) {
             

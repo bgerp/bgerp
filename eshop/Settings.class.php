@@ -168,6 +168,7 @@ class eshop_Settings extends core_Master
         $this->FLD('objectId', 'int', 'caption=Обект,mandatory,silent,tdClass=leftCol');
         $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime)', 'caption=В сила->От,remember');
         $this->FLD('validUntil', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime,defaultTime=23:59:59)', 'caption=В сила->До,remember');
+        $this->FLD('showNavigation', 'enum(auto=Автоматично,yes=С навигация,no=Без навигация)', 'caption=Показване на навигация със списъка с групите->Избор');
         $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценова политика->Политика,mandatory');
         $this->FLD('discountType', 'set(percent=Процент,amount=Намалена сума)', 'caption=Показване на отстъпки спрямо "Каталог"->Като,mandatory');
         $this->FLD('terms', 'keylist(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Възможни условия на доставка->Избор,mandatory');
@@ -204,7 +205,6 @@ class eshop_Settings extends core_Master
         
         $this->FLD('defaultMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Дефолти за анонимни потребители->Плащане');
         $this->FLD('defaultTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Дефолти за анонимни потребители->Доставка');
-        
         $this->FLD('dealerId', 'user(roles=sales|ceo,allowEmpty,rolesForAll=eshop|ceo|admin,rolesForTeam=eshop|ceo|admin)', 'caption=Продажби създадени от онлайн магазина->Търговец');
         
         $this->setDbIndex('classId, objectId');
@@ -474,8 +474,10 @@ class eshop_Settings extends core_Master
             if (empty($settingRec->partnerTerms)) {
                 $settingRec->partnerTerms = $settingRec->terms;
             }
+            
+            $settingRec->showNavigation = (in_array($settingRec->showNavigation, array('yes', 'no'))) ? $settingRec->showNavigation : eshop_Setup::get('SHOW_NAVIGATION');
         }
-        //bp($settingRec);
+        
         return $settingRec;
     }
     

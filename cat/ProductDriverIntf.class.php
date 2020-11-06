@@ -573,4 +573,17 @@ class cat_ProductDriverIntf extends embed_DriverIntf
     {
         return $this->class->getQuantitiesForQuotation($Embedder, $rec);
     }
+    
+    
+    /**
+     * Кои са свързаните задания за други артикули с този артикул
+     *
+     * @param mixed $rec
+     *
+     * @return array
+     */
+    public function getLinkedJobRecs($id)
+    {
+        return $this->class->getLinkedJobRecs($id);
+    }
 }

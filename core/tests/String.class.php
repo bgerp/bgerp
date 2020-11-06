@@ -33,12 +33,12 @@ class core_tests_String extends unit_Class
         ut::expectEqual(core_String::utf2ascii($originalText), $expectedText);
         
         $originalText = 'ТОВА е ТЕСТ ТЕСт ТЕст Тест тест test Test TEst TESt TEST';
-        $expectedText = 'TOVA e TEST Test Test Test test test Test TEst TESt TEST';
+        $expectedText = 'TOVA e TEST TEST TEST Test test test Test TEst TESt TEST';
         
         ut::expectEqual(core_String::utf2ascii($originalText), $expectedText);
         
         $originalText = 'TESTЙорданTEST TESTЕкскалибурTEST TESTБългарияTEST TEStТЕСт TEstТЕст'; // CyrLat
-        $expectedText = 'TESTYordanTEST TESTExkaliburTEST TESTBulgariaTEST TEStTest TEstTest';
+        $expectedText = 'TESTYordanTEST TESTExkaliburTEST TESTBulgariaTEST TEStTEST TEstTEST';
         
         ut::expectEqual(core_String::utf2ascii($originalText), $expectedText);
         

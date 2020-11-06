@@ -1130,7 +1130,7 @@ class log_Debug extends core_Manager
                     }
                     
                     if ($fName) {
-                        if (strpos($fileName, $fNameTemplate)) {
+                        if (!empty($fNameTemplate) && strpos($fileName, $fNameTemplate)) {
                             if (!isset($mTime)) {
                                 try {
                                     $mTime = @$iterator->current()->getMTime();

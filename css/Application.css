@@ -6632,6 +6632,13 @@ only screen and (max-width: 320px) {
     .sale-summary table .specialLink {
       white-space: normal; }
 
+.sale-summary .cartStatistic .sum-th {
+  background: #c1c1c1;
+  color: #333333; }
+
+.cartStatistic td {
+  border-color: #888888 !important; }
+
 .narrow .sale-summary td .quiet {
   font-size: 0.8em; }
 
@@ -6707,7 +6714,7 @@ only screen and (max-width: 320px) {
       padding: 2px;
       display: inline-block; }
     .portalNews .portalLatestThreads.state-opened a {
-      background-color: #bbffcc; }
+      background-color: rgba(187, 255, 204, 0.6); }
   .portalNews .tUnsighted {
     font-weight: bold; }
 

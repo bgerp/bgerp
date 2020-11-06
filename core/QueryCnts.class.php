@@ -107,12 +107,12 @@ class core_QueryCnts extends core_Manager
     /**
      * Изпълнява се преди терминиране на процеса, но след изпращане на резултата към клиента
      */
-    public function on_Shutdown()
+    public static function on_Shutdown($mvc)
     {
         $divorceSearchMin = 100000; // Когато id-то е над 100К - тогава да сработва
         $divorceSearchMax = 1000000; // Ако записите са над 1М - да ги разделя спрямо бройката, като мин е 3
         
-        foreach ($this->queries as $hash => $qCnt) {
+        foreach ($mvc->queries as $hash => $qCnt) {
             $slowQueryDelimiter = 3; // По подразбиране да ги разделя на 3 групи
             $lastRec = self::getFromChache($hash, null);
             $cnt = false;

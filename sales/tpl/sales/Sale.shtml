@@ -48,12 +48,6 @@
                     <div><small>[#contragentUicCaption#]:</small> <span class="bigData notBold" style="padding-left:5px;"> [#contragentUicId#]</span></div>
                     <!--ET_END contragentUicId-->
                     <!--ET_END contragentVatInfo-->
-                    <!--ET_BEGIN deliveryLocationId-->
-                    <hr style="margin: 3px 0 1px;">
-                    <div>
-                        |До локация|*: [#deliveryLocationId#]
-                    </div>
-                    <!--ET_END deliveryLocationId-->
                 </td>
                 <td>
                     <!--ET_BEGIN MyCompany-->
@@ -76,12 +70,6 @@
                     <!--ET_END vatInfo-->
                     
                     <!--ET_END MyCompany-->
-                    <!--ET_BEGIN shipmentStoreId-->
-                    <hr style="margin: 3px 0 1px;">
-                    <div>
-                        |От склад|*: [#shipmentStoreId#]
-                    </div>
-                    <!--ET_END shipmentStoreId-->
                 </td>
             </tr>
         </tbody>
@@ -122,11 +110,6 @@
                         [#bank#]<!--ET_END bank--><!--ET_BEGIN bic-->, <span class="nowrap">BIC: [#bic#]</span><!--ET_END bic--></div>
                     </div>
                     <!--ET_END bankAccountId-->
-                    <!--ET_BEGIN caseId-->
-                    <div class='cellRow'>
-                        <span class='quiet'>|Каса|*: </span>[#caseId#]
-                    </div>
-                    <!--ET_END caseId-->
                     [#ADDITIONAL_BLOCK#]
                 </td>
                 <!--ET_BEGIN conditions-->

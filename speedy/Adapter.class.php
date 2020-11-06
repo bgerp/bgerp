@@ -307,15 +307,16 @@ class speedy_Adapter {
      *
      * @return string $fh    - хендлър към абсорбираната товарителница в нашата система
      */
-    public function getBolPdf($pickingId, $printerType)
+    public function getBolPdf($bolIds, $printerType)
     {
+        $ids = ($printerType == 10) ? array(0 => $bolIds[0]) : $bolIds;
         $paramPDF = new ParamPDF();
-        $paramPDF->setIds(array(0 => $pickingId));
+        $paramPDF->setIds($ids);
         $paramPDF->setType($printerType);
         $paramPDF->setIncludeAutoPrintJS(true);
         
         // Save pdf in a file
-        $fileNameOnly = $this->eps->getUsername().'_picking_'.$pickingId.'_'.time().'.pdf';
+        $fileNameOnly = $this->eps->getUsername() . '_picking_' . $bolIds[0] . '_' . time() . '.pdf';
         
         $fh = fileman::absorbStr($this->eps->createPDF($paramPDF), 'billOfLadings', $fileNameOnly);
         
@@ -366,7 +367,7 @@ class speedy_Adapter {
      * @param ParamPicking $picking
      * @throws ServerException
      *
-     * @return int $bolId - ид-то на товарителницата
+     * @return array $ids - ид-та
      */
     public function getBol($rec, &$picking)
     {
@@ -375,12 +376,11 @@ class speedy_Adapter {
         // Генериране на товарителница
         $resultBOL = $this->eps->createBillOfLading($picking);
         $parcels = $resultBOL->getGeneratedParcels();
-        $firstParcel = $parcels[0];
-        $bolId = $firstParcel->getParcelId();
         
+        $ids = array();
+        array_walk($parcels, function($p) use(&$ids) {$ids[] = $p->getParcelId();});
         
-        
-        return $bolId;
+        return $ids;
     }
     
     

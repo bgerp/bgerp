@@ -2,7 +2,7 @@
 
 
 /**
- * Интерфейс за IP RFID рийдър
+ * Интерфейс за RFID рийдър
  *
  *
  * @category  bgerp
@@ -13,15 +13,16 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Драйвер на RFID четец
+ * @title     Интерфейс за драйвер на RFID четец
  */
-class rfid_ReaderIntf
+class rfid_ReaderIntf extends embed_DriverIntf
 {
+    
     /**
-     * Връща запис с IP четеца или база данни
+     * Връща запис RFID четеца или база данни
      */
     public function getData($date)
     {
-        $this->class->getData($date);
+        $this->class->getData($date); bp($this->class);
     }
 }

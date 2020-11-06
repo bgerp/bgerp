@@ -149,7 +149,7 @@ class speedy_plg_BillOfLading extends core_Plugin
                         
                         // Опит за създаване на товарителница
                         try{
-                            $bolId = $adapter->getBol($form->rec, $picking);
+                            $bolIds = $adapter->getBol($form->rec, $picking);
                             
                         } catch(ServerException $e){
                             
@@ -165,16 +165,17 @@ class speedy_plg_BillOfLading extends core_Plugin
                         }
                         
                         // Записване на товарителницата като PDF, ако е създадеба
-                        if(!$form->gotErrors() && !empty($bolId)){
-                            $bolRec = (object)array('containerId' => $rec->containerId, 'number' => $bolId, 'takingDate' => $picking->getTakingDate());
+                        if(!$form->gotErrors() && countR($bolIds)){
+                            $bolRec = (object)array('containerId' => $rec->containerId, 'number' => $bolIds[0], 'takingDate' => $picking->getTakingDate());
                             
                             try{
-                                $bolFh = $adapter->getBolPdf($bolId, $form->rec->pdfPrinterType);
+                                $bolFh = $adapter->getBolPdf($bolIds, $form->rec->pdfPrinterType);
                                 $fileId = fileman::fetchByFh($bolFh, 'id');
                                 doc_Linked::add($rec->containerId, $fileId, 'doc', 'file', 'Товарителница');
                                 $bolRec->file = $bolFh;
                                 
                             } catch(ServerException $e){
+                                
                                 reportException($e);
                                 $mvc->logErr("Проблем при генериране на PDF на товарителница", $id);
                                 $mvc->logErr($e->getMessage(), $id);
@@ -182,8 +183,8 @@ class speedy_plg_BillOfLading extends core_Plugin
                             }
                         }
                        
-                        if(!$form->gotErrors() && !empty($bolId)){
-                            $mvc->logWrite("Генерирана товарителница на Speedy", $id);
+                        if(!$form->gotErrors() && countR($bolIds)){
+                            $mvc->logWrite("Генерирана товарителница на Speedy", $bolIds[0]);
                             
                             // Кеш на последно избраните стойностти
                             $cacheArr = array('senderClientId' => $fRec->senderClientId, 'service' => $fRec->service, 'pdfPrinterType' => $fRec->pdfPrinterType);
@@ -193,7 +194,7 @@ class speedy_plg_BillOfLading extends core_Plugin
                                 speedy_BillOfLadings::save($bolRec);
                             }
                             
-                            followRetUrl(null, "Успешно генерирана товарителница|*: №{$bolId}");
+                            followRetUrl(null, "Успешно генерирана товарителница|*: {$bolIds[0]}");
                         }
                     }
                 }
@@ -306,7 +307,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         $form->FLD('returnShipmentParcelCount', 'int(min=0)', 'caption=Заявка за обратна пратка->Брой пакети,autohide');
         $form->FLD('returnShipmentAmountInsurance', 'double(min=0)', 'caption=Заявка за обратна пратка->Обявена стойност,autohide,unit=BGN');
         $form->FLD('returnShipmentIsFragile', 'enum(no=Не,yes=Да)', 'caption=Заявка за обратна пратка->Чупливост,autohide,maxRadio=2');
-        $form->FLD('pdfPrinterType', 'enum(10=А4 принтер,20=Етикетен принтер)', 'caption=Печат на PDF->Принтер,autohide');
+        $form->FLD('pdfPrinterType', 'enum(10=А4,20=Етикетен принтер)', 'caption=Печат на PDF->Принтер,autohide');
         
         $Cover = doc_Folders::getCover($documentRec->folderId);
         $isPrivatePerson = ($Cover->haveInterface('crm_PersonAccRegIntf')) ? 'yes' : 'no';

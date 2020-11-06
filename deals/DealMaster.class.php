@@ -225,7 +225,8 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Доставка->От склад,notChangeableByContractor'); // наш склад, от където се експедира стоката
         
         // Плащане
-        $mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Метод,notChangeableByContractor');
+        $mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Метод,notChangeableByContractor,removeAndRefreshForm=paymentType,silent');
+        $mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане->Начин');
         $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate,notChangeableByContractor');
         $mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
         $mvc->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса,notChangeableByContractor');
@@ -271,6 +272,11 @@ abstract class deals_DealMaster extends deals_DealBase
         if (!$form->getFieldTypeParam('deliveryLocationId', 'isReadOnly')) {
             $locations = array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
             $form->setOptions('deliveryLocationId', $locations);
+        }
+        
+        if (isset($rec->paymentMethodId) && (!isset($rec->id) || $form->cmd == 'refresh')) {
+            $type = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
+            $form->setDefault('paymentType', $type);
         }
         
         if ($rec->id) {
@@ -406,13 +412,17 @@ abstract class deals_DealMaster extends deals_DealBase
         // Избрания ДДС режим съответства ли на дефолтния
         $defVat = $mvc->getDefaultChargeVat($rec);
         if ($vatWarning = deals_Helper::getVatWarning($defVat, $rec->chargeVat)) {
-            $form->setWarning('chargeVat', $vatWarning);
+            $isCurrencyReadOnly = $form->getFieldTypeParam('currencyId', 'isReadOnly');
+            if(!$isCurrencyReadOnly){
+                $form->setWarning('chargeVat', $vatWarning);
+            }
         }
         
         // Избраната валута съответства ли на дефолтната
         $defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
         $currencyState = currency_Currencies::fetchField("#code = '{$defCurrency}'", 'state');
-        if ($defCurrency != $rec->currencyId && $currencyState == 'active') {
+        $isCurrencyReadOnly = $form->getFieldTypeParam('currencyId', 'isReadOnly');
+        if ($defCurrency != $rec->currencyId && $currencyState == 'active' && !$isCurrencyReadOnly) {
             $form->setWarning('currencyId', "Избрана e различна валута от очакваната|* <b>{$defCurrency}</b>");
         }
         
@@ -1035,8 +1045,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             
             if ($rec->deliveryLocationId) {
-                $row->deliveryLocationId = crm_Locations::getHyperlink($rec->deliveryLocationId);
-                $row->deliveryLocationIdTop = $row->deliveryLocationId;
+                $row->deliveryLocationId = crm_Locations::getHyperlink($rec->deliveryLocationId, true);
             }
             
             if ($rec->deliveryTime) {
@@ -1091,21 +1100,12 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             $row->{$fld} = ' ';
             
-            if (!Mode::is('text', 'xhtml') && !Mode::is('printing')) {
-                if ($rec->shipmentStoreId) {
-                    $storeVerbal = store_Stores::getHyperlink($rec->shipmentStoreId, true);
-                    if ($rec->state == 'active' && isset($actions['ship'])) {
-                        $row->shipmentStoreId = $storeVerbal;
-                    } else {
-                        unset($row->shipmentStoreId);
-                    }
-                    
-                    $row->shipmentStoreIdTop = $storeVerbal;
-                }
-                
-                if ($rec->caseId) {
-                    $row->caseId = cash_Cases::getHyperlink($rec->caseId);
-                }
+            if (isset($rec->shipmentStoreId)) {
+                $row->shipmentStoreId = store_Stores::getHyperlink($rec->shipmentStoreId, true);
+            }
+            
+            if (isset($rec->caseId)) {
+                $row->caseId = cash_Cases::getHyperlink($rec->caseId, true);
             }
             
             core_Lg::push($rec->tplLang);
@@ -1162,6 +1162,10 @@ abstract class deals_DealMaster extends deals_DealBase
             
             if ($rec->makeInvoice == 'no') {
                 $row->amountToInvoice = "<span style='font-size:0.7em'>" . tr('без фактуриране') . '</span>';
+            }
+            
+            if (!empty($rec->paymentType)) {
+                $row->paymentMethodId = "{$row->paymentType}, {$row->paymentMethodId}";
             }
             
             core_Lg::pop();
