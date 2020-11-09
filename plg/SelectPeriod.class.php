@@ -167,7 +167,7 @@ class plg_SelectPeriod extends core_Plugin
         $fFEsc = json_encode($fF);
         $fTEsc = json_encode($fT);
         
-        $form->FLD('selectPeriod', 'varchar', 'refreshForm,caption=Период,input,before=from,silent,printListFilter=none', array('attr' => array('onchange' => "spr(this, true, {$fFEsc}, {$fTEsc});")));
+        $form->FLD('selectPeriod', 'varchar', 'caption=Период,input,before=from,silent,printListFilter=none', array('attr' => array('onchange' => "spr(this, true, {$fFEsc}, {$fTEsc});")));
         if (strpos($form->showFields, $fF) !== false) {
             $form->showFields = trim(str_replace(",{$fF},", ",selectPeriod,{$fF},", ',' . $form->showFields . ','), ',');
         } else {
