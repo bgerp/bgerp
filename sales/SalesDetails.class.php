@@ -234,8 +234,9 @@ class sales_SalesDetails extends deals_DealDetail
                } elseif(in_array($masterRec->state, array('pending', 'draft'))){
                    
                    // Предупреждение дали цената е под очакваната за клиента
+                   $useQuotationPrice = isset($masterRec->originId) ? true : false;
                    $discount = isset($rec->discount) ? $rec->discount : $rec->autoDiscount;
-                   if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $discount, $rec->quantity, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $masterRec->priceListId)){
+                   if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $discount, $rec->quantity, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $masterRec->priceListId, $useQuotationPrice)){
                        $row->packPrice = ht::createHint($row->packPrice, $checkedObject['hint'], $checkedObject['hintType'], false);
                    }
                }

@@ -234,8 +234,16 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                     $row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', false);
                 } elseif(in_array($masterRec->state, array('pending', 'draft'))) {
                     
+                    $useQuotationPrice = false;
+                    if($firstDocument = doc_Threads::getFirstDocument($masterRec->threadId)){
+                        if($firstDocument->isInstanceOf('sales_Sales')){
+                            $firstDocumentOrigin = $firstDocument->fetchField('originId');
+                            $useQuotationPrice = isset($firstDocumentOrigin) ? true : false;
+                        }
+                    }
+                    
                     // Предупреждение дали цената е под очакваната за клиента
-                    if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $rec->discount, $rec->quantity, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate)){
+                    if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $rec->discount, $rec->quantity, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, null, $useQuotationPrice)){
                         $row->packPrice = ht::createHint($row->packPrice, $checkedObject['hint'], $checkedObject['hintType'], false);
                     }
                 }

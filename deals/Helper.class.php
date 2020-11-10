@@ -2017,7 +2017,7 @@ abstract class deals_Helper
      *
      * @return stdClass|null $obj
      */
-    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $contragentClassId, $contragentId, $valior, $listId = null)
+    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true)
     {
         $obj = null;
         
@@ -2028,7 +2028,7 @@ abstract class deals_Helper
         }
         
         $price = $price * (1 - $discount);
-        $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $listId);
+        $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $listId, $useQuotationPrice);
         
         $toleranceDiff = 0;
         if (isset($foundPrice->listId)) {
