@@ -90,6 +90,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
             }
             
             $debitPrice = (!empty($lastDebitRec->debitQuantity)) ? round($lastDebitRec->amount / $lastDebitRec->debitQuantity, 6) : 0;
+            $lastDebitRec->valior = dt::today();
             
             $obj = (object) array('sourceClassId' => null,
                 'sourceId' => null,
