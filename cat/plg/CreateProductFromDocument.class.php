@@ -434,7 +434,8 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                                 $dRec->quantity = $dRec->packQuantity * $dRec->quantityInPack;
                             }
                             
-                            $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $dRec->productId, $dRec->packagingId, $dRec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
+                            $useQuotationPrice = isset($masterRec->originId) ? true : false;
+                            $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $dRec->productId, $dRec->packagingId, $dRec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId, $useQuotationPrice);
                             
                             $price = $policyInfo->price;
                             if ($policyInfo->discount && !isset($dRec->discount)) {

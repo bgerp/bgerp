@@ -558,6 +558,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 
                 // Ако продукта има цена от пораждащия документ, взимаме нея, ако не я изчисляваме наново
                 $origin = $mvc->Master->getOrigin($masterRec);
+                $originRec = $origin->fetch();
                 $dealInfo = $origin->getAggregateDealInfo();
                 $products = $dealInfo->get('products');
                 
@@ -573,9 +574,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 }
                 
                 if (!$policyInfo) {
+                    $useQuotationPrice = isset($originRec->originId) ? true : false;
+                    
                     $listId = ($dealInfo->get('priceListId')) ? $dealInfo->get('priceListId') : null;
                     $Policy = cls::get('price_ListToCustomers');
-                    $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, dt::today(), $masterRec->rate, 'no', $listId);
+                    $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, dt::today(), $masterRec->rate, 'no', $listId, $useQuotationPrice);
                 }
                 
                 // Ако няма последна покупна цена и не се обновява запис в текущата покупка
