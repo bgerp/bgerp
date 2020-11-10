@@ -979,7 +979,6 @@ abstract class store_DocumentMaster extends core_Master
         
         expect($rec = $me->fetch($id));
         expect($rec->state == 'draft');
-        $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
         
         // Дали отстъпката е между 0 и 1
         if (isset($discount)) {
@@ -1016,14 +1015,7 @@ abstract class store_DocumentMaster extends core_Master
         // Ако няма цена, опитваме се да я намерим от съответната ценова политика
         if (empty($price)) {
             $Policy = (isset($Detail->Policy)) ? $Detail->Policy : cls::get('price_ListToCustomers');
-            
-            $useQuotationPriceFirst = false;
-            if(isset($firstDocument) && $firstDocument->isInstanceOf('sales_Sales')){
-                $firstRec = $firstDocument->fetch();
-                $useQuotationPriceFirst = isset($firstRec->originId) ? true : false;
-            }
-            
-            $policyInfo = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $productId, $packagingId, $quantityInPack * $packQuantity, $rec->valior, 1, 'no', null, $useQuotationPriceFirst);
+            $policyInfo = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $productId, $packagingId, $quantityInPack * $packQuantity);
             $price = $policyInfo->price;
             if (!isset($discount) && isset($policyInfo->discount)) {
                 $discount = $policyInfo->discount;

@@ -292,7 +292,7 @@ class price_ListToCustomers extends core_Manager
      * @return stdClass $rec->price  - цена
      *                  $rec->discount - отстъпка
      */
-    public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = null, $quantity = null, $datetime = null, $rate = 1, $chargeVat = 'no', $listId = null, $quotationPriceFirst = false)
+    public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = null, $quantity = null, $datetime = null, $rate = 1, $chargeVat = 'no', $listId = null, $quotationPriceFirst = true)
     {
         $rec = (object) array('price' => null);
         $productRec = cat_Products::fetch($productId, 'isPublic,proto');

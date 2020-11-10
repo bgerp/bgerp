@@ -326,9 +326,8 @@ abstract class deals_DealDetail extends doc_Detail
                 $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
                 
                 if ($rec->productId) {
-                    $useQuotationPrice = (isset($masterRec->originId)) ? true : false;
                     $listId = ($masterRec->priceListId) ? $masterRec->priceListId : null;
-                    $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId, $useQuotationPrice);
+                    $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
                     
                     if (!isset($policyInfo->price)) {
                         $form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика');
@@ -573,10 +572,9 @@ abstract class deals_DealDetail extends doc_Detail
                 }
                 
                 if (!isset($rec->id)) {
-                    $useQuotationPrice = isset($saleRec->originId) ? true : false;
                     $listId = ($saleRec->priceListId) ? $saleRec->priceListId : null;
                     
-                    $policyInfo = (isset($lRec->price)) ? (object) array('price' => $lRec->price) : $Policy->getPriceInfo($saleRec->contragentClassId, $saleRec->contragentId, $productId, $packagingId, $quantity, $saleRec->valior, $saleRec->currencyRate, $saleRec->chargeVat, $listId, $useQuotationPrice);
+                    $policyInfo = (isset($lRec->price)) ? (object) array('price' => $lRec->price) : $Policy->getPriceInfo($saleRec->contragentClassId, $saleRec->contragentId, $productId, $packagingId, $quantity, $saleRec->valior, $saleRec->currencyRate, $saleRec->chargeVat, $listId);
                     
                     if (!isset($policyInfo->price)) {
                         $error[$lId] = "quantity{$lId}";
