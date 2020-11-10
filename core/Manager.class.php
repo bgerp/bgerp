@@ -67,9 +67,9 @@ class core_Manager extends core_Mvc
 
 
     /**
-     * Продължителност на кеширане на правата за достъп до обекти извън хита
+     * Време за кеширане на правата към обекта
      */
-    public $cacheRightsDuration = 120;
+    public $cacheRightsDuration = 0;
     
 
     /**
