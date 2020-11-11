@@ -35,18 +35,16 @@ body{
 }
 
 .wide .app-name{ 
-	top: 21%;
+	top: 15%;
 	left: 2%;
 }
+
 @media handheld, only screen and (max-width: 600px) {
     .wide .app-name {
          font-size: 3.7em;
          top: 24%;
-        
     }
 }
-
-
 .gdpr {
     position: absolute;
     top: 10px;
