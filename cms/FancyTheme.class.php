@@ -97,6 +97,8 @@ class cms_FancyTheme extends core_ProtoInner
         
         if ($this->innerForm->headerColor) {
             $css .= "\n    header {background-color:{$this->innerForm->headerColor} !important;}";
+        } else {
+            $css .= "\n    header {background-color:#C7EAFC !important;}";
         }
         
         if ($this->innerForm->baseColor) {
@@ -296,14 +298,16 @@ class cms_FancyTheme extends core_ProtoInner
                 $this->haveOwnHeaderImages = true;
             }
         }
-        
-        $conf = core_Packs::getConfig('core');
-        if($imageURL){
-            $hImage = ht::createElement('img', array('src' => $imageURL, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg'));
-            
-            return $hImage;
+        // Да покаже дефолт картинките, ако няма зададени
+        if (!$imageURL) {
+            $imageURL = sbf("cms/img/bgerp_fancy.png", "");
         }
-        
-        return null;
+
+        $conf = core_Packs::getConfig('core');
+
+
+        $hImage = ht::createElement('img', array('src' => $imageURL, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg'));
+            
+        return $hImage;
     }
 }
