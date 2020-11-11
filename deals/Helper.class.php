@@ -2075,13 +2075,25 @@ abstract class deals_Helper
             $dQuery = $Detail::getQuery();
             $dQuery->EXT('isPublic', 'cat_Products', "externalName=isPublic,externalKey={$Detail->productFld}");
             $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+            $priceDate = ($rec == 'draft') ? null : $rec->valior;
+            
+            if($mvc instanceof sales_Sales){
+                $useQuotationPrice = isset($rec->originId) ? true : false;
+            } elseif($mvc instanceof store_ShipmentOrders){
+                $useQuotationPrice = false;
+                if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
+                    if($firstDocument->isInstanceOf('sales_Sales')){
+                        $firstDocumentOrigin = $firstDocument->fetchField('originId');
+                        $useQuotationPrice = isset($firstDocumentOrigin) ? true : false;
+                    }
+                }
+            }
             
             while ($dRec = $dQuery->fetch()) {
-                $price = cls::get('price_ListToCustomers')->getPriceByList($minPolicyId, $dRec->{$Detail->productFld}, $dRec->{$Detail->packagingFld}, $dRec->{$Detail->quantityFld}, $rec->{$mvc->valiorFld}, 1, 'no');
-              
-                if (!is_null($price->price)) {
-                    $minPrice = $price->price * (1 - $price->discount);
-                    if (round($dRec->price, 5) < round($minPrice, 5)) {
+                $discount = isset($dRec->discount) ? $dRec->discount : $dRec->autoDiscount;
+                if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId, $useQuotationPrice)){
+                    if($checkedObject['hintType'] == 'error'){
+                        
                         return true;
                     }
                 }
