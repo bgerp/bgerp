@@ -2019,40 +2019,54 @@ abstract class deals_Helper
      */
     public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true)
     {
-        $obj = null;
-        
-        $warningType = 'warning';
-        if ($minListId = sales_Setup::get('MIN_PRICE_POLICY')) {
-            $listId = $minListId;
-            $warningType = 'error';
+        $price = $price * (1 - $discount);
+        $minListId = sales_Setup::get('MIN_PRICE_POLICY');
+        if ($minListId) {
+            $foundMinPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $minListId, $useQuotationPrice);
         }
         
-        $price = $price * (1 - $discount);
         $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $listId, $useQuotationPrice);
         
-        $toleranceDiff = 0;
-        if (isset($foundPrice->listId)) {
-            $toleranceDiff = price_Lists::fetchField($foundPrice->listId, 'discountComparedShowAbove');
-        }
-        $toleranceDiff = !empty($toleranceDiff) ? $toleranceDiff * 100 : 1;
-        $foundPrice = $foundPrice->price * (1 - $foundPrice->discount);
-        
-        $diff = abs(round($price - $foundPrice, 5));
-        $price1Round = round($price, 5);
-        $price2Round = round($foundPrice, 5);
-       
-        if ($price2Round) {
-            $percent = core_Math::diffInPercent($price1Round, $price2Round);
-            $diff = abs(core_Math::diffInPercent($price1Round, $price2Round));
-            
-            if ($diff > $toleranceDiff) {
-                $obj = array();
-                $obj['hint'] = ($percent < 0) ? 'Крайната цена е над очакваната за клиента|*!' : 'Крайната цена е под очакваната за клиента|*!';
-                $obj['hintType'] = ($percent < 0) ? 'notice' : $warningType;
+        foreach (array($foundMinPrice, $foundPrice) as $i => $var){
+            if(is_object($var)){
+                
+                $toleranceDiff = 0;
+                if (isset($var->listId)) {
+                    $toleranceDiff = price_Lists::fetchField($var->listId, 'discountComparedShowAbove');
+                }
+                $toleranceDiff = !empty($toleranceDiff) ? $toleranceDiff * 100 : 1;
+                $foundPrice = $var->price * (1 - $var->discount);
+                
+                $diff = abs(round($price - $foundPrice, 5));
+                $price1Round = round($price, 5);
+                $price2Round = round($foundPrice, 5);
+                
+                if ($price2Round) {
+                    $percent = core_Math::diffInPercent($price1Round, $price2Round);
+                    $diff = abs(core_Math::diffInPercent($price1Round, $price2Round));
+                    
+                    if ($diff > $toleranceDiff) {
+                        $obj = array();
+                        
+                        if($i == 0 && $percent >= 0){
+                            $obj['hint'] ='Крайната цена е под минималната за клиента|*!';
+                            $obj['hintType'] = 'error';
+                            
+                            return $obj;
+                        } 
+                        
+                        if($i == 1){
+                            $obj['hint'] = ($percent < 0) ? 'Крайната цена е над очакваната за клиента|*!' : 'Крайната цена е под очакваната за клиента|*!';
+                            $obj['hintType'] = ($percent < 0) ? 'notice' : 'warning';
+                        
+                            return $obj;
+                        }
+                    }
+                }
             }
         }
         
-        return $obj;
+        return null;
     }
     
     
