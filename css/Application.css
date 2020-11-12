@@ -5357,7 +5357,25 @@ td.rack-same {
   display: block;
   color: #42477f;
   position: absolute;
-  font-weight: bold;
+  font-family: Times New Roman, Georgia, serif; }
+
+.narrow .app-name {
+  font-size: 26px !important;
+  top: 6px !important;
+  left: 9px !important; }
+
+.narrow .app-subtitle {
+  font-size: 14px;
+  left: 9px;
+  top: 38px; }
+
+.app-subtitle {
+  display: block;
+  color: #42477f;
+  position: absolute;
+  font-size: 2.1em;
+  left: 2%;
+  top: 55%;
   font-family: Times New Roman, Georgia, serif; }
 
 .movement-position-notice {
@@ -5365,8 +5383,8 @@ td.rack-same {
 
 .wide .app-name {
   left: 3%;
-  bottom: 3%;
-  font-size: 8em;
+  bottom: 5%;
+  font-size: 5.5em;
   text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6); }
 
 .narrow .app-name {
@@ -5548,8 +5566,11 @@ only screen and (min-width: 1750px) {
 
 @media handheld,
 only screen and (max-width: 1200px) {
-  .wide .app-name {
-    font-size: 7.5em; }
+  .wide #all .app-name {
+    font-size: 5em; }
+
+  .wide #all  .app-subtitle {
+    font-size: 2em; }
 
   .wide #all,
   .wide #cmsTop,
@@ -5558,6 +5579,22 @@ only screen and (max-width: 1200px) {
 
   .document {
     min-width: 40em; } }
+
+@media handheld,
+only screen and (max-width: 1000px) {
+  .wide #all .app-name {
+    font-size: 4.6em; }
+
+  .wide #all .app-subtitle {
+    font-size: 1.8em; } }
+
+@media handheld,
+only screen and (max-width: 600px) {
+  .wide #all .app-name {
+    font-size: 1.8em; }
+
+  .wide #all .app-subtitle {
+    font-size: 0.9em; } }
 
 @media handheld,
 only screen and (max-width: 1024px) {
@@ -5695,8 +5732,11 @@ only screen and (max-width: 800px) {
   .externalPage h1 {
     font-size: 1.88em; }
 
-  .wide .app-name {
-    font-size: 5em; } }
+  .wide #all .app-name {
+    font-size: 3.3em; }
+
+  .wide #all .app-subtitle {
+    font-size: 1.5em; } }
 
 @media handheld,
 only screen and (max-width: 760px) {
@@ -5775,7 +5815,14 @@ only screen and (max-width: 640px) {
     font-size: 1.32em; }
 
   .externalPage h1 {
-    font-size: 1.82em; } }
+    font-size: 1.82em; }
+
+  .wide #all .app-name {
+    font-size: 2.8em;
+    top: 15%; }
+
+  .wide #all .app-subtitle {
+    font-size: 1.3em; } }
 
 @media handheld,
 only screen and (max-width: 600px) {
@@ -5914,7 +5961,14 @@ only screen and (max-width: 480px) {
     font-size: 1.24em; }
 
   .externalPage h1 {
-    font-size: 1.74em; } }
+    font-size: 1.74em; }
+
+  .wide #all .app-name {
+    font-size: 2.5em;
+    top: 15%; }
+
+  .wide #all .app-subtitle {
+    font-size: 1.1em; } }
 
 @media handheld,
 only screen and (max-width: 375px) {

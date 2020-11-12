@@ -14,6 +14,9 @@
                 <div class='app-name'>[#CORE_APP_NAME#]</div>
 
                 <!--ET_END CORE_APP_NAME-->
+                <!--ET_BEGIN CORE_APP_SUBTITLE-->
+                <div class='app-subtitle'>[#CORE_APP_SUBTITLE#]</div>
+                <!--ET_END CORE_APP_SUBTITLE-->
             </div>
             [#PAGE_HEADER#]
 
