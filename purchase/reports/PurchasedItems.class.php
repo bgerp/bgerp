@@ -238,8 +238,9 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
         $receiptsDetQuery->EXT('threadId', 'store_Receipts', 'externalName=threadId,externalKey=receiptId');
         
-        //  $receiptsDetQuery-> in('threadId',$purchasesThreads);
         $receiptsDetQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+        $receiptsDetQuery->EXT('isReverse', 'store_Receipts', 'externalName=isReverse,externalKey=receiptId');
+        
         $receiptsDetQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         
         $receiptsDetQuery->EXT('state', 'store_Receipts', 'externalName=state,externalKey=receiptId');
@@ -435,6 +436,9 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             
             $fastPurchasesDetQuery->where("#isPublic = '{$rec->articleType}'");
         }
+        
+        //Ако стоковата разписка е от връщане на стока да не се отчита
+        $receiptsDetQuery->where("#isReverse = 'no'");
         
         // Синхронизира таймлимита с броя записи //
         $rec->count = $receiptsDetQuery->count() + $fastPurchasesDetQuery->count();
