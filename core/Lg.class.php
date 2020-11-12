@@ -499,6 +499,8 @@ class core_Lg extends core_Manager
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, &$data)
     {
+        $data->form->fields['kstring']->type->params[0] = 1000; 
+        
         // Ако едитваме
         if ($data->form->rec->id) {
             
