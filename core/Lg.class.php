@@ -521,6 +521,10 @@ class core_Lg extends core_Manager
             
             // Подготвяме стринга
             $form->rec->kstring = static::prepareKey($form->rec->kstring);
+            
+            if (!$mvc->isUnique($form->rec, $fields)) {
+                $form->setError($fields, 'Вече съществува запис със същите данни');
+            }
         }
     }
     
