@@ -166,7 +166,7 @@ class marketing_Inquiries2 extends embed_Manager
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'title,proto';
+    public $fieldsNotToClone = 'title';
     
     
     /**
@@ -289,7 +289,14 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         if ($Driver){
-            $Driver->addInquiryFields($form->rec->proto, $data->form);
+            $Driver->addInquiryFields($data->form->rec->proto, $data->form);
+            if(is_array($form->rec->additionalData)){
+                foreach ($form->rec->additionalData as $aFld => $aValue){
+                    if($form->getField($aFld, true)){
+                        $form->setDefault($aFld, $aValue);
+                    }
+                }
+            }
         }
         
         $caption = 'Количества|*';
@@ -353,7 +360,7 @@ class marketing_Inquiries2 extends embed_Manager
         }
     }
     
-    
+   
     /**
      * Преди показване на форма за добавяне/промяна
      */
