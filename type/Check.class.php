@@ -72,4 +72,19 @@ class type_Check extends type_Enum
         
         return $value;
     }
+    
+    
+    
+    /**
+     * Преобразуване от вътрешно представяне към вербална стойност
+     */
+    public function toVerbal($value)
+    {
+        $res = parent::toVerbal($value);
+        if($value == 'yes'){
+            $res = core_Type::getByName('richtext')->toVerbal($res);
+        }
+        
+        return $res;
+    }
 }
