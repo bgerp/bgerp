@@ -927,4 +927,31 @@ abstract class cat_ProductDriver extends core_BaseClass
     {
         return array();
     }
+    
+    
+    /**
+     * Добавя полета към формата за запитване
+     * 
+     * @param int $protoProductId
+     * @param core_FieldSet $fieldset
+     * 
+     * @return void
+     */
+    public function addInquiryFields($protoProductId, core_FieldSet &$fieldset)
+    {
+        
+    }
+    
+    
+    /**
+     * Взима шаблона за показване на допълнителните данни от запитването
+     *
+     * @param stdClass $rec
+     *
+     * @return core_ET
+     */
+    public function getInquiryDataTpl($rec)
+    {
+        return new core_ET("");
+    }
 }

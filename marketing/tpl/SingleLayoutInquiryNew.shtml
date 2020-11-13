@@ -3,7 +3,7 @@
 	    <div>
 	    	<b>[#innerClass#]</b>
 	    	<!--ET_BEGIN title-->: [#title#]<!--ET_END title--></div>
-	    <!--ET_BEGIN proto--><div class='quiet'><small>|Базирано на|*: [#proto#]</small></div><!--ET_END proto--> 
+	        <!--ET_BEGIN proto--><div class='quiet'><small>[#protoCaption#]: [#proto#]</small></div><!--ET_END proto--> 
 	    
 	    <!--ET_BEGIN inqDescription-->
 	    <fieldset class="detail-info">
@@ -17,6 +17,7 @@
 		     [#innerState#]
 	     </fieldset>
     </div>
+    [#ADDITIONAL_BLOCK#]
     
     <!--ET_BEGIN QUANTITY-->
     [#QUANTITY#]
