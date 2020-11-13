@@ -211,4 +211,46 @@ class fileman_type_Files extends type_Keylist
             }
         ", 'SCRIPTS');
     }
+    
+    
+    /**
+     *
+     *
+     * @param string $value
+     *
+     * @see core_Type::isValid()
+     */
+    public function isValid($value)
+    {
+        $res = parent::isValid($value);
+        
+        if ($this->params['allowedExtensions'] && $value) {
+            $vArr = $this->toArray($value);
+            
+            setIfNot($res, array());
+            
+            $eArr = explode('|', strtolower($this->params['allowedExtensions']));
+            
+            foreach ($vArr as $vId) {
+                $fRec = fileman::fetch($vId);
+                
+                $eArr = arr::make($eArr, true);
+                
+                $ext = fileman::getExt(strtolower($fRec->name));
+                
+                if (!$eArr[$ext]) {
+                    $res['error'] = "Разширението на файла не е в допустимите|*: " . implode(', ', $eArr);
+                    
+                    if ($res['error']) {
+                        $this->error = $res['error'];
+                    }
+                }
+            }
+        }
+        
+        if ($value !== null) {
+            
+            return $res;
+        }
+    }
 }
