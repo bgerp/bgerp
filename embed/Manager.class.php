@@ -403,7 +403,7 @@ abstract class embed_Manager extends core_Master
             if ($driverClass) {
                 $dRec = (object) array($this->driverClassField => $driverClass);
                 if ($driver = $this->getDriver($dRec)) {
-                    
+                   
                     // Добавяме ембедъра към аргументите на ивента
                     array_unshift($args, $this);
                     
@@ -497,7 +497,7 @@ abstract class embed_Manager extends core_Master
                 }
                 
                 // Добавят се детайлите от драйвера
-                $driverDetails = $Driver->getDetails($data->rec);
+                $driverDetails = $Driver->getDetails($data->rec, $this);
                 $data->details = array_merge($data->details, $driverDetails);
             }
         }
