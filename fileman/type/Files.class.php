@@ -244,6 +244,8 @@ class fileman_type_Files extends type_Keylist
                     if ($res['error']) {
                         $this->error = $res['error'];
                     }
+                    
+                    break;
                 }
             }
         }
