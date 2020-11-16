@@ -222,7 +222,7 @@ class sales_Sales extends deals_DealMaster
         'paymentMethodId' => 'clientCondition|lastDocUser|lastDoc',
         'currencyId' => 'lastDocUser|lastDoc|CoverMethod',
         'bankAccountId' => 'lastDocUser|lastDoc',
-        'caseId' => 'lastDocUser|lastDoc',
+        'caseId' => 'sessionValue|lastDocUser|lastDoc',
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
         'chargeVat' => 'lastDocUser|lastDoc|defMethod',
