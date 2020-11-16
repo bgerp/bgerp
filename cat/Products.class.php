@@ -2446,12 +2446,22 @@ class cat_Products extends embed_Manager
             if (isset($rec)) {
                 if (isset($rec->originId)) {
                     $document = doc_Containers::getDocument($rec->originId);
+                   
                     if (!$document->haveInterface('marketing_InquiryEmbedderIntf')) {
                         $res = 'no_one';
-                    } elseif (isset($rec->threadId)) {
-                        $originThreadId = $document->fetchField('threadId');
-                        if ($originThreadId != $rec->threadId) {
-                            $res = 'no_one';
+                    } else {
+                        $documentRec = $document->fetch('proto,threadId');
+                        if(isset($documentRec->proto)){
+                            $protoRec = $mvc->fetch($documentRec->proto, 'state');
+                            if($protoRec->state == 'active'){
+                                $res = 'no_one';
+                            }
+                        }
+                        
+                        if (isset($rec->threadId)) {
+                            if ($documentRec->threadId != $rec->threadId) {
+                                $res = 'no_one';
+                            }
                         }
                     }
                 }
