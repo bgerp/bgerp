@@ -22,6 +22,7 @@
  * clientCondition    - От дефолт търговско условие
  * coverMethod	      - Метод от корицата с име "getDefault{$name}"
  * customMethod	      - Дефолт метод за частен случай
+ * sessionValue       - Стойност от сесията, ако полето е type_Key или type_Keylist
  *
  * -------------------------------------------------------------
  *
@@ -293,6 +294,24 @@ class cond_plg_DefaultValues extends core_Plugin
         if (cls::existsMethod($mvc, $name)) {
             
             return $mvc->$name($rec);
+        }
+    }
+    
+    
+    /**
+     * Връща стойност от сесията
+     */
+    private static function getFromSessionValue(core_Mvc $mvc, $rec, $name)
+    {
+        $fldType = $mvc->getFieldType($name);
+        if($fldType instanceof type_Key || $fldType instanceof type_Keylist){
+            if($typeMvc = $fldType->params['mvc']){
+                $TypeMvc = cls::get($typeMvc);
+                if($TypeMvc->hasPlugin('plg_Current')){
+                    
+                    return $TypeMvc->getCurrent('id', false);
+                }
+            }
         }
     }
     

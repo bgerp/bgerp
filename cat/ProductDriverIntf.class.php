@@ -586,4 +586,31 @@ class cat_ProductDriverIntf extends embed_DriverIntf
     {
         return $this->class->getLinkedJobRecs($id);
     }
+    
+    
+    /**
+     * Добавя полета към формата за запитване
+     *
+     * @param int $protoProductId
+     * @param core_FieldSet $fieldset
+     *
+     * @return void
+     */
+    public function addInquiryFields($protoProductId, core_FieldSet &$fieldset)
+    {
+        return $this->class->addInquiryFields($protoProductId, $fieldset);
+    }
+    
+    
+    /**
+     * Взима шаблона за показване на допълнителните данни от запитването
+     *
+     * @param stdClass $rec
+     *
+     * @return core_ET
+     */
+    public function getInquiryDataTpl($rec)
+    {
+        return $this->class->getInquiryDataTpl($rec);
+    }
 }

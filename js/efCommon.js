@@ -1463,10 +1463,24 @@ function SetWithCheckedButton() {
     }
 }
 
+
+/**
+ * Премахва символите от края на стринга
+ * 
+ * @param hash
+ */
+function clearHashStr(hash)
+{
+	
+	return hash.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]*$/gi, '');
+}
+
 function flashHashDoc(flasher) {
     var h = window.location.hash.substr(1);
+    
     if (h) {
-        if (!flasher) {
+    	h = clearHashStr(h);
+        if (h && !flasher) {
             flasher = flashDoc;
         }
         flasher(h);
@@ -1729,8 +1743,9 @@ function getWindowWidth() {
 function getCalculatedElementWidth() {
 	var winWidth = getWindowWidth();
     // разстояние около формата
-	var outsideWidth = parseInt($('#packWrapper').css('padding-left')) + parseInt($(' #packWrapper').css('padding-right'));
+	var outsideWidth = parseInt($('#packWrapper').css('padding-left')) + parseInt($(' #packWrapper').css('padding-right')) + 6;
     var menuSize = 0;
+
 	if($('.externalPage').length) {
 		outsideWidth = 30;
 		if($('#login-form input').length) {
@@ -1761,71 +1776,46 @@ function markElementsForRefresh() {
  */
 function setFormElementsWidth() {
     if ($('body').hasClass('narrow')){
-        // предпочитана ширина в em
-        var preferredSizeInEm = 42;
-        // разстояние около формата
-
         // изчислена максимална ширина формата
-        setTimeout(function () {
-            var formElWidth = getCalculatedElementWidth();
-            var winWidth = getWindowWidth();
+        var formElWidth = getCalculatedElementWidth();
 
-            // колко ЕМ е широка страницата
-            var currentEm = parseFloat($(".formTable input[type=text]").first().css("font-size"));
-            if (!currentEm) {
-                currentEm = parseFloat($(".formTable select").first().css("font-size"));
-            }
-
-            var sizeInEm = winWidth / currentEm;
-
-            // колко РХ е 1 ЕМ
-            var em = parseInt(winWidth / sizeInEm);
-
-            // изчислена ширина, равна на ширината в ем, която предпочитаме
-            var preferredSizeInPx = preferredSizeInEm * em;
-
-            if (formElWidth > preferredSizeInPx) formElWidth = preferredSizeInPx;
-
-            $('.formTable label').each(function() {
-                if(!$(this).closest('.treelist').length)  {
-                    var colsInRow = parseInt($(this).attr('data-colsInRow'));
-                    if (!colsInRow) {
-                        colsInRow = 1;
-                    }
-                    $(this).parent().css('maxWidth', parseInt((formElWidth - 20) / colsInRow));
-                    $(this).parent().css('overflow-x', 'hidden');
-
-                    $(this).attr('title', $(this).text());
+        $('.formTable label').each(function() {
+            if(!$(this).closest('.treelist').length)  {
+                var colsInRow = parseInt($(this).attr('data-colsInRow'));
+                if (!colsInRow) {
+                    colsInRow = 1;
                 }
-            });
+                $(this).parent().css('maxWidth', parseInt((formElWidth - 20) / colsInRow));
+                $(this).parent().css('overflow-x', 'hidden');
 
-            $('.staticFormView .formFieldValue').css('max-width', formElWidth - 5);
+                $(this).attr('title', $(this).text());
+            }
+        });
 
-            $('.vertical .formTitle').css('min-width', formElWidth -10);
-            $('.formTable textarea').css('width', formElWidth);
-            $('.formTable .treelist').css('width', formElWidth - 10);
-            $('.formTable .chzn-container').css('maxWidth', formElWidth);
-            $('.formTable .select2-container').css('maxWidth', formElWidth);
-            $('.vFormField .select2-container').css('maxWidth', formElWidth + 20);
+        $('.staticFormView .formFieldValue').css('max-width', formElWidth - 5);
 
-            $('.formTable select').css('maxWidth', formElWidth);
+        $('.vertical .formTitle').css('min-width', formElWidth -10);
+        $('.formTable textarea').css('width', formElWidth);
+        $('.formTable .treelist').css('width', formElWidth - 10);
+        $('.formTable .chzn-container').css('maxWidth', formElWidth);
+        $('.formTable .select2-container').css('maxWidth', formElWidth);
+        $('.vFormField .select2-container').css('maxWidth', formElWidth + 20);
 
-            $('.formTable .scrolling-holder').css('maxWidth', formElWidth);
+        $('.formTable select').css('maxWidth', formElWidth);
 
-            $('.formTable .hiddenFormRow select.w50').css('width', formElWidth);
-            $('.formTable .hiddenFormRow select.w75').css('width', formElWidth);
-            $('.formTable .hiddenFormRow select.w100').css('width', formElWidth);
-            $('.formTable .hiddenFormRow select.w25').css('width', formElWidth/2);
+        $('.formTable .scrolling-holder').css('maxWidth', formElWidth);
 
-            $('.formTable .hiddenFormRow .inlineTo select.w50').css('width', formElWidth - 8);
-            $('.formTable .hiddenFormRow .inlineTo select.w25').css('width', formElWidth/2 - 8);
+        $('.formTable .hiddenFormRow select.w50').css('width', formElWidth);
+        $('.formTable .hiddenFormRow select.w75').css('width', formElWidth);
+        $('.formTable .hiddenFormRow select.w100').css('width', formElWidth);
+        $('.formTable .hiddenFormRow select.w25').css('width', formElWidth/2);
 
-            $('.formTable .inlineTo .chzn-container').css('maxWidth', formElWidth/2 - 10);
-            $('.formTable .inlineTo .select2-container').css('maxWidth', formElWidth/2 - 10);
-            $('.formTable .inlineTo  select').css('maxWidth', formElWidth/2 - 10);
-        }, 1);
+        $('.formTable .hiddenFormRow .inlineTo select.w50').css('width', formElWidth - 8);
+        $('.formTable .hiddenFormRow .inlineTo select.w25').css('width', formElWidth/2 - 8);
 
-
+        $('.formTable .inlineTo .chzn-container').css('maxWidth', formElWidth/2 - 10);
+        $('.formTable .inlineTo .select2-container').css('maxWidth', formElWidth/2 - 10);
+        $('.formTable .inlineTo  select').css('maxWidth', formElWidth/2 - 10);
     } else {
         $('.formTable .hiddenFormRow select.w50').css('width', "50%");
         $('.formTable .hiddenFormRow select.w75').css('width', "75%");

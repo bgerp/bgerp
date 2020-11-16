@@ -81,13 +81,12 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
         $fieldset->FLD('documents', 'classes(interface = doc_DocumentIntf,select = title)', 'caption=Вид документи,placeholder=Избери вид документи,after=to,single=none,mandatory');
         
         $fieldset->FLD('grouping', 'enum(day=24 часа, week=7 дни, , year=12 месеца)', 'caption=Групиране,after=documents,removeAndRefreshForm');
-       
-       // $fieldset->FLD('date', 'date', "caption=От,after=grouping,single=none,mandatory");
-
-        $fieldset->FLD('users', 'userList(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Потребители,single=none,mandatory,after=grouping');
-     
-        $fieldset->FNC('dateEnd', 'date', "caption=До,after=users,single=none");
         
+        // $fieldset->FLD('date', 'date', "caption=От,after=grouping,single=none,mandatory");
+        
+        $fieldset->FLD('users', 'userList(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Потребители,single=none,mandatory,after=grouping');
+        
+        $fieldset->FNC('dateEnd', 'date', 'caption=До,after=users,single=none');
     }
     
     
@@ -118,10 +117,10 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
         
-       
         
         $form->fields['users']->type->userOtherGroup = array(-1 => (object) array('suggName' => 'users', 'title' => 'Система', 'attr' => array('class' => 'team'), 'group' => true, 'autoOpen' => true, 'suggArr' => array(core_Users::ANONYMOUS_USER, core_Users::SYSTEM_USER)));
     }
+    
     
     /**
      * Кои записи ще се показват в таблицата
@@ -133,7 +132,6 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        
         $recs = $documentsForChech = array();
         
         $documentsForChech = keylist::toArray($rec->documents);
@@ -143,16 +141,13 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
         $query->in('docClass', $documentsForChech);
         
         $query->in('state', array('active','closed'));
-         
-        while ($document = $query->fetch()){
-            
+        
+        while ($document = $query->fetch()) {
             $className = core_Classes::getName($document->docClass);
             
             $docRec = $className::fetch($document->docId);
             
             $dateCheck = $docRec->activatedOn ? $docRec->activatedOn : $docRec->createdOn;
-            
-         //   $dateCheck = date('Y-m-d', dt::mysql2timestamp($dateCheck));
             
             // Разбиваме подадената дата
             $day = dt::mysql2Verbal($dateCheck, 'd');
@@ -162,60 +157,51 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
             $rec->dateEnd = $dateCheck;
             
             //Определяне ключа на масива в зависимост от избраното групиране
-            if ($rec->grouping == 'day'){
-                
-                if ($dateCheck > $rec->from && $dateCheck < $rec->to){
-                    
-                $id = date('H',dt::mysql2timestamp($dateCheck));
-                
-                }else{
+            if ($rec->grouping == 'day') {
+                if ($dateCheck > $rec->from && $dateCheck < $rec->to) {
+                    $id = date('H', dt::mysql2timestamp($dateCheck));
+                } else {
                     continue;
                 }
             }
             
-            if ($rec->grouping == 'week'){
-                
-                if ($dateCheck > $rec->from && $dateCheck < $rec->to){
+            if ($rec->grouping == 'week') {
+                if ($dateCheck > $rec->from && $dateCheck < $rec->to) {
                     $dayKeys = array(1 => 'понеделник', 2 => 'вторник', 3 => 'сряда', 4 => 'четвъртък', 5 => 'петък', 6 => 'събота', 7 => 'неделя');
                     
                     // Взимаме кой ден от седмицата е 1=пон ... 7=нед
                     $id = date('N', mktime(0, 0, 0, $month, $day, $year));
-                    
-                }else{
+                } else {
                     continue;
                 }
             }
             
-            if ($rec->grouping == 'year'){
-                
-                if ($dateCheck > $rec->from && $dateCheck < $rec->to){
-                   
+            if ($rec->grouping == 'year') {
+                if ($dateCheck > $rec->from && $dateCheck < $rec->to) {
                     $id = date('m', mktime(0, 0, 0, $month, $day, $year));
-              
-                }else{
+                } else {
                     continue;
                 }
-                
             }
-             
+            
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object) array(
                     
                     'counter' => 1,
                     'time' => $id,
-                    
-                   
+                
+                
                 );
             } else {
                 $obj = &$recs[$id];
-                $obj->counter += 1;
+                ++$obj->counter;
             }
         }
         
         if (! is_null($recs)) {
             arr::sortObjects($recs, 'time');
         }
-       
+        
         return $recs;
     }
     
@@ -239,10 +225,10 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
             case 'week':$text = 'Ден'; break;
             
             case 'year':$text = 'Месец'; break;
-            
+        
         }
         
-        $fld->FLD('time', 'varchar', "caption=$text,tdClass=centered");
+        $fld->FLD('time', 'varchar', "caption=${text},tdClass=centered");
         $fld->FLD('counter', 'varchar', 'caption=Брой,tdClass=centered');
         
         return $fld;
@@ -275,10 +261,10 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
             
             case 'week':$time = $dayKeys[$dRec->time]; break;
             
-            case 'year':$time = dt::getMonth($dRec->time,'F'); break;
-            
+            case 'year':$time = dt::getMonth($dRec->time, 'F'); break;
+        
         }
-         
+        
         $row->time = $time;
         $row->counter = $dRec->counter;
         
@@ -358,32 +344,6 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
             $fieldTpl->append('<b>' . 'Всички' . '</b>', 'documents');
         }
         
-//         $marker = 0;
-//         if (isset($data->rec->jobses)) {
-//             foreach (type_Keylist::toArray($data->rec->jobses) as $job) {
-//                 $marker++;
-                
-//                 $jRec = planning_Jobs::fetch($job);
-                
-//                 $jContainer = $jRec->containerId;
-                
-//                 $Job = doc_Containers::getDocument($jContainer);
-                
-//                 $handle = $Job->getHandle();
-                
-//                 $singleUrl = $Job->getUrlWithAccess($Job->getInstance(), $job);
-                
-//                 $jobVerb .= ht::createLink("#{$handle}", $singleUrl);
-                
-//                 if ((countR((type_Keylist::toArray($data->rec->jobses))) - $marker) != 0) {
-//                     $jobVerb .= ', ';
-//                 }
-//             }
-            
-//             $fieldTpl->append('<b>' . $jobVerb . '</b>', 'jobses');
-//         } else {
-//             $fieldTpl->append('<b>' . 'Всички' . '</b>', 'jobses');
-//         }
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }

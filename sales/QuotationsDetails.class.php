@@ -132,6 +132,8 @@ class sales_QuotationsDetails extends doc_Detail
         $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=auto');
         $this->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки,formOrder=110001');
         $this->setField('packPrice', 'silent');
+        
+        $this->setDbIndex('productId,quantity');
     }
     
     
@@ -1078,6 +1080,7 @@ class sales_QuotationsDetails extends doc_Detail
         $query->where("#state = 'active'");
         $query->where("(#expireOn IS NULL AND #date >= '{$date}') OR (#expireOn IS NOT NULL AND #expireOn >= '{$date}')");
         $query->orderBy('date,quotationId', 'DESC');
+        $query->limit(1);
         
         $res = (object) array('price' => null);
         if ($rec = $query->fetch()) {

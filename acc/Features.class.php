@@ -405,7 +405,6 @@ class acc_Features extends core_Manager
     private function syncAllItems()
     {
         $items = array();
-        
         core_Debug::$isLogging = false;
         
         // Свойствата на кои пера са записани в таблицата
@@ -421,8 +420,11 @@ class acc_Features extends core_Manager
             }
         }
         
+        $count = countR($items);
+        core_App::setTimeLimit($count * 0.7, 600);
+        
         // Ако има пера
-        if (countR($items)) {
+        if ($count) {
             foreach ($items as $itemId) {
                 
                 // За всяко перо синхронизираме свойствата му

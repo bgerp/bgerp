@@ -52,6 +52,7 @@ body {
 .x_title {
     border-bottom: 1px solid rgba(190,197,207, 0.2);
     padding: 1px 5px 6px;
+    display: none;
 }
 .x_title h2 {
     margin: 5px 0 6px;
@@ -77,7 +78,7 @@ table.tile_info td p {
     display: block;
     text-align: center;
     color: #489fc0;
-    font-size: 3.5em;
+    font-size: 2.7em;
     margin-top: 17px;
 }
 .output span {
@@ -196,6 +197,14 @@ figure {
 }
 .fa-sort-desc.arrow-bottom {
     top: 62px;
+}
+.iconBlock {
+    text-align: center;
+    display: block !important;
+}
+.iconBlock img {
+    width: 100px;
+    height: 100px;
 }
 .optionsBtn {
     position: absolute;

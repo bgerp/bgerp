@@ -191,7 +191,6 @@ class plg_RowTools2 extends core_Plugin
         }
         
         $mustShow = false;
-        $hasTplPlg = $mvc->hasPlugin('doc_plg_TplManager') || $mvc->hasPlugin('doc_plg_TplManagerDetail');
         
         foreach ($data->rows as $id => &$row) {
             $rec = $data->recs[$id];

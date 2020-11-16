@@ -48,7 +48,7 @@ class type_Check extends type_Enum
         ht::setUniqId($attr);
         
         $errorClass = isset($attr['errorClass']) ? "errorclass=' inputError'": '';
-        $tpl = new core_ET("<input type='checkbox' [#DATA_ATTR#] name='{$name}' {$errorClass} value='yes' class='{$attr['class']}' id='{$attr['id']}'" . ($value == 'yes' ? ' checked ' : '') . "> <label id='label_{$attr['id']}'>{$caption}</label>");
+        $tpl = new core_ET("<input type='checkbox' [#DATA_ATTR#] name='{$name}' {$errorClass} value='yes' class='{$attr['class']}' id='{$attr['id']}'" . ($value == 'yes' ? ' checked ' : '') . "> <label style='white-space: normal;' id='label_{$attr['id']}'>{$caption}</label>");
         
         return $tpl;
     }
@@ -71,5 +71,20 @@ class type_Check extends type_Enum
         }
         
         return $value;
+    }
+    
+    
+    
+    /**
+     * Преобразуване от вътрешно представяне към вербална стойност
+     */
+    public function toVerbal($value)
+    {
+        $res = parent::toVerbal($value);
+        if($value == 'yes'){
+            $res = core_Type::getByName('richtext')->toVerbal($res);
+        }
+        
+        return $res;
     }
 }

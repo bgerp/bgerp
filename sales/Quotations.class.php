@@ -257,6 +257,7 @@ class sales_Quotations extends core_Master
         $this->FLD('others', 'text(rows=4)', 'caption=Допълнително->Условия');
     
         $this->setDbIndex('date');
+        $this->setDbIndex('contragentClassId,contragentId');
     }
     
     
