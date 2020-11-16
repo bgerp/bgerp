@@ -24,8 +24,6 @@ class ztm_Adapter extends core_Mvc
         
         
         $tpl->push('ztm/css/bootstrap.min.css', 'CSS');
-        $tpl->push('ztm/css/bootstrap-grid.css', 'CSS');
-        $tpl->push('ztm/css/font-awesome.min.css', 'CSS');
         $tpl->push('ztm/css/rangeslider.css', 'CSS');
         $tpl->push('ztm/css/layout.css', 'CSS');
         
@@ -46,7 +44,17 @@ class ztm_Adapter extends core_Mvc
         }
         $data = json_encode($data);
         jquery_Jquery::run($tpl, "prepareDashboard({$data})");
-        
+
+        $tempImg = ht::createImg(array('path' => "ztm/img/temp.png"));
+        $lampImg = ht::createImg(array('path' => "ztm/img/bulb.png"));
+        $blindsImg = ht::createImg(array('path' => "ztm/img/lines.png"));
+        $fanImg = ht::createImg(array('path' => "ztm/img/fan.png"));
+
+
+        $tpl->replace($tempImg, 'temp');
+        $tpl->replace($lampImg, 'lamp');
+        $tpl->replace($blindsImg, 'blinds');
+        $tpl->replace($fanImg, 'vent');
         return $tpl;
     }
 }
