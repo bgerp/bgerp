@@ -2017,42 +2017,56 @@ abstract class deals_Helper
      *
      * @return stdClass|null $obj
      */
-    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $contragentClassId, $contragentId, $valior, $listId = null)
+    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true)
     {
-        $obj = null;
-        
-        $warningType = 'warning';
-        if ($minListId = sales_Setup::get('MIN_PRICE_POLICY')) {
-            $listId = $minListId;
-            $warningType = 'error';
-        }
-        
         $price = $price * (1 - $discount);
-        $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $listId);
-        
-        $toleranceDiff = 0;
-        if (isset($foundPrice->listId)) {
-            $toleranceDiff = price_Lists::fetchField($foundPrice->listId, 'discountComparedShowAbove');
+        $minListId = sales_Setup::get('MIN_PRICE_POLICY');
+        if ($minListId) {
+            $foundMinPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $minListId, $useQuotationPrice);
         }
-        $toleranceDiff = !empty($toleranceDiff) ? $toleranceDiff * 100 : 1;
-        $foundPrice = $foundPrice->price * (1 - $foundPrice->discount);
         
-        $diff = abs(round($price - $foundPrice, 5));
-        $price1Round = round($price, 5);
-        $price2Round = round($foundPrice, 5);
-       
-        if ($price2Round) {
-            $percent = core_Math::diffInPercent($price1Round, $price2Round);
-            $diff = abs(core_Math::diffInPercent($price1Round, $price2Round));
-            
-            if ($diff > $toleranceDiff) {
-                $obj = array();
-                $obj['hint'] = ($percent < 0) ? 'Крайната цена е над очакваната за клиента|*!' : 'Крайната цена е под очакваната за клиента|*!';
-                $obj['hintType'] = ($percent < 0) ? 'notice' : $warningType;
+        $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $listId, $useQuotationPrice);
+        
+        foreach (array($foundMinPrice, $foundPrice) as $i => $var){
+            if(is_object($var)){
+                
+                $toleranceDiff = 0;
+                if (isset($var->listId)) {
+                    $toleranceDiff = price_Lists::fetchField($var->listId, 'discountComparedShowAbove');
+                }
+                $toleranceDiff = !empty($toleranceDiff) ? $toleranceDiff * 100 : 1;
+                $foundPrice = $var->price * (1 - $var->discount);
+                
+                $diff = abs(round($price - $foundPrice, 5));
+                $price1Round = round($price, 5);
+                $price2Round = round($foundPrice, 5);
+                
+                if ($price2Round) {
+                    $percent = core_Math::diffInPercent($price1Round, $price2Round);
+                    $diff = abs(core_Math::diffInPercent($price1Round, $price2Round));
+                    
+                    if ($diff > $toleranceDiff) {
+                        $obj = array();
+                        
+                        if($i == 0 && $percent >= 0){
+                            $obj['hint'] ='Крайната цена е под минималната за клиента|*!';
+                            $obj['hintType'] = 'error';
+                            
+                            return $obj;
+                        } 
+                        
+                        if($i == 1){
+                            $obj['hint'] = ($percent < 0) ? 'Крайната цена е над очакваната за клиента|*!' : 'Крайната цена е под очакваната за клиента|*!';
+                            $obj['hintType'] = ($percent < 0) ? 'notice' : 'warning';
+                        
+                            return $obj;
+                        }
+                    }
+                }
             }
         }
         
-        return $obj;
+        return null;
     }
     
     
@@ -2075,13 +2089,25 @@ abstract class deals_Helper
             $dQuery = $Detail::getQuery();
             $dQuery->EXT('isPublic', 'cat_Products', "externalName=isPublic,externalKey={$Detail->productFld}");
             $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+            $priceDate = ($rec == 'draft') ? null : $rec->valior;
+            
+            if($mvc instanceof sales_Sales){
+                $useQuotationPrice = isset($rec->originId) ? true : false;
+            } elseif($mvc instanceof store_ShipmentOrders){
+                $useQuotationPrice = false;
+                if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
+                    if($firstDocument->isInstanceOf('sales_Sales')){
+                        $firstDocumentOrigin = $firstDocument->fetchField('originId');
+                        $useQuotationPrice = isset($firstDocumentOrigin) ? true : false;
+                    }
+                }
+            }
             
             while ($dRec = $dQuery->fetch()) {
-                $price = cls::get('price_ListToCustomers')->getPriceByList($minPolicyId, $dRec->{$Detail->productFld}, $dRec->{$Detail->packagingFld}, $dRec->{$Detail->quantityFld}, $rec->{$mvc->valiorFld}, 1, 'no');
-              
-                if (!is_null($price->price)) {
-                    $minPrice = $price->price * (1 - $price->discount);
-                    if (round($dRec->price, 5) < round($minPrice, 5)) {
+                $discount = isset($dRec->discount) ? $dRec->discount : $dRec->autoDiscount;
+                if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId, $useQuotationPrice)){
+                    if($checkedObject['hintType'] == 'error'){
+                        
                         return true;
                     }
                 }

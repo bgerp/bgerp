@@ -1454,7 +1454,7 @@ class cat_Products extends embed_Manager
      */
     public static function getProductOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
-        $private = $products = array();
+        $private = $products = $templates = array();
         $query = cat_Products::getQuery();
         
         if (is_array($onlyIds)) {
@@ -1463,12 +1463,17 @@ class cat_Products extends embed_Manager
             }
             
             $ids = implode(',', $onlyIds);
-            
             $query->where("#id IN (${ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
             $query->where("#id = ${onlyIds}");
         } else {
-            $query->where("#state = 'active'");
+            
+            if($params['showTemplates']){
+                $query->where("#state = 'active' OR #state = 'template'");
+            } else {
+                $query->where("#state = 'active'");
+            }
+            
             $reverseOrder = false;
             
             // Ако е зададен контрагент, оставяме само публичните + частните за него
@@ -1556,11 +1561,13 @@ class cat_Products extends embed_Manager
         $mArr = array();
         
         // Подготвяне на опциите
-        $query->show('isPublic,folderId,meta,id,code,name,nameEn');
-        
+        $query->show('isPublic,folderId,meta,id,code,name,nameEn,state');
+       
         while ($rec = $query->fetch()) {
             $title = static::getRecTitle($rec, false);
-            if ($rec->isPublic == 'yes') {
+            if($rec->state == 'template'){
+                $templates[$rec->id] = $title;
+            } elseif ($rec->isPublic == 'yes') {
                 $products[$rec->id] = $title;
             } else {
                 $private[$rec->id] = $title;
@@ -1590,6 +1597,10 @@ class cat_Products extends embed_Manager
             if (!empty($private)) {
                 asort($private);
             }
+            
+            if (!empty($templates)) {
+                asort($templates);
+            }
         }
         
         $mustReverse = null;
@@ -1609,6 +1620,16 @@ class cat_Products extends embed_Manager
             if (isset($private[$mId])) {
                 unset($private[$mId]);
                 $private = array($mId => $mTitle) + $private;
+                if (!isset($mustReverse)) {
+                    $mustReverse = true;
+                } elseif ($mustReverse === false) {
+                    $mustReverse = -1;
+                }
+            }
+            
+            if (isset($templates[$mId])) {
+                unset($templates[$mId]);
+                $templates = array($mId => $mTitle) + $templates;
                 if (!isset($mustReverse)) {
                     $mustReverse = true;
                 } elseif ($mustReverse === false) {
@@ -1636,6 +1657,13 @@ class cat_Products extends embed_Manager
             } else {
                 $products = $products + $private;
             }
+        }
+        
+        if(countR($templates)){
+            if(!isset($onlyIds)){
+                $templates = array('tu' => (object) array('group' => true, 'title' => tr('Шаблони'))) + $templates;
+            }
+            $products = $products + $templates;
         }
         
         return $products;
@@ -2418,12 +2446,22 @@ class cat_Products extends embed_Manager
             if (isset($rec)) {
                 if (isset($rec->originId)) {
                     $document = doc_Containers::getDocument($rec->originId);
+                   
                     if (!$document->haveInterface('marketing_InquiryEmbedderIntf')) {
                         $res = 'no_one';
-                    } elseif (isset($rec->threadId)) {
-                        $originThreadId = $document->fetchField('threadId');
-                        if ($originThreadId != $rec->threadId) {
-                            $res = 'no_one';
+                    } else {
+                        $documentRec = $document->fetch('proto,threadId');
+                        if(isset($documentRec->proto)){
+                            $protoRec = $mvc->fetch($documentRec->proto, 'state');
+                            if($protoRec->state == 'active'){
+                                $res = 'no_one';
+                            }
+                        }
+                        
+                        if (isset($rec->threadId)) {
+                            if ($documentRec->threadId != $rec->threadId) {
+                                $res = 'no_one';
+                            }
                         }
                     }
                 }

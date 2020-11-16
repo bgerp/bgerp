@@ -69,10 +69,16 @@ html {
     padding:5px;
 }
 .wide .app-name{
-    top: 15%;
+    top: 5%;
     left: 2%;
+    font-size: 4.5em;
 }
 
+.wide .app-subtitle{
+    left: 0%;
+    top: 48%;
+    font-size: 1.7em;
+}
 .wide #maincontent {
     min-height: auto;
 }
@@ -93,10 +99,38 @@ html {
     padding: 0 0px 10px;
     margin-top: -10px;
 }
+@media handheld, only screen and (max-width: 1200px) {
+    .wide .app-name {
+        font-size: 4.1em;
+    }
+    .wide .app-subtitle {
+        font-size: 1.5em;
+    }
+}
+
+@media handheld, only screen and (max-width: 1000px) {
+    .wide .app-name {
+        font-size: 3.3em;
+    }
+    .wide .app-subtitle {
+        font-size: 1.3em;
+    }
+}
+
+@media handheld, only screen and (max-width: 800px) {
+    .wide .app-name {
+        font-size: 2.7em;
+    }
+    .wide .app-subtitle {
+        font-size: 1.1em;
+    }
+}
 @media handheld, only screen and (max-width: 600px) {
     .wide .app-name {
-        font-size: 3.7em;
-        top: 24%;
+        font-size: 1.8em;
+    }
+    .wide .app-subtitle {
+        font-size: 0.9em;
     }
 }
 .gdpr {
@@ -207,6 +241,9 @@ header img {
     }
     .narrow .externalPage .vertical .formTable {
         padding: 15px 10px 0px;
+    }
+    .narrow .externalPage #login-form .vertical .formTable {
+        padding: 15px 5px 0px;
     }
     .narrow .narrowCenter {
         width: 100%;

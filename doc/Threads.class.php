@@ -1894,6 +1894,10 @@ class doc_Threads extends core_Manager
                 }
             }
             
+            if (($firstDcRec->state == 'rejected') && (!$rec->state)) {
+                $rec->state = 'rejected';
+            }
+            
             if ($lastDcRec) {
                 
                 // Състоянието на последния документ

@@ -166,7 +166,7 @@ class marketing_Inquiries2 extends embed_Manager
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'title,proto';
+    public $fieldsNotToClone = 'title';
     
     
     /**
@@ -223,6 +223,7 @@ class marketing_Inquiries2 extends embed_Manager
     {
         $this->FLD('proto', 'key(mvc=cat_Products,allowEmpty,select=name)', 'caption=Шаблон,silent,input=hidden,refreshForm,placeholder=Популярни артикули,groupByDiv=»');
         $this->FLD('title', 'varchar', 'caption=Заглавие');
+        $this->FLD('additionalData', 'blob(1000000, serialize, compress)', 'caption=Допълнително,input=none,column=none,single=none');
         
         $this->FLD('quantities', 'blob(serialize,compress)', 'input=none,column=none');
         $this->FLD('quantity1', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 1,hint=Въведете количество,input=none,formOrder=47,silent');
@@ -273,12 +274,26 @@ class marketing_Inquiries2 extends embed_Manager
             $form->setField('deliveryAdress', 'input=none');
         }
         
+        $Driver = $this->getDriver($form->rec);
+        
         // Ако има избран прототип, зареждаме му данните в река
         if (isset($form->rec->proto)) {
             if ($pRec = cat_Products::fetch($form->rec->proto)) {
+                
                 if (is_array($pRec->driverRec)) {
                     foreach ($pRec->driverRec as $fld => $value) {
                         $form->rec->{$fld} = $value;
+                    }
+                }
+            }
+        }
+        
+        if ($Driver){
+            $Driver->addInquiryFields($data->form->rec->proto, $data->form);
+            if(is_array($form->rec->additionalData)){
+                foreach ($form->rec->additionalData as $aFld => $aValue){
+                    if($form->getField($aFld, true)){
+                        $form->setDefault($aFld, $aValue);
                     }
                 }
             }
@@ -345,7 +360,7 @@ class marketing_Inquiries2 extends embed_Manager
         }
     }
     
-    
+   
     /**
      * Преди показване на форма за добавяне/промяна
      */
@@ -354,11 +369,8 @@ class marketing_Inquiries2 extends embed_Manager
         $form = &$data->form;
         
         if ($form->rec->innerClass) {
-            $protoProducts = doc_Prototypes::getPrototypes('cat_Products', $form->rec->innerClass);
-            if (countR($protoProducts)) {
-                $form->setField('proto', 'input');
-                $form->setOptions('proto', $protoProducts);
-            }
+            $form->setFieldType('proto', "key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,driverId={$form->rec->innerClass},isPublic=yes,showTemplates,maxSuggestions=100,forceAjax)");
+            $form->setField('proto', 'input');
         }
         
         if (cls::load($form->rec->innerClass, true)) {
@@ -492,6 +504,8 @@ class marketing_Inquiries2 extends embed_Manager
         
         if (isset($rec->proto)) {
             $row->proto = cat_Products::getHyperlink($rec->proto);
+            $protoRec = cat_Products::fetch($rec->proto, 'state');
+            $row->protoCaption = ($protoRec->state != 'template') ? 'Запитване за' : 'Базирано на';
         }
         
         $row->innerClass = core_Classes::translateClassName($row->innerClass);
@@ -706,8 +720,30 @@ class marketing_Inquiries2 extends embed_Manager
         if (haveRole('partner')) {
             unset($data->row->ip, $data->row->time, $data->row->brid);
         }
+        
+        // Вербализиране на допълнителните полета от драйвера
+        if($Driver = $mvc->getDriver($data->rec)){
+            if(is_array($data->rec->additionalData)){
+                $inquiryFields = marketing_Inquiries2::getInquiryFields($data->rec->proto, $Driver);
+                foreach ($data->rec->additionalData as $fld => $value){
+                    if(array_key_exists($fld, $inquiryFields)){
+                        $data->row->{$fld} = $inquiryFields[$fld]->type->toVerbal($value);
+                    }
+                }
+            }
+        }
     }
     
+    
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+        if($Driver = $mvc->getDriver($data->rec)){
+            $tpl->append($Driver->getInquiryDataTpl($data->rec), 'ADDITIONAL_BLOCK');
+        }
+    }
     
     /**
      * След подготовка на тулбара на единичен изглед
@@ -721,7 +757,7 @@ class marketing_Inquiries2 extends embed_Manager
                 $data->toolbar->addBtn("Артикул|* {$arrow}", array('cat_Products', 'single', $pId), 'ef_icon=img/16/wooden-box.png,title=Преглед на артикул по това запитване');
             } else {
                 // Създаване на нов артикул от запитването
-                if (cat_Products::haveRightFor('add', (object) array('folderId' => $rec->folderId, 'threadId' => $rec->threadId, 'innerClass' => $rec->innerClass))) {
+                if (cat_Products::haveRightFor('add', (object) array('folderId' => $rec->folderId, 'originId' => $rec->containerId, 'innerClass' => $rec->innerClass, 'threadId' => $rec->threadId))) {
                     $url = array('cat_Products', 'add', 'innerClass' => $rec->innerClass, 'originId' => $rec->containerId, 'ret_url' => true);
                     if (doc_Folders::getCover($rec->folderId)->haveInterface('crm_ContragentAccRegIntf')) {
                         $url['folderId'] = $rec->folderId;
@@ -1061,8 +1097,27 @@ class marketing_Inquiries2 extends embed_Manager
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
+        $rec = $form->rec;
+        
+        if(isset($rec->proto)){
+            $protoRec = cat_Products::fetch($rec->proto);
+            $Driver = cat_Products::getDriver($protoRec);
+            
+            // Скриване на полетата от драйвера, ако прототипа не е шаблон
+            if($protoRec->state != 'template'){
+                if(isset($Driver)){
+                    $DriverFields = array_keys($mvc->getDriverFields($Driver));
+                    foreach ($DriverFields as $fld) {
+                        if($form->getField($fld, false)){
+                            $form->setField($fld, 'input=hidden');
+                        }
+                    }
+                }
+            }
+        }
+        
         if ($form->isSubmitted()) {
-            $rec = $form->rec;
+            
             $moqVerbal = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($rec->moq);
             
             // Ако няма въведени количества
@@ -1284,13 +1339,25 @@ class marketing_Inquiries2 extends embed_Manager
             }
         }
         
+        $Driver = cls::get($rec->innerClass);
         if (!strlen($rec->title)) {
-            $Driver = cls::get($rec->innerClass);
             if ($Driver) {
                 if ($title = $Driver->getProductTitle($rec)) {
                     $rec->title = $title;
                 }
             }
+        }
+        
+        // Добавяне на полетата от запитването в блоб
+        $inquiryDriverFields = array_keys($mvc->getInquiryFields($rec->proto, $Driver));
+        if(is_array($inquiryDriverFields)){
+            $additionalData = array();
+            foreach ($inquiryDriverFields as $name) {
+                $additionalData[$name] = $rec->{$name};
+                unset($rec->{$name});
+            }
+            
+            $rec->additionalData = $additionalData;
         }
     }
     
@@ -1328,5 +1395,34 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         return $contrData;
+    }
+    
+    
+    /**
+     * Връща полетата добавени от драйвера
+     *
+     * @param core_BaseClass $driver           - драйвер
+     * @param bool           $onlySingleFields - дали да са само полетата за сингъл
+     * @param bool           $returnAsFieldSet - дали да се върнат като фийлд сетове
+     *
+     * @return array $res - добавените полета от драйвера
+     */
+    public static function getInquiryFields($protoId, $driver, $onlySingleFields = false)
+    {
+        $fieldset = cls::get('core_Fieldset');
+        $driver->addInquiryFields($protoId, $fieldset);
+        
+        $res = array();
+        if (is_array($fieldset->fields)) {
+            foreach ($fieldset->fields as $name => $f) {
+                if ($onlySingleFields === true && $f->single == 'none') {
+                    continue;
+                }
+                
+                $res[$name] = $f;
+            }
+        }
+        
+        return $res;
     }
 }

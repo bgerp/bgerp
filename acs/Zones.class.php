@@ -216,7 +216,7 @@ class acs_Zones extends core_Master
     public static function syncZonePermissions($zonesIdsArr = array(), $onlyActive = true)
     {
         $zonesArr = acs_Permissions::getRelationsMap('zone');
-        ;
+        
         $query = self::getQuery();
         
         if (!empty($zonesIdsArr)) {
