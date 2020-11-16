@@ -29,6 +29,14 @@ class auto_plg_QuotationFromInquiry extends core_Plugin
         // Ако има драйвър
         if (is_object($Driver)) {
             
+            if(isset($rec->proto)){
+                $protoState = cat_Products::fetchField($rec->proto, 'state');
+                if($protoState == 'active'){
+                    
+                    return;
+                }
+            }
+            
             // И той може да върне цена за артикула, връща се
             $Cover = doc_Folders::getCover($rec->folderId);
             if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
