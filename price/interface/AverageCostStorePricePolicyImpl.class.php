@@ -124,8 +124,8 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
                     
                     // Взема се новата наличност на артикула, след дебита Q1 и ако тя е положителна:
                     // В модела нека да имаме Q за количество и P за цена. Нека дебита е за сума Qd и цена Pd.
-                    // Правим нова цена: (P*Q+ Pd*Qd)/(Q+Qd), а новото количество е Q1. записваме датата на дебита.
-                    $price = ($oldPrice * $oldQuantity + $lastDebitRec->amount) / ($oldQuantity + $lastDebitRec->debitQuantity);
+                    // Правим нова цена: (P*Q1+ Pd*Qd)/(Q+Qd), а новото количество е Q1. записваме датата на дебита.
+                    $price = ($oldPrice * $iQuantity + $lastDebitRec->amount) / ($oldQuantity + $lastDebitRec->debitQuantity);
                     $price = round($price, 6);
                     
                     // Ако има сметната цена
