@@ -46,6 +46,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
+        
         /*$form = &$data->form;
         $periods = acc_Periods::getCalcedPeriods(true);
         $form->setOptions('from', array('' => '') + $periods);
@@ -161,11 +162,13 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
             }
         }
         
-        // Извличане на записите от журнала по желанието сметки
+        // Извличане на записите от журнала по желаните сметки
         $jQuery = acc_JournalDetails::getQuery();
-        $from = acc_Periods::fetchByDate($rec->from)->start;
-        $to = acc_Periods::fetchByDate($rec->to)->end;
-        
+        //$from = acc_Periods::fetchByDate($rec->from)->start;
+        //$to = acc_Periods::fetchByDate($rec->to)->end;
+        $from = $rec->from;
+        $to = $rec->to;
+        //bp($rec, $from, $to);
         acc_JournalDetails::filterQuery($jQuery, $from, $to, '321,401,61101,61102,701');
         
         $jRecs = $jQuery->fetchAll();
