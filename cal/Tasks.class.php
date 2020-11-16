@@ -1007,7 +1007,7 @@ class cal_Tasks extends embed_Manager
         
         if ($rec->__isReplicate) {
             if ($rec->state == 'closed' || $rec->state == 'stopped') {
-                if (($rec->brState != 'draft') && ($rec->brState != 'rejected')) {
+                if (($rec->brState != 'draft') && ($rec->brState != 'rejected') && $rec->brState) {
                     $rec->state = $rec->brState;
                 }
                 
