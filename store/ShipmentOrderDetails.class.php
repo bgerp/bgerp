@@ -230,8 +230,15 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             
             if (core_Users::haveRole('ceo,seePrice') && isset($row->packPrice) && $masterRec->isReverse == 'no') {
                 $priceDate = ($masterRec == 'draft') ? null : $masterRec->valior;
-                if (sales_PrimeCostByDocument::isPriceBellowPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $priceDate)) {
-                    $row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', false);
+                $foundPrimeCost = null;
+                if (sales_PrimeCostByDocument::isPriceBellowPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $priceDate, $foundPrimeCost)) {
+                    $warning = 'Цената е под себестойността';
+                    if(isset($foundPrimeCost)){
+                        $primeCostVerbal = core_Type::getByName('double(smartRound)')->toVerbal($foundPrimeCost * $rec->quantityInPack);
+                        $warning = "{$warning}|*: {$primeCostVerbal}";
+                    }
+                    
+                    $row->packPrice = ht::createHint($row->packPrice, $warning, 'warning', false);
                 } elseif(in_array($masterRec->state, array('pending', 'draft'))) {
                     
                     $useQuotationPrice = false;
