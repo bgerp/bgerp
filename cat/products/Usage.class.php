@@ -131,7 +131,7 @@ class cat_products_Usage extends core_Manager
         // Ограничаване на заявката
         $query = $data->Document->getQuery();
         $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2  WHEN 'pending' THEN '3' ELSE 4 END)");
-        $query->orderBy('#orderByState=ASC,#id=ASC');
+        $query->orderBy('#orderByState=ASC,#id=DESC');
         
         if (countR($ids)) {
             $query->in('id', $ids);
@@ -269,6 +269,8 @@ class cat_products_Usage extends core_Manager
         $query = $data->Jobs->getQuery();
         $query->where("#productId = {$data->masterId}");
         $query->where("#state != 'rejected'");
+        $query->orderBy('#id=DESC');
+        
         while ($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
         }
