@@ -30,6 +30,7 @@
         <div class="col-md-4 col-sm-6 col-xs-12 first-panel">
             <div class="x_panel tile">
                 <div class="roomNum">Стая - 123</div>
+                <div class="state  eco">ECO</div>
                 <div class="clearfix"></div>
                 <h1 id="currentTime"></h1>
                 <h2 class="currentDate">27 октомври, четв.</h2>
@@ -69,9 +70,23 @@
             <div class="x_panel tile">
                 <div class="x_content">
                     <figure class="icons">
-                        <canvas class='weather-icon'  width="100" height="100" style="display: block;position:relative; left: 50%; margin: 10px auto 30px -50px;"></canvas>
+                        <canvas id = "weatherNow" class='weather-icon'  width="100" height="100" style="display: block;position:relative; left: 50%; margin: 0 auto 5px -50px;"></canvas>
                     </figure>
-                    <p class="weatherStat"> </p>
+                    <p class="currentTemp" style="border-bottom: 1px solid rgba(190,197,207, 0.2); padding-bottom: 5px;">9°C</p>
+                    <div class="smallInfo" style=" margin-top: 6px;">
+                        <h2 class="timePeriod">След 3 часа: </h2>
+                        <figure class="icons smallIcon">
+                            <canvas class='weather-icon' id='weather-icon-3'  width="30" height="30" style="display: block;position:relative;margin: 0 auto"></canvas>
+                        </figure>
+                        <h2 class="tempD">8° - 14°</h2>
+                    </div>
+                    <div class="smallInfo">
+                        <h2 class="timePeriod">След 6 часа: </h2>
+                        <figure class="icons smallIcon">
+                            <canvas class='weather-icon' id='weather-icon-6'  width="30" height="30" style="display: block;position:relative;margin: 0 auto"></canvas>
+                        </figure>
+                        <h2 class="tempD">2° - 10°</h2>
+                    </div>
                 </div>
             </div>
         </div>
