@@ -358,12 +358,10 @@ class ztm_RegisterValues extends core_Manager
                 if (is_scalar($registers)) {
                     if (str::isJson($registers)) {
                         $regArr = (array) json_decode($registers);
+                    } else {
+                        $this->logErr("Невалидни стойности на 'registers': '{$registers}'");
                     }
                 }
-            }
-            
-            if (!countR($regArr)) {
-                $this->logErr("Невалидни стойности на 'registers': '{$registers}'");
             }
             
             // Синхронизране на данните от устройството с тези от системата
