@@ -311,4 +311,13 @@ class cat_products_VatGroups extends core_Detail
         
         return $products;
     }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    protected static function on_AfterCreate($mvc, $rec)
+    {
+        price_Cache::invalidateProduct($rec->productId);
+    }
 }
