@@ -179,7 +179,7 @@ class ztm_RegisterValues extends core_Manager
         if ($checkState) {
             expect($rRec->state == 'active', 'Няма такъв активен регистър');
         }
-        expect($time <= $now, 'Не може да се зададе бъдеще време');
+        expect($time <= $now, "Не може да се зададе бъдеще време '{$time}' ({$now})");
         $rec = (object) array('deviceId' => $deviceId, 'registerId' => $registerId, 'updatedOn' => $time, 'value' => $value);
         $exRec = self::fetch("#deviceId = '{$deviceId}' AND #registerId = '{$registerId}'");
         if (is_object($exRec)) {

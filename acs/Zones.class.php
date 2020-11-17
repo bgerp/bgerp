@@ -85,14 +85,60 @@ class acs_Zones extends core_Master
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Локация');
         $this->FNC('nameLoc', 'varchar', 'single=none,column=none');
         
-        $this->setDbUnique('name, classId, locationId');
+        $this->setDbUnique('name, classId');
     }
+    
+    
+    /**
+     * 
+     * @param string $oName
+     * @param string $nName
+     * @param integer $classId
+     * @param integer $locationId
+     * @param string $state
+     * @param boolean $update
+     */
+    public static function update($oName, $nName, $classId, $locationId, $state, $update = true)
+    {
+        // Ако само ще се обновяваме записа, го редактираме
+        // Ако ще се добавя нова група, добавяне и синхронизираме
+        
+        $rec = self::fetch(array("#name = '[#1#]' AND #classId = '[#2#]'", $oName, $classId));
+        
+        if (!$update || !$rec->id) {
+            $nRec = new stdClass();
+        } else {
+            $nRec = clone $rec;
+        }
+        
+        $nRec->name = $nName;
+        $nRec->locationId = $locationId;
+        $nRec->state = $state;
+        $nRec->classId = $classId;
+        
+        self::save($nRec, null, 'IGNORE');
+        
+        if ($nRec->id && !$update && $rec->id) {
+            acs_Permissions::updateZoneId($rec->id, $nRec->id);
+        }
+        
+        if (($rec->id) && ($rec->id != $nRec->id)) {
+            $ownCompany = crm_Companies::fetchOurCompany();
+            $ourLocations = crm_Locations::getContragentOptions('crm_Companies', $ownCompany->id);
+            
+            $inst = cls::get($classId);
+            
+            $me = cls::get(get_called_class());
+            $me->sync(array($classId => $inst->className), $ourLocations, false);
+        }
+    }
+    
     
     /**
      * 
      * 
      * @param acs_Zones $mvc
-     * @param stdObject $rec
+     * @param stdClass $rec
      * 
      * @return string
      */
@@ -137,12 +183,28 @@ class acs_Zones extends core_Master
             return new Redirect($retUrl, '|Няма добавена локация за "Моята фирма"', 'error');
         }
         
+        $resArr = $this->sync($clsArr, $ourLocations);
+        
+        return new Redirect($retUrl, "|Активирани|* {$resArr['active']}<br>|Затворени|* {$resArr['closed']}");
+    }
+    
+    
+    /**
+     * Помощна функция за синхронизиране
+     * 
+     * @param array $clsArr
+     * @param array $ourLocations
+     * @return array
+     */
+    protected function sync($clsArr, $ourLocations, $closeAllCls = true)
+    {
         $activeCnt = 0;
         $activeArr = array();
         
         foreach ($clsArr as $cId => $clsName) {
             $inst = cls::get($clsName);
             $cp = $inst->getCheckpoints();
+            
             foreach ($cp as $cpNameArr) {
                 $mustSave = false;
                 
@@ -195,6 +257,10 @@ class acs_Zones extends core_Master
         $query->notIn('id', $activeArr);
         $query->where("#state = 'active'");
         
+        if (!$closeAllCls) {
+            $query->in('classId', array_keys($clsArr));
+        }
+        
         $closedCnt = 0;
         while ($qRec = $query->fetch()) {
             $qRec->state = 'closed';
@@ -204,7 +270,7 @@ class acs_Zones extends core_Master
             $closedCnt++;
         }
         
-        return new Redirect($retUrl, "|Активирани|* {$activeCnt}<br>|Затворени|* {$closedCnt}");
+        return array('active' => $activeCnt, 'closed' => $closedCnt);
     }
     
     
