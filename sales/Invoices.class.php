@@ -585,27 +585,6 @@ class sales_Invoices extends deals_InvoiceMaster
             }
         }
         
-        // Само ceo,sales,invoicer могат да оттеглят контирана фактура
-        if ($action == 'reject' && isset($rec)) {
-            
-            if ($rec->state == 'active') {
-                if (!haveRole('ceo,accMaster', $userId)) {
-                    $res = 'no_one';
-                } else {
-                    $dayForInvoice = acc_Setup::get('DATE_FOR_INVOICE_DATE');
-                    $monthValior = dt::mysql2verbal($rec->date, 'm.y');
-                    $monthNow = dt::mysql2verbal(dt::today(), 'm.y');
-                    $dateNow = dt::mysql2verbal(dt::today(), 'd');
-                   
-                    // вальорът на фактурата не от текущия месец
-                    // в текущия месец текущата дата е >= на датата от константата "Ден от месеца за изчисляване на Счетоводна дата на входяща фактура" в пакета асс
-                    if(!($monthValior != $monthNow && $dateNow >= $dayForInvoice)){
-                        $res = 'no_one';
-                    }
-                }
-            }
-        }
-        
         // Само ceo,sales,invoicer могат да възстановят фактура
         if ($action == 'restore' && isset($rec)) {
             if ($rec->brState == 'active') {
