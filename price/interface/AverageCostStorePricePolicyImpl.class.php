@@ -101,14 +101,12 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
                 'classId' => $classId,);
            
             $oldDate = '';
-            $oldPrice = $oldQuantity = 0;
+            $oldPrice = 0;
             
             // Ако има съществуващ запис, взимат се данните от него
             if (is_object($exRecs[$iMap->productId])) {
                 $lastRec = clone $exRecs[$iMap->productId];
-                
                 $oldDate = $lastRec->valior;
-                $oldQuantity = $lastRec->quantity;
                 $oldPrice = $lastRec->price;
             }
             
