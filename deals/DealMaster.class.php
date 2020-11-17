@@ -422,7 +422,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
         $currencyState = currency_Currencies::fetchField("#code = '{$defCurrency}'", 'state');
         $isCurrencyReadOnly = $form->getFieldTypeParam('currencyId', 'isReadOnly');
-        if ($defCurrency != $rec->currencyId && $currencyState == 'active' && !$isCurrencyReadOnly) {
+        if ($defCurrency != $rec->currencyId && $currencyState == 'active' && !$isCurrencyReadOnly && !haveRole('debug')) {
             $form->setWarning('currencyId', "Избрана e различна валута от очакваната|* <b>{$defCurrency}</b>");
         }
         

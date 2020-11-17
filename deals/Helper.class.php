@@ -1732,10 +1732,12 @@ abstract class deals_Helper
      */
     public static function getVatWarning($defaultVat, $selectedVatType)
     {
-        if ($defaultVat == 'yes' && in_array($selectedVatType, array('exempt', 'no'))) {
-            return 'Избран е режим за неначисляване на ДДС, при очакван с ДДС';
-        } elseif ($defaultVat == 'no' && in_array($selectedVatType, array('yes', 'separate'))) {
-            return 'Избран е режим за начисляване на ДДС, при очакван без ДДС';
+        if(!haveRole('debug')){
+            if ($defaultVat == 'yes' && in_array($selectedVatType, array('exempt', 'no'))) {
+                return 'Избран е режим за неначисляване на ДДС, при очакван с ДДС';
+            } elseif ($defaultVat == 'no' && in_array($selectedVatType, array('yes', 'separate'))) {
+                return 'Избран е режим за начисляване на ДДС, при очакван без ДДС';
+            }
         }
     }
     
