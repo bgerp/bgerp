@@ -363,6 +363,14 @@ class ztm_Devices extends core_Master
                 $saveArr['profileId'] = 'profileId';
             }
             
+            if (!$rec->locationId) {
+                $ownLocations = crm_Locations::getOwnLocations();
+                if (!empty($ownLocations)) {
+                    $rec->locationId = key($ownLocations);
+                    $saveArr['locationId'] = 'locationId';
+                }
+            }
+            
             if (!empty($saveArr)) {
                 $mvc->save($rec, implode(', ', $saveArr));
             }
