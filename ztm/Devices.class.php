@@ -493,7 +493,6 @@ class ztm_Devices extends core_Master
         if ($rec->id) {
             $oRec = $mvc->fetch($rec->id);
             $nName = $mvc->prepareName($rec);
-            $rec->name = $nName;
             $oName = $mvc->prepareName($oRec);
             
             $rec->__newName = $nName;
