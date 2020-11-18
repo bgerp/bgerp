@@ -153,6 +153,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
     private function getLastDebitRecs($productItemIds, $storeItemIds, $useCachedDate = true)
     {
         $storeAccId = acc_Accounts::getRecBySystemId('321')->id;
+        $skipDocArr = array(store_Transfers::getClassId(), store_InventoryNotes::getClassId());
         
         // Дали да се използва кешираната дата
         $lastCalcedDebitTime = null;
@@ -164,6 +165,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
         foreach ($productItemIds as $itemId) {
             $jQuery = acc_JournalDetails::getQuery();
             $jQuery->where("#debitAccId = {$storeAccId}");
+            $jQuery->EXT('docType', 'acc_Journal', 'externalKey=docType');
             $jQuery->EXT('valior', 'acc_Journal', 'externalKey=journalId');
             $jQuery->EXT('journalCreatedOn', 'acc_Journal', 'externalKey=journalId,externalName=createdOn');
             $jQuery->XPR('maxValior', 'double', 'MAX(#valior)');
@@ -171,6 +173,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
             $jQuery->XPR('sumDebitAmount', 'double', 'SUM(#amount)');
             $jQuery->where("#debitItem2 = {$itemId} AND #debitQuantity >= 0");
             $jQuery->in('debitItem1', $storeItemIds);
+            $jQuery->notIn('docType', $skipDocArr);
             
             $jQuery->show('debitItem1,debitItem2,amount,debitQuantity,valior,journalId,sumDebitQuantity,sumDebitAmount,maxValior');
             $jQuery->orderBy('valior,id', 'desc');
@@ -186,7 +189,6 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
                 $jRec->debitQuantity = $jRec->sumDebitQuantity;
                 $jRec->amount = $jRec->sumDebitAmount;
                 $jRec->valior = $jRec->maxValior;
-                
                 unset($jRec->sumDebitQuantity);
                 unset($jRec->sumDebitAmount);
                 unset($jRec->maxValior);
@@ -365,7 +367,9 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
         // Ако има избрани складове, гледа се има ли дебити в тях
         $storeData = $this->getStoreInfo();
         if(countR($storeData['storeItemIds'])){
-            $affected = parent::getAffectedProductWithStoreMovement($datetime, 'debit', $storeData['storeItemIds']);
+            $skipDocumentArr = array(store_Transfers::getClassId(), store_InventoryNotes::getClassId());
+            
+            $affected = parent::getAffectedProductWithStoreMovement($datetime, 'debit', $storeData['storeItemIds'], $skipDocumentArr);
         }
         
         return $affected;
