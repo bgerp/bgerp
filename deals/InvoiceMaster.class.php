@@ -1312,17 +1312,15 @@ abstract class deals_InvoiceMaster extends core_Master
             }
             
             if ($rec->state == 'active') {
-                if (!haveRole('ceo,accMaster', $userId)) {
-                    $res = 'no_one';
-                } else {
-                    $dayForInvoice = acc_Setup::get('DATE_FOR_INVOICE_DATE');
-                    $monthValior = dt::mysql2verbal($rec->date, 'm.y');
-                    $monthNow = dt::mysql2verbal(dt::today(), 'm.y');
-                    $dateNow = dt::mysql2verbal(dt::today(), 'd');
-                    
-                    // вальорът на фактурата не от текущия месец
-                    // в текущия месец текущата дата е >= на датата от константата "Ден от месеца за изчисляване на Счетоводна дата на входяща фактура" в пакета асс
-                    if(!($monthValior != $monthNow && $dateNow >= $dayForInvoice)){
+                $dayForInvoice = acc_Setup::get('DATE_FOR_INVOICE_DATE');
+                $monthValior = dt::mysql2verbal($rec->date, 'm.y');
+                $monthNow = dt::mysql2verbal(dt::today(), 'm.y');
+                $dateNow = dt::mysql2verbal(dt::today(), 'd');
+                
+                // вальорът на фактурата не от текущия месец
+                // в текущия месец текущата дата е >= на датата от константата "Ден от месеца за изчисляване на Счетоводна дата на входяща фактура" в пакета асс
+                if(!($monthValior != $monthNow && $dateNow >= $dayForInvoice)){
+                    if (!haveRole('ceo,accMaster', $userId)) {
                         $res = 'no_one';
                     }
                 }

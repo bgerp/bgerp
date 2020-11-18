@@ -593,6 +593,12 @@ class sales_Invoices extends deals_InvoiceMaster
                 }
             }
         }
+        
+        if ($rec->state == 'active') {
+            if (!haveRole('ceo,sales,invoicer,accMaster', $userId)) {
+                $res = 'no_one';
+            }
+        }
     }
     
     
