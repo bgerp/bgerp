@@ -860,7 +860,7 @@ class log_Browsers extends core_Master
     public static function getUserAgent()
     {
         $userAgent = $_SERVER['HTTP_USER_AGENT'];
-        
+
         return $userAgent;
     }
     
@@ -1008,7 +1008,7 @@ class log_Browsers extends core_Master
                 ));
                 $code .= '<noscript><span class="checkBrowser"><img src="' . $url . '" width="1" height="1" alt="cb"></span></noscript>';
             }
-            
+
             if (!Mode::is('javascript', 'yes')) {
                 $url = toUrl(array(
                     $this,
@@ -1016,14 +1016,13 @@ class log_Browsers extends core_Master
                     rand(1, 1000000000)
                 ));
                 $code .= '<span class="checkBrowser"><img id="brdet" src="" width="1" height="1" alt=""></span><script type="text/javascript"><!-- window.onload = function() {
-                if (window.jQuery) {
-                var winW = 630, winH = 460; if (document.body && document.body.offsetWidth) { winW = document.body.offsetWidth;
+                var winW = 630, winH = 460; var date = new Date(); var timeOffset = date.getTimezoneOffset(); if (document.body && document.body.offsetWidth) { winW = document.body.offsetWidth;
                 winH = document.body.offsetHeight; } if (document.compatMode=="CSS1Compat" && document.documentElement &&
                 document.documentElement.offsetWidth ) { winW = document.documentElement.offsetWidth;
                 winH = document.documentElement.offsetHeight; } if (window.innerWidth && window.innerHeight) {
                 winW = window.innerWidth; winH = window.innerHeight;}  var brdet=document.getElementById("brdet");
-                brdet.src="' . $url . '?w=" + screen.width + "&h=" + screen.height + "&winH=" + winH + "&winW=" + winW + "&browserCheck=" + getUserAgent() + "&timezoneInfo=" + getTimezoneOffset() + "&dpr=" + window.devicePixelRatio;
-                }//--> </script>';
+                brdet.src="' . $url . '?w=" + screen.width + "&h=" + screen.height + "&winH=" + winH + "&winW=" + winW + "&browserCheck=" + navigator.userAgent + "&timezoneInfo=" + timeOffset + "&dpr=" + window.devicePixelRatio;
+                //--> </script>';
             }
         }
         
