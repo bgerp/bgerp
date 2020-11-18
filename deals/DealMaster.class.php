@@ -456,7 +456,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     protected function getListFilterTypeOptions_($data)
     {
-        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки');
+        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки,notClosedWith=Без обединени сделки');
     
         return $options;
     }
@@ -533,6 +533,14 @@ abstract class deals_DealMaster extends deals_DealBase
                     $query->where('1=2');
                 }
                 break;
+            case 'notClosedWith':
+                $closedDealsArr = $this->getDealsClosedWithOtherDeals();
+                if (countR($closedDealsArr)) {
+                    $query->notIn('id', $closedDealsArr);
+                } else {
+                    $query->where('1=2');
+                }
+                break;
             case 'unionDeals':
                 $query->where("#state = 'active' OR #state = 'closed'");
                 $query->where("#closedDocuments != '' AND #closedDocuments IS NOT NULL");
@@ -554,7 +562,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $fType = cls::get('type_Enum', array('options' => $mvc->getListFilterTypeOptions($data)));
             $data->listFilter->FNC('type', 'varchar', 'caption=Състояние,refreshForm');
             $data->listFilter->setFieldType('type', $fType);
-            $data->listFilter->setDefault('type', 'notUnionDeals');
+            $data->listFilter->setDefault('type', 'notClosedWith');
             $data->listFilter->showFields .= ',type';
         }
         $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'caption=Група,refreshForm');
