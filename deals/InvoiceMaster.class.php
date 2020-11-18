@@ -1319,7 +1319,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 
                 // вальорът на фактурата не от текущия месец
                 // в текущия месец текущата дата е >= на датата от константата "Ден от месеца за изчисляване на Счетоводна дата на входяща фактура" в пакета асс
-                if(!($monthValior != $monthNow && $dateNow >= $dayForInvoice)){
+                if($monthValior != $monthNow && $dateNow >= $dayForInvoice){
                     if (!haveRole('ceo,accMaster', $userId)) {
                         $res = 'no_one';
                     }
