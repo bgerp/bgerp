@@ -2340,15 +2340,23 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * Екшън за автоматичен редирект към създаване на детайл
      */
-    function act_autoCreateInFolder()
+    public function act_autoCreateInFolder()
     {
         $this->requireRightFor('add');
         expect($folderId = Request::get('folderId', 'int'));
         $this->requireRightFor('add', (object)array('folderId' => $folderId));
         expect(doc_Folders::haveRightToFolder($folderId));
         
-        // Има ли избрана константа
-        $constValue = ($this instanceof sales_Sales) ? sales_Setup::get('NEW_SALE_AUTO_ACTION_BTN') : purchase_Setup::get('NEW_PURCHASE_AUTO_ACTION_BTN');
+        // Проверка има ли все пак желана стойност за действието
+        $constValue = Request::get('autoAction', "enum(form,addProduct,createProduct,importlisted)");
+        $productId = Request::get('productId', 'int');
+        
+        if(empty($constValue)){
+            
+            // Има ли избрана константа
+            $constValue = ($this instanceof sales_Sales) ? sales_Setup::get('NEW_SALE_AUTO_ACTION_BTN') : purchase_Setup::get('NEW_PURCHASE_AUTO_ACTION_BTN');
+        }
+        
         if($constValue == 'form') {
             
             return Redirect(array($this, 'add', 'folderId' => $folderId));
@@ -2380,6 +2388,11 @@ abstract class deals_DealMaster extends deals_DealBase
         if($constValue == 'addProduct') {
             if($Detail->haveRightFor('add', (object)array("{$Detail->masterKey}" => $masterId))){
                 $redirectUrl = array($Detail, 'add', "{$Detail->masterKey}" => $masterId, 'ret_url' => array($this, 'single', $masterId));
+                if(isset($productId)){
+                    expect($productRec = cat_Products::fetch($productId, 'state,canSell'));
+                    expect($productRec->state == 'active' && $productRec->canSell == 'yes');
+                    $redirectUrl['productId'] = $productId;
+                }
             }
         } elseif($constValue == 'createProduct'){
             if($Detail->haveRightFor('createproduct', (object)array("{$Detail->masterKey}" => $masterId))){
