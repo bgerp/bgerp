@@ -1030,15 +1030,22 @@ class core_Form extends core_FieldSet
                     }
                     
                     $unit = $fUnit ? ('&nbsp;' . $fUnit) : '';
-                    $fld = new ET("\n<tr class='filed-{$name} {$fsRow}'{$rowStyle}><td class='formFieldCaption'>{$caption}:</td><td class='formElement[#{$field->name}_INLINETO_CLASS#]'>[#{$field->name}#]{$unit}</td></tr>");
+                    if($caption == '@' || $caption == "<b>@</b>"){
+                       $mandatoryClass = ($field->mandatory) ? 'mandatoryNoCaptionField' : '';
+                       $tdHtml = "<td colspan=2 class='formElement[#{$field->name}_INLINETO_CLASS#] noCaptionElement {$mandatoryClass}'>[#{$field->name}#]{$unit}</td>"; 
+                    } else {
+                       $tdHtml = "<td class='formFieldCaption'>{$caption}:</td><td class='formElement[#{$field->name}_INLINETO_CLASS#]'>[#{$field->name}#]{$unit}</td>"; 
+                    }
+                    
+                    $fld = new ET("\n<tr class='filed-{$name} {$fsRow}'{$rowStyle}>{$tdHtml}</tr>");
                 }
                 
                 // Добавяме rowCaption
                 if (!empty($rowCaption)) {
                     if (Mode::is('screenMode', 'narrow')) {
-                        $fld->prepend(new ET("\n<tr class='filed-{$name} {$fsRow1}'{$rowStyle}><td colspan=2>{$rowCaption}</td></tr>"));
+                        $fld->prepend(new ET("\n<tr class='filed-{$name} {$fsRow1}'{$rowStyle}><td colspan=2 class='formMiddleCaption'>{$rowCaption}</td></tr>"));
                     } else {
-                        $fld->prepend(new ET("\n<tr class='filed-{$name} {$fsRow1}'{$rowStyle}><td></td><td>{$rowCaption}</td></tr>"));
+                        $fld->prepend(new ET("\n<tr class='filed-{$name} {$fsRow1}'{$rowStyle}><td colspan=2 class='formMiddleCaption'>{$rowCaption}</td></tr>"));
                     }
                 }
                 
