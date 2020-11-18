@@ -289,10 +289,10 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         if ($Driver){
-            $Driver->addInquiryFields($data->form->rec->proto, $data->form);
+            $Driver->addInquiryFields($data->form->rec->proto, $data->form, true);
             if(is_array($form->rec->additionalData)){
                 foreach ($form->rec->additionalData as $aFld => $aValue){
-                    if($form->getField($aFld, true)){
+                    if($form->getField($aFld, false)){
                         $form->setDefault($aFld, $aValue);
                     }
                 }
@@ -1046,11 +1046,6 @@ class marketing_Inquiries2 extends embed_Manager
                         }
                         log_Browsers::setVars($userData);
                     }
-                    
-                    
-                    
-                   // bp($rec);
-                    
                     
                     $id = $this->save($rec);
                     doc_Threads::doUpdateThread($rec->threadId);
