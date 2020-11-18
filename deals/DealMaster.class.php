@@ -554,7 +554,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $fType = cls::get('type_Enum', array('options' => $mvc->getListFilterTypeOptions($data)));
             $data->listFilter->FNC('type', 'varchar', 'caption=Състояние,refreshForm');
             $data->listFilter->setFieldType('type', $fType);
-            $data->listFilter->setDefault('type', 'active');
+            $data->listFilter->setDefault('type', 'notUnionDeals');
             $data->listFilter->showFields .= ',type';
         }
         $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'caption=Група,refreshForm');

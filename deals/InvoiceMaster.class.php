@@ -175,7 +175,7 @@ abstract class deals_InvoiceMaster extends core_Master
             $data->listFilter->FNC('invState', 'enum(all=Всички, draft=Чернова, active=Контиран)', 'caption=Състояние,input,silent');
             $data->listFilter->showFields .= ',invState';
             $data->listFilter->input();
-            $data->listFilter->setDefault('invState', 'all');
+            $data->listFilter->setDefault('invState', 'active');
         }
         
         $type = '';
