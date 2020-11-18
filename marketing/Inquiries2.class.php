@@ -114,6 +114,12 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
+     * Кой може автоматично да създава продажба от запитването?
+     */
+    public $canAutocreatesale = 'ceo,sales,marketing';
+    
+    
+    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'folderId, personNames, title, company, email, place';
@@ -756,6 +762,7 @@ class marketing_Inquiries2 extends embed_Manager
                 $arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
                 $data->toolbar->addBtn("Артикул|* {$arrow}", array('cat_Products', 'single', $pId), 'ef_icon=img/16/wooden-box.png,title=Преглед на артикул по това запитване');
             } else {
+                
                 // Създаване на нов артикул от запитването
                 if (cat_Products::haveRightFor('add', (object) array('folderId' => $rec->folderId, 'originId' => $rec->containerId, 'innerClass' => $rec->innerClass, 'threadId' => $rec->threadId))) {
                     $url = array('cat_Products', 'add', 'innerClass' => $rec->innerClass, 'originId' => $rec->containerId, 'ret_url' => true);
@@ -779,6 +786,12 @@ class marketing_Inquiries2 extends embed_Manager
                 $conf = core_Packs::getConfig('marketing');
                 $data->toolbar->addBtn('Препращане', array($mvc, 'send', $rec->id), array('ef_icon' => 'img/16/email_forward.png', 'warning' => "Сигурни ли сте, че искате да препратите имейла на|* '{$conf->MARKETING_INQUIRE_TO_EMAIL}'",'title' => "Препращане на имейла със запитването към|* '{$conf->MARKETING_INQUIRE_TO_EMAIL}'"));
             }
+        }
+        
+        // Ако запитването е за стандартен артикул бутон за автоматично добавяне към продажба
+        if($mvc->haveRightFor('autocreatesale', $rec)){
+            $addSaleUrl = array('sales_Sales', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'autoAction' => 'addProduct', 'productId' => $rec->proto);
+            $data->toolbar->addBtn('Продажба', $addSaleUrl, 'ef_icon=img/16/cart_go.png,title=Създаване на артикула в нова продажба,warning=Наистина ли искате да добавите артикула в нова продажба|*?');
         }
     }
     
@@ -846,6 +859,22 @@ class marketing_Inquiries2 extends embed_Manager
                 $res = 'no_one';
             } elseif (isset($rec->id) && !$mvc->haveRightFor('single', $rec->id)) {
                 $res = 'no_one';
+            }
+        }
+        
+        // Запитването е за стандартен продаваем артикул да може да се добавя в продажба
+        if($action == 'autocreatesale' && isset($rec)){
+            if($rec->state != 'active' || empty($rec->proto) || empty($rec->folderId)){
+                $res = 'no_one';
+            } else {
+                if(!sales_Sales::haveRightFor('add', (object)array('folderId' => $rec->folderId))){
+                    $res = 'no_one';
+                } else {
+                    $protoRec = cat_Products::fetch($rec->proto, 'state,canSell');
+                    if($protoRec->state != 'active' || $protoRec->canSell != 'yes'){
+                        $res = 'no_one';
+                    }
+                }
             }
         }
     }
