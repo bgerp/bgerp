@@ -597,12 +597,14 @@ class sales_Invoices extends deals_InvoiceMaster
         if ($rec->state == 'active') {
             
             if (!haveRole('ceo,accMaster', $userId)) {
+                $today = dt::today();
                 $dayForInvoice = acc_Setup::get('DATE_FOR_INVOICE_DATE');
                 $monthValior = dt::mysql2verbal($rec->date, 'm.y');
-                $monthNow = dt::mysql2verbal(dt::today(), 'm.y');
-                $dateNow = dt::mysql2verbal(dt::today(), 'd');
+                $monthNow = dt::mysql2verbal($today, 'm.y');
+                $dateNow = dt::mysql2verbal($today, 'd');
+                $valiorMonthPlus1 = dt::mysql2verbal(dt::addMonths(1, $rec->date), 'm.y');
                 
-                if(($monthValior < $monthNow && $dayForInvoice > $dateNow) || $monthNow == $monthValior) {
+                if(($valiorMonthPlus1 == $monthNow && $dayForInvoice > $dateNow) || $monthNow == $monthValior) {
                     if (!haveRole('ceo,sales,invoicer', $userId)) {
                         $res = 'no_one';
                     }
