@@ -1656,6 +1656,9 @@ span.inputLackOfChoiceMandatory {
 .narrow .vertical .formFields {
   margin-bottom: 0; }
 
+.mandatoryMiddleCaption {
+  font-weight: bold; }
+
 .staticFormView .formFieldValue {
   border: solid 1px #9999ff;
   padding: 3px;
