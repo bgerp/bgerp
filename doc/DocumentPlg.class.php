@@ -771,22 +771,34 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
+     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
+     */
+    public static function on_AfterSessionClose($mvc)
+    {
+        foreach ((array)$mvc->saveFileArr as $rec) {
+            try {
+                // Опитваме се да запишем файловете от документа в модела
+                doc_Files::saveFile($mvc, $rec);
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+                
+                // Ако възникне грешка при записването
+                $mvc->logWarning('Грешка при добавяне на връзка между файла и документа', $rec->id);
+            }
+        }
+    }
+    
+    
+    /**
      * Изпълнява се след запис на документ.
      * Ако е може се извиква обновяването на контейнера му
      */
     public static function on_AfterSave($mvc, &$id, $rec, $fields = null)
     {
         $fields = arr::make($fields, true);
-        try {
-            
-            // Опитваме се да запишем файловете от документа в модела
-            doc_Files::saveFile($mvc, $rec);
-        } catch (core_exception_Expect $e) {
-            reportException($e);
-            
-            // Ако възникне грешка при записването
-            $mvc->logErr('Грешка при добавяне на връзка между файла и документа', $id);
-        }
+        
+        defIfNot($mvc->saveFileArr, array());
+        $mvc->saveFileArr[$rec->id] = $rec;
         
         // Изтрива от кеша html представянето на документа
         // $key = 'Doc' . $rec->id . '%';
