@@ -47,7 +47,14 @@ class type_Combodate extends type_Varchar
     public function fromVerbal($value)
     {
         if(empty($value)) return;
-
+       
+        // Ако стойността е mysql-ска дата, да се обърне към масив
+        if(!is_array($value) && is_scalar($value)){
+            $value = array_reverse(explode('-', $value));
+            $value[0] = ltrim($value[0], '0');
+            $value[1] = ltrim($value[1], '0');
+        }
+       
         if (count($value) == 3) {
             $y = $value[2];
             $m = $value[1];

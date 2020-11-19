@@ -1,3 +1,5 @@
+var icons = new Skycons({"color": "#489fc0"});
+
 function prepareDashboard(data){
 
 
@@ -46,41 +48,10 @@ function prepareDashboard(data){
     $(document).on('click', '.dropdown-menu', function (e) {
         e.stopPropagation();
     });
-    var icons = new Skycons({"color": "#489fc0"});
 
-    $('.weather-icon').attr('id', data.icon);
-    switch (data.icon) {
-        case "rain":
-            icons.set("rain", Skycons.RAIN);
-            break;
-        case "cloudy":
-            icons.set("cloudy", Skycons.CLOUDY);
-            break;
-        case "sleet":
-            icons.set("sleet", Skycons.SLEET);
-            break;
-        case "snow":
-            icons.set("snow", Skycons.SNOW);
-            break;
-        case "wind":
-            icons.set("wind", Skycons.WIND);
-            break;
-        case "fog":
-            icons.set("fog", Skycons.FOG);
-            break;
-        case "clear-day":
-            icons.set("clear-day", Skycons.CLEAR_DAY);
-            break;
-        case "clear-night":
-            icons.set("clear-night", Skycons.CLEAR_NIGHT);
-            break;
-        case "partly-cloudy-day":
-            icons.set("partly-cloudy-day", Skycons.PARTLY_CLOUDY_DAY);
-            break;
-        case "partly-cloudy-night":
-            icons.set("partly-cloudy-night", Skycons.PARTLY_CLOUDY_NIGHT);
-            break;
-    }
+    setIcon("weatherNow",  data.icon);
+    setIcon("weather-icon-3", 'clear-day');
+    setIcon("weather-icon-6", 'wind');
 
     icons.play();
 
@@ -211,4 +182,39 @@ function sendData() {
 
         data: JSON.stringify(dashboardInfo)
     });
+}
+
+function setIcon(el, icon) {
+    switch (icon) {
+        case "rain":
+            icons.add(el, Skycons.RAIN);
+            break;
+        case "cloudy":
+            icons.add(el, Skycons.CLOUDY);
+            break;
+        case "sleet":
+            icons.add(el, Skycons.SLEET);
+            break;
+        case "snow":
+            icons.add(el, Skycons.SNOW);
+            break;
+        case "wind":
+            icons.add(el, Skycons.WIND);
+            break;
+        case "fog":
+            icons.add(el, Skycons.FOG);
+            break;
+        case "clear-day":
+            icons.add(el, Skycons.CLEAR_DAY);
+            break;
+        case "clear-night":
+            icons.add(el, Skycons.CLEAR_NIGHT);
+            break;
+        case "partly-cloudy-day":
+            icons.add(el, Skycons.PARTLY_CLOUDY_DAY);
+            break;
+        case "partly-cloudy-night":
+            icons.add(el, Skycons.PARTLY_CLOUDY_NIGHT);
+            break;
+    }
 }

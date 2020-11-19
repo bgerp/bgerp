@@ -45,8 +45,8 @@ class ztm_Adapter extends core_Mvc
         $data = json_encode($data);
         jquery_Jquery::run($tpl, "prepareDashboard({$data})");
 
-        $tempImg = ht::createImg(array('path' => "ztm/img/temp.png"));
-        $lampImg = ht::createImg(array('path' => "ztm/img/bulb.png"));
+        $tempImg = ht::createImg(array('path' => "ztm/img/temp-plus-4.png"));
+        $lampImg = ht::createImg(array('path' => "ztm/img/lamp-on-50.png"));
         $blindsImg = ht::createImg(array('path' => "ztm/img/lines.png"));
         $fanImg = ht::createImg(array('path' => "ztm/img/fan.png"));
 
