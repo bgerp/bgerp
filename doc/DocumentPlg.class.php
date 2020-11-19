@@ -797,6 +797,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         $fields = arr::make($fields, true);
         
+        setIfNot($mvc->saveFileArr, array());
         $mvc->saveFileArr[$rec->id] = $rec;
         
         // Изтрива от кеша html представянето на документа
