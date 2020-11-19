@@ -4318,6 +4318,7 @@ class doc_DocumentPlg extends core_Plugin
             return ;
         }
         
+        $secondRowArr = array();
         $isNarrow = Mode::is('screenMode', 'narrow') && !Mode::is('printing');
         
         if ($isNarrow) {
@@ -4341,7 +4342,6 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             // Определяме, кои полета ще са на втори ред или дали ще има такива
-            $secondRowArr = array();
             $cnt = 0;
             foreach ($headerArr as $key => &$hArr) {
                 if ($noSecondRow) {
@@ -4389,7 +4389,7 @@ class doc_DocumentPlg extends core_Plugin
         
         $collspan = 0;
         $firstRowCnt = 0;
-        $secondRowCnt = count($secondRowArr);
+        $secondRowCnt = countR($secondRowArr);
         
         if (!$isNarrow && $haveSecondRow) {
             $firstRowCnt = $headerArrCnt - $secondRowCnt;
