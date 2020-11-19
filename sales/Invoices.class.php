@@ -602,7 +602,7 @@ class sales_Invoices extends deals_InvoiceMaster
                 $monthNow = dt::mysql2verbal(dt::today(), 'm.y');
                 $dateNow = dt::mysql2verbal(dt::today(), 'd');
                 
-                if(($monthValior < $monthNow && $dayForInvoice <= $dateNow) || $monthNow == $monthValior) {
+                if(($monthValior < $monthNow && $dayForInvoice > $dateNow) || $monthNow == $monthValior) {
                     if (!haveRole('ceo,sales,invoicer', $userId)) {
                         $res = 'no_one';
                     }
