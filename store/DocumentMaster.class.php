@@ -23,6 +23,12 @@ abstract class store_DocumentMaster extends core_Master
     
     
     /**
+     * Дали се очаква в документа да има файлове
+     */
+    public $expectFiles = false;
+    
+    
+    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'storeId, locationId, deliveryTime, lineId, contragentClassId, contragentId, weight, volume, folderId, id';

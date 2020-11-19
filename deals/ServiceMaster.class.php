@@ -23,6 +23,12 @@ abstract class deals_ServiceMaster extends core_Master
     
     
     /**
+     * Дали се очаква в документа да има файлове
+     */
+    public $expectFiles = false;
+    
+    
+    /**
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = false;
