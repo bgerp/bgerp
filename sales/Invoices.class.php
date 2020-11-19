@@ -595,8 +595,20 @@ class sales_Invoices extends deals_InvoiceMaster
         }
         
         if ($rec->state == 'active') {
-            if (!haveRole('ceo,sales,invoicer,accMaster', $userId)) {
-                $res = 'no_one';
+            
+            if (!haveRole('ceo,accMaster', $userId)) {
+                $dayForInvoice = acc_Setup::get('DATE_FOR_INVOICE_DATE');
+                $monthValior = dt::mysql2verbal($rec->date, 'm.y');
+                $monthNow = dt::mysql2verbal(dt::today(), 'm.y');
+                $dateNow = dt::mysql2verbal(dt::today(), 'd');
+                
+                if(($monthValior < $monthNow && $dayForInvoice <= $dateNow) || $monthNow == $monthValior) {
+                    if (!haveRole('ceo,sales,invoicer', $userId)) {
+                        $res = 'no_one';
+                    }
+                } else {
+                    $res = 'no_one';
+                }
             }
         }
     }
