@@ -58,13 +58,16 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
     /**
      * По-кое поле да се групират листовите данни
      */
-    protected $groupByField;
+    protected $groupByField ;
     
     
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields;
+    
+    //Кои полета да се проверяват са стойност на документа
+    protected $totalAmountFields = 'dealValue,amountDeal,deliveryTermId';
     
     
     /**
@@ -81,8 +84,6 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
         $fieldset->FLD('documents', 'classes(interface = doc_DocumentIntf,select = title)', 'caption=Вид документи,placeholder=Избери вид документи,after=to,single=none,mandatory');
         
         $fieldset->FLD('grouping', 'enum(day=24 часа, week=7 дни, , year=12 месеца)', 'caption=Групиране,after=documents,removeAndRefreshForm');
-        
-        // $fieldset->FLD('date', 'date', "caption=От,after=grouping,single=none,mandatory");
         
         $fieldset->FLD('users', 'userList(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Потребители,single=none,mandatory,after=grouping');
         
@@ -144,8 +145,18 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
         
         while ($document = $query->fetch()) {
             $className = core_Classes::getName($document->docClass);
-            
+            $arr = array('dealValue','amountDeal');
             $docRec = $className::fetch($document->docId);
+            
+            $amount = 0;
+            
+            foreach (explode(',', $this->totalAmountFields) as $field) {
+                if (property_exists($docRec, $field)) {
+                    $amount = $docRec->$field;
+                    break;
+                }
+            }
+            
             
             $dateCheck = $docRec->activatedOn ? $docRec->activatedOn : $docRec->createdOn;
             
@@ -189,12 +200,13 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
                     
                     'counter' => 1,
                     'time' => $id,
-                
+                    'amount' => ''
                 
                 );
             } else {
                 $obj = &$recs[$id];
                 ++$obj->counter;
+                $obj->amount += $amount;
             }
         }
         
@@ -230,6 +242,7 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
         
         $fld->FLD('time', 'varchar', "caption=${text},tdClass=centered");
         $fld->FLD('counter', 'varchar', 'caption=Брой,tdClass=centered');
+        $fld->FLD('amount', 'varchar', 'caption=Стойност,tdClass=centered');
         
         return $fld;
     }
@@ -267,6 +280,7 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
         
         $row->time = $time;
         $row->counter = $dRec->counter;
+        $row->amount = $Double->toVerbal($dRec->amount);
         
         return $row;
     }

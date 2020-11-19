@@ -846,9 +846,9 @@ class core_Debug
             
             $contex['BGERP_GIT_BRANCH'] = defined('BGERP_GIT_BRANCH') ? BGERP_GIT_BRANCH : 'undefined';
             
-            if (defined('PRIVATE_GIT_BRANCH')) {
-                $contex['PRIVATE_GIT_BRANCH'] = defined('PRIVATE_GIT_BRANCH') ? PRIVATE_GIT_BRANCH : 'undefined';
-            }
+            $contex['EF_PRIVATE_PATH'] = defined('EF_PRIVATE_PATH') ? EF_PRIVATE_PATH : 'undefined';
+            
+            $contex['PRIVATE_GIT_BRANCH'] = defined('PRIVATE_GIT_BRANCH') ? PRIVATE_GIT_BRANCH : 'undefined';
             
             $contex['BGERP_LAST_STABLE_VERSION'] = core_Setup::CURRENT_VERSION;
             
