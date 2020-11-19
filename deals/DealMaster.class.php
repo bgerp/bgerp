@@ -17,12 +17,6 @@
 abstract class deals_DealMaster extends deals_DealBase
 {
     /**
-     * Дали се очаква в документа да има файлове
-     */
-    public $expectFiles = false;
-    
-
-    /**
      * Масив с вербалните имена при избора на контиращи операции за покупки/продажби
      */
     private static $contoMap = array(

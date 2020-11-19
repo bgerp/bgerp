@@ -25,12 +25,6 @@ class sales_Quotations extends core_Master
     
     
     /**
-     * Дали се очаква в документа да има файлове
-     */
-    public $expectFiles = false;
-    
-    
-    /**
      * Абревиатура
      */
     public $abbr = 'Q';

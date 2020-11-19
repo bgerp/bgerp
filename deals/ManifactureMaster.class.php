@@ -23,12 +23,6 @@ abstract class deals_ManifactureMaster extends core_Master
     
     
     /**
-     * Дали се очаква в документа да има файлове
-     */
-    public $expectFiles = false;
-    
-    
-    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'valior, title=Документ, storeId, folderId, deadline, createdOn, createdBy';
