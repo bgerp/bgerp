@@ -464,7 +464,7 @@ class ztm_Devices extends core_Master
         
         $recsArr = $this->getRecFromName($chp);
         
-        if (empty($recsArr)) {
+        if (empty($recsArr) || is_null($perm)) {
             
             return false;
         }
