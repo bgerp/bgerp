@@ -165,7 +165,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
         foreach ($productItemIds as $itemId) {
             $jQuery = acc_JournalDetails::getQuery();
             $jQuery->where("#debitAccId = {$storeAccId}");
-            $jQuery->EXT('docType', 'acc_Journal', 'externalKey=docType');
+            $jQuery->EXT('docType', 'acc_Journal', 'externalKey=journalId');
             $jQuery->EXT('valior', 'acc_Journal', 'externalKey=journalId');
             $jQuery->EXT('journalCreatedOn', 'acc_Journal', 'externalKey=journalId,externalName=createdOn');
             $jQuery->XPR('maxValior', 'double', 'MAX(#valior)');
