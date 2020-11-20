@@ -47,7 +47,7 @@ class pwa_Share extends core_Mvc
                 }
                 
                 if ($err) {
-                    status_Messages::newStatus('|*<div>|Грешка|*:</div>' . $err->getContent(), 'warning');
+                    status_Messages::newStatus('|*<div>|Грешка|*:</div>' . implode(', ', $err), 'warning');
                 }
             }
             
