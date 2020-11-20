@@ -298,8 +298,10 @@ class acs_Zones extends core_Master
         
         while ($zRec = $query->fetch()) {
             try {
-                $intf = cls::getInterface('acs_ZoneIntf', $zRec->classId);
-                $intf->setPermissions($zRec->name, $zonesArr[$zRec->id]);
+                if ($zonesArr[$zRec->id]) {
+                    $intf = cls::getInterface('acs_ZoneIntf', $zRec->classId);
+                    $intf->setPermissions($zRec->name, $zonesArr[$zRec->id]);
+                }
             } catch (core_exception_Expect $e) {
                 reportException($e);
             }
