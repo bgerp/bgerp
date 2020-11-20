@@ -28,6 +28,10 @@ html {
     position: relative;
 }
 
+.formTable .formTitle a {
+    color: #ddd !important;
+}
+
 .wide .fadein {
     position: relative;
 }
