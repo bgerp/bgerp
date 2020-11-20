@@ -642,8 +642,8 @@ class remote_BgerpDriver extends core_Mvc
         
         $params = self::decode($auth, $encodedParams, 'question');
         
-        expect($ctr = $params['Ctr']);
-        expect($act = $params['Act']);
+        expect($ctr = $params['Ctr'], $authId, $params);
+        expect($act = $params['Act'], $authId, $params);
         
         $act = 'remote_' . $act;
         

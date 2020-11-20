@@ -535,11 +535,11 @@ abstract class deals_DealMaster extends deals_DealBase
                 break;
             case 'notClosedWith':
                 $closedDealsArr = $this->getDealsClosedWithOtherDeals();
+                $query->where("#state = 'active' || #state ='closed'");
                 if (countR($closedDealsArr)) {
                     $query->notIn('id', $closedDealsArr);
-                } else {
-                    $query->where('1=2');
                 }
+                
                 break;
             case 'unionDeals':
                 $query->where("#state = 'active' OR #state = 'closed'");
