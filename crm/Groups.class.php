@@ -467,8 +467,13 @@ class crm_Groups extends core_Master
     public static function forceGroup($gRec)
     {
         $rec = self::fetch("#sysId = '{$gRec->sysId}'");
-        
-        if (!$rec) {
+        if ($rec) {
+            if(strtolower($rec->name) != strtolower($gRec->name)){
+                $rec->name = $gRec->name;
+                $rec->name = str::mbUcfirst($rec->name);
+                self::save($rec, 'name');
+            }
+        } else {
             $rec = self::fetch("LOWER(#name) = LOWER('{$gRec->name}')");
         }
         
@@ -480,6 +485,7 @@ class crm_Groups extends core_Master
             $rec->companiesCnt = 0;
             $rec->personsCnt = 0;
             setIfNot($rec->state, 'active');
+            $rec->name = str::mbUcfirst($rec->name);
             
             self::save($rec);
         } elseif(empty($rec->sysId) && !empty($gRec->sysId)){

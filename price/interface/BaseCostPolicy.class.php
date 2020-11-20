@@ -176,7 +176,7 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
      * 
      * @return array $res          - масив с артикулите
      */
-    protected function getAffectedProductWithStoreMovement($beforeDate, $type, $storeItems = array())
+    protected function getAffectedProductWithStoreMovement($beforeDate, $type, $storeItems = array(), $skipDocumentArr = array())
     {
         expect(in_array($type, array('debit', 'credit', 'all')));
         $itemsWithMovement = $res = array();
@@ -186,12 +186,20 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
             
             $storeAccId = acc_Accounts::getRecBySystemId('321')->id;
             $jQuery = acc_JournalDetails::getQuery();
+            $jQuery->EXT('docType', 'acc_Journal', 'externalKey=journalId');
             $jQuery->EXT('valior', 'acc_Journal', 'externalKey=journalId');
             $jQuery->EXT('journalCreatedOn', 'acc_Journal', 'externalName=createdOn,externalKey=journalId');
+            
+            // Ако има изброени документи за пропускане пропускат се
+            if(countR($skipDocumentArr)){
+                $jQuery->notIn('docType', $skipDocumentArr);
+            }
+            
             $jQuery2 = clone $jQuery;
             
             if($type == 'all' || $type == 'debit'){
                 $where = "#debitAccId = {$storeAccId} AND #journalCreatedOn >= '{$beforeDate}'";
+                
                 if($type == 'debit'){
                     $where .= " AND #debitQuantity >= 0";
                 }

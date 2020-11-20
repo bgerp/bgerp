@@ -422,7 +422,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
         $currencyState = currency_Currencies::fetchField("#code = '{$defCurrency}'", 'state');
         $isCurrencyReadOnly = $form->getFieldTypeParam('currencyId', 'isReadOnly');
-        if ($defCurrency != $rec->currencyId && $currencyState == 'active' && !$isCurrencyReadOnly) {
+        if ($defCurrency != $rec->currencyId && $currencyState == 'active' && !$isCurrencyReadOnly && !haveRole('debug')) {
             $form->setWarning('currencyId', "Избрана e различна валута от очакваната|* <b>{$defCurrency}</b>");
         }
         
@@ -456,7 +456,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     protected function getListFilterTypeOptions_($data)
     {
-        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки');
+        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки,notClosedWith=Без обединени сделки');
     
         return $options;
     }
@@ -533,6 +533,14 @@ abstract class deals_DealMaster extends deals_DealBase
                     $query->where('1=2');
                 }
                 break;
+            case 'notClosedWith':
+                $closedDealsArr = $this->getDealsClosedWithOtherDeals();
+                if (countR($closedDealsArr)) {
+                    $query->notIn('id', $closedDealsArr);
+                } else {
+                    $query->where('1=2');
+                }
+                break;
             case 'unionDeals':
                 $query->where("#state = 'active' OR #state = 'closed'");
                 $query->where("#closedDocuments != '' AND #closedDocuments IS NOT NULL");
@@ -554,7 +562,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $fType = cls::get('type_Enum', array('options' => $mvc->getListFilterTypeOptions($data)));
             $data->listFilter->FNC('type', 'varchar', 'caption=Състояние,refreshForm');
             $data->listFilter->setFieldType('type', $fType);
-            $data->listFilter->setDefault('type', 'active');
+            $data->listFilter->setDefault('type', 'notClosedWith');
             $data->listFilter->showFields .= ',type';
         }
         $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'caption=Група,refreshForm');
@@ -2332,15 +2340,23 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * Екшън за автоматичен редирект към създаване на детайл
      */
-    function act_autoCreateInFolder()
+    public function act_autoCreateInFolder()
     {
         $this->requireRightFor('add');
         expect($folderId = Request::get('folderId', 'int'));
         $this->requireRightFor('add', (object)array('folderId' => $folderId));
         expect(doc_Folders::haveRightToFolder($folderId));
         
-        // Има ли избрана константа
-        $constValue = ($this instanceof sales_Sales) ? sales_Setup::get('NEW_SALE_AUTO_ACTION_BTN') : purchase_Setup::get('NEW_PURCHASE_AUTO_ACTION_BTN');
+        // Проверка има ли все пак желана стойност за действието
+        $constValue = Request::get('autoAction', "enum(form,addProduct,createProduct,importlisted)");
+        $productId = Request::get('productId', 'int');
+        
+        if(empty($constValue)){
+            
+            // Има ли избрана константа
+            $constValue = ($this instanceof sales_Sales) ? sales_Setup::get('NEW_SALE_AUTO_ACTION_BTN') : purchase_Setup::get('NEW_PURCHASE_AUTO_ACTION_BTN');
+        }
+        
         if($constValue == 'form') {
             
             return Redirect(array($this, 'add', 'folderId' => $folderId));
@@ -2372,6 +2388,11 @@ abstract class deals_DealMaster extends deals_DealBase
         if($constValue == 'addProduct') {
             if($Detail->haveRightFor('add', (object)array("{$Detail->masterKey}" => $masterId))){
                 $redirectUrl = array($Detail, 'add', "{$Detail->masterKey}" => $masterId, 'ret_url' => array($this, 'single', $masterId));
+                if(isset($productId)){
+                    expect($productRec = cat_Products::fetch($productId, 'state,canSell'));
+                    expect($productRec->state == 'active' && $productRec->canSell == 'yes');
+                    $redirectUrl['productId'] = $productId;
+                }
             }
         } elseif($constValue == 'createProduct'){
             if($Detail->haveRightFor('createproduct', (object)array("{$Detail->masterKey}" => $masterId))){

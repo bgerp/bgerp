@@ -179,7 +179,7 @@ class ztm_RegisterValues extends core_Manager
         if ($checkState) {
             expect($rRec->state == 'active', 'Няма такъв активен регистър');
         }
-        expect($time <= $now, 'Не може да се зададе бъдеще време');
+        expect($time <= $now, "Не може да се зададе бъдеще време '{$time}' ({$now})");
         $rec = (object) array('deviceId' => $deviceId, 'registerId' => $registerId, 'updatedOn' => $time, 'value' => $value);
         $exRec = self::fetch("#deviceId = '{$deviceId}' AND #registerId = '{$registerId}'");
         if (is_object($exRec)) {
@@ -358,12 +358,10 @@ class ztm_RegisterValues extends core_Manager
                 if (is_scalar($registers)) {
                     if (str::isJson($registers)) {
                         $regArr = (array) json_decode($registers);
+                    } else {
+                        $this->logErr("Невалидни стойности на 'registers': '{$registers}'");
                     }
                 }
-            }
-            
-            if (!countR($regArr)) {
-                $this->logErr("Невалидни стойности на 'registers': '{$registers}'");
             }
             
             // Синхронизране на данните от устройството с тези от системата

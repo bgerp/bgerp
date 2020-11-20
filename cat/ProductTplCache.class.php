@@ -161,19 +161,21 @@ class cat_ProductTplCache extends core_Master
         // Кога артикула е бил последно модифициран
         $productModifiedOn = cat_Products::fetchField($productId, 'modifiedOn');
         
-        $query = self::getQuery();
-        $query->where("#productId = {$productId} AND #type = '{$type}' AND #lang = '{$lang}' AND #documentType = '{$documentType}' AND #time <= '{$time}'");
-        $query->orderBy('time', 'DESC');
-        $query->limit(1);
-        $rec = $query->fetch();
-        
-        if (!empty($rec)) {
-            $res = array("{$productModifiedOn}" => null, "{$rec->time}" => $rec->cache);
-            krsort($res);
-            foreach ($res as $cTime => $cache) {
-                if ($cTime <= $time) {
-                    
-                    return $cache;
+        if(!empty($time)){
+            $query = self::getQuery();
+            $query->where("#productId = {$productId} AND #type = '{$type}' AND #lang = '{$lang}' AND #documentType = '{$documentType}' AND #time <= '{$time}'");
+            $query->orderBy('time', 'DESC');
+            $query->limit(1);
+            $rec = $query->fetch();
+            
+            if (!empty($rec)) {
+                $res = array("{$productModifiedOn}" => null, "{$rec->time}" => $rec->cache);
+                krsort($res);
+                foreach ($res as $cTime => $cache) {
+                    if ($cTime <= $time) {
+                        
+                        return $cache;
+                    }
                 }
             }
         }
@@ -196,7 +198,9 @@ class cat_ProductTplCache extends core_Master
         $cacheRec = new stdClass();
         
         // Ако няма кеш досега записваме го с датата за която проверяваме за да се върне винаги
-        if (!self::fetch(("#productId = {$rec->id} AND #type = 'title' AND #documentType = '{$documentType}' AND #time <= '{$time}'"))) {
+        if(empty($time)){
+            $cacheRec->time = $time;
+        } elseif (!self::fetch(("#productId = {$rec->id} AND #type = 'title' AND #documentType = '{$documentType}' AND #time <= '{$time}'"))) {
             $cacheRec->time = $time;
         } else {
             
@@ -250,7 +254,9 @@ class cat_ProductTplCache extends core_Master
         $cacheRec = new stdClass();
         
         // Ако няма кеш досега записваме го с датата за която проверяваме за да се върне винаги
-        if (!self::fetch(("#productId = {$pRec->id} AND #type = 'description' AND #documentType = '{$documentType}' AND #time <= '{$time}'"))) {
+        if(empty($time)){
+            $cacheRec->time = $time;
+        } elseif (!self::fetch(("#productId = {$pRec->id} AND #type = 'description' AND #documentType = '{$documentType}' AND #time <= '{$time}'"))) {
             $cacheRec->time = $time;
         } else {
             

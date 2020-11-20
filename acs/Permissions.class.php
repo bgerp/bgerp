@@ -77,7 +77,7 @@ class acs_Permissions extends core_Master
         $this->FLD('cardType', 'enum(card=Карта, bracelet=Гривна, phone=Телефон, chip=Чип)', 'caption=Тип на карта');
         $this->FLD('zones', 'keylist(mvc=acs_Zones, select=nameLoc)', 'caption=Зони');
         $this->FLD('scheduleId', 'int', 'caption=График'); //@todo
-        $this->FLD('duration', 'time', 'caption=Продължителност');
+        $this->FLD('duration', 'time(min=1)', 'caption=Продължителност');
         $this->FLD('expiredOn', 'datetime', 'caption=Изтича на');
         $this->FLD('activatedOn', 'datetime', 'caption=Активирано на, input=none');
         $this->FLD('state', 'enum(,pending=Заявка,active=Активен,closed=Закрит,rejected=Оттеглен)','caption=Състояние,column=none,input=none,smartCenter, refreshForm');
@@ -114,7 +114,7 @@ class acs_Permissions extends core_Master
         
         $zArr = type_Keylist::toArray($zones);
         foreach ($cArr as $cId) {
-            $res .= "<li style='color: black;'>{$cId}</li>";
+            $res .= "<li style='color: black;'>cardId: {$cId}</li>";
             foreach ($zArr as $zId) {
                 $styleColor = 'red';
                 
@@ -122,10 +122,11 @@ class acs_Permissions extends core_Master
                     $styleColor = 'green';
                 }
                 
-                $zones = acs_Zones::getVerbal($zId, 'name');
+                $zoneName = acs_Zones::getVerbal($zId, 'name');
                 
-                $res .= "<li style='color: {$styleColor};'>zoneId: {$zId}|{$zones} </li>";
+                $res .= "<li style='color: {$styleColor};'>zoneId: {$zId}|{$zoneName} </li>";
             }
+            $res .= "<hr>";
         }
         
         echo $res;
@@ -227,6 +228,25 @@ class acs_Permissions extends core_Master
     
     
     /**
+     * Обновява зоните - към старите зони, добавя и новата
+     * 
+     * @param integer $oZoneId
+     * @param integer $newZoneId
+     */
+    public static function updateZoneId($oZoneId, $newZoneId)
+    {
+        $query = self::getQuery();
+        $query->likeKeylist('zones', $oZoneId);
+        while ($rec = $query->fetch()) {
+            $cRec = clone $rec;
+            $cRec->zones = type_Keylist::addKey($cRec->zones, $newZoneId);
+            
+            self::save($cRec, 'zones');
+        }
+    }
+    
+    
+    /**
      * Връща масив с картите и зоните, които отключват и времето в което е валидно
      * 
      * @return boolean|array
@@ -235,7 +255,7 @@ class acs_Permissions extends core_Master
     {
         $cacheType = get_called_class();
         $cacheHandler = 'relationMap';
-        $depends = array($cacheType);
+        $depends = array($cacheType, 'acs_Zones');
         
         // Ако го има в кеша - използваме го
         $resArr = core_Cache::get($cacheType, $cacheHandler, null, $depends);

@@ -593,10 +593,11 @@ class cat_ProductDriverIntf extends embed_DriverIntf
      *
      * @param int $protoProductId
      * @param core_FieldSet $fieldset
+     * @param boolean $onlyActive
      *
      * @return void
      */
-    public function addInquiryFields($protoProductId, core_FieldSet &$fieldset)
+    public function addInquiryFields($protoProductId, core_FieldSet &$fieldset, $onlyActive = false)
     {
         return $this->class->addInquiryFields($protoProductId, $fieldset);
     }

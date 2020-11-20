@@ -931,13 +931,14 @@ abstract class cat_ProductDriver extends core_BaseClass
     
     /**
      * Добавя полета към формата за запитване
-     * 
+     *
      * @param int $protoProductId
      * @param core_FieldSet $fieldset
-     * 
+     * @param boolean $onlyActive
+     *
      * @return void
      */
-    public function addInquiryFields($protoProductId, core_FieldSet &$fieldset)
+    public function addInquiryFields($protoProductId, core_FieldSet &$fieldset, $onlyActive = false)
     {
         
     }

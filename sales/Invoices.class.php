@@ -585,19 +585,30 @@ class sales_Invoices extends deals_InvoiceMaster
             }
         }
         
-        // Само ceo,sales,invoicer могат да оттеглят контирана фактура
-        if ($action == 'reject' && isset($rec)) {
-            if ($rec->state == 'active') {
+        // Само ceo,sales,invoicer могат да възстановят фактура
+        if ($action == 'restore' && isset($rec)) {
+            if ($rec->brState == 'active') {
                 if (!haveRole('ceo,sales,invoicer', $userId)) {
                     $res = 'no_one';
                 }
             }
         }
         
-        // Само ceo,sales,invoicer могат да възстановят фактура
-        if ($action == 'restore' && isset($rec)) {
-            if ($rec->brState == 'active') {
-                if (!haveRole('ceo,sales,invoicer', $userId)) {
+        if ($rec->state == 'active') {
+            
+            if (!haveRole('ceo,accMaster', $userId)) {
+                $today = dt::today();
+                $dayForInvoice = acc_Setup::get('DATE_FOR_INVOICE_DATE');
+                $monthValior = dt::mysql2verbal($rec->date, 'm.y');
+                $monthNow = dt::mysql2verbal($today, 'm.y');
+                $dateNow = dt::mysql2verbal($today, 'd');
+                $valiorMonthPlus1 = dt::mysql2verbal(dt::addMonths(1, $rec->date), 'm.y');
+                
+                if(($valiorMonthPlus1 == $monthNow && $dayForInvoice > $dateNow) || $monthNow == $monthValior) {
+                    if (!haveRole('ceo,sales,invoicer', $userId)) {
+                        $res = 'no_one';
+                    }
+                } else {
                     $res = 'no_one';
                 }
             }
