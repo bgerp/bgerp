@@ -474,11 +474,13 @@ class ztm_Devices extends core_Master
         expect($registerId);
         
         $valRes = array();
-        foreach ($perm as $cardId => $validUntil) {
-            $res = new stdClass();
-            $res->card_id = $cardId;
-            $res->valid_until = $validUntil;
-            $valRes[$cardId] = $res;
+        if (isset($perm)) {
+            foreach ($perm as $cardId => $validUntil) {
+                $res = new stdClass();
+                $res->card_id = $cardId;
+                $res->valid_until = $validUntil;
+                $valRes[$cardId] = $res;
+            }
         }
         
         foreach ($recsArr as $recId => $rec) {

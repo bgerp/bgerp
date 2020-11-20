@@ -186,7 +186,7 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
             
             $storeAccId = acc_Accounts::getRecBySystemId('321')->id;
             $jQuery = acc_JournalDetails::getQuery();
-            $jQuery->EXT('docType', 'acc_Journal', 'externalKey=docType');
+            $jQuery->EXT('docType', 'acc_Journal', 'externalKey=journalId');
             $jQuery->EXT('valior', 'acc_Journal', 'externalKey=journalId');
             $jQuery->EXT('journalCreatedOn', 'acc_Journal', 'externalName=createdOn,externalKey=journalId');
             
