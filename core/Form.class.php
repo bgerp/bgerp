@@ -207,6 +207,7 @@ class core_Form extends core_FieldSet
             }
             
             if ($value === '' && $field->mandatory && $this->cmd != 'refresh') {
+                $captions = str_replace('» |@', '', $captions);
                 $this->setError($name, 'Непопълнено задължително поле' .
                     "|* <b>'|{$captions}|*'</b>!");
                 
@@ -264,6 +265,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 if (($value === null || $value === '') && $field->mandatory && $this->cmd != 'refresh') {
+                    $captions = str_replace('» |@', '', $captions);
                     $this->setError($name, 'Непопълнено задължително поле' .
                         "|* <b>'|{$captions}|*'</b>!");
                     
@@ -350,6 +352,7 @@ class core_Form extends core_FieldSet
             $captions = str_replace('->', '|* » |', $field->caption);
             
             if ($value === '' && $field->mandatory) {
+                $captions = str_replace('» |@', '', $captions);
                 $this->setError($name, 'Непопълнено задължително поле' .
                     "|* <b>'|{$captions}|*'</b>!");
                 
@@ -404,6 +407,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 if (($value === null || $value === '') && $field->mandatory) {
+                    $captions = str_replace('» |@', '', $captions);
                     $this->setError($name, 'Непопълнено задължително поле' .
                         "|* <b>'|{$captions}|*'</b>!");
                     
@@ -460,6 +464,7 @@ class core_Form extends core_FieldSet
         
         if ($result['error']) {
             $captions = ($field->noCaption) ? ' ' : "<b>'|" . $captions . "|*'</b>";
+            $captions = str_replace('» |@', '', $captions);
             
             $haveErr = true;
             $this->setError($name, 'Некоректна стойност на полето|' .
