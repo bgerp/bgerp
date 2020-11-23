@@ -179,4 +179,27 @@ class deals_Setup extends core_ProtoSetup
             }
         }
     }
+    
+    
+    /**
+     * Мигрира с коя сделка е приключено
+     * 
+     * @param mixed $mvc
+     * @param mixed $ClosedDocumentMvc
+     */
+    public function updateClosedWith($mvc, $ClosedDocumentMvc)
+    {
+        $mvc = cls::get($mvc);
+        $mvc->setupMvc();
+        
+        $ClosedDocumentMvc = cls::get($ClosedDocumentMvc);
+        $ClosedDocumentMvc->setupMvc();
+        
+        $docIdColName = str::phpToMysqlName('docId');
+        $closeWithColName = str::phpToMysqlName('closeWith');
+        $classIdColName = str::phpToMysqlName('docClassId');
+        
+        $query = "UPDATE {$mvc->dbTableName},{$ClosedDocumentMvc->dbTableName} SET {$mvc->dbTableName}.{$closeWithColName} = {$ClosedDocumentMvc->dbTableName}.{$closeWithColName} WHERE {$ClosedDocumentMvc->dbTableName}.{$docIdColName} = {$mvc->dbTableName}.id AND {$ClosedDocumentMvc->dbTableName}.{$classIdColName} = {$mvc->getClassId()} AND {$ClosedDocumentMvc->dbTableName}.{$closeWithColName} IS NOT NULL";
+        $mvc->db->query($query);
+    }
 }
