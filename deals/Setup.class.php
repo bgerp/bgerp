@@ -192,8 +192,12 @@ class deals_Setup extends core_ProtoSetup
         $mvc = cls::get($mvc);
         $mvc->setupMvc();
         
+        if(!$mvc->count()) return;
+        
         $ClosedDocumentMvc = cls::get($ClosedDocumentMvc);
         $ClosedDocumentMvc->setupMvc();
+        
+        if(!$ClosedDocumentMvc->count()) return;
         
         $docIdColName = str::phpToMysqlName('docId');
         $closeWithColName = str::phpToMysqlName('closeWith');
