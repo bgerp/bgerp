@@ -62,6 +62,7 @@
     }
     .barcode-holder{
         margin: 0 auto;
+        padding: 10px;
     }
     .small-letter{
         font-size: 12px !important;
@@ -69,9 +70,6 @@
     }
     .clearfix21 {
         clear: both;
-    }
-    .productPreviewHolder {
-        float: none !important;
     }
 </style>
 
@@ -86,11 +84,6 @@
         <td colspan="2" class="top-descr no-border-top bold">
             [#NAME#] 
         </td>
-        <td rowspan="4" class="no-border-top" width="17%" align="center" valign="middle">
-            <div class="barcode-holder">
-                [#QR_CODE#]
-            </div>
-        </td>
     </tr><tr><td class="top-descr no-border-left bold">
         [#JOB#] [#DATE#]
     </td>
@@ -102,6 +95,7 @@
             [#PREVIEW#]
         </div>
     </td>
+
         <td width="50%" class="description">
             <div class="details-label">
                 <span class="small top left">количество</span>
@@ -109,6 +103,11 @@
                 <div class="clearfix21"></div>
             </div>
             <span class="bold">[#QUANTITY#]</span>
+        </td>
+        <td rowspan="2"  width="17%" align="center" valign="middle">
+            <div class="barcode-holder">
+                [#QR_CODE#]
+            </div>
         </td>
     </tr>
     <tr><td class="description">
@@ -119,5 +118,5 @@
         </div>
         <span class="bold">[#SIZE#]</span>
     </td>
-    </tr><tr><td colspan="3" class="description small-letter">[#OTHER#]</td>
+    </tr><tr><td colspan="2" class="description small-letter">[#BATCH#]<div>[#OTHER#]</div></td>
     </tr></table></div>
