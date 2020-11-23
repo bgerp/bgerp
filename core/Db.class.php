@@ -197,7 +197,7 @@ class core_Db
             }
             
             if (defined('EF_DB_SET_PARAMS') && (EF_DB_SET_PARAMS !== false)) {
-                if (defined(EF_SQL_MODE)) {
+                if (defined('EF_SQL_MODE')) {
                     $sqlMode = EF_SQL_MODE;
                 } else {
                     $sqlMode = "SQL_MODE = ''";
