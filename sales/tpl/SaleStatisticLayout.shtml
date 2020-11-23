@@ -60,6 +60,10 @@
                   <!--ET_BEGIN priceListId-->
                   <span style='font-weight:normal'>|Цени|*</span>: [#priceListId#]<br>
                   <!--ET_END priceListId-->
+                  
+                  <!--ET_BEGIN closeWith-->
+                  <span style='font-weight:normal'>|Приключено с|*</span>: [#closeWith#]<br>
+                  <!--ET_END closeWith-->
               </td>
            </tr>
            <tr>

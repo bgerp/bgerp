@@ -525,21 +525,10 @@ abstract class deals_DealMaster extends deals_DealBase
                 $query->where("#state = 'active'");
                 break;
             case 'closedWith':
-                $closedDealsArr = $this->getDealsClosedWithOtherDeals();
-                $query->where("#state = 'closed'");
-                if (countR($closedDealsArr)) {
-                    $query->in('id', $closedDealsArr);
-                } else {
-                    $query->where('1=2');
-                }
+                $query->where("#state = 'closed' AND #closeWith IS NOT NULL");
                 break;
             case 'notClosedWith':
-                $closedDealsArr = $this->getDealsClosedWithOtherDeals();
-                $query->where("#state = 'active' || #state ='closed'");
-                if (countR($closedDealsArr)) {
-                    $query->notIn('id', $closedDealsArr);
-                }
-                
+                $query->where("(#state = 'active' || #state ='closed') AND #closeWith IS NULL");
                 break;
             case 'unionDeals':
                 $query->where("#state = 'active' OR #state = 'closed'");
@@ -600,24 +589,6 @@ abstract class deals_DealMaster extends deals_DealBase
             unset($data->listFields['createdBy']);
             unset($data->listFields['createdOn']);
         }
-    }
-    
-    
-    /**
-     * Кои сделки, могат да се заторрят с други сделки
-     *
-     * @return array $res
-     */
-    protected function getDealsClosedWithOtherDeals()
-    {
-        $res = array();
-        $closedQuery = $this->getQuery();
-        $closedQuery->where('#closedDocuments IS NOT NULL');
-        while ($rec = $closedQuery->fetch()) {
-            $res += keylist::toArray($rec->closedDocuments);
-        }
-        
-        return $res;
     }
     
     

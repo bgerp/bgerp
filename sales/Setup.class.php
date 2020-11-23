@@ -365,6 +365,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_TransportValues',
         'sales_ProductRelations',
         'sales_ProductRatings',
+        'migrate::migrateClosedWith',
         'migrate::updateStoreIdInDeltas2',
         'migrate::truncateRatings2',
     );
@@ -617,5 +618,14 @@ class sales_Setup extends core_ProtoSetup
         
         $query = "UPDATE {$Deltas->dbTableName} JOIN {$Products->dbTableName} ON {$Products->dbTableName}.id = {$Deltas->dbTableName}.{$productCol} JOIN {$Containers->dbTableName} ON {$Deltas->dbTableName}.{$containerCol} = {$Containers->dbTableName}.id RIGHT JOIN {$Receipts->dbTableName} ON {$Receipts->dbTableName}.id = {$Containers->dbTableName}.{$docIdCol} SET {$Deltas->dbTableName}.{$storeCol} = {$Receipts->dbTableName}.{$storeCol} WHERE {$Containers->dbTableName}.{$docClassCol} = {$storeReceiptsClassId} AND {$Products->dbTableName}.{$canStoreCol} = 'yes' AND {$Deltas->dbTableName}.{$storeCol} IS NULL";
         $Deltas->db->query($query);
+    }
+    
+    
+    /**
+     * Обновява кеш полето за коя сделка с коя е приключена
+     */
+    function migrateClosedWith()
+    {
+        cls::get('deals_Setup')->updateClosedWith('sales_Sales', 'sales_ClosedDeals');
     }
 }
