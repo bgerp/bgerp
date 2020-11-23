@@ -46,6 +46,10 @@
                         	<br><span style='font-weight:normal'>|Начално салдо|*: [#baseAmountType#] <b>[#baseAmount#]</b> <span class='cCode'>[#bCurrencyId#]</span></span>
 		        			<br><span style='font-weight:normal'>|От|*: [#baseAccountId#]</span>
 		        			<!--ET_END baseAccountId-->
+		        			
+		        			<!--ET_BEGIN closeWith-->
+		        			<br><span style='font-weight:normal'>|Приключено с|*: [#closeWith#]</span>
+		        			<!--ET_END closeWith-->
                         </td>
                     </tr>
                 </table>

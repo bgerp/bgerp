@@ -387,7 +387,9 @@ abstract class deals_ClosedDeals extends core_Master
             if ($firstRec->state != 'rejected') {
                 $firstRec->state = 'active';
                 $firstRec->modifiedOn = dt::now();
-                $DocClass->save($firstRec, 'modifiedOn,state');
+                $firstRec->closeWith = null;
+                
+                $DocClass->save($firstRec, 'modifiedOn,state,closeWith');
             }
         }
         
@@ -628,6 +630,12 @@ abstract class deals_ClosedDeals extends core_Master
             // Прехвърляме ги към детайлите на продажбата с която сме я приключили
             $Doc = cls::get($rec->docClassId);
             $Doc->invoke('AfterClosureWithDeal', array($rec->closeWith));
+            
+            // Записва се в документа, коя сделка с коя е приключена
+            if($rec->state == 'active'){
+                $updateRec = (object)array('id' => $rec->docId, 'closeWith' => $rec->closeWith);
+                $Doc->save_($updateRec);
+            }
         }
     }
     

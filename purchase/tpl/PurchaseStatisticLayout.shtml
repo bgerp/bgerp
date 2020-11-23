@@ -54,6 +54,9 @@
                   <!--ET_BEGIN originId-->
                   <span style='font-weight:normal'>|Към|*</span>: [#originId#]
                   <!--ET_END originId-->
+                  <!--ET_BEGIN closeWith-->
+                  <span style='font-weight:normal'>|Приключено с|*</span>: [#closeWith#]<br>
+                  <!--ET_END closeWith-->
               </td>
            </tr>
            <tr>

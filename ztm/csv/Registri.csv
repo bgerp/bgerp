@@ -72,7 +72,12 @@ env.wind.actual,float,0.0/,Environment,system,3.0,Actual wind [m/sec]
 env.wind.max12,float,0.0/,Environment,system,6.0,Maximum wind for 12 hours [m/sec]
 env.light,float,0.0/,Environment,system,1000.0,Outside light [lux]
 env.energy,int,,Environment,system,0,Energy mode of the building
-env.emergency,int,,Environment,system,0,Emergency flags of the building
+env.flag_fire,int,0/3,Environment,system,0,Emergency index for the fire.
+env.flag_storm,int,0/3,Environment,system,0,Emergency index for the storm.
+env.flag_earthquake,int,0/3,Environment,system,0,Emergency index for the earthquake.
+env.flag_gassing,int,0/3,Environment,system,0,Emergency index for the gassing.
+env.flag_flooding,int,0/3,Environment,system,0,Emergency index for the flooding.
+env.flag_blocked,int,0/3,Environment,system,0,Emergency index for the blocking.
 env.sunpos.enabled,bool,true|false,Environment,system,false,Enable software calculation of the sun position
 env.enabled,bool,true|false,Environment,system,false,Plugin enabled
 hvac.adjust_temp,float,-50.0/50.0,HVAC,system,0.0,Adjust temperature

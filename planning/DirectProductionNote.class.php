@@ -33,8 +33,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'acc_TransactionSourceIntf=planning_transaction_DirectProductionNote,acc_AllowArticlesCostCorrectionDocsIntf';
-    
+    public $interfaces = 'acc_TransactionSourceIntf=planning_transaction_DirectProductionNote,acc_AllowArticlesCostCorrectionDocsIntf,label_SequenceIntf=planning_interface_ProductionNoteImpl';
     
     /**
      * Плъгини за зареждане

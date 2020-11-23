@@ -61,6 +61,7 @@ class findeals_Setup extends core_ProtoSetup
         'findeals_AdvanceReports',
         'findeals_AdvanceReportDetails',
         'migrate::updatefindealdocuments',
+        'migrate::migrateClosedWith'
     );
     
     
@@ -113,5 +114,14 @@ class findeals_Setup extends core_ProtoSetup
         if(count($toSave2)){
             cls::get('findeals_DebitDocuments')->saveArray($toSave2, 'id,dealId');
         }
+    }
+    
+    
+    /**
+     * Обновява кеш полето за коя сделка с коя е приключена
+     */
+    function migrateClosedWith()
+    {
+        cls::get('deals_Setup')->updateClosedWith('findeals_Deals', 'findeals_ClosedDeals');
     }
 }
