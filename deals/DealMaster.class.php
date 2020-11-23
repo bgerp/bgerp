@@ -528,7 +528,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 $query->where("#state = 'closed' AND #closeWith IS NOT NULL");
                 break;
             case 'notClosedWith':
-                $query->where("(#state = 'active' || #state ='closed') AND #closeWith IS NOT NULL");
+                $query->where("(#state = 'active' || #state ='closed') AND #closeWith IS NULL");
                 break;
             case 'unionDeals':
                 $query->where("#state = 'active' OR #state = 'closed'");
