@@ -69,7 +69,6 @@ class planning_interface_ProductionNoteImpl extends cat_interface_PackLabelImpl
         $placeholders['JOB'] = (object) array('type' => 'text');
         $placeholders['CODE'] = (object) array('type' => 'text');
         $placeholders['NAME'] = (object) array('type' => 'text');
-        $placeholders['DATE'] = (object) array('type' => 'text');
         $placeholders['PREVIEW'] = (object) array('type' => 'picture');
         $placeholders['MEASURE_ID'] = (object) array('type' => 'text');
         $placeholders['QUANTITY'] = (object) array('type' => 'text');
@@ -80,6 +79,11 @@ class planning_interface_ProductionNoteImpl extends cat_interface_PackLabelImpl
         $placeholders['MATERIAL'] = (object) array('type' => 'text');
         $placeholders['SIZE_UNIT'] = (object) array('type' => 'text');
         $placeholders['SIZE'] = (object) array('type' => 'text');
+        $placeholders['VALIOR'] = (object) array('type' => 'text');
+        $placeholders['NET_WEIGHT'] = (object) array('type' => 'text');
+        $placeholders['GROSS_WEIGHT'] = (object) array('type' => 'text');
+        $placeholders['EXPIRY_TIME'] = (object) array('type' => 'text');
+        $placeholders['EXPIRY_DATE'] = (object) array('type' => 'text');
         $placeholders['QR_CODE'] = (object) array('type' => 'text', 'hidden' => true);
         
         if (isset($objId)) {
@@ -179,13 +183,40 @@ class planning_interface_ProductionNoteImpl extends cat_interface_PackLabelImpl
             }
         }
         
-        $date = dt::mysql2verbal($rec->valior, 'd.m.y');
+        $grossWeight = null;
+        $kgId = cat_Uom::fetchBySysId('kg')->id;
+        if($netWeight = cat_Products::convertToUom($rec->productId, 'kg')){
+            $netWeightVerbal = cat_UoM::round($kgId, $netWeight);
+            $netWeightVerbal = core_Type::getByName('double(smartRound)')->toVerbal($netWeightVerbal);
+            $netWeightVerbal = "{$netWeightVerbal} " . tr(cat_UoM::getTitleById($kgId));
+            
+            if(!empty($packRec->tareWeight)){
+                $grossWeight = $netWeight + $packRec->tareWeight;
+                $grossWeightVerbal = cat_UoM::round($kgId, $grossWeight);
+                $grossWeightVerbal = core_Type::getByName('double(smartRound)')->toVerbal($grossWeight);
+                $grossWeightVerbal = "{$grossWeightVerbal} " . tr(cat_UoM::getTitleById($kgId));
+            }
+        }
+       
+        $expiryTime = cat_Products::getParams($rec->productId, 'expiryTime');
+        $date = dt::mysql2verbal($rec->valior, 'd.m.Y');
         $singleUrl = toUrl(array($this->class, 'single', $rec->id), 'absolute');
         $arr = array();
         for ($i = 1; $i <= $cnt; $i++) {
-            $res = array('CODE' => $code, 'NAME' => $name, 'MEASURE_ID' => $measureId, 'QUANTITY' => $quantity, 'JOB' => $jobHandle, 'DATE' => $date, 'QR_CODE' => $singleUrl);
+            $res = array('CODE' => $code, 'NAME' => $name, 'MEASURE_ID' => $measureId, 'QUANTITY' => $quantity, 'JOB' => $jobHandle, 'VALIOR' => $date, 'NET_WEIGHT' => $netWeightVerbal, 'QR_CODE' => $singleUrl);
             if(isset($batch)){
                 $res['BATCH'] = $batch;
+            }
+            
+            if(isset($grossWeight)){
+                $res['GROSS_WEIGHT'] = $grossWeightVerbal;
+            }
+            
+            if(!empty($expiryTime)){
+                $res['EXPIRY_TIME'] = core_Type::getByName('time')->toVerbal($expiryTime);
+                $expiryDate = dt::addSecs($expiryTime, $rec->valior);
+                $expiryDateVerbal = dt::mysql2verbal($expiryDate, 'd.m.Y');
+                $res['EXPIRY_DATE'] = $expiryDateVerbal;
             }
             
             if (countR($params)) {
