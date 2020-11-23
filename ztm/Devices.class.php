@@ -128,7 +128,7 @@ class ztm_Devices extends core_Master
         $this->FLD('configTime', 'int', 'caption=Време,input=none');
         
         $this->setDbUnique('token');
-        $this->setDbUnique('name');
+        $this->setDbUnique('name, state');
     }
     
     
