@@ -15,7 +15,7 @@
  * @see label_SequenceIntf
  *
  */
-class planning_interface_ProductionNoteImpl extends cat_interface_PackLabelImpl
+class planning_interface_ProductionNoteImpl
 {
     /**
      * Инстанция на класа
