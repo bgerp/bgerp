@@ -1579,12 +1579,7 @@ class eshop_Products extends core_Master
         return $msg;
     }
     
-    function act_test()
-    {
-        $r = $this->getSaleState(8);
-        
-        bp($r);
-    }
+    
     /**
      * Какво е продажното състояние на артикула
      *
