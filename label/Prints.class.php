@@ -982,6 +982,7 @@ class label_Prints extends core_Master
         
         // Вземаме шаблона
         $pData->row->Template = label_Templates::getTemplate($rec->templateId);
+        $pData->templateId = $rec->templateId;
         
         if (!$rec->rows) {
             $pData->Label->params = array();
@@ -1186,7 +1187,7 @@ class label_Prints extends core_Master
             }
             
             // Заместваме в шаблона всички данни
-            $template = label_Templates::placeArray($data->row->Template, $row);
+            $template = label_Templates::placeArray($data->row->Template, $row, $data->templateId);
             
             // Вкарваме CSS-a, като инлайн
             $template = label_Templates::addCssToTemplate($data->Label->rec->templateId, $template);
@@ -1370,7 +1371,7 @@ class label_Prints extends core_Master
         
         // Рендираме медията
         $pageLayout = label_Media::renderMediaPageLayout($pData);
-        
+       
         $tpl = $this->renderLabel($pData, $pageLayout);
         
         // Маркираме медията, като използване
