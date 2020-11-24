@@ -239,6 +239,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $receiptsDetQuery->EXT('threadId', 'store_Receipts', 'externalName=threadId,externalKey=receiptId');
         
         $receiptsDetQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+        
         $receiptsDetQuery->EXT('isReverse', 'store_Receipts', 'externalName=isReverse,externalKey=receiptId');
         
         $receiptsDetQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
@@ -248,6 +249,23 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $receiptsDetQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         
         $receiptsDetQuery->EXT('valior', 'store_Receipts', 'externalName=valior,externalKey=receiptId');
+        
+        //Експедиционни нареждания за връщане на стока
+        $shipmentOrdersDetQuery = store_ShipmentOrderDetails::getQuery();
+        
+        $shipmentOrdersDetQuery->EXT('threadId', 'store_ShipmentOrders', 'externalName=threadId,externalKey=shipmentId');
+        
+        $shipmentOrdersDetQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+        
+        $shipmentOrdersDetQuery->EXT('isReverse', 'store_ShipmentOrders', 'externalName=isReverse,externalKey=shipmentId');
+        
+        $shipmentOrdersDetQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+        
+        $shipmentOrdersDetQuery->EXT('state', 'store_ShipmentOrders', 'externalName=state,externalKey=shipmentId');
+        
+        $shipmentOrdersDetQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
+        
+        $shipmentOrdersDetQuery->EXT('valior', 'store_ShipmentOrders', 'externalName=valior,externalKey=shipmentId');
         
         //Бързи продажби
         $fastPurchasesDetQuery = purchase_PurchasesDetails::getQuery();
@@ -297,6 +315,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $receiptsDetQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}'");
             
             $fastPurchasesDetQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}'");
+            
+            $shipmentOrdersDetQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}'");
         }
         
         // сравнение с ПРЕДХОДЕН ПЕРИОД
@@ -323,6 +343,9 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $receiptsDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
             
             $fastPurchasesDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
+        
+            $shipmentOrdersDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
+            
         }
         
         // сравнение с ПРЕДХОДНА ГОДИНА
@@ -333,6 +356,9 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $receiptsDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
             
             $fastPurchasesDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
+        
+            $shipmentOrdersDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
+            
         }
         
         // сравнение с ИЗБРАН ПЕРИОД
@@ -357,6 +383,10 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $receiptsDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$rec->compareStart}' AND #valior <= '{$toChecked}')");
             
             $fastPurchasesDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$rec->compareStart}' AND #valior <= '{$toChecked}')");
+        
+            $shipmentOrdersDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$rec->compareStart}' AND #valior <= '{$toChecked}')");
+            
+            
         }
         
         core_Lg::pop();
@@ -364,6 +394,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $receiptsDetQuery->where("#state != 'rejected'");
         
         $fastPurchasesDetQuery->where("#state != 'rejected'");
+        
+        $shipmentOrdersDetQuery->where("#state != 'rejected'");
         
         
         //Филтър за КОНТРАГЕНТ и ГРУПИ КОНТРАГЕНТИ
@@ -378,6 +410,10 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $fastPurchasesDetQuery->EXT('contragentClassId', 'purchase_Purchases', 'externalName=contragentClassId,externalKey=requestId');
             $fastPurchasesDetQuery->EXT('folderId', 'purchase_Purchases', 'externalName=folderId,externalKey=requestId');
             
+            $shipmentOrdersDetQuery->EXT('contragentId', 'purchase_Purchases', 'externalName=contragentId,externalKey=shipmentId');
+            $shipmentOrdersDetQuery->EXT('contragentClassId', 'purchase_Purchases', 'externalName=contragentClassId,externalKey=shipmentId');
+            $shipmentOrdersDetQuery->EXT('folderId', 'purchase_Purchases', 'externalName=folderId,externalKey=shipmentId');
+            
             if (!$rec->crmGroup && $rec->contragent) {
                 $contragentsArr = keylist::toArray($rec->contragent);
                 
@@ -391,6 +427,9 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 
                 $fastPurchasesDetQuery->in('contragentId', $contragentCoversId);
                 $fastPurchasesDetQuery->in('contragentClassId', $contragentCoverClasses);
+                
+                $shipmentOrdersDetQuery->in('contragentId', $contragentCoversId);
+                $shipmentOrdersDetQuery->in('contragentClassId', $contragentCoverClasses);
             }
             
             if ($rec->crmGroup && !$rec->contragent) {
@@ -399,6 +438,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 $receiptsDetQuery->in('folderId', $foldersInGroups);
                 
                 $fastPurchasesDetQuery->in('folderId', $foldersInGroups);
+                
+                $shipmentOrdersDetQuery->in('folderId', $foldersInGroups);
             }
             
             if ($rec->crmGroup && $rec->contragent) {
@@ -416,32 +457,37 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 $fastPurchasesDetQuery->in('contragentId', $contragentCoversId);
                 $fastPurchasesDetQuery->in('contragentClassId', $contragentCoverClasses);
                 
+                $shipmentOrdersDetQuery->in('contragentId', $contragentCoversId);
+                $shipmentOrdersDetQuery->in('contragentClassId', $contragentCoverClasses);
+                
                 $foldersInGroups = self::getFoldersInGroups($rec);
                 
                 $receiptsDetQuery->in('folderId', $foldersInGroups);
-                
                 $fastPurchasesDetQuery->in('folderId', $foldersInGroups);
+                $shipmentOrdersDetQuery->in('folderId', $foldersInGroups);
             }
         }
         
         //Филтър по групи артикули
         if (isset($rec->group)) {
             $receiptsDetQuery->likeKeylist('groups', $rec->group);
+            $fastPurchasesDetQuery->likeKeylist('groups', $rec->group);
+            $shipmentOrdersDetQuery->likeKeylist('groups', $rec->group);
         }
         
         
         //Филтър по тип артикул СТАНДАРТНИ / НЕСТАНДАРТНИ
         if ($rec->articleType != 'all') {
             $receiptsDetQuery->where("#isPublic = '{$rec->articleType}'");
-            
             $fastPurchasesDetQuery->where("#isPublic = '{$rec->articleType}'");
+            $shipmentOrdersDetQuery->where("#isPublic = '{$rec->articleType}'");
         }
         
         //Ако стоковата разписка е от връщане на стока да не се отчита
         //$receiptsDetQuery->where("#isReverse = 'no'");
         
         // Синхронизира таймлимита с броя записи //
-        $rec->count = $receiptsDetQuery->count() + $fastPurchasesDetQuery->count();
+        $rec->count = $receiptsDetQuery->count() + $fastPurchasesDetQuery->count()+ $shipmentOrdersDetQuery->count();
         
         $timeLimit = $receiptsDetQuery->count() * 0.05 + $fastPurchasesDetQuery->count() * 0.05;
         
@@ -466,11 +512,25 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 if($class instanceof store_ReceiptDetails){
                     
                     $firstDocument = doc_Threads::getFirstDocument($detRec->threadId);
-                    if($firstDocument->className == 'sales_Sales' && $detRec->isRevers = 'yes'){
+                    if($firstDocument->className == 'sales_Sales' && $detRec->isReverse == 'yes'){
+                        
                         continue;
                     }
                    
                 }
+                
+                //Когато документа е ЕН проверяваме дали е връщане от покупка към доставчик
+                //Ако ДА, то не влиза в справката
+                $class = cls::get($shipmentOrdersDetQuery->mvc);
+                if($class instanceof store_ShipmentOrderDetails){
+                    
+                    $firstDocument = doc_Threads::getFirstDocument($detRec->threadId);
+                    if($firstDocument->className == 'purchase_Purchases' && $detRec->isReverse == 'yes'){
+                        continue;
+                    }
+                    
+                }
+                
                 $quantity = $amount = 0;
                 $quantityPrevious = $amountPrevious = 0;
                 $quantityLastYear = $amountLastYear = 0;
