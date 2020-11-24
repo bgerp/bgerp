@@ -615,10 +615,12 @@ class label_Templates extends core_Master
      * @param string|NULL $lang              - език на шаблона
      * @param mixed       $class             - клас към който да е шаблона
      * @param mixed       $peripheralClassId - драйвър на периферията
+     * @param mixed       $rendererClassId   - клас за рендиране
+     * 
      *
      * @return stdClass|FALSE - записа на шаблона или FALSE ако не е променян
      */
-    public static function addFromFile($title, $filePath, $sysId, $sizes = array(), $lang = 'bg', $class = null, $peripheralClassId = null)
+    public static function addFromFile($title, $filePath, $sysId, $sizes = array(), $lang = 'bg', $class = null, $peripheralClassId = null, $rendererClassId = null)
     {
         // Проверки на данните
         expect(in_array($lang, array('bg', 'en')), $lang);
@@ -640,7 +642,7 @@ class label_Templates extends core_Master
         }
         
         $isContentTheSame = md5($exRec->template) == $templateHash;
-        
+       
         // Ако подадените параметри са същите като съществуващите, не се обновява/създава нищо
         if ($isContentTheSame && $exRec->title == $title && $exRec->title == $title && $exRec->sizes == $sizes && $exRec->lang == $lang && $exRec->classId == $classId) {
             
@@ -668,6 +670,10 @@ class label_Templates extends core_Master
             $exRec->peripheralDriverClassId = cls::get($peripheralClassId)->getClassId();
         }
         
+        if (isset($rendererClassId)) {
+            $exRec->rendererClassId = cls::get($rendererClassId)->getClassId();
+        }
+        
         // Създаване/обновяване на шаблона
         static::save($exRec);
         
@@ -687,7 +693,7 @@ class label_Templates extends core_Master
      */
     public static function addDefaultLabelsFromArray($sysId, $array, &$modified, &$skipped)
     {
-        $tRec = self::addFromFile($array['title'], $array['path'], $sysId, $array['sizes'], $array['lang'], $array['class'], $array['peripheralDriverClass']);
+        $tRec = self::addFromFile($array['title'], $array['path'], $sysId, $array['sizes'], $array['lang'], $array['class'], $array['peripheralDriverClass'], $array['rendererClassId']);
         
         if ($tRec !== false) {
             label_TemplateFormats::delete("#templateId = {$tRec->id}");
