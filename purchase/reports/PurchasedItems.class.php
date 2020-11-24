@@ -438,7 +438,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         }
         
         //Ако стоковата разписка е от връщане на стока да не се отчита
-        $receiptsDetQuery->where("#isReverse = 'no'");
+        //$receiptsDetQuery->where("#isReverse = 'no'");
         
         // Синхронизира таймлимита с броя записи //
         $rec->count = $receiptsDetQuery->count() + $fastPurchasesDetQuery->count();
@@ -458,6 +458,19 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
         foreach ($recsArr as $details) {
             while ($detRec = $details->fetch()) {
+                
+                
+                //Когато документа е СР проверяваме дали е връщане от продажба
+                //Ако ДА, то не влиза в справката
+                $class = cls::get($receiptsDetQuery->mvc);
+                if($class instanceof store_ReceiptDetails){
+                    
+                    $firstDocument = doc_Threads::getFirstDocument($detRec->threadId);
+                    if($firstDocument->className == 'sales_Sales' && $detRec->isRevers = 'yes'){
+                        continue;
+                    }
+                   
+                }
                 $quantity = $amount = 0;
                 $quantityPrevious = $amountPrevious = 0;
                 $quantityLastYear = $amountLastYear = 0;
