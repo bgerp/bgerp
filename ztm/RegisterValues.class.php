@@ -340,9 +340,7 @@ class ztm_RegisterValues extends core_Manager
         
         if ($deviceRec->profileId) {
             $defaultArr = ztm_Profiles::getDefaultRegisterValues($deviceRec->profileId);
-            
             foreach ($defaultArr as $dRegKey => $dRegValue) {
-                $dRegKey = 2;
                 if (!array_key_exists($dRegKey, $ourRegisters)) {
                     try {
                         ztm_RegisterValues::set($deviceRec->id, $dRegKey, $dRegValue, $now, false, false);
