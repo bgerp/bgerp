@@ -505,10 +505,10 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         foreach ($recsArr as $details) {
             while ($detRec = $details->fetch()) {
                 
+                $class = cls::get($details->mvc);
                 
                 //Когато документа е СР проверяваме дали е връщане от продажба
                 //Ако ДА, то не влиза в справката
-                $class = cls::get($receiptsDetQuery->mvc);
                 if($class instanceof store_ReceiptDetails){
                     
                     $firstDocument = doc_Threads::getFirstDocument($detRec->threadId);
@@ -521,7 +521,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 
                 //Когато документа е ЕН проверяваме дали е връщане от покупка към доставчик
                 //Ако ДА, то не влиза в справката
-                $class = cls::get($shipmentOrdersDetQuery->mvc);
+               // $class = cls::get($shipmentOrdersDetQuery->mvc);
                 if($class instanceof store_ShipmentOrderDetails){
                     
                     $firstDocument = doc_Threads::getFirstDocument($detRec->threadId);
