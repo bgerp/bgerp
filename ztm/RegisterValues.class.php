@@ -337,6 +337,7 @@ class ztm_RegisterValues extends core_Manager
         // Добавяне на дефолтните стойностти към таблицата с регистрите, ако няма за тях
         $now = dt::now();
         $ourRegisters = self::grab($deviceRec);
+        
         if ($deviceRec->profileId) {
             $defaultArr = ztm_Profiles::getDefaultRegisterValues($deviceRec->profileId);
             foreach ($defaultArr as $dRegKey => $dRegValue) {
@@ -486,7 +487,8 @@ class ztm_RegisterValues extends core_Manager
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         // Бутон за изчистване на всички
-        if (haveRole('debug')) {
+//         if (haveRole('debug')) {
+        if (haveRole('admin')) {
             $data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искате ли да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
         }
     }
@@ -497,7 +499,8 @@ class ztm_RegisterValues extends core_Manager
      */
     public function act_Truncate()
     {
-        requireRole('debug');
+//         requireRole('debug');
+        requireRole('admin');
         
         // Изчистваме записите от моделите
         self::truncate();
