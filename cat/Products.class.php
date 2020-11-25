@@ -2566,12 +2566,15 @@ class cat_Products extends embed_Manager
     {
         $now = dt::now();
         $stProductsToClose = array();
-        $before = dt::addMonths(-3);
+        
+        $olderThen = cat_Setup::get('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_OLDER_THEN');
+        $olderThenDate = dt::addSecs(-1 * $olderThen);
+        
         $iStQuery = acc_Items::getQuery();
         $iStQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=objectId');
         $iStQuery->EXT('pState', 'cat_Products', 'externalName=state,externalKey=objectId');
         $iStQuery->where("#state = 'active' AND #lastUseOn IS NULL AND #isPublic = 'yes' AND #classId = " . cat_Products::getClassId());
-        $iStQuery->where("#createdOn <= '{$before}' AND #pState = 'active'");
+        $iStQuery->where("#createdOn <= '{$olderThenDate}' AND #pState = 'active'");
         $iStQuery->show('objectId');
         while ($iStRec = $iStQuery->fetch()) {
             $pRec1 = cat_Products::fetch($iStRec->objectId, 'id,state,brState');
