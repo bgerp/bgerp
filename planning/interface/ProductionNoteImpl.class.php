@@ -87,6 +87,11 @@ class planning_interface_ProductionNoteImpl
         $placeholders['QR_CODE'] = (object) array('type' => 'text', 'hidden' => true);
         
         if (isset($objId)) {
+            
+            // Проверка има ли продуктови параметри, които не могат да се редактират от формата
+            $productClassId = cat_Products::getClassId();
+            $rec = $this->class->fetch($objId);
+            $notEdittableParamNames = cat_products_Params::getNotEditableLabelParamNames($productClassId, $rec->productId);
             $labelData = $this->getLabelData($objId, 1, true);
            
             if (isset($labelData[0])) {
@@ -95,6 +100,10 @@ class planning_interface_ProductionNoteImpl
                         $placeholders[$key] = (object) array('type' => 'text');
                     }
                     $placeholders[$key]->example = $val;
+                    
+                    if(array_key_exists($key, $notEdittableParamNames)){
+                        $placeholders[$key]->hidden = true;
+                    }
                 }
             }
         }

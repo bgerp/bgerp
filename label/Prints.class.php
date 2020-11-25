@@ -237,6 +237,7 @@ class label_Prints extends core_Master
                 $oLang = $lang;
             }
             $labelDataArr = $intfInst->getLabelPlaceholders($objId);
+            
             if ($lang) {
                 core_Lg::pop();
             }

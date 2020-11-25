@@ -533,4 +533,28 @@ class cat_products_Params extends doc_Detail
         
         sales_TransportValues::recalcTransportByProductId($productId);
     }
+    
+    
+    /**
+     * Връща нередактируемите имена на параметрите при печат на етикети
+     * 
+     * @param int $classId
+     * @param int $productId
+     * @return array $notEdittableParamNames
+     */
+    public static function getNotEditableLabelParamNames($classId, $productId)
+    {
+        $notEdittableParamNames = array();
+        $pQuery = cat_products_Params::getQuery();
+        $pQuery->EXT('editInLabel', 'cat_Params', 'externalName=editInLabel,externalKey=paramId');
+        $pQuery->where("#editInLabel = 'no' AND #productId = {$productId} AND #classId={$classId}");
+        $pQuery->show('paramId');
+        
+        $notEditableParams = arr::extractValuesFromArray($pQuery->fetchAll(), 'paramId');
+        if(countR($notEditableParams)){
+            $notEdittableParamNames = cat_Params::getParamNameArr($notEditableParams, true) ;
+        }
+        
+        return $notEdittableParamNames;
+    }
 }
