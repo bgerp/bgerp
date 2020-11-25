@@ -343,9 +343,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $receiptsDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
             
             $fastPurchasesDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
-        
-            $shipmentOrdersDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
             
+            $shipmentOrdersDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
         }
         
         // сравнение с ПРЕДХОДНА ГОДИНА
@@ -356,9 +355,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $receiptsDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
             
             $fastPurchasesDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
-        
-            $shipmentOrdersDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
             
+            $shipmentOrdersDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
         }
         
         // сравнение с ИЗБРАН ПЕРИОД
@@ -383,10 +381,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $receiptsDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$rec->compareStart}' AND #valior <= '{$toChecked}')");
             
             $fastPurchasesDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$rec->compareStart}' AND #valior <= '{$toChecked}')");
-        
+            
             $shipmentOrdersDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$rec->compareStart}' AND #valior <= '{$toChecked}')");
-            
-            
         }
         
         core_Lg::pop();
@@ -483,11 +479,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $shipmentOrdersDetQuery->where("#isPublic = '{$rec->articleType}'");
         }
         
-        //Ако стоковата разписка е от връщане на стока да не се отчита
-        //$receiptsDetQuery->where("#isReverse = 'no'");
-        
         // Синхронизира таймлимита с броя записи //
-        $rec->count = $receiptsDetQuery->count() + $fastPurchasesDetQuery->count()+ $shipmentOrdersDetQuery->count();
+        $rec->count = $receiptsDetQuery->count() + $fastPurchasesDetQuery->count() + $shipmentOrdersDetQuery->count();
         
         $timeLimit = $receiptsDetQuery->count() * 0.05 + $fastPurchasesDetQuery->count() * 0.05;
         
@@ -500,35 +493,33 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $dealers = keylist::toArray($rec->dealers);
         }
         
-        $recsArr = array($receiptsDetQuery,$fastPurchasesDetQuery);
+        $recsArr = array($receiptsDetQuery, $fastPurchasesDetQuery, $shipmentOrdersDetQuery);
         
         foreach ($recsArr as $details) {
             while ($detRec = $details->fetch()) {
+                $revCoef = 1; //коефициента става -1 при връщане на стока към доставчик със ЕН в Покупка
                 
                 $class = cls::get($details->mvc);
                 
                 //Когато документа е СР проверяваме дали е връщане от продажба
                 //Ако ДА, то не влиза в справката
-                if($class instanceof store_ReceiptDetails){
-                    
+                if ($class instanceof store_ReceiptDetails) {
                     $firstDocument = doc_Threads::getFirstDocument($detRec->threadId);
-                    if($firstDocument->className == 'sales_Sales' && $detRec->isReverse == 'yes'){
-                        
+                    if ($firstDocument->className == 'sales_Sales' && $detRec->isReverse == 'yes') {
                         continue;
                     }
-                   
                 }
                 
                 //Когато документа е ЕН проверяваме дали е връщане от покупка към доставчик
                 //Ако ДА, то не влиза в справката
-               // $class = cls::get($shipmentOrdersDetQuery->mvc);
-                if($class instanceof store_ShipmentOrderDetails){
+                if ($class instanceof store_ShipmentOrderDetails) {
                     
+                    $revCoef = -1;
                     $firstDocument = doc_Threads::getFirstDocument($detRec->threadId);
-                    if($firstDocument->className == 'purchase_Purchases' && $detRec->isReverse == 'yes'){
+                    if ($detRec->isReverse == 'no') {
                         continue;
                     }
-                    
+                   
                 }
                 
                 $quantity = $amount = 0;
@@ -562,31 +553,31 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 //Данни за ПРЕДХОДЕН ПЕРИОД
                 if ($rec->compare == 'previous') {
                     if ($detRec->valior >= $fromPreviuos && $detRec->valior <= $toPreviuos) {
-                        $quantityPrevious = $detRec->quantity;
-                        $amountPrevious = $detRec->amount;
+                        $quantityPrevious = $detRec->quantity * $revCoef;
+                        $amountPrevious = $detRec->amount * $revCoef;
                     }
                 }
                 
                 //Данни за ПРЕДХОДНА ГОДИНА
                 if ($rec->compare == 'year') {
                     if ($detRec->valior >= $fromLastYear && $detRec->valior <= $toLastYear) {
-                        $quantityLastYear = $detRec->quantity;
-                        $amountLastYear = $detRec->amount;
+                        $quantityLastYear = $detRec->quantity * $revCoef;
+                        $amountLastYear = $detRec->amount * $revCoef;
                     }
                 }
                 
                 //Данни за ИЗБРАН ПЕРИОД
                 if ($rec->compare == 'checked') {
                     if ($detRec->valior >= $rec->compareStart && $detRec->valior <= $toChecked) {
-                        $quantityCheckedPeriod = $detRec->quantity;
-                        $amountCheckedPeriod = $detRec->amount;
+                        $quantityCheckedPeriod = $detRec->quantity * $revCoef;
+                        $amountCheckedPeriod = $detRec->amount * $revCoef;
                     }
                 }
                 
                 //Данни за ТЕКУЩ период
                 if ($detRec->valior >= $rec->from && $detRec->valior <= $dateEnd) {
-                    $quantity = $detRec->quantity;
-                    $amount = $detRec->amount;
+                    $quantity = $detRec->quantity * $revCoef;
+                    $amount = $detRec->amount * $revCoef;
                 }
                 
                 // Запис в масива
