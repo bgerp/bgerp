@@ -32,7 +32,7 @@ class cat_Params extends bgerp_ProtoParam
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_State2,plg_SaveAndNew';
+    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_State2,plg_SaveAndNew, plg_Sorting';
     
     
     /**
@@ -74,7 +74,7 @@ class cat_Params extends bgerp_ProtoParam
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'typeExt,order,driverClass=Тип,state,roles,showInPublicDocuments=Показване в документи->Външни,showInTasks=Показване в документи->Пр. операции,createdOn,createdBy';
+    public $listFields = 'id,typeExt,order,driverClass=Тип,state,roles,showInPublicDocuments=Показване в документи->Външни,showInTasks=Показване в документи->Пр. операции,createdOn,createdBy';
     
     
     /**

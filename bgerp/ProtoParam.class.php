@@ -31,7 +31,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'typeExt,order,driverClass=Тип,state,roles';
+    public $listFields = 'id,typeExt,order,driverClass=Тип,state,roles';
     
     
     /**
@@ -284,9 +284,11 @@ abstract class bgerp_ProtoParam extends embed_Manager
         $data->listFilter->showFields = 'search,driverClass';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->view = 'horizontal';
-        
+        $data->query->orderBy('createdOn=DESC,state=ASC');
         if($filterRec = $data->listFilter->rec){
-            bp($filterRec);
+            if(isset($filterRec->driverClass)){
+                $data->query->where("#driverClass = {$filterRec->driverClass}");
+            }
         }
     }
     
