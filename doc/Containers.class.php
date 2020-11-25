@@ -500,6 +500,7 @@ class doc_Containers extends core_Manager
             // Заглавие на треда
             $document = $mvc->getDocument($data->threadRec->firstContainerId);
             $docRow = $document->getDocumentRow();
+            $docRow->title = strip_tags($docRow->title);
             $docTitle = str::limitLenAndHyphen($docRow->title, 70);
             $title->replace($docTitle, 'threadTitle');
             
