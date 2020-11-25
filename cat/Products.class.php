@@ -237,7 +237,7 @@ class cat_Products extends embed_Manager
      *
      * @var string
      */
-    public $recTitleTpl = '[[#code#]] [#name#]';
+    public $recTitleTpl = '<span class=quiet>[</span>[#code#]<span class=quiet>]</span> [#name#]';
     
     
     /**
@@ -245,7 +245,7 @@ class cat_Products extends embed_Manager
      *
      * @var string
      */
-    public $recTitleNonPublicTpl = '[#name#] [[#code#]]';
+    public $recTitleNonPublicTpl = '[#name#] <span class=quiet>[</span>[#code#]<span class=quiet>]</span>';
     
     
     /**
@@ -1564,7 +1564,7 @@ class cat_Products extends embed_Manager
         $query->show('isPublic,folderId,meta,id,code,name,nameEn,state');
        
         while ($rec = $query->fetch()) {
-            $title = static::getRecTitle($rec, false);
+            $title = strip_tags(static::getRecTitle($rec, false));
             if($rec->state == 'template'){
                 $templates[$rec->id] = $title;
             } elseif ($rec->isPublic == 'yes') {
@@ -2169,7 +2169,7 @@ class cat_Products extends embed_Manager
         // Предефиниране на метода, за да е подсигурено само фечването на нужните полета
         // За да се намали натоварването, при многократни извиквания
         $rec = self::fetch($id, 'name,code,isPublic,nameEn,state');
-        
+       
         return parent::getTitleById($rec, $escaped);
     }
     
@@ -2184,7 +2184,7 @@ class cat_Products extends embed_Manager
     public function getRecTitleTpl($rec)
     {
         $tpl = ($rec->isPublic != 'yes' || $rec->state == 'template') ? $this->recTitleNonPublicTpl : $this->recTitleTpl;
-        
+       
         return new core_ET($tpl);
     }
     
@@ -2239,9 +2239,9 @@ class cat_Products extends embed_Manager
         
         if ($showCode === true) {
             if ($rec->isPublic == 'yes') {
-                $titleTpl = new core_ET('<!--ET_BEGIN code-->[[#code#]] <!--ET_END code-->[#name#]');
+                $titleTpl = new core_ET('<!--ET_BEGIN code--><span class=quiet>[</span>[#code#]<span class=quiet>]</span> <!--ET_END code-->[#name#]');
             } else {
-                $titleTpl = new core_ET('[#name#]<!--ET_BEGIN code--> [[#code#]]<!--ET_END code-->');
+                $titleTpl = new core_ET('[#name#]<!--ET_BEGIN code--> <span class=quiet>[</span>[#code#]<span class=quiet>]</span><!--ET_END code-->');
             }
             
             

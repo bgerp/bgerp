@@ -1052,6 +1052,11 @@ class doc_Threads extends core_Manager
         try {
             $docProxy = doc_Containers::getDocument($rec->firstContainerId);
             $docRow = $docProxy->getDocumentRow();
+            $docRow->title = strip_tags($docRow->title);
+            if(!empty($docRow->recTitle)){
+                $docRow->recTitle = strip_tags($docRow->recTitle);
+            }
+            
             $attr = array();
             
             $attr = ht::addBackgroundIcon($attr, $docProxy->getIcon());
