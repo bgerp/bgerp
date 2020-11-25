@@ -185,14 +185,14 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             if ($rec->fromDate) {
                 $invQuery->where(array(
                     "#date >= '[#1#]'",
-                    $rec->fromDate . ' 00:00:00'
+                    $rec->fromDate
                 ));
             }
             
             //Крайна дата / 'към дата'
             $invQuery->where(array(
-                "#date < '[#1#]'",
-                $rec->checkDate . ' 23:59:59'
+                "#date <= '[#1#]'",
+                $rec->checkDate
             ));
             
             //Филтър за КОНТРАГЕНТ и ГРУПИ КОНТРАГЕНТИ
@@ -454,25 +454,25 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $pQuery = purchase_Invoices::getQuery();
             
             $pQuery->where("#state != 'rejected' AND #number IS NOT NULL");
-            
+           
             //При избрани НЕПЛАТЕНИ махаме дебитните и кредитните известия
             if ($rec->unpaid == 'unpaid') {
                 $pQuery->where("#type = 'invoice'");
             }
-            
+           
             // Ако е посочена начална дата на период
             if ($rec->fromDate) {
                 $pQuery->where(array(
-                    "#date > '[#1#]'",
-                    $rec->fromDate . ' 00:00:01'
+                    "#date >= '[#1#]'",
+                    $rec->fromDate
                 ));
             }
-            
+          
             $pQuery->where(array(
-                "#date < '[#1#]'",
-                $rec->checkDate . ' 23:59:59'
+                "#date <= '[#1#]'",
+                $rec->checkDate
             ));
-            
+             
             //Филтър за КОНТРАГЕНТ и ГРУПИ КОНТРАГЕНТИ
             if ($rec->contragent || $rec->crmGroup) {
                 $contragentsArr = array();
