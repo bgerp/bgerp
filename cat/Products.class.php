@@ -237,7 +237,7 @@ class cat_Products extends embed_Manager
      *
      * @var string
      */
-    public $recTitleTpl = '<span class=quiet>[</span>[#code#]<span class=quiet>]</span> [#name#]';
+    public $recTitleTpl = '[[#code#]] [#name#]';
     
     
     /**
@@ -245,7 +245,7 @@ class cat_Products extends embed_Manager
      *
      * @var string
      */
-    public $recTitleNonPublicTpl = '[#name#] <span class=quiet>[</span>[#code#]<span class=quiet>]</span>';
+    public $recTitleNonPublicTpl = '[#name#] [</span>[#code#]]';
     
     
     /**
@@ -2377,8 +2377,6 @@ class cat_Products extends embed_Manager
         $rec = $this->fetchRec($id);
         $row = new stdClass();
         $row->title = $this->getTitleById($rec->id);
-        $row->title = strip_tags($row->title);
-        
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->recTitle = $row->title;
