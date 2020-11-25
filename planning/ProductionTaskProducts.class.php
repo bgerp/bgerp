@@ -345,7 +345,7 @@ class planning_ProductionTaskProducts extends core_Detail
         expect(in_array($type, array('input', 'waste', 'production')));
         
         if ($type == 'production') {
-            $options[$taskRec->productId] = cat_Products::getTitleById($taskRec->productId, false);
+            $options[$taskRec->productId] = strip_tags(cat_Products::getTitleById($taskRec->productId, false));
         }
         
         $query = self::getQuery();
@@ -353,7 +353,7 @@ class planning_ProductionTaskProducts extends core_Detail
         $query->where("#type = '{$type}'");
         $query->show('productId');
         while ($rec = $query->fetch()) {
-            $options[$rec->productId] = cat_Products::getTitleById($rec->productId, false);
+            $options[$rec->productId] = strip_tags(cat_Products::getTitleById($rec->productId, false));
             $usedProducts[$rec->productId] = $rec->productId;
         }
         
@@ -367,7 +367,7 @@ class planning_ProductionTaskProducts extends core_Detail
             
             $taskOptions = array();
             while ($tRec = $tQuery->fetch()) {
-                $taskOptions[$tRec->productId] = cat_Products::getTitleById($tRec->productId, false);
+                $taskOptions[$tRec->productId] = strip_tags(cat_Products::getTitleById($tRec->productId, false));
                 $usedProducts[$tRec->productId] = $tRec->productId;
             }
             
