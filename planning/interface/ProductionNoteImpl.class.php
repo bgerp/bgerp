@@ -45,7 +45,7 @@ class planning_interface_ProductionNoteImpl
      */
     public function getLabelName($id)
     {
-        $labelName = strip_tags($this->class->getTitleById($id));
+        $labelName = $this->class->getTitleById($id);
         
         return $labelName;
     }

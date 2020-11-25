@@ -33,7 +33,7 @@ class cat_interface_PackLabelImpl
     public function getLabelName($id)
     {
         $rec = $this->class->fetchRec($id);
-        $productName = strip_tags(cat_Products::getTitleById($rec->productId));
+        $productName = cat_Products::getTitleById($rec->productId);
         $packName = cat_UoM::getShortName($rec->packagingId);
         $labelName = "{$productName} ({$packName})";
         

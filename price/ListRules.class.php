@@ -990,7 +990,7 @@ class price_ListRules extends core_Detail
         $pQuery->show('id,name,code,isPublic,nameEn');
         
         while ($pRec = $pQuery->fetch()) {
-            $products[$pRec->id] = strip_tags(cat_Products::getRecTitle($pRec, false));
+            $products[$pRec->id] = cat_Products::getRecTitle($pRec, false);
         }
         
         return $products;
