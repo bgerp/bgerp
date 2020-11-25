@@ -26,6 +26,12 @@ defIfNot('CAT_BOM_REMEMBERED_RESOURCES', 20);
 
 
 /**
+ * Неизползваните от колко време частни артикули да се затварят
+ */
+defIfNot('CAT_CLOSE_UNUSED_PRIVATE_PRODUCTS_OLDER_THEN', 7776000);
+
+
+/**
  * Дефолт свойства на нови артикули в папките на клиенти
  */
 defIfNot('CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER', 'canSell,canManifacture,canStore');
@@ -199,6 +205,7 @@ class cat_Setup extends core_ProtoSetup
         'CAT_PACKAGING_AUTO_BARCODE_BEGIN' => array('gs1_TypeEan', 'caption=Автоматични баркодове на опаковките->Начало'),
         'CAT_PACKAGING_AUTO_BARCODE_END' => array('gs1_TypeEan', 'caption=Автоматични баркодове на опаковките->Край'),
         'CAT_LABEL_RESERVE_COUNT' => array('percent(min=0,max=1)', 'caption=Печат на етикети на опаковки->Резерва'),
+        'CAT_CLOSE_UNUSED_PRIVATE_PRODUCTS_OLDER_THEN' => array('time', 'caption=Затваряне на стари частни артикули->Неизползвани от'),
      );
     
     
