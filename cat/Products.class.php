@@ -2571,9 +2571,10 @@ class cat_Products extends embed_Manager
         $iStQuery = acc_Items::getQuery();
         $iStQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=objectId');
         $iStQuery->EXT('pState', 'cat_Products', 'externalName=state,externalKey=objectId');
-        $iStQuery->where("#state = 'active' AND #lastUseOn IS NULL AND #isPublic = 'yes' AND #classId = " . cat_Products::getClassId());
-        $iStQuery->where("#createdOn <= '{$olderThenDate}' AND #pState = 'active'");
+        $iStQuery->where("#state = 'active' AND #earliestUsedOn IS NULL AND #isPublic = 'yes' AND #classId = " . cat_Products::getClassId());
+        $iStQuery->where("#createdOn <= '{$olderThenDate}' AND #pState = 'active'"); 
         $iStQuery->show('objectId');
+        
         while ($iStRec = $iStQuery->fetch()) {
             $pRec1 = cat_Products::fetch($iStRec->objectId, 'id,state,brState');
             $pRec1->brState = $pRec1->state;
@@ -2587,12 +2588,13 @@ class cat_Products extends embed_Manager
         $this->closeItems = $stProductsToClose;
         $this->saveArray($stProductsToClose, 'id,state,brState,modifiedBy,modifiedOn');
         foreach ($stProductsToClose as $sd1) {
-            $this->logWrite('Автоматично затваряне', $sd1);
+            $this->logWrite('Автоматично затваряне', $sd1->id);
         }
         log_System::add('cat_Products', 'ST close items:' . countR($stProductsToClose), null, 'info', 17);
         
         // Намираме всички нестандартни артикули
         $olderThen = cat_Setup::get('CLOSE_UNUSED_PRIVATE_PRODUCTS_OLDER_THEN');
+        $olderThen = 1;
         $olderThenDate = dt::addSecs(-1 * $olderThen);
        
         // Затварят се тези, които нямат пера или перата им са последно използвани преди зададената константа
@@ -2621,7 +2623,7 @@ class cat_Products extends embed_Manager
         // Затварят се нестандартните артикули без пера създадени преди X месеца
         $this->saveArray($saveArr, 'id,state,brState,modifiedOn,modifiedBy');
         foreach ($saveArr as $sd) {
-            $this->logWrite('Автоматично затваряне', $sd);
+            $this->logWrite('Автоматично затваряне', $sd->id);
         }
         log_System::add('cat_Products', 'Products Private not used' . countR($saveArr), null, 'info', 17);
     }
