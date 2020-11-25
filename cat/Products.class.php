@@ -1564,7 +1564,7 @@ class cat_Products extends embed_Manager
         $query->show('isPublic,folderId,meta,id,code,name,nameEn,state');
        
         while ($rec = $query->fetch()) {
-            $title = strip_tags(static::getRecTitle($rec, false));
+            $title = static::getRecTitle($rec, false);
             if($rec->state == 'template'){
                 $templates[$rec->id] = $title;
             } elseif ($rec->isPublic == 'yes') {
@@ -2258,11 +2258,11 @@ class cat_Products extends embed_Manager
             
             if ($rec->isPublic == 'no' && empty($rec->code)) {
                 $count = cat_ProductTplCache::count("#productId = {$rec->id} AND #type = 'description' AND #documentType = '{$documentType}'", 2);
-                $title = "{$title} [Art{$rec->id}]";
+                $title = "{$title} <span class='quiet'>[</span>Art{$rec->id}<span class=quiet>]</span>";
                 
                 if ($count > 1) {
                     $vNumber = "/<small class='versionNumber'>v{$count}</small>";
-                    $title = str::replaceLastOccurence($title, ']', $vNumber . ']');
+                    $title = str::replaceLastOccurence($title, '<span class=quiet>]', $vNumber . '<span class=quiet>]');
                 }
             }
         }
