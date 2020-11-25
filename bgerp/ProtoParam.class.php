@@ -281,9 +281,13 @@ abstract class bgerp_ProtoParam extends embed_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->showFields = 'search';
+        $data->listFilter->showFields = 'search,driverClass';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->view = 'horizontal';
+        
+        if($filterRec = $data->listFilter->rec){
+            bp($filterRec);
+        }
     }
     
     
