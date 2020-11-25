@@ -2567,7 +2567,7 @@ class cat_Products extends embed_Manager
         $now = dt::now();
         $stProductsToClose = array();
         
-        $olderThen = cat_Setup::get('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_OLDER_THEN');
+        $olderThen = cat_Setup::get('CLOSE_UNUSED_PUBLIC_PRODUCTS_OLDER_THEN');
         $olderThenDate = dt::addSecs(-1 * $olderThen);
         
         $iStQuery = acc_Items::getQuery();
