@@ -39,6 +39,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('tCnt', 'int(min=1, max=25)', 'caption=Брой нишки, mandatory');
+        $fieldset->FLD('docClassId', 'classes(interface=doc_DocumentIntf, select=title, allowEmpty)', 'caption=Първи документ в нишката->Вид');
     }
     
     
@@ -97,6 +98,11 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
             $tQuery->orderBy('last', 'DESC');
             $tQuery->orderBy('id', 'DESC');
             $tQuery->show('id, folderId, firstContainerId, state, folderId, shared');
+            if ($dRec->docClassId) {
+                $tQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
+                $tQuery->in('docClass', type_Keylist::toArray($dRec->docClassId));
+            }
+            
             $tQuery->limit(min(20 * $tCnt, 200));
             
             $resArr = array();
