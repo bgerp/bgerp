@@ -688,10 +688,13 @@ class eshop_Groups extends core_Master
         if (haveRole('powerUser')) {
             $l->url['PU'] = 1;
         }
+        $settings = cms_Domains::getSettings();
         
-        $l->title = tr('Продуктови групи');
-        $l->level = 1;
-        $data->links[] = $l;
+        if($settings->showRootNavigation != 'no'){
+            $l->title = $settings->rootNavigationName;
+            $l->level = 1;
+            $data->links[] = $l;
+        }
         
         $editSbf = sbf('img/16/edit.png', '');
         $editImg = ht::createElement('img', array('src' => $editSbf, 'width' => 16, 'height' => 16));

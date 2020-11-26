@@ -160,6 +160,18 @@ class eshop_Settings extends core_Master
     
     
     /**
+     * Името на основната група на навигацията на BG
+     */
+    const DEFAULT_ROOT_NAVIGATION_GROUP_NAME_BG = 'Продуктови групи';
+    
+    
+    /**
+     * Името на основната група на навигацията на EN
+     */
+    const DEFAULT_ROOT_NAVIGATION_GROUP_NAME_EN = 'Product groups';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
@@ -168,20 +180,29 @@ class eshop_Settings extends core_Master
         $this->FLD('objectId', 'int', 'caption=Обект,mandatory,silent,tdClass=leftCol');
         $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime)', 'caption=В сила->От,remember');
         $this->FLD('validUntil', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime,defaultTime=23:59:59)', 'caption=В сила->До,remember');
-        $this->FLD('showNavigation', 'enum(auto=Автоматично,yes=С навигация,no=Без навигация)', 'caption=Показване на навигация със списъка с групите->Избор');
-        $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценова политика->Политика,mandatory');
-        $this->FLD('discountType', 'set(percent=Процент,amount=Намалена сума)', 'caption=Показване на отстъпки спрямо "Каталог"->Като,mandatory');
-        $this->FLD('terms', 'keylist(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Възможни условия на доставка->Избор,mandatory');
+       
         $this->FLD('payments', 'keylist(mvc=cond_PaymentMethods,select=title)', 'caption=Условия на плащане->Методи,mandatory');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Условия на плащане->Валута,mandatory,removeAndRefreshForm=freeDelivery|freeDeliveryByBus,silent');
         $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделно ДДС)', 'caption=Условия на плащане->ДДС режим');
-        $this->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държави,silent');
+        
+        $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценова политика->Политика,mandatory');
+        $this->FLD('discountType', 'set(percent=Процент,amount=Намалена сума)', 'caption=Показване на отстъпки спрямо "Каталог"->Като,mandatory');
+        
+        $this->FLD('terms', 'keylist(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условия,mandatory');
+        $this->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Доставка->Държави');
+        $this->FLD('freeDelivery', 'double(min=0)', 'caption=Безплатна доставка->Сума');
+        $this->FLD('freeDeliveryByBus', 'double(min=0)', 'caption=Безплатна доставка->За маршрут');
+        
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад за наличности и Адрес при избран метод на доставка до "Локация на доставчика"->Наличности от');
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Склад за наличности и Адрес при избран метод на доставка до "Локация на доставчика"->Получаване от,optionsFunc=crm_Locations::getOwnLocations');
         $this->FLD('notInStockText', 'varchar(24)', 'caption=Информация при недостатъчно количество->Текст');
+        
+        $this->FLD('showNavigation', 'enum(auto=Автоматично,yes=С навигация,no=Без навигация)', 'caption=Навигация със списъка с групите->Показване');
+        $this->FLD('rootNavigationName', 'varchar', 'caption=Показване на основната група на списъка с артикулите->Основна група');
+        $this->FLD('showRootNavigation', 'enum(yes=Показване,no=Скриване)', 'caption=Показване на основната група на списъка с артикулите->Избор');
+        
         $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Показване на е-артикулите във външната част->Общи параметри,optionsFunc=cat_Params::getPublic');
         $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Показване на е-артикулите във външната част->Опаковки/Мерки');
-        
         $this->FLD('enableCart', 'enum(yes=Винаги,no=Ако съдържа артикули)', 'caption=Показване на количката във външната част->Показване,notNull,value=no');
         $this->FLD('cartName', 'varchar(16)', 'caption=Показване на количката във външната част->Надпис');
         $this->FLD('canUseCards', 'enum(yes=Включено,no=Изключено)', 'caption=Възможност за логване с клиентска карта->Избор,notNull,value=yes');
@@ -199,8 +220,7 @@ class eshop_Settings extends core_Master
         $this->FLD('lifetimeForUserDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->На потребители');
         $this->FLD('timeBeforeDelete', 'time', 'caption=Нотификация за незавършена поръчка->Изпращане,unit=преди изтриване');
         
-        $this->FLD('freeDelivery', 'double(min=0)', 'caption=Безплатна доставка->Сума');
-        $this->FLD('freeDeliveryByBus', 'double(min=0)', 'caption=Безплатна доставка->За маршрут');
+        
         $this->FLD('expectedDeliveryText', 'text(rows=3)', 'caption=Текст за очаквана доставка->Текст');
         
         $this->FLD('defaultMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Дефолти за анонимни потребители->Плащане');
@@ -356,9 +376,12 @@ class eshop_Settings extends core_Master
         $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_EXPECTED_DELIVERY_TEXT_BG : self::DEFAULT_EXPECTED_DELIVERY_TEXT_EN;
         $form->setField('expectedDeliveryText', array('placeholder' => $btnPlaceholder));
         
-        $companyPlaceholder = $mvc->getFieldType('countries')->toVerbal(keylist::addKey('', $ownCompany->country));
+        $companyPlaceholder = drdata_Countries::getCountryName($ownCompany->country);
         $form->setField('countries',  array('placeholder' => $companyPlaceholder));
        
+        $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_ROOT_NAVIGATION_GROUP_NAME_BG : self::DEFAULT_ROOT_NAVIGATION_GROUP_NAME_EN;
+        $form->setField('rootNavigationName', array('placeholder' => $btnPlaceholder));
+        
         // При нов запис, за имейл да е корпоратичния имейл
         if(empty($rec->id)){
             if($emailRec = email_Accounts::getCorporateAcc()){
@@ -461,6 +484,10 @@ class eshop_Settings extends core_Master
             
             if (empty($settingRec->addToCartBtn)) {
                 $settingRec->addToCartBtn = ($lang == 'bg') ? self::DEFAULT_ADD_TO_CART_LABEL_BG : self::DEFAULT_ADD_TO_CART_LABEL_EN;
+            }
+            
+            if (empty($settingRec->rootNavigationName)) {
+                $settingRec->rootNavigationName = ($lang == 'bg') ? self::DEFAULT_ROOT_NAVIGATION_GROUP_NAME_BG : self::DEFAULT_ROOT_NAVIGATION_GROUP_NAME_EN;
             }
             
             if (empty($settingRec->expectedDeliveryText)) {
