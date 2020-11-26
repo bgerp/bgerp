@@ -2262,7 +2262,7 @@ class cat_Products extends embed_Manager
                 
                 if ($count > 1) {
                     $vNumber = "/<small class='versionNumber'>v{$count}</small>";
-                    $title = str::replaceLastOccurence($title, '<span class=productCode>]', $vNumber . '<span class=productCode>]');
+                    $title = str::replaceLastOccurence($title, '</span>', $vNumber . '</span>');
                 }
             }
         }
