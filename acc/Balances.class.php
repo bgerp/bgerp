@@ -77,6 +77,12 @@ class acc_Balances extends core_Master
     
     
     /**
+     * Кой може ръчно да рекалкулира баланс?
+     */
+    public $canForcecalc = 'debug';
+    
+    
+    /**
      * Кой може да добавя?
      */
     public $canAdd = 'no_one';
@@ -169,6 +175,15 @@ class acc_Balances extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
+        
+        if($action == 'forcecalc' && isset($rec)){
+            if(isset($rec->periodId)){
+                $periodState = acc_Periods::fetchField($rec->periodId, 'state');
+                if(in_array($periodState, array('closed', 'draft'))){
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
     
     
@@ -205,6 +220,10 @@ class acc_Balances extends core_Master
         
         if ($rec->lastAlternation > $rec->lastCalculate) {
             $row->lastAlternation = ht::createHint($row->lastAlternation, 'Има промяна след последното изчисление на баланса', 'warning');
+        }
+        
+        if($mvc->haveRightFor('forcecalc', $rec)){
+            $row->lastCalculate .= ht::createLink('', array($mvc, 'forceCalc', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,select=Ръчно рекалкулиране на баланса');
         }
     }
     
@@ -309,13 +328,40 @@ class acc_Balances extends core_Master
     
     
     /**
+     * Екшън форсиращ рекалкулирането на определен баланс
+     */
+    function act_ForceCalc()
+    {
+        // Ако изчисляването е заключено не го изпълняваме
+        $lockKey = 'RecalcBalances';
+        if (!core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
+            $this->logNotice('Изчисляването на баланса е заключено от друг процес');
+            
+            followRetUrl(null, "Балансът се изчислява в момента. Пробвайте по-късно.", 'warning');
+        }
+        
+        $this->requireRightFor('forcecalc');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('forcecalc', $rec);
+        
+        self::forceCalc($rec, true);
+        self::logWrite('Ръчно преизчисляване на баланса', $rec->id);
+        core_Locks::release($lockKey);
+        
+        followRetUrl(null, "Балансът е успешно рекалкулиран|*!");
+    }
+    
+    
+    /**
      * Ако е необходимо записва и изчислява баланса за посочения период
      *
-     * @param stdClass Запис на баланс, с попълнени $fromDate, $toDate и $periodId
+     * @param stdClass $rec  - Запис на баланс, с попълнени $fromDate, $toDate и $periodId
+     * @param boolean $force - винаги да преизчислява, или само ако е невалиден
      *
-     * @return bool Дали е правено преизчисляване
+     * @return boolean       - Дали е правено преизчисляване
      */
-    private static function forceCalc(&$rec)
+    private static function forceCalc(&$rec, $force = false)
     {
         // Очакваме начална и крайна дата
         expect(strlen($rec->fromDate) == 10 && strlen($rec->toDate) == 10, $rec);
@@ -331,7 +377,11 @@ class acc_Balances extends core_Master
         
         // Ако не е валиден го преизчисляваме, като всяка от
         // десетте минути след преизчисляването - пак го преизчисляваме
-        $isValid = self::isValid($rec, $rec->lastCalculateChange != 'no' ? 10 : 1);
+        if($force !== true){
+            $isValid = self::isValid($rec, $rec->lastCalculateChange != 'no' ? 10 : 1);
+        } else {
+            $isValid = false;
+        }
         
         if (!$isValid) {
             
@@ -448,6 +498,14 @@ class acc_Balances extends core_Master
         $pQuery->where("#state != 'draft'");
         
         $rc = true;
+        
+        // Ако е указана граница за изчисляването се използва
+        $windowStart = null;
+        $alternateWindow = acc_setup::get('ALTERNATE_WINDOW');
+        if($alternateWindow) {
+            $windowStart = dt::addSecs(-$alternateWindow, null, false);
+            $pQuery->where("#end >= '{$windowStart}'");
+        }
         
         while ($pRec = $pQuery->fetch()) {
             $rec = new stdClass();

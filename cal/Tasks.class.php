@@ -1007,7 +1007,7 @@ class cal_Tasks extends embed_Manager
         
         if ($rec->__isReplicate) {
             if ($rec->state == 'closed' || $rec->state == 'stopped') {
-                if (($rec->brState != 'draft') && ($rec->brState != 'rejected')) {
+                if (($rec->brState != 'draft') && ($rec->brState != 'rejected') && $rec->brState) {
                     $rec->state = $rec->brState;
                 }
                 
@@ -1705,9 +1705,13 @@ class cal_Tasks extends embed_Manager
             
             $Users = cls::get('type_userList');
             
+            $u = $Users->toVerbal(type_userList::fromArray($usersArr));
             // В заглавието добавяме потребителя
-            $row->subTitle .= $row->subTitle ? ' - ' : '';
-            $row->subTitle .= $Users->toVerbal(type_userList::fromArray($usersArr));
+            if ($u || $othersStr) {
+                $row->subTitle .= $row->subTitle ? ' - ' : '';
+            }
+            
+            $row->subTitle .= $u;
             $row->subTitle .= $othersStr;
         }
         
@@ -1724,7 +1728,10 @@ class cal_Tasks extends embed_Manager
             $date = $rec->timeStart;
         }
         
+        $row->subTitleNoTime = $row->subTitle;
+        
         if ($date) {
+            $row->subTitleDateRec = $date;
             $row->subTitle .= $row->subTitle ? ' - ' : '';
             $row->subTitle .= dt::mysql2verbal($date, 'smartTime');
         }

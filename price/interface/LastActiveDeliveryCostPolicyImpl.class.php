@@ -50,7 +50,7 @@ class price_interface_LastActiveDeliveryCostPolicyImpl extends price_interface_B
      *         ['productId']     - ид на артикул
      *         ['quantity']      - количество
      *         ['price']         - ед. цена
-     *         ['accPrice']      - счетоводна цена
+     *         ['valior']        - вальор
      *         ['sourceClassId'] - ид на класа на източника
      *         ['sourceId']      - ид на източника
      */
@@ -73,7 +73,7 @@ class price_interface_LastActiveDeliveryCostPolicyImpl extends price_interface_B
                                                          'classId'       => $this->getClassId(),
                                                          'sourceClassId' => $classId,
                                                          'sourceId'      => $purRec->requestId,
-                                                         'accPrice'      => null,
+                                                         'valior'        => null,
                                                          'quantity'      => $purRec->quantity,
                                                          'price'         => round($purRec->price, 5));
             };
@@ -81,5 +81,30 @@ class price_interface_LastActiveDeliveryCostPolicyImpl extends price_interface_B
         
         // Връщаме намерените цени
         return $res;
+    }
+    
+    
+    /**
+     * Дали има самостоятелен крон процес за изчисление
+     *
+     * @return datetime $datetime
+     *
+     * @return array
+     */
+    public function getAffectedProducts($datetime)
+    {
+        // Участват артикулите в активирани или оттеглени активни покупки, след посочената дата
+        $pQuery = purchase_PurchasesDetails::getQuery();
+        $pQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+        $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $pQuery->EXT('activatedOn', 'purchase_Purchases', 'externalName=activatedOn,externalKey=requestId');
+        $pQuery->EXT('documentModifiedOn', 'purchase_Purchases', 'externalName=modifiedOn,externalKey=requestId');
+        $pQuery->EXT('state', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
+        $pQuery->where("((#state = 'active' || #state = 'closed') AND #activatedOn >= '{$datetime}') OR (#state = 'rejected' AND #activatedOn IS NOT NULL AND #documentModifiedOn >= '{$datetime}')");
+        $pQuery->where("#canStore = 'yes' AND #isPublic = 'yes'");
+        $pQuery->show('productId');
+        $affected = arr::extractValuesFromArray($pQuery->fetchAll(), 'productId');
+        
+        return $affected;
     }
 }

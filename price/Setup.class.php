@@ -20,6 +20,12 @@ defIfNot('PRICE_MIN_CHANGE_UPDATE_PRIME_COST', '0.03');
 
 
 /**
+ * Складове, в които да се усреднява цената
+ */
+defIfNot('PRICE_STORE_AVERAGE_PRICES', '');
+
+
+/**
  * Инсталиране на модул 'price'
  *
  * Ценови политики на фирмата
@@ -80,6 +86,15 @@ class price_Setup extends core_ProtoSetup
             'offset' => 77,
             'timeLimit' => 10
         ),
+        
+        array(
+            'systemId' => 'Update bom costs',
+            'description' => 'Обновяване на кешираните цени по рецепти',
+            'controller' => 'price_interface_LastActiveBomCostPolicy',
+            'action' => 'updateCachedBoms',
+            'period' => 11,
+            'timeLimit' => 360,
+        ),
     );
     
     
@@ -122,13 +137,14 @@ class price_Setup extends core_ProtoSetup
         'PRICE_SIGNIFICANT_DIGITS' => array('int(min=0)', 'caption=Закръгляне в ценовите политики (без себестойност)->Значещи цифри'),
         'PRICE_MIN_DECIMALS' => array('int(min=0)', 'caption=Закръгляне в ценовите политики (без себестойност)->Мин. знаци'),
         'PRICE_MIN_CHANGE_UPDATE_PRIME_COST' => array('percent(min=0,max=1)', 'caption=Автоматично обновяване на себестойностите->Мин. промяна'),
+        'PRICE_STORE_AVERAGE_PRICES' => array('keylist(mvc=store_Stores,select=name)', 'caption=Складове за които да се записва осреднена цена->Избор,callOnChange=price_interface_AverageCostStorePricePolicyImpl::saveAvgPrices'),
     );
     
     
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'price_reports_PriceList,price_AutoDiscounts,price_interface_AverageCostPricePolicyImpl,price_interface_LastAccCostPolicyImpl,price_interface_LastActiveDeliveryCostPolicyImpl,price_interface_LastDeliveryCostPolicyImpl,price_interface_LastActiveBomCostPolicy';
+    public $defClasses = 'price_reports_PriceList,price_AutoDiscounts,price_interface_AverageCostPricePolicyImpl,price_interface_LastAccCostPolicyImpl,price_interface_LastActiveDeliveryCostPolicyImpl,price_interface_LastDeliveryCostPolicyImpl,price_interface_LastActiveBomCostPolicy,price_interface_AverageCostStorePricePolicyImpl';
 
     
     

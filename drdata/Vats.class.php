@@ -194,7 +194,7 @@ class drdata_Vats extends core_Manager
      * Пълна проверка на VAT номер - синтактична + онлайн проверка.
      *
      * @param string $vat
-     * @param boolean $force
+     * @param bool   $force
      *
      * @return string 'syntax', 'valid', 'invalid', 'unknown'
      */
@@ -303,12 +303,12 @@ class drdata_Vats extends core_Manager
     /**
      * Обновяване на статуса на VAT номера след залез
      */
-    public function on_Shutdown()
+    public static function on_Shutdown($mvc)
     {
-        foreach ($this->updateOnShutdown as $rec) {
-            list($rec->status, $rec->info) = $this->checkStatus($rec->vat);
+        foreach ($mvc->updateOnShutdown as $rec) {
+            list($rec->status, $rec->info) = $mvc->checkStatus($rec->vat);
             $rec->lastChecked = dt::verbal2mysql();
-            $this->save($rec, 'status, info, lastChecked');
+            $mvc->save($rec, 'status, info, lastChecked');
         }
     }
     
@@ -321,7 +321,6 @@ class drdata_Vats extends core_Manager
         $vatPrefixes = arr::make('BE,BG,CY,CZ,DK,EE,EL,DE,PT,FR,FI,HR,HU,LU,MT,SI,IE,IT,LV,LT,NL,PL,SK,RO,SE,ES,GB,AT', true);
         
         if ($vatPrefixes[substr(strtoupper(trim($value)), 0, 2)]) {
-            
             return true;
         }
         
@@ -348,7 +347,7 @@ class drdata_Vats extends core_Manager
                 $regex = '/^BE[0]{0,1}[0-9]{9}$/i';
                 break;
             case 'BG':
-                if(strlen($vat) == 15){
+                if (strlen($vat) == 15) {
                     $vat = substr($vat, 0, 11);
                 }
                 
@@ -468,8 +467,8 @@ class drdata_Vats extends core_Manager
             case 10:
                 
                 /*
-                 * За данъчен номер: 
-                 * първите 9 цифри се умножават съответно по тези множители: 
+                 * За данъчен номер:
+                 * първите 9 цифри се умножават съответно по тези множители:
                  * 4 3 2 7 6 5 4 3 2, Контролната цифра е равна на 11 минус остатъка
                  *  на сбора разделен на 11. Ако контролната цифра е 10 - се приема за 0.
                  */
@@ -617,62 +616,69 @@ class drdata_Vats extends core_Manager
     
     /**
      * Връща данните от търговския регистър по зададения БГ ддс номер или ЕИК
-     * 
+     *
      * @param string $eik - ЕИК номер
+     *
      * @return false|stdClass - обект с данни или false, ако не намери нищо
-     *          o name    - име
-     *          o country - ид на държава
-     *          o pCode   - пощенски код
-     *          o place   - населено място
-     *          o address - адрес
+     *                        o name    - име
+     *                        o country - ид на държава
+     *                        o pCode   - пощенски код
+     *                        o place   - населено място
+     *                        o address - адрес
      */
     public static function getFromBrra($eik)
     {
         // Ако е валиден български ЕИК, прави се опит за извличане от търговския регистър
-        if(drdata_Vats::isBulstat($eik)){
-            
+        if (drdata_Vats::isBulstat($eik)) {
             $registryContent = @file_get_contents("https://portal.registryagency.bg/CR/api/Deeds/{$eik}");
             $result = json_decode($registryContent);
             
             // Ако е намерена фирма, извлича се
-            if(!empty($result->fullName)){
+            if (!empty($result->fullName)) {
                 $data = new stdClass();
                 $data->name = $result->fullName;
                 $data->country = drdata_Countries::fetchField("#letterCode2 = 'BG'", 'id');
-            
-                if(is_array($result->sections[0]->subDeeds[0]->groups[0]->fields)){
-                    $foundAddress = array_filter($result->sections[0]->subDeeds[0]->groups[0]->fields, function ($a) {return $a->nameCode == 'CR_F_5_L';});
-                    if(countR($foundAddress) == 1){
-                        $foundAddress = array_values($foundAddress);
-                        $addressHtml = $foundAddress[0]->htmlData;
-                        
-                        if(!empty($addressHtml)){
-                            $addressHtml = str_replace('<br />', " ", $addressHtml);
-                            $address = strip_tags(str_replace('<br/>', " ", $addressHtml));
-                            
-                            $shortAddress = $address;
-                            $shortAddress = str_replace('бул./ул.', "ул.", $shortAddress);
-                            $cutPos1 = mb_strpos($shortAddress, "Населено място");
-                            if($cutPos1 !== false){
-                                $shortAddress = mb_substr($shortAddress, $cutPos1);
-                                $shortAddress = str_replace('Населено място: ', "", $shortAddress);
+                
+                if (is_array($result->sections)) {
+                    foreach ($result->sections as $section) {
+                        if (is_array($section->subDeeds[0]->groups[0]->fields)) {
+                            $foundAddress = array_filter($section->subDeeds[0]->groups[0]->fields, function ($a) {
+                                return $a->nameCode == 'CR_F_5_L';
+                            });
+                            if (countR($foundAddress) == 1) {
+                                $foundAddress = array_values($foundAddress);
+                                $addressHtml = $foundAddress[0]->htmlData;
+                                
+                                if (!empty($addressHtml)) {
+                                    $addressHtml = str_replace('<br />', ' ', $addressHtml);
+                                    $address = strip_tags(str_replace('<br/>', ' ', $addressHtml));
+                                    
+                                    $shortAddress = $address;
+                                    $shortAddress = str_replace('бул./ул.', 'ул.', $shortAddress);
+                                    $cutPos1 = mb_strpos($shortAddress, 'Населено място');
+                                    if ($cutPos1 !== false) {
+                                        $shortAddress = mb_substr($shortAddress, $cutPos1);
+                                        $shortAddress = str_replace('Населено място: ', '', $shortAddress);
+                                    }
+                                    $cutPos2 = mb_strpos($shortAddress, 'Телефон:');
+                                    if ($cutPos2 !== false) {
+                                        $shortAddress = mb_substr($shortAddress, 0, $cutPos2);
+                                    }
+                                    
+                                    $cutPos3 = mb_strpos($shortAddress, 'Адрес на електронна поща:');
+                                    if ($cutPos3 !== false) {
+                                        $shortAddress = mb_substr($shortAddress, 0, $cutPos3);
+                                    }
+                                    
+                                    $parsedAddress = drdata_ParseAddressBg::parse($shortAddress);
+                                    
+                                    $data->pCode = $parsedAddress['п.код'];
+                                    $data->address = $parsedAddress['addr'];
+                                    $data->place = isset($parsedAddress['гр.']) ? $parsedAddress['гр.'] : $parsedAddress['place'];
+                                }
+                                
+                                break;
                             }
-                            $cutPos2 = mb_strpos($shortAddress, "Телефон:");
-                            if($cutPos2 !== false){
-                                $shortAddress = mb_substr($shortAddress, 0, $cutPos2);
-                            }
-                            
-                            $cutPos3 = mb_strpos($shortAddress, "Адрес на електронна поща:");
-                            if($cutPos3 !== false){
-                                $shortAddress = mb_substr($shortAddress, 0, $cutPos3);
-                            }
-                           
-                            $parsedAddress = drdata_ParseAddressBg::parse($shortAddress);
-                            foreach (array('pCode' => 'п.код', 'address' => 'ул.') as $fld => $k){
-                                $data->{$fld} = $parsedAddress[$k];
-                            }
-                            
-                            $data->place = isset($parsedAddress['гр.']) ? $parsedAddress['гр.'] : $parsedAddress['place'];
                         }
                     }
                 }
@@ -689,36 +695,37 @@ class drdata_Vats extends core_Manager
      * Връща данните от VIES
      *
      * @param string $string - ват номер
+     *
      * @return false|stdClass - обект с данни или false, ако не намери нищо
-     *          o name    - име
-     *          o country - ид на държава
-     *          o pCode   - пощенски код
-     *          o place   - населено място
-     *          o address - адрес
+     *                        o name    - име
+     *                        o country - ид на държава
+     *                        o pCode   - пощенски код
+     *                        o place   - населено място
+     *                        o address - адрес
      */
     public static function getFromVies($vat)
     {
         // Проверка дали е валиден ват номер
         list($status, , $name, $address) = cls::get('drdata_Vats')->checkStatus($vat);
-        if($status == 'valid'){
+        if ($status == 'valid') {
             
             // Ако е валиден извлича се името
             $data = new stdClass();
             $data->name = $name;
             $countryCode = substr($vat, 0, 2);
             $data->country = drdata_Countries::fetchField(array("#letterCode2 = '[#1#]'", $countryCode), 'id');
-            $address = str::removeWhiteSpace($address, " ");
+            $address = str::removeWhiteSpace($address, ' ');
             
             // Ако фирмата е от България, прави се опит за парсиране на български адрес
-            if($countryCode == 'BG'){
+            if ($countryCode == 'BG') {
                 $parsedAddress = drdata_ParseAddressBg::parse($address);
-                foreach (array('pCode' => 'п.код', 'place' => 'place', 'address' => 'addr') as $fld => $key){
-                    if(!empty($parsedAddress[$key])){
+                foreach (array('pCode' => 'п.код', 'place' => 'place', 'address' => 'addr') as $fld => $key) {
+                    if (!empty($parsedAddress[$key])) {
                         $data->{$fld} = $parsedAddress[$key];
                     }
                 }
                 
-                if(!empty($data->place)){
+                if (!empty($data->place)) {
                     $data->place = trim(str_replace('гр.', '', $data->place));
                 }
             } else {

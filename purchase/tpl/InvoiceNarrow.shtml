@@ -81,13 +81,16 @@
                     </tbody>
                 </table>
 
-                        <div class="lines"></div>
-                        <!--ET_BEGIN sales_InvoiceDetails-->
-                        <div class='details'>
-                            [#purchase_InvoiceDetails#]
-                        </div>
-                        <!--ET_END sales_InvoiceDetails-->
-                        <div class="lines"></div>
+                <div class="lines"></div>
+                <!--ET_BEGIN sales_InvoiceDetails-->
+                <div class="scrolling-holder">
+                    <div class='details'>
+                        [#purchase_InvoiceDetails#]
+                    </div>
+                </div>
+                <!--ET_END sales_InvoiceDetails-->
+                <div class="lines"></div>
+                <div class="scrolling-holder">
                         <table class="innerTable footer-notes paddingCells" style='width:100%'>
                             <tbody>
                                 <tr>
@@ -164,5 +167,6 @@
                                 </tr>
                             </tbody>
                         </table>
+                </div>
             </div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

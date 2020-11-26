@@ -8,9 +8,9 @@ defIfNot('ESHOP_BROWSER_CACHE_EXPIRES', 3600);
 
 
 /**
- * Минимален брой групи, необходими за да се покаже страничната навигация
+ * Показване на навигация
  */
-defIfNot('ESHOP_MIN_GROUPS_FOR_NAVIGATION', 4);
+defIfNot('ESHOP_SHOW_NAVIGATION', 'yes');
 
 
 /**
@@ -150,7 +150,7 @@ class eshop_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'ESHOP_BROWSER_CACHE_EXPIRES' => array('time', 'caption=Кеширане в браузъра->Време'),
-        'ESHOP_MIN_GROUPS_FOR_NAVIGATION' => array('int', 'caption=Минимален брой групи за навигация->Брой'),
+        'ESHOP_SHOW_NAVIGATION' => array('enum(yes=С навигация,no=Без навигация)', 'caption=Показване на навигация на групите->Избор'),
         'ESHOP_CART_EXTERNAL_NAME' => array('varchar', 'caption=Стрингове във външната част->Кошница'),
         'ESHOP_NOT_IN_STOCK_TEXT' => array('varchar', 'caption=Стрингове във външната част->Липса на наличност'),
         'ESHOP_SALE_DEFAULT_TPL_BG' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Шаблон за онлайн продажба->Български,optionsFunc=sales_Sales::getTemplateBgOptions'),

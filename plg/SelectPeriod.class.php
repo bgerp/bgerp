@@ -174,9 +174,12 @@ class plg_SelectPeriod extends core_Plugin
             $form->showFields .= ($form->showFields ? ',' : '') . 'selectPeriod';
         }
         
-        
         $form->input($data->listFilter->showFields, 'silent');
         $rec = $form->rec;
+        
+        if ($rec->selectPeriod == 'select') {
+            $form->showFields .= ",{$fF}, {$fT}";
+        }
         
         $keySel = null;
         if ($rec->selectPeriod && $rec->selectPeriod != 'select') {
@@ -208,11 +211,11 @@ class plg_SelectPeriod extends core_Plugin
         $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
         $fT = $mvc->filterDateTo ? $mvc->filterDateFrom : 'to';
         
-        if ($form->fields[$fF]) {
+        if ($form->fields[$fF] && ($form->rec->selectPeriod != 'select')) {
             $form->setField($fF, array('rowStyle' => 'display:none'));
         }
             
-        if ($form->fields[$fF]) {
+        if ($form->fields[$fF] && ($form->rec->selectPeriod != 'select')) {
             $form->setField($fT, array('rowStyle' => 'display:none'));
         }
         

@@ -75,12 +75,6 @@
                <td>[#showPacks#]</td>
             </tr>
             <!--ET_END showPacks-->
-            <!--ET_BEGIN showParams-->
-            <tr>
-               <td class="title-style" style='width:150px'>|Параметри|*:</td>
-               <td>[#showParams#]</td>
-            </tr>
-            <!--ET_END showParams-->
             <!--ET_BEGIN order-->
             <tr>
                <td class="title-style" style='width:150px'>|Подредба|*:</td>

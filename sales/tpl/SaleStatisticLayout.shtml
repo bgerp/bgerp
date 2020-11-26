@@ -3,7 +3,7 @@
        <table class='paddingCells' style='margin-bottom:10px;width:100%;'>
           <tr>
              <td class = 'sum-th'>
-                 |Поръчано|*, [#currencyId#]
+                 <b>|Поръчано|*, [#currencyId#]</b>
              </td>
              <td class = 'sum-th'>
                  |Доставено|*, [#currencyId#]
@@ -43,12 +43,17 @@
                   <!--ET_BEGIN dealerId-->
                   <span style='font-weight:normal'>|Търговец|*</span>: [#dealerId#]<br>
                   <!--ET_END dealerId-->
-                  <!--ET_BEGIN shipmentStoreIdTop-->
-                  <span style='font-weight:normal'>|От склад|*</span>: [#shipmentStoreIdTop#]<br>
-                  <!--ET_END shipmentStoreIdTop-->
-                  <!--ET_BEGIN deliveryLocationIdTop-->
-                  <span style='font-weight:normal'>|До локация|*</span>: [#deliveryLocationIdTop#]<br>
-                  <!--ET_END deliveryLocationIdTop-->
+                  <!--ET_BEGIN shipmentStoreId-->
+                  <span style='font-weight:normal'>|От склад|*</span>: [#shipmentStoreId#]<br>
+                  <!--ET_END shipmentStoreId-->
+                  <!--ET_BEGIN deliveryLocationId-->
+                  <span style='font-weight:normal'>|До локация|*</span>: [#deliveryLocationId#]<br>
+                  <!--ET_END deliveryLocationId-->
+                  
+                  <!--ET_BEGIN caseId-->
+                  <span style='font-weight:normal'>|Каса|*</span>: [#caseId#]<br>
+                  <!--ET_END caseId-->
+                  
                   <!--ET_BEGIN originId-->
                   <span style='font-weight:normal'>|Към|*</span>: [#originId#]<br>
                   <!--ET_END originId-->
@@ -56,26 +61,9 @@
                   <span style='font-weight:normal'>|Цени|*</span>: [#priceListId#]<br>
                   <!--ET_END priceListId-->
                   
-                  <!--ET_BEGIN cartId-->
-                  <hr />
-                  <span style='font-weight:normal'>|Кошница|*</span>: [#cartId#]<br>
-                  <!--ET_END cartId-->
-                  
-                  <!--ET_BEGIN cartPersonnames-->
-                  <span style='font-weight:normal'>|Имена|*</span>: [#cartPersonnames#]<br>
-                  <!--ET_END cartPersonnames-->
-                  
-                  <!--ET_BEGIN cartTel-->
-                  <span style='font-weight:normal'>|Тел|*.</span>: [#cartTel#]<br>
-                  <!--ET_END cartTel-->
-                  
-                  <!--ET_BEGIN cartEmail-->
-                  <span style='font-weight:normal'>|Имейл|*</span>: [#cartEmail#]<br>
-                  <!--ET_END cartEmail-->
-                  
-                  <!--ET_BEGIN cartDomainId-->
-                  <span style='font-weight:normal'>|Домейн|*</span>: [#cartDomainId#]<br>
-                  <!--ET_END cartDomainId-->
+                  <!--ET_BEGIN closeWith-->
+                  <span style='font-weight:normal'>|Приключено с|*</span>: [#closeWith#]<br>
+                  <!--ET_END closeWith-->
               </td>
            </tr>
            <tr>
@@ -97,18 +85,36 @@
              |Аванс за приспадане|*
           </td>
           <!--ET_END INVOICE_DOWNPAYMENT_DEDUCTED_TH-->
-          
           </tr>
-          <tr>
-            <td>[#amountBl#]</td>
-            <td>[#amountToDeliver#]</td>
-            <td>[#amountToPay#]</td>
-            <td>[#amountToInvoice#]</td>
-            
-            <!--ET_BEGIN INVOICE_DOWNPAYMENT_DEDUCTED_TD-->
-            <td>[#amountInvoicedDownpaymentToDeduct#]</td>
-            <!--ET_END INVOICE_DOWNPAYMENT_DEDUCTED_TD-->
-          </tr>
+           <tr>
+               <td>[#amountBl#]</td>
+               <td>[#amountToDeliver#]</td>
+               <td>[#amountToPay#]</td>
+               <td>[#amountToInvoice#]</td>
+               <!--ET_BEGIN INVOICE_DOWNPAYMENT_DEDUCTED_TD-->
+               <td>[#amountInvoicedDownpaymentToDeduct#]</td>
+               <!--ET_END INVOICE_DOWNPAYMENT_DEDUCTED_TD-->
+           </tr>
+           <!--ET_BEGIN cartInfo-->
+           [#cartInfo#]
+           <tr>
+               <td colspan="5" style="border:none; padding: 4px 5px 5px;"></td>
+           </tr>
+           <tr class="cartStatistic">
+               <td class = 'sum-th'><b>|Кошница|*</b></td>
+               <td class = 'sum-th'>|Имена|*</td>
+               <td class = 'sum-th'>|Телефон|*</td>
+               <td class = 'sum-th'>|Имейл|*</td>
+               <td class = 'sum-th'>|Домейн|*</td>
+           </tr>
+           <tr style="font-size: 0.6em" class="cartStatistic">
+               <td>[#cartId#]</td>
+               <td>[#cartPersonnames#]</td>
+               <td>[#cartTel#]</td>
+               <td>[#cartEmail#]</td>
+               <td>[#cartDomainId#]</td>
+           </tr>
+           <!--ET_END cartInfo-->
        </table>
     </div>
 </div>

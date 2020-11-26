@@ -852,7 +852,7 @@ class sales_PrimeCostByDocument extends core_Manager
      * @param datetime $valior
      * @return double $primeCost
      */
-    public static function isPriceBellowPrimeCost($price, $productId, $packagingId, $quantity, $containerId, $valior)
+    public static function isPriceBellowPrimeCost($price, $productId, $packagingId, $quantity, $containerId, $valior, &$primeCost = null)
     {
         $primeCost = self::getPrimeCostFromSale($productId, $packagingId, $quantity, $containerId);
        

@@ -188,6 +188,7 @@ class doc_Threads extends core_Manager
         $this->setDbIndex('folderId');
         $this->setDbIndex('last');
         $this->setDbIndex('state');
+        $this->setDbIndex('last, id');
         
         $this->setDbIndex('firstContainerId');
     }
@@ -1891,6 +1892,10 @@ class doc_Threads extends core_Manager
                         $rec->state = $newState;
                     }
                 }
+            }
+            
+            if (($firstDcRec->state == 'rejected') && (!$rec->state)) {
+                $rec->state = 'rejected';
             }
             
             if ($lastDcRec) {

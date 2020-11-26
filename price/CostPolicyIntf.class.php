@@ -42,12 +42,36 @@ class price_CostPolicyIntf
      *         ['productId']     - ид на артикул
      *         ['quantity']      - количество
      *         ['price']         - ед. цена
-     *         ['accPrice']      - счетоводна цена
+     *         ['valior']        - вальор
      *         ['sourceClassId'] - ид на класа на източника
      *         ['sourceId']      - ид на източника
      */
     public function calcCosts($affectedProducts)
     {
        return $this->class->calcCosts($affectedProducts);
+    }
+    
+    
+    /**
+     * Дали има самостоятелен крон процес за изчисление
+     *
+     * @return boolean
+     */
+    public function hasSeparateCalcProcess()
+    {
+        return $this->class->hasSeparateCalcProcess();
+    }
+    
+    
+    /**
+     * Кои са засегнатите артикули за тази дата
+     * 
+     * @return datetime $datetime
+     * 
+     * @return array
+     */
+    public function getAffectedProducts($datetime)
+    {
+        return $this->class->getAffectedProducts($datetime);
     }
 }

@@ -31,7 +31,7 @@ class eshop_Products extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,code,name=Е-артикул,dCount=Опции,groupId=Група,saleState,state';
+    public $listFields = 'id,code,name=Е-артикул,groupId=Група,saleState,dCount=Опции,state';
     
     
     /**
@@ -238,7 +238,7 @@ class eshop_Products extends core_Master
                 $form->setField('proto', 'input');
                 $form->setSuggestions('proto', $protoProducts);
                 
-                if($protoId = Request::get('protoId', 'int')){
+                if ($protoId = Request::get('protoId', 'int')) {
                     $form->setDefault('proto', keylist::addKey('', $protoId));
                 }
             }
@@ -262,7 +262,7 @@ class eshop_Products extends core_Master
                 $form->setError('code', 'Вече има продукт със същия код|*: <strong>' . eshop_Products::getHyperlink($rec, true) . '</strong>');
             }
             
-            if(!$form->gotErrors()){
+            if (!$form->gotErrors()) {
                 $rec->domainId = cms_Content::fetchField($menuId, 'domainId');
             }
         }
@@ -371,12 +371,14 @@ class eshop_Products extends core_Master
         $row->domainId = cms_Domains::getHyperlink($rec->domainId, true);
         
         if (is_array($rec->nearProducts)) {
-            if(isset($fields['-external'])){
+            if (isset($fields['-external'])) {
                 $row->nearRows = $mvc->prepareNearProducts($rec);
             } else {
                 $nearProducts = array_keys($rec->nearProducts);
                 $linkArr = array();
-                array_walk($nearProducts, function ($a) use (&$linkArr){$linkArr[] = eshop_Products::getHyperlink($a, true)->getContent();});
+                array_walk($nearProducts, function ($a) use (&$linkArr) {
+                    $linkArr[] = eshop_Products::getHyperlink($a, true)->getContent();
+                });
                 $row->nearProducts = implode(', ', $linkArr);
             }
         }
@@ -396,7 +398,6 @@ class eshop_Products extends core_Master
         
         // Ако няма свързани артикули, се връща празен обект
         if (!is_array($rec->nearProducts)) {
-            
             return $rows;
         }
         
@@ -451,13 +452,13 @@ class eshop_Products extends core_Master
         $rec = $this->fetchRec($id);
         
         $res = array('title' => $rec->name,
-                     'drvId' => $rec->coDriver,
-                     'lg' => cms_Content::getLang(),
-                     'protos' => $rec->proto,
-                     'quantityCount' => empty($rec->quantityCount) ? 0 : $rec->quantityCount,
-                     'moq' => $this->getMoq($rec),
-                     'measureId' => static::getUomId($rec),
-                     'url' => static::getUrl($rec),
+            'drvId' => $rec->coDriver,
+            'lg' => cms_Content::getLang(),
+            'protos' => $rec->proto,
+            'quantityCount' => empty($rec->quantityCount) ? 0 : $rec->quantityCount,
+            'moq' => $this->getMoq($rec),
+            'measureId' => static::getUomId($rec),
+            'url' => static::getUrl($rec),
         );
         
         return $res;
@@ -473,7 +474,7 @@ class eshop_Products extends core_Master
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         if (haveRole('powerUser') && $data->rec->state != 'closed') {
-            $title = "Преглед|* [" . cms_Domains::getTitleById($data->rec->domainId) . "]";
+            $title = 'Преглед|* [' . cms_Domains::getTitleById($data->rec->domainId) . ']';
             $data->toolbar->addBtn($title, self::getUrl($data->rec), null, 'ef_icon=img/16/monitor.png,title=Преглед във външната част');
         }
     }
@@ -485,8 +486,7 @@ class eshop_Products extends core_Master
     public static function prepareAllProducts($data)
     {
         $groups = eshop_Groups::getByDomain();
-        if (countR($groups)) {
-            
+        if (!countR($groups)) {
             return;
         }
             
@@ -728,7 +728,6 @@ class eshop_Products extends core_Master
         if (!$data->productId) {
             $opt = cms_Content::getMenuOpt('eshop_Groups');
             if (countR($opt)) {
-                
                 return new Redirect(array('cms_Content', 'Show', key($opt)));
             }
             
@@ -861,12 +860,12 @@ class eshop_Products extends core_Master
         if ($data->rec->saleState == 'closed') {
             $data->row->STATE_EXTERNAL = "<span class='option-not-in-stock' style='font-size:0.9em !important'>" . tr('Този продукт вече не се предлага') . '</span>';
         } elseif (countR($uniqueProductsArr) == 1) {
-            if(!empty($data->detailData->rows[0]->saleInfo)){
+            if (!empty($data->detailData->rows[0]->saleInfo)) {
                 $data->row->STATE_EXTERNAL = $data->detailData->rows[0]->saleInfo;
             }
             
             $defaultName = eshop_ProductDetails::getPublicProductTitle($data->rec->id, $data->detailData->recs[0]->productId);
-            if($data->row->name != $defaultName){
+            if ($data->row->name != $defaultName) {
                 $data->row->ONLY_PRODUCT_NAME = $defaultName;
             }
         }
@@ -953,7 +952,6 @@ class eshop_Products extends core_Master
         $rec = self::fetchRec($rec);
         $gRec = eshop_Groups::fetch($rec->groupId);
         if (empty($gRec->menuId)) {
-            
             return array();
         }
         
@@ -1058,8 +1056,8 @@ class eshop_Products extends core_Master
         
         // Добавяне на параметрите, като опции за подреждане
         $orderByParamOptions = array('_code' => tr('Код'), '_title' => tr('Заглавие'), '_createdOn' => tr('Създаване'));
-        $activeParams = cat_Params::makeArray4Select("#typeExt", "#state = 'active'");
-        if(countR($activeParams)){
+        $activeParams = cat_Params::makeArray4Select('#typeExt', "#state = 'active'");
+        if (countR($activeParams)) {
             $orderByParamOptions['g'] = (object) array('title' => tr('Параметри'), 'group' => true,);
             $orderByParamOptions += $activeParams;
         }
@@ -1103,7 +1101,7 @@ class eshop_Products extends core_Master
         if (isset($rec->productId)) {
             $pState = cat_Products::fetch($rec->productId, 'state');
             
-            if($pState != 'template'){
+            if ($pState != 'template') {
                 $packagings = !empty($rec->packagings) ? $rec->packagings : keylist::addKey('', cat_Products::fetchField($rec->productId, 'measureId'));
                 $dRec = (object) array('productId' => $rec->productId, 'packagings' => $packagings, 'eshopProductId' => $rec->id);
                 eshop_ProductDetails::save($dRec);
@@ -1140,7 +1138,7 @@ class eshop_Products extends core_Master
         
         // Показване на филтър по домейни
         $domains = cms_Domains::getDomainOptions(false, core_Users::getCurrent());
-        if(countR($domains) == 1){
+        if (countR($domains) == 1) {
             $data->listFilter->setField('domainId', 'input=hidden');
         } else {
             $data->listFilter->setOptions('domainId', $domains);
@@ -1148,27 +1146,27 @@ class eshop_Products extends core_Master
         
         // Показване на групите от избрания домейн
         $groups = eshop_Groups::getByDomain($data->listFilter->rec->domainId);
-        if(countR($groups)){
+        if (countR($groups)) {
             $data->listFilter->setOptions('groupId', $groups);
         } else {
             $data->listFilter->setReadOnly('groupId');
         }
         $data->listFilter->input();
         
-        if($filter = $data->listFilter->rec){
+        if ($filter = $data->listFilter->rec) {
             
             // Избрания домейн се записва
-            if(isset($filter->domainId)){
+            if (isset($filter->domainId)) {
                 cms_Domains::selectCurrent($filter->domainId);
             }
             
             if (isset($filter->groupId)) {
                 $data->query->where("#groupId = {$filter->groupId}");
             } else {
-                if(countR($groups)){
-                    $data->query->in("groupId", array_keys($groups));
+                if (countR($groups)) {
+                    $data->query->in('groupId', array_keys($groups));
                 } else {
-                    $data->query->where("1=2");
+                    $data->query->where('1=2');
                 }
             }
         }
@@ -1195,7 +1193,6 @@ class eshop_Products extends core_Master
             $groupId = $rec->groupId;
         }
         if (!$groupId) {
-            
             return $res;
         }
         
@@ -1231,7 +1228,7 @@ class eshop_Products extends core_Master
         $form->FLD('productId', 'int', 'caption=Артикул,mandatory,silent,input=hidden');
         $form->input(null, 'silent');
         
-        if($pRec->state != 'template'){
+        if ($pRec->state != 'template') {
             
             // Добавяне на наличните опаковки
             $form->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковка,mandatory');
@@ -1240,12 +1237,12 @@ class eshop_Products extends core_Master
             $form->setDefault('packagings', keylist::addKey('', key($packs)));
         }
         
-        if(isset($form->rec->domainId)){
+        if (isset($form->rec->domainId)) {
             // Наличните е-артикули в домейна
             $filterByDriver = ($pRec->state == 'template') ? $pRec->innerClass : null;
             
             $productOptions = eshop_Products::getInDomain($form->rec->domainId, $filterByDriver);
-            $form->setOptions('eshopProductId', array('' => '') + $productOptions); 
+            $form->setOptions('eshopProductId', array('' => '') + $productOptions);
         }
         
         $form->input();
@@ -1259,7 +1256,7 @@ class eshop_Products extends core_Master
                     cms_Domains::selectCurrent($formRec->domainId);
                     
                     $url = array($this, 'add', 'productId' => $productId, 'packagings' => keylist::toArray($formRec->packagings));
-                    if($pRec->state == 'template'){
+                    if ($pRec->state == 'template') {
                         unset($url['packagings']);
                         $url['coDriver'] = $pRec->innerClass;
                         $url['protoId'] = $pRec->id;
@@ -1272,9 +1269,9 @@ class eshop_Products extends core_Master
                 return followRetUrl(null, 'Нямате права да свързвате артикула');
             }
             
-            if($pRec->state == 'template'){
+            if ($pRec->state == 'template') {
                 $eProductRec = $this->fetch($formRec->eshopProductId);
-                if(!isset($eProductRec->coDriver)){
+                if (!isset($eProductRec->coDriver)) {
                     $eProductRec->coDriver = $pRec->innerClass;
                 }
                 
@@ -1284,14 +1281,13 @@ class eshop_Products extends core_Master
             } else {
                 $fields = $exRec = null;
                 if (!cls::get('eshop_ProductDetails')->isUnique($formRec, $fields, $exRec)) {
-                    $form->setError('eshopProductId' , 'Артикулът вече е публикуван в избрания е-артикул');
+                    $form->setError('eshopProductId', 'Артикулът вече е публикуван в избрания е-артикул');
                 } else {
                     eshop_ProductDetails::save($formRec);
                 }
             }
             
-            if(!$form->gotErrors()){
-                
+            if (!$form->gotErrors()) {
                 return redirect(array($this, 'single', $formRec->eshopProductId), false, 'Артикулът е свързан с онлайн магазина');
             }
         }
@@ -1316,21 +1312,21 @@ class eshop_Products extends core_Master
         if ($action == 'linktoeshop' && isset($rec->productId)) {
             $pRec = cat_Products::fetch($rec->productId, 'isPublic,canSell,state');
             
-            if($pRec->isPublic != 'yes' || !in_array($pRec->state, array('active', 'template')) || $pRec->canSell != 'yes'){
+            if ($pRec->isPublic != 'yes' || !in_array($pRec->state, array('active', 'template')) || $pRec->canSell != 'yes') {
                 $requiredRoles = 'no_one';
             }
         }
         
-        if($action == 'delete' && isset($rec)){
-            if(eshop_CartDetails::fetchField("#eshopProductId = {$rec->id}")){
+        if ($action == 'delete' && isset($rec)) {
+            if (eshop_CartDetails::fetchField("#eshopProductId = {$rec->id}")) {
                 $requiredRoles = 'no_one';
-            } elseif(marketing_Inquiries2::fetchField("#sourceClassId = {$mvc->getClassId()} AND #sourceId = {$rec->id}")){
+            } elseif (marketing_Inquiries2::fetchField("#sourceClassId = {$mvc->getClassId()} AND #sourceId = {$rec->id}")) {
                 $requiredRoles = 'no_one';
             }
         }
         
-        if($action == 'changestate' && isset($rec)){
-            if($mvc->haveRightFor('delete', $rec)){
+        if ($action == 'changestate' && isset($rec)) {
+            if ($mvc->haveRightFor('delete', $rec)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -1352,8 +1348,9 @@ class eshop_Products extends core_Master
     /**
      * Връща е-артикулите в подадения домейн
      *
-     * @param int|NULL $domainId - ид на домейн
+     * @param int|NULL $domainId   - ид на домейн
      * @param null|int $withDriver - само тези с избран драйвер или без драйвер
+     *
      * @return array $products   - наличните артикули
      */
     public static function getInDomain($domainId = null, $withDriver = null)
@@ -1363,7 +1360,7 @@ class eshop_Products extends core_Master
         
         $query = self::getQuery();
         $query->where("#domainId = {$domainId}");
-        if($withDriver){
+        if ($withDriver) {
             $query->where("#coDriver IS NULL OR #coDriver = '{$withDriver}'");
         }
         
@@ -1423,7 +1420,7 @@ class eshop_Products extends core_Master
         }
         
         // В краен случай търсим полето в настройките на домейна
-        if($groupRec->menuId){
+        if ($groupRec->menuId) {
             $domainId = cms_Content::fetchField($groupRec->menuId, 'domainId');
             $settings = cms_Domains::getSettings($domainId);
             $res = keylist::isKeylist($settings->{$field}) ? keylist::toArray($settings->{$field}) : arr::make($settings->{$field}, true);
@@ -1446,7 +1443,7 @@ class eshop_Products extends core_Master
     {
         $rec = self::fetchRec($id);
         
-        if(!isset(static::$cacheParams[$rec->id])){
+        if (!isset(static::$cacheParams[$rec->id])) {
             $res = $rowParams = $totalParams = array();
             
             // Има ли параметри за показване
@@ -1527,7 +1524,6 @@ class eshop_Products extends core_Master
     {
         $rec = $this->fetchRec($id);
         if (empty($rec)) {
-            
             return;
         }
         
@@ -1540,14 +1536,15 @@ class eshop_Products extends core_Master
     
     /**
      * Какво предупреждение да се показва на бутона за активиране/деактивиране
-     * 
+     *
      * @param stdClass $rec
-     * 
+     * @param string   $newState
+     *
      * @return string $msg
      */
-    public function getChangeStateWarning($rec)
+    public function getChangeStateWarning($rec, $newState)
     {
-        $action = ($rec->state == 'acitve') ? 'активирате' : 'деактивирате';
+        $action = ($newState == 'active') ? 'активирате' : 'деактивирате';
         $msg = tr("Наистина ли желаете да {$action} този е-артикул");
         
         return $msg;
@@ -1606,7 +1603,6 @@ class eshop_Products extends core_Master
     {
         $tpl = new core_ET('');
         if (!is_array($array)) {
-            
             return $tpl;
         }
         
@@ -1689,8 +1685,7 @@ class eshop_Products extends core_Master
                     
                     // Ако продукта има под $maxNearProducts близки продукта, допълваме с артикули, които са от същите групи,
                     // не са от съществуващите артикули и са подредени по рейтинг на е-шоп артикулите
-                    if($count < $maxNearProducts){
-                        
+                    if ($count < $maxNearProducts) {
                         $dQuery = eshop_ProductDetails::getQuery();
                         $dQuery->EXT('groupId', 'eshop_Products', 'externalName=groupId,externalKey=eshopProductId');
                         $dQuery->EXT('pState', 'eshop_Products', 'externalName=state,externalKey=eshopProductId');
@@ -1699,9 +1694,9 @@ class eshop_Products extends core_Master
                         $dQuery->orderBy('rating', 'DESC');
                         $dQuery->limit($maxNearProducts - $count);
                         $dQuery->show('eshopProductId,rating,pState');
-                        $dQuery->notIn("eshopProductId", $alreadyIn);
+                        $dQuery->notIn('eshopProductId', $alreadyIn);
                        
-                        while($dRec = $dQuery->fetch()){
+                        while ($dRec = $dQuery->fetch()) {
                             $weight = (!empty($dRec->rating)) ? $dRec->rating : 0;
                             $r[$epId][$dRec->eshopProductId] = $weight;
                         }
@@ -1740,14 +1735,15 @@ class eshop_Products extends core_Master
     
     /**
      * Подготовка на рейтингите за продажба на артикулите
+     *
      * @see sales_RatingsSourceIntf
      *
      * @return array $res - масив с обекти за върнатите данни
-     *                 o objectClassId - ид на клас на обект
-     *                 o objectId      - ид на обект
-     *                 o classId       - текущия клас
-     *                 o key           - ключ
-     *                 o value         - стойност
+     *               o objectClassId - ид на клас на обект
+     *               o objectId      - ид на обект
+     *               o classId       - текущия клас
+     *               o key           - ключ
+     *               o value         - стойност
      */
     public function getSaleRatingsData()
     {
@@ -1766,9 +1762,9 @@ class eshop_Products extends core_Master
         $eProductArr = $eProductQuery->fetchAll();
         
         // Ако има ще се начисляват рейтинги
-        if(countR($eProductArr)){
+        if (countR($eProductArr)) {
             $powerUsers = core_Users::getByRole('powerUser');
-            if(countR($powerUsers)){
+            if (countR($powerUsers)) {
                 
                 // Имали запитвания създадени от не powerUsers
                 $mQuery = marketing_Inquiries2::getQuery();
@@ -1779,12 +1775,14 @@ class eshop_Products extends core_Master
                 $inquieriesArr = $mQuery->fetchAll();
                 
                 // Ако има, ще се начисляват рейтинги на е-артикулите
-                if(countR($inquieriesArr)){
-                    foreach($inquieriesArr as $inqRec){
+                if (countR($inquieriesArr)) {
+                    foreach ($inquieriesArr as $inqRec) {
                         
                         // От е-артикулите, се намират тези, които са със същия продуктов драйвер като запитването
-                        $foundEproducts = array_filter($eProductArr, function($a) use ($inqRec) { return $a->coDriver == $inqRec->innerClass;});
-                        foreach ($foundEproducts as $foundEproduct){
+                        $foundEproducts = array_filter($eProductArr, function ($a) use ($inqRec) {
+                            return $a->coDriver == $inqRec->innerClass;
+                        });
+                        foreach ($foundEproducts as $foundEproduct) {
                             $rating = ($inqRec->sourceClassId == $classId && $inqRec->sourceId == $foundEproduct->id) ? 3 : 1;
                             $rating = 100 * $rating;
                             
@@ -1801,12 +1799,11 @@ class eshop_Products extends core_Master
         $dQuery->EXT('stateE', 'eshop_Products', 'externalName=state,externalKey=eshopProductId');
         $dQuery->EXT('domainId', 'eshop_Products', 'externalName=domainId,externalKey=eshopProductId');
         $dQuery->where("#stateE = 'active'");
-        while($dRec = $dQuery->fetch()){
+        while ($dRec = $dQuery->fetch()) {
             $details[$dRec->productId][$dRec->domainId][] = $dRec->eshopProductId;
         }
         
-        if(!countR($details)) {
-            
+        if (!countR($details)) {
             return $res;
         }
         
@@ -1823,7 +1820,7 @@ class eshop_Products extends core_Master
         
         // Кои са нишките на онлайн продажби
         $onlineSaleThreads = array();
-        if(countR($deltaThreads)){
+        if (countR($deltaThreads)) {
             $cartQuery = eshop_Carts::getQuery();
             $cartQuery->EXT('threadId', 'sales_Sales', 'externalName=threadId,externalKey=saleId');
             $cartQuery->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
@@ -1831,24 +1828,26 @@ class eshop_Products extends core_Master
             $cartQuery->in('threadId', $deltaThreads);
             $cartQuery->show('threadId, domainId');
             
-            array_walk($cartQuery->fetchAll(), function ($a) use (&$onlineSaleThreads) {$onlineSaleThreads[$a->threadId] = $a->domainId;});
+            array_walk($cartQuery->fetchAll(), function ($a) use (&$onlineSaleThreads) {
+                $onlineSaleThreads[$a->threadId] = $a->domainId;
+            });
         }
         
-        foreach ($deltaRecs as $dRec){
+        foreach ($deltaRecs as $dRec) {
              
             // Ако реда е в онлайн продажба
-            if(array_key_exists($dRec->threadId, $onlineSaleThreads)){
+            if (array_key_exists($dRec->threadId, $onlineSaleThreads)) {
                 
                 // Кой е-артикул съответства на този артикул и домейнат
                 $eshopProducts = $details[$dRec->productId][$onlineSaleThreads[$dRec->threadId]];
                
                 // Ако има такъв
-                if(countR($eshopProducts)){
+                if (countR($eshopProducts)) {
                     $monthsBetween = countR(dt::getMonthsBetween($dRec->valior));
                     $rating = round(12 / $monthsBetween);
                     $rating = 100 * $rating;
                     
-                    foreach ($eshopProducts as $eshopProductId){
+                    foreach ($eshopProducts as $eshopProductId) {
                         
                         // Добавя се с по-голяма тежест, спрямо разстоянието от вальора до сега
                         sales_ProductRatings::addRatingToObject($res, $eshopProductId, $classId, $productClassId, $eshopProductId, $onlineSaleThreads[$dRec->threadId], $rating);
@@ -1857,15 +1856,15 @@ class eshop_Products extends core_Master
             }
            
             // Проверява се във кои други домейни се среща този артикул
-            if(array_key_exists($dRec->productId, $details)){
+            if (array_key_exists($dRec->productId, $details)) {
                 
                 // Ако се среща в поне един домейн
-                $productInDomains =  $details[$dRec->productId];
-                if(is_array($productInDomains)){
+                $productInDomains = $details[$dRec->productId];
+                if (is_array($productInDomains)) {
                     
                     // За всяко срещане се добавя с по-една тежест
-                    foreach ($productInDomains as $pDomainId => $eshopProducts){
-                        foreach ($eshopProducts as $eshopProductId){
+                    foreach ($productInDomains as $pDomainId => $eshopProducts) {
+                        foreach ($eshopProducts as $eshopProductId) {
                             sales_ProductRatings::addRatingToObject($res, $eshopProductId, $classId, $productClassId, $eshopProductId, $pDomainId, 1);
                         }
                     }

@@ -16,7 +16,7 @@ defIfNot('SALES_DEFAULT_VALIDITY_OF_QUOTATION', '2592000');
 /**
  * Сумиране на статистически данни
  */
-defIfNot('SALES_STATISTIC_DATA_FOR_THE_LAST',  6 * core_DateTime::SECONDS_IN_MONTH);
+defIfNot('SALES_STATISTIC_DATA_FOR_THE_LAST', 6 * core_DateTime::SECONDS_IN_MONTH);
 
 
 /**
@@ -176,6 +176,12 @@ defIfNot('SALES_NEW_QUOTATION_AUTO_ACTION_BTN', 'form');
 
 
 /**
+ * Политика за предупреждение за минимални цени
+ */
+defIfNot('SALES_MIN_PRICE_POLICY', '');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -295,7 +301,7 @@ class sales_Setup extends core_ProtoSetup
             'caption=Оферти->Валидност'
         ),
         'SALES_QUOTATION_DEFAULT_CHARGE_VAT_BG' => array(
-            'enum(auto=Автоматично,yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 
+            'enum(auto=Автоматично,yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)',
             'caption=Режим на ДДС в офертите по подразбиране (клиенти от България)->Избор'
         ),
     
@@ -305,7 +311,7 @@ class sales_Setup extends core_ProtoSetup
         ),
         
         'SALES_LIVE_CALC_SO_DELTAS' => array(
-            'enum(no=Договор,yes=ЕН/СР)', 
+            'enum(no=Договор,yes=ЕН/СР)',
             'caption=Записване на себестойност за изчисляване на делти при контиране на->Избор'
         ),
         
@@ -334,6 +340,8 @@ class sales_Setup extends core_ProtoSetup
             'mandatory,caption=Действие на бързите бутони в папките->Оферта,customizeBy=ceo|sales',
         ),
         'SALES_STATISTIC_DATA_FOR_THE_LAST' => array('time', 'caption=Изчисляване на рейтинги за продажба->Време назад'),
+    
+        'SALES_MIN_PRICE_POLICY' => array('key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика за минимални цени->Избор'),
     );
     
     
@@ -357,6 +365,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_TransportValues',
         'sales_ProductRelations',
         'sales_ProductRatings',
+        'migrate::migrateClosedWith',
         'migrate::updateStoreIdInDeltas2',
         'migrate::truncateRatings2',
     );
@@ -413,7 +422,7 @@ class sales_Setup extends core_ProtoSetup
             'offset' => 190,
             'period' => 1440,
             'timeLimit' => 360
-        ), 
+        ),
         array(
             'systemId' => 'Gather Sale Statistic',
             'description' => 'Изчисляване на рейтинги на артикулите в продажбите',
@@ -544,9 +553,9 @@ class sales_Setup extends core_ProtoSetup
     {
         $Invoices = cls::get('sales_Invoices');
         $query = $Invoices->getQuery();
-        $query->where("numlimit=2");
+        $query->where('numlimit=2');
         
-        if($query->count()){
+        if ($query->count()) {
             cond_Ranges::add('sales_Invoices', 2000000, 2999999, null, 'acc,ceo', 2, false);
         }
     }
@@ -572,8 +581,7 @@ class sales_Setup extends core_ProtoSetup
         $Deltas = cls::get('sales_PrimeCostByDocument');
         $Deltas->setupMvc();
         
-        if(!$Deltas->count()) {
-            
+        if (!$Deltas->count()) {
             return;
         }
         
@@ -610,5 +618,14 @@ class sales_Setup extends core_ProtoSetup
         
         $query = "UPDATE {$Deltas->dbTableName} JOIN {$Products->dbTableName} ON {$Products->dbTableName}.id = {$Deltas->dbTableName}.{$productCol} JOIN {$Containers->dbTableName} ON {$Deltas->dbTableName}.{$containerCol} = {$Containers->dbTableName}.id RIGHT JOIN {$Receipts->dbTableName} ON {$Receipts->dbTableName}.id = {$Containers->dbTableName}.{$docIdCol} SET {$Deltas->dbTableName}.{$storeCol} = {$Receipts->dbTableName}.{$storeCol} WHERE {$Containers->dbTableName}.{$docClassCol} = {$storeReceiptsClassId} AND {$Products->dbTableName}.{$canStoreCol} = 'yes' AND {$Deltas->dbTableName}.{$storeCol} IS NULL";
         $Deltas->db->query($query);
+    }
+    
+    
+    /**
+     * Обновява кеш полето за коя сделка с коя е приключена
+     */
+    function migrateClosedWith()
+    {
+        cls::get('deals_Setup')->updateClosedWith('sales_Sales', 'sales_ClosedDeals');
     }
 }

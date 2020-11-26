@@ -53,6 +53,9 @@ class doc_SharablePlg extends core_Plugin
         // Дали да са споделени потребителите от оригиналния документ (ако създателят е един и същи)
         setIfNot($mvc->autoShareOriginShared, true);
         setIfNot($mvc->autoShareOriginCreator, false);
+        
+        $mvc->autoShareFields = arr::make($mvc->autoShareFields, true);
+        $mvc->autoShareFields['sharedUsers'] = 'sharedUsers';
     }
     
     
@@ -336,21 +339,10 @@ class doc_SharablePlg extends core_Plugin
         setIfNot($vals['shareMaxCnt'], 10);
         
         $shareUsers = array();
-        if ($vals['shareUsers']) {
-            $shareUsers = type_Keylist::toArray($vals['shareUsers']);
-        } else {
-            $fRec = doc_Folders::fetch($formRec->folderId);
-            if ($fRec->shared) {
-                $shareUsers = type_Keylist::toArray($fRec->shared);
-            }
-            if ($fRec->inCharge > 0) {
-                $shareUsers[$fRec->inCharge] = $fRec->inCharge;
-            }
-        }
         
         if ($formRec->threadId && ($vals['shareFromThread'] != 'no')) {
-            $shareUsers += doc_ThreadUsers::getShared($formRec->threadId);
             $shareUsers += doc_ThreadUsers::getSubscribed($formRec->threadId);
+            $shareUsers += doc_ThreadUsers::getShared($formRec->threadId);
         }
         
         // Премахваме неактивните потребители и тези, които не са powerUser
@@ -367,16 +359,28 @@ class doc_SharablePlg extends core_Plugin
             }
         }
         
-        if (!empty($shareUsers)) {
-            if (isset($vals['shareMaxCnt'])) {
-                if (count($shareUsers) > $vals['shareMaxCnt']) {
-                    $shareUsers = array();
-                }
+        if ($vals['shareUsers']) {
+            $shareUsers += type_Keylist::toArray($vals['shareUsers']);
+        } else {
+            $fRec = doc_Folders::fetch($formRec->folderId);
+            if ($fRec->shared) {
+                $shareUsers += type_Keylist::toArray($fRec->shared);
+            }
+            if ($fRec->inCharge > 0) {
+                $shareUsers[$fRec->inCharge] = $fRec->inCharge;
             }
         }
         
         $cu = core_Users::getCurrent();
         unset($shareUsers[$cu]);
+        
+        if (!empty($shareUsers)) {
+            if (isset($vals['shareMaxCnt'])) {
+                if (count($shareUsers) > $vals['shareMaxCnt']) {
+                    $shareUsers = array_slice($shareUsers, 0, $vals['shareMaxCnt'], true);
+                }
+            }
+        }
         
         return $shareUsers;
     }
@@ -463,6 +467,8 @@ class doc_SharablePlg extends core_Plugin
         if ($rec->originId) {
             $document = doc_Containers::getDocument($rec->originId);
             
+            $shareFieldsArr = arr::make($document->autoShareFields, true);
+            
             $dRec = $document->fetch();
             
             $createdBy = null;
@@ -478,10 +484,12 @@ class doc_SharablePlg extends core_Plugin
                 $currUserId = core_Users::getCurrent();
                 if ($createdBy == $currUserId) {
                     if ($mvc->autoShareOriginShared) {
-                        if ($dRec->sharedUsers) {
-                            $sharedArr = type_Keylist::toArray($dRec->sharedUsers);
-                            unset($sharedArr[$currUserId]);
-                            $res['sharedUsers'] += (array) $sharedArr;
+                        foreach ($shareFieldsArr as $sharFName) {
+                            if ($dRec->{$sharFName}) {
+                                $sharedArr = type_Keylist::toArray($dRec->{$sharFName});
+                                unset($sharedArr[$currUserId]);
+                                $res['sharedUsers'] += (array) $sharedArr;
+                            }
                         }
                     }
                 } else {

@@ -56,7 +56,7 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
      *         ['productId']     - ид на артикул
      *         ['quantity']      - количество
      *         ['price']         - ед. цена
-     *         ['accPrice']      - счетоводна цена
+     *         ['valior']        - вальор
      *         ['sourceClassId'] - ид на класа на източника
      *         ['sourceId']      - ид на източника
      */
@@ -129,7 +129,7 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
             $res[$pId] = (object)array('productId'     => $pId,
                                        'price'         => $amount,
                                        'classId'       => $this->getClassId(),
-                                       'accPrice'      => null,
+                                       'valior'        => null,
                                        'sourceClassId' => null,
                                        'sourceId'      => null,
                                        'quantity'      => $r->quantity);

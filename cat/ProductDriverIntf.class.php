@@ -573,4 +573,45 @@ class cat_ProductDriverIntf extends embed_DriverIntf
     {
         return $this->class->getQuantitiesForQuotation($Embedder, $rec);
     }
+    
+    
+    /**
+     * Кои са свързаните задания за други артикули с този артикул
+     *
+     * @param mixed $rec
+     *
+     * @return array
+     */
+    public function getLinkedJobRecs($id)
+    {
+        return $this->class->getLinkedJobRecs($id);
+    }
+    
+    
+    /**
+     * Добавя полета към формата за запитване
+     *
+     * @param int $protoProductId
+     * @param core_FieldSet $fieldset
+     * @param boolean $onlyActive
+     *
+     * @return void
+     */
+    public function addInquiryFields($protoProductId, core_FieldSet &$fieldset, $onlyActive = false)
+    {
+        return $this->class->addInquiryFields($protoProductId, $fieldset);
+    }
+    
+    
+    /**
+     * Взима шаблона за показване на допълнителните данни от запитването
+     *
+     * @param stdClass $rec
+     *
+     * @return core_ET
+     */
+    public function getInquiryDataTpl($rec)
+    {
+        return $this->class->getInquiryDataTpl($rec);
+    }
 }

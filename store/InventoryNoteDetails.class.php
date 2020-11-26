@@ -142,7 +142,6 @@ class store_InventoryNoteDetails extends doc_Detail
     protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
         if (!isset($rec->quantity) || !isset($rec->quantityInPack)) {
-            
             return;
         }
         
@@ -276,7 +275,6 @@ class store_InventoryNoteDetails extends doc_Detail
     protected static function on_AfterPrepareRetUrl($mvc, $data)
     {
         if (!isset($data->form) || !$data->form->isSubmitted()) {
-            
             return;
         }
         
@@ -343,7 +341,7 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Изчиства записите, заопашени за запис
      */
-    protected static function on_Shutdown($mvc)
+    public static function on_Shutdown($mvc)
     {
         if (countR($mvc->cache)) {
             foreach ($mvc->cache as $noteId) {
@@ -379,7 +377,6 @@ class store_InventoryNoteDetails extends doc_Detail
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         if ($data->masterData->rec->state == 'rejected') {
-            
             return;
         }
         

@@ -1070,4 +1070,31 @@ abstract class store_DocumentMaster extends core_Master
         // Връщаме резултата от записа
         return $id;
     }
+    
+    
+    /**
+     * Връща дефолтен коментар при връзка на документи
+     *
+     * @param integer $id
+     * @param string $comment
+     *
+     * @return string
+     */
+    public function getDefaultLinkedComment($id, $comment)
+    {
+        $rec = $this->fetchRec($id);
+        
+        $storeName = $rec->storeId ? store_Stores::getTitleById($rec->storeId) : '';
+        $pattern = preg_quote($storeName, '/');
+       
+        if ($storeName && (!$comment || (!preg_match("/(^|\s)*{$pattern}(\$|\s){1}/iu", $comment)))) {
+            if (trim($comment)) {
+                $comment .= '<br>';
+            }
+            
+            $comment .= tr("Склад|*: ") . $storeName;
+        }
+        
+        return $comment;
+    }
 }

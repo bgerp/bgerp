@@ -61,9 +61,9 @@ class findeals_transaction_Deal extends acc_DocumentTransactionSource
             $baseAmount = currency_Currencies::round($baseAmount);
             
             if ($rec->baseAmountType == 'debit') {
-                $result->entries[] = array('amount' => $baseAmount, 'debit' => $thisDealArr, 'credit' => $correspondingArr, 'reason' => 'Начално сладо по финансова сделка');
+                $result->entries[] = array('amount' => $baseAmount, 'debit' => $thisDealArr, 'credit' => $correspondingArr, 'reason' => 'Начално салдо по финансова сделка');
             } elseif ($rec->baseAmountType == 'credit') {
-                $result->entries[] = array('amount' => $baseAmount, 'debit' => $correspondingArr, 'credit' => $thisDealArr, 'reason' => 'Начално сладо по финансова сделка');
+                $result->entries[] = array('amount' => $baseAmount, 'debit' => $correspondingArr, 'credit' => $thisDealArr, 'reason' => 'Начално салдо по финансова сделка');
             }
         }
         

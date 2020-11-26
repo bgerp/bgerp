@@ -86,9 +86,26 @@ class price_Updates extends core_Manager
         $this->FLD('minChange', 'percent(min=0,max=1)', 'caption=Мин. промяна');
         
         $this->FLD('costValue', 'double', 'input=none,caption=Себестойност');
-        $this->FLD('updateMode', 'enum(manual=Ръчно,now=Ежечасово,nextDay=Следващия ден,nextWeek=Следващата седмица,nextMonth=Следващия месец)', 'caption=Обновяване');
+        $this->FLD('updateMode', 'enum(manual=Ръчно,now=При изчисление,nextDay=Следващия ден,nextWeek=Следващата седмица,nextMonth=Следващия месец)', 'caption=Обновяване');
         
         $this->setDbUnique('objectId,type');
+    }
+    
+    
+    /**
+     * Връща наличните политики за избор
+     * 
+     * @return array $options
+     */
+    public static function getCostPoliciesOptions()
+    {
+        $options = array();
+        $policies = core_Classes::getOptionsByInterface('price_CostPolicyIntf');
+        foreach ($policies as $policyId => $policy){
+            $options[$policyId] = cls::get($policy)->getName(true);
+        }
+        
+        return $options;
     }
     
     
@@ -104,6 +121,11 @@ class price_Updates extends core_Manager
         Mode::push('text', 'plain');
         $form->setField("minChange", "placeholder=" . core_Type::getByName('percent')->toVerbal(price_Setup::get('MIN_CHANGE_UPDATE_PRIME_COST')));
         Mode::pop('text', 'plain');
+        
+        $policyOptions = self::getCostPoliciesOptions();
+        $form->setOptions('sourceClass1', $policyOptions);
+        $form->setOptions('sourceClass2', $policyOptions);
+        $form->setOptions('sourceClass3', $policyOptions);
         
         if ($rec->type == 'category') {
             $form->setField('objectId', 'caption=Категория');
@@ -324,7 +346,7 @@ class price_Updates extends core_Manager
             }
             
             // Опит за изчисление на себестойността според източниците
-            $primeCost = self::getPrimeCost($productId, $rec->sourceClass1, $rec->sourceClass2, $rec->sourceClass3, $rec->costAdd);
+            $primeCost = $this->getPrimeCost($productId, $rec->sourceClass1, $rec->sourceClass2, $rec->sourceClass3, $rec->costAdd);
             
             // Намира се старата му себестойност (ако има)
             $oldPrimeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId);
@@ -411,7 +433,7 @@ class price_Updates extends core_Manager
      *
      * @return float|FALSE $price - намерената себестойност или FALSE ако няма
      */
-    public static function getPrimeCost($productId, $sourceClass1, $sourceClass2 = null, $sourceClass3 = null, $costAdd = null)
+    private function getPrimeCost($productId, $sourceClass1, $sourceClass2 = null, $sourceClass3 = null, $costAdd = null)
     {
         $sources = array($sourceClass1, $sourceClass2, $sourceClass3);
         foreach ($sources as $source) {
@@ -458,6 +480,7 @@ class price_Updates extends core_Manager
         
         // За всеки
         while ($rec = $query->fetch()) {
+            
             try {
                 // Ако не може да се изпълни, пропускаме го
                 if (!$this->canBeApplied($rec, $now)) {
@@ -490,8 +513,6 @@ class price_Updates extends core_Manager
         switch ($rec->updateMode) {
             case 'manual':
             case 'now':
-                
-                // При ежечасовото условие, изпълняваме го винаги
                 $res = true;
                 break;
             case 'nextDay':
@@ -536,86 +557,51 @@ class price_Updates extends core_Manager
     
     
     /**
-     * Подготовка на данните
-     */
-    public static function prepareUpdateData(&$data)
-    {
-        $data->rows = $data->recs = array();
-        
-        // Извличаме записа за артикула
-        $query = self::getQuery();
-        $type = ($data->masterMvc instanceof cat_Categories) ? 'category' : 'product';
-        $query->where("#type = '{$type}'");
-        $query->where("#objectId = {$data->masterId}");
-        
-        // За всеки запис (може да е максимум един)
-        while ($rec = $query->fetch()) {
-            $data->recs[$rec->id] = $rec;
-            $data->rows[$rec->id] = self::recToVerbal($rec);
-        }
-    }
-    
-    
-    /**
-     * Подготовка на себестойностите
-     *
-     * @param stdClass $data
-     *
-     * @return void
-     */
-    public function prepareUpdates(&$data)
-    {   
-        // Как да се казва таба
-        $data->TabCaption = 'Обновяване';
-        
-        self::prepareUpdateData($data);
-    }
-    
-    
-    /**
-     * Рендиране на таблицата с данните
-     */
-    public static function renderUpdateData($data)
-    {
-        // Рендираме таблицата
-        $table = cls::get('core_TableView', array('mvc' => cls::get('price_Updates')));
-        $fields = 'tools=Пулт,sourceClass1=Източник->Първи,sourceClass2=Източник->Втори,sourceClass3=Източник->Трети,costAdd=Добавка,costValue=Стойност,updateMode=Обновяване,createdOn=Създаване->На,createdBy=Създаване->От';
-        $fields = core_TableView::filterEmptyColumns($data->rows, $fields, 'costAdd');
-        $details = $table->get($data->rows, $fields);
-        
-        return $details;
-    }
-    
-    
-    /**
-     * Рендиране на дата за себестойностите
-     *
-     * @param stdClass $data
-     *
+     * Връща шаблон с правилото за обновяване
+     * 
+     * @param stdClass $rec
+     * 
      * @return core_ET $tpl
      */
-    public function renderUpdates($data)
+    public static function getUpdateTpl($rec)
     {
-        // Ако трябва не рендираме таба
-        if ($data->hide === true) {
-            
-            return;
+        $uRow = price_Updates::recToVerbal($rec);
+        $arr = array('manual' => tr('Ръчно'), 'nextDay' => tr('Дневно'), 'nextWeek' => tr('Седмично'), 'nextMonth' => tr('Месечно'), 'now' => tr('При изчисление'));
+        
+        $fromCategoryStr = 'От категорията|* ';
+        if(!$rec->_fromCategory){
+            $fromCategoryStr = '';
+            core_RowToolbar::createIfNotExists($uRow->_rowTools);
+            $tools = $uRow->_rowTools->renderHtml(2);
         }
         
-        // Взимаме шаблона
-        $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-        $title = tr('Правило за обновяване на себестойност');
-        $tpl->append($title, 'title');
+        $type = '';
+        $tpl = new core_ET(tr("{$fromCategoryStr}|*<b>[#updateMode#]</b> |обновяване на себестойността, последователно по|* [#type#]  <!--ET_BEGIN surcharge-->|с надценка|* <b>[#surcharge#]</b><!--ET_END surcharge-->[#tools#]"));
         
-        // Добавяме бутон ако трябва
-        $type = ($data->masterMvc instanceof cat_Categories) ? 'category' : 'product';
-        if ($this->haveRightFor('add', (object) array('type' => $type, 'objectId' => $data->masterId))) {
-            $ht = ht::createLink('', array($this, 'add', 'type' => $type, 'objectId' => $data->masterId, 'ret_url' => true), false, 'title=Задаване на ново правило,ef_icon=img/16/add.png');
-            $tpl->append($ht, 'title');
+        foreach (array($uRow->sourceClass1, $uRow->sourceClass2, $uRow->sourceClass3) as $cost) {
+            if (isset($cost)) {
+                $type .= '<b>' . $cost . '</b>, ';
+            }
         }
-        $tpl->append(self::renderUpdateData($data), 'content');
         
-        // Връщаме шаблона
+        $type = rtrim($type, ', ');
+        $tpl->append($arr[$rec->updateMode], 'updateMode');
+        $tpl->append($tools, 'tools');
+        $surcharge = $uRow->costAdd;
+        if(!empty($rec->costAddAmount)){
+            $surcharge .= ((!empty($surcharge)) ? tr('|* |и|* ') : '') . $uRow->costAddAmount . " BGN";
+        }
+        if(!empty($surcharge)){
+            $tpl->append($surcharge, 'surcharge');
+        }
+        
+        $tpl->append($type, 'type');
+        
+        if($rec->_fromCategory){
+            $tpl->prepend("<span class='quiet'>");
+            $tpl->append("</span>");
+        }
+        
         return $tpl;
     }
     

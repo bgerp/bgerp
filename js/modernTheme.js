@@ -35,6 +35,7 @@ function initElements() {
 
     var cookie = getCookie('menuInfo');
 
+    // отваря менютата, спрямо ширината (ако няма инфо в бисквитката)
 	if(cookie == null && viewportWidth > 1280 && !isTouchDevice()) {
 		$('.btn-menu-left ').click();
 		if(viewportWidth > 1604){
@@ -42,6 +43,7 @@ function initElements() {
 		}
 	}
 
+	// отваря менютата от бисквитките
 	if(cookie && viewportWidth > 700) {
 		if(cookie.indexOf('l') != "-1" && !$('.sidemenu-left').hasClass('sidemenu-open')) {
 			openSubmenus();
@@ -52,8 +54,10 @@ function initElements() {
 		}
 	}
 
+	// за плавни анимации на менютата
 	$('.sidemenu,  #main-container,  .narrow #packWrapper , #framecontentTop, .tab-row').addClass('transition');
 
+	// задава динамично ширина на елементи
 	if($('body').hasClass('narrow')){
 		if(viewportWidth <= 800) {
 			setViewportWidth(viewportWidth);
@@ -67,6 +71,7 @@ function initElements() {
 			setMaxWidth(viewportWidth);
         });
 	}
+
 	// за всяко кликане на линк, ще променяме бисквитката
 	$('#nav-panel li a').on('click', function(e){
 		setMenuCookie();
@@ -88,6 +93,9 @@ function render_setThreadElemWidth() {
 }
 
 
+/**
+ * Максимална ширина на елементи в новата вътрешна тема
+ */
 function setMaxWidth() {
 	var viewportWidth = $(window).width();
 	if ($('body').hasClass('narrow')) {
@@ -308,6 +316,7 @@ function sidebarAccordeonActions() {
 	});
 }
 
+
 /**
  * Действия на акордеона в меюто
  */
@@ -322,6 +331,10 @@ function sidebarBookmarkActions() {
 }
 
 
+/**
+ * Оправаря текущия таб в мобилния портал
+ * @param lastNotifyTime
+ */
 function openNewCurrentTab(lastNotifyTime){
 	if(!$('body').hasClass('modern-theme') || $('body').hasClass('wide')) return;
 	var current;
@@ -348,8 +361,9 @@ function openNewCurrentTab(lastNotifyTime){
 }
 
 
-
-// подготвя табовете в мобилен
+/**
+ * подготвя табовете в мобилен
+ */
 function prepareTabs(currentTab, lastNotifyTime){
 
 	var $swipeTabsContainer = $('.swipe-tabs'),
@@ -438,7 +452,9 @@ function scrollLongListTable() {
     }
 }
 
-
+/**
+ * Скролиране до елемента с id
+ * */
 function scrollToElem(docId) {
 	$('html, body').animate({
         scrollTop: $("#" + docId).offset().top - $(window).height() + $(this).height() - 75
@@ -446,22 +462,27 @@ function scrollToElem(docId) {
 }
 
 /**
- * Скролиране до елемента
+ * Скролиране до елемента с #
  * */
 function scrollToHash(){
 	var hash = window.location.hash;
+	hash = clearHashStr(hash);
+	
 	if($(hash).length) {
         setTimeout(function() {
 			var scrollTo = parseInt($(hash).offset().top) - 70;
 			if (scrollTo < 400) {
 				scrollTo = 0;
 			}
+			
 			$('html, body').scrollTop(scrollTo);
 		}, 1);
 	}
 }
 
-
+/**
+ * При touch устройства, махаме скалирането
+ */
 function disableScale() {
     if (isTouchDevice()) {
         $('meta[name=viewport]').remove();

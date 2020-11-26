@@ -90,7 +90,9 @@ class callcenter_Numbers extends core_Manager
     
     /**
      * Кои полета да са ключови думи
+     *
      * @var string
+     *
      * @see plg_Search
      */
     public $searchFields = 'number';
@@ -191,7 +193,6 @@ class callcenter_Numbers extends core_Manager
     {
         // Ако не е подадено id
         if (!$id) {
-            
             return ;
         }
         
@@ -207,7 +208,6 @@ class callcenter_Numbers extends core_Manager
         
         // Ако няма клас или id на контрагент
         if (!$numRec->classId || !$numRec->contragentId) {
-            
             return ;
         }
         
@@ -216,7 +216,6 @@ class callcenter_Numbers extends core_Manager
         
         // Ако нямаме права до сингъла на записа
         if (!$class->haveRightFor('single', $numRec->contragentId, $userId)) {
-            
             return ;
         }
         
@@ -359,7 +358,6 @@ class callcenter_Numbers extends core_Manager
         
         // Ако няма подаден клас или документ връщаме
         if (!$classId || !$docId) {
-            
             return $resArr;
         }
         
@@ -450,7 +448,7 @@ class callcenter_Numbers extends core_Manager
     /**
      * При спиране на скрипта
      */
-    public function on_Shutdown($mvc)
+    public static function on_Shutdown($mvc)
     {
         // Ако имаме променини или добавени номера
         if (countR((array) $mvc->savedItems)) {
@@ -525,6 +523,11 @@ class callcenter_Numbers extends core_Manager
         // Вземаме последния номер, който сме регистрирали
         $query = static::getQuery();
         $query->where(array("#number = '[#1#]'", $numStr));
+        
+        if ($type == 'internal') {
+            $query->orWhere(array("#number = '[#1#]'", $number));
+        }
+        
         $query->orderBy('id', 'DESC');
         
         // Ако е зададен типа
@@ -733,24 +736,20 @@ class callcenter_Numbers extends core_Manager
     public static function canUseHostForNum($num)
     {
         if (!$num) {
-            
             return false;
         }
         
         $rec = self::getRecForInternalNum($num);
         
         if (!$rec) {
-            
             return false;
         }
         
         if (!$rec->host) {
-            
             return false;
         }
         
         if (!callcenter_Hosts::haveRightFor('use', $rec->host)) {
-            
             return false;
         }
         
@@ -801,6 +800,11 @@ class callcenter_Numbers extends core_Manager
         
         // Обхождаме резултата
         while ($rec = $query->fetch()) {
+            
+            if (strpos($rec->number, '0') === 0) {
+                $numStr = drdata_PhoneType::getNumberStr($rec->number, 0);
+                $numbersArr[$numStr] = $numStr;
+            }
             
             // Добавяме в масива
             $numbersArr[$rec->id] = $rec->number;

@@ -42,7 +42,7 @@ class plg_State extends core_Plugin
                   stopped=Спрян,
                   wakeup=Събуден,
                   free=Освободен,template=Шаблон)',
-                 'caption=Състояние,column=none,input=none'
+                 'caption=Състояние,column=none,input=none,smartCenter'
             );
         }
         

@@ -1278,7 +1278,7 @@ class core_Mvc extends core_FieldSet
                         list($fName, ) = explode('(', $fName);
                         $fName = trim($fName);
                         
-                        $fType = $this->getFieldType($fName);
+                        expect($fType = $this->getFieldType($fName), $this, $fName);
                         
                         $mySqlAttr = $fType->getMysqlAttr();
                         

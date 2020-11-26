@@ -334,7 +334,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         foreach ($costsArr as $costKey => $cost) {
             foreach ($prods as $purKey => $prod) {
                 if ($costKey == $prod->productId) {
-                    $expenses = ($cost / $prodsAmount[$prod->productId]) * $prod->amount;
+                    $expenses = !empty($prodsAmount[$prod->productId]) ? ($cost / $prodsAmount[$prod->productId]) * $prod->amount : 0;
                     
                     $saveRecs[$purKey]->expenses += $expenses;
                 }

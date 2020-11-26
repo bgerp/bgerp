@@ -248,7 +248,6 @@ class store_Transfers extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($requiredRoles == 'no_one') {
-            
             return;
         }
         
@@ -304,21 +303,21 @@ class store_Transfers extends core_Master
             $row->title = $mvc->getLink($rec->id, 0);
             
             if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
-                $row->title = "<b>" . $row->title . "</b>";
-                $row->title .=  "  " . $row->fromStore . " » " . $row->toStore;
+                $row->title = '<b>' . $row->title . '</b>';
+                $row->title .= '  ' . $row->fromStore . ' » ' . $row->toStore;
                 $row->createdBy = crm_Profiles::createLink($rec->createdBy);
                 $row->createdOn = $mvc->getVerbal($rec, 'createdOn');
-                $row->title .= "<span class='fright'>" . $row->createdOn . " " . tr('от') . " " .   $row->createdBy . "</span>";
+                $row->title .= "<span class='fright'>" . $row->createdOn . ' ' . tr('от') . ' ' .   $row->createdBy . '</span>';
             }
         }
         
-        if($rec->state != 'pending'){
+        if ($rec->state != 'pending') {
             unset($row->storeReadiness);
         } else {
             $row->storeReadiness = isset($rec->storeReadiness) ? $row->storeReadiness : "<b class='quiet'>N/A</b>";
         }
         
-        if(Mode::isReadOnly()){
+        if (Mode::isReadOnly()) {
             unset($row->storeReadiness, $row->zoneReadiness);
         }
     }
@@ -454,7 +453,7 @@ class store_Transfers extends core_Master
      *
      * @param mixed $id     - ид или запис
      * @param mixed $forMvc - за кой мениджър
-     * 
+     *
      * @return array $products        - масив с информация за артикули
      *               o productId       - ид на артикул
      *               o name            - име на артикула
@@ -563,7 +562,7 @@ class store_Transfers extends core_Master
      * Информацията на документа, за показване в транспортната линия
      *
      * @param mixed $id
-     * @param int $lineId
+     * @param int   $lineId
      *
      * @return array
      *               ['baseAmount']     double|NULL - сумата за инкасиране във базова валута
@@ -628,8 +627,8 @@ class store_Transfers extends core_Master
     protected static function on_AfterGetDocNameInRichtext($mvc, &$docName, $id)
     {
         $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
-        if(isset($indicator)){
-            if($docName instanceof core_ET){
+        if (isset($indicator)) {
+            if ($docName instanceof core_ET) {
                 $docName->append($indicator);
             } else {
                 $docName .= $indicator;
@@ -644,12 +643,36 @@ class store_Transfers extends core_Master
     protected function on_AfterGetLink($mvc, &$link, $id, $maxLength = false, $attr = array())
     {
         $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
-        if(isset($indicator)){
-            if($link instanceof core_ET){
+        if (isset($indicator)) {
+            if ($link instanceof core_ET) {
                 $link->append($indicator);
             } else {
                 $link .= $indicator;
             }
         }
+    }
+    
+    
+    /**
+     * Връща дефолтен коментар при връзка на документи
+     *
+     * @param int    $id
+     * @param string $comment
+     *
+     * @return string
+     */
+    public function getDefaultLinkedComment($id, $comment)
+    {
+        $rec = $this->fetchRec($id);
+        $fromStore = store_Stores::getTitleById($rec->fromStore);
+        $toStore = store_Stores::getTitleById($rec->toStore);
+        
+        if (trim($comment)) {
+            $comment .= '<br>';
+        }
+       
+        $comment .= "{$fromStore} » {$toStore}";
+        
+        return $comment;
     }
 }

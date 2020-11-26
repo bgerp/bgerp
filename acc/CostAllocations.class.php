@@ -876,7 +876,9 @@ class acc_CostAllocations extends core_Manager
         foreach ($documents as $docName) {
             $Doc = cls::get($docName);
             $dQuery = $Doc->getQuery();
-            $dQuery->where("#modifiedOn >= '{$timeline}'");
+            if(!empty($timeline)){
+                $dQuery->where("#modifiedOn >= '{$timeline}'");
+            }
             $dQuery->where("#state != 'draft' AND #state != 'pending' AND #state != 'stopped'");
             $dQuery->show('containerId');
             $containers += arr::extractValuesFromArray($dQuery->fetchAll(), 'containerId');

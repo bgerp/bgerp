@@ -1656,6 +1656,9 @@ span.inputLackOfChoiceMandatory {
 .narrow .vertical .formFields {
   margin-bottom: 0; }
 
+.mandatoryMiddleCaption {
+  font-weight: bold; }
+
 .staticFormView .formFieldValue {
   border: solid 1px #9999ff;
   padding: 3px;
@@ -2331,7 +2334,13 @@ div.alphabet div.tab-row .tab {
 
 div.alphabet div.tab-page {
   margin: 0;
-  padding: 5px 0 0 0; }
+  padding: 10px 0 0 0; }
+
+div.alphabet.twoRows {
+  margin-top: -10px; }
+  div.alphabet.twoRows div.tab-page {
+    margin: 0;
+    padding: 15px 0 0 0; }
 
 .narrow div.alphabet  div.tab-row {
   float: left;
@@ -3488,6 +3497,9 @@ td.centerCol {
 
 td.leftColImportant {
   white-space: nowrap;
+  text-align: left !important; }
+
+.leftCell {
   text-align: left !important; }
 
 .dangerFile {

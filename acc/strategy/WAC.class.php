@@ -101,7 +101,7 @@ class acc_strategy_WAC extends acc_strategy_Strategy
         $from = dt::mysql2timestamp($date);
         $from = date('Y-m-01', $from);
         $to = dt::verbal2mysql($date, false);
-        
+       
         // Ще извличаме данните от първия ден на месеца от подадената дата до нея
         $jQuery = acc_JournalDetails::getQuery();
         
@@ -112,8 +112,12 @@ class acc_strategy_WAC extends acc_strategy_Strategy
             
             // Поставяме условие за перо на определена позиция само ако е зададено
             // Ако перото е зададено с '*' значи искаме всички записи
-            if (isset($param) && $param != '*') {
-                $jQuery->where("(#debitItem{$i} = {$param}) OR (#creditItem{$i} = {$param})");
+            if (isset($param) && ($param != '*')) {
+                $paramArr = arr::make($param, true);
+                $paramString = implode(',', $paramArr);
+                
+                $jQuery->where("#debitItem{$i} IN ({$paramString}) OR #creditItem{$i} IN ({$paramString})");
+                
             } elseif (is_null($param)) {
                 
                 // Ако няма стойност искаме и в запиа да няма
@@ -156,8 +160,12 @@ class acc_strategy_WAC extends acc_strategy_Strategy
                 $pos2 = $rec->{"{$type}Item2"};
                 $pos3 = $rec->{"{$type}Item3"};
                 
+                if ($item1 != '*') {
+                    $item1 = arr::make($item1, true);
+                }
+                
                 // Ако страната отговаря точно на аналитичната сметка
-                if ($accId == $accRec->id && ($item1 == '*' || $pos1 == $item1) && ($item2 == '*' || $pos2 == $item2) && ($item3 == '*' || $pos3 == $item3)) {
+                if ($accId == $accRec->id && ($item1 == '*' || in_array($pos1, $item1)) && ($item2 == '*' || $pos2 == $item2) && ($item3 == '*' || $pos3 == $item3)) {
                     $feedType = ($type == 'debit') ? 'active' : 'credit';
                     
                     // Ако типа на сметката, позволява да бъде 'хранена'
@@ -183,7 +191,7 @@ class acc_strategy_WAC extends acc_strategy_Strategy
             // Ако има баланс преди тази дата
             if (cls::get('acc_Balances')->getBalanceBefore($date)) {
                 
-                // Рекурсирно извикваме същата функция
+                // Рекурсивно се извиква същата функция
                 return self::getAmount($quantity, $newTo, $accSysId, $item1, $item2, $item3, $maxTries, $currentTry);
             }
         }

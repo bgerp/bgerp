@@ -154,7 +154,7 @@ tr.noHover td:hover {
 .wide #maincontent {
   position: relative;
   padding: 7px;
-  min-height: 600px; }
+  min-height: 400px; }
 
 .narrow #maincontent {
   padding: 5px; }
@@ -745,8 +745,26 @@ div.productImage {
   height: 14px;
   width: 14px;
   display: inline-block;
-  position: relative;
-  top: 2px; }
+  position: relative; }
+
+.color-preview.colorful,
+.colorBox.colorful {
+  background: -webkit-linear-gradient(to bottom right, red, yellow, green, blue) !important;
+    /*
+   * For Safari 5.1 to 6.0
+   */
+  background: -o-linear-gradient(to bottom right, red, yellow, green, blue) !important;
+    /*
+   * For Opera 11.1 to 12.0
+   */
+  background: -moz-linear-gradient(to bottom right, red, yellow, green, blue) !important;
+    /*
+   * For Firefox 3.6 to 15
+   */
+  background: linear-gradient(to bottom right, red, yellow, green, blue) !important;
+    /*
+   * Standard syntax (must be last)
+   */ }
 
 .product-component-stage {
   background-color: #eeeeee;
@@ -1973,6 +1991,8 @@ pre.document {
   font-family: "Courier New", Courier, monospace;
   font-size: 1.1em;
   font-weight: bold; }
+  .bigData.notBold {
+    font-weight: normal !important; }
 
 .narrow .bigData {
   font-family: Verdana;
@@ -5337,7 +5357,25 @@ td.rack-same {
   display: block;
   color: #42477f;
   position: absolute;
-  font-weight: bold;
+  font-family: Times New Roman, Georgia, serif; }
+
+.narrow .app-name {
+  font-size: 26px !important;
+  top: 6px !important;
+  left: 9px !important; }
+
+.narrow .app-subtitle {
+  font-size: 14px;
+  left: 9px;
+  top: 38px; }
+
+.app-subtitle {
+  display: block;
+  color: #42477f;
+  position: absolute;
+  font-size: 2.1em;
+  left: 2%;
+  top: 55%;
   font-family: Times New Roman, Georgia, serif; }
 
 .movement-position-notice {
@@ -5345,8 +5383,8 @@ td.rack-same {
 
 .wide .app-name {
   left: 3%;
-  bottom: 3%;
-  font-size: 8em;
+  bottom: 5%;
+  font-size: 5.5em;
   text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6); }
 
 .narrow .app-name {
@@ -5528,16 +5566,35 @@ only screen and (min-width: 1750px) {
 
 @media handheld,
 only screen and (max-width: 1200px) {
-  .wide .app-name {
-    font-size: 7.5em; }
+  .wide #all .app-name {
+    font-size: 5em; }
+
+  .wide #all  .app-subtitle {
+    font-size: 2em; }
 
   .wide #all,
   .wide #cmsTop,
-  .wide #cmsTop img {
-    border-radius: 0; }
+  .wide #all #cmsTop img {
+    border-radius: 0 !important; }
 
   .document {
     min-width: 40em; } }
+
+@media handheld,
+only screen and (max-width: 1000px) {
+  .wide #all .app-name {
+    font-size: 4.6em; }
+
+  .wide #all .app-subtitle {
+    font-size: 1.8em; } }
+
+@media handheld,
+only screen and (max-width: 600px) {
+  .wide #all .app-name {
+    font-size: 1.8em; }
+
+  .wide #all .app-subtitle {
+    font-size: 0.9em; } }
 
 @media handheld,
 only screen and (max-width: 1024px) {
@@ -5675,8 +5732,11 @@ only screen and (max-width: 800px) {
   .externalPage h1 {
     font-size: 1.88em; }
 
-  .wide .app-name {
-    font-size: 5em; } }
+  .wide #all .app-name {
+    font-size: 3.3em; }
+
+  .wide #all .app-subtitle {
+    font-size: 1.5em; } }
 
 @media handheld,
 only screen and (max-width: 760px) {
@@ -5755,7 +5815,14 @@ only screen and (max-width: 640px) {
     font-size: 1.32em; }
 
   .externalPage h1 {
-    font-size: 1.82em; } }
+    font-size: 1.82em; }
+
+  .wide #all .app-name {
+    font-size: 2.8em;
+    top: 15%; }
+
+  .wide #all .app-subtitle {
+    font-size: 1.3em; } }
 
 @media handheld,
 only screen and (max-width: 600px) {
@@ -5894,7 +5961,14 @@ only screen and (max-width: 480px) {
     font-size: 1.24em; }
 
   .externalPage h1 {
-    font-size: 1.74em; } }
+    font-size: 1.74em; }
+
+  .wide #all .app-name {
+    font-size: 2.5em;
+    top: 15%; }
+
+  .wide #all .app-subtitle {
+    font-size: 1.1em; } }
 
 @media handheld,
 only screen and (max-width: 375px) {
@@ -6612,6 +6686,13 @@ only screen and (max-width: 320px) {
     .sale-summary table .specialLink {
       white-space: normal; }
 
+.sale-summary .cartStatistic .sum-th {
+  background: #c1c1c1;
+  color: #333333; }
+
+.cartStatistic td {
+  border-color: #888888 !important; }
+
 .narrow .sale-summary td .quiet {
   font-size: 0.8em; }
 
@@ -6676,17 +6757,18 @@ only screen and (max-width: 320px) {
     background-color: #fad0d1 !important; }
 
   .portalNews .portalLatestFoldes {
-    margin-top: 3px; }
+    margin-top: 3px;
+    background-color: rgba(100, 100, 100, 0.1);
+    padding: 3px; }
   .portalNews .portalLatestThreads {
-    display: list-item;
-    margin-left: 30px;
+    margin-left: 20px;
     font-size: 0.95em;
     background: none !important; }
     .portalNews .portalLatestThreads a {
       padding: 2px;
       display: inline-block; }
     .portalNews .portalLatestThreads.state-opened a {
-      background-color: #bbffcc; }
+      background-color: rgba(187, 255, 204, 0.6); }
   .portalNews .tUnsighted {
     font-weight: bold; }
 

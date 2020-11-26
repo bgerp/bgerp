@@ -199,16 +199,20 @@ class type_Classes extends type_Keylist
             } 
             if(is_array($exOptions) && count($exOptions) && !isset($exOptions[$id])) continue;
             if($parent && !cls::isSubclass($id, $parent)) continue;
-            if(!$flagRaw) {
+            
+            if (!$flagRaw) {
                 list($group, $name) = explode('»', $title);
                 $name = trim($name);
+                $group = trim($group);
                 
-                $groupedRes[trim($group)][$id] = $name;
+                $name = $name ? $name : $group;
+                
+                $groupedRes[$group][$id] = $name;
             }
             $resOpt[$id] = $title;
         }
 
-        if(!$flagRaw) {
+        if (!$flagRaw) {
             ksort($groupedRes);
             $resOpt = array();
             foreach($groupedRes as $gName => $gArr) {

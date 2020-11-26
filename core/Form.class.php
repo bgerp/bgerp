@@ -167,7 +167,6 @@ class core_Form extends core_FieldSet
         // Ако не е тихо въвеждане и нямаме тихо въвеждане,
         // връщаме въведено към момента
         if ((!$this->cmd) && !$silent) {
-            
             return $this->rec;
         }
         
@@ -185,7 +184,6 @@ class core_Form extends core_FieldSet
         }
         
         if (!count($fields)) {
-            
             return false;
         }
         
@@ -209,6 +207,7 @@ class core_Form extends core_FieldSet
             }
             
             if ($value === '' && $field->mandatory && $this->cmd != 'refresh') {
+                $captions = str_replace('» |@', '', $captions);
                 $this->setError($name, 'Непопълнено задължително поле' .
                     "|* <b>'|{$captions}|*'</b>!");
                 
@@ -266,6 +265,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 if (($value === null || $value === '') && $field->mandatory && $this->cmd != 'refresh') {
+                    $captions = str_replace('» |@', '', $captions);
                     $this->setError($name, 'Непопълнено задължително поле' .
                         "|* <b>'|{$captions}|*'</b>!");
                     
@@ -329,7 +329,6 @@ class core_Form extends core_FieldSet
         }
         
         if (!count($fields)) {
-            
             return false;
         }
         
@@ -353,6 +352,7 @@ class core_Form extends core_FieldSet
             $captions = str_replace('->', '|* » |', $field->caption);
             
             if ($value === '' && $field->mandatory) {
+                $captions = str_replace('» |@', '', $captions);
                 $this->setError($name, 'Непопълнено задължително поле' .
                     "|* <b>'|{$captions}|*'</b>!");
                 
@@ -407,6 +407,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 if (($value === null || $value === '') && $field->mandatory) {
+                    $captions = str_replace('» |@', '', $captions);
                     $this->setError($name, 'Непопълнено задължително поле' .
                         "|* <b>'|{$captions}|*'</b>!");
                     
@@ -463,6 +464,7 @@ class core_Form extends core_FieldSet
         
         if ($result['error']) {
             $captions = ($field->noCaption) ? ' ' : "<b>'|" . $captions . "|*'</b>";
+            $captions = str_replace('» |@', '', $captions);
             
             $haveErr = true;
             $this->setError($name, 'Некоректна стойност на полето|' .
@@ -550,7 +552,6 @@ class core_Form extends core_FieldSet
     public function renderTitle_()
     {
         if (!$this->title) {
-            
             return;
         }
         
@@ -627,7 +628,6 @@ class core_Form extends core_FieldSet
     public function renderInfo_()
     {
         if (!$this->info) {
-            
             return;
         }
         
@@ -642,7 +642,6 @@ class core_Form extends core_FieldSet
     public function cmpFormOrder($a, $b)
     {
         if ($a->formOrder == $b->formOrder) {
-            
             return 0;
         }
         
@@ -925,7 +924,6 @@ class core_Form extends core_FieldSet
         }
         
         if ($this->fieldsLayout) {
-            
             return new ET($this->fieldsLayout);
         }
         
@@ -947,7 +945,8 @@ class core_Form extends core_FieldSet
             $fsId = 0;
             $fsArr = array();
             $fsRow = '';
-            
+            $exHeaderRow = '';
+
             $plusUrl = sbf('img/16/toggle1.png', '');
             $plusImg = ht::createElement('img', array('src' => $plusUrl, 'class' => 'btns-icon plus'));
             foreach ($fields as $name => $field) {
@@ -956,61 +955,69 @@ class core_Form extends core_FieldSet
                 } else {
                     $rowStyle = '';
                 }
-                
+                $emptyRow = false;
                 expect($field->kind, $name, 'Липсващо поле');
                 
-                $captionArr = explode('->', ltrim($field->caption, '@'));
+                $headerRow = $rowCaption = $space = '';
+                
+                $captionArr = explode('->', $field->caption);// ltrim($field->caption, '@')
                 $captionArrCount = count($captionArr);
-                $emptyRow = count($lastCaptionArr) - $captionArrCount;
-                $headerRow = $space = '';
                 
-                foreach ($captionArr as $id => $c) {
-                    $captionArr[$id] = $caption = $c1 = tr($c);
-                    
-                    
-                    if ($lastCaptionArr[$id] != $c1 && $id != ($captionArrCount - 1)) {
-                        $headerRow .= "<div class=\"formGroup\" >{$space}{$caption}";
-                        $space .= '&nbsp;&nbsp;&nbsp;';
-                        $group = $c;
-                        if (strpos($group, '||')) {
-                            list($group, $en) = explode('||', $group);
-                        }
-                    }
-                    
-                    // Удебеляваме имената на задължителните полета
-                    if ($field->mandatory || ($id != ($captionArrCount - 1))) {
-                        $caption = "<b>${caption}</b>";
-                    } else {
-                        $caption = "${caption}";
-                    }
+                if ($captionArrCount >= 3) {
+                    $headerRow .= '<div class="formGroup" >' . tr($captionArr[0]);
+                    $rowCaption = tr($captionArr[1]);
+                    $caption = tr($captionArr[2]);
+                } elseif ($captionArrCount == 2) {
+                    $headerRow .= '<div class="formGroup" >' . tr($captionArr[0]);
+                    $caption = tr($captionArr[1]);
+                } else {
+                    $caption = tr($captionArr[0]);
                 }
-                
-                $lastCaptionArr = $captionArr;
-                
+
+                $emptyRow = $exHeaderRow && empty($headerRow);
+                $exHeaderRow = $headerRow;
+
+                // Обработка на заглавния ред
                 if ($headerRow) {
-                    $fsId++;
-                    $fsArr[$fsId] = $group;
-                    $fsRow = " [#FS_ROW{$fsId}#]";
-                    $fsHead = " [#FS_HEAD{$fsId}#]";
-                    $headerRow .= "[#FS_IMAGE{$fsId}#]</div>";
+                    list($group, $en) = explode('||', $captionArr[0]);
+
+                    if ($fsArr[$fsId] == $group) {
+                        $fsRow = " [#FS_ROW{$fsId}#]";
+                        $fsHead = '';
+                        $headerRow = '';
+                    } else {
+                        $fsId++;
+                        $fsArr[$fsId] = $group;
+                        $fsRow = " [#FS_ROW{$fsId}#]";
+                        $fsRow1 = " [#FS1_ROW{$fsId}#]";
+                        $fsHead = " [#FS_HEAD{$fsId}#]";
+                        $headerRow .= "[#FS_IMAGE{$fsId}#]</div>";
+                    }
                 } elseif ($emptyRow > 0) {
                     $fsRow = '';
                     $fsHead = '';
                 }
                 
+                // Обработка на кепшъна
+                if ($field->mandatory && $caption != '@') {
+                    $caption = "<b>{$caption}</b>";
+                }
                 
                 $caption = core_ET::escape($caption);
                 $fUnit = tr($field->unit);
                 $fUnit = core_ET::escape($fUnit);
                 
+                $originalCaption = $caption;
+                $caption = ltrim($caption, '@');
                 if (isset($field->hint)) {
                     $icon = Mode::is('screenMode', 'narrow') ? 'notice' : 'noicon';
+                    $icon = ($originalCaption != '@') ? $icon : 'notice';
                     $caption = ht::createHint($caption, $field->hint, $icon);
                 }
                 
                 if (Mode::is('screenMode', 'narrow')) {
-                    if ($emptyRow > 0) {
-                        $tpl->append("\n<tr><td></td></tr>", 'FIELDS');
+                    if ($emptyRow) {
+                        $tpl->append("\n<tr><td><div class='formGroup'>&nbsp;</div></td></tr>", 'FIELDS');
                     }
                     
                     if ($headerRow) {
@@ -1021,8 +1028,8 @@ class core_Form extends core_FieldSet
                     
                     $fld = new ET("\n<tr class='filed-{$name} {$fsRow}'{$rowStyle}><td class='formCell[#{$field->name}_INLINETO_CLASS#]' nowrap style='padding-top:5px;'><small>{$caption}{$unit}</small><br>[#{$field->name}#]</td></tr>");
                 } else {
-                    if ($emptyRow > 0) {
-                        $tpl->append("\n<tr class='{$fsRow}'><td colspan=2></td></tr>", 'FIELDS');
+                    if ($emptyRow) {
+                        $tpl->append(new ET("\n<tr class='{$fsRow}'><td colspan=2><div class='formGroup'>&nbsp;</div></td></tr>"), 'FIELDS');
                     }
                     
                     if ($headerRow) {
@@ -1030,7 +1037,24 @@ class core_Form extends core_FieldSet
                     }
                     
                     $unit = $fUnit ? ('&nbsp;' . $fUnit) : '';
-                    $fld = new ET("\n<tr class='filed-{$name} {$fsRow}'{$rowStyle}><td class='formFieldCaption'>{$caption}:</td><td class='formElement[#{$field->name}_INLINETO_CLASS#]'>[#{$field->name}#]{$unit}</td></tr>");
+                    if($originalCaption == '@'){
+                       $mandatoryClass = ($field->mandatory) ? 'mandatoryNoCaptionField' : '';
+                       $tdHtml = "<td class='formFieldCaption'>{$caption}</td><td class='formElement[#{$field->name}_INLINETO_CLASS#] noCaptionElement {$mandatoryClass}'>[#{$field->name}#]{$unit}</td>";
+                    } else {
+                       $tdHtml = "<td class='formFieldCaption'>{$caption}:</td><td class='formElement[#{$field->name}_INLINETO_CLASS#]'>[#{$field->name}#]{$unit}</td>"; 
+                    }
+                    
+                    $fld = new ET("\n<tr class='filed-{$name} {$fsRow}'{$rowStyle}>{$tdHtml}</tr>");
+                }
+                
+                // Добавяме rowCaption
+                if (!empty($rowCaption)) {
+                    $mandatoryClass = ($field->mandatory) ? 'mandatoryMiddleCaption' : '';
+                    if (Mode::is('screenMode', 'narrow')) {
+                        $fld->prepend(new ET("\n<tr class='filed-{$name} {$fsRow1}'{$rowStyle}><td colspan=2 class='formMiddleCaption {$mandatoryClass}'>{$rowCaption}</td></tr>"));
+                    } else {
+                        $fld->prepend(new ET("\n<tr class='filed-{$name} {$fsRow1}'{$rowStyle}><td colspan=2 class='formMiddleCaption {$mandatoryClass}'>{$rowCaption}</td></tr>"));
+                    }
                 }
                 
                 if ($field->inlineTo) {
@@ -1056,12 +1080,13 @@ class core_Form extends core_FieldSet
             foreach ($fsArr as $id => $group) {
                 if (!$usedGroups[$group] && !Mode::is('javascript', 'no')) {
                     $tpl->replace(" fs{$id}  hiddenFormRow", "FS_ROW{$id}");
+                    $tpl->replace(" fs{$id}  hiddenFormRow", "FS1_ROW{$id}");
                     $tpl->replace(" class='fs-toggle{$id}' style='cursor: pointer;' onclick=\"toggleFormGroup({$id});\"", "FS_HEAD{$id}");
                     $tpl->replace(" {$plusImg}", "FS_IMAGE{$id}");
                 }
             }
         }
-        
+
         return $tpl;
     }
     
@@ -1438,7 +1463,6 @@ class core_Form extends core_FieldSet
                 foreach ($fieldArr as $f) {
                     if ($this->errors[$f]) {
                         if (!$this->errors[$f]->ignorable || !$this->ignore) {
-                            
                             return true;
                         }
                     }
@@ -1446,7 +1470,6 @@ class core_Form extends core_FieldSet
             } else {
                 foreach ($this->errors as $field => $errRec) {
                     if (!$errRec->ignorable || !$this->ignore) {
-                        
                         return true;
                     }
                 }
@@ -1460,35 +1483,38 @@ class core_Form extends core_FieldSet
     /**
      * @todo Чака за документация...
      */
-    public function setReadOnly($name, $value = null)
+    public function setReadOnly($names, $value = null)
     {
-        $field = $this->fields[$name];
+        $fArr = arr::make($names);
         
-        if (!isset($value)) {
-//             if (!isset($this->rec->{$name})) {
-            if (!property_exists($this->rec, $name)) {
-                $value = Request::get($name);
-            } else {
-                $value = $this->rec->{$name};
+        foreach($fArr as $name) {
+            expect($field = $this->fields[$name], $name);
+            
+            if (!isset($value)) {
+                if (!property_exists($this->rec, $name)) {
+                    $value = Request::get($name);
+                } else {
+                    $value = $this->rec->{$name};
+                }
+                $value = empty($value) ? '' : $value;
             }
-            $value = empty($value) ? '' : $value;
+            
+            unset($field->type->params['allowEmpty']);
+            
+            Mode::push('text', 'plain');
+            if (isset($field->type->options[$value])) {
+                $verbal = $field->type->options[$value];
+            } else {
+                $verbal = $field->type->toVerbal($value);
+            }
+            Mode::pop();
+            
+            $this->setOptions($name, array(
+                "{$value}" => $verbal
+            ));
+            
+            $field->type->params['isReadOnly'] = true;
         }
-        
-        unset($field->type->params['allowEmpty']);
-        
-        Mode::push('text', 'plain');
-        if (isset($field->type->options[$value])) {
-            $verbal = $field->type->options[$value];
-        } else {
-            $verbal = $field->type->toVerbal($value);
-        }
-        Mode::pop();
-        
-        $this->setOptions($name, array(
-            "{$value}" => $verbal
-        ));
-        
-        $field->type->params['isReadOnly'] = true;
     }
     
     
@@ -1524,7 +1550,7 @@ class core_Form extends core_FieldSet
                 }
 
                 // Затваряме секцията, само, ако в нея няма грешки или предупреждения
-                if(!isset($fieldset->errors[$name])) {
+                if (!isset($fieldset->errors[$name])) {
                     if ($fieldset->fields[$name]->autohide == 'any') {
                         continue;
                     }

@@ -88,7 +88,7 @@ abstract class deals_InvoiceMaster extends core_Master
     
     /**
      * Дефолтен брой копия при печат
-     * 
+     *
      * @var int
      */
     public $defaultCopiesOnPrint = 2;
@@ -175,7 +175,7 @@ abstract class deals_InvoiceMaster extends core_Master
             $data->listFilter->FNC('invState', 'enum(all=Всички, draft=Чернова, active=Контиран)', 'caption=Състояние,input,silent');
             $data->listFilter->showFields .= ',invState';
             $data->listFilter->input();
-            $data->listFilter->setDefault('invState', 'all');
+            $data->listFilter->setDefault('invState', 'active');
         }
         
         $type = '';
@@ -275,7 +275,6 @@ abstract class deals_InvoiceMaster extends core_Master
         $rec->discountAmount = $this->_total->discount * $rate;
         
         if ($save === true) {
-            
             return $this->save($rec);
         }
     }
@@ -303,7 +302,6 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_ValidateVatDate(core_Mvc $mvc, $rec, core_Form $form)
     {
         if (empty($rec->vatDate)) {
-            
             return;
         }
         
@@ -372,13 +370,18 @@ abstract class deals_InvoiceMaster extends core_Master
                 if ($invArr['dpOperation'] == 'accrued') {
                     // Ако е известие към авансова ф-ра поставяме за дефолт сумата на фактурата
                     $form->setField('dcReason', 'input');
-                    $form->setField('changeAmount', "caption=Промяна на авансово плащане|*->|Аванс|*,mandatory");
+                    $form->setField('changeAmount', 'caption=Промяна на авансово плащане|*->|Аванс|*,mandatory');
                     $form->setField('dcReason', 'input,caption=Промяна на авансово плащане|*->Пояснение');
                 }
             }
         }
         
-        foreach (array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId', 'dueDate', 'type', 'originId', 'changeAmount', 'activatedOn', 'activatedBy') as $key) {
+        $unsetArr = array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId', 'dueDate', 'type', 'originId', 'changeAmount', 'activatedOn', 'activatedBy', 'journalDate');
+        if ($this instanceof purchase_Invoices) {
+            $unsetArr[] = 'journalDate';
+        }
+        
+        foreach ($unsetArr as $key) {
             unset($invArr[$key]);
         }
         
@@ -501,13 +504,11 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_AfterCanActivate($mvc, &$res, $rec)
     {
         if ($rec->type == 'dc_note' && isset($rec->changeAmount)) {
-            
             return $res = true;
         }
         
         // Ако няма ид, не може да се активира документа
         if (empty($rec->id) && !isset($rec->dpAmount)) {
-            
             return $res = false;
         }
         
@@ -527,7 +528,6 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $Source = $mvc->getSourceOrigin($rec);
         if (!$Source) {
-            
             return;
         }
         
@@ -535,19 +535,16 @@ abstract class deals_InvoiceMaster extends core_Master
         doc_DocumentCache::cacheInvalidation($Source->fetchField('containerId'));
         
         if ($rec->_isClone === true) {
-            
             return;
         }
         
         // Само ако записа е след редакция
         if ($rec->_edited !== true) {
-            
             return;
         }
         
         // И не се начислява аванс
         if ($rec->dpAmount && $rec->dpOperation == 'accrued') {
-            
             return;
         }
         
@@ -557,7 +554,7 @@ abstract class deals_InvoiceMaster extends core_Master
             // Изтриване на детайлите на известието, ако е въведена сума на известието
             $Detail = cls::get($mvc->mainDetail);
             $deletedCount = $Detail->delete("#{$Detail->masterKey} = {$rec->id}");
-            if($deletedCount > 0){
+            if ($deletedCount > 0) {
                 unset($mvc->updateQueue[$rec->id]);
             }
             
@@ -567,7 +564,6 @@ abstract class deals_InvoiceMaster extends core_Master
         // И няма детайли
         $Detail = cls::get($mvc->mainDetail);
         if ($Detail->fetch("#{$Detail->masterKey} = '{$rec->id}'")) {
-            
             return;
         }
         
@@ -806,15 +802,15 @@ abstract class deals_InvoiceMaster extends core_Master
                         return;
                     }
                     
-                    if(isset($rec->id)){
+                    if (isset($rec->id)) {
                         $Detail = cls::get($mvc->mainDetail);
-                        if($dCount = $Detail->count("#{$Detail->masterKey} = {$rec->id}")){
+                        if ($dCount = $Detail->count("#{$Detail->masterKey} = {$rec->id}")) {
                             $form->setWarning('changeAmount', "Към известието има|* <b>{$dCount}</b> |ред/а. Те ще бъдат изтрити ако оставите конкретна сума|*.");
                         }
                     }
                 }
                 
-                if(empty($rec->changeAmount) && !empty($rec->dcReason)){
+                if (empty($rec->changeAmount) && !empty($rec->dcReason)) {
                     $form->setError('changeAmount,dcReason', 'Не може да се зададе основание за увеличение/намаление ако не е посочена сума');
                 }
                 
@@ -877,8 +873,9 @@ abstract class deals_InvoiceMaster extends core_Master
     
     /**
      * Кое е мястото на фактурата по подразбиране
-     * 
+     *
      * @param stdClass $rec
+     *
      * @return string|null $place
      */
     public static function getDefaultPlace($rec)
@@ -887,13 +884,13 @@ abstract class deals_InvoiceMaster extends core_Master
         $inChargeRec = crm_Profiles::getProfile($inCharge);
         
         $place = null;
-        if(!empty($inChargeRec->buzLocationId)){
-             $locationRec = crm_Locations::fetch($inChargeRec->buzLocationId, 'place,countryId');
-             $place = $locationRec->place;
-             $countryId = $locationRec->countryId;
+        if (!empty($inChargeRec->buzLocationId)) {
+            $locationRec = crm_Locations::fetch($inChargeRec->buzLocationId, 'place,countryId');
+            $place = $locationRec->place;
+            $countryId = $locationRec->countryId;
         }
         
-        if(empty($place)){
+        if (empty($place)) {
             $myCompany = crm_Companies::fetchOwnCompany();
             $place = $myCompany->place;
             $countryId = $myCompany->countryId;
@@ -958,7 +955,6 @@ abstract class deals_InvoiceMaster extends core_Master
     public function getAutoPaymentType($rec, $fromCache = true)
     {
         if ($this instanceof sales_Proformas) {
-            
             return;
         }
         
@@ -982,19 +978,15 @@ abstract class deals_InvoiceMaster extends core_Master
             $hasIntercept = array_key_exists('intercept', $payments);
             
             if ($hasCash === true && $hasBank === false && $hasIntercept === false) {
-                
                 return 'cash';
             }
             if ($hasBank === true && $hasCash === false && $hasIntercept === false) {
-                
                 return 'bank';
             }
             if ($hasIntercept === true && $hasCash === false && $hasBank === false) {
-                
                 return 'intercept';
             }
             if ($hasBank === true || $hasCash === true || $hasIntercept === true) {
-                
                 return 'mixed';
             }
         }
@@ -1318,6 +1310,21 @@ abstract class deals_InvoiceMaster extends core_Master
                     $res = 'no_one';
                 }
             }
+            
+            if ($rec->state == 'active') {
+                $dayForInvoice = acc_Setup::get('DATE_FOR_INVOICE_DATE');
+                $monthValior = dt::mysql2verbal($rec->date, 'm.y');
+                $monthNow = dt::mysql2verbal(dt::today(), 'm.y');
+                $dateNow = dt::mysql2verbal(dt::today(), 'd');
+                
+                // вальорът на фактурата не от текущия месец
+                // в текущия месец текущата дата е >= на датата от константата "Ден от месеца за изчисляване на Счетоводна дата на входяща фактура" в пакета асс
+                if($monthValior != $monthNow && $dateNow >= $dayForInvoice){
+                    if (!haveRole('ceo,accMaster', $userId)) {
+                        $res = 'no_one';
+                    }
+                }
+            }
         }
         
         // Ако възстановяваме известие и оригиналът му е оттеглен, не можем да го възстановим
@@ -1396,11 +1403,9 @@ abstract class deals_InvoiceMaster extends core_Master
         $rec = static::fetchRec($rec);
         
         if ($rec->originId) {
-            
             return doc_Containers::getDocument($rec->originId);
         }
         if ($rec->threadId) {
-            
             return doc_Threads::getFirstDocument($rec->threadId);
         }
         
@@ -1415,7 +1420,6 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $rec = static::fetchRec($rec);
         if ($rec->sourceContainerId) {
-            
             return doc_Containers::getDocument($rec->sourceContainerId);
         }
         
@@ -1445,7 +1449,6 @@ abstract class deals_InvoiceMaster extends core_Master
         
         // Ако начисляваме аванс или има въведена нова стойност не се копират детайлите
         if ($rec->dpOperation == 'accrued') {
-            
             return $details;
         }
         
@@ -1471,7 +1474,6 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         if (!countR($data->rows)) {
-            
             return;
         }
         $data->listTableMvc->FNC('valueNoVat', 'int');
@@ -1516,7 +1518,6 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_BeforeExportCsv($mvc, &$recs)
     {
         if (!$recs) {
-            
             return ;
         }
         
@@ -1555,7 +1556,7 @@ abstract class deals_InvoiceMaster extends core_Master
     protected static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
     {
         if ($part == 'number') {
-            if(!empty($rec->number)){
+            if (!empty($rec->number)) {
                 $number = core_Type::getByName('varchar')->toVerbal($rec->number);
                 $number = str_pad($number, 10, '0', STR_PAD_LEFT);
                 

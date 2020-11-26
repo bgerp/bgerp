@@ -479,6 +479,7 @@ class purchase_Purchases extends deals_DealMaster
         $result->setIfNot('deliveryTerm', $rec->deliveryTermId);
         $result->setIfNot('storeId', $rec->shipmentStoreId);
         $result->setIfNot('paymentMethodId', $rec->paymentMethodId);
+        $result->setIfNot('paymentType', $rec->paymentType);
         $result->setIfNot('caseId', $rec->caseId);
         $result->setIfNot('bankAccountId', bank_Accounts::fetchField(array("#iban = '[#1#]'", $rec->bankAccountId), 'id'));
         
@@ -744,10 +745,47 @@ class purchase_Purchases extends deals_DealMaster
         $entries = purchase_transaction_Purchase::getEntries($rec->id);
         $shipped = purchase_transaction_Purchase::getShippedProducts($entries, $rec->id, $accounts, true, true, true);
         
+        $contQuery = doc_Containers::getQuery();
+        $contQuery->where("#threadId = {$rec->threadId} AND #state = 'active'");
+        $contQuery->show('id');
+        $containersInThread = arr::extractValuesFromArray($contQuery->fetchAll(), 'id');
+        
+        $aQuery = acc_CostAllocations::getQuery();
+        $aQuery->in("containerId", $containersInThread);
+        $aQuery->show('productsData,expenseItemId');
+        $allocatedRecs = $aQuery->fetchAll();
+        
         if (countR($shipped)) {
             foreach ($shipped as $ship) {
                 unset($ship->price);
                 $ship->name = cat_Products::getTitleById($ship->productId, false);
+                
+                if(is_array($ship->expenseItems)){
+                    foreach ($ship->expenseItems as $expenseId => $expenseObj){
+                        
+                        $allocatedArr = array();
+                        array_walk($allocatedRecs, function($a) use (&$allocatedArr, $expenseId){
+                            if($a->expenseItemId == $expenseId){
+                                if(is_array($a->productsData)){
+                                    foreach ($a->productsData as $pData){
+                                        if(!array_key_exists($pData->productId, $allocatedArr)){
+                                            $allocatedArr[$pData->productId] = (object)array('productId' => $pData->productId, 'amount' => 0, 'quantity' => 0, 'transportWeight' => 0, 'transportVolume' => 0, 'inStores' => array());
+                                        }
+                                        $allocatedArr[$pData->productId]->amount += $pData->amount;
+                                        $allocatedArr[$pData->productId]->quantity += $pData->quantity;
+                                        $allocatedArr[$pData->productId]->transportWeight += $pData->transportWeight;
+                                        $allocatedArr[$pData->productId]->transportVolume += $pData->transportVolume;
+                                        if(is_array($pData->inStores)){
+                                            $allocatedArr[$pData->productId]->inStores += $pData->inStores;
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                        
+                        $ship->expenseItems[$expenseId]['allocatedToProducts'] = $allocatedArr;
+                    }
+                } 
                 
                 if ($transportWeight = cat_Products::getTransportWeight($ship->productId, 1)) {
                     $ship->transportWeight = $transportWeight;

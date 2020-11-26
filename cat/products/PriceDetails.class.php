@@ -157,42 +157,19 @@ class cat_products_PriceDetails extends core_Manager
         
         $DateTime = cls::get('type_DateTime', array('params' => array('format' => 'smartTime')));
         
-        // Бутон за задаване на правило за обновяване
-        $data->afterRow = null;
-        
         // Само за публичните показваме правилото за обновяване
         if ($data->masterData->rec->isPublic == 'yes') {
             $uRec = price_Updates::fetch("#type = 'product' AND #objectId = {$data->masterId}");
-            $data->updateCostRec = $uRec;
-            if (is_object($uRec)) {
-                $uRow = price_Updates::recToVerbal($uRec);
-                $arr = array('manual' => tr('Ръчно'), 'nextDay' => tr('Дневно'), 'nextWeek' => tr('Седмично'), 'nextMonth' => tr('Месечно'), 'now' => tr('Ежечасово'));
-                $tpl = new core_ET(tr('|*<b>[#updateMode#]</b> |обновяване на себестойността, последователно по|* [#type#]  <!--ET_BEGIN surcharge-->|с надценка|* <b>[#surcharge#]</b><!--ET_END surcharge-->[#tools#]'));
-                
-                core_RowToolbar::createIfNotExists($uRow->_rowTools);
-                $tools = $uRow->_rowTools->renderHtml(2);
-                
-                $type = '';
-                foreach (array($uRow->sourceClass1, $uRow->sourceClass2, $uRow->sourceClass3) as $cost) {
-                    if (isset($cost)) {
-                        $type .= '<b>' . $cost . '</b>, ';
+            if(!is_object($uRec)){
+                $Cover = doc_Folders::getCover($data->masterData->rec->folderId);
+                if($Cover->isInstanceOf('cat_Categories')){
+                    if($uRec = price_Updates::fetch("#type = 'category' AND #objectId = {$Cover->that}")){
+                        $uRec->_fromCategory = true;
                     }
                 }
-                
-                $type = rtrim($type, ', ');
-                $tpl->append($arr[$uRec->updateMode], 'updateMode');
-                $tpl->append($tools, 'tools');
-                $surcharge = $uRow->costAdd;
-                if(!empty($uRec->costAddAmount)){
-                    $surcharge .= ((!empty($surcharge)) ? tr('|* |и|* ') : '') . $uRow->costAddAmount . " BGN";
-                }
-                if(!empty($surcharge)){
-                    $tpl->append($surcharge, 'surcharge');
-                }
-                
-                $tpl->append($type, 'type');
-                $data->afterRow = $tpl;
             }
+            
+            $data->updateCostRec = $uRec;
         }
         
         if (haveRole('priceDealer,ceo')) {
@@ -318,29 +295,25 @@ class cat_products_PriceDetails extends core_Manager
         $fieldSet->FLD('buttons', 'varchar', 'smartCenter');
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
         
-        
         // Рендираме информацията за себестойностите
         $table = cls::get('core_TableView', array('mvc' => $fieldSet));
         
         $fields = arr::make("price=Стойност|* <small>({$baseCurrencyCode})</small>,type=Вид,updatedOn=В сила от||Valid from,buttons=Действия / Документ");
         $primeCostTpl = $table->get($data->primeCostRows, $fields);
         $primeCostTpl->prepend(tr('|*<div>|Цени без ДДС|*:</div>'));
-        $colspan = countR($fields);
         
         // Рендираме правилото за обновяване само при нужда
         if ($data->masterData->rec->isPublic == 'yes') {
-            if (isset($data->afterRow) && price_Updates::haveRightFor('edit', $data->updateCostRec)) {
-                $afterRowTpl = new core_ET("<tr><td colspan={$colspan}>[#1#][#button#]</td></tr>");
-                $afterRowTpl->append($data->afterRow, '1');
-            } elseif(empty($data->updateCostRec)) {
-                $afterRowTpl = new core_ET("<tr><td colspan={$colspan}>[#1#][#button#]</td></tr>");
-                $afterRowTpl->append(tr('Няма зададено правило за обновяване на себестойност'), '1');
-                
-                if (price_Updates::haveRightFor('add', (object) array('type' => 'product', 'objectId' => $data->masterId))) {
-                    $afterRowTpl->append(ht::createLink('Задаване', array('price_Updates', 'add', 'type' => 'product', 'objectId' => $data->masterId, 'ret_url' => true), false, 'title=Създаване на ново правило за обновяване,ef_icon=img/16/arrow_refresh.png'), 'button');
-                }
+            $upTpl = tr('Няма зададено правило за обновяване на себестойност');
+            if(is_object($data->updateCostRec)){
+                $upTpl = price_Updates::getUpdateTpl($data->updateCostRec);
             }
-            $primeCostTpl->append($afterRowTpl, 'ROW_AFTER');
+            
+            $tpl->replace($upTpl, 'updateInfo');
+            if (price_Updates::haveRightFor('add', (object) array('type' => 'product', 'objectId' => $data->masterId))) {
+                $editUpdateBtn = ht::createLink('Задаване', array('price_Updates', 'add', 'type' => 'product', 'objectId' => $data->masterId, 'ret_url' => true), false, 'title=Създаване на ново правило за обновяване,ef_icon=img/16/arrow_refresh.png');
+                $tpl->replace($editUpdateBtn, 'updateBtn');
+            }
         }
         
         $tpl->append($primeCostTpl, 'primeCosts');

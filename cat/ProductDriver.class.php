@@ -17,6 +17,13 @@
  */
 abstract class cat_ProductDriver extends core_BaseClass
 {
+
+    /**
+     * Обект с информация за ембедъра
+     */
+    public $Embedder;
+
+
     /**
      * Кой може да избира драйвъра
      */
@@ -906,5 +913,46 @@ abstract class cat_ProductDriver extends core_BaseClass
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Кои са свързаните задания за други артикули с този артикул
+     * 
+     * @param mixed $rec
+     * 
+     * @return array 
+     */
+    public function getLinkedJobRecs($id)
+    {
+        return array();
+    }
+    
+    
+    /**
+     * Добавя полета към формата за запитване
+     *
+     * @param int $protoProductId
+     * @param core_FieldSet $fieldset
+     * @param boolean $onlyActive
+     *
+     * @return void
+     */
+    public function addInquiryFields($protoProductId, core_FieldSet &$fieldset, $onlyActive = false)
+    {
+        
+    }
+    
+    
+    /**
+     * Взима шаблона за показване на допълнителните данни от запитването
+     *
+     * @param stdClass $rec
+     *
+     * @return core_ET
+     */
+    public function getInquiryDataTpl($rec)
+    {
+        return new core_ET("");
     }
 }

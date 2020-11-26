@@ -197,6 +197,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                 // Корекция на стойности при нужда
                 if (isset($dRec1->correctProducts) && countR($dRec1->correctProducts)) {
                     $correctionEntries = acc_transaction_ValueCorrection::getCorrectionEntries($dRec1->correctProducts, $dRec1->productId, $dRec1->expenseItemId, $dRec1->quantity, $dRec1->allocationBy);
+                    
                     if (countR($correctionEntries)) {
                         $entries = array_merge($entries, $correctionEntries);
                     }

@@ -38,18 +38,16 @@
                     </div>
                     <!--ET_END contragentAddress-->
                     <!--ET_END contragentName-->
+                    <!--ET_BEGIN contragentVatInfo-->
+                    [#contragentVatInfo#]
+                    <hr style="margin: 3px 0 1px;">
                     <!--ET_BEGIN vatNo-->
-                    <div><small>VAT ID:</small> <span class="bigData" style="padding-left:5px;">[#vatNo#]</span></div>
+                    <div><small>VAT ID:</small> <span class="bigData notBold" style="padding-left:5px;">[#vatNo#]</span></div>
                     <!--ET_END vatNo-->
                     <!--ET_BEGIN contragentUicId-->
-                    <div><small>[#contragentUicCaption#]:</small> <span class="bigData" style="padding-left:5px;"> [#contragentUicId#]</span></div>
+                    <div><small>[#contragentUicCaption#]:</small> <span class="bigData notBold" style="padding-left:5px;"> [#contragentUicId#]</span></div>
                     <!--ET_END contragentUicId-->
-                    <!--ET_BEGIN deliveryLocationId-->
-                    <hr style="margin: 3px 0 1px;">
-                    <div>
-                        To location: [#deliveryLocationId#]
-                    </div>
-                    <!--ET_END deliveryLocationId-->
+                    <!--ET_END contragentVatInfo-->
                 </td>
                 <td>
                     <!--ET_BEGIN MyCompany-->
@@ -59,19 +57,19 @@
                         [#MyAddress#]
                     </div>
                     <!--ET_END MyAddress-->
+
+                    <!--ET_BEGIN vatInfo-->
+                    [#vatInfo#]
+                    <hr style="margin: 3px 0 1px;">
                     <!--ET_BEGIN MyCompanyVatNo-->
-                    <div><small>VAT ID:</small> <span class="bigData" style="padding-left:5px;">[#MyCompanyVatNo#]</span></div>
+                    <div><small>VAT ID:</small> <span class="bigData notBold" style="padding-left:5px;">[#MyCompanyVatNo#]</span></div>
                     <!--ET_END MyCompanyVatNo-->
                     <!--ET_BEGIN uicId-->
-                    <div><small>Tax ID:</small> <span class="bigData" style="padding-left:5px;">[#uicId#]</span></div>
+                    <div><small>Tax ID:</small> <span class="bigData notBold" style="padding-left:5px;">[#uicId#]</span></div>
                     <!--ET_END uicId-->
+                    <!--ET_END vatInfo-->
+
                     <!--ET_END MyCompany-->
-                    <!--ET_BEGIN shipmentStoreId-->
-                    <hr style="margin: 3px 0 1px;">
-                    <div>
-                        From store: [#shipmentStoreId#]
-                    </div>
-                    <!--ET_END shipmentStoreId-->
                 </td>
             </tr>
         </tbody>
@@ -89,9 +87,11 @@
         <tbody>
             <tr>
                 <td class="topCell vtop" style='width:33%;'>
+                    <!--ET_BEGIN paymentMethodId-->
                     <div class='cellRow'>
                         <span class='quiet'>Payment: </span>[#paymentMethodId#]
                     </div>
+                    <!--ET_END paymentMethodId-->
                     <!--ET_BEGIN downpayment-->
                     <div class='cellRow'>
                         <span class='quiet'>Downpayment:</span> [#downpayment#]
@@ -110,11 +110,6 @@
                         [#bank#]<!--ET_END bank--><!--ET_BEGIN bic-->, <span class="nowrap">BIC: [#bic#]</span><!--ET_END bic--></div>
                     </div>
                     <!--ET_END bankAccountId-->
-                    <!--ET_BEGIN caseId-->
-                    <div class='cellRow'>
-                        <span class='quiet'>Case: </span>[#caseId#]
-                    </div>
-                    <!--ET_END caseId-->
                     [#ADDITIONAL_BLOCK#]
                 </td>
                 <!--ET_BEGIN conditions-->

@@ -82,6 +82,7 @@ abstract class deals_DealBase extends core_Master
             $mvc->FLD('closedDocuments', "keylist(mvc={$mvc->className})", 'input=none,notNull');
         }
         $mvc->FLD('closedOn', 'datetime', 'input=none');
+        $mvc->FLD('closeWith', "key(mvc={$mvc->className},allowEmpty)", 'caption=Приключена със,input=none');
     }
     
     
@@ -532,6 +533,9 @@ abstract class deals_DealBase extends core_Master
         }
         
         $mvc->prepareDealTabs($data);
+        if(!empty($data->rec->closeWith)){
+            $data->row->closeWith = $mvc->getLink($data->rec->closeWith, 0);
+        }
         
         $data->selectedTab = $data->tabs->getSelected();
         if (!$data->selectedTab) {

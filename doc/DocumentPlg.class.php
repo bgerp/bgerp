@@ -771,22 +771,34 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
+     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
+     */
+    public static function on_AfterSessionClose($mvc)
+    {
+        foreach ((array)$mvc->saveFileArr as $rec) {
+            try {
+                // Опитваме се да запишем файловете от документа в модела
+                doc_Files::saveFile($mvc, $rec);
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+                
+                // Ако възникне грешка при записването
+                $mvc->logWarning('Грешка при добавяне на връзка между файла и документа', $rec->id);
+            }
+        }
+    }
+    
+    
+    /**
      * Изпълнява се след запис на документ.
      * Ако е може се извиква обновяването на контейнера му
      */
     public static function on_AfterSave($mvc, &$id, $rec, $fields = null)
     {
         $fields = arr::make($fields, true);
-        try {
-            
-            // Опитваме се да запишем файловете от документа в модела
-            doc_Files::saveFile($mvc, $rec);
-        } catch (core_exception_Expect $e) {
-            reportException($e);
-            
-            // Ако възникне грешка при записването
-            $mvc->logErr('Грешка при добавяне на връзка между файла и документа', $id);
-        }
+        
+        setIfNot($mvc->saveFileArr, array());
+        $mvc->saveFileArr[$rec->id] = $rec;
         
         // Изтрива от кеша html представянето на документа
         // $key = 'Doc' . $rec->id . '%';
@@ -4318,6 +4330,7 @@ class doc_DocumentPlg extends core_Plugin
             return ;
         }
         
+        $secondRowArr = array();
         $isNarrow = Mode::is('screenMode', 'narrow') && !Mode::is('printing');
         
         if ($isNarrow) {
@@ -4341,7 +4354,6 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             // Определяме, кои полета ще са на втори ред или дали ще има такива
-            $secondRowArr = array();
             $cnt = 0;
             foreach ($headerArr as $key => &$hArr) {
                 if ($noSecondRow) {
@@ -4389,7 +4401,7 @@ class doc_DocumentPlg extends core_Plugin
         
         $collspan = 0;
         $firstRowCnt = 0;
-        $secondRowCnt = count($secondRowArr);
+        $secondRowCnt = countR($secondRowArr);
         
         if (!$isNarrow && $haveSecondRow) {
             $firstRowCnt = $headerArrCnt - $secondRowCnt;
@@ -4660,5 +4672,32 @@ class doc_DocumentPlg extends core_Plugin
     public static function on_RenderOtherSummary($mvc, &$html, $containerId, $threadId)
     {
         $html .= doc_ExpensesSummary::getSummary($containerId);
+    }
+    
+    
+    /**
+     * Връща дефолтен коментар при връзка на документи
+     * 
+     * @param core_Master $mvc
+     * @param null|string $res
+     * @param integer $id
+     * @param string $id
+     */
+    public static function on_AfterGetDefaultLinkedComment($mvc, &$res, $id, $comment)
+    {
+        if (isset($res)) {
+            
+            return ;
+        }
+        
+        $comment = trim($comment);
+        
+        if (!$comment) {
+            $rec = $mvc->fetchRec($id);
+            $docRow = $mvc->getDocumentRow($id);
+            $res = '(#' . $mvc->getHandle($id) . ') ' . $docRow->title;
+        } else {
+            $res = $comment;
+        }
     }
 }

@@ -335,6 +335,7 @@ abstract class embed_Manager extends core_Master
                 case 'aftercreate':
                 case 'afterupdate':
                 case 'afterread':
+                case 'beforechangestate':
                 case 'afteractivation':
                     $driverClass = $args[0]->{$this->driverClassField};
                     break;
@@ -402,7 +403,7 @@ abstract class embed_Manager extends core_Master
             if ($driverClass) {
                 $dRec = (object) array($this->driverClassField => $driverClass);
                 if ($driver = $this->getDriver($dRec)) {
-                    
+                   
                     // Добавяме ембедъра към аргументите на ивента
                     array_unshift($args, $this);
                     
@@ -479,5 +480,30 @@ abstract class embed_Manager extends core_Master
         }
         
         return $Driver->getClassId() == $check->getClassId();
+    }
+    
+    
+    /**
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
+     */
+    public function prepareSingle_($data)
+    {
+        if($Driver = $this->getDriver($data->rec)){
+            
+            // Ако драйвера има метод за закачане на детайли
+            if(method_exists($Driver, 'getDetails')){
+                if (empty($data->details) && isset($this->details)) {
+                    $data->details = arr::make($this->details);
+                }
+                
+                // Добавят се детайлите от драйвера
+                $driverDetails = $Driver->getDetails($data->rec, $this);
+                $data->details = array_merge($data->details, $driverDetails);
+            }
+        }
+        
+        parent::prepareSingle_($data);
+        
+        return $data;
     }
 }

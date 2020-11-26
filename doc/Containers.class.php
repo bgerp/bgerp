@@ -2679,7 +2679,7 @@ class doc_Containers extends core_Manager
         
         $query->where("#threadId = {$threadId}");
         $query->where("#state = 'rejected'");
-        $query->orderBy('#id', ASC);
+        $query->orderBy('#id', 'ASC');
         
         // Ако има документи оттеглени със треда
         if (count($rejectedInThread)) {

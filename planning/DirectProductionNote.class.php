@@ -33,8 +33,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'acc_TransactionSourceIntf=planning_transaction_DirectProductionNote,acc_AllowArticlesCostCorrectionDocsIntf';
-    
+    public $interfaces = 'acc_TransactionSourceIntf=planning_transaction_DirectProductionNote,acc_AllowArticlesCostCorrectionDocsIntf,label_SequenceIntf=planning_interface_ProductionNoteImpl';
     
     /**
      * Плъгини за зареждане
@@ -610,7 +609,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $dRec->quantityInPack = $resource->quantityInPack;
           
             // Дефолтното к-во ще е разликата между к-та за произведеното до сега и за произведеното в момента
-            $dRec->quantity = core_Math::roundNumber($resource->propQuantity - $bomInfo1['resources'][$index]->propQuantity);
+            $roundQuantity = $resource->propQuantity - $bomInfo1['resources'][$index]->propQuantity;
+            
+            $uomRec = cat_UoM::fetch($dRec->packagingId, 'roundSignificant,round');
+            $dRec->quantity = core_Math::roundNumber($roundQuantity, $uomRec->round, $uomRec->roundSignificant);
             $dRec->quantityFromBom = $dRec->quantity;
             
             $pInfo = cat_Products::getProductInfo($resource->productId);

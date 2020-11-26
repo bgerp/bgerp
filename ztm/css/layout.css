@@ -52,6 +52,7 @@ body {
 .x_title {
     border-bottom: 1px solid rgba(190,197,207, 0.2);
     padding: 1px 5px 6px;
+    display: none;
 }
 .x_title h2 {
     margin: 5px 0 6px;
@@ -62,6 +63,31 @@ body {
 }
 .overflow_hidden, .sidebar-widget, .site_title, .tile, .weather-days .col-sm-2, .x_title h2, table.tile_info td p {
     overflow: hidden;
+}
+.smallInfo {
+    text-align: center;
+}
+.smallIcon {
+    display: inline-block;
+    width: 60px;
+}
+.currentTemp {
+    display: block;
+    text-align: center;
+    font-size: 2em;
+    position: relative;
+    margin-top: -10px;
+    margin-bottom: 0px;
+}
+.timePeriod, .tempD {
+    display: inline-block;
+    margin-bottom: 0;
+}
+
+
+.smallInfo .smallIcon {
+    position: relative;
+    top: 8px;
 }
 .site_title, .x_title h2, table.tile_info td p {
     text-overflow: ellipsis;
@@ -77,7 +103,7 @@ table.tile_info td p {
     display: block;
     text-align: center;
     color: #489fc0;
-    font-size: 3.5em;
+    font-size: 2.7em;
     margin-top: 17px;
 }
 .output span {
@@ -196,6 +222,14 @@ figure {
 }
 .fa-sort-desc.arrow-bottom {
     top: 62px;
+}
+.iconBlock {
+    text-align: center;
+    display: block !important;
+}
+.iconBlock img {
+    width: 100px;
+    height: 100px;
 }
 .optionsBtn {
     position: absolute;
@@ -502,9 +536,34 @@ input:checked + .sliderToggle:before {
     margin-top: 10px;
     background: rgba(0,0,0,0.2);
     padding: 3px 5px;
-    font-size: 1.1em;
+    font-size: 2em;
     border: 1px solid rgba(0,0,0,.25)
 }
+.state {
+    float: right;
+    margin-top: 10px;
+    font-size: 1.3em;
+    padding: 11px 10px;
+
+}
+.state.eco {
+    border: 2px solid #00aa00;
+    color: #4cfe4c;
+    border-radius: 30px 10px;
+}
+
+.state.normal {
+    border: 2px solid rgba(234,213,12,0.5);
+    color: #f4e233;
+    border-radius: 10px;
+}
+
+.state.power {
+    border: 2px solid #d90a0a;
+    color: #f52d2d;
+    border-radius: 60px 60px 60px 60px;
+}
+
 .modal-header {
     padding: 5px;
     border: none;

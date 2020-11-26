@@ -197,7 +197,11 @@ class core_Db
             }
             
             if (defined('EF_DB_SET_PARAMS') && (EF_DB_SET_PARAMS !== false)) {
-                $sqlMode = "SQL_MODE = ''";
+                if (defined('EF_SQL_MODE')) {
+                    $sqlMode = EF_SQL_MODE;
+                } else {
+                    $sqlMode = "SQL_MODE = ''";
+                }
                 $link->query("SET CHARACTER_SET_RESULTS={$this->dbCharset}, COLLATION_CONNECTION={$this->dbCollation}, CHARACTER_SET_CLIENT={$this->dbCharsetClient}, {$sqlMode};");
             }
             

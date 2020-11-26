@@ -32,6 +32,28 @@ class core_Webroot
         $path = self::getPath($filename, $domain);
         
         file_put_contents($path, $contents);
+        
+        if (strpos($headers, 'Pragma:') === false) {
+            $headers .= "\nPragma: public";
+        }
+        
+        if (strpos($headers, 'Cache-Control:') === false) {
+            $headers .= "\nCache-Control: max-age=10800";
+        }
+        
+        if (strpos($headers, 'Expires:') === false) {
+            $headers .= "\nExpires: {{time_10800}}";
+        }
+        
+        if (strpos($headers, 'Content-Type:') === false) {
+            $headers .= "\nContent-Type: " . fileman_Mimes::getMimeByExt(fileman_Files::getExt($filename));
+        }
+        
+        if (strpos($headers, 'Content-Length:') === false) {
+            $headers .= "\nContent-Length: " . filesize($path);
+        }
+        
+        file_put_contents($path . '.headers', $headers);
     }
     
     
@@ -43,6 +65,11 @@ class core_Webroot
     {
         $path = self::getPath($filename, $domain);
         
+        if (file_exists($path)) {
+            @unlink($path);
+        }
+        
+        $path = $path . '.headers';
         if (file_exists($path)) {
             @unlink($path);
         }
@@ -73,9 +100,18 @@ class core_Webroot
         $path = self::getPath($filename, $domain);
         
         if (file_exists($path)) {
-            header("Pragma: public");
-            header("Cache-Control: max-age=10800");
-            header("Content-Type: " . fileman_Mimes::getMimeByExt(fileman_Files::getExt($filename)));
+            // Показваме хедърите
+            $headers = @file_get_contents($path . '.headers');
+            if ($headers) {
+                $headers = preg_replace_callback('/\{\{(.*?)\}\}/', array(get_called_class(), 'replaceHeaderPattern'), $headers);
+                
+                $hArr = explode("\n", $headers);
+                foreach ($hArr as $h) {
+                    if (strlen($h) > 0) {
+                        header($h);
+                    }
+                }
+            }
             
             // Сервираме файла
             readfile($path);
@@ -85,6 +121,31 @@ class core_Webroot
         } else {
             error('404 @Липсващ файл', $filename, $_GET, $_POST, $domain);
         }
+    }
+    
+    
+    /**
+     * Помощна функция за заместване на шаблоните в хедърите
+     * 
+     * @param array $match
+     * 
+     * @return string
+     */
+    protected static function replaceHeaderPattern($match)
+    {
+        $res = '';
+        try {
+            list($f, $v) = explode('_', $match[1]);
+            if ($f == 'time') {
+                $res = gmdate('D, d M Y H:i:s \G\M\T', time() + $v);
+            } else {
+                expect(false, $match);
+            }
+        } catch (core_exception_Expect $e) {
+            reportException($e);
+        }
+        
+        return $res;
     }
     
 

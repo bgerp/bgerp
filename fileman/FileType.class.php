@@ -123,4 +123,41 @@ class fileman_FileType extends type_Varchar
             }
         ", 'SCRIPTS');
     }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $value
+     * 
+     * @see core_Type::isValid()
+     */
+    public function isValid($value)
+    {
+        $res = parent::isValid($value);
+        
+        if ($this->params['allowedExtensions'] && $value) {
+            setIfNot($res, array());
+            
+            $eArr = explode('|', strtolower($this->params['allowedExtensions']));
+            
+            $eArr = arr::make($eArr, true);
+            
+            $fRec = fileman::fetchByFh($value);
+            
+            $ext = fileman::getExt(strtolower($fRec->name));
+            if (!$eArr[$ext]) {
+                $res['error'] = "Разширението на файла не е в допустимите|*: " . implode(', ', $eArr);
+                
+                if ($res['error']) {
+                    $this->error = $res['error'];
+                }
+            }
+        }
+        
+        if ($value !== null) {
+            
+            return $res;
+        }
+    }
 }

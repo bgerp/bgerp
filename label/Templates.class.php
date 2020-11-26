@@ -663,6 +663,60 @@ class label_Templates extends core_Master
     
     
     /**
+     * Добавяне  на дефолтен шаблон
+     * 
+     * @param string $sysId
+     * @param $array $array
+     * @param int $modified
+     * @param int $skipped
+     * 
+     * @return void
+     */
+    public static function addDefaultLabelsFromArray($sysId, $array, &$modified, &$skipped)
+    {
+        $tRec = self::addFromFile($array['title'], $array['path'], $sysId, $array['sizes'], $array['lang'], $array['class'], $array['peripheralDriverClass']);
+        
+        if ($tRec !== false) {
+            label_TemplateFormats::delete("#templateId = {$tRec->id}");
+            $arr = static::getPlaceholders($tRec->template);
+            if (is_array($arr)) {
+                foreach ($arr as $placeholder) {
+                    if (in_array($placeholder, self::$systemPlaceholders)) {
+                        continue;
+                    }
+                    
+                    if ($placeholder == 'BARCODE') {
+                        $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'code128', 'Ratio' => '4', 'Width' => '160', 'Height' => '60', 'Rotation' => 'yes');
+                        label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
+                    } elseif ($placeholder == 'EAN') {
+                        $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'ean13', 'Ratio' => '4', 'Width' => '260', 'Height' => '70', 'Rotation' => 'no');
+                        label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
+                    } elseif($placeholder == 'QR_CODE'){
+                        $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'qr', 'Ratio' => '4', 'Width' => '60', 'Height' => '60', 'Rotation' => 'no');
+                        label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
+                    } elseif($placeholder == 'BARCODE_WORK_CARDS'){
+                        $params = array('Showing' => 'barcode', 'BarcodeType' => 'code128', 'Ratio' => '4', 'Width' => '120', 'Height' => '60', 'Rotation' => 'no');
+                        label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
+                    } else {
+                        $type = 'caption';
+                        $params = array();
+                        if ($placeholder == 'PREVIEW') {
+                            $type = ($placeholder == 'PREVIEW') ? 'image' : 'caption';
+                            $params = array('Width' => planning_Setup::get('TASK_LABEL_PREVIEW_WIDTH'), 'Height' => planning_Setup::get('TASK_LABEL_PREVIEW_HEIGHT'));
+                        }
+                        
+                        label_TemplateFormats::addToTemplate($tRec->id, $placeholder, $type, $params);
+                    }
+                }
+            }
+            $modified++;
+        } else {
+            $skipped++;
+        }
+    }
+    
+    
+    /**
      * Извиква се след SetUp-а на таблицата за модела
      */
     public function loadSetupData()
@@ -670,6 +724,7 @@ class label_Templates extends core_Master
         $res = '';
         $modified = $skipped = 0;
         $array = array('defaultTplPack' => array('title' => 'Етикети от опаковки', 'path' => 'label/tpl/DefaultLabelPack.shtml', 'lang' => 'bg', 'class' => 'cat_products_Packagings', 'sizes' => array('100', '72')),
+                       'defaultTplPack' => array('title' => 'Етикети от протоколи за производство', 'path' => 'label/tpl/DefaultLabelProductionNote.shtml', 'lang' => 'bg', 'class' => 'planning_DirectProductionNote', 'sizes' => array('100', '72')),
                        'defaultTplPackiningList' => array('title' => 'Packaging List label', 'path' => 'label/tpl/DefaultLabelPallet.shtml', 'lang' => 'en', 'class' => 'store_ShipmentOrders', 'sizes' => array('170', '105')),
                        'defaultTplPriceList' => array('title' => 'Ценоразпис без EAN', 'path' => 'label/tpl/DefaultPricelist.shtml', 'lang' => 'bg', 'class' => 'price_reports_PriceList', 'sizes' => array('64.5', '33.5')),
                        'defaultTplPriceListEan' => array('title' => 'Ценоразпис с EAN', 'path' => 'label/tpl/DefaultPricelistEAN.shtml', 'lang' => 'bg', 'class' => 'price_reports_PriceList', 'sizes' => array('64.5', '33.5')),
@@ -679,45 +734,7 @@ class label_Templates extends core_Master
         
         core_Users::forceSystemUser();
         foreach ($array as $sysId => $cArr) {
-            $tRec = self::addFromFile($cArr['title'], $cArr['path'], $sysId, $cArr['sizes'], $cArr['lang'], $cArr['class'], $cArr['peripheralDriverClass']);
-            
-            if ($tRec !== false) {
-                label_TemplateFormats::delete("#templateId = {$tRec->id}");
-                $arr = $this->getPlaceholders($tRec->template);
-                if (is_array($arr)) {
-                    foreach ($arr as $placeholder) {
-                        if (in_array($placeholder, self::$systemPlaceholders)) {
-                            continue;
-                        }
-                        
-                        if ($placeholder == 'BARCODE') {
-                            $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'code128', 'Ratio' => '4', 'Width' => '160', 'Height' => '60', 'Rotation' => 'yes');
-                            label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
-                        } elseif ($placeholder == 'EAN') {
-                            $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'ean13', 'Ratio' => '4', 'Width' => '260', 'Height' => '70', 'Rotation' => 'no');
-                            label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
-                        } elseif($placeholder == 'QR_CODE'){
-                            $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'qr', 'Ratio' => '4', 'Width' => '60', 'Height' => '60', 'Rotation' => 'no');
-                            label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
-                        } elseif($placeholder == 'BARCODE_WORK_CARDS'){
-                            $params = array('Showing' => 'barcode', 'BarcodeType' => 'code128', 'Ratio' => '4', 'Width' => '120', 'Height' => '60', 'Rotation' => 'no');
-                            label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
-                        } else {
-                            $type = 'caption';
-                            $params = array();
-                            if ($placeholder == 'PREVIEW') {
-                                $type = ($placeholder == 'PREVIEW') ? 'image' : 'caption';
-                                $params = array('Width' => planning_Setup::get('TASK_LABEL_PREVIEW_WIDTH'), 'Height' => planning_Setup::get('TASK_LABEL_PREVIEW_HEIGHT'));
-                            }
-                            
-                            label_TemplateFormats::addToTemplate($tRec->id, $placeholder, $type, $params);
-                        }
-                    }
-                }
-                $modified++;
-            } else {
-                $skipped++;
-            }
+            static::addDefaultLabelsFromArray($sysId, $cArr, $modified, $skipped);
         }
         core_Users::cancelSystemUser();
         

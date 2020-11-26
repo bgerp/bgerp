@@ -75,8 +75,8 @@ class cat_plg_AddSearchKeywords extends core_Plugin
                 $detailsKeywords .= ' ' . $productSearchKeywords;
                 
                 // Ако има забележки, и те се добавят към ключовите думи
-                if (!empty($obj->productId)) {
-                    $detailsKeywords .= ' ' . plg_Search::normalizeText($dRec->{$Detail->notesFld});
+                if (!empty($obj->notes)) {
+                    $detailsKeywords .= ' ' . plg_Search::normalizeText($obj->notes);
                 }
             }
             

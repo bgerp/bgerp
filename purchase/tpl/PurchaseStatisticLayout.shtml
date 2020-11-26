@@ -42,15 +42,21 @@
                   <!--ET_BEGIN dealerId-->
                   <span style='font-weight:normal'>|Търговец|*</span>: [#dealerId#]<br>
                   <!--ET_END dealerId-->
-                  <!--ET_BEGIN shipmentStoreIdTop-->
-                  <span style='font-weight:normal'>|До склад|*</span>: [#shipmentStoreIdTop#]<br>
-                  <!--ET_END shipmentStoreIdTop-->
-                  <!--ET_BEGIN deliveryLocationIdTop-->
-                  <span style='font-weight:normal'>|От обект|*</span>: [#deliveryLocationIdTop#]<br>
-                  <!--ET_END deliveryLocationIdTop-->
+                  <!--ET_BEGIN shipmentStoreId-->
+                  <span style='font-weight:normal'>|До склад|*</span>: [#shipmentStoreId#]<br>
+                  <!--ET_END shipmentStoreId-->
+                  <!--ET_BEGIN deliveryLocationId-->
+                  <span style='font-weight:normal'>|От обект|*</span>: [#deliveryLocationId#]<br>
+                  <!--ET_END deliveryLocationId-->
+                  <!--ET_BEGIN caseId-->
+                  <span style='font-weight:normal'>|Каса|*</span>: [#caseId#]<br>
+                  <!--ET_END caseId-->
                   <!--ET_BEGIN originId-->
                   <span style='font-weight:normal'>|Към|*</span>: [#originId#]
                   <!--ET_END originId-->
+                  <!--ET_BEGIN closeWith-->
+                  <span style='font-weight:normal'>|Приключено с|*</span>: [#closeWith#]<br>
+                  <!--ET_END closeWith-->
               </td>
            </tr>
            <tr>
