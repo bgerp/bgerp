@@ -2563,6 +2563,9 @@ class cat_Products extends embed_Manager
     public function cron_closePrivateProducts()
     {
         $now = dt::now();
+        $this->closeItems = array();
+        
+        /*
         $stProductsToClose = array();
         
         $olderThen = cat_Setup::get('CLOSE_UNUSED_PUBLIC_PRODUCTS_OLDER_THEN');
@@ -2591,6 +2594,7 @@ class cat_Products extends embed_Manager
             $this->logWrite('Автоматично затваряне', $sd1->id);
         }
         log_System::add('cat_Products', 'ST close items:' . countR($stProductsToClose), null, 'info', 17);
+        */
         
         // Намираме всички нестандартни артикули
         $olderThen = cat_Setup::get('CLOSE_UNUSED_PRIVATE_PRODUCTS_OLDER_THEN');
