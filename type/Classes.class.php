@@ -114,24 +114,26 @@ class type_Classes extends type_Keylist
         
         $value = parent::fromVerbal($value);
         
-        $arr = explode(',', str_replace('|', ',', trim($value, '|')));
-        $res = array();
-
-        foreach($arr as $class) {
-            $classId = core_Classes::getId($class, true);
-            if(!$classId || !isset($options[$classId])) {
-                $error = true;
-                $errCls[] = $class;
-                continue;
+        if (isset($value)) {
+            $arr = explode(',', str_replace('|', ',', trim($value, '|')));
+            $res = array();
+            
+            foreach($arr as $class) {
+                $classId = core_Classes::getId($class, true);
+                if(!$classId || !isset($options[$classId])) {
+                    $error = true;
+                    $errCls[] = $class;
+                    continue;
+                }
+                $res[$classId] = $classId;
             }
-            $res[$classId] = $classId;
+            
+            if ($error) {
+                $this->error = 'Несъществуващ клас|*: ' . implode(', ', $errCls);
+            }
+            
+            $value = keylist::fromArray($res);
         }
-        
-        if ($error) {
-            $this->error = 'Несъществуващ клас|*: ' . implode(', ', $errCls);
-        }
-
-        $value = keylist::fromArray($res);
                 
         return $value;
     }
@@ -188,6 +190,7 @@ class type_Classes extends type_Keylist
         Mode::pop('text');
         
         $flagRaw = false;
+        $haveGroupName = false;
         foreach($options as $id => $title) {
             if(is_object($title)) {
                 $resOpt[$id] = $title;
@@ -202,6 +205,9 @@ class type_Classes extends type_Keylist
             
             if (!$flagRaw) {
                 list($group, $name) = explode('»', $title);
+                if ($name) {
+                    $haveGroupName = true;
+                }
                 $name = trim($name);
                 $group = trim($group);
                 
@@ -211,7 +217,10 @@ class type_Classes extends type_Keylist
             }
             $resOpt[$id] = $title;
         }
-
+        if (!$haveGroupName) {
+            $flagRaw = true;
+        }
+        
         if (!$flagRaw) {
             ksort($groupedRes);
             $resOpt = array();
