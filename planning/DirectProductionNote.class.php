@@ -404,7 +404,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->productId = cat_Products::getShortHyperlink($rec->productId);
+        $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
+        
         $productRec = cat_Products::fetch($rec->productId, 'measureId');
         $shortUom = cat_UoM::getShortName($productRec->measureId);
         $row->quantity .= " {$shortUom}";
