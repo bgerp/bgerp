@@ -11,6 +11,8 @@
             [#template#]
         </div>
     </div>
+    
+    <div><span class="quiet">|Рендер|*: </span> [#rendererClassId#]</div>
     <div><span class="quiet">|Размери|*: </span> [#sizes#]</div>
     <div><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
     <br>

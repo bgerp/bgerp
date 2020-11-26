@@ -689,6 +689,19 @@ div.productImage {
     position: relative;
     top: -1px; }
 
+  .productCode:before {
+    content: "[";
+    color: #888888;
+    position: relative;
+    top: -1px;
+    margin-right: 2px; }
+  .productCode:after {
+    content: "]";
+    color: #888888;
+    position: relative;
+    top: -1px;
+    margin-left: 2px; }
+
   .printing .document .mergedDetailsholder table.listTable>thead>tr>th {
     background: none !important;
     font-weight: normal;

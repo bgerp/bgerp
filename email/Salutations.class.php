@@ -222,10 +222,11 @@ class email_Salutations extends core_Manager
      *
      * @param core_Query $query
      * @param string     $email
+     * @param boolean    $strictEmail
      *
      * @return bool|string
      */
-    protected static function getSalutationFromQuery($query, $email = null)
+    protected static function getSalutationFromQuery($query, $email = null, $strictEmail = true)
     {
         if (!$query) {
             
@@ -233,6 +234,12 @@ class email_Salutations extends core_Manager
         }
         
         $salutation = '';
+        
+        if ($email && $strictEmail) {
+            $query->where(array("#toEmail = '[#1#]'", $email));
+            
+            $query->limit(1);
+        }
         
         // Вземаме записа
         while ($rec = $query->fetch()) {

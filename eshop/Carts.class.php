@@ -947,12 +947,10 @@ class eshop_Carts extends core_Master
         self::activate($rec, $saleRec->id);
         
         doc_Threads::doUpdateThread($saleRec->threadId);
-        if (!(core_Packs::isInstalled('colab') && isset($cu) && core_Users::isContractor($cu))) {
-            if ($sendEmailIfNecessary === true) {
-                self::sendEmail($rec, $saleRec);
-                doc_Threads::doUpdateThread($saleRec->threadId);
-                eshop_Carts::logDebug('Изпращане на имейл за продажба от онлайн поръчка', $rec->id);
-            }
+        if ($sendEmailIfNecessary === true) {
+            self::sendEmail($rec, $saleRec);
+            doc_Threads::doUpdateThread($saleRec->threadId);
+            eshop_Carts::logDebug('Изпращане на имейл за продажба от онлайн поръчка', $rec->id);
         }
         
         // Форсиране на контрагента в група, онлайн клинети

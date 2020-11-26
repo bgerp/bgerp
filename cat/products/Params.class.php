@@ -103,7 +103,7 @@ class cat_products_Params extends doc_Detail
         $this->FLD('classId', 'class', 'input=hidden,silent');
         $this->FLD('productId', 'int', 'input=hidden,silent');
         $this->FLD('paramId', 'key(mvc=cat_Params,select=typeExt)', 'input,caption=Параметър,mandatory,silent');
-        $this->FLD('paramValue', 'varchar(255)', 'input=none,caption=Стойност,mandatory');
+        $this->FLD('paramValue', 'text', 'input=none,caption=Стойност,mandatory');
         
         $this->setDbUnique('classId,productId,paramId');
         $this->setDbIndex('classId,productId');
@@ -532,5 +532,29 @@ class cat_products_Params extends doc_Detail
         }
         
         sales_TransportValues::recalcTransportByProductId($productId);
+    }
+    
+    
+    /**
+     * Връща нередактируемите имена на параметрите при печат на етикети
+     * 
+     * @param int $classId
+     * @param int $productId
+     * @return array $notEdittableParamNames
+     */
+    public static function getNotEditableLabelParamNames($classId, $productId)
+    {
+        $notEdittableParamNames = array();
+        $pQuery = cat_products_Params::getQuery();
+        $pQuery->EXT('editInLabel', 'cat_Params', 'externalName=editInLabel,externalKey=paramId');
+        $pQuery->where("#editInLabel = 'no' AND #productId = {$productId} AND #classId={$classId}");
+        $pQuery->show('paramId');
+        
+        $notEditableParams = arr::extractValuesFromArray($pQuery->fetchAll(), 'paramId');
+        if(countR($notEditableParams)){
+            $notEdittableParamNames = cat_Params::getParamNameArr($notEditableParams, true) ;
+        }
+        
+        return $notEdittableParamNames;
     }
 }

@@ -776,6 +776,23 @@ div.productImage {
 	   top: -1px;
 	}
 }
+
+.productCode {
+	&:before {
+		content: "[";
+		color: #888;
+		position: relative;
+		top: -1px;
+		margin-right: 2px;
+	}
+	&:after {
+		content: "]";
+		color: #888;
+		position: relative;
+		top: -1px;
+		margin-left: 2px;
+	}
+}
 // подробно показване на вложени детайли при принтиране
 .printing {
 	.document .mergedDetailsholder table.listTable>thead>tr>th{
@@ -7065,6 +7082,7 @@ body.narrow {
 	page-break-inside: avoid;
 	margin-bottom: 10mm;
 }
+
 /*стилове за принтиране*/
 @media print{
 	.wide .singleView {

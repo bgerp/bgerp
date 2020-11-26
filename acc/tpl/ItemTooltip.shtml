@@ -43,11 +43,22 @@
 <td> [#state#]</td>
 </tr>
 <!--ET_END state-->
+
+<!--ET_BEGIN closedOn-->
+<tr>
+<td class='quiet aright'>|Затворено на|*:</td>
+<td> [#closedOn#]</td>
+</tr>
+<!--ET_END closedOn-->
+
 <tr>
 <td class='quiet aright'>|Обект|*:</td>
 <td>[#link#]</td>
 </tr>
-
+<tr>
+<td class='quiet aright'>|Последно|*:</td>
+<td>[#lastUseOn#]</td>
+</tr>
 <!--ET_BEGIN features-->
 <tr>
 <td class='quiet aright' style='vertical-align:top;'>|Свойства|*:</td>

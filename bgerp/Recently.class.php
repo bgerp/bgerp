@@ -206,6 +206,7 @@ class bgerp_Recently extends core_Manager
                 }
                 $docProxy = doc_Containers::getDocument($rec->objectId);
                 $docRow = $docProxy->getDocumentRow();
+                
                 $docRec = $docProxy->fetch();
                 if (!$threadRec) {
                     $threadRec = doc_Threads::fetch($docRec->threadId);

@@ -129,6 +129,14 @@
                 <td>[#showInPublicDocuments#]</td>
             </tr>
             <!--ET_END showInPublicDocuments-->
+            
+            <!--ET_BEGIN editInLabel-->
+            <tr>
+                <td class="title-style">|Редакция за показване в етикет|*</td>
+                <td>[#editInLabel#]</td>
+            </tr>
+            <!--ET_END editInLabel-->
+            
         </table>
         
     	<div style='margin-top: 20px;'><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>

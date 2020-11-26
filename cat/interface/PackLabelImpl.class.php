@@ -74,6 +74,12 @@ class cat_interface_PackLabelImpl
         $placeholders['EAN'] = (object) array('type' => 'text');
         
         if (isset($objId)) {
+            // Проверка има ли продуктови параметри, които не могат да се редактират от формата
+            $productClassId = cat_Products::getClassId();
+            $rec = $this->class->fetch($objId);
+            $notEdittableParamNames = cat_products_Params::getNotEditableLabelParamNames($productClassId, $rec->productId);
+            
+            $labelData = $this->getLabelData($objId, 1, true);
             $labelData = $this->getLabelData($objId, 1, true);
             if (isset($labelData[0])) {
                 foreach ($labelData[0] as $key => $val) {

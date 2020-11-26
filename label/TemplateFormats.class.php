@@ -70,7 +70,7 @@ class label_TemplateFormats extends core_Detail
     /**
      * Данни за тип
      */
-    protected static $typeEnumOpt = 'caption=Надпис,counter=Брояч,image=Картинка,html=HTML,barcode=Баркод';
+    protected static $typeEnumOpt = 'caption=Надпис,text=Текст,counter=Брояч,image=Картинка,html=HTML,barcode=Баркод';
     
     
     /**
@@ -170,7 +170,7 @@ class label_TemplateFormats extends core_Detail
         if ($mvc->haveRightFor('add', $rec)) {
             
             // URL за добавяне
-            $captionUrl = $counterUrl = $imageUrl = $htmlUrl = $barcodeUrl = array(
+            $captionUrl = $counterUrl = $imageUrl = $htmlUrl = $barcodeUrl = $textUrl = array(
                 $mvc,
                 'add',
                 $masterKey => $data->masterId,
@@ -187,6 +187,17 @@ class label_TemplateFormats extends core_Detail
                 'id=btnAddCaption',
                 'ef_icon = img/16/text.png, title=Създаване на нов надпис'
             );
+            
+            // URL за добавяне  шаблон за изображение
+            $textUrl['type'] = 'text';
+            
+            // Добавяме бутона
+            $data->toolbar->addBtn(
+                            'Нов текст',
+                            $textUrl,
+                            'id=btnAddText',
+                            'ef_icon = img/16/text_allcaps.png, title=Създаване на нов текст'
+                            );
             
             // URL за добавяне на шаблон за брояч
             $counterUrl['type'] = 'counter';
@@ -515,6 +526,12 @@ class label_TemplateFormats extends core_Detail
                 $form->FNC('MaxLength', 'int(min=1, max=5000)', 'caption=Макс. символи, input=input');
             break;
             
+            case 'text':
+                
+                // Максимална дължина на символите
+                $form->FNC('MaxLength', 'int(min=1, max=5000)', 'caption=Макс. символи, input=input');
+                break;
+            
             case 'barcode':
                 
                 // Вземаем всички баркодове, които можем да генерираме
@@ -606,6 +623,20 @@ class label_TemplateFormats extends core_Detail
                     
                     // Типа без максимална дължина
                     $type = 'html';
+                }
+                
+                $form->FNC($placeHolderField, $type, "caption={$caption}, input=input, silent");
+            } elseif ($rec->type == 'text') {
+                
+                // Ако е зададена максимална дължина
+                if (is_array($rec->formatParams) && ($maxLength = $rec->formatParams['MaxLength'])) {
+                    
+                    // Задаваме стрингов тип с максимална дължина
+                    $type = "text({$maxLength})";
+                } else {
+                    
+                    // Типа без максимална дължина
+                    $type = 'text';
                 }
                 
                 $form->FNC($placeHolderField, $type, "caption={$caption}, input=input, silent");
@@ -827,6 +858,20 @@ class label_TemplateFormats extends core_Detail
                 
                 // Инстанциня на класа
                 $Html = cls::get('type_Html');
+                
+                // Добавяме в масива
+                $verbalValArr[$valStr] = $Html->toVerbal($val);
+            }
+        } elseif ($type == 'text') {
+            
+            // Стринга, който ще се използва в масива за ключ
+            $valStr = $val . '|' . $updateTempData;
+            
+            // Ако не е вземана стойността
+            if (!$verbalValArr[$valStr]) {
+                
+                // Инстанциня на класа
+                $Html = cls::get('type_Text');
                 
                 // Добавяме в масива
                 $verbalValArr[$valStr] = $Html->toVerbal($val);

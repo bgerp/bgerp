@@ -473,7 +473,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $row->ROW_ATTR['class'] = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'production') ? 'state-active' : 'row-removed'));
         
         $pRec = cat_Products::fetch($rec->productId, 'measureId,code,isPublic,nameEn,name');
-        $row->productId = cat_Products::getShortHyperlink($rec->productId);
+        $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
         $row->measureId = cat_UoM::getShortName($pRec->measureId);
         
         $foundRec = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
