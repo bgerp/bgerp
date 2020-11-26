@@ -17,14 +17,6 @@
  */
 class doc_drivers_LatestDocPortal extends core_BaseClass
 {
-    
-    
-    /**
-     * Максимален брой блокове, които да могат да се поакзват в портала
-     */
-    public $maxCnt = 1;
-    
-    
     /**
      * Интерфейси
      */
