@@ -2239,9 +2239,9 @@ class cat_Products extends embed_Manager
         
         if ($showCode === true) {
             if ($rec->isPublic == 'yes') {
-                $titleTpl = new core_ET('<!--ET_BEGIN code--><span class=quiet>[</span>[#code#]<span class=quiet>]</span> <!--ET_END code-->[#name#]');
+                $titleTpl = new core_ET('<!--ET_BEGIN code--><span class=productCode>[</span>[#code#]<span class=productCode>]</span> <!--ET_END code-->[#name#]');
             } else {
-                $titleTpl = new core_ET('[#name#]<!--ET_BEGIN code--> <span class=quiet>[</span>[#code#]<span class=quiet>]</span><!--ET_END code-->');
+                $titleTpl = new core_ET('[#name#]<!--ET_BEGIN code--> <span class=productCode>[</span>[#code#]<span class=productCode>]</span><!--ET_END code-->');
             }
             
             
@@ -2258,11 +2258,11 @@ class cat_Products extends embed_Manager
             
             if ($rec->isPublic == 'no' && empty($rec->code)) {
                 $count = cat_ProductTplCache::count("#productId = {$rec->id} AND #type = 'description' AND #documentType = '{$documentType}'", 2);
-                $title = "{$title} <span class='quiet'>[</span>Art{$rec->id}<span class=quiet>]</span>";
+                $title = "{$title} <span class='productCode'>[</span>Art{$rec->id}<span class=productCode>]</span>";
                 
                 if ($count > 1) {
                     $vNumber = "/<small class='versionNumber'>v{$count}</small>";
-                    $title = str::replaceLastOccurence($title, '<span class=quiet>]', $vNumber . '<span class=quiet>]');
+                    $title = str::replaceLastOccurence($title, '<span class=productCode>]', $vNumber . '<span class=productCode>]');
                 }
             }
         }
