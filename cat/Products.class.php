@@ -2594,7 +2594,6 @@ class cat_Products extends embed_Manager
         
         // Намираме всички нестандартни артикули
         $olderThen = cat_Setup::get('CLOSE_UNUSED_PRIVATE_PRODUCTS_OLDER_THEN');
-        $olderThen = 1;
         $olderThenDate = dt::addSecs(-1 * $olderThen);
        
         // Затварят се тези, които нямат пера или перата им са последно използвани преди зададената константа
