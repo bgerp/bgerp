@@ -206,7 +206,8 @@ class cal_Reminders extends core_Master
     
     //24x60x60
     public static $map = array('days' => 86400,
-        
+        'workDays' => 86400,
+            
         //7x24x60x60
         'weeks' => 604800,
         
@@ -262,7 +263,7 @@ class cal_Reminders extends core_Master
         // По какво ще се повтаря напомненето - дни, седмици, месеци, години
         $this->FLD(
             'repetitionType',
-            'enum(   days=дена,
+            'enum(   days=дена, workDays=работни дни,
 			                                  weeks=седмици,
 			                                  months=месеца,
 			                                  weekDay=месеца-ден от началото на седмицата,
@@ -560,6 +561,10 @@ class cal_Reminders extends core_Master
                                 $row->repetitionType = 'ден';
                             break;
                             
+                            case 'workDays':
+                                $row->repetitionType = 'работен ден';
+                            break;
+                                
                             case 'weeks':
                                 $row->repetitionType = 'седмица';
                             break;
@@ -801,8 +806,17 @@ class cal_Reminders extends core_Master
         
         $subscribedArr = keylist::toArray($rec->sharedUsers);
         if (countR($subscribedArr)) {
+            $today = dt::today();
             foreach ($subscribedArr as $userId) {
                 if ($userId > 0 && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+                    
+                    // Ако е само за работните дни и потребителят не е на работи този ден, няма да се изпълнява
+                    if (($rec->repetitionType == 'workDays') && ($rec->repetitionEach)) {
+                        if ($today != cal_Calendar::nextWorkingDay(dt::addDays(-1 * $rec->repetitionEach), $userId)) {
+                            continue;
+                        }
+                    }
+                    
                     switch ($rec->action) {
                         case 'notify':
                             bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
@@ -1066,7 +1080,31 @@ class cal_Reminders extends core_Master
             switch ($rec->repetitionType) {
                 // дни
                 case 'days':
-                    $nextStartTime = dt::addDays(($rec->repetitionEach), $timeStart);
+                    $nextStartTime = dt::addDays($rec->repetitionEach, $timeStart);
+                break;
+                
+                // Работни дни
+                case 'workDays':
+                    $shareUsersArr = type_Keylist::toArray($rec->sharedUsers);
+                    $bestNextStartTime = null;
+                    // Най-ранния работен ден на всички споделени
+                    foreach ($shareUsersArr as $uId) {
+                        $nextStartTime = cal_Calendar::nextWorkingDay($timeStart, $uId, $rec->repetitionEach);
+                        setIfNot($bestNextStartTime, $nextStartTime);
+                        if ($nextStartTime < $bestNextStartTime) {
+                            $bestNextStartTime = $nextStartTime;
+                        }
+                    }
+                    
+                    if (!isset($bestNextStartTime)) {
+                        $bestNextStartTime = cal_Calendar::nextWorkingDay($timeStart, null, $rec->repetitionEach);
+                    }
+                    
+                    $bestNextStartTime = $nextStartTime;
+                    
+                    list(, $time) = explode(' ', $timeStart);
+                    
+                    $nextStartTime = $bestNextStartTime . ' ' . $time;
                 break;
                 
                 // седмици
@@ -1141,10 +1179,10 @@ class cal_Reminders extends core_Master
      */
     public static function getSecOfInterval($each, $type)
     {
-        if ($type !== 'days' || $type !== 'weeks') {
+        if ($type !== 'days' || $type !== 'weeks' || $type !== 'workDays') {
             $intervalTs;
         }
-        if ($type == 'days') {
+        if (($type == 'days') || ($type = 'workDays')) {
             $intervalTs = $each * 24 * 60 * 60;
         } else {
             $intervalTs = $each * 7 * 24 * 60 * 60;
@@ -1190,7 +1228,10 @@ class cal_Reminders extends core_Master
                 case 'days':
                     $row->repetitionType = tr('ден');
                     break;
-                    
+                    // работни дни
+                case 'days':
+                    $row->repetitionType = tr('работен ден');
+                    break;
                     // седмици
                 case 'weeks':
                     $row->repetitionType = tr('седмица');

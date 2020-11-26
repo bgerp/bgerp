@@ -734,14 +734,6 @@ class sales_QuotationsDetails extends doc_Detail
         $tpl = new ET('');
         $masterRec = $data->masterData->rec;
         
-        // Ако всички продукти са с еднаква отстъпка и може да се изчисли обобщената информация, няма да показваме отстъпката
-        $unsetDiscount = false;
-        if ($data->summary && countR($data->discounts) == 1) {
-            if (key($data->discounts)) {
-                $unsetDiscount = true;
-            }
-        }
-        
         // Шаблон за задължителните продукти
         $shortest = false;
         $templateFile = ($data->countNotOptional && $data->notOptionalHaveOneQuantity) ? 'sales/tpl/LayoutQuoteDetailsShort.shtml' : 'sales/tpl/LayoutQuoteDetails.shtml';

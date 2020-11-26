@@ -1053,7 +1053,6 @@ class doc_Threads extends core_Manager
             $docProxy = doc_Containers::getDocument($rec->firstContainerId);
             $docRow = $docProxy->getDocumentRow();
             $attr = array();
-            
             $attr = ht::addBackgroundIcon($attr, $docProxy->getIcon());
             
             if (mb_strlen($docRow->title) > self::maxLenTitle) {

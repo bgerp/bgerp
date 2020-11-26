@@ -557,7 +557,7 @@ class cat_BomDetails extends doc_Detail
     {
         // Показваме подробната информация за опаковката при нужда
         deals_Helper::getPackInfo($row->packagingId, $rec->resourceId, $rec->packagingId, $rec->quantityInPack);
-        $row->resourceId = cat_Products::getShortHyperlink($rec->resourceId);
+        $row->resourceId = cat_Products::getAutoProductDesc($rec->resourceId, null, 'short', 'internal');
         
         if ($rec->type == 'stage') {
             $row->ROW_ATTR['style'] = 'background-color:#EFEFEF';
