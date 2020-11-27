@@ -460,15 +460,17 @@ class cms_Articles extends core_Master
     public function renderNavigation_($data)
     {
         $navTpl = new ET();
+        $noRootClass = ($data->hasRootNavigation) ? '' : 'noRoot';
         
         foreach ($data->links as $l) {
-            $selected = ($l->selected) ? $sel = 'sel_page' : '';
+            $selected = ($l->selected) ? 'sel_page' : '';
             if ($l->closed) {
                 $aAttr = array('style' => 'color:#aaa !important;');
             } else {
                 $aAttr = array();
             }
-            $navTpl->append("<div class='nav_item level{$l->level} {$selected}' {$style}>");
+            
+            $navTpl->append("<div class='nav_item {$noRootClass} level{$l->level} {$selected}'>");
             if ($l->url) {
                 $navTpl->append(ht::createLink($l->title, $l->url, null, $aAttr));
             } else {
