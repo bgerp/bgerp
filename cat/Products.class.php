@@ -2626,16 +2626,11 @@ class cat_Products extends embed_Manager
         $bQuery->show('accountNum,ent2Id,blAmount');
         $balances = $bQuery->fetchAll();
         
-        $sum321 = $sum323 = array();
-        
         // Групират се по артикул
+        $blAmounts = array();
         foreach ($balances as $bRec){
             if(isset($bRec->ent2Id)){
-                if($bRec->accountNum == '321'){
-                    $sum321[$bRec->ent2Id] += $bRec->blAmount;
-                } elseif($bRec->accountNum == '321,323'){
-                    $sum323[$bRec->ent2Id] += $bRec->blAmount;
-                }
+                $blAmounts[$bRec->ent2Id] += $bRec->blAmount;
             }
         }
         
@@ -2652,7 +2647,7 @@ class cat_Products extends embed_Manager
                 
                 // Ако са използвани и са складируеми, гледаме какво салдо имат в 321 и 323. Ако е под-минимума затваряме ги
                 $minAmount = ($pRec->lastItemUsedOn >= $treshhold1) ? 10 : 20;
-                if((round($sum321[$pRec->itemId], 2) <= $minAmount) && (round($sum323[$pRec->itemId], 2) <= $minAmount)){
+                if(round($blAmounts[$pRec->itemId], 2) <= $minAmount){
                     $close = true;
                 }
             }
