@@ -891,6 +891,10 @@ class pos_Reports extends core_Master
                     'contragentClassId' => $dRec->contragentClassId,);
                 
                 if($r->quantity){
+                    if($rec->chargeVat == 'no'){
+                        $dRec->amount *= (1 + $dRec->param);
+                    }
+                    
                     $r->sellCost = $dRec->amount / $r->quantity;
                 } else {
                     $r->sellCost = 0;

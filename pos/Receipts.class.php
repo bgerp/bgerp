@@ -325,8 +325,6 @@ class pos_Receipts extends core_Master
             }
         }
         
-        $row->changeCurrency = $row->currency;
-        
         if(isset($fields['-terminal'])){
             $row->id = ht::createLink($row->id, pos_Receipts::getSingleUrlArray($rec->id));
         }
@@ -341,6 +339,7 @@ class pos_Receipts extends core_Master
                 $row->CHANGE_CLASS = ($rec->change < 0 || isset($rec->revertId)) ? 'changeNegative' : 'changePositive';
                 $row->CHANGE_CAPTION = ($rec->change < 0 || isset($rec->revertId)) ? tr("За плащане") : tr("Ресто");
                 $row->change = $mvc->getFieldType('change')->toVerbal(abs($rec->change));
+                $row->changeCurrency = $row->currency;
             } else {
                 unset($row->change);
             }
