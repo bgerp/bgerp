@@ -245,7 +245,7 @@ class cat_Products extends embed_Manager
      *
      * @var string
      */
-    public $recTitleNonPublicTpl = '[#name#] [</span>[#code#]]';
+    public $recTitleNonPublicTpl = '[#name#] [[#code#]]';
     
     
     /**
