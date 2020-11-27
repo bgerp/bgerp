@@ -211,7 +211,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             if (($rec->availability == 'Налични') && $blQuantity < 0) {
                 continue;
             }
-            if ($rec->availability == 'Отрицателни' && $blQuantity >= 0) {
+            if ($rec->availability == 'Отрицателни' && $blQuantity > 0) {
                 continue;
             }
             
