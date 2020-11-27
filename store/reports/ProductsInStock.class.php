@@ -208,10 +208,10 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             //Количество в края на периода
             $blQuantity = $item->blQuantity;
             
-            if (($rec->availability == 'Налични') && $blQuantity < 0) {
+            if (($rec->availability == 'Налични') && $blQuantity < 0.001) {
                 continue;
             }
-            if ($rec->availability == 'Отрицателни' && $blQuantity > 0) {
+            if ($rec->availability == 'Отрицателни' && $blQuantity > 0.001) {
                 continue;
             }
             
