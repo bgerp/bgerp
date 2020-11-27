@@ -42,7 +42,7 @@ class type_Check extends type_Enum
     {
         $caption = $this->options['yes'];
         $caption = tr($caption);
-        $caption = (isset($this->params['displayAsRichtext'])) ? core_Type::getByName('richtext')->toVerbal($caption) : $caption = core_Type::getByName('vacrhar')->toVerbal($caption);
+        $caption = (isset($this->params['displayAsRichtext'])) ? core_Type::getByName('richtext')->toVerbal($caption) : $caption = core_Type::getByName('varchar')->toVerbal($caption);
           
         $attr['class'] .= ' checkbox';
         ht::setUniqId($attr);
