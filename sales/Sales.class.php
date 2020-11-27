@@ -345,6 +345,24 @@ class sales_Sales extends deals_DealMaster
             $dealerId = self::getDefaultDealerId($rec->folderId, $rec->deliveryLocationId);
             $form->setDefault('dealerId', $dealerId);
         }
+        
+        if($form->isSubmitted()){
+            
+            // Ако има избрана каса
+            if(isset($rec->caseId)){
+                if($cu = core_Users::getCurrent()){
+                    
+                    // Потребителя не може да контира в нея, но може да контира в друга/и каси да му се показва предупреждение
+                    if(!bgerp_plg_FLB::canUse('cash_Cases', $rec->caseId, $cu)){
+                        $caseQuery = cash_Cases::getQuery();
+                        bgerp_plg_FLB::addUserFilterToQuery('cash_Cases', $caseQuery, $cu, true);
+                        if($caseQuery->count()){
+                            $form->setWarning('caseId', 'Избрана е Каса, в която не можете да контирате!');
+                        }
+                    }
+                }
+            }
+        }
     }
     
     
