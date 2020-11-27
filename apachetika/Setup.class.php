@@ -4,7 +4,7 @@
 /**
  * Версията на програмата
  */
-defIfNot('APACHE_TIKA_VERSION', '1.7');
+defIfNot('APACHE_TIKA_VERSION', '1.24.1');
 
 
 /**
@@ -48,7 +48,7 @@ class apachetika_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         
-        'APACHE_TIKA_VERSION' => array('enum(1.5, 1.7)', 'caption=Версия на програмата'),
+        'APACHE_TIKA_VERSION' => array('enum(1.7, 1.24.1)', 'caption=Версия на програмата'),
     
     );
 }
