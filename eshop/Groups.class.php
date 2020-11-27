@@ -689,8 +689,9 @@ class eshop_Groups extends core_Master
             $l->url['PU'] = 1;
         }
         $settings = cms_Domains::getSettings();
-        
-        if($settings->showRootNavigation != 'no'){
+       
+        $data->hasRootNavigation = ($settings->showRootNavigation == 'yes');
+        if($data->hasRootNavigation){
             $l->title = $settings->rootNavigationName;
             $l->level = 1;
             $data->links[] = $l;
@@ -706,7 +707,11 @@ class eshop_Groups extends core_Master
             }
             $l->url = self::getUrl($rec);
             $l->title = $this->getVerbal($rec, 'name');
-            $l->level = $rec->saoLevel + 1;
+            $l->level = $rec->saoLevel;
+            if($data->hasRootNavigation){
+                $l->level += 1;
+            }
+            
             $l->selected = ($groupId == $rec->id);
             
             if ($this->haveRightFor('edit', $rec)) {

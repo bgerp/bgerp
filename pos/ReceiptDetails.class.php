@@ -304,6 +304,7 @@ class pos_ReceiptDetails extends core_Detail
                        expect($price = core_Type::getByName('double')->fromVerbal($firstValue), 'Неразпозната цена');
                        $price /= 1 + $rec->param;
                        $rec->price = $price;
+                       $rec->amount = $rec->price * $rec->quantity;
                        $sucessMsg = 'Цената на реда е променена|*!';
                    } else {
                        $skip = true;

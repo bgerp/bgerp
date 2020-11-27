@@ -34,7 +34,7 @@ defIfNot('CAT_CLOSE_UNUSED_PRIVATE_PRODUCTS_OLDER_THEN', 7776000);
 /**
  * Неизползваните от колко време стандартни артикули да се затварят
  */
-defIfNot('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_OLDER_THEN', 7776000);
+defIfNot('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_OLDER_THEN', 31104000);
 
 /**
  * Дефолт свойства на нови артикули в папките на клиенти
@@ -88,6 +88,12 @@ defIfNot('CAT_PACKAGING_AUTO_BARCODE_END', '');
  * Резерва при печат на етикети
  */
 defIfNot('CAT_LABEL_RESERVE_COUNT', '0');
+
+
+/**
+ * Дефолтни папки в които да не се затварят автоматично нестандартните артикули
+ */
+defIfNot('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_SKIP_FOLDERS', '');
 
 
 /**
@@ -212,6 +218,7 @@ class cat_Setup extends core_ProtoSetup
         'CAT_LABEL_RESERVE_COUNT' => array('percent(min=0,max=1)', 'caption=Печат на етикети на опаковки->Резерва'),
         'CAT_CLOSE_UNUSED_PRIVATE_PRODUCTS_OLDER_THEN' => array('time', 'caption=Затваряне на стари нестандартни артикули->Неизползвани от'),
         'CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_OLDER_THEN' => array('time', 'caption=Затваряне на неизползвани стандартни артикули->Създадени преди'),
+        'CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_SKIP_FOLDERS' => array('keylist(mvc=doc_Folders,select=title)', 'caption=Затваряне на неизползвани стандартни артикули->Без тези в папките'),
     );
     
     
@@ -297,6 +304,19 @@ class cat_Setup extends core_ProtoSetup
         if (countR($toSave)) {
             $Products->saveArray($toSave, 'id,name,nameEn');
         }
+    }
+    
+    
+    /**
+     * Менижиране на формата формата за настройките
+     *
+     * @param core_Form $configForm
+     * @return void
+     */
+    public function manageConfigDescriptionForm(&$configForm)
+    {
+        $suggestions = doc_Folders::getOptionsByCoverInterface('cat_ProductFolderCoverIntf');
+        $configForm->setSuggestions('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_SKIP_FOLDERS', $suggestions);
     }
     
     
