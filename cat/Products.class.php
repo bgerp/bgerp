@@ -2565,61 +2565,108 @@ class cat_Products extends embed_Manager
         $now = dt::now();
         $this->closeItems = array();
         
-        /*
-        $stProductsToClose = array();
-        
         $olderThen = cat_Setup::get('CLOSE_UNUSED_PUBLIC_PRODUCTS_OLDER_THEN');
         $olderThenDate = dt::addSecs(-1 * $olderThen);
         
-        $iStQuery = acc_Items::getQuery();
-        $iStQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=objectId');
-        $iStQuery->EXT('pState', 'cat_Products', 'externalName=state,externalKey=objectId');
-        $iStQuery->where("#state = 'active' AND #earliestUsedOn IS NULL AND #isPublic = 'yes' AND #classId = " . cat_Products::getClassId());
-        $iStQuery->where("#createdOn <= '{$olderThenDate}' AND #pState = 'active'"); 
-        $iStQuery->show('objectId');
+        // Затварят се неизползваните стандартни артикули
+        $productQuery = cat_Products::getQuery();
+        $productQuery->EXT('earliestUsedOn', 'acc_Items', array('externalName' => 'earliestUsedOn', 'onCond' => "#acc_Items.classId = {$this->getClassId()} AND #acc_Items.objectId = #id", 'join' => 'right'));
+        $productQuery->EXT('itemId', 'acc_Items', array('externalName' => 'id', 'onCond' => "#acc_Items.classId = {$this->getClassId()} AND #acc_Items.objectId = #id", 'join' => 'right'));
+        $productQuery->where("#isPublic = 'yes'");
+        $productQuery->where("#createdOn <= '{$olderThenDate}'");
+        $productQuery->where("#state = 'active' AND #earliestUsedOn IS NULL");
+        $productQuery->show('earliestUsedOn,brState,modifiedOn,modifiedBy,itemId,state');
+       
+        // Ако има посочени папки, артикулите в тях няма да се проверяват
+        $skipFolders = keylist::toArray(cat_Setup::get('CLOSE_UNUSED_PUBLIC_PRODUCTS_SKIP_FOLDERS'));
+        if(countR($skipFolders)){
+            $productQuery->notIn('folderId', $skipFolders);
+        }
         
-        while ($iStRec = $iStQuery->fetch()) {
-            $pRec1 = cat_Products::fetch($iStRec->objectId, 'id,state,brState');
-            $pRec1->brState = $pRec1->state;
-            $pRec1->state = 'closed';
-            $pRec1->modifiedOn = $now;
-            $pRec1->modifiedBy = core_Users::SYSTEM_USER;
-            $stProductsToClose[$iStRec->objectId] = $pRec1;
+        $stProductsToClose = array();
+        while ($stProductRec = $productQuery->fetch()) {
+            $stProductRec->brState = $stProductRec->state;
+            $stProductRec->state = 'closed';
+            $stProductRec->modifiedOn = $now;
+            $stProductRec->modifiedBy = core_Users::SYSTEM_USER;
+            $stProductsToClose[$stProductRec->id] = $stProductRec;
+            if(isset($stProductRec->itemId)){
+                $this->closeItems[$stProductRec->id] = $stProductRec;
+            }
         }
         
         // Затварят се перата на стандартните артикули, които не са използвани от 3 месеца
-        $this->closeItems = $stProductsToClose;
         $this->saveArray($stProductsToClose, 'id,state,brState,modifiedBy,modifiedOn');
         foreach ($stProductsToClose as $sd1) {
             $this->logWrite('Автоматично затваряне', $sd1->id);
         }
-        log_System::add('cat_Products', 'ST close items:' . countR($stProductsToClose), null, 'info', 17);
-        */
         
+        log_System::add('cat_Products', 'ST close items:' . countR($stProductsToClose), null, 'info', 17);
+         
         // Намираме всички нестандартни артикули
         $olderThen = cat_Setup::get('CLOSE_UNUSED_PRIVATE_PRODUCTS_OLDER_THEN');
         $olderThenDate = dt::addSecs(-1 * $olderThen);
-       
+        
         // Затварят се тези, които нямат пера или перата им са последно използвани преди зададената константа
         $productQuery1 = cat_Products::getQuery();
         $productQuery1->where("#isPublic != 'yes'");
         $productQuery1->where("#createdOn <= '{$olderThenDate}'");
         $productQuery1->where("#state != 'closed' AND #state != 'rejected'");
         $productQuery1->EXT('lastItemUsedOn', 'acc_Items', array('externalName' => 'lastUseOn', 'onCond' => "#acc_Items.classId = {$this->getClassId()} AND #acc_Items.objectId = #id", 'join' => 'right'));
-        $productQuery1->show('id,state,brState,lastItemUsedOn');
+        $productQuery1->EXT('itemId', 'acc_Items', array('externalName' => 'id', 'onCond' => "#acc_Items.classId = {$this->getClassId()} AND #acc_Items.objectId = #id", 'join' => 'right'));
+        $productQuery1->show('id,state,brState,lastItemUsedOn,itemId,canStore');
         $productQuery1->where("#lastItemUsedOn IS NULL OR #lastItemUsedOn <= '{$olderThenDate}'");
         $count = $productQuery1->count();
-        core_App::setTimeLimit($count * 0.7, 400);
+        core_App::setTimeLimit($count * 0.9, 600);
         
+        // Взимат се балансите от складовите сметки
+        $balanceRec = acc_Balances::getLastBalance();
+        $bQuery = acc_BalanceDetails::getQuery();
+        acc_BalanceDetails::filterQuery($bQuery, $balanceRec->id, '321,323');
+        $bQuery->show('accountNum,ent2Id,blAmount');
+        $balances = $bQuery->fetchAll();
+        
+        $sum321 = $sum323 = array();
+        
+        // Групират се по артикул
+        foreach ($balances as $bRec){
+            if(isset($bRec->ent2Id)){
+                if($bRec->accountNum == '321'){
+                    $sum321[$bRec->ent2Id] += $bRec->blAmount;
+                } elseif($bRec->accountNum == '321,323'){
+                    $sum323[$bRec->ent2Id] += $bRec->blAmount;
+                }
+            }
+        }
+        
+        // Всеки нестандартен артикул проверяваме дали ще бъде затворен
+        $treshhold1 = dt::addMonths(-6);
         $saveArr = array();
         while ($pRec = $productQuery1->fetch()) {
-            $pRec->brState = $pRec->state;
-            $pRec->state = 'closed';
-            $pRec->modifiedOn = $now;
-            $pRec->modifiedBy = core_Users::SYSTEM_USER;
-            $saveArr[$pRec->id] = $pRec;
-            if(!empty($pRec->lastItemUsedOn)){
-                $this->closeItems[$pRec->id] = $pRec;
+            $close = false;
+            
+            // Ако не са използвани или са услуги, ще се затварят
+            if(empty($pRec->lastItemUsedOn) || $pRec->canStore != 'yes'){
+                $close = true;
+            } else {
+                
+                // Ако са използвани и са складируеми, гледаме какво салдо имат в 321 и 323. Ако е под-минимума затваряме ги
+                $minAmount = ($pRec->lastItemUsedOn >= $treshhold1) ? 10 : 20;
+                if((round($sum321[$pRec->itemId], 2) <= $minAmount) && (round($sum323[$pRec->itemId], 2) <= $minAmount)){
+                    $close = true;
+                }
+            }
+            
+            // Ако нестандартния артикул отговаря на условията за затваряне затваря се
+            if($close){
+                $pRec->brState = $pRec->state;
+                $pRec->state = 'closed';
+                $pRec->modifiedOn = $now;
+                $pRec->modifiedBy = core_Users::SYSTEM_USER;
+                $saveArr[$pRec->id] = $pRec;
+                if(!empty($pRec->lastItemUsedOn)){
+                    $this->closeItems[$pRec->id] = $pRec;
+                }
             }
         }
         
