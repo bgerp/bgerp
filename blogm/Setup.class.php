@@ -30,6 +30,12 @@ defIfNot('BLOGM_SPAM_WORDS', 'sex, xxx, porn, cam, teen, adult, cheap, sale, xen
 
 
 /**
+ *  Заглавие на всичките статии
+ */
+defIfNot('BLOGM_ALL_ARTICLES_IN_PAGE_TITLE', 'Всички статии в блога');
+
+
+/**
  * class blogm_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -81,13 +87,10 @@ class blogm_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'BLOGM_DEFAULT_THEME' => array('class(interface=blogm_ThemeIntf,select=title)', 'caption=Тема по подразбиране в блога->Тема'),
-        
         'BLOGM_MAX_COMMENT_DAYS' => array('time(uom=days,suggestions=1 ден|2 дни|5 дни|1 седмица|2 седмици|30 дни|45 дни|50 дни)', 'caption=След колко време статията да се заключва за коментиране?->Време'),
-        
         'BLOGM_ARTICLES_PER_PAGE' => array('int', 'caption=Колко статии да се показват на една страница->Брой'),
-        
         'BLOGM_SPAM_WORDS' => array('text', 'caption=Определяне на SPAM рейтинг на коментар->Думи'),
-    
+        'BLOGM_ALL_ARTICLES_IN_PAGE_TITLE' => array('varchar', 'caption=Заглавие на страницата с всички статии->Заглавие'),
     );
     
     
