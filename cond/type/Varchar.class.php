@@ -2,7 +2,7 @@
 
 
 /**
- * Тип за параметър 'Символи'
+ * Тип за параметър 'Едноредов текст'
  *
  *
  * @category  bgerp
@@ -13,7 +13,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Символи
+ * @title     Едноредов текст
  */
 class cond_type_Varchar extends cond_type_abstract_Proto
 {

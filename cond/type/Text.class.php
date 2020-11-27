@@ -2,18 +2,18 @@
 
 
 /**
- * Тип за параметър 'Текст'
+ * Тип за параметър 'Многоредов текст'
  *
  *
  * @category  bgerp
  * @package   cond
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Текст
+ * @title     Многоредов текст
  */
 class cond_type_Text extends cond_type_abstract_Proto
 {
