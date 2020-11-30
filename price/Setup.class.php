@@ -109,7 +109,8 @@ class price_Setup extends core_ProtoSetup
         'price_ProductCosts',
         'price_Updates',
         'price_Cache',
-        'migrate::migrateUpdates'
+        'migrate::migrateUpdates',
+        'migrate::migrateCosts'
     );
     
     
@@ -146,7 +147,6 @@ class price_Setup extends core_ProtoSetup
      */
     public $defClasses = 'price_reports_PriceList,price_AutoDiscounts,price_interface_AverageCostPricePolicyImpl,price_interface_LastAccCostPolicyImpl,price_interface_LastActiveDeliveryCostPolicyImpl,price_interface_LastDeliveryCostPolicyImpl,price_interface_LastActiveBomCostPolicy,price_interface_AverageCostStorePricePolicyImpl';
 
-    
     
     /**
      * Миграция на правилата за обновяване на себестойности
@@ -197,5 +197,19 @@ class price_Setup extends core_ProtoSetup
         
         $datetime = dt::addMonths(-1 * 12); 
         price_ProductCosts::saveCalcedCosts($datetime);
+    }
+    
+    
+    /**
+     * Обновяване на себестойностите
+     */
+    public function migrateCosts()
+    {
+        $key = "migration_price_migrateUpdates";
+       
+        if (core_Packs::getConfigKey('core', $key)) {
+            $datetime = dt::addMonths(-1 * 12);
+            price_ProductCosts::saveCalcedCosts($datetime);
+        }
     }
 }
