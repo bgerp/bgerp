@@ -4409,6 +4409,9 @@ table .eshop-btn {
 	font-weight: bold;
 	padding-top: 10px;
 	margin-bottom: 2px;
+	&.noRoot {
+		font-weight: normal;
+	}
 }
 
 #cmsNavigation div:first-child {
