@@ -210,6 +210,9 @@ class price_Setup extends core_ProtoSetup
         if (core_Packs::getConfigKey('core', $key)) {
             $datetime = dt::addMonths(-1 * 12);
             price_ProductCosts::saveCalcedCosts($datetime);
+            
+            $Type = $oldValue = $newValue = null;
+            price_interface_AverageCostStorePricePolicyImpl::saveAvgPrices($Type, $oldValue, $newValue);
         }
     }
 }

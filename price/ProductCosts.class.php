@@ -153,8 +153,14 @@ class price_ProductCosts extends core_Manager
             if (cls::load($policyId, true)) {
                 
                 // Ако няма отделен крон процес
+                $Policy = cls::get($policyId);
                 $Interface = cls::getInterface('price_CostPolicyIntf', $policyId);
                 if($Interface->hasSeparateCalcProcess()) continue;
+                
+                // Ако е миграция, средната складова няма да се преизчислява от тук
+                if (Mode::is('isMigrate') && ($Policy instanceof price_interface_AverageCostStorePricePolicyImpl)) {
+                    continue;
+                }
                 
                 // Кои са засегнатите артикули, касаещи политиката
                 $affectedProducts = $Interface->getAffectedProducts($datetime);
@@ -188,16 +194,6 @@ class price_ProductCosts extends core_Manager
         
         if (countR($res['insert'])) {
             $self->saveArray($res['insert']);
-        }
-        
-        // Ако е миграция, няма да се обновява средната складова да не стане дублиране
-        if (Mode::is('isMigrate')) {
-            $avgStorePirce = price_interface_AverageCostStorePricePolicyImpl::getClassId();
-            foreach ($res['update'] as $uKey => $uRec){
-                if($uRec->classId == $avgStorePirce){
-                    unset($res['update'][$uKey]);
-                }
-            }
         }
         
         if(is_array($res['update'])){
