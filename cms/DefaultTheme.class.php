@@ -371,4 +371,18 @@ class cms_DefaultTheme extends core_ProtoInner
             $innerFormField->title = core_Setup::get('EF_APP_TITLE', true);
         }
     }
+    
+    
+    /**
+     * Подготвя формата за въвеждане на данни за вътрешния обект
+     * 
+     * {@inheritDoc}
+     * @see core_ProtoInner::prepareEmbeddedForm()
+     */
+    public function prepareEmbeddedForm(core_Form &$form)
+    {
+        if (!$form->rec->id) {
+            $form->setDefault('title', core_Setup::get('EF_APP_TITLE', true));
+        }
+    }
 }
