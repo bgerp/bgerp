@@ -289,8 +289,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
         $alreadyCalculatedProductIds = arr::extractValuesFromArray($exRecs, 'productId');
         
         // Кои от тях имат избрана такава политика за обновяване
-        $productIdsWithThisPolicyArr = $me->getAffectedTargetedProducts($publicProductIds);
-        $count = countR($productIdsWithThisPolicyArr);
+        $count = countR($publicProductIds);
         
         if (!$count) {
             return;
@@ -299,7 +298,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
         core_App::setTimeLimit($count * 0.8, 900);
         
         // Мапване на артикулите с перата и намиране на последните им дебити в посочените складове
-        $map = $me->getProductItemMap($productIdsWithThisPolicyArr, $alreadyCalculatedProductIds);
+        $map = $me->getProductItemMap($publicProductIds, $alreadyCalculatedProductIds);
         $dRecs = $me->getLastDebitRecs(array_keys($map), $storeItems, false);
        
         $valiorMap = array();

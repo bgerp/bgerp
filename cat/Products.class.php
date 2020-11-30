@@ -1686,13 +1686,14 @@ class cat_Products extends embed_Manager
      * @param mixed     $notInGroups      - групи в които да не участват
      * @param null|bool $isPublic         - null за всички артикули, true за стандартните, false за нестандартните
      * @param null|bool $driverId         - null за всички артикули, true за тези с избрания драйвер
-     *
+     * @param null|bool $showTemplates     - дали да се показват и шаблоните
+     * 
      * @return array $products         - артикулите групирани по вида им стандартни/нестандартни
      */
-    public static function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null, $orHasProperties = false, $groups = null, $notInGroups = null, $isPublic = null, $driverId = null)
+    public static function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null, $orHasProperties = false, $groups = null, $notInGroups = null, $isPublic = null, $driverId = null, $showTemplates = null)
     {
         $Type = core_Type::getByName('key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)');
-        foreach (array('customerClass', 'customerId', 'orHasProperties', 'isPublic', 'driverId') as $val) {
+        foreach (array('customerClass', 'customerId', 'orHasProperties', 'isPublic', 'driverId', 'showTemplates') as $val) {
             if (isset(${"{$val}"})) {
                 $Type->params[$val] = ${"{$val}"};
             }
@@ -2565,43 +2566,41 @@ class cat_Products extends embed_Manager
         $now = dt::now();
         $this->closeItems = array();
         
-        $olderThen = cat_Setup::get('CLOSE_UNUSED_PUBLIC_PRODUCTS_OLDER_THEN');
-        $olderThenDate = dt::addSecs(-1 * $olderThen);
+        $checFolders = keylist::toArray(cat_Setup::get('CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS'));
+        if(countR($checFolders)){
+            $olderThen = cat_Setup::get('CLOSE_UNUSED_PUBLIC_PRODUCTS_OLDER_THEN');
+            $olderThenDate = dt::addSecs(-1 * $olderThen);
+            
+            // Затварят се неизползваните стандартни артикули
+            $productQuery = cat_Products::getQuery();
+            $productQuery->EXT('earliestUsedOn', 'acc_Items', array('externalName' => 'earliestUsedOn', 'onCond' => "#acc_Items.classId = {$this->getClassId()} AND #acc_Items.objectId = #id", 'join' => 'right'));
+            $productQuery->EXT('itemId', 'acc_Items', array('externalName' => 'id', 'onCond' => "#acc_Items.classId = {$this->getClassId()} AND #acc_Items.objectId = #id", 'join' => 'right'));
+            $productQuery->where("#isPublic = 'yes'");
+            $productQuery->where("#createdOn <= '{$olderThenDate}'");
+            $productQuery->where("#state = 'active' AND #earliestUsedOn IS NULL");
+            $productQuery->show('earliestUsedOn,brState,modifiedOn,modifiedBy,itemId,state');
+            $productQuery->in('folderId', $checFolders);
         
-        // Затварят се неизползваните стандартни артикули
-        $productQuery = cat_Products::getQuery();
-        $productQuery->EXT('earliestUsedOn', 'acc_Items', array('externalName' => 'earliestUsedOn', 'onCond' => "#acc_Items.classId = {$this->getClassId()} AND #acc_Items.objectId = #id", 'join' => 'right'));
-        $productQuery->EXT('itemId', 'acc_Items', array('externalName' => 'id', 'onCond' => "#acc_Items.classId = {$this->getClassId()} AND #acc_Items.objectId = #id", 'join' => 'right'));
-        $productQuery->where("#isPublic = 'yes'");
-        $productQuery->where("#createdOn <= '{$olderThenDate}'");
-        $productQuery->where("#state = 'active' AND #earliestUsedOn IS NULL");
-        $productQuery->show('earliestUsedOn,brState,modifiedOn,modifiedBy,itemId,state');
-       
-        // Ако има посочени папки, артикулите в тях няма да се проверяват
-        $skipFolders = keylist::toArray(cat_Setup::get('CLOSE_UNUSED_PUBLIC_PRODUCTS_SKIP_FOLDERS'));
-        if(countR($skipFolders)){
-            $productQuery->notIn('folderId', $skipFolders);
-        }
-        
-        $stProductsToClose = array();
-        while ($stProductRec = $productQuery->fetch()) {
-            $stProductRec->brState = $stProductRec->state;
-            $stProductRec->state = 'closed';
-            $stProductRec->modifiedOn = $now;
-            $stProductRec->modifiedBy = core_Users::SYSTEM_USER;
-            $stProductsToClose[$stProductRec->id] = $stProductRec;
-            if(isset($stProductRec->itemId)){
-                $this->closeItems[$stProductRec->id] = $stProductRec;
+            $stProductsToClose = array();
+            while ($stProductRec = $productQuery->fetch()) {
+                $stProductRec->brState = $stProductRec->state;
+                $stProductRec->state = 'closed';
+                $stProductRec->modifiedOn = $now;
+                $stProductRec->modifiedBy = core_Users::SYSTEM_USER;
+                $stProductsToClose[$stProductRec->id] = $stProductRec;
+                if(isset($stProductRec->itemId)){
+                    $this->closeItems[$stProductRec->id] = $stProductRec;
+                }
             }
+            
+            // Затварят се перата на стандартните артикули, които не са използвани от 3 месеца
+            $this->saveArray($stProductsToClose, 'id,state,brState,modifiedBy,modifiedOn');
+            foreach ($stProductsToClose as $sd1) {
+                $this->logWrite('Автоматично затваряне', $sd1->id);
+            }
+            
+            log_System::add('cat_Products', 'ST close items:' . countR($stProductsToClose), null, 'info', 17);
         }
-        
-        // Затварят се перата на стандартните артикули, които не са използвани от 3 месеца
-        $this->saveArray($stProductsToClose, 'id,state,brState,modifiedBy,modifiedOn');
-        foreach ($stProductsToClose as $sd1) {
-            $this->logWrite('Автоматично затваряне', $sd1->id);
-        }
-        
-        log_System::add('cat_Products', 'ST close items:' . countR($stProductsToClose), null, 'info', 17);
          
         // Намираме всички нестандартни артикули
         $olderThen = cat_Setup::get('CLOSE_UNUSED_PRIVATE_PRODUCTS_OLDER_THEN');

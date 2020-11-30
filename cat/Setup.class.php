@@ -91,9 +91,9 @@ defIfNot('CAT_LABEL_RESERVE_COUNT', '0');
 
 
 /**
- * Дефолтни папки в които да не се затварят автоматично нестандартните артикули
+ * Дефолтни папки в които да се затварят автоматично нестандартните артикули
  */
-defIfNot('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_SKIP_FOLDERS', '');
+defIfNot('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS', '');
 
 
 /**
@@ -218,7 +218,7 @@ class cat_Setup extends core_ProtoSetup
         'CAT_LABEL_RESERVE_COUNT' => array('percent(min=0,max=1)', 'caption=Печат на етикети на опаковки->Резерва'),
         'CAT_CLOSE_UNUSED_PRIVATE_PRODUCTS_OLDER_THEN' => array('time', 'caption=Затваряне на стари нестандартни артикули->Неизползвани от'),
         'CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_OLDER_THEN' => array('time', 'caption=Затваряне на неизползвани стандартни артикули->Създадени преди'),
-        'CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_SKIP_FOLDERS' => array('keylist(mvc=doc_Folders,select=title)', 'caption=Затваряне на неизползвани стандартни артикули->Без тези в папките'),
+        'CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS' => array('keylist(mvc=doc_Folders,select=title)', 'caption=Затваряне на неизползвани стандартни артикули->Само в папките'),
     );
     
     
@@ -316,7 +316,7 @@ class cat_Setup extends core_ProtoSetup
     public function manageConfigDescriptionForm(&$configForm)
     {
         $suggestions = doc_Folders::getOptionsByCoverInterface('cat_ProductFolderCoverIntf');
-        $configForm->setSuggestions('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_SKIP_FOLDERS', $suggestions);
+        $configForm->setSuggestions('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS', $suggestions);
     }
     
     
