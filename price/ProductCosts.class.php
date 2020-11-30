@@ -190,8 +190,20 @@ class price_ProductCosts extends core_Manager
             $self->saveArray($res['insert']);
         }
         
-        if (countR($res['update'])) {
-            $self->saveArray($res['update'], 'id,price,quantity,sourceClassId,sourceId,updatedOn,valior');
+        // Ако е миграция, няма да се обновява средната складова да не стане дублиране
+        if (Mode::is('isMigrate')) {
+            $avgStorePirce = price_interface_AverageCostStorePricePolicyImpl::getClassId();
+            foreach ($res['update'] as $uKey => $uRec){
+                if($uRec->classId == $avgStorePirce){
+                    unset($res['update'][$uKey]);
+                }
+            }
+        }
+        
+        if(is_array($res['update'])){
+            if (countR($res['update'])) {
+                $self->saveArray($res['update'], 'id,price,quantity,sourceClassId,sourceId,updatedOn,valior');
+            }
         }
     }
     
