@@ -43,7 +43,7 @@ class eshop_Carts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,productCount=Артикули,total=Сума,saleId,userId,createdOn=Създаване,activatedOn=Активиране,domainId';
+    public $listFields = 'id,productCount=Артикули,total=Сума,saleId,userId,createdOn=Създаване,modifiedOn=Модифициране,activatedOn=Активиране,domainId';
     
     
     /**
@@ -2436,7 +2436,7 @@ class eshop_Carts extends core_Master
             $lifetime = (isset($rec->userId) || !empty($rec->email)) ? $settings->lifetimeForUserDraftCarts : $settings->lifetimeForNoUserDraftCarts;
         }
         
-        // Ако и е изтекла продължителността и е чернова се изтрива
+        // Кога се очаква кошницата да е невалидна
         $endOfLife = dt::addSecs($lifetime, $rec->createdOn);
         
         return $endOfLife;
