@@ -310,4 +310,25 @@ class cms_FancyTheme extends core_ProtoInner
             
         return $hImage;
     }
+    
+    
+    /**
+     *
+     * @param cms_DefaultTheme $mvc
+     * @param mixed $innerStateField
+     * @param mixed $innerFormField
+     * @param stdClass $rec
+     * @param mixed $fields
+     * @param mixed $mode
+     */
+    public static function on_BeforeSave($mvc, &$innerStateField, &$innerFormField, $rec, $fields = null, $mode = null)
+    {
+        if (!trim($innerFormField->title) && !$rec->id && core_Users::isSystemUser()) {
+            if (!$innerFormField) {
+                $innerFormField = new stdClass();
+            }
+            
+            $innerFormField->title = core_Setup::get('EF_APP_TITLE', true);
+        }
+    }
 }
