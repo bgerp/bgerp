@@ -3090,6 +3090,9 @@ span.sharing-history-title {
   width: 100%;
   max-width: 460px !important; }
 
+.externalPage .formTable .formTitle a {
+  color: #dddddd !important; }
+
 /*
  * стилове за външната част при потребител контрактор
  */
