@@ -97,7 +97,7 @@ class pos_Reports extends core_Master
     /**
      * Полета, които ще се показват в листов изгле,д
      */
-    public $listFields = 'id, title=Заглавие, pointId, total, paid, state, createdOn, createdBy';
+    public $listFields = 'id, valior, title=Документ, pointId, total, paid, state, createdOn, createdBy';
     
     
     /**
@@ -121,7 +121,7 @@ class pos_Reports extends core_Master
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'createdOn';
+    public $filterDateField = 'valior, createdOn';
     
     
     /**
@@ -166,7 +166,7 @@ class pos_Reports extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->query->orderBy('#createdOn', 'DESC');
+        $data->query->orderBy('valior', 'DESC');
         pos_Points::addPointFilter($data->listFilter, $data->query);
     }
     
@@ -872,7 +872,7 @@ class pos_Reports extends core_Master
         
         $res = array();
         
-        $valior = dt::verbal2mysql($rec->activatedOn, false);
+        $valior = dt::verbal2mysql($rec->valior, false);
         $classId = pos_Reports::getClassId();
         
         // Обхождат се продадените артикули
