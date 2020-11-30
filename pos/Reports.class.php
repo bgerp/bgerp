@@ -107,12 +107,6 @@ class pos_Reports extends core_Master
     
     
     /**
-     * Поле за филтриране по дата
-     */
-    public $valiorFld = 'createdOn';
-    
-    
-    /**
      * Групиране на документите
      */
     public $newBtnGroup = '3.5|Търговия';
