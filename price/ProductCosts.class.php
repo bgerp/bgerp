@@ -192,14 +192,14 @@ class price_ProductCosts extends core_Manager
         $exRecs = $exQuery->fetchAll();
         $res = arr::syncArrays($update, $exRecs, 'productId,classId', 'price,quantity,sourceClassId,sourceId,valior');
         
+        // Добавяне на нови записи
         if (countR($res['insert'])) {
             $self->saveArray($res['insert']);
         }
         
-        if(is_array($res['update'])){
-            if (countR($res['update'])) {
-                $self->saveArray($res['update'], 'id,price,quantity,sourceClassId,sourceId,updatedOn,valior');
-            }
+        // Обновяване на съществуващите записи
+        if (countR($res['update'])) {
+            $self->saveArray($res['update'], 'id,price,quantity,sourceClassId,sourceId,updatedOn,valior');
         }
     }
     
