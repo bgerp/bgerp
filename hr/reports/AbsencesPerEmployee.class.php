@@ -444,7 +444,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         
         if ($dRec->total) {
             
-            $row->employee = "<b>" . $dRec->total[total] . "</b>";
+            $row->employee = "<b>" . $dRec->total['total'] . "</b>";
             
             foreach ($periodsArr as $key => $val) {
                 
