@@ -222,7 +222,7 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
     /**
      * Дали има самостоятелен крон процес за изчисление
      *
-     * @return datetime $datetime
+     * @param datetime $datetime
      *
      * @return array
      */

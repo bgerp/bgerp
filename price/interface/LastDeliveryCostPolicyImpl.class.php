@@ -142,7 +142,7 @@ class price_interface_LastDeliveryCostPolicyImpl extends price_interface_BaseCos
     /**
      * Дали има самостоятелен крон процес за изчисление
      *
-     * @return datetime $datetime
+     * @param datetime $datetime
      *
      * @return array
      */

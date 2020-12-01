@@ -355,7 +355,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
     /**
      * Дали има самостоятелен крон процес за изчисление
      *
-     * @return datetime $datetime
+     * @param datetime $datetime
      *
      * @return array
      */

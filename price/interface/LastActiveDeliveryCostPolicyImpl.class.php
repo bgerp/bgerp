@@ -86,9 +86,9 @@ class price_interface_LastActiveDeliveryCostPolicyImpl extends price_interface_B
     
     /**
      * Дали има самостоятелен крон процес за изчисление
-     *
-     * @return datetime $datetime
-     *
+     * 
+     * @param datetime $datetime
+     * 
      * @return array
      */
     public function getAffectedProducts($datetime)
