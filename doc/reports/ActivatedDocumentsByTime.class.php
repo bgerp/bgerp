@@ -330,6 +330,8 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $data->rec->to . '</b>', 'to');
         }
         
+        $usersVerb = '';
+        
         if ((isset($data->rec->users)) && ((min(array_keys(keylist::toArray($data->rec->users))) >= 1))) {
             foreach (type_Keylist::toArray($data->rec->users) as $user) {
                 $usersVerb .= (core_Users::getTitleById($user) . ', ');
