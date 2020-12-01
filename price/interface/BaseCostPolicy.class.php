@@ -103,7 +103,7 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
      *
      * @param array $affectedTargetedProducts
      *
-     * @return $res
+     * @return array
      *         ['classId']       - клас ид на политиката
      *         ['productId']     - ид на артикул
      *         ['quantity']      - количество
