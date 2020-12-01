@@ -3090,6 +3090,9 @@ span.sharing-history-title {
   width: 100%;
   max-width: 460px !important; }
 
+.externalPage .formTable .formTitle a {
+  color: #dddddd !important; }
+
 /*
  * стилове за външната част при потребител контрактор
  */
@@ -3773,6 +3776,8 @@ table .eshop-btn {
   font-weight: bold;
   padding-top: 10px;
   margin-bottom: 2px; }
+  #cmsNavigation .level1.noRoot {
+    font-weight: normal; }
 
 #cmsNavigation div:first-child {
   margin-top: 0 !important; }

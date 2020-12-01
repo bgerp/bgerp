@@ -232,7 +232,9 @@ class eshop_Products extends core_Master
         $rec = $form->rec;
         
         if ($form->rec->coDriver) {
-            $protoProducts = doc_Prototypes::getPrototypes('cat_Products', $form->rec->coDriver);
+            
+            $suggestions = cat_Products::getProducts(null, null, null, 'canSell', null, null, false, null, null, 'yes', $form->rec->coDriver, true);
+            $protoProducts = $suggestions;//doc_Prototypes::getPrototypes('cat_Products', $form->rec->coDriver);
             
             if (countR($protoProducts)) {
                 $form->setField('proto', 'input');
