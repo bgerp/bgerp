@@ -905,7 +905,7 @@ class core_Users extends core_Manager
         $currentUserRec = Mode::get('currentUserRec');
         $retUrl = getRetUrl();
         $form = $this->getForm(array(
-            'title' => '|*<img src=' . sbf('img/signin.png') . " align='top'>&nbsp;|Вход в|* " . $conf->EF_APP_TITLE,
+            'title' => '|*<img src=' . sbf('img/signin.png') . ">&nbsp;|Вход в|* " . $conf->EF_APP_TITLE,
             'name' => 'login'
         ));
         
@@ -949,7 +949,7 @@ class core_Users extends core_Manager
             $form->toolbar->addFnBtn('Вход с криптиране', "this.form.action=('{$httpsUrl}');this.form.submit();", array('style' => 'background-color: #9999FF'));
         }
         
-        $form->info = "<center style='font-size:0.8em;color:#666;'>" . tr($conf->CORE_LOGIN_INFO) . '</center>';
+        $form->info = "<div style='text-align: center;font-size:0.8em;color:#666;'>" . tr($conf->CORE_LOGIN_INFO) . '</div>';
         
         // Ако е зададено да се използва имейл-а за ник
         if (EF_USSERS_EMAIL_AS_NICK) {

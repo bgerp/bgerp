@@ -211,7 +211,7 @@ class drdata_Vats extends core_Manager
             $rec->vat = $canonocalVat;
             $rec->lastUsed = $rec->lastChecked = dt::verbal2mysql();
             if (in_array($rec->status, array('valid', 'invalid', 'unknown'))) {
-                $this->save($rec);
+                $this->save($rec, NULL, 'IGNORE');
             }
         } else {
             // Проверяваме дали кеша не е изтекъл

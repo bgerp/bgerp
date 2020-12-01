@@ -75,9 +75,11 @@ class type_Classes extends type_Keylist
      */
     public function toVerbal($value)
     {
-        $arr = keylist::fromArray($value);
+        $arr = keylist::toArray($value);
+        
+        $res = array();
         foreach($arr as $v) {
-            if (is_numeric($value)) {
+            if (is_numeric($v)) {
                 $v = parent::toVerbal($v);
                 
                 if (strpos($v, '||') !== false) {
@@ -87,10 +89,10 @@ class type_Classes extends type_Keylist
 
             $res[] = $v;
         }
-
-        $value = implode(', ', $value);
-
-        return $value;;
+        
+        $value = implode(', ', $res);
+        
+        return $value;
     }
     
     

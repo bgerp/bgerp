@@ -505,6 +505,7 @@ class store_ShipmentOrders extends store_DocumentMaster
             $contragentData->pCode = $rec->pCode;
             $contragentData->place = $rec->place;
             $contragentData->address = $rec->address;
+            $contragentData->priority = 10;
         }
         
         if (core_Packs::isInstalled('eshop')) {

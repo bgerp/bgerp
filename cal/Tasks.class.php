@@ -483,7 +483,7 @@ class cal_Tasks extends embed_Manager
         
         $progressPx = min(100, round(100 * $rec->progress));
         $progressRemainPx = 100 - $progressPx;
-        $row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$blue}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
+        $row->progressBar = "<span style='white-space: nowrap; display: inline-block;'><span style='display:inline-block;top:-5px;border-bottom:solid 10px {$blue}; width:{$progressPx}px;'> </span><span style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></span></span>";
         
         if ($rec->timeEnd && ($rec->state != 'closed' && $rec->state != 'rejected')) {
             $remainingTime = dt::mysql2timestamp($rec->timeEnd) - time();

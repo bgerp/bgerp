@@ -44,7 +44,7 @@
                                 <table class='top-table fright'>
                                 	<!--ET_BEGIN progressBar-->
                                     <td class='aright'>|Прогрес|*:</td>
-                                        <td><b>[#progressBar#] [#progress#]</b></td>
+                                        <td>[#progressBar#] <b>[#progress#]</b></td>
                                     </tr>
                                     <!--ET_END progressBar-->
                                     <!--ET_BEGIN email-->

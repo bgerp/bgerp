@@ -444,7 +444,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         
         if ($dRec->total) {
             
-            $row->employee = "<b>" . $dRec->total[total] . "</b>";
+            $row->employee = "<b>" . $dRec->total['total'] . "</b>";
             
             foreach ($periodsArr as $key => $val) {
                 
@@ -590,7 +590,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
     public function getNextRefreshDates($rec)
     {
         $date = new DateTime(dt::now());
-        $toAdd = 25 - $date->format(H);
+        $toAdd = 25 - $date->format('H');
         $interval = 'PT' . $toAdd . 'H';
         $date->add(new DateInterval($interval));
         $d1 = $date->format('Y-m-d H:i:s');
