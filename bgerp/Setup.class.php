@@ -76,7 +76,7 @@ defIfNot('BGERP_NOTIFY_NORMAL', 86400);
  */
 defIfNot('BGERP_BLOCK_ALERT', 'never');
 defIfNot('BGERP_BLOCK_WARNING', 'night');
-defIfNot('BGERP_BLOCK_NORMAL', 'nonworking');
+defIfNot('BGERP_BLOCK_NORMAL', 'nonworking|night');
 
 
 /**

@@ -718,6 +718,7 @@ class cat_Products extends embed_Manager
         $fields['measureId'] = array('caption' => 'Мярка', 'mandatory' => 'mandatory');
         $fields['groups'] = array('caption' => 'Групи');
         $fields['meta'] = array('caption' => 'Свойства');
+        $fields['info'] = array('caption' => 'Описание');
         
         $categoryType = 'key(mvc=cat_Categories,select=name,allowEmpty)';
         $groupType = 'keylist(mvc=cat_Groups, select=name, makeLinks)';
