@@ -1326,7 +1326,7 @@ class cat_Boms extends core_Master
             
             // Намираме кои редове са му детайли
             $query = cat_BomDetails::getQuery();
-            $query->where("#parentId = {$rec->id}");
+            $query->where("#parentId = {$rec->id} AND #bomId = {$rec->bomId}");
             $query->EXT('state', 'cat_Boms', 'externalName=state,externalKey=bomId');
             
             // За всеки детайл
