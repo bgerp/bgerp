@@ -719,8 +719,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     private static function getDefaultDebitPrice($rec)
     {
         $quantity = !empty($rec->jobQuantity) ? $rec->jobQuantity : $rec->quantity;
+        $valior = (!empty($rec->valior)) ? $rec->valior : dt::now();
         
-        return cat_Products::getPrimeCost($rec->productId, $rec->packagingId, $quantity, $rec->valior);
+        return cat_Products::getPrimeCost($rec->productId, $rec->packagingId, $quantity, $valior);
     }
     
     
