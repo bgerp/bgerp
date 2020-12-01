@@ -125,13 +125,13 @@ defIfNot('CORE_TEMP_PATH_MAX_AGE', 864000);
 /**
  * Разделител за хилядите при форматирането на числата
  */
-defIfNot('EF_NUMBER_THOUSANDS_SEP', ' ');
+defIfNot('EF_NUMBER_THOUSANDS_SEP', '&#x20;');
 
 
 /**
  * Дробен разделител при форматирането на числата
  */
-defIfNot('EF_NUMBER_DEC_POINT', ',');
+defIfNot('EF_NUMBER_DEC_POINT', '&#44;');
 
 
 /**
