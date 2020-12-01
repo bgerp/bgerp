@@ -369,6 +369,7 @@ class plg_Clone extends core_Plugin
                             $oldRec = clone $dRec;
                             $dRec->{$Detail->masterKey} = $newMasterId;
                             unset($dRec->id);
+                            $dRec->_isClone = true;
                             
                             // Ако има махаме ги от $form->rec
                             if (countR($dontCloneFields)) {
