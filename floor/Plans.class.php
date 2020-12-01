@@ -189,7 +189,7 @@ class floor_Plans extends core_Master {
             floor_Objects::save($rec, 'x,y');
         }
 
-        die;
+        shutdown();
     }
 
 
