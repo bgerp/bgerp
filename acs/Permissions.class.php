@@ -249,7 +249,7 @@ class acs_Permissions extends core_Master
     /**
      * Връща масив с картите и зоните, които отключват и времето в което е валидно
      * 
-     * @return boolean|array
+     * @return array
      */
     public static function getRelationsMapForCards()
     {

@@ -426,7 +426,7 @@ class ztm_RegisterValues extends core_Manager
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $value = ztm_LongValues::getValueByHash($rec->value);
-        $Type = ztm_Registers::getOurType($rec->registerId, false);
+        $Type = ztm_Registers::getOurType($rec->registerId);
         if (($Type instanceof type_Double || $Type instanceof type_Int) && !is_numeric($value)) {
             $row->value = ht::createHint($row->value, 'Стойността е с променен тип', 'error');
         } else {

@@ -51,7 +51,7 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
      *
      * @param array $affectedTargetedProducts
      *
-     * @return $res
+     * @return array
      *         ['classId']       - клас ид на политиката
      *         ['productId']     - ид на артикул
      *         ['quantity']      - количество

@@ -45,7 +45,7 @@ class price_interface_LastActiveDeliveryCostPolicyImpl extends price_interface_B
      *
      * @param array $affectedTargetedProducts
      *
-     * @return $res
+     * @return array
      *         ['classId']       - клас ид на политиката
      *         ['productId']     - ид на артикул
      *         ['quantity']      - количество
@@ -86,9 +86,9 @@ class price_interface_LastActiveDeliveryCostPolicyImpl extends price_interface_B
     
     /**
      * Дали има самостоятелен крон процес за изчисление
-     *
-     * @return datetime $datetime
-     *
+     * 
+     * @param datetime $datetime
+     * 
      * @return array
      */
     public function getAffectedProducts($datetime)
