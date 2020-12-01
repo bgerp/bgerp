@@ -1806,6 +1806,7 @@ class sales_Sales extends deals_DealMaster
                 }
                 
                 $contrData->email = $cartRec->email;
+                $contrData->priority = 20;
                 
                 return $contrData;
             }
