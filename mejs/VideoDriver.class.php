@@ -49,7 +49,7 @@ class mejs_VideoDriver extends core_BaseClass
      * @param $maxWidth int Максимална широчина на елемента
      * @param $isAbsolute bool Дали URL-тата да са абсолютни
      *
-     * @return core_ET Представяне на обекта в HTML шабло
+     * @return core_ET|string Представяне на обекта в HTML шабло
      */
     public static function render($rec, $maxwidth = 1200, $absolute = false)
     {
