@@ -2676,6 +2676,10 @@ class doc_Threads extends core_Manager
             $points += 3;
         }
         
+        if ($data->priority) {
+            $points *= $data->priority;
+        }
+        
         return $points;
     }
     
