@@ -344,9 +344,9 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
         
         $marker = 0;
         if (isset($data->rec->documents)) {
+            $documentVerb = '';
             foreach (type_Keylist::toArray($data->rec->documents) as $document) {
                 $marker++;
-                
                 
                 $documentVerb .= (core_Classes::getTitleById($document));
                 
