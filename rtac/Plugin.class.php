@@ -18,7 +18,7 @@ class rtac_Plugin extends core_Plugin
     /**
      * Шаблон за намиране на потребителите
      */
-    public static $pattern = "/\B(?'pre'@)(?'nick'(\w|\.)+)/";
+    public static $pattern = "/\B(?'pre'@)(?'nick'(\w|\.)+(\w){1})/";
     
     
     /**

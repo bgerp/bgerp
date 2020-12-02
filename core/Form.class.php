@@ -1147,7 +1147,7 @@ class core_Form extends core_FieldSet
         if (count($this->fields)) {
             foreach ($this->fields as $field) {
                 if ($field->input == 'hidden') {
-                    $hiddens[$field->name] = $vars[$field->name];
+                    $hiddens[$field->name] = $field->type->toHidden($vars[$field->name]);
                 }
             }
             core_Request::addUrlHash($hiddens);
