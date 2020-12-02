@@ -248,6 +248,19 @@ class core_Type extends core_BaseClass
     
     
     /**
+     * Обръща стойността в хидън
+     *
+     * @param string $value
+     *
+     * @return mixed stdClass, array, string, ...
+     */
+    public function toHidden($value)
+    {
+        return $value;
+    }
+    
+    
+    /**
      * Проверява зададената стойност дали е допустима за този тип.
      * Стойността е във вътрешен формат (MySQL)
      * Връща масив с ключове 'warning', 'error' и 'value'.
