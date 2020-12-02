@@ -65,6 +65,29 @@ class fileman_type_Files extends type_Keylist
     
     
     /**
+     * Обръща стойността в хидън
+     *
+     * @param string $value
+     *
+     * @return mixed stdClass, array, string, ...
+     */
+    public function toHidden($value)
+    {
+        if(!empty($value) && keylist::isKeylist($value)){
+            $valueArr = $this->toArray($value);
+            $newValueArr = array();
+            foreach ($valueArr as $id) {
+                $newValueArr[] = fileman_Files::fetchField($id, 'fileHnd');
+            }
+            
+            return implode(',', $newValueArr);
+        }
+        
+        return parent::toHidden($value);
+    }
+    
+    
+    /**
      * @todo Чака за документация...
      */
     public function toVerbal($fhList)

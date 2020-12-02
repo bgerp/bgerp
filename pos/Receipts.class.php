@@ -783,8 +783,6 @@ class pos_Receipts extends core_Master
      */
     public function renderReceipts($data)
     {
-        $tpl = new ET('');
-        
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $tpl->append(tr('Чакащи бележки') . " ({$data->count})", 'title');
         $fieldset = new core_FieldSet();
