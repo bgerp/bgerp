@@ -58,10 +58,24 @@ class type_Enum extends core_Type
      */
     public function fromVerbal($value)
     {
-        if (strlen($value) && !isset($this->options[$value])) {
+        // Ако има стойност и тя не е в опциите
+        if (isset($value) && !isset($this->options[$value])) {
+            
+            // Ако стойността е празна да се върне null и да не се сетне грешка
+            if(!strlen($value)){
+                
+                return;
+            }
+            
             $this->error = 'Недопустима стойност за изброим тип';
             
             return false;
+        }
+        
+        // Ако е празен стринг и е в опциите да не се върне
+        if($value === ''){
+            
+            return;
         }
         
         return $value;
