@@ -373,6 +373,7 @@ class log_System extends core_Manager
         
         $roleId = core_Roles::fetchByName('admin');
         $adminsArr = core_Users::getByRole($roleId);
+        
         while ($rec = $query->fetch()) {
             $more = false;
             $errType = '';
@@ -409,6 +410,18 @@ class log_System extends core_Manager
             $msgType .= $msgType ? ' ' : '';
             
             foreach ($adminsArr as $userId) {
+                $showNotifications = log_Setup::get('ADD_SYSTEM_NOTIFICATIONS');
+                $pSettingsKey = crm_Profiles::getSettingsKey();
+                $valsArr = core_Settings::fetchKey($pSettingsKey, $userId);
+                
+                if (isset($valsArr['LOG_ADD_SYSTEM_NOTIFICATIONS'])) {
+                    $showNotifications = $valsArr['LOG_ADD_SYSTEM_NOTIFICATIONS'];
+                }
+                
+                if ($showNotifications == 'no') {
+                    continue;
+                }
+                
                 $moreUsr = false;
                 $msg = "|Нови {$msgType}грешки в системния лог|*";
                 
