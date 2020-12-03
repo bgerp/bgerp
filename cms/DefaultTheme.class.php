@@ -70,7 +70,7 @@ class cms_DefaultTheme extends core_ProtoInner
         
         // Добавяме заглавния текст
         $title = $this->innerForm->title;
-
+        
         $style = '';
         if ($this->innerForm->titleColor) {
             $style = " style='color:{$this->innerForm->titleColor};'";
@@ -349,5 +349,40 @@ class cms_DefaultTheme extends core_ProtoInner
         }
         
         return $path;
+    }
+    
+    
+    /**
+     * 
+     * @param cms_DefaultTheme $mvc
+     * @param mixed $innerStateField
+     * @param mixed $innerFormField
+     * @param stdClass $rec
+     * @param mixed $fields
+     * @param mixed $mode
+     */
+    public static function on_BeforeSave($mvc, &$innerStateField, &$innerFormField, $rec, $fields = null, $mode = null)
+    {
+        if (!trim($innerFormField->title) && !$rec->id && core_Users::isSystemUser()) {
+            if (!$innerFormField) {
+                $innerFormField = new stdClass();
+            }
+            
+            $innerFormField->title = core_Setup::get('EF_APP_TITLE', true);
+        }
+    }
+    
+    
+    /**
+     * Подготвя формата за въвеждане на данни за вътрешния обект
+     * 
+     * {@inheritDoc}
+     * @see core_ProtoInner::prepareEmbeddedForm()
+     */
+    public function prepareEmbeddedForm(core_Form &$form)
+    {
+        if (!$form->rec->id) {
+            $form->setDefault('title', core_Setup::get('EF_APP_TITLE', true));
+        }
     }
 }

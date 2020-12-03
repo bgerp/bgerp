@@ -125,13 +125,13 @@ defIfNot('CORE_TEMP_PATH_MAX_AGE', 864000);
 /**
  * Разделител за хилядите при форматирането на числата
  */
-defIfNot('EF_NUMBER_THOUSANDS_SEP', ' ');
+defIfNot('EF_NUMBER_THOUSANDS_SEP', '&#x20;');
 
 
 /**
  * Дробен разделител при форматирането на числата
  */
-defIfNot('EF_NUMBER_DEC_POINT', ',');
+defIfNot('EF_NUMBER_DEC_POINT', '&#44;');
 
 
 /**
@@ -217,7 +217,7 @@ define('CORE_LAST_DB_VERSION', '18.25-Shabran');
  * Тази константа не трябва да се ползва с core_Setup::getConfig(),
  * а само с: core_setup::CURRENT_VERSION
  */
-define('CORE_CODE_VERSION', '19.51-Vezhen');
+define('CORE_CODE_VERSION', '20.49-Sinanitsa');
 
 
 /**

@@ -28,9 +28,9 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
     /**
      * Изчислява себестойностите на засегнатите артикули
      *
-     * @param array $affectedTargetedProducts
+     * @param array $affectedProducts
      *
-     * @return $res
+     * @return array
      *         ['classId']       - клас ид на политиката
      *         ['productId']     - ид на артикул
      *         ['quantity']      - количество
@@ -41,8 +41,7 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
      */
     public function calcCosts($affectedProducts)
     { 
-        $affectedTargetedProducts = $this->getAffectedTargetedProducts($affectedProducts);
-        $result = $this->getCosts($affectedTargetedProducts);
+        $result = $this->getCosts($affectedProducts);
         
         return $result;
     }
@@ -100,51 +99,11 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
     
     
     /**
-     * За кои от посочените артикули има права за обновяване
-     * 
-     * @param array $affectedProducts
-     * 
-     * @return array $result
-     */
-    protected function getAffectedTargetedProducts($affectedProducts)
-    {
-        $result = array();
-        $affectedProducts = arr::make($affectedProducts);
-        if(!countR($affectedProducts)) {
-            
-            return $result;
-        }
-       
-        $uQuery = price_Updates::getQuery();
-        $uQuery->where("#sourceClass1 = {$this->getClassId()} OR #sourceClass2 = {$this->getClassId()} OR #sourceClass3 = {$this->getClassId()}");
-        $uQuery->show('type,objectId');
-        $uRecs = $uQuery->fetchAll();
-        
-        $categoryClassId = cat_Categories::getClassId();
-        $pQuery = cat_Products::getQuery();
-        $pQuery->EXT('folderClassId', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
-        $pQuery->EXT('folderCoverId', 'doc_Folders', 'externalName=coverId,externalKey=folderId');
-        $pQuery->where("#state = 'active' AND #folderClassId = {$categoryClassId} AND #isPublic = 'yes' AND #canStore = 'yes' AND (#canBuy = 'yes' OR #canManifacture = 'yes' OR #canSell = 'yes')");
-        $pQuery->in('id', $affectedProducts);
-        $pQuery->show('id,folderCoverId');
-      
-        while($pRec = $pQuery->fetch()){
-            array_walk($uRecs, function ($a) use ($pRec, &$result) {
-                if(($a->type == 'product' && $a->objectId == $pRec->id) || ($a->type == 'category' && $a->objectId == $pRec->folderCoverId)){
-                    $result[$pRec->id] = $pRec->id;
-                }});
-        }
-        
-        return $result;
-    }
-    
-    
-    /**
      * Изчислява себестойностите на засегнатите артикули
      *
      * @param array $affectedTargetedProducts
      *
-     * @return $res
+     * @return array
      *         ['classId']       - клас ид на политиката
      *         ['productId']     - ид на артикул
      *         ['quantity']      - количество
@@ -263,7 +222,7 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
     /**
      * Дали има самостоятелен крон процес за изчисление
      *
-     * @return datetime $datetime
+     * @param datetime $datetime
      *
      * @return array
      */
@@ -271,7 +230,7 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
     {
         // Всички артикули с движения във всички складове
         $affected = $this->getAffectedProductWithStoreMovement($datetime, 'all');
-        
+       
         return $affected;
     }
 }

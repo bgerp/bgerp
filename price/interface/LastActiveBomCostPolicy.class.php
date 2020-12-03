@@ -45,7 +45,7 @@ class price_interface_LastActiveBomCostPolicy extends price_interface_BaseCostPo
      *
      * @param array $affectedTargetedProducts
      *
-     * @return $res
+     * @return array
      *         ['classId']       - клас ид на политиката
      *         ['productId']     - ид на артикул
      *         ['quantity']      - количество

@@ -24,7 +24,7 @@ class pwa_Plugin extends core_Plugin
         if (!core_Webroot::isExists($name, $domainId)) {
             $lastServiceWorker = core_Permanent::get('lastServiceWorker' . $domainId);
             if($lastServiceWorker) {
-                core_Webroot::remode($name, $domainId);
+                core_Webroot::remove($name, $domainId);
             }
             core_Webroot::register(file_get_contents($serviceWorkerPath), 'Expires: {{time_604800}}', $name, $domainId);
         }

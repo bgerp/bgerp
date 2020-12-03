@@ -106,7 +106,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         
         while ($sRec = $sQuery->fetch()) {
             if (bgerp_plg_FLB::canUse('bank_OwnAccounts', $sRec, $cu, 'select')) {
-                $res[$sRec->id] = bank_OwnAccounts::getTitleById($sRec->id, FdocumentALSE);
+                $res[$sRec->id] = bank_OwnAccounts::getTitleById($sRec->id, FALSE);
             }
         }
         

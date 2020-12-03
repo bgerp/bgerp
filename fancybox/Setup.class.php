@@ -39,7 +39,7 @@ class fancybox_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         
-        'FANCYBOX_VERSION' => array('enum(1.3.4, 2.1.5)', 'mandatory, caption=Версията на програмата->Версия')
+        'FANCYBOX_VERSION' => array('enum(1.3.4, 2.1.5, 3.5.7)', 'mandatory, caption=Версията на програмата->Версия')
     
     );
     

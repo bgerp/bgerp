@@ -404,7 +404,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->productId = cat_Products::getShortHyperlink($rec->productId);
+        if(isset($fields['-single'])){
+            $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
+        } else {
+            $row->productId = cat_Products::getShortHyperlink($rec->productId, null, 'short', 'internal');
+        }
+        
         $productRec = cat_Products::fetch($rec->productId, 'measureId');
         $shortUom = cat_UoM::getShortName($productRec->measureId);
         $row->quantity .= " {$shortUom}";
@@ -714,8 +719,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     private static function getDefaultDebitPrice($rec)
     {
         $quantity = !empty($rec->jobQuantity) ? $rec->jobQuantity : $rec->quantity;
+        $valior = (!empty($rec->valior)) ? $rec->valior : dt::now();
         
-        return cat_Products::getPrimeCost($rec->productId, $rec->packagingId, $quantity, $rec->valior);
+        return cat_Products::getPrimeCost($rec->productId, $rec->packagingId, $quantity, $valior);
     }
     
     

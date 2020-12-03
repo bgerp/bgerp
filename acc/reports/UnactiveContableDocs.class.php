@@ -85,7 +85,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
         
         $form->setSuggestions('documentType', $contoClasses);
         
-        $states = cls::get(sales_Sales)->getFieldType('state')->options;
+        $states = cls::get('sales_Sales')->getFieldType('state')->options;
         
         $form->setSuggestions('states', $states);
     }

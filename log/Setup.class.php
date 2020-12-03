@@ -14,6 +14,12 @@ defIfNot('LOG_WARNING_TO_ERR_CNT', 3);
 
 
 /**
+ * Изпращане на системни известия
+ */
+defIfNot('LOG_ADD_SYSTEM_NOTIFICATIONS', 'yes');
+
+
+/**
  *
  *
  *
@@ -89,5 +95,6 @@ class log_Setup extends core_ProtoSetup
         
         'LOG_WARNING_TO_ERR_PERIOD' => array('time(suggestions=5 мин, 20 мин, 1 час)', 'caption=Период за преобразуване на предупрежденията в грешки->Максимално време'),
         'LOG_WARNING_TO_ERR_CNT' => array('int', 'caption=Брой записи над които предупрежденията ще са грешки->Брой'),
+        'LOG_ADD_SYSTEM_NOTIFICATIONS' => array('enum(yes=Да,no=Не)', 'caption=Показване на системния извесия->Избор, customizeBy=admin'),
     );
 }

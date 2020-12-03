@@ -160,10 +160,12 @@ class label_Templates extends core_Master
         $this->FLD('sizes', 'varchar(128)', 'caption=Размери, mandatory, width=100%');
         $this->FLD('classId', 'class(interface=label_SequenceIntf, select=title, allowEmpty)', 'caption=Източник->Клас');
         $this->FLD('peripheralDriverClassId', 'class(interface=peripheral_PrinterIntf, select=title, allowEmpty)', 'caption=Източник->Периферия');
+        
         $this->FLD('template', 'html(tinyEditor=no)', 'caption=Шаблон->HTML');
         $this->FLD('css', 'text', 'caption=Шаблон->CSS');
         $this->FLD('sysId', 'varchar', 'input=none');
         $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,width=2em');
+        $this->FLD('rendererClassId', 'class(interface=label_TemplateRendererIntf, select=title, allowEmpty)', 'caption=Източник->Рендер');
         
         $this->setDbUnique('sysId');
         $this->setDbIndex('classId');
@@ -505,7 +507,7 @@ class label_Templates extends core_Master
      *
      * @return string
      */
-    public static function placeArray($string, $placeArr)
+    public static function placeArray($string, $placeArr, $templateId = null)
     {
         if (!$string || !$placeArr) {
             
@@ -514,6 +516,17 @@ class label_Templates extends core_Master
         
         $nArr = array();
         $placeholders = self::getPlaceholders($string);
+        
+        if(isset($templateId)){
+            
+            // Ако има избран допълнителен клас за рендиране, дава му се възможност да се променят данните на етикета
+            if($rendererClassId = label_Templates::fetchField($templateId, 'rendererClassId')){
+                if(cls::load($rendererClassId, true)){
+                    $RendererIntf = cls::getInterface('label_TemplateRendererIntf', $rendererClassId);
+                    $RendererIntf->modifyLabelData($templateId, $string, $placeholders, $placeArr);
+                }
+            }
+        }
         
         // Всички плейсхолдъри, подменяме ги с главни букви
         if (is_array($placeholders)) {
@@ -602,10 +615,12 @@ class label_Templates extends core_Master
      * @param string|NULL $lang              - език на шаблона
      * @param mixed       $class             - клас към който да е шаблона
      * @param mixed       $peripheralClassId - драйвър на периферията
+     * @param mixed       $rendererClassId   - клас за рендиране
+     * 
      *
      * @return stdClass|FALSE - записа на шаблона или FALSE ако не е променян
      */
-    public static function addFromFile($title, $filePath, $sysId, $sizes = array(), $lang = 'bg', $class = null, $peripheralClassId = null)
+    public static function addFromFile($title, $filePath, $sysId, $sizes = array(), $lang = 'bg', $class = null, $peripheralClassId = null, $rendererClassId = null)
     {
         // Проверки на данните
         expect(in_array($lang, array('bg', 'en')), $lang);
@@ -627,7 +642,7 @@ class label_Templates extends core_Master
         }
         
         $isContentTheSame = md5($exRec->template) == $templateHash;
-        
+       
         // Ако подадените параметри са същите като съществуващите, не се обновява/създава нищо
         if ($isContentTheSame && $exRec->title == $title && $exRec->title == $title && $exRec->sizes == $sizes && $exRec->lang == $lang && $exRec->classId == $classId) {
             
@@ -655,6 +670,10 @@ class label_Templates extends core_Master
             $exRec->peripheralDriverClassId = cls::get($peripheralClassId)->getClassId();
         }
         
+        if (isset($rendererClassId)) {
+            $exRec->rendererClassId = cls::get($rendererClassId)->getClassId();
+        }
+        
         // Създаване/обновяване на шаблона
         static::save($exRec);
         
@@ -674,7 +693,7 @@ class label_Templates extends core_Master
      */
     public static function addDefaultLabelsFromArray($sysId, $array, &$modified, &$skipped)
     {
-        $tRec = self::addFromFile($array['title'], $array['path'], $sysId, $array['sizes'], $array['lang'], $array['class'], $array['peripheralDriverClass']);
+        $tRec = self::addFromFile($array['title'], $array['path'], $sysId, $array['sizes'], $array['lang'], $array['class'], $array['peripheralDriverClass'], $array['rendererClassId']);
         
         if ($tRec !== false) {
             label_TemplateFormats::delete("#templateId = {$tRec->id}");

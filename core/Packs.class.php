@@ -238,6 +238,8 @@ class core_Packs extends core_Manager
     
     public function act_InvalidateMigrations()
     {
+        requireRole('admin');
+        
         $data = self::getConfig('core')->_data;
         
         $migrations = $nonValid = array();

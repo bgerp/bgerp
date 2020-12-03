@@ -724,7 +724,7 @@ class blogm_Articles extends core_Master
                 $data->descr .= "<p><b style='color:#666;'>" . tr('Все още няма статии в тази категория') . '</b></p>';
             }
         } else {
-            $data->title = cms_Content::getLang() == 'bg' ? 'Всички статии в блога' : 'All Articles in the Blog';
+            $data->title = tr(blogm_Setup::get('ALL_ARTICLES_IN_PAGE_TITLE'));
             if (!countR($data->rows)) {
                 $data->descr .= "<p><b style='color:#666;'>" . tr('Все още няма статии в този блог') . '</b></p>';
             }

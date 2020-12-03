@@ -66,7 +66,7 @@ class price_CostPolicyIntf
     /**
      * Кои са засегнатите артикули за тази дата
      * 
-     * @return datetime $datetime
+     * @param datetime $datetime
      * 
      * @return array
      */

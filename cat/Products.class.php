@@ -718,6 +718,7 @@ class cat_Products extends embed_Manager
         $fields['measureId'] = array('caption' => 'Мярка', 'mandatory' => 'mandatory');
         $fields['groups'] = array('caption' => 'Групи');
         $fields['meta'] = array('caption' => 'Свойства');
+        $fields['info'] = array('caption' => 'Описание');
         
         $categoryType = 'key(mvc=cat_Categories,select=name,allowEmpty)';
         $groupType = 'keylist(mvc=cat_Groups, select=name, makeLinks)';
@@ -1686,13 +1687,14 @@ class cat_Products extends embed_Manager
      * @param mixed     $notInGroups      - групи в които да не участват
      * @param null|bool $isPublic         - null за всички артикули, true за стандартните, false за нестандартните
      * @param null|bool $driverId         - null за всички артикули, true за тези с избрания драйвер
-     *
+     * @param null|bool $showTemplates     - дали да се показват и шаблоните
+     * 
      * @return array $products         - артикулите групирани по вида им стандартни/нестандартни
      */
-    public static function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null, $orHasProperties = false, $groups = null, $notInGroups = null, $isPublic = null, $driverId = null)
+    public static function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null, $orHasProperties = false, $groups = null, $notInGroups = null, $isPublic = null, $driverId = null, $showTemplates = null)
     {
         $Type = core_Type::getByName('key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)');
-        foreach (array('customerClass', 'customerId', 'orHasProperties', 'isPublic', 'driverId') as $val) {
+        foreach (array('customerClass', 'customerId', 'orHasProperties', 'isPublic', 'driverId', 'showTemplates') as $val) {
             if (isset(${"{$val}"})) {
                 $Type->params[$val] = ${"{$val}"};
             }
@@ -2169,7 +2171,7 @@ class cat_Products extends embed_Manager
         // Предефиниране на метода, за да е подсигурено само фечването на нужните полета
         // За да се намали натоварването, при многократни извиквания
         $rec = self::fetch($id, 'name,code,isPublic,nameEn,state');
-        
+       
         return parent::getTitleById($rec, $escaped);
     }
     
@@ -2184,7 +2186,7 @@ class cat_Products extends embed_Manager
     public function getRecTitleTpl($rec)
     {
         $tpl = ($rec->isPublic != 'yes' || $rec->state == 'template') ? $this->recTitleNonPublicTpl : $this->recTitleTpl;
-        
+       
         return new core_ET($tpl);
     }
     
@@ -2239,9 +2241,9 @@ class cat_Products extends embed_Manager
         
         if ($showCode === true) {
             if ($rec->isPublic == 'yes') {
-                $titleTpl = new core_ET('<!--ET_BEGIN code-->[[#code#]] <!--ET_END code-->[#name#]');
+                $titleTpl = new core_ET('<!--ET_BEGIN code--><span class=productCode>[#code#]</span> <!--ET_END code-->[#name#]');
             } else {
-                $titleTpl = new core_ET('[#name#]<!--ET_BEGIN code--> [[#code#]]<!--ET_END code-->');
+                $titleTpl = new core_ET('[#name#]<!--ET_BEGIN code--> <span class=productCode>[#code#]</span><!--ET_END code-->');
             }
             
             
@@ -2258,11 +2260,11 @@ class cat_Products extends embed_Manager
             
             if ($rec->isPublic == 'no' && empty($rec->code)) {
                 $count = cat_ProductTplCache::count("#productId = {$rec->id} AND #type = 'description' AND #documentType = '{$documentType}'", 2);
-                $title = "{$title} [Art{$rec->id}]";
+                $title = "{$title} <span class='productCode'>Art{$rec->id}</span>";
                 
                 if ($count > 1) {
                     $vNumber = "/<small class='versionNumber'>v{$count}</small>";
-                    $title = str::replaceLastOccurence($title, ']', $vNumber . ']');
+                    $title = str::replaceLastOccurence($title, '</span>', $vNumber . '</span>');
                 }
             }
         }
@@ -2376,7 +2378,6 @@ class cat_Products extends embed_Manager
     {
         $rec = $this->fetchRec($id);
         $row = new stdClass();
-        
         $row->title = $this->getTitleById($rec->id);
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
@@ -2564,161 +2565,112 @@ class cat_Products extends embed_Manager
     public function cron_closePrivateProducts()
     {
         $now = dt::now();
-        $stProductsToClose = array();
-        $before = dt::addMonths(-3);
-        $iStQuery = acc_Items::getQuery();
-        $iStQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=objectId');
-        $iStQuery->EXT('pState', 'cat_Products', 'externalName=state,externalKey=objectId');
-        $iStQuery->where("#state = 'active' AND #lastUseOn IS NULL AND #isPublic = 'yes' AND #classId = " . cat_Products::getClassId());
-        $iStQuery->where("#createdOn <= '{$before}' AND #pState = 'active'");
-        $iStQuery->show('objectId');
-        while ($iStRec = $iStQuery->fetch()) {
-            $pRec1 = cat_Products::fetch($iStRec->objectId, 'id,state,brState');
-            $pRec1->brState = $pRec1->state;
-            $pRec1->state = 'closed';
-            $pRec1->modifiedOn = $now;
-            $pRec1->modifiedBy = core_Users::SYSTEM_USER;
-            $stProductsToClose[$iStRec->objectId] = $pRec1;
+        $this->closeItems = array();
+        
+        $checFolders = keylist::toArray(cat_Setup::get('CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS'));
+        if(countR($checFolders)){
+            $olderThen = cat_Setup::get('CLOSE_UNUSED_PUBLIC_PRODUCTS_OLDER_THEN');
+            $olderThenDate = dt::addSecs(-1 * $olderThen);
+            
+            // Затварят се неизползваните стандартни артикули
+            $productQuery = cat_Products::getQuery();
+            $productQuery->EXT('earliestUsedOn', 'acc_Items', array('externalName' => 'earliestUsedOn', 'onCond' => "#acc_Items.classId = {$this->getClassId()} AND #acc_Items.objectId = #id", 'join' => 'right'));
+            $productQuery->EXT('itemId', 'acc_Items', array('externalName' => 'id', 'onCond' => "#acc_Items.classId = {$this->getClassId()} AND #acc_Items.objectId = #id", 'join' => 'right'));
+            $productQuery->where("#isPublic = 'yes'");
+            $productQuery->where("#createdOn <= '{$olderThenDate}'");
+            $productQuery->where("#state = 'active' AND #earliestUsedOn IS NULL");
+            $productQuery->show('earliestUsedOn,brState,modifiedOn,modifiedBy,itemId,state');
+            $productQuery->in('folderId', $checFolders);
+        
+            $stProductsToClose = array();
+            while ($stProductRec = $productQuery->fetch()) {
+                $stProductRec->brState = $stProductRec->state;
+                $stProductRec->state = 'closed';
+                $stProductRec->modifiedOn = $now;
+                $stProductRec->modifiedBy = core_Users::SYSTEM_USER;
+                $stProductsToClose[$stProductRec->id] = $stProductRec;
+                if(isset($stProductRec->itemId)){
+                    $this->closeItems[$stProductRec->id] = $stProductRec;
+                }
+            }
+            
+            // Затварят се перата на стандартните артикули, които не са използвани от 3 месеца
+            $this->saveArray($stProductsToClose, 'id,state,brState,modifiedBy,modifiedOn');
+            foreach ($stProductsToClose as $sd1) {
+                $this->logWrite('Автоматично затваряне', $sd1->id);
+            }
+            
+            log_System::add('cat_Products', 'ST close items:' . countR($stProductsToClose), null, 'info', 17);
         }
-        
-        $this->closeItems = $stProductsToClose;
-        $this->saveArray($stProductsToClose, 'id,state,brState,modifiedBy,modifiedOn');
-        
-        foreach ($stProductsToClose as $sd1) {
-            $this->logWrite('Автоматично затваряне', $sd1);
-        }
-        log_System::add('cat_Products', 'ST close items:' . countR($stProductsToClose), null, 'info', 17);
-        
+         
         // Намираме всички нестандартни артикули
-        $before1 = dt::addMonths(-5);
+        $olderThen = cat_Setup::get('CLOSE_UNUSED_PRIVATE_PRODUCTS_OLDER_THEN');
+        $olderThenDate = dt::addSecs(-1 * $olderThen);
+        
+        // Затварят се тези, които нямат пера или перата им са последно използвани преди зададената константа
         $productQuery1 = cat_Products::getQuery();
         $productQuery1->where("#isPublic != 'yes'");
-        $productQuery1->where("#createdOn <= '{$before1}'");
+        $productQuery1->where("#createdOn <= '{$olderThenDate}'");
         $productQuery1->where("#state != 'closed' AND #state != 'rejected'");
-        $productQuery1->show('id,state');
-        $products1 = array_keys($productQuery1->fetchAll());
+        $productQuery1->EXT('lastItemUsedOn', 'acc_Items', array('externalName' => 'lastUseOn', 'onCond' => "#acc_Items.classId = {$this->getClassId()} AND #acc_Items.objectId = #id", 'join' => 'right'));
+        $productQuery1->EXT('itemId', 'acc_Items', array('externalName' => 'id', 'onCond' => "#acc_Items.classId = {$this->getClassId()} AND #acc_Items.objectId = #id", 'join' => 'right'));
+        $productQuery1->show('id,state,brState,lastItemUsedOn,itemId,canStore');
+        $productQuery1->where("#lastItemUsedOn IS NULL OR #lastItemUsedOn <= '{$olderThenDate}'");
+        $count = $productQuery1->count();
+        core_App::setTimeLimit($count * 0.9, 600);
         
-        $iQuery2 = acc_Items::getQuery();
-        $iQuery2->where("#classId = {$this->getClassId()}");
-        $iQuery2->show('objectId');
-        $iTems = arr::extractValuesFromArray($iQuery2->fetchAll(), 'objectId');
-        
-        $diff = array_diff($products1, $iTems);
-        $saveDiff = array();
-        foreach ($diff as $p1) {
-            $pr1 = cat_Products::fetch($p1, 'id,state,brState');
-            $pr1->brState = $pr1->state;
-            $pr1->state = 'closed';
-            $pr1->modifiedOn = $now;
-            $pr1->modifiedBy = core_Users::SYSTEM_USER;
-            $saveDiff[$p1] = $pr1;
-        }
-        
-        $this->saveArray($saveDiff, 'id,state,brState,modifiedOn,modifiedBy');
-        foreach ($saveDiff as $sd) {
-            $this->logWrite('Автоматично затваряне', $sd);
-        }
-        
-        log_System::add('cat_Products', 'Products Without Items Closed:' . countR($diff), null, 'info', 17);
-        
-        $productQuery = cat_Products::getQuery();
-        $productQuery->where("#isPublic != 'yes'");
-        $productQuery->where("#state != 'closed' AND #state != 'rejected'");
-        $productQuery->show('id');
-        $products = array_keys($productQuery->fetchAll());
-        if (!countR($products)) {
-            return;
-        }
-        
-        // Последните изчислени периода
-        $periods = acc_Periods::getCalcedPeriods(true, 3);
-        if (!countR($periods)) {
-            return;
-        }
-        
-        $oldestPeriod = acc_Periods::fetch(min(array_keys($periods)));
-        
-        // Намират се отворените пера, създадени преди посочената дата, които са на нестандартни артикули
-        $iQuery = acc_Items::getQuery();
-        $iQuery->where("#createdOn < '{$oldestPeriod->start}'");
-        $iQuery->where("#state = 'active'");
-        $iQuery->where("#classId = {$this->getClassId()}");
-        $iQuery->in('objectId', $products);
-        $iQuery->show('id,objectId');
-        $productItems = $objectIds = array();
-        while ($iRec = $iQuery->fetch()) {
-            $productItems[$iRec->id] = $iRec->id;
-            $objectIds[$iRec->id] = $iRec->objectId;
-        }
-        
-        // Ако няма отворени пера, отговарящи на условията не се прави нищо
-        if (!countR($productItems)) {
-            return;
-        }
-        log_System::add('cat_Products', 'Item products count:' . countR($productItems), null, 'info', 17);
-        
-        // Оставяме само записите където участват перата на частните артикули на произволно място
+        // Взимат се балансите от складовите сметки
+        $balanceRec = acc_Balances::getLastBalance();
         $bQuery = acc_BalanceDetails::getQuery();
-        acc_BalanceDetails::filterQuery($bQuery, null, '321,323,60020,60201,61101,701,703');
+        acc_BalanceDetails::filterQuery($bQuery, $balanceRec->id, '321,323');
+        $bQuery->show('accountNum,ent2Id,blAmount');
+        $balances = $bQuery->fetchAll();
         
-        $balances = array();
-        foreach ($periods as $pId => $name) {
-            $balances[] = acc_Balances::fetchField("#periodId = {$pId}");
+        // Групират се по артикул
+        $blAmounts = array();
+        foreach ($balances as $bRec){
+            if(isset($bRec->ent2Id)){
+                $blAmounts[$bRec->ent2Id] += $bRec->blAmount;
+            }
         }
         
-        $bQuery->in('balanceId', $balances);
-        $bQuery->where('#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL');
-        $bQuery->show('ent1Id,ent2Id,ent3Id');
-        $bQuery->groupBy('ent1Id,ent2Id,ent3Id');
-        
-        log_System::add('cat_Products', 'Details in:' . implode(',', $balances), null, 'info', 17);
-        log_System::add('cat_Products', 'Balance Recs:' . $bQuery->count(), null, 'info', 17);
-        
-        $itemsInBalanceBefore = array();
-        while ($bRec = $bQuery->fetch()) {
-            foreach (range(1, 3) as $i) {
-                if (!empty($bRec->{"ent{$i}Id"})) {
-                    $itemsInBalanceBefore[$bRec->{"ent{$i}Id"}] = $bRec->{"ent{$i}Id"};
+        // Всеки нестандартен артикул проверяваме дали ще бъде затворен
+        $treshhold1 = dt::addMonths(-6);
+        $saveArr = array();
+        while ($pRec = $productQuery1->fetch()) {
+            $close = false;
+            
+            // Ако не са използвани или са услуги, ще се затварят
+            if(empty($pRec->lastItemUsedOn) || $pRec->canStore != 'yes'){
+                $close = true;
+            } else {
+                
+                // Ако са използвани и са складируеми, гледаме какво салдо имат в 321 и 323. Ако е под-минимума затваряме ги
+                $minAmount = ($pRec->lastItemUsedOn >= $treshhold1) ? 10 : 20;
+                if(round($blAmounts[$pRec->itemId], 2) <= $minAmount){
+                    $close = true;
+                }
+            }
+            
+            // Ако нестандартния артикул отговаря на условията за затваряне затваря се
+            if($close){
+                $pRec->brState = $pRec->state;
+                $pRec->state = 'closed';
+                $pRec->modifiedOn = $now;
+                $pRec->modifiedBy = core_Users::SYSTEM_USER;
+                $saveArr[$pRec->id] = $pRec;
+                if(!empty($pRec->lastItemUsedOn)){
+                    $this->closeItems[$pRec->id] = $pRec;
                 }
             }
         }
         
-        if (!is_array($itemsInBalanceBefore)) {
-            return;
+        // Затварят се нестандартните артикули без пера създадени преди X месеца
+        $this->saveArray($saveArr, 'id,state,brState,modifiedOn,modifiedBy');
+        foreach ($saveArr as $sd) {
+            $this->logWrite('Автоматично затваряне', $sd->id);
         }
-        
-        foreach ($productItems as $key => $itemId) {
-            if (array_key_exists($itemId, $itemsInBalanceBefore)) {
-                unset($productItems[$key]);
-            }
-        }
-        
-        log_System::add('cat_Products', 'Items to Close count:' . countR($productItems), null, 'info', 17);
-        
-        // Ако не са останали пера за затваряне
-        if (!countR($productItems)) {
-            return;
-        }
-        
-        $toSave = array();
-        foreach ($productItems as $itemId) {
-            $pRec = cat_Products::fetch($objectIds[$itemId], 'id,state,brState');
-            $pRec->brState = $pRec->state;
-            $pRec->state = 'closed';
-            $pRec->modifiedOn = $now;
-            $pRec->modifiedBy = core_Users::SYSTEM_USER;
-            $toSave[] = $pRec;
-        }
-        
-        $this->saveArray($toSave, 'id,state,brState,modifiedOn,modifiedBy');
-        foreach ($toSave as $sd2) {
-            $this->logWrite('Автоматично затваряне', $sd2);
-        }
-        
-        $this->closeItems = (is_array($this->closeItems)) ? $this->closeItems : array();
-        $this->closeItems += $toSave;
-        
-        log_System::add('cat_Products', 'END close items:' . countR($toSave), null, 'info', 17);
+        log_System::add('cat_Products', 'Products Private not used' . countR($saveArr), null, 'info', 17);
     }
     
     

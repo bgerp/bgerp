@@ -208,10 +208,10 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             //Количество в края на периода
             $blQuantity = $item->blQuantity;
             
-            if (($rec->availability == 'Налични') && $blQuantity < 0) {
+            if (($rec->availability == 'Налични') && $blQuantity < 0.001) {
                 continue;
             }
-            if ($rec->availability == 'Отрицателни' && $blQuantity >= 0) {
+            if ($rec->availability == 'Отрицателни' && $blQuantity > -0.001) {
                 continue;
             }
             
@@ -396,6 +396,8 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         
         
         if (isset($data->rec->group)) {
+            $marker = 0;
+            $groupVerb = '';
             foreach (type_Keylist::toArray($data->rec->group) as $group) {
                 $marker++;
                 
@@ -411,6 +413,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         
         
         if (isset($data->rec->storeId)) {
+            $storeIdVerb = '';
             foreach (type_Keylist::toArray($data->rec->storeId) as $store) {
                 $marker++;
                 

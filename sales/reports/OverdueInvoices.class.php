@@ -688,7 +688,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
     public function getNextRefreshDates($rec)
     {
         $date = new DateTime(dt::now());
-        $toAdd = 25 - $date->format(H);
+        $toAdd = 25 - $date->format('H');
         $interval = 'PT' . $toAdd . 'H';
         $date->add(new DateInterval($interval));
         $d1 = $date->format('Y-m-d H:i:s');

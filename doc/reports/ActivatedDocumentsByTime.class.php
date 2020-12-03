@@ -330,6 +330,8 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $data->rec->to . '</b>', 'to');
         }
         
+        $usersVerb = '';
+        
         if ((isset($data->rec->users)) && ((min(array_keys(keylist::toArray($data->rec->users))) >= 1))) {
             foreach (type_Keylist::toArray($data->rec->users) as $user) {
                 $usersVerb .= (core_Users::getTitleById($user) . ', ');
@@ -342,9 +344,9 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
         
         $marker = 0;
         if (isset($data->rec->documents)) {
+            $documentVerb = '';
             foreach (type_Keylist::toArray($data->rec->documents) as $document) {
                 $marker++;
-                
                 
                 $documentVerb .= (core_Classes::getTitleById($document));
                 

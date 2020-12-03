@@ -42,13 +42,13 @@ class type_Check extends type_Enum
     {
         $caption = $this->options['yes'];
         $caption = tr($caption);
-        $caption = (isset($this->params['displayAsRichtext'])) ? core_Type::getByName('richtext')->toVerbal($caption) : $caption = core_Type::getByName('vacrhar')->toVerbal($caption);
+        $caption = (isset($this->params['displayAsRichtext'])) ? core_Type::getByName('richtext')->toVerbal($caption) : $caption = core_Type::getByName('varchar')->toVerbal($caption);
           
         $attr['class'] .= ' checkbox';
         ht::setUniqId($attr);
         
         $errorClass = isset($attr['errorClass']) ? "errorclass=' inputError'": '';
-        $tpl = new core_ET("<input type='checkbox' [#DATA_ATTR#] name='{$name}' {$errorClass} value='yes' class='{$attr['class']}' id='{$attr['id']}'" . ($value == 'yes' ? ' checked ' : '') . "> <label style='white-space: normal;' id='label_{$attr['id']}'>{$caption}</label>");
+        $tpl = new core_ET("<input type='checkbox' [#DATA_ATTR#] name='{$name}' {$errorClass} value='yes' class='{$attr['class']}' id='{$attr['id']}'" . ($value == 'yes' ? ' checked ' : '') . "> <label for='{$attr['id']}' style='white-space: normal;' id='label_{$attr['id']}'>{$caption}</label>");
         
         return $tpl;
     }

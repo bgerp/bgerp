@@ -560,16 +560,45 @@ class eshop_Products extends core_Master
             
             // Показване на тъмбнейл на артикула
             $thumb = static::getProductThumb($pRec);
-            
             $pRow->image = $thumb->createImg(array('class' => 'eshop-product-image'));
             
-            if ($pRec->saleState == 'single') {
+            // Кои от детайлите отговарят на разрешените опаковки (ако има)
+            $allowedPacks = eshop_Products::getSettingField($pRec->id, 'null', 'showPacks');
+            $dQuery = eshop_ProductDetails::getQuery();
+            $dQuery->where("#eshopProductId = {$pRec->id} AND #state != 'closed'");
+            if(countR($allowedPacks)){
+                $dQuery->likeKeylist('packagings', $allowedPacks);
+            }
+            $countWithAllowedPacks = $dQuery->count();
+            
+            $saleState = $pRec->saleState;
+            
+            // Ако е множествен избор но само 1 или 0 детайла ще се покажат
+            if($saleState == 'multi'){
+                if($countWithAllowedPacks == 1){
+                    $saleState = 'single';
+                } elseif($countWithAllowedPacks == 0){
+                    $saleState = 'empty';
+                }
+            }
+            
+            // Ако е едина опцията, подсигуряване, че ще се покаже
+            if($saleState == 'single'){
+                if($countWithAllowedPacks == 0){
+                    $saleState = 'empty';
+                }
+            }
+            
+            if ($saleState == 'single') {
                 
                 // Детайлите на артикула
                 $dQuery = eshop_ProductDetails::getQuery();
                 $dQuery->where("#eshopProductId = {$pRec->id}");
-                $dRec = $dQuery->fetch();
+                if(countR($allowedPacks)){
+                    $dQuery->likeKeylist('packagings', $allowedPacks);
+                }
                 
+                $dRec = $dQuery->fetch();
                 $measureId = cat_Products::fetchField($dRec->productId, 'measureId');
                 $packagings = cat_Products::getProductInfo($dRec->productId)->packagings;
                 
@@ -611,9 +640,9 @@ class eshop_Products extends core_Master
                         $pRow->btn = $dRow->btn;
                     }
                 }
-            } elseif ($pRec->saleState == 'multi') {
+            } elseif ($saleState == 'multi') {
                 $pRow->btn = ht::createBtn($settings->addToCartBtn . '...', self::getUrl($pRec->id), false, false, 'title=Избор на артикул,class=productBtn addToCard,ef_icon=img/16/cart_go.png');
-            } elseif ($pRec->saleState == 'closed' && empty($pRec->coDriver)) {
+            } elseif ($saleState == 'closed' && empty($pRec->coDriver)) {
                 $pRow->saleInfo = "<span class='option-not-in-stock'>" . mb_strtoupper(tr(('Спрян||Not available'))) . '</span>';
             }
             

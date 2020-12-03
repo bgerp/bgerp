@@ -2092,6 +2092,27 @@ class email_Outgoings extends core_Master
     
     
     /**
+     * Помощна функция за подготвяне на обръщението
+     * 
+     * @param string $salutation
+     * @param string $name
+     * 
+     * @return string
+     */
+    protected function prepareSalutation($salutation, $name)
+    {
+        // Ако е към друг имейл, трябва да има съвпадение с хедърите
+        if ($salutation && trim($name)) {
+            if (mb_stripos($salutation, $name) === false) {
+                $salutation = '';
+            }
+        }
+        
+        return $salutation;
+    }
+    
+    
+    /**
      * Създава хедър към постинга
      *
      * @param array  $headerDataArr
@@ -2106,10 +2127,31 @@ class email_Outgoings extends core_Master
         if ($cu > 0) {
             // Вземаме обръщението
             $salutation = email_Salutations::get($rec->folderId, $rec->threadId, $rec->email, $cu);
+            
+            // Търсим обръщение и към другите имейли в нишката
+            if (!$salutation) {
+                $salutation = email_Salutations::get($rec->folderId, $rec->threadId, null, $cu);
+                
+                // Ако е към друг имейл, трябва да има съвпадение с хедърите
+                $salutation = $this->prepareSalutation($salutation, $headerDataArr['name']);
+            }
         }
         
         if (!$salutation && ($cu > 0)) {
             $salutation = email_Salutations::get($rec->folderId, $rec->threadId, $rec->email);
+            
+            if (!$salutation) {
+                $salutation = email_Salutations::get($rec->folderId, $rec->threadId, null);
+                
+                // Ако е към друг имейл, трябва да има съвпадение с хедърите
+                $salutation = $this->prepareSalutation($salutation, $headerDataArr['name']);
+            }
+        }
+        
+        if ($salutation && trim($headerDataArr['name'])) {
+            if (mb_stripos($salutation, $headerDataArr['name']) === false) {
+                $salutation = '';
+            }
         }
         
         // Ако обръщението не съвпадата с текущия език, да се остави да се определи от системата
@@ -2126,12 +2168,6 @@ class email_Outgoings extends core_Master
                 if (!$isCyrillic) {
                     $salutation = '';
                 }
-            }
-        }
-        
-        if ($salutation && trim($headerDataArr['name'])) {
-            if (mb_stripos($salutation, $headerDataArr['name']) === false) {
-                $salutation = '';
             }
         }
         

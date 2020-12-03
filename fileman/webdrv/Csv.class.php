@@ -69,6 +69,8 @@ class fileman_webdrv_Csv extends fileman_webdrv_Code
         // Вземаме съдържанието на файла
         $content = fileman_Files::getContent($fRec->fileHnd);
         
+        $content = i18n_Charset::convertToUtf8($content);
+        
         $res = csv_Lib::getCsvRowsFromFile($content);
         
         if ($res === false) {

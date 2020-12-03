@@ -43,7 +43,7 @@ class eshop_Carts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,productCount=Артикули,total=Сума,saleId,userId,createdOn=Създаване,activatedOn=Активиране,domainId';
+    public $listFields = 'id,productCount=Артикули,total=Сума,saleId,userId,createdOn=Създаване,modifiedOn=Модифициране,activatedOn=Активиране,domainId';
     
     
     /**
@@ -947,12 +947,10 @@ class eshop_Carts extends core_Master
         self::activate($rec, $saleRec->id);
         
         doc_Threads::doUpdateThread($saleRec->threadId);
-        if (!(core_Packs::isInstalled('colab') && isset($cu) && core_Users::isContractor($cu))) {
-            if ($sendEmailIfNecessary === true) {
-                self::sendEmail($rec, $saleRec);
-                doc_Threads::doUpdateThread($saleRec->threadId);
-                eshop_Carts::logDebug('Изпращане на имейл за продажба от онлайн поръчка', $rec->id);
-            }
+        if ($sendEmailIfNecessary === true) {
+            self::sendEmail($rec, $saleRec);
+            doc_Threads::doUpdateThread($saleRec->threadId);
+            eshop_Carts::logDebug('Изпращане на имейл за продажба от онлайн поръчка', $rec->id);
         }
         
         // Форсиране на контрагента в група, онлайн клинети
@@ -1309,14 +1307,27 @@ class eshop_Carts extends core_Master
         Request::setProtected('accessToken');
         $this->requireRightFor('viewexternal');
         $id = Request::get('id', 'int');
-        
         if (empty($id)) {
             redirect(cls::get('eshop_Groups')->getUrlByMenuId(null));
         }
         
+        // Ако има токен за достъп
+        $hasValidToken = false;
+        $accessToken = Request::get('accessToken');
+        if (!empty($accessToken)) {
+            expect($token = str::checkHash($accessToken, 6, eshop_Setup::get('CART_ACCESS_SALT')), 'Невалиден токен за достъп');
+            expect($token == "cart{$id}");
+            $hasValidToken = true;
+        }
+        
         $rec = self::fetch($id);
         if (empty($rec)) {
-            redirect(cls::get('eshop_Groups')->getUrlByMenuId(null));
+            $redirectUrl = cls::get('eshop_Groups')->getUrlByMenuId(null);
+            if($hasValidToken){
+                redirect($redirectUrl, false, 'Вашата поръчка е била изтрита, поради неактивност', 'warning');
+            } else {
+                redirect($redirectUrl);
+            }
         }
         
         // Ако има нова текуща количка, редирект към нея
@@ -1333,12 +1344,7 @@ class eshop_Carts extends core_Master
         }
         
         // Ако има токен за достъп
-        $accessToken = Request::get('accessToken');
-        if (!empty($accessToken)) {
-            
-            // И токена е валиден
-            expect($token = str::checkHash($accessToken, 6, eshop_Setup::get('CART_ACCESS_SALT')), 'Невалиден токен за достъп');
-            expect($token == "cart{$id}");
+        if ($hasValidToken) { 
             
             // Ако количката няма потребител
             if (empty($rec->userId)) {
@@ -2438,7 +2444,7 @@ class eshop_Carts extends core_Master
             $lifetime = (isset($rec->userId) || !empty($rec->email)) ? $settings->lifetimeForUserDraftCarts : $settings->lifetimeForNoUserDraftCarts;
         }
         
-        // Ако и е изтекла продължителността и е чернова се изтрива
+        // Кога се очаква кошницата да е невалидна
         $endOfLife = dt::addSecs($lifetime, $rec->createdOn);
         
         return $endOfLife;

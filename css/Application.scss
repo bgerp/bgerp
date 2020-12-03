@@ -776,6 +776,23 @@ div.productImage {
 	   top: -1px;
 	}
 }
+
+.productCode {
+	&:before {
+		content: "[";
+		color: #888;
+		position: relative;
+		top: -1px;
+		margin-right: 2px;
+	}
+	&:after {
+		content: "]";
+		color: #888;
+		position: relative;
+		top: -1px;
+		margin-left: 2px;
+	}
+}
 // подробно показване на вложени детайли при принтиране
 .printing {
 	.document .mergedDetailsholder table.listTable>thead>tr>th{
@@ -3599,6 +3616,11 @@ fieldset.sharing-history {
 	width: 100%;
 	max-width: 460px !important;
 }
+
+.externalPage .formTable .formTitle a {
+	color: #ddd !important;
+}
+
 /* стилове за външната част при потребител контрактор */
 .logoutBlock {
     position: absolute;
@@ -4387,6 +4409,9 @@ table .eshop-btn {
 	font-weight: bold;
 	padding-top: 10px;
 	margin-bottom: 2px;
+	&.noRoot {
+		font-weight: normal;
+	}
 }
 
 #cmsNavigation div:first-child {
@@ -7065,6 +7090,7 @@ body.narrow {
 	page-break-inside: avoid;
 	margin-bottom: 10mm;
 }
+
 /*стилове за принтиране*/
 @media print{
 	.wide .singleView {

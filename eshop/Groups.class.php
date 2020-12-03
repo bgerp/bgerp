@@ -688,10 +688,14 @@ class eshop_Groups extends core_Master
         if (haveRole('powerUser')) {
             $l->url['PU'] = 1;
         }
-        
-        $l->title = tr('Продуктови групи');
-        $l->level = 1;
-        $data->links[] = $l;
+        $settings = cms_Domains::getSettings();
+       
+        $data->hasRootNavigation = ($settings->showRootNavigation == 'yes');
+        if($data->hasRootNavigation){
+            $l->title = $settings->rootNavigationName;
+            $l->level = 1;
+            $data->links[] = $l;
+        }
         
         $editSbf = sbf('img/16/edit.png', '');
         $editImg = ht::createElement('img', array('src' => $editSbf, 'width' => 16, 'height' => 16));
@@ -703,7 +707,11 @@ class eshop_Groups extends core_Master
             }
             $l->url = self::getUrl($rec);
             $l->title = $this->getVerbal($rec, 'name');
-            $l->level = $rec->saoLevel + 1;
+            $l->level = $rec->saoLevel;
+            if($data->hasRootNavigation){
+                $l->level += 1;
+            }
+            
             $l->selected = ($groupId == $rec->id);
             
             if ($this->haveRightFor('edit', $rec)) {

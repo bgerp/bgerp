@@ -326,7 +326,6 @@ class label_Labels extends core_Master
         if (isset($rec->classId, $rec->objId)) {
             if (cls::load($rec->classId, true)) {
                 if (!cls::haveInterface('label_SequenceIntf', $rec->classId)) {
-                    $row->title = strip_tags($row->title);
                     $row->title = ht::createHint($row->title, 'Проблем при печатането на етикета', 'error', false);
                     unset($row->_rowTools);
                 }
