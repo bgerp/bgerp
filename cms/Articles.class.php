@@ -276,38 +276,38 @@ class cms_Articles extends core_Master
         if ($menuId) {
             cms_Content::setCurrent($menuId);
         }
-                
+        
         if (!$content) {
             $content = new ET();
         }
         
         $navData = $this->prepareNavigation($rec, $menuId, $content, $lArr);
         
-
+        
         // Подготвяме SEO елементите
         cms_Content::prepareSeo($rec, array('seoDescription' => $rec->body, 'seoTitle' => $rec->title));
-
+        
         if ($navData->cnt + Mode::is('screenMode', 'wide') > 1) {
             $content->append($this->renderNavigation($navData), 'NAVIGATION');
         }
-                
+        
         // Задаване на SEO елементите
         cms_Content::renderSeo($content, $rec);
         
         // Линкове за следваща/предишна статия
         $prevLink = $nextLink = '';
-        if($navData->prev) {
+        if ($navData->prev) {
             $prevLink = ht::createLink('«&nbsp;' . $navData->prev->title, $navData->prev->url);
         }
-        if($navData->next) {
+        if ($navData->next) {
             $nextLink = ht::createLink($navData->next->title . '&nbsp;»', $navData->next->url);
         }
-
-        if($prevLink || $nextLink) {
+        
+        if ($prevLink || $nextLink) {
             $content->append("<div class='prevNextNav'><div style='float:left;margin-right:5px;'>{$prevLink}</div><div style='float:right;margin-left:5px;'>{$nextLink}</div></div>");
         }
-
-
+        
+        
         if ($rec && $rec->id) {
             if (core_Packs::fetch("#name = 'vislog'")) {
                 vislog_History::add($rec->title);
@@ -327,7 +327,7 @@ class cms_Articles extends core_Master
         return $content;
     }
     
-
+    
     /**
      * Подготовка на данните за навигацията
      */
@@ -363,10 +363,10 @@ class cms_Articles extends core_Master
         } else {
             $query->where("#state = 'active'");
         }
-
+        
         $flagSelected = false;
         $navData->next = $navData->prev = null;
-
+        
         while ($rec1 = $query->fetch()) {
             $navData->cnt++;
             
@@ -420,14 +420,14 @@ class cms_Articles extends core_Master
             }
             
             $navData->links[] = $l;
-
-            if($l->selected) {
+            
+            if ($l->selected) {
                 $flagSelected = true;
-            } elseif($l->url) {
-                if(!$flagSelected) {
+            } elseif ($l->url) {
+                if (!$flagSelected) {
                     $navData->prev = $l;
                 }
-                if($flagSelected && !$navData->next) {
+                if ($flagSelected && !$navData->next) {
                     $navData->next = $l;
                 }
             }
@@ -450,7 +450,7 @@ class cms_Articles extends core_Master
         
         return $navData;
     }
-
+    
     
     /**
      * $data->items = $array( $rec{$level, $title, $url, $isSelected, $icon, $editLink} )
@@ -460,15 +460,17 @@ class cms_Articles extends core_Master
     public function renderNavigation_($data)
     {
         $navTpl = new ET();
+        $noRootClass = ($data->hasRootNavigation) ? '' : 'noRoot';
         
         foreach ($data->links as $l) {
-            $selected = ($l->selected) ? $sel = 'sel_page' : '';
+            $selected = ($l->selected) ? 'sel_page' : '';
             if ($l->closed) {
                 $aAttr = array('style' => 'color:#aaa !important;');
             } else {
                 $aAttr = array();
             }
-            $navTpl->append("<div class='nav_item level{$l->level} {$selected}' {$style}>");
+            
+            $navTpl->append("<div class='nav_item {$noRootClass} level{$l->level} {$selected}'>");
             if ($l->url) {
                 $navTpl->append(ht::createLink($l->title, $l->url, null, $aAttr));
             } else {
@@ -507,6 +509,10 @@ class cms_Articles extends core_Master
             $toggleLink = ht::createLink('', null, null, array('ef_icon' => 'img/menu.png', 'class' => 'toggleLink'));
             $navTpl->replace($toggleLink, 'TOGGLE_BTN');
             $navTpl->replace($currentPage, 'CURRENT_PAGE');
+        }
+        
+        if (Mode::is('screenMode', 'narrow')) {
+            jquery_Jquery::run($navTpl, 'toggleNarrowMenu();', true);
         }
         
         return $navTpl;
@@ -678,6 +684,35 @@ class cms_Articles extends core_Master
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Добавя ключовите думи от обектите в менюто към масива
+     */
+    public static function getAllSearchKeywords($menuId)
+    {
+        $kArr = array();
+        
+        $text = '';
+        
+        $query = self::getQuery();
+        $query->where("#state = 'active' AND #menuId = {$menuId}");
+        while ($rec = $query->fetch()) {
+            $text .= ' ' . $rec->searchKeywords;
+        }
+        
+        if ($text) {
+            $text = strtolower(str::canonize($text, ' '));
+            $wArr = explode(' ', $text);
+            foreach ($wArr as $w) {
+                if (strlen($w) > 3) {
+                    $kArr[$w] = true;
+                }
+            }
+        }
+        
+        return $kArr;
     }
     
     

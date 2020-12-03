@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -19,12 +19,6 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
      * Заглавие
      */
     public $title = 'Протоколи за влагане в производство';
-    
-    
-    /**
-     * Име на документа в бързия бутон за добавяне в папката
-     */
-    public $buttonInFolderTitle = 'Влагане';
     
     
     /**
@@ -159,7 +153,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     {
         parent::setDocumentFields($this);
         $this->FLD('departmentId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р на дейност,before=note');
-        $this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно влагане->Избор,notNull,default=yes,maxRadio=2,before=note');
+        $this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно влагане,notNull,default=yes,maxRadio=2,before=note');
     }
     
     

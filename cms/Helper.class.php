@@ -106,6 +106,13 @@ class cms_Helper extends core_BaseClass
     }
     
     
+    /**
+     * Проверява има ли потребител с този имейл и показва подходящо съобщение
+     * 
+     * @param string $email
+     * 
+     * @return void|string
+     */
     public static function getErrorIfThereIsUserWithEmail($email)
     {
         $cu = core_Users::getCurrent('id', false);

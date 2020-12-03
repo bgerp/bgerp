@@ -126,6 +126,7 @@ class email_Accounts extends core_Master
         $this->FLD('smtpAuth', 'enum(no=Не се изисква,LOGIN=Изисква се,NTLM=MS NTLM)', 'caption=Изпращане->Аутентикация', array('attr' => array('id' => 'smtpAuth')));
         $this->FLD('smtpUser', 'varchar', 'caption=Изпращане->Потребител,width=100%', array('attr' => array('id' => 'smtpUser')));
         $this->FLD('smtpPassword', 'password(64,autocomplete=off)', 'caption=Изпращане->Парола,width=100%,crypt');
+        $this->FLD('noRetPathDomains', 'text(rows=2)', 'caption=Домейни към които няма да се добавя Return-Path при изпращане->Домейни, input=none');
         
         $this->setDbUnique('email');
     }
@@ -364,6 +365,60 @@ class email_Accounts extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $data->form->setDefault('access', 'private');
+        
+        if ($data->form->rec->type == 'corporate') {
+            $data->form->setField('noRetPathDomains', 'input=input');
+        }
+    }
+    
+    
+    /**
+     * Проверява дали някое от подадените имейли ги има в noRetPathDomains
+     * 
+     * @param integer $accId
+     * @param string $emails
+     * @param string|null $emailsCC
+     * @return null|true
+     */
+    public static function checkEmailForRetPath($accId, $emails, $emailsCC = null)
+    {
+        if (!$accId) {
+            
+            return ;
+        }
+        
+        if (!$accRec = self::fetch($accId)) {
+            
+            return ;
+        }
+        
+        if (!$accRec->noRetPathDomains) {
+            
+            return ;
+        }
+        
+        $emails .= $emailsCC ? ', ' . $emailsCC : '';
+        $emailsArr = type_Emails::toArray($emails);
+        
+        
+        $noRetPathsStr = str_replace(array("\n", "\t", ',', '|'), ' ', mb_strtolower($accRec->noRetPathDomains));
+        $noRetPathsArr = explode(' ', $noRetPathsStr);
+        
+        foreach ($noRetPathsArr as $noRetDomain) {
+            $noRetDomain = trim($noRetDomain);
+            if (!$noRetDomain) continue;
+            
+            if (stripos($noRetDomain, '@') === false) {
+                $noRetDomain = '@' . $noRetDomain;
+            }
+            
+            foreach ($emailsArr as $email) {
+                if (stripos($email, $noRetDomain) !== false) {
+                    
+                    return true;
+                }
+            }
+        }
     }
     
     
@@ -657,7 +712,7 @@ class email_Accounts extends core_Master
             $rec->smtpSecure = 'tls';
         }
         
-        if (count($hostArr) == 2) {
+        if (countR($hostArr) == 2) {
             $params['Port'] = $hostArr[1];
         } else {
             if ($rec->smtpSecure == 'tls') {
@@ -871,5 +926,21 @@ class email_Accounts extends core_Master
         
         $callOn = dt::addSecs(60 * $mp);
         core_CallOnTime::setCall('email_Accounts', 'checkMailBox', $emlStatus, $callOn);
+    }
+    
+    
+    /**
+     * Изпълнява се след опаковане на съдаржанието от мениджъра
+     *
+     * @param core_Mvc       $mvc
+     * @param string|core_ET $res
+     * @param string|core_ET $tpl
+     * @param stdClass       $data
+     *
+     * @return bool
+     */
+    protected static function on_AfterRenderWrapping(core_Manager $mvc, &$res, &$tpl = null, $data = null)
+    {
+        $res->push('email/js/serverSettings.js', 'JS');
     }
 }

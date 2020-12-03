@@ -77,7 +77,7 @@ abstract class trans_Helper
             $res[$unitId] = (int) $arr['quantity'][$i];
         }
         
-        $res = (is_array($res) && count($res)) ? $res : null;
+        $res = (is_array($res) && countR($res)) ? $res : null;
         
         return $res;
     }

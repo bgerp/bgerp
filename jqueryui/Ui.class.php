@@ -41,11 +41,18 @@ class jqueryui_Ui
      */
     public static function enableJS(&$tpl)
     {
-        $conf = core_Packs::getConfig('jqueryui');
+        $jQueryUI = page_Html::getFileForAppend('jqueryui/' . jqueryui_Setup::get('VERSION') . '/jquery-ui.js');
         
-        $jsPath = 'jqueryui/' . $conf->JQUERYUI_VERSION . '/jquery-ui.js';
+        if (($url = jqueryui_Setup::get('CDN_URL')) && ($integrity = jqueryui_Setup::get('CDN_INTEGRITY'))) {
+            $jQueryUI = (object) array(
+                'src' => $url,
+                'integrity' => $integrity,
+                'crossorigin' => 'anonymous',
+                'fallbackScript' => "\n<script>jQuery.ui || document.write('<script src=\"{$jQueryUI}\"><\/script>')</script>",
+            );
+        }
         
-        $tpl->push($jsPath, 'JS');
+        $tpl->push($jQueryUI, 'JS');
     }
     
     

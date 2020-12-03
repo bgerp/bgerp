@@ -99,4 +99,17 @@ class cash_Rko extends cash_Document
         
         return $options;
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'changeline' && isset($rec)){
+            if($rec->isReverse != 'yes'){
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
 }

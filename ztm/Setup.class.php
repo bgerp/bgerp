@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Клас 'ztm_Plugin'
  *
@@ -14,6 +15,13 @@
  */
 class ztm_Setup extends core_ProtoSetup
 {
+    
+    /**
+     * Необходими пакети
+     */
+    public $depends = 'acs=0.1';
+    
+    
     /**
      * Версия на пакета
      */
@@ -25,9 +33,39 @@ class ztm_Setup extends core_ProtoSetup
      */
     public $startCtr = 'ztm_Adapter';
     
-
+    
     /**
      * Описание на модула
      */
     public $info = 'Контролен панел';
+    
+    
+    /**
+     * Роли за достъп до модула
+     */
+    public $roles = array(
+        array('ztm'),
+    );
+    
+    
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    public $menuItems = array(
+        array(3.4, 'Мониторинг', 'ZTM', 'ztm_Devices', 'default', 'ztm, ceo'),
+    );
+    
+    
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    public $managers = array(
+        'ztm_Devices',
+        'ztm_Groups',
+        'ztm_Registers',
+        'ztm_RegisterValues',
+        'ztm_LongValues',
+        'ztm_Profiles',
+        'ztm_ProfileDetails',
+    );
 }

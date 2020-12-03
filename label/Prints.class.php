@@ -219,7 +219,6 @@ class label_Prints extends core_Master
         // Ако е подаден клас и обект
         $classId = $rec->classId;
         $objId = $rec->objectId;
-        $templateId = $rec->templateId;
         
         $labelDataArr = array();
         
@@ -238,6 +237,7 @@ class label_Prints extends core_Master
                 $oLang = $lang;
             }
             $labelDataArr = $intfInst->getLabelPlaceholders($objId);
+            
             if ($lang) {
                 core_Lg::pop();
             }
@@ -247,11 +247,12 @@ class label_Prints extends core_Master
         // Определяме най-добрия шаблон
         if (!empty($labelDataArr)) {
             $templatesArr = cls::get($classId)->getLabelTemplates($objId);
-            if (!count($templatesArr)) {
+            if (!countR($templatesArr)) {
                 
                 return followRetUrl(null, '|Няма шаблон, който да се използва', 'error');
             }
             
+            $optArr = array();
             foreach ($templatesArr as $tRec) {
                 $template = label_Templates::getTemplate($tRec->id);
                 $templatePlaceArr = label_Templates::getPlaceHolders($template);
@@ -280,7 +281,7 @@ class label_Prints extends core_Master
                 
                 // Оцветяваме имената на шаблоните, в зависимост от съвпаданието на плейсхолдерите
                 $percent = 0;
-                $lCnt = count($templatePlaceArr);
+                $lCnt = countR($templatePlaceArr);
                 if ($lCnt) {
                     $percent = ($cnt / $lCnt) * 100;
                 }
@@ -399,8 +400,18 @@ class label_Prints extends core_Master
             $estCnt = $intfInst->getLabelEstimatedCnt($objId);
         }
         
-        if (!$estCnt && $rec->mediaId) {
-            $estCnt = label_Media::getCountInPage($rec->mediaId);
+        if(isset($rec->mediaId)){
+            if($estCnt){
+                
+                // Допълване на бройката на етикетите
+                $mediaColumnsCount = label_Media::fetchField($rec->mediaId, 'columnsCnt');
+                $rest = $estCnt % $mediaColumnsCount;
+                if(!empty($rest)){
+                    $estCnt = $estCnt + ($mediaColumnsCount - $rest);
+                }
+            } else {
+                $estCnt = label_Media::getCountInPage($rec->mediaId);
+            }
         }
         
         setIfNot($estCnt, 1);
@@ -449,7 +460,7 @@ class label_Prints extends core_Master
             reset($optArr);
             $defOptKey = key($optArr);
         } else {
-            if (count($tArr) > 1) {
+            if (countR($tArr) > 1) {
                 arsort($tArr);
             }
             reset($tArr);
@@ -666,7 +677,7 @@ class label_Prints extends core_Master
         // Ако е субмитната формата и сме натиснали бутона "Запис и нов"
         if ($data->form && $data->form->isSubmitted() && ($data->form->cmd == 'save' || $data->form->cmd == 'print')) {
             if ($data->form->cmd == 'print') {
-                $data->retUrl = toUrl(array($mvc, 'print', $data->form->rec->id, 'from' => 1, 'to' => count($data->form->rec->rows)));
+                $data->retUrl = toUrl(array($mvc, 'print', $data->form->rec->id, 'from' => 1, 'to' => countR($data->form->rec->rows)));
             } else {
                 $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
             }
@@ -750,9 +761,15 @@ class label_Prints extends core_Master
         // По подразбиране да се показват черновите записи най-отпред
         $data->query->orderBy('createdOn', 'DESC');
         
+        $data->listFilter->setField('mediaId', 'allowEmpty');
+        unset($data->listFilter->fields['mediaId']->notNull);
+        unset($data->listFilter->fields['mediaId']->removeAndRefreshForm);
+        unset($data->listFilter->fields['mediaId']->mandatory);
+        $data->listFilter->fields['mediaId']->type->params['allowEmpty'] = 'allowEmpty';
+        
         $data->listFilter->FNC('author', 'users(rolesForAll=labelMaster|ceo|admin, rolesForTeams=label|ceo|admin)', 'caption=От, refreshForm');
         
-        $data->listFilter->showFields = 'author, search, templateId';
+        $data->listFilter->showFields = 'author, search, templateId, mediaId';
         
         $data->listFilter->view = 'horizontal';
         
@@ -787,6 +804,10 @@ class label_Prints extends core_Master
             
             if ($filter->templateId) {
                 $data->query->where(array("#templateId = '[#1#]'", $filter->templateId));
+            }
+            
+            if ($filter->mediaId) {
+                $data->query->where(array("#mediaId = '[#1#]'", $filter->mediaId));
             }
         }
     }
@@ -962,6 +983,7 @@ class label_Prints extends core_Master
         
         // Вземаме шаблона
         $pData->row->Template = label_Templates::getTemplate($rec->templateId);
+        $pData->templateId = $rec->templateId;
         
         if (!$rec->rows) {
             $pData->Label->params = array();
@@ -1166,7 +1188,7 @@ class label_Prints extends core_Master
             }
             
             // Заместваме в шаблона всички данни
-            $template = label_Templates::placeArray($data->row->Template, $row);
+            $template = label_Templates::placeArray($data->row->Template, $row, $data->templateId);
             
             // Вкарваме CSS-a, като инлайн
             $template = label_Templates::addCssToTemplate($data->Label->rec->templateId, $template);
@@ -1255,9 +1277,9 @@ class label_Prints extends core_Master
         
         if (!isset($rec->rows)) {
             $pData = $this->getLabelDataFromRec($rec);
-            $to = count($pData->rows);
+            $to = countR($pData->rows);
         } else {
-            $to = count($rec->rows);
+            $to = countR($rec->rows);
         }
         
         $to = max($to, 1);
@@ -1339,9 +1361,6 @@ class label_Prints extends core_Master
         // Ще се принтира
         Mode::set('wrapper', 'page_Print');
         Mode::set('printing');
-        
-        $data = new stdClass();
-        
         $pData = $this->getLabelDataFromRec($rec);
         
         // Ако са зададени страниците, които да се отпечата, подготвяме само тях
@@ -1349,11 +1368,11 @@ class label_Prints extends core_Master
             $pData->rows = array_slice((array) $pData->rows, $form->rec->from - 1, $form->rec->to - $form->rec->from + 1);
         }
         
-        $pData->allCnt = count($pData->rows);
+        $pData->allCnt = countR($pData->rows);
         
         // Рендираме медията
         $pageLayout = label_Media::renderMediaPageLayout($pData);
-        
+       
         $tpl = $this->renderLabel($pData, $pageLayout);
         
         // Маркираме медията, като използване

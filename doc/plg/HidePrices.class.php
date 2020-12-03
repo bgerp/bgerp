@@ -104,7 +104,7 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
-        if (self::canSeePriceFields($data->rec)) {
+        if (self::canSeePriceFields($data->rec) || $data->dontHidePrices === true) {
             
             return;
         }
@@ -118,7 +118,7 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
     {
-        if (self::canSeePriceFields($data->rec)) {
+        if (self::canSeePriceFields($data->rec) || $data->dontHidePrices === true) {
             
             return;
         }
@@ -134,7 +134,7 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_AfterPrepareDetail($mvc, $res, &$data)
     {
-        if (self::canSeePriceFields($data->masterData->rec)) {
+        if (self::canSeePriceFields($data->masterData->rec) || $data->dontHidePrices === true) {
             
             return;
         }
@@ -178,6 +178,30 @@ class doc_plg_HidePrices extends core_Plugin
         if (count($fields)) {
             foreach ($fields as $name) {
                 unset($row->{$name});
+            }
+        }
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        if (self::canSeePriceFields($data->masterRec)){
+            
+            return;
+        }
+        
+        $form = &$data->form;
+        $priceFields = arr::make($mvc->priceFields);
+        
+        foreach ($priceFields as $fld){
+            if($form->getField($fld, false)){
+                $form->setField($fld, 'input=none');
             }
         }
     }

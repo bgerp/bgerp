@@ -71,12 +71,19 @@ class findeals_transaction_AdvanceReport extends acc_DocumentTransactionSource
                 );
                 
                 // Корекция на стойности при нужда
-                if (isset($dRec1->correctProducts) && count($dRec1->correctProducts)) {
+                if (isset($dRec1->correctProducts) && countR($dRec1->correctProducts)) {
                     $correctionEntries = acc_transaction_ValueCorrection::getCorrectionEntries($dRec1->correctProducts, $dRec1->productId, $dRec1->expenseItemId, $dRec1->quantity, $dRec1->allocationBy);
-                    if (count($correctionEntries)) {
+                    if (countR($correctionEntries)) {
                         $entries = array_merge($entries, $correctionEntries);
                     }
                 }
+            }
+        }
+        
+        if (Mode::get('saveTransaction')) {
+            $productsArr = arr::extractValuesFromArray($details, 'productId');
+            if($redirectError = deals_Helper::getContoRedirectError($productsArr, 'canBuy', 'generic,canStore', 'трябва да са купуваеми и да не са складируеми или генерични')){
+                acc_journal_RejectRedirect::expect(false, $redirectError);
             }
         }
         

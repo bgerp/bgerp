@@ -54,14 +54,13 @@ class cams_plg_RecordState extends core_Plugin
     {
         switch ($rec->state) {
             case 'active':
-                $bgColor = EF_ACTIVE_COLOR;
+                $bgColor = NULL;
                 break;
             case 'hidden':
                 $bgColor = '#f0f0f0';
+                $row->ROW_ATTR['style'] .= "background:${bgColor};";
                 break;
         }
-        
-        $row->ROW_ATTR['style'] .= "background:${bgColor};";
         
         if ($mvc->haveRightFor('changeState', $rec)) {
             $on = ht::createElement('img', array('src' => sbf('cams/img/recOn.png', '')));

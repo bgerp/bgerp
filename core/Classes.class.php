@@ -292,7 +292,7 @@ class core_Classes extends core_Manager
      *
      * @return int ид на клас
      */
-    public static function getId($class)
+    public static function getId($class, $silent = false)
     {
         if (is_numeric($class)) {
             $classId = $class;
@@ -310,7 +310,7 @@ class core_Classes extends core_Manager
             $classId = self::$classes[$className];
         }
         
-        expect($classId, $class);
+        expect($silent || $classId, $class);
         
         return $classId;
     }

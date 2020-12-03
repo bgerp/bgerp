@@ -78,7 +78,7 @@
                   <!--ET_END deliveryTime-->
                   <!--ET_BEGIN fromContainerId-->
                   <tr>
-                     <td class='quiet aright'>|Към|*[#fromContainerName#]:</td><td>[#fromContainerId#]</td>
+                     <td class='quiet nowrap aright'>|Към|*[#fromContainerName#]:</td><td>[#fromContainerId#]</td>
                   </tr>
                   <!--ET_END fromContainerId-->                            
                   <!--ET_BEGIN deliveryAddressBlock-->

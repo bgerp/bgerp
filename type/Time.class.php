@@ -282,11 +282,11 @@ class type_Time extends type_Varchar
                     break;
                 case 'days':
                     $v = $v / (24 * 60 * 60);
-                    $suffix = tr('дни');
+                    $suffix = ($v == 1) ? tr('ден') : tr('дни');
                     break;
                 case 'hours':
                     $v = $v / (60 * 60);
-                    $suffix = tr('ч.');
+                    $suffix = ($v == 1) ? tr('час') : tr('часа');
                     break;
                 case 'minutes':
                 default:
@@ -352,7 +352,7 @@ class type_Time extends type_Varchar
             if ($days == 1) {
                 $res .= '1 ' . tr('ден');
             } elseif ($days == 2) {
-                $res .= '2 '  . tr('дена');
+                $res .= '2 '  . tr('дни');
             } else {
                 $res .= "{$days} " . tr('дни');
             }

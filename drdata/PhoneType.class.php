@@ -30,6 +30,15 @@ class drdata_PhoneType extends type_Varchar
     
     
     /**
+     * Инициализиране на типа
+     */
+    public function init($params = array())
+    {
+        setIfNot($params['params']['inputmode'], 'tel');
+        parent::init($params);
+    }
+    
+    /**
      * Връща подадения номер като стринг като пълен номер
      *
      * @param string $number   - Номера
@@ -43,7 +52,7 @@ class drdata_PhoneType extends type_Varchar
         $numArr = drdata_PhoneType::toArray($number);
         
         // Ако не е валиден номер
-        if (!$numArr || !count($numArr)) {
+        if (!$numArr || !countR($numArr)) {
             
             return $number;
         }
@@ -218,6 +227,35 @@ class drdata_PhoneType extends type_Varchar
     
     
     /**
+     * Добавя, ако е необходимо, кода на държавата
+     */
+    public static function setCodeIfMissing($val, $code)
+    {
+        if (substr($val, 0, 1) != '+' && substr($val, 0, 2) != '00') {
+            $params = array('countryPhoneCode' => $code);
+            if ($code == '359') {
+                $params['areaPhoneCode'] = 2;
+            }
+            
+            // В Италия се запазва нулата
+            if ($code != '39') {
+                $val = ltrim($val, '0');
+            }
+            
+            $val1 = '00' . $code . $val;
+            
+            $parsedTel = static::toArray($val, $params);
+            
+            if (is_array($parsedTel) && count($parsedTel)) {
+                $val = $val1;
+            }
+            
+            return $val;
+        }
+    }
+    
+    
+    /**
      * Конвертира списък от телефонни номера до масив
      *
      * @param string $str
@@ -286,16 +324,16 @@ class drdata_PhoneType extends type_Varchar
         if ($value !== null) {
             $res = array();
             
-            if(!empty($value) && isset($this->params['unrecognized'])){
+            if (!empty($value) && isset($this->params['unrecognized'])) {
                 $parsedTel = static::toArray($value, $this->params);
-                if ($parsedTel == false || !count($parsedTel)) {
-                    if($this->params['unrecognized'] == 'warning'){
+                if ($parsedTel == false || !countR($parsedTel)) {
+                    if ($this->params['unrecognized'] == 'warning') {
                         $res['warning'] = self::UNRECOGNIZED_TEXT;
                     } else {
                         $res['error'] = self::UNRECOGNIZED_TEXT;
                     }
                 }
-                    
+                
                 if ($res['error']) {
                     $this->error = $res['error'];
                 }

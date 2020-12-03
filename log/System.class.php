@@ -373,6 +373,7 @@ class log_System extends core_Manager
         
         $roleId = core_Roles::fetchByName('admin');
         $adminsArr = core_Users::getByRole($roleId);
+        
         while ($rec = $query->fetch()) {
             $more = false;
             $errType = '';
@@ -409,6 +410,18 @@ class log_System extends core_Manager
             $msgType .= $msgType ? ' ' : '';
             
             foreach ($adminsArr as $userId) {
+                $showNotifications = log_Setup::get('ADD_SYSTEM_NOTIFICATIONS');
+                $pSettingsKey = crm_Profiles::getSettingsKey();
+                $valsArr = core_Settings::fetchKey($pSettingsKey, $userId);
+                
+                if (isset($valsArr['LOG_ADD_SYSTEM_NOTIFICATIONS'])) {
+                    $showNotifications = $valsArr['LOG_ADD_SYSTEM_NOTIFICATIONS'];
+                }
+                
+                if ($showNotifications == 'no') {
+                    continue;
+                }
+                
                 $moreUsr = false;
                 $msg = "|Нови {$msgType}грешки в системния лог|*";
                 
@@ -676,6 +689,7 @@ class log_System extends core_Manager
         $rec->action = 'DeleteOldRecords';
         $rec->period = 24 * 60;
         $rec->offset = rand(1320, 1439); // от 22h до 24h
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $res .= core_Cron::addOnce($rec);
@@ -700,6 +714,7 @@ class log_System extends core_Manager
         $rec->action = 'reportSysErr';
         $rec->period = 24 * 60;
         $rec->offset = rand(60, 180); // от 1h до 3h
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 50;
         $res .= core_Cron::addOnce($rec);

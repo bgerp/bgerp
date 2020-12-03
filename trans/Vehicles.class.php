@@ -136,6 +136,8 @@ class trans_Vehicles extends core_Master
         
         $options = array();
         $query = crm_Persons::getQuery();
+        $query->where("#state = 'active'");
+        
         $query->likeKeylist('groupList', $keylist);
         $query->show('name');
         while ($dRec = $query->fetch()){

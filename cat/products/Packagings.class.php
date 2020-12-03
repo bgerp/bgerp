@@ -89,12 +89,6 @@ class cat_products_Packagings extends core_Detail
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'eanCode';
-    
-
-    /**
-     * По подразбиране колко резултата да показва на страница
-     */
-    public $listItemsPerPage = 200;
 
 
     /**
@@ -103,10 +97,10 @@ class cat_products_Packagings extends core_Detail
     public function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden, silent');
-        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'tdClass=leftCol,caption=Опаковка,mandatory,smartCenter,removeAndRefreshForm=quantity|tareWeight|sizeWidth|sizeHeight|sizeDepth,silent');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'tdClass=leftCol,caption=Опаковка,mandatory,smartCenter,removeAndRefreshForm=quantity|tareWeight|sizeWidth|sizeHeight|sizeDepth|templateId,silent');
         $this->FLD('quantity', 'double(Min=0,smartRound)', 'input,caption=Количество,mandatory,smartCenter');
         $this->FLD('isBase', 'enum(yes=Да,no=Не)', 'caption=Основна,mandatory,maxRadio=2');
-        $this->FLD('eanCode', 'gs1_TypeEan(mvc=cat_products_Packagings,field=eanCode)', 'caption=EAN');
+        $this->FLD('eanCode', 'gs1_TypeEan(mvc=cat_products_Packagings,field=eanCode,stringIfEmpty)', 'caption=EAN');
         $this->FLD('templateId', 'key(mvc=cat_PackParams,select=title)', 'caption=Размери,silent,removeAndRefreshForm=tareWeight|sizeWidth|sizeHeight|sizeDepth,class=w50');
         $this->FLD('sizeWidth', 'cat_type_Size(min=0,unit=cm)', 'caption=Подробно->Дължина,autohide=any');
         $this->FLD('sizeHeight', 'cat_type_Size(min=0,unit=cm)', 'caption=Подробно->Широчина,autohide=any');
@@ -158,7 +152,8 @@ class cat_products_Packagings extends core_Detail
                 $check = $mvc->Master->getByCode($rec->eanCode);
                 if (($check && ($check->productId != $rec->productId)) ||
                     ($check && $check->packagingId && $check->productId == $rec->productId && $check->packagingId != $rec->packagingId)) {
-                    $form->setError('eanCode', 'Има вече продукт с такъв код!');
+                        $checkProductLink = cat_Products::getHyperlink($check->productId, true);
+                        $form->setError('eanCode', 'Има вече артикул с такъв код|*: ' . $checkProductLink);
                 }
             }
             
@@ -278,7 +273,7 @@ class cat_products_Packagings extends core_Detail
         }
         
         if ($action == 'add' && isset($rec->productId)) {
-            if (!count($mvc::getRemainingOptions($rec->productId))) {
+            if (!countR($mvc::getRemainingOptions($rec->productId))) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -320,7 +315,7 @@ class cat_products_Packagings extends core_Detail
      */
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
-        if (!(count($mvc::getRemainingOptions($data->form->rec->productId)) - 1)) {
+        if (!(countR($mvc::getRemainingOptions($data->form->rec->productId)) - 1)) {
             $data->form->toolbar->removeBtn('saveAndNew');
         }
     }
@@ -353,11 +348,11 @@ class cat_products_Packagings extends core_Detail
         
         // Групираме опциите, ако има такива
         $options = array();
-        if (count($packArr)) {
+        if (countR($packArr)) {
             $options = array('p' => (object) array('group' => true, 'title' => tr('Опаковки'))) + $packArr;
         }
         
-        if (count($uomArr)) {
+        if (countR($uomArr)) {
             $options += array('u' => (object) array('group' => true, 'title' => tr('Мерки'))) + $uomArr;
         }
         
@@ -380,7 +375,7 @@ class cat_products_Packagings extends core_Detail
         if ($Driver = cat_Products::getDriver($rec->productId)) {
             $defaults = $Driver->getDefaultPackagings($rec);
             
-            if (count($defaults)) {
+            if (countR($defaults)) {
                 foreach ($defaults as $def) {
                     if (isset($options[$def->packagingId])) {
                         $form->setDefault('packagingId', $def->packagingId);
@@ -389,15 +384,17 @@ class cat_products_Packagings extends core_Detail
             }
         }
         
+        $form->setField('templateId', 'input=none');
         if (isset($rec->packagingId)) {
             $uomType = cat_UoM::fetchField($rec->packagingId, 'type');
             if ($uomType != 'uom') {
+                $form->setField('templateId', 'input');
                 
                 // Намиране на наличните шаблони
                 $packTemplateOptions = cat_PackParams::getTemplates($rec->packagingId);
                 $form->setOptions('templateId', array('' => '') + $packTemplateOptions);
                 
-                if (count($packTemplateOptions)) {
+                if (countR($packTemplateOptions)) {
                     // Зареждане на дефолтите от шаблоните
                     if (isset($rec->templateId)) {
                         $pRec = cat_PackParams::fetch($rec->templateId);
@@ -407,8 +404,6 @@ class cat_products_Packagings extends core_Detail
                         $form->setDefault('tareWeight', $pRec->tareWeight);
                     }
                 }
-            } else {
-                $form->setField('templateId', 'input=none');
             }
         }
         
@@ -517,7 +512,7 @@ class cat_products_Packagings extends core_Detail
      */
     public function renderPackagings($data)
     {
-        if ($data->notStorable === true && !count($data->recs)) {
+        if ($data->notStorable === true && !countR($data->recs)) {
             
             return;
         }
@@ -757,7 +752,7 @@ class cat_products_Packagings extends core_Detail
         
         // Има ли последно посещавани нишки от текущия потребител?
         $threadIds = bgerp_Recently::getLastThreadsId(null, null, 3600);
-        if (!count($threadIds)) {
+        if (!countR($threadIds)) {
             
             return $resArr;
         }
@@ -776,7 +771,7 @@ class cat_products_Packagings extends core_Detail
         $cQuery->in('docClass', $DocumentIds);
         $cQuery->show('id,folderId');
         $containers = $cQuery->fetchAll();
-        if (!count($containers)) {
+        if (!countR($containers)) {
             
             return $resArr;
         }
@@ -827,7 +822,7 @@ class cat_products_Packagings extends core_Detail
                 }
                 
                 // Ако артикула е достъпен само към избрани папки, документа трябва да е в тях
-                if (count($onlyInFolders) && !($Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes') || $Doc->isInstanceOf('store_Transfers'))) {
+                if (countR($onlyInFolders) && !($Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes') || $Doc->isInstanceOf('store_Transfers'))) {
                     $folderId = $Doc->fetchField('folderId');
                     if (!array_key_exists($folderId, $onlyInFolders)) {
                         continue;
@@ -881,7 +876,7 @@ class cat_products_Packagings extends core_Detail
             }
         }
         
-        if (count($documentRows)) {
+        if (countR($documentRows)) {
             $fieldset = new core_FieldSet();
             $fieldset->FLD('addLink', 'varchar', 'tdClass=centered');
             $fieldset->FLD('free', 'varchar', 'smartCenter');

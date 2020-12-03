@@ -70,7 +70,7 @@ defIfNot('PML_SMTPAUTH', 'FALSE');
 
 
 /**
- * ПОтребител за SMTP
+ * Пoтребител за SMTP
  */
 defIfNot('PML_USERNAME', '');
 
@@ -82,9 +82,9 @@ defIfNot('PML_PASSWORD', '');
 
 
 /**
- * Парола за SMTP
+ * Сигурност за SMTP 
  */
-defIfNot('PML_SMTPSECURE', 0);
+defIfNot('PML_SMTPSECURE', '0');
 
 
 /**
@@ -130,8 +130,26 @@ class phpmailer_Setup extends core_ProtoSetup
         'PML_PORT' => array('int', 'caption=Smtp->Порт'),
         'PML_SMTPAUTH' => array('enum(TRUE=да, FALSE=не)', 'caption=Smtp->Оторизация'),
         'PML_USERNAME' => array('varchar', 'caption=Smtp->Потребител'),
-        'PML_PASSWORD' => array('varchar', 'caption=Smtp->Парола'),
+        'PML_PASSWORD' => array('password', 'caption=Smtp->Парола'),
         'PML_SMTPSECURE' => array('enum(tls=TLS, ssl=SSL, 0=няма)', 'caption=Smtp->Криптиране'),
         'PML_VERSION' => array('enum(5.2.8, 5.2.22, 5.2.27)', 'caption=PML->Версия'),
     );
+    
+    /**
+     * Проверява дали от настройките на PML може да се пращат писма
+     *
+     * @return NULL|string
+     */
+    public function checkConfig($fullCheck = false)
+    {
+        if (!$fullCheck) {
+            
+            return;
+        }
+        $pml = cls::get('phpmailer_Instance');
+        if (!$pml->SmtpConnect()) {
+            
+            return "|*<li class='debug-error'>|Грешка при свързване|*!</li>";
+        }
+    }
 }

@@ -286,7 +286,7 @@ class planning_AssetResourcesNorms extends core_Manager
         $notIn += arr::make(array_keys($groupAssets), true);
         
         $arr = array();
-        if (count($groupAssets)) {
+        if (countR($groupAssets)) {
             $group = planning_AssetGroups::getVerbal($groupId, 'name');
             $options = array('g' => (object) array('group' => true, 'title' => $group));
             foreach ($groupAssets as $productId => $rec) {
@@ -303,7 +303,7 @@ class planning_AssetResourcesNorms extends core_Manager
                 $assetArr[$rec1->productId] = cat_Products::getTitleById($productId, false);
             }
             
-            if (count($assetArr)) {
+            if (countR($assetArr)) {
                 $assetName = planning_AssetResources::getTitleById($assetId, false);
                 $options += array("a{$assetId}" => (object) array('group' => true, 'title' => $assetName)) + $assetArr;
             }

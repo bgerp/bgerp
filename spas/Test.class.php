@@ -116,6 +116,9 @@ class spas_Test extends core_Mvc
                     foreach ((array) $res as $key => $value) {
                         $html .= "<li><strong>{$key}</strong> =  {$value}</li>";
                     }
+                } else {
+                    $html .= "<li><strong>Резултат от обучението: </strong>" . core_Type::mixedToString($res). "</li>";
+                    wp($res);
                 }
             } catch (spas_client_Exception $e) {
                 $html .= "<li class='debug-error'><strong>Грешка:</strong>" . $e->getMessage() . '</li>';

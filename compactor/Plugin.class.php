@@ -49,6 +49,13 @@ class compactor_Plugin extends core_Plugin
      */
     public function compactFiles($filesArr, $configFilesArr, $baseDir, $callback = null)
     {
+        if (is_array($filesArr)) {
+            foreach ($filesArr as $fKey => $fVal) {
+                if (is_object($fVal)) {
+                    unset($filesArr[$fKey]);
+                }
+            }
+        }
         $filesArr = arr::make($filesArr, true);
         $configFilesArr = arr::make($configFilesArr, true);
         

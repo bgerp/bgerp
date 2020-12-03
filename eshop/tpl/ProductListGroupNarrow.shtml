@@ -3,8 +3,9 @@
     <div>
         <h2 class='eshop-product-list-name'>[#name#] [#singleLink#][#editLink#]</h2>
         <div class='eshop-product-labels'>
-            <!--ET_BEGIN code--><span>|Код|*: <b>[#code#]</b></span><!--ET_END code--> <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq-->
-            <!--ET_BEGIN catalogPrice--><span>|Цена|*: <b>[#catalogPrice#]</b> [#singleCurrencyId#] [#chargeVat#] |за|* [#packagingId#]</span> <!--ET_END catalogPrice-->[#btn#] [#coInquiry#]
+            <!--ET_BEGIN code--><span class="info">|Код|*: <b>[#code#]</b></span><!--ET_END code--> <!--ET_BEGIN coMoq--><span class="info" title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq-->
+            <!--ET_BEGIN catalogPrice--><span class="info">|Цена|*: <b>[#catalogPrice#]</b> [#chargeVat#] |за|* [#packagingId#]</span> <!--ET_END catalogPrice-->[#btn#] [#coInquiry#]
+            <!--ET_BEGIN saleInfo--><span class='product-additional-info'>[#saleInfo#]</span><!--ET_END saleInfo-->
         </div>
         [#info#]
     </div>

@@ -33,7 +33,7 @@ class plg_StyleNumbers extends core_Plugin
     {
         $rows = &$data->rows;
         
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }

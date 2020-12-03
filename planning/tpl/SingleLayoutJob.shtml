@@ -28,7 +28,7 @@
                 <!--ET_BEGIN quantityFromTasks-->
                 <td class = 'nowrap'>[#quantityFromTasks#] </td>
                 <!--ET_END quantityFromTasks-->
-                <td class = 'nowrap'>[#quantityProduced#]</td>
+                <td class = 'nowrap'>[#quantityProduced#]<!--ET_BEGIN producedInfo--><span class='small' style='font-weight:normal'> ([#producedInfo#])</span><!--ET_END producedInfo--></td>
                 <td class = 'nowrap'>[#quantityToProduce#]</td>
                 <!--ET_BEGIN quantityNotStored-->
                 <td class = 'nowrap'>[#quantityNotStored#]</td>

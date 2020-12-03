@@ -1276,7 +1276,7 @@ class fileman_Repositories extends core_Master
             if ($filesArr['files']) {
                 
                 // Вземаме броя им
-                $cnt = count($filesArr['files']);
+                $cnt = countR($filesArr['files']);
                 
                 // Добавяме масива
                 $data->fileTreeArr[$path] = $filesArr;
@@ -1331,7 +1331,7 @@ class fileman_Repositories extends core_Master
             $pathEntry = str_replace(array('/', '\\'), '->', $path);
             
             // Ако e празна директория
-            if (!count($filesArr)) {
+            if (!countR($filesArr)) {
                 
                 // Ако е зададено да се показват и празните директории
                 if ($data->useEmptyFolders) {
@@ -1820,7 +1820,7 @@ class fileman_Repositories extends core_Master
     public function renderSingleFilter_($data)
     {
         // Ако има полета, които да се покажат
-        if (count($data->singleFilter->showFields)) {
+        if (countR($data->singleFilter->showFields)) {
             
             // Добавяме филтъра
             return new ET("<div class='singleFilter'>[#1#]</div>", $data->singleFilter->renderHtml(null, $data->singleFilter->rec));

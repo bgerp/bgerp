@@ -38,15 +38,17 @@
                     </div>
                     <!--ET_END contragentAddress-->
                     <!--ET_END contragentName-->
-                    <!--ET_BEGIN vatId-->
-                    <div>Vat Id: [#vatId#]</div>
-                    <!--ET_END vatId-->
-                    <!--ET_BEGIN deliveryLocationId-->
+
+                    <!--ET_BEGIN contragentVatInfo-->
+                    [#contragentVatInfo#]
                     <hr style="margin: 3px 0 1px;">
-                    <div>
-                        To location: [#deliveryLocationId#]
-                    </div>
-                    <!--ET_END deliveryLocationId-->
+                    <!--ET_BEGIN vatNo-->
+                    <div><small>VAT ID:</small> <span class="bigData  notBold" style="padding-left:5px;">[#vatNo#]</span></div>
+                    <!--ET_END vatNo-->
+                    <!--ET_BEGIN contragentUicId-->
+                    <div><small>[#contragentUicCaption#]:</small> <span class="bigData  notBold" style="padding-left:5px;"> [#contragentUicId#]</span></div>
+                    <!--ET_END contragentUicId-->
+                    <!--ET_END contragentVatInfo-->
                 </td>
                 <td>
                     <!--ET_BEGIN MyCompany-->
@@ -56,13 +58,19 @@
                         [#MyAddress#]
                     </div>
                     <!--ET_END MyAddress-->
-                    <!--ET_END MyCompany-->
-                    <!--ET_BEGIN shipmentStoreId-->
+
+                    <!--ET_BEGIN vatInfo-->
+                    [#vatInfo#]
                     <hr style="margin: 3px 0 1px;">
-                    <div>
-                        From store: [#shipmentStoreId#]
-                    </div>
-                    <!--ET_END shipmentStoreId-->
+                    <!--ET_BEGIN MyCompanyVatNo-->
+                    <div><small>VAT ID:</small> <span class="bigData notBold" style="padding-left:5px;">[#MyCompanyVatNo#]</span></div>
+                    <!--ET_END MyCompanyVatNo-->
+                    <!--ET_BEGIN uicId-->
+                    <div><small>Tax ID:</small> <span class="bigData notBold" style="padding-left:5px;">[#uicId#]</span></div>
+                    <!--ET_END uicId-->
+                    <!--ET_END vatInfo-->
+
+                    <!--ET_END MyCompany-->
                 </td>
             </tr>
         </tbody>
@@ -79,7 +87,9 @@
     <table class="innerTable footer-notes paddingCells" style='width:100%;'>
         <tbody>
             <tr>
-                <td class="topCell vtop" style='width:33%;'>
+
+                [#conditions#]
+                <td class="topCell first vtop">
                     <!--ET_BEGIN paymentMethodId-->
                     <div class='cellRow'>
                         <span class='quiet'>Payment method: </span>
@@ -104,16 +114,9 @@
                         [#bank#]<!--ET_END bank--><!--ET_BEGIN bic-->, <span class="nowrap">BIC: [#bic#]</span><!--ET_END bic--></div>
                     </div>
                     <!--ET_END bankAccountId-->
-                    <!--ET_BEGIN caseId-->
-                    <div class='cellRow'>
-                        <span class='quiet'>Case: </span>[#caseId#]
-                    </div>
-                    <!--ET_END caseId-->
+
                     [#ADDITIONAL_BLOCK#]
-                </td>
-                <!--ET_BEGIN conditions-->
-                [#conditions#]
-                <td class="topCell first vtop" rowspan="2">
+                    <hr>
                     <div>
                         <b>Conditions</b>
                         <ol style = 'margin-top:1px'>
@@ -129,17 +132,11 @@
                             <!--ET_BEGIN closedDocuments-->
                             <li>Combines: [#closedDocuments#]</li>
                             <!--ET_END closedDocuments-->
-                            <!--ET_BEGIN notes-->
-                            [#notes#]
-                            <!--ET_END notes-->
-                            <!--ET_BEGIN cartId-->
-                            <li>[#cartId#]</li>
-                            <!--ET_END cartId-->
                             <!--ET_BEGIN deliveryBlock-->
-                            [#deliveryBlock#]
                             <li>
                                 Delivery: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> till [#deliveryTime#]<!--ET_END deliveryTime-->
                             </li>
+                            [#deliveryBlock#]
                             <!--ET_END deliveryBlock-->
                             <!--ET_BEGIN deliveryTermTime-->
                             <li>Delivery time up to [#deliveryTermTime#] after starting the order</li>
@@ -147,42 +144,19 @@
                             <!--ET_BEGIN commonConditionQuote-->
                             <li>General Terms and Conditions of Sale: [#commonConditionQuote#]</li>
                             <!--ET_END commonConditionQuote-->
+                            <!--ET_BEGIN notes-->
+                            [#notes#]
+                            <!--ET_END notes-->
                         </ol>
                     </div>
                 </td>
-                <!--ET_END conditions-->
+
                 <td class="topCell aright vtop" style='width:33%;'>
                     [#/deals/tpl/DocumentPiceInfo.shtml#]
                 </td>
             </tr>
-            <tr>
-                <td>
-                    <table class='signature-table' style='width:1%;'>
-                        <tr>
-                            <td class="nowrap" style='width:1%;'>For the Recipient:  </td>
-                            <td></td>
-                        </tr>
-                        <tr>
-                            <td></td>
-                            <td><span class="sign_names nowrap">[#responsible#]</span></td>
-                        </tr>
-                    </table>
-                </td>
-                <td>
-                    <table style='width:1%'  class='fright signature-table'>
-                        <tr>
-                            <td class='nowrap' style='width:1%;'>For the supplier:  </td>
-                            <td></td>
-                        </tr>
-                        <tr>
-                            <td></td>
-                            <td><span class="sign_names nowrap"><!--ET_BEGIN domainId-->/ [#domainId#] /<!--ET_END domainId--></span></td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
             <tr class='footerDocInfo'>
-                <td colspan="3">
+                <td colspan="2">
                     <div class='aright'>This document is created by <b><a href='http://bgerp.com'>bgERP</a></b></div>
                 </td>
             </tr>

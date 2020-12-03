@@ -23,7 +23,7 @@ class plg_RowZebra extends core_Plugin
      */
     public function on_AfterPrepareListRows($mvc, &$res, $data)
     {
-        if ($cnt = count($data->recs)) {
+        if ($cnt = countR($data->recs)) {
             $zebra = 1;
             
             foreach ($data->rows as $id => $row) {

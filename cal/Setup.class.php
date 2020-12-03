@@ -70,6 +70,7 @@ class cal_Setup extends core_ProtoSetup
         'cal_TaskConditions',
         'cal_LinkedPostponed',
         'migrate::repairSerchKeywords',
+        'migrate::calcTimeStart1920',
     );
     
     
@@ -270,5 +271,29 @@ class cal_Setup extends core_ProtoSetup
     {
         $callOn = dt::addSecs(1200);
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'cal_Tasks', $callOn);
+    }
+    
+    
+    /**
+     * Миграция за регенериране на ключовите думи
+     */
+    public static function calcTimeStart1920()
+    {
+        $Reminders = cls::get('cal_Reminders');
+        
+        $query = $Reminders->getQuery();
+        $query->where("#calcTimeStart IS NULL");
+        
+        while ($rec = $query->fetch()) {
+            $cRec = clone $rec;
+            
+            $rec->nextStartTime = $Reminders->getNextStartingTime2($rec);
+            $rec->calcTimeStart = $Reminders->getNextStartingTime2($cRec, false);
+            if (!$rec->calcTimeStart) {
+                $rec->calcTimeStart = $rec->timeStart;
+            }
+            
+            $Reminders->save_($rec, 'calcTimeStart,nextStartTime');
+        }
     }
 }

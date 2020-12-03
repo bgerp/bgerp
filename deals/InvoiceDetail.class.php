@@ -91,7 +91,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         
         $data->form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ';
         $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
-        $data->form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts));
+        $data->form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties' => 'generic'));
         
         if (isset($rec->id)) {
             $data->form->setReadOnly('productId');
@@ -135,7 +135,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $masterRec = $data->masterData->rec;
             
             $error = '';
-            if (!count(cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, null, 1))) {
+            if (!countR(cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, 'generic', 1))) {
                 $text = ($mvc->metaProducts == 'canSell') ? 'продаваеми' : 'купуваеми';
                 $error = "error=Няма {$text} артикули,";
             }
@@ -188,7 +188,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $det->{$this->masterKey} = $id;
                 $det->amount = $det->price * $det->quantity;
                 $det->quantity /= $det->quantityInPack;
-                if(is_array($det->batches) && count($det->batches)){
+                if(is_array($det->batches) && countR($det->batches)){
                     $det->_batches = array_keys($det->batches);
                 }
                 unset($det->batches);
@@ -241,9 +241,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
      */
     public static function modifyDcDetails(&$recs, $rec, $mvc)
     {
-        expect($rec->type === 'dc_note');
+        expect($rec->type != 'invoice');
         
-        if (count($recs)) {
+        if (countR($recs)) {
             // Намираме оригиналните к-ва и цени
             $cached = $mvc->Master->getInvoiceDetailedInfo($rec->originId);
             
@@ -251,16 +251,23 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $count = 0;
             foreach ($recs as &$dRec) {
                 $originRef = $cached->recs[$count][$dRec->productId];
-                
                 $diffQuantity = $dRec->quantity - $originRef['quantity'];
-                $diffPrice = $dRec->packPrice - $originRef['price'];
+                
+                $originPrice = deals_Helper::getDisplayPrice($originRef['price'], 0, 1, 'no');
+                $diffPrice = $dRec->packPrice - $originPrice;
+                
+                $priceIsChanged = false;
+                $diffPrice = number_format($diffPrice, 5);
+                if(abs($diffPrice) > 0.0001){
+                    $priceIsChanged = true;
+                }
                 
                 if (round($diffQuantity, 5) != 0) {
                     $dRec->quantity = $diffQuantity;
                     $dRec->changedQuantity = true;
                 }
                 
-                if (round($diffPrice, 5) != 0) {
+                if ($priceIsChanged) {
                     $dRec->packPrice = $diffPrice;
                     $dRec->changedPrice = true;
                 }
@@ -535,10 +542,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 }
             }
             
-            // Проверка на к-то
+            // Проверка на к-то, само ако не е КИ или ДИ
             $warning = null;
-            if (!deals_Helper::checkQuantity($rec->packagingId, $rec->quantity, $warning)) {
-                $form->setError('quantity', $warning);
+            if (!deals_Helper::checkQuantity($rec->packagingId, $rec->quantity, $warning) && $masterRec->type != 'dc_note') {
+                $form->setWarning('quantity', $warning);
             }
             
             if ($masterRec->type != 'dc_note') {
@@ -554,7 +561,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $dealInfo = $origin->getAggregateDealInfo();
                 $products = $dealInfo->get('products');
                 
-                if (count($products)) {
+                if (countR($products)) {
                     foreach ($products as $p) {
                         if ($rec->productId == $p->productId && $rec->packagingId == $p->packagingId) {
                             $policyInfo = new stdClass();
@@ -639,9 +646,17 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 }
                 $index = array_search($rec->id, $recs);
                 $cache = $cache->recs[$index][$rec->productId];
-                
                 $pPrice = isset($packPrice)? $packPrice : $rec->packPrice;
-                if (round($cache['quantity'], 5) != round($rec->quantity, 5) && (isset($rec->packPrice) && round($cache['price'], 5) != round($pPrice, 5))) {
+                
+                $priceIsChanged = false;
+                $originPrice = deals_Helper::getDisplayPrice($cache['price'], 0, 1, 'no');
+                $diffPrice = abs($pPrice - $originPrice);
+                $diffPrice = number_format($diffPrice, 5);
+                if($diffPrice > 0.0001){
+                    $priceIsChanged = true;
+                }
+                
+                if (round($cache['quantity'], 5) != round($rec->quantity, 5) && (isset($rec->packPrice) && $priceIsChanged)) {
                     $form->setError('quantity,packPrice', 'Не може да е променена и цената и количеството');
                 }
             }

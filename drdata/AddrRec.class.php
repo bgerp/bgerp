@@ -77,7 +77,7 @@ class drdata_AddrRec
     {
         $res = null;
         
-        if (count($this->data)) {
+        if (countR($this->data)) {
             foreach ($this->data as $value => $fieldArr) {
                 list($field, $trust) = $fieldArr;
                 $res[] = array($field, $value, $trust);

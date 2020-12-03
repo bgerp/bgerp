@@ -139,6 +139,23 @@ class crm_Locations extends core_Master
     
     
     /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        // Думите за търсене са името на документа-основания
+        $Contragent = new core_ObjectReference($rec->contragentCls, $rec->contragentId);
+        $cData = $Contragent->getContragentData();
+        
+        foreach (array('company', 'vatNo', 'person', 'uicId', 'pTel', 'tel') as $cField){
+            if(!empty($cData->{$cField})) {
+                $res .= ' ' . plg_Search::normalizeText($cData->{$cField});
+            }
+        }
+    }
+    
+    
+    /**
      * Обновява или добавя локация към контрагента
      *
      * @param int         $contragentClassId - Клас на контрагента
@@ -468,11 +485,14 @@ class crm_Locations extends core_Master
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         
         $tpl->append(tr('Локации'), 'title');
-        
-        if (countR($data->rows)) {
+        $count = countR($data->rows);
+        if ($count) {
+            $divider = ($count == 1) ? '' : "<hr>";
             foreach ($data->rows as $id => $row) {
+                $row->fullAddress = static::getAddress($id);
+                
                 core_RowToolbar::createIfNotExists($row->_rowTools);
-                $block = new ET('<div>[#title#], [#type#]<!--ET_BEGIN tel-->, ' . tr('тел') . ': [#tel#]<!--ET_END tel--><!--ET_BEGIN email-->, ' . tr('имейл') . ": [#email#]<!--ET_END email--> <span style='position:relative;top:4px'>[#tools#]</span></div>");
+                $block = new ET('<div>[#title#], [#type#]<!--ET_BEGIN tel-->, ' . tr('тел') . ': [#tel#]<!--ET_END tel--><!--ET_BEGIN email-->, ' . tr('имейл') . ": [#email#]<!--ET_END email--> <span style='position:relative;top:4px'>[#tools#]</span></div><!--ET_BEGIN fullAddress--><div style='padding-left:20px'>[#fullAddress#]</div><!--ET_END fullAddress-->{$divider}");
                 $block->placeObject($row);
                 $block->append($row->_rowTools->renderHtml(), 'tools');
                 $block->removeBlocks();
@@ -553,13 +573,14 @@ class crm_Locations extends core_Master
     /**
      * Всички локации на зададен контрагент
      *
-     * @param mixed $contragentClassId - име, ид или инстанция на клас-мениджър на контрагент
-     * @param int   $contragentId      - първичен ключ на контрагента (в мениджъра му)
-     * @param int   $countries         - държави
+     * @param mixed $contragentClassId            - име, ид или инстанция на клас-мениджър на контрагент
+     * @param int   $contragentId                 - първичен ключ на контрагента (в мениджъра му)
+     * @param int   $countries                    - държави
+     * @param int|null $onlyWithRoutesInNextNdays - само с маршрути в следващите N дена, null ако не искаме ограничение
      *
      * @return array $recs
      */
-    private static function getContragentLocations($contragentClassId, $contragentId, $countries = array())
+    private static function getContragentLocations($contragentClassId, $contragentId, $countries = array(), $onlyWithRoutesInNextNdays = null)
     {
         expect($contragentClassId = core_Classes::getId($contragentClassId));
         
@@ -572,6 +593,8 @@ class crm_Locations extends core_Master
         
         $recs = array();
         while ($rec = $query->fetch()) {
+            if(isset($onlyWithRoutesInNextNdays) && !countR(sales_Routes::getRouteOptions($rec->id, $onlyWithRoutesInNextNdays))) continue;
+            
             $recs[$rec->id] = $rec;
         }
         
@@ -582,26 +605,34 @@ class crm_Locations extends core_Master
     /**
      * Наименованията на всички локации на зададен контрагент
      *
-     * @param mixed $contragentClassId име, ид или инстанция на клас-мениджър на контрагент
-     * @param int   $contragentId      първичен ключ на контрагента (в мениджъра му)
+     * @param mixed $contragentClassId - име, ид или инстанция на клас-мениджър на контрагент
+     * @param int   $contragentId      - първичен ключ на контрагента (в мениджъра му)
      * @param bool  $intKeys           - дали ключовите да са инт или стринг
-     * @param array  $countries        - държави
+     * @param bool  $showAddress       - дали името да е дълго
+     * @param array $countries         - от кои държави да са локациите
      *
-     * @return array масив от наименования на локации, ключ - ид на локации
+     * @return array $res              - масив от наименования на локации, ключ - ид на локации
      */
-    public static function getContragentOptions($contragentClassId, $contragentId, $intKeys = true, $countries = array())
+    public static function getContragentOptions($contragentClassId, $contragentId, $intKeys = true, $showAddress = false, $countries = array(), $onlyWithRoutesInNextNdays = null)
     {
-        $locationRecs = static::getContragentLocations($contragentClassId, $contragentId, $countries);
+        $locationRecs = static::getContragentLocations($contragentClassId, $contragentId, $countries, $onlyWithRoutesInNextNdays);
         
-        foreach ($locationRecs as &$rec) {
-            $rec = static::getTitleById($rec->id, false);
+        $res = array();
+        foreach ($locationRecs as $rec) {
+            $titleFinal = $title = static::getTitleById($rec->id, false);
+            if($showAddress){
+                $countryCode = drdata_Countries::fetchField($rec->countryId, 'letterCode2');
+                $fullTitle = (!empty($rec->pCode) ? "{$rec->pCode} " : "") . (!empty($rec->place) ? "{$rec->place}, " : ", ") . $rec->address;
+                $fullTitle = rtrim($fullTitle, ", ");
+                $fullTitle .= ", {$countryCode}";
+                $titleFinal .= " [{$fullTitle}]";
+            }
+            
+            $key = ($intKeys) ? $rec->id : $title;
+            $res[$key] = $titleFinal;
         }
         
-        if (!$intKeys && countR($locationRecs)) {
-            $locationRecs = array_combine($locationRecs, $locationRecs);
-        }
-        
-        return $locationRecs;
+        return $res;
     }
     
     
@@ -723,12 +754,9 @@ class crm_Locations extends core_Master
             
             return ;
         }
-        
-        $cRec = new stdClass();
-        $cRec->id = $rec->contragentId;
-        $cRec->tel = $rec->tel;
-        
-        return $contragentCls->updateNumbers($cRec);
+
+        $cRec = $contragentCls->fetch($rec->contragentId); 
+        $contragentCls->addAddtionalNumber($cRec, null, $rec->tel, null);
     }
     
     

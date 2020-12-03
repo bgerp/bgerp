@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -52,7 +52,7 @@ class planning_Jobs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, doc_SharablePlg, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing';
+    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, doc_SharablePlg, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing, cat_plg_AddSearchKeywords';
     
     
     /**
@@ -160,6 +160,14 @@ class planning_Jobs extends core_Master
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     *
+     *  @var string
+     */
+    public $hideListFieldsIfEmpty = 'quantityFromTasks,quantityNotStored';
+    
+    
+    /**
      * Вербални наименования на състоянията
      */
     private static $actionNames = array('created' => 'Създаване',
@@ -222,6 +230,8 @@ class planning_Jobs extends core_Master
         
         $this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Количество->Произведено,notNull,value=0');
         $this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Количество->Заскладено,notNull,value=0');
+        //$this->FLD('quantityProducedInOtherMeasures', 'blob(serialize, compress)', 'input=none,caption=Количество->Заскладено други мерки');
+        
         $this->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки');
         $this->FLD('tolerance', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.1)', 'caption=Толеранс,silent');
         $this->FLD('department', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност');
@@ -295,7 +305,7 @@ class planning_Jobs extends core_Master
         // Ако има предишни задания зареждат се за избор
         $oldJobs = self::getOldJobs($rec->productId, $rec->id, $rec->folderId);
         
-        if (count($oldJobs)) {
+        if (countR($oldJobs)) {
             $form->setField('oldJobId', 'input');
             $form->setOptions('oldJobId', array('' => '') + $oldJobs);
         }
@@ -306,8 +316,9 @@ class planning_Jobs extends core_Master
         $form->setOptions('packagingId', $packs);
         
         // Ако артикула не е складируем, скриваме полето за мярка
-        $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-        if ($canStore == 'no') {
+        $productRec = cat_Products::fetch($rec->productId, 'canStore,isPublic,innerClass');
+        
+        if ($productRec->canStore == 'no') {
             $form->setDefault('packagingId', key($packs));
             $measureShort = cat_UoM::getShortName($rec->packagingId);
             $form->setField('packQuantity', "unit={$measureShort}");
@@ -350,6 +361,21 @@ class planning_Jobs extends core_Master
             $form->setField('department', 'mandatory');
         }
         
+        // Дефолтния център е този от последния артикул или драйвер, ако артикула е нестандартен
+        $lastQuery = self::getQuery();
+        $lastQuery->where("#state != 'rejected' AND #department IS NOT NULL");
+        $lastQuery->orderBy('id', 'DESC');
+        if($productRec->isPublic == 'yes'){
+            $lastQuery->where("#productId = {$productRec->id}");
+        } else {
+            $lastQuery->EXT('innerClass', 'cat_Products', 'externalName=innerClass,externalKey=productId');
+            $lastQuery->where("#innerClass = {$productRec->innerClass}");
+        }
+        
+        if($lastRec = $lastQuery->fetch()){
+            $form->setDefault('department', $lastRec->department);
+        }
+        
         // Ако е избрано предишно задание зареждат се данните от него
         if (isset($rec->oldJobId)) {
             $oRec = self::fetch($rec->oldJobId, 'notes,department,packagingId,storeId');
@@ -389,8 +415,8 @@ class planning_Jobs extends core_Master
             
             return;
         }
-        $deliveryDate = dt::verbal2mysql($deliveryDate, false);
         
+        $deliveryDate = dt::verbal2mysql($deliveryDate, false);
         $saleClassId = sales_Sales::getClassId();
         $transRec = sales_TransportValues::fetch("#docClassId = {$saleClassId} AND #docId = {$saleId}", 'deliveryTime');
         $subtractTime = 3 * 24 * 60 * 60 + $transRec->deliveryTime;
@@ -398,7 +424,13 @@ class planning_Jobs extends core_Master
         $dueDate = cal_Calendar::nextWorkingDay($dueDate, null, -1);
         $dueDate = dt::verbal2mysql($dueDate, false);
         
-        return $dueDate;
+        $today = dt::today();
+        if($dueDate > $today){
+            
+            return $dueDate;
+        }
+        
+        return $today;
     }
     
     
@@ -427,7 +459,7 @@ class planning_Jobs extends core_Master
         
         $data->listFilter->setField('selectPeriod', 'caption=Падеж');
         $contragentsWithJobs = self::getContragentsWithJobs();
-        if (count($contragentsWithJobs)) {
+        if (countR($contragentsWithJobs)) {
             $data->listFilter->FLD('contragent', 'int', 'caption=Контрагенти,input,silent');
             $data->listFilter->setOptions('contragent', array('' => '') + $contragentsWithJobs);
             $data->listFilter->input('contragent', 'silent');
@@ -493,7 +525,7 @@ class planning_Jobs extends core_Master
                         $jobIdsWithTasks = arr::extractValuesFromArray($tQuery->fetchAll(), 'docId');
                         $data->query->where("#state = 'active'");
                         
-                        if (count($jobIdsWithTasks)) {
+                        if (countR($jobIdsWithTasks)) {
                             $data->query->notIn('id', $jobIdsWithTasks);
                         }
                         
@@ -513,7 +545,7 @@ class planning_Jobs extends core_Master
     {
         $options = core_Cache::get('planning_Jobs', 'contragentsWithJobs', 120, array('planning_Jobs'));
         
-        if(!is_array($options) || !count($options)) {
+        if(!is_array($options) || !countR($options)) {
             $options = array();
             $query = self::getQuery();
             $query->EXT('sFolderId', 'sales_Sales', 'externalName=folderId,externalKey=saleId');
@@ -543,7 +575,7 @@ class planning_Jobs extends core_Master
         $tpl->push('planning/tpl/styles.css', 'CSS');
         
         // Рендираме историята на действията със заданието
-        if (count($data->row->history)) {
+        if (countR($data->row->history)) {
             foreach ($data->row->history as $hRow) {
                 $clone = clone $tpl->getBlock('HISTORY_ROW');
                 $clone->placeObject($hRow);
@@ -556,7 +588,7 @@ class planning_Jobs extends core_Master
         $packagingTpl = cls::get('cat_products_Packagings')->renderPackagings($data->packagingData);
         $tpl->replace($packagingTpl, 'PACKAGINGS');
         
-        if (count($data->components)) {
+        if (countR($data->components)) {
             $componentTpl = cat_Products::renderComponents($data->components);
             $tpl->append($componentTpl, 'JOB_COMPONENTS');
         }
@@ -572,10 +604,8 @@ class planning_Jobs extends core_Master
     {
         $rec = &$data->rec;
         
-        if ($rec->state != 'draft' && $rec->state != 'rejected') {
-            if (cat_Boms::haveRightFor('add', (object) array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))) {
-                $data->toolbar->addBtn('Рецепта', array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantityForPrice' => $rec->quantity, 'ret_url' => true, 'type' => 'production'), 'ef_icon = img/16/add.png,title=Създаване на нова работна рецепта,row=2');
-            }
+        if (cat_Boms::haveRightFor('add', (object) array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))) {
+            $data->toolbar->addBtn('Рецепта', array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantityForPrice' => $rec->quantity, 'ret_url' => true, 'type' => 'production'), 'ef_icon = img/16/add.png,title=Създаване на нова работна рецепта,row=2');
         }
         
         // Бутон за добавяне на документ за производство
@@ -711,12 +741,9 @@ class planning_Jobs extends core_Master
         
         $rec->quantityProduced /= $rec->quantityInPack;
         $row->quantityProduced = $Double->toVerbal($rec->quantityProduced);
-        
         $rec->quantityNotStored = $rec->quantityFromTasks - $rec->quantityProduced;
         $row->quantityNotStored = $Double->toVerbal($rec->quantityNotStored);
-        
         $rec->quantityToProduce = $rec->packQuantity - (($rec->quantityFromTasks) ? $rec->quantityFromTasks : $rec->quantityProduced);
-        
         $row->quantityToProduce = $Double->toVerbal($rec->quantityToProduce);
         
         foreach (array('quantityNotStored', 'quantityToProduce') as $fld) {
@@ -725,8 +752,13 @@ class planning_Jobs extends core_Master
             }
         }
         
+        if (cat_Boms::haveRightFor('add', (object) array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))) {
+            core_RowToolbar::createIfNotExists($row->_rowTools);
+            $row->_rowTools->addLink('Нова работна рецепта', array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantityForPrice' => $rec->quantity, 'ret_url' => true, 'type' => 'production'), "ef_icon=img/16/article.png,title=Създаване на нова работна рецепта");
+        }
+        
         if (isset($fields['-list'])) {
-            $row->productId = cat_Products::getHyperlink($rec->productId, true);
+            $row->productId = ($fields['__isDetail']) ? cat_Products::getLink($rec->productId, 0) : cat_Products::getHyperlink($rec->productId, true);
             
             if ($rec->quantityNotStored > 0) {
                 if (planning_DirectProductionNote::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
@@ -740,13 +772,13 @@ class planning_Jobs extends core_Master
         }
         
         if (isset($rec->saleId)) {
-            $row->saleId = sales_Sales::getlink($rec->saleId);
+            $row->saleId = ($fields['__isDetail']) ? sales_Sales::getLink($rec->saleId, 0) : sales_Sales::getLink($rec->saleId);
             $saleRec = sales_Sales::fetch($rec->saleId, 'folderId,deliveryAdress,state');
             $row->saleFolderId = doc_Folders::recToVerbal(doc_Folders::fetch($saleRec->folderId))->title;
             if (!empty($saleRec->deliveryAdress)) {
                 $row->saleDeliveryAddress = core_Type::getByName('varchar')->toVerbal($saleRec->deliveryAdress);
             }
-            $row->saleId = "<span class='state-{$saleRec->state}'>{$row->saleId}</span>";
+            $row->saleId = "<span class='state-{$saleRec->state} document-handler'>{$row->saleId}</span>";
         }
         
         $row->measureId = cat_UoM::getShortName($rec->packagingId);
@@ -824,21 +856,54 @@ class planning_Jobs extends core_Master
                 $row->batches = implode(', ', $batchArr);
             }
             
-            if(!empty($rec->quantityFromTasks)){
-                $row->measureId2 = $row->measureId;
-                $row->quantityFromTasksCaption = tr('Произведено');
-            } else {
-                unset($row->quantityFromTasks);
-                unset($row->captionNotStored);
-                unset($row->quantityNotStored);
-            }
-            
             if (isset($rec->storeId)) {
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             }
+            
+            
+            $sumAdditionalMeasure = $mvc->sumAdditionalMeasure($rec);
+            if(is_object($sumAdditionalMeasure)){
+                $additionalQuantityVerbal  = $Double->toVerbal($sumAdditionalMeasure->sumSecondMeasure);
+                $additionalMeasureName = cat_UoM::getShortName($sumAdditionalMeasure->secondMeasureId);
+                $row->quantityProduced = "{$row->quantityProduced} <span style='font-weight:normal;color:darkblue;font-size:15px;font-style:italic;'>({$additionalQuantityVerbal} {$additionalMeasureName}) </span>";
+            }
+        }
+        
+        if(!empty($rec->quantityFromTasks)){
+            $row->measureId2 = $row->measureId;
+            $row->quantityFromTasksCaption = tr('Произведено');
+        } else {
+            unset($row->quantityFromTasks);
+            unset($row->captionNotStored);
+            unset($row->quantityNotStored);
         }
     }
     
+    
+    /**
+     * Сумиране на втората мярка
+     * 
+     * @param stdClass $rec
+     * @return false|stdClass $res
+     */
+    private function sumAdditionalMeasure($rec)
+    {
+        $res = (object)array('secondMeasures' => array());
+        $noteQuery = self::getJobProductionNotesQuery($rec);
+        while($noteRec = $noteQuery->fetch()){
+            if(empty($noteRec->additionalMeasureQuantity)) return false;
+            
+            $res->sumSecondMeasure += $noteRec->additionalMeasureQuantity;
+            $res->secondMeasures[$noteRec->additionalMeasureId] = $noteRec->additionalMeasureId;
+        }
+        
+        if(countR($res->secondMeasures) != 1) return false;
+        
+        $res->secondMeasureId = key($res->secondMeasures);
+        
+        return $res;
+        
+    }
     
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
@@ -880,7 +945,7 @@ class planning_Jobs extends core_Master
                 if (empty($rec->productId)) {
                     $res = 'no_one';
                 } else {
-                    $productRec = cat_Products::fetch($rec->productId, 'state,canManifacture');
+                    $productRec = cat_Products::fetch($rec->productId, 'state,canManifacture,generic');
                     
                     // Трябва да е активиран
                     if ($productRec->state != 'active') {
@@ -889,7 +954,7 @@ class planning_Jobs extends core_Master
                     
                     // Трябва и да е производим
                     if ($res != 'no_one') {
-                        if ($productRec->canManifacture == 'no') {
+                        if ($productRec->canManifacture == 'no' || $productRec->generic == 'yes') {
                             $res = 'no_one';
                         }
                     }
@@ -1062,6 +1127,32 @@ class planning_Jobs extends core_Master
     
     
     /**
+     * Връща заявка към протоколите за производство на произведения артикул
+     * 
+     * @param stdClass $rec
+     * @return core_Query $noteQuery
+     */
+    private static function getJobProductionNotesQuery($rec)
+    {
+        $rec = static::fetchRec($rec);
+        
+        // Всички задачи за производството на артикула от заданието
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->where("#originId = {$rec->containerId} AND #state != 'draft' AND #state != 'rejected'");
+        $tQuery->show('containerId');
+        $containerIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'containerId');
+        $containerIds[$rec->containerId] = $rec->containerId;
+        
+        $noteQuery = planning_DirectProductionNote::getQuery();
+        $noteQuery->in("originId", $containerIds);
+        $noteQuery->where("#state = 'active' AND #productId = {$rec->productId}");
+        $noteQuery->show('quantity,additionalMeasureId,additionalMeasureQuantity');
+        
+        return $noteQuery;
+    }
+    
+    
+    /**
      * Преизчисляваме какво количество е произведено по заданието
      *
      * @param int $containerId - ид на запис
@@ -1071,24 +1162,10 @@ class planning_Jobs extends core_Master
     public static function updateProducedQuantity($containerId)
     {
         $rec = static::fetch("#containerId = {$containerId}");
+        $noteQuery = self::getJobProductionNotesQuery($rec);
+        $totalQuantity = arr::sumValuesArray($noteQuery->fetchAll(), 'quantity');
+        $rec->quantityProduced = empty($totalQuantity) ? 0 : $totalQuantity;
         
-        // Всички задачи за производството на артикула от заданието
-        $tQuery = planning_Tasks::getQuery();
-        $tQuery->where("#originId = {$rec->containerId} AND #state != 'draft' AND #state != 'rejected'");
-        $tQuery->show('containerId');
-        $containerIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'containerId');
-        $containerIds[$rec->containerId] = $rec->containerId;
-        
-        // Взимаме к-та на произведените артикули по заданието в протокола за производство
-        $directProdQuery = planning_DirectProductionNote::getQuery();
-        $directProdQuery->in("originId", $containerIds);
-        $directProdQuery->where("#state = 'active' AND #productId = {$rec->productId}");
-        $directProdQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
-        $directProdQuery->show('totalQuantity');
-        $producedQuantity = $directProdQuery->fetch()->totalQuantity;
-        
-        // Обновяваме произведеното к-то по заданието
-        $rec->quantityProduced = $producedQuantity;
         self::save($rec, 'quantityProduced');
     }
     
@@ -1107,12 +1184,14 @@ class planning_Jobs extends core_Master
         $form->FLD('productId', 'key(mvc=cat_Products)', 'caption=Артикул,mandatory');
         $saleRec = sales_Sales::fetch($saleId, 'threadId,containerId');
         
-        $selectable = $this->getSelectableProducts($saleId);
-        if (count($selectable) == 1) {
+        $default = null;
+        $selectable = $this->getSelectableProducts($saleId, $default);
+        if (countR($selectable) == 1) {
             $selectable = array_keys($selectable);
             redirect(array($this, 'add', 'threadId' => $saleRec->threadId, 'productId' => $selectable[0], 'saleId' => $saleId, 'foreignId' => $saleRec->containerId, 'ret_url' => array('sales_Sales', 'single', $saleId)));
         }
         
+        $form->setDefault('productId', $default);
         $form->setOptions('productId', array('' => '') + $selectable);
         $form->input();
         if ($form->isSubmitted()) {
@@ -1147,7 +1226,7 @@ class planning_Jobs extends core_Master
         $form->FLD('select', 'varchar', 'caption=Избор,mandatory');
         
         $options = $this->getTaskOptions($jobRec);
-        if(count($options)){
+        if(countR($options)){
             $form->setOptions('select', $options);
             $form->setDefault('select', 'new');
         } else {
@@ -1212,7 +1291,7 @@ class planning_Jobs extends core_Master
         
         // Има ли дефолтни задачи от артикула
         $defaultTasks = cat_Products::getDefaultProductionTasks($rec, $rec->quantity);
-        if (count($defaultTasks)) {
+        if (countR($defaultTasks)) {
             foreach ($defaultTasks as $k => $defRec) {
                 $options["sys|{$k}"] = $defRec->title;
             }
@@ -1224,7 +1303,7 @@ class planning_Jobs extends core_Master
         if (isset($rec->oldJobId)) {
             $oldTasks = planning_Tasks::getTasksByJob($rec->oldJobId);
             
-            if (count($oldTasks)) {
+            if (countR($oldTasks)) {
                 $options1 = array();
                 foreach ($oldTasks as $k1 => $oldTitle) {
                     $options1["c|{$k1}"] = $oldTitle;
@@ -1241,7 +1320,7 @@ class planning_Jobs extends core_Master
             $options2["new|{$depFolderId}"] = tr("В|* {$dName}");
         }
         
-        if(count($options2)){
+        if(countR($options2)){
             $options += array('new' => (object) array('group' => true, 'title' => tr('Нови операции'))) + $options2;
         }
         
@@ -1254,19 +1333,24 @@ class planning_Jobs extends core_Master
      * Намира всички производими артикули по една продажба, към които може да се създават задания
      *
      * @param int $saleId
+     * @param int|null $default
      *
-     * @return array $res
+     * @return array $options
      */
-    private function getSelectableProducts($saleId)
+    private function getSelectableProducts($saleId, &$default = null)
     {
-        $res = sales_Sales::getManifacurableProducts($saleId);
-        foreach ($res as $productId => $name) {
-            if (!$this->haveRightFor('add', (object) array('productId' => $productId, 'saleId' => $saleId))) {
-                unset($res[$productId]);
+        $options = array();
+        $products = sales_Sales::getManifacurableProducts($saleId);
+        foreach ($products as $productId => $name) {
+            if ($this->haveRightFor('add', (object) array('productId' => $productId, 'saleId' => $saleId))) {
+                $options[$productId] = $name;
+                if(empty($default) && !planning_Jobs::fetchField("#productId = {$productId} AND #saleId = {$saleId}")){
+                    $default = $productId;
+                }
             }
         }
         
-        return $res;
+        return $options;
     }
     
     
@@ -1315,18 +1399,20 @@ class planning_Jobs extends core_Master
         $query = self::getQuery();
         $query->where("#state = 'active' || #state = 'closed' || #state = 'wakeup' || (#state = 'rejected' && (#brState = 'active' || #brState = 'closed'))");
         $query->where("#modifiedOn >= '{$timeline}'");
-        $query->show('activatedBy,activatedOn,state,createdBy,productId');
+        $query->show('activatedBy,activatedOn,modifiedOn,state,createdBy,productId');
         
         while ($rec = $query->fetch()) {
             $activatedBy = isset($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
-            if (empty($activatedBy)) {
+            if (empty($activatedBy) || $activatedBy == core_Users::SYSTEM_USER) {
                 continue;
             }
             $personId = crm_Profiles::fetchField("#userId = {$activatedBy}", 'personId');
             $classId = planning_Jobs::getClassId();
-            $date = dt::verbal2mysql($rec->activatedOn, false);
-            $isRejected = ($rec->state == 'rejected');
             
+            setIfNot($rec->activatedOn, $rec->modifiedOn);
+            $date = dt::verbal2mysql($rec->activatedOn, false);
+            
+            $isRejected = ($rec->state == 'rejected');
             hr_Indicators::addIndicatorToArray($result, $date, $personId, $rec->id, $classId, $iRec->id, 1, $isRejected);
             
             if ($Driver = cat_Products::getDriver($rec->productId)) {

@@ -59,13 +59,25 @@ class core_Manager extends core_Mvc
      */
     public static $logKeepDays = 7;
     
+
+    /**
+     * Ке за правата на достъп до обектите
+     */
+    private static $cacheRights = array();
+
+
+    /**
+     * Време за кеширане на правата към обекта
+     */
+    public $cacheRightsDuration = 0;
     
+
     /**
      * Кой линк от главното меню на страницата да бъде засветен?
      */
     public $menuPage = false;
     
-    
+
     /**
      * Кой таб-контрол е зареден?
      */
@@ -829,7 +841,6 @@ class core_Manager extends core_Mvc
     public function renderListFilter_($data)
     {
         if (!isset($data->listFilter)) {
-            
             return;
         }
         
@@ -849,7 +860,6 @@ class core_Manager extends core_Mvc
     public function renderListPager_($data)
     {
         if ($data->pager) {
-            
             return $data->pager->getHtml();
         }
     }
@@ -893,7 +903,6 @@ class core_Manager extends core_Mvc
     public function renderListTitle_($data)
     {
         if (!empty($data->title)) {
-            
             return new ET("<div class='listTitle'>[#1#]</div>", tr($data->title));
         }
     }
@@ -970,21 +979,88 @@ class core_Manager extends core_Mvc
      */
     public static function haveRightFor($action, $rec = null, $userId = null)
     {
-        $self = cls::get(get_called_class());
-        
-        // Ако вместо $rec е зададено $id - зареждаме $rec
-        if (!is_object($rec) && $rec > 0) {
-            $rec = $self->fetch($rec);
-        }
-        
+        static $expiration;
+ 
+        $className = get_called_class();
+        $self = cls::get($className);
+
+        $id = is_object($rec) ? $rec->id : $rec;
         // Ако нямаме зададен потребите - приемаме, че въпроса се отнася за текущия
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
         }
-        
-        $requiredRoles = $self->getRequiredRoles(strtolower($action), $rec, $userId);
-        
-        return Users::haveRole($requiredRoles, $userId);
+
+        $duration = (int) $self->cacheRightsDuration;
+        $expiration = time() + $duration;
+
+        if ($duration > 0 && $userId > 0 && !isset(self::$cacheRights[$userId])) {
+            self::$cacheRights[$userId] = core_Cache::get('RightsForObject', $userId);
+        }
+
+        $key = crc32("{$className}|{$action}") . "|{$id}|" . crc32(serialize($rec));
+ 
+        if (!isset(self::$cacheRights[$userId][$key]) || !isset($id)) {
+            
+            
+            // Ако вместо $rec е зададено $id - зареждаме $rec
+            if (!is_object($rec) && $rec > 0) {
+                $rec = $self->fetch($rec);
+            }
+            
+            $requiredRoles = $self->getRequiredRoles(strtolower($action), $rec, $userId);
+
+            $res = Users::haveRole($requiredRoles, $userId);
+
+            if (!isset($id)) {
+                return $res;
+            }
+            
+            self::$cacheRights[$userId][$key] = $res ? $expiration : 0 - $expiration;
+        }
+
+        return self::$cacheRights[$userId][$key] > 0;
+    }
+
+
+    /**
+     * Изпълнява се на излизане от хира
+     *
+     * @param acc_Items $mvc
+     */
+    public static function on_Shutdown($mvc)
+    {
+        $time = time();
+        if (count(self::$cacheRights)) {
+            foreach (self::$cacheRights as $userId => $rights) {
+                if ($userId < 1) {
+                    continue;
+                }
+                $exRights = core_Cache::get('RightsForObject', $userId);
+                if (!is_array($exRights)) {
+                    $exRights = array();
+                }
+                if (is_array($rights)) {
+                    foreach ($rights as $key => $d) {
+                        if (isset($exRights) && abs($exRights[$key]) >= abs($d)) {
+                            continue;
+                        }
+                        if (abs($d) < $time) {
+                            continue;
+                        }
+                        $exRights[$key] = $d;
+                    }
+                }
+                foreach ($exRights as $key => $d) {
+                    if (abs($d) <= $time) {
+                        unset($exRights[$key]);
+                    }
+                }
+                if (count($exRights)) {
+                    core_Cache::set('RightsForObject', $userId, $exRights, 120);
+                }
+            }
+        }
+        self::$cacheRights = array();
     }
     
     
@@ -1024,7 +1100,6 @@ class core_Manager extends core_Mvc
     {
         // Приключваме, ако няма права за четене
         if (!$this->haveRightFor('list')) {
-            
             return array(
                 'error' => 'Недостатъчни права за четене на ' . $this->title
             );
@@ -1032,7 +1107,6 @@ class core_Manager extends core_Mvc
         
         // Приключваме, ако класът не представлява модел
         if (countR($this->fields) <= 1) {
-            
             return array(
                 'error' => 'Този клас не е модел: ' . $this->title
             );
@@ -1042,7 +1116,6 @@ class core_Manager extends core_Mvc
         $q = Request::get('q');
         
         if (!$q) {
-            
             return array(
                 'error' => 'Липсва заявка за филтриране'
             );

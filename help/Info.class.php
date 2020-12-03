@@ -84,7 +84,7 @@ class help_Info extends core_Master
         $this->FLD('lg', 'varchar(2)', 'caption=Език,mandatory,silent');
         $this->FLD('text', 'richtext(bucket=Notes)', 'caption=Информация, hint=Текст на информацията за помощ');
         $this->FLD('url', 'url', 'caption=URL, hint=Линк към документацията на bgerp.com');
-        $this->FLD('kWords', 'text(rows=2)', 'caption=Ключови думи');
+        $this->FLD('kWords', 'text(rows=2)', 'caption=Ключови думи,inputmode=search');
         
         $this->setDbUnique('class,lg');
     }
@@ -281,12 +281,12 @@ class help_Info extends core_Master
             
             $inst = cls::get($class);
             $plugins = arr::make($inst->loadList, true);
-            if (count($plugins)) {
+            if (countR($plugins)) {
                 foreach ($plugins as $plg) {
                     $plg = cls::get($plg);
                     if ($plg instanceof plg_ProtoWrapper) {
                         $plg->description();
-                        if (count($plg->tabs)) {
+                        if (countR($plg->tabs)) {
                             foreach ($plg->tabs as $obj) {
                                 $ctr = $obj->url['Ctr'];
                                 if ($ctr && !self::fetch("#class = '{$ctr}'")) {
@@ -382,12 +382,12 @@ class help_Info extends core_Master
             $manager = cls::get($class);
             
             $plugins = arr::make($manager->loadList, true);
-            if (count($plugins)) {
+            if (countR($plugins)) {
                 foreach ($plugins as $plg) {
                     $plg = cls::get($plg);
                     if ($plg instanceof plg_ProtoWrapper) {
                         $plg->description();
-                        if (count($plg->tabs)) {
+                        if (countR($plg->tabs)) {
                             $path = $menu = $subMenu = $pack = '';
                             foreach ($plg->tabs as $caption => $obj) {
                                 $ctr = $obj->url['Ctr'];

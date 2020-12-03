@@ -69,14 +69,8 @@ class archive_Adapter
      */
     public function tree($url)
     {
-        try {
-            // Вземаме съдържанието
-            $entriesArr = $this->getEntries();
-        } catch (ErrorException $e) {
-            
-            // Връщаме грешката
-            return tr('Възникна грешка при показване на съдържанието на архива');
-        }
+        // Вземаме съдържанието
+        $entriesArr = $this->getEntries();
         
         // Инстанция на класа
         $tableInst = cls::get('core_Tree');
@@ -135,7 +129,7 @@ class archive_Adapter
             // Вземаме информация за всички файлове/папки
             $entriesArr = $this->inst->getEntries();
         } catch (Archive_7z_Exception $e) {
-            throw new core_exception_Expect($e->getMessage());
+            throw new ErrorException($e->getMessage(), $e->getCode());
         }
         
         // Ако е подаден номер на файл
@@ -200,6 +194,17 @@ class archive_Adapter
     
     
     /**
+     * Задаване на парола на архива
+     *
+     * @param string $pass
+     */
+    public function setPassword($pass)
+    {
+        $this->inst->setPassword($pass);
+    }
+    
+    
+    /**
      * Изтрива временния файл
      */
     public function deleteTempPath()
@@ -227,7 +232,7 @@ class archive_Adapter
             $path = $this->extractEntry($path);
         } catch (ErrorException $e) {
             // Ако възникне грешка
-            expect(false, 'Не може да се екстрактен файла от архива');
+            throw new ErrorException('Не може да се извлече файла от архива', $e->getCode());
         }
         
         // Ако е файл
@@ -258,7 +263,7 @@ class archive_Adapter
             // Екстрактваме файла
             $this->inst->extractEntry($path);
         } catch (Archive_7z_Exception $e) {
-            throw new core_exception_Expect($e->getMessage());
+            throw new ErrorException($e->getMessage(), $e->getCode());
         }
         
         // Връщаме пълния път до файла
@@ -305,6 +310,7 @@ class archive_Adapter
         expect(file_exists($src), $src);
         expect(is_readable($src), $src);
         
+        
         if ($pass) {
             $p = "-p{$pass} -mem=AES256 ";
             escapeshellarg($p);
@@ -312,15 +318,28 @@ class archive_Adapter
             $p = '';
         }
         
-        $src = escapeshellarg($src);
-        $dest = escapeshellarg($dest);
+        $srcEsc = escapeshellarg($src);
+        $destEsc = escapeshellarg($dest);
+        $tempEsc = escapeshellarg("{$dest}.tmp");
         
-        $cmd = archive_Setup::get_ARCHIVE_7Z_PATH() . " a {$p}-tzip -y {$options} {$dest} {$src}";
+        $flagDelete = false;
+        if (strpos($options, '-sdel') !== false) {
+            $flagDelete = true;
+            $options = str_replace('-sdel', '', $options);
+        }
+        
+        $cmd = archive_Setup::get_ARCHIVE_7Z_PATH() . " a {$p}-tzip -mx1 -y {$options} {$tempEsc} {$srcEsc}";
         
         exec($cmd, $output, $return);
         
         if ($return != 0) {
             bp($cmd, $output, $return);
+        }
+        
+        rename("{$dest}.tmp", $dest);
+        
+        if ($flagDelete) {
+            unlink($src);
         }
         
         return $return;
@@ -349,10 +368,6 @@ class archive_Adapter
         $cmd = archive_Setup::get_ARCHIVE_7Z_PATH() . " e {$src} -o{$dir} {$p}-tzip -y {$options}";
         
         exec($cmd, $output, $return);
-        
-        if ($return != 0) {
-            bp($cmd, $output, $return);
-        }
         
         return $return;
     }

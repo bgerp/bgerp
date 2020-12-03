@@ -164,7 +164,7 @@ class email_ThreadHandles extends core_Manager
             if (is_callable($extFunct)) {
                 $handles = call_user_func($extFunct, $subject);
                 
-                if (is_array($handles) && count($handles)) {
+                if (is_array($handles) && countR($handles)) {
                     
                     // Проверяваме хендлърите последователно
                     foreach ($handles as $handle) {

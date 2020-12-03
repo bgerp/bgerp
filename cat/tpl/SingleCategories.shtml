@@ -32,6 +32,11 @@
             </fieldset>
             <!--ET_END INFO-->
             
+            <fieldset class="detail-info">
+				<legend class="groupTitle">|Обновяване на себестойности|* [#updateCostBtn#]</legend>
+				<div class="groupList">[#updateCostsInfo#]</div>
+			</fieldset>
+            
             <!--ET_BEGIN SETTINGS-->
             [#SETTINGS#]
 			<fieldset class="detail-info">

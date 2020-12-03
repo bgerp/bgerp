@@ -39,7 +39,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
         // Ако има ид, добавяме записите
         if (isset($rec->id)) {
             $entries = $this->getEntries($rec, $result->totalAmount);
-            if (count($entries)) {
+            if (countR($entries)) {
                 $result->entries = $entries;
             }
         }
@@ -86,7 +86,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
                 $resourceInfo = cat_Boms::getResourceInfo($dRec->bomId, $quantityToProduce, $rec->valior);
                 
                 $mapArr = $resourceInfo['resources'];
-                if (count($mapArr)) {
+                if (countR($mapArr)) {
                     foreach ($mapArr as $index => $res) {
                         $res->propQuantity = $res->propQuantity - $resourceInfoProduced['resources'][$index]->propQuantity;
                         
@@ -175,12 +175,12 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
         
         // Ако някой от артикулите не може да бдъе произведем сетваме, че ще правим редирект със съобщението
         if (Mode::get('saveTransaction')) {
-            if (count($errorArr)) {
+            if (countR($errorArr)) {
                 $errorArr = implode(', ', $errorArr);
                 acc_journal_RejectRedirect::expect(false, "Артикулите: |{$errorArr}|* не могат да бъдат произведени, защото нямат задания или рецепти избрани в протокола");
             }
             
-            if (count($errorArr2)) {
+            if (countR($errorArr2)) {
                 $errorArr = implode(', ', $errorArr2);
                 acc_journal_RejectRedirect::expect(false, "Артикулите: |{$errorArr}|* не могат да бъдат произведени, защото не може да се определят количествата на вложените материали");
             }

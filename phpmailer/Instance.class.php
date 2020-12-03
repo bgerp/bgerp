@@ -62,7 +62,7 @@ class phpmailer_Instance extends core_BaseClass
         if ($params['emailTo']) {
             list($user, $domain) = explode('@', $params['emailTo']);
             if ($domain && getmxrr($domain, $mxhosts, $mx_weight)) {
-                if (count($mxhosts) && ! $params['Host']) {
+                if (countR($mxhosts) && ! $params['Host']) {
                     $params['Host'] = $mxhosts[0];
                     $params['SMTPAuth'] = false;
                     $params['SMTPSecure'] = false;
@@ -75,7 +75,7 @@ class phpmailer_Instance extends core_BaseClass
         
         // Добавяме динамичните параметри, които могат да
         // "препокрият" зададените конфигурационни стойности
-        if (count($params)) {
+        if (countR($params)) {
             foreach ($params as $name => $value) {
                 $PML->{$name} = $value;
             }

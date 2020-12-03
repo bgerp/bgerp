@@ -48,6 +48,12 @@ class blast_Lists extends core_Master
     
     
     /**
+     * Кой може да вижда прайвит сингъла?
+     */
+    public $canViewpsingle = 'ceo, blast';
+    
+    
+    /**
      * Дали може да бъде само в началото на нишка
      */
     public $onlyFirstInThread = true;

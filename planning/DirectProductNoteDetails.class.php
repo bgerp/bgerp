@@ -38,7 +38,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_Sorting, 
+    public $loadList = 'plg_RowTools2, plg_SaveAndNew,deals_plg_ImportDealDetailProduct, plg_Created, planning_Wrapper, plg_Sorting, 
                         planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext,cat_plg_ShowCodes';
     
     
@@ -46,6 +46,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,planning,store,production';
+    
+    
+    /**
+     * Кой има право да променя взаимно заменяемите артикули?
+     */
+    public $canReplaceproduct = 'ceo,planning,store';
     
     
     /**
@@ -58,6 +64,13 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo,planning,store,production';
+    
+    /**
+     * Кой може да го импортира артикули?
+     *
+     * @var string|array
+     */
+    public $canImport = 'user';
     
     
     /**
@@ -89,7 +102,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,input=hidden');
         parent::setDetailFields($this);
         $this->setField('quantity', 'caption=Количества');
-        $this->FLD('quantityFromBom', 'double', 'caption=По рецепта,input=none');
+        $this->FLD('quantityFromBom', 'double', 'caption=От рецепта,input=none,smartCenter');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
         
         $this->setDbIndex('productId');
@@ -142,7 +155,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 // Проверка на к-то
                 $warning = null;
                 if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
-                    $form->setError('packQuantity', $warning);
+                    $form->setWarning('packQuantity', $warning);
                 }
                 
                 // Ако добавяме отпадък, искаме да има себестойност
@@ -163,7 +176,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      */
     protected static function on_AfterPrepareListRows($mvc, &$data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }
@@ -243,8 +256,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $iData->listTableMvc = clone $this;
         $iData->rows = $data->inputArr;
         $iData->recs = array_intersect_key($iData->recs, $iData->rows);
-        plg_AlignDecimals2::alignDecimals($this, $iData->recs, $iData->rows);
+        
         $this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
+        plg_AlignDecimals2::alignDecimals($this, $iData->recs, $iData->rows);
         
         $iData->listFields = core_TableView::filterEmptyColumns($iData->rows, $iData->listFields, $this->hideListFieldsIfEmpty);
         $detailsInput = $table->get($iData->rows, $iData->listFields);
@@ -253,10 +267,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         // Добавяне на бутон за нов материал
         if ($this->haveRightFor('add', (object) array('noteId' => $data->masterId, 'type' => 'input'))) {
             $tpl->append(ht::createBtn('Артикул', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
+            $tpl->append(ht::createBtn('Импортиране', array($this, 'import', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
+            
         }
-        
+
         // Рендираме таблицата с отпадъците
-        if (count($data->popArr) || $data->masterData->rec->state == 'draft') {
+        if (countR($data->popArr) || $data->masterData->rec->state == 'draft') {
             $data->listFields['productId'] = "Отпадъци|* <small style='font-weight:normal'>( |остават в незавършеното производство|* )</small>";
             unset($data->listFields['storeId']);
             
@@ -264,8 +280,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             $pData->listTableMvc = clone $this;
             $pData->rows = $data->popArr;
             $pData->recs = array_intersect_key($pData->recs, $pData->rows);
-            plg_AlignDecimals2::alignDecimals($this, $pData->recs, $pData->rows);
+            
             $this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
+            plg_AlignDecimals2::alignDecimals($this, $pData->recs, $pData->rows);
             
             $pData->listFields = core_TableView::filterEmptyColumns($pData->rows, $pData->listFields, $this->hideListFieldsIfEmpty);
             $popTable = $table->get($pData->rows, $pData->listFields);
@@ -289,7 +306,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }

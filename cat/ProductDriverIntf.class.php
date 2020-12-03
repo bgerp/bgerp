@@ -87,6 +87,20 @@ class cat_ProductDriverIntf extends embed_DriverIntf
     
     
     /**
+     * Връща материалите, необходими за производството на посоченото количество
+     *
+     * @param int $id
+     * @param double $quantity
+     *
+     * @return array()
+     */
+    public function getMaterialsForProduction($id, $quantity)
+    {
+        return $this->class->getMaterialsForProduction($id, $quantity);
+    }
+
+
+    /**
      * Подготвя данните за показване на описанието на драйвера
      *
      * @param stdClass $data
@@ -312,13 +326,14 @@ class cat_ProductDriverIntf extends embed_DriverIntf
     /**
      * Връща минималното количество за поръчка
      *
-     * @param int|NULL $id - ид на артикул
+     * @param int|NULL $id   - ид на артикул
+     * @param string $action - дали да е за продажба или покупка
      *
      * @return float|NULL - минималното количество в основна мярка, или NULL ако няма
      */
-    public function getMoq($id = null)
+    public function getMoq($id = null, $action = 'sell')
     {
-        return $this->class->getMoq($id);
+        return $this->class->getMoq($id, $action);
     }
     
     
@@ -544,5 +559,59 @@ class cat_ProductDriverIntf extends embed_DriverIntf
     public function getDeltaSurcharge($rec)
     {
         return $this->class->getDeltaSurcharge($rec);
+    }
+    
+    
+    /**
+     * Какви са дефолтните количества на артикула за офертата
+     *
+     * @param embed_Manager $Embedder
+     * @param stdClass $rec
+     * @return array $res
+     */
+    public function getQuantitiesForQuotation($Embedder, $rec)
+    {
+        return $this->class->getQuantitiesForQuotation($Embedder, $rec);
+    }
+    
+    
+    /**
+     * Кои са свързаните задания за други артикули с този артикул
+     *
+     * @param mixed $rec
+     *
+     * @return array
+     */
+    public function getLinkedJobRecs($id)
+    {
+        return $this->class->getLinkedJobRecs($id);
+    }
+    
+    
+    /**
+     * Добавя полета към формата за запитване
+     *
+     * @param int $protoProductId
+     * @param core_FieldSet $fieldset
+     * @param boolean $onlyActive
+     *
+     * @return void
+     */
+    public function addInquiryFields($protoProductId, core_FieldSet &$fieldset, $onlyActive = false)
+    {
+        return $this->class->addInquiryFields($protoProductId, $fieldset);
+    }
+    
+    
+    /**
+     * Взима шаблона за показване на допълнителните данни от запитването
+     *
+     * @param stdClass $rec
+     *
+     * @return core_ET
+     */
+    public function getInquiryDataTpl($rec)
+    {
+        return $this->class->getInquiryDataTpl($rec);
     }
 }

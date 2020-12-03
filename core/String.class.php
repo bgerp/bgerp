@@ -60,13 +60,13 @@ class core_String
         
         $text = str_replace($keys, $trans, $text);
         
-        preg_match_all('/[A-Z]{2,3}[a-z]/', $text, $matches);
+        preg_match_all('/[A-Z]{2,3}[a-z]{1,2}([^a-z]|$){1}/', $text, $matches);
         
         foreach ($matches[0] as $upper) {
-            $cap = ucfirst(strtolower($upper));
+            $cap = strtoupper($upper);
             $text = str_replace($upper, $cap, $text);
         }
-
+        
 //         $text = @iconv("UTF-8", "ASCII//TRANSLIT", $text);
         
         return $text;
@@ -408,7 +408,7 @@ class core_String
             }
             
             if ($isName) {
-                if (($c >= 'a' && $c <= 'z') || ($c >= 'A' && $c <= 'Z') || ($c >= '0' && $c <= '9') || $c == '_') {
+                if (($c >= 'a' && $c <= 'z') || ($c >= 'A' && $c <= 'Z') || ($c >= '0' && $c <= '9') || $c == '_' || $c == '.') {
                     $name .= $c;
                     continue;
                 }
@@ -1110,7 +1110,7 @@ class core_String
     
     
     /**
-     * Маха всички празни стрингове от стринга
+     * Премахва всички празни стрингове, табулации и нови редове от стринга
      *
      * @param string $string  - стринг в който да се замести
      * @param string $replace - стринг за заместване
@@ -1363,34 +1363,34 @@ class core_String
                             && ((self::isConsonent($char)) || (self::isVowel($char)))) {
                                 
                                 // Вдигаме влага за добавяне на хифенация
-                                $addHyphen = true;
-                            }
-                            
-                            // Ако флага все още не е вдигнат
-                            if (!$addHyphen) {
+                $addHyphen = true;
+            }
+            
+            // Ако флага все още не е вдигнат
+            if (!$addHyphen) {
                                 
                                 // Ако брояча е над втория допустим праг, задължително вдигаме флага
-                                if ($i > $maxLen) {
+                if ($i > $maxLen) {
                                     
                                     // Вдигаме влага за добавяне на хифенация
-                                    $addHyphen = true;
-                                }
-                            }
-                            
-                            // Ако флага е вдигнат
-                            if ($addHyphen) {
-                                //                $resStr .= "&#173;" . $char; // Знак за softHyphne
-                                $resStr .= $hyphenStr . $char;
-                                
-                                // Нулираме брояча
-                                $i = 0;
-                            } else {
+                    $addHyphen = true;
+                }
+            }
+            
+            // Ако флага е вдигнат
+            if ($addHyphen) {
+                //                $resStr .= "&#173;" . $char; // Знак за softHyphne
+                $resStr .= $hyphenStr . $char;
+                
+                // Нулираме брояча
+                $i = 0;
+            } else {
                                 
                                 // Добавяме символа
-                                $resStr .= $currChar;
-                            }
-                            
-                            continue;
+                $resStr .= $currChar;
+            }
+            
+            continue;
         }
         
         return $resStr;
@@ -1399,8 +1399,9 @@ class core_String
     
     /**
      * Дали стринга съдържа само цифри
-     * 
+     *
      * @param string $value
+     *
      * @return int|false
      */
     public static function containOnlyDigits($value)
@@ -1408,5 +1409,41 @@ class core_String
         $pattern = '/^\d+$/';
         
         return preg_match($pattern, $value);
+    }
+    
+    
+    /**
+     * Дали последния символ на стринга е търсения
+     *
+     * @param string $haystack
+     * @param string $needle
+     *
+     * @return bool
+     */
+    public static function endsWith($haystack, $needle)
+    {
+        $haystack = trim($haystack);
+        
+        return (substr($haystack, -1) === $needle);
+    }
+    
+    
+    /**
+     * Дали подадения стринг е json
+     *
+     * @param string $string
+     *
+     * @return bool
+     */
+    public static function isJson($string)
+    {
+        if (!is_scalar($string)) {
+            
+            return false;
+        }
+        
+        json_decode($string);
+        
+        return (json_last_error() == JSON_ERROR_NONE);
     }
 }

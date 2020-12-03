@@ -49,7 +49,8 @@ class cms_DefaultTheme extends core_ProtoInner
         $form->FLD('fadeDelay', 'int', 'caption=Превключване на картинките->Задържане,suggestions=3000|5000|7000');
         $form->FLD('fadeTransition', 'int', 'caption=Превключване на картинките->Транзиция,suggestions=500|1000|1500');
         $form->FLD('nImg', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Заглавна картинка за мобилен (360x104px)->Изображение 1');
-        $form->FLD('title', 'varchar(14)', 'caption=Заглавие на сайта->Кратък текст');
+        $form->FLD('title', 'varchar(14)', 'caption=Заглавие на сайта->Име на фирмата');
+        $form->FLD('subtitle', 'varchar(50)', 'caption=Заглавие на сайта->Подзаглавие');
         $form->FLD('titleColor', 'color_Type', 'caption=Заглавие на сайта->Цвят');
         
         // Фон на хедъра
@@ -69,21 +70,23 @@ class cms_DefaultTheme extends core_ProtoInner
         
         // Добавяме заглавния текст
         $title = $this->innerForm->title;
-        if (!$this->haveOwnHeaderImages && !$title) {
-            $conf = core_Packs::getConfig('core');
-            $title = $conf->EF_APP_TITLE;
-        } elseif ($title) {
-            $style = '';
-            if ($this->innerForm->titleColor) {
-                $style = " style='color:{$this->innerForm->titleColor};'";
-            }
-            $title = "<span{$style}>" . $title . '</span>';
-        }
         
+        $style = '';
+        if ($this->innerForm->titleColor) {
+            $style = " style='color:{$this->innerForm->titleColor};'";
+        }
+
         if ($title) {
+            $title = "<span{$style}>" . $title . '</span>';
             $tpl->replace($title, 'CORE_APP_NAME');
         }
-        
+
+        $subtitle = $this->innerForm->subtitle;
+        if ($subtitle) {
+            $subtitle = "<span{$style}>" . $subtitle . '</span>';
+            $tpl->replace($subtitle, 'CORE_APP_SUBTITLE');
+        }
+
         if ($this->innerForm->headerColor) {
             $css .= "\n    #all #cmsTop {background-color:{$this->innerForm->headerColor} !important;}";
         }
@@ -346,5 +349,40 @@ class cms_DefaultTheme extends core_ProtoInner
         }
         
         return $path;
+    }
+    
+    
+    /**
+     * 
+     * @param cms_DefaultTheme $mvc
+     * @param mixed $innerStateField
+     * @param mixed $innerFormField
+     * @param stdClass $rec
+     * @param mixed $fields
+     * @param mixed $mode
+     */
+    public static function on_BeforeSave($mvc, &$innerStateField, &$innerFormField, $rec, $fields = null, $mode = null)
+    {
+        if (!trim($innerFormField->title) && !$rec->id && core_Users::isSystemUser()) {
+            if (!$innerFormField) {
+                $innerFormField = new stdClass();
+            }
+            
+            $innerFormField->title = core_Setup::get('EF_APP_TITLE', true);
+        }
+    }
+    
+    
+    /**
+     * Подготвя формата за въвеждане на данни за вътрешния обект
+     * 
+     * {@inheritDoc}
+     * @see core_ProtoInner::prepareEmbeddedForm()
+     */
+    public function prepareEmbeddedForm(core_Form &$form)
+    {
+        if (!$form->rec->id) {
+            $form->setDefault('title', core_Setup::get('EF_APP_TITLE', true));
+        }
     }
 }

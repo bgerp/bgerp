@@ -2,7 +2,7 @@
 
 
 /**
- * Клас 'type_IP' - тип за съхранение и обработка на IP v4 адрес
+ * Клас 'type_Ip' - тип за съхранение и обработка на IP v4 адрес
  *
  *
  * @category  ef
@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class type_IP extends type_Varchar
+class type_Ip extends type_Varchar
 {
     /**
      * Дължина на полето в mySql таблица

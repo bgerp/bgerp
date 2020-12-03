@@ -177,7 +177,7 @@
              foreach ($counter as $val) {
                  $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
                  $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,packagingId,indTime,indPackagingId,indTimeAllocation');
-                  $divisor = count(keylist::toArray($tRec->employees));
+                  $divisor = countR(keylist::toArray($tRec->employees));
                  if ($rec->typeOfReport == 'short') {
                     
                      
@@ -244,10 +244,10 @@
          
          //Разпределяне по работници, когато са повече от един
              foreach ($recs as $key => $val) {
-                 if (count(keylist::toArray($val->employees)) > 1) {
+                 if (countR(keylist::toArray($val->employees)) > 1) {
                      $clone = clone $val;
                      
-                     $divisor = count(keylist::toArray($val->employees));
+                     $divisor = countR(keylist::toArray($val->employees));
                      
                      foreach (keylist::toArray($val->employees) as $k => $v) {
                          unset($id);
@@ -475,7 +475,7 @@
                         
                         $employeesVerb .= (planning_Hr::getCodeLink(($empl)));
                         
-                        if ((count(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
+                        if ((countR(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
                             $employeesVerb .= ', ';
                         }
                     }
@@ -492,7 +492,7 @@
                         
                         $employeesVerb .= (planning_Hr::getCodeLink(($empl)));
                         
-                        if ((count(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
+                        if ((countR(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
                             $employeesVerb .= ', ';
                         }
                     }
@@ -508,7 +508,7 @@
                 
                 $assetVerb .= planning_AssetResources::fetch($asset)->name;
                 
-                if ((count(type_Keylist::toArray($data->rec->assetResources))) - $marker != 0) {
+                if ((countR(type_Keylist::toArray($data->rec->assetResources))) - $marker != 0) {
                     $assetVerb .= ', ';
                 }
             }

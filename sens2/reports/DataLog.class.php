@@ -138,7 +138,7 @@ class sens2_reports_DataLog extends frame_BaseDriver
         
         $this->prependStaticForm($layout, 'FORM');
         
-        if (count($data->recs)) {
+        if (countR($data->recs)) {
             if ($this->innerForm->orderField) {
                 arr::sortObjects($data->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
             }

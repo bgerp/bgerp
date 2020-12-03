@@ -15,11 +15,6 @@
  */
 class email_Inboxes extends core_Master
 {
-    /**
-     * Процент на съвпадание в имената на имейлите, които липсват
-     * На всеки 4 един трябва да съвпада
-     */
-    public static $closestEmailPercent = 75;
     
     
     /**
@@ -459,7 +454,7 @@ class email_Inboxes extends core_Master
         ));
         
         // Ако няма никакви имейли, към които е изпратено писмото, $toBox е имейла на сметката
-        if (!is_array($emailsArr) || !count($emailsArr)) {
+        if (!is_array($emailsArr) || !countR($emailsArr)) {
             
             return $accRec->email;
         }
@@ -559,7 +554,7 @@ class email_Inboxes extends core_Master
             }
         }
         
-        if ($replaceDomainArr && count($replaceDomainArr)) {
+        if ($replaceDomainArr && countR($replaceDomainArr)) {
             list($toNick, $toDomain) = explode('@', $toEmail);
             foreach ($replaceDomainArr as $fromReplace => $toReplace) {
                 if (strtolower($toDomain) == $fromReplace) {
@@ -618,7 +613,7 @@ class email_Inboxes extends core_Master
                 
                 $closestEmail = str::getClosestWord($ourEmailsArr[$domain], $emailL, $p, true);
                 
-                if ($p >= self::$closestEmailPercent && ($p >= $bestPercentArr[$md])) {
+                if ($p >= email_Setup::get('CLOSEST_EMAIL_PERCENT') && ($p >= $bestPercentArr[$md])) {
                     $bestPercentArr[$md] = $p;
                     $bestEmailArr[$md] = $closestEmail . '@' . $domain;
                 }
@@ -959,7 +954,7 @@ class email_Inboxes extends core_Master
         
         $removeAccType = arr::make($removeAccType);
         
-        if (!is_array($emailsArr) || !count($emailsArr)) {
+        if (!is_array($emailsArr) || !countR($emailsArr)) {
             
             return array();
         }
@@ -1163,7 +1158,7 @@ class email_Inboxes extends core_Master
         
         // Вече трябва да има открита поне една кутия
         
-        expect(count($options), 'Липсват възможности за изпращане на писма. Настройте поне една сметка в Документи->Имейли->Сметки');
+        expect(countR($options), 'Липсват възможности за изпращане на писма. Настройте поне една сметка в Документи->Имейли->Сметки');
         
         return $options;
     }

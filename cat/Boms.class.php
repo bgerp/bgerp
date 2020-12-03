@@ -105,34 +105,45 @@ class cat_Boms extends core_Master
     /**
      * Кой може да пише?
      */
-    public $canEdit = 'cat,ceo,sales';
+    public $canEdit = 'cat,ceo,sales,planning';
+
+
+    /**
+     * Кой може да променя активирани записи
+     *
+     * @see change_Plugin
+     */
+    public $canChangerec = 'cat,ceo,sales,planning';
     
     
     /**
      * Кой може да добавя?
      */
-    public $canAdd = 'cat,ceo,sales';
+    public $canAdd = 'cat,ceo,sales,planning';
+    
+    
+    /**
+     * Кой може да преизчислява себестойността?
+     */
+    public $canRecalcselfvalue = 'ceo, acc, cat, price';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,cat,sales';
+    public $canList = 'cat,ceo,sales,purchase,planning';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,cat,sales';
+    public $canSingle = 'cat,ceo,sales,purchase,planning';
         
 
     /**
-
      * Кой може да затваря?
-
      */
-
-    public $canClose = 'cat,ceo,sales';
+    public $canClose = 'cat,ceo,sales,planning';
     
     
     /**
@@ -171,6 +182,18 @@ class cat_Boms extends core_Master
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = false;
+    
+    
+    /**
+     * Опашка от активираните рецепти
+     */
+    private static $activatedBoms = array();
+    
+    
+    /**
+     * Опашка от спрените рецепти
+     */
+    private static $stoppedActiveBoms = array();
     
     
     /**
@@ -282,11 +305,11 @@ class cat_Boms extends core_Master
         if (isset($rec->threadId)) {
             if(empty($rec->type)){
                 $rec->type = 'sales';
-            }
-            $firstDocument = doc_Containers::getDocument($rec->originId);
-            
-            if ($firstDocument->isInstanceOf('planning_Jobs')) {
-                $rec->type = 'production';
+                
+                $firstDocument = doc_Containers::getDocument($rec->originId);
+                if ($firstDocument->isInstanceOf('planning_Jobs')) {
+                    $rec->type = 'production';
+                }
             }
         }
     }
@@ -345,9 +368,110 @@ class cat_Boms extends core_Master
             
             // Ако има такава я активираме
             $id = $this->save_($nextActiveBomRec, 'state,brState,modifiedOn');
+            $this->logWrite("Активиране на последна '" . $this->getVerbal($rec, 'type') . "' рецепта", $id);
             doc_DocumentCache::cacheInvalidation($nextActiveBomRec->containerId);
             
             return $id;
+        }
+    }
+    
+    
+    /**
+     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     *
+     * @param core_Mvc   $mvc
+     * @param mixed      $res
+     * @param int|object $id  първичен ключ или запис на $mvc
+     */
+    protected static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        
+        if($rec->brState == 'active'){
+            static::$stoppedActiveBoms[$rec->id] = $rec;
+        }
+    }
+    
+    
+    /**
+     * След промяна на състоянието
+     */
+    protected function on_AfterChangeState($mvc, $rec, $state)
+    {
+        $rec = $mvc->fetchRec($rec);
+        if ($state == 'closed' && $rec->brState == 'active') {
+            static::$stoppedActiveBoms[$rec->id] = $rec;
+        } elseif($state == 'active' && $rec->brState == 'closed'){
+            static::$activatedBoms[$rec->id] = $rec;
+        }
+    }
+    
+    
+    /**
+     * Реакция в счетоводния журнал при възстановяване на оттеглен счетоводен документ
+     *
+     * @param core_Mvc   $mvc
+     * @param mixed      $res
+     * @param int|object $id  първичен ключ или запис на $mvc
+     */
+    protected static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if($rec->state == 'active'){
+            static::$activatedBoms[$rec->id] = $rec;
+        }
+    }
+    
+    
+    /**
+     * Функция, която прихваща след активирането на документа
+     */
+    protected static function on_AfterActivation($mvc, &$rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        static::$activatedBoms[$rec->id] = $rec;
+    }
+    
+    
+    /**
+     * Обновява списъците със свойства на номенклатурите от които е имало засегнати пера
+     *
+     * @param acc_Items $mvc
+     */
+    public static function on_Shutdown($mvc)
+    {
+        if(countR(static::$activatedBoms)){
+            foreach (static::$activatedBoms as $rec){
+                
+                // Намираме всички останали активни рецепти
+                $query = static::getQuery();
+                $query->where("#state = 'active' AND #id != {$rec->id} AND #productId = {$rec->productId} AND #type = '{$rec->type}'");
+                
+                // Затваряме ги
+                $idCount = 0;
+                while ($bomRec = $query->fetch()) {
+                    $bomRec->state = 'closed';
+                    $bomRec->brState = 'active';
+                    $bomRec->modifiedOn = dt::now();
+                    $mvc->save_($bomRec, 'state,brState,modifiedOn');
+                    $mvc->logWrite("Затваряне при активиране на нова '" . $mvc->getVerbal($rec, 'type') . "' рецепта", $bomRec->id);
+                    
+                    doc_DocumentCache::cacheInvalidation($bomRec->containerId);
+                    $idCount++;
+                }
+                
+                if ($idCount) {
+                    core_Statuses::newStatus("|Затворени са|* {$idCount} |рецепти|*");
+                }
+            }
+        }
+        
+        if(countR(static::$stoppedActiveBoms)){
+            foreach (static::$stoppedActiveBoms as $rec){
+                if ($nextId = $mvc->activateLastBefore($rec)) {
+                    core_Statuses::newStatus("|Активирана е рецепта|* #Bom{$nextId}");
+                }
+            }
         }
     }
     
@@ -361,44 +485,16 @@ class cat_Boms extends core_Master
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        // При оттегляне или затваряне, ако преди документа е бил активен
-        if ($rec->state == 'closed' || $rec->state == 'rejected') {
-            if ($rec->brState == 'active') {
-                if ($nextId = $mvc->activateLastBefore($rec)) {
-                    core_Statuses::newStatus("|Активирана е рецепта|* #Bom{$nextId}");
-                }
-            }
-        }
-        
-        // При активиране,
-        if ($rec->state == 'active') {
-            $cRec = $mvc->fetch($rec->id);
-            
-            // Намираме всички останали активни рецепти
-            $query = static::getQuery();
-            $query->where("#state = 'active' AND #id != {$rec->id} AND #productId = {$cRec->productId} AND #type = '{$cRec->type}'");
-            
-            // Затваряме ги
-            $idCount = 0;
-            while ($bomRec = $query->fetch()) {
-                $bomRec->state = 'closed';
-                $bomRec->brState = 'active';
-                $bomRec->modifiedOn = dt::now();
-                $mvc->save_($bomRec, 'state,brState,modifiedOn');
-                doc_DocumentCache::cacheInvalidation($bomRec->containerId);
-                $idCount++;
-            }
-            
-            if ($idCount) {
-                core_Statuses::newStatus("|Затворени са|* {$idCount} |рецепти|*");
-            }
-        }
-        
         //  При активацията на рецептата променяме датата на модифициране на артикула
         $type = (isset($rec->type)) ? $rec->type : $mvc->fetchField($rec->id, 'type');
         if ($type == 'sales' && $rec->state != 'draft') {
             $productId = (isset($rec->productId)) ? $rec->productId : $mvc->fetchField($rec->id, 'productId');
             cat_Products::touchRec($productId);
+        }
+        
+        // @todo да се махне след като се провери дали някой не записва документа докато е активен
+        if(isset($rec->state) && $rec->state == $rec->brState && $rec->state != 'draft'){
+            wp('cat_Boms::afterSaveActive', $rec);
         }
     }
     
@@ -417,15 +513,14 @@ class cat_Boms extends core_Master
         // Обновяваме датата на модифициране на артикула след промяна по рецептата
         if ($rec->productId) {
             $bRec = cat_Products::getLastActiveBom($rec->productId, 'sales');
-            
             if (($rec->type == 'sales' && !$bRec) || $bRec->id == $rec->id) {
-                $pRec = cat_Products::fetch($rec->productId);
-                $pRec->modifiedOn = dt::now();
-                cat_Products::save($pRec);
+                cat_Products::touchRec($rec->productId);
             }
         }
         
-        return $this->save($rec, 'modifiedOn,modifiedBy,searchKeywords');
+        doc_DocumentCache::cacheInvalidation($rec->containerId);
+        
+        return $this->save_($rec, 'modifiedOn,modifiedBy,searchKeywords');
     }
     
     
@@ -473,12 +568,14 @@ class cat_Boms extends core_Master
             $origin = doc_Containers::getDocument($rec->originId);
             if($origin->isInstanceOf('planning_Tasks')){
                 $res = 'no_one';
+            } elseif(in_array($origin->fetchField('state'), array('draft', 'rejected'))) {
+                $res = 'no_one';
             }
         }
         
-        if (($action == 'add' || $action == 'edit' || $action == 'reject' || $action == 'restore') && isset($rec)) {
+        if (($action == 'add' || $action == 'edit' || $action == 'reject' || $action == 'restore' || $action == 'changerec') && isset($rec)) {
             if ($rec->type == 'production') {
-                if (!haveRole('techno,ceo', $userId)) {
+                if (!haveRole('cat,planning,ceo', $userId)) {
                     $res = 'no_one';
                 }
             }
@@ -488,7 +585,7 @@ class cat_Boms extends core_Master
         if ($action == 'activate' && empty($rec->id)) {
             $res = 'no_one';
         } elseif ($action == 'activate' && isset($rec->id)) {
-            if (!count(cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id'))) {
+            if (!cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id')) {
                 $res = 'no_one';
             }
         }
@@ -498,6 +595,12 @@ class cat_Boms extends core_Master
             
             // Ако не можеш да редактираш записа, не можеш да оттегляш/възстановяваш
             if (!haveRole($mvc->getRequiredRoles('edit'))) {
+                $res = 'no_one';
+            }
+        }
+        
+        if($action == 'recalcselfvalue' && isset($rec)){
+            if(Mode::isReadOnly()){
                 $res = 'no_one';
             }
         }
@@ -555,12 +658,11 @@ class cat_Boms extends core_Master
                 $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
                 $row->primeCost = $Double->toVerbal($rec->primeCost);
                 $row->primeCost = ($rec->primeCost === 0 && cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id')) ? "<b class='red'>???</b>" : "<b>{$row->primeCost}</b>";
-                
                 $row->primeCost .= tr("|* <span class='cCode'>{$baseCurrencyCode}</span>, |при тираж|* {$row->quantityForPrice} {$shortUom}");
-                
-                if (!Mode::isReadOnly() && $rec->state != 'rejected') {
-                    $row->primeCost .= ht::createLink('', array($mvc, 'RecalcSelfValue', $rec->id), false, 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на себестойността');
-                }
+            }
+            
+            if ($mvc->haveRightFor('recalcselfvalue', $rec)) {
+                $row->primeCost .= ht::createLink('', array($mvc, 'RecalcSelfValue', $rec->id), false, 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на себестойността');
             }
         }
     }
@@ -663,7 +765,7 @@ class cat_Boms extends core_Master
         }
         
         // Ако има данни за детайли, проверяваме дали са валидни
-        if (count($details)) {
+        if (countR($details)) {
             foreach ($details as &$d) {
                 expect($d->resourceId);
                 expect(cat_Products::fetch($d->resourceId));
@@ -682,7 +784,7 @@ class cat_Boms extends core_Master
         $id = self::save($rec);
         
         // За всеки детайл, добавяме го към рецептата
-        if (count($details)) {
+        if (countR($details)) {
             foreach ($details as $d1) {
                 $d1->bomId = $id;
                 $fields = array();
@@ -702,12 +804,13 @@ class cat_Boms extends core_Master
      */
     public function act_RecalcSelfValue()
     {
-        requireRole('ceo, acc, cat, price');
+        $this->requireRightFor('recalcselfvalue');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
+        $this->requireRightFor('recalcselfvalue');
         
         $rec->modifiedOn = dt::now();
-        $this->save($rec, 'modifiedOn');
+        $this->save_($rec, 'modifiedOn');
         
         return new Redirect(array($this, 'single', $id), 'Себестойността е преизчислена');
     }
@@ -771,7 +874,7 @@ class cat_Boms extends core_Master
             }
             
             // Ако някой от артикулите липсва, не създаваме нищо
-            if (count($error)) {
+            if (countR($error)) {
                 $string = implode(',', $error);
                 $error = "Базовата рецепта не може да бъде създадена|*, |защото материалите с кодове|*: <b>{$string}</b> |не са въведени в системата|*";
                 expect(false, $error);
@@ -966,7 +1069,7 @@ class cat_Boms extends core_Master
             }
         }
         
-        if (count($res)) {
+        if (countR($res)) {
             
             return array($productId => $res);
         }
@@ -985,7 +1088,7 @@ class cat_Boms extends core_Master
      */
     public static function pushParams(&$array, $params)
     {
-        if (is_array($params) && count($params)) {
+        if (is_array($params) && countR($params)) {
             $array = $params + $array;
         }
     }
@@ -1060,7 +1163,7 @@ class cat_Boms extends core_Master
             }
             
             if (!isset($price)) {
-                $price = planning_ObjectResources::getAvgPriceEquivalentProducts($productId, $date);
+                $price = planning_GenericMapper::getAvgPriceEquivalentProducts($productId, $date);
             }
             
             // Ако и по рецепта няма тогава да гледа по складова
@@ -1071,7 +1174,7 @@ class cat_Boms extends core_Master
                 if (isset($pInfo->meta['canStore'])) {
                     $price = cat_Products::getWacAmountInStore(1, $productId, $date);
                 } else {
-                    $price = planning_ObjectResources::getWacAmountInProduction(1, $productId, $date);
+                    $price = planning_GenericMapper::getWacAmountInProduction(1, $productId, $date);
                 }
                 
                 if (isset($price) && $price < 0) {
@@ -1085,7 +1188,7 @@ class cat_Boms extends core_Master
             if (isset($pInfo->meta['canStore'])) {
                 $price = cat_Products::getWacAmountInStore(1, $productId, $date);
             } else {
-                $price = planning_ObjectResources::getWacAmountInProduction(1, $productId, $date);
+                $price = planning_GenericMapper::getWacAmountInProduction(1, $productId, $date);
             }
             
             if (!isset($price)) {
@@ -1097,7 +1200,7 @@ class cat_Boms extends core_Master
             }
             
             if (!isset($price)) {
-                $price = planning_ObjectResources::getAvgPriceEquivalentProducts($productId, $date);
+                $price = planning_GenericMapper::getAvgPriceEquivalentProducts($productId, $date);
             }
             
             // В краен случай взимаме мениджърската себестойност
@@ -1143,6 +1246,7 @@ class cat_Boms extends core_Master
         // Изчисляваме количеството ако можем
         $rowParams = self::getProductParams($rec->resourceId);
         self::pushParams($params, $rowParams);
+        $doTouchRec = ($rec->state == 'rejected') ? false : true;
         
         $scope = self::getScope($params);
         $rQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $scope);
@@ -1200,7 +1304,9 @@ class cat_Boms extends core_Master
                     $rec->primeCost = $primeCost;
                     $rec->params = $params1;
                     
+                    Mode::push("touchRec{$rec->bomId}", $doTouchRec);
                     cls::get('cat_BomDetails')->save_($rec, 'primeCost,params');
+                    Mode::pop("touchRec{$rec->bomId}");
                 }
             }
         } else {
@@ -1220,7 +1326,8 @@ class cat_Boms extends core_Master
             
             // Намираме кои редове са му детайли
             $query = cat_BomDetails::getQuery();
-            $query->where("#parentId = {$rec->id}");
+            $query->where("#parentId = {$rec->id} AND #bomId = {$rec->bomId}");
+            $query->EXT('state', 'cat_Boms', 'externalName=state,externalKey=bomId');
             
             // За всеки детайл
             while ($dRec = $query->fetch()) {
@@ -1251,7 +1358,10 @@ class cat_Boms extends core_Master
                 
                 if (serialize($rec->params) != serialize($params1)) {
                     $rec->params = $params1;
+                    
+                    Mode::push("touchRec{$rec->bomId}", $doTouchRec);
                     cls::get('cat_BomDetails')->save_($rec, 'params');
+                    Mode::pop("touchRec{$rec->bomId}");
                 }
             }
         }
@@ -1313,6 +1423,7 @@ class cat_Boms extends core_Master
         $query = cat_BomDetails::getQuery();
         $query->where("#bomId = {$rec->id}");
         $query->where('#parentId IS NULL');
+        $query->EXT('state', 'cat_Boms', 'externalName=state,externalKey=bomId');
         $details = $query->fetchAll();
         
         // Ако изчисляваме цената на рецептата по себестойност, ще кешираме изчислените цени на редовете
@@ -1526,7 +1637,7 @@ class cat_Boms extends core_Master
             $measureId = cat_Products::fetchField($rec->productId, 'measureId');
             $warning = '';
             if (!deals_Helper::checkQuantity($measureId, $rec->quantity, $warning)) {
-                $form->setError('quantity', $warning);
+                $form->setWarning('quantity', $warning);
             }
             
             $firstDocument = doc_Containers::getDocument($rec->originId);
@@ -1568,7 +1679,7 @@ class cat_Boms extends core_Master
     {
         $res = array();
         $bomInfo = cat_Boms::getResourceInfo($bomId, $quantity, dt::now());
-        if (!count($bomInfo['resources'])) {
+        if (!countR($bomInfo['resources'])) {
             
             return $res;
         }
@@ -1594,5 +1705,25 @@ class cat_Boms extends core_Master
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Обновява modified стойностите
+     *
+     * @param core_Master $mvc
+     * @param bool|NULL   $res
+     * @param int         $id
+     */
+    public static function on_AfterTouchRec($mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        
+        if ($rec) {
+            if ($rec->state == 'rejected') {
+                // @todo - премахване след ремонт
+                wp('cat_Boms::afterTouchRejected', $res, $rec);
+            }
+        }
     }
 }

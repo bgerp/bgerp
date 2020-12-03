@@ -2,7 +2,7 @@
 
 
 /**
- * Плъгин за разширяване на периферните устройсва, да могат да работят по brid или IP
+ * Плъгин за разширяване на периферните устройства, да могат да работят по brid или IP
  *
  *
  * @category  bgerp
@@ -130,6 +130,11 @@ class peripheral_DeviceWebPlg extends core_Plugin
      */
     public static function on_AfterGetSearchKeywords($Driver, embed_Manager $Embedder, &$res, $rec)
     {
+        $rec = $Embedder->fetchRec($rec);
+        if (!isset($res)) {
+            $res = plg_Search::getKeywords($Embedder, $rec);
+        }
+        
         if ($rec->brid || $rec->ip) {
             $p = trim($rec->brid);
             $p .= $p ? ' ' : '';

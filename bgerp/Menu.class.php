@@ -155,12 +155,10 @@ class bgerp_Menu extends core_Manager
         $key = "{$menu}:{$subMenu}";
         
         if (isset($menuObj[$key])) {
-            
             return $key;
         }
         
         if (Mode::is('pageMenuKey')) {
-            
             return Mode::get('pageMenuKey');
         }
         
@@ -171,7 +169,6 @@ class bgerp_Menu extends core_Manager
             $mvc = cls::get($ctr);
             
             if ($mvc->menuPage && $menuObj[$mvc->menuPage]) {
-                
                 return $mvc->menuPage;
             }
         }
@@ -179,7 +176,6 @@ class bgerp_Menu extends core_Manager
         
         // При логване да не показва менютата
         if ($ctr == 'core_Users' && strtolower($act) == 'login') {
-            
             return '_none_';
         }
         
@@ -193,7 +189,6 @@ class bgerp_Menu extends core_Manager
         if (($menuObj) && (countR($menuObj))) {
             foreach ($menuObj as $key => $rec) {
                 if ($rec->ctr == $ctr && $rec->act == $act) {
-                    
                     return $key;
                 }
                 
@@ -341,7 +336,6 @@ class bgerp_Menu extends core_Manager
         Mode::set('pageMenuKey', '_none_');
         
         if (!Mode::is('screenMode', 'narrow')) {
-            
             return new Redirect(array('bgerp_Portal', 'Show'));
         }
         
@@ -409,13 +403,11 @@ class bgerp_Menu extends core_Manager
     {
         // Ако имаме някоя от основните роли - ОК
         if (haveRole($roles)) {
-            
             return true;
         }
         
         // Ако класа не може да се зареди - връщаме false
         if (!cls::load($ctr, true)) {
-            
             return false;
         }
         
@@ -517,10 +509,10 @@ class bgerp_Menu extends core_Manager
     /**
      * При спиране на скрипта
      */
-    public function on_Shutdown()
+    public static function on_Shutdown($mvc)
     {
         // Ако имаме добавения по менюто
-        if (countR($this->savedItems)) {
+        if (countR($mvc->savedItems)) {
             
             // Премахваме кеша на менюто за всички езици
             $lgArr = core_Lg::getLangs();
@@ -531,12 +523,12 @@ class bgerp_Menu extends core_Manager
             }
             
             // Ако е зададено да се изтриват
-            if ($this->deleteNotInstalledMenu) {
+            if ($mvc->deleteNotInstalledMenu) {
                 $query = self::getQuery();
                 
                 while ($rec = $query->fetch('#createdBy = -1')) {
-                    if (!$this->savedItems[$rec->id]) {
-                        $this->delete($rec->id);
+                    if (!$mvc->savedItems[$rec->id]) {
+                        $mvc->delete($rec->id);
                     }
                 }
             }

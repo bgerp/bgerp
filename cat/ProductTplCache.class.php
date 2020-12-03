@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -19,7 +19,7 @@ class cat_ProductTplCache extends core_Master
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, plg_Select';
     
     
     /**
@@ -37,19 +37,19 @@ class cat_ProductTplCache extends core_Master
     /**
      * Права за запис
      */
-    public $canDelete = 'ceo, cat';
+    public $canDelete = 'ceo, debug, cat';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, cat';
+    public $canList = 'ceo, debug, cat';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo, cat';
+    public $canSingle = 'ceo, debug, cat';
     
     
     /**
@@ -73,7 +73,7 @@ class cat_ProductTplCache extends core_Master
     /**
      * На участъци от по колко записа да се бекъпва?
      */
-    public $backupMaxRows = 100000;
+    public $backupMaxRows = 10000;
     
     
     /**
@@ -104,7 +104,7 @@ class cat_ProductTplCache extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (isset($fields['-single'])) {
             if ($rec->type == 'description') {
@@ -132,49 +132,19 @@ class cat_ProductTplCache extends core_Master
     /**
      * Подготовка на филтър формата
      */
-    public static function on_AfterPrepareListFilter($mvc, &$data)
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->FLD('docId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'input,caption=Артикул');
+        $data->listFilter->FLD('docId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'input,caption=Артикул,removeAndRefreshForm');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'docId';
-        
         $data->listFilter->input(null, 'silent');
         
         if (isset($data->listFilter->rec->docId)) {
             $data->query->where("#productId = '{$data->listFilter->rec->docId}'");
         }
-    }
-    
-    
-    /**
-     * След подготовка на тулбара на списъчния изглед
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-        if (haveRole('admin,debug,ceo')) {
-            $data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искате ли да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
-        }
-    }
-    
-    
-    /**
-     * Изчиства записите в балансите
-     */
-    public function act_Truncate()
-    {
-        requireRole('admin,debug,ceo');
         
-        // Изчистваме записите от моделите
-        self::truncate();
-        
-        // Записваме, че потребителя е разглеждал този списък
-        $this->logWrite('Изтриване на кеша на изгледите на артикула');
-        
-        return new Redirect(array($this, 'list'), '|Записите са изчистени успешно');
+        $data->query->orderBy('id', "DESC");
     }
     
     
@@ -191,19 +161,21 @@ class cat_ProductTplCache extends core_Master
         // Кога артикула е бил последно модифициран
         $productModifiedOn = cat_Products::fetchField($productId, 'modifiedOn');
         
-        $query = self::getQuery();
-        $query->where("#productId = {$productId} AND #type = '{$type}' AND #lang = '{$lang}' AND #documentType = '{$documentType}' AND #time <= '{$time}'");
-        $query->orderBy('time', 'DESC');
-        $query->limit(1);
-        $rec = $query->fetch();
-        
-        if (!empty($rec)) {
-            $res = array("{$productModifiedOn}" => null, "{$rec->time}" => $rec->cache);
-            krsort($res);
-            foreach ($res as $cTime => $cache) {
-                if ($cTime <= $time) {
-                    
-                    return $cache;
+        if(!empty($time)){
+            $query = self::getQuery();
+            $query->where("#productId = {$productId} AND #type = '{$type}' AND #lang = '{$lang}' AND #documentType = '{$documentType}' AND #time <= '{$time}'");
+            $query->orderBy('time', 'DESC');
+            $query->limit(1);
+            $rec = $query->fetch();
+            
+            if (!empty($rec)) {
+                $res = array("{$productModifiedOn}" => null, "{$rec->time}" => $rec->cache);
+                krsort($res);
+                foreach ($res as $cTime => $cache) {
+                    if ($cTime <= $time) {
+                        
+                        return $cache;
+                    }
                 }
             }
         }
@@ -226,7 +198,9 @@ class cat_ProductTplCache extends core_Master
         $cacheRec = new stdClass();
         
         // Ако няма кеш досега записваме го с датата за която проверяваме за да се върне винаги
-        if (!self::fetch(("#productId = {$rec->id} AND #type = 'title' AND #documentType = '{$documentType}' AND #time <= '{$time}'"))) {
+        if(empty($time)){
+            $cacheRec->time = $time;
+        } elseif (!self::fetch(("#productId = {$rec->id} AND #type = 'title' AND #documentType = '{$documentType}' AND #time <= '{$time}'"))) {
             $cacheRec->time = $time;
         } else {
             
@@ -280,7 +254,9 @@ class cat_ProductTplCache extends core_Master
         $cacheRec = new stdClass();
         
         // Ако няма кеш досега записваме го с датата за която проверяваме за да се върне винаги
-        if (!self::fetch(("#productId = {$pRec->id} AND #type = 'description' AND #documentType = '{$documentType}' AND #time <= '{$time}'"))) {
+        if(empty($time)){
+            $cacheRec->time = $time;
+        } elseif (!self::fetch(("#productId = {$pRec->id} AND #type = 'description' AND #documentType = '{$documentType}' AND #time <= '{$time}'"))) {
             $cacheRec->time = $time;
         } else {
             

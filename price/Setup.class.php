@@ -20,6 +20,12 @@ defIfNot('PRICE_MIN_CHANGE_UPDATE_PRIME_COST', '0.03');
 
 
 /**
+ * Складове, в които да се усреднява цената
+ */
+defIfNot('PRICE_STORE_AVERAGE_PRICES', '');
+
+
+/**
  * Инсталиране на модул 'price'
  *
  * Ценови политики на фирмата
@@ -68,7 +74,7 @@ class price_Setup extends core_ProtoSetup
             'description' => 'Обновяване на себестойностите',
             'controller' => 'price_Updates',
             'action' => 'Updateprimecosts',
-            'period' => 60,
+            'period' => 5,
             'timeLimit' => 360,
         ),
         array(
@@ -79,6 +85,15 @@ class price_Setup extends core_ProtoSetup
             'period' => 180,
             'offset' => 77,
             'timeLimit' => 10
+        ),
+        
+        array(
+            'systemId' => 'Update bom costs',
+            'description' => 'Обновяване на кешираните цени по рецепти',
+            'controller' => 'price_interface_LastActiveBomCostPolicy',
+            'action' => 'updateCachedBoms',
+            'period' => 11,
+            'timeLimit' => 360,
         ),
     );
     
@@ -94,7 +109,8 @@ class price_Setup extends core_ProtoSetup
         'price_ProductCosts',
         'price_Updates',
         'price_Cache',
-        'migrate::updateGroupNames',
+        'migrate::migrateUpdates',
+        'migrate::migrateCosts'
     );
     
     
@@ -122,38 +138,81 @@ class price_Setup extends core_ProtoSetup
         'PRICE_SIGNIFICANT_DIGITS' => array('int(min=0)', 'caption=Закръгляне в ценовите политики (без себестойност)->Значещи цифри'),
         'PRICE_MIN_DECIMALS' => array('int(min=0)', 'caption=Закръгляне в ценовите политики (без себестойност)->Мин. знаци'),
         'PRICE_MIN_CHANGE_UPDATE_PRIME_COST' => array('percent(min=0,max=1)', 'caption=Автоматично обновяване на себестойностите->Мин. промяна'),
+        'PRICE_STORE_AVERAGE_PRICES' => array('keylist(mvc=store_Stores,select=name)', 'caption=Складове за които да се записва осреднена цена->Избор,callOnChange=price_interface_AverageCostStorePricePolicyImpl::saveAvgPrices'),
     );
     
     
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'price_reports_PriceList';
+    public $defClasses = 'price_reports_PriceList,price_AutoDiscounts,price_interface_AverageCostPricePolicyImpl,price_interface_LastAccCostPolicyImpl,price_interface_LastActiveDeliveryCostPolicyImpl,price_interface_LastDeliveryCostPolicyImpl,price_interface_LastActiveBomCostPolicy,price_interface_AverageCostStorePricePolicyImpl';
+
+    
+    /**
+     * Миграция на правилата за обновяване на себестойности
+     */
+    public function migrateUpdates()
+    {
+        $Updates = cls::get('price_Updates');
+        
+        $Costs = cls::get('price_ProductCosts');
+        $Costs->setupMvc();
+        $Costs->truncate();
+        
+        if(!$Updates->count()){
+            
+            return;
+        }
+        
+        core_Classes::add('price_interface_LastAccCostPolicyImpl');
+        core_Classes::add('price_interface_LastActiveDeliveryCostPolicyImpl');
+        core_Classes::add('price_interface_AverageCostPricePolicyImpl');
+        core_Classes::add('price_interface_LastActiveBomCostPolicy');
+        core_Classes::add('price_interface_LastDeliveryCostPolicyImpl');
+        
+        $map = array('accCost' => price_interface_LastAccCostPolicyImpl::getClassId(), 
+                     'activeDelivery' => price_interface_LastActiveDeliveryCostPolicyImpl::getClassId(), 
+                     'average' => price_interface_AverageCostPricePolicyImpl::getClassId(), 
+                     'bom' => price_interface_LastActiveBomCostPolicy::getClassId(),
+                     'lastQuote' => null,
+                     'lastDelivery' => price_interface_LastDeliveryCostPolicyImpl::getClassId());
+        
+        $res = array();
+        $query = $Updates->getQuery();
+        $query->FLD('costSource1', 'enum(,accCost,lastDelivery,activeDelivery,lastQuote,bom,average)');
+        $query->FLD('costSource2', 'enum(,accCost,lastDelivery,activeDelivery,lastQuote,bom,average)');
+        $query->FLD('costSource3', 'enum(,accCost,lastDelivery,activeDelivery,lastQuote,bom,average)');
+        $query->show('costSource1,costSource2,costSource3');
+        
+        while($rec = $query->fetch()){
+            $rec->sourceClass1 = (!empty($rec->costSource1)) ? $map[$rec->costSource1] : null;
+            $rec->sourceClass2 = (!empty($rec->costSource2)) ? $map[$rec->costSource2] : null;
+            $rec->sourceClass3 = (!empty($rec->costSource3)) ? $map[$rec->costSource3] : null;
+            $res[$rec->id] = $rec;
+        }
+        
+        if(countR($res)){
+            $Updates->saveArray($res, 'id,sourceClass1,sourceClass2,sourceClass3');
+        }
+        
+        $datetime = dt::addMonths(-1 * 12); 
+        price_ProductCosts::saveCalcedCosts($datetime);
+    }
     
     
     /**
-     * Добавя шаблони на ценоразписите
+     * Обновяване на себестойностите
      */
-    public function updateGroupNames()
+    public function migrateCosts()
     {
-        $Groups = cls::get('cat_Groups');
-        $Groups->setupMvc();
-        
-        $toSave = array();
-        $query = $Groups->getQuery();
-        $query->where("#nameEn = '' OR #nameEn IS NULL");
-        $query->show('name,nameEn');
-        while ($rec = $query->fetch()) {
-            if (strpos($rec->name, '||') !== false) {
-                list($nameBg, $nameEn) = explode('||', $rec->name);
-                $rec->name = $nameBg;
-                $rec->nameEn = $nameEn;
-                $toSave[$rec->id] = $rec;
-            }
-        }
-        
-        if (count($toSave)) {
-            $Groups->saveArray($toSave, 'id,name,nameEn');
+        $key = "migration_price_migrateUpdates";
+       
+        if (core_Packs::getConfigKey('core', $key)) {
+            $datetime = dt::addMonths(-1 * 12);
+            price_ProductCosts::saveCalcedCosts($datetime);
+            
+            $Type = $oldValue = $newValue = null;
+            price_interface_AverageCostStorePricePolicyImpl::saveAvgPrices($Type, $oldValue, $newValue);
         }
     }
 }

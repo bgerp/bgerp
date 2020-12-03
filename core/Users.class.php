@@ -185,6 +185,12 @@ class core_Users extends core_Manager
     
     
     /**
+     * Кои полета да се извличат при изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'id';
+    
+    
+    /**
      * Описание на полетата на модела
      */
     public function description()
@@ -661,6 +667,7 @@ class core_Users extends core_Manager
             $rangs[core_Roles::fetchByName('officer')] = 'officer';
             $rangs[core_Roles::fetchByName('executive')] = 'executive';
             $rangs[core_Roles::fetchByName('partner')] = 'partner';
+            $rangs[core_Roles::fetchByName('powerPartner')] = 'powerPartner';
             
             $form->setOptions('roleRank', $rangs);
             $rec = $form->input(null, 'silent');
@@ -677,8 +684,9 @@ class core_Users extends core_Manager
             }
             
             $partnerR = core_Roles::fetchByName('partner');
+            $partnerRpower = core_Roles::fetchByName('powerPartner');
             
-            if ($rec->roleRank == $partnerR) {
+            if ($rec->roleRank == $partnerR || $rec->roleRank == $partnerRpower) {
                 $otherRoles = arr::combine(
                         array('external' => (object) array('title' => 'Външен достъп', 'group' => true)),
                         $roleTypes['external']
@@ -897,7 +905,7 @@ class core_Users extends core_Manager
         $currentUserRec = Mode::get('currentUserRec');
         $retUrl = getRetUrl();
         $form = $this->getForm(array(
-            'title' => '|*<img src=' . sbf('img/signin.png') . " align='top'>&nbsp;|Вход в|* " . $conf->EF_APP_TITLE,
+            'title' => '|*<img src=' . sbf('img/signin.png') . ">&nbsp;|Вход в|* " . $conf->EF_APP_TITLE,
             'name' => 'login'
         ));
         
@@ -941,7 +949,7 @@ class core_Users extends core_Manager
             $form->toolbar->addFnBtn('Вход с криптиране', "this.form.action=('{$httpsUrl}');this.form.submit();", array('style' => 'background-color: #9999FF'));
         }
         
-        $form->info = "<center style='font-size:0.8em;color:#666;'>" . tr($conf->CORE_LOGIN_INFO) . '</center>';
+        $form->info = "<div style='text-align: center;font-size:0.8em;color:#666;'>" . tr($conf->CORE_LOGIN_INFO) . '</div>';
         
         // Ако е зададено да се използва имейл-а за ник
         if (EF_USSERS_EMAIL_AS_NICK) {
@@ -1056,6 +1064,8 @@ class core_Users extends core_Manager
                 $layout->append($form->renderHtml($form->InputFields, $inputs), 'FORM');
                 
                 $layout->prepend(tr('Вход') . ' « ', 'PAGE_TITLE');
+                $layout->prepend("\n<meta name=\"robots\" content=\"noindex\">", 'HEAD');
+
                 if (EF_USERS_HASH_FACTOR > 0) {
                     $layout->push('js/login.js', 'JS');
                 } else {
@@ -1113,7 +1123,7 @@ class core_Users extends core_Manager
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->lastLoginTime = $mvc->getVerbal($rec, 'lastLoginTime');
-        $row->lastLoginIp = type_IP::decorateIp($rec->lastLoginIp, $rec->lastLoginTime);
+        $row->lastLoginIp = type_Ip::decorateIp($rec->lastLoginIp, $rec->lastLoginTime);
         $row->nick = $mvc->getVerbal($rec, 'nick');
         $row->email = $mvc->getVerbal($rec, 'email');
         $row->names = $mvc->getVerbal($rec, 'names');
@@ -1495,8 +1505,8 @@ class core_Users extends core_Manager
         }
         
         // Ако потребителят е партньор се записва в сесията първата му споделена папка като активна
-        if (core_Packs::isInstalled('colab') && core_Users::isContractor($userRec)) {
-            colab_Folders::setLastActiveContragentFolder(null, $userRec->id);
+        if ($refresh === false && core_Packs::isInstalled('colab') && core_Users::isContractor($userRec)) {
+            colab_Folders::setLastActiveContragentFolder(null, $userRec->id, false);
         }
         
         $Users->invoke('afterLogin', array(&$userRec, $inputs, $refresh));
@@ -2391,6 +2401,12 @@ class core_Users extends core_Manager
      */
     public static function redirectToEnableHttps()
     {
+        if (core_Users::getCurrent() == self::SYSTEM_USER) {
+            wp($_SERVER['HTTPS'], EF_HTTPS);
+            
+            return ;
+        }
+        
         $url = core_App::getSelfURL();
         
         $newUrl = static::setHttpsInUrl($url);
@@ -2707,5 +2723,64 @@ class core_Users extends core_Manager
         }
         
         return false;
+    }
+    
+
+    /**
+     * Логва потребител за определено време
+     * Ако се извика без първия параметър - релогва потребителя
+     * 
+     * @param int   $userId     ID на потребителя
+     * @param float $duration   Време в минути от последната активност, за запазване на сесията
+     */
+    public static function tempLogin($userId = null, $duration = 5)
+    {
+        if($userId) {
+            Mode::setPermanent('tempUserId', $userId);
+            Mode::setPermanent('tempUserDuration', $duration);
+            Mode::setPermanent('tempUserExpiresOn', dt::addSecs($duration * 60));
+        } else {
+            $userId = Mode::get('tempUserId');
+            if(Mode::get('tempUserExpiresOn') < dt::now()) {
+                unset($userId);
+            } else {
+                $duration = Mode::get('tempUserDuration');
+                Mode::setPermanent('tempUserExpiresOn', dt::addSecs($duration * 60));
+            }
+        }
+        if($userId) {
+            
+            return self::sudo($userId);
+        }
+    }
+    
+    
+    /**
+     * Ф-я връщаща всички потребители с определена роля
+     * 
+     * @param mixed $roles
+     * @param null|string $keylist
+     * @return array $arr
+     */
+    public static function getUsersByRoles($roles, $keylist = null)
+    {
+        $query = static::getQuery();
+        $query->where("#state = 'active'");
+        $query->orderBy('#names', 'ASC');
+        $query->show('id,nick');
+        $roles = core_Roles::getRolesAsKeylist($roles);
+        $query->likeKeylist('roles', $roles);
+        
+        if (isset($keylist)) {
+            $keylistUsers = keylist::toArray($keylist);
+            $query->in('id', $keylistUsers, false, true);
+        }
+        
+        $arr = array();
+        while ($userRec = $query->fetch()) {
+            $arr[$userRec->id] = $userRec->nick;
+        }
+        
+        return $arr;
     }
 }

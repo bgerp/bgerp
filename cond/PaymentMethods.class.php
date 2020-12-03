@@ -9,7 +9,7 @@
  * @package   cond
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -80,6 +80,14 @@ class cond_PaymentMethods extends embed_Manager
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo, admin';
+    
+    
+    /**
+     * Дали при обновяване от импорт на същестуващ запис да се запази предишното състояние или не
+     *
+     * @see plg_State2
+     */
+    public $updateExistingStateOnImport = false;
     
     
     /**
@@ -203,9 +211,6 @@ class cond_PaymentMethods extends embed_Manager
                 $form->setError('downpayment,paymentBeforeShipping,paymentOnDelivery', 'Въведените проценти не бива да надвишават 100%');
             }
         }
-        
-        
-        
     }
     
     
@@ -215,7 +220,7 @@ class cond_PaymentMethods extends embed_Manager
      * @param core_Manager $mvc
      * @param stdClass     $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
         $rec = $form->rec;
@@ -401,7 +406,7 @@ class cond_PaymentMethods extends embed_Manager
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    public static function on_AfterSetupMvc($mvc, &$res)
+    protected static function on_AfterSetupMvc($mvc, &$res)
     {
         $file = 'cond/csv/PaymentMethods.csv';
         $fields = array(

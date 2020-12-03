@@ -129,7 +129,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
         // Ако има рецепта, проверява се има ли редове в нея
         if (!empty($bomId)) {
             $details = cat_Boms::getBomMaterials($bomId, $firstDoc->fetchField('quantity'), $masterRec->storeId);
-            if (count($details)) {
+            if (countR($details)) {
                 
                 return $bomId;
             }

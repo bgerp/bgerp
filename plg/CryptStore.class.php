@@ -23,7 +23,7 @@ class plg_CryptStore extends core_Plugin
     {
         $fieldsCrypt = $mvc->selectFields('#crypt');
         
-        if (count($fieldsCrypt)) {
+        if (countR($fieldsCrypt)) {
             foreach ($fieldsCrypt as $name => $fld) {
                 if ($rec->{$name}) {
                     if (!static::decrypt($rec->{$name})) {
@@ -42,7 +42,7 @@ class plg_CryptStore extends core_Plugin
     {
         $fields = $mvc->selectFields('#crypt');
         
-        if (count($fields)) {
+        if (countR($fields)) {
             foreach ($fields as $name => $fld) {
                 if ($rec->{$name}) {
                     if ($val = self::decrypt($rec->{$name})) {

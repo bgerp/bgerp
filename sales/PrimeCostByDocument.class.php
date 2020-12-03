@@ -61,7 +61,7 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,valior=Вальор,containerId,productId,quantity,sellCost,primeCost,delta,expenses,dealerId,initiatorId,state,isPublic,folderId';
+    public $listFields = 'id,valior=Вальор,containerId,productId,quantity,sellCost,primeCost,delta,expenses,dealerId,initiatorId,state,isPublic,folderId,storeId';
     
     
     /**
@@ -85,7 +85,7 @@ class sales_PrimeCostByDocument extends core_Manager
         $this->FLD('detailClassId', 'class(interface=core_ManagerIntf)', 'caption=Детайл,mandatory');
         $this->FLD('detailRecId', 'int', 'caption=Ред от детайл,mandatory, tdClass=leftCol');
         $this->FLD('containerId', 'int', 'caption=Документ,mandatory');
-        $this->FLD('productId', 'int', 'caption=Артикул,mandatory, tdClass=productCell leftCol wrap');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=10,forceAjax)', 'caption=Артикул,mandatory, tdClass=productCell leftCol wrap');
         $this->FLD('quantity', 'double', 'caption=Количество,mandatory');
         $this->FLD('sellCost', 'double', 'caption=Цени->Продажна,mandatory');
         $this->FLD('primeCost', 'double', 'caption=Цени->Себестойност,mandatory');
@@ -99,11 +99,13 @@ class sales_PrimeCostByDocument extends core_Manager
         $this->FLD('contragentId', 'int', 'caption=Контрагент,tdClass=leftCol');
         $this->FLD('contragentClassId', 'int', 'caption=Контрагент');
         $this->FLD('expenses', 'double', 'caption=Разходи,mandatory');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
         
         $this->setDbIndex('productId,containerId');
         $this->setDbIndex('productId');
         $this->setDbIndex('containerId');
         $this->setDbIndex('folderId');
+        $this->setDbIndex('valior');
         $this->setDbIndex('detailClassId,detailRecId,productId');
     }
     
@@ -140,7 +142,7 @@ class sales_PrimeCostByDocument extends core_Manager
         $query->where("#{$Detail->masterKey} = {$id}");
         $query->show('id');
         $ids = arr::extractValuesFromArray($query->fetchAll(), 'id');
-        if (!count($ids)) {
+        if (!countR($ids)) {
             
             return;
         }
@@ -173,6 +175,10 @@ class sales_PrimeCostByDocument extends core_Manager
         
         if(isset($rec->folderId)){
             $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+        }
+        
+        if(isset($rec->storeId)){
+            $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         }
     }
     
@@ -260,13 +266,23 @@ class sales_PrimeCostByDocument extends core_Manager
             $dQuery->EXT('state', $Master, "externalName=state,externalKey={$Detail->masterKey}");
             $dQuery->EXT('containerId', $Master, "externalName=containerId,externalKey={$Detail->masterKey}");
             $dQuery->EXT('modifiedOn', $Master, "externalName=modifiedOn,externalKey={$Detail->masterKey}");
+            $dQuery->EXT('chargeVat', $Master, "externalName=chargeVat,externalKey={$Detail->masterKey}");
+            
             $dQuery->where("#modifiedOn >= '{$timeline}'");
             $dQuery->where("#state != 'draft' AND #state != 'pending' AND #state != 'stopped'");
             
-            $fields = 'modifiedOn,state,containerId';
+            $fields = 'modifiedOn,state,containerId,amountDiscount,chargeVat';
             if ($Master != 'sales_Sales') {
                 $dQuery->EXT('isReverse', $Master, "externalName=isReverse,externalKey={$Detail->masterKey}");
-                $fields .= ',isReverse';
+                $dQuery->EXT('amountDelivered', $Master, "externalName=amountDelivered,externalKey={$Detail->masterKey}");
+                $dQuery->EXT('amountDeliveredVat', $Master, "externalName=amountDeliveredVat,externalKey={$Detail->masterKey}");
+                $dQuery->EXT('amountDiscount', $Master, "externalName=amountDiscount,externalKey={$Detail->masterKey}");
+                $fields .= ',isReverse,amountDeliveredVat,amountDelivered';
+            } else {
+                $dQuery->EXT('amountDeal', $Master, "externalName=amountDeal,externalKey={$Detail->masterKey}");
+                $dQuery->EXT('amountVat', $Master, "externalName=amountVat,externalKey={$Detail->masterKey}");
+                $dQuery->EXT('amountDiscount', $Master, "externalName=amountDiscount,externalKey={$Detail->masterKey}");
+                $fields .= ',amountVat,amountDeal';
             }
             
             $ids = array();
@@ -276,7 +292,14 @@ class sales_PrimeCostByDocument extends core_Manager
             while ($dRec = $dQuery->fetch()) {
                 if (!isset($masters[$dRec->containerId])) {
                     try {
-                        $masters[$dRec->containerId] = array(doc_Containers::getDocument($dRec->containerId), $dRec->state, $dRec->isReverse);
+                        $Document = doc_Containers::getDocument($dRec->containerId);
+                        $masters[$dRec->containerId] = array($Document, $dRec->state, $dRec->isReverse);
+                        $masters[$dRec->containerId]['chargeVat'] = $dRec->chargeVat;
+                        if($Document->isInstanceOf('sales_Sales')){
+                            $masters[$dRec->containerId]['total'] = $dRec->amountDeal;
+                        } else {
+                            $masters[$dRec->containerId]['total'] = $dRec->amountDelivered;
+                        }
                     } catch (core_exception_Expect $e) {
                         reportException($e);
                         continue;
@@ -287,20 +310,23 @@ class sales_PrimeCostByDocument extends core_Manager
             }
             
             // Ако има детайли от модела ще търсим точно записите от детайли на документи променяни след timeline
-            if (count($ids)) {
+            if (countR($ids)) {
                 $ids = implode(',', $ids);
                 $iQuery->where("#detailClassId = {$Detail->getClassId()} AND #detailRecId IN (${ids})", $or);
                 $or = true;
             }
         }
-        
+    
         // Добаване и на ПОС отчетите
         $posIds = array();
         $posQuery = pos_Reports::getQuery();
         $posQuery->where("#modifiedOn >= '{$timeline}'");
-        $posQuery->show('modifiedOn,state,containerId,details');
+        $posQuery->show('modifiedOn,state,containerId,details,total,chargeVat');
         while ($pRec = $posQuery->fetch()) {
             $masters[$pRec->containerId] = array(doc_Containers::getDocument($pRec->containerId), $pRec->state, null);
+            $masters[$pRec->containerId]['total'] = $pRec->total;
+            $masters[$pRec->containerId]['chargeVat'] = $pRec->chargeVat;
+            
             foreach ($pRec->details['receiptDetails'] as $pdRec){
                 if($pdRec->action != 'sale') continue;
                 $key = "{$pRec->id}000{$pdRec->value}";
@@ -308,7 +334,7 @@ class sales_PrimeCostByDocument extends core_Manager
             }
         }
         
-        if (count($posIds)) {
+        if (countR($posIds)) {
             $posIds = implode(',', $posIds);
             $iQuery->where("#detailClassId = " . pos_Reports::getClassId() . " AND #detailRecId IN ($posIds)", $or);
         }
@@ -330,7 +356,7 @@ class sales_PrimeCostByDocument extends core_Manager
     private static function getDeltaIndicators($indicatorRecs, $masters, &$personIds)
     {
         $result = $personIds = array();
-        if (!count($indicatorRecs)) {
+        if (!countR($indicatorRecs)) {
             
             return $result;
         }
@@ -440,7 +466,7 @@ class sales_PrimeCostByDocument extends core_Manager
         
         // Всички записи
         $indicatorRecs = $iQuery->fetchAll();
-        core_App::setTimeLimit(count($indicatorRecs) * 0.8);
+        core_App::setTimeLimit(countR($indicatorRecs) * 0.8);
         
         
         // Ако няма делта се пропуска
@@ -460,13 +486,13 @@ class sales_PrimeCostByDocument extends core_Manager
         
         // Връщане на индикаторите за делта на търговеца и инициатора
         $result1 = self::getDeltaIndicators($indicatorRecs, $masters, $personIds);
-        if (count($result1)) {
+        if (countR($result1)) {
             $result = array_merge($result1, $result);
         }
         
         // Връщане на индикаторите за сумата на продадените артикули по групи
         $result2 = self::getProductGroupIndicators($indicatorRecs, $masters, $personIds);
-        if (count($result2)) {
+        if (countR($result2)) {
             $result = array_merge($result2, $result);
         }
         
@@ -487,13 +513,13 @@ class sales_PrimeCostByDocument extends core_Manager
     private static function getProductGroupIndicators($indicatorRecs, $masters, $personIds)
     {
         $result = array();
-        if (!count($indicatorRecs)) {
+        if (!countR($indicatorRecs)) {
             
             return $result;
         }
         
         $selectedGroups = self::cacheGroupNames();
-        if (!count($selectedGroups)) {
+        if (!countR($selectedGroups)) {
             
             return $result;
         }
@@ -512,7 +538,7 @@ class sales_PrimeCostByDocument extends core_Manager
             // Намира се в колко от търсените групи участва
             $groups = $productGroups[$rec->productId];
             $diff = array_intersect_key($selectedGroups, $groups);
-            $delimiter = count($diff);
+            $delimiter = countR($diff);
             
             $Document = $masters[$rec->containerId][0];
             $personFldValue = $personIds[$rec->dealerId];
@@ -569,7 +595,7 @@ class sales_PrimeCostByDocument extends core_Manager
         
         // Индикатори за избраните артикулни групи
         $groupNames = self::cacheGroupNames();
-        if (count($groupNames)) {
+        if (countR($groupNames)) {
             foreach ($groupNames as $indRec) {
                 $result[$indRec->groupRec->id] = $indRec->groupRec->name;
                 $result[$indRec->deltaRec->id] = $indRec->deltaRec->name;
@@ -594,12 +620,12 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     private static function cacheGroupNames()
     {
-        if (!count(self::$groupNames)) {
+        if (!countR(self::$groupNames)) {
             
             // Ако има селектирани групи
             $selectedGroups = sales_Setup::get('DELTA_CAT_GROUPS');
             $selectedGroups = keylist::toArray($selectedGroups);
-            if (count($selectedGroups)) {
+            if (countR($selectedGroups)) {
                 
                 // Форсират им се индикатори
                 foreach ($selectedGroups as $groupId) {
@@ -628,7 +654,7 @@ class sales_PrimeCostByDocument extends core_Manager
     private static function getAllProductGroups($indicatorRecs)
     {
         $groups = array();
-        if (!count($indicatorRecs)) {
+        if (!countR($indicatorRecs)) {
             
             return $groups;
         }
@@ -652,7 +678,7 @@ class sales_PrimeCostByDocument extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->FLD('documentId', 'varchar', 'caption=Документ или контейнер, silent');
-        $data->listFilter->showFields = 'documentId';
+        $data->listFilter->showFields = 'documentId,productId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input(null, 'silent');
@@ -660,6 +686,10 @@ class sales_PrimeCostByDocument extends core_Manager
         $data->query->orderBy('valior', 'DESC');
         
         if ($rec = $data->listFilter->rec) {
+            if (!empty($rec->productId)){
+                $data->query->where("#productId={$rec->productId}");
+            }
+            
             if (!empty($rec->documentId)) {
                 
                 // Търсене и на последващите документи
@@ -693,7 +723,7 @@ class sales_PrimeCostByDocument extends core_Manager
     public static function updatePersons($containerIds)
     {
         $containerIds = arr::make($containerIds);
-        if (!count($containerIds)) {
+        if (!countR($containerIds)) {
             
             return;
         }
@@ -822,7 +852,7 @@ class sales_PrimeCostByDocument extends core_Manager
      * @param datetime $valior
      * @return double $primeCost
      */
-    public static function isPriceBellowPrimeCost($price, $productId, $packagingId, $quantity, $containerId, $valior)
+    public static function isPriceBellowPrimeCost($price, $productId, $packagingId, $quantity, $containerId, $valior, &$primeCost = null)
     {
         $primeCost = self::getPrimeCostFromSale($productId, $packagingId, $quantity, $containerId);
        
@@ -857,7 +887,7 @@ class sales_PrimeCostByDocument extends core_Manager
         }
         
         // Сортира се по най-голямо количество
-        if(!count($quantities)) return null;
+        if(!countR($quantities)) return null;
         arsort($quantities);
         $quantities = array_keys($quantities);
         

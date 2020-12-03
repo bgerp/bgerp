@@ -72,7 +72,7 @@ class planning_interface_ImportTaskSerial extends planning_interface_ImportDrive
             }
         }
         
-        if (count($error)) {
+        if (countR($error)) {
             $error = implode('</br>', $error);
             $form->setError('text', $error);
         } else {

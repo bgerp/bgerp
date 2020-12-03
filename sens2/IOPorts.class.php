@@ -38,7 +38,7 @@ class sens2_IOPorts extends embed_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'slot,name,driverClass=Тип,portIdent,state';
+    public $listFields = 'name,driverClass=Тип,slot,portIdent,state';
     
     
     /**
@@ -74,7 +74,7 @@ class sens2_IOPorts extends embed_Detail
         $this->FLD('slot', 'varchar(16)', 'caption=Слот,smartCenter');
         $this->FLD('portIdent', 'varchar(64)', 'caption=Идентификатор,input=none,smartCenter');
         
-        $this->setDbUnique('controllerId,slot,portIdent');
+        $this->setDbIndex('controllerId');
         
         $this->setDbUnique('name, controllerId');
     }

@@ -203,13 +203,13 @@ class fileman_reports_FileInfo extends frame_BaseDriver
     public function on_AfterPrepareEmbeddedData($mvc, &$data)
     {
         // Ако има намерени записи
-        if (count($data->files)) {
+        if (countR($data->files)) {
             if (!Mode::is('printing')) {
                 // Подготвяме страницирането
                 $pager = cls::get('core_Pager', array('itemsPerPage' => $mvc->listItemsPerPage));
                 $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
                 $data->Pager = $pager;
-                $data->Pager->itemsCount = count($data->files);
+                $data->Pager->itemsCount = countR($data->files);
             }
             
             // За всеки запис

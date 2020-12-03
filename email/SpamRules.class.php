@@ -18,7 +18,7 @@ class email_SpamRules extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_State2, email_Wrapper, plg_RowTools, plg_Clone';
+    public $loadList = 'plg_Created, plg_State2, email_Wrapper, plg_RowTools, plg_Clone, plg_Sorting';
     
     
     /**
@@ -215,5 +215,21 @@ class email_SpamRules extends core_Manager
         if (!$rec->systemId) {
             $rec->systemId = $mvc->getSystemId($rec);
         }
+    }
+    
+    
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return bool
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->query->orderBy('createdOn', 'DESC');
+        $data->query->orderBy('id', 'DESC');
     }
 }

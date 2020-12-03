@@ -138,7 +138,7 @@ class sens2_ProtoDriver extends core_BaseClass
         
         $typeArr = arr::make($type, true);
         
-        if (!count($typeArr)) {
+        if (!countR($typeArr)) {
             $typeArr = array_keys($slots);
         }
         

@@ -259,7 +259,7 @@ class fileman_webdrv_Generic extends core_Manager
         // Сменяма wrapper'а да е празна страница
         Mode::set('wrapper', 'page_Empty');
         
-        if (($jpgArr) && (count($jpgArr))) {
+        if (($jpgArr) && (countR($jpgArr))) {
             
             // Вземаме височината и широчината
             $thumbWidthAndHeightArr = static::getPreviewWidthAndHeight();
@@ -683,7 +683,7 @@ class fileman_webdrv_Generic extends core_Manager
             $barcodes = zbar_Reader::getBarcodesFromFile($fh);
             
             // Ако няма открит баркод прескачаме
-            if (!count($barcodes)) {
+            if (!countR($barcodes)) {
                 continue;
             }
             
@@ -993,13 +993,87 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Опитваме се да вземем манипулатора на файла
             $fileHnd = static::uploadFileFromArchive($fRec, $index);
-        } catch (fileman_Exception $e) {
-            
-            return $e->getMessage();
+        } catch (ErrorException $e) {
+            if (($e->getCode() == 2) && ($archiveAddPassUrl = self::getArchiveAddPassUrl($fileHnd))) {
+                
+                return new Redirect($archiveAddPassUrl, '|Добавете парола за отклюяване на архива', 'warning');
+            } else {
+                return new Redirect(array('fileman_Files', 'single', $fileHnd), '|' . $e->getMessage());
+            }
         }
         
         // Редиреткваме към single'а на качения файл
         return new Redirect(array('fileman_Files', 'single', $fileHnd, '#' => 'fileDetail'));
+    }
+    
+    
+    /**
+     * Връща URL за добавяне на парола към файла
+     * 
+     * @param string $fh
+     * @param boolean $chekcExist
+     * @param boolean $retUrl
+     * @return null|array
+     */
+    public static function getArchiveAddPassUrl($fh, $chekcExist = false, $retUrl = false)
+    {
+        $fRec = fileman::fetchByFh($fh);
+        
+        if (!$fRec || !$fRec->dataId || !fileman::haveRightFor('single', $fRec)) {
+            return ;
+        }
+        
+        if ($chekcExist && fileman_Indexes::fetchField(array("#dataId = '[#1#]' AND #type = 'password'", $fRec->dataId))) {
+            
+            return ;
+        }
+        
+        $resArr = array(get_called_class(), 'addPassword', $fh);
+        
+        if ($retUrl) {
+            $resArr['ret_url'] = $retUrl;
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Екшън за добавяне на парола за архива
+     */
+    function act_AddPassword()
+    {
+        $fh = Request::get('id');
+        
+        expect($fh);
+        
+        $fRec = fileman::fetchByFh($fh);
+        
+        fileman::requireRightFor('single', $fRec);
+        
+        $form = cls::get('core_Form');
+        
+        $form->title = 'Добавяне на парола за отключване на файла';
+        
+        $form->FLD('pass', 'password', 'caption=Парола');
+        
+        $form->input();
+        
+        $retUrl = getRetUrl();
+        if (empty($retUrl)) {
+            $retUrl = array('fileman_Files', 'single', $fh);
+        }
+        
+        if ($form->isSubmitted()) {
+            fileman_Indexes::saveContent(array('dataId' => $fRec->dataId, 'type' => 'password', 'createdBy' => core_Users::getCurrent(), 'content' => $form->rec->pass));
+            
+            return new Redirect($retUrl);
+        }
+        
+        $form->toolbar->addSbBtn('Запис', 'default', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
+        
+        return $this->renderWrapping($form->renderHtml());
     }
     
     
@@ -1097,7 +1171,7 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Намираме дълбочината на директорията
             $pathArr = explode('/', $path);
-            $depth = count($pathArr);
+            $depth = countR($pathArr);
         }
         
         // Обхождаме всики директории и файлове

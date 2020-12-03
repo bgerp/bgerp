@@ -33,11 +33,16 @@
                 </div>
                 <!--ET_END contragentAddress-->
                 <!--ET_END contragentName-->
-                <!--ET_BEGIN vatId-->
-                <div>|ДДС|* №:<br>
-                    [#vatId#]
-                </div>
-                <!--ET_END vatId-->
+                <!--ET_BEGIN contragentVatInfo-->
+                [#contragentVatInfo#]
+                <hr style="margin: 3px 0 1px;">
+                <!--ET_BEGIN vatNo-->
+                <div><small>ЗДДС&nbsp;№:</small> <span class="bigData notBold" style="padding-left:5px;">[#vatNo#]</span></div>
+                <!--ET_END vatNo-->
+                <!--ET_BEGIN contragentUicId-->
+                <div><small>[#contragentUicCaption#]:</small> <span class="bigData notBold" style="padding-left:5px;"> [#contragentUicId#]</span></div>
+                <!--ET_END contragentUicId-->
+                <!--ET_END contragentVatInfo-->
             </td>
         </tr>
         <tr>
@@ -57,13 +62,18 @@
                     [#MyAddress#]
                 </div>
                 <!--ET_END MyAddress-->
-                <!--ET_END MyCompany-->
-                <!--ET_BEGIN shipmentStoreId-->
+
+                <!--ET_BEGIN vatInfo-->
+                [#vatInfo#]
                 <hr style="margin: 3px 0 1px;">
-                <div>
-                    |От склад|*: [#shipmentStoreId#]
-                </div>
-                <!--ET_END shipmentStoreId-->
+                <!--ET_BEGIN MyCompanyVatNo-->
+                <div><small>ЗДДС&nbsp;№:</small> <span class="bigData notBold" style="padding-left:5px;">[#MyCompanyVatNo#]</span></div>
+                <!--ET_END MyCompanyVatNo-->
+                <!--ET_BEGIN uicId-->
+                <div><small>ЕИК:</small> <span class="bigData notBold" style="padding-left:5px;">[#uicId#]</span></div>
+                <!--ET_END uicId-->
+                <!--ET_END vatInfo-->
+                <!--ET_END MyCompany-->
             </td>
         </tr>
         </tbody>
@@ -77,11 +87,11 @@
     <tbody>
     <tr>
         <td class="topCell vtop" style='width:33%;'>
-            <!--ET_BEGIN paymentMethodId-->
+        <!--ET_BEGIN paymentMethodId-->
             <div class='cellRow'>
-                <span class='quiet'>|Плащане|*: </span>[#paymentMethodId#]
+            <span class='quiet'>|Плащане|*: </span>[#paymentMethodId#]
             </div>
-            <!--ET_END paymentMethodId-->
+                 <!--ET_END paymentMethodId-->  
             <!--ET_BEGIN downpayment-->
             <div class='cellRow'>
                 <span class='quiet'>|Авансово|*:</span> [#downpayment#]
@@ -99,12 +109,6 @@
                 [#bank#]<!--ET_END bank--><!--ET_BEGIN bic-->, <span class="nowrap">BIC: [#bic#]</span><!--ET_END bic--></div>
             </div>
             <!--ET_END bankAccountId-->
-            <!--ET_BEGIN caseId-->
-            <hr>
-            <div class='cellRow'>
-                <span class='quiet'>|Каса|*: </span>[#caseId#]
-            </div>
-            <!--ET_END caseId-->
             [#ADDITIONAL_BLOCK#]
             <hr>
             <!--ET_BEGIN conditions-->
@@ -120,21 +124,17 @@
                 <!--ET_BEGIN noVat-->
                 <li>|Цените са без ДДС|*[#noVat#]</li>
                 <!--ET_END noVat-->
-                <!--ET_BEGIN notes-->
-                [#notes#]
-                <!--ET_END notes-->
-                <!--ET_BEGIN cartId-->
-                <li>[#cartId#]</li>
-                <!--ET_END cartId-->
                 <!--ET_BEGIN closedDocuments-->
                 <li>|Обединява|*: [#closedDocuments#]</li>
                 <!--ET_END closedDocuments-->
                 <!--ET_BEGIN deliveryBlock-->
-                [#deliveryBlock#]
+                <!--ET_BEGIN deliveryTermId-->
                 <li>
                     |Доставка|*: [#deliveryTermId#]
                     <!--ET_BEGIN deliveryTime-->|до|* [#deliveryTime#]<!--ET_END deliveryTime-->
                 </li>
+                <!--ET_END deliveryTermId-->
+                [#deliveryBlock#]
                 <!--ET_END deliveryBlock-->
                 <!--ET_BEGIN deliveryTermTime-->
                 <li>|Срок за доставка|* [#deliveryTermTime#] |след стартиране на договора|*</li>
@@ -142,6 +142,9 @@
                 <!--ET_BEGIN commonConditionQuote-->
                 <li>|Общи условия по продажба|*: [#commonConditionQuote#]</li>
                 <!--ET_END commonConditionQuote-->
+                <!--ET_BEGIN notes-->
+                [#notes#]
+                <!--ET_END notes-->
             </ol>
             <!--ET_END conditions-->
             <hr>

@@ -17,6 +17,13 @@
  */
 abstract class cat_ProductDriver extends core_BaseClass
 {
+
+    /**
+     * Обект с информация за ембедъра
+     */
+    public $Embedder;
+
+
     /**
      * Кой може да избира драйвъра
      */
@@ -100,7 +107,7 @@ abstract class cat_ProductDriver extends core_BaseClass
         $fields = $form->selectFields();
         
         // Ако има полета
-        if (count($fields)) {
+        if (countR($fields)) {
             
             // За всички полета
             $fields = array_keys($fields);
@@ -228,7 +235,22 @@ abstract class cat_ProductDriver extends core_BaseClass
     {
     }
     
-    
+    /**
+     * Връща материалите, необходими за производството на посоченото количество
+     *
+     * @param int $id
+     * @param double $quantity
+     *
+     * @return array()
+     */
+    public function getMaterialsForProduction($id, $quantity)
+    {
+        $res = array();
+
+        return $res;
+    }
+
+
     /**
      * Връща иконата на драйвера
      *
@@ -601,11 +623,12 @@ abstract class cat_ProductDriver extends core_BaseClass
     /**
      * Връща минималното количество за поръчка
      *
-     * @param int|NULL $id - ид на артикул
+     * @param int|NULL $id   - ид на артикул
+     * @param string $action - дали да е за продажба или покупка
      *
      * @return float|NULL - минималното количество в основна мярка, или NULL ако няма
      */
-    public function getMoq($id = null)
+    public function getMoq($id = null, $action = 'sell')
     {
     }
     
@@ -846,7 +869,7 @@ abstract class cat_ProductDriver extends core_BaseClass
     public static function on_AfterGetSearchKeywords(cat_ProductDriver $Driver, embed_Manager $Embedder, &$res, $rec)
     {
         $searchFields = arr::make($Driver->searchFields, true);
-        if(count($searchFields)){
+        if(countR($searchFields)){
             $fieldRows = $Embedder->recToVerbal($rec, $searchFields);
             
             foreach ($searchFields as $field){
@@ -856,5 +879,80 @@ abstract class cat_ProductDriver extends core_BaseClass
                 }
             }
         }
+        
+        if(!empty($res)){
+            $res = preg_replace('/ (\\d{1,6})[xh](\\d{1,6})([xh](\\d{1,6})|) /i', '$0$1 $2 $4 ', $res, -1);
+        }
+    }
+    
+    
+    /**
+     * Какви са дефолтните количества на артикула за офертата
+     * 
+     * @param embed_Manager $Embedder
+     * @param stdClass $rec
+     * @return array $res
+     */
+    public function getQuantitiesForQuotation($Embedder, $rec)
+    {
+        $res = array();
+        
+        if(cls::haveInterface('cat_ProductAccRegIntf', $Embedder)){
+            if(isset($rec->originId)){
+                $origin = doc_Containers::getDocument($rec->originId);
+                if($origin->haveInterface('marketing_InquiryEmbedderIntf')){
+                    $originRec = $origin->fetch("quantity1,quantity2,quantity3");
+                    
+                    foreach (range(1, 3) as $i){
+                        if(!empty($originRec->{"quantity{$i}"})){
+                            $res[] = $originRec->{"quantity{$i}"};
+                        }
+                    }
+                }
+            }
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Кои са свързаните задания за други артикули с този артикул
+     * 
+     * @param mixed $rec
+     * 
+     * @return array 
+     */
+    public function getLinkedJobRecs($id)
+    {
+        return array();
+    }
+    
+    
+    /**
+     * Добавя полета към формата за запитване
+     *
+     * @param int $protoProductId
+     * @param core_FieldSet $fieldset
+     * @param boolean $onlyActive
+     *
+     * @return void
+     */
+    public function addInquiryFields($protoProductId, core_FieldSet &$fieldset, $onlyActive = false)
+    {
+        
+    }
+    
+    
+    /**
+     * Взима шаблона за показване на допълнителните данни от запитването
+     *
+     * @param stdClass $rec
+     *
+     * @return core_ET
+     */
+    public function getInquiryDataTpl($rec)
+    {
+        return new core_ET("");
     }
 }

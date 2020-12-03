@@ -853,6 +853,18 @@ class core_Mvc extends core_FieldSet
     
     
     /**
+     * Връща шаблона на заглавието
+     * 
+     * @param stdClass $rec
+     * @return mixed
+     */
+    public function getRecTitleTpl($rec)
+    {
+        return $this->recTitleTpl;
+    }
+    
+    
+    /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
     public static function getRecTitle($rec, $escaped = true)
@@ -861,7 +873,7 @@ class core_Mvc extends core_FieldSet
         $cRec = clone $rec;
         $me = cls::get(get_called_class());
         
-        if (!$tpl = $me->recTitleTpl) {
+        if (!$tpl = $me->getRecTitleTpl($rec)) {
             $titleFields = array(
                 'title',
                 'name',
@@ -1266,7 +1278,7 @@ class core_Mvc extends core_FieldSet
                         list($fName, ) = explode('(', $fName);
                         $fName = trim($fName);
                         
-                        $fType = $this->getFieldType($fName);
+                        expect($fType = $this->getFieldType($fName), $this, $fName);
                         
                         $mySqlAttr = $fType->getMysqlAttr();
                         
@@ -1386,6 +1398,11 @@ class core_Mvc extends core_FieldSet
         $me = cls::get($class);
         
         //Debug::log("Start $class->{$method}");
+        
+        if ($me instanceof stdClass) {
+            
+            return ;
+        }
         
         $res = $me->__call($method, $args);
         

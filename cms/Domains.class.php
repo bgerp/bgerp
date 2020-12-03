@@ -9,7 +9,7 @@
  * @package   cms
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -56,13 +56,25 @@ class cms_Domains extends core_Embedder
     /**
      * Права за писане
      */
-    public $canWrite = 'admin';
+    public $canWrite = 'ceo, admin, cms';
     
     
     /**
      * Права за писане
      */
-    public $canEdit = 'admin';
+    public $canEdit = 'ceo, admin, cms';
+    
+    
+    /**
+     * Кой може да редактира системните данни
+     */
+    public $canEditsysdata = 'ceo,admin,cms';
+    
+    
+    /**
+     * Кой може да изтрива системните данни
+     */
+    public $canDeletesysdata = 'ceo,admin,cms';
     
     
     /**
@@ -75,15 +87,6 @@ class cms_Domains extends core_Embedder
      * Кой може да избира текущ домейн
      */
     public $canSelect = 'ceo, admin, cms';
-    
-    
-    /**
-     *    Админа може да редактира и изтрива създадените от системата записи
-     */
-    public $canEditsysdata = 'admin';
-    
-    
-    public $canDeletesysdata = 'admin';
     
     
     /**
@@ -145,13 +148,13 @@ class cms_Domains extends core_Embedder
      */
     public $listFields = 'domain,lang,theme,createdOn,createdBy';
     
-
+    
     /**
      * Възможна ли е смяната на вече избран драйвер?
      */
     public $allowDriverChange = true;
-
-
+    
+    
     /**
      * Описание на модела
      */
@@ -182,7 +185,7 @@ class cms_Domains extends core_Embedder
         
         // Съгласие с ОУ
         $this->FLD('mandatoryAgreeText', 'richtext(rows=1)', 'caption=Задължителен текст за съгласие->Текст,autohide');
-
+        
         // SEO Заглавие
         $this->FLD('seoTitle', 'varchar(15)', 'caption=SEO->Title,autohide');
         
@@ -311,11 +314,19 @@ class cms_Domains extends core_Embedder
         // Задаваме действителния домейн, на който е намерен този
         $rec->actualDomain = strtolower(trim($_SERVER['SERVER_NAME']));
         
-        if($rec->domain != $rec->actualDomain && $rec->domain != 'localhost' && $rec->actualDomain != 'localhost' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        if(defined('BGERP_ABSOLUTE_HTTP_HOST')) {
+            $mainHost = BGERP_ABSOLUTE_HTTP_HOST;
+        } else {
+            $mainHost = $rec->actualDomain;
+        }
+        
+        $newHost = ($rec->domain == 'localhost') ? $mainHost : $rec->domain;
+        
+        if(($newHost != $rec->actualDomain) && $_SERVER['REQUEST_METHOD'] === 'GET') {
             $url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-            $newUrl = core_Url::change($url, array(), $rec->domain);
+            $newUrl = core_Url::change($url, array(), $newHost);
             
-            redirect($newUrl);
+            redirect($newUrl, false, null,'notice', true);
         }
         
         Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $rec);
@@ -331,6 +342,7 @@ class cms_Domains extends core_Embedder
             $domainRecs = self::findPublicDomainRecs();
         }
         
+        $cmsLangs = array();
         foreach ($domainRecs as $rec) {
             $cmsLangs[$rec->lang] = $rec->lang;
         }
@@ -344,17 +356,17 @@ class cms_Domains extends core_Embedder
      */
     public static function setFormField($form, $field = 'domainId')
     {
+        $opt = array();
         $query = self::getQuery();
-        while ($rec = $query->fetch("#state = 'active'")) {
-            if (self::haveRightfor('select', $rec) || $rec->id == $form->rec->{$field}) {
+        while ($rec = $query->fetch()) {
+            if (self::haveRightfor('select', $rec)) {
                 $opt[$rec->id] = self::getRecTitle($rec);
             }
         }
+        
         expect($form instanceof core_Form);
         $form->setOptions($field, $opt);
-        if (!$form->rec->{$field}) {
-            $form->rec->{$field} = self::getCurrent();
-        }
+        $form->setDefault($field, self::getCurrent());
     }
     
     
@@ -368,6 +380,8 @@ class cms_Domains extends core_Embedder
             
             return key($cmsLangs);
         }
+        
+        $langParse = array();
         
         // Парсираме Accept-Language съгласно:
         // http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.4
@@ -551,7 +565,6 @@ class cms_Domains extends core_Embedder
                 }
             }
         }
-    
     }
     
     
@@ -654,6 +667,10 @@ class cms_Domains extends core_Embedder
             $fiContent = getFileContent('img/favicon.ico');
         }
         
+        if(core_Webroot::isExists('android-chrome-512x512.png', $id)) {
+            $iconContent = core_Webroot::getContents('android-chrome-512x512.png', $id);
+        }
+        
         if($iconContent) {
             core_Webroot::register($iconContent, '', 'favicon.png', $id);
         }
@@ -744,16 +761,27 @@ class cms_Domains extends core_Embedder
     
     /**
      * Опции от наличните домейни
-     *
-     * @return array $options - опции домейни
+     * 
+     * @param boolean $uniqDomains - уникални домейни
+     * @param int|null $cu         - текущ потребител, ако има
+     * 
+     * @return array $options      - намерените домейни
      */
-    public static function getDomainOptions($uniqDomains = false)
+    public static function getDomainOptions($uniqDomains = false, $cu = null)
     {
-        $options = array();
+        $options = $domains = array();
         $query = self::getQuery();
         while ($rec = $query->fetch()) {
+            if(isset($cu)){
+                if(!self::haveRightFor('select', $rec, $cu)){
+                    
+                    continue;
+                }
+            }
+            
             if($uniqDomains) {
                 if($domains[$rec->domain]) continue;
+                
                 $domains[$rec->domain] = true;
                 $options[$rec->id] = $rec->domain;
             } else {

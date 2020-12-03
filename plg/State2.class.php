@@ -66,12 +66,13 @@ class plg_State2 extends core_Plugin
     public function getActiveAndClosedState($mvc)
     {
         if ($this->activeState && $this->closedState) {
-            
             return;
         }
         $opt = $mvc->getFieldType('state')->options;
         
-        if(isset($mvc->activeState)) {
+       
+        
+        if (isset($mvc->activeState)) {
             $this->activeState = $mvc->activeState;
         } else {
             foreach ($this->castToActive as $state) {
@@ -82,7 +83,7 @@ class plg_State2 extends core_Plugin
             }
         }
 
-        if(isset($mvc->closedState)) {
+        if (isset($mvc->closedState)) {
             $this->closedState = $mvc->closedState;
         } else {
             foreach ($this->castToClosed as $state) {
@@ -117,13 +118,13 @@ class plg_State2 extends core_Plugin
     public static function on_BeforeImportRec($mvc, &$rec)
     {
         // Ако мениджъра иска да се запазят старите състояния на импортираните записи
-        if($mvc->updateExistingStateOnImport === false){
+        if ($mvc->updateExistingStateOnImport === false) {
             
             // Ако записа е вече съществуващ взима се текущото състояние от базата
             // взима се тук за да може като стигне on_BeforeSave да не подмени състоянието с активно
             $conflictFields = array();
             $exRec = null;
-            if(!$mvc->isUnique($rec, $conflictFields, $exRec)){
+            if (!$mvc->isUnique($rec, $conflictFields, $exRec)) {
                 $rec->state = $mvc->fetchField($exRec->id, 'state', false);
             }
         }
@@ -146,10 +147,11 @@ class plg_State2 extends core_Plugin
      * Ще има ли предупреждение при смяна на състоянието
      *
      * @param stdClass $rec
+     * @param string   $newState
      *
      * @return string|FALSE
      */
-    public static function on_AfterGetChangeStateWarning($mvc, &$res, $rec)
+    public static function on_AfterGetChangeStateWarning($mvc, &$res, $rec, $newState)
     {
         if (!isset($res)) {
             $res = false;
@@ -168,12 +170,14 @@ class plg_State2 extends core_Plugin
     {
         $row->STATE_CLASS = "state-{$rec->state}";
         $row->ROW_ATTR['class'] .= " state-{$rec->state}";
-        $warning = $mvc->getChangeStateWarning($rec);
-        $warning = !empty($warning) ? $warning : false;
-        $warningToolbar = !empty($warning) ? "warning={$warning}" : '';
         
         if ($mvc->haveRightFor('changeState', $rec)) {
             $this->getActiveAndClosedState($mvc);
+            
+            $newState = ($rec->state == $this->activeState) ? $this->closedState : $this->activeState;
+            $warning = $mvc->getChangeStateWarning($rec, $newState);
+            $warning = !empty($warning) ? $warning : false;
+            $warningToolbar = !empty($warning) ? "warning={$warning}" : '';
             
             $add = '<img src=' . sbf('img/16/lightbulb_off.png') . " width='16' height='16'>";
             $cancel = '<img src=' . sbf('img/16/lightbulb.png') . " width='16' height='16'>";
@@ -210,12 +214,34 @@ class plg_State2 extends core_Plugin
     
     
     /**
+     * След подготовка на тулбара на единичен изглед
+     */
+    public function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $rec = $data->rec;
+        
+        if ($mvc->haveRightFor('changeState', $rec)) {
+            $this->getActiveAndClosedState($mvc);
+            
+            $singleTitle = mb_strtolower(tr($mvc->singleTitle));
+            $newState = ($rec->state == $this->activeState) ? $this->closedState : $this->activeState;
+            $warning = $mvc->getChangeStateWarning($rec, $newState);
+            
+            if ($rec->state == $this->activeState) {
+                $data->toolbar->addBtn('Деактивиране', array($mvc, 'changeState', $rec->id, 'ret_url' => true), "ef_icon=img/16/lightbulb.png,title=Деактивиране на|* {$singleTitle},warning={$warning}");
+            } else {
+                $data->toolbar->addBtn('Активиране', array($mvc, 'changeState', $rec->id, 'ret_url' => true), "ef_icon=img/16/lightbulb_off.png,title=Активиране на|* {$singleTitle},warning={$warning}");
+            }
+        }
+    }
+    
+    
+    /**
      * Прихваща екшън-а 'changeState'
      */
     public function on_BeforeAction($mvc, &$content, &$act)
     {
         if ($act != 'changestate') {
-            
             return;
         }
         
@@ -235,17 +261,33 @@ class plg_State2 extends core_Plugin
             $rec->state = ($rec->state == $this->activeState ? $this->closedState : $this->activeState);
             
             $act = '';
+            $actState = '';
             if ($rec->state == $this->activeState) {
                 $act = 'Активиране';
+                $actState = $rec->state;
             } elseif ($rec->state == $this->closedState) {
                 $act = 'Затваряне';
+                $actState = $rec->state;
             }
             
             if ($act) {
                 $mvc->logWrite($act, $rec->id);
             }
             
-            $mvc->save($rec, 'state');
+            $updateFields = 'state';
+            if ($mvc->hasPlugin('plg_Modified')) {
+                $updateFields = 'state,modifiedOn,modifiedBy';
+            }
+            
+            if ($actState) {
+                $mvc->invoke('BeforeChangeState', array($rec, $actState));
+            }
+            
+            $mvc->save($rec, $updateFields);
+            
+            if ($actState) {
+                $mvc->invoke('AfterChangeState', array($rec, $actState));
+            }
         }
         
         $content = new Redirect($retUrl);
@@ -284,7 +326,13 @@ class plg_State2 extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'changestate' && !isset($mvc->canChangestate) && $requiredRoles != 'no_one') {
+            
             $requiredRoles = $mvc->getRequiredRoles('edit', $rec, $userId);
+            
+            if(isset($rec) && $rec->state == 'rejected'){
+                $requiredRoles = 'no_one';
+            }
         }
+        
     }
 }

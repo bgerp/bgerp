@@ -239,7 +239,7 @@ class hr_CustomSchedules extends core_Master
         );
         
         // Обновяваме информацията за новопостъпилите събития
-        if (count($events)) {
+        if (countR($events)) {
             foreach ($events as $e) {
                 if (($e->id = $exEvents[$e->key]->id) ||
                     ($e->id = self::fetchField(array("#key = '[#1#]'", $e->key), 'id'))) {

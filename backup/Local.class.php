@@ -79,7 +79,7 @@ class backup_Local extends core_BaseClass
         if ($subDir) {
             if (!is_dir($this->path . '/' . $subDir)) {
                 if (!@mkdir($this->path . '/' . $subDir)) {
-                    $this->logWarning('Не може да се създаде път за backup-a');
+                    log_System::add('backup_Local', 'Не може да се създаде път за backup-a', null, 'warning');
                 }
             }
             $destFileName = ($this->path . '/' . $subDir . '/' . basename($fileName));

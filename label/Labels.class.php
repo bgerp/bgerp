@@ -326,7 +326,6 @@ class label_Labels extends core_Master
         if (isset($rec->classId, $rec->objId)) {
             if (cls::load($rec->classId, true)) {
                 if (!cls::haveInterface('label_SequenceIntf', $rec->classId)) {
-                    $row->title = strip_tags($row->title);
                     $row->title = ht::createHint($row->title, 'Проблем при печатането на етикета', 'error', false);
                     unset($row->_rowTools);
                 }
@@ -402,7 +401,7 @@ class label_Labels extends core_Master
         
         if (!empty($labelDataArr)) {
             $templates = cls::get($classId)->getLabelTemplates($objId);
-            if (!count($templates)) {
+            if (!countR($templates)) {
                 
                 return new Redirect($retUrl, '|Няма шаблон, който да се използва');
             }
@@ -420,7 +419,7 @@ class label_Labels extends core_Master
                 
                 // Оцветяваме имената на шаблоните, в зависимост от съвпаданието на плейсхолдерите
                 $percent = 0;
-                $lCnt = count($templatePlaceArr);
+                $lCnt = countR($templatePlaceArr);
                 if ($lCnt) {
                     $percent = ($cnt / $lCnt) * 100;
                 }
@@ -446,7 +445,7 @@ class label_Labels extends core_Master
             });
             $form->setOptions('selectTemplateId', array('' => '') + $optArr);
             
-            if (count($optArr) == 1) {
+            if (countR($optArr) == 1) {
                 $redirect = true;
             }
         }

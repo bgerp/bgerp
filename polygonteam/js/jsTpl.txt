@@ -6,7 +6,7 @@ function readScale() {
             $.ajax({
                    async: true,
                    type: "GET",
-                   url: '//[#user#]:[#pass#]@[#hostName#]/?RelayOutputs=2,3&DigitalInputs=3,4&CounterInputs=2,1&An%20alogInputs=4,5,6&ElectronicScales=1',
+                   url: '[#protocol#]://[#user#]:[#pass#]@[#hostName#]/?RelayOutputs=2,3&DigitalInputs=3,4&CounterInputs=2,1&An%20alogInputs=4,5,6&ElectronicScales=1',
                    crossDomain: true,
            }).done(function(res) {
                     xmlDoc = $.parseXML(res),

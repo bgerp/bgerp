@@ -50,7 +50,7 @@ class core_page_InternalModern extends core_page_Active
         
         // Хедъри за контрол на кеша
         $this->push('Cache-Control: private, max-age=0', 'HTTP_HEADER');
-        $this->push('Expires: ' . gmdate('D, d M Y H:i:s', time() + 3600) . ' GMT', 'HTTP_HEADER');
+        $this->push('Expires: Sun, 19 Nov 1978 05:00:00 GMT', 'HTTP_HEADER');
         
         // Добавяме допълнителните хедъри
         $aHeadersArr = core_App::getAdditionalHeadersArr();
@@ -78,7 +78,6 @@ class core_page_InternalModern extends core_page_Active
         
         jquery_Jquery::run($this, 'slidebars();');
         jquery_Jquery::run($this, 'scrollToHash();');
-        jquery_Jquery::run($this, 'unregisterServiceWorker();');
         
         if (Mode::is('screenMode', 'narrow')) {
             jquery_Jquery::run($this, 'checkForElementWidthChange();');
@@ -165,7 +164,7 @@ class core_page_InternalModern extends core_page_Active
                                         </span>
                                 </span>
                                 <span class='center-block'>
-                                    <span class='logoText'>[#PORTAL#]</span><span class='notificationsCnt'>[#NOTIFICATIONS_CNT#]</span>
+                                    <div class='logoText'>[#PORTAL#]<span class='notificationsCnt'>[#NOTIFICATIONS_CNT#]</span></div>
                                 </span>
                                 <a id='fav-panel-btn' class='fright btn-sidemenu btn-menu-right push-body [#openRightBtn#]'>". $pinImg . $pinnedImg . "</a>
                                 <div class='fright'>
@@ -176,9 +175,10 @@ class core_page_InternalModern extends core_page_Active
                                                 [#CHANGE_MODE#]
                                                 [#LANG_CHANGE#]
                                                 [#SIGNAL#]
+                                                [#ABOUT_BTN#]
                                                 [#DEBUG_BTN#]
                                                 [#PROFILE_MENU_ITEM#]
-                                                <div class='divider'></div>
+                                                <div class='menuDivider'></div>
                                                 [#SIGN_OUT#]
                                             </div>
                                         </div>
@@ -382,22 +382,24 @@ class core_page_InternalModern extends core_page_Active
         $portalLinkAttr = array();
         
         $appLen = mb_strlen($coreConf->EF_APP_TITLE);
-        
         if ($appLen >= 20) {
-            $portalLinkAttr['style'] = 'letter-spacing: -2px;font-size: 0.9em;';
+            $portalLinkAttr['style'] = 'letter-spacing: -2px;font-size: 0.8em;';
         } elseif ($appLen >= 13) {
-            $portalLinkAttr['style'] = 'letter-spacing: -1px;font-size: 0.95em;';
-        } elseif (($appLen >= 6) && ($appLen <= 12)) {
-            $lSpacing = (5 - $appLen) / 10;
-            
-            $portalLinkAttr['style'] = "letter-spacing: {$lSpacing}px;";
+            $portalLinkAttr['style'] = 'letter-spacing: -1px;font-size: 0.85em;';
+        } elseif (($appLen >= 8) && ($appLen <= 12)) {
+            $portalLinkAttr['style'] = "letter-spacing: -1px;font-size: 0.9em;";
+        } elseif ($appLen <= 7) {
+            $portalLinkAttr['style'] = "font-size: 0.95em;";
         }
         
         // Добавя линк към броя на отворените нотификации
         $portalLink = ht::createLink($coreConf->EF_APP_TITLE, $url, null, $portalLinkAttr);
         $nLink = ht::createLink("{$openNotifications}", $url, null, $attr);
         
+        $about = ht::createLink(tr('За bgERP||About'), array('Bgerp', 'About'), null, array('ef_icon' => 'img/16/info-icon.png', 'title' => 'Информация за инсталацията'));
+        
         $tpl->replace($debug, 'DEBUG_BTN');
+        $tpl->replace($about, 'ABOUT_BTN');
         $tpl->replace($mode, 'CHANGE_MODE');
         $tpl->replace($singal, 'SIGNAL');
         $tpl->replace($nLink, 'NOTIFICATIONS_CNT');
@@ -430,18 +432,6 @@ class core_page_InternalModern extends core_page_Active
             $attr['ef_icon'] = 'img/16/folder_open_icon.png';
             $attr['id'] = 'modern-folder-search';
             $colum2 .= ht::createLink(tr('Папки'), array('doc_Folders', 'list'), null, $attr);
-        }
-        
-        if (crm_Companies::haveRightFor('list')) {
-            $attr['ef_icon'] = 'img/16/building-black.png';
-            $attr['id'] = 'modern-company-seach';
-            $colum1 .= ht::createLink(tr('Фирми'), array('crm_Companies', 'list'), null, $attr);
-        }
-        
-        if (crm_Persons::haveRightFor('list')) {
-            $attr['ef_icon'] = 'img/16/vcard-black.png';
-            $attr['id'] = 'modern-person-seach';
-            $colum2 .= ht::createLink(tr('Лица'), array('crm_Persons', 'list'), null, $attr);
         }
         
         // Бутон за търсене по баркод

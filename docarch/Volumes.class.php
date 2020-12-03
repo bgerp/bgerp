@@ -427,7 +427,7 @@ class docarch_Volumes extends core_Master
         $rec->includedVolumes = self::getIncludedVolumes($rec);
         
         if (is_array($rec->includedVolumes) && !empty($rec->includedVolumes)) {
-            $inclCnt = count($rec->includedVolumes);
+            $inclCnt = countR($rec->includedVolumes);
             $row->includedVolumes = $inclCnt;
         } else {
             $row->includedVolumes = '';

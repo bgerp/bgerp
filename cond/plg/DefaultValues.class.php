@@ -16,11 +16,13 @@
  *
  * lastDocUser        - Последния активен документ в папката от потребителя
  * lastDoc 		      - Последния активен документ в папката
- * lastDocSameCuntry  - Последния активен документ в папка на клиент от същата държава
- * defMethod	      - Дефолт метод с име "getDefault{$name}"
+ * lastDocSameCountry - Последния активен документ в папка на клиент от същата държава
+ * defMethod	      - Дефолт метод с име "getDefault{$name}", има реализация по подразбиране
  * clientData	      - От контрагент интерфейса
  * clientCondition    - От дефолт търговско условие
  * coverMethod	      - Метод от корицата с име "getDefault{$name}"
+ * customMethod	      - Дефолт метод за частен случай
+ * sessionValue       - Стойност от сесията, ако полето е type_Key или type_Keylist
  *
  * -------------------------------------------------------------
  *
@@ -28,7 +30,7 @@
  * @package   cond
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -110,7 +112,6 @@ class cond_plg_DefaultValues extends core_Plugin
                 // За всяко поле със стратегия, му се намира стойността
                 foreach ($mvc::$defaultStrategies as $name => $strat) {
                     $value = self::getDefValue($mvc, $rec, $name, $strat);
-                    
                     if ($form->cmd != 'refresh') {
                         $form->setDefault($name, $value);
                     }
@@ -121,13 +122,38 @@ class cond_plg_DefaultValues extends core_Plugin
     
     
     /**
+     * Връща дефолтната стойност според стратегията
+     * 
+     * @param mixed $class 
+     * @param int $folderId
+     * @param string $field
+     * 
+     * @return mixed
+     */
+    public static function getDefaultValue($class, $folderId, $field)
+    {
+        $mvc = cls::get($class);
+        $strategy = $mvc::$defaultStrategies[$field];
+        if(empty($strategy)){
+            
+            return null;
+        }
+        
+        $rec = (object)array('folderId' => $folderId);
+        $value = self::getDefValue($mvc, $rec, $field, $strategy);
+      
+        return $value;
+    }
+    
+    
+    /**
      *  Намира стойност по подразбиране на дадено поле
      */
     private static function getDefValue(core_Mvc $mvc, $rec, $name, $strat)
     {
         $strat = keylist::toArray($strat);
         if (countR($strat)) {
-            
+           
             // За всяка от стратегиите
             foreach ($strat as $str) {
                 $methodName = "getFrom{$str}";
@@ -138,14 +164,20 @@ class cond_plg_DefaultValues extends core_Plugin
                 }
                 
                 if ($value = static::$methodName($mvc, $rec, $name)) {
+                    // Ако има състояние и е спряно, го прескачаме
+                    $type = $mvc->fields[$name]->type;
+                    if ($type instanceof type_Key) {
+                        $vRec = $type->getRecForVal($value);
+                            if ($vRec->state == 'closed') {
+                                continue;
+                            }
+                    }
                     
                     // Първата стратегия върнала стойност се връща
                     return $value;
                 }
             }
         }
-        
-        // Ако никоя от стратегиите не намери валидна стойност
     }
     
     
@@ -211,7 +243,7 @@ class cond_plg_DefaultValues extends core_Plugin
     /**
      * Определяне ст-ст по подразбиране на полето template
      */
-    public static function getFromLastDocSameCuntry(core_Mvc $mvc, $rec, $name)
+    public static function getFromLastDocSameCountry(core_Mvc $mvc, $rec, $name)
     {
         // Информацията за текущия контрагент
         $cData = doc_Folders::getContragentData($rec->folderId);
@@ -247,7 +279,39 @@ class cond_plg_DefaultValues extends core_Plugin
         
         if (cls::existsMethod($mvc, $name)) {
             
+           return $mvc->$name($rec);
+        }
+    }
+    
+    
+    /**
+     * Връща стойността според кустом дефолтен метод в мениджъра
+     */
+    private static function getFromCustomMethod(core_Mvc $mvc, $rec, $name)
+    {
+        $name = "getCustomDefault{$name}";
+        
+        if (cls::existsMethod($mvc, $name)) {
+            
             return $mvc->$name($rec);
+        }
+    }
+    
+    
+    /**
+     * Връща стойност от сесията
+     */
+    private static function getFromSessionValue(core_Mvc $mvc, $rec, $name)
+    {
+        $fldType = $mvc->getFieldType($name);
+        if($fldType instanceof type_Key || $fldType instanceof type_Keylist){
+            if($typeMvc = $fldType->params['mvc']){
+                $TypeMvc = cls::get($typeMvc);
+                if($TypeMvc->hasPlugin('plg_Current')){
+                    
+                    return $TypeMvc->getCurrent('id', false);
+                }
+            }
         }
     }
     

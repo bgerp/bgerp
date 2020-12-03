@@ -140,10 +140,10 @@ abstract class deals_ClosedDeals extends core_Master
         $docs = array();
         
         // Намираме записите в които участва перото
-        $entries = acc_Journal::getEntries($dealItem, $item);
+        $entries = acc_Journal::getEntries($dealItem);
         
         // Намираме документите, които имат транзакции към перото
-        if (count($entries)) {
+        if (countR($entries)) {
             foreach ($entries as $ent) {
                 if ($ent->docType != $rec->classId || ($ent->docType == $rec->classId && $ent->docId != $rec->id)) {
                     $docs[$ent->docType . '|' . $ent->docId] = (object) array('docType' => $ent->docType, 'docId' => $ent->docId);
@@ -153,7 +153,7 @@ abstract class deals_ClosedDeals extends core_Master
         
         $dealItem->docClassName = cls::get($dealItem->classId)->className;
         
-        if (count($docs)) {
+        if (countR($docs)) {
             
             // За всеки транзакционен клас
             foreach ($docs as $doc) {
@@ -166,7 +166,7 @@ abstract class deals_ClosedDeals extends core_Master
                 
                 // За всеки ред, генерираме запис с обратни стойностти (сумите и к-та са с обратен знак)
                 // Така зануляване салдата по следката
-                if (count($entries)) {
+                if (countR($entries)) {
                     foreach ($copyEntries as &$entry) {
                         
                         // Ако има сума добавяме я към общата сума на транзакцията
@@ -387,7 +387,9 @@ abstract class deals_ClosedDeals extends core_Master
             if ($firstRec->state != 'rejected') {
                 $firstRec->state = 'active';
                 $firstRec->modifiedOn = dt::now();
-                $DocClass->save($firstRec, 'modifiedOn,state');
+                $firstRec->closeWith = null;
+                
+                $DocClass->save($firstRec, 'modifiedOn,state,closeWith');
             }
         }
         
@@ -628,6 +630,12 @@ abstract class deals_ClosedDeals extends core_Master
             // Прехвърляме ги към детайлите на продажбата с която сме я приключили
             $Doc = cls::get($rec->docClassId);
             $Doc->invoke('AfterClosureWithDeal', array($rec->closeWith));
+            
+            // Записва се в документа, коя сделка с коя е приключена
+            if($rec->state == 'active'){
+                $updateRec = (object)array('id' => $rec->docId, 'closeWith' => $rec->closeWith);
+                $Doc->save_($updateRec);
+            }
         }
     }
     
@@ -652,7 +660,7 @@ abstract class deals_ClosedDeals extends core_Master
         // Обхождаме всички документи в нишката и им извличаме вальорите
         $desc = $firstDoc->getDescendants();
         
-        if (count($desc)) {
+        if (countR($desc)) {
             foreach ($desc as $doc) {
                 if ($doc->haveInterface('acc_TransactionSourceIntf') && ($doc->fetchField('state') == 'active' || $doc->fetchField('state') == 'closed')) {
                     if ($doc->that != $rec->id && $doc->getClassId() != $rec->classId) {

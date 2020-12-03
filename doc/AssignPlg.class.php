@@ -54,6 +54,9 @@ class doc_AssignPlg extends core_Plugin
             // Добавяме в модела
             $mvc->FLD('assignedBy', 'user', 'caption=Възложено->От,input=none');
         }
+        
+        $mvc->autoShareFields = arr::make($mvc->autoShareFields, true);
+        $mvc->autoShareFields['assign'] = 'assign';
     }
     
     

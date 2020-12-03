@@ -122,7 +122,7 @@ class planning_AssetGroups extends core_Master
     public static function haveSameGroup($assets)
     {
         $assets = is_array($assets) ? $assets : keylist::toArray($assets);
-        if (!count($assets)) {
+        if (!countR($assets)) {
             
             return true;
         }
@@ -134,7 +134,7 @@ class planning_AssetGroups extends core_Master
         $found = $aQuery->fetchAll();
         $found = is_array($aQuery->fetchAll()) ? $aQuery->fetchAll() : array();
         
-        return count($found) == 1;
+        return countR($found) == 1;
     }
     
     

@@ -105,7 +105,7 @@ class planning_interface_TaskLabel
         $productName = trim(cat_Products::getVerbal($rec->productId, 'name'));
         
         core_Lg::push('en');
-        $quantity = $rec->quantity . " " . tr(cat_UoM::getShortName($rowInfo->measureId));
+        $quantity = $rec->quantity . " " . cat_UoM::getShortName($rowInfo->measureId);
         $weight = (!empty($rec->weight)) ? core_Type::getByName('cat_type_Weight')->toVerbal($rec->weight) : null;
         core_Lg::pop('en');
         

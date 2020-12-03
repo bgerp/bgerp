@@ -196,6 +196,18 @@ class doclog_Documents extends core_Manager
     
     
     /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 100000;
+    
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'dataBlob';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
@@ -441,7 +453,7 @@ class doclog_Documents extends core_Manager
             }
         }
         
-        $cnt = count($allDataAct);
+        $cnt = countR($allDataAct);
         
         if (!$cnt) {
             
@@ -683,7 +695,7 @@ class doclog_Documents extends core_Manager
         
         foreach ($recs as $rec) {
             // Ако не виждан
-            if (!$rec->data->{$action} || !count($rec->data->{$action})) {
+            if (!$rec->data->{$action} || !countR($rec->data->{$action})) {
                 continue;
             }
             
@@ -707,7 +719,7 @@ class doclog_Documents extends core_Manager
         // URL' то където ще сочат
         $data->pager->url = toUrl(static::getLinkToSingle($cid, $action));
         
-        $openCnt = count($nRecsArr);
+        $openCnt = countR($nRecsArr);
         
         $data->pager->itemsCount = $openCnt;
         $data->pager->calc();
@@ -1153,7 +1165,7 @@ class doclog_Documents extends core_Manager
         foreach ($recs as $rec) {
             
             // Ако няма зададени действия прескачаме
-            if (count($rec->data->{$action}) == 0) {
+            if (countR($rec->data->{$action}) == 0) {
                 continue;
             }
             
@@ -1528,20 +1540,26 @@ class doclog_Documents extends core_Manager
     /**
      * Връща масив с IP-адреси от които е видян/свален документа
      *
-     * @param int               $cid
-     * @param NULL|string|array $action
+     * @param int|null          $cid
+     * @param null|string|array $action
+     * @param null|string       $mid
      *
      * @return array
      */
-    public static function getViewIp($cid, $action = null)
+    public static function getViewIp($cid = null, $action = null, $mid = null)
     {
-        $recsArr = self::fetchByCid($cid, $action);
-        
         $viewIpArr = array();
         
-        if (!$cid) {
+        if (!$cid && !$mid) {
             
             return $viewIpArr;
+        }
+        
+        $recsArr = array();
+        if ($cid) {
+            $recsArr = self::fetchByCid($cid, $action);
+        } elseif ($mid) {
+            $recsArr[] = self::fetchByMid($mid);
         }
         
         foreach ($recsArr as $recObj) {
@@ -1577,9 +1595,15 @@ class doclog_Documents extends core_Manager
      *
      * @return array
      */
-    public static function getSendEmails($cid)
+    public static function getSendEmails($cid = null, $mid = null)
     {
-        $resArr = self::fetchByCid($cid, self::ACTION_SEND);
+        $resArr = array();
+        
+        if ($cid) {
+            $resArr = self::fetchByCid($cid, self::ACTION_SEND);
+        } elseif ($mid) {
+            $resArr[] = self::fetchByMid($mid);
+        }
         
         $toEmails = '';
         
@@ -1734,6 +1758,9 @@ class doclog_Documents extends core_Manager
             // документ трябва да е свързан с (цитиран от) документа собственик на MID.
             $requestedDoc = doc_Containers::getDocument($cid);
             $midDoc = doc_Containers::getDocument($parent->containerId);
+            
+            $mRec = $midDoc->fetch();
+            expect($mRec && ($mRec->state != 'rejected'), $mRec);
             
             // Вземаме от парент записа id то на изпращача
             $fParent = $parent;
@@ -2104,6 +2131,71 @@ class doclog_Documents extends core_Manager
         
         // Изчистваме кешираната история на треда, понеже тя току-що е била променена.
         $mvc::removeHistoryFromCache($rec->threadId);
+
+        try {
+            if ($rec->containerId) {
+                
+                $doc = doc_Containers::getDocument($rec->containerId);
+                
+                if ($doc && ($doc->instance->stopRiskIpNotfications !== true)) {
+                    $sendEmailsArr = doclog_Documents::getSendEmails(null, $rec->mid);
+                    
+                    $emailsTld = type_Emails::getCountryFromTld($sendEmailsArr, 'letterCode2');
+                    
+                    $folderId = doc_Containers::fetchField($rec->containerId, 'folderId');
+                    
+                    $viewIp = doclog_Documents::getViewIp(null, null, $rec->mid);
+                    
+                    $badIpArr = email_Incomings::getBadIpArr($viewIp, $folderId, $emailsTld);
+                    
+                    if (!empty($badIpArr)) {
+                        if (empty($sendEmailsArr)) {
+                            $errStr = '|Документът е видян от потребител в рискова зона|*: ';
+                        } else {
+                            $errStr = '|Документът изпратен до|* ' . type_Emails::fromArray($sendEmailsArr) . ' |е видян от потребител в рискова зона|*: ';
+                        }
+                        $countryName = '';
+                        $cCodeArr = array();
+                        foreach ($badIpArr as $ip => $countryCode) {
+                            if (isset($cCodeArr[$countryCode])) {
+                                continue;
+                            }
+                            $errStr .= ($countryName) ? ', ' : '';
+                            $countryName = drdata_Countries::getCountryName($countryCode);
+                            $errStr .= $countryName;
+                            $cCodeArr[$countryCode] = true;
+                        }
+                        
+                        $userId = $rec->createdBy;
+                        if (($userId <= 0) || !haveRole('powerUser', $userId)) {
+                            $cRec = doc_Containers::fetch($rec->containerId);
+                            $userId = $cRec->activatedBy;
+                            if (($userId <= 0) || !haveRole('powerUser', $userId)) {
+                                $userId = $cRec->createdBy;
+                            }
+                        }
+                        
+                        $kKey = md5($errStr . '|' . $userId . '|' . $rec->containerId . '|' . $rec->mid);
+                        $keyVal = core_Permanent::get($kKey);
+                        if (!isset($keyVal)) {
+                            core_Permanent::set($kKey, true, 10000);
+                            
+                            $mvc->logWarning(tr($errStr), $rec->id);
+                            doc_Containers::logErr(tr($errStr), $rec->containerId);
+                            
+                            if (($userId > 0) && haveRole('powerUser', $userId)) {
+                                $doc = doc_Containers::getDocument($rec->containerId);
+                                bgerp_Notifications::add($errStr, array($doc->instance, 'single', $doc->that), $userId);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (core_exception_Expect $e) {
+            reportException($e);
+        } catch (Throwable $t) {
+            reportException($t);
+        }
     }
     
     
@@ -2273,7 +2365,7 @@ class doclog_Documents extends core_Manager
             foreach ($data as $downloadRec) {
                 
                 // Добавяме броя на свалянията към променливата
-                $downloadCount += count($downloadRec);
+                $downloadCount += countR($downloadRec);
             }
         }
         
@@ -2540,7 +2632,7 @@ class doclog_Documents extends core_Manager
         
         if (!empty($firstOpen)) {
             $html .= ' ' . type_Ip::decorateIp($firstOpen['ip'], $firstOpen['on'], true);
-            $cnt = count($rec->data->{$openActionName});
+            $cnt = countR($rec->data->{$openActionName});
             if ($cnt) {
                 $html .= ht::createLink(
                     $cnt,
@@ -2857,7 +2949,7 @@ class doclog_Documents extends core_Manager
         $query = static::getQuery();
         $query->where("#containerId = '{$uRec->containerId}' AND #action = '{$action}'");
         $allRecs = $query->fetchAll();
-        if (!count($allRecs)) {
+        if (!countR($allRecs)) {
                 
                 // Създаваме обект с данни
             $allRecs[] = (object) array(
@@ -2902,7 +2994,7 @@ class doclog_Documents extends core_Manager
      */
     private static function removeUsed($rec, $inClass)
     {
-        if (count($rec->data->{static::ACTION_USED})) {
+        if (countR($rec->data->{static::ACTION_USED})) {
             foreach ($rec->data->{static::ACTION_USED} as $i => $lRec) {
                 $clone = clone $lRec;
                 $cloneComp = clone($inClass);
@@ -2913,5 +3005,35 @@ class doclog_Documents extends core_Manager
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Връща записите от историята, отговарящи на подадения стринг
+     * 
+     * @param int $containerId  - ид на контейнер
+     * @param string $str       - стринг за търсене в историята
+     * @param int|null $limit   - брой записи
+     * @param string $direction - във възходящ или низходящ ред
+     * 
+     * @return array
+     */
+    public static function getActionsInHistory($containerId, $str, $limit = null, $direction = 'DESC')
+    {
+        $document = doc_Containers::getDocument($containerId);
+        $strCrc = log_Actions::getActionCrc($str);
+        $classCrc = log_Classes::getClassCrc($document->className);
+        
+        $logQuery = log_Data::getQuery();
+        $logQuery->where("#classCrc = {$classCrc}");
+        $logQuery->where("#objectId = {$document->that}");
+        $logQuery->where(array("#actionCrc = '[#1#]'", $strCrc));
+        $logQuery->orderBy("#id", $direction);
+        
+        if($limit){
+            $logQuery->limit($limit);
+        }
+        
+        return $logQuery->fetchAll();
     }
 }

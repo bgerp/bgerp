@@ -126,7 +126,7 @@ class fileman_webdrv_Kml extends fileman_webdrv_Xml
         
         $have = false;
         if ($xml->Document->Placemark) {
-            if (count($xml->Document)) {
+            if (countR($xml->Document)) {
                 foreach ($xml->Document as $xmlDoc) {
                     if ($xmlDoc->Placemark) {
                         $placemark[] = $xmlDoc->Placemark;
@@ -143,7 +143,7 @@ class fileman_webdrv_Kml extends fileman_webdrv_Xml
         
         $have = false;
         if ($xml->Document->Folder) {
-            if (count($xml->Document->Folder)) {
+            if (countR($xml->Document->Folder)) {
                 foreach ($xml->Document->Folder as $xmlDocFolder) {
                     if ($xmlDocFolder->Placemark) {
                         $placemark[] = $xmlDocFolder->Placemark;
@@ -159,7 +159,7 @@ class fileman_webdrv_Kml extends fileman_webdrv_Xml
         
         $have = false;
         if ($xml->Document->Folder->Folder) {
-            if (count($xml->Document->Folder->Folder)) {
+            if (countR($xml->Document->Folder->Folder)) {
                 foreach ($xml->Document->Folder->Folder as $xmlDocFolderFolder) {
                     if ($xmlDocFolderFolder->Placemark) {
                         $placemark[] = $xmlDocFolderFolder->Placemark;

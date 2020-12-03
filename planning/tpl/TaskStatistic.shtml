@@ -25,7 +25,7 @@
               <td class = 'nowrap'>[#scrappedQuantity#]</td>
               <td class = 'nowrap'>[#producedQuantity#]</td>
               
-              <td rowspan = '2' class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left'>
+              <td rowspan = '2' style='font-size:0.8em;vertical-align:top;text-align:left'>
                   <span style='font-weight:normal'>|Артикул|*</span>: [#productId#]<br>
                   <span style='font-weight:normal'>|Задание|*</span>: [#originId#]<br>
                   <!--ET_BEGIN batch-->

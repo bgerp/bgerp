@@ -137,7 +137,7 @@ class plg_PrevAndNext extends core_Plugin
         $selArr = Mode::get($selKey);
         $res = null;
         
-        if (count($selArr)) {
+        if (countR($selArr)) {
             $selId = array_search($id, $selArr);
             if ($selId === false) {
                 
@@ -222,7 +222,9 @@ class plg_PrevAndNext extends core_Plugin
                 $data->form->rec = (object) arr::fillMissingKeys($exRec, $data->form->rec);
             }
             
-            $mvc->requireRightFor('edit', $data->form->rec);
+            if($data->action == 'manage'){
+                $mvc->requireRightFor('edit', $data->form->rec);
+            }
         } elseif (!($data->form->cmd == 'save_n_next' || $data->form->cmd == 'save_n_prev' || Request::get('PrevAndNext'))) {
             
             // Изтриваме в сесията, ако има избрано множество записи
@@ -234,7 +236,7 @@ class plg_PrevAndNext extends core_Plugin
             $id = Request::get('id', 'int');
             
             $pos = array_search($id, $selArr) + 1;
-            $data->prevAndNextIndicator = $pos . '/' . count($selArr);
+            $data->prevAndNextIndicator = $pos . '/' . countR($selArr);
             
             $data->buttons = new stdClass();
             $data->buttons->prevId = self::getNeighbour($mvc, $data->form->rec, -1);
@@ -251,7 +253,7 @@ class plg_PrevAndNext extends core_Plugin
         $selKey = static::getModeKey($mvc);
         
         if ($selArr = Mode::get($selKey)) {
-            if (count($selArr) > 1) {
+            if (countR($selArr) > 1) {
                 if (isset($data->buttons->nextId)) {
                     $data->form->toolbar->addSbBtn('»»»', 'save_n_next', 'class=noicon fright,order=30, title = Следващ');
                 } else {
@@ -285,7 +287,7 @@ class plg_PrevAndNext extends core_Plugin
         if ($selArr = Mode::get($selKey)) {
             $action = Request::get('Act');
             
-            if ($action == 'browse' && count($selArr)) {
+            if ($action == 'browse' && countR($selArr)) {
                 if (isset($data->buttons->nextId)) {
                     $data->toolbar->addBtn('»»»', array($mvc, 'browse', $data->buttons->nextId), 'class=noicon fright,title = Следващ');
                 } else {

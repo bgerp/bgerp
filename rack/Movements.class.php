@@ -132,6 +132,7 @@ class rack_Movements extends core_Manager
         $this->FLD('note', 'varchar(64)', 'caption=Движение->Забележка,column=none');
         $this->FLD('zoneList', 'keylist(mvc=rack_Zones, select=num)', 'caption=Зони,input=none');
         $this->FLD('fromIncomingDocument', 'enum(no,yes)', 'input=hidden,silent,notNull,value=no');
+        $this->FNC('containerId', 'int', 'input=hidden,caption=Документи,silent');
         $this->FLD('documents', 'keylist(mvc=doc_Containers,select=id)', 'input=none,caption=Документи');
         
         $this->setDbIndex('storeId');
@@ -167,7 +168,7 @@ class rack_Movements extends core_Manager
             if (!empty($rec->packQuantity)) {
                 $warning = null;
                 if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning, 'uom')) {
-                    $form->setError('packQuantity', $warning);
+                    $form->setWarning('packQuantity', $warning);
                 }
             }
             
@@ -210,6 +211,10 @@ class rack_Movements extends core_Manager
                     if ($rec->state == 'closed') {
                         $rec->_isCreatedClosed = true;
                     }
+                    
+                    if(!empty($rec->containerId)){
+                        $rec->documents = keylist::addKey($rec->documents, $rec->containerId);
+                    }
                 }
             }
         }
@@ -229,7 +234,7 @@ class rack_Movements extends core_Manager
     {
         // Кеш на засегнатите зони за бързодействие
         $zonesArr = arr::extractValuesFromArray($mvc->getZoneArr($rec), 'zone');
-        $rec->zoneList = (count($zonesArr)) ? keylist::fromArray($zonesArr) : null;
+        $rec->zoneList = (countR($zonesArr)) ? keylist::fromArray($zonesArr) : null;
         
         if ($rec->state == 'active' || $rec->_canceled === true || $rec->_isCreatedClosed === true) {
             if (empty($rec->workerId)) {
@@ -257,7 +262,8 @@ class rack_Movements extends core_Manager
                     $documents[$zoneContainerId] = $zoneContainerId;
                 }
                 
-                $rec->documents = (count($documents)) ? keylist::fromArray($documents) : null;
+                $documents = (countR($documents)) ? keylist::fromArray($documents) : null;
+                $rec->documents = keylist::merge($rec->documents, $documents);
             }
         }
     }
@@ -350,7 +356,7 @@ class rack_Movements extends core_Manager
         $zoneArr = array();
         if (isset($rec->zones)) {
             $zoneArr = type_Table::toArray($rec->zones);
-            if (count($zoneArr)) {
+            if (countR($zoneArr)) {
                 foreach ($zoneArr as &$obj) {
                     $obj->quantity = core_Type::getByName('double')->fromVerbal($obj->quantity);
                     $quantityInZones += $obj->quantity;
@@ -412,7 +418,7 @@ class rack_Movements extends core_Manager
             $form->setField('packQuantity', 'input');
             
             $zones = rack_Zones::getZones($rec->storeId);
-            if (count($zones)) {
+            if (countR($zones)) {
                 $form->setFieldTypeParams('zones', array('zone_opt' => array('' => '') + $zones, 'packagingId' => $rec->packagingId));
                 $form->setField('zones', 'input');
                 if(!empty($defZones)){
@@ -589,12 +595,12 @@ class rack_Movements extends core_Manager
             }
         }
         
-        if (count($error)) {
+        if (countR($error)) {
             $error = implode('|*<li>|', $error);
             $res['error'] = $error;
         }
         
-        if (count($errorFields)) {
+        if (countR($errorFields)) {
             $res['errorFields'] = $errorFields;
         }
         
@@ -961,8 +967,8 @@ class rack_Movements extends core_Manager
         
         core_Locks::release("movement{$rec->id}");
         
-        $msg = (count($transaction->warnings)) ? implode(', ', $transaction->warnings) : null;
-        $type = (count($transaction->warnings)) ? 'warning' : 'notice';
+        $msg = (countR($transaction->warnings)) ? implode(', ', $transaction->warnings) : null;
+        $type = (countR($transaction->warnings)) ? 'warning' : 'notice';
         
         // Ако се обновява по Ajax
         if($ajaxMode){
@@ -1100,7 +1106,7 @@ class rack_Movements extends core_Manager
             return $res;
         }
        
-        if (count($transaction->zonesQuantityArr) && !empty($transaction->quantity) && abs(round($transaction->quantity, 4)) < abs(round($transaction->zonesQuantityTotal, 4)) && $transaction->zonesQuantityTotal > 0) {
+        if (countR($transaction->zonesQuantityArr) && !empty($transaction->quantity) && abs(round($transaction->quantity, 4)) < abs(round($transaction->zonesQuantityTotal, 4)) && $transaction->zonesQuantityTotal > 0) {
             $res->errors = 'Недостатъчно количество за оставяне в зоните';
             $res->errorFields = 'packQuantity,zones';
             
@@ -1229,14 +1235,14 @@ class rack_Movements extends core_Manager
             }
         }
         
-        if (count($zoneErrors)) {
+        if (countR($zoneErrors)) {
             $res->errors = 'В зони|*: <b>' . implode(', ', $zoneErrors) . '</b> |се получава отрицателно количество|*';
             $res->errorFields[] = 'zones';
             
             return $res;
         }
         
-        if (count($zoneWarnings)) {
+        if (countR($zoneWarnings)) {
             $res->warnings[] = 'В зони|*: <b>' . implode(', ', $zoneWarnings) . '</b> |се получава по-голямо количество от необходимото|*';
             $res->warningFields[] = 'zones';
         }
@@ -1355,6 +1361,8 @@ class rack_Movements extends core_Manager
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
         $productName = ' ' . plg_Search::normalizeText(cat_Products::getTitleById($rec->productId));
+        $productName .= " {$rec->productId}";
+        
         $res = ' ' . $res . ' ' . $productName;
     }
     
@@ -1439,7 +1447,7 @@ class rack_Movements extends core_Manager
         $pQuery->where("#closedOn <= '{$closedBefore}'");
         $pQuery->show('id');
         $palletsToDelete = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
-        if(!count($palletsToDelete)) return;
+        if(!countR($palletsToDelete)) return;
         
         // От тези палети, кои от тх все още участват в движения
         $query = rack_Movements::getQuery();

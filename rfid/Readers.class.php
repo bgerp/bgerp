@@ -22,6 +22,11 @@
 class rfid_Readers extends core_Manager
 {
     /**
+     * Свойство, което указва интерфейса на вътрешните обекти
+     */
+    public $driverInterface = 'rfid_ReaderIntf';
+    
+    /**
      * Заглавие
      */
     public $title = 'Четци';
@@ -117,4 +122,17 @@ class rfid_Readers extends core_Manager
                     2.4H>3.5D(C): 062,45709
     */
     }
+    
+    /**
+     * Може ли вградения обект да се избере
+     *
+     * @param NULL|int $userId
+     *
+     * @return bool
+     */
+    public function canSelectDriver($userId = null)
+    {
+        return true;
+    }
+    
 }

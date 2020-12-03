@@ -26,7 +26,7 @@ class plg_Rejected extends core_Plugin
         $mvc->FLD(
             'state',
             'enum(draft=Чернова,active=Активирано,closed=Затворено,rejected=Оттеглено)',
-                'caption=Състояние,column=none,input=none,notNull,forceField'
+                'caption=Състояние,column=none,input=none,notNull,forceField,smartCenter'
         );
         
         if (!isset($mvc->fields['state']->type->options['rejected'])) {

@@ -45,13 +45,19 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public $loadList = 'plg_RowTools2, purchase_Wrapper, doc_plg_TplManager, plg_Sorting, acc_plg_Contable,plg_Clone, doc_DocumentPlg,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,deals_plg_DpInvoice,
-                    doc_plg_HidePrices, acc_plg_DocumentSummary,cat_plg_AddSearchKeywords, plg_Search,change_Plugin';
+                    doc_plg_HidePrices, acc_plg_DocumentSummary,cat_plg_AddSearchKeywords, plg_Search,change_Plugin,bgerp_plg_Export';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'number, date, dueDate=Срок, place, folderId, currencyId=Валута, dealValue=Стойност, valueNoVat=Без ДДС, vatAmount, type';
+    
+    
+    /**
+     * При създаване на имейл, дали да се използва първият имейл от списъка
+     */
+    public $forceFirstEmail = true;
     
     
     /**
@@ -164,7 +170,7 @@ class purchase_Invoices extends deals_InvoiceMaster
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-        'place' => 'lastDocUser|lastDoc',
+        'place' => 'lastDocUser|lastDoc|defMethod',
         'responsible' => 'lastDocUser|lastDoc',
         'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
         'contragentVatNo' => 'clientData|lastDocUser|lastDoc',
@@ -173,7 +179,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         'contragentPlace' => 'clientData|lastDocUser|lastDoc',
         'contragentAddress' => 'clientData|lastDocUser|lastDoc',
         'accountId' => 'lastDocUser|lastDoc',
-        'template' => 'lastDocUser|lastDoc|LastDocSameCuntry',
+        'template' => 'lastDocUser|lastDoc|lastDocSameCountry',
     );
     
     
@@ -260,6 +266,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         }
         
         $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+        
         if ($rec->contragentCountryId == $bgId) {
             $form->setFieldType('number', core_Type::getByName('bigint(size=10)'));
         }
@@ -343,7 +350,7 @@ class purchase_Invoices extends deals_InvoiceMaster
                     $arr['contragentId'] = null;
                 }
                 
-                if (count($arr)) {
+                if (countR($arr)) {
                     foreach (array('contragentName', 'contragentClassId', 'contragentId', 'contragentCountryId', 'contragentVatNo', 'uicNo', 'contragentPCode', 'contragentPlace', 'contragentAddress')  as $fld) {
                         $form->rec->{$fld} = $arr[$fld];
                     }
@@ -484,6 +491,11 @@ class purchase_Invoices extends deals_InvoiceMaster
                 $rec->contragentClassId = crm_Companies::getClassId();
                 core_Statuses::newStatus("Добавена е нова фирма|* '{$rec->contragentName}'");
             }
+        }
+        
+        if(!empty($rec->number)){
+            $number = $mvc->getVerbal($rec, 'number');
+            $rec->searchKeywords .= ' ' . plg_Search::normalizeText($number) . " " . plg_Search::normalizeText($rec->number);
         }
     }
     
@@ -791,7 +803,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         }
         
         // Ако има само една опция - тя да е избрана по подразбиране
-        if ((count($purArr) == 1) && !isset($purArr[''])) {
+        if ((countR($purArr) == 1) && !isset($purArr[''])) {
             $form->setDefault('purId', key($purArr));
         }
         
@@ -1148,7 +1160,10 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public static function getValiorValue($rec)
     {
-        return (!empty($rec->journalDate)) ? $rec->journalDate : $rec->date;
+        $valior = (!empty($rec->journalDate)) ? $rec->journalDate : $rec->date;
+        $valior = dt::verbal2mysql($valior, false);
+        
+        return $valior;
     }
     
     
@@ -1186,5 +1201,16 @@ class purchase_Invoices extends deals_InvoiceMaster
         // Ако текущата дата е ДО 12-о число включително - СД е първо число на предходния месец;
         // Ако текущата дата е СЛЕД 12-о число - СД е първо число на текущия месец
         return ($numOfDay <= $nDay) ? dt::mysql2verbal($prevLastDay, 'Y-m-01') : dt::mysql2verbal($today, 'Y-m-01');
+    }
+    
+    
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        if(!empty($rec->number)){
+            $res .= ' ' . plg_Search::normalizeText($rec->number);
+        }
     }
 }

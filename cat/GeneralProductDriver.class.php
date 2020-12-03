@@ -24,7 +24,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('infoInt', 'richtext(rows=4, bucket=Notes)', 'caption=Подробно->Описание международно,autohide');
+        $fieldset->FLD('infoInt', 'richtext(rows=4, bucket=Notes)', 'caption=Подробно||In detail->Описание международно||International description,autohide');
         if (!$fieldset->getField('photo', false)) {
             $fieldset->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Изображение');
         } else {
@@ -55,9 +55,14 @@ class cat_GeneralProductDriver extends cat_ProductDriver
             $form->setDefault('name', cat_Products::fetchField($rec->proto, 'name'));
         }
         
+        if(empty($rec->nameEn) && !empty($rec->proto)){
+            $form->setDefault('nameEn', cat_Products::fetchField($rec->proto, 'nameEn'));
+        }
+        
         if (cls::haveInterface('marketing_InquiryEmbedderIntf', $Embedder)) {
             $form->setField('photo', 'input=none');
             $form->setField('measureId', 'display=hidden');
+            $form->setField('infoInt', 'input=none');
             
             if ($Embedder instanceof marketing_Inquiries2) {
                 $form->setField('inqDescription', 'mandatory');
@@ -99,8 +104,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
             }
             
             $refreshFields = implode('|', $refreshFields);
-            
             $remFields = $form->getFieldParam($Embedder->driverClassField, 'removeAndRefreshForm') . '|' . $refreshFields;
+            
             $form->setField($Embedder->driverClassField, "removeAndRefreshForm={$remFields}");
             
             $remFields = $form->getFieldParam('proto', 'removeAndRefreshForm') . '|' . $refreshFields;
@@ -396,7 +401,15 @@ class cat_GeneralProductDriver extends cat_ProductDriver
             $res['PREVIEW'] = $preview;
         }
         
-        $labelText = cat_Products::getParams($rec, 'labelText');
+        $labelText = null;
+        $lg = core_Lg::getCurrent();
+        if ($lg != 'bg') {
+            $labelText = cat_Products::getParams($rec, 'labelTextEn');
+        }
+        if (empty($labelText)) {
+            $labelText = cat_Products::getParams($rec, 'labelText');
+        }
+        
         if (!empty($labelText)) {
             $res['OTHER'] = $labelText;
         }

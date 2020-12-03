@@ -191,6 +191,17 @@ class email_Outgoings extends core_Master
      */
     protected static $errShowNotifyStr = array('recipients failed');
     
+    /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 100000;
+    
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'modifiedOn,state,lastSendedOn';
+    
     
     /**
      * Описание на модела
@@ -363,7 +374,7 @@ class email_Outgoings extends core_Master
         $rec->attachmentsFh = type_Set::toArray($options->attachmentsSet);
         
         //Ако имамем прикачени файлове
-        if (count($rec->attachmentsFh)) {
+        if (countR($rec->attachmentsFh)) {
             
             //Вземаме id'тата на файловете вместо манупулатора име
             $attachments = fileman::fhKeylistToIds($rec->attachmentsFh);
@@ -418,7 +429,7 @@ class email_Outgoings extends core_Master
         }
         
         // CSS' а за имейли
-        $emailCss = file_get_contents(sbf('css/email.css', '', true));
+        $emailCss = getFileContent('css/email.css');
         
         // списъци с изпратени и проблеми получатели
         $success = $failure = array();
@@ -500,7 +511,7 @@ class email_Outgoings extends core_Master
                 }
                 
                 // .. ако имаме прикачени документи ...
-                if (count($rec->documentsFh)) {
+                if (countR($rec->documentsFh)) {
                     
                     //Вземаме id'тата на файловете вместо манипулаторите
                     $documents = fileman::fhKeylistToIds($rec->documentsFh);
@@ -808,7 +819,7 @@ class email_Outgoings extends core_Master
         // Добавяне на предложения на свързаните документи
         $docHandlesArr = $mvc->GetPossibleTypeConvertings($data->form->rec->id);
         
-        if (count($docHandlesArr) > 0) {
+        if (countR($docHandlesArr) > 0) {
             $data->form->FNC('documentsSet', 'set', 'input,caption=Документи,columns=4,formOrder=6');
             
             $suggestion = array();
@@ -847,7 +858,7 @@ class email_Outgoings extends core_Master
         }
         
         // Ако има прикачени файлове
-        if (count($filesArr) > 0) {
+        if (countR($filesArr) > 0) {
             
             // Задаваме на формата да се покажат полетата
             $data->form->FNC('attachmentsSet', 'set', 'input,caption=Файлове,formOrder=7,maxCaptionLen=25');
@@ -891,14 +902,14 @@ class email_Outgoings extends core_Master
         $groupEmailsArr = array_diff((array) $groupEmailsArr, (array) $emailsCcArr);
         
         // Ако има имейл
-        if (count($groupEmailsArr)) {
+        if (countR($groupEmailsArr)) {
             
             // Ключовете да са равни на стойностите
             $groupEmailsArr = array_combine($groupEmailsArr, $groupEmailsArr);
         }
         
         // Добавяне на предложения за имейл адреси, до които да бъде изпратено писмото
-        if (count($groupEmailsArr)) {
+        if (countR($groupEmailsArr)) {
             $data->form->setSuggestions('emailsTo', array('' => '') + $groupEmailsArr);
             $data->form->setSuggestions('emailsCc', array('' => '') + $groupEmailsArr);
         }
@@ -1056,7 +1067,7 @@ class email_Outgoings extends core_Master
                     $noReplayEmailsArr = arr::make($noReplayEmails);
                     
                     // Ако има масив
-                    if (count($noReplayEmailsArr)) {
+                    if (countR($noReplayEmailsArr)) {
                         
                         // Вземаме имейлите ДО
                         $emailsToArr = arr::make($form->rec->emailsTo, true);
@@ -1326,7 +1337,7 @@ class email_Outgoings extends core_Master
                 
 
                 if (!empty($quotOtherArr)) {
-                    $docStr = count($quotOtherArr) == 1 ? 'документ' : 'документи';
+                    $docStr = countR($quotOtherArr) == 1 ? 'документ' : 'документи';
                     $form->setWarning('body', "Цитирате {$docStr} от друга нишка|*: " . implode(', ', $quotOtherArr));
                 }
             }
@@ -1359,7 +1370,7 @@ class email_Outgoings extends core_Master
             }
             
             // Ако има прикачени файлове по подаразбиране
-            if (count($docsArr)) {
+            if (countR($docsArr)) {
                 
                 // Инстанция на класа
                 $typeSet = cls::get('type_Set');
@@ -1514,10 +1525,9 @@ class email_Outgoings extends core_Master
         if ($css) {
             //Създаваме HTML частта на документа и превръщаме всички стилове в inline
             //Вземаме всичките css стилове
-            
-            $css = file_get_contents(sbf('css/common.css', '', true)) .
-            "\n" . file_get_contents(sbf('css/Application.css', '', true)) . "\n" . $css ;
-            
+           $css = getFileContent('css/common.css') .
+           "\n" . getFileContent('css/Application.css') . "\n" . $css ;
+           
             $content = '<div id="begin">' . $content . '<div id="end">';
             
             // Вземаме пакета
@@ -1784,7 +1794,7 @@ class email_Outgoings extends core_Master
                     $ccEmailsArr = email_Inboxes::removeOurEmails($ccEmailsArr);
                     
                     // Ако имейлите в копие са над лимита, не ги добавяме автоматично в полето
-                    if (count($ccEmailsArr) <= $autoFillCnt) {
+                    if (countR($ccEmailsArr) <= $autoFillCnt) {
                         $rec->emailCc = type_Emails::fromArray($ccEmailsArr);
                         $removeFromGroup = array_merge($removeFromGroup, $ccEmailsArr);
                     }
@@ -1818,8 +1828,8 @@ class email_Outgoings extends core_Master
                     $toEmailsArr = email_Inboxes::removeOurEmails($toEmailsArr);
                     
                     // Ако имейлите в To са над лимита, не ги добавяме автоматично в полето
-                    if (count($toEmailsArr) <= $autoFillCnt) {
-                        if (count($recEmailsArr)) {
+                    if (countR($toEmailsArr) <= $autoFillCnt) {
+                        if (countR($recEmailsArr)) {
                             $recEmailsArr += $toEmailsArr;
                         } else {
                             $recEmailsArr = $toEmailsArr;
@@ -1956,15 +1966,26 @@ class email_Outgoings extends core_Master
                 
                 $contrData->groupEmails = mb_strtolower($contrData->groupEmails);
                 
-                $emailsArr = type_Emails::toArray($contrData->groupEmails);
-                
                 if ($rec->originId) {
                     $oDoc = doc_Containers::getDocument($rec->originId);
+                    
+                    // Ако трябва да е се използва първия имейл от списъка
+                    if ($oDoc->forceFirstEmail === true) {
+                        if ($contrData->email) {
+                            $eArr = type_Emails::toArray($contrData->email);
+                            if ($eArr[0]) {
+                                $contragentData->groupEmails = $contragentData->groupEmails ? $contragentData->email . ', ' . $contragentData->groupEmails : $contragentData->email;
+                                $contragentData->email = $eArr[0];
+                            }
+                        }
+                    }
+                    
                     $oRec = $oDoc->fetch();
                     $fromEml = $oRec->fromEml;
                     $fromEml = trim($fromEml);
                     $fromEml = mb_strtolower($fromEml);
                     
+                    $emailsArr = type_Emails::toArray($contrData->groupEmails);
                     if (!$fromEml || !in_array($fromEml, $emailsArr)) {
                         $use = false;
                     }
@@ -2071,6 +2092,27 @@ class email_Outgoings extends core_Master
     
     
     /**
+     * Помощна функция за подготвяне на обръщението
+     * 
+     * @param string $salutation
+     * @param string $name
+     * 
+     * @return string
+     */
+    protected function prepareSalutation($salutation, $name)
+    {
+        // Ако е към друг имейл, трябва да има съвпадение с хедърите
+        if ($salutation && trim($name)) {
+            if (mb_stripos($salutation, $name) === false) {
+                $salutation = '';
+            }
+        }
+        
+        return $salutation;
+    }
+    
+    
+    /**
      * Създава хедър към постинга
      *
      * @param array  $headerDataArr
@@ -2085,19 +2127,36 @@ class email_Outgoings extends core_Master
         if ($cu > 0) {
             // Вземаме обръщението
             $salutation = email_Salutations::get($rec->folderId, $rec->threadId, $rec->email, $cu);
+            
+            // Търсим обръщение и към другите имейли в нишката
+            if (!$salutation) {
+                $salutation = email_Salutations::get($rec->folderId, $rec->threadId, null, $cu);
+                
+                // Ако е към друг имейл, трябва да има съвпадение с хедърите
+                $salutation = $this->prepareSalutation($salutation, $headerDataArr['name']);
+            }
         }
         
         if (!$salutation && ($cu > 0)) {
             $salutation = email_Salutations::get($rec->folderId, $rec->threadId, $rec->email);
+            
+            if (!$salutation) {
+                $salutation = email_Salutations::get($rec->folderId, $rec->threadId, null);
+                
+                // Ако е към друг имейл, трябва да има съвпадение с хедърите
+                $salutation = $this->prepareSalutation($salutation, $headerDataArr['name']);
+            }
+        }
+        
+        if ($salutation && trim($headerDataArr['name'])) {
+            if (mb_stripos($salutation, $headerDataArr['name']) === false) {
+                $salutation = '';
+            }
         }
         
         // Ако обръщението не съвпадата с текущия език, да се остави да се определи от системата
         if ($salutation) {
-            $isCyrillic = false;
-            
-            if (strlen($salutation) != mb_strlen($salutation)) {
-                $isCyrillic = true;
-            }
+            $isCyrillic = preg_match('/[\p{Cyrillic}]/u', $salutation) ? true : false;
             
             $currLg = core_Lg::getCurrent();
             
@@ -2540,7 +2599,7 @@ class email_Outgoings extends core_Master
         }
         
         $tpl = getTplFromFile($tpl);
-        
+
         if ($data->lg && (Mode::is('printing') || Mode::is('text', 'xhtml'))) {
             core_Lg::pop();
         }
@@ -2632,6 +2691,7 @@ class email_Outgoings extends core_Master
         $rec->action = 'processWaitingEmails';
         $rec->period = 60;
         $rec->offset = mt_rand(0, 40);
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 250;
         $res .= core_Cron::addOnce($rec);
@@ -3140,6 +3200,8 @@ class email_Outgoings extends core_Master
         // Да извлече само достъпните
         crm_Persons::applyAccessQuery($personsQuery);
         
+        $personsQuery->where("#state != 'closed'");
+        
         $personsArr = array();
         
         // Обхождаме всички откити резултати
@@ -3150,7 +3212,7 @@ class email_Outgoings extends core_Master
         }
         
         // Ако има открити стойности
-        if (count($personsArr)) {
+        if (countR($personsArr)) {
             
             // Добавяме ги в комбобокса
             $form->setOptions('personId', $personsArr);
@@ -3166,6 +3228,8 @@ class email_Outgoings extends core_Master
         // Да извлече само достъпните
         crm_Companies::applyAccessQuery($companyQuery);
         
+        $companyQuery->where("#state != 'closed'");
+        
         // Обхождаме всички откити резултати
         while ($companiesRec = $companyQuery->fetch()) {
             
@@ -3174,7 +3238,7 @@ class email_Outgoings extends core_Master
         }
         
         // Ако има открити стойности
-        if (count($companiesArr)) {
+        if (countR($companiesArr)) {
             
             // Добавяме ги в комбобокса
             $form->setOptions('companyId', $companiesArr);
@@ -3237,6 +3301,11 @@ class email_Outgoings extends core_Master
                 
                 // Изтриваме папката
                 unset($folderId);
+            } else {
+                // Ако няма права за добавяне
+                if (!email_Outgoings::haveRightFor('add', (object)array('folderId' => $folderId))) {
+                    unset($folderId);
+                }
             }
             
             // Препращаме към формата за създаване на имейл

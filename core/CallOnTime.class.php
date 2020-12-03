@@ -225,6 +225,7 @@ class core_CallOnTime extends core_Manager
         $query = self::getQuery();
         $query->where("#callOn <= '{$now}'");
         $query->where("#state != 'pending'");
+        $query->orderBy('callOn', 'ASC');
         
         while ($rec = $query->fetch()) {
             

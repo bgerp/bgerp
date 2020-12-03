@@ -164,7 +164,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
      */
     public function renderDetail_($data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return new core_ET('');
         }
@@ -209,7 +209,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
         
         $groupId = cat_Groups::fetchField("#sysId = 'packagings'", 'id');
         $Cover = doc_Folders::getCover($masterRec->folderId);
-        $data->form->setFieldTypeParams('productId', array('customerClass' => $Cover->getClassId(), 'customerId' => $Cover->that, 'hasProperties' => 'canStore', 'groups' => $groupId));
+        $data->form->setFieldTypeParams('productId', array('customerClass' => $Cover->getClassId(), 'customerId' => $Cover->that, 'hasProperties' => 'canStore', 'groups' => $groupId, 'hasnotProperties' => 'generic'));
     }
     
     

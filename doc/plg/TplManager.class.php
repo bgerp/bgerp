@@ -323,6 +323,11 @@ class doc_plg_TplManager extends core_Plugin
                 );
             }
         }
+        
+        // Ако има скриптов клас за шаблона, подаваме му данните
+        if ($Script = doc_TplManager::getTplScriptClass($data->rec->template)) {
+            $Script->beforePrepareMasterData($mvc, $data);
+        }
     }
     
     
@@ -400,6 +405,10 @@ class doc_plg_TplManager extends core_Plugin
             // Заместваме вербалното състояние и име с тези според езика на текущата сесия
             if ($mvc->getFieldType('state', false)) {
                 $row->state = $mvc->getVerbal($rec, 'state');
+            }
+            
+            if ($mvc->getFieldType('activatedOn', false)) {
+                $row->activatedOn = $mvc->getVerbal($rec, 'activatedOn');
             }
             
             if ($mvc->getFieldType('createdOn', false)) {

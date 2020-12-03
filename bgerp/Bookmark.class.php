@@ -178,8 +178,9 @@ class bgerp_Bookmark extends core_Manager
         if (self::haveRightFor('add')) {
             $url = toUrl(array(get_called_class(), 'add', 'ret_url' => true));
             $sUrl = addslashes($url);
-            
-            $localUrl = addslashes(toUrl(getCurrentUrl(), 'local'));
+            $cUrl = getCurrentUrl();
+            unset($cUrl['ret_url']);
+            $localUrl = addslashes(toUrl($cUrl, 'local'));
             $icon = 'star-bg.png';
             $title = 'Добавяне на връзка';
             
@@ -256,8 +257,10 @@ class bgerp_Bookmark extends core_Manager
      */
     public static function renderLinks($links, $cookie = null)
     {
-        $localUrl = str_replace(array('/default', '//'), array('', '/'), toUrl(getCurrentUrl(), 'local'));
-
+        $cUrl = getCurrentUrl();
+        unset($cUrl['ret_url']);
+        $localUrl = str_replace(array('/default', '//'), array('', '/'), toUrl($cUrl, 'local'));
+        
         $opened = array();
 
         if ($cookie) {
@@ -498,6 +501,7 @@ class bgerp_Bookmark extends core_Manager
     {
         setIfNot($rec->user, core_Users::getCurrent());
         $query = self::getQuery();
+        $res = array();
         $query->where("#user = {$rec->user}");
         while ($rec = $query->fetch()) {
             $res[$rec->id] = $rec;

@@ -124,6 +124,19 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 100000;
+    
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'last,state,lastState';
+    
+    
+    
+    /**
      * Описание на модела на нишките от контейнери за документи
      */
     public function description()
@@ -175,6 +188,7 @@ class doc_Threads extends core_Manager
         $this->setDbIndex('folderId');
         $this->setDbIndex('last');
         $this->setDbIndex('state');
+        $this->setDbIndex('last, id');
         
         $this->setDbIndex('firstContainerId');
     }
@@ -757,7 +771,7 @@ class doc_Threads extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently');
+        $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently,inputmode=search');
         $data->listFilter->FNC(
             'order',
             'enum(' . self::filterList . ')',
@@ -917,8 +931,6 @@ class doc_Threads extends core_Manager
             default:
             case 'open':
             case 'mine':
-                $query->XPR('isOpened', 'int', "IF(#state = 'opened', 0, 1)");
-                $query->orderBy("#isOpened,#state=ASC,#{$lastFieldName}=DESC,#id=DESC");
                 if ($filter->order == 'mine') {
                     if ($cu = core_Users::getCurrent()) {
                         $tList = array();
@@ -991,8 +1003,14 @@ class doc_Threads extends core_Manager
                         } else {
                             $query->where('1 = 2');
                         }
+                        
+                        $query->XPR('createdByOrder', 'int', "IF(#createdBy = '{$cu}', 1, 0)");
+                        $query->orderBy('createdByOrder', 'DESC');
                     }
                 }
+                
+                $query->XPR('isOpened', 'int', "IF(#state = 'opened', 0, 1)");
+                $query->orderBy("#isOpened,#state=ASC,#{$lastFieldName}=DESC,#id=DESC");
                 break;
             case 'recent':
                 $query->orderBy("#{$lastFieldName}=DESC,#id=DESC");
@@ -1035,7 +1053,6 @@ class doc_Threads extends core_Manager
             $docProxy = doc_Containers::getDocument($rec->firstContainerId);
             $docRow = $docProxy->getDocumentRow();
             $attr = array();
-            
             $attr = ht::addBackgroundIcon($attr, $docProxy->getIcon());
             
             if (mb_strlen($docRow->title) > self::maxLenTitle) {
@@ -1571,8 +1588,8 @@ class doc_Threads extends core_Manager
      */
     public static function getExpectationMoveTime($threadId, $moveRest = 'no')
     {
-        $timeFormMoveContainer = 0.006;
-        $timeFormMoveThread = 0.02;
+        $timeForMoveContainer = 0.2;
+        $timeForMoveThread = 0.4;
         
         $moveTime = 0;
         
@@ -1600,10 +1617,10 @@ class doc_Threads extends core_Manager
             $cQuery->show('id');
             
             if ($cCnt = $cQuery->count()) {
-                $moveTime += $timeFormMoveContainer * $cCnt;
+                $moveTime += $timeForMoveContainer * $cCnt;
             }
             
-            $moveTime += $timeFormMoveThread;
+            $moveTime += $timeForMoveThread;
         }
         
         return $moveTime;
@@ -1840,7 +1857,7 @@ class doc_Threads extends core_Manager
         // Запазваме общия брой документи
         $exAllDocCnt = $rec->allDocCnt;
         
-        self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
+        self::prepareDocCnt($rec, $firstDcRec, $lastDcRec, $lastChangeDate);
         
         // Попълваме полето за споделените потребители
         $rec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->id));
@@ -1860,12 +1877,7 @@ class doc_Threads extends core_Manager
                 }
             }
             
-            // Последния документ в треда
-            if ($lastDcRec->state != 'draft') {
-                $rec->last = max($lastDcRec->createdOn, $lastDcRec->modifiedOn);
-            } else {
-                $rec->last = $lastDcRec->createdOn;
-            }
+            $rec->last = $lastChangeDate;
             
             // Ако имаме добавяне/махане на документ от треда или промяна на състоянието към активно
             // тогава състоянието му се определя от последния документ в него
@@ -1879,6 +1891,10 @@ class doc_Threads extends core_Manager
                         $rec->state = $newState;
                     }
                 }
+            }
+            
+            if (($firstDcRec->state == 'rejected') && (!$rec->state)) {
+                $rec->state = 'rejected';
             }
             
             if ($lastDcRec) {
@@ -1934,7 +1950,7 @@ class doc_Threads extends core_Manager
      * @param NULL|stdClass $firstDcRec
      * @param NULL|stdClass $lastDcRec
      */
-    public static function prepareDocCnt(&$rec, &$firstDcRec, &$lastDcRec)
+    public static function prepareDocCnt(&$rec, &$firstDcRec, &$lastDcRec, &$lastChangeDate = null)
     {
         // Публични документи в треда
         $rec->partnerDocCnt = $rec->allDocCnt = 0;
@@ -1948,6 +1964,12 @@ class doc_Threads extends core_Manager
         while ($dcRec = $dcQuery->fetch("#threadId = {$rec->id}")) {
             if (!$firstDcRec) {
                 $firstDcRec = $dcRec;
+            }
+            
+            if ($dcRec->state == 'draft') {
+                $lastChangeDate = max($lastChangeDate, $dcRec->createdOn);
+            } else {
+                $lastChangeDate = max($lastChangeDate, $dcRec->modifiedOn, $dcRec->createdOn);
             }
             
             // Не броим оттеглените документи
@@ -2261,17 +2283,19 @@ class doc_Threads extends core_Manager
                 
                 // Ако има мениджъри, на които да се слагат бързи бутони, добавяме ги
                 $Cover = doc_Folders::getCover($data->folderId);
-                $managersIds = self::getFastButtons($Cover->getInstance(), $Cover->that);
+                $fastBtnObjects = self::getFastButtons($Cover->getInstance(), $Cover->that);
                 
                 $fState = doc_Folders::fetchField($data->folderId, 'state');
-                if (count($managersIds) && ($fState != 'closed' && $fState != 'rejected')) {
+                if (countR($fastBtnObjects) && ($fState != 'closed' && $fState != 'rejected')) {
                     
                     // Всеки намерен мениджър го добавяме като бутон, ако потребителя има права
-                    foreach ($managersIds as $classId) {
-                        $Cls = cls::get($classId);
+                    foreach ($fastBtnObjects as $obj) {
+                        $Cls = cls::get($obj->class);
+                        
                         if ($Cls->haveRightFor('add', (object) array('folderId' => $data->folderId))) {
-                            $bArr['btnTitle'] = ($Cls->buttonInFolderTitle) ? $Cls->buttonInFolderTitle : $Cls->singleTitle;
-                            $bArr['url'] = array($Cls, 'add', 'folderId' => $data->folderId, 'ret_url' => true);
+                            $bArr = array();
+                            $bArr['btnTitle'] = ($obj->caption) ? $obj->caption : $Cls->singleTitle;
+                            $bArr['url'] = (isset($obj->url)) ? $obj->url : array($Cls, 'add', 'folderId' => $data->folderId, 'ret_url' => true);
                             $bArr['ef_icon'] = $Cls->singleIcon;
                             $bArr['title'] = 'Създаване на ' . mb_strtolower($Cls->singleTitle);
                             
@@ -2361,23 +2385,21 @@ class doc_Threads extends core_Manager
     public static function getFastButtons($coverClass, $coverId)
     {
         expect($Cover = cls::get($coverClass));
-        $managers = $Cover->getDocButtonsInFolder($coverId);
-        
-        $managers = arr::make($managers, true);
-        
+        $buttons = $Cover->getDocButtonsInFolder($coverId);
+       
         $res = array();
-        if (is_array($managers) && count($managers)) {
-            foreach ($managers as $manager) {
+        if (countR($buttons)) {
+            foreach ($buttons as $btnObject) {
                 
                 // Проверяваме дали може да се зареди класа
-                if (cls::load($manager, true)) {
-                    $Cls = cls::get($manager);
+                if (cls::load($btnObject->class, true)) {
+                    $Cls = cls::get($btnObject->class);
                     
                     if (!cls::haveInterface('doc_DocumentIntf', $Cls)) {
                         continue;
                     }
                     
-                    $res[$Cls->getClassId()] = $Cls->getClassId();
+                    $res[$Cls->getClassId()] = $btnObject;
                 }
             }
         }
@@ -2659,6 +2681,10 @@ class doc_Threads extends core_Manager
         
         if ($dataArr['company']) {
             $points += 3;
+        }
+        
+        if ($data->priority) {
+            $points *= $data->priority;
         }
         
         return $points;
@@ -3190,6 +3216,88 @@ class doc_Threads extends core_Manager
                 $handle = '#' . $Doc->getHandle($cRec->docId);
                 $error[$cRec->id] = ht::createLink($handle, $url)->getContent();
                 $res = false;
+            }
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Подготовка на опции за key2
+     */
+    public static function getSelectArr($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    {
+        $query = self::getQuery();
+        
+        if ($params['excludeArr']) {
+            $query->notIn('id', $params['excludeArr']);
+        }
+        
+        $query->orderBy('last=DESC');
+        
+        $viewAccess = false;
+        if ($params['restrictViewAccess'] == 'no') {
+            $viewAccess = true;
+        }
+        
+        $me = cls::get(get_called_class());
+        
+        $me->restrictAccess($query, null, $viewAccess);
+        
+        if (!$includeHiddens) {
+            $query->where("#state != 'rejected'");
+        }
+        
+        if ($params['where']) {
+            $query->where($params['where']);
+        }
+        
+        if (is_array($onlyIds)) {
+            if (!count($onlyIds)) {
+                
+                return array();
+            }
+            
+            $ids = implode(',', $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+            
+            $query->where("#id IN (${ids})");
+        } elseif (ctype_digit("{$onlyIds}")) {
+            $query->where("#id = ${onlyIds}");
+        }
+        
+        if (trim($q)) {
+            $query->EXT('searchKeywords', 'doc_Containers', 'externalKey=firstContainerId, externalName=searchKeywords');
+            plg_Search::applySearch($q, $query);
+        }
+        
+        if (!$limit) {
+            $limit = 10;
+        }
+        $query->limit($limit);
+        
+        $query->show("id, firstDocClass, firstDocId, folderId");
+        
+        $res = array();
+        
+        while ($rec = $query->fetch()) {
+            if (!$rec->firstDocId || !$rec->firstDocClass || !cls::load($rec->firstDocClass, true)) {
+                
+                continue ;
+            }
+            $dClass = cls::get($rec->firstDocClass);
+            
+            $dRow = $dClass->getDocumentRow($rec->firstDocId);
+            
+            $title = $dRow->recTitle ? $dRow->recTitle : $dRow->title;
+            
+            $res[$rec->id] = '#' . $dClass->getHandle($rec->firstDocId);
+            
+            $res[$rec->id] .= ' ' .trim($title);
+            
+            if ($rec->folderId) {
+                $res[$rec->id] .= ' (' . doc_Folders::fetchField($rec->folderId, 'title') . ')';
             }
         }
         

@@ -35,6 +35,8 @@ class email_Wrapper extends plg_ProtoWrapper
             $this->TAB('email_Spam', 'Входящи->Спам', 'admin,email');
             $this->TAB('email_Unparsable', 'Входящи->Непарсируеми', 'admin,email');
             $this->TAB('email_Fingerprints', 'Входящи->Отпечатъци', 'admin,email');
+            $this->TAB('email_ServiceRules', 'Сервизни->Правила', 'admin,email');
+            $this->TAB('email_ServiceRulesData', 'Сервизни->Данни', 'admin,email');
         }
         
         $this->TAB('email_Inboxes', 'Кутии', 'ceo, admin, powerUser');

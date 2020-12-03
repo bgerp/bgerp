@@ -38,12 +38,6 @@ defIfNot('DOC_NOTIFY_FOR_INCOMPLETE_BUSINESS_DOC', 2678400);
 
 
 /**
- * Колко папки от последно отворените да се показват при търсене
- */
-defIfNot('DOC_SEARCH_FOLDER_CNT', 5);
-
-
-/**
  * Колко колко документа максимално да се показват
  */
 defIfNot('DOC_SEARCH_LIMIT', 1000);
@@ -160,6 +154,12 @@ defIfNot('DOC_LIST_FIELDS_EXTRA_LINE', 'yes');
 
 
 /**
+ * Преместване на последен документ от нишка
+ */
+defIfNot('DOC_MOVE_LAST_DOCUMENT', 'yes');
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с DOC
  *
@@ -221,7 +221,6 @@ class doc_Setup extends core_ProtoSetup
         'DOC_NOTIFY_FOR_INCOMPLETE_BUSINESS_DOC' => array('time', 'caption=Период за откриване на неконтирани бизнес документи->Край,unit=преди проверката'),
         
         'DOC_REPAIR_ALL' => array('enum(yes=Да (бавно), no=Не)', 'caption=Дали да се проверяват всички документи за поправка->Избор'),
-        'DOC_SEARCH_FOLDER_CNT' => array('int(Min=0)', 'caption=Колко папки от последно отворените да се показват при търсене->Брой'),
         'DOC_SEARCH_LIMIT' => array('int(Min=0)', 'caption=Колко документ/нишки да се показват при търсене->Брой'),
         
         'DOC_NOTIFY_FOR_NEW_DOC' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване за добавен документ в нишка->Избор, customizeBy=powerUser'),
@@ -240,6 +239,7 @@ class doc_Setup extends core_ProtoSetup
         'DOC_DELETE_REJECTED_THREADS_PERIOD' => array('time(suggestions=15 дни|1 месец|6 месеца|1 година)', 'caption=След колко време да се изтриват оттеглените нишки->Време'),
         'DOC_LINKED_LAST_SHOW_LIMIT' => array('int(min=0)', 'caption=До колко документа от последните добавени връзки да се показват при нова->Брой, customizeBy=powerUser'),
         'DOC_LIST_FIELDS_EXTRA_LINE' => array('enum(yes=Да,no=Не)', 'caption=Допълнителен ред в листовия изглед->Избор, customizeBy=powerUser'),
+        'DOC_MOVE_LAST_DOCUMENT' => array('enum(yes=Да,no=Не)', 'caption=Възможност за преместване на последния документ в нишката->Избор'),
     );
     
     
@@ -267,7 +267,9 @@ class doc_Setup extends core_ProtoSetup
         'doc_LinkedTemplates',
         'doc_FolderResources',
         'doc_LinkedLast',
-        'migrate::showDocumentsAsButtons0419'
+        'migrate::showDocumentsAsButtons0419',
+        'migrate::updateHiddenDocCreated0120',
+        'migrate::foldersRepairSerchKeywords3120',
     );
     
     
@@ -300,6 +302,15 @@ class doc_Setup extends core_ProtoSetup
             'period' => 1440,
             'offset' => 111,
             'timeLimit' => 400
+        ),
+        array(
+            'systemId' => 'DocHiddenDeleteOldRecs',
+            'description' => 'Изтриване на стари записи в показване на документи в нишките',
+            'controller' => 'doc_HiddenContainers',
+            'action' => 'DeleteOldRecs',
+            'period' => 1440,
+            'offset' => 150,
+            'timeLimit' => 100
         )
     );
     
@@ -307,7 +318,7 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'doc_reports_Docs,doc_reports_SearchInFolder,doc_reports_DocsByRols, doc_ExpandComments, doc_drivers_FolderPortal';
+    public $defClasses = 'doc_reports_Docs,doc_reports_SearchInFolder,doc_reports_DocsByRols,doc_reports_ActivatedDocumentsByTime, doc_ExpandComments, doc_drivers_FolderPortal, doc_drivers_LatestDocPortal';
     
     
     /**
@@ -344,6 +355,7 @@ class doc_Setup extends core_ProtoSetup
         // Роля за външен член на екип. Достъпни са му само папките,
         // които са споделени или на които е собственик
         $html .= core_Roles::addOnce('partner', null, 'rang');
+        $html .= core_Roles::addOnce('powerPartner', 'partner', 'rang');
         
         $html = parent::install();
         
@@ -543,5 +555,29 @@ class doc_Setup extends core_ProtoSetup
             
             $Portal->save($rec);
         }
+    }
+    
+    
+    /**
+     * Миграция за добавяне на поле за дата в doc_HiddenContainers
+     */
+    public function updateHiddenDocCreated0120()
+    {
+        core_App::setTimeLimit('300');
+        
+        $cInst = cls::get('doc_HiddenContainers');
+        
+        $now = dt::now();
+        
+        $cInst->db->query("UPDATE `{$cInst->dbTableName}` SET `date` = '{$now}'");
+    }
+    
+    
+    /**
+     * Форсира регенерирането на ключовите думи за всички мениджъри, които използват `plg_Search`
+     */
+    public static function foldersRepairSerchKeywords3120()
+    {
+        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'doc_Folders', dt::addSecs(120));
     }
 }

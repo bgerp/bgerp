@@ -122,9 +122,8 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
     {
         $form = &$data->form;
         $masterRec = $data->masterRec;
-        $property = ($masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
         
-        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $property, 'hasnotProperties' => 'canStore'));
+        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => 'canBuy', 'hasnotProperties' => 'canStore'));
         $form->setField('packPrice', 'mandatory');
         $form->setField('discount', 'input=none');
     }

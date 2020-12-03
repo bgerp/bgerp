@@ -427,7 +427,7 @@ class hr_EmployeeContracts extends core_Master
                 'descriptions', 'sharedUsers', 'sharedViews', 'searchKeywords', 'professionId',
                 'folderId', 'threadId', 'containerId', 'originId', 'state', 'brState',
                 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'lists');
-            $sysArrayCnt = count($sysArray);
+            $sysArrayCnt = countR($sysArray);
             
             // От всички полета на модела
             foreach ($rec as $name => $value) {
@@ -497,8 +497,8 @@ class hr_EmployeeContracts extends core_Master
                 $closed[] = '#' . $mvc->getHandle($eRec->id);
             }
             
-            if (count($closed)) {
-                $msg = (count($closed) == 1) ? 'Затворен е' : 'Затворени са';
+            if (countR($closed)) {
+                $msg = (countR($closed) == 1) ? 'Затворен е' : 'Затворени са';
                 core_Statuses::newStatus("|{$msg}|* " . implode(',', $closed));
             }
         }
@@ -660,7 +660,7 @@ class hr_EmployeeContracts extends core_Master
             $options[$personRec->id] = crm_Persons::getVerbal($personRec, 'name');
         }
         
-        if (count($options) == 0) {
+        if (countR($options) == 0) {
             redirect(array('crm_Persons', 'list'), false, '|Няма лица в група "Управители" за управител|*. |Моля добавете!');
         }
         

@@ -24,6 +24,19 @@ class email_Spam extends email_ServiceEmails
     
     public $fillSearchKeywordsOnSetup = false;
     
+    
+    /**
+     * Инрерфейси
+     */
+    public $interfaces = 'email_AutomaticIntf';
+    
+    
+    /**
+     * @see email_AutomaticIntf
+     */
+    public $weight = 100;
+    
+    
     /**
      * Заглавие на таблицата
      */
@@ -49,10 +62,18 @@ class email_Spam extends email_ServiceEmails
     /**
      * Проверява дали в $mime се съдържа спам писмо и ако е
      * така - съхранява го за определено време в този модел
+     * 
+     * @param email_Mime  $mime
+     * @param integer $accId
+     * @param integer $uid
+     *
+     * @return string|null
+     * 
+     * @see email_AutomaticIntf
      */
-    public static function process_($mime, $accId, $uid)
+    public function process($mime, $accId, $uid)
     {
-        if (self::detectSpam($mime, $accId, $uid)) {
+        if ($this->detectSpam($mime, $accId, $uid)) {
             $rec = new stdClass();
             
             // Само първите 100К от писмото
@@ -60,13 +81,13 @@ class email_Spam extends email_ServiceEmails
             $rec->accountId = $accId;
             $rec->uid = $uid;
             $rec->createdOn = dt::verbal2mysql();
-            $rec->spamScore = self::getSpamScore($mime->parts[1]->headersArr, null, $mime);
+            $rec->spamScore = $this->getSpamScore($mime->parts[1]->headersArr, null, $mime);
             
-            self::save($rec);
+            $this->save($rec);
             
-            self::logNotice('Маркиран имейл като спам', $rec->id);
+            $this->logNotice('Маркиран имейл като спам', $rec->id);
             
-            return $rec->id;
+            return $rec->id ? 'spam' : null;
         }
     }
     

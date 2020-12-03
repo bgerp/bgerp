@@ -50,18 +50,19 @@ class rfid_Setup extends core_ProtoSetup
         'rfid_Readers',
         'rfid_Assignments',
         'rfid_Tags',
-        'rfid_Events'
+        'rfid_Events',
+        'rfid_Holders'
     );
     
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'rfid_driver_HolderPerson';
+    public $defClasses = 'rfid_driver_HolderPerson, rfid_driver_WebReader';
 
     /**
      * Роли за достъп до модула
      */
-    public $roles = 'rfid';
+    public $roles = 'rfid, admin';
     
     
     /**
@@ -70,4 +71,18 @@ class rfid_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(3.4, 'Мониторинг', 'RFID', 'rfid_Events', 'default', 'rfid, ceo,admin'),
     );
+    
+    /**
+     * Инсталиране на пакета
+     */
+    public function install()
+    {
+        $html = parent::install();
+        
+        $html .= core_Classes::add('rfid_driver_HolderPerson');
+        $html .= core_Classes::add('rfid_driver_WebReader');
+        
+        return $html;
+    }
+    
 }

@@ -976,7 +976,7 @@ if ($step == 5) {
     $localRelativUrl = substr($localUrl, strlen($pURL['scheme'] . '://' . $pURL['host']));
     
     $jsStart = "<script>
-    
+
     function httpGet(theUrl)
     {
     var xmlHttp = new XMLHttpRequest();
@@ -1032,10 +1032,8 @@ if ($step == 'setup') {
         var objDiv = document.getElementById('setupLog');
         if ((objDiv.scrollTop+objDiv.offsetHeight) < objDiv.scrollHeight && mouseDown == 0)
         {
-           objDiv.scrollTop+=5;
-           
+           objDiv.scrollTop+=objDiv.scrollHeight/500;
         }
-        
     }
     var handle=setInterval('scroll()', 4);
     </script>
@@ -1322,6 +1320,27 @@ function gitLastCommitDate($repoPath, &$log)
 
 
 /**
+ * Връща датата на последния комит на дадено репозитори
+ */
+function gitLastCommitHash($repoPath, $short = true)
+{
+    if ($short) {
+        $command = " --git-dir=\"{$repoPath}/.git\" log -1 --format='%h'";
+    } else {
+        $command = " --git-dir=\"{$repoPath}/.git\" log -1 --format='%H'";
+    }
+    
+    // Първият ред съдържа резултата
+    if (gitExec($command, $res)) {
+        
+        return trim($res[0]);
+    }
+    
+    return false;
+}
+
+
+/**
  * Връща текущият бранч на репозиторито или FALSE ако не е сетнат
  */
 function gitCurrentBranch($repoPath, &$log)
@@ -1595,25 +1614,29 @@ function setupProcess()
  */
 function setupKeyValid()
 {
+    static $res;
+
     // При празна база връща валиден setup ключ
     $DB = new core_Db();
     
-    try {
-        $DB->connect(true);
-    } catch (core_exception_Expect $e) {
+    if(!isset($res)) {
+        try {
+            $DB->connect(true);
+        } catch (core_exception_Expect $e) {
 
-        return true;
+            $res = true;
+        }
     }
     
-    if (($DB->getDBInfo('Rows') == 0) && !setupProcess()) {
+    if (!isset($res) && ($DB->getDBInfo('Rows') == 0) && !setupProcess()) {
 
-        return true;
+        $res = true;
     }
     
     // Ако има setup cookie и има пуснат сетъп процес връща валиден ключ
-    if (isset($_COOKIE['setup']) && setupProcess()) {
+    if (!isset($res) && isset($_COOKIE['setup']) && setupProcess()) {
 
-        return true;
+        $res = true;
     }
 
     // Ако сетъп-а е стартиран от локален хост или инсталатор
@@ -1621,12 +1644,16 @@ function setupKeyValid()
     $localIpArr = array('::1', '127.0.0.1');
     $isLocal = in_array($_SERVER['REMOTE_ADDR'], $localIpArr);
     $key = $_GET['SetupKey'];
-    if ($key == setupKey() && $isLocal) {
+    if (!isset($res) && $key == setupKey() && $isLocal) {
 
-        return true;
+        $res = true;
     }
     
-    return ($_GET['SetupKey'] == setupKey()) || ($_GET['SetupKey'] == setupKey(null, -1));
+    if(!isset($res)) {
+        $res = ($_GET['SetupKey'] == setupKey()) || ($_GET['SetupKey'] == setupKey(null, -1));
+    }
+
+    return $res;
 }
 
 

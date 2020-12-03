@@ -9,7 +9,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -37,7 +37,7 @@ class store_Stores extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, acc_plg_Registry, bgerp_plg_FLB, store_Wrapper, plg_Current, plg_Rejected, doc_FolderPlg, plg_State, plg_Modified';
+    public $loadList = 'plg_RowTools2, plg_Created, acc_plg_Registry, bgerp_plg_FLB, store_Wrapper, plg_Current, plg_Rejected, doc_FolderPlg, plg_State, plg_Modified, doc_plg_Close';
     
     
     /**
@@ -137,6 +137,12 @@ class store_Stores extends core_Master
     
     
     /**
+     * Кой може да пише
+     */
+    public $canClose = 'ceo, admin';
+    
+    
+    /**
      * Кой може да активира?
      */
     public $canActivate = 'ceo, store, production';
@@ -188,10 +194,13 @@ class store_Stores extends core_Master
         $this->FLD('name', 'varchar(128)', 'caption=Наименование,mandatory,remember=info');
         $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
         $this->FLD('chiefs', 'userList(roles=store|ceo|production)', 'caption=Контиране на документи->Потребители,mandatory');
-        $this->FLD('workersIds', 'userList(roles=storeWorker)', 'caption=Допълнително->Товарачи');
+        
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Допълнително->Локация');
+        $this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Допълнително->Продуктови групи');
+        $this->FLD('workersIds', 'userList(roles=storeWorker)', 'caption=Допълнително->Товарачи');
+        
         $this->FLD('lastUsedOn', 'datetime', 'caption=Последено използване,input=none');
-        $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)', 'caption=Състояние,notNull,default=active,input=none');
+        $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено,closed=Затворено)', 'caption=Състояние,notNull,default=active,input=none');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
         
         $this->setDbUnique('name');
@@ -299,7 +308,7 @@ class store_Stores extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if ($fields['-single']) {
             if ($rec->locationId) {
@@ -309,6 +318,12 @@ class store_Stores extends core_Master
             $row->name = "<b style='position:relative; top: 5px;'>" . $row->name . "</b>";
             $row->name .= "    <span class='fright'>" . $row->currentPlg . "</span>";
             unset($row->currentPlg);
+        }
+        
+       
+        if(isset($rec->productGroups)){
+            $groupLinks = cat_Groups::getLinks($rec->productGroups);
+            $row->productGroups = implode(' ', $groupLinks);
         }
     }
     
@@ -323,9 +338,9 @@ class store_Stores extends core_Master
     public function getDocButtonsInFolder_($id)
     {
         $res = array();
-        $res[] = planning_ConsumptionNotes::getClassId();
-        $res[] = store_Transfers::getClassId();
-        $res[] = store_InventoryNotes::getClassId();
+        $res[] = (object)array('class' => 'planning_ConsumptionNotes', 'caption' => 'Влагане');
+        $res[] = (object)array('class' => 'store_Transfers', 'caption' => 'Трансфер');
+        $res[] = (object)array('class' => 'store_InventoryNotes', 'caption' => 'Инвентаризация');
         
         return $res;
     }
@@ -345,7 +360,7 @@ class store_Stores extends core_Master
     /**
      * Извиква се преди подготовката на колоните
      */
-    public static function on_AfterPrepareListFields($mvc, &$res, $data)
+    protected static function on_AfterPrepareListFields($mvc, &$res, $data)
     {
         if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $data->listFields['name'] = '@' . $data->listFields['name'];

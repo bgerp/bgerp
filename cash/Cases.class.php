@@ -55,7 +55,7 @@ class cash_Cases extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, acc_plg_Registry, cash_Wrapper, bgerp_plg_FLB, plg_Current, doc_FolderPlg, plg_Created, plg_Rejected, plg_State, plg_Modified';
+    public $loadList = 'plg_RowTools2, acc_plg_Registry, cash_Wrapper, bgerp_plg_FLB, plg_Current, doc_FolderPlg, plg_Created, plg_Rejected, plg_State, plg_Modified, doc_plg_Close';
     
     
     /**
@@ -193,17 +193,17 @@ class cash_Cases extends core_Master
         
         if (isset($fields['-list'])) {
             if (bgerp_plg_FLB::canUse($mvc, $rec)) {
-                $caseItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
                 $rec->blAmount = 0;
-                
-                // Намираме всички записи от текущия баланс за това перо
-                if ($balRec = acc_Balances::getLastBalance()) {
-                    $bQuery = acc_BalanceDetails::getQuery();
-                    acc_BalanceDetails::filterQuery($bQuery, $balRec->id, $mvc->balanceRefAccounts, null, $caseItem->id);
-                    
-                    // Събираме ги да намерим крайното салдо на перото
-                    while ($bRec = $bQuery->fetch()) {
-                        $rec->blAmount += $bRec->blAmount;
+                if($caseItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id)){
+                    // Намираме всички записи от текущия баланс за това перо
+                    if ($balRec = acc_Balances::getLastBalance()) {
+                        $bQuery = acc_BalanceDetails::getQuery();
+                        acc_BalanceDetails::filterQuery($bQuery, $balRec->id, $mvc->balanceRefAccounts, null, $caseItem->id);
+                        
+                        // Събираме ги да намерим крайното салдо на перото
+                        while ($bRec = $bQuery->fetch()) {
+                            $rec->blAmount += $bRec->blAmount;
+                        }
                     }
                 }
                 

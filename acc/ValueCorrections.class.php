@@ -146,10 +146,10 @@ class acc_ValueCorrections extends core_Master
     {
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         if ($firstDoc->fetchField('containerId') != $rec->correspondingDealOriginId) {
-            if (isset($rec->correspondingDealOriginId)) {
+            try{
                 $row->correspondingDealOriginId = doc_Containers::getDocument($rec->correspondingDealOriginId)->getLink(false);
-            } else {
-                $row->correspondingDealOriginId = "<span class='red'>" . tr('Проблем при показването') . '</span>';
+            } catch(core_exception_Expect $e){
+                $row->correspondingDealOriginId = "<span class='red'>" . tr('Проблем при показването') . "</span>";
             }
         } else {
             unset($row->correspondingDealOriginId);
@@ -295,7 +295,8 @@ class acc_ValueCorrections extends core_Master
     public static function addProductsFromOriginToForm(&$form, core_ObjectReference $origin, $dataField = 'productsData')
     {
         // Запомняне на всички експедирани/заскладени артикули от оридижина
-        $products = $origin->getCorrectableProducts();
+        $me = cls::get(get_called_class());
+        $products = $origin->getCorrectableProducts($me);
         $form->allProducts = $products;
         
         if (countR($products)) {
@@ -592,7 +593,7 @@ class acc_ValueCorrections extends core_Master
                 } elseif ($firstDoc->fetchField('state') != 'active') {
                     $requiredRoles = 'no_one';
                 } else {
-                    $products = $firstDoc->getCorrectableProducts();
+                    $products = $firstDoc->getCorrectableProducts($mvc);
                     if (!countR($products)) {
                         $requiredRoles = 'no_one';
                     }

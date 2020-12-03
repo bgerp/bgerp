@@ -223,7 +223,7 @@ class store_Receipts extends store_DocumentMaster
      */
     public function renderReceipts($data)
     {
-        if (count($data->receipts)) {
+        if (countR($data->receipts)) {
             $table = cls::get('core_TableView');
             $fields = 'rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCount=Палети,collection=Инкасиране,address=@Адрес';
             $fields = core_TableView::filterEmptyColumns($data->shipmentOrders, $fields, 'collection,palletCount');

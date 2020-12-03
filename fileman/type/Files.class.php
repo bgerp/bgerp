@@ -53,7 +53,37 @@ class fileman_type_Files extends type_Keylist
             $rVal[$fId] = $fId;
         }
         
-        return parent::fromVerbal_($rVal);
+        try {
+            $res = self::fromArray($rVal, false);
+        } catch (core_exception_Expect $e) {
+            $this->error = $e->getMessage();
+            $res = false;
+        }
+
+        return $res;
+    }
+    
+    
+    /**
+     * Обръща стойността в хидън
+     *
+     * @param string $value
+     *
+     * @return mixed stdClass, array, string, ...
+     */
+    public function toHidden($value)
+    {
+        if(!empty($value) && keylist::isKeylist($value)){
+            $valueArr = $this->toArray($value);
+            $newValueArr = array();
+            foreach ($valueArr as $id) {
+                $newValueArr[] = fileman_Files::fetchField($id, 'fileHnd');
+            }
+            
+            return implode(',', $newValueArr);
+        }
+        
+        return parent::toHidden($value);
     }
     
     
@@ -110,6 +140,9 @@ class fileman_type_Files extends type_Keylist
         $attrInp['class'] .= $attr['class'] . ' input_align_' . $align;
         
         $valueFhArr = array();
+        if(is_array($value)) {
+            $value = self::fromArray($value, false);
+        }
         if (fileman::isFileHnd($value)) {
             $value = '|' . fileman::fhToId($value) . '|';
         }
@@ -200,5 +233,49 @@ class fileman_type_Files extends type_Keylist
                 return placeFile_setInputFile('{$name}', fh, fName);
             }
         ", 'SCRIPTS');
+    }
+    
+    
+    /**
+     *
+     *
+     * @param string $value
+     *
+     * @see core_Type::isValid()
+     */
+    public function isValid($value)
+    {
+        $res = parent::isValid($value);
+        
+        if ($this->params['allowedExtensions'] && $value) {
+            $vArr = $this->toArray($value);
+            
+            setIfNot($res, array());
+            
+            $eArr = explode('|', strtolower($this->params['allowedExtensions']));
+            
+            foreach ($vArr as $vId) {
+                $fRec = fileman::fetch($vId);
+                
+                $eArr = arr::make($eArr, true);
+                
+                $ext = fileman::getExt(strtolower($fRec->name));
+                
+                if (!$eArr[$ext]) {
+                    $res['error'] = "Разширението на файла не е в допустимите|*: " . implode(', ', $eArr);
+                    
+                    if ($res['error']) {
+                        $this->error = $res['error'];
+                    }
+                    
+                    break;
+                }
+            }
+        }
+        
+        if ($value !== null) {
+            
+            return $res;
+        }
     }
 }

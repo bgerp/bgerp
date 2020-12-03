@@ -268,4 +268,30 @@ class acc_BalanceRepairs extends core_Master
             }
         }
     }
+    
+    
+    /**
+     * Дали преди да се извърши действие с документа, трябва да се изчака да се преизчисли баланса
+     *
+     * @see acc_plg_LockBalanceRecalc
+     * @param mixed $rec
+     *
+     * @return boolean
+     */
+    public function doesRequireBalanceToBeRecalced_($rec)
+    {
+        $alternateWindow = acc_setup::get('ALTERNATE_WINDOW');
+        
+        if($alternateWindow) {
+            $rec = $this->fetchRec($rec);
+            $balanceRec = acc_Balances::fetch($rec->balanceId);
+            
+            $periodEnd = acc_Periods::fetchField($balanceRec->toDate, 'end');
+            $windowStart = dt::addSecs(-$alternateWindow, null, false);
+            
+            return $periodEnd >= $windowStart;
+        }
+        
+        return true;
+    }
 }

@@ -8,9 +8,9 @@ defIfNot('ESHOP_BROWSER_CACHE_EXPIRES', 3600);
 
 
 /**
- * Минимален брой групи, необходими за да се покаже страничната навигация
+ * Показване на навигация
  */
-defIfNot('ESHOP_MIN_GROUPS_FOR_NAVIGATION', 4);
+defIfNot('ESHOP_SHOW_NAVIGATION', 'yes');
 
 
 /**
@@ -56,10 +56,22 @@ defIfNot('ESHOP_PRODUCTS_PER_PAGE', '20');
 
 
 /**
+ * Сумиране на рейтингите от кога
+ */
+defIfNot('ESHOP_RATINGS_OLDER_THEN',  12 * core_DateTime::SECONDS_IN_MONTH);
+
+
+/**
+ * Максимална бройка свързани артикули
+ */
+defIfNot('ESHOP_MAX_NEAR_PRODUCTS', '12');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
- * мениджъри свързани с продуктите
+ * мениджъри свързани с артикулите
  *
  *
  * @category  bgerp
@@ -113,8 +125,9 @@ class eshop_Setup extends core_ProtoSetup
         'eshop_ProductDetails',
         'eshop_Carts',
         'eshop_CartDetails',
-        'migrate::updateContactData',
-        'migrate::updateProductStates2'
+        'migrate::addOnlineClientsGroup',
+        'migrate::updateInquiries',
+        'migrate::updateDomainIds',
     );
     
     
@@ -137,7 +150,7 @@ class eshop_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'ESHOP_BROWSER_CACHE_EXPIRES' => array('time', 'caption=Кеширане в браузъра->Време'),
-        'ESHOP_MIN_GROUPS_FOR_NAVIGATION' => array('int', 'caption=Минимален брой групи за навигация->Брой'),
+        'ESHOP_SHOW_NAVIGATION' => array('enum(yes=С навигация,no=Без навигация)', 'caption=Показване на навигация на групите->Избор'),
         'ESHOP_CART_EXTERNAL_NAME' => array('varchar', 'caption=Стрингове във външната част->Кошница'),
         'ESHOP_NOT_IN_STOCK_TEXT' => array('varchar', 'caption=Стрингове във външната част->Липса на наличност'),
         'ESHOP_SALE_DEFAULT_TPL_BG' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Шаблон за онлайн продажба->Български,optionsFunc=sales_Sales::getTemplateBgOptions'),
@@ -145,6 +158,8 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_MANDATORY_CONTACT_FIELDS' => array('enum(company=Фирма,person=Лице,both=Двете)', 'caption=Задължителни контактни данни за количката->Поле'),
         'ESHOP_CART_ACCESS_SALT' => array('varchar', 'caption=Даване на достъп за присвояване на количка->Сол'),
         'ESHOP_PRODUCTS_PER_PAGE' => array('int(Min=0)', 'caption=Брой артикули на страница в групата->Брой'),
+        'ESHOP_RATINGS_OLDER_THEN' => array('time', 'caption=Изчисляване на рейтинги за продажба->Изчисляване от'),
+        'ESHOP_MAX_NEAR_PRODUCTS' => array('int(min=0)', 'caption=Максимален брой свързани артикули->Брой,callOnChange=eshop_Setup::updateNearProducts'),
     );
     
     
@@ -159,10 +174,10 @@ class eshop_Setup extends core_ProtoSetup
      */
     public $cronSettings = array(
         array(
-            'systemId' => 'Delete Carts',
-            'description' => 'Изтриване на старите колички',
+            'systemId' => 'Check Draft Carts',
+            'description' => 'Обхождане на черновите колички',
             'controller' => 'eshop_Carts',
-            'action' => 'DeleteDraftCarts',
+            'action' => 'CheckDraftCarts',
             'period' => 60,
             'offset' => 30,
             'timeLimit' => 100
@@ -220,26 +235,134 @@ class eshop_Setup extends core_ProtoSetup
     
     
     /**
-     * Миграция на уеб константа
+     * Добавя клиентите с онлайн поръчки в съответната група
      */
-    public function updateContactData()
+    function addOnlineClientsGroup()
     {
-        $conf = core_Packs::getConfig('bgerp');
-        $value = $conf->_data['BGERP_MANDATORY_CONTACT_FIELDS'];
-        $exValue = eshop_Setup::get('MANDATORY_CONTACT_FIELDS');
+        $cartQuery = eshop_Carts::getQuery();
+        $cartQuery->where("#saleId IS NOT NULL");
+        $cartQuery->show('saleId');
+        $onlineSales = arr::extractValuesFromArray($cartQuery->fetchAll(), 'saleId');
         
-        if (!empty($value) && $exValue != $value && in_array($value, array('company', 'person', 'both'))) {
-            core_Packs::setConfig('eshop', array('ESHOP_MANDATORY_CONTACT_FIELDS' => $value));
+        if(!countR($onlineSales)) return;
+        
+        $saleQuery = sales_Sales::getQuery();
+        $saleQuery->where("#state = 'pending' || #state = 'active' || #state = 'closed'");
+        $saleQuery->in('id', $onlineSales);
+        $saleQuery->show('contragentClassId,contragentId');
+        
+        $contragents = array();
+        while ($saleRec = $saleQuery->fetch()) {
+            $contragents["{$saleRec->contragentClassId}|{$saleRec->contragentId}"] = (object)array("contragentClassId" => $saleRec->contragentClassId, "contragentId" => $saleRec->contragentId);
+        }
+        
+        $groupRec = (object)array('name' => 'Онлайн клиенти', 'sysId' => 'onlineClients', 'parentId' => crm_Groups::getIdFromSysId('customers'));
+        $groupId = crm_Groups::forceGroup($groupRec);
+        
+        foreach ($contragents as $obj) {
+            try{
+                cls::get($obj->contragentClassId)->forceGroup($obj->contragentId, $groupId, false);
+            } catch(core_exception_Expect $e){
+                
+            }
         }
     }
     
     
     /**
-     * Миграция на уеб константа
+     * Обновяване на запитванията
      */
-    public function updateProductStates2()
+    public function updateInquiries()
     {
-        core_App::setTimeLimit(500);
-        eshop_ProductDetails::syncStatesByProductId();
+        $Products = cls::get('eshop_Products');
+        $Products->setupMvc();
+        
+        $Inquiries = cls::get('marketing_Inquiries2');
+        $Inquiries->setupMvc();
+        
+        if(!$Products->count("#coDriver IS NOT NULL") || !$Inquiries->count()){
+            
+            return;
+        }
+          
+        $map = array();
+        $eQuery = $Products->getQuery();
+        $eQuery->where("#coDriver IS NOT NULL");
+        $eQuery->XPR('nameLower', 'double', 'LOWER(#name)');
+        $eQuery->show('coDriver,nameLower');
+        while($eRec = $eQuery->fetch()){
+            $map["{$eRec->coDriver}|{$eRec->nameLower}"] = $eRec->id;
+        }
+        
+        $iQuery = $Inquiries->getQuery();
+        $iQuery->XPR('titleLower', 'double', 'LOWER(#title)');
+        $iQuery->where("#sourceClassId IS NULL AND #sourceId IS NULL AND #state = 'active' AND #createdBy = 0");
+        $iQuery->show('titleLower,innerClass');
+        $iQuery->orderBy('id', 'DESC');
+        $count = $iQuery->count();
+        
+        $productsClassId = $Products->getClassId();
+        core_App::setTimeLimit(0.4 * $count, 400);
+        
+        $save = array();
+        while($iRec = $iQuery->fetch()){
+            $sourceId = $map["{$iRec->innerClass}|{$iRec->titleLower}"];
+            if(isset($sourceId)){
+                $save[] = (object)array('sourceClassId' => $productsClassId, 'sourceId' =>$sourceId, 'id' => $iRec->id);
+            }
+        }
+       
+        if(countR($save)){
+            $Inquiries->saveArray($save, 'id,sourceClassId,sourceId');
+        }
+    }
+    
+    
+    /**
+     * Обновява домейните на артикулите
+     */
+    public function updateDomainIds()
+    {
+        $Products = cls::get('eshop_Products');
+        $Products->setupMvc();
+        
+        $query = $Products->getQuery();
+        $query->where("#domainId IS NULL");
+        $query->show('id,groupId');
+        if(!$query->count()){
+            
+            return;
+        }
+        
+        $update = array();
+        while ($rec = $query->fetch()){
+            if($rec->groupId){
+                if($rec->domainId = cms_Content::fetchField(eshop_Groups::fetchField($rec->groupId, 'menuId'), 'domainId')){
+                    $update[$rec->id] = $rec;
+                }
+            }
+            
+        }
+        
+        if(countR($update)){
+            $Products->saveArray($update, 'id,domainId');
+        }
+    }
+    
+    
+    /**
+     * Метод изпълняващ се след промяна на константата за брой близки артикули
+     * 
+     * @param core_Type $Type
+     * @param mixed $oldValue
+     * @param mixed $newValue
+     * 
+     * @return string
+     */
+    public static function updateNearProducts($Type, $oldValue, $newValue)
+    {
+        eshop_Products::saveNearProducts();
+        
+        return tr('Преизчисляване на свързаните е-артикули');
     }
 }

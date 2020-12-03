@@ -54,9 +54,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
      * @param stdClass $pRec   - запис от peripheral_Devices
      * @param array    $params - масив с параметри необходими за отпечатване на ФБ
      * 
-     * IS_ELECTRONIC - дали ще се разпечатва електронен бон
-     * 
      * // Параметри за отваряне на ФБ
+     * IS_ELECTRONIC - дали ще се разпечатва електронен бон
      * OPER_NUM - номер на оператор - от 1 до 20
      * OPER_PASS - парола на оператора
      * IS_DETAILED - дали ФБ да е детайлна
@@ -73,6 +72,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
      * DISC_ADD_V - надбавка/отстъпка в стойнонст - може и с -
      * BEFORE_PLU_TEXT - стринг или масив от стрингове с текст, който ще се добавя преди продукта
      * AFTER_PLU_TEXT - стринг или масив от стрингове с текст, който ще се добавя след продукта
+     * DEP_NUM - номер на департамнет. Ако е зададен (от 0-99), се добавя от този департамент
      *
      * DATE_TIME - времето за синхронизира във формат 'd-m-Y H:i:s'. Ако е false - няма да се синхронизира
      *
@@ -131,12 +131,24 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
      * UIC_TYPE_STR - типа на UIC номера - bulstat, EGN, FN, NRA
      * RELATED_TO_INV_NUM - 10 символа за фактурата, която се сторница
      * RELATED_TO_INV_DATE_TIME - дата и час на фактурата, която ще се сторнира - може да се попълни от QR_CODE_DATA, ако не е попълнено
-     *
      * Другите параметри са: OPER_NUM, OPER_PASS, PRINT_TYPE_STR - като при издаване на ФБ
      * Другите параметри са: STORNO_REASON, RELATED_TO_RCP_NUM, FM_NUM, RELATED_TO_URN, QR_CODE_DATA - като при издаване на СТОРНО
-     *
+     * 
+     * // Параметри са издаване на фактура
+     * IS_INVOICE - дали се създава фактура
+     * IS_ELECTRONIC - дали ще се разпечатва електронна фактура
+     * RECIPIENT - 26 символа за получателя на фактурата
+     * BUYER - 16 симвла за купувача
+     * VAT_NUMBER - 13 символа за VAT номер
+     * UIC - 13 символа за UIC номер на клиента
+     * ADDRESS - 30 символа за адрес на клиента
+     * UIC_TYPE_STR - типа на UIC номера - bulstat, EGN, FN, NRA
+     * RCP_NUM - уникален номер на бележката - [a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[0-9]{7} - не е задължителен
+     * 
+     * Другите параметри са: OPER_NUM, OPER_PASS, PRINT_TYPE_STR - като при издаване на ФБ
+     * 
      * @return boolean|string
-     *
+     * 
      * @see peripheral_FiscPrinterIp
      */
     public function printReceipt($pRec, $params)
@@ -225,26 +237,67 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
         
         // Отваря бележката
         if (!$params['IS_STORNO'] && !$params['IS_CREDIT_NOTE']) {
-            
-            if ($params['PRINT_TYPE_STR'] == 'postponed') {
-                $params['PRINT_TYPE'] = Tremol\OptionFiscalRcpPrintType::Postponed_printing;
-            } else if ($params['PRINT_TYPE_STR'] == 'buffered') {
-                $params['PRINT_TYPE'] = Tremol\OptionFiscalRcpPrintType::Buffered_printing;
-            } else if ($params['PRINT_TYPE_STR'] == 'stepByStep') {
-                $params['PRINT_TYPE'] = Tremol\OptionFiscalRcpPrintType::Step_by_step_printing;
-            } else {
-                expect(false, "Непозволен тип за принтиране");
-            }
-            
-            expect($params['RCP_NUM'] && preg_match($this->rcpNumPattern, $params['RCP_NUM']));
-            try {
-                if ($params['IS_ELECTRONIC']) {
-                    $fp->OpenElectronicReceipt($params['OPER_NUM'], $params['OPER_PASS'], $params['IS_DETAILED'], $params['IS_PRINT_VAT'], $params['RCP_NUM']);
+            if ($params['IS_INVOICE']) {
+                if ($params['UIC_TYPE_STR'] == 'bulstat') {
+                    $params['UIC_TYPE'] = 0;
+                } else if ($params['UIC_TYPE_STR'] == 'EGN') {
+                    $params['UIC_TYPE'] = 1;
+                } else if ($params['UIC_TYPE_STR'] == 'FN') {
+                    $params['UIC_TYPE'] = 2;
+                } else if ($params['UIC_TYPE_STR'] == 'NRA') {
+                    $params['UIC_TYPE'] = 3;
                 } else {
-                    $fp->OpenReceipt($params['OPER_NUM'], $params['OPER_PASS'], $params['IS_DETAILED'], $params['IS_PRINT_VAT'], $params['PRINT_TYPE'], $params['RCP_NUM']);
+                    expect(false, 'Непозволен тип за UIC');
                 }
-            } catch (\Tremol\SException $e) {
-                $this->handleTremolException($e);
+                
+                if ($params['IS_ELECTRONIC']) {
+                    try {
+                        $fp->OpenElectronicInvoiceWithFreeCustomerData($params['OPER_NUM'], $params['OPER_PASS'], $params['RECIPIENT'], $params['BUYER'], $params['VAT_NUMBER'], $params['UIC'], $params['ADDRESS'], $params['UIC_TYPE'], $params['RCP_NUM']);
+                    } catch (\Tremol\SException $e) {
+                        $this->handleTremolException($e);
+                    }
+                } else {
+                    if ($params['PRINT_TYPE_STR'] == 'postponed') {
+                        $params['PRINT_TYPE'] = Tremol\OptionInvoicePrintType::Postponed_Printing;
+                    } else if ($params['PRINT_TYPE_STR'] == 'buffered') {
+                        $params['PRINT_TYPE'] = Tremol\OptionInvoicePrintType::Buffered_Printing;
+                    } else if ($params['PRINT_TYPE_STR'] == 'stepByStep') {
+                        $params['PRINT_TYPE'] = Tremol\OptionInvoicePrintType::Step_by_step_printing;
+                    } else {
+                        expect(false, "Непозволен тип за принтиране");
+                    }
+                    
+                    if ($params['RCP_NUM']) {
+                        expect(preg_match($this->rcpNumPattern, $params['RCP_NUM']));
+                    }
+                    
+                    try {
+                        $fp->OpenInvoiceWithFreeCustomerData($params['OPER_NUM'], $params['OPER_PASS'], $params['PRINT_TYPE'], $params['RECIPIENT'], $params['BUYER'], $params['VAT_NUMBER'], $params['UIC'], $params['ADDRESS'], $params['UIC_TYPE'], $params['RCP_NUM']);
+                    } catch (\Tremol\SException $e) {
+                        $this->handleTremolException($e);
+                    }
+                }
+            } else {
+                expect($params['RCP_NUM'] && preg_match($this->rcpNumPattern, $params['RCP_NUM']));
+                try {
+                    if ($params['IS_ELECTRONIC']) {
+                        $fp->OpenElectronicReceipt($params['OPER_NUM'], $params['OPER_PASS'], $params['IS_DETAILED'], $params['IS_PRINT_VAT'], $params['RCP_NUM']);
+                    } else {
+                        if ($params['PRINT_TYPE_STR'] == 'postponed') {
+                            $params['PRINT_TYPE'] = Tremol\OptionFiscalRcpPrintType::Postponed_printing;
+                        } else if ($params['PRINT_TYPE_STR'] == 'buffered') {
+                            $params['PRINT_TYPE'] = Tremol\OptionFiscalRcpPrintType::Buffered_printing;
+                        } else if ($params['PRINT_TYPE_STR'] == 'stepByStep') {
+                            $params['PRINT_TYPE'] = Tremol\OptionFiscalRcpPrintType::Step_by_step_printing;
+                        } else {
+                            expect(false, "Непозволен тип за принтиране");
+                        }
+                        
+                        $fp->OpenReceipt($params['OPER_NUM'], $params['OPER_PASS'], $params['IS_DETAILED'], $params['IS_PRINT_VAT'], $params['PRINT_TYPE'], $params['RCP_NUM']);
+                    }
+                } catch (\Tremol\SException $e) {
+                    $this->handleTremolException($e);
+                }
             }
         } else {
             
@@ -362,7 +415,12 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             }
             
             try {
-                $fp->SellPLUwithSpecifiedVAT($pArr['PLU_NAME'], $pArr['VAT_CLASS'], $pArr['PRICE'], $pArr['QTY'], $pArr['DISC_ADD_P'], $pArr['DISC_ADD_V']);
+                if (isset($pArr['DEP_NUM'])) {
+                    expect(is_numeric($pArr['DEP_NUM']) && ($pArr['DEP_NUM'] >= 0) && ($pArr['DEP_NUM'] <= 99));
+                    $fp->SellPLUwithSpecifiedVATfromDep($pArr['PLU_NAME'], $pArr['VAT_CLASS'], $pArr['PRICE'], $pArr['QTY'], $pArr['DISC_ADD_P'], $pArr['DISC_ADD_V'], $pArr['DEP_NUM']);
+                } else {
+                    $fp->SellPLUwithSpecifiedVAT($pArr['PLU_NAME'], $pArr['VAT_CLASS'], $pArr['PRICE'], $pArr['QTY'], $pArr['DISC_ADD_P'], $pArr['DISC_ADD_V']);
+                }
             } catch (\Tremol\SException $e) {
                 $this->handleTremolException($e);
             }
@@ -555,11 +613,11 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             $strArr = explode("\n", $str);
             
             $receipt = '';
-            $cnt = count($strArr);
+            $cnt = countR($strArr);
             for($i = 0; $i < $cnt - 1; $i++) {
                 
                 $line = $strArr[$i];
-                $line = mb_substr($line, 4, count($line) - 3);
+                $line = mb_substr($line, 4, mb_strlen($line) - 6);
                 
                 // Предпоследният ред съдържа QR кода
                 // Последния ред е празен
@@ -659,6 +717,17 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 }
                 
                 try {
+                    $depArr = $Driver->getDepArr($data->rec);
+                } catch (Exception $e) {
+                    $Driver->handleAndShowException($e);
+                }
+                
+                if (!empty($depArr)) {
+                    $data->rec->otherData['depArr'] = $depArr;
+                    $Embedder->save($data->rec, 'otherData');
+                }
+                
+                try {
                     self::setDateTime($data->rec);
                 } catch (Exception $e) {
                     $Driver->handleAndShowException($e);
@@ -721,7 +790,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 
                 $sArr = explode('://', $serverIp);
                 
-                if (count($sArr) == 2) {
+                if (countR($sArr) == 2) {
                     $serverIp = $sArr[1];
                 }
                 
@@ -891,6 +960,45 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
         } catch (\Tremol\SException $e) {
             self::handleTremolException($e);
         }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща зададените департаменти
+     *
+     * @param stdClass $rec
+     *
+     * @return false|string
+     */
+    protected static function getDepArr($rec)
+    {
+        $resArr = array();
+        
+        // @todo - временно е спряно
+        
+//         try {
+//             $fp = self::connectToPrinter($rec);
+//             if ($fp) {
+//                 for($depNum=0;$depNum<100;$depNum++) {
+//                     $dep = $fp->ReadDepartment($depNum);
+                    
+//                     $depNumPad = str_pad($depNum, 2, 0, STR_PAD_LEFT);
+                    
+//                     $depName = trim($dep->DepName);
+                    
+//                     // Да избегнем дефолтно зададените
+//                     if ($depName == 'Деп ' . $depNumPad) {
+//                         continue;
+//                     }
+                    
+//                     $resArr[$dep->DepNum] = $depName;
+//                 }
+//             }
+//         } catch (\Tremol\SException $e) {
+//             self::handleTremolException($e);
+//         }
         
         return $resArr;
     }
@@ -1133,10 +1241,94 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                     }
                 }
                 
+                if ($rec->report == 'number') {
+                    $reportStorage = Tremol\OptionReportStorage::Printing;
+                    if ($rec->printType == 'save') {
+                        $reportStorage = Tremol\OptionReportStorage::USB_storage;
+                        if ($rec->saveType == 'sd') {
+                            $reportStorage = Tremol\OptionReportStorage::SD_card_storage;
+                        }
+                    }
+                    
+                    $fp->PrintOrStoreEJByRcpNum($reportStorage, $rec->fromNum, $rec->toNum);
+                }
+                
                 $msg = "|Успешно отпечатан {$rVerb} отчет";
                 if (!empty($retUrl)) {
                     
                     return redirect($retUrl, false, $msg);
+                }
+                status_Messages::newStatus($msg);
+            } catch (\Tremol\SException $e) {
+                $this->handleTremolException($e);
+            }
+        } catch (Exception $e) {
+            $this->handleAndShowException($e);
+        }
+    }
+    
+    
+    /**
+     * Връща диапазона на фактурите
+     *
+     * @param stdClass $pRec
+     * @param null|core_Et $jsTpl
+     * 
+     * @return array|null
+     * 
+     * @see tremol_FiscPrinterDriverParent::getResForReport()
+     */
+    protected function getInvoiceRange($pRec, &$jsTpl = null)
+    {
+        $iRange = null;
+        try {
+            try {
+                $fp = self::connectToPrinter($pRec);
+                
+                if ($fp) {
+                    $iRange = $fp->ReadInvoiceRange();
+                }
+            } catch (\Tremol\SException $e) {
+                $this->handleTremolException($e);
+            }
+        } catch (Exception $e) {
+            $this->handleAndShowException($e);
+        }
+        
+        $iResArr = array();
+        if ($iRange) {
+            $iResArr['start'] = $iRange->StartNum;
+            $iResArr['end'] = $iRange->EndNum;
+        }
+        
+        return $iResArr;
+    }
+    
+    
+    /**
+     * Задава диапазон на фактурите
+     *
+     * @param stdClass $pRec
+     * @param int $from
+     * @param int $to
+     * @param null|core_Et $jsTpl
+     * @param array $retUrl
+     * 
+     * @see tremol_FiscPrinterDriverParent::getResForReport()
+     */
+    protected function setInvoiceRange($pRec, $from, $to, &$jsTpl = null, $retUrl = array())
+    {
+        try {
+            try {
+                $fp = $this->connectToPrinter($pRec);
+                
+                expect($fp);
+                
+                $fp->SetInvoiceRange($from, $to);
+                
+                if (!empty($retUrl)) {
+                    
+                    return redirect($retUrl, false, "|Успешно зададен диапазон за фактурите");
                 }
                 status_Messages::newStatus($msg);
             } catch (\Tremol\SException $e) {
@@ -1165,9 +1357,9 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
         
         $lines = explode("\n",$str);
         $res = "";
-        for($i= 0; $i < count($lines); $i++) {
+        for($i= 0; $i < countR($lines); $i++) {
             $line = $lines[$i];
-            $res.= mb_substr($line, 4, count($line) - 3) . "\n";
+            $res.= mb_substr($line, 4, countR($line) - 3) . "\n";
         }
         
         $res = i18n_Charset::convertToUtf8($res, "windows-1251");
@@ -1219,7 +1411,9 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                     $msg = "Грешка! ste1 == 0x34 - Отворен фискален бон и ste2 == 0x32 - Командата е непозволена в текущото състояние на ФУ";
                 } else if ($ste1 == 0x39 && $ste2 == 0x32) {
                     $msg = "Грешка! ste1 == 0x39 - Грешна парола и ste2 == 0x32 - Командата е непозволена";
-                } else {
+                } else if ($ste1 === 0x32 && $ste2 === 0x35) {
+                    $msg = "Недостатъчна наличност в касата";
+                }else {
                     $msg = "Грешка! " . $ex->getMessage() . " ste1=" . $ste1 . ", ste2=" . $ste2;
                 }
             } else if($code == \Tremol\ServerErrorType::ServerDefsMismatch) {

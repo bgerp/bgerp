@@ -138,6 +138,7 @@ class doc_DocumentPlg extends core_Plugin
         setIfNot($mvc->canPending, 'no_one');
         setIfNot($mvc->requireDetailForPending, true);
         setIfNot($mvc->mustUpdateUsed, false);
+        setIfNot($mvc->canMovelast, 'powerUser');
         
         $mvc->setDbIndex('state');
         $mvc->setDbIndex('folderId');
@@ -301,6 +302,8 @@ class doc_DocumentPlg extends core_Plugin
         if (!$data->row) {
             $data->row = new stdClass();
         }
+        
+        $data->row->HEADER_STATE = $data->row->state;
         $data->row->iconStyle = 'background-image:url("' . sbf($mvc->getIcon($data->rec->id), '', Mode::is('text', 'xhtml') || Mode::is('printing')) . '");';
         $data->row->LetterHead = $mvc->getLetterHead($data->rec, $data->row);
         
@@ -430,6 +433,12 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
+        if ($mvc->haveRightFor('movelast', $data->rec)) {
+            $data->toolbar->addBtn('Нова нишка', array($mvc, 'movelast', $data->rec->id, 'ret_url' => $retUrl),
+                                   'order=19.99,row=2,ef_icon = img/16/application_go.png,title=' . tr('Създаване на нова нишка от документа'),
+                                    array('warning' => 'Сигурни ли сте, че искате да създадете нова нишка от документа|*?'));
+        }
+        
         if ($mvc->haveRightFor('list') && $data->rec->state != 'rejected') {
             
             // По подразбиране бутона всички се показва на втория ред на тулбара
@@ -491,10 +500,6 @@ class doc_DocumentPlg extends core_Plugin
                     $data->toolbar->addBtn('Логове', array('log_Data', 'list', 'class' => 'doc_Threads', 'object' => $data->rec->threadId), 'ef_icon=img/16/memo.png, title=Разглеждане на логовете на нишката, order=19, row=3');
                 }
             }
-        }
-        
-        if (isset($data->rec->id) && log_System::haveRightFor('list')) {
-            $data->toolbar->addBtn('Системен лог', array('log_System', 'list', 'search' => $mvc->className, 'objectId' => $data->rec->id), 'ef_icon=img/16/bug.png, title=Разглеждане на логовете на документа, order=20, row=3');
         }
         
         $classId = $mvc->getClassId();
@@ -766,22 +771,34 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
+     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
+     */
+    public static function on_AfterSessionClose($mvc)
+    {
+        foreach ((array)$mvc->saveFileArr as $rec) {
+            try {
+                // Опитваме се да запишем файловете от документа в модела
+                doc_Files::saveFile($mvc, $rec);
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+                
+                // Ако възникне грешка при записването
+                $mvc->logWarning('Грешка при добавяне на връзка между файла и документа', $rec->id);
+            }
+        }
+    }
+    
+    
+    /**
      * Изпълнява се след запис на документ.
      * Ако е може се извиква обновяването на контейнера му
      */
     public static function on_AfterSave($mvc, &$id, $rec, $fields = null)
     {
         $fields = arr::make($fields, true);
-        try {
-            
-            // Опитваме се да запишем файловете от документа в модела
-            doc_Files::saveFile($mvc, $rec);
-        } catch (core_exception_Expect $e) {
-            reportException($e);
-            
-            // Ако възникне грешка при записването
-            $mvc->logErr('Грешка при добавяне на връзка между файла и документа', $id);
-        }
+        
+        setIfNot($mvc->saveFileArr, array());
+        $mvc->saveFileArr[$rec->id] = $rec;
         
         // Изтрива от кеша html представянето на документа
         // $key = 'Doc' . $rec->id . '%';
@@ -835,14 +852,16 @@ class doc_DocumentPlg extends core_Plugin
         
         if ($rec->linkedHashKey) {
             $lRec = core_Permanent::get($rec->linkedHashKey);
-            $lRec->inVal = $rec->containerId;
-            
-            doc_Linked::save($lRec);
-            
-            try {
-                $outDoc = doc_Containers::getDocument($lRec->outVal);
-                $outDoc->instance->logRead('Създаден документ', $outDoc->that);
-            } catch (core_exception_Expect $e) {
+            if ($lRec && is_object($lRec)) {
+                $lRec->inVal = $rec->containerId;
+                
+                doc_Linked::save($lRec);
+                
+                try {
+                    $outDoc = doc_Containers::getDocument($lRec->outVal);
+                    $outDoc->instance->logRead('Създаден документ', $outDoc->that);
+                } catch (core_exception_Expect $e) {
+                }
             }
         }
         
@@ -1487,6 +1506,51 @@ class doc_DocumentPlg extends core_Plugin
             
             return false;
         }
+        
+        // Ако ще се създава нова нишка от последния документ
+        if ($action == 'movelast') {
+            $id = Request::get('id');
+            $rec = $mvc->fetch($id);
+            expect($rec);
+            
+            $mvc->requireRightFor('movelast', $rec);
+            
+            bgerp_Notifications::clear(array('doc_Containers', 'list', 'threadId' => $rec->threadId), '*');
+            
+            $oldThreadId = $rec->threadId;
+            
+            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy);
+            
+            $cRec = doc_Containers::fetch($rec->containerId);
+            
+            $cRec->threadId = $rec->threadId;
+            
+            doc_Containers::save($cRec, 'threadId, modifiedOn, modifiedBy');
+            
+            doc_ThreadUsers::removeContainer($rec->containerId);
+            
+            $mvc->save($rec, 'threadId, modifiedOn, modifiedBy');
+            
+            doc_Threads::updateThread($oldThreadId);
+            doc_Threads::updateThread($rec->threadId);
+            
+            doc_Threads::doUpdateThread();
+            
+            doc_Containers::logWrite("Преместен документ", $rec->containerId);
+            doc_Threads::logWrite("Преместен документ", $oldThreadId);
+            doc_Threads::logWrite("Преместен документ", $rec->threadId);
+            
+            doc_Linked::add($rec->containerId, doc_Threads::getFirstContainerId($oldThreadId));
+            
+            $retUrl = getRetUrl();
+            if (empty($retUrl)) {
+                $retUrl = array($mvc, 'single', $id);
+            }
+            
+            $res = new Redirect($retUrl);
+            
+            return false;
+        }
     }
     
     
@@ -1535,7 +1599,13 @@ class doc_DocumentPlg extends core_Plugin
         doc_Threads::setModification($rec->threadId);
         
         doc_Files::recalcFiles($rec->containerId);
-        bgerp_Notifications::hideNotificationsForSingle($mvc->className, $rec->id);
+        
+        if ($rec->threadId) {
+            $fCid = doc_Threads::getFirstContainerId($rec->threadId);
+            if ($fCid == $rec->containerId) {
+                bgerp_Notifications::hideNotificationsForSingle($mvc->className, $rec->id);
+            }
+        }
         
         // Ако е оттеглен контиран документ, се бият нотификации
         if($rec->brState == 'active' && cls::haveInterface('acc_TransactionSourceIntf', $mvc)){
@@ -1668,7 +1738,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     public function on_AfterGetLink($mvc, &$link, $id, $maxLength = false, $attr = array())
     {
-        $iconStyle = 'background-image:url(' . sbf($mvc->getIcon($id), '') . ');';
+        $attr = arr::make($attr, true);
         $url = $mvc->getSingleUrlArray($id);
         if ($attr['Q']) {
             $url['Q'] = $attr['Q'];
@@ -1688,7 +1758,10 @@ class doc_DocumentPlg extends core_Plugin
             $row = $mvc->getDocumentRow($id);
         }
         
-        $attr['ef_icon'] = $mvc->getIcon($id);
+        if($attr['ef_icon'] !== false){
+            $attr['ef_icon'] = $mvc->getIcon($id);
+        }
+        
         $attr['title'] .= "{$mvc->singleTitle}|* №{$rec->id}";
         
         if ($rec->state == 'rejected') {
@@ -2694,6 +2767,24 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
         }
+        
+        if (($action == 'movelast') && ($requiredRoles != 'no_one')) {
+            if (doc_Setup::get('MOVE_LAST_DOCUMENT') == 'no') {
+                $requiredRoles = 'no_one';
+            } elseif ($rec->state == 'rejected') {
+                $requiredRoles = 'no_one';
+            } elseif ($rec->folderId && !doc_Folders::haveRightFor('single', $rec->folderId)) {
+                $requiredRoles = 'no_one';
+            } elseif ($rec->folderId && !$mvc->canAddToFolder($rec->folderId)) {
+                $requiredRoles = 'no_one';
+            } elseif ($rec->threadId && (doc_Threads::fetchField($rec->threadId, 'firstContainerId') == $rec->containerId)) {
+                $requiredRoles = 'no_one';
+            } elseif (doc_Containers::getLastDocCid($rec->threadId) != $rec->containerId) {
+                $requiredRoles = 'no_one';
+            } elseif (!$mvc->haveRightFor('single', $rec)) {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
     
     
@@ -3635,6 +3726,13 @@ class doc_DocumentPlg extends core_Plugin
     {
         // Отбелязване в лога
         doclog_Documents::changed($recsArr);
+        if (!empty($recsArr)) {
+            $lRec = end($recsArr);
+            if ($lRec->docId && cls::load($lRec->docClass, true)) {
+                $inst = cls::get($lRec->docClass);
+                $inst->touchRec($lRec->docId);
+            }
+        }
     }
     
     
@@ -4045,16 +4143,19 @@ class doc_DocumentPlg extends core_Plugin
             $rec->modifiedOn = dt::verbal2Mysql();
             
             $mvc->save_($rec, 'modifiedOn, modifiedBy');
-            $cid = $rec->containerId;
             
-            if ($cid) {
+            if ($rec->containerId) {
                 $cRec = new stdClass();
-                $cRec->id = $cid;
+                $cRec->id = $rec->containerId;
                 $cRec->modifiedOn = $rec->modifiedOn;
                 $cRec->modifiedBy = $rec->modifiedBy;
                 
                 $containersInst = cls::get('doc_Containers');
                 $containersInst->save_($cRec, 'modifiedOn, modifiedBy');
+            }
+            
+            if ($rec->threadId) {
+                doc_Threads::updateThread($rec->threadId);
             }
         }
     }
@@ -4229,6 +4330,7 @@ class doc_DocumentPlg extends core_Plugin
             return ;
         }
         
+        $secondRowArr = array();
         $isNarrow = Mode::is('screenMode', 'narrow') && !Mode::is('printing');
         
         if ($isNarrow) {
@@ -4252,7 +4354,6 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             // Определяме, кои полета ще са на втори ред или дали ще има такива
-            $secondRowArr = array();
             $cnt = 0;
             foreach ($headerArr as $key => &$hArr) {
                 if ($noSecondRow) {
@@ -4300,7 +4401,7 @@ class doc_DocumentPlg extends core_Plugin
         
         $collspan = 0;
         $firstRowCnt = 0;
-        $secondRowCnt = count($secondRowArr);
+        $secondRowCnt = countR($secondRowArr);
         
         if (!$isNarrow && $haveSecondRow) {
             $firstRowCnt = $headerArrCnt - $secondRowCnt;
@@ -4397,7 +4498,12 @@ class doc_DocumentPlg extends core_Plugin
     public static function on_AfterUpdateDetail(core_Master $mvc, $id, core_Manager $detailMvc)
     {
         // Обновява modified полетата
-        $mvc->touchRec($id);
+        $num = is_numeric($id) ? $id : $id->id;
+        
+        // Ако не е мутнато докосването, да се изпълни
+        if(Mode::get("touchRec{$num}") !== false){
+            $mvc->touchRec($id);
+        }
     }
     
     
@@ -4471,7 +4577,15 @@ class doc_DocumentPlg extends core_Plugin
         // Ако документа е оттеглен се подсигуряваме че ще се покаже от кого е оттеглен и кога
         if ($data->rec->state == 'rejected') {
             $nTpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
-            $data->row->state .= $nTpl->placeArray(array('user' => crm_Profiles::createLink($data->rec->modifiedBy), 'date' => dt::mysql2Verbal($data->rec->modifiedOn)));
+            $data->row->HEADER_STATE .= $nTpl->placeArray(array('user' => crm_Profiles::createLink($data->rec->modifiedBy), 'date' => dt::mysql2Verbal($data->rec->modifiedOn)));
+        } elseif($data->rec->state == 'active' && isset($data->rec->activatedBy)){
+            if (isset($data->rec->activatedOn)) {
+                $nTpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
+            } else {
+                $nTpl = new ET(tr('|* |от|* [#user#]'));
+            }
+            
+            $data->row->HEADER_STATE .= $nTpl->placeArray(array('user' => crm_Profiles::createLink($data->rec->activatedBy), 'date' => dt::mysql2Verbal($data->rec->activatedOn)));
         }
         
         // При генерирането за външно показване, махаме състоянието, защото е вътрешна информация
@@ -4526,6 +4640,7 @@ class doc_DocumentPlg extends core_Plugin
         if (empty($rec->activatedOn)) {
             $rec->activatedOn = dt::now();
             $rec->activatedBy = core_Users::getCurrent();
+            
             $mvc->save_($rec, 'activatedOn,activatedBy');
         }
     }
@@ -4557,5 +4672,32 @@ class doc_DocumentPlg extends core_Plugin
     public static function on_RenderOtherSummary($mvc, &$html, $containerId, $threadId)
     {
         $html .= doc_ExpensesSummary::getSummary($containerId);
+    }
+    
+    
+    /**
+     * Връща дефолтен коментар при връзка на документи
+     * 
+     * @param core_Master $mvc
+     * @param null|string $res
+     * @param integer $id
+     * @param string $id
+     */
+    public static function on_AfterGetDefaultLinkedComment($mvc, &$res, $id, $comment)
+    {
+        if (isset($res)) {
+            
+            return ;
+        }
+        
+        $comment = trim($comment);
+        
+        if (!$comment) {
+            $rec = $mvc->fetchRec($id);
+            $docRow = $mvc->getDocumentRow($id);
+            $res = '(#' . $mvc->getHandle($id) . ') ' . $docRow->title;
+        } else {
+            $res = $comment;
+        }
     }
 }

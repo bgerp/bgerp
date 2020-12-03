@@ -38,6 +38,10 @@
             </td>
             <td class='misc-info nowrap aright vtop'>
                 <span class="maxwidth" data-col="[#DATA_COL_ATTR_AMOUNT#]"><b>[#packPrice#] </b></span>
+                <!--ET_BEGIN vatPackPrice-->
+                <span class="maxwidth" data-col="[#DATA_COL_ATTR_AMOUNT#]"><small>|С ДДС|*: [#vatPackPrice#] </small></span>
+                <!--ET_END vatPackPrice-->
+                
                 <!--ET_BEGIN discount-->
                 <div class='discount'>- [#discount#] |ТО|*
                 </div>

@@ -45,7 +45,7 @@ class sales_transaction_Service extends acc_DocumentTransactionSource
         $entries = array();
         
         // Всяко ЕН трябва да има поне един детайл
-        if (count($rec->details) > 0) {
+        if (countR($rec->details) > 0) {
             if ($rec->isReverse == 'yes') {
                 
                 // Ако ЕН е обратна, тя прави контировка на СР но с отрицателни стойностти
@@ -69,13 +69,16 @@ class sales_transaction_Service extends acc_DocumentTransactionSource
         if (Mode::get('saveTransaction')) {
             // Проверка на артикулите
             $property = ($rec->isReverse == 'yes') ? 'canBuy' : 'canSell';
-            $msg = ($rec->isReverse == 'yes') ? 'купуваеми услуги' : 'продаваеми услуги';
-            $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($rec->details, 'productId'), $property, 'canStore');
             
-            if(count($productCheck['notActive'])){
-                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
-            } elseif($productCheck['metasError']){
-                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са {$msg}|*!");
+            $productArr = arr::extractValuesFromArray($rec->details, 'productId');
+            if (countR($productArr)) {
+                $msg = ($rec->isReverse == 'yes') ? 'купуваеми услуги' : 'продаваеми услуги';
+                $msg = "трябва да са {$msg} и да не са генерични";
+                
+                if($redirectError = deals_Helper::getContoRedirectError($productArr, $property, 'canStore,generic', $msg)){
+                    
+                    acc_journal_RejectRedirect::expect(false, $redirectError);
+                }
             }
         }
         
@@ -91,7 +94,7 @@ class sales_transaction_Service extends acc_DocumentTransactionSource
         $entries = array();
         $sign = ($reverse) ? -1 : 1;
         
-        if (count($rec->details)) {
+        if (countR($rec->details)) {
             deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));
             $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
             

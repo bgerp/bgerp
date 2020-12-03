@@ -308,4 +308,19 @@ class doc_DocumentIntf
     {
         return $this->class->getDefaultDataForComment($rec, $otherParams);
     }
+    
+    
+    /**
+     * Връща дефолтен коментар при връзка на документи
+     * 
+     * @param integer $id
+     * @param string $comment
+     * 
+     * @return string
+     */
+    public function getDefaultLinkedComment($id, $comment)
+    {
+        
+        return $this->class->getDefaultLinkedComment($id, $comment);
+    }
 }

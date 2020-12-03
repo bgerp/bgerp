@@ -122,5 +122,15 @@ class drdata_Setup extends core_ProtoSetup
         'drdata_Vats',
         'drdata_Domains',
         'drdata_Languages',
+        'migrate::fixPhoneCache2040'
     );
+    
+    
+    /**
+     * Премахва кешнираните телефони за България
+     */
+    public static function fixPhoneCache2040()
+    {
+        drdata_PhoneCache::delete("#dCC = '359'");
+    }
 }

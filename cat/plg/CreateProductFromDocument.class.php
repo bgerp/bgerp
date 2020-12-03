@@ -195,7 +195,6 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                 // Зареждаме данни от прототипа (или артикула който клонираме)
                 if ($proto) {
                     $protoRec = cat_Products::fetch($proto);
-                    $protoName = cat_Products::getTitleById($protoRec->id);
                     unset($productFields['measureId']);
                     foreach ($productFields as $n1 => $fld) {
                         if (isset($protoRec->{$n1})) {
@@ -238,11 +237,11 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                     $cover = doc_Folders::getCover($form->rec->folderId);
                     
                     $defMetas = $Driver->getDefaultMetas();
-                    if (!count($defMetas)) {
+                    if (!countR($defMetas)) {
                         $defMetas = $cover->getDefaultMeta();
                     }
                     
-                    if (count($defMetas)) {
+                    if (countR($defMetas)) {
                         $form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
                     }
                     

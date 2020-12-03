@@ -55,14 +55,15 @@ class ssh_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Отдалечено управление на компютри по SSH';
+    public $info = 'SSH машини';
     
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(1.8, 'Система', 'Машини', 'ssh_Hosts', 'default', 'ceo, remote, admin'),
+       // Махане на ssh машини от менюто
+       // array(1.8, 'Система', 'Машини', 'ssh_Hosts', 'default', 'ceo, remote, admin'),
     );
     
     

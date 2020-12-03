@@ -197,7 +197,7 @@ class findeals_AdvanceReports extends core_Master
         expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
         $dealInfo = $origin->getAggregateDealInfo();
         $options = self::getOperations($dealInfo->get('allowedPaymentOperations'));
-        expect(count($options));
+        expect(countR($options));
         
         $form->dealInfo = $dealInfo;
         $form->setDefault('operationSysId', 'debitDeals');
@@ -299,7 +299,7 @@ class findeals_AdvanceReports extends core_Master
             
             $options = self::getOperations($firstDoc->getPaymentOperations());
             
-            return count($options) ? true : false;
+            return countR($options) ? true : false;
         }
         
         return false;
@@ -472,5 +472,14 @@ class findeals_AdvanceReports extends core_Master
             $row->amount = $mvc->getFieldType('amount')->toVerbal($amount);
             $row->amount = ht::styleNumber($row->amount, $amount);
         }
+    }
+    
+    
+    /**
+     * Документа винаги може да се активира, дори и да няма детайли
+     */
+    public static function canActivate($rec)
+    {
+        return true;
     }
 }

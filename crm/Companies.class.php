@@ -25,6 +25,12 @@ defIfNot('CRM_REMOTE_COMPANY_LOGO_CREATOR', 'https://experta.bg/api_Companies/ge
 class crm_Companies extends core_Master
 {
     /**
+     * Да се създаде папка при създаване на нов запис
+     */
+    public $autoCreateFolder = 'instant';
+    
+    
+    /**
      * Интерфейси, поддържани от този мениджър
      */
     public $interfaces = array(
@@ -83,7 +89,7 @@ class crm_Companies extends core_Master
     /**
      * Полета за експорт
      */
-    public $exportableCsvFields = 'name,country,pCode,place,address,email,tel,fax,website,vatId,info,uicId';
+    public $exportableCsvFields = 'name,nameList,country,pCode,place,address,email,tel,fax,website,vatId,uicId,nkid,info,logo,folderName,groupList';
     
     
     /**
@@ -92,7 +98,7 @@ class crm_Companies extends core_Master
     public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, plg_State, 
                      Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,
                      plg_Sorting, recently_Plugin, plg_Search, plg_Rejected,doc_FolderPlg, bgerp_plg_Groups, plg_Printing,
-                     acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput, core_UserTranslatePlg';
+                     acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput, core_UserTranslatePlg, callcenter_AdditionalNumbersPlg';
     
     
     /**
@@ -262,6 +268,14 @@ class crm_Companies extends core_Master
     
     
     /**
+     * Кои полета да се записват в номерата
+     * @var array
+     * @see callcenter_AdditionalNumbersPlg
+     */
+    public $updateNumMap = array('tel' => 'tel', 'fax' => 'fax');
+    
+    
+    /**
      * Предефинирани подредби на листовия изглед
      */
     public $listOrderBy = array(
@@ -283,6 +297,10 @@ class crm_Companies extends core_Master
         $this->FLD('name', 'varchar(255,ci)', 'caption=Фирма,class=contactData,mandatory,remember=info,silent,export=Csv, translate=user|tr|transliterate');
         $this->FNC('nameList', 'varchar', 'sortingLike=name');
         
+        // Данъчен номер на фирмата
+        $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv,silent');
+        $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv,silent');
+        
         // Адресни данни
         $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,class=contactData,mandatory,export=Csv');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,export=Csv');
@@ -295,24 +313,20 @@ class crm_Companies extends core_Master
         $this->FLD('fax', 'drdata_PhoneType(type=fax)', 'caption=Факс,class=contactData,silent,export=Csv');
         $this->FLD('website', 'url', 'caption=Web сайт,class=contactData,export=Csv');
         
-        // Данъчен номер на фирмата
-        $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv');
-        $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv');
-        
         // Вземаме конфига
         $visibleNKID = crm_Setup::get('VISIBLE_NKID');
         
         // Ако полето е обозначено за оказване
-        if($visibleNKID == 'yes'){
+        if ($visibleNKID == 'yes') {
             // Добавяме поле във формата
-            $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', "caption=НКИД,after=folderName, hint=Номер по НКИД");
+            $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=НКИД,after=folderName, hint=Номер по НКИД');
         }
         
         // Допълнителна информация
         $this->FLD('info', 'richtext(bucket=crmFiles, passage=Общи)', 'caption=Бележки,height=150px,class=contactData,export=Csv');
         $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Лого,export=Csv');
         $this->FLD('folderName', 'varchar', 'caption=Име на папка');
-
+        
         // В кои групи е?
         $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'persons\\\'AND #state !\\= \\\'rejected\\\',classLink=group-link)', 'caption=Групи->Групи,remember,silent,export=Csv');
         
@@ -463,12 +477,48 @@ class crm_Companies extends core_Master
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         if ($data->toolbar->removeBtn('btnAdd')) {
-            if ($groupId = $data->listFilter->rec->groupId) {
-                $data->toolbar->addBtn('Нова фирма', array($mvc, 'Add', "groupList[{$groupId}]" => 'on'), 'id=btnAdd', array('ef_icon' => 'img/16/office-building-add.png', 'title' => 'Създаване на нова визитка на фирма'));
+            self::addNewCompanyBtn2Toolbar($data->toolbar, $data->listFilter);
+        }
+    }
+    
+    
+    /**
+     * Добавя бутон за създаване на нова фирма към тулбар, взимайки под внимание филтър
+     * 
+     * @param core_Toolbar $toolbar
+     * @param core_Form $listFilter
+     * 
+     * @return void
+     */
+    public static function addNewCompanyBtn2Toolbar(core_Toolbar &$toolbar,core_Form $listFilter)
+    {
+        $addCompanyUrl = array('crm_Companies', 'add');
+        if($groupId = $listFilter->rec->groupId){
+            $addCompanyUrl["groupList"] = $groupId;
+        }
+        
+        $searchString = $listFilter->rec->search;
+        
+        // Ако има въведен стринг за търсене
+        if(!empty($searchString)){
+            list($status) = cls::get('drdata_Vats')->checkStatus($searchString);
+            
+            if($status == 'valid'){
+                
+                // и е валиден ДДС №, подава се за номер на новата фирма
+                $addCompanyUrl['vatId'] = $searchString;
+            } elseif($status == 'bulstat' || (ctype_digit($searchString) && strlen($searchString) >= 5)){
+                
+                // и е дълго число, подава се като нац. № на новата фирма
+                $addCompanyUrl['uicId'] = $searchString;
             } else {
-                $data->toolbar->addBtn('Нова фирма', array($mvc, 'Add'), 'id=btnAdd', array('title' => 'Създаване на нова визитка на фирма', 'ef_icon' => 'img/16/office-building-add.png'));
+                
+                // Ако не е от горните се добавя към името на новата фирма
+                $addCompanyUrl['name'] = $searchString;
             }
         }
+        
+        $toolbar->addBtn('Нова фирма', $addCompanyUrl, 'ef_icon=img/16/office-building-add.png', 'title=Създаване на нова визитка на фирма');
     }
     
     
@@ -483,8 +533,27 @@ class crm_Companies extends core_Master
     {
         $form = $data->form;
         
-        if (empty($form->rec->id)) {
-            // Слагаме Default за поле 'country'
+        if (empty($form->rec->name)) {
+            $form->setField('vatId', 'removeAndRefreshForm=name|address|pCode|country|place');
+            $form->setField('uicId', 'removeAndRefreshForm=name|address|pCode|country|place');
+            
+            if(empty($form->rec->name)){
+                $cDataSource = !empty($form->rec->vatId) ? $form->rec->vatId : $form->rec->uicId;
+                
+                // Ако не е въведено име, но има валиден ват попълват се адресните данни от него
+                if(!empty($cDataSource)){
+                    if($cData = self::getCompanyDataFromString($cDataSource)){
+                        
+                        foreach (array('name', 'country', 'pCode', 'place', 'address', 'vatId', 'uicId') as $cFld){
+                            if(!empty($cData->{$cFld})){
+                                $form->setDefault($cFld, $cData->{$cFld});
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Дефолтната държава е същата, като на "Моята фирма"
             $myCompany = self::fetchOwnCompany();
             $form->setDefault('country', $myCompany->countryId);
         }
@@ -495,8 +564,37 @@ class crm_Companies extends core_Master
             // Да има само 2 колони
             $data->form->setField($mvc->expandInputFieldName, array('maxColumns' => 2));
         }
-
+        
         $mvc->autoChangeFields($form);
+    }
+    
+    
+    /**
+     * Преди модифициране на edit формата
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    {
+        if ($country = Request::get('country')) {
+            if (($tel = Request::get('tel')) || ($fax = Request::get('fax'))) {
+                $code = drdata_Countries::fetchField($country, 'telCode');
+                if ($tel) {
+                    $tel1 = drdata_PhoneType::setCodeIfMissing($tel, $code);
+                    if ($tel1 != $tel) {
+                        Request::push(array('tel' => $tel1));
+                    }
+                }
+                if ($fax) {
+                    $fax1 = drdata_PhoneType::setCodeIfMissing($fax, $code);
+                    if ($fax1 != $fax) {
+                        Request::push(array('tel' => $fax1));
+                    }
+                }
+            }
+        }
     }
     
     
@@ -513,7 +611,6 @@ class crm_Companies extends core_Master
             $changeFieldsArr = unserialize($changeFieldsArr);
             
             if ($changeFieldsArr) {
-                $oRec = clone ($form->rec);
                 
                 $oldValArr = array();
                 foreach ($changeFieldsArr as $fName => $fVal) {
@@ -619,8 +716,6 @@ class crm_Companies extends core_Master
     {
         $similarsArr = array();
         
-        $similarName = $similarVat = false;
-        
         $fieldsArr = array();
         
         $nameL = '#' . mb_strtolower($rec->name) . '#';
@@ -710,11 +805,11 @@ class crm_Companies extends core_Master
     {
         $rec = $form->rec;
         
-        if ($form->isSubmitted()) { 
+        if ($form->isSubmitted()) {
             
             // Проверяваме да няма дублиране на записи
+            $fields = '';
             $resStr = static::getSimilarWarningStr($form->rec, $fields);
-            
             if ($resStr) {
                 $form->setWarning($fields, $resStr);
             }
@@ -808,11 +903,12 @@ class crm_Companies extends core_Master
             }
             
             if (!empty($rec->uicId)) {
+                $msg = $isError = null;
                 crm_Companies::checkUicId($rec->uicId, $rec->country, $msg, $isError);
                 if (!empty($msg)) {
                     $row->uicId = "<span class='red'>{$row->uicId}</span>";
                     $icon = ($isError === true) ? 'error' : 'warning';
-                    $row->uicId = ht::createHint($row->uicId, $msg, 'error');
+                    $row->uicId = ht::createHint($row->uicId, $msg, $icon);
                 }
             }
             
@@ -907,9 +1003,6 @@ class crm_Companies extends core_Master
          * @TODO Това не трябва да е тук, но по някаква причина не сработва в on_Shutdown()
          */
         $mvc->updateRoutingRules($rec);
-        
-        // Обновяме номерата
-        $mvc->updateNumbers($rec);
         
         // Ако се редактира текущата фирма, генерираме лог от данните
         if (crm_Setup::BGERP_OWN_COMPANY_ID == $rec->id) {
@@ -1084,7 +1177,7 @@ class crm_Companies extends core_Master
         } else {
             $tpl->removeBlock('email');
         }
-
+        
         $content = $tpl->getContent();
         
         $pngHnd = '';
@@ -1256,46 +1349,6 @@ class crm_Companies extends core_Master
         }
         
         return $res;
-    }
-    
-    
-    /**
-     * Обновява номера за фирмата
-     *
-     * @param object $rec
-     *
-     * @return array
-     */
-    public static function updateNumbers($rec)
-    {
-        $numbersArr = array();
-        
-        // Ако има телефон
-        if ($rec->tel) {
-            
-            // Добавяме в масива
-            $numbersArr['tel'][] = $rec->tel;
-        }
-        
-        // Ако има факс
-        if ($rec->fax) {
-            
-            // Добавяме в масива
-            $numbersArr['fax'][] = $rec->fax;
-        }
-        
-        // Вземаме id на класа
-        $classId = static::getClassId();
-        
-        $numArr = array();
-        
-        // Ако е инсталиран пакета
-        if (core_Packs::isInstalled('callcenter')) {
-            $numArr = callcenter_Numbers::addNumbers($numbersArr, $classId, $rec->id, $rec->country);
-        }
-        
-        // Добавяме в КЦ
-        return $numArr;
     }
     
     
@@ -2207,7 +2260,7 @@ class crm_Companies extends core_Master
         $rec = $this->fetch($id);
         
         if (email_Outgoings::haveRightFor('add', array('folderId' => $rec->folderId))) {
-            $res[] = 'email_Outgoings';
+            $res[] = (object)array('class' => 'email_Outgoings');
         }
         
         static $clientGroupId, $supplierGroupId, $debitGroupId, $creditGroupId;
@@ -2223,19 +2276,19 @@ class crm_Companies extends core_Master
         
         // Ако е в група дебитори или кредитови, показваме бутон за финансова сделка
         if (in_array($debitGroupId, $groupList) || in_array($creditGroupId, $groupList)) {
-            $res[] = 'findeals_Deals';
+            $res[] = (object)array('class' => 'findeals_Deals');
         }
         
         // Ако е в група на клиент, показваме бутона за продажба
         if (in_array($clientGroupId, $groupList)) {
-            $res[] = 'sales_Sales';
-            $res[] = 'sales_Quotations';
+            $res[] = (object)array('class' => 'sales_Sales', 'url' => array('sales_Sales', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'ret_url' => true));
+            $res[] = (object)array('class' => 'sales_Quotations', 'url' => array('sales_Quotations', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'ret_url' => true));
         }
         
         // Ако е в група на достачик, показваме бутона за покупка
         if (in_array($supplierGroupId, $groupList)) {
-            $res[] = 'purchase_Purchases';
-            $res[] = 'purchase_Offers';
+            $res[] = (object)array('class' => 'purchase_Purchases', 'url' => array('purchase_Purchases', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'ret_url' => true));
+            $res[] = (object)array('class' => 'purchase_Offers', 'caption' => 'Вх. оферта');
         }
         
         return $res;
@@ -2420,14 +2473,13 @@ class crm_Companies extends core_Master
     public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
         $res = drdata_Countries::addCountryInBothLg($rec->country, $res);
-       
+        
         // Ако полето е обозначено за оказване
-        if(isset($rec->nkid)){
+        if (isset($rec->nkid)) {
             
             // Добавяме в ключовите думи
             $res .= ' ' . plg_Search::normalizeText(bglocal_NKID::getTitleById($rec->nkid));
         }
-
     }
     
     
@@ -2507,5 +2559,83 @@ class crm_Companies extends core_Master
         if (countR($saveFields)) {
             self::save($rec, $saveFields);
         }
+    }
+    
+    
+    /**
+     * Извличане на данните на фирмата според зададения източник
+     * 
+     * @param string $string - ЕИК или Ват номер
+     * 
+     * @return false|stdClass - обект с данни или false, ако не намери нищо
+     *          o name    - име
+     *          o country - ид на държава
+     *          o pCode   - пощенски код
+     *          o place   - населено място
+     *          o address - адрес
+     *          o uicId   - ДДС номер (ако име)
+     *          o vatId   - ЕИК (ако има)
+     */
+    public static function getCompanyDataFromString($string)
+    {
+        $data = false;
+        $useVies = crm_Setup::get('REGISTRY_USE_VIES') == 'yes';
+        $useBrra = crm_Setup::get('REGISTRY_USE_BRRA') == 'yes';
+        
+        // Нормализиране на стринга
+        $string = str::removeWhiteSpace($string);
+        $string = strtoupper($string);
+       
+        // Ако е избран търговски регистър, и е въведен български ЕИК или ДДС номер, взимат се данните от търговския регистър
+        if($useBrra){
+            $brraString = (drdata_Vats::isHaveVatPrefix($string)) ? drdata_Vats::getUicByVatNo($string) : $string;
+            $data = drdata_Vats::getFromBrra($brraString);
+            
+            // Ако има данни в търговския регистър
+            if(is_object($data)){
+                if(drdata_Vats::isHaveVatPrefix($string)){
+                    $data->uicId = $brraString;
+                }
+                
+                // и има валиден ДДС номер, ще се върне и ДДС номерът
+                list($status) = cls::get('drdata_Vats')->checkStatus("BG{$brraString}");
+                if($status == 'valid'){
+                    $data->vatId = "BG{$brraString}";
+                }
+            }
+        }
+            
+        // Ако няма да се връщат или не са намерени данни от търговския регистър, взимат се от VIES, ако е избрано
+        if($data === false && $useVies){
+            
+            // Ако е валиден български ЕИК добавя му се BG отпред
+            if(!drdata_Vats::isHaveVatPrefix($string)){
+                if(drdata_Vats::isBulstat($string)){
+                    $string = "BG{$string}";
+                }
+            }
+            
+            // Връщане на данните от VIES - ако са намерени
+            $data = drdata_Vats::getFromVies($string);
+        }
+        
+        // Ако има намерени данни
+        if(is_object($data)){
+            
+            // Нормализиране на името на фирмата
+            $data->name = str_replace('"', "", $data->name);
+            $data->name = str_replace("'", "", $data->name);
+            $data->name = mb_strtolower(str::removeWhiteSpace($data->name, " "));
+            $data->name = str::toUpperAfter($data->name, " ");
+            $data->name = trim($data->name);
+            
+            // Специалните думи се капитализират
+            foreach (array('оод', 'еоод', 'ад', 'еад', 'ltd', 'ltd.', 's.r.o', 's.a', 'e.k', 'a.s', 'srl', 'd.o.o', 'cmbh') as $specialPart){
+                $data->name = str_replace(" " . str::mbUcfirst($specialPart),  " " . mb_strtoupper($specialPart), $data->name);
+            }
+        }
+       
+        // Връщане на данните, ако са извлечени
+        return $data;
     }
 }

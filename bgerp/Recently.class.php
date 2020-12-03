@@ -70,6 +70,17 @@ class bgerp_Recently extends core_Manager
      */
     public $searchInputField = 'recentlySearch';
     
+    /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 100000;
+    
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'last';
+    
     
     /**
      * Описание на модела
@@ -86,6 +97,7 @@ class bgerp_Recently extends core_Manager
         $this->setDbUnique('type, objectId, userId');
         $this->setDbIndex('userId');
         $this->setDbIndex('last');
+        $this->setDbIndex('threadId, userId');
     }
     
     
@@ -194,6 +206,7 @@ class bgerp_Recently extends core_Manager
                 }
                 $docProxy = doc_Containers::getDocument($rec->objectId);
                 $docRow = $docProxy->getDocumentRow();
+                
                 $docRec = $docProxy->fetch();
                 if (!$threadRec) {
                     $threadRec = doc_Threads::fetch($docRec->threadId);
@@ -549,30 +562,6 @@ class bgerp_Recently extends core_Manager
     
     
     /**
-     * Какво правим след сетъпа на модела?
-     */
-    public static function on_AfterSetupMVC($mvc, &$res)
-    {
-        if (!$mvc->fetch("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
-            $count = 0;
-            $query = static::getQuery();
-            $query->orderBy('#id', 'DESC');
-            
-            while ($rec = $query->fetch()) {
-                if ($rec->searchKeywords) {
-                    continue;
-                }
-                $rec->searchKeywords = $mvc->getSearchKeywords($rec);
-                $mvc->save_($rec, 'searchKeywords');
-                $count++;
-            }
-            
-            $res .= "Обновени ключови думи на  {$count} записа в Последно";
-        }
-    }
-    
-    
-    /**
      * Връща id-тата на последно използваните нишки
      *
      * @param int|null $count       - броя нишки
@@ -730,9 +719,10 @@ class bgerp_Recently extends core_Manager
     {
         $lastRecently = dt::addDays(-bgerp_Setup::get('RECENTLY_KEEP_DAYS') / (24 * 3600));
         
-        // $res = self::delete("#last < '{$lastRecently}'");
+        $res = $this->delete(array("#last < '[#1#]'", $lastRecently));
         
         if ($res) {
+            $this->logNotice("Бяха изтрити {$res} записа");
             
             return "Бяха изтрити {$res} записа от " . $this->className;
         }

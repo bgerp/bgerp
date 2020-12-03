@@ -184,7 +184,9 @@ class acc_Setup extends core_ProtoSetup
         'acc_ValueCorrections',
         'acc_FeatureTitles',
         'acc_CostAllocations',
-        'migrate::updateFeatures'
+        'migrate::updateFeatures',
+        'migrate::fixFeaturesAndItems1020',
+        'migrate::redeclareFromToField'
     );
     
     
@@ -194,7 +196,7 @@ class acc_Setup extends core_ProtoSetup
     public $configDescription = array(
         'ACC_MONEY_TOLERANCE' => array(
             'double(decimals=2)',
-            'caption=Толеранс за допустимо разминаване на суми в основна валута->Сума'
+            'caption=Автоматично приключване на сделка при салдо (в основна валута) под->Сума'
         ),
         'ACC_DETAILED_BALANCE_ROWS' => array(
             'int',
@@ -250,7 +252,7 @@ class acc_Setup extends core_ProtoSetup
         ),
         'ACC_ALTERNATE_WINDOW' => array(
             'time(suggestions=3 месец|4 месеца|5 месеца|6 месеца|7 месеца|8 месеца|9 месеца|10 месеца|11 месеца|12 месеца)',
-            'caption=Колко назад могат да бъдат променяни счетоводни документи->Време,placeholder=Винаги'
+            'caption=Преизчисляване на балансите при промяна на документи не по-стари от->Срок,placeholder=Винаги'
         ),
     );
     
@@ -575,6 +577,53 @@ class acc_Setup extends core_ProtoSetup
         
         if(countR($valuesToSave)){
             $Features->saveArray($valuesToSave, 'id,value');
+        }
+    }
+    
+    
+    /**
+     * Миграция за изтриване на празните записи в acc_Features и синхронизиране на acc_Items
+     */
+    function fixFeaturesAndItems1020()
+    {
+        // Изтриване ненужните записи
+        $delCnt = acc_Features::delete("#itemId IS NULL");
+        acc_Features::logDebug("Изтрити записи: " . $delCnt);
+        
+        core_CallOnTime::setCall('acc_Items', 'SyncItems', null, dt::addSecs(120));
+    }
+    
+    /**
+     * Миграция: в спрвките "Движения на материали"
+     * промяна на полето from и to  от key(mvc=acc_Periods) на date
+     */
+    function redeclareFromToField()
+    {
+        $reportClassId =acc_reports_MovementArtRep::getClassId();
+        if (!$reportClassId)return;
+        
+        $Frames = cls::get('frame2_Reports');
+        
+        $reportQuery=(frame2_Reports::getQuery());
+        
+        $reportQuery->where("#driverClass = $reportClassId");
+        
+        while ($fRec = $reportQuery->fetch()){
+           
+            if (type_Int::isInt($fRec->driverRec['from'])) {
+                
+                $periodRec = acc_Periods::fetch($fRec->driverRec['from']);
+               
+                $fRec->driverRec['from'] = $periodRec->start;
+                $fRec->from =$fRec->driverRec['from'];
+                
+                $fRec->driverRec['to'] = $periodRec->end;
+                $fRec->to =$fRec->driverRec['to'];
+            }
+            
+            
+            $Frames->save($fRec);
+            
         }
     }
 }

@@ -1,6 +1,7 @@
 <div class='cms-row'>
     <div class='cms-last' style='margin:0 2%;'>
-        [#PAGE_CONTENT#] 
+        [#PAGE_CONTENT#]
+        <div class='bulletin-link clearfix21'></div>
         <!--ET_BEGIN SOCIAL-->
         <div class='clearfix21'></div>
         [#SOCIAL#]

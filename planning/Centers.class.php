@@ -373,7 +373,7 @@ class planning_Centers extends core_Master
             }
         }
         
-        if(count($options)){
+        if(countR($options)){
             $options = array('pu' => (object)array('group' => true, 'title' => 'Производствени етапи')) + $options;
         }
         
@@ -411,7 +411,7 @@ class planning_Centers extends core_Master
             }
         }
         
-        if(!count($options)){
+        if(!countR($options)){
             while($rec = $cloneQuery->fetch()){
                 if (doc_Folders::haveRightToFolder($rec->folderId, $userId)) {
                     $options[$rec->folderId] = self::getRecTitle($rec, false);

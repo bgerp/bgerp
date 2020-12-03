@@ -241,7 +241,7 @@ class jqplot_Chart
             // Нещо като autoheight възможност за хоризонтални бар-графики. Височината на
             // контейнера се адаптира според броя на баровете.
             $this->htmlAttr['style'] .=
-                '; height: ' . count($series) * count($series[0]) * 20 . 'px';
+                '; height: ' . countR($series) * countR($series[0]) * 20 . 'px';
         }
         
         // Създаваме контейнер елемента със зададените HTML атрибути

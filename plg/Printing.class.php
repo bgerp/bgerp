@@ -253,7 +253,7 @@ class plg_Printing extends core_Plugin
     {
         $cUrl = getCurrentUrl();
         
-        if (count($cUrl)) {
+        if (countR($cUrl)) {
             foreach ($cUrl as $param => $value) {
                 if ($param{0} < 'a' || $param{0} > 'z') {
                     $url[$param] = $value;

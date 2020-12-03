@@ -120,7 +120,6 @@ class planning_Setup extends core_ProtoSetup
         'planning_DirectProductNoteDetails',
         'planning_ReturnNotes',
         'planning_ReturnNoteDetails',
-        'planning_ObjectResources',
         'planning_Tasks',
         'planning_AssetResources',
         'planning_AssetResourceFolders',
@@ -134,6 +133,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_Stages',
         'planning_WorkCards',
         'planning_Points',
+        'planning_GenericMapper',
         'migrate::assetResourceFields',
         'migrate::updateTasks',
         'migrate::updateTasksPart2'
@@ -167,7 +167,7 @@ class planning_Setup extends core_ProtoSetup
     public $defClasses = 'planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,
                           planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,
                           planning_interface_ImportFromLastBom,planning_interface_StageDriver,planning_reports_Workflows,planning_Terminal,
-                          planning_reports_ArticlesProduced';
+                          planning_reports_ArticlesProduced,planning_reports_ConsumedItemsByJob,planning_reports_MaterialPlanning';
     
     
     /**
@@ -254,7 +254,7 @@ class planning_Setup extends core_ProtoSetup
         $TaskDetails = cls::get('planning_ProductionTaskDetails');
         $TaskDetails->setupMvc();
         
-        if (!count($Tasks)) {
+        if (!countR($Tasks)) {
             
             return;
         }
@@ -268,7 +268,7 @@ class planning_Setup extends core_ProtoSetup
             $updateArr[$rec->id] = $rec;
         }
         
-        if (count($updateArr)) {
+        if (countR($updateArr)) {
             $Tasks->saveArray($updateArr, 'id,indPackagingId');
         }
     }
@@ -285,7 +285,7 @@ class planning_Setup extends core_ProtoSetup
         $TaskDetails = cls::get('planning_ProductionTaskDetails');
         $TaskDetails->setupMvc();
         
-        if (!count($Tasks)) {
+        if (!countR($Tasks)) {
             
             return;
         }
@@ -302,31 +302,8 @@ class planning_Setup extends core_ProtoSetup
             $updateArr[] = $rec;
         }
         
-        if (count($updateArr)) {
+        if (countR($updateArr)) {
             $Tasks->saveArray($updateArr, 'id,measureId,quantityInPack');
         }
-    }
-    
-    
-    /**
-     * След началното установяване на този мениджър
-     */
-    public function loadSetupData($itr = '')
-    {
-        $res = parent::loadSetupData($itr);
-        
-        if (core_Packs::isInstalled('label') && core_Packs::isInstalled('escpos')) {
-            core_Classes::add('escpos_printer_TD2120N');
-            
-            core_Users::forceSystemUser();
-            if (label_Templates::addFromFile('Етикет за прогрес на производствена операция', 'planning/tpl/DefaultTaskProgressLabel.shtml', 'defaultEscposTaskRec', array('100', '72'), 'bg', planning_ProductionTaskDetails::getClassId(), escpos_printer_TD2120N::getClassId())) {
-                $res = "<li class='green'>Обновен шаблон за етикети на прогреса на производствената операция";
-            } else {
-                $res = '<li>Пропуснато обновяване на шаблон за прогреса на производствената операция</li>';
-            }
-            core_Users::cancelSystemUser();
-        }
-        
-        return $res;
     }
 }

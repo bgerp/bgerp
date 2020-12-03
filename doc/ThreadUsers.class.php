@@ -50,6 +50,17 @@ class doc_ThreadUsers extends core_Manager
      */
     public $canAdd = 'no_one';
     
+    /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 50000;
+    
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'modifiedOn';
+    
     
     /**
      * Описание на модела

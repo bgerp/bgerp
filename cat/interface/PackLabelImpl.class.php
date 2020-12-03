@@ -74,6 +74,12 @@ class cat_interface_PackLabelImpl
         $placeholders['EAN'] = (object) array('type' => 'text');
         
         if (isset($objId)) {
+            // Проверка има ли продуктови параметри, които не могат да се редактират от формата
+            $productClassId = cat_Products::getClassId();
+            $rec = $this->class->fetch($objId);
+            $notEdittableParamNames = cat_products_Params::getNotEditableLabelParamNames($productClassId, $rec->productId);
+            
+            $labelData = $this->getLabelData($objId, 1, true);
             $labelData = $this->getLabelData($objId, 1, true);
             if (isset($labelData[0])) {
                 foreach ($labelData[0] as $key => $val) {
@@ -86,6 +92,26 @@ class cat_interface_PackLabelImpl
         }
         
         return $placeholders;
+    }
+    
+    
+    /**
+     * Помощна ф-я връщаща последното задание за артикула от записа на опаковката
+     * 
+     * @param mixed $id
+     * 
+     * @return null|stdClass
+     */
+    private static function getLastJob($id)
+    {
+        $rec = cat_products_Packagings::fetchRec($id);
+        
+        $jQuery = planning_Jobs::getQuery();
+        $jQuery->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 2 WHEN 'stopped' THEN 3 END)");
+        $jQuery->where("#productId = {$rec->productId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
+        $jQuery->orderBy('#order=ASC,#id=DESC');
+        
+        return $jQuery->fetch();
     }
     
     
@@ -118,12 +144,8 @@ class cat_interface_PackLabelImpl
         $measureId = $pRec->measureId;
         
         // Кое е последното задание към артикула
-        $jQuery = planning_Jobs::getQuery();
-        $jQuery->XPR('order', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 2 WHEN 'stopped' THEN 3 END)");
-        $jQuery->where("#productId = {$rec->productId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
-        $jQuery->orderBy('#order=ASC,#id=DESC');
-        $jQuery->show('id,saleId');
-        if ($jRec = $jQuery->fetch()) {
+        $jRec = self::getLastJob($rec);
+        if (is_object($jRec)) {
             $jobCode = mb_strtoupper(planning_Jobs::getHandle($jRec->id));
             if ($lg != 'bg' && isset($jRec->saleId)) {
                 $lData = cls::get('sales_Sales')->getLogisticData($jRec->saleId);
@@ -157,7 +179,7 @@ class cat_interface_PackLabelImpl
             $measureId = cat_UoM::fetchBySysId('pcs')->id;
         }
         
-        $measureId = tr(cat_UoM::getShortName($measureId));
+        $measureId = cat_UoM::getShortName($measureId);
         
         // Продуктови параметри
         $params = cat_Products::getParams($rec->productId, null, true);
@@ -167,6 +189,11 @@ class cat_interface_PackLabelImpl
         $Driver = cat_Products::getDriver($rec->productId);
         if (is_object($Driver)) {
             $additionalFields = $Driver->getAdditionalLabelData($rec->productId, $this->class);
+        }
+        
+        // Дигане на тайм-лимита
+        if($onlyPreview === false){
+            core_App::setTimeLimit(round($cnt / 8, 2), false, 100);
         }
         
         $arr = array();
@@ -185,12 +212,12 @@ class cat_interface_PackLabelImpl
                 $res['JOB'] = $jobCode;
             }
             
-            if (isset($rec->eanCode)) {
+            if (!empty($rec->eanCode)) {
                 $res['EAN'] = $rec->eanCode;
             }
             
             if (is_object($Driver)) {
-                if (count($additionalFields)) {
+                if (countR($additionalFields)) {
                     $res = $additionalFields + $res;
                 }
                 
@@ -225,6 +252,19 @@ class cat_interface_PackLabelImpl
      */
     public function getLabelEstimatedCnt($id)
     {
+        $rec = cat_products_Packagings::fetchRec($id);
+        
+        $jRec = self::getLastJob($rec);
+        if (is_object($jRec)) {
+            $count = $jRec->quantity / $rec->quantity;
+            if($reservePercent = cat_Setup::get('LABEL_RESERVE_COUNT')){
+                $count *= (1 + $reservePercent);
+            }
+            
+            return ceil($count);
+        }
+        
+        return null;
     }
     
     

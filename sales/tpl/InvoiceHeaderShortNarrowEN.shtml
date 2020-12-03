@@ -43,7 +43,7 @@
                     </tr>
                     <!--ET_END contragentVatNo-->
                     <tr>
-                        <td class="aright"><small>Tax ID:</small></td>
+                        <td class="aright"><small>[#contragentUicCaption#]:</small></td>
                         <td> <span class="bigData" style='padding-left:5px;'>[#uicNo#]</span></td>
                     </tr>
                     </tbody>
@@ -148,7 +148,7 @@
                 <!--ET_BEGIN username-->
                 <div>Prepared by:  [#username#]</div>
                 <!--ET_END username-->
-                <div class='small'>( PIN: [#userCode#] )</div>
+                <div class='small'>( PIC: [#userCode#] )</div>
             </td>
         </tr>
         <tr class='footerDocInfo'>

@@ -66,7 +66,9 @@ class findeals_transaction_CreditDocument extends acc_DocumentTransactionSource
         
         $origin = findeals_CreditDocuments::getOrigin($rec);
         $originCodeId = currency_Currencies::getIdByCode($origin->fetchField('currencyId'));
-        $dealCodeId = currency_Currencies::getIdByCode(findeals_Deals::fetchField($rec->dealId, 'currencyId'));
+        
+        $doc = doc_Containers::getDocument($rec->dealId);
+        $dealCodeId = currency_Currencies::getIdByCode($doc->fetchField('currencyId'));
         
         if ($rec->currencyId == $baseCurrencyId) {
             $amount = $rec->amountDeal;
@@ -76,7 +78,7 @@ class findeals_transaction_CreditDocument extends acc_DocumentTransactionSource
             $amount = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $origin->fetchField('currencyId'));
         }
         
-        $dealRec = findeals_Deals::fetch($rec->dealId);
+        $dealRec = $doc->fetch();
         
         // Кредитираме разчетната сметка на избраната финансова сделка
         $debitArr = array($rec->debitAccount,
@@ -88,7 +90,7 @@ class findeals_transaction_CreditDocument extends acc_DocumentTransactionSource
         // Дебитираме разчетната сметка на сделката, начало на нишка
         $creditArr = array($rec->creditAccount,
             array($dealRec->contragentClassId, $dealRec->contragentId),
-            array($dealRec->dealManId, $rec->dealId),
+            array($doc->getClassId(), $doc->that),
             array('currency_Currencies', $dealCodeId),
             
             'quantity' => $sign * $rec->amount);

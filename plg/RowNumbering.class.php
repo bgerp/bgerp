@@ -46,7 +46,7 @@ class plg_RowNumbering extends core_Plugin
                 if ($data->pager) {
                     $number = $data->pager->itemsCount - $data->pager->rangeStart;
                 } else {
-                    $number = Rcount($data->rows);
+                    $number = countR($data->rows);
                 }
                 
                 $increment = -1;

@@ -42,19 +42,13 @@ defIfNot('BGERP_SOUND_ON_NOTIFICATION', 'scanner');
 /**
  * Колко време да се съхраняват нотификациите
  */
-defIfNot('BGERP_NOTIFICATION_KEEP_DAYS', 31104000);
+defIfNot('BGERP_NOTIFICATION_KEEP_DAYS', 31556952);
 
 
 /**
  * Колко време да се съхранява историята за отворени нишки и папки
  */
-defIfNot('BGERP_RECENTLY_KEEP_DAYS', 31104000);
-
-
-/**
- * Звуков сигнал при нотификация
- */
-defIfNot('BGERP_SOUND_ON_NOTIFICATION', 'scanner');
+defIfNot('BGERP_RECENTLY_KEEP_DAYS', 31556952);
 
 
 /**
@@ -82,7 +76,7 @@ defIfNot('BGERP_NOTIFY_NORMAL', 86400);
  */
 defIfNot('BGERP_BLOCK_ALERT', 'never');
 defIfNot('BGERP_BLOCK_WARNING', 'night');
-defIfNot('BGERP_BLOCK_NORMAL', 'nonworking');
+defIfNot('BGERP_BLOCK_NORMAL', 'nonworking|night');
 
 
 /**
@@ -168,9 +162,9 @@ class bgerp_Setup extends core_ProtoSetup
         
         'BGERP_SOUND_ON_NOTIFICATION' => array('enum(none=Няма,snap=Щракване,scanner=Скенер,notification=Нотификация,beep=Beep)', 'caption=Звуков сигнал при нотификация->Звук, customizeBy=user'),
         
-        'BGERP_NOTIFICATION_KEEP_DAYS' => array('time(suggestions=180 дни|360 дни|540 дни,unit=days)', 'caption=Време за съхранение на нотификациите->Време'),
+        'BGERP_NOTIFICATION_KEEP_DAYS' => array('time(suggestions=3 месеца|6 месеца|1 година,unit=days)', 'caption=Време за съхранение на нотификациите->Време'),
         
-        'BGERP_RECENTLY_KEEP_DAYS' => array('time(suggestions=180 дни|360 дни|540 дни,unit=days)', 'caption=Време за съхранение на историята в "Последно"->Време'),
+        'BGERP_RECENTLY_KEEP_DAYS' => array('time(suggestions=3 месеца|6 месеца|1 година,unit=days)', 'caption=Време за съхранение на историята в "Последно"->Време'),
         
         'BGERP_START_OF_WORKING_DAY' => array('enum(08:00,09:00,10:00,11:00,12:00)', 'caption=Начало на работния ден->Час'),
         
@@ -427,6 +421,7 @@ class bgerp_Setup extends core_ProtoSetup
         $rec->period = 24 * 60;
         $rec->timeLimit = 50;
         $rec->offset = mt_rand(0, 300);
+        $rec->isRandOffset = true;
         $html .= core_Cron::addOnce($rec);
         
         $rec = new stdClass();
@@ -437,6 +432,7 @@ class bgerp_Setup extends core_ProtoSetup
         $rec->period = 24 * 60;
         $rec->timeLimit = 50;
         $rec->offset = mt_rand(0, 300);
+        $rec->isRandOffset = true;
         $html .= core_Cron::addOnce($rec);
         
         

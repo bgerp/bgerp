@@ -26,6 +26,9 @@
             <div class="attention"> [#PAYMENT_TEXT_RIGHT#]</div>
             <!--ET_END PAYMENT_TEXT_RIGHT-->
 
+            <!--ET_BEGIN EXPECTED_DELIVERY-->
+            <div class="attention">[#EXPECTED_DELIVERY#]</div>
+            <!--ET_END EXPECTED_DELIVERY-->
          </div>
          <div class="clearfix21"></div>
          <!--ET_BEGIN CHECK_EMAIL-->
@@ -74,17 +77,18 @@
 			<!--ET_END SALE_BLOCK-->
 
             <!--ET_BEGIN DELIVERY_BLOCK-->
-            [#DELIVERY_BLOCK#]
+               <!--ET_BEGIN termId-->
                <tr>
                   <td colspan = 2>
                      <h4 style="margin: 10px 0 3px;">|Доставка|*</h4>
                   </td>
                </tr>
-               <!--ET_BEGIN termId-->
+               
                <tr>
                   <td class="aright">|Начин|*:</td><td> [#termId#]</td>
                </tr>
                <!--ET_END termId-->
+               
                <!--ET_BEGIN deliveryCountry-->
                <tr>
                   <td class="aright">
@@ -102,13 +106,20 @@
                   <td colspan="2"><span class='stamp no-transform' style='font-size:1em;'>[#deliveryError#]</span></td>
                </tr>
                <!--ET_END deliveryError-->
+               <!--ET_BEGIN DELIVERY_DATA_VALUE-->
+               <tr>
+                  <td class="aright">[#DELIVERY_DATA_CAPTION#]:</td><td> <span class="richtext-holder"> [#DELIVERY_DATA_VALUE#]</span></td>
+               </tr>
+               <!--ET_END DELIVERY_DATA_VALUE-->
+               [#DELIVERY_BLOCK#]
                <!--ET_BEGIN instruction-->
                <tr>
                   <td class="aright">|Инструкции|*:</td><td> <span class="richtext-holder"> [#instruction#]</span></td>
                </tr>
                <!--ET_END instruction-->
+               
                <!--ET_END DELIVERY_BLOCK-->
-            
+
          <!--ET_BEGIN INVOICE_BLOCK-->
                <tr>
                   <td colspan="2">
@@ -176,7 +187,6 @@
             	<!--ET_BEGIN amount-->
                <tr>
                   <td class="aright">|Сума|*: </td>
-                  <td class="aright"><span class='cCode' style='font-weight:normal'>[#amountCurrencyId#]</span></td>
                   <td class="aright"><b>[#amount#]</b></td>
                </tr>
                <!--ET_END amount-->
@@ -185,9 +195,6 @@
                   <!--ET_BEGIN deliveryCaption-->
                   <td class="aright">[#deliveryCaption#]: </td>
                   <!--ET_END deliveryCaption-->
-                  <!--ET_BEGIN deliveryCurrencyId-->
-                  <td class="aright"><span class='cCode' style='font-weight:normal;'>[#deliveryCurrencyId#]</span></td>
-                  <!--ET_END deliveryCurrencyId-->
                   <td class="aright" [#deliveryColspan#]><b>[#deliveryAmount#]</b></td>
                </tr>
                <!--ET_END deliveryAmount-->
@@ -201,7 +208,6 @@
                <!--ET_BEGIN total-->
                <tr>
                   <td class="aright"><b style='font-size:1.2em'>|Общо|*</b>: </td>
-                  <td class="aright"><span class='cCode' style='font-weight:normal'>[#currencyId#]</span></td>
                   <td class="aright"><b>[#total#]</b></td>
                </tr>
                <!--ET_END total-->

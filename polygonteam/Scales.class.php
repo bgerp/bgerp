@@ -36,6 +36,7 @@ class polygonteam_Scales extends peripheral_DeviceDriver
         $fieldset->FLD('user', 'varchar', 'caption=Настройки за връзка с везната->Потребителско име,mandatory');
         $fieldset->FLD('pass', 'password', 'caption=Настройки за връзка с везната->Парола,mandatory');
         $fieldset->FLD('hostName', 'varchar', 'caption=Настройки за връзка с везната->Хост,mandatory');
+        $fieldset->FLD('protocol', 'enum(http,https,tcp)', 'caption=Настройки за връзка с везната->Протокол,mandatory');
     }
     
     

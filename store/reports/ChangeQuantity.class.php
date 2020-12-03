@@ -134,7 +134,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
         foreach ($recs as $idProd => $products) { 
             
             $products->freeQuantity = $products->quantity - $products->reservedQuantity;
-            if (is_array($oldData) && count($oldData)) {
+            if (is_array($oldData) && countR($oldData)) {
                 foreach ($oldData as $oData) {
                     if ($oData->productId == $idProd) {
                         $products->changeQuantity = $products->freeQuantity - $oData->freeQuantity;
@@ -164,9 +164,9 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         
-        $fld->FLD('kod', 'varchar', 'caption=Код');
+        $fld->FLD('kod', 'varchar', 'caption=Код,tdClass=nowrap');
         $fld->FLD('productId', 'varchar', 'caption=Артикул');
-        $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка');
+        $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=nowrap');
         $fld->FLD('quantity', 'double(smartRound)', 'caption=Наличност');
         $fld->FLD('reservedQuantity', 'double', 'caption=Запазено');
         $fld->FLD('freeQuantity', 'double', 'caption=Разполагаемо');

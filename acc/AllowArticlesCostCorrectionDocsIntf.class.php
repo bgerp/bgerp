@@ -26,8 +26,9 @@ class acc_AllowArticlesCostCorrectionDocsIntf
     /**
      * Списък с артикули върху, на които може да им се коригират стойностите
      *
-     * @param mixed $id - ид или запис
-     *
+     * @param mixed $id     - ид или запис
+     * @param mixed $forMvc - за кой мениджър
+     * 
      * @return array $products        - масив с информация за артикули
      *               o productId       - ид на артикул
      *               o name            - име на артикула
@@ -37,8 +38,8 @@ class acc_AllowArticlesCostCorrectionDocsIntf
      *               o transportWeight - транспортно тегло на артикула
      *               o transportVolume - транспортен обем на артикула
      */
-    public function getCorrectableProducts($id)
+    public function getCorrectableProducts($id, $forMvc)
     {
-        $this->class->getCorrectableProducts($id);
+        $this->class->getCorrectableProducts($id, $forMvc);
     }
 }

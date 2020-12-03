@@ -69,7 +69,8 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
      * DISC_ADD_V - надбавка/отстъпка в стойнонст - може и с -
      * BEFORE_PLU_TEXT - стринг или масив от стрингове с текст, който ще се добавя преди продукта
      * AFTER_PLU_TEXT - стринг или масив от стрингове с текст, който ще се добавя след продукта
-     *
+     * DEP_NUM - номер на департамнет. Ако е зададен (от 0-99), се добавя от този департамент
+     * 
      * DATE_TIME - времето за синхронизира във формат 'd-m-Y H:i:s'. Ако е false - няма да се синхронизира
      *
      * SERIAL_NUMBER - серийния номер на принтера за проверка. Ако е false - няма да се проверява. Ако има разминаване - спира процеса.
@@ -127,9 +128,20 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
      * UIC_TYPE_STR - типа на UIC номера - bulstat, EGN, FN, NRA
      * RELATED_TO_INV_NUM - 10 символа за фактурата, която се сторница
      * RELATED_TO_INV_DATE_TIME - дата и час на фактурата, която ще се сторнира - може да се попълни от QR_CODE_DATA, ако не е попълнено
-     * 
      * Другите параметри са: OPER_NUM, OPER_PASS, PRINT_TYPE_STR - като при издаване на ФБ
      * Другите параметри са: STORNO_REASON, RELATED_TO_RCP_NUM, FM_NUM, RELATED_TO_URN, QR_CODE_DATA - като при издаване на СТОРНО
+     * 
+     * // Параметри са издаване на фактура
+     * IS_INVOICE - дали се създава фактура
+     * RECIPIENT - 26 символа за получателя на фактурата
+     * BUYER - 16 симвла за купувача
+     * VAT_NUMBER - 13 символа за VAT номер
+     * UIC - 13 символа за UIC номер на клиента
+     * ADDRESS - 30 символа за адрес на клиента
+     * UIC_TYPE_STR - типа на UIC номера - bulstat, EGN, FN, NRA
+     * RCP_NUM - уникален номер на бележката - [a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[0-9]{7} - не е задължителен
+     * 
+     * Другите параметри са: OPER_NUM, OPER_PASS, PRINT_TYPE_STR - като при издаване на ФБ
      * 
      * @return string
      *
@@ -163,8 +175,25 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
         setIfNot($params['PRINT_TYPE_STR'], 'buffered');
         
         if (!$params['IS_STORNO'] && !$params['IS_CREDIT_NOTE']) {
-            expect($params['RCP_NUM'] && preg_match($this->rcpNumPattern, $params['RCP_NUM']));
-            $js->replace(json_encode($params['RCP_NUM']), 'RCP_NUM');
+            if ($params['IS_INVOICE']) {
+                $js->replace(json_encode($params['RECIPIENT']), 'RECIPIENT');
+                $js->replace(json_encode($params['BUYER']), 'BUYER');
+                $js->replace(json_encode($params['VAT_NUMBER']), 'VAT_NUMBER');
+                $js->replace(json_encode($params['UIC']), 'UIC');
+                $js->replace(json_encode($params['ADDRESS']), 'ADDRESS');
+                $js->replace(json_encode($params['UIC_TYPE_STR']), 'UIC_TYPE_STR');
+                $js->replace(json_encode($params['RCP_NUM']), 'RCP_NUM');
+                
+                $js->removeBlock('OPEN_FISC_RECEIPT_1');
+                $js->removeBlock('OPEN_FISC_RECEIPT_2');
+            } else {
+                
+                $js->removeBlock('OPEN_FISC_INVOICE_1');
+                $js->removeBlock('OPEN_FISC_INVOICE_2');
+                
+                expect($params['RCP_NUM'] && preg_match($this->rcpNumPattern, $params['RCP_NUM']));
+                $js->replace(json_encode($params['RCP_NUM']), 'RCP_NUM');
+            }
             
             $js->removeBlock('OPEN_STORNO_RECEIPT_1');
             $js->removeBlock('OPEN_STORNO_RECEIPT_2');
@@ -221,6 +250,8 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
             
             $js->removeBlock('OPEN_FISC_RECEIPT_1');
             $js->removeBlock('OPEN_FISC_RECEIPT_2');
+            $js->removeBlock('OPEN_FISC_INVOICE_1');
+            $js->removeBlock('OPEN_FISC_INVOICE_2');
             
             if ($params['IS_CREDIT_NOTE']) {
                 $js->replace(json_encode($params['RECIPIENT']), 'RECIPIENT');
@@ -276,6 +307,14 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
             if (isset($pArr['AFTER_PLU_TEXT'])) {
                 $this->replaceTextArr($pArr['AFTER_PLU_TEXT'], $fpSalePLU, 'AFTER_PLU_TEXT', true, $maxTextLen);
             }
+            
+            if (isset($pArr['DEP_NUM'])) {
+                expect(is_numeric($pArr['DEP_NUM']) && ($pArr['DEP_NUM'] >= 0) && ($pArr['DEP_NUM'] <= 99));
+            } else {
+                $pArr['DEP_NUM'] = 'false';
+            }
+            
+            $fpSalePLU->replace($pArr['DEP_NUM'], 'DEP_NUM');
             
             $fpSalePLU->removeBlocks();
             $fpSalePLU->append2master();
@@ -495,7 +534,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
     protected function addTplFile(&$tpl, $driverVersion)
     {
         if (!$driverVersion) {
-            $driverVersion = '19.03.22';
+            $driverVersion = '19.10.21';
         }
         
         // Добавяме необходимите JS файлове
@@ -517,7 +556,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
     {
         // Задаваме настройките за връзка със сървъра
         $tpl->replace(json_encode($pRec->serverIp), 'SERVER_IP');
-        $tpl->replace(json_encode($pRec->serverTcpPort), SERVER_TCP_PORT);
+        $tpl->replace(json_encode($pRec->serverTcpPort), 'SERVER_TCP_PORT');
         
         if ($setDeviceSettings) {
             // Свързваме се с ФП
@@ -644,74 +683,100 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
                 // След запис, обновяваме хедър и футъра
                 if ($update) {
                     
-                    // Вземаме серийния номер от ФУ
-                    $setSerialUrl = toUrl(array($Driver, 'setSerialNumber', $data->rec->id), 'local');
-                    $setSerialUrl = urlencode($setSerialUrl);
-                    $updateSn = "try {
+                    // @todo - временно е спряно
+//                     if (($update == 'department') || ($update == '1')) {
+//                         // Вземаме начините на плащане от ФУ
+//                         $setDepartments = toUrl(array($Driver, 'SetDepartments', $data->rec->id), 'local');
+//                         $setDepartments = urlencode($setDepartments);
+//                         $updateSn = "try {
+//                                      var depArr = fpGetDepArr();
+//                                      depArr = JSON.stringify(depArr);
+//                                      getEfae().process({url: '{$setDepartments}'}, {depArr: depArr});
+//                                  } catch(ex) {
+//                                      render_showToast({timeOut: 800, text: '" . tr('Грешка при добавяне на плащания') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
+//                                  }";
+                        
+//                         $jsTpl->prepend($updateSn, 'OTHER');
+                        
+//                     }
+                    
+                    if (($update == 'sn') || ($update == '1')) {
+                        // Вземаме серийния номер от ФУ
+                        $setSerialUrl = toUrl(array($Driver, 'setSerialNumber', $data->rec->id), 'local');
+                        $setSerialUrl = urlencode($setSerialUrl);
+                        $updateSn = "try {
                                      getEfae().process({url: '{$setSerialUrl}'}, {serial: sn});
                                  } catch(ex) {
                                      render_showToast({timeOut: 800, text: '" . tr('Грешка при обновяване на серийния номер') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
                                  }";
-                    $jsTpl->prepend($updateSn, 'OTHER');
+                        $jsTpl->prepend($updateSn, 'OTHER');
+                    }
                     
-                    // Вземаме паролата от ФУ
-                    $setOperPassUrl = toUrl(array($Driver, 'SetOperPass', $data->rec->id), 'local');
-                    $setOperPassUrl = urlencode($setOperPassUrl);
-                    $updateSn = "try {
+                    if (($update == 'opass') || ($update == '1')) {
+                        // Вземаме паролата от ФУ
+                        $setOperPassUrl = toUrl(array($Driver, 'SetOperPass', $data->rec->id), 'local');
+                        $setOperPassUrl = urlencode($setOperPassUrl);
+                        $updateSn = "try {
                                      var operPass = fpGetOperPass();
                                      getEfae().process({url: '{$setOperPassUrl}'}, {operPass: operPass});
                                  } catch(ex) {
                                      render_showToast({timeOut: 800, text: '" . tr('Грешка при промяна на парола за връзка с ФУ') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
                                  }";
+                        
+                        $jsTpl->prepend($updateSn, 'OTHER');
+                    }
                     
-                    $jsTpl->prepend($updateSn, 'OTHER');
-                    
-                    // Вземаме начините на плащане от ФУ
-                    $setDefaultPaymenst = toUrl(array($Driver, 'SetDefPayments', $data->rec->id), 'local');
-                    $setDefaultPaymenst = urlencode($setDefaultPaymenst);
-                    $updateSn = "try {
+                    if (($update == 'payments') || ($update == '1')) {
+                        // Вземаме начините на плащане от ФУ
+                        $setDefaultPaymenst = toUrl(array($Driver, 'SetDefPayments', $data->rec->id), 'local');
+                        $setDefaultPaymenst = urlencode($setDefaultPaymenst);
+                        $updateSn = "try {
                                      var defPaym = fpGetDefPayments();
                                      defPaym = JSON.stringify(defPaym);
                                      getEfae().process({url: '{$setDefaultPaymenst}'}, {defPaym: defPaym});
                                  } catch(ex) {
                                      render_showToast({timeOut: 800, text: '" . tr('Грешка при добавяне на плащания') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'notice'});
                                  }";
+                        
+                        $jsTpl->prepend($updateSn, 'OTHER');
+                    }
                     
-                    $jsTpl->prepend($updateSn, 'OTHER');
-                    
-                    // Сверяваме времето
-                    $now = json_encode(date('d-m-Y H:i:s'));
-                    $updateTime = "try {
+                    if (($update == 'date') || ($update == '1')) {
+                        // Сверяваме времето
+                        $now = json_encode(date('d-m-Y H:i:s'));
+                        $updateTime = "try {
                                     fpSetDateTime({$now});
                                 } catch(ex) {
                                     render_showToast({timeOut: 800, text: '" . tr('Не може да се синхронизира времето') . ": ' + ex.message, isSticky: false, stayTime: 12000, type: 'warning'});
                                 }";
-                    $jsTpl->prepend($updateTime, 'OTHER');
+                        $jsTpl->prepend($updateTime, 'OTHER');
+                    }
                     
-                    // Нулираме другихте хедъри
-                    $headersTextStr = '';
-                    
-                    $maxTextLen = ($data->rec->fpType == 'fiscalPrinter') ? $Driver->fpLen : $Driver->crLen;
-                    
-                    if ($data->rec->header == 'yes') {
-                        for ($i = 1; $i <= 7; $i++) {
-                            $h = headerText . $i;
-                            $ht = (string) $data->rec->{$h};
-                            $ht = self::formatText($ht, $data->rec->headerPos, $maxTextLen);
-                            $ht = json_encode($ht);
-                            $headersTextStr .= "fpProgramHeader({$ht}, {$i});";
+                    if (($update == 'hf') || ($update == '1')) {
+                        // Нулираме другихте хедъри
+                        $headersTextStr = '';
+                        
+                        $maxTextLen = ($data->rec->fpType == 'fiscalPrinter') ? $Driver->fpLen : $Driver->crLen;
+                        
+                        if ($data->rec->header == 'yes') {
+                            for ($i = 1; $i <= 7; $i++) {
+                                $h = headerText . $i;
+                                $ht = (string) $data->rec->{$h};
+                                $ht = self::formatText($ht, $data->rec->headerPos, $maxTextLen);
+                                $ht = json_encode($ht);
+                                $headersTextStr .= "fpProgramHeader({$ht}, {$i});";
+                            }
                         }
-                    }
-                    $footerTextStr = '';
-                    if ($data->rec->footer == 'yes') {
-                        $ft = (string) $data->rec->footerText;
-                        $ft = self::formatText($ft, $data->rec->footerPos, $maxTextLen);
-                        $ft = json_encode($ft);
-                        $footerTextStr = "fpProgramFooter({$ft});";
-                    }
-                    
-                    if ($headersTextStr || $footerTextStr) {
-                        $headerText = "try {
+                        $footerTextStr = '';
+                        if ($data->rec->footer == 'yes') {
+                            $ft = (string) $data->rec->footerText;
+                            $ft = self::formatText($ft, $data->rec->footerPos, $maxTextLen);
+                            $ft = json_encode($ft);
+                            $footerTextStr = "fpProgramFooter({$ft});";
+                        }
+                        
+                        if ($headersTextStr || $footerTextStr) {
+                            $headerText = "try {
                                         {$headersTextStr}
                                     } catch(ex) {
                                         render_showToast({timeOut: 800, text: '" . tr('Грешка при програмиране на хедъра на устройството') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
@@ -723,6 +788,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
                                         render_showToast({timeOut: 800, text: '" . tr('Грешка при програмиране на футъра на устройството') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
                                     }";
                                         $jsTpl->append($headerText, 'OTHER');
+                        }
                     }
                 }
                 
@@ -872,6 +938,43 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
     
     
     /**
+     * Екшън за добавяне на департаменти
+     *
+     * @return array
+     */
+    public function act_SetDepartments()
+    {
+        expect(Request::get('ajax_mode'));
+        
+        peripheral_Devices::requireRightFor('single');
+        
+        $operPass = Request::get('operPass');
+        $id = Request::get('id', 'int');
+        
+        expect($id);
+        
+        $pRec = peripheral_Devices::fetch($id);
+        
+        expect($pRec);
+        
+        peripheral_Devices::requireRightFor('single', $id);
+        peripheral_Devices::requireRightFor('edit', $id);
+        
+        $depArr = Request::get('depArr');
+        
+        $depArr = json_decode($depArr, true);
+        
+        if ($depArr) {
+            $pRec->otherData['depArr'] = $depArr;
+            
+            peripheral_Devices::save($pRec, 'otherData');
+        }
+        
+        return array();
+    }
+    
+    
+    /**
      * Екшън за печат на дубликат
      */
     public function act_PrintDuplicate()
@@ -997,6 +1100,19 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
             }
         }
         
+        if ($rec->report == 'number') {
+            if ($rec->printType == 'save') {
+                $outType = $rec->saveType;
+            } else {
+                $outType = 'print';
+            }
+            
+            $outType = strtolower($outType);
+            $outType = json_encode($outType);
+            
+            $fnc = "fpPrintOrStoreEJByRcpNum({$outType}, {$rec->fromNum}, {$rec->toNum})";
+        }
+        
         expect($fnc);
         
         $fnc .= ';';
@@ -1028,5 +1144,71 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
         
         $this->addTplFile($jsTpl, $pRec->driverVersion);
         $this->connectToPrinter($jsTpl, $pRec, false);
+    }
+    
+    
+    /**
+     * Връща диапазона на фактурите
+     *
+     * @param stdClass $pRec
+     * @param null|core_Et $jsTpl
+     *
+     * @return array|null
+     *
+     * @see tremol_FiscPrinterDriverParent::getResForReport()
+     */
+    protected function getInvoiceRange($pRec, &$jsTpl = null)
+    {
+        $jsTpl = new ET("[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+                            try {
+                                [#/tremol/js/FiscPrinterTplConnect.txt#]
+                                var res = fp.ReadInvoiceRange();
+                                if (res) {
+                                    if (res.StartNum) {
+                                        $('.startNum').attr('placeholder', res.StartNum);
+                                    }
+                                    if (res.EndNum) {
+                                        $('.endNum').attr('placeholder', res.EndNum);
+                                    }
+                                }
+                            } catch(ex) { }
+                            [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]
+                        ");
+        
+        $this->addTplFile($jsTpl, $pRec->driverVersion);
+        $this->connectToPrinter($jsTpl, $pRec, false);
+    }
+    
+    
+    /**
+     * Задава диапазон на фактурите
+     *
+     * @param stdClass $pRec
+     * @param int $from
+     * @param int $to
+     * @param null|core_Et $jsTpl
+     * @param array $retUrl
+     *
+     * @see tremol_FiscPrinterDriverParent::getResForReport()
+     */
+    protected function setInvoiceRange($pRec, $from, $to, &$jsTpl = null, $retUrl = array())
+    {
+        $retUrlDecoded = toUrl($retUrl);
+        
+        $jsTpl = new ET("[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+                            try {
+                                [#/tremol/js/FiscPrinterTplConnect.txt#]
+                                var res = fp.SetInvoiceRange({$from}, {$to});
+                                render_redirect({url: '{$retUrlDecoded}'});
+                            } catch(ex) {
+                                render_showToast({timeOut: 800, text: '" . tr('Грешка при задаване на диапазон във ФУ') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'error'});
+                            }
+                            [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]
+                        ");
+        
+        $this->addTplFile($jsTpl, $pRec->driverVersion);
+        $this->connectToPrinter($jsTpl, $pRec, false);
+        
+        return ;
     }
 }

@@ -14,33 +14,21 @@ defIfNot('SALES_DEFAULT_VALIDITY_OF_QUOTATION', '2592000');
 
 
 /**
+ * Сумиране на статистически данни
+ */
+defIfNot('SALES_STATISTIC_DATA_FOR_THE_LAST', 6 * core_DateTime::SECONDS_IN_MONTH);
+
+
+/**
  * Начален номер на фактурите
  */
-defIfNot('SALE_INV_MIN_NUMBER1', '0');
+defIfNot('SALE_INV_MIN_NUMBER1', '1');
 
 
 /**
  * Групи за делта
  */
 defIfNot('SALES_DELTA_CAT_GROUPS', '');
-
-
-/**
- * Краен номер на фактурите
- */
-defIfNot('SALE_INV_MAX_NUMBER1', '2000000');
-
-
-/**
- * Начален номер на фактурите
- */
-defIfNot('SALE_INV_MIN_NUMBER2', '2000000');
-
-
-/**
- * Краен номер на фактурите
- */
-defIfNot('SALE_INV_MAX_NUMBER2', '3000000');
 
 
 /**
@@ -164,6 +152,36 @@ defIfNot('SALES_DELTA_MIN_PERCENT_PRIME_COST', '0.2');
 
 
 /**
+ * Дефолтен режим на ДДС в офертите
+ */
+defIfNot('SALES_QUOTATION_DEFAULT_CHARGE_VAT_BG', 'auto');
+
+
+/**
+ * Да се изчислява ли себестойноста на делтата на ЕН и СР лайв
+ */
+defIfNot('SALES_LIVE_CALC_SO_DELTAS', 'no');
+
+
+/**
+ * Дефолтно действие при създаване на нова продажба в папка
+ */
+defIfNot('SALES_NEW_SALE_AUTO_ACTION_BTN', 'form');
+
+
+/**
+ * Дефолтно действие при създаване на нова продажба в папка
+ */
+defIfNot('SALES_NEW_QUOTATION_AUTO_ACTION_BTN', 'form');
+
+
+/**
+ * Политика за предупреждение за минимални цени
+ */
+defIfNot('SALES_MIN_PRICE_POLICY', '');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -171,7 +189,7 @@ defIfNot('SALES_DELTA_MIN_PERCENT_PRIME_COST', '0.2');
  * @package sales
  *
  * @author Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license GPL 3
  *
  * @since v 0.1
@@ -221,22 +239,6 @@ class sales_Setup extends core_ProtoSetup
         'SALE_INV_VAT_DISPLAY' => array(
             'enum(no=Не,yes=Да)',
             'caption=Без закръгляне на ДДС за всеки ред от фактурите->Избор'
-        ),
-        'SALE_INV_MIN_NUMBER1' => array(
-            'int(min=0)',
-            'caption=Първи диапазон за номериране на фактури->Долна граница'
-        ),
-        'SALE_INV_MAX_NUMBER1' => array(
-            'int(min=0)',
-            'caption=Първи диапазон за номериране на фактури->Горна граница'
-        ),
-        'SALE_INV_MIN_NUMBER2' => array(
-            'int(min=0)',
-            'caption=Втори диапазон за номериране на фактури->Долна граница'
-        ),
-        'SALE_INV_MAX_NUMBER2' => array(
-            'int(min=0)',
-            'caption=Втори диапазон за номериране на фактури->Горна граница'
         ),
         'SALE_INV_HAS_FISC_PRINTERS' => array(
             'enum(no=Не,yes=Да)',
@@ -298,14 +300,26 @@ class sales_Setup extends core_ProtoSetup
             'time',
             'caption=Оферти->Валидност'
         ),
+        'SALES_QUOTATION_DEFAULT_CHARGE_VAT_BG' => array(
+            'enum(auto=Автоматично,yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)',
+            'caption=Режим на ДДС в офертите по подразбиране (клиенти от България)->Избор'
+        ),
+    
         'SALES_PROD_NAME_LENGTH' => array(
             'int(min=0)',
             'caption=Дължина на артикула в името на продажбата->Дължина, customizeBy=powerUser'
         ),
+        
+        'SALES_LIVE_CALC_SO_DELTAS' => array(
+            'enum(no=Договор,yes=ЕН/СР)',
+            'caption=Записване на себестойност за изчисляване на делти при контиране на->Избор'
+        ),
+        
         'SALES_DELTA_MIN_PERCENT' => array(
             'percent',
             'caption=Неснижаема делта->Стойност'
         ),
+        
         'SALES_DELTA_MIN_PERCENT_PRIME_COST' => array(
             'percent',
             'caption=Колко % от продажната цена да се приема за делта при липса на себестойност->Стойност'
@@ -314,7 +328,20 @@ class sales_Setup extends core_ProtoSetup
         'SALES_TRANSPORT_PRODUCTS_ID' => array(
             'keylist(mvc=cat_Products,select=name)',
             'mandatory,caption=Транспорт->Артикули,optionsFunc=sales_Setup::getPossibleTransportProducts'
-        )
+        ),
+        
+        'SALES_NEW_SALE_AUTO_ACTION_BTN' => array(
+            'enum(none=Няма,form=Форма за продажба,addProduct=Добавяне на артикул,createProduct=Създаване на артикул,importlisted=Списък от предишни продажби)',
+            'mandatory,caption=Действие на бързите бутони в папките->Продажба,customizeBy=ceo|sales|purchase',
+        ),
+        
+        'SALES_NEW_QUOTATION_AUTO_ACTION_BTN' => array(
+            'enum(none=Няма,form=Форма за оферта,addProduct=Добавяне на артикул,createProduct=Създаване на артикул)',
+            'mandatory,caption=Действие на бързите бутони в папките->Оферта,customizeBy=ceo|sales',
+        ),
+        'SALES_STATISTIC_DATA_FOR_THE_LAST' => array('time', 'caption=Изчисляване на рейтинги за продажба->Време назад'),
+    
+        'SALES_MIN_PRICE_POLICY' => array('key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика за минимални цени->Избор'),
     );
     
     
@@ -337,11 +364,10 @@ class sales_Setup extends core_ProtoSetup
         'sales_PrimeCostByDocument',
         'sales_TransportValues',
         'sales_ProductRelations',
-        'migrate::updateDeltaStates1',
-        'migrate::setContragentFieldKeylist3',
-        'migrate::updateDeltaFields',
-        'migrate::closeZDDSRep',
-        'migrate::migrateTransportsInDeals'
+        'sales_ProductRatings',
+        'migrate::migrateClosedWith',
+        'migrate::updateStoreIdInDeltas2',
+        'migrate::truncateRatings2',
     );
     
     
@@ -365,7 +391,7 @@ class sales_Setup extends core_ProtoSetup
      */
     public $defClasses = 'sales_SalesLastPricePolicy, 
                        sales_reports_ShipmentReadiness,sales_reports_PurBomsRep,sales_reports_OverdueByAdvancePayment,
-                       sales_reports_VatOnSalesWithoutInvoices,sales_reports_SoldProductsRep, sales_reports_PriceDeviation,sales_reports_OverdueInvoices,sales_reports_SalesByContragents';
+                       sales_reports_VatOnSalesWithoutInvoices,sales_reports_SoldProductsRep, sales_reports_PriceDeviation,sales_reports_OverdueInvoices,sales_reports_SalesByContragents,sales_interface_FreeRegularDelivery';
     
     /**
      * Настройки за Cron
@@ -396,8 +422,16 @@ class sales_Setup extends core_ProtoSetup
             'offset' => 190,
             'period' => 1440,
             'timeLimit' => 360
+        ),
+        array(
+            'systemId' => 'Gather Sale Statistic',
+            'description' => 'Изчисляване на рейтинги на артикулите в продажбите',
+            'controller' => 'sales_ProductRatings',
+            'action' => 'CalcRating',
+            'offset' => 190,
+            'period' => 1440,
+            'timeLimit' => 500
         )
-    
     );
     
     
@@ -513,161 +547,85 @@ class sales_Setup extends core_ProtoSetup
     
     
     /**
-     * Кеширане на допълнителни полета от документите
+     * Добавя втори рейндж на фактурите ако има такива
      */
-    public function updateDeltaFields()
+    public static function updateSecondInvoiceRange()
     {
-        $Deltas = cls::get('sales_PrimeCostByDocument');
-        $Deltas->setupMvc();
+        $Invoices = cls::get('sales_Invoices');
+        $query = $Invoices->getQuery();
+        $query->where('numlimit=2');
         
-        $query = 'UPDATE sales_prime_cost_by_document, doc_containers SET sales_prime_cost_by_document.folder_id = doc_containers.folder_id, sales_prime_cost_by_document.thread_id = doc_containers.thread_id WHERE sales_prime_cost_by_document.container_id = doc_containers.id';
-        $Deltas->db->query($query, false, true);
-        
-        $query2 = 'UPDATE sales_prime_cost_by_document, cat_products SET sales_prime_cost_by_document.is_public = cat_products.is_public WHERE sales_prime_cost_by_document.product_id = cat_products.id';
-        $Deltas->db->query($query2, false, true);
-        
-        $query3 = 'UPDATE sales_prime_cost_by_document, doc_folders SET sales_prime_cost_by_document.contragent_class_id = doc_folders.cover_class,sales_prime_cost_by_document.contragent_id = doc_folders.cover_id WHERE sales_prime_cost_by_document.folder_id = doc_folders.id';
-        $Deltas->db->query($query3, false, true);
-        
-        $query4 = 'UPDATE sales_prime_cost_by_document, doc_containers SET sales_prime_cost_by_document.state = doc_containers.state WHERE sales_prime_cost_by_document.container_id = doc_containers.id';
-        $Deltas->db->query($query4, false, true);
-    }
-    
-    
-    /**
-     * Миграция на състоянията
-     */
-    public function updateDeltaStates1()
-    {
-        $Deltas = cls::get('sales_PrimeCostByDocument');
-        $Deltas->setupMvc();
-        
-        $query = 'UPDATE sales_prime_cost_by_document, doc_containers SET sales_prime_cost_by_document.state = doc_containers.state WHERE sales_prime_cost_by_document.container_id = doc_containers.id';
-        $Deltas->db->query($query, false, true);
-    }
-    
-    
-    /**
-     * Миграция за корекция на `contragent` полетата в keylist
-     */
-    public static function setContragentFieldKeylist3()
-    {
-        $Reports = cls::get('frame2_Reports');
-        
-        $fQuery = $Reports::getQuery();
-        
-        $classIds = array();
-        $classIds[sales_reports_SalesByContragents::getClassId()] = sales_reports_SalesByContragents::getClassId();
-        $classIds[sales_reports_SoldProductsRep::getClassId()] = sales_reports_SoldProductsRep::getClassId();
-        
-        $fQuery-> in('driverClass', $classIds);
-        
-        while ($reportRec = $fQuery->fetch()) {
-            if (is_numeric($reportRec->driverRec['contragent']) && (!is_null($reportRec->driverRec['contragent']))) {
-                $contragentId = ($reportRec->driverRec['contragent']);
-                
-                $reportRec->driverRec['contragent'] = '|' . $contragentId . '|';
-                
-                $reportRec->contragent = '|' . $contragentId . '|';
-                
-                try {
-                    $Reports->save_;
-                } catch (Exception $e) {
-                    reportException($e);
-                }
-            }
+        if ($query->count()) {
+            cond_Ranges::add('sales_Invoices', 2000000, 2999999, null, 'acc,ceo', 2, false);
         }
     }
     
     
     /**
-     * Миграция за премахване на sales_reports_ZDDSRep
+     * Обновява рейтингите
      */
-    public static function closeZDDSRep()
+    public function truncateRatings2()
     {
-        $rec = core_Classes::fetch("#state = 'active' AND #name = 'sales_reports_ZDDSRep'");
-        if ($rec) {
-            $rec->state = 'closed';
-            core_Classes::save($rec, 'state');
-        }
+        $Ratings = cls::get('sales_ProductRatings');
+        $Ratings->setupMvc();
+        
+        $Ratings->truncate();
     }
     
     
     /**
-     * Oпит за миграция на транспорта
+     * Миграция да се записва склада в модела за делтите
      */
-    function migrateTransportsInDeals()
+    public function updateStoreIdInDeltas2()
     {
+        $Deltas = cls::get('sales_PrimeCostByDocument');
+        $Deltas->setupMvc();
+        
+        if (!$Deltas->count()) {
+            return;
+        }
+        
+        $Products = cls::get('cat_Products');
+        $Products->setupMvc();
+        
         $Sales = cls::get('sales_Sales');
         $Sales->setupMvc();
-        if(!$Sales->count()) return;
-        core_App::setTimeLimit(800);
         
-        $SaleDetails = cls::get('sales_SalesDetails');
-        $SaleDetails->setupMvc();
+        $Shipments = cls::get('store_ShipmentOrders');
+        $Shipments->setupMvc();
         
-        // Кои начини на доставка имат калкулатор за транспорт
-        $Terms = cls::get('cond_DeliveryTerms');
-        $Terms->setupMvc();
-        $dTermQuery = $Terms->getQuery();
-        $dTermQuery->where("#costCalc IS NOT NULL");
-        $dTermQuery->show('id');
-        $termsWithCalcs = arr::extractValuesFromArray($dTermQuery->fetchAll(), 'id');
-        if(!count($termsWithCalcs)) return;
+        $Receipts = cls::get('store_Receipts');
+        $Receipts->setupMvc();
+        $Containers = cls::get('doc_Containers');
         
-        // Намиране на продажбите, с избраните начини на доставка
-        $startDate = '2019-10-28 00:00:00';
-        $saleQuery = $Sales->getQuery();
-        $saleQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=originId');
-        $saleQuery->where("#createdOn >= '{$startDate}'");
-        $saleQuery->where("#state != 'rejected' AND #originId IS NOT NULL AND #deliveryTermId IS NOT NULL");
-        $saleQuery->where("#docClass =" . sales_Quotations::getClassId());
-        $saleQuery->in('deliveryTermId', $termsWithCalcs);
-        $saleQuery->show('id,originId');
+        $productCol = str::phpToMysqlName('productId');
+        $containerCol = str::phpToMysqlName('containerId');
+        $docIdCol = str::phpToMysqlName('docId');
+        $shipmentStoreIdCol = str::phpToMysqlName('shipmentStoreId');
+        $storeCol = str::phpToMysqlName('storeId');
+        $docClassCol = str::phpToMysqlName('docClass');
+        $canStoreCol = str::phpToMysqlName('can_store');
         
-        while ($saleRec = $saleQuery->fetch()){
-            
-            try{
-                // Извличат се детайлите на офертите, към които са създадени
-                $quoteOrigin = doc_Containers::getDocument($saleRec->originId);
-                $quoteDetails = sales_QuotationsDetails::getQuery();
-                $quoteDetails->where("#quotationId = {$quoteOrigin->that}");
-                $quoteDetails->show('productId,packagingId,notes,quantity,quotationId');
-                $quoteDetails->orderBy('optional', 'DESC');
-                $quoteRecs = $quoteDetails->fetchAll();
-                
-                // Всички детайли към продажбата
-                $dQuery = $SaleDetails->getQuery();
-                $dQuery->show('productId,packagingId,notes,quantity,saleId');
-                $dQuery->where("#saleId = {$saleRec->id}");
-                while($dRec = $dQuery->fetch()){
-                    
-                    // Ако има транспорт към нея, не се прави нищо
-                    $tRec = sales_TransportValues::get('sales_Sales', $saleRec->id, $dRec->id);
-                    if(is_object($tRec)) continue;
-                    $continue = false;
-                    
-                    // Ако няма се търси в оригиналната оферта имали ред със същите данни
-                    foreach ($quoteRecs as $quoteRec){
-                        if($quoteRec->productId == $dRec->productId && $quoteRec->packagingId == $dRec->packagingId && md5($quoteRec->notes) == md5($dRec->notes) && $dRec->quantity == $quoteRec->quantity){
-                            
-                            // И той има транспорт
-                            $qRec = sales_TransportValues::get('sales_Quotations', $quoteRec->quotationId, $quoteRec->id);
-                            if (isset($qRec->fee)) {
-                                
-                                // Транспорта се копира
-                                sales_TransportValues::sync('sales_Sales', $saleRec->id, $dRec->id, $qRec->fee, $qRec->deliveryTime, $qRec->explain);
-                                $continue = true;
-                                break;
-                            }
-                        }
-                    }
-                    
-                    if($continue) continue;
-                }
-            } catch(core_exception_Expect $e){
-                
-            }
-        }
+        $salesClassId = sales_Sales::getClassId();
+        $storeShipmentClassId = store_ShipmentOrders::getClassId();
+        $storeReceiptsClassId = store_Receipts::getClassId();
+        
+        $query = "UPDATE {$Deltas->dbTableName} JOIN {$Products->dbTableName} ON {$Products->dbTableName}.id = {$Deltas->dbTableName}.{$productCol} JOIN {$Containers->dbTableName} ON {$Deltas->dbTableName}.{$containerCol} = {$Containers->dbTableName}.id RIGHT JOIN {$Sales->dbTableName} ON {$Sales->dbTableName}.id = {$Containers->dbTableName}.{$docIdCol} SET {$Deltas->dbTableName}.{$storeCol} = {$Sales->dbTableName}.{$shipmentStoreIdCol} WHERE {$Containers->dbTableName}.{$docClassCol} = {$salesClassId} AND {$Products->dbTableName}.{$canStoreCol} = 'yes' AND {$Deltas->dbTableName}.{$storeCol} IS NULL";
+        $Deltas->db->query($query);
+        
+        $query = "UPDATE {$Deltas->dbTableName} JOIN {$Products->dbTableName} ON {$Products->dbTableName}.id = {$Deltas->dbTableName}.{$productCol} JOIN {$Containers->dbTableName} ON {$Deltas->dbTableName}.{$containerCol} = {$Containers->dbTableName}.id RIGHT JOIN {$Shipments->dbTableName} ON {$Shipments->dbTableName}.id = {$Containers->dbTableName}.{$docIdCol} SET {$Deltas->dbTableName}.{$storeCol} = {$Shipments->dbTableName}.{$storeCol} WHERE {$Containers->dbTableName}.{$docClassCol} = {$storeShipmentClassId} AND {$Products->dbTableName}.{$canStoreCol} = 'yes' AND {$Deltas->dbTableName}.{$storeCol} IS NULL";
+        $Deltas->db->query($query);
+        
+        $query = "UPDATE {$Deltas->dbTableName} JOIN {$Products->dbTableName} ON {$Products->dbTableName}.id = {$Deltas->dbTableName}.{$productCol} JOIN {$Containers->dbTableName} ON {$Deltas->dbTableName}.{$containerCol} = {$Containers->dbTableName}.id RIGHT JOIN {$Receipts->dbTableName} ON {$Receipts->dbTableName}.id = {$Containers->dbTableName}.{$docIdCol} SET {$Deltas->dbTableName}.{$storeCol} = {$Receipts->dbTableName}.{$storeCol} WHERE {$Containers->dbTableName}.{$docClassCol} = {$storeReceiptsClassId} AND {$Products->dbTableName}.{$canStoreCol} = 'yes' AND {$Deltas->dbTableName}.{$storeCol} IS NULL";
+        $Deltas->db->query($query);
+    }
+    
+    
+    /**
+     * Обновява кеш полето за коя сделка с коя е приключена
+     */
+    function migrateClosedWith()
+    {
+        cls::get('deals_Setup')->updateClosedWith('sales_Sales', 'sales_ClosedDeals');
     }
 }

@@ -109,6 +109,7 @@ class drdata_Countries extends core_Manager
         $this->setDbUnique('commonName');
         $this->setDbIndex('letterCode2');
         $this->setDbIndex('letterCode3');
+        $this->setDbIndex('domain');
     }
     
     
@@ -232,9 +233,13 @@ class drdata_Countries extends core_Manager
             $country = drdata_Countries::fetch($mix)->{$field};
         } elseif (strlen($mix) == 2) {
             $country = drdata_Countries::fetch(array("#letterCode2 = '[#1#]'", $mix))->{$field};
-        } else {
-            expect(strlen($mix) == 3, $mix);
+        } elseif(strlen($mix) == 3) {
             $country = drdata_Countries::fetch(array("#letterCode3 = '[#1#]'", $mix))->{$field};
+        } else {
+            $cId = drdata_Countries::getIdByName($mix);
+            if($cId) {
+                $country = drdata_Countries::fetch($cId)->{$field};
+            }
         }
         
         return $country;
@@ -573,30 +578,23 @@ class drdata_Countries extends core_Manager
             $groupNameArr = explode('|', $rec->groupName);
             
             foreach ($groupNameArr as $name) {
-                $mustSave = false;
-                
                 $grRec = $saveArr[$name];
                 
                 if (!$grRec) {
-                    $grRec = $countryGroupsInst->fetch(array("#name = '[#1#]'", $name));
-                }
-                
-                if (!$grRec) {
+                    $grRecOld = $countryGroupsInst->fetch(array("#name = '[#1#]'", $name));
+                    
                     $grRec = new stdClass;
                     $grRec->name = $name;
-                    $grRec->createdOn = dt::verbal2mysql();
-                    $grRec->createdBy = core_Users::getCurrent();
-                }
-                
-                if (!keylist::isIn($fRec->id, $grRec->countries)) {
-                    $mustSave = true;
+                    $grRec->createdOn = $grRecOld->createdOn ? $grRecOld->createdOn : dt::verbal2mysql();
+                    $grRec->createdBy = isset($grRecOld->createdBy) ? $grRecOld->createdBy : core_Users::getCurrent();
+                    if ($grRecOld) {
+                        $grRec->id = $grRecOld->id;
+                    }
                 }
                 
                 $grRec->countries = keylist::addKey($grRec->countries, $fRec->id);
                 
-                if ($mustSave) {
-                    $saveArr[$name] = $grRec;
-                }
+                $saveArr[$name] = $grRec;
             }
         }
         

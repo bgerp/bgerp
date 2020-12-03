@@ -218,15 +218,15 @@ class select2_Adapter
             if (is_object($title)) {
                 $sVal->text = $title->title;
                 
-                $sVal->element = new stdClass();
+                $sVal->gElement = new stdClass();
                 
-                $sVal->element->className = $title->attr['class'];
+                $sVal->gElement->className = $title->attr['class'];
                 
                 if ($title->group) {
-                    $sVal->element->className .= ($sVal->element->className) ? ' ' : '';
-                    $sVal->element->className .= 'group';
+                    $sVal->gElement->className .= ($sVal->gElement->className) ? ' ' : '';
+                    $sVal->gElement->className .= 'group';
                     $sVal->group = true;
-                    $sVal->element->group = true;
+                    $sVal->gElement->group = true;
                     
                     $sVal->id = null;
                     $group = $sVal;

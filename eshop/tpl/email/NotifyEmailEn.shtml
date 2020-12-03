@@ -1,4 +1,4 @@
 <p>[#INTRODUCTION#]</p>
-<p>You have unfinished order from [#DATE#] in our online store [#LINK#]. </p>
-<p>If you don't complete it, it will be deleted in [#DELETE_TIME#]. </p>
+<p>You have unfinished order from [#DATE#] in our online store. You can buy the chosen products if you follow our link: [#LINK#]. </p>
+<p>If you don't complete your order, it will be deleted in [#DELETE_TIME#]. </p>
 <p>[#FOOTER#]</p>

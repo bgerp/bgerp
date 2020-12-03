@@ -264,7 +264,7 @@ class draw_Designs extends core_Master
         foreach ($sArr as $parsedLine) {
             list($cmd, $params, $l) = $parsedLine;
             
-            if (is_array($contex->_if) && count($contex->_if)) {
+            if (is_array($contex->_if) && countR($contex->_if)) {
                 $lastIf = array_pop($contex->_if);
                 $contex->_if[] = $lastIf;
                 
@@ -387,7 +387,7 @@ class draw_Designs extends core_Master
     
     public static function cmd_Else($params, &$svg, &$contex, &$error)
     {
-        if (!is_array($contex->_if) || !count($contex->_if)) {
+        if (!is_array($contex->_if) || !countR($contex->_if)) {
             $error = 'Грешка при ELSE';
             
             return false;
@@ -399,7 +399,7 @@ class draw_Designs extends core_Master
     
     public static function cmd_EndIf($params, &$svg, &$contex, &$error)
     {
-        if (!is_array($contex->_if) || !count($contex->_if)) {
+        if (!is_array($contex->_if) || !countR($contex->_if)) {
             $error = 'Грешка при затваряне на IF';
             
             return false;
@@ -1219,7 +1219,7 @@ class draw_Designs extends core_Master
             list($cmd, $params, $l) = $parsedLine;
             if ($cmd === 'input') {
                 $params = self::parseParams($params);
-                if (count($params) != 3 && count($params) != 2) {
+                if (countR($params) != 3 && countR($params) != 2) {
                     $error = "Очакват се два или три аргумента: {$l}";
                     
                     return false;
@@ -1246,9 +1246,9 @@ class draw_Designs extends core_Master
             }
         }
         
-        $form->input(null, 'silent');
-        
         $form->method = 'GET';
+        
+        $form->input(null, 'silent');
         
         $form->toolbar->addSbBtn('Обнови', 'default', false, 'ef_icon=img/16/arrow_refresh.png');
         $form->toolbar->addSbBtn('SVG', 'svg', false, 'ef_icon=fileman/icons/16/svg.png');

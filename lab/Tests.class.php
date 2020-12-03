@@ -651,7 +651,7 @@ class lab_Tests extends core_Master
             
             // Ако няма избрани потребители за нотифициране, не се прави нищо
             $userArr = keylist::toArray(lab_Tests::fetch($rec->id)->sharedUsers);
-            if (! count($userArr)) {
+            if (! countR($userArr)) {
                 
                 return;
             }

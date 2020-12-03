@@ -68,6 +68,13 @@ class label_Templates extends core_Master
     public $canReject = 'labelMaster, admin, ceo';
     
     
+    
+    /**
+     * Необходими роли за оттегляне на документа
+     */
+    public $canRestore = 'labelMaster, admin, ceo';
+    
+    
     /**
      * Кой може да променя състоянието на валутата
      */
@@ -107,7 +114,7 @@ class label_Templates extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'title, template, css';
+    public $searchFields = 'title, template, css, sizes';
     
     
     /**
@@ -153,10 +160,12 @@ class label_Templates extends core_Master
         $this->FLD('sizes', 'varchar(128)', 'caption=Размери, mandatory, width=100%');
         $this->FLD('classId', 'class(interface=label_SequenceIntf, select=title, allowEmpty)', 'caption=Източник->Клас');
         $this->FLD('peripheralDriverClassId', 'class(interface=peripheral_PrinterIntf, select=title, allowEmpty)', 'caption=Източник->Периферия');
+        
         $this->FLD('template', 'html(tinyEditor=no)', 'caption=Шаблон->HTML');
         $this->FLD('css', 'text', 'caption=Шаблон->CSS');
         $this->FLD('sysId', 'varchar', 'input=none');
         $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,width=2em');
+        $this->FLD('rendererClassId', 'class(interface=label_TemplateRendererIntf, select=title, allowEmpty)', 'caption=Източник->Рендер');
         
         $this->setDbUnique('sysId');
         $this->setDbIndex('classId');
@@ -391,14 +400,24 @@ class label_Templates extends core_Master
         $form->FNC('fClassId', 'varchar', 'caption=Източник');
         $form->setOptions('fClassId', array('' => '') + $sourceOptions);
         
-        $form->showFields = 'search,fClassId';
+        $q = $mvc->getQuery();
+        $q->groupBy('sizes');
+        $q->show('sizes');
+        $sArr = array();
+        $sArr[''] = '';
+        while ($qR = $q->fetch()) {
+            $sArr[$qR->sizes] = $qR->sizes;
+        }
+        $form->setSuggestions('sizes', $sArr);
+        
+        $form->showFields = 'search,fClassId,sizes';
         if (!core_Request::get('Rejected', 'int')) {
             $form->FNC('fState', 'enum(, active=Използвани, closed=Затворени)', 'caption=Всички, allowEmpty,autoFilter');
             $form->showFields .= ', fState';
             $form->setDefault('fState', 'active');
             
             // Инпутваме полетата
-            $form->input('fState,fClassId', 'silent');
+            $form->input('fState,fClassId,sizes', 'silent');
         }
         
         // Подреждане по състояние
@@ -414,6 +433,11 @@ class label_Templates extends core_Master
             } else {
                 $data->query->where(array("#classId = '[#1#]'", $classId));
             }
+        }
+        $sizes = $data->listFilter->rec->sizes;
+        $sizes = trim($sizes);
+        if ($sizes) {
+            $data->query->where(array("#sizes = '[#1#]'", $sizes));
         }
     }
     
@@ -483,7 +507,7 @@ class label_Templates extends core_Master
      *
      * @return string
      */
-    public static function placeArray($string, $placeArr)
+    public static function placeArray($string, $placeArr, $templateId = null)
     {
         if (!$string || !$placeArr) {
             
@@ -492,6 +516,17 @@ class label_Templates extends core_Master
         
         $nArr = array();
         $placeholders = self::getPlaceholders($string);
+        
+        if(isset($templateId)){
+            
+            // Ако има избран допълнителен клас за рендиране, дава му се възможност да се променят данните на етикета
+            if($rendererClassId = label_Templates::fetchField($templateId, 'rendererClassId')){
+                if(cls::load($rendererClassId, true)){
+                    $RendererIntf = cls::getInterface('label_TemplateRendererIntf', $rendererClassId);
+                    $RendererIntf->modifyLabelData($templateId, $string, $placeholders, $placeArr);
+                }
+            }
+        }
         
         // Всички плейсхолдъри, подменяме ги с главни букви
         if (is_array($placeholders)) {
@@ -503,7 +538,7 @@ class label_Templates extends core_Master
                 $replacePlaceholders[$oldPlaceholder] = $newPlaceholder;
             }
             
-            if (count($replacePlaceholders)) {
+            if (countR($replacePlaceholders)) {
                 $string = strtr($string, $replacePlaceholders);
             }
         }
@@ -580,14 +615,16 @@ class label_Templates extends core_Master
      * @param string|NULL $lang              - език на шаблона
      * @param mixed       $class             - клас към който да е шаблона
      * @param mixed       $peripheralClassId - драйвър на периферията
+     * @param mixed       $rendererClassId   - клас за рендиране
+     * 
      *
      * @return stdClass|FALSE - записа на шаблона или FALSE ако не е променян
      */
-    public static function addFromFile($title, $filePath, $sysId, $sizes = array(), $lang = 'bg', $class = null, $peripheralClassId = null)
+    public static function addFromFile($title, $filePath, $sysId, $sizes = array(), $lang = 'bg', $class = null, $peripheralClassId = null, $rendererClassId = null)
     {
         // Проверки на данните
         expect(in_array($lang, array('bg', 'en')), $lang);
-        expect(is_array($sizes) && count($sizes) == 2, $sizes);
+        expect(is_array($sizes) && countR($sizes) == 2, $sizes);
         $sizes = array_values($sizes);
         $sizes = implode('x', $sizes) . ' mm';
         expect($path = getFullPath($filePath), $path);
@@ -605,7 +642,7 @@ class label_Templates extends core_Master
         }
         
         $isContentTheSame = md5($exRec->template) == $templateHash;
-        
+       
         // Ако подадените параметри са същите като съществуващите, не се обновява/създава нищо
         if ($isContentTheSame && $exRec->title == $title && $exRec->title == $title && $exRec->sizes == $sizes && $exRec->lang == $lang && $exRec->classId == $classId) {
             
@@ -633,10 +670,68 @@ class label_Templates extends core_Master
             $exRec->peripheralDriverClassId = cls::get($peripheralClassId)->getClassId();
         }
         
+        if (isset($rendererClassId)) {
+            $exRec->rendererClassId = cls::get($rendererClassId)->getClassId();
+        }
+        
         // Създаване/обновяване на шаблона
         static::save($exRec);
         
         return $exRec;
+    }
+    
+    
+    /**
+     * Добавяне  на дефолтен шаблон
+     * 
+     * @param string $sysId
+     * @param $array $array
+     * @param int $modified
+     * @param int $skipped
+     * 
+     * @return void
+     */
+    public static function addDefaultLabelsFromArray($sysId, $array, &$modified, &$skipped)
+    {
+        $tRec = self::addFromFile($array['title'], $array['path'], $sysId, $array['sizes'], $array['lang'], $array['class'], $array['peripheralDriverClass'], $array['rendererClassId']);
+        
+        if ($tRec !== false) {
+            label_TemplateFormats::delete("#templateId = {$tRec->id}");
+            $arr = static::getPlaceholders($tRec->template);
+            if (is_array($arr)) {
+                foreach ($arr as $placeholder) {
+                    if (in_array($placeholder, self::$systemPlaceholders)) {
+                        continue;
+                    }
+                    
+                    if ($placeholder == 'BARCODE') {
+                        $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'code128', 'Ratio' => '4', 'Width' => '160', 'Height' => '60', 'Rotation' => 'yes');
+                        label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
+                    } elseif ($placeholder == 'EAN') {
+                        $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'ean13', 'Ratio' => '4', 'Width' => '260', 'Height' => '70', 'Rotation' => 'no');
+                        label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
+                    } elseif($placeholder == 'QR_CODE'){
+                        $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'qr', 'Ratio' => '4', 'Width' => '60', 'Height' => '60', 'Rotation' => 'no');
+                        label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
+                    } elseif($placeholder == 'BARCODE_WORK_CARDS'){
+                        $params = array('Showing' => 'barcode', 'BarcodeType' => 'code128', 'Ratio' => '4', 'Width' => '120', 'Height' => '60', 'Rotation' => 'no');
+                        label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
+                    } else {
+                        $type = 'caption';
+                        $params = array();
+                        if ($placeholder == 'PREVIEW') {
+                            $type = ($placeholder == 'PREVIEW') ? 'image' : 'caption';
+                            $params = array('Width' => planning_Setup::get('TASK_LABEL_PREVIEW_WIDTH'), 'Height' => planning_Setup::get('TASK_LABEL_PREVIEW_HEIGHT'));
+                        }
+                        
+                        label_TemplateFormats::addToTemplate($tRec->id, $placeholder, $type, $params);
+                    }
+                }
+            }
+            $modified++;
+        } else {
+            $skipped++;
+        }
     }
     
     
@@ -648,6 +743,7 @@ class label_Templates extends core_Master
         $res = '';
         $modified = $skipped = 0;
         $array = array('defaultTplPack' => array('title' => 'Етикети от опаковки', 'path' => 'label/tpl/DefaultLabelPack.shtml', 'lang' => 'bg', 'class' => 'cat_products_Packagings', 'sizes' => array('100', '72')),
+                       'defaultTplPack' => array('title' => 'Етикети от протоколи за производство', 'path' => 'label/tpl/DefaultLabelProductionNote.shtml', 'lang' => 'bg', 'class' => 'planning_DirectProductionNote', 'sizes' => array('100', '72')),
                        'defaultTplPackiningList' => array('title' => 'Packaging List label', 'path' => 'label/tpl/DefaultLabelPallet.shtml', 'lang' => 'en', 'class' => 'store_ShipmentOrders', 'sizes' => array('170', '105')),
                        'defaultTplPriceList' => array('title' => 'Ценоразпис без EAN', 'path' => 'label/tpl/DefaultPricelist.shtml', 'lang' => 'bg', 'class' => 'price_reports_PriceList', 'sizes' => array('64.5', '33.5')),
                        'defaultTplPriceListEan' => array('title' => 'Ценоразпис с EAN', 'path' => 'label/tpl/DefaultPricelistEAN.shtml', 'lang' => 'bg', 'class' => 'price_reports_PriceList', 'sizes' => array('64.5', '33.5')),
@@ -657,45 +753,7 @@ class label_Templates extends core_Master
         
         core_Users::forceSystemUser();
         foreach ($array as $sysId => $cArr) {
-            $tRec = self::addFromFile($cArr['title'], $cArr['path'], $sysId, $cArr['sizes'], $cArr['lang'], $cArr['class'], $cArr['peripheralDriverClass']);
-            
-            if ($tRec !== false) {
-                label_TemplateFormats::delete("#templateId = {$tRec->id}");
-                $arr = $this->getPlaceholders($tRec->template);
-                if (is_array($arr)) {
-                    foreach ($arr as $placeholder) {
-                        if (in_array($placeholder, self::$systemPlaceholders)) {
-                            continue;
-                        }
-                        
-                        if ($placeholder == 'BARCODE') {
-                            $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'code128', 'Ratio' => '4', 'Width' => '160', 'Height' => '60', 'Rotation' => 'yes');
-                            label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
-                        } elseif ($placeholder == 'EAN') {
-                            $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'ean13', 'Ratio' => '4', 'Width' => '260', 'Height' => '70', 'Rotation' => 'no');
-                            label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
-                        } elseif($placeholder == 'QR_CODE'){
-                            $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'qr', 'Ratio' => '4', 'Width' => '60', 'Height' => '60', 'Rotation' => 'no');
-                            label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
-                        } elseif($placeholder == 'BARCODE_WORK_CARDS'){
-                            $params = array('Showing' => 'barcode', 'BarcodeType' => 'code128', 'Ratio' => '4', 'Width' => '120', 'Height' => '60', 'Rotation' => 'no');
-                            label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
-                        } else {
-                            $type = 'caption';
-                            $params = array();
-                            if ($placeholder == 'PREVIEW') {
-                                $type = ($placeholder == 'PREVIEW') ? 'image' : 'caption';
-                                $params = array('Width' => planning_Setup::get('TASK_LABEL_PREVIEW_WIDTH'), 'Height' => planning_Setup::get('TASK_LABEL_PREVIEW_HEIGHT'));
-                            }
-                            
-                            label_TemplateFormats::addToTemplate($tRec->id, $placeholder, $type, $params);
-                        }
-                    }
-                }
-                $modified++;
-            } else {
-                $skipped++;
-            }
+            static::addDefaultLabelsFromArray($sysId, $cArr, $modified, $skipped);
         }
         core_Users::cancelSystemUser();
         

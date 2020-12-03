@@ -79,7 +79,7 @@ class cat_UoM extends core_Manager
     /**
      * Полета за лист изгледа
      */
-    public $listFields = 'id,name,shortName=Съкращение,baseUnitId,sysId=System Id,round=Точност,showContents,defQuantity,state,createdOn,createdBy';
+    public $listFields = 'id,name,shortName=Съкращение,baseUnitId,sysId=System Id,round,roundSignificant,showContents,defQuantity,state,createdOn,createdBy';
     
     
     /**
@@ -115,8 +115,8 @@ class cat_UoM extends core_Manager
         $this->FLD('sinonims', 'varchar(255)', 'caption=Синоними');
         $this->FLD('showContents', 'enum(yes=Показване,no=Скриване)', 'caption=Показване в документи->К-во в опаковка,smartCenter');
         $this->FLD('defQuantity', 'double(smartRound)', 'caption=Показване в документи->Дефолтно к-во');
-        $this->FLD('round', 'int', 'caption=Точност след десетичната запетая->Цифри');
-        
+        $this->FLD('round', 'int', 'caption=Точност->Дробни цифри (брой)');
+        $this->FLD('roundSignificant', 'int', 'caption=Точност->Значещи цифри (минимум)');
         
         $this->setDbUnique('name');
         $this->setDbUnique('shortName');
@@ -305,10 +305,9 @@ class cat_UoM extends core_Manager
         expect($rec = static::fetch($measureId, 'baseUnitId,id'), 'Няма такава мярка');
         
         $query = static::getQuery();
+        $query->where("#state = 'active'");
         $baseId = ($rec->baseUnitId) ? $rec->baseUnitId : $rec->id;
-        
-        $query->where("#baseUnitId = {$baseId}");
-        $query->orWhere("#id = {$baseId}");
+        $query->where("#baseUnitId = {$baseId} OR #id = {$baseId}");
         $query->show('shortName,name');
         
         $options = array();
@@ -317,7 +316,7 @@ class cat_UoM extends core_Manager
             $options[$op->id] = $cap;
         }
         
-        if (count($options)) {
+        if (countR($options)) {
             $options = array('' => '') + $options;
         }
         
@@ -402,18 +401,20 @@ class cat_UoM extends core_Manager
      */
     public static function getShortName($id)
     {
-        static $uoms;
+        static $uoms = array();
         
         if (!$id) {
             
             return '???';
         }
         
-        if (empty($uoms[$id])) {
-            $uoms[$id] = static::fetchField($id, 'shortName');
-        }
+        $cLg = core_Lg::getCurrent();
         
-        return $uoms[$id];
+        if (empty($uoms[$cLg][$id])) {
+            $uoms[$cLg][$id] = static::getVerbal($id, 'shortName');
+        } 
+        
+        return $uoms[$cLg][$id];
     }
     
     
@@ -467,7 +468,9 @@ class cat_UoM extends core_Manager
             6 => 'sinonims',
             7 => 'round',
             8 => 'type',
-            9 => 'defQuantity');
+            9 => 'defQuantity',
+            10 => 'roundSignificant'
+        );
         
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
         $res .= $cntObj->html;
@@ -539,6 +542,12 @@ class cat_UoM extends core_Manager
         // Намира се коя мярка отговаря на това сис ид
         $typeUom = cat_UoM::fetchBySysId($sysId);
         
+        // Ако стойността е 0 не се прави конверсия
+        if($val == 0){
+            
+            return ($asObject) ? (object) (array('value' => 0, 'measure' => $typeUom->id)) : $val . ' ' . tr($typeUom->shortName);
+        }
+        
         // Извличат се мерките от същия тип и се премахва празния елемент в масива
         $sameMeasures = cat_UoM::getSameTypeMeasures($typeUom->id);
         unset($sameMeasures['']);
@@ -548,7 +557,7 @@ class cat_UoM extends core_Manager
             $sameMeasures[$typeUom->id] = $typeUom->name;
         }
         
-        if (count($sameMeasures) == 1) {
+        if (countR($sameMeasures) == 1) {
             
             // Ако мярката няма сродни мерки, сумата се конвертира в нея и се връща
             $val = cat_UoM::convertFromBaseUnit($val, $typeUom->id);
@@ -571,7 +580,7 @@ class cat_UoM extends core_Manager
             if ($amount >= 1) {
                 $all[$mId] = ($verbal) ? $Double->toVerbal($all[$mId]) : $all[$mId];
                 
-                return ($asObject) ? (object) (array('value' => $all[$mId], 'measure' => $mId)) : $all[$mId] . ' ' . tr(static::getShortName($mId));
+                return ($asObject) ? (object) (array('value' => $all[$mId], 'measure' => $mId)) : $all[$mId] . ' ' . static::getShortName($mId);
             }
         }
         
@@ -581,7 +590,7 @@ class cat_UoM extends core_Manager
         
         $all[$mId] = ($verbal) ? $Double->toVerbal($all[$mId]) : $all[$mId];
         
-        return ($asObject) ? (object) (array('value' => $all[$uomId], 'measure' => $mId)) : $all[$uomId] . ' ' . tr(static::getShortName($mId));
+        return ($asObject) ? (object) (array('value' => $all[$uomId], 'measure' => $mId)) : $all[$uomId] . ' ' . static::getShortName($mId);
     }
     
     

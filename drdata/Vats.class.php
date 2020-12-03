@@ -141,7 +141,7 @@ class drdata_Vats extends core_Manager
             if (!(strlen($vat = core_Type::escape(trim($form->input()->vat))))) {
                 $res = new Redirect(array($this, 'Check'), '|Не сте въвели VAT номер');
             } else {
-                list($status, ) = $this->check($vat);
+                list($status, ) = $this->check($vat, true);
                 switch ($status) {
                     case 'valid':
                         $res = new Redirect(array($this), "|VAT номера|* <i>'{$vat}'</i> |е валиден|*");
@@ -194,10 +194,11 @@ class drdata_Vats extends core_Manager
      * Пълна проверка на VAT номер - синтактична + онлайн проверка.
      *
      * @param string $vat
+     * @param bool   $force
      *
      * @return string 'syntax', 'valid', 'invalid', 'unknown'
      */
-    public function check($vat)
+    public function check($vat, $force = false)
     {
         $canonocalVat = $this->canonize($vat);
         
@@ -210,7 +211,7 @@ class drdata_Vats extends core_Manager
             $rec->vat = $canonocalVat;
             $rec->lastUsed = $rec->lastChecked = dt::verbal2mysql();
             if (in_array($rec->status, array('valid', 'invalid', 'unknown'))) {
-                $this->save($rec);
+                $this->save($rec, NULL, 'IGNORE');
             }
         } else {
             // Проверяваме дали кеша не е изтекъл
@@ -222,10 +223,10 @@ class drdata_Vats extends core_Manager
             $this->save($rec, 'lastUsed');
             
             // Ако информацията за данъчния номер е остаряла или той е неизвестен и не сме го проверявали последните 24 часа
-            if ((($rec->lastChecked <= $expDate) && ($rec->lastUsed >= $lastUsedExp)) || ($rec->status == self::statusUnknown && $rec->lastChecked < $expUnknown)) {
+            if ($force || ((($rec->lastChecked <= $expDate) && ($rec->lastUsed >= $lastUsedExp)) || ($rec->status == self::statusUnknown && $rec->lastChecked < $expUnknown))) {
                 
                 // Ако не е достигнат максимума, добавяме и този запис за обновяване
-                if (count($this->updateOnShutdown) < self::MAX_CNT_VATS_FOR_UPDATE) {
+                if (countR($this->updateOnShutdown) < self::MAX_CNT_VATS_FOR_UPDATE) {
                     $this->updateOnShutdown[] = $rec;
                 }
             }
@@ -257,7 +258,7 @@ class drdata_Vats extends core_Manager
         if (!$res && !$this->checkSyntax($vat)) {
             $res = self::statusSyntax;
         }
-        
+      
         if (!$res) {
             // Конвериране на български 13-цифрени данъчни номера към 9-цифрени
             if ((strpos($vat, 'BG')) === 0 && (strlen($vat) == 15)) {
@@ -295,19 +296,19 @@ class drdata_Vats extends core_Manager
             }
         }
         
-        return array($res, $info);
+        return array($res, $info, $result->name, $result->address);
     }
     
     
     /**
      * Обновяване на статуса на VAT номера след залез
      */
-    public function on_Shutdown()
+    public static function on_Shutdown($mvc)
     {
-        foreach ($this->updateOnShutdown as $rec) {
-            list($rec->status, $rec->info) = $this->checkStatus($rec->vat);
+        foreach ($mvc->updateOnShutdown as $rec) {
+            list($rec->status, $rec->info) = $mvc->checkStatus($rec->vat);
             $rec->lastChecked = dt::verbal2mysql();
-            $this->save($rec, 'status, info, lastChecked');
+            $mvc->save($rec, 'status, info, lastChecked');
         }
     }
     
@@ -320,7 +321,6 @@ class drdata_Vats extends core_Manager
         $vatPrefixes = arr::make('BE,BG,CY,CZ,DK,EE,EL,DE,PT,FR,FI,HR,HU,LU,MT,SI,IE,IT,LV,LT,NL,PL,SK,RO,SE,ES,GB,AT', true);
         
         if ($vatPrefixes[substr(strtoupper(trim($value)), 0, 2)]) {
-            
             return true;
         }
         
@@ -337,7 +337,7 @@ class drdata_Vats extends core_Manager
      *
      * @return int -1 if country not included OR 1 if the VAT Num matches for the country OR 0 if no match
      */
-    public function checkSyntax($vat)
+    public function checkSyntax(&$vat)
     {
         switch (strtoupper(substr($vat, 0, 2))) {
             case 'AT':
@@ -347,6 +347,10 @@ class drdata_Vats extends core_Manager
                 $regex = '/^BE[0]{0,1}[0-9]{9}$/i';
                 break;
             case 'BG':
+                if (strlen($vat) == 15) {
+                    $vat = substr($vat, 0, 11);
+                }
+                
                 $regex = '/^BG[0-9]{9,10}$/i';
                 break;
             case 'CY':
@@ -378,7 +382,7 @@ class drdata_Vats extends core_Manager
                 $regex = '/^HR(\d{11})$/';
                 break;
             case 'IE':
-                $regex = '/^IE[0-9][0-9A-Z\+\*][0-9]{5}[A-Z]$/i';
+                $regex = '/^IE[0-9][0-9A-Z\+\*][0-9]{5}[A-Z]{1,2}$/i';
                 break;
             case 'IT':
             case 'LV':
@@ -463,8 +467,8 @@ class drdata_Vats extends core_Manager
             case 10:
                 
                 /*
-                 * За данъчен номер: 
-                 * първите 9 цифри се умножават съответно по тези множители: 
+                 * За данъчен номер:
+                 * първите 9 цифри се умножават съответно по тези множители:
                  * 4 3 2 7 6 5 4 3 2, Контролната цифра е равна на 11 минус остатъка
                  *  на сбора разделен на 11. Ако контролната цифра е 10 - се приема за 0.
                  */
@@ -483,6 +487,8 @@ class drdata_Vats extends core_Manager
                 return $lastDigit == $c;
                 
             case 13:
+                
+               
                 $v1 = array(2, 7, 3, 5);
                 $v2 = array(4, 9, 5, 7);
                 
@@ -531,6 +537,35 @@ class drdata_Vats extends core_Manager
     
     
     /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return bool
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->listFilter->FNC('vatNum', 'varchar', 'caption=VAT номер, input');
+        $data->listFilter->showFields = 'vatNum';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        $data->listFilter->input('vatNum');
+        
+        if ($data->listFilter->rec->vatNum) {
+            $data->query->like('vat', $data->listFilter->rec->vatNum);
+        }
+        
+        // Сортиране на записите по num
+        $data->query->orderBy('lastChecked', 'DESC');
+        $data->query->orderBy('lastUsed', 'DESC');
+        $data->query->orderBy('vat');
+    }
+    
+    
+    /**
      * Извиква се от крона. Премахва старите статус съобщения
      */
     public function cron_checkVats()
@@ -572,8 +607,134 @@ class drdata_Vats extends core_Manager
         $rec->action = 'checkVats';
         $rec->period = 10;
         $rec->offset = rand(0, 8);
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $res .= core_Cron::addOnce($rec);
+    }
+    
+    
+    /**
+     * Връща данните от търговския регистър по зададения БГ ддс номер или ЕИК
+     *
+     * @param string $eik - ЕИК номер
+     *
+     * @return false|stdClass - обект с данни или false, ако не намери нищо
+     *                        o name    - име
+     *                        o country - ид на държава
+     *                        o pCode   - пощенски код
+     *                        o place   - населено място
+     *                        o address - адрес
+     */
+    public static function getFromBrra($eik)
+    {
+        // Ако е валиден български ЕИК, прави се опит за извличане от търговския регистър
+        if (drdata_Vats::isBulstat($eik)) {
+            $registryContent = @file_get_contents("https://portal.registryagency.bg/CR/api/Deeds/{$eik}");
+            $result = json_decode($registryContent);
+            
+            // Ако е намерена фирма, извлича се
+            if (!empty($result->fullName)) {
+                $data = new stdClass();
+                $data->name = $result->fullName;
+                $data->country = drdata_Countries::fetchField("#letterCode2 = 'BG'", 'id');
+                
+                if (is_array($result->sections)) {
+                    foreach ($result->sections as $section) {
+                        if (is_array($section->subDeeds[0]->groups[0]->fields)) {
+                            $foundAddress = array_filter($section->subDeeds[0]->groups[0]->fields, function ($a) {
+                                return $a->nameCode == 'CR_F_5_L';
+                            });
+                            if (countR($foundAddress) == 1) {
+                                $foundAddress = array_values($foundAddress);
+                                $addressHtml = $foundAddress[0]->htmlData;
+                                
+                                if (!empty($addressHtml)) {
+                                    $addressHtml = str_replace('<br />', ' ', $addressHtml);
+                                    $address = strip_tags(str_replace('<br/>', ' ', $addressHtml));
+                                    
+                                    $shortAddress = $address;
+                                    $shortAddress = str_replace('бул./ул.', 'ул.', $shortAddress);
+                                    $cutPos1 = mb_strpos($shortAddress, 'Населено място');
+                                    if ($cutPos1 !== false) {
+                                        $shortAddress = mb_substr($shortAddress, $cutPos1);
+                                        $shortAddress = str_replace('Населено място: ', '', $shortAddress);
+                                    }
+                                    $cutPos2 = mb_strpos($shortAddress, 'Телефон:');
+                                    if ($cutPos2 !== false) {
+                                        $shortAddress = mb_substr($shortAddress, 0, $cutPos2);
+                                    }
+                                    
+                                    $cutPos3 = mb_strpos($shortAddress, 'Адрес на електронна поща:');
+                                    if ($cutPos3 !== false) {
+                                        $shortAddress = mb_substr($shortAddress, 0, $cutPos3);
+                                    }
+                                    
+                                    $parsedAddress = drdata_ParseAddressBg::parse($shortAddress);
+                                    
+                                    $data->pCode = $parsedAddress['п.код'];
+                                    $data->address = $parsedAddress['addr'];
+                                    $data->place = isset($parsedAddress['гр.']) ? $parsedAddress['гр.'] : $parsedAddress['place'];
+                                }
+                                
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                return $data;
+            }
+        }
+        
+        return false;
+    }
+    
+    
+    /**
+     * Връща данните от VIES
+     *
+     * @param string $string - ват номер
+     *
+     * @return false|stdClass - обект с данни или false, ако не намери нищо
+     *                        o name    - име
+     *                        o country - ид на държава
+     *                        o pCode   - пощенски код
+     *                        o place   - населено място
+     *                        o address - адрес
+     */
+    public static function getFromVies($vat)
+    {
+        // Проверка дали е валиден ват номер
+        list($status, , $name, $address) = cls::get('drdata_Vats')->checkStatus($vat);
+        if ($status == 'valid') {
+            
+            // Ако е валиден извлича се името
+            $data = new stdClass();
+            $data->name = $name;
+            $countryCode = substr($vat, 0, 2);
+            $data->country = drdata_Countries::fetchField(array("#letterCode2 = '[#1#]'", $countryCode), 'id');
+            $address = str::removeWhiteSpace($address, ' ');
+            
+            // Ако фирмата е от България, прави се опит за парсиране на български адрес
+            if ($countryCode == 'BG') {
+                $parsedAddress = drdata_ParseAddressBg::parse($address);
+                foreach (array('pCode' => 'п.код', 'place' => 'place', 'address' => 'addr') as $fld => $key) {
+                    if (!empty($parsedAddress[$key])) {
+                        $data->{$fld} = $parsedAddress[$key];
+                    }
+                }
+                
+                if (!empty($data->place)) {
+                    $data->place = trim(str_replace('гр.', '', $data->place));
+                }
+            } else {
+                $data->address = $address;
+            }
+            
+            return $data;
+        }
+        
+        return false;
     }
 }

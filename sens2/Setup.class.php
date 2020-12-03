@@ -133,7 +133,7 @@ class sens2_Setup extends core_ProtoSetup
         $rec->action = 'RunAll';
         $rec->period = 1;
         $rec->delay = 45;
-        $rec->timeLimit = 30;
+        $rec->timeLimit = 70;
         $html .= core_Cron::addOnce($rec);
         
         return $html;

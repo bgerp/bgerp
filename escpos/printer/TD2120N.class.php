@@ -34,8 +34,9 @@ class escpos_printer_TD2120N extends peripheral_DeviceDriver
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('serverUrl', 'url', 'caption=Сървър->УРЛ, mandatory');
-        $fieldset->FLD('printerIp', 'IP', 'caption=Принтер->IP, mandatory');
-        $fieldset->FLD('printerPort', 'int(Min=0, max=65535)', 'caption=Принтер->Порт, mandatory');
+        $fieldset->FLD('printerSerial', 'varchar', 'caption=Принтер->Сериен порт');
+        $fieldset->FLD('printerIp', 'IP', 'caption=Принтер->IP');
+        $fieldset->FLD('printerPort', 'int(Min=0, max=65535)', 'caption=Принтер->Порт');
     }
     
     
@@ -62,12 +63,18 @@ class escpos_printer_TD2120N extends peripheral_DeviceDriver
     {
         $jsTpl = getTplFromFile('/escpos/js/jsPrintTpl.txt');
         
-        $jsTpl->replace(json_encode($pRec->serverUrl), 'serverUrl');
-        $jsTpl->replace(json_encode($pRec->printerIp), 'printerIp');
-        $jsTpl->replace(json_encode($pRec->printerPort), 'printerPort');
+        $conf = new stdclass();
         
-        $text = escpos_Convert::process($text, 'escpos_driver_TD2120');
-        $jsTpl->replace(json_encode($text), 'printText');
+        $jsTpl->replace(json_encode($pRec->serverUrl), 'serverUrl');
+
+        $conf->DEVICE = $pRec->printerSerial;
+        $conf->IP_ADDRESS = $pRec->printerIp;
+        $conf->PORT = $pRec->printerPort;
+        $conf->OUT = escpos_Convert::process($text, 'escpos_driver_TD2120');
+
+        $DATA = base64_encode(gzcompress(serialize($conf)));
+        
+        $jsTpl->replace(json_encode($DATA), 'DATA');
         
         // Минифициране на JS
         $js = minify_Js::process($jsTpl->getContent());
@@ -85,7 +92,8 @@ class escpos_printer_TD2120N extends peripheral_DeviceDriver
      */
     protected static function on_AfterPrepareEditForm($Driver, $Embedder, &$data)
     {
-        $data->form->setDefault('serverUrl', 'http://127.0.0.1');
+        $data->form->setDefault('serverUrl', 'http://localhost:8080');
+        $data->form->setDefault('printerSerial', '/dev/usb/lp0');
         $data->form->setDefault('printerPort', 9100);
     }
 }

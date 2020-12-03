@@ -75,7 +75,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         $chargeVat = ($rec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
         
         $data->form->setField('packPrice', "unit={$masterRec->currencyId} {$chargeVat}");
-        $data->form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts));
+        $data->form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties4' => 'generic'));
     }
     
     
@@ -170,7 +170,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
      */
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
-        if (!count($data->rows)) {
+        if (!countR($data->rows)) {
             
             return;
         }
@@ -178,8 +178,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         
         foreach ($data->rows as $i => &$row) {
             $rec = &$data->recs[$i];
-            $row->productId = cat_Products::getShortHyperlink($rec->productId);
-            
+            $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
             deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
             
             // Показваме подробната информация за опаковката при нужда

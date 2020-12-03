@@ -35,7 +35,7 @@ abstract class cash_Document extends deals_PaymentDocument
      */
     public $loadList = 'plg_RowTools2, cash_Wrapper, plg_Sorting,deals_plg_SaveValiorOnActivation, acc_plg_Contable,
                      plg_Clone,doc_DocumentPlg, plg_Printing,deals_plg_SelectInvoice,acc_plg_DocumentSummary,
-                     plg_Search, bgerp_plg_Blank, doc_plg_HidePrices, doc_EmailCreatePlg, cond_plg_DefaultValues, doc_SharablePlg,deals_plg_SetTermDate';
+                     plg_Search, bgerp_plg_Blank, doc_plg_HidePrices, doc_EmailCreatePlg, cond_plg_DefaultValues,trans_plg_LinesPlugin, doc_SharablePlg,deals_plg_SetTermDate';
     
     
     /**
@@ -54,6 +54,12 @@ abstract class cash_Document extends deals_PaymentDocument
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, cash';
+    
+    
+    /**
+     * Кой има право да променя?
+     */
+    public $canChangeline = 'ceo,cash,trans';
     
     
     /**
@@ -278,12 +284,6 @@ abstract class cash_Document extends deals_PaymentDocument
             }
         }
         
-        // Поставяме стойности по подразбиране
-        if (empty($form->rec->id) && $form->cmd != 'refresh') {
-            $form->setDefault('peroCase', cash_Cases::getCurrent('id', false));
-            $form->setDefault('peroCase', $caseId);
-        }
-        
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);
         $form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
         
@@ -369,20 +369,6 @@ abstract class cash_Document extends deals_PaymentDocument
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
         $tpl->push('cash/tpl/styles.css', 'CSS');
-    }
-    
-    
-    /**
-     * След подготовка на тулбара на единичен изглед
-     */
-    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
-    {
-        $rec = $data->rec;
-        
-        // Ако не е избрана каса, показваме бутона за контиране но с грешка
-        if (($rec->state == 'draft' || $rec->state == 'pending') && !isset($rec->peroCase) && $mvc->haveRightFor('conto')) {
-            $data->toolbar->addBtn('Контиране', array(), array('id' => 'btnConto', 'error' => 'Документът не може да бъде контиран, докато няма посочена каса|*!'), 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
-        }
     }
     
     
@@ -519,8 +505,13 @@ abstract class cash_Document extends deals_PaymentDocument
             if (isset($rec->peroCase)) {
                 $row->peroCase = cash_Cases::getHyperlink($rec->peroCase);
             } else {
-                $row->peroCase = tr('Предстои да бъде уточнена');
-                $row->peroCase = "<span class='red'><small><i>{$row->peroCase}</i></small></span>";
+                if($defaultCase = $mvc->getDefaultCase($rec)){
+                    $row->peroCase = cash_Cases::getHyperlink($defaultCase);
+                    $row->peroCase = ht::createHint($row->peroCase, 'Касата ще бъде записана при контиране, ако не е избрана конкретна', 'notice', false);
+                } else {
+                    $row->peroCase = tr('Предстои да бъде уточнена');
+                    $row->peroCase = "<span class='red'><small><i>{$row->peroCase}</i></small></span>";
+                }
             }
             
             if ($origin = $mvc->getOrigin($rec)) {
@@ -543,5 +534,118 @@ abstract class cash_Document extends deals_PaymentDocument
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'peroCase')) {
             $requiredRoles = 'no_one';
         }
+    }
+    
+    
+    /**
+     * Информацията на документа, за показване в транспортната линия
+     *
+     * @param mixed $id
+     * @param int $lineId
+     * 
+     * @return array
+     *               ['baseAmount']     double|NULL - сумата за инкасиране във базова валута
+     *               ['amount']         double|NULL - сумата за инкасиране във валутата на документа
+     *               ['amountVerbal']   double|NULL - сумата за инкасиране във валутата на документа
+     *               ['currencyId']     string|NULL - валутата на документа
+     *               ['notes']          string|NULL - забележки за транспортната линия
+     *               ['stores']         array       - склад(ове) в документа
+     *               ['weight']         double|NULL - общо тегло на стоките в документа
+     *               ['volume']         double|NULL - общ обем на стоките в документа
+     *               ['transportUnits'] array       - използваните ЛЕ в документа, в формата ле -> к-во
+     *               ['contragentName'] double|NULL - име на контрагента
+     */
+    public function getTransportLineInfo_($rec, $lineId)
+    {
+        $rec = $this->fetchRec($rec);
+        
+        $sign = ($this->getClassId() == cash_Pko::getClassId()) ? 1 : -1;
+        $baseAmount = round($rec->amount * $rec->rate, 4);
+        $info = array('state' => $rec->state, 'notes' => $rec->lineNotes, 'currencyId' => currency_Currencies::getCodeById($rec->currencyId), 'amount' => $sign * $rec->amount, 'baseAmount' => $sign * $baseAmount);
+        $info['contragentName'] = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
+        
+        $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($info['amount']);
+        $info['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId);
+        
+        if($this->haveRightFor('conto', $rec)){
+            $contoUrl = $this->getContoUrl($rec->id);
+            $warning = $this->getContoWarning($rec->id, $rec->isContable);
+            
+            // Сумата да е бутон за контиране
+            $info['amountVerbal'] = str_replace('&nbsp;', ' ', $info['amountVerbal']);
+            $btn = ht::createBtn($info['amountVerbal'], $contoUrl, $warning, false, "ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа");
+            $info['amountVerbal'] = $btn;
+        } else {
+            $info['amountVerbal'] = ht::styleNumber($info['amountVerbal'], $info['amount']);
+        }
+        
+        return $info;
+    }
+    
+    
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        $rec->peroCase = (isset($rec->peroCase)) ? $rec->peroCase : $mvc->getDefaultCase($rec);;
+        
+        if(empty($rec->peroCase)){
+            redirect(array($mvc, 'single', $rec->id), false, 'За да контирате документа, трябва да е избрана каса', 'error');
+        } elseif(!bgerp_plg_FLB::canUse('cash_Cases', $rec->peroCase)){
+            $caseName = cash_Cases::getTitleById($rec->peroCase);
+            redirect(array($mvc, 'single', $rec->id), false, "Нямате права за контиране на автоматично определената каса|* \"<b>{$caseName}</b>\"!", 'error');
+        }
+    }
+    
+    
+    /**
+     * Коя е дефолтната каса на документа
+     * 
+     * 1. Избраната в сесията, ако има
+     * 2. Първата, която може да контира
+     * 3. Първата, която може да избира
+     * 4. Не намира каса
+     * 
+     * @param stdClass $rec
+     * @param int|null $userId
+     * @return int $caseId
+     */
+    public function getDefaultCase($rec, $userId = null)
+    {
+        $userId = isset($userId) ? $userId : core_Users::getCurrent();
+        $caseId = cash_Cases::getCurrent('id', false);
+        
+        if(!isset($caseId)){
+            foreach (array(true, false) as $exp){
+                $query = cash_Cases::getQuery();
+                $query->show('id');
+                bgerp_plg_FLB::addUserFilterToQuery('cash_Cases', $query, $userId, $exp);
+                if($firstRec = $query->fetch()){
+                    $caseId = $firstRec->id;
+                    break;
+                }
+            }
+        }
+        
+        return $caseId;
+    }
+    
+    
+    /**
+     * Уорнинг на бутона за контиране/активиране
+     */
+    public static function getContoWarning_($id, $isContable)
+    {
+        $rec = static::fetchRec($id);
+        $currentCaseId = cash_Cases::getCurrent('id', false);
+        
+        if(!isset($rec->peroCase) && isset($currentCaseId)){
+            $currentCaseName = cash_Cases::getTitleById($currentCaseId);
+            return "|Наистина ли желаете документът да бъде контиран в каса|*: {$currentCaseName}?";
+        }
+        
+        return "|Наистина ли желаете документът да бъде контиран|*?";
     }
 }

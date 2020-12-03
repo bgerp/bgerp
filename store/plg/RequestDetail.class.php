@@ -39,7 +39,7 @@ class store_plg_RequestDetail extends core_Plugin
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }

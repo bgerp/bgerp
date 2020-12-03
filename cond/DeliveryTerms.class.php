@@ -117,15 +117,23 @@ class cond_DeliveryTerms extends core_Master
     
     
     /**
+     * Дали при обновяване от импорт на същестуващ запис да се запази предишното състояние или не
+     *
+     * @see plg_State2
+     */
+    public $updateExistingStateOnImport = false;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('codeName', 'varchar', 'caption=Код');
-        $this->FLD('term', 'text', 'caption=Обяснение');
-        $this->FLD('forSeller', 'text', 'caption=За продавача');
-        $this->FLD('forBuyer', 'text', 'caption=За купувача');
-        $this->FLD('transport', 'text', 'caption=Транспорт');
+        $this->FLD('term', 'text(rows=3)', 'caption=Обяснение');
+        $this->FLD('forSeller', 'text(rows=3)', 'caption=За продавача');
+        $this->FLD('forBuyer', 'text(rows=3)', 'caption=За купувача');
+        $this->FLD('transport', 'text(rows=3)', 'caption=Транспорт');
         $this->FLD('costCalc', 'class(interface=cond_TransportCalc,allowEmpty,select=title)', 'caption=Изчисляване на транспортна себестойност->Калкулатор');
         $this->FLD('calcCost', 'enum(yes=Включено,no=Изключено)', 'caption=Изчисляване на транспортна себестойност->Скрито,notNull,value=no');
         $this->FLD('address', 'enum(none=Без,receiver=Локацията на получателя,supplier=Локацията на доставчика)', 'caption=Показване на мястото на доставка->Избор,notNull,value=none,default=none');
@@ -285,14 +293,23 @@ class cond_DeliveryTerms extends core_Master
      * @param int      $contragentId      - ид на котнрагента
      * @param int      $storeId           - ид на склада
      * @param int      $locationId        - ид на локация
+     * @param int      $deliveryData      - други параметри
      * @param core_Mvc $document          - за кой документ се отнася
      *
      * @return string - условието за доставка допълнено с адреса, ако може да се определи
      */
-    public static function addDeliveryTermLocation($deliveryCode, $contragentClassId, $contragentId, $storeId, $locationId, $document)
+    public static function addDeliveryTermLocation($deliveryCode, $contragentClassId, $contragentId, $storeId, $locationId, $deliveryData, $document)
     {
-        $adress = '';
+        $adress = null;
         $isSale = ($document instanceof sales_Sales || $document instanceof sales_Quotations);
+        if(empty($deliveryCode)){
+            if(!empty($locationId)){
+                $adress = crm_Locations::getAddress($locationId, true);
+            }
+          
+            return $adress;
+        }
+        
         expect($rec = self::fetch(array('[#1#]', $deliveryCode)));
         
         if (($rec->address == 'supplier' && $isSale === true) || ($rec->address == 'receiver' && $isSale === false)) {
@@ -349,5 +366,197 @@ class cond_DeliveryTerms extends core_Master
         if($Calculator){
             $Calculator->addToCartView($rec, $cartRec, $cartRow, $tpl);
         }
+    }
+    
+    
+    /**
+     * Подготовка на формата за инпут
+     *
+     * @param mixed $id
+     * @param core_FieldSet $form
+     * @param mixed $document
+     * @param null|int $userId
+     * @return void
+     */
+    public static function prepareDocumentForm($id, core_FieldSet &$form, $document, $userId = null)
+    {
+        $rec = self::fetchRec($id);
+        $Document = cls::get($document);
+        
+        // Ако ще се показва адреса на доставчик
+        if($rec->address == 'supplier'){
+            if($Document instanceof sales_Sales){
+                unset($form->rec->deliveryLocationId, $form->rec->deliveryAdress);
+                $form->setReadOnly('deliveryLocationId');
+                $form->setReadOnly('deliveryAdress');
+            } elseif($Document instanceof eshop_Carts){
+                unset($form->rec->deliveryCountry, $form->rec->deliveryPCode, $form->rec->deliveryPlace, $form->rec->deliveryAddress);
+                
+                // Имали избрана локация или склад в настройките на магазина
+                $settings = cms_Domains::getSettings();
+                $ownCompany = crm_Companies::fetchOurCompany();
+                $countryId = $ownCompany->country;
+                $locationId = isset($settings->locationId) ? $settings->locationId : (isset($settings->storeId) ? store_Stores::fetchField($settings->storeId, 'locationId') : null);
+                
+                // Ако има взима се нейния адрес, ако не адреса на "Моята фирма"
+                if(isset($locationId)){
+                    $locationRec = crm_Locations::fetch($locationId, 'countryId,place,pCode,address');
+                    $countryId = (!empty($locationRec->country)) ? $locationRec->country : $countryId;
+                    $pCode = $locationRec->pCode;
+                    $place = $locationRec->place;
+                    $address = $locationRec->address;
+                } else {
+                    $pCode = $ownCompany->pCode;
+                    $place = $ownCompany->place;
+                    $address = $ownCompany->address;
+                }
+               
+                $form->setReadOnly('deliveryCountry', $countryId);
+                $form->setReadOnly('deliveryPCode', $pCode);
+                $form->setReadOnly('deliveryPlace', $place);
+                $form->setReadOnly('deliveryAddress', $address);
+                $form->setField('locationId', 'input=none');
+            }
+        }
+        
+        $cu = core_Users::getCurrent('id', false);
+        $isColabReceiver = ($cu && $rec->address == 'receiver' && ($Document instanceof eshop_Carts) && core_Users::isContractor($cu));
+        
+        $settings = cms_Domains::getSettings();
+        if($isColabReceiver && $settings->locationIsMandatory == 'yes'){
+            $form->setField('deliveryCountry', 'input=hidden');
+            $form->setField('deliveryPCode', 'input=hidden');
+            $form->setField('deliveryPlace', 'input=hidden');
+            $form->setField('deliveryAddress', 'input=hidden');
+        }
+        
+        $Calculator = self::getTransportCalculator($rec);
+        if($Calculator){
+            $Calculator->addFields($form, $document, $userId);
+        } elseif($Document instanceof eshop_Carts && $rec->address != 'supplier' && !$isColabReceiver) {
+            //$form->setField('deliveryPCode', 'mandatory');
+            //$form->setField('deliveryPlace', 'mandatory');
+        }
+        
+        if($Document instanceof deals_DealMaster || $Document instanceof eshop_Carts || $Document instanceof sales_Quotations){
+            $fields = self::getAdditionalFields($rec, $document);
+           
+            if(countR($fields)){
+                foreach ($fields as $fld) {
+                    $form->setDefault($fld, $form->rec->deliveryData[$fld]);
+                }
+            } else {
+                $form->rec->deliveryData = null;
+            }
+        }
+    }
+    
+    
+    /**
+     * Обработка на фомрата на документа след инпут
+     * 
+     * @param mixed $id
+     * @param core_FieldSet $form
+     * @param mixed $document
+     * @param null|int $userId
+     * @return void
+     */
+    public static function inputDocumentForm($id, core_FieldSet &$form, $document, $userId = null)
+    {
+        $Document = cls::get($document);
+        $formRec = &$form->rec;
+        
+        if ($Document instanceof deals_DealMaster || $Document instanceof eshop_Carts || $Document instanceof sales_Quotations) {
+            
+            // Компресиране на данните за доставка от драйвера
+            $formRec->deliveryData = array();
+            $fields = self::getAdditionalFields($id, $document);
+            foreach ($fields as $name) {
+                $formRec->deliveryData[$name] = $formRec->{$name};
+            }
+        }
+        
+        if ($Document instanceof sales_Sales || $Document instanceof sales_Quotations) {
+            $deliveryData = is_array($formRec->deliveryData) ? $formRec->deliveryData : array();
+            
+            $locationId = $formRec->deliveryLocationId;
+            if($Document instanceof sales_Quotations){
+                if(!empty($formRec->deliveryPlaceId)){
+                    $locationId = crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$formRec->contragentClassId}' AND #contragentId = '{$formRec->contragentId}'", $formRec->deliveryPlaceId), 'id');
+                }
+            }
+            
+            if ($error = sales_TransportValues::getDeliveryTermError($id, $formRec->deliveryAdress, $formRec->contragentClassId, $formRec->contragentId, $locationId, $deliveryData)) {
+                $form->setError('deliveryTermId,deliveryAdress,deliveryLocationId', $error);
+            }
+        }
+    }
+    
+    
+    /**
+     * Проверява данните на доставка преди активация
+     * 
+     * @param mixed $id
+     * @param stdClass $documentRec
+     * @param array $deliveryData
+     * @param mixed $document
+     * @param string|null $error
+     * @return boolean
+     */
+    public static function checkDeliveryDataOnActivation($id, $documentRec, $deliveryData, $document, &$error = null)
+    {
+        $rec = self::fetchRec($id);
+        $res = true;
+        
+        $Calculator = self::getTransportCalculator($rec);
+        if($Calculator){
+            $res = $Calculator->checkDeliveryDataOnActivation($rec, $documentRec, $deliveryData, $document, $error);
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Кои полета са допълнени от условието
+     * 
+     * @param mixed $id            - ид
+     * @param mixed|null $document - клас на документ
+     * @return array $fields       - полета
+     */
+    public static function getAdditionalFields($id, $document)
+    {
+        $fields = array();
+        
+        $Calculator = self::getTransportCalculator($id);
+        if($Calculator){
+            $fields += $Calculator->getFields($document);
+        }
+        
+        return $fields;
+    }
+    
+    
+    /**
+     * Връща опции за избор на условия за доставка
+     * 
+     * @param string|null $addRessType
+     * @return array $res
+     */
+    public static function getTermOptions($addRessType = null)
+    {
+        $res = array();
+        $query = self::getQuery();
+        $query->where("#state != 'closed'");
+        if(isset($addRessType)){
+            expect(in_array($addRessType, array('none', 'receiver', 'supplier')));
+            $query->where("#address = '{$addRessType}'");
+        }
+        
+        while($rec = $query->fetch()){
+            $res[$rec->id] = self::getVerbal($rec, 'codeName');
+        }
+        
+        return $res;
     }
 }

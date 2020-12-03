@@ -107,7 +107,7 @@ class log_Browsers extends core_Master
     /**
      * Поле в което да се показва иконата за единичен изглед
      */
-    public $rowToolsSingleField = 'brid';
+    public $rowToolsSingleField = 'id';
     
     
     /**
@@ -132,6 +132,14 @@ class log_Browsers extends core_Master
      * Времето за кеширане
      */
     protected static $bridCacheKeepMinutes = 10;
+    
+    
+    /**
+     * Префикс за brid на бот
+     * 
+     * @var string
+     */
+    protected static $botBridPrefix = '_';
     
     
     /**
@@ -256,19 +264,35 @@ class log_Browsers extends core_Master
             // Ако в кеша имаме brid, използваме него
             $brid = self::getBridFromCache();
             
-            if (!$brid) {
-                // Генерира brid
-                $brid = self::generateBrid();
-            }
-            
-            // Записваме кукито
-            self::setBridCookie($brid);
-            
-            // Добавяме в модела
-            self::add($brid);
+            $brid = self::generateAndSetBrid($brid);
             
             return $brid;
         }
+    }
+    
+    
+    /**
+     * Помощна функция за генериране и записване на brid 
+     * 
+     * @param string $brid
+     * @param boolean $checkBot
+     * 
+     * @return string
+     */
+    protected static function generateAndSetBrid($brid = '', $checkBot = true)
+    {
+        if (!$brid) {
+            // Генерира brid
+            $brid = self::generateBrid($checkBot);
+        }
+        
+        // Записваме кукито
+        self::setBridCookie($brid);
+        
+        // Добавяме в модела
+        self::add($brid);
+        
+        return $brid;
     }
     
     
@@ -592,10 +616,30 @@ class log_Browsers extends core_Master
      *
      * @return string
      */
-    public static function generateBrid()
+    public static function generateBrid($checkBot = true)
+    {
+        $brid = '';
+        
+        if ($checkBot) {
+            $brid = self::getBridForBot();
+        }
+        
+        if (!$brid) {
+            $brid = str::getRand('********');
+        }
+        
+        return $brid;
+    }
+    
+    
+    /**
+     * Помощна функция за генериране на brid за бот
+     * 
+     * @return string|boolean
+     */
+    protected static function getBridForBot()
     {
         $s = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        
         $str = '';
         
         if ($bot = self::detectBot()) {
@@ -612,13 +656,34 @@ class log_Browsers extends core_Master
         }
         
         if ($str) {
-            $brid = $s[hexdec(substr($str, 0, 2)) % 62] . $s[hexdec(substr($str, 2, 2)) % 62] . $s[hexdec(substr($str, 4, 2)) % 62] .  $s[hexdec(substr($str, 6, 2)) % 62] .
+            $str = self::$botBridPrefix . $s[hexdec(substr($str, 2, 2)) % 62] . $s[hexdec(substr($str, 4, 2)) % 62] .  $s[hexdec(substr($str, 6, 2)) % 62] .
             $s[hexdec(substr($str, 8, 2)) % 62] . $s[hexdec(substr($str, 10, 2)) % 62] . $s[hexdec(substr($str, 12, 2)) % 62] .  $s[hexdec(substr($str, 14, 2)) % 62];
-        } else {
-            $brid = str::getRand('********');
         }
         
-        return $brid;
+        return $str;
+    }
+    
+    
+    /**
+     * Помощна функция за проверка дали генерирания brid е за бот
+     * 
+     * @param string $brid
+     * @param boolean $generate
+     * 
+     * @return boolean
+     */
+    protected function isBotBrid($brid = '', $generate = true)
+    {
+        if (!$brid) {
+            $brid = self::getBrid($generate);
+        }
+        
+        if ($brid && (stripos($brid, self::$botBridPrefix) === 0)) {
+            
+            return true;
+        }
+        
+        return false;
     }
     
     
@@ -795,7 +860,7 @@ class log_Browsers extends core_Master
     public static function getUserAgent()
     {
         $userAgent = $_SERVER['HTTP_USER_AGENT'];
-        
+
         return $userAgent;
     }
     
@@ -868,6 +933,13 @@ class log_Browsers extends core_Master
             Mode::setPermanent('ScreenModeFromScreenSize');
         }
         
+        // Регенерираме brid, ако е бил генериран за бот
+        if ($this->isBotBrid()) {
+            $this->generateAndSetBrid('', false);
+            
+            $this->logNotice('Регенериране на брит за бот');
+        }
+        
         $this->render1x1gif();
         
         core_App::shutdown(false);
@@ -936,7 +1008,7 @@ class log_Browsers extends core_Master
                 ));
                 $code .= '<noscript><span class="checkBrowser"><img src="' . $url . '" width="1" height="1" alt="cb"></span></noscript>';
             }
-            
+
             if (!Mode::is('javascript', 'yes')) {
                 $url = toUrl(array(
                     $this,
@@ -944,14 +1016,13 @@ class log_Browsers extends core_Master
                     rand(1, 1000000000)
                 ));
                 $code .= '<span class="checkBrowser"><img id="brdet" src="" width="1" height="1" alt=""></span><script type="text/javascript"><!-- window.onload = function() {
-                if (window.jQuery) {
-                var winW = 630, winH = 460; if (document.body && document.body.offsetWidth) { winW = document.body.offsetWidth;
+                var winW = 630, winH = 460; var date = new Date(); var timeOffset = date.getTimezoneOffset(); if (document.body && document.body.offsetWidth) { winW = document.body.offsetWidth;
                 winH = document.body.offsetHeight; } if (document.compatMode=="CSS1Compat" && document.documentElement &&
                 document.documentElement.offsetWidth ) { winW = document.documentElement.offsetWidth;
                 winH = document.documentElement.offsetHeight; } if (window.innerWidth && window.innerHeight) {
                 winW = window.innerWidth; winH = window.innerHeight;}  var brdet=document.getElementById("brdet");
-                brdet.src="' . $url . '?w=" + screen.width + "&h=" + screen.height + "&winH=" + winH + "&winW=" + winW + "&browserCheck=" + getUserAgent() + "&timezoneInfo=" + getTimezoneOffset() + "&dpr=" + window.devicePixelRatio;
-                }//--> </script>';
+                brdet.src="' . $url . '?w=" + screen.width + "&h=" + screen.height + "&winH=" + winH + "&winW=" + winW + "&browserCheck=" + navigator.userAgent + "&timezoneInfo=" + timeOffset + "&dpr=" + window.devicePixelRatio;
+                //--> </script>';
             }
         }
         

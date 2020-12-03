@@ -169,8 +169,8 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
         }
         
         
-        $all = count($recProfiles);
-        $missing = count($recs);
+        $all = countR($recProfiles);
+        $missing = countR($recs);
         
         $data->recs[] = (object) array(
             'missing' => $message,
@@ -191,11 +191,11 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
         
         if (!Mode::is('printing')) {
             $pager = cls::get('core_Pager', array('pageVar' => 'P_' .  $mvc->EmbedderRec->that,'itemsPerPage' => $mvc->listItemsPerPage));
-            $pager->itemsCount = count($data->recs);
+            $pager->itemsCount = countR($data->recs);
             $data->pager = $pager;
         }
         
-        if (count($data->recs)) {
+        if (countR($data->recs)) {
             foreach ($data->recs as $id => $rec) {
                 if (!Mode::is('printing')) {
                     if (!$pager->isOnPage()) {

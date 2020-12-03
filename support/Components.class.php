@@ -132,7 +132,7 @@ class support_Components extends core_Detail
         }
         
         // Ако има окрити компоненти
-        if (count($componentArr)) {
+        if (countR($componentArr)) {
             
             // Премахваме повтарящите се
             $componentArr = array_unique($componentArr);

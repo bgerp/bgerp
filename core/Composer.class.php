@@ -34,14 +34,28 @@ class core_Composer extends core_Mvc
     {
         $res = false;
         if(defined('EF_VENDOR_PATH')) {
-            $autoloaderPath = EF_VENDOR_PATH . '/autoload.php';
-            if(file_exists($autoloaderPath)) {
+            $autoloaderPath = self::getAutoloadPath();
+            
+            if (file_exists($autoloaderPath)) {
                 require_once($autoloaderPath);
+                
+                $res = true;
             }
-            $res = true;
         }
 
         return $res;
+    }
+    
+    
+    /**
+     * Връща пътя до аутолоадера
+     * 
+     * @return string
+     */
+    public static function getAutoloadPath()
+    {
+        
+        return EF_VENDOR_PATH . '/vendor/autoload.php';
     }
 
 
@@ -76,17 +90,17 @@ class core_Composer extends core_Mvc
 
         if (!$path || !file_exists($path)) {
             
-            $composerCmd = dirname(EF_VENDOR_PATH) . '/composer.phar';
+            $composerCmd = EF_VENDOR_PATH . '/composer.phar';
                         
             if (!file_exists($composerCmd)) {
                 $sig = trim(file_get_contents('https://composer.github.io/installer.sig'));
                 
-                $setupPath = dirname(EF_VENDOR_PATH) . '/composer-setup.php';
+                $setupPath = EF_VENDOR_PATH . '/composer-setup.php';
                 
                 file_put_contents($setupPath, file_get_contents('https://getcomposer.org/installer'));
                 
                 if ($sig == hash_file('sha384', $setupPath)) {
-                    $cmd =  '"' . $phpCmd . '" ' . $setupPath . ' --quiet --install-dir=' . dirname(EF_VENDOR_PATH);
+                    $cmd =  '"' . $phpCmd . '" ' . $setupPath . ' --quiet --install-dir=' . EF_VENDOR_PATH;
                     putenv('COMPOSER_HOME=' . EF_VENDOR_PATH . '/.composer');
                     exec($cmd, $output, $returnvar);
                     if ($returnvar != 0) {
@@ -118,7 +132,7 @@ class core_Composer extends core_Mvc
         
         if($path) {
             // Изпълняваме командата
-            $dir = '--working-dir=' . dirname(EF_VENDOR_PATH);
+            $dir = '--working-dir=' . EF_VENDOR_PATH;
             
             putenv('COMPOSER_HOME=' . EF_VENDOR_PATH . '/.composer');
 
@@ -197,13 +211,13 @@ class core_Composer extends core_Mvc
         if(!countR(self::$packs)) {
             self::$packs =  core_Cache::get('COMPOSER', 'INSTALLED-PACKS');
         }
-
+        
         if(!countR(self::$packs)) {
             
             $lines = self::run('show');
             
-            if($lines === false) {
-
+            if ($lines === false) {
+                
                 return false;
             }
 
@@ -221,13 +235,16 @@ class core_Composer extends core_Mvc
         }
         
         $res = false;
+        
         if(isset(self::$packs[$pack])) {
             $res = true;
+            
             if(strlen($version) && !version_compare(trim(self::$packs[$pack]), ltrim($version, 'v'), '>=')) {
+                
                 $res = false;
             }
         }
-
+        
         return $res;
     }
     

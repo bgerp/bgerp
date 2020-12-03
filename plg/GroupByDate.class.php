@@ -29,9 +29,9 @@ class plg_GroupByDate extends core_Plugin
             return;
         }
         
-        $columns = count(arr::make($data->listFields));
+        $columns = countR(arr::make($data->listFields));
         
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }
@@ -92,8 +92,8 @@ class plg_GroupByDate extends core_Plugin
             
             if (trim($t) && ($t != '00:00:00')) {
                 $color = dt::getColorByTime($dateVal);
-                list($h, $m) = explode(':', $t);
-                $rows[$id]->{$field} = "<span style='color:#{$color}'>{$h}:{$m}</span>";
+                list($h, $m, $s) = explode(':', $t);
+                $rows[$id]->{$field} = "<span style='color:#{$color}' title={$h}:{$m}:{$s}>{$h}:{$m}</span>";
                 if ($origVerbDate) {
                     $origDate = "<span style='color: #{$color};' title='{$origVerbDate}'>®</span>";
                     $rows[$id]->{$field} .= $origDate;

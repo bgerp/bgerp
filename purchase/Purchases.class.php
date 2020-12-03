@@ -38,6 +38,12 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
+     * При създаване на имейл, дали да се използва първият имейл от списъка
+     */
+    public $forceFirstEmail = true;
+    
+    
+    /**
      * Абревиатура
      */
     public $abbr = 'Pur';
@@ -88,7 +94,7 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid,amountInvoiced,dealerId=Закупчик,paymentState,createdOn, createdBy';
+    public $listFields = 'valior, title=Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,dealerId=Закупчик,paymentState,createdOn, createdBy';
     
     
     /**
@@ -143,7 +149,7 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Полета свързани с цени
      */
-    public $priceFields = 'amountDeal,amountDelivered,amountPaid,amountInvoiced,amountToPay,amountToDeliver,amountToInvoice';
+    public $priceFields = 'amountDeal,amountDelivered,amountPaid,amountInvoiced,amountBl,amountToPay,amountToDeliver,amountToInvoice';
     
     
     /**
@@ -473,6 +479,7 @@ class purchase_Purchases extends deals_DealMaster
         $result->setIfNot('deliveryTerm', $rec->deliveryTermId);
         $result->setIfNot('storeId', $rec->shipmentStoreId);
         $result->setIfNot('paymentMethodId', $rec->paymentMethodId);
+        $result->setIfNot('paymentType', $rec->paymentType);
         $result->setIfNot('caseId', $rec->caseId);
         $result->setIfNot('bankAccountId', bank_Accounts::fetchField(array("#iban = '[#1#]'", $rec->bankAccountId), 'id'));
         
@@ -619,6 +626,7 @@ class purchase_Purchases extends deals_DealMaster
         $rec->action = 'CloseOldPurchases';
         $rec->period = 180;
         $rec->offset = mt_rand(0, 30);
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 100;
         $res .= core_Cron::addOnce($rec);
@@ -631,6 +639,7 @@ class purchase_Purchases extends deals_DealMaster
         $rec2->action = 'CheckPurchasePayments';
         $rec2->period = 60;
         $rec2->offset = mt_rand(0, 30);
+        $rec2->isRandOffset = true;
         $rec2->delay = 0;
         $rec2->timeLimit = 100;
         $res .= core_Cron::addOnce($rec2);
@@ -714,10 +723,9 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Списък с артикули върху, на които може да им се коригират стойностите
      *
-     * @see acc_AllowArticlesCostCorrectionDocsIntf
-     *
-     * @param mixed $id - ид или запис
-     *
+     * @param mixed $id     - ид или запис
+     * @param mixed $forMvc - за кой мениджър
+     * 
      * @return array $products        - масив с информация за артикули
      *               o productId       - ид на артикул
      *               o name            - име на артикула
@@ -727,18 +735,57 @@ class purchase_Purchases extends deals_DealMaster
      *               o transportWeight - транспортно тегло на артикула
      *               o transportVolume - транспортен обем на артикула
      */
-    public function getCorrectableProducts($id)
+    public function getCorrectableProducts($id, $forMvc)
     {
         $rec = $this->fetchRec($id);
+        $ForMvc = cls::get($forMvc);
+        $accounts = ($ForMvc instanceof acc_ValueCorrections) ? '321,60201' : '321';
         
         $products = array();
         $entries = purchase_transaction_Purchase::getEntries($rec->id);
-        $shipped = purchase_transaction_Purchase::getShippedProducts($entries, $rec->id, '321', true);
+        $shipped = purchase_transaction_Purchase::getShippedProducts($entries, $rec->id, $accounts, true, true, true);
         
-        if (count($shipped)) {
+        $contQuery = doc_Containers::getQuery();
+        $contQuery->where("#threadId = {$rec->threadId} AND #state = 'active'");
+        $contQuery->show('id');
+        $containersInThread = arr::extractValuesFromArray($contQuery->fetchAll(), 'id');
+        
+        $aQuery = acc_CostAllocations::getQuery();
+        $aQuery->in("containerId", $containersInThread);
+        $aQuery->show('productsData,expenseItemId');
+        $allocatedRecs = $aQuery->fetchAll();
+        
+        if (countR($shipped)) {
             foreach ($shipped as $ship) {
                 unset($ship->price);
                 $ship->name = cat_Products::getTitleById($ship->productId, false);
+                
+                if(is_array($ship->expenseItems)){
+                    foreach ($ship->expenseItems as $expenseId => $expenseObj){
+                        
+                        $allocatedArr = array();
+                        array_walk($allocatedRecs, function($a) use (&$allocatedArr, $expenseId){
+                            if($a->expenseItemId == $expenseId){
+                                if(is_array($a->productsData)){
+                                    foreach ($a->productsData as $pData){
+                                        if(!array_key_exists($pData->productId, $allocatedArr)){
+                                            $allocatedArr[$pData->productId] = (object)array('productId' => $pData->productId, 'amount' => 0, 'quantity' => 0, 'transportWeight' => 0, 'transportVolume' => 0, 'inStores' => array());
+                                        }
+                                        $allocatedArr[$pData->productId]->amount += $pData->amount;
+                                        $allocatedArr[$pData->productId]->quantity += $pData->quantity;
+                                        $allocatedArr[$pData->productId]->transportWeight += $pData->transportWeight;
+                                        $allocatedArr[$pData->productId]->transportVolume += $pData->transportVolume;
+                                        if(is_array($pData->inStores)){
+                                            $allocatedArr[$pData->productId]->inStores += $pData->inStores;
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                        
+                        $ship->expenseItems[$expenseId]['allocatedToProducts'] = $allocatedArr;
+                    }
+                } 
                 
                 if ($transportWeight = cat_Products::getTransportWeight($ship->productId, 1)) {
                     $ship->transportWeight = $transportWeight;

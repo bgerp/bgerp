@@ -499,6 +499,8 @@ class core_Lg extends core_Manager
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, &$data)
     {
+        $data->form->fields['kstring']->type->params[0] = 1000; 
+        
         // Ако едитваме
         if ($data->form->rec->id) {
             
@@ -521,6 +523,10 @@ class core_Lg extends core_Manager
             
             // Подготвяме стринга
             $form->rec->kstring = static::prepareKey($form->rec->kstring);
+            
+            if (!$mvc->isUnique($form->rec, $fields)) {
+                $form->setError($fields, 'Вече съществува запис със същите данни');
+            }
         }
     }
     

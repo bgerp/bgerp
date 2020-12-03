@@ -337,6 +337,7 @@ class price_ListToCustomers extends core_Manager
                 
                 // За стандартните артикули се търси себестойността в ценовите политики
                 $rec = $this->getPriceByList($listId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
+                $rec->listId = $listId;
             }
         }
         
@@ -400,7 +401,9 @@ class price_ListToCustomers extends core_Manager
     public function getPriceByList($listId, $productId, $packagingId = null, $quantity = null, $datetime = null, $rate = 1, $chargeVat = 'no')
     {
         $rec = new stdClass();
-        $rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime);
+        $isFirstCall = true;
+        $validFrom = null;
+        $rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime, $validFrom, $isFirstCall, $rate, $chargeVat);
         
         $listRec = price_Lists::fetch($listId);
         
@@ -408,15 +411,17 @@ class price_ListToCustomers extends core_Manager
         if (!empty($listRec->discountCompared)) {
             
             // Намираме цената по тази политика и намираме колко % е отстъпката/надценката
-            $comparePrice = price_ListRules::getPrice($listRec->discountCompared, $productId, $packagingId, $datetime);
+            $comparePrice = price_ListRules::getPrice($listRec->discountCompared, $productId, $packagingId, $datetime, $isFirstCall, $rate, $chargeVat);
             
             if ($comparePrice && isset($rec->price)) {
                 $disc = ($rec->price - $comparePrice) / $comparePrice;
                 $discount = round(-1 * $disc, 4);
                 
-                // Ще показваме цената без отстъпка и отстъпката само ако отстъпката е положителна
+                $compareTo = isset($listRec->discountComparedShowAbove) ? $listRec->discountComparedShowAbove : 0.01;
+               
+                // Ще показваме цената без отстъпка и отстъпката само ако отстъпката е над $compareTo
                 // Целта е да не показваме надценката а само отстъпката
-                if ($discount > 0) {
+                if ($discount > $compareTo) {
                     
                     // Подменяме цената за да може като се приспадне отстъпката и, да се получи толкова колкото тя е била
                     $rec->discount = round(-1 * $disc, 4);
@@ -593,5 +598,33 @@ class price_ListToCustomers extends core_Manager
                 $requiredRoles = 'no_one';
             }
         }
+    }
+    
+    
+    /**
+     * Връща имплементация на интерфейса за автоматични отстъпки, специфичен за зададения контрагент
+     * 
+     * @param int $listId
+     * @param int $contragentClassId
+     * @param int $contragentId
+     * @param datetime|null $valior
+     * 
+     * @return price_SaleAutoDiscountIntf|NULL $Interface
+     */
+    public static function getAutoDiscountClassForCustomer($listId, $contragentClassId, $contragentId, $valior = null)
+    {
+        // Ако има зададен лист - гледа по него, ако няма търси листа на посочения контрагент
+        $listId = (isset($listId)) ? $listId : price_ListToCustomers::getListForCustomer($contragentClassId, $contragentId, $valior);
+        if($discountClass = price_Lists::fetchField($listId, 'discountClass')){
+            
+            // Ако има закачен клас за автоматични отстъпки връща него
+            if(cls::load($discountClass, true)){
+                $Interface = cls::getInterface('price_SaleAutoDiscountIntf', $discountClass);
+                
+                return $Interface;
+            }
+        }
+        
+        return null;
     }
 }

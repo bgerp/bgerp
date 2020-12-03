@@ -78,7 +78,6 @@ class core_Tabs extends core_BaseClass
     {
         // Ако няма конфигурирани табове, рендираме само тялото
         if (!count($this->tabs)) {
-            
             return $body;
         }
         
@@ -103,23 +102,20 @@ class core_Tabs extends core_BaseClass
             $selectedTab = key($this->tabs);
         }
 
-        if(!$selectedTab && $this->tabGroup) {
+        if (!$selectedTab && $this->tabGroup) {
             core_Settings::setValues('TABS::' . $this->tabGroup, array('DEFAULT_TABS' => $selectedTab));
-
         }
 
-        if (!function_exists('getallheaders'))
-        {
+        if (!function_exists('getallheaders')) {
             function getallheaders()
             {
                 $headers = [];
-                foreach ($_SERVER as $name => $value)
-                {
-                    if (substr($name, 0, 5) == 'HTTP_')
-                    {
+                foreach ($_SERVER as $name => $value) {
+                    if (substr($name, 0, 5) == 'HTTP_') {
                         $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
                     }
                 }
+
                 return $headers;
             }
         }
@@ -128,7 +124,7 @@ class core_Tabs extends core_BaseClass
         
         $head = '';
         
-        $isAjax = defined('EF_AJAX_TAB') && $headers['Ajax-Mode'] && !empty($this->htmlId) && $this->htmlId == $headers['Html-Part-Id']; 
+        $isAjax = defined('EF_AJAX_TAB') && $headers['Ajax-Mode'] && !empty($this->htmlId) && $this->htmlId == $headers['Html-Part-Id'];
         foreach ($this->tabs as $tab => $url) {
             if ($tab == $selectedTab) {
                 $selectedUrl = $url;
@@ -143,7 +139,7 @@ class core_Tabs extends core_BaseClass
         
             if ($url) {
                 $url = ht::escapeAttr($url);
-                if($this->htmlId && defined('EF_AJAX_TAB')) {
+                if ($this->htmlId && defined('EF_AJAX_TAB')) {
                     $head .= "<div onclick=\"updateTab('{$this->htmlId}', '{$url}'); return false;\" style='cursor:pointer;' class='tab {$selected}'>";
                     $head .= "<a onclick=\"return; updateTab('{$this->htmlId}', '{$url}');  preventDefault(); return false;\"  class='tab-title {$tabClass}'>{$title}</a>";
                 } else {
@@ -237,12 +233,12 @@ class core_Tabs extends core_BaseClass
     public function getFirstTab()
     {
         // Ако има запазена информация, кой е таба по подразбиране за този потребител, вадим него
-        if($this->tabGroup) { 
-            $storedTab = core_Settings::fetchPersonalConfig('DEFAULT_TABS', 'TABS::' . $this->tabGroup);
-            $selectedTab = array_pop($storedTab);
+        if ($this->tabGroup) {
+            // $storedTab = core_Settings::fetchPersonalConfig('DEFAULT_TABS', 'TABS::' . $this->tabGroup);
+           // $selectedTab = array_pop($storedTab);
         }
 
-        if(!$selectedTab) {
+        if (!$selectedTab) {
             $selectedTab = key($this->tabs);
         }
 

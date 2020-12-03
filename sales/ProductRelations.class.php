@@ -58,7 +58,10 @@ class sales_ProductRelations extends core_Manager
      */
     public $title = 'Отнощения между продукти';
     
-    
+    /**
+     * Дали за този модел ще се прави репликация на SQL заявките
+     */
+    public $doReplication = false;
     
     /**
      * Описание на модела (таблицата)

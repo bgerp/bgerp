@@ -82,7 +82,7 @@ class select2_Plugin extends core_Plugin
             }
         }
         
-        self::$suggCnt = count($invoker->suggestions);
+        self::$suggCnt = countR($invoker->suggestions);
         
         $maxSuggestions = $invoker->getMaxSuggestions();
         
@@ -106,7 +106,7 @@ class select2_Plugin extends core_Plugin
             }
             
             // Опитваме се да покажем толкова на брой опции, колкото са зададени
-            $rSugg = $maxSuggestions - count($sValArr);
+            $rSugg = $maxSuggestions - countR($sValArr);
             
             if ($rSugg <= 0) {
                 $rSugg = $maxSuggestions;
@@ -151,9 +151,9 @@ class select2_Plugin extends core_Plugin
         
         if (!isset($cnt)) {
             if (isset($invoker->suggestions)) {
-                $cnt = count($invoker->suggestions);
+                $cnt = countR($invoker->suggestions);
             } else {
-                $cnt = count($invoker->options);
+                $cnt = countR($invoker->options);
             }
         }
         
@@ -368,7 +368,7 @@ class select2_Plugin extends core_Plugin
         }
         
         // Преобразуваме масива с данни в keylist поле
-        $valCnt = count($value);
+        $valCnt = countR($value);
         if (($valCnt > 1) && (isset($value[self::$hiddenName]))) {
             unset($value[self::$hiddenName]);
             

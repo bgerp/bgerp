@@ -337,9 +337,9 @@ class type_Key2 extends type_Int
                         
                         if ($isGroup) {
                             $obj->group = true;
-                            $obj->element = new stdClass();
-                            $obj->element->className = 'group';
-                            $obj->element->group = true;
+                            $obj->gElement = new stdClass();
+                            $obj->gElement->className = 'group';
+                            $obj->gElement->group = true;
                             $obj->id = null;
                         }
                         $res[] = $obj;

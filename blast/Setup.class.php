@@ -139,11 +139,13 @@ class blast_Setup extends core_ProtoSetup
         'blast_ListDetails',
         'blast_Emails',
         'blast_BlockedEmails',
+        'blast_BlockedDomains',
         'blast_Letters',
         'blast_LetterDetails',
         'blast_EmailSend',
         'blast_Redirect',
         'migrate::updateEmailsCnt',
+        'migrate::fixUnsubscribeText0420',
     );
     
     
@@ -225,6 +227,45 @@ class blast_Setup extends core_ProtoSetup
             $bRec->allMailCnt = $query->count();
             try {
                 blast_Emails::save($bRec, 'allMailCnt');
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+            }
+        }
+    }
+    
+    
+    /**
+     * Миграция за полето отписване
+     */
+    public function fixUnsubscribeText0420()
+    {
+        $unsText = blast_Setup::get('UNSUBSCRIBE_TEXT_FOOTER');
+        
+        $dbInit = core_ProtoSetup::$dbInit;
+        core_ProtoSetup::$dbInit = false;
+        core_Lg::push('en');
+        $unsTextEn = tr($unsText);
+        core_Lg::pop();
+        core_Lg::push('bg');
+        $unsTextBg = tr($unsText, 0, 'bg');
+        core_Lg::pop();
+        core_ProtoSetup::$dbInit = $dbInit;
+        
+        $bQuery = blast_Emails::getQuery();
+        
+        while ($bRec = $bQuery->fetch()) {
+            if (!$bRec->unsubscribe) continue;
+            
+            $lg = blast_Emails::getLanguage($bRec->body, $bRec->lg);
+            
+            if ($lg == 'bg') {
+                $bRec->unsubscribe = $unsTextBg;
+            } else {
+                $bRec->unsubscribe = $unsTextEn;
+            }
+            
+            try {
+                blast_Emails::save($bRec, 'unsubscribe');
             } catch (core_exception_Expect $e) {
                 reportException($e);
             }

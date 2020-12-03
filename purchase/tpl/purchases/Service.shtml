@@ -32,12 +32,16 @@
                     <div class='address-block'>
                         [#MyAddress#]
                     </div>
-                    <!--ET_BEGIN shipmentStoreId-->
+                    <!--ET_BEGIN vatInfo-->
+                    [#vatInfo#]
                     <hr style="margin: 3px 0 1px;">
-                    <div>
-                        |До склад|*: [#shipmentStoreId#]
-                    </div>
-                    <!--ET_END shipmentStoreId-->
+                    <!--ET_BEGIN MyCompanyVatNo-->
+                    <div><small>ЗДДС&nbsp;№:</small> <span class="bigData notBold" style="padding-left:5px;">[#MyCompanyVatNo#]</span></div>
+                    <!--ET_END MyCompanyVatNo-->
+                    <!--ET_BEGIN uicId-->
+                    <div><small>ЕИК:</small> <span class="bigData notBold" style="padding-left:5px;">[#uicId#]</span></div>
+                    <!--ET_END uicId-->
+                    <!--ET_END vatInfo-->
                 </td>
                 <td class="cell">
                     <b>[#contragentName#]</b>
@@ -45,12 +49,16 @@
                         [#contragentCountryId#]
                         <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
                     </div>
-                    <!--ET_BEGIN deliveryLocationId-->
+                    <!--ET_BEGIN contragentVatInfo-->
+                    [#contragentVatInfo#]
                     <hr style="margin: 3px 0 1px;">
-                    <div>
-                        |От обект|*: [#deliveryLocationId#]
-                    </div>
-                    <!--ET_END deliveryLocationId-->
+                    <!--ET_BEGIN vatNo-->
+                    <div><small>ЗДДС&nbsp;№:</small> <span class="bigData notBold" style="padding-left:5px;">[#vatNo#]</span></div>
+                    <!--ET_END vatNo-->
+                    <!--ET_BEGIN contragentUicId-->
+                    <div><small>[#contragentUicCaption#]:</small> <span class="bigData notBold" style="padding-left:5px;"> [#contragentUicId#]</span></div>
+                    <!--ET_END contragentUicId-->
+                    <!--ET_END contragentVatInfo-->
                 </td>
             </tr>
         </tbody>
@@ -88,11 +96,6 @@
                         <span class='quiet'>|Банкова с-ка|*: </span>[#bankAccountId#]
                     </div>
                     <!--ET_END bankAccountId-->
-                    <!--ET_BEGIN caseId-->
-                    <div class='cellRow'>
-                        <span class='quiet'>|Каса|*: </span>[#caseId#]
-                    </div>
-                    <!--ET_END caseId-->
                 </td>
                 <!--ET_BEGIN purchaseConditions-->
                 [#purchaseConditions#]
@@ -117,7 +120,9 @@
                             <!--ET_END notes-->
                             <!--ET_BEGIN deliveryBlock-->
                             [#deliveryBlock#]
+                            <!--ET_BEGIN deliveryTermId-->
                             <li>|Доставка|*: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> |до|* [#deliveryTime#]<!--ET_END deliveryTime--></li>
+                            <!--ET_END deliveryTermId-->
                             <!--ET_END deliveryBlock-->
                             <!--ET_BEGIN deliveryTermTime-->
                             <li>|Срок за доставка|* [#deliveryTermTime#] |след стартиране на договора|*</li>

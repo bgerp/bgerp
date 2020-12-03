@@ -71,7 +71,7 @@ class callcenter_Numbers extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'callcenter_Wrapper, plg_RowTools2, plg_Printing, plg_Sorting, plg_saveAndNew, plg_Created, callcenter_ListOperationsPlg';
+    public $loadList = 'callcenter_Wrapper, plg_RowTools2, plg_Printing, plg_Sorting, plg_saveAndNew, plg_Created, callcenter_ListOperationsPlg, plg_Search';
     
     
     /**
@@ -79,13 +79,23 @@ class callcenter_Numbers extends core_Manager
      *
      * @see callcenter_ListOperationsPlg
      */
-    public $numberField = 'numberSearch';
+    public $numberField = 'search';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id, number, type, contragent=Визитка';
+    
+    
+    /**
+     * Кои полета да са ключови думи
+     *
+     * @var string
+     *
+     * @see plg_Search
+     */
+    public $searchFields = 'number';
     
     
     /**
@@ -161,6 +171,17 @@ class callcenter_Numbers extends core_Manager
     
     
     /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        if ($rec->classId && $rec->contragentId) {
+            $res .= cls::get($rec->classId)->getSearchKeywords($rec->contragentId);
+        }
+    }
+    
+    
+    /**
      * Връща вербалното име на позвъняващия за съответния запис в модела
      *
      * @param int $id
@@ -172,7 +193,6 @@ class callcenter_Numbers extends core_Manager
     {
         // Ако не е подадено id
         if (!$id) {
-            
             return ;
         }
         
@@ -188,7 +208,6 @@ class callcenter_Numbers extends core_Manager
         
         // Ако няма клас или id на контрагент
         if (!$numRec->classId || !$numRec->contragentId) {
-            
             return ;
         }
         
@@ -197,7 +216,6 @@ class callcenter_Numbers extends core_Manager
         
         // Ако нямаме права до сингъла на записа
         if (!$class->haveRightFor('single', $numRec->contragentId, $userId)) {
-            
             return ;
         }
         
@@ -340,7 +358,6 @@ class callcenter_Numbers extends core_Manager
         
         // Ако няма подаден клас или документ връщаме
         if (!$classId || !$docId) {
-            
             return $resArr;
         }
         
@@ -390,9 +407,6 @@ class callcenter_Numbers extends core_Manager
     
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-        // Поле за търсене по номера
-        $data->listFilter->FNC('numberSearch', 'drdata_PhoneType', 'caption=Номер,input,silent, recently');
-        
         // В хоризонтален вид
         $data->listFilter->view = 'horizontal';
         
@@ -403,23 +417,12 @@ class callcenter_Numbers extends core_Manager
         
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
-        $data->listFilter->showFields = 'numberSearch, type';
+        $data->listFilter->showFields = 'search, type';
         
-        $data->listFilter->input('numberSearch, type', 'silent');
+        $data->listFilter->input('type', 'silent');
         
         // Ако има филтър
         if ($filter = $data->listFilter->rec) {
-            
-            // Ако се търси по номера
-            if ($number = $filter->numberSearch) {
-                
-                // Премахваме нулите и + от началото на номера
-                $number = ltrim($number, '0+');
-                
-                // Търсим във външните и вътрешните номера
-                $data->query->where(array("#number LIKE '%[#1#]'", $number));
-            }
-            
             if ($type = $filter->type) {
                 $data->query->where(array("#type = '[#1#]'", $type));
             }
@@ -445,7 +448,7 @@ class callcenter_Numbers extends core_Manager
     /**
      * При спиране на скрипта
      */
-    public function on_Shutdown($mvc)
+    public static function on_Shutdown($mvc)
     {
         // Ако имаме променини или добавени номера
         if (countR((array) $mvc->savedItems)) {
@@ -520,6 +523,11 @@ class callcenter_Numbers extends core_Manager
         // Вземаме последния номер, който сме регистрирали
         $query = static::getQuery();
         $query->where(array("#number = '[#1#]'", $numStr));
+        
+        if ($type == 'internal') {
+            $query->orWhere(array("#number = '[#1#]'", $number));
+        }
+        
         $query->orderBy('id', 'DESC');
         
         // Ако е зададен типа
@@ -728,24 +736,20 @@ class callcenter_Numbers extends core_Manager
     public static function canUseHostForNum($num)
     {
         if (!$num) {
-            
             return false;
         }
         
         $rec = self::getRecForInternalNum($num);
         
         if (!$rec) {
-            
             return false;
         }
         
         if (!$rec->host) {
-            
             return false;
         }
         
         if (!callcenter_Hosts::haveRightFor('use', $rec->host)) {
-            
             return false;
         }
         
@@ -797,6 +801,11 @@ class callcenter_Numbers extends core_Manager
         // Обхождаме резултата
         while ($rec = $query->fetch()) {
             
+            if (strpos($rec->number, '0') === 0) {
+                $numStr = drdata_PhoneType::getNumberStr($rec->number, 0);
+                $numbersArr[$numStr] = $numStr;
+            }
+            
             // Добавяме в масива
             $numbersArr[$rec->id] = $rec->number;
         }
@@ -813,10 +822,15 @@ class callcenter_Numbers extends core_Manager
         // Изискваме да има роля admin
         requireRole('admin');
         
+        core_App::setTimeLimit('600');
+        
+        $this->logDebug('Начало на обновяването на номерата');
+        
         // Вземаме всички записи за потребителите
         $Person = cls::get('crm_Persons');
         $pQuery = $Person->getQuery();
-        $pQuery->where('1=1');
+        $pQuery->orderBy('state', 'DESC');
+        $pQuery->orderBy('modifiedOn');
         
         // Обхождаме резултатите
         while ($pRec = $pQuery->fetch()) {
@@ -831,10 +845,13 @@ class callcenter_Numbers extends core_Manager
             $delNums += $pRecArr['deleted'];
         }
         
+        $this->logDebug('Край на обновяването на номерата за лицата');
+        
         // Вземаме всички записи за фирмите
         $Company = cls::get('crm_Companies');
         $cQuery = $Company->getQuery();
-        $cQuery->where('1=1');
+        $cQuery->orderBy('state', 'DESC');
+        $cQuery->orderBy('modifiedOn');
         
         // Обхождаме резултатите
         while ($cRec = $cQuery->fetch()) {
@@ -848,6 +865,8 @@ class callcenter_Numbers extends core_Manager
             // Броя на изтритите номера
             $delNums += $cRecArr['deleted'];
         }
+        
+        $this->logDebug('Край на обновяването на номерата за фирмите');
         
         // Ако има записани номера, добавяме съответния текст в резултата
         if ($savedNums) {

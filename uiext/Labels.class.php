@@ -180,7 +180,10 @@ class uiext_Labels extends core_Manager
         foreach ($rows as $key => $row) {
             $rec = $recs[$key];
             $hash = self::getHash($rec, $hashFields);
-            $row->_tagField = self::renderLabel($masterClass, $masterId, $classId, $hash);
+            
+            if(is_object($row)){
+                $row->_tagField = self::renderLabel($masterClass, $masterId, $classId, $hash);
+            }
         }
     }
     
@@ -237,7 +240,7 @@ class uiext_Labels extends core_Manager
     {
         $masterClass = cls::get($masterClass);
         $labels = self::getLabelOptions($classId);
-        if (count($labels) <= 1) {
+        if (countR($labels) <= 1) {
             
             return;
         }

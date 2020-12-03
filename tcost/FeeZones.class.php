@@ -123,7 +123,7 @@ class tcost_FeeZones extends core_Master
     {
         $this->FLD('name', 'varchar(16)', 'caption=Зона, mandatory');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms, select = codeName)', 'caption=Условие на доставка, mandatory');
-        $this->FLD('deliveryTime', 'time(uom=days)', 'caption=Доставка,recently,smartCenter');
+        $this->FLD('deliveryTime', 'time(uom=days)', 'caption=Срок на доставка,recently,smartCenter');
         
         $this->FLD('addTax', 'double', 'caption=Надценки->Твърда, autohide');
         $this->FLD('addPerKg', 'double', 'caption=Надценки->За кг, autohide');
@@ -184,24 +184,25 @@ class tcost_FeeZones extends core_Master
     /**
      * Определяне на обемното тегло, на база на обема на товара
      *
-     * @param float $weight        - Тегло на товара
-     * @param float $volume        - Обем  на товара
+     * @param double $weight        - Тегло на товара
+     * @param double $volume        - Обем  на товара
      * @param int $deliveryTermId  - Условие на доставка
      * @param array $params        - допълнителни параметри
      *
-     * @return float - Обемно тегло на товара
+     * @return double - Обемно тегло на товара
      */
     public function getVolumicWeight($weight, $volume, $deliveryTermId, $params)
     {
         $volumicWeight = null;
         if (!empty($weight) || !empty($volume)) {
             $multiplier = self::V2C;
-            if($zoneRec = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $params['deliveryCountry'], $params['deliveryPCode'])){
-                if($zoneRec->volume2quantity){
-                    $multiplier = $zoneRec->volume2quantity;
+            if($zoneArr = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $params['deliveryCountry'], $params['deliveryPCode'])){
+                $volume2quantity = tcost_FeeZones::fetchField($zoneArr['zoneId'], 'volume2quantity');
+                if($volume2quantity){
+                    $multiplier = $volume2quantity;
                 }
             }
-
+            
             if($volume * 33 < $weight) {
                 $multiplier *= 1000;
             }
@@ -364,54 +365,64 @@ class tcost_FeeZones extends core_Master
      * Добавя полета за доставка към форма
      *
      * @param core_FieldSet $form
+     * @param mixed $document
      * @param string|NULL   $userId
      *
      * @return void
      */
-    public function addFields(core_FieldSet &$form, $userId = null)
+    public function addFields(core_FieldSet &$form, $document, $userId = null)
     {
-        $form->setField('deliveryCountry', 'mandatory');
-        $form->setField('deliveryPCode', 'mandatory');
-        $form->setField('deliveryPlace', 'mandatory');
-        $form->setField('deliveryAddress', 'mandatory');
-    }
-    
-    
-    /**
-     * Проверява форма
-     *
-     * @param core_FieldSet $form
-     *
-     * @return void
-     */
-    public function checkForm(core_FieldSet &$form)
-    {
+        $Document = cls::get($document);
+        if($Document instanceof eshop_Carts){
+            foreach (array('deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress') as $fld){
+                if(!$form->getFieldTypeParam($fld, 'isReadOnly') && $form->getFieldParam($fld, 'input') != 'hidden' && $form->getFieldParam($fld, 'input') != 'none'){
+                    $form->setField($fld, 'mandatory');
+                }
+            }
+        }
     }
     
     
     /**
      * Добавя масив с полетата за доставка
      *
+     * @param mixed $document
      * @return array
      */
-    public function getFields()
+    public function getFields($document)
     {
         return array();
     }
     
     
     /**
-     * Рендира информацията
+     * Вербализира допълнителните данни за доставка
      *
-     * @param stdClass rec
+     * @param stdClass $termRec        - условие на доставка
+     * @param array|null $deliveryData - масив с допълнителни условия за доставка
+     * @param mixed $document          - документ
      *
-     * @return core_ET $tpl
+     * @return array $res              - данни готови за показване
      */
-    public function renderDeliveryInfo($rec)
+    public function getVerbalDeliveryData($termRec, $deliveryData, $document)
     {
-        $tpl = new core_ET('');
-        
-        return $tpl;
+        return array();
+    }
+    
+    
+    /**
+     * Проверява данните на доставка преди активация
+     *
+     * @param mixed $id             - ид на търговско условие
+     * @param stdClass $documentRec - запис на документа
+     * @param array $deliveryData   - данни за доставка
+     * @param mixed $document       - документ
+     * @param string|null $error    - грешката ако има такава
+     * @return boolean
+     */
+    public function checkDeliveryDataOnActivation($id, $documentRec, $deliveryData, $document, &$error = null)
+    {
+        return true;
     }
     
     
@@ -423,20 +434,19 @@ class tcost_FeeZones extends core_Master
      * @param stdClass $cartRow
      * @param core_ET $tpl
      *
-     * @return boolean
+     * @return void
      */
     public function addToCartView($termRec, $cartRec, $cartRow, &$tpl)
     {
         $settings = cms_Domains::getSettings();
         
         if(!empty($settings->freeDelivery) && $cartRec->haveOnlyServices != 'yes'){
-            $cartRow->freeDeliveryCurrencyId = $settings->currencyId;
             $deliveryAmount = $settings->freeDelivery;
             
             if($cartRec->freeDelivery != 'yes'){
                 $string1 = tr('Добавете артикули на обща стойност');
                 $string2 = tr("|за да спечелите|* <b style='color:green;text-transform:uppercase'>" . tr('безплатна') . "</b> |доставка|*.");
-                $block = new core_ET(tr("|*<!--ET_BEGIN freeDelivery--><div>{$string1} <b style='font-size:1.1em'>[#freeDelivery#]</b> <span class='cCode'>[#freeDeliveryCurrencyId#]</span>, {$string2}</div><!--ET_END freeDelivery-->"));
+                $block = new core_ET(tr("|*<!--ET_BEGIN freeDelivery--><div>{$string1} <b style='font-size:1.1em'>[#freeDelivery#]</b>, {$string2}</div><!--ET_END freeDelivery-->"));
                 
                 $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
                 $deliveryWithVat  = $cartRec->deliveryNoVat * (1 + cat_Products::getVat($transportId));
@@ -445,12 +455,17 @@ class tcost_FeeZones extends core_Master
                 $deliveryAmount = round($deliveryAmount - ($delivery), 2);
             } else {
                 $string = tr('Печелите безплатна доставка, защото поръчката ви надвишава');
-                $block = new core_ET(tr("|*<!--ET_BEGIN freeDelivery--><div>{$string} <b style='font-size:1.1em'>[#freeDelivery#]</b> <span class='cCode'>[#freeDeliveryCurrencyId#]</span>.</div><!--ET_END freeDelivery-->"));
+                $block = new core_ET(tr("|*<!--ET_BEGIN freeDelivery--><div>{$string} <b style='font-size:1.1em'>[#freeDelivery#]</b>.</div><!--ET_END freeDelivery-->"));
+            }
+            
+            if($deliveryAmount < 0){
+                wp($delivery, $cartRec, $settings->freeDelivery);
             }
             
             $cartRow->freeDelivery = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
+            $cartRow->freeDelivery = currency_Currencies::decorate($cartRow->freeDelivery, $settings->currencyId);
+            
             $block->append($cartRow->freeDelivery, 'freeDelivery');
-            $block->append($cartRow->freeDeliveryCurrencyId, 'freeDeliveryCurrencyId');
             
             $tpl->append($block, 'CART_FOOTER');
         }
@@ -472,5 +487,28 @@ class tcost_FeeZones extends core_Master
         if(!empty($settings->freeDelivery) && round($cartRec->total, 2) >= round($freeDelivery, 2)){
             $cartRec->freeDelivery = 'yes';
         }
+    }
+    
+    
+    /**
+     * Може ли да се избира условието в онлайн магазина
+     *
+     * @param int|stdClass $cartRec
+     * @param int|null $cu
+     *
+     * @return boolean
+     */
+    public function canSelectInEshop(&$rec, $cu = null)
+    {
+        return true;
+    }
+    
+    
+    /**
+     * След вербализиране на записа
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        $row->deliveryTermId = cond_DeliveryTerms::getHyperlink($rec->deliveryTermId, true);
     }
 }

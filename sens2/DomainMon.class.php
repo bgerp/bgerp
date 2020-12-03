@@ -98,7 +98,7 @@ class sens2_DomainMon extends sens2_ProtoDriver
     {
         try {
             $g = @stream_context_create (array("ssl" => array("capture_peer_cert" => true)));
-            if($q === false) {
+            if($g === false) {
                 
                 return 0;
             }

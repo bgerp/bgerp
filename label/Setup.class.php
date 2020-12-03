@@ -56,8 +56,6 @@ class label_Setup extends core_ProtoSetup
         'label_Counters',
         'label_CounterItems',
         'label_Prints',
-        'migrate::removeEmptyCounterItems',
-        'migrate::removeOldPlugin1'
     );
     
     
@@ -83,42 +81,10 @@ class label_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Принтиране на етикети от ЕН-та', 'label_plg_Print', 'store_ShipmentOrders', 'private');
         $html .= $Plugins->installPlugin('Принтиране на етикети от справки', 'label_plg_Print', 'frame2_Reports', 'private');
         $html .= $Plugins->installPlugin('Принтиране на етикети от прогрес на производствена операция', 'label_plg_Print', 'planning_ProductionTaskDetails', 'private');
+        $html .= $Plugins->installPlugin('Принтиране на етикети от протокол за производство', 'label_plg_Print', 'planning_DirectProductionNote', 'private');
+        
+        core_Interfaces::add('label_TemplateRendererIntf');
         
         return $html;
-    }
-    
-    
-    /**
-     * Миграция за премахване на празните записи
-     */
-    public static function removeEmptyCounterItems()
-    {
-        // Изтриваме всички празни записи без максималната стойност - за да няма дублиране
-        $query = label_CounterItems::getQuery();
-        $query->XPR('maxVal', 'int', 'MAX(#number)');
-        $query->groupBy('counterId');
-        $query->show('counterId, maxVal');
-        
-        $dQuery = '';
-        while ($rec = $query->fetch()) {
-            $dQuery .= $dQuery ? ' OR ' : '';
-            $dQuery .= "(#counterId = '{$rec->counterId}' AND #number != '{$rec->maxVal}')";
-        }
-        if ($dQuery) {
-            $dQuery = " AND ({$dQuery})";
-        }
-        
-        label_CounterItems::delete("(#printId IS NULL || #printId = ''){$dQuery}");
-    }
-    
-    
-    /**
-     * Махане на излишен плъгин
-     */
-    public function removeOldPlugin1()
-    {
-        $Plugins = cls::get('core_Plugins');
-        $Plugins->deinstallPlugin('label_plg_Print', 'planning_Tasks');
-        $Plugins->deinstallPlugin('label_plg_Print', 'planning_Jobs');
     }
 }

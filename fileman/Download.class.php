@@ -445,6 +445,7 @@ class fileman_Download extends core_Manager
         $rec->action = 'ClearOldLinks';
         $rec->period = 100;
         $rec->offset = mt_rand(0, 60);
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $res .= core_Cron::addOnce($rec);
     }

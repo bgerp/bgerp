@@ -1,0 +1,29 @@
+<div class='contentHolderResults'>
+<div class='divider'>|Опаковка|*</div>
+[#PACK_BUTTONS#]
+
+<!--ET_BEGIN STORE_BUTTONS-->
+	<div class='divider'>|Складове|*</div>
+	[#STORE_BUTTONS#]
+<!--ET_END STORE_BUTTONS-->
+
+<!--ET_BEGIN BATCHES-->
+	<div class='divider'>|Партиди|*</div>
+	[#BATCHES#]
+<!--ET_END BATCHES-->
+
+<!--ET_BEGIN PRICES-->
+	<div class='divider'>|Цена|*</div>
+	[#PRICES#]
+<!--ET_END PRICES-->
+
+<!--ET_BEGIN DISCOUNTS-->
+	<div class='divider'>|Отстъпка|*</div>
+	[#DISCOUNTS#]
+<!--ET_END DISCOUNTS-->
+
+<!--ET_BEGIN FREQUENT_PACK_BUTTONS-->
+	<div class='divider'>|Последни количества|*</div>
+	[#FREQUENT_PACK_BUTTONS#]
+<!--ET_END FREQUENT_PACK_BUTTONS-->
+</div>

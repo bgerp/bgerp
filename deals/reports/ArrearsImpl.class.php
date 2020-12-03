@@ -207,12 +207,12 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
             $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
             $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
             
-            $pager->itemsCount = count($data->recs, COUNT_RECURSIVE);
+            $pager->itemsCount = countR($data->recs, COUNT_RECURSIVE);
             $data->pager = $pager;
         }
         
         $id = 1;
-        if (count($data->recs)) {
+        if (countR($data->recs)) {
             foreach ($data->recs as $rec) {
                 $rec->count = 1;
                 
@@ -279,7 +279,7 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
         $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
         
         $data->summary = $this->getVerbalSummary($data->summary);
-        $data->summary->colspan = count($data->listFields);
+        $data->summary->colspan = countR($data->listFields);
         if (countR($data->rows)) {
             $data->summary->colspan -= 5;
             $afterRow = new core_ET("<tr  style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#uDelay#]</b></td><td style='text-align:right'><b>[#delay1#]</b></td><td style='text-align:right'><b>[#delay2#]</b></td><td style='text-align:right'><b>[#delay3#]</b></td><td style='text-align:right'><b>[#amount#]</b></td></tr>");
@@ -435,7 +435,7 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
     {
         $conf = core_Packs::getConfig('core');
         
-        if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
+        if (countR($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
             redirect(array($this), false, '|Броят на заявените записи за експорт надвишава максимално разрешения|* - ' . $conf->EF_MAX_EXPORT_CNT, 'error');
         }
         

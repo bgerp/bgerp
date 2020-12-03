@@ -1,4 +1,4 @@
 [#INTRODUCTION#]
-You have unfinished order from [#DATE#] in our online store [#LINK#]. 
-If you don't complete it, it will be deleted in [#DELETE_TIME#].
+You have unfinished order from [#DATE#] in our online store. You can buy the chosen products if you follow our link: [#LINK#]. 
+If you don't complete your order, it will be deleted in [#DELETE_TIME#].
 [#FOOTER#]

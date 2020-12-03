@@ -155,7 +155,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
             if ($form->cmd == 'refresh' && $rec->groupId) {
                 $maxPost = ini_get('max_input_vars') - self::MAX_POST_ART;
                 
-                $arts = count($details->code);
+                $arts = countR($details->code);
                 
                 $grInArts = cat_Groups::fetch($rec->groupId)->productCnt;
                 

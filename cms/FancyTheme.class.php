@@ -39,17 +39,20 @@ class cms_FancyTheme extends core_ProtoInner
      */
     public function addEmbeddedFields(core_FieldSet &$form)
     {
-        $form->FLD('wImg1', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (2000x300px)->Изображение 1');
-        $form->FLD('wImg2', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (2000x300px)->Изображение 2');
-        $form->FLD('wImg3', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (2000x300px)->Изображение 3');
-        $form->FLD('wImg4', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (2000x300px)->Изображение 4');
-        $form->FLD('wImg5', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (2000x300px)->Изображение 5');
+        $form->FLD('wImg1', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 1');
+        $form->FLD('wImg2', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 2');
+        $form->FLD('wImg3', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 3');
+        $form->FLD('wImg4', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 4');
+        $form->FLD('wImg5', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 5');
         $form->FLD('colabImg', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Картинка за логин и при колаборатор (1000x150px)->Изображение');
 
+        $form->FLD('menuPosition', 'enum(below=Под банера,above=Над банера)', 'caption=Меню->Позиция');
+        
         $form->FLD('fadeDelay', 'int', 'caption=Превключване на картинките->Задържане,suggestions=3000|5000|7000');
         $form->FLD('fadeTransition', 'int', 'caption=Превключване на картинките->Транзиция,suggestions=500|1000|1500');
         $form->FLD('nImg', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Заглавна картинка за мобилен (360x104px)->Изображение 1');
-        $form->FLD('title', 'varchar(14)', 'caption=Заглавие на сайта->Кратък текст');
+        $form->FLD('title', 'varchar(14)', 'caption=Заглавие на сайта->Име на фирмата');
+        $form->FLD('subtitle', 'varchar(50)', 'caption=Заглавие на сайта->Подзаглавие');
         $form->FLD('titleColor', 'color_Type', 'caption=Заглавие на сайта->Цвят');
         
         // Фон на хедъра
@@ -65,26 +68,37 @@ class cms_FancyTheme extends core_ProtoInner
     {
         // Добавяме заглавната картика
         $tpl->replace($this->getHeaderImg(), 'HEADER_IMG');
-
+        
+        $menu = new ET("<div id='cmsMenu' class='menuRow'><div class='centerContent'>[#CMS_MENU#]  </div></div>");
+        if($this->innerForm->menuPosition == 'above'){
+            $tpl->replace($menu, 'TOP_PAGE');
+            $css .= "\n    header {border-bottom: 2px solid {$this->innerForm->baseColor} !important;}";
+        } else {
+            $tpl->replace($menu, 'BOTTOM_MENU');
+        }
         // Добавяме заглавния текст
         $title = $this->innerForm->title;
-        if (!$this->haveOwnHeaderImages && !$title) {
-            $conf = core_Packs::getConfig('core');
-            $title = $conf->EF_APP_TITLE;
-        } elseif ($title) {
-            $style = '';
-            if ($this->innerForm->titleColor) {
-                $style = " style='color:{$this->innerForm->titleColor};'";
-            }
-            $title = "<span{$style}>" . $title . '</span>';
+
+        $style = '';
+        if ($this->innerForm->titleColor) {
+            $style = " style='color:{$this->innerForm->titleColor};'";
         }
-        
+
         if ($title) {
+            $title = "<span{$style}>" . $title . '</span>';
             $tpl->replace($title, 'CORE_APP_NAME');
+        }
+
+        $subtitle = $this->innerForm->subtitle;
+        if ($subtitle) {
+            $subtitle = "<span{$style}>" . $subtitle . '</span>';
+            $tpl->replace($subtitle, 'CORE_APP_SUBTITLE');
         }
         
         if ($this->innerForm->headerColor) {
             $css .= "\n    header {background-color:{$this->innerForm->headerColor} !important;}";
+        } else {
+            $css .= "\n    header {background-color:#C7EAFC !important;}";
         }
         
         if ($this->innerForm->baseColor) {
@@ -137,7 +151,7 @@ class cms_FancyTheme extends core_ProtoInner
                 $activeColor = '333';
             }
         }
-
+        
         // изчисления за фон и рамка на линковете
         if (phpcolor_Adapter::checkColor($activeColor, 'dark')) {
             $fontColor = phpcolor_Adapter::changeColor($activeColor, 'darken', 25);
@@ -171,7 +185,7 @@ class cms_FancyTheme extends core_ProtoInner
         if ($tempBalance < 200 && phpcolor_Adapter::changeColor($bgcolorActive, 'lighten', 20) != '#ffffff') {
             $bgcolorActive = phpcolor_Adapter::changeColor($bgcolorActive, 'lighten', 20);
         }
-
+        
         $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover, .cookies .agree {background-color:#{$activeColor};}";
         
         $css .= "\n    .selected-external-tab  {border-top: 3px solid #{$activeColor} !important;}";
@@ -199,11 +213,11 @@ class cms_FancyTheme extends core_ProtoInner
         $css .= "\n    h2 {background-color:#{$bgcolorActive} !important; padding: 5px 10px;border:none !important}";
         $css .= "\n    .prevNextNav {border:dotted 1px #ccc; background-color:#eee; margin-top:10px;margin-bottom:7px; width:100%; display:table;}";
         $css .= "\n    .prevNextNav div {margin:5px;}";
-
+        
         if ($css) {
             $tpl->append($css, 'STYLES');
         }
-
+        
         // добавяме css-a за структурата
         $tpl->push('cms/css/Fancy.css', 'CSS');
         // Добавяме дефолт темата за цветове
@@ -218,7 +232,7 @@ class cms_FancyTheme extends core_ProtoInner
     {
         $imgs = array();
         if (!Mode::is('screenMode', 'narrow')) {
-            if ((core_Users::isContractor() || (!core_Users::getCurrent('id', false) && Request::get('Act') == 'login')) && $this->innerForm->colabImg) {
+            if (core_Users::isContractor()) {
                 $img = new thumb_Img(array($this->innerForm->colabImg, 1000, 150, 'fileman', 'isAbsolute' => true,'mode' => 'large-no-change'));
                 $imageURL = $img->getUrl('forced');
             } else {
@@ -234,13 +248,13 @@ class cms_FancyTheme extends core_ProtoInner
                     $conf = core_Packs::getConfig('core');
                     
                     $banner = '';
-
+                    
                     $banner .= '<div class="fadein">';
                     $style = '';
                     foreach ($imgs as $iHash) {
                         $img = new thumb_Img(array($iHash, 1000, 288, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                         $imageURL = $img->getUrl('forced');
-                        $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 2000, 'height' => 300, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
+                        $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1200, 'height' => 220, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
                         $banner .= "\n{$hImage}";
                         $style = 'display:none;';
                     }
@@ -276,7 +290,7 @@ class cms_FancyTheme extends core_ProtoInner
             
             if ($img) {
                 if (!Mode::is('screenMode', 'narrow')) {
-                    $img = new thumb_Img(array($img, 2000, 300, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
+                    $img = new thumb_Img(array($img, 1200, 220, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                 } else {
                     $img = new thumb_Img(array($img, 360, 104, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                 }
@@ -284,12 +298,51 @@ class cms_FancyTheme extends core_ProtoInner
                 $this->haveOwnHeaderImages = true;
             }
         }
-
-
+        // Да покаже дефолт картинките, ако няма зададени
+        if (!$imageURL) {
+            $imageURL = sbf("cms/img/bgerp_fancy.png", "");
+        }
 
         $conf = core_Packs::getConfig('core');
-        $hImage = ht::createElement('img', array('src' => $imageURL, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg'));
 
+
+        $hImage = ht::createElement('img', array('src' => $imageURL, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg'));
+            
         return $hImage;
+    }
+    
+    
+    /**
+     *
+     * @param cms_DefaultTheme $mvc
+     * @param mixed $innerStateField
+     * @param mixed $innerFormField
+     * @param stdClass $rec
+     * @param mixed $fields
+     * @param mixed $mode
+     */
+    public static function on_BeforeSave($mvc, &$innerStateField, &$innerFormField, $rec, $fields = null, $mode = null)
+    {
+        if (!trim($innerFormField->title) && !$rec->id && core_Users::isSystemUser()) {
+            if (!$innerFormField) {
+                $innerFormField = new stdClass();
+            }
+            
+            $innerFormField->title = core_Setup::get('EF_APP_TITLE', true);
+        }
+    }
+    
+    
+    /**
+     * Подготвя формата за въвеждане на данни за вътрешния обект
+     *
+     * {@inheritDoc}
+     * @see core_ProtoInner::prepareEmbeddedForm()
+     */
+    public function prepareEmbeddedForm(core_Form &$form)
+    {
+        if (!$form->rec->id) {
+            $form->setDefault('title', core_Setup::get('EF_APP_TITLE', true));
+        }
     }
 }

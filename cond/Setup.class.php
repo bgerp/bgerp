@@ -63,6 +63,7 @@ class cond_Setup extends core_ProtoSetup
         'cond_Countries',
         'cond_TaxAndFees',
         'cond_Colors',
+        'cond_Ranges'
     );
     
     
@@ -77,7 +78,7 @@ class cond_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'cond_type_Double,cond_type_Text,cond_type_Varchar,cond_type_Time,cond_type_Date,cond_type_Component,cond_type_Enum,cond_type_Set,cond_type_Percent,cond_type_Int,cond_type_Delivery,cond_type_PaymentMethod,cond_type_Image,cond_type_File,cond_type_Store,cond_type_PriceList,cond_type_PurchaseListings,cond_type_SaleListings,cond_type_Url,cond_type_YesOrNo,cond_type_Color';
+    public $defClasses = 'cond_type_Double,cond_type_Text,cond_type_Varchar,cond_type_Time,cond_type_Date,cond_type_Component,cond_type_Enum,cond_type_Set,cond_type_Percent,cond_type_Int,cond_type_Delivery,cond_type_PaymentMethod,cond_type_Image,cond_type_File,cond_type_Store,cond_type_PriceList,cond_type_PurchaseListings,cond_type_SaleListings,cond_type_Url,cond_type_YesOrNo,cond_type_Color, cond_type_Egn, cond_type_Email';
     
     
     /**
@@ -89,11 +90,6 @@ class cond_Setup extends core_ProtoSetup
     public function install()
     {
         $html = parent::install();
-        
-        // Ако има роля 'salecond'  тя се изтрива (остаряла е)
-        if ($roleRec = core_Roles::fetch("#role = 'salecond'")) {
-            core_Roles::delete("#role = 'salecond'");
-        }
         
         $Plugins = cls::get('core_Plugins');
         

@@ -63,6 +63,12 @@ class cash_Setup extends core_ProtoSetup
     
     
     /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'cash_reports_NonCashPaymentReports';
+    
+    
+    /**
      * Роли за достъп до модула
      */
     public $roles = array(

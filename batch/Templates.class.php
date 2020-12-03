@@ -207,9 +207,10 @@ class batch_Templates extends embed_Manager
         }
         
         if (isset($rec->driverClass)) {
-            $Driver = static::getDriver($rec);
-            if ($Driver->canChangeBatchUniquePerProduct() !== true) {
-                $form->setField('uniqueProduct', 'input=none');
+            if($Driver = static::getDriver($rec)){
+                if ($Driver->canChangeBatchUniquePerProduct() !== true) {
+                    $form->setField('uniqueProduct', 'input=none');
+                }
             }
         }
     }

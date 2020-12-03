@@ -274,7 +274,7 @@ class cat_products_VatGroups extends core_Detail
         $gQuery = acc_VatGroups::getQuery();
         $gQuery->where(array("#vat = '[#1#]'", $percent));
         $groups = arr::extractValuesFromArray($gQuery->fetchAll(), 'id');
-        if (!count($groups)) {
+        if (!countR($groups)) {
             
             return $products;
         }
@@ -310,5 +310,14 @@ class cat_products_VatGroups extends core_Detail
         }
         
         return $products;
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    protected static function on_AfterCreate($mvc, $rec)
+    {
+        price_Cache::invalidateProduct($rec->productId);
     }
 }

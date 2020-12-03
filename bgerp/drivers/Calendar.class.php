@@ -414,6 +414,15 @@ class bgerp_drivers_Calendar extends core_BaseClass
         }
         ksort($resArr['now']);
         
+        // Подреждаме събитията по часове
+        foreach ($resArr['now'] as &$rArr) {
+            if (!is_array($rArr) || empty($rArr)) {
+                continue;
+            }
+            
+            ksort($rArr);
+        }
+        
         return $resArr;
     }
     
@@ -524,8 +533,24 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $rToVerb = cal_Tasks::recToVerbal($rec, $f);
         
-        $subTitle = $Tasks->getDocumentRow($rec->id)->subTitle;
-        $subTitle = "<span class='threadSubTitle'> {$subTitle}</span>";
+        $dRow = $Tasks->getDocumentRow($rec->id);
+        
+        $subTitle = "<span class='threadSubTitle'> {$dRow->subTitleNoTime}</span>";
+        
+        if ($dRow->subTitleDateRec) {
+            
+            $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $dRow->subTitleDateRec);
+//             $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $dRow->timeStart);
+//             $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $dRow->expectationTimeEnd);
+//             $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $dRow->expectationTimeStart);
+            
+            $time = dt::mysql2verbal($dRow->subTitleDateRec, 'H:i');
+            if ($time != '00:00') {
+                $rec->title =  $time . ' ' . $rec->title;
+            }
+        } else {
+            $rec->title = $this->removeDateAndHoursFromTitle($rec->title, '1970-01-01 00:00:00');
+        }
         
         $title = str::limitLen(type_Varchar::escape($rec->title), 60, 30, ' ... ', true);
         
@@ -536,13 +561,11 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $linkArr['class'] = 'tUnsighted';
         }
         
-        if ($rec->state == 'closed') {
-            $linkArr['class'] .= ' line-through';
-        }
-        
         if (doc_Threads::fetchField($rec->threadId, 'state') == 'opened') {
             $linkArr['class'] .= ' state-opened';
         }
+        
+        $title = cal_Tasks::prepareTitle($title, $rec);
         
         $rToVerb->title = ht::createLink($title, cal_Tasks::getSingleUrlArray($rec->id), null, $linkArr);
         
@@ -553,6 +576,49 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $rToVerb->title->append($subTitle);
         
         return $rToVerb;
+    }
+    
+    
+    /**
+     * Премахва варииациите на датата и часа от подадения стринг
+     * 
+     * @param string $title
+     * @param datetime $date
+     * 
+     * @return string
+     */
+    protected function removeDateAndHoursFromTitle($title, $date)
+    {
+        $time = dt::mysql2verbal($date, 'H:i');
+        $time = preg_quote($time, '/');
+        
+        $timeN  = dt::mysql2verbal($date, 'G:i');
+        $timeN = preg_quote($timeN, '/');
+        
+        $timeH = dt::mysql2verbal($date, 'H');
+        $timeH = preg_quote($timeH, '/');
+        
+        $timeHN = dt::mysql2verbal($date, 'G');
+        $timeHN = preg_quote($timeHN, '/');
+        
+        $dateA = dt::mysql2verbal($date, 'd.m.y');
+        $dateA = preg_quote($dateA, '/');
+        
+        $dateB = dt::mysql2verbal($date, 'd.m.Y');
+        $dateB = preg_quote($dateB, '/');
+        
+        $t = "\s*(ч\.?|h\.?)";
+        $y = "\s*(г\.?|y\.?|год.?)";
+        $x = "(\s*-\s*)*";
+        
+        $regExp = "/({$x}{$time}{$t}*{$x})|({$x}{$timeN}{$t}*{$x})|({$x}{$timeHN}{$t}+{$x})|({$x}{$dateB}{$y}*{$x})|({$x}{$dateA}[^0-9]{$y}*{$x})/ui";
+        
+        $title = preg_replace($regExp, ' ', $title . ' ');
+        $title = preg_replace('/\s{1,}/u', ' ', $title);
+        
+        $title = trim($title);
+        
+        return $title;
     }
     
     
@@ -586,22 +652,22 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $todayF = $pArr['_todayF'];
         
-        $query->XPR('startTimeOrder', 'datetime', "IF((#nextStartTime < '{$todayF}'), #timeStart, #nextStartTime)");
+        $query->where(array("#calcTimeStart >= '[#1#]'", $todayF));
+        $query->where(array("#calcTimeStart <= '[#1#]'", $pArr['_endWorkingDay']));
         
-        $query->where(array("#startTimeOrder >= '[#1#]'", $todayF));
-        $query->where(array("#startTimeOrder <= '[#1#]'", $pArr['_endWorkingDay']));
+        $query->orderBy('calcTimeStart', 'ASC');
         
-        $query->orderBy('startTimeOrder', 'ASC');
-        
-        $query->show('title,state,modifiedOn,containerId');
+        $query->show('title,state,modifiedOn,containerId,calcTimeStart');
         
         $i = 1000;
         while ($rec = $query->fetch()) {
-            list($orderDate, $orderH) = explode(' ', $rec->startTimeOrder);
+            list($orderDate, $orderH) = explode(' ', $rec->calcTimeStart);
             $orderH .= ' ' . ++$i;
             $tRec = $Reminders->recToVerbal($rec, 'title');
             if ($Reminders->haveRightFor('single', $rec)) {
-                $tRec->title = ' ' . dt::mysql2verbal($rec->startTimeOrder, 'H:i', null, true) . ' ' . $tRec->title;
+                
+                $tRec->title = $this->removeDateAndHoursFromTitle($tRec->title, $rec->calcTimeStart);
+                $tRec->title = ' ' . dt::mysql2verbal($rec->calcTimeStart, 'H:i', null, true) . ' ' . $tRec->title;
                 
                 $linkArr = array('ef_icon' => $Reminders->getIcon($rec->id));
                 
@@ -664,25 +730,73 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 $rArrNow[$orderDate][$orderH] = (object) array('title' => $cRec->event);
             } else {
                 $type = strtolower($rec->type);
-                $cUrl = parseLocalUrl($rec->url, false);
-                $cEventsTypeArr[$orderDate][$orderH] = ht::createLink(ht::createImg(array('path' => "img/16/{$type}.png")), $cUrl, false, array('title' => $rec->title));
+                
+                if (isset($cEventsTypeArr[$orderDate][$type])) {
+                    continue;
+                }
+                $cEventsTypeArr[$orderDate][$type] = $orderH;
             }
         }
         
-        if (!empty($cEventsTypeArr)) {
-            foreach ($cEventsTypeArr as $orderDate => $eArr) {
-                $iconStr = '';
-                foreach ($eArr as $icon) {
-                    $iconStr .= ' ' . $icon;
-                }
+        foreach ($cEventsTypeArr as $orderDate => $typeArr) {
+            foreach ($typeArr as $type => $orderH) {
                 
-                if (!$iconStr) {
-                    continue;
-                }
+                $uniqId = 'uniq-' . $orderDate . '-' . $type;
                 
-                $rArrNow[$orderDate]['events'] = $iconStr;
+                $url = toUrl(array('bgerp_drivers_Calendar', 'getHolidayInfo', 'date' => $orderDate, 'type' => $type, 'uniqId' => $uniqId), 'local');
+                
+                $eventImg = ht::createElement('img', array('src' => sbf("img/16/{$type}.png", '')));
+                $event = ht::createElement('span', array('class' => 'tooltip-arrow-link', 'data-url' => $url), $eventImg, true);
+                $event = "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$uniqId}'></span>{$event}</span>";
+                
+                $rArrNow[$orderDate]['events'] .= '&nbsp;' . $event;
             }
         }
+    }
+    
+    
+    /**
+     * Показва информация за перото по Айакс
+     */
+    public function act_GetHolidayInfo()
+    {
+        requireRole('powerUser');
+        
+        expect(Request::get('ajax_mode'));
+        
+        $date = Request::get('date');
+        $type = Request::get('type');
+        $uniqId = Request::get('uniqId');
+        
+        $Calendar = cls::get('cal_Calendar');
+        $query = $Calendar->getQuery();
+        
+        $query->where("#users IS NULL OR #users = ''");
+        $query->orLikeKeylist('users', core_Users::getCurrent());
+        
+        $query->where("#state != 'rejected'");
+        
+        $query->where(array("#time >= '[#1#]' AND #time <= '[#2#]'", $date . ' 00:00:00', $date . ' 23:59:59'));
+        
+        $query->where(array("LOWER(#type) = '[#1#]'", strtolower($type)));
+        
+        $query->orderBy('time', 'ASC');
+        
+        $res = '';
+        
+        while ($rec = $query->fetch()) {
+            $res .= '<tr><td>' . $Calendar->recToVerbal($rec, 'title')->event . '</td></tr>';
+        }
+        
+        if ($res) {
+            $res = '<table>' . $res . '</table>';
+        }
+        
+        $resObj = new stdClass();
+        $resObj->func = 'html';
+        $resObj->arg = array('id' => $uniqId, 'html' => $res, 'replace' => true);
+        
+        return array($resObj);
     }
     
     

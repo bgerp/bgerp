@@ -87,8 +87,6 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
-        $articlesForCheck = array();
-        $storesArr = array();
         
         $query = acc_BalanceDetails::getQuery();
         
@@ -102,26 +100,18 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         
         if (!is_null($rec->storeId)) {
             $storesForCheck = keylist::toArray($rec->storeId);
-        }
+        } 
+        
         while ($detail = $query->fetch()) {
-          
-          //  $storesArr[$detail->ent1Id] = $detail->ent1Id;
-            
+           
             if (!is_null($rec->storeId)) {
-                if (in_array((acc_Items::fetch($detail->ent1Id)->objectId), $storesForCheck)) {
-                    if (($detail->blQuantity < 0) && (abs($detail->blQuantity) > $rec->minval)) {
-                        $articlesForCheck[$detail->ent2Id] = $detail->ent2Id;
-                    }
+
+                if (!(in_array((acc_Items::fetch($detail->ent1Id)->objectId), $storesForCheck))) {
+                    continue;
                 }
+                
             }
-            
-            if (is_null($rec->storeId)) {
-                if (($detail->blQuantity < 0) && (abs($detail->blQuantity) > $rec->minval)) {
-                    $articlesForCheck[$detail->ent2Id] = $detail->ent2Id;
-                }
-            }
-            
-            if ((in_array($detail->ent2Id, $articlesForCheck)) && abs($detail->blQuantity) > $rec->minval) {
+     
                 if (!array_key_exists($detail->ent2Id, $recs)) {
                     $recs[$detail->ent2Id] = (object) array(
                         
@@ -129,28 +119,35 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
                         'articulNo' => '',
                         'articulName' => cat_Products::getTitleById($detail->ent2Id),
                         'uomId' => acc_Items::fetch($detail->ent2Id)->uomId,
-                        'storeId' => $detail->ent1Id,
-                        'quantity' => $detail->blQuantity
+                        'storeId' => array($detail->ent1Id),
+                        'quantity' => array($detail->blQuantity),
                     );
                 } else {
                     $obj = &$recs[$detail->ent2Id];
                     
-                    $obj->storeId .= ',' . $detail->ent1Id;
-                    
-                    $obj->quantity .= ',' . $detail->blQuantity;
+                    array_push($obj->storeId, $detail->ent1Id);
+                    array_push($obj->quantity, $detail->blQuantity);
                 }
-            }
+        }
+        
+        $number = 1;
+         foreach ($recs as $key => $val) {
+             
+             if (min($val->quantity) >= 0) {
+                  unset($recs[$key]);
+             }else{
+            
+            $val->articulNo = $number;
+            $number++;
+             }
         }
         
         $rec->counter = countR($recs);
         
-        $number = 1;
         
-        foreach ($recs as $key => $val) {
-            $val->articulNo = $number;
-            $number++;
-        }
         
+       
+   
         return $recs;
     }
     
@@ -212,15 +209,15 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         
         $row->uomId = cat_UoM::getTitleById($dRec->uomId);
         
-        $stores = explode(',', $dRec->storeId);
-        
-        $quantities = explode(',', $dRec->quantity);
-        
-        $resArr = array_combine($stores, $quantities);
+        $resArr = array_combine($dRec->storeId, $dRec->quantity);
         
         asort($resArr);
         
         foreach ($resArr as $key => $val) {
+            
+            //филтър за праг
+            if($rec->minval && (abs($val) < $rec->minval))continue;
+            
             $from = acc_Periods::fetch($rec->period)->start;
             
             $to = dt::today();

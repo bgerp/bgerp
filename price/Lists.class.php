@@ -72,6 +72,18 @@ class price_Lists extends core_Master
     
     
     /**
+     * Кой може да редактира системните данни
+     */
+    public $canEditsysdata = 'price,sales,ceo';
+    
+    
+    /**
+     * Кой може да променя типа на политиката?
+     */
+    public $canChangepublic = 'priceMaster,ceo';
+    
+    
+    /**
      * Кой има право да добавя?
      */
     public $canAdd = 'price,sales,ceo';
@@ -149,9 +161,12 @@ class price_Lists extends core_Master
         $this->FLD('public', 'enum(no=Не,yes=Да)', 'caption=Публичен,input=none');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута');
         $this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=ДДС');
+        $this->FLD('discountClass', 'class(interface=price_SaleAutoDiscountIntf,select=title,allowEmpty)', 'caption=Клас за автоматични отстъпки->Избор');
+        
         $this->FLD('cId', 'int', 'caption=Клиент->Id,input=hidden,silent');
         $this->FLD('cClass', 'class(select=title,interface=crm_ContragentAccRegIntf)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('discountCompared', 'key(mvc=price_Lists,select=title,where=#state !\\= \\\'rejected\\\',allowEmpty)', 'caption=Показване на отстъпка в документите спрямо->Ценоразпис');
+        $this->FLD('discountComparedShowAbove', 'percent(min=0)', 'caption=Показване на отстъпка в документите->Ако е над,placeholder=1 %');
         $this->FLD('significantDigits', 'double(smartRound)', 'caption=Закръгляне->Значещи цифри');
         $this->FLD('minDecimals', 'double(smartRound)', 'caption=Закръгляне->Мин. знаци');
         $this->FLD('defaultSurcharge', 'percent(min=-1,max=1)', 'caption=Надценка/Отстъпка по подразбиране->Процент');
@@ -453,7 +468,7 @@ class price_Lists extends core_Master
      */
     protected static function on_AfterCreate($mvc, $rec)
     {
-        if (isset($rec->cId, $rec->cClass)) {
+        if (isset($rec->cId, $rec->cClass) && !Mode::is('syncing')) {
             price_ListToCustomers::setPolicyToCustomer($rec->id, $rec->cClass, $rec->cId);
         }
     }
@@ -503,10 +518,14 @@ class price_Lists extends core_Master
                 $row->significantDigits = ht::createHint($row->significantDigits, 'Стойност по подразбиране');
             }
             
-            if (empty($rec->minDecimals)) {
+            if (!isset($rec->minDecimals)) {
                 $minDecimals = price_Setup::get('MIN_DECIMALS');
                 $row->minDecimals = $mvc->getFieldType('minDecimals')->toVerbal($minDecimals);
                 $row->minDecimals = ht::createHint($row->minDecimals, 'Стойност по подразбиране');
+            }
+            
+            if(empty($rec->discountComparedShowAbove)){
+                $row->discountComparedShowAbove = ht::createHint($mvc->getFieldType('discountComparedShowAbove')->toVerbal(0.01), 'Стойност по подразбиране');
             }
         }
     }
@@ -553,6 +572,17 @@ class price_Lists extends core_Master
         if ($action == 'add' && isset($rec->cClass, $rec->cId)) {
             if (!cls::get($rec->cClass)->haveRightFor('single', $rec->id)) {
                 $requiredRoles = 'no_one';
+            }
+        }
+        
+        if($action == 'changepublic' && isset($rec)){
+            if($rec->public == 'yes'){
+                $customers = price_ListToCustomers::getCustomers($rec->id);
+                
+                // Ако ценовата политика е публична и е закачена на повече от 1 контрагент, не може да стане частна
+                if(countR($customers) > 1){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
@@ -652,5 +682,54 @@ class price_Lists extends core_Master
         
         // Връщаме закръглената цена
         return $price;
+    }
+    
+    
+    /**
+    * След подготовка на тулбара на единичен изглед.
+    *
+    * @param core_Mvc $mvc
+    * @param stdClass $data
+    *
+    * @return bool|null
+    */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $rec = $data->rec;
+        
+        if ($mvc->haveRightFor('changepublic', $rec)) {
+            $btnTitle = ($rec->public == 'yes') ? 'Частна' : 'Публична';
+            $btnWarning = ($rec->public == 'yes') ? 'Наистина ли желаете да направите политиката частна|*?' : 'Наистина ли желаете да направите политиката публична|*?';
+            
+            $data->toolbar->addBtn($btnTitle, array($mvc, 'changepublic', $rec->id, 'ret_url' => true), "ef_icon=img/16/arrow_refresh.png,title=Промяна на типа на политиката,warning={$btnWarning}");
+        }
+    }
+    
+    
+    /**
+     * Екшън за промяна на състоянието на ценовата политика
+     */
+    public function act_Changepublic()
+    {
+        $this->requireRightFor('changepublic');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('changepublic', $rec);
+        
+        if($rec->public == 'no'){
+            $rec->public = 'yes';
+            $rec->cClass = null;
+            $rec->cId = null;
+        } else {
+            $Cover = doc_Folders::getCover($rec->folderId);
+            $rec->public = 'no';
+            $rec->cClass = $Cover->getClassId();
+            $rec->cId = $Cover->that;
+        }
+        
+        $this->save_($rec, 'public,cClass,cId');
+        $currentState = ($rec->public == 'yes') ? 'публична' : 'частна';
+        
+        followRetUrl(null, "Политиката е променена на {$currentState}");
     }
 }

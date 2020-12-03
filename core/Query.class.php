@@ -1104,6 +1104,8 @@ class core_Query extends core_FieldSet
                     $mvc = cls::get($f->externalClass);
                     $tableName = $mvc->dbTableName;
                     $this->tables[$tableName] = true;
+                    $this->onCond = $f->onCond;
+                    $this->join = $f->join;
                     $mysqlName = str::phpToMysqlName($f->externalName);
                     $fields .= "`{$tableName}`.`{$mysqlName}`";
                     break;
@@ -1131,13 +1133,26 @@ class core_Query extends core_FieldSet
      */
     public function getTables()
     {
-        $tables = "\n   `" . $this->mvc->dbTableName . '`';
-        
-        $tables .= ' ' . $this->getIndexes() . ' ';
+        $tables = '';
         
         foreach ($this->tables as $name => $true) {
-            $tables .= ",\n   `{$name}`";
+            $tables .= "\n   `{$name}`,";
         }
+        
+        if (isset($this->onCond)) {
+            $tables = rtrim($tables, ',') . "\n  ";
+            if ($this->join) {
+                $join = strtoupper($this->join);
+                expect(in_array($join, array("RIGHT", "LEFT", "OUTER", "INNER")), $join);
+                $tables .= $join;
+            }
+            $tables .= ' JOIN `' . $this->mvc->dbTableName . '` ON';
+            $tables .= "\n    " . $this->expr2mysql($this->onCond);
+        } else {
+            $tables .= "\n   `" . $this->mvc->dbTableName . '`';
+        }
+        
+        $tables .= ' ' . $this->getIndexes() . ' ';
         
         return $tables . ' ';
     }
@@ -1164,34 +1179,41 @@ class core_Query extends core_FieldSet
      */
     public function getMysqlField($name)
     {
-        $field = $this->getField($name);
-        
-        // Проверка за грешки
-        if (!is_object($field)) {
-            error('Несъществуващо поле', "'{$name}'");
-        }
-        
-        if ($field->kind === 'FNC') {
-            error('@Функционалните полета не могат да се използват в SQL изрази', $name);
-        }
-        
-        if ($field->kind == 'FLD') {
+        if (strpos($name, '.')) {
+            list($table, $name) = explode('.', $name);
+            $tableName = EF_DB_TABLE_PREFIX . str::phpToMysqlName($table);
             $mysqlName = str::phpToMysqlName($name);
-            $tableName = $this->mvc->dbTableName;
-        } elseif ($field->kind === 'EXT') {
-            $extMvc = & cls::get($field->externalClass);
-            $tableName = $extMvc->dbTableName;
-            $this->tables[$tableName] = true;
-            $mysqlName = str::phpToMysqlName($field->externalName);
-        } elseif ($field->kind == 'XPR') {
-            $this->exprShow[$name] = true;
-            $this->useExpr = true;
-            
-            return '`' . $name . '`';
         } else {
-            // Непознат тип поле ($field->kind)
-            error($field);
+            $field = $this->getField($name);
+            
+            // Проверка за грешки
+            if (!is_object($field)) {
+                error('Несъществуващо поле', "'{$name}'");
+            }
+            
+            if ($field->kind === 'FNC') {
+                error('@Функционалните полета не могат да се използват в SQL изрази', $name);
+            }
+            
+            if ($field->kind == 'FLD') {
+                $mysqlName = str::phpToMysqlName($name);
+                $tableName = $this->mvc->dbTableName;
+            } elseif ($field->kind === 'EXT') {
+                $extMvc = & cls::get($field->externalClass);
+                $tableName = $extMvc->dbTableName;
+                $this->tables[$tableName] = true;
+                $mysqlName = str::phpToMysqlName($field->externalName);
+            } elseif ($field->kind == 'XPR') {
+                $this->exprShow[$name] = true;
+                $this->useExpr = true;
+                
+                return '`' . $name . '`';
+            } else {
+                // Непознат тип поле ($field->kind)
+                error($field);
+            }
         }
+        
         
         $res = "`{$tableName}`.`{$mysqlName}`";
         

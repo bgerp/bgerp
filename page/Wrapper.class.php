@@ -77,7 +77,7 @@ class page_Wrapper extends core_BaseClass
         foreach ($placeHolders as $place) {
             $method = explode('::', $place);
             
-            if (count($method) != 2) {
+            if (countR($method) != 2) {
                 continue;
             }
             

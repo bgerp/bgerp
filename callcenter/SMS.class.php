@@ -1085,10 +1085,12 @@ class callcenter_SMS extends core_Master
         
         // Обхождаме резултатите
         while ($rec = $query->fetch()) {
-            $rec->mobileNumData = $nRecArr[0]->id;
-            
-            // Записваме
-            self::save($rec);
+            if ($rec->mobileNumData != $nRecArr[0]->id) {
+                $rec->mobileNumData = $nRecArr[0]->id;
+                
+                // Записваме
+                self::save($rec);
+            }
         }
     }
     

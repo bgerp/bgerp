@@ -77,6 +77,12 @@ class acc_Balances extends core_Master
     
     
     /**
+     * Кой може ръчно да рекалкулира баланс?
+     */
+    public $canForcecalc = 'debug';
+    
+    
+    /**
      * Кой може да добавя?
      */
     public $canAdd = 'no_one';
@@ -169,6 +175,15 @@ class acc_Balances extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
+        
+        if($action == 'forcecalc' && isset($rec)){
+            if(isset($rec->periodId)){
+                $periodState = acc_Periods::fetchField($rec->periodId, 'state');
+                if(in_array($periodState, array('closed', 'draft'))){
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
     
     
@@ -206,6 +221,10 @@ class acc_Balances extends core_Master
         if ($rec->lastAlternation > $rec->lastCalculate) {
             $row->lastAlternation = ht::createHint($row->lastAlternation, 'Има промяна след последното изчисление на баланса', 'warning');
         }
+        
+        if($mvc->haveRightFor('forcecalc', $rec)){
+            $row->lastCalculate .= ht::createLink('', array($mvc, 'forceCalc', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,select=Ръчно рекалкулиране на баланса');
+        }
     }
     
     
@@ -222,16 +241,7 @@ class acc_Balances extends core_Master
         
         // Ако показваме по сметка
         if (Request::get('accId', 'int')) {
-            $periods = array();
-            $query = $mvc->getQuery();
-            $query->where('#periodId IS NOT NULL');
-            $query->orderBy('toDate', 'DESC');
-            
-            while ($bRec = $query->fetch()) {
-                $key = toUrl(array($mvc, 'single', $bRec->id));
-                $periods[$key] = acc_Periods::fetchField($bRec->periodId, 'title');
-            }
-            
+            $periods = self::getSelectOptions('DESC', false, true);
             $value = toUrl(array($mvc, 'single', $data->rec->id));
             $periodRow = ht::createSmartSelect($periods, 'periodId', $value, array('class' => 'filterBalanceId'));
         } else {
@@ -318,13 +328,40 @@ class acc_Balances extends core_Master
     
     
     /**
+     * Екшън форсиращ рекалкулирането на определен баланс
+     */
+    function act_ForceCalc()
+    {
+        // Ако изчисляването е заключено не го изпълняваме
+        $lockKey = 'RecalcBalances';
+        if (!core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
+            $this->logNotice('Изчисляването на баланса е заключено от друг процес');
+            
+            followRetUrl(null, "Балансът се изчислява в момента. Пробвайте по-късно.", 'warning');
+        }
+        
+        $this->requireRightFor('forcecalc');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('forcecalc', $rec);
+        
+        self::forceCalc($rec, true);
+        self::logWrite('Ръчно преизчисляване на баланса', $rec->id);
+        core_Locks::release($lockKey);
+        
+        followRetUrl(null, "Балансът е успешно рекалкулиран|*!");
+    }
+    
+    
+    /**
      * Ако е необходимо записва и изчислява баланса за посочения период
      *
-     * @param stdClass Запис на баланс, с попълнени $fromDate, $toDate и $periodId
+     * @param stdClass $rec  - Запис на баланс, с попълнени $fromDate, $toDate и $periodId
+     * @param boolean $force - винаги да преизчислява, или само ако е невалиден
      *
-     * @return bool Дали е правено преизчисляване
+     * @return boolean       - Дали е правено преизчисляване
      */
-    private static function forceCalc(&$rec)
+    private static function forceCalc(&$rec, $force = false)
     {
         // Очакваме начална и крайна дата
         expect(strlen($rec->fromDate) == 10 && strlen($rec->toDate) == 10, $rec);
@@ -340,7 +377,11 @@ class acc_Balances extends core_Master
         
         // Ако не е валиден го преизчисляваме, като всяка от
         // десетте минути след преизчисляването - пак го преизчисляваме
-        $isValid = self::isValid($rec, $rec->lastCalculateChange != 'no' ? 10 : 1);
+        if($force !== true){
+            $isValid = self::isValid($rec, $rec->lastCalculateChange != 'no' ? 10 : 1);
+        } else {
+            $isValid = false;
+        }
         
         if (!$isValid) {
             
@@ -441,6 +482,11 @@ class acc_Balances extends core_Master
             return;
         }
         
+        $data = new stdClass();
+        if($oldLastBalance = acc_Balances::getLastBalance()){
+            $data->oldLastBalance = clone $oldLastBalance;
+        }
+        
         // Обикаляме всички активни и чакъщи периоди от по-старите, към по-новите
         // Ако периода се нуждае от прекалкулиране - правим го
         // Ако прекалкулирането се извършва в текущия период, то изисляваме баланса
@@ -452,6 +498,14 @@ class acc_Balances extends core_Master
         $pQuery->where("#state != 'draft'");
         
         $rc = true;
+        
+        // Ако е указана граница за изчисляването се използва
+        $windowStart = null;
+        $alternateWindow = acc_setup::get('ALTERNATE_WINDOW');
+        if($alternateWindow) {
+            $windowStart = dt::addSecs(-$alternateWindow, null, false);
+            $pQuery->where("#end >= '{$windowStart}'");
+        }
         
         while ($pRec = $pQuery->fetch()) {
             $rec = new stdClass();
@@ -471,9 +525,11 @@ class acc_Balances extends core_Master
         
         // Освобождаваме заключването на процеса
         core_Locks::release($lockKey);
+        core_Debug::stopTimer('recalcBalance');
         
         // Пораждаме събитие, че баланса е бил преизчислен
-        $data = new stdClass();
+        $data->lastBalance = acc_Balances::getLastBalance();
+        
         $this->invoke('AfterRecalcBalances', array($data));
     }
     
@@ -571,7 +627,6 @@ class acc_Balances extends core_Master
         // Подреждаме ги по последно калкулиране и по начална дата в обратен ред
         $query->where('#periodId IS NOT NULL');
         $query->orderBy('#toDate', 'DESC');
-        
         $today = dt::today();
         $query->where("#fromDate <= '{$today}' AND #toDate >= '{$today}'");
         
@@ -598,7 +653,7 @@ class acc_Balances extends core_Master
         // Ако няма запис на последния баланс не се връща нищо
         if (empty($balanceRec)) {
             
-            return false;
+            return array();
         }
         
         // Извличане на данните от баланса в които участват зададените сметки
@@ -609,6 +664,32 @@ class acc_Balances extends core_Master
         
         // Връщане на всички намерени записи
         return $dQuery->fetchAll();
+    }
+    
+    
+    
+    /**
+     * Ф-я връщаща последния баланс, в който има записи по аналитичната сметка
+     *
+     * @param mixed $accs     - списък от систем ид-та на сметките
+     * @param mixed $itemsAll - списък от пера, за които може да са на произволна позиция
+     * @param mixed $items1   - списък с пера, от които поне един може да е на първа позиция
+     * @param mixed $items2   - списък с пера, от които поне един може да е на втора позиция
+     * @param mixed $items3   - списък с пера, от които поне един може да е на трета позиция
+     *
+     * @return null|int       - намерения баланс, ако има такъв
+     */
+    public static function fetchLastBalanceFor($accountSysId, $itemsAll = null, $items1 = null, $items2 = null, $items3 = null)
+    {
+        // Извличане на данните от баланса в които участват зададените сметки
+        $dQuery = acc_BalanceDetails::getQuery();
+        acc_BalanceDetails::filterQuery($dQuery, null, $accountSysId, $itemsAll, $items1, $items2, $items3);
+        $dQuery->XPR('maxBalance', 'double', 'MAX(#balanceId)');
+        $dQuery->orderBy('balanceId', 'DESC');
+        $lastBalance = $dQuery->fetch()->maxBalance;
+        $res = !empty($lastBalance) ? $lastBalance : null;
+        
+        return $res;
     }
     
     
@@ -979,14 +1060,15 @@ class acc_Balances extends core_Master
     
     
     /**
-     * Кои са незатворените баланси
-     *
-     * @param string $order
-     * @param bool   $skipClosed
-     *
-     * @return array $balances
+     * Опции с балансите за избор
+     * 
+     * @param string $order       - подредба
+     * @param boolean $skipClosed - пропусни затворените
+     * @param boolean $linkKeys   - дали ключа да е линк към сингъла на баланса
+     * 
+     * @return array              - $balances
      */
-    public static function getSelectOptions($order = 'DESC', $skipClosed = true)
+    public static function getSelectOptions($order = 'DESC', $skipClosed = true, $linkKeys = false)
     {
         $balances = array();
         $query = acc_Balances::getQuery();
@@ -997,7 +1079,8 @@ class acc_Balances extends core_Master
         
         $query->orderBy('id', $order);
         while ($rec = $query->fetch()) {
-            $balances[$rec->id] = acc_Periods::getTitleById($rec->periodId, false);
+            $key = ($linkKeys !== true) ? $rec->id : toUrl(array(__CLASS__, 'single', $rec->id));
+            $balances[$key] = acc_Periods::getTitleById($rec->periodId, false);
         }
         
         return $balances;

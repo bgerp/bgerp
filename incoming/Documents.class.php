@@ -182,7 +182,7 @@ class incoming_Documents extends core_Master
         $this->FLD('description', 'text', 'caption=Описание,oldFiledName=keywords');
         $this->FLD('dataId', 'key(mvc=fileman_Data)', 'caption=Данни, input=none');
         $this->FLD('archTomNumber', 'int', 'column=none,caption=Архивиране->Том №,autohide');
-        $this->FLD('archTomYear', 'enum(,2016,2017,2018,2019)', 'column=none,caption=Архивиране->Година,autohide');
+        $this->FLD('archTomYear', 'enum(,2016,2017,2018,2019,2020,2021)', 'column=none,caption=Архивиране->Година,autohide');
         
         $this->setDbUnique('dataId');
     }
@@ -406,7 +406,7 @@ class incoming_Documents extends core_Master
     public static function canKeepDoc($fileName, $fileLen)
     {
         static $typeToLen = array();
-        if (!count($typeToLen)) {
+        if (!countR($typeToLen)) {
             $typeToLen = arr::make('pdf=10,doc=10,docx=10,odt=10,xls=10,zip=10,rar=10,txt=1,rtf=2,tiff=20,tff=20,jpg=20,jpeg=20,png=20,bmp=50,csv=1', true);
         }
         

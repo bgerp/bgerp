@@ -452,6 +452,12 @@ input[type="search"]::-webkit-search-decoration {
 input::-webkit-calendar-picker-indicator {
 	display: none;
 }
+/**
+	fix chrome input
+ */
+input, textarea, select,input:focus, textarea:focus, select:focus, input:hover, select:hover, textarea:hover {
+	outline: none;
+}
 
 #simpleSearch {
 	width:15em;
@@ -683,7 +689,14 @@ select.combo {
 	box-shadow: none !important;
 	background-color: transparent;
 	outline: none;
+	&.inputError ~ label {
+		color: red !important;
+	}
+	&.inputWarning ~ label {
+		color: blue !important;
+	}
 }
+
 
 .checkbox, input[type=checkbox] {
 	margin: 3px 3px 3px 4px;
@@ -692,6 +705,10 @@ select.combo {
 .radiobutton,  input[type=radio] {
 	margin: 2px 3px 3px 4px;
 	vertical-align: middle;
+}
+
+img {
+	color:transparent;
 }
 
 input[type=radio] + label, input[type=checkbox] + label {
@@ -1742,6 +1759,10 @@ span.inputLackOfChoiceMandatory {
     margin-bottom: 0;
 }
 
+.mandatoryMiddleCaption {
+	font-weight: bold;
+}
+
 .staticFormView .formFieldValue {
     border:solid 1px #99f; 
     padding:3px;
@@ -2514,7 +2535,13 @@ div.alphabet div.tab-page {
 	margin: 0;
 	padding: 10px 0 0 0;
 }
-
+div.alphabet.twoRows {
+	margin-top: -10px;
+	div.tab-page {
+		margin: 0;
+		padding: 15px 0 0 0;
+	}
+}
 .narrow div.alphabet  div.tab-row {
 	float: left;
 	padding-bottom: 5px;
@@ -3790,10 +3817,16 @@ span.cng {
 	text-align: left;
 }
 
-
 td.rightCol, th.rightCol {
-	white-space:nowrap;
+	white-space: nowrap;
 	text-align:right !important;
+}
+
+.listBlock > .listRows > , .listBlock > form > div > .listRows > , .listBlock > div > .listRows >{
+	.listTable > thead > tr > th {
+		white-space: normal;
+		font-size: 0.95em;
+	}
 }
 
 td.leftCol, th.leftCol {
@@ -3809,6 +3842,10 @@ td.centerCol {
 td.leftColImportant {
 	white-space:nowrap;
 	text-align:left !important;
+}
+
+.leftCell {
+	text-align: left !important;
 }
 
 .dangerFile {

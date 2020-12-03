@@ -103,7 +103,7 @@ class cat_products_Params extends doc_Detail
         $this->FLD('classId', 'class', 'input=hidden,silent');
         $this->FLD('productId', 'int', 'input=hidden,silent');
         $this->FLD('paramId', 'key(mvc=cat_Params,select=typeExt)', 'input,caption=Параметър,mandatory,silent');
-        $this->FLD('paramValue', 'varchar(255)', 'input=none,caption=Стойност,mandatory');
+        $this->FLD('paramValue', 'text', 'input=none,caption=Стойност,mandatory');
         
         $this->setDbUnique('classId,productId,paramId');
         $this->setDbIndex('classId,productId');
@@ -159,7 +159,7 @@ class cat_products_Params extends doc_Detail
             $form->setField('paramId', array('removeAndRefreshForm' => 'paramValue|paramValue[lP]|paramValue[rP]'));
             $options = self::getRemainingOptions($rec->classId, $rec->productId, $rec->id);
             
-            if (!count($options)) {
+            if (!countR($options)) {
                 
                 return followRetUrl(null, 'Няма параметри за добавяне', 'warning');
             }
@@ -167,7 +167,7 @@ class cat_products_Params extends doc_Detail
             $form->setOptions('paramId', array('' => '') + $options);
             $form->paramOptions = $options;
             
-            if (count($options) == 1) {
+            if (countR($options) == 1) {
                 $form->setDefault('paramId', key($options));
                 $form->setReadOnly('paramId');
             }
@@ -236,7 +236,7 @@ class cat_products_Params extends doc_Detail
             $data->form->title = core_Detail::getEditTitle($rec->classId, $rec->productId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
         }
         
-        if (isset($data->form->paramOptions) && count($data->form->paramOptions) <= 1) {
+        if (isset($data->form->paramOptions) && countR($data->form->paramOptions) <= 1) {
             $data->form->toolbar->removeBtn('saveAndNew');
         }
     }
@@ -272,7 +272,7 @@ class cat_products_Params extends doc_Detail
         }
         
         $where = '';
-        if (count($ids)) {
+        if (countR($ids)) {
             $ids = implode(',', $ids);
             $where = "#id NOT IN ({$ids})";
         }
@@ -319,6 +319,15 @@ class cat_products_Params extends doc_Detail
     {
         if (is_array($data->params)) {
             foreach ($data->params as &$row) {
+                
+                // Ревербализиране на файловете да се покажат с подходящите права
+                if(!empty($row->_paramId)){
+                    $ParamDriver = cat_Params::getDriver($row->_paramId);
+                    if($ParamDriver instanceof cond_type_File || $ParamDriver instanceof cond_type_Image){
+                        $row->paramValue = cat_Params::toVerbal($row->_paramId, $row->classId, $row->productId, $row->_paramValue);
+                    }
+                }
+                
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 if ($data->noChange !== true && !Mode::isReadOnly()) {
                     $row->tools = $row->_rowTools->renderHtml();
@@ -351,7 +360,7 @@ class cat_products_Params extends doc_Detail
         $query->EXT('order', 'cat_Params', 'externalName=order,externalKey=paramId');
         $query->where("#productId = {$data->masterId}");
         $query->where("#classId = {$data->masterClassId}");
-        $query->orderBy('group,order', 'ASC');
+        $query->orderBy('group,order,id', 'ASC');
         
         // Ако подготвяме за външен документ, да се показват само параметрите за външни документи
         if ($data->documentType == 'public' || $data->documentType == 'invoice') {
@@ -361,6 +370,8 @@ class cat_products_Params extends doc_Detail
         
         while ($rec = $query->fetch()) {
             $data->params[$rec->id] = static::recToVerbal($rec);
+            $data->params[$rec->id]->_paramId = $rec->paramId;
+            $data->params[$rec->id]->_paramValue = $rec->paramValue;
         }
         
         if (self::haveRightFor('add', (object) array('productId' => $data->masterId, 'classId' => $data->masterClassId))) {
@@ -521,5 +532,29 @@ class cat_products_Params extends doc_Detail
         }
         
         sales_TransportValues::recalcTransportByProductId($productId);
+    }
+    
+    
+    /**
+     * Връща нередактируемите имена на параметрите при печат на етикети
+     * 
+     * @param int $classId
+     * @param int $productId
+     * @return array $notEdittableParamNames
+     */
+    public static function getNotEditableLabelParamNames($classId, $productId)
+    {
+        $notEdittableParamNames = array();
+        $pQuery = cat_products_Params::getQuery();
+        $pQuery->EXT('editInLabel', 'cat_Params', 'externalName=editInLabel,externalKey=paramId');
+        $pQuery->where("#editInLabel = 'no' AND #productId = {$productId} AND #classId={$classId}");
+        $pQuery->show('paramId');
+        
+        $notEditableParams = arr::extractValuesFromArray($pQuery->fetchAll(), 'paramId');
+        if(countR($notEditableParams)){
+            $notEdittableParamNames = cat_Params::getParamNameArr($notEditableParams, true) ;
+        }
+        
+        return $notEdittableParamNames;
     }
 }

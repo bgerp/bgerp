@@ -13,23 +13,32 @@ html {
     position: relative;
     min-height: 100%;
 }
+.cms-last {
+    margin: 0 !important;
+}
 #cmsTop, #cmsBottom, #cmsTop.a, #cmsBottom.a {
     color: white;
 }
-.wide .narrowCenter, header {
+
+.wide .narrowCenter {
     text-align: center;
-    height: auto !important;
-    max-height: 300px;
+    width: 1200px;
+    height: 220px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.formTable .formTitle a {
+    color: #ddd !important;
 }
 
 .wide .fadein {
-  display: inline-block;
     position: relative;
 }
 
 .wide  .headerImg{
-    height: 300px;
-    width: auto;
+    height:auto;
+    max-width: 1200px;
     float: none;
 
 }
@@ -38,6 +47,7 @@ html {
     bottom: 0;
     width: 100%;
 }
+
 #maincontent {
     background-color:white;
     padding-top: 0 !important;
@@ -63,10 +73,16 @@ html {
     padding:5px;
 }
 .wide .app-name{
-    top: 21%;
+    top: 5%;
     left: 2%;
+    font-size: 4.5em;
 }
 
+.wide .app-subtitle{
+    left: 0%;
+    top: 48%;
+    font-size: 1.7em;
+}
 .wide #maincontent {
     min-height: auto;
 }
@@ -83,10 +99,42 @@ html {
 .wide .app-name {
     left: 0 !important;
 }
+.auctionContent {
+    padding: 0 0px 10px;
+    margin-top: -10px;
+}
+@media handheld, only screen and (max-width: 1200px) {
+    .wide .app-name {
+        font-size: 4.1em;
+    }
+    .wide .app-subtitle {
+        font-size: 1.5em;
+    }
+}
+
+@media handheld, only screen and (max-width: 1000px) {
+    .wide .app-name {
+        font-size: 3.3em;
+    }
+    .wide .app-subtitle {
+        font-size: 1.3em;
+    }
+}
+
+@media handheld, only screen and (max-width: 800px) {
+    .wide .app-name {
+        font-size: 2.7em;
+    }
+    .wide .app-subtitle {
+        font-size: 1.1em;
+    }
+}
 @media handheld, only screen and (max-width: 600px) {
     .wide .app-name {
-        font-size: 3.7em;
-        top: 24%;
+        font-size: 1.8em;
+    }
+    .wide .app-subtitle {
+        font-size: 0.9em;
     }
 }
 .gdpr {
@@ -98,7 +146,6 @@ html {
     color: #ccc;
 }
 #cmsMenu {
-    float: left;
     width: 100%;
 }
 
@@ -108,16 +155,13 @@ html {
     width: 1200px;
     margin: 0 auto;
     float: none;
+
 }
-.centerFixed {
-    position: absolute;
-    width: 1200px;
-    left: 20%;
-    top: 0;
-}
+
 #searchform {
     margin-bottom: 20px;
 }
+
 header {
     position: relative;
 }
@@ -167,7 +211,7 @@ header img {
     .narrow .externalPage #maincontent {
         min-height: 410px;
     }
-    .centerContent, .narrow .narrowCenter, .centerFixed {
+    .centerContent, .wide .narrowCenter, .centerFixed {
         width: 100%;
         margin: 0;
         display: block;
@@ -183,8 +227,8 @@ header img {
     }
     #cmsMenu {
         box-sizing: border-box;
-        padding-left: 2%;
-        padding-right: 2%;
+        padding-left: 2px;
+        padding-right: 2px;
         font-size: 0.9em;
     }
     #cmsBottom {
@@ -201,5 +245,11 @@ header img {
     }
     .narrow .externalPage .vertical .formTable {
         padding: 15px 10px 0px;
+    }
+    .narrow .externalPage #login-form .vertical .formTable {
+        padding: 15px 5px 0px;
+    }
+    .narrow .narrowCenter {
+        width: 100%;
     }
 }

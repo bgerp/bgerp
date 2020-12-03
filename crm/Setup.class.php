@@ -25,6 +25,21 @@ defIfNot('BGERP_OWN_COMPANY_ID', 1);
 defIfNot('CRM_VISIBLE_NKID', 'none');
 
 
+/**
+ * Използване на регистър VIES за търсене на фирми
+ */
+defIfNot('CRM_REGISTRY_USE_VIES', 'yes');
+
+
+/**
+ * Използване на Търговския регистър за търсене на фирми
+ */
+defIfNot('CRM_REGISTRY_USE_BRRA', 'yes');
+
+/**
+ * Вид на визитника
+ */
+defIfNot('CRM_ALPHABET_FILTER', 'standart');
 
 /**
  * Клас 'crm_Setup' -
@@ -34,7 +49,7 @@ defIfNot('CRM_VISIBLE_NKID', 'none');
  * @package   crm
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -82,8 +97,10 @@ class crm_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        
         'CRM_VISIBLE_NKID' => array('enum(none=Не показвай, yes=Покажи)', 'caption=Класификация на икономическите дейности->НКИД'),
+        'CRM_REGISTRY_USE_BRRA' => array('enum(yes=Включено,ne=Изключено)', 'caption=Извличане и попълване на данни->Търговски регистър'),
+        'CRM_REGISTRY_USE_VIES' => array('enum(yes=Включено,ne=Изключено)', 'caption=Извличане и попълване на данни->VIES'),
+        'CRM_ALPHABET_FILTER' => array('enum(none=Без,standart=Стандартен,twoRows=Двоен)', 'caption=Вид на азбучника, customizeBy=powerUser'),
     );
     
     
@@ -91,7 +108,8 @@ class crm_Setup extends core_ProtoSetup
      * Описание на системните действия
      */
     public $systemActions = array(
-        array('title' => 'Ключови думи', 'url' => array('crm_Persons', 'repairKeywords', 'ret_url' => true), 'params' => array('title' => 'Ре-индексиране на визитките'))
+        array('title' => 'Ключови думи', 'url' => array('crm_Persons', 'repairKeywords', 'ret_url' => true), 'params' => array('title' => 'Ре-индексиране на визитките')),
+        array('title' => 'Промяна на условия', 'url' => array('cond_ConditionsToCustomers', 'update', 'ret_url' => true), 'params' => array('title' => 'Промяна на търговските условия на контрагентите', 'ef_icon' => 'img/16/arrow_refresh.png'))
     );
     
     
@@ -126,7 +144,6 @@ class crm_Setup extends core_ProtoSetup
         'crm_Formatter',
         'crm_ext_ContragentInfo',
         'crm_ext_Cards',
-        'migrate::repairSerchKeywords0619',
     );
     
     
@@ -183,15 +200,5 @@ class crm_Setup extends core_ProtoSetup
         $html .= core_Cron::addOnce($rec);
         
         return $html;
-    }
-    
-    
-    /**
-     * Миграция за регенериране на ключовите думи
-     */
-    public static function repairSerchKeywords0619()
-    {
-        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'crm_Companies', dt::addSecs(120));
-        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'crm_Persons', dt::addSecs(180));
     }
 }

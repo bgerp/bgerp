@@ -11,7 +11,7 @@ function escPrint(escPrintOnSuccess, escPrintOnError) {
                    url: [#serverUrl#],
                    crossDomain: true,
                    cache: false,
-                   data: {printerIp: [#printerIp#], printerPort: [#printerPort#], printText: [#printText#]},
+                   data: {DATA: [#DATA#]},
                }).done(function(res) {
                     escPrintOnSuccess(res);
                }).fail(function(res){

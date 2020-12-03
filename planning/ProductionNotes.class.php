@@ -32,12 +32,6 @@ class planning_ProductionNotes extends planning_ProductionDocument
     
     
     /**
-     * Име на документа в бързия бутон за добавяне в папката
-     */
-    public $buttonInFolderTitle = 'Произвеждане';
-    
-    
-    /**
      * Абревиатура
      */
     public $abbr = 'Mpd';
@@ -72,6 +66,12 @@ class planning_ProductionNotes extends planning_ProductionDocument
      * Кой има право да чете?
      */
     public $canRead = 'ceo,planning';
+    
+    
+    /**
+     * Да не се регенерират ключовите думи
+     */
+    public $repairSerchKeywords = false;
     
     
     /**

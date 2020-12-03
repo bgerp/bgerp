@@ -391,7 +391,7 @@ class rack_Zones extends core_Master
                 $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
                 $dQuery->where("#productId={$filter->productId} AND #storeId = {$storeId}");
                 $zoneIdsWithProduct = arr::extractValuesFromArray($dQuery->fetchAll(), 'zoneId');
-                if(count($zoneIdsWithProduct)){
+                if(countR($zoneIdsWithProduct)){
                     $data->query->in('id', $zoneIdsWithProduct);
                 } else {
                     $data->query->where("1=2");
@@ -428,7 +428,7 @@ class rack_Zones extends core_Master
         $dQuery->groupBy('productId');
         
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) return array();
+            if (!countR($onlyIds)) return array();
             
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
@@ -770,7 +770,7 @@ class rack_Zones extends core_Master
         
         while($gRec = $gQuery->fetch()){
             $groupableZones = self::getZones($storeId, false, true, $gRec->id);
-            if(count($groupableZones)){
+            if(countR($groupableZones)){
                 $groupableZones = arr::make(array_keys($groupableZones), true);
                 self::pickupOrder($storeId, $groupableZones);
             }
@@ -835,7 +835,7 @@ class rack_Zones extends core_Master
                 $palletsArr[$obj->position] = $obj->quantity;
             }
             
-            if (!count($palletsArr)) {
+            if (!countR($palletsArr)) {
                 continue;
             }
             
@@ -958,6 +958,7 @@ class rack_Zones extends core_Master
                 $res->attr = "ef_icon=img/16/package.png,title=Към зоната";
             }
         }
+        $res->attr = arr::make($res->attr, true);
         
         return $res;
     }

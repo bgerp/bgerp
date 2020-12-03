@@ -35,12 +35,26 @@
 #uploadBtn.only-one-file {
   left: 0px; }
 
+.filemanUpload ul {
+  margin: 10px 0; }
+
 .filemanUpload select {
   max-width: 200px !important;
   margin-right: 0 !important; }
 
 .filemanUpload input.combo {
   width: 180px !important; }
+
+.horizontal {
+  margin-bottom: 0 !important; }
+  .horizontal .formFields {
+    float: left;
+    margin-right: 10px;
+    margin-bottom: 0; }
+    .horizontal .formFields .hFormField {
+      margin-bottom: 5px !important; }
+  .horizontal .toolbar {
+    margin-bottom: 0 !important; }
 
 /*
  * бутона за IE
@@ -157,8 +171,6 @@
 
 .dialog-window .fileman_Log {
   margin-top: 15px; }
-  .dialog-window .fileman_Log .horizontal .formToolbar {
-    margin-bottom: 10px !important; }
   .dialog-window .fileman_Log .listTable {
     width: 99%;
     min-width: 0; }
@@ -192,7 +204,7 @@
   margin: 10px 2px; }
 
 .narrow.dialog-window .filemanUpload ul {
-  margin: 10px 0; }
+  margin: 10px 0 5px; }
 
 .narrow .fileman_Log.switching-display {
   margin-top: 5px; }

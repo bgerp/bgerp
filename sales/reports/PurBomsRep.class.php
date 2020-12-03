@@ -146,7 +146,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
         $sQuery = sales_Sales::getQuery();
         $sQuery->where("#state = 'active'");
         
-        if (count($dealers)) {
+        if (countR($dealers)) {
             $sQuery->in('dealerId', $dealers);
         }
         

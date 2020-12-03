@@ -39,7 +39,7 @@ class drdata_IP
     {
         preg_match_all('/((?:\d{1,3}\.){3})\d{1,3}/', $str, $matches);
         
-        for ($ipCount = count($matches[0]) - 1; $ipCount >= 0; $ipCount--) {
+        for ($ipCount = countR($matches[0]) - 1; $ipCount >= 0; $ipCount--) {
             $ip = $matches[0][$ipCount];
             
             if (!drdata_Ip::isPrivateIp($ip)) {

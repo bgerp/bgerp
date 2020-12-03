@@ -121,7 +121,7 @@ class fileman_Get extends core_Manager
             
             $headersArr = $Curl->getHeadersArr($rec->url);
             
-            $lastHeader = $headersArr[count($headersArr) - 1];
+            $lastHeader = $headersArr[countR($headersArr) - 1];
             
             if ($lastHeader['Response Code'] == '200') {
                 if (str::findOn($lastHeader['Content-Type'], 'text/html') &&
@@ -134,7 +134,7 @@ class fileman_Get extends core_Manager
                 }
             } elseif ($lastHeader['Response Code']{0} == '4') {
                 $form->setError('url', 'Грешка в пътя за сваляне:|* <br><small>' . $pArr['path'] . '</small>');
-            } elseif (count($headersArr) == 1) {
+            } elseif (countR($headersArr) == 1) {
                 $form->setError('url', 'Невъзможно свързване с:|* <b>' . $pArr['host'] . '</b>');
             }
             
@@ -213,7 +213,7 @@ class fileman_Get extends core_Manager
                 $ct = $ct[0];
                 if (strtolower($ct) != 'application/octet-stream') {
                     $exts = fileman_Mimes::getExtByMime($ct);
-                    if (count($exts)) {
+                    if (countR($exts)) {
                         foreach ($exts as $e) {
                             if (stripos($rec->url, '.' . $e)) {
                                 $ext = $e;
@@ -328,6 +328,27 @@ class fileman_Get extends core_Manager
         $form->FNC('url', 'url(1200)', 'caption=URL,mandatory');
         
         $rec = $form->input('bucketId,callback,url', true);
+        if ($form->isSubmitted()) {
+            if (!defined('BGERP_GIT_BRANCH') || (BGERP_GIT_BRANCH != 'dev')) {
+                $pArr = core_Url::parseUrl($form->rec->url);
+                
+                if ($pArr['error']) {
+                    $form->setError('url', $pArr['error']);
+                }
+                
+                if (!$pArr['tld']) {
+                    $form->setError('url', 'Не е зададено коректно разширение на домейна');
+                }
+                
+                if (!in_array($pArr['scheme'], array('http', 'https', 'ftp', 'ftps'))) {
+                    $form->setError('url', 'Неподдържан протокол:|* <b>' . $pArr['scheme'] . '</b>');
+                }
+                
+                if (core_Url::isPrivate($form->rec->url)) {
+                    $form->setError('url', 'Не може да се използва частна мрежа');
+                }
+            }
+        }
         
         if ($form->isSubmitted()) {
             $this->getFile($rec, $add);
@@ -395,7 +416,7 @@ class fileman_Get extends core_Manager
         // Ако не сме намерили име на файл или той няма разширение
         // Определяме разширението на файла от Content-Type
         if (!strpos($filename, '.')) {
-            $lastHeader = $headersArr[count($headersArr)];
+            $lastHeader = $headersArr[countR($headersArr)];
             $cType = addslashes($lastHeader['Content-Type']);
             
             $Mime2ext = cls::get('fileman_Mime2ext');

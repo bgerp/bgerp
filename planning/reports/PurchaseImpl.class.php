@@ -146,7 +146,7 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
         
         if (is_array($dates)) {
             foreach ($dates as $prd => $sal) {
-                if (count($sal) > 1) {
+                if (countR($sal) > 1) {
                     $dateSale[$prd] = min($sal);
                     $dateSale[$prd] = dt::mysql2timestamp($dateSale[$prd]);
                 } else {
@@ -221,7 +221,7 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
         
         arr::sortObjects($data->recs, 'dateSale');
         
-        for ($dt = 0; $dt <= count($data->recs); $dt++) {
+        for ($dt = 0; $dt <= countR($data->recs); $dt++) {
             if ($data->recs[$dt]->dateSale) {
                 $data->recs[$dt]->dateSale = dt::timestamp2Mysql($data->recs[$dt]->dateSale);
             }
@@ -249,10 +249,10 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
         $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
         $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
         
-        $pager->itemsCount = count($data->recs);
+        $pager->itemsCount = countR($data->recs);
         $data->pager = $pager;
         
-        if (count($data->recs)) {
+        if (countR($data->recs)) {
             foreach ($data->recs as $id => $rec) {
                 if (!$pager->isOnPage()) {
                     continue;
@@ -395,7 +395,7 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
         
         $row->dateSale = $Date->toVerbal($rec->dateSale);
         
-        for ($i = 0; $i <= count($rec->sales) - 1; $i++) {
+        for ($i = 0; $i <= countR($rec->sales) - 1; $i++) {
             $row->sales .= '#'.sales_Sales::getHandle($rec->sales[$i]) .',';
         }
         $row->sales = $RichtextType->toVerbal(substr($row->sales, 0, -1));
@@ -448,7 +448,7 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
         
         $conf = core_Packs::getConfig('core');
         
-        if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
+        if (countR($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
             redirect(array($this), false, '|Броят на заявените записи за експорт надвишава максимално разрешения|* - ' . $conf->EF_MAX_EXPORT_CNT, 'error');
         }
         
@@ -459,7 +459,7 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
         }
         
         
-        if (count($this->innerState->recs)) {
+        if (countR($this->innerState->recs)) {
             foreach ($this->innerState->recs as $id => $rec) {
                 $rCsv = $this->generateCsvRows($rec);
                 

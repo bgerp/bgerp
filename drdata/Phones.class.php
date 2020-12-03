@@ -280,7 +280,7 @@ class drdata_Phones extends core_Manager
                         } else {
                             $mobArr = $this->getMobile($defaultCountryCode);
                             
-                            if (count($mobArr)) {
+                            if (countR($mobArr)) {
                                 foreach ($mobArr as $mCode) {
                                     if (strpos($t1, $mCode) === 0) {
                                         $t1 = '0' . $t1;

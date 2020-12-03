@@ -237,7 +237,7 @@ class rack_RackDetails extends core_Detail
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        if (is_array($rec->_toSave) && count($rec->_toSave)) {
+        if (is_array($rec->_toSave) && countR($rec->_toSave)) {
             foreach ($rec->_toSave as $r) {
                 $r->id = self::fetch("#col = {$r->col} AND #row = '{$r->row}' AND #rackId = {$r->rackId}")->id;
                 

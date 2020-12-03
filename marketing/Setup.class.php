@@ -75,7 +75,7 @@ class marketing_Setup extends core_ProtoSetup
         'marketing_Inquiries2',
         'marketing_Bulletins',
         'marketing_BulletinSubscribers',
-        'migrate::regenerateBulletins',
+        'migrate::regenerateBulletins2042',
         'migrate::updateContactData',
     );
     
@@ -115,7 +115,7 @@ class marketing_Setup extends core_ProtoSetup
     /**
      * Миграция за обновява всички записи, за да се обнови кеша
      */
-    public static function regenerateBulletins()
+    public static function regenerateBulletins2042()
     {
         $query = marketing_Bulletins::getQuery();
         while ($rec = $query->fetch()) {

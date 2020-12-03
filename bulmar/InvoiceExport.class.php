@@ -96,17 +96,16 @@ class bulmar_InvoiceExport extends core_Manager
         $query->where("#state = 'active'");
         $query->between('date', $filter->from, $filter->to);
         $query->orderBy('#number', 'ASC');
-        
         $recs = $query->fetchAll();
         
         if (!countR($recs)) {
-            core_Statuses::newStatus('|Няма налични фактури за експортиране');
+            core_Statuses::newStatus('|Няма налични изходящи фактури за експортиране');
             
             return;
         }
         
         $data = $this->prepareExportData($recs);
-        
+       
         $content = $this->prepareFileContent($data);
         $content = iconv('utf-8', 'CP1251', $content);
         
@@ -145,7 +144,8 @@ class bulmar_InvoiceExport extends core_Manager
     {
         $nRec = new stdClass();
         $nRec->contragent = $rec->contragentName;
-        $nRec->invNumber = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+        $nRec->invNumber = sales_Invoices::getVerbal($rec, 'number');
+        
         $nRec->date = dt::mysql2verbal($rec->date, 'd.m.Y');
         $nRec->num = $count;
         if ($rec->type == 'dc_note') {
@@ -164,14 +164,21 @@ class bulmar_InvoiceExport extends core_Manager
         $byProducts = $byServices = 0;
         $dQuery = sales_InvoiceDetails::getQuery();
         $dQuery->where("#invoiceId = {$rec->id}");
+        $details = $dQuery->fetchAll();
         
-        while ($dRec = $dQuery->fetch()) {
+        if($rec->type != 'invoice'){
+            sales_InvoiceDetails::modifyDcDetails($details, $rec, cls::get('sales_InvoiceDetails'));
+        }
+        
+        $vatDecimals = sales_Setup::get('SALE_INV_VAT_DISPLAY', true) == 'yes' ? 20 : 2;
+        
+        foreach ($details as $dRec) {
             if (empty($this->cache[$dRec->productId])) {
                 $this->cache[$dRec->productId] = cat_Products::getProductInfo($dRec->productId);
             }
             
             $pInfo = $this->cache[$dRec->productId];
-            $dRec->amount = round($dRec->packPrice * $dRec->quantity, 2);
+            $dRec->amount = round($dRec->packPrice * $dRec->quantity, $vatDecimals);
             
             if (empty($pInfo->meta['canStore'])) {
                 $byServices += $dRec->amount * (1 - $dRec->discount);
@@ -218,8 +225,33 @@ class bulmar_InvoiceExport extends core_Manager
         
         if ($rec->paymentType == 'cash') {
             $nRec->amountPaid = $nRec->amount;
+            
+            // Ако към ф-та има ПКО и ВКТ за инкасиране на банково плащане да не се води като платена в брой
+            $pkoQuery = cash_Pko::getQuery();
+            $pkoQuery->where("#state = 'active' AND #fromContainerId = {$rec->containerId}");
+            $pkoQuery->show('containerId');
+            $pkos = arr::extractValuesFromArray($pkoQuery->fetchAll(), 'containerId');
+            if(countR($pkos)){
+                $cQuery = cash_InternalMoneyTransfer::getQuery();
+                $cQuery->where("#state = 'active' AND #operationSysId = 'nonecash2bank'");
+                $cQuery->in('sourceId', $pkos);
+                if($cQuery->count()){
+                    unset($nRec->amountPaid);
+                }
+            }
         }
         
+        if(round($nRec->productsAmount + $nRec->servicesAmount, 2) != round($nRec->baseAmount, 2)){
+            if(empty($nRec->productsAmount) && !empty($nRec->servicesAmount)){
+                $nRec->servicesAmount = $nRec->baseAmount;
+            } elseif(!empty($nRec->productsAmount) && empty($nRec->servicesAmount)){
+                $nRec->productsAmount = $nRec->baseAmount;
+            } elseif(!empty($nRec->productsAmount) && !empty($nRec->servicesAmount)){
+                $nRec->servicesAmount = $nRec->baseAmount - $nRec->productsAmount;
+                $nRec->productsAmount = $nRec->baseAmount - $nRec->servicesAmount;
+            }
+        }
+       
         return $nRec;
     }
     
@@ -260,8 +292,13 @@ class bulmar_InvoiceExport extends core_Manager
             if ($rec->productsAmount) {
                 $line .= "{$static->creditSaleProducts}|||{$rec->productsAmount}||";
             }
+            
             if ($rec->servicesAmount) {
                 $line .= "{$static->creditSaleServices}|||{$rec->servicesAmount}||";
+            }
+            
+            if($rec->type != 1 && empty($rec->servicesAmount) && empty($rec->productsAmount)){
+                $line .= "{$static->creditSaleProducts}|||{$rec->baseAmount}||";
             }
             
             $line .= "{$static->creditSaleVat}|||{$rec->vat}||" . "\r\n";
@@ -304,7 +341,8 @@ class bulmar_InvoiceExport extends core_Manager
         $staticData->creditAdvance = $conf->BULMAR_INV_CREDIT_AV;
         
         $myCompany = crm_Companies::fetchOwnCompany();
-        $staticData->OWN_COMPANY_BULSTAT = str_replace('BG', '', $myCompany->vatNo);
+        $num = (!empty($myCompany->vatNo)) ? str_replace('BG', '', $myCompany->vatNo) : $myCompany->uicId;
+        $staticData->OWN_COMPANY_BULSTAT = $num;
         
         return $staticData;
     }

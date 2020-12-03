@@ -72,7 +72,7 @@ class select2_Setup extends core_ProtoSetup
         // Минималния брой елементи, за които няма да сработи SELECT2
         'SELECT2_WIDE_MIN_SEARCH_ITEMS_CNT' => array('int', 'caption=Минимален брой опции за да сработи търсенето в Select2->За широк екран, suggestions=5|10|20|50|100'),
         'SELECT2_NARROW_MIN_SEARCH_ITEMS_CNT' => array('int', 'caption=Минимален брой опции за да сработи търсенето в Select2->За тесен екран, suggestions=5|10|20|50|100'),
-        'SELECT2_VERSION' => array('enum(4.0rc2, 4.0, 4.0.1, 4.0.7)', 'caption=Версия на Select2->Версия'),
+        'SELECT2_VERSION' => array('enum(4.0rc2, 4.0.1, 4.0.7, 4.0.13)', 'caption=Версия на Select2->Версия'),
         'SELECT2_TOTREE_VERSION' => array('enum(19.03.26)', 'caption=Версия на Select2ToTree->Версия'),
     );
     
@@ -91,6 +91,8 @@ class select2_Setup extends core_ProtoSetup
         
         // Плъгини за keylist и наследниците му
         $html .= $Plugins->forcePlugin('Select2 за тип Keylist', 'select2_Plugin', 'type_Keylist', 'private');
+        $html .= $Plugins->forcePlugin('Select2 за тип Classes', 'select2_Plugin', 'type_Classes', 'private');
+
         $html .= $Plugins->forcePlugin('Select2 за тип Accounts', 'select2_Plugin', 'acc_type_Accounts', 'private');
         
         $html .= $Plugins->forcePlugin('Select2 за тип Users', 'select2_PluginSelect', 'type_Users', 'private');

@@ -115,7 +115,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     {
         $title = core_Classes::fetchField("#id = {$this->getClassId()}", 'title');
         $title = explode(' » ', $title);
-        $title = (count($title) == 2) ? $title[1] : $title[0];
+        $title = (countR($title) == 2) ? $title[1] : $title[0];
         
         return $title;
     }
@@ -222,7 +222,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     protected function getSummaryListRow($data, $fieldsToSumArr)
     {
         $summaryRow = new stdClass();
-        if(!count($data->recs) || !count($fieldsToSumArr)) {
+        if(!countR($data->recs) || !countR($fieldsToSumArr)) {
             
             return;
         }
@@ -326,7 +326,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
                 $data->rows[$index] = ($dRec->_isSummary !== true) ? $this->detailRecToVerbal($rec, $dRec) : $dRec;
                 
                 // Ако реда е обобщаващ вербализира се отделно
-                if($dRec->_isSummary === true && count($fieldsToSumArr)){
+                if($dRec->_isSummary === true && countR($fieldsToSumArr)){
                     foreach ($fieldsToSumArr as $fld){
                         $data->rows[$index]->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
                         $data->rows[$index]->{$fld} = ht::styleNumber($data->rows[$index]->{$fld}, $dRec->{$fld});
@@ -442,11 +442,11 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      */
     protected function groupRows($recs, &$rows, $listFields, $field, $data)
     {
-        if (!count($rows)) {
+        if (!countR($rows)) {
             
             return;
         }
-        $columns = count($listFields);
+        $columns = countR($listFields);
         
         $groups = array();
         foreach ($rows as $index => $row) {
@@ -557,8 +557,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         
         // Добавя се на кепшъна бутони за сортиране
         $captionArr = explode('->', $fieldCaption);
-        $startCapttion = (count($captionArr) == 2) ? "{$captionArr[0]}->" : "";
-        $midCapttion = (count($captionArr) == 2) ? $captionArr[1] : $captionArr[0];
+        $startCapttion = (countR($captionArr) == 2) ? "{$captionArr[0]}->" : "";
+        $midCapttion = (countR($captionArr) == 2) ? $captionArr[1] : $captionArr[0];
         
         $fieldCaption = "{$startCapttion}|*<div class='rowtools'><div class='l'>|{$midCapttion}|*</div><a class='r' href='{$href}' ><img  src=" . sbf($img) .
         " width='16' height='16' alt='sort' class='sortBtn'></a></div>";
@@ -682,7 +682,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         unset($all[key($all)]);
         
         // Ако няма предпоследна, бие се нотификация
-        if (!count($all)) {
+        if (!countR($all)) {
             
             return true;
         }
@@ -709,7 +709,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
        
         // Ако има промяна в следената комбинация от полета, да се бие нотификация
         $diff = array_diff_key($newValuesToCheck, $oldValuesToCheck);
-        $res = (is_array($diff) && count($diff));
+        $res = (is_array($diff) && countR($diff));
         
         return $res;
     }

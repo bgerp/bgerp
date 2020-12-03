@@ -429,7 +429,7 @@ class rack_Racks extends core_Master
                         $bgColor .= ($bgColor ? ', ' : '') . '#' . self::getColor($prodTitle, 130, 240);
                     }
                     
-                    if(count($pArr) > 1) {
+                    if(countR($pArr) > 1) {
                         $attrA['style'] = "color:#{$color};background-image: linear-gradient(to right, {$bgColor});";
                     } else {
                         $attrA['style'] = "color:#{$color};background-color: {$bgColor};";
@@ -781,7 +781,9 @@ class rack_Racks extends core_Master
     protected static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
     {
         if($data->rec->storeId != store_Stores::getCurrent()){
-           redirect(array('rack_Racks', 'list'));
+            if (core_Users::getCurrent() != -1) {
+                redirect(array('rack_Racks', 'list'));
+            }
         }
     }
 }

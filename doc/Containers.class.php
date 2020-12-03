@@ -111,7 +111,7 @@ class doc_Containers extends core_Manager
     /**
      * На участъци от по колко записа да се бекъпва?
      */
-    public $backupMaxRows = 500000;
+    public $backupMaxRows = 100000;
     
     
     /**
@@ -302,13 +302,36 @@ class doc_Containers extends core_Manager
     
     
     /**
+     * Помощна функция за вземане на ключовите думи
+     * 
+     * @param stdClass $rec
+     * 
+     * @return string
+     */
+    public function getSearchKeywords($rec)
+    {
+        $sKeywords = '';
+        
+        if ($rec->docClass && $rec->docId && (cls::load($rec->docClass, true))) {
+            $clsInst = cls::get($rec->docClass);
+            
+            $dRec = $clsInst->fetch($rec->docId);
+            
+            $sKeywords = $clsInst->getSearchKeywords($dRec);
+        }
+        
+        return $sKeywords;
+    }
+    
+    
+    /**
      * Регенерира ключовите думи, ако е необходимо
      *
      * @param bool $force
      *
      * @return array
      */
-    public static function regenerateSerchKeywords($force = false, $query = null, $useCId = false)
+    public static function regenerateSerchKeywords($force = false, $query = null, $useCId = true)
     {
         $docContainers = cls::get('doc_Containers');
         
@@ -342,23 +365,19 @@ class doc_Containers extends core_Manager
             
             $clsQuery = $clsInst->getQuery();
             
-            $show = 'searchKeywords, containerId';
-            
             if ($useCId) {
                 $clsQuery->where(array("#containerId = '[#1#]'", $rec->id));
-                $show .= ',containerId';
             }
             
-            $clsQuery->show($show);
-            
-            $i = 0;
             while ($cRec = $clsQuery->fetch()) {
                 try {
                     // Ако новите ключови думи не отговарят на старите, записваме ги
                     $generatedKeywords = $clsInst->getSearchKeywords($cRec);
+                    
                     if (!$force && ($generatedKeywords == $cRec->searchKeywords)) {
                         continue;
                     }
+                    $generatedKeywords = plg_Search::purifyKeywods($generatedKeywords);
                     $cRec->searchKeywords = $generatedKeywords;
                     $clsInst->save_($cRec, 'searchKeywords');
                     
@@ -373,20 +392,44 @@ class doc_Containers extends core_Manager
                     }
                     $contRec->searchKeywords = $generatedKeywords;
                     $docContainers->save_($contRec, 'searchKeywords');
-                    $i++;
+                    
+                    $resArr[$rec->docClass]++;
+                    $resArr[0]++;
                 } catch (core_exception_Expect $e) {
                     reportException($e);
                     continue;
                 }
             }
-            
-            if ($i) {
-                $resArr[$rec->docClass] = $i;
-                $resArr[0] += $i;
-            }
         }
         
         return $resArr;
+    }
+    
+    
+    /**
+     *
+     * @param integer $threadId
+     *
+     * @return integer
+     */
+    public static function getLastDocCid($threadId)
+    {
+        static $rArr = array();
+        
+        if (!isset($rArr[$threadId])) {
+            $query = self::getQuery();
+            $query->where(array("#threadId = '[#1#]'", $threadId));
+            
+            $query->orderBy('#createdOn, #id', 'DESC');
+            
+            $query->limit(1);
+            
+            $query->show('id');
+            
+            $rArr[$threadId] = $query->fetch()->id;
+        }
+        
+        return $rArr[$threadId];
     }
     
     
@@ -521,6 +564,7 @@ class doc_Containers extends core_Manager
         
         // Инвалидиране на кеша
         bgerp_Portal::invalidateCache(null, 'doc_drivers_FolderPortal');
+        bgerp_Portal::invalidateCache(null, 'doc_drivers_LatestDocPortal');
     }
     
     
@@ -724,6 +768,8 @@ class doc_Containers extends core_Manager
         $threadId = Request::get('threadId', 'int');
         
         expect($threadRec = doc_Threads::fetch($threadId));
+        
+        doc_DocumentCache::cacheInvalidation($threadRec->firstContainerId, core_Users::getCurrent());
         
         $show = Request::get('show');
         $hide = Request::get('hide');
@@ -1625,6 +1671,7 @@ class doc_Containers extends core_Manager
         $recAct = new stdClass();
         $recAct->id = $rec->id;
         $recAct->state = 'active';
+        $recAct->_isActivatedDoc = true;
         
         // Извикваме фунцкията
         if ($clsInst->invoke('BeforeActivation', array(&$recAct))) {
@@ -1856,6 +1903,8 @@ class doc_Containers extends core_Manager
     {
         $urlArr = $params;
         
+        $title = '';
+        
         try {
             // Опитваме се да вземем инстанция на класа
             $ctrInst = cls::get($params['Ctr']);
@@ -1896,19 +1945,17 @@ class doc_Containers extends core_Manager
                 
                 // Стойността на полето на текстовата част
                 $title = $ctrInst->getVerbal($params['id'], $field);
-            } else {
-                
-                // Използваме името на модула
-                $title = ($ctrInst->singleTitle) ? $ctrInst->singleTitle : $ctrInst->title;
-                
-                // Добавяме id на фирмата
-                $title .= ' #' . $rec->id;
             }
         } catch (core_exception_Expect $e) {
             reportException($e);
+        }
+        
+        if (!$title) {
+            // Използваме името на модула
+            $title = ($ctrInst->singleTitle) ? $ctrInst->singleTitle : $ctrInst->title;
             
-            // Ако възникне някаква греша
-            return false;
+            // Добавяме id на фирмата
+            $title .= ' #' . $rec->id;
         }
         
         // Ако мода е xhtml
@@ -2632,7 +2679,7 @@ class doc_Containers extends core_Manager
         
         $query->where("#threadId = {$threadId}");
         $query->where("#state = 'rejected'");
-        $query->orderBy('#id', ASC);
+        $query->orderBy('#id', 'ASC');
         
         // Ако има документи оттеглени със треда
         if (count($rejectedInThread)) {
@@ -2946,6 +2993,7 @@ class doc_Containers extends core_Manager
         $rec->action = 'notifyForIncompleteDoc';
         $rec->period = 60;
         $rec->offset = mt_rand(0, 40);
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $res .= core_Cron::addOnce($rec);
@@ -2958,6 +3006,7 @@ class doc_Containers extends core_Manager
         $rec1->action = 'notifyDraftBusinessDoc';
         $rec1->period = 43200;
         $rec1->offset = rand(4260, 4380); // от 71h до 73h
+        $rec1->isRandOffset = true;
         $rec1->delay = 0;
         $rec1->timeLimit = 200;
         $res .= core_Cron::addOnce($rec1);
@@ -3035,12 +3084,12 @@ class doc_Containers extends core_Manager
                         $str = 'Имате създадени, но неактивирани';
                     }
                     
-                    $name = mb_strtolower($name);
-                    
-                    $msg = "|{$str}|* {$count} {$name}";
+                    $msg = "|{$str}|* {$count} |{$name}|*";
                     
                     // Създаваме нотификация към потребителя с линк към филтрирани неговите документи
-                    bgerp_Notifications::add($msg, $url, $uRec->id, 'normal', $customUrl);
+                    if(!haveRole('debug', $uRec->id)){
+                        bgerp_Notifications::add($msg, $url, $uRec->id, 'normal', $customUrl);
+                    }
                 }
             }
         }
@@ -3191,8 +3240,7 @@ class doc_Containers extends core_Manager
             
             $limit = $query->count() * 0.005;
             core_App::setTimeLimit($limit, false, 2000);
-            
-            $rArr = self::regenerateSerchKeywords($force, $query);
+            $rArr = self::regenerateSerchKeywords($force, $query, true);
             
             $retUrl = getRetUrl();
             if (!$retUrl) {

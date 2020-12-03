@@ -31,7 +31,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'typeExt,order,driverClass=Тип,state,roles';
+    public $listFields = 'id,typeExt,order,driverClass=Тип,state,roles';
     
     
     /**
@@ -281,9 +281,15 @@ abstract class bgerp_ProtoParam extends embed_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->showFields = 'search';
+        $data->listFilter->showFields = 'search,driverClass';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->view = 'horizontal';
+        $data->query->orderBy('createdOn=DESC,state=ASC');
+        if($filterRec = $data->listFilter->rec){
+            if(isset($filterRec->driverClass)){
+                $data->query->where("#driverClass = {$filterRec->driverClass}");
+            }
+        }
     }
     
     
@@ -316,10 +322,14 @@ abstract class bgerp_ProtoParam extends embed_Manager
     protected static function makeNewRec($sysId, $name, $type, $options = array(), $suffix = null)
     {
         // Проверка дали типа е допустим
-        expect(in_array(strtolower($type), array('double', 'text', 'varchar', 'time', 'date', 'component', 'percent', 'int', 'delivery', 'paymentmethod', 'image', 'enum', 'set', 'file')));
-        
         // Подготовка на записа на параметъра
-        expect($Type = cls::get("cond_type_{$type}"));
+        $typeName = $type;
+        if(strpos($type, 'cond_type_') === false){
+            expect(in_array(strtolower($type), array('double', 'text', 'varchar', 'time', 'date', 'component', 'percent', 'int', 'delivery', 'paymentmethod', 'image', 'enum', 'set', 'file')));
+            $typeName = "cond_type_{$type}";
+        }
+        
+        expect($Type = cls::get($typeName));
         $nRec = new stdClass();
         $nRec->name = $name;
         $nRec->driverClass = $Type->getClassId();
@@ -329,7 +339,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
         }
         
         // Само за типовете enum и set, се искат опции
-        if ($type == 'enum' || $type == 'set') {
+        if (($Type instanceof cond_type_Enum) || ($Type instanceof cond_type_Set)) {
             $nRec->options = cond_type_abstract_Proto::options2text($options);
         }
         
@@ -371,6 +381,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
         $rec = static::fetchRec($id);
         if ($Driver = static::getDriver($rec)){
             $value = trim($value);
+            
             $res = $Driver->toVerbal($id, $domainClass, $domainId, $value);
             
             return $res;
@@ -394,8 +405,11 @@ abstract class bgerp_ProtoParam extends embed_Manager
         if (($driverClass instanceof cond_type_Text) && mb_strlen($value) > 90) {
             $bHtml = mb_strcut($value, 0, 90);
             
-            $value = $bHtml . "\n[hide=" . tr('Вижте още') . ']' . $value . '[/hide]';
-            $value = cls::get('type_Richtext')->toVerbal($value);
+            $title = tr('Вижте още');
+            $id = md5($value);
+            $value = "{$bHtml} . <br><a href=\"javascript:toggleDisplay('{$id}')\"  class= 'more-btn linkWithIcon nojs' style=\"font-weight:bold; background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\"
+                   >{$title}</a><div class='clearfix21 richtextHide' id='{$id}'>{$value}</div>";
+            $value = cls::get('type_Html')->toVerbal($value);
         }
         
         return $value;

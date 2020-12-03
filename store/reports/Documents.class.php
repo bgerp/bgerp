@@ -126,7 +126,7 @@ class store_reports_Documents extends frame2_driver_TableData
     {
         $recs = array();
         $storeIds = isset($rec->storeId) ? array($rec->storeId => $rec->storeId) : array_keys(self::getContableStores($rec));
-        if (!count($storeIds)) {
+        if (!countR($storeIds)) {
             
             return $recs;
         }
@@ -205,7 +205,7 @@ class store_reports_Documents extends frame2_driver_TableData
             }
         }
         
-        if (count($recs)) {
+        if (countR($recs)) {
             $dueDateArr = array_filter($recs, function ($a) {
                 
                 return !empty($a->dueDate);
@@ -340,7 +340,7 @@ class store_reports_Documents extends frame2_driver_TableData
         $row->created = "{$row->createdOn} " . tr('от') . " {$row->createdBy}";
         $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($dRec->folderId))->title;
         
-        if (is_array($dRec->linked) && count($dRec->linked)) {
+        if (is_array($dRec->linked) && countR($dRec->linked)) {
             $row->linked = self::getLinked($dRec);
         }
         
@@ -489,7 +489,7 @@ class store_reports_Documents extends frame2_driver_TableData
         unset($all[key($all)]);
         
         // Ако няма предпоследна, бие се нотификация
-        if (!count($all)) {
+        if (!countR($all)) {
             
             return true;
         }

@@ -122,7 +122,7 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
         @core_Xml::toArrayFlat(simplexml_load_string($xml), $result);
         
         // Ако реазултата не е коректен
-        if (!count($result)) {
+        if (!countR($result)) {
             
             return "Грешка при парсиране на XML от {$config->ip}:{$config->port}";
         }

@@ -11,8 +11,10 @@
     <!--ET_BEGIN showInProduct-->
     	<div style='margin-top:5px'><span class='quiet'>|Показване в артикула|*</span>: <b>[#showInProduct#]</b></div>
     <!--ET_END showInProduct-->
-     
-	<div class="scrolling-holder" style='margin:10px 0'>
+    
+    <div style='margin-top:5px'><span class='quiet'>|Модифициранe|*</span>: <b>[#modifiedOn#]</b> |от|* [#modifiedBy#]</div>
+    
+    <div class="scrolling-holder" style='margin:10px 0'>
 	    [#cat_BomDetails#]
 	</div>
     <!--ET_BEGIN notes-->

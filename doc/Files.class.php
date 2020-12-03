@@ -453,7 +453,7 @@ class doc_Files extends core_Manager
         $suggArr[$folderPrefix . 'allFolders'] = 'Всички папки';
         
         // Последните разгледани папки на текущия потребител
-        $lastFoldersArr = (array) bgerp_Recently::getLastFolderIds(doc_Setup::get('SEARCH_FOLDER_CNT'));
+        $lastFoldersArr = (array) bgerp_Recently::getLastFolderIds(5);
         foreach ($lastFoldersArr as $folderId) {
             $fRec = doc_Folders::fetch($folderId);
             $suggArr[$folderPrefix . $folderId] = $fRec->title;
@@ -470,7 +470,7 @@ class doc_Files extends core_Manager
         }
         
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently');
+        $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently,inputmode=search');
         $data->listFilter->FNC('range', 'varchar', 'caption=Обхват,input,silent,autoFilter');
         
         $data->listFilter->setOptions('range', $suggArr);
@@ -494,6 +494,8 @@ class doc_Files extends core_Manager
                     
                     // Търсене по всички папки
                     if ($fSearch == 'allFolders') {
+                        $data->query->isSlowQuery = true;
+                        $data->query->useCacheForPager = true;
                         doc_Threads::restrictAccess($data->query);
                     } else {
                         // Показваме файловете в папката
@@ -520,6 +522,10 @@ class doc_Files extends core_Manager
             
             if (isset($usersArr)) {
                 $data->query = fileman_Files::getQuery();
+                if ($usersArr[-1]) {
+                    $data->query->isSlowQuery = true;
+                    $data->query->useCacheForPager = true;
+                }
                 
                 // TODO - след JOIN може да се увеличи с restrictAccess
                 fileman_Files::prepareFilesQuery($data->query, $usersArr);

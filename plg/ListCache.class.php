@@ -26,7 +26,7 @@ class plg_ListCache extends core_Plugin
             return;
         }
         
-        if (count($data->recs)) {
+        if (countR($data->recs)) {
             $data->listCacheHnd = md5(json_encode($data->recs));
             $data->listCacheDepends = arr::make($mvc->listCacheDepends);
             $data->listCacheDepends[] = $mvc;

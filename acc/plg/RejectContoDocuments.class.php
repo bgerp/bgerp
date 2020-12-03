@@ -52,7 +52,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
     {
         try {
             $closedItems = $mvc->getClosedItemsInTransaction($id);
-        } catch (acc_journal_RejectRedirect $e) {
+        } catch (acc_journal_Exception $e) {
             
             return;
         }

@@ -315,7 +315,7 @@ class acc_CostAllocations extends core_Manager
                     // Проверка на к-то
                     $warning = null;
                     if (!deals_Helper::checkQuantity($uomId, $rec->quantity, $warning)) {
-                        $form->setError('quantity', $warning);
+                        $form->setWarning('quantity', $warning);
                     }
                 }
             }
@@ -339,7 +339,7 @@ class acc_CostAllocations extends core_Manager
                             $errorField = 'allocateBy,chosenProducts';
                             $itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
                             $origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
-                            $rec->productsData = $origin->getCorrectableProducts();
+                            $rec->productsData = $origin->getCorrectableProducts($mvc);
                         } else {
                             $errorField = 'allocateBy';
                             $rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
@@ -374,7 +374,7 @@ class acc_CostAllocations extends core_Manager
         }
         
         if ($isPercent === false) {
-            $row->uomId = tr(cat_UoM::getShortName($uomId));
+            $row->uomId = cat_UoM::getShortName($uomId);
         }
         
         // Линк към обекта на перото
@@ -876,7 +876,9 @@ class acc_CostAllocations extends core_Manager
         foreach ($documents as $docName) {
             $Doc = cls::get($docName);
             $dQuery = $Doc->getQuery();
-            $dQuery->where("#modifiedOn >= '{$timeline}'");
+            if(!empty($timeline)){
+                $dQuery->where("#modifiedOn >= '{$timeline}'");
+            }
             $dQuery->where("#state != 'draft' AND #state != 'pending' AND #state != 'stopped'");
             $dQuery->show('containerId');
             $containers += arr::extractValuesFromArray($dQuery->fetchAll(), 'containerId');

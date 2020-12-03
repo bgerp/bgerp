@@ -80,14 +80,6 @@ class marketing_InquiryRouter extends core_Manager
     {
         $inCharge = marketing_Router::getInChargeUser($place, $countryId, $domainId);
         
-        // Ако има папка на лице с този имейл
-        $folderId = marketing_Router::routeByPersonEmail($email, $inCharge);
-        if ($folderId) {
-            $explained = 'Рутиране на лице по личен имейл';
-           
-            return $folderId;
-        }
-        
         foreach (array('vatId' => $vatId, 'egn' => $uicId) as $field => $value){
             if(!empty($value)){
                 $folderId = marketing_Router::routeByUniqueId($value, $field, 'crm_Persons', $inCharge);
@@ -97,6 +89,14 @@ class marketing_InquiryRouter extends core_Manager
                     return $folderId;
                 }
             }
+        }
+        
+        // Ако има папка на лице с този имейл
+        $folderId = marketing_Router::routeByPersonEmail($email, $inCharge);
+        if ($folderId) {
+            $explained = 'Рутиране на лице по личен имейл';
+           
+            return $folderId;
         }
         
         if(!empty($tel)){
@@ -128,12 +128,13 @@ class marketing_InquiryRouter extends core_Manager
     /**
      * Рутиране в папка на фирма
      * 
-     * 1. Рутиране по ДДС № или Нац. номер на фирма
-     * 2. Която има визитка тип "Фирма" и в нея има същия имейл
-     * 3. Търсим папка (но само от тип "Фирма"), по зададения имейл, чрез метода на имейл-рутера. Ако намерената папка не е "Фирма" - това правило пропада.
-     * 4. Която е от тип "Фирма" и има същото (приблизително) име и държава
-     * 5. Рутиране по БРИД
-     * 6. Рутиране в папка на нова фирма
+     * 1. Рутиране по ДДС № или ЕИК на фирма
+     * 2. Ако има ДДС №/ЕИК и (1.) не е сработило създава се нова фирма с тези ДДС №/ЕИК
+     * 3. Която има визитка тип "Фирма" и в нея има същия имейл
+     * 4. Търсим папка (но само от тип "Фирма"), по зададения имейл, чрез метода на имейл-рутера. Ако намерената папка не е "Фирма" - това правило пропада.
+     * 5. Която е от тип "Фирма" и има същото (приблизително) име и държава
+     * 6. Рутиране по БРИД
+     * 7. Рутиране в папка на нова фирма
      * 
      * @param string $company
      * @param string $personNames
@@ -156,15 +157,27 @@ class marketing_InquiryRouter extends core_Manager
         // Дефолтния отговорник
         $inCharge = marketing_Router::getInChargeUser($place, $countryId, $domainId);
         
-        foreach (array('vatId' => $vatId, 'uicId' => $uicId) as $field => $value){
-            if(!empty($value)){
-                $folderId = marketing_Router::routeByUniqueId($value, $field, 'crm_Companies', $inCharge);
-                if ($folderId) {
-                    $explained = "Рутиране на фирма по {$field}";
-                    
-                    return $folderId;
+        // Ако има въведен уникален код на фирма
+        if(!empty($vatId) || !empty($uicId)){
+            
+            // И има вече фирма с него, рутира се към нея
+            foreach (array('vatId' => $vatId, 'uicId' => $uicId) as $field => $value){
+                if(!empty($value)){
+                    $folderId = marketing_Router::routeByUniqueId($value, $field, 'crm_Companies', $inCharge);
+                    if ($folderId) {
+                        $explained = "Рутиране на фирма по {$field}";
+                       
+                        return $folderId;
+                    }
                 }
             }
+            
+            // Ако няма, създава се нова фирма с този уникален номер
+            $folderId = marketing_Router::forceCompanyFolder($company, $email, $countryId, $tel, $pCode, $place, $address, $vatId, $uicId, $inCharge);
+            colab_FolderToPartners::force($folderId);
+            $explained = 'Рутиране към нова папка на фирма според уникален номер';
+            
+            return $folderId;
         }
         
         // Намираме папка на компания с този имейл

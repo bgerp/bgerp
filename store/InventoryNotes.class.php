@@ -95,7 +95,7 @@ class store_InventoryNotes extends core_Master
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper,plg_Clone,acc_plg_Contable,
                         doc_DocumentPlg,purchase_plg_ExtractPurchasesData,
-                        plg_Printing, acc_plg_DocumentSummary, plg_Search,bgerp_plg_Blank';
+                        plg_Printing, acc_plg_DocumentSummary, deals_plg_SaveValiorOnActivation, plg_Search,bgerp_plg_Blank';
     
     
     /**
@@ -150,12 +150,6 @@ class store_InventoryNotes extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'storeId,groups,folderId';
-    
-    
-    /**
-     * Име на документа в бързия бутон за добавяне в папката
-     */
-    public $buttonInFolderTitle = 'Инвентаризация';
     
     
     /**
@@ -227,7 +221,7 @@ class store_InventoryNotes extends core_Master
                 $requiredRoles = 'no_one';
             } else {
                 $responsible = $mvc->getSelectedResponsiblePersons($rec);
-                if (!count($responsible)) {
+                if (!countR($responsible)) {
                     $requiredRoles = 'no_one';
                 }
             }
@@ -283,7 +277,6 @@ class store_InventoryNotes extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        $form->setDefault('valior', dt::today());
         
         $form->setDefault('storeId', doc_Folders::fetchCoverId($form->rec->folderId));
         $form->setReadOnly('storeId');
@@ -406,7 +399,7 @@ class store_InventoryNotes extends core_Master
         $form->FLD('userId', 'key(mvc=core_Users,select=nick)', 'caption=МОЛ,mandatory');
         
         $form->setOptions('userId', array('' => '') + $options);
-        if (count($options) == 1) {
+        if (countR($options) == 1) {
             $form->setDefault('userId', key($options));
         }
         $form->input();
@@ -607,7 +600,7 @@ class store_InventoryNotes extends core_Master
                 $aRec->searchKeywords = $Summary->getSearchKeywords($aRec);
                 
                 $groups = cat_Products::fetchField($productId, 'groups');
-                if (count($groups)) {
+                if (!empty($groups)) {
                     $aRec->groups = $groups;
                 }
                 
@@ -669,24 +662,23 @@ class store_InventoryNotes extends core_Master
         $Summary = cls::get('store_InventoryNoteSummary');
         
         // Ако има нови артикули, добавяме ги
-        if (count($syncedArr['insert'])) {
+        if (countR($syncedArr['insert'])) {
             $Summary->saveArray($syncedArr['insert']);
         }
         
         // На останалите им обновяваме определени полета
-        if (count($syncedArr['update'])) {
+        if (countR($syncedArr['update'])) {
             $Summary->saveArray($syncedArr['update'], 'id,noteId,productId,blQuantity,groups,modifiedOn,searchKeywords');
         }
         
         $deleted = 0;
         
         // Ако трябва да се трият артикули
-        if (count($syncedArr['delete'])) {
+        if (countR($syncedArr['delete'])) {
             foreach ($syncedArr['delete'] as $deleteId) {
                 
                 // Трием само тези, които нямат въведено количество
                 $sRec = store_InventoryNoteSummary::fetch($deleteId, 'productId,quantity,createdBy');
-                
                 if (!isset($sRec->quantity) && ($sRec->createdBy == core_Users::SYSTEM_USER || empty($sRec->createdBy))) {
                     $deleted++;
                     store_InventoryNoteSummary::delete($deleteId);
@@ -694,17 +686,7 @@ class store_InventoryNotes extends core_Master
             }
         }
         
-        // Дебъг информация
-        if (haveRole('debug')) {
-            core_Statuses::newStatus('Данните са синхронизирани');
-            if ($deleted) {
-                core_Statuses::newStatus("Изтрити са {$deleted} реда");
-            }
-            
-            if ($added = count($syncedArr['insert'])) {
-                core_Statuses::newStatus("Добавени са {$added} реда");
-            }
-        }
+        self::logWrite('Синхронизиране на данните', $rec->id);
     }
     
     
@@ -1029,5 +1011,19 @@ class store_InventoryNotes extends core_Master
         $this->logInAct('Нулиране на невъведените артикули', $id);
         
         followRetUrl('Всички артикули с невъведени количества са нулирани');
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = true)
+    {
+        $mvc = cls::get(get_called_class());
+        $rec = static::fetchRec($rec);
+        $handle = $mvc->getHandle($rec);
+        $title = "{$handle} / " . store_Stores::getTitleById($rec->storeId, false);
+         
+        return $title;
     }
 }

@@ -38,7 +38,8 @@ class purchase_PurchasesDetails extends deals_DealDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, purchase_Wrapper, plg_Sorting, plg_RowNumbering,acc_plg_ExpenseAllocation, doc_plg_HidePrices, plg_SaveAndNew, plg_AlignDecimals2,Policy=purchase_PurchaseLastPricePolicy, cat_plg_CreateProductFromDocument,doc_plg_HideMeasureAndQuantityColumns,cat_plg_ShowCodes';
+    public $loadList = 'plg_RowTools2, plg_Created, purchase_Wrapper,deals_plg_ImportDealDetailProduct, plg_Sorting, plg_RowNumbering,acc_plg_ExpenseAllocation, doc_plg_HidePrices, plg_SaveAndNew, plg_AlignDecimals2,Policy=purchase_PurchaseLastPricePolicy,
+                                                    cat_plg_CreateProductFromDocument,doc_plg_HideMeasureAndQuantityColumns,cat_plg_ShowCodes';
     
     
     /**
@@ -69,6 +70,13 @@ class purchase_PurchasesDetails extends deals_DealDetail
      * Кой има право да добавя?
      */
     public $canAdd = 'user';
+    
+    /**
+     * Кой може да го импортира артикули?
+     *
+     * @var string|array
+     */
+    public $canImport = 'user';
     
     
     /**

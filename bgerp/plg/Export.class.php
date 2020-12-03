@@ -123,7 +123,7 @@ class bgerp_plg_Export extends core_Plugin
             // Подготвяме формата
             $form = cls::get('core_Form');
             $form->method = 'GET';
-            $form->title = "Експортиране на {$mvc->title}";
+            $form->title = "Експортиране на " . mb_strtolower($mvc->title);
             $form->FNC('driver', 'class(interface=bgerp_ExportIntf,allowEmpty,select=title)', 'input,caption=Формат,mandatory,silent', array('attr' => array('onchange' => 'addCmdRefresh(this.form);this.form.submit()')));
             
             // Ако има опции за избор на драйвър слагаме ги, иначе правим полето readOnly

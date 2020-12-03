@@ -153,7 +153,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             $salesInvoicesArr[] = $saleInvoice;
         }
         
-        $timeLimit = count($salesInvoicesArr) * 0.05;
+        $timeLimit = countR($salesInvoicesArr) * 0.05;
         
         if ($timeLimit >= 30) {
             core_App::setTimeLimit($timeLimit);
@@ -221,6 +221,12 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         
         if (is_array($threadsId)) {
             foreach ($threadsId as $thread) {
+                
+                $firstDoc = doc_Threads::getFirstDocument($thread);
+                $firstDocClassName = $firstDoc->className;
+                $firstDocId = $firstDoc->that;
+                $firstDocState = $firstDocClassName::fetch($firstDocId)->state;
+                if ($firstDocState == 'closed')continue;
                 
                 // масив от фактури в тази нишка към избраната дата
                 $invoicePayments = (deals_Helper::getInvoicePayments($thread, $rec->checkDate));
@@ -317,7 +323,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $rec->salesTotalPayout = $salesTotalPayout;
         $rec->salesCurrentSum = $salesTotalOverDue - $salesTotalPayout;
         
-        if (count($sRecs)) {
+        if (countR($sRecs)) {
             arr::sortObjects($sRecs, 'overdueDays', 'desc');
         }
         
@@ -667,9 +673,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         
         $res->invoiceNo = $invoiceNo;
         
-        $contragentName = crm_Companies::getTitleById($dRec->contragentId);
-        
-        $res->contragentId = $contragentName;
+        $res->contragent = doc_Folders::getTitleById($dRec->contragent);
     }
     
     
@@ -684,7 +688,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
     public function getNextRefreshDates($rec)
     {
         $date = new DateTime(dt::now());
-        $toAdd = 25 - $date->format(H);
+        $toAdd = 25 - $date->format('H');
         $interval = 'PT' . $toAdd . 'H';
         $date->add(new DateInterval($interval));
         $d1 = $date->format('Y-m-d H:i:s');

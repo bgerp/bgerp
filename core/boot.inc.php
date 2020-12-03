@@ -15,8 +15,8 @@
  */
 
 // Проверка за минимално изискуемата версия на PHP
-if (version_compare(phpversion(), '5.3.0') < 0) {
-    echo('Необходимо е php 5.3+!');
+if (version_compare(phpversion(), '5.5.0') < 0) {
+    echo('Необходимо е php 5.5+!');
     die;
 }
 
@@ -383,7 +383,7 @@ function logHitState($debugCode = '200', $state = array())
         if (isset($state['_breakFile'], $state['_breakLine'])) {
             $state['_code'] = core_Debug::getCodeAround($state['_breakFile'], $state['_breakLine']);
         }
-        
+   
         $data = @json_encode($state);
         
         // Ако възникне JSON грешка, записваме я и сериализираме данните
@@ -858,4 +858,16 @@ function countR($arr)
     }
 
     return empty($arr) ? 0 : count($arr);
+}
+
+
+/**
+ * Връща уникалното ID на системата
+ * 
+ * @return string
+ */
+function getBGERPUniqId()
+{
+    
+    return core_Setup::getBGERPUniqId();
 }

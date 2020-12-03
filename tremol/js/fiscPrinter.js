@@ -169,6 +169,80 @@ function fpOpenStornoReceipt(operNum, operPass, isDetailed, isPrintVat, printTyp
 
 
 /**
+ * Фактура
+ * 
+ * @param operNum
+ * @param operPass
+ * @param printTypeStr
+ * @param recipient
+ * @param buyer
+ * @param VATNumber
+ * @param UIC
+ * @param address
+ * @param UICTypeStr
+ * @param rcpNum
+ */
+function fpOpenInvoiceWithFreeCustomerData(operNum, operPass, printTypeStr, recipient, buyer, VATNumber, UIC, address, UICTypeStr, rcpNum)
+{
+	checkOperNum(operNum);
+	
+	checkOperPass(operPass);
+	
+	if (printTypeStr == 'postponed') {
+		var printType = Tremol.Enums.OptionInvoicePrintType.Postponed_Printing;
+	} else if (printTypeStr == 'buffered') {
+		var printType = Tremol.Enums.OptionInvoicePrintType.Buffered_Printing;
+	} else if (printTypeStr == 'stepByStep') {
+		var printType = Tremol.Enums.OptionInvoicePrintType.Step_by_step_printing;
+	} else {
+		throw new Error("Непозволен тип за принтиране");
+	}
+	
+	if (recipient && recipient.length > 26) {
+		throw new Error("Максималната дължина на получателя е 26 символа");
+	}
+	
+	if (buyer && buyer.length > 16) {
+		throw new Error("Максималната дължина на купувача е 16 символа");
+	}
+	
+	if (VATNumber && VATNumber.length > 13) {
+		throw new Error("Максималната дължина на VAT номера е 13 символа");
+	}
+	
+	if (UIC && UIC.length > 13) {
+		throw new Error("Максималната дължина на UIC номера е 13 символа");
+	}
+	
+	if (address && address.length > 30) {
+		throw new Error("Максималната дължина на адрес номера е 30 символа");
+	}
+	
+	if (UICTypeStr == 'bulstat') {
+		var UICType = 0;
+	} else if (UICTypeStr == 'EGN') {
+		var UICType = 1;
+	} else if (UICTypeStr == 'FN') {
+		var UICType = 2;
+	} else if (UICTypeStr == 'NRA') {
+		var UICType = 3;
+	} else {
+		throw new Error("Непозволен тип за UIC тип");
+	}
+	
+	if (rcpNum) {
+		checkRcpNum(rcpNum);
+	}
+	
+	try {
+		fp.OpenInvoiceWithFreeCustomerData(operNum, operPass, printType, recipient, buyer, VATNumber, UIC, address, UICType, rcpNum);
+	} catch(ex) {
+	    handleException(ex);
+	}
+}
+
+
+/**
  * Кредитно известие
  * 
  * @param operNum
@@ -348,15 +422,20 @@ function getPrintVat(isPrintVat)
  * @param qty
  * @param discAddP
  * @param discAddV
+ * @param depNum
  */
-function fpSalePLU(name, vatClass, price, qty, discAddP, discAddV)
+function fpSalePLU(name, vatClass, price, qty, discAddP, discAddV, depNum)
 {
 	if ((vatClass < 0) || (vatClass > 3)) {
 		throw new Error("Непозволен клас за VAT");
 	}
 	
     try {
-        fp.SellPLUwithSpecifiedVAT(name, Tremol.Enums.OptionVATClass['VAT_Class_' + vatClass], price, qty, discAddP, discAddV);
+    	if (depNum === false) {
+    		fp.SellPLUwithSpecifiedVAT(name, Tremol.Enums.OptionVATClass['VAT_Class_' + vatClass], price, qty, discAddP, discAddV);
+    	} else {
+    		fp.SellPLUwithSpecifiedVATfromDep(name, Tremol.Enums.OptionVATClass['VAT_Class_' + vatClass], price, qty, discAddP, discAddV, depNum);
+    	}
     } catch(ex) {
         handleException(ex);
     }
@@ -547,6 +626,39 @@ function fpGetDefPayments()
     
     if (exRate) {
     	res.exRate = exRate;
+    }
+    
+    return res;
+};
+
+
+/**
+ * Връща департаментите от ФУ
+ * 
+ * @return array
+ */
+function fpGetDepArr()
+{
+	res = {};
+	
+    try {
+    	
+    	for(depNum=0;depNum<100;depNum++) {
+            dep = fp.ReadDepartment(depNum);
+            
+            depNumPad = dep.DepNum.toString().padStart(2, '0');
+            
+            depName = dep.DepName.trim();
+            
+            // Да избегнем дефолтно зададените
+            if (depName == 'Деп ' + depNumPad) {
+                continue;
+            }
+            
+            res[dep.DepNum] = depName;
+        }
+    } catch(ex) {
+        handleException(ex);
     }
     
     return res;
@@ -778,6 +890,7 @@ function fpOutputKLEN(outType, startDate, endDate, isDetailed)
     }
 };
 
+
 /**
  * Отпечатва/записва CSV отчет за съответния период - с и без нулиране
  */
@@ -803,6 +916,29 @@ function fpOutputCSV(outType, startDate, endDate, csvFormat, flagReceipts, flagR
 			printToPc();
 		}
 		
+	} catch(ex) {
+        handleException(ex);
+    }
+};
+
+
+/**
+ * Отпечатва/записва бележките по номер
+ */
+function fpPrintOrStoreEJByRcpNum(outType, startNum, endNum)
+{
+	try {
+		var reportStorage = Tremol.Enums.OptionReportStorage.Printing;
+		
+		if (outType == 'sd') {
+			reportStorage = Tremol.Enums.OptionReportStorage.SD_card_storage;
+		}
+		
+		if (outType == 'usb') {
+			reportStorage = Tremol.Enums.OptionReportStorage.USB_storage;
+		}
+		
+		fp.PrintOrStoreEJByRcpNum(reportStorage, startNum, endNum);
 	} catch(ex) {
         handleException(ex);
     }
@@ -878,6 +1014,8 @@ function handleException(sx) {
 				msg = "sx.STE1 === 0x34 - Отворен фискален бон и sx.STE2 === 0x32 - Командата е непозволена в текущото състояние на ФУ";
 			} else if (sx.ste1 === 0x39 && sx.ste2 === 0x32) {
 				msg = "sx.STE1 === 0x39 - Грешна парола и sx.STE2 === 0x32 - Командата е непозволена";
+			} else if (sx.ste1 === 0x32 && sx.ste2 === 0x35) {
+				msg = "Недостатъчна наличност в касата";
 			} else {
 				msg = sx.message + "\nSTE1=" + sx.ste1 + ", STE2=" + sx.ste2;
 			}

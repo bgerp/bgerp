@@ -76,9 +76,9 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         $entries = array();
         $rec = $this->class->fetchRec($id);
         $actions = type_Set::toArray($rec->contoActions);
+        $rec = $this->fetchPurchaseData($rec); // покупката ще контира - нужни са и детайлите
         
         if ($actions['ship'] || $actions['pay']) {
-            $rec = $this->fetchPurchaseData($rec); // покупката ще контира - нужни са и детайлите
             deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));
             
             if ($actions['ship']) {
@@ -101,6 +101,15 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                 // покупката играе роля и на платежен документ (РКО)
                 // Записите от тип 3 (получаване на плащане)
                 $entries = array_merge($entries, $this->getPaymentPart($rec));
+            }
+        }
+        
+        // Проверка дали артикулите отговарят на нужните свойства
+        $products = arr::extractValuesFromArray($rec->details, 'productId');
+        if (Mode::get('saveTransaction') && countR($products)) {
+            if($redirectError = deals_Helper::getContoRedirectError($products, 'canBuy', 'generic', 'вече не са купуваеми или са генерични')){
+                
+                acc_journal_RejectRedirect::expect(false, $redirectError);
             }
         }
         
@@ -186,9 +195,10 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                 );
                 
                 // Корекция на стойности при нужда
-                if (isset($dRec1->correctProducts) && count($dRec1->correctProducts)) {
+                if (isset($dRec1->correctProducts) && countR($dRec1->correctProducts)) {
                     $correctionEntries = acc_transaction_ValueCorrection::getCorrectionEntries($dRec1->correctProducts, $dRec1->productId, $dRec1->expenseItemId, $dRec1->quantity, $dRec1->allocationBy);
-                    if (count($correctionEntries)) {
+                    
+                    if (countR($correctionEntries)) {
                         $entries = array_merge($entries, $correctionEntries);
                     }
                 }
@@ -412,7 +422,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     /**
      * Връща всички експедирани продукти и техните количества по сделката
      */
-    public static function getShippedProducts($jRecs, $id, $accs = '321,302,601,602,60010,60020,60201', $groupByStore = false, $onlySupplier = true)
+    public static function getShippedProducts($jRecs, $id, $accs = '321,302,601,602,60010,60020,60201', $groupByStore = false, $onlySupplier = true, $groupByExpense = false)
     {
         $res = array();
         
@@ -456,6 +466,17 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                             
                             $res[$index]->inStores[$storeItem->objectId]['amount'] += $p->amount;
                             $res[$index]->inStores[$storeItem->objectId]['quantity'] += $p->debitQuantity;
+                        }
+                    }
+                    
+                    if ($groupByExpense === true) {
+                        $expensePositionId = acc_Lists::getPosition(acc_Accounts::fetchField($p->debitAccId, 'systemId'), 'doc_DocumentIntf');
+                        
+                        if ($p->{"debitItem{$expensePositionId}"}) {
+                            $expenseItem = acc_Items::fetch($p->{"debitItem{$expensePositionId}"})->id;
+                            
+                            $res[$index]->expenseItems[$expenseItem]['amount'] += $p->amount;
+                            $res[$index]->expenseItems[$expenseItem]['quantity'] += $p->debitQuantity;
                         }
                     }
                 }

@@ -65,7 +65,7 @@ class acc_plg_ForceExpenceAllocation extends core_Plugin
         
         // Върху кои артикули може да се разпределят разходите
         $expenseItemId = acc_Items::fetchItem($firstDocument->getInstance(), $firstDocument->that)->id;
-        $correctableProducts = $firstDocument->getCorrectableProducts();
+        $correctableProducts = $firstDocument->getCorrectableProducts('acc_CostAllocations');
         
         // Кои разходи са отнесени към сделката, със зададено автоматично разпределяне
         $costQuery = acc_CostAllocations::getQuery();

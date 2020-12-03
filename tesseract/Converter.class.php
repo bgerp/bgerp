@@ -287,7 +287,7 @@ class tesseract_Converter extends core_Manager
             
             ksort($matchedFilesArr);
             
-            $arrCnt = count($matchedFilesArr);
+            $arrCnt = countR($matchedFilesArr);
             
             if ($arrCnt <= 1) {
                 // Ако е само един файл, използваме го
@@ -330,7 +330,7 @@ class tesseract_Converter extends core_Manager
             $convArr[] = $fileHnd;
         }
         
-        $convArrCnt = count($convArr);
+        $convArrCnt = countR($convArr);
         
         if ($convArrCnt > 1) {
             $params['asynch'] = false;

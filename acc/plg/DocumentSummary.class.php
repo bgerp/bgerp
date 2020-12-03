@@ -61,6 +61,8 @@ class acc_plg_DocumentSummary extends core_Plugin
         'store_InventoryNotes' => 'storeAll',
         'purchase_Services' => 'storeAll',
         'sales_Services' => 'storeAll',
+        'rack_Movements' => 'storeAll',
+        'store_Stores' => 'storeAll',
         'bank_IncomeDocuments' => 'bankAll',
         'bank_SpendingDocuments' => 'bankAll',
         'bank_ExchangeDocument' => 'bankAll',

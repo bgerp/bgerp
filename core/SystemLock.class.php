@@ -47,7 +47,7 @@ class core_SystemLock
         if ($str = @file_get_contents($setupLockFile)) {
             list($startTimeEx, $lockTimeEx, $msgEx) = explode("\n", $str, 3);
             if ($startTimeEx > 0 && ($startTime - $startTimeEx) < $time * 1.2) {
-                $startTime = $startTimeEx;
+                // $startTime = $startTimeEx;
             }
         }
         
@@ -112,7 +112,11 @@ class core_SystemLock
                 $refresh = '<meta http-equiv="refresh" content="1">';
             }
             
-            $leftMin = round(($lockTime - (time() - $startTime)) / 60);
+            if (is_numeric($lockTime) && is_numeric($startTime)) {
+                $leftMin = round(($lockTime - (time() - $startTime)) / 60);
+            } else {
+                $leftMin = 0;
+            }
             
             if ($leftMin == 1) {
                 $after = 'минута';

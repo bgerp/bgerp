@@ -92,6 +92,18 @@ class doc_plg_TplManagerDetail extends core_Plugin
     
     
     /**
+     * Преди подготовка на записите
+     */
+    public function on_BeforePrepareListRows($mvc, &$res, $data)
+    {
+        // Ако има скриптов клас за шаблона, подаваме му данните
+        if ($Script = doc_TplManager::getTplScriptClass($data->masterData->rec->template)) {
+            $Script->beforePrepareDetailListRows($mvc, $data);
+        }
+    }
+    
+    
+    /**
      * След подготовка на записите
      */
     public static function on_AfterPrepareListRows($mvc, &$data)

@@ -1,84 +1,22 @@
 <!--ET_BEGIN TAB_TOOLS-->
-	<div class='input-field'>[#INPUT_FLD#]</div>
-	[#INPUT_DATA_LIST#]
-	<div class='clearfix21'></div>
-	<div class='num-keyboard'>
-	<input class="buttonForm numPad" type="button" value="1"/>
-	<input class="buttonForm numPad" type="button" value="2"/>
-	<input class="buttonForm numPad" type="button" value="3"/>
-	<br>
-	<input class="buttonForm numPad" type="button" value="4"/>
-	<input class="buttonForm numPad" type="button" value="5"/>
-	<input class="buttonForm numPad" type="button" value="6"/>
-	<br>
-	<input class="buttonForm numPad" type="button" value="7"/>
-	<input class="buttonForm numPad" type="button" value="8"/>
-	<input class="buttonForm numPad" type="button" value="9"/>
-	<br>
-	<input class="buttonForm numPad" type="button" value="."/>
-	<input class="buttonForm numPad" type="button" value="0"/>
-	<input class="buttonForm numBack" type="button" value="«"/>
-	</div>
-	<div class='tools-btn'>
-	[#FIRST_TOOLS_ROW#]
-	</div>
+    [#INPUT_FLD#]
+    [#INPUT_DATA_LIST#]
+	[#KEYBOARDS#]
+<div class="buttons">[#BTNS#]</div>
 <div class='clearfix21'></div>
-
 <!--ET_END TAB_TOOLS-->
 
-<!--ET_BEGIN CHOOSE_DIV-->
-[#CHOOSE_DIV#]
-
-<!--ET_END CHOOSE_DIV-->
-
-<!--ET_BEGIN SEARCH_DIV-->
-<div class='search-top-holder'>
-[#KEYBOARDS#]
-[#INPUT_SEARCH#]
+<!--ET_BEGIN PRODUCTS_RESULT-->
+<div id = '[#elementId#]' class='element [#CLASS#]' data-url='[#DATA_URL#]' data-productId = '[#id#]' data-enlarge-object-id = '[#DATA_ENLARGE_OBJECT_ID#]' data-enlarge-class-id = '[#DATA_ENLARGE_CLASS_ID#]' data-modal-title = '[#DATA_MODAL_TITLE#]'>
+	<div class='pos-photo-field fleft'>[#photo#]</div>
+	<div class="pos-title">[#productId#]<br>[[#code#]]</div>
+	<div class='pos-info-field'><!--ET_BEGIN measureId--><span class='measureResult'>[#measureId#]</span>&nbsp;<!--ET_END measureId--><span class="pos-price-field"> [#price#]</span></div>
 </div>
-<div id='pos-search-result-table' class='pos-table'>
+<!--ET_END PRODUCTS_RESULT-->
+
+<!--ET_BEGIN RECEIPT_RESULT-->
+<div class='divider'>[#groupName#]</div>
+<div class='grid'>
+[#element#]
 </div>
-
-<!--ET_END SEARCH_DIV-->
-
-<!--ET_BEGIN PAYMENTS_BLOCK-->
-<div class='input-field'>[#INPUT_PAYMENT#]</div>
-<div class='clearfix21'></div>
-<div class='num-keyboard'>
-	<input class="buttonForm numPad" type="button" value="1"/>
-	<input class="buttonForm numPad" type="button" value="2"/>
-	<input class="buttonForm numPad" type="button" value="3"/>
-	<br />
-	<input class="buttonForm numPad" type="button" value="4"/>
-	<input class="buttonForm numPad" type="button" value="5"/>
-	<input class="buttonForm numPad" type="button" value="6"/>
-	<br />
-	<input class="buttonForm  numPad" type="button" value="7"/>
-	<input class="buttonForm  numPad" type="button" value="8"/>
-	<input class="buttonForm  numPad" type="button" value="9"/>
-	<br />
-	<input class="buttonForm  numPad" type="button" value="."/>
-	<input class="buttonForm numPad" type="button" value="0"/>
-	<input class="buttonForm numBack" type="button" value="«"/>
-</div>
-<div class='colum-btn-holder'>
-	<div class='colum-btn'>
-	[#PAYMENT_TYPE#]
-	</div>
-	<div class='colum-btn'>
-	[#CLOSE_BTNS#]
-	</div>
-</div>
-<div class='clearfix21'></div>
-<!--ET_END PAYMENTS_BLOCK-->
-
-<!--ET_BEGIN DRAFTS-->
-[#DRAFTS#]
-<!--ET_END DRAFTS-->
-
-<!--ET_BEGIN TRANSFERS_BLOCK-->
-<div class='contragent-form'>[#TRANSFERS_BLOCK#]<span class='contragent-btn'>[#BTNS#]</span></div>
-
-<div id='result_contragents'>
-</div>
-<!--ET_END TRANSFERS_BLOCK-->
+<!--ET_END RECEIPT_RESULT-->

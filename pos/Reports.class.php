@@ -9,7 +9,7 @@
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -97,7 +97,7 @@ class pos_Reports extends core_Master
     /**
      * Полета, които ще се показват в листов изгле,д
      */
-    public $listFields = 'id, title=Заглавие, pointId, total, paid, state, createdOn, createdBy';
+    public $listFields = 'id, valior, title=Документ, pointId, total, paid, state, createdOn, createdBy';
     
     
     /**
@@ -115,7 +115,7 @@ class pos_Reports extends core_Master
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'createdOn';
+    public $filterDateField = 'valior, createdOn';
     
     
     /**
@@ -130,13 +130,14 @@ class pos_Reports extends core_Master
     public function description()
     {
         $this->FLD('pointId', 'key(mvc=pos_Points, select=name)', 'caption=Точка, width=9em, mandatory,silent');
+        $this->FLD('valior', 'date', 'caption=Вальор');
         $this->FLD('paid', 'double(decimals=2)', 'caption=Сума->Платено, input=none, value=0, summary=amount');
         $this->FLD('total', 'double(decimals=2)', 'caption=Сума->Продадено, input=none, value=0, summary=amount');
         $this->FLD('state', 'enum(draft=Чернова,active=Активиран,rejected=Оттеглена,closed=Приключен,stopped=Спряно)', 'caption=Състояние,input=none,width=8em');
         $this->FLD('details', 'blob(serialize,compress)', 'caption=Данни,input=none');
         $this->FLD('closedOn', 'datetime', 'input=none');
-        
         $this->FLD('dealerId', "user(roles=ceo|sales|pos,allowEmpty)", 'caption=Търговец,mandatory');
+        $this->FLD('chargeVat', 'enum(yes=Начисляване,no=Без начисляване)', 'caption=Допълнително->ДДС,notNull,value=yes');
     }
     
     
@@ -146,6 +147,7 @@ class pos_Reports extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $data->form->setReadOnly('pointId');
+        $data->form->setField('valior', "placeholder=" . dt::mysql2verbal(dt::today(), 'd.m.Y'));
         
         if(haveRole('pos,sales')){
             $data->form->setDefault('dealerId', core_Users::getCurrent());
@@ -158,7 +160,7 @@ class pos_Reports extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->query->orderBy('#createdOn', 'DESC');
+        $data->query->orderBy('valior', 'DESC');
         pos_Points::addPointFilter($data->listFilter, $data->query);
     }
     
@@ -182,13 +184,11 @@ class pos_Reports extends core_Master
     {
         $row->title = $mvc->getLink($rec->id, 0);
         $row->pointId = pos_Points::getHyperLink($rec->pointId, true);
-        
         $row->from = dt::mysql2verbal($rec->details['receipts'][0]->createdOn, 'd.m.Y H:i');
         $row->to = dt::mysql2verbal($rec->details['receipts'][count($rec->details['receipts']) - 1]->createdOn, 'd.m.Y H:i');
         
         if ($fields['-single']) {
             $pointRec = pos_Points::fetch($rec->pointId);
-            $row->storeId = store_Stores::getHyperLink($pointRec->storeId, true);
             $row->caseId = cash_Cases::getHyperLink($pointRec->caseId, true);
             $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
             setIfNot($row->dealerId, $row->createdBy);
@@ -286,8 +286,9 @@ class pos_Reports extends core_Master
         arr::sortObjects($detail->receiptDetails, 'action');
         
         // Табличната информация и пейджъра на плащанията
-        $detail->listFields = "value=Действие,pack=Мярка, quantity=Количество, amount=Сума ({$data->row->baseCurrency})";
+        $detail->listFields = "value=Действие, pack=Мярка, quantity=Количество, amount=Сума ({$data->row->baseCurrency}), storeId=Склад,contragentId=Клиент";
         $detail->rows = $detail->receiptDetails;
+       
         $mvc->prepareDetail($detail);
         $data->rec->details = $detail;
         
@@ -400,19 +401,35 @@ class pos_Reports extends core_Master
     {
         $row = new stdClass();
         
-        $double = core_Type::getByName('double(decimals=2)');
+        $Double = core_Type::getByName('double(decimals=2)');
         $currencyCode = acc_Periods::getBaseCurrencyCode($obj->date);
-        $row->quantity = "<span style='float:right'>" . $double->toVerbal($obj->quantity) . '</span>';
+        $row->quantity = "<span style='float:right'>{$Double->toVerbal($obj->quantity)}</span>";
         if ($obj->action == 'sale') {
             
             // Ако детайла е продажба
             $row->ROW_ATTR['class'] = 'report-sale';
+            if(isset($obj->storeId)){
+                $row->storeId = store_Stores::getHyperlink($obj->storeId, true);
+            }
             
             $row->pack = cat_UoM::getShortName($obj->pack);
             deals_Helper::getPackInfo($row->pack, $obj->value, $obj->pack, $obj->quantityInPack);
             
             $row->value = cat_Products::getHyperlink($obj->value, true);
             $obj->amount *= 1 + $obj->param;
+            
+            
+            if(core_Packs::isInstalled('batch')){
+                $batchDef = batch_Defs::getBatchDef($obj->value);
+                if(is_object($batchDef)){
+                    if(!empty($obj->batch)){
+                        $batch = batch_Movements::getLinkArr($obj->value, $obj->batch);
+                        $row->value .= "<br><span class='richtext'>" . $batch[$obj->batch] . "</span>";
+                    } else {
+                        $row->value .= "<br><span class='richtext quiet'>" . tr("Без партида") . "</span>";
+                    }
+                }
+            }
         } else {
             
             // Ако детайла е плащане
@@ -428,7 +445,14 @@ class pos_Reports extends core_Master
         }
         
         $row->value = "<span style='white-space:nowrap;'>{$row->value}</span>";
-        $row->amount = "<span style='float:right'>" . $double->toVerbal($obj->amount) . '</span>';
+        $amount = $Double->toVerbal($obj->amount);
+        if(isset($obj->param)){
+            $amountHint = tr('ДДС') . ": " . core_Type::getByName('percent')->toVerbal($obj->param);
+            $amount = ht::createHint($amount, $amountHint);
+        }
+        
+        $row->amount = "<span style='float:right'>{$amount}</span>";
+        $row->contragentId = cls::get($obj->contragentClassId)->getHyperlink($obj->contragentId, true);
         
         return $row;
     }
@@ -505,13 +529,18 @@ class pos_Reports extends core_Master
             $data = pos_ReceiptDetails::fetchReportData($rec->id);
             
             foreach ($data as $obj) {
-                $index = implode('|', array($obj->action, $obj->pack, $obj->contragentClassId, $obj->contragentId, $obj->value));
+                $indexArr = array($obj->action, $obj->pack, $obj->contragentClassId, $obj->contragentId, $obj->value, $obj->param);
+                if(core_Packs::isInstalled('batch')){
+                    $indexArr[] = str_replace('|', '>', $obj->batch);
+                }
+                
+                $index = implode('|', $indexArr);
                 if (!array_key_exists($index, $results)) {
                     $results[$index] = $obj;
                 } else {
                     $results[$index]->quantity += $obj->quantity;
                     $results[$index]->amount += $obj->amount;
-                }
+                }   
             }
         }
     }
@@ -526,6 +555,7 @@ class pos_Reports extends core_Master
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
         if ($rec->state == 'active' && $rec->brState != 'closed') {
+            
             // Ако няма записани детайли извличаме актуалните
             $mvc->extractData($rec);
         }
@@ -546,6 +576,54 @@ class pos_Reports extends core_Master
         
         // Еднократно оттегляме всички празни чернови бележки
         $mvc->rejectEmptyReceipts($rec);
+    }
+    
+    
+    /**
+     * Маркира използваните артикули
+     */
+    private function markUsedProducts($rec, $remove = false)
+    {
+        // Записа се извлича наново, защото поради някаква причина при оттегляне е непълен
+        $id = is_object($rec) ? $rec->id : $rec;
+        $rec = $this->fetch($id, '*', false);
+       
+        if(countR($rec->details['receiptDetails'])){
+            $affectedProducts = array();
+            array_walk($rec->details['receiptDetails'], function ($a) use (&$affectedProducts){if($a->action == 'sale') {$affectedProducts[$a->value] = $a->value;}});
+            
+            // Ако има намерени продадени артикули се маркират/демаркират като използвани
+            if(countR($affectedProducts)){
+                foreach ($affectedProducts as $productId){
+                    $pContainerId = cat_Products::fetchField($productId, 'containerId');
+                    if($remove){
+                        doclog_Used::remove($rec->containerId, $pContainerId);
+                    } else {
+                        doclog_Used::add($rec->containerId, $pContainerId);
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * Функция, която се извиква след активирането на документа
+     */
+    protected static function on_AfterActivation($mvc, &$rec)
+    {
+        // След контиране се маркират използваните артикули
+        $mvc->markUsedProducts($rec);
+    }
+    
+    
+    /**
+     * Изпълнява се преди оттеглянето на документа
+     */
+    protected static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+        // След оттегляне се махат използванията на артикулите
+        $mvc->markUsedProducts($id, true);
     }
     
     
@@ -676,7 +754,7 @@ class pos_Reports extends core_Master
         if ($rec = self::fetch($objectId)) {
             $result = (object) array(
                 'num' => $objectId . ' ' . mb_strtolower($self->abbr),
-                'title' => static::getRecTitle($rec),
+                'title' => static::getRecTitle($rec, false),
             );
         }
         
@@ -707,13 +785,13 @@ class pos_Reports extends core_Master
     public static function canMakeReport($pointId)
     {
         // Ако няма нито една активна бележка за посочената каса и касиер, не може да се създаде отчет
-        if (!pos_Receipts::fetch("#pointId = {$pointId} AND #state = 'waiting'")) {
+        if (!pos_Receipts::fetchField("#pointId = {$pointId} AND #state = 'waiting'")) {
             
             return false;
         }
         
         // Ако има неприключена започната бележка в тачката от касиера, също не може да се направи отчет
-        if (pos_Receipts::fetch("#pointId = {$pointId} AND #total != 0 AND #state = 'draft'")) {
+        if (pos_Receipts::fetchField("#pointId = {$pointId} AND #total != 0 AND #state = 'draft'")) {
             
             return false;
         }
@@ -766,9 +844,11 @@ class pos_Reports extends core_Master
         
         // Затваряме всеки отчет, след затварянето автоматично ще му се затвори и перото
         while ($rec = $query->fetch()) {
+            $rec->brState = 'active';
             $rec->state = 'closed';
             $rec->closedOn = dt::addSecs(-1 * $conf->POS_CLOSE_REPORTS_OLDER_THAN, $now);
-            $this->save($rec, 'state,closedOn');
+            $this->save($rec, 'state,brState,closedOn');
+            $this->logWrite('Автоматично затваряне на отчет', $rec->id);
         }
     }
     
@@ -786,7 +866,7 @@ class pos_Reports extends core_Master
         
         $res = array();
         
-        $valior = dt::verbal2mysql($rec->activatedOn, false);
+        $valior = dt::verbal2mysql($rec->valior, false);
         $classId = pos_Reports::getClassId();
         
         // Обхождат се продадените артикули
@@ -805,6 +885,10 @@ class pos_Reports extends core_Master
                     'contragentClassId' => $dRec->contragentClassId,);
                 
                 if($r->quantity){
+                    if($rec->chargeVat == 'no'){
+                        $dRec->amount *= (1 + $dRec->param);
+                    }
+                    
                     $r->sellCost = $dRec->amount / $r->quantity;
                 } else {
                     $r->sellCost = 0;
@@ -816,12 +900,17 @@ class pos_Reports extends core_Master
                 $r->dealerId = $dealerId;
                 
                 // Изчисляване на себестойността на артикула
-                $productRec = cat_Products::fetchField($dRec->value, 'isPublic,code');
+                $productRec = cat_Products::fetch($dRec->value, 'isPublic,code,canStore');
                 if ($productRec->code == 'surcharge') {
                     $r->primeCost = 0;
                 } else {
                     $r->primeCost = cat_Products::getPrimeCost($dRec->value, $dRec->pack, $r->quantity, $valior, price_ListRules::PRICE_LIST_COST);
                 }
+                
+                if($productRec->canStore == 'yes'){
+                    $r->storeId = $dRec->storeId;
+                }
+                
                 
                 $res[] = $r;
             }

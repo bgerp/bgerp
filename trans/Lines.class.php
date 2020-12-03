@@ -9,7 +9,7 @@
  * @package   trans
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -197,10 +197,11 @@ class trans_Lines extends core_Master
         $this->FLD('state', 'enum(draft=Чернова,,pending=Заявка,active=Активен,rejected=Оттеглен,closed=Затворен)', 'caption=Състояние,input=none');
         $this->FLD('isRepeated', 'enum(yes=Да,no=Не)', 'caption=Генерирано на повторение,input=none');
         $this->FLD('vehicle', 'varchar', 'caption=Превозвач->Превозно средство,oldFieldName=vehicleId');
-        $this->FLD('forwarderId', 'key(mvc=crm_Companies,select=name,allowEmpty)', 'caption=Превозвач->Транспортна фирма');
-        $this->FLD('forwarderPersonId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty)', 'caption=Превозвач->МОЛ');
+        $this->FLD('forwarderId', 'key2(mvc=crm_Companies,select=name,allowEmpty)', 'caption=Превозвач->Транспортна фирма');
+        $this->FLD('forwarderPersonId', 'key2(mvc=crm_Persons,select=name,group=employees,allowEmpty)', 'caption=Превозвач->МОЛ');
         $this->FLD('caseId', 'key(mvc=cash_Cases,select=name)', 'caption=Превозвач->Инкасиране в');
         $this->FLD('description', 'richtext(bucket=Notes,rows=4)', 'caption=Допълнително->Бележки');
+        
         $this->FLD('countReady', 'int', 'input=none,notNull,value=0');
         $this->FLD('countTotal', 'int', 'input=none,notNull,value=0');
     }
@@ -215,7 +216,7 @@ class trans_Lines extends core_Master
         $start = dt::mysql2verbal($rec->start, 'd.m.Y H:i');
         $start = str_replace(' 00:00', '', $start);
         
-        $title = (count($titleArr) == 2) ? $titleArr[1] : $rec->title;
+        $title = (countR($titleArr) == 2) ? $titleArr[1] : $rec->title;
         $title = str::limitLen($title, 32);
         $recTitle = "{$start}/{$title} ({$rec->countReady}/{$rec->countTotal})";
         
@@ -277,7 +278,7 @@ class trans_Lines extends core_Master
         $form = &$data->form;
         
         $vehicleOptions = trans_Vehicles::makeArray4Select();
-        if (count($vehicleOptions) && is_array($vehicleOptions)) {
+        if (countR($vehicleOptions) && is_array($vehicleOptions)) {
             $form->setSuggestions('vehicle', array('' => '') + arr::make($vehicleOptions, true));
         }
         
@@ -367,15 +368,19 @@ class trans_Lines extends core_Master
         $dQuery = trans_LineDetails::getQuery();
         $dQuery->where("#lineId = {$data->rec->id} AND #containerState != 'rejected' AND #status != 'removed'");
         
-        $returnClassId = store_Receipts::getClassId();
+       
+        
         while ($dRec = $dQuery->fetch()) {
             $Document = doc_Containers::getDocument($dRec->containerId);
-            $transInfo = $Document->getTransportLineInfo();
+            $transInfo = $Document->getTransportLineInfo($data->rec->id);
+            $isStoreDocument = $Document->haveInterface('store_iface_DocumentIntf');
             
-            if ($dRec->classId == $returnClassId) {
-                $amountReturned += $transInfo['baseAmount'];
-            } else {
-                $amount += $transInfo['baseAmount'];
+            if(!$isStoreDocument && $dRec->containerState == 'active'){
+                if($transInfo['baseAmount'] < 0){
+                    $amountReturned += $transInfo['baseAmount'];
+                } else {
+                    $amount += $transInfo['baseAmount'];
+                }
             }
             
             // Сумиране на ЛЕ от документа и подготвените
@@ -386,7 +391,7 @@ class trans_Lines extends core_Master
             if ($sumWeight === true) {
                 if ($transInfo['weight']) {
                     $weight += $transInfo['weight'];
-                } else {
+                } elseif($isStoreDocument) {
                     unset($weight);
                     $sumWeight = false;
                 }
@@ -396,7 +401,7 @@ class trans_Lines extends core_Master
             if ($sumVolume === true) {
                 if ($transInfo['volume']) {
                     $volume += $transInfo['volume'];
-                } else {
+                } elseif($isStoreDocument) {
                     unset($volume);
                     $sumVolume = false;
                 }
@@ -419,7 +424,7 @@ class trans_Lines extends core_Master
         $data->row->totalAmount .= core_Type::getByName('double(decimals=2)')->toVerbal($amount);
         
         $data->row->totalAmountReturn = " <span class='cCode'>{$bCurrency}</span> ";
-        $data->row->totalAmountReturn .= core_Type::getByName('double(decimals=2)')->toVerbal($amountReturned);
+        $data->row->totalAmountReturn .= core_Type::getByName('double(decimals=2)')->toVerbal(abs($amountReturned));
     }
     
     
@@ -440,9 +445,9 @@ class trans_Lines extends core_Master
     {
         $states = arr::make($states);
         $query = trans_LineDetails::getQuery();
-        $query->where("#lineId = {$id}");
+        $query->where("#lineId = {$id} AND #status != 'removed'");
         $query->in('containerState', $states);
-        
+       
         return $query->count();
     }
     

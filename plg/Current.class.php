@@ -51,6 +51,13 @@ class plg_Current extends core_Plugin
                 $rec = $query->fetch();
             }
             
+            if ($bForce === true) {
+                if (core_Users::getCurrent() == -1) {
+                    $bForce = false;
+                    wp($rec, 'Предпазване от редирект на системния потребител');
+                }
+            }
+            
             // Ако форсираме
             if ($bForce && !$rec) {
                 if (is_numeric($bForce)) {
@@ -124,11 +131,11 @@ class plg_Current extends core_Plugin
             }
             
             $retUrl = getRetUrl();
-            if (!count($retUrl) || $retUrl['Ctr'] == $mvc->className) {
+            if (!countR($retUrl) || $retUrl['Ctr'] == $mvc->className) {
                 $retUrl = array('Portal', 'Show');
             }
             
-            if (!count($opt) && $cnt) {
+            if (!countR($opt) && $cnt) {
                 $form->setField('choice', 'input=none');
                 $form->info = "<div style='padding:10px; background-color:yellow;'>" . tr('Липсват достъпни за избор') . ' ' . mb_strtolower(tr($mvc->title)) . '</div>';
             } else {
@@ -144,11 +151,11 @@ class plg_Current extends core_Plugin
                 
                 $rec = $form->input();
                 
-                if (count($opt) == 1) {
+                if (countR($opt) == 1) {
                     $rec->choice = key($opt);
                 }
                 
-                if ($rec->choice && ($form->isSubmitted() || count($opt) == 1)) {
+                if ($rec->choice && ($form->isSubmitted() || countR($opt) == 1)) {
                     if ($mvc->haveRightFor('select')) {
                         $rec = $mvc->fetch($rec->choice);
                         $mvc->selectCurrent($rec);

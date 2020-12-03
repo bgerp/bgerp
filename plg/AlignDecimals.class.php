@@ -39,7 +39,7 @@ class plg_AlignDecimals extends core_Plugin
         $rows = &$data->rows;
         
         // Ако няма никакви записи - нищо не правим
-        if (!count($recs)) {
+        if (!countR($recs)) {
             
             return;
         }

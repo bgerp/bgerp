@@ -125,13 +125,13 @@ defIfNot('CORE_TEMP_PATH_MAX_AGE', 864000);
 /**
  * Разделител за хилядите при форматирането на числата
  */
-defIfNot('EF_NUMBER_THOUSANDS_SEP', ' ');
+defIfNot('EF_NUMBER_THOUSANDS_SEP', '&#x20;');
 
 
 /**
  * Дробен разделител при форматирането на числата
  */
-defIfNot('EF_NUMBER_DEC_POINT', ',');
+defIfNot('EF_NUMBER_DEC_POINT', '&#44;');
 
 
 /**
@@ -217,25 +217,25 @@ define('CORE_LAST_DB_VERSION', '18.25-Shabran');
  * Тази константа не трябва да се ползва с core_Setup::getConfig(),
  * а само с: core_setup::CURRENT_VERSION
  */
-define('CORE_CODE_VERSION', '19.51-Vezhen');
+define('CORE_CODE_VERSION', '20.49-Sinanitsa');
 
 
 /**
  * Включена ли е бекъп функционалността?
  */
-defIfNot('CORE_BACKUP_ENABLED', false);
+defIfNot('CORE_BACKUP_ENABLED', 'no');
+
+
+/**
+ * Включена ли е бекъп функционалността?
+ */
+defIfNot('CORE_BACKUP_MAX_CNT', 2);
 
 
 /**
  * Парола за архиви
  */
 defIfNot('CORE_BACKUP_PASS', '');
-
-
-/**
- * Работна директория за бекъпите
- */
-defIfNot('CORE_BACKUP_WORK_DIR', EF_TEMP_PATH . '/backup_work');
 
 
 /**
@@ -260,6 +260,12 @@ defIfNot('CORE_BACKUP_CREATE_FULL_PERIOD', (60 * 24) * 60);
  * В колко минути след периода да започва пълният бекъп?
  */
 defIfNot('CORE_BACKUP_CREATE_FULL_OFFSET', (60 * 3 + 50) * 60);
+
+
+/**
+ * 
+ */
+defIfNot('CORE_BGERP_UNIQ_ID', '');
 
 
 /**
@@ -366,9 +372,9 @@ class core_Setup extends core_ProtoSetup
         
         'CORE_LOGIN_LOG_FIRST_LOGIN_DAYS_LIMIT' => array('time(suggestions=1 седмица|2 седмици|1 месец|2 месеца)', 'caption=Колко време назад да се търси в лога за first_login->Време'),
         
-        'CORE_STOP_BLOCKING_LOGIN_PERIOD' => array('time(suggestions=1 седмица|2 седмици|1 месец|2 месеца)', 'caption=Спиране на блокирането|*&#44; |ако има дублиране от различни устройсва->Време'),
+        'CORE_STOP_BLOCKING_LOGIN_PERIOD' => array('time(suggestions=1 седмица|2 седмици|1 месец|2 месеца)', 'caption=Спиране на блокирането|*&#44; |ако има дублиране от различни устройства->Време'),
         
-        'CORE_STOP_BLOCKING_LOGIN_COUNT' => array('int', 'caption=Спиране на блокирането|*&#44; |ако има дублиране от различни устройсва->Брой'),
+        'CORE_STOP_BLOCKING_LOGIN_COUNT' => array('int', 'caption=Спиране на блокирането|*&#44; |ако има дублиране от различни устройства->Брой'),
         
         'CORE_COOKIE_LIFETIME' => array('time(suggestions=1 месец|2 месеца|3 месеца|1 година)', 'caption=Време на живот на кукитата->Време'),
         
@@ -384,7 +390,9 @@ class core_Setup extends core_ProtoSetup
         
         'CORE_BACKUP_ENABLED' => array('enum(no=Не, yes=Да)', 'caption=Настройки за бекъп->Включен бекъп'),
         
-        'CORE_BACKUP_PASS' => array('password', 'caption=Настройки за бекъп->Ключ за криптиране'),
+        'CORE_BACKUP_MAX_CNT' => array('enum(1=1,2=2,3=3,4=4,5=5,6=6,7=7)', 'caption=Настройки за бекъп->Макс. брой'),
+        
+        'CORE_BACKUP_PASS' => array('password(show)', 'caption=Настройки за бекъп->Ключ за криптиране'),
         
         'CORE_BACKUP_SQL_LOG_FLUSH_PERIOD' => array('time', 'caption=Настройки за бекъп->Запис на SQL лог през'),
         
@@ -393,8 +401,6 @@ class core_Setup extends core_ProtoSetup
         'CORE_BACKUP_CREATE_FULL_OFFSET' => array('time', 'caption=Настройки за бекъп->Изместване'),
         
         'CORE_BACKUP_PATH' => array('varchar', 'caption=Настройки за бекъп->Път до бекъпите,readOnly'),
-        
-        'CORE_BACKUP_WORK_DIR' => array('varchar', 'caption=Настройки за бекъп->Работна директория,readOnly'),
     );
     
     
@@ -421,6 +427,8 @@ class core_Setup extends core_ProtoSetup
         'core_Forwards',
         'core_Updates',
         'core_Permanent',
+        'migrate::repairSearchKeywords31920',
+        'migrate::setBGERPUNIQId3020'
     );
     
     
@@ -492,6 +500,7 @@ class core_Setup extends core_ProtoSetup
         $rec->action = 'DeleteExpiredData';
         $rec->period = 24 * 60;
         $rec->offset = rand(60, 180); // от 1h до 3h
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
@@ -504,6 +513,7 @@ class core_Setup extends core_ProtoSetup
         $rec->action = 'DeleteExpiredLinks';
         $rec->period = 60;
         $rec->offset = mt_rand(0, 40);
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
@@ -516,6 +526,7 @@ class core_Setup extends core_ProtoSetup
         $rec->action = 'checkForUpdates';
         $rec->period = 24 * 60;
         $rec->offset = mt_rand(8 * 60, 12 * 60);
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 300;
         $html .= core_Cron::addOnce($rec);
@@ -528,11 +539,12 @@ class core_Setup extends core_ProtoSetup
         $rec->action = 'DeleteExpiredPermData';
         $rec->period = 24 * 60;
         $rec->offset = rand(60, 180); // от 1h до 3h
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
         
-        if (CORE_BACKUP_ENABLED) {
+        if (core_Setup::get('BACKUP_ENABLED') == 'yes') {
             // Нагласяване Крон да прави пълен бекъп
             $rec = new stdClass();
             $rec->systemId = 'Backup_Create';
@@ -556,9 +568,18 @@ class core_Setup extends core_ProtoSetup
             $rec->delay = 2;
             $rec->timeLimit = 20;
             $html .= core_Cron::addOnce($rec);
+            $html .= core_Os::createDirectories(
+                array(
+                    core_Backup::getDir(),
+                    core_Backup::getDir('backup_work'),
+                ),
+                0744
+            );
+            core_SystemData::set('flagDoSqlLog');
         } else {
             core_Cron::delete("#systemId = 'Backup_Create'");
             core_Cron::delete("#systemId = 'Sql_Log_Flush'");
+            core_SystemData::remove('flagDoSqlLog');
         }
         
         
@@ -569,8 +590,15 @@ class core_Setup extends core_ProtoSetup
         $html .= core_Classes::add('core_page_Internal');
         $html .= core_Classes::add('core_page_InternalModern');
         
-        
         $html .= static::addCronToDelOldTempFiles();
+        
+        try {
+            $this->setBGERPUniqId();
+        } catch (Exception $e) {
+            reportException($e);
+        } catch (Throwable $t) {
+            reportException($t);
+        }
         
         return $html;
     }
@@ -591,6 +619,7 @@ class core_Setup extends core_ProtoSetup
         $rec->action = 'clearOldFiles';
         $rec->period = 60;
         $rec->offset = mt_rand(0, 40);
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 120;
         $res .= core_Cron::addOnce($rec);
@@ -689,5 +718,140 @@ class core_Setup extends core_ProtoSetup
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Форсира регенерирането на ключовите думи за всички мениджъри, които използват `plg_Search`
+     */
+    public static function repairSearchKeywords31920()
+    {
+        // Вземаме инстанция на core_Interfaces
+        $Interfaces = cls::get('core_Interfaces');
+        
+        // id' то на интерфейса
+        $interfaceId = $Interfaces->fetchByName('core_ManagerIntf');
+        
+        $query = core_Classes::getQuery();
+        $query->where("#state = 'active' AND #interfaces LIKE '%|{$interfaceId}|%'");
+        
+        $secs = 180;
+        
+        while ($rec = $query->fetch()) {
+            if (!cls::load($rec->name, true)) {
+                continue;
+            }
+            
+            $Inst = cls::get($rec->name);
+            
+            // Ако няма таблица
+            if (!$Inst || !$Inst->db) {
+                continue;
+            }
+            
+            // Ако таблицата не съществува в модела
+            if (!$Inst->db->tableExists($Inst->dbTableName)) {
+                continue ;
+            }
+            
+            // Ако полето не съществува в таблицата
+            $sk = str::phpToMysqlName('searchKeywords');
+            if (!$Inst->db->isFieldExists($Inst->dbTableName, $sk)) {
+                continue ;
+            }
+            
+            $plugins = arr::make($Inst->loadList, true);
+            
+            if (!isset($plugins['plg_Search']) && !$Inst->fields['searchKeywords']) {
+                continue;
+            }
+            
+            core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', $rec->name, dt::addSecs($secs));
+            
+            $secs += 60;
+        }
+    }
+    
+    
+    /**
+     * Връща уникалното ID на системата
+     *
+     * @return string
+     */
+    public static function getBGERPUniqId()
+    {
+        
+        return core_Setup::get('BGERP_UNIQ_ID');
+    }
+    
+    
+    /**
+     * Задаване на уникално ID на системата
+     *
+     * @param boolean $force
+     *
+     * @return string
+     */
+    protected static function setBGERPUniqId($force = false)
+    {
+        $id = '';
+        if (!$force) {
+            $id = self::getBGERPUniqId();
+        }
+        
+        if (!$id) {
+            $id = self::generateBGERPUniqId();
+            
+            core_Packs::setConfig('core', array('CORE_BGERP_UNIQ_ID' => $id));
+        }
+        
+        return $id;
+    }
+    
+    
+    /**
+     * Връща 19 цифрено уникалното id на системата за тази инсталация
+     *
+     * @return string
+     */
+    protected static function generateBGERPUniqId()
+    {
+        $res = '';
+        
+        $fm = filectime(getFullPath('core'));
+        $t = date('md', $fm);
+        $y = date('y', $fm);
+        $res = str_pad(($y % 10) . $t, 5, 0, STR_PAD_LEFT);
+        
+        $u = substr(crc32(php_uname('s')), 0, 3);
+        $res .= str_pad($u, 3, 0, STR_PAD_LEFT);
+        
+        $m = substr(crc32(exec("ifconfig -a | grep -Po 'HWaddr \K.*$'")), 0, 2);
+        $res .= str_pad($m, 2, 0, STR_PAD_LEFT);
+        
+        $s = substr(crc32(EF_SALT . "SystemID"), 0, 2);
+        $res .= str_pad($s, 2, 0, STR_PAD_LEFT);
+        
+        $res .= str::getRand('##');
+        
+        $resCrc = substr(crc32($res), 0, 2);
+        $res .= str_pad($resCrc, 2, 0, STR_PAD_LEFT);
+        
+        $res = str_pad($res, 16, 0, STR_PAD_LEFT);
+        
+        $res = substr($res, 0, 16);
+        
+        $res = implode('-', str_split($res, 4));
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Миграция за добавянер на уникален номер на системата
+     */
+    function setBGERPUNIQId3020()
+    {
+        $this->setBGERPUniqId(true);
     }
 }

@@ -289,7 +289,7 @@ class cat_Listings extends core_Master
                 $query->where("#state = 'active'");
             }
             
-            if (is_array($instock) && count($instock)) {
+            if (is_array($instock) && countR($instock)) {
                 
                 // Артикулите се подреждат така че наличните в склада да са по-напред
                 $instock = implode(',', $instock);
@@ -404,7 +404,7 @@ class cat_Listings extends core_Master
             $found[] = '<b>' . cls::get($cRec->cClass)->getTitleById($cRec->cId) . '</b>';
         }
         
-        if (count($found)) {
+        if (countR($found)) {
             $implode = implode(', ', $found);
             core_Statuses::newStatus('Документа не може да се оттегли, защото е избран като търговско условие за|* ' . $implode, 'warning');
             
@@ -443,7 +443,7 @@ class cat_Listings extends core_Master
         
         // Извличат се папките им
         $folders = arr::extractValuesFromArray($query->fetchAll(), 'folderId');
-        $count = count($folders);
+        $count = countR($folders);
         if (!$count) {
             
             return;
@@ -471,7 +471,7 @@ class cat_Listings extends core_Master
             
             // Ако за тази папка има избран лист не се създава
             $condId = cond_ConditionsToCustomers::fetchByCustomer($Cover->getClassId(), $Cover->that, $paramId);
-            $autoListId = cat_Listings::fetchField("#sysId = 'auto{$folderId}'");
+            $autoListId = cat_Listings::fetchField("#sysId = 'auto{$folderId}' AND #state != 'rejected'");
             
             if (!empty($condId) && empty($autoListId)) {
                 continue;
@@ -503,7 +503,7 @@ class cat_Listings extends core_Master
             $dQuery->orderBy('count,saleId', 'DESC');
             $all = $dQuery->fetchAll();
             
-            if (!count($all)) {
+            if (!countR($all)) {
                 continue;
             }
             $products = arr::extractSubArray($all, 'productId,packagingId');
@@ -545,21 +545,43 @@ class cat_Listings extends core_Master
             $lQuery->where("#listId = {$listId}");
             $old = $lQuery->fetchAll();
             
+            // Колко са новите записи
+            $count = countR($newDetails);
+            
+            // Ако последно продаваните артикули са под максималния лимит
+            // Идеята е ако има стари записи да не се изтрият докато, не се изместят от по нови
+            if($count < $limit){
+                
+                // и има стари записи
+                $products = array_keys($newDetails);
+                $notInProducts = array_filter($old, function($a) use ($products) { return !in_array($a->productId, $products);});
+                if(countR($notInProducts)){
+                    asort($notInProducts);
+                    
+                    // Допълване на масива, със стари записи, докато се достигне лимите
+                    foreach ($notInProducts as $oldRec){
+                        if($count > $limit) break;
+                        
+                        $newDetails[$oldRec->productId] = $oldRec;
+                    }
+                }
+            }
+            
             // Синхронизиране на новите записи
             $res = arr::syncArrays($newDetails, $old, 'productId,packagingId', 'packagingId');
             
             // Инсърт на новите
-            if (count($res['insert'])) {
+            if (countR($res['insert'])) {
                 cat_ListingDetails::saveArray($res['insert']);
             }
             
             // Ъпдейт на старите
-            if (count($res['update'])) {
+            if (countR($res['update'])) {
                 cat_ListingDetails::saveArray($res['update'], 'packagingId');
             }
             
             // Изтриване на тези дето не се срещат
-            if (count($res['delete'])) {
+            if (countR($res['delete'])) {
                 $delete = implode(',', $res['delete']);
                 cat_ListingDetails::delete("#id IN ({$delete})");
             }
@@ -579,7 +601,7 @@ class cat_Listings extends core_Master
     private static function forceAutoList($folderId, $Cover)
     {
         $title = 'Списък от предишни продажби';
-        $listId = cat_Listings::fetchField("#sysId = 'auto{$folderId}'");
+        $listId = cat_Listings::fetchField("#sysId = 'auto{$folderId}' AND #state != 'rejected'");
         if (!$listId) {
             $lRec = (object) array('title' => $title, 'type' => 'canSell', 'folderId' => $folderId, 'state' => 'active', 'isPublic' => 'no', 'sysId' => "auto{$folderId}");
             $lRec->currencyId = $Cover->getDefaultCurrencyId();
@@ -601,7 +623,7 @@ class cat_Listings extends core_Master
         
         $pQuery = cat_Products::getQuery();
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+            if (!countR($onlyIds)) {
                 
                 return array();
             }

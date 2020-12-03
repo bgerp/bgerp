@@ -11,14 +11,19 @@ function formatSelect2Data(data)
 {
 	var text = data.text;
 	
-	if (!data.element || !data.element.noEscape) {
+	if (!data.gElement || !data.gElement.noEscape) {
 		if (text) {
 			text = getEO().escape(text);
 		}
 	}
-	
+
 	if (color = getDataAttr(data, 'data-color')) {
-		text = "<div class='color-preview' style='background-color:" + color + " !important;'> </div>&nbsp;" + text;
+		if(color == "#fd0203") {
+			colorfulClass = "colorful";
+		} else {
+			colorfulClass = "";
+		}
+		text = "<div class='color-preview " + colorfulClass + "' style='background-color:" + color + "'> </div>&nbsp;" + text;
 	}
 	
 	if (data.loading) return text;
@@ -27,6 +32,10 @@ function formatSelect2Data(data)
 	
 	if (data.element && data.element.className) {
 		res += ' class=\"' + data.element.className + '\"';
+	} else {
+		if (data.gElement && data.gElement.className) {
+			res += ' class=\"' + data.gElement.className + '\"';
+		}
 	}
 	
 	res += '>' + text + '</span>';
@@ -47,7 +56,12 @@ function formatSelect2DataSelection(data)
 	var text = data.text;
 	
 	if (color = getDataAttr(data, 'data-color')) {
-		text = "<span><div class='color-preview' style='background-color:" + color + " !important; margin-bottom: 2px;'> </div>&nbsp;" + text + "</span>";
+		if(color == "#fd0203") {
+			colorfulClass = "colorful";
+		} else {
+			colorfulClass = "";
+		}
+		text = "<span><div class='color-preview " + colorfulClass + "' style='background-color:" + color + " ; margin-bottom: 2px;'> </div>&nbsp;" + text + "</span>";
 		
 		text = $(text);
 	}
@@ -69,6 +83,10 @@ function getDataAttr(data, attrName)
 	
 	if (data && data.element && data.element.getAttribute) {
 		color = data.element.getAttribute(attrName);
+	} else {
+		if (data && data.gElement && data.gElement.getAttribute) {
+			color = data.gElement.getAttribute(attrName);
+		}
 	}
 	
 	if (!color) {

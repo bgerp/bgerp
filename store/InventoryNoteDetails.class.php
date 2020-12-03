@@ -125,7 +125,7 @@ class store_InventoryNoteDetails extends doc_Detail
     public function description()
     {
         $this->FLD('noteId', 'key(mvc=store_InventoryNotes)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,caption=Артикул,mandatory,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack|packQuantity|batch');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,caption=Артикул,mandatory,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack|packQuantity|batch');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,tdClass=small-field nowrap,removeAndRefreshForm=quantity|quantityInPack|packQuantity|batch,remember,silent');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=hidden,column=none');
@@ -142,7 +142,6 @@ class store_InventoryNoteDetails extends doc_Detail
     protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
         if (!isset($rec->quantity) || !isset($rec->quantityInPack)) {
-            
             return;
         }
         
@@ -243,7 +242,7 @@ class store_InventoryNoteDetails extends doc_Detail
             // Проверка на к-то
             $warning = null;
             if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
-                $form->setError('packQuantity', $warning);
+                $form->setWarning('packQuantity', $warning);
             }
             
             $productInfo = cat_Products::getProductInfo($rec->productId);
@@ -276,7 +275,6 @@ class store_InventoryNoteDetails extends doc_Detail
     protected static function on_AfterPrepareRetUrl($mvc, $data)
     {
         if (!isset($data->form) || !$data->form->isSubmitted()) {
-            
             return;
         }
         
@@ -343,9 +341,9 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Изчиства записите, заопашени за запис
      */
-    protected static function on_Shutdown($mvc)
+    public static function on_Shutdown($mvc)
     {
-        if (count($mvc->cache)) {
+        if (countR($mvc->cache)) {
             foreach ($mvc->cache as $noteId) {
                 store_InventoryNotes::invalidateCache($noteId);
             }
@@ -379,7 +377,6 @@ class store_InventoryNoteDetails extends doc_Detail
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         if ($data->masterData->rec->state == 'rejected') {
-            
             return;
         }
         
@@ -425,7 +422,7 @@ class store_InventoryNoteDetails extends doc_Detail
             
             $query = cat_Products::getQuery();
             $query->likeKeylist('groups', $rec->group);
-            if (count($inArr)) {
+            if (countR($inArr)) {
                 $query->notIn('id', $inArr);
             }
             
@@ -437,7 +434,7 @@ class store_InventoryNoteDetails extends doc_Detail
                 $products[$pRec->id] = static::getRecTitle($pRec, false);
             }
             
-            if (!count($products)) {
+            if (!countR($products)) {
                 $form->setError('group', 'Няма нови артикули за импортиране от групата');
             } else {
                 $set = cls::get('type_Set', array('suggestions' => $products));

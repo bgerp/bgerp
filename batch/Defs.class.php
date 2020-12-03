@@ -168,13 +168,13 @@ class batch_Defs extends core_Manager
             $form->setField('batchCaption', 'input');
             $form->setField('alwaysRequire', 'input');
             $form->setDefault('alwaysRequire', 'auto');
-            
             $form->setField('onlyExistingBatches', 'input');
             $form->setDefault('onlyExistingBatches', 'auto');
             
-            $Class = cls::get($templateRec->driverClass);
-            if (isset($Class->fieldCaption)) {
-                $form->setField('batchCaption', "placeholder={$Class->fieldCaption}");
+            if($Driver = batch_Templates::getDriver($templateRec)){
+                if (isset($Driver->fieldCaption)) {
+                    $form->setField('batchCaption', "placeholder={$Driver->fieldCaption}");
+                }
             }
         }
     }
@@ -277,7 +277,11 @@ class batch_Defs extends core_Manager
         
         // Ако горните условия не са изпълнени, питаме драйвера дали може да върне дефиниция
         $Driver = cat_Products::getDriver($productRec);
-        $templateId = $Driver->getDefaultBatchTemplate($productRec);
+        if ($Driver !== false) {
+            $templateId = $Driver->getDefaultBatchTemplate($productRec);
+        } else {
+            $templateId = null;
+        }
         
         if (isset($templateId)) {
             $nRec = (object) array('productId' => $productRec->id, 'templateId' => $templateId);

@@ -142,13 +142,13 @@ abstract class deals_ServiceMaster extends core_Master
         $agreedProducts = $aggregatedDealInfo->get('products');
         $shippedProducts = $aggregatedDealInfo->get('shippedProducts');
         
-        if (count($shippedProducts)) {
+        if (countR($shippedProducts)) {
             $normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
         } else {
             $agreedProducts = $aggregatedDealInfo->get('dealProducts');
         }
         
-        if (count($agreedProducts)) {
+        if (countR($agreedProducts)) {
             foreach ($agreedProducts as $index => $product) {
                 $info = cat_Products::getProductInfo($product->productId);
                 

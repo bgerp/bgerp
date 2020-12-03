@@ -1,23 +1,37 @@
 var shortURL;
 
 
-function spr(sel, refresh) {
+function spr(sel, refresh, from, to) {
     if(refresh === undefined) {
         refresh = true;
     }
+    
+    if (from === undefined) {
+    	from = 'from';
+    }
+    
+    if (to === undefined) {
+    	to = 'to';
+    }
+    
+    from = "input[name='" + from + "']";
+    to = "input[name='" + to + "']";
+    
     if(sel.value == 'select') {
-        $("input[name*='from']").closest('tr').fadeIn();
-        $("input[name*='to']").closest('tr').fadeIn();
-        $("input[name*='from']").prop('disabled', false);
-        $("input[name*='to']").prop('disabled', false);
-        $("input[name*='from'], input[name*='to']").addClass('flashElem');
-        $("input[name*='from'], input[name*='to']").css('transition', 'background-color linear 500ms');
+        $(from).closest('tr').fadeIn();
+        $(to).closest('tr').fadeIn();
+        $(from).prop('disabled', false);
+        $(to).prop('disabled', false);
+        $(from).addClass('flashElem');
+        $(to).addClass('flashElem');
+        $(from).css('transition', 'background-color linear 500ms');
+        $(to).css('transition', 'background-color linear 500ms');
         setTimeout(function(){ $('.flashElem').removeClass('flashElem')}, 1000);
     } else {
-        $("input[name*='from']").prop('disabled', true);
-        $("input[name*='to']").prop('disabled', true);
-        $("input[name*='from']").closest('tr').fadeOut();
-        $("input[name*='to']").closest('tr').fadeOut();
+        $(from).prop('disabled', true);
+        $(to).prop('disabled', true);
+        $(from).closest('tr').fadeOut();
+        $(to).closest('tr').fadeOut();
         if(refresh) {
             sel.form.submit();
         }
@@ -119,6 +133,10 @@ function showTooltip() {
                 $(element).addClass('bottom');
             }
 
+            if($(element).parent().offset().left < 200){
+                $(element).addClass('right');
+            }
+
             $(element).css('display', 'block');
         } else {
             // при кликане в бодито затвавяме отворения тултип, ако има такъв
@@ -137,6 +155,9 @@ function showTooltip() {
 };
 
 
+/**
+ * действие на дървовидната структура
+ */
 function treeViewAction() {
     if(!$('.searchResult').length) {
         $('.treeView tbody tr').not('.treeLevel0').addClass('hiddenRow closedChildren');
@@ -155,7 +176,9 @@ function treeViewAction() {
     });
 }
 
-
+/**
+ * Задваря децата на елемента от дървовидната структура
+ */
 function closeChildren(id){
     var children = $('tr[data-parentid=' + id + ']') ;
     $(children).each(function() {
@@ -168,6 +191,9 @@ function closeChildren(id){
 }
 
 
+/**
+ * Отваря децата на елемента от дървовидната структура
+ */
 function openChildren(id){
     var children = $('tr[data-parentid=' + id + ']') ;
     $(children).each(function() {
@@ -180,7 +206,9 @@ function openChildren(id){
 }
 
 
-// Функция за лесно селектиране на елементи
+/**
+ * Функция за лесно селектиране на елементи
+  */
 function get$() {
     var elements = new Array();
     for (var i = 0; i < arguments.length; i++) {
@@ -1046,6 +1074,10 @@ function js2php(obj, path, new_path) {
     return post_str.join('&');
 }
 
+
+/**
+ * Подготвя контекстното меню
+ */
 function prepareContextMenu() {
     jQuery.each($('.more-btn'), function(i, val) {
         if($(this).hasClass('nojs')) return;
@@ -1097,6 +1129,10 @@ function prepareContextMenu() {
     });
 }
 
+/**
+ * Запазване на текущия таб
+ * @param lastNotifyTime
+ */
 function openCurrentTab(lastNotifyTime){
     if(!$('body').hasClass('modern-theme') || $('body').hasClass('wide')) return;
     var current;
@@ -1218,7 +1254,12 @@ function hideRichtextEditGroups() {
     return false;
 }
 
-
+/**
+ * Показване/скриване на допълнителните елементи от ричедит опциите
+ * @param id
+ * @param event
+ * @returns {boolean}
+ */
 function toggleRichtextGroups(id, event) {
     if (typeof event == 'undefined') {
         event = window.event;
@@ -1245,6 +1286,12 @@ function toggleRichtextGroups(id, event) {
 
 // id на текущия език
 var currentLangId = 0;
+
+
+/**
+ * Действие на бутона за смяна на език в ричедит
+ * @param obj
+ */
 function prepareLangBtn(obj) {
 
 	var arrayLang= obj.data;
@@ -1396,6 +1443,7 @@ function SetWithCheckedButton() {
     $('[id^=cb_]').each(function(i) {
         if ($(this).is(":checked") == true) {
             state = true;
+            $(this).closest('tr').addClass('highlight-row');
         }
     });
 
@@ -1415,16 +1463,35 @@ function SetWithCheckedButton() {
     }
 }
 
+
+/**
+ * Премахва символите от края на стринга
+ * 
+ * @param hash
+ */
+function clearHashStr(hash)
+{
+	
+	return hash.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]*$/gi, '');
+}
+
 function flashHashDoc(flasher) {
     var h = window.location.hash.substr(1);
+    
     if (h) {
-        if (!flasher) {
+    	h = clearHashStr(h);
+        if (h && !flasher) {
             flasher = flashDoc;
         }
         flasher(h);
     }
 }
 
+/**
+ * Присвятване на текушия документ (от жълт към прозрачен)
+ * @param docId
+ * @param i
+ */
 function flashDoc(docId, i) {
     var tr = get$(docId);
 
@@ -1512,6 +1579,11 @@ function flashDocInterpolation(docId) {
 }
 
 
+/**
+ * Вряща цвета на фона на дадем елемент
+ * @param el
+ * @returns {string|*}
+ */
 function getBackgroundColor(el) {
     var bgColor = $(el).css('background-color');
 
@@ -1522,6 +1594,11 @@ function getBackgroundColor(el) {
     return rgb2hex(bgColor);
 }
 
+/**
+ * Преобразува rgb цвят към hex
+ * @param rgb
+ * @returns {string|*}
+ */
 function rgb2hex(rgb) {
 
     if (rgb.search("rgb") == -1) {
@@ -1533,7 +1610,11 @@ function rgb2hex(rgb) {
         function hex(x) {
             return ("0" + parseInt(x).toString(16)).slice(-2);
         }
-        if (rgb[4] != 'undefined' && rgb[4] == 0) {
+        if (!rgb || (rgb[4] != 'undefined' && rgb[4] == 0)) {
+        	if (!rgb) {
+        		rgb = [];
+    		}
+        	
             rgb[1] = rgb[2] = rgb[3] = 255;
         }
 
@@ -1600,36 +1681,52 @@ function isTouchDevice() {
  */
 function setMinHeightExt() {
     var clientHeight = document.documentElement.clientHeight;
+
+    // ако сме със старата външна тема изчисляваме височината на съдържанието
     if ($('#cmsTop').length) {
-    	var padding = $('.background-holder').css('padding-top');
-    	var totalPadding = 2 * parseInt(padding);
+        var padding = parseInt($('.background-holder').css('padding-top'));
+        var totalPadding = (padding) ? 2 * padding + 2 : 0;
 
-        var ct = $('#cmsTop').height();
-        var cb = $('#cmsBottom').height();
-        var cm = $('#cmsMenu').height();
+        var ct = parseInt($('#cmsTop').outerHeight());
+        var cb = parseInt($('#cmsBottom').outerHeight());
+        var cm = parseInt($('#cmsMenu').outerHeight());
 
-        var add = 16;
         if ($('body').hasClass('wide')) {
-            add = 28;
+            var add = 16;
+        } else {
+            var add = 47 + parseInt($('.additionalFooter').outerHeight());
         }
 
         if ($('#maincontent').length) {
-            var h = (clientHeight - ct - cb - cm - add);
-            if(totalPadding) {
-            	h = h - totalPadding + 2;
+            var h = (clientHeight - ct - cb - cm - add - totalPadding);
+
+            if (getWindowWidth() > 600 && $('body').hasClass('narrow')) {
+                h -= 3;
             }
-            if($(window).width() > 600 && $('body').hasClass('narrow')){
-            	h -= 3;
-	        }
             if (h > 60) {
-            	$('#maincontent').css('minHeight', h);
+                $('#maincontent').css('minHeight', h);
             }
         }
+    } else if ($('.narrowCenter .headerImg').length) {
+        // в новата тема при мобилен изчисляваме височината на съдържанието
+        if (getWindowWidth() < 1200) {
+            var elHeight = parseInt($('.narrowCenter .headerImg').outerHeight());
+            $('.wide .narrowCenter').height(elHeight);
+            $('.wide .fadein').height(elHeight);
+        } else {
+            $('.wide .narrowCenter').height(220);
+            $('.wide .fadein').height(220);
+        }
     }
-    $('.toggleLink').on('click', function(){
-        $('.narrowNav').slideToggle();
+    $(window).smartresize(function () {
+        setMinHeightExt();
     });
 }
+
+
+/**
+ * Връща ширината на устройството
+ */
 function getWindowWidth() {
 	var winWidth = parseInt($(window).width());
 	// Приемаме, че най-малкият екран е 320px
@@ -1640,25 +1737,26 @@ function getWindowWidth() {
 }
 
 
+/**
+ * Изчислява максималната ширина на формата - маха падинга, менюто и др.
+ */
 function getCalculatedElementWidth() {
 	var winWidth = getWindowWidth();
     // разстояние около формата
-	var outsideWidth = 42;
+	var outsideWidth = parseInt($('#packWrapper').css('padding-left')) + parseInt($(' #packWrapper').css('padding-right')) + 6;
     var menuSize = 0;
+
 	if($('.externalPage').length) {
 		outsideWidth = 30;
 		if($('#login-form input').length) {
 			outsideWidth = parseInt($('#login-form input').offset().left * 2  + 2);
 		}
-	}  else if ($('.modern-theme').length && $('.vertical .formCell > input[type="text"]').length) {
-        outsideWidth = parseInt($('.vertical .formCell > input[type="text"]').first().offset().left * 2 + 2);
-    }
+	}
     if($('.sidemenu-open').length) {
         menuSize = $('.sidemenu-open').length * $('.sidemenu-open').first().width();
     }
-    var formElWidth = winWidth - outsideWidth - menuSize;
 
-    return formElWidth;
+    return winWidth - outsideWidth - menuSize;
 }
 
 
@@ -1678,29 +1776,8 @@ function markElementsForRefresh() {
  */
 function setFormElementsWidth() {
     if ($('body').hasClass('narrow')){
-        // предпочитана ширина в em
-        var preferredSizeInEm = 42;
-        // разстояние около формата
-
         // изчислена максимална ширина формата
         var formElWidth = getCalculatedElementWidth();
-        var winWidth = getWindowWidth();
-
-        // колко ЕМ е широка страницата
-        var currentEm = parseFloat($(".formTable input[type=text]").first().css("font-size"));
-        if (!currentEm) {
-            currentEm = parseFloat($(".formTable select").first().css("font-size"));
-        }
-
-        var sizeInEm = winWidth / currentEm;
-
-        // колко РХ е 1 ЕМ
-        var em = parseInt(winWidth / sizeInEm);
-
-        // изчислена ширина, равна на ширината в ем, която предпочитаме
-        var preferredSizeInPx = preferredSizeInEm * em;
-
-        if (formElWidth > preferredSizeInPx) formElWidth = preferredSizeInPx;
 
         $('.formTable label').each(function() {
             if(!$(this).closest('.treelist').length)  {
@@ -1708,7 +1785,7 @@ function setFormElementsWidth() {
                 if (!colsInRow) {
                     colsInRow = 1;
                 }
-                $(this).parent().css('maxWidth', parseInt((formElWidth - 10) / colsInRow));
+                $(this).parent().css('maxWidth', parseInt((formElWidth - 20) / colsInRow));
                 $(this).parent().css('overflow-x', 'hidden');
 
                 $(this).attr('title', $(this).text());
@@ -1761,6 +1838,9 @@ function setFormElementsWidth() {
                  $(this).attr('title', $(this).text());
              }
          });
+    	 if ($('.typeTable .batchNameTd').length) {
+             $('.typeTable').width("100%");
+         }
     }
 }
 
@@ -1775,6 +1855,15 @@ function maxSelectWidth(){
 	 }
 }
 
+/**
+ *  Меню тип хамбургер в мобилен
+ */
+function toggleNarrowMenu() {
+    $('.toggleLink').on('click', function(e){
+        $('.narrowNav').slideToggle();
+    });
+}
+
 
 /**
  * Задава ширина на елементите от нишката в зависимост от ширината на прозореца/устройството
@@ -1785,7 +1874,6 @@ function setThreadElemWidth() {
     $('#main-container .doc_Containers table.listTable.listAction > tbody > tr > td').css('maxWidth', threadWidth + 10);
     $('.background-holder .doc_Containers table.listTable > tbody > tr > td').css('maxWidth', threadWidth + 10);
     $('.doc_Containers .scrolling-holder').css('maxWidth', threadWidth + 10);
-
 }
 
 
@@ -1798,24 +1886,13 @@ function setBarcodeHolderWidth(){
 }
 
 
+/**
+ *  При resize задава ширини във форми/нишки
+ */
 function checkForElementWidthChange() {
-    $(window).resize(function(){
+    $(window).smartresize(function(){
         setFormElementsWidth();
         setThreadElemWidth();
-    });
-}
-
-
-function getAllLiveElements() {
-    $('[data-live]').each(function() {
-        var text = $(this).attr('data-live');
-        var data = text.split("|");
-        var el = $(this);
-        $.each( data, function( key, value ) {
-            var fn = window["live_" + value];
-            if (typeof fn === "function") fn.apply(null, el);
-        });
-
     });
 }
 
@@ -1838,6 +1915,7 @@ function setRicheditWidth(el) {
     var width = parseInt($('.formElement').width());
     $('.formElement textarea').css('width', width);
 }
+
 
 /**
  * Ако имаме 6 бутона в richedit, да излизат в 2 колони
@@ -2376,6 +2454,8 @@ function replaceFormData(frm, data)
     frm.find('#save, #saveAndNew').prop( "disabled", false );
 	frm.find('input, select, textarea').css('cursor', 'default');
 }
+
+
 /**
  * Зарежда подадените JS файлове синхронно
  *
@@ -2495,7 +2575,9 @@ function addLinkOnCopy(text, symbolCount) {
 }
 
 
-
+/**
+ * Приготвяне на контекстно менщ от ajax
+ */
 function prepareContextHtmlFromAjax() {
 
     $( ".ajaxContext").parent().css('position', 'relative');
@@ -2511,8 +2593,6 @@ function prepareContextHtmlFromAjax() {
         $(holder).appendTo('body');
     });
 }
-
-
 
 
 /**
@@ -2538,6 +2618,7 @@ function getContextMenuFromAjax() {
         el.contextMenu('#' + el.attr('data-id'),{triggerOn:'contextmenu', 'sizeStyle': 'context', 'displayAround': 'cursor'});
     });
 }
+
 
 function openAjaxMenu(el) {
 	getEfae().preventRequest = 0;
@@ -2764,7 +2845,6 @@ function smartCenter() {
         $("span.maxwidth:not('.notcentered')").css('display', "block");
         $("span.maxwidth:not('.notcentered')").css('margin', "0 auto");
         $("span.maxwidth:not('.notcentered')").css('text-align', "right");
-
 }
 
 
@@ -3934,7 +4014,7 @@ function render_setFocus(data){
 /**
  * Затваря отвореното контекстно меню
  */
-function render_closeContextMenu(data)
+function render_closeContextMenu()
 {
     if ($('.iw-mTrigger').contextMenu) {
     	$('.iw-mTrigger').contextMenu('close');
@@ -5096,8 +5176,8 @@ function prepareBugReport(form, user, domain, name, ctr, act, sysDomain)
 	var browser = getUserAgent();
 	var title = sysDomain + '/' + ctr + '/' + act;
 	
-	if (url && (url.length > 250)) {
-		url = url.substring(0, 250);
+	if (url && (url.length > 495)) {
+		url = url.substring(0, 495);
 		url += '...';
 	}
 	
@@ -5149,7 +5229,7 @@ function debugLayout() {
     if ($('body').hasClass('narrow')) {
         $('.linksGroup').scrollTop($('.debugLink.current').offset().top - $('.linksGroup').height() -10);
     }
-    $('.search-fields input').on('click', function(){
+    $('.search-fields input[type=text]').on('click', function(){
         $('.other-fileds').slideDown();
 
         $('.other-fileds').find('input.combo').each(function(){
@@ -5176,96 +5256,6 @@ $.fn.scrollView = function () {
                     });
 };
 
-function mailServerSettings() {
-    var email = document.getElementById('email');
-    var server = document.getElementById('server');
-    var protocol = document.getElementById('protocol');
-    var security = document.getElementById('security');
-    var cert = document.getElementById('cert');
-    var folder = document.getElementById('folder');
-    var user = document.getElementById('user');
-    var smtpServer = document.getElementById('smtpServer');
-    var smtpSecure = document.getElementById('smtpSecure');
-    var smtpAuth = document.getElementById('smtpAuth');
-    var smtpUser = document.getElementById('smtpUser');
-
-    var n = email.value.search("@");
-
-    var provider = email.value.substr(n+1);
-    var userAccountt = email.value.substr(0,n);
-
-    if (server.value == "") {
-		switch (provider) {
-		    case "abv.bg":
-		    	server.value = "pop3.abv.bg:995";
-			    protocol.value = "pop3";
-			    security.value = "ssl";
-			    cert.value = "noValidate";
-			    smtpServer.value = "smtp.abv.bg:465";
-			    smtpSecure.value = "ssl";
-			    smtpAuth.value = "LOGIN";
-			    user.value = email.value;
-			    smtpUser.value = email.value;
-		    	break;
-		    case "gmail.com":
-		    	server.value = "imap.gmail.com:993";
-		    	protocol.value = "imap";
-		    	security.value = "ssl";
-		    	cert.value = "validate";
-		    	smtpServer.value = "smtp.gmail.com:587";
-		    	smtpSecure.value = "tls";
-		    	smtpAuth.value = "LOGIN";
-		    	user.value = email.value;
-		    	smtpUser.value = email.value;
-		        break;
-		    case "yahoo.com":
-		    	server.value = "imap.mail.yahoo.com:993";
-		    	protocol.value = "imap";
-		    	security.value = "ssl";
-		    	cert.value = "validate";
-		    	smtpServer.value = "smtp.mail.yahoo.com:465";
-		    	smtpSecure.value = "ssl";
-		    	smtpAuth.value = "LOGIN";
-		    	user.value = email.value;
-		    	smtpUser.value = email.value;
-		        break;
-		    case "outlook.com":
-		    	server.value = "imap-mail.outlook.com:993";
-		    	protocol.value = "imap";
-		    	security.value = "ssl";
-		    	cert.value = "validate";
-		    	smtpServer.value = "smtp-mail.outlook.com:587";
-		    	smtpSecure.value = "tls";
-		    	smtpAuth.value = "LOGIN";
-		    	user.value = email.value;
-		    	smtpUser.value = email.value;
-		        break;
-		    case "mail.bg":
-		    	server.value = " imap.mail.bg:143";
-		    	protocol.value = "imap";
-		    	security.value = "tls";
-		    	cert.value = "validate";
-		    	smtpServer.value = "smtp.mail.bg:465";
-		    	smtpSecure.value = "tls";
-		    	smtpAuth.value = "LOGIN";
-		    	user.value = email.value;
-		    	smtpUser.value = email.value;
-		        break;
-
-		    default:
-		    	protocol.value = "imap";
-		    	security.value = "default";
-		    	cert.value = "noValidate";
-		    	smtpSecure.value = "no";
-		    	smtpAuth.value = "no";
-		}
-
-        if($('.select2').length){
-            $('select').trigger("change");
-        }
-    }
-};
-
 
 /**
  * Вика url-то в data-url на линка и спира норматлноното му действие
@@ -5276,11 +5266,11 @@ function mailServerSettings() {
  * @return boolean
  */
 function startUrlFromDataAttr(obj, stopOnClick)
-{
+{    
 	if (this.event) {
-		stopBtnDefault(this.event);
+        stopBtnDefault(this.event);
 	}
-
+ 
 	resObj = new Object();
 	resObj['url'] = obj.getAttribute('data-url');
 
@@ -5291,6 +5281,8 @@ function startUrlFromDataAttr(obj, stopOnClick)
 	getEfae().process(resObj);
 	
 	getEfae().waitPeriodicAjaxCall = 0;
+	
+    render_closeContextMenu();
 	
 	return false;
 }
@@ -5530,7 +5522,7 @@ function render_fancybox()
 
 
 /**
- * Кокусиране върху заглавията, при дабъклик върху H2 заглавие
+ * Фокусиране върху заглавията, при дабъклик върху H2 заглавие
  */
 function focusOnHeader() {
     $("h2").dblclick(function(e) {
@@ -5553,16 +5545,76 @@ JSON.parse = JSON.parse || function (str) {
 };
 
 
-function unregisterServiceWorker() {
-    if($('#main-container').length && !$('link[rel="manifest"]').length && !isIE() && typeof navigator.serviceWorker !== 'undefined' && navigator.serviceWorker.getRegistrations) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            eval("for(var registration of registrations) {registration.unregister();}");
-        });
+/**
+ * Функция за синхронизиране между регистрирания и желания ServiceWorker
+ */
+function syncServiceWorker() {
+
+    if(!isIE() && ('serviceWorker' in navigator)) {
+
+        if(typeof navigator.serviceWorker !== 'undefined') {
+            navigator.serviceWorker.getRegistrations().then(function(r) {
+                r.forEach(function(sw) {
+                    if(typeof serviceWorkerURL !== 'undefined') {
+                        if (sw.active.scriptURL.indexOf(serviceWorkerURL) != -1) {
+                            console.log('ServiceWorker registration skiped: ' + serviceWorkerURL);
+                            serviceWorkerURL = false;
+                        } else {
+                            sw.unregister();
+                            console.log('ServiceWorker registration unregistered: ' + sw.active.scriptURL);
+                        }
+                    }
+                });
+
+                // Рефистрираме новия ServiceWorker
+                if((typeof serviceWorkerURL !== 'undefined') && (serviceWorkerURL !== false)) {
+          
+                    navigator.serviceWorker.register(serviceWorkerURL, {scope: '/'}).then(function(registration) {
+                    // Registration was successful
+                        console.log('ServiceWorker registration successful: ' + serviceWorkerURL);
+                    }, function(err) {
+                        // registration failed :(
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+                 }
+            })
+        }
     }
 }
 
+/**
+ * smartresize - намалява събитията на on resize
+ */
+(function($,sr){
+
+    // debouncing function from John Hann
+    // http://unscriptable.com/index.php/2009/03/20/debouncing-javascript-methods/
+    var debounce = function (func, threshold, execAsap) {
+        var timeout;
+
+        return function debounced () {
+            var obj = this, args = arguments;
+            function delayed () {
+                if (!execAsap)
+                    func.apply(obj, args);
+                timeout = null;
+            };
+
+            if (timeout)
+                clearTimeout(timeout);
+            else if (execAsap)
+                func.apply(obj, args);
+
+            timeout = setTimeout(delayed, threshold || 100);
+        };
+    }
+    // smartresize
+    jQuery.fn[sr] = function(fn){  return fn ? this.bind('resize', debounce(fn)) : this.trigger(sr); };
+
+})(jQuery,'smartresize');
 
 runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);
 runOnLoad(reloadOnPageShow);
 runOnLoad(focusOnHeader);
+runOnLoad(syncServiceWorker);

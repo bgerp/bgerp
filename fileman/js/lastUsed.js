@@ -4,7 +4,7 @@ var desabledRows = "";
  */
 function lastUsedActions()
 {
-    $('.narrow.dialog-window .listRows').height($(window).height() - 173);
+    $('.narrow.dialog-window .listRows').height($(window).height() - 200);
 
     if (sessionStorage.getItem('disabledRowArr')) {
         desabledRows =  sessionStorage.getItem('disabledRowArr').split(',');

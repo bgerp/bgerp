@@ -101,7 +101,10 @@ class planning_Stages extends core_Extender
         $form->setSuggestions("{$mvc->className}_folders", $resourceSuggestionsArr);
         $form->setDefault("{$mvc->className}_folders", keylist::addKey('', planning_Centers::getUndefinedFolderId()));
     
-        $form->setField('meta', 'input=none');
+        if($form->getField('meta', false)){
+            $form->setField('meta', 'input=none');
+        }
+        
         if(isset($rec->id) && core_Packs::isInstalled('batch')){
             if(batch_Defs::getBatchDef($rec->id)){
                 $form->setReadOnly("{$mvc->className}_canStore");
@@ -299,7 +302,7 @@ class planning_Stages extends core_Extender
         $tableHtml = $table->get($data->rows, $data->listFields);
         $tpl->append($tableHtml, 'content');
         
-        if(count($data->addUrl)){
+        if(countR($data->addUrl)){
             $addBtn = ht::createLink('', $data->addUrl, false, "title=Добавяне на нов производствен етап в центъра на дейност,ef_icon=img/16/add.png");
             $tpl->append($addBtn, 'title');
         }

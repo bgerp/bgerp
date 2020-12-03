@@ -142,7 +142,7 @@ class planning_ProductionTaskProducts extends core_Detail
         if (isset($rec->type)) {
             $meta = ($rec->type == 'input') ? 'canConvert' : (($rec->type == 'waste') ? 'canStore,canConvert' : 'canManifacture');
             $onlyInGroups = ($rec->type == 'waste') ? cat_Groups::getKeylistBySysIds('waste') : null;
-            $form->setFieldTypeParams('productId', array('hasProperties' => $meta, 'groups' => $onlyInGroups));
+            $form->setFieldTypeParams('productId', array('hasProperties' => $meta, 'groups' => $onlyInGroups, 'hasnotProperties' => 'generic'));
         }
         
         if (isset($rec->productId)) {
@@ -183,8 +183,8 @@ class planning_ProductionTaskProducts extends core_Detail
             $form->setField('plannedQuantity', array('unit' => $unit));
             
             if(isset($rec->id)){
-                $form->setReadOnly('productId');
                 if($data->action != 'replaceproduct'){
+                    $form->setReadOnly('productId');
                     $form->setReadOnly('packagingId');
                 }
                 
@@ -259,7 +259,8 @@ class planning_ProductionTaskProducts extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->productId = cat_Products::getShortHyperlink($rec->productId);
+        $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
+        
         $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : (($rec->type == 'waste') ? 'row-removed' : 'state-active');
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         
@@ -371,7 +372,7 @@ class planning_ProductionTaskProducts extends core_Detail
                 $usedProducts[$tRec->productId] = $tRec->productId;
             }
             
-            if (count($taskOptions)) {
+            if (countR($taskOptions)) {
                 $options += array('t' => (object) array('group' => true, 'title' => tr('Задачи'))) + $taskOptions;
             }
             
@@ -380,7 +381,7 @@ class planning_ProductionTaskProducts extends core_Detail
                 
                 // Ако има добавят се с групата на оборудването в опциите
                 $norms = planning_AssetResourcesNorms::getNormOptions($taskRec->fixedAssets, $usedProducts);
-                if (count($norms)) {
+                if (countR($norms)) {
                     $options += $norms;
                 }
             }

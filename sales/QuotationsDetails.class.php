@@ -120,7 +120,7 @@ class sales_QuotationsDetails extends doc_Detail
         $this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,smartCenter');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none');
         $this->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
-        
+        $this->FNC('vatPackPrice', 'double(minDecimals=2)', 'caption=Цена с ддс,smartCenter');
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none');
         $this->FLD('price', 'double(minDecimals=2,maxDecimals=4)', 'caption=Ед. цена, input=none');
         $this->FLD('discount', 'percent(smartRound,min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.3)', 'caption=Отстъпка,smartCenter');
@@ -132,6 +132,8 @@ class sales_QuotationsDetails extends doc_Detail
         $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=auto');
         $this->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки,formOrder=110001');
         $this->setField('packPrice', 'silent');
+        
+        $this->setDbIndex('productId,quantity');
     }
     
     
@@ -183,7 +185,9 @@ class sales_QuotationsDetails extends doc_Detail
             
             return;
         }
-        $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $rec->date, $masterRec->currencyRate, $masterRec->chargeVat, null, false);
+        
+        $listId = ($masterRec->priceListId) ? $masterRec->priceListId : null;
+        $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $rec->date, $masterRec->currencyRate, $masterRec->chargeVat, $listId, false);
         
         if (isset($policyInfo->price)) {
             $rec->price = $policyInfo->price;
@@ -219,18 +223,22 @@ class sales_QuotationsDetails extends doc_Detail
         $data->optionalHaveOneQuantity = true;
         $pcsUom = cat_UoM::fetchBySinonim('pcs')->id;
         
-        if (count($recs)) {
+        if (countR($recs)) {
             foreach ($recs as $id => $rec) {
                 if (!isset($rec->price)) {
                     self::calcLivePrice($rec, $masterRec);
                     if (isset($rec->price)) {
                         $rec->packPrice = $rec->price * $rec->quantityInPack;
                         $rec->amount = $rec->packPrice * $rec->packQuantity;
-                        
                         $rec->livePrice = true;
                     } else {
                         $data->noTotal = true;
                     }
+                }
+                
+                if(isset($rec->price)) {
+                    $vat = cat_Products::getVat($rec->productId, $masterRec->date);
+                    $rec->vatPackPrice = $rec->packPrice * (1 + $vat);
                 }
                 
                 if ($rec->optional == 'no') {
@@ -249,8 +257,8 @@ class sales_QuotationsDetails extends doc_Detail
             }
         }
         
-        $data->countNotOptional = count($notOptional);
-        $data->countOptional = count($optional);
+        $data->countNotOptional = countR($notOptional);
+        $data->countOptional = countR($optional);
         
         // Подготовка за показване на задължителнтие продукти
         deals_Helper::fillRecs($mvc, $notOptional, $masterRec);
@@ -271,7 +279,7 @@ class sales_QuotationsDetails extends doc_Detail
             $data->noTotal = true;
         }
        
-        if (empty($data->noTotal) && count($notOptional)) {
+        if (empty($data->noTotal) && countR($notOptional)) {
             
             // Запомня се стойноста и ддс-то само на опционалните продукти
             $data->summary = deals_Helper::prepareSummary($mvc->_total, $masterRec->date, $masterRec->currencyRate, $masterRec->currencyId, $masterRec->chargeVat, false, $masterRec->tplLang);
@@ -339,6 +347,8 @@ class sales_QuotationsDetails extends doc_Detail
                 }
             }
         }
+        
+        $data->renderVatPriceInRec = ($masterRec->chargeVat == 'separate' && (empty($data->summary) || countR($recs) == 1));
     }
     
     
@@ -354,7 +364,7 @@ class sales_QuotationsDetails extends doc_Detail
             }
         }));
         
-        return count($other);
+        return countR($other);
     }
     
     
@@ -379,14 +389,16 @@ class sales_QuotationsDetails extends doc_Detail
         $rec = &$form->rec;
         $masterRec = $data->masterRec;
         
-        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts));
+        $form->setDefault('showMode', 'detailed');
+        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties' => 'generic'));
         if (isset($rec->id)) {
             $data->form->setReadOnly('productId');
         }
         
         if (!empty($rec->packPrice)) {
-            if (Request::get('Act') != 'CreateProduct') {
-                $vat = cat_Products::getVat($rec->productId, $masterRec->valior);
+            if (strtolower(Request::get('Act')) != 'createproduct') {
+                $valior = !empty($masterRec->valior) ? $masterRec->valior : dt::today();
+                $vat = cat_Products::getVat($rec->productId, $valior);
             } else {
                 $vat = acc_Periods::fetchByDate($masterRec->valior)->vatRate;
             }
@@ -522,8 +534,7 @@ class sales_QuotationsDetails extends doc_Detail
             deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack);
             
             if (!$form->gotErrors()) {
-                
-                if (Request::get('Act') != 'CreateProduct') {
+                if (strtolower(Request::get('Act')) != 'createproduct') {
                     if ($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}")) {
                         if ($rec->optional == 'no' && $sameProduct->optional == 'yes' && $rec->id != $sameProduct->id) {
                             $form->setError('productId', 'Не може да добавите продукта като задължителен, защото фигурира вече като опционален!');
@@ -622,7 +633,7 @@ class sales_QuotationsDetails extends doc_Detail
         // Подготвяме бутоните за добавяне на нов артикул
         if ($this->haveRightFor('add', (object) array('quotationId' => $data->masterId))) {
             $products = cat_Products::getProducts($data->masterData->rec->contragentClassId, $data->masterData->rec->contragentId, $data->masterData->rec->date, 'canSell', null, 1);
-            if (!count($products)) {
+            if (!countR($products)) {
                 $error = 'error=Няма продаваеми артикули,';
             }
             
@@ -630,7 +641,8 @@ class sales_QuotationsDetails extends doc_Detail
             $data->addOptionalBtn = ht::createBtn('Опционален артикул', array($this, 'add', 'quotationId' => $data->masterId, 'optional' => 'yes', 'ret_url' => true), false, false, "{$error} ef_icon = img/16/shopping.png, title=Добавяне на опционален артикул към офертата");
             
             if ($this->haveRightFor('createProduct', (object) array('quotationId' => $data->masterId))) {
-                $data->addNewProductBtn = ht::createBtn('Създаване', array($this, 'CreateProduct', 'quotationId' => $data->masterId, 'ret_url' => true), false, false, 'id=btnNewProduct,title=Създаване на нов нестандартен артикул,ef_icon = img/16/bag-new.png,order=12');
+                $data->addNewProductBtn = ht::createBtn('Създаване', array($this, 'CreateProduct', 'quotationId' => $data->masterId, 'optional' => 'no', 'ret_url' => true), false, false, 'id=btnNewProduct,title=Създаване на нов нестандартен артикул,ef_icon = img/16/bag-new.png,order=12');
+                $data->addNewProductOptionalBtn = ht::createBtn('Създаване', array($this, 'CreateProduct', 'quotationId' => $data->masterId, 'optional' => 'yes', 'ret_url' => true), false, false, 'id=btnNewProduct,title=Създаване на нов нестандартен артикул,ef_icon = img/16/bag-new.png,order=12');
             }
         }
         
@@ -651,7 +663,7 @@ class sales_QuotationsDetails extends doc_Detail
                 $optionalRows[$ind] = $data->rows[$ind];
             }
         }
-        
+       
         // Подравняваме ги спрямо едни други
         plg_AlignDecimals2::alignDecimals($this, $optionalRecs, $optionalRows);
         plg_AlignDecimals2::alignDecimals($this, $notOptionalRecs, $notOptionalRows);
@@ -693,7 +705,7 @@ class sales_QuotationsDetails extends doc_Detail
             });
             
             $group = array_values($group);
-            $group[0]->rowspan = count($group);
+            $group[0]->rowspan = countR($group);
             
             foreach ($group as $index => $row) {
                 if ($index != 0) {
@@ -721,14 +733,6 @@ class sales_QuotationsDetails extends doc_Detail
     {
         $tpl = new ET('');
         $masterRec = $data->masterData->rec;
-        
-        // Ако всички продукти са с еднаква отстъпка и може да се изчисли обобщената информация, няма да показваме отстъпката
-        $unsetDiscount = false;
-        if ($data->summary && count($data->discounts) == 1) {
-            if (key($data->discounts)) {
-                $unsetDiscount = true;
-            }
-        }
         
         // Шаблон за задължителните продукти
         $shortest = false;
@@ -830,7 +834,7 @@ class sales_QuotationsDetails extends doc_Detail
             $dTpl->replace($summary->sayWords, 'sayWords');
             
             // Ако всички артикули имат валидна отстъпка показваме я в обобщената информация
-            if (isset($summary) && count($data->discounts) == 1) {
+            if (isset($summary) && countR($data->discounts) == 1) {
                 if (key($data->discounts)) {
                     $dTpl->replace($data->discounts[key($data->discounts)], 'discountPercent');
                 }
@@ -839,7 +843,9 @@ class sales_QuotationsDetails extends doc_Detail
             $dTpl->removeBlock('totalPlace');
         }
         
-        $vatRow = ($masterRec->chargeVat == 'yes') ? tr(', |с ДДС|*') : tr(', |без ДДС|*');
+        $vatRow = " " . (($masterRec->chargeVat == 'yes') ? tr('с ДДС') : (($masterRec->chargeVat == 'separate') ? "<b>" . tr('без ДДС') . "</b>" : tr('без ДДС')));
+        
+        
         $miscMandatory = $masterRec->currencyId . $vatRow;
         $miscOptional = $masterRec->currencyId . $vatRow;
         if (countR($data->discounts) && $data->hasDiscounts === true) {
@@ -878,6 +884,11 @@ class sales_QuotationsDetails extends doc_Detail
             if (isset($data->addOptionalBtn)) {
                 $oTpl->append($data->addOptionalBtn, 'ADD_BTN');
             }
+            
+            if (isset($data->addNewProductOptionalBtn)) {
+                $oTpl->append($data->addNewProductOptionalBtn, 'ADD_BTN');
+            }
+            
             $oTpl->removePlaces();
             $oTpl->removeBlocks();
             $tpl->append($oTpl, 'OPTIONAL');
@@ -901,7 +912,7 @@ class sales_QuotationsDetails extends doc_Detail
      */
     protected static function on_AfterPrepareListRows($mvc, $data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }
@@ -937,7 +948,11 @@ class sales_QuotationsDetails extends doc_Detail
             $fee = sales_TransportValues::get($mvc->Master, $rec->quotationId, $rec->id);
             
             $vat = cat_Products::getVat($rec->productId, $masterRec->date);
-            $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $fee->explain);
+            $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $masterRec->currencyId, $fee->explain);
+        
+            if(isset($rec->vatPackPrice) && $data->renderVatPriceInRec){
+                $row->vatPackPrice = $mvc->getFieldType('vatPackPrice')->toVerbal($rec->vatPackPrice);
+            }
         }
         
         core_Lg::pop();
@@ -1057,6 +1072,7 @@ class sales_QuotationsDetails extends doc_Detail
         $query->where("#state = 'active'");
         $query->where("(#expireOn IS NULL AND #date >= '{$date}') OR (#expireOn IS NOT NULL AND #expireOn >= '{$date}')");
         $query->orderBy('date,quotationId', 'DESC');
+        $query->limit(1);
         
         $res = (object) array('price' => null);
         if ($rec = $query->fetch()) {

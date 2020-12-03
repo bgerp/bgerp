@@ -50,6 +50,12 @@ defIfNot('PURCHASE_ADD_BY_LIST_BTN', '');
 
 
 /**
+ * Дефолтно действие при създаване на нова покупка в папка
+ */
+defIfNot('PURCHASE_NEW_PURCHASE_AUTO_ACTION_BTN', 'form');
+
+
+/**
  * Покупки - инсталиране / деинсталиране
  *
  *
@@ -102,7 +108,7 @@ class purchase_Setup extends core_ProtoSetup
         'purchase_InvoiceDetails',
         'purchase_Vops',
         'purchase_PurchasesData',
-        'migrate::extractPurchasesData0419',
+        'migrate::migrateClosedWith',
     );
     
     
@@ -125,6 +131,10 @@ class purchase_Setup extends core_ProtoSetup
         'PURCHASE_INVOICE_DEFAULT_VALID_FOR' => array('time', 'caption=Срок за плащане по подразбиране->Срок'),
         'PURCHASE_ADD_BY_PRODUCT_BTN' => array('keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Необходими роли за добавяне на артикули в покупка от->Артикул'),
         'PURCHASE_ADD_BY_LIST_BTN' => array('keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Необходими роли за добавяне на артикули в покупка от->Списък'),
+        'PURCHASE_NEW_PURCHASE_AUTO_ACTION_BTN' => array(
+            'enum(none=Няма,form=Форма за покупка,addProduct=Добавяне на артикул,createProduct=Създаване на артикул,importlisted=Списък от предишни покупки)',
+            'mandatory,caption=Действие на бързите бутони в папките->Покупка,customizeBy=ceo|sales|purchase',
+        ),
     );
     
     
@@ -164,87 +174,10 @@ class purchase_Setup extends core_ProtoSetup
     
     
     /**
-     * Миграция за зареждане на модела purchase_PurchasesData
+     * Обновява кеш полето за коя сделка с коя е приключена
      */
-    public static function extractPurchasesData0419()
+    function migrateClosedWith()
     {
-        $classes = array(store_Receipts, purchase_Purchases,purchase_Services);
-        
-        foreach ($classes as $classForProcesing) {
-            $Master = (cls::get($classForProcesing));
-            
-            $Detail = cls::get($Master->mainDetail);
-            
-            $query = $Master->getQuery();
-            
-            $query->in('state', array('rejected','active'));
-            
-            while ($mRec = $query->fetch()) {
-                if (isset($mRec->contoActions) && !strpos($mRec->contoActions, 'ship')) {
-                    continue;
-                }
-                
-                $clone = clone $mRec;
-                
-                $clone->threadId = (isset($clone->threadId)) ? $clone->threadId : $Master->fetchField($clone->id, 'threadId');
-                $clone->folderId = (isset($clone->folderId)) ? $clone->folderId : $Master->fetchField($clone->id, 'folderId');
-                
-                $docClassId = core_Classes::getId($Master);
-                $detailClassId = core_Classes::getId($Detail);
-                
-                $firstDocument = doc_Threads::getFirstDocument($clone->threadId);
-                
-                $className = $firstDocument->className;
-                
-                if (!($className)) {
-                    continue;
-                }
-                
-                $dealerId = $className::fetch($firstDocument->that)->dealerId;
-                
-                $dQuery = $Detail->getQuery();
-                
-                $dQuery->where("#{$Detail->masterKey} = {$mRec->id}");
-                
-                while ($detail = $dQuery->fetch()) {
-                    $dRec = array();
-                    
-                    $dRec = (object) array(
-                        
-                        'valior' => $clone->valior,
-                        'detailClassId' => $detailClassId,
-                        'detailRecId' => $detail->id,
-                        'state' => $clone->state,
-                        'contragentClassId' => $clone->contragentClassId,
-                        'contragentId' => $clone->contragentId,
-                        'dealerId' => $dealerId,
-                        'productId' => $detail->productId,
-                        'docId' => $clone->id,
-                        'docClassId' => $docClassId,
-                        'quantity' => $detail->quantity,
-                        'packagingId' => $detail->packagingId,
-                        'storeId' => $clone->storeId,
-                        'price' => $detail->price,
-                        'discount' => $detail->discount,
-                        'amount' => $detail->amount,
-                        'currencyId' => $clone->currencyId,
-                        'currencyRate' => $clone->currencyRate,
-                        'createdBy' => $detail->createdBy,
-                        'threadId' => $clone->threadId,
-                        'folderId' => $clone->folderId,
-                        'containerId' => $clone->containerId,);
-                    
-                    $id = purchase_PurchasesData::fetchField("#detailClassId = {$dRec->detailClassId} AND #detailRecId = {$dRec->detailRecId}");
-                    
-                    if (!empty($id)) {
-                        $dRec->id = $id;
-                    }
-                    
-                    if ($dRec->state == 'active' || $dRec->state == 'rejected') {
-                        purchase_PurchasesData::save($dRec);
-                    }
-                }
-            }
-        }
+        cls::get('deals_Setup')->updateClosedWith('purchase_Purchases', 'purchase_ClosedDeals');
     }
 }

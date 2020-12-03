@@ -25,7 +25,7 @@ class acc_Articles extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'acc_TransactionSourceIntf=acc_transaction_Article';
+    public $interfaces = 'acc_TransactionSourceIntf=acc_transaction_Article, doc_DocumentIntf';
     
     
     /**
@@ -39,7 +39,7 @@ class acc_Articles extends core_Master
      */
     public $loadList = 'plg_RowTools2, plg_Clone, plg_Printing, doc_plg_HidePrices,doc_plg_Prototype,
                      acc_Wrapper, plg_Sorting, acc_plg_Contable,purchase_plg_ExtractPurchasesData,
-                     doc_DocumentPlg, acc_plg_DocumentSummary, bgerp_plg_Blank, plg_Search, doc_plg_SelectFolder';
+                     doc_DocumentPlg, acc_plg_DocumentSummary, bgerp_plg_Blank, plg_Search, doc_plg_SelectFolder, doc_SharablePlg';
     
     
     /**
@@ -122,6 +122,12 @@ class acc_Articles extends core_Master
     
     
     /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'ceo,acc';
+    
+    
+    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'reason, valior, id';
@@ -171,7 +177,7 @@ class acc_Articles extends core_Master
         $this->FLD('reason', 'varchar(128)', 'caption=Основание,mandatory');
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
         $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
-        $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Оттеглен,template=Шаблон,stopped=Спряно)', 'caption=Състояние,input=none');
+        $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Оттеглен,template=Шаблон,stopped=Спряно,pending=Заявка)', 'caption=Състояние,input=none');
         $this->FLD('useCloseItems', 'enum(no=Не,yes=Да)', 'caption=Използване на приключени пера->Избор,maxRadio=2,notNull,default=no,input=none');
         
         // Ако потребителя има роля 'accMaster', може да контира/оотегля/възстановява МО с приключени права
@@ -373,11 +379,7 @@ class acc_Articles extends core_Master
         $DocClass->requireRightFor('correction', $docId);
         expect($journlRec = acc_Journal::fetchByDoc($docClassId, $docId));
         expect($result = static::createReverseArticle($journlRec));
-        
-        if (!Request::get('ajax_mode')) {
-            // Записваме, че потребителя е разглеждал този списък
-            $this->logWrite('Създаване на обратен мемориален ордер', $result[1]);
-        }
+        $this->logWrite('Създаване на обратен мемориален ордер', $result[1]);
         
         return new Redirect(array('acc_Articles', 'single', $result[1]), '|Създаден е успешно обратен мемориален ордер');
     }

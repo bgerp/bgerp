@@ -93,6 +93,18 @@ class bgerp_Notifications extends core_Manager
      * Офсет преди текущото време при липса на 'Затворено на' в нотификациите
      */
     const NOTIFICATIONS_LAST_CLOSED_BEFORE = 60;
+
+    
+/**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 100000;
+    
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'modifiedOn,lastTime';
     
     
     /**
@@ -240,6 +252,8 @@ class bgerp_Notifications extends core_Manager
                 $r->activatedOn > bgerp_LastTouch::get('portal', $userId)) {
                 $rec->activatedOn = $r->activatedOn;
             }
+        } else {
+            $rec->cnt = 1;
         }
         
         $rec->state = 'active';
@@ -950,6 +964,23 @@ class bgerp_Notifications extends core_Manager
         }
         
         if (bgerp_Setup::get('PORTAL_VIEW') == 'customized') {
+            
+            // Да не прескача страницата - при маркиране/отмаркиране или отписване
+            if ($parentUrlStr = Request::get('parentUrl')) {
+                $parentUrlArr = parseLocalUrl($parentUrlStr);
+                $rArr = array();
+                foreach ($parentUrlArr as $fName => $fVal) {
+                    $r = Request::get($fName);
+                    if (!isset($r)) {
+                        $rArr[$fName] = $fVal;
+                    }
+                }
+                
+                if (!empty($rArr)) {
+                    Request::push($rArr);
+                }
+            }
+            
             $res = cls::get('bgerp_Portal')->getPortalBlockForAJAX();
         } else {
             $res = $this->action('render');
@@ -970,6 +1001,8 @@ class bgerp_Notifications extends core_Manager
             }
             
             $res[] = $obj;
+            
+            $res[] = (object) array('func' => 'closeContextMenu');
         }
         
         bgerp_LastTouch::set('portal');
@@ -1224,7 +1257,12 @@ class bgerp_Notifications extends core_Manager
             $lastModifiedOnKey .= '|' . $cLastRec->id;
         }
         
-        $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Notifications') . '_' . Request::get('noticeSearch') . '_' . core_Lg::getCurrent());
+        $cntQuery = $Notifications->getQuery();
+        $cntQuery->where("#userId = {$userId} AND #hidden != 'yes'");
+        $cntQuery->show('id');
+        $nCnt = $cntQuery->count();
+        
+        $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Notifications') . '_' . Request::get('noticeSearch') . '_' . core_Lg::getCurrent() . '_' . $nCnt);
         
         list($tpl, $modifiedOnKey) = core_Cache::get('Notifications', $key);
         
@@ -1474,31 +1512,6 @@ class bgerp_Notifications extends core_Manager
         }
         
         $data->query->orderBy('#modifiedOn', 'DESC');
-    }
-    
-    
-    /**
-     * Какво правим след сетъпа на модела?
-     */
-    public static function on_AfterSetupMVC($mvc, &$res)
-    {
-        if (!$mvc->fetch("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
-            $count = 0;
-            $query = static::getQuery();
-            $query->orderBy('#id', 'DESC');
-            
-            while ($rec = $query->fetch()) {
-                // Обновяваме ключовите думи на нотификациите, ако нямат
-                if ($rec->searchKeywords) {
-                    continue;
-                }
-                $rec->searchKeywords = $mvc->getSearchKeywords($rec);
-                $mvc->save_($rec, 'searchKeywords');
-                $count++;
-            }
-            
-            $res .= "Обновени ключови думи на  {$count} записа в Нотификациите";
-        }
     }
     
     

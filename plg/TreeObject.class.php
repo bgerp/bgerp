@@ -53,7 +53,7 @@ class plg_TreeObject extends core_Plugin
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $options = $mvc->prepareParentOptions($data->form->rec);
-        if (count($options)) {
+        if (countR($options)) {
             $data->form->setOptions($mvc->parentFieldName, $options);
         } else {
             $data->form->setReadOnly($mvc->parentFieldName);
@@ -80,10 +80,10 @@ class plg_TreeObject extends core_Plugin
             
             // При редакция оставяме само тези опции, в чиите бащи не участва текущия обект
             $options = $mvc->makeArray4Select($mvc->nameField, $where);
-            if (count($options) && isset($rec->id)) {
+            if (countR($options) && isset($rec->id)) {
                 foreach ($options as $id => $title) {
                     self::traverseTree($mvc, $id, $rec->id, $notAllowed);
-                    if (count($notAllowed) && in_array($id, $notAllowed)) {
+                    if (countR($notAllowed) && in_array($id, $notAllowed)) {
                         unset($options[$id]);
                     }
                 }
@@ -137,7 +137,7 @@ class plg_TreeObject extends core_Plugin
      */
     private static function modifySelectOptions($mvc, &$options)
     {
-        if (count($options)) {
+        if (countR($options)) {
             foreach ($options as $id => &$title) {
                 $title = $mvc->getVerbal($id, $mvc->nameField);
             }
@@ -190,7 +190,7 @@ class plg_TreeObject extends core_Plugin
      */
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }
@@ -237,7 +237,7 @@ class plg_TreeObject extends core_Plugin
             $fieldsToSum = arr::make($mvc->fieldsToSumOnChildren);
             
             // Ако има
-            if (count($fieldsToSum)) {
+            if (countR($fieldsToSum)) {
                 
                 // Обхождаме записите
                 foreach ($data->recs as $rec1) {
@@ -253,7 +253,7 @@ class plg_TreeObject extends core_Plugin
                         if ($fieldType instanceof type_Int || $fieldType instanceof type_Double) {
                             
                             // Сумираме стойността на полето за всеки наследник
-                            if (count($descendants)) {
+                            if (countR($descendants)) {
                                 foreach ($descendants as $dRec) {
                                     if (isset($dRec->{$fld})) {
                                         $rec1->{$fld} += $dRec->{$fld};
@@ -331,7 +331,7 @@ class plg_TreeObject extends core_Plugin
         if ($mvc->haveRightFor('add')) {
             $url = array($mvc, 'add', 'parentId' => $data->rec->id);
             $parentTitle = $mvc->getVerbal($data->rec, 'name');
-            $data->toolbar->addBtn('Подниво||Sublevel', $url, "ef_icon=img/16/add-sub.png,title=Добави нов поделемент на|* '{$parentTitle}'");
+            $data->toolbar->addBtn('Подниво||Sublevel', $url, "ef_icon=img/16/add-sub.png,title=Добавяне на ново подниво на|* '{$parentTitle}'");
         }
     }
     
@@ -357,11 +357,11 @@ class plg_TreeObject extends core_Plugin
                 $parentTitle = $mvc->getVerbal($rec, $mvc->nameField);
                 
                 if (!$mvc->hasPlugin('plg_RowTools2')) {
-                    $row->_addBtn = ht::createLink($img, $url, false, "title=Добави ново подниво на |*'{$parentTitle}'");
+                    $row->_addBtn = ht::createLink($img, $url, false, "title=Добавяне на ново подниво на |*'{$parentTitle}'");
                 }
                 
                 core_RowToolbar::createIfNotExists($row->_rowTools);
-                $row->_rowTools->addLink('Подниво||Sublevel', $url, "ef_icon=img/16/add-sub.png, title=title=Добави ново подниво на |*'{$parentTitle}'");
+                $row->_rowTools->addLink('Подниво||Sublevel', $url, "ef_icon=img/16/add-sub.png, title=Добавяне на ново подниво на |*'{$parentTitle}'");
             }
             
             // Ако записа е намерен при търсене добавяме му клас
@@ -377,7 +377,7 @@ class plg_TreeObject extends core_Plugin
      */
     public static function on_AfterPrepareListRows($mvc, &$data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }
@@ -437,7 +437,7 @@ class plg_TreeObject extends core_Plugin
             
             $features = array();
             
-            if (!count($ids)) {
+            if (!countR($ids)) {
                 
                 return $features;
             }
@@ -466,8 +466,8 @@ class plg_TreeObject extends core_Plugin
                 $features[$keyVerbal] = $nameVerbal;
                 
                 // Ако е последното листо, то да си има стойност себе си
-                if ($keyVerbal != $nameVerbal) {
-                    if (!$mvc->fetchField("#{$mvc->parentFieldName} = {$rec->id}")) {
+                if ($rec->parentId) {
+                    if ($mvc->fetchField("#{$mvc->parentFieldName} = {$rec->parentId}")) {
                         $keyVerbal .= " » {$nameVerbal}";
                         $features[$keyVerbal] = $nameVerbal;
                     }
@@ -530,14 +530,16 @@ class plg_TreeObject extends core_Plugin
             $title = $num;
             $i = 0;
             
-            while ($parent && ($pRec = $mvc->fetch($parent))) {
-                $pName = type_Varchar::escape($pRec->{$mvc->nameField});
-                $title = $pName . ' » ' . $title;
-                $parent = $pRec->{$mvc->parentFieldName};
-                $i++;
-                if ($i > 20) {
-                    wp($parent, $pRec);
-                    break;
+            if(!Mode::is('treeShortName')){
+                while ($parent && ($pRec = $mvc->fetch($parent))) {
+                    $pName = type_Varchar::escape($pRec->{$mvc->nameField});
+                    $title = $pName . ' » ' . $title;
+                    $parent = $pRec->{$mvc->parentFieldName};
+                    $i++;
+                    if ($i > 20) {
+                        wp($parent, $pRec);
+                        break;
+                    }
                 }
             }
             
@@ -560,7 +562,7 @@ class plg_TreeObject extends core_Plugin
         
         $res = array_merge($res, $descendants);
         
-        if (count($descendants)) {
+        if (countR($descendants)) {
             foreach ($descendants as $dRec) {
                 self::getDescendants($mvc, $dRec->id, $allRecs, $res);
             }
@@ -584,7 +586,7 @@ class plg_TreeObject extends core_Plugin
         
         $res = array_merge($res, $descendants);
         
-        if (count($descendants)) {
+        if (countR($descendants)) {
             foreach ($descendants as $dRec) {
                 self::getDescendants($mvc, $dRec->id, $allRecs, $res);
             }

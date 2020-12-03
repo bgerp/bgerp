@@ -22,12 +22,6 @@ class store_Transfers extends core_Master
     
     
     /**
-     * Име на документа в бързия бутон за добавяне в папката
-     */
-    public $buttonInFolderTitle = 'Трансфер';
-    
-    
-    /**
      * Абревиатура
      */
     public $abbr = 'Str';
@@ -254,7 +248,6 @@ class store_Transfers extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($requiredRoles == 'no_one') {
-            
             return;
         }
         
@@ -310,21 +303,21 @@ class store_Transfers extends core_Master
             $row->title = $mvc->getLink($rec->id, 0);
             
             if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
-                $row->title = "<b>" . $row->title . "</b>";
-                $row->title .=  "  " . $row->fromStore . " » " . $row->toStore;
+                $row->title = '<b>' . $row->title . '</b>';
+                $row->title .= '  ' . $row->fromStore . ' » ' . $row->toStore;
                 $row->createdBy = crm_Profiles::createLink($rec->createdBy);
                 $row->createdOn = $mvc->getVerbal($rec, 'createdOn');
-                $row->title .= "<span class='fright'>" . $row->createdOn . " " . tr('от') . " " .   $row->createdBy . "</span>";
+                $row->title .= "<span class='fright'>" . $row->createdOn . ' ' . tr('от') . ' ' .   $row->createdBy . '</span>';
             }
         }
         
-        if($rec->state != 'pending'){
+        if ($rec->state != 'pending') {
             unset($row->storeReadiness);
         } else {
             $row->storeReadiness = isset($rec->storeReadiness) ? $row->storeReadiness : "<b class='quiet'>N/A</b>";
         }
         
-        if(Mode::isReadOnly()){
+        if (Mode::isReadOnly()) {
             unset($row->storeReadiness, $row->zoneReadiness);
         }
     }
@@ -458,9 +451,8 @@ class store_Transfers extends core_Master
     /**
      * Списък с артикули върху, на които може да им се коригират стойностите
      *
-     * @see acc_AllowArticlesCostCorrectionDocsIntf
-     *
-     * @param mixed $id - ид или запис
+     * @param mixed $id     - ид или запис
+     * @param mixed $forMvc - за кой мениджър
      *
      * @return array $products        - масив с информация за артикули
      *               o productId       - ид на артикул
@@ -471,7 +463,7 @@ class store_Transfers extends core_Master
      *               o transportWeight - транспортно тегло на артикула
      *               o transportVolume - транспортен обем на артикула
      */
-    public function getCorrectableProducts($id)
+    public function getCorrectableProducts($id, $forMvc)
     {
         $products = array();
         $rec = $this->fetchRec($id);
@@ -517,10 +509,12 @@ class store_Transfers extends core_Master
      *  	string|NULL   ['toAddress']    - адрес за разтоварване
      *   	string|NULL   ['toCompany']    - фирма
      *   	string|NULL   ['toPerson']     - лице
+     *      string|NULL   ['toPersonPhones'] - телефон на лицето
+     *      string|NULL   ['instructions'] - инструкции
      * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
      * 		text|NULL 	  ['conditions']   - други условия
-     * 		varchar|NULL  ['ourReff']      - наш реф
-     *  	double|NULL   ['totalWeight']  - общо тегло
+     *		varchar|NULL  ['ourReff']      - наш реф
+     * 		double|NULL   ['totalWeight']  - общо тегло
      * 		double|NULL   ['totalVolume']  - общ обем
      */
     public function getLogisticData($rec)
@@ -568,23 +562,25 @@ class store_Transfers extends core_Master
      * Информацията на документа, за показване в транспортната линия
      *
      * @param mixed $id
+     * @param int   $lineId
      *
      * @return array
-     *               ['baseAmount'] double|NULL - сумата за инкасиране във базова валута
-     *               ['amount']     double|NULL - сумата за инкасиране във валутата на документа
-     *               ['currencyId'] string|NULL - валутата на документа
-     *               ['notes']      string|NULL - забележки за транспортната линия
-     *               ['stores']     array       - склад(ове) в документа
-     *               ['weight']     double|NULL - общо тегло на стоките в документа
-     *               ['volume']     double|NULL - общ обем на стоките в документа
+     *               ['baseAmount']     double|NULL - сумата за инкасиране във базова валута
+     *               ['amount']         double|NULL - сумата за инкасиране във валутата на документа
+     *               ['amountVerbal']   double|NULL - сумата за инкасиране във валутата на документа
+     *               ['currencyId']     string|NULL - валутата на документа
+     *               ['notes']          string|NULL - забележки за транспортната линия
+     *               ['stores']         array       - склад(ове) в документа
+     *               ['weight']         double|NULL - общо тегло на стоките в документа
+     *               ['volume']         double|NULL - общ обем на стоките в документа
      *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
-     *               [transUnitId] => quantity
+     *               ['contragentName'] double|NULL - име на контрагента
      */
-    public function getTransportLineInfo_($rec)
+    public function getTransportLineInfo_($rec, $lineId)
     {
         $rec = static::fetchRec($rec);
         $row = $this->recToVerbal($rec);
-        $res = array('baseAmount' => null, 'amount' => null, 'currencyId' => null, 'notes' => $rec->lineNotes);
+        $res = array('baseAmount' => null, 'amount' => null, 'amountVerbal' => null, 'currencyId' => null, 'notes' => $rec->lineNotes);
         
         $res['stores'] = array($rec->fromStore, $rec->toStore);
         $res['address'] = $row->toAdress;
@@ -631,8 +627,8 @@ class store_Transfers extends core_Master
     protected static function on_AfterGetDocNameInRichtext($mvc, &$docName, $id)
     {
         $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
-        if(isset($indicator)){
-            if($docName instanceof core_ET){
+        if (isset($indicator)) {
+            if ($docName instanceof core_ET) {
                 $docName->append($indicator);
             } else {
                 $docName .= $indicator;
@@ -647,12 +643,36 @@ class store_Transfers extends core_Master
     protected function on_AfterGetLink($mvc, &$link, $id, $maxLength = false, $attr = array())
     {
         $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
-        if(isset($indicator)){
-            if($link instanceof core_ET){
+        if (isset($indicator)) {
+            if ($link instanceof core_ET) {
                 $link->append($indicator);
             } else {
                 $link .= $indicator;
             }
         }
+    }
+    
+    
+    /**
+     * Връща дефолтен коментар при връзка на документи
+     *
+     * @param int    $id
+     * @param string $comment
+     *
+     * @return string
+     */
+    public function getDefaultLinkedComment($id, $comment)
+    {
+        $rec = $this->fetchRec($id);
+        $fromStore = store_Stores::getTitleById($rec->fromStore);
+        $toStore = store_Stores::getTitleById($rec->toStore);
+        
+        if (trim($comment)) {
+            $comment .= '<br>';
+        }
+       
+        $comment .= "{$fromStore} » {$toStore}";
+        
+        return $comment;
     }
 }

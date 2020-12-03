@@ -22,13 +22,16 @@ class acc_plg_LockBalanceRecalc extends core_Plugin
     /**
      * Помощна ф-я проверяваща дали действието с документа може да стане
      *
+     * @param core_Mvc $mvc - мениджър
      * @param stdClass $rec - запис на обекта
      *
      * @return false|string - съобщението за грешка, или FALSE ако може да се продължи
      */
-    private static function stopAction($rec)
+    private static function stopAction($mvc, $rec)
     {
         $msg = false;
+        
+        if(!$mvc->doesRequireBalanceToBeRecalced($rec)) return;
         
         // Да не се спира действието ако документа е чернова
         if($rec->state == 'draft' || ($rec->state == 'rejected' && $rec->brState == 'draft')) return;
@@ -50,11 +53,22 @@ class acc_plg_LockBalanceRecalc extends core_Plugin
     
     
     /**
+     * Метод по подразбиране дали е нужно да се изчака преди да се преизчисли баланса
+     */
+    public static function on_AfterDoesRequireBalanceToBeRecalced($mvc, &$res, $rec)
+    {
+        if(!isset($res)){
+            $res = true;
+        }
+    }
+    
+    
+    /**
      * Изпълнява се преди контиране на документа
      */
     public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
     {
-        if ($msg = self::stopAction($mvc->fetchRec($id))) {
+        if ($msg = self::stopAction($mvc, $mvc->fetchRec($id))) {
             core_Statuses::newStatus('|' . $msg, 'warning');
             
             return false;
@@ -67,7 +81,7 @@ class acc_plg_LockBalanceRecalc extends core_Plugin
      */
     public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
     {
-        if ($msg = self::stopAction($mvc->fetchRec($id))) {
+        if ($msg = self::stopAction($mvc, $mvc->fetchRec($id))) {
             core_Statuses::newStatus('|' . $msg, 'warning');
             
             return false;
@@ -80,7 +94,7 @@ class acc_plg_LockBalanceRecalc extends core_Plugin
      */
     public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
     {
-        if ($msg = self::stopAction($mvc->fetchRec($id))) {
+        if ($msg = self::stopAction($mvc, $mvc->fetchRec($id))) {
             core_Statuses::newStatus('|' . $msg, 'warning');
             
             return false;

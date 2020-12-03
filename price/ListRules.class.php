@@ -285,7 +285,7 @@ class price_ListRules extends core_Detail
         if ($rec = $data->listFilter->rec) {
             if (isset($rec->product)) {
                 $groups = keylist::toArray(cat_Products::fetchField($rec->product, 'groups'));
-                if (count($groups)) {
+                if (countR($groups)) {
                     $data->query->in('groupId', $groups);
                     $data->query->orWhere("#productId = {$rec->product}");
                 } else {
@@ -299,19 +299,19 @@ class price_ListRules extends core_Detail
     /**
      * Връща цената за посочения продукт според ценовата политика
      */
-    public static function getPrice($listId, $productId, $packagingId = null, $datetime = null, &$validFrom = null, $isFirstCall = true)
+    public static function getPrice($listId, $productId, $packagingId = null, $datetime = null, &$validFrom = null, $isFirstCall = true, $rate = 1, $chargeVat = 'no')
     {
         $datetime = price_ListToCustomers::canonizeTime($datetime);
         $canUseCache = ($datetime == price_ListToCustomers::canonizeTime());
         
         if ((!$canUseCache) || ($price = price_Cache::getPrice($listId, $productId)) === null) {
             $query = self::getQuery();
-            $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil > '{$datetime}')");
+            $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil >= '{$datetime}')");
             $query->where("#productId = {$productId}");
             
             if ($listId != price_ListRules::PRICE_LIST_COST) {
                 $groups = keylist::toArray(cat_Products::fetchField($productId, 'groups'));
-                if (count($groups)) {
+                if (countR($groups)) {
                     $query->in('groupId', $groups, false, true);
                 }
             }
@@ -322,7 +322,7 @@ class price_ListRules extends core_Detail
             $query->limit(1);
             
             $rec = $query->fetch();
-            $listRec = price_Lists::fetch($listId, 'title,parent,vat,defaultSurcharge,significantDigits,minDecimals');
+            $listRec = price_Lists::fetch($listId, 'title,parent,vat,defaultSurcharge,significantDigits,minDecimals,currency');
             $round = true;
             
             if ($rec) {
@@ -369,22 +369,22 @@ class price_ListRules extends core_Detail
                     }
                 }
             }
-            
+
             // Ако има цена
             if (isset($price)) {
-                if ($listRec->vat == 'yes' && $isFirstCall) {  
-                    $vat = cat_Products::getVat($productId, $datetime);
-                    $round = false;
-                    $price = $price * (1 + $vat);
-                    $price = price_Lists::roundPrice($listRec, $price);  
-                    $price = $price / (1 + $vat); 
+                $vat = $rate = 1;
+                if($isFirstCall) {
+                    if ($listRec->vat == 'yes') {
+                         $vat = 1 + cat_Products::getVat($productId, $datetime);
+                    }
+                    $rate = 1 / currency_CurrencyRates::getRate($datetime, $listRec->currency, null);
                 }
 
-                // Ако има указано закръгляне на ценоразписа, закръгляме
-                if ($round === true) {
-                    $price = price_Lists::roundPrice($listRec, $price);
-                }
-                
+                $price = $price * $vat * $rate;
+                $price = price_Lists::roundPrice($listRec, $price);  
+                $price = $price / ($vat * $rate); 
+    
+               
                 if ($canUseCache) {
                     price_Cache::setPrice($price, $listId, $productId);
                 }
@@ -444,31 +444,33 @@ class price_ListRules extends core_Detail
         $form = &$data->form;
         $rec = &$form->rec;
         
-        $type = $rec->type;
-        
         $masterRec = price_Lists::fetch($rec->listId);
-        $form->setFieldTypeParams('productId', array('listId' => $masterRec->id));
-        $masterTitle = $masterRec->title;
+        $productFiedlParams = array('listId' => $masterRec->id);
+        if($rec->listId != price_ListRules::PRICE_LIST_COST){
+            $productFiedlParams['onlyPublic'] = true;
+        }
+        $form->setFieldTypeParams('productId', $productFiedlParams);
         
+        $masterTitle = $masterRec->title;
         if ($masterRec->parent) {
             $parentRec = price_Lists::fetch($masterRec->parent);
             $parentTitle = $parentRec->title;
         }
         
-        if (Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh') {
+        if (Request::get('productId') && $rec->type == 'value' && $form->cmd != 'refresh') {
             $form->setReadOnly('productId');
         }
         
         $form->FNC('targetPrice', 'double(Min=0)', 'caption=Желана цена,after=discount,input');
         
-        if ($type == 'groupDiscount' || $type == 'discount') {
+        if ($rec->type == 'groupDiscount' || $rec->type == 'discount') {
             $calcOpt = array();
             $calcOpt['forward'] = "[{$masterTitle}] = [{$parentTitle}] ± %";
             $calcOpt['reverse'] = "[{$parentTitle}] = [{$masterTitle}] ± %";
             $form->setOptions('calculation', $calcOpt);
         }
         
-        switch ($type) {
+        switch ($rec->type) {
             case 'groupDiscount':
                 $form->setField('productId,price,currency,vat,targetPrice', 'input=none');
                 $data->singleTitle = 'правило за групов марж';
@@ -634,9 +636,7 @@ class price_ListRules extends core_Detail
         }
         
         if (($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->listId)) {
-            $folderId = price_Lists::fetchField($rec->listId, 'folderId');
-            
-            if (!price_Lists::haveRightFor('edit', (object) array('id' => $rec->listId, 'folderId' => $folderId))) {
+            if (!price_Lists::haveRightFor('edit', $rec->listId)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -714,7 +714,7 @@ class price_ListRules extends core_Detail
                 $vat = isset($rec->vat) ? $rec->vat : $masterRec->vat;
                 $vat = ($vat == 'yes') ? 'с ДДС' : 'без ДДС';
                 
-                $row->rule = tr("|*{$price} {$currency} |{$vat}|*");
+                $row->rule = tr("|*{$price} <span class='cCode'>{$currency}</span> |{$vat}|*");
                 break;
         }
         
@@ -884,7 +884,7 @@ class price_ListRules extends core_Detail
                     }
                 }
             } else {
-                if (!count($fRows) && $priority != 1) {
+                if (!countR($fRows) && $priority != 1) {
                     $appendTable = false;
                 }
             }
@@ -895,7 +895,7 @@ class price_ListRules extends core_Detail
                 $block->append("<div style='{$style}'><b>{$title}</b></div>", 'TABLE');
                 
                 $fields = $data->listFields;
-                if (!count($fRows)) {
+                if (!countR($fRows)) {
                     unset($fields['_rowTools']);
                 }
                 
@@ -935,7 +935,7 @@ class price_ListRules extends core_Detail
         }
         
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+            if (!countR($onlyIds)) {
                 
                 return array();
             }
@@ -944,7 +944,7 @@ class price_ListRules extends core_Detail
         } elseif (ctype_digit("{$onlyIds}")) {
             $pQuery->where("#id = ${onlyIds}");
         } else {
-            $pQuery->where("#state != 'closed' AND #state != 'rejected' AND #canSell = 'yes'");
+            $pQuery->where("#state != 'closed' AND #state != 'rejected'");
             if (!isset($params['showTemplates'])) {
                 $pQuery->where("#state != 'template'");
             }
@@ -953,9 +953,11 @@ class price_ListRules extends core_Detail
             }
             
             // Нестандартните артикули да се показват само в политика 'Себестойност'
+            $pQuery->where("#canSell = 'yes'");
+            
             if (isset($params['listId'])) {
-                if ($params['listId'] != price_ListRules::PRICE_LIST_COST) {
-                    $pQuery->where("#isPublic = 'yes'");
+                if ($params['listId'] == price_ListRules::PRICE_LIST_COST) {
+                    $pQuery->orWhere("#generic = 'yes'");
                 }
             }
             

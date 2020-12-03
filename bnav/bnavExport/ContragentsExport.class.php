@@ -185,8 +185,9 @@
             $vatNo = $cRec->vatId ?$cRec->vatId:'';
             
             expect($cRec->folderId,"Липсва folderId -> $cRec->name");
-            expect(!is_null($cRec->vatId) || !is_null($cRec->uicId) || !is_null($cRec->egn),
-              "Задължително е за контрагента да има поне един от номерата: БУЛСТАТ или ЕГН или Дан. номер -> $cRec->name ,$contragentClassName ,id($cRec->id)");
+//             expect(!is_null($cRec->vatId) || !is_null($cRec->uicId) || !is_null($cRec->egn),
+//               "Задължително е за контрагента да има поне един от номерата: БУЛСТАТ или ЕГН или Дан. номер -> $cRec->name ,$contragentClassName ,id($cRec->id)");
+            
             
             // Запис в масива
             if (!array_key_exists($id, $recs)) {
@@ -240,7 +241,16 @@
             
         } else {
             
-            $fld->FLD('full', 'varchar', 'caption=Контрагент');
+            $fld->FLD('code', 'int', 'caption=Код на контрагента');
+            $fld->FLD('name', 'varchar', 'caption=Име на контрагента');
+            $fld->FLD('mol', 'varchar', 'caption=МОЛ');
+            $fld->FLD('vatId', 'varchar', 'caption=Данъчен номер');
+            $fld->FLD('eic', 'varchar', 'caption=Булстат - ЕИК/ЕГН');
+            $fld->FLD('country', 'varchar', 'caption=Страна,tdClass=centered');
+            $fld->FLD('place', 'varchar', 'caption=Град');
+            $fld->FLD('address', 'varchar', 'caption=Адрес');
+            
+            //$fld->FLD('full', 'varchar', 'caption=Контрагент');
             
         }
        
@@ -295,6 +305,7 @@
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+        
         $res->code = $dRec->code;
         $res->name = $dRec->name;
         $res->mol = $dRec->mol;

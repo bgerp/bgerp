@@ -2,14 +2,14 @@
 
 
 /**
- * Мениджър за справки от нов тип
+ * Мениджър за справки
  *
  *
  * @category  bgerp
  * @package   frame2
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -29,9 +29,21 @@ class frame2_Reports extends embed_Manager
     
     
     /**
+     * @see plg_SelectPeriod
+     */
+    public $useFilterDateOnEdit = true;
+    
+    
+    /**
+     * @see plg_SelectPeriod
+     */
+    public $useFilterDateOnFilter = false;
+    
+    
+    /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools2, doc_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone, doc_plg_Close, doc_EmailCreatePlg, plg_Sorting';
+    public $loadList = 'plg_RowTools2, doc_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone, doc_plg_Close, doc_EmailCreatePlg, plg_Sorting, plg_SelectPeriod';
     
     
     /**
@@ -119,12 +131,6 @@ class frame2_Reports extends embed_Manager
     
     
     /**
-     * Икона по подразбиране за единичния обект
-     */
-    public $singleIcon = 'img/16/report.png';
-    
-    
-    /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
@@ -151,7 +157,7 @@ class frame2_Reports extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Документ,updateDays,updateTime,lastRefreshed,createdOn,createdBy,modifiedOn,modifiedBy';
+    public $listFields = 'id,title=Наименование,lastRefreshed=Обновяване->Последно,nextUpdate=Обновяване->Следващо,updateDays=Обновяване->Дни,updateTime=Обновяване->Час,folderId,modifiedOn,modifiedBy';
     
     
     /**
@@ -223,7 +229,7 @@ class frame2_Reports extends embed_Manager
         $this->FLD('changeFields', 'set', 'caption=Други настройки->Промяна,autohide,input=none');
         $this->FLD('maxKeepHistory', 'int(Min=0,max=40)', 'caption=Други настройки->Предишни състояния,autohide,placeholder=Неограничено');
         $this->FLD('data', 'blob(serialize, compress,size=20000000)', 'input=none');
-        $this->FLD('lastRefreshed', 'datetime', 'caption=Последно актуализиране,input=none');
+        $this->FLD('lastRefreshed', 'datetime(format=smartTime)', 'caption=Последно актуализиране,input=none');
         $this->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Други настройки->Видими от партньори,input=none,after=maxKeepHistory');
     }
     
@@ -254,6 +260,37 @@ class frame2_Reports extends embed_Manager
     
     
     /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     * 
+     * @see embed_Manager::prepareEditForm_()
+     */
+    public function prepareEditForm_($data)
+    {
+        $data = parent::prepareEditForm_($data);
+        
+        $rec = $data->form->rec;
+        if ($rec->id && $rec->changeFields) {
+            $cu = core_Users::getCurrent();
+            // И потребителя не е създател на документа
+            if ($rec->createdBy != $cu && core_Users::compareRangs($rec->createdBy, $cu) >= 0) {
+                $changeable = type_Set::toArray($rec->changeFields);
+                $fF = $this->filterDateFrom ? $this->filterDateFrom : 'from';
+                $fT = $this->filterDateTo ? $this->filterDateTo : 'to';
+                
+                if (!$changeable[$fF] || !$changeable[$fT]) {
+                    $this->useFilterDateOnEdit = false;
+                }
+            }
+        }
+        
+        return $data;
+    }
+    
+    
+    /**
      * Извиква се след подготовката на формата
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
@@ -265,14 +302,14 @@ class frame2_Reports extends embed_Manager
         
         if ($Driver = self::getDriver($rec)) {
             $dates = $Driver->getNextRefreshDates($rec);
-            if ((is_array($dates) && count($dates)) || $dates === false) {
+            if ((is_array($dates) && countR($dates)) || $dates === false) {
                 $form->setField('updateDays', 'input=none');
                 $form->setField('updateTime', 'input=none');
             }
             
             // Има ли полета, които може да се променят
             $changeAbleFields = $Driver->getChangeableFields($rec);
-            if (count($changeAbleFields)) {
+            if (countR($changeAbleFields)) {
                 $set = array();
                 foreach ($changeAbleFields as $fldName) {
                     if ($Fld = $form->getField($fldName, false)) {
@@ -281,29 +318,39 @@ class frame2_Reports extends embed_Manager
                 }
                 
                 // Задаване като опции на артикулите, които може да се променят
-                if (count($set)) {
+                if (countR($set)) {
                     $form->setField('changeFields', 'input');
                     $form->setSuggestions('changeFields', $set);
                 }
             }
             
             // При редакция, ако има полета за промяна
-            if (isset($rec->id) && $rec->changeFields) {
-                $changeable = type_Set::toArray($rec->changeFields);
-                $cu = core_Users::getCurrent();
+            if (isset($rec->id)) {
+                $rec->changeFields = empty($rec->changeFields) ? static::fetchField($rec->id, 'changeFields') : $rec->changeFields;
+                $rec->createdBy = empty($rec->createdBy) ? static::fetchField($rec->id, 'createdBy') : $rec->createdBy;
                 
-                // И потребителя не е създател на документа
-                if ($rec->createdBy != $cu && core_Users::compareRangs($rec->createdBy, $cu) >= 0) {
+                if($rec->changeFields) {
+                    $changeable = type_Set::toArray($rec->changeFields);
+                    $cu = core_Users::getCurrent();
                     
-                    // Скриват се всички полета, които не са упоменати като променяеми
-                    $fields = $form->selectFields("#input != 'none' AND #input != 'hidden'");
-                    $diff = array_diff_key($fields, $changeable);
-                    if ($data->action == 'clone') {
-                        unset($diff['sharedUsers'], $diff['notificationText'], $diff['updateDays'], $diff['updateTime'], $diff['maxKeepHistory']);
-                    }
-                    $diff = array_keys($diff);
-                    foreach ($diff as $name) {
-                        $form->setField($name, 'input=none');
+                    // И потребителя не е създател на документа
+                    if ($rec->createdBy != $cu && core_Users::compareRangs($rec->createdBy, $cu) >= 0) {
+                        
+                        // Скриват се всички полета, които не са упоменати като променяеми
+                        $fields = $form->selectFields("#input != 'none' AND #input != 'hidden'");
+                        $diff = array_diff_key($fields, $changeable);
+                        
+                        $mustExist = $form->selectFields("#mustExist");
+                        $diff = array_diff_key($diff, $mustExist);
+                        unset($diff[$mvc->driverClassField]);
+                        
+                        if ($data->action == 'clone') {
+                            unset($diff['sharedUsers'], $diff['notificationText'], $diff['updateDays'], $diff['updateTime'], $diff['maxKeepHistory']);
+                        }
+                        $diff = array_keys($diff);
+                        foreach ($diff as $name) {
+                            $form->setField($name, 'input=none');
+                        }
                     }
                 }
             }
@@ -321,9 +368,9 @@ class frame2_Reports extends embed_Manager
     {
         if ($form->isSubmitted()) {
             $rec = $form->rec;
-            $Driver = $mvc->getDriver($rec);
             
             // Ако има драйвер
+            $Driver = $mvc->getDriver($rec);
             if ($Driver) {
                 
                 // и няма заглавие на справката, прави се опит да се вземе от драйвера
@@ -376,7 +423,9 @@ class frame2_Reports extends embed_Manager
             }
             
             if ((isset($rec->updateDays) || isset($rec->updateTime)) && empty($rec->sharedUsers)) {
-                $form->setError('sharedUsers', 'Не са посочени потребители за известяване при обновяване');
+                if($Driver->requireUserForNotification($rec)){
+                    $form->setError('sharedUsers', 'Не са посочени потребители за известяване при обновяване');
+                }
             }
             
             frame2_ReportVersions::unSelectVersion($rec->id);
@@ -395,7 +444,7 @@ class frame2_Reports extends embed_Manager
     {
         // Ако няма избрани потребители за нотифициране, не се прави нищо
         $userArr = keylist::toArray($rec->sharedUsers);
-        if (!count($userArr)) {
+        if (!countR($userArr)) {
             
             return;
         }
@@ -405,7 +454,9 @@ class frame2_Reports extends embed_Manager
         
         // Заместване на параметрите в текста на нотификацията
         if ($Driver = self::getDriver($rec)) {
+            Mode::push('text', 'plain');
             $params = $Driver->getNotificationParams($rec);
+            Mode::pop('text');
             if (is_array($params)) {
                 $msg->placeArray($params);
             }
@@ -426,28 +477,12 @@ class frame2_Reports extends embed_Manager
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $title = self::getVerbal($rec, 'title');
+        $title = '???';
+        if($Driver = static::getDriver($rec)){
+            $title = $Driver->getTitle($rec);
+        }
         
         return "{$title} №{$rec->id}";
-    }
-    
-    
-    /**
-     * След като е готово вербалното представяне
-     */
-    protected static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
-    {
-        // Искаме състоянието на оттеглените чернови да се казва 'Анулиран'
-        if ($part == 'title') {
-            
-            $Driver = $mvc->getDriver($rec);
-            if (is_object($Driver)) {
-                $driverTitle = $Driver->getTitle($rec);
-                if(trim($driverTitle) != trim($rec->title)){
-                    $num = "{$driverTitle}/{$rec->title}";
-                }
-            }
-        }
     }
     
     
@@ -460,10 +495,21 @@ class frame2_Reports extends embed_Manager
         
         $row = new stdClass();
         $row->title = $this->getRecTitle($rec);
+        
+        $Driver = $this->getDriver($rec);
+        if (is_object($Driver)) {
+            $driverTitle = $Driver->getTitle($rec);
+            
+            if(trim($driverTitle) != trim($rec->title)){
+                $row->title = $rec->title;
+                $row->subTitle = $driverTitle . " №{$rec->id}";
+            }
+        }
+        
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
-        $row->recTitle = $row->title;
+        $row->recTitle = $driverTitle;
         
         return $row;
     }
@@ -525,22 +571,28 @@ class frame2_Reports extends embed_Manager
         
         // Рендиране на данните
         if ($Driver = $mvc->getDriver($rec)) {
-            $lang = $Driver->getRenderLang($rec);
-            if(isset($lang)){
-                core_Lg::push($lang);
-            }
             
-            $tplData = $Driver->renderData($rec);
-            if(isset($lang)){
-                core_Lg::pop();
+            try{
+                $lang = $Driver->getRenderLang($rec);
+                if(isset($lang)){
+                    core_Lg::push($lang);
+                }
+                
+                $tplData = $Driver->renderData($rec);
+                if(isset($lang)){
+                    core_Lg::pop();
+                }
+                
+                if (Mode::is('saveJS')) {
+                    $tpl->replace($tplData, 'DRIVER_DATA');
+                } else{
+                    $tpl->replace($tplData->getContent(), 'DRIVER_DATA');
+                }
+                
+            } catch(core_exception_Expect $e){
+                reportException($e);
+                $tpl->replace("<span class='red'><b>" . tr('Проблем при показването на справката') . '</b></span>', 'DRIVER_DATA');
             }
-            
-            if (Mode::is('saveJS')) {
-                $tpl->replace($tplData, 'DRIVER_DATA');
-            } else{
-                $tpl->replace($tplData->getContent(), 'DRIVER_DATA');
-            }
-            
         } else {
              $tpl->replace("<span class='red'><b>" . tr('Проблем при зареждането на справката') . '</b></span>', 'DRIVER_DATA');
         }
@@ -576,6 +628,8 @@ class frame2_Reports extends embed_Manager
      * Метод опресняващ справката
      *
      * @param stdClass $rec - ид на справка
+     * 
+     * @return void
      */
     public static function refresh(&$rec)
     {
@@ -583,21 +637,31 @@ class frame2_Reports extends embed_Manager
         
         // Ако има драйвер
         if ($Driver = self::getDriver($rec)) {
-            $me = cls::get(get_called_class());
-            
-            // Опресняват се данните му
-            $rec->data = $Driver->prepareData($rec);
-            $rec->lastRefreshed = dt::now();
-            
-            // Запис на променените полета
-            $me->save_($rec, 'data,lastRefreshed');
-            
-            // Записване в опашката че справката е била опреснена
-            if (frame2_ReportVersions::log($rec->id, $rec)) {
-                $me->refreshReports[$rec->id] = $rec;
-                if (core_Users::getCurrent() != core_Users::SYSTEM_USER) {
-                    core_Statuses::newStatus('Справката е актуализирана|*!');
+            try {
+                $me = cls::get(get_called_class());
+                
+                // Опресняват се данните му
+                $rec->data = $Driver->prepareData($rec);
+                $rec->lastRefreshed = dt::now();
+                
+                // Запис на променените полета
+                $me->save_($rec, 'data,lastRefreshed');
+                
+                // Записване в опашката че справката е била опреснена
+                if (frame2_ReportVersions::log($rec->id, $rec)) {
+                    $me->refreshReports[$rec->id] = $rec;
+                    if (core_Users::getCurrent() != core_Users::SYSTEM_USER) {
+                        core_Statuses::newStatus('Справката е актуализирана|*!');
+                    }
                 }
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+                
+                if (core_Users::getCurrent() != core_Users::SYSTEM_USER) {
+                    core_Statuses::newStatus('Грешка при обновяване на справката|*!', 'error');
+                }
+                
+                self::logErr('Грешка при обновяване на справката', $rec->id);
             }
             
             $me->setNewUpdateTimes[$rec->id] = $rec;
@@ -612,14 +676,14 @@ class frame2_Reports extends embed_Manager
             $lastSeen = self::getLastSeenByUser(__CLASS__, $rec);
             $months = frame2_Setup::get('CLOSE_LAST_SEEN_BEFORE_MONTHS');
             $seenBefore = dt::addMonths(-1 * $months);
-            
             if ($lastSeen <= $seenBefore) {
                 
                 // Ако е последно видяна преди зададеното време да се затваря и да не се обновява повече
+                $rec->brState = $rec->state;
                 $rec->state = 'closed';
                 $rec->refreshData = false;
-                $me->invoke('BeforeChangeState', array($rec, $rec->state));
-                $me->save($rec, 'state');
+                $me->invoke('BeforeChangeState', array(&$rec, &$rec->state));
+                $me->save($rec, 'state,brState');
                 $me->logWrite('Затваряне на остаряла справка', $rec->id);
                 unset($me->setNewUpdateTimes[$rec->id]);
             }
@@ -696,6 +760,11 @@ class frame2_Reports extends embed_Manager
     {
         if ($rec->state == 'draft') {
             $rec->state = 'active';
+            
+            if (empty($rec->activatedOn)) {
+                $rec->activatedOn = dt::now();
+                $rec->activatedBy = core_Users::getCurrent();
+            }
         } elseif ($rec->state == 'rejected' || $rec->state == 'closed') {
             $rec->removeSetUpdateTimes = true;
         } elseif ($rec->state == 'active' && in_array($rec->brState, array('rejected', 'closed'))) {
@@ -733,7 +802,7 @@ class frame2_Reports extends embed_Manager
         // Документа може да бъде създаван ако потребителя може да избере поне един драйвер
         if ($action == 'add') {
             $options = self::getAvailableDriverOptions($userId);
-            if (!count($options)) {
+            if (!countR($options)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -761,8 +830,8 @@ class frame2_Reports extends embed_Manager
                 $changeAbleFields = type_Set::toArray($changeFields);
                 
                 // Може да се клонира/редактира ако може да се избере драйвера и има посочени полета за промяна
-                if (!haveRole('ceo', $userId)) {
-                    if (!($userId == $createdBy || (keylist::isIn($userId, $sharedUsers) && count($changeAbleFields)) || (core_Users::compareRangs($userId, $createdBy) > 0 && $mvc->haveRightFor('single', $rec)))) {
+                if (isset($userId) && !haveRole('ceo', $userId)) {
+                    if (!($userId == $createdBy || (keylist::isIn($userId, $sharedUsers) && countR($changeAbleFields)) || (core_Users::compareRangs($userId, $createdBy) > 0 && $mvc->haveRightFor('single', $rec)))) {
                         $requiredRoles = 'no_one';
                     }
                 }
@@ -790,12 +859,21 @@ class frame2_Reports extends embed_Manager
     protected static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
         $resArr = arr::make($resArr);
-        $resArr['title'] = array('name' => tr('Заглавие'), 'val' => $row->title);
+        
+        $titleObj = new core_ET("{$row->title}<!--ET_BEGIN driverTitle--><br>[#driverTitle#]<!--ET_END driverTitle-->");
+        if($Driver = $mvc->getDriver($rec)){
+            $driverTitle = $Driver->getTitle($rec);
+            if(trim($driverTitle) != trim($row->title)){
+                $titleObj->replace($driverTitle, 'driverTitle');
+            }
+        }
+        
+        $resArr['title'] = array('name' => tr('Заглавие'), 'val' => $titleObj);
         $updateHeaderName = tr('Актуализиране');
         
         if ($rec->state == 'closed') {
             $nextUpdates = self::getNextRefreshDates($rec);
-            if (count($nextUpdates)) {
+            if (countR($nextUpdates)) {
                 $updateHeaderName = ht::createHint($updateHeaderName, 'Справката няма да се актуализира докато е затворена', 'warning', true, 'height=12px;width=12px');
             }
         }
@@ -868,7 +946,7 @@ class frame2_Reports extends embed_Manager
                     // Показва се информация
                     if (frame2_ReportVersions::haveRightFor('checkout', $latestVersionId)) {
                         $retUrl = $mvc->getSingleUrlArray($rec->id);
-                        if(count($retUrl)){
+                        if(countR($retUrl)){
                             $retUrl['vId'] = $rec->id;
                         }
                         
@@ -878,11 +956,11 @@ class frame2_Reports extends embed_Manager
                     }
                 }
             }
-            
-            $callOn = $mvc->getNextRefreshTime($rec);
-            if (!empty($callOn)) {
-                $row->nextUpdate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($callOn);
-            }
+        }
+        
+        $callOn = $mvc->getNextRefreshTime($rec);
+        if (!empty($callOn)) {
+            $row->nextUpdate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($callOn);
         }
     }
     
@@ -938,7 +1016,7 @@ class frame2_Reports extends embed_Manager
             core_CallOnTime::setOnce(get_called_class(), 'refreshOnTime', $data, $dates[$i]);
         }
         
-        if (haveRole('debug') && count($dates)) {
+        if (haveRole('debug') && countR($dates)) {
             status_Messages::newStatus('Зададени времена за обновяване');
         }
     }
@@ -988,7 +1066,7 @@ class frame2_Reports extends embed_Manager
         $daysArr = array();
         
         // Ако има зададени дати
-        if (count($days)) {
+        if (countR($days)) {
             $orderArr = $after = $before = array();
             
             // Подреждат се дните, които са след текущия ден
@@ -1006,10 +1084,10 @@ class frame2_Reports extends embed_Manager
             
             // Връща се масив с подредените относително дни
             $orderArr = array_merge($after, $before);
-            $count = count($orderArr);
+            $count = countR($orderArr);
             
             // Подсигуряване, че масива има три дена (ако е зададен само един, се повтарят)
-            if (count($orderArr) == 1) {
+            if ($count == 1) {
                 $orderArr = array_merge($orderArr, $orderArr, $orderArr);
             } elseif ($count == 2) {
                 $orderArr = array_merge($orderArr, array($orderArr[key($orderArr)]));
@@ -1035,7 +1113,7 @@ class frame2_Reports extends embed_Manager
         
         // Намират се зададените времена, ако няма това е началото на работния ден
         $timesArr = type_Set::toArray($rec->updateTime);
-        if (!count($timesArr)) {
+        if (!countR($timesArr)) {
             $startTime = bgerp_Setup::get('START_OF_WORKING_DAY');
             $timesArr[$startTime] = $startTime;
         }
@@ -1049,6 +1127,20 @@ class frame2_Reports extends embed_Manager
                 if ($dt < $now) {
                     continue;
                 }
+                $res[] = $dt;
+            }
+        }
+        
+        // Фикс за и на часовете от текущия ден
+        $td = strtolower(date('l'));
+        if ($days[$td]) {
+            $n = dt::now(false);
+            $nF = dt::now();
+            foreach ($timesArr as $time) {
+                $dt = "{$n} {$time}";
+                
+                if ($nF >= $dt . ':00') continue;
+                
                 $res[] = $dt;
             }
         }
@@ -1193,5 +1285,23 @@ class frame2_Reports extends embed_Manager
         
         $data->query->orderBy('state', 'ASC');
         $data->query->orderBy('modifiedOn', 'DESC');
+    }
+    
+    
+    /**
+     * Връща иконката на документа
+     *
+     * @param mixed $id - ид или запис
+     *
+     * @return string   - пътя на иконката
+     */
+    public function getIcon($id)
+    {
+        if ($Driver = $this->getDriver($id)) {
+            
+            return $Driver->getIcon($id);
+        }
+        
+        return 'img/16/error-red.png';
     }
 }

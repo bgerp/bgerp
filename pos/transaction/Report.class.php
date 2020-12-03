@@ -39,8 +39,11 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         $rec = $this->class->fetchRec($id);
         $posRec = pos_Points::fetch($rec->pointId);
         $paymentsArr = $productsArr = $totalVat = $entries = array();
-        $this->class->extractData($rec);
         
+        if(!Mode::is('recontoTransaction')){
+            $this->class->extractData($rec);
+        }
+       // bp($rec->details['receiptDetails']);
         if (count($rec->details['receiptDetails'])) {
             foreach ($rec->details['receiptDetails'] as $dRec) {
                 if ($dRec->action == 'sale') {
@@ -62,15 +65,17 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             
             $entries = array_merge($entries, $this->getPaymentPart($rec, $paymentsArr, $posRec));
             
-            // Начисляване на ддс ако има
-            if (count($totalVat)) {
+            // Начисляване на ддс ако има и е разрешено
+            if (count($totalVat) && $rec->chargeVat != 'no') {
                 $entries = array_merge($entries, $this->getVatPart($rec, $totalVat, $posRec));
             }
         }
         
+        $rec->valior = !empty($rec->valior) ? $rec->valior : dt::verbal2mysql($rec->createdOn);
+        
         $transaction = (object) array(
             'reason' => 'Отчет за POS продажба №' . $rec->id,
-            'valior' => dt::verbal2mysql($rec->createdOn, false),
+            'valior' => $rec->valior,
             'totalAmount' => $this->totalAmount,
             'entries' => $entries,
         );
@@ -78,6 +83,21 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         if (empty($rec->id)) {
             unset($rec->details);
         }
+        
+        // Проверка на артикулите преди контиране
+        if (Mode::get('saveTransaction')) {
+            $productsArr = array_filter($rec->details['receiptDetails'], function($a){return $a->action == 'sale';});
+            $productsArr = arr::extractValuesFromArray($productsArr, 'value');
+            $productCheck = deals_Helper::checkProductForErrors($productsArr, 'canSell');
+            
+            // Проверка на артикулите
+            if(count($productCheck['notActive'])){
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
+            } elseif($productCheck['metasError']){
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!");
+            }
+        }
+        
         
         return $transaction;
     }
@@ -90,7 +110,6 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
      *
      *    Ct: 701  - Приходи от продажби на Стоки и Продукти  (Клиенти, Сделки, Стоки и Продукти)
      *    	  703  - Приходи от продажба на услуги 			  (Клиенти, Сделки, Услуги)
-     *        706  - Приходи от продажба на Суровини и Материали (Клиенти, Суровини и материали)
      *
      * @param stdClass $rec      - записа
      * @param array    $products - продуктите
@@ -100,21 +119,22 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
     protected function getTakingPart($rec, $products, &$totalVat, $posRec)
     {
         $entries = array();
-        
+      
         foreach ($products as $product) {
             $product->totalQuantity = round($product->quantity * $product->quantityInPack, 2);
+            if($rec->chargeVat == 'no'){
+                $product->amount *= (1 + $product->param);
+            }
+            
             $totalAmount = currency_Currencies::round($product->amount);
             if ($product->param) {
                 $totalVat[$product->contragentClassId .'|'. $product->contragentId] += $product->param * $product->amount;
             }
             
             $currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
-            $pInfo = cat_Products::getProductInfo($product->value);
-            $storable = isset($pInfo->meta['canStore']);
-            $convertable = isset($pInfo->meta['canConvert']);
+            $pRec = cat_Products::fetch($product->value, 'canStore,canConvert');
             
-            // Нескладируемите продукти дебит 703. Складируемите и вложими 706 останалите 701
-            $creditAccId = ($storable) ? (($convertable) ? '706' : '701') : '703';
+            $creditAccId = ($pRec->canStore == 'yes') ? '701' : '703';
             $credit = array(
                 $creditAccId,
                 array($product->contragentClassId, $product->contragentId),
@@ -137,7 +157,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             
             $this->totalAmount += $totalAmount;
             
-            if ($storable) {
+            if ($pRec->canStore == 'yes') {
                 $entries = array_merge($entries, $this->getDeliveryPart($rec, $product, $posRec, $convertable));
             }
         }
@@ -151,7 +171,6 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
      * Експедиране на стоката от склада (в някой случаи)
      *
      *    Dt: 701. Приходи от продажби на стоки и продукти     (Клиент, Сделки, Стоки и Продукти)
-     *    	  706. Приходи от продажба на суровини/материали   (Клиент, Сделки, Суровини и материали)
      *
      *    Ct: 321. Суровини, материали, продукция, стоки 	   (Склад, Стоки и Продукти)
      *
@@ -166,7 +185,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
     {
         $entries = array();
         $creditAccId = '321';
-        $debitAccId = ($convertable) ? '706' : '701';
+        $debitAccId = '701';
         
         // После се отчита експедиране от склада
         $entries[] = array(
@@ -179,7 +198,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             
             'credit' => array(
                 $creditAccId,
-                array('store_Stores', $posRec->storeId),
+                array('store_Stores', $product->storeId),
                 array('cat_Products', $product->value),
                 'quantity' => $product->totalQuantity),
         );

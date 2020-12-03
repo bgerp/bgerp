@@ -15,6 +15,19 @@
  */
 class email_Receipts extends email_ServiceEmails
 {
+    
+    /**
+     * Инрерфейси
+     */
+    public $interfaces = 'email_AutomaticIntf';
+    
+    
+    /**
+     * @see email_AutomaticIntf
+     */
+    public $weight = 200;
+    
+    
     /**
      * Заглавие на таблицата
      */
@@ -45,43 +58,63 @@ class email_Receipts extends email_ServiceEmails
     /**
      * Проверява дали в $mime се съдържа върнато писмо и
      * ако е така - съхраняваго за определено време в този модел
+     * 
+     * @param email_Mime  $mime
+     * @param integer $accId
+     * @param integer $uid
+     *
+     * @return string|null
+     * 
+     * @see email_AutomaticIntf
      */
-    public static function process($mime, $accId, $uid, $forcedMid = false)
+    public function process($mime, $accId, $uid)
     {
-        if ($forcedMid === false) {
-            // Извличаме информация за вътрешния системен адрес, към когото е насочено писмото
-            $soup = $mime->getHeader('X-Original-To', '*') . ' ' .
-                    $mime->getHeader('Delivered-To', '*') . ' ' .
-                    $mime->getHeader('To', '*');
-            
-            if (!preg_match('/^.+\+received=([a-z]+)@/i', $soup, $matches)) {
-                if ($accId && preg_match('/^.+received=([a-z]+)@/i', $soup) && ($accRec = email_Accounts::fetch($accId))) {
-                    if ($accRec->email) {
-                        list($accEmail) = explode('@', $accRec->email);
-                    }
+        // Извличаме информация за вътрешния системен адрес, към когото е насочено писмото
+        $soup = $mime->getHeader('X-Original-To', '*') . ' ' .
+                $mime->getHeader('Delivered-To', '*') . ' ' .
+                $mime->getHeader('To', '*');
+        
+        if (!preg_match('/^.+\+received=([a-z]+)@/i', $soup, $matches)) {
+            if ($accId && preg_match('/^.+received=([a-z]+)@/i', $soup) && ($accRec = email_Accounts::fetch($accId))) {
+                if ($accRec->email) {
+                    list($accEmail) = explode('@', $accRec->email);
+                }
+                
+                if ($accEmail) {
+                    $accEmail = preg_quote($accEmail, '/');
                     
-                    if ($accEmail) {
-                        $accEmail = preg_quote($accEmail, '/');
-                        
-                        preg_match("/^.+{$accEmail}received=([a-z]+)@/i", $soup, $matches);
-                    }
+                    preg_match("/^.+{$accEmail}received=([a-z]+)@/i", $soup, $matches);
                 }
             }
-            
-            if (!empty($matches)) {
-                $mid = $matches[1];
-            } else {
-                $mid = self::getMidFromReceipt($mime, $accId);
-            }
-            
-            if (!$mid) {
-                
-                return ;
-            }
-        } else {
-            $mid = $forcedMid;
         }
         
+        if (!empty($matches)) {
+            $mid = $matches[1];
+        } else {
+            $mid = $this->getMidFromReceipt($mime, $accId);
+        }
+        
+        if (!$mid) {
+            
+            return ;
+        }
+        
+        return $this->forceByMid($mime, $accId, $uid, $mid);
+    }
+    
+    
+    /**
+     * Помощна функция за добавяне на запис
+     * 
+     * @param email_Mime  $mime
+     * @param integer $accId
+     * @param integer $uid
+     * @param string $mid
+     * 
+     * @return string|NULL
+     */
+    public static function forceByMid($mime, $accId, $uid, $mid)
+    {
         // Намираме датата на писмото
         $date = $mime->getSendingTime();
         
@@ -106,7 +139,7 @@ class email_Receipts extends email_ServiceEmails
             blast_BlockedEmails::addSentEmailFromText($mid, $mime);
         }
         
-        return $isReceipt;
+        return $isReceipt ? 'receipt' : null;
     }
     
     

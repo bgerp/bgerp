@@ -117,7 +117,7 @@ class cal_Progresses extends core_Mvc
     {
         if ($rec->originId) {
             $tDoc = doc_Containers::getDocument($rec->originId);
-            if ($tDoc->isInstanceOf('cal_Tasks')) {
+            if ($tDoc->isInstanceOf('cal_Tasks') && ($rec->state != 'draft')) {
                 $tDoc->touchRec();
             }
         }
@@ -341,6 +341,7 @@ class cal_Progresses extends core_Mvc
         
         $query = doc_Comments::getQuery();
         $query->where(array("#originId = '[#1#]'", $originId));
+        $query->where(array("#driverClass = '[#1#]'", self::getClassId()));
         $query->where("#state != 'rejected'");
         $query->where("#state != 'draft'");
         $query->limit(1);
@@ -414,18 +415,8 @@ class cal_Progresses extends core_Mvc
         
         // Когато задачата е на 100% и няма друга задача и друг имейл - тогава затваря нишката
         if ($rec->progress == 1) {
-            if ($rec->threadId) {
-                $tRec = doc_Threads::fetch($rec->threadId);
-                
-                if ($tRec->state != 'closed') {
-                    // Да няма входящ имейл в нишката
-                    if (!email_Incomings::fetch(array("#threadId = '[#1#]' AND #state != 'rejected'", $tRec->id))) {
-                        // Ако няма други задачи
-                        if (!cal_Tasks::fetch(array("#containerId != [#1#] AND #threadId = '[#2#]' AND #state != 'rejected' AND #state != 'closed' AND #state != 'stopped' AND #state != 'draft'", $rec->originId, $tRec->id))) {
-                            $res = 'closed';
-                        }
-                    }
-                }
+            if (cal_Tasks::checkForCloseThread($rec->threadId, $rec->originId)) {
+                $res = 'closed';
             }
         }
     }

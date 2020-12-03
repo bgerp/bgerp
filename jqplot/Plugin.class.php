@@ -68,10 +68,10 @@ class jqplot_Plugin extends core_Plugin
         $diffFieldArr = $mvc->selectFields("#chart == 'diff'");
         
         // Очакваме ...
-        expect(count($xFieldArr) == 1);    // да има само едно поле по оста X
-        expect(count($yFieldArr));         // най-малко едно поле по оста Y
-        expect(count($diffFieldArr) <= 1); // най-много едно diff поле
-        expect(count($sFieldArr) <= 1);    // най-много едно series поле
+        expect(countR($xFieldArr) == 1);    // да има само едно поле по оста X
+        expect(countR($yFieldArr));         // най-малко едно поле по оста Y
+        expect(countR($diffFieldArr) <= 1); // най-много едно diff поле
+        expect(countR($sFieldArr) <= 1);    // най-много едно series поле
         
         $chart = array();
         
@@ -81,11 +81,11 @@ class jqplot_Plugin extends core_Plugin
         $chart['ax'] = $xField->name;
         $chart['ay'] = $yField->name;
         
-        if (count($diffFieldArr) > 0) {
+        if (countR($diffFieldArr) > 0) {
             $dField = current($diffFieldArr); // diff/per полето
             $chart['per'] = $dField->name;
         }
-        if (count($sFieldArr) > 0) {
+        if (countR($sFieldArr) > 0) {
             $sField = current($sFieldArr); // series полето
             $chart['series'] = $sField->name;
         }
@@ -235,7 +235,7 @@ class jqplot_Plugin extends core_Plugin
         
         $chartConfigs = $mvc::getChartConfig();
         
-        if (count($chartConfigs)) {
+        if (countR($chartConfigs)) {
             $reqestedChartName = $mvc::getRequestedChartName();
             
             if ($reqestedChartName) {

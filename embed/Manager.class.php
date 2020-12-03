@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class embed_Manager extends core_Master
+abstract class embed_Manager extends core_Master
 {
     /**
      * Свойство, което указва интерфейса на вътрешните обекти
@@ -86,7 +86,7 @@ class embed_Manager extends core_Master
         }
         
         // Ако няма достъпни драйвери редирект със съобщение
-        if (!count($interfaces)) {
+        if (!countR($interfaces)) {
             if ($this->mandatoryDriverField === true) {
                 $intf = cls::get($this->driverInterface);
                 $msg = '|Липсват опции за|* |' . ($intf->driversCommonName ? $intf->driversCommonName : $this->title);
@@ -102,7 +102,7 @@ class embed_Manager extends core_Master
             $form->setOptions($this->driverClassField, $interfaces);
             
             // Ако е наличен само един драйвер избираме него
-            if (count($interfaces) == 1) {
+            if (countR($interfaces) == 1) {
                 if ($this->mandatoryDriverField === true) {
                     $form->setDefault($this->driverClassField, key($interfaces));
                     $form->setReadOnly($this->driverClassField);
@@ -157,7 +157,7 @@ class embed_Manager extends core_Master
         // Зареждаме опциите за интерфейса
         $me = cls::get(get_called_class());
         $interfaces = core_Classes::getOptionsByInterface($me->driverInterface, 'title');
-        if (count($interfaces)) {
+        if (countR($interfaces)) {
             foreach ($interfaces as $id => $int) {
                 if (!cls::load($id, true)) {
                     continue;
@@ -335,6 +335,7 @@ class embed_Manager extends core_Master
                 case 'aftercreate':
                 case 'afterupdate':
                 case 'afterread':
+                case 'beforechangestate':
                 case 'afteractivation':
                     $driverClass = $args[0]->{$this->driverClassField};
                     break;
@@ -402,7 +403,7 @@ class embed_Manager extends core_Master
             if ($driverClass) {
                 $dRec = (object) array($this->driverClassField => $driverClass);
                 if ($driver = $this->getDriver($dRec)) {
-                    
+                   
                     // Добавяме ембедъра към аргументите на ивента
                     array_unshift($args, $this);
                     
@@ -479,5 +480,30 @@ class embed_Manager extends core_Master
         }
         
         return $Driver->getClassId() == $check->getClassId();
+    }
+    
+    
+    /**
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
+     */
+    public function prepareSingle_($data)
+    {
+        if($Driver = $this->getDriver($data->rec)){
+            
+            // Ако драйвера има метод за закачане на детайли
+            if(method_exists($Driver, 'getDetails')){
+                if (empty($data->details) && isset($this->details)) {
+                    $data->details = arr::make($this->details);
+                }
+                
+                // Добавят се детайлите от драйвера
+                $driverDetails = $Driver->getDetails($data->rec, $this);
+                $data->details = array_merge($data->details, $driverDetails);
+            }
+        }
+        
+        parent::prepareSingle_($data);
+        
+        return $data;
     }
 }

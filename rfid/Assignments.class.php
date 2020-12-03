@@ -16,7 +16,7 @@
  *
  * @since     v 0.1
  */
-class rfid_Assignments extends embed_Manager
+class rfid_Assignments extends core_Manager
 {
 
     /**
@@ -28,6 +28,11 @@ class rfid_Assignments extends embed_Manager
      * Заглавие
      */
     public $title = 'Присвоявания';
+    
+    /**
+     * Титлата на обекта в единичен изглед
+     */
+    public $singleTitle = 'Периферно устройство';
     
     
     /**
@@ -89,9 +94,26 @@ class rfid_Assignments extends embed_Manager
      */
     public function description()
     {
-        $this->FLD('tag', 'varchar(64)', 'caption=Таг,mandatory');
-        $this->FLD('startOn', 'datetime', 'caption=Присвояване->От');
-        $this->FLD('endOn', 'datetime(defaultTime=23:59:59)', 'caption=Присвояване->До');
+       //$this->FLD('holder', 'class(interface=rfid_HolderIntf,allowEmpty,select=title)', 'caption=Притежател,mandatory');
+       $this->FLD('tag', 'varchar(64)', 'caption=Таг,mandatory');
+       $this->FLD('startOn', 'datetime', 'caption=Присвояване->От');
+       $this->FLD('endOn', 'datetime(defaultTime=23:59:59)', 'caption=Присвояване->До');
+    }
+
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+//        bp($mvc, $data);
+//         $options = crm_Persons::getEmployeesOptions();
+//         if ($holderId = $data->form->rec->holderId) {
+//             if (!array_key_exists($holderId, $options)) {
+//                 $options[$holderId] = crm_Persons::getVerbal($holderId, 'name');
+//             }
+//         }
+        
+//         $data->form->setOptions('holderId', array('' => '') + $options);
     }
     
 }

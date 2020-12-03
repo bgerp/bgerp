@@ -757,23 +757,23 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                 
                 // Ако има зададено салдо за запазване
                 if ($rec->amountKeepBalance) {
-                    
+                    if($rec->amountKeepBalance < 0){
+                        if ($amount >= $rec->amountKeepBalance) {
+                            continue;
+                        }
+                    } else {
+                        if ($amount <= $rec->amountKeepBalance) {
+                            continue;
+                        }
+                    }
+                  
                     // Ако салдото за прехвърляне е по-малко от това за оставяне не го бутаме
                     if ($amount <= $rec->amountKeepBalance) {
                         continue;
                     }
                     
                     // Иначе прихвърляме толкова, че да остане минимум зададеното салдо
-                    $oldAmount = $amount;
-                    $oldVar = $var;
                     $amount -= $rec->amountKeepBalance;
-                    $var -= $rec->amountKeepBalance;
-                    
-                    // Не се поддържат отрицателни салда
-                    if ($var < 0) {
-                        $amount = $oldAmount;
-                        $var = $oldVar;
-                    }
                 }
             } else {
                 $creditArr = array('61101', array('cat_Products', ${"resource{$sysId}"}), 'quantity' => ${"quantity{$sysId}"});
@@ -804,7 +804,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '605');
         $rec605 = $bQuery->fetch();
         
-        $selfValueLabor = planning_ObjectResources::getSelfValue($resource604, 1, $this->periodRec->end);
+        $selfValueLabor = planning_GenericMapper::getSelfValue($resource604, 1, $this->periodRec->end);
         if (!is_object($rec604)) {
             $rec604 = new stdClass();
         }

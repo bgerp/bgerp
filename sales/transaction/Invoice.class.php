@@ -73,7 +73,7 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
             }
             
             // Ако има такива контирането се спира
-            if (count($productsWithoutExportParam)) {
+            if (countR($productsWithoutExportParam)) {
                 $param = cat_Params::getTitleById($exportParamId);
                 $productsWithoutExportParam = implode(',', $productsWithoutExportParam);
                 $error = "Следните артикули нямат задължителен параметър|* <b>{$param}</b>: {$productsWithoutExportParam}";
@@ -82,6 +82,14 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
             
             if ($rec->type == 'invoice' && $onlyZeroQuantities === true && empty($rec->dpAmount)) {
                 acc_journal_RejectRedirect::expect(false, 'Трябва да има поне един ред с ненулево количество|*!');
+            }
+            
+            // Проверка дали артикулите отговарят на нужните свойства
+            if (countR($productArr)) {
+                if($redirectError = deals_Helper::getContoRedirectError($productArr, 'canSell', 'generic', 'вече не са продаваеми или са генерични')){
+                    
+                    acc_journal_RejectRedirect::expect(false, $redirectError);
+                }
             }
         }
         
@@ -96,7 +104,7 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
                 
                 return $result;
             }
-            $result->reason = "{$type} към фактура №" . str_pad($origin->fetchField('number'), '10', '0', STR_PAD_LEFT);
+            $result->reason = "{$type} към фактура №" . $origin->getVerbal('number');
             
             // Намираме оридиджана на фактурата върху която е ДИ или КИ
             $origin = $origin->getOrigin();
@@ -128,7 +136,7 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
         // Проверка на артикулите
         $productCheck = deals_Helper::checkProductForErrors($productArr, 'canSell');
             
-        if(count($productCheck['notActive'])){
+        if(countR($productCheck['notActive'])){
              acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
         } elseif($productCheck['metasError']){
              acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!");

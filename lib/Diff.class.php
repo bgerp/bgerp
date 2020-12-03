@@ -78,7 +78,7 @@ class lib_Diff
             }
             
             // Замяна
-            while (count($e['d']) && count($e['i']) && (($ct = self::getCharType($e['d'])) == self::getCharType($e['i']))) {
+            while (countR($e['d']) && countR($e['i']) && (($ct = self::getCharType($e['d'])) == self::getCharType($e['i']))) {
                 $kd = key($e['d']);
                 $ki = key($e['i']);
                 
@@ -94,7 +94,7 @@ class lib_Diff
                 $res[] = $out;
                 unset($e['d'][$kd], $e['i'][$ki]);
                 
-                $last = count($res) - 1;
+                $last = countR($res) - 1;
                 
                 if (($last >= 2) && $res[$last]->mode == 'c' && $res[$last - 1]->mode == 't' && $res[$last - 2]->mode == 'c') {
                     $res[$last - 2]->str .= $res[$last - 1]->str . $res[$last]->str;
@@ -105,7 +105,7 @@ class lib_Diff
             
             
             // Изтриване
-            if (count($e['d'])) {
+            if (countR($e['d'])) {
                 foreach ($e['d'] as $d) {
                     $out = new stdClass();
                     if ($d{0} == '<') {
@@ -120,7 +120,7 @@ class lib_Diff
             }
             
             // Добавяне
-            if (count($e['i'])) {
+            if (countR($e['i'])) {
                 foreach ($e['i'] as $i) {
                     $out = new stdClass();
                     if ($i{0} == '<') {
@@ -241,8 +241,8 @@ class lib_Diff
      */
     public static function ses($src, $dst)
     {
-        $cx = count($src);
-        $cy = count($dst);
+        $cx = countR($src);
+        $cy = countR($dst);
         
         $stack = array();
         $V = array(1 => 0);
@@ -271,7 +271,7 @@ class lib_Diff
             $stack[] = $V;
             
             // Ако броя на разликите е над допустимото, връщаме FALSE
-            if (count($stack) > EF_LIB_DIFF_MAX_STACK_COUNT) {
+            if (countR($stack) > EF_LIB_DIFF_MAX_STACK_COUNT) {
                 
                 return false;
             }
@@ -332,7 +332,7 @@ class lib_Diff
                 
                 while (($res[$p][1] == $i) && ($res[$p] !== null)) {
                     if (!isset($li)) {
-                        $li = count($r) - 1;
+                        $li = countR($r) - 1;
                         if (!is_array($r[$li])) {
                             $li++;
                             $r[$li] = array();

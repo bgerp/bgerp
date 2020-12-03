@@ -26,7 +26,7 @@ class csstoinline_ToInline
         preg_match_all($pattern, $html, $match);
         
         //Ако иам намерени съвпадения от CSS в style type="text/css"
-        if (count($match[1])) {
+        if (countR($match[1])) {
             $valueAllCss = '';
             
             foreach ($match[1] as $value) {

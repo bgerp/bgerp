@@ -37,6 +37,7 @@ class marketing_InquirySourceIntf
      *          ['quantityCount'] - опционален брой количества
      *          ['moq']           - МКП
      *          ['measureId']     - основна мярка
+     *          ['url']           - линк
      *
      */
     public function getInquiryData($id)

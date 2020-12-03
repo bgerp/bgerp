@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -20,12 +20,6 @@ class cat_Categories extends core_Master
      * Поддържани интерфейси
      */
     public $interfaces = 'cat_ProductFolderCoverIntf';
-    
-    
-    /**
-     * Детайли
-     */
-    public $details = 'updates=price_Updates';
     
     
     /**
@@ -198,7 +192,7 @@ class cat_Categories extends core_Master
                                 canStore=Складируеми,
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
-        			canManifacture=Производими)', 'caption=Настройки - препоръчителни за артикулите в категорията->Свойства,columns=2');
+        			canManifacture=Производими,generic=Генерични)', 'caption=Настройки - препоръчителни за артикулите в категорията->Свойства,columns=2');
         
         $this->setDbUnique('sysId');
         $this->setDbUnique('name');
@@ -243,6 +237,17 @@ class cat_Categories extends core_Master
         if ($fields['-single']) {
             if ($rec->useAsProto == 'yes') {
                 $row->protoFolder = tr('Всички артикули в папката са шаблони');
+            }
+            
+            $uRec = price_Updates::fetch("#type = 'category' AND #objectId = {$rec->id}");
+            if(is_object($uRec)){
+                $row->updateCostsInfo = price_Updates::getUpdateTpl($uRec);
+            } else {
+                $row->updateCostsInfo = tr('Все още няма зададени правила за обновяване');
+            }
+            
+            if (price_Updates::haveRightFor('add', (object) array('type' => 'category', 'objectId' => $rec->id))) {
+                $row->updateCostBtn = ht::createLink('', array('price_Updates', 'add', 'type' => 'category', 'objectId' => $rec->id, 'ret_url' => true), false, 'title=Създаване на ново правило за обновяване,ef_icon=img/16/add.png');
             }
         }
     }
@@ -501,5 +506,59 @@ class cat_Categories extends core_Master
         }
         
         return 'public';
+    }
+    
+    
+    /**
+     * Добавена проверка на различните комбинации от свойства
+     * 
+     * @param mixed $metasArr
+     * @param int|null $productId
+     * @param string|null $error
+     * @return boolean
+     */
+    public static function checkMetas($metasArr, $productId, &$error)
+    {
+        $metasArr = is_array($metasArr) ? $metasArr : type_Set::toArray($metasArr);
+        $exMeta = (isset($productId)) ? type_Set::toArray(cat_Products::fetchField($productId, 'meta')) : array();
+        
+        if(isset($metasArr['generic'])) {
+             if(isset($metasArr['canBuy']) || isset($metasArr['canSell']) || isset($metasArr['fixedAsset']) || isset($metasArr['canManifacture'])){
+                $error = "Генеричният артикул не може да е Продаваем, Купуваем, Производим или ДА|*";
+             } elseif(!isset($metasArr['canConvert'])){
+                 $error = "Генеричният артикул трябва да е и Вложим|*!";
+             } elseif(isset($productId) && !haveRole('debug')){
+                $exMeta = type_Set::toArray(cat_Products::fetchField($productId, 'meta'));
+                if(!isset($exMeta['generic'])){
+                    $error = "Съществуващ артикул не може да става генеричен|*!";
+                }
+            }
+        } elseif(isset($productId)) {
+            if(isset($exMeta['generic'])){
+                $error = "Артикул създаден като генеричен, не може да се променя на негенеричен|*!";
+            }
+        }
+        
+        if(isset($productId)){
+            $genericProductId = planning_GenericMapper::fetchField("#productId = {$productId}", 'genericProductId');
+            if(isset($genericProductId)){
+                $genericMeta = type_Set::toArray(cat_Products::fetchField($genericProductId, 'meta'));
+                if(!isset($metasArr['canConvert'])){
+                    $error = "Артикулът има избран генеричен. Трябва да остане вложим|*!";
+                } elseif(isset($metasArr['canStore']) && !isset($genericMeta['canStore'])){
+                    $error = "Артикулът има избран генеричен. Трябва да остане НЕ складируем|*!";
+                } elseif(!isset($metasArr['canStore']) && isset($genericMeta['canStore'])){
+                    $error = "Артикулът има избран генеричен. Трябва да остане Складируем|*!";
+                }
+            }
+            
+            if(core_Packs::isInstalled('eshop')){
+                if(!isset($metasArr['canSell']) && eshop_ProductDetails::count("#productId = {$productId}")){
+                    $error = "Артикулът се използва е Е-маг. Трябва да остане продаваем|*!";
+                }
+            }
+        }
+        
+        return empty($error);
     }
 }

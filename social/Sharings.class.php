@@ -86,7 +86,7 @@ class social_Sharings extends core_Master
         $query->orderBy('#order');
         $socialNetworks = $query->fetchAll("#state = 'active'");
         
-        if (!count($socialNetworks)) {
+        if (!countR($socialNetworks)) {
             
             return;
         }
@@ -207,7 +207,7 @@ class social_Sharings extends core_Master
         // Записваме в историята, че сме направели споделяне
         if (core_Packs::fetch("#name = 'vislog'") &&
             vislog_History::add('Споделяне в ' . $rec->name . ' на ' . $urlDecoded)) {
-            if (Mode::is('javascript', 'yes') && !log_Browsers::detectBot()) {
+            if (!Mode::is('javascript', 'no') && !log_Browsers::detectBot()) {
                 
                 // Увеличаване на брояча на споделянията
                 $rec->sharedCnt++;

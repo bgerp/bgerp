@@ -94,7 +94,7 @@ class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
             if (is_array($quantities)) {
                 foreach ($quantities as $index => $obj) {
                     $entry = $this->getCloseEntry($obj->amount, $obj->quantity, $index, $result->totalAmount, $docRec, $firstDoc);
-                    if (count($entry)) {
+                    if (countR($entry)) {
                         $result->entries = array_merge($result->entries, $entry);
                     }
                 }

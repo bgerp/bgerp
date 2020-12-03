@@ -184,9 +184,11 @@ class tcost_Zones extends core_Detail
         $query->orderBy('id', 'DESC');
         $query->show('countryId');
         
-        if ($countryId = $query->fetch()->countryId) {
-            $form->setDefault('countryId', $countryId);
+        $countryId = $query->fetch()->countryId;
+        if(empty($countryId)){
+            $countryId = crm_Companies::fetchOurCompany()->country;
         }
+        $form->setDefault('countryId', $countryId);
     }
     
     

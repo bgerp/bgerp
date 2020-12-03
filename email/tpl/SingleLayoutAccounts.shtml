@@ -101,6 +101,12 @@
             <td><span class="title-style">|Парола|*</span></td>
             <td> [#smtpPassword#]</td>
         </tr>
+        <!--ET_BEGIN noRetPathDomains-->
+        <tr>
+            <td><span class="title-style">|Домейни без Return-Path|*</span></td>
+            <td> [#noRetPathDomains#]</td>
+        </tr>
+        <!--ET_END noRetPathDomains-->
     </table>
     <div><span class="quiet">|Модифициране|*: </span>|от|* [#modifiedBy#] |на|* [#modifiedOn#] </div>
     <div><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>

@@ -29,13 +29,11 @@ class plg_RowTools2 extends core_Plugin
         
         // Ако се намираме в режим "печат", не показваме инструментите на реда
         if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')) {
-            
             return;
         }
         
         // Игнорираме действието, ако не се подготвя листовия изглед
         if (!arr::haveSection($fields, '-list')) {
-            
             return;
         }
         
@@ -73,7 +71,7 @@ class plg_RowTools2 extends core_Plugin
             $ddTools->addLink('Разглеждане', $singleUrl, "ef_icon={$singleIcon},title=Разглеждане на|* {$singleTitle},id=single{$rec->id}");
         }
         
-        $editUrl = $mvc->getEditUrl($rec);  
+        $editUrl = $mvc->getEditUrl($rec);
         if (!empty($editUrl)) {
             $editUrl = $mvc->getEditUrl($rec);
             $ddTools->addLink('Редактиране', $editUrl, "ef_icon=img/16/edit-icon.png,title=Редактиране на|* {$singleTitle},id=edt{$rec->id}");
@@ -144,7 +142,6 @@ class plg_RowTools2 extends core_Plugin
     public static function on_BeforeGetEditUrl($mvc, &$editUrl, $rec)
     {
         if (!$mvc->haveRightFor('edit', $rec)) {
-
             return;
         }
         $retUrl = (cls::existsMethod($mvc, 'getRetUrl')) ? $mvc->getRetUrl($rec) : true;
@@ -168,7 +165,6 @@ class plg_RowTools2 extends core_Plugin
     public static function on_BeforeGetDeleteUrl($mvc, &$deleteUrl, $rec)
     {
         if (!$mvc->haveRightFor('delete', $rec)) {
-            
             return;
         }
         $retUrl = (cls::existsMethod($mvc, 'getDeleteUrl')) ? $mvc->getDeleteUrl($rec) : true;
@@ -191,7 +187,6 @@ class plg_RowTools2 extends core_Plugin
         unset($data->listFields['_rowTools']);
         
         if (!is_array($data->rows) || empty($data->rows) || Mode::is('hideToolbar') === true) {
-            
             return ;
         }
         
@@ -212,6 +207,7 @@ class plg_RowTools2 extends core_Plugin
                 }
                 
                 $tools = $tools->renderHtml($mvc->rowToolsMinLinksToShow);
+                
                 if ($tools) {
                     $mustShow = true;
                 }

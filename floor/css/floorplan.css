@@ -1,0 +1,21 @@
+.floor-object {
+  position: absolute;
+  display: table; 
+  text-align: center; 
+  padding:0px;
+  color:white;
+  cursor: pointer;
+}
+.ui-draggable-dragging {
+    opacity:0.8;
+    z-index:100000;
+}
+
+.floor-obj {
+  display: table-cell;
+  vertical-align: middle;
+  position: relative;
+  font-weight:bold;
+  overflow: hidden;
+  color: #000;
+}

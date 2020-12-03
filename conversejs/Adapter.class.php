@@ -26,8 +26,9 @@ class conversejs_Adapter extends core_Mvc
         requireRole('powerUser');
         
         $tpl = new page_Html();
-        $tpl->push('https://cdn.conversejs.org/css/converse.min.css', 'CSS');
-        $tpl->push('https://cdn.conversejs.org/dist/converse.min.js', 'JS');
+
+        $tpl->push('https://cdn.conversejs.org/6.0.0/dist/converse.min.css', 'CSS');
+        $tpl->push('https://cdn.conversejs.org/6.0.0/dist/converse.min.js', 'JS');
         
         $cu = core_Users::getCurrent();
         $aQuery = remote_Authorizations::getQuery();
@@ -52,7 +53,7 @@ class conversejs_Adapter extends core_Mvc
                     auto_login: true,
                     allow_dragresize: true,
                     jid: '{$rec->xmppUser}',
-                    password: '{$rec->xmppPass}'
+                    password: window.atob('" . base64_encode($rec->xmppPass) . "')
                 });";
             $title = $rec->xmppUser . ' / ConverseJS Chat';
         } else {

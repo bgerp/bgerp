@@ -103,9 +103,6 @@ class cat_products_PriceDetails extends core_Manager
             $hideIcons = true;
         }
         
-        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
-        $baseCurrencyCode = "<span class='cCode'>{$baseCurrencyCode}</span>";
-        
         // Може да се добавя нова себестойност, ако продукта е в група и може да се променя
         $primeCostListId = price_ListRules::PRICE_LIST_COST;
         
@@ -160,39 +157,19 @@ class cat_products_PriceDetails extends core_Manager
         
         $DateTime = cls::get('type_DateTime', array('params' => array('format' => 'smartTime')));
         
-        // Бутон за задаване на правило за обновяване
-        $data->afterRow = null;
-        
         // Само за публичните показваме правилото за обновяване
         if ($data->masterData->rec->isPublic == 'yes') {
             $uRec = price_Updates::fetch("#type = 'product' AND #objectId = {$data->masterId}");
-            $data->updateCostRec = $uRec;
-            if (is_object($uRec)) {
-                $uRow = price_Updates::recToVerbal($uRec);
-                $arr = array('manual' => tr('Ръчно'), 'nextDay' => tr('Дневно'), 'nextWeek' => tr('Седмично'), 'nextMonth' => tr('Месечно'), 'now' => tr('Ежечасово'));
-                $tpl = new core_ET(tr('|*[#tools#]<b>[#updateMode#]</b> |обновяване на себестойността, последователно по|* [#type#]  <!--ET_BEGIN surcharge-->|с надценка|* <b>[#surcharge#]</b><!--ET_END surcharge-->'));
-                
-                $type = '';
-                foreach (array($uRow->costSource1, $uRow->costSource2, $uRow->costSource3) as $cost) {
-                    if (isset($cost)) {
-                        $type .= '<b>' . $cost . '</b>, ';
+            if(!is_object($uRec)){
+                $Cover = doc_Folders::getCover($data->masterData->rec->folderId);
+                if($Cover->isInstanceOf('cat_Categories')){
+                    if($uRec = price_Updates::fetch("#type = 'category' AND #objectId = {$Cover->that}")){
+                        $uRec->_fromCategory = true;
                     }
                 }
-                
-                $type = rtrim($type, ', ');
-                $tpl->append($arr[$uRec->updateMode], 'updateMode');
-                $tpl->append($uRow->tools, 'tools');
-                $surcharge = $uRow->costAdd;
-                if(!empty($uRec->costAddAmount)){
-                    $surcharge .= ((!empty($surcharge)) ? tr('|* |и|* ') : '') . $uRow->costAddAmount . " BGN";
-                }
-                if(!empty($surcharge)){
-                    $tpl->append($surcharge, 'surcharge');
-                }
-                
-                $tpl->append($type, 'type');
-                $data->afterRow = $tpl;
             }
+            
+            $data->updateCostRec = $uRec;
         }
         
         if (haveRole('priceDealer,ceo')) {
@@ -239,7 +216,7 @@ class cat_products_PriceDetails extends core_Manager
                     $verbPrice = ht::createHint($verbPrice, 'Себестойността е зададена за шаблонния артикул|*!', 'notice', false, 'height=14px,width=14px', 'style=color:blue');
                 }
                 
-                $priceRow = (is_null($primeCost)) ? $verbPrice : '<b>' . $verbPrice . "</b> {$baseCurrencyCode}";
+                $priceRow = (is_null($primeCost)) ? $verbPrice : '<b>' . $verbPrice . "</b>";
                 $primeCostRows[] = (object) array('type' => $type,
                     'modifiedOn' => $DateTime->toVerbal($primeCostDate),
                     'price' => $priceRow,
@@ -251,7 +228,7 @@ class cat_products_PriceDetails extends core_Manager
                 $verbPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($futurePrimeCost);
                 $primeCostRows[] = (object) array('type' => tr('|Бъдеща|* |себестойност|*'),
                     'modifiedOn' => $DateTime->toVerbal($futurePrimeCostDate),
-                    'price' => '<b>' . $verbPrice . "</b> {$baseCurrencyCode}",
+                    'price' => '<b>' . $verbPrice . "</b>",
                     'ROW_ATTR' => array('class' => 'state-draft'));
             }
         }
@@ -260,14 +237,20 @@ class cat_products_PriceDetails extends core_Manager
             $cQuery = price_ProductCosts::getQuery();
             $cQuery->where("#productId = {$data->masterId}");
             while ($cRec = $cQuery->fetch()) {
-                if($cRec->type == 'average' && empty($cRec->price)){
+                if(empty($cRec->price)){
                     continue;
                 }
                 
                 $cRow = price_ProductCosts::recToVerbal($cRec);
-                $cRow->price = "<b>{$cRow->price}</b> {$baseCurrencyCode}";
-                if (isset($cRow->document)) {
-                    $cRow->buttons = "<div style='text-align:left'>" . $cRow->document . '</div>';
+                $cRow->price = "<b>{$cRow->price}</b>";
+                
+                $cRow->type = $cRow->classId;
+                if(price_ProductCosts::haveRightFor('edit', $cRec)){
+                    $cRow->type .= ht::createLink('', array('price_ProductCosts', 'edit', $cRec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,title=Редактиране на цената');
+                }
+                
+                if (isset($cRow->sourceId)) {
+                    $cRow->buttons = "<div style='text-align:left'>" . $cRow->sourceId . '</div>';
                 }
                 $primeCostRows[] = $cRow;
             }
@@ -281,16 +264,15 @@ class cat_products_PriceDetails extends core_Manager
                 $type = ht::createLink($type, array('doc_Containers', 'list', 'threadId' => $threadId, 'product' => $data->masterId));
             }
             
-            $verbPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($catalogCost);
-            
             // Ако каталожната цена е от прототипа, показва се тази информация
+            $verbPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($catalogCost);
             if($catalogCostIsFromTemplate === true){
                 $verbPrice = ht::createHint($verbPrice, 'Цената по каталог е зададена за шаблонния артикул|*!', 'notice', false, 'height=14px,width=14px', 'style=color:blue');
             }
             
             $primeCostRows[] = (object) array('type' => $type,
                 'modifiedOn' => $DateTime->toVerbal($catalogCostDate),
-                'price' => '<b>' . $verbPrice . "</b> {$baseCurrencyCode}",
+                'price' => '<b>' . $verbPrice . "</b>",
                 'ROW_ATTR' => array('class' => 'state-active'));
         }
         
@@ -311,28 +293,27 @@ class cat_products_PriceDetails extends core_Manager
         $fieldSet = cls::get('core_FieldSet');
         $fieldSet->FLD('price', 'double');
         $fieldSet->FLD('buttons', 'varchar', 'smartCenter');
+        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
         
         // Рендираме информацията за себестойностите
         $table = cls::get('core_TableView', array('mvc' => $fieldSet));
-        $fields = arr::make('price=Стойност|*,type=Вид,modifiedOn=В сила от||Valid from,buttons=Действия / Документ');
+        
+        $fields = arr::make("price=Стойност|* <small>({$baseCurrencyCode})</small>,type=Вид,updatedOn=В сила от||Valid from,buttons=Действия / Документ");
         $primeCostTpl = $table->get($data->primeCostRows, $fields);
         $primeCostTpl->prepend(tr('|*<div>|Цени без ДДС|*:</div>'));
-        $colspan = count($fields);
         
         // Рендираме правилото за обновяване само при нужда
         if ($data->masterData->rec->isPublic == 'yes') {
-            if (isset($data->afterRow) && price_Updates::haveRightFor('edit', $data->updateCostRec)) {
-                $afterRowTpl = new core_ET("<tr><td colspan={$colspan}>[#1#][#button#]</td></tr>");
-                $afterRowTpl->append($data->afterRow, '1');
-            } elseif(empty($data->updateCostRec)) {
-                $afterRowTpl = new core_ET("<tr><td colspan={$colspan}>[#1#][#button#]</td></tr>");
-                $afterRowTpl->append(tr('Няма зададено правило за обновяване на себестойност'), '1');
-                
-                if (price_Updates::haveRightFor('add', (object) array('type' => 'product', 'objectId' => $data->masterId))) {
-                    $afterRowTpl->append(ht::createLink('Задаване', array('price_Updates', 'add', 'type' => 'product', 'objectId' => $data->masterId, 'ret_url' => true), false, 'title=Създаване на ново правило за обновяване,ef_icon=img/16/arrow_refresh.png'), 'button');
-                }
+            $upTpl = tr('Няма зададено правило за обновяване на себестойност');
+            if(is_object($data->updateCostRec)){
+                $upTpl = price_Updates::getUpdateTpl($data->updateCostRec);
             }
-            $primeCostTpl->append($afterRowTpl, 'ROW_AFTER');
+            
+            $tpl->replace($upTpl, 'updateInfo');
+            if (price_Updates::haveRightFor('add', (object) array('type' => 'product', 'objectId' => $data->masterId))) {
+                $editUpdateBtn = ht::createLink('Задаване', array('price_Updates', 'add', 'type' => 'product', 'objectId' => $data->masterId, 'ret_url' => true), false, 'title=Създаване на ново правило за обновяване,ef_icon=img/16/arrow_refresh.png');
+                $tpl->replace($editUpdateBtn, 'updateBtn');
+            }
         }
         
         $tpl->append($primeCostTpl, 'primeCosts');

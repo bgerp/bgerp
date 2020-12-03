@@ -167,10 +167,10 @@ abstract class deals_DealDetail extends doc_Detail
             }
         }
         
-        if($action == 'add' && $requiredRoles != 'no_one' && haveRole('partner', $userId)){
+        if ($action == 'add' && $requiredRoles != 'no_one' && haveRole('partner', $userId)) {
             $listSysId = ($mvc instanceof sales_SalesDetails) ? 'salesList' : 'purchaseList';
             $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, 'contragentClassId,contragentId');
-            if(!cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, $listSysId)){
+            if (!cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, $listSysId)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -206,7 +206,7 @@ abstract class deals_DealDetail extends doc_Detail
         
         $form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ';
         $form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
-        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts));
+        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties' => 'generic'));
         
         if (empty($rec->id)) {
             // Ако потребителя е партньор и има листвани артикули за контрагента
@@ -220,7 +220,7 @@ abstract class deals_DealDetail extends doc_Detail
         }
         
         if (!empty($rec->packPrice)) {
-            if (Request::get('Act') != 'CreateProduct') {
+            if (strtolower(Request::get('Act')) != 'createproduct') {
                 $vat = cat_Products::getVat($rec->productId, $masterRec->valior);
             } else {
                 $vat = acc_Periods::fetchByDate($masterRec->valior)->vatRate;
@@ -309,8 +309,9 @@ abstract class deals_DealDetail extends doc_Detail
             }
             
             // Проверка на к-то
+            $warning = null;
             if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
-                $form->setError('packQuantity', $warning);
+                $form->setWarning('packQuantity', $warning);
             }
             
             // Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
@@ -318,7 +319,8 @@ abstract class deals_DealDetail extends doc_Detail
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
             
             // Проверка дали к-то е под МКП
-            deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack);
+            $action = ($mvc instanceof sales_SalesDetails) ? 'sell' : 'buy';
+            deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack, 'packQuantity', $action);
             
             if (!isset($rec->packPrice)) {
                 $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
@@ -348,6 +350,7 @@ abstract class deals_DealDetail extends doc_Detail
             }
             
             // Проверка на цената
+            $msg = null;
             if (!deals_Helper::isPriceAllowed($price, $rec->quantity, $rec->autoPrice, $msg)) {
                 $form->setError('packPrice,packQuantity', $msg);
             }
@@ -380,7 +383,7 @@ abstract class deals_DealDetail extends doc_Detail
      */
     public static function on_AfterPrepareListRows($mvc, $data)
     {
-        if (!count($data->recs)) {
+        if (!countR($data->recs)) {
             
             return;
         }
@@ -413,7 +416,7 @@ abstract class deals_DealDetail extends doc_Detail
         if (!empty($data->toolbar->buttons['btnAdd'])) {
             $masterRec = $data->masterData->rec;
             
-            if (!count(cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, null, 1))) {
+            if (!countR(cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, null, 1))) {
                 $error = 'error=Няма продаваеми артикули, ';
             }
             
@@ -443,9 +446,8 @@ abstract class deals_DealDetail extends doc_Detail
     public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $recs = &$data->recs;
-        $rows = &$data->rows;
         
-        if (!count($recs)) {
+        if (!countR($recs)) {
             
             return;
         }
@@ -494,6 +496,10 @@ abstract class deals_DealDetail extends doc_Detail
         
         // Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
         if ($row->price) {
+            $packRec = cat_products_Packagings::getPack($pRec->productId, $pRec->packagingId);
+            $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+            $row->price /= $quantityInPack;
+            
             $masterRec = $Master->fetch($masterId);
             $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $masterRec->currencyRate, $masterRec->chargeVat);
         }
@@ -530,7 +536,7 @@ abstract class deals_DealDetail extends doc_Detail
         $query = $this->getQuery();
         $query->where("#{$this->masterKey} = {$saleId}");
         $recs = $query->fetchAll();
-        expect(count($listed));
+        expect(countR($listed));
         
         
         foreach ($listed as &$list) {
@@ -550,7 +556,7 @@ abstract class deals_DealDetail extends doc_Detail
             $Policy = cls::get($Policy);
             
             // Подготовка на записите
-            $error = $error2 = $error3 = $toSave = $toUpdate = $multiError = array();
+            $error = $error2 = $warnings = $toSave = $toUpdate = $multiError = array();
             foreach ($listed as $lId => $lRec) {
                 $packQuantity = $rec->{"quantity{$lId}"};
                 $quantityInPack = $rec->{"quantityInPack{$lId}"};
@@ -585,8 +591,9 @@ abstract class deals_DealDetail extends doc_Detail
                     }
                 }
                 
+                $warning = null;
                 if (!deals_Helper::checkQuantity($packagingId, $packQuantity, $warning)) {
-                    $error3[$warning][] = "quantity{$lId}";
+                    $warnings[$warning][] = "quantity{$lId}";
                 }
                 
                 if (isset($lRec->moq) && $packQuantity < $lRec->moq) {
@@ -620,7 +627,7 @@ abstract class deals_DealDetail extends doc_Detail
                 }
             }
             
-            if (count($error2)) {
+            if (countR($error2)) {
                 if (haveRole('powerUser')) {
                     $form->setWarning(implode(',', $error2), 'Количеството е под МКП');
                 } else {
@@ -629,17 +636,17 @@ abstract class deals_DealDetail extends doc_Detail
             }
             
             // Ако има грешка сетва се ерор
-            if (count($error)) {
+            if (countR($error)) {
                 $form->setError(implode(',', $error), 'Артикулът няма цена');
             }
             
-            if (count($error3)) {
-                foreach ($error3 as $msg => $fields) {
-                    $form->setError(implode(',', $fields), $msg);
+            if (countR($warnings)) {
+                foreach ($warnings as $msg => $fields) {
+                    $form->setWarning(implode(',', $fields), $msg);
                 }
             }
             
-            if (count($multiError)) {
+            if (countR($multiError)) {
                 if (haveRole('salesMaster,ceo')) {
                     $form->setWarning(implode(',', $multiError), 'Количеството не е кратно на очакваното');
                 } else {
@@ -647,17 +654,17 @@ abstract class deals_DealDetail extends doc_Detail
                 }
             }
             
-            if (!count($error) && !count($error3) && (!count($error2) || (count($error2) && Request::get('Ignore'))) && (!count($multiError) || (count($multiError) && Request::get('Ignore')))) {
+            if (!countR($error) && (!countR($error2) || (countR($error2) && Request::get('Ignore'))) && (!countR($multiError) || (countR($multiError) && Request::get('Ignore')))) {
                 
                 // Запис на обновените записи
-                if (count($toUpdate)) {
+                if (countR($toUpdate)) {
                     foreach ($toUpdate as $uRec) {
                         $uRec->isEdited = true;
                         $this->save($uRec, 'id,quantity');
                     }
                 }
                 
-                if (count($toSave)) {
+                if (countR($toSave)) {
                     foreach ($toSave as $saveRec) {
                         $this->save($saveRec);
                     }
@@ -705,8 +712,6 @@ abstract class deals_DealDetail extends doc_Detail
             $title = str_replace(',', ' ', $title);
             $caption = '|' . $title . '|*';
             $caption .= ' |' . cat_UoM::getShortName($lRec->packagingId);
-            
-            $listId = ($saleRec->priceListId) ? $saleRec->priceListId : null;
             
             // Проверка дали вече не просъства в продажбата
             $res = array_filter($recs, function (&$e) use ($lRec) {

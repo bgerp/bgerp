@@ -280,7 +280,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             $arr[] = array('job' => planning_Jobs::getLink($jRec->id), 'inStock' => $inStock, 'produced' => $produced);
         }
         
-        if (count($arr)) {
+        if (countR($arr)) {
             $tableHtml = "<table class='small no-border'>";
             foreach ($arr as $ar) {
                 $tableHtml .= "<tr><td>{$ar['job']}</td></tr><tr><td class='nowrap'><span class='quiet'>" . tr('Заскл.'). ":</span> {$ar['produced']} / <span class='quiet'>" . tr('Наличност.'). ":</span> {$ar['inStock']}</td></tr>";
@@ -392,13 +392,13 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         
         $dealers = keylist::toArray($rec->dealers);
         $countries = keylist::toArray($rec->countries);
-        $cCount = count($countries);
+        $cCount = countR($countries);
         
         // Всички чакащи и активни продажби на избраните дилъри
         $sQuery = sales_Sales::getQuery();
         $sQuery->where("#state = 'pending' || #state = 'active'");
         $sQuery->EXT('inCharge', 'doc_Folders', 'externalName=inCharge,externalKey=folderId');
-        if (count($dealers)) {
+        if (countR($dealers)) {
             $dealers = implode(',', $dealers);
             switch ($rec->dealerType) {
                 case 'dealer':

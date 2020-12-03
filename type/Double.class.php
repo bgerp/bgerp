@@ -48,6 +48,16 @@ class type_Double extends core_Type
     
     
     /**
+     * Инициализиране на типа
+     */
+    public function init($params = array())
+    {
+        setIfNot($params['params']['inputmode'], 'decimals');
+        parent::init($params);
+    }
+    
+    
+    /**
      * Намира стойността на числото, от стринга, който е въвел потребителя
      * Входния стринг може да не е форматиран добре, също може да съдържа прости
      * аритметически изрази
@@ -140,6 +150,10 @@ class type_Double extends core_Type
             return;
         }
         
+        //$value = 0.01 / 205;
+        //bp();
+        
+        
         $conf = core_Packs::getConfig('core');
         
         $decPoint = isset($this->params['decPoint']) ? $this->params['decPoint'] : html_entity_decode($conf->EF_NUMBER_DEC_POINT);
@@ -160,6 +174,11 @@ class type_Double extends core_Type
         // Ограничаване на минималния брой знаци след десетичната точка
         if(isset($this->params['minDecimals'])) {
             $decimals = max($decimals, $this->params['minDecimals']);
+        }
+        
+        if(is_infinite($decimals)){
+            wp($value, $this->params);
+            $decimals = 0;
         }
         
         // Закръгляме числото преди да го обърнем в нормален вид

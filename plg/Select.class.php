@@ -108,7 +108,7 @@ class plg_Select extends core_Plugin
             
             $row = Request::get('R');
             
-            if (!count($row)) {
+            if (!countR($row)) {
                 $res = new Redirect(getRetUrl(), '|Моля, изберете поне един ред');
                 
                 return false;
@@ -132,7 +132,7 @@ class plg_Select extends core_Plugin
                 }
             }
             
-            if (!count($actArr)) {
+            if (!countR($actArr)) {
                 $res = new Redirect(getRetUrl(), '|За избраните редове не са достъпни никакви операции');
                 
                 return false;

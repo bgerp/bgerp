@@ -196,7 +196,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $assetOptions = ((Mode::is('terminalProgressForm')) ? array(' ' => ' ') : array('' => '')) + $arr;
             $form->setOptions('fixedAsset', $assetOptions);
             $form->setField('fixedAsset', 'input,mandatory');
-            if(count($arr) == 1 && !Mode::is('terminalProgressForm')){
+            if(countR($arr) == 1 && !Mode::is('terminalProgressForm')){
                 $form->setReadOnly('fixedAsset', key($arr));
             }
         } else {
@@ -223,7 +223,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
         
         // Ако наличната опция е само една, по дефолт е избрана
-        if (count($productOptions) == 1) {
+        if (countR($productOptions) == 1) {
             $form->setDefault('productId', key($productOptions));
             $form->setReadOnly('productId');
         }
@@ -266,13 +266,13 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Връща избрани оператори от операцията, или ако няма всички от центъра
         $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr($masterRec->employees) : planning_Hr::getByFolderId($masterRec->folderId);
        
-        if (count($employees)) {
+        if (countR($employees)) {
             $form->setSuggestions('employees', $employees);
             
             if(!empty($masterRec->employees)){
                 $form->setField('employees', 'mandatory');
             }
-            if(count($employees) == 1){
+            if(countR($employees) == 1){
                 if(!Mode::is('terminalProgressForm')){
                     $form->setDefault('employees', keylist::addKey('', key($employees)));
                 }
@@ -313,7 +313,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
             
             if(isset($rec->productId)){
-                $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+                $productRec = cat_Products::fetch($rec->productId, 'canStore,generic');
+                
                 if(!empty($rec->serial)){
                     $rec->serial = plg_Search::normalizeText($rec->serial);
                     $rec->serial = str::removeWhiteSpace($rec->serial);
@@ -337,7 +338,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
                 
                 // Ако артикулът е действие към оборудването
-                if ($canStore != 'yes' && $rec->type == 'input') {
+                if ($productRec->canStore != 'yes' && $rec->type == 'input') {
                     $inTp = planning_ProductionTaskProducts::fetchField("#taskId = {$rec->taskId} AND #type = 'input' AND #productId = {$rec->productId}");
                     $inInputTask = planning_Tasks::fetchField("#originId = {$masterRec->originId} AND #inputInTask = {$rec->taskId} AND #state != 'draft' AND #state != 'rejected' AND #state != 'pending' AND #productId = {$rec->productId}");
                     
@@ -348,6 +349,11 @@ class planning_ProductionTaskDetails extends doc_Detail
                         }
                     }
                 }
+                
+                if($productRec->generic == 'yes') {
+                    $form->setError('productId', 'Избраният артикул е генеричен|*! |Трябва да бъде заместен|*!');
+                }
+                
             } elseif(empty($rec->serial)){
                 $form->setError('productId,serial', 'Трябва да е избран артикул');
             }
@@ -467,7 +473,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $row->ROW_ATTR['class'] = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'production') ? 'state-active' : 'row-removed'));
         
         $pRec = cat_Products::fetch($rec->productId, 'measureId,code,isPublic,nameEn,name');
-        $row->productId = cat_Products::getShortHyperlink($rec->productId);
+        $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
         $row->measureId = cat_UoM::getShortName($pRec->measureId);
         
         $foundRec = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
@@ -478,8 +484,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         } else {
             $packagingId = $pRec->measureId;
         }
-        $packagingName = tr(cat_UoM::getShortName($packagingId));
-        $labelPackagingName = tr(cat_UoM::getShortName($labelPackagingId));
+        $packagingName = cat_UoM::getShortName($packagingId);
+        $labelPackagingName = cat_UoM::getShortName($labelPackagingId);
         
         if (cat_UoM::fetchField($packagingId, 'type') != 'uom') {
             $row->measureId = str::getPlural($rec->quantity, $packagingName, true);
@@ -560,7 +566,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
         
         $rows = &$data->rows;
-        if (!count($rows)) {
+        if (!countR($rows)) {
             
             return;
         }
@@ -646,7 +652,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $row->additional .= "<div class='extended-fixedAsset'>{$row->fixedAsset}</div>";
                 }
                 
-                if(!empty($rec->serial) && count($selectRowUrl)){
+                if(!empty($rec->serial) && countR($selectRowUrl)){
                     $selectRowUrl['recId'] = $rec->id;
                     $row->serial = ht::createLink($row->serial, $selectRowUrl, false, 'title=Редакция на реда');
                 }
@@ -776,19 +782,19 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         // Ако има използвани оператори, добавят се за филтриране
         $usedFixedAssets = self::getResourcesInDetails($data->masterId, 'fixedAsset');
-        if(count($usedFixedAssets)){
+        if(countR($usedFixedAssets)){
             $data->listFilter->setOptions('fixedAsset', array('' => '') + $usedFixedAssets);
             $data->listFilter->showFields .= ",fixedAsset";
         }
         
         // Ако има използвани оператори, добавят се за филтриране
         $usedEmployeeIds = self::getResourcesInDetails($data->masterId, 'employees');
-        if(count($usedEmployeeIds)){
+        if(countR($usedEmployeeIds)){
             $data->listFilter->setOptions('employees', array('' => '') + $usedEmployeeIds);
             $data->listFilter->showFields .= ",employees";
         }
         
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->toolbar->addSbBtn('', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
         
         // Филтър по избраните стойности
@@ -862,7 +868,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         if ($action == 'add' && isset($rec->type) && $rec->type != 'product' && $rec->type != 'start') {
             if ($requiredRoles != 'no_one') {
                 $pOptions = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
-                if (!count($pOptions)) {
+                if (!countR($pOptions)) {
                     $requiredRoles = 'no_one';
                 }
             }
@@ -925,7 +931,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             
             // Ако няма оператори, пропуска се
             $persons = keylist::toArray($rec->employees);
-            if (!count($persons)) {
+            if (!countR($persons)) {
                 continue;
             }
             
@@ -942,7 +948,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
             
             // Колко е заработката за 1 човек
-            $timePerson = ($rec->indTimeAllocation == 'individual') ? $quantity * $rec->norm : (($quantity * $rec->norm) / count($persons));
+            $timePerson = ($rec->indTimeAllocation == 'individual') ? $quantity * $rec->norm : (($quantity * $rec->norm) / countR($persons));
             
             $date = dt::verbal2mysql($rec->createdOn, false);
             foreach ($persons as $personId) {
@@ -1055,7 +1061,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         if(!empty($taskRec->fixedAssets)){
             $taskAssets = keylist::toArray($taskRec->fixedAssets);
-            if(count($taskAssets) && empty($rec->fixedAsset)){
+            if(countR($taskAssets) && empty($rec->fixedAsset)){
                 expect(!empty($rec->fixedAsset), 'Задължително трябва да е избрано оборудване');
             }
         }
@@ -1128,10 +1134,10 @@ class planning_ProductionTaskDetails extends doc_Detail
             $arr[] = max(array($weight / 10, 1));
         }
         sort($arr);
-        unset($arr[count($arr) - 1]);
+        unset($arr[countR($arr) - 1]);
         unset($arr[0]);
         $sum = array_sum($arr);
-        $average = round($sum / count($arr), 4);
+        $average = round($sum / countR($arr), 4);
        
         return $average;
     }

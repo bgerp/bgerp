@@ -161,6 +161,17 @@ class doc_Notes extends core_Master
      */
     public $showLetterHead = true;
     
+    /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 20000;
+    
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'modifiedOn,state';
+    
     
     /**
      * Описание на модела

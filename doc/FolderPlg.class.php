@@ -35,7 +35,7 @@ class doc_FolderPlg extends core_Plugin
             // Определя достъпа по подразбиране за новите папки
             setIfNot($defaultAccess, $mvc->defaultAccess, 'team');
             
-            $mvc->FLD('inCharge', 'user(role=powerUser, rolesForAll=executive)', 'caption=Права->Отговорник,formOrder=10000,smartCenter');
+            $mvc->FLD('inCharge', 'user(roles=powerUser, rolesForAll=executive)', 'caption=Права->Отговорник,formOrder=10000,smartCenter');
             $mvc->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп,formOrder=10001,notNull,value=' . $defaultAccess);
             $mvc->FLD('shared', 'userList', 'caption=Права->Споделяне,formOrder=10002');
             
@@ -53,6 +53,7 @@ class doc_FolderPlg extends core_Plugin
         $mvc->details['Rights'] = $mvc->className;
         $mvc->details['History'] = $mvc->className;
         $mvc->details['Resources'] = 'doc_FolderResources';
+        setIfNot($mvc->autoCreateFolder, 'instant');
     }
     
     
@@ -692,7 +693,7 @@ class doc_FolderPlg extends core_Plugin
         
         // Подготовка на линк към папката (или създаване на нова) на корицата
         if ($fField = $mvc->listFieldForFolderLink) {
-            $folderTitle = $mvc->getFolderTitle($rec->id);
+            $folderTitle = $mvc->getFolderTitle($rec->id, false);
             
             if ($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {
                 if (doc_Folders::haveRightFor('single', $rec->folderId) && !$currUrl['Rejected']) {
@@ -724,20 +725,20 @@ class doc_FolderPlg extends core_Plugin
             
             // Имали бързи бутони
             if ($mvc->hasPlugin('plg_RowTools2') && $rec->state != 'rejected' && doc_Folders::haveRightToObject($rec)) {
-                $managersIds = doc_Threads::getFastButtons($mvc, $rec->id);
-                if (count($managersIds)) {
+                $buttons = doc_Threads::getFastButtons($mvc, $rec->id);
+                if (countR($buttons)) {
                     
                     // За всеки документ който може да се създаде от бърз бутон
-                    foreach ($managersIds as $classId) {
-                        $Cls = cls::get($classId);
-                        
+                    foreach ($buttons as $obj) {
+                        $Cls = cls::get($obj->class);
                         if ($Cls->haveRightFor('add', (object) array('folderId' => $mvc->forceCoverAndFolder($rec->id, false)))) {
-                            $btnTitle = ($Cls->buttonInFolderTitle) ? $Cls->buttonInFolderTitle : $Cls->singleTitle;
-                            $url = array($mvc, 'forcedocumentinfolder', 'id' => $rec->id, 'documentClassId' => $classId, 'ret_url' => true);
+                            
                             
                             // Добавяме го в rowToolbar-а
+                            $url = array($mvc, 'forcedocumentinfolder', 'id' => $rec->id, 'documentClassId' => $Cls->getClassId(), 'ret_url' => true);
                             core_RowToolbar::createIfNotExists($row->_rowTools);
-                            $row->_rowTools->addLink($btnTitle, $url, "ef_icon = {$Cls->singleIcon},order=18,title=Създаване на " . mb_strtolower($Cls->singleTitle));
+                            $title = $obj->caption ? $obj->caption : $Cls->singleTitle;
+                            $row->_rowTools->addLink($title, $url, "ef_icon = {$Cls->singleIcon},order=18,title=Създаване на " . mb_strtolower($Cls->singleTitle));
                         }
                     }
                 }
@@ -992,13 +993,19 @@ class doc_FolderPlg extends core_Plugin
         $settings = core_Settings::fetchKeyNoMerge($fKey, $allSysTeamId);
         
         if ($settings['showDocumentsAsButtons']) {
-            $res += type_Keylist::toArray($settings['showDocumentsAsButtons']);
+            $keyArr = type_Keylist::toArray($settings['showDocumentsAsButtons']);
+            foreach ($keyArr as $key){
+                $res[] = (object)array('class' => $key);
+            }
         }
-        
+       
         if (empty($res)) {
             // Ако има зададени класове по подразбиране
             if (isset($mvc->defaultDefaultDocuments)) {
-                $res = arr::make($mvc->defaultDefaultDocuments);
+                $defaultArr = arr::make($mvc->defaultDefaultDocuments);
+                foreach ($defaultArr as $def){
+                    $res[] = (object)array('class' => $def);
+                }
             }
         }
     }

@@ -43,10 +43,12 @@ class trans_LogisticDataIntf
      *  	string|NULL   ['toAddress']    - адрес за разтоварване
      *   	string|NULL   ['toCompany']    - фирма
      *   	string|NULL   ['toPerson']     - лице
+     *      string|NULL   ['toPersonPhones'] - телефон на лицето
+     *      string|NULL   ['instructions'] - инструкции
      * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
      * 		text|NULL 	  ['conditions']   - други условия
-     * 		varchar|NULL  ['ourReff']      - наш реф
-     *  	double|NULL   ['totalWeight']  - общо тегло
+     *		varchar|NULL  ['ourReff']      - наш реф
+     * 		double|NULL   ['totalWeight']  - общо тегло
      * 		double|NULL   ['totalVolume']  - общ обем
      */
     public function getLogisticData($rec)

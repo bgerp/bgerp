@@ -990,6 +990,8 @@ en,Маршрути,Routes
 en,Масово разпращ_7ab3,Mass mailing
 en,Мастила,Inks
 en,Материали,Materials
+en,материал,material
+en,Материал,Material
 en,Машини,Machines
 en,Медия,Media
 en,Международен,International
@@ -2546,7 +2548,7 @@ en,"След като попълните полетата по-долу нати
 en,Регистрирай,Register
 en,Активиране на акаунт,Account activation
 en,"За съжаление възникна грешка и не успяхме да изпратим имейла за активиране. Опитайте по-късно или се свържете със системния администратор","Unfortunately, there was an error and we were unable to send the activation email. Try it later or contact your system administrator"
-en,"Има вече такъв потребител. Ако това сте Вие, може да се логнете от","There is already a registered user with this email. If this is you, you may log in from"
+en,"Има вече такъв потребител. Ако това сте Вие, може да се логнете от","There is already a registered user. If this is you, you may log in from"
 en,"Вече има регистриран потребител с този имейл. Ако това сте Вие, може да се логнете от","There is already a registered user with this email. If this is you, you may log in from"
 en,"Вече има регистриран потребител с този ник. Ако това сте Вие, може да се логнете от","There is already a registered user with this nick. If this is you, you may log in from"
 en,"Изберете друг, например","Choose another e.g."
@@ -2757,6 +2759,7 @@ en,прогрес,progress
 en,Продължи,Continue
 en,за,for
 en,Вижте цялата нишка от имейли,See the entire email thread
+en,Цялата нишка,The entire thread
 en,Повече от едномерен масив в URL-то не се поддържа,More than one-dimensional array in URL is not supported
 en,Очаква масив,Expected array
 en,Артикули в е-магазина,Products in the e-shop
@@ -2900,3 +2903,20 @@ en,До 30 дни след фактуриране с 1.5% отстъпка пр�
 en,"Опитайте пак! Имаше проблем при завършването на поръчката! Ако все още имате проблем, свържете се с нас.","Try again! There was a problem placing your order! If you still can't place the order, contact us."
 en,Поръчайте,Order
 en,Избраното количество не е налично,The selected quantity is not available
+en,лв,lv
+en,"второ напомняне","second reminder"
+en,"трето напомняне","third reminder"
+en,"Просрочен документ","Overdue document"
+en,"Имате създадени, но неактивирани","You've created,but haven't activated"
+en,"Имате създаден, но неактивиран","You've created,but haven't activated"
+en,"до 30 дни след фактуриране, отстъпка 2% при плащане до 5 работни дни","Up to 30 days after invoicing with 2% discount up to 5 days"
+en,Ваш №,Your No
+en,Фактуриран аванс,Downpayment invoiced
+en,Аванс за приспадане,For deduction
+en,По банков път,Bank payment
+en,"Търсене на","Searching for"
+en,"При търсене на","Your search for"
+en,"не бяха открити точни резултати, затова са показани приблизителни","did not return an exact result, so estimates are shown"
+en,"не бяха открити резултати","did not return any result"
+еn,В CSV-източника са открити по-малко колони от колкото са необходими за този списък,Fewer columns were found in the CSV source than are needed for this list
+en,Всички статии в блога,All Articles in the Blog

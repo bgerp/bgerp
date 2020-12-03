@@ -70,7 +70,7 @@ class planning_interface_ImportTaskProducts extends planning_interface_ImportDri
                     $dRec->caption .= " / |*<i>{$dRec->batch}</i>";
                     
                     // Колко е изпълнено досега
-                    if (count($containers)) {
+                    if (countR($containers)) {
                         $bQuery = batch_BatchesInDocuments::getQuery();
                         $bQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
                         $bQuery->in('containerId', $containers);
@@ -82,7 +82,7 @@ class planning_interface_ImportTaskProducts extends planning_interface_ImportDri
             }
             
             // Ако няма партиди гледа се колко е изпълнено досега
-            if (empty($dRec->selectedByNow) && count($containers)) {
+            if (empty($dRec->selectedByNow) && countR($containers)) {
                 $dQuery = $mvc->getQuery();
                 $dQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
                 $dQuery->EXT('storeId', $mvc->Master->className, "externalName=storeId,externalKey={$mvc->masterKey}");
@@ -231,7 +231,7 @@ class planning_interface_ImportTaskProducts extends planning_interface_ImportDri
         if (isset($masterId)) {
             $masterRec = $mvc->Master->fetchRec($masterId);
             $foundRecs = self::getProductsFromTasks($masterRec->threadId, $masterRec->storeId, $mvc->taskActionLoad, 1);
-            if (!count($foundRecs)) {
+            if (!countR($foundRecs)) {
                 
                 return false;
             }

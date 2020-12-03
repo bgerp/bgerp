@@ -79,7 +79,7 @@ class hr_WorkPreff extends core_Master
                 'type' => $rec->type,
                 'name' => $rec->name,
                 'parts' => $parts,
-                'count' => count($parts),
+                'count' => countR($parts),
                 'typeOfPosition' => $typeOfPosition,
                 
             );

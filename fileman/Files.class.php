@@ -52,7 +52,7 @@ class fileman_Files extends core_Master
     /**
      * Кой има права за регенерира на файла
      */
-    protected $canRegenerate = 'admin';
+    protected $canRegenerate = 'admin, debug';
     
     
     /**
@@ -71,8 +71,20 @@ class fileman_Files extends core_Master
     
     
     public $loadList = 'plg_Sorting, plg_GroupByDate';
+
+
+    /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 100000;
     
     
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'modifiedOn,extractedOn';
+    
+
     /**
      * Описание на модела (таблицата)
      */
@@ -1083,6 +1095,37 @@ class fileman_Files extends core_Master
     
     
     /**
+     * Помощна фунцкия за ограничаване и подготвяне на името на файла на името на файла
+     * 
+     * @param string $firstName
+     * @param string $ext
+     * @param null|integer $index
+     * @param integer $maxNameLen
+     * 
+     * @return string
+     */
+    protected static function prepareFn($firstName, $ext, $index = null, $maxNameLen = 255)
+    {
+        $eLen = strlen($ext);
+        $len = strlen($firstName) + $eLen;
+        
+        $iLen = 0;
+        $indexStr = '';
+        if (isset($index)) {
+            $indexStr = '_' . $index;
+            $iLen = strlen($indexStr);
+            $len += $iLen;
+        }
+        
+        if (($len) >= $maxNameLen) {
+            $firstName = substr($firstName, 0, $maxNameLen - $eLen - $iLen);
+        }
+        
+        return $firstName . $indexStr . $ext;
+    }
+    
+    
+    /**
      * Връща първото възможно има, подобно на зададеното, така че в този
      * $bucketId да няма повторение на имената
      */
@@ -1102,11 +1145,13 @@ class fileman_Files extends core_Master
             $ext = '';
         }
         
+        $fn = self::prepareFn($firstName, $ext);
+        
         // Двоично търсене за свободно име на файл
         $i = 1;
-        
         while (self::fetchField(array("#name = '[#1#]' AND #bucketId = '{$bucketId}'", $fn), 'id')) {
-            $fn = $firstName . '_' . $i . $ext;
+            $fn = self::prepareFn($firstName, $ext, $i);
+            
             $i = $i * 2;
         }
         
@@ -1117,7 +1162,7 @@ class fileman_Files extends core_Master
             
             do {
                 $i = ($max + $min) / 2;
-                $fn = $firstName . '_' . $i . $ext;
+                $fn = self::prepareFn($firstName, $ext, $i);
                 
                 if (self::fetchField(array("#name = '[#1#]' AND #bucketId = '{$bucketId}'", $fn), 'id')) {
                     $min = $i;
@@ -1128,7 +1173,8 @@ class fileman_Files extends core_Master
             
             $i = $max;
             
-            $fn = $firstName . '_' . $i . $ext;
+            $fn = self::prepareFn($firstName, $ext, $i);
+            
         }
         
         return $fn;
@@ -1398,6 +1444,8 @@ class fileman_Files extends core_Master
             sleep(2);
             Debug::log('Sleep 2 sec. in ' . __CLASS__);
             
+            wp($fh);
+            
             return false;
         }
         
@@ -1555,7 +1603,7 @@ class fileman_Files extends core_Master
     {
         $rec = static::fetchByFh($fh);
         
-        if (static::haveRightFor('single', $rec)) {
+        if (static::haveRightFor('single', $rec) && !Mode::is('forceDownload')) {
             
             //Генерираме връзката
             $url = toUrl(array('fileman_Files', 'single', $fh), $isAbsolute);
@@ -2156,7 +2204,7 @@ class fileman_Files extends core_Master
         $nextUrl = $fileNavArr[$rec->fileHnd]['next'];
         
         // Показваме селект с всички файлове
-        if (!$dangerFileClass && $fileNavArr[$rec->fileHnd]['allFilesArr'] && count($fileNavArr[$rec->fileHnd]['allFilesArr']) > 1) {
+        if (!$dangerFileClass && $fileNavArr[$rec->fileHnd]['allFilesArr'] && countR($fileNavArr[$rec->fileHnd]['allFilesArr']) > 1) {
             $form = cls::get('core_Form');
             $form->fnc('selectFile', 'enum()', 'input=input');
             
@@ -2305,7 +2353,7 @@ class fileman_Files extends core_Master
                 }
                 
                 if (is_array($jpgArr) && $jpgArr['otherPagesCnt']) {
-                    $all = count($jpgArr);
+                    $all = countR($jpgArr);
                     $all--;
                     
                     $warning = "|Ще се отпечатат първите|* {$all} |страници|*. |Ще се пропуснат|* {$jpgArr['otherPagesCnt']} |страници|*.";
@@ -2327,7 +2375,7 @@ class fileman_Files extends core_Master
         $data->toolbar->addBtn('Линк', array('F', 'GetLink', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => true), 'id=btn-downloadLink', 'ef_icon = img/16/link.png, title=Генериране на линк за сваляне, order=9');
         
         if ($mvc->haveRightFor('regenerate', $data->rec->id)) {
-            $data->toolbar->addBtn('Регенериране', array($mvc, 'Regenerate', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => true), 'id=btn-regenerate', 'ef_icon = img/16/recycle.png, title=Повторна обработка на файла, order=19.99');
+            $data->toolbar->addBtn('Регенериране', array($mvc, 'Regenerate', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => true), 'id=btn-regenerate', 'ef_icon = img/16/recycle.png, title=Повторна обработка на файла, order=19.99, row=2');
         }
         
         if ($printAttr = $this->checkForPrintBnt($mvc, $data->rec, true)) {
@@ -2518,6 +2566,10 @@ class fileman_Files extends core_Master
         $filter = $data->listFilter->rec;
         
         $usersArr = type_Keylist::toArray($filter->usersSearch);
+        if ($usersArr[-1]) {
+            $data->query->isSlowQuery = true;
+            $data->query->useCacheForPager = true;
+        }
         $mvc->prepareFilesQuery($data->query, $usersArr, $data->groupByDateField);
         
         $data->query->orderBy('modifiedOn', 'DESC');
@@ -2545,7 +2597,7 @@ class fileman_Files extends core_Master
         $userArrImp = implode(',', $usersArr);
         
         // Ако има избран повече от един потребител, ги подреждаме по послендо използване
-        if (count($usersArr) > 1) {
+        if (countR($usersArr) > 1) {
             $groupByDateField = 'lastUse';
             $query->EXT('lastUse', 'fileman_Data', 'externalName=lastUse, externalKey=dataId');
             $query->orderBy('#lastUse', 'DESC');

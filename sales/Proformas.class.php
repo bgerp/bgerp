@@ -47,11 +47,17 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
+     * При създаване на имейл, дали да се използва първият имейл от списъка
+     */
+    public $forceFirstEmail = true;
+    
+    
+    /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, cond_plg_DefaultValues, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing,
-                    doc_plg_HidePrices, doc_plg_TplManager, deals_plg_DpInvoice, doc_ActivatePlg, plg_Clone,cat_plg_AddSearchKeywords, plg_Search';
+					doc_EmailCreatePlg, plg_Printing,
+                    doc_plg_HidePrices, doc_plg_TplManager, bgerp_plg_Blank, deals_plg_DpInvoice, doc_ActivatePlg, plg_Clone,cat_plg_AddSearchKeywords, plg_Search';
     
     
     /**
@@ -144,7 +150,7 @@ class sales_Proformas extends deals_InvoiceMaster
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-        'place' => 'lastDocUser|lastDoc',
+        'place' => 'lastDocUser|lastDoc|defMethod',
         'responsible' => 'lastDocUser|lastDoc',
         'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
         'contragentVatNo' => 'clientData|lastDocUser|lastDoc',
@@ -152,7 +158,6 @@ class sales_Proformas extends deals_InvoiceMaster
         'contragentPCode' => 'clientData|lastDocUser|lastDoc',
         'contragentPlace' => 'clientData|lastDocUser|lastDoc',
         'contragentAddress' => 'clientData|lastDocUser|lastDoc',
-        'accountId' => 'lastDocUser|lastDoc',
         'template' => 'lastDocUser|lastDoc|defMethod',
     );
     
@@ -182,7 +187,8 @@ class sales_Proformas extends deals_InvoiceMaster
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'caption=Продажба,input=none');
         $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
-        $this->FLD('number', 'int', 'caption=Номер, export=Csv, after=place');
+        $this->FLD('number', 'int', 'caption=Номер, export=Csv,after=reff');
+        $this->FLD('reff', 'varchar(255,nullIfEmpty)', 'caption=Ваш реф.,class=contactData,after=place');
         
         $this->setDbUnique('number');
     }
@@ -222,6 +228,7 @@ class sales_Proformas extends deals_InvoiceMaster
         }
         
         if ($data->aggregateInfo) {
+            $form->setDefault('reff', $data->aggregateInfo->get('reff'));
             if ($accId = $data->aggregateInfo->get('bankAccountId')) {
                 $form->setDefault('accountId', bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id'));
             }
@@ -266,24 +273,34 @@ class sales_Proformas extends deals_InvoiceMaster
         }
         
         parent::beforeInvoiceSave($rec);
+        
+        // Кой е следващия най-голям номер
+        $number = (isset($rec->number)) ? $rec->number : ((isset($rec->id) ? $mvc->fetchField($rec->id, 'number') : 0));
+        if (empty($number)) {
+            $query = $mvc->getQuery();
+            $query->XPR('maxNumber', 'int', 'MAX(#number)');
+            $number = $query->fetch()->maxNumber;
+            $number += 1;
+            
+            while(self::fetchField("#number = '{$number}'")){
+                $number += 1;
+            }
+            
+            $rec->number = $number;
+        }
     }
     
     
     /**
-     * Извиква се след успешен запис в модела
+     * Добавя ключови думи за пълнотекстово търсене
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-        $number = ($rec->number) ? $rec->number : $mvc->fetchField($rec->id, 'number');
+        // Добавяне на кода към ключовите думи
+        $number = !empty($rec->number) ? $rec->number : (isset($rec->id) ? $mvc->fetchField($rec->id, 'number') : null);
         
-        if (empty($number)) {
-            $query = $mvc->getQuery();
-            $query->XPR('maxNumber', 'int', 'MAX(#number)');
-            
-            $number = $query->fetch()->maxNumber;
-            ++$number;
-            $rec->number = $number;
-            $mvc->save_($rec, 'number');
+        if(!empty($number)){
+            $res .= ' ' . plg_Search::normalizeText($number);
         }
     }
     
@@ -470,5 +487,42 @@ class sales_Proformas extends deals_InvoiceMaster
         
         // Връщаме очаквания аванс
         return $expectedDownpayment;
+    }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+     */
+    public static function getHandle($id)
+    {
+        $self = cls::get(get_called_class());
+        $rec = $self->fetch($id);
+        
+        if (!$rec->number) {
+            $hnd = $self->abbr . $rec->id;
+        } else {
+            $number = $self->getVerbal($rec, 'number');
+            $hnd = $self->abbr . $number;
+        }
+        
+        return $hnd;
+    }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+     */
+    public static function fetchByHandle($parsedHandle)
+    {
+        if ($parsedHandle['endDs'] && (strlen($parsedHandle['id']) != 10)) {
+            $rec = static::fetch($parsedHandle['id']);
+        } else {
+            $number = ltrim($parsedHandle['id'], '0');
+            if ($number) {
+                $rec = static::fetch("#number = '{$number}'");
+            }
+        }
+        
+        return $rec;
     }
 }

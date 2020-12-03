@@ -220,7 +220,7 @@ class sales_Quotations extends core_Master
     public function description()
     {
         $this->FLD('date', 'date', 'caption=Дата');
-        $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData');
+        $this->FLD('reff', 'varchar(255,nullIfEmpty)', 'caption=Ваш реф.,class=contactData');
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
         
         $this->FNC('row1', 'complexType(left=Количество,right=Цена)', 'caption=Детайли->Количество / Цена');
@@ -234,11 +234,13 @@ class sales_Quotations extends core_Master
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate');
         $this->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
         $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Плащане->ДДС,oldFieldName=vat');
-        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale');
+        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale,silent,removeAndRefreshForm=deliveryData|deliveryPlaceId|deliveryAdress|deliveryCalcTransport');
+        $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=none,caption=Доставка->Начисляване,after=deliveryTermId');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Обект,hint=Изберете обект');
         $this->FLD('deliveryAdress', 'varchar', 'caption=Доставка->Място');
         $this->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до');
         $this->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни');
+        $this->FLD('deliveryData', 'blob(serialize, compress)', 'input=none');
         
         $this->FLD('company', 'varchar', 'caption=Получател->Фирма, changable, class=contactData,input=hidden');
         $this->FLD('person', 'varchar', 'caption=Име, changable, class=contactData,after=reff');
@@ -251,7 +253,11 @@ class sales_Quotations extends core_Master
         $this->FLD('address', 'varchar', 'caption=Получател->Адрес, changable, class=contactData,input=hidden');
         
         $this->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Допълнително->Валидност,mandatory');
+        $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Цени,notChangeableByContractor');
         $this->FLD('others', 'text(rows=4)', 'caption=Допълнително->Условия');
+    
+        $this->setDbIndex('date');
+        $this->setDbIndex('contragentClassId,contragentId');
     }
     
     
@@ -260,7 +266,19 @@ class sales_Quotations extends core_Master
      */
     public function getDefaultChargeVat($rec)
     {
-        return deals_Helper::getDefaultChargeVat($rec->folderId);
+        $cData = doc_Folders::getContragentData($rec->folderId);
+        $bgId = drdata_Countries::getIdByName('Bulgaria');
+        if(empty($cData->countryId) || $bgId == $cData->countryId){
+            $defaultChargeVat = sales_Setup::get("QUOTATION_DEFAULT_CHARGE_VAT_BG");
+            if($defaultChargeVat != 'auto'){
+                
+                return $defaultChargeVat;
+            }
+        }
+        
+        $defaultChargeVat = deals_Helper::getDefaultChargeVat($rec->folderId);
+        
+        return $defaultChargeVat;
     }
     
     
@@ -277,37 +295,34 @@ class sales_Quotations extends core_Master
         $contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
         $form->setDefault('contragentClassId', $contragentClassId);
         $form->setDefault('contragentId', $contragentId);
+        $form->setOptions('priceListId', array('' => '') + price_Lists::getAccessibleOptions($rec->contragentClassId, $rec->contragentId));
+        
         $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, false);
-        if (count($locations)) {
+        if (countR($locations)) {
             $form->setOptions('deliveryPlaceId', array('' => '') + $locations);
         }
         
         if (isset($form->rec->id)) {
             if ($mvc->sales_QuotationsDetails->fetch("#quotationId = {$form->rec->id}")) {
-                foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId', 'deliveryPlaceId', 'deliveryAdress') as $fld) {
+                foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId', 'deliveryPlaceId', 'deliveryAdress', 'deliveryCalcTransport') as $fld) {
                     $form->setReadOnly($fld);
                 }
             }
         }
         
         if (isset($rec->originId) && $data->action != 'clone' && empty($form->rec->id)) {
-               
-               // Ако офертата има ориджин
-            $origin = doc_Containers::getDocument($rec->originId);
             
+            // Ако офертата има ориджин
+            $origin = doc_Containers::getDocument($rec->originId);
             if ($origin->haveInterface('cat_ProductAccRegIntf')) {
                 $form->setField('row1,row2,row3', 'input');
                 $rec->productId = $origin->that;
                 
-                // Ако продукта има ориджин който е запитване вземаме количествата от него по дефолт
-                if ($productOrigin = $origin->fetchField('originId')) {
-                    $productOrigin = doc_Containers::getDocument($productOrigin);
-                    if ($productOrigin->haveInterface('marketing_InquiryEmbedderIntf')) {
-                        $productOriginRec = $productOrigin->fetch();
-                        $form->setDefault('row1', $productOriginRec->quantity1);
-                        $form->setDefault('row2', $productOriginRec->quantity2);
-                        $form->setDefault('row3', $productOriginRec->quantity3);
-                    }
+                if($Driver = $origin->getDriver()){
+                    $quantitiesArr = $Driver->getQuantitiesForQuotation($origin->getInstance(), $origin->fetch());
+                    $form->setDefault('row1', $quantitiesArr[0]);
+                    $form->setDefault('row2', $quantitiesArr[1]);
+                    $form->setDefault('row3', $quantitiesArr[2]);
                 }
             }
         }
@@ -318,6 +333,22 @@ class sales_Quotations extends core_Master
         
         // Срок на валидност по подразбиране
         $form->setDefault('validFor', sales_Setup::get('DEFAULT_VALIDITY_OF_QUOTATION'));
+        
+        $form->input('deliveryTermId');
+        if(isset($rec->deliveryTermId)){
+            if(cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)){
+                $calcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
+                $form->setField('deliveryCalcTransport', 'input');
+                $form->setDefault('deliveryCalcTransport', $calcCost);
+            }
+            
+            cond_DeliveryTerms::prepareDocumentForm($rec->deliveryTermId, $form, $mvc);
+        }
+        
+        // Дефолтната ценова политика се показва като плейсхолдър
+        if($listId = price_ListToCustomers::getListForCustomer($form->rec->contragentClassId, $form->rec->contragentId)){
+            $form->setField("priceListId", "placeholder=" . price_Lists::getTitleById($listId));
+        }
     }
     
     
@@ -416,9 +447,9 @@ class sales_Quotations extends core_Master
             }
             
             // Ако има повтарящи се полета
-            if (count($errorFields)) {
+            if (countR($errorFields)) {
                 $form->setError($errorFields, 'Количествата трябва да са различни');
-            } elseif (count($errorFields2)) {
+            } elseif (countR($errorFields2)) {
                 $moq = core_Type::getByName('double(smartRound)')->toVerbal($moq);
                 $form->setError($errorFields2, "Минимално количество за поръчка|* <b>{$moq}</b>");
             }
@@ -446,14 +477,6 @@ class sales_Quotations extends core_Master
                 }
             }
             
-            if (isset($rec->deliveryTermId)) {
-                $locationId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null; 
-                
-                if ($error = sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $locationId)) {
-                    $form->setWarning('deliveryTermId,deliveryAdress,deliveryPlaceId', $error);
-                }
-            }
-            
             // Избрания ДДС режим съответства ли на дефолтния
             $defVat = $mvc->getDefaultChargeVat($rec);
             if ($vatWarning = deals_Helper::getVatWarning($defVat, $rec->chargeVat)) {
@@ -462,12 +485,17 @@ class sales_Quotations extends core_Master
             
             // Избраната валута съответства ли на дефолтната
             $defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
-            if ($defCurrency != $rec->currencyId) {
+            $currencyState = currency_Currencies::fetchField("#code = '{$defCurrency}'", 'state');
+            if ($defCurrency != $rec->currencyId && $currencyState != 'active') {
                 $form->setWarning('currencyId', "Избрана e различна валута от очакваната|* <b>{$defCurrency}</b>");
             }
             
             if (isset($rec->deliveryTermTime, $rec->deliveryTime)) {
                 $form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
+            }
+            
+            if(isset($rec->deliveryTermId)){
+                cond_DeliveryTerms::inputDocumentForm($rec->deliveryTermId, $form, $mvc);
             }
         }
     }
@@ -597,7 +625,7 @@ class sales_Quotations extends core_Master
                     $row->{"mycompany{$fld}"} = transliterate(tr($row->{"mycompany{$fld}"}));
                 }
             }
-            
+           
             if ($rec->currencyRate == 1) {
                 unset($row->currencyRate);
             }
@@ -609,6 +637,16 @@ class sales_Quotations extends core_Master
                     $row->others .= "<li>{$other}</li>";
                 }
             }
+            
+            if(isset($rec->deliveryTermId)){
+                if ($Driver = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
+                    $deliveryDataArr = $Driver->getVerbalDeliveryData($rec->deliveryTermId, $rec->deliveryData, get_called_class());
+                    foreach ($deliveryDataArr as $delObj){
+                        $row->deliveryBlock .= "<li>{$delObj->caption}: {$delObj->value}</li>";
+                    }
+                }
+            }
+            
             
             // Показване на допълнителните условия от артикулите
             $additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $mvc, $rec->id, $rec->tplLang);
@@ -630,20 +668,22 @@ class sales_Quotations extends core_Master
             if (!empty($rec->deliveryAdress)) {
                 $deliveryAdress .= $mvc->getFieldType('deliveryAdress')->toVerbal($rec->deliveryAdress);
             } else {
-                if (isset($rec->deliveryTermId)) {
-                    $placeId = ($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
-                    $deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, null, $placeId, $mvc);
-                }
+                $placeId = ($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
+                $deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, null, $placeId, $rec->deliveryData, $mvc);
             }
+            
+            $locationId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null; 
             
             if(isset($rec->deliveryTermId) && !Mode::isReadOnly()){
                 $row->deliveryTermId = ht::createLink($row->deliveryTermId, cond_DeliveryTerms::getSingleUrlArray($rec->deliveryTermId));
             }
             
             if (!empty($deliveryAdress)) {
-                $deliveryAdress1 = (isset($rec->deliveryTermId)) ? ($row->deliveryTermId . ', ') : '';
-                $deliveryAdress = $deliveryAdress1 . $deliveryAdress;
-                $row->deliveryTermId = $deliveryAdress;
+                if(isset($rec->deliveryTermId)){
+                    $row->deliveryTermId = "{$row->deliveryTermId}, {$deliveryAdress}";
+                } else {
+                    $row->deliveryPlaceId = $deliveryAdress;
+                }
             }
             
             if (!empty($profRec)) {
@@ -690,10 +730,14 @@ class sales_Quotations extends core_Master
             }
             
             if (isset($rec->deliveryTermId)) {
-                $locationId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null; 
+                
                 if (sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $locationId)) {
                    $row->deliveryError = tr('За транспортните разходи, моля свържете се с представител на фирмата');
                 }
+            }
+            
+            if(!empty($row->deliveryPlaceId)){
+                $row->deliveryPlaceCaption = isset($rec->deliveryTermId) ? tr('Място на доставка') : tr('За адрес');
             }
             
             if (empty($rec->deliveryTime) && empty($rec->deliveryTermTime)) {
@@ -930,9 +974,14 @@ class sales_Quotations extends core_Master
      */
     public function getDefaultEmailBody($id, $forward = false)
     {
+        $rec = $this->fetchRec($id);
         $handle = $this->getHandle($id);
-        $tpl = new ET(tr('Моля запознайте се с нашата оферта') . ': #[#handle#]');
+        $tpl = new core_ET(tr("Моля запознайте се с нашата оферта|* : #[#handle#]."));
         $tpl->append($handle, 'handle');
+        
+        if($rec->chargeVat == 'separate'){
+            $tpl->append("\n\n" . tr("Обърнете внимание, че цените в тази оферта са [b]без ДДС[/b]. В договора ДДС ще е на отделен ред."));
+        }
         
         return $tpl->getContent();
     }
@@ -980,12 +1029,15 @@ class sales_Quotations extends core_Master
             }
         }
         
-        if (count($updateFields)) {
+        if (countR($updateFields)) {
             $mvc->save($rec, $updateFields);
         }
         
         // Ако запитването е в папка на контрагент вкарва се в група запитвания
-        $groupId = crm_Groups::force('Клиенти » Оферти');
+        $clientGroupId = crm_Groups::getIdFromSysId('customers');
+        $groupRec = (object)array('name' => 'Оферти', 'sysId' => 'quotationsClients', 'parentId' => $clientGroupId);
+        $groupId = crm_Groups::forceGroup($groupRec);
+        
         cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, $groupId, false);
     }
     
@@ -1036,7 +1088,7 @@ class sales_Quotations extends core_Master
             $products[$index] = $detail;
         }
         
-        return (count($products)) ? array_values($products) : null;
+        return (countR($products)) ? array_values($products) : null;
     }
     
     
@@ -1110,6 +1162,7 @@ class sales_Quotations extends core_Master
             'currencyRate' => $rec->currencyRate,
             'paymentMethodId' => $rec->paymentMethodId,
             'deliveryTermId' => $rec->deliveryTermId,
+            'caseId' => cash_Cases::getCurrent('id', false),
             'chargeVat' => $rec->chargeVat,
             'note' => $rec->others,
             'originId' => $rec->containerId,
@@ -1117,6 +1170,7 @@ class sales_Quotations extends core_Master
             'deliveryAdress' => $rec->deliveryAdress,
             'deliveryTime' => $rec->deliveryTime,
             'deliveryTermTime' => $rec->deliveryTermTime,
+            'deliveryData' => $rec->deliveryData,
             'deliveryLocationId' => crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id'),
         );
         
@@ -1125,9 +1179,7 @@ class sales_Quotations extends core_Master
         
         // Създаваме нова продажба от офертата
         $saleId = sales_Sales::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
-        sales_Sales::logWrite('Създаване от оферта', $saleId);
-        
-        if (isset($rec->bankAccountId)) {
+        if (isset($saleId) && isset($rec->bankAccountId)) {
             $uRec = (object) array('id' => $saleId, 'bankAccountId' => bank_OwnAccounts::fetchField($rec->bankAccountId, 'bankAccountId'));
             cls::get('sales_Sales')->save_($uRec);
         }
@@ -1158,11 +1210,22 @@ class sales_Quotations extends core_Master
             }
         }
         
-        // Ако няма създаваме нова
+        // Ако няма създава се нова продажба
         if (!$sId = Request::get('dealId', 'key(mvc=sales_Sales)')) {
+            $errorMsg = 'Проблем при създаването на оферта';
             
-            // Създаваме нова продажба от офертата
-            $sId = $this->createSale($rec);
+            try{
+                $sId = $this->createSale($rec);
+                sales_Sales::logWrite('Създаване от оферта', $sId);
+            } catch(core_exception_Expect $e){
+                $errorMsg = $e->getMessage();
+                reportException($e);
+                $this->logErr($errorMsg, $rec->id);
+            }
+        }
+        
+        if(empty($sId)){
+            followRetUrl(null, $errorMsg, 'error');
         }
         
         // За всеки детайл на офертата подаваме го като детайл на продажбата
@@ -1213,12 +1276,23 @@ class sales_Quotations extends core_Master
             }
             
             if ($setError === true) {
-                $form->setError(implode(',', $errFields), 'Не може да не са зададени количества');
+                $form->setError(implode(',', $errFields), 'Не са зададени количества');
             }
             
             if (!$form->gotErrors()) {
-                $sId = $this->createSale($rec);
-               
+                try{
+                    $errorMsg = 'Проблем при създаването на оферта';
+                    $sId = $this->createSale($rec);
+                } catch(core_exception_Expect $e){
+                    $errorMsg = $e->getMessage();
+                    reportException($e);
+                    $this->logErr($errorMsg, $rec->id);
+                }
+                
+                if(empty($sId)){
+                    followRetUrl(null, $errorMsg, 'error');
+                }
+                
                 foreach ($products as $dRecId) {
                     if(empty($dRecId)) continue;
                     
@@ -1272,13 +1346,13 @@ class sales_Quotations extends core_Master
             } else {
                 $product->title = "Оферирани->{$product->title}";
                 $mandatory = '';
-                if (count($product->options) > 1) {
+                if (countR($product->options) > 1) {
                     $product->options = array('' => '') + $product->options;
                     $mandatory = 'mandatory';
                 }
             }
             $form->FNC($index, 'double(decimals=2)', "input,caption={$product->title},hint={$product->hint},{$mandatory}");
-            if (count($product->options) == 1) {
+            if (countR($product->options) == 1) {
                 $default = key($product->options);
             }
             
@@ -1372,20 +1446,6 @@ class sales_Quotations extends core_Master
     
     
     /**
-     * Преди запис на документ, изчислява стойността на полето `isContable`
-     *
-     * @param core_Manager $mvc
-     * @param stdClass     $rec
-     */
-    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
-    {
-        if ($rec->reff === '') {
-            $rec->reff = null;
-        }
-    }
-    
-    
-    /**
      * Затваряне на изтекли оферти по крон
      */
     public function cron_CloseQuotations()
@@ -1448,29 +1508,31 @@ class sales_Quotations extends core_Master
      * @param int   $date            - дата
      * @param array $fields          - стойности на полетата на сделката
      *
-     *   o $fields['originId']        - вальор (ако няма е текущата дата)
-     *   o $fields['reff']            - вашия реф на продажбата
-     *   o $fields['currencyCode']    - код на валута (ако няма е основната за периода)
-     * 	 o $fields['rate']            - курс към валутата (ако няма е този към основната валута)
-     * 	 o $fields['paymentMethodId'] - ид на платежен метод (Ако няма е плащане в брой, @see cond_PaymentMethods)
-     * 	 o $fields['chargeVat']       - да се начислява ли ДДС - yes=Да, separate=Отделен ред за ДДС, exempt=Освободено,no=Без начисляване(ако няма, се определя според контрагента)
-     * 	 o $fields['deliveryTermId']  - ид на метод на доставка (@see cond_DeliveryTerms)
-     * 	 o $fields['validFor']        - срок на годност
-     *   o $fields['company']         - фирма
-     *   o $fields['person']          - лице
-     *   o $fields['email']           - имейли
-     *   o $fields['tel']             - телефон
-     *   o $fields['fax']             - факс
-     *   o $fields['pCode']           - пощенски код
-     *   o $fields['place']           - град
-     *   o $fields['address']         - адрес
-     *   o $fields['deliveryAdress']  - адрес за доставка
+     *   o $fields['originId']              - вальор (ако няма е текущата дата)
+     *   o $fields['reff']                  - вашия реф на продажбата
+     *   o $fields['currencyCode']          - код на валута (ако няма е основната за периода)
+     * 	 o $fields['rate']                  - курс към валутата (ако няма е този към основната валута)
+     * 	 o $fields['paymentMethodId']       - ид на платежен метод (Ако няма е плащане в брой, @see cond_PaymentMethods)
+     * 	 o $fields['chargeVat']             - да се начислява ли ДДС - yes=Да, separate=Отделен ред за ДДС, exempt=Освободено,no=Без начисляване(ако няма, се определя според контрагента)
+     * 	 o $fields['deliveryTermId']        - ид на метод на доставка (@see cond_DeliveryTerms)
+     *   o $fields['deliveryCalcTransport'] - дали да се начислява скрит или явен транспорт (@see cond_DeliveryTerms)
+     * 	 o $fields['validFor']              - срок на годност
+     *   o $fields['company']               - фирма
+     *   o $fields['person']                - лице
+     *   o $fields['email']                 - имейли
+     *   o $fields['tel']                   - телефон
+     *   o $fields['fax']                   - факс
+     *   o $fields['pCode']                 - пощенски код
+     *   o $fields['place']                 - град
+     *   o $fields['address']               - адрес
+     *   o $fields['deliveryAdress']        - адрес за доставка
      *
      * @return mixed - ид на запис или FALSE
      */
     public static function createNewDraft($contragentClass, $contragentId, $date = null, $fields = array())
     {
         // Проверки
+        $me = cls::get(get_called_class());
         expect($Cover = cls::get($contragentClass), 'Невалиден клас');
         expect(cls::haveInterface('crm_ContragentAccRegIntf', $Cover), 'Класа не е на контрагент');
         expect($Cover->fetch($contragentId), 'Няма такъв контрагент');
@@ -1497,21 +1559,23 @@ class sales_Quotations extends core_Master
             $newRec->folderId = $Cover->forceCoverAndFolder($contragentId);
         }
         
-        $newRec->currencyId = (isset($fields['currencyCode'])) ? $fields['currencyCode'] : $Cover->getDefaultcurrencyId($contragentId);
+        $newRec->currencyId = (isset($fields['currencyCode'])) ? $fields['currencyCode'] : cond_plg_DefaultValues::getDefaultValue($me, $newRec->folderId, 'currencyId');
         expect(currency_Currencies::getIdByCode($newRec->currencyId), 'Невалиден код');
+        
         $newRec->currencyRate = (isset($fields['rate'])) ? $fields['rate'] : currency_CurrencyRates::getRate($newRec->date, $newRec->currencyId, null);
         expect(cls::get('type_Double')->fromVerbal($newRec->currencyRate), 'Невалиден курс');
-        $newRec->chargeVat = (isset($fields['chargeVat'])) ? $fields['chargeVat'] : (($Cover->shouldChargeVat($contragentId)) ? 'yes' : 'no');
+        
+        $newRec->chargeVat = (isset($fields['chargeVat'])) ? $fields['chargeVat'] : cond_plg_DefaultValues::getDefaultValue($me, $newRec->folderId, 'chargeVat');
         expect(in_array($newRec->chargeVat, array('yes', 'no', 'exempt', 'separate')), 'Невалидно ДДС');
         
         // Намиране на метода за плащане
-        $newRec->paymentMethodId = (isset($fields['paymentMethodId'])) ? $fields['paymentMethodId'] : cond_Parameters::getParameter($Cover->getClassId(), $contragentId, 'paymentMethodSale');
+        $newRec->paymentMethodId = (isset($fields['paymentMethodId'])) ? $fields['paymentMethodId'] : cond_plg_DefaultValues::getDefaultValue($me, $newRec->folderId, 'paymentMethodId');
         if (isset($newRec->paymentMethodId)) {
             expect(cond_PaymentMethods::fetch($newRec->paymentMethodId), 'Невалиден метод за плащане');
         }
         
         // Условието на доставка
-        $newRec->deliveryTermId = (isset($fields['deliveryTermId'])) ? $fields['deliveryTermId'] : cond_Parameters::getParameter($Cover->getClassId(), $contragentId, 'deliveryTermSale');
+        $newRec->deliveryTermId = (isset($fields['deliveryTermId'])) ? $fields['deliveryTermId'] : cond_plg_DefaultValues::getDefaultValue($me, $newRec->folderId, 'deliveryTermId');
         if (isset($newRec->deliveryTermId)) {
             expect(cond_DeliveryTerms::fetch($newRec->deliveryTermId), 'Невалидно условие на доставка');
         }
@@ -1553,6 +1617,12 @@ class sales_Quotations extends core_Master
         $newRec->contragentCountryId = (isset($fields['countryId'])) ? $fields['countryId'] : $data->countryId;
         expect(drdata_Countries::fetch($newRec->contragentCountryId), 'Невалидна държава');
         $newRec->template = self::getDefaultTemplate($newRec);
+        
+        if(isset($newRec->deliveryTermId)){
+            if(cond_DeliveryTerms::getTransportCalculator($newRec->deliveryTermId)){
+                $newRec->deliveryCalcTransport = isset($fields['deliveryCalcTransport']) ? $fields['deliveryCalcTransport'] : cond_DeliveryTerms::fetchField($newRec->deliveryTermId, 'calcCost');
+            }
+        }
         
         // Създаване на запис
         self::route($newRec);
@@ -1652,7 +1722,7 @@ class sales_Quotations extends core_Master
             $clone = clone $rec;
             $clone->deliveryPlaceId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null; 
             
-            sales_TransportValues::prepareFee($newRec, $form, $clone, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId'));
+            sales_TransportValues::prepareFee($newRec, $form, $clone, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId', 'deliveryData' => 'deliveryData'));
         }
         
         // Проверки на записите
@@ -1718,15 +1788,25 @@ class sales_Quotations extends core_Master
             $saveRecs[] = $dRec;
         }
         
-        if (count($error)) {
+        if (countR($error)) {
             $imploded = implode(', ', $error);
-            $start = (count($error) == 1) ? 'артикулът' : 'артикулите';
-            $mid = (count($error) == 1) ? 'му' : 'им';
+            $start = (countR($error) == 1) ? 'артикулът' : 'артикулите';
+            $mid = (countR($error) == 1) ? 'му' : 'им';
             $msg = "На {$start}|* <b>{$imploded}</b> |трябва да {$mid} се въведе цена|*";
             
             core_Statuses::newStatus($msg, 'error');
             
             return false;
+        }
+        
+        // Ако има избрано условие на доставка, пзоволява ли да бъде контиран документа
+        if(isset($rec->deliveryTermId)){
+            $error = null;
+            if(!cond_DeliveryTerms::checkDeliveryDataOnActivation($rec->deliveryTermId, $rec, $rec->deliveryData, $mvc, $error)){
+                core_Statuses::newStatus($error, 'error');
+                
+                return false;
+            }
         }
         
         cls::get('sales_QuotationsDetails')->saveArray($saveRecs);
@@ -1823,5 +1903,57 @@ class sales_Quotations extends core_Master
         $createdBy = self::fetchField($id, 'createdBy');
         
         return ($createdBy == core_Users::SYSTEM_USER) ? 'opened' : null;
+    }
+    
+    
+    /**
+     * Екшън за автоматичен редирект към създаване на детайл
+     */
+    function act_autoCreateInFolder()
+    {
+        $this->requireRightFor('add');
+        expect($folderId = Request::get('folderId', 'int'));
+        $this->requireRightFor('add', (object)array('folderId' => $folderId));
+        expect(doc_Folders::haveRightToFolder($folderId));
+        
+        // Има ли избрана константа
+        $constValue = sales_Setup::get('NEW_QUOTATION_AUTO_ACTION_BTN');
+        if($constValue == 'form') {
+            
+            return Redirect(array($this, 'add', 'folderId' => $folderId));
+        }
+        
+        // Генерира дефолтите според папката
+        $Cover = doc_Folders::getCover($folderId);
+        $fields = array();
+        $fieldsWithStrategy = array_keys(static::$defaultStrategies);
+        foreach ($fieldsWithStrategy as $field){
+            $fields[$field] = cond_plg_DefaultValues::getDefaultValue($this, $folderId, $field);
+        }
+        
+        // Създаване на мастър на документа
+        try{
+            $masterId = static::createNewDraft($Cover->getClassId(), $Cover->that, null, $fields);
+        } catch(core_exception_Expect $e){
+            reportException($e);
+            
+            followRetUrl(null, "Проблем при създаване на оферта");
+        }
+        
+        $redirectUrl = array($this, 'single', $masterId);
+        $Detail = cls::get($this->mainDetail);
+        
+        // Редирект към добавянето на детайл
+        if($constValue == 'addProduct') {
+            if($Detail->haveRightFor('add', (object)array("{$Detail->masterKey}" => $masterId))){
+                $redirectUrl = array($Detail, 'add', "{$Detail->masterKey}" => $masterId, 'optional' => 'no', 'ret_url' => array($this, 'single', $masterId));
+            }
+        } elseif($constValue == 'createProduct'){
+            if($Detail->haveRightFor('createproduct', (object)array("{$Detail->masterKey}" => $masterId))){
+                $redirectUrl = array($Detail, 'createproduct', "{$Detail->masterKey}" => $masterId, 'optional' => 'no', 'ret_url' => array($this, 'single', $masterId));
+            }
+        }
+        
+        return Redirect($redirectUrl);
     }
 }

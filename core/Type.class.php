@@ -248,6 +248,19 @@ class core_Type extends core_BaseClass
     
     
     /**
+     * Обръща стойността в хидън
+     *
+     * @param string $value
+     *
+     * @return mixed stdClass, array, string, ...
+     */
+    public function toHidden($value)
+    {
+        return $value;
+    }
+    
+    
+    /**
      * Проверява зададената стойност дали е допустима за този тип.
      * Стойността е във вътрешен формат (MySQL)
      * Връща масив с ключове 'warning', 'error' и 'value'.
@@ -341,6 +354,11 @@ class core_Type extends core_BaseClass
     public function createInput($name, $value, $attr)
     {
         $this->setFieldWidth($attr);
+ 
+        if (isset($this->params['inputmode'])) { 
+           
+            $attr['inputmode'] = $this->params['inputmode'];
+        }
         
         setIfNot($attr['type'], 'text');
         if (countR($this->suggestions)) {

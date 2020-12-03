@@ -64,12 +64,17 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
             
             // Проверка на артикулите
             $property = ($rec->isReverse == 'yes') ? 'canBuy' : 'canSell';
-            $msg = ($rec->isReverse == 'yes') ? 'купуваемии' : 'продаваеми';
-            $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($rec->details, 'productId'), $property);
-            if(count($productCheck['notActive'])){
-                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(',', $productCheck['notActive']) . " |не са активни|*!");
-            } elseif($productCheck['metasError']){
-                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(',', $productCheck['metasError']) . " |трябва да са {$msg}|*!");
+           
+            // Проверка дали артикулите отговарят на нужните свойства
+            $productArr = arr::extractValuesFromArray($rec->details, 'productId');
+            if (countR($productArr)) {
+                $msg = ($rec->isReverse == 'yes') ? 'купуваеми' : 'продаваеми';
+                $msg = "трябва да са {$msg} и да не са генерични";
+                
+                if($redirectError = deals_Helper::getContoRedirectError($productArr, $property, 'generic', $msg)){
+                    
+                    acc_journal_RejectRedirect::expect(false, $redirectError);
+                }
             }
         }
         
@@ -77,7 +82,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         $packRecs = store_DocumentPackagingDetail::getRecs($this->class, $rec->id);
         
         // Всяко ЕН трябва да има поне един детайл
-        if (count($rec->details) > 0 || count($packRecs) > 0) {
+        if (countR($rec->details) > 0 || countR($packRecs) > 0) {
             if ($rec->isReverse == 'yes') {
                 
                 // Ако ЕН е обратна, тя прави контировка на СР но с отрицателни стойностти
@@ -113,13 +118,13 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
             
             // Ако има артикули с моментно производство - произвеждат се
             $entriesProduction = sales_transaction_Sale::getProductionEntries($rec, $this->class, 'storeId');
-            if (count($entriesProduction)) {
+            if (countR($entriesProduction)) {
                 $entries = array_merge($entries, $entriesProduction);
             }
         }
         
         $entries3 = $this->getTakingPart($rec, $origin, $reverse);
-        if (count($entries3)) {
+        if (countR($entries3)) {
             $entries = array_merge($entries, $entries3);
         }
         
@@ -128,7 +133,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         $class = ($reverse) ? cls::get('store_Receipts') : $this->class;
         $entries2 = store_DocumentPackagingDetail::getEntries($class, $rec, $reverse);
         
-        if (count($entries2)) {
+        if (countR($entries2)) {
             $entries = array_merge($entries, $entries2);
         }
         
@@ -164,7 +169,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
                 }
             }
             
-            if (!count($rec->details)) {
+            if (!countR($rec->details)) {
                 $error = false;
             }
         }
@@ -316,7 +321,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
             if(!isset($pInfo->meta['canStore'])) continue;
             
             // Вложимите кредит 706, другите 701
-            $debitAccId = (isset($pInfo->meta['materials'])) ? '706' : '701';
+            $debitAccId = '701';
             $creditAccId = '321';
             
             $entries[] = array(

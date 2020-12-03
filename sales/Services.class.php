@@ -40,7 +40,7 @@ class sales_Services extends deals_ServiceMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, sales_plg_CalcPriceDelta, deals_plg_SaveValiorOnActivation, acc_plg_Contable, plg_Sorting, doc_DocumentPlg, plg_Printing,
-                    acc_plg_DocumentSummary,doc_EmailCreatePlg, bgerp_plg_Blank, cond_plg_DefaultValues, doc_plg_TplManager, doc_plg_HidePrices, doc_SharablePlg,cat_plg_AddSearchKeywords, plg_Search';
+                    acc_plg_DocumentSummary,doc_EmailCreatePlg, cond_plg_DefaultValues, doc_plg_TplManager, bgerp_plg_Blank, doc_plg_HidePrices, doc_SharablePlg,cat_plg_AddSearchKeywords, plg_Search';
     
     
     /**
@@ -269,9 +269,8 @@ class sales_Services extends deals_ServiceMaster
         $rec = $data->rec;
         
         if ($rec->isReverse == 'no') {
-            
             if ($rec->state == 'active') {
-                if(cash_Pko::haveRightFor('add', (object)array('originId' => $rec->containerId, 'threadId' => $rec->threadId))){
+                if (cash_Pko::haveRightFor('add', (object) array('originId' => $rec->containerId, 'threadId' => $rec->threadId))) {
                     $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов документ');
                 }
             }
@@ -315,6 +314,21 @@ class sales_Services extends deals_ServiceMaster
     {
         if (empty($rec->originId)) {
             $rec->originId = doc_Threads::getFirstContainerId($rec->threadId);
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        
+        if (deals_Helper::hasProductsBellowMinPrice($mvc, $rec) && $rec->isReverse !== 'yes') {
+            core_Statuses::newStatus('Документа не може да се контира, защото има артикули с продажна цена под минималната|*!', 'error');
+            
+            return false;
         }
     }
 }

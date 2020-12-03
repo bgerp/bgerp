@@ -120,7 +120,7 @@ class doc_ExpensesSummary extends core_Manager
         $itemRec = acc_Items::fetchItem($data->masterMvc, $masterRec->id);
         $data->rows = array();
         $data->recs = self::updateSummary($rec->containerId, $itemRec);
-        
+     
         if (is_array($data->recs)) {
             foreach ($data->recs as $index => $r) {
                 $data->rows[$index] = $this->getVerbalRow($r);
@@ -278,7 +278,7 @@ class doc_ExpensesSummary extends core_Manager
             self::save($rec);
         }
         
-        $recs = $allocated = array();
+        $res = $recs = $allocated = array();
         
         // Извличаме от журнала направените записи за разхода
         $entries = acc_Journal::getEntries($itemRec);
@@ -331,7 +331,7 @@ class doc_ExpensesSummary extends core_Manager
                 }
             }
         }
-        
+       
         $rec->count = count($recs);
         $notDistributed = $allocated;
         
@@ -354,7 +354,7 @@ class doc_ExpensesSummary extends core_Manager
                     if ($rec1->quantity) {
                         $f1->amount = $rec1->amount * $f1->quantity / $rec1->quantity;
                     } else {
-                        $f1->amount = $rec1->amount;
+                        //$f1->amount = $rec1->amount;
                     }
                 }
                 
@@ -373,6 +373,7 @@ class doc_ExpensesSummary extends core_Manager
         }
         
         if ($saveCount === true) {
+            
             // Кеширане на данните и бройката за контейнера
             self::save($rec, 'count');
         }

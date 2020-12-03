@@ -27,8 +27,10 @@ class email_Incomings extends core_Master
      * HK - Hong Kong
      * BO - Bolivia
      * NP - Nepal
+     * IN - India
+     * SG - Singapore
      */
-    public static $riskIpArr = array('GH', 'NG', 'VN', 'SN', 'SL', 'HK', 'BO', 'NP');
+    public static $riskIpArr = array('GH', 'NG', 'VN', 'SN', 'SL', 'HK', 'BO', 'NP', 'IN', 'SG');
     
     
     /**
@@ -196,7 +198,19 @@ class email_Incomings extends core_Master
      */
     public $deleteThreadAndDoc = true;
     
+
+    /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 50000;
     
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'modifiedOn';
+    
+
     /**
      * Описание на модела
      */
@@ -237,6 +251,8 @@ class email_Incomings extends core_Master
         
         $this->setDbUnique('hash');
         $this->setDbIndex('fromEml');
+        
+        $this->setDbIndex('modifiedOn');
     }
     
     
@@ -512,13 +528,34 @@ class email_Incomings extends core_Master
                 // Пробваме дали това не е служебно писмо
                 // Ако не е служебно, пробваме дали не е SPAM
                 // Ако не е нищо от горните, записваме писмото в този модел
-                if (email_Returned::process($mime, $accId, $uid)) {
-                    $status = 'returned';
-                } elseif (email_Receipts::process($mime, $accId, $uid)) {
-                    $status = 'receipt';
-                } elseif (email_Spam::process($mime, $accId, $uid)) {
-                    $status = 'spam';
-                } elseif (self::process($mime, $accId, $uid)) {
+                
+                $clsArr = core_Classes::getOptionsByInterface('email_AutomaticIntf');
+                
+                $clsInstArr = array();
+                foreach ($clsArr as $clsName) {
+                    $clsInstArr[$clsName] = cls::getInterface('email_AutomaticIntf', $clsName);
+                    $arrWeight[$clsName] = (int)$clsInstArr[$clsName]->class->weight;
+                }
+                
+                if (!empty($arrWeight)) {
+                    arsort($arrWeight);
+                    
+                    foreach ($arrWeight as $clsName => $dummy) {
+                        try {
+                            $status = $clsInstArr[$clsName]->process($mime, $accId, $uid);
+                        } catch (core_exception_Expect $exp) {
+                            reportException($exp);
+                            continue;
+                        }
+                        
+                        if (isset($status)) {
+                            break;
+                        }
+                    }
+                }
+                
+                if (!isset($status)) {
+                    $this->process($mime, $accId, $uid);
                     $status = 'incoming';
                 }
             }
@@ -528,8 +565,10 @@ class email_Incomings extends core_Master
             reportException($exp);
         }
         
+        $status = strtolower($status);
+        
         // Записваме в отпечатъка на това писмо, както и статуса му на сваляне
-        if (in_array($status, array('returned', 'receipt', 'spam', 'incoming', 'misformatted'))) {
+        if (!in_array($status, array('error'))) {
             // Записваме статуса на сваленото писмо (service, misformatted, normal);
             email_Fingerprints::setStatus($headers, $status, $accId, $uid);
         }
@@ -602,7 +641,7 @@ class email_Incomings extends core_Master
         $rec->spamScore = email_Spam::getSpamScore($rec->headers, true, $mime, $rec);
         
         // Записваме (и автоматично рутираме) писмото
-        $saved = email_Incomings::save($rec);
+        $saved = $this->save($rec);
         
         return $saved;
     }
@@ -825,7 +864,7 @@ class email_Incomings extends core_Master
                     unset($vals[$rec->htmlFile]);
                 }
                 
-                if (count($vals)) {
+                if (countR($vals)) {
                     $ourImgArr = core_Permanent::get('ourImgEmailArr');
                     $row->files = '';
                     
@@ -885,7 +924,7 @@ class email_Incomings extends core_Master
                     $rEmailsStr = type_Emails::fromArray($returnPathEmailsUniq);
                     $rEmailsStr = type_Varchar::escape($rEmailsStr);
                     $w = 'тези';
-                    if (count($returnPathEmailsUniq) == 1) {
+                    if (countR($returnPathEmailsUniq) == 1) {
                         $w = 'този';
                     }
                     
@@ -1046,6 +1085,36 @@ class email_Incomings extends core_Master
                     $coutryCode = drdata_Countries::fetchField((int) $cData->countryId, 'letterCode2');
                     if ($coutryCode == $ipCoutryCode) {
                         continue ;
+                    }
+                } else {
+                    if ($ipCoutryCode) {
+                        $fRec = doc_Folders::fetch($folderId);
+                        if ($fRec->coverClass && $fRec->coverId && cls::load($fRec->coverClass, true)) {
+                            $cInst = cls::get($fRec->coverClass);
+                            if ($cInst instanceof doc_UnsortedFolders) {
+                                $cRec = $cInst->fetch($fRec->coverId);
+                                
+                                $country = drdata_Countries::getCountryName($ipCoutryCode);
+                                $unsortedName = sprintf(email_Setup::get('UNSORTABLE_COUNTRY'), $country);
+                                $unsortedName = trim($unsortedName);
+                                $unsortedName = mb_strtolower($unsortedName);
+                                $fRec->title = trim($fRec->title);
+                                $fRec->title = mb_strtolower($fRec->title);
+                                if ($unsortedName == $fRec->title) {
+                                    continue;
+                                }
+                                
+                                core_Lg::push('en');
+                                $countryEn = drdata_Countries::getCountryName($ipCoutryCode, 'en');
+                                $unsortedNameEn = sprintf(email_Setup::get('UNSORTABLE_COUNTRY'), $countryEn);
+                                $unsortedNameEn = trim($unsortedNameEn);
+                                $unsortedNameEn = mb_strtolower($unsortedNameEn);
+                                core_Lg::pop();
+                                if ($unsortedNameEn == $fRec->title) {
+                                    continue;
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1432,7 +1501,7 @@ class email_Incomings extends core_Master
     {
         $domains = static::scanForPublicDomains();
         
-        $out = '<li>Открити ' . count($domains) . ' домейн(а) ... </li>';
+        $out = '<li>Открити ' . countR($domains) . ' домейн(а) ... </li>';
         
         $stats = drdata_Domains::resetPublicDomains($domains);
         
@@ -1457,6 +1526,56 @@ class email_Incomings extends core_Master
     
     
     /**
+     * Крон процес за извличане на телофонни номера от имейлите
+     */
+    public function cron_ExtractPhoneNumbers()
+    {
+        $period = core_Cron::getRecForSystemId('ExtractPhoneNumbers')->period;
+        $period = $period ? $period : 60;
+        $period *= 60;
+        
+        $query = self::getQuery();
+        $before = dt::subtractSecs($period);
+        $query->where(array("#modifiedOn >= '[#1#]'", $before));
+        
+        $query->EXT('coverClass', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
+        $query->where(array("#coverClass = '[#1#]'", $clsId = crm_Companies::getClassId()));
+        $query->orWhere(array("#coverClass = '[#1#]'", $clsId = crm_Persons::getClassId()));
+        
+        $query->EXT('coverId', 'doc_Folders', 'externalName=coverId,externalKey=folderId');
+        $query->where("#coverId IS NOT NULL");
+        
+        $query->orderBy('modifiedOn', 'DESC');
+        
+        try {
+            while ($rec = $query->fetch()) {
+                if (!$rec->coverClass || !$rec->coverId) {
+                    continue;
+                }
+                
+                $cData = $this->getContragentData($rec->id);
+                
+                $mob = $cData->mob ? $cData->mob : null;
+                $tel = $cData->tel ? $cData->tel : null;
+                $fax = $cData->fax ? $cData->fax : null;
+                
+                if (!$mob && !$tel && !$fax) {
+                    continue;
+                }
+                
+                $inst = cls::get($rec->coverClass);
+                $iRec = $inst->fetch($rec->coverId);
+                $inst->addAddtionalNumber($iRec, $mob, $tel, $fax);
+            }
+        } catch (Exception $e) {
+            reportException($e);
+        } catch (Throwable $t) {
+            reportException($t);
+        }
+    }
+    
+    
+    /**
      * Обучаване на SPAS за HAM и SPAM
      *
      * Правила за обучение:
@@ -1472,8 +1591,12 @@ class email_Incomings extends core_Master
             return ;
         }
         
+        $period = core_Cron::getRecForSystemId('trainSpas')->period;
+        $period = $period ? $period : 60;
+        $period *= 60;
+        
         $query = self::getQuery();
-        $before = dt::subtractSecs(3600);
+        $before = dt::subtractSecs($period);
         $query->where(array("#modifiedOn >= '[#1#]'", $before));
         $query->EXT('docCnt', 'doc_Threads', 'externalName=allDocCnt,remoteKey=firstContainerId, externalFieldName=containerId');
         $query->where('#docCnt <= 1');
@@ -1629,6 +1752,7 @@ class email_Incomings extends core_Master
         $rec->action = 'UpdatePublicDomains';
         $rec->period = 1440; // 24h
         $rec->offset = rand(120, 180); // от 2 до 3h
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 100;
         $res .= core_Cron::addOnce($rec);
@@ -1640,6 +1764,20 @@ class email_Incomings extends core_Master
         $rec->action = 'trainSpas';
         $rec->period = 60;
         $rec->offset = rand(0, 59);
+        $rec->isRandOffset = true;
+        $rec->delay = 0;
+        $rec->timeLimit = 250;
+        $res .= core_Cron::addOnce($rec);
+        
+        
+        $rec = new stdClass();
+        $rec->systemId = 'ExtractPhoneNumbers';
+        $rec->description = 'Извличане на телефонни номер';
+        $rec->controller = $mvc->className;
+        $rec->action = 'ExtractPhoneNumbers';
+        $rec->period = 60;
+        $rec->offset = rand(0, 59);
+        $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 250;
         $res .= core_Cron::addOnce($rec);
@@ -2242,7 +2380,7 @@ class email_Incomings extends core_Master
             }
         }
         
-        if (count($missing) > 0) {
+        if (countR($missing) > 0) {
             $savedRec = static::fetch($rec->id, $missing);
             
             foreach ($missing as $f) {
@@ -2554,7 +2692,7 @@ class email_Incomings extends core_Master
             $fromDomain = type_Email::domain($rec->fromEml);
             $domains[$rec->coverClass][$fromDomain][$rec->folderId] = true;
             
-            if (count($domains[$rec->coverClass][$fromDomain]) > 1) {
+            if (countR($domains[$rec->coverClass][$fromDomain]) > 1) {
                 // От $fromDomain има поне 2 писма, които са в различни фирмени папки
                 $results[$fromDomain] = true;
             }
@@ -2885,7 +3023,7 @@ class email_Incomings extends core_Master
             unset($files[$rec->htmlFile]);
         }
         
-        if (count($files)) {
+        if (countR($files)) {
             
             return 'img/16/email-attach.png';
         }

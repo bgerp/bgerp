@@ -34,7 +34,7 @@ class google_Translate1
     /**
      * URL' то за превеждане
      */
-    protected static $elementJsUrl = '//translate.google.com/translate_a/element.js?cb=googleSectionalElementInit&amp;ug=section&amp;hl=%s';
+    protected static $elementJsUrl = '//translate.google.com/translate_a/element.js?cb=googleSectionalElementInit&ug=section&hl=%s';
     
     
     /**

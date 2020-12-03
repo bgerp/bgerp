@@ -36,7 +36,7 @@ class support_TaskType extends core_Mvc
         
         $fieldset->FLD('name', 'varchar(64)', 'caption=Данни за обратна връзка->Име, mandatory, input=none, silent');
         $fieldset->FLD('email', 'email', 'caption=Данни за обратна връзка->Имейл, mandatory, input=none, silent');
-        $fieldset->FLD('url', 'varchar', 'caption=Данни за обратна връзка->URL, input=none');
+        $fieldset->FLD('url', 'varchar(500)', 'caption=Данни за обратна връзка->URL, input=none');
         $fieldset->FLD('ip', 'ip', 'caption=Ип,input=none');
         $fieldset->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
         $fieldset->FLD('file', 'fileman_FileType(bucket=Support)', 'caption=Файл, input=none');
@@ -178,6 +178,14 @@ class support_TaskType extends core_Mvc
     public static function on_AfterGetThreadState($Driver, $mvc, &$res, $id)
     {
         $res = 'opened';
+        
+        $rec = $mvc->fetchRec($id);
+        
+        if (($rec->state != 'active') && ($rec->state != 'waiting') && ($rec->state != 'pending')) {
+            if (cal_Tasks::checkForCloseThread($rec->threadId, $rec->containerId)) {
+                $res = 'closed';
+            }
+        }
     }
     
     
@@ -320,6 +328,22 @@ class support_TaskType extends core_Mvc
                 asort($assetResArr);
             }
         }
+        
+        // Болдваме ресурсите, до които е споделен
+        if (!empty($assetResArr)) {
+            $aUsersQuery = planning_AssetResources::getQuery();
+            $aUsersQuery->in('id', array_keys($assetResArr));
+            $aUsersQuery->likeKeylist('assetUsers', core_Users::getCurrent());
+            $aUsersQuery->show('id');
+            while ($rec = $aUsersQuery->fetch()) {
+                if (!$assetResArr[$rec->id]) continue;
+                $opt = new stdClass();
+                $opt->title = $assetResArr[$rec->id];
+                $opt->attr = array('class' => 'boldText');
+                $assetResArr[$rec->id] = $opt;
+            }
+        }
+        
         $data->form->setOptions('assetResourceId', $assetResArr);
         
         if (($data->form->cmd == 'refresh') || (!$data->form->cmd && $data->form->rec->assetResourceId)) {

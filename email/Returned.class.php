@@ -22,6 +22,18 @@ class email_Returned extends email_ServiceEmails
     
     
     /**
+     * Инрерфейси
+     */
+    public $interfaces = 'email_AutomaticIntf';
+    
+    
+    /**
+     * @see email_AutomaticIntf
+     */
+    public $weight = 300;
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
@@ -33,8 +45,16 @@ class email_Returned extends email_ServiceEmails
     /**
      * Проверява дали в $mime се съдържа върнато писмо и
      * ако е така - съхраняваго за определено време в този модел
+     * 
+     * @param email_Mime  $mime
+     * @param integer $accId
+     * @param integer $uid
+     *
+     * @return string|null
+     * 
+     * @see email_AutomaticIntf
      */
-    public static function process($mime, $accId, $uid)
+    public function process($mime, $accId, $uid)
     {
         // Извличаме информация за вътрешния системен адрес, към когото е насочено писмото
         $soup = $mime->getHeader('X-Original-To', '*') . ' ' .
@@ -56,7 +76,7 @@ class email_Returned extends email_ServiceEmails
             
             if (empty($matches)) {
                 
-                return;
+                return ;
             }
         }
         
@@ -66,7 +86,7 @@ class email_Returned extends email_ServiceEmails
         // Някои сървъри отговарят на `Return-Path`
         if (email_Receipts::isForReceipts($mime)) {
             
-            return email_Receipts::process($mime, $accId, $uid, $mid);
+            return email_Receipts::forceByMid($mime, $accId, $uid, $mid);
         }
         
         // Намираме датата на писмото
@@ -85,13 +105,13 @@ class email_Returned extends email_ServiceEmails
             $rec->uid = $uid;
             $rec->createdOn = dt::verbal2mysql();
             
-            self::save($rec);
+            $this->save($rec);
             
-            self::logNotice('Върнат имейл', $rec->id);
+            $this->logNotice('Върнат имейл', $rec->id);
             
             blast_BlockedEmails::addSentEmailFromText($mid, $mime, 'error');
         }
         
-        return $isReturnedMail;
+        return $isReturnedMail ? 'returned' : null;
     }
 }

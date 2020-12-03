@@ -106,7 +106,7 @@ class exif_Reader
     protected static function getGpsCoord($exifCoord, $hemi)
     {
         // Броя на координатите в масива
-        $countExif = count($exifCoord);
+        $countExif = countR($exifCoord);
         
         // Градуси
         $degrees = $countExif > 0 ? static::gps2Num($exifCoord[0]) : 0;
@@ -138,7 +138,7 @@ class exif_Reader
         $parts = explode('/', $coordPart);
         
         // Броя на частите
-        $counts = count($parts);
+        $counts = countR($parts);
         
         // Ако няма части
         if (!$counts) {
@@ -147,7 +147,7 @@ class exif_Reader
         }
         
         // Ако имаме само една част, връщаме нея
-        if (count($parts) == 1) {
+        if (countR($parts) == 1) {
             
             return $parts[0];
         }

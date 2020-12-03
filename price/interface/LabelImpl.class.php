@@ -89,7 +89,7 @@ class price_interface_LabelImpl
                 }
                 
                 foreach ($pRec->packs as $packRec){
-                    $ean = $packRec->eanCode;
+                    $ean = !empty($packRec->eanCode) ? $packRec->eanCode : null;
                     $res = array('EAN' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' =>  $Double->toVerbal($pRec->price), "CODE" => $code);
                     $resArr[] = $res;
                     $currentCount++;
@@ -121,7 +121,7 @@ class price_interface_LabelImpl
                 if($rec->showMeasureId == 'yes' && !empty($dRec->price)){
                     $count++;
                 }
-                $count += count($dRec->packs);
+                $count += countR($dRec->packs);
             }
         }
         

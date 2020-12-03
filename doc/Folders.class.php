@@ -552,14 +552,17 @@ class doc_Folders extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
+        // Добавяне на бутон за новa фирма
         if (crm_Companies::haveRightFor('add')) {
-            $data->toolbar->addBtn('Нова фирма', array('crm_Companies', 'add', 'ret_url' => true), 'ef_icon=img/16/office-building-add.png', 'title=Създаване на нова визитка на фирма');
+            crm_Companies::addNewCompanyBtn2Toolbar($data->toolbar, $data->listFilter);
         }
         
+        // Добавяне на бутон за ново лице
         if (crm_Persons::haveRightFor('add')) {
-            $data->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'ret_url' => true), 'ef_icon=img/16/vcard-add.png', 'title=Създаване на нова визитка на лице');
+            crm_Persons::addNewPersonBtn2Toolbar($data->toolbar, $data->listFilter);
         }
         
+        // Добавяне на бутон за нов проект
         if (doc_UnsortedFolders::haveRightFor('add')) {
             $data->toolbar->addBtn('Нов проект', array('doc_UnsortedFolders', 'add', 'ret_url' => true), 'ef_icon=img/16/project-archive-add.png', 'title=Създаване на нов проект');
         }
@@ -668,6 +671,25 @@ class doc_Folders extends core_Master
                             
                             if (empty($otherNotifyArr)) {
                                 $otherNotifyArr = core_Users::getByRole('admin');
+                                
+                                $cu = core_Users::getCurrent();
+                                unset($otherNotifyArr[$cu]);
+                                
+                                $otherNotifyArrC = $otherNotifyArr;
+                                
+                                // Премахваме админите, които са се отказали
+                                $key = doc_Folders::getSettingsKey($rec->id);
+                                $folOpeningNotifications = core_Settings::fetchUsers($key, 'folOpenings');
+                                foreach ((array) $folOpeningNotifications as $uId => $folOpening) {
+                                    if ($folOpening['folOpenings'] == 'no') {
+                                        unset($otherNotifyArrC[$uId]);
+                                    }
+                                }
+                                
+                                // Ако всички админи са се отказали, нотифицираме ги всичките
+                                if (!empty($otherNotifyArrC)) {
+                                    $otherNotifyArr = $otherNotifyArrC;
+                                }
                             }
                             
                             $notifyArr += $otherNotifyArr;
@@ -1788,6 +1810,13 @@ class doc_Folders extends core_Master
                 $searchKeywords = drdata_Countries::addCountryInBothLg($countryId, $searchKeywords);
             }
         }
+        
+        if ($rec->coverId) {
+            $plugins = arr::make($class->loadList, true);
+            if ($plugins['plg_Search'] || method_exists($class, 'getSearchKeywords')) {
+                $searchKeywords .= ' ' . $class->getSearchKeywords($rec->coverId);
+            }
+        }
     }
     
     
@@ -1882,6 +1911,11 @@ class doc_Folders extends core_Master
         
         $form->FNC('ordering', 'enum(default=Автоматично, ' . doc_Threads::filterList . ')', 'caption=Подредба на темите->Правило, input=input');
         
+        $pu = core_Roles::fetchByName('powerUser');
+        $form->FNC('shareUsers', "type_Keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE \\'%|{$pu}|%\\', allowEmpty)", 'caption=Група от потребители за споделяне->Потребители, input=input, allowEmpty');
+        $form->FNC('shareFromThread', 'enum(default=Автоматично, yes=Да, no=Не)', 'caption=Група от потребители за споделяне->От нишката, input=input');
+        $form->FNC('shareMaxCnt', 'int(min=0)', 'caption=Група от потребители за споделяне->Макс. брой, input=input, allowEmpty');
+        
         $form->FNC('defaultEmail', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Адрес|* `From` за изходящите писма от тази папка->Имейл, input=input');
         
         // Показва се само когато се настройват всички потребители
@@ -1932,6 +1966,7 @@ class doc_Folders extends core_Master
             $form->setSuggestions('showDocumentsAsButtons', $docSuggestionsArr);
         }
         
+        $form->setDefault('shareFromThread', 'default');
         $form->setDefault('folOpenings', 'default');
         $form->setDefault('newPending', 'default');
         $form->setDefault('stateChange', 'default');
