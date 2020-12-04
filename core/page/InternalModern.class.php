@@ -434,6 +434,13 @@ class core_page_InternalModern extends core_page_Active
             $colum2 .= ht::createLink(tr('Папки'), array('doc_Folders', 'list'), null, $attr);
         }
         
+        // Бутон за търсене във файлове
+        if (doc_Files::haveRightFor('list')) {
+            $attr['ef_icon'] = 'img/16/anchor.png';
+            $attr['id'] = 'modern-file-search';
+            $colum1 .= ht::createLink(tr('Файлове'), array('doc_Files', 'list'), null, $attr);
+        }
+        
         // Бутон за търсене по баркод
         if (barcode_Search::haveRightFor('list')) {
             $attr['ef_icon'] = 'img/16/barcode-icon.png';
