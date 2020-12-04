@@ -432,7 +432,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         if ($weight) {
             $weight *= $quantity;
             
-            return round($weight, 2);
+            return round($weight, 3);
         }
     }
     
