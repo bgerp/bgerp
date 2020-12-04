@@ -177,7 +177,7 @@ class plg_State2 extends core_Plugin
             $newState = ($rec->state == $this->activeState) ? $this->closedState : $this->activeState;
             $warning = $mvc->getChangeStateWarning($rec, $newState);
             $warning = !empty($warning) ? $warning : false;
-            $warningToolbar = !empty($warning) ? "warning={$warning}" : '';
+            $warningToolbar = !empty($warning) ? ",warning={$warning}" : '';
             
             $add = '<img src=' . sbf('img/16/lightbulb_off.png') . " width='16' height='16'>";
             $cancel = '<img src=' . sbf('img/16/lightbulb.png') . " width='16' height='16'>";
@@ -204,9 +204,9 @@ class plg_State2 extends core_Plugin
                 $singleTitle = mb_strtolower($singleTitle);
                 
                 if ($rec->state == $this->activeState) {
-                    $row->_rowTools->addLink('Деактивиране', array($mvc, 'changeState', $rec->id, 'ret_url' => true), "ef_icon=img/16/lightbulb.png,title=Деактивиране на|* {$singleTitle},{$warningToolbar}");
+                    $row->_rowTools->addLink('Деактивиране', array($mvc, 'changeState', $rec->id, 'ret_url' => true), "ef_icon=img/16/lightbulb.png,title=Деактивиране на|* {$singleTitle}{$warningToolbar}");
                 } else {
-                    $row->_rowTools->addLink('Активиране', array($mvc, 'changeState', $rec->id, 'ret_url' => true), "ef_icon=img/16/lightbulb_off.png,title=Активиране на|* {$singleTitle},{$warningToolbar}");
+                    $row->_rowTools->addLink('Активиране', array($mvc, 'changeState', $rec->id, 'ret_url' => true), "ef_icon=img/16/lightbulb_off.png,title=Активиране на|* {$singleTitle}{$warningToolbar}");
                 }
             }
         }
