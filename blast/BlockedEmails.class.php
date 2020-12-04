@@ -82,6 +82,7 @@ class blast_BlockedEmails extends core_Manager
     {
         $this->FLD('email', 'email', 'caption=Имейл, mandatory');
         $this->FLD('state', 'enum(,ok=OK, blocked=Блокирано, error=Грешка)', 'caption=Състояние');
+//         $this->FLD('state', 'enum(,ok=Разрешено, blocked=Забранено, error=Дава грешка)', 'caption=Статус за изпращане на циркулярни имейли->Изпращане');
         $this->FLD('lastChecked', 'datetime(format=smartTime)', 'caption=Последно->Проверка, input=none');
         $this->FLD('lastSent', 'datetime(format=smartTime)', 'caption=Последно->Изпращане, input=none');
         $this->FLD('checkPoint', 'int', 'caption=Проверка->Точки, input=none');
@@ -100,9 +101,9 @@ class blast_BlockedEmails extends core_Manager
      */
     public function on_AfterPrepareImportFields($mvc, &$fields)
     {
-        $fields['state'] = array('caption' => 'Състояние', 'mandatory' => 'mandatory');
+        $fields['state'] = array('caption' => 'Статус за изпращане на циркулярни имейли->Изпращане', 'mandatory' => 'mandatory');
         $fields['state']['notColumn'] = true;
-        $fields['state']['type'] = 'enum(blocked=Блокирано, error=Грешка, ok=OK)';
+        $fields['state']['type'] = 'enum(blocked=Разрешено, error=Забранено, ok=Дава грешка)';
     }
     
     

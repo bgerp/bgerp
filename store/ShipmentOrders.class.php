@@ -495,33 +495,11 @@ class store_ShipmentOrders extends store_DocumentMaster
     {
         $rec = self::fetchRec($id);
         
-        $contragentData = new stdClass();
-        
-        if ($rec->company || $rec->person) {
-            $contragentData->company = $rec->company;
-            $contragentData->person = $rec->person;
-            $contragentData->pTel = $rec->tel;
-            $contragentData->countryId = $rec->country;
-            $contragentData->pCode = $rec->pCode;
-            $contragentData->place = $rec->place;
-            $contragentData->address = $rec->address;
-            $contragentData->priority = 10;
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+        if ($firstDoc->isInstanceOf('sales_Sales')) {
+            
+            return $firstDoc->getContragentData($firstDoc->that);
         }
-        
-        if (core_Packs::isInstalled('eshop')) {
-            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-            if ($firstDoc->isInstanceOf('sales_Sales')) {
-                $sContragentData = $firstDoc->getContragentData($firstDoc->that);
-                
-                if (!(array) $contragentData) {
-                    return $sContragentData;
-                }
-                
-                $contragentData->email = $sContragentData->email;
-            }
-        }
-        
-        return $contragentData;
     }
     
     
