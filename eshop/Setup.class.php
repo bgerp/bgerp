@@ -125,9 +125,6 @@ class eshop_Setup extends core_ProtoSetup
         'eshop_ProductDetails',
         'eshop_Carts',
         'eshop_CartDetails',
-        'migrate::addOnlineClientsGroup',
-        'migrate::updateInquiries',
-        'migrate::updateDomainIds',
     );
     
     
@@ -231,122 +228,6 @@ class eshop_Setup extends core_ProtoSetup
         }
         
         return $res;
-    }
-    
-    
-    /**
-     * Добавя клиентите с онлайн поръчки в съответната група
-     */
-    function addOnlineClientsGroup()
-    {
-        $cartQuery = eshop_Carts::getQuery();
-        $cartQuery->where("#saleId IS NOT NULL");
-        $cartQuery->show('saleId');
-        $onlineSales = arr::extractValuesFromArray($cartQuery->fetchAll(), 'saleId');
-        
-        if(!countR($onlineSales)) return;
-        
-        $saleQuery = sales_Sales::getQuery();
-        $saleQuery->where("#state = 'pending' || #state = 'active' || #state = 'closed'");
-        $saleQuery->in('id', $onlineSales);
-        $saleQuery->show('contragentClassId,contragentId');
-        
-        $contragents = array();
-        while ($saleRec = $saleQuery->fetch()) {
-            $contragents["{$saleRec->contragentClassId}|{$saleRec->contragentId}"] = (object)array("contragentClassId" => $saleRec->contragentClassId, "contragentId" => $saleRec->contragentId);
-        }
-        
-        $groupRec = (object)array('name' => 'Онлайн клиенти', 'sysId' => 'onlineClients', 'parentId' => crm_Groups::getIdFromSysId('customers'));
-        $groupId = crm_Groups::forceGroup($groupRec);
-        
-        foreach ($contragents as $obj) {
-            try{
-                cls::get($obj->contragentClassId)->forceGroup($obj->contragentId, $groupId, false);
-            } catch(core_exception_Expect $e){
-                
-            }
-        }
-    }
-    
-    
-    /**
-     * Обновяване на запитванията
-     */
-    public function updateInquiries()
-    {
-        $Products = cls::get('eshop_Products');
-        $Products->setupMvc();
-        
-        $Inquiries = cls::get('marketing_Inquiries2');
-        $Inquiries->setupMvc();
-        
-        if(!$Products->count("#coDriver IS NOT NULL") || !$Inquiries->count()){
-            
-            return;
-        }
-          
-        $map = array();
-        $eQuery = $Products->getQuery();
-        $eQuery->where("#coDriver IS NOT NULL");
-        $eQuery->XPR('nameLower', 'double', 'LOWER(#name)');
-        $eQuery->show('coDriver,nameLower');
-        while($eRec = $eQuery->fetch()){
-            $map["{$eRec->coDriver}|{$eRec->nameLower}"] = $eRec->id;
-        }
-        
-        $iQuery = $Inquiries->getQuery();
-        $iQuery->XPR('titleLower', 'double', 'LOWER(#title)');
-        $iQuery->where("#sourceClassId IS NULL AND #sourceId IS NULL AND #state = 'active' AND #createdBy = 0");
-        $iQuery->show('titleLower,innerClass');
-        $iQuery->orderBy('id', 'DESC');
-        $count = $iQuery->count();
-        
-        $productsClassId = $Products->getClassId();
-        core_App::setTimeLimit(0.4 * $count, 400);
-        
-        $save = array();
-        while($iRec = $iQuery->fetch()){
-            $sourceId = $map["{$iRec->innerClass}|{$iRec->titleLower}"];
-            if(isset($sourceId)){
-                $save[] = (object)array('sourceClassId' => $productsClassId, 'sourceId' =>$sourceId, 'id' => $iRec->id);
-            }
-        }
-       
-        if(countR($save)){
-            $Inquiries->saveArray($save, 'id,sourceClassId,sourceId');
-        }
-    }
-    
-    
-    /**
-     * Обновява домейните на артикулите
-     */
-    public function updateDomainIds()
-    {
-        $Products = cls::get('eshop_Products');
-        $Products->setupMvc();
-        
-        $query = $Products->getQuery();
-        $query->where("#domainId IS NULL");
-        $query->show('id,groupId');
-        if(!$query->count()){
-            
-            return;
-        }
-        
-        $update = array();
-        while ($rec = $query->fetch()){
-            if($rec->groupId){
-                if($rec->domainId = cms_Content::fetchField(eshop_Groups::fetchField($rec->groupId, 'menuId'), 'domainId')){
-                    $update[$rec->id] = $rec;
-                }
-            }
-            
-        }
-        
-        if(countR($update)){
-            $Products->saveArray($update, 'id,domainId');
-        }
     }
     
     
