@@ -1232,7 +1232,7 @@ class eshop_Carts extends core_Master
         self::renderCartSummary($rec, $tpl);
         self::renderCartOrderInfo($rec, $tpl);
         $tpl->replace(self::getCartDisplayName(), 'CART_NAME');
-        $settings = cms_Domains::getSettings();
+        $settings = cms_Domains::getSettings($rec->domainId);
         
         if (!empty($settings->info)) {
             $tpl->replace(core_Type::getByName('richtext')->toVerbal($settings->info), 'COMMON_TEXT');
