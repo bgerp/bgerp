@@ -246,7 +246,7 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
      */
     public function addToCartView($termRec, $cartRec, $cartRow, &$tpl)
     {
-        $settings = cms_Domains::getSettings();
+        $settings = cms_Domains::getSettings($cartRec->domainId);
         
         $tpl->append(tr('Доставката се извършва с наш регулярен транспорт') . "<br>", 'CART_FOOTER');
         
@@ -293,7 +293,7 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
         if($cartRec->deliveryData['routeId']){
             
             // Ако цената е над минималната доставката е безплатна
-            $settings = cms_Domains::getSettings();
+            $settings = cms_Domains::getSettings($cartRec->domainId);
             $freeDelivery = currency_CurrencyRates::convertAmount($settings->freeDeliveryByBus, null, $settings->currencyId);
             
             if(empty($settings->freeDeliveryByBus) || (!empty($settings->freeDeliveryByBus) && round($cartRec->total, 2) >= round($freeDelivery, 2))){
