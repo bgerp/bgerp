@@ -513,7 +513,7 @@ class type_Richtext extends type_Blob
                 $indent = mb_strlen($l, 'UTF8') - mb_strlen(ltrim($matches['text']), 'UTF8');
                 while (isset($lines[$i + 1]) && (($indent == (mb_strlen($lines[$i + 1]) - mb_strlen(ltrim($lines[$i + 1], ' ')))) || (trim($lines[$i + 1]) == '<br>'))) {
                     if (trim($lines[$i + 1]) == '<br>') {
-                        $matches['text'] .= '<br>' . "<span style='height:5px; display:block;'></span>";
+                        $matches['text'] .= '<br>' . "<span style='height:5px; display:block;'>&nbsp;</span>";
                     } else {
                         
                         // Ако следващият ред е друго 'li'

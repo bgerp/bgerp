@@ -2,7 +2,7 @@
 
 
 /**
- * Клас 'docarch_Wrapper'
+ * Клас 'location_Wrapper'
  *
  * Поддържа системното меню и табове-те на пакета
  *
@@ -24,6 +24,10 @@ class location_Wrapper extends plg_ProtoWrapper
      */
     public function description()
     {
-       
+        $this->TAB('location_Places', 'Бази', 'ceo,admin,location');
+        $this->TAB('tracking_Vehicles', 'Автомобили', 'ceo,admin,location');
+        $this->TAB('tracking_Log', 'Хронология', 'ceo,admin,location');
+        
+        
     }
 }

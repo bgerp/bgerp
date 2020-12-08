@@ -197,6 +197,10 @@ class doc_Folders extends core_Master
             $attr['class'] .= ' state-rejected';
         }
         
+        if ($url) {
+            unset($attr['url']);
+        }
+        
         $link = ht::createLink($title, $url, null, $attr);
         
         return $link;

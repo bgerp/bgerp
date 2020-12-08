@@ -95,6 +95,8 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                 $tQuery->in('docClass', type_Keylist::toArray($dRec->docClassId));
             }
             
+            $tQuery->where("#state != 'rejected'");
+            
             $tQuery->limit(min(20 * $tCnt, 200));
             
             $resArr = array();

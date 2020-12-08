@@ -131,6 +131,14 @@ class type_Datetime extends type_Date
         
         $time = trim($value['t']);
         
+        if(isset($this->params['requireTime'])){
+            if(!empty($value['d']) && empty($value['t'])){
+                $this->error = 'Посочването на време е задължително';
+                
+                return false;
+            }
+        }
+        
         if (!strlen($time) && strlen($value['d'])) {
             $time = $this->params['defaultTime'];
         }

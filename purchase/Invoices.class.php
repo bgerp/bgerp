@@ -1213,4 +1213,29 @@ class purchase_Invoices extends deals_InvoiceMaster
             $res .= ' ' . plg_Search::normalizeText($rec->number);
         }
     }
+    
+    
+    /**
+     * Кое е мястото на фактурата по подразбиране
+     *
+     * @param stdClass $rec
+     *
+     * @return string|null $place
+     */
+    public static function getDefaultPlace($rec)
+    {
+        $place = null;
+        $cData = doc_Folders::getContragentData($rec->folderId);
+        $place = !empty($cData->place) ? $cData->place : $cData->address;
+        
+        if(!empty($place)){
+            $myCompany = crm_Companies::fetchOwnCompany();
+            if ($cData->countryId != $myCompany->countryId) {
+                $cCountry = drdata_Countries::fetchField($cData->countryId, 'commonName');
+                $place .= ", {$cCountry}";
+            }
+        }
+        
+        return $place;
+    }
 }
