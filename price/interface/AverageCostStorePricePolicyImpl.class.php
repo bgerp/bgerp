@@ -154,6 +154,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
     {
         $storeAccId = acc_Accounts::getRecBySystemId('321')->id;
         $skipDocArr = array(store_Transfers::getClassId(), store_InventoryNotes::getClassId());
+        $lastBalance = acc_Balances::getLastBalance();
         
         // Дали да се използва кешираната дата
         $lastCalcedDebitTime = null;
@@ -180,11 +181,14 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
             if(empty($lastCalcedDebitTime)){
                 $jQuery->groupBy('journalId');
             } else { 
-                $jQuery->where("#journalCreatedOn >= '{$lastCalcedDebitTime}'");
+                $where = "#journalCreatedOn >= '{$lastCalcedDebitTime}'";
+                if(is_object($lastBalance)){
+                    $where .= " AND #journalCreatedOn <= '{$lastBalance->lastCalculate}'";
+                }
+                $jQuery->where($where);
             }
             
             $jRec = $jQuery->fetch();
-           
             if (is_object($jRec)) {
                 $jRec->debitQuantity = $jRec->sumDebitQuantity;
                 $jRec->amount = $jRec->sumDebitAmount;
@@ -192,12 +196,11 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
                 unset($jRec->sumDebitQuantity);
                 unset($jRec->sumDebitAmount);
                 unset($jRec->maxValior);
-                
                 $debitRecs[$itemId] = $jRec;
             }
         }
 
-        $lastCalcedDebitTime = dt::now();
+        $lastCalcedDebitTime = is_object($lastBalance) ? $lastBalance->lastCalculate : dt::now();
         core_Permanent::set('lastCalcedDebitTime', $lastCalcedDebitTime, core_Permanent::IMMORTAL_VALUE);
         
         return $debitRecs;
