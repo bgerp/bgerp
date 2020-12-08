@@ -54,6 +54,8 @@
                 [#contacts#]
             </fieldset>
             <!--ET_END contacts-->
+
+
             <!--ET_BEGIN groupList-->
             <fieldset class="detail-info">
                 <legend class="groupTitle">|Групи|*</legend>
@@ -120,6 +122,7 @@
                 <!--ET_END ShowDocumentsAsButtons-->
             </fieldset>
             <!--ET_END info-->
+            <div class="clearfix21"></div>
             [#DETAILS#]
             <div style="clear:both;"></div>
         </div>
