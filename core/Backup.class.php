@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Максимален брой паралелни нишки при възстановяване
+ */
+defIfNot('RESTORE_MAX_THREAD', 10);
 
 /**
  * Клас 'core_Backup' - добавя бекъп възможности към ядрото
@@ -108,9 +112,7 @@ class core_Backup extends core_Mvc
         $lockTables = trim($lockTables, ',');
         core_SystemLock::block('Процес на архивиране на данните', 600); // 10 мин.
         $description['times']['lock'] = dt::now();
-        
-        // @$this->db->query('FLUSH TABLES');
-        
+                
         $this->db->query("LOCK TABLES {$lockTables}");
         
         // Изтриваме статистическата информация за таблиците, за да се генерира на ново
@@ -255,7 +257,7 @@ class core_Backup extends core_Mvc
                 continue;
             }
             if (substr($name, 0, 4) == 'log.') {
-                $time = self::getTimeFromFilemane($name);
+                $time = self::getTimeFromFilename($name);
                 
                 if ($time > $minTime) {
                     continue;
@@ -275,7 +277,7 @@ class core_Backup extends core_Mvc
     /**
      * Извлича информация за времето от името на файла
      */
-    public static function getTimeFromFilemane($name)
+    public static function getTimeFromFilename($name)
     {
         $m = array();
         
@@ -328,7 +330,6 @@ class core_Backup extends core_Mvc
                         $rec = $inst->db->fetchObject($dbRes);
                         DEBUG::stopTimer('Query Table:' . $table);
                         
-                        // if($table == 'fileman_files') bp($sql, $rec);
                         self::$crcArr[$key] = $rec->_crc32backup + $addCrc32;
                     }
                     
@@ -499,14 +500,14 @@ class core_Backup extends core_Mvc
     /**
      * Възстановява системата от направен бекъп
      */
-    public static function restore(&$log)
+    public static function restore(&$log, $tableAndSess)
     {
         core_Debug::$isLogging = false;
-        core_SystemLock::stopIfBlocked();
-        core_SystemLock::block('Възстановяване от бекъп', 1800);
         
+        $start = time();
+         
         try {
-            core_App::setTimeLimit(120);
+            core_App::setTimeLimit(320);
             
             // Масив за съобщенията
             $log = array();
@@ -520,9 +521,17 @@ class core_Backup extends core_Mvc
             // Вземаме манипулатора на базата данни
             $db = cls::get('core_Db');
             
+            
+            if($tableAndSess) {
+                return self::doRestoreTable($tableAndSess, $db, $dir, $pass);
+            }
+ 
+            core_SystemLock::stopIfBlocked();
+            
             // Първо очакваме празна база. Ако в нея има нещо - излизаме
             $dbRes = $db->query("SELECT count(*) AS tablesCnt FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{$db->dbName}'");
             $res = $db->fetchArray($dbRes);
+            
             
             if (array_values($res)[0] > 0) {
                 $log[] = 'err: Базата не е празна. Преди възстановяване от бекъп в нея не трябва да има нито една таблица.';
@@ -530,6 +539,18 @@ class core_Backup extends core_Mvc
                 
                 return false;
             }
+            
+            // От тук нататък блокираме
+            core_SystemLock::block('Възстановяване на структурата', 240);
+            
+            // Изтриваме стари сесии
+            if (isset($_SESSION)) {
+                session_destroy();
+            }
+            
+            // Създаваме празна директория за отчитане на процесите, които наливат данните
+            $sess = base_convert(rand(1000000, 99999999), 10, 36);
+            $tempRestoreDir = self::getTempDir($sess);            
             
             // Подготвяме структурата на базата данни
             $descrArr = self::discover($dir, $pass, $log);
@@ -541,24 +562,26 @@ class core_Backup extends core_Mvc
             unlink($path);
             
             $log[] = 'msg: Създаване на структурата на таблиците';
+            
             $db->multyQuery($sql);
             
             // Наливаме съдържанието от всички налични CSV файлове
             // Извличаме от CSV последователно всички таблици
-            $cnt = count($description->files);
+            $tablesCnt = count($description->files);
+            $log[] = 'msg: Извличанне на ' . $tablesCnt . ' таблици';
             foreach ($description->files as $file) {
-                $src = $dir . $file;
-                core_App::setTimeLimit(1200);
-                list($table, ) = explode('.', $file);
-                core_SystemLock::block('Възстановяване на ' . basename($file), ($cnt--) * 4 + 240);
-                $dest = self::unzipToTemp($src, $pass, $log);
-                expect($dest, $src, $pass);
-                $log[] = $res = self::importTable($db, $table, $dest);
-                unlink($dest);
-                if (substr($res, 0, 4) == 'err:') {
-                    
-                    return;
-                }
+                self::runRestoreTable($file, $sess);
+                $log[] = 'msg: Възстановяване на: ' . $file;
+                do {
+                    $runned = self::getRuningProcess($tempRestoreDir);
+                    $runnedCnt = count($runned);
+                    if($runnedCnt) {
+                        core_SystemLock::block('Възстановяване на <li>' . implode("</li>\n<li>", $runned), ($cnt--) * 4 + 240);
+                    }
+                    if($runnedCnt > RESTORE_MAX_THREAD) {
+                        usleep(1000); 
+                    }
+                } while($runnedCnt > RESTORE_MAX_THREAD);
             }
             
             // Наливане на наличните SQL логове
@@ -567,7 +590,7 @@ class core_Backup extends core_Mvc
             
             $cnt = count($files);
             foreach ($files as $src) {
-                $time = self::getTimeFromFilemane(basename($src));
+                $time = self::getTimeFromFilename(basename($src));
                 if ($time <= $description->time) {
                     continue;
                 }
@@ -577,11 +600,13 @@ class core_Backup extends core_Mvc
                 $sql = file_get_contents($dest);
                 $log[] = 'msg: Прилагане на ' . basename($src);
                 core_SystemLock::block('Възстановяване на ' . basename($src), ($cnt--) * 2 + 30);
+                
                 $db->multyQuery($sql);
+                
                 unlink($dest);
             }
             
-            $log[] = 'msg: Възстановяването завърши успешно';
+            $log[] = 'msg: Възстановяването завърши успешно за ' . (time() - $start) . ' секунди';
             core_SystemLock::remove();
             core_Os::deleteDirectory(self::$temp);
             
@@ -594,6 +619,88 @@ class core_Backup extends core_Mvc
         core_Os::deleteDirectory(self::$temp);
     }
     
+    /**
+     * Извършва възстановяването на посочената таблица и хеш на директория
+     * @param string  $fileAndSess
+     * @param core_Db $db
+     */
+    public function doRestoreTable($fileAndSess, $db, $dir, $pass)
+    {
+        // Затваряме връзката
+        ignore_user_abort(true);
+        header('Connection: close');
+        header('Content-Length: 2');
+        header('Content-Encoding: none');
+        echo 'OK';
+        ob_end_flush();
+        ob_flush();
+        flush();
+        
+        list($file, $sess) = explode('|', trim($fileAndSess, '-'));
+        $tempRestoreDir = self::getTempDir($sess);
+        
+        if(!is_dir($tempRestoreDir)) return;
+        // Създаваме файл инфикатор, че процесът е започнал
+        $logFile = $tempRestoreDir . $file . '.prc';
+        file_put_contents($logFile, "Starting restore" . PHP_EOL , FILE_APPEND);
+        
+        $src = $dir . $file;
+        core_App::setTimeLimit(1200);
+        list($table, ) = explode('.', $file);
+        
+        $dest = self::unzipToTemp($src, $pass, $log);
+        
+        if(!$dest) {
+            file_put_contents($logFile, "Usuccesfull unzipToTemp {$src}".PHP_EOL , FILE_APPEND);
+        }
+
+        $res = self::importTable($db, $table, $dest);
+        
+        file_put_contents($logFile, "Import: {$res}" . PHP_EOL, FILE_APPEND);
+        
+        unlink($dest);
+        
+        // rename($logFile, $tempRestoreDir . $file . '.OK');
+        unlink($logFile);
+     
+        die;
+    }
+    
+    /**
+     * Прави извикване през Apache към себе си, за да се ресторне един файл
+     * @param string $file
+     * @param string $sess
+     */
+    public function runRestoreTable(string $file, $sess)
+    {
+        $url = toUrl(array('SetupKey' => $_GET['SetupKey'],'step' => "restore-{$file}|{$sess}"), 'absolute-force');
+        $tempRestoreDir = self::getTempDir($sess);
+        $logFile = $tempRestoreDir . $file . '.prc';
+        file_put_contents($logFile, "{$url}" . PHP_EOL , FILE_APPEND);
+        $handle = fopen($url, "r");
+        fread($handle, 1);
+    }
+    
+    /**
+     * Връща броя на файловете в посочената директория, които с определено разширение
+     * 
+     * @param string  $dir
+     * @param string $suffix
+     * @return array
+     */
+    public function getRuningProcess($dir, $suffix = '.prc')
+    {
+        $files = scandir($dir);
+
+        foreach($files as $id => $file) {
+            if(substr($file, -strlen($suffix)) != $suffix) {
+                unset($files[$id]);
+            }
+        }
+   
+        return $files;
+    }
+    
     
     /**
      * Импортира таблица от CSV файл
@@ -601,19 +708,22 @@ class core_Backup extends core_Mvc
     public static function importTable($db, $table, $dest)
     {
         static $maxMysqlQueryLength;
-        if (!isset($maxMysqlQueryLength)) {
-            $maxMysqlQueryLength = $db->getVariable('max_allowed_packet') / 2;
+        if (!isset($maxMysqlQueryLength)) {           
+            $maxMysqlQueryLength = $db->getVariable('max_allowed_packet') / 2;            
         }
+        
         $link = $db->connect();
         $handle = fopen($dest, 'r');
         $query = array();
         $totalLen = 0;
+        $linesCnt = 0;
         if ($handle) {
             do {
                 $line = fgets($handle);
                 if ($line !== false) {
                     $line = rtrim($line, "\n\r");
                     $totalLen += strlen($line);
+                    $linesCnt++;
                 }
                 if (!$cols) {
                     $cols = $line;
@@ -621,7 +731,7 @@ class core_Backup extends core_Mvc
                 }
                 if ($line === false || ($totalLen > $maxMysqlQueryLength)) {
                     try {
-                        if (!count($query) && strlen($line)) {
+                        if (strlen($line)) {
                             $query[] = $line;
                         }
                         $link->query("INSERT INTO `{$table}` ({$cols}) VALUES \n (" . implode("),\n(", $query) . ')');
@@ -642,7 +752,7 @@ class core_Backup extends core_Mvc
                 $query[] = $line;
             } while ($line !== false);
             fclose($handle);
-            $res = 'msg: Импортиране на ' . $table;
+            $res = 'msg: Импортиране на ' . $table . ' с общо ' . $linesCnt . ' линии';
         } else {
             // Не може да се отвори файла
             $res = "err: Не може да се отвори файла `{$dest}`";
@@ -664,12 +774,10 @@ class core_Backup extends core_Mvc
      */
     public static function unzipToTemp($path, $pass, &$log)
     {
-        if (!self::$temp) {
-            self::$temp = core_Os::normalizeDir(EF_TEMP_PATH) . '/backup/' . base_convert(rand(1000000, 99999999), 10, 36) . '/';
-            core_Os::forceDir(self::$temp);
-        }
+        $temp = self::getTempDir();
+        
         $file = basename($path);
-        $tempPath = self::$temp . substr($file, 0, -4);
+        $tempPath = $temp . substr($file, 0, -4);
         
         expect(file_exists($path), $path);
         if (file_exists($tempPath)) {
@@ -677,11 +785,30 @@ class core_Backup extends core_Mvc
         }
         $log[] = "msg: Разкомпресиране на `{$file}`";
         
-        $res = @archive_Adapter::uncompress($path, self::$temp, $pass);
+        $res = @archive_Adapter::uncompress($path, $temp, $pass);
         if ($res === 0 && file_exists($tempPath)) {
             
             return $tempPath;
         }
+    }
+    
+    
+    /**
+     * Създава темп директория
+     * @param string|int $sess
+     */
+    public function getTempDir($sess = false)
+    {
+        if(!isset(self::$temp)) {
+            if($sess === false) { 
+                $sess = base_convert(rand(1000000, 99999999), 10, 36);
+            }
+            expect(preg_match("/[0-9a-z]{1,10}/i", $sess), $sess);
+            self::$temp = core_Os::normalizeDir(EF_TEMP_PATH) . '/backup/' . $sess . '/';
+            core_Os::forceDir(self::$temp);
+        }
+        
+        return self::$temp;
     }
     
     
@@ -768,7 +895,7 @@ class core_Backup extends core_Mvc
      *
      * @param string $dir В коя директория да търси
      *
-     * @return stdObject Обект, съдържащ
+     * @return stdClass Обект, съдържащ
      *                   о name - Път до файла
      *                   о time - Време на създаване
      *                   о files - Масив с имена на файлове, които се съдържат в архива
@@ -795,14 +922,5 @@ class core_Backup extends core_Mvc
         });
         
         return $res;
-    }
-    
-    
-    /**
-     * Pomo
-     */
-    public static function sortDescr($a, $b)
-    {
-        return $a['time'] > $b['time'];
     }
 }
