@@ -49,9 +49,15 @@ class eshop_ProductDetails extends core_Detail
     
     
     /**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'marketing_InquirySourceIntf';
+    
+    
+    /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'eshopProductId=Е-артикул,productId,title,packagings=Опаковки/Мерки,deliveryTime,state=Състояние->Детайл,pState=Състояние->Артикул,modifiedOn,modifiedBy';
+    public $listFields = 'eshopProductId=Е-артикул,productId,title,packagings=Опаковки/Мерки,deliveryTime,action,state=Състояние->Детайл,pState=Състояние->Артикул,modifiedOn,modifiedBy';
     
     
     /**
@@ -102,11 +108,12 @@ class eshop_ProductDetails extends core_Detail
     public function description()
     {
         $this->FLD('eshopProductId', 'key(mvc=eshop_Products,select=name)', 'caption=Е-артикул,mandatory,silent');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=price_ListRules::getSellableProducts,titleFld=name,onlyPublic)', 'caption=Артикул,silent,removeAndRefreshForm=packagings,mandatory');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=price_ListRules::getSellableProducts,titleFld=name,showTemplates,onlyPublic)', 'caption=Артикул,silent,removeAndRefreshForm=packagings|action,mandatory');
         $this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковки/Мерки,mandatory');
         $this->FLD('title', 'varchar(nullIfEmpty)', 'caption=Заглавие');
         $this->FLD('deliveryTime', 'time', 'caption=Доставка до');
         $this->FLD('state', 'enum(active=Активен,closed=Затворен)', 'caption=Състояние,input=none');
+        $this->FLD('action', 'enum(price=Само цена,inquiry=Запитване,buy=Купуване,both=Запитване и купуване)', 'caption=Действия,mandatory');
         
         $this->setDbUnique('eshopProductId,title');
         $this->setDbUnique('eshopProductId,productId');
@@ -136,9 +143,14 @@ class eshop_ProductDetails extends core_Detail
         $rec = $form->rec;
         
         if (isset($rec->productId)) {
-            $productRec = cat_Products::fetch($rec->productId, 'canStore,measureId');
+            $productRec = cat_Products::fetch($rec->productId, 'canStore,measureId,state');
             $defaultTitle = eshop_ProductDetails::getPublicProductTitle($rec->eshopProductId, $rec->productId);
             $form->setField('title', "placeholder={$defaultTitle}");
+            
+            if($productRec->state == 'template'){
+                $form->setFieldType('action', 'enum(inquiry=Запитване)');
+                $form->setDefault('action', 'inquiry');
+            }
             
             if ($productRec->canStore == 'yes') {
                 $packs = cat_Products::getPacks($rec->productId);
@@ -217,10 +229,11 @@ class eshop_ProductDetails extends core_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (isset($fields['-list'])) {
+            $productRec = cat_Products::fetch($rec->productId, 'state');
         	$row->ROW_ATTR['class'] = "state-{$rec->state}";
         	$row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, TRUE);
         	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
-        	if (!self::getPublicDisplayPrice($rec->productId)) {
+        	if ($productRec->state != 'template' && !self::getPublicDisplayPrice($rec->productId)) {
                 $row->productId = ht::createHint($row->productId, 'Артикулът няма цена', 'warning');
             }
             
@@ -304,7 +317,7 @@ class eshop_ProductDetails extends core_Detail
         arr::sortObjects($recs, 'orderField', $orderByDir, 'str');
         
         foreach ($recs as $rec){
-            $newRec = (object) array('eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'title' => $rec->title, 'deliveryTime' => $rec->deliveryTime);
+            $newRec = (object) array('recId' => $rec->id, 'eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'title' => $rec->title, 'deliveryTime' => $rec->deliveryTime, 'action' => $rec->action);
             $paramsText = eshop_CartDetails::getUniqueParamsAsText($rec->eshopProductId, $rec->productId);
             
             $packagings = keylist::toArray($rec->packagings);
@@ -366,6 +379,7 @@ class eshop_ProductDetails extends core_Detail
      */
     public static function getExternalRow($rec)
     {
+        $me = cls::get(get_called_class());
         $settings = cms_Domains::getSettings();
         $row = new stdClass();
         $row->productId = static::getPublicProductTitle($rec->eshopProductId, $rec->productId);
@@ -373,26 +387,37 @@ class eshop_ProductDetails extends core_Detail
         $row->code = substr($fullCode, 0, 10);
         $row->code = "<span title={$fullCode}>{$row->code}</span>";
         
+        $productRec = cat_Products::fetch($rec->productId, 'state');
         $row->packagingId = cat_UoM::getShortName($rec->packagingId);
-        $minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намаляване на количеството'), '-');
-        $plus = ht::createElement('span', array('class' => 'btnUp', 'title' => 'Увеличаване на количеството'), '+');
-        $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}-{$rec->packagingId}", 1, "class=eshop-product-option option-quantity-input") . $plus . '</span>';
-
-        $showCartBtn = true;
-        $catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack);
-        if(isset($catalogPriceInfo->price)){
-            $row->catalogPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($catalogPriceInfo->price);
-            if($catalogPriceInfo->price == 0){
-                $row->catalogPrice = "<span class='green'>" . tr('Безплатно') . "</span>";
-            }
-            
-            $row->catalogPrice = currency_Currencies::decorate($row->catalogPrice, $settings->currencyId);
-            $row->catalogPrice = "<b>{$row->catalogPrice}</b>";
-        } else {
-            $showCartBtn = false;
-            $row->catalogPrice = "<span class=' option-not-in-stock ' style='background-color: #e6e6e6 !important;border: solid 1px #ff7070;color: #c00;margin-top: 5px;'>" . tr('Свържете се с нас') . "</span><br>";
-            if(eshop_Products::haveRightFor('single')){
-                $row->catalogPrice = ht::createHint($row->catalogPrice, 'Артикулът няма цена за продажба', 'error', false);
+        
+        $showPrice = ($productRec->state == 'template') ? false : true;
+        $showCartBtn = in_array($rec->action, array('buy', 'both'));
+        
+        if($productRec->state != 'template' && $rec->action != 'inquiry'){
+            $minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намаляване на количеството'), '-');
+            $plus = ht::createElement('span', array('class' => 'btnUp', 'title' => 'Увеличаване на количеството'), '+');
+            $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}-{$rec->packagingId}", 1, "class=eshop-product-option option-quantity-input") . $plus . '</span>';
+        }
+        
+        if($showPrice){
+            $catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack);
+            if(isset($catalogPriceInfo->price)){
+                $row->catalogPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($catalogPriceInfo->price);
+                if($catalogPriceInfo->price == 0){
+                    $row->catalogPrice = "<span class='green'>" . tr('Безплатно') . "</span>";
+                }
+                
+                $row->catalogPrice = currency_Currencies::decorate($row->catalogPrice, $settings->currencyId);
+                $row->catalogPrice = "<b>{$row->catalogPrice}</b>";
+            } else {
+                $showCartBtn = $showPrice = false;
+                if($rec->action != 'inquiry'){
+                    $row->catalogPrice = "<span class=' option-not-in-stock ' style='background-color: #e6e6e6 !important;border: solid 1px #ff7070;color: #c00;margin-top: 5px;'>" . tr('Свържете се с нас') . "</span><br>";
+                
+                    if(eshop_Products::haveRightFor('single')){
+                        $row->catalogPrice = ht::createHint($row->catalogPrice, 'Артикулът няма цена за продажба', 'error', false);
+                    }
+                }
             }
         }
         
@@ -401,8 +426,7 @@ class eshop_ProductDetails extends core_Detail
         $addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
         $class = ($rec->_listView === true) ? 'group-row' : '';
         
-        // Подготовка на бутона за купуване
-        if($showCartBtn === true){
+        if($showCartBtn){
             if (!empty($catalogPriceInfo->discount)) {
                 $style = ($rec->_listView === true) ? 'style="display:inline-block;font-weight:normal"' : '';
                 
@@ -433,8 +457,24 @@ class eshop_ProductDetails extends core_Detail
                 
                 $row->catalogPrice .= '</div>';
             }
-            
+        }
+        
+        // Подготовка на бутона за купуване
+        if($showCartBtn){
             $row->btn = ht::createFnBtn($settings->addToCartBtn, null, false, array('title' => 'Добавяне в|* ' . mb_strtolower(eshop_Carts::getCartDisplayName()), 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn addToCard', 'rel' => 'nofollow'));
+        }
+        
+        if(in_array($rec->action, array('inquiry', 'both'))){
+            $productRec = cat_Products::fetch($rec->productId, 'innerClass');
+            
+            if (cls::load($productRec->innerClass, true)) {
+                $title = 'Изпратете запитване за|* ' . tr($rec->name);
+                Request::setProtected('classId,objectId');
+                $url = toUrl(array('marketing_Inquiries2', 'new', 'classId' => $me->getClassId(), 'objectId' => $rec->recId, 'ret_url' => true));
+                Request::removeProtected('classId,objectId');
+                
+                $row->btnInquiry = ht::createBtn('Запитване', $url, false, false, "ef_icon=img/16/help_contents.png,title={$title},class=productBtn,rel=nofollow");
+            }
         }
         
         if($rec->_listView !== true){
@@ -461,6 +501,10 @@ class eshop_ProductDetails extends core_Detail
             if(!empty($row->btn)){
                 $row->catalogPrice .= "<div class='eshop-product-buy-button'>{$row->btn}</div>";
             }
+            
+            if(!empty($row->btnInquiry)){
+                $row->catalogPrice .= "<div class='eshop-product-buy-button'>{$row->btnInquiry}</div>";
+            }
         } 
         
         return $row;
@@ -477,8 +521,9 @@ class eshop_ProductDetails extends core_Detail
     public static function renderExternal($data)
     {
         $tpl = new core_ET('');
+        $me = cls::get(get_called_class());
         
-        $fieldset = cls::get(get_called_class());
+        $fieldset = clone $me;
         $fieldset->FNC('code', 'varchar');
         $fieldset->setField('productId', 'tdClass=productCol');
         $fieldset->FNC('catalogPrice', 'double', 'tdClass=rightCol priceCol');
@@ -492,9 +537,11 @@ class eshop_ProductDetails extends core_Detail
             unset($data->listFields['productId']);
         }
         
-        $settings = cms_Domains::getSettings();
-        cls::get(get_called_class())->invoke('BeforeRenderListTable', array($tpl, &$data));
+       
+        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'quantity');
         
+        $settings = cms_Domains::getSettings();
+        $me->invoke('BeforeRenderListTable', array($tpl, &$data));
         $tpl->append($table->get($data->rows, $data->listFields));
         
         $colspan = countR($data->listFields);
@@ -693,5 +740,40 @@ class eshop_ProductDetails extends core_Detail
         }
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Какви са дефолтните данни за създаване на запитване
+     *
+     * @param mixed $id - ид или запис
+     *
+     * @return array $res
+     *               ['title']         - заглавие
+     *               ['drvId']         - ид на драйвер
+     *               ['lg']            - език
+     *               ['protos']        - списък от прототипни артикули
+     *               ['quantityCount'] - опционален брой количества
+     *               ['moq']           - МКП
+     *               ['measureId']     - основна мярка
+     *               ['url']           - линк
+     */
+    public function getInquiryData($id)
+    {
+        $rec = $this->fetchRec($id);
+        $productRec = cat_Products::fetch($rec->productId, 'innerClass,measureId');
+        $eProductRec = eshop_Products::fetch($rec->eshopProductId);
+        
+        $res = array('title' => static::getPublicProductTitle($rec->eshopProductId, $rec->productId),
+                     'drvId' => $productRec->innerClass,
+                     'lg' => cms_Content::getLang(),
+                     'protos' => $rec->productId,
+                     'quantityCount' => empty($eProductRec->quantityCount) ? 0 : $eProductRec->quantityCount,
+                     'moq' => cat_Products::getMoq($rec->productId),
+                     'measureId' => $productRec->measureId,
+                     'url' => eshop_Products::getUrl($eProductRec),
+        );
+        
+        return $res;
     }
 }

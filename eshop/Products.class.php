@@ -171,7 +171,7 @@ class eshop_Products extends core_Master
         $this->FLD('coMoq', 'double', 'caption=Запитване->МКП,hint=Минимално количество за поръчка,silent');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,tdClass=centerCol');
         $this->FLD('quantityCount', 'enum(,3=3 количества,2=2 количества,1=1 количество)', 'caption=Запитване->Количества,placeholder=Без количество');
-        $this->FLD('saleState', 'enum(single=Единичен,multi=Избор,closed=Стар артикул,empty=Без опции)', 'caption=Тип,input=none,notNull,value=empty');
+        $this->FLD('saleState', 'enum(single=Единичен,multi=Избор,other=Други,closed=Стар артикул,empty=Без опции)', 'caption=Тип,input=none,notNull,value=empty');
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,input=none');
         
         $this->setDbIndex('groupId');
@@ -569,8 +569,8 @@ class eshop_Products extends core_Master
             if(countR($allowedPacks)){
                 $dQuery->likeKeylist('packagings', $allowedPacks);
             }
-            $countWithAllowedPacks = $dQuery->count();
             
+            $countWithAllowedPacks = $dQuery->count();
             $saleState = $pRec->saleState;
             
             // Ако е множествен избор но само 1 или 0 детайла ще се покажат
@@ -590,10 +590,10 @@ class eshop_Products extends core_Master
             }
             
             if ($saleState == 'single') {
-                
+               
                 // Детайлите на артикула
                 $dQuery = eshop_ProductDetails::getQuery();
-                $dQuery->where("#eshopProductId = {$pRec->id}");
+                $dQuery->where("#eshopProductId = {$pRec->id} AND #state != 'closed'");
                 if(countR($allowedPacks)){
                     $dQuery->likeKeylist('packagings', $allowedPacks);
                 }
@@ -1593,17 +1593,20 @@ class eshop_Products extends core_Master
         $dQuery = eshop_ProductDetails::getQuery();
         $dQuery->where("#eshopProductId = {$id}");
         $dQuery->EXT('pState', 'cat_Products', 'externalName=state,externalKey=productId');
-        $dQuery->show('state, pState');
+        $dQuery->show('state, pState,action');
         $details = $dQuery->fetchAll();
         
         // Колко опции има и дали сред тях има затворени
-        $countNotClosed = $countClosed = 0;
+        $countNotClosed = $countClosed = $countBuyable = 0;
         $count = $dQuery->count();
-        array_walk($details, function ($a) use (&$countClosed, &$countNotClosed) {
+        array_walk($details, function ($a) use (&$countClosed, &$countNotClosed, &$countBuyable) {
             if ($a->state != 'active' || $a->pState != 'active') {
                 $countClosed++;
             } else {
                 $countNotClosed++;
+                if(in_array($a->action, array('buy', 'both'))){
+                    $countBuyable++;
+                }
             }
         });
         
@@ -1611,10 +1614,12 @@ class eshop_Products extends core_Master
             $saleState = 'empty';
         } elseif ($count > 0 && $count == $countClosed) {
             $saleState = 'closed';
-        } elseif ($countNotClosed == 1) {
+        } elseif ($countNotClosed == 1 && $countBuyable == 1) {
             $saleState = 'single';
-        } else {
+        } elseif($countNotClosed > 1 && $countBuyable == $countNotClosed) {
             $saleState = 'multi';
+        } else {
+            $saleState = 'other';
         }
         
         return $saleState;

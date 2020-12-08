@@ -300,6 +300,13 @@ class eshop_Carts extends core_Master
             $success = false;
             $skip = true;
         }
+       
+        $actions = eshop_ProductDetails::fetchField("#eshopProductId = {$eshopProductId} AND #productId = {$productId}", 'action');
+        if(in_array($actions, array('price', 'inquiry'))){
+            $msg = '|Артикулът не може да бъде добавен в количка|*';
+            $success = false;
+            $skip = true;
+        }
         
         if (!eshop_ProductDetails::getPublicDisplayPrice($productId, $packagingId)) {
             $msg = '|Артикулът няма цена|*';

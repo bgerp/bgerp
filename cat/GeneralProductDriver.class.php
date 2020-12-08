@@ -73,9 +73,16 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         // Само при добавянето на нов артикул
         if (empty($rec->id) || $data->action == 'clone') {
             $refreshFields = array('param');
-            
+           
             // Имали дефолтни параметри
             $defaultParams = $Driver->getDefaultParams($rec, $Embedder->getClassId(), $data->action);
+            if (cls::haveInterface('marketing_InquiryEmbedderIntf', $Embedder) && isset($rec->proto)) {
+                $protoState = cat_Products::fetchField($rec->proto, 'state');
+                if($protoState != 'template'){
+                    $defaultParams = array();
+                }
+            }
+            
             foreach ($defaultParams as $id => $value) {
                 
                 // Всеки дефолтен параметър го добавяме към формата
