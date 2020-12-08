@@ -1278,7 +1278,9 @@ class eshop_Carts extends core_Master
                 $exHaveProductsWithExpectedDelivery = Request::get('haveProductsWithExpectedDelivery', 'enum(yes,no)');
                 
                 $url = array();
-                $currentRec = self::fetch($id, 'total,state,haveProductsWithExpectedDelivery');
+                $currentRec = self::fetch($id, 'total,state,haveProductsWithExpectedDelivery,domainId');
+                cms_Domains::setPublicDomain($currentRec->domainId);
+                
                 if($currentRec->state != $exState) {
                     $url = cls::get('eshop_Groups')->getUrlByMenuId(null);
                 } elseif(trim($exTotal) != trim($currentRec->total) || $exHaveProductsWithExpectedDelivery != $currentRec->haveProductsWithExpectedDelivery){
