@@ -3302,6 +3302,8 @@ span.sharing-history-title {
 
 .eshop-product-buy-button {
   margin-top: 3px; }
+  .eshop-product-buy-button .productBtn {
+    margin-right: 0 !important; }
 
 .external-discount {
   color: #333333;
