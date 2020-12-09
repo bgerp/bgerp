@@ -94,7 +94,7 @@ class core_Backup extends core_Mvc
                     $instArr[$mvc->dbTableName] = null;
                 }
             }
-            if (!$mvc->dbTableName || !$mvc->doReplication || !$exists || !$cnt || isset($instArr[$mvc->dbTableName])) {
+            if (!$mvc->dbTableName || (!$mvc->doReplication && (!isset($mvc->doReplication) || $mvc->doReplication) ) || !$exists || !$cnt || isset($instArr[$mvc->dbTableName])) {
                 continue;
             }
             $instArr[$mvc->dbTableName] = $mvc;
