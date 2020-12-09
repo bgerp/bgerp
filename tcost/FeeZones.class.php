@@ -460,14 +460,12 @@ class tcost_FeeZones extends core_Master
             
             if($deliveryAmount < 0){
                 wp($delivery, $cartRec, $settings->freeDelivery);
+            } else {
+                $cartRow->freeDelivery = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
+                $cartRow->freeDelivery = currency_Currencies::decorate($cartRow->freeDelivery, $settings->currencyId);
+                $block->append($cartRow->freeDelivery, 'freeDelivery');
+                $tpl->append($block, 'CART_FOOTER');
             }
-            
-            $cartRow->freeDelivery = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
-            $cartRow->freeDelivery = currency_Currencies::decorate($cartRow->freeDelivery, $settings->currencyId);
-            
-            $block->append($cartRow->freeDelivery, 'freeDelivery');
-            
-            $tpl->append($block, 'CART_FOOTER');
         }
     }
     
