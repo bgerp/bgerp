@@ -106,7 +106,13 @@ class core_Cron extends core_Manager
      */
     public $doReplication = false;
     
-    
+
+    /**
+     * Дали да се прави бекъп на модела
+     */
+    public $doBackup = true;
+
+
     /**
      * Описание на модела (таблицата)
      */
