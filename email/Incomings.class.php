@@ -1562,7 +1562,9 @@ class email_Incomings extends core_Master
                 if (!$mob && !$tel && !$fax) {
                     continue;
                 }
-                
+
+                self::logInfo("Добавени номера от имейл: tel: {$tel}, mob:{$mob}, fax: {$fax}", $rec->id, 70);
+
                 $inst = cls::get($rec->coverClass);
                 $iRec = $inst->fetch($rec->coverId);
                 $inst->addAddtionalNumber($iRec, $mob, $tel, $fax);
