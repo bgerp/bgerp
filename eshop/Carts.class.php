@@ -1521,7 +1521,7 @@ class eshop_Carts extends core_Master
         $fields['-external'] = true;
         
         $row = self::recToVerbal($rec, $fields);
-        $settings = cms_Domains::getSettings();
+        $settings = cms_Domains::getSettings($rec->domainId);
         
         $total = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
         $totalNoVat = currency_CurrencyRates::convertAmount($rec->totalNoVat, null, null, $settings->currencyId);
