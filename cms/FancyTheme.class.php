@@ -249,7 +249,7 @@ class cms_FancyTheme extends core_ProtoInner
                     
                     $banner = '';
                     
-                    $banner .= '<div class="fadein">';
+                    $banner .= '<div class="fadein" style="overflow: hidden;">';
                     $style = '';
                     foreach ($imgs as $iHash) {
                         $img = new thumb_Img(array($iHash, 1000, 288, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
