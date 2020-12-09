@@ -1066,20 +1066,17 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $fieldTpl = new core_ET(
             tr(
                 "|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
-                
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-                                <small><div><!--ET_BEGIN contragent-->|Контрагент|*: <b>[#contragent#]</b><!--ET_END contragent--></div></small>
-                
-                                <small><div><!--ET_BEGIN typeOfInvoice-->|Фактури|*: <b>[#typeOfInvoice#]</b><!--ET_END typeOfInvoice--></div></small>
-                                <small><div><!--ET_BEGIN unpaid-->|Плащане|*: <b>[#unpaid#]</b><!--ET_END unpaid--></div></small>
-                
-                                <small><div><!--ET_BEGIN totalInvoiceValueAll-->|Стойност|*: <b>[#totalInvoiceValueAll#] лв.</b><!--ET_END totalInvoiceValueAll--></div></small>
-                                <small><div><!--ET_BEGIN totalInvoicePayoutAll-->|Общо ПЛАТЕНА СУМА|*: <b>[#totalInvoicePayoutAll#] лв.</b><!--ET_END totalInvoicePayoutAll--></div></small>
-                
-                                <small><div><!--ET_BEGIN totalInvoiceNotPaydAll-->|Общо НЕПЛАТЕНА СУМА|*: <b>[#totalInvoiceNotPaydAll#] лв.</b><!--ET_END totalInvoiceNotPaydAll--></div></small>
-                                <small><div><!--ET_BEGIN totalInvoiceOverPaidAll-->|Общо НАДПЛАТЕНА СУМА|*: <b>[#totalInvoiceOverPaidAll#] лв.</b><!--ET_END totalInvoiceOverPaidAll--></div></small>
-                                <small><div><!--ET_BEGIN totalInvoiceOverDueAll-->|Общо ПРОСРОЧЕНА СУМА|*: <b>[#totalInvoiceOverDueAll#] лв.</b><!--ET_END totalInvoiceOverDueAll--></div></small>
-                
+                                    <div class='small'>
+                                        <!--ET_BEGIN contragent--><div>|Контрагент|*: <b>[#contragent#]</b></div><!--ET_END contragent-->
+                                        <!--ET_BEGIN typeOfInvoice--> <div>|Фактури|*: <b>[#typeOfInvoice#]</b></div><!--ET_END typeOfInvoice-->
+                                        <!--ET_BEGIN unpaid--><div>|Плащане|*: <b>[#unpaid#]</b></div><!--ET_END unpaid-->
+                                        <!--ET_BEGIN totalInvoiceValueAll--><div>|Стойност|*: <b>[#totalInvoiceValueAll#] лв.</b></div><!--ET_END totalInvoiceValueAll-->
+                                        <!--ET_BEGIN totalInvoicePayoutAll--><div>|Общо ПЛАТЕНА СУМА|*: <b>[#totalInvoicePayoutAll#] лв.</b></div><!--ET_END totalInvoicePayoutAll-->
+                                        <!--ET_BEGIN totalInvoiceNotPaydAll--><div>|Общо НЕПЛАТЕНА СУМА|*: <b>[#totalInvoiceNotPaydAll#] лв.</b></div><!--ET_END totalInvoiceNotPaydAll-->
+                                        <!--ET_BEGIN totalInvoiceOverPaidAll--><div>|Общо НАДПЛАТЕНА СУМА|*: <b>[#totalInvoiceOverPaidAll#] лв.</b></div><!--ET_END totalInvoiceOverPaidAll-->
+                                        <!--ET_BEGIN totalInvoiceOverDueAll--><div>|Общо ПРОСРОЧЕНА СУМА|*: <b>[#totalInvoiceOverDueAll#] лв.</b></div><!--ET_END totalInvoiceOverDueAll-->
+                                    </div>
                                 </fieldset><!--ET_END BLOCK-->"
                 )
             );

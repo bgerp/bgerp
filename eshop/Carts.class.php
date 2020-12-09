@@ -1239,7 +1239,7 @@ class eshop_Carts extends core_Master
         self::renderCartSummary($rec, $tpl);
         self::renderCartOrderInfo($rec, $tpl);
         $tpl->replace(self::getCartDisplayName(), 'CART_NAME');
-        $settings = cms_Domains::getSettings();
+        $settings = cms_Domains::getSettings($rec->domainId);
         
         if (!empty($settings->info)) {
             $tpl->replace(core_Type::getByName('richtext')->toVerbal($settings->info), 'COMMON_TEXT');
@@ -1278,7 +1278,9 @@ class eshop_Carts extends core_Master
                 $exHaveProductsWithExpectedDelivery = Request::get('haveProductsWithExpectedDelivery', 'enum(yes,no)');
                 
                 $url = array();
-                $currentRec = self::fetch($id, 'total,state,haveProductsWithExpectedDelivery');
+                $currentRec = self::fetch($id, 'total,state,haveProductsWithExpectedDelivery,domainId');
+                cms_Domains::setPublicDomain($currentRec->domainId);
+                
                 if($currentRec->state != $exState) {
                     $url = cls::get('eshop_Groups')->getUrlByMenuId(null);
                 } elseif(trim($exTotal) != trim($currentRec->total) || $exHaveProductsWithExpectedDelivery != $currentRec->haveProductsWithExpectedDelivery){
@@ -1519,7 +1521,7 @@ class eshop_Carts extends core_Master
         $fields['-external'] = true;
         
         $row = self::recToVerbal($rec, $fields);
-        $settings = cms_Domains::getSettings();
+        $settings = cms_Domains::getSettings($rec->domainId);
         
         $total = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
         $totalNoVat = currency_CurrencyRates::convertAmount($rec->totalNoVat, null, null, $settings->currencyId);

@@ -137,7 +137,9 @@ class core_Packs extends core_Manager
         $res = $this->setupPack($pack, 0, true, true, $haveRoleDebug);
         $res .= core_Classes::rebuild();
         $res .= core_Cron::cleanRecords();
-        
+
+        core_Cache::eraseFull();
+
         $pack = strtolower($pack);
         $rec = $this->fetch(array("LOWER(#name) = '[#1#]'", $pack));
         $this->logWrite('Инсталиране на пакета', $rec->id);
@@ -221,6 +223,8 @@ class core_Packs extends core_Manager
         $pack = Request::get('pack', 'identifier');
         
         $res = $this->deinstall($pack);
+
+        core_Cache::eraseFull();
         
         $retUrl = getRetUrl();
         
@@ -1124,7 +1128,7 @@ class core_Packs extends core_Manager
                     }
                 }
             }
-            
+
             self::setConfig($packName, $data);
             
             // Правим запис в лога
@@ -1137,6 +1141,8 @@ class core_Packs extends core_Manager
                 $setupClass = $packName . '_Setup';
                 if ($setupClass::INIT_AFTER_CONFIG) {
                     $msg .= '<br>' . $this->setupPack($packName, $rec->version, true, true, false);
+
+                    core_Cache::eraseFull();
                 }
             }
             

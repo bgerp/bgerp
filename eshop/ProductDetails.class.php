@@ -57,7 +57,7 @@ class eshop_ProductDetails extends core_Detail
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'eshopProductId=Е-артикул,productId,title,packagings=Опаковки/Мерки,deliveryTime,action,state=Състояние->Детайл,pState=Състояние->Артикул,modifiedOn,modifiedBy';
+    public $listFields = 'eshopProductId=Е-артикул,productId,title,packagings=Опаковки/Мерки,moq,deliveryTime,action,state=Състояние->Детайл,pState=Състояние->Артикул,modifiedOn,modifiedBy';
     
     
     /**
@@ -112,8 +112,10 @@ class eshop_ProductDetails extends core_Detail
         $this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковки/Мерки,mandatory');
         $this->FLD('title', 'varchar(nullIfEmpty)', 'caption=Заглавие');
         $this->FLD('deliveryTime', 'time', 'caption=Доставка до');
+        
         $this->FLD('state', 'enum(active=Активен,closed=Затворен)', 'caption=Състояние,input=none');
         $this->FLD('action', 'enum(price=Само цена,inquiry=Запитване,buy=Купуване,both=Запитване и купуване)', 'caption=Действия,mandatory');
+        $this->FLD('moq', 'double(min=0)', 'caption=MKП');
         
         $this->setDbUnique('eshopProductId,title');
         $this->setDbUnique('eshopProductId,productId');
@@ -763,13 +765,14 @@ class eshop_ProductDetails extends core_Detail
         $rec = $this->fetchRec($id);
         $productRec = cat_Products::fetch($rec->productId, 'innerClass,measureId');
         $eProductRec = eshop_Products::fetch($rec->eshopProductId);
+        $moq = !empty($rec->moq) ? $rec->moq : cat_Products::getMoq($rec->productId);
         
         $res = array('title' => static::getPublicProductTitle($rec->eshopProductId, $rec->productId),
                      'drvId' => $productRec->innerClass,
                      'lg' => cms_Content::getLang(),
                      'protos' => $rec->productId,
                      'quantityCount' => empty($eProductRec->quantityCount) ? 0 : $eProductRec->quantityCount,
-                     'moq' => cat_Products::getMoq($rec->productId),
+                     'moq' => $moq,
                      'measureId' => $productRec->measureId,
                      'url' => eshop_Products::getUrl($eProductRec),
         );
