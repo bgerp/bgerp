@@ -641,7 +641,7 @@ class cat_BomDetails extends doc_Detail
     public function act_Expand()
     {
         $this->requireRightFor('expand');
-        expect($id = Request::get('id', int));
+        expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         $this->requireRightFor('expand', $rec);
         
