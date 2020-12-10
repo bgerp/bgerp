@@ -49,47 +49,60 @@ class newsbar_Plugin extends core_Plugin
         // Показваме всички добавяни данни в сесията
         $newsArr = Mode::get(self::$newsArrToShowName);
         if ($newsArr) {
+            $className = 'newsbar ';
             foreach ($newsArr as $nRec) {
                 switch ($nRec->position) {
                     case 'bottomHeader':
                         $placeholderName = 'BOTTOM_HEADER';
+                        $className .= "topMenuNewsbar absolutePosition";
                         break;
                     case 'topPage':
                         $placeholderName = 'TOP_PAGE';
+                        $className .= "topPageNewsbar absolutePosition";
                         break;
-                    case 'bottomMenu':
-                        $placeholderName = 'BOTTOM_MENU';
-                        break;
-                    case 'topConten':
+                    case 'topContent':
                         $placeholderName = 'TOP_CONTENT';
+                        $className .= "topContentNewsbar";
                         break;
                     case 'bottomContent':
                         $placeholderName = 'BOTTOM_CONTENT';
+                        $className .= "bottomContentNewsbar";
                         break;
                     case 'topNav':
                         $placeholderName = 'TOP_NAV';
+                        $className .= "topNavNewsbar";
                         break;
                     case 'bottomNav':
                         $placeholderName = 'BOTTOM_NAV';
+                        $className .= "bottomNavNewsbar";
                         break;
                     case 'beforeFooter':
-                        $placeholderName = 'BEFORE_FOOTER';
-                        break;
-                    case 'footer':
                         if (Mode::is('screenMode', 'narrow')) {
-                            $placeholderName = 'FOOTER_CENTER_NARROW';
+                            $placeholderName = 'BEFORE_FOOTER_NARROW';
                         } else {
-                            $placeholderName = 'FOOTER_CENTER_WIDE';
+                            $placeholderName = 'BEFORE_FOOTER';
                         }
+                        $className .= "beforeFooterNewsbar";
                         break;
                     case 'afterFooter':
-                        $placeholderName = 'AFTER_FOOTER';
+                        if (Mode::is('screenMode', 'narrow')) {
+                            $placeholderName = 'AFTER_FOOTER_NARROW';
+                        } else {
+                            $placeholderName = 'AFTER_FOOTER';
+                        }
+                        $className .= "afterFooterNewsbar";
                         break;
                     default:
                         $placeholderName = 'BOTTOM_HEADER';
+                        $className .= "topMenuNewsbar";
                         break;
                 }
-                $className = ($placeholderName == 'BOTTOM_HEADER') ? 'newsbar' : 'newsbarCustom';
+                $themId = cms_Domains::getCurrent('theme', false);
+
+                if ($themId) {
+                    $theme = cls::get($themId);
+                    $className .= ($theme instanceof cms_FancyTheme) ? ' wideTheme' : ' defaultTheme';
+                }
                 $html = self::getTextToShow($nRec, $className);
                 $invoker->appendOnce($html, $placeholderName);
             }
