@@ -60,11 +60,15 @@
         [#cms_Content::getFooter#]
         <div class='footer-links'>[#FOOTER_CENTER_WIDE#]</div>
         </div>
-
         <!--ET_BEGIN AFTER_FOOTER_NARROW-->
         [#AFTER_FOOTER_NARROW#]
         <!--ET_END AFTER_FOOTER_NARROW-->
     </div>
+    <!--ET_BEGIN FOOTER_CENTER_NARROW-->
+    <div class="additionalFooter">
+        <div class='footer-links'>[#FOOTER_CENTER_NARROW#]</div>
+    </div>
+    <!--ET_END FOOTER_CENTER_NARROW-->
         [#BEFORE_FOOTER#]
     <!--ET_BEGIN AFTER_FOOTER-->
     [#AFTER_FOOTER#]
