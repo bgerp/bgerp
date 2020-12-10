@@ -3983,7 +3983,7 @@ table .eshop-btn {
   .newsbar.defaultTheme.topPageNewsbar {
     top: 0; }
   .newsbar.defaultTheme.topPageNewsbar ~ .background-holder {
-    padding-top: 50px; }
+    margin-top: 40px; }
 
 .wide .wideTheme.beforeFooterNewsbar,
 .wide .wideTheme.afterFooterNewsbar {
