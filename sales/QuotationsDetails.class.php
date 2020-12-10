@@ -1058,6 +1058,7 @@ class sales_QuotationsDetails extends doc_Detail
      */
     public static function getPriceInfo($customerClass, $customerId, $date, $productId, $packagingId = null, $quantity = 1)
     {
+        $date = empty($date) ? '0000-00-00' : $date;
         $query = sales_QuotationsDetails::getQuery();
         $query->EXT('contragentClassId', 'sales_Quotations', 'externalName=contragentClassId,externalKey=quotationId');
         $query->EXT('contragentId', 'sales_Quotations', 'externalName=contragentId,externalKey=quotationId');
