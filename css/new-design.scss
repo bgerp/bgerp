@@ -855,11 +855,15 @@ body {
             opacity: 0.9;
         }
         .menu-holder {
+            min-width: 140px;
             left: -2px;
             input {
                 box-sizing: border-box;
                 width: 100%;
                 margin-bottom: 5px;
+            }
+            table {
+                width: 100%;
             }
         }
     }
