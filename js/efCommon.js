@@ -1690,8 +1690,9 @@ function setMinHeightExt() {
         var ct = parseInt($('#cmsTop').outerHeight());
         var cb = parseInt($('#cmsBottom').outerHeight());
         var cm = parseInt($('#cmsMenu').outerHeight());
-        var bf = $('.beforeFooterNewsbar').length ? parseInt($('beforeFooterNewsbar').outerHeight()) : 0;
+        var bf = $('.beforeFooterNewsbar').length ? parseInt($('.beforeFooterNewsbar').outerHeight()) : 0;
         var af = $('.afterFooterNewsbar').length ? parseInt($('.afterFooterNewsbar').outerHeight()) : 0;
+
 
         if ($('body').hasClass('wide')) {
             var add = 16;
