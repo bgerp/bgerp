@@ -587,7 +587,7 @@ class email_Router extends core_Manager
         $mid = str::checkHash($messageId, 8, 'MID');
         
         // Deprecated, за съвмесимост със стария формат
-        if (!$mid && defined(BGERP_DEFAULT_EMAIL_DOMAIN)) {
+        if (!$mid && defined('BGERP_DEFAULT_EMAIL_DOMAIN')) {
             $myDomain = preg_quote(BGERP_DEFAULT_EMAIL_DOMAIN, '/');
             $regex = "/^(.+)@{$myDomain}\.mid$/";
             
