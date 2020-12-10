@@ -467,12 +467,13 @@ class eshop_ProductDetails extends core_Detail
         }
         
         if(in_array($rec->action, array('inquiry', 'both'))){
-            $productRec = cat_Products::fetch($rec->productId, 'innerClass');
-            
+            $productRec = cat_Products::fetch($rec->productId, 'innerClass,state');
+            $customizeProto = ($productRec->state == 'template') ? 'yes' : 'no';
+
             if (cls::load($productRec->innerClass, true)) {
                 $title = 'Изпратете запитване за|* ' . tr($rec->name);
                 Request::setProtected('classId,objectId,customizeProto');
-                $url = toUrl(array('marketing_Inquiries2', 'new', 'classId' => $me->getClassId(), 'objectId' => $rec->recId, 'customizeProto' => 'no', 'ret_url' => true));
+                $url = toUrl(array('marketing_Inquiries2', 'new', 'classId' => $me->getClassId(), 'objectId' => $rec->recId, 'customizeProto' => $customizeProto, 'ret_url' => true));
                 Request::removeProtected('classId,objectId,customizeProto');
                 
                 $row->btnInquiry = ht::createBtn('Запитване', $url, false, false, "ef_icon=img/16/help_contents.png,title={$title},class=productBtn,rel=nofollow");
