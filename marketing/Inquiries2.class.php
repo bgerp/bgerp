@@ -251,7 +251,8 @@ class marketing_Inquiries2 extends embed_Manager
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
         $this->FLD('sourceClassId', 'class(interface=marketing_InquirySourceIntf)', 'caption=Източник клас,input=none');
         $this->FLD('sourceId', 'int', 'caption=Източник id,input=none,tdClass=leftCol');
-        
+        $this->FLD('customizeProto', 'enum(no=Не,yes=Да)', 'caption=Заглавие,silent,input=hidden,notNull,value=yes');
+
         if (!acc_plg_DocumentSummary::$rolesAllMap[$this->className]) {
             acc_plg_DocumentSummary::$rolesAllMap[$this->className] = $this->filterRolesForAll;
         }
@@ -373,9 +374,16 @@ class marketing_Inquiries2 extends embed_Manager
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        
+        $cu = core_Users::getCurrent();
+
         if ($form->rec->innerClass) {
-            $form->setFieldType('proto', "key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,driverId={$form->rec->innerClass},isPublic=yes,showTemplates,maxSuggestions=100,forceAjax)");
+
+            $form->setFieldType('proto', "key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,driverId={$form->rec->innerClass},maxSuggestions=100,forceAjax)");
+            if(haveRole('partner')){
+                $form->setFieldTypeParams('proto', 'onlyTemplates');
+            } else {
+                $form->setFieldTypeParams('proto', 'isPublic=yes,showTemplates');
+            }
             $form->setField('proto', 'input');
         }
         
@@ -929,7 +937,7 @@ class marketing_Inquiries2 extends embed_Manager
     {
         $cu = core_Users::getCurrent('id', false);
         Mode::set('showBulletin', false);
-        Request::setProtected('classId, objectId');
+        Request::setProtected('classId, objectId,customizeProto');
         expect404($classId = Request::get('classId', 'int'));
         expect404($objectId = Request::get('objectId', 'int'));
         $Source = cls::getInterface('marketing_InquirySourceIntf', $classId);
@@ -1128,7 +1136,7 @@ class marketing_Inquiries2 extends embed_Manager
             $Driver = cat_Products::getDriver($protoRec);
             
             // Скриване на полетата от драйвера, ако прототипа не е шаблон
-            if($protoRec->state != 'template'){
+            if($protoRec->state != 'template' && $rec->customizeProto == 'no'){
                 if(isset($Driver)){
                     $DriverFields = array_keys($mvc->getDriverFields($Driver));
                     foreach ($DriverFields as $fld) {

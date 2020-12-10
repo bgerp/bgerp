@@ -31,7 +31,7 @@ class auto_plg_QuotationFromInquiry extends core_Plugin
             
             if(isset($rec->proto)){
                 $protoState = cat_Products::fetchField($rec->proto, 'state');
-                if($protoState == 'active'){
+                if($protoState == 'active' && $rec->customizeProto == 'no'){
                     
                     return;
                 }

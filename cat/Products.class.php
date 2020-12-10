@@ -1468,9 +1468,10 @@ class cat_Products extends embed_Manager
         } elseif (ctype_digit("{$onlyIds}")) {
             $query->where("#id = ${onlyIds}");
         } else {
-            
-            if($params['showTemplates']){
+            if($params['showTemplates']) {
                 $query->where("#state = 'active' OR #state = 'template'");
+            } elseif($params['onlyTemplates']){
+                $query->where("#state = 'template'");
             } else {
                 $query->where("#state = 'active'");
             }

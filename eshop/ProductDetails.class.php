@@ -471,9 +471,9 @@ class eshop_ProductDetails extends core_Detail
             
             if (cls::load($productRec->innerClass, true)) {
                 $title = 'Изпратете запитване за|* ' . tr($rec->name);
-                Request::setProtected('classId,objectId');
-                $url = toUrl(array('marketing_Inquiries2', 'new', 'classId' => $me->getClassId(), 'objectId' => $rec->recId, 'ret_url' => true));
-                Request::removeProtected('classId,objectId');
+                Request::setProtected('classId,objectId,customizeProto');
+                $url = toUrl(array('marketing_Inquiries2', 'new', 'classId' => $me->getClassId(), 'objectId' => $rec->recId, 'customizeProto' => 'no', 'ret_url' => true));
+                Request::removeProtected('classId,objectId,customizeProto');
                 
                 $row->btnInquiry = ht::createBtn('Запитване', $url, false, false, "ef_icon=img/16/help_contents.png,title={$title},class=productBtn,rel=nofollow");
             }
