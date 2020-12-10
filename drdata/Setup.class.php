@@ -122,6 +122,7 @@ class drdata_Setup extends core_ProtoSetup
         'drdata_Vats',
         'drdata_Domains',
         'drdata_Languages',
+        'drdata_bg_Places',
         'migrate::fixPhoneCache2040'
     );
     
