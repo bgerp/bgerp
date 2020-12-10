@@ -45,8 +45,15 @@
                 [#social_Followers::getButtons#]
             </div>
             [#cms_Content::getFooter#]
+            <!--ET_BEGIN FOOTER_CENTER_WIDE-->
+            <div class='footer-links'>[#FOOTER_CENTER_WIDE#]</div>
+            <!--ET_END FOOTER_CENTER_WIDE-->
         </div>
-
+        <!--ET_BEGIN FOOTER_CENTER_NARROW-->
+        <div class="additionalFooter">
+            <div class='footer-links'>[#FOOTER_CENTER_NARROW#]</div>
+        </div>
+        <!--ET_END FOOTER_CENTER_NARROW-->
         [#AFTER_FOOTER#]
         <!--ET_BEGIN AFTER_FOOTER_NARROW-->
         [#AFTER_FOOTER_NARROW#]
