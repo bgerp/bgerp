@@ -162,7 +162,12 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         setIfNot($data->chartTabCaption, $this->chartTabCaption);
         $data->listFields = $this->getListFields($rec);
         $data->rows = array();
-        
+
+        if(!$rec->data->recs->values){
+            $this->enableChartTab = false;
+            $this->chartTabDefault = false;
+        }
+
         if($this->enableChartTab === true){
             $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet', 'urlParam' => "frameTab"));
            
