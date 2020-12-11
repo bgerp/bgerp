@@ -937,9 +937,11 @@ class marketing_Inquiries2 extends embed_Manager
     {
         $cu = core_Users::getCurrent('id', false);
         Mode::set('showBulletin', false);
-        Request::setProtected('classId, objectId,customizeProto');
+        Request::setProtected('classId, objectId,customizeProtoOpt');
         expect404($classId = Request::get('classId', 'int'));
         expect404($objectId = Request::get('objectId', 'int'));
+        $customizeProto = Request::get('customizeProtoOpt', 'enum(yes,no)');
+        $customizeProto = !empty($customizeProto) ? $customizeProto : 'yes';
         $Source = cls::getInterface('marketing_InquirySourceIntf', $classId);
         $sourceData = $Source->getInquiryData($objectId);
         
@@ -971,7 +973,8 @@ class marketing_Inquiries2 extends embed_Manager
         $form = $this->prepareForm($drvId);
         $form->setDefault('sourceClassId', $classId);
         $form->setDefault('sourceId', $objectId);
-        
+        $form->setDefault('customizeProto', $customizeProto);
+
         // Рефрешване на формата ако потребителя се логне докато е в нея
         cms_Helper::setLoginInfoIfNeeded($form);
         
