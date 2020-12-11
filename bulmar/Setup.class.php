@@ -327,5 +327,7 @@ class bulmar_Setup extends core_ProtoSetup
     {
         $ownAccounts = array('' => '') + cls::get('bank_OwnAccounts')->makeArray4Select('title');
         $configForm->setFieldTypeParams('BULMAR_BANK_DOCUMENT_OWN_ACCOUNT_MAP', array('ownAccountId_opt' => $ownAccounts));
+
+        $configForm->setFieldTypeParams('BULMAR_BANK_DOCUMENT_OWN_ACCOUNT_MAP', array('itemId_opt' => $ownAccounts));
     }
 }
