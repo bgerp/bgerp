@@ -1548,6 +1548,7 @@ a.tOld {
 	td  {
 		text-align: center;
         font-size: 0.8em;
+		background: #fff;
 	}
 	.batchNameTd {
 		input {
@@ -1566,9 +1567,19 @@ a.tOld {
 	}
 
 }
+.formFields .typeTable {
+	select, input {
+		border: none !important;
+		box-shadow: none !important;
+		outline:  none !important;
+		&:active, &.focus {
+			box-shadow: none !important;
+			outline:  none !important;
+		}
+	}
+}
 
-
-/*стилове за документи*/
+	/*стилове за документи*/
 .document {
 	width: 100%;
     min-width: 50em;

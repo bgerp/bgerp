@@ -115,6 +115,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('responsible', 'varchar(255)', 'caption=Контрагент->Отговорник, class=contactData');
         $mvc->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контрагент->Държава,mandatory,contragentDataField=countryId');
         $mvc->FLD('contragentVatNo', 'drdata_VatType', 'caption=Контрагент->VAT №,contragentDataField=vatNo');
+        $mvc->FLD('contragentEori', 'drdata_type_Eori', 'caption=Контрагент->EORI №,contragentDataField=eori');
         $mvc->FLD('uicNo', 'type_Varchar', 'caption=Контрагент->Национален №,contragentDataField=uicId');
         $mvc->FLD('contragentPCode', 'varchar(16)', 'caption=Контрагент->П. код,recently,class=pCode,contragentDataField=pCode');
         $mvc->FLD('contragentPlace', 'varchar(64)', 'caption=Контрагент->Град,class=contactData,contragentDataField=place');
@@ -401,7 +402,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $form->setField('deliveryPlaceId', 'input=none');
         $form->setField('displayRate', 'input=hidden');
         
-        foreach (array('contragentName', 'contragentVatNo', 'uicNo', 'contragentCountryId', 'contragentPCode', 'contragentPlace', 'contragentAddress') as $name) {
+        foreach (array('contragentName', 'contragentEori', 'contragentVatNo', 'uicNo', 'contragentCountryId', 'contragentPCode', 'contragentPlace', 'contragentAddress') as $name) {
             if ($form->rec->{$name}) {
                 $form->setReadOnly($name);
             }
@@ -862,8 +863,12 @@ abstract class deals_InvoiceMaster extends core_Master
                     $form->setError('vatReason', 'Основанието за ДДС трябва да съдържа букви');
                 }
             }
+
+            $cData = cls::get($rec->contragentClassId)->getContragentData($rec->contragentId);
+            if(!drdata_Countries::isEu($cData->countryId, $rec->valior) && empty($rec->contragentEori)){
+                $form->setWarning('contragentEori', 'За контрагенти извън ЕС, е препоръчително да има EORI №');
+            }
         }
-        
         
         // Метод който да бъде прихванат от deals_plg_DpInvoice
         $form->rec->_edited = true;
@@ -1109,7 +1114,7 @@ abstract class deals_InvoiceMaster extends core_Master
             
             // Вербална обработка на данните на моята фирма и името на контрагента
             $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId, $row->contragentName);
-            foreach (array('MyCompany', 'MyAddress', 'MyCompanyVatNo', 'uicId', 'contragentName') as $fld) {
+            foreach (array('MyCompany', 'MyAddress', 'MyCompanyEori', 'MyCompanyVatNo', 'uicId', 'contragentName') as $fld) {
                 $row->{$fld} = $headerInfo[$fld];
             }
             
@@ -1311,7 +1316,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
             
-            if ($rec->state == 'active') {
+            if ($rec->state == 'active' && !($mvc instanceof sales_Proformas)) {
                 $dayForInvoice = acc_Setup::get('DATE_FOR_INVOICE_DATE');
                 $monthValior = dt::mysql2verbal($rec->date, 'm.y');
                 $monthNow = dt::mysql2verbal(dt::today(), 'm.y');

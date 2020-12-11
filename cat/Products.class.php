@@ -2211,19 +2211,20 @@ class cat_Products extends embed_Manager
      * 		- детайлно    : винаги връщаме детайлното описание
      * 		- кратко      : връщаме краткото описание
      *
-     * @param mixed    $id                - ид или запис на артикул
-     * @param datetime $time              - време
-     * @param string   $mode              - режим на показване
-     * @param string   $lang              - език
-     * @param int      $componentQuantity - к-во на компонентите
-     * @param bool     $showCode          - да се показва ли кода до името или не
+     * @param mixed     $id                - ид или запис на артикул
+     * @param datetime  $time              - време
+     * @param string    $mode              - режим на показване
+     * @param string    $lang              - език
+     * @param int       $componentQuantity - к-во на компонентите
+     * @param bool      $showCode          - да се показва ли кода до името или не
+     * @param null|int  $limitTitleLen     - ограничение на дължината на заглавието
      *
      * @return mixed $res
      *               ако $mode e 'auto'     - ако артикула е частен се връща детайлното описание, иначе краткото
      *               ако $mode e 'detailed' - подробно описание
      *               ако $mode e 'short'	   - кратко описание
      */
-    public static function getAutoProductDesc($id, $time = null, $mode = 'auto', $documentType = 'public', $lang = 'bg', $componentQuantity = null, $showCode = true)
+    public static function getAutoProductDesc($id, $time = null, $mode = 'auto', $documentType = 'public', $lang = 'bg', $componentQuantity = null, $showCode = true, $limitTitleLen = null)
     {
         if ($documentType == 'public') {
             $componentQuantity = 1;
@@ -2235,7 +2236,11 @@ class cat_Products extends embed_Manager
         if (!$title) {
             $title = cat_ProductTplCache::cacheTitle($rec, $time, $documentType, $lang);
         }
-        
+
+        if(isset($limitTitleLen)){
+            $title = mb_subStr($title, 0, $limitTitleLen);
+        }
+
         $fullTitle = $title;
         $title = (is_array($fullTitle)) ? $fullTitle['title'] : $fullTitle;
         $subTitle = (is_array($fullTitle)) ? $fullTitle['subTitle'] : null;
@@ -2246,8 +2251,7 @@ class cat_Products extends embed_Manager
             } else {
                 $titleTpl = new core_ET('[#name#]<!--ET_BEGIN code--> <span class=productCode>[#code#]</span><!--ET_END code-->');
             }
-            
-            
+
             $titleTpl->replace($title, 'name');
             
             if (!empty($rec->code)) {

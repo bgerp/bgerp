@@ -1920,7 +1920,7 @@ class sales_Quotations extends core_Master
         $constValue = sales_Setup::get('NEW_QUOTATION_AUTO_ACTION_BTN');
         if($constValue == 'form') {
             
-            return Redirect(array($this, 'add', 'folderId' => $folderId));
+            return Redirect(array($this, 'add', 'folderId' => $folderId, 'ret_url' => getRetUrl()));
         }
         
         // Генерира дефолтите според папката

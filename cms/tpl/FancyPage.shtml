@@ -45,7 +45,9 @@
     </div>
 
     [#PAGE_FOOTER#]
-
+    <!--ET_END FOOTER_CENTER_NARROW-->
+    [#BEFORE_FOOTER#]
+    <!--ET_BEGIN AFTER_FOOTER-->
     <div id="cmsBottom">
         <!--ET_BEGIN BEFORE_FOOTER_NARROW-->
         [#BEFORE_FOOTER_NARROW#]
@@ -53,12 +55,12 @@
 
 
         <div class="centerContent">
-        <div class="socialBtns">
-            [#cms_Feeds::generateFeedLink#]
-            [#social_Followers::getButtons#]
-        </div>
-        [#cms_Content::getFooter#]
-        <div class='footer-links'>[#FOOTER_CENTER_WIDE#]</div>
+            <div class="socialBtns">
+                [#cms_Feeds::generateFeedLink#]
+                [#social_Followers::getButtons#]
+            </div>
+            [#cms_Content::getFooter#]
+            <div class='footer-links'>[#FOOTER_CENTER_WIDE#]</div>
         </div>
         <!--ET_BEGIN AFTER_FOOTER_NARROW-->
         [#AFTER_FOOTER_NARROW#]
@@ -68,9 +70,7 @@
     <div class="additionalFooter">
         <div class='footer-links'>[#FOOTER_CENTER_NARROW#]</div>
     </div>
-    <!--ET_END FOOTER_CENTER_NARROW-->
-        [#BEFORE_FOOTER#]
-    <!--ET_BEGIN AFTER_FOOTER-->
+
     [#AFTER_FOOTER#]
     <!--ET_END AFTER_FOOTER-->
 </div>

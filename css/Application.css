@@ -1348,7 +1348,8 @@ a.tOld {
     background-color: #eeeeee; }
   .typeTable td {
     text-align: center;
-    font-size: 0.8em; }
+    font-size: 0.8em;
+    background: white; }
     .typeTable .batchNameTd input {
       white-space: nowrap;
       width: 100% !important; }
@@ -1358,6 +1359,18 @@ a.tOld {
         max-width: 120px; }
   .typeTable select {
     max-width: 270px; }
+
+  .formFields .typeTable select,
+  .formFields .typeTable input {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important; }
+    .formFields .typeTable select:active,
+    .formFields .typeTable input:active,
+    .formFields .typeTable select.focus,
+    .formFields .typeTable input.focus {
+      box-shadow: none !important;
+      outline: none !important; }
 
 /*
  * стилове за документи
