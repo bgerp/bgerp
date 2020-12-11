@@ -804,9 +804,9 @@ class email_Incomings extends core_Master
     /**
      * Променяме шаблона в зависимост от мода
      *
-     * @param blast_Emails $mvc
-     * @param core_ET      $tpl
-     * @param object       $data
+     * @param email_Incomings $mvc
+     * @param core_ET         $tpl
+     * @param object          $data
      */
     public function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
     {
