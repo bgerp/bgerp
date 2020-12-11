@@ -145,25 +145,14 @@ class drdata_Countries extends core_Manager
      * Връща държавите, с които се търгува в EUR
      *
      * @param int $countryId - ид на държавата
-     * @param date|null $date
      *
      * @return bool TRUE/FALSE
      */
-    public static function isEUR($countryId, $date = null)
+    public static function isEUR($countryId)
     {
         if (!$countryId) return false;
         
         expect($abbr = static::fetchField($countryId, 'letterCode2'));
-
-        if (!isset($date)) {
-            $date = dt::now(false);
-            if ($abbr == 'GB') {
-                if ($date >= '2021-01-01') {
-
-                    return false;
-                }
-            }
-        }
 
         return in_array($abbr, static::$eurCountries);
     }
