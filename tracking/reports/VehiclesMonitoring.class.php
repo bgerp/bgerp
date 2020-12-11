@@ -54,6 +54,11 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
     
     
     /**
+     * Дали таб графика да е дефолтен
+     */
+    protected $chartTabDefault = true;
+    
+    /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'from,to,compare,group,dealers,contragent,crmGroup,articleType';
