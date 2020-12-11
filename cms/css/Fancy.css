@@ -103,8 +103,12 @@ html {
     padding: 0 0px 10px;
     margin-top: -10px;
 }
+.wide .beforeFooterNewsbar {
+    position: absolute;
+    bottom: 40px;
+}
 
-.wide .beforeFooterNewsbar, .wide .afterFooterNewsbar {
+ .wide .afterFooterNewsbar {
     position: absolute;
     bottom: -40px;
 }
