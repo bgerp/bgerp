@@ -448,8 +448,6 @@ class email_Incomings extends core_Master
             if ($accRec->deleteAfterPeriod === '0') {
                 $imapConn->delete($i);
                 
-                // email_Accounts::logInfo("Изтриване $i", $accRec->id);
-                $statusSum['delete']++;
                 $doExpunge = true;
             }
             
