@@ -739,7 +739,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 
                 if ($data->rec->header == 'yes') {
                     for ($i = 1; $i <= 7; $i++) {
-                        $h = headerText . $i;
+                        $h = 'headerText' . $i;
                         $pHeaderArr[$i] .= self::formatText((string) $data->rec->{$h}, $data->rec->headerPos, $maxTextLen);
                     }
                     try {
