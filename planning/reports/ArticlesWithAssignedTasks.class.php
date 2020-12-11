@@ -528,8 +528,10 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-        		                <small><div><!--ET_BEGIN assignedUsers-->|Възложено на|*: [#assignedUsers#]<!--ET_END assignedUsers--></div></small>
-                                <small><div><!--ET_BEGIN orderingDate-->|Подредени по|*: [#orderingDate#]<!--ET_END orderingDate--></div></small>
+                                    <div class='small'>
+                                        <!--ET_BEGIN assignedUsers--><div>|Възложено на|*: [#assignedUsers#]</div><!--ET_END assignedUsers-->
+                                        <!--ET_BEGIN orderingDate--><div>|Подредени по|*: [#orderingDate#]</div><!--ET_END orderingDate-->
+                                    </div>
                                 </fieldset><!--ET_END BLOCK-->"));
         
         if (isset($data->rec->assignedUsers)) {

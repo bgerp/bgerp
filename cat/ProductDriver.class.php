@@ -590,7 +590,7 @@ abstract class cat_ProductDriver extends core_BaseClass
         
         if(haveRole('partner') && marketing_Inquiries2::haveRightFor('add', (object)array('folderId' => $folderId, 'innerClass' => $this->getClassId()))){
             $toolbar->addLink('Ново запитване||New enquiry', array('marketing_Inquiries2', 'add', 'folderId' => $folderId, 'innerClass' => $this->getClassId(), 'proto' => $id, 'quantity1' => $dRec->packQuantity,'ret_url' => true), 'ef_icon=img/16/help_contents.png');
-        }
+       }
     }
     
     

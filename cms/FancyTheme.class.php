@@ -74,7 +74,7 @@ class cms_FancyTheme extends core_ProtoInner
             $tpl->replace($menu, 'TOP_PAGE');
             $css .= "\n    header {border-bottom: 2px solid {$this->innerForm->baseColor} !important;}";
         } else {
-            $tpl->replace($menu, 'BOTTOM_MENU');
+            $tpl->replace($menu, 'MENU');
         }
         // Добавяме заглавния текст
         $title = $this->innerForm->title;

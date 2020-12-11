@@ -435,7 +435,7 @@ class core_page_InternalModern extends core_page_Active
         
         // Бутон за търсене във файлове
         if (doc_Files::haveRightFor('list')) {
-            $attr['ef_icon'] = 'img/16/photos2.png';
+            $attr['ef_icon'] = 'img/16/paper-clip2.png';
             $attr['id'] = 'modern-file-search';
             $column .= ht::createLink(tr('Файлове'), array('doc_Files', 'list'), null, $attr);
         }

@@ -560,20 +560,20 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
             }
         }
         
-        $period[workingDays] = 0;
+        $period['workingDays'] = 0;
         $period['numberOfDays'] = 0;
         
         $checkDate = $period['startDate'];
         
         do {
             if (!cal_Calendar::isHoliday($checkDate, 'bg')) {
-                $period[workingDays]++;
+                $period['workingDays']++;
             }
             
             $checkDate = dt::addDays(1, $checkDate, false);
         } while ($checkDate <= $period['endDate']);
         
-        $period[numberOfDays] = dt::daysBetween($period['endDate'], $period['startDate']) + 1;
+        $period['numberOfDays'] = dt::daysBetween($period['endDate'], $period['startDate']) + 1;
         
         return $period;
     }

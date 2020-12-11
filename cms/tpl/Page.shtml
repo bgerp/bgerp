@@ -36,6 +36,9 @@
         </div>
         [#PAGE_FOOTER#]
         [#BEFORE_FOOTER#]
+        <!--ET_BEGIN BEFORE_FOOTER_NARROW-->
+        [#BEFORE_FOOTER_NARROW#]
+        <!--ET_END BEFORE_FOOTER_NARROW-->
         <div id="cmsBottom">
             <div class="socialBtns">
                 [#cms_Feeds::generateFeedLink#]
@@ -52,5 +55,8 @@
         </div>
         <!--ET_END FOOTER_CENTER_NARROW-->
         [#AFTER_FOOTER#]
+        <!--ET_BEGIN AFTER_FOOTER_NARROW-->
+        [#AFTER_FOOTER_NARROW#]
+        <!--ET_END AFTER_FOOTER_NARROW-->
     </div>
 </div>

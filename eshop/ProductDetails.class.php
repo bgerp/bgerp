@@ -463,17 +463,18 @@ class eshop_ProductDetails extends core_Detail
         
         // Подготовка на бутона за купуване
         if($showCartBtn){
-            $row->btn = ht::createFnBtn($settings->addToCartBtn, null, false, array('title' => 'Добавяне в|* ' . mb_strtolower(eshop_Carts::getCartDisplayName()), 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn addToCard', 'rel' => 'nofollow'));
+            $row->btn = ht::createFnBtn($settings->addToCartBtn, null, false, array('title' => 'Добавяне в|* ' . mb_strtolower(eshop_Carts::getCartDisplayName()), 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'productBtn addToCard', 'rel' => 'nofollow'));
         }
         
         if(in_array($rec->action, array('inquiry', 'both'))){
-            $productRec = cat_Products::fetch($rec->productId, 'innerClass');
-            
+            $productRec = cat_Products::fetch($rec->productId, 'innerClass,state');
+            $customizeProto = ($productRec->state == 'template') ? 'yes' : 'no';
+
             if (cls::load($productRec->innerClass, true)) {
                 $title = 'Изпратете запитване за|* ' . tr($rec->name);
-                Request::setProtected('classId,objectId');
-                $url = toUrl(array('marketing_Inquiries2', 'new', 'classId' => $me->getClassId(), 'objectId' => $rec->recId, 'ret_url' => true));
-                Request::removeProtected('classId,objectId');
+                Request::setProtected('classId,objectId,customizeProtoOpt');
+                $url = toUrl(array('marketing_Inquiries2', 'new', 'classId' => $me->getClassId(), 'objectId' => $rec->recId, 'customizeProtoOpt' => $customizeProto, 'ret_url' => true));
+                Request::removeProtected('classId,objectId,customizeProtoOpt');
                 
                 $row->btnInquiry = ht::createBtn('Запитване', $url, false, false, "ef_icon=img/16/help_contents.png,title={$title},class=productBtn,rel=nofollow");
             }

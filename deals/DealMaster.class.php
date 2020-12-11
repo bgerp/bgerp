@@ -2330,7 +2330,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         if($constValue == 'form') {
             
-            return Redirect(array($this, 'add', 'folderId' => $folderId));
+            return Redirect(array($this, 'add', 'folderId' => $folderId, 'ret_url' => getRetUrl()));
         }
         
         // Генерира дефолтите според папката

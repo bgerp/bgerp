@@ -767,9 +767,11 @@ class pos_ReceiptDetails extends core_Detail
         if ($rec->discountPercent == 0) {
             unset($row->discountPercent);
         }
-        
-        $row->productId = ($fields['-list']) ? cat_Products::getHyperLink($rec->productId, true) :  mb_subStr(cat_Products::getTitleById($rec->productId), 0, 95);
-    
+
+        Mode::push('text', 'xhtml');
+        $row->productId = ($fields['-list']) ? cat_Products::getHyperLink($rec->productId, true) :  $res[$id]->productId =cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'public', core_Lg::getCurrent(), null, true, 95);
+        Mode::pop('text');
+
         // Показване на склада, само ако е различен от дефолтния
         if(isset($fields['-list'])){
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);

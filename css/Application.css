@@ -1348,7 +1348,8 @@ a.tOld {
     background-color: #eeeeee; }
   .typeTable td {
     text-align: center;
-    font-size: 0.8em; }
+    font-size: 0.8em;
+    background: white; }
     .typeTable .batchNameTd input {
       white-space: nowrap;
       width: 100% !important; }
@@ -1358,6 +1359,18 @@ a.tOld {
         max-width: 120px; }
   .typeTable select {
     max-width: 270px; }
+
+  .formFields .typeTable select,
+  .formFields .typeTable input {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important; }
+    .formFields .typeTable select:active,
+    .formFields .typeTable input:active,
+    .formFields .typeTable select.focus,
+    .formFields .typeTable input.focus {
+      box-shadow: none !important;
+      outline: none !important; }
 
 /*
  * стилове за документи
@@ -3302,6 +3315,8 @@ span.sharing-history-title {
 
 .eshop-product-buy-button {
   margin-top: 3px; }
+  .eshop-product-buy-button .productBtn {
+    margin-right: 0 !important; }
 
 .external-discount {
   color: #333333;
@@ -3942,38 +3957,49 @@ table .eshop-btn {
  */
 .newsbar {
   width: 100%;
-  text-align: center;
-  position: absolute;
-  bottom: 0px;
-  margin: 0px;
-  display: block;
-  font-size: 0.9em;
-  left: 0;
-  z-index: 100; }
-  .newsbar .richtext {
-    line-height: 1.1em;
-    white-space: nowrap; }
-
-.cms-last .defaultNewsbar {
-  margin: 5px 0 20px; }
-
-.defaultNewsbar {
+  box-sizing: border-box;
   background-color: white;
   color: black;
   clear: both; }
-  .defaultNewsbar h1,
-  .defaultNewsbar h2,
-  .defaultNewsbar h3,
-  .defaultNewsbar h4,
-  .defaultNewsbar h5,
-  .defaultNewsbar h6,
-  .defaultNewsbar p {
+  .newsbar h1,
+  .newsbar h2,
+  .newsbar h3,
+  .newsbar h4,
+  .newsbar h5,
+  .newsbar h6,
+  .newsbar p {
     margin: 0; }
-  .defaultNewsbar .richtext {
-    font-family: Verdana, Helvetica, Arial, Sans-serif; }
+  .newsbar .richtext {
+    font-family: Verdana, Helvetica, Arial, Sans-serif;
+    line-height: 1.1em;
+    white-space: nowrap; }
+  .newsbar.topPageNewsbar {
+    top: 0; }
+  .newsbar.topMenuNewsbar {
+    bottom: 0; }
+  .newsbar.absolutePosition {
+    text-align: center;
+    position: absolute;
+    margin: 0px;
+    display: block;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 0; }
+  .newsbar.topContentNewsbar {
+    clear: both;
+    margin: 10px 0 20px; }
+  .newsbar.topNavNewsbar {
+    margin-bottom: 25px; }
+  .newsbar.bottomNavNewsbar {
+    margin-top: 30px; }
+  .newsbar.defaultTheme.topPageNewsbar {
+    top: 0; }
+  .newsbar.defaultTheme.topPageNewsbar ~ .background-holder {
+    margin-top: 40px; }
 
-.narrow .defaultNewsbar {
-  margin: 10px 0px; }
+.narrow .newsbar.topPageNewsbar {
+  position: static; }
 
   #cmsNavigation .defaultNewsbar a.fancybox:hover {
     background: none !important;

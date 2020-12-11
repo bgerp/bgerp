@@ -5,9 +5,11 @@
         <span class="agree">Съгласен съм</span>
 </div>
 <!--ET_END cookies-->
-<div class="externalPage">
 [#TOP_PAGE#]
+<div class="externalPage">
+
     <header>
+
         <div class="narrowCenter">[#HEADER_IMG#]
             <!--ET_BEGIN CORE_APP_NAME-->
 
@@ -17,14 +19,17 @@
             <!--ET_BEGIN CORE_APP_SUBTITLE-->
             <div class='app-subtitle'>[#CORE_APP_SUBTITLE#]</div>
             <!--ET_END CORE_APP_SUBTITLE-->
+
         </div>
         [#PAGE_HEADER#]
-
         [#BOTTOM_HEADER#]
     </header>
 
-    [#BOTTOM_MENU#]
+    [#MENU#]
     <div id="maincontent" class="[#MAIN_CONTENT_CLASS#]">
+
+
+        [#BOTTOM_MENU#]
         <div class='statuses' id='statuses' style='margin: 0 auto;'>
             [#STATUSES#]
         </div>
@@ -36,29 +41,36 @@
         <!--ET_END USERLINK-->
         [#CMS_LAYOUT#]
         </div>
+
     </div>
+
     [#PAGE_FOOTER#]
+    <!--ET_END FOOTER_CENTER_NARROW-->
     [#BEFORE_FOOTER#]
+    <!--ET_BEGIN AFTER_FOOTER-->
     <div id="cmsBottom">
+        <!--ET_BEGIN BEFORE_FOOTER_NARROW-->
+        [#BEFORE_FOOTER_NARROW#]
+        <!--ET_END BEFORE_FOOTER_NARROW-->
+
+
         <div class="centerContent">
-        <div class="socialBtns">
-            [#cms_Feeds::generateFeedLink#]
-            [#social_Followers::getButtons#]
+            <div class="socialBtns">
+                [#cms_Feeds::generateFeedLink#]
+                [#social_Followers::getButtons#]
+            </div>
+            [#cms_Content::getFooter#]
+            <div class='footer-links'>[#FOOTER_CENTER_WIDE#]</div>
         </div>
-        [#cms_Content::getFooter#]
-        <div class='footer-links'>[#FOOTER_CENTER_WIDE#]</div>
-        </div>
+        <!--ET_BEGIN AFTER_FOOTER_NARROW-->
+        [#AFTER_FOOTER_NARROW#]
+        <!--ET_END AFTER_FOOTER_NARROW-->
     </div>
     <!--ET_BEGIN FOOTER_CENTER_NARROW-->
     <div class="additionalFooter">
         <div class='footer-links'>[#FOOTER_CENTER_NARROW#]</div>
     </div>
-    <!--ET_END FOOTER_CENTER_NARROW-->
 
-    <!--ET_BEGIN AFTER_FOOTER-->
-    <div class="centerContent">
     [#AFTER_FOOTER#]
-    </div>
     <!--ET_END AFTER_FOOTER-->
-
 </div>

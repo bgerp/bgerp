@@ -760,7 +760,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
                         
                         if ($data->rec->header == 'yes') {
                             for ($i = 1; $i <= 7; $i++) {
-                                $h = headerText . $i;
+                                $h = 'headerText' . $i;
                                 $ht = (string) $data->rec->{$h};
                                 $ht = self::formatText($ht, $data->rec->headerPos, $maxTextLen);
                                 $ht = json_encode($ht);

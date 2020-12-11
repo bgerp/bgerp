@@ -280,6 +280,8 @@ class acc_Balances extends core_Master
     {
         $query = self::getQuery();
         $query->orderBy('#toDate', 'DESC');
+        $date = (empty($date)) ? '0000-00-00' : $date;
+
         while ($rec = $query->fetch("#toDate < '{$date}'")) {
             if (self::isValid($rec)) {
                 
