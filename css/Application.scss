@@ -4654,13 +4654,9 @@ table .eshop-btn {
 		top: 0;
 	}
 	&.defaultTheme.topPageNewsbar ~ .background-holder {
-		padding-top: 50px;
+		margin-top: 40px;
 	}
 
-}
-.wide .wideTheme.beforeFooterNewsbar, .wide .wideTheme.afterFooterNewsbar {
-	position: absolute;
-	bottom: -40px;
 }
 
 .narrow .newsbar.topPageNewsbar {

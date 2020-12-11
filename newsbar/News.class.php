@@ -75,7 +75,7 @@ class newsbar_News extends core_Master
         $this->FLD('endTime', 'datetime(defaultTime=23:59:59,format=smartTime)', 'caption=Показване на новината->Край,mandatory');
         
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Показване в->Домейн,notNull,defValue=bg,mandatory,autoFilter');
-        $this->FLD('position', 'enum(bottomHeader=Над менюто, topPage=В началото, topContent=Преди съдържанието, bottomContent=След съдържанието, topNav=Над навигацията, bottomNav=Под навигацията, beforeFooter=Преди футър, afterFooter=След футър)', 'caption=Показване в->Позиция, notNull, mandatory');
+        $this->FLD('position', 'enum(topPage=В началото,bottomHeader=Над менюто,topContent=Преди съдържанието, bottomContent=След съдържанието, topNav=Над навигацията, bottomNav=Под навигацията, beforeFooter=Преди футър, afterFooter=След футър)', 'caption=Показване в->Позиция, notNull, mandatory');
         $this->FLD('menu', 'keylist(mvc=cms_Content,select=menu)', 'caption=Филтриране при показване->Меню');
         $this->FLD('articles', 'keylist(mvc=cms_Articles,select=title)', 'caption=Филтриране при показване->Статии');
         $this->FLD('eshopGroups', 'keylist(mvc=eshop_Groups,select=name)', 'caption=Филтриране при показване->Продуктови групи');
