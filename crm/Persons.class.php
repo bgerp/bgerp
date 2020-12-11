@@ -290,7 +290,8 @@ class crm_Persons extends core_Master
         // Единен Граждански Номер
         $this->FLD('egn', 'bglocal_EgnType', 'caption=ЕГН,export=Csv,silent');
         $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv');
-        
+        $this->FLD('eori', 'drdata_type_Eori', 'caption=EORI №,remember=info,class=contactData,export=Csv,silent');
+
         // Дата на раждане
         $this->FLD('birthday', 'combodate(minYear=1850,maxYear=' . date('Y') . ')', 'caption=Рожден ден,export=Csv');
         
@@ -1362,6 +1363,7 @@ class crm_Persons extends core_Master
             $contrData->countryId = $person->country;
             $contrData->pCode = $person->pCode;
             $contrData->vatNo = $person->vatId;
+            $contrData->eori = $person->eori;
             $contrData->uicId = $person->egn;
             $contrData->place = $person->place;
             $contrData->email = $person->buzEmail;

@@ -41,6 +41,9 @@
                     <!--ET_BEGIN vatId-->
                     <div>VAT: <b>[#vatId#]</b></div>
                     <!--ET_END vatId-->
+                    <!--ET_BEGIN eori-->
+                    <div>EORI: <b>[#eori#]</b></div>
+                    <!--ET_END eori-->
                     <!--ET_BEGIN fax-->
                     <div>|Факс|*: <b>[#fax#]</b></div>
                     <!--ET_END fax--> 

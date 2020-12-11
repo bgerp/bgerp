@@ -38,6 +38,9 @@
                         <!--ET_BEGIN vat-->
                         <div>VAT: <b>[#vat#]</b></div>
                         <!--ET_END vat-->
+                        <!--ET_BEGIN eori-->
+                        <div>EORI: <b>[#eori#]</b></div>
+                        <!--ET_END eori-->
                         <!--ET_BEGIN uicId-->
                         <div>|Нац.|* №: <b>[#uicId#]</b></div>
                         <!--ET_END uicId-->
