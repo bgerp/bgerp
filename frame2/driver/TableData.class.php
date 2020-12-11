@@ -99,6 +99,12 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     
     
     /**
+     * Дали таб графика да е дефолтен
+     */
+    protected $chartTabDefault = false;
+    
+    
+    /**
      * Дефолтен етикет на таба за графиката
      */
     protected $chartTabCaption = 'Графика';
@@ -159,7 +165,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         
         if($this->enableChartTab === true){
             $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet', 'urlParam' => "frameTab"));
-            
+           
             $url = getCurrentUrl();
             $url[$tabs->getUrlParam()] = "table{$rec->containerId}";
             $tabs->TAB("table{$rec->containerId}", 'Таблица', toUrl($url));
@@ -168,7 +174,9 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $tabs->TAB("chart{$rec->containerId}", $data->chartTabCaption, toUrl($url));
             
             $selectedTab = $tabs->getSelected();
-            $data->selectedTab = ($selectedTab) ? $selectedTab : $tabs->getFirstTab();
+            $defaultTab = ($this->chartTabDefault === true) ?"chart{$rec->containerId}":$tabs->getFirstTab();
+            
+            $data->selectedTab = ($selectedTab) ? $selectedTab : $defaultTab ;
             
             // Ако има избран детайл от горния таб рендираме го
             if($data->selectedTab == "chart{$rec->containerId}"){
