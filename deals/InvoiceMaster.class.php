@@ -1311,7 +1311,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
             
-            if ($rec->state == 'active') {
+            if ($rec->state == 'active' && !($mvc instanceof sales_Proformas)) {
                 $dayForInvoice = acc_Setup::get('DATE_FOR_INVOICE_DATE');
                 $monthValior = dt::mysql2verbal($rec->date, 'm.y');
                 $monthNow = dt::mysql2verbal(dt::today(), 'm.y');
