@@ -117,15 +117,26 @@ class drdata_Countries extends core_Manager
      * Дали държавата е в EU
      *
      * @param int $countryId - ид на държавата
+     * @param date|null $date
      *
      * @return bool TRUE/FALSE
      */
-    public static function isEu($countryId)
+    public static function isEu($countryId, $date = null)
     {
         if (!$countryId) return false;
         
         expect($abbr = static::fetchField($countryId, 'letterCode2'));
-        
+
+        if (!isset($date)) {
+            $date = dt::now(false);
+            if ($abbr == 'GB') {
+                if ($date >= '2021-01-01') {
+
+                    return false;
+                }
+            }
+        }
+
         return in_array($abbr, static::$euCountries);
     }
     
@@ -134,15 +145,26 @@ class drdata_Countries extends core_Manager
      * Връща държавите, с които се търгува в EUR
      *
      * @param int $countryId - ид на държавата
+     * @param date|null $date
      *
      * @return bool TRUE/FALSE
      */
-    public static function isEUR($countryId)
+    public static function isEUR($countryId, $date = null)
     {
         if (!$countryId) return false;
         
         expect($abbr = static::fetchField($countryId, 'letterCode2'));
-        
+
+        if (!isset($date)) {
+            $date = dt::now(false);
+            if ($abbr == 'GB') {
+                if ($date >= '2021-01-01') {
+
+                    return false;
+                }
+            }
+        }
+
         return in_array($abbr, static::$eurCountries);
     }
     
