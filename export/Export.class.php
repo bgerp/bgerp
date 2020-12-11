@@ -130,7 +130,9 @@ class export_Export extends core_Mvc
         expect($dRec);
         
         $inst->requireRightFor('exportdoc', $dRec);
-        
+
+        core_App::setTimeLimit(120);
+
         $form = $this->getForm();
         $form->title = 'Експортиране на|*' . $inst->getFormTitleLink($docId);
         

@@ -71,6 +71,17 @@ class fileman_Indexes extends core_Manager
     
     public $interfaces = 'fileman_ProcessIntf';
     
+
+    /**
+     * На участъци от по колко записа да се бекъпва?
+     */
+    public $backupMaxRows = 50000;
+    
+    
+    /**
+     * Кои полета да определят рзличността при backup
+     */
+    public $backupDiffFields = 'createdOnOn';
     
     /**
      * Масив с разширенията и минималните размери, на които ще се пускат обработки за OCR, при генериране на ключови думи
