@@ -193,12 +193,12 @@ class cams_driver_IpDevice extends core_BaseClass
                  $suffix = '/snapshot.jpg';
             break;
             case 'cams_driver_Hikvision':
-                
                 // Шот по http
                  $suffix = '/Streaming/channels/1/picture';
-                
-                // Път до файла генериран от RTSP
-                //return EF_TEMP_PATH . "HikvisionShot.jpg";
+            break;
+            case 'cams_driver_HikvisionDS':
+                // Шот по http
+                $suffix = '/onvif-http/snapshot?Profile_1';
             break;
         }
         
@@ -226,6 +226,7 @@ class cams_driver_IpDevice extends core_BaseClass
                 $suffix = '/' . $this->normalizeCameraId() . ".{$this->videopass}";
             break;
             case 'cams_driver_Hikvision':
+            case 'cams_driver_HikvisionDS':
             break;
         }
         

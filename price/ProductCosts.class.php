@@ -109,8 +109,13 @@ class price_ProductCosts extends core_Manager
             }
         }
         
-        $row->classId = cls::get($rec->classId)->getName(true);
-        $row->classId = trim($row->classId, ' "');
+        try{
+            $row->classId = cls::get($rec->classId)->getName(true);
+            $row->classId = trim($row->classId, ' "');
+        } catch(core_exception_Expect $e){
+            reportException($e);
+            $row->classId = "<span class='red'>" . tr('Проблем при показването') . "</span>";
+        }
     }
     
     

@@ -4,14 +4,14 @@ class cams_ONVIFTest extends core_Manager
 {
     public function act_ponvif()
     {
-        requireRole('debug');
+        //requireRole('debug');
         
         // require_once ('/home/mitko/git/ponvif/lib/class.ponvif.php');
         require_once (EF_ROOT_PATH . '/' . EF_APP_CODE_NAME . '/cams/ponvif/lib/class.ponvif.php');
         $onvif = new Ponvif(); 
-        $onvif->setUsername('user');
+        $onvif->setUsername('admin');
         $onvif->setPassword('Admin555');
-        $onvif->setIPAddress('11.0.0.110');
+        $onvif->setIPAddress('10.7.0.100');
         
 //         $onvif->setUsername('admin');
 //         $onvif->setPassword('admin');
