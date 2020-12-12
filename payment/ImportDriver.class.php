@@ -56,6 +56,10 @@ class payment_ImportDriver extends import2_AbstractDriver
     {
         $xml = fileman::extractStr($form->rec->xmlFile);
         
+        // Махаме BOM, ако има
+        $bom = pack('H*', 'EFBBBF');
+        $xml = preg_replace("/^${bom}/", '', $xml);
+
         core_App::setTimeLimit(30 + round(strlen($xml) / 100000));
         
         if (strpos($xml, 'iso:20022') !== false && strpos($xml, 'iso:20022') < 50) {
