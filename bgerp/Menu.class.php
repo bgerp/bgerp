@@ -38,13 +38,7 @@ class bgerp_Menu extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'admin';
-    
-    
-    /**
-     * Кой има право да променя системните данни?
-     */
-    public $canEditsysdata = 'admin';
-    
+
     
     /**
      * Описание на модела

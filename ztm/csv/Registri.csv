@@ -132,6 +132,9 @@ sys.last_minute_errs,json,,System,device,"""[]""",Last minute error
 sys.ram.current,int,0/,System,device,0,Current consumed RAM
 sys.ram.peak,int,0/,System,device,0,Peek of consumed RAM
 sys.time.usage,float,0.0/,System,device,0.0,Application time cycle
+sys.disc.total,int,0.0/,System,device,0,Disc status
+sys.disc.used,int,0.0/,System,device,0,Disc status
+sys.disc.free,int,0.0/,System,device,0,Disc status
 sys.sl.output,str,off|LED0|LED1|LED2|LED3|!LED0|!LED1|!LED2|!LED3,System,system,LED0,Status LED
 sys.sl.blink_time,float,0.0/,System,system,1.0,Blink time
 sys.at.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8|!DI0|!DI1|!DI2|!DI3|!DI4|!DI5|!DI6|!DI7|!DI8,System,system,off,Anti tamper
