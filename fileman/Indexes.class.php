@@ -120,7 +120,7 @@ class fileman_Indexes extends core_Manager
         $this->FLD('dataId', 'key(mvc=fileman_Data)', 'caption=Файл,notNull');
         $this->FLD('type', 'varchar(32)', 'caption=Тип');
         $this->FLD('content', 'blob(1000000)', 'caption=Съдържание');
-        
+
         $this->setDbUnique('dataId,type');
     }
     
@@ -1080,6 +1080,23 @@ class fileman_Indexes extends core_Manager
                     $data->query->where("#type = 'text' OR #type = 'textOcr'");
                 }
             }
+        }
+    }
+
+
+    /**
+     * Изтрива стари записи
+     */
+    public function cron_DeleteOldIndexes()
+    {
+        $before = dt::addDays(-1 * (fileman_Setup::get('INDEXES_KEEP_DAYS') / (24 * 3600)));
+
+        $res = self::delete(array("#createdOn <= '[#1#]'", $before));
+
+        if ($res) {
+            $this->logNotice("Бяха изтрити {$res} записа");
+
+            return "Бяха изтрити {$res} записа от " . $this->className;
         }
     }
 }
