@@ -81,7 +81,7 @@ class fileman_Indexes extends core_Manager
     /**
      * Кои полета да определят рзличността при backup
      */
-    public $backupDiffFields = 'createdOnOn';
+    public $backupDiffFields = 'createdOn';
     
     /**
      * Масив с разширенията и минималните размери, на които ще се пускат обработки за OCR, при генериране на ключови думи
