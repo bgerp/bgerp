@@ -1091,7 +1091,7 @@ class fileman_Indexes extends core_Manager
     {
         $before = dt::addDays(-1 * (fileman_Setup::get('INDEXES_KEEP_DAYS') / (24 * 3600)));
 
-        $res = self::delete(array("#createdOn <= '[#1#]'", $before));
+        $res = $this->delete(array("#createdOn <= '[#1#]'", $before));
 
         if ($res) {
             $this->logNotice("Бяха изтрити {$res} записа");
