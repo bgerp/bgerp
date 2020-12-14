@@ -360,7 +360,7 @@ class doc_Search extends core_Manager
         }
         
         // Ако не е начало на манипулатор на документ
-        if ($search{0} != '#') {
+        if ($search[0] != '#') {
             
             return ;
         }

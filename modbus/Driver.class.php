@@ -70,7 +70,7 @@ class modbus_Driver extends core_BaseClass
         
         $Plc = new ModbusTcp;
         
-        if ($this->ip{0} == 's') {
+        if ($this->ip[0] == 's') {
             $Plc->SetSimulation();
         }
         

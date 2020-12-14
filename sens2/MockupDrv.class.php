@@ -51,7 +51,7 @@ class sens2_MockupDrv extends sens2_ProtoDriver
     
     public function checkConfigForm($form)
     {
-        if ($form->rec->ip{0} == '2') {
+        if ($form->rec->ip[0] == '2') {
             $form->setError('ip', 'Ip-то не трябва да започва с 2');
         }
     }

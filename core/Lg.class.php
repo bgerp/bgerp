@@ -251,7 +251,7 @@ class core_Lg extends core_Manager
                 }
                 
                 foreach ($strArr as $i => $phrase) {
-                    if ($phrase{0} === '*') {
+                    if ($phrase[0] === '*') {
                         $translated[] = substr($phrase, 1);
                         continue;
                     }

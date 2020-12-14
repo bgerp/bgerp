@@ -155,7 +155,7 @@ class core_TableView extends core_BaseClass
             foreach ($fieldList as $place => $dummy) {
                 $colHeaders = $fields[$place];
                 
-                if ($colHeaders[0]{0} != '@') {
+                if ($colHeaders[0][0] != '@') {
                     
                     // Задаваме класа на колоната
                     $class = '';
@@ -177,7 +177,7 @@ class core_TableView extends core_BaseClass
                         $class .= " {$colWithClass[$place]}";
                     }
                     
-                    if (($place{0} == '_')) {
+                    if (($place[0] == '_')) {
                         $class .= ' centerCol';
                     }
                     

@@ -143,7 +143,7 @@ class core_Crypt extends core_BaseClass
         // от разделителя, докато дължината му стане кратна
         // на 16. Поставяме минимум $minRand случайни символа
         do {
-            while (($c = chr(rand(0, 255))) == $div{0}) {
+            while (($c = chr(rand(0, 255))) == $div[0]) {
             }
             $str = $c . $str;
             $minRand--;

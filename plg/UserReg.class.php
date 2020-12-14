@@ -478,13 +478,13 @@ class plg_UserReg extends core_Plugin
         }
         
         if ($last) {
-            $res[] = $names[0]{0} . '.' . $last;
-            $res[] = $names[0] . '.' . $last{0};
+            $res[] = $names[0][0] . '.' . $last;
+            $res[] = $names[0] . '.' . $last[0];
             $res[] = $names[0] . '.' . $last;
         }
         
         if ($names[2]) {
-            $res[] = $names[0] . '.' . $names[1]{0} . '.' . $last;
+            $res[] = $names[0] . '.' . $names[1][0] . '.' . $last;
         }
         
         $n = '';

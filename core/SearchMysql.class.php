@@ -63,7 +63,7 @@ class core_SearchMysql extends core_BaseClass
         $this->_excludedWords = array();
         
         foreach ($matches[0] as $i => $word) {
-            if ($word{0} == '^') {
+            if ($word[0] == '^') {
                 $this->_excludedWords[] = substr($word, 1);
                 unset($matches[0][$i]);
             }
@@ -402,7 +402,7 @@ class core_SearchMysql extends core_BaseClass
         $endText = -5;
         
         for ($i = 0; $i < $lenHtml; $i++) {
-            $c = $html{$i};
+            $c = $html[$i];
             
             //Начало на ХТМЛ или край на текста
             if ($c == '<') {

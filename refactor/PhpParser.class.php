@@ -89,7 +89,7 @@ class refactor_PhpParser
     {
         foreach ($this->tokenArr as $i => $t) {
             if ($t->type == T_CONSTANT_ENCAPSED_STRING) {
-                $str = trim($t->str, $t->str{0});
+                $str = trim($t->str, $t->str[0]);
                 if (preg_match('/[А-Яа-я][А-Яа-я0-9A-Z\\-_ \\,\\.\\!\\?]+/u', $str, $matches)) {
                     if (count($matches)) {
                         foreach ($matches as $s) {
@@ -112,7 +112,7 @@ class refactor_PhpParser
     {
         foreach ($this->lines as $l) {
             if (preg_match('/([a-z][а-я]|[а-я][a-z])/iu', $l, $matches) && !preg_match("/(preg_|pattern|CyrLat|\-zа\-)/iu", $l)) {
-                if ($matches[1]{0} == 'n' && strpos($l, '\\' . $matches[1]) !== false) {
+                if ($matches[1][0] == 'n' && strpos($l, '\\' . $matches[1]) !== false) {
                     continue;
                 }
             }
@@ -688,7 +688,7 @@ class refactor_PhpParser
                         }
                         $l = trim($l);
                         
-                        if ($l && $l{0} != '/') {
+                        if ($l && $l[0] != '/') {
                             $l = ' ' . $l;
                         }
                         $c->insertAfter(T_DOC_COMMENT, $l);

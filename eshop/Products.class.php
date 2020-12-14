@@ -987,7 +987,7 @@ class eshop_Products extends core_Master
         $mRec = cms_Content::fetch($gRec->menuId);
         $lg = $mRec->lang;
         
-        $lg{0} = strtoupper($lg{0});
+        $lg[0] = strtoupper($lg[0]);
         
         $url = array('A', 'p', $rec->vid ? $rec->vid : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : null);
         
