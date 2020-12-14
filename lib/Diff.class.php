@@ -108,7 +108,7 @@ class lib_Diff
             if (countR($e['d'])) {
                 foreach ($e['d'] as $d) {
                     $out = new stdClass();
-                    if ($d{0} == '<') {
+                    if ($d[0] == '<') {
                         continue;
                     }
                     $out->mode = 'd';
@@ -123,7 +123,7 @@ class lib_Diff
             if (countR($e['i'])) {
                 foreach ($e['i'] as $i) {
                     $out = new stdClass();
-                    if ($i{0} == '<') {
+                    if ($i[0] == '<') {
                         $out->mode = 't';
                         $out->str = $i;
                     } else {
@@ -207,7 +207,7 @@ class lib_Diff
         $out = '';
         
         foreach ($arr as $e) {
-            if ($e{0} != '<') {
+            if ($e[0] != '<') {
                 $out .= $e;
             }
         }
