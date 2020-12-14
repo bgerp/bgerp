@@ -704,7 +704,7 @@ class cal_Tasks extends embed_Manager
         foreach ($data->rows as $id => $row) {
             $row->subTitle = $mvc->getDocumentRow($id)->subTitle;
             $row->subTitleDiv = "<div class='threadSubTitle'>{$row->subTitle}</div>";
-            
+
             if ($row->title instanceof core_ET) {
                 $row->title->append($row->subTitleDiv);
             } else {
@@ -1720,8 +1720,15 @@ class cal_Tasks extends embed_Manager
         
         $date = '';
         
-        if ($rec->state == 'active' && $rec->timeEnd) {
-            $date = $rec->timeEnd;
+        if ($rec->state == 'active') {
+            $date = $rec->timeStart;
+            if ($rec->timeEnd) {
+                if (!$rec->timeStart || ($rec->timeStart < dt::now())) {
+                    if (dt::now(false) == dt::verbal2mysql($rec->timeEnd, false)) {
+                        $date = $rec->timeEnd;
+                    }
+                }
+            }
         }
         
         if (($rec->state == 'waiting' || $rec->state == 'pending') && $rec->timeStart) {
