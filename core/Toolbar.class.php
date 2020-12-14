@@ -344,9 +344,9 @@ class core_Toolbar extends core_BaseClass
         if (count($this->buttons) > 5 && !Mode::is('screenMode', 'narrow') || count($this->buttons) > 3 && Mode::is('screenMode', 'narrow')) {
             $layout = new ET("\n<div class='toolbar'><div class='toolbar-first clearfix21'>[#ROW0#][#ROW1#]</div>" .
                               
-                              "<!--ET_BEGIN ROW2--><div style='display:none' class='toolbarHide clearfix21' id='Row2_{$rowId}'>[#ROW2#]</div><!--ET_END ROW2--></div>");
+                              "<!--ET_BEGIN ROW2--><div style='display:none' class='toolbarHide clearfix21' id='Row2_{$rowId}'>[#ROW2#]<span style='display: block;margin-top: 5px;'> [#HIDDEN#]</span></div><!--ET_END ROW2--></div>");
         } else {
-            $layout = new ET("\n<div class='toolbar'><div class='clearfix21'>[#ROW1#][#ROW2#]</div></div>");
+            $layout = new ET("\n<div class='toolbar'><div class='clearfix21'>[#ROW1#][#ROW2#][#HIDDEN#]</div></div>");
         }
         
         return $layout;
