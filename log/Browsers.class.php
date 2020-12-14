@@ -151,7 +151,7 @@ class log_Browsers extends core_Master
         $this->FLD('userAgent', 'text', 'caption=User agent');
         $this->FLD('acceptLangs', 'text', 'caption=Accept langs');
         $this->FLD('userData', 'blob(serialize, compress)', 'caption=Данни');
-        
+
         $this->setDbUnique('brid');
     }
     
@@ -1173,5 +1173,22 @@ class log_Browsers extends core_Master
     protected static function getBridHashName()
     {
         return md5(log_Browsers::getUserAgent() . '|' . core_Users::getRealIpAddr());
+    }
+
+
+    /**
+     * Изтрива стари записи
+     */
+    public function cron_DeleteOldEmptyBrid()
+    {
+        $before = dt::addDays(-1 * (log_Setup::get('EMPTY_BRID_KEEP_DAYS') / (24 * 3600)));
+
+        $res = $this->delete(array("#createdOn <= '[#1#]' AND #createdBy <= 0 AND #userData IS NULL", $before));
+
+        if ($res) {
+            $this->logNotice("Бяха изтрити {$res} записа");
+
+            return "Бяха изтрити {$res} записа от " . $this->className;
+        }
     }
 }
