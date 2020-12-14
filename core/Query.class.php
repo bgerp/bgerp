@@ -513,11 +513,11 @@ class core_Query extends core_FieldSet
             }
             
             $order->priority = -$priority + count($this->orderBy) / 100;
-            
-            if ($order->field{0} != '#') {
+
+            if ($order->field[0] != '#') {
                 $order->field = '#' . $order->field;
             }
-            
+
             $fieldObj = $this->getField($order->field);
             
             // Ако полето е функционално и има атрибут 'orderAs', то в
