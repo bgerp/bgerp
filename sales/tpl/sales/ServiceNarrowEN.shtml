@@ -25,25 +25,7 @@
             </tr>
             <tr>
                 <td>
-                    <!--ET_BEGIN contragentName-->
-                    <b>[#contragentName#]</b>
-                    <!--ET_BEGIN contragentAddress-->
-                    <div class='address-block'>
-                        [#contragentAddress#]
-                    </div>
-                    <!--ET_END contragentAddress-->
-                    <!--ET_END contragentName-->
-
-                    <!--ET_BEGIN contragentVatInfo-->
-                    [#contragentVatInfo#]
-                    <hr style="margin: 3px 0 1px;">
-                    <!--ET_BEGIN vatNo-->
-                    <div><small>VAT ID:</small> <span class="bigData notBold" style="padding-left:5px;">[#vatNo#]</span></div>
-                    <!--ET_END vatNo-->
-                    <!--ET_BEGIN contragentUicId-->
-                    <div><small>[#contragentUicCaption#]:</small> <span class="bigData notBold" style="padding-left:5px;"> [#contragentUicId#]</span></div>
-                    <!--ET_END contragentUicId-->
-                    <!--ET_END contragentVatInfo-->
+                    [#/deals/tpl/ContragentHeaderBlock.shtml#]
                 </td>
             </tr>
             <tr>
@@ -56,26 +38,7 @@
             </tr>
             <tr>
                 <td>
-                    <!--ET_BEGIN MyCompany-->
-                    <b>[#MyCompany#]</b>
-                    <!--ET_BEGIN MyAddress-->
-                    <div class='address-block'>
-                        [#MyAddress#]
-                    </div>
-                    <!--ET_END MyAddress-->
-
-                    <!--ET_BEGIN vatInfo-->
-                    [#vatInfo#]
-                    <hr style="margin: 3px 0 1px;">
-                    <!--ET_BEGIN MyCompanyVatNo-->
-                    <div><small>VAT ID:</small> <span class="bigData notBold" style="padding-left:5px;">[#MyCompanyVatNo#]</span></div>
-                    <!--ET_END MyCompanyVatNo-->
-                    <!--ET_BEGIN uicId-->
-                    <div><small>Tax ID:</small> <span class="bigData notBold" style="padding-left:5px;">[#uicId#]</span></div>
-                    <!--ET_END uicId-->
-                    <!--ET_END vatInfo-->
-
-                    <!--ET_END MyCompany-->
+                    [#/deals/tpl/MyCompanyBlock.shtml#]
                 </td>
             </tr>
         </tbody>
