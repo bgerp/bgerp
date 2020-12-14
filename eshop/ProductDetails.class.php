@@ -143,7 +143,9 @@ class eshop_ProductDetails extends core_Detail
     {
         $form = &$data->form;
         $rec = $form->rec;
-        
+
+
+
         if (isset($rec->productId)) {
             $productRec = cat_Products::fetch($rec->productId, 'canStore,measureId,state');
             $defaultTitle = eshop_ProductDetails::getPublicProductTitle($rec->eshopProductId, $rec->productId);
@@ -152,6 +154,8 @@ class eshop_ProductDetails extends core_Detail
             if($productRec->state == 'template'){
                 $form->setFieldType('action', 'enum(inquiry=Запитване)');
                 $form->setDefault('action', 'inquiry');
+            } else {
+                $form->setDefault('action', 'buy');
             }
             
             if ($productRec->canStore == 'yes') {
@@ -170,6 +174,7 @@ class eshop_ProductDetails extends core_Detail
             }
         } else {
             $form->setField('packagings', 'input=none');
+            $form->setField('action', 'input=none');
         }
     }
     
