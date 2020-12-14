@@ -10,7 +10,7 @@
 [#contragentVatInfo#]
 <hr style="margin: 3px 0 1px;">
 <!--ET_BEGIN vatNo-->
-<div><small>ЗДДС №:</small> <span class="bigData notBold" style="padding-left:5px;">[#vatNo#]</span></div>
+<div><small>|ЗДДС №|*:</small> <span class="bigData notBold" style="padding-left:5px;">[#vatNo#]</span></div>
 <!--ET_END vatNo-->
 <!--ET_BEGIN eori-->
 <div><small>EORI №:</small> <span class="bigData notBold" style="padding-left:5px;">[#eori#]</span></div>
