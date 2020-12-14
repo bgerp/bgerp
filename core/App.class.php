@@ -193,7 +193,7 @@ class core_App
                         if ($last !== false && $last < strlen($prm)) {
                             $className{$last + 1} = strtoupper($prm{$last + 1});
                         } else {
-                            $className{0} = strtoupper($prm{0});
+                            $className[0] = strtoupper($prm[0]);
                         }
                     }
                     $q['Ctr'] = preg_replace('/[^a-zA-Z0-9_]*/', '', $prm);

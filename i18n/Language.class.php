@@ -479,7 +479,7 @@ class i18n_Language
                 foreach (self::$lgAnalyzer[$lg] as $word => $rate) {
                     $word = str::utf2ascii($word);
                     if (strlen($word) > 4) {
-                        if ($word{0} == '*') {
+                        if ($word[0] == '*') {
                             $word = '*' . substr($word, strlen($word) - 3, 3);
                         } else {
                             $word = substr($word, 0, 3) . '*';

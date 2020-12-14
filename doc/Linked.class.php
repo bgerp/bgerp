@@ -1178,7 +1178,7 @@ class doc_Linked extends core_Manager
             
             $show .= ',searchFieldXpr';
             
-            if ($q{0} == '"') {
+            if ($q[0] == '"') {
                 $strict = true;
             }
             

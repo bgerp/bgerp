@@ -945,7 +945,7 @@ class core_Manager extends core_Mvc
     {
         $action = $action1;
         
-        $action{0} = strtoupper($action{0});
+        $action[0] = strtoupper($action[0]);
         $action = 'can' . $action;
         
         if (isset($this->{$action})) {

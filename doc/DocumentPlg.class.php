@@ -569,7 +569,7 @@ class doc_DocumentPlg extends core_Plugin
             if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
                 list($listFieldsName,$listFieldsPos) = explode('=', $mvc->listFieldsExtraLine);
                 
-                if (isset($data->listFields[$listFieldsName]) && $data->listFields[$listFieldsName]{0} != '@') {
+                if (isset($data->listFields[$listFieldsName]) && $data->listFields[$listFieldsName][0] != '@') {
                     $data->listFields[$listFieldsName] = '@' . $data->listFields[$listFieldsName];
                 }
                 

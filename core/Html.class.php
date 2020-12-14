@@ -42,7 +42,7 @@ class core_Html
                 foreach ($attributes as $atr => $content) {
                     // Смятаме, че всички атрибути с имена, започващи със '#'
                     // са вътрешни и поради това не ги показваме в елемента
-                    if ($atr{0} == '#') {
+                    if ($atr[0] == '#') {
                         continue;
                     }
                     
@@ -268,7 +268,7 @@ class core_Html
             // Смятаме, че всички атрибути с имена, започващи със '#'
             // са вътрешни и поради това не ги показваме в елемента
             // Същото правим и за атрибутите placeholder и value
-            if ($atr{0} == '#' || $atr == 'placeholder' || $atr == 'value') {
+            if ($atr[0] == '#' || $atr == 'placeholder' || $atr == 'value') {
                 continue;
             }
             

@@ -347,7 +347,7 @@ class type_UserList extends type_Keylist
                 $value = $this->fromArray($value);
             }
             
-            $valuesArr = explode($value{0}, trim($value, $value{0}));
+            $valuesArr = explode($value[0], trim($value, $value[0]));
             
             $nValArr = array();
             

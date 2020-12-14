@@ -735,7 +735,7 @@ class eshop_Groups extends core_Master
         
         $lg = $mRec->lang;
         
-        $lg{0} = strtoupper($lg{0});
+        $lg[0] = strtoupper($lg[0]);
         
         $url = array('A', 'g', $rec->vid ? $rec->vid : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : null);
         

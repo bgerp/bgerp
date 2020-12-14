@@ -148,7 +148,7 @@ class cond_Colors extends core_Manager
         $query->XPR('searchFieldXprLower', 'text', "LOWER({$xpr})");
        
         if ($q) {
-            if ($q{0} == '"') {
+            if ($q[0] == '"') {
                 $strict = true;
             }
             $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
