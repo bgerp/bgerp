@@ -337,11 +337,9 @@ class eshop_Setup extends core_ProtoSetup
         $update = array();
         while ($rec = $query->fetch()){
             if($rec->groupId){
-                if($rec->domainId = cms_Content::fetchField(eshop_Groups::fetchField($rec->groupId, 'menuId'), 'domainId')){
-                    $update[$rec->id] = $rec;
-                }
+                exoect($rec->domainId = cms_Content::fetchField(eshop_Groups::fetchField($rec->groupId, 'menuId'), 'domainId'));
+                $update[$rec->id] = $rec;
             }
-            
         }
         
         if(countR($update)){
