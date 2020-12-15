@@ -191,7 +191,7 @@ class core_App
                         $last = strrpos($prm, '_');
                         
                         if ($last !== false && $last < strlen($prm)) {
-                            $className{$last + 1} = strtoupper($prm{$last + 1});
+                            $className[$last + 1] = strtoupper($prm[$last + 1]);
                         } else {
                             $className[0] = strtoupper($prm[0]);
                         }
