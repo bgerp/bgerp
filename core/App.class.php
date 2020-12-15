@@ -850,8 +850,8 @@ class core_App
             if (!$arr['Act']) {
                 $arr['Act'] = 'default';
             }
-            
-            $url .= $arr['App'];
+
+            $url = $arr['App'];
             $url .= '/' . $arr['Ctr'];
             $url .= '/' . $arr['Act'];
             
@@ -1006,7 +1006,7 @@ class core_App
         }
         
         // Задължително слагаме контролера
-        $pre .= '/' . $params['Ctr'] . '/';
+        $pre = '/' . $params['Ctr'] . '/';
         
         if ($params['Act'] && (strtolower($params['Act']) !== 'default' || $params['id'])) {
             $pre .= $params['Act'] . '/';
