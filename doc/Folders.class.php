@@ -540,12 +540,10 @@ class doc_Folders extends core_Master
             if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
                 $link = array();
             }
-            //bp($title, mb_strlen($rec->title), self::maxLenTitle);
+
             $title = ht::createLink($title, $link, null, $attr);
         } else {
             $attr['style'] = 'color:#777;background-image:url(' . $img . ');';
-
-          //  bp($title);
             $title = ht::createElement('span', $attr, $title);
         }
         
