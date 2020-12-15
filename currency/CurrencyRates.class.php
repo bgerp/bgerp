@@ -488,7 +488,7 @@ class currency_CurrencyRates extends core_Detail
             return;
         }
         
-        return static::$cache[$date][$fromId][$toId] = $fromBaseRate / $toBaseRate;
+        return static::$cache[$date][$fromId][$toId][$baseCurrencyId] = $fromBaseRate / $toBaseRate;
     }
     
     
