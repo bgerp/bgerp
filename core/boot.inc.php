@@ -390,7 +390,7 @@ function logHitState($debugCode = '200', $state = array())
             try {
                 $data .= ' Serilize: ' . @serialize($state);
             } catch (Exception $e) {
-                $data .= ' MixedToString: ' . core_Type::mixedToString($f);
+                $data .= ' MixedToString: ' . core_Type::mixedToString($state);
             }
         }
         
