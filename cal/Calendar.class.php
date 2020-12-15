@@ -1450,7 +1450,7 @@ class cal_Calendar extends core_Master
     	
     	if ($date1 == $date2){
     	    $date1Type = self::getDayStatus($date1, 'bg');
-    	    if($date1Type->specialDay  == FALSE || $dateType->specialDay  == 'workday') {
+    	    if($date1Type->specialDay  == FALSE || $date1Type->specialDay  == 'workday') {
     	        $workDays++;
     	    } else {
     	        $nonWorking++;
@@ -1708,7 +1708,8 @@ class cal_Calendar extends core_Master
         $toDate = $from['toDate'];
         
         $stateDay = self::prepareState($fromDate, $toDate, $selectedUsers);
-        
+
+        $dayData = array();
         
         if(is_array($stateDay)){
 	        
@@ -1760,7 +1761,9 @@ class cal_Calendar extends core_Master
         $toDate = $from['toDate'];
         
         $stateWeek = self::prepareState($fromDate, $toDate, $selectedUsers);
-        
+
+        $weekData = array();
+
         if(is_array($stateWeek)){
 	        foreach($stateWeek as $rec){
 	            $row = new stdClass();
