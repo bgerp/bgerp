@@ -378,7 +378,10 @@ class purchase_Invoices extends deals_InvoiceMaster
         parent::inputInvoiceForm($mvc, $form);
         
         if ($form->isSubmitted()) {
-            
+            if($rec->date > dt::today()){
+                $form->setError('date', 'Датата не може да е в бъдещето');
+            }
+
             // Ако има въведена сч. дата тя се проверява
             if (isset($rec->journalDate) && core_Request::get('Act') == 'changefields') {
                 $periodState = acc_Periods::fetchByDate($rec->journalDate)->state;
