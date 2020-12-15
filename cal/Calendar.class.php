@@ -737,14 +737,11 @@ class cal_Calendar extends core_Master
                 } elseif($rec->type == 'workday') {
                 
                 } elseif($rec->type == 'task' || $rec->type == 'reminder'){
-                	
-                	if ($arr[$d] != 'active') {
-                		if($rec->state == 'active' || $rec->state == 'waiting') {
-                			$data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .">&nbsp;";
-                		} else {
-                			$data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_grey.png') .">&nbsp;";
-                		}
-                	}
+                    if($rec->state == 'active' || $rec->state == 'waiting') {
+                        $data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .">&nbsp;";
+                    } else {
+                        $data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_grey.png') .">&nbsp;";
+                    }
                 }
             }
         }

@@ -147,12 +147,10 @@ class bgerp_drivers_Calendar extends core_BaseClass
                     } elseif ($rec->type == 'workday') {
                         // Нищо не се прави
                     } elseif ($rec->type == 'task' || $rec->type == 'reminder') {
-                        if ($arr[$d] != 'active') {
-                            if ($rec->state == 'active' || $rec->state == 'waiting') {
-                                $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .'>&nbsp;';
-                            } else {
-                                $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_grey.png') .'>&nbsp;';
-                            }
+                        if ($rec->state == 'active' || $rec->state == 'waiting') {
+                            $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .'>&nbsp;';
+                        } else {
+                            $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_grey.png') .'>&nbsp;';
                         }
                     }
                 }
