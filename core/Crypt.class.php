@@ -32,11 +32,11 @@ class core_Crypt extends core_BaseClass
     public static function enChange(&$pack, $md5)
     {
         for ($i = 0; $i < 32; $i += 2) {
-            $a = hexdec($md5{$i});
-            $b = hexdec($md5{$i + 1});
-            $c = $pack{$a};
-            $pack{$a} = $pack{$b};
-            $pack{$b} = $c;
+            $a = hexdec($md5[$i]);
+            $b = hexdec($md5[$i + 1]);
+            $c = $pack[$a];
+            $pack[$a] = $pack[$b];
+            $pack[$b] = $c;
         }
     }
     
@@ -47,11 +47,11 @@ class core_Crypt extends core_BaseClass
     public static function deChange(&$pack, $md5)
     {
         for ($i = 30; $i >= 0; $i -= 2) {
-            $a = hexdec($md5{$i});
-            $b = hexdec($md5{$i + 1});
-            $c = $pack{$a};
-            $pack{$a} = $pack{$b};
-            $pack{$b} = $c;
+            $a = hexdec($md5[$i]);
+            $b = hexdec($md5[$i + 1]);
+            $c = $pack[$a];
+            $pack[$a] = $pack[$b];
+            $pack[$b] = $c;
         }
     }
     
@@ -63,8 +63,8 @@ class core_Crypt extends core_BaseClass
     {
         for ($i = 0; $i < 32; $i += 2) {
             $a = hexdec(substr($md5, $i, 2));
-            $a += ($i < 30) ? ord($pack{1 + $i / 2}) : 0;
-            $pack{$i / 2} = chr((ord($pack{$i / 2}) + $a) % 256);
+            $a += ($i < 30) ? ord($pack[1 + $i / 2]) : 0;
+            $pack[$i / 2] = chr((ord($pack[$i / 2]) + $a) % 256);
         }
     }
     
@@ -76,8 +76,8 @@ class core_Crypt extends core_BaseClass
     {
         for ($i = 30; $i >= 0; $i -= 2) {
             $a = hexdec(substr($md5, $i, 2));
-            $a += ($i < 30) ? ord($pack{1 + $i / 2}) : 0;
-            $pack{$i / 2} = chr((ord($pack{$i / 2}) - $a) % 256);
+            $a += ($i < 30) ? ord($pack[1 + $i / 2]) : 0;
+            $pack[$i / 2] = chr((ord($pack[$i / 2]) - $a) % 256);
         }
     }
     
@@ -90,7 +90,7 @@ class core_Crypt extends core_BaseClass
         $k = $md5;
         
         for ($i = 0; $i < $len; $i++) {
-            if ($md5{$i} < '8') {
+            if ($md5[$i] < '8') {
                 self::enChange($pack, $k);
                 self::enAdd($pack, $k);
             } else {
@@ -115,7 +115,7 @@ class core_Crypt extends core_BaseClass
         }
         
         for ($i = $len - 1; $i >= 0; $i--) {
-            if ($md5{$i} < '8') {
+            if ($md5[$i] < '8') {
                 self::deAdd($pack, $md5Arr[$i]);
                 self::deChange($pack, $md5Arr[$i]);
             } else {
