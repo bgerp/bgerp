@@ -223,7 +223,7 @@ class cat_Products extends embed_Manager
     /**
      *  Полета по които ще се търси
      */
-    public $searchFields = 'name, code, info, innerClass, nameEn';
+    public $searchFields = 'name, code, info, innerClass, nameEn, folderId';
     
     
     /**
