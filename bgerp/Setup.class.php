@@ -321,7 +321,9 @@ class bgerp_Setup extends core_ProtoSetup
         $Cache = cls::get('core_Cache');
         $Cache->eraseFull();
         core_Cache::$stopCaching = true;
-        
+
+        $loop = 0;
+
         do {
             $loop++;
             
