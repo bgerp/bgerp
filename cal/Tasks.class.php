@@ -1723,10 +1723,8 @@ class cal_Tasks extends embed_Manager
         if ($rec->state == 'active' || $rec->state == 'waiting' || $rec->state == 'pending') {
             $date = $rec->timeStart;
             if ($rec->timeEnd) {
-                if (!$rec->timeStart || ($rec->timeStart < dt::now())) {
-                    if (!$rec->timeStart || (dt::now(false) != dt::verbal2mysql($rec->timeStart, false))) {
-                        $date = $rec->timeEnd;
-                    }
+                if (!$rec->timeStart || (($rec->timeStart < dt::now()) && (dt::now(false) != dt::verbal2mysql($rec->timeStart, false)))) {
+                    $date = $rec->timeEnd;
                 }
             }
         }
