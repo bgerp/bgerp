@@ -502,10 +502,10 @@ class doc_Folders extends core_Master
         if ($title === null) {
             $title = $mvc->getVerbal($rec, 'title');
         }
-        
-        if (mb_strlen($rec->title) > self::maxLenTitle) {
+
+        if (mb_strlen($title) > self::maxLenTitle) {
             $attr['title'] = $title;
-            $title = str::limitLen($rec->title, self::maxLenTitle);
+            $title = str::limitLen($title, self::maxLenTitle);
             $title = $mvc->fields['title']->type->escape($title);
         }
         
@@ -540,10 +540,12 @@ class doc_Folders extends core_Master
             if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
                 $link = array();
             }
-            
+            //bp($title, mb_strlen($rec->title), self::maxLenTitle);
             $title = ht::createLink($title, $link, null, $attr);
         } else {
             $attr['style'] = 'color:#777;background-image:url(' . $img . ');';
+
+          //  bp($title);
             $title = ht::createElement('span', $attr, $title);
         }
         
