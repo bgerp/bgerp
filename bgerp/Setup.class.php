@@ -331,7 +331,9 @@ class bgerp_Setup extends core_ProtoSetup
             
             $packCnt = countR($packArr);
             $i = 1;
-            
+
+            $isSetup = array();
+
             // Извършваме инициализирането на всички включени в списъка пакети
             foreach ($packArr as $p) {
                 $i++;
@@ -515,7 +517,9 @@ class bgerp_Setup extends core_ProtoSetup
                     if ($setupFlag) {
                         // Махаме <h2> тага на заглавието
                         // $res = substr($res, strpos($res, "</h2>"), strlen($res));
-                        
+
+                        $res = '';
+
                         do {
                             $res = @file_put_contents(EF_SETUP_LOG_PATH, $res, FILE_APPEND | LOCK_EX);
                             if ($res !== false) {
