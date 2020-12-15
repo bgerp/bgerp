@@ -284,13 +284,10 @@ class core_Lg extends core_Manager
         } else {
             // Ако и в базата нямаме превода, тогава приемаме,
             // че превода не променя ключовия стринг
-            if (!$translated) {
-                $translated = $kstring;
-            }
-            
+
             $rec = new stdClass();
             $rec->kstring = $key;
-            $rec->translated = $translated;
+            $rec->translated = $kstring;
             $rec->lg = $lg;
             
             // Само потребители с определена роля могат да добавят (автоматично) в превода
