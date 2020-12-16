@@ -639,16 +639,18 @@ class findeals_Deals extends deals_DealBase
                     $r->creditA += $jRec->amount;
                 }
             }
-            
+
+
             // За всеки резултат, ако е в границите на пейджъра, го показваме
             if (countR($recs)) {
                 $count = 0;
                 foreach ($recs as $rec) {
                     $start = $data->pager->rangeStart;
                     $end = $data->pager->rangeEnd - 1;
+                    $data->rec->debitAmount += $rec->debitA;
+                    $data->rec->creditAmount += $rec->creditA;
+
                     if (empty($data->pager) || ($count >= $start && $count <= $end)) {
-                        $data->rec->debitAmount += $rec->debitA;
-                        $data->rec->creditAmount += $rec->creditA;
                         $data->history[] = $this->getHistoryRow($rec);
                     }
                     $count++;

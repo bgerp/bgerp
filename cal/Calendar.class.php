@@ -390,12 +390,12 @@ class cal_Calendar extends core_Master
         
         // проверка, този клас mvc ли е?
         if($mvc instanceof core_Mvc) {
-            
             $class = $url['Ctr'];
-            
+            $actLower = strtolower($url['Act']);
+
             // записа има ли достъп до екшъните му
-            switch ($url['Act']) {
-                case 'Single':
+            switch ($actLower) {
+                case 'single':
                     $isLink = $class::haveRightFor('single', $url['id']);
                     break;
                 case 'list':
