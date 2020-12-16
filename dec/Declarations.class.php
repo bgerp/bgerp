@@ -500,7 +500,7 @@ class dec_Declarations extends core_Master
         $tplArr[] = array('name' => 'Declaration of compliance',         'content' => 'dec/tpl/DeclarationOfCompliance.shtml', 'lang' => 'en');
         
         
-        $res .= doc_TplManager::addOnce($this, $tplArr);
+        return doc_TplManager::addOnce($this, $tplArr);
     }
     
     
