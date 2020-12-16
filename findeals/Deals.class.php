@@ -604,7 +604,7 @@ class findeals_Deals extends deals_DealBase
     private function getHistory(&$data)
     {
         $rec = $this->fetchRec($data->rec->id);
-        $data->rec->debitAmount = $data->rec->creditAmount = 0;
+        $data->rec->debitAmount = $data->rec->creditAmount = $data->rec->curDebitAmount = $data->rec->curCreditAmount = 0;
         
         $rate = $data->rec->currencyRate;
         if ($rec->state == 'draft') {
@@ -651,6 +651,9 @@ class findeals_Deals extends deals_DealBase
                     $data->rec->creditAmount += $rec->creditA;
 
                     if (empty($data->pager) || ($count >= $start && $count <= $end)) {
+                        $data->rec->curDebitAmount += $rec->debitA;
+                        $data->rec->curCreditAmount += $rec->creditA;
+
                         $data->history[] = $this->getHistoryRow($rec);
                     }
                     $count++;
@@ -661,7 +664,7 @@ class findeals_Deals extends deals_DealBase
         // Подредба
         arr::sortObjects($data->history, 'orderFld', 'desc');
         
-        foreach (array('amountDeal', 'debitAmount', 'creditAmount') as $fld) {
+        foreach (array('amountDeal', 'debitAmount', 'creditAmount', 'curDebitAmount', 'curCreditAmount') as $fld) {
             if ($fld == 'amountDeal' && !empty($data->rec->{$fld})) {
                 @$data->rec->{$fld} /= $rate;
             }
@@ -671,6 +674,14 @@ class findeals_Deals extends deals_DealBase
             } elseif ($data->rec->{$fld} < 0) {
                 $data->row->{$fld} = "<span class='red'>{$data->row->{$fld}}</span>";
             }
+        }
+
+        if(round($data->rec->debitAmount, 4) == round($data->rec->curDebitAmount, 4)){
+            unset($data->row->curDebitAmount);
+        }
+
+        if(round($data->rec->creditAmount, 4) == round($data->rec->curCreditAmount, 4)){
+            unset($data->row->curCreditAmount);
         }
     }
     
