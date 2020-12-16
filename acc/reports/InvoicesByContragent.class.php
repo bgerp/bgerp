@@ -860,13 +860,13 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         //Сумира стойностите на всички избрани контрагенти, ако са в една валута
 
-//        foreach ($totalInvoiceContragent as $k => $v) {
-//            $rec->totalInvoiceValueAll += $v->totalInvoiceValue;
-//            $rec->totalInvoicePayoutAll += $v->totalInvoicePayout;
-//            $rec->totalInvoiceNotPaydAll += $v->totalInvoiceNotPaid;
-//            $rec->totalInvoiceOverPaidAll += $v->totalInvoiceOverPaid;
-//            $rec->totalInvoiceOverDueAll += $v->totalInvoiceOverDue;
-//        }
+        foreach ($totalInvoiceContragent as $k => $v) {
+            $rec->totalInvoiceValueAll += $v->totalInvoiceValue;
+            $rec->totalInvoicePayoutAll += $v->totalInvoicePayout;
+            $rec->totalInvoiceNotPaydAll += $v->totalInvoiceNotPaid;
+            $rec->totalInvoiceOverPaidAll += $v->totalInvoiceOverPaid;
+            $rec->totalInvoiceOverDueAll += $v->totalInvoiceOverDue;
+        }
         if ($rec->unpaid == 'all') {
             $cArr = array();
             foreach ($recs as $key => $val) {
