@@ -1260,11 +1260,27 @@ class cat_Boms extends core_Master
         if ($rec->type != 'stage') {
             $index = "{$rec->resourceId}|{$rec->type}";
             if (!isset($materials[$index])) {
+
+                if(!is_numeric($t) || !is_numeric($rQuantity) || !is_numeric($rec->quantityInPack))
+                {
+                    //bp($t, $rQuantity, $rec->quantityInPack);
+                }
+                //
+
+
+
                 $materials[$index] = (object) array('productId' => $rec->resourceId,
                     'packagingId' => $rec->packagingId,
                     'quantityInPack' => $rec->quantityInPack,
                     'type' => $rec->type,
-                    'propQuantity' => $t * $rQuantity * $rec->quantityInPack);
+                );
+
+                if ($rQuantity != cat_BomDetails::CALC_ERROR) {
+                    $materials[$index]->propQuantity = $t * $rQuantity * $rec->quantityInPac;
+                } else {
+                    $materials[$index]->propQuantity = $rQuantity;
+                }
+
             } else {
                 $d = &$materials[$index];
                 if ($rQuantity != cat_BomDetails::CALC_ERROR) {
@@ -1290,8 +1306,14 @@ class cat_Boms extends core_Master
                     $price *= $q * $rQuantity;
                 }
             } else {
+                if ($rQuantity != cat_BomDetails::CALC_ERROR) {
+                    $q1 = $q * $rQuantity;
+                } else {
+                    $q1 = $rQuantity;
+                }
+
                 // Ако не е търсим най-подходящата цена за рецептата
-                $price = self::getPriceForBom($type, $rec->resourceId, $q * $rQuantity, $date, $priceListId);
+                $price = self::getPriceForBom($type, $rec->resourceId, $q1, $date, $priceListId);
             }
             
             // Записваме намерената цена
