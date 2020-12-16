@@ -331,7 +331,12 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
     {
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-							    <!--ET_BEGIN place--><small><div><!--ET_BEGIN dealers-->[#CAPTION_DEALERS#]: [#dealers#]<!--ET_END dealers--></div><!--ET_BEGIN countries--><div>[#COUNTRY_CAPTION#]: [#countries#]</div><!--ET_END countries--><!--ET_BEGIN horizon-->|Падиращи до|* [#horizon#]<!--ET_END horizon--></small></fieldset><!--ET_END BLOCK-->"));
+							        <div class='small'>
+                                        <!--ET_BEGIN dealers--><div>[#CAPTION_DEALERS#]: <b>[#dealers#]</b></div><!--ET_END dealers-->
+                                        <!--ET_BEGIN countries--><div>[#COUNTRY_CAPTION#]: <b>[#countries#]</b></div><!--ET_END countries-->
+                                        <!--ET_BEGIN horizon--><div>|Падиращи до|*: <b>[#horizon#]</b><!--ET_END horizon-->
+                                    </div>
+                                </fieldset><!--ET_END BLOCK-->"));
         
         if (!isset($data->rec->dealers)) {
             $data->row->dealers = tr('Всички');

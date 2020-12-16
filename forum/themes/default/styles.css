@@ -156,7 +156,7 @@
   font-weight: bold; }
 
 .thread-header {
-  height: 32px;
+  min-height: 32px;
   line-height: 32px;
   border: 1px solid #cccccc;
   border-bottom: none;

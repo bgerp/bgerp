@@ -74,7 +74,7 @@ class cms_FancyTheme extends core_ProtoInner
             $tpl->replace($menu, 'TOP_PAGE');
             $css .= "\n    header {border-bottom: 2px solid {$this->innerForm->baseColor} !important;}";
         } else {
-            $tpl->replace($menu, 'BOTTOM_MENU');
+            $tpl->replace($menu, 'MENU');
         }
         // Добавяме заглавния текст
         $title = $this->innerForm->title;
@@ -232,7 +232,7 @@ class cms_FancyTheme extends core_ProtoInner
     {
         $imgs = array();
         if (!Mode::is('screenMode', 'narrow')) {
-            if (core_Users::isContractor()) {
+            if ($this->innerForm->colabImg && core_Users::isContractor()) {
                 $img = new thumb_Img(array($this->innerForm->colabImg, 1000, 150, 'fileman', 'isAbsolute' => true,'mode' => 'large-no-change'));
                 $imageURL = $img->getUrl('forced');
             } else {
@@ -249,7 +249,7 @@ class cms_FancyTheme extends core_ProtoInner
                     
                     $banner = '';
                     
-                    $banner .= '<div class="fadein">';
+                    $banner .= '<div class="fadein" style="overflow: hidden;">';
                     $style = '';
                     foreach ($imgs as $iHash) {
                         $img = new thumb_Img(array($iHash, 1000, 288, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));

@@ -75,8 +75,6 @@ class marketing_Setup extends core_ProtoSetup
         'marketing_Inquiries2',
         'marketing_Bulletins',
         'marketing_BulletinSubscribers',
-        'migrate::regenerateBulletins2042',
-        'migrate::updateContactData',
     );
     
     
@@ -109,32 +107,5 @@ class marketing_Setup extends core_ProtoSetup
         $html .= $Plugins->forcePlugin('Бюлетин за външната част', 'marketing_BulletinPlg', 'cms_page_External', 'private');
         
         return $html;
-    }
-    
-    
-    /**
-     * Миграция за обновява всички записи, за да се обнови кеша
-     */
-    public static function regenerateBulletins2042()
-    {
-        $query = marketing_Bulletins::getQuery();
-        while ($rec = $query->fetch()) {
-            marketing_Bulletins::save($rec);
-        }
-    }
-    
-    
-    /**
-     * Миграция на уеб константа
-     */
-    function updateContactData()
-    {
-        $conf = core_Packs::getConfig('bgerp');
-        $value = $conf->_data['BGERP_MANDATORY_CONTACT_FIELDS'];
-        $exValue = marketing_Setup::get('MANDATORY_CONTACT_FIELDS');
-        
-        if(!empty($value) && $exValue != $value && in_array($value, array('company', 'person', 'both'))){
-            core_Packs::setConfig('marketing', array('MARKETING_MANDATORY_CONTACT_FIELDS' => $value));
-        }
     }
 }

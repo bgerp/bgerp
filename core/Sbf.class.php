@@ -121,7 +121,7 @@ class core_Sbf extends core_Mvc
         }
         
         // Ако файла съществува
-        if (($sbfPath = self::getSbfFilePath($rPath)) && $rPath{0} != '_') {
+        if (($sbfPath = self::getSbfFilePath($rPath)) && $rPath[0] != '_') {
             
             // Ако файла не съществува в SBF
             if (!file_exists($sbfPath)) {

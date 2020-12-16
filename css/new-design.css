@@ -777,11 +777,14 @@ body {
     .menu-options.search-options:hover img {
       opacity: 0.9; }
     .menu-options.search-options .menu-holder {
+      min-width: 140px;
       left: -2px; }
       .menu-options.search-options .menu-holder input {
         box-sizing: border-box;
         width: 100%;
         margin-bottom: 5px; }
+      .menu-options.search-options .menu-holder table {
+        width: 100%; }
 
 /*
  * menu

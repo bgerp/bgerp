@@ -130,7 +130,9 @@ class export_Export extends core_Mvc
         expect($dRec);
         
         $inst->requireRightFor('exportdoc', $dRec);
-        
+
+        core_App::setTimeLimit(120);
+
         $form = $this->getForm();
         $form->title = 'Експортиране на|*' . $inst->getFormTitleLink($docId);
         
@@ -166,7 +168,9 @@ class export_Export extends core_Mvc
         if ($form->isSubmitted()) {
             $exportFormatsArr = $this->getPossibleExports($classId, $docId);
             expect($exportFormatsArr[$form->rec->type]);
-            
+
+            Mode::set('exporting', true);
+
             $intfCls = cls::getInterface('export_ExportTypeIntf', $form->rec->type);
             
             $eRes = $intfCls->makeExport($form, $classId, $docId);
@@ -245,7 +249,9 @@ class export_Export extends core_Mvc
         if ($action->createdBy) {
             $su = core_Users::sudo($action->createdBy);
         }
-        
+
+        Mode::set('exporting', true);
+
         $fileHnd = $typeClsInst->makeExport($form, $clsId, $mRec);
         
         core_Users::exitSudo($su);

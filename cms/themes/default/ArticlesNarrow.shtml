@@ -9,8 +9,8 @@
         </div>
         <div class="narrowNav">
             [#NAVIGATION#]
-            [#BOTTOM_NAV#]
         </div>
+        [#BOTTOM_NAV#]
     </div>
     <!--ET_END NAVIGATION-->
     <div style="padding: 4% 2% 2% ">

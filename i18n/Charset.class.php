@@ -1236,7 +1236,7 @@ class i18n_Charset extends core_MVC
             return false;
         }
         
-        $h = ord($ch{0});
+        $h = ord($ch[0]);
         
         if ($h <= 0x7F) {
             $res = $h;

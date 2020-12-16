@@ -11,7 +11,7 @@ defIfNot('ARCHIVE_MAX_LEN', 209715200);
 /**
  * В трябва да се зададе пътя до изпълнимия файл за 7zip
  */
-defIfNot('ARCHIVE_7Z_PATH', '');
+defIfNot('ARCHIVE_7Z_PATH', '7z');
 
 
 /**

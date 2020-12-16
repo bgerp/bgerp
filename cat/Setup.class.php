@@ -148,7 +148,6 @@ class cat_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-        'migrate::updateProductCodes2',
         'cat_UoM',
         'cat_Groups',
         'cat_Categories',
@@ -165,9 +164,6 @@ class cat_Setup extends core_ProtoSetup
         'cat_Listings',
         'cat_ListingDetails',
         'cat_PackParams',
-        'migrate::updateIntName',
-        'migrate::updateBrState',
-        'migrate::updateEmptyEanCode'
     );
     
     
@@ -275,39 +271,6 @@ class cat_Setup extends core_ProtoSetup
     
     
     /**
-     * Миграция на имената на артикулите
-     */
-    public function updateIntName()
-    {
-        $Products = cls::get('cat_Products');
-        $Products->setupMvc();
-        
-        if (!cat_Products::count()) {
-            
-            return;
-        }
-        
-        core_App::setTimeLimit(700);
-        $toSave = array();
-        $query = cat_Products::getQuery();
-        $query->where("LOCATE('||', #name)");
-        $query->show('name,nameEn');
-        while ($rec = $query->fetch()) {
-            $exploded = explode('||', $rec->name);
-            if (countR($exploded) == 2) {
-                $rec->name = $exploded[0];
-                $rec->nameEn = $exploded[1];
-                $toSave[$rec->id] = $rec;
-            }
-        }
-        
-        if (countR($toSave)) {
-            $Products->saveArray($toSave, 'id,name,nameEn');
-        }
-    }
-    
-    
-    /**
      * Менижиране на формата формата за настройките
      *
      * @param core_Form $configForm
@@ -317,110 +280,5 @@ class cat_Setup extends core_ProtoSetup
     {
         $suggestions = doc_Folders::getOptionsByCoverInterface('cat_ProductFolderCoverIntf');
         $configForm->setSuggestions('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS', $suggestions);
-    }
-    
-    
-    /**
-     * Обновяване на предишното състояние на грешно създадените артикули
-     */
-    public function updateBrState()
-    {
-        $Products = cls::get('cat_Products');
-        $Products->setupMvc();
-        
-        $toSave = array();
-        $pQuery = $Products->getQuery();
-        $pQuery->where("#state = 'closed' AND #brState = 'closed'");
-        $pQuery->show('brState');
-        while($pRec = $pQuery->fetch()){
-            $pRec->brState = 'active';
-            $toSave[] = $pRec;
-        }
-        
-        if(countR($toSave)){
-            $Products->saveArray($toSave, 'id,brState');
-        }
-    }
-    
-    
-    /**
-     * Миграция на празните баркодове
-     */
-    public function updateEmptyEanCode()
-    {
-        if(!cat_products_Packagings::count()) return;
-        
-        $Packs = cls::get('cat_products_Packagings');
-        $eanCol = str::phpToMysqlName('eanCode');
-        $query = "UPDATE {$Packs->dbTableName} SET {$eanCol} = '' WHERE {$eanCol} IS NULL";
-        $Packs->db->query($query);
-    }
-    
-    
-    /**
-     * Миграция на кодовете
-     */
-    public function updateProductCodes2()
-    {
-        $Products = cls::get('cat_Products');
-        
-        if ($Products->db->tableExists('cat_products')){
-            $Products->setupMvc();
-            $updateRecs = $saveRecs = array();
-            
-            $query = cat_Products::getQuery();
-            $query->XPR('normCode', 'varchar', 'LOWER(#code)');
-            $query->XPR('count', 'varchar', 'COUNT(#id)');
-            $query->show('normCode');
-            $query->where("#count > 1 AND #code IS NOT NULL");
-            $query->groupBy("normCode");
-            $query->orderBy("id", 'DESC');
-            
-            $duplicatedCodes = arr::extractValuesFromArray($query->fetchAll(), 'normCode');
-            
-            $query = $Products->getQuery();
-            $query->XPR('normCode', 'varchar', 'LOWER(#code)');
-            $query->where("#code IS NOT NULL");
-            $query->show('code,normCode');
-            $query->orderBy('id', 'DESC');
-            while($rec = $query->fetch()){
-                $updateRecs[$rec->id] = $rec;
-            }
-            
-            if(!countR($updateRecs)) return;
-            
-            $count = countR($updateRecs);
-            core_App::setTimeLimit($count * 0.2, false, 100);
-            
-            foreach ($updateRecs as &$uRec){
-                if(!array_key_exists($uRec->normCode, $duplicatedCodes)) continue;
-                
-                // Проверява се има ли записи със същото уникално поле
-                $foundRec = array_filter($updateRecs, function ($a) use ($uRec) {return $a->normCode == $uRec->normCode && $a->id != $uRec->id;});
-                
-                if(countR($foundRec)){
-                    
-                    // Отново се проверява дали е уникално
-                    $loop = true;
-                    while($loop){
-                       
-                        // Ако има то се инкрементира
-                        $uRec->code = str::addIncrementSuffix($uRec->code, '_');
-                        $uRec->normCode = mb_strtolower($uRec->code);
-                        $foundRec = array_filter($updateRecs, function ($a) use ($uRec) {return $a->normCode == $uRec->normCode && $a->id != $uRec->id;});
-                       
-                        if(!countR($foundRec)){
-                            $loop = false;
-                        }
-                    }
-                    
-                    $saveRecs[$uRec->id] = $uRec;
-                }
-            }
-            
-            if(!countR($saveRecs)) return;
-            
-            $Products->saveArray($saveRecs, "id, code");
-        }
     }
 }

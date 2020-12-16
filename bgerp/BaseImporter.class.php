@@ -114,8 +114,11 @@ class bgerp_BaseImporter extends core_Manager
             
             // Ако записа е уникален, създаваме нов, ако не е обновяваме стария
             $fieldsUn = array();
-            
+
             if ($this->mvc->invoke('BeforeImportRec', array(&$rec)) === false) {
+                if ($rec->__errStr) {
+                    $row['__errStr'] = $rec->__errStr;
+                }
                 $errArr[] = $row;
                 
                 continue ;

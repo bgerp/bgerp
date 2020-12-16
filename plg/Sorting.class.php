@@ -161,7 +161,7 @@ class plg_Sorting extends core_Plugin
                 
                 $fArr = explode('->', $data->listFields[$field]);
                 $lastF = &$fArr[countR($fArr) - 1];
-                if ($lastF{0} == '@') {
+                if ($lastF[0] == '@') {
                     $startChar = '@';
                     $lastF = substr($lastF, 1);
                 } else {

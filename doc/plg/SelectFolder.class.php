@@ -93,7 +93,7 @@ class doc_plg_SelectFolder extends core_Plugin
         $allParams = Request::getParams();
         if ($allParams) {
             foreach ($allParams as $name => $value) {
-                if (strpos($name, '_') === false && ucfirst($name{0}) != $name{0}) {
+                if (strpos($name, '_') === false && ucfirst($name[0]) != $name[0]) {
                     $form->setHidden($name, $value);
                 }
             }

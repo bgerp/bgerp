@@ -31,6 +31,7 @@ class drdata_Wrapper extends plg_ProtoWrapper
         $this->TAB('drdata_IpToCountry', 'IP-to-Country', 'debug');
         $this->TAB('drdata_DialCodes', 'Тел. кодове', 'admin');
         $this->TAB('drdata_Vats', 'ЗДДС №', 'admin');
+        $this->TAB('drdata_Eori', 'EORI №', 'admin');
         $this->TAB('drdata_PhoneCache', 'T. Кеш', 'debug');
         
         if(core_Packs::isInstalled('speedy')){

@@ -365,9 +365,6 @@ class sales_Setup extends core_ProtoSetup
         'sales_TransportValues',
         'sales_ProductRelations',
         'sales_ProductRatings',
-        'migrate::migrateClosedWith',
-        'migrate::updateStoreIdInDeltas2',
-        'migrate::truncateRatings2',
     );
     
     
@@ -558,74 +555,5 @@ class sales_Setup extends core_ProtoSetup
         if ($query->count()) {
             cond_Ranges::add('sales_Invoices', 2000000, 2999999, null, 'acc,ceo', 2, false);
         }
-    }
-    
-    
-    /**
-     * Обновява рейтингите
-     */
-    public function truncateRatings2()
-    {
-        $Ratings = cls::get('sales_ProductRatings');
-        $Ratings->setupMvc();
-        
-        $Ratings->truncate();
-    }
-    
-    
-    /**
-     * Миграция да се записва склада в модела за делтите
-     */
-    public function updateStoreIdInDeltas2()
-    {
-        $Deltas = cls::get('sales_PrimeCostByDocument');
-        $Deltas->setupMvc();
-        
-        if (!$Deltas->count()) {
-            return;
-        }
-        
-        $Products = cls::get('cat_Products');
-        $Products->setupMvc();
-        
-        $Sales = cls::get('sales_Sales');
-        $Sales->setupMvc();
-        
-        $Shipments = cls::get('store_ShipmentOrders');
-        $Shipments->setupMvc();
-        
-        $Receipts = cls::get('store_Receipts');
-        $Receipts->setupMvc();
-        $Containers = cls::get('doc_Containers');
-        
-        $productCol = str::phpToMysqlName('productId');
-        $containerCol = str::phpToMysqlName('containerId');
-        $docIdCol = str::phpToMysqlName('docId');
-        $shipmentStoreIdCol = str::phpToMysqlName('shipmentStoreId');
-        $storeCol = str::phpToMysqlName('storeId');
-        $docClassCol = str::phpToMysqlName('docClass');
-        $canStoreCol = str::phpToMysqlName('can_store');
-        
-        $salesClassId = sales_Sales::getClassId();
-        $storeShipmentClassId = store_ShipmentOrders::getClassId();
-        $storeReceiptsClassId = store_Receipts::getClassId();
-        
-        $query = "UPDATE {$Deltas->dbTableName} JOIN {$Products->dbTableName} ON {$Products->dbTableName}.id = {$Deltas->dbTableName}.{$productCol} JOIN {$Containers->dbTableName} ON {$Deltas->dbTableName}.{$containerCol} = {$Containers->dbTableName}.id RIGHT JOIN {$Sales->dbTableName} ON {$Sales->dbTableName}.id = {$Containers->dbTableName}.{$docIdCol} SET {$Deltas->dbTableName}.{$storeCol} = {$Sales->dbTableName}.{$shipmentStoreIdCol} WHERE {$Containers->dbTableName}.{$docClassCol} = {$salesClassId} AND {$Products->dbTableName}.{$canStoreCol} = 'yes' AND {$Deltas->dbTableName}.{$storeCol} IS NULL";
-        $Deltas->db->query($query);
-        
-        $query = "UPDATE {$Deltas->dbTableName} JOIN {$Products->dbTableName} ON {$Products->dbTableName}.id = {$Deltas->dbTableName}.{$productCol} JOIN {$Containers->dbTableName} ON {$Deltas->dbTableName}.{$containerCol} = {$Containers->dbTableName}.id RIGHT JOIN {$Shipments->dbTableName} ON {$Shipments->dbTableName}.id = {$Containers->dbTableName}.{$docIdCol} SET {$Deltas->dbTableName}.{$storeCol} = {$Shipments->dbTableName}.{$storeCol} WHERE {$Containers->dbTableName}.{$docClassCol} = {$storeShipmentClassId} AND {$Products->dbTableName}.{$canStoreCol} = 'yes' AND {$Deltas->dbTableName}.{$storeCol} IS NULL";
-        $Deltas->db->query($query);
-        
-        $query = "UPDATE {$Deltas->dbTableName} JOIN {$Products->dbTableName} ON {$Products->dbTableName}.id = {$Deltas->dbTableName}.{$productCol} JOIN {$Containers->dbTableName} ON {$Deltas->dbTableName}.{$containerCol} = {$Containers->dbTableName}.id RIGHT JOIN {$Receipts->dbTableName} ON {$Receipts->dbTableName}.id = {$Containers->dbTableName}.{$docIdCol} SET {$Deltas->dbTableName}.{$storeCol} = {$Receipts->dbTableName}.{$storeCol} WHERE {$Containers->dbTableName}.{$docClassCol} = {$storeReceiptsClassId} AND {$Products->dbTableName}.{$canStoreCol} = 'yes' AND {$Deltas->dbTableName}.{$storeCol} IS NULL";
-        $Deltas->db->query($query);
-    }
-    
-    
-    /**
-     * Обновява кеш полето за коя сделка с коя е приключена
-     */
-    function migrateClosedWith()
-    {
-        cls::get('deals_Setup')->updateClosedWith('sales_Sales', 'sales_ClosedDeals');
     }
 }

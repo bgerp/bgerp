@@ -208,7 +208,7 @@ class type_Keylist extends core_Type
         if (!$value) {
             $values = array();
         } else {
-            $values = explode($value{0}, trim($value, $value{0}));
+            $values = explode($value[0], trim($value, $value[0]));
         }
         
         $attrCB['type'] = 'checkbox';

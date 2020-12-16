@@ -190,9 +190,6 @@ class pos_Setup extends core_ProtoSetup
         'pos_Reports',
         'pos_Stocks',
         'pos_SellableProductsCache',
-        'migrate::migrateCronSettings',
-        'migrate::updateStoreIdInReceipts',
-        'migrate::updateBrState',
     );
     
     
@@ -211,32 +208,6 @@ class pos_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(3.1, 'Търговия', 'POS', 'pos_Points', 'default', 'ceo, pos, admin'),
     );
-    
-    
-    /**
-     * Инсталиране на пакета
-     */
-    public function install()
-    {
-        $html = parent::install();
-        
-        // Кофа за снимки
-        $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('pos_ProductsImages', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '6MB', 'user', 'every_one');
-        
-        // Залагаме в cron
-        $rec = new stdClass();
-        $rec->systemId = 'Update POS sellableProducts';
-        $rec->description = 'Обновява на кеша на продаваемите артикули в ПОС-а';
-        $rec->controller = 'pos_SellableProductsCache';
-        $rec->action = 'CacheSellablePosProducts';
-        $rec->period = static::get('CRON_CACHE_SELLABLE_PERIOD') / 60;
-        $rec->timeLimit = 200;
-        
-        $html .= core_Cron::addOnce($rec);
-        
-        return $html;
-    }
     
     
     /**
@@ -271,67 +242,28 @@ class pos_Setup extends core_ProtoSetup
     
     
     /**
-     * Обновяване на предишното състояние на грешно създадените артикули
+     * Инсталиране на пакета
      */
-    public function updateBrState()
+    public function install()
     {
-        $Reports = cls::get('pos_Reports');
-        $Reports->setupMvc();
+        $html = parent::install();
         
-        $toSave = array();
-        $pQuery = $Reports->getQuery();
-        $pQuery->where("#state = 'closed' AND #brState != 'active'");
-        $pQuery->show('brState');
-        while($pRec = $pQuery->fetch()){
-            $pRec->brState = 'active';
-            $toSave[] = $pRec;
-        }
+        // Кофа за снимки
+        $Bucket = cls::get('fileman_Buckets');
+        $html .= $Bucket->createBucket('pos_ProductsImages', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '6MB', 'user', 'every_one');
         
-        if(countR($toSave)){
-            $Reports->saveArray($toSave, 'id,brState');
-        }
-    }
-    
-    
-    /**
-     * Миграция на крон процеса
-     */
-    public function migrateCronSettings()
-    {
-        if ($cronRec = core_Cron::getRecForSystemId('Close reports')) {
-            if ($cronRec->offset != 1380) {
-                $cronRec->offset = 1380;
-                core_Cron::save($cronRec, 'offset');
-            }
-        }
-    }
-    
-    
-    /**
-     * Добавя склада към реда
-     */
-    public function updateStoreIdInReceipts()
-    {
-        cls::get('pos_Points')->setupMvc();
-        $Details = cls::get('pos_ReceiptDetails');
-        $Details->setupMvc();
-        cls::get('pos_Receipts')->setupMvc();
+        // Залагаме в cron
+        $rec = new stdClass();
+        $rec->systemId = 'Update POS sellableProducts';
+        $rec->description = 'Обновява на кеша на продаваемите артикули в ПОС-а';
+        $rec->controller = 'pos_SellableProductsCache';
+        $rec->action = 'CacheSellablePosProducts';
+        $rec->period = static::get('CRON_CACHE_SELLABLE_PERIOD') / 60;
+        $rec->timeLimit = 200;
         
-        if(!pos_ReceiptDetails::count()) return;
+        $html .= core_Cron::addOnce($rec);
         
-        $toSave = array();
-        $query = pos_ReceiptDetails::getQuery();
-        $query->EXT('pointId', 'pos_Receipts', 'externalName=pointId,externalKey=receiptId');
-        $query->where("#storeId IS NULL AND #action = 'sale|code'");
-        $query->show('id,pointId,storeId');
-        while($rec = $query->fetch()){
-            $rec->storeId = pos_Points::fetchField($rec->pointId, 'storeId');
-            $toSave[] = $rec;
-        }
-        
-        if(countR($toSave)){
-            $Details->saveArray($toSave, 'storeId,id');
-        }
+        return $html;
     }
     
     

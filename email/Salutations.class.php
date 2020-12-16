@@ -160,7 +160,7 @@ class email_Salutations extends core_Manager
      * @param doc_Threads $threadId - id на нишка
      * @param string      $email    - Имейл
      * @param core_Users  $userId   - id на потребител
-     *
+     * 
      * @return NULL|string - Поздрава
      */
     public static function get($folderId, $threadId = null, $email = null, $userId = null)
@@ -254,7 +254,7 @@ class email_Salutations extends core_Manager
             
             // Ако е подаден имейл, с по-голям приоритет е, ако отговаря на имейла
             if ($email) {
-                if ($rec->toEmail == $email) {
+                if (strtolower($rec->toEmail) == strtolower($email)) {
                     $salutation = $rec->salutation;
                     break;
                 }

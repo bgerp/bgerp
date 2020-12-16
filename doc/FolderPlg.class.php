@@ -706,7 +706,7 @@ class doc_FolderPlg extends core_Plugin
                             array('doc_Threads', 'list', 'folderId' => $rec->folderId),
                             null,
                         
-                        array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder-g.png' : 'img/16/folder-y.png', 'title' => "Папка към|* {$folderTitle}", 'class' => 'new-folder-btn', 'order' => 19)
+                        array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder-g.png' : 'img/16/folder-y.png', 'title' => "Папка към|* {$folderTitle}", 'class' => 'new-folder-btn')
                     
                     );
                 }
