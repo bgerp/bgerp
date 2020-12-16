@@ -349,16 +349,7 @@ class price_ListRules extends core_Detail
                 // Ако има дефолтна надценка и има наследена политика
                 if (isset($defaultSurcharge)) {
                     if ($parent = $listRec->parent) {
-                        
-                        // Ако няма запис за продукта или групата
-                        // му и бащата на ценоразписа е "себестойност"
-                        // връщаме NULL
-                        // Дали е необходима тази защита или тя може да създаде проблеми?
-                        if ($parent == price_ListRules::PRICE_LIST_COST) {
-                            
-                            return;
-                        }
-                        
+
                         // Питаме бащата за цената
                         $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom);
                         
