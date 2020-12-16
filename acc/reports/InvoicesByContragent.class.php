@@ -867,6 +867,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $rec->totalInvoiceOverPaidAll += $v->totalInvoiceOverPaid;
             $rec->totalInvoiceOverDueAll += $v->totalInvoiceOverDue;
         }
+
+        unset(
+            $rec->totalInvoiceValueAll
+        );
         if ($rec->unpaid == 'all') {
             $cArr = array();
             foreach ($recs as $key => $val) {
