@@ -186,7 +186,23 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $pArr['fTasksDays'] = $dRec->fTasksDays ? $dRec->fTasksDays : core_DateTime::SECONDS_IN_MONTH;
         $pArr['taskPriority'] = $dRec->taskPriority;
         $pArr['remPriority'] = $dRec->remPriority;
-        
+
+        $pArr['_userId'] = $userId;
+        $today = dt::now(false);
+        $pArr['_todayF'] = $today . ' 00:00:00';
+
+        // Намираме работните дни, така че да останат 3 работни дни винаги
+        $nWorkDay = cal_Calendar::nextWorkingDay(dt::addDays(-1, $today, false), $userId, 1);
+        $endWorkingDayCnt = (dt::daysBetween($nWorkDay, $today)) ? 3 : 2;
+        $pArr['_endWorkingDay'] = cal_Calendar::nextWorkingDay($today, $userId, $endWorkingDayCnt);
+        $pArr['_endWorkingDay'] .= ' 23:59:59';
+        $pArr['fTasksDays'] = dt::addSecs($pArr['fTasksDays'], $pArr['_endWorkingDay']);
+
+        $dDif = dt::daysBetween($pArr['_endWorkingDay'], $today);
+        if ($dDif > 4) {
+            $pArr['_endWorkingDay'] = dt::addDays(4, $today . ' 23:59:59');
+        }
+
         $resData->EventsData = $this->prepareCalendarEvents($userId, $pArr);
 
         return $resData;
@@ -379,26 +395,6 @@ class bgerp_drivers_Calendar extends core_BaseClass
      */
     protected function prepareCalendarEvents($userId = null, $pArr = array())
     {
-        if (!isset($userId)) {
-            $userId = core_Users::getCurrent();
-        }
-        
-        $pArr['_userId'] = $userId;
-        $today = dt::now(false);
-        $pArr['_todayF'] = $today . ' 00:00:00';
-        
-        // Намираме работните дни, така че да останат 3 работни дни винаги
-        $nWorkDay = cal_Calendar::nextWorkingDay(dt::addDays(-1, $today, false), $userId, 1);
-        $endWorkingDayCnt = (dt::daysBetween($nWorkDay, $today)) ? 3 : 2;
-        $pArr['_endWorkingDay'] = cal_Calendar::nextWorkingDay($today, $userId, $endWorkingDayCnt);
-        $pArr['_endWorkingDay'] .= ' 23:59:59';
-        $pArr['fTasksDays'] = dt::addSecs($pArr['fTasksDays'], $pArr['_endWorkingDay']);
-        
-        $dDif = dt::daysBetween($pArr['_endWorkingDay'], $today);	
-        if ($dDif > 4) {
-            $pArr['_endWorkingDay'] = dt::addDays(4, $today . ' 23:59:59');
-        }
-        
         $resArr = $this->prepareTasksCalendarEvents($pArr);
         
         setIfNot($resArr['now'], array());
@@ -411,7 +407,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $resArr['now'] = array();
         }
         ksort($resArr['now']);
-        
+
         // Подреждаме събитията по часове
         foreach ($resArr['now'] as &$rArr) {
             if (!is_array($rArr) || empty($rArr)) {
