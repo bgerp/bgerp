@@ -287,10 +287,8 @@ class bgerp_Setup extends core_ProtoSetup
         }
         
         // Добавяме допълнителните пакети, само при първоначален Setup
-        $Folders = cls::get('doc_Folders');
-        
-        if (!$Folders->db->tableExists($Folders->dbTableName) || ($isFirstSetup)) {
-            $packs .= ',avatar,keyboard,statuses,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,toast,minify,rtac,hljs,pixlr,tnef';
+        if (($isFirstSetup) || !$Packs->isInstalled('avatar')) {
+            $packs .= ',avatar,keyboard,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,toast,minify,rtac,hljs,pixlr,tnef';
         } else {
             $packs = arr::make($packs, true);
             $pQuery = $Packs->getQuery();
