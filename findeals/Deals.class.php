@@ -640,6 +640,7 @@ class findeals_Deals extends deals_DealBase
                 }
             }
 
+
             // За всеки резултат, ако е в границите на пейджъра, го показваме
             if (countR($recs)) {
                 $count = 0;
