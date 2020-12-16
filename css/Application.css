@@ -2215,6 +2215,8 @@ pre.document {
   .dec-document ul {
     margin-top: 5px;
     margin-bottom: 0; }
+    .dec-document ul li {
+      padding-bottom: 10px; }
   .dec-document .richtext {
     color: black;
     line-height: 1em; }
