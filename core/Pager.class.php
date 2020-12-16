@@ -107,7 +107,7 @@ class core_Pager extends core_BaseClass
             $this->itemsPerPage = 0;
         }
         
-        if (Mode::is('printing')) {
+        if (Mode::is('printing') || Mode::is('exporting')) {
             $this->itemsPerPage = max(core_Setup::get('MAX_ROWS_FOR_PRINTING'), $this->itemsPerPage);
         }
         
