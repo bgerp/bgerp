@@ -1260,15 +1260,6 @@ class cat_Boms extends core_Master
         if ($rec->type != 'stage') {
             $index = "{$rec->resourceId}|{$rec->type}";
             if (!isset($materials[$index])) {
-
-                if(!is_numeric($t) || !is_numeric($rQuantity) || !is_numeric($rec->quantityInPack))
-                {
-                    //bp($t, $rQuantity, $rec->quantityInPack);
-                }
-                //
-
-
-
                 $materials[$index] = (object) array('productId' => $rec->resourceId,
                     'packagingId' => $rec->packagingId,
                     'quantityInPack' => $rec->quantityInPack,
