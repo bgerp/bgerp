@@ -66,7 +66,7 @@ class csv_Lib
             }
             
             // Пропускаме редовете със знака указан в $skip
-            if ($data[0]{0} == $format['skip']) {
+            if ($data[0][0] == $format['skip']) {
                 if (strtolower(trim($data[0], ' ' . $format['skip'])) == 'closeonce') {
                     $closeOnce = true;
                 }
@@ -583,7 +583,7 @@ class csv_Lib
             }
             
             // Пропускаме редовете със знака указан в $skip
-            if ($data[0]{0} == $params['skip']) {
+            if ($data[0][0] == $params['skip']) {
                 continue;
             }
             

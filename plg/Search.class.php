@@ -268,7 +268,7 @@ class plg_Search extends core_Plugin
                 $mode = '+';
                 
                 $beginMark = false;
-                if ($w{0} == '"') {
+                if ($w[0] == '"') {
                     $mode = '"';
                     $w = substr($w, 1);
                     if (!$w) {
@@ -278,7 +278,7 @@ class plg_Search extends core_Plugin
                     $beginMark = true;
                 }
                 
-                if ($w{0} == '*') {
+                if ($w[0] == '*') {
                     $wT = substr($w, 1);
                     $wT = trim($wT);
                     if (!$wT) {
@@ -287,7 +287,7 @@ class plg_Search extends core_Plugin
                     $wordBegin = '';
                 }
                 
-                if ($w{0} == '-') {
+                if ($w[0] == '-') {
                     $w = substr($w, 1);
                     $mode = '-';
                     
@@ -592,7 +592,7 @@ class plg_Search extends core_Plugin
         $isWord = true;
         
         for ($i = 0; $i < $len; $i++) {
-            $c = $str{$i};
+            $c = $str[$i];
             
             // Кога трябва да прибавим буквата
             if (($c != ' ' && $c != '"') || ($c == ' ' && $quote)) {
@@ -638,7 +638,7 @@ class plg_Search extends core_Plugin
         
         if (is_array($qArr)) {
             foreach ($qArr as $q) {
-                if ($q{0} == '-') {
+                if ($q[0] == '-') {
                     continue;
                 }
                 $q = trim($q);

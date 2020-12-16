@@ -150,7 +150,8 @@ try {
     // Край на работата на скрипта
     core_App::shutdown();
 } catch (Exception  $e) {
- 
+    $update = null;
+
     // Отключваме системата, ако е била заключена в този хит
     core_SystemLock::remove();
 
@@ -186,7 +187,7 @@ try {
     // Изход от скрипта
     core_App::exitScript();
 } catch (Throwable  $e) {
-    reportException($e, $update, false);
+    reportException($e, null, false);
     
     // Изход от скрипта
     core_App::exitScript();
@@ -389,7 +390,7 @@ function logHitState($debugCode = '200', $state = array())
             try {
                 $data .= ' Serilize: ' . @serialize($state);
             } catch (Exception $e) {
-                $data .= ' MixedToString: ' . core_Type::mixedToString($f);
+                $data .= ' MixedToString: ' . core_Type::mixedToString($state);
             }
         }
         

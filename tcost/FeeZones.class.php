@@ -438,7 +438,7 @@ class tcost_FeeZones extends core_Master
      */
     public function addToCartView($termRec, $cartRec, $cartRow, &$tpl)
     {
-        $settings = cms_Domains::getSettings();
+        $settings = cms_Domains::getSettings($cartRec->domainId);
         
         if(!empty($settings->freeDelivery) && $cartRec->haveOnlyServices != 'yes'){
             $deliveryAmount = $settings->freeDelivery;
@@ -460,14 +460,12 @@ class tcost_FeeZones extends core_Master
             
             if($deliveryAmount < 0){
                 wp($delivery, $cartRec, $settings->freeDelivery);
+            } else {
+                $cartRow->freeDelivery = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
+                $cartRow->freeDelivery = currency_Currencies::decorate($cartRow->freeDelivery, $settings->currencyId);
+                $block->append($cartRow->freeDelivery, 'freeDelivery');
+                $tpl->append($block, 'CART_FOOTER');
             }
-            
-            $cartRow->freeDelivery = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
-            $cartRow->freeDelivery = currency_Currencies::decorate($cartRow->freeDelivery, $settings->currencyId);
-            
-            $block->append($cartRow->freeDelivery, 'freeDelivery');
-            
-            $tpl->append($block, 'CART_FOOTER');
         }
     }
     
@@ -481,7 +479,7 @@ class tcost_FeeZones extends core_Master
      */
     public function onUpdateCartMaster(&$cartRec)
     {
-        $settings = cms_Domains::getSettings();
+        $settings = cms_Domains::getSettings($cartRec->domainId);
         $freeDelivery = currency_CurrencyRates::convertAmount($settings->freeDelivery, null, $settings->currencyId);
         
         if(!empty($settings->freeDelivery) && round($cartRec->total, 2) >= round($freeDelivery, 2)){

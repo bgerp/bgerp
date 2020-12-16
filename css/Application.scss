@@ -1548,6 +1548,7 @@ a.tOld {
 	td  {
 		text-align: center;
         font-size: 0.8em;
+		background: #fff;
 	}
 	.batchNameTd {
 		input {
@@ -1566,9 +1567,19 @@ a.tOld {
 	}
 
 }
+.formFields .typeTable {
+	select, input {
+		border: none !important;
+		box-shadow: none !important;
+		outline:  none !important;
+		&:active, &.focus {
+			box-shadow: none !important;
+			outline:  none !important;
+		}
+	}
+}
 
-
-/*стилове за документи*/
+	/*стилове за документи*/
 .document {
 	width: 100%;
     min-width: 50em;
@@ -2570,6 +2581,9 @@ pre.document {
 	ul{
 		margin-top: 5px;
 		margin-bottom: 0;
+		li {
+			padding-bottom: 10px;
+		}
 	}
 	.richtext {
 	   color: #000;
@@ -3871,6 +3885,9 @@ fieldset.sharing-history {
 
 .eshop-product-buy-button {
 	margin-top: 3px;
+	.productBtn {
+		margin-right: 0 !important;
+	}
 }
 
 .external-discount {
@@ -4609,25 +4626,7 @@ table .eshop-btn {
 */
 .newsbar{
     width:100%;
-    text-align:center;
-    position:absolute;
-    bottom:0px;
-    margin:0px;
-    display:block;
-    font-size:0.9em;
-    left: 0;
-    z-index: 100;
-	.richtext{
-		line-height:1.1em;
-		white-space: nowrap;
-	}
-}
-
-.cms-last .defaultNewsbar {
-	margin: 5px 0 20px;
-}
-
-.defaultNewsbar {
+	box-sizing: border-box;
 	background-color: #fff;
 	color: #000;
 	clear: both;
@@ -4636,11 +4635,46 @@ table .eshop-btn {
 	}
 	.richtext {
 		font-family: Verdana, Helvetica, Arial, Sans-serif;
+		line-height:1.1em;
+		white-space: nowrap;
 	}
+	&.topPageNewsbar {
+		top: 0;
+	}
+	&.topMenuNewsbar {
+		bottom: 0;
+	}
+	&.absolutePosition {
+		text-align:center;
+		position:absolute;
+		margin:0px;
+		display:block;
+		left: 0;
+		right: 0;
+		z-index: 100;
+		padding: 0;
+	}
+	&.topContentNewsbar {
+		clear: both;
+		margin: 10px 0 20px;
+	}
+	&.topNavNewsbar {
+		margin-bottom: 25px;
+	}
+	&.bottomNavNewsbar {
+		margin-top: 30px;
+	}
+	&.defaultTheme.topPageNewsbar {
+		top: 0;
+	}
+	&.defaultTheme.topPageNewsbar ~ .background-holder {
+		margin-top: 40px;
+	}
+
 }
 
-.narrow .defaultNewsbar {
-	margin: 10px 0px ;
+.narrow .newsbar.topPageNewsbar {
+	position: static;
 }
 
 #cmsNavigation .defaultNewsbar a.fancybox {
@@ -4649,7 +4683,6 @@ table .eshop-btn {
 		border: 1px solid transparent !important;
 	}
 }
-
 
 .menuNewsbar {
 	clear: both;

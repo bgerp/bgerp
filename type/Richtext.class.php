@@ -513,7 +513,7 @@ class type_Richtext extends type_Blob
                 $indent = mb_strlen($l, 'UTF8') - mb_strlen(ltrim($matches['text']), 'UTF8');
                 while (isset($lines[$i + 1]) && (($indent == (mb_strlen($lines[$i + 1]) - mb_strlen(ltrim($lines[$i + 1], ' ')))) || (trim($lines[$i + 1]) == '<br>'))) {
                     if (trim($lines[$i + 1]) == '<br>') {
-                        $matches['text'] .= '<br>' . "<span style='height:5px; display:block;'></span>";
+                        $matches['text'] .= '<br>' . "<span style='height:5px; display:block;'>&nbsp;</span>";
                     } else {
                         
                         // Ако следващият ред е друго 'li'
@@ -529,7 +529,7 @@ class type_Richtext extends type_Blob
                 $level = max($level, 1);
                 
                 // 1,2,3,4,
-                if ($matches['list']{0} == '%') {
+                if ($matches['list'][0] == '%') {
                     $type = 'ol';
                 } else {
                     $type = 'ul';
@@ -796,7 +796,7 @@ class type_Richtext extends type_Blob
         
         $code = str_replace("\r\n", "\n", $code);
         
-        if ($code{0} == "\n") {
+        if ($code[0] == "\n") {
             $code = substr($code, 1);
         }
         
@@ -980,7 +980,7 @@ class type_Richtext extends type_Blob
         
         // Ако нямаме схема на URL-то
         if (!preg_match("/^[a-z0-9]{0,12}\:\/\//i", $url)) {
-            if ($url{0} == '/') {
+            if ($url[0] == '/') {
                 $httpBoot = getBoot(true, false, true);
                 $url = $httpBoot . $url;
             } else {
@@ -1073,7 +1073,7 @@ class type_Richtext extends type_Blob
             $this->_htmlBoard[$titlePlace] = $title;
         }
         
-        if ($title{0} != ' ' && !Mode::is('text', 'xhtml')) {
+        if ($title[0] != ' ' && !Mode::is('text', 'xhtml')) {
             $bgPlace = $this->getPlace();
             $thumb = new thumb_Img(array("https://plus.google.com/_/favicon?domain={$domain}", 16, 16, 'url', 'isAbsolute' => Mode::isReadOnly()));
             $iconUrl = $thumb->getUrl();
@@ -1319,7 +1319,7 @@ class type_Richtext extends type_Blob
         $table = false;
         
         foreach ($lines as $l) {
-            if ($l{0} == '|') {
+            if ($l[0] == '|') {
                 if (!$table) {
                     $out .= "\n<div class='overflow-scroll'><table class='inlineRichTable listTable'>";
                     $table = true;
@@ -1589,7 +1589,7 @@ class type_Richtext extends type_Blob
         
         $haveLastPart = false;
         
-        if ($lastPart{0} == '?') {
+        if ($lastPart[0] == '?') {
             $haveLastPart = true;
             $lastPart = ltrim($lastPart, '?');
             $lastPart = str_replace('&amp;', '&', $lastPart);

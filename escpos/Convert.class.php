@@ -62,7 +62,7 @@ class escpos_Convert extends core_Manager
                 $textLen = mb_strlen($text);
                 
                 if (strlen($tag)) {
-                    $cmd = strtolower($tag{0});
+                    $cmd = strtolower($tag[0]);
                     $attr = substr($tag, 1);
                     $attrArr = explode(' ', trim($attr));
                     foreach ($attrArr as $a) {

@@ -180,12 +180,13 @@
 }
 
 .thread-header{
-	height:32px;
+	min-height:32px;
 	line-height:32px;
 	border:1px solid #ccc;
 	border-bottom:none;
 	background-color:#ddd;
 }
+
 .thread-header a{
 	color:#000;
 }

@@ -373,7 +373,9 @@ class log_System extends core_Manager
         
         $roleId = core_Roles::fetchByName('admin');
         $adminsArr = core_Users::getByRole($roleId);
-        
+
+        $errTypeArr = array();
+
         while ($rec = $query->fetch()) {
             $more = false;
             $errType = '';

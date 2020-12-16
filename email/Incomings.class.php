@@ -448,8 +448,6 @@ class email_Incomings extends core_Master
             if ($accRec->deleteAfterPeriod === '0') {
                 $imapConn->delete($i);
                 
-                // email_Accounts::logInfo("Изтриване $i", $accRec->id);
-                $statusSum['delete']++;
                 $doExpunge = true;
             }
             
@@ -806,9 +804,9 @@ class email_Incomings extends core_Master
     /**
      * Променяме шаблона в зависимост от мода
      *
-     * @param blast_Emails $mvc
-     * @param core_ET      $tpl
-     * @param object       $data
+     * @param email_Incomings $mvc
+     * @param core_ET         $tpl
+     * @param object          $data
      */
     public function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
     {
@@ -1562,7 +1560,9 @@ class email_Incomings extends core_Master
                 if (!$mob && !$tel && !$fax) {
                     continue;
                 }
-                
+
+                self::logInfo("Добавени номера от имейл: tel: {$tel}, mob:{$mob}, fax: {$fax}", $rec->id, 70);
+
                 $inst = cls::get($rec->coverClass);
                 $iRec = $inst->fetch($rec->coverId);
                 $inst->addAddtionalNumber($iRec, $mob, $tel, $fax);

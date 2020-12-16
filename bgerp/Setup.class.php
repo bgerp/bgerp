@@ -285,12 +285,10 @@ class bgerp_Setup extends core_ProtoSetup
         if (defined('EF_PRIVATE_PATH')) {
             $packs .= ',' . strtolower(basename(EF_PRIVATE_PATH));
         }
-        
+
         // Добавяме допълнителните пакети, само при първоначален Setup
-        $Folders = cls::get('doc_Folders');
-        
-        if (!$Folders->db->tableExists($Folders->dbTableName) || ($isFirstSetup)) {
-            $packs .= ',avatar,keyboard,statuses,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,toast,minify,rtac,hljs,pixlr,tnef';
+        if (($isFirstSetup) || !$Packs->isInstalled('avatar')) {
+            $packs .= ',avatar,keyboard,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,toast,minify,rtac,hljs,pixlr,tnef';
         } else {
             $packs = arr::make($packs, true);
             $pQuery = $Packs->getQuery();
@@ -321,7 +319,9 @@ class bgerp_Setup extends core_ProtoSetup
         $Cache = cls::get('core_Cache');
         $Cache->eraseFull();
         core_Cache::$stopCaching = true;
-        
+
+        $loop = 0;
+
         do {
             $loop++;
             
@@ -329,7 +329,9 @@ class bgerp_Setup extends core_ProtoSetup
             
             $packCnt = countR($packArr);
             $i = 1;
-            
+
+            $isSetup = array();
+
             // Извършваме инициализирането на всички включени в списъка пакети
             foreach ($packArr as $p) {
                 $i++;
@@ -513,7 +515,9 @@ class bgerp_Setup extends core_ProtoSetup
                     if ($setupFlag) {
                         // Махаме <h2> тага на заглавието
                         // $res = substr($res, strpos($res, "</h2>"), strlen($res));
-                        
+
+                        $res = '';
+
                         do {
                             $res = @file_put_contents(EF_SETUP_LOG_PATH, $res, FILE_APPEND | LOCK_EX);
                             if ($res !== false) {

@@ -326,7 +326,7 @@ class core_page_Internal extends core_page_Active
             foreach ($langArr as $lg => $title) {
                 $url = toUrl(array('core_Lg', 'Set', 'lg' => $lg, 'ret_url' => true));
                 $attr = array('href' => $url, 'title' => $title);
-                $lg{0} = strtoupper($lg{0});
+                $lg[0] = strtoupper($lg[0]);
                 $tpl->append('&nbsp;<small>|</small>&nbsp;');
                 $tpl->append(ht::createElement('a', $attr, $lg));
             }

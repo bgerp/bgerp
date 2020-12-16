@@ -131,6 +131,8 @@ class drdata_Vats extends core_Manager
      */
     public function act_Check()
     {
+        requireRole('admin');
+
         $form = cls::get('core_Form');
         $form->title = 'Проверка на VAT номер';
         $form->FNC('vat', 'varchar(32)', 'caption=VAT номер,input');

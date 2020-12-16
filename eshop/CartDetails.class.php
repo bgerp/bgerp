@@ -409,8 +409,9 @@ class eshop_CartDetails extends core_Detail
             $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}", $quantity, "class=option-quantity-input autoUpdate,data-quantity={$quantity},data-url='{$dataUrl}',data-maxquantity={$maxQuantity},data-maxquantity-reached-text={$maxReachedTex}") . $plus . '</span>';
             
             self::updatePriceInfo($rec, null, true);
+            $masterRec = eshop_Carts::fetch($rec->cartId);
             
-            $settings = cms_Domains::getSettings();
+            $settings = cms_Domains::getSettings($masterRec->domainId);
             if(isset($rec->finalPrice)){
                 $finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, null, $rec->currencyId, $settings->currencyId);
                 $row->finalPrice = core_Type::getByName('double(smartRound)')->toVerbal($finalPrice);

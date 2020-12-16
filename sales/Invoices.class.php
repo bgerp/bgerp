@@ -158,6 +158,7 @@ class sales_Invoices extends deals_InvoiceMaster
         'responsible' => 'lastDocUser|lastDoc',
         'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
         'contragentVatNo' => 'clientData|lastDocUser|lastDoc',
+        'contragentEori' => 'clientData|lastDocUser|lastDoc',
         'uicNo' => 'clientData|lastDocUser|lastDoc',
         'contragentPCode' => 'clientData|lastDocUser|lastDoc',
         'contragentPlace' => 'clientData|lastDocUser|lastDoc',

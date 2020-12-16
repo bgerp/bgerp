@@ -303,7 +303,7 @@ class refactor_Formater extends core_Manager
         $res = array();
         foreach ($lines as $i => $l) {
             if (preg_match('/([a-z][а-я]|[а-я][a-z])/iu', $l, $matches) && !preg_match("/(preg_|pattern|CyrLat|\-zа\-)/iu", $l)) {
-                if ($matches[1]{0} == 'n' && strpos($l, '\\' . $matches[1]) !== false) {
+                if ($matches[1][0] == 'n' && strpos($l, '\\' . $matches[1]) !== false) {
                     continue;
                 }
                 $line = $i + 1;

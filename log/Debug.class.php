@@ -617,7 +617,7 @@ class log_Debug extends core_Manager
                     }
                 }
                 
-                if ($rArr['_debugCode'] && ($rArr['_debugCode']{0} == 2 || $rArr['_debugCode']{0} == 8)) {
+                if ($rArr['_debugCode'] && ($rArr['_debugCode'][0] == 2 || $rArr['_debugCode'][0] == 8)) {
                     $rArr['headerCls'] = 'okMsg';
                 } else {
                     $rArr['headerCls'] = 'warningMsg';
@@ -1318,7 +1318,7 @@ class log_Debug extends core_Manager
             $delOn = $delTimeMapArr[$v];
             
             if (!$delOn) {
-                $delOn = $delTimeMapArr[$v{0}];
+                $delOn = $delTimeMapArr[$v[0]];
             }
             
             if (!$delOn) {

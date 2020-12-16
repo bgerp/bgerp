@@ -749,7 +749,7 @@ class cms_Articles extends core_Master
             $data->toolbar->addBtn(
                 'Нова статия',
                 array(
-                    $this,
+                    $mvc,
                     'add',
                     'menuId' => $data->listFilter->rec->menuId,
                 ),
@@ -770,7 +770,7 @@ class cms_Articles extends core_Master
         $form->FNC('divider', 'richtext(rows=3,bucket=Notes)', 'caption=Разделител,input');
         
         $form->input(null, 'silent');
-        $form->method = 'GET';
+//        $form->method = 'GET';
         
         if ($form->rec->menuId) {
             $query = self::getQuery();
@@ -795,7 +795,9 @@ class cms_Articles extends core_Master
             $query->where("#id IN ({$commaList})");
             $rt = cls::get('type_Richtext');
             $query->orderBy('#level=ASC');
-            
+
+            $res = '';
+
             while ($rec = $query->fetch()) {
                 if (!$res) {
                     $res = new ET("<div style='max-width:800px;'>[#CONTENT#]</div>");

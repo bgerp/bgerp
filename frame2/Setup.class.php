@@ -67,9 +67,6 @@ class frame2_Setup extends core_ProtoSetup
         'frame2_Reports',
         'frame2_ReportVersions',
         'frame2_AllReports',
-        'migrate::migrateStates',
-        'migrate::keyToKeylist1',
-        'migrate::setFieldTypeOfGroups3',
     );
     
     
@@ -92,89 +89,4 @@ class frame2_Setup extends core_ProtoSetup
      * Дефинирани класове, които имат интерфейси
      */
     public $defClasses = 'frame2_CsvExport';
-    
-    
-    /**
-     * Миграция за състоянията
-     */
-    public function migrateStates()
-    {
-        $Frames = cls::get('frame2_Reports');
-        $query = frame2_Reports::getQuery();
-        $query->where("#brState = 'closed' AND #state = 'closed'");
-        while($rec = $query->fetch()){
-            $rec->brState = 'active';
-            $Frames->save_($rec, 'brState');
-        }
-    }
-    
-    /**
-     * Миграция: в спрвките "Артикули наличности и лимити"
-     * промяна на полето storeId от key на keylist
-     */
-    public function keyToKeylist1()
-    {
-        $reportClassId =store_reports_ProductAvailableQuantity::getClassId();
-        if (!$reportClassId)return;
-        
-        $Frames = cls::get('frame2_Reports');
-        
-        $reportQuery=(frame2_Reports::getQuery());
-        
-        $reportQuery->where("#driverClass = $reportClassId");
-        
-        while ($fRec = $reportQuery->fetch()){
-            
-            if (is_null($fRec->driverRec['storeId']) || keylist::isKeylist($fRec->driverRec['storeId']))continue;
-            
-            $fRec->driverRec['storeId'] ='|'.$fRec->driverRec['storeId'].'|';
-            $fRec->storeId =$fRec->driverRec['storeId'];
-            
-            
-            $Frames->save($fRec);
-            
-        }
-       
-    }
-    
-    /**
-     * Миграция: в спрвките "Продаде ни артикули"
-     * set  на полето typeOfGroups 
-     */
-    public function setFieldTypeOfGroups3()
-    {
-        $reportClassId =sales_reports_SoldProductsRep::getClassId();
-        if (!$reportClassId)return;
-        
-        $Frames = cls::get('frame2_Reports');
-        
-        $reportQuery=(frame2_Reports::getQuery());
-        
-        $reportQuery->where("#driverClass = $reportClassId");
-        
-        while ($fRec = $reportQuery->fetch()){
-            
-            $oldQuery = frame2_ReportVersions::getQuery();
-            $oldQuery->where("#reportId = $fRec->id");
-            
-            
-            
-            while ($oldRec = $oldQuery->fetch()){
-                if ($fRec->id == 1163)bp($fRec,$oldRec);
-                $oldRec->oldRec->driverRec['typeOfGroups'] ='art';
-                $oldRec->oldRec->typeOfGroups ='art';
-                
-                frame2_ReportVersions::save($oldRec);
-                
-            }
-            
-            if (is_null($fRec->typeOfGroups)){
-                $fRec->typeOfGroups = 'art';
-            }
-            
-            $Frames->save($fRec);
-            
-        }
-        
-    }
 }

@@ -191,9 +191,9 @@ class core_App
                         $last = strrpos($prm, '_');
                         
                         if ($last !== false && $last < strlen($prm)) {
-                            $className{$last + 1} = strtoupper($prm{$last + 1});
+                            $className[$last + 1] = strtoupper($prm[$last + 1]);
                         } else {
-                            $className{0} = strtoupper($prm{0});
+                            $className[0] = strtoupper($prm[0]);
                         }
                     }
                     $q['Ctr'] = preg_replace('/[^a-zA-Z0-9_]*/', '', $prm);
@@ -850,8 +850,8 @@ class core_App
             if (!$arr['Act']) {
                 $arr['Act'] = 'default';
             }
-            
-            $url .= $arr['App'];
+
+            $url = $arr['App'];
             $url .= '/' . $arr['Ctr'];
             $url .= '/' . $arr['Act'];
             
@@ -1006,7 +1006,7 @@ class core_App
         }
         
         // Задължително слагаме контролера
-        $pre .= '/' . $params['Ctr'] . '/';
+        $pre = '/' . $params['Ctr'] . '/';
         
         if ($params['Act'] && (strtolower($params['Act']) !== 'default' || $params['id'])) {
             $pre .= $params['Act'] . '/';
@@ -1088,7 +1088,7 @@ class core_App
      */
     public static function getSelfURL()
     {
-        $s = empty($_SERVER['HTTPS']) ? '' : ($_SERVER['HTTPS'] == 'on') ? 's' : '';
+        $s = (empty($_SERVER['HTTPS']) ? '' : ($_SERVER['HTTPS'] == 'on')) ? 's' : '';
         if (!$s && (EF_HTTPS == 'MANDATORY')) {
             $s = 's';
         }
@@ -1112,7 +1112,7 @@ class core_App
         static $relativeWebRoot = null;
         
         if ($absolute) {
-            $s = empty($_SERVER['HTTPS']) ? '' : ($_SERVER['HTTPS'] == 'on') ? 's' : '';
+            $s = (empty($_SERVER['HTTPS']) ? '' : ($_SERVER['HTTPS'] == 'on')) ? 's' : '';
             if (!$s && (EF_HTTPS == 'MANDATORY')) {
                 $s = 's';
             }
