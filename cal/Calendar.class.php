@@ -441,9 +441,7 @@ class cal_Calendar extends core_Master
             $row->event = ht::createLink($row->title, $url, NULL, $attr);
             
             if($cUrl['Act'] == "day" || $cUrl['Act'] == "week" || $cUrl['Act'] == "month"){
-                
-                
-                if($rec->type == 'leaves' || $rec->type == 'sick' || $rec->type == 'task' || $rec->type == 'working-travel'){
+                if($rec->type == 'leaves' || $rec->type == 'sick' || $rec->type == 'task' || $rec->type == 'working-travel' || $rec->type == 'attendance'){
                     $row->event = "<div class='task'>" . $img . ht::createLink("<p class='state-{$rec->state}'>".$row->title . "</p>", $url, NULL)."</div>";
                 } else{
                     $row->event = "<div class='holiday-title'>" . $img . ht::createLink("<p class='calWeek'>".$row->title . "</p>", $url, NULL)."</div>";
@@ -468,7 +466,12 @@ class cal_Calendar extends core_Master
                     $row->event .= ' (' . crm_Profiles::createLink($pRec->inCharge) . ')';
                 }
             }
-            
+
+            if($url['Ctr'] == 'doc_Folders' && ($url['id'])) {
+                $fRec = doc_Folders::fetch($url['id']);
+                $row->event = "{$img} {$row->title} (" . crm_Profiles::createLink($fRec->inCharge) . ")";
+            }
+
             if ($addEnd) {
                 $row->event = "<div title='{$row->title}' style='margin-bottom: 5px;font-style=normal;'>" . $row->event . "</div>";
             }
