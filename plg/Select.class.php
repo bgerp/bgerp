@@ -65,17 +65,16 @@ class plg_Select extends core_Plugin
             
             return;
         }
-        
-        $checkboxField = '_checkboxes';
+
         $inputName = plg_Select::getInputName($mvc);
 
         foreach ($data->rows as $id => $row) {
-            if (!isset($row->{$checkboxField})) {
-                $row->{$checkboxField} = '';
+            if (!isset($row->_checkboxes)) {
+                $row->_checkboxes = '';
             }
 
             $row->ROW_ATTR['id'] = 'lr_' . $id;
-            $row->{$checkboxField} .= "<input type='checkbox' onclick=\"chRwClSb('{$id}');\" name='R[{$id}]' id='cb_{$id}' class='checkbox'>";
+            $row->_checkboxes .= "<input type='checkbox' onclick=\"chRwClSb('{$id}');\" name='R[{$id}]' id='cb_{$id}' class='checkbox'>";
         }
     }
     
