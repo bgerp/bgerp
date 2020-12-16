@@ -893,10 +893,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $fld->FLD('invoiceDate', 'varchar', 'caption=Дата');
             $fld->FLD('dueDate', 'varchar', 'caption=Краен срок');
 
-
             if ($rec->unpaid == 'all') {
                 $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
-                $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
+                if(count($rec->data->recs) != arr::sumValuesArray($rec->data->recs,'rate')) {
+                    $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
+                }
                 $fld->FLD('invoiceValueBaseCurr', 'double(smartRound,decimals=2)', 'caption=Стойност BGN');
                 $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->Сума->лв.,smartCenter');
                 $fld->FLD('paidDates', 'varchar', 'caption=Платено->Плащания->дата,smartCenter');
@@ -904,7 +905,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             if ($rec->unpaid == 'unpaid') {
                 $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
-                $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност-> Сума->валута,smartCenter');
+                if(count($rec->data->recs) != arr::sumValuesArray($rec->data->recs,'rate')) {
+                    $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност-> Сума->валута,smartCenter');
+                }
                 $fld->FLD('invoiceValueBaseCurr', 'double(smartRound,decimals=2)', 'caption=Стойност-> Сума-> лв.,smartCenter');
                 $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->Сума->лв.,smartCenter');
                 $fld->FLD('paidDates', 'varchar', 'caption=Платено->Плащания->дата,smartCenter');
