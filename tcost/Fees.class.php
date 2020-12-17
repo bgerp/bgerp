@@ -212,7 +212,7 @@ class tcost_Fees extends core_Detail
         // Търсеното тегло е по-малко от най-малкото в масива. Тогава Общата цена е най-малката
         $minWeight = min($indexedArray);
         $maxWeight = max($indexedArray);
-        $totalWeight = round($totalWeight, 2);
+        $totalWeight = round($totalWeight, 3);
         
         if ($totalWeight < $minWeight) {
             $finalPrice = $arrayOfWeightPrice[$minWeight];

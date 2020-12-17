@@ -900,7 +900,7 @@ abstract class deals_Helper
        
         // Данните на 'Моята фирма'
         $ownCompanyData = crm_Companies::fetchOwnCompany();
-        
+
         // Името и адреса на 'Моята фирма'
         $Companies = cls::get('crm_Companies');
         $res['MyCompany'] = $ownCompanyData->companyVerb;
@@ -910,6 +910,7 @@ abstract class deals_Helper
         if ($uic != $ownCompanyData->vatNo) {
             $res['MyCompanyVatNo'] = core_Type::getByName('drdata_VatType')->toVerbal($ownCompanyData->vatNo);
         }
+        $res['MyCompanyEori'] = core_Type::getByName('drdata_type_Eori')->toVerbal($ownCompanyData->eori);
         $res['uicId'] = $uic;
         
         // името, адреса и ДДС номера на контрагента
@@ -918,11 +919,12 @@ abstract class deals_Helper
             $cData = $ContragentClass->getContragentData($contragentId);
             $res['contragentName'] = isset($contragentName) ? $contragentName : (($cData->personVerb) ? $cData->personVerb : $cData->companyVerb);
             $res['inlineContragentName'] = $res['contragentName'];
-            
+
+            $res['eori'] = core_Type::getByName('drdata_type_Eori')->toVerbal($cData->eori);
             $res['vatNo'] = core_Type::getByName('drdata_VatType')->toVerbal($cData->vatNo);
             $res['contragentUicId'] = $cData->uicId;
             if (!empty($cData->uicId)) {
-                $res['contragentUicCaption'] = ($ContragentClass instanceof crm_Companies) ? tr('ЕИК||Tax ID') : tr('ЕГН||Personal №');
+                $res['contragentUicCaption'] = ($ContragentClass instanceof crm_Companies) ? tr('ЕИК') : tr('ЕГН||Personal №');
             }
         } elseif (isset($contragentName)) {
             $res['contragentName'] = $contragentName;
@@ -950,7 +952,11 @@ abstract class deals_Helper
         }
         
         $res['MyAddress'] = $Companies->getFullAdress($ownCompanyData->companyId, true, $showCountries)->getContent();
-        
+
+        if(drdata_Countries::isEu($cData->countryId) && empty($cData->eori)){
+            unset($res['MyCompanyEori']);
+        }
+
         return $res;
     }
     

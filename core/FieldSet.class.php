@@ -511,7 +511,7 @@ class core_FieldSet extends core_BaseClass
      */
     public function getField($name, $strict = true)
     {
-        if ($name{0} == '#') {
+        if ($name[0] == '#') {
             $name = substr($name, 1);
         }
         

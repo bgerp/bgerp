@@ -16,9 +16,7 @@
 	<!--ET_END blank-->
 
 	<!--ET_BEGIN header-->
-	    
-	    <span style='display:none;'>[#header#]</span>
-		
+	    [#header#]
 		<div class='header [#STATE_CLASS#] no-print'>
 			<div class='docBgIcon' style='[#iconStyle#]'>
 		        <div class='document-title-group'>[#singleTitle#] <b>[#ident#]</b><!--ET_BEGIN HEADER_STATE--> ([#HEADER_STATE#])<!--ET_END HEADER_STATE--><!--ET_BEGIN currentVersionInHeader--> v[#currentVersionInHeader#]<!--ET_END currentVersionInHeader-->

@@ -168,7 +168,7 @@ class drdata_ParseAddressBg extends core_Manager
                 }
                 $keyLen = strlen($key);
                 foreach ($arr as $k => $v) {
-                    if ($k{0} == $key{0} && abs($keyLen - strlen($k)) <= 1) {
+                    if ($k[0] == $key[0] && abs($keyLen - strlen($k)) <= 1) {
                         $d = levenshtein($k, $key) / $keyLen;
                         if ($d < 0.15 && $d < $bestDist) {
                             $a = substr($k, -1) == 'o' || substr($k, -1) == 'о';

@@ -174,6 +174,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         'responsible' => 'lastDocUser|lastDoc',
         'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
         'contragentVatNo' => 'clientData|lastDocUser|lastDoc',
+        'contragentEori' => 'clientData|lastDocUser|lastDoc',
         'uicNo' => 'clientData|lastDocUser|lastDoc',
         'contragentPCode' => 'clientData|lastDocUser|lastDoc',
         'contragentPlace' => 'clientData|lastDocUser|lastDoc',
@@ -378,7 +379,10 @@ class purchase_Invoices extends deals_InvoiceMaster
         parent::inputInvoiceForm($mvc, $form);
         
         if ($form->isSubmitted()) {
-            
+            if($rec->date > dt::today()){
+                $form->setError('date', 'Датата не може да е в бъдещето');
+            }
+
             // Ако има въведена сч. дата тя се проверява
             if (isset($rec->journalDate) && core_Request::get('Act') == 'changefields') {
                 $periodState = acc_Periods::fetchByDate($rec->journalDate)->state;
@@ -1212,5 +1216,30 @@ class purchase_Invoices extends deals_InvoiceMaster
         if(!empty($rec->number)){
             $res .= ' ' . plg_Search::normalizeText($rec->number);
         }
+    }
+    
+    
+    /**
+     * Кое е мястото на фактурата по подразбиране
+     *
+     * @param stdClass $rec
+     *
+     * @return string|null $place
+     */
+    public static function getDefaultPlace($rec)
+    {
+        $place = null;
+        $cData = doc_Folders::getContragentData($rec->folderId);
+        $place = !empty($cData->place) ? $cData->place : $cData->address;
+        
+        if(!empty($place)){
+            $myCompany = crm_Companies::fetchOwnCompany();
+            if ($cData->countryId != $myCompany->countryId) {
+                $cCountry = drdata_Countries::fetchField($cData->countryId, 'commonName');
+                $place .= ", {$cCountry}";
+            }
+        }
+        
+        return $place;
     }
 }

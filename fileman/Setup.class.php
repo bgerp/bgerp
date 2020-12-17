@@ -119,6 +119,12 @@ defIfNot('FILEMAN_TEMP_PATH', EF_TEMP_PATH . '/fileman');
 
 
 /**
+ * Колко време да се съхраняват индексите на файлвое - 2 години
+ */
+defIfNot('FILEMAN_INDEXES_KEEP_DAYS', 63113904);
+
+
+/**
  * Клас 'fileman_Setup' - Начално установяване на пакета 'fileman'
  *
  *
@@ -197,6 +203,8 @@ class fileman_Setup extends core_ProtoSetup
         'FILEMAN_WEBDRV_PREVIEW_MULTIPLIER' => array('int(min=0, max=10)', 'caption=Увеличаване на размера на картинката при превю->Пъти'),
         
         'FILEMAN_OCR' => array('class(interface=fileman_OCRIntf,select=title, allowEmpty)', 'caption=Програма по подразбиране за OCR обработка->Програма'),
+
+        'FILEMAN_INDEXES_KEEP_DAYS' => array('time(suggestions=1 година|2 години|3 години,unit=days)', 'caption=Време за съхранение на индексите на файловете->Време'),
     );
     
     
@@ -294,7 +302,18 @@ class fileman_Setup extends core_ProtoSetup
         
         // Кофа за файлове качени от архиви
         $html .= $Buckets->createBucket('fileIndex', 'Генерирани от разглеждането на файловете', '', '100MB', 'user', 'user');
-        
+
+        $rec = new stdClass();
+        $rec->systemId = 'DeleteOldIndexes';
+        $rec->description = 'Изтриване на старите индекси на файлове';
+        $rec->controller = 'fileman_Indexes';
+        $rec->action = 'DeleteOldIndexes';
+        $rec->period = 24 * 60;
+        $rec->timeLimit = 50;
+        $rec->offset = mt_rand(0, 300);
+        $rec->isRandOffset = true;
+        $html .= core_Cron::addOnce($rec);
+
         return $html;
     }
     

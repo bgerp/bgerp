@@ -251,6 +251,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
         } else {
             $attrArr['url'] = array();
         }
+        $attrArr['url'] = toUrl($attrArr['url']);
         
         return doc_Folders::getLink($dRec->folderId, 42, $attrArr);
     }

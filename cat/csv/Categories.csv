@@ -4,7 +4,7 @@
 "Консумативи","Стоки и продукти за употреба / консумация","consumables","canBuy",
 "Резервни части","Резервни части за поддръжка и ремонт","replacements","canBuy,canConvert,canStore",
 "Стоки","Стоки за препродажба","goods","canBuy,canStore,canSell",
-"Продукти","Произвеждани стандартни продукти по каталог","products","canManifacture,canSell,canStore,canConvert",
+"Продукти","Произвеждани стандартни продукти по каталог","products","canManifacture,canSell,canStore",
 "Заготовки","Полуготови (междинни) продукти за влагане в производството","prefabrications","canManifacture,canStore,canConvert",
 "Услуги","Предлагани от фирмата услуги","services","canManifacture,canSell",
 "Дълготрайни Активи","Дълготрайни Активи","fixedAssets","canBuy,canSell,fixedAsset,canStore","брой"

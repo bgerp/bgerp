@@ -1479,7 +1479,7 @@ class expert_Expert extends core_FieldSet
         $rec = new stdClass();
         
         foreach ((array) $kRec as $key => $value) {
-            if (!in_array($key, array('expr', 'vars', 'name', 'cond')) && $value{0} == '=') {
+            if (!in_array($key, array('expr', 'vars', 'name', 'cond')) && $value[0] == '=') {
                 $value = substr($value, 1);
                 $res = null;
                 
@@ -1506,7 +1506,7 @@ class expert_Expert extends core_FieldSet
             $msg = $msg->getContent();
         }
         
-        if ($msg{0} == '=') {
+        if ($msg[0] == '=') {
             $msg = substr($msg, 1);
             
             if (!$this->calcExpr($msg, $res)) {
@@ -1601,7 +1601,7 @@ class expert_Expert extends core_FieldSet
             error('Липсващо име на променлива', $name);
         }
         
-        $prefix = $name{0};
+        $prefix = $name[0];
         
         if ($prefix == '#') {
             $name = substr($name, 1);

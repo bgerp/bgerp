@@ -132,7 +132,7 @@ class fileman_Get extends core_Manager
                     
                     return;
                 }
-            } elseif ($lastHeader['Response Code']{0} == '4') {
+            } elseif ($lastHeader['Response Code'][0] == '4') {
                 $form->setError('url', 'Грешка в пътя за сваляне:|* <br><small>' . $pArr['path'] . '</small>');
             } elseif (countR($headersArr) == 1) {
                 $form->setError('url', 'Невъзможно свързване с:|* <b>' . $pArr['host'] . '</b>');

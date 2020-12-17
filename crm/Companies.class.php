@@ -299,6 +299,7 @@ class crm_Companies extends core_Master
         
         // Данъчен номер на фирмата
         $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv,silent');
+        $this->FLD('eori', 'drdata_type_Eori', 'caption=EORI №,remember=info,class=contactData,export=Csv,silent');
         $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv,silent');
         
         // Адресни данни
@@ -410,7 +411,7 @@ class crm_Companies extends core_Master
         
         
         if ($data->listFilter->rec->alpha) {
-            if ($data->listFilter->rec->alpha{0} == '0') {
+            if ($data->listFilter->rec->alpha[0] == '0') {
                 $cond = "LTRIM(REPLACE(REPLACE(REPLACE(LOWER(#name), '\"', ''), '\'', ''), '`', '')) NOT REGEXP '^[a-zA-ZА-Яа-я]'";
             } else {
                 $alphaArr = explode('-', $data->listFilter->rec->alpha);
@@ -866,7 +867,7 @@ class crm_Companies extends core_Master
             type_Varchar::escape($data->listFilter->rec->search) .
             '</b>"';
         } elseif ($data->listFilter->rec->alpha) {
-            if ($data->listFilter->rec->alpha{0} == '0') {
+            if ($data->listFilter->rec->alpha[0] == '0') {
                 $data->title = 'Фирми, които започват с не-буквени символи';
             } else {
                 $data->title = "Фирми, започващи с буквите|* \"<b style='color:green'>{$data->listFilter->rec->alpha}</b>\"";
@@ -1316,7 +1317,7 @@ class crm_Companies extends core_Master
         $query->XPR('searchFieldXprLower', 'text', "LOWER({$xpr})");
         
         if ($q) {
-            if ($q{0} == '"') {
+            if ($q[0] == '"') {
                 $strict = true;
             }
             
@@ -1739,6 +1740,7 @@ class crm_Companies extends core_Master
             $contrData->companyVerb = crm_Companies::getVerbal($company, 'name');
             $contrData->companyId = $company->id;
             $contrData->vatNo = $company->vatId;
+            $contrData->eori = $company->eori;
             $contrData->uicId = $company->uicId;
             $contrData->tel = $company->tel;
             $contrData->fax = $company->fax;

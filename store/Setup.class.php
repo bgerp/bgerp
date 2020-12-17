@@ -86,7 +86,6 @@ class store_Setup extends core_ProtoSetup
         'store_InventoryNotes',
         'store_InventoryNoteSummary',
         'store_InventoryNoteDetails',
-        'migrate::deleteReservedCache',
     );
     
     
@@ -207,15 +206,5 @@ class store_Setup extends core_ProtoSetup
         } catch (core_exception_Expect $e) {
             reportException($e);
         }
-    }
-    
-    
-    /**
-     * Миграция за изтриване на перманентния кеш
-     */
-    public function deleteReservedCache()
-    {
-        core_Permanent::remove('reserved_', true);
-        cls::get('store_Products')->cron_CalcReservedQuantity();
     }
 }

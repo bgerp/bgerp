@@ -586,7 +586,7 @@ class store_ConsignmentProtocols extends core_Master
         
         $rec = static::fetchRec($rec);
         $abbr = $mvc->abbr;
-        $abbr{0} = strtoupper($abbr{0});
+        $abbr[0] = strtoupper($abbr[0]);
         
         if (isset($rec->contragentClassId, $rec->contragentId)) {
             $Crm = cls::get($rec->contragentClassId);

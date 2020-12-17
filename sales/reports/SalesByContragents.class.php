@@ -270,10 +270,10 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         }
         
         // избрани контрагенти
-        $checkContragentsArr = keylist::toArray($rec->contragent);
+        $checkContragentsFolders = keylist::toArray($rec->contragent);
         
-        foreach ($checkContragentsArr as $val) {
-            $contragentsId[doc_Folders::fetch($val)->coverId] = doc_Folders::fetch($val)->coverId;
+        foreach ($checkContragentsFolders as $val) {
+            $contragentsId[doc_Folders::fetch($val)->coverId] = doc_Folders::fetch($val)->coverClass;
         }
         
         // Синхронизира таймлимита с броя записи //
@@ -320,11 +320,10 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             }
             
             if ($rec->contragent || $rec->crmGroup) {
-                $checkContragentsArr = array();
                 
                 $checkContragent = $checkGroup = null;
                 
-                $checkContragent = in_array($contragentId, $contragentsId);
+                $checkContragent = in_array($recPrime->folderId, $checkContragentsFolders);
                 
                 $checkGroup = keylist::isIn($contragentGroups, $rec->crmGroup);
                 
@@ -515,7 +514,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $totalValueLastYear += $sellValueLastYear;
         }
         
-        $tempArr = array();
+        $tempArr = $groupValues = $groupDeltas = array();
         
         foreach ($recs as $v) {
             if (! $rec->crmGroup) {

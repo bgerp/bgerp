@@ -158,7 +158,7 @@ class drdata_Emails extends core_BaseClass
             return false;
         }
         
-        return intval($r{0});
+        return intval($r[0]);
     }
     
     

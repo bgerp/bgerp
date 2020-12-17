@@ -103,6 +103,16 @@ html {
     padding: 0 0px 10px;
     margin-top: -10px;
 }
+.wide .beforeFooterNewsbar {
+    position: absolute;
+    bottom: 40px;
+}
+
+ .wide .afterFooterNewsbar {
+    position: absolute;
+    bottom: -40px;
+}
+
 @media handheld, only screen and (max-width: 1200px) {
     .wide .app-name {
         font-size: 4.1em;

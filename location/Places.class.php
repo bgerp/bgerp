@@ -18,10 +18,7 @@ class location_Places extends core_Master
 {
     public $title = 'Вербализация на позиция';
     
-    public $loadList = 'plg_RowTools2,plg_Created,plg_State2';
-    
-    public $listFields;
-    
+    public $loadList = 'plg_RowTools2,plg_Created,plg_State2,location_Wrapper';
     
     /**
      * Кой има право да чете?
@@ -67,6 +64,13 @@ class location_Places extends core_Master
      * @var string|array
      */
     public $canDelete = 'ceo,admin,tracking';
+    
+    /**
+     * Полета за показване
+     *
+     * var string|array
+     */
+    public $listFields ;
     
     
     /**

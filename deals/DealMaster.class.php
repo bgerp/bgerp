@@ -350,7 +350,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $rec = static::fetchRec($rec);
         
         $abbr = $mvc->abbr;
-        $abbr{0} = strtoupper($abbr{0});
+        $abbr[0] = strtoupper($abbr[0]);
         
         if (isset($rec->contragentClassId, $rec->contragentId)) {
             $crm = cls::get($rec->contragentClassId);
@@ -2330,7 +2330,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         if($constValue == 'form') {
             
-            return Redirect(array($this, 'add', 'folderId' => $folderId));
+            return Redirect(array($this, 'add', 'folderId' => $folderId, 'ret_url' => getRetUrl()));
         }
         
         // Генерира дефолтите според папката

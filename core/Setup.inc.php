@@ -951,9 +951,9 @@ if ($step == 4) {
     $texts['body'] .= logToHtml($log, $stat);
 }
 
-if($step == 'restore') {
+if(substr($step, 0, 7) == 'restore') {
     $log = array();
-    $res = core_Backup::restore($log); 
+    $res = core_Backup::restore($log, substr($step,7)); 
     if($res) {
         $texts['body'] .= linksToHtml(array("new|{$selfUrl}&cancel| Стартирай bgERP »"));
     } else {

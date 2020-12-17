@@ -197,6 +197,10 @@ class doc_Folders extends core_Master
             $attr['class'] .= ' state-rejected';
         }
         
+        if ($url) {
+            unset($attr['url']);
+        }
+        
         $link = ht::createLink($title, $url, null, $attr);
         
         return $link;
@@ -498,10 +502,10 @@ class doc_Folders extends core_Master
         if ($title === null) {
             $title = $mvc->getVerbal($rec, 'title');
         }
-        
-        if (mb_strlen($rec->title) > self::maxLenTitle) {
+
+        if (mb_strlen($title) > self::maxLenTitle) {
             $attr['title'] = $title;
-            $title = str::limitLen($rec->title, self::maxLenTitle);
+            $title = str::limitLen($title, self::maxLenTitle);
             $title = $mvc->fields['title']->type->escape($title);
         }
         
@@ -536,7 +540,7 @@ class doc_Folders extends core_Master
             if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
                 $link = array();
             }
-            
+
             $title = ht::createLink($title, $link, null, $attr);
         } else {
             $attr['style'] = 'color:#777;background-image:url(' . $img . ');';
@@ -2167,7 +2171,7 @@ class doc_Folders extends core_Master
         $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
         
         if ($q) {
-            if ($q{0} == '"') {
+            if ($q[0] == '"') {
                 $strict = true;
             }
             

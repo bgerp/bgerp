@@ -2148,12 +2148,6 @@ class email_Outgoings extends core_Master
             }
         }
         
-        if ($salutation && trim($headerDataArr['name'])) {
-            if (mb_stripos($salutation, $headerDataArr['name']) === false) {
-                $salutation = '';
-            }
-        }
-        
         // Ако обръщението не съвпадата с текущия език, да се остави да се определи от системата
         if ($salutation) {
             $isCyrillic = preg_match('/[\p{Cyrillic}]/u', $salutation) ? true : false;

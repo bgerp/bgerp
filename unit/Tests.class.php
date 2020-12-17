@@ -76,7 +76,7 @@ class unit_Tests extends core_Manager
                             }
                             
                             $methodName = substr($m->name, 5);
-                            $methodName{0} = strtolower($methodName{0});
+                            $methodName[0] = strtolower($methodName[0]);
                             
                             $this->testLog[] = "<li>{$class}->" . $methodName . ": {$msg}</li>";
                             
