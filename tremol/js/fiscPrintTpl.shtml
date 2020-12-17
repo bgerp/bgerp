@@ -7,11 +7,11 @@
 function printFiscalReceipt(onSuccess, onError) {
     var isFiscIsOpen = false;
     try {
-        [#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+        [#/tremol/js/FiscPrinterTplFileImportBegin.shtml#]
             try {
                 var res = '';
                 
-                [#/tremol/js/FiscPrinterTplConnect.txt#]
+                [#/tremol/js/FiscPrinterTplConnect.shtml#]
                 
                 // Синхронизиране на времето
                 <!--ET_BEGIN DATE_TIME-->
@@ -177,7 +177,7 @@ function printFiscalReceipt(onSuccess, onError) {
                 
                 onError(ex.message);
             }
-        [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]
+        [#/tremol/js/FiscPrinterTplFileImportEnd.shtml#]
     } catch(ex) {
         if (isFiscIsOpen) {
             try {
