@@ -489,11 +489,10 @@ class drdata_Vats extends core_Manager
                 return $lastDigit == $c;
                 
             case 13:
-                
-               
                 $v1 = array(2, 7, 3, 5);
                 $v2 = array(4, 9, 5, 7);
-                
+
+                $c = 0;
                 for ($i = 8; $i < 12; $i++) {
                     $c = $c + ((int) substr($BULSTAT, $i, 1)) * $v1[$i - 8] ;
                 }
