@@ -63,11 +63,11 @@ class plg_CryptStore extends core_Plugin
         $key = '';
         $len = strlen($str);
         for ($i = 0; $i < $len; $i++) {
-            if ($key{$i} === '') {
+            if ($key[$i] === '') {
                 $key .= md5($rnd . EF_SALT . 'code' . $key, true);
             }
             
-            $res .= $str{$i} ^ $key{$i};
+            $res .= $str[$i] ^ $key[$i];
         }
         
         $res = 'p|' . $rnd . base64_encode($res);
@@ -96,11 +96,11 @@ class plg_CryptStore extends core_Plugin
         
         $key = '';
         for ($i = 0; $i < $len; $i++) {
-            if ($key{$i} === '') {
+            if ($key[$i] === '') {
                 $key .= md5($rnd . EF_SALT . 'code' . $key, true);
             }
             
-            $res .= $str{$i} ^ $key{$i};
+            $res .= $str[$i] ^ $key[$i];
         }
         
         return $res;
