@@ -142,8 +142,8 @@ class trans_Cmrs extends core_Master
     public function description()
     {
         $this->FLD('cmrNumber', 'varchar(12)', 'caption=ЧМР №,mandatory');
-        $this->FLD('senderData', 'text(rows=2)', 'caption=1. Изпращач,mandatory');
-        $this->FLD('consigneeData', 'text(rows=2)', 'caption=2. Получател,mandatory');
+        $this->FLD('senderData', 'text(rows=5)', 'caption=1. Изпращач,mandatory');
+        $this->FLD('consigneeData', 'text(rows=5)', 'caption=2. Получател,mandatory');
         $this->FLD('deliveryPlace', 'text(rows=2)', 'caption=3. Разтоварен пункт,mandatory');
         $this->FLD('loadingPlace', 'text(rows=2)', 'caption=4. Товарен пункт,mandatory');
         $this->FLD('loadingDate', 'date', 'caption=4. Дата на товарене,mandatory');
@@ -161,7 +161,7 @@ class trans_Cmrs extends core_Master
         $this->FLD('sumPaid', 'varchar(12)', 'caption=Допълнително->Дължимо');
         
         $this->FLD('cashOnDelivery', 'varchar', 'caption=Допълнително->15. Наложен платеж');
-        $this->FLD('cariersData', 'text(rows=2)', 'caption=Допълнително->16. Превозвач');
+        $this->FLD('cariersData', 'text(rows=5)', 'caption=Допълнително->16. Превозвач');
         $this->FLD('vehicleReg', 'varchar', 'caption=МПС рег. №');
         $this->FLD('successiveCarriers', 'text(rows=2)', 'caption=Допълнително->17. Посл. превозвачи');
         $this->FLD('specialagreements', 'text(rows=2)', 'caption=Допълнително->19. Спец. споразумения');
@@ -337,11 +337,16 @@ class trans_Cmrs extends core_Master
         
         // Информация за изпращача
         $ownCompanyId = crm_Setup::get('BGERP_OWN_COMPANY_ID', true);
-        $senderData = $this->getDefaultContragentData('crm_Companies', $ownCompanyId);
-        
-        // Информация за получателя
+        $contragentData = cls::get($sRec->contragentClassId)->getContragentData($sRec->contragentId);
+        $hideOurEori = false;
+        if(empty($contragentData->eori) && drdata_Countries::isEu($contragentData->countryId)){
+            $hideOurEori = true;
+        }
+
+        // Информация за получателя и изпращача
         $consigneeData = $this->getDefaultContragentData($sRec->contragentClassId, $sRec->contragentId, false);
-        
+        $senderData = $this->getDefaultContragentData('crm_Companies', $ownCompanyId, true, $hideOurEori);
+
         // Място на товарене / Разтоварване
         $loadingPlace = $lData['fromPCode'] . ' ' .  transliterate($lData['fromPlace']) . ', ' . $lData['fromCountry'];
         $deliveryPlace = $lData['toPCode'] . ' ' .  transliterate($lData['toPlace']) . ', ' . $lData['toCountry'];
@@ -399,22 +404,36 @@ class trans_Cmrs extends core_Master
      * @param mixed $contragentClassId - клас на контрагента
      * @param int   $contragentId      - контрагент ид
      * @param bool  $translate         - превод на името на контрагента
+     * @param bool  $hideEori          - дали да се скрие ЕОРИ номера на контрагента
      *
      * @return string - информация за контрагента
      */
-    private function getDefaultContragentData($contragentClassId, $contragentId, $translate = true)
+    private function getDefaultContragentData($contragentClassId, $contragentId, $translate = true, $hideEori = false)
     {
         $Contragent = cls::get($contragentClassId);
         $verbal = $Contragent->fetch($contragentId, 'pCode,place,address');
-        $contragentAddress = ($verbal->address) ? transliterate(tr($verbal->address)) . "\n" : '';
+        $contragentAddress = ($verbal->address) ? (transliterate(tr($verbal->address)) . ", ") : '';
         $contragentAddress .= ($verbal->pCode) ? $verbal->pCode : '';
-        $contragentAddress .= ($verbal->place) ? ' ' . transliterate(tr($verbal->place)) : '';
+        $contragentAddress .= ($verbal->place) ? (' ' . transliterate(tr($verbal->place))) : '';
         
         $contragentCountry = $Contragent->getVerbal($contragentId, 'country');
         $contragentName = ($translate === true) ? transliterate(tr($Contragent->fetchField($contragentId, 'name'))) : $Contragent->getVerbal($contragentId, 'name');
-        $contragenData = trim($contragentName) . "\n" . trim($contragentAddress) . "\n" . trim($contragentCountry);
-        
-        return $contragenData;
+        $cData = cls::get($contragentClassId)->getContragentData($contragentId);
+
+        $contragentNumbers = '';
+        foreach (array('vatNo' => 'VAT ID', 'uicId' => 'TAX ID', 'egn' => 'EGN', 'eori' => 'EORI №') as $fld => $fldName){
+            if(!empty($cData->{$fld})){
+                if($fld == 'eori' && $hideEori){
+                    continue;
+                }
+                $contragentNumbers .= ((!empty($contragentNumbers)) ? ", " : "") . "{$fldName}: {$cData->{$fld}}";
+            }
+        }
+
+        $contragentData = trim($contragentName) . "\n" . trim($contragentAddress) . ", " . trim($contragentCountry) . ", " . trim($contragentNumbers);
+        $contragentData = str_replace(',,', ',', $contragentData);
+
+        return $contragentData;
     }
     
     
