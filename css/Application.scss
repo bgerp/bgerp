@@ -2451,6 +2451,15 @@ pre.document {
 .shipment-table tr td{
 	padding:1px  3px !important;
 }
+.currentStat {
+	font-weight:normal;
+	color:darkblue;
+	font-size:0.6em;
+	font-style:italic;
+	display: block;
+	margin-top: 3px;
+}
+
 .half-col {
 	display: inline-block;
 	width: 49%;
