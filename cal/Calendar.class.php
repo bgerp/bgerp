@@ -18,8 +18,14 @@ class cal_Calendar extends core_Master
      * Заглавие
      */
     public $title = "Календар на събития и празници";
-    
-    
+
+
+    /**
+     * Типове, които да се разширяват и така да се показвт в портлания блок
+     */
+    public $blockExpandTypes = 'working-travel,leaves,sick,attendance';
+
+
     /**
      * Класове за автоматично зареждане
      */

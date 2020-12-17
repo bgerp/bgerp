@@ -602,7 +602,7 @@ class core_Db
                 $len = strlen($rest);
                 
                 for ($i = 0; $i < $len; $i++) {
-                    $c = $rest{$i};
+                    $c = $rest[$i];
                     
                     if ($part == 'out') {
                         if ($c == "'") {
@@ -612,7 +612,7 @@ class core_Db
                         }
                     } elseif ($part == 'in') {
                         if ($c == "'") {
-                            if ($rest{$i + 1} == "'") {
+                            if ($rest[$i + 1] == "'") {
                                 $i = $i + 1;
                                 $res->options[$optInd] .= $c;
                             } else {
