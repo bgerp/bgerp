@@ -136,9 +136,9 @@ class core_String
                 
                 while ($r2 > 0) {
                     $r1 = (abs(crc32($seed . $r2--))) % $len[$k];
-                    $c = $chars[$k]{$r1};
-                    $chars[$k]{$r1} = $chars[$k]{$r2};
-                    $chars[$k]{$r2} = $c;
+                    $c = $chars[$k][$r1];
+                    $chars[$k][$r1] = $chars[$k][$r2];
+                    $chars[$k][$r2] = $c;
                 }
             }
         }
@@ -146,15 +146,15 @@ class core_String
         $pLen = strlen($pattern);
         
         for ($i = 0; $i < $pLen; $i++) {
-            $p = $pattern{$i};
+            $p = $pattern[$i];
             
             $rand = rand(0, $len[$p] - 1);
             
             $rand1 = ($rand + 7) % $len[$p];
             
-            $c = $chars[$p]{$rand};
-            $chars[$p]{$rand} = $chars[$p]{$rand1};
-            $chars[$p]{$rand1} = $c;
+            $c = $chars[$p][$rand];
+            $chars[$p][$rand] = $chars[$p][$rand1];
+            $chars[$p][$rand1] = $c;
             
             $res .= $c;
         }
@@ -306,7 +306,7 @@ class core_String
         
         $strLen = strlen($name);
         for ($i = 0; $i < $strLen; $i++) {
-            $c = $name{$i};
+            $c = $name[$i];
             
             if ((($lastC >= 'a' && $lastC <= 'z') || ($lastC >= '0' && $lastC <= '9')) && ($c >= 'A' && $c <= 'Z')) {
                 $mysqlName .= '_';
@@ -327,7 +327,7 @@ class core_String
         $cap = false;
         
         for ($i = 0; $i < strlen($name); $i++) {
-            $c = $name{$i};
+            $c = $name[$i];
             
             if ($c == '_') {
                 $cap = true;
