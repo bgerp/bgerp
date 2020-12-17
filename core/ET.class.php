@@ -962,13 +962,14 @@ class core_ET extends core_BaseClass
         // Премахваме всички файлове, които не са `shtml` и има връщане в името им
         foreach ((array) $matches[1] as $path) {
             if ((stripos($path, '../') !== false) || (stripos($path, '..\\') !== false)) {
+                wp($path);
                 continue;
             }
 
             $pathInfoArr = pathinfo($path);
 
             if ($pathInfoArr['extension'] && $pathInfoArr['extension'] != 'shtml') {
-
+                wp($pathInfoArr);
                 continue;
             }
 
