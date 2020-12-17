@@ -129,7 +129,11 @@ class bgerp_L extends core_Manager
                 
                 // Активатора и последния модифицирал на изпратения документ
                 if (!$activatedBy || $activatedBy <= 0) {
-                    $activatedBy = $rec->activatedBy;
+                    $doc = doc_Containers::getDocument($cId);
+                    if ($doc) {
+                        $rec = $doc->fetch();
+                        $activatedBy = $rec->activatedBy;
+                    }
                 }
                 
                 // Активатора и последния модифицирал на изпратения документ
