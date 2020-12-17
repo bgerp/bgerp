@@ -221,7 +221,7 @@ class core_SpellNumber
         }
         $N = str_pad(abs($NUMBER), 12, '0', STR_PAD_LEFT);
         $l = strlen($N) - 1;
-        $N9 = $this->dig2Text($N{$l - 11}, $N{$l - 10}, $N{$l - 9}, 'm');
+        $N9 = $this->dig2Text($N[$l - 11], $N[$l - 10], $N[$l - 9], 'm');
         
         if ($N9 != '') {
             if ($N9 != 'един') {
@@ -230,7 +230,7 @@ class core_SpellNumber
                 $N9 = $N9 . '_милиард ';
             }
         }
-        $N6 = $this->dig2Text($N{$l - 8}, $N{$l - 7}, $N{$l - 6}, 'm');
+        $N6 = $this->dig2Text($N[$l - 8], $N[$l - 7], $N[$l - 6], 'm');
         
         if ($N6 != '') {
             if ($N6 != 'един') {
@@ -239,7 +239,7 @@ class core_SpellNumber
                 $N6 = $N6 . '_милион ';
             }
         }
-        $N3 = $this->dig2Text($N{$l - 5}, $N{$l - 4}, $N{$l - 3}, 'f');
+        $N3 = $this->dig2Text($N[$l - 5], $N[$l - 4], $N[$l - 3], 'f');
         
         if ($N3 != '') {
             if ($N3 != 'една') {
@@ -248,7 +248,7 @@ class core_SpellNumber
                 $N3 = '_хиляда ';
             }
         }
-        $N0 = $this->dig2Text($N{$l - 2}, $N{$l - 1}, $N{$l}, $g);
+        $N0 = $this->dig2Text($N[$l - 2], $N[$l - 1], $N[$l], $g);
         $res = $this->insAnd(trim($N9 . ' ' . $N6 . ' ' . $N3 . ' ' . $N0));
         $res = str_replace('_', ' ', $res);
         $res = trim($res);
