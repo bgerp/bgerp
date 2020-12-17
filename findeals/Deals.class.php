@@ -729,7 +729,6 @@ class findeals_Deals extends deals_DealBase
                 $row->creditA = "<span class='red'>{$row->creditA}</span>";
             }
         }
-        $row->orderFld = $jRec->valior;
         
         return $row;
     }
