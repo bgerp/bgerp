@@ -402,13 +402,11 @@ class cms_Domains extends core_Embedder
         
         for ($num = 0; $num < $numLanguages; $num++) {
             $newLang = strtolower($langs[$num]);
-            $newQual = isset($quals[$num]) ?
-              (empty($quals[$num]) ? 1.0 : floatval($quals[$num])) : 0.0;
+            $newQual = isset($quals[$num]) ? ((empty($quals[$num]) ? 1.0 : floatval($quals[$num]))) : 0.0;
             
             // Choose whether to upgrade or set the quality factor for the
             // primary language.
-            $langArr[$newLang] = (isset($langArr[$newLang])) ?
-              max($langArr[$newLang], $newQual) : $newQual;
+            $langArr[$newLang] = (isset($langArr[$newLang])) ? max($langArr[$newLang], $newQual) : $newQual;
         }
         
         if ($countryCode2 = drdata_IpToCountry::get()) {
@@ -843,7 +841,7 @@ class cms_Domains extends core_Embedder
      */
     public static function getAbsoluteUrl($id, &$name = null)
     {
-        $s = empty($_SERVER['HTTPS']) ? '' : ($_SERVER['HTTPS'] == 'on') ? 's' : '';
+        $s = empty($_SERVER['HTTPS']) ? '' : (($_SERVER['HTTPS'] == 'on') ? 's' : '');
         $slashPos = strpos($_SERVER['SERVER_PROTOCOL'], '/');
         $protocol = substr(strtolower($_SERVER['SERVER_PROTOCOL']), 0, $slashPos) . $s;
         

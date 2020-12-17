@@ -538,7 +538,7 @@ class core_ProtoSetup
                 } elseif ($item[0]) {
                     $row = $item[0];
                 } else {
-                    expect($row);
+                    expect(false);
                 }
                 
                 // задаваме името на менюто
@@ -548,7 +548,7 @@ class core_ProtoSetup
                 } elseif ($item[1]) {
                     $menu = $item[1];
                 } else {
-                    expect($menu);
+                    expect(false);
                 }
                 
                 // задаваме името на подменюто
