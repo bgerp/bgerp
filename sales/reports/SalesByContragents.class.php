@@ -301,7 +301,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 }
             }
             $detClassName = $DetClass->className;
-            
+
             // контрагента по сделката
             $contragentId = $recPrime->contragentId;
             $contragentClassId = $recPrime->contragentClassId;
@@ -326,21 +326,21 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 $checkContragent = in_array($recPrime->folderId, $checkContragentsFolders);
                 
                 $checkGroup = keylist::isIn($contragentGroups, $rec->crmGroup);
-                
+
                 // филтър по контрагент без група
                 if (! $rec->crmGroup && $rec->contragent) {
                     if (! $checkContragent) {
                         continue;
                     }
                 }
-                
+
                 // филтър по група без контрагент
                 if ($rec->crmGroup && ! $rec->contragent) {
                     if (! $checkGroup) {
                         continue;
                     }
                 }
-                
+
                 // филтър по група и контрагент
                 if ($rec->crmGroup && $rec->contragent) {
                     if (! $checkContragent || ! $checkGroup) {
@@ -349,7 +349,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 }
             }
             
-            $id = $contragentId;
+            $id = $recPrime->folderId;
             
             if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
                 if ($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos) {
@@ -464,8 +464,9 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             if (! array_key_exists($id, $recs)) {
                 $recs[$id] = (object) array(
                     
-                    'contragentId' => $id,
+                    'contragentId' => $recPrime->contragentId,
                     'contragentClassName' => $contragentClassName,
+                    'folderId' => $recPrime->folderId,
                     
                     'saleValue' => $sellValue,
                     'delta' => $delta,
@@ -520,15 +521,15 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             if (! $rec->crmGroup) {
                 list($firstGroup) = explode('|', trim($v->groupList, '|'));
                 
-                $tempArr[$v->contragentId] = $v;
-                $tempArr[$v->contragentId]->groupList = $firstGroup;
+                $tempArr[$v->folderId] = $v;
+                $tempArr[$v->folderId]->groupList = $firstGroup;
                 
                 if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                    $tempArr[$v->contragentId]->change = $v->saleValue - $v->sellValuePrevious;
+                    $tempArr[$v->folderId]->change = $v->saleValue - $v->sellValuePrevious;
                 }
                 
                 if ($rec->compare == 'year') {
-                    $tempArr[$v->contragentId]->change = $v->saleValue - $v->sellValueLastYear;
+                    $tempArr[$v->folderId]->change = $v->saleValue - $v->sellValueLastYear;
                 }
                 $groupValues[$firstGroup] += $v->saleValue;
                 $groupDeltas[$firstGroup] += $v->delta;
@@ -538,17 +539,17 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 }
             } else {
                 foreach (explode('|', trim($rec->crmGroup, '|')) as $gr) {
-                    $tempArr[$v->contragentId] = $v;
+                    $tempArr[$v->folderId] = $v;
                     
                     if (keylist::isIn($gr, $v->groupList)) {
-                        $tempArr[$v->contragentId]->groupList = $gr;
+                        $tempArr[$v->folderId]->groupList = $gr;
                         
                         if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                            $tempArr[$v->contragentId]->change = $v->saleValue - $v->sellValuePrevious;
+                            $tempArr[$v->folderId]->change = $v->saleValue - $v->sellValuePrevious;
                         }
                         
                         if ($rec->compare == 'year') {
-                            $tempArr[$v->contragentId]->change = $v->saleValue - $v->sellValueLastYear;
+                            $tempArr[$v->folderId]->change = $v->saleValue - $v->sellValueLastYear;
                         }
                         
                         $groupValues[$gr] += $v->saleValue;
@@ -565,12 +566,12 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         foreach ($recs as $v) {
             $v->groupValues = $groupValues[$v->groupList];
             $v->groupDeltas = $groupDeltas[$v->groupList];
-            $v->unicart = countR($unicart[$v->contragentId]);
-            $v->unicartPrevious = countR($unicartPrev[$v->contragentId]);
-            $v->unicartLast = countR($unicartLast[$v->contragentId]);
-            $v->salesArr = countR($salesArr[$v->contragentId]);
-            $v->salesArrPrevious = countR($salesArrPrev[$v->contragentId]);
-            $v->salesArrLast = countR($salesArrLast[$v->contragentId]);
+            $v->unicart = countR($unicart[$v->folderId]);
+            $v->unicartPrevious = countR($unicartPrev[$v->folderId]);
+            $v->unicartLast = countR($unicartLast[$v->folderId]);
+            $v->salesArr = countR($salesArr[$v->folderId]);
+            $v->salesArrPrevious = countR($salesArrPrev[$v->folderId]);
+            $v->salesArrLast = countR($salesArrLast[$v->folderId]);
         }
         
         
@@ -608,7 +609,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
-        
+
         if ($rec->compare == 'month') {
             $name1 = acc_Periods::fetch($rec->firstMonth)->title;
             $name2 = acc_Periods::fetch($rec->secondMonth)->title;
@@ -719,7 +720,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     reportException($e);
                 }
             }
-        } else {
+        } else {bp($dRec);
             if ($dRec->contragentId) {
                 try {
                     $contragentClassName = $dRec->contragentClassName;
