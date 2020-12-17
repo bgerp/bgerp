@@ -6733,7 +6733,8 @@ only screen and (max-width: 320px) {
     .sale-summary table td {
       font-size: 1.3em;
       font-weight: bold;
-      padding: 5px 3px; }
+      padding: 5px 3px;
+      vertical-align: middle !important; }
       .sale-summary table td .quiet {
         color: #cccccc;
         font-weight: normal; }

@@ -7612,13 +7612,14 @@ body.narrow {
 		   font-size:13px;
 		}
 		td {
-		   font-size: 1.3em;
-		   font-weight: bold;
-		   padding: 5px 3px;
-		   .quiet {
+			font-size: 1.3em;
+			font-weight: bold;
+			padding: 5px 3px;
+			vertical-align: middle !important;
+			.quiet {
 			   color: #ccc;
 			   font-weight: normal;
-		   }
+			}
 		}
 		.specialLink {
 			white-space: normal;
