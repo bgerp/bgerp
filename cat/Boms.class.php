@@ -1267,11 +1267,10 @@ class cat_Boms extends core_Master
                 );
 
                 if ($rQuantity != cat_BomDetails::CALC_ERROR) {
-                    $materials[$index]->propQuantity = $t * $rQuantity * $rec->quantityInPac;
+                    $materials[$index]->propQuantity = $t * $rQuantity * $rec->quantityInPack;
                 } else {
                     $materials[$index]->propQuantity = $rQuantity;
                 }
-
             } else {
                 $d = &$materials[$index];
                 if ($rQuantity != cat_BomDetails::CALC_ERROR) {
