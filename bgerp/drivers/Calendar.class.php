@@ -670,9 +670,9 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 $tRec->title = ' ' . dt::mysql2verbal($rec->calcTimeStart, 'H:i', null, true) . ' ' . $tRec->title;
                 
                 $linkArr = array('ef_icon' => $Reminders->getIcon($rec->id));
-                
+
                 // Добавяме стил, ако има промяна след последното разглеждане
-                if ($rec->modifiedOn > bgerp_Recently::getLastDocumentSee($rec->containerId, $userId, false)) {
+                if ($rec->modifiedOn > bgerp_Recently::getLastDocumentSee($rec->containerId, $pArr['_userId'], false)) {
                     $linkArr['class'] = 'tUnsighted';
                 }
                 
