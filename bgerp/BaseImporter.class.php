@@ -123,7 +123,8 @@ class bgerp_BaseImporter extends core_Manager
                 
                 continue ;
             }
-            
+
+            $exRec = null;
             if (!$this->mvc->isUnique($rec, $fieldsUn, $exRec)) {
                 $rec->id = $exRec->id;
             }

@@ -36,10 +36,10 @@
                     <tr>
                         <td class = 'nowrap'>[#amountDeal#]</td>
                         <td class = 'nowrap'><div>[#debitAmount#]</div>
-                            <!--ET_BEGIN secondContragentId--><div class='small' style='font-weight:normal'>[#curDebitAmount#]</div><!--ET_END curDebitAmount-->
+                            <!--ET_BEGIN curDebitAmount--><div class='small currentStat'>от страницата: [#curDebitAmount#]</div><!--ET_END curDebitAmount-->
                         </td>
                         <td class = 'nowrap'><div>[#creditAmount#]</div>
-                            <!--ET_BEGIN curCreditAmount--><div class='small' style='font-weight:normal'>[#curCreditAmount#]</div><!--ET_END curCreditAmount-->
+                            <!--ET_BEGIN curCreditAmount--><div class='small currentStat'>от страницата: [#curCreditAmount#]</div><!--ET_END curCreditAmount-->
                         <td class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left;width:1%'>
                         	<span style='font-weight:normal'>[#contragentCaption#] : [#contragentName#]</span>
                         	<!--ET_BEGIN secondContragentId-->

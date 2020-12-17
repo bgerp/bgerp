@@ -968,7 +968,7 @@ class core_ET extends core_BaseClass
             $pathInfoArr = pathinfo($path);
 
             if ($pathInfoArr['extension'] && $pathInfoArr['extension'] != 'shtml') {
-
+                wp($pathInfoArr);
                 continue;
             }
 
