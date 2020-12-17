@@ -521,10 +521,11 @@ class store_Products extends core_Detail
             
             foreach (array('reservedQuantity', 'expectedQuantity', 'expectedQuantityTotal') as $type){
                 if (!empty($rec->{$type})) {
-                    
+                    $title = ($type == 'reservedQuantity') ? 'От кои документи е резервирано количеството' : 'От кои документи е очакваното количеството';
+
                     $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'id' => $rec->id, 'field' => $type), 'local');
                     $arrowImg = ht::createElement('img', array('src' => sbf('img/16/info-gray.png', '')));
-                    $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => 'От кои документи е резервирано количеството'), $arrowImg, true);
+                    $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => $title), $arrowImg, true);
                     $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$type}{$rec->id}'></span>{$arrow}</span>";
                     $row->{$type} = "<span class='fleft'>{$arrow} </span>". $row->{$type};
                 }
