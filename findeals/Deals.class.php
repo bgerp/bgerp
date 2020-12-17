@@ -333,9 +333,10 @@ class findeals_Deals extends deals_DealBase
         if (isset($fields['baseAccountSysId']) || $fields['baseAmount'] || $fields['baseAmountType']) {
             expect(isset($fields['baseAccountSysId'], $fields['baseAmount'], $fields['baseAmountType']));
         }
-        
+
+        $newFields = (object) $newFields;
         // Опиваме се да запишем мастъра на сделката
-        if ($id = $me->save((object) $newFields)) {
+        if ($id = $me->save($newFields)) {
             
             // Ако е успешно, споделяме текущия потребител към новосъздадената нишка
             $rec = $me->fetch($id);

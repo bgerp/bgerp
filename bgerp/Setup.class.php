@@ -273,7 +273,7 @@ class bgerp_Setup extends core_ProtoSetup
         
         // Това първо инсталиране ли е?
         $isFirstSetup = ($Packs->count() == 0);
-        
+
         // Списък на основните модули на bgERP
         $packs = 'core,log,fileman,drdata,bglocal,editwatch,recently,thumb,doc,help,acc,cond,uiext,currency,cms,ograph,
                   email,crm, cat, trans, price, blast,hr,lab,dec,sales,import2,planning,marketing,store,cash,bank,
@@ -286,8 +286,14 @@ class bgerp_Setup extends core_ProtoSetup
             $packs .= ',' . strtolower(basename(EF_PRIVATE_PATH));
         }
 
+        $mustInstall = $isFirstSetup;
+        if (!$mustInstall) {
+            $Folders = cls::get('doc_Folders');
+            $mustInstall = !($Folders->db->tableExists($Folders->dbTableName));
+        }
+
         // Добавяме допълнителните пакети, само при първоначален Setup
-        if (($isFirstSetup) || !$Packs->isInstalled('avatar')) {
+        if ($mustInstall) {
             $packs .= ',avatar,keyboard,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,toast,minify,rtac,hljs,pixlr,tnef';
         } else {
             $packs = arr::make($packs, true);
