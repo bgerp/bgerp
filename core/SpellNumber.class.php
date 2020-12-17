@@ -341,7 +341,7 @@ class core_SpellNumber
                     $w .= ' ';
                     
                     if ($r < 100) {
-                        $word .= 'and ';
+                        $w .= 'and ';
                     }
                     $w .= $this->int_to_words($r);
                 }
