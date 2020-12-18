@@ -635,12 +635,14 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
         tr(
             "|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-							    <small><div><!--ET_BEGIN from-->|Отчетен период От|*: [#from#]<!--ET_END from--></div></small>
-                                <small><div><!--ET_BEGIN to-->|Отчетен период До|*: [#to#]<!--ET_END to--></div></small>
-                                <small><div><!--ET_BEGIN dealers-->|Групи|*: [#dealers#]<!--ET_END dealers--></div></small>
-                                <small><div><!--ET_BEGIN selfPriceTolerance-->|Толеранс под себестойност|*: [#selfPriceTolerance#]<!--ET_END selfPriceTolerance--></div></small>
-                                <small><div><!--ET_BEGIN sellPriceTTRUEoleranceDown-->|Толеранс под политика|*: [#sellPriceToleranceDown#]<!--ET_END sellPriceToleranceDown--></div></small>
-                                <small><div><!--ET_BEGIN sellPriceToleranceUp-->|Толеранс над политика|*: [#sellPriceToleranceUp#]<!--ET_END sellPriceToleranceUp--></div></small>
+                                    <div class='small'>
+                                        <!--ET_BEGIN from--><div>|Отчетен период От|*: [#from#]</div><!--ET_END from-->
+                                        <!--ET_BEGIN to--><div>|Отчетен период До|*: [#to#]</div><!--ET_END to-->
+                                        <!--ET_BEGIN dealers--><div>|Групи|*: [#dealers#]</div><!--ET_END dealers-->
+                                        <!--ET_BEGIN selfPriceTolerance--><div>|Толеранс под себестойност|*: [#selfPriceTolerance#]</div><!--ET_END selfPriceTolerance-->
+                                        <!--ET_BEGIN sellPriceTTRUEoleranceDown--><div>|Толеранс под политика|*: [#sellPriceToleranceDown#]</div><!--ET_END sellPriceToleranceDown-->
+                                        <!--ET_BEGIN sellPriceToleranceUp--><div>|Толеранс над политика|*: [#sellPriceToleranceUp#]</div><!--ET_END sellPriceToleranceUp-->
+                                    </div>
                                 </fieldset><!--ET_END BLOCK-->"
         )
     );

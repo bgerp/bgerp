@@ -280,11 +280,13 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-                                <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
-                                <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
-						   		<small><div><!--ET_BEGIN documentType-->|Вид документи|*: [#documentType#]<!--ET_END documentType--></div></small>
-                                <small><div><!--ET_BEGIN states-->|Състояние|*: [#states#]<!--ET_END states--></div></small>
-                                <small><div><!--ET_BEGIN dealerId-->|Търговец|*: [#dealerId#]<!--ET_END dealerId--></div></small>
+                                    <div class='small'>
+                                        <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
+                                        <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
+                                        <!--ET_BEGIN documentType--><div>|Вид документи|*: [#documentType#]</div><!--ET_END documentType-->
+                                        <!--ET_BEGIN states--><div>|Състояние|*: [#states#]</div><!--ET_END states-->
+                                        <!--ET_BEGIN dealerId--><div>|Търговец|*: [#dealerId#]</div><!--ET_END dealerId-->
+                                    </div>
                                 </fieldset><!--ET_END BLOCK-->"));
         
         if (isset($data->rec->from)) {

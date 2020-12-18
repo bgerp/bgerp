@@ -586,13 +586,15 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             tr(
                 "|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-                                <small><div><!--ET_BEGIN checkDate-->|Към дата|*: <b>[#checkDate#]</b><!--ET_END to--></div></small>
-                                <small><div><!--ET_BEGIN contragent-->|Контрагент|*: <b>[#contragent#]</b><!--ET_END to--></div></small>
-                                <small><div><!--ET_BEGIN dealer-->|Търговец|*: <b>[#dealer#]</b><!--ET_END to--></div></small>
-                                <small><div><!--ET_BEGIN countryGroup-->|Група държави|*: <b>[#countryGroup#]</b><!--ET_END to--></div></small>
-                                <small><div><!--ET_BEGIN salesTotalOverDue-->|Общо просрочени|*: <b>[#salesTotalOverDue#]</b><!--ET_END salesTotalOverDue--></div></small>
-                                <small><div><!--ET_BEGIN salesTotalPayout-->|Общо платено|*: <b>[#salesTotalPayout#]</b><!--ET_END salesTotalPayout--></div></small>
-                                <small><div><!--ET_BEGIN salesCurrentSum-->|Общо за плащане|*: <b>[#salesCurrentSum#]</b><!--ET_END salesCurrentSum--></div></small>
+                                    <div class='small'>
+                                        <!--ET_BEGIN checkDate--><div>|Към дата|*: <b>[#checkDate#]</b></div><!--ET_END to-->
+                                        <!--ET_BEGIN contragent--><div>|Контрагент|*: <b>[#contragent#]</b></div><!--ET_END to-->
+                                        <!--ET_BEGIN dealer--><div>|Търговец|*: <b>[#dealer#]</b></div><!--ET_END to-->
+                                        <!--ET_BEGIN countryGroup--><div>|Група държави|*: <b>[#countryGroup#]</b></div><!--ET_END to-->
+                                        <!--ET_BEGIN salesTotalOverDue--><div>|Общо просрочени|*: <b>[#salesTotalOverDue#]</b></div><!--ET_END salesTotalOverDue-->
+                                        <!--ET_BEGIN salesTotalPayout--><div>|Общо платено|*: <b>[#salesTotalPayout#]</b></div><!--ET_END salesTotalPayout-->
+                                        <!--ET_BEGIN salesCurrentSum--><div>|Общо за плащане|*: <b>[#salesCurrentSum#]</b></div><!--ET_END salesCurrentSum-->
+                                    </div>
                                 </fieldset><!--ET_END BLOCK-->"
             )
         );
