@@ -26,17 +26,10 @@
                 </tr>
                 <tr>
                     <td class="cell">
-                        <b>[#contragentName#]</b>
-                        <div class='address-block'>
-                            [#contragentCountryId#]
-                            <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
-                        </div>
+                        [#/deals/tpl/ContragentHeaderBlock.shtml#]
                     </td>
                     <td class="cell">
-                        <b>[#MyCompany#]</b>
-                        <div class='address-block'>
-                            [#MyAddress#]
-                        </div>
+                        [#/deals/tpl/MyCompanyBlock.shtml#]
                     </td>
                 </tr>
             </tbody>

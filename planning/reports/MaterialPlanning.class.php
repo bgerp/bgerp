@@ -379,8 +379,10 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-                                <small><div><!--ET_BEGIN groups-->|Групи продукти|*: [#groups#]<!--ET_END groups--></div></small>
-                                <small><div><!--ET_BEGIN totalmaterialQuantiry-->|Общо тегло|*: <b>[#totalmaterialQuantiry#] кг.</b><!--ET_END totalmaterialQuantiry--></div></small>
+                                    <div class='small'>
+                                        <!--ET_BEGIN groups--><div>|Групи продукти|*: <b>[#groups#]</b></div><!--ET_END groups-->
+                                        <!--ET_BEGIN totalmaterialQuantiry--><div>|Общо тегло|*: <b>[#totalmaterialQuantiry#] кг.</b></div><!--ET_END totalmaterialQuantiry-->
+                                    </div>
                                 </fieldset><!--ET_END BLOCK-->"));
         
         
