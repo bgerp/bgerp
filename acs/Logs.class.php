@@ -69,7 +69,7 @@ class acs_Logs extends core_Manager
      */
     protected $allowedTypes = 'allowed=Разрешен достъп,denied=Забранен достъп,movement=Движение в зоната,empty=Зоната е празна,
                                 openedDoor=Отворена врата,closedDoor=Затворена врата,openedWindow=Отворен прозорец, closedWindow=Затворен прозорец,
-                                floor=Наводнение,fire=Пожар,unknnown=Непознат';
+                                floor=Наводнение,fire=Пожар,unknown=Непознат';
     
     /**
      * Описание на модела
@@ -110,7 +110,7 @@ class acs_Logs extends core_Manager
         
         if (!isset($allowedTypeArr[$type])) {
             wp($allowedTypeArr, $type);
-            $type = 'unknnown';
+            $type = 'unknown';
         }
         
         if (!isset($timestamp)) {

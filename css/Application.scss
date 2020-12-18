@@ -7620,6 +7620,9 @@ body.narrow {
 			   color: #ccc;
 			   font-weight: normal;
 			}
+			&.vtop {
+				vertical-align: top !important;
+			}
 		}
 		.specialLink {
 			white-space: normal;
