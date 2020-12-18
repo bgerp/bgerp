@@ -255,9 +255,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 
                 $originPrice = deals_Helper::getDisplayPrice($originRef['price'], 0, 1, 'no', 5);
                 $diffPrice = $dRec->packPrice - $originPrice;
-                
+
                 $priceIsChanged = false;
-                $diffPrice = number_format($diffPrice, 5);
+                $diffPrice =round($diffPrice, 5);
                 if(abs($diffPrice) > 0.0001){
                     $priceIsChanged = true;
                 }
@@ -651,7 +651,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $priceIsChanged = false;
                 $originPrice = deals_Helper::getDisplayPrice($cache['price'], 0, 1, 'no', 5);
                 $diffPrice = abs($pPrice - $originPrice);
-                $diffPrice = number_format($diffPrice, 5);
+                $diffPrice = round($diffPrice, 5);
 
                 if($diffPrice > 0.0001){
                     $priceIsChanged = true;
