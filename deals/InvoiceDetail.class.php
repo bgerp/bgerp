@@ -253,7 +253,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $originRef = $cached->recs[$count][$dRec->productId];
                 $diffQuantity = $dRec->quantity - $originRef['quantity'];
                 
-                $originPrice = deals_Helper::getDisplayPrice($originRef['price'], 0, 1, 'no');
+                $originPrice = deals_Helper::getDisplayPrice($originRef['price'], 0, 1, 'no', 5);
                 $diffPrice = $dRec->packPrice - $originPrice;
                 
                 $priceIsChanged = false;
@@ -649,9 +649,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $pPrice = isset($packPrice)? $packPrice : $rec->packPrice;
                 
                 $priceIsChanged = false;
-                $originPrice = deals_Helper::getDisplayPrice($cache['price'], 0, 1, 'no');
+                $originPrice = deals_Helper::getDisplayPrice($cache['price'], 0, 1, 'no', 5);
                 $diffPrice = abs($pPrice - $originPrice);
                 $diffPrice = number_format($diffPrice, 5);
+
                 if($diffPrice > 0.0001){
                     $priceIsChanged = true;
                 }
