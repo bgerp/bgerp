@@ -33,7 +33,7 @@
               <td class = 'nowrap'>[#amountInvoicedDownpayment#]</td>
               <!--ET_END INVOICE_DOWNPAYMENT_TD-->
               
-              <td class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left' rowspan='3'>
+              <td class = 'nowrap vtop' style='font-size:0.8em;text-align:left' rowspan='3'>
                   <!--ET_BEGIN paymentState-->
                   <span style='font-weight:normal'>|Чакащо плащане|*</span>: [#paymentState#]<br>
                   <!--ET_END paymentState-->
