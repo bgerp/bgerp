@@ -244,7 +244,9 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
     {
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-                                <small><div><!--ET_BEGIN group-->|Групи|*: [#group#]<!--ET_END group--></div></small>
+                                    <div class='small'>
+                                        <!--ET_BEGIN group--><div>|Групи|*: [#group#]</div><!--ET_END group-->
+                                    </div>
                                 </fieldset><!--ET_END BLOCK-->"));
         
         if (isset($data->rec->group)) {
