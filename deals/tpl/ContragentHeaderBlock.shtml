@@ -1,0 +1,21 @@
+<!--ET_BEGIN contragentName-->
+<b>[#contragentName#]</b>
+<!--ET_BEGIN contragentAddress-->
+<div class='address-block'>
+    [#contragentAddress#]
+</div>
+<!--ET_END contragentAddress-->
+<!--ET_END contragentName-->
+<!--ET_BEGIN contragentVatInfo-->
+[#contragentVatInfo#]
+<hr style="margin: 3px 0 1px;">
+<!--ET_BEGIN vatNo-->
+<div><small>|ЗДДС №|*:</small> <span class="bigData notBold" style="padding-left:5px;">[#vatNo#]</span></div>
+<!--ET_END vatNo-->
+<!--ET_BEGIN eori-->
+<div><small>EORI №:</small> <span class="bigData notBold" style="padding-left:5px;">[#eori#]</span></div>
+<!--ET_END eori-->
+<!--ET_BEGIN contragentUicId-->
+<div><small>[#contragentUicCaption#]:</small> <span class="bigData notBold" style="padding-left:5px;"> [#contragentUicId#]</span></div>
+<!--ET_END contragentUicId-->
+<!--ET_END contragentVatInfo-->

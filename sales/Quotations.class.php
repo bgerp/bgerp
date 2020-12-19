@@ -1119,7 +1119,7 @@ class sales_Quotations extends core_Master
         $rec = static::fetchRec($rec);
         
         $abbr = $mvc->abbr;
-        $abbr{0} = strtoupper($abbr{0});
+        $abbr[0] = strtoupper($abbr[0]);
         
         $date = dt::mysql2verbal($rec->date, 'd.m.year');
         

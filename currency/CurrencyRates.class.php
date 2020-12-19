@@ -26,7 +26,7 @@ class currency_CurrencyRates extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, Currencies=currency_Currencies, currency_Wrapper, plg_Sorting, plg_Chart';
+    public $loadList = 'plg_Created, plg_RowTools2, Currencies=currency_Currencies, currency_Wrapper, plg_Sorting, plg_Chart';
     
     
     /**
@@ -339,7 +339,7 @@ class currency_CurrencyRates extends core_Detail
         // Незададен (NULL) код на валута означава базова валута, зададен - обръщаме го към id
         $fromId = is_null($from) ? acc_Periods::getBaseCurrencyId($date) : currency_Currencies::getIdByCode($from);
         $toId = is_null($to)   ? acc_Periods::getBaseCurrencyId($date) : currency_Currencies::getIdByCode($to);
-        
+
         if (!isset($date)) {
             $date = dt::verbal2mysql();
         }
@@ -488,7 +488,7 @@ class currency_CurrencyRates extends core_Detail
             return;
         }
         
-        return static::$cache[$date][$fromId][$toId] = $fromBaseRate / $toBaseRate;
+        return static::$cache[$date][$fromId][$toId][$baseCurrencyId] = $fromBaseRate / $toBaseRate;
     }
     
     

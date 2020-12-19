@@ -380,7 +380,10 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
     {
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-							    <small><div><!--ET_BEGIN dealers-->|Търговци|*: [#dealers#]<!--ET_END dealers--></div></small></fieldset><!--ET_END BLOCK-->"));
+                                    <div class='small'>
+							            <!--ET_BEGIN dealers--><div>|Търговци|*: [#dealers#]</div><!--ET_END dealers-->
+							        </div>
+							    </fieldset><!--ET_END BLOCK-->"));
         
         if (isset($data->rec->dealers)) {
             $fieldTpl->append($data->row->dealerId, 'dealers');

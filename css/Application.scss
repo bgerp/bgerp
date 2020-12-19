@@ -2451,6 +2451,15 @@ pre.document {
 .shipment-table tr td{
 	padding:1px  3px !important;
 }
+.currentStat {
+	font-weight:normal;
+	color:darkblue;
+	font-size:0.6em;
+	font-style:italic;
+	display: block;
+	margin-top: 3px;
+}
+
 .half-col {
 	display: inline-block;
 	width: 49%;
@@ -2581,6 +2590,9 @@ pre.document {
 	ul{
 		margin-top: 5px;
 		margin-bottom: 0;
+		li {
+			padding-bottom: 10px;
+		}
 	}
 	.richtext {
 	   color: #000;
@@ -7600,13 +7612,17 @@ body.narrow {
 		   font-size:13px;
 		}
 		td {
-		   font-size: 1.3em;
-		   font-weight: bold;
-		   padding: 5px 3px;
-		   .quiet {
+			font-size: 1.3em;
+			font-weight: bold;
+			padding: 5px 3px;
+			vertical-align: middle !important;
+			.quiet {
 			   color: #ccc;
 			   font-weight: normal;
-		   }
+			}
+			&.vtop {
+				vertical-align: top !important;
+			}
 		}
 		.specialLink {
 			white-space: normal;

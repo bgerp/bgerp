@@ -282,7 +282,7 @@ class fconv_Script
                 if ($key == 0) {
                     continue;
                 }
-                if ($val{0} == '-') {
+                if ($val[0] == '-') {
                     continue;
                 }
                 

@@ -129,7 +129,11 @@ class bgerp_L extends core_Manager
                 
                 // Активатора и последния модифицирал на изпратения документ
                 if (!$activatedBy || $activatedBy <= 0) {
-                    $activatedBy = $rec->activatedBy;
+                    $doc = doc_Containers::getDocument($cId);
+                    if ($doc) {
+                        $rec = $doc->fetch();
+                        $activatedBy = $rec->activatedBy;
+                    }
                 }
                 
                 // Активатора и последния модифицирал на изпратения документ
@@ -257,53 +261,52 @@ class bgerp_L extends core_Manager
             }
             
             // Показване на линкове за сваляна на документа
-            if (!haveRole('user')) {
-                $userId = $options['__userId'];
-                
-                $dLog = doclog_Documents::getAction();
-                if ($dLog->createdBy > 0) {
-                    $userId = $dLog->createdBy;
-                }
-                
-                if ($userId > 0) {
-                    $sudo = core_Users::sudo($userId);
-                }
-                
-                $exportArr = export_Export::getPossibleExports($doc->instance->getClassId(), $rec->id);
-                
-                if ($sudo) {
-                    core_Users::exitSudo();
-                }
-                
-                $exportLinkArr = array();
-                foreach ($exportArr as $clsId => $name) {
-                    $clsInst = cls::getInterface('export_ExportTypeIntf', $clsId);
-                    
-                    $eLink = $clsInst->getExternalExportLink($doc->instance->getClassId(), $rec->id, $mid);
-                    
-                    if ($eLink) {
-                        $exportLinkArr[] = $eLink;
-                    }
-                }
-                
-                if (!empty($exportLinkArr)) {
-                    
-                    $isFirst = true;
-                    foreach ($exportLinkArr as $link) {
-                        if (!$link) {
-                            continue;
-                        }
-                        
-                        if (!$isFirst) {
-                            $html->append('<span>|</span>');
-                        } else {
-                            $isFirst = false;
-                        }
-                        
-                        $html->append($link);
-                    }
+            $userId = $options['__userId'];
+
+            $dLog = doclog_Documents::getAction();
+            if ($dLog->createdBy > 0) {
+                $userId = $dLog->createdBy;
+            }
+
+            if ($userId > 0) {
+                $sudo = core_Users::sudo($userId);
+            }
+
+            $exportArr = export_Export::getPossibleExports($doc->instance->getClassId(), $rec->id);
+
+            if ($sudo) {
+                core_Users::exitSudo();
+            }
+
+            $exportLinkArr = array();
+            foreach ($exportArr as $clsId => $name) {
+                $clsInst = cls::getInterface('export_ExportTypeIntf', $clsId);
+
+                $eLink = $clsInst->getExternalExportLink($doc->instance->getClassId(), $rec->id, $mid);
+
+                if ($eLink) {
+                    $exportLinkArr[] = $eLink;
                 }
             }
+
+            if (!empty($exportLinkArr)) {
+
+                $isFirst = true;
+                foreach ($exportLinkArr as $link) {
+                    if (!$link) {
+                        continue;
+                    }
+
+                    if (!$isFirst) {
+                        $html->append('<span>|</span>');
+                    } else {
+                        $isFirst = false;
+                    }
+
+                    $html->append($link);
+                }
+            }
+
             $html->append("</div>");
 
             return $html;

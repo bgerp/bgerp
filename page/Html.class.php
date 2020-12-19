@@ -67,7 +67,7 @@ class page_Html extends core_ET
         $headers = $invoker->getArray('HTTP_HEADER');
         if (!empty($headers)) {
             foreach ($headers as $hdr) {
-                if ($hdr{0} == '-') {
+                if ($hdr[0] == '-') {
                     header_remove(substr($hdr, 1));
                 } else {
                     header($hdr, true);
@@ -238,7 +238,7 @@ class page_Html extends core_ET
      */
     public static function getFileForAppend($filePath, $absolute = null)
     {
-        if (preg_match('#^[^/]*//#', $filePath) || $filePath{0} == '/') {
+        if (preg_match('#^[^/]*//#', $filePath) || $filePath[0] == '/') {
             
             return $filePath;
         }

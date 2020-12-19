@@ -223,7 +223,7 @@ class cat_Products extends embed_Manager
     /**
      *  Полета по които ще се търси
      */
-    public $searchFields = 'name, code, info, innerClass, nameEn';
+    public $searchFields = 'name, code, info, innerClass, nameEn, folderId';
     
     
     /**
@@ -793,8 +793,9 @@ class cat_Products extends embed_Manager
                 $rec->measureId = cat_UoM::fetchBySinonim($rec->measureId)->id;
                 
                 if (!$rec->measureId) {
-                    self::logNotice('Липсваща мярка при импортиране: ' . "{$measureName}");
-                    
+                    $rec->__errStr = "Липсваща мярка при импортиране: {$measureName}";
+                    self::logNotice($rec->__errStr);
+
                     return false;
                 }
             }
@@ -826,7 +827,8 @@ class cat_Products extends embed_Manager
                     $groupId = cat_Groups::forceGroup($groupName, null, $force);
                     
                     if (!isset($groupId)) {
-                        self::logNotice('Липсваща група при импортиране: ' . "{$groupName}");
+                        $rec->__errStr = "Липсваща група при импортиране: {$groupName}";
+                        self::logNotice($rec->__errStr);
                         
                         return false;
                     }
@@ -870,7 +872,8 @@ class cat_Products extends embed_Manager
                     }
                     
                     if ($metaErr) {
-                        self::logNotice('Липсваща стойност за мета при импортиране: ' . "{$m}");
+                        $rec->__errStr = "Липсваща стойност за мета при импортиране: {$m}";
+                        self::logNotice($rec->__errStr);
                         
                         return false;
                     }
@@ -1545,7 +1548,7 @@ class cat_Products extends embed_Manager
         }
 
         if ($q) {
-            if ($q{0} == '"') {
+            if ($q[0] == '"') {
                 $strict = true;
             }
             $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
@@ -3292,7 +3295,8 @@ class cat_Products extends embed_Manager
             $fRec = $form->rec;
             
             if ($fRec->groupsInput != $rec->groupsInput) {
-                $this->save((object) array('id' => $id, 'groupsInput' => $fRec->groupsInput), 'groups');
+                $sRec = (object) array('id' => $id, 'groupsInput' => $fRec->groupsInput);
+                $this->save($sRec, 'groups');
                 $this->logInAct('Редактиране', $rec);
             }
             

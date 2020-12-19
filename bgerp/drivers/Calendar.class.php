@@ -147,12 +147,10 @@ class bgerp_drivers_Calendar extends core_BaseClass
                     } elseif ($rec->type == 'workday') {
                         // Нищо не се прави
                     } elseif ($rec->type == 'task' || $rec->type == 'reminder') {
-                        if ($arr[$d] != 'active') {
-                            if ($rec->state == 'active' || $rec->state == 'waiting') {
-                                $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .'>&nbsp;';
-                            } else {
-                                $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_grey.png') .'>&nbsp;';
-                            }
+                        if ($rec->state == 'active' || $rec->state == 'waiting') {
+                            $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .'>&nbsp;';
+                        } else {
+                            $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_grey.png') .'>&nbsp;';
                         }
                     }
                 }
@@ -188,9 +186,25 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $pArr['fTasksDays'] = $dRec->fTasksDays ? $dRec->fTasksDays : core_DateTime::SECONDS_IN_MONTH;
         $pArr['taskPriority'] = $dRec->taskPriority;
         $pArr['remPriority'] = $dRec->remPriority;
-        
+
+        $pArr['_userId'] = $userId;
+        $today = dt::now(false);
+        $pArr['_todayF'] = $today . ' 00:00:00';
+
+        // Намираме работните дни, така че да останат 3 работни дни винаги
+        $nWorkDay = cal_Calendar::nextWorkingDay(dt::addDays(-1, $today, false), $userId, 1);
+        $endWorkingDayCnt = (dt::daysBetween($nWorkDay, $today)) ? 3 : 2;
+        $pArr['_endWorkingDay'] = cal_Calendar::nextWorkingDay($today, $userId, $endWorkingDayCnt);
+        $pArr['_endWorkingDay'] .= ' 23:59:59';
+        $pArr['fTasksDays'] = dt::addSecs($pArr['fTasksDays'], $pArr['_endWorkingDay']);
+
+        $dDif = dt::daysBetween($pArr['_endWorkingDay'], $today);
+        if ($dDif > 4) {
+            $pArr['_endWorkingDay'] = dt::addDays(4, $today . ' 23:59:59');
+        }
+
         $resData->EventsData = $this->prepareCalendarEvents($userId, $pArr);
-        
+
         return $resData;
     }
     
@@ -249,7 +263,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $format = Mode::is('screenMode', 'narrow') ? 'd-M-year, D': 'd M-year, D';
             
             ksort($tArr['now']);
-            
+
             $noEvent = '<small style="vertical-align:text-top">' . tr('Няма събития') . '</small>';
             
             $lastKey = null;
@@ -283,7 +297,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
             
             // Показваме събитията близките дни
             foreach ((array) $tArr['now'] as $tDate => $tRowArr) {
-                
+
                 $dStr = dt::mysql2verbal($tDate, $format, null, null, false);
                 
                 if ($today == $tDate) {
@@ -381,26 +395,6 @@ class bgerp_drivers_Calendar extends core_BaseClass
      */
     protected function prepareCalendarEvents($userId = null, $pArr = array())
     {
-        if (!isset($userId)) {
-            $userId = core_Users::getCurrent();
-        }
-        
-        $pArr['_userId'] = $userId;
-        $today = dt::now(false);
-        $pArr['_todayF'] = $today . ' 00:00:00';
-        
-        // Намираме работните дни, така че да останат 3 работни дни винаги
-        $nWorkDay = cal_Calendar::nextWorkingDay(dt::addDays(-1, $today, false), $userId, 1);
-        $endWorkingDayCnt = (dt::daysBetween($nWorkDay, $today)) ? 3 : 2;
-        $pArr['_endWorkingDay'] = cal_Calendar::nextWorkingDay($today, $userId, $endWorkingDayCnt);
-        $pArr['_endWorkingDay'] .= ' 23:59:59';
-        $pArr['fTasksDays'] = dt::addSecs($pArr['fTasksDays'], $pArr['_endWorkingDay']);
-        
-        $dDif = dt::daysBetween($pArr['_endWorkingDay'], $today);	
-        if ($dDif > 4) {
-            $pArr['_endWorkingDay'] = dt::addDays(4, $today . ' 23:59:59');
-        }
-        
         $resArr = $this->prepareTasksCalendarEvents($pArr);
         
         setIfNot($resArr['now'], array());
@@ -408,12 +402,12 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $this->prepareRemindersCalendarEvents($pArr, $resArr['now']);
         
         $this->prepareHolidaysCalendarEvents($pArr, $resArr['now']);
-        
+
         if (!is_array($resArr['now'])) {
             $resArr['now'] = array();
         }
         ksort($resArr['now']);
-        
+
         // Подреждаме събитията по часове
         foreach ($resArr['now'] as &$rArr) {
             if (!is_array($rArr) || empty($rArr)) {
@@ -422,7 +416,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
             
             ksort($rArr);
         }
-        
+
         return $resArr;
     }
     
@@ -437,7 +431,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
     protected function prepareTasksCalendarEvents($pArr)
     {
         $query = cal_Tasks::getQuery();
-        
+
         if ($pArr['taskPriority']) {
             expect($this->priorityMap[$pArr['taskPriority']]);
             $priorityArr = explode('|', $this->priorityMap[$pArr['taskPriority']]);
@@ -500,7 +494,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $Tasks->prepareListFilter($fTasks);
         $Tasks->prepareListRecs($fTasks);
         $Tasks->prepareListRows($fTasks);
-        
+
         foreach ($fTasks->recs as $id => $fRec) {
             $fTasks->rows[$id] = $this->getRowForTask($fRec, $pArr['_userId'], false);
         }
@@ -511,7 +505,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $fTpl->replace($Tasks->renderListPager($fTasks), 'pager');
             $resArr['future'] = $fTpl;
         }
-        
+
         return $resArr;
     }
     
@@ -536,13 +530,13 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $dRow = $Tasks->getDocumentRow($rec->id);
         
         $subTitle = "<span class='threadSubTitle'> {$dRow->subTitleNoTime}</span>";
-        
+
         if ($dRow->subTitleDateRec) {
-            
             $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $dRow->subTitleDateRec);
-//             $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $dRow->timeStart);
-//             $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $dRow->expectationTimeEnd);
-//             $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $dRow->expectationTimeStart);
+            $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $rec->timeStart);
+            $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $rec->timeEnd);
+            $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $rec->expectationTimeEnd);
+            $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $rec->expectationTimeStart);
             
             $time = dt::mysql2verbal($dRow->subTitleDateRec, 'H:i');
             if ($time != '00:00') {
@@ -551,7 +545,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         } else {
             $rec->title = $this->removeDateAndHoursFromTitle($rec->title, '1970-01-01 00:00:00');
         }
-        
+
         $title = str::limitLen(type_Varchar::escape($rec->title), 60, 30, ' ... ', true);
         
         $linkArr = array('ef_icon' => $Tasks->getIcon($rec->id));
@@ -591,7 +585,13 @@ class bgerp_drivers_Calendar extends core_BaseClass
     {
         $time = dt::mysql2verbal($date, 'H:i');
         $time = preg_quote($time, '/');
-        
+
+        $timeC = dt::mysql2verbal($date, 'H,i');
+        $timeC = preg_quote($timeC, '/');
+
+        $timeD = dt::mysql2verbal($date, 'H,i');
+        $timeD = preg_quote($timeD, '/');
+
         $timeN  = dt::mysql2verbal($date, 'G:i');
         $timeN = preg_quote($timeN, '/');
         
@@ -610,14 +610,14 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $t = "\s*(ч\.?|h\.?)";
         $y = "\s*(г\.?|y\.?|год.?)";
         $x = "(\s*-\s*)*";
-        
-        $regExp = "/({$x}{$time}{$t}*{$x})|({$x}{$timeN}{$t}*{$x})|({$x}{$timeHN}{$t}+{$x})|({$x}{$dateB}{$y}*{$x})|({$x}{$dateA}[^0-9]{$y}*{$x})/ui";
+
+        $regExp = "/({$x}{$time}{$t}*{$x})|({$x}{$timeC}{$t}*{$x})|({$x}{$timeD}{$t}*{$x})|({$x}{$timeN}{$t}*{$x})|({$x}{$timeHN}{$t}+{$x})|({$x}{$dateB}{$y}*{$x})|({$x}{$dateA}[^0-9]{$y}*{$x})/ui";
         
         $title = preg_replace($regExp, ' ', $title . ' ');
         $title = preg_replace('/\s{1,}/u', ' ', $title);
         
         $title = trim($title);
-        
+
         return $title;
     }
     
@@ -670,9 +670,9 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 $tRec->title = ' ' . dt::mysql2verbal($rec->calcTimeStart, 'H:i', null, true) . ' ' . $tRec->title;
                 
                 $linkArr = array('ef_icon' => $Reminders->getIcon($rec->id));
-                
+
                 // Добавяме стил, ако има промяна след последното разглеждане
-                if ($rec->modifiedOn > bgerp_Recently::getLastDocumentSee($rec->containerId, $userId, false)) {
+                if ($rec->modifiedOn > bgerp_Recently::getLastDocumentSee($rec->containerId, $pArr['_userId'], false)) {
                     $linkArr['class'] = 'tUnsighted';
                 }
                 
@@ -718,14 +718,24 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $i = 10000;
         while ($rec = $query->fetch()) {
             list($orderDate, $orderH) = explode(' ', $rec->time);
-            
+
+            $oTime = '';
             if ($orderH == '00:00:00') {
                 $orderH = 30;
+            } else {
+                $oTim = dt::mysql2verbal($rec->time, 'H:i');
             }
             
             $orderH .= ' ' . ++$i;
-            
-            if ($pArr['search'] || $rec->type == 'working-travel' || $rec->type == 'leaves' || $rec->type == 'sick') {
+            $expandType = strtolower($Calendar->blockExpandTypes);
+            $expandTypeArr = arr::make($expandType, true);
+            $type = strtolower($rec->type);
+
+            if ($pArr['search'] || $expandTypeArr[$type] || $type[0] == '_') {
+                if ($oTim) {
+                    $rec->title = $oTim . ' ' . $rec->title;
+                }
+
                 $cRec = $Calendar->recToVerbal($rec, 'title');
                 $rArrNow[$orderDate][$orderH] = (object) array('title' => $cRec->event);
             } else {

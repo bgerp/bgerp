@@ -122,7 +122,7 @@ class crm_Companies extends core_Master
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
-    public $searchFields = 'name,pCode,place,country,folderName,email,tel,fax,website,vatId,info,uicId,id';
+    public $searchFields = 'name,pCode,place,country,folderName,email,tel,fax,website,vatId,info,uicId,id,eori';
     
     
     /**
@@ -411,7 +411,7 @@ class crm_Companies extends core_Master
         
         
         if ($data->listFilter->rec->alpha) {
-            if ($data->listFilter->rec->alpha{0} == '0') {
+            if ($data->listFilter->rec->alpha[0] == '0') {
                 $cond = "LTRIM(REPLACE(REPLACE(REPLACE(LOWER(#name), '\"', ''), '\'', ''), '`', '')) NOT REGEXP '^[a-zA-ZА-Яа-я]'";
             } else {
                 $alphaArr = explode('-', $data->listFilter->rec->alpha);
@@ -867,7 +867,7 @@ class crm_Companies extends core_Master
             type_Varchar::escape($data->listFilter->rec->search) .
             '</b>"';
         } elseif ($data->listFilter->rec->alpha) {
-            if ($data->listFilter->rec->alpha{0} == '0') {
+            if ($data->listFilter->rec->alpha[0] == '0') {
                 $data->title = 'Фирми, които започват с не-буквени символи';
             } else {
                 $data->title = "Фирми, започващи с буквите|* \"<b style='color:green'>{$data->listFilter->rec->alpha}</b>\"";
@@ -1317,7 +1317,7 @@ class crm_Companies extends core_Master
         $query->XPR('searchFieldXprLower', 'text', "LOWER({$xpr})");
         
         if ($q) {
-            if ($q{0} == '"') {
+            if ($q[0] == '"') {
                 $strict = true;
             }
             

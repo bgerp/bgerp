@@ -924,7 +924,7 @@ abstract class deals_Helper
             $res['vatNo'] = core_Type::getByName('drdata_VatType')->toVerbal($cData->vatNo);
             $res['contragentUicId'] = $cData->uicId;
             if (!empty($cData->uicId)) {
-                $res['contragentUicCaption'] = ($ContragentClass instanceof crm_Companies) ? tr('ЕИК||Tax ID') : tr('ЕГН||Personal №');
+                $res['contragentUicCaption'] = ($ContragentClass instanceof crm_Companies) ? tr('ЕИК') : tr('ЕГН||Personal №');
             }
         } elseif (isset($contragentName)) {
             $res['contragentName'] = $contragentName;

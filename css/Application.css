@@ -2109,6 +2109,14 @@ pre.document {
 .shipment-table tr td {
   padding: 1px 3px !important; }
 
+.currentStat {
+  font-weight: normal;
+  color: darkblue;
+  font-size: 0.6em;
+  font-style: italic;
+  display: block;
+  margin-top: 3px; }
+
 .half-col {
   display: inline-block;
   width: 49%;
@@ -2215,6 +2223,8 @@ pre.document {
   .dec-document ul {
     margin-top: 5px;
     margin-bottom: 0; }
+    .dec-document ul li {
+      padding-bottom: 10px; }
   .dec-document .richtext {
     color: black;
     line-height: 1em; }
@@ -6723,10 +6733,13 @@ only screen and (max-width: 320px) {
     .sale-summary table td {
       font-size: 1.3em;
       font-weight: bold;
-      padding: 5px 3px; }
+      padding: 5px 3px;
+      vertical-align: middle !important; }
       .sale-summary table td .quiet {
         color: #cccccc;
         font-weight: normal; }
+      .sale-summary table td.vtop {
+        vertical-align: top !important; }
     .sale-summary table .specialLink {
       white-space: normal; }
 

@@ -273,7 +273,13 @@ class bgerp_Setup extends core_ProtoSetup
         
         // Това първо инсталиране ли е?
         $isFirstSetup = ($Packs->count() == 0);
-        
+
+        $mustInstallAdditional = $isFirstSetup;
+        if (!$mustInstallAdditional) {
+            $Folders = cls::get('doc_Folders');
+            $mustInstallAdditional = !($Folders->db->tableExists($Folders->dbTableName));
+        }
+
         // Списък на основните модули на bgERP
         $packs = 'core,log,fileman,drdata,bglocal,editwatch,recently,thumb,doc,help,acc,cond,uiext,currency,cms,ograph,
                   email,crm, cat, trans, price, blast,hr,lab,dec,sales,import2,planning,marketing,store,cash,bank,
@@ -285,12 +291,10 @@ class bgerp_Setup extends core_ProtoSetup
         if (defined('EF_PRIVATE_PATH')) {
             $packs .= ',' . strtolower(basename(EF_PRIVATE_PATH));
         }
-        
+
         // Добавяме допълнителните пакети, само при първоначален Setup
-        $Folders = cls::get('doc_Folders');
-        
-        if (!$Folders->db->tableExists($Folders->dbTableName) || ($isFirstSetup)) {
-            $packs .= ',avatar,keyboard,statuses,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,toast,minify,rtac,hljs,pixlr,tnef';
+        if ($mustInstallAdditional) {
+            $packs .= ',avatar,keyboard,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,toast,minify,rtac,hljs,pixlr,tnef';
         } else {
             $packs = arr::make($packs, true);
             $pQuery = $Packs->getQuery();
@@ -321,7 +325,9 @@ class bgerp_Setup extends core_ProtoSetup
         $Cache = cls::get('core_Cache');
         $Cache->eraseFull();
         core_Cache::$stopCaching = true;
-        
+
+        $loop = 0;
+
         do {
             $loop++;
             
@@ -329,7 +335,9 @@ class bgerp_Setup extends core_ProtoSetup
             
             $packCnt = countR($packArr);
             $i = 1;
-            
+
+            $isSetup = array();
+
             // Извършваме инициализирането на всички включени в списъка пакети
             foreach ($packArr as $p) {
                 $i++;
@@ -513,7 +521,9 @@ class bgerp_Setup extends core_ProtoSetup
                     if ($setupFlag) {
                         // Махаме <h2> тага на заглавието
                         // $res = substr($res, strpos($res, "</h2>"), strlen($res));
-                        
+
+                        $res = '';
+
                         do {
                             $res = @file_put_contents(EF_SETUP_LOG_PATH, $res, FILE_APPEND | LOCK_EX);
                             if ($res !== false) {

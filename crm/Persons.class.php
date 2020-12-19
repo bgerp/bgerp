@@ -125,7 +125,7 @@ class crm_Persons extends core_Master
     /**
      * Полета по които се правитърсене от плъгина plg_Search
      */
-    public $searchFields = 'salutation, name, egn, birthday, country, pCode, place, address, email, tel, mobile, fax, website, info, buzCompanyId, buzLocationId, buzPosition, buzEmail, buzTel, buzFax, buzAddress, id';
+    public $searchFields = 'salutation, name, egn, birthday, country, pCode, place, address, email, tel, mobile, fax, website, info, buzCompanyId, buzLocationId, buzPosition, buzEmail, buzTel, buzFax, buzAddress, id, eori, vatId';
     
     
     /**
@@ -400,7 +400,7 @@ class crm_Persons extends core_Master
             $mvc->birthdayFilter = true;
         }
         if ($data->listFilter->rec->alpha) {
-            if ($data->listFilter->rec->alpha{0} == '0') {
+            if ($data->listFilter->rec->alpha[0] == '0') {
                 $cond = "LTRIM(REPLACE(REPLACE(REPLACE(LOWER(#name), '\"', ''), '\'', ''), '`', '')) NOT REGEXP '^[a-zA-ZА-Яа-я]'";
             } else {
                 $alphaArr = explode('-', $data->listFilter->rec->alpha);
@@ -541,7 +541,7 @@ class crm_Persons extends core_Master
             type_Varchar::escape($data->listFilter->rec->search) .
             '</b>"';
         } elseif ($data->listFilter->rec->alpha) {
-            if ($data->listFilter->rec->alpha{0} == '0') {
+            if ($data->listFilter->rec->alpha[0] == '0') {
                 $data->title = 'Лица, които започват с не-буквени символи';
             } else {
                 $data->title = "Лица започващи с буквите|* \"<b style='color:green'>{$data->listFilter->rec->alpha}</b>\"";
@@ -3021,7 +3021,7 @@ class crm_Persons extends core_Master
         $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
         
         if ($q) {
-            if ($q{0} == '"') {
+            if ($q[0] == '"') {
                 $strict = true;
             }
             

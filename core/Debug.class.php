@@ -880,7 +880,7 @@ class core_Debug
         
         // Изваждаме от титлата httpStatusCode, ако е наличен
         if ($state['httpStatusCode'] = (int) $errTitle) {
-            $pos = strpos($errTitle, $state['httpStatusCode']);
+            $pos = strpos($errTitle, (string)$state['httpStatusCode']);
             $pos += strlen($state['httpStatusCode']);
             $state['errTitle'] = trim(substr($errTitle, $pos));
         } else {

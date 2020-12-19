@@ -927,9 +927,17 @@ class core_ET extends core_BaseClass
         
         if ($pathArr) {
             foreach ($pathArr as $path) {
+
+                // Ако няма разширение, по подразбиране да има shtml
+                $pathPlaceholder = $path;
+                $pathInfoArr = pathinfo($path);
+                if (!$pathInfoArr['extension']) {
+                    $path .= '.shtml';
+                }
+
                 $resContent = self::loadFilesRecursively($path);
-                
-                $content = strtr($content, array("[#{$path}#]" => $resContent));
+
+                $content = strtr($content, array("[#{$pathPlaceholder}#]" => $resContent));
             }
         }
         
@@ -946,9 +954,29 @@ class core_ET extends core_BaseClass
      */
     protected static function getTemplatePlaceholders($str)
     {
+
         preg_match_all('/\[#((\w*(\/|\.)+\w*)*)#\]/', $str, $matches);
-        
-        return $matches[1];
+
+        $res = array();
+
+        // Премахваме всички файлове, които не са `shtml` и има връщане в името им
+        foreach ((array) $matches[1] as $path) {
+            if ((stripos($path, '../') !== false) || (stripos($path, '..\\') !== false)) {
+                wp($path);
+                continue;
+            }
+
+            $pathInfoArr = pathinfo($path);
+
+            if ($pathInfoArr['extension'] && $pathInfoArr['extension'] != 'shtml') {
+                wp($pathInfoArr);
+                continue;
+            }
+
+            $res[] = $path;
+        }
+
+        return $res;
     }
     
     

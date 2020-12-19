@@ -987,7 +987,7 @@ class eshop_Products extends core_Master
         $mRec = cms_Content::fetch($gRec->menuId);
         $lg = $mRec->lang;
         
-        $lg{0} = strtoupper($lg{0});
+        $lg[0] = strtoupper($lg[0]);
         
         $url = array('A', 'p', $rec->vid ? $rec->vid : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : null);
         
@@ -1132,7 +1132,7 @@ class eshop_Products extends core_Master
             
             if ($pState != 'template') {
                 $packagings = !empty($rec->packagings) ? $rec->packagings : keylist::addKey('', cat_Products::fetchField($rec->productId, 'measureId'));
-                $dRec = (object) array('productId' => $rec->productId, 'packagings' => $packagings, 'eshopProductId' => $rec->id);
+                $dRec = (object) array('productId' => $rec->productId, 'packagings' => $packagings, 'eshopProductId' => $rec->id, 'action' => 'buy');
                 eshop_ProductDetails::save($dRec);
             }
         }
@@ -1264,6 +1264,9 @@ class eshop_Products extends core_Master
             $packs = cat_Products::getPacks($productId);
             $form->setSuggestions('packagings', $packs);
             $form->setDefault('packagings', keylist::addKey('', key($packs)));
+            $form->setDefault('action', 'buy');
+        } else {
+            $form->setDefault('action', 'inquiry');
         }
         
         if (isset($form->rec->domainId)) {

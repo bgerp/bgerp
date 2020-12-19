@@ -551,7 +551,7 @@ class drdata_Address extends core_MVC
             $res[$id] = new drdata_AddrRec($avoid);
             $res[$id]->distance = (strlen($aL) + 20) / 20;
             
-            if ($l{0} == '>') {
+            if ($l[0] == '>') {
                 $res[$id]->distance *= 2;
                 continue;
             }
@@ -869,12 +869,12 @@ class drdata_Address extends core_MVC
             'web' => 5
         
         );
-        
+
         // Avoid
         foreach ($blocks as $id => $b) {
             $total = 0;
             foreach ($points as $name => $score) {
-                if (count($b[$name])) {
+                if (is_array($b[$name]) && count($b[$name])) {
                     $total += $score;
                 }
             }
@@ -956,7 +956,7 @@ class drdata_Address extends core_MVC
         foreach ($arr as $obj) {
             $names = get_object_vars($obj);
             foreach ($names as $n => $v) {
-                if (($n{0} != '_') && (!in_array($n, $headers))) {
+                if (($n[0] != '_') && (!in_array($n, $headers))) {
                     $headers[] = $n;
                 }
             }

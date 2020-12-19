@@ -1,0 +1,22 @@
+<table  class="no-border">
+    <tbody>
+    <!--ET_BEGIN MyCompanyVatNo-->
+    <tr>
+        <td class="aright"><small>|ЗДДС №|*:</small></td>
+        <td><span class="bigData" style='padding-left:5px;'>[#MyCompanyVatNo#]</span></td>
+    </tr>
+    <!--ET_END MyCompanyVatNo-->
+    <!--ET_BEGIN MyCompanyEori-->
+    <tr>
+        <td class="aright"><small>EORI №:</small></td>
+        <td><span class="bigData" style='padding-left:5px;'>[#MyCompanyEori#]</span></td>
+    </tr>
+    <!--ET_END MyCompanyEori-->
+    <!--ET_BEGIN uicId-->
+    <tr>
+        <td class="aright"><small>|ЕИК|*:</small></td>
+        <td><span class="bigData" style='padding-left:5px;'>[#uicId#]</span></td>
+    </tr>
+    <!--ET_END uicId-->
+    </tbody>
+</table>

@@ -1051,7 +1051,7 @@ abstract class deals_InvoiceMaster extends core_Master
             if (doc_Folders::fetchCoverClassName($rec->folderId) == 'crm_Persons') {
                 $row->contragentUicCaption = tr('|ЕГН|*');
             } else {
-                $row->contragentUicCaption = tr('|ЕИК|*');
+                $row->contragentUicCaption = tr('ЕИК||TAX ID');
             }
             
             $issuerId = null;

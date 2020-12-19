@@ -769,7 +769,7 @@ class pos_ReceiptDetails extends core_Detail
         }
 
         Mode::push('text', 'xhtml');
-        $row->productId = ($fields['-list']) ? cat_Products::getHyperLink($rec->productId, true) :  $res[$id]->productId =cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'public', core_Lg::getCurrent(), null, true, 95);
+        $row->productId = ($fields['-list']) ? cat_Products::getHyperLink($rec->productId, true) :  cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'public', core_Lg::getCurrent(), null, true, 95);
         Mode::pop('text');
 
         // Показване на склада, само ако е различен от дефолтния

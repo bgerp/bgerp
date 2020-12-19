@@ -154,7 +154,7 @@ class tcost_Zones extends core_Detail
         $cycleNumber = min(strlen($pc1), strlen($pc2));
         
         for ($i = 0; $i < $cycleNumber; $i++) {
-            if ($pc1{$i} != $pc2{$i}) {
+            if ($pc1[$i] != $pc2[$i]) {
                 if ($i == 0 && strlen($pc1) && strlen($pc2)) {
                     
                     return -1;

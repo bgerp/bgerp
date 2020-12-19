@@ -64,7 +64,7 @@ class type_Treelist extends type_Keylist
         if (!$value) {
             $values = array();
         } else {
-            $values = explode($value{0}, trim($value, $value{0}));
+            $values = explode($value[0], trim($value, $value[0]));
         }
         
         $attrCB['type'] = 'checkbox';

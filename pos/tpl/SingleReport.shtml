@@ -10,7 +10,7 @@
                         </td>
                     </tr>
                     <tr>
-                    	<td class = 'nowrap' style='font-size:0.9em;vertical-align:top;text-align:left;font-weight: normal'>
+                    	<td class = 'nowrap vtop' style='font-size:0.9em;text-align:left;font-weight: normal'>
                         	|Вальор|*: [#valior#]
                         	<br>|Точка|*: [#pointId#]
                         	<br>|Каса|*: [#caseId#]

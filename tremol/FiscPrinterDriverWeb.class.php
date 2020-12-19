@@ -150,7 +150,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
     public function getJs($pRec, $params)
     {
         // Шаблона за JS
-        $js = getTplFromFile('/tremol/js/fiscPrintTpl.txt');
+        $js = getTplFromFile('/tremol/js/fiscPrintTpl.shtml');
         
         $this->addTplFile($js, $pRec->driverVersion);
         
@@ -418,15 +418,15 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
      */
     public function getJsIsWorking($pRec)
     {
-        $jsTpl = new ET('[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+        $jsTpl = new ET('[#/tremol/js/FiscPrinterTplFileImportBegin.shtml#]
                                 try {
-                                    [#/tremol/js/FiscPrinterTplConnect.txt#]
+                                    [#/tremol/js/FiscPrinterTplConnect.shtml#]
                                     fpSerialNumber();
                                     fpOnConnectionSuccess();
                                 } catch(ex) {
                                     fpOnConnectionErr(ex.message);
                                 }
-                            [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]');
+                            [#/tremol/js/FiscPrinterTplFileImportEnd.shtml#]');
         
         $this->addTplFile($jsTpl, $pRec->driverVersion);
         $this->connectToPrinter($jsTpl, $pRec, false);
@@ -452,15 +452,15 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
      */
     public function getJsForDuplicate($pRec)
     {
-        $jsTpl = new ET('[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+        $jsTpl = new ET('[#/tremol/js/FiscPrinterTplFileImportBegin.shtml#]
                                 try {
-                                    [#/tremol/js/FiscPrinterTplConnect.txt#]
+                                    [#/tremol/js/FiscPrinterTplConnect.shtml#]
                                     fpPrintLastReceiptDuplicate();
                                     fpOnDuplicateSuccess();
                                 } catch(ex) {
                                     fpOnDuplicateErr(ex.message);
                                 }
-                            [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]');
+                            [#/tremol/js/FiscPrinterTplFileImportEnd.shtml#]');
         
         $this->addTplFile($jsTpl, $pRec->driverVersion);
         $this->connectToPrinter($jsTpl, $pRec, false);
@@ -491,15 +491,15 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
     public function getJsForCashReceivedOrPaidOut($pRec, $operNum, $operPass, $amount, $printAvailability = false, $text = '')
     {
         expect(($operNum >= 1) && ($operNum <= 20));
-        $jsTpl = new ET('[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+        $jsTpl = new ET('[#/tremol/js/FiscPrinterTplFileImportBegin.shtml#]
                                 try {
-                                    [#/tremol/js/FiscPrinterTplConnect.txt#]
+                                    [#/tremol/js/FiscPrinterTplConnect.shtml#]
                                     fp.ReceivedOnAccount_PaidOut([#OPER_NUM#], [#OPER_PASS#], [#AMOUNT#], [#PRINT_AVAILABILITY#], [#TEXT#]);
                                     fpOnCashReceivedOrPaidOut();
                                 } catch(ex) {
                                     fpOnCashReceivedOrPaidOutErr(ex.message);
                                 }
-                            [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]');
+                            [#/tremol/js/FiscPrinterTplFileImportEnd.shtml#]');
         
         $this->addTplFile($jsTpl, $pRec->driverVersion);
         $this->connectToPrinter($jsTpl, $pRec, false);
@@ -603,7 +603,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
      */
     protected function findDevicePort($pRec, &$jsTpl = null)
     {
-        $jsTpl = new ET("[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+        $jsTpl = new ET("[#/tremol/js/FiscPrinterTplFileImportBegin.shtml#]
                                 try {
                                     fpServerSetSettings([#SERVER_IP#], [#SERVER_TCP_PORT#]);
                                     var res = fpServerFindDevice(false);
@@ -615,7 +615,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
                                         $('.serialPortInput').val(res.serialPort);
                                     }
                                 } catch(ex) { }
-                            [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]");
+                            [#/tremol/js/FiscPrinterTplFileImportEnd.shtml#]");
         
         $this->addTplFile($jsTpl, $pRec->driverVersion);
         $this->connectToPrinter($jsTpl, $pRec, false, false);
@@ -668,9 +668,9 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
         
         if ($update !== 0) {
             if ($Embedder instanceof peripheral_Devices && $Embedder->haveRightFor('edit', $data->rec->id)) {
-                $jsTpl = new ET("[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+                $jsTpl = new ET("[#/tremol/js/FiscPrinterTplFileImportBegin.shtml#]
                                 try {
-                                    [#/tremol/js/FiscPrinterTplConnect.txt#]
+                                    [#/tremol/js/FiscPrinterTplConnect.shtml#]
                                 
                                     var sn = fpSerialNumber();
                                     
@@ -678,7 +678,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
                                 } catch(ex) {
                                     render_showToast({timeOut: 800, text: '" . tr('Грешка при свързване с принтера') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'warning'});
                                 }
-                            [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]");
+                            [#/tremol/js/FiscPrinterTplFileImportEnd.shtml#]");
                 
                 // След запис, обновяваме хедър и футъра
                 if ($update) {
@@ -1126,15 +1126,15 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
         
         $jsTpl = new ET("function fpPrintReport() {
                                 $('.fullScreenBg').fadeIn();
-                                [#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+                                [#/tremol/js/FiscPrinterTplFileImportBegin.shtml#]
                                 try {
-                                    [#/tremol/js/FiscPrinterTplConnect.txt#]
+                                    [#/tremol/js/FiscPrinterTplConnect.shtml#]
                                     {$fnc}
                                     {$location}
                                 } catch(ex) {
                                     render_showToast({timeOut: 800, text: '" . tr("Грешка при отпечатване на {$rVerb} отчет") . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'error'});
                                 }
-                                [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]
+                                [#/tremol/js/FiscPrinterTplFileImportEnd.shtml#]
                                 $('.fullScreenBg').fadeOut();
                             }
                                                     
@@ -1159,9 +1159,9 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
      */
     protected function getInvoiceRange($pRec, &$jsTpl = null)
     {
-        $jsTpl = new ET("[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+        $jsTpl = new ET("[#/tremol/js/FiscPrinterTplFileImportBegin.shtml#]
                             try {
-                                [#/tremol/js/FiscPrinterTplConnect.txt#]
+                                [#/tremol/js/FiscPrinterTplConnect.shtml#]
                                 var res = fp.ReadInvoiceRange();
                                 if (res) {
                                     if (res.StartNum) {
@@ -1172,7 +1172,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
                                     }
                                 }
                             } catch(ex) { }
-                            [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]
+                            [#/tremol/js/FiscPrinterTplFileImportEnd.shtml#]
                         ");
         
         $this->addTplFile($jsTpl, $pRec->driverVersion);
@@ -1195,15 +1195,15 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
     {
         $retUrlDecoded = toUrl($retUrl);
         
-        $jsTpl = new ET("[#/tremol/js/FiscPrinterTplFileImportBegin.txt#]
+        $jsTpl = new ET("[#/tremol/js/FiscPrinterTplFileImportBegin.shtml#]
                             try {
-                                [#/tremol/js/FiscPrinterTplConnect.txt#]
+                                [#/tremol/js/FiscPrinterTplConnect.shtml#]
                                 var res = fp.SetInvoiceRange({$from}, {$to});
                                 render_redirect({url: '{$retUrlDecoded}'});
                             } catch(ex) {
                                 render_showToast({timeOut: 800, text: '" . tr('Грешка при задаване на диапазон във ФУ') . ": ' + ex.message, isSticky: true, stayTime: 8000, type: 'error'});
                             }
-                            [#/tremol/js/FiscPrinterTplFileImportEnd.txt#]
+                            [#/tremol/js/FiscPrinterTplFileImportEnd.shtml#]
                         ");
         
         $this->addTplFile($jsTpl, $pRec->driverVersion);

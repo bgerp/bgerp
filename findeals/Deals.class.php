@@ -333,9 +333,10 @@ class findeals_Deals extends deals_DealBase
         if (isset($fields['baseAccountSysId']) || $fields['baseAmount'] || $fields['baseAmountType']) {
             expect(isset($fields['baseAccountSysId'], $fields['baseAmount'], $fields['baseAmountType']));
         }
-        
+
+        $newFields = (object) $newFields;
         // Опиваме се да запишем мастъра на сделката
-        if ($id = $me->save((object) $newFields)) {
+        if ($id = $me->save($newFields)) {
             
             // Ако е успешно, споделяме текущия потребител към новосъздадената нишка
             $rec = $me->fetch($id);
@@ -604,7 +605,7 @@ class findeals_Deals extends deals_DealBase
     private function getHistory(&$data)
     {
         $rec = $this->fetchRec($data->rec->id);
-        $data->rec->debitAmount = $data->rec->creditAmount = 0;
+        $data->rec->debitAmount = $data->rec->creditAmount = $data->rec->curDebitAmount = $data->rec->curCreditAmount = 0;
         
         $rate = $data->rec->currencyRate;
         if ($rec->state == 'draft') {
@@ -639,16 +640,23 @@ class findeals_Deals extends deals_DealBase
                     $r->creditA += $jRec->amount;
                 }
             }
-            
+
+
             // За всеки резултат, ако е в границите на пейджъра, го показваме
             if (countR($recs)) {
                 $count = 0;
+                arr::sortObjects($recs, 'valior', 'desc');
+
                 foreach ($recs as $rec) {
                     $start = $data->pager->rangeStart;
                     $end = $data->pager->rangeEnd - 1;
+                    $data->rec->debitAmount += $rec->debitA;
+                    $data->rec->creditAmount += $rec->creditA;
+
                     if (empty($data->pager) || ($count >= $start && $count <= $end)) {
-                        $data->rec->debitAmount += $rec->debitA;
-                        $data->rec->creditAmount += $rec->creditA;
+                        $data->rec->curDebitAmount += $rec->debitA;
+                        $data->rec->curCreditAmount += $rec->creditA;
+
                         $data->history[] = $this->getHistoryRow($rec);
                     }
                     $count++;
@@ -656,10 +664,7 @@ class findeals_Deals extends deals_DealBase
             }
         }
         
-        // Подредба
-        arr::sortObjects($data->history, 'orderFld', 'desc');
-        
-        foreach (array('amountDeal', 'debitAmount', 'creditAmount') as $fld) {
+        foreach (array('amountDeal', 'debitAmount', 'creditAmount', 'curDebitAmount', 'curCreditAmount') as $fld) {
             if ($fld == 'amountDeal' && !empty($data->rec->{$fld})) {
                 @$data->rec->{$fld} /= $rate;
             }
@@ -669,6 +674,14 @@ class findeals_Deals extends deals_DealBase
             } elseif ($data->rec->{$fld} < 0) {
                 $data->row->{$fld} = "<span class='red'>{$data->row->{$fld}}</span>";
             }
+        }
+
+        if(round($data->rec->debitAmount, 4) == round($data->rec->curDebitAmount, 4)){
+            unset($data->row->curDebitAmount);
+        }
+
+        if(round($data->rec->creditAmount, 4) == round($data->rec->curCreditAmount, 4)){
+            unset($data->row->curCreditAmount);
         }
     }
     
@@ -716,7 +729,6 @@ class findeals_Deals extends deals_DealBase
                 $row->creditA = "<span class='red'>{$row->creditA}</span>";
             }
         }
-        $row->orderFld = $jRec->valior;
         
         return $row;
     }

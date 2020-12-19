@@ -94,12 +94,14 @@ class core_Packs extends core_Manager
     public static function isInstalled($name, $rightNow = false)
     {
         static $isInstalled = array();
-        
+
+        $me = cls::get(get_called_class());
+
         $name = trim(strtolower($name));
         
         // Дали в момента не се инсталира?
         if ($rightNow) {
-            if ($this->alreadySetup[$name . true] || $this->alreadySetup[$name . true]) {
+            if ($me->alreadySetup[$name . true] || $me->alreadySetup[$name . true]) {
                 
                 return true;
             }

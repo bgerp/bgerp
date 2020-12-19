@@ -315,7 +315,9 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
     {
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-							    <small><div><!--ET_BEGIN periodId-->|Период|*: [#periodId#]<!--ET_END periodId--></div></small>
+                                    <div class='small'>
+							            <!--ET_BEGIN periodId--><div>|Период|*: [#periodId#]</div><!--ET_END periodId-->
+							        </div>
                                 </fieldset><!--ET_END BLOCK-->"));
         
         if (isset($data->rec->periodId)) {

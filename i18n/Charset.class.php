@@ -1178,7 +1178,7 @@ class i18n_Charset extends core_MVC
     {
         $out = '';
         for ($i = 0; $i < strlen($str); $i++) {
-            $c = ord($str{$i});
+            $c = ord($str[$i]);
             if ($c >= 128) {
                 $c = $c ^ 64;
             }
@@ -1200,7 +1200,7 @@ class i18n_Charset extends core_MVC
         
         $out = '';
         for ($i = 0; $i < strlen($str); $i++) {
-            $c = ord($str{$i});
+            $c = ord($str[$i]);
             if ($c >= 128) {
                 $c = $c ^ 64;
             }
@@ -1236,18 +1236,18 @@ class i18n_Charset extends core_MVC
             return false;
         }
         
-        $h = ord($ch{0});
+        $h = ord($ch[0]);
         
         if ($h <= 0x7F) {
             $res = $h;
         } elseif ($h < 0xC2) {
             $res = false;
         } elseif ($h <= 0xDF && $len > 1) {
-            $res = ($h & 0x1F) << 6 | (ord($ch{1}) & 0x3F);
+            $res = ($h & 0x1F) << 6 | (ord($ch[1]) & 0x3F);
         } elseif ($h <= 0xEF && $len > 2) {
-            $res = ($h & 0x0F) << 12 | (ord($ch{1}) & 0x3F) << 6 | (ord($ch{2}) & 0x3F);
+            $res = ($h & 0x0F) << 12 | (ord($ch[1]) & 0x3F) << 6 | (ord($ch[2]) & 0x3F);
         } elseif ($h <= 0xF4 && $len > 3) {
-            $res = ($h & 0x0F) << 18 | (ord($ch{1}) & 0x3F) << 12 | (ord($ch{2}) & 0x3F) << 6 | (ord($ch{3}) & 0x3F);
+            $res = ($h & 0x0F) << 18 | (ord($ch[1]) & 0x3F) << 12 | (ord($ch[2]) & 0x3F) << 6 | (ord($ch[3]) & 0x3F);
         } else {
             $res = false;
         }
