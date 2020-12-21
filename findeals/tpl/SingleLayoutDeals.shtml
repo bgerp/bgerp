@@ -40,7 +40,7 @@
                         </td>
                         <td class = 'nowrap'><div>[#creditAmount#]</div>
                             <!--ET_BEGIN curCreditAmount--><div class='small currentStat'>от страницата: [#curCreditAmount#]</div><!--ET_END curCreditAmount-->
-                        <td class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left;width:1%'>
+                        <td class = 'vtop' style='font-size:0.8em;vertical-align:top;text-align:left;'>
                         	<span style='font-weight:normal'>[#contragentCaption#] : [#contragentName#]</span>
                         	<!--ET_BEGIN secondContragentId-->
                         	<br><span style='font-weight:normal'>|Втори контрагент|* : [#secondContragentId#]</span>
