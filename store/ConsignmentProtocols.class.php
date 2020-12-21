@@ -54,7 +54,7 @@ class store_ConsignmentProtocols extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, store_Wrapper, doc_plg_BusinessDoc,plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
-                        plg_Clone, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, trans_plg_LinesPlugin, doc_plg_TplManager, plg_Search, bgerp_plg_Blank, doc_plg_HidePrices';
+                        plg_Clone, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, trans_plg_LinesPlugin, doc_plg_TplManager, plg_Search, bgerp_plg_Blank, doc_plg_HidePrices, store_plg_StockPlanning';
     
     
     /**
@@ -607,5 +607,38 @@ class store_ConsignmentProtocols extends core_Master
         $title .= "/{$contragent}";
         
         return $title;
+    }
+
+
+    /**
+     * Връща планираните наличности
+     *
+     * @see store_plg_StockPlanning
+     * @param stdClass $rec
+     * @return array $res
+     */
+    public function getPlannedStocks($rec)
+    {
+        $res = array();
+        $id = is_object($rec) ? $rec->id : $rec;
+        $rec = $this->fetch($id, '*', false);
+        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$mvc->valiorFld} : $rec->createdOn);
+
+        $dQuery = store_ConsignmentProtocolDetailsSend::getQuery();
+        $dQuery->XPR('totalQuantity', 'double', "SUM(#packQuantity * #quantityInPack)");
+        $dQuery->where("#protocolId = {$rec->id}");
+        $dQuery->groupBy('productId');
+
+        while ($dRec = $dQuery->fetch()) {
+            $res[] = (object)array('storeId'       => $rec->storeId,
+                                   'productId'     => $dRec->productId,
+                                   'date'          => $date,
+                                   'sourceClassId' => $this->getClassId(),
+                                   'sourceId'      => $rec->id,
+                                   'quantityIn'    => null,
+                                   'quantityOut'   => $dRec->totalQuantity);
+        }
+
+        return $res;
     }
 }

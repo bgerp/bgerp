@@ -86,6 +86,7 @@ class store_Setup extends core_ProtoSetup
         'store_InventoryNotes',
         'store_InventoryNoteSummary',
         'store_InventoryNoteDetails',
+        'store_StockPlanning',
     );
     
     

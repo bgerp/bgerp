@@ -564,7 +564,11 @@ class store_Products extends core_Detail
         }
     }
     
-    
+    function act_Test()
+    {
+        $so = cls::get('store_ShipmentOrders');
+        $so->getPlannedStocks(940);
+    }
     /**
      * Обновяване на резервираните наличности по крон
      */

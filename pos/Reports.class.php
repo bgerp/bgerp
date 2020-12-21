@@ -660,9 +660,10 @@ class pos_Reports extends core_Master
         if ($rec->state != 'draft' && $rec->state != 'closed') {
             $nextState = ($rec->state == 'active') ? 'closed' : 'waiting';
             $msg = ($rec->state == 'active') ? 'Приключени' : 'Активирани';
-            
+
             // Всяка бележка в репорта се "затваря"
             $count = 0;
+            $Receipts = cls::get('pos_Receipts');
             foreach ($rec->details['receipts'] as $receiptRec) {
                 $state = pos_Receipts::fetchField($receiptRec->id, 'state');
                 if ($state == $nextState) {
@@ -671,8 +672,14 @@ class pos_Reports extends core_Master
                 
                 $receiptRec->modifiedBy = core_Users::getCurrent();
                 $receiptRec->modifiedOn = dt::now();
+                $receiptRec->exState = $receiptRec->state;
                 $receiptRec->state = $nextState;
-                pos_Receipts::save($receiptRec, 'state,modifiedOn,modifiedBy');
+                core_Statuses::newStatus($receiptRec->state, 'warning');
+                $Receipts->save($receiptRec, 'state,modifiedOn,modifiedBy,exState');
+                if($receiptRec->state == 'closed'){
+                    store_StockPlanning::remove($Receipts, $receiptRec->id);
+                }
+
                 $count++;
             }
             

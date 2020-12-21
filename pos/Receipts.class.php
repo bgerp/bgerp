@@ -25,7 +25,7 @@ class pos_Receipts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary, plg_Printing, plg_State, pos_Wrapper, cat_plg_AddSearchKeywords, plg_Search, plg_Sorting, plg_Modified,plg_RowTools2';
+    public $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary, plg_Printing, plg_State, pos_Wrapper, cat_plg_AddSearchKeywords, plg_Search, plg_Sorting, plg_Modified,plg_RowTools2,store_plg_StockPlanning';
     
     
     /**
@@ -158,8 +158,14 @@ class pos_Receipts extends core_Master
      *  Служебно ид на дефолтна рецепта за сторниране
      */
     const DEFAULT_REVERT_RECEIPT = -1;
-    
-    
+
+
+    /**
+     *  При преминаването в кое състояние ще се обновяват складовите наличностти
+     */
+    public $updatePlannedStockOnChangeState = 'waiting';
+
+
     /**
      * Описание на модела
      */
@@ -677,7 +683,7 @@ class pos_Receipts extends core_Master
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         if ($rec->state != 'draft') {
-            
+
             // Създаване на нова чернова бележка
             return new Redirect(array($this, 'new'));
         }
@@ -688,12 +694,14 @@ class pos_Receipts extends core_Master
         if(isset($rec->revertId)){
             $error = null;
             if(!static::canCloseRevertReceipt($rec, $error)){
+                bp($rec);
                 followRetUrl(null, $error, 'error');
             }
         }
-        
+
         $rec->state = 'waiting';
         $rec->__closed = true;
+
         if ($this->save($rec)) {
             if(isset($rec->revertId) && $rec->revertId != static::DEFAULT_REVERT_RECEIPT){
                 $this->calcRevertedTotal($rec->revertId);
@@ -1098,6 +1106,47 @@ class pos_Receipts extends core_Master
         
         $res = array_values($res);
         
+        return $res;
+    }
+
+
+    /**
+     * Връща планираните наличности
+     *
+     * @see store_plg_StockPlanning
+     * @param stdClass $rec
+     * @return array $res
+     */
+    public function getPlannedStocks($rec)
+    {
+        $id = is_object($rec) ? $rec->id : $rec;
+        $rec = $this->fetch($id, '*', false);
+
+        $dQuery = pos_ReceiptDetails::getQuery();
+        $dQuery->where("#receiptId = {$rec->id}");
+        $dQuery->where("#action LIKE '%sale%'");
+
+        $res = array();
+        while($dRec = $dQuery->fetch()){
+            $packRec = cat_products_Packagings::getPack($dRec->productId, $dRec->value);
+            $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+            $quantity = $quantityInPack * $dRec->quantity;
+
+            if(!empty($dRec->storeId)){
+                $key = "{$dRec->storeId}|{$dRec->productId}";
+                if(!array_key_exists($key, $res)){
+                    $res[$key] = (object)array('storeId'       => $dRec->storeId,
+                                               'productId'     => $dRec->productId,
+                                               'date'          => $rec->valior,
+                                               'sourceClassId' => $this->getClassId(),
+                                               'sourceId'      => $rec->id,
+                                               'quantityIn'    => null,
+                                               'quantityOut'   => 0);
+                }
+                $res[$key]->quantityOut += $quantity;
+            }
+        }
+
         return $res;
     }
 }

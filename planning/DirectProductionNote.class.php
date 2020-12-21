@@ -39,7 +39,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, bgerp_plg_Blank,doc_plg_HidePrices, deals_plg_SetTermDate, plg_Sorting,cat_plg_AddSearchKeywords, plg_Search';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, bgerp_plg_Blank,doc_plg_HidePrices, deals_plg_SetTermDate, plg_Sorting,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
     
     
     /**
@@ -1110,5 +1110,50 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $usedDocs[$rec->productId] = cat_Products::fetchField($rec->productId, 'containerId');
         
         return $usedDocs;
+    }
+
+
+    /**
+     * Връща планираните наличности
+     *
+     * @see store_plg_StockPlanning
+     * @param stdClass $rec
+     * @return array $res
+     */
+    public function getPlannedStocks($rec)
+    {
+        $res = array();
+        $id = is_object($rec) ? $rec->id : $rec;
+        $rec = $this->fetch($id, '*', false);
+        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$mvc->valiorFld} : $rec->createdOn);
+
+        $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+        if($canStore == 'yes'){
+            $res[] = (object)array('storeId'       => $rec->storeId,
+                'productId'     => $rec->productId,
+                'date'          => $date,
+                'sourceClassId' => $this->getClassId(),
+                'sourceId'      => $rec->id,
+                'quantityIn'    => $rec->quantity,
+                'quantityOut'   => null);
+        }
+
+        $dQuery = planning_DirectProductNoteDetails::getQuery();
+        $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
+        $dQuery->XPR('totalQuantity', 'double', "SUM(#quantity)");
+        $dQuery->where("#noteId = {$rec->id} AND #storeId IS NOT NULL AND #type = 'input' AND #canStore = 'yes'");
+        $dQuery->groupBy('productId');
+
+        while ($dRec = $dQuery->fetch()) {
+            $res[] = (object)array('storeId'       => $dRec->storeId,
+                                   'productId'     => $dRec->productId,
+                                   'date'          => $date,
+                                   'sourceClassId' => $this->getClassId(),
+                                   'sourceId'      => $rec->id,
+                                   'quantityIn'    => null,
+                                   'quantityOut'   => $dRec->totalQuantity);
+        }
+
+        return $res;
     }
 }
