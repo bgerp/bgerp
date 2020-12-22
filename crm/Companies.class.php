@@ -89,8 +89,7 @@ class crm_Companies extends core_Master
     /**
      * Полета за експорт
      */
-    //public $exportableCsvFields = 'name,nameList,country,pCode,place,address,email,tel,fax,website,vatId,eori,uicId,nkid,info,logo,folderName,groupList';
-    public $exportableCsvFields = 'name,vatId,eori,uicId,country,pCode,place,address,email,tel,fax,website,info,logo,folderName,nkid,groupList,nameList';
+    public $exportableCsvFields = 'name,vatId,eori,uicId,country,pCode,place,address,email,tel,fax,website,info,logo,folderName,nkid,groupList';
     
     /**
      * Класове за автоматично зареждане
