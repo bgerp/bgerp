@@ -208,4 +208,53 @@ class store_Setup extends core_ProtoSetup
             reportException($e);
         }
     }
+
+
+    public function migratePendings()
+    {
+        if(!store_Products::count()) return;
+        $Stocks = cls::get('store_StockPlanning');
+        //$Stocks->truncate();
+
+        $stockableClasses = array('store_ShipmentOrders',
+                                  'store_Receipts',
+                                  'store_Transfers',
+                                  'store_ConsignmentProtocols',
+                                  'planning_ConsumptionNotes',
+                                  'planning_DirectProductionNote',
+                                  'pos_Receipts');
+
+        $stocksArr = array();
+        foreach ($stockableClasses as $cls){
+            $Source = cls::get($cls);
+            $Source->setupMvc();
+
+            $query = $Source->getQuery();
+            $query->where("#state = 'pending'");
+            while($rec = $query->fetch()){
+                $arr = $Source->getPlannedStocks($rec);
+                $stocksArr = array_merge($stocksArr, $arr);
+            }
+        }
+
+        $Stocks->saveArray($stocksArr);
+
+        $dealsArr = array();
+        $stockableOriginClasses = array('sales_Sales', 'purchase_Purchases');
+        foreach ($stockableOriginClasses as $cls) {
+            $Source = cls::get($cls);
+            $Source->setupMvc();
+
+            $query = $Source->getQuery();
+            $query->in("state", array('pending', 'active', 'stopped', 'wakeup'));
+
+            while ($rec = $query->fetch()) {
+                $arr = $Source->getPlannedStocks($rec);
+                $dealsArr = array_merge($dealsArr, $arr);
+            }
+        }
+
+        $Stocks->saveArray($dealsArr);
+
+    }
 }

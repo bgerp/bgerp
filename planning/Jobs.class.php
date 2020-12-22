@@ -52,7 +52,7 @@ class planning_Jobs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, doc_SharablePlg, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing, cat_plg_AddSearchKeywords';
+    public $loadList = 'plg_RowTools2, store_plg_StockPlanning, doc_DocumentPlg, planning_plg_StateManager, doc_SharablePlg, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing, cat_plg_AddSearchKeywords';
     
     
     /**
@@ -1455,5 +1455,27 @@ class planning_Jobs extends core_Master
         $query->show('quantity');
         
         return  $query->fetch()->quantity;
+    }
+
+
+    /**
+     * Връща планираните наличности
+     *
+     * @see store_plg_StockPlanning
+     * @param stdClass $rec
+     * @return array $res
+     */
+    public function getPlannedStocks($rec)
+    {
+        $res = array();
+        $id = is_object($rec) ? $rec->id : $rec;
+        $rec = $this->fetch($id, '*', false);
+        $date = $rec->dueDate;
+
+        $lastReceipt = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales');
+
+        $materials = cat_Boms::getBomMaterials($lastReceipt, $rec->quantity);
+        bp($materials);
+
     }
 }

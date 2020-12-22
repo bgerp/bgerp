@@ -161,9 +161,9 @@ class pos_Receipts extends core_Master
 
 
     /**
-     *  При преминаването в кое състояние ще се обновяват складовите наличностти
+     *  При преминаването в кои състояния ще се обновяват планираните складови наличностти
      */
-    public $updatePlannedStockOnChangeState = 'waiting';
+    public $updatePlannedStockOnChangeStates = array('waiting');
 
 
     /**
@@ -1141,7 +1141,8 @@ class pos_Receipts extends core_Master
                                                'sourceClassId' => $this->getClassId(),
                                                'sourceId'      => $rec->id,
                                                'quantityIn'    => null,
-                                               'quantityOut'   => 0);
+                                               'quantityOut'   => 0,
+                                               'threadId'      => null,);
                 }
                 $res[$key]->quantityOut += $quantity;
             }

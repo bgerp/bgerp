@@ -51,13 +51,13 @@ class store_StockPlanning extends core_Manager
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'no_one';
+    public $canDelete = 'debug';
 
 
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId,storeId,date,quantityIn,quantityOut,sourceId=Източник,createdOn';
+    public $listFields = 'productId,storeId,date,quantityIn,quantityOut,sourceId=Източник,threadId=Нишка,createdOn';
 
 
     /**
@@ -72,9 +72,11 @@ class store_StockPlanning extends core_Manager
         $this->FLD('quantityOut', 'double(maxDecimals=3)', 'caption=Количество->Излиза');
         $this->FLD('sourceClassId', 'class', 'caption=Източник->Клас');
         $this->FLD('sourceId', 'int', 'caption=Източник->Ид');
+        $this->FLD('threadId', 'int', 'caption=Източник->Нишка');
 
         $this->setDbIndex('productId,storeId');
         $this->setDbIndex('sourceClassId,sourceId');
+        $this->setDbIndex('threadId');
     }
 
 
@@ -87,11 +89,18 @@ class store_StockPlanning extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->productId = cat_Products::getHyperlink($rec->productId, true);
-        $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
+       if($rec->productId){
+           $row->productId = cat_Products::getHyperlink($rec->productId, true);
+       }
 
-        $Source = cls::get($rec->sourceClassId);
-        $row->sourceId = $Source->hasPlugin('doc_DocumentPlg') ? $Source->getLink($rec->sourceId, 0) : $Source->getHyperlink($rec->sourceId, true);
+        if(isset($rec->storeId)){
+            $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
+        }
+
+        if($rec->sourceClassId){
+            $Source = cls::get($rec->sourceClassId);
+            $row->sourceId = $Source->hasPlugin('doc_DocumentPlg') ? $Source->getLink($rec->sourceId, 0) : $Source->getHyperlink($rec->sourceId, true);
+        }
     }
 
 
@@ -106,6 +115,108 @@ class store_StockPlanning extends core_Manager
     {
         $Class = cls::get($class);
         self::delete("#sourceClassId = {$Class->getClassId()} AND #sourceId = {$id}");
+    }
+
+
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    {
+        if (haveRole('debug')) {
+            $data->toolbar->addBtn('Преизчисли всички', array($mvc, 'recalcAll', 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png, title=Преизчисляване на запазеното по сделки');
+            $data->toolbar->addBtn('Изчисти', array($mvc, 'truncate', 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png, title=Преизчисляване на запазеното по задания');
+        }
+    }
+
+
+    /**
+     * Обновява запазените/очакваните наличности по документ
+     *
+     * @param mixed $classId
+     * @param int|stdClass $objectId
+     * @return void
+     */
+    public static function updateByDocument($classId, $objectId)
+    {
+        $Class = cls::get($classId);
+
+        // Какви са наличните записи на документа
+        $exQuery =  static::getQuery();
+        $exQuery->where("#sourceClassId = {$Class->getClassId()} AND #sourceId = {$objectId}");
+        $exRecs = $exQuery->fetchAll();
+
+        // Какви ще са новите планирани количества
+        $plannedStocks = $Class->getPlannedStocks($objectId);
+        if(countR($plannedStocks)){
+            $now = dt::now();
+            array_walk($plannedStocks, function($a) use ($now) {$a->createdOn = $now;});
+        }
+
+        // Синхронизиране на старите със новите записи
+        $Stocks = cls::get('store_StockPlanning');
+        $synced = arr::syncArrays($plannedStocks, $exRecs, 'productId,storeId,sourceClassId,sourceId', 'quantityIn,quantityOut');
+
+        if(countR($synced['insert'])){
+            $Stocks->saveArray($synced['insert']);
+        }
+
+        if(countR($synced['update'])){
+            $Stocks->saveArray($synced['update'], 'id,quantityIn,quantityOut');
+        }
+
+        if(countR($synced['delete'])){
+            $deleteIds = implode(',', $synced['delete']);
+            $Stocks->delete("#id IN ({$deleteIds})");
+        }
+    }
+
+
+    /**
+     * Подредба на записите
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->showFields = 'threadId';
+        $data->listFilter->input();
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        if ($rec = $data->listFilter->rec) {
+
+            if (!empty($rec->threadId)) {
+                $data->query->where("#threadId = {$rec->threadId}");
+            }
+        }
+
+        // Сортиране на записите по num
+        $data->query->orderBy('id');
+    }
+
+
+    /**
+     * Изчислява всички очаквани/запазени к-та от нулата
+     */
+    function act_recalcAll()
+    {
+        requireRole('debug');
+
+        cls::get('store_Setup')->migratePendings();
+
+        followRetUrl();
+    }
+
+
+    function act_truncate()
+    {
+        requireRole('debug');
+
+        cls::get('planning_Jobs')->getPlannedStocks(239);
+
+
+        bp();
+        $this->truncate();
+
+        followRetUrl();
     }
 }
 

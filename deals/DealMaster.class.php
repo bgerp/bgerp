@@ -74,8 +74,14 @@ abstract class deals_DealMaster extends deals_DealBase
      * @var int
      */
     public $defaultCopiesOnPrint = 2;
-    
-    
+
+
+    /**
+     *  При преминаването в кои състояния ще се обновяват планираните складови наличностти
+     */
+    public $updatePlannedStockOnChangeStates = array('pending', 'active');
+
+
     /**
      * Извиква се след описанието на модела
      *
@@ -2376,5 +2382,64 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         return Redirect($redirectUrl);
+    }
+
+
+    /**
+     * След извличане на планираните наличности
+     *
+     * @see store_plg_StockPlanning
+     */
+    protected static function on_AfterGetPlannedStocks($mvc, &$res, $rec)
+    {
+        if(is_array($res)){
+            $rec = $mvc->fetchRec($rec);
+            if($rec->state != 'pending' && $rec->state != 'active') {
+                $res = array();
+                return;
+            }
+
+            // Какви запазени количества имаме вече в нишката
+            $pendingQuery = store_StockPlanning::getQuery();
+            $pendingQuery->where("#threadId = {$rec->threadId} AND #sourceClassId != {$mvc->getClassId()}");
+            $pendingRecs = $pendingQuery->fetchAll();
+
+            // Какви движения имаме по складовите сметки от счетоводството
+            $TransactionClassName =  ($mvc instanceof sales_Sales) ? 'sales_transaction_Sale' : 'purchase_transaction_Purchase';
+            $field =  ($mvc instanceof sales_Sales) ? 'quantityOut' : 'quantityIn';
+            $entries = $TransactionClassName::getEntries($rec->id);
+            $shipped = $TransactionClassName::getShippedProducts($entries, 321);
+
+            // За всяко от количествата, които ще се запазват
+            $newRes = array();
+            foreach($res as $plannedRec){
+                $removeQuantity = 0;
+
+                // Проспадане от запазеното количество, на вече запазеното по документи в нишката
+                array_walk($pendingRecs, function($a) use ($plannedRec, &$removeQuantity, $field){
+                    if($a->productId == $plannedRec->productId){
+                        $removeQuantity += $a->{$field};
+                    }
+                });
+
+                // Проспадане от запазеното количество, на вече експедираното
+                array_walk($shipped, function($a) use ($plannedRec, &$removeQuantity){
+                    if($a->productId == $plannedRec->productId){
+                        $removeQuantity += $a->quantity;
+                    }
+                });
+
+                $plannedRec->{$field} -= $removeQuantity;
+                $plannedRec->{$field} = round($plannedRec->{$field}, 4);
+
+                // Ако остатъка е положителен, ще се се запази
+                if($plannedRec->{$field} > 0){
+                    $newRes[] = $plannedRec;
+                    $plannedRec->createdOn = ($rec->activatedOn) ? $rec->activatedOn : $rec->modifiedOn;
+                }
+            }
+
+            $res = $newRes;
+        }
     }
 }

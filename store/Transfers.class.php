@@ -690,7 +690,7 @@ class store_Transfers extends core_Master
         $id = is_object($rec) ? $rec->id : $rec;
         $rec = $this->fetch($id, '*', false);
 
-        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$mvc->valiorFld} : $rec->createdOn);
+        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$this->valiorFld} : $rec->createdOn);
         $Detail = cls::get('store_TransfersDetails');
 
         $dQuery = $Detail->getQuery();
@@ -705,7 +705,8 @@ class store_Transfers extends core_Master
                                    'sourceClassId' => $this->getClassId(),
                                    'sourceId'      => $rec->id,
                                    'quantityIn'    => null,
-                                   'quantityOut'   => $dRec->totalQuantity);
+                                   'quantityOut'   => $dRec->totalQuantity,
+                                   'threadId' => $rec->threadId);
 
             $res[] = (object)array('storeId'       => $rec->toStore,
                                    'productId'     => $dRec->newProductId,
@@ -713,7 +714,8 @@ class store_Transfers extends core_Master
                                    'sourceClassId' => $this->getClassId(),
                                    'sourceId'      => $rec->id,
                                    'quantityIn'    => $dRec->totalQuantity,
-                                   'quantityOut'   => null);
+                                   'quantityOut'   => null,
+                                   'threadId'      => $rec->threadId);
         }
 
         return $res;

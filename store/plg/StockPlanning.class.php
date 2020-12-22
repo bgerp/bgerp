@@ -2,14 +2,14 @@
 
 
 /**
- * Клас 'store_plg_Requests' за записване на заявените количества
+ * Клас 'store_plg_StockPlanning' за планиране на наличностите по хоризонт
  *
  *
  * @category  bgerp
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -19,21 +19,37 @@ class store_plg_StockPlanning extends core_Plugin
 
 
     /**
+     * Извиква се след описанието на модела
+     *
+     * @param core_Mvc $mvc
+     */
+    public static function on_AfterDescription(core_Master &$mvc)
+    {
+        setIfNot($mvc->updatePlannedStockOnChangeStates, array('pending'));
+        setIfNot($mvc->stockPlanningDirection, 'out');
+        setIfNot($mvc->updateStocksOnShutdown, array());
+        setIfNot($mvc->exStateField, $mvc->hasPlugin('doc_DocumentPlg') ? 'brState' : 'exState');
+    }
+
+
+    /**
      * Метод по подразбиране връщащ планираните наличности
      */
     public static function on_AfterGetPlannedStocks($mvc, &$res, $rec)
     {
         if(!$res){
             $res = array();
+
+            // За всеки случаи, се подсигуряваме, че река е пълен!
             $id = is_object($rec) ? $rec->id : $rec;
             $rec = $mvc->fetch($id, '*', false);
 
-            if(empty($rec->{$mvc->storeFieldName}) || $rec->isReverse == 'yes') return;
-
-            setIfNot($mvc->stockPlanningDirection, 'out');
+            if(!in_array($rec->state, $mvc->updatePlannedStockOnChangeStates) && (!($mvc instanceof deals_DealMaster) && empty($rec->{$mvc->storeFieldName})) || $rec->isReverse == 'yes') return;
             $date = !empty($rec->{$mvc->termDateFld}) ? $rec->{$mvc->termDateFld} : (!empty($rec->{$mvc->valiorFld}) ? $rec->{$mvc->valiorFld} : $rec->createdOn);
 
             if($mvc->mainDetail){
+
+                // Ако има детайл извличат се сумарно какви количества трябва да се запазят
                 $Detail = cls::get($mvc->mainDetail);
                 $dQuery = $Detail->getQuery();
                 $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey={$Detail->productFieldName}");
@@ -41,6 +57,7 @@ class store_plg_StockPlanning extends core_Plugin
                 $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #canStore = 'yes'");
                 $dQuery->groupBy($Detail->productFieldName);
 
+                // Добавяне на складируемите артикули от детайла на документа
                 while($dRec = $dQuery->fetch()){
                     $quantityIn = $quantityOut = null;
                     $var = ($mvc->stockPlanningDirection == 'out') ? 'quantityOut' : 'quantityIn';
@@ -53,7 +70,8 @@ class store_plg_StockPlanning extends core_Plugin
                                            'sourceClassId' => $mvc->getClassId(),
                                            'sourceId' => $rec->id,
                                            'quantityIn' => $quantityIn,
-                                           'quantityOut' => $quantityOut);
+                                           'quantityOut' => $quantityOut,
+                                           'threadId' => $rec->threadId);
                 }
             }
         }
@@ -69,25 +87,73 @@ class store_plg_StockPlanning extends core_Plugin
     }
 
 
+    /**
+     * След обновяване на данните за запазване
+     */
     public static function on_AfterUpdatePlannedStocks($mvc, &$res, $rec)
     {
-        setIfNot($mvc->updatePlannedStockOnChangeState, 'pending');
-        $exState = $mvc->hasPlugin('doc_DocumentPlg') ? 'brState' : 'exState';
+        $firstDoc = isset($rec->threadId) ? doc_Threads::getFirstDocument($rec->threadId) : null;
+        $firstDoc = ($firstDoc && $firstDoc->isInstanceOf('deals_DealMaster') && !($mvc instanceof deals_DealMaster)) ? $firstDoc : null;
 
         if(!$res){
-            if($rec->state == $mvc->updatePlannedStockOnChangeState){
+            if(in_array($rec->state, $mvc->updatePlannedStockOnChangeStates)){
 
-                store_StockPlanning::remove($mvc, $rec->id);
-                $plannedStocks = $mvc->getPlannedStocks($rec);
-                if(countR($plannedStocks)){
-                    $now = dt::now();
-                    array_walk($plannedStocks, function($a) use ($now) {$a->createdOn = $now;});
-                    $Stocks = cls::get('store_StockPlanning');
-                    $Stocks->saveArray($plannedStocks);
+                store_StockPlanning::updateByDocument($mvc, $rec->id);
+                if($firstDoc){
+                    $firstDoc->getInstance()->updateStocksOnShutdown[$firstDoc->that] = $firstDoc->that;
                 }
-            } elseif($rec->state != $mvc->updatePlannedStockOnChangeState && $rec->{$exState} == $mvc->updatePlannedStockOnChangeState){
+            } elseif(!in_array($rec->state, $mvc->updatePlannedStockOnChangeStates) && in_array($rec->{$mvc->exStateField}, $mvc->updatePlannedStockOnChangeStates)){
                 store_StockPlanning::remove($mvc, $rec->id);
+                if($firstDoc){
+                    $firstDoc->getInstance()->updateStocksOnShutdown[$firstDoc->that] = $firstDoc->that;
+                }
             }
         }
+    }
+
+
+    /**
+     * Функция, която се извиква след активирането на документа
+     */
+    public static function on_AfterRestore($mvc, &$res, &$rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+
+        $firstDoc = isset($rec->threadId) ? doc_Threads::getFirstDocument($rec->threadId) : null;
+        $firstDoc = ($firstDoc && $firstDoc->isInstanceOf('deals_DealMaster') && !($mvc instanceof deals_DealMaster)) ? $firstDoc : null;
+        if($firstDoc){
+            $firstDoc->getInstance()->updateStocksOnShutdown[$firstDoc->that] = $firstDoc->that;
+        }
+    }
+
+
+    /**
+     * След оттегляне да се обновяват запазванията по първия документ в нишката
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        $firstDoc = isset($rec->threadId) ? doc_Threads::getFirstDocument($rec->threadId) : null;
+        $firstDoc = ($firstDoc && $firstDoc->isInstanceOf('deals_DealMaster') && !($mvc instanceof deals_DealMaster)) ? $firstDoc : null;
+        if($firstDoc){
+            $firstDoc->getInstance()->updateStocksOnShutdown[$firstDoc->that] = $firstDoc->that;
+        }
+    }
+
+
+    /**
+     * Изчиства записите, заопашени за запис
+     *
+     * @param acc_Items $mvc
+     */
+    public static function on_Shutdown($mvc)
+    {
+       if(is_array($mvc->updateStocksOnShutdown)){
+
+           // Обновяване на планираните количества на всички заопашени документи
+           foreach ($mvc->updateStocksOnShutdown as $id) {
+               store_StockPlanning::updateByDocument($mvc, $id);
+           }
+       }
     }
 }

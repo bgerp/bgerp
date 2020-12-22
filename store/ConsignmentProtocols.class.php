@@ -622,7 +622,7 @@ class store_ConsignmentProtocols extends core_Master
         $res = array();
         $id = is_object($rec) ? $rec->id : $rec;
         $rec = $this->fetch($id, '*', false);
-        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$mvc->valiorFld} : $rec->createdOn);
+        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$this->valiorFld} : $rec->createdOn);
 
         $dQuery = store_ConsignmentProtocolDetailsSend::getQuery();
         $dQuery->XPR('totalQuantity', 'double', "SUM(#packQuantity * #quantityInPack)");
@@ -636,7 +636,8 @@ class store_ConsignmentProtocols extends core_Master
                                    'sourceClassId' => $this->getClassId(),
                                    'sourceId'      => $rec->id,
                                    'quantityIn'    => null,
-                                   'quantityOut'   => $dRec->totalQuantity);
+                                   'quantityOut'   => $dRec->totalQuantity,
+                                   'threadId'      => $rec->threadId);
         }
 
         return $res;

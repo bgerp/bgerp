@@ -1125,7 +1125,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $res = array();
         $id = is_object($rec) ? $rec->id : $rec;
         $rec = $this->fetch($id, '*', false);
-        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$mvc->valiorFld} : $rec->createdOn);
+        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$this->valiorFld} : $rec->createdOn);
 
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
         if($canStore == 'yes'){
@@ -1151,7 +1151,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                                    'sourceClassId' => $this->getClassId(),
                                    'sourceId'      => $rec->id,
                                    'quantityIn'    => null,
-                                   'quantityOut'   => $dRec->totalQuantity);
+                                   'quantityOut'   => $dRec->totalQuantity,
+                                   'threadId'      => $rec->threadId);
         }
 
         return $res;
