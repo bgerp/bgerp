@@ -205,22 +205,22 @@ class doc_Search extends core_Manager
             
             // Търсене по дата на създаване на документи (от-до)
             if (!empty($filterRec->fromDate)) {
-                $where = "NOT (#createdOn < '[#1#]') AND NOT(#modifiedOn < '[#1#]')";
+                $where = "(#createdOn >= '[#1#]') AND (#modifiedOn >= '[#1#]')";
                 
                 // Ако търсим по документ с вальор, добавяме вальора в търсенето по дата
                 if ($SearchDocument instanceof core_Mvc) {
-                    $where = "({$where}) OR NOT(#{$SearchDocument->valiorFld} < '[#1#]')";
+                    $where = "({$where}) OR (#{$SearchDocument->valiorFld} >= '[#1#]')";
                 }
                 
                 $data->query->where(array($where, $filterRec->fromDate));
             }
             
             if (!empty($filterRec->toDate)) {
-                $where = "NOT (#createdOn > '[#1#] 23:59:59') AND NOT (#modifiedOn > '[#1#] 23:59:59')";
+                $where = "(#createdOn <= '[#1#] 23:59:59') AND (#modifiedOn <= '[#1#] 23:59:59')";
                 
                 // Ако търсим по документ с вальор, добавяме вальора в търсенето по дата
                 if ($SearchDocument instanceof core_Mvc) {
-                    $where = "({$where}) OR NOT (#{$SearchDocument->valiorFld} > '[#1#] 23:59:59')";
+                    $where = "({$where}) OR (#{$SearchDocument->valiorFld} <= '[#1#] 23:59:59')";
                 }
                 
                 $data->query->where(array($where, $filterRec->toDate));
@@ -300,8 +300,17 @@ class doc_Search extends core_Manager
             
             // Експеримент за оптимизиране на бързодействието
             $data->query->orderBy('#modifiedOn=DESC');
-            
-            
+
+
+            if ($filterRec->scopeFolderId) {
+                $data->query->useIndex('folder_id');
+            }
+
+            $aArr = type_UserList::toArray($filterRec->author);
+            if (countR($aArr) == 1) {
+                $data->query->useIndex('created_by');
+            }
+
             /**
              * Останалата част от заявката - търсенето по ключови думи - ще я допълни plg_Search
              */
