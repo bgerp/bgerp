@@ -192,7 +192,7 @@ class cat_products_Packagings extends core_Detail
         $uoms = cat_UoM::getSameTypeMeasures(cat_UoM::fetchBySysId($sysId)->id);
         unset($uoms['']);
         
-        $count = cat_products_Packagings::count("#productId = {$productId} AND #packagingId IN (" . implode(array_keys($uoms), ',') . ')');
+        $count = cat_products_Packagings::count("#productId = {$productId} AND #packagingId IN (" . implode(',', array_keys($uoms)) . ')');
         
         return $count;
     }

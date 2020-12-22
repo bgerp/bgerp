@@ -101,10 +101,10 @@ class bgerp_BaseImporter extends core_Manager
                     }
                     
                     $rec->{$name} = $value;
-                    
+
                     // Ако ще се добавя файл, правим опит да свалим файла и да го добавим
                     if (isset($rec->{$name})) {
-                        if ($this->mvc->getFieldType($name) instanceof fileman_FileType) {
+                        if ($this->mvc->getFieldType($name, false) instanceof fileman_FileType) {
                             $bucketId = fileman_Buckets::fetchByName('import');
                             $rec->{$name} = fileman_Get::getFile((object) array('url' => $rec->{$name}, 'bucketId' => $bucketId));
                         }
@@ -128,7 +128,7 @@ class bgerp_BaseImporter extends core_Manager
             if (!$this->mvc->isUnique($rec, $fieldsUn, $exRec)) {
                 $rec->id = $exRec->id;
             }
-            
+
             if ($rec->id) {
                 if ($onExist == 'skip') {
                     $skipped++;
@@ -142,7 +142,7 @@ class bgerp_BaseImporter extends core_Manager
             } else {
                 $created++;
             }
-            
+
             $this->mvc->save($rec);
         }
         

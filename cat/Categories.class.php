@@ -38,8 +38,8 @@ class cat_Categories extends core_Master
      * Кои документи да се добавят като бързи бутони в папката на корицата
      */
     public $defaultDefaultDocuments = 'cat_Products';
-    
-    
+
+
     /**
      * Плъгини за зареждане
      */
@@ -291,6 +291,26 @@ class cat_Categories extends core_Master
             $rec->measures = '';
             foreach ($measures  as $m) {
                 $rec->measures = keylist::addKey($rec->measures, cat_UoM::fetchBySinonim($m)->id);
+            }
+        }
+
+        if (!$rec->id) {
+            $conflictFields = array();
+            $mvc->isUnique($rec, $conflictFields, $exRec);
+
+            if ($exRec->id) {
+                $rec->id = $exRec->id;
+            }
+        }
+
+        if ($rec->id) {
+            $oRec = $mvc->fetch($rec->id);
+            if (!isset($rec->inCharge)) {
+                $rec->inCharge = $oRec->inCharge;
+            }
+
+            if (!isset($rec->state)) {
+                $rec->state = $oRec->state;
             }
         }
     }
