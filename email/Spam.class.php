@@ -188,6 +188,33 @@ class email_Spam extends email_ServiceEmails
             }
             
             $scoreArr[$hash]['score'] = $score;
+
+            // Проверка на резултата директно от SPAS
+            if (core_Packs::isInstalled('spas')) {
+                $emlData = null;
+                if (isset($mime)) {
+                    $emlData = $mime->getData();
+                }
+
+                if (!isset($emlData) && $rec && isset($rec->emlFile)) {
+                    $fh = fileman::fetchField($rec->emlFile, 'fileHnd');
+                    if ($fh) {
+                        $emlData = fileman_Files::getContent($fh);
+                    }
+                }
+
+                if (isset($emlData) && strlen($emlData)) {
+                    $Spas = cls::get('spas_Helper');
+//                    $spasScoreFromReport = $Spas->getScoreFromReport($emlData);
+                    $spasScore = $Spas->getScore($emlData);
+
+                    setIfNot($spasScore, $score);
+                    setIfNot($score, $spasScore);
+                    if (isset($spasScore) && isset($score)) {
+                        $score = max($spasScore, $score);
+                    }
+                }
+            }
         } else {
             $score = $scoreArr[$hash]['score'];
         }
