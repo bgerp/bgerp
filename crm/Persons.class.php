@@ -101,7 +101,7 @@ class crm_Persons extends core_Master
     /**
      * Полета за експорт
      */
-    public $exportableCsvFields = 'salutation,name,nameList,egn,vatId,birthday,country,pCode,place,address,buzCompanyId,buzLocationId,buzPosition,buzEmail,buzTel,buzFax,buzAddress,email,tel,mobile,fax,website,info,photo,groupList';
+    public $exportableCsvFields = 'salutation,name,nameList,egn,vatId,eori,birthday,country,pCode,place,address,buzCompanyId,buzLocationId,buzPosition,buzEmail,buzTel,buzFax,buzAddress,email,tel,mobile,fax,website,info,photo,groupList';
     
     
     /**
@@ -125,7 +125,7 @@ class crm_Persons extends core_Master
     /**
      * Полета по които се правитърсене от плъгина plg_Search
      */
-    public $searchFields = 'salutation, name, egn, birthday, country, pCode, place, address, email, tel, mobile, fax, website, info, buzCompanyId, buzLocationId, buzPosition, buzEmail, buzTel, buzFax, buzAddress, id';
+    public $searchFields = 'salutation, name, egn, birthday, country, pCode, place, address, email, tel, mobile, fax, website, info, buzCompanyId, buzLocationId, buzPosition, buzEmail, buzTel, buzFax, buzAddress, id, eori, vatId';
     
     
     /**
@@ -2916,6 +2916,54 @@ class crm_Persons extends core_Master
         
         if ($oRec = $query->fetch()) {
             $rec->id = $oRec->id;
+        }
+
+        // Ако има избрана група от csv файла
+        if (isset($rec->groups)) {
+            $delimiter = csv_Lib::getDevider($rec->groups);
+
+            $groupArr = explode($delimiter, $rec->groups);
+
+            $groupIdArr = array();
+
+            $missingGroupArr = array();
+            foreach ($groupArr as $groupName) {
+                $groupName = trim($groupName);
+
+                if (!$groupName) {
+                    continue;
+                }
+
+                $force = false;
+                if (haveRole('debug')) {
+                    $force = true;
+                }
+                $groupId = crm_Groups::force($groupName, null, $force);
+
+                if (!isset($groupId)) {
+                    $missingGroupArr[] = $groupName;
+                }
+
+                $groupIdArr[$groupId] = $groupId;
+            }
+
+            if (!empty($missingGroupArr)) {
+                $groupName = implode(', ', $missingGroupArr);
+                $rec->__errStr = "Липсваща група при импортиране: {$groupName}";
+                self::logNotice($rec->__errStr);
+
+                return false;
+            }
+
+            if ($rec->groupListInput) {
+                if (!empty($groupIdArr)) {
+                    $rec->groupListInput = type_Keylist::merge($rec->groupListInput, type_Keylist::fromArray($groupIdArr));
+                }
+            } else {
+                if (!empty($groupIdArr)) {
+                    $rec->groupListInput = type_Keylist::fromArray($groupIdArr);
+                }
+            }
         }
     }
     

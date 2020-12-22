@@ -83,7 +83,7 @@ class core_Cls
             } elseif ($last > 0) {
                 // Капитализираме буквата след последната черта
                 if ($last + 1 < strlen($className)) {
-                    $className{$last + 1} = strtoupper($className{$last + 1});
+                    $className[$last + 1] = strtoupper($className[$last + 1]);
                 } else {
                     // Некоректно име на клас
                     error('@Некоректно име на клас', $className);

@@ -89,7 +89,7 @@ class crm_Companies extends core_Master
     /**
      * Полета за експорт
      */
-    public $exportableCsvFields = 'name,nameList,country,pCode,place,address,email,tel,fax,website,vatId,uicId,nkid,info,logo,folderName,groupList';
+    public $exportableCsvFields = 'name,nameList,country,pCode,place,address,email,tel,fax,website,vatId,eori,uicId,nkid,info,logo,folderName,groupList';
     
     
     /**
@@ -122,7 +122,7 @@ class crm_Companies extends core_Master
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
-    public $searchFields = 'name,pCode,place,country,folderName,email,tel,fax,website,vatId,info,uicId,id';
+    public $searchFields = 'name,pCode,place,country,folderName,email,tel,fax,website,vatId,info,uicId,id,eori';
     
     
     /**
@@ -2328,12 +2328,20 @@ class crm_Companies extends core_Master
             if ($fld->input != 'none' && $fld->input != 'hidden' && $fld->kind != 'FNC') {
                 $fields[$name] = array('caption' => $fld->caption, 'mandatory' => $fld->mandatory);
                 if ($name == $mvc->expandInputFieldName) {
+                    $tGroup = $fields[$name];
+                    unset($fields[$name]);
+
+                    $fields['groups'] = array('caption' => 'Група->CSV');
+
+                    $fields[$name] = $tGroup;
+
                     $fields[$name]['notColumn'] = true;
+                    $fields[$name]['caption'] = 'Група->Избор';
                     $fields[$name]['type'] = 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'persons\\\'AND #state !\\= \\\'rejected\\\')';
                 }
             }
         }
-        
+
         unset($fields['shared']);
         unset($fields['access']);
         unset($fields['inCharge']);
@@ -2403,6 +2411,54 @@ class crm_Companies extends core_Master
         
         if ($oRec = $query->fetch()) {
             $rec->id = $oRec->id;
+        }
+
+        // Ако има избрана група от csv файла
+        if (isset($rec->groups)) {
+            $delimiter = csv_Lib::getDevider($rec->groups);
+
+            $groupArr = explode($delimiter, $rec->groups);
+
+            $groupIdArr = array();
+
+            $missingGroupArr = array();
+            foreach ($groupArr as $groupName) {
+                $groupName = trim($groupName);
+
+                if (!$groupName) {
+                    continue;
+                }
+
+                $force = false;
+                if (haveRole('debug')) {
+                    $force = true;
+                }
+                $groupId = crm_Groups::force($groupName, null, $force);
+
+                if (!isset($groupId)) {
+                    $missingGroupArr[] = $groupName;
+                }
+
+                $groupIdArr[$groupId] = $groupId;
+            }
+
+            if (!empty($missingGroupArr)) {
+                $groupName = implode(', ', $missingGroupArr);
+                $rec->__errStr = "Липсваща група при импортиране: {$groupName}";
+                self::logNotice($rec->__errStr);
+
+                return false;
+            }
+
+            if ($rec->groupListInput) {
+                if (!empty($groupIdArr)) {
+                    $rec->groupListInput = type_Keylist::merge($rec->groupListInput, type_Keylist::fromArray($groupIdArr));
+                }
+            } else {
+                if (!empty($groupIdArr)) {
+                    $rec->groupListInput = type_Keylist::fromArray($groupIdArr);
+                }
+            }
         }
     }
     

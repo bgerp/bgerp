@@ -273,9 +273,11 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-        		                <small><div><!--ET_BEGIN period-->|Период|*: [#period#]<!--ET_END period--></div></small>
-                                <small><div><!--ET_BEGIN minval-->|Минимален праг за отчитане|*: [#minval#]<!--ET_END minval--></div></small>
-                                <small><div><!--ET_BEGIN counter-->|Брой артикули|*: [#counter#]<!--ET_END counter--></div></small>
+                                    <div class='small'>
+                                        <!--ET_BEGIN period--><div>|Период|*: [#period#]</div><!--ET_END period-->
+                                        <!--ET_BEGIN minval--><div>|Минимален праг за отчитане|*: [#minval#]</div><!--ET_END minval-->
+                                        <!--ET_BEGIN counter--><div>|Брой артикули|*: [#counter#]</div><!--ET_END counter-->
+                                    </div>  
                                 </fieldset><!--ET_END BLOCK-->"));
         
         if (isset($data->rec->period)) {

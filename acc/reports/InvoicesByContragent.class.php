@@ -174,7 +174,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             $invQuery = sales_Invoices::getQuery();
 
-            $invQuery->where("#state != 'rejected' AND #number IS NOT NULL");
+            $invQuery->where("#number IS NOT NULL");
+
+            $invQuery->in('state', 'rejected, draft', true);
 
             //При избрани НЕПЛАТЕНИ махаме дебитните и кредитните известия
             if ($rec->unpaid == 'unpaid') {
@@ -478,7 +480,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             $pQuery = purchase_Invoices::getQuery();
 
-            $pQuery->where("#state != 'rejected' AND #number IS NOT NULL");
+            $pQuery->where("#number IS NOT NULL");
+
+            $pQuery->in('state', 'rejected, draft', true);
 
             //При избрани НЕПЛАТЕНИ махаме дебитните и кредитните известия
             if ($rec->unpaid == 'unpaid') {

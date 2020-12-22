@@ -473,11 +473,13 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-                                <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
-                                <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
-                                <small><div><!--ET_BEGIN jobses-->|Избрани задания|*: [#jobses#]<!--ET_END jobses--></div></small>
-                                <small><div><!--ET_BEGIN groups-->|Групи продукти|*: [#groups#]<!--ET_END groups--></div></small>
-                                <small><div><!--ET_BEGIN pricesType-->|Стойност|*: [#pricesType#]<!--ET_END pricesType--></div></small>
+                                    <div class='small'>
+                                        <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
+                                        <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
+                                        <!--ET_BEGIN jobses--><div>|Избрани задания|*: [#jobses#]</div><!--ET_END jobses-->
+                                        <!--ET_BEGIN groups--><div>|Групи продукти|*: [#groups#]</div><!--ET_END groups-->
+                                        <!--ET_BEGIN pricesType--><div>|Стойност|*: [#pricesType#]</div><!--ET_END pricesType-->
+                                    </div>
                                 </fieldset><!--ET_END BLOCK-->"));
        
         if (isset($data->rec->from)) {

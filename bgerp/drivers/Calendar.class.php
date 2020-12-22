@@ -670,9 +670,9 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 $tRec->title = ' ' . dt::mysql2verbal($rec->calcTimeStart, 'H:i', null, true) . ' ' . $tRec->title;
                 
                 $linkArr = array('ef_icon' => $Reminders->getIcon($rec->id));
-                
+
                 // Добавяме стил, ако има промяна след последното разглеждане
-                if ($rec->modifiedOn > bgerp_Recently::getLastDocumentSee($rec->containerId, $userId, false)) {
+                if ($rec->modifiedOn > bgerp_Recently::getLastDocumentSee($rec->containerId, $pArr['_userId'], false)) {
                     $linkArr['class'] = 'tUnsighted';
                 }
                 
@@ -718,14 +718,24 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $i = 10000;
         while ($rec = $query->fetch()) {
             list($orderDate, $orderH) = explode(' ', $rec->time);
-            
+
+            $oTime = '';
             if ($orderH == '00:00:00') {
                 $orderH = 30;
+            } else {
+                $oTim = dt::mysql2verbal($rec->time, 'H:i');
             }
             
             $orderH .= ' ' . ++$i;
-            
-            if ($pArr['search'] || $rec->type == 'working-travel' || $rec->type == 'leaves' || $rec->type == 'sick') {
+            $expandType = strtolower($Calendar->blockExpandTypes);
+            $expandTypeArr = arr::make($expandType, true);
+            $type = strtolower($rec->type);
+
+            if ($pArr['search'] || $expandTypeArr[$type] || $type[0] == '_') {
+                if ($oTim) {
+                    $rec->title = $oTim . ' ' . $rec->title;
+                }
+
                 $cRec = $Calendar->recToVerbal($rec, 'title');
                 $rArrNow[$orderDate][$orderH] = (object) array('title' => $cRec->event);
             } else {

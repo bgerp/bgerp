@@ -6738,6 +6738,8 @@ only screen and (max-width: 320px) {
       .sale-summary table td .quiet {
         color: #cccccc;
         font-weight: normal; }
+      .sale-summary table td.vtop {
+        vertical-align: top !important; }
     .sale-summary table .specialLink {
       white-space: normal; }
 

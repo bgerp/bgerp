@@ -111,7 +111,7 @@ class type_Blob extends core_Type
             
             for ($j = 0; $j < 16; $j++) {
                 if ($i * $rowLen + $j < $len) {
-                    $c = $value{$i * $rowLen + $j};
+                    $c = $value[$i * $rowLen + $j];
                     
                     if (ord($c) >= 32 && ord($c) <= 127) {
                         $str .= htmlentities($c, ENT_COMPAT | ENT_HTML401, 'UTF-8');

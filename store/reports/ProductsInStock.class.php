@@ -382,12 +382,14 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-                                <small><div><!--ET_BEGIN date-->|Към дата|*: [#date#]<!--ET_END date--></div></small>
-                                <small><div><!--ET_BEGIN storeId-->|Склад|*: [#storeId#]<!--ET_END storeId--></div></small>
-                                <small><div><!--ET_BEGIN group-->|Групи|*: [#group#]<!--ET_END group--></div></small>
-                                <small><div><!--ET_BEGIN products-->|Артикул|*: [#products#]<!--ET_END products--></div></small>
-                                <small><div><!--ET_BEGIN availability-->|Наличност|*: [#availability#]<!--ET_END availability--></div></small>
-                                <small><div><!--ET_BEGIN totalProducts-->|Брой артикули|*: [#totalProducts#]<!--ET_END totalProducts--></div></small>
+                                    <div class='small'>
+                                        <!--ET_BEGIN date--><div>|Към дата|*: [#date#]</div><!--ET_END date-->
+                                        <!--ET_BEGIN storeId--><div>|Склад|*: [#storeId#]</div><!--ET_END storeId-->
+                                        <!--ET_BEGIN group--><div>|Групи|*: [#group#]</div><!--ET_END group-->
+                                        <!--ET_BEGIN products--><div>|Артикул|*: [#products#]</div><!--ET_END products-->
+                                        <!--ET_BEGIN availability--><div>|Наличност|*: [#availability#]</div><!--ET_END availability-->
+                                        <!--ET_BEGIN totalProducts--><div>|Брой артикули|*: [#totalProducts#]</div><!--ET_END totalProducts-->
+                                    </div>
                                 </fieldset><!--ET_END BLOCK-->"));
         
         $date = (is_null($data->rec->date)) ? dt::today() : $data->rec->date;

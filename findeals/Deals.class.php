@@ -645,6 +645,8 @@ class findeals_Deals extends deals_DealBase
             // За всеки резултат, ако е в границите на пейджъра, го показваме
             if (countR($recs)) {
                 $count = 0;
+                arr::sortObjects($recs, 'valior', 'desc');
+
                 foreach ($recs as $rec) {
                     $start = $data->pager->rangeStart;
                     $end = $data->pager->rangeEnd - 1;
@@ -661,9 +663,6 @@ class findeals_Deals extends deals_DealBase
                 }
             }
         }
-        
-        // Подредба
-        arr::sortObjects($data->history, 'orderFld', 'desc');
         
         foreach (array('amountDeal', 'debitAmount', 'creditAmount', 'curDebitAmount', 'curCreditAmount') as $fld) {
             if ($fld == 'amountDeal' && !empty($data->rec->{$fld})) {
@@ -730,7 +729,6 @@ class findeals_Deals extends deals_DealBase
                 $row->creditA = "<span class='red'>{$row->creditA}</span>";
             }
         }
-        $row->orderFld = $jRec->valior;
         
         return $row;
     }

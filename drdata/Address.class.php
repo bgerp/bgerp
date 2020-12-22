@@ -869,7 +869,7 @@ class drdata_Address extends core_MVC
             'web' => 5
         
         );
-        
+
         // Avoid
         foreach ($blocks as $id => $b) {
             $total = 0;
