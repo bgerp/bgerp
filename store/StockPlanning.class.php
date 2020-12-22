@@ -212,7 +212,6 @@ class store_StockPlanning extends core_Manager
 
         cls::get('planning_Jobs')->getPlannedStocks(239);
 
-
         bp();
         $this->truncate();
 
