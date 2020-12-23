@@ -270,15 +270,9 @@ class bgerp_Setup extends core_ProtoSetup
         
         // Инстанция на мениджъра на пакетите
         $Packs = cls::get('core_Packs');
-        
+
         // Това първо инсталиране ли е?
         $isFirstSetup = ($Packs->count() == 0);
-
-        $mustInstallAdditional = $isFirstSetup;
-        if (!$mustInstallAdditional) {
-            $Folders = cls::get('doc_Folders');
-            $mustInstallAdditional = !($Folders->db->tableExists($Folders->dbTableName));
-        }
 
         // Списък на основните модули на bgERP
         $packs = 'core,log,fileman,drdata,bglocal,editwatch,recently,thumb,doc,help,acc,cond,uiext,currency,cms,ograph,
@@ -286,14 +280,14 @@ class bgerp_Setup extends core_ProtoSetup
                   tcost,purchase,accda,frame,frame2,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,
                   callcenter,social,status,phpmailer,label,webkittopdf,jqcolorpicker,export,select2';
-        
+
         // Ако има private проект, добавяме и инсталатора на едноименния му модул
         if (defined('EF_PRIVATE_PATH')) {
             $packs .= ',' . strtolower(basename(EF_PRIVATE_PATH));
         }
 
         // Добавяме допълнителните пакети, само при първоначален Setup
-        if ($mustInstallAdditional) {
+        if (($isFirstSetup) || !$Packs->isInstalled('avatar')) {
             $packs .= ',avatar,keyboard,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,toast,minify,rtac,hljs,pixlr,tnef';
         } else {
             $packs = arr::make($packs, true);

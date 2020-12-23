@@ -89,8 +89,7 @@ class crm_Companies extends core_Master
     /**
      * Полета за експорт
      */
-    public $exportableCsvFields = 'name,nameList,country,pCode,place,address,email,tel,fax,website,vatId,eori,uicId,nkid,info,logo,folderName,groupList';
-    
+    public $exportableCsvFields = 'name,vatId,uicId,eori,country,pCode,place,address,email,tel,fax,website,info,logo,folderName,nkid,groupList';
     
     /**
      * Класове за автоматично зареждане
@@ -299,8 +298,8 @@ class crm_Companies extends core_Master
         
         // Данъчен номер на фирмата
         $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv,silent');
-        $this->FLD('eori', 'drdata_type_Eori', 'caption=EORI №,remember=info,class=contactData,export=Csv,silent');
         $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv,silent');
+        $this->FLD('eori', 'drdata_type_Eori', 'caption=EORI №,remember=info,class=contactData,export=Csv,silent');
         
         // Адресни данни
         $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,class=contactData,mandatory,export=Csv');
@@ -2392,7 +2391,11 @@ class crm_Companies extends core_Master
         if (isset($rec->country)) {
             $rec->country = drdata_Countries::getIdByName($rec->country);
         }
-        
+
+        if (isset($rec->nkid)) {
+            $rec->nkid = bglocal_NKID::fetchField(array("#title = '[#1#]'", $rec->nkid));
+        }
+
         // Проверка дали има дублиращи се записи
         $query = $mvc->getQuery();
         if ($name = trim($rec->name)) {
