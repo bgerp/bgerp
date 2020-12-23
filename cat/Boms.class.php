@@ -1222,7 +1222,12 @@ class cat_Boms extends core_Master
         }
         
         // Умножаваме цената по количеството
-        $price *= $quantity;
+        if($quantity != cat_BomDetails::CALC_ERROR){
+            $price *= $quantity;
+        } else {
+            return false;
+        }
+
         
         // Връщаме намерената цена
         return $price;
