@@ -545,7 +545,8 @@ class csv_Lib
             $captionC = trim(mb_strtolower($caption));
             $nameC = trim(mb_strtolower($name));
 
-            foreach ((array) $rowsArr['data'][0] as $id => $val) {
+            $cDataArr = $rowsArr['firstRow'] ? $rowsArr['firstRow'] : $rowsArr['data'][0];
+            foreach ((array) $cDataArr as $id => $val) {
                 $valC = trim(mb_strtolower($val));
 
                 if (!$valC) {
