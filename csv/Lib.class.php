@@ -419,7 +419,9 @@ class csv_Lib
                     $value = $type->toVerbal($rec->{$name});
                     Mode::pop('text');
                 } elseif ($type instanceof fileman_FileType) {
-                    $value = toUrl(array('F', 'D', $rec->{$name}), 'absolute');
+                    if (trim($rec->{$name})) {
+                        $value = toUrl(array('F', 'D', $rec->{$name}), 'absolute');
+                    }
                 } elseif ($type instanceof type_Enum) {
                     $value = $type->toVerbal($rec->{$name});
                 } elseif ($type instanceof fileman_FileSize) {
