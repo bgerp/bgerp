@@ -2391,7 +2391,11 @@ class crm_Companies extends core_Master
         if (isset($rec->country)) {
             $rec->country = drdata_Countries::getIdByName($rec->country);
         }
-        
+
+        if (isset($rec->nkid)) {
+            $rec->nkid = bglocal_NKID::fetchField(array("#title = '[#1#]'", $rec->nkid));
+        }
+
         // Проверка дали има дублиращи се записи
         $query = $mvc->getQuery();
         if ($name = trim($rec->name)) {
