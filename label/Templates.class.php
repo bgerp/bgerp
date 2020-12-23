@@ -713,6 +713,9 @@ class label_Templates extends core_Master
                     } elseif($placeholder == 'QR_CODE'){
                         $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'qr', 'Ratio' => '4', 'Width' => '60', 'Height' => '60', 'Rotation' => 'no');
                         label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
+                    } elseif($placeholder == 'QR_CODE_90'){
+                        $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'qr', 'Ratio' => '4', 'Width' => '90', 'Height' => '90', 'Rotation' => 'no');
+                        label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
                     } elseif($placeholder == 'BARCODE_WORK_CARDS'){
                         $params = array('Showing' => 'barcode', 'BarcodeType' => 'code128', 'Ratio' => '4', 'Width' => '120', 'Height' => '60', 'Rotation' => 'no');
                         label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);

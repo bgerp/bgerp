@@ -693,7 +693,9 @@ class cat_Boms extends core_Master
         
         if (is_array($materials)) {
             foreach ($materials as &$m) {
-                $m->propQuantity /= $m->quantityInPack;
+                if ($m->propQuantity != cat_BomDetails::CALC_ERROR) {
+                    $m->propQuantity /= $m->quantityInPack;
+                }
             }
         }
         
@@ -1220,7 +1222,12 @@ class cat_Boms extends core_Master
         }
         
         // Умножаваме цената по количеството
-        $price *= $quantity;
+        if($quantity != cat_BomDetails::CALC_ERROR){
+            $price *= $quantity;
+        } else {
+            return false;
+        }
+
         
         // Връщаме намерената цена
         return $price;

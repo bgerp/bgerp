@@ -66,6 +66,18 @@ class label_Media extends core_Manager
      * Кой има право да го изтрие?
      */
     public $canReject = 'labelMaster, admin, ceo';
+
+
+    /**
+     * Кой има право да оттегля системните данни?
+     */
+    public $canRejectsysdata = 'labelMaster, admin, ceo';
+
+
+    /**
+     * Кой има право да оттегля системните данни?
+     */
+    public $canRestoresysdata = 'labelMaster, admin, ceo';
     
     
     /**
@@ -190,9 +202,11 @@ class label_Media extends core_Manager
         $query = self::getQuery();
         $query->where(array("#width = '[#1#]'", trim($sizeArr[0])));
         $query->where(array("#height = '[#1#]'", trim($sizeArr[1])));
-        
+
+        $query->where("#state != 'rejected'");
+
         $query->orderBy('createdOn', 'DESC');
-        
+
         while ($rec = $query->fetch()) {
             $resArr[$rec->id] = self::recToVerbal($rec)->title;
         }

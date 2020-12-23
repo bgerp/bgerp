@@ -85,7 +85,8 @@ class planning_interface_ProductionNoteImpl
         $placeholders['EXPIRY_TIME'] = (object) array('type' => 'text');
         $placeholders['EXPIRY_DATE'] = (object) array('type' => 'text');
         $placeholders['QR_CODE'] = (object) array('type' => 'text', 'hidden' => true);
-        
+        $placeholders['QR_CODE_90'] = (object) array('type' => 'text', 'hidden' => true);
+
         if (isset($objId)) {
             
             // Проверка има ли продуктови параметри, които не могат да се редактират от формата
@@ -212,7 +213,7 @@ class planning_interface_ProductionNoteImpl
         $singleUrl = toUrl(array($this->class, 'single', $rec->id), 'absolute');
         $arr = array();
         for ($i = 1; $i <= $cnt; $i++) {
-            $res = array('CODE' => $code, 'NAME' => $name, 'MEASURE_ID' => $measureId, 'QUANTITY' => $quantity, 'JOB' => $jobHandle, 'VALIOR' => $date, 'NET_WEIGHT' => $netWeightVerbal, 'QR_CODE' => $singleUrl);
+            $res = array('CODE' => $code, 'NAME' => $name, 'MEASURE_ID' => $measureId, 'QUANTITY' => $quantity, 'JOB' => $jobHandle, 'VALIOR' => $date, 'NET_WEIGHT' => $netWeightVerbal, 'QR_CODE' => $singleUrl, 'QR_CODE_90' => $singleUrl);
             if(isset($batch)){
                 $res['BATCH'] = $batch;
             }
