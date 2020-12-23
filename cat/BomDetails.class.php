@@ -907,9 +907,11 @@ class cat_BomDetails extends doc_Detail
         if (is_array($data->recs)) {
             foreach ($data->recs as $id => &$rec) {
                 if ($rec->parentId) {
-                    if ($data->recs[$rec->parentId]->rowQuantity != cat_BomDetails::CALC_ERROR) {
-                        $rec->rowQuantity *= $data->recs[$rec->parentId]->rowQuantity;
-                        $data->rows[$id]->rowQuantity = $mvc->getFieldType('rowQuantity')->toVerbal($rec->rowQuantity);
+                    if ($rec->rowQuantity != cat_BomDetails::CALC_ERROR) {
+                        if ($data->recs[$rec->parentId]->rowQuantity != cat_BomDetails::CALC_ERROR) {
+                            $rec->rowQuantity *= $data->recs[$rec->parentId]->rowQuantity;
+                            $data->rows[$id]->rowQuantity = $mvc->getFieldType('rowQuantity')->toVerbal($rec->rowQuantity);
+                        }
                     }
                 }
                 
