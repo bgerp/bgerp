@@ -1113,9 +1113,14 @@ class pos_Receipts extends core_Master
     /**
      * Връща планираните наличности
      *
-     * @see store_plg_StockPlanning
      * @param stdClass $rec
-     * @return array $res
+     * @return array
+     *       ['productId']        - ид на артикул
+     *       ['storeId']          - ид на склад, или null, ако няма
+     *       ['date']             - на коя дата
+     *       ['quantityIn']       - к-во очаквано
+     *       ['quantityOut']      - к-во за експедиране
+     *       ['genericProductId'] - ид на генеричния артикул, ако има
      */
     public function getPlannedStocks($rec)
     {
@@ -1145,11 +1150,8 @@ class pos_Receipts extends core_Master
                     $res[$key] = (object)array('storeId'          => $dRec->storeId,
                                                'productId'        => $dRec->productId,
                                                'date'             => $rec->valior,
-                                               'sourceClassId'    => $this->getClassId(),
-                                               'sourceId'         => $rec->id,
                                                'quantityIn'       => null,
                                                'quantityOut'      => 0,
-                                               'threadId'         => null,
                                                'genericProductId' => $genericProductId);
                 }
                 $res[$key]->quantityOut += $quantity;

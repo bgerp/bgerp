@@ -212,8 +212,14 @@ class planning_Jobs extends core_Master
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId';
-    
-    
+
+
+    /**
+     *  При преминаването в кои състояния ще се обновяват планираните складови наличностти
+     */
+    public $updatePlannedStockOnChangeStates = array('stopped', 'wakeup', 'active');
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -1161,12 +1167,14 @@ class planning_Jobs extends core_Master
      */
     public static function updateProducedQuantity($containerId)
     {
+        $me = cls::get(get_called_class());
         $rec = static::fetch("#containerId = {$containerId}");
         $noteQuery = self::getJobProductionNotesQuery($rec);
         $totalQuantity = arr::sumValuesArray($noteQuery->fetchAll(), 'quantity');
         $rec->quantityProduced = empty($totalQuantity) ? 0 : $totalQuantity;
-        
-        self::save($rec, 'quantityProduced');
+
+        $me->save_($rec, 'quantityProduced');
+        $me->touchRec($rec);
     }
     
     
@@ -1461,9 +1469,14 @@ class planning_Jobs extends core_Master
     /**
      * Връща планираните наличности
      *
-     * @see store_plg_StockPlanning
      * @param stdClass $rec
-     * @return array $res
+     * @return array
+     *       ['productId']        - ид на артикул
+     *       ['storeId']          - ид на склад, или null, ако няма
+     *       ['date']             - на коя дата
+     *       ['quantityIn']       - к-во очаквано
+     *       ['quantityOut']      - к-во за експедиране
+     *       ['genericProductId'] - ид на генеричния артикул, ако има
      */
     public function getPlannedStocks($rec)
     {
@@ -1486,8 +1499,6 @@ class planning_Jobs extends core_Master
                 $res[] = (object)array('storeId'          => $rec->storeId,
                                        'productId'        => $rec->productId,
                                        'date'             => $date,
-                                       'sourceClassId'    => $this->getClassId(),
-                                       'sourceId'         => $rec->id,
                                        'quantityIn'       => $quantityToProduce,
                                        'quantityOut'      => null,
                                        'genericProductId' => $genericProductId);
@@ -1569,8 +1580,6 @@ class planning_Jobs extends core_Master
                                 $res[] = (object)array('storeId'          => $rec->storeId,
                                                        'productId'        => $materialRec->productId,
                                                        'date'             => $date,
-                                                       'sourceClassId'    => $this->getClassId(),
-                                                       'sourceId'         => $rec->id,
                                                        'quantityIn'       => null,
                                                        'quantityOut'      => $remainingQuantity,
                                                        'genericProductId' => $genericProductId);

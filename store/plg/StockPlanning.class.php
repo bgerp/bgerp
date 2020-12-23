@@ -29,6 +29,8 @@ class store_plg_StockPlanning extends core_Plugin
         setIfNot($mvc->stockPlanningDirection, 'out');
         setIfNot($mvc->updateStocksOnShutdown, array());
         setIfNot($mvc->exStateField, $mvc->hasPlugin('doc_DocumentPlg') ? 'brState' : 'exState');
+
+        $mvc->declareInterface('store_StockPlanningIntf');
     }
 
 
@@ -76,8 +78,6 @@ class store_plg_StockPlanning extends core_Plugin
                     $res[] = (object)array('storeId' => $rec->{$mvc->storeFieldName},
                                            'productId' => $dRec->{$Detail->productFieldName},
                                            'date' => $date,
-                                           'sourceClassId' => $mvc->getClassId(),
-                                           'sourceId' => $rec->id,
                                            'quantityIn' => $quantityIn,
                                            'quantityOut' => $quantityOut,
                                            'threadId' => $rec->threadId,
@@ -98,27 +98,57 @@ class store_plg_StockPlanning extends core_Plugin
 
 
     /**
+     * Рекалкулиране на плануването по основния документ, ако има такъв
+     *
+     * @param $mvc
+     * @param $rec
+     */
+    private static function recalcOriginPlannedStocks($mvc, $rec)
+    {
+        if(isset($rec->threadId)){
+            if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
+                if($firstDocument->isInstanceOf('planning_Tasks')){
+                    $firstDocument = doc_Containers::getDocument($firstDocument->fetchField('originId'));
+                } elseif($mvc instanceof deals_DealMaster || $firstDocument->isInstanceOf('findeals_Deals') || ($mvc instanceof planning_Jobs)){
+                    $firstDocument = null;
+                }
+            }
+
+            if(isset($firstDocument)){
+                core_Statuses::newStatus("{$mvc->className}-{$rec->id} CALL {$firstDocument->className}-{$firstDocument->that}");
+                $firstDocument->getInstance()->updateStocksOnShutdown[$firstDocument->that] = $firstDocument->that;
+            } else {
+                core_Statuses::newStatus("NULL {$mvc->className}-{$rec->id}");
+            }
+        }
+    }
+
+
+    /**
      * След обновяване на данните за запазване
      */
     public static function on_AfterUpdatePlannedStocks($mvc, &$res, $rec)
     {
-        $firstDoc = isset($rec->threadId) ? doc_Threads::getFirstDocument($rec->threadId) : null;
-        $firstDoc = ($firstDoc && $firstDoc->isInstanceOf('deals_DealMaster') && !($mvc instanceof deals_DealMaster)) ? $firstDoc : null;
-
         if(!$res){
             if(in_array($rec->state, $mvc->updatePlannedStockOnChangeStates)){
-
                 store_StockPlanning::updateByDocument($mvc, $rec->id);
-                if($firstDoc){
-                    $firstDoc->getInstance()->updateStocksOnShutdown[$firstDoc->that] = $firstDoc->that;
-                }
+                self::recalcOriginPlannedStocks($mvc, $rec);
             } elseif(!in_array($rec->state, $mvc->updatePlannedStockOnChangeStates) && in_array($rec->{$mvc->exStateField}, $mvc->updatePlannedStockOnChangeStates)){
+
                 store_StockPlanning::remove($mvc, $rec->id);
-                if($firstDoc){
-                    $firstDoc->getInstance()->updateStocksOnShutdown[$firstDoc->that] = $firstDoc->that;
-                }
+                self::recalcOriginPlannedStocks($mvc, $rec);
             }
         }
+    }
+
+
+    /**
+     * Контиране на счетоводен документ
+     */
+    public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        self::recalcOriginPlannedStocks($mvc, $rec);
     }
 
 
@@ -128,12 +158,7 @@ class store_plg_StockPlanning extends core_Plugin
     public static function on_AfterRestore($mvc, &$res, &$rec)
     {
         $rec = $mvc->fetchRec($rec);
-
-        $firstDoc = isset($rec->threadId) ? doc_Threads::getFirstDocument($rec->threadId) : null;
-        $firstDoc = ($firstDoc && $firstDoc->isInstanceOf('deals_DealMaster') && !($mvc instanceof deals_DealMaster)) ? $firstDoc : null;
-        if($firstDoc){
-            $firstDoc->getInstance()->updateStocksOnShutdown[$firstDoc->that] = $firstDoc->that;
-        }
+        self::recalcOriginPlannedStocks($mvc, $rec);
     }
 
 
@@ -143,11 +168,7 @@ class store_plg_StockPlanning extends core_Plugin
     public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        $firstDoc = isset($rec->threadId) ? doc_Threads::getFirstDocument($rec->threadId) : null;
-        $firstDoc = ($firstDoc && $firstDoc->isInstanceOf('deals_DealMaster') && !($mvc instanceof deals_DealMaster)) ? $firstDoc : null;
-        if($firstDoc){
-            $firstDoc->getInstance()->updateStocksOnShutdown[$firstDoc->that] = $firstDoc->that;
-        }
+        self::recalcOriginPlannedStocks($mvc, $rec);
     }
 
 

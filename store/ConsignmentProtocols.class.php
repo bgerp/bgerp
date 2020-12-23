@@ -613,9 +613,14 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Връща планираните наличности
      *
-     * @see store_plg_StockPlanning
      * @param stdClass $rec
-     * @return array $res
+     * @return array
+     *       ['productId']        - ид на артикул
+     *       ['storeId']          - ид на склад, или null, ако няма
+     *       ['date']             - на коя дата
+     *       ['quantityIn']       - к-во очаквано
+     *       ['quantityOut']      - к-во за експедиране
+     *       ['genericProductId'] - ид на генеричния артикул, ако има
      */
     public function getPlannedStocks($rec)
     {
@@ -642,11 +647,8 @@ class store_ConsignmentProtocols extends core_Master
             $res[] = (object)array('storeId'          => $rec->storeId,
                                    'productId'        => $dRec->productId,
                                    'date'             => $date,
-                                   'sourceClassId'    => $this->getClassId(),
-                                   'sourceId'         => $rec->id,
                                    'quantityIn'       => null,
                                    'quantityOut'      => $dRec->totalQuantity,
-                                   'threadId'         => $rec->threadId,
                                    'genericProductId' => $genericProductId);
         }
 

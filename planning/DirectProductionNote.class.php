@@ -1116,9 +1116,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     /**
      * Връща планираните наличности
      *
-     * @see store_plg_StockPlanning
      * @param stdClass $rec
-     * @return array $res
+     * @return array
+     *       ['productId']        - ид на артикул
+     *       ['storeId']          - ид на склад, или null, ако няма
+     *       ['date']             - на коя дата
+     *       ['quantityIn']       - к-во очаквано
+     *       ['quantityOut']      - к-во за експедиране
+     *       ['genericProductId'] - ид на генеричния артикул, ако има
      */
     public function getPlannedStocks($rec)
     {
@@ -1132,8 +1137,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $res[] = (object)array('storeId'          => $rec->storeId,
                                    'productId'        => $rec->productId,
                                    'date'             => $date,
-                                   'sourceClassId'    => $this->getClassId(),
-                                   'sourceId'         => $rec->id,
                                    'quantityIn'       => $rec->quantity,
                                    'quantityOut'      => null,
                                    'genericProductId' => null);
@@ -1158,8 +1161,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $res[] = (object)array('storeId'          => $dRec->storeId,
                                    'productId'        => $dRec->productId,
                                    'date'             => $date,
-                                   'sourceClassId'    => $this->getClassId(),
-                                   'sourceId'         => $rec->id,
                                    'quantityIn'       => null,
                                    'quantityOut'      => $dRec->totalQuantity,
                                    'genericProductId' => $genericProductId);
