@@ -4005,8 +4005,6 @@ table .eshop-btn {
     margin-top: 30px; }
   .newsbar.defaultTheme.topPageNewsbar {
     top: 0; }
-  .newsbar.defaultTheme.topPageNewsbar ~ .background-holder {
-    margin-top: 40px; }
 
 .narrow .newsbar.topPageNewsbar {
   position: static; }
