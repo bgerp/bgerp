@@ -71,7 +71,7 @@ class store_StockPlanning extends core_Manager
         $this->FLD('date', 'datetime', 'caption=Дата');
         $this->FLD('quantityIn', 'double(maxDecimals=3)', 'caption=Количество->Влиза');
         $this->FLD('quantityOut', 'double(maxDecimals=3)', 'caption=Количество->Излиза');
-        $this->FLD('sourceClassId', 'class', 'caption=Източник->Клас');
+        $this->FLD('sourceClassId', 'class(interface=core_ManagerIntf,select=title)', 'caption=Източник->Клас');
         $this->FLD('sourceId', 'int', 'caption=Източник->Ид');
         $this->FLD('threadId', 'int', 'caption=Източник->Нишка');
 
@@ -179,10 +179,13 @@ class store_StockPlanning extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->showFields = 'threadId';
+        $data->listFilter->showFields = 'threadId,sourceClassId';
         $data->listFilter->input();
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         if ($rec = $data->listFilter->rec) {
+            if (!empty($rec->sourceClassId)) {
+                $data->query->where("#sourceClassId = {$rec->sourceClassId}");
+            }
 
             if (!empty($rec->threadId)) {
                 $data->query->where("#threadId = {$rec->threadId}");

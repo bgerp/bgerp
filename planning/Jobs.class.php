@@ -1560,10 +1560,14 @@ class planning_Jobs extends core_Master
                             }
 
                             // Ако има оставащо количество за запазване ще се запазва
-                            $remainingQuantity = round($materialRec->quantity - $removeQuantity, 4);
+                            $remainingQuantity = 0;
+                            if($materialRec->quantity != cat_BomDetails::CALC_ERROR){
+                                $remainingQuantity = round($materialRec->quantity - $removeQuantity, 4);
+                            }
+
                             if($remainingQuantity > 0){
                                 $res[] = (object)array('storeId'          => $rec->storeId,
-                                                       'productId'        => $rec->productId,
+                                                       'productId'        => $materialRec->productId,
                                                        'date'             => $date,
                                                        'sourceClassId'    => $this->getClassId(),
                                                        'sourceId'         => $rec->id,
