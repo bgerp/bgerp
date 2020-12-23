@@ -625,19 +625,29 @@ class store_ConsignmentProtocols extends core_Master
         $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$this->valiorFld} : $rec->createdOn);
 
         $dQuery = store_ConsignmentProtocolDetailsSend::getQuery();
+        $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
+        $dQuery->EXT('canConvert', 'cat_Products', "externalName=canConvert,externalKey=productId");
         $dQuery->XPR('totalQuantity', 'double', "SUM(#packQuantity * #quantityInPack)");
         $dQuery->where("#protocolId = {$rec->id}");
         $dQuery->groupBy('productId');
 
         while ($dRec = $dQuery->fetch()) {
-            $res[] = (object)array('storeId'       => $rec->storeId,
-                                   'productId'     => $dRec->productId,
-                                   'date'          => $date,
-                                   'sourceClassId' => $this->getClassId(),
-                                   'sourceId'      => $rec->id,
-                                   'quantityIn'    => null,
-                                   'quantityOut'   => $dRec->totalQuantity,
-                                   'threadId'      => $rec->threadId);
+            $genericProductId = null;
+            if($dRec->generic == 'yes'){
+                $genericProductId = $dRec->productId;
+            } elseif($dRec->canConvert == 'yes'){
+                $genericProductId = planning_GenericMapper::fetchField("#productId = {$dRec->productId}", 'genericProductId');
+            }
+
+            $res[] = (object)array('storeId'          => $rec->storeId,
+                                   'productId'        => $dRec->productId,
+                                   'date'             => $date,
+                                   'sourceClassId'    => $this->getClassId(),
+                                   'sourceId'         => $rec->id,
+                                   'quantityIn'       => null,
+                                   'quantityOut'      => $dRec->totalQuantity,
+                                   'threadId'         => $rec->threadId,
+                                   'genericProductId' => $genericProductId);
         }
 
         return $res;

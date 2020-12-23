@@ -1123,8 +1123,9 @@ class pos_Receipts extends core_Master
         $rec = $this->fetch($id, '*', false);
 
         $dQuery = pos_ReceiptDetails::getQuery();
-        $dQuery->where("#receiptId = {$rec->id}");
-        $dQuery->where("#action LIKE '%sale%'");
+        $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
+        $dQuery->EXT('canConvert', 'cat_Products', "externalName=canConvert,externalKey=productId");
+        $dQuery->where("#receiptId = {$rec->id} AND #action LIKE '%sale%'");
 
         $res = array();
         while($dRec = $dQuery->fetch()){
@@ -1135,14 +1136,21 @@ class pos_Receipts extends core_Master
             if(!empty($dRec->storeId)){
                 $key = "{$dRec->storeId}|{$dRec->productId}";
                 if(!array_key_exists($key, $res)){
-                    $res[$key] = (object)array('storeId'       => $dRec->storeId,
-                                               'productId'     => $dRec->productId,
-                                               'date'          => $rec->valior,
-                                               'sourceClassId' => $this->getClassId(),
-                                               'sourceId'      => $rec->id,
-                                               'quantityIn'    => null,
-                                               'quantityOut'   => 0,
-                                               'threadId'      => null,);
+                    $genericProductId = null;
+                    if($dRec->generic == 'yes'){
+                        $genericProductId = $dRec->productId;
+                    } elseif($dRec->canConvert == 'yes'){
+                        $genericProductId = planning_GenericMapper::fetchField("#productId = {$dRec->productId}", 'genericProductId');
+                    }
+                    $res[$key] = (object)array('storeId'          => $dRec->storeId,
+                                               'productId'        => $dRec->productId,
+                                               'date'             => $rec->valior,
+                                               'sourceClassId'    => $this->getClassId(),
+                                               'sourceId'         => $rec->id,
+                                               'quantityIn'       => null,
+                                               'quantityOut'      => 0,
+                                               'threadId'         => null,
+                                               'genericProductId' => $genericProductId);
                 }
                 $res[$key]->quantityOut += $quantity;
             }

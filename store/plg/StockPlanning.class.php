@@ -53,6 +53,8 @@ class store_plg_StockPlanning extends core_Plugin
                 $Detail = cls::get($mvc->mainDetail);
                 $dQuery = $Detail->getQuery();
                 $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey={$Detail->productFieldName}");
+                $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey={$Detail->productFieldName}");
+                $dQuery->EXT('canConvert', 'cat_Products', "externalName=canConvert,externalKey={$Detail->productFieldName}");
                 $dQuery->XPR('totalQuantity', 'double', "SUM(#{$Detail->quantityFld})");
                 $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #canStore = 'yes'");
                 $dQuery->groupBy($Detail->productFieldName);
@@ -64,6 +66,13 @@ class store_plg_StockPlanning extends core_Plugin
                     $var = &${$var};
                     $var = $dRec->totalQuantity;
 
+                    $genericProductId = null;
+                    if($dRec->generic == 'yes'){
+                        $genericProductId = $dRec->{$Detail->productFieldName};
+                    } elseif($dRec->canConvert == 'yes'){
+                        $genericProductId = planning_GenericMapper::fetchField("#productId = {$dRec->{$Detail->productFieldName}}", 'genericProductId');
+                    }
+
                     $res[] = (object)array('storeId' => $rec->{$mvc->storeFieldName},
                                            'productId' => $dRec->{$Detail->productFieldName},
                                            'date' => $date,
@@ -71,7 +80,8 @@ class store_plg_StockPlanning extends core_Plugin
                                            'sourceId' => $rec->id,
                                            'quantityIn' => $quantityIn,
                                            'quantityOut' => $quantityOut,
-                                           'threadId' => $rec->threadId);
+                                           'threadId' => $rec->threadId,
+                                           'genericProductId' => $genericProductId);
                 }
             }
         }

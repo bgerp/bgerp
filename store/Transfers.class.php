@@ -694,28 +694,39 @@ class store_Transfers extends core_Master
         $Detail = cls::get('store_TransfersDetails');
 
         $dQuery = $Detail->getQuery();
+        $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey=newProductId");
+        $dQuery->EXT('canConvert', 'cat_Products', "externalName=canConvert,externalKey=newProductId");
         $dQuery->XPR('totalQuantity', 'double', "SUM(#{$Detail->quantityFld})");
         $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
         $dQuery->groupBy('newProductId');
 
         while ($dRec = $dQuery->fetch()) {
-            $res[] = (object)array('storeId'       => $rec->fromStore,
-                                   'productId'     => $dRec->newProductId,
-                                   'date'          => $date,
-                                   'sourceClassId' => $this->getClassId(),
-                                   'sourceId'      => $rec->id,
-                                   'quantityIn'    => null,
-                                   'quantityOut'   => $dRec->totalQuantity,
-                                   'threadId' => $rec->threadId);
+            $genericProductId = null;
+            if($dRec->generic == 'yes'){
+                $genericProductId = $dRec->newProductId;
+            } elseif($dRec->canConvert == 'yes'){
+                $genericProductId = planning_GenericMapper::fetchField("#productId = {$dRec->newProductId}", 'genericProductId');
+            }
 
-            $res[] = (object)array('storeId'       => $rec->toStore,
-                                   'productId'     => $dRec->newProductId,
-                                   'date'          => $date,
-                                   'sourceClassId' => $this->getClassId(),
-                                   'sourceId'      => $rec->id,
-                                   'quantityIn'    => $dRec->totalQuantity,
-                                   'quantityOut'   => null,
-                                   'threadId'      => $rec->threadId);
+            $res[] = (object)array('storeId'          => $rec->fromStore,
+                                   'productId'        => $dRec->newProductId,
+                                   'date'             => $date,
+                                   'sourceClassId'    => $this->getClassId(),
+                                   'sourceId'         => $rec->id,
+                                   'quantityIn'       => null,
+                                   'quantityOut'      => $dRec->totalQuantity,
+                                   'threadId'         => $rec->threadId,
+                                   'genericProductId' => $genericProductId);
+
+            $res[] = (object)array('storeId'          => $rec->toStore,
+                                   'productId'        => $dRec->newProductId,
+                                   'date'             => $date,
+                                   'sourceClassId'    => $this->getClassId(),
+                                   'sourceId'         => $rec->id,
+                                   'quantityIn'       => $dRec->totalQuantity,
+                                   'quantityOut'      => null,
+                                   'threadId'         => $rec->threadId,
+                                   'genericProductId' => $genericProductId);
         }
 
         return $res;

@@ -57,7 +57,7 @@ class store_StockPlanning extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId,storeId,date,quantityIn,quantityOut,sourceId=Източник,threadId=Нишка,createdOn';
+    public $listFields = 'productId,genericProductId,storeId,date,quantityIn,quantityOut,sourceId=Източник,threadId=Нишка,createdOn';
 
 
     /**
@@ -66,6 +66,7 @@ class store_StockPlanning extends core_Manager
     public function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,tdClass=leftAlign');
+        $this->FLD('genericProductId', 'key(mvc=cat_Products,select=name)', 'caption=Генеричен,tdClass=leftAlign');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,tdClass=storeCol leftAlign');
         $this->FLD('date', 'datetime', 'caption=Дата');
         $this->FLD('quantityIn', 'double(maxDecimals=3)', 'caption=Количество->Влиза');
@@ -89,18 +90,18 @@ class store_StockPlanning extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-       if($rec->productId){
-           $row->productId = cat_Products::getHyperlink($rec->productId, true);
+       $row->productId = cat_Products::getHyperlink($rec->productId, true);
+
+       if(isset($rec->genericProductId)){
+           $row->genericProductId = cat_Products::getHyperlink($rec->genericProductId, true);
        }
 
-        if(isset($rec->storeId)){
-            $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
-        }
+       if(isset($rec->storeId)){
+           $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
+       }
 
-        if($rec->sourceClassId){
-            $Source = cls::get($rec->sourceClassId);
-            $row->sourceId = $Source->hasPlugin('doc_DocumentPlg') ? $Source->getLink($rec->sourceId, 0) : $Source->getHyperlink($rec->sourceId, true);
-        }
+       $Source = cls::get($rec->sourceClassId);
+       $row->sourceId = $Source->hasPlugin('doc_DocumentPlg') ? $Source->getLink($rec->sourceId, 0) : $Source->getHyperlink($rec->sourceId, true);
     }
 
 
@@ -155,7 +156,7 @@ class store_StockPlanning extends core_Manager
 
         // Синхронизиране на старите със новите записи
         $Stocks = cls::get('store_StockPlanning');
-        $synced = arr::syncArrays($plannedStocks, $exRecs, 'productId,storeId,sourceClassId,sourceId', 'quantityIn,quantityOut');
+        $synced = arr::syncArrays($plannedStocks, $exRecs, 'genericProductId,productId,storeId,sourceClassId,sourceId', 'quantityIn,quantityOut');
 
         if(countR($synced['insert'])){
             $Stocks->saveArray($synced['insert']);
@@ -189,7 +190,7 @@ class store_StockPlanning extends core_Manager
         }
 
         // Сортиране на записите по num
-        $data->query->orderBy('id');
+        $data->query->orderBy('id', "DESC");
     }
 
 

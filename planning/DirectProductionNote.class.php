@@ -1129,30 +1129,40 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
         if($canStore == 'yes'){
-            $res[] = (object)array('storeId'       => $rec->storeId,
-                'productId'     => $rec->productId,
-                'date'          => $date,
-                'sourceClassId' => $this->getClassId(),
-                'sourceId'      => $rec->id,
-                'quantityIn'    => $rec->quantity,
-                'quantityOut'   => null);
+            $res[] = (object)array('storeId'          => $rec->storeId,
+                                   'productId'        => $rec->productId,
+                                   'date'             => $date,
+                                   'sourceClassId'    => $this->getClassId(),
+                                   'sourceId'         => $rec->id,
+                                   'quantityIn'       => $rec->quantity,
+                                   'quantityOut'      => null,
+                                   'genericProductId' => null);
         }
 
         $dQuery = planning_DirectProductNoteDetails::getQuery();
+        $dQuery->EXT('canConvert', 'cat_Products', "externalName=canConvert,externalKey=productId");
+        $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
         $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
         $dQuery->XPR('totalQuantity', 'double', "SUM(#quantity)");
         $dQuery->where("#noteId = {$rec->id} AND #storeId IS NOT NULL AND #type = 'input' AND #canStore = 'yes'");
         $dQuery->groupBy('productId');
 
         while ($dRec = $dQuery->fetch()) {
-            $res[] = (object)array('storeId'       => $dRec->storeId,
-                                   'productId'     => $dRec->productId,
-                                   'date'          => $date,
-                                   'sourceClassId' => $this->getClassId(),
-                                   'sourceId'      => $rec->id,
-                                   'quantityIn'    => null,
-                                   'quantityOut'   => $dRec->totalQuantity,
-                                   'threadId'      => $rec->threadId);
+            $genericProductId = null;
+            if($dRec->generic == 'yes'){
+                $genericProductId = $dRec->productId;
+            } elseif($dRec->canConvert == 'yes'){
+                $genericProductId = planning_GenericMapper::fetchField("#productId = {$dRec->productId}", 'genericProductId');
+            }
+
+            $res[] = (object)array('storeId'          => $dRec->storeId,
+                                   'productId'        => $dRec->productId,
+                                   'date'             => $date,
+                                   'sourceClassId'    => $this->getClassId(),
+                                   'sourceId'         => $rec->id,
+                                   'quantityIn'       => null,
+                                   'quantityOut'      => $dRec->totalQuantity,
+                                   'genericProductId' => $genericProductId);
         }
 
         return $res;

@@ -214,7 +214,7 @@ class store_Setup extends core_ProtoSetup
     {
         if(!store_Products::count()) return;
         $Stocks = cls::get('store_StockPlanning');
-        //$Stocks->truncate();
+        $Stocks->truncate();
 
         $stockableClasses = array('store_ShipmentOrders',
                                   'store_Receipts',
@@ -240,7 +240,7 @@ class store_Setup extends core_ProtoSetup
         $Stocks->saveArray($stocksArr);
 
         $dealsArr = array();
-        $stockableOriginClasses = array('sales_Sales', 'purchase_Purchases');
+        $stockableOriginClasses = array('sales_Sales', 'purchase_Purchases', 'planning_Jobs');
         foreach ($stockableOriginClasses as $cls) {
             $Source = cls::get($cls);
             $Source->setupMvc();
@@ -255,6 +255,8 @@ class store_Setup extends core_ProtoSetup
         }
 
         $Stocks->saveArray($dealsArr);
+
+
 
     }
 }
