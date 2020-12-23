@@ -134,16 +134,19 @@ class dec_Declarations extends core_Master
     {
         // номера на документа
         $this->FLD('doc', 'key(mvc=doc_Containers)', 'caption=Към документ, input=none');
+
+        // Заглавие, което да излиза в документа
+        $this->FLD('documentTitle', 'varchar', 'caption=Заглавие на документ');
         
         // дата на декларацията
         $this->FLD('date', 'date', 'caption=Дата');
         
         // декларатор
         $this->FLD('declaratorName', 'varchar', 'caption=Представлявана от->Име, recently, mandatory,remember');
-        
+
         // позицията на декларатора
         $this->FLD('declaratorPosition', 'varchar', 'caption=Представлявана от->Позиция, recently, mandatory,remember');
-        
+
         // допълнителни пояснения
         $this->FLD('explanation', 'varchar', 'caption=Представлявана от->Допълнително, recently, remember');
         
@@ -225,6 +228,10 @@ class dec_Declarations extends core_Master
 
         // Зареждаме данните за собствената фирма
         $ownCompanyData = crm_Companies::fetchOwnCompany();
+
+        if (!$rec->documentTitle) {
+            $row->documentTitle = doc_TplManager::getTitleByid($rec->template);
+        }
 
         // Адреса на фирмата
         $address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
