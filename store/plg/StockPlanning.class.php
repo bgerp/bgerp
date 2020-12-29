@@ -115,10 +115,7 @@ class store_plg_StockPlanning extends core_Plugin
             }
 
             if(isset($firstDocument)){
-                core_Statuses::newStatus("{$mvc->className}-{$rec->id} CALL {$firstDocument->className}-{$firstDocument->that}");
                 $firstDocument->getInstance()->updateStocksOnShutdown[$firstDocument->that] = $firstDocument->that;
-            } else {
-                core_Statuses::newStatus("NULL {$mvc->className}-{$rec->id}");
             }
         }
     }
@@ -183,7 +180,6 @@ class store_plg_StockPlanning extends core_Plugin
            // Обновяване на планираните количества на всички заопашени документи
            foreach ($mvc->updateStocksOnShutdown as $id) {
                store_StockPlanning::updateByDocument($mvc, $id);
-               core_Statuses::newStatus("U {$id}", 'warning');
            }
        }
     }
