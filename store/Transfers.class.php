@@ -688,6 +688,8 @@ class store_Transfers extends core_Master
      *       ['quantityIn']       - к-во очаквано
      *       ['quantityOut']      - к-во за експедиране
      *       ['genericProductId'] - ид на генеричния артикул, ако има
+     *       ['reffClassId']      - клас на обект (различен от този на източника)
+     *       ['reffId']           - ид на обект (различен от този на източника)
      */
     public function getPlannedStocks($rec)
     {

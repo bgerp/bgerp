@@ -1477,6 +1477,8 @@ class planning_Jobs extends core_Master
      *       ['quantityIn']       - к-во очаквано
      *       ['quantityOut']      - к-во за експедиране
      *       ['genericProductId'] - ид на генеричния артикул, ако има
+     *       ['reffClassId']      - клас на обект (различен от този на източника)
+     *       ['reffId']           - ид на обект (различен от този на източника)
      */
     public function getPlannedStocks($rec)
     {
@@ -1507,6 +1509,7 @@ class planning_Jobs extends core_Master
                 if($lastReceipt = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales')){
 
                     // Кои са материалите и
+                    $receiptClassId = cat_Boms::getClassId();
                     $materialArr = cat_Boms::getBomMaterials($lastReceipt, $rec->quantity);
                     if(countR($materialArr)){
 
@@ -1582,7 +1585,10 @@ class planning_Jobs extends core_Master
                                                        'date'             => $date,
                                                        'quantityIn'       => null,
                                                        'quantityOut'      => $remainingQuantity,
-                                                       'genericProductId' => $genericProductId);
+                                                       'genericProductId' => $genericProductId,
+                                                       'reffClassId'      => $receiptClassId,
+                                                       'reffId'           => $lastReceipt->id,
+                                    );
                             }
                         }
                     }

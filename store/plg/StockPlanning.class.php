@@ -134,7 +134,6 @@ class store_plg_StockPlanning extends core_Plugin
                 store_StockPlanning::updateByDocument($mvc, $rec->id);
                 self::recalcOriginPlannedStocks($mvc, $rec);
             } elseif(!in_array($rec->state, $mvc->updatePlannedStockOnChangeStates) && in_array($rec->{$mvc->exStateField}, $mvc->updatePlannedStockOnChangeStates)){
-
                 store_StockPlanning::remove($mvc, $rec->id);
                 self::recalcOriginPlannedStocks($mvc, $rec);
             }
@@ -184,6 +183,7 @@ class store_plg_StockPlanning extends core_Plugin
            // Обновяване на планираните количества на всички заопашени документи
            foreach ($mvc->updateStocksOnShutdown as $id) {
                store_StockPlanning::updateByDocument($mvc, $id);
+               core_Statuses::newStatus("U {$id}", 'warning');
            }
        }
     }

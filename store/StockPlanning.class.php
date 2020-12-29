@@ -57,7 +57,7 @@ class store_StockPlanning extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId,genericProductId,storeId,date,quantityIn,quantityOut,sourceId=Източник,threadId=Нишка,createdOn';
+    public $listFields = 'productId,genericProductId,storeId,date,quantityIn,quantityOut,sourceId=Източник->Основен,reffId=Източник->Допълнителен,threadId=Нишка,createdOn';
 
 
     /**
@@ -69,10 +69,12 @@ class store_StockPlanning extends core_Manager
         $this->FLD('genericProductId', 'key(mvc=cat_Products,select=name)', 'caption=Генеричен,tdClass=leftAlign');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,tdClass=storeCol leftAlign');
         $this->FLD('date', 'datetime', 'caption=Дата');
-        $this->FLD('quantityIn', 'double(maxDecimals=3)', 'caption=Количество->Влиза');
-        $this->FLD('quantityOut', 'double(maxDecimals=3)', 'caption=Количество->Излиза');
+        $this->FLD('quantityIn', 'double', 'caption=Количество->Влиза');
+        $this->FLD('quantityOut', 'double', 'caption=Количество->Излиза');
         $this->FLD('sourceClassId', 'class(interface=store_StockPlanningIntf,select=title,allowEmpty)', 'caption=Източник->Клас');
         $this->FLD('sourceId', 'int', 'caption=Източник->Ид,tdClass=leftCol');
+        $this->FLD('reffClassId', 'class', 'caption=Втори източник->Клас,tdClass=leftCol');
+        $this->FLD('reffId', 'key(mvc=doc_Containers,select=id)', 'caption=Втори източник->Ид,tdClass=leftCol');
         $this->FLD('threadId', 'int', 'caption=Източник->Нишка');
 
         $this->setDbIndex('productId,storeId');
@@ -102,6 +104,11 @@ class store_StockPlanning extends core_Manager
 
        $Source = cls::get($rec->sourceClassId);
        $row->sourceId = $Source->hasPlugin('doc_DocumentPlg') ? $Source->getLink($rec->sourceId, 0) : $Source->getHyperlink($rec->sourceId, true);
+
+       if(isset($rec->reffClassId) && isset($rec->reffId)){
+           $SecondSource = cls::get($rec->reffClassId);
+           $row->reffId = $SecondSource->hasPlugin('doc_DocumentPlg') ? $SecondSource->getLink($rec->reffId, 0) : $SecondSource->getHyperlink($rec->reffId, true);
+       }
     }
 
 
@@ -173,14 +180,14 @@ class store_StockPlanning extends core_Manager
 
         // Синхронизиране на старите със новите записи
         $Stocks = cls::get('store_StockPlanning');
-        $synced = arr::syncArrays($plannedStocks, $exRecs, 'genericProductId,productId,storeId,sourceClassId,sourceId', 'date,quantityIn,quantityOut');
+        $synced = arr::syncArrays($plannedStocks, $exRecs, 'genericProductId,productId,storeId,sourceClassId,sourceId', 'date,quantityIn,quantityOut,reffClassId,reffId');
 
         if(countR($synced['insert'])){
             $Stocks->saveArray($synced['insert']);
         }
 
         if(countR($synced['update'])){
-            $Stocks->saveArray($synced['update'], 'id,date,quantityIn,quantityOut');
+            $Stocks->saveArray($synced['update'], 'id,date,quantityIn,quantityOut,reffClassId,reffId');
         }
 
         if(countR($synced['delete'])){
@@ -230,14 +237,34 @@ class store_StockPlanning extends core_Manager
         followRetUrl();
     }
 
+
+
+    public static function recalcByReff($reffClassId, $reffId)
+    {
+        $ReffClass =  cls::get($reffClassId);
+
+        $query = static::getQuery();
+        $query->where("#reffClassId = {$ReffClass->getClassId()} AND #reffId = {$reffId}");
+        $query->groupBy('sourceClassId,sourceId');
+        $query->show('sourceClassId,sourceId');
+        while($rec = $query->fetch()){
+            core_Statuses::newStatus("UPPP: {$rec->sourceClassId} - {$rec->sourceId}");
+            store_StockPlanning::updateByDocument($rec->sourceClassId, $rec->sourceId);
+        }
+    }
+
+
 function act_Test()
 {
     requireRole('debug');
 
+
+    static::queueToRecalcOnShutdown('cat_Boms', 275);
+//bp();
     $stores = array();
     $date = dt::today();
-    //$productId = 27;
-    $r = self::getReservedQuantity($date, $productId);
+    $productId = 27;
+    //$r = self::getReservedQuantity($date, $productId);
 }
     public static function getReservedQuantity($date, $productIds, $stores = null)
     {
