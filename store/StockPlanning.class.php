@@ -268,15 +268,16 @@ function act_Test()
 {
     requireRole('debug');
 
-
+    self::updateByDocument('purchase_Purchases', 553);
+bp();
     static::queueToRecalcOnShutdown('cat_Boms', 275);
 //bp();
     $stores = array();
     $date = dt::today();
     $productId = 27;
-    //$r = self::getReservedQuantity($date, $productId);
+    //$r = self::getPlannedQuantities($date, $productId);
 }
-    public static function getReservedQuantity($date, $productIds = null, $stores = null)
+    public static function getPlannedQuantities($date, $productIds = null, $stores = null)
     {
         if(strlen($date) == 10){
             $from = "{$date} 00:00:00";
