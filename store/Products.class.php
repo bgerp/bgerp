@@ -121,7 +121,7 @@ class store_Products extends core_Detail
      */
     protected static function on_BeforePrepareListPager($mvc, &$res, $data)
     {
-        $mvc->listItemsPerPage = (isset($data->masterMvc)) ? 100 : 20;
+        $mvc->listItemsPerPage = (isset($data->masterMvc)) ? 70 : 20;
     }
     
     
@@ -243,7 +243,7 @@ class store_Products extends core_Detail
 
         if (isset($data->masterMvc)) {
             $data->listFilter->setDefault('order', 'all');
-            $data->listFilter->showFields = 'search,groupId';
+            $data->listFilter->showFields = 'horizon,search,groupId';
         } else {
             $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
             $data->listFilter->setDefault('order', 'active');
@@ -252,7 +252,7 @@ class store_Products extends core_Detail
         }
         
         $data->listFilter->input('horizon,storeId,order,groupId,search', 'silent');
-        
+
         // Ако има филтър
         if ($rec = $data->listFilter->rec) {
             
@@ -321,7 +321,10 @@ class store_Products extends core_Detail
                 if(!empty($rec->horizon)){
                     $data->horizon = $rec->horizon;
                     $horizonVerbal = dt::mysql2verbal($rec->horizon, 'd.m.Y');
-                    arr::placeInAssocArray($data->listFields, array('reservedOut' => "|*{$horizonVerbal}->|Запазено|*"), null, 'storeId');
+
+                    // Добавяне в лист изгледа
+                    $after = ($data->masterMvc) ? 'expectedQuantityTotal' : 'storeId';
+                    arr::placeInAssocArray($data->listFields, array('reservedOut' => "|*{$horizonVerbal}->|Запазено|*"), null, $after);
                     arr::placeInAssocArray($data->listFields, array('expectedIn' => "|*{$horizonVerbal}->|Очаквано|*"), null, 'reservedOut');
 
                     $mvc->FNC('reservedOut', 'double');
@@ -498,6 +501,7 @@ class store_Products extends core_Detail
      */
     protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
+        $data->listFields['reservedQuantity'] = "|Запазено|*<span class='small notBolded'> |*днес|*</span>";
         $data->listFields['expectedQuantity'] = "|Очаквано|*<span class='small notBolded'> |*днес|*</span>";
         $data->listFields['expectedQuantityTotal'] = "<span class='notBolded'>|Очаквано|*";
         $historyBefore = 'code';
@@ -853,13 +857,13 @@ class store_Products extends core_Detail
         }
         
         parent::prepareDetail_($data);
-        
+
         if(countR($data->recs)){
             $totalField = ($data->masterData->rec->generic == 'yes') ? 'code' : 'storeId';
             $data->rows['total'] = (object)array($totalField => "<div style='float:left'>" .  tr('Сумарно') . "</div>");
             $data->rows['total']->ROW_ATTR['style'] = 'background-color:#eee;font-weight:bold';
             
-            foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'expectedQuantityTotal', 'freeQuantity') as $fld){
+            foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'expectedQuantityTotal', 'freeQuantity', 'reservedOut', 'expectedOut') as $fld){
                 ${$fld} = arr::sumValuesArray($data->recs, $fld, true);
                 $data->rows['total']->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal(${$fld});
             }
