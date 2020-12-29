@@ -203,8 +203,9 @@ class store_StockPlanning extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->showFields = 'productId,threadId,sourceClassId';
+        $data->listFilter->showFields = 'date,productId,threadId,sourceClassId';
         $data->listFilter->input();
+        $data->listFilter->setFieldType('date', 'date');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         if ($rec = $data->listFilter->rec) {
             if (!empty($rec->productId)) {
@@ -217,6 +218,11 @@ class store_StockPlanning extends core_Manager
 
             if (!empty($rec->threadId)) {
                 $data->query->where("#threadId = {$rec->threadId}");
+            }
+
+            if (!empty($rec->date)) {
+                $end = str_replace('00:00:00', '23:59:59', $rec->date);
+                $data->query->where("#date BETWEEN '{$rec->date}' AND '{$end}'");
             }
         }
 
@@ -270,7 +276,7 @@ function act_Test()
     $productId = 27;
     //$r = self::getReservedQuantity($date, $productId);
 }
-    public static function getReservedQuantity($date, $productIds, $stores = null)
+    public static function getReservedQuantity($date, $productIds = null, $stores = null)
     {
         if(strlen($date) == 10){
             $from = "{$date} 00:00:00";
@@ -289,7 +295,7 @@ function act_Test()
         $query->XPR('totalIn', 'double', "ROUND(SUM(COALESCE(#quantityIn, 0)), 4)");
         $query->where("#date BETWEEN '{$from}' AND '{$to}'");
         $query->groupBy('productId');
-        $query->show('productId,totalOut,totalIn');
+        $query->show('productId,totalOut,totalIn,storeId');
 
         if(countR($productArr)){
             $query->in("productId", $productArr);
@@ -301,7 +307,7 @@ function act_Test()
 
         $res = array();
         while($rec = $query->fetch()){
-            $res[$rec->productId] = (object)array('reserved' => $rec->totalOut, 'expected' => $rec->totalIn);
+            $res[$rec->storeId][$rec->productId] = (object)array('productId' => $rec->productId, 'storeId' => $rec->storeId, 'reserved' => $rec->totalOut, 'expected' => $rec->totalIn);
         }
 
         return $res;

@@ -101,9 +101,12 @@ class store_Products extends core_Detail
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,tdClass=leftAlign');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,tdClass=storeCol leftAlign');
         $this->FLD('quantity', 'double(maxDecimals=3)', 'caption=Налично');
-        $this->FLD('reservedQuantity', 'double(maxDecimals=3)', 'caption=Запазено');
-        $this->FLD('expectedQuantity', 'double(maxDecimals=3)', 'caption=Очаквано днес');
-        $this->FLD('expectedQuantityTotal', 'double(maxDecimals=3)', 'caption=Очаквано,tdClass=notBolded');
+        $this->FLD('reservedQuantity', 'double(maxDecimals=3)', 'caption=Запазено (днес)');
+        $this->FLD('reservedQuantity2', 'double(maxDecimals=3)', 'caption=Запазено 2');
+        $this->FLD('reservedQuantity3', 'double(maxDecimals=3)', 'caption=Запазено 3');
+        $this->FLD('expectedQuantity', 'double(maxDecimals=3)', 'caption=Очаквано (днес)');
+        $this->FLD('expectedQuantity2', 'double(maxDecimals=3)', 'caption=Очаквано 2');
+        $this->FLD('expectedQuantityTotal', 'double(maxDecimals=3)', 'caption=Очаквано 3,tdClass=notBolded');
         $this->FNC('freeQuantity', 'double(maxDecimals=3)', 'caption=Разполагаемо');
         $this->FLD('state', 'enum(active=Активирано,closed=Изчерпано)', 'caption=Състояние,input=none');
         
@@ -209,6 +212,7 @@ class store_Products extends core_Detail
         }
         
         $data->listFilter->setOptions('order', $orderOptions);
+        $data->listFilter->FNC('horizon', 'date', 'placeholder=Хоризонт,caption=Хоризонт,input,recently');
         $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
         
         $stores = cls::get('store_Stores')->makeArray4Select('name', "#state != 'rejected'");
@@ -236,16 +240,18 @@ class store_Products extends core_Detail
         $data->query->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $data->query->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
         $data->query->EXT('productCreatedOn', 'cat_Products', 'externalName=createdOn,externalKey=productId');
-        
+
         if (isset($data->masterMvc)) {
             $data->listFilter->setDefault('order', 'all');
             $data->listFilter->showFields = 'search,groupId';
         } else {
+            $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
             $data->listFilter->setDefault('order', 'active');
-            $data->listFilter->showFields = 'storeId,search,order,groupId';
+            $data->listFilter->showFields = 'search,storeId,order,groupId,horizon';
+            unset($data->listFilter->view);
         }
         
-        $data->listFilter->input('storeId,order,groupId,search', 'silent');
+        $data->listFilter->input('horizon,storeId,order,groupId,search', 'silent');
         
         // Ако има филтър
         if ($rec = $data->listFilter->rec) {
@@ -311,6 +317,13 @@ class store_Products extends core_Detail
                         $data->query->where("#isPublic = 'yes'");
                         break;
                 }
+
+                if(!empty($rec->horizon)){
+                    $data->horizon = $rec->horizon;
+                    $horizonVerbal = dt::mysql2verbal($rec->horizon, 'd.m.Y');
+                    arr::placeInAssocArray($data->listFields, array('reservedOut' => "|*{$horizonVerbal}->|Запазено|*"), null, 'storeId');
+                    arr::placeInAssocArray($data->listFields, array('expectedIn' => "|*{$horizonVerbal}->|Очаквано|*"), null, 'reservedOut');
+                }
             }
             
             $data->query->orderBy('#state,#code');
@@ -321,8 +334,20 @@ class store_Products extends core_Detail
             }
         }
     }
-    
-    
+
+
+    /**
+     * След извличане на записите
+     */
+    protected static function on_AfterPrepareListRecs($mvc, &$res, $data)
+    {
+        if(empty($data->horizon)) return;
+        $productIds = arr::extractValuesFromArray($data->recs, 'productId');
+        $storeIds = arr::extractValuesFromArray($data->recs, 'storeId');
+        //bp($storeIds, $productIds);
+    }
+
+
     /**
      * Синхронизиране на запис от счетоводството с модела, Вика се от крон-а
      * (@see acc_Balances::cron_Recalc)
@@ -570,32 +595,45 @@ class store_Products extends core_Detail
      */
     public function cron_CalcReservedQuantity()
     {
-        //@todo трябва цялото да се рефакторира
-        core_Debug::$isLogging = false;
+        $queue = array();
+        $date1 = '2020-12-31'; //dt::today();
+        $reserved1 = store_StockPlanning::getReservedQuantity($date1);
+        unset($reserved1[null]);
+        $queue[] = (object)array('quantities' => $reserved1, 'fieldReserved' => 'reservedQuantity', 'fieldExpected' => 'expectedQuantity');
 
+        $horizon2 = store_Setup::get('STOCK_HORIZON_2');
+        $date2 = dt::addSecs($horizon2, $date1, false);
+        $reserved2 = store_StockPlanning::getReservedQuantity($date2);
+        unset($reserved2[null]);
+        $queue[] = (object)array('quantities' => $reserved2, 'fieldReserved' => 'reservedQuantity2', 'fieldExpected' => 'expectedQuantity2');
 
+        $horizon3 = store_Setup::get('STOCK_HORIZON_3');
+        $date3 = dt::addSecs($horizon3, $date1, false);
+        $reserved3 = store_StockPlanning::getReservedQuantity($date3);
+        unset($reserved3[null]);
+        $queue[] = (object)array('quantities' => $reserved3, 'fieldReserved' => 'reservedQuantity3', 'fieldExpected' => 'expectedQuantityTotal');
 
-       
-        // Сумиране на к-та
-        foreach ($queue as $arr) {
-            foreach ($arr as $key => $obj) {
-                if (!array_key_exists($key, $result)) {
-                    $result[$key] = (object) array('storeId' => $obj['sId'], 'productId' => $obj['pId'], 'reservedQuantity' => $obj['reserved'], 'expectedQuantity' => $obj['expected'], 'expectedQuantityTotal' => $obj['expectedTotal'], 'state' => 'active');
-                } else {
-                    $result[$key]->reservedQuantity += $obj['reserved'];
-                    $result[$key]->expectedQuantityTotal += $obj['expectedTotal'];
-                    $result[$key]->expectedQuantity += $obj['expected'];
+        $result = array();
+        foreach ($queue as $object) {
+            foreach ($object->quantities as $arr) {
+                foreach ($arr as $o) {
+                    $key = "{$o->storeId}|{$o->productId}";
+                    if (!array_key_exists($key, $result)) {
+                        $result[$key] = (object) array('storeId' => $o->storeId, 'productId' => $o->productId, 'state' => 'active');
+                    }
+
+                    $result[$key]->{$object->fieldReserved} = ($o->reserved) ? $o->reserved : null;
+                    $result[$key]->{$object->fieldExpected} = ($o->expected) ? $o->expected : null;
                 }
             }
         }
-        
-        // Извличане на всички стари записи
+
         $storeQuery = static::getQuery();
-        $old = $storeQuery->fetchAll();
-        
+        $oldRecs = $storeQuery->fetchAll();
+
         // Синхронизират се новите със старите записи
-        $res = arr::syncArrays($result, $old, 'storeId,productId', 'reservedQuantity,expectedQuantity,expectedQuantityTotal');
-        
+        $res = arr::syncArrays($result, $oldRecs, 'storeId,productId', 'reservedQuantity,reservedQuantity2,reservedQuantity3,expectedQuantity,expectedQuantity2,expectedQuantityTotal');
+
         // Заклюване на процеса
         if (!core_Locks::get(self::SYNC_LOCK_KEY, 60, 1)) {
             $this->logWarning('Синхронизирането на складовите наличности е заключено от друг процес');
@@ -605,56 +643,35 @@ class store_Products extends core_Detail
         
         // Добавяне и ъпдейт на резервираното количество на новите
         $this->saveArray($res['insert']);
-        $this->saveArray($res['update'], 'id,reservedQuantity,expectedQuantity,expectedQuantityTotal');
-        
+        $this->saveArray($res['update'], 'id,reservedQuantity,reservedQuantity2,reservedQuantity3,expectedQuantity,expectedQuantity2,expectedQuantityTotal');
+
         // Намиране на тези записи, от старите които са имали резервирано к-во, но вече нямат
-        $unsetArr = array_filter($old, function (&$r) use ($result) {
-            if (!isset($r->reservedQuantity) && !isset($r->expectedQuantity) && !isset($r->expectedQuantityTotal)) {
-                
+        $unsetArr = array_filter($oldRecs, function (&$r) use ($result) {
+            if (!isset($r->reservedQuantity) && !isset($rec->reservedQuantity2) && !isset($rec->reservedQuantity3) && !isset($r->expectedQuantity) && !isset($r->expectedQuantity2) && !isset($r->expectedQuantityTotal)) {
+
                 return false;
             }
             if (array_key_exists("{$r->storeId}|{$r->productId}", $result)) {
                 
                 return false;
             }
-            
-            if(isset($r->reservedQuantity)){
-                $r->_nullifyReserved = true;
-            }
-            
-            if(isset($r->expectedQuantity)){
-                $r->_nullifyExpected = true;
-            }
-            
-            if(isset($r->expectedQuantityTotal)){
-                $r->_nullifyExpectedTotal = true;
+
+            foreach (arr::make('reservedQuantity,reservedQuantity2,reservedQuantity3,expectedQuantity,expectedQuantity2,expectedQuantityTotal', true) as $fld){
+                if(isset($r->{$fld})){
+                    $r->{$fld} = null;
+                }
             }
             
             return true;
         });
-        
+
         // Техните резервирани количества се изтриват
         if (countR($unsetArr)) {
-            array_walk($unsetArr, function ($obj) {
-                if($obj->_nullifyReserved === true){
-                    $obj->reservedQuantity = null;
-                }
-                
-                if($obj->_nullifyExpected === true){
-                    $obj->expectedQuantity = null;
-                }
-                
-                if($obj->_nullifyExpectedTotal === true){
-                    $obj->expectedQuantityTotal = null;
-                }
-            });
-            
-            $this->saveArray($unsetArr, 'id,reservedQuantity,expectedQuantity,expectedQuantityTotal');
+            $this->saveArray($unsetArr, 'id,reservedQuantity,reservedQuantity2,reservedQuantity3,expectedQuantity,expectedQuantity2,expectedQuantityTotal');
         }
         
         // Освобождаване на процеса
         core_Locks::release(self::SYNC_LOCK_KEY);
-        core_Debug::$isLogging = true;
     }
     
     
