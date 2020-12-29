@@ -2408,7 +2408,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $TransactionClassName =  ($mvc instanceof sales_Sales) ? 'sales_transaction_Sale' : 'purchase_transaction_Purchase';
             $field =  ($mvc instanceof sales_Sales) ? 'quantityOut' : 'quantityIn';
             $entries = $TransactionClassName::getEntries($rec->id);
-            $shipped = $TransactionClassName::getShippedProducts($entries, 321);
+            $shipped = ($mvc instanceof sales_Sales) ? $TransactionClassName::getShippedProducts($entries, '321') : $TransactionClassName::getShippedProducts($entries, $rec->id, '321');
 
             // За всяко от количествата, които ще се запазват
             $newRes = array();
