@@ -377,13 +377,31 @@ class label_Prints extends core_Master
         if ($rec->templateId) {
             // Трябва да има зададена медия за шаблона
             $mediaArr = label_Templates::getMediaForTemplate($rec->templateId);
-            
+
             $form->setOptions('mediaId', $mediaArr);
             
             if (empty($mediaArr)) {
                 $form->setError('templateId', 'Няма добавена медия за шаблона');
             } else {
-                $form->setDefault('mediaId', key($mediaArr));
+
+                // Вземаме последно използваната медия по подразбиране
+                $query = $mvc->getQuery();
+                $query->in('mediaId', array_keys($mediaArr));
+                $query->where("#state = 'active'");
+                $query->where("#createdOn = '[#1#]'", core_Users::getCurrent());
+
+                $query->orderBy('#createdOn', 'DESC');
+                $query->show('mediaId');
+                $query->limit(1);
+                $r = $query->fetch();
+
+                if ($r && $r->mediaId && $mediaArr[$r->mediaId]) {
+                    $lastMediaId = $r->mediaId;
+                } else {
+                    $lastMediaId = key($mediaArr);
+                }
+
+                $form->setDefault('mediaId', $lastMediaId);
             }
         }
         

@@ -210,14 +210,14 @@ class bgerp_plg_Import extends core_Plugin
         $exp->SUGGESTIONS('#enclosure', array('' => '', '"' => '"', '\'' => '\''));
         $exp->DEF('#firstRow=Първи ред', 'enum(columnNames=Имена на колони,data=Данни)', 'mandatory');
         $exp->DEF('#onExist=При съвпадение', 'enum(skip=Пропускане, update=Обновяване, duplicate=Дублиране)', 'mandatory');
-        
-        
+
+
         if ($exp->mvc->expOnExist) {
             $exp->ASSUME('#onExist', '"' . $exp->mvc->expOnExist . '"');
         }
         
         // Проверка дали броя на колоните отговаря навсякъде
-        $exp->rule('#csvColumnsCnt', 'count(getCsvColNames(#csvData,#delimiter,#enclosure, 0, 1))');
+        $exp->rule('#csvColumnsCnt', 'count(getCsvColNames(#csvData,#delimiter,#enclosure, FALSE, TRUE))');
         $exp->WARNING(tr('Възможен е проблем с формата на CSV данните, защото е открита само една колона'), '#csvColumnsCnt == 1');
         $exp->ERROR(tr('Има проблем с формата на CSV данните') . '. <br>' . tr('Моля проверете дали правилно сте въвели данните и разделителя'), '#csvColumnsCnt < 1');
         
@@ -233,9 +233,14 @@ class bgerp_plg_Import extends core_Plugin
                 $type = ($fld['type']) ? $fld['type'] : 'int';
                 $exp->DEF("#col{$name}={$fld['caption']}", $type, "{$fld['mandatory']}");
                 if (!isset($fld['notColumn'])) {
-                    $exp->OPTIONS("#col{$name}", 'getCsvColNames(#csvData,#delimiter,#enclosure,1)');
-                    $exp->ASSUME("#col{$name}", '-1');
+                    $exp->OPTIONS("#col{$name}", 'getCsvColNames(#csvData,#delimiter,#enclosure,TRUE)');
+
+                    $caption = str_replace(array('"', "'"), array('\\"', "\\'"), $fld['caption']);
+                    $nameEsc = str_replace(array('"', "'"), array('\\"', "\\'"), $name);
+
+                    $exp->ASSUME("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure,TRUE, FALSE, '{$caption}', '{$nameEsc}')");
                 }
+
                 
                 $qFields .= ($qFields ? ',' : '') . "#col{$name}";
             }

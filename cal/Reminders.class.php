@@ -1070,7 +1070,7 @@ class cal_Reminders extends core_Master
     public static function calcNextStartTime($rec, $usePreviously = true)
     {
         $timeStart = $rec->__nextStartTime ? $rec->__nextStartTime : $rec->timeStart;
-        
+
         // Секундите на началната дата
         $startTs = dt::mysql2timestamp($timeStart);
         
@@ -1095,13 +1095,11 @@ class cal_Reminders extends core_Master
                             $bestNextStartTime = $nextStartTime;
                         }
                     }
-                    
+
                     if (!isset($bestNextStartTime)) {
                         $bestNextStartTime = cal_Calendar::nextWorkingDay($timeStart, null, $rec->repetitionEach);
                     }
-                    
-                    $bestNextStartTime = $nextStartTime;
-                    
+
                     list(, $time) = explode(' ', $timeStart);
                     
                     $nextStartTime = $bestNextStartTime . ' ' . $time;
@@ -1166,7 +1164,7 @@ class cal_Reminders extends core_Master
             
             $nextStartTime = dt::timestamp2Mysql($nextStartTimeTs);
         }
-        
+
         return $nextStartTime;
     }
     
