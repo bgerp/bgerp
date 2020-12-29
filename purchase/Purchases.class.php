@@ -156,8 +156,17 @@ class purchase_Purchases extends deals_DealMaster
      * Кой може да превалутира документите в нишката
      */
     public $canChangerate = 'ceo, purchaseMaster';
-    
-    
+
+
+    /**
+     * До потребители с кои роли може да се споделя документа
+     *
+     * @var string
+     * @see store_StockPlanning
+     */
+    public $stockPlanningDirection = 'in';
+
+
     /**
      * Стратегии за дефолт стойностти
      */
