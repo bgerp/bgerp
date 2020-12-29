@@ -252,6 +252,8 @@ class store_Setup extends core_ProtoSetup
 
             $query = $Source->getQuery();
             $query->in("state", $Source->updatePlannedStockOnChangeStates);
+            $count = $query->count();
+            core_App::setTimeLimit(0.6 * $count, 300);
 
             while($rec = $query->fetch()){
                 $arr = $Source->getPlannedStocks($rec);
@@ -272,6 +274,9 @@ class store_Setup extends core_ProtoSetup
 
             $query = $Source->getQuery();
             $query->in("state", $Source->updatePlannedStockOnChangeStat);
+            $count = $query->count();
+            core_App::setTimeLimit(0.7 * $count, 300);
+
             while ($rec = $query->fetch()) {
                 $arr = $Source->getPlannedStocks($rec);
                 store_StockPlanning::addStaticValuesToStockArr($arr, $Source, $rec->id);

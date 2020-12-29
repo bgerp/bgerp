@@ -238,17 +238,21 @@ class store_StockPlanning extends core_Manager
     }
 
 
-
+    /**
+     * Рекалкулира по референтен клас
+     *
+     * @param mixed $reffClassId - референтен клас
+     * @param int $reffId        - ид на референтния обект
+     * @return void
+     */
     public static function recalcByReff($reffClassId, $reffId)
     {
         $ReffClass =  cls::get($reffClassId);
-
         $query = static::getQuery();
         $query->where("#reffClassId = {$ReffClass->getClassId()} AND #reffId = {$reffId}");
         $query->groupBy('sourceClassId,sourceId');
         $query->show('sourceClassId,sourceId');
         while($rec = $query->fetch()){
-            core_Statuses::newStatus("UPPP: {$rec->sourceClassId} - {$rec->sourceId}");
             store_StockPlanning::updateByDocument($rec->sourceClassId, $rec->sourceId);
         }
     }
