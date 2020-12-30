@@ -450,10 +450,11 @@ class store_Products extends core_Detail
      * @param int      $productId    - ид на артикул
      * @param int|NULL $storeId      - конкретен склад, NULL ако е във всички
      * @param bool     $freeQuantity - FALSE за общото количество, TRUE само за разполагаемото (общо - запазено)
+     * @param datetime $date         - към коя дата, null за текущата
      *
      * @return float $sum          - сумата на количеството, общо или разполагаемо
      */
-    public static function getQuantity($productId, $storeId = null, $freeQuantity = false)
+    public static function getQuantity($productId, $storeId = null, $freeQuantity = false, $date = null)
     {
         $query = self::getQuery();
         $query->where("#productId = {$productId}");
@@ -462,7 +463,7 @@ class store_Products extends core_Detail
         if (isset($storeId)) {
             $query->where("#storeId = {$storeId}");
         }
-        
+
         if ($freeQuantity === true) {
             $query->XPR('sum', 'double', 'SUM(#quantity - COALESCE(#reservedQuantity, 0) + COALESCE(#expectedQuantity, 0))');
         } else {
