@@ -1491,6 +1491,24 @@ class planning_Jobs extends core_Master
         $quantityToProduce = round($rec->quantity - $rec->quantityProduced, 4);
 
         if($productRec->canStore == 'yes'){
+
+            // В кои нишки има документи отнасящи се за заданието
+            $tQuery = planning_Tasks::getQuery();
+            $tQuery->where("#originId = {$rec->containerId}");
+            $tQuery->show("threadId");
+            $threadsArr = array($rec->threadId => $rec->threadId) + arr::extractValuesFromArray($tQuery->fetchAll(), 'threadId');
+
+            // Какви количества има вече запазени по заданието
+            $products = $productsIn = array();
+            $sQuery = store_StockPlanning::getQuery();
+            $sQuery->in("threadId", $threadsArr);
+            $sQuery->where("#sourceClassId != {$this->getClassId()}");
+            while($sRec = $sQuery->fetch()){
+                $productsIn[$sRec->productId] += $sRec->quantityIn;
+                $products[$sRec->productId] += $sRec->quantityOut;
+            }
+            $quantityToProduce -= $productsIn[$rec->productId];
+
             if($quantityToProduce > 0){
                 $genericProductId = null;
                 if($productRec->canConvert == 'yes'){
@@ -1512,21 +1530,6 @@ class planning_Jobs extends core_Master
                     $receiptClassId = cat_Boms::getClassId();
                     $materialArr = cat_Boms::getBomMaterials($lastReceipt, $rec->quantity);
                     if(countR($materialArr)){
-
-                        // В кои нишки има документи отнасящи се за заданието
-                        $tQuery = planning_Tasks::getQuery();
-                        $tQuery->where("#originId = {$rec->containerId}");
-                        $tQuery->show("threadId");
-                        $threadsArr = array($rec->threadId => $rec->threadId) + arr::extractValuesFromArray($tQuery->fetchAll(), 'threadId');
-
-                        // Какви количества има вече запазени по заданието
-                        $products = array();
-                        $sQuery = store_StockPlanning::getQuery();
-                        $sQuery->in("threadId", $threadsArr);
-                        $sQuery->where("#sourceClassId != {$this->getClassId()}");
-                        while($sRec = $sQuery->fetch()){
-                            $products[$sRec->productId] = $sRec->quantityOut;
-                        }
 
                         // Какви количества има вложени по заданието
                         foreach (array('planning_ConsumptionNoteDetails' => 'planning_ConsumptionNotes', 'planning_DirectProductNoteDetails' => 'planning_DirectProductionNote') as $detail => $master){
