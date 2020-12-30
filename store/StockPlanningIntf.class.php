@@ -36,4 +36,16 @@ class store_StockPlanningIntf extends acc_RegisterIntf
     {
         return $this->class->getPlannedStocks($rec);
     }
+
+
+    /**
+     * За коя дата се заплануват наличностите
+     *
+     * @param $rec - запис
+     * @return date - дата, за която се заплануват наличностите
+     */
+    public function getPlannedQuantityDate($rec)
+    {
+        return $this->class->getPlannedQuantityDate($rec);
+    }
 }

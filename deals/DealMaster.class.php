@@ -83,6 +83,12 @@ abstract class deals_DealMaster extends deals_DealBase
 
 
     /**
+     * Дата на очакване
+     */
+    public $termDateFld = 'deliveryTime';
+
+
+    /**
      * Извиква се след описанието на модела
      *
      * @param core_Mvc $mvc
@@ -2394,6 +2400,7 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         if(is_array($res)){
             $rec = $mvc->fetchRec($rec);
+
             if($rec->state != 'pending' && $rec->state != 'active') {
                 $res = array();
                 return;
@@ -2441,5 +2448,28 @@ abstract class deals_DealMaster extends deals_DealBase
 
             $res = $newRes;
         }
+    }
+
+
+    /**
+     * За коя дата се заплануват наличностите
+     *
+     * @param $rec - запис
+     * @return date - дата, за която се заплануват наличностите
+     */
+    public function getPlannedQuantityDate_($rec)
+    {
+        // Ако има ръчно въведена дата на доставка, връща се тя
+        if(!empty($rec->deliveryTime)) return $rec->deliveryTime;
+
+        // Датата ще е вальора/датата на активиране/датата на създаване в този ред
+        $date = !empty($rec->valior) ? $rec->valior : (!empty($rec->activatedOn) ? $rec->activatedOn : $rec->createdOn);
+
+        // Ако има въведен срок на доставка, той се добавя към отправната дата
+        if(!empty($rec->deliveryTermTime)){
+            $date = dt::addSecs($rec->deliveryTermTime, $date);
+        }
+
+        return $date;
     }
 }

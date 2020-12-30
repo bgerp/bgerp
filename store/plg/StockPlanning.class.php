@@ -35,6 +35,17 @@ class store_plg_StockPlanning extends core_Plugin
 
 
     /**
+     * За коя дата се заплануват наличностите, дефолтна реализация
+     */
+    public static function on_AfterGetPlannedQuantityDate($mvc, &$res, $rec)
+    {
+        if(!$res) {
+            $res = !empty($rec->{$mvc->termDateFld}) ? $rec->{$mvc->termDateFld} : (!empty($rec->{$mvc->valiorFld}) ? $rec->{$mvc->valiorFld} : $rec->createdOn);
+        }
+    }
+
+
+    /**
      * Метод по подразбиране връщащ планираните наличности
      */
     public static function on_AfterGetPlannedStocks($mvc, &$res, $rec)
@@ -47,8 +58,7 @@ class store_plg_StockPlanning extends core_Plugin
             $rec = $mvc->fetch($id, '*', false);
 
             if(!in_array($rec->state, $mvc->updatePlannedStockOnChangeStates) && (!($mvc instanceof deals_DealMaster) && empty($rec->{$mvc->storeFieldName})) || $rec->isReverse == 'yes') return;
-            $date = !empty($rec->{$mvc->termDateFld}) ? $rec->{$mvc->termDateFld} : (!empty($rec->{$mvc->valiorFld}) ? $rec->{$mvc->valiorFld} : $rec->createdOn);
-
+            $date = $mvc->getPlannedQuantityDate($rec);
             if($mvc->mainDetail){
 
                 // Ако има детайл извличат се сумарно какви количества трябва да се запазят
