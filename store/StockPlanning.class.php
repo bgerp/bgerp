@@ -292,9 +292,10 @@ bp();
         $storesArr = isset($stores) ? arr::make($stores, true) : null;
 
         $query = static::getQuery();
+        $query->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
         $query->XPR('totalOut', 'double', "ROUND(SUM(COALESCE(#quantityOut, 0)), 4)");
         $query->XPR('totalIn', 'double', "ROUND(SUM(COALESCE(#quantityIn, 0)), 4)");
-        $query->where("#date BETWEEN '{$from}' AND '{$to}'");
+        $query->where("#date BETWEEN '{$from}' AND '{$to}' AND #generic = 'no'");
         $query->groupBy('productId');
         $query->show('productId,totalOut,totalIn,storeId');
 

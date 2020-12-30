@@ -88,12 +88,6 @@ class store_Products extends core_Detail
     
     
     /**
-     * Флаг за обновяване на наличностите на шътдаун
-     */
-    public $updateOnShutdown = false;
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     public function description()
