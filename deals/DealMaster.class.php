@@ -2472,4 +2472,14 @@ abstract class deals_DealMaster extends deals_DealBase
 
         return $date;
     }
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    protected static function on_BeforeChangeState($mvc, &$rec, $state)
+    {
+        if(acc_plg_Contable::havePendingDocuments($rec->threadId, $rec->containerId)){
+            followRetUrl(null, 'Сделката не може да се открие/закрие, защото има документи на заявка', 'error');
+        }
+    }
 }

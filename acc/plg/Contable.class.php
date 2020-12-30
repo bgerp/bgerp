@@ -903,10 +903,11 @@ class acc_plg_Contable extends core_Plugin
      * Има ли контиращи документи в състояние заявка в нишката
      *
      * @param int $threadId
+     * @param int $exceptContainerId
      *
      * @return bool
      */
-    public static function havePendingDocuments($threadId)
+    public static function havePendingDocuments($threadId, $exceptContainerId = null)
     {
         $contoClasses = core_Classes::getOptionsByInterface('acc_TransactionSourceIntf');
         $contoClasses = array_keys($contoClasses);
@@ -915,7 +916,10 @@ class acc_plg_Contable extends core_Plugin
         $cQuery->where("#state = 'pending'");
         $cQuery->in('docClass', $contoClasses);
         $cQuery->where("#threadId = {$threadId}");
-        
+        if(isset($exceptContainerId)){
+            $cQuery->where("#id != {$exceptContainerId}");
+        }
+
         return ($cQuery->fetch()) ? true : false;
     }
     
