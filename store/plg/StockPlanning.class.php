@@ -57,7 +57,7 @@ class store_plg_StockPlanning extends core_Plugin
             $id = is_object($rec) ? $rec->id : $rec;
             $rec = $mvc->fetch($id, '*', false);
 
-            if(!in_array($rec->state, $mvc->updatePlannedStockOnChangeStates) && (!($mvc instanceof deals_DealMaster) && empty($rec->{$mvc->storeFieldName})) || $rec->isReverse == 'yes') return;
+            if(!in_array($rec->state, $mvc->updatePlannedStockOnChangeStates) && (!($mvc instanceof deals_DealMaster) && empty($rec->{$mvc->storeFieldName})) || (($mvc instanceof store_Receipts) && $rec->isReverse == 'yes')) return;
             $date = $mvc->getPlannedQuantityDate($rec);
             if($mvc->mainDetail){
 
