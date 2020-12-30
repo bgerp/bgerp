@@ -1490,109 +1490,108 @@ class planning_Jobs extends core_Master
         $productRec = cat_Products::fetch($rec->productId, 'canStore,canConvert');
         $quantityToProduce = round($rec->quantity - $rec->quantityProduced, 4);
 
-        if($productRec->canStore == 'yes'){
+        // В кои нишки има документи отнасящи се за заданието
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->where("#originId = {$rec->containerId}");
+        $tQuery->show("threadId");
+        $threadsArr = array($rec->threadId => $rec->threadId) + arr::extractValuesFromArray($tQuery->fetchAll(), 'threadId');
 
-            // В кои нишки има документи отнасящи се за заданието
-            $tQuery = planning_Tasks::getQuery();
-            $tQuery->where("#originId = {$rec->containerId}");
-            $tQuery->show("threadId");
-            $threadsArr = array($rec->threadId => $rec->threadId) + arr::extractValuesFromArray($tQuery->fetchAll(), 'threadId');
+        // Какви количества има вече запазени по заданието
+        $products = $productsIn = array();
+        $sQuery = store_StockPlanning::getQuery();
+        $sQuery->in("threadId", $threadsArr);
+        $sQuery->where("#sourceClassId != {$this->getClassId()}");
+        while($sRec = $sQuery->fetch()){
+            $productsIn[$sRec->productId] += $sRec->quantityIn;
+            $products[$sRec->productId] += $sRec->quantityOut;
+        }
+        $quantityToProduce -= $productsIn[$rec->productId];
 
-            // Какви количества има вече запазени по заданието
-            $products = $productsIn = array();
-            $sQuery = store_StockPlanning::getQuery();
-            $sQuery->in("threadId", $threadsArr);
-            $sQuery->where("#sourceClassId != {$this->getClassId()}");
-            while($sRec = $sQuery->fetch()){
-                $productsIn[$sRec->productId] += $sRec->quantityIn;
-                $products[$sRec->productId] += $sRec->quantityOut;
+        if($quantityToProduce > 0){
+            $genericProductId = null;
+            if($productRec->canConvert == 'yes'){
+                $genericProductId = planning_GenericMapper::fetchField("#productId = {$rec->productId}", 'genericProductId');
             }
-            $quantityToProduce -= $productsIn[$rec->productId];
 
-            if($quantityToProduce > 0){
-                $genericProductId = null;
-                if($productRec->canConvert == 'yes'){
-                    $genericProductId = planning_GenericMapper::fetchField("#productId = {$rec->productId}", 'genericProductId');
-                }
-
+            if($productRec->canStore == 'yes') {
                 // Записване на очакваното количество за производство
                 $res[] = (object)array('storeId'          => $rec->storeId,
-                                       'productId'        => $rec->productId,
-                                       'date'             => $date,
-                                       'quantityIn'       => $quantityToProduce,
-                                       'quantityOut'      => null,
-                                       'genericProductId' => $genericProductId);
+                                           'productId'        => $rec->productId,
+                                           'date'             => $date,
+                                           'quantityIn'       => $quantityToProduce,
+                                           'quantityOut'      => null,
+                                           'genericProductId' => $genericProductId);
+            }
 
-                // Ако има активна рецепта
-                if($lastReceipt = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales')){
+            // Ако има активна рецепта
+            if($lastReceipt = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales')){
 
-                    // Кои са материалите и
-                    $receiptClassId = cat_Boms::getClassId();
-                    $materialArr = cat_Boms::getBomMaterials($lastReceipt, $rec->quantity);
-                    if(countR($materialArr)){
+                // Кои са материалите и
+                $receiptClassId = cat_Boms::getClassId();
+                $materialArr = cat_Boms::getBomMaterials($lastReceipt, $rec->quantity);
+                if(countR($materialArr)){
 
-                        // Какви количества има вложени по заданието
-                        foreach (array('planning_ConsumptionNoteDetails' => 'planning_ConsumptionNotes', 'planning_DirectProductNoteDetails' => 'planning_DirectProductionNote') as $detail => $master){
-                            $Detail = cls::get($detail);
-                            $Master = cls::get($master);
+                    // Какви количества има вложени по заданието
+                    foreach (array('planning_ConsumptionNoteDetails' => 'planning_ConsumptionNotes', 'planning_DirectProductNoteDetails' => 'planning_DirectProductionNote') as $detail => $master){
+                        $Detail = cls::get($detail);
+                        $Master = cls::get($master);
 
-                            $dQuery = $Detail::getQuery();
-                            $dQuery->EXT('state', "{$Master->className}", "externalName=state,externalKey={$Detail->masterKey}");
-                            $dQuery->EXT('threadId', "{$Master->className}", "externalName=threadId,externalKey={$Detail->masterKey}");
-                            $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
-                            $dQuery->XPR('totalQuantity', 'double', "SUM(#quantity)");
-                            $dQuery->where("#state = 'active' AND #canStore = 'yes'");
-                            $dQuery->in("threadId", $threadsArr);
-                            if($detail instanceof planning_DirectProductNoteDetails){
-                                $dQuery->where("#storeId IS NOT NULL");
-                            }
-                            $dQuery->show('productId,totalQuantity');
-                            $dQuery->groupBy('productId');
-                            while($dRec = $dQuery->fetch()){
-                                $products[$dRec->productId] += $dRec->totalQuantity;
-                            }
+                        $dQuery = $Detail::getQuery();
+                        $dQuery->EXT('state', "{$Master->className}", "externalName=state,externalKey={$Detail->masterKey}");
+                        $dQuery->EXT('threadId', "{$Master->className}", "externalName=threadId,externalKey={$Detail->masterKey}");
+                        $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
+                        $dQuery->XPR('totalQuantity', 'double', "SUM(#quantity)");
+                        $dQuery->where("#state = 'active' AND #canStore = 'yes'");
+                        $dQuery->in("threadId", $threadsArr);
+                        if($detail instanceof planning_DirectProductNoteDetails){
+                            $dQuery->where("#storeId IS NOT NULL");
+                        }
+                        $dQuery->show('productId,totalQuantity');
+                        $dQuery->groupBy('productId');
+                        while($dRec = $dQuery->fetch()){
+                            $products[$dRec->productId] += $dRec->totalQuantity;
+                        }
+                    }
+
+                    // За всеки материал от рецептата, ще се проверява, колко остава да се запази
+                    foreach($materialArr as $materialRec){
+                        $materialProductRec = cat_Products::fetch($materialRec->productId, 'generic,canConvert');
+
+                        // Ако материала е генеричен
+                        if($materialProductRec->generic == 'yes'){
+                            $genericProductId = $materialRec->productId;
+
+                            // и има вложени, негови заместители те ще се приспаднат от него
+                            $equivalent = array_keys(planning_GenericMapper::getEquivalentProducts($materialRec->productId));
+                            $equivalent[] = $materialRec->productId;
+                            array_walk($products, function($quantity, $productId) use (&$removeQuantity, $equivalent) {
+                                if(in_array($productId, $equivalent)){
+                                    $removeQuantity += $quantity;
+                                }
+                            });
+                        } else {
+
+                            // Ако материала не е генеричен, гледа се колко конкретно има вложено по него
+                            $removeQuantity = $products[$materialRec->productId];
+                            $genericProductId = planning_GenericMapper::fetchField("#productId = {$materialRec->productId}", 'genericProductId');
                         }
 
-                        // За всеки материал от рецептата, ще се проверява, колко остава да се запази
-                        foreach($materialArr as $materialRec){
-                            $materialProductRec = cat_Products::fetch($materialRec->productId, 'generic,canConvert');
+                        // Ако има оставащо количество за запазване ще се запазва
+                        $remainingQuantity = 0;
+                        if($materialRec->quantity != cat_BomDetails::CALC_ERROR){
+                            $remainingQuantity = round($materialRec->quantity - $removeQuantity, 4);
+                        }
 
-                            // Ако материала е генеричен
-                            if($materialProductRec->generic == 'yes'){
-                                $genericProductId = $materialRec->productId;
-
-                                // и има вложени, негови заместители те ще се приспаднат от него
-                                $equivalent = array_keys(planning_GenericMapper::getEquivalentProducts($materialRec->productId));
-                                $equivalent[] = $materialRec->productId;
-                                array_walk($products, function($quantity, $productId) use (&$removeQuantity, $equivalent) {
-                                    if(in_array($productId, $equivalent)){
-                                        $removeQuantity += $quantity;
-                                    }
-                                });
-                            } else {
-
-                                // Ако материала не е генеричен, гледа се колко конкретно има вложено по него
-                                $removeQuantity = $products[$materialRec->productId];
-                                $genericProductId = planning_GenericMapper::fetchField("#productId = {$materialRec->productId}", 'genericProductId');
-                            }
-
-                            // Ако има оставащо количество за запазване ще се запазва
-                            $remainingQuantity = 0;
-                            if($materialRec->quantity != cat_BomDetails::CALC_ERROR){
-                                $remainingQuantity = round($materialRec->quantity - $removeQuantity, 4);
-                            }
-
-                            if($remainingQuantity > 0){
-                                $res[] = (object)array('storeId'          => $rec->storeId,
-                                                       'productId'        => $materialRec->productId,
-                                                       'date'             => $date,
-                                                       'quantityIn'       => null,
-                                                       'quantityOut'      => $remainingQuantity,
-                                                       'genericProductId' => $genericProductId,
-                                                       'reffClassId'      => $receiptClassId,
-                                                       'reffId'           => $lastReceipt->id,
-                                    );
-                            }
+                        if($remainingQuantity > 0){
+                            $res[] = (object)array('storeId'          => $rec->storeId,
+                                                   'productId'        => $materialRec->productId,
+                                                   'date'             => $date,
+                                                   'quantityIn'       => null,
+                                                   'quantityOut'      => $remainingQuantity,
+                                                   'genericProductId' => $genericProductId,
+                                                   'reffClassId'      => $receiptClassId,
+                                                   'reffId'           => $lastReceipt->id,
+                            );
                         }
                     }
                 }
