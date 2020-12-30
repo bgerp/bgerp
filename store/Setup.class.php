@@ -2,18 +2,6 @@
 
 
 /**
- * Показване на планираните доставки/експедиции в наличностите Хоризонт 2
- */
-defIfNot('STORE_STOCK_HORIZON_2', 604800);
-
-
-/**
- * Показване на планираните доставки/експедиции в наличностите Хоризонт 3
- */
-defIfNot('STORE_STOCK_HORIZON_3', dt::SECONDS_IN_MONTH);
-
-
-/**
  * Кои сч. сметки ще се използват за синхронизиране със склада
  */
 defIfNot('STORE_ACC_ACCOUNTS', '');
@@ -128,8 +116,6 @@ class store_Setup extends core_ProtoSetup
     public $configDescription = array(
         'STORE_ACC_ACCOUNTS' => array('acc_type_Accounts(regInterfaces=store_AccRegIntf|cat_ProductAccRegIntf)', 'caption=Складова синхронизация със счетоводството->Сметки'),
         'STORE_TARIFF_NUMBER_LENGTH' => array('int', 'caption=Групиране на тарифните номера по част от него->Първите,unit=цифри'),
-        'STORE_STOCK_HORIZON_2' => array('time', 'caption=Показване на планираните доставки/експедиции в наличностите->Хоризонт 2'),
-        'STORE_STOCK_HORIZON_3' => array('time', 'caption=Показване на планираните доставки/експедиции в наличностите->Хоризонт 3'),
     );
     
     

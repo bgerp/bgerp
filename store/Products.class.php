@@ -72,7 +72,7 @@ class store_Products extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code=Код,productId=Артикул,measureId=Мярка,quantity,reservedQuantity,expectedQuantity,freeQuantity,expectedQuantityTotal,storeId';
+    public $listFields = 'code=Код,productId=Артикул,measureId=Мярка,storeId,quantity,reservedQuantity,expectedQuantity,freeQuantity,reservedQuantityMin,expectedQuantityMin,freeQuantityMin,dateMin';
     
     
     /**
@@ -101,13 +101,15 @@ class store_Products extends core_Detail
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,tdClass=leftAlign');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,tdClass=storeCol leftAlign');
         $this->FLD('quantity', 'double(maxDecimals=3)', 'caption=Налично');
-        $this->FLD('reservedQuantity', 'double(maxDecimals=3)', 'caption=Запазено (днес)');
-        $this->FLD('reservedQuantity2', 'double(maxDecimals=3)', 'caption=Запазено 2');
-        $this->FLD('reservedQuantity3', 'double(maxDecimals=3)', 'caption=Запазено 3');
-        $this->FLD('expectedQuantity', 'double(maxDecimals=3)', 'caption=Очаквано (днес)');
-        $this->FLD('expectedQuantity2', 'double(maxDecimals=3)', 'caption=Очаквано 2');
-        $this->FLD('expectedQuantityTotal', 'double(maxDecimals=3)', 'caption=Очаквано 3,tdClass=notBolded');
-        $this->FNC('freeQuantity', 'double(maxDecimals=3)', 'caption=Разполагаемо');
+        $this->FLD('reservedQuantity', 'double(maxDecimals=3)', 'caption=Днес->Запазено');
+        $this->FLD('expectedQuantity', 'double(maxDecimals=3)', 'caption=Днес->Очаквано');
+        $this->FNC('freeQuantity', 'double(maxDecimals=3)', 'caption=Днес->Разполагаемо');
+
+        $this->FLD('reservedQuantityMin', 'double(maxDecimals=3)', 'caption=Минимално->Запазено');
+        $this->FLD('expectedQuantityMin', 'double(maxDecimals=3)', 'caption=Минимално->Очаквано');
+        $this->FNC('freeQuantityMin', 'double(maxDecimals=3)', 'caption=Минимално->Разполагаемо');
+        $this->FLD('dateMin', 'date', 'caption=Минимално->Дата');
+
         $this->FLD('state', 'enum(active=Активирано,closed=Изчерпано)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('productId, storeId');
@@ -121,7 +123,7 @@ class store_Products extends core_Detail
      */
     protected static function on_BeforePrepareListPager($mvc, &$res, $data)
     {
-        $mvc->listItemsPerPage = (isset($data->masterMvc)) ? 70 : 20;
+        $mvc->listItemsPerPage = (isset($data->masterMvc)) ? 50 : 20;
     }
     
     
@@ -175,6 +177,9 @@ class store_Products extends core_Detail
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             $rec->freeQuantity = $rec->quantity - $rec->reservedQuantity + $rec->expectedQuantity;
             $row->freeQuantity = $mvc->getFieldType('freeQuantity')->toVerbal($rec->freeQuantity);
+
+            $rec->freeQuantityMin = $rec->quantity - $rec->reservedQuantityMin + $rec->expectedQuantityMin;
+            $row->freeQuantityMin = $mvc->getFieldType('freeQuantityMin')->toVerbal($rec->freeQuantityMin);
             $row->measureId = cat_UoM::getTitleById($rec->measureId);
         }
     }
@@ -212,7 +217,7 @@ class store_Products extends core_Detail
         }
         
         $data->listFilter->setOptions('order', $orderOptions);
-        $data->listFilter->FNC('horizon', 'date', 'placeholder=Хоризонт,caption=Хоризонт,input,recently');
+        $data->listFilter->FNC('horizon', 'time(suggestions=1 ден|1 седмица|2 седмици|1 месец|3 месеца)', 'placeholder=Хоризонт,caption=Хоризонт,input');
         $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
         
         $stores = cls::get('store_Stores')->makeArray4Select('name', "#state != 'rejected'");
@@ -319,14 +324,13 @@ class store_Products extends core_Detail
                 }
 
                 if(!empty($rec->horizon)){
-                    $data->horizon = $rec->horizon;
-                    $horizonVerbal = dt::mysql2verbal($rec->horizon, 'd.m.Y');
 
                     // Добавяне в лист изгледа
-                    $after = ($data->masterMvc) ? 'expectedQuantityTotal' : 'storeId';
-                    arr::placeInAssocArray($data->listFields, array('reservedOut' => "|*{$horizonVerbal}->|Запазено|*"), null, $after);
-                    arr::placeInAssocArray($data->listFields, array('expectedIn' => "|*{$horizonVerbal}->|Очаквано|*"), null, 'reservedOut');
+                    $data->horizon = dt::addSecs($rec->horizon, null, false);
+                    $horizonVerbal = dt::mysql2verbal($data->horizon, 'd.m.Y');
 
+                    arr::placeInAssocArray($data->listFields, array('reservedOut' => "|*{$horizonVerbal}-><span class='small notBolded'> |Запазенo|*</span>"), null, 'dateMin');
+                    arr::placeInAssocArray($data->listFields, array('expectedIn' => "|*{$horizonVerbal}-><span class='small notBolded'> |Очаквано|*</span>"), null, 'reservedOut');
                     $mvc->FNC('reservedOut', 'double');
                     $mvc->FNC('expectedIn', 'double');
                 }
@@ -501,16 +505,18 @@ class store_Products extends core_Detail
      */
     protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
-        $data->listFields['reservedQuantity'] = "|Запазено|*<span class='small notBolded'> |*днес|*</span>";
-        $data->listFields['expectedQuantity'] = "|Очаквано|*<span class='small notBolded'> |*днес|*</span>";
-        $data->listFields['expectedQuantityTotal'] = "<span class='notBolded'>|Очаквано|*";
+        $data->listFields['reservedQuantity'] = "|Днес|*-><span class='small notBolded'> |Запазенo|*</span>";
+        $data->listFields['expectedQuantity'] = "|Днес|*-><span class='small notBolded'> |Очаквано|*</span>";
+        $data->listFields['freeQuantity'] = "|Днес|*-><span class='small notBolded'> |Разполагаемо|*</span>";
+        $data->listFields['reservedQuantityMin'] = "|Минимално|*-><span class='small notBolded'> |Запазено|*</span>";
+        $data->listFields['expectedQuantityMin'] = "|Минимално|*-><span class='small notBolded'> |Очаквано|*</span>";
+        $data->listFields['freeQuantityMin'] = "|Минимално|*-><span class='small notBolded'> |Разполагаемо|*</span>";
+        $data->listFields['dateMin'] = "|Минимално|*-><span class='small notBolded'> |Дата|*</span>";
         $historyBefore = 'code';
         
         if (isset($data->masterMvc)) {
             if($data->masterMvc instanceof cat_Products){
                 arr::placeInAssocArray($data->listFields, array('storeId' => 'Склад|*'), null, 'code');
-                
-               
                 if($data->masterData->rec->generic == 'yes'){
                     $data->listFields = array('code' => 'Код', 'productId' => 'Артикул') + $data->listFields;
                 } else {
@@ -550,7 +556,6 @@ class store_Products extends core_Detail
     {
         $data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field');
         $data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=centered');
-        $data->listTableMvc->setField('expectedQuantityTotal', 'tdClass=expectedTotalCol');
         
         if (!countR($data->rows)) {
             
@@ -558,18 +563,13 @@ class store_Products extends core_Detail
         }
 
         $today = dt::today();
-        $horizon2 = store_Setup::get('STOCK_HORIZON_2');
-        $date2 = dt::addSecs($horizon2, $today, false);
-        $horizon3 = store_Setup::get('STOCK_HORIZON_3');
-        $date3 = dt::addSecs($horizon3, $today, false);
-
         foreach ($data->rows as $id => &$row) {
             $rec = $data->recs[$id];
 
-            foreach (array('reservedQuantity', 'reservedQuantity2', 'reservedQuantity3', 'expectedQuantity', 'expectedQuantity2', 'expectedQuantityTotal', 'reservedOut', 'expectedIn') as $type){
+            $title = 'От кои документи е сформирано количеството';
+            foreach (array('reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin', 'reservedOut', 'expectedIn') as $type){
                 if (!empty($rec->{$type})) {
-                    $title = 'От кои документи е сформирано количеството';
-                    $date = in_array($type, array('reservedQuantity', 'expectedQuantity')) ? $today : (in_array($type, array('reservedQuantity2', 'expectedQuantity2')) ? $date2 : (in_array($type, array('reservedQuantity3', 'expectedQuantityTotal')) ? $date3 : $data->horizon));
+                    $date = in_array($type, array('reservedQuantity', 'expectedQuantity')) ? $today : (in_array($type, array('reservedQuantityMin', 'expectedQuantityMin')) ? $rec->dateMin : $data->horizon);
 
                     $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'id' => $rec->id, 'field' => $type, 'date' => $date), 'local');
                     $arrowImg = ht::createElement('img', array('src' => sbf('img/16/info-gray.png', '')));
@@ -607,23 +607,19 @@ class store_Products extends core_Detail
      */
     public function cron_CalcReservedQuantity()
     {
+        $plannedCount = store_StockPlanning::count();
+        core_App::setTimeLimit($plannedCount * 0.6, 300);
+
+        // Изчисляване на максималните запазени количества
         $queue = array();
-        $date1 = dt::today();
-        $reserved1 = store_StockPlanning::getPlannedQuantities($date1);
-        unset($reserved1[null]);
-        $queue[] = (object)array('quantities' => $reserved1, 'fieldReserved' => 'reservedQuantity', 'fieldExpected' => 'expectedQuantity');
+        $reservedMax = store_StockPlanning::getMaxReservedByProduct();
+        $queue[] = (object)array('quantities' => $reservedMax, 'fieldReserved' => 'reservedQuantityMin', 'fieldExpected' => 'expectedQuantityMin', 'dateField' => 'dateMin');
 
-        $horizon2 = store_Setup::get('STOCK_HORIZON_2');
-        $date2 = dt::addSecs($horizon2, $date1, false);
-        $reserved2 = store_StockPlanning::getPlannedQuantities($date2);
-        unset($reserved2[null]);
-        $queue[] = (object)array('quantities' => $reserved2, 'fieldReserved' => 'reservedQuantity2', 'fieldExpected' => 'expectedQuantity2');
-
-        $horizon3 = store_Setup::get('STOCK_HORIZON_3');
-        $date3 = dt::addSecs($horizon3, $date1, false);
-        $reserved3 = store_StockPlanning::getPlannedQuantities($date3);
-        unset($reserved3[null]);
-        $queue[] = (object)array('quantities' => $reserved3, 'fieldReserved' => 'reservedQuantity3', 'fieldExpected' => 'expectedQuantityTotal');
+        // Изчисляване на запазеното за днеска
+        $date = '2020-12-31';  dt::today();
+        $reserved = store_StockPlanning::getPlannedQuantities($date);
+        unset($reserved[null]);
+        $queue[] = (object)array('quantities' => $reserved, 'fieldReserved' => 'reservedQuantity', 'fieldExpected' => 'expectedQuantity');
 
         $result = array();
         foreach ($queue as $object) {
@@ -636,15 +632,17 @@ class store_Products extends core_Detail
 
                     $result[$key]->{$object->fieldReserved} = ($o->reserved) ? $o->reserved : null;
                     $result[$key]->{$object->fieldExpected} = ($o->expected) ? $o->expected : null;
+                    if(isset($object->dateField)){
+                        $result[$key]->{$object->dateField} = ($o->date) ? $o->date : null;
+                    }
                 }
             }
         }
 
+        // Синхронизират се новите със старите записи
         $storeQuery = static::getQuery();
         $oldRecs = $storeQuery->fetchAll();
-
-        // Синхронизират се новите със старите записи
-        $res = arr::syncArrays($result, $oldRecs, 'storeId,productId', 'reservedQuantity,reservedQuantity2,reservedQuantity3,expectedQuantity,expectedQuantity2,expectedQuantityTotal');
+        $res = arr::syncArrays($result, $oldRecs, 'storeId,productId', 'reservedQuantity,expectedQuantity,reservedQuantityMin,expectedQuantityMin,dateMin');
 
         // Заклюване на процеса
         if (!core_Locks::get(self::SYNC_LOCK_KEY, 60, 1)) {
@@ -655,11 +653,11 @@ class store_Products extends core_Detail
         
         // Добавяне и ъпдейт на резервираното количество на новите
         $this->saveArray($res['insert']);
-        $this->saveArray($res['update'], 'id,reservedQuantity,reservedQuantity2,reservedQuantity3,expectedQuantity,expectedQuantity2,expectedQuantityTotal');
+        $this->saveArray($res['update'], 'id,reservedQuantity,expectedQuantity,reservedQuantityMin,expectedQuantityMin,dateMin');
 
         // Намиране на тези записи, от старите които са имали резервирано к-во, но вече нямат
         $unsetArr = array_filter($oldRecs, function (&$r) use ($result) {
-            if (!isset($r->reservedQuantity) && !isset($rec->reservedQuantity2) && !isset($rec->reservedQuantity3) && !isset($r->expectedQuantity) && !isset($r->expectedQuantity2) && !isset($r->expectedQuantityTotal)) {
+            if (!isset($r->reservedQuantity) && !isset($rec->expectedQuantity) && !isset($rec->reservedQuantityMin) && !isset($r->expectedQuantityMin)) {
 
                 return false;
             }
@@ -668,18 +666,22 @@ class store_Products extends core_Detail
                 return false;
             }
 
-            foreach (arr::make('reservedQuantity,reservedQuantity2,reservedQuantity3,expectedQuantity,expectedQuantity2,expectedQuantityTotal', true) as $fld){
+            foreach (arr::make('reservedQuantity,expectedQuantity,reservedQuantityMin,expectedQuantityMin', true) as $fld){
                 if(isset($r->{$fld})){
                     $r->{$fld} = null;
                 }
             }
-            
+
+            if(isset($r->dateMin) && !isset($rec->reservedQuantityMin) && !isset($rec->expectedQuantityMin)){
+                $r->dateMin = null;
+            }
+
             return true;
         });
 
         // Техните резервирани количества се изтриват
         if (countR($unsetArr)) {
-            $this->saveArray($unsetArr, 'id,reservedQuantity,reservedQuantity2,reservedQuantity3,expectedQuantity,expectedQuantity2,expectedQuantityTotal');
+            $this->saveArray($unsetArr, 'id,reservedQuantity,expectedQuantity,reservedQuantityMin,expectedQuantityMin,dateMin');
         }
         
         // Освобождаване на процеса
@@ -863,7 +865,7 @@ class store_Products extends core_Detail
             $data->rows['total'] = (object)array($totalField => "<div style='float:left'>" .  tr('Сумарно') . "</div>");
             $data->rows['total']->ROW_ATTR['style'] = 'background-color:#eee;font-weight:bold';
             
-            foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'expectedQuantityTotal', 'freeQuantity', 'reservedOut', 'expectedOut') as $fld){
+            foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'expectedQuantityMin', 'freeQuantity', 'freeQuantityMin', 'reservedQuantityMin', 'reservedOut', 'expectedOut') as $fld){
                 ${$fld} = arr::sumValuesArray($data->recs, $fld, true);
                 $data->rows['total']->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal(${$fld});
             }

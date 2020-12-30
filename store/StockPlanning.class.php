@@ -268,7 +268,7 @@ function act_Test()
 {
     requireRole('debug');
 
-    self::updateByDocument('purchase_Purchases', 553);
+    self::updateByDocument('purchase_Purchases', 556);
 bp();
     static::queueToRecalcOnShutdown('cat_Boms', 275);
 //bp();
@@ -309,6 +309,51 @@ bp();
         $res = array();
         while($rec = $query->fetch()){
             $res[$rec->storeId][$rec->productId] = (object)array('productId' => $rec->productId, 'storeId' => $rec->storeId, 'reserved' => $rec->totalOut, 'expected' => $rec->totalIn);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Връща сумарно количествата, на коя дата артикул+склад ще е с най-много запазено количество
+     *
+     * @return array $res
+     */
+    public static function getMaxReservedByProduct()
+    {
+        $query = static::getQuery();
+
+        // Сумиране на всички запазени/очаквани количества по дата
+        $query->XPR("dateShort", 'date', "DATE(#date)");
+        $query->XPR("quantityOutTotal", 'double', "ROUND(SUM(COALESCE(#quantityOut, 0)), 4)");
+        $query->XPR("quantityInTotal", 'double', "ROUND(SUM(COALESCE(#quantityIn, 0)), 4)");
+        $query->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
+        $query->where("#generic = 'no' AND #storeId IS NOT NULL");
+        $query->show('productId,storeId,dateShort,quantityInTotal,quantityOutTotal');
+        $query->groupBy('storeId,productId,dateShort');
+
+        $res = array();
+        while($rec = $query->fetch()){
+            if(!isset($res[$rec->storeId][$rec->productId])){
+                $res[$rec->storeId][$rec->productId] = (object)array('productId' => $rec->productId, 'storeId' => $rec->storeId);
+            }
+
+            if(!isset($res[$rec->storeId][$rec->productId]->date)){
+                $res[$rec->storeId][$rec->productId]->date = $rec->dateShort;
+                $res[$rec->storeId][$rec->productId]->reserved = $rec->quantityOutTotal;
+                $res[$rec->storeId][$rec->productId]->expected = $rec->quantityInTotal;
+            } else {
+
+                // Обновяване на записа, за който запазеното-очакваното ще е най-голямо
+                $diffOld = $res[$rec->storeId][$rec->productId]->quantityOut - $res[$rec->storeId][$rec->productId]->quantityIn;
+                $diffNew = $rec->quantityOutTotal - $rec->quantityInTotal;
+                if(round($diffNew, 4) > round($diffOld, 4)){
+                    $res[$rec->storeId][$rec->productId]->date = $rec->dateShort;
+                    $res[$rec->storeId][$rec->productId]->reserved = $rec->quantityOutTotal;
+                    $res[$rec->storeId][$rec->productId]->expected = $rec->quantityInTotal;
+                }
+            }
         }
 
         return $res;
