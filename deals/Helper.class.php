@@ -729,7 +729,7 @@ abstract class deals_Helper
      *
      * @return void
      */
-    public static function getQuantityHint(&$html, $productId, $storeId, $quantity, $state)
+    public static function getQuantityHint(&$html, $productId, $storeId, $quantity, $state, $date = null)
     {
         if (!in_array($state, array('draft', 'pending'))) {
             return;
@@ -739,7 +739,7 @@ abstract class deals_Helper
         if ($canStore != 'yes') {
             return;
         }
-        
+        //
         $hint = '';
         $stRec = store_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}");
         $Double = core_Type::getByName('double(smartRound)');

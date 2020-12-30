@@ -221,7 +221,15 @@ class sales_SalesDetails extends deals_DealDetail
             
             if ($storeId = $masterRec->shipmentStoreId) {
                 if (isset($pInfo->meta['canStore'])) {
-                    deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $storeId, $rec->quantity, $masterRec->state);
+                    $deliveryDate = $masterRec->deliveryTime;
+                    if(empty($deliveryDate)){
+                        $deliveryDate = $masterRec->valior;
+                        if(!empty($masterRec->deliveryTermTime)){
+                            $deliveryDate = dt::addSecs($masterRec->deliveryTermTime, $deliveryDate);
+                        }
+                    }
+
+                    deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $storeId, $rec->quantity, $masterRec->state, $deliveryDate);
                 }
             }
             
