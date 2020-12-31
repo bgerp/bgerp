@@ -407,8 +407,8 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             $info = $mvc->getRowInfo($rec);
 
             $storeId = (isset($rec->{$mvc->storeFieldName})) ? $rec->{$mvc->storeFieldName} : $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
-            
-            if (!$storeId || !count($info->operation)) {
+
+            if (!$storeId || !is_array($info->operation) || !countR($info->operation)) {
                 $res = 'no_one';
             } else {
                 $res = $mvc->getRequiredRoles('edit', $rec);
