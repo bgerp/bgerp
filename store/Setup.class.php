@@ -260,7 +260,7 @@ class store_Setup extends core_ProtoSetup
             $Source->setupMvc();
 
             $query = $Source->getQuery();
-            $query->in("state", $Source->updatePlannedStockOnChangeStat);
+            $query->in("state", $Source->updatePlannedStockOnChangeStates);
             $count = $query->count();
             core_App::setTimeLimit(0.7 * $count, 300);
 
