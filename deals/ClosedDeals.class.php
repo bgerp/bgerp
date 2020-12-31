@@ -350,10 +350,14 @@ abstract class deals_ClosedDeals extends core_Master
             $firstRec->closedOn = $mvc->getValiorDate($rec);
             $firstRec->modifiedOn = dt::now();
             $DocClass->save($firstRec, 'modifiedOn,state,closedOn');
-            
+
             if (empty($saveFileds)) {
                 $rec->amount = $mvc::getClosedDealAmount($rec->threadId);
                 $mvc->save($rec, 'amount');
+            }
+
+            if($DocClass->hasPlugin('store_plg_StockPlanning')){
+                store_StockPlanning::updateByDocument($DocClass, $rec->docId);
             }
         }
         
