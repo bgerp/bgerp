@@ -268,8 +268,9 @@ function act_Test()
 {
     requireRole('debug');
 
-    self::updateByDocument('purchase_Purchases', 556);
-bp();
+    $v = store_Products::getQuantity(4325, $storeId, $freeQuantity, $date);
+    //self::updateByDocument('purchase_Purchases', 556);
+bp($v);
     static::queueToRecalcOnShutdown('cat_Boms', 275);
 //bp();
     $stores = array();

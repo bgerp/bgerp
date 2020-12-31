@@ -465,7 +465,7 @@ class store_Products extends core_Detail
         }
 
         if ($freeQuantity === true) {
-            $query->XPR('sum', 'double', 'SUM(#quantity - COALESCE(#reservedQuantity, 0) + COALESCE(#expectedQuantity, 0))');
+            $query->XPR('sum', 'double', 'SUM(#quantity - COALESCE(#reservedQuantityMin, 0) + COALESCE(#expectedQuantityMin, 0))');
         } else {
             $query->XPR('sum', 'double', 'SUM(#quantity)');
         }
