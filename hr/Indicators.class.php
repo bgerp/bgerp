@@ -137,7 +137,7 @@ class hr_Indicators extends core_Manager
         if ($form->isSubmitted()) {
             $rec = $form->rec;
             
-            $this->logWrite("Преизчисляване на индикаторите след '{$rec->timeline}'");
+            $this->logWrite("Преизчисляване на индикаторите");
             self::recalc($rec->timeline);
             followRetUrl(null, 'Индикаторите са преизчислени');
         }
