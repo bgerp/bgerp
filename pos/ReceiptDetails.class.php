@@ -263,7 +263,7 @@ class pos_ReceiptDetails extends core_Detail
                         
                         $rec->quantity *= -1;
                     } else {
-                        
+
                         // Проверка дали количеството е допустимо
                         $errorQuantity = null;
                         if (!pos_Receipts::checkQuantity($rec, $errorQuantity)) {
@@ -1101,7 +1101,7 @@ class pos_ReceiptDetails extends core_Detail
         $stores = pos_Points::getStores($pointId);
         $quantityArr = array();
         array_walk($stores, function($storeId) use(&$quantityArr, $productId) {
-            $quantityArr[$storeId] = pos_Stocks::getQuantityByStore($productId, $storeId);
+            $quantityArr[$storeId] = store_Products::getQuantity($productId, $storeId, true);
         });
         
         // Кой е основния склад и какво количество е в него

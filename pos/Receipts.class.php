@@ -655,12 +655,31 @@ class pos_Receipts extends core_Master
         // Ако е забранено продаването на неналични артикули да се проверява
         $notInStockChosen = pos_Setup::get('ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK');
         if ($notInStockChosen == 'yes') {
-            
-            return true;
+
+           return true;
         }
-        
+
         $pRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
-        $quantityInStock = pos_Stocks::getQuantityByStore($rec->productId, $rec->storeId, $rec->batch);
+        $quantityInStock = store_Products::getQuantity($rec->productId, $rec->storeId, true);
+
+        // Ако има положителна наличност
+        if(core_Packs::isInstalled('batch') && $quantityInStock > 0){
+            if($BatchDef = batch_Defs::getBatchDef($rec->productId)){
+                if(!empty($rec->batch)){
+
+                    // И е подадена конкретна партида, взима се нейното количество
+                    $quantityInStock = batch_Items::getQuantity($rec->productId, $rec->batch, $rec->storeId);
+                } else {
+
+                    // Ако е без партида но има партидност, гледа се колко има в склада, които са без партида
+                    $batchesIn = batch_Items::getBatchQuantitiesInStore($rec->productId, $rec->storeId);
+                    $quantityOnBatches = 0;
+                    array_walk($batchesIn, function($a) use(&$quantityOnBatches){ if($a > 0) {$quantityOnBatches += $a;}});
+                    $quantityInStock = round($quantityInStock - $quantityOnBatches, 4);
+                }
+            }
+        }
+
         $quantityInPack = ($pRec) ? $pRec->quantity : 1;
         $quantityInStock -= round($rec->quantity * $quantityInPack, 2);
         $quantityInStock = round($quantityInStock, 2);
@@ -694,7 +713,7 @@ class pos_Receipts extends core_Master
         if(isset($rec->revertId)){
             $error = null;
             if(!static::canCloseRevertReceipt($rec, $error)){
-                bp($rec);
+
                 followRetUrl(null, $error, 'error');
             }
         }
@@ -706,9 +725,7 @@ class pos_Receipts extends core_Master
             if(isset($rec->revertId) && $rec->revertId != static::DEFAULT_REVERT_RECEIPT){
                 $this->calcRevertedTotal($rec->revertId);
             }
-            
-            // Обновяваме складовите наличности
-            pos_Stocks::updateStocks($rec->id);
+
             $this->logInAct('Приключване на бележка', $rec->id);
         }
         
@@ -1161,5 +1178,27 @@ class pos_Receipts extends core_Master
         }
 
         return $res;
+    }
+
+
+    /**
+     * ф-я връщаща най-голямото налично к-во в точката
+     *
+     * @param int $productId
+     * @param int $pointId
+     * @return double
+     */
+    public static function getBiggestQuantity($productId, $pointId)
+    {
+        $stores = pos_Points::getStores($pointId);
+        $storeArr = array();
+        foreach ($stores as $storeId){
+            $quantity = store_Products::getQuantity($productId, $storeId, true);
+            $storeArr[$storeId] = $quantity;
+        }
+
+        arsort($storeArr);
+
+        return $storeArr[key($storeArr)];
     }
 }
