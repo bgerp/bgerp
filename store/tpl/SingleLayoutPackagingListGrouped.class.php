@@ -123,7 +123,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             }
 
             $groupAmount = core_Type::getByName('double(decimals=2)')->toVerbal($tariffObject->amount);
-            $groupAmount .= " {$masterRec->currencyId}";
+            $groupAmount .= " {$masterRec->currencyId}, " . (($masterRec->chargeVat == 'yes' || $masterRec->chargeVat == 'separate') ? '|с ДДС|*' : '|без ДДС|*');
             $code = ($tariffNumber != self::EMPTY_TARIFF_NUMBER) ? "HS Code / CTN {$tariffObject->code}" : tr('Без тарифен код');
             $transUnits = trans_Helper::displayTransUnits($tariffObject->transUnits);
             $groupVerbal = tr("|*<b>{$code}</b>, |Бруто|*: {$weight}, {$transUnits}, |Сума|*: {$groupAmount}");
