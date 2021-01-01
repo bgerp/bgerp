@@ -30,9 +30,20 @@ class ckeditor_Setup extends core_ProtoSetup
      */
     public $info = 'Текстов редактор за Интернет';
     
-    
+ 
+
     /**
-     * Пакет без инсталация
+     * Инсталиране на пакета
      */
-    public $noInstall = true;
+    public function install()
+    {
+        $html = parent::install();
+       
+
+        // Инсталираме плъгина за аватари
+        $html .= core_Plugins::installPlugin('Регистриране на HTML', 'ckeditor_Plugin', 'type_Html', 'private');
+        
+        return $html;
+    }
+
 }
