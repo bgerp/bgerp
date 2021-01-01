@@ -120,6 +120,7 @@ class doc_plg_TplManager extends core_Plugin
         if (count($templates) >= 1) {
             $data->form->setOptions('template', $templates);
         } else {
+            $data->form->setError('template', 'Няма активен шаблон за документа');
             $data->form->setField('template', 'input=hidden');
         }
     }

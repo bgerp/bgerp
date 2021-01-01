@@ -250,9 +250,13 @@ class ztm_RegisterValues extends core_Manager
                 $this->logErr("'{$obj->name}': {$dump[0]}");
             }
         }
-        
+
         foreach ($unknownRegisters as $unknownRegisterObj) {
-            $this->logErr("Неразпознат ZTM регистър: '{$unknownRegisterObj->name}' : '{$unknownRegisterObj->value}'");
+            $value = $unknownRegisterObj->value;
+            if (!is_string($value)) {
+                $value = core_Type::mixedToString($value);
+            }
+            $this->logErr("Неразпознат ZTM регистър: '{$unknownRegisterObj->name}' : '{$value}'");
         }
         
         // Отключване на синхронизацията
@@ -355,6 +359,7 @@ class ztm_RegisterValues extends core_Manager
         try {
             $regArr = array();
             $registers = Request::get('registers');
+
             if (!empty($registers)) {
                 if (is_scalar($registers)) {
                     if (str::isJson($registers)) {

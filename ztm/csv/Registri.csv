@@ -2,7 +2,7 @@ name,type,range,plugin,scope,default,description
 ac.enabled,bool,true|false,Access Control,system,false,Plugin enabled
 ac.allowed_attendees,json,,Access Control,system,"""[]""",Allowed attendees
 ac.nearby_attendees,json,,Access Control,system,"""[]""",Nearby attendees
-ac.last_minute_attendees,json,,Access Control,device,"""[]""",Last minute attendee
+ac.last_update_attendees,json,,Access Control,device,"""[]""",Last update attendee
 ac.next_attendance,float,0.0/,Access Control,device,0.0,Next attendance
 ac.entry_reader_1.enabled,str,,Access Control,system,off,Card reader enabled
 ac.entry_reader_1.port.baudrate,int,300|600|1200|2400|4800|9600|19200|38400|57600|115200,Access Control,system,9600,Card reader port baud rate
@@ -128,13 +128,13 @@ light.v1.output,str,off|AO0|AO1|AO2|AO3|AO4|AO5|AO6|AO7|AO8,Light,system,AO1,Ana
 light.v2.output,str,off|AO0|AO1|AO2|AO3|AO4|AO5|AO6|AO7|AO8,Light,system,AO2,Analog output 2
 light.sensor.settings,str,,Light,system,1wdevice/26607314020000F8,Sensor settings
 light.enabled,bool,true|false,Light,system,false,Plugin enabled
-sys.last_minute_errs,json,,System,device,"""[]""",Last minute error
+sys.last_update_errs,json,,System,device,"""[]""",Last update cycle error
 sys.ram.current,int,0/,System,device,0,Current consumed RAM
 sys.ram.peak,int,0/,System,device,0,Peek of consumed RAM
 sys.time.usage,float,0.0/,System,device,0.0,Application time cycle
-sys.disc.total,int,0.0/,System,device,0,Disc status
-sys.disc.used,int,0.0/,System,device,0,Disc status
-sys.disc.free,int,0.0/,System,device,0,Disc status
+sys.disc.total,int,0/,System,device,0,Total disc space
+sys.disc.used,int,0/,System,device,0,Used disc space
+sys.disc.free,int,0/,System,device,0,Free disc space
 sys.sl.output,str,off|LED0|LED1|LED2|LED3|!LED0|!LED1|!LED2|!LED3,System,system,LED0,Status LED
 sys.sl.blink_time,float,0.0/,System,system,1.0,Blink time
 sys.at.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8|!DI0|!DI1|!DI2|!DI3|!DI4|!DI5|!DI6|!DI7|!DI8,System,system,off,Anti tamper

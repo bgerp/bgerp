@@ -523,6 +523,11 @@ class doc_TplManager extends core_Master
             $in = self::getIdsInSetupConstants();
             if(in_array($rec->id, $in)){
                 $res = 'no_one';
+            } else {
+                $availableTplCount = $mvc->count("#docClassId = {$rec->docClassId} AND #state = 'active' AND #id != {$rec->id}");
+                if(!$availableTplCount){
+                    $res = 'no_one';
+                }
             }
         }
     }
