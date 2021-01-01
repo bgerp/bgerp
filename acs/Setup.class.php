@@ -23,7 +23,7 @@ class acs_Setup extends core_ProtoSetup
     /**
      * Необходими пакети
      */
-    public $depends = 'crm=0.1';
+    public $depends = 'crm=0.1, ztm=0.1';
     
     
     /**
@@ -102,6 +102,9 @@ class acs_Setup extends core_ProtoSetup
         // Добавяне на системна група за водачи на МПС
         $groupRec = (object)array('name' => $this->get('VISITORS_GROUP_NAME'), 'sysId' => 'visitors');
         crm_Groups::forceGroup($groupRec);
+
+        // Инсталираме плъгина за аватари
+        $html .= core_Plugins::installPlugin('Регистриране на достъпа', 'acs_RegisterPlg', 'ztm_RegisterValues', 'private');
         
         return $html;
     }

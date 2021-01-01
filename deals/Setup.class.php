@@ -26,6 +26,18 @@ defIfNot('DEALS_OVERDUE_PENDING_DAYS_3', '14');
 
 
 /**
+ * Напомняне за активни продажби и покупки без нови документи
+ */
+defIfNot('DEALS_ACTIVE_DEALS_WITHOUT_DOCUMENTS', dt::SECONDS_IN_MONTH * 3);
+
+
+/**
+ * Напомняне за активни финансови сделки без нови документи
+ */
+defIfNot('DEALS_ACTIVE_FINDEALS_WITHOUT_DOCUMENTS', dt::SECONDS_IN_MONTH * 12);
+
+
+/**
  * Кой потребител да излиза като съставител на документите
  */
 defIfNot('DEALS_ISSUER', 'activatedBy');
@@ -45,7 +57,7 @@ defIfNot('DEALS_ISSUER_USER', '');
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -94,6 +106,8 @@ class deals_Setup extends core_ProtoSetup
         'DEALS_OVERDUE_PENDING_DAYS_1' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ със стар вальор->Първо след,unit=дни'),
         'DEALS_OVERDUE_PENDING_DAYS_2' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ със стар вальор->Второ след,unit=дни'),
         'DEALS_OVERDUE_PENDING_DAYS_3' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ със стар вальор->Трето след,unit=дни'),
+        'DEALS_ACTIVE_DEALS_WITHOUT_DOCUMENTS' => array('time', 'caption=Напомняне за активни продажби и покупки без нови документи->Хоризонт'),
+        'DEALS_ACTIVE_FINDEALS_WITHOUT_DOCUMENTS' => array('time)', 'caption=Напомняне за активни финансови сделки без нови документи->Хоризонт'),
     );
     
     
@@ -121,9 +135,82 @@ class deals_Setup extends core_ProtoSetup
             'period' => 1440,
             'offset' => 120
         ),
+
+        array(
+            'systemId' => 'Check Forgotten Active Deals',
+            'description' => 'Напомняне за забравени активни сделки',
+            'controller' => 'deals_Setup',
+            'action' => 'Check4ForgottenDeals',
+            'period' => 10080,
+            'offset' => 120
+        ),
     );
-    
-    
+
+
+    /**
+     * Изпращане на нотификации на създателите на евентуално забравени активни сделки
+     */
+    public function cron_Check4ForgottenDeals()
+    {
+        $horizonDeals = deals_Setup::get('ACTIVE_DEALS_WITHOUT_DOCUMENTS');
+        $horizonFinDeals = deals_Setup::get('ACTIVE_FINDEALS_WITHOUT_DOCUMENTS');
+
+        $arr = array('sales_Sales' => $horizonDeals, 'purchase_Purchases' => $horizonDeals, 'findeals_Deals' => $horizonFinDeals);
+
+        // За всяка сделка
+        foreach ($arr as $className => $horizon) {
+            $dealArr = $threads = array();
+            $date = dt::addSecs(-1 * $horizon);
+            $Class = cls::get($className);
+
+            // Има ли активни сделки от посочения клас?
+            $query = $Class->getQuery();
+            $query->where("#state = 'active' AND #createdBy != '-1' AND #createdBy != 0");
+            $query->show('threadId,createdBy');
+
+            // Ако има групират се по създателя си
+            while ($rec = $query->fetch()) {
+                $threads[$rec->threadId] = $rec->threadId;
+                $dealArr[$rec->createdBy][$rec->threadId] = $rec->threadId;
+            }
+
+            // Ако няма сделки, нищо не се прави
+            if (!countR($threads)) continue;
+
+            // Коя е най-голямата дата на създаване на документ в нишки на активни сделки
+            $cQuery = doc_Containers::getQuery();
+            $cQuery->XPR('maxCreatedOn', 'datetime', 'MAX(#createdOn)');
+            $cQuery->in('threadId', $threads);
+            $cQuery->where("#maxCreatedOn < '{$date}'");
+            $cQuery->groupBy('threadId');
+            $cQuery->show('threadId');
+
+            // Кои са нишките, в които последния създаден документ е преди хоризонта
+            $threadsWithoutNewDocuments = arr::extractValuesFromArray($cQuery->fetchAll(), 'threadId');
+
+            // Ако няма такива нишки нищо не се прави
+            if(!countR($threadsWithoutNewDocuments)) continue;
+            $horizonVerbal = core_Type::getByName('time')->toVerbal($horizon);
+
+            // За всеки създател на активна сделка
+            foreach ($dealArr as $userId => $createdThreads) {
+                if ($userId < 1) continue;
+
+                // Ако в някоя от нишките му така с последно създаден документ преди хоризонта, изпраща се нотификация
+                $intersect = array_intersect_key($threadsWithoutNewDocuments, $createdThreads);
+                $intersectCount = countR($intersect);
+                if ($intersectCount) {
+                    $className = ($intersectCount == 1) ? mb_strtolower($Class->singleTitle) : mb_strtolower($Class->title);
+                    $msg = "Имате|* {$intersectCount} |активни {$className} без движения в последните|* {$horizonVerbal}";
+
+                    $url = array('doc_Search', 'list', 'docClass' => $Class->getClassId(), 'author' => $userId, 'state' => 'active');
+                    bgerp_Notifications::add($msg, $url, $userId);
+                }
+            }
+        }
+    }
+
+
     /**
      * Проверка на платежни документи на заявка чакащи плащане по разписание
      */
