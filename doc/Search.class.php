@@ -301,8 +301,8 @@ class doc_Search extends core_Manager
             // Експеримент за оптимизиране на бързодействието
             $data->query->orderBy('#modifiedOn=DESC');
 
-            $aArr = type_UserList::toArray($filterRec->author);
-            if (countR($aArr) == 1) {
+            $aArr = type_UserList::toArray($filterRec->author); 
+            if (countR($aArr) == 1 && is_numeric(reset($aArr))) {
                 $data->query->useIndex('created_by');
             } elseif ($filterRec->scopeFolderId) {
                 $data->query->useIndex('folder_id');
