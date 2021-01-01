@@ -79,7 +79,8 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             return;
         }
         $columns = countR($data->listFields);
-        
+        $masterRec = $data->masterData->rec;
+
         // Извличане на всички уникални тарифни номера и сумиране на данните им
         $tarriffCodes = array();
         foreach ($data->recs as $rec1) {
@@ -98,12 +99,20 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             if(empty($weight)){
                 $tarriffCodes[$rec1->tariffNumber]->withoutWeightProducts[] = cat_Products::getTitleById($rec1->productId);
             }
+
+            $amountR = $rec1->amount;
+            if(in_array($masterRec->chargeVat, array('separate'))){
+                $vat = cat_Products::getVat($rec1->productId, $masterRec->valior);
+                $amountR += $amountR * $vat;
+            }
+
+            $tarriffCodes[$rec1->tariffNumber]->amount += $amountR;
             $tarriffCodes[$rec1->tariffNumber]->weight += $weight;
         }
         
         ksort($tarriffCodes, SORT_STRING);
         $rows = array();
-        
+
         // За всяко поле за групиране
         foreach ($tarriffCodes as $tariffNumber => $tariffObject) {
             
@@ -112,10 +121,12 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                 $imploded = implode(',', $tariffObject->withoutWeightProducts);
                 $weight = ht::createHint($weight, "Следните артикули нямат транспортно тегло|*: {$imploded}", 'warning');
             }
-            
+
+            $groupAmount = core_Type::getByName('double(decimals=2)')->toVerbal($tariffObject->amount);
+            $groupAmount .= " {$masterRec->currencyId}, " . (($masterRec->chargeVat == 'yes' || $masterRec->chargeVat == 'separate') ? '|с ДДС|*' : '|без ДДС|*');
             $code = ($tariffNumber != self::EMPTY_TARIFF_NUMBER) ? "HS Code / CTN {$tariffObject->code}" : tr('Без тарифен код');
             $transUnits = trans_Helper::displayTransUnits($tariffObject->transUnits);
-            $groupVerbal = tr("|*<b>{$code}</b>, |Бруто|*: {$weight}, {$transUnits}");
+            $groupVerbal = tr("|*<b>{$code}</b>, |Бруто|*: {$weight}, {$transUnits}, |Сума|*: {$groupAmount}");
             
             // Създаваме по един ред с името му, разпънат в цялата таблица
             $rowAttr = array('class' => ' group-by-field-row');
