@@ -29,7 +29,7 @@ class ckeditor_CKeditor extends core_BaseClass
         $tpl->prepend("<style>.ck p {margin:5px;}</style><textarea id=\"{$id}\"></textarea>");
      
           $tpl->appendOnce(
-              "\n<script type=\"text/javascript\" src=" .  '../sbf/bgerp/ckeditor/5.0.1/build/ckeditor.js'  . "></script>\n",
+              "\n<script type=\"text/javascript\" src=" .  '/sbf/bgerp/ckeditor/5.0.1/build/ckeditor.js'  . "></script>\n",
               'HEAD'
         
          );
