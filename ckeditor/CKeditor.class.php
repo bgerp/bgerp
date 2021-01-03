@@ -31,7 +31,6 @@ class ckeditor_CKeditor extends core_BaseClass
           $tpl->appendOnce(
               "\n<script type=\"text/javascript\" src=" .  '/sbf/bgerp/ckeditor/5.0.1/build/ckeditor.js'  . "></script>\n",
               'HEAD'
-        
          );
 
         //$tpl->appendOnce(
@@ -45,7 +44,6 @@ class ckeditor_CKeditor extends core_BaseClass
 
         if(!$a) {
             
-
             $tpl->append("
             <script>
             const editors = {}; 
