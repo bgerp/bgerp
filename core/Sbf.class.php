@@ -197,6 +197,7 @@ class core_Sbf extends core_Mvc
                 'html' => 'text/html',
                 'xml' => 'text/xml',
                 'js' => 'application/javascript',
+                'map' => 'application/javascript',
                 
                 // Бинарни
                 'swf' => 'application/x-shockwave-flash',
