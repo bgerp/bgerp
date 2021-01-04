@@ -1366,6 +1366,10 @@ a.tOld {
   margin-bottom: 5px; }
   .folder-cover .typeTable td {
     min-width: auto !important; }
+    .folder-cover .typeTable td.leftCell,
+    .folder-cover .typeTable td.rightCell {
+      padding-left: 7px;
+      padding-right: 7px; }
 
   .formFields .typeTable select,
   .formFields .typeTable input {
