@@ -25,7 +25,7 @@ class ckeditor_Test extends core_Master
      * Зареждане на необходимите плъгини
      */
     public $loadList = 'plg_RowTools2, plg_State, plg_Printing, blogm_Wrapper, 
-        plg_Search, plg_Created, plg_Modified, cms_VerbalIdPlg, plg_Rejected';
+        plg_Search, plg_Created, plg_Modified, plg_Rejected';
     
   
  
