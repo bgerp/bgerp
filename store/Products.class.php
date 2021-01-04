@@ -603,7 +603,7 @@ class store_Products extends core_Detail
     public function cron_CalcReservedQuantity()
     {
         $plannedCount = store_StockPlanning::count();
-        core_App::setTimeLimit($plannedCount * 0.6, 300);
+        core_App::setTimeLimit($plannedCount * 0.7, 300);
 
         // Изчисляване на максималните запазени количества
         $queue = array();
@@ -611,8 +611,9 @@ class store_Products extends core_Detail
         $queue[] = (object)array('quantities' => $reservedMax, 'fieldReserved' => 'reservedQuantityMin', 'fieldExpected' => 'expectedQuantityMin', 'dateField' => 'dateMin');
 
         // Изчисляване на запазеното за днеска
-        $date = '2020-12-31';  dt::today();
+        $date = dt::today();
         $reserved = store_StockPlanning::getPlannedQuantities($date);
+
         unset($reserved[null]);
         $queue[] = (object)array('quantities' => $reserved, 'fieldReserved' => 'reservedQuantity', 'fieldExpected' => 'expectedQuantity');
 
@@ -645,33 +646,35 @@ class store_Products extends core_Detail
             
             return;
         }
-        
+
         // Добавяне и ъпдейт на резервираното количество на новите
         $this->saveArray($res['insert']);
         $this->saveArray($res['update'], 'id,reservedQuantity,expectedQuantity,reservedQuantityMin,expectedQuantityMin,dateMin');
 
         // Намиране на тези записи, от старите които са имали резервирано к-во, но вече нямат
-        $unsetArr = array_filter($oldRecs, function (&$r) use ($result) {
-            if (!isset($r->reservedQuantity) && !isset($rec->expectedQuantity) && !isset($rec->reservedQuantityMin) && !isset($r->expectedQuantityMin)) {
+        $unsetArr = array_filter($oldRecs, function (&$r) use ($reservedMax, $reserved) {
+            $unset = false;
 
-                return false;
-            }
-            if (array_key_exists("{$r->storeId}|{$r->productId}", $result)) {
-                
-                return false;
-            }
-
-            foreach (arr::make('reservedQuantity,expectedQuantity,reservedQuantityMin,expectedQuantityMin', true) as $fld){
-                if(isset($r->{$fld})){
-                    $r->{$fld} = null;
+            // Ако е имало запазено/очаквано за днеска, но вече няма ще се ънсетнат
+            if(isset($r->reservedQuantity) || isset($r->expectedQuantity)){
+                if(!isset($reserved[$r->storeId][$r->productId])){
+                    $r->reservedQuantity = null;
+                    $r->expectedQuantity = null;
+                    $unset = true;
                 }
             }
 
-            if(isset($r->dateMin) && !isset($rec->reservedQuantityMin) && !isset($rec->expectedQuantityMin)){
-                $r->dateMin = null;
+            // Ако е имало минимално запазено/очаквано , но вече няма ще се ънсетнат
+            if(isset($r->reservedQuantityMin) || isset($r->expectedQuantityMin)){
+                if(!isset($reservedMax[$r->storeId][$r->productId])){
+                    $r->reservedQuantityMin = null;
+                    $r->expectedQuantityMin = null;
+                    $r->dateMin = null;
+                    $unset = true;
+                }
             }
 
-            return true;
+            return $unset;
         });
 
         // Техните резервирани количества се изтриват
@@ -692,14 +695,15 @@ class store_Products extends core_Detail
         requireRole('powerUser');
         $id = Request::get('id', 'int');
         $field = Request::get('field', 'varchar');
-        $horizon = Request::get('date', 'date');
+        $toDate = Request::get('date', 'date');
         expect($rec = self::fetch($id));
 
-        $start = "{$horizon} 00:00:00";
-        $end = "{$horizon} 23:59:59";
+        $start = dt::today();
+        $start = "{$start} 00:00:00";
+        $end = "{$toDate} 23:59:59";
+
         $query = store_StockPlanning::getQuery();
         $query->where("#productId = {$rec->productId} AND #storeId = {$rec->storeId} AND #date BETWEEN '{$start}' AND '{$end}'");
-
         $quantityField = (strpos($field, 'reserved') !== false) ? 'quantityOut' : 'quantityIn';
         $query->where("#{$quantityField} IS NOT NULL");
         $query->show('sourceClassId,sourceId,date');

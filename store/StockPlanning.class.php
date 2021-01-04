@@ -337,7 +337,7 @@ function act_Test()
     public static function getMaxReservedByProduct()
     {
         $query = static::getQuery();
-        $start = dt::today();
+        $today = dt::today();
 
         // Сумиране на всички сегашни и бъдещи запазени/очаквани количества по дата
         $query->XPR("shortDate", 'date', "DATE(#date)");
@@ -375,7 +375,7 @@ function act_Test()
 
                 // Намиране на датата, на която ще е максимално запазеното - очакваното
                 if(is_null($max) || round($max, 4) < $total){
-                    $res[$obj->storeId][$obj->productId] = (object)array('date' => $date, 'reserved' => $obj->reserved, 'expected' => $obj->expected);
+                    $res[$obj->storeId][$obj->productId] = (object)array('date' => $date, 'reserved' => $obj->reserved, 'expected' => $obj->expected, 'storeId' => $obj->storeId, 'productId' => $obj->productId);
                 }
             }
         }
