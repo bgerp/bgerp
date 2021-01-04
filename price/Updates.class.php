@@ -374,7 +374,7 @@ class price_Updates extends core_Manager
                     }
 
                     // Ако е указано, обновява се в ценовите политики (ако цената не е 0)
-                    if ($saveInPriceList === true && round($primeCost, 5) != 0) {
+                    if ($saveInPriceList === true) {
 
                         // Записваме новата себестойност на продукта
                         price_ListRules::savePrimeCost($productId, $primeCost, $validFrom, $baseCurrencyCode);
