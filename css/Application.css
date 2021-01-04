@@ -1360,6 +1360,13 @@ a.tOld {
   .typeTable select {
     max-width: 270px; }
 
+.folder-cover .typeTable {
+  min-width: 300px !important;
+  width: auto !important;
+  margin-bottom: 5px; }
+  .folder-cover .typeTable td {
+    min-width: auto !important; }
+
   .formFields .typeTable select,
   .formFields .typeTable input {
     border: none !important;

@@ -76,7 +76,7 @@ class type_Table extends type_Blob
             $readOnlyFld = $field . '_ro';
             $classFld = $field . '_class';
             $tdClass = ($this->params[$classFld]) ? "class={$this->params[$classFld]}" : '';
-            
+
             if ($this->params[$selOpt]) {
                 if (is_string($this->params[$selOpt])) {
                     $optArr = explode('|', $this->params[$selOpt]);
@@ -281,17 +281,19 @@ class type_Table extends type_Blob
             foreach ($columns as $field => $fObj) {
                 $row0 .= html_entity_decode("<td class='formTypeTable'>{$fObj->caption}</td>", ENT_QUOTES, 'UTF-8');
             }
-            
+
             $i = 0;
             do {
                 $isset = false;
                 $empty = true;
                 $row = '';
                 foreach ($columns as $field => $fObj) {
+                    $tdClass = ($this->params["{$field}_class"]) ? "class={$this->params["{$field}_class"]}" : '';
+
                     if (isset($opt[$field])) {
-                        $row .= '<td>' . $opt[$field][$value[$field][$i]] . '</td>';
+                        $row .= "<td {$tdClass}>" . $opt[$field][$value[$field][$i]] . '</td>';
                     } else {
-                        $row .= '<td>' . $value[$field][$i] . '</td>';
+                        $row .= "<td {$tdClass}>" . $value[$field][$i] . '</td>';
                     }
                     if (isset($value[$field][$i])) {
                         $isset = true;

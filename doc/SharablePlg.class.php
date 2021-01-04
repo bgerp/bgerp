@@ -345,20 +345,6 @@ class doc_SharablePlg extends core_Plugin
             $shareUsers += doc_ThreadUsers::getShared($formRec->threadId);
         }
         
-        // Премахваме неактивните потребители и тези, които не са powerUser
-        if (!empty($shareUsers)) {
-            $uQuery = core_Users::getQuery();
-            $uQuery->in('id', $shareUsers);
-            $pu = core_Roles::fetchByName('powerUser');
-            
-            $uQuery->like('roles', "|{$pu}|", false);
-            $uQuery->orWhere("#state != 'active'");
-            $uQuery->show('id');
-            while ($uRec = $uQuery->fetch()) {
-                unset($shareUsers[$uRec->id]);
-            }
-        }
-        
         if ($vals['shareUsers']) {
             $shareUsers += type_Keylist::toArray($vals['shareUsers']);
         } else {
@@ -373,6 +359,20 @@ class doc_SharablePlg extends core_Plugin
         
         $cu = core_Users::getCurrent();
         unset($shareUsers[$cu]);
+
+        // Премахваме неактивните потребители и тези, които не са powerUser
+        if (!empty($shareUsers)) {
+            $uQuery = core_Users::getQuery();
+            $uQuery->in('id', $shareUsers);
+            $pu = core_Roles::fetchByName('powerUser');
+
+            $uQuery->like('roles', "|{$pu}|", false);
+            $uQuery->orWhere("#state != 'active'");
+            $uQuery->show('id');
+            while ($uRec = $uQuery->fetch()) {
+                unset($shareUsers[$uRec->id]);
+            }
+        }
         
         if (!empty($shareUsers)) {
             if (isset($vals['shareMaxCnt'])) {
