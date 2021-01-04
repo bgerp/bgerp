@@ -347,7 +347,7 @@ class doc_Search extends core_Manager
                 // Изтриваме нотификацията, ако има такава, създадена от текущия потребител и със съответното състояние и за съответния документ
                 bgerp_Notifications::clear($url2);
 
-                $url3 = array('doc_Search', 'list', 'docClass' => $filterRec->docClass, 'author' => Request::get('author', 'int'), 'state' => $filterRec->state);
+                $url3 = array('doc_Search', 'list', 'docClass' => $filterRec->docClass, 'author' => Request::get('author', 'varchar'), 'state' => $filterRec->state);
                 bgerp_Notifications::clear($url3);
             }
         } else {
