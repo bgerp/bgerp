@@ -1567,6 +1567,14 @@ a.tOld {
 	}
 
 }
+.folder-cover .typeTable {
+	min-width: 300px !important;
+	width: auto !important;
+	margin-bottom: 5px;
+	td {
+		min-width: auto !important;
+	}
+}
 .formFields .typeTable {
 	select, input {
 		border: none !important;
