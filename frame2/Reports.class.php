@@ -634,12 +634,12 @@ class frame2_Reports extends embed_Manager
     public static function refresh(&$rec)
     {
         $rec = self::fetchRec($rec);
-        
+        $me = cls::get(get_called_class());
+
         // Ако има драйвер
         if ($Driver = self::getDriver($rec)) {
             try {
-                $me = cls::get(get_called_class());
-                
+
                 // Опресняват се данните му
                 $rec->data = $Driver->prepareData($rec);
                 $rec->lastRefreshed = dt::now();
