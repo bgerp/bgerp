@@ -214,8 +214,14 @@ class frame2_Reports extends embed_Manager
      * Флаг, който указва, че документа е партньорски
      */
     public $visibleForPartners = true;
-    
-    
+
+
+    /**
+     * Константа, че е имало грешка при подготовка на данните
+     */
+    const DATA_ERROR_STATE = 'ERROR';
+
+
     /**
      * Описание на модела
      */
@@ -577,8 +583,15 @@ class frame2_Reports extends embed_Manager
                 if(isset($lang)){
                     core_Lg::push($lang);
                 }
-                
-                $tplData = $Driver->renderData($rec);
+
+                if($rec->data !== static::DATA_ERROR_STATE){
+                    $tplData = $Driver->renderData($rec);
+                } else {
+                    $hint = ht::createHint(tr('Имало е проблем при актуализиране'), 'Имало е проблем при актуализиране на справката', 'error', false);
+                    $tplData = new core_ET("<fieldset class='detail-info' style='margin-bottom:10px;color:red'>[#hint#]</fieldset>");
+                    $tplData->replace($hint, 'hint');
+                }
+
                 if(isset($lang)){
                     core_Lg::pop();
                 }
@@ -639,22 +652,13 @@ class frame2_Reports extends embed_Manager
         // Ако има драйвер
         if ($Driver = self::getDriver($rec)) {
             try {
-
                 // Опресняват се данните му
                 $rec->data = $Driver->prepareData($rec);
-                $rec->lastRefreshed = dt::now();
-                
-                // Запис на променените полета
-                $me->save_($rec, 'data,lastRefreshed');
-                
-                // Записване в опашката че справката е била опреснена
-                if (frame2_ReportVersions::log($rec->id, $rec)) {
-                    $me->refreshReports[$rec->id] = $rec;
-                    if (core_Users::getCurrent() != core_Users::SYSTEM_USER) {
-                        core_Statuses::newStatus('Справката е актуализирана|*!');
-                    }
-                }
+
             } catch (core_exception_Expect $e) {
+
+                // Ако е имало грешка, се записва че данните са грешни
+                $rec->data = static::DATA_ERROR_STATE;
                 reportException($e);
                 
                 if (core_Users::getCurrent() != core_Users::SYSTEM_USER) {
@@ -663,7 +667,21 @@ class frame2_Reports extends embed_Manager
                 
                 self::logErr('Грешка при обновяване на справката', $rec->id);
             }
-            
+
+            $rec->lastRefreshed = dt::now();
+            $me->save_($rec, 'data,lastRefreshed');
+
+            // Записване в опашката че справката е била опреснена
+            if (frame2_ReportVersions::log($rec->id, $rec)) {
+                if($rec->data !== static::DATA_ERROR_STATE){
+                    $me->refreshReports[$rec->id] = $rec;
+                }
+
+                if (core_Users::getCurrent() != core_Users::SYSTEM_USER) {
+                    core_Statuses::newStatus('Справката е актуализирана|*!');
+                }
+            }
+
             $me->setNewUpdateTimes[$rec->id] = $rec;
             
             // Ако справката сега е създадена да не се обновява
