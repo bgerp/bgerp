@@ -96,7 +96,7 @@ class acc_Items extends core_Manager
     /**
      * Работен кеш
      */
-    protected $cache = array();
+    public $cache = array();
     
     
     /**
