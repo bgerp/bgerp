@@ -370,8 +370,7 @@ class price_ListRules extends core_Detail
                     }
 
                     $cRate = currency_CurrencyRates::getRate($datetime, $listRec->currency, null);
-
-                    if(empty($cRate)){
+                    if(!empty($cRate)){
                         $rate = 1 / currency_CurrencyRates::getRate($datetime, $listRec->currency, null);
                         $price = $price * $vat * $rate;
                         $price = price_Lists::roundPrice($listRec, $price);
