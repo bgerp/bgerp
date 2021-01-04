@@ -142,6 +142,15 @@ class doc_Search extends core_Manager
                 $data->listFilter->setError('fromDate', 'Не може да се търси в бъдеще');
             }
         }
+
+        // Дали има препочитан индекс?
+        $useIndex = null;
+        $aArr = type_UserList::toArray($filterRec->author); 
+        if (countR($aArr) == 1 && is_numeric(reset($aArr))) {
+            $useIndex = 'created_by';
+        } elseif ($filterRec->scopeFolderId) {
+            $useIndex = 'folder_id';
+        }
         
         // Ако се търси по документите на някой потребител, без да се гледа много 
         if ($isFiltered && !$filterRec->fromDate && !$filterRec->toDate && !$data->listFilter->ignore && !$data->query->isSlowQuery) {
@@ -152,7 +161,9 @@ class doc_Search extends core_Manager
             }
         }
         
-        if ($data->query->isSlowQuery && !$data->listFilter->ignore) {
+
+        
+        if ($data->query->isSlowQuery && !$data->listFilter->ignore && !$useIndex) {
             if (!$filterRec->fromDate && !$filterRec->toDate) {
                 $data->listFilter->setWarning('search, fromDate, toDate', 'Заявката за търсене е много обща и вероятно ще се изпълни бавно. Добавете още думи или я ограничете по дати');
                 $dFrom = dt::addMonths(-1, null, false);
@@ -300,12 +311,10 @@ class doc_Search extends core_Manager
             
             // Експеримент за оптимизиране на бързодействието
             $data->query->orderBy('#modifiedOn=DESC');
-
-            $aArr = type_UserList::toArray($filterRec->author);
-            if (countR($aArr) == 1) {
-                $data->query->useIndex('created_by');
-            } elseif ($filterRec->scopeFolderId) {
-                $data->query->useIndex('folder_id');
+            
+            // Задаваме предпочитания индекс
+            if($useIndex) {
+                $data->query->useIndex($useIndex);
             }
 
             /**
