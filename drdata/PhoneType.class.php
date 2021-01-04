@@ -231,6 +231,8 @@ class drdata_PhoneType extends type_Varchar
      */
     public static function setCodeIfMissing($val, $code)
     {
+        $save = $val;
+
         if (substr($val, 0, 1) != '+' && substr($val, 0, 2) != '00') {
             $params = array('countryPhoneCode' => $code);
             if ($code == '359') {
@@ -248,6 +250,8 @@ class drdata_PhoneType extends type_Varchar
             
             if (is_array($parsedTel) && count($parsedTel)) {
                 $val = $val1;
+            } else {
+                $val = $save;
             }
             
             return $val;
@@ -320,7 +324,7 @@ class drdata_PhoneType extends type_Varchar
      * съдържа 'нормализирана' стойност
      */
     public function isValid($value)
-    {
+    { 
         if ($value !== null) {
             $res = array();
             
