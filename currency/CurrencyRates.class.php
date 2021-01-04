@@ -404,7 +404,7 @@ class currency_CurrencyRates extends core_Detail
     protected static function getDirectRate($date, $fromId, $toId)
     {
         $rate = static::getStoredRate($date, $fromId, $toId);
-        
+
         if (is_null($rate)) {
             if (!is_null($rate = static::getStoredRate($date, $toId, $fromId))) {
                 $rate = 1 / $rate;
@@ -426,10 +426,10 @@ class currency_CurrencyRates extends core_Detail
      *
      * @return float
      */
-    protected static function getStoredRate($date, $fromId, $toId)
+    private static function getStoredRate($date, $fromId, $toId)
     {
         if (!isset(static::$cache[$date][$fromId][$toId])) {
-            
+
             // Търсим най-близкия минал или текущ курс до подадената дата
             $query = static::getQuery();
             $query->where("#date <= '{$date}'");
@@ -437,12 +437,15 @@ class currency_CurrencyRates extends core_Detail
             $query->where("#currencyId = {$toId}");
             $query->orderBy('date', 'DESC');
             $query->limit(1);
-            
+
             // Ако има го кешираме
             if ($pastRec = $query->fetch()) {
                 static::$cache[$date][$pastRec->baseCurrencyId][$pastRec->currencyId] = $pastRec->rate;
+                if(empty($pastRec->rate)){
+                    wp($pastRec->rate, $pastRec, $date, $fromId, $toId);
+                }
             } else {
-                
+
                 // Ако няма намираме най-близкия курс след зададената дата
                 $fQuery = static::getQuery();
                 $fQuery->where("#date > '{$date}'");
@@ -454,14 +457,22 @@ class currency_CurrencyRates extends core_Detail
                 // Ако намери кешираме го
                 if ($nextRec = $fQuery->fetch()) {
                     static::$cache[$date][$nextRec->baseCurrencyId][$nextRec->currencyId] = $nextRec->rate;
+
+                    if(empty($nextRec->rate)){
+                        wp($nextRec->rate, $nextRec, $date, $fromId, $toId);
+                    }
                 }
             }
         }
         
         // Ако имаме кеширан курс връщаме го
         if (isset(static::$cache[$date][$fromId][$toId])) {
-            
-            return static::$cache[$date][$fromId][$toId];
+            $rate = static::$cache[$date][$fromId][$toId];
+            if(empty($rate)){
+                wp($rate, $date, $fromId, $toId);
+            }
+
+            return $rate;
         }
     }
     
@@ -476,7 +487,7 @@ class currency_CurrencyRates extends core_Detail
      *
      * @return float
      */
-    protected static function getCrossRate($date, $fromId, $toId, $baseCurrencyId)
+    public static function getCrossRate($date, $fromId, $toId, $baseCurrencyId)
     {
         if (is_null($fromBaseRate = static::getDirectRate($date, $fromId, $baseCurrencyId))) {
             
