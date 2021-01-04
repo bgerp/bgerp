@@ -1565,6 +1565,9 @@ a.tOld {
 	select {
 		max-width: 270px;
 	}
+	.leftCell select {
+		max-width: none;
+	}
 
 }
 .folder-cover .typeTable {
@@ -1573,6 +1576,10 @@ a.tOld {
 	margin-bottom: 5px;
 	td {
 		min-width: auto !important;
+		&.leftCell, &.rightCell {
+			padding-left: 7px;
+			padding-right: 7px;
+		}
 	}
 }
 .formFields .typeTable {
