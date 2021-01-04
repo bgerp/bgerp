@@ -1359,6 +1359,8 @@ a.tOld {
         max-width: 120px; }
   .typeTable select {
     max-width: 270px; }
+  .typeTable .leftCell select {
+    max-width: none; }
 
 .folder-cover .typeTable {
   min-width: 300px !important;
