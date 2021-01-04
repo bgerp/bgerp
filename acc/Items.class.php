@@ -930,6 +930,7 @@ class acc_Items extends core_Manager
      */
     public function act_ShowItemInfo()
     {
+        requireRole('powerUser');
         $id = Request::get('id', 'int');
         $unique = Request::get('unique', 'int');
         
