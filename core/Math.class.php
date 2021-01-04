@@ -101,7 +101,7 @@ class core_Math
      */
     public static function diffInPercent($amount1, $amount2)
     {
-        $diffInPercent = core_Math::roundNumber(1 - number_format($amount1, 8) / number_format($amount2, 8)) * 100;
+        $diffInPercent = core_Math::roundNumber(1 - number_format($amount1, 8, '.', '') / number_format($amount2, 8, '.', '')) * 100;
         
         return $diffInPercent;
     }
