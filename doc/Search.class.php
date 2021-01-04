@@ -340,12 +340,15 @@ class doc_Search extends core_Manager
                     $url['author'] = core_Users::getCurrent();
                 }
                 $url2['fromDate'] = $filterRec->fromDate;
-                
+
                 // Изтриваме нотификацията, ако има такава, създадена от текущия потребител и със съответното състояние
                 bgerp_Notifications::clear($url);
                 
                 // Изтриваме нотификацията, ако има такава, създадена от текущия потребител и със съответното състояние и за съответния документ
                 bgerp_Notifications::clear($url2);
+
+                $url3 = array('doc_Search', 'list', 'docClass' => $filterRec->docClass, 'author' => Request::get('author', 'int'), 'state' => $filterRec->state);
+                bgerp_Notifications::clear($url3);
             }
         } else {
             // Няма условия за търсене - показваме само формата за търсене, без данни
