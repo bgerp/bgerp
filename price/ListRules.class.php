@@ -303,12 +303,12 @@ class price_ListRules extends core_Detail
     {
         $datetime = price_ListToCustomers::canonizeTime($datetime);
         $canUseCache = ($datetime == price_ListToCustomers::canonizeTime());
-        
+
         if ((!$canUseCache) || ($price = price_Cache::getPrice($listId, $productId)) === null) {
             $query = self::getQuery();
             $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil >= '{$datetime}')");
             $query->where("#productId = {$productId}");
-            
+
             if ($listId != price_ListRules::PRICE_LIST_COST) {
                 $groups = keylist::toArray(cat_Products::fetchField($productId, 'groups'));
                 if (countR($groups)) {
@@ -324,7 +324,7 @@ class price_ListRules extends core_Detail
             $rec = $query->fetch();
             $listRec = price_Lists::fetch($listId, 'title,parent,vat,defaultSurcharge,significantDigits,minDecimals,currency');
             $round = true;
-            
+            //bp($rec, $listRec);
             if ($rec) {
                 if ($rec->type == 'value') {
                     $vat = cat_Products::getVat($productId, $datetime);
@@ -368,13 +368,19 @@ class price_ListRules extends core_Detail
                     if ($listRec->vat == 'yes') {
                          $vat = 1 + cat_Products::getVat($productId, $datetime);
                     }
-                    $rate = 1 / currency_CurrencyRates::getRate($datetime, $listRec->currency, null);
-                }
 
-                $price = $price * $vat * $rate;
-                $price = price_Lists::roundPrice($listRec, $price);  
-                $price = $price / ($vat * $rate); 
-    
+                    $cRate = currency_CurrencyRates::getRate($datetime, $listRec->currency, null);
+
+                    if(empty($cRate)){
+                        $rate = 1 / currency_CurrencyRates::getRate($datetime, $listRec->currency, null);
+                        $price = $price * $vat * $rate;
+                        $price = price_Lists::roundPrice($listRec, $price);
+                        $price = $price / ($vat * $rate);
+                    } else {
+                        wp($cRate, $datetime, $listRec->currency);
+                        $price = null;
+                    }
+                }
                
                 if ($canUseCache) {
                     price_Cache::setPrice($price, $listId, $productId);
