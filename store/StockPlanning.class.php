@@ -57,7 +57,7 @@ class store_StockPlanning extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId,genericProductId,storeId,date,quantityIn,quantityOut,sourceId=Източник->Основен,reffId=Източник->Допълнителен,threadId=Нишка,createdOn';
+    public $listFields = 'id,productId,genericProductId,storeId,date,quantityIn,quantityOut,sourceId=Източник->Основен,reffId=Източник->Допълнителен,threadId=Нишка,createdOn';
 
 
     /**
@@ -203,13 +203,17 @@ class store_StockPlanning extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->showFields = 'date,productId,threadId,sourceClassId';
+        $data->listFilter->showFields = 'date,productId,storeId,threadId,sourceClassId';
         $data->listFilter->input();
         $data->listFilter->setFieldType('date', 'date');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         if ($rec = $data->listFilter->rec) {
             if (!empty($rec->productId)) {
                 $data->query->where("#productId = {$rec->productId}");
+            }
+
+            if (!empty($rec->storeId)) {
+                $data->query->where("#storeId = {$rec->storeId}");
             }
 
             if (!empty($rec->sourceClassId)) {
@@ -268,9 +272,9 @@ function act_Test()
 {
     requireRole('debug');
 
-    $v = store_Products::getQuantity(4325, $storeId, $freeQuantity, $date);
+    $v = self::getMaxReservedByProduct();
     //self::updateByDocument('purchase_Purchases', 556);
-bp($v);
+//bp($v);
     static::queueToRecalcOnShutdown('cat_Boms', 275);
 //bp();
     $stores = array();
@@ -278,25 +282,33 @@ bp($v);
     $productId = 27;
     //$r = self::getPlannedQuantities($date, $productId);
 }
+
+    /**
+     * Какви ще са планираните наличности към датата
+     *
+     * @param $date                  - към коя дата
+     * @param null|array $productIds - ид на артикули
+     * @param null|array $stores     - списък със складове, null за всички
+     * @return array $res            - колко ще е запазеното и очакваното към датата
+     */
     public static function getPlannedQuantities($date, $productIds = null, $stores = null)
     {
+        // Ако датата е без час, ще се приеме, че е за докрая на дена
         if(strlen($date) == 10){
-            $from = "{$date} 00:00:00";
-            $to = "{$date} 23:59:59";
-        } else {
-            $from = explode(" ", $date);
-            $from = "{$from[0]} 00:00:00";
-            $to = $date;
+            $date = "{$date} 23:59:59";
         }
 
         $productArr = arr::make($productIds, true);
         $storesArr = isset($stores) ? arr::make($stores, true) : null;
+        $today = dt::today();
+        $today = "{$today} 00:00:00";
 
+        // Каква ще е наличността към датата
         $query = static::getQuery();
         $query->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
         $query->XPR('totalOut', 'double', "ROUND(SUM(COALESCE(#quantityOut, 0)), 4)");
         $query->XPR('totalIn', 'double', "ROUND(SUM(COALESCE(#quantityIn, 0)), 4)");
-        $query->where("#date BETWEEN '{$from}' AND '{$to}' AND #generic = 'no'");
+        $query->where("#date >= '{$today}' AND #date <= '{$date}' AND #generic = 'no'");
         $query->groupBy('productId');
         $query->show('productId,totalOut,totalIn,storeId');
 
@@ -325,35 +337,45 @@ bp($v);
     public static function getMaxReservedByProduct()
     {
         $query = static::getQuery();
+        $start = dt::today();
 
-        // Сумиране на всички запазени/очаквани количества по дата
-        $query->XPR("dateShort", 'date', "DATE(#date)");
+        // Сумиране на всички сегашни и бъдещи запазени/очаквани количества по дата
+        $query->XPR("shortDate", 'date', "DATE(#date)");
         $query->XPR("quantityOutTotal", 'double', "ROUND(SUM(COALESCE(#quantityOut, 0)), 4)");
         $query->XPR("quantityInTotal", 'double', "ROUND(SUM(COALESCE(#quantityIn, 0)), 4)");
         $query->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
-        $query->where("#generic = 'no' AND #storeId IS NOT NULL");
-        $query->show('productId,storeId,dateShort,quantityInTotal,quantityOutTotal');
-        $query->groupBy('storeId,productId,dateShort');
+        $query->where("#generic = 'no' AND #storeId IS NOT NULL AND #shortDate >= CURDATE()");
+        $query->show('productId,storeId,shortDate,quantityInTotal,quantityOutTotal');
+        $query->groupBy('storeId,productId,shortDate');
+        $query->orderBy('shortDate', 'ASC');
 
-        $res = array();
+        $allRecs = $res = array();
         while($rec = $query->fetch()){
-            if(!isset($res[$rec->storeId][$rec->productId])){
-                $res[$rec->storeId][$rec->productId] = (object)array('productId' => $rec->productId, 'storeId' => $rec->storeId);
-            }
+            $allRecs["{$rec->storeId}|{$rec->productId}"][$rec->shortDate] = (object)array('productId' => $rec->productId, 'storeId' => $rec->storeId, 'reserved' => $rec->quantityOutTotal, 'expected' => $rec->quantityInTotal);
+        }
 
-            if(!isset($res[$rec->storeId][$rec->productId]->date)){
-                $res[$rec->storeId][$rec->productId]->date = $rec->dateShort;
-                $res[$rec->storeId][$rec->productId]->reserved = $rec->quantityOutTotal;
-                $res[$rec->storeId][$rec->productId]->expected = $rec->quantityInTotal;
-            } else {
+        // За всеки запис
+        foreach ($allRecs as $key => $datesObj){
+            $max = null;
 
-                // Обновяване на записа, за който запазеното-очакваното ще е най-голямо
-                $diffOld = $res[$rec->storeId][$rec->productId]->quantityOut - $res[$rec->storeId][$rec->productId]->quantityIn;
-                $diffNew = $rec->quantityOutTotal - $rec->quantityInTotal;
-                if(round($diffNew, 4) > round($diffOld, 4)){
-                    $res[$rec->storeId][$rec->productId]->date = $rec->dateShort;
-                    $res[$rec->storeId][$rec->productId]->reserved = $rec->quantityOutTotal;
-                    $res[$rec->storeId][$rec->productId]->expected = $rec->quantityInTotal;
+            // Обхождат се датите за, които има запланувани движение
+            foreach ($datesObj as $date => $obj){
+                $sumReserved = $sumExpected = 0;
+
+                // Наличността към датата е сумата от предходните дати
+                array_walk($allRecs[$key], function($a, $k) use (&$obj, $date) {
+                    if($k < $date){
+                        $obj->reserved += $a->reserved;
+                        $obj->expected += $a->expected;
+                    }
+                });
+
+                // Колко ще е запазеното - очакваното
+                $total = round($obj->reserved - $obj->expected, 4);
+
+                // Намиране на датата, на която ще е максимално запазеното - очакваното
+                if(is_null($max) || round($max, 4) < $total){
+                    $res[$obj->storeId][$obj->productId] = (object)array('date' => $date, 'reserved' => $obj->reserved, 'expected' => $obj->expected);
                 }
             }
         }
