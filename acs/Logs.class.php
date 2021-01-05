@@ -201,6 +201,8 @@ class acs_Logs extends core_Manager
                 $data->query->where(array("#{$fName} = '[#1#]'", $rec->{$fName}));
             }
         }
+
+        $data->query->orderBy('createdOn', 'DESC');
     }
     
     
