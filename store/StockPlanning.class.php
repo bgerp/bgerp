@@ -268,21 +268,6 @@ class store_StockPlanning extends core_Manager
     }
 
 
-function act_Test()
-{
-    requireRole('debug');
-
-    $v = self::getMaxReservedByProduct();
-    //self::updateByDocument('purchase_Purchases', 556);
-//bp($v);
-    static::queueToRecalcOnShutdown('cat_Boms', 275);
-//bp();
-    $stores = array();
-    $date = dt::today();
-    $productId = 27;
-    //$r = self::getPlannedQuantities($date, $productId);
-}
-
     /**
      * Какви ще са планираните наличности към датата
      *
@@ -309,7 +294,7 @@ function act_Test()
         $query->XPR('totalOut', 'double', "ROUND(SUM(COALESCE(#quantityOut, 0)), 4)");
         $query->XPR('totalIn', 'double', "ROUND(SUM(COALESCE(#quantityIn, 0)), 4)");
         $query->where("#date >= '{$today}' AND #date <= '{$date}' AND #generic = 'no'");
-        $query->groupBy('productId');
+        $query->groupBy('productId,storeId');
         $query->show('productId,totalOut,totalIn,storeId');
 
         if(countR($productArr)){
