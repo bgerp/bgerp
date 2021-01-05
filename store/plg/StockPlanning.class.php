@@ -29,6 +29,7 @@ class store_plg_StockPlanning extends core_Plugin
         setIfNot($mvc->stockPlanningDirection, 'out');
         setIfNot($mvc->updateStocksOnShutdown, array());
         setIfNot($mvc->exStateField, $mvc->hasPlugin('doc_DocumentPlg') ? 'brState' : 'exState');
+        setIfNot($mvc->filterFutureOptions, true);
 
         $mvc->declareInterface('store_StockPlanningIntf');
     }
