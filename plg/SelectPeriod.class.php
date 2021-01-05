@@ -5,11 +5,11 @@
  * Клас 'plg_SelectPeriod' - Добавя избор на период
  *
  *
- * @category  ef
+ * @category  bgerp
  * @package   plg
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,7 +31,8 @@ class plg_SelectPeriod extends core_Plugin
     {
         $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
         $fT = $mvc->filterDateTo ? $mvc->filterDateTo : 'to';
-        
+        $showFuturePeriods = $mvc->filterFutureOptions ? $mvc->filterFutureOptions : false;
+
         $form = $data->form;
         $rec = $form->rec;
         
@@ -81,7 +82,7 @@ class plg_SelectPeriod extends core_Plugin
         $form->FLD('selectPeriod', 'varchar', "caption=Период,input,before=from,silent,printListFilter=none,before={$fF}{$mandatory}{$refresh},mustExist", array('attr' => array('onchange' => "spr(this,false, {$fFEsc}, {$fTEsc});")));
         
         $keySel = null;
-        $form->setOptions('selectPeriod', self::getOptions($keySel, $rec->{$fF}, $rec->{$fT}));
+        $form->setOptions('selectPeriod', self::getOptions($keySel, $rec->{$fF}, $rec->{$fT}, $showFuturePeriods));
         
         if ($rec->selectPeriod && $rec->selectPeriod != 'select') {
             list($rec->{$fF}, $rec->{$fT}) = self::getFromTo($rec->selectPeriod);
@@ -161,7 +162,8 @@ class plg_SelectPeriod extends core_Plugin
         
         $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
         $fT = $mvc->filterDateTo ? $mvc->filterDateTo : 'to';
-        
+        $showFuturePeriods = $mvc->filterFutureOptions ? $mvc->filterFutureOptions : false;
+
         $form = $data->listFilter;
         
         $fFEsc = json_encode($fF);
@@ -186,7 +188,7 @@ class plg_SelectPeriod extends core_Plugin
             list($rec->{$fF}, $rec->{$fT}) = self::getFromTo($rec->selectPeriod);
             Request::push(array($fF => $rec->{$fF}, $fT => $rec->{$fT}));
         }
-        $form->setOptions('selectPeriod', self::getOptions($keySel, $rec->{$fF}, $rec->{$fT}));
+        $form->setOptions('selectPeriod', self::getOptions($keySel, $rec->{$fF}, $rec->{$fT}, $showFuturePeriods));
         
         if ($keySel) {
             $form->setDefault('selectPeriod', $keySel);
@@ -246,7 +248,12 @@ class plg_SelectPeriod extends core_Plugin
             case 'dby':
                 $from = $to = dt::addDays(-2, null, false);
                 break;
-            
+            case 'tomorrow':
+                $from = $to = dt::addDays(1, null, false);
+                break;
+            case 'dayafter':
+                $from = $to = dt::addDays(2, null, false);
+                break;
             // Седмица
             case 'cur_week':
                 $from = date('Y-m-d', strtotime('monday this week', $now));
@@ -257,7 +264,10 @@ class plg_SelectPeriod extends core_Plugin
                 $from = date('Y-m-d', strtotime('monday last week', $now));
                 $to = date('Y-m-d', strtotime('sunday last week', $now));
                 break;
-            
+            case 'next_week':
+                $from = date('Y-m-d', strtotime('monday next week', $now));
+                $to = date('Y-m-d', strtotime('sunday next week', $now));
+                break;
             // Месец
             case 'cur_month':
                 $from = date('Y-m-d', strtotime('first day of this month'));
@@ -267,7 +277,10 @@ class plg_SelectPeriod extends core_Plugin
                 $from = date('Y-m-d', strtotime('first day of last month'));
                 $to = date('Y-m-d', strtotime('last day of last month'));
                 break;
-            
+            case 'next_month':
+                $from = date('Y-m-d', strtotime('first day of next month'));
+                $to = date('Y-m-d', strtotime('last day of next month'));
+                break;
             // Година
             case 'cur_year':
                 $from = date('Y-01-01');
@@ -277,7 +290,10 @@ class plg_SelectPeriod extends core_Plugin
                 $from = date('Y-01-01', strtotime('-1 year'));
                 $to = date('Y-12-t', strtotime($from));
                 break;
-            
+            case 'next_year':
+                $from = date('Y-01-01', strtotime('1 year'));
+                $to = date('Y-12-t', strtotime($from));
+                break;
             // Последните
             case 'last7':
                 $from = dt::addDays(-6, null, false);
@@ -295,7 +311,18 @@ class plg_SelectPeriod extends core_Plugin
                 $from = dt::addDays(-359, null, false);
                 $to = dt::addDays(0, null, false);
                 break;
-            
+            case 'next7':
+                $from = dt::addDays(1, null, false);
+                $to = dt::addDays(8, null, false);
+                break;
+            case 'next14':
+                $from = dt::addDays(1, null, false);
+                $to = dt::addDays(15, null, false);
+                break;
+            case 'next30':
+                $from = dt::addDays(1, null, false);
+                $to = dt::addDays(31, null, false);
+                break;
             // За всички да е празен стринг вместо NULL
             case 'gr0':
                 $from = '';
@@ -305,9 +332,8 @@ class plg_SelectPeriod extends core_Plugin
                 if (preg_match('/^\\d{4}-\\d{2}-\\d{2}\\|\\d{4}-\\d{2}-\\d{2}$/', $sel)) {
                     list($from, $to) = explode('|', $sel);
                 }
-        
         }
-        
+
         return array($from,  $to);
     }
     
@@ -315,7 +341,7 @@ class plg_SelectPeriod extends core_Plugin
     /**
      * Подготва опциите за избир на период
      */
-    public static function getOptions(&$keySel = null, $fromSel = null, $toSel = null)
+    public static function getOptions(&$keySel = null, $fromSel = null, $toSel = null, $showFutureOptions = false)
     {
         $opt = array();
         
@@ -324,32 +350,57 @@ class plg_SelectPeriod extends core_Plugin
         
         // Ден
         $opt['gr1'] = (object) array('title' => tr('Ден'), 'group' => true);
+
         $opt['today'] = tr('Днес');
         $opt['yesterday'] = tr('Вчера');
         $opt['dby'] = tr('Завчера');
-        
+
+        if($showFutureOptions){
+            $opt['tomorrow'] = tr('Утре');
+            $opt['dayafter'] = tr('Вдругиден');
+        }
+
         // Седмица
         $opt['gr2'] = (object) array('title' => tr('Седмица'), 'group' => true);
         $opt['cur_week'] = tr('Тази седмица');
         $opt['last_week'] = tr('Миналата седмица');
-        
+
+        if($showFutureOptions){
+            $opt['next_week'] = tr('Следващата седмица');
+        }
+
         // Месец
         $opt['gr3'] = (object) array('title' => tr('Месец'), 'group' => true);
         $opt['cur_month'] = tr('Този месец');
         $opt['last_month'] = tr('Миналият месец');
-        
+
+        if($showFutureOptions){
+            $opt['next_month'] = tr('Следващият месец');
+        }
+
         // Година
         $opt['gr4'] = (object) array('title' => tr('Година'), 'group' => true);
         $opt['cur_year'] = tr('Тази година');
         $opt['last_year'] = tr('Миналата година');
-        
+
+        if($showFutureOptions){
+            $opt['next_year'] = tr('Следващата година');
+        }
+
         // Последни дни
         $opt['gr5'] = (object) array('title' => tr('Последните'), 'group' => true);
         $opt['last7'] = '7 ' .tr('дни');
         $opt['last14'] = '14 ' .tr('дни');
         $opt['last30'] = '30 ' .tr('дни');
         $opt['last360'] = '360 ' .tr('дни');
-        
+
+        if($showFutureOptions){
+            $opt['gr7'] = (object) array('title' => tr('Следващите'), 'group' => true);
+            $opt['next7'] = '7 ' .tr('дни');
+            $opt['next14'] = '14 ' .tr('дни');
+            $opt['next30'] = '30 ' .tr('дни');
+        }
+
         // Друг период
         $opt['gr6'] = (object) array('title' => tr('Друг период'), 'group' => true);
         
@@ -368,7 +419,7 @@ class plg_SelectPeriod extends core_Plugin
                 }
             }
         }
-        
+
         // Добяваме вербално определение и търсим евентуално ключа отговарящ на избрания период
         foreach ($opt as $key => $val) {
             if (is_scalar($val)) {
