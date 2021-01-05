@@ -202,7 +202,7 @@ class acs_Logs extends core_Manager
             }
         }
 
-        $data->query->orderBy('createdOn', 'DESC');
+        $data->query->orderBy('time', 'DESC');
     }
     
     
