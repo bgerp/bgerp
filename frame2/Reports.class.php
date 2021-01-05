@@ -587,7 +587,7 @@ class frame2_Reports extends embed_Manager
                 if($rec->data !== static::DATA_ERROR_STATE){
                     $tplData = $Driver->renderData($rec);
                 } else {
-                    $hint = ht::createHint(tr('Имало е проблем при актуализиране'), 'Имало е проблем при актуализиране на справката', 'error', false);
+                    $hint = ht::createHint(tr('Възникна проблем при актуализиране'), 'Възникна проблем при актуализиране на справката', 'error', false);
                     $tplData = new core_ET("<fieldset class='detail-info' style='margin-bottom:10px;color:red'>[#hint#]</fieldset>");
                     $tplData->replace($hint, 'hint');
                 }
