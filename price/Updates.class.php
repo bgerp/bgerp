@@ -335,7 +335,7 @@ class price_Updates extends core_Manager
         // Подготвяме датата от която ще е валиден записа
         $validFrom = $this->getValidFromDate($rec->updateMode);
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($validFrom);
-        
+
         // За всеки артикул
         foreach ($products as $productId) {
             $pRec = cat_Products::fetch($productId);
@@ -350,9 +350,10 @@ class price_Updates extends core_Manager
             
             // Намира се старата му себестойност (ако има)
             $oldPrimeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId);
-            
-            // Ако има изчислена себестойност
-            if ($primeCost) {
+            $primeCost = round($primeCost, 5);
+
+            // Ако има изчислена ненулева себестойност
+            if ($primeCost > 0) {
                 
                 // Добавяме надценката, ако има
                 $primeCost = $primeCost * (1 + $rec->costAdd);
@@ -370,10 +371,10 @@ class price_Updates extends core_Manager
                         $rec->costValue = $primeCost;
                         self::save($rec, 'costValue');
                     }
-                    
-                    // Ако е указано, обновява се в ценовите политики
+
+                    // Ако е указано, обновява се в ценовите политики (ако цената не е 0)
                     if ($saveInPriceList === true) {
-                        
+
                         // Записваме новата себестойност на продукта
                         price_ListRules::savePrimeCost($productId, $primeCost, $validFrom, $baseCurrencyCode);
                     }

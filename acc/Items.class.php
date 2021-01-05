@@ -96,7 +96,7 @@ class acc_Items extends core_Manager
     /**
      * Работен кеш
      */
-    protected $cache = array();
+    public $cache = array();
     
     
     /**
@@ -930,6 +930,7 @@ class acc_Items extends core_Manager
      */
     public function act_ShowItemInfo()
     {
+        requireRole('powerUser');
         $id = Request::get('id', 'int');
         $unique = Request::get('unique', 'int');
         
