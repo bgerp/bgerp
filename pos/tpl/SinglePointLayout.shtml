@@ -73,10 +73,12 @@
 								<td>[#usedDiscounts#]</td>
 							</tr>
 							<!--ET_END usedDiscounts-->
+							<!--ET_BEGIN productGroups-->
 							<tr>
 								<td class='dt'>|Групи за бърз избор|*:</td>
 								<td>[#productGroups#]</td>
 							</tr>
+							<!--ET_END productGroups-->
 							<tr>
 								<td class='dt'>|Брой намерени артикули|*:</td>
 								<td>[#maxSearchProducts#]</td>

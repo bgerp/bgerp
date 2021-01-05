@@ -178,10 +178,10 @@ class frame2_ReportVersions extends core_Detail
             $latestVersionId = self::getLatestVersionId($rec->reportId);
             $selectedId = $latestVersionId;
         }
-        
+
         // Бутон за избор на текуща версия
         if ($mvc->haveRightFor('checkout', $rec->id)) {
-            
+
             // Правилно рет урл
             $singleUrl = frame2_Reports::getSingleUrlArray($rec->reportId);
             $vId = Request::get('vId', 'int');
@@ -190,11 +190,15 @@ class frame2_ReportVersions extends core_Detail
             }
             
             $url = array($mvc, 'checkout', $rec->id, 'ret_url' => $singleUrl);
-            $icon = ($rec->id == $selectedId) ? 'img/16/radio-button.png' : 'img/16/radio-button-uncheck.png ';
+            $icon = ($rec->id == $selectedId) ? 'img/16/radio-button.png' : 'img/16/radio-button-uncheck.png';
             $row->createdOn = ht::createLink($row->createdOn, $url, false, "ef_icon={$icon},title=Избор на версия");
             
             if($rec->id == $selectedId){
                 $row->ROW_ATTR['style'] = 'background-color:#fefec2';
+            }
+
+            if($rec->oldRec->data == frame2_Reports::DATA_ERROR_STATE){
+                $row->createdOn = ht::createHint($row->createdOn, 'Имало е проблем при изчисление на версията','img/16/error.png', false);
             }
         }
     }
