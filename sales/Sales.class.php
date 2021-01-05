@@ -1712,9 +1712,9 @@ class sales_Sales extends deals_DealMaster
             }
             
             cls::get('sales_SalesDetails')->saveArray($update, 'id,autoDiscount');
-            
+
             // Вика се пак да се преизчислят кеш полетата наново след въведената отстъпка
-            parent::updateMaster_($id);
+            $mvc->updateMaster_($id);
         }
     }
     
