@@ -72,7 +72,7 @@ class store_Products extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code=Код,productId=Артикул,measureId=Мярка,storeId,quantity,reservedQuantity,expectedQuantity,freeQuantity,reservedQuantityMin,expectedQuantityMin,freeQuantityMin,dateMin';
+    public $listFields = 'code=Код,productId=Артикул,measureId=Мярка,storeId,quantity,reservedQuantity,expectedQuantity,freeQuantity,reservedQuantityMin,expectedQuantityMin,freeQuantityMin';
     
     
     /**
@@ -213,7 +213,12 @@ class store_Products extends core_Detail
         $data->listFilter->setOptions('order', $orderOptions);
         $data->listFilter->FNC('horizon', 'time(suggestions=1 ден|1 седмица|2 седмици|1 месец|3 месеца)', 'placeholder=Хоризонт,caption=Хоризонт,input');
         $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
-        
+
+        $hKey = 'productHorizonFilter' . core_Users::getCurrent();
+        if ($lastHorizon = core_Permanent::get($hKey)) {
+            $data->listFilter->setDefault('horizon', $lastHorizon);
+        }
+
         $stores = cls::get('store_Stores')->makeArray4Select('name', "#state != 'rejected'");
         $data->listFilter->setOptions('storeId', array('' => '') + $stores);
         $data->listFilter->setField('storeId', 'autoFilter');
@@ -323,10 +328,16 @@ class store_Products extends core_Detail
                     $data->horizon = dt::addSecs($rec->horizon, null, false);
                     $horizonVerbal = dt::mysql2verbal($data->horizon, 'd.m.Y');
 
-                    arr::placeInAssocArray($data->listFields, array('reservedOut' => "|*{$horizonVerbal}-><span class='small notBolded'> |Запазенo|*</span>"), null, 'dateMin');
+                    arr::placeInAssocArray($data->listFields, array('reservedOut' => "|*{$horizonVerbal}-><span class='small notBolded'> |Запазенo|*</span>"), null, 'expectedQuantityMin');
                     arr::placeInAssocArray($data->listFields, array('expectedIn' => "|*{$horizonVerbal}-><span class='small notBolded'> |Очаквано|*</span>"), null, 'reservedOut');
+                    arr::placeInAssocArray($data->listFields, array('resultDiff' => "|*{$horizonVerbal}-><span class='small notBolded'> |Разполагаемо|*</span>"), null, 'expectedIn');
                     $mvc->FNC('reservedOut', 'double');
                     $mvc->FNC('expectedIn', 'double');
+                    $mvc->FNC('resultDiff', 'double');
+
+                    core_Permanent::set($hKey, $rec->horizon);
+                } else {
+                    core_Permanent::remove($hKey);
                 }
             }
             
@@ -350,12 +361,14 @@ class store_Products extends core_Detail
         $storeIds = arr::extractValuesFromArray($data->recs, 'storeId');
 
         $reserved = store_StockPlanning::getPlannedQuantities($data->horizon, $productIds, $storeIds);
-        if(!countR($reserved)) return;
 
         foreach ($data->recs as &$rec){
             if(isset($reserved[$rec->storeId][$rec->productId])){
                 $rec->reservedOut = $reserved[$rec->storeId][$rec->productId]->reserved;
                 $rec->expectedIn = $reserved[$rec->storeId][$rec->productId]->expected;
+                $rec->resultDiff = $rec->quantity - $rec->reservedOut + $rec->expectedIn;
+            } else {
+                $rec->resultDiff = $rec->quantity;
             }
         }
     }
@@ -506,7 +519,6 @@ class store_Products extends core_Detail
         $data->listFields['reservedQuantityMin'] = "|Минимално|*-><span class='small notBolded'> |Запазено|*</span>";
         $data->listFields['expectedQuantityMin'] = "|Минимално|*-><span class='small notBolded'> |Очаквано|*</span>";
         $data->listFields['freeQuantityMin'] = "|Минимално|*-><span class='small notBolded'> |Разполагаемо|*</span>";
-        $data->listFields['dateMin'] = "|Минимално|*-><span class='small notBolded'> |Дата|*</span>";
         $historyBefore = 'code';
         
         if (isset($data->masterMvc)) {
@@ -567,11 +579,16 @@ class store_Products extends core_Detail
                     $date = in_array($type, array('reservedQuantity', 'expectedQuantity')) ? $today : (in_array($type, array('reservedQuantityMin', 'expectedQuantityMin')) ? $rec->dateMin : $data->horizon);
 
                     $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'id' => $rec->id, 'field' => $type, 'date' => $date), 'local');
-                    $arrowImg = ht::createElement('img', array('src' => sbf('img/16/info-gray.png', '')));
+                    $arrowImg = ht::createElement('img', array('height' => 16, 'width' => 16, 'src' => sbf('img/32/info-gray.png', '')));
                     $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => $title), $arrowImg, true);
                     $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$type}{$rec->id}'></span>{$arrow}</span>";
                     $row->{$type} = "<span class='fleft'>{$arrow} </span>". $row->{$type};
                 }
+            }
+
+            if(!empty($rec->dateMin)){
+                $date = dt::mysql2verbal($rec->dateMin, 'd.m.Y');
+                $row->freeQuantityMin = ht::createHint($row->freeQuantityMin, $date,'notice', false);
             }
         }
     }
