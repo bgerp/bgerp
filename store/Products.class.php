@@ -328,7 +328,7 @@ class store_Products extends core_Detail
                     $data->horizon = dt::addSecs($rec->horizon, null, false);
                     $horizonVerbal = dt::mysql2verbal($data->horizon, 'd.m.Y');
 
-                    arr::placeInAssocArray($data->listFields, array('reservedOut' => "|*{$horizonVerbal}-><span class='small notBolded'> |Запазенo|*</span>"), null, 'expectedQuantityMin');
+                    arr::placeInAssocArray($data->listFields, array('reservedOut' => "|*{$horizonVerbal}-><span class='small notBolded'> |Запазенo|*</span>"), null, 'freeQuantityMin');
                     arr::placeInAssocArray($data->listFields, array('expectedIn' => "|*{$horizonVerbal}-><span class='small notBolded'> |Очаквано|*</span>"), null, 'reservedOut');
                     arr::placeInAssocArray($data->listFields, array('resultDiff' => "|*{$horizonVerbal}-><span class='small notBolded'> |Разполагаемо|*</span>"), null, 'expectedIn');
                     $mvc->FNC('reservedOut', 'double');
@@ -491,24 +491,6 @@ class store_Products extends core_Detail
     
     
     /**
-     * След подготовка на тулбара на списъчния изглед
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-        if (haveRole('debug')) {
-            if (isset($data->masterMvc)) {
-                
-                return;
-            }
-            $data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искате ли да изчистите таблицата, ef_icon=img/16/sport_shuttlecock.png, title=Изтриване на таблицата с продукти');
-        }
-    }
-    
-    
-    /**
      * Преди подготовката на полетата за листовия изглед
      */
     protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
@@ -539,20 +521,6 @@ class store_Products extends core_Detail
                 arr::placeInAssocArray($data->listFields, array('history' => ' '), $historyBefore);
             }
         }
-    }
-    
-    
-    /**
-     * Изчиства записите в склада
-     */
-    public function act_Truncate()
-    {
-        requireRole('debug');
-        
-        // Изчистваме записите от моделите
-        store_Products::truncate();
-        
-        return new Redirect(array($this, 'list'));
     }
     
     
