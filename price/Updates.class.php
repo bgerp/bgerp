@@ -352,9 +352,8 @@ class price_Updates extends core_Manager
             $oldPrimeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId);
             $primeCost = round($primeCost, 5);
 
-
-            // Ако има изчислена себестойност
-            if ($primeCost) {
+            // Ако има изчислена ненулева себестойност
+            if ($primeCost > 0) {
                 
                 // Добавяме надценката, ако има
                 $primeCost = $primeCost * (1 + $rec->costAdd);
