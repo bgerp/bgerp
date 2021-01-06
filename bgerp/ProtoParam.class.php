@@ -133,7 +133,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
         
         $query = $mvc->getQuery();
         $query->where("#group != '' AND #group IS NOT NULL");
-        $params = array_map(create_function('$o', 'return $o->group;'), $query->fetchAll());
+        $params = arr::extractValuesFromArray($query->fetchAll(), 'group');
         if (countR($params)) {
             $params = arr::make($params, true);
         }
