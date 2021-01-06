@@ -180,6 +180,11 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
 
         foreach ($bRecs as $item) {
+
+            if (($rec->storeId && !in_array($item->ent1Id, $storeItemIdArr)) ||
+                ($rec->products && $item->ent2Id != $productItemId)
+            ) continue;
+
             $blQuantity = 0;
             $iRec = acc_Items::fetch($item->ent2Id);
             $id = $iRec->objectId;
