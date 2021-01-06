@@ -92,7 +92,7 @@ class store_Products extends core_Detail
      */
     public function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,tdClass=leftAlign');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,tdClass=nameCell');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,tdClass=storeCol leftAlign');
         $this->FLD('quantity', 'double(maxDecimals=3)', 'caption=Налично');
         $this->FLD('reservedQuantity', 'double(maxDecimals=3)', 'caption=Днес->Запазено');
@@ -328,9 +328,9 @@ class store_Products extends core_Detail
                     $data->horizon = dt::addSecs($rec->horizon, null, false);
                     $horizonVerbal = dt::mysql2verbal($data->horizon, 'd.m.Y');
 
-                    arr::placeInAssocArray($data->listFields, array('reservedOut' => "|*{$horizonVerbal}-><span class='small notBolded'> |Запазенo|*</span>"), null, 'freeQuantityMin');
-                    arr::placeInAssocArray($data->listFields, array('expectedIn' => "|*{$horizonVerbal}-><span class='small notBolded'> |Очаквано|*</span>"), null, 'reservedOut');
-                    arr::placeInAssocArray($data->listFields, array('resultDiff' => "|*{$horizonVerbal}-><span class='small notBolded'> |Разполагаемо|*</span>"), null, 'expectedIn');
+                    arr::placeInAssocArray($data->listFields, array('reservedOut' => "|*{$horizonVerbal}-><span class='small notBolded' title='|Запазено|*'> |Запаз.|*</span>"), null, 'freeQuantityMin');
+                    arr::placeInAssocArray($data->listFields, array('expectedIn' => "|*{$horizonVerbal}-><span class='small notBolded' title='|Очаквано|*'> |Очакв.|*</span>"), null, 'reservedOut');
+                    arr::placeInAssocArray($data->listFields, array('resultDiff' => "|*{$horizonVerbal}-><span class='small notBolded' title='|Разполагаемо|*'> |Разпол.|*</span>"), null, 'expectedIn');
                     $mvc->FNC('reservedOut', 'double');
                     $mvc->FNC('expectedIn', 'double');
                     $mvc->FNC('resultDiff', 'double');
@@ -495,12 +495,12 @@ class store_Products extends core_Detail
      */
     protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
-        $data->listFields['reservedQuantity'] = "|Днес|*-><span class='small notBolded'> |Запазенo|*</span>";
-        $data->listFields['expectedQuantity'] = "|Днес|*-><span class='small notBolded'> |Очаквано|*</span>";
-        $data->listFields['freeQuantity'] = "|Днес|*-><span class='small notBolded'> |Разполагаемо|*</span>";
-        $data->listFields['reservedQuantityMin'] = "|Минимално|*-><span class='small notBolded'> |Запазено|*</span>";
-        $data->listFields['expectedQuantityMin'] = "|Минимално|*-><span class='small notBolded'> |Очаквано|*</span>";
-        $data->listFields['freeQuantityMin'] = "|Минимално|*-><span class='small notBolded'> |Разполагаемо|*</span>";
+        $data->listFields['reservedQuantity'] = "|Днес|*-><span class='small notBolded' title='|Запазено|*'> |Запаз.|*</span>";
+        $data->listFields['expectedQuantity'] = "|Днес|*-><span class='small notBolded' title='|Очаквано|*>'> |Очакв.|*</span>";
+        $data->listFields['freeQuantity'] = "|Днес|*-><span class='small notBolded' title='|Разполагаемо|*'> |Разпол.|*</span>";
+        $data->listFields['reservedQuantityMin'] = "|Минимално|*-><span class='small notBolded' title='|Запазено|*'> |Запаз.|*</span>";
+        $data->listFields['expectedQuantityMin'] = "|Минимално|*-><span class='small notBolded' title='|Очаквано|*'> |Очакв.|*</span>";
+        $data->listFields['freeQuantityMin'] = "|Минимално|*-><span class='small notBolded' title='|Разполагаемо|*'> |Разпол.|*</span>";
         $historyBefore = 'code';
         
         if (isset($data->masterMvc)) {
