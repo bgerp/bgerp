@@ -266,6 +266,7 @@ class store_Products extends core_Detail
                     $selectedStoreName = store_Stores::getHyperlink($rec->storeId, true);
                     $data->title = "|Наличности в склад|* <b style='color:green'>{$selectedStoreName}</b>";
                     $data->query->where("#storeId = {$rec->storeId}");
+                    unset($data->listFields['storeId']);
                 } elseif (countR($stores)) {
                     // Под всички складове се разбира само наличните за избор от потребителя
                     $data->query->in('storeId', array_keys($stores));
