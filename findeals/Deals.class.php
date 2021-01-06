@@ -517,13 +517,21 @@ class findeals_Deals extends deals_DealBase
         } else {
             unset($row->baseAccountId);
         }
-        
+
         $rate = $rec->currencyRate;
         if (empty($rec->currencyRate)) {
             setIfNot($valior, $rec->valior, dt::today());
             $rate = currency_CurrencyRates::getRate($valior, $rec->currencyId, null);
-            $row->currencyRate = $mvc->getFieldType('currencyRate')->toVerbal($rate);
-            $row->currencyRate = ht::createHint($row->currencyRate, 'Курса ще се запише при контиране/активиране');
+            if($rec->state == 'draft'){
+                $row->currencyRate = $mvc->getFieldType('currencyRate')->toVerbal($rate);
+                $row->currencyRate = ht::createHint($row->currencyRate, 'Курса ще се запише при контиране/активиране');
+            } else {
+
+                // Ако е било активна сделка без курс се записва
+                $rec->currencyRate = $rate;
+                $mvc->save_($rec, 'currencyRate');
+                $row->currencyRate = $mvc->getFieldType('currencyRate')->toVerbal($rate);
+            }
         }
         
         if ($rate == 1) {
