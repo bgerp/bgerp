@@ -186,8 +186,6 @@ class email_Spam extends email_ServiceEmails
             if (!is_numeric($score)) {
                 $score = null;
             }
-            
-            $scoreArr[$hash]['score'] = $score;
 
             // Проверка на резултата директно от SPAS
             if (core_Packs::isInstalled('spas')) {
@@ -215,6 +213,8 @@ class email_Spam extends email_ServiceEmails
                     }
                 }
             }
+
+            $scoreArr[$hash]['score'] = $score;
         } else {
             $score = $scoreArr[$hash]['score'];
         }
