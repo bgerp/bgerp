@@ -551,7 +551,7 @@ class store_Products extends core_Detail
                     $arrowImg = ht::createElement('img', array('height' => 16, 'width' => 16, 'src' => sbf('img/32/info-gray.png', '')));
                     $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => $title), $arrowImg, true);
                     $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$type}{$rec->id}'></span>{$arrow}</span>";
-                    $row->{$type} = "<span class='fleft'>{$arrow} </span>". $row->{$type};
+                    $row->{$type} = $arrow . $row->{$type};
                 }
             }
 
