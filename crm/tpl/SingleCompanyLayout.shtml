@@ -86,13 +86,15 @@
                     <legend class="groupTitle">|Друга информация|*</legend>
                     <div class="groupList">
                         [#info#]
-                        [#crm/tpl/ContragentInfoBlock.shtml#]
-                        <!--ET_BEGIN CloseTime-->
-                        <div>|Затваряне на нишките|*: |Автоматично след|* [#CloseTime#]</div>
-                        <!--ET_END CloseTime-->
-                        <!--ET_BEGIN ShowDocumentsAsButtons-->
-                        <div>|Бързи бутони в папката|*: [#ShowDocumentsAsButtons#]</div>
-                        <!--ET_END ShowDocumentsAsButtons-->
+                        <div style="margin: 3px 0; border: 1px solid #ccc; padding: 3px 5px;border-radius: 3px;">
+                            [#crm/tpl/ContragentInfoBlock.shtml#]
+                            <!--ET_BEGIN CloseTime-->
+                            <div>|Затваряне на нишките|*: |Автоматично след|* [#CloseTime#]</div>
+                            <!--ET_END CloseTime-->
+                            <!--ET_BEGIN ShowDocumentsAsButtons-->
+                            <div>|Бързи бутони в папката|*: [#ShowDocumentsAsButtons#]</div>
+                            <!--ET_END ShowDocumentsAsButtons-->
+                        </div>
                     </div>
                 </fieldset>
                 <!--ET_END info-->
