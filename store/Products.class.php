@@ -557,7 +557,7 @@ class store_Products extends core_Detail
 
             if(!empty($rec->dateMin)){
                 $date = dt::mysql2verbal($rec->dateMin, 'd.m.Y');
-                $row->freeQuantityMin = ht::createHint($row->freeQuantityMin, $date,'img/16/calendar_1.png', false, 'height=12px,width=12px');
+                $row->freeQuantityMin = ht::createHint($row->freeQuantityMin, $date,'img/16/calendar_1.png', true, 'height=12px,width=12px');
             }
         }
     }
