@@ -495,8 +495,8 @@ class cat_Categories extends core_Master
                 $catQuery = cat_Products::getQuery();
                 $catQuery->likeKeylist('groups', $keylist);
                 $catQuery->show('id');
-                $productIds = array_map(create_function('$o', 'return $o->id;'), $catQuery->fetchAll());
-                
+
+                $productIds = arr::extractValuesFromArray($catQuery->fetchAll(), 'id');
                 if (empty($productIds)) {
                     // Искаме от нишките да останат само тези за въпросните артикули
                     $threadQuery->where('1=2');
