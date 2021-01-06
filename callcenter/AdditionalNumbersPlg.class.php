@@ -195,8 +195,6 @@ class callcenter_AdditionalNumbersPlg extends core_Plugin
                 }
             }
 
-            $numStrArr = array('08876666666', '088789798');
-
             if (!empty($numStrArr)) {
                 $row->info .= "<div class='debug'>" . tr('Други номера') . ': ' . implode(', ', $numStrArr) . "</div>";
             }
