@@ -496,7 +496,7 @@ class store_Products extends core_Detail
     protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
         $data->listFields['reservedQuantity'] = "|Днес|*-><span class='small notBolded' title='|Запазено|*'> |Запаз.|*</span>";
-        $data->listFields['expectedQuantity'] = "|Днес|*-><span class='small notBolded' title='|Очаквано|*>'> |Очакв.|*</span>";
+        $data->listFields['expectedQuantity'] = "|Днес|*-><span class='small notBolded' title='|Очаквано|*'> |Очакв.|*</span>";
         $data->listFields['freeQuantity'] = "|Днес|*-><span class='small notBolded' title='|Разполагаемо|*'> |Разпол.|*</span>";
         $data->listFields['reservedQuantityMin'] = "|Минимално|*-><span class='small notBolded' title='|Запазено|*'> |Запаз.|*</span>";
         $data->listFields['expectedQuantityMin'] = "|Минимално|*-><span class='small notBolded' title='|Очаквано|*'> |Очакв.|*</span>";
