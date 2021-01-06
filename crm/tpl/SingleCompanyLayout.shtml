@@ -86,7 +86,7 @@
                     <legend class="groupTitle">|Друга информация|*</legend>
                     <div class="groupList">
                         [#info#]
-                        <div style="margin: 3px 0; border: 1px solid #ccc; padding: 3px 5px;border-radius: 3px;">
+                        <div style="margin: 10px 0 3px; border: 1px solid #ccc; padding: 3px 5px;border-radius: 3px;">
                             [#crm/tpl/ContragentInfoBlock.shtml#]
                             <!--ET_BEGIN CloseTime-->
                             <div>|Затваряне на нишките|*: |Автоматично след|* [#CloseTime#]</div>
