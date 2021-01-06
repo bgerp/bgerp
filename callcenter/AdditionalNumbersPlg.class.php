@@ -184,7 +184,7 @@ class callcenter_AdditionalNumbersPlg extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = null)
     {
-        if ($fields['-single'] && haveRole('debug')) {
+        if ($fields['-single'] && haveRole('debug') && Request::get('showDebug')) {
             $numStrArr = array();
             foreach (array('mobile', 'tel', 'fax') as $fName) {
                 $val = ${$fName};
@@ -194,8 +194,11 @@ class callcenter_AdditionalNumbersPlg extends core_Plugin
                     $numStrArr[] = $mvc->recToVerbal($rec, $fName)->{$fName};
                 }
             }
+
+            $numStrArr = array('08876666666', '088789798');
+
             if (!empty($numStrArr)) {
-                $row->additionalInfo .= "<div class='debug'>" . tr('Други номера') . ': ' . implode(', ', $numStrArr) . "</div>";
+                $row->info .= "<div class='debug'>" . tr('Други номера') . ': ' . implode(', ', $numStrArr) . "</div>";
             }
         }
     }
