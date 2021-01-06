@@ -195,7 +195,7 @@ class callcenter_AdditionalNumbersPlg extends core_Plugin
                 }
             }
             if (!empty($numStrArr)) {
-                $row->numbers .= "<div class='debug'>" . tr('Други номера') . ': ' . implode(', ', $numStrArr) . "</div>";
+                $row->additionalInfo .= "<div class='debug'>" . tr('Други номера') . ': ' . implode(', ', $numStrArr) . "</div>";
             }
         }
     }

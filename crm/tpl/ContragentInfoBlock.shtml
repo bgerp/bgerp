@@ -1,4 +1,4 @@
-[#numbers#]
+[#additionalInfo#]
 <!--ET_BEGIN customerSince-->
 <div>
 |Клиент от|*: <b>[#customerSince#]</b>
