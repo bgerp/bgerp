@@ -9,7 +9,7 @@
 <!--ET_END totalDealsBlock-->
 <!--ET_BEGIN overdueDealsBlock-->
 [#overdueDealsBlock#]
-<div style='background-color:red;color:white;padding:2px;'>|Просрочени продажби|*: [#overdueDealsCount#] |за|* [#overdueDealsAmount#]</div>
+<div style='background-color:red;color:white; margin: 3px 0; padding: 1px 3px;'>|Просрочени продажби|*: [#overdueDealsCount#] |за|* [#overdueDealsAmount#]</div>
 <!--ET_END overdueDealsBlock-->
 <!--ET_BEGIN supplierSince-->
 <div>
