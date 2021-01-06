@@ -433,6 +433,11 @@ div.folder-cover {
 .leftAlign {
   text-align: left !important; }
 
+.nameCell {
+  text-align: left;
+  min-width: 300px;
+  max-width: 460px !important; }
+
 .public.folder-cover {
   margin: 0; }
 
