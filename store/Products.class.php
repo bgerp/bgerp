@@ -591,6 +591,10 @@ class store_Products extends core_Detail
         $plannedCount = store_StockPlanning::count();
         core_App::setTimeLimit($plannedCount * 0.7, 300);
 
+        // Синхронизират се новите със старите записи
+        $storeQuery = static::getQuery();
+        $oldRecs = $storeQuery->fetchAll();
+
         // Изчисляване на максималните запазени количества
         $queue = array();
         $reservedMax = store_StockPlanning::getMaxReservedByProduct();
@@ -621,9 +625,26 @@ class store_Products extends core_Detail
             }
         }
 
-        // Синхронизират се новите със старите записи
-        $storeQuery = static::getQuery();
-        $oldRecs = $storeQuery->fetchAll();
+        // Отново се обхождат всички изчислени записи
+        foreach ($result as  $key => &$newObj) {
+
+            // Намират се старите им записи
+            $exRecs = array_filter($oldRecs, function($a) use ($newObj) { return $a->storeId == $newObj->storeId && $a->productId == $newObj->productId;});
+            if(is_array($exRecs)){
+                $exRec = $exRecs[key($exRecs)];
+                $currentFreeQuantity = $exRec->quantity - $exRec->reservedQuantity + $exRec->expectedQuantity;
+                $newFreeQuantity = $exRec->quantity - $newObj->reservedQuantityMin + $newObj->expectedQuantityMin;
+
+                // Ако текущото разполагаемо е по-малко от намереното минимално разполагаемо
+                // то текущото ще стане минимално !
+                if($currentFreeQuantity < $newFreeQuantity){
+                    $newObj->reservedQuantityMin = $exRec->reservedQuantity;
+                    $newObj->expectedQuantityMin = $exRec->expectedQuantity;
+                    $newObj->dateMin = $date;
+                }
+            }
+        }
+
         $res = arr::syncArrays($result, $oldRecs, 'storeId,productId', 'reservedQuantity,expectedQuantity,reservedQuantityMin,expectedQuantityMin,dateMin');
 
         // Заклюване на процеса
