@@ -1,22 +1,22 @@
 <!--ET_BEGIN customerSince-->
-<div class="richtext">
+<div>
 |Клиент от|*: <b>[#customerSince#]</b>
 </div>
 <!--ET_END customerSince-->
 <!--ET_BEGIN totalDealsBlock-->
 [#totalDealsBlock#]
-<div class="richtext">|Общо продажби|*: [#totalDealsCount#] |за|* [#totalDealsAmount#]</div>
+<div>|Общо продажби|*: [#totalDealsCount#] |за|* [#totalDealsAmount#]</div>
 <!--ET_END totalDealsBlock-->
 <!--ET_BEGIN overdueDealsBlock-->
 [#overdueDealsBlock#]
-<div class="richtext" style='background-color:red;color:white;padding:2px;'>|Просрочени продажби|*: [#overdueDealsCount#] |за|* [#overdueDealsAmount#]</div>
+<div style='background-color:red;color:white; margin: 3px 0; padding: 1px 3px;'>|Просрочени продажби|*: [#overdueDealsCount#] |за|* [#overdueDealsAmount#]</div>
 <!--ET_END overdueDealsBlock-->
 <!--ET_BEGIN supplierSince-->
-<div class="richtext">
+<div>
 |Доставчик от|*: <b>[#supplierSince#]</b>
 </div>
 <!--ET_END supplierSince-->
 <!--ET_BEGIN totalPurchasesBlock-->
 [#totalPurchasesBlock#]
-<div class="richtext">|Общо покупки|*: [#totalPurchaseCount#] |за|* [#totalPurchaseAmount#]</div>
+<div>|Общо покупки|*: [#totalPurchaseCount#] |за|* [#totalPurchaseAmount#]</div>
 <!--ET_END totalPurchasesBlock-->
