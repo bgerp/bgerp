@@ -178,8 +178,8 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $Balance = new acc_ActiveShortBalance(array('from' => $date, 'to' => $date, 'accs' => '321', 'item1' => $storeItemIdArr, 'item2' => $productItemId, 'cacheBalance' => false, 'keepUnique' => true));
         $bRecs = $Balance->getBalance('321');
 
-
         foreach ($bRecs as $item) {
+
 
             if (($rec->storeId && !in_array($item->ent1Id, $storeItemIdArr)) ||
                 ($rec->products && $item->ent2Id != $productItemId)
@@ -289,7 +289,12 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             } else {
                 $val->selfPrice = $val->blQuantity ? $val->blAmount / $val->blQuantity : null;
             }
-            $val->amount = $val->selfPrice * $val->blQuantity;
+
+            if ($val->blQuantity > 0) {
+                $val->amount = $val->selfPrice * $val->blQuantity;
+            }else{
+                $val->amount = $val->blAmount;
+            }
         }
 
         if (!is_null($recs) && $rec->orderBy) {
