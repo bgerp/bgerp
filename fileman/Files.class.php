@@ -2394,13 +2394,13 @@ class fileman_Files extends core_Master
             
             // Вземаме масива с документите, които може да създаде
             $arrCreate = $className::getActionsForFile($fRec);
-            
+
             if (is_array($arrCreate)) {
                 // Обхождаме масива
                 foreach ($arrCreate as $id => $arr) {
-                    
+
                     // Ако има полета, създаваме бутона
-                    if (count($arr)) {
+                    if (count($arr) && $className::haveRightFor('add')) {
                         $data->toolbar->addBtn($arr['title'], $arr['url'], 'row=2,id=' . $id . ',ef_icon=' . $arr['icon'], $arr['btnParams']);
                     }
                 }
