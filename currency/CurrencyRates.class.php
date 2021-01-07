@@ -472,6 +472,10 @@ class currency_CurrencyRates extends core_Detail
                 wp($rate, $date, $fromId, $toId);
             }
 
+            if(is_array($rate)){
+                $rate = $rate[key($rate)];
+            }
+
             return $rate;
         }
     }

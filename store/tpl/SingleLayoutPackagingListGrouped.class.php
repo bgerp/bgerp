@@ -100,7 +100,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                 $tarriffCodes[$rec1->tariffNumber]->withoutWeightProducts[] = cat_Products::getTitleById($rec1->productId);
             }
 
-            $amountR = $rec1->amount;
+            $amountR = $rec1->amount * (1 - $rec1->discount);
             if(in_array($masterRec->chargeVat, array('separate'))){
                 $vat = cat_Products::getVat($rec1->productId, $masterRec->valior);
                 $amountR += $amountR * $vat;

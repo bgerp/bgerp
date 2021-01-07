@@ -573,9 +573,9 @@ class store_InventoryNoteSummary extends doc_Detail
             
             return;
         }
-        
+
         // Извличаме наведнъж записите за всички артикули в протокола
-        $allProducts = array_map(create_function('$o', 'return $o->productId;'), $data->recs);
+        $allProducts =  arr::extractValuesFromArray($data->recs, 'productId');
         $productIds = array_values($allProducts);
         
         $pQuery = cat_Products::getQuery();

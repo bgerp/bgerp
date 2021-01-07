@@ -27,6 +27,8 @@ class acs_RegisterPlg extends core_Plugin
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $saveFileds = null)
     {
+        $stateMap = array('0' => 'unknown', '1' => 'allowed', '2' => 'denied', '3' => 'denied', '4' => 'denied');
+
         $lastAttRegId = ztm_Registers::fetchField(array("#name = 'ac.last_update_attendees'"));
 
         if ($lastAttRegId) {
@@ -38,7 +40,9 @@ class acs_RegisterPlg extends core_Plugin
                         $lName = cls::get('ztm_Devices')->prepareName($rec->deviceId);
                         $zoneId = acs_Zones::fetchField(array("#name = '[#1#]'", $lName));
 
-                        acs_Logs::add($vObj->card_id, $zoneId, strtolower($vObj->type), $vObj->ts, $vObj->reader_id);
+                        $type = $stateMap[$vObj->card_state];
+
+                        acs_Logs::add($vObj->card_id, $zoneId, $type, $vObj->ts, $vObj->reader_id);
                     }
                 }
             }

@@ -152,7 +152,8 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
                         $productInfo = cat_Products::getProductInfo($rec->{$mvc->productFieldName});
                         $quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
                         $quantity = ($rec->packQuantity) ? $rec->packQuantity * $quantityInPack : $quantityInPack;
-                        
+
+                        $msg = null;
                         if (!$BatchClass->isValid($rec->batch, $quantity, $msg)) {
                             $form->setError('batch', $msg);
                         }
@@ -177,7 +178,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             }
             
             $info = $mvc->getRowInfo($rec->id);
-            if (count($info->operation)) {
+            if (isset($info->operation['out'])) {
                 $batches = $BatchClass->allocateQuantityToBatches($info->quantity, $info->operation['out'], $mvc, $rec->id, $info->date);
                 batch_BatchesInDocuments::saveBatches($mvc, $rec->id, $batches);
             }
