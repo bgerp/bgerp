@@ -660,7 +660,7 @@ class pos_Receipts extends core_Master
         }
 
         $pRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
-        $quantityInStock = store_Products::getQuantity($rec->productId, $rec->storeId, true);
+        $quantityInStock = store_Products::getRec($rec->productId, $rec->storeId)->free;
 
         // Ако има положителна наличност
         if(core_Packs::isInstalled('batch') && $quantityInStock > 0){
@@ -1193,7 +1193,7 @@ class pos_Receipts extends core_Master
         $stores = pos_Points::getStores($pointId);
         $storeArr = array();
         foreach ($stores as $storeId){
-            $quantity = store_Products::getQuantity($productId, $storeId, true);
+            $quantity = store_Products::getRec($productId, $storeId)->free;
             $storeArr[$storeId] = $quantity;
         }
 

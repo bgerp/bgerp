@@ -510,7 +510,7 @@ class eshop_Carts extends core_Master
             
             // Дигане на флаг ако има артикули очакващи доставка
             if($rec->haveProductsWithExpectedDelivery != 'yes' && isset($settings->storeId) && $dRec->canStore == 'yes'){
-                $quantityInStore = store_Products::getQuantity($dRec->productId, $settings->storeId, true);
+                $quantityInStore = store_Products::getRec($dRec->productId, $settings->storeId)->free;
                 if($quantityInStore < $dRec->quantity){
                     $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$dRec->eshopProductId} AND #productId = {$dRec->productId}", 'deliveryTime');
                     if(!empty($eshopProductRec->deliveryTime)){

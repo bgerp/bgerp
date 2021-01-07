@@ -1381,9 +1381,10 @@ class pos_Terminal extends peripheral_Terminal
             $stores = pos_Points::getStores($rec->pointId);
             if(countR($stores) > 1 && empty($rec->revertId)){
                 $storeArr = array();
+
                 foreach ($stores as $storeId){
-                    $quantity = store_Products::getQuantity($selectedRec->productId, $storeId, true);
-                    $storeArr[$storeId] = $quantity;
+                    $stRec = store_Products::getRec($selectedRec->productId, $storeId);
+                    $storeArr[$storeId] = $stRec->free;
                 }
                 
                 arsort($storeArr);

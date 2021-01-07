@@ -369,5 +369,18 @@ class store_StockPlanning extends core_Manager
 
         return $res;
     }
+
+
+    function act_Test()
+    {
+        $storeId = 21;
+        $date = null;
+        $productId = 4328;//1330
+        $date = '2021-02-06';
+
+        $r = store_Products::getRec($productId, $storeId, $date);
+
+        bp($r);
+    }
 }
 
