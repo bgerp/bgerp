@@ -95,12 +95,12 @@ class store_Products extends core_Detail
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,tdClass=nameCell');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,tdClass=storeCol leftAlign');
         $this->FLD('quantity', 'double(maxDecimals=3)', 'caption=Налично,tdClass=stockCol');
-        $this->FLD('reservedQuantity', 'double(maxDecimals=3)', 'caption=Днес->Запазено,tdClass=horizonCol');
-        $this->FLD('expectedQuantity', 'double(maxDecimals=3)', 'caption=Днес->Очаквано,tdClass=horizonCol');
+        $this->FLD('reservedQuantity', 'double(maxDecimals=3)', 'caption=Днес->Запазено,tdClass=horizonCol red');
+        $this->FLD('expectedQuantity', 'double(maxDecimals=3)', 'caption=Днес->Очаквано,tdClass=horizonCol green');
         $this->FNC('freeQuantity', 'double(maxDecimals=3)', 'caption=Днес->Разполагаемо,tdClass=horizonCol');
 
-        $this->FLD('reservedQuantityMin', 'double(maxDecimals=3)', 'caption=Минимално->Запазено,tdClass=horizonCol');
-        $this->FLD('expectedQuantityMin', 'double(maxDecimals=3)', 'caption=Минимално->Очаквано,tdClass=horizonCol');
+        $this->FLD('reservedQuantityMin', 'double(maxDecimals=3)', 'caption=Минимално->Запазено,tdClass=horizonCol red');
+        $this->FLD('expectedQuantityMin', 'double(maxDecimals=3)', 'caption=Минимално->Очаквано,tdClass=horizonCol green');
         $this->FNC('freeQuantityMin', 'double(maxDecimals=3)', 'caption=Минимално->Разполагаемо,tdClass=horizonCol');
         $this->FLD('dateMin', 'date', 'caption=Минимално->Дата');
 
@@ -332,8 +332,8 @@ class store_Products extends core_Detail
                     arr::placeInAssocArray($data->listFields, array('reservedOut' => "|*{$horizonVerbal}-><span class='small notBolded' title='|Запазено|*'> |Запаз.|*</span>"), null, 'freeQuantityMin');
                     arr::placeInAssocArray($data->listFields, array('expectedIn' => "|*{$horizonVerbal}-><span class='small notBolded' title='|Очаквано|*'> |Очакв.|*</span>"), null, 'reservedOut');
                     arr::placeInAssocArray($data->listFields, array('resultDiff' => "|*{$horizonVerbal}-><span class='small notBolded' title='|Разполагаемо|*'> |Разпол.|*</span>"), null, 'expectedIn');
-                    $mvc->FNC('reservedOut', 'double', ',tdClass=horizonCol');
-                    $mvc->FNC('expectedIn', 'double', ',tdClass=horizonCol');
+                    $mvc->FNC('reservedOut', 'double', ',tdClass=horizonCol red');
+                    $mvc->FNC('expectedIn', 'double', ',tdClass=horizonCol green');
                     $mvc->FNC('resultDiff', 'double', ',tdClass=horizonCol');
 
                     core_Permanent::set($hKey, $rec->horizon);
