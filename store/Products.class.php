@@ -148,8 +148,10 @@ class store_Products extends core_Detail
                 if ($pRec = cat_products_Packagings::getPack($rec->productId, $basePack)) {
                     $rec->quantity /= $pRec->quantity;
                     $row->quantity = $mvc->getFieldType('quantity')->toVerbal($rec->quantity);
-                    if (isset($rec->reservedQuantity)) {
-                        $rec->reservedQuantity /= $pRec->quantity;
+                    foreach (array('reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin') as $fld){
+                        if (isset($rec->{$fld})) {
+                            $rec->{$fld} /= $pRec->quantity;
+                        }
                     }
                 }
                 $rec->measureId = $basePack;
