@@ -456,8 +456,55 @@ class store_Products extends core_Detail
             static::save($rec, 'state,quantity');
         }
     }
-    
-    
+
+
+    /**
+     * Връща запис за наличното,запазеното,очакваното и разполагаемото за даден артикул
+     *
+     * @param $productId          - артикул
+     * @param null|int $storeId   - склад или null за всички складове
+     * @param null|datetime $date - към коя дата
+     * @return object $res
+     */
+    public static function getRec($productId, $storeId = null, $date = null)
+    {
+        // Какви са наличностите
+        $query = self::getQuery();
+        $query->where("#productId = {$productId}");
+        $query->XPR('quantityTotal', 'double', 'SUM(#quantity)');
+        $query->XPR('reservedTotal', 'double', 'SUM(#reservedQuantity)');
+        $query->XPR('expectedTotal', 'double', 'SUM(#expectedQuantity)');
+        $query->XPR('reservedTotalMin', 'double', 'SUM(#reservedQuantityMin)');
+        $query->XPR('expectedTotalMin', 'double', 'SUM(#expectedQuantityMin)');
+        $query->show('quantityTotal,reservedTotal,expectedTotal,reservedTotalMin,expectedTotalMin');
+
+        if (isset($storeId)) {
+            $query->where("#storeId = {$storeId}");
+        }
+
+        $rec = $query->fetch();
+        $quantity = isset($rec->quantityTotal) ? $rec->quantityTotal : 0;
+        $res = (object)array('quantity' => $quantity);
+        if(is_null($date) && is_object($rec)){
+            $res->reserved = $rec->reservedTotalMin;
+            $res->expected = $rec->expectedTotalMin;
+        } else {
+            $res->reserved = 0;
+            $res->expected = 0;
+
+            // Ако е посочена дата се взимат очакваното и запазеното към нея
+            $planned = store_StockPlanning::getPlannedQuantities($date, $productId, $storeId);
+            foreach ($planned as $storeId => $storeArr){
+                array_walk($storeArr, function($o) use ($res){$res->reserved += $o->reserved; $res->expected += $o->expected;});
+            }
+        }
+
+        $res->free = $res->quantity - $res->reserved + $res->expected;
+
+        return $res;
+    }
+
+
     /**
      * Колко е количеството на артикула в складовете
      *

@@ -178,10 +178,9 @@ class sales_SalesDetails extends deals_DealDetail
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
         if (isset($rec->productId)) {
             $pInfo = cat_Products::getProductInfo($rec->productId);
-            $masterStore = $masterRec->shipmentStoreId;
             
-            if (isset($masterStore, $pInfo->meta['canStore'])) {
-                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
+            if (isset($pInfo->meta['canStore'])) {
+                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->shipmentStoreId);
                 $form->info = $storeInfo->formInfo;
             }
         }
@@ -219,18 +218,15 @@ class sales_SalesDetails extends deals_DealDetail
                 $row->discount = ht::createHint($row->discount, 'Отстъпката е сметната автоматично');
             }
             
-            if ($storeId = $masterRec->shipmentStoreId) {
-                if (isset($pInfo->meta['canStore'])) {
-                    $deliveryDate = $masterRec->deliveryTime;
-                    if(empty($deliveryDate)){
-                        $deliveryDate = $masterRec->valior;
-                        if(!empty($masterRec->deliveryTermTime)){
-                            $deliveryDate = dt::addSecs($masterRec->deliveryTermTime, $deliveryDate);
-                        }
+            if (isset($pInfo->meta['canStore'])) {
+                $deliveryDate = $masterRec->deliveryTime;
+                if(empty($deliveryDate)){
+                    $deliveryDate = $masterRec->valior;
+                    if(!empty($masterRec->deliveryTermTime)){
+                        $deliveryDate = dt::addSecs($masterRec->deliveryTermTime, $deliveryDate);
                     }
-
-                    deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $storeId, $rec->quantity, $masterRec->state, $deliveryDate);
                 }
+                deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $masterRec->shipmentStoreId, $rec->quantity, $masterRec->state, $deliveryDate);
             }
             
             if (core_Users::haveRole('ceo,seePrice') && isset($row->packPrice)) {

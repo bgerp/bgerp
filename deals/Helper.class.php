@@ -419,24 +419,23 @@ abstract class deals_Helper
         if (empty($packQuantity)) {
             $packQuantity = 1;
         }
-        
-        $stRec = store_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}", 'quantity,reservedQuantity');
-        
-        $quantity = $stRec->quantity - $stRec->reservedQuantity;
+
+        $stRec = store_Products::getRec($productId, $storeId);
+        $quantity = $stRec->free;
         
         $Double = cls::get('type_Double');
         $Double->params['smartRound'] = 'smartRound';
         
         $pInfo = cat_Products::getProductInfo($productId);
         $shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
-        $storeName = store_Stores::getTitleById($storeId);
+        $storeName = isset($storeId) ? (" |в|* " . store_Stores::getTitleById($storeId)) : '';
         $verbalQuantity = $Double->toVerbal($quantity);
         $verbalQuantity = ht::styleNumber($verbalQuantity, $quantity);
         $foundQuantity = $quantity;
         
-        $text = "|Разполагаемо в|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}";
-        if (!empty($stRec->reservedQuantity)) {
-            $verbalReserved = $Double->toVerbal($stRec->reservedQuantity);
+        $text = "|Разполагаемо|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}";
+        if (!empty($stRec->reserved)) {
+            $verbalReserved = $Double->toVerbal($stRec->reserved);
             $text .= ' ' . "|*( |Запазено|* {$verbalReserved} {$shortUom} )";
         }
         
@@ -741,22 +740,9 @@ abstract class deals_Helper
         }
 
         $date = isset($date) ? $date : null;
-        $dateShort = dt::verbal2mysql($date, false);
-
-        $hint = '';
-        $stRec = store_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}");
-        if($dateShort == dt::today()){
-            $freeQuantityOriginal = $stRec->quantity - $stRec->reservedQuantity + $stRec->expectedQuantity;
-        } else {
-
-            // Ако датата не е днешната, изчислява се планираното към конкретната дата
-            $expectedArr = store_StockPlanning::getPlannedQuantities($date, $productId, $storeId);
-            if(isset($expectedArr[$storeId][$productId])){
-                $freeQuantityOriginal = $stRec->quantity - $expectedArr[$storeId][$productId]->reserved + $expectedArr[$storeId][$productId]->expected;
-            } else {
-                $freeQuantityOriginal = $stRec->quantity;
-            }
-        }
+        $showStoreInMsg = isset($storeId) ? tr('в склада') : '';
+        $stRec = store_Products::getRec($productId, $storeId, $date);
+        $freeQuantityOriginal = $stRec->free;
 
         $Double = core_Type::getByName('double(smartRound)');
         $freeQuantity = ($state == 'draft') ? $freeQuantityOriginal - $quantity : $freeQuantityOriginal;
@@ -767,12 +753,12 @@ abstract class deals_Helper
         $makeLink = true;
         
         if ($futureQuantity < 0 && $freeQuantity < 0) {
-            $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност в склада|*!";
+            $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
             $class = 'doc-negative-quantiy';
             $makeLink = false;
         } elseif ($futureQuantity < 0 && $freeQuantity >= 0) {
             $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-            $hint = "Недостатъчна |*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност в склада|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
+            $hint = "Недостатъчна |*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
         } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
             $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
             $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|* |Наличното количество|*: {$inStockVerbal} |{$measureName}|* |е резервирано|*.";
