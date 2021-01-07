@@ -274,7 +274,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         $jQuery->show('productId,quantityProduced');
         while ($jRec = $jQuery->fetch()) {
             $pRec = cat_products::fetch($jRec->productId, 'name,code,isPublic,measureId,canStore,nameEn');
-            $inStock = ($pRec->canStore == 'yes') ? store_Products::getQuantity($jRec->productId, null, true) : null;
+            $inStock = ($pRec->canStore == 'yes') ? store_Products::getRec($jRec->productId)->free : null;
             $inStock = core_Type::getByName('double(smartRound)')->toVerbal($inStock) . ' ' . cat_UoM::getShortName($pRec->measureId);
             $produced = core_Type::getByName('double(smartRound)')->toVerbal($jRec->quantityProduced);
             $arr[] = array('job' => planning_Jobs::getLink($jRec->id), 'inStock' => $inStock, 'produced' => $produced);
@@ -726,7 +726,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
                     if (isset($shippedProducts[$pId])) {
                         $produced = planning_Jobs::fetchField($closedJobId, 'quantityProduced');
                         if ($shippedProducts[$pId]->quantity >= ($produced * 0.9)) {
-                            $quantityInStore = store_Products::getQuantity($productRec->id);
+                            $quantityInStore = store_Products::getRec($productRec->id)->quantity;
                             if ($quantityInStore <= 1) {
                                 $ignore = true;
                             }
@@ -756,7 +756,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             if (is_null($amount)) {
                 
                 // Изчислява се колко от сумата на артикула може да се изпълни
-                $quantityInStock = store_Products::getQuantity($pId, $saleRec->shipmentStoreId);
+                $quantityInStock = store_Products::getRec($pId, $saleRec->shipmentStoreId)->quantity;
                 $quantityInStock = ($quantityInStock > $quantity) ? $quantity : (($quantityInStock < 0) ? 0 : $quantityInStock);
                 
                 $amount = $quantityInStock * $price;
@@ -818,7 +818,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             $totalAmount += $pRec->quantity * $price;
             
             // Определя се каква сума може да се изпълни
-            $quantityInStock = store_Products::getQuantity($pId, $soRec->storeId);
+            $quantityInStock = store_Products::getRec($pId, $soRec->storeId)->quantity;
             $quantityInStock = ($quantityInStock > $pRec->quantity) ? $pRec->quantity : (($quantityInStock < 0) ? 0 : $quantityInStock);
             
             $amount = $quantityInStock * $price;
