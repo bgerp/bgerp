@@ -348,10 +348,11 @@ class store_StockPlanning extends core_Manager
                 $sumReserved = $sumExpected = 0;
 
                 // Наличността към датата е сумата от предходните дати
-                array_walk($allRecs[$key], function($a, $k) use (&$obj, $date) {
+                $clone = clone $obj;
+                array_walk($allRecs[$key], function($a, $k) use (&$clone, $date) {
                     if($k < $date){
-                        $obj->reserved += $a->reserved;
-                        $obj->expected += $a->expected;
+                        $clone->reserved += $a->reserved;
+                        $clone->expected += $a->expected;
                     }
                 });
 
@@ -360,7 +361,8 @@ class store_StockPlanning extends core_Manager
 
                 // Намиране на датата, на която ще е максимално запазеното - очакваното
                 if(is_null($max) || round($max, 4) < $total){
-                    $res[$obj->storeId][$obj->productId] = (object)array('date' => $date, 'reserved' => $obj->reserved, 'expected' => $obj->expected, 'storeId' => $obj->storeId, 'productId' => $obj->productId);
+                    $max = $total;
+                    $res[$obj->storeId][$obj->productId] = (object)array('date' => $date, 'reserved' => $clone->reserved, 'expected' => $clone->expected, 'storeId' => $clone->storeId, 'productId' => $clone->productId);
                 }
             }
         }
