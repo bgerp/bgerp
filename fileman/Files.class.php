@@ -17,6 +17,14 @@
  */
 class fileman_Files extends core_Master
 {
+
+
+    /**
+     * Кой може да променя файла
+     */
+    public $canEditfile = 'user';
+
+
     /**
      * Детайла, на модела
      */
@@ -1895,7 +1903,7 @@ class fileman_Files extends core_Master
         expect($fRec, 'Няма такъв запис.');
         
         // Проверяваме за права
-        $this->requireRightFor('single', $fRec);
+        $this->requireRightFor('editfile', $fRec);
         
         //URL' то където ще се редиректва при отказ
         $retUrl = getRetUrl();
@@ -2154,8 +2162,21 @@ class fileman_Files extends core_Master
         
         return false;
     }
-    
-    
+
+
+    /**
+     * Какви роли са необходими за качване или сваляне?
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'editfile' && !haveRole('powerUser')) {
+            if ($rec->createdBy != $userId) {
+                $roles = 'no_one';
+            }
+        }
+    }
+
+
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
