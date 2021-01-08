@@ -441,6 +441,9 @@ div.folder-cover {
 .public.folder-cover {
   margin: 0; }
 
+.folder-cover .store_Products .listRowsDetail {
+  overflow: auto; }
+
 .special-title {
   padding: 10px !important;
   font-size: 0.9em;
