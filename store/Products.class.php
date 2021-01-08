@@ -604,10 +604,9 @@ class store_Products extends core_Detail
                 }
             }
 
-            if(!empty($rec->dateMin)){
-                $date = dt::mysql2verbal($rec->dateMin, 'd.m.Y');
-                $row->freeQuantityMin = ht::createHint($row->freeQuantityMin, $date,'img/16/calendar_1.png', true, 'height=12px,width=12px');
-            }
+            $dateMin = !empty($rec->dateMin) ? $rec->dateMin : dt::today();
+            $date = dt::mysql2verbal($dateMin, 'd.m.Y');
+            $row->freeQuantityMin = ht::createHint($row->freeQuantityMin, $date,'img/16/calendar_1.png', true, 'height=12px,width=12px');
         }
     }
     
@@ -684,9 +683,8 @@ class store_Products extends core_Detail
                 $currentFreeQuantity = $exRec->quantity - $exRec->reservedQuantity + $exRec->expectedQuantity;
                 $newFreeQuantity = $exRec->quantity - $newObj->reservedQuantityMin + $newObj->expectedQuantityMin;
 
-                // Ако текущото разполагаемо е по-малко от намереното минимално разполагаемо
-                // то текущото ще стане минимално !
-                if($currentFreeQuantity < $newFreeQuantity){
+                // Ако текущото разполагаемо е по-малко или равно на намереното минимално разполагаемо, то текущото ще стане минимално !
+                if($currentFreeQuantity <= $newFreeQuantity){
                     $newObj->reservedQuantityMin = $exRec->reservedQuantity;
                     $newObj->expectedQuantityMin = $exRec->expectedQuantity;
                     $newObj->dateMin = $date;
