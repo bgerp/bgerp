@@ -917,8 +917,9 @@ class store_Products extends core_Detail
 
         if(countR($data->recs)){
             $totalField = ($data->masterData->rec->generic == 'yes') ? 'code' : 'storeId';
-            $data->rows['total'] = (object)array($totalField => "<div style='float:left'>" .  tr('Сумарно') . "</div>");
-            $data->rows['total']->ROW_ATTR['style'] = 'background-color:#eee;font-weight:bold';
+            $data->rows['total'] = (object)array($totalField =>  tr('Сумарно'));
+            $data->rows['total']->ROW_ATTR['style'] = 'background-color:#eee;font-weight:bold;';
+            $data->rows['total']->ROW_ATTR['class'] = 'totalRow';
             
             foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'expectedQuantityMin', 'freeQuantity', 'freeQuantityMin', 'reservedQuantityMin', 'reservedOut', 'expectedOut') as $fld){
                 ${$fld} = arr::sumValuesArray($data->recs, $fld, true);

@@ -520,6 +520,11 @@ div.folder-cover {
 	max-width: 460px !important;
 }
 
+.doc_Containers table.listTable .totalRow td, .folder-cover  .portal table.listTable  .totalRow td{
+	vertical-align: baseline !important;
+	padding: 2px 3px 5px !important;
+}
+
 .public.folder-cover {
 	margin: 0;
 }
