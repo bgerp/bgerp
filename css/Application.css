@@ -3098,6 +3098,20 @@ span.sharing-history-title {
   #all #searchform {
     margin-bottom: 20px; }
 
+
+#all .filemanSingle {
+  padding: 20px; }
+
+.centerContent .filemanSingle {
+  padding: 20px 0; }
+
+  .filemanSingle .webdrvTabBody,
+  .filemanSingle .webdrvFieldset {
+    width: 100% !important;
+    box-sizing: border-box; }
+  .filemanSingle .filePath {
+    margin-left: 5px; }
+
 .wide #all {
   min-width: 500px; }
 

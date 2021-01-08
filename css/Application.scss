@@ -3618,6 +3618,23 @@ fieldset.sharing-history {
 	}
 }
 
+#all .filemanSingle {
+	padding: 20px;
+}
+.centerContent .filemanSingle {
+	padding: 20px 0;
+}
+
+.filemanSingle {
+	.webdrvTabBody, .webdrvFieldset {
+		width: 100% !important;
+		box-sizing: border-box;
+	}
+	.filePath {
+		margin-left: 5px;
+	}
+}
+
 .wide #all {
 	min-width: 500px;
 }

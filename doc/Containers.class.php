@@ -1733,17 +1733,19 @@ class doc_Containers extends core_Manager
                 if ($mvc->newBtnGroup === false) {
                     continue;
                 }
-                
-                list($order, $group) = explode('|', $mvc->newBtnGroup);
-                
-                // debug::log('Start HaveRight:' . $mvc->className);
-                
+
+                if($mvc->newBtnGroup){
+                    list($order, $group) = explode('|', $mvc->newBtnGroup);
+                } else {
+                    $order = 0;
+                    $group = 'Без група';
+                    wp($mvc);
+                }
+
                 if ($mvc->haveRightFor('add', $rec)) {
                     $ind = $order * 10000 + $i++;
                     $docArrSort[$ind] = array($group, $mvc->singleTitle, $class);
                 }
-                
-                // debug::log('End HaveRight:' . $mvc->className);
             }
             
             // Сортиране
