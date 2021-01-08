@@ -37,7 +37,7 @@ class fileman_Files extends core_Master
     /**
      * Всички потребители могат да разглеждат файлове
      */
-    protected $canSingle = 'powerUser';
+    protected $canSingle = 'user';
     
     
     protected $canDelete = 'no_one';
@@ -66,7 +66,7 @@ class fileman_Files extends core_Master
     /**
      * Кой има права за регенерира на файла
      */
-    protected $canPrintfiles = 'powerUser';
+    protected $canPrintfiles = 'user';
     
     
     /**
@@ -2270,10 +2270,10 @@ class fileman_Files extends core_Master
         
         // Масив с линка към папката и документа на първата достъпна нишка, където се използва файла
         $pathArr = static::getFirstContainerLinks($rec);
-        
+
         // Ако има такъв документ
         if (countR($pathArr)) {
-            
+
             // Пътя до файла и документа
             $path = ' « ' . $pathArr['firstContainer']['content'] . ' « ' . $pathArr['folder']['content'];
             
@@ -2428,11 +2428,25 @@ class fileman_Files extends core_Master
             }
         }
         
-        if ($mvc->haveRightFor('single', $data->rec->id)) {
+        if ($mvc->haveRightFor('editfile', $data->rec->id)) {
             $data->toolbar->addBtn('Преименуване', array($mvc, 'editFile', $data->rec->fileHnd, 'ret_url' => true), 'id=btn-rename', 'ef_icon = img/16/edit-icon.png, title=Преименуване на файла, row=2');
         }
     }
-    
+
+
+    /**
+     *
+     * @return stdClass
+     */
+    public function act_Single()
+    {
+        if (core_Users::isContractor()) {
+            Mode::set('noWrapper', true);
+        }
+
+        return parent::act_Single();
+    }
+
     
     /**
      * Екшън за отпечатване

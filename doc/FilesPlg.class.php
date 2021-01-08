@@ -242,12 +242,7 @@ class doc_FilesPlg extends core_Plugin
         
         // Обхождаме всички извлечени резултати
         while ($fRec = $query->fetch()) {
-            
-            // Ако нямаме права за листване на записа продължаваме
-            if (!doc_Files::haveRightFor('list', $fRec)) {
-                continue;
-            }
-            
+
             try {
                 // Документа
                 $doc = doc_Containers::getDocument($fRec->containerId);
