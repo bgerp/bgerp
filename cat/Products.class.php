@@ -2135,7 +2135,7 @@ class cat_Products extends embed_Manager
      *
      * @return string
      */
-    private static function getDisplayName($rec)
+    public static function getDisplayName($rec)
     {
         // Ако в името имаме '||' го превеждаме
         $name = $rec->name;
