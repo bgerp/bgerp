@@ -2441,6 +2441,14 @@ class doc_Threads extends core_Manager
         
         if ($action == 'move') {
             $res = $mvc->getRequiredRoles('single', $rec, $userId);
+
+            $firstDoc = doc_Threads::getFirstDocument($rec->id);
+
+            // Ако е зададено да не се може да се мести документа
+            if ($firstDoc->moveDocToFolder === false) {
+
+                $res = 'no_one';
+            }
         }
         
         if ($action == 'single') {
