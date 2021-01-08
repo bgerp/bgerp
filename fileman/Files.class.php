@@ -2444,7 +2444,7 @@ class fileman_Files extends core_Master
             Mode::set('noWrapper', true);
         }
 
-        return parent::act_Single();
+        return "<div class='filemanSingle'>" . parent::act_Single() . "</div>";
     }
 
     
