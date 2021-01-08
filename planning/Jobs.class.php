@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -47,12 +47,12 @@ class planning_Jobs extends core_Master
      * @see planning_plg_StateManager
      */
     public $demandReasonChangeState = 'stop,wakeup';
-    
+
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StockPlanning, doc_DocumentPlg, planning_plg_StateManager, doc_SharablePlg, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing, cat_plg_AddSearchKeywords';
+    public $loadList = 'plg_RowTools2, store_plg_StockPlanning, doc_DocumentPlg, planning_plg_StateManager, doc_SharablePlg, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing, doc_plg_SelectFolder, cat_plg_AddSearchKeywords';
     
     
     /**
@@ -71,12 +71,6 @@ class planning_Jobs extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo, job';
-    
-    
-    /**
-     * Кой може да създава задание от продажба
-     */
-    public $canCreatejobfromsale = 'ceo, job';
     
     
     /**
@@ -165,8 +159,14 @@ class planning_Jobs extends core_Master
      *  @var string
      */
     public $hideListFieldsIfEmpty = 'quantityFromTasks,quantityNotStored';
-    
-    
+
+
+    /**
+     * Групиране на документите
+     */
+    public $newBtnGroup = '3.52|Производство';
+
+
     /**
      * Вербални наименования на състоянията
      */
@@ -221,11 +221,17 @@ class planning_Jobs extends core_Master
 
 
     /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'planning_Centers';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canManifacture,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|packQuantity|quantityInPack|tolerance|quantity|oldJobId');
         $this->FLD('oldJobId', 'int', 'silent,after=productId,caption=Предходно задание,removeAndRefreshForm=notes|department|packagingId|quantityInPack|storeId,input=none');
         $this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
         
@@ -236,8 +242,6 @@ class planning_Jobs extends core_Master
         
         $this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Количество->Произведено,notNull,value=0');
         $this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Количество->Заскладено,notNull,value=0');
-        //$this->FLD('quantityProducedInOtherMeasures', 'blob(serialize, compress)', 'input=none,caption=Количество->Заскладено други мерки');
-        
         $this->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки');
         $this->FLD('tolerance', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.1)', 'caption=Толеранс,silent');
         $this->FLD('department', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност');
@@ -307,91 +311,96 @@ class planning_Jobs extends core_Master
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        
-        // Ако има предишни задания зареждат се за избор
-        $oldJobs = self::getOldJobs($rec->productId, $rec->id, $rec->folderId);
-        
-        if (countR($oldJobs)) {
-            $form->setField('oldJobId', 'input');
-            $form->setOptions('oldJobId', array('' => '') + $oldJobs);
+
+        if(isset($rec->id) && $rec->state != 'draft'){
+            $form->setReadOnly('productId');
         }
-        
-        $form->setReadOnly('productId');
-        
-        $packs = cat_Products::getPacks($rec->productId);
-        $form->setOptions('packagingId', $packs);
-        
-        // Ако артикула не е складируем, скриваме полето за мярка
-        $productRec = cat_Products::fetch($rec->productId, 'canStore,isPublic,innerClass');
-        
-        if ($productRec->canStore == 'no') {
-            $form->setDefault('packagingId', key($packs));
-            $measureShort = cat_UoM::getShortName($rec->packagingId);
-            $form->setField('packQuantity', "unit={$measureShort}");
-        } else {
-            $form->setField('packagingId', 'input');
-        }
-        
-        if ($tolerance = cat_Products::getParams($rec->productId, 'tolerance')) {
-            $form->setDefault('tolerance', $tolerance);
-        }
-        
+
         if (isset($rec->saleId)) {
-            $deliveryDate = null;
-            $form->setDefault('dueDate', $mvc->getDefaultDueDate($rec->productId, $rec->saleId, $deliveryDate));
-            
-            $saleRec = sales_Sales::fetch($rec->saleId);
-            $dRec = sales_SalesDetails::fetch("#saleId = {$rec->saleId} AND #productId = {$rec->productId}");
-            $form->setDefault('packagingId', $dRec->packagingId);
-            $form->setDefault('packQuantity', $dRec->packQuantity);
-            
-            // Ако има данни от продажба, попълваме ги
-            $form->setDefault('storeId', $saleRec->shipmentStoreId);
-            $form->setDefault('deliveryTermId', $saleRec->deliveryTermId);
-            $form->setDefault('deliveryDate', $deliveryDate);
-            $form->setDefault('deliveryPlace', $saleRec->deliveryLocationId);
-            $locations = crm_Locations::getContragentOptions($saleRec->contragentClassId, $saleRec->contragentId);
-            $form->setOptions('deliveryPlace', $locations);
-            $caption = '|Данни от|* <b>' . sales_Sales::getRecTitle($rec->saleId) . '</b>';
-            $caption = str_replace(',', ' ', str_replace(', ', ' ', $caption));
-            
-            $form->setField('deliveryTermId', "caption={$caption}->Условие,changable");
-            $form->setField('deliveryDate', "caption={$caption}->Срок,changable");
-            $form->setField('deliveryPlace', "caption={$caption}->Място,changable");
-        } else {
-            
-            // Ако заданието не е към продажба, скриваме полетата от продажбата
-            $form->setField('deliveryTermId', 'input=none');
-            $form->setField('deliveryDate', 'input=none');
-            $form->setField('deliveryPlace', 'input=none');
-            $form->setField('department', 'mandatory');
+            $products = sales_Sales::getManifacurableProducts($rec->saleId);
+            $form->setFieldType('productId', 'key(mvc=cat_Products)');
+            if(countR($products) == 1){
+                $form->setDefault('productId', key($products));
+                $form->setOptions('productId', $products);
+            } else {
+                $form->setOptions('productId', array('' => '') + $products);
+            }
         }
-        
-        // Дефолтния център е този от последния артикул или драйвер, ако артикула е нестандартен
-        $lastQuery = self::getQuery();
-        $lastQuery->where("#state != 'rejected' AND #department IS NOT NULL");
-        $lastQuery->orderBy('id', 'DESC');
-        if($productRec->isPublic == 'yes'){
-            $lastQuery->where("#productId = {$productRec->id}");
-        } else {
-            $lastQuery->EXT('innerClass', 'cat_Products', 'externalName=innerClass,externalKey=productId');
-            $lastQuery->where("#innerClass = {$productRec->innerClass}");
+
+        // Ако има предишни задания зареждат се за избор
+        if(isset($rec->productId)){
+            $oldJobs = self::getOldJobs($rec->productId, $rec->id, $rec->folderId);
+            if (countR($oldJobs)) {
+                $form->setField('oldJobId', 'input');
+                $form->setOptions('oldJobId', array('' => '') + $oldJobs);
+            }
+
+            $packs = cat_Products::getPacks($rec->productId);
+            $form->setOptions('packagingId', $packs);
+
+            // Ако артикула не е складируем, скриваме полето за мярка
+            $productRec = cat_Products::fetch($rec->productId, 'canStore,isPublic,innerClass');
+
+            if ($productRec->canStore == 'no') {
+                $form->setDefault('packagingId', key($packs));
+                $measureShort = cat_UoM::getShortName($rec->packagingId);
+                $form->setField('packQuantity', "unit={$measureShort}");
+            } else {
+                $form->setField('packagingId', 'input');
+            }
+
+            if ($tolerance = cat_Products::getParams($rec->productId, 'tolerance')) {
+                $form->setDefault('tolerance', $tolerance);
+            }
+
+            if (isset($rec->saleId)) {
+                $deliveryDate = null;
+                $form->setDefault('dueDate', $mvc->getDefaultDueDate($rec->productId, $rec->saleId, $deliveryDate));
+
+                $saleRec = sales_Sales::fetch($rec->saleId);
+                $dRec = sales_SalesDetails::fetch("#saleId = {$rec->saleId} AND #productId = {$rec->productId}");
+                $form->setDefault('packagingId', $dRec->packagingId);
+                $form->setDefault('packQuantity', $dRec->packQuantity);
+
+                // Ако има данни от продажба, попълваме ги
+                $form->setDefault('storeId', $saleRec->shipmentStoreId);
+                $form->setDefault('deliveryTermId', $saleRec->deliveryTermId);
+                $form->setDefault('deliveryDate', $deliveryDate);
+                $form->setDefault('deliveryPlace', $saleRec->deliveryLocationId);
+                $locations = crm_Locations::getContragentOptions($saleRec->contragentClassId, $saleRec->contragentId);
+                $form->setOptions('deliveryPlace', $locations);
+                $caption = '|Данни от|* <b>' . sales_Sales::getRecTitle($rec->saleId) . '</b>';
+                $caption = str_replace(',', ' ', str_replace(', ', ' ', $caption));
+
+                $form->setField('deliveryTermId', "caption={$caption}->Условие,changable");
+                $form->setField('deliveryDate', "caption={$caption}->Срок,changable");
+                $form->setField('deliveryPlace', "caption={$caption}->Място,changable");
+            } else {
+
+                // Ако заданието не е към продажба, скриваме полетата от продажбата
+                $form->setField('deliveryTermId', 'input=none');
+                $form->setField('deliveryDate', 'input=none');
+                $form->setField('deliveryPlace', 'input=none');
+                $form->setField('department', 'mandatory');
+            }
+
+            if(isset($rec->folderId)){
+                $Cover = doc_Folders::getCover($rec->folderId);
+                if($Cover->isInstanceOf('planning_Centers')){
+                    $form->setDefault('department', $Cover->that);
+                }
+            }
+
+            // Ако е избрано предишно задание зареждат се данните от него
+            if (isset($rec->oldJobId)) {
+                $oRec = self::fetch($rec->oldJobId, 'notes,department,packagingId,storeId');
+                $form->setDefault('notes', $oRec->notes);
+                $form->setDefault('packagingId', $oRec->packagingId);
+                $form->setDefault('storeId', $oRec->storeId);
+            }
+
+            $form->setDefault('packagingId', key($packs));
         }
-        
-        if($lastRec = $lastQuery->fetch()){
-            $form->setDefault('department', $lastRec->department);
-        }
-        
-        // Ако е избрано предишно задание зареждат се данните от него
-        if (isset($rec->oldJobId)) {
-            $oRec = self::fetch($rec->oldJobId, 'notes,department,packagingId,storeId');
-            
-            $form->setDefault('notes', $oRec->notes);
-            $form->setDefault('packagingId', $oRec->packagingId);
-            $form->setDefault('storeId', $oRec->storeId);
-        }
-        
-        $form->setDefault('packagingId', key($packs));
     }
     
     
@@ -437,17 +446,6 @@ class planning_Jobs extends core_Master
         }
         
         return $today;
-    }
-    
-    
-    /**
-     * След подготовката на заглавието на формата
-     */
-    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
-    {
-        // По-хубаво заглавие на формата
-        $rec = $data->form->rec;
-        $data->form->title = core_Detail::getEditTitle('cat_Products', $rec->productId, $mvc->singleTitle, $rec->id);
     }
     
     
@@ -663,16 +661,6 @@ class planning_Jobs extends core_Master
                 $form->setWarning('dueDate', 'Падежът е в миналото');
             }
             
-            if (empty($rec->id)) {
-                if (isset($rec->department)) {
-                    $rec->folderId = planning_Centers::forceCoverAndFolder($rec->department);
-                    unset($rec->threadId);
-                } elseif (empty($rec->saleId)) {
-                    $rec->folderId = planning_Centers::forceCoverAndFolder(planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID);
-                    unset($rec->threadId);
-                }
-            }
-            
             $productInfo = cat_Products::getProductInfo($form->rec->productId);
             $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
@@ -709,6 +697,14 @@ class planning_Jobs extends core_Master
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
+        // Ако заданието е към сделка и е избран департамент, да се рутира към него
+        if (empty($rec->id) && isset($rec->saleId) && isset($rec->department)) {
+            $rec->folderId = planning_Centers::forceCoverAndFolder($rec->department);
+            unset($rec->threadId);
+            unset($rec->containerId);
+            $mvc->route($rec);
+        }
+
         if ($rec->isEdited === true && isset($rec->id) && $rec->_isClone !== true) {
             self::addToHistory($rec->history, 'edited', $rec->modifiedOn, $rec->modifiedBy);
         }
@@ -720,10 +716,6 @@ class planning_Jobs extends core_Master
      */
     protected static function on_AfterCreate($mvc, $rec)
     {
-        // Споделяме текущия потребител със нишката на заданието
-        $cu = core_Users::getCurrent();
-        doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
-        
         // Записваме в историята на действията, че кога и от кого е създаден документа
         self::addToHistory($rec->history, 'created', $rec->createdOn, $rec->createdBy);
         $mvc->save_($rec, 'history');
@@ -945,38 +937,35 @@ class planning_Jobs extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
-        if ($action == 'write' || $action == 'add' || $action == 'edit') {
-            if (isset($rec)) {
-                // Може да се добавя само ако има ориджин
-                if (empty($rec->productId)) {
+        if (($action == 'write' || $action == 'add' || $action == 'edit') && isset($rec)){
+
+            if(isset($rec->productId)) {
+                $productRec = cat_Products::fetch($rec->productId, 'state,canManifacture,generic');
+
+                // Трябва да е активиран
+                if ($productRec->state != 'active') {
                     $res = 'no_one';
-                } else {
-                    $productRec = cat_Products::fetch($rec->productId, 'state,canManifacture,generic');
-                    
-                    // Трябва да е активиран
-                    if ($productRec->state != 'active') {
-                        $res = 'no_one';
-                    }
-                    
-                    // Трябва и да е производим
-                    if ($res != 'no_one') {
-                        if ($productRec->canManifacture == 'no' || $productRec->generic == 'yes') {
-                            $res = 'no_one';
-                        }
-                    }
                 }
-                
-                // Ако се създава към продажба, тя трябва да е активна
-                if (!empty($rec->saleId)) {
-                    $saleState = sales_Sales::fetchField($rec->saleId, 'state');
-                    if ($saleState != 'active' && $saleState != 'closed') {
+
+                // Трябва и да е производим
+                if ($res != 'no_one') {
+                    if ($productRec->canManifacture == 'no' || $productRec->generic == 'yes') {
                         $res = 'no_one';
                     }
                 }
             }
-            
-            if ($action == 'add' && empty($rec)) {
-                $res = 'no_one';
+                
+            // Ако се създава към продажба, тя трябва да е активна
+            if (!empty($rec->saleId)) {
+                $saleState = sales_Sales::fetchField($rec->saleId, 'state');
+                if ($saleState != 'active' && $saleState != 'closed') {
+                    $res = 'no_one';
+                } else {
+                    $products = sales_Sales::getManifacurableProducts($rec->saleId);
+                    if (!countR($products)) {
+                        $res = 'no_one';
+                    }
+                }
             }
         }
         
@@ -986,7 +975,7 @@ class planning_Jobs extends core_Master
         }
         
         // Ако потрбителя няма достъп до сингъла на артикула, не може да модифицира заданията към артикула
-        if (($action == 'add' || $action == 'delete') && isset($rec) && $res != 'no_one') {
+        if (($action == 'add' || $action == 'delete') && isset($rec->productId) && $res != 'no_one') {
             if (!cat_Products::haveRightFor('single', $rec->productId)) {
                 $res = 'no_one';
             }
@@ -995,14 +984,6 @@ class planning_Jobs extends core_Master
         // Само спрените могат да се променят
         if ($action == 'changerec' && isset($rec)) {
             if ($rec->state != 'stopped') {
-                $res = 'no_one';
-            }
-        }
-        
-        // Ако създаваме задание от продажба искаме наистина да можем да създадем
-        if ($action == 'createjobfromsale' && isset($rec)) {
-            $count = $mvc->getSelectableProducts($rec->saleId);
-            if (!$count) {
                 $res = 'no_one';
             }
         }
@@ -1179,46 +1160,6 @@ class planning_Jobs extends core_Master
     
     
     /**
-     * Екшън за избор на артикул за създаване на задание
-     */
-    public function act_CreateJobFromSale()
-    {
-        $this->requireRightFor('createjobfromsale');
-        expect($saleId = Request::get('saleId', 'int'));
-        $this->requireRightFor('createjobfromsale', (object) array('saleId' => $saleId));
-        
-        $form = cls::get('core_Form');
-        $form->title = 'Създаване на задание към продажба|* <b>' . sales_Sales::getHyperlink($saleId, true) . '</b>';
-        $form->FLD('productId', 'key(mvc=cat_Products)', 'caption=Артикул,mandatory');
-        $saleRec = sales_Sales::fetch($saleId, 'threadId,containerId');
-        
-        $default = null;
-        $selectable = $this->getSelectableProducts($saleId, $default);
-        if (countR($selectable) == 1) {
-            $selectable = array_keys($selectable);
-            redirect(array($this, 'add', 'threadId' => $saleRec->threadId, 'productId' => $selectable[0], 'saleId' => $saleId, 'foreignId' => $saleRec->containerId, 'ret_url' => array('sales_Sales', 'single', $saleId)));
-        }
-        
-        $form->setDefault('productId', $default);
-        $form->setOptions('productId', array('' => '') + $selectable);
-        $form->input();
-        if ($form->isSubmitted()) {
-            if (isset($form->rec->productId)) {
-                redirect(array($this, 'add', 'threadId' => $saleRec->threadId, 'productId' => $form->rec->productId, 'saleId' => $saleId, 'foreignId' => $saleRec->containerId, 'ret_url' => true));
-            }
-        }
-        
-        $form->toolbar->addSbBtn('Ново задание', 'default', array('class' => 'btn-next fright'), 'ef_icon = img/16/move.png, title=Създаване на ново задание');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
-        
-        $tpl = $this->renderWrapping($form->renderHtml());
-        core_Form::preventDoubleSubmission($tpl, $form);
-        
-        return $tpl;
-    }
-    
-    
-    /**
      * Селектиране на действие при създаване на нова задача
      */
     public function act_selectTaskAction()
@@ -1333,31 +1274,6 @@ class planning_Jobs extends core_Master
         }
         
         // Връщане на опциите за избор
-        return $options;
-    }
-    
-    
-    /**
-     * Намира всички производими артикули по една продажба, към които може да се създават задания
-     *
-     * @param int $saleId
-     * @param int|null $default
-     *
-     * @return array $options
-     */
-    private function getSelectableProducts($saleId, &$default = null)
-    {
-        $options = array();
-        $products = sales_Sales::getManifacurableProducts($saleId);
-        foreach ($products as $productId => $name) {
-            if ($this->haveRightFor('add', (object) array('productId' => $productId, 'saleId' => $saleId))) {
-                $options[$productId] = $name;
-                if(empty($default) && !planning_Jobs::fetchField("#productId = {$productId} AND #saleId = {$saleId}")){
-                    $default = $productId;
-                }
-            }
-        }
-        
         return $options;
     }
     

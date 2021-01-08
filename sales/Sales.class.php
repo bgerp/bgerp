@@ -1098,8 +1098,8 @@ class sales_Sales extends deals_DealMaster
             $data->jobs[$jRec->id] = planning_Jobs::recToVerbal($jRec, $fields);
         }
         
-        if (planning_Jobs::haveRightFor('Createjobfromsale', (object) array('saleId' => $rec->id))) {
-            $data->addJobUrl = array('planning_Jobs', 'CreateJobFromSale', 'saleId' => $rec->id, 'foreignId' => $rec->containerId,'ret_url' => true);
+        if (planning_Jobs::haveRightFor('add', (object) array('saleId' => $rec->id))) {
+            $data->addJobUrl = array('planning_Jobs', 'add', 'saleId' => $rec->id, 'threadId' => $rec->threadId, 'foreignId' => $rec->containerId, 'ret_url' => true);
         }
     }
     

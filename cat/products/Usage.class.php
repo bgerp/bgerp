@@ -297,8 +297,8 @@ class cat_products_Usage extends core_Manager
         }
         
         // Проверяваме можем ли да добавяме нови задания
-        if ($data->Jobs->haveRightFor('add', (object) array('productId' => $data->masterId, 'threadId' => $masterRec->threadId))) {
-            $data->addUrl = array('planning_Jobs', 'add', 'threadId' => $masterRec->threadId, 'productId' => $data->masterId, 'foreignId' => $masterRec->containerId, 'ret_url' => true);
+        if ($data->Jobs->haveRightFor('add', (object) array('productId' => $data->masterId))) {
+            $data->addUrl = array('planning_Jobs', 'add', 'productId' => $data->masterId, 'foreignId' => $masterRec->containerId, 'ret_url' => true);
         }
     }
 }
