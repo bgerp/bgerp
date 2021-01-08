@@ -945,9 +945,23 @@ class store_Products extends core_Detail
             $infoBlock = "<div style='margin-bottom:5px'>{$infoBlock}</div>";
             $tpl->append($infoBlock, 'content');
         }
-        
+
+
         $tpl->append(parent::renderDetail_($data), 'content');
-        
+
+
         return $tpl;
+    }
+
+
+    /**
+     * Добавя след таблицата
+     */
+    protected static function on_AfterRenderListTable($mvc, &$tpl, $data)
+    {
+        if(isset($data->masterMvc)){
+            $tpl->prepend('<div class="scrolling-holder">');
+            $tpl->append('</div">');
+        }
     }
 }
