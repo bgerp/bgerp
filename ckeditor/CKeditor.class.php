@@ -22,47 +22,121 @@ class ckeditor_CKeditor extends core_BaseClass
      *
      * @return string
      */
-    public function renderHtml($tpl, $attr = array(), $options = array())
+    public function renderHtml($tpl, $attr = array())
     {
         $id = $attr['id'];
+        $tpl = new ET();
+        $tpl->prepend("<style>.ck p {margin:5px;}</style><textarea id=\"{$id}\"></textarea>");
+     
+          $tpl->appendOnce(
+              "\n<script type=\"text/javascript\" src=" .  '/sbf/bgerp/ckeditor/5.0.1/build/ckeditor.js'  . "></script>\n",
+              'HEAD'
+         );
+
+        //$tpl->appendOnce(
+        //    "\n<script src=\"https://cdn.ckeditor.com/ckeditor5/24.0.0/classic/ckeditor.js\"></script>\n",
+        //    'HEAD'
+        //);
         
-        if (!$tpl) {
-            $tpl = ht::createElement('textarea', $attr, $value, true);
+        setIfNot($lg, $attr['lang'], core_LG::getCurrent());
+        
+        static $a;
+
+        if(!$a) {
+            
+            $tpl->append("
+            <script>
+            const editors = {}; 
+            function ckeditorRun(id) {
+                ClassicEditor
+                .create( document.querySelector( '#'+id ), {
+                    mention: {
+                        feeds: [
+                            {
+                                marker: '@',
+                                feed: [ '@Barney', '@Lily', '@Marshall', '@Robin', '@Ted' ],
+                                minimumCharacters: 1
+                            }
+                        ]
+                    },
+                    toolbarLocation: 'bottom',
+                    toolbar: {
+                        items: [
+                            'heading',
+                            '|',
+                            'bold',
+                            'italic',
+                            'link',
+                            'bulletedList',
+                            'numberedList',
+                            '|',
+                            'indent',
+                            'outdent',
+                            '|',
+                            'imageUpload',
+                            'blockQuote',
+                            'insertTable',
+                            'undo',
+                            'redo',
+                            'highlight',
+                            'codeBlock',
+                            'code',
+                            'fontSize',
+                            'fontColor',
+                            'fontBackgroundColor',
+                            'horizontalLine',
+                            'alignment'
+                        ]
+                    },
+                    language: 'bg',
+                    image: {
+                        toolbar: [ 'imageTextAlternative', '|', 'imageStyle:alignLeft', 'imageStyle:full', 'imageStyle:alignRight' ],
+                        styles: [
+                 
+                'full',
+                 
+                'alignLeft',
+
+                 'alignRight'
+                                ],
+
+                    },
+                    table: {
+                        contentToolbar: [
+                            'tableColumn',
+                            'tableRow',
+                            'mergeTableCells'
+                        ]
+                    },
+                    licenseKey: '',
+                    resize_dir: 'both',
+                    
+                    
+                } )
+                .then( editor => {
+                    editors[id] = editor;
+                } )
+                .catch( error => {
+                    console.error( 'Oops, something went wrong!' );
+                    console.error( 'Please, report the following error on https://github.com/ckeditor/ckeditor5/issues with the build id and the error stack trace:' );
+                    console.warn( 'Build id: pcyqiuwvk4a1-iaq2y33nvkum' );
+                    console.error( error );
+                } );
+            }
+        </script>");
+            
+            if (isDebug()) {
+                $tpl->prepend("\n<!-- Начало на CKEDITOR редактора за полето '{$id}' -->\n");
+                $tpl->append("<!-- Край на CKEDITOR редактора за полето '{$id}' -->\n");
+            }
+        
+        
+
+            $a = 1;
+
         }
-        
-        if ($attr['style']) {
-            $tpl->prepend("<div style=\"{$attr['style']}\">");
-            $tpl->append('</div');
-        }
-        
-        $tpl->appendOnce(
-            '<script type="text/javascript" src=' . sbf('ckeditor/ckeditor.js') . "></script>\n",
-            'HEAD'
-        
-        );
-        
-        // $tpl->appendOnce(
-        // "<script type=\"text/javascript\" src=" . sbf("ckeditor/_samples/sample.js") . "></script>\n",
-        //  'HEAD');
-        
-        //  $tpl->appendOnce(
-        // "<link rel=\"stylesheet\" type=\"text/css\" href=" . sbf("ckeditor/_samples/sample.css") . ">\n",
-        // 'HEAD');
-        
-        setIfNot($options['language'], $attr['lang'], core_LG::getCurrent());
-        
-        $init = json_encode($options);
-        
-        $tpl->append("
-        <script>
-            CKEDITOR.replace( '{$id}', {$init} );
-        </script>\n");
-        
-        if (isDebug()) {
-            $tpl->prepend("\n<!-- Начало на CKEDITOR редактора за полето '{$id}' -->\n");
-            $tpl->append("<!-- Край на CKEDITOR редактора за полето '{$id}' -->\n");
-        }
-        
+
+        jquery_Jquery::run($tpl, "ckeditorRun('{$id}');");
         return $tpl;
     }
 }

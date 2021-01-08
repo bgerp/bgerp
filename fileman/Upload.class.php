@@ -257,6 +257,35 @@ class fileman_Upload extends core_Manager
         $tpl->appendOnce("var uploadUrl = {$uploadUrl}; var crossImgPng = {$crossImg}; var uploadErrStr = {$uploadErrStr}; var fileSizeErr = {$fileSizeErr}; var allowMultiupload = {$allowMultiUpload};", 'SCRIPTS');
         
         $tpl->push('fileman/js/upload.js', 'JS');
+
+        $tpl->appendOnce("window.addEventListener('paste', e => {
+                                                                        if (e.clipboardData.files && e.clipboardData.files.length) {
+                                                                            e.preventDefault();
+                                                                            var fileInput = document.getElementById('ulfile');
+                                                                            fileInput.files = e.clipboardData.files;
+                                                                            
+                                                                            afterSelectFile(fileInput, {$allowMultiUpload}, " . (int) $maxAllowedFileSize . ");
+                                                                            
+                                                                            document.getElementById('uploadBtn').click();
+                                                                            
+                                                                            return false;
+                                                                         }
+                                                                        });", 'SCRIPTS');
+
+        $tpl->appendOnce("window.addEventListener('dragover', function(e){e.preventDefault(); return false;}, false);
+                                  window.addEventListener('drop', function(e) {
+                                        e.preventDefault();
+                                        
+                                        var fileInput = document.getElementById('ulfile');
+                                                                                                    
+                                        fileInput.files = e.dataTransfer.files;
+                                        
+                                        afterSelectFile(fileInput, {$allowMultiUpload}, " . (int) $maxAllowedFileSize . ");
+                                        
+                                        document.getElementById('uploadBtn').click();
+                                        
+                                        return false;
+                                    }, false);", 'SCRIPTS');
         
         return $tpl;
     }

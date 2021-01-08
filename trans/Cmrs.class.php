@@ -412,7 +412,7 @@ class trans_Cmrs extends core_Master
     {
         $Contragent = cls::get($contragentClassId);
         $verbal = $Contragent->fetch($contragentId, 'pCode,place,address');
-        $contragentAddress = ($verbal->address) ? (transliterate(tr($verbal->address)) . ", ") : '';
+        $contragentAddress = ($verbal->address) ? (transliterate(tr($verbal->address)) . "\n") : '';
         $contragentAddress .= ($verbal->pCode) ? $verbal->pCode : '';
         $contragentAddress .= ($verbal->place) ? (' ' . transliterate(tr($verbal->place))) : '';
         
@@ -421,16 +421,11 @@ class trans_Cmrs extends core_Master
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);
 
         $contragentNumbers = '';
-        foreach (array('vatNo' => 'VAT ID', 'uicId' => 'TAX ID', 'egn' => 'EGN', 'eori' => 'EORI №') as $fld => $fldName){
-            if(!empty($cData->{$fld})){
-                if($fld == 'eori' && $hideEori){
-                    continue;
-                }
-                $contragentNumbers .= ((!empty($contragentNumbers)) ? ", " : "") . "{$fldName}: {$cData->{$fld}}";
-            }
+        if(!$hideEori && !empty($cData->eori)){
+            $contragentNumbers .= "EORI №: {$cData->eori}";
         }
 
-        $contragentData = trim($contragentName) . "\n" . trim($contragentAddress) . ", " . trim($contragentCountry) . ", " . trim($contragentNumbers);
+        $contragentData = trim($contragentName) . "\n" . trim($contragentAddress) . "\n" . trim($contragentCountry) . "\n" . trim($contragentNumbers);
         $contragentData = str_replace(',,', ',', $contragentData);
 
         return $contragentData;

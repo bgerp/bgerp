@@ -410,6 +410,8 @@ class ztm_Devices extends core_Master
      */
     public function prepareName($rec)
     {
+        $rec = $this->fetchRec($rec);
+
         if ($rec->accessGroupId) {
             $gRec = ztm_Groups::fetch($rec->accessGroupId);
             

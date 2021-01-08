@@ -25,7 +25,7 @@ class acs_ZoneIntf
     public function getCheckpoints()
     {
         
-        return $this->class->getCheckpoints($rec);
+        return $this->class->getCheckpoints();
     }
     
     

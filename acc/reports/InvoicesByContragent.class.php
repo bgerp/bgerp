@@ -1095,7 +1095,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid * $dRec->rate;
             }
             if ($dRec->type != 'invoice') {
-                foreach ($dRec->dcPay as $k => $val) {
+                foreach ((array) $dRec->dcPay as $k => $val) {
                     $row->paidAmount .= core_Type::getByName('double(decimals=2)')->toVerbal($val->amount * $dcMark) . "</br>";
                 }
             } else {
@@ -1104,7 +1104,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
 
             if ($dRec->type != 'invoice') {
-                foreach ($dRec->dcPay as $k => $val) {
+                foreach ((array) $dRec->dcPay as $k => $val) {
                     $row->paidDates .= "<span class= 'small'>" . $Date->toVerbal($val->payDate) . '</span>' . "</br>";
                 }
             } else {

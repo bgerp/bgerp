@@ -1183,12 +1183,35 @@ class log_Browsers extends core_Master
     {
         $before = dt::addDays(-1 * (log_Setup::get('EMPTY_BRID_KEEP_DAYS') / (24 * 3600)));
 
-        $res = $this->delete(array("#createdOn <= '[#1#]' AND #createdBy <= 0 AND #userData IS NULL", $before));
+        $query = $this->getQuery();
+        $query->where(array("#createdOn <= '[#1#]' AND #createdBy <= 0 AND #userData IS NULL", $before));
+        $query->orWhere(array("#brid IS NULL", $before));
+        $query->orWhere(array("#brid = ''", $before));
 
-        if ($res) {
-            $this->logNotice("Бяха изтрити {$res} записа");
+        $query->show('id, brid');
+        $rCnt = 0;
 
-            return "Бяха изтрити {$res} записа от " . $this->className;
+        while ($rec = $query->fetch()) {
+
+            // Ако има история - да не се изтрива
+            if (strlen($rec->brid) && vislog_History::fetch(array("#brid = '[#1#]'", $rec->brid))) {
+
+                continue;
+            }
+
+            // Ако има логване - да не се изтрива
+            if (strlen($rec->brid) && core_LoginLog::fetch(array("#brid = '[#1#]'", $rec->brid))) {
+
+                continue;
+            }
+
+            $rCnt += $this->delete(array("#id = '[#1#]'", $rec->id));
+        }
+
+        if ($rCnt) {
+            $this->logNotice("Бяха изтрити {$rCnt} записа");
+
+            return "Бяха изтрити {$rCnt} записа от " . $this->className;
         }
     }
 }

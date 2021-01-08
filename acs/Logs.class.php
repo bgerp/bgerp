@@ -67,7 +67,7 @@ class acs_Logs extends core_Manager
      * 
      * @var string
      */
-    protected $allowedTypes = 'allowed=Разрешен достъп,denied=Забранен достъп,movement=Движение в зоната,empty=Зоната е празна,
+    public $allowedTypes = 'allowed=Разрешен достъп,denied=Забранен достъп,movement=Движение в зоната,empty=Зоната е празна,
                                 openedDoor=Отворена врата,closedDoor=Затворена врата,openedWindow=Отворен прозорец, closedWindow=Затворен прозорец,
                                 floor=Наводнение,fire=Пожар,unknown=Непознат';
     
@@ -79,16 +79,19 @@ class acs_Logs extends core_Manager
         $this->FLD('time', 'datetime(format=smartTime)', 'caption=Време');
         $this->FLD('companyId', 'key(mvc=crm_Companies, select=name, allowEmpty)', 'caption=Фирма');
         $this->FLD('personId', 'key(mvc=crm_Persons, select=name, allowEmpty)', 'caption=Лице');
-        $this->FLD('cardId', 'varchar', 'caption=Карта, refreshForm'); //@todo
+        $this->FLD('cardId', 'varchar(128)', 'caption=Карта'); //@todo
         $this->FLD('zoneId', 'key(mvc=acs_Zones, select=name, allowEmpty)', 'caption=Зона');
         $this->FLD('type', 'enum(,' .$this->allowedTypes . ')', 'caption=Вид');
-        
+        $this->FLD('readerId', 'varchar(64)', 'caption=Четец');
+
         $this->setDbIndex('time');
         $this->setDbIndex('companyId');
         $this->setDbIndex('personId');
         $this->setDbIndex('cardId');
         $this->setDbIndex('zoneId');
         $this->setDbIndex('type');
+
+        $this->setDbUnique('cardId, time');
     }
     
     
@@ -98,11 +101,12 @@ class acs_Logs extends core_Manager
      * @param string  $cardId
      * @param integer $zoneId
      * @param string  $type
-     * @param integer $timestamp
-     * @param integer $companyId
-     * @param integer $personId
+     * @param null|integer|double $timestamp
+     * @param string $readerId
+     * @param null|integer $companyId
+     * @param null|integer $personId
      */
-    public static function add($cardId, $zoneId, $type, $timestamp = null, $companyId = null, $personId = null)
+    public static function add($cardId, $zoneId, $type, $timestamp = null, $readerId = '', $companyId = null, $personId = null)
     {
         $me = cls::get(get_called_class());
         
@@ -132,8 +136,9 @@ class acs_Logs extends core_Manager
         $rec->cardId = $cardId;
         $rec->zoneId = $zoneId;
         $rec->type = $type;
-        
-        self::save($rec);
+        $rec->readerId = $readerId;
+
+        self::save($rec, null, 'IGNORE');
         
         if (!isset($companyId) && !isset($personId)) {
             self::logErr('Карта "' . $cardId . '" без собственик в зона "' . acs_Zones::getVerbal($zoneId, 'nameLoc') . '" с действие ' . mb_strtolower($allowedTypeArr[$type]), $rec->id);
@@ -196,6 +201,8 @@ class acs_Logs extends core_Manager
                 $data->query->where(array("#{$fName} = '[#1#]'", $rec->{$fName}));
             }
         }
+
+        $data->query->orderBy('time', 'DESC');
     }
     
     
@@ -205,5 +212,17 @@ class acs_Logs extends core_Manager
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $row->ROW_ATTR['class'] = "type-{$rec->type}";
+
+        if ($rec->companyId) {
+            if (crm_Companies::haveRightFor('single', $rec->companyId)) {
+                $row->companyId = crm_Companies::getLinkToSingle($rec->companyId, 'name');
+            }
+        }
+
+        if ($rec->personId) {
+            if (crm_Persons::haveRightFor('single', $rec->personId)) {
+                $row->personId = crm_Persons::getLinkToSingle($rec->personId, 'name');
+            }
+        }
     }
 }
