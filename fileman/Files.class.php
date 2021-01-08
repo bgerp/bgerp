@@ -2024,7 +2024,7 @@ class fileman_Files extends core_Master
         $linkBtn = ht::createLink(tr('Линк'), array('F', 'GetLink', 'fileHnd' => $fh, 'ret_url' => true), null, array('ef_icon' => 'img/16/link.png', 'title' => 'Генериране на линк за сваляне', 'class' => 'button'));
         $tpl->append($linkBtn);
         
-        if ($printAttr = $this->checkForPrintBnt($this, $fRec)) {
+        if ($printAttr = $this->checkForPrintBtn($this, $fRec)) {
             if (!$printAttr['disabled']) {
                 $printLink = ht::createLink(tr('Печат'), array($this, 'PrintFiles', 'fileHnd' => $fRec->fileHnd, 'ret_url' => true), $printAttr['warning'], array('ef_icon' => 'img/16/printer.png', 'target' => '_blank', 'title' => 'Печат на документа', 'class' => 'button', 'onclick' => 'if ($(".iw-mTrigger").contextMenu) {$(".iw-mTrigger").contextMenu("close");}'));
                 $tpl->append($printLink);
@@ -2309,7 +2309,7 @@ class fileman_Files extends core_Master
     /**
      * Проверява дали да се покаже бутона за печат. Предава и параметрите за бутона: warning, disabled
      */
-    public function checkForPrintBnt($mvc, $rec, $activeProcessing = false)
+    public function checkForPrintBtn($mvc, $rec, $activeProcessing = false)
     {
         $ext = self::getExt($rec->name);
         
@@ -2378,7 +2378,7 @@ class fileman_Files extends core_Master
             $data->toolbar->addBtn('Регенериране', array($mvc, 'Regenerate', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => true), 'id=btn-regenerate', 'ef_icon = img/16/recycle.png, title=Повторна обработка на файла, order=19.99, row=2');
         }
         
-        if ($printAttr = $this->checkForPrintBnt($mvc, $data->rec, true)) {
+        if ($printAttr = $this->checkForPrintBtn($mvc, $data->rec, true)) {
             $warning = $printAttr['warning'] ? ',warning = ' . $printAttr['warning'] : '';
             $data->toolbar->addBtn('Печат', array($mvc, 'PrintFiles', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => true), 'id=btnPrint, target=_blank', "ef_icon = img/16/printer.png, title=Печат на документа{$printAttr['disabled']}{$warning}");
         }
@@ -2394,13 +2394,13 @@ class fileman_Files extends core_Master
             
             // Вземаме масива с документите, които може да създаде
             $arrCreate = $className::getActionsForFile($fRec);
-            
+
             if (is_array($arrCreate)) {
                 // Обхождаме масива
                 foreach ($arrCreate as $id => $arr) {
-                    
+
                     // Ако има полета, създаваме бутона
-                    if (count($arr)) {
+                    if (count($arr) && $className::haveRightFor('add')) {
                         $data->toolbar->addBtn($arr['title'], $arr['url'], 'row=2,id=' . $id . ',ef_icon=' . $arr['icon'], $arr['btnParams']);
                     }
                 }

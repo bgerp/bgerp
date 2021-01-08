@@ -554,22 +554,22 @@ class store_InventoryNoteSummary extends doc_Detail
         $productIds = array_values($allProducts);
         
         $pQuery = cat_Products::getQuery();
-        $pQuery->show('isPublic,code,name,createdOn');
+        $pQuery->show('isPublic,code,name,createdOn,nameEn');
         $pQuery->in('id', $productIds);
         $tmpRecs = $pQuery->fetchAll();
         
         // Добавяме в река данни така че да ни е по-лесно за филтриране
+        $Varchar = core_Type::getByName('varchar');
         foreach ($data->recs as &$rec) {
             
             // Взимаме записа от кеша
             $pRec = $tmpRecs[$rec->productId];
-            
+            cat_Products::setCodeIfEmpty($pRec);
+
             // Вербализираме и нормализираме кода, за да можем да подредим по него
-            $rec->orderCode = cat_Products::getVerbal($pRec, 'code');
-            $rec->verbalCode = $rec->orderCode;
-            
-            // Вербализираме и нормализираме името, за да можем да подредим по него
-            $rec->orderName = cat_Products::getVerbal($pRec, 'name');
+            $rec->orderCode = $pRec->code;
+            $rec->verbalCode = $Varchar->toVerbal($pRec->code);
+            $rec->orderName = $Varchar->toVerbal(cat_Products::getDisplayName($pRec));
         }
     }
     
@@ -741,7 +741,8 @@ class store_InventoryNoteSummary extends doc_Detail
         
         // Проверяваме имали кеш за $data->rows
         
-        $cache = core_Cache::get("{$this->Master->className}_{$data->masterData->rec->id}", $key);
+        $cache = null;
+        core_Cache::get("{$this->Master->className}_{$data->masterData->rec->id}", $key);
         $cacheRows = !empty($data->listFilter->rec->search) ? false : true;
         if (!empty($data->listFilter->rec->search) || Mode::is('printing')) {
             $cacheRows = false;
