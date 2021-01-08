@@ -324,7 +324,7 @@ class store_InventoryNoteSummary extends doc_Detail
             
             $valior = dt::addDays(-1, $valior);
             $valior = dt::verbal2mysql($valior, false);
-            $dQuery->where("#valior <= '{$valior}' AND #valior IS NOT NULL");
+            //$dQuery->where("#valior <= '{$valior}' AND #valior IS NOT NULL");
             $dQuery->where("#state = 'pending'");
             if ($Doc instanceof store_TransfersDetails) {
                 $dQuery->EXT('fromStore', $Doc->Master->className, "externalName=fromStore,externalKey={$Doc->masterKey}");
@@ -348,7 +348,7 @@ class store_InventoryNoteSummary extends doc_Detail
                 }
             }
         }
-        
+
         return $res;
     }
     
@@ -420,7 +420,7 @@ class store_InventoryNoteSummary extends doc_Detail
             
             if (isset($rec) && $rec->isBatch !== true) {
                 $row->charge = static::renderCharge($rec);
-                
+                bp($pendingDocuments);
                 // Рендиране на заявките, в които участва артикула
                 if (countR($pendingDocuments[$rec->productId]) && !Mode::isReadOnly()) {
                     $btn = ht::createFnBtn('', null, null, array('class' => 'more-btn linkWithIcon warningContextMenu', 'title' => 'Заявки, в които е избран артикула'));
@@ -428,7 +428,7 @@ class store_InventoryNoteSummary extends doc_Detail
                     foreach ($pendingDocuments[$rec->productId] as $link) {
                         $bodyLayout->append("<div style='padding: 3px 5px 2px 0px;'>{$link}</div>", 'LI');
                     }
-                    $layoutHtml = new core_ET('[#btn#][#text#][#productId#]');
+                    $layoutHtml = new core_ET('[#btn#][#text#][#productId#]5555555555');
                     $layoutHtml->replace($btn, 'btn');
                     $layoutHtml->replace($bodyLayout, 'text');
                     $layoutHtml->replace($row->productId, 'productId');

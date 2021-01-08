@@ -57,7 +57,7 @@ class store_StockPlanning extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,productId,genericProductId,storeId,date,quantityIn,quantityOut,sourceId=Източник->Основен,reffId=Източник->Допълнителен,threadId=Нишка,createdOn';
+    public $listFields = 'id,productId,genericProductId,storeId,date,quantityIn,quantityOut,sourceId=Източник->Основен,reffId=Източник->Допълнителен,state=Източник->Състояние,threadId=Източник->Нишка,createdOn';
 
 
     /**
@@ -76,6 +76,7 @@ class store_StockPlanning extends core_Manager
         $this->FLD('reffClassId', 'class', 'caption=Втори източник->Клас,tdClass=leftCol');
         $this->FLD('reffId', 'key(mvc=doc_Containers,select=id)', 'caption=Втори източник->Ид,tdClass=leftCol');
         $this->FLD('threadId', 'int', 'caption=Източник->Нишка');
+        $this->FLD('state', 'enum(draft=Чернова, active=Активиран, ,pending=Заявка,rejected=Оттеглен, closed=Приключен, stopped=Спрян, wakeup=Събуден)', 'caption=Състояние, input=none');
 
         $this->setDbIndex('productId,storeId');
         $this->setDbIndex('sourceClassId,sourceId');
@@ -92,23 +93,23 @@ class store_StockPlanning extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-       $row->productId = cat_Products::getHyperlink($rec->productId, true);
+        $row->productId = cat_Products::getHyperlink($rec->productId, true);
+        if(isset($rec->genericProductId)){
+            $row->genericProductId = cat_Products::getHyperlink($rec->genericProductId, true);
+        }
 
-       if(isset($rec->genericProductId)){
-           $row->genericProductId = cat_Products::getHyperlink($rec->genericProductId, true);
-       }
+        if(isset($rec->storeId)){
+            $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
+        }
 
-       if(isset($rec->storeId)){
-           $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
-       }
+        $Source = cls::get($rec->sourceClassId);
+        $row->sourceId = $Source->hasPlugin('doc_DocumentPlg') ? $Source->getLink($rec->sourceId, 0) : $Source->getHyperlink($rec->sourceId, true);
+        $row->ROW_ATTR['class'] = "state-{$rec->state}";
 
-       $Source = cls::get($rec->sourceClassId);
-       $row->sourceId = $Source->hasPlugin('doc_DocumentPlg') ? $Source->getLink($rec->sourceId, 0) : $Source->getHyperlink($rec->sourceId, true);
-
-       if(isset($rec->reffClassId) && isset($rec->reffId)){
-           $SecondSource = cls::get($rec->reffClassId);
-           $row->reffId = $SecondSource->hasPlugin('doc_DocumentPlg') ? $SecondSource->getLink($rec->reffId, 0) : $SecondSource->getHyperlink($rec->reffId, true);
-       }
+        if(isset($rec->reffClassId) && isset($rec->reffId)){
+            $SecondSource = cls::get($rec->reffClassId);
+            $row->reffId = $SecondSource->hasPlugin('doc_DocumentPlg') ? $SecondSource->getLink($rec->reffId, 0) : $SecondSource->getHyperlink($rec->reffId, true);
+        }
     }
 
 
@@ -152,9 +153,19 @@ class store_StockPlanning extends core_Manager
         $Class = cls::get($class);
         $classId = $Class->getClassId();
         $now = dt::now();
-        $threadId = (cls::haveInterface('doc_DocumentIntf', $Class)) ? $Class->fetchField($id, 'threadId') : null;
 
-        array_walk($array, function($a) use ($now, $classId, $threadId, $id) {$a->createdOn = $now; $a->sourceClassId = $classId; $a->sourceId = $id; $a->threadId = $threadId;});
+        if(cls::haveInterface('doc_DocumentIntf', $Class)){
+            $sourceRec = $Class->fetch($id, 'threadId,state');
+            $threadId = $sourceRec->threadId;
+            $state = $sourceRec->state;
+        } else {
+            $threadId = $state = null;
+            if($Class->getField('state', false)){
+                $state = $Class->fetchField($id, 'state');
+            }
+        }
+
+        array_walk($array, function($a) use ($now, $classId, $threadId, $id, $state) {$a->createdOn = $now; $a->sourceClassId = $classId; $a->sourceId = $id; $a->threadId = $threadId; $a->state = $state;});
     }
 
 
@@ -368,19 +379,6 @@ class store_StockPlanning extends core_Manager
         }
 
         return $res;
-    }
-
-
-    function act_Test()
-    {
-        $storeId = 21;
-        $date = null;
-        $productId = 4328;//1330
-        $date = '2021-02-06';
-
-        $r = store_Products::getRec($productId, $storeId, $date);
-
-        bp($r);
     }
 }
 
