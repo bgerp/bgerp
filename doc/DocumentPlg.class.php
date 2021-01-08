@@ -1493,6 +1493,8 @@ class doc_DocumentPlg extends core_Plugin
                         }
                     }
                 }
+
+                $fileNavArr[$fh]['cid'] = $dRec->containerId;
             }
             
             // Добавяме новите стойности

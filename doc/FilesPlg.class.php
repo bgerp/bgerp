@@ -225,7 +225,18 @@ class doc_FilesPlg extends core_Plugin
         
         // Извличаме всички, със съответното id
         $query->where("#dataId = '{$rec->dataId}'");
-        
+
+        $navArr = Mode::get('fileNavArr');
+        if ($navArr && $navArr[$rec->fileHnd]) {
+            $fNavArr = $navArr[$rec->fileHnd];
+
+            if ($fNavArr['cid']) {
+                $cid = (int) $fNavArr['cid'];
+                $query->XPR('containerOrder', 'int', "IF((#containerId = '{$cid}'), 1, 2)");
+                $query->orderBy('containerOrder', 'ASC');
+            }
+        }
+
         // Как да са подредени резултатите
         $query->orderBy('containerId', 'ASC');
         
