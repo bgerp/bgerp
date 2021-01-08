@@ -421,7 +421,7 @@ class trans_Cmrs extends core_Master
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);
 
         $contragentNumbers = '';
-        if(!$hideEori){
+        if(!$hideEori && !empty($cData->eori)){
             $contragentNumbers .= "EORI №: {$cData->eori}";
         }
 
