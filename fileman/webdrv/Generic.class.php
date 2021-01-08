@@ -440,25 +440,29 @@ class fileman_webdrv_Generic extends core_Manager
             
             $linkText .= "\n";
         }
-        
-        try {
-            // Опитваме се да вземем, документите, в които се използва файла
-            $documentWithFile = fileman_Files::getDocumentsWithFile($fRec, static::$metaInfoDocLimit);
-            $documentWithFile2 = doc_Linked::getListView('file', $fRec->id, 'file', true, 20);
-            
-            if ($documentWithFile && $documentWithFile2) {
-                $documentWithFile .= "\n" . $documentWithFile2;
+
+        $documentWithFile = '';
+
+        if (haveRole('powerUser')) {
+            try {
+                // Опитваме се да вземем, документите, в които се използва файла
+                $documentWithFile = fileman_Files::getDocumentsWithFile($fRec, static::$metaInfoDocLimit);
+                $documentWithFile2 = doc_Linked::getListView('file', $fRec->id, 'file', true, 20);
+
+                if ($documentWithFile && $documentWithFile2) {
+                    $documentWithFile .= "\n" . $documentWithFile2;
+                }
+
+                if (!$documentWithFile && $documentWithFile2) {
+                    $documentWithFile = $documentWithFile2;
+                }
+            } catch (core_exception_Expect $e) {
+                // Няма да се показват документите
             }
-            
-            if (!$documentWithFile && $documentWithFile2) {
-                $documentWithFile = $documentWithFile2;
-            }
-        } catch (core_exception_Expect $e) {
-            // Няма да се показват документите
         }
-        
+
         $dangerRate = '';
-        if (fileman_Files::isDanger($fRec, 0.00001)) {
+        if (haveRole('powerUser') && fileman_Files::isDanger($fRec, 0.00001)) {
             $dangerRate = fileman_Files::getVerbal($fRec, 'dangerRate');
             $dangerRate = '<span class = "dangerFile">' . tr('Ниво на опасност|*: ') . $dangerRate . "</span>\n";
         }
@@ -488,14 +492,18 @@ class fileman_webdrv_Generic extends core_Manager
             // Добавяме към съдържанието на инфо
             $sizeText .= "\n";
         }
-        
-        // Информация за създаването
-        $createdOn = fileman_Files::getVerbal($fRec, 'createdOn');
-        $createdBy = fileman_Files::getVerbal($fRec, 'createdBy');
-        
-        // Показване на създаването
-        $createdText = tr("|Добавен на|* : {$createdOn} |от|* {$createdBy}") . "\n";
-        
+
+        $createdText = '';
+
+        if (haveRole('powerUser')) {
+            // Информация за създаването
+            $createdOn = fileman_Files::getVerbal($fRec, 'createdOn');
+            $createdBy = fileman_Files::getVerbal($fRec, 'createdBy');
+
+            // Показване на създаването
+            $createdText = tr("|Добавен на|*: {$createdOn} |от|* {$createdBy}") . "\n";
+        }
+
         // Добавяме в текста
         $content = $dangerRate . $containsIn . $createdText . $sizeText . $linkText . core_Type::escape($content);
         
