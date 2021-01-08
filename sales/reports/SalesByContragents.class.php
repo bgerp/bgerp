@@ -720,7 +720,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     reportException($e);
                 }
             }
-        } else {bp($dRec);
+        } else {
             if ($dRec->contragentId) {
                 try {
                     $contragentClassName = $dRec->contragentClassName;
