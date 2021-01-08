@@ -242,9 +242,11 @@ class planning_Jobs extends core_Master
         
         $this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Количество->Произведено,notNull,value=0');
         $this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Количество->Заскладено,notNull,value=0');
-        $this->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки');
         $this->FLD('tolerance', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.1)', 'caption=Толеранс,silent');
         $this->FLD('department', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
+        $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Забележки');
+
         $this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Данни от договора->Условие');
         $this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Данни от договора->Място');
@@ -256,8 +258,8 @@ class planning_Jobs extends core_Master
                 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен, stopped=Спрян, wakeup=Събуден)',
                 'caption=Състояние, input=none'
         );
+
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'input=hidden,silent,caption=Продажба');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
         $this->FLD('sharedUsers', 'userList(roles=planning|ceo)', 'caption=Споделяне->Потребители,autohide');
         $this->FLD('history', 'blob(serialize, compress)', 'caption=Данни,input=none');
         
@@ -1036,7 +1038,9 @@ class planning_Jobs extends core_Master
                 if (!acc_Items::isItemInList('sales_Sales', $rec->saleId, 'costObjects')) {
                     $listId = acc_Lists::fetchBySystemId('costObjects')->id;
                     acc_Items::force('sales_Sales', $rec->saleId, $listId);
-                    doc_ExpensesSummary::save((object) array('containerId' => sales_Sales::fetchField($rec->saleId, 'containerId')));
+
+                    $costObj = (object) array('containerId' => sales_Sales::fetchField($rec->saleId, 'containerId'));
+                    doc_ExpensesSummary::save($costObj);
                 }
             }
         }
@@ -1230,7 +1234,7 @@ class planning_Jobs extends core_Master
     /**
      * Помощен метод подготвящ опциите за създаване на задача към задание
      *
-     * @param int $jobRec - към кое задание
+     * @param stdRec $rec - към кое задание
      *
      * @return array $options - масив с опции при създаване на задача
      */
@@ -1280,8 +1284,6 @@ class planning_Jobs extends core_Master
     
     /**
      * Интерфейсен метод на hr_IndicatorsSourceIntf
-     *
-     * @param datetime $date
      *
      * @return array $result
      */
