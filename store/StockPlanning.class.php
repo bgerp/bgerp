@@ -76,7 +76,7 @@ class store_StockPlanning extends core_Manager
         $this->FLD('reffClassId', 'class', 'caption=Втори източник->Клас,tdClass=leftCol');
         $this->FLD('reffId', 'key(mvc=doc_Containers,select=id)', 'caption=Втори източник->Ид,tdClass=leftCol');
         $this->FLD('threadId', 'int', 'caption=Източник->Нишка');
-        $this->FLD('state', 'enum(draft=Чернова, active=Активиран, ,pending=Заявка,rejected=Оттеглен, closed=Приключен, stopped=Спрян, wakeup=Събуден)', 'caption=Състояние, input=none');
+        $this->FLD('state', 'enum(draft=Чернова, active=Активиран, waiting=Чакащи, pending=Заявка,rejected=Оттеглен, closed=Приключен, stopped=Спрян, wakeup=Събуден)', 'caption=Състояние, input=none');
 
         $this->setDbIndex('productId,storeId');
         $this->setDbIndex('sourceClassId,sourceId');
