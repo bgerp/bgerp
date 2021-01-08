@@ -136,25 +136,29 @@ class store_Products extends core_Detail
         foreach ($data->rows as $id => &$row) {
             $rec = &$data->recs[$id];
             $row->productId = cat_Products::getVerbal($rec->productId, 'name');
+
             $icon = cls::get('cat_Products')->getIcon($rec->productId);
             $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId), false, "ef_icon={$icon}");
             $pRec = cat_Products::fetch($rec->productId, 'code,isPublic,createdOn');
             $row->code = cat_Products::getVerbal($pRec, 'code');
-            
+            $rec->measureId = cat_Products::fetchField($rec->productId, 'measureId');
+
             if ($isDetail) {
                    
                 // Показване на запазеното количество
-                $basePack = key(cat_Products::getPacks($rec->productId));
-                if ($pRec = cat_products_Packagings::getPack($rec->productId, $basePack)) {
-                    $rec->quantity /= $pRec->quantity;
-                    $row->quantity = $mvc->getFieldType('quantity')->toVerbal($rec->quantity);
-                    foreach (array('reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin') as $fld){
-                        if (isset($rec->{$fld})) {
-                            $rec->{$fld} /= $pRec->quantity;
+                if($data->masterMvc instanceof cat_Products){
+                    $basePack = key(cat_Products::getPacks($rec->productId));
+                    if ($pRec = cat_products_Packagings::getPack($rec->productId, $basePack)) {
+                        $rec->quantity /= $pRec->quantity;
+                        $row->quantity = $mvc->getFieldType('quantity')->toVerbal($rec->quantity);
+                        foreach (array('reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin') as $fld){
+                            if (isset($rec->{$fld})) {
+                                $rec->{$fld} /= $pRec->quantity;
+                            }
                         }
                     }
+                    $rec->measureId = $basePack;
                 }
-                $rec->measureId = $basePack;
                 
                 // Линк към хронологията
                 if (acc_BalanceDetails::haveRightFor('history')) {
@@ -166,8 +170,6 @@ class store_Products extends core_Detail
                     $histUrl['ent3Id'] = null;
                     $row->history = ht::createLink('', $histUrl, null, 'title=Хронологична справка,ef_icon=img/16/clock_history.png');
                 }
-            } else {
-                $rec->measureId = cat_Products::fetchField($rec->productId, 'measureId');
             }
             
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
