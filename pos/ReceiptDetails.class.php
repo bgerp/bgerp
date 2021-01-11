@@ -265,9 +265,13 @@ class pos_ReceiptDetails extends core_Detail
                     } else {
 
                         // Проверка дали количеството е допустимо
-                        $errorQuantity = null;
-                        if (!pos_Receipts::checkQuantity($rec, $errorQuantity)) {
+                        $errorQuantity = $warningQuantity = null;
+                        if (!pos_Receipts::checkQuantity($rec, $errorQuantity, $warningQuantity)) {
                             expect(false, $errorQuantity);
+                        }
+
+                        if(!empty($warningQuantity)){
+                            core_Statuses::newStatus($warningQuantity, 'warning');
                         }
                     }
                     
@@ -338,11 +342,14 @@ class pos_ReceiptDetails extends core_Detail
                    }
                    
                    // Проверка дали количеството е допустимо
-                   $errorQuantity = null;
-                   if (!pos_Receipts::checkQuantity($rec, $errorQuantity)) {
+                   $errorQuantity = $warningQuantity = null;
+                   if (!pos_Receipts::checkQuantity($rec, $errorQuantity, $warningQuantity)) {
                        expect(false, $errorQuantity);
                    }
-                   
+
+                   if(!empty($warningQuantity)){
+                       core_Statuses::newStatus($warningQuantity, 'warning');
+                   }
                    break;
                case 'setstore':
                    if($productRec->canStore != 'yes'){
@@ -354,9 +361,13 @@ class pos_ReceiptDetails extends core_Detail
                    $rec->storeId = $firstValue;
                    
                    // Проверка дали количеството е допустимо
-                   $errorQuantity = null;
-                   if (!pos_Receipts::checkQuantity($rec, $errorQuantity)) {
+                   $errorQuantity = $warningQuantity = null;
+                   if (!pos_Receipts::checkQuantity($rec, $errorQuantity, $warningQuantity)) {
                        expect(false, $errorQuantity);
+                   }
+
+                   if(!empty($warningQuantity)){
+                       core_Statuses::newStatus($warningQuantity, 'warning');
                    }
                    
                    break;
@@ -584,10 +595,15 @@ class pos_ReceiptDetails extends core_Detail
                 }
             }
             
-            $error = '';
-            if ($rec->_canStore == 'yes' && !pos_Receipts::checkQuantity($rec, $error)) {
+            $error = $warningQuantity = null;
+            if ($rec->_canStore == 'yes' && !pos_Receipts::checkQuantity($rec, $error, $warningQuantity)) {
                 expect(false, $error);
             }
+
+            if(!empty($warningQuantity)){
+                core_Statuses::newStatus($warningQuantity, 'warning');
+            }
+
             expect(!(!empty($receiptRec->revertId) && ($receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT) && abs($originProductRec->quantity) < abs($rec->quantity)), "Количеството е по-голямо от продаденото|* " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
             $rec->param = cat_Products::getVat($rec->productId, dt::now());
             

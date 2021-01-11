@@ -645,12 +645,13 @@ class pos_Receipts extends core_Master
     /**
      * Проверка на количеството
      *
-     * @param stdClass $rec
-     * @param string   $error
+     * @param stdClass    $rec
+     * @param string      $error
+     * @param string|null $warning
      *
      * @return bool
      */
-    public static function checkQuantity($rec, &$error)
+    public static function checkQuantity($rec, &$error, &$warning = null)
     {
         // Ако е забранено продаването на неналични артикули да се проверява
         $notInStockChosen = pos_Setup::get('ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK');
@@ -660,7 +661,9 @@ class pos_Receipts extends core_Master
         }
 
         $pRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
-        $quantityInStock = store_Products::getRec($rec->productId, $rec->storeId)->free;
+        $sRec = store_Products::getRec($rec->productId, $rec->storeId);
+        $quantityInStock = $sRec->quantity;
+        $freeQuantity = $sRec->free;
 
         // Ако има положителна наличност
         if(core_Packs::isInstalled('batch') && $quantityInStock > 0){
@@ -682,14 +685,20 @@ class pos_Receipts extends core_Master
 
         $quantityInPack = ($pRec) ? $pRec->quantity : 1;
         $quantityInStock -= round($rec->quantity * $quantityInPack, 2);
+        $freeQuantity -= round($rec->quantity * $quantityInPack, 2);
+        $freeQuantity = round($freeQuantity, 2);
         $quantityInStock = round($quantityInStock, 2);
-        
+
         if ($quantityInStock < 0) {
             $error = "Количеството не е налично в склад|*: " . store_Stores::getTitleById($rec->storeId);
             
             return false;
         }
-        
+
+        if($freeQuantity < 0 ){
+            $warning = "Количеството e над минималното разполагаемо в склад|*: " . store_Stores::getTitleById($rec->storeId);
+        }
+
         return true;
     }
     
