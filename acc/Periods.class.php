@@ -838,7 +838,7 @@ class acc_Periods extends core_Manager
     public static function getNextAvailableDateIfNeeded($date)
     {
         $pRec = acc_Periods::fetchByDate($date);
-        if ($pRec->state == 'closed') {
+        if (is_object($pRec) && $pRec->state == 'closed') {
 
             // Кой е първия свободен период
             $pQuery = acc_Periods::getQuery();

@@ -256,7 +256,7 @@ abstract class deals_ClosedDeals extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        $form->FNC('valiorStrategy', 'enum(,auto=Най-голям вальор в нишката,createdOn=Дата на създаване)', 'caption=Вальор,mandatory,input,before=notes');
+        $form->FNC('valiorStrategy', 'enum(,auto=Най-голям вальор към сделката,createdOn=Дата на създаване)', 'caption=Вальор,mandatory,input,before=notes');
 
         $rec = &$form->rec;
         if(!empty($rec->valior)){
