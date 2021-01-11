@@ -357,7 +357,7 @@ abstract class deals_ClosedDeals extends core_Master
             $DocClass->save($firstRec, 'modifiedOn,state,closedOn');
             
             if (empty($saveFileds)) {
-                $rec->amount = $mvc::getClosedDealAmount($rec->threadId);
+                $rec->amount = $mvc->getClosedDealAmount($rec->threadId);
                 $mvc->save($rec, 'amount');
             }
         }
@@ -401,7 +401,7 @@ abstract class deals_ClosedDeals extends core_Master
         $mvc->notificateDealUsedForClosure($id);
     }
     
-    
+
     /**
      * Конвертира един запис в разбираем за човека вид
      * Входният параметър $rec е оригиналният запис от модела
@@ -409,30 +409,37 @@ abstract class deals_ClosedDeals extends core_Master
      */
     public static function recToVerbal_($rec, &$fields = '*')
     {
+        $me = cls::get(get_called_class());
         $row = parent::recToVerbal_($rec, $fields);
         
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
-        
         $costAmount = $incomeAmount = 0;
-        
-        if ($rec->state == 'active') {
-            if (round($rec->amount, 2) > 0) {
-                $incomeAmount = $rec->amount;
-                $costAmount = 0;
-            } elseif (round($rec->amount, 2) < 0) {
-                $costAmount = $rec->amount;
-                $incomeAmount = 0;
-            }
-            
-            $Double = cls::get('type_Double');
-            $Double->params['decimals'] = 2;
+
+        if($rec->state == 'draft'){
+            $rec->amount = $me->getLiveAmount($rec);
         }
-        
+
+        if (round($rec->amount, 2) > 0) {
+            $incomeAmount = $rec->amount;
+            $costAmount = 0;
+        } elseif (round($rec->amount, 2) < 0) {
+            $costAmount = $rec->amount;
+            $incomeAmount = 0;
+        }
+
+        $Double = core_Type::getByName('double(decimals=2)');
         $row->costAmount = $Double->toVerbal(abs($costAmount));
         $row->incomeAmount = $Double->toVerbal(abs($incomeAmount));
+
+        if($rec->state == 'draft'){
+            $row->costAmount = ht::styleNumber($row->costAmount, abs($costAmount), 'blue');
+            $row->costAmount = ht::createHint($row->costAmount, 'Сумата ще бъде записана при контиране');
+            $row->incomeAmount = ht::styleNumber($row->incomeAmount, abs($incomeAmount), 'blue');
+            $row->incomeAmount = ht::createHint($row->incomeAmount, 'Сумата ще бъде записана при контиране');
+        }
+
         $row->currencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
-        
         $row->title = static::getLink($rec->id, 0);
         $row->docId = cls::get($rec->docClassId)->getLink($rec->docId, 0);
         
@@ -704,5 +711,54 @@ abstract class deals_ClosedDeals extends core_Master
         
         // и връщаме намерената дата
         return $date;
+    }
+
+
+    /**
+     * Връща разликата с която ще се приключи сделката
+     *
+     * @param mixed $threadId - ид на нишката или core_ObjectReference
+     *                        към първия документ в нишката
+     *
+     * @return float $amount - разликата на платеното и експедираното
+     */
+    protected function getClosedDealAmount($threadId)
+    {
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        $jRecs = acc_Journal::getEntries(array($firstDoc->getInstance(), $firstDoc->that));
+
+        $cost = acc_Balances::getBlAmounts($jRecs, $this->incomeAndCostAccounts['debit'], 'debit')->amount;
+        $inc = acc_Balances::getBlAmounts($jRecs, $this->incomeAndCostAccounts['credit'], 'credit')->amount;
+
+        // Разликата между платеното и доставеното
+        return $inc - $cost;
+    }
+
+
+    /**
+     * Колко ще бъде разликата между прихода и разхода
+     *
+     * @param $rec
+     * @return int|mixed
+     */
+    protected function getLiveAmount($rec)
+    {
+        $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $this);
+        $transaction = $transactionSource->getTransaction($rec);
+        $cost = $inc = 0;
+
+        if(is_array($transaction->entries)){
+            foreach ($transaction->entries as $entry){
+                if($entry['debit'][0] == $this->incomeAndCostAccounts['debit']){
+                    $cost += $entry['amount'];
+                }
+
+                if($entry['credit'][0] == $this->incomeAndCostAccounts['credit']){
+                    $inc += $entry['amount'];
+                }
+            }
+        }
+
+        return $inc - $cost;
     }
 }
