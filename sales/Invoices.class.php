@@ -243,8 +243,8 @@ class sales_Invoices extends deals_InvoiceMaster
         $this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)', 'caption=Статус, input=none');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
-        $this->FLD('template', 'key(mvc=doc_TplManager,select=name)', 'caption=Допълнително->Изглед44,notChangeableByContractor,silent,removeAndRefreshForm=additionalInfo');
-        $this->FNC('selectInvoiceText', 'enum(,private=Частно,public=Общо,both=Частно и общо)', 'input,caption=Допълнително->Други условия,removeAndRefreshForm=additionalInfo,silent,before=additionalInfo');
+        $this->FLD('template', 'key(mvc=doc_TplManager,select=name)', 'caption=Допълнително->Изглед,notChangeableByContractor,silent,removeAndRefreshForm=additionalInfo');
+        $this->FNC('selectInvoiceText', 'enum(,private=Частно,public=Общо,both=Частно и общо)', 'caption=Допълнително->Други условия,removeAndRefreshForm=additionalInfo,silent,before=additionalInfo');
         $this->setField('contragentCountryId', 'removeAndRefreshForm=additionalInfo');
 
         $this->setDbUnique('number');
@@ -409,6 +409,12 @@ class sales_Invoices extends deals_InvoiceMaster
         }
 
         core_Lg::pop();
+
+        $invTextPrivate = cond_Parameters::getParameter($firstRec->contragentClassId, $firstRec->contragentId, 'invoiceText');
+        $invTextPublic = cond_Countries::getParameterByCountryId($rec->contragentCountryId, 'invoiceText');
+        if(!empty($invTextPrivate) && !empty($invTextPublic)){
+            $form->setField('selectInvoiceText', 'input');
+        }
 
         // Ако има дефолтен текст за фактура добавяме и него
         if(in_array($rec->selectInvoiceText, array('private', 'both'))){
