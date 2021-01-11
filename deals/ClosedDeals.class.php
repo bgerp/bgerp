@@ -256,8 +256,13 @@ abstract class deals_ClosedDeals extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        
         $form->FNC('valiorStrategy', 'enum(,auto=Най-голям вальор в нишката,createdOn=Дата на създаване)', 'caption=Вальор,mandatory,input,before=notes');
+
+        $rec = &$form->rec;
+        if(!empty($rec->valior)){
+            $form->setDefault('valiorStrategy', 'createdOn');
+        }
+        $form->setDefault('valiorStrategy', 'auto');
     }
     
     
@@ -643,16 +648,15 @@ abstract class deals_ClosedDeals extends core_Master
     /**
      * Намиране на най-големия вальор в треда на приключващия документ
      *
-     * @param stdClass $rec
+     * @param int $threadId
      *
-     * @return datetime
+     * @return date $dates
      */
-    public function getBiggestValiorInThread($rec)
+    protected function getBiggestValiorInThread($rec)
     {
         $dates = array();
         $rec = $this->fetchRec($rec);
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-        
         if ($firstDoc->haveInterface('acc_TransactionSourceIntf')) {
             $dates[] = $firstDoc->fetchField($firstDoc->getInstance()->valiorFld);
         }
@@ -691,25 +695,11 @@ abstract class deals_ClosedDeals extends core_Master
     {
         // Намираме най-голямата дата от намерените
         $date = $this->getBiggestValiorInThread($rec);
-        
-        // Ако периода на избраната дата е затворен, вальора става датата на документа
-        $pRec = acc_Periods::fetchByDate($date);
-        if ($pRec->state == 'closed' || empty($date)) {
-            
-            // Намираме първия валиден период, след този на датата
-            $pQuery = acc_Periods::getQuery();
-            $pQuery->where("#state = 'active' OR #state = 'pending'");
-            $pQuery->where("#id > {$pRec->id}");
-            $pQuery->orderBy('start', 'DESC');
-            
-            // Ако има такъв връщаме му началната дата
-            if ($pRec2 = $pQuery->fetch()) {
-                $date = $pRec2->start;
-            } else {
-                
-                // Ако няма, датата на създаване на документа
-                $date = $rec->createdOn;
-            }
+
+        // Ако датата не е свободна, взима се първата свободна
+        $date =  acc_Periods::getNextAvailableDateIfNeeded($date);
+        if(empty($date)){
+            $date = $rec->createdOn;
         }
         
         // и връщаме намерената дата

@@ -827,4 +827,30 @@ class acc_Periods extends core_Manager
             krsort($res);
         }
     }
+
+
+    /**
+     * Връща първата свободна дата, ако периода на датата е затворен
+     *
+     * @param $date
+     * @return date
+     */
+    public static function getNextAvailableDateIfNeeded($date)
+    {
+        $pRec = acc_Periods::fetchByDate($date);
+        if ($pRec->state == 'closed') {
+
+            // Кой е първия свободен период
+            $pQuery = acc_Periods::getQuery();
+            $pQuery->where("#state = 'active' OR #state = 'pending'");
+            $pQuery->where("#id > {$pRec->id}");
+            $pQuery->orderBy('start', 'DESC');
+            if ($pRec2 = $pQuery->fetch()) {
+
+                return $pRec2->start;
+            }
+        }
+
+        return $date;
+    }
 }

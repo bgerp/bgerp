@@ -8,7 +8,7 @@
  * @package   findeals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -52,9 +52,9 @@ class findeals_transaction_Deal extends acc_DocumentTransactionSource
             $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
             
             $thisDealArr = array($accountSysId, array($rec->contragentClassId, $rec->contragentId),
-                array($this->class->className, ($rec->id) ? $rec->id : 0),
-                array('currency_Currencies', $currencyId),
-                'quantity' => $rec->baseAmount,);
+                                                array($this->class->className, ($rec->id) ? $rec->id : 0),
+                                                array('currency_Currencies', $currencyId),
+                                               'quantity' => $rec->baseAmount,);
             
             $correspondingArr = array($correspondingSysId);
             $baseAmount = $rec->baseAmount * $rec->currencyRate;
