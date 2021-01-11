@@ -662,9 +662,8 @@ class pos_Receipts extends core_Master
 
         $today = dt::today();
         $pRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
-        $sRec = store_Products::getRec($rec->productId, $rec->storeId, $today);
-        $quantityInStock = $sRec->quantity;
-        $freeQuantity = $sRec->free;
+        $quantityInStock = store_Products::getRec($rec->productId, $rec->storeId, $today)->free;
+        $freeQuantity = store_Products::getRec($rec->productId, $rec->storeId)->free;
 
         // Ако има положителна наличност
         if(core_Packs::isInstalled('batch') && $quantityInStock > 0){
