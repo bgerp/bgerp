@@ -72,9 +72,9 @@ class price_ListRules extends core_Detail
     
     
     /**
-     * Кой има право да добавя?
+     * Кой има право да изтрива?
      */
-    public $canDelete = 'no_one';
+    public $canDelete = 'ceo,sales,price';
     
     
     /**
@@ -853,11 +853,13 @@ class price_ListRules extends core_Detail
             $block = clone $tpl->getBlock('PRIORITY');
             $appendTable = true;
             $fRows = $data->{"rows{$priority}"};
-            
+
             $data->listFields['rule'] = 'Стойност';
             $table = cls::get('core_TableView', array('mvc' => $this));
+
             $toolbar = cls::get('core_Toolbar');
-            
+            $data->listFields = core_TableView::filterEmptyColumns($fRows, $data->listFields, '_rowTools');
+
             // Добавяме бутони за добавяне към всеки приоритет
             if ($priority == 1) {
                 $data->listFields['domain'] = 'Артикул';
