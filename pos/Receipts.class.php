@@ -662,7 +662,9 @@ class pos_Receipts extends core_Master
 
         $today = dt::today();
         $pRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
-        $quantityInStock = store_Products::getRec($rec->productId, $rec->storeId, $today)->free;
+        $stRec = store_Products::getRec($rec->productId, $rec->storeId, $today)->quantity;
+        $freeQuantityNow = $stRec->free;
+        $quantityInStock = $stRec->quantity;
         $freeQuantity = store_Products::getRec($rec->productId, $rec->storeId)->free;
 
         // Ако има положителна наличност
@@ -686,6 +688,9 @@ class pos_Receipts extends core_Master
         $quantityInPack = ($pRec) ? $pRec->quantity : 1;
         $quantityInStock -= round($rec->quantity * $quantityInPack, 2);
         $freeQuantity -= round($rec->quantity * $quantityInPack, 2);
+        $freeQuantityNow -= round($rec->quantity * $quantityInPack, 2);
+
+        $freeQuantityNow = round($freeQuantityNow, 2);
         $freeQuantity = round($freeQuantity, 2);
         $quantityInStock = round($quantityInStock, 2);
 
@@ -693,6 +698,10 @@ class pos_Receipts extends core_Master
             $error = "Количеството не е налично в склад|*: " . store_Stores::getTitleById($rec->storeId);
             
             return false;
+        }
+
+        if($freeQuantityNow < 0 ){
+            $warning = "Количеството e над разполагаемо днес в склад|*: " . store_Stores::getTitleById($rec->storeId);
         }
 
         if($freeQuantity < 0 ){
