@@ -245,6 +245,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
         $this->FLD('template', 'key(mvc=doc_TplManager,select=name)', 'caption=Допълнително->Изглед44,notChangeableByContractor,silent,removeAndRefreshForm=additionalInfo');
         $this->FNC('selectInvoiceText', 'enum(,private=Частно,public=Общо,both=Частно и общо)', 'input,caption=Допълнително->Други условия,removeAndRefreshForm=additionalInfo,silent,before=additionalInfo');
+        $this->setField('contragentCountryId', 'removeAndRefreshForm=additionalInfo');
 
         $this->setDbUnique('number');
     }
@@ -410,14 +411,13 @@ class sales_Invoices extends deals_InvoiceMaster
         core_Lg::pop();
 
         // Ако има дефолтен текст за фактура добавяме и него
-        $cData = doc_Folders::getContragentData($rec->folderId);
         if(in_array($rec->selectInvoiceText, array('private', 'both'))){
             if ($invTextPrivate = cond_Parameters::getParameter($firstRec->contragentClassId, $firstRec->contragentId, 'invoiceText')) {
                 $defInfo .= "\n" .$invTextPrivate;
             }
         }
         if(in_array($rec->selectInvoiceText, array('public', 'both'))) {
-            if ($invTextPublic = cond_Countries::getParameterByCountryId($cData->countryId, 'invoiceText')) {
+            if ($invTextPublic = cond_Countries::getParameterByCountryId($rec->contragentCountryId, 'invoiceText')) {
                 $defInfo .= "\n" .$invTextPublic;
             }
         }
