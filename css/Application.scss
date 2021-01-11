@@ -2296,9 +2296,16 @@ td.rowtools-column {
 	margin-bottom: 0;
 }
 
-.wide .singleView div:not(.folder-cover, .no-cover) .listTable {
+.wide .singleView div .listTable {
 	min-width: 800px;
 	width: 1%;
+}
+.wide .singleView div  {
+	&.folder-cover , &.user-profile,  &.no-cover {
+		.listTable {
+			min-width: auto;
+		}
+	}
 }
 
 pre.document {

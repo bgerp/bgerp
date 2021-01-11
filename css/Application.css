@@ -1987,10 +1987,14 @@ table.listTable.listAction>tbody>tr>td.wideColumn {
 .wide .document table.listTable {
   margin-bottom: 0; }
 
-.wide .singleView div:not(.folder-cover,
-.no-cover) .listTable {
+.wide .singleView div .listTable {
   min-width: 800px;
   width: 1%; }
+
+    .wide .singleView div.folder-cover .listTable,
+    .wide .singleView div.user-profile .listTable,
+    .wide .singleView div.no-cover .listTable {
+      min-width: auto; }
 
 pre.document {
   white-space: pre-line; }
@@ -3097,7 +3101,6 @@ span.sharing-history-title {
   margin: 0 auto; }
   #all #searchform {
     margin-bottom: 20px; }
-
 
 #all .filemanSingle {
   padding: 20px; }

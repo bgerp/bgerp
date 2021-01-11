@@ -243,10 +243,12 @@ class sales_Invoices extends deals_InvoiceMaster
         $this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)', 'caption=Статус, input=none');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
-        
+        $this->FLD('template', 'key(mvc=doc_TplManager,select=name)', 'caption=Допълнително->Изглед,notChangeableByContractor,silent,removeAndRefreshForm=additionalInfo');
+        $this->FNC('selectInvoiceText', 'enum(,private=Частно,public=Общо,both=Частно и общо)', 'caption=Допълнително->Други условия,removeAndRefreshForm=additionalInfo,silent,before=additionalInfo');
+        $this->setField('contragentCountryId', 'removeAndRefreshForm=additionalInfo');
+
         $this->setDbUnique('number');
     }
-    
     
     /**
      * Извиква се след SetUp-а на таблицата за модела
@@ -311,9 +313,17 @@ class sales_Invoices extends deals_InvoiceMaster
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        
         $defInfo = '';
-        
+
+        if(isset($rec->id)){
+            $form->setDefault('selectInvoiceText', 'inputed');
+        } else {
+            $form->setDefault('selectInvoiceText', 'both');
+        }
+
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+        $firstRec = $firstDoc->rec();
+
         if ($rec->sourceContainerId) {
             $Source = doc_Containers::getDocument($rec->sourceContainerId);
             if ($Source->isInstanceOf('sales_Proformas')) {
@@ -357,15 +367,12 @@ class sales_Invoices extends deals_InvoiceMaster
                 $form->setField('vatReason', 'mandatory');
             }
         }
-        
-        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-        $firstRec = $firstDoc->rec();
-        
+
         $tLang = doc_TplManager::fetchField($rec->template, 'lang');
         core_Lg::push($tLang);
-        
+
         $showSale = core_Packs::getConfigValue('sales', 'SALE_INVOICES_SHOW_DEAL');
-        
+
         if ($showSale == 'yes' && empty($rec->sourceContainerId)) {
             // Ако продажбата приключва други продажби също ги попълва в забележката
             if ($firstRec->closedDocuments) {
@@ -385,10 +392,10 @@ class sales_Invoices extends deals_InvoiceMaster
                 $valior = $firstDoc->getVerbal('valior');
                 Mode::pop('text');
                 $defInfo .= tr('Съгласно сделка') . ": #{$handle}/{$valior}";
-                
+
                 // Ако продажбата има референтен номер, попълваме го в забележката
                 if ($firstRec->reff) {
-                    
+
                     // Ако рефа е по офертата на сделката към която е фактурата
                     if (isset($firstRec->originId)) {
                         $origin = doc_Containers::getDocument($firstRec->originId);
@@ -400,14 +407,27 @@ class sales_Invoices extends deals_InvoiceMaster
                 }
             }
         }
-        
+
         core_Lg::pop();
-        
-        // Ако има дефолтен текст за фактура добавяме и него
-        if ($invText = cond_Parameters::getParameter($firstRec->contragentClassId, $firstRec->contragentId, 'invoiceText')) {
-            $defInfo .= "\n" .$invText;
+
+        $invTextPrivate = cond_Parameters::getParameter($firstRec->contragentClassId, $firstRec->contragentId, 'invoiceText');
+        $invTextPublic = cond_Countries::getParameterByCountryId($rec->contragentCountryId, 'invoiceText');
+        if(!empty($invTextPrivate) && !empty($invTextPublic)){
+            $form->setField('selectInvoiceText', 'input');
         }
-        
+
+        // Ако има дефолтен текст за фактура добавяме и него
+        if(in_array($rec->selectInvoiceText, array('private', 'both'))){
+            if ($invTextPrivate = cond_Parameters::getParameter($firstRec->contragentClassId, $firstRec->contragentId, 'invoiceText')) {
+                $defInfo .= "\n" .$invTextPrivate;
+            }
+        }
+        if(in_array($rec->selectInvoiceText, array('public', 'both'))) {
+            if ($invTextPublic = cond_Countries::getParameterByCountryId($rec->contragentCountryId, 'invoiceText')) {
+                $defInfo .= "\n" .$invTextPublic;
+            }
+        }
+
         // Задаваме дефолтния текст
         $form->setDefault('additionalInfo', $defInfo);
     }
