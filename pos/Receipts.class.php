@@ -660,8 +660,9 @@ class pos_Receipts extends core_Master
            return true;
         }
 
+        $today = dt::today();
         $pRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
-        $sRec = store_Products::getRec($rec->productId, $rec->storeId);
+        $sRec = store_Products::getRec($rec->productId, $rec->storeId, $today);
         $quantityInStock = $sRec->quantity;
         $freeQuantity = $sRec->free;
 
