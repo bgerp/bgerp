@@ -631,12 +631,6 @@ class planning_Jobs extends core_Master
             $pUrl = array('planning_ReturnNotes', 'add', 'threadId' => $rec->threadId, 'ret_url' => true);
             $data->toolbar->addBtn('Връщане', $pUrl, 'ef_icon = img/16/produce_out.png,title=Създаване на протокол за връщане към заданието');
         }
-        
-        if ($data->toolbar->haveButton('btnActivate')) {
-            if (self::fetchField("#productId = {$rec->productId} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup') AND #id != '{$rec->id}'")) {
-                $data->toolbar->setWarning('btnActivate', 'В момента има активно задание, желаете ли да създадете още едно?');
-            }
-        }
     }
     
     
@@ -662,7 +656,11 @@ class planning_Jobs extends core_Master
             if ($rec->dueDate < dt::today()) {
                 $form->setWarning('dueDate', 'Падежът е в миналото');
             }
-            
+
+            if (self::fetchField("#productId = {$rec->productId} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup') AND #id != '{$rec->id}'")) {
+                $form->setWarning('productId', 'В момента има активно задание, желаете ли да създадете още едно|*?');
+            }
+
             $productInfo = cat_Products::getProductInfo($form->rec->productId);
             $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
