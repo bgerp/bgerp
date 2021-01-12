@@ -685,6 +685,10 @@ class pos_Receipts extends core_Master
             }
         }
 
+        $originalQuantityInStock = $quantityInStock;
+        $originalFreeQuantityNow = $freeQuantityNow;
+        $originalFreeQuantity = $freeQuantity;
+
         $quantityInPack = ($pRec) ? $pRec->quantity : 1;
         $quantityInStock -= round($rec->quantity * $quantityInPack, 2);
         $freeQuantity -= round($rec->quantity * $quantityInPack, 2);
@@ -693,19 +697,26 @@ class pos_Receipts extends core_Master
         $freeQuantityNow = round($freeQuantityNow, 2);
         $freeQuantity = round($freeQuantity, 2);
         $quantityInStock = round($quantityInStock, 2);
+        $Double = core_Type::getByName('double(decimals=2)');
 
         if ($quantityInStock < 0) {
-            $error = "Количеството не е налично в склад|*: " . store_Stores::getTitleById($rec->storeId);
-            
+            $originalQuantityInStockVerbal = $Double->toVerbal($originalQuantityInStock);
+            $error = "Количеството не е налично в склад|*: {$quantityInStock} " . store_Stores::getTitleById($rec->storeId);
+            $warning .= ", |Налично в момента|* {$originalQuantityInStockVerbal}";
+
             return false;
         }
 
-        if($freeQuantityNow < 0 ){
-            $warning = "Количеството e над разполагаемо днес в склад|*: " . store_Stores::getTitleById($rec->storeId);
+        if($freeQuantityNow < 0){
+            $originalFreeQuantityNowVerbal = $Double->toVerbal($originalFreeQuantityNow);
+            $warning = "Количеството e над разполагаемото|* {$originalFreeQuantityNowVerbal} |днес в склад|*: " . store_Stores::getTitleById($rec->storeId);
+
+            return true;
         }
 
-        if($freeQuantity < 0 ){
-            $warning = "Количеството e над минималното разполагаемо в склад|*: " . store_Stores::getTitleById($rec->storeId);
+        if($freeQuantity < 0){
+            $originalFreeQuantityVerbal = $Double->toVerbal($originalFreeQuantity);
+            $warning = "Количеството e над минималното разполагаемото| {$originalFreeQuantityVerbal}|* в склад|*: " . store_Stores::getTitleById($rec->storeId);
         }
 
         return true;
