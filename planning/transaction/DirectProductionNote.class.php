@@ -133,8 +133,9 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             $dRecs = $dQuery->fetchAll();
             $rec->_details = $dRecs;
         }
-        
-        $entries = self::getProductionEntries($rec->productId, $rec->quantity, $rec->storeId, $rec->debitAmount, $this->class, $rec->id, $rec->expenseItemId, $rec->valior, $rec->expenses, $dRecs, $rec->jobQuantity);
+
+        $equalizePrimeCost = $rec->equalizePrimeCost == 'yes';
+        $entries = self::getProductionEntries($rec->productId, $rec->quantity, $rec->storeId, $rec->debitAmount, $this->class, $rec->id, $rec->expenseItemId, $rec->valior, $rec->expenses, $dRecs, $rec->jobQuantity, $equalizePrimeCost);
         
         return $entries;
     }
@@ -156,7 +157,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
      * 
      * @return array $entries
      */
-    public static function getProductionEntries($productId, $quantity, $storeId, $debitAmount, $classId, $documentId, $expenseItemId, $valior, $expenses, $details, $jobQuantity = null)
+    public static function getProductionEntries($productId, $quantity, $storeId, $debitAmount, $classId, $documentId, $expenseItemId, $valior, $expenses, $details, $jobQuantity = null, $equalizePrimeCost = null)
     {
         $entries = $array = array();
         $prodRec = cat_Products::fetch($productId, 'fixedAsset,canStore');
@@ -324,27 +325,29 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 
                 $entries[] = $costArray;
             }
-            
+
             if ($Driver = cat_Products::getDriver($productId)) {
-                $quantityCompare = !empty($jobQuantity) ? $jobQuantity : $quantity;
-                $driverCost = $Driver->getPrice($productId, $quantityCompare, 0, 0, $valior);
-              
-                $driverCost = is_object($driverCost) ? $driverCost->price : $driverCost;
-                
-                if (isset($driverCost)) {
-                    $driverAmount = $driverCost * $quantity;
-                    $diff = round($driverAmount - $selfAmount, 2);
-                    
-                    if ($diff > 0) {
-                        $array['quantity'] = 0;
-                        $array1 = array(
-                            'amount' => $diff,
-                            'debit' => $array,
-                            'credit' => array('61102'),
-                            'reason' => 'Изравняване на себестойността, спрямо очакваната'
-                        );
-                        
-                        $entries[] = $array1;
+                if($equalizePrimeCost){
+                    $quantityCompare = !empty($jobQuantity) ? $jobQuantity : $quantity;
+                    $driverCost = $Driver->getPrice($productId, $quantityCompare, 0, 0, $valior);
+
+                    $driverCost = is_object($driverCost) ? $driverCost->price : $driverCost;
+
+                    if (isset($driverCost)) {
+                        $driverAmount = $driverCost * $quantity;
+                        $diff = round($driverAmount - $selfAmount, 2);
+
+                        if ($diff > 0) {
+                            $array['quantity'] = 0;
+                            $array1 = array(
+                                'amount' => $diff,
+                                'debit' => $array,
+                                'credit' => array('61102'),
+                                'reason' => 'Изравняване на себестойността, спрямо очакваната'
+                            );
+
+                            $entries[] = $array1;
+                        }
                     }
                 }
             }
