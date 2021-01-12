@@ -264,8 +264,19 @@ abstract class deals_ClosedDeals extends core_Master
         }
         $form->setDefault('valiorStrategy', 'auto');
     }
-    
-    
+
+
+    /**
+     * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, $data)
+    {
+        if ($mvc->haveRightFor('conto', $data->form->rec)) {
+            $data->form->toolbar->addSbBtn('Контиране', 'autoConto', 'warning=Наистина ли желаете да контирате приключването|*?,ef_icon = img/16/tick-circle-frame.png,order=9.99985, title = Контиране на документа');
+        }
+    }
+
+
     /**
      * Преди показване на форма за добавяне/промяна
      */
@@ -276,6 +287,22 @@ abstract class deals_ClosedDeals extends core_Master
         $rec->docId = $firstDoc->that;
         $rec->docClassId = $firstDoc->getInstance()->getClassId();
         $rec->classId = $mvc->getClassId();
+
+        $liveAmount = $mvc->getLiveAmount($rec);
+        $Double = core_Type::getByName('double(decimals=2)');
+
+        // При редакция се показва очаквания, приход разход
+        if (round($liveAmount, 2) > 0) {
+            $incomeAmount = $liveAmount;
+            $form->info = tr('Извънреден приход|*: <b style="color:blue">') . $Double->toVerbal($incomeAmount) . "</b> " . acc_Periods::getBaseCurrencyCode();
+        } elseif (round($liveAmount, 2) < 0) {
+            $costAmount = abs($liveAmount);
+            $form->info = tr('Извънреден разход|*: <b style="color:blue">') . $Double->toVerbal($costAmount) . "</b> " . acc_Periods::getBaseCurrencyCode();
+        }
+
+        if($form->isSubmitted()){
+            $form->rec->_autoConto = true;
+        }
     }
     
     
@@ -345,7 +372,11 @@ abstract class deals_ClosedDeals extends core_Master
         // При активация на документа
         $oldRec = clone $rec;
         $rec = $mvc->fetch($id);
-        
+
+        if($oldRec->_autoConto){
+            $mvc->conto($rec);
+        }
+
         if ($rec->state == 'active') {
             
             // Пораждащия документ става closed
