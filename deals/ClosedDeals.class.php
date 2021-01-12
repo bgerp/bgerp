@@ -299,10 +299,6 @@ abstract class deals_ClosedDeals extends core_Master
             $costAmount = abs($liveAmount);
             $form->info = tr('Извънреден разход|*: <b style="color:blue">') . $Double->toVerbal($costAmount) . "</b> " . acc_Periods::getBaseCurrencyCode();
         }
-
-        if($form->isSubmitted()){
-            $form->rec->_autoConto = true;
-        }
     }
     
     
@@ -362,8 +358,24 @@ abstract class deals_ClosedDeals extends core_Master
             unset($data->toolbar->buttons['btnAdd']);
         }
     }
-    
-    
+
+
+    /**
+     * Пренасочва URL за връщане след запис към сингъл изгледа
+     */
+    protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+        // Ако се иска директно контиране редирект към екшъна за контиране
+        if ($data->form && $data->form->isSubmitted() && $data->form->cmd == 'autoConto') {
+            if ($mvc->haveRightFor('conto', $data->form->rec->id)){
+                $contoUrl = $mvc->getContoUrl($data->form->rec->id);
+                $contoUrl['ret_url'] = array($mvc, 'single', $data->form->rec->id);
+                $data->retUrl = toUrl($contoUrl);
+            }
+        }
+    }
+
+
     /**
      * Изпълнява се след запис
      */
@@ -373,12 +385,8 @@ abstract class deals_ClosedDeals extends core_Master
         $oldRec = clone $rec;
         $rec = $mvc->fetch($id);
 
-        if($oldRec->_autoConto){
-            $mvc->conto($rec);
-        }
-
         if ($rec->state == 'active') {
-            
+
             // Пораждащия документ става closed
             $DocClass = cls::get($rec->docClassId);
             $firstRec = $DocClass->fetch($rec->docId);
