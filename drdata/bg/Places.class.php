@@ -26,6 +26,11 @@ class drdata_bg_Places extends core_Master
      */
     public $singleTitle = 'Градиовете в България';
     
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = 'postcode,city,region,municipality,lat,lng';
+    
     
     /**
      * Плъгини за зареждане
@@ -51,10 +56,13 @@ class drdata_bg_Places extends core_Master
      */
     public function description()
     {
-        $this->FLD('city', 'varchar', 'caption=Град, mandatory');
-        $this->FLD('lat', 'double(minDecimals=4)', 'caption=Ширина');
-        $this->FLD('lng', 'double(minDecimals=4)', 'caption=Дължина');
-        $this->FLD('population', 'int(7,size=7)', 'caption=Популация');
+        $this->FLD('postcode', 'int(11)', 'caption=Пощенски код');
+        $this->FLD('type', 'varchar(6)', 'caption=Тип');
+        $this->FLD('city', 'varchar(255)', 'caption=Населено място, mandatory');
+        $this->FLD('region', 'varchar(255)', 'caption=Община');
+        $this->FLD('municipality', 'varchar(255)', 'caption=Област');
+        $this->FLD('lat', 'varchar(60)', 'caption=Ширина');
+        $this->FLD('lng', 'varchar(60)', 'caption=Дължина');
         
         $this->setDbUnique('city');
     }
@@ -66,7 +74,7 @@ class drdata_bg_Places extends core_Master
     public static function on_BeforeImportRec($mvc, $rec)
     {
         if (isset($rec->city)) {
-            $rec->city = $rec->city . ' ' . $rec->city;
+            $rec->city = $rec->type . ' ' . $rec->city;
         }
     }
     
@@ -76,8 +84,8 @@ class drdata_bg_Places extends core_Master
      */
     public static function on_AfterSetupMvc($mvc, &$res)
     {
-        $file = 'drdata/data/bgNew.csv';
-        $fields = array(0 => 'city', 1 => 'lat', 2 => 'lng', 3 => 'population');
+        $file = 'drdata/data/bgCities.csv';
+        $fields = array(0 => 'postcode', 1 => 'type', 2 => 'city', 3 => 'region', 4 => 'municipality', 5 => 'lat', 6 => 'lng');
         $cntObj = csv_Lib::largeImportOnceFromZero($mvc, $file, $fields);
         $res .= $cntObj->html;
     }
