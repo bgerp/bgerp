@@ -2442,6 +2442,8 @@ class fileman_Files extends core_Master
     {
         if (core_Users::isContractor()) {
             Mode::set('noWrapper', true);
+
+            return "<div class='filemanSingle'>" . parent::act_Single() . "</div>";
         }
 
         return parent::act_Single();

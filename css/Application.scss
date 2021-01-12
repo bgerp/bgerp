@@ -2277,11 +2277,6 @@ td.rowtools-column {
 	margin-bottom: 0;
 }
 
-.wide .singleView div:not(.folder-cover, .no-cover) .listTable {
-	min-width: 800px;
-	width: 1%;
-}
-
 pre.document {
 	white-space: pre-line;
 }
@@ -3596,6 +3591,23 @@ fieldset.sharing-history {
 	margin: 0 auto;
 	#searchform {
 		margin-bottom: 20px;
+	}
+}
+
+#all .filemanSingle {
+	padding: 20px;
+}
+.centerContent .filemanSingle {
+	padding: 20px 0;
+}
+
+.filemanSingle {
+	.webdrvTabBody, .webdrvFieldset {
+		width: 100% !important;
+		box-sizing: border-box;
+	}
+	.filePath {
+		margin-left: 5px;
 	}
 }
 
