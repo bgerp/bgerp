@@ -50,6 +50,12 @@ defIfNot('PLANNING_UNDEFINED_CENTER_DISPLAY_NAME', 'Неопределен');
 
 
 /**
+ * При произвеждане на артикул, да се изравнява ли му производната себестойност с очакваната
+ */
+defIfNot('PLANNING_PRODUCTION_PRODUCT_EQUALIZING_PRIME_COST', 'yes');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -106,6 +112,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_UNDEFINED_CENTER_DISPLAY_NAME' => array('varchar', 'caption=Неопределен център на дейност->Име'),
         'PLANNING_TASK_WEIGHT_TOLERANCE_WARNING' => array('percent', 'caption=Отчитане на теглото в ПО->Предупреждение'),
         'PLANNING_TASK_WEIGHT_MODE' => array('enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на теглото в ПО->Режим'),
+        'PLANNING_PRODUCTION_PRODUCT_EQUALIZING_PRIME_COST' => array('enum(yes=Включено,no=Изключено)', 'caption=Изравняване на себестойността на производим артикул->Режим'),
     );
     
     
