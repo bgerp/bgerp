@@ -256,11 +256,27 @@ abstract class deals_ClosedDeals extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        
-        $form->FNC('valiorStrategy', 'enum(,auto=Най-голям вальор в нишката,createdOn=Дата на създаване)', 'caption=Вальор,mandatory,input,before=notes');
+        $form->FNC('valiorStrategy', 'enum(,auto=Най-голям вальор към сделката,createdOn=Дата на създаване)', 'caption=Вальор,mandatory,input,before=notes');
+
+        $rec = &$form->rec;
+        if(!empty($rec->valior)){
+            $form->setDefault('valiorStrategy', 'createdOn');
+        }
+        $form->setDefault('valiorStrategy', 'auto');
     }
-    
-    
+
+
+    /**
+     * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, $data)
+    {
+        if ($mvc->haveRightFor('conto', $data->form->rec)) {
+            $data->form->toolbar->addSbBtn('Контиране', 'autoConto', 'warning=Наистина ли желаете да контирате приключването|*?,ef_icon = img/16/tick-circle-frame.png,order=9.99985, title = Контиране на документа');
+        }
+    }
+
+
     /**
      * Преди показване на форма за добавяне/промяна
      */
@@ -271,6 +287,18 @@ abstract class deals_ClosedDeals extends core_Master
         $rec->docId = $firstDoc->that;
         $rec->docClassId = $firstDoc->getInstance()->getClassId();
         $rec->classId = $mvc->getClassId();
+
+        $liveAmount = $mvc->getLiveAmount($rec);
+        $Double = core_Type::getByName('double(decimals=2)');
+
+        // При редакция се показва очаквания, приход разход
+        if (round($liveAmount, 2) > 0) {
+            $incomeAmount = $liveAmount;
+            $form->info = tr('Извънреден приход|*: <b style="color:blue">') . $Double->toVerbal($incomeAmount) . "</b> " . acc_Periods::getBaseCurrencyCode();
+        } elseif (round($liveAmount, 2) < 0) {
+            $costAmount = abs($liveAmount);
+            $form->info = tr('Извънреден разход|*: <b style="color:blue">') . $Double->toVerbal($costAmount) . "</b> " . acc_Periods::getBaseCurrencyCode();
+        }
     }
     
     
@@ -330,8 +358,24 @@ abstract class deals_ClosedDeals extends core_Master
             unset($data->toolbar->buttons['btnAdd']);
         }
     }
-    
-    
+
+
+    /**
+     * Пренасочва URL за връщане след запис към сингъл изгледа
+     */
+    protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+        // Ако се иска директно контиране редирект към екшъна за контиране
+        if ($data->form && $data->form->isSubmitted() && $data->form->cmd == 'autoConto') {
+            if ($mvc->haveRightFor('conto', $data->form->rec->id)){
+                $contoUrl = $mvc->getContoUrl($data->form->rec->id);
+                $contoUrl['ret_url'] = array($mvc, 'single', $data->form->rec->id);
+                $data->retUrl = toUrl($contoUrl);
+            }
+        }
+    }
+
+
     /**
      * Изпълнява се след запис
      */
@@ -340,9 +384,9 @@ abstract class deals_ClosedDeals extends core_Master
         // При активация на документа
         $oldRec = clone $rec;
         $rec = $mvc->fetch($id);
-        
+
         if ($rec->state == 'active') {
-            
+
             // Пораждащия документ става closed
             $DocClass = cls::get($rec->docClassId);
             $firstRec = $DocClass->fetch($rec->docId);
@@ -352,7 +396,7 @@ abstract class deals_ClosedDeals extends core_Master
             $DocClass->save($firstRec, 'modifiedOn,state,closedOn');
             
             if (empty($saveFileds)) {
-                $rec->amount = $mvc::getClosedDealAmount($rec->threadId);
+                $rec->amount = $mvc->getClosedDealAmount($rec->threadId);
                 $mvc->save($rec, 'amount');
             }
         }
@@ -396,7 +440,7 @@ abstract class deals_ClosedDeals extends core_Master
         $mvc->notificateDealUsedForClosure($id);
     }
     
-    
+
     /**
      * Конвертира един запис в разбираем за човека вид
      * Входният параметър $rec е оригиналният запис от модела
@@ -404,30 +448,37 @@ abstract class deals_ClosedDeals extends core_Master
      */
     public static function recToVerbal_($rec, &$fields = '*')
     {
+        $me = cls::get(get_called_class());
         $row = parent::recToVerbal_($rec, $fields);
         
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
-        
         $costAmount = $incomeAmount = 0;
-        
-        if ($rec->state == 'active') {
-            if (round($rec->amount, 2) > 0) {
-                $incomeAmount = $rec->amount;
-                $costAmount = 0;
-            } elseif (round($rec->amount, 2) < 0) {
-                $costAmount = $rec->amount;
-                $incomeAmount = 0;
-            }
-            
-            $Double = cls::get('type_Double');
-            $Double->params['decimals'] = 2;
+
+        if($rec->state == 'draft'){
+            $rec->amount = $me->getLiveAmount($rec);
         }
-        
+
+        if (round($rec->amount, 2) > 0) {
+            $incomeAmount = $rec->amount;
+            $costAmount = 0;
+        } elseif (round($rec->amount, 2) < 0) {
+            $costAmount = $rec->amount;
+            $incomeAmount = 0;
+        }
+
+        $Double = core_Type::getByName('double(decimals=2)');
         $row->costAmount = $Double->toVerbal(abs($costAmount));
         $row->incomeAmount = $Double->toVerbal(abs($incomeAmount));
+
+        if($rec->state == 'draft'){
+            $row->costAmount = ht::styleNumber($row->costAmount, abs($costAmount), 'blue');
+            $row->costAmount = ht::createHint($row->costAmount, 'Сумата ще бъде записана при контиране');
+            $row->incomeAmount = ht::styleNumber($row->incomeAmount, abs($incomeAmount), 'blue');
+            $row->incomeAmount = ht::createHint($row->incomeAmount, 'Сумата ще бъде записана при контиране');
+        }
+
         $row->currencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
-        
         $row->title = static::getLink($rec->id, 0);
         $row->docId = cls::get($rec->docClassId)->getLink($rec->docId, 0);
         
@@ -643,16 +694,15 @@ abstract class deals_ClosedDeals extends core_Master
     /**
      * Намиране на най-големия вальор в треда на приключващия документ
      *
-     * @param stdClass $rec
+     * @param int $threadId
      *
-     * @return datetime
+     * @return date $dates
      */
-    public function getBiggestValiorInThread($rec)
+    protected function getBiggestValiorInThread($rec)
     {
         $dates = array();
         $rec = $this->fetchRec($rec);
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-        
         if ($firstDoc->haveInterface('acc_TransactionSourceIntf')) {
             $dates[] = $firstDoc->fetchField($firstDoc->getInstance()->valiorFld);
         }
@@ -691,28 +741,63 @@ abstract class deals_ClosedDeals extends core_Master
     {
         // Намираме най-голямата дата от намерените
         $date = $this->getBiggestValiorInThread($rec);
-        
-        // Ако периода на избраната дата е затворен, вальора става датата на документа
-        $pRec = acc_Periods::fetchByDate($date);
-        if ($pRec->state == 'closed' || empty($date)) {
-            
-            // Намираме първия валиден период, след този на датата
-            $pQuery = acc_Periods::getQuery();
-            $pQuery->where("#state = 'active' OR #state = 'pending'");
-            $pQuery->where("#id > {$pRec->id}");
-            $pQuery->orderBy('start', 'DESC');
-            
-            // Ако има такъв връщаме му началната дата
-            if ($pRec2 = $pQuery->fetch()) {
-                $date = $pRec2->start;
-            } else {
-                
-                // Ако няма, датата на създаване на документа
-                $date = $rec->createdOn;
-            }
+
+        // Ако датата не е свободна, взима се първата свободна
+        $date =  acc_Periods::getNextAvailableDateIfNeeded($date);
+        if(empty($date)){
+            $date = $rec->createdOn;
         }
         
         // и връщаме намерената дата
         return $date;
+    }
+
+
+    /**
+     * Връща разликата с която ще се приключи сделката
+     *
+     * @param mixed $threadId - ид на нишката или core_ObjectReference
+     *                        към първия документ в нишката
+     *
+     * @return float $amount - разликата на платеното и експедираното
+     */
+    protected function getClosedDealAmount($threadId)
+    {
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        $jRecs = acc_Journal::getEntries(array($firstDoc->getInstance(), $firstDoc->that));
+
+        $cost = acc_Balances::getBlAmounts($jRecs, $this->incomeAndCostAccounts['debit'], 'debit')->amount;
+        $inc = acc_Balances::getBlAmounts($jRecs, $this->incomeAndCostAccounts['credit'], 'credit')->amount;
+
+        // Разликата между платеното и доставеното
+        return $inc - $cost;
+    }
+
+
+    /**
+     * Колко ще бъде разликата между прихода и разхода
+     *
+     * @param $rec
+     * @return int|mixed
+     */
+    protected function getLiveAmount($rec)
+    {
+        $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $this);
+        $transaction = $transactionSource->getTransaction($rec);
+        $cost = $inc = 0;
+
+        if(is_array($transaction->entries)){
+            foreach ($transaction->entries as $entry){
+                if($entry['debit'][0] == $this->incomeAndCostAccounts['debit']){
+                    $cost += $entry['amount'];
+                }
+
+                if($entry['credit'][0] == $this->incomeAndCostAccounts['credit']){
+                    $inc += $entry['amount'];
+                }
+            }
+        }
+
+        return $inc - $cost;
     }
 }

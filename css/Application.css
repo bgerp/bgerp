@@ -1971,11 +1971,6 @@ table.listTable.listAction>tbody>tr>td.wideColumn {
 .wide .document table.listTable {
   margin-bottom: 0; }
 
-.wide .singleView div:not(.folder-cover,
-.no-cover) .listTable {
-  min-width: 800px;
-  width: 1%; }
-
 pre.document {
   white-space: pre-line; }
 
@@ -3081,6 +3076,19 @@ span.sharing-history-title {
   margin: 0 auto; }
   #all #searchform {
     margin-bottom: 20px; }
+
+#all .filemanSingle {
+  padding: 20px; }
+
+.centerContent .filemanSingle {
+  padding: 20px 0; }
+
+  .filemanSingle .webdrvTabBody,
+  .filemanSingle .webdrvFieldset {
+    width: 100% !important;
+    box-sizing: border-box; }
+  .filemanSingle .filePath {
+    margin-left: 5px; }
 
 .wide #all {
   min-width: 500px; }

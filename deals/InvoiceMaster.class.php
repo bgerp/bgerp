@@ -109,11 +109,11 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $mvc->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
         $mvc->FLD('place', 'varchar(64)', 'caption=Място, class=contactData');
-        $mvc->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
-        $mvc->FLD('contragentId', 'int', 'input=hidden');
+        $mvc->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент,silent');
+        $mvc->FLD('contragentId', 'int', 'input=hidden,silent');
         $mvc->FLD('contragentName', 'varchar', 'caption=Контрагент->Име, mandatory, class=contactData');
         $mvc->FLD('responsible', 'varchar(255)', 'caption=Контрагент->Отговорник, class=contactData');
-        $mvc->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контрагент->Държава,mandatory,contragentDataField=countryId');
+        $mvc->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контрагент->Държава,mandatory,contragentDataField=countryId,silent');
         $mvc->FLD('contragentVatNo', 'drdata_VatType', 'caption=Контрагент->VAT №,contragentDataField=vatNo');
         $mvc->FLD('contragentEori', 'drdata_type_Eori', 'caption=Контрагент->EORI №,contragentDataField=eori');
         $mvc->FLD('uicNo', 'type_Varchar', 'caption=Контрагент->Национален №,contragentDataField=uicId');

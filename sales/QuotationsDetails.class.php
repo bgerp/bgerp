@@ -778,12 +778,6 @@ class sales_QuotationsDetails extends doc_Detail
                     
                     // Взависимост дали е опционален продукта го добавяме към определения шаблон
                     if ($optional == 'no') {
-                        
-                        // Ако искаме да не показваме отстъпката, махаме я
-                        if ($unsetDiscount === true) {
-                            unset($row->discount);
-                        }
-                        
                         $rowTpl = $dTpl->getBlock('ROW');
                         $id = &$dCount;
                     } else {

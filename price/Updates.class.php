@@ -83,7 +83,7 @@ class price_Updates extends core_Manager
         
         $this->FLD('costAdd', 'percent(Min=0,max=1)', 'caption=Добавка');
         $this->FLD('costAddAmount', 'double(Min=0,decimals=2)', "caption=Добавка|* (|Сума|*),unit=|*BGN (|добавя се твърдо|*)");
-        $this->FLD('minChange', 'percent(min=0,max=1)', 'caption=Мин. промяна');
+        $this->FLD('minChange', 'percent(Min=0,max=1)', 'caption=Мин. промяна');
         
         $this->FLD('costValue', 'double', 'input=none,caption=Себестойност');
         $this->FLD('updateMode', 'enum(manual=Ръчно,now=При изчисление,nextDay=Следващия ден,nextWeek=Следващата седмица,nextMonth=Следващия месец)', 'caption=Обновяване');

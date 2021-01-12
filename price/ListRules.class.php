@@ -72,9 +72,9 @@ class price_ListRules extends core_Detail
     
     
     /**
-     * Кой има право да добавя?
+     * Кой има право да изтрива?
      */
-    public $canDelete = 'no_one';
+    public $canDelete = 'ceo,sales,price';
     
     
     /**
@@ -853,19 +853,22 @@ class price_ListRules extends core_Detail
             $block = clone $tpl->getBlock('PRIORITY');
             $appendTable = true;
             $fRows = $data->{"rows{$priority}"};
-            
-            $data->listFields['rule'] = 'Стойност';
+            $fields = $data->listFields;
+
+            $fields['rule'] = 'Стойност';
             $table = cls::get('core_TableView', array('mvc' => $this));
+
             $toolbar = cls::get('core_Toolbar');
-            
+            $fields = core_TableView::filterEmptyColumns($fRows, $fields, '_rowTools');
+
             // Добавяме бутони за добавяне към всеки приоритет
             if ($priority == 1) {
-                $data->listFields['domain'] = 'Артикул';
+                $fields['domain'] = 'Артикул';
                 if ($display === true && $this->haveRightFor('add', (object) array('listId' => $masterRec->id))) {
                     $toolbar->addBtn('Стойност', array($this, 'add', 'type' => 'value', 'listId' => $masterRec->id, 'priority' => $priority,'ret_url' => true), null, 'title=Задаване на цена на артикул,ef_icon=img/16/wooden-box.png');
                 }
             } else {
-                $data->listFields['domain'] = 'Група';
+                $fields['domain'] = 'Група';
             }
             
             // Ако политиката наследява друга, може да се добавят правила за марж
@@ -889,12 +892,6 @@ class price_ListRules extends core_Detail
             if ($appendTable === true) {
                 $style = ($priority == 1) ? '' : 'margin-top:20px;margin-bottom:2px';
                 $block->append("<div style='{$style}'><b>{$title}</b></div>", 'TABLE');
-                
-                $fields = $data->listFields;
-                if (!countR($fRows)) {
-                    unset($fields['_rowTools']);
-                }
-                
                 $block->append($table->get($fRows, $fields), 'TABLE');
                 if (isset($data->{"pager{$priority}"})) {
                     $block->append($data->{"pager{$priority}"}->getHtml(), 'TABLE_PAGER');
