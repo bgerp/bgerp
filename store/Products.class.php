@@ -581,7 +581,7 @@ class store_Products extends core_Detail
      */
     protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        $data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field');
+        $data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field nowrap');
         $data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=centered');
         
         if (!countR($data->rows)) {
