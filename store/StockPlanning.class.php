@@ -57,7 +57,7 @@ class store_StockPlanning extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,productId,genericProductId,storeId,date,quantityIn,quantityOut,sourceId=Източник->Основен,reffId=Източник->Допълнителен,state=Източник->Състояние,threadId=Източник->Нишка,createdOn';
+    public $listFields = 'id,productId,genericProductId,storeId,date,quantityOut,quantityIn,sourceId=Източник->Основен,reffId=Източник->Допълнителен,state=Източник->Състояние,threadId=Източник->Нишка,createdOn';
 
 
     /**
@@ -356,7 +356,6 @@ class store_StockPlanning extends core_Manager
 
             // Обхождат се датите за, които има запланувани движение
             foreach ($datesObj as $date => $obj){
-                $sumReserved = $sumExpected = 0;
 
                 // Наличността към датата е сумата от предходните дати
                 $clone = clone $obj;
@@ -367,8 +366,8 @@ class store_StockPlanning extends core_Manager
                     }
                 });
 
-                // Колко ще е запазеното - очакваното
-                $total = round($obj->reserved - $obj->expected, 4);
+                // Колко ще е запазеното - очакваното (към вече сумираното за датата)
+                $total = round($clone->reserved - $clone->expected, 4);
 
                 // Намиране на датата, на която ще е максимално запазеното - очакваното
                 if(is_null($max) || round($max, 4) < $total){
