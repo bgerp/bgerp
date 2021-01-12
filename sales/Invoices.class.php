@@ -412,7 +412,7 @@ class sales_Invoices extends deals_InvoiceMaster
 
         $invTextPrivate = cond_Parameters::getParameter($firstRec->contragentClassId, $firstRec->contragentId, 'invoiceText');
         $invTextPublic = cond_Countries::getParameterByCountryId($rec->contragentCountryId, 'invoiceText');
-        if(!empty($invTextPrivate) && !empty($invTextPublic)){
+        if(!empty($invTextPrivate) && !empty($invTextPublic) && md5($invTextPrivate) != md5($invTextPublic)){
             $form->setField('selectInvoiceText', 'input');
         }
 
@@ -422,9 +422,14 @@ class sales_Invoices extends deals_InvoiceMaster
                 $defInfo .= "\n" .$invTextPrivate;
             }
         }
+
+        // Ако има дефолтен текст за държавата и е различен, добавя се и той
         if(in_array($rec->selectInvoiceText, array('public', 'both'))) {
             if ($invTextPublic = cond_Countries::getParameterByCountryId($rec->contragentCountryId, 'invoiceText')) {
-                $defInfo .= "\n" .$invTextPublic;
+                if(md5($invTextPrivate) != md5($invTextPublic)){
+                    $defInfo .= "\n" .$invTextPublic;
+                }
+
             }
         }
 
