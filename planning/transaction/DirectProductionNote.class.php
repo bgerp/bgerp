@@ -182,7 +182,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         
         if (is_array($details)) {
             if (!countR($details)) {
-                $debitAmount = ($debitAmount) ? $debitAmount : 0;
+                $debitAmount = ($debitAmount) ? round($debitAmount, 2) : 0;
                 
                 $amount = $debitAmount;
                 $costAmount = $debitAmount;
