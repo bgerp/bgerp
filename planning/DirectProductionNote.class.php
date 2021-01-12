@@ -202,7 +202,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $this->setField('deadline', 'caption=Информация->Срок до');
         $this->setField('storeId', 'caption=Информация->Засклаждане в,silent,removeAndRefreshForm');
         $this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Информация->Влагане от,input');
-        $this->FLD('debitAmount', 'double(smartRound)', 'input=none');
+        $this->FLD('debitAmount', 'double(decimals=2)', 'input=none');
         $this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,allowEmpty)', 'input=none,after=expenses,caption=Разходен обект / Продажба->Избор');
         
         $this->setField('note', 'caption=Информация->Бележки,after=deadline');
