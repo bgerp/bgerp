@@ -354,14 +354,18 @@ class trans_Cmrs extends core_Master
         // Има ли общо тегло в ЕН-то
         $weight = ($sRec->weightInput) ? $sRec->weightInput : $sRec->weight;
         if (!empty($weight)) {
+            Mode::push('text', 'plain');
             $weight = core_Type::getByName('cat_type_Weight')->toVerbal($weight);
+            Mode::pop('text');
             $form->setDefault('grossWeight1', $weight);
         }
         
         // Има ли общ обем в ЕН-то
         $volume = ($sRec->volumeInput) ? $sRec->volumeInput : $sRec->volume;
         if (!empty($weight)) {
+            Mode::push('text', 'plain');
             $volume = core_Type::getByName('cat_type_Volume')->toVerbal($volume);
+            Mode::pop('text');
             $form->setDefault('volume1', $volume);
         }
         
@@ -378,7 +382,7 @@ class trans_Cmrs extends core_Master
         if (isset($sRec->lineId)) {
             $lineRec = trans_Lines::fetch($sRec->lineId);
             if (isset($lineRec->forwarderId)) {
-                $carrierData = $this->getDefaultContragentData('crm_Companies', $lineRec->forwarderId);
+                $carrierData = $this->getDefaultContragentData('crm_Companies', $lineRec->forwarderId, true, true);
                 $form->setDefault('cariersData', $carrierData);
             }
             
