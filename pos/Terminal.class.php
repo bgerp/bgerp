@@ -1997,7 +1997,6 @@ class pos_Terminal extends peripheral_Terminal
             if ((isset($stock) && $stock <= 0)) {
                 $res[$id]->measureId = tr(cat_UoM::getSmartName($packId, 0));
                 $res[$id]->measureId = "<span class='notInStock'>0 {$res[$id]->measureId}</span>";
-                $res[$id]->measureId = ht::createHint($res[$id]->measureId, 'Няма наличност в момента');
             }
             
             $res[$id]->_groups = cat_Products::fetchField($id, 'groups');
