@@ -82,6 +82,7 @@ class store_StockPlanning extends core_Manager
         $this->setDbIndex('productId,storeId');
         $this->setDbIndex('sourceClassId,sourceId');
         $this->setDbIndex('threadId');
+        $this->setDbIndex('productId');
     }
 
 

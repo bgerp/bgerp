@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -74,8 +74,14 @@ class planning_GenericMapper extends core_Manager
      * Работен кеш
      */
     protected static $cache = array();
-    
-    
+
+
+    /**
+     * Кои полета да се извличат при изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'id,productId';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -477,6 +483,65 @@ class planning_GenericMapper extends core_Manager
         }
         
         return $selfValue;
+    }
+
+
+    /**
+     * Извиква се преди вкарване на запис в таблицата на модела
+     */
+    protected function on_BeforeSave(&$mvc, &$id, &$rec, $fields = null)
+    {
+        if(empty($rec->id)){
+            $rec->_updateHorizons = true;
+        } else {
+            $oldRec = $mvc->fetch($rec->id, '*', false);
+            if($oldRec->genericProductId != $rec->genericProductId || $oldRec->productId != $rec->productId){
+                $rec->_updateHorizons = true;
+            }
+        }
+    }
+
+
+    /**
+     * След изтриване в детайла извиква събитието 'AfterUpdateDetail' в мастъра
+     */
+    protected static function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    {
+        foreach ($query->getDeletedRecs() as $rec) {
+            self::updateStocksPlanningByProductId($rec);
+        }
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    protected static function on_AfterSave($mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        if($rec->_updateHorizons) {
+            self::updateStocksPlanningByProductId($rec);
+        }
+    }
+
+
+    /**
+     * Обновяване на себестойностите
+     *
+     * @param $rec
+     * @return void
+     */
+    private static function updateStocksPlanningByProductId($rec)
+    {
+        // В хоризонтите се обновява генеричния артикул на зададения
+        $Stocks = cls::get('store_StockPlanning');
+        $tableName = $Stocks->dbTableName;
+        $productIdColName = str::phpToMysqlName('productId');
+        $genericProductIdColName = str::phpToMysqlName('genericProductId');
+
+        $genericProductId = !empty($rec->genericProductId) ? $rec->genericProductId : "NULL";
+        $query = "UPDATE {$tableName} SET {$genericProductIdColName} = {$genericProductId} WHERE {$tableName}.{$productIdColName} = {$rec->productId}";
+
+        $Stocks->db->query($query);
     }
 }
     
