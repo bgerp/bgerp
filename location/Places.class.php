@@ -133,7 +133,7 @@ class location_Places extends core_Master
         list($latitudeFrom,$longitudeFrom)=explode(',', $closestBaseCoordinates);
         
         //Определяне на разстоянието от най–близката база до обекта
-        $distace = self::vincentyGreatCircleDistance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo);
+        $distance = self::vincentyGreatCircleDistance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo);
         
         //Определяне на азимута от най–близката база към обекта
         $angle = self::angleFromCoordinate($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo);
@@ -141,25 +141,25 @@ class location_Places extends core_Master
         //Вербализиране на посоката
         $direction = self::getDirection($angle);
         
-        if($distace > $closestBase->diameter){
+        if($distance > $closestBase->diameter){
             
-            if($distace < 1000){
+            if($distance < 1000){
                 
                 $measure = 'метра';
-                $distace = round($distace,0);
+                $distance = round($distance,0);
             }else{
                 
                 $measure = 'км.';
-                $distace = round($distace/1000,2);
+                $distance = round($distance/1000,2);
                 
             }
         }else{
             $measure = '';
-            $distace = 'в '.$closestBaseName;
+            $distance = 'в '.$closestBaseName;
             $direction = '';
         }
         
-        $position = is_numeric($distace) ? $distace.$measure.' / '.$direction.' от '.$closestBaseName :$distace;
+        $position = is_numeric($distance) ? $distance.$measure.' / '.$direction.' от '.$closestBaseName :$distance;
       
         return $position;
     }
