@@ -698,10 +698,11 @@ class pos_Receipts extends core_Master
         $freeQuantity = round($freeQuantity, 2);
         $quantityInStock = round($quantityInStock, 2);
         $Double = core_Type::getByName('double(decimals=2)');
+        $pName = cat_Products::getTitleById($rec->productId);
 
         if ($quantityInStock < 0) {
             $originalQuantityInStockVerbal = $Double->toVerbal($originalQuantityInStock);
-            $error = "Количеството не е налично в склад|*:" . store_Stores::getTitleById($rec->storeId);
+            $error = "|* {$pName}: |Количеството не е налично в склад|*: " . store_Stores::getTitleById($rec->storeId);
             $error .= ". |Налично в момента|* {$originalQuantityInStockVerbal}";
 
             return false;
@@ -709,14 +710,14 @@ class pos_Receipts extends core_Master
 
         if($freeQuantityNow < 0){
             $originalFreeQuantityNowVerbal = $Double->toVerbal($originalFreeQuantityNow);
-            $warning = "Количеството e над разполагаемото|* {$originalFreeQuantityNowVerbal} |днес в склад|*: " . store_Stores::getTitleById($rec->storeId);
+            $warning = "|* {$pName}: Количеството e над разполагаемото|* {$originalFreeQuantityNowVerbal} |днес в склад|*: " . store_Stores::getTitleById($rec->storeId);
 
             return true;
         }
 
         if($freeQuantity < 0){
             $originalFreeQuantityVerbal = $Double->toVerbal($originalFreeQuantity);
-            $warning = "Количеството e над минималното разполагаемото|* {$originalFreeQuantityVerbal} |в склад|*: " . store_Stores::getTitleById($rec->storeId);
+            $warning = "|* {$pName}: Количеството e над минималното разполагаемото|* {$originalFreeQuantityVerbal} |в склад|*: " . store_Stores::getTitleById($rec->storeId);
         }
 
         return true;

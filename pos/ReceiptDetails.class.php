@@ -591,7 +591,8 @@ class pos_ReceiptDetails extends core_Detail
             if($rec->_canStore == 'yes'){
                 $rec->storeId = isset($rec->storeId) ? $rec->storeId : $defaultStoreId;
                 if(empty($rec->storeId)){
-                    expect(false,  "Артикулът не е наличен в нито един склад свързан с POS-а");
+                    $pName = cat_Products::getTitleById($rec->productId);
+                    expect(false,  "|*{$pName}: |не е наличен в нито един склад свързан с POS-а|*");
                 }
             }
             

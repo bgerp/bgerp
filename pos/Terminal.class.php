@@ -1666,7 +1666,7 @@ class pos_Terminal extends peripheral_Terminal
      * 
      * @param stdClass $rec - записа на бележката
      * @param string $string - въведения стринг за търсене
-     * @param int $revertReceiptId - ид-то на бележката за сторниране
+     * @param stdClass|null $selectedRec - ид-то на бележката за сторниране
      * 
      * @return core_ET
      */
