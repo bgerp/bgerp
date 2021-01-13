@@ -203,7 +203,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             }
 
             //Код на продукта
-            list($productCode) = $prodRec->code;
+            $productCode = $prodRec->code;
 
             //Продукт ID
             $productId = $iRec->objectId;
