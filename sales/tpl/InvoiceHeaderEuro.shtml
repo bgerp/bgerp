@@ -48,14 +48,12 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                <tr>
                                     <td class="cell">
                                         [#/deals/tpl/InvoiceContragentVatHeaderInfo.shtml#]
                                     </td>
                                     <td class="cell">
                                         [#/deals/tpl/InvoiceMyCompanyVatHeaderInfo.shtml#]
                                     </td>
-                                </tr>
                                 </tr>
                             </tbody>
                         </table>
