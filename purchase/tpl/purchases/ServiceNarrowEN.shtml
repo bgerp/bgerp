@@ -125,9 +125,12 @@
 	                    <div>Created by: [#username#]</div>
 	                <!--ET_END username--> 
                  </td>
-                  
             </tr>
-            
+            <tr class='footerDocInfo'>
+                <td>
+                    [#/doc/tpl/Copyright.shtml#]
+                </td>
+            </tr>
         </tbody>
     </table>
 </div>

@@ -49,7 +49,22 @@
                                         [#/deals/tpl/InvoiceContragentVatHeaderInfo.shtml#]
                                     </td>
                                     <td class="cell">
-                                        [#/deals/tpl/InvoiceMyCompanyVatHeaderInfo.shtml#]
+                                        <table>
+                                            <tbody>
+                                                <!--ET_BEGIN MyCompanyVatNo-->
+                                                <tr>
+                                                    <td class="aright"><small>ЗДДС&nbsp;№:</small></td>
+                                                    <td><span class="bigData" style='padding-left:5px;'>[#MyCompanyVatNo#]</span></td>
+                                                </tr>
+                                                <!--ET_END MyCompanyVatNo-->
+                                                <!--ET_BEGIN uicId-->
+                                                <tr>
+                                                    <td class="aright"><small>ЕИК:</small></td>
+                                                    <td><span class="bigData" style='padding-left:5px;'>[#uicId#]</span></td>
+                                                </tr>
+                                                <!--ET_END uicId-->
+                                            </tbody>
+                                        </table>
                                     </td>
                                 </tr>
                             </tbody>
@@ -137,7 +152,7 @@
                                 </tr>
                                 <tr class='footerDocInfo'>
                                     <td colspan="2">
-                                         <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b></div>
+                                        [#/doc/tpl/Copyright.shtml#]
                                     </td>
                                 </tr>
                             </tbody>
