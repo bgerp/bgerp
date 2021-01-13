@@ -68,7 +68,7 @@ class dec_Statements extends core_Master
      */
     public function description()
     {
-        $this->FLD('title', 'varchar', 'caption=Заглавие, width=100%');
+        $this->FLD('title', 'varchar(32)', 'caption=Заглавие, width=100%');
         $this->FLD('text', 'richtext(bucket=Notes)', 'caption=Текст');
         
         $this->setDbUnique('title');
