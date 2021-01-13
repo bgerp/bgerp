@@ -367,4 +367,13 @@ class store_Stores extends core_Master
             $mvc->tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
         }
     }
+
+
+    /**
+     * Поставя изискване да се избират за предложения само активните записи
+     */
+    protected static function on_BeforePrepareSuggestions($mvc, &$suggestions, core_Type $type)
+    {
+        $type->params['where'] .= ($type->params['where'] ? ' AND ' : '') . " (#state != 'closed' AND #state != 'rejected')";
+    }
 }
