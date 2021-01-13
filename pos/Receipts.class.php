@@ -701,8 +701,8 @@ class pos_Receipts extends core_Master
 
         if ($quantityInStock < 0) {
             $originalQuantityInStockVerbal = $Double->toVerbal($originalQuantityInStock);
-            $error = "Количеството не е налично в склад|*: {$quantityInStock} " . store_Stores::getTitleById($rec->storeId);
-            $warning .= ", |Налично в момента|* {$originalQuantityInStockVerbal}";
+            $error = "Количеството не е налично в склад|*:" . store_Stores::getTitleById($rec->storeId);
+            $error .= ". |Налично в момента|* {$originalQuantityInStockVerbal}";
 
             return false;
         }
@@ -716,7 +716,7 @@ class pos_Receipts extends core_Master
 
         if($freeQuantity < 0){
             $originalFreeQuantityVerbal = $Double->toVerbal($originalFreeQuantity);
-            $warning = "Количеството e над минималното разполагаемото| {$originalFreeQuantityVerbal}|* в склад|*: " . store_Stores::getTitleById($rec->storeId);
+            $warning = "Количеството e над минималното разполагаемото|* {$originalFreeQuantityVerbal} |в склад|*: " . store_Stores::getTitleById($rec->storeId);
         }
 
         return true;

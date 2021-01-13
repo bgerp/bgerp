@@ -1117,7 +1117,7 @@ class pos_ReceiptDetails extends core_Detail
         $stores = pos_Points::getStores($pointId);
         $quantityArr = array();
         array_walk($stores, function($storeId) use(&$quantityArr, $productId) {
-            $quantityArr[$storeId] = store_Products::getRec($productId, $storeId)->free;
+            $quantityArr[$storeId] = store_Products::getRec($productId, $storeId)->quantity;
         });
         
         // Кой е основния склад и какво количество е в него
