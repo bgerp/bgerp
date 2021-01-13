@@ -241,7 +241,12 @@ class pos_ReceiptDetails extends core_Detail
                     } else {
                         expect($quantity > 0, 'Количеството трябва да е положително');
                     }
-                    
+
+                    $errorQuantity = null;
+                    if(!deals_Helper::checkQuantity($rec->value, $quantity, $errorQuantity)){
+                        expect(empty($errorQuantity), $errorQuantity);
+                    }
+
                     $rec->quantity = $quantity;
                    
                     if(!empty($secondValue)){
