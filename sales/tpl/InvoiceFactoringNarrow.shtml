@@ -110,7 +110,7 @@
         </tr>
         <tr class='footerDocInfo'>
             <td>
-                <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b></div>
+                [#/doc/tpl/Copyright.shtml#]
             </td>
         </tr>
         </tbody>

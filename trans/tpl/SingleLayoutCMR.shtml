@@ -276,8 +276,8 @@
                 </div>
             </div>
         </div>
-        <div class='footerDocBlock'  style="border: none !important; margin-top: 3px; margin-right: 20px;">
-            <div class='aright basicFontSize' >This document is created by <b><a href='http://bgerp.com'>bgERP</a></b></div>
+        <div class='footerDocBlock basicFontSize'  style="border: none !important; margin-top: 3px; margin-right: 20px;">
+            [#/doc/tpl/Copyright.shtml#]
         </div>
     </div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

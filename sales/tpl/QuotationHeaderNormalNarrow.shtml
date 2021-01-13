@@ -117,6 +117,6 @@
 	    </table>
     </div>
     <div class='footerDocBlock no-border-top'>
-        <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b></div>
+        [#/doc/tpl/Copyright.shtml#]
     </div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

@@ -145,6 +145,6 @@
    <!--ET_END PACKAGING_BTNS-->
 
    <div class='footerDocBlock'   style="border-top: none !important">
-      <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
+      [#/doc/tpl/Copyright.shtml#]
    </div>
 </div>
