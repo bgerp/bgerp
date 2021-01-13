@@ -187,19 +187,23 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
             $blQuantity = 0;
             $iRec = acc_Items::fetch($item->ent2Id);
-            $id = $iRec->objectId;
 
+            $prodClass = core_Classes::fetch($iRec->classId)->name;
+
+            $prodRec = $prodClass::fetch($iRec->objectId);
+
+            $id = $iRec->objectId;
 
             //Филтър по групи артикули
             if (isset($rec->group)) {
                 $checkGdroupsArr = keylist::toArray($rec->group);
-                if (!keylist::isIn($checkGdroupsArr, cat_Products::fetch($iRec->objectId)->groups)) {
+                if (!keylist::isIn($checkGdroupsArr, $prodRec->groups)) {
                     continue;
                 }
             }
 
             //Код на продукта
-            list($productCode) = explode(' ', $iRec->num);
+            list($productCode) = $prodRec->code;
 
             //Продукт ID
             $productId = $iRec->objectId;
@@ -292,7 +296,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
             if ($val->blQuantity > 0) {
                 $val->amount = $val->selfPrice * $val->blQuantity;
-            }else{
+            } else {
                 $val->amount = $val->blAmount;
             }
         }
