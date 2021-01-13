@@ -382,7 +382,7 @@ class core_Cache extends core_Manager
             
             $data = $rec->data;
             if (!is_object($rec->data)) {
-                if (ord($rec->data[0]) == 120 && ord($rec->data{1}) == 156) {
+                if (ord($rec->data[0]) == 120 && ord($rec->data[1]) == 156) {
                     $data = gzuncompress($data);
                 }
                 
