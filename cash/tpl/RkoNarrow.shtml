@@ -133,6 +133,11 @@
 			            </table>
 			         </td>
                </tr>
+              <tr class='footerDocInfo'>
+                  <td>
+                      [#/doc/tpl/Copyright.shtml#]
+                  </td>
+              </tr>
             </table>
         </div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

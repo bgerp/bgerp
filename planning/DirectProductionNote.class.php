@@ -593,7 +593,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $originRec = doc_Containers::getDocument($rec->originId)->rec();
         
         // Ако артикула има активна рецепта
-        $bomId = cat_Products::getLastActiveBom($rec->productId, 'production,sales')->id;
+        $bomId = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales')->id;
         
         // Ако ням рецепта, не могат да се определят дефолт детайли за влагане
         if (!$bomId) {

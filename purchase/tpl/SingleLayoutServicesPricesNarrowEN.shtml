@@ -53,7 +53,6 @@
         <table class="innerTable footer-notes" style='width:100%'>
             <tbody>
                 <tr>
-                   
                     <td class="topCell first vtop">
 	                     <!--ET_BEGIN deliveryInfo-->
 	                    [#deliveryInfo#]
@@ -88,6 +87,11 @@
                         <hr>
                         <div>Received: [#received#]</div>
                         <div>Delivered: [#delivered#]</div>
+                    </td>
+                </tr>
+                <tr class='footerDocInfo'>
+                    <td>
+                        [#/doc/tpl/Copyright.shtml#]
                     </td>
                 </tr>
             </tbody>

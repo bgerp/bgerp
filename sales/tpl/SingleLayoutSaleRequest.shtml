@@ -162,6 +162,11 @@
                         </table>
                     </td>
                 </tr>
+                <tr class='footerDocInfo'>
+                    <td colspan="3">
+                        [#/doc/tpl/Copyright.shtml#]
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
