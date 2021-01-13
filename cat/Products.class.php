@@ -1265,7 +1265,7 @@ class cat_Products extends embed_Manager
      */
     public static function getVat($productId, $date = null)
     {
-        expect(static::fetch($productId), 'Няма такъв артикул');
+        expect(static::fetchField($productId), 'Няма такъв артикул');
         if (!$date) {
             $date = dt::now();
         }

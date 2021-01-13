@@ -338,8 +338,8 @@ class price_Updates extends core_Manager
 
         // За всеки артикул
         foreach ($products as $productId) {
-            $pRec = cat_Products::fetch($productId);
-            
+            $pRec = cat_Products::fetch($productId, 'state,canStore,isPublic,canBuy,canManifacture');
+
             // Обновяване на себестойностите само ако артикула е складируем, публичен, активен, купуваем или производим
             if ($pRec->state != 'active' || $pRec->canStore != 'yes' || $pRec->isPublic != 'yes' || !($pRec->canBuy == 'yes' || $pRec->canManifacture == 'yes')) {
                 continue;
@@ -347,14 +347,13 @@ class price_Updates extends core_Manager
             
             // Опит за изчисление на себестойността според източниците
             $primeCost = $this->getPrimeCost($productId, $rec->sourceClass1, $rec->sourceClass2, $rec->sourceClass3, $rec->costAdd);
-            
+
             // Намира се старата му себестойност (ако има)
-            $oldPrimeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId);
             $primeCost = round($primeCost, 5);
 
             // Ако има изчислена ненулева себестойност
             if ($primeCost > 0) {
-                
+
                 // Добавяме надценката, ако има
                 $primeCost = $primeCost * (1 + $rec->costAdd);
                 if(!empty($rec->costAddAmount)){
@@ -362,7 +361,8 @@ class price_Updates extends core_Manager
                 }
                
                 $minChange = (isset($rec->minChange)) ? $rec->minChange : price_Setup::get('MIN_CHANGE_UPDATE_PRIME_COST');
-                
+                $oldPrimeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId);
+
                 // Ако старата себестойност е различна от новата
                 if (empty($oldPrimeCost) || abs(round($primeCost / $oldPrimeCost - 1, 2)) >= $minChange) {
                     

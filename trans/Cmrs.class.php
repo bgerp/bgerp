@@ -658,4 +658,24 @@ class trans_Cmrs extends core_Master
         $copyTpl->append($head[$copyNum], 'copyTitle');
         $copyTpl->append($colorClass[$copyNum], 'colorClass');
     }
+
+
+    /**
+     * Рендиране на изгледа
+     */
+    public function renderSingleLayout_(&$data)
+    {
+        // Ако се печата, форсира се английски език винаги, без значение езика от сесията
+        if(Mode::is('printing')){
+            core_Lg::push('en');
+        }
+
+        $tpl = parent::renderSingleLayout_($data);
+
+        if(Mode::is('printing')){
+            core_Lg::pop();
+        }
+
+        return $tpl;
+    }
 }
