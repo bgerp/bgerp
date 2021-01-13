@@ -1223,7 +1223,7 @@ class pos_Receipts extends core_Master
         $stores = pos_Points::getStores($pointId);
         $storeArr = array();
         foreach ($stores as $storeId){
-            $quantity = store_Products::getRec($productId, $storeId)->free;
+            $quantity = store_Products::getRec($productId, $storeId)->quantity;
             $storeArr[$storeId] = $quantity;
         }
 
