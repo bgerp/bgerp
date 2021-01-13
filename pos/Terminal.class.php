@@ -1651,7 +1651,12 @@ class pos_Terminal extends peripheral_Terminal
         $resObj2->func = 'clearStatuses';
         $resObj2->arg = array('type' => 'error');
         $res[] = $resObj2;
-        
+
+        $resObj3 = new stdClass();
+        $resObj3->func = 'clearStatuses';
+        $resObj3->arg = array('type' => 'warning');
+        $res[] = $resObj3;
+
         return $res;
     }
     
@@ -1989,9 +1994,10 @@ class pos_Terminal extends peripheral_Terminal
                 $res[$id]->measureId = tr(cat_UoM::getSmartName($packId));
             }
             
-            if ((isset($stock) && empty($stock))) {
+            if ((isset($stock) && $stock <= 0)) {
                 $res[$id]->measureId = tr(cat_UoM::getSmartName($packId, 0));
                 $res[$id]->measureId = "<span class='notInStock'>0 {$res[$id]->measureId}</span>";
+                $res[$id]->measureId = ht::createHint($res[$id]->measureId, 'Няма наличност в момента');
             }
             
             $res[$id]->_groups = cat_Products::fetchField($id, 'groups');
