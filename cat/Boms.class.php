@@ -468,9 +468,12 @@ class cat_Boms extends core_Master
                 // Ако има задания към артикула да се обновят запазените им количества
                 $jQuery = planning_Jobs::getQuery();
                 $jQuery->where("#productId = {$rec->productId} AND #state IN ('active', 'stopped', 'wakeup')");
-                $jQuery->show('id');
+                $jQuery->show('id,saleId');
                 while($jRec = $jQuery->fetch()){
                     store_StockPlanning::updateByDocument('planning_Jobs', $jRec->id);
+                    if($jRec->saleId){
+                        cls::get('sales_Sales')->updateStocksAfterSessionClose[$jRec->saleId] = $jRec->saleId;
+                    }
                 }
             }
         }

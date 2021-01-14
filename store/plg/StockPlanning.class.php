@@ -128,7 +128,6 @@ class store_plg_StockPlanning extends core_Plugin
                     // за да е сигурно, че ще се обнови след като всички задания са обновени
                     if($saleId = $mvc->fetchField($rec->id, 'saleId', false)){
                         cls::get('sales_Sales')->updateStocksAfterSessionClose[$saleId] = $saleId;
-                        core_Statuses::newStatus($saleId, 'warning');
                     }
                 }
             }
