@@ -1027,7 +1027,8 @@ div.acc-detail {
     background: #ffffee;
     width: auto;
     border-radius: 5px;
-    font-size: 15px; }
+    font-size: 15px;
+    color: black; }
     .additionalInfo-holder .additionalInfo.bottom {
       bottom: auto;
       top: 0; }
