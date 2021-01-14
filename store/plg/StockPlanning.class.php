@@ -120,13 +120,11 @@ class store_plg_StockPlanning extends core_Plugin
             if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)) {
                 if ($firstDocument->isInstanceOf('planning_Tasks')) {
                     $firstDocument = doc_Containers::getDocument($firstDocument->fetchField('originId'));
-                } elseif ($mvc instanceof deals_DealMaster || $firstDocument->isInstanceOf('findeals_Deals')) {
-                    $firstDocument = null;
-                } elseif ($mvc instanceof planning_Jobs) {
+                } elseif ($mvc instanceof deals_DealMaster || $firstDocument->isInstanceOf('findeals_Deals') || $mvc instanceof planning_Jobs) {
                     $firstDocument = null;
                 }
 
-                // Амк има първи документ в треда да му се обновят запазените
+                // Ако има първи документ в треда да му се обновят запазените
                 if (isset($firstDocument)) {
                     $firstDocument->getInstance()->updateStocksOnShutdown[$firstDocument->that] = $firstDocument->that;
                 }
